@@ -8,13 +8,23 @@ export interface Server {
   lastUpdate?: string
 }
 
+export interface ServerStatus {
+  cpu?: number
+  memory?: number
+  status?: 'running' | 'stopped' | 'error' | 'warning'
+  location?: string
+  services?: Record<string, boolean>
+  version?: string
+  uptime?: number
+}
+
 export interface MCPResponse {
   response: string
   category: string
   confidence: number
   cached?: boolean
   timestamp?: string
-  data?: any
+  data?: unknown
   queryAnalysis?: {
     isQuestion: boolean
     isCommand: boolean

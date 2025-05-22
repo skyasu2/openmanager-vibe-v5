@@ -1,4 +1,5 @@
 import { kv } from '@vercel/kv'
+import { MCPResponse, ServerStatus } from '../types'
 
 export class MCPStore {
   static async getResponse(query: string) {
@@ -10,7 +11,7 @@ export class MCPStore {
     }
   }
 
-  static async saveResponse(query: string, response: any) {
+  static async saveResponse(query: string, response: unknown) {
     try {
       await kv.setex(`mcp:${query}`, 3600, response)
       await kv.hincrby('stats', 'total_queries', 1)
@@ -22,7 +23,7 @@ export class MCPStore {
     }
   }
 
-  static async updateServerStatus(serverId: string, status: any) {
+  static async updateServerStatus(serverId: string, status: Record<string, unknown>) {
     try {
       await kv.hset(`server:${serverId}`, {
         ...status,
