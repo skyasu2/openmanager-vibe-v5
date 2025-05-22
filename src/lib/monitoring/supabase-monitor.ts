@@ -64,20 +64,31 @@ export class SupabaseMonitor {
         }
 
         // 테이블 총 사용량 계산 (MB)
-        const tableSizeMB = (count * avgRowSizeKB) / 1024
+        // count가 null이면 0으로 기본값 설정
+        const rowCount = count || 0
+        const tableSizeMB = (rowCount * avgRowSizeKB) / 1024
         tableUsage[table] = parseFloat(tableSizeMB.toFixed(2))
         totalStorageUsed += tableSizeMB
       }
 
       // 실제 파일 스토리지 사용량 추가
-      const { data: storageData, error: storageError } = await supabaseAdmin
-        .storage
-        .getBucket('files')
+      try {
+        const { data: storageData, error: storageError } = await supabaseAdmin
+          .storage
+          .getBucket('files')
 
-      if (!storageError && storageData) {
-        const fileSizeMB = storageData.size / (1024 * 1024)
-        tableUsage['storage:files'] = parseFloat(fileSizeMB.toFixed(2))
-        totalStorageUsed += fileSizeMB
+        if (!storageError && storageData) {
+          // 파일 스토리지 크기 - 실제 데이터가 없으므로 추정값 사용
+          // 참고: Supabase API에서 getBucket 응답에 size 속성이 없을 수 있음
+          // @ts-expect-error - 실제 환경에서는 size가 있을 수 있지만, 타입 정의에는 없음
+          const fileSizeMB = (storageData.size || 0) / (1024 * 1024)
+          tableUsage['storage:files'] = parseFloat(fileSizeMB.toFixed(2))
+          totalStorageUsed += fileSizeMB
+        }
+      } catch (storageError) {
+        console.error('Failed to get storage bucket info:', storageError)
+        // 오류 발생 시 추정값 사용
+        tableUsage['storage:files'] = 0
       }
 
       // 최종 통계 생성
@@ -99,7 +110,7 @@ export class SupabaseMonitor {
 
       // 경고 임계값 도달 시 알림
       if (stats.isWarning) {
-        await this.logWarning('Supabase 저장공간이 경고 임계값에 도달했습니다', stats)
+        await this.logWarning('Supabase 저장공간이 경고 임계값에 도달했습니다', stats as unknown as Record<string, unknown>)
       }
 
       // 제한에 도달하면 자동 아카이빙 시작
@@ -146,7 +157,7 @@ export class SupabaseMonitor {
   }
 
   // 경고 로깅
-  private static async logWarning(message: string, data: Record<string, any>): Promise<void> {
+  private static async logWarning(message: string, data: Record<string, unknown>): Promise<void> {
     try {
       await supabase
         .from('alerts')

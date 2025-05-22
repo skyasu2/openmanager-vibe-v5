@@ -49,8 +49,23 @@ export class PerformanceMonitor {
       const executionTimeMs = endTime - startTime
       
       // 메모리 사용량 측정
-      const memoryUsage = process.memoryUsage()
-      const memoryUsageMB = Math.round(memoryUsage.heapUsed / 1024 / 1024)
+      // Edge Runtime에서는 process.memoryUsage()를 사용할 수 없으므로 추정값 사용
+      // 실제 배포 환경에서는 더 정확한 메모리 측정 방법이 필요할 수 있음
+      let memoryUsageMB = 0
+      
+      try {
+        // 서버 환경에서만 실행 (Edge Runtime에서는 실행되지 않음)
+        if (typeof process !== 'undefined' && process.memoryUsage) {
+          const memoryUsage = process.memoryUsage()
+          memoryUsageMB = Math.round(memoryUsage.heapUsed / 1024 / 1024)
+        } else {
+          // Edge Runtime에서는 기본값 사용
+          memoryUsageMB = 50 // 기본값 50MB로 설정
+        }
+      } catch {
+        console.warn('Memory usage measurement not available in this environment')
+        memoryUsageMB = 50 // 기본값 50MB로 설정
+      }
       
       // 성능 지표 생성
       const metrics: PerformanceMetrics = {

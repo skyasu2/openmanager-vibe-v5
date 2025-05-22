@@ -15,7 +15,8 @@ export class MCPStore {
       await kv.setex(`mcp:${query}`, 3600, response)
       await kv.hincrby('stats', 'total_queries', 1)
       await kv.hincrby('stats', `date:${new Date().toDateString()}`, 1)
-      await kv.zincrby('popular_queries', 1, query)
+      const currentScore = await kv.get(`query_count:${query}`) as number || 0
+      await kv.set(`query_count:${query}`, currentScore + 1)
     } catch (error) {
       console.error('KV save error:', error)
     }
@@ -44,14 +45,24 @@ export class MCPStore {
 
   static async getStats() {
     try {
-      const [stats, popularQueries] = await Promise.all([
-        kv.hgetall('stats'),
-        kv.zrevrange('popular_queries', 0, 9, { withScores: true })
-      ])
+      const stats = await kv.hgetall('stats') || {}
+      
+      const keys = await kv.keys('query_count:*')
+      
+      const popularQueries: Array<[string, number]> = []
+      
+      for (const key of keys) {
+        const queryName = key.replace('query_count:', '')
+        const count = await kv.get(key) as number || 0
+        popularQueries.push([queryName, count])
+      }
+      
+      popularQueries.sort((a, b) => b[1] - a[1])
+      const topQueries = popularQueries.slice(0, 10)
 
       return { 
-        stats: stats || {}, 
-        popularQueries: popularQueries || [] 
+        stats, 
+        popularQueries: topQueries 
       }
     } catch (error) {
       console.error('Stats get error:', error)

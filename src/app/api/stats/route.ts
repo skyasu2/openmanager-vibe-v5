@@ -17,10 +17,11 @@ export async function GET() {
     
     // 인기 쿼리 포맷팅
     if (Array.isArray(popularQueries)) {
-      for (let i = 0; i < popularQueries.length; i += 2) {
+      // 새로운 형식: [[query, count], [query, count], ...]
+      for (const [query, count] of popularQueries) {
         formattedStats.popularQueries.push({
-          query: popularQueries[i],
-          count: Number(popularQueries[i + 1])
+          query,
+          count: Number(count)
         })
       }
     }
