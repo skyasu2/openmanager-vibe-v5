@@ -1,0 +1,23 @@
+{
+  "servers": {
+    "keywords": ["서버", "상태", "다운", "장애", "server", "status", "운영"],
+    "response": "서버 상태를 확인하겠습니다. 현재 모니터링 중인 서버들의 상태를 분석해드리겠습니다.",
+    "templates": {
+      "server_list": "현재 전체 {total}개 서버 중 {running}개가 정상 실행 중이고, {error}개에서 문제가 발견되었습니다."
+    },
+    "confidence": 0.9
+  },
+  "monitoring": {
+    "keywords": ["모니터링", "성능", "CPU", "메모리", "monitoring", "performance"],
+    "response": "시스템 성능을 분석하겠습니다. CPU, 메모리 사용률과 성능 트렌드를 확인해드리겠습니다.",
+    "templates": {
+      "performance_summary": "전체 시스템 평균 CPU {avgCpu}%, 메모리 {avgMemory}% 사용 중입니다."
+    },
+    "confidence": 0.85
+  },
+  "help": {
+    "keywords": ["도움", "help", "사용법", "명령어", "가이드"],
+    "response": "OpenManager Vibe V5를 이용해주셔서 감사합니다! 서버 상태, 모니터링, 성능 분석에 대해 자연어로 질문해보세요.",
+    "confidence": 1.0
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "servers": [
+    {
+      "id": "web-01",
+      "name": "웹서버-01 (Nginx)",
+      "status": "running",
+      "cpu": 45,
+      "memory": 67,
+      "location": "Seoul-DC-A"
+    },
+    {
+      "id": "db-01",
+      "name": "DB서버-01 (MySQL)",
+      "status": "running",
+      "cpu": 32,
+      "memory": 78,
+      "location": "Seoul-DC-B"
+    },
+    {
+      "id": "api-01",
+      "name": "API서버-01 (Node.js)",
+      "status": "warning",
+      "cpu": 75,
+      "memory": 85,
+      "location": "Busan-DC-A"
+    },
+    {
+      "id": "cache-01",
+      "name": "캐시서버-01 (Redis)",
+      "status": "error",
+      "cpu": 89,
+      "memory": 91,
+      "location": "Seoul-DC-A"
+    }
+  ]
+}
