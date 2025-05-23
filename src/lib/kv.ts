@@ -11,7 +11,7 @@ export class MCPStore {
     }
   }
 
-  static async saveResponse(query: string, response: unknown) {
+  static async saveResponse(query: string, response: MCPResponse) {
     try {
       await kv.setex(`mcp:${query}`, 3600, response)
       await kv.hincrby('stats', 'total_queries', 1)
@@ -23,7 +23,7 @@ export class MCPStore {
     }
   }
 
-  static async updateServerStatus(serverId: string, status: Record<string, unknown>) {
+  static async updateServerStatus(serverId: string, status: ServerStatus) {
     try {
       await kv.hset(`server:${serverId}`, {
         ...status,

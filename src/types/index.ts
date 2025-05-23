@@ -24,7 +24,7 @@ export interface MCPResponse {
   confidence: number
   cached?: boolean
   timestamp?: string
-  data?: unknown
+  data?: Record<string, any> // This line is changed
   queryAnalysis?: {
     isQuestion: boolean
     isCommand: boolean
