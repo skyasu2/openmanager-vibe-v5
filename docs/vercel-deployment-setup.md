@@ -1,395 +1,193 @@
-# OpenManager Vibe V5 - Production Setup
+# Vercel 배포 설정 가이드
 
-Create a complete production-ready OpenManager Vibe V5 with automated deployment pipeline using Vercel + Upstash Redis + Supabase.
+OpenManager Vibe V5 프로젝트를 Vercel에 배포하기 위한 단계별 가이드입니다.
 
-## 🚀 PROJECT REQUIREMENTS
+## 사전 준비사항
 
-### Core Stack
-- **Framework**: Next.js 14 with App Router + TypeScript
-- **Deployment**: Vercel (GitHub integration)
-- **Cache**: Upstash Redis (Free tier - 10K requests/day)
-- **Database**: Supabase (Free tier - 500MB storage)
-- **Styling**: Tailwind CSS + shadcn/ui components
-- **State**: Zustand for client state management
+### 1. 필수 계정
 
-### Auto-Deployment Pipeline
-- GitHub repository with automatic Vercel deployment
-- Environment variables management
-- Production-ready configuration
-- CI/CD pipeline setup
+- [GitHub](https://github.com/) 계정
+- [Vercel](https://vercel.com/) 계정
+- [Upstash](https://upstash.com/) 계정
+- [Supabase](https://supabase.com/) 계정
 
-## 📁 PROJECT STRUCTURE
+### 2. 필수 도구
 
-```
-openmanager-vibe-v5/
-├── .env.local.example          # Environment template
-├── .env.local                  # Local environment (git ignored)
-├── .gitignore                  # Comprehensive gitignore
-├── next.config.js              # Next.js configuration
-├── tailwind.config.js          # Tailwind configuration
-├── package.json                # Dependencies and scripts
-├── README.md                   # Setup instructions
-├── vercel.json                 # Vercel deployment config
-│
-├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── layout.tsx          # Root layout
-│   │   ├── page.tsx            # Landing page
-│   │   ├── dashboard/
-│   │   │   └── page.tsx        # Main dashboard
-│   │   ├── chat/
-│   │   │   └── page.tsx        # MCP chat interface
-│   │   ├── reports/
-│   │   │   └── page.tsx        # Reports viewer
-│   │   └── api/                # API Routes (Vercel Functions)
-│   │       ├── health/
-│   │       │   └── route.ts    # Health check endpoint
-│   │       ├── mcp/
-│   │       │   ├── query/
-│   │       │   │   └── route.ts # MCP query processing
-│   │       │   └── analyze/
-│   │       │       └── route.ts # Server analysis
-│   │       ├── monitoring/
-│   │       │   ├── realtime/
-│   │       │   │   └── route.ts # Real-time data
-│   │       │   └── servers/
-│   │       │       └── route.ts # Server status
-│   │       └── reports/
-│   │           └── generate/
-│   │               └── route.ts # Report generation
-│   │
-│   ├── components/             # React components
-│   │   ├── ui/                 # shadcn/ui components
-│   │   ├── dashboard/          # Dashboard components
-│   │   ├── chat/              # Chat interface components
-│   │   └── shared/            # Shared components
-│   │
-│   ├── lib/                    # Utilities and configurations
-│   │   ├── redis.ts           # Upstash Redis client
-│   │   ├── supabase.ts        # Supabase client
-│   │   ├── utils.ts           # Shared utilities
-│   │   └── types.ts           # TypeScript types
-│   │
-│   ├── modules/                # Business logic modules
-│   │   ├── mcp/               # MCP engine (from V4)
-│   │   │   ├── core/
-│   │   │   │   ├── processor.ts
-│   │   │   │   └── agent.ts
-│   │   │   ├── npu/           # Lightweight NPU
-│   │   │   │   ├── pattern-matcher.ts
-│   │   │   │   └── intent-classifier.ts
-│   │   │   └── documents/     # Context documents
-│   │   │       ├── server-issues.ts
-│   │   │       └── troubleshooting.ts
-│   │   │
-│   │   ├── monitoring/        # Server monitoring
-│   │   │   ├── analytics/
-│   │   │   │   └── server-analyzer.ts
-│   │   │   └── realtime/
-│   │   │       └── data-streamer.ts
-│   │   │
-│   │   ├── storage/           # Hybrid storage layer
-│   │   │   ├── redis/
-│   │   │   │   └── cache-service.ts
-│   │   │   ├── supabase/
-│   │   │   │   └── database-service.ts
-│   │   │   └── hybrid/
-│   │   │       └── storage-strategy.ts
-│   │   │
-│   │   └── ai-agent/          # AI agent features
-│   │       ├── root-cause-analyzer.ts
-│   │       ├── predictive-alerts.ts
-│   │       └── solution-recommender.ts
-│   │
-│   ├── styles/
-│   │   └── globals.css        # Global styles
-│   │
-│   └── config/
-│       ├── database.ts        # Database configurations
-│       ├── redis.ts          # Redis configurations
-│       └── environment.ts     # Environment management
-│
-├── .github/
-│   └── workflows/
-│       └── deploy.yml         # GitHub Actions (optional)
-│
-└── docs/
-    ├── DEPLOYMENT.md          # Deployment guide
-    ├── API.md                # API documentation
-    └── DEVELOPMENT.md        # Development guide
+- Git
+- Node.js 18.17 이상
+- npm 또는 yarn
+
+## 배포 단계
+
+### 1. 코드 저장소 설정
+
+1. GitHub에서 프로젝트 저장소를 복제합니다:
+
+```bash
+git clone https://github.com/your-username/openmanager-vibe-v5.git
+cd openmanager-vibe-v5
 ```
 
-## 🔧 IMPLEMENTATION STEPS
+2. 의존성을 설치합니다:
 
-### Step 1: Project Initialization
-Create a Next.js 14 project with TypeScript and essential dependencies:
-
-```json
-{
-  "name": "openmanager-vibe-v5",
-  "version": "1.0.0",
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "type-check": "tsc --noEmit"
-  },
-  "dependencies": {
-    "next": "^14.0.0",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
-    "@upstash/redis": "^1.25.0",
-    "@supabase/supabase-js": "^2.38.0",
-    "zustand": "^4.4.0",
-    "tailwindcss": "^3.3.0",
-    "@radix-ui/react-*": "latest",
-    "lucide-react": "^0.300.0",
-    "recharts": "^2.8.0",
-    "class-variance-authority": "^0.7.0",
-    "clsx": "^2.0.0",
-    "tailwind-merge": "^2.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@types/react": "^18.0.0",
-    "@types/react-dom": "^18.0.0",
-    "typescript": "^5.0.0",
-    "eslint": "^8.0.0",
-    "eslint-config-next": "^14.0.0"
-  }
-}
+```bash
+npm install
+# 또는
+yarn install
 ```
 
-### Step 2: Environment Configuration
-Create environment management system:
+### 2. Upstash Redis 설정
 
-```typescript
-// .env.local.example
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-UPSTASH_REDIS_REST_URL=your_upstash_redis_url
-UPSTASH_REDIS_REST_TOKEN=your_upstash_redis_token
-NODE_ENV=development
+1. [Upstash 콘솔](https://console.upstash.com/)에 로그인합니다.
+2. 새 Redis 데이터베이스를 생성합니다:
+   - 지역: 애플리케이션에 가장 가까운 지역 선택
+   - 이름: `openmanager-vibe-v5`
+3. 생성된 데이터베이스의 연결 정보를 확인합니다:
+   - `UPSTASH_REDIS_REST_URL`
+   - `UPSTASH_REDIS_REST_TOKEN`
+
+### 3. Supabase 설정
+
+1. [Supabase 대시보드](https://app.supabase.io/)에 로그인합니다.
+2. 새 프로젝트를 생성합니다:
+   - 이름: `openmanager-vibe-v5`
+   - 데이터베이스 비밀번호 설정
+   - 지역: 애플리케이션에 가장 가까운 지역 선택
+3. 프로젝트 생성이 완료되면 다음 정보를 확인합니다:
+   - `SUPABASE_URL`
+   - `SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+
+4. 필요한 테이블을 생성합니다:
+
+```sql
+-- servers 테이블: 모니터링 대상 서버 정보
+CREATE TABLE public.servers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name VARCHAR NOT NULL,
+  hostname VARCHAR NOT NULL,
+  type VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- metrics 테이블: 성능 메트릭 데이터
+CREATE TABLE public.metrics (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  server_id UUID REFERENCES public.servers(id),
+  key VARCHAR NOT NULL,
+  data JSONB NOT NULL,
+  timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- alerts 테이블: 알림 기록
+CREATE TABLE public.alerts (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  server_id UUID REFERENCES public.servers(id),
+  type VARCHAR NOT NULL,
+  message TEXT NOT NULL,
+  status VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  resolved_at TIMESTAMP WITH TIME ZONE
+);
 ```
 
-### Step 3: Vercel Configuration
-```json
-// vercel.json
-{
-  "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "regions": ["icn1"],
-  "functions": {
-    "src/app/api/**/*.ts": {
-      "maxDuration": 10
-    }
-  },
-  "env": {
-    "NEXT_PUBLIC_APP_URL": "@app-url",
-    "NEXT_PUBLIC_SUPABASE_URL": "@supabase-url",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase-anon-key",
-    "SUPABASE_SERVICE_ROLE_KEY": "@supabase-service-role-key",
-    "UPSTASH_REDIS_REST_URL": "@upstash-redis-url",
-    "UPSTASH_REDIS_REST_TOKEN": "@upstash-redis-token"
-  }
-}
-```
+### 4. Vercel 배포 설정
 
-### Step 4: Service Integrations
+1. [Vercel 대시보드](https://vercel.com/dashboard)에 로그인합니다.
+2. "New Project" 버튼을 클릭합니다.
+3. GitHub 저장소를 가져옵니다:
+   - 저장소 목록에서 `openmanager-vibe-v5`를 찾아 선택합니다.
+   - "Import" 버튼을 클릭합니다.
 
-#### Upstash Redis Setup
-```typescript
-// src/lib/redis.ts
-import { Redis } from '@upstash/redis'
+4. 프로젝트 설정:
+   - 프레임워크 프리셋: Next.js
+   - 루트 디렉토리: ./
+   - 빌드 명령: 기본값 유지
 
-export const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-})
+5. 환경 변수 설정:
+   - `UPSTASH_REDIS_REST_URL`: Upstash에서 복사한 URL
+   - `UPSTASH_REDIS_REST_TOKEN`: Upstash에서 복사한 토큰
+   - `SUPABASE_URL`: Supabase 프로젝트 URL
+   - `SUPABASE_ANON_KEY`: Supabase 익명 키
+   - `SUPABASE_SERVICE_ROLE_KEY`: Supabase 서비스 역할 키
+   - `NEXT_PUBLIC_APP_URL`: 배포된 애플리케이션 URL (e.g., `https://openmanager-vibe-v5.vercel.app`)
 
-// Connection health check
-export async function checkRedisConnection() {
-  try {
-    await redis.ping()
-    return { status: 'connected', timestamp: new Date().toISOString() }
-  } catch (error) {
-    return { status: 'error', error: error.message }
-  }
-}
-```
+6. "Deploy" 버튼을 클릭하여 배포를 시작합니다.
 
-#### Supabase Setup
-```typescript
-// src/lib/supabase.ts
-import { createClient } from '@supabase/supabase-js'
+### 5. 배포 확인 및 테스트
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+1. 배포가 완료되면 제공된 URL로 접속하여 애플리케이션이 정상적으로 작동하는지 확인합니다.
+2. 다음 엔드포인트를 테스트합니다:
+   - `/api/health` - 상태 확인
+   - `/api/monitoring/servers` - 서버 목록 확인
+   - `/dashboard` - 대시보드 접속
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+## 지속적 배포 설정
 
-// Server-side client for API routes
-export const supabaseAdmin = createClient(
-  supabaseUrl,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-```
+Vercel은 기본적으로 GitHub 저장소와 연결되어 있어, 코드가 메인 브랜치에 푸시될 때마다 자동으로 배포가 진행됩니다.
 
-### Step 5: Core Modules Implementation
+### 브랜치별 환경 설정
 
-#### MCP Engine (Enhanced from V4)
-```typescript
-// src/modules/mcp/core/processor.ts
-export class MCPProcessor {
-  static async processQuery(query: string, context?: any) {
-    // Enhanced pattern matching with NPU capabilities
-    const intent = await this.classifyIntent(query)
-    const entities = await this.extractEntities(query)
-    const response = await this.generateResponse(intent, entities, context)
-    
-    return {
-      query,
-      intent,
-      entities,
-      response,
-      confidence: this.calculateConfidence(intent, entities),
-      timestamp: new Date().toISOString()
-    }
-  }
-  
-  private static async classifyIntent(query: string) {
-    // Lightweight NPU implementation
-    // Pattern matching based on V4 context documents
-  }
-}
-```
+다양한 환경(개발, 스테이징, 프로덕션)을 위한 설정:
 
-#### Hybrid Storage Strategy
-```typescript
-// src/modules/storage/hybrid/storage-strategy.ts
-export class StorageStrategy {
-  static async get(key: string) {
-    // 1. Check Redis cache first (fastest)
-    const cached = await redis.get(key)
-    if (cached) return JSON.parse(cached)
-    
-    // 2. Fallback to Supabase
-    const { data } = await supabase
-      .from('cached_data')
-      .select()
-      .eq('key', key)
-      .single()
-    
-    if (data) {
-      // Cache in Redis for next time
-      await redis.setex(key, 3600, JSON.stringify(data.value))
-      return data.value
-    }
-    
-    return null
-  }
-  
-  static async set(key: string, value: any, ttl = 3600) {
-    // Dual write: Redis + Supabase
-    await Promise.all([
-      redis.setex(key, ttl, JSON.stringify(value)),
-      supabase.from('cached_data').upsert({ key, value, expires_at: new Date(Date.now() + ttl * 1000) })
-    ])
-  }
-}
-```
+1. Vercel 프로젝트 설정 페이지의 "Git" 탭으로 이동합니다.
+2. "Production Branch"를 `main`으로 설정합니다.
+3. "Preview Branch Deployments"를 활성화합니다.
 
-### Step 6: API Routes
-```typescript
-// src/app/api/health/route.ts
-export async function GET() {
-  const health = {
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    services: {
-      redis: await checkRedisConnection(),
-      supabase: await checkSupabaseConnection(),
-    }
-  }
-  
-  return Response.json(health)
-}
+이제 다음과 같이 브랜치에 따라 자동으로 환경이 구분됩니다:
+- `main` 브랜치: 프로덕션 환경
+- `dev` 브랜치: 개발 환경
+- 기타 브랜치: 프리뷰 환경
 
-// src/app/api/mcp/query/route.ts
-export async function POST(request: Request) {
-  try {
-    const { query, context } = await request.json()
-    const result = await MCPProcessor.processQuery(query, context)
-    
-    return Response.json(result)
-  } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 })
-  }
-}
-```
+### 환경별 변수 설정
 
-### Step 7: Frontend Components
-```typescript
-// src/app/page.tsx - Landing page
-export default function HomePage() {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-16">
-        <h1 className="text-4xl font-bold text-center mb-8">
-          OpenManager Vibe V5
-        </h1>
-        <p className="text-xl text-center text-gray-600 mb-12">
-          AI-Powered Server Monitoring & Analysis Platform
-        </p>
-        {/* Enhanced UI components */}
-      </div>
-    </div>
-  )
-}
-```
+각 환경에 맞는 환경 변수를 설정하려면:
 
-## 🚀 DEPLOYMENT INSTRUCTIONS
+1. Vercel 프로젝트 설정 페이지의 "Environment Variables" 탭으로 이동합니다.
+2. 환경 변수를 추가할 때 "Environment"를 선택합니다:
+   - Production: 프로덕션 환경에만 적용
+   - Preview: 프리뷰 배포에만 적용
+   - Development: 로컬 개발 환경에만 적용
 
-### GitHub Repository Setup
-1. Create new GitHub repository: `openmanager-vibe-v5`
-2. Push the generated code
-3. Connect to Vercel for auto-deployment
+## 문제 해결
 
-### Vercel Environment Variables
-Set these in Vercel dashboard:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `UPSTASH_REDIS_REST_URL`
-- `UPSTASH_REDIS_REST_TOKEN`
+### 배포 실패
 
-### Auto-Deployment Trigger
-Every push to `main` branch will trigger automatic deployment to production.
+1. **빌드 오류**:
+   - Vercel 대시보드에서 배포 로그 확인
+   - 로컬에서 `npm run build`를 실행하여 문제 재현 및 해결
 
-## 🎯 SUCCESS CRITERIA
+2. **환경 변수 문제**:
+   - 모든 필수 환경 변수가 올바르게 설정되었는지 확인
+   - 환경 변수 이름이 코드의 참조와 일치하는지 확인
 
-✅ **Automatic Deployment**: GitHub push → Vercel deployment
-✅ **Service Integration**: Upstash Redis + Supabase working
-✅ **API Health Checks**: All services connected and responding
-✅ **Frontend Rendering**: Landing page and dashboard accessible
-✅ **Environment Management**: Secure environment variable handling
-✅ **Performance Optimization**: Free tier limits respected
-✅ **Error Handling**: Comprehensive error handling and logging
-✅ **Type Safety**: Full TypeScript implementation
+3. **API 오류**:
+   - Vercel 대시보드의 "Functions" 탭에서 함수 로그 확인
+   - 서버리스 함수 제한 시간(10초) 초과 여부 확인
 
-## 📋 POST-DEPLOYMENT CHECKLIST
+### 성능 문제
 
-After deployment, verify:
-1. **Health Endpoint**: `/api/health` returns service status
-2. **MCP Query**: `/api/mcp/query` processes test queries
-3. **Redis Caching**: Cache hit/miss working correctly
-4. **Supabase Connection**: Database queries executing
-5. **Frontend Navigation**: All pages loading properly
-6. **Environment Variables**: All secrets properly configured
+1. **콜드 스타트 지연**:
+   - 자주 액세스하는 API 경로에 `_middleware.ts` 파일 추가
+   - Upstash Redis 캐싱 전략 최적화
 
-Build this complete system with production-ready quality, focusing on reliability, performance, and maintainability. Make it portfolio-worthy!
+2. **데이터베이스 연결 문제**:
+   - Supabase 대시보드에서 연결 수 및 쿼리 성능 확인
+   - 연결 풀링 구현 여부 확인
+
+## 배포 모범 사례
+
+1. **환경 변수 관리**:
+   - 로컬 개발을 위해 `.env.local` 파일 사용
+   - 비밀은 절대 저장소에 커밋하지 않음
+   - 팀 내에서 안전하게 환경 변수 공유 (예: Vercel 팀 설정)
+
+2. **미리보기 배포 활용**:
+   - PR 생성 시 자동으로 생성되는 미리보기 URL로 변경사항 테스트
+   - 테스트 후 문제가 없을 때만 메인 브랜치에 병합
+
+3. **실패 안전 배포**:
+   - 중요한 변경사항은 점진적으로 출시
+   - 롤백 계획 준비
+   - 배포 후 자동화된 테스트 실행
