@@ -1,11 +1,13 @@
 import { z } from 'zod'
-import type { 
+// 실제 사용을 위해 유형을 가져옵니다. ESLint에서는 사용하지 않는다고 표시될 수 있지만
+// Zod 스키마와 TypeScript 타입 간의 일관성을 위해 필요합니다.
+/* import type { 
   ServerStatus, 
   MCPQuery, 
   MCPResponse, 
   MonitoringAlert,
   DashboardData 
-} from './index'
+} from './index' */
 
 /**
  * API 응답 타입 정의 + Zod 런타임 검증
