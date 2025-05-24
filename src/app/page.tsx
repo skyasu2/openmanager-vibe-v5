@@ -112,10 +112,19 @@ export default function HomePage() {
 
       {/* CTA 버튼 섹션 */}
       <div className={`${styles.ctaSection} ${styles.fadeInUp}`}>
-        <Link href="/dashboard" className={styles.btnPrimary}>
-          <i className="fas fa-arrow-right"></i>
-          AI 대시보드 바로가기
-        </Link>
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <Link href="/demo" className={styles.btnPrimary}>
+            <i className="fas fa-play"></i>
+            실시간 AI 데모 체험
+          </Link>
+          <Link href="/dashboard" className={styles.btnPrimary} style={{ 
+            background: 'linear-gradient(45deg, var(--secondary), var(--primary))',
+            opacity: '0.9'
+          }}>
+            <i className="fas fa-arrow-right"></i>
+            AI 대시보드 바로가기
+          </Link>
+        </div>
       </div>
 
       {/* 추가 정보 섹션 */}

@@ -8,21 +8,28 @@
     "start": "next start",
     "lint": "next lint --max-warnings 0",
     "type-check": "tsc --noEmit",
-    "test": "npm run type-check && npm run lint"
+    "test": "npm run type-check && npm run lint",
+    "test:enterprise": "node scripts/mockEnterpriseHit.ts",
+    "enterprise:seed": "curl -X POST http://localhost:3001/api/enterprise/seed",
+    "enterprise:simulate": "curl -X POST http://localhost:3001/api/simulate"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.8",
     "@vercel/kv": "^3.0.0",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.12.2",
+    "lucide-react": "^0.511.0",
     "next": "15.1.8",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "recharts": "^2.15.3",
     "tailwind-merge": "^3.3.0",
-    "zod": "^3.25.23"
+    "zod": "^3.25.23",
+    "zustand": "^5.0.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@types/node": "^20",
+    "@types/node": "^20.17.50",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@typescript-eslint/eslint-plugin": "^8.32.1",
