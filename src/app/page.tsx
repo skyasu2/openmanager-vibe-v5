@@ -1012,8 +1012,8 @@ export default function HomePage() {
         {/* 푸터 */}
         <div className="footer-info fade-in-up">
           <p>
-            <span className="hidden sm:inline">© 2025 OpenManager AI. 모든 권리 보유.</span>
-            <span className="sm:hidden">© 2025 OpenManager AI</span>
+            <span className="hidden sm:inline">Copyright(c) 저작자. All rights reserved.</span>
+            <span className="sm:hidden">Copyright(c) 저작자</span>
           </p>
         </div>
       </div>
@@ -1022,7 +1022,10 @@ export default function HomePage() {
       {selectedFeature && (
         <div className="modal-overlay" onClick={closeFeatureModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={closeFeatureModal}>
+            <button className="modal-close" onClick={(e) => {
+              e.stopPropagation();
+              closeFeatureModal();
+            }}>
               ×
             </button>
             
@@ -1051,7 +1054,10 @@ export default function HomePage() {
       {showVibeCoding && (
         <div className="modal-overlay" onClick={closeVibeCodingModal}>
           <div className="modal-content vibe-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={closeVibeCodingModal}>
+            <button className="modal-close" onClick={(e) => {
+              e.stopPropagation();
+              closeVibeCodingModal();
+            }}>
               ×
             </button>
             
@@ -1101,7 +1107,10 @@ export default function HomePage() {
       {showMainFeature && (
         <div className="modal-overlay" onClick={closeMainFeatureModal}>
           <div className="modal-content vibe-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={closeMainFeatureModal}>
+            <button className="modal-close" onClick={(e) => {
+              e.stopPropagation();
+              closeMainFeatureModal();
+            }}>
               ×
             </button>
             
