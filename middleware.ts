@@ -8,7 +8,13 @@ export function middleware(request: NextRequest) {
   // 시작 시간 기록 (성능 모니터링)
   const startTime = Date.now();
 
-    try {    // 1. API 경로는 절대 건드리지 않음 - 최우선 처리    if (pathname.startsWith('/api/')) {      // MIDDLEWARE_INVOCATION_FAILED (500) 방지      console.log(`[Middleware] API route passed: ${pathname}`);      return NextResponse.next();    }
+  try {
+    // 1. API 경로는 절대 건드리지 않음 - 최우선 처리
+    if (pathname.startsWith('/api/')) {
+      // MIDDLEWARE_INVOCATION_FAILED (500) 방지
+      console.log(`[Middleware] API route passed: ${pathname}`);
+      return NextResponse.next();
+    }
 
     // 2. Next.js 내부 리소스들은 통과
     if (pathname.startsWith('/_next/') || 
@@ -100,4 +106,15 @@ export function middleware(request: NextRequest) {
   }
 }
 
-export const config = {  matcher: [    /*     * Match all request paths except for the ones starting with:     * - api (API routes)     * - _next/static (static files)     * - _next/image (image optimization files)     * - favicon.ico (favicon file)     */    '/((?!api|_next/static|_next/image|favicon.ico).*)',  ],}; 
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
+}; 
