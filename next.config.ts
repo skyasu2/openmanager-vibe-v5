@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   // 실험적 기능
   experimental: {
     optimizeServerReact: true,
+    serverComponentsExternalPackages: []
   },
 
   // 이미지 최적화
@@ -17,6 +18,9 @@ const nextConfig: NextConfig = {
 
   // 압축 설정
   compress: true,
+
+  // API 라우트를 위한 페이지 확장자 설정
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
 
   // 리라이트 규칙 제거 - API 라우트 충돌 방지
   // async rewrites() {
@@ -67,6 +71,10 @@ const nextConfig: NextConfig = {
           {
             key: 'Access-Control-Allow-Headers',
             value: 'X-Requested-With, Content-Type, Authorization'
+          },
+          {
+            key: 'X-Powered-By',
+            value: 'OpenManager Vibe V5'
           }
         ]
       }
