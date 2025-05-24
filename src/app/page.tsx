@@ -695,10 +695,7 @@ export default function HomePage() {
         {/* 푸터 */}
         <div className="footer-info fade-in-up">
           <p>
-            © 2025 OpenManager AI. 모든 권리 보유. |
-            <a href="/docs/readme">문서</a> |
-            <a href="/docs/architecture">아키텍처</a> |
-            <Link href="/demo">라이브 데모</Link>
+            © 2025 OpenManager AI. 모든 권리 보유.
           </p>
         </div>
       </div>
@@ -771,7 +768,7 @@ export default function HomePage() {
               <ul className="benefits-list">
                 <li>
                   <i className="fas fa-brain benefit-icon"></i>
-                  <span><strong>AI 모델</strong> - Claude-3.5-Sonnet, GPT-4o, Cursor AI</span>
+                  <span><strong>AI 모델</strong> - Sonnet 3.7, GPT-4o, Cursor AI</span>
                 </li>
                 <li>
                   <i className="fas fa-code benefit-icon"></i>
@@ -787,18 +784,38 @@ export default function HomePage() {
                 </li>
               </ul>
 
+              <h4>🚀 Vibe Coding 핵심 장점</h4>
+              <ul className="benefits-list">
+                <li>
+                  <i className="fas fa-microchip benefit-icon"></i>
+                  <span><strong>MCP 활용 경량 AI</strong> - LLM 없이도 지능형 응답하는 경량 AI 모델 구현</span>
+                </li>
+                <li>
+                  <i className="fas fa-magic benefit-icon"></i>
+                  <span><strong>프롬프트도 AI 작성</strong> - Cursor 입력 프롬프트를 AI로 생성해 정확도 극대화</span>
+                </li>
+                <li>
+                  <i className="fas fa-rocket benefit-icon"></i>
+                  <span><strong>GitHub 자동 배포</strong> - 코드 푸시 즉시 Vercel 자동 배포로 실시간 반영</span>
+                </li>
+                <li>
+                  <i className="fas fa-cogs benefit-icon"></i>
+                  <span><strong>완전 자동화 파이프라인</strong> - 아이디어 → 코드 → 배포까지 AI 기반 워크플로우</span>
+                </li>
+              </ul>
+
               <div className="vibe-stats">
                 <div className="stat-item">
-                  <span className="stat-number">24시간</span>
-                  <span className="stat-label">개발 시간</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-number">90%</span>
+                  <span className="stat-number">100%</span>
                   <span className="stat-label">AI 생성 코드</span>
                 </div>
                 <div className="stat-item">
-                  <span className="stat-number">0$</span>
-                  <span className="stat-label">LLM 비용</span>
+                  <span className="stat-number">실시간</span>
+                  <span className="stat-label">자동 배포</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-number">AI 프롬프트</span>
+                  <span className="stat-label">정확도 향상</span>
                 </div>
               </div>
             </div>
