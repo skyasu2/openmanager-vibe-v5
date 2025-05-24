@@ -17,43 +17,43 @@ interface FeatureDetail {
 
 const features: FeatureDetail[] = [
   {
-    title: "AI 에이전트 질의",
-    description: "MCP 엔진 기반 자연어 질의응답으로 서버 상태를 쉽게 확인하세요.",
+    title: "자연어 AI 에이전트",
+    description: "MCP 엔진과 NPU 기반으로 자연어 질의를 실시간 분석하여 서버 상태를 즉시 응답합니다.",
     benefits: [
-      "자연어로 서버 상태 질문",
-      "MCP 패턴 매칭 기반 응답",
-      "사전 정의된 컨텍스트 문서 활용",
-      "실시간 서버 메트릭 조회",
-      "기본 문제 해결 가이드 제공"
+      "패턴 매칭 기반 의도 분류 및 엔티티 추출",
+      "LLM 비용 없는 경량화 AI 추론 (NPU)",
+      "서버 모니터링 전용 도메인 특화 AI",
+      "컨텍스트 유지하는 대화형 인터페이스",
+      "실시간 메트릭 연동 및 시각적 응답"
     ],
-    image: "🤖",
-    icon: "fas fa-robot"
+    image: "🧠",
+    icon: "fas fa-brain"
   },
   {
-    title: "자동 장애보고서",
-    description: "서버 이슈 발생 시 자동으로 상세 분석 보고서를 생성합니다.",
+    title: "지능형 분석 시스템",
+    description: "근본원인 분석기, 예측 알림, 솔루션 추천 엔진으로 서버 문제를 사전에 예방하고 해결합니다.",
     benefits: [
-      "장애 발생 시 자동 탐지",
-      "시스템 로그 자동 수집 및 분석",
-      "근본 원인 분석 템플릿 적용",
-      "해결 방안 권장사항 제시",
-      "PDF/HTML 형태 보고서 자동 생성"
+      "AI 근본원인 분석기 (Root Cause Analyzer)",
+      "예측 알림 시스템 (Predictive Alerts)",
+      "솔루션 추천 엔진 (베스트 프랙티스 기반)",
+      "연관 관계 분석 및 자동 해결책 제시",
+      "과거 패턴 기반 장애 예측 및 사전 알림"
+    ],
+    image: "🔍",
+    icon: "fas fa-search-plus"
+  },
+  {
+    title: "자동 보고서 생성",
+    description: "AI가 서버 데이터를 분석하여 상세한 보고서를 자동 생성하고 맞춤형 권장사항을 제공합니다.",
+    benefits: [
+      "AI 기반 자동 분석 보고서 생성",
+      "시간대별/서버별 맞춤형 리포트",
+      "PDF/HTML 다중 포맷 지원",
+      "베스트 프랙티스 권장사항 포함",
+      "확장 가능한 AI 아키텍처 (Custom Logic)"
     ],
     image: "📋",
-    icon: "fas fa-clipboard-list"
-  },
-  {
-    title: "통합 모니터링 대시보드",
-    description: "실시간 서버 메트릭과 상태를 한눈에 파악할 수 있습니다.",
-    benefits: [
-      "실시간 CPU, 메모리, 디스크 사용률",
-      "네트워크 트래픽 모니터링",
-      "서비스 상태 및 응답시간 추적",
-      "커스터마이징 가능한 위젯",
-      "히스토리 데이터 시각화"
-    ],
-    image: "📊",
-    icon: "fas fa-chart-line"
+    icon: "fas fa-file-alt"
   }
 ];
 
@@ -392,6 +392,51 @@ export default function HomePage() {
           font-size: 1.1rem;
         }
 
+        .vibe-coding-section {
+          margin: 3rem 0 2rem 0;
+          text-align: center;
+          z-index: 1;
+        }
+
+        .vibe-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          background: linear-gradient(45deg, rgba(255, 215, 0, 0.9), rgba(255, 107, 107, 0.9));
+          color: #1a1a1a;
+          font-size: 1rem;
+          font-weight: 700;
+          padding: 0.8rem 1.5rem;
+          border-radius: 25px;
+          box-shadow: 0 8px 16px rgba(255, 215, 0, 0.3);
+          margin-bottom: 1rem;
+          animation: pulse 2s ease-in-out infinite;
+        }
+
+        .vibe-badge i {
+          font-size: 1.1rem;
+        }
+
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+
+        .vibe-description {
+          font-size: 1.1rem;
+          color: rgba(255, 255, 255, 0.9);
+          line-height: 1.6;
+          max-width: 600px;
+          margin: 0 auto;
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .vibe-description strong {
+          color: var(--text-white);
+          font-weight: 600;
+          text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
         .footer-info {
           margin-top: 2rem;
           padding-top: 1rem;
@@ -476,15 +521,15 @@ export default function HomePage() {
           OpenManager <span className="highlight">Vibe V5</span>
         </h1>
 
-        {/* 개선된 메인 설명 */}
+        {/* AI 에이전트 중심 메인 설명 */}
         <p className="subtitle fade-in-up">
-          MCP 기반 서버 모니터링과 관리를 위한
+          NPU와 MCP 엔진 기반 AI 에이전트로
           <br />
-          차세대 통합 솔루션
+          서버 관리를 혁신합니다
           <br />
-          자연어 질의, 자동 보고서, 실시간 대시보드로
+          자연어 질의, 지능형 분석, 예측 알림으로
           <br />
-          서버 운영을 단순화합니다
+          IT 운영을 완전히 자동화합니다
         </p>
 
         {/* 단일 CTA 버튼 */}
@@ -498,7 +543,7 @@ export default function HomePage() {
           </button>
         </div>
 
-        {/* 6개 기능 카드 */}
+        {/* AI 에이전트 핵심 기능 카드 */}
         <div className="features-grid fade-in-up">
           {features.map((feature, index) => (
             <div 
@@ -515,6 +560,19 @@ export default function HomePage() {
               </p>
             </div>
           ))}
+        </div>
+
+        {/* Vibe Coding 기술 강조 */}
+        <div className="vibe-coding-section fade-in-up">
+          <div className="vibe-badge">
+            <i className="fas fa-code"></i>
+            <span>Vibe Coding</span>
+          </div>
+          <p className="vibe-description">
+            GPT/Claude + Cursor AI 협업으로 개발된 차세대 AI 에이전트 시스템
+            <br />
+            <strong>경량화 AI (No LLM Cost)</strong> • <strong>도메인 특화</strong> • <strong>확장 가능</strong>
+          </p>
         </div>
 
         {/* 푸터 */}
