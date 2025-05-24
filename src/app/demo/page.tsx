@@ -1,4 +1,4 @@
-'use client';import { useState, useEffect } from 'react';import { motion } from 'framer-motion';import { useDemoStore } from '../../stores/demoStore';import ServerCard from '../../components/demo/ServerCard';import AIChatPanel from '../../components/demo/AIChatPanel';import AutoDemoScenario from '../../components/demo/AutoDemoScenario';import { Activity, Wifi, Shield, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';// 동적 렌더링 강제 (HTML 파일 생성 방지)export const dynamic = 'force-dynamic';
+'use client';import { useState, useEffect } from 'react';import { motion } from 'framer-motion';import { useDemoStore } from '../../stores/demoStore';import ServerCard from '../../components/demo/ServerCard';import AIChatPanel from '../../components/demo/AIChatPanel';import AutoDemoScenario from '../../components/demo/AutoDemoScenario';import { Activity, Wifi, Shield, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';import Link from 'next/link';// 동적 렌더링 강제 (HTML 파일 생성 방지)export const dynamic = 'force-dynamic';
 
 export default function DemoPage() {
   const {
@@ -74,7 +74,7 @@ export default function DemoPage() {
 
       {/* 헤더 */}
       <header className="h-20 bg-white border-b border-gray-200 px-6 flex items-center justify-between shadow-sm">
-        <div className="flex items-center space-x-4">
+        <Link href="/" className="flex items-center space-x-4 hover:opacity-80 transition-opacity cursor-pointer">
           <motion.div
             className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center"
             animate={{
@@ -93,7 +93,7 @@ export default function DemoPage() {
             <h1 className="text-2xl font-bold text-gray-900">OpenManager AI</h1>
             <p className="text-sm text-gray-600">통합 서버 모니터링 & AI 분석 데모</p>
           </div>
-        </div>
+        </Link>
 
         <div className="flex items-center space-x-6">
           <div className="flex items-center space-x-2">

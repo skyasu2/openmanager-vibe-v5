@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import ServerDashboard from '../../components/dashboard/ServerDashboard';
 import AgentPanel from '../../components/ai/AgentPanel';
 import AgentPanelMobile from '../../components/ai/AgentPanelMobile';
@@ -65,7 +66,7 @@ export default function DashboardPage() {
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <i className="fas fa-server text-white text-sm"></i>
               </div>
@@ -73,7 +74,7 @@ export default function DashboardPage() {
                 <h1 className="text-xl font-bold text-gray-900">OpenManager</h1>
                 <p className="text-xs text-gray-500">AI 서버 모니터링</p>
               </div>
-            </div>
+            </Link>
           </div>
 
           <div className="flex items-center gap-4">
