@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import ServerDashboard from '../../components/dashboard/ServerDashboard';
-import AgentPanel from '../../components/ai/AgentPanel';
-import AgentPanelMobile from '../../components/ai/AgentPanelMobile';
+import ServerDashboard from '../../../components/dashboard/ServerDashboard';
+import AgentPanel from '../../../components/ai/AgentPanel';
+import AgentPanelMobile from '../../../components/ai/AgentPanelMobile';
 
-export default function DashboardPage() {
+export default function ServerDashboardPage() {
   const router = useRouter();
   const [isAgentOpen, setIsAgentOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -65,13 +65,20 @@ export default function DashboardPage() {
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.back()}
+              className="w-8 h-8 hover:bg-gray-100 rounded-lg flex items-center justify-center transition-colors"
+            >
+              <i className="fas fa-arrow-left text-gray-600 text-sm"></i>
+            </button>
+            
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <i className="fas fa-server text-white text-sm"></i>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">OpenManager</h1>
-                <p className="text-xs text-gray-500">AI 서버 모니터링</p>
+                <h1 className="text-xl font-bold text-gray-900">서버 대시보드</h1>
+                <p className="text-xs text-gray-500">실시간 서버 모니터링</p>
               </div>
             </div>
           </div>
@@ -103,20 +110,20 @@ export default function DashboardPage() {
               }`}
             >
               <i className="fas fa-brain text-sm"></i>
-              <span className="hidden sm:inline">AI 에이전트</span>
+              <span className="hidden sm:inline">AI 분석</span>
               
               {/* 알림 뱃지 */}
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>
             </button>
 
-            {/* 사용자 메뉴 */}
+            {/* 추가 액션 버튼들 */}
             <div className="flex items-center gap-2">
               <button className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center transition-colors">
-                <i className="fas fa-bell text-gray-600 text-sm"></i>
+                <i className="fas fa-refresh text-gray-600 text-sm"></i>
               </button>
-              <div className="w-8 h-8 bg-gradient-to-br from-gray-600 to-gray-700 rounded-lg flex items-center justify-center">
-                <i className="fas fa-user text-white text-sm"></i>
-              </div>
+              <button className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center transition-colors">
+                <i className="fas fa-cog text-gray-600 text-sm"></i>
+              </button>
             </div>
           </div>
         </div>
