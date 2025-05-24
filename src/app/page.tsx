@@ -17,76 +17,43 @@ interface FeatureDetail {
 
 const features: FeatureDetail[] = [
   {
-    title: "실시간 AI 모니터링",
-    description: "AI 기반 실시간 서버 모니터링으로 문제를 예측하고 즉시 대응합니다.",
+    title: "AI 에이전트 질의",
+    description: "MCP 엔진 기반 자연어 질의응답으로 서버 상태를 쉽게 확인하세요.",
     benefits: [
-      "99.9% 이상 장애 예측 정확도",
-      "평균 5초 이내 이상 징후 감지",
-      "자동 알림 및 대응 시스템",
-      "24/7 무중단 모니터링"
-    ],
-    image: "📊",
-    icon: "fas fa-chart-pulse"
-  },
-  {
-    title: "지능형 자동화",
-    description: "반복적인 운영 작업을 AI가 자동으로 처리하여 효율성을 극대화합니다.",
-    benefits: [
-      "70% 이상 운영 작업 자동화",
-      "인적 오류 95% 감소",
-      "자동 스케일링 및 최적화",
-      "스마트 리소스 관리"
+      "자연어로 서버 상태 질문",
+      "MCP 패턴 매칭 기반 응답",
+      "사전 정의된 컨텍스트 문서 활용",
+      "실시간 서버 메트릭 조회",
+      "기본 문제 해결 가이드 제공"
     ],
     image: "🤖",
     icon: "fas fa-robot"
   },
   {
-    title: "통합 대시보드",
-    description: "모든 서버와 클라우드 리소스를 하나의 직관적인 대시보드에서 관리합니다.",
+    title: "자동 장애보고서",
+    description: "서버 이슈 발생 시 자동으로 상세 분석 보고서를 생성합니다.",
     benefits: [
-      "멀티 클라우드 통합 관리",
-      "실시간 성능 시각화",
+      "장애 발생 시 자동 탐지",
+      "시스템 로그 자동 수집 및 분석",
+      "근본 원인 분석 템플릿 적용",
+      "해결 방안 권장사항 제시",
+      "PDF/HTML 형태 보고서 자동 생성"
+    ],
+    image: "📋",
+    icon: "fas fa-clipboard-list"
+  },
+  {
+    title: "통합 모니터링 대시보드",
+    description: "실시간 서버 메트릭과 상태를 한눈에 파악할 수 있습니다.",
+    benefits: [
+      "실시간 CPU, 메모리, 디스크 사용률",
+      "네트워크 트래픽 모니터링",
+      "서비스 상태 및 응답시간 추적",
       "커스터마이징 가능한 위젯",
-      "모바일 최적화 인터페이스"
+      "히스토리 데이터 시각화"
     ],
-    image: "📈",
-    icon: "fas fa-tachometer-alt"
-  },
-  {
-    title: "보안 강화",
-    description: "AI 기반 보안 모니터링으로 위협을 사전에 차단하고 시스템을 보호합니다.",
-    benefits: [
-      "실시간 취약점 스캔",
-      "이상 행동 패턴 감지",
-      "자동 보안 업데이트",
-      "컴플라이언스 자동 검증"
-    ],
-    image: "🛡️",
-    icon: "fas fa-shield-halved"
-  },
-  {
-    title: "성능 최적화",
-    description: "AI가 분석한 데이터를 바탕으로 서버 성능을 지속적으로 최적화합니다.",
-    benefits: [
-      "자동 성능 튜닝",
-      "리소스 사용량 최적화",
-      "병목 지점 자동 식별",
-      "예측적 확장 계획"
-    ],
-    image: "🚀",
-    icon: "fas fa-rocket"
-  },
-  {
-    title: "24/7 지원",
-    description: "AI 어시스턴트와 전문가 팀이 24시간 연중무휴로 지원합니다.",
-    benefits: [
-      "즉시 응답하는 AI 챗봇",
-      "전문가 원격 지원",
-      "예방적 유지보수",
-      "맞춤형 컨설팅 서비스"
-    ],
-    image: "💬",
-    icon: "fas fa-headset"
+    image: "📊",
+    icon: "fas fa-chart-line"
   }
 ];
 
@@ -271,10 +238,10 @@ export default function HomePage() {
 
         .features-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 1.5rem;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 2rem;
           margin: 2rem 0;
-          max-width: 900px;
+          max-width: 1200px;
           width: 100%;
           z-index: 1;
         }
@@ -284,10 +251,14 @@ export default function HomePage() {
           backdrop-filter: blur(10px);
           border: 1px solid var(--glass-border);
           border-radius: 16px;
-          padding: 1.5rem;
+          padding: 2rem;
           transition: all 0.3s ease;
           cursor: pointer;
           text-align: center;
+          min-height: 280px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
         }
 
         .feature-card:hover {
@@ -297,8 +268,8 @@ export default function HomePage() {
         }
 
         .feature-icon {
-          font-size: 2.5rem;
-          margin-bottom: 1rem;
+          font-size: 3rem;
+          margin-bottom: 1.5rem;
           color: var(--text-white);
           text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
         }
@@ -455,11 +426,18 @@ export default function HomePage() {
 
           .features-grid {
             grid-template-columns: 1fr;
-            gap: 1rem;
+            gap: 1.5rem;
+            max-width: 400px;
           }
 
           .feature-card {
-            padding: 1rem;
+            padding: 1.5rem;
+            min-height: 240px;
+          }
+
+          .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
           }
 
           .modal-content {
@@ -468,9 +446,16 @@ export default function HomePage() {
           }
         }
 
-        @media (min-width: 768px) {
+        @media (min-width: 768px) and (max-width: 1023px) {
           .features-grid {
             grid-template-columns: repeat(2, 1fr);
+            max-width: 800px;
+          }
+          
+          .feature-card:last-child {
+            grid-column: 1 / -1;
+            max-width: 350px;
+            margin: 0 auto;
           }
         }
 
@@ -493,11 +478,13 @@ export default function HomePage() {
 
         {/* 개선된 메인 설명 */}
         <p className="subtitle fade-in-up">
-          AI 기반 서버 모니터링과 관리의 혁신
+          MCP 기반 서버 모니터링과 관리를 위한
           <br />
-          실시간 분석으로 시스템을 보호하고
+          차세대 통합 솔루션
           <br />
-          지능형 자동화로 운영을 최적화합니다
+          자연어 질의, 자동 보고서, 실시간 대시보드로
+          <br />
+          서버 운영을 단순화합니다
         </p>
 
         {/* 단일 CTA 버튼 */}
