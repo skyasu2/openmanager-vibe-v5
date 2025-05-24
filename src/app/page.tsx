@@ -60,6 +60,7 @@ const features: FeatureDetail[] = [
 export default function HomePage() {
   const router = useRouter();
   const [selectedFeature, setSelectedFeature] = useState<FeatureDetail | null>(null);
+  const [showVibeCoding, setShowVibeCoding] = useState(false);
 
   useEffect(() => {
     // 페이지 로딩 애니메이션
@@ -95,6 +96,14 @@ export default function HomePage() {
 
   const closeFeatureModal = () => {
     setSelectedFeature(null);
+  };
+
+  const openVibeCodingModal = () => {
+    setShowVibeCoding(true);
+  };
+
+  const closeVibeCodingModal = () => {
+    setShowVibeCoding(false);
   };
 
   return (
@@ -411,6 +420,13 @@ export default function HomePage() {
           box-shadow: 0 8px 16px rgba(255, 215, 0, 0.3);
           margin-bottom: 1rem;
           animation: pulse 2s ease-in-out infinite;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .vibe-badge:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 12px 24px rgba(255, 215, 0, 0.4);
         }
 
         .vibe-badge i {
@@ -456,6 +472,40 @@ export default function HomePage() {
 
         .footer-info a:hover {
           color: var(--text-white);
+        }
+
+        .vibe-modal {
+          max-width: 700px;
+          max-height: 90vh;
+        }
+
+        .vibe-stats {
+          display: flex;
+          justify-content: space-around;
+          margin-top: 2rem;
+          padding: 1.5rem;
+          background: linear-gradient(135deg, var(--primary), var(--secondary));
+          border-radius: 15px;
+          color: white;
+        }
+
+        .stat-item {
+          text-align: center;
+          flex: 1;
+        }
+
+        .stat-number {
+          display: block;
+          font-size: 2rem;
+          font-weight: 700;
+          margin-bottom: 0.5rem;
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-label {
+          font-size: 0.9rem;
+          opacity: 0.9;
+          font-weight: 500;
         }
 
         /* 반응형 디자인 */
@@ -564,7 +614,7 @@ export default function HomePage() {
 
         {/* Vibe Coding 기술 강조 */}
         <div className="vibe-coding-section fade-in-up">
-          <div className="vibe-badge">
+          <div className="vibe-badge" onClick={openVibeCodingModal}>
             <i className="fas fa-code"></i>
             <span>Vibe Coding</span>
           </div>
@@ -578,15 +628,15 @@ export default function HomePage() {
         {/* 푸터 */}
         <div className="footer-info fade-in-up">
           <p>
-            © 2024 OpenManager AI. 모든 권리 보유. |
-            <a href="/docs">문서</a> |
-            <a href="/support">지원</a> |
+            © 2025 OpenManager AI. 모든 권리 보유. |
+            <a href="/docs/readme">문서</a> |
+            <a href="/docs/architecture">아키텍처</a> |
             <Link href="/demo">라이브 데모</Link>
           </p>
         </div>
       </div>
 
-      {/* 기능 상세 모달 */}
+            {/* 기능 상세 모달 */}
       {selectedFeature && (
         <div className="modal-overlay" onClick={closeFeatureModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -610,6 +660,80 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Vibe Coding 상세 모달 */}
+      {showVibeCoding && (
+        <div className="modal-overlay" onClick={closeVibeCodingModal}>
+          <div className="modal-content vibe-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={closeVibeCodingModal}>
+              ×
+            </button>
+            
+            <div className="modal-header">
+              <div className="modal-emoji">🚀</div>
+              <h2 className="modal-title">Vibe Coding 개발 방식</h2>
+              <p className="modal-description">AI 협업을 통한 차세대 개발 방법론</p>
+            </div>
+
+            <div className="modal-benefits">
+              <h4>🧠 개발 프로세스</h4>
+              <ul className="benefits-list">
+                <li>
+                  <i className="fas fa-lightbulb benefit-icon"></i>
+                  <span><strong>프롬프트 설계</strong> - Claude/GPT로 구체적인 기능 명세서 작성</span>
+                </li>
+                <li>
+                  <i className="fas fa-robot benefit-icon"></i>
+                  <span><strong>Cursor AI 협업</strong> - 실시간 코드 생성 및 리팩토링</span>
+                </li>
+                <li>
+                  <i className="fas fa-sync-alt benefit-icon"></i>
+                  <span><strong>반복 개선</strong> - AI 피드백을 통한 지속적인 코드 최적화</span>
+                </li>
+                <li>
+                  <i className="fas fa-rocket benefit-icon"></i>
+                  <span><strong>빠른 프로토타이핑</strong> - 아이디어에서 실행까지 몇 시간 내 완성</span>
+                </li>
+              </ul>
+
+              <h4>⚡ 기술 스택</h4>
+              <ul className="benefits-list">
+                <li>
+                  <i className="fas fa-brain benefit-icon"></i>
+                  <span><strong>AI 모델</strong> - Claude-3.5-Sonnet, GPT-4o, Cursor AI</span>
+                </li>
+                <li>
+                  <i className="fas fa-code benefit-icon"></i>
+                  <span><strong>프레임워크</strong> - Next.js 15.1.8, TypeScript, Tailwind CSS</span>
+                </li>
+                <li>
+                  <i className="fas fa-cloud benefit-icon"></i>
+                  <span><strong>배포</strong> - Vercel, GitHub Actions, 자동 CI/CD</span>
+                </li>
+                <li>
+                  <i className="fas fa-tools benefit-icon"></i>
+                  <span><strong>개발 도구</strong> - Cursor Editor, Git, ESLint, Prettier</span>
+                </li>
+              </ul>
+
+              <div className="vibe-stats">
+                <div className="stat-item">
+                  <span className="stat-number">24시간</span>
+                  <span className="stat-label">개발 시간</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-number">90%</span>
+                  <span className="stat-label">AI 생성 코드</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-number">0$</span>
+                  <span className="stat-label">LLM 비용</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
