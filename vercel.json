@@ -55,4 +55,13 @@
     }
   ],
   
-    "cleanUrls": true,  "trailingSlash": false,    "routes": [    {      "src": "^/$",      "dest": "/index"    }  ]} 
+  "rewrites": [
+    {
+      "source": "/index.html",
+      "destination": "/404"
+    }
+  ],
+  
+  "cleanUrls": true,
+  "trailingSlash": false
+} 
