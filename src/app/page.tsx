@@ -116,19 +116,23 @@ export default function HomePage() {
     <>
       <style jsx global>{`
         :root {
-          --primary: #f6ad55;
-          --secondary: #ed8936;
-          --accent: #dd6b20;
+          --primary: #ec4899;
+          --secondary: #a855f7;
+          --accent: #8b5cf6;
           --success: #22c55e;
           --info: #0ea5e9;
           --text-white: #ffffff;
           --glass-bg: rgba(255, 255, 255, 0.1);
           --glass-border: rgba(255, 255, 255, 0.2);
           --bg-gradient: linear-gradient(135deg, #4a5568 0%, #2d3748 25%, #1a202c 50%, #2b6cb0 75%, #3182ce 100%);
+          --pink-purple-gradient: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+          --pink-purple-bright: linear-gradient(135deg, #f472b6 0%, #c084fc 100%);
           --gold-gradient: linear-gradient(45deg, #fbbf24 0%, #f59e0b 25%, #d97706 50%, #b45309 75%, #92400e 100%);
           --bright-gold: linear-gradient(45deg, #fef3c7 0%, #fbbf24 25%, #f59e0b 50%, #d97706 75%, #b45309 100%);
           --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
           --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+          --shadow-pink: 0 10px 25px rgba(236, 72, 153, 0.3);
+          --shadow-pink-hover: 0 15px 35px rgba(236, 72, 153, 0.4);
           --shadow-gold: 0 10px 25px rgba(251, 191, 36, 0.3);
           --shadow-gold-hover: 0 15px 35px rgba(251, 191, 36, 0.4);
         }
@@ -191,7 +195,7 @@ export default function HomePage() {
         }
 
         .highlight {
-          background: var(--gold-gradient);
+          background: var(--pink-purple-gradient);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -234,7 +238,7 @@ export default function HomePage() {
           display: inline-flex;
           align-items: center;
           gap: 0.5rem;
-          background: var(--gold-gradient);
+          background: var(--pink-purple-gradient);
           color: var(--text-white);
           font-size: 1.2rem;
           font-weight: 700;
@@ -244,15 +248,15 @@ export default function HomePage() {
           text-decoration: none;
           cursor: pointer;
           transition: all 0.3s ease;
-          box-shadow: var(--shadow-gold);
+          box-shadow: var(--shadow-pink);
           z-index: 1;
           text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
 
         .btn-primary:hover {
           transform: translateY(-3px);
-          box-shadow: var(--shadow-gold-hover);
-          background: var(--bright-gold);
+          box-shadow: var(--shadow-pink-hover);
+          background: var(--pink-purple-bright);
         }
 
         .btn-primary i {
@@ -296,12 +300,12 @@ export default function HomePage() {
         .feature-icon {
           font-size: 3rem;
           margin-bottom: 1.5rem;
-          background: var(--gold-gradient);
+          background: var(--pink-purple-gradient);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
           text-shadow: none;
-          filter: drop-shadow(0 2px 4px rgba(251, 191, 36, 0.3));
+          filter: drop-shadow(0 2px 4px rgba(236, 72, 153, 0.3));
         }
 
         .feature-title {
@@ -427,12 +431,12 @@ export default function HomePage() {
         }
 
         .benefit-icon {
-          background: var(--gold-gradient);
+          background: var(--pink-purple-gradient);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
           font-size: 1.1rem;
-          filter: drop-shadow(0 1px 2px rgba(251, 191, 36, 0.3));
+          filter: drop-shadow(0 1px 2px rgba(236, 72, 153, 0.3));
         }
 
         .vibe-coding-section {
@@ -522,9 +526,9 @@ export default function HomePage() {
           justify-content: space-around;
           margin-top: 1rem;
           padding: 1rem;
-          background: var(--gold-gradient);
+          background: var(--pink-purple-gradient);
           border-radius: 15px;
-          color: #1a1a1a;
+          color: white;
         }
 
         .stat-item {
@@ -537,12 +541,12 @@ export default function HomePage() {
           font-size: 1.4rem;
           font-weight: 700;
           margin-bottom: 0.3rem;
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .stat-label {
           font-size: 0.8rem;
-          opacity: 0.8;
+          opacity: 0.9;
           font-weight: 500;
         }
 
@@ -554,7 +558,7 @@ export default function HomePage() {
         .benefits-card {
           background: rgba(255, 255, 255, 0.1);
           backdrop-filter: blur(20px);
-          border: 1px solid rgba(251, 191, 36, 0.3);
+          border: 1px solid rgba(236, 72, 153, 0.3);
           border-radius: 25px;
           padding: 2.5rem;
           text-align: center;
@@ -574,7 +578,7 @@ export default function HomePage() {
           left: 0;
           right: 0;
           bottom: 0;
-          background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.1));
+          background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(168, 85, 247, 0.1));
           opacity: 0;
           transition: opacity 0.3s ease;
           z-index: -1;
@@ -584,7 +588,7 @@ export default function HomePage() {
           transform: translateY(-8px);
           box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
           background: rgba(255, 255, 255, 0.15);
-          border-color: rgba(251, 191, 36, 0.5);
+          border-color: rgba(236, 72, 153, 0.5);
         }
 
         .benefits-card:hover::before {
@@ -593,13 +597,13 @@ export default function HomePage() {
 
         .benefits-icon {
           font-size: 3.5rem;
-          background: var(--gold-gradient);
+          background: var(--pink-purple-gradient);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
           margin-bottom: 1.5rem;
           text-shadow: none;
-          filter: drop-shadow(0 2px 6px rgba(251, 191, 36, 0.4));
+          filter: drop-shadow(0 2px 6px rgba(236, 72, 153, 0.4));
         }
 
         .benefits-title {
@@ -628,13 +632,13 @@ export default function HomePage() {
         }
 
         .ai-highlight {
-          background: var(--gold-gradient);
+          background: var(--pink-purple-gradient);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
           font-weight: 800;
           text-shadow: none;
-          filter: drop-shadow(0 1px 3px rgba(251, 191, 36, 0.3));
+          filter: drop-shadow(0 1px 3px rgba(236, 72, 153, 0.3));
         }
 
         /* 반응형 디자인 */
