@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "rm -rf .next && next build",
     "start": "next start",
+    "clean": "rm -rf .next node_modules/.cache",
+    "build:clean": "npm run clean && npm run build",
     "lint": "next lint --max-warnings 0",
     "type-check": "tsc --noEmit",
     "test": "npm run type-check && npm run lint",

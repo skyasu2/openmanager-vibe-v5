@@ -1,12 +1,21 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // App Router 우선순위 보장 및 정적 HTML 방지
+  // 정적 HTML 생성 완전 차단
   trailingSlash: false,
   
-  // 실험적 기능
+  // App Router 강제 우선순위
   experimental: {
     optimizeServerReact: true
+  },
+
+  // 정적 파일 우선순위 조정
+  assetPrefix: '',
+  basePath: '',
+  
+  // 빌드 ID 커스터마이제이션으로 캐시 무효화
+  generateBuildId: async () => {
+    return `build-${Date.now()}`;
   },
 
   // 서버 외부 패키지 (Next.js 15 새 설정)
@@ -23,17 +32,6 @@ const nextConfig: NextConfig = {
 
   // API 라우트를 위한 페이지 확장자 설정
   pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
-
-  // 리라이트 규칙 제거 - API 라우트 충돌 방지
-  // async rewrites() {
-  //   return [
-  //     // index.html을 루트 경로에서 우선 처리
-  //     {
-  //       source: '/',
-  //       destination: '/index.html',
-  //     },
-  //   ];
-  // },
 
   // 보안 헤더
   async headers() {

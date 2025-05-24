@@ -4,8 +4,8 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-// 정적 생성을 위한 메타데이터 export
-export const dynamic = 'force-static';
+// 동적 렌더링 강제 (HTML 파일 생성 방지)
+export const dynamic = 'force-dynamic';
 
 export default function HomePage() {
   const router = useRouter();
