@@ -8,12 +8,7 @@ export function middleware(request: NextRequest) {
   // 시작 시간 기록 (성능 모니터링)
   const startTime = Date.now();
 
-  try {
-    // 1. API 경로는 절대 건드리지 않음 - 최우선 처리
-    if (pathname.startsWith('/api/')) {
-      console.log(`[Middleware] API route passed: ${pathname}`);
-      return NextResponse.next();
-    }
+    try {    // 1. API 경로는 절대 건드리지 않음 - 최우선 처리    if (pathname.startsWith('/api/')) {      // MIDDLEWARE_INVOCATION_FAILED (500) 방지      console.log(`[Middleware] API route passed: ${pathname}`);      return NextResponse.next();    }
 
     // 2. Next.js 내부 리소스들은 통과
     if (pathname.startsWith('/_next/') || 
