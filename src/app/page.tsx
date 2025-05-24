@@ -61,6 +61,7 @@ export default function HomePage() {
   const router = useRouter();
   const [selectedFeature, setSelectedFeature] = useState<FeatureDetail | null>(null);
   const [showVibeCoding, setShowVibeCoding] = useState(false);
+  const [showMainFeature, setShowMainFeature] = useState(false);
 
   useEffect(() => {
     // 페이지 로딩 애니메이션
@@ -104,6 +105,14 @@ export default function HomePage() {
 
   const closeVibeCodingModal = () => {
     setShowVibeCoding(false);
+  };
+
+  const openMainFeatureModal = () => {
+    setShowMainFeature(true);
+  };
+
+  const closeMainFeatureModal = () => {
+    setShowMainFeature(false);
   };
 
   return (
@@ -256,9 +265,9 @@ export default function HomePage() {
         }
 
         .feature-card {
-          background: var(--glass-bg);
+          background: rgba(255, 255, 255, 0.95);
           backdrop-filter: blur(10px);
-          border: 1px solid var(--glass-border);
+          border: 1px solid rgba(255, 255, 255, 0.3);
           border-radius: 16px;
           padding: 2rem;
           transition: all 0.3s ease;
@@ -268,34 +277,35 @@ export default function HomePage() {
           display: flex;
           flex-direction: column;
           justify-content: center;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
         .feature-card:hover {
           transform: translateY(-5px);
-          box-shadow: var(--shadow-xl);
-          background: rgba(255, 255, 255, 0.15);
+          box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+          background: rgba(255, 255, 255, 1);
         }
 
         .feature-icon {
           font-size: 3rem;
           margin-bottom: 1.5rem;
-          color: var(--text-white);
-          text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+          color: var(--primary);
+          text-shadow: none;
         }
 
         .feature-title {
           font-size: 1.3rem;
           font-weight: 600;
-          color: var(--text-white);
+          color: #1f2937;
           margin-bottom: 0.8rem;
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+          text-shadow: none;
         }
 
         .feature-description {
           font-size: 1rem;
-          color: rgba(255, 255, 255, 0.8);
+          color: #6b7280;
           line-height: 1.5;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+          text-shadow: none;
         }
 
         .modal-overlay {
@@ -514,7 +524,7 @@ export default function HomePage() {
         }
 
         .benefits-card {
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.1));
+          background: rgba(255, 255, 255, 0.95);
           backdrop-filter: blur(15px);
           border: 1px solid rgba(255, 255, 255, 0.3);
           border-radius: 20px;
@@ -524,40 +534,41 @@ export default function HomePage() {
           margin: 0 auto;
           box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
           transition: all 0.3s ease;
+          cursor: pointer;
         }
 
         .benefits-card:hover {
           transform: translateY(-3px);
           box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+          background: rgba(255, 255, 255, 1);
         }
 
         .benefits-icon {
           font-size: 3.5rem;
-          color: #ffd700;
+          color: var(--primary);
           margin-bottom: 1.5rem;
-          text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+          text-shadow: none;
         }
 
         .benefits-title {
           font-size: 1.8rem;
           font-weight: 700;
-          color: var(--text-white);
+          color: #1f2937;
           margin-bottom: 1.5rem;
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+          text-shadow: none;
         }
 
         .benefits-text {
           font-size: 1.2rem;
-          color: rgba(255, 255, 255, 0.95);
+          color: #374151;
           line-height: 1.8;
-          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-          font-style: italic;
+          text-shadow: none;
         }
 
         .benefits-text strong {
-          color: var(--text-white);
+          color: var(--primary);
           font-weight: 600;
-          text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+          text-shadow: none;
         }
 
         /* 반응형 디자인 */
@@ -677,17 +688,17 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* 도입 장점 섹션 */}
+        {/* 메인 AI 에이전트 섹션 */}
         <div className="benefits-section fade-in-up">
-          <div className="benefits-card">
+          <div className="benefits-card" onClick={openMainFeatureModal}>
             <div className="benefits-icon">
-              <i className="fas fa-user-cog"></i>
+              <i className="fas fa-brain"></i>
             </div>
-            <h3 className="benefits-title">스마트한 두 번째 엔지니어</h3>
+            <h3 className="benefits-title">NPU와 MCP 엔진 기반 AI 에이전트</h3>
             <p className="benefits-text">
-              &ldquo;OpenManager AI의 AI 에이전트는 <strong>LLM 없이도 AI처럼 응답</strong>합니다.<br />
-              기존 서버 모니터링에 자연어 인터페이스, 예측, 분석 기능이 더해져<br />
-              운영자에게 <strong>&lsquo;스마트한 두 번째 엔지니어&rsquo;</strong>가 붙은 것과 같습니다.&rdquo;
+              <strong>NPU와 MCP 엔진 기반 AI 에이전트로 서버 관리를 혁신합니다</strong><br />
+              자연어 질의, 지능형 분석, 예측 알림으로<br />
+              <strong>IT 운영을 완전히 자동화합니다</strong>
             </p>
           </div>
         </div>
@@ -816,6 +827,80 @@ export default function HomePage() {
                 <div className="stat-item">
                   <span className="stat-number">AI 프롬프트</span>
                   <span className="stat-label">정확도 향상</span>
+                </div>
+              </div>
+                        </div>
+          </div>
+    </div>
+      )}
+
+      {/* 메인 AI 에이전트 상세 모달 */}
+      {showMainFeature && (
+        <div className="modal-overlay" onClick={closeMainFeatureModal}>
+          <div className="modal-content vibe-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={closeMainFeatureModal}>
+              ×
+            </button>
+            
+            <div className="modal-header">
+              <div className="modal-emoji">🧠</div>
+              <h2 className="modal-title">NPU & MCP 엔진 기반 AI 에이전트</h2>
+              <p className="modal-description">LLM 없이도 지능형 응답하는 차세대 서버 관리 솔루션</p>
+            </div>
+
+            <div className="modal-benefits">
+              <h4>🚀 핵심 혁신 기술</h4>
+              <ul className="benefits-list">
+                <li>
+                  <i className="fas fa-microchip benefit-icon"></i>
+                  <span><strong>NPU 기반 경량 AI</strong> - Neural Processing Unit으로 LLM 비용 없는 실시간 AI 추론</span>
+                </li>
+                <li>
+                  <i className="fas fa-cogs benefit-icon"></i>
+                  <span><strong>MCP 엔진</strong> - Model Context Protocol로 패턴 매칭 기반 의도 분류 및 엔티티 추출</span>
+                </li>
+                <li>
+                  <i className="fas fa-comments benefit-icon"></i>
+                                     <span><strong>자연어 인터페이스</strong> - &ldquo;CPU 사용률이 높은 서버들 찾아줘&rdquo; 같은 일상 대화로 서버 관리</span>
+                </li>
+                <li>
+                  <i className="fas fa-search-plus benefit-icon"></i>
+                  <span><strong>지능형 분석</strong> - 근본원인 분석기, 예측 알림, 솔루션 추천 엔진 통합</span>
+                </li>
+              </ul>
+
+              <h4>⚡ 자동화 혁신</h4>
+              <ul className="benefits-list">
+                <li>
+                  <i className="fas fa-bell benefit-icon"></i>
+                  <span><strong>예측 알림 시스템</strong> - 과거 패턴 기반 장애 예측 및 사전 알림</span>
+                </li>
+                <li>
+                  <i className="fas fa-file-alt benefit-icon"></i>
+                  <span><strong>자동 보고서 생성</strong> - 시간대별/서버별 맞춤형 AI 분석 리포트 자동 생성</span>
+                </li>
+                <li>
+                  <i className="fas fa-robot benefit-icon"></i>
+                  <span><strong>완전 자동화 운영</strong> - 모니터링부터 문제 해결까지 AI가 자동 처리</span>
+                </li>
+                <li>
+                  <i className="fas fa-user-cog benefit-icon"></i>
+                  <span><strong>스마트한 두 번째 엔지니어</strong> - 운영자에게 지능형 보조 인력이 붙은 효과</span>
+                </li>
+              </ul>
+
+              <div className="vibe-stats">
+                <div className="stat-item">
+                  <span className="stat-number">LLM 비용</span>
+                  <span className="stat-label">0원</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-number">실시간</span>
+                  <span className="stat-label">AI 추론</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-number">완전 자동화</span>
+                  <span className="stat-label">IT 운영</span>
                 </div>
               </div>
             </div>

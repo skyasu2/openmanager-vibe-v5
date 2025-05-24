@@ -109,16 +109,16 @@ npm run dev
 **URL**: `/` (메인 페이지)
 
 #### AI 에이전트 주요 특징
-- **🧠 MCP 엔진 강조** - Model Context Protocol 기반 경량 AI
-- **💎 Glassmorphism 디자인** - 현대적인 반투명 카드 효과
-- **⚡ 인터랙티브 모달** - AI 기능 상세 설명 및 Vibe Coding 방식 소개
+- **🧠 NPU & MCP 엔진 메인 카드** - Neural Processing Unit과 Model Context Protocol 기반 AI 에이전트 소개
+- **🤍 클린 화이트 디자인** - 흰색 배경의 전문적이고 깔끔한 카드 디자인
+- **⚡ 인터랙티브 모달 시스템** - 메인 카드, AI 기능, Vibe Coding 상세 설명 모달
 - **📱 완전 반응형** - 모바일부터 데스크톱까지 최적화
 - **🎯 AI 중심 CTA** - "AI 대시보드 바로가기" 버튼
 
-#### Vibe Coding 뱃지
-- **클릭 가능한 기술 뱃지** - 개발 프로세스 상세 설명
-- **AI 협업 과정** - 프롬프트 설계 → Cursor AI 협업 → 반복 개선
-- **실제 개발 통계** - 100% AI 생성 코드, 실시간 자동 배포
+#### 클릭 가능한 인터랙티브 요소
+- **메인 AI 에이전트 카드** - NPU/MCP 엔진 기술 상세 설명 모달
+- **3개 핵심 기능 카드** - 자연어 AI, 지능형 분석, 자동 보고서 모달
+- **Vibe Coding 뱃지** - 100% AI 생성 코드, 자동 배포 개발 과정 소개
 
 ### 🌟 AI 서버 모니터링 데모
 **URL**: `/demo`
@@ -169,10 +169,11 @@ openmanager-vibe-v5/
 }
 ```
 
-### Glassmorphism & AI Theme
-- **반투명 카드**: backdrop-filter blur 효과
-- **그라데이션 배경**: 15초 순환 AI 테마 애니메이션
-- **AI 중심 아이콘**: Brain, Microchip, Robot 등
+### Clean White Cards & AI Theme
+- **화이트 카드**: 흰색 배경 (`rgba(255, 255, 255, 0.95)`)의 전문적인 디자인
+- **다크 텍스트**: 가독성이 뛰어난 다크 그레이 (`#1f2937`, `#6b7280`) 텍스트
+- **그라데이션 배경**: 15초 순환 AI 테마 애니메이션 (green→blue→purple)
+- **AI 중심 아이콘**: Brain, Microchip, Robot 등 (Primary Green 컬러)
 
 ---
 
