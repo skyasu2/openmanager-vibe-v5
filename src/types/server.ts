@@ -8,10 +8,11 @@ export interface Server {
   uptime: string;
   location: string;
   alerts: number;
-  ip: string;
-  os: string;
+  ip?: string;
+  os?: string;
+  lastUpdate: Date;
   services: ServiceInfo[];
-  logs: LogEntry[];
+  logs?: LogEntry[];
 }
 
 export interface ServiceInfo {
