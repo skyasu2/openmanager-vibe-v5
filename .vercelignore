@@ -20,14 +20,4 @@ coverage/
 *.tgz
 *.tar.gz
 
-# 기타 불필요한 파일들
-docs/
-scripts/
-.github/
-node_modules/
-.git/
-*.md
-*.log
-.env.example
-.env.template
-tsconfig.tsbuildinfo 
+# 기타 불필요한 파일들docs/scripts/.github/node_modules/.git/*.md*.log.env.example.env.templatetsconfig.tsbuildinfo# HTML 백업 파일들 (Preview 환경 충돌 방지)*.html.backup*.html.bakpublic/index.html* 

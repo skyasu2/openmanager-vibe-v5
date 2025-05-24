@@ -1,9 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Vercel 배포 최적화
-  output: 'standalone',
-  
   // 실험적 기능
   experimental: {
     optimizeServerReact: true
