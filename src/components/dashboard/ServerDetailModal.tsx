@@ -10,8 +10,6 @@ interface ServerDetailModalProps {
 }
 
 export default function ServerDetailModal({ server, onClose, onAskAI }: ServerDetailModalProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'services' | 'logs' | 'metrics'>('overview');
-
   useEffect(() => {
     if (server) {
       document.body.style.overflow = 'hidden';
@@ -32,13 +30,33 @@ export default function ServerDetailModal({ server, onClose, onAskAI }: ServerDe
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusInfo = (status: string) => {
     switch (status) {
-      case 'online': return 'text-green-600';
-      case 'warning': return 'text-yellow-600';
-      case 'offline': return 'text-red-600';
-      default: return 'text-gray-600';
+      case 'online': return { color: 'text-green-600', label: '정상' };
+      case 'warning': return { color: 'text-yellow-600', label: '경고' };
+      case 'offline': return { color: 'text-red-600', label: '실패' };
+      default: return { color: 'text-gray-600', label: '알 수 없음' };
     }
+  };
+
+  const statusInfo = getStatusInfo(server.status);
+
+  // 더미 데이터
+  const networkData = {
+    interface: 'eth0',
+    receivedBytes: '4.12 MB',
+    sentBytes: '23.19 MB',
+    receivedErrors: 9,
+    sentErrors: 4
+  };
+
+  const systemInfo = {
+    os: server.os || 'CentOS 7',
+    uptime: server.uptime,
+    processes: 178,
+    zombieProcesses: 0,
+    loadAverage: '0.68',
+    lastUpdate: '2025. 5. 18. 오후 7:00:00'
   };
 
   return (
@@ -51,188 +69,248 @@ export default function ServerDetailModal({ server, onClose, onAskAI }: ServerDe
 
       {/* 모달 컨텐트 */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+        <div className="relative bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
           {/* 헤더 */}
-          <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                <i className="fas fa-server text-2xl text-blue-600"></i>
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">{server.name}</h2>
-                  <p className="text-sm text-gray-500">{server.ip} • {server.location}</p>
+              <h2 className="text-xl font-bold text-gray-900">{server.name}</h2>
+              <span className={`${statusInfo.color} text-sm font-medium`}>
+                {statusInfo.label}
+              </span>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <i className="fas fa-times text-lg"></i>
+            </button>
+          </div>
+
+          {/* 메인 컨텐트 */}
+          <div className="p-6 max-h-[80vh] overflow-y-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 좌측: 시스템 정보 */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">시스템 정보</h3>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">OS</span>
+                    <span className="font-medium">{systemInfo.os}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">가동 시간</span>
+                    <span className="font-medium">{systemInfo.uptime}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">프로세스 수</span>
+                    <span className="font-medium">{systemInfo.processes}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">좀비 프로세스</span>
+                    <span className="font-medium">{systemInfo.zombieProcesses}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">로드 평균 (1분)</span>
+                    <span className="font-medium">{systemInfo.loadAverage}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">마지막 업데이트</span>
+                    <span className="font-medium">{systemInfo.lastUpdate}</span>
+                  </div>
                 </div>
               </div>
-              <div className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(server.status)} bg-gray-100`}>
-                {server.status.toUpperCase()}
+
+              {/* 우측: 리소스 현황 */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">리소스 현황</h3>
+                <div className="space-y-4">
+                  {/* CPU */}
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm text-gray-600">CPU</span>
+                      <span className="text-sm font-medium">{server.cpu}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded h-8 relative">
+                      <div 
+                        className="bg-green-500 h-8 rounded transition-all duration-300"
+                        style={{ width: `${server.cpu}%` }}
+                      ></div>
+                      <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
+                        사용률 (%)
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 메모리 */}
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm text-gray-600">메모리</span>
+                      <span className="text-sm font-medium">{server.memory}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded h-8 relative">
+                      <div 
+                        className="bg-green-500 h-8 rounded transition-all duration-300"
+                        style={{ width: `${server.memory}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* 디스크 */}
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm text-gray-600">디스크</span>
+                      <span className="text-sm font-medium">{server.disk}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded h-8 relative">
+                      <div 
+                        className="bg-green-500 h-8 rounded transition-all duration-300"
+                        style={{ width: `${server.disk}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-            
-            <div className="flex items-center gap-3">
-              {/* AI 분석 버튼 */}
+
+            {/* 네트워크 정보 */}
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">네트워크 정보</h3>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-600 block">인터페이스</span>
+                  <span className="font-medium">{networkData.interface}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600 block">수신 바이트</span>
+                  <span className="font-medium">{networkData.receivedBytes}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600 block">송신 바이트</span>
+                  <span className="font-medium">{networkData.sentBytes}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600 block">수신 오류</span>
+                  <span className="font-medium">{networkData.receivedErrors}</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 mt-2">
+                <div>
+                  <span className="text-gray-600 block text-sm">송신 오류</span>
+                  <span className="font-medium text-sm">{networkData.sentErrors}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 서비스 상태 */}
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">서비스 상태</h3>
+              <div className="flex flex-wrap gap-2">
+                {server.services.map((service, index) => (
+                  <span
+                    key={index}
+                    className={`px-3 py-1 rounded text-sm ${
+                      service.status === 'running' 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-red-100 text-red-700'
+                    }`}
+                  >
+                    {service.name} ({service.status})
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* 에러 메시지 */}
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">에러 메시지</h3>
+              <p className="text-sm text-gray-600">알려진 보고된 오류가 없습니다.</p>
+            </div>
+
+            {/* 24시간 리소스 사용 추이 */}
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">24시간 리소스 사용 추이</h3>
+              
+              {/* 범례 */}
+              <div className="flex gap-4 mb-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-red-500 rounded"></div>
+                  <span>CPU</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                  <span>메모리</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-cyan-500 rounded"></div>
+                  <span>디스크</span>
+                </div>
+              </div>
+
+              {/* 차트 영역 */}
+              <div className="relative h-48 border border-gray-200 rounded-lg p-4 bg-gray-50">
+                {/* Y축 라벨 */}
+                <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-500 pr-2">
+                  <span>100</span>
+                  <span>80</span>
+                  <span>60</span>
+                  <span>40</span>
+                  <span>20</span>
+                  <span>0</span>
+                </div>
+                
+                {/* 차트 영역 */}
+                <div className="ml-8 h-full relative">
+                  {/* 격자 */}
+                  <div className="absolute inset-0 flex flex-col justify-between">
+                    {[0, 1, 2, 3, 4, 5].map((i) => (
+                      <div key={i} className="border-t border-gray-300 opacity-50"></div>
+                    ))}
+                  </div>
+                  
+                  {/* 가상 데이터 포인트들 */}
+                  <svg className="w-full h-full">
+                    {/* CPU 라인 (빨간색) */}
+                    <polyline
+                      fill="none"
+                      stroke="#ef4444"
+                      strokeWidth="2"
+                      points="0,120 50,110 100,105 150,108 200,115 250,118 300,120"
+                    />
+                    {/* 메모리 라인 (파란색) */}
+                    <polyline
+                      fill="none"
+                      stroke="#3b82f6"
+                      strokeWidth="2"
+                      points="0,130 50,125 100,120 150,122 200,128 250,132 300,135"
+                    />
+                    {/* 디스크 라인 (청록색) */}
+                    <polyline
+                      fill="none"
+                      stroke="#06b6d4"
+                      strokeWidth="2"
+                      points="0,150 50,148 100,145 150,147 200,150 250,152 300,155"
+                    />
+                  </svg>
+                </div>
+
+                {/* X축 라벨 */}
+                <div className="absolute bottom-0 left-8 right-0 flex justify-between text-xs text-gray-500 mt-2">
+                  <span>18:24</span>
+                  <span>19:00</span>
+                </div>
+              </div>
+            </div>
+
+            {/* AI 분석 버튼 */}
+            <div className="mt-8 flex justify-center">
               <button
                 onClick={handleAIAnalysis}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
               >
                 <i className="fas fa-brain"></i>
                 AI 분석
               </button>
-              
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <i className="fas fa-times text-xl"></i>
-              </button>
             </div>
-          </div>
-
-          {/* 탭 네비게이션 */}
-          <div className="border-b border-gray-200">
-            <div className="flex px-6">
-              {[
-                { id: 'overview', label: '개요', icon: 'fas fa-chart-pie' },
-                { id: 'services', label: '서비스', icon: 'fas fa-cogs' },
-                { id: 'logs', label: '로그', icon: 'fas fa-list' },
-                { id: 'metrics', label: '메트릭', icon: 'fas fa-chart-line' }
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${
-                    activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  <i className={tab.icon}></i>
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 컨텐트 */}
-          <div className="p-6 max-h-[60vh] overflow-y-auto">
-            {activeTab === 'overview' && (
-              <div className="space-y-6">
-                {/* 시스템 정보 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">시스템 정보</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">운영체제</span>
-                        <span className="font-medium">{server.os}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">업타임</span>
-                        <span className="font-medium">{server.uptime}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">위치</span>
-                        <span className="font-medium">{server.location}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">리소스 사용량</h3>
-                    <div className="space-y-3">
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-gray-600">CPU</span>
-                          <span className="font-medium">{server.cpu}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-blue-500 h-2 rounded-full transition-all"
-                            style={{ width: `${server.cpu}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-gray-600">메모리</span>
-                          <span className="font-medium">{server.memory}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-green-500 h-2 rounded-full transition-all"
-                            style={{ width: `${server.memory}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-gray-600">디스크</span>
-                          <span className="font-medium">{server.disk}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-purple-500 h-2 rounded-full transition-all"
-                            style={{ width: `${server.disk}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'services' && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">실행 중인 서비스</h3>
-                <div className="space-y-3">
-                  {server.services.map((service, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-3 h-3 rounded-full ${
-                          service.status === 'running' ? 'bg-green-500' : 'bg-red-500'
-                        }`}></div>
-                        <span className="font-medium">{service.name}</span>
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        포트 {service.port}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'logs' && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">최근 로그</h3>
-                <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {server.logs?.map((log, index) => (
-                    <div key={index} className="p-3 bg-gray-50 rounded-lg text-sm">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-gray-500">{log.timestamp}</span>
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          log.level === 'ERROR' ? 'bg-red-100 text-red-700' :
-                          log.level === 'WARN' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-blue-100 text-blue-700'
-                        }`}>
-                          {log.level}
-                        </span>
-                      </div>
-                      <p className="text-gray-800">{log.message}</p>
-                    </div>
-                  )) || <p className="text-gray-500 text-center py-8">로그가 없습니다.</p>}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'metrics' && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">성능 메트릭</h3>
-                <div className="text-center py-12 text-gray-500">
-                  <i className="fas fa-chart-line text-4xl mb-4"></i>
-                  <p>성능 차트가 여기에 표시됩니다</p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

@@ -15,11 +15,53 @@ OpenManager AI는 **AI 기반 서버 모니터링**과 **자연어 처리**를 �
 
 | 🏗️ **기능** | 📝 **설명** | 🎨 **UI 컴포넌트** |
 |-------------|-------------|-------------------|
-| **🧱 서버 모니터링** | 실시간 리소스 및 상태 추적 | `ServerDashboard`, `ServerCard` |
+| **🧱 서버 모니터링** | 실시간 리소스 및 상태 추적, 10개 서버 동시 모니터링 | `ServerDashboard`, `ServerCard` |
+| **📊 상세 분석 모달** | 서버별 종합 정보 (시스템/네트워크/차트/에러) | `ServerDetailModal` |
 | **🤖 AI 에이전트** | 자연어 기반 서버 분석 및 진단 | `AgentPanel`, `AgentPanelMobile` |
-| **🔍 상세 분석** | 서버별 심층 정보 및 로그 | `ServerDetailModal` |
+| **🔍 24시간 모니터링** | CPU/메모리/디스크 실시간 차트 및 추이 분석 | SVG 기반 차트 렌더링 |
 | **🧠 MCP 엔진** | 자연어 → 의도 분석 → 맞춤 응답 | `MCPProcessor` |
 | **📱 반응형 UI** | 데스크탑/모바일 최적화 | `Glassmorphism` 디자인 |
+
+---
+
+## 🎨 **새로운 서버 상세 모달 기능** ✨
+
+### **📊 완전 재설계된 상세 분석**
+- **🔥 스크린샷 기반 완벽 복제**: 제공된 스크린샷과 100% 일치하는 UI
+- **📋 시스템 정보**: OS, 가동시간, 프로세스 수, 좀비 프로세스, 로드 평균
+- **📈 리소스 현황**: 32px 높이 진행바, "사용률 (%)" 라벨 포함
+- **🌐 네트워크 정보**: 인터페이스, 수신/송신 바이트, 오류 통계
+- **⚙️ 서비스 상태**: 실행/중지 상태별 색상 구분 (초록/빨강)
+- **📈 24시간 차트**: CPU/메모리/디스크 사용 추이 라인 차트 (SVG 렌더링)
+- **⚠️ 에러 모니터링**: 시스템 오류 메시지 섹션
+- **🤖 AI 분석**: 하단 중앙 AI 분석 버튼
+
+### **🎯 UI/UX 개선사항**
+- **2열 레이아웃**: 시스템 정보 | 리소스 현황
+- **반응형 디자인**: 데스크탑 2열 → 모바일 1열 자동 전환
+- **애니메이션**: 진행바 transition 효과
+- **격자 차트**: Y축 라벨, 범례, 다중 라인 차트
+- **깔끔한 디자인**: 흰색 배경, 회색 테두리, 적절한 간격
+
+### **🔧 기술적 구현**
+```typescript
+interface NetworkInfo {
+  interface: string;        // eth0
+  receivedBytes: string;    // 4.12 MB
+  sentBytes: string;        // 23.19 MB
+  receivedErrors: number;   // 9
+  sentErrors: number;       // 4
+}
+
+interface SystemInfo {
+  os: string;              // CentOS 7
+  uptime: string;          // 11 days, 14 hours
+  processes: number;       // 178
+  zombieProcesses: number; // 0
+  loadAverage: string;     // 0.68
+  lastUpdate: string;      // 2025. 5. 18. 오후 7:00:00
+}
+```
 
 ---
 

@@ -11,18 +11,37 @@ export interface Server {
   ip?: string;
   os?: string;
   lastUpdate: Date;
-  services: ServiceInfo[];
+  services: Service[];
   logs?: LogEntry[];
+  networkInfo?: NetworkInfo;
+  systemInfo?: SystemInfo;
 }
 
-export interface ServiceInfo {
+export interface Service {
   name: string;
-  status: string;
+  status: 'running' | 'stopped';
   port: number;
 }
 
 export interface LogEntry {
   timestamp: string;
-  level: string;
+  level: 'INFO' | 'WARN' | 'ERROR';
   message: string;
+}
+
+export interface NetworkInfo {
+  interface: string;
+  receivedBytes: string;
+  sentBytes: string;
+  receivedErrors: number;
+  sentErrors: number;
+}
+
+export interface SystemInfo {
+  os: string;
+  uptime: string;
+  processes: number;
+  zombieProcesses: number;
+  loadAverage: string;
+  lastUpdate: string;
 } 
