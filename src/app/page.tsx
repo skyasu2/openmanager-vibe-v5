@@ -611,15 +611,15 @@ export default function HomePage() {
 
         .benefits-text {
           font-size: 1.2rem;
-          color: rgba(255, 255, 255, 0.85);
+          color: rgba(255, 215, 0, 0.9);
           line-height: 1.8;
           text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
         }
 
         .benefits-text strong {
-          color: rgba(255, 215, 0, 0.9);
+          color: rgba(255, 223, 0, 1);
           font-weight: 600;
-          text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+          text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
         }
 
         /* 반응형 디자인 */
