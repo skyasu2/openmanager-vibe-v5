@@ -106,4 +106,12 @@ export function middleware(request: NextRequest) {
   }
 }
 
-// API 경로를 완전히 제외하는 matcher 설정export const config = {  matcher: [    /*     * API 경로와 정적 파일들을 제외한 모든 경로     */    '/((?!api|_next|favicon).*)',  ],}; 
+// API 경로를 완전히 제외하는 matcher 설정
+export const config = {
+  matcher: [
+    /*
+     * API 경로와 정적 파일들을 제외한 모든 경로
+     */
+    '/((?!api|_next|favicon).*)',
+  ],
+}; 
