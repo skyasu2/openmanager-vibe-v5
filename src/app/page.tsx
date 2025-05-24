@@ -130,7 +130,7 @@ export default function HomePage() {
         }
 
         .splash-container {
-          min-height: 100vh;
+          height: 100vh;
           background: var(--bg-gradient);
           background-size: 400% 400%;
           animation: gradientShift 15s ease infinite;
@@ -139,7 +139,7 @@ export default function HomePage() {
           align-items: center;
           justify-content: center;
           text-align: center;
-          padding: 2rem 1rem;
+          padding: 1rem;
           position: relative;
           overflow: hidden;
         }
@@ -208,7 +208,7 @@ export default function HomePage() {
         }
 
         .cta-section {
-          margin: 2rem 0;
+          margin: 1rem 0;
           z-index: 1;
         }
 
@@ -258,8 +258,8 @@ export default function HomePage() {
         .features-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 2rem;
-          margin: 2rem 0;
+          gap: 1.5rem;
+          margin: 1rem 0;
           max-width: 1200px;
           width: 100%;
           z-index: 1;
@@ -428,7 +428,7 @@ export default function HomePage() {
         }
 
         .vibe-coding-section {
-          margin: 3rem 0 2rem 0;
+          margin: 1rem 0;
           text-align: center;
           z-index: 1;
         }
@@ -480,11 +480,11 @@ export default function HomePage() {
         }
 
         .footer-info {
-          margin-top: 2rem;
-          padding-top: 1rem;
+          margin-top: 0.5rem;
+          padding-top: 0.5rem;
           border-top: 1px solid rgba(255, 255, 255, 0.2);
           text-align: center;
-          font-size: 0.9rem;
+          font-size: 0.8rem;
           color: rgba(255, 255, 255, 0.7);
           z-index: 1;
         }
@@ -536,7 +536,7 @@ export default function HomePage() {
         }
 
         .benefits-section {
-          margin: 3rem 0 2rem 0;
+          margin: 1.5rem 0 1rem 0;
           z-index: 1;
         }
 
@@ -678,7 +678,7 @@ export default function HomePage() {
             <h3 className="benefits-title">NPU와 MCP 엔진 기반 AI 에이전트</h3>
             <p className="benefits-text">
               <strong>NPU와 MCP 엔진 기반 AI 에이전트로 서버 관리를 혁신합니다</strong><br />
-              자연어 질의, 지능형 분석, 예측 알림으로<br />
+              <strong>자연어 질의, 지능형 분석, 예측 알림으로</strong><br />
               <strong>IT 운영을 완전히 자동화합니다</strong>
             </p>
           </div>
