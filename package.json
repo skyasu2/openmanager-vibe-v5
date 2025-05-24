@@ -11,7 +11,15 @@
     "test": "npm run type-check && npm run lint",
     "test:enterprise": "node scripts/mockEnterpriseHit.ts",
     "enterprise:seed": "curl -X POST http://localhost:3001/api/enterprise/seed",
-    "enterprise:simulate": "curl -X POST http://localhost:3001/api/simulate"
+    "enterprise:simulate": "curl -X POST http://localhost:3001/api/simulate",
+    "health-check": "curl -f http://localhost:3000/api/health || exit 1",
+    "health-check:prod": "curl -f https://openmanager-vibe-v5.vercel.app/api/health || exit 1",
+    "perf-test": "lighthouse http://localhost:3000 --output=json --output-path=./lighthouse-report.json",
+    "audit": "npm audit --audit-level=high",
+    "build:analyze": "ANALYZE=true npm run build",
+    "deploy:preview": "vercel --confirm",
+    "deploy:prod": "vercel --prod --confirm",
+    "monitor": "npm run health-check:prod && echo '✅ Production health check passed'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.8",
