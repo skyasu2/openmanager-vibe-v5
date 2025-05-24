@@ -1,11 +1,19 @@
 {
   "framework": "nextjs",
   "buildCommand": "npm run build",
-  "outputDirectory": ".next",
-  "installCommand": "npm install",
   "devCommand": "npm run dev",
-  "regions": ["icn1", "hnd1"],
-  "functions": {    "src/app/api/**/route.ts": {      "maxDuration": 10    },    "pages/api/**/*.ts": {      "maxDuration": 10    }  },
+  "installCommand": "npm install",
+  "regions": ["icn1"],
+  
+  "functions": {
+    "src/app/api/**/*.{js,ts}": {
+      "maxDuration": 10
+    },
+    "pages/api/**/*.{js,ts}": {
+      "maxDuration": 10
+    }
+  },
+  
   "headers": [
     {
       "source": "/api/(.*)",
@@ -46,6 +54,7 @@
       "permanent": true
     }
   ],
+  
   "cleanUrls": true,
   "trailingSlash": false
 } 
