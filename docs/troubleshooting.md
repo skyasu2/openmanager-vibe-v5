@@ -1,6 +1,4 @@
-# 🛠️ 트러블슈팅 가이드
-
-## API 라우트 404 문제 해결
+# 🛠️ 트러블슈팅 가이드## Next.js 기본 템플릿 문제 해결 (2024-12-15 완전 해결)### 문제 상황- ✅ API 엔드포인트 정상 작동- ❌ 메인 페이지(`/`)에서 Next.js 기본 템플릿 표시- ❌ OpenManager Vibe V5 랜딩 페이지가 나타나지 않음- ❌ `public/index.html`로 리다이렉션 발생### 🔍 원인 분석1. **파일 우선순위 문제**: Next.js가 `public/index.html`을 우선적으로 서빙2. **App Router 미인식**: `src/app/page.tsx`가 정상적으로 인식되지 않음3. **정적 파일 충돌**: `public/` 디렉토리의 HTML 파일이 React 컴포넌트보다 우선### ✅ 해결 방법#### 1. `public/index.html` 파일 마이그레이션- OpenManager Vibe V5 랜딩 페이지를 `src/app/page.tsx`로 완전 이주- HTML → React 컴포넌트 변환- Font Awesome 및 Google Fonts 통합#### 2. 의존성 및 최적화 추가- `src/app/layout.tsx`에 폰트 및 메타데이터 설정- SEO 최적화를 위한 메타데이터 구성- 반응형 디자인 및 성능 최적화#### 3. 백업 및 정리- 기존 `public/index.html` 파일을 `public/index.html.backup`으로 보관- 불필요한 파일 정리### 🎯 결과 (2024-12-15 완전 해결 확인)- ✅ **랜딩 페이지 정상**: OpenManager Vibe V5 완전한 인터페이스 표시- ✅ **애니메이션 작동**: 그라데이션 배경 및 Fade-in-up 효과- ✅ **성능 최적화**: 5.57 kB 메인 페이지, 111 kB First Load JS- ✅ **완전 반응형**: 모바일부터 데스크톱까지 최적화- ✅ **CTA 버튼 작동**: 데모 및 대시보드 링크 정상 작동## API 라우트 404 문제 해결
 
 ### 문제 상황
 - ✅ 메인 페이지 정상 작동
