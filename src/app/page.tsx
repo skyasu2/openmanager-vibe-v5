@@ -124,7 +124,7 @@ export default function HomePage() {
           --text-white: #ffffff;
           --glass-bg: rgba(255, 255, 255, 0.1);
           --glass-border: rgba(255, 255, 255, 0.2);
-          --bg-gradient: linear-gradient(135deg, #4a5568 0%, #2d3748 25%, #1a202c 50%, #2b6cb0 75%, #3182ce 100%);
+          --bg-gradient: linear-gradient(135deg, #4a5568 0%, #553c5e 20%, #2d3748 40%, #4c1d95 70%, #3182ce 100%);
           --pink-purple-gradient: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
           --pink-purple-bright: linear-gradient(135deg, #f472b6 0%, #c084fc 100%);
           --gold-gradient: linear-gradient(45deg, #fbbf24 0%, #f59e0b 25%, #d97706 50%, #b45309 75%, #92400e 100%);
@@ -135,6 +135,10 @@ export default function HomePage() {
           --shadow-pink-hover: 0 15px 35px rgba(236, 72, 153, 0.4);
           --shadow-gold: 0 10px 25px rgba(251, 191, 36, 0.3);
           --shadow-gold-hover: 0 15px 35px rgba(251, 191, 36, 0.4);
+          --purple-accent: rgba(168, 85, 247, 0.3);
+          --purple-accent-hover: rgba(168, 85, 247, 0.4);
+          --purple-glow: rgba(168, 85, 247, 0.1);
+          --purple-glow-hover: rgba(168, 85, 247, 0.15);
         }
 
         .splash-container {
@@ -277,7 +281,7 @@ export default function HomePage() {
         .feature-card {
           background: rgba(255, 255, 255, 0.1);
           backdrop-filter: blur(15px);
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          border: 1px solid var(--purple-accent);
           border-radius: 20px;
           padding: 2rem;
           transition: all 0.3s ease;
@@ -287,14 +291,18 @@ export default function HomePage() {
           display: flex;
           flex-direction: column;
           justify-content: center;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+          box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.1),
+            0 0 20px var(--purple-glow);
         }
 
         .feature-card:hover {
           transform: translateY(-5px);
-          box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+          box-shadow: 
+            0 15px 40px rgba(0, 0, 0, 0.2),
+            0 0 30px var(--purple-glow-hover);
           background: rgba(255, 255, 255, 0.15);
-          border-color: rgba(255, 255, 255, 0.3);
+          border-color: var(--purple-accent-hover);
         }
 
         .feature-icon {
@@ -551,13 +559,15 @@ export default function HomePage() {
         .benefits-card {
           background: rgba(255, 255, 255, 0.1);
           backdrop-filter: blur(20px);
-          border: 1px solid rgba(236, 72, 153, 0.3);
+          border: 1px solid var(--purple-accent);
           border-radius: 25px;
           padding: 2.5rem;
           text-align: center;
           max-width: 700px;
           margin: 0 auto;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+          box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.15),
+            0 0 25px var(--purple-glow);
           transition: all 0.4s ease;
           cursor: pointer;
           position: relative;
@@ -579,9 +589,11 @@ export default function HomePage() {
 
         .benefits-card:hover {
           transform: translateY(-8px);
-          box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
+          box-shadow: 
+            0 30px 60px rgba(0, 0, 0, 0.25),
+            0 0 40px var(--purple-glow-hover);
           background: rgba(255, 255, 255, 0.15);
-          border-color: rgba(236, 72, 153, 0.5);
+          border-color: var(--purple-accent-hover);
         }
 
         .benefits-card:hover::before {
