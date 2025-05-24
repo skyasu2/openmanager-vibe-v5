@@ -1,0 +1,11 @@
+/api
+docs/
+scripts/
+.github/
+node_modules/
+.git/
+*.md
+*.log
+.env.example
+.env.template
+tsconfig.tsbuildinfo 

@@ -78,6 +78,16 @@ npm run dev
 - **메인 페이지**: [http://localhost:3000](http://localhost:3000)
 - **AI 데모**: [http://localhost:3000/demo](http://localhost:3000/demo)
 
+### ✅ API 엔드포인트 (완전 해결됨)
+**모든 API 라우트가 정상 작동합니다:**
+
+#### App Router API (`/api/*`)
+- **기본 연결**: [/api/ping](http://localhost:3000/api/ping) - 간단한 연결 테스트
+- **건강 상태**: [/api/health](http://localhost:3000/api/health) - 상세한 시스템 건강 상태
+- **서버 상태**: [/api/status](http://localhost:3000/api/status) - 서버 상태 및 성능 메트릭
+
+> **🎯 해결된 문제**: 이전 API 라우트 404 오류가 `.vercelignore` 설정으로 완전히 해결되었습니다.
+
 ---
 
 ## 🎮 라이브 데모

@@ -5,11 +5,7 @@
   "installCommand": "npm install",
   "devCommand": "npm run dev",
   "regions": ["icn1", "hnd1"],
-  "functions": {
-    "src/app/api/**/*.ts": {
-      "maxDuration": 10
-    }
-  },
+  "functions": {    "src/app/api/**/route.ts": {      "maxDuration": 10    },    "pages/api/**/*.ts": {      "maxDuration": 10    }  },
   "headers": [
     {
       "source": "/api/(.*)",
@@ -42,12 +38,7 @@
       ]
     }
   ],
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/index.html"
-    }
-  ],
+  
   "redirects": [
     {
       "source": "/docs",
