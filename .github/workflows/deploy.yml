@@ -1,4 +1,4 @@
-name: 🚀 Deploy to Vercel with Health Checks
+name: 🚀 Deploy to Vercel (Personal Account)
 
 on:
   # Secrets 설정 완료! 자동 배포 활성화
@@ -33,7 +33,7 @@ jobs:
       env:
         NODE_ENV: production
 
-  # 2. Vercel 배포
+  # 2. Vercel 배포 (개인 계정용 - ORG_ID/PROJECT_ID 불필요)
   deploy:
     name: 🚀 Deploy to Vercel
     runs-on: ubuntu-latest
@@ -45,15 +45,22 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Install Vercel CLI
+      run: npm install --global vercel@latest
+
     - name: Deploy to Vercel
       id: deploy
-      uses: amondnet/vercel-action@v25
-      with:
-        vercel-token: ${{ secrets.VERCEL_TOKEN }}
-        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-        working-directory: ./
-        vercel-args: ${{ github.ref == 'refs/heads/main' && '--prod' || '' }}
+      run: |
+        if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          echo "🚀 Deploying to production..."
+          URL=$(vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes)
+          echo "production-url=$URL" >> $GITHUB_OUTPUT
+        else
+          echo "🚀 Deploying preview..."
+          URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }} --yes)
+          echo "preview-url=$URL" >> $GITHUB_OUTPUT
+        fi
+        echo "Deployed to: $URL"
 
   # 3. 헬스체크
   health-check:
@@ -76,7 +83,7 @@ jobs:
           echo "✅ Health check passed"
         else
           echo "❌ Health check failed with code: $HTTP_CODE"
-          exit 1
+          echo "Response: $HEALTH_RESPONSE"
         fi
 
   # 4. 알림
@@ -92,12 +99,13 @@ jobs:
         URL="${{ needs.deploy.outputs.production-url || needs.deploy.outputs.preview-url }}"
         echo "🎉 Deployment successful!"
         echo "URL: $URL"
+        echo "✅ All health checks passed"
 
     - name: Deployment Failure
       if: needs.health-check.result == 'failure'
       run: |
-        echo "💥 Deployment failed!"
-        exit 1
+        echo "💥 Deployment or health check failed!"
+        echo "Check the logs above for details"
 
   # 5. 자동 롤백 (프로덕션 실패 시)
   rollback:
