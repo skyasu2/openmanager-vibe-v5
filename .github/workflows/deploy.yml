@@ -1,6 +1,12 @@
 name: 🚀 Deploy to Vercel with Health Checks
 
-on:  # 임시 비활성화 - Secrets 설정 후 활성화  workflow_dispatch:  # push:  #   branches: [ main, master ]  # pull_request:  #   branches: [ main, master ]
+on:
+  # Secrets 설정 완료! 자동 배포 활성화
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
