@@ -508,6 +508,58 @@ export default function HomePage() {
           font-weight: 500;
         }
 
+        .benefits-section {
+          margin: 3rem 0 2rem 0;
+          z-index: 1;
+        }
+
+        .benefits-card {
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.1));
+          backdrop-filter: blur(15px);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          border-radius: 20px;
+          padding: 2.5rem;
+          text-align: center;
+          max-width: 700px;
+          margin: 0 auto;
+          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+          transition: all 0.3s ease;
+        }
+
+        .benefits-card:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .benefits-icon {
+          font-size: 3.5rem;
+          color: #ffd700;
+          margin-bottom: 1.5rem;
+          text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .benefits-title {
+          font-size: 1.8rem;
+          font-weight: 700;
+          color: var(--text-white);
+          margin-bottom: 1.5rem;
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .benefits-text {
+          font-size: 1.2rem;
+          color: rgba(255, 255, 255, 0.95);
+          line-height: 1.8;
+          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+          font-style: italic;
+        }
+
+        .benefits-text strong {
+          color: var(--text-white);
+          font-weight: 600;
+          text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
         /* 반응형 디자인 */
         @media (max-width: 768px) {
           .main-title {
@@ -568,7 +620,7 @@ export default function HomePage() {
         </div>
 
         <h1 className="main-title fade-in-up">
-          OpenManager <span className="highlight">Vibe V5</span>
+          OpenManager <span className="highlight">AI</span>
         </h1>
 
         {/* AI 에이전트 중심 메인 설명 */}
@@ -623,6 +675,21 @@ export default function HomePage() {
             <br />
             <strong>경량화 AI (No LLM Cost)</strong> • <strong>도메인 특화</strong> • <strong>확장 가능</strong>
           </p>
+        </div>
+
+        {/* 도입 장점 섹션 */}
+        <div className="benefits-section fade-in-up">
+          <div className="benefits-card">
+            <div className="benefits-icon">
+              <i className="fas fa-user-cog"></i>
+            </div>
+            <h3 className="benefits-title">스마트한 두 번째 엔지니어</h3>
+            <p className="benefits-text">
+              &ldquo;OpenManager AI의 AI 에이전트는 <strong>LLM 없이도 AI처럼 응답</strong>합니다.<br />
+              기존 서버 모니터링에 자연어 인터페이스, 예측, 분석 기능이 더해져<br />
+              운영자에게 <strong>&lsquo;스마트한 두 번째 엔지니어&rsquo;</strong>가 붙은 것과 같습니다.&rdquo;
+            </p>
+          </div>
         </div>
 
         {/* 푸터 */}
