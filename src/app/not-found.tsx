@@ -50,7 +50,7 @@ export default function NotFound() {
           justifyContent: 'center',
           flexWrap: 'wrap' 
         }}>
-                     <Link             href="/index.html"
+          <Link            href="/"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -67,7 +67,7 @@ export default function NotFound() {
               transition: 'all 0.3s ease',
               boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
             }}
-                     >             🏠 홈으로 이동           </Link>
+          >            🏠 홈으로 이동          </Link>
 
           <button
             onClick={() => window.history.back()}

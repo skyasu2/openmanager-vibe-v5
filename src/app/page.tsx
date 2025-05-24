@@ -1,14 +1,98 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 // 동적 렌더링 강제 (HTML 파일 생성 방지)
 export const dynamic = 'force-dynamic';
 
+interface FeatureDetail {
+  title: string;
+  description: string;
+  benefits: string[];
+  image: string;
+  icon: string;
+}
+
+const features: FeatureDetail[] = [
+  {
+    title: "실시간 AI 모니터링",
+    description: "AI 기반 실시간 서버 모니터링으로 문제를 예측하고 즉시 대응합니다.",
+    benefits: [
+      "99.9% 이상 장애 예측 정확도",
+      "평균 5초 이내 이상 징후 감지",
+      "자동 알림 및 대응 시스템",
+      "24/7 무중단 모니터링"
+    ],
+    image: "📊",
+    icon: "fas fa-chart-pulse"
+  },
+  {
+    title: "지능형 자동화",
+    description: "반복적인 운영 작업을 AI가 자동으로 처리하여 효율성을 극대화합니다.",
+    benefits: [
+      "70% 이상 운영 작업 자동화",
+      "인적 오류 95% 감소",
+      "자동 스케일링 및 최적화",
+      "스마트 리소스 관리"
+    ],
+    image: "🤖",
+    icon: "fas fa-robot"
+  },
+  {
+    title: "통합 대시보드",
+    description: "모든 서버와 클라우드 리소스를 하나의 직관적인 대시보드에서 관리합니다.",
+    benefits: [
+      "멀티 클라우드 통합 관리",
+      "실시간 성능 시각화",
+      "커스터마이징 가능한 위젯",
+      "모바일 최적화 인터페이스"
+    ],
+    image: "📈",
+    icon: "fas fa-tachometer-alt"
+  },
+  {
+    title: "보안 강화",
+    description: "AI 기반 보안 모니터링으로 위협을 사전에 차단하고 시스템을 보호합니다.",
+    benefits: [
+      "실시간 취약점 스캔",
+      "이상 행동 패턴 감지",
+      "자동 보안 업데이트",
+      "컴플라이언스 자동 검증"
+    ],
+    image: "🛡️",
+    icon: "fas fa-shield-halved"
+  },
+  {
+    title: "성능 최적화",
+    description: "AI가 분석한 데이터를 바탕으로 서버 성능을 지속적으로 최적화합니다.",
+    benefits: [
+      "자동 성능 튜닝",
+      "리소스 사용량 최적화",
+      "병목 지점 자동 식별",
+      "예측적 확장 계획"
+    ],
+    image: "🚀",
+    icon: "fas fa-rocket"
+  },
+  {
+    title: "24/7 지원",
+    description: "AI 어시스턴트와 전문가 팀이 24시간 연중무휴로 지원합니다.",
+    benefits: [
+      "즉시 응답하는 AI 챗봇",
+      "전문가 원격 지원",
+      "예방적 유지보수",
+      "맞춤형 컨설팅 서비스"
+    ],
+    image: "💬",
+    icon: "fas fa-headset"
+  }
+];
+
 export default function HomePage() {
   const router = useRouter();
+  const [selectedFeature, setSelectedFeature] = useState<FeatureDetail | null>(null);
 
   useEffect(() => {
     // 페이지 로딩 애니메이션
@@ -19,14 +103,6 @@ export default function HomePage() {
       htmlElement.style.transform = 'translateY(0)';
     });
   }, []);
-
-  const setAuthToken = () => {
-    // 데모 페이지 접근 시 임시 토큰 생성
-    const timestamp = Date.now();
-    const authToken = btoa(`demo_access_${timestamp}`);
-    localStorage.setItem('demo_auth_token', authToken);
-    localStorage.setItem('demo_access_time', timestamp.toString());
-  };
 
   const authorizeAndRedirect = () => {
     // 대시보드 접근 권한 부여
@@ -46,20 +122,27 @@ export default function HomePage() {
     router.push(`/dashboard?auth=authorized&t=${timestamp}`);
   };
 
+  const openFeatureModal = (feature: FeatureDetail) => {
+    setSelectedFeature(feature);
+  };
+
+  const closeFeatureModal = () => {
+    setSelectedFeature(null);
+  };
+
   return (
     <>
       <style jsx global>{`
         :root {
-          --primary: #1a73e8;
-          --secondary: #34a853;
-          --accent: #ea4335;
-          --warning: #fbbc04;
-          --success: #0f9d58;
-          --neutral: #5f6368;
+          --primary: #10b981;
+          --secondary: #06b6d4;
+          --accent: #3b82f6;
+          --success: #22c55e;
+          --info: #0ea5e9;
           --text-white: #ffffff;
           --glass-bg: rgba(255, 255, 255, 0.1);
           --glass-border: rgba(255, 255, 255, 0.2);
-          --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+          --bg-gradient: linear-gradient(135deg, #10b981 0%, #06b6d4 25%, #3b82f6 50%, #6366f1 75%, #8b5cf6 100%);
           --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
           --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
@@ -74,7 +157,7 @@ export default function HomePage() {
           align-items: center;
           justify-content: center;
           text-align: center;
-          padding: 2rem;
+          padding: 2rem 1rem;
           position: relative;
           overflow: hidden;
         }
@@ -112,20 +195,20 @@ export default function HomePage() {
         }
 
         .logo-container {
-          margin-bottom: 2rem;
+          margin-bottom: 1.5rem;
           animation: float 6s ease-in-out infinite;
           z-index: 1;
         }
 
         .logo-container i {
-          font-size: 5rem;
+          font-size: 4rem;
           color: var(--text-white);
           text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
           filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2));
         }
 
         .main-title {
-          font-size: 4rem;
+          font-size: 3.5rem;
           font-weight: 700;
           color: var(--text-white);
           margin-bottom: 1rem;
@@ -143,58 +226,55 @@ export default function HomePage() {
         }
 
         .subtitle {
-          font-size: 1.5rem;
+          font-size: 1.3rem;
           font-weight: 400;
           color: rgba(255, 255, 255, 0.9);
-          margin-bottom: 3rem;
-          max-width: 600px;
-          line-height: 1.5;
+          margin-bottom: 2rem;
+          max-width: 500px;
+          line-height: 1.6;
           text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
           z-index: 1;
         }
 
-        .stats-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 2rem;
-          margin: 4rem 0;
-          max-width: 800px;
-          width: 100%;
+        .cta-section {
+          margin: 2rem 0;
           z-index: 1;
         }
 
-        .stat-card {
-          background: var(--glass-bg);
-          backdrop-filter: blur(10px);
-          border: 1px solid var(--glass-border);
-          border-radius: 16px;
-          padding: 1.5rem;
-          transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-          transform: translateY(-5px);
-          box-shadow: var(--shadow-xl);
-        }
-
-        .stat-number {
-          font-size: 2.5rem;
-          font-weight: 700;
+        .btn-primary {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          background: linear-gradient(45deg, var(--primary), var(--secondary));
           color: var(--text-white);
-          margin-bottom: 0.5rem;
+          font-size: 1.2rem;
+          font-weight: 600;
+          padding: 1rem 2.5rem;
+          border: none;
+          border-radius: 50px;
+          text-decoration: none;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: var(--shadow-lg);
+          z-index: 1;
         }
 
-        .stat-label {
-          font-size: 1rem;
-          color: rgba(255, 255, 255, 0.8);
+        .btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: var(--shadow-xl);
+          background: linear-gradient(45deg, var(--secondary), var(--accent));
+        }
+
+        .btn-primary i {
+          font-size: 1.1rem;
         }
 
         .features-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 2rem;
-          margin: 3rem 0;
-          max-width: 1200px;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 1.5rem;
+          margin: 2rem 0;
+          max-width: 900px;
           width: 100%;
           z-index: 1;
         }
@@ -204,96 +284,150 @@ export default function HomePage() {
           backdrop-filter: blur(10px);
           border: 1px solid var(--glass-border);
           border-radius: 16px;
-          padding: 2rem;
+          padding: 1.5rem;
           transition: all 0.3s ease;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .feature-card::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 4px;
-          background: linear-gradient(90deg, var(--primary), var(--secondary));
-          transform: scaleX(0);
-          transition: transform 0.3s ease;
+          cursor: pointer;
+          text-align: center;
         }
 
         .feature-card:hover {
           transform: translateY(-5px);
           box-shadow: var(--shadow-xl);
-          border-color: rgba(255, 255, 255, 0.4);
-        }
-
-        .feature-card:hover::before {
-          transform: scaleX(1);
+          background: rgba(255, 255, 255, 0.15);
         }
 
         .feature-icon {
-          font-size: 3rem;
-          color: var(--text-white);
+          font-size: 2.5rem;
           margin-bottom: 1rem;
+          color: var(--text-white);
           text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
         }
 
         .feature-title {
-          font-size: 1.5rem;
+          font-size: 1.3rem;
           font-weight: 600;
           color: var(--text-white);
-          margin-bottom: 1rem;
+          margin-bottom: 0.8rem;
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .feature-description {
           font-size: 1rem;
           color: rgba(255, 255, 255, 0.8);
+          line-height: 1.5;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.8);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          padding: 2rem;
+        }
+
+        .modal-content {
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+          backdrop-filter: blur(20px);
+          border-radius: 20px;
+          padding: 2rem;
+          max-width: 600px;
+          width: 100%;
+          max-height: 80vh;
+          overflow-y: auto;
+          position: relative;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .modal-close {
+          position: absolute;
+          top: 1rem;
+          right: 1rem;
+          background: none;
+          border: none;
+          font-size: 1.5rem;
+          cursor: pointer;
+          color: #666;
+          padding: 0.5rem;
+          border-radius: 50%;
+          transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+          background: rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+          text-align: center;
+          margin-bottom: 1.5rem;
+        }
+
+        .modal-emoji {
+          font-size: 4rem;
+          margin-bottom: 1rem;
+        }
+
+        .modal-title {
+          font-size: 2rem;
+          font-weight: 700;
+          color: #1f2937;
+          margin-bottom: 0.5rem;
+        }
+
+        .modal-description {
+          font-size: 1.1rem;
+          color: #6b7280;
           line-height: 1.6;
         }
 
-        .cta-section {
-          margin: 4rem 0;
-          z-index: 1;
+        .modal-benefits {
+          margin-top: 1.5rem;
         }
 
-        .btn-container {
-          display: flex;
-          gap: 2rem;
-          justify-content: center;
-          flex-wrap: wrap;
-        }
-
-        .btn-primary {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 1rem 2rem;
-          font-size: 1.1rem;
+        .modal-benefits h4 {
+          font-size: 1.3rem;
           font-weight: 600;
-          color: white;
-          background: linear-gradient(45deg, var(--primary), var(--secondary));
-          border: none;
-          border-radius: 50px;
-          text-decoration: none;
-          transition: all 0.3s ease;
-          box-shadow: var(--shadow-lg);
-          cursor: pointer;
+          color: #1f2937;
+          margin-bottom: 1rem;
         }
 
-        .btn-primary:hover {
-          transform: translateY(-2px) scale(1.05);
-          box-shadow: var(--shadow-xl);
+        .benefits-list {
+          list-style: none;
+          padding: 0;
         }
 
-        .btn-secondary {
-          background: linear-gradient(45deg, var(--accent), var(--warning));
+        .benefits-list li {
+          display: flex;
+          align-items: center;
+          gap: 0.8rem;
+          padding: 0.8rem 0;
+          font-size: 1rem;
+          color: #374151;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .benefits-list li:last-child {
+          border-bottom: none;
+        }
+
+        .benefit-icon {
+          color: var(--primary);
+          font-size: 1.1rem;
         }
 
         .footer-info {
-          margin-top: 4rem;
-          color: rgba(255, 255, 255, 0.7);
+          margin-top: 2rem;
+          padding-top: 1rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.2);
+          text-align: center;
           font-size: 0.9rem;
+          color: rgba(255, 255, 255, 0.7);
           z-index: 1;
         }
 
@@ -301,172 +435,140 @@ export default function HomePage() {
           color: rgba(255, 255, 255, 0.9);
           text-decoration: none;
           margin: 0 0.5rem;
+          transition: color 0.3s ease;
         }
 
         .footer-info a:hover {
-          color: white;
+          color: var(--text-white);
         }
 
+        /* 반응형 디자인 */
         @media (max-width: 768px) {
           .main-title {
             font-size: 2.5rem;
           }
           
           .subtitle {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
+            max-width: 400px;
           }
-          
-          .btn-container {
-            flex-direction: column;
-            align-items: center;
+
+          .features-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+          }
+
+          .feature-card {
+            padding: 1rem;
+          }
+
+          .modal-content {
+            margin: 1rem;
+            padding: 1.5rem;
+          }
+        }
+
+        @media (min-width: 768px) {
+          .features-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+
+        @media (min-width: 1024px) {
+          .features-grid {
+            grid-template-columns: repeat(3, 1fr);
           }
         }
       `}</style>
 
       <div className="splash-container">
-        {/* 로고 */}
+        {/* 헤더 */}
         <div className="logo-container fade-in-up">
           <i className="fas fa-server"></i>
         </div>
 
-        {/* 메인 타이틀 */}
         <h1 className="main-title fade-in-up">
           OpenManager <span className="highlight">Vibe V5</span>
         </h1>
 
-        {/* 부제목 */}
+        {/* 개선된 메인 설명 */}
         <p className="subtitle fade-in-up">
-          AI 기반 서버 모니터링과 관리를 통합한 차세대 서버 관리 솔루션<br />
-          실시간 모니터링, 지능형 분석, 자동화된 관리로 서버 운영을 혁신합니다
+          AI 기반 서버 모니터링과 관리의 혁신
+          <br />
+          실시간 분석으로 시스템을 보호하고
+          <br />
+          지능형 자동화로 운영을 최적화합니다
         </p>
 
-        {/* 통계 섹션 */}
-        <div className="stats-grid fade-in-up">
-          <div className="stat-card">
-            <div className="stat-number">99.9%</div>
-            <div className="stat-label">업타임 보장</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-number">24/7</div>
-            <div className="stat-label">모니터링</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-number">1000+</div>
-            <div className="stat-label">활성 서버</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-number">5초</div>
-            <div className="stat-label">응답 시간</div>
-          </div>
-        </div>
-
-        {/* 주요 기능 섹션 */}
-        <div className="features-grid fade-in-up">
-          <div className="feature-card fade-in-up">
-            <div className="feature-icon">
-              <i className="fas fa-chart-line"></i>
-            </div>
-            <h3 className="feature-title">실시간 모니터링</h3>
-            <p className="feature-description">서버 상태와 성능을 실시간으로 모니터링하고 분석합니다</p>
-          </div>
-          
-          <div className="feature-card fade-in-up">
-            <div className="feature-icon">
-              <i className="fas fa-brain"></i>
-            </div>
-            <h3 className="feature-title">AI 기반 분석</h3>
-            <p className="feature-description">머신러닝을 활용한 지능형 이상 탐지 및 예측 분석</p>
-          </div>
-          
-          <div className="feature-card fade-in-up">
-            <div className="feature-icon">
-              <i className="fas fa-bell"></i>
-            </div>
-            <h3 className="feature-title">스마트 알림</h3>
-            <p className="feature-description">중요한 이벤트를 즉시 감지하고 다중 채널로 알림 전송</p>
-          </div>
-          
-          <div className="feature-card fade-in-up">
-            <div className="feature-icon">
-              <i className="fas fa-shield-alt"></i>
-            </div>
-            <h3 className="feature-title">보안 강화</h3>
-            <p className="feature-description">고급 보안 모니터링과 취약점 스캔으로 시스템 보호</p>
-          </div>
-          
-          <div className="feature-card fade-in-up">
-            <div className="feature-icon">
-              <i className="fas fa-cog"></i>
-            </div>
-            <h3 className="feature-title">자동화</h3>
-            <p className="feature-description">반복적인 관리 작업을 자동화하여 운영 효율성 극대화</p>
-          </div>
-          
-          <div className="feature-card fade-in-up">
-            <div className="feature-icon">
-              <i className="fas fa-cloud"></i>
-            </div>
-            <h3 className="feature-title">클라우드 통합</h3>
-            <p className="feature-description">AWS, Azure, GCP 등 주요 클라우드 플랫폼과 완벽 통합</p>
-          </div>
-        </div>
-
-        {/* CTA 버튼 섹션 */}
+        {/* 단일 CTA 버튼 */}
         <div className="cta-section fade-in-up">
-          <div className="btn-container">
-            <Link href="/demo" className="btn-primary" onClick={setAuthToken}>
-              <i className="fas fa-play"></i>
-              실시간 AI 데모 체험
-            </Link>
-            <button className="btn-primary btn-secondary" onClick={authorizeAndRedirect}>
-              <i className="fas fa-arrow-right"></i>
-              AI 대시보드 바로가기
-            </button>
-          </div>
+          <button 
+            className="btn-primary"
+            onClick={authorizeAndRedirect}
+          >
+            <i className="fas fa-tachometer-alt"></i>
+            AI 대시보드 바로가기
+          </button>
         </div>
 
-        {/* 추가 정보 섹션 */}
-        <div className="features-grid fade-in-up" style={{ marginTop: '4rem' }}>
-          <div className="feature-card">
-            <div className="feature-icon">
-              <i className="fas fa-rocket"></i>
+        {/* 6개 기능 카드 */}
+        <div className="features-grid fade-in-up">
+          {features.map((feature, index) => (
+            <div 
+              key={index}
+              className="feature-card"
+              onClick={() => openFeatureModal(feature)}
+            >
+              <div className="feature-icon">
+                <i className={feature.icon}></i>
+              </div>
+              <h3 className="feature-title">{feature.title}</h3>
+              <p className="feature-description">
+                {feature.description}
+              </p>
             </div>
-            <h3 className="feature-title">빠른 배포</h3>
-            <p className="feature-description">
-              5분 이내에 설치하고 즉시 모니터링을 시작할 수 있습니다
-            </p>
-          </div>
-          
-          <div className="feature-card">
-            <div className="feature-icon">
-              <i className="fas fa-users"></i>
-            </div>
-            <h3 className="feature-title">팀 협업</h3>
-            <p className="feature-description">
-              역할 기반 접근 제어와 실시간 협업 도구를 제공합니다
-            </p>
-          </div>
-          
-          <div className="feature-card">
-            <div className="feature-icon">
-              <i className="fas fa-mobile-alt"></i>
-            </div>
-            <h3 className="feature-title">모바일 지원</h3>
-            <p className="feature-description">
-              언제 어디서나 모바일 기기로 서버 상태를 확인하고 관리할 수 있습니다
-            </p>
-          </div>
+          ))}
         </div>
 
-        {/* 푸터 정보 */}
-        <div className="footer-info">
+        {/* 푸터 */}
+        <div className="footer-info fade-in-up">
           <p>
             © 2024 OpenManager AI. 모든 권리 보유. |
             <a href="/docs">문서</a> |
-            <a href="/support">지원</a>
+            <a href="/support">지원</a> |
+            <Link href="/demo">라이브 데모</Link>
           </p>
         </div>
       </div>
+
+      {/* 기능 상세 모달 */}
+      {selectedFeature && (
+        <div className="modal-overlay" onClick={closeFeatureModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={closeFeatureModal}>
+              ×
+            </button>
+            
+            <div className="modal-header">
+              <div className="modal-emoji">{selectedFeature.image}</div>
+              <h2 className="modal-title">{selectedFeature.title}</h2>
+              <p className="modal-description">{selectedFeature.description}</p>
+            </div>
+
+            <div className="modal-benefits">
+              <h4>✨ 주요 기능 및 이점</h4>
+              <ul className="benefits-list">
+                {selectedFeature.benefits.map((benefit, index) => (
+                  <li key={index}>
+                    <i className="fas fa-check-circle benefit-icon"></i>
+                    <span>{benefit}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
