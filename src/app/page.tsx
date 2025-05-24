@@ -300,12 +300,8 @@ export default function HomePage() {
         .feature-icon {
           font-size: 3rem;
           margin-bottom: 1.5rem;
-          background: var(--pink-purple-gradient);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          text-shadow: none;
-          filter: drop-shadow(0 2px 4px rgba(236, 72, 153, 0.3));
+          color: rgba(255, 255, 255, 0.9);
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .feature-title {
@@ -431,12 +427,9 @@ export default function HomePage() {
         }
 
         .benefit-icon {
-          background: var(--pink-purple-gradient);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+          color: rgba(255, 255, 255, 0.9);
           font-size: 1.1rem;
-          filter: drop-shadow(0 1px 2px rgba(236, 72, 153, 0.3));
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         .vibe-coding-section {
@@ -597,13 +590,9 @@ export default function HomePage() {
 
         .benefits-icon {
           font-size: 3.5rem;
-          background: var(--pink-purple-gradient);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+          color: rgba(255, 255, 255, 0.9);
           margin-bottom: 1.5rem;
-          text-shadow: none;
-          filter: drop-shadow(0 2px 6px rgba(236, 72, 153, 0.4));
+          text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
         }
 
         .benefits-title {
@@ -952,12 +941,12 @@ export default function HomePage() {
             <div className="benefits-icon">
               <i className="fas fa-brain"></i>
             </div>
-            <h3 className="benefits-title"><span className="ai-highlight">NPU와 MCP 엔진 기반 AI 에이전트</span></h3>
+            <h3 className="benefits-title">NPU와 MCP 엔진 기반 AI 에이전트</h3>
             <p className="benefits-text">
-              <strong className="ai-highlight">NPU와 MCP 엔진 기반 AI 에이전트로 서버 관리를 혁신합니다</strong><br />
+              <strong>NPU와 MCP 엔진 기반 AI 에이전트로 서버 관리를 혁신합니다</strong><br />
               <strong className="hidden sm:inline">자연어 질의, 지능형 분석, 예측 알림으로</strong>
               <strong className="sm:hidden">자연어 질의와 지능형 분석으로</strong><br />
-              <strong className="ai-highlight">IT 운영을 완전히 자동화합니다</strong>
+              <strong>IT 운영을 완전히 자동화합니다</strong>
             </p>
           </div>
         </div>
@@ -970,8 +959,8 @@ export default function HomePage() {
             onClick={authorizeAndRedirect}
           >
             <i className="fas fa-flask"></i>
-            <span className="hidden sm:inline"><span className="ai-highlight">AI</span> 기능 체험하기</span>
-            <span className="sm:hidden"><span className="ai-highlight">AI</span> 체험하기</span>
+            <span className="hidden sm:inline">AI 기능 체험하기</span>
+            <span className="sm:hidden">AI 체험하기</span>
           </button>
         </div>
 
@@ -1001,18 +990,18 @@ export default function HomePage() {
             <span>Vibe Coding</span>
           </div>
           <p className="vibe-description">
-            <span className="hidden sm:inline">GPT/Claude + Cursor <span className="ai-highlight">AI</span> 협업으로 개발된 차세대 <span className="ai-highlight">AI</span> 에이전트 시스템</span>
-            <span className="sm:hidden">GPT/Claude + Cursor <span className="ai-highlight">AI</span> 협업 개발</span>
+            <span className="hidden sm:inline">GPT/Claude + Cursor AI 협업으로 개발된 차세대 AI 에이전트 시스템</span>
+            <span className="sm:hidden">GPT/Claude + Cursor AI 협업 개발</span>
             <br />
-            <strong>경량화 <span className="ai-highlight">AI</span> (No LLM Cost)</strong> • <strong>도메인 특화</strong> • <strong className="hidden sm:inline">확장 가능</strong><strong className="sm:hidden">확장성</strong>
+            <strong>경량화 AI (No LLM Cost)</strong> • <strong>도메인 특화</strong> • <strong className="hidden sm:inline">확장 가능</strong><strong className="sm:hidden">확장성</strong>
           </p>
         </div>
 
         {/* 푸터 */}
         <div className="footer-info fade-in-up">
           <p>
-            <span className="hidden sm:inline">© 2025 OpenManager <span className="ai-highlight">AI</span>. 모든 권리 보유.</span>
-            <span className="sm:hidden">© 2025 OpenManager <span className="ai-highlight">AI</span></span>
+            <span className="hidden sm:inline">© 2025 OpenManager AI. 모든 권리 보유.</span>
+            <span className="sm:hidden">© 2025 OpenManager AI</span>
           </p>
         </div>
       </div>
