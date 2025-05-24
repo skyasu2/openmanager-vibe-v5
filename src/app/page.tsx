@@ -4,6 +4,9 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+// 정적 생성을 위한 메타데이터 export
+export const dynamic = 'force-static';
+
 export default function HomePage() {
   const router = useRouter();
 

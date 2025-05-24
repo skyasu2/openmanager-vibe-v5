@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // App Router 우선순위 보장 및 정적 HTML 방지
+  trailingSlash: false,
+  
   // 실험적 기능
   experimental: {
     optimizeServerReact: true
