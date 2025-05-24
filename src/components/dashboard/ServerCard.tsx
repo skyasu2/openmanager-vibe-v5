@@ -11,111 +11,157 @@ interface ServerCardProps {
 export default function ServerCard({ server, onClick }: ServerCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
-  const getStatusColor = (status: string) => {
+  const getStatusInfo = (status: string) => {
     switch (status) {
-      case 'online': return { bg: 'bg-green-500', text: 'text-green-700', label: '정상' };
-      case 'warning': return { bg: 'bg-yellow-500', text: 'text-yellow-700', label: '경고' };
-      case 'offline': return { bg: 'bg-red-500', text: 'text-red-700', label: '실패' };
-      default: return { bg: 'bg-gray-500', text: 'text-gray-700', label: '알 수 없음' };
+      case 'online': return { 
+        color: 'text-green-600', 
+        bgColor: 'bg-green-100',
+        label: '정상',
+        icon: '●'
+      };
+      case 'warning': return { 
+        color: 'text-yellow-600', 
+        bgColor: 'bg-yellow-100',
+        label: '경고',
+        icon: '▲'
+      };
+      case 'offline': return { 
+        color: 'text-red-600', 
+        bgColor: 'bg-red-100',
+        label: '실패',
+        icon: '●'
+      };
+      default: return { 
+        color: 'text-gray-600', 
+        bgColor: 'bg-gray-100',
+        label: '알 수 없음',
+        icon: '●'
+      };
     }
   };
 
-  const getServiceColor = (status: string) => {
+  const getProgressBarColor = (value: number, type: 'cpu' | 'memory' | 'disk') => {
+    if (type === 'cpu') {
+      if (value > 80) return 'bg-red-500';
+      if (value > 60) return 'bg-yellow-500';
+      return 'bg-green-500';
+    }
+    if (type === 'memory') {
+      if (value > 80) return 'bg-red-500';
+      if (value > 60) return 'bg-yellow-500';
+      return 'bg-blue-500';
+    }
+    if (type === 'disk') {
+      if (value > 80) return 'bg-red-500';
+      if (value > 60) return 'bg-yellow-500';
+      return 'bg-purple-500';
+    }
+    return 'bg-gray-500';
+  };
+
+  const getServiceTagColor = (status: string) => {
     switch (status) {
-      case 'running': return 'bg-green-100 text-green-700 border-green-200';
-      case 'stopped': return 'bg-red-100 text-red-700 border-red-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
+      case 'running': return 'bg-green-100 text-green-700 border-green-300';
+      case 'stopped': return 'bg-red-100 text-red-700 border-red-300';
+      default: return 'bg-gray-100 text-gray-700 border-gray-300';
     }
   };
 
-  const statusStyle = getStatusColor(server.status);
+  const statusInfo = getStatusInfo(server.status);
 
   return (
     <div 
       className={`
         relative bg-white rounded-lg p-4 border border-gray-200 
         cursor-pointer transition-all duration-200 
-        hover:shadow-lg hover:border-gray-300
-        ${isHovered ? 'shadow-lg border-gray-300' : 'shadow-sm'}
+        hover:shadow-md hover:border-gray-300
+        ${isHovered ? 'shadow-md border-gray-300' : 'shadow-sm'}
       `}
       onClick={() => onClick(server)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* 헤더: 서버명 + 상태 */}
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">{server.name}</h3>
-        <span className={`px-2 py-1 rounded text-sm font-medium ${statusStyle.text} bg-gray-50`}>
-          {statusStyle.label}
+      <div className="flex justify-between items-start mb-4">
+        <h3 className="text-base font-semibold text-gray-900">{server.name}</h3>
+        <span className={`${statusInfo.color} text-sm font-medium flex items-center gap-1`}>
+          <span className="text-xs">{statusInfo.icon}</span>
+          {statusInfo.label}
         </span>
       </div>
 
       {/* CPU 사용률 */}
       <div className="mb-3">
         <div className="flex justify-between items-center mb-1">
-          <span className="text-sm text-gray-600">CPU 사용률</span>
-          <span className="text-sm font-semibold text-gray-900">{server.cpu}%</span>
+          <span className="text-xs text-gray-600">CPU 사용률</span>
+          <span className="text-xs font-medium text-gray-900">{server.cpu}%</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-gray-200 rounded-full h-1.5">
           <div 
-            className={`h-2 rounded-full transition-all duration-300 ${
-              server.cpu > 80 ? 'bg-red-500' : 
-              server.cpu > 60 ? 'bg-yellow-500' : 'bg-green-500'
-            }`}
+            className={`h-1.5 rounded-full transition-all duration-300 ${getProgressBarColor(server.cpu, 'cpu')}`}
             style={{ width: `${server.cpu}%` }}
           ></div>
         </div>
       </div>
 
       {/* 메모리 사용률 */}
-      <div className="mb-4">
+      <div className="mb-3">
         <div className="flex justify-between items-center mb-1">
-          <span className="text-sm text-gray-600">메모리</span>
-          <span className="text-sm font-semibold text-gray-900">{server.memory}%</span>
+          <span className="text-xs text-gray-600">메모리</span>
+          <span className="text-xs font-medium text-gray-900">{server.memory}%</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-gray-200 rounded-full h-1.5">
           <div 
-            className={`h-2 rounded-full transition-all duration-300 ${
-              server.memory > 80 ? 'bg-red-500' : 
-              server.memory > 60 ? 'bg-yellow-500' : 'bg-blue-500'
-            }`}
+            className={`h-1.5 rounded-full transition-all duration-300 ${getProgressBarColor(server.memory, 'memory')}`}
             style={{ width: `${server.memory}%` }}
           ></div>
         </div>
       </div>
 
-      {/* 추가 정보 */}
-      <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-        <div>
-          <span className="text-gray-500">디스크 (/)</span>
-          <div className="font-medium text-gray-900">{server.disk}%</div>
+      {/* 디스크 사용률 */}
+      <div className="mb-4">
+        <div className="flex justify-between items-center mb-1">
+          <span className="text-xs text-gray-600">디스크 (/)</span>
+          <span className="text-xs font-medium text-gray-900">{server.disk}%</span>
         </div>
-        <div>
-          <span className="text-gray-500">응답 속도</span>
-          <div className="font-medium text-gray-900">
-            {Math.random() > 0.5 ? (Math.random() * 0.5).toFixed(2) : (Math.random() * 2).toFixed(1)}
-          </div>
+        <div className="w-full bg-gray-200 rounded-full h-1.5">
+          <div 
+            className={`h-1.5 rounded-full transition-all duration-300 ${getProgressBarColor(server.disk, 'disk')}`}
+            style={{ width: `${server.disk}%` }}
+          ></div>
+        </div>
+      </div>
+
+      {/* 응답 속도 */}
+      <div className="mb-4">
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-gray-600">응답 속도</span>
+          <span className="text-xs font-medium text-gray-900">
+            {(Math.random() * 0.5 + 0.1).toFixed(2)}
+          </span>
         </div>
       </div>
 
       {/* 서비스 태그 */}
-      <div className="flex flex-wrap gap-1">
-        {server.services.map((service, index) => (
+      <div className="flex flex-wrap gap-1 mb-2">
+        {server.services.slice(0, 4).map((service, index) => (
           <span
             key={index}
-            className={`px-2 py-1 rounded text-xs border ${getServiceColor(service.status)}`}
+            className={`px-2 py-0.5 rounded text-xs border ${getServiceTagColor(service.status)}`}
           >
             {service.name} ({service.status === 'running' ? 'running' : 'stopped'})
           </span>
         ))}
       </div>
 
-      {/* 상태 인디케이터 (우상단) */}
-      <div className={`absolute top-3 right-12 w-2 h-2 rounded-full ${statusStyle.bg}`}></div>
+      {/* 추가 정보 (업타임) */}
+      <div className="text-xs text-gray-500">
+        업타임: {server.uptime}
+      </div>
 
       {/* 알림 뱃지 */}
       {server.alerts > 0 && (
-        <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+        <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
           {server.alerts}
         </div>
       )}

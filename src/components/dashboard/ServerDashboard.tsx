@@ -9,7 +9,7 @@ interface ServerDashboardProps {
   onAskAI?: (query: string, context?: any) => void;
 }
 
-// 목업 데이터
+// 스크린샷과 동일한 목업 서버 데이터
 const mockServers: Server[] = [
   {
     id: 'api-eu-043',
@@ -19,7 +19,7 @@ const mockServers: Server[] = [
     cpu: 19,
     memory: 36.2,
     disk: 34.6,
-    uptime: '11 days, 14 hours',
+    uptime: '15일 3시간',
     lastUpdate: new Date(),
     alerts: 0,
     services: [
@@ -37,7 +37,7 @@ const mockServers: Server[] = [
     cpu: 48,
     memory: 29.2,
     disk: 15.6,
-    uptime: '8 days, 3 hours',
+    uptime: '8일 12시간',
     lastUpdate: new Date(),
     alerts: 0,
     services: [
@@ -54,7 +54,7 @@ const mockServers: Server[] = [
     cpu: 19,
     memory: 53.2,
     disk: 29.6,
-    uptime: '2 days, 12 hours',
+    uptime: '3일 4시간',
     lastUpdate: new Date(),
     alerts: 3,
     services: [
@@ -72,7 +72,7 @@ const mockServers: Server[] = [
     cpu: 37,
     memory: 41.2,
     disk: 19.6,
-    uptime: '15 days, 8 hours',
+    uptime: '8일 6시간',
     lastUpdate: new Date(),
     alerts: 0,
     services: [
@@ -89,7 +89,7 @@ const mockServers: Server[] = [
     cpu: 35,
     memory: 30.2,
     disk: 26.6,
-    uptime: '5 days, 16 hours',
+    uptime: '0분',
     lastUpdate: new Date(),
     alerts: 3,
     services: [
@@ -105,7 +105,7 @@ const mockServers: Server[] = [
     cpu: 30,
     memory: 35.2,
     disk: 5.6,
-    uptime: '22 days, 4 hours',
+    uptime: '45일 18시간',
     lastUpdate: new Date(),
     alerts: 0,
     services: [
@@ -121,7 +121,7 @@ const mockServers: Server[] = [
     cpu: 59,
     memory: 48.2,
     disk: 30.6,
-    uptime: '11 days, 14 hours',
+    uptime: '22일 5시간',
     lastUpdate: new Date(),
     alerts: 0,
     services: [
@@ -139,7 +139,7 @@ const mockServers: Server[] = [
     cpu: 14.4,
     memory: 44.5,
     disk: 27.8,
-    uptime: '18 days, 12 hours',
+    uptime: '18일 12시간',
     lastUpdate: new Date(),
     alerts: 0,
     services: [
@@ -155,7 +155,7 @@ const mockServers: Server[] = [
     cpu: 55.4,
     memory: 22.5,
     disk: 28.8,
-    uptime: '9 days, 6 hours',
+    uptime: '9일 6시간',
     lastUpdate: new Date(),
     alerts: 0,
     services: [
@@ -173,7 +173,7 @@ const mockServers: Server[] = [
     cpu: 17.4,
     memory: 58.5,
     disk: 25.8,
-    uptime: '31 days, 2 hours',
+    uptime: '31일 2시간',
     lastUpdate: new Date(),
     alerts: 0,
     services: [
@@ -188,21 +188,11 @@ const mockServers: Server[] = [
 export default function ServerDashboard({ onAskAI }: ServerDashboardProps) {
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
 
   // 필터링
-  const filteredServers = mockServers.filter(server => {
-    const matchesSearch = server.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || server.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  // 페이지네이션
-  const totalPages = Math.ceil(filteredServers.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentServers = filteredServers.slice(startIndex, startIndex + itemsPerPage);
+  const filteredServers = mockServers.filter(server => 
+    server.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleServerClick = (server: Server) => {
     setSelectedServer(server);
@@ -214,34 +204,37 @@ export default function ServerDashboard({ onAskAI }: ServerDashboardProps) {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      {/* 검색 및 필터 */}
-      <div className="mb-6 bg-white p-4 rounded-lg shadow-sm">
-        <div className="flex gap-4 items-center">
-          <div className="flex-1">
-            <input
-              type="text"
-              placeholder="서버 이름 검색..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+      {/* 상단 검색바 */}
+      <div className="mb-6">
+        <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <input
+                type="text"
+                placeholder="서버 이름 검색..."
+                className="w-full px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-2">
+              <button className="px-4 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors">
+                검색
+              </button>
+              <button className="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors">
+                필터
+              </button>
+              <button className="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors">
+                정렬
+              </button>
+            </div>
           </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">전체</option>
-            <option value="online">정상</option>
-            <option value="warning">경고</option>
-            <option value="offline">실패</option>
-          </select>
         </div>
       </div>
 
       {/* 서버 카드 그리드 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
-        {currentServers.map((server) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {filteredServers.map((server) => (
           <ServerCard
             key={server.id}
             server={server}
@@ -249,41 +242,6 @@ export default function ServerDashboard({ onAskAI }: ServerDashboardProps) {
           />
         ))}
       </div>
-
-      {/* 페이지네이션 */}
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2">
-          <button
-            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-2 rounded-md bg-white border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            이전
-          </button>
-          
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              onClick={() => setCurrentPage(page)}
-              className={`px-3 py-2 rounded-md ${
-                currentPage === page
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              {page}
-            </button>
-          ))}
-          
-          <button
-            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-            disabled={currentPage === totalPages}
-            className="px-3 py-2 rounded-md bg-white border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            다음
-          </button>
-        </div>
-      )}
 
       {/* 서버 상세 모달 */}
       {selectedServer && (

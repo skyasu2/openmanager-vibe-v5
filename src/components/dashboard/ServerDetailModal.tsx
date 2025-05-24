@@ -5,16 +5,15 @@ import { Server } from '../../types/server';
 
 interface ServerDetailModalProps {
   server: Server | null;
-  isOpen: boolean;
   onClose: () => void;
-  onAskAI: (query: string, serverId: string) => void;
+  onAskAI?: (query: string, context?: any) => void;
 }
 
-export default function ServerDetailModal({ server, isOpen, onClose, onAskAI }: ServerDetailModalProps) {
+export default function ServerDetailModal({ server, onClose, onAskAI }: ServerDetailModalProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'services' | 'logs' | 'metrics'>('overview');
 
   useEffect(() => {
-    if (isOpen) {
+    if (server) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -23,12 +22,14 @@ export default function ServerDetailModal({ server, isOpen, onClose, onAskAI }: 
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen]);
+  }, [server]);
 
-  if (!isOpen || !server) return null;
+  if (!server) return null;
 
   const handleAIAnalysis = () => {
-    onAskAI(`${server.name} 서버에 대해 상세 분석해줘`, server.id);
+    if (onAskAI) {
+      onAskAI(`${server.name} 서버에 대해 상세 분석해줘`, { serverId: server.id, serverData: server });
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -204,7 +205,7 @@ export default function ServerDetailModal({ server, isOpen, onClose, onAskAI }: 
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">최근 로그</h3>
                 <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {server.logs.map((log, index) => (
+                  {server.logs?.map((log, index) => (
                     <div key={index} className="p-3 bg-gray-50 rounded-lg text-sm">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-gray-500">{log.timestamp}</span>
@@ -218,7 +219,7 @@ export default function ServerDetailModal({ server, isOpen, onClose, onAskAI }: 
                       </div>
                       <p className="text-gray-800">{log.message}</p>
                     </div>
-                  ))}
+                  )) || <p className="text-gray-500 text-center py-8">로그가 없습니다.</p>}
                 </div>
               </div>
             )}
