@@ -176,18 +176,7 @@ export default function HomePage() {
           transition: all 0.8s ease;
         }
 
-        .logo-container {
-          margin-bottom: 1.5rem;
-          animation: float 6s ease-in-out infinite;
-          z-index: 1;
-        }
 
-        .logo-container i {
-          font-size: 4rem;
-          color: var(--text-white);
-          text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
-          filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2));
-        }
 
         .main-title {
           font-size: 3.5rem;
@@ -676,11 +665,6 @@ export default function HomePage() {
       `}</style>
 
       <div className="splash-container">
-        {/* 헤더 */}
-        <div className="logo-container fade-in-up">
-          <i className="fas fa-server"></i>
-        </div>
-
         <h1 className="main-title fade-in-up">
           OpenManager <span className="highlight">AI</span>
         </h1>
