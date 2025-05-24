@@ -1,12 +1,4 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useDemoStore } from '../../stores/demoStore';
-import ServerCard from '../../components/demo/ServerCard';
-import AIChatPanel from '../../components/demo/AIChatPanel';
-import AutoDemoScenario from '../../components/demo/AutoDemoScenario';
-import { Activity, Wifi, Shield, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
+'use client';import { useState, useEffect } from 'react';import { motion } from 'framer-motion';import { useDemoStore } from '../../stores/demoStore';import ServerCard from '../../components/demo/ServerCard';import AIChatPanel from '../../components/demo/AIChatPanel';import AutoDemoScenario from '../../components/demo/AutoDemoScenario';import { Activity, Wifi, Shield, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';// 동적 렌더링 강제 (HTML 파일 생성 방지)export const dynamic = 'force-dynamic';
 
 export default function DemoPage() {
   const {

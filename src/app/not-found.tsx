@@ -1,4 +1,9 @@
+'use client';
+
 import Link from 'next/link';
+
+// 동적 렌더링 강제 (HTML 파일 생성 방지)
+export const dynamic = 'force-dynamic';
 
 export default function NotFound() {
   return (
