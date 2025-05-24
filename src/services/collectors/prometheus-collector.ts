@@ -256,7 +256,7 @@ export class PrometheusCollector implements MetricCollector {
     };
   }
 
-  private async getServiceMetrics(serverId: string): Promise<ServiceStatus[]> {
+  private async getServiceMetrics(_serverId: string): Promise<ServiceStatus[]> {
     // systemd 서비스 상태는 별도 exporter 필요
     return [
       { name: 'node_exporter', status: 'running', port: 9100 }
@@ -269,7 +269,7 @@ export class PrometheusCollector implements MetricCollector {
     return instance.split(':')[0];
   }
 
-  private async getMetadata(serverId: string) {
+  private async getMetadata(_serverId: string) {
     // 메타데이터는 Prometheus 레이블에서 추출
     return {
       location: 'Unknown',

@@ -7,10 +7,14 @@ import { metricsStorage } from '../../../../services/storage';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  let serverId: string = 'unknown';
+  
   try {
-    const serverId = params.id;
+    const resolvedParams = await params;
+    serverId = resolvedParams.id;
+    
     const searchParams = request.nextUrl.searchParams;
     const includeHistory = searchParams.get('history') === 'true';
     const historyHours = parseInt(searchParams.get('hours') || '24');
@@ -58,12 +62,12 @@ export async function GET(
     return NextResponse.json(result);
 
   } catch (error) {
-    console.error(`❌ Failed to fetch server ${params.id}:`, error);
+    console.error(`❌ Failed to fetch server ${serverId}:`, error);
     
     return NextResponse.json({
       success: false,
       error: 'Failed to fetch server details',
-      serverId: params.id,
+      serverId: serverId,
       message: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }

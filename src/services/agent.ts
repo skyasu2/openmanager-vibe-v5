@@ -108,7 +108,7 @@ export class AgentService {
   }
 
   // 인텐트별 추가 액션 생성
-  private generateAdditionalActions(intent: string, context?: Record<string, any>): string[] {
+  private generateAdditionalActions(intent: string, _context?: Record<string, any>): string[] {
     const actions: string[] = [];
 
     switch (intent) {
@@ -179,5 +179,4 @@ export class AgentService {
 }
 
 // 싱글톤 인스턴스 export
-export const agentService = AgentService.getInstance();
-export default AgentService; 
+export const agentService = AgentService.getInstance(); 

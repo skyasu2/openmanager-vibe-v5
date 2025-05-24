@@ -295,7 +295,7 @@ export async function withErrorPrevention<T>(
   );
 }
 
-export default {
+export const errorPrevention = {
   VERCEL_ERROR_CODES,
   ERROR_PREVENTION_CONFIG,
   withMiddlewareTimeout,

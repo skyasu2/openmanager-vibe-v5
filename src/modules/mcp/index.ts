@@ -300,6 +300,4 @@ export class MCPProcessor {
 
 구체적인 질문을 해주시면 더 정확한 분석을 제공해드립니다!`;
   }
-}
-
-export default MCPProcessor; 
+} 

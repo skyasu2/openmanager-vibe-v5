@@ -1,5 +1,3 @@
-import type { ServerStatus } from '../types/index'
-
 // 🚨 기업 환경 장애 분석 시스템
 // CRITICAL 장애 3개 + WARNING 장애 6개의 연관성 분석
 

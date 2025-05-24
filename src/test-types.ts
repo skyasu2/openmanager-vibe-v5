@@ -1,21 +1,10 @@
 import type { 
-  ServerStatus, 
-  MCPQuery, 
-  DashboardData,
-  AlertSeverity 
+  ServerStatus
 } from './types/index'
 
 import type { 
-  ApiResponse, 
-  HealthCheckResponse,
-  MCPQueryRequest 
+  ApiResponse
 } from './types/api'
-
-import type { 
-  Database,
-  Server,
-  Tables
-} from './types/database-types'
 
 import { 
   cn,

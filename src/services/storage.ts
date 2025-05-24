@@ -11,8 +11,8 @@ const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 // 클라이언트 초기화
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const redis = new Redis(REDIS_URL, {
-  retryDelayOnFailover: 100,
   maxRetriesPerRequest: 3,
+  lazyConnect: true,
 });
 
 export class MetricsStorageService {

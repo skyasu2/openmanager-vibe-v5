@@ -295,7 +295,7 @@ export class CloudWatchCollector implements MetricCollector {
     };
   }
 
-  private async getServiceMetrics(instanceId: string): Promise<ServiceStatus[]> {
+  private async getServiceMetrics(_instanceId: string): Promise<ServiceStatus[]> {
     // 서비스 상태는 CloudWatch Agent나 Systems Manager 필요
     return [
       { name: 'cloudwatch-agent', status: 'running' }
