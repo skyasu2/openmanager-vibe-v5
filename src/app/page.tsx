@@ -116,24 +116,28 @@ export default function HomePage() {
     <>
       <style jsx global>{`
         :root {
-          --primary: #10b981;
-          --secondary: #06b6d4;
-          --accent: #3b82f6;
+          --primary: #f6ad55;
+          --secondary: #ed8936;
+          --accent: #dd6b20;
           --success: #22c55e;
           --info: #0ea5e9;
           --text-white: #ffffff;
           --glass-bg: rgba(255, 255, 255, 0.1);
           --glass-border: rgba(255, 255, 255, 0.2);
-          --bg-gradient: linear-gradient(135deg, #10b981 0%, #06b6d4 25%, #3b82f6 50%, #6366f1 75%, #8b5cf6 100%);
+          --bg-gradient: linear-gradient(135deg, #4a5568 0%, #2d3748 25%, #1a202c 50%, #2b6cb0 75%, #3182ce 100%);
+          --gold-gradient: linear-gradient(45deg, #fbbf24 0%, #f59e0b 25%, #d97706 50%, #b45309 75%, #92400e 100%);
+          --bright-gold: linear-gradient(45deg, #fef3c7 0%, #fbbf24 25%, #f59e0b 50%, #d97706 75%, #b45309 100%);
           --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
           --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+          --shadow-gold: 0 10px 25px rgba(251, 191, 36, 0.3);
+          --shadow-gold-hover: 0 15px 35px rgba(251, 191, 36, 0.4);
         }
 
         .splash-container {
           height: 100vh;
           background: var(--bg-gradient);
           background-size: 400% 400%;
-          animation: gradientShift 15s ease infinite;
+          animation: gradientShift 20s ease infinite;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -156,7 +160,7 @@ export default function HomePage() {
             radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
             radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
           background-size: 50px 50px, 100px 100px, 75px 75px;
-          animation: float 20s ease-in-out infinite;
+          animation: float 25s ease-in-out infinite;
         }
 
         @keyframes gradientShift {
@@ -187,11 +191,12 @@ export default function HomePage() {
         }
 
         .highlight {
-          background: linear-gradient(45deg, #ffd700, #ff6b6b);
+          background: var(--gold-gradient);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
           text-shadow: none;
+          font-weight: 800;
         }
 
         .subtitle {
@@ -229,28 +234,30 @@ export default function HomePage() {
           display: inline-flex;
           align-items: center;
           gap: 0.5rem;
-          background: linear-gradient(45deg, var(--primary), var(--secondary));
+          background: var(--gold-gradient);
           color: var(--text-white);
           font-size: 1.2rem;
-          font-weight: 600;
+          font-weight: 700;
           padding: 1rem 2.5rem;
           border: none;
           border-radius: 50px;
           text-decoration: none;
           cursor: pointer;
           transition: all 0.3s ease;
-          box-shadow: var(--shadow-lg);
+          box-shadow: var(--shadow-gold);
           z-index: 1;
+          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
 
         .btn-primary:hover {
-          transform: translateY(-2px);
-          box-shadow: var(--shadow-xl);
-          background: linear-gradient(45deg, var(--secondary), var(--accent));
+          transform: translateY(-3px);
+          box-shadow: var(--shadow-gold-hover);
+          background: var(--bright-gold);
         }
 
         .btn-primary i {
           font-size: 1.1rem;
+          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
         }
 
         .features-grid {
@@ -289,11 +296,12 @@ export default function HomePage() {
         .feature-icon {
           font-size: 3rem;
           margin-bottom: 1.5rem;
-          background: linear-gradient(135deg, #ec4899, #a855f7);
+          background: var(--gold-gradient);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
           text-shadow: none;
+          filter: drop-shadow(0 2px 4px rgba(251, 191, 36, 0.3));
         }
 
         .feature-title {
@@ -306,7 +314,7 @@ export default function HomePage() {
 
         .feature-description {
           font-size: 1rem;
-          color: rgba(255, 255, 255, 0.8);
+          color: rgba(255, 255, 255, 0.85);
           line-height: 1.5;
           text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
@@ -326,7 +334,7 @@ export default function HomePage() {
         }
 
         .modal-content {
-          background: rgba(255, 255, 255, 0.15);
+          background: rgba(42, 108, 176, 0.95);
           backdrop-filter: blur(25px);
           border: 1px solid rgba(255, 255, 255, 0.2);
           border-radius: 25px;
@@ -368,6 +376,7 @@ export default function HomePage() {
         .modal-emoji {
           font-size: 3rem;
           margin-bottom: 0.5rem;
+          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
         }
 
         .modal-title {
@@ -418,11 +427,12 @@ export default function HomePage() {
         }
 
         .benefit-icon {
-          background: linear-gradient(135deg, #ec4899, #a855f7);
+          background: var(--gold-gradient);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
           font-size: 1.1rem;
+          filter: drop-shadow(0 1px 2px rgba(251, 191, 36, 0.3));
         }
 
         .vibe-coding-section {
@@ -435,26 +445,29 @@ export default function HomePage() {
           display: inline-flex;
           align-items: center;
           gap: 0.5rem;
-          background: linear-gradient(45deg, rgba(255, 215, 0, 0.9), rgba(255, 107, 107, 0.9));
+          background: var(--gold-gradient);
           color: #1a1a1a;
           font-size: 1rem;
           font-weight: 700;
           padding: 0.8rem 1.5rem;
           border-radius: 25px;
-          box-shadow: 0 8px 16px rgba(255, 215, 0, 0.3);
+          box-shadow: var(--shadow-gold);
           margin-bottom: 1rem;
           animation: pulse 2s ease-in-out infinite;
           cursor: pointer;
           transition: all 0.3s ease;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
 
         .vibe-badge:hover {
           transform: translateY(-2px);
-          box-shadow: 0 12px 24px rgba(255, 215, 0, 0.4);
+          box-shadow: var(--shadow-gold-hover);
+          background: var(--bright-gold);
         }
 
         .vibe-badge i {
           font-size: 1.1rem;
+          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
         }
 
         @keyframes pulse {
@@ -509,9 +522,9 @@ export default function HomePage() {
           justify-content: space-around;
           margin-top: 1rem;
           padding: 1rem;
-          background: linear-gradient(135deg, var(--primary), var(--secondary));
+          background: var(--gold-gradient);
           border-radius: 15px;
-          color: white;
+          color: #1a1a1a;
         }
 
         .stat-item {
@@ -524,12 +537,12 @@ export default function HomePage() {
           font-size: 1.4rem;
           font-weight: 700;
           margin-bottom: 0.3rem;
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .stat-label {
           font-size: 0.8rem;
-          opacity: 0.9;
+          opacity: 0.8;
           font-weight: 500;
         }
 
@@ -541,7 +554,7 @@ export default function HomePage() {
         .benefits-card {
           background: rgba(255, 255, 255, 0.1);
           backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 215, 0, 0.3);
+          border: 1px solid rgba(251, 191, 36, 0.3);
           border-radius: 25px;
           padding: 2.5rem;
           text-align: center;
@@ -561,7 +574,7 @@ export default function HomePage() {
           left: 0;
           right: 0;
           bottom: 0;
-          background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 107, 107, 0.1));
+          background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.1));
           opacity: 0;
           transition: opacity 0.3s ease;
           z-index: -1;
@@ -571,7 +584,7 @@ export default function HomePage() {
           transform: translateY(-8px);
           box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
           background: rgba(255, 255, 255, 0.15);
-          border-color: rgba(255, 215, 0, 0.5);
+          border-color: rgba(251, 191, 36, 0.5);
         }
 
         .benefits-card:hover::before {
@@ -580,12 +593,13 @@ export default function HomePage() {
 
         .benefits-icon {
           font-size: 3.5rem;
-          background: linear-gradient(135deg, #ec4899, #a855f7);
+          background: var(--gold-gradient);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
           margin-bottom: 1.5rem;
           text-shadow: none;
+          filter: drop-shadow(0 2px 6px rgba(251, 191, 36, 0.4));
         }
 
         .benefits-title {
@@ -598,19 +612,29 @@ export default function HomePage() {
 
         .benefits-text {
           font-size: 1.2rem;
-          color: rgba(255, 215, 0, 0.9);
+          color: rgba(255, 255, 255, 0.9);
           line-height: 1.8;
           text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-          font-weight: 700;
+          font-weight: 500;
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
         }
 
         .benefits-text strong {
-          color: rgba(255, 223, 0, 1);
+          color: rgba(255, 255, 255, 1);
           font-weight: 700;
           text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
           opacity: 1;
+        }
+
+        .ai-highlight {
+          background: var(--gold-gradient);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          font-weight: 800;
+          text-shadow: none;
+          filter: drop-shadow(0 1px 3px rgba(251, 191, 36, 0.3));
         }
 
         /* 반응형 디자인 */
@@ -924,12 +948,12 @@ export default function HomePage() {
             <div className="benefits-icon">
               <i className="fas fa-brain"></i>
             </div>
-            <h3 className="benefits-title">NPU와 MCP 엔진 기반 AI 에이전트</h3>
+            <h3 className="benefits-title"><span className="ai-highlight">NPU와 MCP 엔진 기반 AI 에이전트</span></h3>
             <p className="benefits-text">
-              <strong>NPU와 MCP 엔진 기반 AI 에이전트로 서버 관리를 혁신합니다</strong><br />
+              <strong className="ai-highlight">NPU와 MCP 엔진 기반 AI 에이전트로 서버 관리를 혁신합니다</strong><br />
               <strong className="hidden sm:inline">자연어 질의, 지능형 분석, 예측 알림으로</strong>
               <strong className="sm:hidden">자연어 질의와 지능형 분석으로</strong><br />
-              <strong>IT 운영을 완전히 자동화합니다</strong>
+              <strong className="ai-highlight">IT 운영을 완전히 자동화합니다</strong>
             </p>
           </div>
         </div>
@@ -942,8 +966,8 @@ export default function HomePage() {
             onClick={authorizeAndRedirect}
           >
             <i className="fas fa-flask"></i>
-            <span className="hidden sm:inline">AI 기능 체험하기</span>
-            <span className="sm:hidden">AI 체험하기</span>
+            <span className="hidden sm:inline"><span className="ai-highlight">AI</span> 기능 체험하기</span>
+            <span className="sm:hidden"><span className="ai-highlight">AI</span> 체험하기</span>
           </button>
         </div>
 
@@ -973,18 +997,18 @@ export default function HomePage() {
             <span>Vibe Coding</span>
           </div>
           <p className="vibe-description">
-            <span className="hidden sm:inline">GPT/Claude + Cursor AI 협업으로 개발된 차세대 AI 에이전트 시스템</span>
-            <span className="sm:hidden">GPT/Claude + Cursor AI 협업 개발</span>
+            <span className="hidden sm:inline">GPT/Claude + Cursor <span className="ai-highlight">AI</span> 협업으로 개발된 차세대 <span className="ai-highlight">AI</span> 에이전트 시스템</span>
+            <span className="sm:hidden">GPT/Claude + Cursor <span className="ai-highlight">AI</span> 협업 개발</span>
             <br />
-            <strong>경량화 AI (No LLM Cost)</strong> • <strong>도메인 특화</strong> • <strong className="hidden sm:inline">확장 가능</strong><strong className="sm:hidden">확장성</strong>
+            <strong>경량화 <span className="ai-highlight">AI</span> (No LLM Cost)</strong> • <strong>도메인 특화</strong> • <strong className="hidden sm:inline">확장 가능</strong><strong className="sm:hidden">확장성</strong>
           </p>
         </div>
 
         {/* 푸터 */}
         <div className="footer-info fade-in-up">
           <p>
-            <span className="hidden sm:inline">© 2025 OpenManager AI. 모든 권리 보유.</span>
-            <span className="sm:hidden">© 2025 OpenManager AI</span>
+            <span className="hidden sm:inline">© 2025 OpenManager <span className="ai-highlight">AI</span>. 모든 권리 보유.</span>
+            <span className="sm:hidden">© 2025 OpenManager <span className="ai-highlight">AI</span></span>
           </p>
         </div>
       </div>
