@@ -18,16 +18,16 @@ const nextConfig: NextConfig = {
   // 압축 설정
   compress: true,
 
-  // 리라이트 규칙 (정적 파일 우선순위)
-  async rewrites() {
-    return [
-      // index.html을 루트 경로에서 우선 처리
-      {
-        source: '/',
-        destination: '/index.html',
-      },
-    ];
-  },
+  // 리라이트 규칙 제거 - API 라우트 충돌 방지
+  // async rewrites() {
+  //   return [
+  //     // index.html을 루트 경로에서 우선 처리
+  //     {
+  //       source: '/',
+  //       destination: '/index.html',
+  //     },
+  //   ];
+  // },
 
   // 보안 헤더
   async headers() {
