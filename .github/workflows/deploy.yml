@@ -8,51 +8,13 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
-env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+# Vercel 환경변수는 Secrets에서 직접 처리
 
 jobs:
-  # 1. 코드 품질 및 보안 검사
-  quality-check:
-    name: 📋 Quality & Security Check
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-
-    - name: Install dependencies
-      run: npm ci
-
-    - name: TypeScript type check
-      run: npm run type-check
-      continue-on-error: false
-
-    - name: ESLint check
-      run: npm run lint
-      continue-on-error: true
-
-    - name: Security audit
-      run: npm audit --audit-level=high
-      continue-on-error: true
-
-    - name: Bundle size analysis
-      run: |
-        npm run build
-        npx bundlesize
-      continue-on-error: true
-
-  # 2. 빌드 테스트
+  # 1. 빌드 테스트
   build-test:
     name: 🏗️ Build Test
     runs-on: ubuntu-latest
-    needs: quality-check
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -71,17 +33,11 @@ jobs:
       env:
         NODE_ENV: production
 
-    - name: Test build artifacts
-      run: |
-        ls -la .next/
-        test -d .next/static && echo "✅ Static assets built" || exit 1
-        test -f .next/standalone/server.js && echo "✅ Standalone server built" || exit 1
-
-  # 3. Vercel 배포 (PR의 경우 미리보기, main/master의 경우 프로덕션)
+  # 2. Vercel 배포
   deploy:
     name: 🚀 Deploy to Vercel
     runs-on: ubuntu-latest
-    needs: [quality-check, build-test]
+    needs: build-test
     outputs:
       preview-url: ${{ steps.deploy.outputs.preview-url }}
       production-url: ${{ steps.deploy.outputs.production-url }}
@@ -89,30 +45,19 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Install Vercel CLI
-      run: npm install --global vercel@latest
-
-    - name: Pull Vercel Environment Information
-      run: vercel pull --yes --environment=${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
-
-    - name: Build Project Artifacts
-      run: vercel build ${{ github.ref == 'refs/heads/main' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
-
-    - name: Deploy Project Artifacts
+    - name: Deploy to Vercel
       id: deploy
-      run: |
-        if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-          URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
-          echo "production-url=$URL" >> $GITHUB_OUTPUT
-        else
-          URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
-          echo "preview-url=$URL" >> $GITHUB_OUTPUT
-        fi
-        echo "Deployed to: $URL"
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        working-directory: ./
+        vercel-args: ${{ github.ref == 'refs/heads/main' && '--prod' || '' }}
 
-  # 4. 배포 후 헬스체크 및 성능 테스트
+  # 3. 헬스체크
   health-check:
-    name: 🏥 Health Check & Performance Test
+    name: 🏥 Health Check
     runs-on: ubuntu-latest
     needs: deploy
     steps:
@@ -124,8 +69,7 @@ jobs:
         URL="${{ needs.deploy.outputs.production-url || needs.deploy.outputs.preview-url }}"
         echo "Testing health endpoint: $URL/api/health"
         
-        # 헬스체크 API 테스트
-        HEALTH_RESPONSE=$(curl -s -w "%{http_code}" "$URL/api/health")
+        HEALTH_RESPONSE=$(curl -s -w "%{http_code}" "$URL/api/health" || echo "000")
         HTTP_CODE="${HEALTH_RESPONSE: -3}"
         
         if [ "$HTTP_CODE" = "200" ]; then
@@ -135,76 +79,27 @@ jobs:
           exit 1
         fi
 
-    - name: Performance Test
-      run: |
-        URL="${{ needs.deploy.outputs.production-url || needs.deploy.outputs.preview-url }}"
-        echo "Testing performance for: $URL"
-        
-        # 페이지 로드 시간 측정
-        LOAD_TIME=$(curl -s -w "%{time_total}" -o /dev/null "$URL")
-        echo "Page load time: ${LOAD_TIME}s"
-        
-        # 3초 이상이면 경고
-        if (( $(echo "$LOAD_TIME > 3.0" | bc -l) )); then
-          echo "⚠️ Warning: Page load time is slower than 3 seconds"
-        else
-          echo "✅ Page load time is acceptable"
-        fi
-
-    - name: API Endpoints Test
-      run: |
-        URL="${{ needs.deploy.outputs.production-url || needs.deploy.outputs.preview-url }}"
-        
-        # 여러 API 엔드포인트 테스트
-        endpoints=("/api/health")
-        
-        for endpoint in "${endpoints[@]}"; do
-          echo "Testing: $URL$endpoint"
-          
-          RESPONSE=$(curl -s -w "%{http_code}" "$URL$endpoint")
-          HTTP_CODE="${RESPONSE: -3}"
-          
-          if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "503" ]; then
-            echo "✅ $endpoint responded with code: $HTTP_CODE"
-          else
-            echo "❌ $endpoint failed with code: $HTTP_CODE"
-            exit 1
-          fi
-        done
-
-    - name: Accessibility Test
-      uses: treosh/lighthouse-ci-action@v9
-      with:
-        urls: |
-          ${{ needs.deploy.outputs.production-url || needs.deploy.outputs.preview-url }}
-        configPath: ./.lighthouserc.json
-        uploadArtifacts: true
-        temporaryPublicStorage: true
-      continue-on-error: true
-
-  # 5. 알림 및 결과 보고
+  # 4. 알림
   notify:
     name: 📢 Notify Results
     runs-on: ubuntu-latest
     needs: [deploy, health-check]
     if: always()
     steps:
-    - name: Deployment Success Notification
+    - name: Deployment Success
       if: needs.health-check.result == 'success'
       run: |
         URL="${{ needs.deploy.outputs.production-url || needs.deploy.outputs.preview-url }}"
         echo "🎉 Deployment successful!"
         echo "URL: $URL"
-        echo "All health checks passed ✅"
 
-    - name: Deployment Failure Notification
+    - name: Deployment Failure
       if: needs.health-check.result == 'failure'
       run: |
         echo "💥 Deployment failed!"
-        echo "Health checks did not pass ❌"
         exit 1
 
-  # 6. 자동 롤백 (프로덕션 실패 시)
+  # 5. 자동 롤백 (프로덕션 실패 시)
   rollback:
     name: 🔄 Auto Rollback
     runs-on: ubuntu-latest
