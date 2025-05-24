@@ -1,52 +1,63 @@
-import { NextResponse } from 'next/server'
-import { supabaseAdmin } from '../../../lib/supabase'
-import { CacheService } from '../../../lib/redis'
-import { ServerStatusSchema } from '../../../types/api'
-import { ENTERPRISE_SERVERS } from '../../../lib/enterprise-servers'
-import type { ServerStatus } from '../../../types/index'
+import { NextRequest, NextResponse } from 'next/server'
+import { metricsStorage } from '../../../services/storage'
 
-export async function GET() {
+/**
+ * 서버 목록 조회 API
+ * GET /api/servers
+ */
+export async function GET(request: NextRequest) {
   try {
-    // 캐시에서 먼저 확인
-    const cached = await CacheService.get<ServerStatus[]>('servers:all')
-    if (cached) {
-      return NextResponse.json({ 
-        success: true, 
-        data: cached, 
-        timestamp: new Date().toISOString(),
-        cached: true
+    const searchParams = request.nextUrl.searchParams
+    const includeCounts = searchParams.get('counts') === 'true'
+
+    // 활성 서버 목록 조회
+    const serverIds = await metricsStorage.getServerList()
+    
+    if (!includeCounts) {
+      return NextResponse.json({
+        success: true,
+        data: serverIds,
+        total: serverIds.length
       })
     }
 
-    // 🏢 기업 인프라 30개 서버 데이터 사용
-    const servers = ENTERPRISE_SERVERS
+    // 서버별 상세 정보 조회
+    const servers = await Promise.all(
+      serverIds.map(async (serverId) => {
+        const server = await metricsStorage.getLatestMetrics(serverId)
+        const isOnline = await metricsStorage.isServerOnline(serverId)
+        
+        return {
+          ...server,
+          status: isOnline ? server?.status || 'online' : 'offline'
+        }
+      })
+    )
 
-    // 캐시에 저장 (3분)
-    await CacheService.set('servers:all', servers, 180)
+    // 필터링된 서버만 반환
+    const validServers = servers.filter(server => server !== null)
+
+    // 상태별 카운트
+    const statusCounts = {
+      online: validServers.filter(s => s.status === 'online').length,
+      warning: validServers.filter(s => s.status === 'warning').length,
+      offline: validServers.filter(s => s.status === 'offline').length
+    }
 
     return NextResponse.json({
       success: true,
-      data: servers,
-      timestamp: new Date().toISOString(),
-      cached: false,
-      metadata: {
-        totalServers: servers.length,
-        healthyServers: servers.filter(s => s.status === 'online').length,
-        warningServers: servers.filter(s => s.status === 'warning').length,
-        criticalServers: servers.filter(s => s.status === 'error').length,
-        kubernetesNodes: servers.filter(s => s.id.includes('k8s-')).length,
-        onPremiseServers: servers.filter(s => !s.id.includes('k8s-')).length,
-        environment: 'production',
-        region: 'IDC-Seoul-Main'
-      }
+      data: validServers,
+      total: validServers.length,
+      counts: statusCounts,
+      timestamp: new Date().toISOString()
     })
   } catch (error) {
-    console.error('Servers API error:', error)
+    console.error('❌ Failed to fetch servers:', error)
+    
     return NextResponse.json({
       success: false,
       error: 'Failed to fetch servers',
-      timestamp: new Date().toISOString(),
-      details: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
 } 
