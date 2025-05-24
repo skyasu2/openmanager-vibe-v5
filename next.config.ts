@@ -1,7 +1,89 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Vercel 배포 최적화
+  output: 'standalone',
+  
+  // 실험적 기능
+  experimental: {
+    optimizeServerReact: true,
+  },
+
+  // 이미지 최적화
+  images: {
+    domains: ['localhost', 'openmanager-vibe-v5.vercel.app'],
+    formats: ['image/webp', 'image/avif'],
+  },
+
+  // 압축 설정
+  compress: true,
+
+  // 리라이트 규칙 (정적 파일 우선순위)
+  async rewrites() {
+    return [
+      // index.html을 루트 경로에서 우선 처리
+      {
+        source: '/',
+        destination: '/index.html',
+      },
+    ];
+  },
+
+  // 보안 헤더
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY'
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          }
+        ]
+      },
+      {
+        source: '/api/(.*)',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*'
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, PUT, DELETE, OPTIONS'
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'X-Requested-With, Content-Type, Authorization'
+          }
+        ]
+      }
+    ];
+  },
+
+  // 리다이렉트 규칙
+  async redirects() {
+    return [
+      // 문서 접근 시 첫 번째 가이드로 리다이렉션
+      {
+        source: '/docs',
+        destination: '/docs/01-project-guide',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
