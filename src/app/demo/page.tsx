@@ -211,51 +211,51 @@ export default function DemoPage() {
       {/* 서버 상세 정보 슬라이드 패널 */}
       {selectedServer && (
         <motion.div
-          className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl border-l border-gray-200 z-50"
-          initial={{ x: 384 }}
+          className="fixed right-0 top-0 h-full w-full sm:w-80 md:w-96 bg-white shadow-2xl border-l border-gray-200 z-50 overflow-y-auto"
+          initial={{ x: "100%" }}
           animate={{ x: 0 }}
-          exit={{ x: 384 }}
+          exit={{ x: "100%" }}
           transition={{ type: "spring", damping: 20 }}
         >
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">서버 상세 정보</h3>
+          <div className="p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900">서버 상세 정보</h3>
               <button
                 onClick={() => selectServer(null)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 text-xl sm:text-2xl w-8 h-8 flex items-center justify-center"
               >
                 ×
               </button>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <div>
-                <h4 className="font-medium text-gray-900">{selectedServer.name}</h4>
-                <p className="text-sm text-gray-600">{selectedServer.type} • {selectedServer.location}</p>
+                <h4 className="font-medium text-gray-900 text-sm sm:text-base">{selectedServer.name}</h4>
+                <p className="text-xs sm:text-sm text-gray-600">{selectedServer.type} • {selectedServer.location}</p>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <div className="text-sm text-gray-600">CPU 사용률</div>
-                  <div className="text-xl font-semibold text-gray-900">{selectedServer.metrics.cpu}%</div>
+              <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                <div className="bg-gray-50 p-2 sm:p-3 rounded-lg">
+                  <div className="text-xs sm:text-sm text-gray-600">CPU 사용률</div>
+                  <div className="text-lg sm:text-xl font-semibold text-gray-900">{selectedServer.metrics.cpu}%</div>
                 </div>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <div className="text-sm text-gray-600">메모리 사용률</div>
-                  <div className="text-xl font-semibold text-gray-900">{selectedServer.metrics.memory}%</div>
+                <div className="bg-gray-50 p-2 sm:p-3 rounded-lg">
+                  <div className="text-xs sm:text-sm text-gray-600">메모리 사용률</div>
+                  <div className="text-lg sm:text-xl font-semibold text-gray-900">{selectedServer.metrics.memory}%</div>
                 </div>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <div className="text-sm text-gray-600">디스크 사용률</div>
-                  <div className="text-xl font-semibold text-gray-900">{selectedServer.metrics.disk}%</div>
+                <div className="bg-gray-50 p-2 sm:p-3 rounded-lg">
+                  <div className="text-xs sm:text-sm text-gray-600">디스크 사용률</div>
+                  <div className="text-lg sm:text-xl font-semibold text-gray-900">{selectedServer.metrics.disk}%</div>
                 </div>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <div className="text-sm text-gray-600">네트워크 사용률</div>
-                  <div className="text-xl font-semibold text-gray-900">{selectedServer.metrics.network}%</div>
+                <div className="bg-gray-50 p-2 sm:p-3 rounded-lg">
+                  <div className="text-xs sm:text-sm text-gray-600">네트워크 사용률</div>
+                  <div className="text-lg sm:text-xl font-semibold text-gray-900">{selectedServer.metrics.network}%</div>
                 </div>
               </div>
               
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="text-sm text-gray-600">업타임</div>
-                <div className="text-lg font-semibold text-gray-900">{selectedServer.uptime}일</div>
+              <div className="bg-gray-50 p-2 sm:p-3 rounded-lg">
+                <div className="text-xs sm:text-sm text-gray-600">업타임</div>
+                <div className="text-base sm:text-lg font-semibold text-gray-900">{selectedServer.uptime}일</div>
               </div>
             </div>
           </div>

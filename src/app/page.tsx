@@ -176,8 +176,6 @@ export default function HomePage() {
           transition: all 0.8s ease;
         }
 
-
-
         .main-title {
           font-size: 3.5rem;
           font-weight: 700;
@@ -669,6 +667,19 @@ export default function HomePage() {
       `}</style>
 
       <div className="splash-container">
+        {/* 헤더 로고 */}
+        <header className="absolute top-0 left-0 right-0 p-6 z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <i className="fas fa-server text-white text-lg"></i>
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-white">OpenManager</h2>
+              <p className="text-xs text-white/70">AI 서버 모니터링</p>
+            </div>
+          </div>
+        </header>
+
         <h1 className="main-title fade-in-up">
           OpenManager <span className="highlight">AI</span>
         </h1>
@@ -732,8 +743,6 @@ export default function HomePage() {
           </p>
         </div>
 
-
-
         {/* 푸터 */}
         <div className="footer-info fade-in-up">
           <p>
@@ -742,7 +751,7 @@ export default function HomePage() {
         </div>
       </div>
 
-            {/* 기능 상세 모달 */}
+      {/* 기능 상세 모달 */}
       {selectedFeature && (
         <div className="modal-overlay" onClick={closeFeatureModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -818,7 +827,7 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-    </div>
+        </div>
       )}
 
       {/* 메인 AI 에이전트 상세 모달 */}
