@@ -305,7 +305,7 @@ export default function ServerDetailModal({ server, onClose, onAskAI }: ServerDe
             <div className="mt-8 flex justify-center">
               <button
                 onClick={handleAIAnalysis}
-                className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all"
               >
                 <i className="fas fa-brain"></i>
                 AI 분석

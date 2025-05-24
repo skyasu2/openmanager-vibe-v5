@@ -177,7 +177,7 @@ export default function AgentPanel({ isOpen, onClose, initialQuery, initialServe
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-purple-600 to-blue-600 text-white">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-            <i className="fas fa-brain text-sm"></i>
+            <i className="fas fa-brain text-sm bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent"></i>
           </div>
           <div>
             <h2 className="font-semibold">AI 에이전트</h2>
@@ -208,7 +208,7 @@ export default function AgentPanel({ isOpen, onClose, initialQuery, initialServe
         {messages.length === 0 && (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <i className="fas fa-brain text-2xl text-purple-600"></i>
+              <i className="fas fa-brain text-2xl bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent"></i>
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">AI 에이전트에게 질문하세요</h3>
             <p className="text-sm text-gray-500 mb-4">서버 상태, 성능 분석, 문제 해결 등<br />무엇이든 물어보세요!</p>
@@ -247,7 +247,7 @@ export default function AgentPanel({ isOpen, onClose, initialQuery, initialServe
 
         {isLoading && (
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-sm">
+            <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm">
               <i className="fas fa-brain"></i>
             </div>
             <div className="flex-1 bg-gray-100 rounded-lg p-3">

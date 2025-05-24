@@ -62,7 +62,7 @@ export default function AgentResponseView({ message, isLoading }: AgentResponseV
 
   return (
     <div className="flex items-start gap-3">
-      <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-sm">
+      <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm flex-shrink-0">
         <i className="fas fa-brain"></i>
       </div>
       <div className="flex-1 max-w-[85%]">

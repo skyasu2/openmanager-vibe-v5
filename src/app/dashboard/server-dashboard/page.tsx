@@ -139,7 +139,11 @@ export default function ServerDashboardPage() {
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              <i className="fas fa-brain text-sm"></i>
+              <i className={`fas fa-brain text-sm ${
+                isAgentOpen 
+                  ? 'text-white' 
+                  : 'bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent'
+              }`}></i>
               <span className="hidden sm:inline">AI 분석</span>
               
               {/* 알림 뱃지 */}
@@ -193,7 +197,7 @@ export default function ServerDashboardPage() {
       {isMobile && !isAgentOpen && (
         <button
           onClick={toggleAgent}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full shadow-lg flex items-center justify-center z-50 hover:shadow-xl transition-all"
+          className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full shadow-lg flex items-center justify-center z-50 hover:shadow-xl transition-all"
         >
           <i className="fas fa-brain text-lg"></i>
         </button>

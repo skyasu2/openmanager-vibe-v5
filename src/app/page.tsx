@@ -418,7 +418,7 @@ export default function HomePage() {
         }
 
         .benefit-icon {
-          background: var(--bg-gradient);
+          background: linear-gradient(135deg, #ec4899, #a855f7);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -580,7 +580,7 @@ export default function HomePage() {
 
         .benefits-icon {
           font-size: 3.5rem;
-          background: var(--bg-gradient);
+          background: linear-gradient(135deg, #ec4899, #a855f7);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
