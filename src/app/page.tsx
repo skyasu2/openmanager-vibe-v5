@@ -603,12 +603,16 @@ export default function HomePage() {
           color: rgba(255, 215, 0, 0.9);
           line-height: 1.8;
           text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+          font-weight: 700;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
         }
 
         .benefits-text strong {
           color: rgba(255, 223, 0, 1);
-          font-weight: 600;
-          text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+          font-weight: 700;
+          text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+          opacity: 1;
         }
 
         /* 반응형 디자인 */
