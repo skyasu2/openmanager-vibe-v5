@@ -614,14 +614,128 @@ export default function HomePage() {
         }
 
         /* 반응형 디자인 */
+        @media (max-width: 480px) {
+          .splash-container {
+            padding: 0.5rem;
+          }
+          
+          .main-title {
+            font-size: 2rem;
+            margin-bottom: 0.8rem;
+          }
+          
+          .subtitle {
+            font-size: 1rem;
+            max-width: 300px;
+            margin-bottom: 1.5rem;
+          }
+
+          .features-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            max-width: 320px;
+          }
+
+          .feature-card {
+            padding: 1.2rem;
+            min-height: 200px;
+          }
+
+          .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.8rem;
+          }
+          
+          .feature-title {
+            font-size: 1.1rem;
+            margin-bottom: 0.6rem;
+          }
+          
+          .feature-description {
+            font-size: 0.9rem;
+          }
+
+          .btn-primary {
+            font-size: 1rem;
+            padding: 0.8rem 2rem;
+          }
+
+          .modal-content {
+            margin: 0.5rem;
+            padding: 1.2rem;
+            max-height: 90vh;
+          }
+          
+          .modal-title {
+            font-size: 1.3rem;
+          }
+          
+          .modal-description {
+            font-size: 0.9rem;
+          }
+          
+          .benefits-list li {
+            font-size: 0.8rem;
+            padding: 0.4rem 0;
+          }
+
+          .benefits-card {
+            padding: 1.5rem;
+            margin: 0 0.5rem;
+          }
+          
+          .benefits-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+          }
+          
+          .benefits-title {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+          }
+          
+          .benefits-text {
+            font-size: 0.95rem;
+            line-height: 1.6;
+          }
+
+          .vibe-badge {
+            font-size: 0.9rem;
+            padding: 0.7rem 1.2rem;
+          }
+          
+          .vibe-description {
+            font-size: 0.95rem;
+            max-width: 500px;
+          }
+          
+          .cta-guide {
+            font-size: 1rem;
+          }
+
+          .stat-number {
+            font-size: 1.2rem;
+          }
+          
+          .stat-label {
+            font-size: 0.7rem;
+          }
+        }
+
         @media (max-width: 768px) {
+          .splash-container {
+            padding: 1rem;
+          }
+          
           .main-title {
             font-size: 2.5rem;
+            margin-bottom: 1rem;
           }
           
           .subtitle {
             font-size: 1.1rem;
             max-width: 400px;
+            margin-bottom: 1.8rem;
           }
 
           .features-grid {
@@ -643,6 +757,56 @@ export default function HomePage() {
           .modal-content {
             margin: 1rem;
             padding: 1.5rem;
+            max-height: 85vh;
+          }
+          
+          .benefits-card {
+            padding: 2rem;
+            margin: 0 1rem;
+          }
+          
+          .benefits-icon {
+            font-size: 3rem;
+          }
+          
+          .benefits-title {
+            font-size: 1.5rem;
+          }
+          
+          .benefits-text {
+            font-size: 1.05rem;
+          }
+
+          .btn-primary {
+            font-size: 1.1rem;
+            padding: 0.9rem 2.2rem;
+          }
+
+          .vibe-description {
+            font-size: 1rem;
+            max-width: 550px;
+          }
+
+          /* 헤더 로고 모바일 최적화 */
+          header {
+            padding: 1rem !important;
+          }
+          
+          header .flex.items-center.gap-3 div:first-child {
+            width: 2rem !important;
+            height: 2rem !important;
+          }
+          
+          header .flex.items-center.gap-3 div:first-child i {
+            font-size: 0.8rem !important;
+          }
+          
+          header h2 {
+            font-size: 1rem !important;
+          }
+          
+          header p {
+            font-size: 0.6rem !important;
           }
         }
 
@@ -657,6 +821,11 @@ export default function HomePage() {
             max-width: 350px;
             margin: 0 auto;
           }
+          
+          .benefits-card {
+            padding: 2.2rem;
+            max-width: 600px;
+          }
         }
 
         @media (min-width: 1024px) {
@@ -664,17 +833,82 @@ export default function HomePage() {
             grid-template-columns: repeat(3, 1fr);
           }
         }
+
+        /* 터치 디바이스 최적화 */
+        @media (hover: none) and (pointer: coarse) {
+          .feature-card:hover,
+          .benefits-card:hover,
+          .btn-primary:hover,
+          .vibe-badge:hover {
+            transform: none;
+          }
+          
+          .feature-card:active,
+          .benefits-card:active {
+            transform: translateY(-2px);
+          }
+          
+          .btn-primary:active,
+          .vibe-badge:active {
+            transform: translateY(-1px);
+          }
+        }
+
+        /* 가로 모드 스마트폰 최적화 */
+        @media screen and (max-height: 500px) and (orientation: landscape) {
+          .splash-container {
+            padding: 0.5rem;
+            justify-content: flex-start;
+            padding-top: 4rem;
+          }
+          
+          .main-title {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+          }
+          
+          .subtitle {
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+          }
+          
+          .benefits-section {
+            margin: 1rem 0 0.5rem 0;
+          }
+          
+          .benefits-card {
+            padding: 1.5rem;
+          }
+          
+          .benefits-title {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+          }
+          
+          .features-grid {
+            display: none;
+          }
+          
+          .vibe-coding-section {
+            margin: 0.5rem 0;
+          }
+          
+          .footer-info {
+            margin-top: 0.5rem;
+            font-size: 0.7rem;
+          }
+        }
       `}</style>
 
       <div className="splash-container">
         {/* 헤더 로고 */}
-        <header className="absolute top-0 left-0 right-0 p-6 z-10">
-          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
-            <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <i className="fas fa-server text-white text-lg"></i>
+        <header className="absolute top-0 left-0 right-0 p-4 sm:p-6 z-10">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity cursor-pointer">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <i className="fas fa-server text-white text-sm sm:text-lg"></i>
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">OpenManager</h2>
+              <h2 className="text-base sm:text-lg font-bold text-white">OpenManager</h2>
               <p className="text-xs text-white/70">AI 서버 모니터링</p>
             </div>
           </Link>
@@ -693,7 +927,8 @@ export default function HomePage() {
             <h3 className="benefits-title">NPU와 MCP 엔진 기반 AI 에이전트</h3>
             <p className="benefits-text">
               <strong>NPU와 MCP 엔진 기반 AI 에이전트로 서버 관리를 혁신합니다</strong><br />
-              <strong>자연어 질의, 지능형 분석, 예측 알림으로</strong><br />
+              <strong className="hidden sm:inline">자연어 질의, 지능형 분석, 예측 알림으로</strong>
+              <strong className="sm:hidden">자연어 질의와 지능형 분석으로</strong><br />
               <strong>IT 운영을 완전히 자동화합니다</strong>
             </p>
           </div>
@@ -707,7 +942,8 @@ export default function HomePage() {
             onClick={authorizeAndRedirect}
           >
             <i className="fas fa-flask"></i>
-            AI 기능 체험하기
+            <span className="hidden sm:inline">AI 기능 체험하기</span>
+            <span className="sm:hidden">AI 체험하기</span>
           </button>
         </div>
 
@@ -737,16 +973,18 @@ export default function HomePage() {
             <span>Vibe Coding</span>
           </div>
           <p className="vibe-description">
-            GPT/Claude + Cursor AI 협업으로 개발된 차세대 AI 에이전트 시스템
+            <span className="hidden sm:inline">GPT/Claude + Cursor AI 협업으로 개발된 차세대 AI 에이전트 시스템</span>
+            <span className="sm:hidden">GPT/Claude + Cursor AI 협업 개발</span>
             <br />
-            <strong>경량화 AI (No LLM Cost)</strong> • <strong>도메인 특화</strong> • <strong>확장 가능</strong>
+            <strong>경량화 AI (No LLM Cost)</strong> • <strong>도메인 특화</strong> • <strong className="hidden sm:inline">확장 가능</strong><strong className="sm:hidden">확장성</strong>
           </p>
         </div>
 
         {/* 푸터 */}
         <div className="footer-info fade-in-up">
           <p>
-            © 2025 OpenManager AI. 모든 권리 보유.
+            <span className="hidden sm:inline">© 2025 OpenManager AI. 모든 권리 보유.</span>
+            <span className="sm:hidden">© 2025 OpenManager AI</span>
           </p>
         </div>
       </div>
