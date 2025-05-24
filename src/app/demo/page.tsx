@@ -121,7 +121,7 @@ export default function DemoPage() {
       <header className="h-20 bg-white border-b border-gray-200 px-6 flex items-center justify-between shadow-sm">
         <Link href="/" className="flex items-center space-x-4 hover:opacity-80 transition-opacity cursor-pointer">
           <motion.div
-            className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center"
+            className="w-12 h-12 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl flex items-center justify-center"
             animate={{
               scale: [1, 1.05, 1],
               rotate: [0, 5, 0]

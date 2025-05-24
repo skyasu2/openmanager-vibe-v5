@@ -103,7 +103,7 @@ export default function ServerDashboardPage() {
             </button>
             
             <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <i className="fas fa-server text-white text-sm"></i>
               </div>
               <div>
