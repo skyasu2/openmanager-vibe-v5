@@ -146,9 +146,9 @@ export default function DashboardPage() {
             {/* 사용자 메뉴 */}
             <div className="flex items-center gap-2">
               <button className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center transition-colors">
-                <i className="fas fa-bell text-gray-600 text-sm"></i>
+                <i className="fas fa-bell text-gray-600 text-sm bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent"></i>
               </button>
-              <div className="w-8 h-8 bg-gradient-to-br from-gray-600 to-gray-700 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <i className="fas fa-user text-white text-sm"></i>
               </div>
             </div>

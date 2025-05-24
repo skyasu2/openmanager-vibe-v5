@@ -289,7 +289,7 @@ export default function HomePage() {
         .feature-icon {
           font-size: 3rem;
           margin-bottom: 1.5rem;
-          background: var(--bg-gradient);
+          background: linear-gradient(135deg, #ec4899, #a855f7);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;

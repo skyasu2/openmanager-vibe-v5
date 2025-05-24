@@ -158,14 +158,14 @@ export default function AgentPanelMobile({ isOpen, onClose, initialQuery, initia
               className="w-8 h-8 hover:bg-gray-100 rounded-lg flex items-center justify-center transition-colors"
               title="대화 내용 지우기"
             >
-              <i className="fas fa-broom text-sm text-gray-600"></i>
+              <i className="fas fa-broom text-sm bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent"></i>
             </button>
             <button
               onClick={onClose}
               className="w-8 h-8 hover:bg-gray-100 rounded-lg flex items-center justify-center transition-colors"
               title="패널 닫기"
             >
-              <i className="fas fa-times text-sm text-gray-600"></i>
+              <i className="fas fa-times text-sm bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent"></i>
             </button>
           </div>
         </div>

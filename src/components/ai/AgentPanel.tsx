@@ -191,14 +191,14 @@ export default function AgentPanel({ isOpen, onClose, initialQuery, initialServe
             className="w-8 h-8 hover:bg-white hover:bg-opacity-20 rounded-lg flex items-center justify-center transition-colors"
             title="대화 내용 지우기"
           >
-            <i className="fas fa-broom text-sm"></i>
+            <i className="fas fa-broom text-sm bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent"></i>
           </button>
           <button
             onClick={onClose}
             className="w-8 h-8 hover:bg-white hover:bg-opacity-20 rounded-lg flex items-center justify-center transition-colors"
             title="패널 닫기"
           >
-            <i className="fas fa-times text-sm"></i>
+            <i className="fas fa-times text-sm bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent"></i>
           </button>
         </div>
       </div>

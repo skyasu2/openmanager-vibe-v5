@@ -97,19 +97,19 @@ export default function AgentResponseView({ message, isLoading }: AgentResponseV
                 className="text-xs text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 transition-colors"
                 title="복사"
               >
-                <i className="fas fa-copy"></i>
+                <i className="fas fa-copy bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent"></i>
               </button>
               <button
                 className="text-xs text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 transition-colors"
                 title="도움이 되었나요?"
               >
-                <i className="fas fa-thumbs-up"></i>
+                <i className="fas fa-thumbs-up bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent"></i>
               </button>
               <button
                 className="text-xs text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 transition-colors"
                 title="도움이 되지 않았나요?"
               >
-                <i className="fas fa-thumbs-down"></i>
+                <i className="fas fa-thumbs-down bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent"></i>
               </button>
             </div>
           </div>

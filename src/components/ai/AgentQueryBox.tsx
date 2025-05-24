@@ -75,7 +75,7 @@ export default function AgentQueryBox({ onSendMessage, isLoading, placeholder = 
         {isLoading ? (
           <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
         ) : (
-          <i className="fas fa-paper-plane text-sm"></i>
+          <i className="fas fa-paper-plane text-sm bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent"></i>
         )}
       </button>
     </form>
