@@ -223,6 +223,21 @@ export default function HomePage() {
           z-index: 1;
         }
 
+        .cta-guide {
+          font-size: 1.1rem;
+          color: rgba(255, 255, 255, 0.9);
+          margin-bottom: 1rem;
+          font-weight: 500;
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+          animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+          0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+          40% { transform: translateY(-5px); }
+          60% { transform: translateY(-3px); }
+        }
+
         .btn-primary {
           display: inline-flex;
           align-items: center;
@@ -262,10 +277,10 @@ export default function HomePage() {
         }
 
         .feature-card {
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          border-radius: 16px;
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(15px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 20px;
           padding: 2rem;
           transition: all 0.3s ease;
           cursor: pointer;
@@ -279,8 +294,9 @@ export default function HomePage() {
 
         .feature-card:hover {
           transform: translateY(-5px);
-          box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
-          background: rgba(255, 255, 255, 1);
+          box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(255, 255, 255, 0.3);
         }
 
         .feature-icon {
@@ -296,16 +312,16 @@ export default function HomePage() {
         .feature-title {
           font-size: 1.3rem;
           font-weight: 600;
-          color: #1f2937;
+          color: rgba(255, 255, 255, 0.95);
           margin-bottom: 0.8rem;
-          text-shadow: none;
+          text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
         }
 
         .feature-description {
           font-size: 1rem;
-          color: #6b7280;
+          color: rgba(255, 255, 255, 0.8);
           line-height: 1.5;
-          text-shadow: none;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         .modal-overlay {
@@ -323,34 +339,38 @@ export default function HomePage() {
         }
 
         .modal-content {
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
-          backdrop-filter: blur(20px);
-          border-radius: 20px;
+          background: rgba(255, 255, 255, 0.15);
+          backdrop-filter: blur(25px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 25px;
           padding: 1.5rem;
           max-width: 500px;
           width: 100%;
           max-height: 85vh;
           overflow: hidden;
           position: relative;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
         }
 
         .modal-close {
           position: absolute;
           top: 1rem;
           right: 1rem;
-          background: none;
-          border: none;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
           font-size: 1.5rem;
           cursor: pointer;
-          color: #666;
+          color: rgba(255, 255, 255, 0.8);
           padding: 0.5rem;
           border-radius: 50%;
           transition: all 0.3s ease;
+          backdrop-filter: blur(10px);
         }
 
         .modal-close:hover {
-          background: rgba(0, 0, 0, 0.1);
+          background: rgba(255, 255, 255, 0.2);
+          color: rgba(255, 255, 255, 1);
+          transform: scale(1.1);
         }
 
         .modal-header {
@@ -366,14 +386,16 @@ export default function HomePage() {
         .modal-title {
           font-size: 1.6rem;
           font-weight: 700;
-          color: #1f2937;
+          color: rgba(255, 255, 255, 0.95);
           margin-bottom: 0.5rem;
+          text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
         }
 
         .modal-description {
           font-size: 1rem;
-          color: #6b7280;
+          color: rgba(255, 255, 255, 0.8);
           line-height: 1.4;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         .modal-benefits {
@@ -383,8 +405,9 @@ export default function HomePage() {
         .modal-benefits h4 {
           font-size: 1.2rem;
           font-weight: 600;
-          color: #1f2937;
+          color: rgba(255, 255, 255, 0.95);
           margin-bottom: 0.8rem;
+          text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
         }
 
         .benefits-list {
@@ -398,8 +421,9 @@ export default function HomePage() {
           gap: 0.6rem;
           padding: 0.5rem 0;
           font-size: 0.9rem;
-          color: #374151;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+          color: rgba(255, 255, 255, 0.85);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         .benefits-list li:last-child {
@@ -528,23 +552,43 @@ export default function HomePage() {
         }
 
         .benefits-card {
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(15px);
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          border-radius: 20px;
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 215, 0, 0.3);
+          border-radius: 25px;
           padding: 2.5rem;
           text-align: center;
           max-width: 700px;
           margin: 0 auto;
-          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-          transition: all 0.3s ease;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+          transition: all 0.4s ease;
           cursor: pointer;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .benefits-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 107, 107, 0.1));
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          z-index: -1;
         }
 
         .benefits-card:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-          background: rgba(255, 255, 255, 1);
+          transform: translateY(-8px);
+          box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(255, 215, 0, 0.5);
+        }
+
+        .benefits-card:hover::before {
+          opacity: 1;
         }
 
         .benefits-icon {
@@ -560,22 +604,22 @@ export default function HomePage() {
         .benefits-title {
           font-size: 1.8rem;
           font-weight: 700;
-          color: #1f2937;
+          color: rgba(255, 255, 255, 0.95);
           margin-bottom: 1.5rem;
-          text-shadow: none;
+          text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
         .benefits-text {
           font-size: 1.2rem;
-          color: #374151;
+          color: rgba(255, 255, 255, 0.85);
           line-height: 1.8;
-          text-shadow: none;
+          text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
         }
 
         .benefits-text strong {
-          color: var(--primary);
+          color: rgba(255, 215, 0, 0.9);
           font-weight: 600;
-          text-shadow: none;
+          text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
         }
 
         /* 반응형 디자인 */
@@ -658,12 +702,13 @@ export default function HomePage() {
 
         {/* 단일 CTA 버튼 */}
         <div className="cta-section fade-in-up">
+          <p className="cta-guide">여기를 클릭하세요 👇</p>
           <button 
             className="btn-primary"
             onClick={authorizeAndRedirect}
           >
-            <i className="fas fa-tachometer-alt"></i>
-            AI 대시보드 바로가기
+            <i className="fas fa-flask"></i>
+            AI 기능 체험하기
           </button>
         </div>
 
