@@ -20,24 +20,22 @@ const features: FeatureDetail[] = [
     title: "자연어 AI 에이전트",
     description: "MCP 엔진과 NPU 기반으로 자연어 질의를 실시간 분석하여 서버 상태를 즉시 응답합니다.",
     benefits: [
-      "패턴 매칭 기반 의도 분류 및 엔티티 추출",
-      "LLM 비용 없는 경량화 AI 추론 (NPU)",
-      "서버 모니터링 전용 도메인 특화 AI",
-      "컨텍스트 유지하는 대화형 인터페이스",
-      "실시간 메트릭 연동 및 시각적 응답"
+      "패턴 매칭 기반 의도 분류",
+      "LLM 비용 없는 경량화 AI 추론",
+      "도메인 특화 서버 모니터링 AI",
+      "실시간 메트릭 연동"
     ],
-    image: "🧠",
-    icon: "fas fa-brain"
+    image: "💬",
+    icon: "fas fa-comments"
   },
   {
     title: "지능형 분석 시스템",
     description: "근본원인 분석기, 예측 알림, 솔루션 추천 엔진으로 서버 문제를 사전에 예방하고 해결합니다.",
     benefits: [
-      "AI 근본원인 분석기 (Root Cause Analyzer)",
-      "예측 알림 시스템 (Predictive Alerts)",
-      "솔루션 추천 엔진 (베스트 프랙티스 기반)",
-      "연관 관계 분석 및 자동 해결책 제시",
-      "과거 패턴 기반 장애 예측 및 사전 알림"
+      "AI 근본원인 분석기",
+      "예측 알림 시스템",
+      "솔루션 추천 엔진",
+      "연관 관계 분석 및 자동 해결책"
     ],
     image: "🔍",
     icon: "fas fa-search-plus"
@@ -46,11 +44,10 @@ const features: FeatureDetail[] = [
     title: "자동 보고서 생성",
     description: "AI가 서버 데이터를 분석하여 상세한 보고서를 자동 생성하고 맞춤형 권장사항을 제공합니다.",
     benefits: [
-      "AI 기반 자동 분석 보고서 생성",
+      "AI 기반 자동 분석 보고서",
       "시간대별/서버별 맞춤형 리포트",
       "PDF/HTML 다중 포맷 지원",
-      "베스트 프랙티스 권장사항 포함",
-      "확장 가능한 AI 아키텍처 (Custom Logic)"
+      "베스트 프랙티스 권장사항"
     ],
     image: "📋",
     icon: "fas fa-file-alt"
@@ -289,7 +286,10 @@ export default function HomePage() {
         .feature-icon {
           font-size: 3rem;
           margin-bottom: 1.5rem;
-          color: var(--primary);
+          background: var(--bg-gradient);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
           text-shadow: none;
         }
 
@@ -326,11 +326,11 @@ export default function HomePage() {
           background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
           backdrop-filter: blur(20px);
           border-radius: 20px;
-          padding: 2rem;
-          max-width: 600px;
+          padding: 1.5rem;
+          max-width: 500px;
           width: 100%;
-          max-height: 80vh;
-          overflow-y: auto;
+          max-height: 85vh;
+          overflow: hidden;
           position: relative;
           box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
@@ -355,36 +355,36 @@ export default function HomePage() {
 
         .modal-header {
           text-align: center;
-          margin-bottom: 1.5rem;
-        }
-
-        .modal-emoji {
-          font-size: 4rem;
           margin-bottom: 1rem;
         }
 
+        .modal-emoji {
+          font-size: 3rem;
+          margin-bottom: 0.5rem;
+        }
+
         .modal-title {
-          font-size: 2rem;
+          font-size: 1.6rem;
           font-weight: 700;
           color: #1f2937;
           margin-bottom: 0.5rem;
         }
 
         .modal-description {
-          font-size: 1.1rem;
+          font-size: 1rem;
           color: #6b7280;
-          line-height: 1.6;
+          line-height: 1.4;
         }
 
         .modal-benefits {
-          margin-top: 1.5rem;
+          margin-top: 1rem;
         }
 
         .modal-benefits h4 {
-          font-size: 1.3rem;
+          font-size: 1.2rem;
           font-weight: 600;
           color: #1f2937;
-          margin-bottom: 1rem;
+          margin-bottom: 0.8rem;
         }
 
         .benefits-list {
@@ -395,9 +395,9 @@ export default function HomePage() {
         .benefits-list li {
           display: flex;
           align-items: center;
-          gap: 0.8rem;
-          padding: 0.8rem 0;
-          font-size: 1rem;
+          gap: 0.6rem;
+          padding: 0.5rem 0;
+          font-size: 0.9rem;
           color: #374151;
           border-bottom: 1px solid rgba(0, 0, 0, 0.1);
         }
@@ -407,7 +407,10 @@ export default function HomePage() {
         }
 
         .benefit-icon {
-          color: var(--primary);
+          background: var(--bg-gradient);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
           font-size: 1.1rem;
         }
 
@@ -485,15 +488,16 @@ export default function HomePage() {
         }
 
         .vibe-modal {
-          max-width: 700px;
-          max-height: 90vh;
+          max-width: 550px;
+          max-height: 85vh;
+          overflow: hidden;
         }
 
         .vibe-stats {
           display: flex;
           justify-content: space-around;
-          margin-top: 2rem;
-          padding: 1.5rem;
+          margin-top: 1rem;
+          padding: 1rem;
           background: linear-gradient(135deg, var(--primary), var(--secondary));
           border-radius: 15px;
           color: white;
@@ -506,14 +510,14 @@ export default function HomePage() {
 
         .stat-number {
           display: block;
-          font-size: 2rem;
+          font-size: 1.4rem;
           font-weight: 700;
-          margin-bottom: 0.5rem;
+          margin-bottom: 0.3rem;
           text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .stat-label {
-          font-size: 0.9rem;
+          font-size: 0.8rem;
           opacity: 0.9;
           font-weight: 500;
         }
@@ -545,7 +549,10 @@ export default function HomePage() {
 
         .benefits-icon {
           font-size: 3.5rem;
-          color: var(--primary);
+          background: var(--bg-gradient);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
           margin-bottom: 1.5rem;
           text-shadow: none;
         }
@@ -634,16 +641,20 @@ export default function HomePage() {
           OpenManager <span className="highlight">AI</span>
         </h1>
 
-        {/* AI 에이전트 중심 메인 설명 */}
-        <p className="subtitle fade-in-up">
-          NPU와 MCP 엔진 기반 AI 에이전트로
-          <br />
-          서버 관리를 혁신합니다
-          <br />
-          자연어 질의, 지능형 분석, 예측 알림으로
-          <br />
-          IT 운영을 완전히 자동화합니다
-        </p>
+        {/* 메인 AI 에이전트 카드 */}
+        <div className="benefits-section fade-in-up">
+          <div className="benefits-card" onClick={openMainFeatureModal}>
+            <div className="benefits-icon">
+              <i className="fas fa-brain"></i>
+            </div>
+            <h3 className="benefits-title">NPU와 MCP 엔진 기반 AI 에이전트</h3>
+            <p className="benefits-text">
+              <strong>NPU와 MCP 엔진 기반 AI 에이전트로 서버 관리를 혁신합니다</strong><br />
+              자연어 질의, 지능형 분석, 예측 알림으로<br />
+              <strong>IT 운영을 완전히 자동화합니다</strong>
+            </p>
+          </div>
+        </div>
 
         {/* 단일 CTA 버튼 */}
         <div className="cta-section fade-in-up">
@@ -688,20 +699,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* 메인 AI 에이전트 섹션 */}
-        <div className="benefits-section fade-in-up">
-          <div className="benefits-card" onClick={openMainFeatureModal}>
-            <div className="benefits-icon">
-              <i className="fas fa-brain"></i>
-            </div>
-            <h3 className="benefits-title">NPU와 MCP 엔진 기반 AI 에이전트</h3>
-            <p className="benefits-text">
-              <strong>NPU와 MCP 엔진 기반 AI 에이전트로 서버 관리를 혁신합니다</strong><br />
-              자연어 질의, 지능형 분석, 예측 알림으로<br />
-              <strong>IT 운영을 완전히 자동화합니다</strong>
-            </p>
-          </div>
-        </div>
+
 
         {/* 푸터 */}
         <div className="footer-info fade-in-up">
@@ -755,63 +753,19 @@ export default function HomePage() {
             </div>
 
             <div className="modal-benefits">
-              <h4>🧠 개발 프로세스</h4>
+              <h4>🚀 핵심 특징</h4>
               <ul className="benefits-list">
                 <li>
                   <i className="fas fa-lightbulb benefit-icon"></i>
-                  <span><strong>프롬프트 설계</strong> - Claude/GPT로 구체적인 기능 명세서 작성</span>
+                  <span><strong>Sonnet 3.7 + Cursor AI</strong> - 실시간 코드 생성 및 최적화</span>
                 </li>
-                <li>
-                  <i className="fas fa-robot benefit-icon"></i>
-                  <span><strong>Cursor AI 협업</strong> - 실시간 코드 생성 및 리팩토링</span>
-                </li>
-                <li>
-                  <i className="fas fa-sync-alt benefit-icon"></i>
-                  <span><strong>반복 개선</strong> - AI 피드백을 통한 지속적인 코드 최적화</span>
-                </li>
-                <li>
-                  <i className="fas fa-rocket benefit-icon"></i>
-                  <span><strong>빠른 프로토타이핑</strong> - 아이디어에서 실행까지 몇 시간 내 완성</span>
-                </li>
-              </ul>
-
-              <h4>⚡ 기술 스택</h4>
-              <ul className="benefits-list">
-                <li>
-                  <i className="fas fa-brain benefit-icon"></i>
-                  <span><strong>AI 모델</strong> - Sonnet 3.7, GPT-4o, Cursor AI</span>
-                </li>
-                <li>
-                  <i className="fas fa-code benefit-icon"></i>
-                  <span><strong>프레임워크</strong> - Next.js 15.1.8, TypeScript, Tailwind CSS</span>
-                </li>
-                <li>
-                  <i className="fas fa-cloud benefit-icon"></i>
-                  <span><strong>배포</strong> - Vercel, GitHub Actions, 자동 CI/CD</span>
-                </li>
-                <li>
-                  <i className="fas fa-tools benefit-icon"></i>
-                  <span><strong>개발 도구</strong> - Cursor Editor, Git, ESLint, Prettier</span>
-                </li>
-              </ul>
-
-              <h4>🚀 Vibe Coding 핵심 장점</h4>
-              <ul className="benefits-list">
                 <li>
                   <i className="fas fa-microchip benefit-icon"></i>
-                  <span><strong>MCP 활용 경량 AI</strong> - LLM 없이도 지능형 응답하는 경량 AI 모델 구현</span>
-                </li>
-                <li>
-                  <i className="fas fa-magic benefit-icon"></i>
-                  <span><strong>프롬프트도 AI 작성</strong> - Cursor 입력 프롬프트를 AI로 생성해 정확도 극대화</span>
+                  <span><strong>MCP 경량 AI</strong> - LLM 비용 없는 지능형 응답</span>
                 </li>
                 <li>
                   <i className="fas fa-rocket benefit-icon"></i>
-                  <span><strong>GitHub 자동 배포</strong> - 코드 푸시 즉시 Vercel 자동 배포로 실시간 반영</span>
-                </li>
-                <li>
-                  <i className="fas fa-cogs benefit-icon"></i>
-                  <span><strong>완전 자동화 파이프라인</strong> - 아이디어 → 코드 → 배포까지 AI 기반 워크플로우</span>
+                  <span><strong>완전 자동화</strong> - 아이디어 → 코드 → 배포까지 AI 처리</span>
                 </li>
               </ul>
 
@@ -829,7 +783,7 @@ export default function HomePage() {
                   <span className="stat-label">정확도 향상</span>
                 </div>
               </div>
-                        </div>
+            </div>
           </div>
     </div>
       )}
@@ -849,43 +803,23 @@ export default function HomePage() {
             </div>
 
             <div className="modal-benefits">
-              <h4>🚀 핵심 혁신 기술</h4>
+              <h4>⚡ 핵심 기능</h4>
               <ul className="benefits-list">
                 <li>
                   <i className="fas fa-microchip benefit-icon"></i>
-                  <span><strong>NPU 기반 경량 AI</strong> - Neural Processing Unit으로 LLM 비용 없는 실시간 AI 추론</span>
-                </li>
-                <li>
-                  <i className="fas fa-cogs benefit-icon"></i>
-                  <span><strong>MCP 엔진</strong> - Model Context Protocol로 패턴 매칭 기반 의도 분류 및 엔티티 추출</span>
+                  <span><strong>NPU 기반 경량 AI</strong> - LLM 비용 없는 실시간 AI 추론</span>
                 </li>
                 <li>
                   <i className="fas fa-comments benefit-icon"></i>
-                                     <span><strong>자연어 인터페이스</strong> - &ldquo;CPU 사용률이 높은 서버들 찾아줘&rdquo; 같은 일상 대화로 서버 관리</span>
+                  <span><strong>자연어 인터페이스</strong> - 일상 대화로 서버 관리</span>
                 </li>
                 <li>
                   <i className="fas fa-search-plus benefit-icon"></i>
-                  <span><strong>지능형 분석</strong> - 근본원인 분석기, 예측 알림, 솔루션 추천 엔진 통합</span>
-                </li>
-              </ul>
-
-              <h4>⚡ 자동화 혁신</h4>
-              <ul className="benefits-list">
-                <li>
-                  <i className="fas fa-bell benefit-icon"></i>
-                  <span><strong>예측 알림 시스템</strong> - 과거 패턴 기반 장애 예측 및 사전 알림</span>
-                </li>
-                <li>
-                  <i className="fas fa-file-alt benefit-icon"></i>
-                  <span><strong>자동 보고서 생성</strong> - 시간대별/서버별 맞춤형 AI 분석 리포트 자동 생성</span>
-                </li>
-                <li>
-                  <i className="fas fa-robot benefit-icon"></i>
-                  <span><strong>완전 자동화 운영</strong> - 모니터링부터 문제 해결까지 AI가 자동 처리</span>
+                  <span><strong>지능형 분석</strong> - 근본원인 분석 및 예측 알림</span>
                 </li>
                 <li>
                   <i className="fas fa-user-cog benefit-icon"></i>
-                  <span><strong>스마트한 두 번째 엔지니어</strong> - 운영자에게 지능형 보조 인력이 붙은 효과</span>
+                  <span><strong>스마트한 두 번째 엔지니어</strong> - 지능형 보조 인력 효과</span>
                 </li>
               </ul>
 
