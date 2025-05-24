@@ -6,9 +6,11 @@ const nextConfig: NextConfig = {
   
   // 실험적 기능
   experimental: {
-    optimizeServerReact: true,
-    serverComponentsExternalPackages: []
+    optimizeServerReact: true
   },
+
+  // 서버 외부 패키지 (Next.js 15 새 설정)
+  serverExternalPackages: [],
 
   // 이미지 최적화
   images: {
