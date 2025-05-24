@@ -30,14 +30,43 @@ export default function DashboardPage() {
     const checkAuth = () => {
       const authToken = localStorage.getItem('dashboard_auth_token');
       const sessionAuth = sessionStorage.getItem('dashboard_authorized');
+      const authTime = localStorage.getItem('dashboard_access_time');
+      const fromIndex = localStorage.getItem('authorized_from_index');
       
-      if (!authToken || !sessionAuth) {
+      // 랜딩페이지를 거치지 않고 직접 접근한 경우
+      if (!fromIndex || fromIndex !== 'true') {
+        localStorage.clear();
+        sessionStorage.clear();
+        router.replace('/');
+        return;
+      }
+      
+      // 기본 인증 확인
+      if (!authToken || !sessionAuth || !authTime) {
+        localStorage.clear();
+        sessionStorage.clear();
+        router.replace('/');
+        return;
+      }
+      
+      // 1시간(3600000ms) 세션 만료 확인
+      const accessTime = parseInt(authTime);
+      const currentTime = Date.now();
+      const oneHour = 60 * 60 * 1000; // 1시간
+      
+      if (currentTime - accessTime > oneHour) {
+        localStorage.clear();
+        sessionStorage.clear();
+        alert('1시간 체험 세션이 만료되었습니다. 랜딩페이지로 이동합니다.');
         router.replace('/');
         return;
       }
     };
 
     checkAuth();
+    // 1분마다 세션 만료 확인
+    const interval = setInterval(checkAuth, 60000);
+    return () => clearInterval(interval);
   }, [router]);
 
   const handleAIQuery = (query: string, serverId: string = '') => {

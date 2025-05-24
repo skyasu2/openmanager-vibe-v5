@@ -1,6 +1,7 @@
-'use client';import { useState, useEffect } from 'react';import { motion } from 'framer-motion';import { useDemoStore } from '../../stores/demoStore';import ServerCard from '../../components/demo/ServerCard';import AIChatPanel from '../../components/demo/AIChatPanel';import AutoDemoScenario from '../../components/demo/AutoDemoScenario';import { Activity, Wifi, Shield, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';import Link from 'next/link';// 동적 렌더링 강제 (HTML 파일 생성 방지)export const dynamic = 'force-dynamic';
+'use client';import { useState, useEffect } from 'react';import { motion } from 'framer-motion';import { useDemoStore } from '../../stores/demoStore';import ServerCard from '../../components/demo/ServerCard';import AIChatPanel from '../../components/demo/AIChatPanel';import AutoDemoScenario from '../../components/demo/AutoDemoScenario';import { Activity, Wifi, Shield, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';import Link from 'next/link';import { useRouter } from 'next/navigation';// 동적 렌더링 강제 (HTML 파일 생성 방지)export const dynamic = 'force-dynamic';
 
 export default function DemoPage() {
+  const router = useRouter();
   const {
     servers,
     chatMessages,
@@ -12,6 +13,50 @@ export default function DemoPage() {
     selectServer,
     updateSystemStatus
   } = useDemoStore();
+
+  // 권한 확인
+  useEffect(() => {
+    const checkAuth = () => {
+      const authToken = localStorage.getItem('dashboard_auth_token');
+      const sessionAuth = sessionStorage.getItem('dashboard_authorized');
+      const authTime = localStorage.getItem('dashboard_access_time');
+      const fromIndex = localStorage.getItem('authorized_from_index');
+      
+      // 랜딩페이지를 거치지 않고 직접 접근한 경우
+      if (!fromIndex || fromIndex !== 'true') {
+        localStorage.clear();
+        sessionStorage.clear();
+        router.replace('/');
+        return;
+      }
+      
+      // 기본 인증 확인
+      if (!authToken || !sessionAuth || !authTime) {
+        localStorage.clear();
+        sessionStorage.clear();
+        router.replace('/');
+        return;
+      }
+      
+      // 1시간(3600000ms) 세션 만료 확인
+      const accessTime = parseInt(authTime);
+      const currentTime = Date.now();
+      const oneHour = 60 * 60 * 1000; // 1시간
+      
+      if (currentTime - accessTime > oneHour) {
+        localStorage.clear();
+        sessionStorage.clear();
+        alert('1시간 체험 세션이 만료되었습니다. 랜딩페이지로 이동합니다.');
+        router.replace('/');
+        return;
+      }
+    };
+
+    checkAuth();
+    // 1분마다 세션 만료 확인
+    const interval = setInterval(checkAuth, 60000);
+    return () => clearInterval(interval);
+  }, [router]);
 
   // 시스템 상태 업데이트
   useEffect(() => {

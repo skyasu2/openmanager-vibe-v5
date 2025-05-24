@@ -669,7 +669,7 @@ export default function HomePage() {
       <div className="splash-container">
         {/* 헤더 로고 */}
         <header className="absolute top-0 left-0 right-0 p-6 z-10">
-          <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
             <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
               <i className="fas fa-server text-white text-lg"></i>
             </div>
@@ -677,7 +677,7 @@ export default function HomePage() {
               <h2 className="text-lg font-bold text-white">OpenManager</h2>
               <p className="text-xs text-white/70">AI 서버 모니터링</p>
             </div>
-          </div>
+          </Link>
         </header>
 
         <h1 className="main-title fade-in-up">
