@@ -801,16 +801,16 @@ export default function HomePage() {
               <h4>🚀 핵심 특징</h4>
               <ul className="benefits-list">
                 <li>
-                  <i className="fas fa-lightbulb benefit-icon"></i>
-                  <span><strong>Sonnet 3.7 + Cursor AI</strong> - 실시간 코드 생성 및 최적화</span>
+                  <i className="fas fa-brain benefit-icon"></i>
+                  <span><strong>GPT/Claude 브레인스토밍</strong> - 아이디어 구체화 후 정확한 프롬프트 작성</span>
                 </li>
                 <li>
-                  <i className="fas fa-microchip benefit-icon"></i>
-                  <span><strong>MCP 경량 AI</strong> - LLM 비용 없는 지능형 응답</span>
+                  <i className="fas fa-code benefit-icon"></i>
+                  <span><strong>Cursor AI 개발</strong> - 완성된 프롬프트로 실시간 코드 구현</span>
                 </li>
                 <li>
-                  <i className="fas fa-rocket benefit-icon"></i>
-                  <span><strong>완전 자동화</strong> - 아이디어 → 코드 → 배포까지 AI 처리</span>
+                  <i className="fas fa-upload benefit-icon"></i>
+                  <span><strong>GitHub 자동 배포</strong> - 개발 완료 즉시 자동으로 라이브 반영</span>
                 </li>
               </ul>
 
