@@ -93,7 +93,8 @@ export default function DemoPage() {
     // 기존 메트릭 시뮬레이션도 유지 (백업용)
     const metricsInterval = setInterval(() => {
       // 랜덤하게 서버 메트릭 약간 변경 (데이터 수집기가 실패한 경우 백업)
-      const randomServer = servers[Math.floor(Math.random() * servers.length)];
+      const currentServers = useDemoStore.getState().servers;
+      const randomServer = currentServers[Math.floor(Math.random() * currentServers.length)];
       if (randomServer && randomServer.id.startsWith('fallback-')) {
         const { updateServerMetrics } = useDemoStore.getState();
         const variation = Math.random() * 10 - 5; // -5 to +5
@@ -107,7 +108,7 @@ export default function DemoPage() {
       clearInterval(syncInterval);
       clearInterval(metricsInterval);
     };
-  }, [servers]);
+  }, [servers.length]);
 
   const handleSendMessage = (content: string) => {
     addMessage({

@@ -6,7 +6,7 @@
 
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AISidebarConfig } from '../types';
 import { useAIChat } from '../hooks/useAIChat';
 import { MessageBubble } from './MessageBubble';
@@ -53,22 +53,26 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }, [messages]);
 
   // 웰컴 메시지 및 프리셋 질문 업데이트
+  const generateQuestions = useCallback(() => {
+    if (isSystemActive) {
+      return smartAIAgent.generatePresetQuestions();
+    } else {
+      return [
+        '시스템을 활성화해주세요',
+        '절전 모드에서는 AI 기능이 제한됩니다'
+      ];
+    }
+  }, [isSystemActive]);
+
   useEffect(() => {
     if (welcomeMessage && messages.length === 0) {
       // 웰컴 메시지는 실제 메시지로 추가하지 않고 UI에서만 표시
     }
     
     // 시스템 상태에 따른 프리셋 질문 생성
-    if (isSystemActive) {
-      const questions = smartAIAgent.generatePresetQuestions();
-      setPresetQuestions(questions);
-    } else {
-      setPresetQuestions([
-        '시스템을 활성화해주세요',
-        '절전 모드에서는 AI 기능이 제한됩니다'
-      ]);
-    }
-  }, [welcomeMessage, messages.length, isSystemActive]);
+    const questions = generateQuestions();
+    setPresetQuestions(questions);
+  }, [welcomeMessage, messages.length, generateQuestions]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import ServerCard from './ServerCard';
 import ServerDetailModal from './ServerDetailModal';
 import { Server } from '../../types/server';
@@ -194,10 +194,15 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
   // demoStore에서 실제 서버 데이터 가져오기
   const { servers, syncWithCollector } = useDemoStore();
   
-  // 컴포넌트 마운트 시 데이터 동기화
-  useEffect(() => {
+  // syncWithCollector를 useCallback으로 최적화
+  const syncData = useCallback(() => {
     syncWithCollector();
   }, [syncWithCollector]);
+  
+  // 컴포넌트 마운트 시 데이터 동기화
+  useEffect(() => {
+    syncData();
+  }, [syncData]);
   
   const currentServers = servers.length > 0 ? servers.map(s => ({
     id: s.id,

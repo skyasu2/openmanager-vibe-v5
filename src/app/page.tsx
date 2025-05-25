@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSystemStore } from '../stores/systemStore';
@@ -83,6 +83,19 @@ export default function HomePage() {
     patterns: []
   });
 
+  // 데이터 생성기 상태 업데이트 함수를 useCallback으로 최적화
+  const updateGeneratorStatus = useCallback(async () => {
+    try {
+      const response = await fetch('/api/data-generator');
+      if (response.ok) {
+        const data = await response.json();
+        setDataGeneratorStatus(data.data.generation);
+      }
+    } catch (error) {
+      console.error('Failed to fetch generator status:', error);
+    }
+  }, []);
+
   useEffect(() => {
     // 페이지 로딩 애니메이션
     const elements = document.querySelectorAll('.fade-in-up');
@@ -91,21 +104,6 @@ export default function HomePage() {
       htmlElement.style.opacity = '1';
       htmlElement.style.transform = 'translateY(0)';
     });
-    
-
-    
-    // 데이터 생성기 상태 업데이트
-    const updateGeneratorStatus = async () => {
-      try {
-        const response = await fetch('/api/data-generator');
-        if (response.ok) {
-          const data = await response.json();
-          setDataGeneratorStatus(data.data.generation);
-        }
-      } catch (error) {
-        console.error('Failed to fetch generator status:', error);
-      }
-    };
     
     // 초기 데이터 생성기 상태 로드
     updateGeneratorStatus();
@@ -123,7 +121,7 @@ export default function HomePage() {
         clearInterval(statusInterval);
       }
     };
-  }, [isSystemActive, dataGeneratorStatus.isGenerating]);
+  }, [isSystemActive, dataGeneratorStatus.isGenerating, updateGeneratorStatus]);
 
   // 시스템 활성화 (20분 타이머 + 데이터 생성기 자동 시작 + AI 에이전트 활성화)
   const handleActivateSystem = async () => {
@@ -244,8 +242,6 @@ export default function HomePage() {
     sessionStorage.removeItem('auth_timestamp');
   };
 
-
-
   // 데이터 패턴 변경 (시스템 활성화 중에만 가능)
   const handleChangePattern = async (pattern: 'normal' | 'high-load' | 'maintenance') => {
     if (!isSystemActive) {
@@ -317,10 +313,6 @@ export default function HomePage() {
   const closeMainFeatureModal = () => {
     setShowMainFeature(false);
   };
-
-
-
-
 
   return (
     <>
