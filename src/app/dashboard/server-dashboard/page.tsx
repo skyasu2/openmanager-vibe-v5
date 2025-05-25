@@ -11,8 +11,6 @@ export default function ServerDashboardPage() {
   const router = useRouter();
   const [isAgentOpen, setIsAgentOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [agentQuery, setAgentQuery] = useState<string>('');
-  const [agentServerId, setAgentServerId] = useState<string>('');
 
   // 화면 크기 감지
   useEffect(() => {
@@ -69,16 +67,8 @@ export default function ServerDashboardPage() {
     return () => clearInterval(interval);
   }, [router]);
 
-  const handleAIQuery = (query: string, serverId: string = '') => {
-    setAgentQuery(query);
-    setAgentServerId(serverId);
-    setIsAgentOpen(true);
-  };
-
   const closeAgent = () => {
     setIsAgentOpen(false);
-    setAgentQuery('');
-    setAgentServerId('');
   };
 
   const toggleAgent = () => {
@@ -169,7 +159,7 @@ export default function ServerDashboardPage() {
         <main className={`flex-1 transition-all duration-300 ${
           isAgentOpen && !isMobile ? 'lg:mr-96' : ''
         }`}>
-          <ServerDashboard onAskAI={handleAIQuery} />
+          <ServerDashboard />
         </main>
 
         {/* AI 에이전트 패널 (데스크탑) */}
@@ -177,8 +167,6 @@ export default function ServerDashboardPage() {
           <AgentPanel
             isOpen={isAgentOpen}
             onClose={closeAgent}
-            initialQuery={agentQuery}
-            initialServerId={agentServerId}
           />
         )}
       </div>
@@ -188,8 +176,6 @@ export default function ServerDashboardPage() {
         <AgentPanelMobile
           isOpen={isAgentOpen}
           onClose={closeAgent}
-          initialQuery={agentQuery}
-          initialServerId={agentServerId}
         />
       )}
 
