@@ -100,6 +100,13 @@ export class ServerDataCollector {
   private collectionErrors: number = 0;
   private maxErrors: number = 5;
   private powerMode: 'sleep' | 'active' | 'monitoring' | 'emergency' = 'active';
+  
+  // AI 모니터링 관련
+  private aiMonitoringTimer?: NodeJS.Timeout;
+  private isAIMonitoring: boolean = false;
+  private lastDataChangeTime: Date = new Date();
+  private aiInactivityTimeout: number = 30 * 60 * 1000; // 30분 비활성 시 AI도 종료
+  private aiInactivityTimer?: NodeJS.Timeout;
 
   // 실제 환경 시뮬레이션을 위한 데이터
   private readonly PROVIDER_CONFIGS = {
@@ -149,11 +156,12 @@ export class ServerDataCollector {
     // 시스템 상태 확인
     const systemStore = useSystemStore.getState();
     if (!systemStore.canStartDataCollection()) {
-      console.log('🔋 System is in stopped mode, data collection not started');
+      console.log('🔋 System is in stopped mode, starting AI monitoring only...');
+      await this.startAIMonitoring();
       return;
     }
 
-    console.log('🔄 Starting server data collection...');
+    console.log('🔄 Starting full server data collection...');
     this.isCollecting = true;
     this.collectionErrors = 0;
 
@@ -166,8 +174,9 @@ export class ServerDataCollector {
         // 시스템 상태 재확인
         const currentSystemState = useSystemStore.getState();
         if (!currentSystemState.canStartDataCollection()) {
-          console.log('🔋 System stopped during collection, pausing...');
+          console.log('🔋 System stopped during collection, switching to AI monitoring...');
           await this.pauseCollection();
+          await this.startAIMonitoring();
           return;
         }
 
@@ -194,10 +203,160 @@ export class ServerDataCollector {
       }, this.config.discoveryInterval);
     }
 
-    console.log(`✅ Data collection started (interval: ${this.config.collectionInterval}ms)`);
+    console.log(`✅ Full data collection started (interval: ${this.config.collectionInterval}ms)`);
     
     // 시스템 이벤트 리스너 등록
     this.setupSystemEventListeners();
+  }
+
+  /**
+   * AI 전용 모니터링 시작 (절전 모드)
+   */
+  private async startAIMonitoring(): Promise<void> {
+    if (this.isAIMonitoring) {
+      console.log('🤖 AI monitoring already running');
+      return;
+    }
+
+    console.log('🤖 Starting AI monitoring mode (minimal resource usage)...');
+    this.isAIMonitoring = true;
+    this.lastDataChangeTime = new Date();
+
+    // 최소한의 서버 정보만 유지 (기존 서버가 없으면 최소 세트 생성)
+    if (this.servers.size === 0) {
+      const minimalServers = this.generateMinimalServerSet();
+      await this.registerDiscoveredServers(minimalServers);
+    }
+
+    // AI 모니터링 타이머 (5분 간격으로 헬스체크)
+    this.aiMonitoringTimer = setInterval(async () => {
+      try {
+        await this.performAIHealthCheck();
+      } catch (error) {
+        console.error('AI monitoring error:', error);
+      }
+    }, 5 * 60 * 1000); // 5분 간격
+
+    // AI 비활성 타이머 설정
+    this.resetAIInactivityTimer();
+
+    console.log('✅ AI monitoring started (5min interval, 30min auto-shutdown)');
+  }
+
+  /**
+   * AI 헬스체크 (최소한의 리소스로 변화 감지)
+   */
+  private async performAIHealthCheck(): Promise<void> {
+    console.log('🔍 AI health check...');
+    
+    const servers = Array.from(this.servers.values());
+    let significantChanges = 0;
+    let hasDataActivity = false;
+
+    for (const server of servers) {
+      // 기존 메트릭 저장
+      const oldMetrics = { ...server.metrics };
+      
+      // 최소한의 메트릭만 시뮬레이션 (실제 환경에서는 ping, 기본 상태만 체크)
+      const newMetrics = await this.generateMinimalMetrics(server);
+      
+      // 중요한 변화 감지
+      const changeDetection = this.detectCriticalChanges(oldMetrics, newMetrics);
+      if (changeDetection.trigger) {
+        console.log(`🚨 AI detected critical change: ${changeDetection.reason}`);
+        
+        // 시스템 자동 활성화
+        const systemStore = useSystemStore.getState();
+        systemStore.triggerAIActivation(changeDetection.reason);
+        
+        // 전체 데이터 수집 모드로 전환
+        await this.stopAIMonitoring();
+        await this.startCollection();
+        return;
+      }
+
+      // 데이터 활동 감지 (작은 변화라도)
+      const hasChange = Math.abs(newMetrics.cpu - oldMetrics.cpu) > 1 ||
+                       Math.abs(newMetrics.memory - oldMetrics.memory) > 1 ||
+                       Math.abs(newMetrics.disk - oldMetrics.disk) > 0.5;
+      
+      if (hasChange) {
+        hasDataActivity = true;
+        server.metrics = newMetrics;
+        server.lastUpdate = new Date();
+      }
+
+      if (changeDetection.trigger) {
+        significantChanges++;
+      }
+    }
+
+    // 데이터 활동이 있으면 비활성 타이머 리셋
+    if (hasDataActivity) {
+      this.lastDataChangeTime = new Date();
+      this.resetAIInactivityTimer();
+      console.log('📊 Data activity detected, AI monitoring continues...');
+    } else {
+      console.log('😴 No significant data changes detected');
+    }
+  }
+
+  /**
+   * 최소한의 메트릭 생성 (AI 모니터링용)
+   */
+  private async generateMinimalMetrics(server: ServerInfo): Promise<ServerMetrics> {
+    // 현재 메트릭에서 최소한의 변화만 시뮬레이션
+    const current = server.metrics;
+    
+    return {
+      cpu: Math.max(0, Math.min(100, current.cpu + (Math.random() * 4 - 2))), // ±2% 변화
+      memory: Math.max(0, Math.min(100, current.memory + (Math.random() * 2 - 1))), // ±1% 변화
+      disk: Math.max(0, Math.min(100, current.disk + (Math.random() * 0.5 - 0.25))), // ±0.25% 변화
+      network: current.network, // 네트워크는 변화 없음
+      processes: current.processes,
+      loadAverage: current.loadAverage,
+      uptime: current.uptime + 300, // 5분 증가
+      temperature: current.temperature,
+      powerUsage: current.powerUsage
+    };
+  }
+
+  /**
+   * AI 비활성 타이머 리셋
+   */
+  private resetAIInactivityTimer(): void {
+    if (this.aiInactivityTimer) {
+      clearTimeout(this.aiInactivityTimer);
+    }
+
+    this.aiInactivityTimer = setTimeout(() => {
+      console.log('😴 AI monitoring auto-shutdown due to inactivity (30min)');
+      this.stopAIMonitoring();
+    }, this.aiInactivityTimeout);
+  }
+
+  /**
+   * AI 모니터링 중지
+   */
+  private async stopAIMonitoring(): Promise<void> {
+    if (!this.isAIMonitoring) {
+      return;
+    }
+
+    console.log('🛑 Stopping AI monitoring...');
+    this.isAIMonitoring = false;
+
+    if (this.aiMonitoringTimer) {
+      clearInterval(this.aiMonitoringTimer);
+      this.aiMonitoringTimer = undefined;
+    }
+
+    if (this.aiInactivityTimer) {
+      clearTimeout(this.aiInactivityTimer);
+      this.aiInactivityTimer = undefined;
+    }
+
+    console.log('✅ AI monitoring stopped - system fully idle');
   }
 
   /**
@@ -206,19 +365,22 @@ export class ServerDataCollector {
   private setupSystemEventListeners(): void {
     // 시스템 정지 이벤트
     window.addEventListener('system-stopped', () => {
-      console.log('🔋 System stopped event received, pausing data collection');
+      console.log('🔋 System stopped event received, switching to AI monitoring');
       this.pauseCollection();
+      this.startAIMonitoring();
     });
 
     // 시스템 활성화 이벤트
     window.addEventListener('system-activated', () => {
-      console.log('🚀 System activated event received, resuming data collection');
+      console.log('🚀 System activated event received, resuming full collection');
+      this.stopAIMonitoring();
       this.resumeCollection();
     });
 
     // AI 활성화 이벤트 (데이터 변동 감지)
     window.addEventListener('ai-activation', (event: any) => {
       console.log('🤖 AI activation event received:', event.detail.reason);
+      this.stopAIMonitoring();
       this.resumeCollection();
     });
   }
@@ -283,7 +445,10 @@ export class ServerDataCollector {
       this.discoveryTimer = undefined;
     }
 
-    console.log('✅ Data collection stopped');
+    // AI 모니터링도 완전 중지
+    await this.stopAIMonitoring();
+
+    console.log('✅ Data collection and AI monitoring stopped');
   }
 
   /**
@@ -1167,9 +1332,12 @@ export class ServerDataCollector {
     return {
       totalServers: this.servers.size,
       isCollecting: this.isCollecting,
+      isAIMonitoring: this.isAIMonitoring,
       lastCollectionTime: this.lastCollectionTime,
+      lastDataChangeTime: this.lastDataChangeTime,
       collectionErrors: this.collectionErrors,
-      config: this.config
+      config: this.config,
+      systemMode: this.isCollecting ? 'active' : this.isAIMonitoring ? 'ai-monitoring' : 'stopped'
     };
   }
 

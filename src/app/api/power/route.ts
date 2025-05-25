@@ -97,31 +97,59 @@ export async function GET() {
     const stats = serverDataCollector.getCollectionStats();
     
     // 현재 시스템 상태 확인
+    const systemMode = stats.systemMode;
     const isSystemActive = stats.isCollecting;
-    const currentState = isSystemActive ? 'active' : 'stopped';
+    const isAIMonitoring = stats.isAIMonitoring;
+
+    let description = '';
+    let features: string[] = [];
+
+    switch (systemMode) {
+      case 'active':
+        description = '시스템 완전 활성화됨';
+        features = [
+          '실시간 서버 모니터링',
+          'AI 에이전트 활성화',
+          '데이터 수집 진행중',
+          '대시보드 접근 가능'
+        ];
+        break;
+      case 'ai-monitoring':
+        description = 'AI 모니터링 모드 (절전)';
+        features = [
+          'AI 에이전트 감지 대기',
+          '최소한의 헬스체크 (5분 간격)',
+          '중요 변화 시 자동 활성화',
+          '30분 비활성 시 완전 종료'
+        ];
+        break;
+      case 'stopped':
+      default:
+        description = '시스템 완전 정지됨';
+        features = [
+          '모든 기능 정지',
+          '데이터 수집 중단',
+          '완전 절전 모드',
+          '수동 활성화 대기'
+        ];
+        break;
+    }
 
     return NextResponse.json({
       success: true,
       data: {
-        state: currentState,
+        state: systemMode,
         isActive: isSystemActive,
         isCollecting: stats.isCollecting,
+        isAIMonitoring: isAIMonitoring,
         lastUpdate: stats.lastCollectionTime.toISOString(),
+        lastDataChange: stats.lastDataChangeTime.toISOString(),
         errors: stats.collectionErrors,
         totalServers: stats.totalServers,
         systemInfo: {
-          description: isSystemActive ? '시스템 활성화됨' : '시스템 정지됨',
-          features: isSystemActive ? [
-            '실시간 서버 모니터링',
-            'AI 에이전트 활성화',
-            '데이터 수집 진행중',
-            '대시보드 접근 가능'
-          ] : [
-            '모든 기능 정지',
-            'AI 에이전트만 감지 대기',
-            '데이터 수집 중단',
-            '절전 모드'
-          ]
+          description,
+          features,
+          mode: systemMode
         }
       },
       timestamp: new Date().toISOString()

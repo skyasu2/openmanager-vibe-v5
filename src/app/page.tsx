@@ -553,6 +553,17 @@ export default function HomePage() {
           box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
         }
 
+        .status-dot.ai-monitoring {
+          background: #f59e0b;
+          box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+          animation: pulse-slow 3s infinite;
+        }
+
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.5; }
@@ -1154,17 +1165,27 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* 절전 모드 상태 표시 */}
-        {isSystemActive && (
+        {/* 시스템 상태 표시 */}
+        {(isSystemActive || state === 'ai-only') && (
           <div className="system-status fade-in-up">
             <div className="status-indicator">
-              <div className="status-dot active"></div>
-              <span>시스템 활성화됨</span>
+              <div className={`status-dot ${isSystemActive ? 'active' : 'ai-monitoring'}`}></div>
+              <span>{isSystemActive ? '시스템 활성화됨' : 'AI 모니터링 모드'}</span>
             </div>
             <div className="status-stats">
-              <span>남은 시간: {getFormattedTime()}</span>
-              <span>세션: {sessionInfo.totalSessions}회</span>
-              <span>평균 사용: {sessionInfo.averageSessionTime}분</span>
+              {isSystemActive ? (
+                <>
+                  <span>남은 시간: {getFormattedTime()}</span>
+                  <span>세션: {sessionInfo.totalSessions}회</span>
+                  <span>평균 사용: {sessionInfo.averageSessionTime}분</span>
+                </>
+              ) : (
+                <>
+                  <span>AI 감지 대기중</span>
+                  <span>5분 간격 체크</span>
+                  <span>30분 후 자동 종료</span>
+                </>
+              )}
             </div>
           </div>
         )}
