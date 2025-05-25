@@ -20,7 +20,7 @@ export default function DashboardPage() {
   });
 
   // 절전 모드 상태 관리
-  const { mode, updateActivity, getSystemStatus } = usePowerStore();
+  const { mode } = usePowerStore();
   const isSystemActive = mode === 'active' || mode === 'monitoring';
 
   // 화면 크기 감지

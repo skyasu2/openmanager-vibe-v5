@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import ServerCard from './ServerCard';
 import ServerDetailModal from './ServerDetailModal';
 import { Server } from '../../types/server';
@@ -216,13 +216,13 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
     ]
   } as Server)) : fallbackServers;
 
-  // 서버 통계 계산
-  const serverStats = {
+  // 서버 통계 계산 (useMemo로 최적화)
+  const serverStats = useMemo(() => ({
     total: currentServers.length,
     online: currentServers.filter((s: Server) => s.status === 'online').length,
     warning: currentServers.filter((s: Server) => s.status === 'warning').length,
     offline: currentServers.filter((s: Server) => s.status === 'offline').length
-  };
+  }), [currentServers]);
 
   // 통계 업데이트 알림
   useEffect(() => {

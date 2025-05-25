@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Server } from '../../types/server';
 
 interface ServerDetailModalProps {
@@ -23,21 +23,7 @@ export default function ServerDetailModal({ server, onClose }: ServerDetailModal
   const [metricsHistory, setMetricsHistory] = useState<MetricsHistory[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
-  useEffect(() => {
-    if (server) {
-      document.body.style.overflow = 'hidden';
-      // 서버 히스토리 데이터 로드
-      loadMetricsHistory(server.id);
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [server]);
-
-  const loadMetricsHistory = async (serverId: string) => {
+  const loadMetricsHistory = useCallback(async (serverId: string) => {
     setIsLoadingHistory(true);
     try {
       const response = await fetch(`/api/servers/${serverId}?history=true&hours=24`);
@@ -50,13 +36,29 @@ export default function ServerDetailModal({ server, onClose }: ServerDetailModal
         setMetricsHistory(generateSimulatedHistory());
       }
     } catch (error) {
-      console.error('히스토리 데이터 로드 실패:', error);
-      // 에러 시 시뮬레이션 데이터 사용
+      // 에러 시 시뮬레이션 데이터 사용 (로깅은 개발 환경에서만)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('히스토리 데이터 로드 실패:', error);
+      }
       setMetricsHistory(generateSimulatedHistory());
     } finally {
       setIsLoadingHistory(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (server) {
+      document.body.style.overflow = 'hidden';
+      // 서버 히스토리 데이터 로드
+      loadMetricsHistory(server.id);
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [server, loadMetricsHistory]);
 
   const generateSimulatedHistory = (): MetricsHistory[] => {
     const history: MetricsHistory[] = [];
