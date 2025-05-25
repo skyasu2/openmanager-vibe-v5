@@ -65,14 +65,9 @@ export default function HomePage() {
   // 시스템 상태 관리
   const { 
     state, 
-    isActive, 
-    remainingTime,
     startSystem, 
-    stopSystem, 
-    getFormattedTime,
-    getSessionInfo 
+    stopSystem
   } = useSystemStore();
-  const [sessionInfo, setSessionInfo] = useState(getSessionInfo());
   const isSystemActive = state === 'active';
 
   // 데이터 생성기 상태 관리
@@ -87,7 +82,6 @@ export default function HomePage() {
     currentPattern: null,
     patterns: []
   });
-  const [isLoadingGenerator, setIsLoadingGenerator] = useState(false);
 
   useEffect(() => {
     // 페이지 로딩 애니메이션
@@ -98,10 +92,7 @@ export default function HomePage() {
       htmlElement.style.transform = 'translateY(0)';
     });
     
-    // 시스템 상태 업데이트
-    const updateStatus = () => {
-      setSessionInfo(getSessionInfo());
-    };
+
     
     // 데이터 생성기 상태 업데이트
     const updateGeneratorStatus = async () => {
@@ -123,9 +114,8 @@ export default function HomePage() {
     let statusInterval: NodeJS.Timeout;
     if (isSystemActive || dataGeneratorStatus.isGenerating) {
       statusInterval = setInterval(() => {
-        updateStatus();
         updateGeneratorStatus();
-      }, 1000); // 1초마다 업데이트 (타이머 표시용)
+      }, 1000); // 1초마다 업데이트
     }
     
     return () => {
@@ -133,7 +123,7 @@ export default function HomePage() {
         clearInterval(statusInterval);
       }
     };
-  }, [isSystemActive, dataGeneratorStatus.isGenerating, getSessionInfo]);
+  }, [isSystemActive, dataGeneratorStatus.isGenerating]);
 
   // 시스템 활성화 (20분 타이머 + 데이터 생성기 자동 시작 + AI 에이전트 활성화)
   const handleActivateSystem = async () => {
@@ -174,17 +164,20 @@ export default function HomePage() {
           remainingTime: 10 * 60 * 1000, // 10분
           currentPattern: 'normal'
         }));
+        
+        // 4. 자동 패턴 변경 시작 (2-3분마다 랜덤 변경)
+        startAutoPatternChange();
       }
     } catch (error) {
       console.error('데이터 생성기 시작 실패:', error);
     }
     
-    // 4. AI 에이전트 자동 리포트 생성
+    // 5. AI 에이전트 자동 리포트 생성
     setTimeout(() => {
       smartAIAgent.generateAutoReport();
     }, 1000);
     
-    // 5. 대시보드 접근 권한 부여
+    // 6. 대시보드 접근 권한 부여
     const timestamp = Date.now();
     const authToken = btoa(`dashboard_access_${timestamp}`);
     
@@ -246,23 +239,12 @@ export default function HomePage() {
     // 4. 인증 정보 제거
     localStorage.removeItem('dashboard_auth_token');
     localStorage.removeItem('dashboard_access_time');
+    localStorage.removeItem('authorized_from_index');
     sessionStorage.removeItem('dashboard_authorized');
     sessionStorage.removeItem('auth_timestamp');
   };
 
-  // 패턴 이름 표시용 함수
-  const getPatternDisplayName = (pattern: string): string => {
-    switch (pattern) {
-      case 'normal':
-        return '정상 운영';
-      case 'high-load':
-        return '고부하';
-      case 'maintenance':
-        return '유지보수';
-      default:
-        return '정상 운영';
-    }
-  };
+
 
   // 데이터 패턴 변경 (시스템 활성화 중에만 가능)
   const handleChangePattern = async (pattern: 'normal' | 'high-load' | 'maintenance') => {
@@ -293,6 +275,25 @@ export default function HomePage() {
     }
   };
 
+  // 자동 패턴 변경 (백그라운드에서 2-3분마다 랜덤 변경)
+  const startAutoPatternChange = () => {
+    const patterns: ('normal' | 'high-load' | 'maintenance')[] = ['normal', 'high-load', 'maintenance'];
+    
+    const changePattern = () => {
+      if (!isSystemActive) return;
+      
+      const randomPattern = patterns[Math.floor(Math.random() * patterns.length)];
+      handleChangePattern(randomPattern);
+      
+      // 다음 변경까지 2-3분 랜덤 대기
+      const nextChangeTime = (2 + Math.random()) * 60 * 1000; // 2-3분
+      setTimeout(changePattern, nextChangeTime);
+    };
+    
+    // 첫 번째 변경은 1분 후
+    setTimeout(changePattern, 60 * 1000);
+  };
+
   const openFeatureModal = (feature: FeatureDetail) => {
     setSelectedFeature(feature);
   };
@@ -317,39 +318,9 @@ export default function HomePage() {
     setShowMainFeature(false);
   };
 
-  // 24시간 히스토리 데이터 초기화 (독립 기능)
-  const handleInitHistoryData = async () => {
-    if (isLoadingGenerator) return;
-    
-    setIsLoadingGenerator(true);
-    try {
-      const response = await fetch('/api/data-generator', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'init-history' })
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ History data initialization started:', data.message);
-      } else {
-        console.error('Failed to initialize history data');
-      }
-    } catch (error) {
-      console.error('Error initializing history data:', error);
-    } finally {
-      setIsLoadingGenerator(false);
-    }
-  };
 
-  // 데이터 생성기 남은 시간 포맷팅
-  const getGeneratorFormattedTime = () => {
-    if (!dataGeneratorStatus.remainingTime) return '0:00';
-    
-    const minutes = Math.floor(dataGeneratorStatus.remainingTime / 60000);
-    const seconds = Math.floor((dataGeneratorStatus.remainingTime % 60000) / 1000);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
+
+
 
   return (
     <>
@@ -1522,138 +1493,43 @@ export default function HomePage() {
         </div>
 
         {/* 시스템 상태 표시 */}
-        {(isSystemActive || state === 'ai-only') && (
-          <div className="system-status fade-in-up">
-            <div className="status-indicator">
-              <div className={`status-dot ${isSystemActive ? 'active' : 'ai-monitoring'}`}></div>
-              <span>{isSystemActive ? '시스템 활성화됨' : 'AI 모니터링 모드'}</span>
-            </div>
-            <div className="status-stats">
-              {isSystemActive ? (
-                <>
-                  <span>남은 시간: {getFormattedTime()}</span>
-                  <span>세션: {sessionInfo.totalSessions}회</span>
-                  <span>평균 사용: {sessionInfo.averageSessionTime}분</span>
-                </>
-              ) : (
-                <>
-                  <span>AI 감지 대기중</span>
-                  <span>5분 간격 체크</span>
-                  <span>30분 후 자동 종료</span>
-                </>
-              )}
-            </div>
-          </div>
-        )}
 
-        {/* 통합 시스템 상태 표시 */}
-        <div className="data-generator-status fade-in-up">
-          <div className="generator-indicator">
-            <div className={`generator-dot ${(isSystemActive || dataGeneratorStatus.isGenerating) ? 'generating' : ''}`}></div>
-            <span>
-              {isSystemActive 
-                ? `시스템 활성화됨 (${dataGeneratorStatus.currentPattern ? getPatternDisplayName(dataGeneratorStatus.currentPattern) : '정상 운영'} 패턴)` 
-                : '시스템 대기 중'
-              }
-            </span>
-          </div>
-          
-          <div className="generator-stats">
-            {isSystemActive ? (
-              <>
-                <span>시스템: {getFormattedTime()}</span>
-                <span>데이터: {getGeneratorFormattedTime()}</span>
-                <span>실시간 수집</span>
-              </>
-            ) : (
-              <>
-                <span>DB 데이터만 조회</span>
-                <span>24시간 히스토리</span>
-                <span>3가지 패턴</span>
-              </>
-            )}
-          </div>
 
-          {/* 패턴 변경 컨트롤 (시스템 활성화 시에만 표시) */}
-          {isSystemActive && (
-            <div className="pattern-controls">
-              <div className="pattern-selector">
-                <label className="pattern-label">데이터 패턴:</label>
-                <div className="pattern-buttons">
-                  <button 
-                    className={`pattern-btn ${dataGeneratorStatus.currentPattern === 'normal' ? 'active' : ''}`}
-                    onClick={() => handleChangePattern('normal')}
-                  >
-                    <i className="fas fa-chart-line"></i>
-                    정상 운영
-                  </button>
-                  <button 
-                    className={`pattern-btn ${dataGeneratorStatus.currentPattern === 'high-load' ? 'active' : ''}`}
-                    onClick={() => handleChangePattern('high-load')}
-                  >
-                    <i className="fas fa-chart-area"></i>
-                    고부하
-                  </button>
-                  <button 
-                    className={`pattern-btn ${dataGeneratorStatus.currentPattern === 'maintenance' ? 'active' : ''}`}
-                    onClick={() => handleChangePattern('maintenance')}
-                  >
-                    <i className="fas fa-tools"></i>
-                    유지보수
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 24시간 데이터 초기화 버튼 (시스템 비활성화 시에만 표시) */}
-          {!isSystemActive && (
-            <div className="generator-controls">
-              <button 
-                className="btn-generator init"
-                onClick={handleInitHistoryData}
-                disabled={isLoadingGenerator}
-              >
-                <i className="fas fa-database"></i>
-                <span>{isLoadingGenerator ? '초기화 중...' : '24시간 데이터 초기화'}</span>
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* 통합 시스템 제어 버튼 */}
+        {/* 간소화된 시스템 제어 */}
         <div className="cta-section fade-in-up">
-          <p className="cta-guide">
-            {!isSystemActive ? '시스템을 활성화하세요 (데이터 생성기 자동 시작) 👇' : '대시보드로 이동하거나 시스템을 중지하세요 👇'}
-          </p>
-          
           {!isSystemActive ? (
-            <button 
-              className="btn-primary"
-              onClick={handleActivateSystem}
-            >
-              <i className="fas fa-power-off"></i>
-              <span className="hidden sm:inline">시스템 활성화 (20분)</span>
-              <span className="sm:hidden">시스템 활성화</span>
-            </button>
-          ) : (
-            <div className="button-group">
+            <div className="text-center space-y-4">
               <button 
                 className="btn-primary"
+                onClick={handleActivateSystem}
+              >
+                <i className="fas fa-power-off"></i>
+                <span>🚀 시스템 활성화</span>
+              </button>
+              <p className="text-white/80 text-sm">모니터링 시스템을 시작합니다</p>
+            </div>
+          ) : (
+            <div className="text-center space-y-4">
+              <div className="text-green-400 font-semibold mb-4">
+                ✅ 시스템 실행 중
+              </div>
+              
+              <button 
+                className="btn-primary mb-3"
                 onClick={handleGoToDashboard}
               >
                 <i className="fas fa-tachometer-alt"></i>
-                <span className="hidden sm:inline">대시보드 들어가기</span>
-                <span className="sm:hidden">대시보드</span>
+                <span>📊 대시보드 들어가기</span>
               </button>
+              
+              <br />
               
               <button 
                 className="btn-secondary"
                 onClick={handleDeactivateSystem}
               >
                 <i className="fas fa-stop"></i>
-                <span className="hidden sm:inline">시스템 중지</span>
-                <span className="sm:hidden">중지</span>
+                <span>⏹️ 시스템 중지</span>
               </button>
             </div>
           )}
