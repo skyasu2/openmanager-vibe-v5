@@ -72,91 +72,105 @@ export default function ServerCard({ server, onClick }: ServerCardProps) {
   return (
     <div 
       className={`
-        relative bg-white rounded-lg p-4 border border-gray-200 
+        relative bg-white rounded-lg p-3 border border-gray-200 
         cursor-pointer transition-all duration-200 
         hover:shadow-md hover:border-gray-300
         ${isHovered ? 'shadow-md border-gray-300' : 'shadow-sm'}
+        min-h-[200px] sm:min-h-[220px]
       `}
       onClick={() => onClick(server)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* 헤더: 서버명 + 상태 */}
-      <div className="flex justify-between items-start mb-4">
-        <h3 className="text-base font-semibold text-gray-900">{server.name}</h3>
-        <span className={`${statusInfo.color} text-sm font-medium flex items-center gap-1`}>
+      <div className="flex justify-between items-start mb-3">
+        <h3 className="text-sm sm:text-base font-semibold text-gray-900 truncate pr-2">
+          {server.name}
+        </h3>
+        <span className={`${statusInfo.color} text-xs sm:text-sm font-medium flex items-center gap-1 flex-shrink-0`}>
           <span className="text-xs">{statusInfo.icon}</span>
-          {statusInfo.label}
+          <span className="hidden sm:inline">{statusInfo.label}</span>
         </span>
       </div>
 
-      {/* CPU 사용률 */}
-      <div className="mb-3">
-        <div className="flex justify-between items-center mb-1">
-          <span className="text-xs text-gray-600">CPU 사용률</span>
-          <span className="text-xs font-medium text-gray-900">{server.cpu}%</span>
+      {/* 리소스 사용률 (컴팩트) */}
+      <div className="space-y-2 mb-3">
+        {/* CPU */}
+        <div>
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-xs text-gray-600">CPU</span>
+            <span className="text-xs font-medium text-gray-900">{server.cpu}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-1">
+            <div 
+              className={`h-1 rounded-full transition-all duration-300 ${getProgressBarColor(server.cpu, 'cpu')}`}
+              style={{ width: `${server.cpu}%` }}
+            ></div>
+          </div>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-1.5">
-          <div 
-            className={`h-1.5 rounded-full transition-all duration-300 ${getProgressBarColor(server.cpu, 'cpu')}`}
-            style={{ width: `${server.cpu}%` }}
-          ></div>
+
+        {/* 메모리 */}
+        <div>
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-xs text-gray-600">메모리</span>
+            <span className="text-xs font-medium text-gray-900">{server.memory}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-1">
+            <div 
+              className={`h-1 rounded-full transition-all duration-300 ${getProgressBarColor(server.memory, 'memory')}`}
+              style={{ width: `${server.memory}%` }}
+            ></div>
+          </div>
+        </div>
+
+        {/* 디스크 */}
+        <div>
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-xs text-gray-600">디스크</span>
+            <span className="text-xs font-medium text-gray-900">{server.disk}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-1">
+            <div 
+              className={`h-1 rounded-full transition-all duration-300 ${getProgressBarColor(server.disk, 'disk')}`}
+              style={{ width: `${server.disk}%` }}
+            ></div>
+          </div>
         </div>
       </div>
 
-      {/* 메모리 사용률 */}
-      <div className="mb-3">
-        <div className="flex justify-between items-center mb-1">
-          <span className="text-xs text-gray-600">메모리</span>
-          <span className="text-xs font-medium text-gray-900">{server.memory}%</span>
+      {/* 추가 정보 (컴팩트) */}
+      <div className="space-y-1 mb-3 text-xs text-gray-600">
+        <div className="flex justify-between">
+          <span>위치</span>
+          <span className="font-medium text-gray-900 truncate ml-2">{server.location || 'N/A'}</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-1.5">
-          <div 
-            className={`h-1.5 rounded-full transition-all duration-300 ${getProgressBarColor(server.memory, 'memory')}`}
-            style={{ width: `${server.memory}%` }}
-          ></div>
+        <div className="flex justify-between">
+          <span>업타임</span>
+          <span className="font-medium text-gray-900">{server.uptime}</span>
         </div>
-      </div>
-
-      {/* 디스크 사용률 */}
-      <div className="mb-4">
-        <div className="flex justify-between items-center mb-1">
-          <span className="text-xs text-gray-600">디스크 (/)</span>
-          <span className="text-xs font-medium text-gray-900">{server.disk}%</span>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-1.5">
-          <div 
-            className={`h-1.5 rounded-full transition-all duration-300 ${getProgressBarColor(server.disk, 'disk')}`}
-            style={{ width: `${server.disk}%` }}
-          ></div>
-        </div>
-      </div>
-
-      {/* 응답 속도 */}
-      <div className="mb-4">
-        <div className="flex justify-between items-center">
-          <span className="text-xs text-gray-600">응답 속도</span>
-          <span className="text-xs font-medium text-gray-900">
-            {(Math.random() * 0.5 + 0.1).toFixed(2)}
+        <div className="flex justify-between">
+          <span>응답속도</span>
+          <span className="font-medium text-gray-900">
+            {(Math.random() * 0.5 + 0.1).toFixed(2)}s
           </span>
         </div>
       </div>
 
-      {/* 서비스 태그 */}
+      {/* 서비스 태그 (최대 2개만 표시) */}
       <div className="flex flex-wrap gap-1 mb-2">
-        {server.services.slice(0, 4).map((service, index) => (
+        {server.services.slice(0, 2).map((service, index) => (
           <span
             key={index}
-            className={`px-2 py-0.5 rounded text-xs border ${getServiceTagColor(service.status)}`}
+            className={`px-1.5 py-0.5 rounded text-xs border ${getServiceTagColor(service.status)}`}
           >
-            {service.name} ({service.status === 'running' ? 'running' : 'stopped'})
+            {service.name}
           </span>
         ))}
-      </div>
-
-      {/* 추가 정보 (업타임) */}
-      <div className="text-xs text-gray-500">
-        업타임: {server.uptime}
+        {server.services.length > 2 && (
+          <span className="px-1.5 py-0.5 rounded text-xs bg-gray-100 text-gray-600 border border-gray-300">
+            +{server.services.length - 2}
+          </span>
+        )}
       </div>
 
       {/* 알림 뱃지 */}

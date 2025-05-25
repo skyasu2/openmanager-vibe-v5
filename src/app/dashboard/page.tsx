@@ -12,8 +12,6 @@ export default function DashboardPage() {
   const router = useRouter();
   const [isAgentOpen, setIsAgentOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [agentQuery, setAgentQuery] = useState<string>('');
-  const [agentServerId, setAgentServerId] = useState<string>('');
   const [serverStats, setServerStats] = useState({
     total: 10,
     online: 3,
@@ -88,19 +86,8 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   }, [router, isSystemActive]);
 
-  const handleAIQuery = (query: string, serverId: string = '') => {
-    // 활동 업데이트
-    updateActivity();
-    
-    setAgentQuery(query);
-    setAgentServerId(serverId);
-    setIsAgentOpen(true);
-  };
-
   const closeAgent = () => {
     setIsAgentOpen(false);
-    setAgentQuery('');
-    setAgentServerId('');
   };
 
   const toggleAgent = () => {
@@ -119,22 +106,22 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gray-50">
       {/* 메인 헤더 */}
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
-        <div className="flex items-center justify-between px-6 py-4">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4">
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
               <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <i className="fas fa-server text-white text-sm"></i>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">OpenManager</h1>
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900">OpenManager</h1>
                 <p className="text-xs text-gray-500">AI 서버 모니터링</p>
               </div>
             </Link>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             {/* 빠른 통계 */}
-            <div className="hidden md:flex items-center gap-6">
+            <div className="hidden md:flex items-center gap-4 lg:gap-6">
               <div className="text-center">
                 <div className="text-sm font-medium text-gray-900">{serverStats.total}대</div>
                 <div className="text-xs text-gray-500">전체 서버</div>
@@ -156,7 +143,7 @@ export default function DashboardPage() {
             {/* AI 에이전트 토글 버튼 */}
             <button
               onClick={toggleAgent}
-              className={`relative flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
+              className={`relative flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl font-medium transition-all ${
                 isAgentOpen
                   ? 'bg-purple-600 text-white shadow-lg'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -192,7 +179,7 @@ export default function DashboardPage() {
         <main className={`flex-1 transition-all duration-300 ${
           isAgentOpen && !isMobile ? 'lg:mr-96' : ''
         }`}>
-          <ServerDashboard onAskAI={handleAIQuery} onStatsUpdate={handleStatsUpdate} />
+          <ServerDashboard onStatsUpdate={handleStatsUpdate} />
         </main>
 
         {/* AI 에이전트 패널 (데스크탑) */}
@@ -200,8 +187,6 @@ export default function DashboardPage() {
           <AgentPanel
             isOpen={isAgentOpen}
             onClose={closeAgent}
-            initialQuery={agentQuery}
-            initialServerId={agentServerId}
           />
         )}
       </div>
@@ -211,8 +196,6 @@ export default function DashboardPage() {
         <AgentPanelMobile
           isOpen={isAgentOpen}
           onClose={closeAgent}
-          initialQuery={agentQuery}
-          initialServerId={agentServerId}
         />
       )}
 

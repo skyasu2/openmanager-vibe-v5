@@ -6,7 +6,6 @@ import ServerDetailModal from './ServerDetailModal';
 import { Server } from '../../types/server';
 
 interface ServerDashboardProps {
-  onAskAI?: (query: string, context?: any) => void;
   onStatsUpdate?: (stats: { total: number; online: number; warning: number; offline: number }) => void;
 }
 
@@ -188,7 +187,7 @@ const fallbackServers: Server[] = [
   }
 ];
 
-export default function ServerDashboard({ onAskAI, onStatsUpdate }: ServerDashboardProps) {
+export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps) {
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -240,28 +239,28 @@ export default function ServerDashboard({ onAskAI, onStatsUpdate }: ServerDashbo
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
       {/* 상단 검색바 */}
-      <div className="mb-6">
-        <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-          <div className="flex items-center gap-4">
+      <div className="mb-4 sm:mb-6">
+        <div className="bg-white rounded-lg p-3 sm:p-4 shadow-sm border border-gray-200">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
             <div className="flex-1">
               <input
                 type="text"
                 placeholder="서버 이름 검색..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <div className="flex gap-2">
-              <button className="px-4 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors">
+              <button className="px-3 sm:px-4 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors">
                 검색
               </button>
-              <button className="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors">
+              <button className="px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors">
                 필터
               </button>
-              <button className="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors">
+              <button className="px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors">
                 정렬
               </button>
             </div>
@@ -269,8 +268,8 @@ export default function ServerDashboard({ onAskAI, onStatsUpdate }: ServerDashbo
         </div>
       </div>
 
-      {/* 서버 카드 그리드 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {/* 서버 카드 그리드 - 모바일 친화적 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4">
         {filteredServers.map((server: Server) => (
           <ServerCard
             key={server.id}
@@ -285,7 +284,6 @@ export default function ServerDashboard({ onAskAI, onStatsUpdate }: ServerDashbo
         <ServerDetailModal
           server={selectedServer}
           onClose={handleCloseModal}
-          onAskAI={onAskAI}
         />
       )}
     </div>

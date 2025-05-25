@@ -17,11 +17,9 @@ interface Message {
 interface AgentPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  initialQuery?: string;
-  initialServerId?: string;
 }
 
-export default function AgentPanel({ isOpen, onClose, initialQuery, initialServerId }: AgentPanelProps) {
+export default function AgentPanel({ isOpen, onClose }: AgentPanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -37,13 +35,6 @@ export default function AgentPanel({ isOpen, onClose, initialQuery, initialServe
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  // 초기 쿼리가 있으면 자동으로 실행
-  useEffect(() => {
-    if (initialQuery && isOpen) {
-      handleSendMessage(initialQuery, initialServerId);
-    }
-  }, [initialQuery, isOpen]);
 
   const handleSendMessage = async (query: string, serverId?: string) => {
     if (!query.trim()) return;
