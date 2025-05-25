@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import { Redis } from 'ioredis';
 import { ServerMetrics } from '../types/collector';
 import { Server } from '../types/server';
 import { NETWORK, TIME } from '../config/constants';
@@ -10,12 +9,33 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-proje
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-anon-key';
 const REDIS_URL = process.env.REDIS_URL || `redis://localhost:${NETWORK.PORTS.REDIS_DEFAULT}`;
 
-// 클라이언트 초기화
+// Supabase 클라이언트 초기화
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const redis = new Redis(REDIS_URL, {
-  maxRetriesPerRequest: 3,
-  lazyConnect: true,
-});
+
+// Redis 클라이언트 (서버 사이드에서만 초기화)
+let redis: any = null;
+
+async function getRedisClient() {
+  if (typeof window !== 'undefined') {
+    // 클라이언트 사이드에서는 Redis 사용 안 함
+    return null;
+  }
+  
+  if (!redis) {
+    try {
+      const { Redis } = await import('ioredis');
+      redis = new Redis(REDIS_URL, {
+        maxRetriesPerRequest: 3,
+        lazyConnect: true,
+      });
+    } catch (error) {
+      console.warn('Redis not available, using Supabase only');
+      return null;
+    }
+  }
+  
+  return redis;
+}
 
 export class MetricsStorageService {
   private readonly LATEST_KEY_PREFIX = 'server:';
@@ -30,8 +50,11 @@ export class MetricsStorageService {
       // 1. Supabase에 영구 저장 (24시간 보존)
       await this.saveToSupabase(metrics);
       
-      // 2. Redis에 최신값 저장 (TTL 5분)
-      await this.saveToRedis(metrics);
+      // 2. Redis에 최신값 저장 (TTL 5분) - 서버 사이드에서만
+      const redisClient = await getRedisClient();
+      if (redisClient) {
+        await this.saveToRedis(metrics, redisClient);
+      }
       
       console.log(`✅ Metrics saved for ${metrics.serverId}`);
     } catch (error) {
@@ -45,14 +68,17 @@ export class MetricsStorageService {
    */
   async getServerList(): Promise<string[]> {
     try {
-      // Redis에서 활성 서버 목록 조회
-      const keys = await redis.keys(`${this.LATEST_KEY_PREFIX}*${this.LATEST_KEY_SUFFIX}`);
-      const serverIds = keys.map(key => 
-        key.replace(this.LATEST_KEY_PREFIX, '').replace(this.LATEST_KEY_SUFFIX, '')
-      );
-      
-      if (serverIds.length > 0) {
-        return serverIds;
+      // Redis에서 활성 서버 목록 조회 (서버 사이드에서만)
+      const redisClient = await getRedisClient();
+      if (redisClient) {
+        const keys = await redisClient.keys(`${this.LATEST_KEY_PREFIX}*${this.LATEST_KEY_SUFFIX}`);
+        const serverIds = keys.map((key: string) => 
+          key.replace(this.LATEST_KEY_PREFIX, '').replace(this.LATEST_KEY_SUFFIX, '')
+        );
+        
+        if (serverIds.length > 0) {
+          return serverIds;
+        }
       }
       
       // Redis에 없으면 Supabase에서 조회
@@ -77,17 +103,22 @@ export class MetricsStorageService {
    */
   async getLatestMetrics(serverId: string): Promise<Server | null> {
     try {
-      // 1. Redis에서 최신값 조회
-      const redisData = await this.getFromRedis(serverId);
-      if (redisData) {
-        return this.transformToServerType(redisData);
+      // 1. Redis에서 최신값 조회 (서버 사이드에서만)
+      const redisClient = await getRedisClient();
+      if (redisClient) {
+        const redisData = await this.getFromRedis(serverId, redisClient);
+        if (redisData) {
+          return this.transformToServerType(redisData);
+        }
       }
       
       // 2. Redis에 없으면 Supabase에서 최신 조회
       const supabaseData = await this.getLatestFromSupabase(serverId);
       if (supabaseData) {
-        // Redis에 다시 캐싱
-        await this.saveToRedis(supabaseData);
+        // Redis에 다시 캐싱 (서버 사이드에서만)
+        if (redisClient) {
+          await this.saveToRedis(supabaseData, redisClient);
+        }
         return this.transformToServerType(supabaseData);
       }
       
@@ -124,8 +155,21 @@ export class MetricsStorageService {
    */
   async isServerOnline(serverId: string): Promise<boolean> {
     try {
-      const exists = await redis.exists(`${this.LATEST_KEY_PREFIX}${serverId}${this.LATEST_KEY_SUFFIX}`);
-      return exists === 1;
+      const redisClient = await getRedisClient();
+      if (redisClient) {
+        const exists = await redisClient.exists(`${this.LATEST_KEY_PREFIX}${serverId}${this.LATEST_KEY_SUFFIX}`);
+        return exists === 1;
+      }
+      
+      // Redis가 없으면 Supabase에서 최근 데이터 확인
+      const { data, error } = await supabase
+        .from('server_metrics')
+        .select('server_id')
+        .eq('server_id', serverId)
+        .gte('timestamp', new Date(Date.now() - 5 * 60 * 1000).toISOString()) // 5분 이내
+        .limit(1);
+      
+      return !error && data && data.length > 0;
     } catch (error) {
       console.error(`❌ Failed to check server status ${serverId}:`, error);
       return false;
@@ -169,14 +213,14 @@ export class MetricsStorageService {
     if (error) throw error;
   }
 
-  private async saveToRedis(metrics: ServerMetrics): Promise<void> {
+  private async saveToRedis(metrics: ServerMetrics, redisClient: any): Promise<void> {
     const key = `${this.LATEST_KEY_PREFIX}${metrics.serverId}${this.LATEST_KEY_SUFFIX}`;
-    await redis.setex(key, this.TTL_SECONDS, JSON.stringify(metrics));
+    await redisClient.setex(key, this.TTL_SECONDS, JSON.stringify(metrics));
   }
 
-  private async getFromRedis(serverId: string): Promise<ServerMetrics | null> {
+  private async getFromRedis(serverId: string, redisClient: any): Promise<ServerMetrics | null> {
     const key = `${this.LATEST_KEY_PREFIX}${serverId}${this.LATEST_KEY_SUFFIX}`;
-    const data = await redis.get(key);
+    const data = await redisClient.get(key);
     return data ? JSON.parse(data) : null;
   }
 

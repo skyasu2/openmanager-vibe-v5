@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { serverDataCollector, type ServerInfo } from '../services/collectors/ServerDataCollector';
 
 // 타입 정의 (ServerDataCollector와 호환)
 interface ServerMetrics {
@@ -65,30 +64,21 @@ interface DemoStore {
   syncWithCollector: () => void;
 }
 
-// 실제 서버 데이터 수집기에서 데이터 가져오기
-const getServersFromCollector = (): Server[] => {
+// 서버 데이터 가져오기 (API 기반)
+const getServersFromAPI = async (): Promise<Server[]> => {
   try {
-    const realServers = serverDataCollector.getAllServers();
+    // 클라이언트 사이드에서는 API 호출로 데이터 가져오기
+    if (typeof window !== 'undefined') {
+      const response = await fetch('/api/servers');
+      if (response.ok) {
+        const data = await response.json();
+        return data.servers || [];
+      }
+    }
     
-    // ServerInfo를 Server 타입으로 변환
-    return realServers.map((serverInfo: ServerInfo) => ({
-      id: serverInfo.id,
-      name: serverInfo.hostname,
-      status: serverInfo.status === 'online' ? 'healthy' : 
-              serverInfo.status === 'warning' ? 'warning' : 'critical',
-      location: serverInfo.location,
-      type: serverInfo.provider.toUpperCase(),
-      metrics: {
-        cpu: serverInfo.metrics.cpu,
-        memory: serverInfo.metrics.memory,
-        disk: serverInfo.metrics.disk,
-        network: serverInfo.metrics.network.latency
-      },
-      uptime: Math.floor(serverInfo.metrics.uptime / 86400), // 초를 일로 변환
-      lastUpdate: serverInfo.lastUpdate
-    }));
+    return generateFallbackServers();
   } catch (error) {
-    console.warn('Failed to get servers from collector, using fallback data:', error);
+    console.warn('Failed to get servers from API, using fallback data:', error);
     return generateFallbackServers();
   }
 };
@@ -140,7 +130,7 @@ const generateFallbackServers = (): Server[] => {
 
 export const useDemoStore = create<DemoStore>((set, get) => ({
   // Initial state
-  servers: getServersFromCollector(),
+  servers: generateFallbackServers(), // 초기에는 fallback 데이터 사용
   chatMessages: [
     {
       id: 'welcome-1',
@@ -236,18 +226,18 @@ export const useDemoStore = create<DemoStore>((set, get) => ({
   },
 
   // 실시간 서버 데이터 동기화
-  syncWithCollector: () => {
+  syncWithCollector: async () => {
     try {
-      const updatedServers = getServersFromCollector();
+      const updatedServers = await getServersFromAPI();
       set({ servers: updatedServers });
       
       // 시스템 상태도 업데이트
       const { updateSystemStatus } = get();
       updateSystemStatus();
       
-      console.log(`🔄 Synced ${updatedServers.length} servers from collector`);
+      console.log(`🔄 Synced ${updatedServers.length} servers from API`);
     } catch (error) {
-      console.error('Failed to sync with collector:', error);
+      console.error('Failed to sync with API:', error);
     }
   }
 })); 

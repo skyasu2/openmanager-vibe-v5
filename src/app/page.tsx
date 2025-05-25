@@ -75,6 +75,14 @@ export default function HomePage() {
   const [sessionInfo, setSessionInfo] = useState(getSessionInfo());
   const isSystemActive = state === 'active';
 
+  // 데이터 생성기 상태 관리
+  const [dataGeneratorStatus, setDataGeneratorStatus] = useState({
+    isGenerating: false,
+    remainingTime: 0,
+    patterns: []
+  });
+  const [isLoadingGenerator, setIsLoadingGenerator] = useState(false);
+
   useEffect(() => {
     // 페이지 로딩 애니메이션
     const elements = document.querySelectorAll('.fade-in-up');
@@ -89,10 +97,29 @@ export default function HomePage() {
       setSessionInfo(getSessionInfo());
     };
     
+    // 데이터 생성기 상태 업데이트
+    const updateGeneratorStatus = async () => {
+      try {
+        const response = await fetch('/api/data-generator');
+        if (response.ok) {
+          const data = await response.json();
+          setDataGeneratorStatus(data.data.generation);
+        }
+      } catch (error) {
+        console.error('Failed to fetch generator status:', error);
+      }
+    };
+    
+    // 초기 데이터 생성기 상태 로드
+    updateGeneratorStatus();
+    
     // 활성 모드일 때 주기적으로 상태 업데이트
     let statusInterval: NodeJS.Timeout;
-    if (isSystemActive) {
-      statusInterval = setInterval(updateStatus, 1000); // 1초마다 업데이트 (타이머 표시용)
+    if (isSystemActive || dataGeneratorStatus.isGenerating) {
+      statusInterval = setInterval(() => {
+        updateStatus();
+        updateGeneratorStatus();
+      }, 1000); // 1초마다 업데이트 (타이머 표시용)
     }
     
     return () => {
@@ -100,18 +127,39 @@ export default function HomePage() {
         clearInterval(statusInterval);
       }
     };
-  }, [isSystemActive, getSessionInfo]);
+  }, [isSystemActive, dataGeneratorStatus.isGenerating, getSessionInfo]);
 
-  // 시스템 활성화 (20분 타이머)
-  const handleActivateSystem = () => {
+  // 시스템 활성화 (20분 타이머 + 데이터 생성기 자동 시작)
+  const handleActivateSystem = async () => {
+    // 1. 시스템 활성화
     startSystem(20 * 60); // 20분 = 1200초
     
-    // AI 에이전트 자동 리포트 생성
+    // 2. 데이터 생성기 자동 시작
+    try {
+      const response = await fetch('/api/data-generator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'start-realtime' })
+      });
+      
+      if (response.ok) {
+        console.log('✅ 시스템 활성화와 함께 데이터 생성기 시작됨');
+        setDataGeneratorStatus(prev => ({
+          ...prev,
+          isGenerating: true,
+          remainingTime: 10 * 60 * 1000 // 10분
+        }));
+      }
+    } catch (error) {
+      console.error('데이터 생성기 시작 실패:', error);
+    }
+    
+    // 3. AI 에이전트 자동 리포트 생성
     setTimeout(() => {
       smartAIAgent.generateAutoReport();
     }, 1000);
     
-    // 대시보드 접근 권한 부여
+    // 4. 대시보드 접근 권한 부여
     const timestamp = Date.now();
     const authToken = btoa(`dashboard_access_${timestamp}`);
     
@@ -129,11 +177,32 @@ export default function HomePage() {
     router.push(`/dashboard?auth=authorized&t=${timestamp}`);
   };
 
-  // 시스템 비활성화
-  const handleDeactivateSystem = () => {
+  // 시스템 비활성화 (데이터 생성기도 함께 중지)
+  const handleDeactivateSystem = async () => {
+    // 1. 시스템 비활성화
     stopSystem();
     
-    // 인증 정보 제거
+    // 2. 데이터 생성기 중지
+    try {
+      const response = await fetch('/api/data-generator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'stop-realtime' })
+      });
+      
+      if (response.ok) {
+        console.log('✅ 시스템 비활성화와 함께 데이터 생성기 중지됨');
+        setDataGeneratorStatus(prev => ({
+          ...prev,
+          isGenerating: false,
+          remainingTime: 0
+        }));
+      }
+    } catch (error) {
+      console.error('데이터 생성기 중지 실패:', error);
+    }
+    
+    // 3. 인증 정보 제거
     localStorage.removeItem('dashboard_auth_token');
     localStorage.removeItem('dashboard_access_time');
     sessionStorage.removeItem('dashboard_authorized');
@@ -162,6 +231,40 @@ export default function HomePage() {
 
   const closeMainFeatureModal = () => {
     setShowMainFeature(false);
+  };
+
+  // 24시간 히스토리 데이터 초기화 (독립 기능)
+  const handleInitHistoryData = async () => {
+    if (isLoadingGenerator) return;
+    
+    setIsLoadingGenerator(true);
+    try {
+      const response = await fetch('/api/data-generator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'init-history' })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ History data initialization started:', data.message);
+      } else {
+        console.error('Failed to initialize history data');
+      }
+    } catch (error) {
+      console.error('Error initializing history data:', error);
+    } finally {
+      setIsLoadingGenerator(false);
+    }
+  };
+
+  // 데이터 생성기 남은 시간 포맷팅
+  const getGeneratorFormattedTime = () => {
+    if (!dataGeneratorStatus.remainingTime) return '0:00';
+    
+    const minutes = Math.floor(dataGeneratorStatus.remainingTime / 60000);
+    const seconds = Math.floor((dataGeneratorStatus.remainingTime % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -596,6 +699,106 @@ export default function HomePage() {
         @keyframes blink {
           0%, 50% { opacity: 1; }
           51%, 100% { opacity: 0.5; }
+        }
+
+        .data-generator-status {
+          background: rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(15px);
+          border: 1px solid rgba(168, 85, 247, 0.3);
+          border-radius: 15px;
+          padding: 1.2rem;
+          margin: 1rem 0;
+          text-align: center;
+          max-width: 500px;
+          margin-left: auto;
+          margin-right: auto;
+          box-shadow: 0 8px 32px rgba(168, 85, 247, 0.1);
+        }
+
+        .generator-indicator {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.8rem;
+          margin-bottom: 0.8rem;
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.9);
+        }
+
+        .generator-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #ef4444;
+          animation: pulse 2s ease-in-out infinite;
+        }
+
+        .generator-dot.generating {
+          background: #22c55e;
+          box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+        }
+
+        .generator-stats {
+          display: flex;
+          justify-content: space-around;
+          font-size: 0.8rem;
+          color: rgba(255, 255, 255, 0.7);
+          gap: 1rem;
+          margin-bottom: 1rem;
+        }
+
+        .generator-controls {
+          display: flex;
+          gap: 0.8rem;
+          justify-content: center;
+          margin-top: 1rem;
+          flex-wrap: wrap;
+        }
+
+        .btn-generator {
+          background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+          color: white;
+          border: none;
+          padding: 0.6rem 1.2rem;
+          border-radius: 12px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-generator:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-generator:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .btn-generator.stop {
+          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+          box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-generator.stop:hover {
+          box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-generator.init {
+          background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+          box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+        }
+
+        .btn-generator.init:hover {
+          box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
         }
 
         .benefits-list {
@@ -1190,10 +1393,53 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* 스마트 CTA 버튼 */}
+        {/* 통합 시스템 상태 표시 */}
+        <div className="data-generator-status fade-in-up">
+          <div className="generator-indicator">
+            <div className={`generator-dot ${(isSystemActive || dataGeneratorStatus.isGenerating) ? 'generating' : ''}`}></div>
+            <span>
+              {isSystemActive 
+                ? '시스템 활성화됨 (데이터 생성 중)' 
+                : '시스템 대기 중'
+              }
+            </span>
+          </div>
+          
+          <div className="generator-stats">
+            {isSystemActive ? (
+              <>
+                <span>시스템: {getFormattedTime()}</span>
+                <span>데이터: {getGeneratorFormattedTime()}</span>
+                <span>실시간 수집</span>
+              </>
+            ) : (
+              <>
+                <span>DB 데이터만 조회</span>
+                <span>24시간 히스토리</span>
+                <span>3가지 패턴</span>
+              </>
+            )}
+          </div>
+
+          {/* 24시간 데이터 초기화 버튼 (시스템 비활성화 시에만 표시) */}
+          {!isSystemActive && (
+            <div className="generator-controls">
+              <button 
+                className="btn-generator init"
+                onClick={handleInitHistoryData}
+                disabled={isLoadingGenerator}
+              >
+                <i className="fas fa-database"></i>
+                <span>{isLoadingGenerator ? '초기화 중...' : '24시간 데이터 초기화'}</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 통합 시스템 제어 버튼 */}
         <div className="cta-section fade-in-up">
           <p className="cta-guide">
-            {!isSystemActive ? '시스템을 활성화하세요 👇' : '대시보드로 이동하거나 시스템을 중지하세요 👇'}
+            {!isSystemActive ? '시스템을 활성화하세요 (데이터 생성기 자동 시작) 👇' : '대시보드로 이동하거나 시스템을 중지하세요 👇'}
           </p>
           
           {!isSystemActive ? (
@@ -1202,7 +1448,7 @@ export default function HomePage() {
               onClick={handleActivateSystem}
             >
               <i className="fas fa-power-off"></i>
-              <span className="hidden sm:inline">시스템 활성화</span>
+              <span className="hidden sm:inline">시스템 활성화 (20분)</span>
               <span className="sm:hidden">시스템 활성화</span>
             </button>
           ) : (
