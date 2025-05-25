@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { usePowerStore } from '../stores/powerStore';
+import { useSystemStore } from '../stores/systemStore';
 import { smartAIAgent } from '../services/aiAgent';
 
 // 동적 렌더링 강제 (HTML 파일 생성 방지)
@@ -62,10 +62,18 @@ export default function HomePage() {
   const [showVibeCoding, setShowVibeCoding] = useState(false);
   const [showMainFeature, setShowMainFeature] = useState(false);
   
-  // 절전 모드 상태 관리
-  const { mode, activateSystem, enterSleepMode, getSystemStatus } = usePowerStore();
-  const [systemStatus, setSystemStatus] = useState(getSystemStatus());
-  const isSystemActive = mode === 'active' || mode === 'monitoring';
+  // 시스템 상태 관리
+  const { 
+    state, 
+    isActive, 
+    remainingTime,
+    startSystem, 
+    stopSystem, 
+    getFormattedTime,
+    getSessionInfo 
+  } = useSystemStore();
+  const [sessionInfo, setSessionInfo] = useState(getSessionInfo());
+  const isSystemActive = state === 'active';
 
   useEffect(() => {
     // 페이지 로딩 애니메이션
@@ -78,13 +86,13 @@ export default function HomePage() {
     
     // 시스템 상태 업데이트
     const updateStatus = () => {
-      setSystemStatus(getSystemStatus());
+      setSessionInfo(getSessionInfo());
     };
     
     // 활성 모드일 때 주기적으로 상태 업데이트
     let statusInterval: NodeJS.Timeout;
     if (isSystemActive) {
-      statusInterval = setInterval(updateStatus, 5000); // 5초마다 업데이트
+      statusInterval = setInterval(updateStatus, 1000); // 1초마다 업데이트 (타이머 표시용)
     }
     
     return () => {
@@ -92,11 +100,11 @@ export default function HomePage() {
         clearInterval(statusInterval);
       }
     };
-  }, [isSystemActive, getSystemStatus]);
+  }, [isSystemActive, getSessionInfo]);
 
-  // 시스템 활성화
+  // 시스템 활성화 (20분 타이머)
   const handleActivateSystem = () => {
-    activateSystem();
+    startSystem(20 * 60); // 20분 = 1200초
     
     // AI 에이전트 자동 리포트 생성
     setTimeout(() => {
@@ -123,7 +131,7 @@ export default function HomePage() {
 
   // 시스템 비활성화
   const handleDeactivateSystem = () => {
-    enterSleepMode();
+    stopSystem();
     
     // 인증 정보 제거
     localStorage.removeItem('dashboard_auth_token');
@@ -1154,11 +1162,9 @@ export default function HomePage() {
               <span>시스템 활성화됨</span>
             </div>
             <div className="status-stats">
-              <span>가동시간: {Math.floor(systemStatus.uptime / 60)}분</span>
-              <span>알림: {systemStatus.totalAlerts}개</span>
-              {systemStatus.criticalAlerts > 0 && (
-                <span className="critical">긴급: {systemStatus.criticalAlerts}개</span>
-              )}
+              <span>남은 시간: {getFormattedTime()}</span>
+              <span>세션: {sessionInfo.totalSessions}회</span>
+              <span>평균 사용: {sessionInfo.averageSessionTime}분</span>
             </div>
           </div>
         )}

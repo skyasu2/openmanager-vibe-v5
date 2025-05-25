@@ -9,7 +9,7 @@
  */
 
 import { metricsStorage } from '../storage';
-import { usePowerStore } from '../../stores/powerStore';
+import { useSystemStore } from '../../stores/systemStore';
 
 export interface ServerMetrics {
   cpu: number;
@@ -138,11 +138,18 @@ export class ServerDataCollector {
   }
 
   /**
-   * 데이터 수집 시작
+   * 데이터 수집 시작 (시스템 상태 확인)
    */
   async startCollection(): Promise<void> {
     if (this.isCollecting) {
       console.warn('Data collection already running');
+      return;
+    }
+
+    // 시스템 상태 확인
+    const systemStore = useSystemStore.getState();
+    if (!systemStore.canStartDataCollection()) {
+      console.log('🔋 System is in stopped mode, data collection not started');
       return;
     }
 
@@ -153,9 +160,17 @@ export class ServerDataCollector {
     // 초기 서버 발견
     await this.discoverServers();
 
-    // 정기적인 데이터 수집
+    // 정기적인 데이터 수집 (시스템 상태 체크 포함)
     this.collectionTimer = setInterval(async () => {
       try {
+        // 시스템 상태 재확인
+        const currentSystemState = useSystemStore.getState();
+        if (!currentSystemState.canStartDataCollection()) {
+          console.log('🔋 System stopped during collection, pausing...');
+          await this.pauseCollection();
+          return;
+        }
+
         await this.collectMetrics();
         this.collectionErrors = 0;
       } catch (error) {
@@ -169,14 +184,86 @@ export class ServerDataCollector {
       }
     }, this.config.collectionInterval);
 
-    // 정기적인 서버 발견
-    if (this.config.autoDiscovery) {
+    // 정기적인 서버 발견 (시스템이 활성화된 경우에만)
+    if (this.config.autoDiscovery && systemStore.state === 'active') {
       this.discoveryTimer = setInterval(async () => {
-        await this.discoverServers();
+        const currentSystemState = useSystemStore.getState();
+        if (currentSystemState.canStartDataCollection()) {
+          await this.discoverServers();
+        }
       }, this.config.discoveryInterval);
     }
 
     console.log(`✅ Data collection started (interval: ${this.config.collectionInterval}ms)`);
+    
+    // 시스템 이벤트 리스너 등록
+    this.setupSystemEventListeners();
+  }
+
+  /**
+   * 시스템 이벤트 리스너 설정
+   */
+  private setupSystemEventListeners(): void {
+    // 시스템 정지 이벤트
+    window.addEventListener('system-stopped', () => {
+      console.log('🔋 System stopped event received, pausing data collection');
+      this.pauseCollection();
+    });
+
+    // 시스템 활성화 이벤트
+    window.addEventListener('system-activated', () => {
+      console.log('🚀 System activated event received, resuming data collection');
+      this.resumeCollection();
+    });
+
+    // AI 활성화 이벤트 (데이터 변동 감지)
+    window.addEventListener('ai-activation', (event: any) => {
+      console.log('🤖 AI activation event received:', event.detail.reason);
+      this.resumeCollection();
+    });
+  }
+
+  /**
+   * 데이터 수집 일시 정지
+   */
+  private async pauseCollection(): Promise<void> {
+    if (this.collectionTimer) {
+      clearInterval(this.collectionTimer);
+      this.collectionTimer = undefined;
+    }
+    
+    if (this.discoveryTimer) {
+      clearInterval(this.discoveryTimer);
+      this.discoveryTimer = undefined;
+    }
+    
+    console.log('⏸️ Data collection paused');
+  }
+
+  /**
+   * 데이터 수집 재개
+   */
+  private async resumeCollection(): Promise<void> {
+    if (this.isCollecting && !this.collectionTimer) {
+      // 수집 타이머 재시작
+      this.collectionTimer = setInterval(async () => {
+        try {
+          const systemState = useSystemStore.getState();
+          if (!systemState.canStartDataCollection()) {
+            await this.pauseCollection();
+            return;
+          }
+
+          await this.collectMetrics();
+          this.collectionErrors = 0;
+        } catch (error) {
+          this.collectionErrors++;
+          console.error(`Data collection error (${this.collectionErrors}/${this.maxErrors}):`, error);
+        }
+      }, this.config.collectionInterval);
+
+      console.log('▶️ Data collection resumed');
+    }
   }
 
   /**
@@ -362,19 +449,87 @@ export class ServerDataCollector {
   }
 
   /**
-   * 개별 서버 메트릭 수집
+   * 개별 서버 메트릭 수집 (데이터베이스 통합 + AI 감지)
    */
   private async collectServerMetrics(server: ServerInfo): Promise<ServerMetrics> {
     // 기존 메트릭 수집 로직
     const newMetrics = await this.collectServerMetricsOriginal(server);
     
-    // 절전 모드가 아닌 경우에만 데이터베이스 저장
-    if (this.powerMode !== 'sleep') {
+    // 시스템 상태 확인
+    const systemState = useSystemStore.getState();
+    
+    // AI 자동 감지 (시스템이 정지 상태일 때)
+    if (systemState.state === 'stopped') {
+      const shouldTriggerAI = this.detectCriticalChanges(server.metrics, newMetrics);
+      if (shouldTriggerAI.trigger) {
+        console.log(`🚨 Critical change detected: ${shouldTriggerAI.reason}`);
+        systemState.triggerAIActivation(shouldTriggerAI.reason);
+      }
+    }
+    
+    // 시스템이 활성화된 경우에만 데이터베이스 저장
+    if (systemState.canStartDataCollection()) {
       server.metrics = newMetrics;
       await this.saveMetricsToDatabase(server);
     }
     
     return newMetrics;
+  }
+
+  /**
+   * 중요한 변화 감지 (AI 자동 활성화 트리거)
+   */
+  private detectCriticalChanges(oldMetrics: ServerMetrics, newMetrics: ServerMetrics): { trigger: boolean; reason: string } {
+    const thresholds = {
+      cpu: 20,      // CPU 20% 이상 급변
+      memory: 15,   // Memory 15% 이상 급변
+      disk: 10,     // Disk 10% 이상 급변
+      critical: {
+        cpu: 90,    // CPU 90% 이상
+        memory: 95, // Memory 95% 이상
+        disk: 95    // Disk 95% 이상
+      }
+    };
+
+    // 급격한 변화 감지
+    const cpuChange = Math.abs(newMetrics.cpu - oldMetrics.cpu);
+    const memoryChange = Math.abs(newMetrics.memory - oldMetrics.memory);
+    const diskChange = Math.abs(newMetrics.disk - oldMetrics.disk);
+
+    if (cpuChange >= thresholds.cpu) {
+      return { trigger: true, reason: `CPU 급변 감지: ${oldMetrics.cpu}% → ${newMetrics.cpu}%` };
+    }
+
+    if (memoryChange >= thresholds.memory) {
+      return { trigger: true, reason: `Memory 급변 감지: ${oldMetrics.memory}% → ${newMetrics.memory}%` };
+    }
+
+    if (diskChange >= thresholds.disk) {
+      return { trigger: true, reason: `Disk 급변 감지: ${oldMetrics.disk}% → ${newMetrics.disk}%` };
+    }
+
+    // 임계값 초과 감지
+    if (newMetrics.cpu >= thresholds.critical.cpu) {
+      return { trigger: true, reason: `CPU 임계값 초과: ${newMetrics.cpu}%` };
+    }
+
+    if (newMetrics.memory >= thresholds.critical.memory) {
+      return { trigger: true, reason: `Memory 임계값 초과: ${newMetrics.memory}%` };
+    }
+
+    if (newMetrics.disk >= thresholds.critical.disk) {
+      return { trigger: true, reason: `Disk 임계값 초과: ${newMetrics.disk}%` };
+    }
+
+    // 네트워크 이상 감지
+    if (newMetrics.network && oldMetrics.network) {
+      const latencyIncrease = newMetrics.network.latency - oldMetrics.network.latency;
+      if (latencyIncrease > 100) { // 100ms 이상 증가
+        return { trigger: true, reason: `네트워크 지연 급증: +${latencyIncrease.toFixed(1)}ms` };
+      }
+    }
+
+    return { trigger: false, reason: '' };
   }
 
   /**

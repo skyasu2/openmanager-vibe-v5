@@ -1,10 +1,10 @@
 /**
- * Power Management API
+ * System Control API
  * 
- * 🔋 시스템 절전 모드 제어 API
- * - 절전 모드 전환
- * - 에너지 효율성 최적화
- * - 배터리 수명 관리
+ * 🔋 시스템 전체 제어 API
+ * - 20분 타이머 기반 활성화
+ * - 평상시 완전 정지
+ * - AI 에이전트 자동 감지 시작
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -13,67 +13,80 @@ import { serverDataCollector } from '../../../services/collectors/ServerDataColl
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { mode, energyLevel } = body;
+    const { action, duration } = body;
 
-    if (!mode || !['sleep', 'active', 'monitoring', 'emergency'].includes(mode)) {
+    if (!action || !['start', 'stop', 'extend'].includes(action)) {
       return NextResponse.json(
-        { error: '유효하지 않은 절전 모드입니다. (sleep, active, monitoring, emergency 중 선택)' },
+        { error: '유효하지 않은 액션입니다. (start, stop, extend 중 선택)' },
         { status: 400 }
       );
     }
 
-    console.log(`🔋 Switching to power mode: ${mode}`);
+    console.log(`🔋 System control action: ${action}`);
 
-    // 서버 데이터 수집기 절전 모드 설정
-    serverDataCollector.setPowerMode(mode);
+    switch (action) {
+      case 'start':
+        const sessionDuration = duration || 20 * 60; // 기본 20분
+        
+        // 데이터 수집기 시작
+        await serverDataCollector.startCollection();
+        
+        console.log(`🚀 System started for ${sessionDuration / 60} minutes`);
+        
+        return NextResponse.json({
+          success: true,
+          message: `시스템이 ${sessionDuration / 60}분간 활성화되었습니다.`,
+          data: {
+            action: 'start',
+            duration: sessionDuration,
+            endTime: new Date(Date.now() + sessionDuration * 1000).toISOString(),
+            timestamp: new Date().toISOString()
+          }
+        });
 
-    // 모드별 설정
-    const modeConfig = {
-      sleep: {
-        collectionInterval: 300000, // 5분
-        description: '최소 전력 소모 모드',
-        batteryLife: '24시간+',
-        features: ['백그라운드 모니터링 최소화', '데이터 수집 일시 중단', 'AI 에이전트 대기']
-      },
-      monitoring: {
-        collectionInterval: 120000, // 2분
-        description: '균형 모니터링 모드',
-        batteryLife: '12시간',
-        features: ['제한적 실시간 모니터링', '중요 알림만 처리', '성능 최적화']
-      },
-      active: {
-        collectionInterval: 30000, // 30초
-        description: '전체 기능 활성화',
-        batteryLife: '8시간',
-        features: ['실시간 모니터링', 'AI 분석 활성화', '모든 기능 사용 가능']
-      },
-      emergency: {
-        collectionInterval: 600000, // 10분
-        description: '비상 절전 모드',
-        batteryLife: '48시간+',
-        features: ['핵심 기능만 유지', '최소 데이터 수집', '긴급 알림만 처리']
-      }
-    };
+      case 'stop':
+        // 데이터 수집기 중지
+        await serverDataCollector.stopCollection();
+        
+        console.log('🛑 System stopped');
+        
+        return NextResponse.json({
+          success: true,
+          message: '시스템이 중지되었습니다.',
+          data: {
+            action: 'stop',
+            timestamp: new Date().toISOString()
+          }
+        });
 
-    const currentConfig = modeConfig[mode as keyof typeof modeConfig];
+      case 'extend':
+        const extensionTime = duration || 10 * 60; // 기본 10분 연장
+        
+        console.log(`⏱️ System extended by ${extensionTime / 60} minutes`);
+        
+        return NextResponse.json({
+          success: true,
+          message: `시스템이 ${extensionTime / 60}분 연장되었습니다.`,
+          data: {
+            action: 'extend',
+            extensionTime,
+            timestamp: new Date().toISOString()
+          }
+        });
 
-    return NextResponse.json({
-      success: true,
-      message: `절전 모드가 ${mode}로 변경되었습니다.`,
-      data: {
-        mode,
-        energyLevel: energyLevel || 'medium',
-        config: currentConfig,
-        timestamp: new Date().toISOString()
-      }
-    });
+      default:
+        return NextResponse.json(
+          { error: '지원하지 않는 액션입니다.' },
+          { status: 400 }
+        );
+    }
 
   } catch (error) {
-    console.error('❌ Power mode change failed:', error);
+    console.error('❌ System control failed:', error);
     
     return NextResponse.json({
       success: false,
-      error: '절전 모드 변경에 실패했습니다.',
+      error: '시스템 제어에 실패했습니다.',
       message: error instanceof Error ? error.message : '알 수 없는 오류'
     }, { status: 500 });
   }
@@ -83,41 +96,43 @@ export async function GET() {
   try {
     const stats = serverDataCollector.getCollectionStats();
     
-    // 현재 절전 모드 추정 (수집 간격 기반)
-    let currentMode = 'active';
-    const interval = stats.config.collectionInterval;
-    
-    if (interval >= 600000) currentMode = 'emergency';
-    else if (interval >= 300000) currentMode = 'sleep';
-    else if (interval >= 120000) currentMode = 'monitoring';
-    else currentMode = 'active';
+    // 현재 시스템 상태 확인
+    const isSystemActive = stats.isCollecting;
+    const currentState = isSystemActive ? 'active' : 'stopped';
 
     return NextResponse.json({
       success: true,
       data: {
-        currentMode,
-        collectionInterval: interval,
+        state: currentState,
+        isActive: isSystemActive,
         isCollecting: stats.isCollecting,
         lastUpdate: stats.lastCollectionTime.toISOString(),
         errors: stats.collectionErrors,
-        powerStatus: {
-          estimatedBatteryLife: currentMode === 'emergency' ? '48시간+' :
-                               currentMode === 'sleep' ? '24시간+' :
-                               currentMode === 'monitoring' ? '12시간' : '8시간',
-          energyEfficiency: currentMode === 'emergency' ? 'maximum' :
-                           currentMode === 'sleep' ? 'high' :
-                           currentMode === 'monitoring' ? 'medium' : 'standard'
+        totalServers: stats.totalServers,
+        systemInfo: {
+          description: isSystemActive ? '시스템 활성화됨' : '시스템 정지됨',
+          features: isSystemActive ? [
+            '실시간 서버 모니터링',
+            'AI 에이전트 활성화',
+            '데이터 수집 진행중',
+            '대시보드 접근 가능'
+          ] : [
+            '모든 기능 정지',
+            'AI 에이전트만 감지 대기',
+            '데이터 수집 중단',
+            '절전 모드'
+          ]
         }
       },
       timestamp: new Date().toISOString()
     });
 
   } catch (error) {
-    console.error('❌ Failed to get power status:', error);
+    console.error('❌ Failed to get system status:', error);
     
     return NextResponse.json({
       success: false,
-      error: '절전 상태 조회에 실패했습니다.',
+      error: '시스템 상태 조회에 실패했습니다.',
       message: error instanceof Error ? error.message : '알 수 없는 오류'
     }, { status: 500 });
   }
