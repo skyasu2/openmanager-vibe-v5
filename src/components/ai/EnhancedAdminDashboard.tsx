@@ -217,29 +217,6 @@ export default function EnhancedAdminDashboard() {
     }
   };
 
-  const handleUserFeedback = async (interactionId: string, rating: number, feedback?: string) => {
-    try {
-      const response = await fetch('/api/ai-agent/admin/logs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'update-feedback',
-          data: { interactionId, rating, feedback },
-          sessionId
-        })
-      });
-      
-      const result = await response.json();
-      if (result.success) {
-        loadDashboardData(); // 데이터 새로고침
-      } else {
-        setError(result.error);
-      }
-    } catch {
-      setError('피드백 업데이트 실패');
-    }
-  };
-
   const handleAdminVerification = async (interactionId: string, isCorrect: boolean, adminNotes?: string) => {
     try {
       const response = await fetch('/api/ai-agent/admin/logs', {

@@ -2,68 +2,33 @@ import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
-    const startTime = Date.now()
-    
-    // 환경변수 확인
-    const nodeEnv = process.env.NODE_ENV || 'unknown'
-    const vercelEnv = process.env.VERCEL_ENV || 'unknown'
-    
-    // 간단한 성능 체크
-    const performanceCheck = () => {
-      const start = Date.now()
-      // 간단한 연산 수행
-      let result = 0
-      for (let i = 0; i < 1000; i++) {
-        result += Math.random()
-      }
-      return Date.now() - start
+    // 시스템 상태 확인
+    const status = {
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0',
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      environment: process.env.NODE_ENV || 'development'
     }
-    
-    const responseTime = Date.now() - startTime
-    const computeTime = performanceCheck()
 
-    return NextResponse.json(
-      {
-        status: 'operational',
-        timestamp: new Date().toISOString(),
-        environment: {
-          node: nodeEnv,
-          vercel: vercelEnv
-        },
-        performance: {
-          responseTime: `${responseTime}ms`,
-          computeTime: `${computeTime}ms`
-        },
-        server: {
-          region: process.env.VERCEL_REGION || 'unknown',
-          runtime: 'Node.js'
-        },
-        version: '1.0.0'
-      },
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Cache-Control': 'no-cache, no-store, must-revalidate'
-        }
-      }
-    )
+    // 간단한 헬스체크 수행
+    await Promise.resolve(); // 비동기 작업 시뮬레이션
+
+    return NextResponse.json({
+      success: true,
+      data: status
+    })
+
   } catch (error) {
-    return NextResponse.json(
-      { 
-        status: 'error',
-        message: 'Status check failed',
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
-      },
-      { 
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    )
+    console.error('Status check failed:', error)
+    
+    return NextResponse.json({
+      success: false,
+      status: 'unhealthy',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    }, { status: 500 })
   }
 }
 

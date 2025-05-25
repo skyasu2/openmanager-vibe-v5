@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useDemoStore } from '../../stores/demoStore';
 
 interface DemoScenario {  id: string;  delay: number;  type: 'user' | 'ai';  content: string;  actions?: {    highlightServers?: string[];    showServerDetail?: string;    updateMetrics?: { serverId: string; metrics: { cpu?: number; memory?: number; disk?: number; network?: number } }[];    showChart?: boolean;    actionButtons?: string[];  };}
@@ -109,6 +109,34 @@ export default function AutoDemoScenario() {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // executeActions 함수를 useCallback으로 최적화
+  const executeActions = useCallback((actions: DemoScenario['actions']) => {
+    if (!actions) return;
+
+    // 서버 하이라이트
+    if (actions.highlightServers) {
+      clearHighlights();
+      setTimeout(() => {
+        highlightServers(actions.highlightServers!);
+      }, 100);
+    }
+
+    // 서버 상세 정보 표시
+    if (actions.showServerDetail) {
+      const server = servers.find(s => s.id === actions.showServerDetail);
+      if (server) {
+        selectServer(server);
+      }
+    }
+
+    // 메트릭 업데이트
+    if (actions.updateMetrics) {
+      actions.updateMetrics.forEach(({ serverId, metrics }) => {
+        updateServerMetrics(serverId, metrics);
+      });
+    }
+  }, [clearHighlights, highlightServers, selectServer, servers, updateServerMetrics]);
+
   useEffect(() => {
     if (!isAutoDemo || currentScenarioIndex >= demoScenarios.length) return;
 
@@ -155,34 +183,7 @@ export default function AutoDemoScenario() {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
-  }, [isAutoDemo, currentScenarioIndex, addMessage, setTyping, nextScenario]);
-
-  const executeActions = (actions: DemoScenario['actions']) => {
-    if (!actions) return;
-
-    // 서버 하이라이트
-    if (actions.highlightServers) {
-      clearHighlights();
-      setTimeout(() => {
-        highlightServers(actions.highlightServers!);
-      }, 100);
-    }
-
-    // 서버 상세 정보 표시
-    if (actions.showServerDetail) {
-      const server = servers.find(s => s.id === actions.showServerDetail);
-      if (server) {
-        selectServer(server);
-      }
-    }
-
-    // 메트릭 업데이트
-    if (actions.updateMetrics) {
-      actions.updateMetrics.forEach(({ serverId, metrics }) => {
-        updateServerMetrics(serverId, metrics);
-      });
-    }
-  };
+  }, [isAutoDemo, currentScenarioIndex, addMessage, setTyping, nextScenario, executeActions]);
 
   // 자동 데모 시작 (컴포넌트 마운트 후 3초 뒤)
   useEffect(() => {
@@ -193,7 +194,13 @@ export default function AutoDemoScenario() {
     return () => clearTimeout(startTimeout);
   }, []);
 
-    // 자동 하이라이트 해제 (10초 후)  useEffect(() => {    const highlightTimeout = setTimeout(() => {      clearHighlights();    }, 10000);    return () => clearTimeout(highlightTimeout);  }, [clearHighlights]);
+  // 자동 하이라이트 해제 (10초 후)
+  useEffect(() => {
+    const highlightTimeout = setTimeout(() => {
+      clearHighlights();
+    }, 10000);
+    return () => clearTimeout(highlightTimeout);
+  }, [clearHighlights]);
 
   return null; // 이 컴포넌트는 UI를 렌더링하지 않습니다
 } 

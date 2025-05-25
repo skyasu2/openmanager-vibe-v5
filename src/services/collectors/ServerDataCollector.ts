@@ -293,7 +293,6 @@ export class ServerDataCollector {
     console.log('🔍 AI health check...');
     
     const servers = Array.from(this.servers.values());
-    let significantChanges = 0;
     let hasDataActivity = false;
 
     for (const server of servers) {
@@ -329,9 +328,7 @@ export class ServerDataCollector {
         server.lastUpdate = new Date();
       }
 
-      if (changeDetection.trigger) {
-        significantChanges++;
-      }
+      // significantChanges 변수는 사용하지 않으므로 제거
     }
 
     // 데이터 활동이 있으면 비활성 타이머 리셋
