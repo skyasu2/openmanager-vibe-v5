@@ -236,7 +236,7 @@ export class ThinkingProcessor {
       }
     ];
 
-    if (mode === 'enterprise' || mode === 'advanced') {
+    if (mode === 'advanced') {
       baseSteps.push(
         {
           type: 'processing',

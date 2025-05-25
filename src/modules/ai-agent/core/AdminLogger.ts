@@ -19,7 +19,7 @@ export interface AIInteractionLog {
   // 요청 정보
   query: string;
   queryType: string;
-  mode: 'basic' | 'enterprise';
+  mode: 'basic' | 'advanced';
   powerMode: 'active' | 'idle' | 'sleep';
   
   // 응답 정보
@@ -65,7 +65,7 @@ export interface ErrorLog {
   
   // 컨텍스트 정보
   query?: string;
-  mode?: 'basic' | 'enterprise';
+  mode?: 'basic' | 'advanced';
   step?: string;
   
   // 시스템 상태
@@ -94,7 +94,7 @@ export interface PerformanceMetrics {
   
   // 모드별 메트릭
   basicModeRequests: number;
-  enterpriseModeRequests: number;
+  advancedModeRequests: number;
   
   // 성능 메트릭
   averageThinkingTime: number;
@@ -123,7 +123,7 @@ export interface AdminStats {
   // 모드별 통계
   modeStats: {
     basic: { count: number; avgResponseTime: number; successRate: number };
-    enterprise: { count: number; avgResponseTime: number; successRate: number };
+    advanced: { count: number; avgResponseTime: number; successRate: number };
   };
   
   // 에러 통계
@@ -234,7 +234,7 @@ export class AdminLogger {
     
     // 모드별 통계
     const basicLogs = this.interactionLogs.filter(log => log.mode === 'basic');
-    const enterpriseLogs = this.interactionLogs.filter(log => log.mode === 'enterprise');
+    const advancedLogs = this.interactionLogs.filter(log => log.mode === 'advanced');
     
     // 에러 통계
     const errorsByType: Record<string, number> = {};
@@ -285,10 +285,10 @@ export class AdminLogger {
           avgResponseTime: Math.round(basicLogs.reduce((sum, log) => sum + log.responseTime, 0) / (basicLogs.length || 1)),
           successRate: Math.round((basicLogs.filter(log => log.success).length / (basicLogs.length || 1)) * 10000) / 100
         },
-        enterprise: {
-          count: enterpriseLogs.length,
-          avgResponseTime: Math.round(enterpriseLogs.reduce((sum, log) => sum + log.responseTime, 0) / (enterpriseLogs.length || 1)),
-          successRate: Math.round((enterpriseLogs.filter(log => log.success).length / (enterpriseLogs.length || 1)) * 10000) / 100
+        advanced: {
+          count: advancedLogs.length,
+          avgResponseTime: Math.round(advancedLogs.reduce((sum, log) => sum + log.responseTime, 0) / (advancedLogs.length || 1)),
+          successRate: Math.round((advancedLogs.filter(log => log.success).length / (advancedLogs.length || 1)) * 10000) / 100
         }
       },
       
@@ -314,7 +314,7 @@ export class AdminLogger {
     limit?: number;
     offset?: number;
     userId?: string;
-    mode?: 'basic' | 'enterprise';
+    mode?: 'basic' | 'advanced';
     success?: boolean;
     startTime?: number;
     endTime?: number;
@@ -493,7 +493,7 @@ export class AdminLogger {
     const successfulLogs = recentLogs.filter(log => log.success);
     
     const basicLogs = recentLogs.filter(log => log.mode === 'basic');
-    const enterpriseLogs = recentLogs.filter(log => log.mode === 'enterprise');
+    const advancedLogs = recentLogs.filter(log => log.mode === 'advanced');
     
     const avgResponseTime = recentLogs.length > 0
       ? recentLogs.reduce((sum, log) => sum + log.responseTime, 0) / recentLogs.length
@@ -513,7 +513,7 @@ export class AdminLogger {
       failedRequests: recentLogs.length - successfulLogs.length,
       averageResponseTime: Math.round(avgResponseTime),
       basicModeRequests: basicLogs.length,
-      enterpriseModeRequests: enterpriseLogs.length,
+      advancedModeRequests: advancedLogs.length,
       averageThinkingTime: Math.round(avgThinkingTime),
       cacheHitRate: Math.round(cacheHitRate * 100) / 100,
       memoryUsage: process.memoryUsage ? process.memoryUsage().heapUsed / 1024 / 1024 : 0,

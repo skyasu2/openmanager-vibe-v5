@@ -18,6 +18,7 @@ import { ModePrompts } from '../prompts/ModePrompts';
 import { AIAgentMode, QueryAnalysis } from './SmartModeDetector';
 import { ThinkingProcessor } from './ThinkingProcessor';
 import { AdminLogger } from './AdminLogger';
+import { aiDatabase } from '../../../lib/database';
 
 export interface EnhancedAIAgentConfig {
   enableMCP: boolean;
@@ -159,6 +160,7 @@ export class EnhancedAIAgentEngine {
   async processSmartQuery(request: EnhancedAIAgentRequest): Promise<EnhancedAIAgentResponse> {
     const startTime = Date.now();
     const sessionId = request.sessionId || this.generateSessionId();
+    let analysis: QueryAnalysis | undefined;
 
     try {
       if (!this.isInitialized) {
@@ -166,7 +168,6 @@ export class EnhancedAIAgentEngine {
       }
 
       // 1. 쿼리 분석 및 자동 모드 선택 (강제 모드가 지정되지 않은 경우)
-      let analysis: QueryAnalysis;
       if (request.forceMode) {
         this.modeManager.setMode(request.forceMode);
         analysis = {
@@ -218,11 +219,22 @@ export class EnhancedAIAgentEngine {
       if (this.config.enableAdminLogging) {
         this.adminLogger.logInteraction({
           sessionId,
+          userId: request.userId,
           query: request.query,
+          queryType: result.intent.name,
           mode: analysis.detectedMode,
-          success: result.success,
+          powerMode: 'active',
+          response: result.response,
           responseTime: processingTime,
-          intent: result.intent
+          success: result.success,
+          intent: result.intent,
+          thinkingSessionId,
+          metadata: {
+            serverData: request.serverData,
+            contextLength: JSON.stringify(result.context).length,
+            cacheHit: false,
+            pluginsUsed: []
+          }
         });
       }
 
@@ -247,9 +259,18 @@ export class EnhancedAIAgentEngine {
       if (this.config.enableAdminLogging) {
         this.adminLogger.logError({
           sessionId,
-          errorType: 'processing_error',
+          userId: request.userId,
+          errorType: 'processing',
           errorMessage: error instanceof Error ? error.message : '알 수 없는 오류',
-          query: request.query
+          errorStack: error instanceof Error ? error.stack : undefined,
+          query: request.query,
+          mode: analysis?.detectedMode || 'basic',
+          systemInfo: {
+            memoryUsage: process.memoryUsage ? process.memoryUsage().heapUsed / 1024 / 1024 : 0,
+            activeSessions: 1,
+            powerMode: 'active'
+          },
+          recovered: false
         });
       }
       
@@ -310,7 +331,7 @@ export class EnhancedAIAgentEngine {
     analysis: QueryAnalysis, 
     sessionId: string,
     maxTime: number
-  ): Promise<Omit<EnhancedAIAgentResponse, 'mode' | 'analysis' | 'metadata'>> {
+  ): Promise<Omit<EnhancedAIAgentResponse, 'mode' | 'analysis'>> {
     // 시간 제한 적용
     const timeout = new Promise<never>((_, reject) => 
       setTimeout(() => reject(new Error('Advanced mode timeout')), maxTime)
@@ -329,7 +350,7 @@ export class EnhancedAIAgentEngine {
     request: EnhancedAIAgentRequest, 
     analysis: QueryAnalysis, 
     sessionId: string
-  ): Promise<Omit<EnhancedAIAgentResponse, 'mode' | 'analysis' | 'metadata'>> {
+  ): Promise<Omit<EnhancedAIAgentResponse, 'mode' | 'analysis'>> {
     // 1. 컨텍스트 로드
     const context = await this.contextManager.loadContext(sessionId, request.context);
     
@@ -378,7 +399,7 @@ export class EnhancedAIAgentEngine {
     request: EnhancedAIAgentRequest, 
     analysis: QueryAnalysis, 
     sessionId: string
-  ): Promise<Omit<EnhancedAIAgentResponse, 'mode' | 'analysis' | 'metadata'>> {
+  ): Promise<Omit<EnhancedAIAgentResponse, 'mode' | 'analysis'>> {
     // 1. 컨텍스트 로드
     const context = await this.contextManager.loadContext(sessionId, request.context);
     

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import ServerDashboard from '../../components/dashboard/ServerDashboard';
 import AgentPanel from '../../components/ai/AgentPanel';
 import AgentPanelMobile from '../../components/ai/AgentPanelMobile';
+import ProfileDropdown from '../../components/ui/ProfileDropdown';
 import { usePowerStore } from '../../stores/powerStore';
 
 export default function DashboardPage() {
@@ -165,9 +166,7 @@ export default function DashboardPage() {
               <button className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center transition-colors">
                 <i className="fas fa-bell text-gray-600 text-sm bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent"></i>
               </button>
-              <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <i className="fas fa-user text-white text-sm"></i>
-              </div>
+              <ProfileDropdown />
             </div>
           </div>
         </div>

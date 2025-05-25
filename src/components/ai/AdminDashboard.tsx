@@ -17,7 +17,15 @@ import {
   Settings,
   TrendingUp,
   Users,
-  Zap
+  Zap,
+  Shield,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Star,
+  Database,
+  FileText,
+  Lock
 } from 'lucide-react';
 
 interface AdminStats {

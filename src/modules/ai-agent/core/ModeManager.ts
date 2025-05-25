@@ -7,7 +7,7 @@
  * - 성능 최적화 및 리소스 관리
  */
 
-export type AIAgentMode = 'basic' | 'enterprise';
+export type AIAgentMode = 'basic' | 'advanced';
 export type PowerMode = 'active' | 'idle' | 'sleep';
 
 export interface ModeConfig {
@@ -22,8 +22,8 @@ export interface ModeConfig {
     maxProcessingTime: number;
   };
   
-  // 엔터프라이즈 모드 설정
-  enterprise: {
+  // 고급 모드 설정
+  advanced: {
     maxContextLength: number;
     responseDepth: 'standard' | 'deep' | 'comprehensive';
     enableAdvancedAnalysis: boolean;
@@ -110,7 +110,7 @@ export class ModeManager {
    * 모드별 설정 조회
    */
   getModeConfig(): ModeConfig[AIAgentMode] {
-    return this.currentMode === 'basic' ? this.config.basic : this.config.enterprise;
+    return this.currentMode === 'basic' ? this.config.basic : this.config.advanced;
   }
 
   /**
@@ -288,10 +288,10 @@ export class ModeManager {
     
     // 사용 패턴 분석
     if (metrics.queryCount > 100 && this.currentMode === 'basic') {
-      recommendations.push('높은 사용량으로 인해 엔터프라이즈 모드 권장');
+      recommendations.push('높은 사용량으로 인해 고급 모드 권장');
     }
     
-    if (metrics.queryCount < 10 && this.currentMode === 'enterprise') {
+    if (metrics.queryCount < 10 && this.currentMode === 'advanced') {
       recommendations.push('낮은 사용량으로 인해 베이직 모드로 전환 권장');
     }
     
@@ -328,7 +328,7 @@ export const createDefaultModeConfig = (): ModeConfig => ({
     maxProcessingTime: 3000
   },
   
-  enterprise: {
+  advanced: {
     maxContextLength: 8192,
     responseDepth: 'comprehensive',
     enableAdvancedAnalysis: true,
@@ -362,7 +362,7 @@ export const ResponseStyles = {
     }
   },
   
-  enterprise: {
+  advanced: {
     standard: {
       maxLength: 500,
       format: 'detailed',

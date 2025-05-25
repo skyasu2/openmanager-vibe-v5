@@ -42,9 +42,9 @@ export type { ThinkingStep, ThinkingSession, ThinkingCallback } from './core/Thi
 
 export { AdminLogger } from './core/AdminLogger';
 export type { 
-  AIInteractionLog, 
-  AIErrorLog, 
-  AdminStats 
+  AIInteractionLog,
+  ErrorLog,
+  AdminStats
 } from './core/AdminLogger';
 
 // Configuration System
@@ -60,6 +60,8 @@ export type {
   AIAgentEnvironmentConfig,
   AIAgentAdapterConfig
 } from './config';
+
+
 
 // Adapter System
 export {
@@ -90,8 +92,7 @@ export {
 export type {
   Plugin,
   PluginManifest,
-  PluginContext,
-  AIAgentPlugin
+  PluginContext
 } from './plugins';
 
 // Version and Metadata
@@ -119,23 +120,25 @@ export const AI_AGENT_NAME = '@openmanager/ai-agent';
 export const createAIAgent = async (options: any = {}) => {
   try {
     // 환경별 기본 설정 생성
+    const { createDefaultConfig, detectEnvironment } = await import('./config');
     const envConfig = options.environment 
       ? createDefaultConfig(options)
       : detectEnvironment();
     
     // AI 에이전트 엔진 설정 변환
-    const agentConfig: AIAgentConfig = {
+    const agentConfig = {
       enableMCP: envConfig.engine.enableMCP,
       enableNPU: envConfig.engine.enableNPU,
       maxContextLength: envConfig.engine.maxContextLength,
       responseTimeout: envConfig.runtime.timeout,
       debugMode: envConfig.runtime.logLevel === 'debug',
-      mode: 'basic',
+      mode: 'basic' as const,
       enableThinking: true,
       enableAdminLogging: envConfig.runtime.enableLogging
     };
     
     // AI 에이전트 엔진 인스턴스 생성
+    const { AIAgentEngine } = await import('./core/AIAgentEngine');
     const aiAgent = AIAgentEngine.getInstance(agentConfig);
     
     // 초기화
@@ -172,18 +175,19 @@ export const createMobileAIAgent = async (options: any = {}) => {
  * 실제 환경에서 바로 사용 가능한 완전한 기능 제공
  */
 export const createProductionAIAgent = async (options: any = {}) => {
-  const productionConfig: AIAgentConfig = {
+  const productionConfig = {
     enableMCP: true,           // 완전한 MCP 프로토콜 지원
     enableNPU: true,           // NPU 시뮬레이션 활성화
     maxContextLength: 4096,    // 충분한 컨텍스트 길이
     responseTimeout: 10000,    // 안정적인 타임아웃
     debugMode: false,          // 프로덕션 모드
-    mode: 'advanced',          // 고급 모드
+    mode: 'advanced' as const,          // 고급 모드
     enableThinking: true,      // 완전한 사고 과정
     enableAdminLogging: true,  // 완전한 로깅
     ...options
   };
   
+  const { AIAgentEngine } = await import('./core/AIAgentEngine');
   const aiAgent = AIAgentEngine.getInstance(productionConfig);
   await aiAgent.initialize();
   
