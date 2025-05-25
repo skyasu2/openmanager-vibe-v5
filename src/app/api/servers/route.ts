@@ -8,18 +8,109 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { serverDataCollector } from '../../../services/collectors/ServerDataCollector';
 
-// 데이터 수집기 초기화 (한 번만 실행)
-let isInitialized = false;
+// 간단한 테스트 서버 데이터 생성
+function generateTestServers() {
+  const serverTypes = ['API', 'Database', 'Web', 'Cache', 'Worker'];
+  const locations = ['US-East-1', 'US-West-2', 'EU-Central-1', 'AP-Tokyo-1', 'AP-Seoul-1'];
+  const providers = ['aws', 'azure', 'gcp', 'kubernetes', 'onpremise'];
+  const environments = ['production', 'staging', 'development'];
+  
+  const servers = [];
+  
+  for (let i = 1; i <= 15; i++) {
+    const serverNum = String(i).padStart(3, '0');
+    const type = serverTypes[Math.floor(Math.random() * serverTypes.length)];
+    const location = locations[Math.floor(Math.random() * locations.length)];
+    const provider = providers[Math.floor(Math.random() * providers.length)];
+    const environment = environments[Math.floor(Math.random() * environments.length)];
+    
+    // 일부 서버는 의도적으로 문제 상태로 설정
+    let status = 'online';
+    let cpu = Math.floor(Math.random() * 60) + 10; // 10-70%
+    let memory = Math.floor(Math.random() * 50) + 30; // 30-80%
+    
+    if (i === 1) { // 첫 번째 서버는 높은 CPU 사용률
+      status = 'critical';
+      cpu = 89;
+      memory = 76;
+    } else if (i <= 4) { // 몇 개는 경고 상태
+      status = 'warning';
+      cpu = Math.floor(Math.random() * 20) + 70; // 70-90%
+    }
 
-async function initializeCollector() {
-  if (!isInitialized) {
-    console.log('🚀 Initializing server data collector...');
-    await serverDataCollector.startCollection();
-    isInitialized = true;
-    console.log('✅ Server data collector initialized');
+    servers.push({
+      id: `server-${serverNum}`,
+      hostname: `${type.toLowerCase()}-${location.toLowerCase().replace('-', '')}-${serverNum}`,
+      ipAddress: `10.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+      status,
+      location,
+      environment,
+      provider,
+      instanceType: provider === 'aws' ? 't3.medium' : provider === 'kubernetes' ? 'worker-node' : 'standard',
+      cluster: provider === 'kubernetes' ? 'production-cluster' : undefined,
+      zone: location.split('-').pop(),
+      tags: {
+        team: ['devops', 'backend', 'frontend', 'data'][Math.floor(Math.random() * 4)],
+        project: ['web-app', 'api-service', 'data-pipeline', 'monitoring'][Math.floor(Math.random() * 4)],
+        cost_center: ['engineering', 'product', 'infrastructure'][Math.floor(Math.random() * 3)]
+      },
+      metrics: {
+        cpu,
+        memory,
+        disk: Math.floor(Math.random() * 40) + 40, // 40-80%
+        network: {
+          bytesIn: Math.floor(Math.random() * 1000000),
+          bytesOut: Math.floor(Math.random() * 1000000),
+          packetsIn: Math.floor(Math.random() * 10000),
+          packetsOut: Math.floor(Math.random() * 10000),
+          latency: Math.floor(Math.random() * 50) + 1,
+          connections: Math.floor(Math.random() * 100) + 10
+        },
+        processes: Math.floor(Math.random() * 200) + 50,
+        loadAverage: [
+          Math.random() * 4,
+          Math.random() * 4,
+          Math.random() * 4
+        ],
+        uptime: Math.floor(Math.random() * 365 * 24 * 3600), // 초 단위
+        temperature: Math.floor(Math.random() * 30) + 40, // 40-70도
+        powerUsage: Math.floor(Math.random() * 200) + 100 // 100-300W
+      },
+      lastUpdate: new Date().toISOString(),
+      lastSeen: new Date().toISOString(),
+      alerts: status !== 'online' ? [{
+        id: `alert-${i}`,
+        severity: status === 'critical' ? 'critical' : 'medium',
+        type: 'cpu',
+        message: status === 'critical' ? 'CPU 사용률이 매우 높습니다' : 'CPU 사용률이 높습니다',
+        timestamp: new Date().toISOString(),
+        acknowledged: false
+      }] : [],
+      services: [
+        {
+          name: 'nginx',
+          status: 'running',
+          port: 80,
+          pid: Math.floor(Math.random() * 10000) + 1000,
+          uptime: Math.floor(Math.random() * 86400),
+          memoryUsage: Math.floor(Math.random() * 100) + 50,
+          cpuUsage: Math.floor(Math.random() * 10) + 1
+        },
+        {
+          name: type.toLowerCase(),
+          status: status === 'critical' ? 'failed' : 'running',
+          port: type === 'Database' ? 5432 : type === 'API' ? 8080 : 3000,
+          pid: Math.floor(Math.random() * 10000) + 1000,
+          uptime: Math.floor(Math.random() * 86400),
+          memoryUsage: Math.floor(Math.random() * 200) + 100,
+          cpuUsage: Math.floor(Math.random() * 20) + 5
+        }
+      ]
+    });
   }
+  
+  return servers;
 }
 
 /**
@@ -28,9 +119,8 @@ async function initializeCollector() {
  */
 export async function GET(request: NextRequest) {
   try {
-    // 데이터 수집기 초기화
-    await initializeCollector();
-
+    console.log('🔄 Generating test server data...');
+    
     const { searchParams } = new URL(request.url);
     
     // 쿼리 파라미터 파싱
@@ -40,12 +130,9 @@ export async function GET(request: NextRequest) {
     const location = searchParams.get('location');
     const limit = searchParams.get('limit');
     const offset = searchParams.get('offset');
-    const includeMetrics = searchParams.get('includeMetrics') !== 'false';
-    const includeAlerts = searchParams.get('includeAlerts') !== 'false';
-    const includeServices = searchParams.get('includeServices') !== 'false';
 
-    // 서버 데이터 조회
-    let servers = serverDataCollector.getAllServers();
+    // 테스트 서버 데이터 생성
+    let servers = generateTestServers();
 
     // 필터링 적용
     if (status) {
@@ -67,7 +154,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 정렬 (최근 업데이트 순)
-    servers.sort((a, b) => b.lastUpdate.getTime() - a.lastUpdate.getTime());
+    servers.sort((a, b) => new Date(b.lastUpdate).getTime() - new Date(a.lastUpdate).getTime());
 
     // 페이지네이션
     const totalCount = servers.length;
@@ -78,46 +165,20 @@ export async function GET(request: NextRequest) {
       servers = servers.slice(offsetNum, offsetNum + limitNum);
     }
 
-    // 응답 데이터 구성
-    const responseData = servers.map(server => {
-      const serverData: any = {
-        id: server.id,
-        hostname: server.hostname,
-        ipAddress: server.ipAddress,
-        status: server.status,
-        location: server.location,
-        environment: server.environment,
-        provider: server.provider,
-        instanceType: server.instanceType,
-        cluster: server.cluster,
-        zone: server.zone,
-        tags: server.tags,
-        lastUpdate: server.lastUpdate.toISOString(),
-        lastSeen: server.lastSeen.toISOString()
-      };
-
-      if (includeMetrics) {
-        serverData.metrics = server.metrics;
-      }
-
-      if (includeAlerts) {
-        serverData.alerts = server.alerts;
-      }
-
-      if (includeServices) {
-        serverData.services = server.services;
-      }
-
-      return serverData;
-    });
-
     // 통계 정보
-    const stats = serverDataCollector.getServerStats();
-    const collectionStats = serverDataCollector.getCollectionStats();
+    const stats = {
+      total: totalCount,
+      online: servers.filter(s => s.status === 'online').length,
+      warning: servers.filter(s => s.status === 'warning').length,
+      critical: servers.filter(s => s.status === 'critical').length,
+      offline: servers.filter(s => s.status === 'offline').length
+    };
+
+    console.log(`✅ Generated ${servers.length} test servers`);
 
     return NextResponse.json({
       success: true,
-      data: responseData,
+      data: servers,
       pagination: {
         total: totalCount,
         offset: offsetNum,
@@ -127,16 +188,16 @@ export async function GET(request: NextRequest) {
       stats: {
         ...stats,
         collection: {
-          isActive: collectionStats.isCollecting,
-          lastUpdate: collectionStats.lastCollectionTime.toISOString(),
-          errors: collectionStats.collectionErrors
+          isActive: true,
+          lastUpdate: new Date().toISOString(),
+          errors: 0
         }
       },
       timestamp: new Date().toISOString()
     });
 
   } catch (error) {
-    console.error('Error fetching servers:', error);
+    console.error('❌ Error generating server data:', error);
     
     return NextResponse.json({
       success: false,
@@ -153,8 +214,6 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    await initializeCollector();
-    
     const body = await request.json();
     const { action, serverData } = body;
 
@@ -199,16 +258,16 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: false,
           error: 'Invalid action',
-          message: `Action '${action}' is not supported`
+          message: `Unknown action: ${action}`
         }, { status: 400 });
     }
 
   } catch (error) {
-    console.error('Error in server POST:', error);
+    console.error('❌ Error in server POST:', error);
     
     return NextResponse.json({
       success: false,
-      error: 'Server operation failed',
+      error: 'Failed to process server request',
       message: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
@@ -216,30 +275,32 @@ export async function POST(request: NextRequest) {
 
 /**
  * PUT /api/servers
- * 데이터 수집 설정 업데이트
+ * 서버 정보 업데이트
  */
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { config } = body;
+    const { serverId, updates } = body;
 
-    console.log('⚙️ Updating collection config:', config);
+    console.log(`🔄 Updating server ${serverId}:`, updates);
 
-    // 실제 환경에서는 설정 업데이트 로직
-    // serverDataCollector.updateConfig(config);
-
+    // 실제 환경에서는 데이터베이스 업데이트
     return NextResponse.json({
       success: true,
-      message: 'Collection configuration updated',
-      config: serverDataCollector.getCollectionStats().config
+      message: `Server ${serverId} updated successfully`,
+      data: {
+        id: serverId,
+        ...updates,
+        lastUpdate: new Date().toISOString()
+      }
     });
 
   } catch (error) {
-    console.error('Error updating config:', error);
+    console.error('❌ Error updating server:', error);
     
     return NextResponse.json({
       success: false,
-      error: 'Configuration update failed',
+      error: 'Failed to update server',
       message: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
@@ -247,26 +308,23 @@ export async function PUT(request: NextRequest) {
 
 /**
  * DELETE /api/servers
- * 데이터 수집 중지
+ * 서버 제거 (모니터링 중단)
  */
 export async function DELETE() {
   try {
-    console.log('🛑 Stopping server data collection...');
-    
-    await serverDataCollector.stopCollection();
-    isInitialized = false;
+    console.log('🗑️ Server deletion requested');
 
     return NextResponse.json({
       success: true,
-      message: 'Server data collection stopped'
+      message: 'Server deletion is not allowed in demo mode'
     });
 
   } catch (error) {
-    console.error('Error stopping collection:', error);
+    console.error('❌ Error in server DELETE:', error);
     
     return NextResponse.json({
       success: false,
-      error: 'Failed to stop collection',
+      error: 'Failed to process delete request',
       message: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }

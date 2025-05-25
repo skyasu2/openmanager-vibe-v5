@@ -71,14 +71,42 @@ const getServersFromAPI = async (): Promise<Server[]> => {
     if (typeof window !== 'undefined') {
       const response = await fetch('/api/servers');
       if (response.ok) {
-        const data = await response.json();
-        return data.servers || [];
+        const result = await response.json();
+        
+        // API 응답 구조 확인
+        console.log('📡 API Response:', result);
+        
+        if (result.success && result.data) {
+          // API 데이터를 Demo Store 형식으로 변환
+          const servers: Server[] = result.data.map((serverData: any) => ({
+            id: serverData.id,
+            name: serverData.hostname || serverData.id,
+            status: serverData.status === 'online' ? 'healthy' : 
+                   serverData.status === 'warning' ? 'warning' : 'critical',
+            location: serverData.location || 'Unknown',
+            type: serverData.instanceType || 'Server',
+            metrics: {
+              cpu: serverData.metrics?.cpu || Math.floor(Math.random() * 60) + 10,
+              memory: serverData.metrics?.memory || Math.floor(Math.random() * 50) + 30,
+              disk: serverData.metrics?.disk || Math.floor(Math.random() * 40) + 40,
+              network: serverData.metrics?.network || Math.floor(Math.random() * 30) + 10
+            },
+            uptime: Math.floor(Math.random() * 365) + 1,
+            lastUpdate: new Date(serverData.lastUpdate || Date.now())
+          }));
+          
+          console.log(`✅ Converted ${servers.length} servers from API`);
+          return servers;
+        }
+      } else {
+        console.warn('❌ API Response not OK:', response.status, response.statusText);
       }
     }
     
+    console.log('🔄 Using fallback server data');
     return generateFallbackServers();
   } catch (error) {
-    console.warn('Failed to get servers from API, using fallback data:', error);
+    console.warn('❌ Failed to get servers from API, using fallback data:', error);
     return generateFallbackServers();
   }
 };
