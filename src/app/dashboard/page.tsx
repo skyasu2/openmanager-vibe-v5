@@ -6,6 +6,7 @@ import Link from 'next/link';
 import ServerDashboard from '../../components/dashboard/ServerDashboard';
 import AgentPanel from '../../components/ai/AgentPanel';
 import AgentPanelMobile from '../../components/ai/AgentPanelMobile';
+import { usePowerStore } from '../../stores/powerStore';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -20,6 +21,10 @@ export default function DashboardPage() {
     offline: 2
   });
 
+  // 절전 모드 상태 관리
+  const { mode, updateActivity, getSystemStatus } = usePowerStore();
+  const isSystemActive = mode === 'active' || mode === 'monitoring';
+
   // 화면 크기 감지
   useEffect(() => {
     const checkMobile = () => {
@@ -31,13 +36,21 @@ export default function DashboardPage() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // 권한 확인
+  // 권한 확인 및 절전 모드 체크
   useEffect(() => {
     const checkAuth = () => {
       const authToken = localStorage.getItem('dashboard_auth_token');
       const sessionAuth = sessionStorage.getItem('dashboard_authorized');
       const authTime = localStorage.getItem('dashboard_access_time');
       const fromIndex = localStorage.getItem('authorized_from_index');
+      
+      // 시스템이 비활성화된 경우 랜딩페이지로 리다이렉션
+      if (!isSystemActive) {
+        localStorage.clear();
+        sessionStorage.clear();
+        router.replace('/');
+        return;
+      }
       
       // 랜딩페이지를 거치지 않고 직접 접근한 경우
       if (!fromIndex || fromIndex !== 'true') {
@@ -73,9 +86,12 @@ export default function DashboardPage() {
     // 1분마다 세션 만료 확인
     const interval = setInterval(checkAuth, 60000);
     return () => clearInterval(interval);
-  }, [router]);
+  }, [router, isSystemActive]);
 
   const handleAIQuery = (query: string, serverId: string = '') => {
+    // 활동 업데이트
+    updateActivity();
+    
     setAgentQuery(query);
     setAgentServerId(serverId);
     setIsAgentOpen(true);

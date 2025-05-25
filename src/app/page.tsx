@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { usePowerStore } from '../stores/powerStore';
+import { smartAIAgent } from '../services/aiAgent';
 
 // 동적 렌더링 강제 (HTML 파일 생성 방지)
 export const dynamic = 'force-dynamic';
@@ -59,6 +61,11 @@ export default function HomePage() {
   const [selectedFeature, setSelectedFeature] = useState<FeatureDetail | null>(null);
   const [showVibeCoding, setShowVibeCoding] = useState(false);
   const [showMainFeature, setShowMainFeature] = useState(false);
+  
+  // 절전 모드 상태 관리
+  const { mode, activateSystem, enterSleepMode, getSystemStatus } = usePowerStore();
+  const [systemStatus, setSystemStatus] = useState(getSystemStatus());
+  const isSystemActive = mode === 'active' || mode === 'monitoring';
 
   useEffect(() => {
     // 페이지 로딩 애니메이션
@@ -68,24 +75,61 @@ export default function HomePage() {
       htmlElement.style.opacity = '1';
       htmlElement.style.transform = 'translateY(0)';
     });
-  }, []);
+    
+    // 시스템 상태 업데이트
+    const updateStatus = () => {
+      setSystemStatus(getSystemStatus());
+    };
+    
+    // 활성 모드일 때 주기적으로 상태 업데이트
+    let statusInterval: NodeJS.Timeout;
+    if (isSystemActive) {
+      statusInterval = setInterval(updateStatus, 5000); // 5초마다 업데이트
+    }
+    
+    return () => {
+      if (statusInterval) {
+        clearInterval(statusInterval);
+      }
+    };
+  }, [isSystemActive, getSystemStatus]);
 
-  const authorizeAndRedirect = () => {
+  // 시스템 활성화
+  const handleActivateSystem = () => {
+    activateSystem();
+    
+    // AI 에이전트 자동 리포트 생성
+    setTimeout(() => {
+      smartAIAgent.generateAutoReport();
+    }, 1000);
+    
     // 대시보드 접근 권한 부여
     const timestamp = Date.now();
     const authToken = btoa(`dashboard_access_${timestamp}`);
     
-    // 로컬 스토리지에 인증 정보 저장
     localStorage.setItem('dashboard_auth_token', authToken);
     localStorage.setItem('dashboard_access_time', timestamp.toString());
     localStorage.setItem('authorized_from_index', 'true');
     
-    // 세션 스토리지에도 저장 (브라우저 탭 단위)
     sessionStorage.setItem('dashboard_authorized', 'true');
     sessionStorage.setItem('auth_timestamp', timestamp.toString());
-    
-    // 대시보드로 리다이렉션
+  };
+
+  // 대시보드로 이동
+  const handleGoToDashboard = () => {
+    const timestamp = Date.now();
     router.push(`/dashboard?auth=authorized&t=${timestamp}`);
+  };
+
+  // 시스템 비활성화
+  const handleDeactivateSystem = () => {
+    enterSleepMode();
+    
+    // 인증 정보 제거
+    localStorage.removeItem('dashboard_auth_token');
+    localStorage.removeItem('dashboard_access_time');
+    sessionStorage.removeItem('dashboard_authorized');
+    sessionStorage.removeItem('auth_timestamp');
   };
 
   const openFeatureModal = (feature: FeatureDetail) => {
@@ -429,6 +473,110 @@ export default function HomePage() {
           color: rgba(255, 255, 255, 0.95);
           margin-bottom: 0.8rem;
           text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-secondary {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+          color: var(--text-white);
+          font-size: 1.2rem;
+          font-weight: 700;
+          padding: 1rem 2.5rem;
+          border: none;
+          border-radius: 50px;
+          text-decoration: none;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 10px 25px rgba(107, 114, 128, 0.3);
+          z-index: 1;
+          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-secondary:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 15px 35px rgba(107, 114, 128, 0.4);
+          background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+        }
+
+        .button-group {
+          display: flex;
+          gap: 1rem;
+          flex-wrap: wrap;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .system-status {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(15px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 20px;
+          padding: 1.5rem;
+          margin-bottom: 2rem;
+          text-align: center;
+          max-width: 600px;
+          width: 100%;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-indicator {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          margin-bottom: 1rem;
+          font-weight: 600;
+          color: var(--text-white);
+          font-size: 1.1rem;
+        }
+
+        .status-dot {
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          background: #22c55e;
+          animation: pulse 2s infinite;
+        }
+
+        .status-dot.active {
+          background: #22c55e;
+          box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+
+        .status-stats {
+          display: flex;
+          gap: 1rem;
+          justify-content: center;
+          flex-wrap: wrap;
+          font-size: 0.875rem;
+          color: rgba(255, 255, 255, 0.8);
+        }
+
+        .status-stats span {
+          background: rgba(255, 255, 255, 0.1);
+          padding: 0.25rem 0.75rem;
+          border-radius: 0.5rem;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          backdrop-filter: blur(10px);
+        }
+
+        .status-stats .critical {
+          background: rgba(239, 68, 68, 0.2);
+          border-color: rgba(239, 68, 68, 0.3);
+          color: #fca5a5;
+          animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+          0%, 50% { opacity: 1; }
+          51%, 100% { opacity: 0.5; }
         }
 
         .benefits-list {
@@ -998,17 +1146,59 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* 단일 CTA 버튼 */}
+        {/* 절전 모드 상태 표시 */}
+        {isSystemActive && (
+          <div className="system-status fade-in-up">
+            <div className="status-indicator">
+              <div className="status-dot active"></div>
+              <span>시스템 활성화됨</span>
+            </div>
+            <div className="status-stats">
+              <span>가동시간: {Math.floor(systemStatus.uptime / 60)}분</span>
+              <span>알림: {systemStatus.totalAlerts}개</span>
+              {systemStatus.criticalAlerts > 0 && (
+                <span className="critical">긴급: {systemStatus.criticalAlerts}개</span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 스마트 CTA 버튼 */}
         <div className="cta-section fade-in-up">
-          <p className="cta-guide">여기를 클릭하세요 👇</p>
-          <button 
-            className="btn-primary"
-            onClick={authorizeAndRedirect}
-          >
-            <i className="fas fa-flask"></i>
-            <span className="hidden sm:inline">AI 기능 체험하기</span>
-            <span className="sm:hidden">AI 체험하기</span>
-          </button>
+          <p className="cta-guide">
+            {!isSystemActive ? '시스템을 활성화하세요 👇' : '대시보드로 이동하거나 시스템을 중지하세요 👇'}
+          </p>
+          
+          {!isSystemActive ? (
+            <button 
+              className="btn-primary"
+              onClick={handleActivateSystem}
+            >
+              <i className="fas fa-power-off"></i>
+              <span className="hidden sm:inline">시스템 활성화</span>
+              <span className="sm:hidden">시스템 활성화</span>
+            </button>
+          ) : (
+            <div className="button-group">
+              <button 
+                className="btn-primary"
+                onClick={handleGoToDashboard}
+              >
+                <i className="fas fa-tachometer-alt"></i>
+                <span className="hidden sm:inline">대시보드 들어가기</span>
+                <span className="sm:hidden">대시보드</span>
+              </button>
+              
+              <button 
+                className="btn-secondary"
+                onClick={handleDeactivateSystem}
+              >
+                <i className="fas fa-stop"></i>
+                <span className="hidden sm:inline">시스템 중지</span>
+                <span className="sm:hidden">중지</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* AI 에이전트 핵심 기능 카드 */}

@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import AgentQueryBox from './AgentQueryBox';
 import AgentResponseView from './AgentResponseView';
+import { usePowerStore } from '../../stores/powerStore';
+import { smartAIAgent } from '../../services/aiAgent';
 
 interface Message {
   id: string;
@@ -23,6 +25,10 @@ export default function AgentPanel({ isOpen, onClose, initialQuery, initialServe
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // 절전 모드 상태
+  const { mode, updateActivity } = usePowerStore();
+  const isSystemActive = mode === 'active' || mode === 'monitoring';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -42,6 +48,9 @@ export default function AgentPanel({ isOpen, onClose, initialQuery, initialServe
   const handleSendMessage = async (query: string, serverId?: string) => {
     if (!query.trim()) return;
 
+    // 활동 업데이트
+    updateActivity();
+
     // 사용자 메시지 추가
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -55,10 +64,16 @@ export default function AgentPanel({ isOpen, onClose, initialQuery, initialServe
     setIsLoading(true);
 
     try {
-      // AI 응답 시뮬레이션 (실제로는 API 호출)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      let aiResponse: string;
       
-      const aiResponse = await simulateAIResponse(query, serverId);
+      if (isSystemActive) {
+        // 스마트 AI 에이전트 응답 생성
+        const smartResponse = smartAIAgent.generateSmartResponse(query);
+        aiResponse = smartResponse.response;
+      } else {
+        // 절전 모드 응답
+        aiResponse = '💤 시스템이 절전 모드입니다. 랜딩 페이지에서 시스템을 활성화해주세요.';
+      }
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),

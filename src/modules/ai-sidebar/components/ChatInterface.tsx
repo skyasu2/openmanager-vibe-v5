@@ -11,6 +11,8 @@ import { AISidebarConfig } from '../types';
 import { useAIChat } from '../hooks/useAIChat';
 import { MessageBubble } from './MessageBubble';
 import { ActionButtons } from './ActionButtons';
+import { usePowerStore } from '../../../stores/powerStore';
+import { smartAIAgent } from '../../../services/aiAgent';
 
 interface ChatInterfaceProps {
   config: AISidebarConfig;
@@ -24,8 +26,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   className = ''
 }) => {
   const [inputValue, setInputValue] = useState('');
+  const [presetQuestions, setPresetQuestions] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  // 절전 모드 상태
+  const { mode, updateActivity } = usePowerStore();
+  const isSystemActive = mode === 'active' || mode === 'monitoring';
 
   const {
     messages,
@@ -45,18 +52,56 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // 웰컴 메시지 표시
+  // 웰컴 메시지 및 프리셋 질문 업데이트
   useEffect(() => {
     if (welcomeMessage && messages.length === 0) {
       // 웰컴 메시지는 실제 메시지로 추가하지 않고 UI에서만 표시
     }
-  }, [welcomeMessage, messages.length]);
+    
+    // 시스템 상태에 따른 프리셋 질문 생성
+    if (isSystemActive) {
+      const questions = smartAIAgent.generatePresetQuestions();
+      setPresetQuestions(questions);
+    } else {
+      setPresetQuestions([
+        '시스템을 활성화해주세요',
+        '절전 모드에서는 AI 기능이 제한됩니다'
+      ]);
+    }
+  }, [welcomeMessage, messages.length, isSystemActive]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim() && !isLoading) {
-      sendMessage(inputValue.trim());
+      // 활동 업데이트
+      updateActivity();
+      
+      // 시스템이 활성화된 경우 스마트 응답 생성
+      if (isSystemActive) {
+        const smartResponse = smartAIAgent.generateSmartResponse(inputValue.trim());
+        
+        // 사용자 메시지 전송
+        sendMessage(inputValue.trim());
+        
+        // AI 응답을 별도로 추가 (실제 구현에서는 useAIChat 훅을 수정해야 함)
+        // 현재는 기본 sendMessage만 사용
+      } else {
+        // 절전 모드에서는 기본 메시지만 전송
+        sendMessage(inputValue.trim());
+      }
+      
       setInputValue('');
+    }
+  };
+
+  const handlePresetClick = (question: string) => {
+    if (!isLoading && isSystemActive) {
+      setInputValue(question);
+      // 자동으로 전송
+      setTimeout(() => {
+        const event = new Event('submit') as any;
+        handleSubmit(event);
+      }, 100);
     }
   };
 
@@ -111,6 +156,31 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
         <div ref={messagesEndRef} />
       </div>
+
+      {/* 프리셋 질문 영역 */}
+      {presetQuestions.length > 0 && (
+        <div className="px-4 py-2 border-t dark:border-gray-700">
+          <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+            {isSystemActive ? '추천 질문:' : '시스템 상태:'}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {presetQuestions.slice(0, 3).map((question, index) => (
+              <button
+                key={index}
+                onClick={() => handlePresetClick(question)}
+                disabled={!isSystemActive}
+                className={`text-xs px-2 py-1 rounded-md transition-colors ${
+                  isSystemActive
+                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                {question.length > 30 ? `${question.substring(0, 30)}...` : question}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 액션 버튼 영역 */}
       {config.customActions && config.customActions.length > 0 && (

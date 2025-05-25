@@ -10,6 +10,7 @@ import React from 'react';
 import { AISidebarConfig } from '../types';
 import { ChatInterface } from './ChatInterface';
 import { StatusIndicator } from './StatusIndicator';
+import { usePowerStore } from '../../../stores/powerStore';
 
 interface AISidebarProps {
   config: AISidebarConfig;
@@ -24,6 +25,9 @@ export const AISidebar: React.FC<AISidebarProps> = ({
   onClose,
   className = ''
 }) => {
+  const { mode, getSystemStatus } = usePowerStore();
+  const systemStatus = getSystemStatus();
+  const isSystemActive = mode === 'active' || mode === 'monitoring';
   const sidebarClasses = `
     fixed top-0 ${config.position === 'right' ? 'right-0' : 'left-0'} 
     h-full bg-white dark:bg-gray-900 
@@ -52,12 +56,21 @@ export const AISidebar: React.FC<AISidebarProps> = ({
         {/* 헤더 */}
         <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-              <span className="text-white text-sm font-bold">AI</span>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+              isSystemActive ? 'bg-green-500' : 'bg-gray-500'
+            }`}>
+              <span className="text-white text-sm font-bold">
+                {isSystemActive ? 'AI' : '💤'}
+              </span>
             </div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              {config.title}
-            </h2>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {config.title}
+              </h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {isSystemActive ? '활성화됨' : '절전 모드'}
+              </p>
+            </div>
           </div>
           
           <div className="flex items-center space-x-2">
