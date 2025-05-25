@@ -5,12 +5,13 @@ import { usePowerStore } from '../../stores/powerStore';
 import { smartAIAgent } from '../../services/aiAgent';
 import { aiLogger } from '../../lib/logger';
 
-interface Message {
+interface QAItem {
   id: string;
-  type: 'user' | 'assistant' | 'system';
-  content: string;
+  question: string;
+  answer: string;
   timestamp: Date;
   serverId?: string;
+  category?: 'health' | 'performance' | 'security' | 'analysis';
 }
 
 interface AgentModalProps {
@@ -43,7 +44,9 @@ interface SmartSuggestion {
 }
 
 export default function AgentModal({ isOpen, onClose }: AgentModalProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [qaHistory, setQaHistory] = useState<QAItem[]>([]);
+  const [currentQuestion, setCurrentQuestion] = useState<string>('');
+  const [currentAnswer, setCurrentAnswer] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [, setServerIssues] = useState<ServerIssue[]>([]);
   const [serverStats, setServerStats] = useState<ServerStats>({
@@ -57,20 +60,11 @@ export default function AgentModal({ isOpen, onClose }: AgentModalProps) {
   const [inputValue, setInputValue] = useState('');
   const [activeTab, setActiveTab] = useState<'suggestions' | 'quick-actions' | 'history'>('suggestions');
   const [isMinimized, setIsMinimized] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
   // 절전 모드 상태
   const { mode, updateActivity } = usePowerStore();
   const isSystemActive = mode === 'active' || mode === 'monitoring';
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   // 모달이 열릴 때 입력창에 포커스
   useEffect(() => {
@@ -215,7 +209,7 @@ export default function AgentModal({ isOpen, onClose }: AgentModalProps) {
     setSmartSuggestions(suggestions.slice(0, 8));
   };
 
-  const handleSendMessage = async (query: string, serverId?: string) => {
+  const handleSendMessage = async (query: string, serverId?: string, category?: 'health' | 'performance' | 'security' | 'analysis') => {
     if (!query.trim()) return;
 
     // 활동 업데이트 및 시스템 자동 활성화
@@ -229,89 +223,92 @@ export default function AgentModal({ isOpen, onClose }: AgentModalProps) {
       console.log('✅ 시스템 활성화 완료');
     }
 
-    // 사용자 메시지 추가
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: 'user',
-      content: query,
-      timestamp: new Date(),
-      serverId
-    };
-
-    setMessages(prev => [...prev, userMessage]);
+    // 현재 질문 설정
+    setCurrentQuestion(query);
+    setCurrentAnswer('');
     setIsLoading(true);
     setInputValue('');
+    setActiveTab('suggestions'); // 질문 시 메인 탭으로 이동
 
     try {
       // 시스템 활성화 후 스마트 AI 에이전트 응답 생성
       const smartResponse = smartAIAgent.generateSmartResponse(query);
       const aiResponse = smartResponse.response;
       
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: aiResponse,
+      setCurrentAnswer(aiResponse);
+      
+      // 히스토리에 추가
+      const newQA: QAItem = {
+        id: Date.now().toString(),
+        question: query,
+        answer: aiResponse,
         timestamp: new Date(),
-        serverId
+        serverId,
+        category
       };
-
-      setMessages(prev => [...prev, assistantMessage]);
+      
+      setQaHistory(prev => [newQA, ...prev]); // 최신 항목을 맨 위에
+      
     } catch (error) {
       aiLogger.error('AI 응답 생성 오류', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: '죄송합니다. 응답을 생성하는 중 오류가 발생했습니다. 다시 시도해 주세요.',
-        timestamp: new Date()
+      const errorAnswer = '죄송합니다. 응답을 생성하는 중 오류가 발생했습니다. 다시 시도해 주세요.';
+      setCurrentAnswer(errorAnswer);
+      
+      // 에러도 히스토리에 추가
+      const errorQA: QAItem = {
+        id: Date.now().toString(),
+        question: query,
+        answer: errorAnswer,
+        timestamp: new Date(),
+        serverId,
+        category
       };
-      setMessages(prev => [...prev, errorMessage]);
+      
+      setQaHistory(prev => [errorQA, ...prev]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const executeQuickAction = async (action: string) => {
-    const actions: Record<string, { message: string; query: string; icon: string }> = {
+    const actions: Record<string, { message: string; query: string; icon: string; category: 'health' | 'performance' | 'security' | 'analysis' }> = {
       'emergency-scan': {
         message: "🚨 긴급 시스템 스캔을 시작합니다...",
         query: "모든 서버에 대한 긴급 헬스체크를 수행하고 즉시 조치가 필요한 문제들을 우선순위별로 보고해주세요",
-        icon: "🚨"
+        icon: "🚨",
+        category: 'health'
       },
       'performance-boost': {
         message: "⚡ 성능 최적화 분석을 시작합니다...",
         query: "전체 시스템의 성능 병목구간을 분석하고 즉시 적용 가능한 최적화 방안을 제시해주세요",
-        icon: "⚡"
+        icon: "⚡",
+        category: 'performance'
       },
       'security-audit': {
         message: "🛡️ 보안 감사를 시작합니다...",
         query: "전체 인프라의 보안 취약점을 스캔하고 보안 강화를 위한 즉시 조치사항을 제안해주세요",
-        icon: "🛡️"
+        icon: "🛡️",
+        category: 'security'
       },
       'predictive-analysis': {
         message: "🔮 예측 분석을 시작합니다...",
         query: "현재 시스템 트렌드를 기반으로 향후 발생 가능한 문제를 예측하고 예방 조치를 제안해주세요",
-        icon: "🔮"
+        icon: "🔮",
+        category: 'analysis'
       }
     };
     
     const actionData = actions[action];
     if (actionData) {
-      // 시스템 메시지 추가
-      const systemMessage: Message = {
-        id: Date.now().toString(),
-        type: 'system',
-        content: actionData.message,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, systemMessage]);
-      
       // AI 분석 실행
-      await handleSendMessage(actionData.query);
+      await handleSendMessage(actionData.query, undefined, actionData.category);
     }
   };
 
-  const clearChat = () => {
-    setMessages([]);
+  const clearHistory = () => {
+    setQaHistory([]);
+    setCurrentQuestion('');
+    setCurrentAnswer('');
   };
 
   const refreshSuggestions = () => {
@@ -337,6 +334,16 @@ export default function AgentModal({ isOpen, onClose }: AgentModalProps) {
       case 'security': return 'from-green-500 to-emerald-500';
       case 'analysis': return 'from-purple-500 to-indigo-500';
       default: return 'from-gray-500 to-gray-600';
+    }
+  };
+
+  const getCategoryIcon = (category?: string) => {
+    switch (category) {
+      case 'health': return 'fas fa-heartbeat';
+      case 'performance': return 'fas fa-tachometer-alt';
+      case 'security': return 'fas fa-shield-alt';
+      case 'analysis': return 'fas fa-chart-line';
+      default: return 'fas fa-question-circle';
     }
   };
 
@@ -369,10 +376,10 @@ export default function AgentModal({ isOpen, onClose }: AgentModalProps) {
         
         {/* 모달 헤더 - 개선된 디자인 */}
         <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white p-6 relative overflow-hidden">
-                     {/* 배경 패턴 */}
-           <div className="absolute inset-0 opacity-10">
-             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/5 to-white/10"></div>
-           </div>
+          {/* 배경 패턴 */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/5 to-white/10"></div>
+          </div>
           
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -406,9 +413,9 @@ export default function AgentModal({ isOpen, onClose }: AgentModalProps) {
                 <i className={`fas ${isMinimized ? 'fa-expand' : 'fa-minus'}`}></i>
               </button>
               <button
-                onClick={clearChat}
+                onClick={clearHistory}
                 className="w-10 h-10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-all duration-200 backdrop-blur-sm border border-white/20"
-                title="대화 내용 지우기"
+                title="히스토리 지우기"
               >
                 <i className="fas fa-broom"></i>
               </button>
@@ -431,7 +438,7 @@ export default function AgentModal({ isOpen, onClose }: AgentModalProps) {
                 {[
                   { id: 'suggestions', label: '스마트 제안', icon: 'fas fa-lightbulb' },
                   { id: 'quick-actions', label: '빠른 실행', icon: 'fas fa-bolt' },
-                  { id: 'history', label: '대화 기록', icon: 'fas fa-history' }
+                  { id: 'history', label: `히스토리 (${qaHistory.length})`, icon: 'fas fa-history' }
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -471,7 +478,7 @@ export default function AgentModal({ isOpen, onClose }: AgentModalProps) {
                     {smartSuggestions.map((suggestion, index) => (
                       <button
                         key={index}
-                        onClick={() => handleSendMessage(suggestion.query)}
+                        onClick={() => handleSendMessage(suggestion.query, undefined, suggestion.category)}
                         className={`group relative p-4 rounded-2xl text-left transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl border ${
                           suggestion.urgent
                             ? 'bg-gradient-to-br from-red-500 to-pink-600 text-white border-red-300 hover:from-red-600 hover:to-pink-700'
@@ -538,95 +545,153 @@ export default function AgentModal({ isOpen, onClose }: AgentModalProps) {
                 </div>
               )}
 
-              {/* 대화 영역 */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-br from-gray-50 to-white">
-                {messages.length === 0 && (
-                  <div className="text-center py-12">
-                    <div className="w-24 h-24 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                      <i className="fas fa-brain text-4xl text-indigo-600"></i>
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-3">AI 분석 어시스턴트 준비 완료!</h3>
-                    <p className="text-gray-600 mb-6 max-w-md mx-auto leading-relaxed">
-                      서버 상태 분석, 장애 진단, 성능 최적화 제안을 도와드립니다.
-                      위의 스마트 제안이나 빠른 실행 기능을 사용해보세요.
-                    </p>
-                    <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                        실시간 모니터링
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                        지능형 분석
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                        자동 최적화
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {messages.map((message) => (
-                  <div key={message.id} className={`flex gap-4 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    {message.type !== 'user' && (
-                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg ${
-                        message.type === 'system' 
-                          ? 'bg-gradient-to-br from-gray-400 to-gray-500' 
-                          : 'bg-gradient-to-br from-indigo-500 to-purple-600'
-                      }`}>
-                        {message.type === 'system' ? '⚙️' : '🧠'}
-                      </div>
-                    )}
-                    
-                    <div className={`max-w-[75%] ${
-                      message.type === 'user'
-                        ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white'
-                        : message.type === 'system'
-                        ? 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700'
-                        : 'bg-white text-gray-800 shadow-lg border border-gray-100'
-                    } p-4 rounded-2xl shadow-lg`}>
-                      <div className="whitespace-pre-wrap break-words leading-relaxed">
-                        {message.content}
-                      </div>
-                      <div className={`text-xs mt-2 flex items-center gap-2 ${
-                        message.type === 'user' ? 'text-indigo-100' : 'text-gray-500'
-                      }`}>
-                        <i className="fas fa-clock"></i>
-                        {message.timestamp.toLocaleTimeString('ko-KR', { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        })}
-                      </div>
-                    </div>
-                    
-                    {message.type === 'user' && (
-                      <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-red-500 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                        👤
-                      </div>
-                    )}
-                  </div>
-                ))}
-
-                {isLoading && (
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                      🧠
-                    </div>
-                    <div className="bg-white p-4 rounded-2xl shadow-lg border border-gray-100">
-                      <div className="flex items-center gap-3">
-                        <div className="flex gap-1">
-                          <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                          <div className="w-2 h-2 bg-pink-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              {/* 현재 질문-답변 영역 또는 히스토리 */}
+              <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-gray-50 to-white">
+                {activeTab === 'history' ? (
+                  // 히스토리 탭
+                  <div>
+                    {qaHistory.length === 0 ? (
+                      <div className="text-center py-12">
+                        <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                          <i className="fas fa-history text-2xl text-gray-400"></i>
                         </div>
-                        <span className="text-sm text-gray-600 font-medium">AI가 분석하고 있습니다...</span>
+                        <h3 className="text-lg font-semibold text-gray-600 mb-2">아직 질문 히스토리가 없습니다</h3>
+                        <p className="text-gray-500">스마트 제안이나 빠른 실행으로 질문을 시작해보세요.</p>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="space-y-6">
+                        <div className="flex items-center justify-between mb-6">
+                          <h3 className="text-lg font-semibold text-gray-800">질문-답변 히스토리</h3>
+                          <span className="text-sm text-gray-500">총 {qaHistory.length}개</span>
+                        </div>
+                        
+                        {qaHistory.map((qa) => (
+                          <div key={qa.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                            {/* 질문 */}
+                            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-4">
+                              <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                  <i className="fas fa-question"></i>
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-sm font-medium">질문</span>
+                                    {qa.category && (
+                                      <span className="px-2 py-1 bg-white/20 rounded-full text-xs flex items-center gap-1">
+                                        <i className={getCategoryIcon(qa.category)}></i>
+                                        {qa.category}
+                                      </span>
+                                    )}
+                                    <span className="text-xs opacity-75 ml-auto">
+                                      {qa.timestamp.toLocaleString('ko-KR')}
+                                    </span>
+                                  </div>
+                                  <p className="text-white leading-relaxed">{qa.question}</p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* 답변 */}
+                            <div className="p-4">
+                              <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                  <i className="fas fa-brain text-indigo-600"></i>
+                                </div>
+                                <div className="flex-1">
+                                  <div className="text-sm font-medium text-gray-700 mb-2">AI 답변</div>
+                                  <div className="text-gray-800 leading-relaxed whitespace-pre-wrap">{qa.answer}</div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  // 현재 질문-답변 영역
+                  <div>
+                    {!currentQuestion && !isLoading ? (
+                      <div className="text-center py-12">
+                        <div className="w-24 h-24 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                          <i className="fas fa-brain text-4xl text-indigo-600"></i>
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-3">AI 분석 어시스턴트 준비 완료!</h3>
+                        <p className="text-gray-600 mb-6 max-w-md mx-auto leading-relaxed">
+                          서버 상태 분석, 장애 진단, 성능 최적화 제안을 도와드립니다.
+                          위의 스마트 제안이나 빠른 실행 기능을 사용해보세요.
+                        </p>
+                        <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                            실시간 모니터링
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                            지능형 분석
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                            자동 최적화
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {/* 현재 질문 */}
+                        {currentQuestion && (
+                          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-2xl shadow-lg">
+                            <div className="flex items-start gap-4">
+                              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i className="fas fa-question text-lg"></i>
+                              </div>
+                              <div className="flex-1">
+                                <div className="text-sm font-medium mb-2 opacity-90">현재 질문</div>
+                                <p className="text-lg leading-relaxed">{currentQuestion}</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 로딩 또는 답변 */}
+                        {isLoading ? (
+                          <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                                <i className="fas fa-brain text-white"></i>
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <div className="flex gap-1">
+                                    <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce"></div>
+                                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                                    <div className="w-2 h-2 bg-pink-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                                  </div>
+                                  <span className="text-sm text-gray-600 font-medium">AI가 분석하고 있습니다...</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div className="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : currentAnswer && (
+                          <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                            <div className="flex items-start gap-4">
+                              <div className="w-10 h-10 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i className="fas fa-brain text-indigo-600 text-lg"></i>
+                              </div>
+                              <div className="flex-1">
+                                <div className="text-sm font-medium text-gray-700 mb-3">AI 분석 결과</div>
+                                <div className="text-gray-800 leading-relaxed whitespace-pre-wrap">{currentAnswer}</div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
-
-                <div ref={messagesEndRef} />
               </div>
 
               {/* 입력 영역 - 개선된 디자인 */}
@@ -647,6 +712,7 @@ export default function AgentModal({ isOpen, onClose }: AgentModalProps) {
                       placeholder="AI에게 질문하거나 분석을 요청하세요... (Enter로 전송)"
                       className="w-full p-4 pr-12 border-2 border-gray-200 rounded-2xl outline-none text-sm transition-all duration-200 bg-gray-50 focus:border-indigo-500 focus:bg-white focus:shadow-lg placeholder-gray-400"
                       autoComplete="off"
+                      disabled={isLoading}
                     />
                     <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
                       <i className="fas fa-keyboard text-sm"></i>
@@ -661,11 +727,11 @@ export default function AgentModal({ isOpen, onClose }: AgentModalProps) {
                   </button>
                 </div>
                 
-                                 {/* 빠른 입력 힌트 */}
-                 <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
-                   <i className="fas fa-lightbulb"></i>
-                   <span>팁: &quot;서버 상태&quot;, &quot;성능 분석&quot;, &quot;보안 점검&quot; 등으로 질문해보세요</span>
-                 </div>
+                {/* 빠른 입력 힌트 */}
+                <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+                  <i className="fas fa-lightbulb"></i>
+                  <span>팁: &quot;서버 상태&quot;, &quot;성능 분석&quot;, &quot;보안 점검&quot; 등으로 질문해보세요</span>
+                </div>
               </div>
             </div>
           </>
