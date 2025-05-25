@@ -9,16 +9,43 @@
  */
 
 // Core Engine
-export { AIAgentEngine } from './core/AIAgentEngine';
+export { AIAgentEngine, aiAgentEngine } from './core/AIAgentEngine';
 export type { 
   AIAgentConfig, 
   AIAgentRequest, 
   AIAgentResponse 
 } from './core/AIAgentEngine';
 
-// Import for internal use
-import { AIAgentEngine, AIAgentConfig } from './core/AIAgentEngine';
-import { createDefaultConfig, detectEnvironment } from './config';
+// Enhanced Engine with Smart Mode Detection
+export { EnhancedAIAgentEngine, enhancedAIAgentEngine } from './core/EnhancedAIAgentEngine';
+export type { 
+  EnhancedAIAgentConfig, 
+  EnhancedAIAgentRequest, 
+  EnhancedAIAgentResponse 
+} from './core/EnhancedAIAgentEngine';
+
+// Smart Mode Detection System
+export { SmartModeDetector } from './core/SmartModeDetector';
+export type { AIAgentMode, QueryAnalysis } from './core/SmartModeDetector';
+export { EnhancedModeManager } from './core/EnhancedModeManager';
+export type { ModeConfig } from './core/EnhancedModeManager';
+
+// Mode Prompts
+export { ModePrompts } from './prompts/ModePrompts';
+
+// Core Components
+export { ModeManager, createDefaultModeConfig } from './core/ModeManager';
+export type { PowerMode } from './core/ModeManager';
+
+export { ThinkingProcessor } from './core/ThinkingProcessor';
+export type { ThinkingStep, ThinkingSession, ThinkingCallback } from './core/ThinkingProcessor';
+
+export { AdminLogger } from './core/AdminLogger';
+export type { 
+  AIInteractionLog, 
+  AIErrorLog, 
+  AdminStats 
+} from './core/AdminLogger';
 
 // Configuration System
 export {
@@ -63,19 +90,9 @@ export {
 export type {
   Plugin,
   PluginManifest,
-  PluginContext
+  PluginContext,
+  AIAgentPlugin
 } from './plugins';
-
-// Core Components
-export { ModeManager, createDefaultModeConfig } from './core/ModeManager';
-export { ThinkingProcessor } from './core/ThinkingProcessor';
-export { AdminLogger } from './core/AdminLogger';
-
-// Processors (Internal)
-export { IntentClassifier } from './processors/IntentClassifier';
-export { ResponseGenerator } from './processors/ResponseGenerator';
-export { ContextManager } from './processors/ContextManager';
-export { ActionExecutor } from './processors/ActionExecutor';
 
 // Version and Metadata
 export const AI_AGENT_VERSION = '1.0.0';
@@ -208,5 +225,24 @@ export const getAIAgentInfo = () => ({
   }
 });
 
-// 기본 인스턴스 (호환성을 위해)
-export { aiAgentEngine } from './core/AIAgentEngine'; 
+/**
+ * 스마트 모드 감지 시스템 사용 예제
+ * 
+ * ```typescript
+ * import { SmartModeDetector, EnhancedModeManager } from '@/modules/ai-agent';
+ * 
+ * const detector = new SmartModeDetector();
+ * const manager = new EnhancedModeManager();
+ * 
+ * // 질문 분석 및 자동 모드 선택
+ * const analysis = manager.analyzeAndSetMode("서버 장애 원인을 분석해서 보고서 작성해줘");
+ * console.log(analysis.detectedMode); // 'advanced'
+ * console.log(analysis.confidence); // 95
+ * console.log(analysis.reasoning); // 'Advanced 모드 선택 이유: 장애/문제 해결이 필요한 상황, 상세한 분석 보고서가 요구됨'
+ * 
+ * // 모드별 설정 조회
+ * const config = manager.getModeConfig();
+ * console.log(config.maxProcessingTime); // 10000 (Advanced 모드)
+ * console.log(config.enablePredictiveAnalysis); // true
+ * ```
+ */ 

@@ -26,7 +26,7 @@ export interface ThinkingSession {
   sessionId: string;
   queryId: string;
   query: string;
-  mode: 'basic' | 'enterprise';
+  mode: 'basic' | 'enterprise' | 'advanced';
   startTime: number;
   endTime?: number;
   totalDuration?: number;
@@ -53,7 +53,7 @@ export class ThinkingProcessor {
   /**
    * 새로운 사고 세션 시작
    */
-  startThinking(queryId: string, query: string, mode: 'basic' | 'enterprise'): string {
+  startThinking(queryId: string, query: string, mode: 'basic' | 'enterprise' | 'advanced'): string {
     const sessionId = this.generateSessionId();
     
     const session: ThinkingSession = {
@@ -220,7 +220,7 @@ export class ThinkingProcessor {
   /**
    * 모드별 사고 과정 템플릿
    */
-  getThinkingTemplate(mode: 'basic' | 'enterprise', intentType: string): ThinkingStep[] {
+  getThinkingTemplate(mode: 'basic' | 'enterprise' | 'advanced', intentType: string): ThinkingStep[] {
     const baseSteps: Omit<ThinkingStep, 'id' | 'startTime' | 'step'>[] = [
       {
         type: 'analysis',
@@ -236,7 +236,7 @@ export class ThinkingProcessor {
       }
     ];
 
-    if (mode === 'enterprise') {
+    if (mode === 'enterprise' || mode === 'advanced') {
       baseSteps.push(
         {
           type: 'processing',
