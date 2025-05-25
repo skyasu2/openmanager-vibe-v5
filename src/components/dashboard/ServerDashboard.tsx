@@ -10,8 +10,10 @@ interface ServerDashboardProps {
   onStatsUpdate?: (stats: { total: number; online: number; warning: number; offline: number }) => void;
 }
 
-// 스크린샷과 동일한 목업 서버 데이터
-const mockServers: Server[] = [
+import { useDemoStore } from '../../stores/demoStore';
+
+// 스크린샷과 동일한 목업 서버 데이터 (fallback용)
+const fallbackServers: Server[] = [
   {
     id: 'api-eu-043',
     name: 'api-eu-043',
@@ -189,13 +191,32 @@ const mockServers: Server[] = [
 export default function ServerDashboard({ onAskAI, onStatsUpdate }: ServerDashboardProps) {
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // demoStore에서 실제 서버 데이터 가져오기
+  const { servers } = useDemoStore();
+  const currentServers = servers.length > 0 ? servers.map(s => ({
+    id: s.id,
+    name: s.name,
+    status: s.status === 'healthy' ? 'online' : s.status === 'warning' ? 'warning' : 'offline',
+    location: s.location,
+    cpu: s.metrics.cpu,
+    memory: s.metrics.memory,
+    disk: s.metrics.disk,
+    uptime: `${s.uptime}일`,
+    lastUpdate: s.lastUpdate,
+    alerts: s.status === 'critical' ? 3 : s.status === 'warning' ? 1 : 0,
+    services: [
+      { name: 'nginx', status: 'running', port: 80 },
+      { name: 'nodejs', status: 'running', port: 3000 }
+    ]
+  } as Server)) : fallbackServers;
 
   // 서버 통계 계산
   const serverStats = {
-    total: mockServers.length,
-    online: mockServers.filter(s => s.status === 'online').length,
-    warning: mockServers.filter(s => s.status === 'warning').length,
-    offline: mockServers.filter(s => s.status === 'offline').length
+    total: currentServers.length,
+    online: currentServers.filter((s: Server) => s.status === 'online').length,
+    warning: currentServers.filter((s: Server) => s.status === 'warning').length,
+    offline: currentServers.filter((s: Server) => s.status === 'offline').length
   };
 
   // 통계 업데이트 알림
@@ -206,7 +227,7 @@ export default function ServerDashboard({ onAskAI, onStatsUpdate }: ServerDashbo
   }, [onStatsUpdate]);
 
   // 필터링
-  const filteredServers = mockServers.filter(server => 
+  const filteredServers = currentServers.filter((server: Server) => 
     server.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -250,7 +271,7 @@ export default function ServerDashboard({ onAskAI, onStatsUpdate }: ServerDashbo
 
       {/* 서버 카드 그리드 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {filteredServers.map((server) => (
+        {filteredServers.map((server: Server) => (
           <ServerCard
             key={server.id}
             server={server}

@@ -2,11 +2,13 @@ import { createClient } from '@supabase/supabase-js';
 import { Redis } from 'ioredis';
 import { ServerMetrics } from '../types/collector';
 import { Server } from '../types/server';
+import { NETWORK, TIME } from '../config/constants';
+import { THRESHOLDS } from '../config/thresholds';
 
 // 환경 변수 (실제 환경에서 설정)
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-project.supabase.co';
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-anon-key';
-const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
+const REDIS_URL = process.env.REDIS_URL || `redis://localhost:${NETWORK.PORTS.REDIS_DEFAULT}`;
 
 // 클라이언트 초기화
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -18,7 +20,7 @@ const redis = new Redis(REDIS_URL, {
 export class MetricsStorageService {
   private readonly LATEST_KEY_PREFIX = 'server:';
   private readonly LATEST_KEY_SUFFIX = ':latest';
-  private readonly TTL_SECONDS = 300; // 5분
+  private readonly TTL_SECONDS = TIME.TTL.REDIS_DEFAULT;
 
   /**
    * 메트릭을 Supabase와 Redis에 동시 저장
@@ -267,7 +269,15 @@ export class MetricsStorageService {
   }
 
   private determineStatus(metrics: ServerMetrics): 'online' | 'warning' | 'offline' {
-    if (metrics.cpu.usage > 80 || metrics.memory.usage > 80 || metrics.disk.usage > 80) {
+    // 임계값 기반 상태 판단
+    if (metrics.cpu.usage > THRESHOLDS.SERVER.CPU.CRITICAL || 
+        metrics.memory.usage > THRESHOLDS.SERVER.MEMORY.CRITICAL || 
+        metrics.disk.usage > THRESHOLDS.SERVER.DISK.CRITICAL) {
+      return 'offline';
+    }
+    if (metrics.cpu.usage > THRESHOLDS.SERVER.CPU.WARNING || 
+        metrics.memory.usage > THRESHOLDS.SERVER.MEMORY.WARNING || 
+        metrics.disk.usage > THRESHOLDS.SERVER.DISK.WARNING) {
       return 'warning';
     }
     return 'online';
@@ -281,9 +291,9 @@ export class MetricsStorageService {
 
   private calculateAlerts(metrics: ServerMetrics): number {
     let alerts = 0;
-    if (metrics.cpu.usage > 80) alerts++;
-    if (metrics.memory.usage > 80) alerts++;
-    if (metrics.disk.usage > 80) alerts++;
+    if (metrics.cpu.usage > THRESHOLDS.SERVER.CPU.WARNING) alerts++;
+    if (metrics.memory.usage > THRESHOLDS.SERVER.MEMORY.WARNING) alerts++;
+    if (metrics.disk.usage > THRESHOLDS.SERVER.DISK.WARNING) alerts++;
     return alerts;
   }
 }
