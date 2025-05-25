@@ -28,11 +28,27 @@ interface ServerIssue {
   lastSeen: string;
 }
 
+interface ServerStats {
+  total: number;
+  online: number;
+  warning: number;
+  critical: number;
+  offline: number;
+}
+
 export default function AgentPanelMobile({ isOpen, onClose }: AgentPanelMobileProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [showIncidentReport, setShowIncidentReport] = useState(false);
+  const [showDetailedDashboard, setShowDetailedDashboard] = useState(false);
   const [serverIssues, setServerIssues] = useState<ServerIssue[]>([]);
+  const [serverStats, setServerStats] = useState<ServerStats>({
+    total: 0,
+    online: 0,
+    warning: 0,
+    critical: 0,
+    offline: 0
+  });
+  const [urgentAlerts, setUrgentAlerts] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [sidebarHistoryId, setSidebarHistoryId] = useState<string | null>(null);
   
@@ -98,15 +114,28 @@ export default function AgentPanelMobile({ isOpen, onClose }: AgentPanelMobilePr
     setSidebarHistoryId(null);
   };
 
-  // 서버 문제 상황 가져오기
+  // 서버 상태 및 문제 상황 가져오기
   useEffect(() => {
-    const fetchServerIssues = async () => {
+    const fetchServerData = async () => {
       try {
         const response = await fetch('/api/servers');
         const data = await response.json();
         
         if (data.success) {
-          const issues: ServerIssue[] = data.data
+          const servers = data.data;
+          
+          // 서버 통계 계산
+          const stats = {
+            total: servers.length,
+            online: servers.filter((s: any) => s.status === 'online').length,
+            warning: servers.filter((s: any) => s.status === 'warning').length,
+            critical: servers.filter((s: any) => s.status === 'critical').length,
+            offline: servers.filter((s: any) => s.status === 'offline').length
+          };
+          setServerStats(stats);
+          
+          // 문제 서버 목록
+          const issues: ServerIssue[] = servers
             .filter((server: any) => server.status !== 'online')
             .map((server: any) => ({
               hostname: server.hostname,
@@ -115,18 +144,30 @@ export default function AgentPanelMobile({ isOpen, onClose }: AgentPanelMobilePr
               severity: server.alerts?.[0]?.severity || server.status,
               lastSeen: new Date(server.lastSeen).toLocaleString('ko-KR')
             }));
-          
           setServerIssues(issues);
+          
+          // 긴급 알림 생성
+          const alerts = [];
+          if (stats.critical > 0) {
+            alerts.push(`🚨 ${stats.critical}대 서버에서 심각한 문제 발생`);
+          }
+          if (stats.offline > 0) {
+            alerts.push(`⚠️ ${stats.offline}대 서버가 오프라인 상태`);
+          }
+          if (stats.warning > 3) {
+            alerts.push(`⚠️ ${stats.warning}대 서버에서 경고 발생 - 점검 필요`);
+          }
+          setUrgentAlerts(alerts);
         }
       } catch (error) {
-        console.error('서버 이슈 정보 가져오기 실패:', error);
+        console.error('서버 데이터 가져오기 실패:', error);
       }
     };
 
     if (isOpen) {
-      fetchServerIssues();
+      fetchServerData();
       // 30초마다 업데이트
-      const interval = setInterval(fetchServerIssues, 30000);
+      const interval = setInterval(fetchServerData, 30000);
       return () => clearInterval(interval);
     }
   }, [isOpen]);
@@ -185,129 +226,21 @@ export default function AgentPanelMobile({ isOpen, onClose }: AgentPanelMobilePr
     }
   };
 
-  const generateIncidentReport = async () => {
-    const reportQuery = `현재 시스템에서 발생한 모든 장애와 경고 상황을 종합하여 상세한 장애 보고서를 작성해주세요. 
-    
-문제가 있는 서버들:
-${serverIssues.map(issue => `- ${issue.hostname}: ${issue.status} (${issue.issue})`).join('\n')}
-
-다음 항목들을 포함해주세요:
-1. 장애 요약
-2. 영향받는 서비스
-3. 근본 원인 분석
-4. 해결 방안
-5. 예방 조치`;
-
-    await handleSendMessage(reportQuery);
-  };
-
   const clearChat = () => {
     setMessages([]);
   };
 
   const quickQuestions = [
     { icon: '💻', text: '전체 서버 상태', query: '전체 서버 상태를 요약해서 알려주세요' },
-    { icon: '⚠️', text: '문제 서버 확인', query: '현재 문제가 있는 서버들을 자세히 분석해주세요' },
     { icon: '📊', text: 'CPU 사용률', query: 'CPU 사용률이 높은 서버들을 찾아서 원인을 분석해주세요' },
-    { icon: '💾', text: '메모리 부족', query: '메모리 사용률이 높은 서버들을 확인하고 해결방안을 제시해주세요' }
+    { icon: '💾', text: '메모리 부족', query: '메모리 사용률이 높은 서버들을 확인하고 해결방안을 제시해주세요' },
+    { icon: '🌐', text: '네트워크 지연', query: '네트워크 지연이 발생한 서버들을 분석해주세요' }
   ];
 
   if (!isOpen) return null;
 
   return (
     <>
-      {/* 장애 보고서 모달 */}
-      {showIncidentReport && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-red-600 to-orange-600 text-white">
-              <div className="flex items-center gap-2">
-                <i className="fas fa-exclamation-triangle"></i>
-                <div>
-                  <h2 className="font-bold">장애 보고서</h2>
-                  <p className="text-xs opacity-90">시스템 장애 상황</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowIncidentReport(false)}
-                className="w-8 h-8 hover:bg-white hover:bg-opacity-20 rounded-lg flex items-center justify-center transition-colors"
-              >
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-            
-            <div className="p-4 overflow-y-auto max-h-[calc(90vh-120px)]">
-              <div className="space-y-4">
-                {/* 장애 요약 */}
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                  <h3 className="font-semibold text-red-800 mb-2 flex items-center gap-2">
-                    <i className="fas fa-exclamation-circle"></i>
-                    장애 요약
-                  </h3>
-                  <p className="text-red-700 text-sm">
-                    총 <span className="font-bold">{serverIssues.length}개</span> 서버에서 문제가 발생했습니다.
-                  </p>
-                  <div className="grid grid-cols-3 gap-2 mt-3">
-                    <div className="bg-white rounded p-2 text-center">
-                      <div className="text-lg font-bold text-red-600">
-                        {serverIssues.filter(s => s.status === 'critical').length}
-                      </div>
-                      <div className="text-xs text-gray-600">Critical</div>
-                    </div>
-                    <div className="bg-white rounded p-2 text-center">
-                      <div className="text-lg font-bold text-yellow-600">
-                        {serverIssues.filter(s => s.status === 'warning').length}
-                      </div>
-                      <div className="text-xs text-gray-600">Warning</div>
-                    </div>
-                    <div className="bg-white rounded p-2 text-center">
-                      <div className="text-lg font-bold text-gray-600">
-                        {serverIssues.filter(s => s.status === 'offline').length}
-                      </div>
-                      <div className="text-xs text-gray-600">Offline</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 문제 서버 목록 */}
-                <div className="space-y-2">
-                  <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                    <i className="fas fa-server"></i>
-                    문제 서버 목록
-                  </h3>
-                  {serverIssues.map((issue, index) => (
-                    <div key={index} className="bg-gray-50 rounded-lg p-3 border-l-4 border-l-red-500">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-medium text-sm">{issue.hostname}</span>
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          issue.status === 'critical' ? 'bg-red-100 text-red-800' :
-                          issue.status === 'warning' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {issue.status.toUpperCase()}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-600">{issue.issue}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* AI 분석 요청 버튼 */}
-                <button
-                  onClick={() => {
-                    setShowIncidentReport(false);
-                    generateIncidentReport();
-                  }}
-                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white p-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center justify-center gap-2"
-                >
-                  <i className="fas fa-brain"></i>
-                  AI 상세 분석 요청
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* 백드롭 */}
       <div 
         className="fixed inset-0 bg-black bg-opacity-50 z-40"
@@ -321,15 +254,17 @@ ${serverIssues.map(issue => `- ${issue.hostname}: ${issue.status} (${issue.issue
           <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
         </div>
 
-        {/* 헤더 */}
+        {/* 🧠 AI 에이전트 헤더 & 상태 표시 */}
         <div className="flex items-center justify-between px-4 pb-3 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
               <i className="fas fa-brain text-white text-sm"></i>
             </div>
             <div>
               <h2 className="font-semibold text-gray-900">AI 에이전트</h2>
-              <p className="text-xs text-gray-500">OpenManager AI</p>
+              <p className="text-xs text-gray-500">
+                {isSystemActive ? '🟢 활성화' : '🔴 대기중'}
+              </p>
             </div>
           </div>
           
@@ -351,24 +286,67 @@ ${serverIssues.map(issue => `- ${issue.hostname}: ${issue.status} (${issue.issue
           </div>
         </div>
 
-        {/* 질문 입력창 - 최상단 */}
+        {/* 🚨 긴급 알림 바 (문제 발생시만 표시) */}
+        {urgentAlerts.length > 0 && (
+          <div className="bg-red-50 border-b border-red-200 p-3">
+            <div className="space-y-2">
+              {urgentAlerts.map((alert, index) => (
+                <div key={index} className="flex items-center gap-2 text-red-800 text-sm font-medium">
+                  <i className="fas fa-exclamation-triangle text-red-600"></i>
+                  <span>{alert}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ⚠️ 실시간 서버 상태 요약 (한 눈에 보기) */}
         <div className="p-3 border-b border-gray-200 bg-gray-50">
-          <AgentQueryBox
-            onSendMessage={handleSendMessage}
-            isLoading={isLoading}
-            placeholder="AI에게 질문하세요..."
-          />
+          <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <i className="fas fa-server text-blue-600"></i>
+            실시간 서버 상태
+          </h3>
+          <div className="grid grid-cols-4 gap-2">
+            <div className="bg-white rounded-lg p-2 text-center border border-gray-200">
+              <div className="text-sm font-bold text-green-600">{serverStats.online}</div>
+              <div className="text-xs text-gray-600">정상</div>
+            </div>
+            <div className="bg-white rounded-lg p-2 text-center border border-gray-200">
+              <div className="text-sm font-bold text-yellow-600">{serverStats.warning}</div>
+              <div className="text-xs text-gray-600">경고</div>
+            </div>
+            <div className="bg-white rounded-lg p-2 text-center border border-gray-200">
+              <div className="text-sm font-bold text-red-600">{serverStats.critical}</div>
+              <div className="text-xs text-gray-600">심각</div>
+            </div>
+            <div className="bg-white rounded-lg p-2 text-center border border-gray-200">
+              <div className="text-sm font-bold text-gray-600">{serverStats.offline}</div>
+              <div className="text-xs text-gray-600">오프라인</div>
+            </div>
+          </div>
+          <div className="mt-2 text-center">
+            <span className="text-xs text-gray-600">
+              총 <span className="font-semibold text-gray-900">{serverStats.total}대</span> 서버 모니터링 중
+            </span>
+          </div>
         </div>
 
-        {/* 빠른 질문 프리셋 */}
+        {/* 💬 질문 입력창 + ⚡ 빠른 질문 프리셋 */}
         <div className="p-3 border-b border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">빠른 질문</h3>
+          <div className="mb-2">
+            <AgentQueryBox
+              onSendMessage={handleSendMessage}
+              isLoading={isLoading}
+              placeholder="서버 상태가 어때? 문제가 있는 서버는?"
+            />
+          </div>
+          
           <div className="grid grid-cols-2 gap-2">
             {quickQuestions.map((question, index) => (
               <button
                 key={index}
                 onClick={() => handleSendMessage(question.query)}
-                className="text-left p-2 bg-white hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg text-xs transition-all duration-200 group"
+                className="text-left p-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 hover:border-blue-300 rounded-lg text-xs transition-all duration-200 group"
               >
                 <div className="flex items-center gap-2">
                   <span className="text-sm">{question.icon}</span>
@@ -381,59 +359,17 @@ ${serverIssues.map(issue => `- ${issue.hostname}: ${issue.status} (${issue.issue
           </div>
         </div>
 
-        {/* 장애 보고서 버튼 */}
-        <div className="p-3 border-b border-gray-200">
-          <button
-            onClick={() => setShowIncidentReport(true)}
-            className="w-full bg-gradient-to-r from-red-500 to-orange-500 text-white p-3 rounded-lg font-semibold hover:from-red-600 hover:to-orange-600 transition-all duration-200 flex items-center justify-center gap-2"
-          >
-            <i className="fas fa-exclamation-triangle"></i>
-            자동 장애 보고서
-            {serverIssues.length > 0 && (
-              <span className="bg-white text-red-600 px-2 py-1 rounded-full text-xs font-bold">
-                {serverIssues.length}
-              </span>
-            )}
-          </button>
-        </div>
-
-        {/* 문제 서버 요약 */}
-        {serverIssues.length > 0 && (
-          <div className="p-3 border-b border-gray-200 bg-red-50">
-            <h3 className="text-sm font-semibold text-red-800 mb-2 flex items-center gap-2">
-              <i className="fas fa-exclamation-circle text-red-600"></i>
-              문제 서버 ({serverIssues.length}개)
-            </h3>
-            <div className="space-y-2 max-h-24 overflow-y-auto">
-              {serverIssues.map((issue, index) => (
-                <div key={index} className="bg-white rounded p-2 border-l-3 border-l-red-500">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-xs text-gray-900">{issue.hostname}</span>
-                    <span className={`px-1 py-0.5 rounded text-xs font-medium ${
-                      issue.status === 'critical' ? 'bg-red-100 text-red-800' :
-                      issue.status === 'warning' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {issue.status.toUpperCase()}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-600 mt-1 truncate">{issue.issue}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 대화 내용 */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-3">
+        {/* 💬 대화 내용 영역 (실시간 스크롤) */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gray-50">
           {messages.length === 0 && (
-            <div className="text-center py-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <i className="fas fa-brain text-lg text-purple-600"></i>
+            <div className="text-center py-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <i className="fas fa-brain text-blue-600"></i>
               </div>
-              <h3 className="font-semibold text-gray-900 mb-1">AI 에이전트 준비 완료</h3>
+              <h3 className="text-sm font-semibold text-gray-900 mb-1">AI 에이전트 준비 완료</h3>
               <p className="text-xs text-gray-500">
-                위의 질문 입력창이나 빠른 질문 버튼을<br />
-                사용해서 대화를 시작하세요!
+                위의 빠른 질문 버튼을 사용하거나<br />
+                직접 질문을 입력해보세요!
               </p>
             </div>
           )}
@@ -447,15 +383,73 @@ ${serverIssues.map(issue => `- ${issue.hostname}: ${issue.status} (${issue.issue
           ))}
 
           {isLoading && (
-            <div className="flex items-center gap-2 text-gray-500">
-              <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-              <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              <span className="text-xs ml-2">AI가 응답을 생성하고 있습니다...</span>
+            <div className="flex items-center gap-2 text-gray-500 bg-white rounded-lg p-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <span className="text-xs ml-2">AI가 분석하고 있습니다...</span>
             </div>
           )}
 
           <div ref={messagesEndRef} />
+        </div>
+
+        {/* 📊 상세 대시보드 토글 버튼 */}
+        <div className="p-3 border-t border-gray-200 bg-white">
+          <button
+            onClick={() => setShowDetailedDashboard(!showDetailedDashboard)}
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-2"
+          >
+            <i className={`fas ${showDetailedDashboard ? 'fa-eye-slash' : 'fa-chart-line'}`}></i>
+            {showDetailedDashboard ? '간단히 보기' : '상세 분석 보기'}
+          </button>
+          
+          {/* 상세 대시보드 영역 */}
+          {showDetailedDashboard && (
+            <div className="mt-2 space-y-2">
+              {/* 문제 서버 상세 목록 */}
+              {serverIssues.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-2">
+                  <h4 className="text-xs font-semibold text-red-800 mb-2 flex items-center gap-1">
+                    <i className="fas fa-exclamation-circle"></i>
+                    문제 서버 상세 ({serverIssues.length}개)
+                  </h4>
+                  <div className="space-y-1 max-h-24 overflow-y-auto">
+                    {serverIssues.map((issue, index) => (
+                      <div key={index} className="bg-white rounded p-2 border-l-2 border-l-red-500">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-medium text-xs text-gray-900">{issue.hostname}</span>
+                          <span className={`px-1 py-0.5 rounded text-xs font-medium ${
+                            issue.status === 'critical' ? 'bg-red-100 text-red-800' :
+                            issue.status === 'warning' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {issue.status.toUpperCase()}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-600 truncate">{issue.issue}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* 빠른 액션 버튼들 */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => handleSendMessage('현재 가장 심각한 문제가 무엇인지 우선순위별로 분석해주세요')}
+                  className="bg-red-100 hover:bg-red-200 text-red-800 p-2 rounded text-xs font-medium transition-colors"
+                >
+                  🚨 긴급 분석
+                </button>
+                <button
+                  onClick={() => handleSendMessage('모든 서버의 성능 메트릭을 종합하여 최적화 방안을 제시해주세요')}
+                  className="bg-blue-100 hover:bg-blue-200 text-blue-800 p-2 rounded text-xs font-medium transition-colors"
+                >
+                  📈 성능 최적화
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>
