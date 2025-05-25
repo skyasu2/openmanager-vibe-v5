@@ -1,6 +1,6 @@
 {
   "name": "openmanager-vibe-v5-clean",
-  "version": "5.2.0",
+  "version": "5.2.1",
   "description": "🤖 OpenManager AI - NPU & MCP 엔진 기반 서버 모니터링 시스템 (최적화된 코드베이스)",
   "private": true,
   "keywords": ["ai-agent", "server-monitoring", "npu", "mcp", "nextjs", "typescript", "optimized"],
