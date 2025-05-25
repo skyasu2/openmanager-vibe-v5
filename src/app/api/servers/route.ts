@@ -9,51 +9,80 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-// 간단한 테스트 서버 데이터 생성
+// 현실적인 서버 구성 데이터 생성 (20개 서버)
 function generateTestServers() {
-  const serverTypes = ['API', 'Database', 'Web', 'Cache', 'Worker'];
-  const locations = ['US-East-1', 'US-West-2', 'EU-Central-1', 'AP-Tokyo-1', 'AP-Seoul-1'];
-  const providers = ['aws', 'azure', 'gcp', 'kubernetes', 'onpremise'];
-  const environments = ['production', 'staging', 'development'];
+  const servers: any[] = [];
   
-  const servers = [];
+  // 서버 구성 정의
+  const serverConfigs = [
+    // 온프레미스 서버 (7개) - 데이터센터 IDC
+    { hostname: 'web-prod-01', type: 'Web', role: 'Frontend Load Balancer', provider: 'onpremise', location: 'Seoul-IDC-1', environment: 'production', rack: 'A-01' },
+    { hostname: 'db-master-01', type: 'Database', role: 'PostgreSQL Master', provider: 'onpremise', location: 'Seoul-IDC-1', environment: 'production', rack: 'B-03' },
+    { hostname: 'cache-redis-01', type: 'Cache', role: 'Redis Cluster Master', provider: 'onpremise', location: 'Seoul-IDC-1', environment: 'production', rack: 'A-05' },
+    { hostname: 'backup-storage-01', type: 'Storage', role: 'Backup & Archive', provider: 'onpremise', location: 'Seoul-IDC-1', environment: 'production', rack: 'C-02' },
+    { hostname: 'mail-server-01', type: 'Mail', role: 'SMTP Server', provider: 'onpremise', location: 'Seoul-IDC-1', environment: 'production', rack: 'B-01' },
+    { hostname: 'file-server-nfs', type: 'Storage', role: 'NFS File Server', provider: 'onpremise', location: 'Seoul-IDC-1', environment: 'production', rack: 'C-01' },
+    { hostname: 'proxy-nginx-01', type: 'Proxy', role: 'Reverse Proxy', provider: 'onpremise', location: 'Seoul-IDC-1', environment: 'production', rack: 'A-02' },
+    
+    // 쿠버네티스 클러스터 (6개) - EKS 환경
+    { hostname: 'k8s-master-01', type: 'Kubernetes', role: 'Control Plane Master', provider: 'kubernetes', location: 'AWS-Seoul-1', environment: 'production', cluster: 'prod-cluster' },
+    { hostname: 'k8s-worker-01', type: 'Kubernetes', role: 'Worker Node', provider: 'kubernetes', location: 'AWS-Seoul-1', environment: 'production', cluster: 'prod-cluster' },
+    { hostname: 'k8s-worker-02', type: 'Kubernetes', role: 'Worker Node', provider: 'kubernetes', location: 'AWS-Seoul-1', environment: 'production', cluster: 'prod-cluster' },
+    { hostname: 'k8s-ingress-01', type: 'Ingress', role: 'Ingress Controller', provider: 'kubernetes', location: 'AWS-Seoul-1', environment: 'production', cluster: 'prod-cluster' },
+    { hostname: 'k8s-logging-01', type: 'Logging', role: 'Log Aggregator', provider: 'kubernetes', location: 'AWS-Seoul-1', environment: 'production', cluster: 'prod-cluster' },
+    { hostname: 'k8s-monitoring-01', type: 'Monitoring', role: 'Prometheus Stack', provider: 'kubernetes', location: 'AWS-Seoul-1', environment: 'production', cluster: 'prod-cluster' },
+    
+    // AWS 클라우드 서버 (7개) - EC2 인스턴스
+    { hostname: 'api-gateway-prod', type: 'API', role: 'API Gateway', provider: 'aws', location: 'AWS-Seoul-1', environment: 'production', instanceType: 't3.large' },
+    { hostname: 'analytics-worker', type: 'Worker', role: 'Data Processing', provider: 'aws', location: 'AWS-Seoul-1', environment: 'production', instanceType: 'c5.xlarge' },
+    { hostname: 'monitoring-elk', type: 'Monitoring', role: 'ELK Stack', provider: 'aws', location: 'AWS-Seoul-1', environment: 'production', instanceType: 'm5.large' },
+    { hostname: 'jenkins-ci-cd', type: 'CI/CD', role: 'Build Server', provider: 'aws', location: 'AWS-Seoul-1', environment: 'production', instanceType: 't3.medium' },
+    { hostname: 'grafana-metrics', type: 'Monitoring', role: 'Metrics Dashboard', provider: 'aws', location: 'AWS-Seoul-1', environment: 'production', instanceType: 't3.small' },
+    { hostname: 'vault-secrets', type: 'Security', role: 'Secret Management', provider: 'aws', location: 'AWS-Seoul-1', environment: 'production', instanceType: 't3.micro' },
+    { hostname: 'staging-web-01', type: 'Web', role: 'Staging Frontend', provider: 'aws', location: 'AWS-Seoul-1', environment: 'staging', instanceType: 't3.small' }
+  ];
   
-  for (let i = 1; i <= 15; i++) {
-    const serverNum = String(i).padStart(3, '0');
-    const type = serverTypes[Math.floor(Math.random() * serverTypes.length)];
-    const location = locations[Math.floor(Math.random() * locations.length)];
-    const provider = providers[Math.floor(Math.random() * providers.length)];
-    const environment = environments[Math.floor(Math.random() * environments.length)];
+  serverConfigs.forEach((config, i) => {
+    const serverNum = String(i + 1).padStart(2, '0');
     
     // 일부 서버는 의도적으로 문제 상태로 설정
     let status = 'online';
     let cpu = Math.floor(Math.random() * 60) + 10; // 10-70%
     let memory = Math.floor(Math.random() * 50) + 30; // 30-80%
     
-    if (i === 1) { // 첫 번째 서버는 높은 CPU 사용률
+    // 특정 서버들에 문제 상태 설정
+    if (config.hostname === 'db-master-01') { // DB 서버 높은 CPU
       status = 'critical';
       cpu = 89;
       memory = 76;
-    } else if (i <= 4) { // 몇 개는 경고 상태
+    } else if (config.hostname === 'cache-redis-01' || config.hostname === 'k8s-worker-01') { // 경고 상태
       status = 'warning';
       cpu = Math.floor(Math.random() * 20) + 70; // 70-90%
+    } else if (config.hostname === 'monitoring-elk') { // 오프라인 상태
+      status = 'offline';
+      cpu = 0;
+      memory = 0;
     }
 
     servers.push({
       id: `server-${serverNum}`,
-      hostname: `${type.toLowerCase()}-${location.toLowerCase().replace('-', '')}-${serverNum}`,
-      ipAddress: `10.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+      hostname: config.hostname,
+      ipAddress: config.provider === 'onpremise' 
+        ? `192.168.${Math.floor(Math.random() * 10) + 1}.${Math.floor(Math.random() * 254) + 1}`
+        : `10.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
       status,
-      location,
-      environment,
-      provider,
-      instanceType: provider === 'aws' ? 't3.medium' : provider === 'kubernetes' ? 'worker-node' : 'standard',
-      cluster: provider === 'kubernetes' ? 'production-cluster' : undefined,
-      zone: location.split('-').pop(),
+      location: config.location,
+      environment: config.environment,
+      provider: config.provider,
+      instanceType: config.instanceType || (config.provider === 'kubernetes' ? 'worker-node' : 'standard'),
+      cluster: config.cluster,
+      rack: config.rack,
+      role: config.role,
+      zone: config.location.split('-').pop(),
       tags: {
-        team: ['devops', 'backend', 'frontend', 'data'][Math.floor(Math.random() * 4)],
-        project: ['web-app', 'api-service', 'data-pipeline', 'monitoring'][Math.floor(Math.random() * 4)],
-        cost_center: ['engineering', 'product', 'infrastructure'][Math.floor(Math.random() * 3)]
+        team: config.type === 'Database' ? 'data' : config.type === 'Web' ? 'frontend' : config.type === 'API' ? 'backend' : 'devops',
+        project: config.hostname.includes('prod') ? 'production-app' : config.hostname.includes('staging') ? 'staging-env' : config.hostname.includes('dev') ? 'development' : 'infrastructure',
+        cost_center: config.environment === 'production' ? 'engineering' : 'development'
       },
       metrics: {
         cpu,
@@ -81,34 +110,34 @@ function generateTestServers() {
       lastSeen: new Date().toISOString(),
       alerts: status !== 'online' ? [{
         id: `alert-${i}`,
-        severity: status === 'critical' ? 'critical' : 'medium',
-        type: 'cpu',
-        message: status === 'critical' ? 'CPU 사용률이 매우 높습니다' : 'CPU 사용률이 높습니다',
+        severity: status === 'critical' ? 'critical' : status === 'offline' ? 'critical' : 'medium',
+        type: status === 'offline' ? 'connectivity' : 'cpu',
+        message: status === 'critical' ? 'CPU 사용률이 매우 높습니다' : status === 'offline' ? '서버에 연결할 수 없습니다' : 'CPU 사용률이 높습니다',
         timestamp: new Date().toISOString(),
         acknowledged: false
       }] : [],
       services: [
         {
           name: 'nginx',
-          status: 'running',
+          status: status === 'offline' ? 'stopped' : 'running',
           port: 80,
-          pid: Math.floor(Math.random() * 10000) + 1000,
-          uptime: Math.floor(Math.random() * 86400),
+          pid: status === 'offline' ? 0 : Math.floor(Math.random() * 10000) + 1000,
+          uptime: status === 'offline' ? 0 : Math.floor(Math.random() * 86400),
           memoryUsage: Math.floor(Math.random() * 100) + 50,
           cpuUsage: Math.floor(Math.random() * 10) + 1
         },
         {
-          name: type.toLowerCase(),
-          status: status === 'critical' ? 'failed' : 'running',
-          port: type === 'Database' ? 5432 : type === 'API' ? 8080 : 3000,
-          pid: Math.floor(Math.random() * 10000) + 1000,
-          uptime: Math.floor(Math.random() * 86400),
+          name: config.type.toLowerCase(),
+          status: status === 'critical' ? 'failed' : status === 'offline' ? 'stopped' : 'running',
+          port: config.type === 'Database' ? 5432 : config.type === 'API' ? 8080 : config.type === 'Cache' ? 6379 : 3000,
+          pid: status === 'offline' ? 0 : Math.floor(Math.random() * 10000) + 1000,
+          uptime: status === 'offline' ? 0 : Math.floor(Math.random() * 86400),
           memoryUsage: Math.floor(Math.random() * 200) + 100,
           cpuUsage: Math.floor(Math.random() * 20) + 5
         }
       ]
     });
-  }
+  });
   
   return servers;
 }
