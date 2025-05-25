@@ -6,7 +6,8 @@ const nextConfig: NextConfig = {
   
   // App Router 강제 우선순위
   experimental: {
-    optimizeServerReact: true
+    optimizeServerReact: true,
+    optimizePackageImports: ['lucide-react', 'framer-motion']
   },
 
   // 정적 파일 우선순위 조정
@@ -92,6 +93,22 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
+  // 번들 분석기 설정
+  ...(process.env.ANALYZE === 'true' && {
+    webpack: (config: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+      config.plugins.push(
+        new BundleAnalyzerPlugin({
+          analyzerMode: 'static',
+          openAnalyzer: false,
+          reportFilename: './analyze/client.html'
+        })
+      );
+      return config;
+    }
+  })
 };
 
 export default nextConfig;

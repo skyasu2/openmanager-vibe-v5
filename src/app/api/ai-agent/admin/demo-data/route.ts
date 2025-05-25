@@ -73,7 +73,6 @@ async function generateInteractions(count: number) {
   ];
 
   const categories = ['server_monitoring', 'performance_analysis', 'security', 'backup', 'optimization'];
-  const modes = ['basic', 'advanced'];
   const intents = ['server_status', 'performance_check', 'error_analysis', 'security_audit', 'capacity_planning'];
 
   const interactions = [];
@@ -171,11 +170,11 @@ async function generateErrors(count: number) {
 
 // 모든 데모 데이터 생성
 async function generateAllDemoData(count: number) {
-  const interactionResult = await generateInteractions(count);
-  const errorResult = await generateErrors(Math.floor(count / 5)); // 에러는 상호작용의 1/5
+  await generateInteractions(count);
+  await generateErrors(Math.floor(count / 5)); // 에러는 상호작용의 1/5
 
   // 성능 메트릭 생성
-  const metrics = await aiDatabase.generatePerformanceMetrics();
+  await aiDatabase.generatePerformanceMetrics();
 
   return NextResponse.json({
     success: true,

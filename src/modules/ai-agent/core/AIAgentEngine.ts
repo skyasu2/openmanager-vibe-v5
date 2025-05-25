@@ -13,11 +13,8 @@ import { IntentClassifier } from '../processors/IntentClassifier';
 import { ResponseGenerator } from '../processors/ResponseGenerator';
 import { ContextManager } from '../processors/ContextManager';
 import { ActionExecutor } from '../processors/ActionExecutor';
-import { AIAgentEnvironmentConfig, detectEnvironment } from '../config';
-import { AdapterFactory, StorageAdapter, LoggingAdapter, NetworkAdapter, MetricsAdapter } from '../adapters';
-import { PluginManager, PluginContext } from '../plugins';
-import { ModeManager, createDefaultModeConfig, AIAgentMode, PowerMode } from './ModeManager';
-import { ThinkingProcessor, ThinkingSession } from './ThinkingProcessor';
+import { ModeManager, createDefaultModeConfig, AIAgentMode } from './ModeManager';
+import { ThinkingProcessor } from './ThinkingProcessor';
 import { AdminLogger } from './AdminLogger';
 
 export interface AIAgentConfig {
@@ -29,15 +26,6 @@ export interface AIAgentConfig {
   mode: AIAgentMode;
   enableThinking: boolean;
   enableAdminLogging: boolean;
-}
-
-export interface AIAgentRequest {
-  query: string;
-  userId?: string;
-  sessionId?: string;
-  context?: Record<string, any>;
-  serverData?: any;
-  metadata?: Record<string, any>;
 }
 
 export interface AIAgentResponse {
@@ -57,6 +45,15 @@ export interface AIAgentResponse {
     sessionId: string;
   };
   error?: string;
+}
+
+export interface AIAgentRequest {
+  query: string;
+  userId?: string;
+  sessionId?: string;
+  context?: Record<string, any>;
+  serverData?: any;
+  metadata?: Record<string, any>;
 }
 
 export class AIAgentEngine {

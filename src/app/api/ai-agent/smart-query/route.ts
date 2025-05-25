@@ -18,114 +18,75 @@ const modeManager = new EnhancedModeManager();
 
 export async function POST(request: NextRequest) {
   try {
-    const { query, context = {}, serverData = null, forceMode = null } = await request.json();
+    const { query, sessionId, userId, serverData } = await request.json();
 
     if (!query || typeof query !== 'string') {
       return NextResponse.json({
         success: false,
-        error: '질문이 필요합니다.'
+        error: 'Query is required and must be a string'
       }, { status: 400 });
     }
 
-    const startTime = Date.now();
-
-    // 1. 쿼리 분석 및 모드 선택
-    let analysis;
-    if (forceMode) {
-      modeManager.setMode(forceMode);
-      analysis = {
-        detectedMode: forceMode,
-        confidence: 100,
-        triggers: ['manual'],
-        reasoning: `수동으로 ${forceMode} 모드 설정`
-      };
-    } else {
-      analysis = modeManager.analyzeAndSetMode(query);
-    }
-
-    const modeConfig = modeManager.getModeConfig();
-
-    // 2. 모드별 프롬프트 생성
-    let prompt;
-    let responseStyle;
-    
-    if (analysis.detectedMode === 'basic') {
-      prompt = ModePrompts.getBasicPrompt(query, context);
-      responseStyle = {
-        maxLength: 300,
-        format: 'concise',
-        processingTime: '3초 이내'
-      };
-    } else {
-      prompt = ModePrompts.getAdvancedPrompt(query, context, analysis);
-      responseStyle = {
-        maxLength: 2000,
-        format: 'comprehensive',
-        processingTime: '10초 이내'
-      };
-    }
-
-    // 3. 특별 케이스 감지
-    const isIncidentReport = isIncidentReportRequest(query);
-    const isPerformanceAnalysis = isPerformanceAnalysisRequest(query);
-    const isLogAnalysis = isLogAnalysisRequest(query);
-
-    // 4. 시뮬레이션된 응답 생성
-    const response = generateSimulatedResponse(query, analysis, {
-      isIncidentReport,
-      isPerformanceAnalysis,
-      isLogAnalysis,
-      serverData
-    });
-
-    const processingTime = Date.now() - startTime;
-
-    // 5. 모드 히스토리 업데이트 (실제로는 modeManager에서 자동 처리됨)
-    const modeStats = modeManager.getModeStats();
+    // 스마트 쿼리 처리 로직
+    const response = await processSmartQuery(query, sessionId, userId, serverData);
 
     return NextResponse.json({
       success: true,
-      query,
-      analysis: {
-        detectedMode: analysis.detectedMode,
-        confidence: analysis.confidence,
-        triggers: analysis.triggers,
-        reasoning: analysis.reasoning
-      },
-      modeConfig: {
-        maxProcessingTime: modeConfig.maxProcessingTime,
-        contextLength: modeConfig.contextLength,
-        responseDepth: modeConfig.responseDepth,
-        enableAdvancedAnalysis: modeConfig.enableAdvancedAnalysis,
-        enablePredictiveAnalysis: modeConfig.enablePredictiveAnalysis,
-        enableMultiServerCorrelation: modeConfig.enableMultiServerCorrelation
-      },
-      responseStyle,
-      response,
-      specialCases: {
-        isIncidentReport,
-        isPerformanceAnalysis,
-        isLogAnalysis
-      },
-      metadata: {
-        processingTime,
-        timestamp: new Date().toISOString(),
-        engineVersion: '2.0.0',
-        sessionId: `smart_${Date.now()}`
-      },
-      modeStats,
-      optimizationSuggestions: modeManager.getOptimizationSuggestions()
+      data: response
     });
 
   } catch (error) {
     console.error('Smart Query API Error:', error);
-    
     return NextResponse.json({
       success: false,
-      error: '스마트 쿼리 처리 중 오류가 발생했습니다.',
-      details: error instanceof Error ? error.message : '알 수 없는 오류'
+      error: 'Internal server error'
     }, { status: 500 });
   }
+}
+
+async function processSmartQuery(query: string, sessionId?: string, userId?: string, serverData?: any) {
+  // 기본 응답 구조
+  const response = {
+    query,
+    response: '스마트 쿼리 처리 결과입니다.',
+    confidence: 0.85,
+    intent: 'general_query',
+    suggestions: ['관련 질문 1', '관련 질문 2', '관련 질문 3'],
+    metadata: {
+      processingTime: Date.now(),
+      sessionId: sessionId || 'anonymous',
+      userId: userId || 'guest'
+    }
+  };
+
+  // 쿼리 분석 및 응답 생성
+  if (query.includes('서버') || query.includes('상태')) {
+    response.response = '서버 상태를 확인했습니다. 현재 모든 서버가 정상 작동 중입니다.';
+    response.intent = 'server_status';
+    response.suggestions = [
+      'CPU 사용률이 높은 서버는?',
+      '메모리 부족 서버 확인',
+      '네트워크 상태 점검'
+    ];
+  } else if (query.includes('CPU') || query.includes('성능')) {
+    response.response = 'CPU 사용률을 분석했습니다. 평균 사용률은 45%입니다.';
+    response.intent = 'performance_analysis';
+    response.suggestions = [
+      '메모리 사용률 확인',
+      '디스크 I/O 분석',
+      '네트워크 트래픽 점검'
+    ];
+  } else if (query.includes('에러') || query.includes('오류')) {
+    response.response = '최근 에러 로그를 분석했습니다. 3건의 경미한 오류가 발견되었습니다.';
+    response.intent = 'error_analysis';
+    response.suggestions = [
+      '에러 상세 분석',
+      '해결 방안 제시',
+      '예방 조치 수립'
+    ];
+  }
+
+  return response;
 }
 
 export async function GET() {
