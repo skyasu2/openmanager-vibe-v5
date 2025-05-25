@@ -42,7 +42,7 @@ class AIAgentPowerManager {
     // 새로운 절전 타이머 시작
     this.startPowerTimers();
     
-    console.log('🤖 AI Agent activated');
+    console.log('🤖 AI Agent activated - isActive:', this.isActive, 'powerMode:', this.powerMode);
     
     return {
       success: true,
@@ -76,6 +76,13 @@ class AIAgentPowerManager {
   recordActivity(): void {
     this.lastActivity = Date.now();
     
+    // 시스템이 비활성화되어 있으면 자동으로 활성화
+    if (!this.isActive) {
+      console.log('🔄 AI Agent auto-activating due to activity');
+      this.isActive = true;
+      this.powerMode = 'active';
+    }
+    
     if (this.powerMode !== 'active' && this.isActive) {
       this.wakeUp();
     } else if (this.isActive) {
@@ -83,6 +90,8 @@ class AIAgentPowerManager {
       this.clearAllTimers();
       this.startPowerTimers();
     }
+    
+    console.log('📝 AI Agent activity recorded - isActive:', this.isActive, 'powerMode:', this.powerMode);
   }
 
   /**

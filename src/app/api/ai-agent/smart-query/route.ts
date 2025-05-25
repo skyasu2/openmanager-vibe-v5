@@ -20,6 +20,18 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // AI 에이전트 활동 기록 (자동 활성화)
+    try {
+      await fetch(`${request.nextUrl.origin}/api/ai-agent/power`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'activity' })
+      });
+      console.log('🤖 AI Agent activity recorded from smart-query');
+    } catch (error) {
+      console.warn('Failed to record AI agent activity:', error);
+    }
+
     // 스마트 쿼리 처리 로직
     const response = await processSmartQuery(query, sessionId, userId);
 

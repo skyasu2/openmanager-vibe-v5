@@ -149,6 +149,9 @@ export class SmartAIAgent {
    * 스마트 응답 생성
    */
   generateSmartResponse(query: string): SmartResponse {
+    // AI 에이전트 활동 기록 (자동 활성화)
+    this.recordActivity();
+    
     const condition = this.analyzeSystemCondition();
     const queryType = this.classifyQuery(query);
     const { servers } = useDemoStore.getState();
@@ -182,6 +185,25 @@ export class SmartAIAgent {
       urgencyLevel,
       followUpQuestions: preset.followUps
     };
+  }
+
+  /**
+   * AI 에이전트 활동 기록
+   */
+  private async recordActivity(): Promise<void> {
+    try {
+      const response = await fetch('/api/ai-agent/power', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'activity' })
+      });
+      
+      if (response.ok) {
+        console.log('🤖 AI Agent activity recorded from aiAgent service');
+      }
+    } catch (error) {
+      console.warn('Failed to record AI agent activity:', error);
+    }
   }
 
   /**
