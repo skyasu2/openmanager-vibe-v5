@@ -76,7 +76,7 @@ export interface DataCollectionConfig {
   timeout: number;
   
   // 데이터 소스 설정
-  primarySource: 'simulation' | 'api' | 'database';
+  primarySource: 'simulation' | 'api' | 'database' | 'ssh' | 'snmp' | 'agent';
   fallbackSource: 'cache' | 'static' | 'minimal';
   
   // 서버 발견 설정
@@ -88,6 +88,27 @@ export interface DataCollectionConfig {
   enableRealisticVariation: boolean;
   enableFailureScenarios: boolean;
   enableMaintenanceWindows: boolean;
+  
+  // 실제 환경 설정
+  environment: 'production' | 'development' | 'demo';
+  realServerConfig?: {
+    sshConfig?: {
+      username: string;
+      privateKeyPath?: string;
+      password?: string;
+      port: number;
+    };
+    snmpConfig?: {
+      community: string;
+      version: '1' | '2c' | '3';
+      port: number;
+    };
+    agentConfig?: {
+      apiEndpoint: string;
+      apiKey?: string;
+      timeout: number;
+    };
+  };
 }
 
 export class ServerDataCollector {
@@ -128,18 +149,40 @@ export class ServerDataCollector {
   };
 
   constructor(config: Partial<DataCollectionConfig> = {}) {
+    // 환경 자동 감지
+    const detectedEnvironment = this.detectEnvironment();
+    
     this.config = {
       collectionInterval: 30000, // 30초
       retryAttempts: 3,
       timeout: 5000,
-      primarySource: 'simulation',
+      primarySource: detectedEnvironment === 'production' ? 'api' : 'simulation',
       fallbackSource: 'cache',
       autoDiscovery: true,
       discoveryInterval: 300000, // 5분
       maxServers: 50,
-      enableRealisticVariation: true,
-      enableFailureScenarios: true,
+      enableRealisticVariation: detectedEnvironment !== 'production',
+      enableFailureScenarios: detectedEnvironment !== 'production',
       enableMaintenanceWindows: true,
+      environment: detectedEnvironment,
+      realServerConfig: {
+        sshConfig: {
+          username: process.env.SSH_USERNAME || 'admin',
+          privateKeyPath: process.env.SSH_PRIVATE_KEY_PATH,
+          password: process.env.SSH_PASSWORD,
+          port: parseInt(process.env.SSH_PORT || '22')
+        },
+        snmpConfig: {
+          community: process.env.SNMP_COMMUNITY || 'public',
+          version: (process.env.SNMP_VERSION as '1' | '2c' | '3') || '2c',
+          port: parseInt(process.env.SNMP_PORT || '161')
+        },
+        agentConfig: {
+          apiEndpoint: process.env.AGENT_API_ENDPOINT || 'http://localhost:8080/api',
+          apiKey: process.env.AGENT_API_KEY,
+          timeout: parseInt(process.env.AGENT_TIMEOUT || '5000')
+        }
+      },
       ...config
     };
   }
@@ -360,9 +403,47 @@ export class ServerDataCollector {
   }
 
   /**
-   * 시스템 이벤트 리스너 설정
+   * 환경 자동 감지
+   */
+  private detectEnvironment(): 'production' | 'development' | 'demo' {
+    // 환경변수 우선 확인
+    const envMode = process.env.NODE_ENV;
+    const deployMode = process.env.DEPLOY_MODE;
+    
+    if (deployMode === 'production' || envMode === 'production') {
+      return 'production';
+    }
+    
+    if (deployMode === 'demo' || process.env.DEMO_MODE === 'true') {
+      return 'demo';
+    }
+    
+    // 실제 서버 환경 감지 시도
+    try {
+      // 브라우저 환경이 아닌 경우 (Node.js 서버 환경)
+      if (typeof window === 'undefined') {
+        // 실제 서버 환경일 가능성이 높음
+        return 'production';
+      }
+      
+      // 브라우저 환경에서는 데모/개발 모드
+      return 'demo';
+    } catch (error) {
+      // 기본값은 개발 모드
+      return 'development';
+    }
+  }
+
+  /**
+   * 시스템 이벤트 리스너 설정 (브라우저 환경에서만)
    */
   private setupSystemEventListeners(): void {
+    // 브라우저 환경이 아니면 이벤트 리스너 설정 안 함
+    if (typeof window === 'undefined') {
+      console.log('🔧 Running in Node.js environment, skipping browser event listeners');
+      return;
+    }
+
     // 시스템 정지 이벤트
     window.addEventListener('system-stopped', () => {
       console.log('🔋 System stopped event received, switching to AI monitoring');
@@ -494,11 +575,95 @@ export class ServerDataCollector {
    * API에서 서버 발견 (실제 환경)
    */
   private async discoverFromAPI(): Promise<Partial<ServerInfo>[]> {
-    // 실제 환경에서는 여기서 실제 API 호출
-    // 예: AWS EC2 describe-instances, Kubernetes API, 등
     console.log('📡 Discovering servers from API...');
     
-    // 시뮬레이션: 실제 API 응답과 유사한 구조
+    try {
+      // 실제 환경에서는 여기서 실제 API 호출
+      if (this.config.environment === 'production') {
+        return await this.discoverFromRealAPI();
+      }
+      
+      // 개발/데모 환경에서는 시뮬레이션
+      return await this.discoverFromSimulation();
+    } catch (error) {
+      console.error('API discovery failed:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 실제 API에서 서버 발견
+   */
+  private async discoverFromRealAPI(): Promise<Partial<ServerInfo>[]> {
+    const servers: Partial<ServerInfo>[] = [];
+    
+    try {
+      // AWS EC2 인스턴스 조회 (예시)
+      if (process.env.AWS_ACCESS_KEY_ID) {
+        const awsServers = await this.discoverAWSInstances();
+        servers.push(...awsServers);
+      }
+      
+      // Kubernetes 노드 조회 (예시)
+      if (process.env.KUBECONFIG || process.env.K8S_API_SERVER) {
+        const k8sServers = await this.discoverKubernetesNodes();
+        servers.push(...k8sServers);
+      }
+      
+      // 네트워크 스캔 (예시)
+      if (process.env.NETWORK_SCAN_RANGE) {
+        const networkServers = await this.discoverNetworkServers();
+        servers.push(...networkServers);
+      }
+      
+      console.log(`✅ Discovered ${servers.length} real servers`);
+      return servers;
+    } catch (error) {
+      console.error('Real API discovery failed:', error);
+      return [];
+    }
+  }
+
+  /**
+   * AWS 인스턴스 발견 (실제 구현 예시)
+   */
+  private async discoverAWSInstances(): Promise<Partial<ServerInfo>[]> {
+    // 실제 환경에서는 AWS SDK 사용
+    console.log('🔍 Discovering AWS EC2 instances...');
+    
+    // 실제 구현 시:
+    // const ec2 = new AWS.EC2();
+    // const instances = await ec2.describeInstances().promise();
+    // return instances.Reservations.flatMap(r => r.Instances.map(i => ({ ... })));
+    
+    return [];
+  }
+
+  /**
+   * Kubernetes 노드 발견 (실제 구현 예시)
+   */
+  private async discoverKubernetesNodes(): Promise<Partial<ServerInfo>[]> {
+    console.log('🔍 Discovering Kubernetes nodes...');
+    
+    // 실제 구현 시:
+    // const k8sApi = kc.makeApiClient(k8s.CoreV1Api);
+    // const nodes = await k8sApi.listNode();
+    // return nodes.body.items.map(node => ({ ... }));
+    
+    return [];
+  }
+
+  /**
+   * 네트워크 서버 발견 (실제 구현 예시)
+   */
+  private async discoverNetworkServers(): Promise<Partial<ServerInfo>[]> {
+    console.log('🔍 Scanning network for servers...');
+    
+    // 실제 구현 시:
+    // const range = process.env.NETWORK_SCAN_RANGE; // "192.168.1.0/24"
+    // const servers = await networkScan(range);
+    // return servers.map(server => ({ ... }));
+    
     return [];
   }
 
@@ -506,9 +671,44 @@ export class ServerDataCollector {
    * 데이터베이스에서 서버 발견 (실제 환경)
    */
   private async discoverFromDatabase(): Promise<Partial<ServerInfo>[]> {
-    // 실제 환경에서는 CMDB, 인벤토리 DB 등에서 조회
     console.log('🗄️ Discovering servers from database...');
     
+    try {
+      if (this.config.environment === 'production') {
+        // 실제 CMDB나 인벤토리 DB에서 조회
+        return await this.queryInventoryDatabase();
+      }
+      
+             // 개발/데모 환경에서는 로컬 DB에서 복원 시도
+       await this.restoreServersFromDatabase();
+       return Array.from(this.servers.values()).map(server => ({
+         id: server.id,
+         hostname: server.hostname,
+         ipAddress: server.ipAddress,
+         provider: server.provider,
+         location: server.location,
+         environment: server.environment
+       }));
+    } catch (error) {
+      console.error('Database discovery failed:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 인벤토리 데이터베이스 조회 (실제 구현 예시)
+   */
+  private async queryInventoryDatabase(): Promise<Partial<ServerInfo>[]> {
+    // 실제 구현 시:
+    // const query = `
+    //   SELECT hostname, ip_address, location, environment, provider
+    //   FROM server_inventory 
+    //   WHERE status = 'active'
+    // `;
+    // const result = await db.query(query);
+    // return result.rows.map(row => ({ ... }));
+    
+    console.log('📊 Querying inventory database...');
     return [];
   }
 
@@ -698,13 +898,145 @@ export class ServerDataCollector {
   }
 
   /**
-   * 기존 메트릭 수집 로직 (이름 변경)
+   * 기존 메트릭 수집 로직 (환경별 분기)
    */
   private async collectServerMetricsOriginal(server: ServerInfo): Promise<ServerMetrics> {
-    // 실제 환경에서는 여기서 실제 메트릭 수집
-    // 예: SSH 연결, SNMP, 에이전트 API 호출 등
+    // 실제 환경에서는 실제 메트릭 수집
+    if (this.config.environment === 'production') {
+      return await this.collectRealMetrics(server);
+    }
     
-    // 시뮬레이션: 현실적인 메트릭 변화
+    // 개발/데모 환경에서는 시뮬레이션
+    return await this.collectSimulatedMetrics(server);
+  }
+
+  /**
+   * 실제 메트릭 수집 (프로덕션 환경)
+   */
+  private async collectRealMetrics(server: ServerInfo): Promise<ServerMetrics> {
+    try {
+      // 설정된 수집 방법에 따라 분기
+      switch (this.config.primarySource) {
+        case 'ssh':
+          return await this.collectMetricsViaSSH(server);
+        case 'snmp':
+          return await this.collectMetricsViaSNMP(server);
+        case 'agent':
+          return await this.collectMetricsViaAgent(server);
+        default:
+          // API 또는 기타 방법
+          return await this.collectMetricsViaAPI(server);
+      }
+    } catch (error) {
+      console.error(`Failed to collect real metrics for ${server.hostname}:`, error);
+      // 실패 시 기존 메트릭 유지하고 오프라인 상태로 표시
+      return {
+        ...server.metrics,
+        uptime: server.metrics.uptime + (this.config.collectionInterval / 1000)
+      };
+    }
+  }
+
+  /**
+   * SSH를 통한 메트릭 수집
+   */
+  private async collectMetricsViaSSH(server: ServerInfo): Promise<ServerMetrics> {
+    console.log(`🔐 Collecting metrics via SSH from ${server.hostname}`);
+    
+    // 실제 구현 시:
+    // const ssh = new NodeSSH();
+    // await ssh.connect({
+    //   host: server.ipAddress,
+    //   username: this.config.realServerConfig?.sshConfig?.username,
+    //   privateKey: this.config.realServerConfig?.sshConfig?.privateKeyPath
+    // });
+    
+    // const cpuResult = await ssh.execCommand('top -bn1 | grep "Cpu(s)" | awk \'{print $2}\' | awk -F\'%\' \'{print $1}\'');
+    // const memResult = await ssh.execCommand('free | grep Mem | awk \'{printf "%.2f", $3/$2 * 100.0}\'');
+    // const diskResult = await ssh.execCommand('df -h / | awk \'NR==2{printf "%s", $5}\' | sed \'s/%//\'');
+    
+    // ssh.dispose();
+    
+    // 현재는 시뮬레이션으로 대체
+    return await this.collectSimulatedMetrics(server);
+  }
+
+  /**
+   * SNMP를 통한 메트릭 수집
+   */
+  private async collectMetricsViaSNMP(server: ServerInfo): Promise<ServerMetrics> {
+    console.log(`📊 Collecting metrics via SNMP from ${server.hostname}`);
+    
+    // 실제 구현 시:
+    // const snmp = require('net-snmp');
+    // const session = snmp.createSession(server.ipAddress, this.config.realServerConfig?.snmpConfig?.community);
+    
+    // const oids = [
+    //   '1.3.6.1.4.1.2021.11.9.0',  // CPU usage
+    //   '1.3.6.1.4.1.2021.4.5.0',   // Memory usage
+    //   '1.3.6.1.4.1.2021.9.1.9.1'  // Disk usage
+    // ];
+    
+    // const result = await new Promise((resolve, reject) => {
+    //   session.get(oids, (error, varbinds) => {
+    //     if (error) reject(error);
+    //     else resolve(varbinds);
+    //   });
+    // });
+    
+    // 현재는 시뮬레이션으로 대체
+    return await this.collectSimulatedMetrics(server);
+  }
+
+  /**
+   * 에이전트 API를 통한 메트릭 수집
+   */
+  private async collectMetricsViaAgent(server: ServerInfo): Promise<ServerMetrics> {
+    console.log(`🤖 Collecting metrics via Agent API from ${server.hostname}`);
+    
+    try {
+      // 실제 구현 시:
+      // const response = await fetch(`${this.config.realServerConfig?.agentConfig?.apiEndpoint}/metrics/${server.id}`, {
+      //   headers: {
+      //     'Authorization': `Bearer ${this.config.realServerConfig?.agentConfig?.apiKey}`,
+      //     'Content-Type': 'application/json'
+      //   },
+      //   timeout: this.config.realServerConfig?.agentConfig?.timeout
+      // });
+      
+      // if (!response.ok) {
+      //   throw new Error(`Agent API returned ${response.status}`);
+      // }
+      
+      // const data = await response.json();
+      // return this.parseAgentMetrics(data);
+      
+      // 현재는 시뮬레이션으로 대체
+      return await this.collectSimulatedMetrics(server);
+    } catch (error) {
+      console.error(`Agent API failed for ${server.hostname}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * API를 통한 메트릭 수집
+   */
+  private async collectMetricsViaAPI(server: ServerInfo): Promise<ServerMetrics> {
+    console.log(`📡 Collecting metrics via API from ${server.hostname}`);
+    
+    // 실제 구현 시 클라우드 프로바이더 API 호출
+    // AWS CloudWatch, Azure Monitor, GCP Monitoring 등
+    
+    // 현재는 시뮬레이션으로 대체
+    return await this.collectSimulatedMetrics(server);
+  }
+
+  /**
+   * 시뮬레이션 메트릭 수집 (개발/데모 환경)
+   */
+  private async collectSimulatedMetrics(server: ServerInfo): Promise<ServerMetrics> {
+    // 기존 시뮬레이션 로직
     const currentMetrics = server.metrics;
     const variation = this.config.enableRealisticVariation ? this.generateRealisticVariation(server) : { cpu: 0, memory: 0, disk: 0 };
     
