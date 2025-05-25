@@ -66,7 +66,8 @@ export default function HomePage() {
   const { 
     state, 
     startSystem, 
-    stopSystem
+    stopSystem,
+    getFormattedTime
   } = useSystemStore();
   const isSystemActive = state === 'active';
 
@@ -191,6 +192,8 @@ export default function HomePage() {
 
   // 시스템 비활성화 (데이터 생성기 + AI 에이전트도 함께 중지)
   const handleDeactivateSystem = async () => {
+    console.log('🛑 시스템 비활성화 시작...');
+    
     // 1. 시스템 비활성화
     stopSystem();
     
@@ -231,7 +234,8 @@ export default function HomePage() {
     }
     
     // 4. 시스템 비활성화 완료
-    console.log('✅ 시스템 비활성화 완료');
+    console.log('🔴 시스템 완전 종료 - 모든 서비스가 중지되었습니다.');
+    console.log('💡 재시작하려면 "시스템 활성화" 버튼을 다시 눌러주세요.');
   };
 
   // 데이터 패턴 변경 (시스템 활성화 중에만 가능)
@@ -1476,26 +1480,47 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* 시스템 상태 표시 */}
-
-
         {/* 간소화된 시스템 제어 */}
         <div className="cta-section fade-in-up">
           {!isSystemActive ? (
             <div className="text-center space-y-4">
+              {/* 시스템 종료 상태 안내 */}
+              <div className="mb-6 p-4 bg-red-500/20 border border-red-400/30 rounded-2xl backdrop-blur-sm">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="text-red-200 font-semibold">시스템 종료됨</span>
+                </div>
+                <p className="text-red-100 text-sm">
+                  모든 서비스가 중지되었습니다.<br />
+                  <strong>아래 버튼을 눌러 시스템을 다시 시작하세요.</strong>
+                </p>
+              </div>
+              
               <button 
                 className="btn-primary"
                 onClick={handleActivateSystem}
               >
                 <i className="fas fa-power-off"></i>
-                <span>🚀 시스템 활성화</span>
+                <span>🚀 시스템 활성화 (20분)</span>
               </button>
-              <p className="text-white/80 text-sm">모니터링 시스템을 시작합니다</p>
+              <p className="text-white/80 text-sm">
+                AI 에이전트 + 데이터 생성기 + 대시보드 모두 시작됩니다
+              </p>
             </div>
           ) : (
             <div className="text-center space-y-4">
-              <div className="text-green-400 font-semibold mb-4">
-                ✅ 시스템 실행 중
+              {/* 시스템 활성화 상태 표시 */}
+              <div className="mb-6 p-4 bg-green-500/20 border border-green-400/30 rounded-2xl backdrop-blur-sm">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-green-200 font-semibold">시스템 실행 중</span>
+                </div>
+                <div className="text-green-100 text-sm">
+                  <div className="flex items-center justify-center gap-4 mb-2">
+                    <span>⏰ 남은 시간: <strong>{getFormattedTime()}</strong></span>
+                  </div>
+                  <p>AI 에이전트, 데이터 생성기, 대시보드 모두 활성화됨</p>
+                </div>
               </div>
               
               <button 
@@ -1515,6 +1540,10 @@ export default function HomePage() {
                 <i className="fas fa-stop"></i>
                 <span>⏹️ 시스템 중지</span>
               </button>
+              
+              <p className="text-white/60 text-xs mt-2">
+                20분 후 자동 종료됩니다. 재시작하려면 이 페이지로 돌아와주세요.
+              </p>
             </div>
           )}
         </div>

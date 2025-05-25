@@ -219,6 +219,35 @@ export const useSystemStore = create<SystemStore>()(
 
         _handleSessionEnd: () => {
           clearTimers();
+          
+          // 모든 서비스 중지
+          const stopAllServices = async () => {
+            try {
+              // 1. 데이터 생성기 중지
+              console.log('🛑 데이터 생성기 중지 중...');
+              await fetch('/api/data-generator', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'stop' })
+              });
+              
+              // 2. AI 에이전트 비활성화
+              console.log('🛑 AI 에이전트 비활성화 중...');
+              await fetch('/api/ai-agent/power', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'deactivate' })
+              });
+              
+              console.log('✅ 모든 서비스 중지 완료');
+            } catch (error) {
+              console.error('서비스 중지 중 오류:', error);
+            }
+          };
+          
+          // 서비스 중지 실행
+          stopAllServices();
+          
           set({
             state: 'stopping',
             remainingTime: 0
@@ -226,15 +255,17 @@ export const useSystemStore = create<SystemStore>()(
 
           // 1초 후 완전히 비활성화
           setTimeout(() => {
+            const currentState = get();
             set({
               state: 'inactive',
               sessionStartTime: null,
               sessionDuration: 0,
               isExtended: false,
               extendedTime: 0,
-              totalSessions: get().totalSessions + 1,
-              totalActiveTime: get().totalActiveTime + Math.floor((Date.now() - get().sessionStartTime!) / 1000)
+              totalActiveTime: currentState.totalActiveTime + (currentState.sessionStartTime ? Math.floor((Date.now() - currentState.sessionStartTime) / 1000) : 0)
             });
+            
+            console.log('🔴 시스템 완전 종료 - 재시작하려면 랜딩페이지에서 활성화 버튼을 눌러주세요.');
           }, 1000);
         },
 

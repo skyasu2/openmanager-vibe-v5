@@ -6,10 +6,12 @@ import ServerDashboard from '../../components/dashboard/ServerDashboard';
 import AgentModal from '../../components/ai/AgentModal';
 import ProfileDropdown from '../../components/ui/ProfileDropdown';
 import { usePowerStore } from '../../stores/powerStore';
+import { useSystemStore } from '../../stores/systemStore';
 
 export default function DashboardPage() {
   const router = useRouter();
   const [isAgentOpen, setIsAgentOpen] = useState(false);
+  const [isCheckingAccess, setIsCheckingAccess] = useState(true);
 
   const [serverStats, setServerStats] = useState({
     total: 10,
@@ -18,22 +20,56 @@ export default function DashboardPage() {
     offline: 2
   });
 
-  // 절전 모드 상태 관리
+  // 시스템 상태 관리
+  const { state: systemState, canShowDashboard } = useSystemStore();
   const { mode } = usePowerStore();
   const isSystemActive = mode === 'active' || mode === 'monitoring';
 
-
-
-  // 시스템 자동 활성화 (인증 로직 제거)
+  // 시스템 상태 확인 및 접근 제어
   useEffect(() => {
-    // 시스템이 비활성화 상태라면 자동 활성화
-    if (!isSystemActive) {
-      console.log('🚀 대시보드 접근 시 시스템 자동 활성화 중...');
+    const checkSystemAccess = () => {
+      // 시스템이 비활성화 상태이거나 대시보드 접근이 불가능한 경우
+      if (systemState === 'inactive' || !canShowDashboard()) {
+        console.log('🚫 시스템이 비활성화되어 랜딩페이지로 이동합니다.');
+        router.replace('/');
+        return;
+      }
+      
+      setIsCheckingAccess(false);
+    };
+
+    checkSystemAccess();
+    
+    // 시스템 상태 변화 감지
+    const interval = setInterval(checkSystemAccess, 1000);
+    
+    return () => clearInterval(interval);
+  }, [systemState, canShowDashboard, router]);
+
+  // 시스템 자동 활성화 (시스템이 활성화된 경우에만)
+  useEffect(() => {
+    if (systemState === 'active' && !isSystemActive) {
+      console.log('🚀 대시보드 접근 시 AI 에이전트 자동 활성화 중...');
       const { activateSystem } = usePowerStore.getState();
       activateSystem();
-      console.log('✅ 시스템 활성화 완료');
+      console.log('✅ AI 에이전트 활성화 완료');
     }
-  }, [isSystemActive]);
+  }, [systemState, isSystemActive]);
+
+  // 접근 권한 확인 중이면 로딩 표시
+  if (isCheckingAccess) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <i className="fas fa-server text-white text-2xl"></i>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">시스템 상태 확인 중...</h2>
+          <p className="text-gray-600">잠시만 기다려주세요.</p>
+        </div>
+      </div>
+    );
+  }
 
   const closeAgent = () => {
     setIsAgentOpen(false);
@@ -51,7 +87,7 @@ export default function DashboardPage() {
     setServerStats(stats);
   };
 
-  // 랜딩페이지로 이동 (간소화)
+  // 랜딩페이지로 이동 (시스템 상태 정리)
   const handleGoToLanding = () => {
     console.log('🏠 랜딩페이지로 이동');
     router.push('/');
@@ -75,6 +111,12 @@ export default function DashboardPage() {
                 <p className="text-xs text-gray-500">AI 서버 모니터링</p>
               </div>
             </button>
+            
+            {/* 시스템 상태 표시 */}
+            <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              시스템 활성화
+            </div>
           </div>
 
           <div className="flex items-center gap-3 sm:gap-4">
@@ -136,8 +178,6 @@ export default function DashboardPage() {
         {/* AI 에이전트 모달 */}
         <AgentModal isOpen={isAgentOpen} onClose={closeAgent} />
       </main>
-
-
     </div>
   );
 } 
