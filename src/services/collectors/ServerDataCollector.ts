@@ -8,6 +8,9 @@
  * - 장애 시나리오 시뮬레이션
  */
 
+import { metricsStorage } from '../storage';
+import { usePowerStore } from '../../stores/powerStore';
+
 export interface ServerMetrics {
   cpu: number;
   memory: number;
@@ -96,6 +99,7 @@ export class ServerDataCollector {
   private lastCollectionTime: Date = new Date();
   private collectionErrors: number = 0;
   private maxErrors: number = 5;
+  private powerMode: 'sleep' | 'active' | 'monitoring' | 'emergency' = 'active';
 
   // 실제 환경 시뮬레이션을 위한 데이터
   private readonly PROVIDER_CONFIGS = {
@@ -361,6 +365,22 @@ export class ServerDataCollector {
    * 개별 서버 메트릭 수집
    */
   private async collectServerMetrics(server: ServerInfo): Promise<ServerMetrics> {
+    // 기존 메트릭 수집 로직
+    const newMetrics = await this.collectServerMetricsOriginal(server);
+    
+    // 절전 모드가 아닌 경우에만 데이터베이스 저장
+    if (this.powerMode !== 'sleep') {
+      server.metrics = newMetrics;
+      await this.saveMetricsToDatabase(server);
+    }
+    
+    return newMetrics;
+  }
+
+  /**
+   * 기존 메트릭 수집 로직 (이름 변경)
+   */
+  private async collectServerMetricsOriginal(server: ServerInfo): Promise<ServerMetrics> {
     // 실제 환경에서는 여기서 실제 메트릭 수집
     // 예: SSH 연결, SNMP, 에이전트 API 호출 등
     
@@ -375,7 +395,7 @@ export class ServerDataCollector {
       network: this.updateNetworkMetrics(currentMetrics.network),
       processes: currentMetrics.processes + Math.floor(Math.random() * 10 - 5),
       loadAverage: this.updateLoadAverage(currentMetrics.loadAverage),
-      uptime: currentMetrics.uptime + 30, // 30초 증가
+      uptime: currentMetrics.uptime + (this.config.collectionInterval / 1000), // 수집 간격만큼 증가
       temperature: this.generateTemperature(currentMetrics.cpu),
       powerUsage: this.generatePowerUsage(currentMetrics.cpu, currentMetrics.memory)
     };
@@ -749,6 +769,196 @@ export class ServerDataCollector {
         environment: 'production'
       }
     ];
+  }
+
+  /**
+   * 절전 모드 설정
+   */
+  setPowerMode(mode: 'sleep' | 'active' | 'monitoring' | 'emergency'): void {
+    this.powerMode = mode;
+    
+    switch (mode) {
+      case 'sleep':
+        this.config.collectionInterval = 300000; // 5분
+        this.config.enableRealisticVariation = false;
+        this.config.enableFailureScenarios = false;
+        break;
+      case 'monitoring':
+        this.config.collectionInterval = 120000; // 2분
+        this.config.enableRealisticVariation = true;
+        this.config.enableFailureScenarios = false;
+        break;
+      case 'active':
+        this.config.collectionInterval = 30000; // 30초
+        this.config.enableRealisticVariation = true;
+        this.config.enableFailureScenarios = true;
+        break;
+      case 'emergency':
+        this.config.collectionInterval = 600000; // 10분
+        this.config.enableRealisticVariation = false;
+        this.config.enableFailureScenarios = false;
+        break;
+    }
+    
+    console.log(`🔋 Power mode changed to: ${mode} (interval: ${this.config.collectionInterval}ms)`);
+  }
+
+  /**
+   * 데이터베이스 통합 메트릭 저장
+   */
+  private async saveMetricsToDatabase(server: ServerInfo): Promise<void> {
+    try {
+             const totalMemory = 8589934592; // 8GB 기본값
+       const usedMemory = Math.floor(totalMemory * server.metrics.memory / 100);
+       const totalDisk = 107374182400; // 100GB 기본값
+       const usedDisk = Math.floor(totalDisk * server.metrics.disk / 100);
+       
+       const metrics = {
+         serverId: server.id,
+         hostname: server.hostname,
+         timestamp: new Date(),
+         cpu: {
+           usage: server.metrics.cpu,
+           loadAverage: server.metrics.loadAverage,
+           cores: 4 // 기본값
+         },
+         memory: {
+           total: totalMemory,
+           used: usedMemory,
+           available: totalMemory - usedMemory,
+           usage: server.metrics.memory
+         },
+         disk: {
+           total: totalDisk,
+           used: usedDisk,
+           available: totalDisk - usedDisk,
+           usage: server.metrics.disk,
+           iops: {
+             read: Math.floor(Math.random() * 1000),
+             write: Math.floor(Math.random() * 800)
+           }
+         },
+         network: {
+           interface: 'eth0',
+           bytesReceived: server.metrics.network.bytesIn,
+           bytesSent: server.metrics.network.bytesOut,
+           packetsReceived: server.metrics.network.packetsIn,
+           packetsSent: server.metrics.network.packetsOut,
+           errorsReceived: 0,
+           errorsSent: 0
+         },
+         system: {
+           os: 'Linux',
+           platform: 'x86_64',
+           uptime: server.metrics.uptime,
+           bootTime: new Date(Date.now() - server.metrics.uptime * 1000),
+           processes: {
+             total: server.metrics.processes,
+             running: Math.floor(server.metrics.processes * 0.1),
+             sleeping: Math.floor(server.metrics.processes * 0.8),
+             zombie: 0
+           }
+         },
+         services: server.services.map(s => ({
+           name: s.name,
+           status: (s.status === 'running' ? 'running' : 
+                   s.status === 'stopped' ? 'stopped' : 
+                   s.status === 'failed' ? 'error' : 'unknown') as 'running' | 'stopped' | 'error' | 'unknown',
+           port: s.port,
+           pid: s.pid,
+           memory: s.memoryUsage,
+           cpu: s.cpuUsage,
+           restartCount: 0
+         })),
+         metadata: {
+           location: server.location,
+           environment: (server.environment === 'testing' ? 'development' : server.environment) as 'production' | 'staging' | 'development',
+           provider: server.provider,
+           cluster: server.cluster,
+           zone: server.zone,
+           instanceType: server.instanceType
+         }
+       };
+
+             await metricsStorage.saveMetrics(metrics as any);
+      console.log(`💾 Metrics saved to database for ${server.id}`);
+    } catch (error) {
+      console.error(`❌ Failed to save metrics to database for ${server.id}:`, error);
+    }
+  }
+
+  /**
+   * 데이터베이스에서 서버 목록 복원
+   */
+  async restoreServersFromDatabase(): Promise<void> {
+    try {
+      console.log('🔄 Restoring servers from database...');
+      
+      const serverIds = await metricsStorage.getServerList();
+      let restoredCount = 0;
+      
+      for (const serverId of serverIds) {
+        const serverData = await metricsStorage.getLatestMetrics(serverId);
+        if (serverData) {
+          // Server 타입을 ServerInfo 타입으로 변환
+          const serverInfo: ServerInfo = {
+            id: serverData.id,
+            hostname: serverData.name,
+            ipAddress: this.generateIPAddress(serverId),
+            status: serverData.status === 'online' ? 'online' : 
+                   serverData.status === 'warning' ? 'warning' : 'critical',
+            location: serverData.location,
+            environment: 'production', // 기본값
+            provider: 'onpremise', // 기본값
+            tags: {},
+            metrics: {
+              cpu: serverData.cpu,
+              memory: serverData.memory,
+              disk: serverData.disk,
+              network: {
+                bytesIn: 0,
+                bytesOut: 0,
+                packetsIn: 0,
+                packetsOut: 0,
+                latency: 10,
+                connections: 100
+              },
+              processes: 150,
+              loadAverage: [1.0, 1.0, 1.0],
+              uptime: 86400,
+              temperature: 45,
+              powerUsage: 200
+            },
+            lastUpdate: serverData.lastUpdate,
+            lastSeen: serverData.lastUpdate,
+            alerts: [],
+            services: serverData.services || []
+          };
+          
+          this.servers.set(serverId, serverInfo);
+          restoredCount++;
+        }
+      }
+      
+      console.log(`✅ Restored ${restoredCount} servers from database`);
+    } catch (error) {
+      console.error('❌ Failed to restore servers from database:', error);
+    }
+  }
+
+  /**
+   * IP 주소 생성 (서버 ID 기반)
+   */
+  private generateIPAddress(serverId: string): string {
+    const hash = serverId.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    
+    const octet3 = Math.abs(hash) % 256;
+    const octet4 = Math.abs(hash >> 8) % 256;
+    
+    return `10.0.${octet3}.${octet4}`;
   }
 
   // Public API Methods
