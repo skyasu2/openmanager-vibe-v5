@@ -13,6 +13,12 @@ export default function DashboardPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [agentQuery, setAgentQuery] = useState<string>('');
   const [agentServerId, setAgentServerId] = useState<string>('');
+  const [serverStats, setServerStats] = useState({
+    total: 10,
+    online: 3,
+    warning: 5,
+    offline: 2
+  });
 
   // 화면 크기 감지
   useEffect(() => {
@@ -89,6 +95,10 @@ export default function DashboardPage() {
     }
   };
 
+  const handleStatsUpdate = (stats: { total: number; online: number; warning: number; offline: number }) => {
+    setServerStats(stats);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 메인 헤더 */}
@@ -110,15 +120,19 @@ export default function DashboardPage() {
             {/* 빠른 통계 */}
             <div className="hidden md:flex items-center gap-6">
               <div className="text-center">
-                <div className="text-sm font-medium text-gray-900">6대</div>
+                <div className="text-sm font-medium text-gray-900">{serverStats.total}대</div>
                 <div className="text-xs text-gray-500">전체 서버</div>
               </div>
               <div className="text-center">
-                <div className="text-sm font-medium text-green-600">4대</div>
+                <div className="text-sm font-medium text-green-600">{serverStats.online}대</div>
                 <div className="text-xs text-gray-500">온라인</div>
               </div>
               <div className="text-center">
-                <div className="text-sm font-medium text-red-600">1대</div>
+                <div className="text-sm font-medium text-orange-600">{serverStats.warning}대</div>
+                <div className="text-xs text-gray-500">경고</div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm font-medium text-red-600">{serverStats.offline}대</div>
                 <div className="text-xs text-gray-500">오프라인</div>
               </div>
             </div>
@@ -162,7 +176,7 @@ export default function DashboardPage() {
         <main className={`flex-1 transition-all duration-300 ${
           isAgentOpen && !isMobile ? 'lg:mr-96' : ''
         }`}>
-          <ServerDashboard onAskAI={handleAIQuery} />
+          <ServerDashboard onAskAI={handleAIQuery} onStatsUpdate={handleStatsUpdate} />
         </main>
 
         {/* AI 에이전트 패널 (데스크탑) */}

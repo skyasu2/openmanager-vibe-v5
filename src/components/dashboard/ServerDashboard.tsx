@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ServerCard from './ServerCard';
 import ServerDetailModal from './ServerDetailModal';
 import { Server } from '../../types/server';
 
 interface ServerDashboardProps {
   onAskAI?: (query: string, context?: any) => void;
+  onStatsUpdate?: (stats: { total: number; online: number; warning: number; offline: number }) => void;
 }
 
 // 스크린샷과 동일한 목업 서버 데이터
@@ -185,9 +186,24 @@ const mockServers: Server[] = [
   }
 ];
 
-export default function ServerDashboard({ onAskAI }: ServerDashboardProps) {
+export default function ServerDashboard({ onAskAI, onStatsUpdate }: ServerDashboardProps) {
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // 서버 통계 계산
+  const serverStats = {
+    total: mockServers.length,
+    online: mockServers.filter(s => s.status === 'online').length,
+    warning: mockServers.filter(s => s.status === 'warning').length,
+    offline: mockServers.filter(s => s.status === 'offline').length
+  };
+
+  // 통계 업데이트 알림
+  useEffect(() => {
+    if (onStatsUpdate) {
+      onStatsUpdate(serverStats);
+    }
+  }, [onStatsUpdate]);
 
   // 필터링
   const filteredServers = mockServers.filter(server => 
