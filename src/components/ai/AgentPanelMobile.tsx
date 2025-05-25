@@ -5,6 +5,7 @@ import AgentQueryBox from './AgentQueryBox';
 import AgentResponseView from './AgentResponseView';
 import { usePowerStore } from '../../stores/powerStore';
 import { smartAIAgent } from '../../services/aiAgent';
+import { aiLogger } from '../../lib/logger';
 
 interface Message {
   id: string;
@@ -127,7 +128,7 @@ export default function AgentPanelMobile({ isOpen, onClose }: AgentPanelMobilePr
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('AI 응답 오류:', error);
+      aiLogger.error('AI 응답 생성 오류', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',

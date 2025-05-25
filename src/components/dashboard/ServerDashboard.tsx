@@ -229,7 +229,7 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
     if (onStatsUpdate) {
       onStatsUpdate(serverStats);
     }
-  }, [onStatsUpdate]);
+  }, [onStatsUpdate, serverStats]);
 
   // 필터링
   const filteredServers = currentServers.filter((server: Server) => 

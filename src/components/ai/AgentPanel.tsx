@@ -5,6 +5,7 @@ import AgentQueryBox from './AgentQueryBox';
 import AgentResponseView from './AgentResponseView';
 import { usePowerStore } from '../../stores/powerStore';
 import { smartAIAgent } from '../../services/aiAgent';
+import { aiLogger } from '../../lib/logger';
 
 interface Message {
   id: string;
@@ -126,7 +127,7 @@ export default function AgentPanel({ isOpen, onClose }: AgentPanelProps) {
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('AI 응답 오류:', error);
+      aiLogger.error('AI 응답 생성 오류', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
@@ -137,88 +138,6 @@ export default function AgentPanel({ isOpen, onClose }: AgentPanelProps) {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const simulateAIResponse = async (query: string, serverId?: string): Promise<string> => {
-    // 간단한 키워드 기반 응답 시뮬레이션
-    const lowerQuery = query.toLowerCase();
-    
-    if (serverId) {
-      if (lowerQuery.includes('분석') || lowerQuery.includes('상태')) {
-        return `🔍 **${serverId} 서버 분석 결과**
-
-**현재 상태:** 정상 운영 중
-**위험 요소:** 
-- CPU 사용률이 평균보다 높음 (85%)
-- 메모리 사용률 증가 추세 감지
-
-**권장사항:**
-1. 불필요한 프로세스 정리
-2. 메모리 최적화 수행
-3. 로드 밸런싱 고려
-
-**예상 영향도:** 중간
-**조치 우선순위:** 높음`;
-      }
-      
-      if (lowerQuery.includes('로그') || lowerQuery.includes('에러')) {
-        return `📋 **${serverId} 로그 분석**
-
-**최근 24시간 로그 요약:**
-- 총 이벤트: 1,247건
-- 에러: 3건 (모두 해결됨)
-- 경고: 15건
-
-**주요 이슈:**
-- SSL 인증서 만료 경고 (7일 남음)
-- 디스크 사용량 증가
-
-**해결책:**
-1. SSL 인증서 갱신 스케줄링
-2. 로그 로테이션 설정 확인`;
-      }
-    }
-    
-    if (lowerQuery.includes('서버') && lowerQuery.includes('상태')) {
-      return `📊 **전체 서버 상태 요약**
-
-**온라인:** 4대 (67%)
-**경고:** 1대 (17%) 
-**오프라인:** 1대 (17%)
-
-**주의 필요 서버:**
-- DB-EU-002: 높은 리소스 사용률
-- CACHE-US-004: 연결 끊김
-
-**권장 조치:**
-1. DB-EU-002 리소스 최적화
-2. CACHE-US-004 재시작 시도`;
-    }
-    
-    if (lowerQuery.includes('성능') || lowerQuery.includes('모니터링')) {
-      return `⚡ **성능 모니터링 결과**
-
-**전체 시스템 성능:**
-- 평균 응답시간: 245ms
-- 처리량: 1,523 req/sec
-- 가용성: 99.7%
-
-**최적화 기회:**
-1. 캐시 히트율 개선 (현재 78%)
-2. 데이터베이스 쿼리 최적화
-3. CDN 활용도 증대`;
-    }
-
-    // 기본 응답
-    return `안녕하세요! 🤖 OpenManager AI입니다.
-
-다음과 같은 질문을 도와드릴 수 있습니다:
-- 서버 상태 분석
-- 성능 최적화 제안  
-- 로그 분석 및 문제 해결
-- 예측 알림 및 권장사항
-
-구체적인 서버명이나 상황을 알려주시면 더 정확한 분석을 제공해드리겠습니다!`;
   };
 
   const clearChat = () => {

@@ -49,8 +49,6 @@ export interface SystemStore extends SystemStatus {
   _handleSessionEnd: () => void;
 }
 
-const DEFAULT_SESSION_DURATION = 20 * 60; // 20분 (초)
-
 export const useSystemStore = create<SystemStore>()(
   persist(
     (set, get) => {
