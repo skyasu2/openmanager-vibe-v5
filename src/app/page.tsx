@@ -359,21 +359,38 @@ export default function HomePage() {
           position: absolute;
           top: 1rem;
           right: 1rem;
-          background: rgba(255, 255, 255, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          font-size: 1.5rem;
+          background: rgba(255, 255, 255, 0.15);
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          font-size: 1.8rem;
           cursor: pointer;
-          color: rgba(255, 255, 255, 0.8);
-          padding: 0.5rem;
+          color: rgba(255, 255, 255, 0.9);
+          padding: 0.6rem;
           border-radius: 50%;
           transition: all 0.3s ease;
           backdrop-filter: blur(10px);
+          width: 44px;
+          height: 44px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          font-weight: bold;
+          line-height: 1;
+          user-select: none;
+          -webkit-tap-highlight-color: transparent;
         }
 
         .modal-close:hover {
-          background: rgba(255, 255, 255, 0.2);
+          background: rgba(255, 255, 255, 0.25);
           color: rgba(255, 255, 255, 1);
           transform: scale(1.1);
+          border-color: rgba(255, 255, 255, 0.5);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-close:active {
+          transform: scale(0.95);
+          background: rgba(255, 255, 255, 0.3);
         }
 
         .modal-header {
@@ -881,6 +898,24 @@ export default function HomePage() {
           .vibe-badge:active {
             transform: translateY(-1px);
           }
+
+          .modal-close {
+            width: 48px;
+            height: 48px;
+            font-size: 2rem;
+            padding: 0.7rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+          }
+
+          .modal-close:hover {
+            transform: none;
+          }
+
+          .modal-close:active {
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.35);
+          }
         }
 
         /* 가로 모드 스마트폰 최적화 */
@@ -1022,10 +1057,16 @@ export default function HomePage() {
       {selectedFeature && (
         <div className="modal-overlay" onClick={closeFeatureModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={(e) => {
-              e.stopPropagation();
-              closeFeatureModal();
-            }}>
+            <button 
+              className="modal-close" 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                closeFeatureModal();
+              }}
+              onTouchStart={(e) => e.stopPropagation()}
+              aria-label="모달 닫기"
+            >
               ×
             </button>
             
@@ -1054,10 +1095,16 @@ export default function HomePage() {
       {showVibeCoding && (
         <div className="modal-overlay" onClick={closeVibeCodingModal}>
           <div className="modal-content vibe-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={(e) => {
-              e.stopPropagation();
-              closeVibeCodingModal();
-            }}>
+            <button 
+              className="modal-close" 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                closeVibeCodingModal();
+              }}
+              onTouchStart={(e) => e.stopPropagation()}
+              aria-label="모달 닫기"
+            >
               ×
             </button>
             
@@ -1107,10 +1154,16 @@ export default function HomePage() {
       {showMainFeature && (
         <div className="modal-overlay" onClick={closeMainFeatureModal}>
           <div className="modal-content vibe-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={(e) => {
-              e.stopPropagation();
-              closeMainFeatureModal();
-            }}>
+            <button 
+              className="modal-close" 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                closeMainFeatureModal();
+              }}
+              onTouchStart={(e) => e.stopPropagation()}
+              aria-label="모달 닫기"
+            >
               ×
             </button>
             
