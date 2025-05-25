@@ -62,6 +62,11 @@ export type {
   PluginContext
 } from './plugins';
 
+// Core Components
+export { ModeManager, createDefaultModeConfig } from './core/ModeManager';
+export { ThinkingProcessor } from './core/ThinkingProcessor';
+export { AdminLogger } from './core/AdminLogger';
+
 // Processors (Internal)
 export { IntentClassifier } from './processors/IntentClassifier';
 export { ResponseGenerator } from './processors/ResponseGenerator';

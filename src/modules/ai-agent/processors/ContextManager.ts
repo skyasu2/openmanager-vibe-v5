@@ -1,24 +1,22 @@
 /**
  * Context Manager
  * 
- * 🧠 컨텍스트 관리 시스템
+ * 🧠 AI 컨텍스트 관리 시스템
  * - 세션 기반 컨텍스트 관리
  * - 대화 히스토리 추적
- * - 상황 인식 컨텍스트
+ * - 서버 컨텍스트 관리
  */
 
 export interface SessionContext {
   sessionId: string;
   userId?: string;
-  startTime: string;
-  lastActivity: string;
+  startTime: number;
+  lastActivity: number;
+  conversationHistory: any[];
+  serverContext: Record<string, any>;
   lastQuery?: string;
   lastIntent?: string;
   lastResponse?: string;
-  conversationHistory: ConversationEntry[];
-  serverContext: ServerContext;
-  userPreferences: UserPreferences;
-  metadata: Record<string, any>;
 }
 
 export interface ConversationEntry {
@@ -57,70 +55,44 @@ export class ContextManager {
   private sessions: Map<string, SessionContext> = new Map();
   private maxSessionAge: number = 24 * 60 * 60 * 1000; // 24시간
   private maxHistoryLength: number = 50;
-  private isInitialized: boolean = false;
+  private isInitialized = false;
 
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
-
-    // 세션 정리 스케줄러 시작
-    this.startSessionCleanup();
-    
     this.isInitialized = true;
+    console.log('🧠 Context Manager initialized');
   }
 
-  /**
-   * 컨텍스트 로드
-   */
   async loadContext(sessionId: string, additionalContext?: Record<string, any>): Promise<SessionContext> {
-    let context = this.sessions.get(sessionId);
-
-    if (!context) {
-      context = this.createNewSession(sessionId);
-      this.sessions.set(sessionId, context);
+    let session = this.sessions.get(sessionId);
+    
+    if (!session) {
+      session = {
+        sessionId,
+        startTime: Date.now(),
+        lastActivity: Date.now(),
+        conversationHistory: [],
+        serverContext: {},
+        ...additionalContext
+      };
+      this.sessions.set(sessionId, session);
     }
 
-    // 추가 컨텍스트 병합
-    if (additionalContext) {
-      context.metadata = { ...context.metadata, ...additionalContext };
-    }
-
-    // 마지막 활동 시간 업데이트
-    context.lastActivity = new Date().toISOString();
-
-    return context;
+    session.lastActivity = Date.now();
+    return session;
   }
 
-  /**
-   * 컨텍스트 업데이트
-   */
-  async updateContext(sessionId: string, update: Partial<SessionContext>): Promise<void> {
-    const context = this.sessions.get(sessionId);
-    if (!context) return;
-
-    // 대화 히스토리 추가
-    if (update.conversationHistory) {
-      context.conversationHistory.push(...update.conversationHistory);
-      
-      // 히스토리 길이 제한
-      if (context.conversationHistory.length > this.maxHistoryLength) {
-        context.conversationHistory = context.conversationHistory.slice(-this.maxHistoryLength);
-      }
+  async updateContext(sessionId: string, updates: Partial<SessionContext>): Promise<void> {
+    const session = this.sessions.get(sessionId);
+    if (session) {
+      Object.assign(session, updates);
+      session.lastActivity = Date.now();
     }
+  }
 
-    // 서버 컨텍스트 업데이트
-    if (update.serverContext) {
-      context.serverContext = { ...context.serverContext, ...update.serverContext };
-    }
-
-    // 메타데이터 업데이트
-    if (update.metadata) {
-      context.metadata = { ...context.metadata, ...update.metadata };
-    }
-
-    // 마지막 활동 시간 업데이트
-    context.lastActivity = new Date().toISOString();
-
-    this.sessions.set(sessionId, context);
+  async cleanup(): Promise<void> {
+    this.sessions.clear();
+    console.log('🧹 Context Manager cleanup completed');
   }
 
   /**
@@ -249,31 +221,6 @@ export class ContextManager {
   }
 
   /**
-   * 새 세션 생성
-   */
-  private createNewSession(sessionId: string): SessionContext {
-    return {
-      sessionId,
-      startTime: new Date().toISOString(),
-      lastActivity: new Date().toISOString(),
-      conversationHistory: [],
-      serverContext: {
-        lastQueriedServers: [],
-        recentIssues: [],
-        monitoringFocus: [],
-        alertHistory: []
-      },
-      userPreferences: {
-        preferredResponseStyle: 'detailed',
-        notificationLevel: 'important',
-        timezone: 'Asia/Seoul',
-        language: 'ko'
-      },
-      metadata: {}
-    };
-  }
-
-  /**
    * 서버 컨텍스트 업데이트
    */
   private updateServerContext(context: SessionContext, entry: Omit<ConversationEntry, 'timestamp'>): void {
@@ -301,40 +248,6 @@ export class ContextManager {
         context.serverContext.monitoringFocus.push(entry.intent);
       }
     }
-  }
-
-  /**
-   * 세션 정리 스케줄러
-   */
-  private startSessionCleanup(): void {
-    setInterval(() => {
-      const now = Date.now();
-      const expiredSessions: string[] = [];
-
-      for (const [sessionId, context] of this.sessions.entries()) {
-        const lastActivity = new Date(context.lastActivity).getTime();
-        if (now - lastActivity > this.maxSessionAge) {
-          expiredSessions.push(sessionId);
-        }
-      }
-
-      // 만료된 세션 삭제
-      for (const sessionId of expiredSessions) {
-        this.sessions.delete(sessionId);
-      }
-
-      if (expiredSessions.length > 0) {
-        console.log(`🧹 만료된 세션 ${expiredSessions.length}개 정리 완료`);
-      }
-    }, 60 * 60 * 1000); // 1시간마다 실행
-  }
-
-  /**
-   * 정리 작업
-   */
-  async cleanup(): Promise<void> {
-    this.sessions.clear();
-    console.log('🧹 ContextManager 정리 완료');
   }
 
   /**

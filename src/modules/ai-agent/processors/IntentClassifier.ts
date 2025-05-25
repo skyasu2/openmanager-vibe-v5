@@ -1,17 +1,18 @@
 /**
- * Intent Classifier - NPU 시뮬레이션
+ * Intent Classifier
  * 
- * 🧠 NPU 기반 의도 분류 시뮬레이션
- * - 패턴 매칭 기반 고속 의도 분류
- * - 컨텍스트 인식 분류
- * - 도메인 특화 서버 모니터링 의도
+ * 🎯 AI 의도 분류 시스템
+ * - NPU 시뮬레이션 기반 패턴 매칭
+ * - 서버 모니터링 도메인 특화
+ * - 컨텍스트 기반 의도 보정
  */
 
 export interface Intent {
   name: string;
   confidence: number;
   entities: Record<string, any>;
-  context: string[];
+  category: string;
+  priority: number;
 }
 
 export interface ClassificationContext {
@@ -35,6 +36,7 @@ export class IntentClassifier {
     this.initializeContextWeights();
     
     this.isInitialized = true;
+    console.log('🎯 Intent Classifier initialized');
   }
 
   /**
@@ -61,7 +63,8 @@ export class IntentClassifier {
       name: contextAdjustedIntent,
       confidence,
       entities,
-      context: this.extractContext(query)
+      category: 'monitoring',
+      priority: 1
     };
   }
 

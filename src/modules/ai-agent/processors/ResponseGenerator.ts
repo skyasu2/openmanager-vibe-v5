@@ -1,10 +1,10 @@
 /**
  * Response Generator
  * 
- * 🗣️ AI 응답 생성 엔진
+ * 💬 AI 응답 생성 시스템
  * - 의도 기반 응답 생성
- * - 컨텍스트 인식 응답
- * - 도메인 특화 서버 모니터링 응답
+ * - 모드별 응답 스타일 적용
+ * - 컨텍스트 기반 응답 보강
  */
 
 import { Intent } from './IntentClassifier';
@@ -17,12 +17,10 @@ export interface ResponseRequest {
   mcpResponse?: any;
 }
 
-export interface GeneratedResponse {
+export interface ResponseResult {
   text: string;
-  type: 'informational' | 'actionable' | 'warning' | 'error';
   confidence: number;
-  suggestedActions?: string[];
-  metadata?: Record<string, any>;
+  metadata: Record<string, any>;
 }
 
 export class ResponseGenerator {
@@ -37,12 +35,13 @@ export class ResponseGenerator {
     this.initializeContextualModifiers();
     
     this.isInitialized = true;
+    console.log('💬 Response Generator initialized');
   }
 
   /**
    * 메인 응답 생성 메서드
    */
-  async generate(request: ResponseRequest): Promise<GeneratedResponse> {
+  async generate(request: ResponseRequest): Promise<ResponseResult> {
     if (!this.isInitialized) {
       await this.initialize();
     }
@@ -67,9 +66,7 @@ export class ResponseGenerator {
 
     return {
       text: finalResponse,
-      type: responseType,
       confidence: request.intent.confidence,
-      suggestedActions,
       metadata: {
         intentName: request.intent.name,
         entitiesFound: Object.keys(request.intent.entities).length,

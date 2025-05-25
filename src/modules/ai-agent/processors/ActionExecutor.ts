@@ -1,10 +1,10 @@
 /**
  * Action Executor
  * 
- * ⚡ 액션 실행 엔진
+ * ⚡ AI 액션 실행 시스템
  * - 의도 기반 액션 추출
- * - 실행 가능한 액션 관리
- * - 서버 모니터링 액션 특화
+ * - 우선순위 기반 액션 정렬
+ * - 시뮬레이션 기반 액션 실행
  */
 
 import { Intent } from './IntentClassifier';
@@ -54,10 +54,8 @@ export class ActionExecutor {
 
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
-
-    this.initializeActionTemplates();
-    
     this.isInitialized = true;
+    console.log('⚡ Action Executor initialized');
   }
 
   /**
@@ -68,22 +66,22 @@ export class ActionExecutor {
       await this.initialize();
     }
 
-    const actions: Action[] = [];
+    const actions: string[] = [];
 
     // 1. 의도 기반 액션 추출
     const intentActions = this.getActionsForIntent(intent.name);
-    actions.push(...intentActions);
+    actions.push(...intentActions.map(action => action.name));
 
     // 2. 엔티티 기반 액션 보강
     const entityActions = this.getActionsForEntities(intent.entities);
-    actions.push(...entityActions);
+    actions.push(...entityActions.map(action => action.name));
 
     // 3. 응답 타입 기반 액션 추가
     const responseActions = this.getActionsForResponseType(response.type);
-    actions.push(...responseActions);
+    actions.push(...responseActions.map(action => action.name));
 
     // 4. 컨텍스트 기반 액션 필터링
-    const contextualActions = this.filterActionsByContext(actions, intent.context);
+    const contextualActions = this.filterActionsByContext(intentActions.concat(entityActions).concat(responseActions), intent.context);
 
     // 5. 우선순위 정렬
     const sortedActions = this.sortActionsByPriority(contextualActions);
@@ -483,6 +481,6 @@ export class ActionExecutor {
    */
   async cleanup(): Promise<void> {
     this.executionHistory = [];
-    console.log('🧹 ActionExecutor 정리 완료');
+    console.log('🧹 Action Executor cleanup completed');
   }
 } 

@@ -16,6 +16,9 @@ import { ActionExecutor } from '../processors/ActionExecutor';
 import { AIAgentEnvironmentConfig, detectEnvironment } from '../config';
 import { AdapterFactory, StorageAdapter, LoggingAdapter, NetworkAdapter, MetricsAdapter } from '../adapters';
 import { PluginManager, PluginContext } from '../plugins';
+import { ModeManager, createDefaultModeConfig, AIAgentMode, PowerMode } from './ModeManager';
+import { ThinkingProcessor, ThinkingSession } from './ThinkingProcessor';
+import { AdminLogger } from './AdminLogger';
 
 export interface AIAgentConfig {
   enableMCP: boolean;
@@ -23,6 +26,9 @@ export interface AIAgentConfig {
   maxContextLength: number;
   responseTimeout: number;
   debugMode: boolean;
+  mode: AIAgentMode;
+  enableThinking: boolean;
+  enableAdminLogging: boolean;
 }
 
 export interface AIAgentRequest {
@@ -61,6 +67,9 @@ export class AIAgentEngine {
   private responseGenerator: ResponseGenerator;
   private contextManager: ContextManager;
   private actionExecutor: ActionExecutor;
+  private modeManager: ModeManager;
+  private thinkingProcessor: ThinkingProcessor;
+  private adminLogger: AdminLogger;
   private isInitialized: boolean = false;
 
   private constructor(config: AIAgentConfig) {
@@ -70,6 +79,9 @@ export class AIAgentEngine {
     this.responseGenerator = new ResponseGenerator();
     this.contextManager = new ContextManager();
     this.actionExecutor = new ActionExecutor();
+    this.modeManager = new ModeManager(createDefaultModeConfig());
+    this.thinkingProcessor = new ThinkingProcessor();
+    this.adminLogger = new AdminLogger();
   }
 
   /**
@@ -82,7 +94,10 @@ export class AIAgentEngine {
         enableNPU: true,
         maxContextLength: 4096,
         responseTimeout: 5000,
-        debugMode: process.env.NODE_ENV === 'development'
+        debugMode: process.env.NODE_ENV === 'development',
+        mode: 'basic',
+        enableThinking: true,
+        enableAdminLogging: true
       };
       AIAgentEngine.instance = new AIAgentEngine(config || defaultConfig);
     }
