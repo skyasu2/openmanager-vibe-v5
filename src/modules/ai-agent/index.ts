@@ -16,6 +16,10 @@ export type {
   AIAgentResponse 
 } from './core/AIAgentEngine';
 
+// Import for internal use
+import { AIAgentEngine, AIAgentConfig } from './core/AIAgentEngine';
+import { createDefaultConfig, detectEnvironment } from './config';
+
 // Configuration System
 export {
   createDefaultConfig,
@@ -97,16 +101,30 @@ export const AI_AGENT_NAME = '@openmanager/ai-agent';
  */
 export const createAIAgent = async (options: any = {}) => {
   try {
-    // TODO: 임시로 주석 처리 - 빌드 오류 해결 후 복원
-    // const config = options.environment 
-    //   ? createDefaultConfig(options)
-    //   : detectEnvironment();
-      
-    // const aiAgent = AIAgentEngine.getInstance(config);
-    // await aiAgent.initialize();
+    // 환경별 기본 설정 생성
+    const envConfig = options.environment 
+      ? createDefaultConfig(options)
+      : detectEnvironment();
     
-    // return aiAgent;
-    return null;
+    // AI 에이전트 엔진 설정 변환
+    const agentConfig: AIAgentConfig = {
+      enableMCP: envConfig.engine.enableMCP,
+      enableNPU: envConfig.engine.enableNPU,
+      maxContextLength: envConfig.engine.maxContextLength,
+      responseTimeout: envConfig.runtime.timeout,
+      debugMode: envConfig.runtime.logLevel === 'debug',
+      mode: 'basic',
+      enableThinking: true,
+      enableAdminLogging: envConfig.runtime.enableLogging
+    };
+    
+    // AI 에이전트 엔진 인스턴스 생성
+    const aiAgent = AIAgentEngine.getInstance(agentConfig);
+    
+    // 초기화
+    await aiAgent.initialize();
+    
+    return aiAgent;
   } catch (error) {
     console.error('Failed to create AI Agent:', error);
     throw error;
@@ -136,8 +154,22 @@ export const createMobileAIAgent = async (options: any = {}) => {
  * 테스트용 AI 에이전트 생성
  */
 export const createTestAIAgent = async (options: any = {}) => {
-  // TODO: 임시로 주석 처리 - 빌드 오류 해결 후 복원
-  return null;
+  const testConfig: AIAgentConfig = {
+    enableMCP: false,
+    enableNPU: true,
+    maxContextLength: 1024,
+    responseTimeout: 3000,
+    debugMode: true,
+    mode: 'basic',
+    enableThinking: false,
+    enableAdminLogging: false,
+    ...options
+  };
+  
+  const aiAgent = AIAgentEngine.getInstance(testConfig);
+  await aiAgent.initialize();
+  
+  return aiAgent;
 };
 
 /**
