@@ -23,6 +23,7 @@ export default function AgentPanelMobile({ isOpen, onClose }: AgentPanelMobilePr
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [sidebarHistoryId, setSidebarHistoryId] = useState<string | null>(null);
   
   // 절전 모드 상태
   const { mode, updateActivity } = usePowerStore();
@@ -35,6 +36,56 @@ export default function AgentPanelMobile({ isOpen, onClose }: AgentPanelMobilePr
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // 브라우저 네비게이션과 독립적인 사이드바 관리
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      // 사이드바 전용 히스토리 엔트리인지 확인
+      if (event.state?.aiSidebarAction && event.state?.sidebarId === sidebarHistoryId) {
+        // 사이드바 전용 뒤로가기인 경우에만 닫기
+        onClose();
+        setSidebarHistoryId(null);
+      }
+      // 일반 페이지 네비게이션은 사이드바에 영향 없음
+    };
+
+    if (isOpen) {
+      window.addEventListener('popstate', handlePopState);
+      return () => window.removeEventListener('popstate', handlePopState);
+    }
+  }, [isOpen, onClose, sidebarHistoryId]);
+
+  // 사이드바 열기 시 전용 히스토리 엔트리 추가
+  useEffect(() => {
+    if (isOpen && !sidebarHistoryId) {
+      const historyId = `ai-sidebar-mobile-${Date.now()}`;
+      setSidebarHistoryId(historyId);
+      
+      // 사이드바 전용 히스토리 엔트리 추가
+      window.history.pushState(
+        { 
+          aiSidebarAction: true, 
+          sidebarId: historyId,
+          timestamp: Date.now(),
+          mobile: true
+        }, 
+        '', 
+        window.location.href
+      );
+    }
+  }, [isOpen, sidebarHistoryId]);
+
+  // 사이드바 닫기 함수 (히스토리 정리 포함)
+  const handleClose = () => {
+    if (sidebarHistoryId && window.history.state?.sidebarId === sidebarHistoryId) {
+      // 사이드바 전용 히스토리 엔트리 제거
+      window.history.back();
+    } else {
+      // 직접 닫기
+      onClose();
+    }
+    setSidebarHistoryId(null);
+  };
 
   const handleSendMessage = async (query: string, serverId?: string) => {
     if (!query.trim()) return;
@@ -100,7 +151,7 @@ export default function AgentPanelMobile({ isOpen, onClose }: AgentPanelMobilePr
       {/* 백드롭 */}
       <div 
         className="fixed inset-0 bg-black bg-opacity-50 z-40"
-        onClick={onClose}
+        onClick={handleClose}
       />
 
       {/* 모바일 드로어 */}
@@ -131,7 +182,7 @@ export default function AgentPanelMobile({ isOpen, onClose }: AgentPanelMobilePr
               <i className="fas fa-broom text-sm text-gray-600"></i>
             </button>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="w-8 h-8 hover:bg-gray-100 rounded-lg flex items-center justify-center transition-colors"
               title="패널 닫기"
             >

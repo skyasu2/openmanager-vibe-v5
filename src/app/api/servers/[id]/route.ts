@@ -15,6 +15,11 @@ export async function GET(
     const resolvedParams = await params;
     serverId = resolvedParams.id;
     
+    // 개발 환경에서만 상세 로깅
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🔍 [API] Fetching server details for: ${serverId}`);
+    }
+    
     const searchParams = request.nextUrl.searchParams;
     const includeHistory = searchParams.get('history') === 'true';
     const historyHours = parseInt(searchParams.get('hours') || '24');
@@ -23,10 +28,16 @@ export async function GET(
     const server = await metricsStorage.getLatestMetrics(serverId);
     
     if (!server) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`⚠️ [API] Server not found: ${serverId}`);
+      }
+      
       return NextResponse.json({
         success: false,
         error: 'Server not found',
-        serverId
+        serverId,
+        message: `Server with ID '${serverId}' does not exist or is not being monitored`,
+        availableServers: await metricsStorage.getServerList()
       }, { status: 404 });
     }
 
@@ -59,16 +70,28 @@ export async function GET(
       };
     }
 
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`✅ [API] Successfully fetched server: ${serverId}`);
+    }
+
     return NextResponse.json(result);
 
   } catch (error) {
-    console.error(`❌ Failed to fetch server ${serverId}:`, error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
+    // 프로덕션에서는 간단한 로깅, 개발에서는 상세 로깅
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`❌ [API] Failed to fetch server ${serverId}:`, error);
+    } else {
+      console.error(`❌ Server API error for ${serverId}: ${errorMessage}`);
+    }
     
     return NextResponse.json({
       success: false,
       error: 'Failed to fetch server details',
       serverId: serverId,
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: errorMessage,
+      timestamp: new Date().toISOString()
     }, { status: 500 });
   }
 } 

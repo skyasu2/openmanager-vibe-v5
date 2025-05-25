@@ -310,7 +310,7 @@ export class ServerDataCollector {
         
         // 시스템 자동 활성화
         const systemStore = useSystemStore.getState();
-        systemStore.triggerAIActivation(changeDetection.reason);
+        systemStore.aiTriggeredActivation(changeDetection.reason);
         
         // 전체 데이터 수집 모드로 전환
         await this.stopAIMonitoring();
@@ -824,11 +824,11 @@ export class ServerDataCollector {
     const systemState = useSystemStore.getState();
     
     // AI 자동 감지 (시스템이 정지 상태일 때)
-    if (systemState.state === 'stopped') {
+          if (systemState.state === 'inactive') {
       const shouldTriggerAI = this.detectCriticalChanges(server.metrics, newMetrics);
       if (shouldTriggerAI.trigger) {
         console.log(`🚨 Critical change detected: ${shouldTriggerAI.reason}`);
-        systemState.triggerAIActivation(shouldTriggerAI.reason);
+        systemState.aiTriggeredActivation(shouldTriggerAI.reason);
       }
     }
     
