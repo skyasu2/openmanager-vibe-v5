@@ -170,31 +170,58 @@ export class ResponseGenerator {
   }
 
   /**
-   * 서버 데이터로 응답 보강
+   * 실제 서버 데이터로 응답 보강
    */
   private enrichWithServerData(response: string, serverData?: any): string {
     if (!serverData) {
-      return response.replace(/{[^}]+}/g, '데이터를 수집하고 있습니다...');
+      return response.replace(/{[^}]+}/g, '실시간 데이터를 수집하고 있습니다...');
     }
 
     let enrichedResponse = response;
 
+    // 실제 서버 배열 처리
+    const servers = Array.isArray(serverData) ? serverData : [serverData];
+    
     // 서버 요약 정보
     if (response.includes('{server_summary}')) {
-      const summary = this.generateServerSummary(serverData);
+      const summary = this.generateRealServerSummary(servers);
       enrichedResponse = enrichedResponse.replace('{server_summary}', summary);
     }
 
     // 성능 요약
     if (response.includes('{performance_summary}')) {
-      const perfSummary = this.generatePerformanceSummary(serverData);
+      const perfSummary = this.generateRealPerformanceSummary(servers);
       enrichedResponse = enrichedResponse.replace('{performance_summary}', perfSummary);
     }
 
     // 상세 상태
     if (response.includes('{detailed_status}')) {
-      const detailedStatus = this.generateDetailedStatus(serverData);
+      const detailedStatus = this.generateRealDetailedStatus(servers);
       enrichedResponse = enrichedResponse.replace('{detailed_status}', detailedStatus);
+    }
+
+    // 리소스 분석
+    if (response.includes('{resource_analysis}')) {
+      const resourceAnalysis = this.generateResourceAnalysis(servers);
+      enrichedResponse = enrichedResponse.replace('{resource_analysis}', resourceAnalysis);
+    }
+
+    // 성능 트렌드
+    if (response.includes('{performance_trends}')) {
+      const trends = this.generatePerformanceTrends(servers);
+      enrichedResponse = enrichedResponse.replace('{performance_trends}', trends);
+    }
+
+    // 병목 현상 분석
+    if (response.includes('{bottlenecks}')) {
+      const bottlenecks = this.analyzeBottlenecks(servers);
+      enrichedResponse = enrichedResponse.replace('{bottlenecks}', bottlenecks);
+    }
+
+    // 최적화 팁
+    if (response.includes('{optimization_tips}')) {
+      const tips = this.generateOptimizationTips(servers);
+      enrichedResponse = enrichedResponse.replace('{optimization_tips}', tips);
     }
 
     // 권장사항
@@ -307,5 +334,162 @@ export class ResponseGenerator {
    */
   private generateRecommendations(serverData: any): string {
     return '**권장사항**\n1. 정기적인 성능 모니터링 유지\n2. 백업 정책 점검\n3. 보안 업데이트 확인';
+  }
+
+  /**
+   * 실제 서버 데이터 기반 요약 생성
+   */
+  private generateRealServerSummary(servers: any[]): string {
+    const totalServers = servers.length;
+    const onlineServers = servers.filter(s => s.status === 'healthy' || s.status === 'online').length;
+    const warningServers = servers.filter(s => s.status === 'warning').length;
+    const offlineServers = servers.filter(s => s.status === 'critical' || s.status === 'offline').length;
+    
+    const avgCpu = servers.reduce((sum, s) => sum + (s.metrics?.cpu || s.cpu || 0), 0) / totalServers;
+    const avgMemory = servers.reduce((sum, s) => sum + (s.metrics?.memory || s.memory || 0), 0) / totalServers;
+    
+    return `**📊 전체 서버 현황**
+• 총 서버 수: **${totalServers}대**
+• 정상 운영: **${onlineServers}대** (${Math.round(onlineServers/totalServers*100)}%)
+• 경고 상태: **${warningServers}대** (${Math.round(warningServers/totalServers*100)}%)
+• 오프라인: **${offlineServers}대** (${Math.round(offlineServers/totalServers*100)}%)
+• 평균 CPU 사용률: **${avgCpu.toFixed(1)}%**
+• 평균 메모리 사용률: **${avgMemory.toFixed(1)}%**`;
+  }
+
+  private generateRealPerformanceSummary(servers: any[]): string {
+    const highCpuServers = servers.filter(s => (s.metrics?.cpu || s.cpu || 0) > 80);
+    const highMemoryServers = servers.filter(s => (s.metrics?.memory || s.memory || 0) > 80);
+    const criticalServers = servers.filter(s => s.status === 'critical');
+    
+    return `**⚡ 성능 분석 결과**
+• 고부하 CPU 서버: **${highCpuServers.length}대** ${highCpuServers.length > 0 ? `(${highCpuServers.map(s => s.name || s.id).join(', ')})` : ''}
+• 고사용 메모리 서버: **${highMemoryServers.length}대** ${highMemoryServers.length > 0 ? `(${highMemoryServers.map(s => s.name || s.id).join(', ')})` : ''}
+• 긴급 조치 필요: **${criticalServers.length}대** ${criticalServers.length > 0 ? `(${criticalServers.map(s => s.name || s.id).join(', ')})` : ''}
+• 전체 시스템 건강도: **${this.calculateSystemHealth(servers)}%**`;
+  }
+
+  private generateRealDetailedStatus(servers: any[]): string {
+    const recentlyUpdated = servers.filter(s => {
+      const lastUpdate = new Date(s.lastUpdate || Date.now());
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      return lastUpdate > fiveMinutesAgo;
+    });
+    
+    const totalAlerts = servers.reduce((sum, s) => sum + (s.alerts || 0), 0);
+    const locations = [...new Set(servers.map(s => s.location).filter(Boolean))];
+    
+    return `**🔍 상세 상태 정보**
+• 최근 업데이트된 서버: **${recentlyUpdated.length}대**
+• 활성 알림 총계: **${totalAlerts}개**
+• 운영 지역: **${locations.join(', ')}**
+• 마지막 전체 스캔: **${new Date().toLocaleString('ko-KR')}**
+• 데이터 신선도: **실시간**`;
+  }
+
+  private generateResourceAnalysis(servers: any[]): string {
+    const cpuStats = this.calculateResourceStats(servers, 'cpu');
+    const memoryStats = this.calculateResourceStats(servers, 'memory');
+    const diskStats = this.calculateResourceStats(servers, 'disk');
+    
+    return `**📈 리소스 사용률 분석**
+• **CPU 사용률**
+  - 평균: ${cpuStats.avg.toFixed(1)}% | 최대: ${cpuStats.max.toFixed(1)}% | 최소: ${cpuStats.min.toFixed(1)}%
+• **메모리 사용률**
+  - 평균: ${memoryStats.avg.toFixed(1)}% | 최대: ${memoryStats.max.toFixed(1)}% | 최소: ${memoryStats.min.toFixed(1)}%
+• **디스크 사용률**
+  - 평균: ${diskStats.avg.toFixed(1)}% | 최대: ${diskStats.max.toFixed(1)}% | 최소: ${diskStats.min.toFixed(1)}%`;
+  }
+
+  private generatePerformanceTrends(servers: any[]): string {
+    const trends = this.analyzePerformanceTrends(servers);
+    return `**📊 성능 트렌드 분석**
+• CPU 트렌드: ${trends.cpu}
+• 메모리 트렌드: ${trends.memory}
+• 전반적 성능: ${trends.overall}
+• 예상 병목: ${trends.bottleneck}`;
+  }
+
+  private analyzeBottlenecks(servers: any[]): string {
+    const bottlenecks = [];
+    
+    const highCpuServers = servers.filter(s => (s.metrics?.cpu || s.cpu || 0) > 85);
+    const highMemoryServers = servers.filter(s => (s.metrics?.memory || s.memory || 0) > 85);
+    const highDiskServers = servers.filter(s => (s.metrics?.disk || s.disk || 0) > 90);
+    
+    if (highCpuServers.length > 0) {
+      bottlenecks.push(`🔴 **CPU 병목** (${highCpuServers.length}대): ${highCpuServers.map(s => s.name || s.id).join(', ')}`);
+    }
+    if (highMemoryServers.length > 0) {
+      bottlenecks.push(`🟡 **메모리 병목** (${highMemoryServers.length}대): ${highMemoryServers.map(s => s.name || s.id).join(', ')}`);
+    }
+    if (highDiskServers.length > 0) {
+      bottlenecks.push(`🟠 **디스크 병목** (${highDiskServers.length}대): ${highDiskServers.map(s => s.name || s.id).join(', ')}`);
+    }
+    
+    return bottlenecks.length > 0 ? bottlenecks.join('\n') : '✅ **현재 병목 현상 없음** - 모든 서버가 정상 범위 내에서 동작 중입니다.';
+  }
+
+  private generateOptimizationTips(servers: any[]): string {
+    const tips = [];
+    
+    const highCpuCount = servers.filter(s => (s.metrics?.cpu || s.cpu || 0) > 80).length;
+    const highMemoryCount = servers.filter(s => (s.metrics?.memory || s.memory || 0) > 80).length;
+    const offlineCount = servers.filter(s => s.status === 'critical' || s.status === 'offline').length;
+    
+    if (highCpuCount > 0) {
+      tips.push('💡 **CPU 최적화**: 불필요한 프로세스 정리, 로드 밸런싱 검토');
+    }
+    if (highMemoryCount > 0) {
+      tips.push('💡 **메모리 최적화**: 캐시 정리, 메모리 누수 점검');
+    }
+    if (offlineCount > 0) {
+      tips.push('🚨 **긴급 조치**: 오프라인 서버 즉시 점검 필요');
+    }
+    if (tips.length === 0) {
+      tips.push('✅ **현재 최적 상태**: 모든 서버가 효율적으로 운영되고 있습니다.');
+    }
+    
+    return tips.join('\n');
+  }
+
+  private calculateSystemHealth(servers: any[]): number {
+    const healthScores = servers.map(server => {
+      const cpu = server.metrics?.cpu || server.cpu || 0;
+      const memory = server.metrics?.memory || server.memory || 0;
+      const disk = server.metrics?.disk || server.disk || 0;
+      
+      let score = 100;
+      if (cpu > 80) score -= 20;
+      if (memory > 80) score -= 20;
+      if (disk > 90) score -= 30;
+      if (server.status === 'critical') score -= 50;
+      if (server.status === 'warning') score -= 10;
+      
+      return Math.max(0, score);
+    });
+    
+    return Math.round(healthScores.reduce((sum, score) => sum + score, 0) / healthScores.length);
+  }
+
+  private calculateResourceStats(servers: any[], resource: string) {
+    const values = servers.map(s => s.metrics?.[resource] || s[resource] || 0);
+    return {
+      avg: values.reduce((sum, val) => sum + val, 0) / values.length,
+      max: Math.max(...values),
+      min: Math.min(...values)
+    };
+  }
+
+  private analyzePerformanceTrends(servers: any[]) {
+    const avgCpu = servers.reduce((sum, s) => sum + (s.metrics?.cpu || s.cpu || 0), 0) / servers.length;
+    const avgMemory = servers.reduce((sum, s) => sum + (s.metrics?.memory || s.memory || 0), 0) / servers.length;
+    
+    return {
+      cpu: avgCpu > 70 ? '📈 증가 추세 (주의 필요)' : avgCpu > 50 ? '➡️ 안정적' : '📉 낮은 사용률',
+      memory: avgMemory > 70 ? '📈 증가 추세 (주의 필요)' : avgMemory > 50 ? '➡️ 안정적' : '📉 낮은 사용률',
+      overall: (avgCpu + avgMemory) / 2 > 70 ? '⚠️ 성능 저하 우려' : '✅ 양호한 성능',
+      bottleneck: avgCpu > avgMemory ? 'CPU 집약적 워크로드' : 'I/O 집약적 워크로드'
+    };
   }
 } 

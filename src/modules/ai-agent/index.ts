@@ -151,22 +151,23 @@ export const createMobileAIAgent = async (options: any = {}) => {
 };
 
 /**
- * 테스트용 AI 에이전트 생성
+ * 프로덕션 준비된 AI 에이전트 생성
+ * 실제 환경에서 바로 사용 가능한 완전한 기능 제공
  */
-export const createTestAIAgent = async (options: any = {}) => {
-  const testConfig: AIAgentConfig = {
-    enableMCP: false,
-    enableNPU: true,
-    maxContextLength: 1024,
-    responseTimeout: 3000,
-    debugMode: true,
-    mode: 'basic',
-    enableThinking: false,
-    enableAdminLogging: false,
+export const createProductionAIAgent = async (options: any = {}) => {
+  const productionConfig: AIAgentConfig = {
+    enableMCP: true,           // 완전한 MCP 프로토콜 지원
+    enableNPU: true,           // NPU 시뮬레이션 활성화
+    maxContextLength: 4096,    // 충분한 컨텍스트 길이
+    responseTimeout: 10000,    // 안정적인 타임아웃
+    debugMode: false,          // 프로덕션 모드
+    mode: 'advanced',          // 고급 모드
+    enableThinking: true,      // 완전한 사고 과정
+    enableAdminLogging: true,  // 완전한 로깅
     ...options
   };
   
-  const aiAgent = AIAgentEngine.getInstance(testConfig);
+  const aiAgent = AIAgentEngine.getInstance(productionConfig);
   await aiAgent.initialize();
   
   return aiAgent;

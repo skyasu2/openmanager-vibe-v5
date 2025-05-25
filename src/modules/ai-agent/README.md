@@ -58,10 +58,10 @@ const edgeAgent = await createEdgeAIAgent({
   timeout: 3000
 });
 
-// 테스트 환경
-const testAgent = await createTestAIAgent({
-  enableMCP: false,
-  debugMode: true
+// 프로덕션 환경
+const productionAgent = await createProductionAIAgent({
+  enableMCP: true,
+  enableThinking: true
 });
 ```
 
@@ -364,29 +364,53 @@ export default async function handler(request: Request) {
 }
 ```
 
-## 🧪 테스트
+## 🧪 실제 환경 테스트
 
 ```typescript
-import { createTestAIAgent } from './modules/ai-agent';
+import { createProductionAIAgent } from './modules/ai-agent';
 
-describe('AI Agent Tests', () => {
+describe('Production AI Agent Tests', () => {
     let aiAgent;
     
     beforeEach(async () => {
-        aiAgent = await createTestAIAgent({
-            enableMCP: false,
-            debugMode: true
+        aiAgent = await createProductionAIAgent({
+            enableMCP: true,
+            enableThinking: true,
+            debugMode: false
         });
     });
     
-    test('서버 상태 질의', async () => {
+    test('실제 서버 데이터로 상태 분석', async () => {
+        const realServerData = [
+            { id: 'web-01', status: 'healthy', cpu: 45, memory: 60, location: 'US East' },
+            { id: 'db-01', status: 'warning', cpu: 85, memory: 75, location: 'EU West' }
+        ];
+        
         const response = await aiAgent.processQuery({
-            query: '서버 상태는 어떤가요?'
+            query: '서버 상태는 어떤가요?',
+            serverData: realServerData
         });
         
         expect(response.success).toBe(true);
         expect(response.intent.name).toBe('server_status');
-        expect(response.response).toContain('서버');
+        expect(response.response).toContain('2대');
+        expect(response.response).toContain('85%'); // 실제 CPU 데이터 반영
+    });
+    
+    test('성능 병목 현상 실시간 분석', async () => {
+        const serverData = [
+            { id: 'api-01', cpu: 95, memory: 88, status: 'critical' },
+            { id: 'api-02', cpu: 30, memory: 45, status: 'healthy' }
+        ];
+        
+        const response = await aiAgent.processQuery({
+            query: 'CPU 사용률이 높은 서버를 찾아주세요',
+            serverData
+        });
+        
+        expect(response.intent.name).toBe('performance_analysis');
+        expect(response.response).toContain('api-01'); // 실제 고부하 서버 식별
+        expect(response.response).toContain('병목'); // 병목 현상 분석
     });
 });
 ```
