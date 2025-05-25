@@ -2,6 +2,58 @@
 
 모든 주요 변경사항이 이 파일에 기록됩니다.
 
+## [2.1.0] - 2025-01-20
+
+### 🔓 **관리자 접근 간소화**
+- **원클릭 관리자 모드**
+  - `ProfileDropdown.tsx`: 비밀번호 인증 모달 완전 제거
+  - `admin/ai-agent/page.tsx`: 복잡한 인증 체크 로직 제거
+  - 프로필 → 관리자 모드 클릭 시 즉시 이동
+
+### 🏠 **네비게이션 개선**
+- **홈 버튼 통합**
+  - 모든 페이지에서 OpenManager 로고 클릭 시 랜딩페이지로 이동
+  - `dashboard/page.tsx`: Link → button 변경
+  - `dashboard/server-dashboard/page.tsx`: Link → button 변경
+
+- **관리자 페이지 헤더 개선**
+  - 왼쪽: OpenManager 홈 버튼
+  - 중앙: 관리자 모드 표시
+  - 오른쪽: 대시보드 버튼
+
+### ⚡ **AI 에이전트 전원 관리 시스템**
+- **독립적 전원 관리 API** (`src/app/api/ai-agent/power/route.ts`)
+  - `AIAgentPowerManager` 싱글톤 클래스 구현
+  - 3단계 절전 모드: active → idle (5분) → sleep (15분)
+  - POST 액션: activate, deactivate, activity
+  - GET: 상태 조회 및 기능 설명
+
+### 🎭 **데이터 생성기 패턴 시스템**
+- **실시간 패턴 변경** (`src/services/collectors/ServerDataGenerator.ts`)
+  - `currentPattern` 속성 추가
+  - `changeRealtimePattern()` 메서드 구현
+  - 3가지 패턴: normal, high-load, maintenance
+
+- **데이터 생성기 API 확장** (`src/app/api/data-generator/route.ts`)
+  - `change-pattern` 액션 추가
+  - 패턴 유효성 검증
+  - 패턴 이름 변환 함수
+
+### 🔄 **통합 시스템 제어 개선**
+- **메인 페이지 통합** (`src/app/page.tsx`)
+  - AI 에이전트 활성화/비활성화 API 연동
+  - 실시간 패턴 변경 UI 추가
+  - 패턴 선택 버튼 (시스템 활성화 시에만 표시)
+  - 모바일 반응형 패턴 버튼
+
+### 🧹 **코드 정리**
+- 사용하지 않는 import 제거
+- 불필요한 인증 함수 삭제
+- TypeScript 타입 에러 해결
+- 37개 라우트 모두 성공적으로 빌드
+
+---
+
 ## [2.0.0] - 2025-01-20
 
 ### 🧠 **AI 에이전트 시스템 완전 재구현**

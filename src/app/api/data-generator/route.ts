@@ -10,14 +10,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { serverDataGenerator } from '../../../services/collectors/ServerDataGenerator';
 
+/**
+ * 패턴 이름 변환
+ */
+function getPatternName(pattern: string): string {
+  switch (pattern) {
+    case 'normal':
+      return '정상 운영';
+    case 'high-load':
+      return '고부하';
+    case 'maintenance':
+      return '유지보수';
+    default:
+      return '알 수 없음';
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action } = body;
+    const { action, pattern } = body;
 
-    if (!action || !['start-realtime', 'stop-realtime', 'init-history'].includes(action)) {
+    if (!action || !['start-realtime', 'stop-realtime', 'init-history', 'change-pattern'].includes(action)) {
       return NextResponse.json(
-        { error: '유효하지 않은 액션입니다. (start-realtime, stop-realtime, init-history 중 선택)' },
+        { error: '유효하지 않은 액션입니다. (start-realtime, stop-realtime, init-history, change-pattern 중 선택)' },
         { status: 400 }
       );
     }
@@ -26,13 +42,16 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case 'start-realtime':
-        await serverDataGenerator.startRealtimeGeneration();
+        const startPattern = pattern || 'normal'; // 기본값: 정상 운영
+        await serverDataGenerator.startRealtimeGeneration(startPattern);
         
         return NextResponse.json({
           success: true,
-          message: '10분간 실시간 데이터 생성을 시작했습니다. (5초 간격)',
+          message: `10분간 실시간 데이터 생성을 시작했습니다. (${getPatternName(startPattern)} 패턴, 5초 간격)`,
           data: {
             action: 'start-realtime',
+            pattern: startPattern,
+            patternName: getPatternName(startPattern),
             duration: '10 minutes',
             interval: '5 seconds',
             timestamp: new Date().toISOString()
@@ -64,6 +83,34 @@ export async function POST(request: NextRequest) {
             action: 'init-history',
             patterns: ['정상 운영', '고부하', '유지보수'],
             duration: '24 hours',
+            timestamp: new Date().toISOString()
+          }
+        });
+
+      case 'change-pattern':
+        if (!pattern || !['normal', 'high-load', 'maintenance'].includes(pattern)) {
+          return NextResponse.json(
+            { error: '유효하지 않은 패턴입니다. (normal, high-load, maintenance 중 선택)' },
+            { status: 400 }
+          );
+        }
+
+        const success = serverDataGenerator.changeRealtimePattern(pattern);
+        
+        if (!success) {
+          return NextResponse.json(
+            { error: '패턴 변경에 실패했습니다. 실시간 생성이 활성화되어 있는지 확인하세요.' },
+            { status: 400 }
+          );
+        }
+
+        return NextResponse.json({
+          success: true,
+          message: `데이터 패턴이 ${getPatternName(pattern)}(으)로 변경되었습니다.`,
+          data: {
+            action: 'change-pattern',
+            pattern,
+            patternName: getPatternName(pattern),
             timestamp: new Date().toISOString()
           }
         });

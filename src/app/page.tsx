@@ -76,9 +76,15 @@ export default function HomePage() {
   const isSystemActive = state === 'active';
 
   // 데이터 생성기 상태 관리
-  const [dataGeneratorStatus, setDataGeneratorStatus] = useState({
+  const [dataGeneratorStatus, setDataGeneratorStatus] = useState<{
+    isGenerating: boolean;
+    remainingTime: number;
+    currentPattern: 'normal' | 'high-load' | 'maintenance' | null;
+    patterns: string[];
+  }>({
     isGenerating: false,
     remainingTime: 0,
+    currentPattern: null,
     patterns: []
   });
   const [isLoadingGenerator, setIsLoadingGenerator] = useState(false);
@@ -129,37 +135,56 @@ export default function HomePage() {
     };
   }, [isSystemActive, dataGeneratorStatus.isGenerating, getSessionInfo]);
 
-  // 시스템 활성화 (20분 타이머 + 데이터 생성기 자동 시작)
+  // 시스템 활성화 (20분 타이머 + 데이터 생성기 자동 시작 + AI 에이전트 활성화)
   const handleActivateSystem = async () => {
     // 1. 시스템 활성화
     startSystem(20 * 60); // 20분 = 1200초
     
-    // 2. 데이터 생성기 자동 시작
+    // 2. AI 에이전트 활성화
+    try {
+      const aiResponse = await fetch('/api/ai-agent/power', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'activate' })
+      });
+      
+      if (aiResponse.ok) {
+        console.log('🤖 AI 에이전트 활성화됨');
+      }
+    } catch (error) {
+      console.error('AI 에이전트 활성화 실패:', error);
+    }
+    
+    // 3. 데이터 생성기 자동 시작 (기본 패턴: 정상 운영)
     try {
       const response = await fetch('/api/data-generator', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'start-realtime' })
+        body: JSON.stringify({ 
+          action: 'start-realtime',
+          pattern: 'normal' // 기본 패턴
+        })
       });
       
       if (response.ok) {
-        console.log('✅ 시스템 활성화와 함께 데이터 생성기 시작됨');
+        console.log('✅ 시스템 활성화와 함께 데이터 생성기 시작됨 (정상 운영 패턴)');
         setDataGeneratorStatus(prev => ({
           ...prev,
           isGenerating: true,
-          remainingTime: 10 * 60 * 1000 // 10분
+          remainingTime: 10 * 60 * 1000, // 10분
+          currentPattern: 'normal'
         }));
       }
     } catch (error) {
       console.error('데이터 생성기 시작 실패:', error);
     }
     
-    // 3. AI 에이전트 자동 리포트 생성
+    // 4. AI 에이전트 자동 리포트 생성
     setTimeout(() => {
       smartAIAgent.generateAutoReport();
     }, 1000);
     
-    // 4. 대시보드 접근 권한 부여
+    // 5. 대시보드 접근 권한 부여
     const timestamp = Date.now();
     const authToken = btoa(`dashboard_access_${timestamp}`);
     
@@ -177,12 +202,27 @@ export default function HomePage() {
     router.push(`/dashboard?auth=authorized&t=${timestamp}`);
   };
 
-  // 시스템 비활성화 (데이터 생성기도 함께 중지)
+  // 시스템 비활성화 (데이터 생성기 + AI 에이전트도 함께 중지)
   const handleDeactivateSystem = async () => {
     // 1. 시스템 비활성화
     stopSystem();
     
-    // 2. 데이터 생성기 중지
+    // 2. AI 에이전트 비활성화
+    try {
+      const aiResponse = await fetch('/api/ai-agent/power', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'deactivate' })
+      });
+      
+      if (aiResponse.ok) {
+        console.log('🤖 AI 에이전트 비활성화됨');
+      }
+    } catch (error) {
+      console.error('AI 에이전트 비활성화 실패:', error);
+    }
+    
+    // 3. 데이터 생성기 중지
     try {
       const response = await fetch('/api/data-generator', {
         method: 'POST',
@@ -195,18 +235,62 @@ export default function HomePage() {
         setDataGeneratorStatus(prev => ({
           ...prev,
           isGenerating: false,
-          remainingTime: 0
+          remainingTime: 0,
+          currentPattern: null
         }));
       }
     } catch (error) {
       console.error('데이터 생성기 중지 실패:', error);
     }
     
-    // 3. 인증 정보 제거
+    // 4. 인증 정보 제거
     localStorage.removeItem('dashboard_auth_token');
     localStorage.removeItem('dashboard_access_time');
     sessionStorage.removeItem('dashboard_authorized');
     sessionStorage.removeItem('auth_timestamp');
+  };
+
+  // 패턴 이름 표시용 함수
+  const getPatternDisplayName = (pattern: string): string => {
+    switch (pattern) {
+      case 'normal':
+        return '정상 운영';
+      case 'high-load':
+        return '고부하';
+      case 'maintenance':
+        return '유지보수';
+      default:
+        return '정상 운영';
+    }
+  };
+
+  // 데이터 패턴 변경 (시스템 활성화 중에만 가능)
+  const handleChangePattern = async (pattern: 'normal' | 'high-load' | 'maintenance') => {
+    if (!isSystemActive) {
+      console.warn('시스템이 활성화되지 않음');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/data-generator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'change-pattern',
+          pattern 
+        })
+      });
+      
+      if (response.ok) {
+        console.log(`✅ 데이터 패턴 변경됨: ${pattern}`);
+        setDataGeneratorStatus(prev => ({
+          ...prev,
+          currentPattern: pattern
+        }));
+      }
+    } catch (error) {
+      console.error('데이터 패턴 변경 실패:', error);
+    }
   };
 
   const openFeatureModal = (feature: FeatureDetail) => {
@@ -801,6 +885,65 @@ export default function HomePage() {
           box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
         }
 
+        /* 패턴 컨트롤 */
+        .pattern-controls {
+          margin-top: 20px;
+          padding-top: 20px;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .pattern-selector {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .pattern-label {
+          font-size: 14px;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.9);
+          margin-bottom: 8px;
+        }
+
+        .pattern-buttons {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+
+        .pattern-btn {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 12px;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 8px;
+          color: rgba(255, 255, 255, 0.8);
+          font-size: 12px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .pattern-btn:hover {
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+          transform: translateY(-1px);
+        }
+
+        .pattern-btn.active {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          border-color: rgba(255, 255, 255, 0.3);
+          color: white;
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .pattern-btn i {
+          font-size: 11px;
+        }
+
         .benefits-list {
           list-style: none;
           padding: 0;
@@ -1033,6 +1176,16 @@ export default function HomePage() {
         @media (max-width: 480px) {
           .splash-container {
             padding: 0.5rem;
+          }
+
+          .pattern-buttons {
+            flex-direction: column;
+            gap: 6px;
+          }
+
+          .pattern-btn {
+            font-size: 11px;
+            padding: 6px 10px;
           }
           
           .main-title {
@@ -1399,7 +1552,7 @@ export default function HomePage() {
             <div className={`generator-dot ${(isSystemActive || dataGeneratorStatus.isGenerating) ? 'generating' : ''}`}></div>
             <span>
               {isSystemActive 
-                ? '시스템 활성화됨 (데이터 생성 중)' 
+                ? `시스템 활성화됨 (${dataGeneratorStatus.currentPattern ? getPatternDisplayName(dataGeneratorStatus.currentPattern) : '정상 운영'} 패턴)` 
                 : '시스템 대기 중'
               }
             </span>
@@ -1420,6 +1573,38 @@ export default function HomePage() {
               </>
             )}
           </div>
+
+          {/* 패턴 변경 컨트롤 (시스템 활성화 시에만 표시) */}
+          {isSystemActive && (
+            <div className="pattern-controls">
+              <div className="pattern-selector">
+                <label className="pattern-label">데이터 패턴:</label>
+                <div className="pattern-buttons">
+                  <button 
+                    className={`pattern-btn ${dataGeneratorStatus.currentPattern === 'normal' ? 'active' : ''}`}
+                    onClick={() => handleChangePattern('normal')}
+                  >
+                    <i className="fas fa-chart-line"></i>
+                    정상 운영
+                  </button>
+                  <button 
+                    className={`pattern-btn ${dataGeneratorStatus.currentPattern === 'high-load' ? 'active' : ''}`}
+                    onClick={() => handleChangePattern('high-load')}
+                  >
+                    <i className="fas fa-chart-area"></i>
+                    고부하
+                  </button>
+                  <button 
+                    className={`pattern-btn ${dataGeneratorStatus.currentPattern === 'maintenance' ? 'active' : ''}`}
+                    onClick={() => handleChangePattern('maintenance')}
+                  >
+                    <i className="fas fa-tools"></i>
+                    유지보수
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* 24시간 데이터 초기화 버튼 (시스템 비활성화 시에만 표시) */}
           {!isSystemActive && (

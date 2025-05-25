@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import ServerDashboard from '../../../components/dashboard/ServerDashboard';
 import AgentPanel from '../../../components/ai/AgentPanel';
 import AgentPanelMobile from '../../../components/ai/AgentPanelMobile';
@@ -93,7 +92,10 @@ export default function ServerDashboardPage() {
               <i className="fas fa-arrow-left text-gray-600 text-sm"></i>
             </button>
             
-            <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
+            <button 
+              onClick={() => router.push('/')}
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+            >
               <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <i className="fas fa-server text-white text-sm"></i>
               </div>
@@ -101,7 +103,7 @@ export default function ServerDashboardPage() {
                 <h1 className="text-xl font-bold text-gray-900">OpenManager</h1>
                 <p className="text-xs text-gray-500">서버 대시보드</p>
               </div>
-            </Link>
+            </button>
           </div>
 
           <div className="flex items-center gap-4">

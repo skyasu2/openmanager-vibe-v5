@@ -46,6 +46,7 @@ export class ServerDataGenerator {
   private isGenerating: boolean = false;
   private realtimeTimer?: NodeJS.Timeout;
   private realtimeStartTime?: Date;
+  private currentPattern: string = 'normal'; // 현재 사용 중인 패턴
   private readonly REALTIME_DURATION = 10 * 60 * 1000; // 10분
   private readonly REALTIME_INTERVAL = 5 * 1000; // 5초
   private readonly HISTORY_DURATION = 24 * 60 * 60 * 1000; // 24시간
@@ -186,13 +187,14 @@ export class ServerDataGenerator {
   /**
    * 실시간 10분 데이터 생성 시작
    */
-  async startRealtimeGeneration(): Promise<void> {
+  async startRealtimeGeneration(pattern: string = 'normal'): Promise<void> {
     if (this.isGenerating) {
       console.log('⚠️ Realtime generation already running');
       return;
     }
 
-    console.log('🚀 Starting 10-minute realtime data generation (5s interval)...');
+    this.currentPattern = pattern;
+    console.log(`🚀 Starting 10-minute realtime data generation (${pattern} pattern, 5s interval)...`);
     
     this.isGenerating = true;
     this.realtimeStartTime = new Date();
@@ -242,7 +244,28 @@ export class ServerDataGenerator {
     }
     
     this.realtimeStartTime = undefined;
+    this.currentPattern = 'normal'; // 기본값으로 리셋
     console.log('✅ Realtime generation stopped');
+  }
+
+  /**
+   * 실시간 생성 중 패턴 변경
+   */
+  changeRealtimePattern(pattern: string): boolean {
+    if (!this.isGenerating) {
+      console.warn('⚠️ Cannot change pattern: realtime generation not running');
+      return false;
+    }
+
+    const validPattern = this.DATA_PATTERNS.find(p => p.id === pattern);
+    if (!validPattern) {
+      console.warn(`⚠️ Invalid pattern: ${pattern}`);
+      return false;
+    }
+
+    this.currentPattern = pattern;
+    console.log(`🔄 Changed realtime pattern to: ${validPattern.name}`);
+    return true;
   }
 
   /**
@@ -252,8 +275,8 @@ export class ServerDataGenerator {
     const now = new Date();
     const dataPoints: GeneratedMetrics[] = [];
     
-    // 랜덤하게 패턴 선택 (현실적인 변화)
-    const pattern = this.DATA_PATTERNS[Math.floor(Math.random() * this.DATA_PATTERNS.length)];
+    // 현재 설정된 패턴 사용
+    const pattern = this.DATA_PATTERNS.find(p => p.id === this.currentPattern) || this.DATA_PATTERNS[0];
     
     for (const server of servers) {
       const metrics = this.generateMetricsForPattern(
@@ -404,6 +427,7 @@ export class ServerDataGenerator {
       remainingTime: this.realtimeStartTime 
         ? Math.max(0, this.REALTIME_DURATION - (Date.now() - this.realtimeStartTime.getTime()))
         : 0,
+      currentPattern: this.currentPattern,
       patterns: this.DATA_PATTERNS.map(p => ({
         id: p.id,
         name: p.name,
