@@ -18,9 +18,10 @@ export interface MCPResponse {
 export class MCPProcessor {
   private static instance: MCPProcessor;
   private intentPatterns: Map<string, RegExp[]> = new Map();
+  private isInitialized: boolean = false;
   
   constructor() {
-    this.initializePatterns();
+    // 초기화는 initialize() 메서드에서 수행
   }
 
   static getInstance(): MCPProcessor {
@@ -28,6 +29,18 @@ export class MCPProcessor {
       MCPProcessor.instance = new MCPProcessor();
     }
     return MCPProcessor.instance;
+  }
+
+  /**
+   * MCP 프로세서 초기화
+   */
+  async initialize(): Promise<void> {
+    if (this.isInitialized) return;
+
+    this.initializePatterns();
+    this.isInitialized = true;
+    
+    console.log('✅ MCP Processor 초기화 완료');
   }
 
   private initializePatterns() {
@@ -76,6 +89,10 @@ export class MCPProcessor {
   }
 
   async processQuery(query: string, serverData?: any): Promise<MCPResponse> {
+    if (!this.isInitialized) {
+      await this.initialize();
+    }
+
     const intent = this.classifyIntent(query);
     const entities = this.extractEntities(query);
     
