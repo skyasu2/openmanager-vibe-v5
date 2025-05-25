@@ -8,24 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { 
   Activity, 
   AlertTriangle, 
-  BarChart3, 
-  Brain, 
-  Download, 
-  Eye, 
-  Filter,
-  RefreshCw,
+  TrendingUp, 
+  Users, 
+  Server,
+  BarChart3,
   Settings,
-  TrendingUp,
-  Users,
-  Zap,
-  Shield,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Star,
-  Database,
-  FileText,
-  Lock
+  RefreshCw,
+  Download,
+  Zap
 } from 'lucide-react';
 
 interface AdminStats {
@@ -264,7 +254,7 @@ export default function AdminDashboard() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <Brain className="w-5 h-5 mr-2" />
+                    <Server className="w-5 h-5 mr-2" />
                     모드별 사용 통계
                   </CardTitle>
                 </CardHeader>

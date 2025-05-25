@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -9,27 +9,17 @@ import ThinkingDisplay from './ThinkingDisplay';
 import { 
   Activity, 
   AlertTriangle, 
-  BarChart3, 
-  Brain, 
-  Download, 
-  Eye, 
-  Filter,
+  TrendingUp, 
+  Users, 
   RefreshCw,
-  Settings,
-  TrendingUp,
-  Users,
-  Zap,
+  Download,
+  Brain,
   Shield,
   CheckCircle,
-  XCircle,
   Clock,
   Star,
   Database,
-  FileText,
-  Lock,
-  Search,
-  Calendar,
-  ArrowUpDown
+  Lock
 } from 'lucide-react';
 
 interface AdminDashboardData {
@@ -72,10 +62,10 @@ export default function EnhancedAdminDashboard() {
   const [sessionId, setSessionId] = useState<string>('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showThinking, setShowThinking] = useState(false);
-  const [currentThinkingSession, setCurrentThinkingSession] = useState(null);
+  const [currentThinkingSession] = useState(null);
   
   // 필터 상태
-  const [filters, setFilters] = useState({
+  const [filters] = useState({
     dateRange: '24h',
     category: 'all',
     success: 'all',
@@ -91,20 +81,7 @@ export default function EnhancedAdminDashboard() {
     checkAuthentication();
   }, []);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadDashboardData();
-      loadAuthStats();
-      
-      // 5초마다 데이터 새로고침
-      const interval = setInterval(() => {
-        loadDashboardData();
-        loadAuthStats();
-      }, 5000);
-      
-      return () => clearInterval(interval);
-    }
-  }, [isAuthenticated, filters]);
+  // 데이터 로드 함수들을 먼저 정의
 
   // 복사 방지 기능
   useEffect(() => {
@@ -163,7 +140,7 @@ export default function EnhancedAdminDashboard() {
     }
   };
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       const response = await fetch(`/api/ai-agent/admin/logs?action=dashboard&sessionId=${sessionId}`);
       const result = await response.json();
@@ -174,24 +151,40 @@ export default function EnhancedAdminDashboard() {
       } else {
         setError(result.error || '데이터 로드 실패');
       }
-    } catch (err) {
+    } catch {
       setError('네트워크 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [sessionId]);
 
-  const loadAuthStats = async () => {
+  const loadAuthStats = useCallback(async () => {
     try {
       const response = await fetch(`/api/auth/stats?sessionId=${sessionId}`);
       if (response.ok) {
         const result = await response.json();
         setAuthStats(result.data);
       }
-    } catch (err) {
-      console.error('Auth stats load failed:', err);
+    } catch {
+      // Auth stats load failed - silent fail
     }
-  };
+  }, [sessionId]);
+
+  // 인증 후 데이터 로드
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadDashboardData();
+      loadAuthStats();
+      
+      // 5초마다 데이터 새로고침
+      const interval = setInterval(() => {
+        loadDashboardData();
+        loadAuthStats();
+      }, 5000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, filters, loadDashboardData, loadAuthStats]);
 
   const handleExportData = async (type: string, format: string = 'json') => {
     try {
@@ -219,7 +212,7 @@ export default function EnhancedAdminDashboard() {
           window.URL.revokeObjectURL(url);
         }
       }
-    } catch (err) {
+    } catch {
       setError('데이터 내보내기 실패');
     }
   };
@@ -242,7 +235,7 @@ export default function EnhancedAdminDashboard() {
       } else {
         setError(result.error);
       }
-    } catch (err) {
+    } catch {
       setError('피드백 업데이트 실패');
     }
   };
@@ -265,7 +258,7 @@ export default function EnhancedAdminDashboard() {
       } else {
         setError(result.error);
       }
-    } catch (err) {
+    } catch {
       setError('관리자 검증 실패');
     }
   };
@@ -289,7 +282,7 @@ export default function EnhancedAdminDashboard() {
       } else {
         setError(result.error);
       }
-    } catch (err) {
+    } catch {
       setError('데모 데이터 생성 실패');
     }
   };

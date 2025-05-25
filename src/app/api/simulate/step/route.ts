@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { CacheService } from '../../../../lib/redis'
-import { DUMMY_SERVERS, DUMMY_FAILURES } from '../../../../lib/dummy-data'
+import { DUMMY_SERVERS } from '../../../../lib/dummy-data'
 import { updateSessionStep } from '../init/route'
 
 // 🌍 전역 세션 키
@@ -30,7 +30,7 @@ interface SimulationStepResponse {
  * 
  * 목적: 5분 단위로 시뮬레이션 데이터 생성 및 업데이트
  */
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     // 전역 세션 확인
     const session = await CacheService.get<GlobalSession>(GLOBAL_SESSION_KEY)

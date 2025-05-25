@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { CacheService } from '../../../lib/redis'
-import { ENTERPRISE_SERVERS, SERVER_STATS, IDC_LOCATIONS } from '../../../lib/enterprise-servers'
+import { ENTERPRISE_SERVERS, IDC_LOCATIONS } from '../../../lib/enterprise-servers'
 import { 
   CRITICAL_FAILURE_CHAINS, 
   WARNING_FAILURES,

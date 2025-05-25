@@ -96,7 +96,6 @@ export default function AutoDemoScenario() {
   const {
     isAutoDemo,
     currentScenarioIndex,
-    isTyping,
     addMessage,
     highlightServers,
     clearHighlights,
@@ -156,7 +155,7 @@ export default function AutoDemoScenario() {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
-  }, [isAutoDemo, currentScenarioIndex]);
+  }, [isAutoDemo, currentScenarioIndex, addMessage, setTyping, nextScenario]);
 
   const executeActions = (actions: DemoScenario['actions']) => {
     if (!actions) return;

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 // 임시 데이터 (실제로는 AdminLogger에서 가져옴)
 const mockStats = {
@@ -51,7 +51,7 @@ const mockStats = {
   }
 };
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // 실제 구현에서는 AdminLogger.getInstance().getAdminStats() 호출
     // const adminLogger = AdminLogger.getInstance();
