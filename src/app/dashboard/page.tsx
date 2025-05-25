@@ -34,70 +34,16 @@ export default function DashboardPage() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // 권한 확인 및 시스템 활성화
+  // 시스템 자동 활성화 (인증 로직 제거)
   useEffect(() => {
-    const checkAuth = () => {
-      const authToken = localStorage.getItem('dashboard_auth_token');
-      const sessionAuth = sessionStorage.getItem('dashboard_authorized');
-      const authTime = localStorage.getItem('dashboard_access_time');
-      const fromIndex = localStorage.getItem('authorized_from_index');
-      
-      // 랜딩페이지를 거치지 않고 직접 접근한 경우
-      if (!fromIndex || fromIndex !== 'true') {
-        console.log('❌ 직접 접근 차단: 랜딩페이지를 거치지 않음');
-        localStorage.clear();
-        sessionStorage.clear();
-        router.replace('/');
-        return;
-      }
-      
-      // 기본 인증 확인
-      if (!authToken || !sessionAuth || !authTime) {
-        console.log('❌ 인증 정보 없음:', { authToken: !!authToken, sessionAuth: !!sessionAuth, authTime: !!authTime });
-        localStorage.clear();
-        sessionStorage.clear();
-        router.replace('/');
-        return;
-      }
-      
-      // 1시간(3600000ms) 세션 만료 확인
-      const accessTime = parseInt(authTime);
-      const currentTime = Date.now();
-      const oneHour = 60 * 60 * 1000; // 1시간
-      
-      if (currentTime - accessTime > oneHour) {
-        console.log('❌ 세션 만료:', { accessTime, currentTime, elapsed: currentTime - accessTime });
-        localStorage.clear();
-        sessionStorage.clear();
-        alert('1시간 체험 세션이 만료되었습니다. 랜딩페이지로 이동합니다.');
-        router.replace('/');
-        return;
-      }
-      
-      // 인증 성공 시 시스템 자동 활성화
-      console.log('✅ 인증 성공: 대시보드 접근 허용');
-      
-      // 시스템이 비활성화 상태라면 자동 활성화
-      if (!isSystemActive) {
-        console.log('🚀 시스템 자동 활성화 중...');
-        // PowerStore에서 activateSystem 함수 가져오기
-        const { activateSystem } = usePowerStore.getState();
-        activateSystem();
-        console.log('✅ 시스템 활성화 완료');
-      }
-    };
-
-    // 초기 인증 확인 (약간의 지연을 두어 시스템 상태 로딩 대기)
-    const timer = setTimeout(checkAuth, 100);
-    
-    // 1분마다 세션 만료 확인
-    const interval = setInterval(checkAuth, 60000);
-    
-    return () => {
-      clearTimeout(timer);
-      clearInterval(interval);
-    };
-  }, [router, isSystemActive]);
+    // 시스템이 비활성화 상태라면 자동 활성화
+    if (!isSystemActive) {
+      console.log('🚀 대시보드 접근 시 시스템 자동 활성화 중...');
+      const { activateSystem } = usePowerStore.getState();
+      activateSystem();
+      console.log('✅ 시스템 활성화 완료');
+    }
+  }, [isSystemActive]);
 
   const closeAgent = () => {
     setIsAgentOpen(false);
@@ -115,17 +61,9 @@ export default function DashboardPage() {
     setServerStats(stats);
   };
 
-  // 랜딩페이지로 이동 (세션 정리)
+  // 랜딩페이지로 이동 (간소화)
   const handleGoToLanding = () => {
-    // 현재 세션 정보 정리
-    localStorage.removeItem('dashboard_auth_token');
-    localStorage.removeItem('dashboard_access_time');
-    localStorage.removeItem('authorized_from_index');
-    sessionStorage.removeItem('dashboard_authorized');
-    
-    console.log('🏠 랜딩페이지로 이동: 세션 정리 완료');
-    
-    // 랜딩페이지로 이동
+    console.log('🏠 랜딩페이지로 이동');
     router.push('/');
   };
 
@@ -201,37 +139,23 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* 메인 컨텐트 영역 */}
-      <div className="flex relative">
-        {/* 서버 대시보드 */}
-        <main className={`flex-1 transition-all duration-300 ${
-          isAgentOpen && !isMobile ? 'lg:mr-96' : ''
-        }`}>
-          <ServerDashboard onStatsUpdate={handleStatsUpdate} />
-        </main>
-
-        {/* AI 에이전트 패널 (데스크탑) */}
-        {!isMobile && (
-          <AgentPanel
-            isOpen={isAgentOpen}
-            onClose={closeAgent}
-          />
+      {/* 메인 콘텐츠 */}
+      <main className="relative">
+        <ServerDashboard onStatsUpdate={handleStatsUpdate} />
+        
+        {/* AI 에이전트 패널 */}
+        {isMobile ? (
+          <AgentPanelMobile isOpen={isAgentOpen} onClose={closeAgent} />
+        ) : (
+          <AgentPanel isOpen={isAgentOpen} onClose={closeAgent} />
         )}
-      </div>
+      </main>
 
-      {/* AI 에이전트 모바일 드로어 */}
-      {isMobile && (
-        <AgentPanelMobile
-          isOpen={isAgentOpen}
-          onClose={closeAgent}
-        />
-      )}
-
-      {/* 플로팅 액션 버튼 (모바일용 보조) */}
+      {/* 모바일 AI 에이전트 플로팅 버튼 */}
       {isMobile && !isAgentOpen && (
         <button
-          onClick={toggleAgent}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full shadow-lg flex items-center justify-center z-50 hover:shadow-xl transition-all"
+          onClick={() => setIsAgentOpen(true)}
+          className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-br from-pink-500 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center z-40"
         >
           <i className="fas fa-brain text-lg"></i>
         </button>

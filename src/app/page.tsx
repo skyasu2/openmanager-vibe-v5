@@ -130,18 +130,8 @@ export default function HomePage() {
     // 1. 시스템 활성화
     startSystem(20 * 60); // 20분 = 1200초
     
-    // 2. 대시보드 접근 권한 미리 부여
-    const timestamp = Date.now();
-    const authToken = btoa(`dashboard_access_${timestamp}`);
-    
-    localStorage.setItem('dashboard_auth_token', authToken);
-    localStorage.setItem('dashboard_access_time', timestamp.toString());
-    localStorage.setItem('authorized_from_index', 'true');
-    
-    sessionStorage.setItem('dashboard_authorized', 'true');
-    sessionStorage.setItem('auth_timestamp', timestamp.toString());
-    
-    console.log('✅ 대시보드 인증 정보 설정 완료');
+    // 2. 시스템 활성화 완료
+    console.log('✅ 시스템 활성화 완료');
     
     // 3. AI 에이전트 활성화
     try {
@@ -193,32 +183,10 @@ export default function HomePage() {
     console.log('🎉 시스템 활성화 완료!');
   };
 
-  // 대시보드로 이동
+  // 대시보드로 이동 (인증 로직 제거)
   const handleGoToDashboard = () => {
-    const timestamp = Date.now();
-    
-    // 인증 정보 설정
-    const authToken = btoa(`dashboard_access_${timestamp}`);
-    localStorage.setItem('dashboard_auth_token', authToken);
-    localStorage.setItem('dashboard_access_time', timestamp.toString());
-    localStorage.setItem('authorized_from_index', 'true');
-    
-    sessionStorage.setItem('dashboard_authorized', 'true');
-    sessionStorage.setItem('auth_timestamp', timestamp.toString());
-    
-    // 디버깅 로그
-    console.log('🚀 대시보드 이동 준비:', {
-      authToken,
-      timestamp,
-      isSystemActive,
-      authTime: localStorage.getItem('dashboard_access_time'),
-      fromIndex: localStorage.getItem('authorized_from_index')
-    });
-    
-    // 약간의 지연 후 이동 (인증 정보 저장 완료 대기)
-    setTimeout(() => {
-      router.push('/dashboard');
-    }, 100);
+    console.log('🏠 대시보드로 이동');
+    router.push('/dashboard');
   };
 
   // 시스템 비활성화 (데이터 생성기 + AI 에이전트도 함께 중지)
@@ -262,12 +230,8 @@ export default function HomePage() {
       console.error('데이터 생성기 중지 실패:', error);
     }
     
-    // 4. 인증 정보 제거
-    localStorage.removeItem('dashboard_auth_token');
-    localStorage.removeItem('dashboard_access_time');
-    localStorage.removeItem('authorized_from_index');
-    sessionStorage.removeItem('dashboard_authorized');
-    sessionStorage.removeItem('auth_timestamp');
+    // 4. 시스템 비활성화 완료
+    console.log('✅ 시스템 비활성화 완료');
   };
 
   // 데이터 패턴 변경 (시스템 활성화 중에만 가능)
