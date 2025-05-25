@@ -8,6 +8,9 @@
  * - 반응형 디자인 지원
  */
 
+import type { AISidebarConfig } from './types';
+import { createAISidebarInstance } from './utils';
+
 // Core Components
 export { AISidebar } from './components/AISidebar';
 export { AISidebarMobile } from './components/AISidebarMobile';

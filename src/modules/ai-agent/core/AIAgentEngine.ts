@@ -165,9 +165,8 @@ export class AIAgentEngine {
       // 6. 컨텍스트 업데이트
       await this.contextManager.updateContext(sessionId, {
         lastQuery: request.query,
-        lastIntent: intent,
-        lastResponse: response,
-        timestamp: new Date().toISOString()
+        lastIntent: intent.name,
+        lastResponse: response.text
       });
 
       const processingTime = Date.now() - startTime;

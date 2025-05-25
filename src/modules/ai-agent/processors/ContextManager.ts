@@ -12,6 +12,9 @@ export interface SessionContext {
   userId?: string;
   startTime: string;
   lastActivity: string;
+  lastQuery?: string;
+  lastIntent?: string;
+  lastResponse?: string;
   conversationHistory: ConversationEntry[];
   serverContext: ServerContext;
   userPreferences: UserPreferences;

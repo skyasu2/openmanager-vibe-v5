@@ -35,6 +35,8 @@ export interface AISidebarConfig {
   onClose?: () => void;
 }
 
+
+
 export type SidebarTheme = 'light' | 'dark' | 'auto';
 
 export interface ChatMessage {
