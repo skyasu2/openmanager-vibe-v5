@@ -79,9 +79,9 @@ export default function ThinkingDisplay({
 
       // CSS로 추가 보호
       container.style.userSelect = 'none';
-      container.style.webkitUserSelect = 'none';
-      container.style.msUserSelect = 'none';
-      container.style.mozUserSelect = 'none';
+      (container.style as any).webkitUserSelect = 'none';
+      (container.style as any).msUserSelect = 'none';
+      (container.style as any).mozUserSelect = 'none';
 
       return () => {
         container.removeEventListener('contextmenu', handleContextMenu);

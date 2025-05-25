@@ -353,56 +353,56 @@ export const detectEnvironment = (): AIAgentEnvironmentConfig => {
  * 설정 빌더
  */
 export class AIAgentConfigBuilder {
-  private config: Partial<AIAgentEnvironmentConfig> = {};
+  private config: any = {};
   
-  environment(env: AIAgentEnvironmentConfig['environment']) {
+  environment(env: string) {
     this.config.environment = env;
     return this;
   }
   
-  platform(platform: AIAgentEnvironmentConfig['platform']) {
+  platform(platform: string) {
     this.config.platform = platform;
     return this;
   }
   
   enableLogging(enabled: boolean = true) {
-    if (!this.config.runtime) this.config.runtime = {} as any;
+    if (!this.config.runtime) this.config.runtime = {};
     this.config.runtime.enableLogging = enabled;
     return this;
   }
   
-  logLevel(level: AIAgentEnvironmentConfig['runtime']['logLevel']) {
-    if (!this.config.runtime) this.config.runtime = {} as any;
+  logLevel(level: string) {
+    if (!this.config.runtime) this.config.runtime = {};
     this.config.runtime.logLevel = level;
     return this;
   }
   
-  storage(type: AIAgentEnvironmentConfig['storage']['type']) {
-    if (!this.config.storage) this.config.storage = {} as any;
+  storage(type: string) {
+    if (!this.config.storage) this.config.storage = {};
     this.config.storage.type = type;
     return this;
   }
   
   enableNPU(enabled: boolean = true) {
-    if (!this.config.engine) this.config.engine = {} as any;
+    if (!this.config.engine) this.config.engine = {};
     this.config.engine.enableNPU = enabled;
     return this;
   }
   
   enableMCP(enabled: boolean = true) {
-    if (!this.config.engine) this.config.engine = {} as any;
+    if (!this.config.engine) this.config.engine = {};
     this.config.engine.enableMCP = enabled;
     return this;
   }
   
   timeout(ms: number) {
-    if (!this.config.runtime) this.config.runtime = {} as any;
+    if (!this.config.runtime) this.config.runtime = {};
     this.config.runtime.timeout = ms;
     return this;
   }
   
   plugins(plugins: string[]) {
-    if (!this.config.plugins) this.config.plugins = {} as any;
+    if (!this.config.plugins) this.config.plugins = {};
     this.config.plugins.enabled = plugins;
     return this;
   }

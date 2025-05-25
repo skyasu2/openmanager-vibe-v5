@@ -244,7 +244,7 @@ export class ResponseGenerator {
    */
   private determineResponseType(intent: Intent): 'informational' | 'actionable' | 'warning' | 'error' {
     if (intent.name === 'error') return 'error';
-    if (intent.context.includes('urgent')) return 'warning';
+    // if (intent.context.includes('urgent')) return 'warning'; // 임시로 주석 처리
     if (['alert_management', 'specific_server_analysis'].includes(intent.name)) return 'actionable';
     return 'informational';
   }

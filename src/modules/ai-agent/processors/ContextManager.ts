@@ -13,7 +13,8 @@ export interface SessionContext {
   startTime: number;
   lastActivity: number;
   conversationHistory: any[];
-  serverContext: Record<string, any>;
+  serverContext: any;
+  userPreferences?: any;
   lastQuery?: string;
   lastIntent?: string;
   lastResponse?: string;
@@ -117,7 +118,7 @@ export class ContextManager {
     // 서버 컨텍스트 업데이트
     this.updateServerContext(context, entry);
 
-    context.lastActivity = new Date().toISOString();
+    context.lastActivity = Date.now();
     this.sessions.set(sessionId, context);
   }
 
@@ -133,6 +134,9 @@ export class ContextManager {
       timestamp: new Date().toISOString()
     };
 
+    if (!context.serverContext.alertHistory) {
+      context.serverContext.alertHistory = [];
+    }
     context.serverContext.alertHistory.push(alertEntry);
 
     // 알림 히스토리 제한 (최근 100개)
@@ -140,7 +144,7 @@ export class ContextManager {
       context.serverContext.alertHistory = context.serverContext.alertHistory.slice(-100);
     }
 
-    context.lastActivity = new Date().toISOString();
+    context.lastActivity = Date.now();
     this.sessions.set(sessionId, context);
   }
 
@@ -152,7 +156,7 @@ export class ContextManager {
     if (!context) return;
 
     context.userPreferences = { ...context.userPreferences, ...preferences };
-    context.lastActivity = new Date().toISOString();
+    context.lastActivity = Date.now();
     
     this.sessions.set(sessionId, context);
   }
@@ -186,7 +190,7 @@ export class ContextManager {
 
     // 알림 기반 추천
     const criticalAlerts = context.serverContext.alertHistory
-      .filter(alert => alert.severity === 'critical' && !alert.resolved);
+      .filter((alert: any) => alert.severity === 'critical' && !alert.resolved);
 
     if (criticalAlerts.length > 0) {
       recommendations.push('긴급 알림 처리');

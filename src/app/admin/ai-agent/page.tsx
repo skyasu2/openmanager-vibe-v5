@@ -1,4 +1,4 @@
-import AdminDashboard from '@/components/ai/AdminDashboard';
+import AdminDashboard from '../../../components/ai/AdminDashboard';
 
 export default function AIAgentAdminPage() {
   return (

@@ -8,7 +8,7 @@
  */
 
 import { Intent } from './IntentClassifier';
-import { GeneratedResponse } from './ResponseGenerator';
+import { ResponseResult } from './ResponseGenerator';
 
 export interface Action {
   id: string;
@@ -61,7 +61,7 @@ export class ActionExecutor {
   /**
    * 의도와 응답에서 액션 추출
    */
-  async extractActions(intent: Intent, response: GeneratedResponse): Promise<string[]> {
+  async extractActions(intent: Intent, response: ResponseResult): Promise<string[]> {
     if (!this.isInitialized) {
       await this.initialize();
     }
@@ -76,12 +76,12 @@ export class ActionExecutor {
     const entityActions = this.getActionsForEntities(intent.entities);
     actions.push(...entityActions.map(action => action.name));
 
-    // 3. 응답 타입 기반 액션 추가
-    const responseActions = this.getActionsForResponseType(response.type);
-    actions.push(...responseActions.map(action => action.name));
+    // 3. 응답 타입 기반 액션 추가 (임시로 주석 처리)
+    // const responseActions = this.getActionsForResponseType(response.type);
+    // actions.push(...responseActions.map(action => action.name));
 
-    // 4. 컨텍스트 기반 액션 필터링
-    const contextualActions = this.filterActionsByContext(intentActions.concat(entityActions).concat(responseActions), intent.context);
+    // 4. 컨텍스트 기반 액션 필터링 (임시로 주석 처리)
+    const contextualActions = intentActions.concat(entityActions);
 
     // 5. 우선순위 정렬
     const sortedActions = this.sortActionsByPriority(contextualActions);

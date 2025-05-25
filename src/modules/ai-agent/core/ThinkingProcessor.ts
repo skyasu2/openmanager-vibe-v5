@@ -353,6 +353,8 @@ export class ThinkingProcessor {
         title: step.title,
         description: step.description,
         status: step.status,
+        startTime: step.startTime,
+        endTime: step.endTime,
         progress: step.progress,
         duration: step.duration
         // details는 제외 (민감한 정보 포함 가능)
