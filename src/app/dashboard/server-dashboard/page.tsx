@@ -3,25 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ServerDashboard from '../../../components/dashboard/ServerDashboard';
-import AgentPanel from '../../../components/ai/AgentPanel';
-import AgentPanelMobile from '../../../components/ai/AgentPanelMobile';
+import AgentModal from '../../../components/ai/AgentModal';
 import ProfileDropdown from '../../../components/ui/ProfileDropdown';
 
 export default function ServerDashboardPage() {
   const router = useRouter();
   const [isAgentOpen, setIsAgentOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
 
-  // 화면 크기 감지
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // 권한 확인
   useEffect(() => {
@@ -158,40 +146,12 @@ export default function ServerDashboardPage() {
       </header>
 
       {/* 메인 컨텐트 영역 */}
-      <div className="flex relative">
-        {/* 서버 대시보드 */}
-        <main className={`flex-1 transition-all duration-300 ${
-          isAgentOpen && !isMobile ? 'lg:mr-96' : ''
-        }`}>
-          <ServerDashboard />
-        </main>
-
-        {/* AI 에이전트 패널 (데스크탑) */}
-        {!isMobile && (
-          <AgentPanel
-            isOpen={isAgentOpen}
-            onClose={closeAgent}
-          />
-        )}
-      </div>
-
-      {/* AI 에이전트 모바일 드로어 */}
-      {isMobile && (
-        <AgentPanelMobile
-          isOpen={isAgentOpen}
-          onClose={closeAgent}
-        />
-      )}
-
-      {/* 플로팅 액션 버튼 (모바일용 보조) */}
-      {isMobile && !isAgentOpen && (
-        <button
-          onClick={toggleAgent}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full shadow-lg flex items-center justify-center z-50 hover:shadow-xl transition-all"
-        >
-          <i className="fas fa-brain text-lg"></i>
-        </button>
-      )}
+      <main className="relative">
+        <ServerDashboard />
+        
+        {/* AI 에이전트 모달 */}
+        <AgentModal isOpen={isAgentOpen} onClose={closeAgent} />
+      </main>
     </div>
   );
 } 

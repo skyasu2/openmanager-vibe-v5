@@ -3,15 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ServerDashboard from '../../components/dashboard/ServerDashboard';
-import AgentPanel from '../../components/ai/AgentPanel';
-import AgentPanelMobile from '../../components/ai/AgentPanelMobile';
+import AgentModal from '../../components/ai/AgentModal';
 import ProfileDropdown from '../../components/ui/ProfileDropdown';
 import { usePowerStore } from '../../stores/powerStore';
 
 export default function DashboardPage() {
   const router = useRouter();
   const [isAgentOpen, setIsAgentOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+
   const [serverStats, setServerStats] = useState({
     total: 10,
     online: 3,
@@ -23,16 +22,7 @@ export default function DashboardPage() {
   const { mode } = usePowerStore();
   const isSystemActive = mode === 'active' || mode === 'monitoring';
 
-  // 화면 크기 감지
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
 
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // 시스템 자동 활성화 (인증 로직 제거)
   useEffect(() => {
@@ -143,23 +133,11 @@ export default function DashboardPage() {
       <main className="relative">
         <ServerDashboard onStatsUpdate={handleStatsUpdate} />
         
-        {/* AI 에이전트 패널 */}
-        {isMobile ? (
-          <AgentPanelMobile isOpen={isAgentOpen} onClose={closeAgent} />
-        ) : (
-          <AgentPanel isOpen={isAgentOpen} onClose={closeAgent} />
-        )}
+        {/* AI 에이전트 모달 */}
+        <AgentModal isOpen={isAgentOpen} onClose={closeAgent} />
       </main>
 
-      {/* 모바일 AI 에이전트 플로팅 버튼 */}
-      {isMobile && !isAgentOpen && (
-        <button
-          onClick={() => setIsAgentOpen(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-br from-pink-500 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center z-40"
-        >
-          <i className="fas fa-brain text-lg"></i>
-        </button>
-      )}
+
     </div>
   );
 } 
