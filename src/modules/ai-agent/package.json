@@ -1,0 +1,87 @@
+{
+  "name": "@openmanager/ai-agent",
+  "version": "1.0.0",
+  "description": "🧠 NPU-based lightweight AI inference engine for server monitoring",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "module": "index.esm.js",
+  "exports": {
+    ".": {
+      "import": "./index.esm.js",
+      "require": "./index.js",
+      "types": "./index.d.ts"
+    },
+    "./config": {
+      "import": "./config/index.esm.js",
+      "require": "./config/index.js",
+      "types": "./config/index.d.ts"
+    },
+    "./adapters": {
+      "import": "./adapters/index.esm.js",
+      "require": "./adapters/index.js",
+      "types": "./adapters/index.d.ts"
+    },
+    "./plugins": {
+      "import": "./plugins/index.esm.js",
+      "require": "./plugins/index.js",
+      "types": "./plugins/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "build:types": "tsc --emitDeclarationOnly",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "npu",
+    "inference",
+    "monitoring",
+    "server",
+    "mcp",
+    "typescript",
+    "portable",
+    "modular"
+  ],
+  "author": "OpenManager Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openmanager/ai-agent.git"
+  },
+  "bugs": {
+    "url": "https://github.com/openmanager/ai-agent/issues"
+  },
+  "homepage": "https://github.com/openmanager/ai-agent#readme",
+  "peerDependencies": {
+    "typescript": ">=4.5.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.0.0",
+    "@types/node": "^18.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0",
+    "rollup": "^3.0.0",
+    "rollup-plugin-typescript2": "^0.34.0",
+    "ts-jest": "^29.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+} 

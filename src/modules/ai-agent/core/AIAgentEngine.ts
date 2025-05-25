@@ -13,6 +13,9 @@ import { IntentClassifier } from '../processors/IntentClassifier';
 import { ResponseGenerator } from '../processors/ResponseGenerator';
 import { ContextManager } from '../processors/ContextManager';
 import { ActionExecutor } from '../processors/ActionExecutor';
+import { AIAgentEnvironmentConfig, detectEnvironment } from '../config';
+import { AdapterFactory, StorageAdapter, LoggingAdapter, NetworkAdapter, MetricsAdapter } from '../adapters';
+import { PluginManager, PluginContext } from '../plugins';
 
 export interface AIAgentConfig {
   enableMCP: boolean;
