@@ -90,8 +90,16 @@ export default function AgentPanel({ isOpen, onClose }: AgentPanelProps) {
   const handleSendMessage = async (query: string, serverId?: string) => {
     if (!query.trim()) return;
 
-    // 활동 업데이트
+    // 활동 업데이트 및 시스템 자동 활성화
     updateActivity();
+    
+    // 시스템이 비활성화 상태라면 자동 활성화
+    if (!isSystemActive) {
+      console.log('🚀 AI 에이전트에서 시스템 자동 활성화 중...');
+      const { activateSystem } = usePowerStore.getState();
+      activateSystem();
+      console.log('✅ 시스템 활성화 완료');
+    }
 
     // 사용자 메시지 추가
     const userMessage: Message = {
@@ -106,16 +114,9 @@ export default function AgentPanel({ isOpen, onClose }: AgentPanelProps) {
     setIsLoading(true);
 
     try {
-      let aiResponse: string;
-      
-      if (isSystemActive) {
-        // 스마트 AI 에이전트 응답 생성
-        const smartResponse = smartAIAgent.generateSmartResponse(query);
-        aiResponse = smartResponse.response;
-      } else {
-        // 절전 모드 응답
-        aiResponse = '💤 시스템이 절전 모드입니다. 랜딩 페이지에서 시스템을 활성화해주세요.';
-      }
+      // 시스템 활성화 후 스마트 AI 에이전트 응답 생성
+      const smartResponse = smartAIAgent.generateSmartResponse(query);
+      const aiResponse = smartResponse.response;
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),

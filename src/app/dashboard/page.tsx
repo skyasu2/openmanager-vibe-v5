@@ -34,7 +34,7 @@ export default function DashboardPage() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // 권한 확인 및 절전 모드 체크
+  // 권한 확인 및 시스템 활성화
   useEffect(() => {
     const checkAuth = () => {
       const authToken = localStorage.getItem('dashboard_auth_token');
@@ -74,11 +74,16 @@ export default function DashboardPage() {
         return;
       }
       
-      // 시스템 상태 확인 (경고만 출력, 차단하지 않음)
+      // 인증 성공 시 시스템 자동 활성화
+      console.log('✅ 인증 성공: 대시보드 접근 허용');
+      
+      // 시스템이 비활성화 상태라면 자동 활성화
       if (!isSystemActive) {
-        console.warn('⚠️ 시스템이 비활성화 상태입니다. 대시보드는 계속 접근 가능합니다.');
-      } else {
-        console.log('✅ 인증 성공: 대시보드 접근 허용');
+        console.log('🚀 시스템 자동 활성화 중...');
+        // PowerStore에서 activateSystem 함수 가져오기
+        const { activateSystem } = usePowerStore.getState();
+        activateSystem();
+        console.log('✅ 시스템 활성화 완료');
       }
     };
 
@@ -110,6 +115,20 @@ export default function DashboardPage() {
     setServerStats(stats);
   };
 
+  // 랜딩페이지로 이동 (세션 정리)
+  const handleGoToLanding = () => {
+    // 현재 세션 정보 정리
+    localStorage.removeItem('dashboard_auth_token');
+    localStorage.removeItem('dashboard_access_time');
+    localStorage.removeItem('authorized_from_index');
+    sessionStorage.removeItem('dashboard_authorized');
+    
+    console.log('🏠 랜딩페이지로 이동: 세션 정리 완료');
+    
+    // 랜딩페이지로 이동
+    router.push('/');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 메인 헤더 */}
@@ -117,7 +136,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between px-4 sm:px-6 py-4">
           <div className="flex items-center gap-4">
             <button 
-              onClick={() => router.push('/')}
+              onClick={handleGoToLanding}
               className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
             >
               <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
