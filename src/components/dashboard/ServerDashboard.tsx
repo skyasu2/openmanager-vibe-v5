@@ -192,7 +192,13 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
   const [searchTerm, setSearchTerm] = useState('');
   
   // demoStore에서 실제 서버 데이터 가져오기
-  const { servers } = useDemoStore();
+  const { servers, syncWithCollector } = useDemoStore();
+  
+  // 컴포넌트 마운트 시 데이터 동기화
+  useEffect(() => {
+    syncWithCollector();
+  }, [syncWithCollector]);
+  
   const currentServers = servers.length > 0 ? servers.map(s => ({
     id: s.id,
     name: s.name,

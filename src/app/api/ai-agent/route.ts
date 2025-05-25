@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { aiAgentEngine, AIAgentRequest } from '../../../modules/ai-agent/core/AIAgentEngine';
+import { serverDataCollector } from '../../../services/collectors/ServerDataCollector';
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,16 +23,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 실제 서버 데이터 가져오기 (serverData가 없는 경우)
+    let realServerData = serverData;
+    if (!realServerData) {
+      try {
+        // 데이터 수집기에서 실시간 서버 데이터 가져오기
+        const allServers = serverDataCollector.getAllServers();
+        realServerData = allServers.length > 0 ? allServers : null;
+        
+        console.log(`📊 Using real server data: ${allServers.length} servers`);
+      } catch (error) {
+        console.warn('Failed to get real server data, using provided data:', error);
+        realServerData = serverData;
+      }
+    }
+
     // AI 에이전트 요청 구성
     const agentRequest: AIAgentRequest = {
       query: query.trim(),
       sessionId: sessionId || undefined,
       context: context || {},
-      serverData: serverData || null,
+      serverData: realServerData,
       metadata: {
         userAgent: request.headers.get('user-agent'),
         timestamp: new Date().toISOString(),
-        ip: request.headers.get('x-forwarded-for') || 'unknown'
+        ip: request.headers.get('x-forwarded-for') || 'unknown',
+        dataSource: realServerData ? 'real-time' : 'none'
       }
     };
 

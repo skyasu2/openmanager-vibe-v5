@@ -65,12 +65,23 @@ export default function DemoPage() {
     return () => clearInterval(interval);
   }, [updateSystemStatus]);
 
-  // 실시간 메트릭 시뮬레이션
+  // 실시간 서버 데이터 동기화
   useEffect(() => {
-    const interval = setInterval(() => {
-      // 랜덤하게 서버 메트릭 약간 변경
+    const { syncWithCollector } = useDemoStore.getState();
+    
+    // 초기 동기화
+    syncWithCollector();
+    
+    // 30초마다 실시간 데이터 동기화
+    const syncInterval = setInterval(() => {
+      syncWithCollector();
+    }, 30000);
+
+    // 기존 메트릭 시뮬레이션도 유지 (백업용)
+    const metricsInterval = setInterval(() => {
+      // 랜덤하게 서버 메트릭 약간 변경 (데이터 수집기가 실패한 경우 백업)
       const randomServer = servers[Math.floor(Math.random() * servers.length)];
-      if (randomServer) {
+      if (randomServer && randomServer.id.startsWith('fallback-')) {
         const { updateServerMetrics } = useDemoStore.getState();
         const variation = Math.random() * 10 - 5; // -5 to +5
         updateServerMetrics(randomServer.id, {
@@ -79,7 +90,10 @@ export default function DemoPage() {
       }
     }, 8000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(syncInterval);
+      clearInterval(metricsInterval);
+    };
   }, [servers]);
 
   const handleSendMessage = (content: string) => {

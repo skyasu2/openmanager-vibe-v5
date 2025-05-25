@@ -1,6 +1,7 @@
 import { create } from 'zustand';
+import { serverDataCollector, type ServerInfo } from '../services/collectors/ServerDataCollector';
 
-// 타입 정의
+// 타입 정의 (ServerDataCollector와 호환)
 interface ServerMetrics {
   cpu: number;
   memory: number;
@@ -61,10 +62,39 @@ interface DemoStore {
   nextScenario: () => void;
   resetDemo: () => void;
   updateSystemStatus: () => void;
+  syncWithCollector: () => void;
 }
 
-// 더미 서버 데이터 생성
-const generateServers = (): Server[] => {
+// 실제 서버 데이터 수집기에서 데이터 가져오기
+const getServersFromCollector = (): Server[] => {
+  try {
+    const realServers = serverDataCollector.getAllServers();
+    
+    // ServerInfo를 Server 타입으로 변환
+    return realServers.map((serverInfo: ServerInfo) => ({
+      id: serverInfo.id,
+      name: serverInfo.hostname,
+      status: serverInfo.status === 'online' ? 'healthy' : 
+              serverInfo.status === 'warning' ? 'warning' : 'critical',
+      location: serverInfo.location,
+      type: serverInfo.provider.toUpperCase(),
+      metrics: {
+        cpu: serverInfo.metrics.cpu,
+        memory: serverInfo.metrics.memory,
+        disk: serverInfo.metrics.disk,
+        network: serverInfo.metrics.network.latency
+      },
+      uptime: Math.floor(serverInfo.metrics.uptime / 86400), // 초를 일로 변환
+      lastUpdate: serverInfo.lastUpdate
+    }));
+  } catch (error) {
+    console.warn('Failed to get servers from collector, using fallback data:', error);
+    return generateFallbackServers();
+  }
+};
+
+// 백업용 서버 데이터 생성 (데이터 수집기 실패 시)
+const generateFallbackServers = (): Server[] => {
   const serverTypes = ['API', 'Database', 'Web', 'Cache'];
   const locations = ['US-East', 'US-West', 'EU-Central', 'AP-Tokyo', 'AP-Seoul'];
   const servers: Server[] = [];
@@ -89,7 +119,7 @@ const generateServers = (): Server[] => {
     }
 
     servers.push({
-      id: `server-${serverNum}`,
+      id: `fallback-server-${serverNum}`,
       name: `${type.toLowerCase()}-${location.toLowerCase().replace('-', '')}-${serverNum}`,
       status,
       location,
@@ -110,7 +140,7 @@ const generateServers = (): Server[] => {
 
 export const useDemoStore = create<DemoStore>((set, get) => ({
   // Initial state
-  servers: generateServers(),
+  servers: getServersFromCollector(),
   chatMessages: [
     {
       id: 'welcome-1',
@@ -203,5 +233,21 @@ export const useDemoStore = create<DemoStore>((set, get) => ({
         lastUpdate: new Date()
       }
     });
+  },
+
+  // 실시간 서버 데이터 동기화
+  syncWithCollector: () => {
+    try {
+      const updatedServers = getServersFromCollector();
+      set({ servers: updatedServers });
+      
+      // 시스템 상태도 업데이트
+      const { updateSystemStatus } = get();
+      updateSystemStatus();
+      
+      console.log(`🔄 Synced ${updatedServers.length} servers from collector`);
+    } catch (error) {
+      console.error('Failed to sync with collector:', error);
+    }
   }
 })); 
