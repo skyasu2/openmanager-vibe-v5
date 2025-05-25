@@ -42,16 +42,9 @@ export default function DashboardPage() {
       const authTime = localStorage.getItem('dashboard_access_time');
       const fromIndex = localStorage.getItem('authorized_from_index');
       
-      // 시스템이 비활성화된 경우 랜딩페이지로 리다이렉션
-      if (!isSystemActive) {
-        localStorage.clear();
-        sessionStorage.clear();
-        router.replace('/');
-        return;
-      }
-      
       // 랜딩페이지를 거치지 않고 직접 접근한 경우
       if (!fromIndex || fromIndex !== 'true') {
+        console.log('❌ 직접 접근 차단: 랜딩페이지를 거치지 않음');
         localStorage.clear();
         sessionStorage.clear();
         router.replace('/');
@@ -60,6 +53,7 @@ export default function DashboardPage() {
       
       // 기본 인증 확인
       if (!authToken || !sessionAuth || !authTime) {
+        console.log('❌ 인증 정보 없음:', { authToken: !!authToken, sessionAuth: !!sessionAuth, authTime: !!authTime });
         localStorage.clear();
         sessionStorage.clear();
         router.replace('/');
@@ -72,18 +66,32 @@ export default function DashboardPage() {
       const oneHour = 60 * 60 * 1000; // 1시간
       
       if (currentTime - accessTime > oneHour) {
+        console.log('❌ 세션 만료:', { accessTime, currentTime, elapsed: currentTime - accessTime });
         localStorage.clear();
         sessionStorage.clear();
         alert('1시간 체험 세션이 만료되었습니다. 랜딩페이지로 이동합니다.');
         router.replace('/');
         return;
       }
+      
+      // 시스템 상태 확인 (경고만 출력, 차단하지 않음)
+      if (!isSystemActive) {
+        console.warn('⚠️ 시스템이 비활성화 상태입니다. 대시보드는 계속 접근 가능합니다.');
+      } else {
+        console.log('✅ 인증 성공: 대시보드 접근 허용');
+      }
     };
 
-    checkAuth();
+    // 초기 인증 확인 (약간의 지연을 두어 시스템 상태 로딩 대기)
+    const timer = setTimeout(checkAuth, 100);
+    
     // 1분마다 세션 만료 확인
     const interval = setInterval(checkAuth, 60000);
-    return () => clearInterval(interval);
+    
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, [router, isSystemActive]);
 
   const closeAgent = () => {

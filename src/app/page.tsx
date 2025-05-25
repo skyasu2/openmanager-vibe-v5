@@ -125,10 +125,25 @@ export default function HomePage() {
 
   // 시스템 활성화 (20분 타이머 + 데이터 생성기 자동 시작 + AI 에이전트 활성화)
   const handleActivateSystem = async () => {
+    console.log('🚀 시스템 활성화 시작...');
+    
     // 1. 시스템 활성화
     startSystem(20 * 60); // 20분 = 1200초
     
-    // 2. AI 에이전트 활성화
+    // 2. 대시보드 접근 권한 미리 부여
+    const timestamp = Date.now();
+    const authToken = btoa(`dashboard_access_${timestamp}`);
+    
+    localStorage.setItem('dashboard_auth_token', authToken);
+    localStorage.setItem('dashboard_access_time', timestamp.toString());
+    localStorage.setItem('authorized_from_index', 'true');
+    
+    sessionStorage.setItem('dashboard_authorized', 'true');
+    sessionStorage.setItem('auth_timestamp', timestamp.toString());
+    
+    console.log('✅ 대시보드 인증 정보 설정 완료');
+    
+    // 3. AI 에이전트 활성화
     try {
       const aiResponse = await fetch('/api/ai-agent/power', {
         method: 'POST',
@@ -143,7 +158,7 @@ export default function HomePage() {
       console.error('AI 에이전트 활성화 실패:', error);
     }
     
-    // 3. 데이터 생성기 자동 시작 (기본 패턴: 정상 운영)
+    // 4. 데이터 생성기 자동 시작 (기본 패턴: 정상 운영)
     try {
       const response = await fetch('/api/data-generator', {
         method: 'POST',
@@ -163,34 +178,47 @@ export default function HomePage() {
           currentPattern: 'normal'
         }));
         
-        // 4. 자동 패턴 변경 시작 (2-3분마다 랜덤 변경)
+        // 5. 자동 패턴 변경 시작 (2-3분마다 랜덤 변경)
         startAutoPatternChange();
       }
     } catch (error) {
       console.error('데이터 생성기 시작 실패:', error);
     }
     
-    // 5. AI 에이전트 자동 리포트 생성
+    // 6. AI 에이전트 자동 리포트 생성
     setTimeout(() => {
       smartAIAgent.generateAutoReport();
     }, 1000);
     
-    // 6. 대시보드 접근 권한 부여
+    console.log('🎉 시스템 활성화 완료!');
+  };
+
+  // 대시보드로 이동
+  const handleGoToDashboard = () => {
     const timestamp = Date.now();
-    const authToken = btoa(`dashboard_access_${timestamp}`);
     
+    // 인증 정보 설정
+    const authToken = btoa(`dashboard_access_${timestamp}`);
     localStorage.setItem('dashboard_auth_token', authToken);
     localStorage.setItem('dashboard_access_time', timestamp.toString());
     localStorage.setItem('authorized_from_index', 'true');
     
     sessionStorage.setItem('dashboard_authorized', 'true');
     sessionStorage.setItem('auth_timestamp', timestamp.toString());
-  };
-
-  // 대시보드로 이동
-  const handleGoToDashboard = () => {
-    const timestamp = Date.now();
-    router.push(`/dashboard?auth=authorized&t=${timestamp}`);
+    
+    // 디버깅 로그
+    console.log('🚀 대시보드 이동 준비:', {
+      authToken,
+      timestamp,
+      isSystemActive,
+      authTime: localStorage.getItem('dashboard_access_time'),
+      fromIndex: localStorage.getItem('authorized_from_index')
+    });
+    
+    // 약간의 지연 후 이동 (인증 정보 저장 완료 대기)
+    setTimeout(() => {
+      router.push('/dashboard');
+    }, 100);
   };
 
   // 시스템 비활성화 (데이터 생성기 + AI 에이전트도 함께 중지)
