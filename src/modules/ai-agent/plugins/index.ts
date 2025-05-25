@@ -14,7 +14,7 @@ export interface PluginContext {
   storage: any;
   metrics: any;
   emit: (event: string, data?: any) => void;
-  on: (event: string, handler: Function) => void;
+  on: (event: string, handler: (...args: any[]) => void) => void;
 }
 
 export interface PluginManifest {
@@ -39,7 +39,7 @@ export interface Plugin {
 
 export class PluginManager {
   private plugins: Map<string, Plugin> = new Map();
-  private hooks: Map<string, Function[]> = new Map();
+  private hooks: Map<string, ((...args: any[]) => any)[]> = new Map();
   private context: PluginContext;
   private isInitialized = false;
 
