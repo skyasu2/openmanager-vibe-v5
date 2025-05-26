@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import ServerDashboard from '../../components/dashboard/ServerDashboard';
 import AgentModal from '../../components/ai/AgentModal';
 import ProfileDropdown from '../../components/ui/ProfileDropdown';
+import { useSystemControl } from '../../hooks/useSystemControl';
 
 export default function DashboardPage() {
   const [isAgentOpen, setIsAgentOpen] = useState(false);
@@ -13,6 +14,13 @@ export default function DashboardPage() {
     warning: 0,
     offline: 0
   });
+  
+  // 시스템 제어 훅
+  const {
+    isSystemActive,
+    formattedTime,
+    stopFullSystem
+  } = useSystemControl();
 
   // 자동 인증 설정 (접근성 개선)
   useEffect(() => {
@@ -63,6 +71,50 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-4">
+            {/* 시스템 상태 표시 */}
+            {isSystemActive && (
+              <div className="hidden lg:flex items-center gap-3 px-3 py-1 bg-green-50 rounded-lg border border-green-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium text-green-700">시스템 실행 중</span>
+                </div>
+                <div className="text-xs text-green-600">{formattedTime}</div>
+                <button
+                  onClick={async () => {
+                    if (confirm('시스템을 중지하시겠습니까?\n\n• 모든 서버 모니터링이 중단됩니다\n• AI 에이전트가 비활성화됩니다')) {
+                      const result = await stopFullSystem();
+                      alert(result.message);
+                      if (result.success) {
+                        // 랜딩페이지로 이동
+                        window.location.href = '/';
+                      }
+                    }
+                  }}
+                  className="text-xs text-red-600 hover:text-red-800 hover:bg-red-100 px-2 py-1 rounded transition-colors"
+                  title="시스템 중지"
+                >
+                  중지
+                </button>
+              </div>
+            )}
+            
+            {/* 시스템 중지 상태 표시 */}
+            {!isSystemActive && (
+              <div className="hidden lg:flex items-center gap-3 px-3 py-1 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  <span className="text-sm font-medium text-gray-600">시스템 중지됨</span>
+                </div>
+                <button
+                  onClick={() => window.location.href = '/'}
+                  className="text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-100 px-2 py-1 rounded transition-colors"
+                  title="랜딩페이지에서 시스템 시작"
+                >
+                  시작하기
+                </button>
+              </div>
+            )}
+            
             {/* 빠른 통계 - 실시간 데이터 */}
             <div className="hidden md:flex items-center gap-6">
               <div className="text-center">
