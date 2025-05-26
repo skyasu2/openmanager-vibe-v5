@@ -81,7 +81,12 @@ export default function ServerDashboardPage() {
             </button>
             
             <button 
-              onClick={() => router.push('/')}
+              onClick={() => {
+                // 세션 정리 후 랜딩페이지 이동
+                localStorage.clear();
+                sessionStorage.clear();
+                router.push('/');
+              }}
               className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
             >
               <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">

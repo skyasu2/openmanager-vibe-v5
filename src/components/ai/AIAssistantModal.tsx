@@ -647,6 +647,8 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
       sessionStorage.setItem('admin_access_source', 'ai_assistant_modal');
       
       console.log('✅ 관리자 세션 설정 완료');
+      console.log('📍 현재 경로:', window.location.pathname);
+      console.log('🎯 이동할 경로:', path);
       
       // 드롭다운 닫기
       setShowAdminDropdown(false);
@@ -654,11 +656,18 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
       // 모달 닫기
       onClose();
       
-      // 관리자 페이지로 이동
+      // 관리자 페이지로 이동 (더 확실한 방법 사용)
       setTimeout(() => {
-        console.log('🚀 관리자 페이지로 이동:', path);
-        router.push(path);
-      }, 200);
+        console.log('🚀 관리자 페이지로 이동 시도:', path);
+        
+        try {
+          router.push(path);
+          console.log('✅ router.push 성공');
+        } catch (routerError) {
+          console.error('Router.push 실패, window.location.href 사용:', routerError);
+          window.location.href = path;
+        }
+      }, 300);
       
     } catch (error) {
       console.error('❌ 관리자 접근 중 에러:', error);
@@ -666,8 +675,9 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
       setShowAdminDropdown(false);
       onClose();
       setTimeout(() => {
+        console.log('🔄 fallback으로 window.location.href 사용:', path);
         window.location.href = path;
-      }, 200);
+      }, 300);
     }
   };
 
