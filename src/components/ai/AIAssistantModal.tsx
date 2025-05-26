@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useAssistantSession } from '../../hooks/useAssistantSession';
-import { smartAIAgent } from '../../services/aiAgent';
 import ResultCard, { ResultCardData } from './ResultCard';
 import PatternSelector, { PatternOption } from './PatternSelector';
 
@@ -20,11 +19,43 @@ interface QuickAction {
   category: 'urgent' | 'warning' | 'normal' | 'recommendation';
 }
 
+// 마우스 제스처 인터페이스
+interface MouseGesture {
+  startX: number;
+  startY: number;
+  currentX: number;
+  currentY: number;
+  isTracking: boolean;
+  direction: 'left' | 'right' | 'up' | 'down' | null;
+  distance: number;
+}
+
 export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalProps) {
   const [activeTab, setActiveTab] = useState<'analysis' | 'patterns' | 'history'>('analysis');
   const [resultCards, setResultCards] = useState<ResultCardData[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // 마우스 제스처 상태
+  const [mouseGesture, setMouseGesture] = useState<MouseGesture>({
+    startX: 0,
+    startY: 0,
+    currentX: 0,
+    currentY: 0,
+    isTracking: false,
+    direction: null,
+    distance: 0
+  });
+  const [gestureIndicator, setGestureIndicator] = useState<{
+    show: boolean;
+    direction: string;
+    intensity: number;
+  }>({
+    show: false,
+    direction: '',
+    intensity: 0
+  });
+
   const [patterns, setPatterns] = useState<PatternOption[]>([
     {
       id: 'normal',
@@ -53,7 +84,13 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
   ]);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
   const { autoActivate, getSessionInfo, isSystemActive } = useAssistantSession();
+
+  // 서버 데이터 상태
+  const [serverData, setServerData] = useState<any>(null);
+  const [isServerDataLoaded, setIsServerDataLoaded] = useState(false);
+  const [aiEngineStatus, setAiEngineStatus] = useState<'initializing' | 'ready' | 'error'>('initializing');
 
   // 빠른 액션 버튼들
   const quickActions: QuickAction[] = [
@@ -107,12 +144,189 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
     }
   ];
 
+  // 마우스 제스처 이벤트 핸들러들
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setMouseGesture({
+      startX: e.clientX,
+      startY: e.clientY,
+      currentX: e.clientX,
+      currentY: e.clientY,
+      isTracking: true,
+      direction: null,
+      distance: 0
+    });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!mouseGesture.isTracking) return;
+
+    const deltaX = e.clientX - mouseGesture.startX;
+    const deltaY = e.clientY - mouseGesture.startY;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    
+    let direction: 'left' | 'right' | 'up' | 'down' | null = null;
+    
+    // 최소 거리 임계값 (30px)
+    if (distance > 30) {
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        direction = deltaX > 0 ? 'right' : 'left';
+      } else {
+        direction = deltaY > 0 ? 'down' : 'up';
+      }
+    }
+
+    setMouseGesture(prev => ({
+      ...prev,
+      currentX: e.clientX,
+      currentY: e.clientY,
+      direction,
+      distance
+    }));
+
+    // 제스처 인디케이터 업데이트
+    if (direction && distance > 30) {
+      const intensity = Math.min(distance / 100, 1); // 최대 100px에서 100% 강도
+      setGestureIndicator({
+        show: true,
+        direction: getGestureDirectionText(direction),
+        intensity
+      });
+
+      // 모달에 시각적 피드백 적용
+      if (modalRef.current) {
+        const transform = getModalTransform(direction, intensity);
+        modalRef.current.style.transform = transform;
+        modalRef.current.style.transition = 'transform 0.1s ease-out';
+      }
+    } else {
+      setGestureIndicator(prev => ({ ...prev, show: false }));
+      if (modalRef.current) {
+        modalRef.current.style.transform = 'translate(-50%, -50%) scale(1)';
+      }
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (!mouseGesture.isTracking) return;
+
+    const { direction, distance } = mouseGesture;
+    
+    // 제스처 완료 처리 (거리가 80px 이상일 때)
+    if (direction && distance > 80) {
+      handleGestureComplete(direction);
+    }
+
+    // 상태 초기화
+    setMouseGesture(prev => ({ ...prev, isTracking: false }));
+    setGestureIndicator({ show: false, direction: '', intensity: 0 });
+    
+    // 모달 위치 복원
+    if (modalRef.current) {
+      modalRef.current.style.transform = 'translate(-50%, -50%) scale(1)';
+      modalRef.current.style.transition = 'transform 0.3s ease-out';
+    }
+  };
+
+  // 제스처 방향 텍스트 변환
+  const getGestureDirectionText = (direction: 'left' | 'right' | 'up' | 'down'): string => {
+    const directionMap = {
+      left: '← 이전 탭',
+      right: '다음 탭 →',
+      up: '↑ 새로고침',
+      down: '↓ 닫기'
+    };
+    return directionMap[direction];
+  };
+
+  // 모달 변형 효과 계산
+  const getModalTransform = (direction: 'left' | 'right' | 'up' | 'down', intensity: number): string => {
+    const baseTransform = 'translate(-50%, -50%)';
+    const maxOffset = 20; // 최대 이동 거리
+    const maxScale = 0.05; // 최대 스케일 변화
+    
+    switch (direction) {
+      case 'left':
+        return `${baseTransform} translateX(-${intensity * maxOffset}px) scale(${1 - intensity * maxScale})`;
+      case 'right':
+        return `${baseTransform} translateX(${intensity * maxOffset}px) scale(${1 - intensity * maxScale})`;
+      case 'up':
+        return `${baseTransform} translateY(-${intensity * maxOffset}px) scale(${1 + intensity * maxScale})`;
+      case 'down':
+        return `${baseTransform} translateY(${intensity * maxOffset}px) scale(${1 - intensity * maxScale})`;
+      default:
+        return baseTransform;
+    }
+  };
+
+  // 제스처 완료 처리
+  const handleGestureComplete = (direction: 'left' | 'right' | 'up' | 'down') => {
+    switch (direction) {
+      case 'left':
+        // 이전 탭으로 이동
+        if (activeTab === 'patterns') setActiveTab('analysis');
+        else if (activeTab === 'history') setActiveTab('patterns');
+        break;
+      case 'right':
+        // 다음 탭으로 이동
+        if (activeTab === 'analysis') setActiveTab('patterns');
+        else if (activeTab === 'patterns') setActiveTab('history');
+        break;
+      case 'up':
+        // 새로고침 (기본 카드 재생성)
+        generateDefaultCards();
+        break;
+      case 'down':
+        // 모달 닫기
+        onClose();
+        break;
+    }
+  };
+
+  // 서버 데이터 로드
+  const loadServerData = async () => {
+    try {
+      const response = await fetch('/api/dashboard');
+      if (response.ok) {
+        const data = await response.json();
+        setServerData(data);
+        setIsServerDataLoaded(true);
+      }
+    } catch (error) {
+      console.warn('서버 데이터 로드 실패:', error);
+      setIsServerDataLoaded(false);
+    }
+  };
+
+  // AI 엔진 상태 확인
+  const checkAIEngineStatus = async () => {
+    try {
+      const response = await fetch('/api/ai-agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'status' })
+      });
+      
+      if (response.ok) {
+        setAiEngineStatus('ready');
+      } else {
+        setAiEngineStatus('error');
+      }
+    } catch (error) {
+      console.warn('AI 엔진 상태 확인 실패:', error);
+      setAiEngineStatus('error');
+    }
+  };
+
   // 모달 열림 시 포커스 및 기본 카드 생성
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => {
         inputRef.current?.focus();
       }, 300);
+      
+      // 서버 데이터 로드 및 AI 엔진 상태 확인
+      loadServerData();
+      checkAIEngineStatus();
       
       // 기본 카드 3개 생성
       if (resultCards.length === 0) {
@@ -192,16 +406,39 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
     setIsProcessing(true);
 
     try {
-      // AI 분석 실행
+      // Enhanced AI Agent API 호출
       const query = `${action.title}: ${action.description}에 대한 상세 분석을 수행해주세요.`;
-      const response = smartAIAgent.generateSmartResponse(query);
       
+      const response = await fetch('/api/ai-agent/smart-query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query,
+          sessionId: `modal_${Date.now()}`,
+          userId: 'user',
+          forceMode: action.category === 'urgent' ? 'advanced' : undefined,
+          serverData: serverData
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API 호출 실패: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'AI 분석 실패');
+      }
+
       // 새 결과 카드 생성
       const newCard: ResultCardData = {
         id: `action-${actionId}-${Date.now()}`,
         title: action.title,
         category: action.category,
-        content: response.response,
+        content: result.data?.response || '분석이 완료되었습니다.',
         timestamp: new Date(),
         metrics: generateMockMetrics(actionId),
         actions: [
@@ -235,6 +472,24 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
 
     } catch (error) {
       console.error('빠른 액션 실행 실패:', error);
+      
+      // 에러 카드 생성
+      const errorCard: ResultCardData = {
+        id: `error-${actionId}-${Date.now()}`,
+        title: `${action.title} - 오류`,
+        category: 'urgent',
+        content: `분석 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+        timestamp: new Date(),
+        actions: [
+          {
+            label: '다시 시도',
+            action: () => executeQuickAction(actionId),
+            variant: 'primary'
+          }
+        ]
+      };
+      
+      setResultCards(prev => [errorCard, ...prev].slice(0, 6));
     } finally {
       setIsProcessing(false);
     }
@@ -249,19 +504,50 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
     setInputValue('');
 
     try {
-      const response = smartAIAgent.generateSmartResponse(query);
+      // Enhanced AI Agent API 호출
+      const response = await fetch('/api/ai-agent/smart-query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query,
+          sessionId: `modal_input_${Date.now()}`,
+          userId: 'user',
+          serverData: serverData
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API 호출 실패: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'AI 분석 실패');
+      }
       
       const newCard: ResultCardData = {
         id: `input-${Date.now()}`,
         title: '사용자 질의 분석',
         category: 'normal',
-        content: response.response,
+        content: result.data?.response || '분석이 완료되었습니다.',
         timestamp: new Date(),
         actions: [
           {
             label: '관련 분석',
             action: () => executeQuickAction('server-status'),
             variant: 'secondary'
+          },
+          {
+            label: '추가 질문',
+            action: () => {
+              if (inputRef.current) {
+                inputRef.current.focus();
+              }
+            },
+            variant: 'primary'
           }
         ],
         expandable: true
@@ -271,6 +557,24 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
 
     } catch (error) {
       console.error('분석 실행 실패:', error);
+      
+      // 에러 카드 생성
+      const errorCard: ResultCardData = {
+        id: `input-error-${Date.now()}`,
+        title: '질의 분석 - 오류',
+        category: 'urgent',
+        content: `분석 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+        timestamp: new Date(),
+        actions: [
+          {
+            label: '다시 시도',
+            action: () => handleAnalysisInput(query),
+            variant: 'primary'
+          }
+        ]
+      };
+      
+      setResultCards(prev => [errorCard, ...prev].slice(0, 6));
     } finally {
       setIsProcessing(false);
     }
@@ -358,7 +662,40 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
 
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center backdrop-blur-md">
-      <div className="bg-white rounded-3xl shadow-2xl w-[95%] max-w-7xl h-[90vh] flex flex-col overflow-hidden">
+      {/* 제스처 인디케이터 */}
+      {gestureIndicator.show && (
+        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-60 pointer-events-none">
+          <div 
+            className="bg-black/80 text-white px-6 py-3 rounded-2xl backdrop-blur-md border border-white/20 shadow-2xl"
+            style={{
+              opacity: gestureIndicator.intensity,
+              transform: `scale(${0.8 + gestureIndicator.intensity * 0.4})`
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                <i className="fas fa-hand-pointer text-sm"></i>
+              </div>
+              <span className="font-medium text-lg">{gestureIndicator.direction}</span>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <div 
+        ref={modalRef}
+        className="bg-white rounded-3xl shadow-2xl w-[95%] max-w-7xl h-[90vh] flex flex-col overflow-hidden cursor-grab active:cursor-grabbing select-none"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        style={{
+          transform: 'translate(-50%, -50%) scale(1)',
+          position: 'absolute',
+          top: '50%',
+          left: '50%'
+        }}
+      >
         
         {/* 모달 헤더 */}
         <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white p-6 relative overflow-hidden">
@@ -384,6 +721,24 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
                   </div>
                   <div className="text-sm opacity-80">
                     세션: {sessionInfo.duration}
+                  </div>
+                  <div className="text-xs opacity-70 bg-white/10 px-2 py-1 rounded-lg">
+                    <i className="fas fa-hand-pointer mr-1"></i>
+                    마우스 제스처 지원
+                  </div>
+                  <div className={`text-xs px-2 py-1 rounded-lg flex items-center gap-1 ${
+                    aiEngineStatus === 'ready' ? 'bg-green-500/20 text-green-100' :
+                    aiEngineStatus === 'error' ? 'bg-red-500/20 text-red-100' :
+                    'bg-yellow-500/20 text-yellow-100'
+                  }`}>
+                    <div className={`w-1.5 h-1.5 rounded-full ${
+                      aiEngineStatus === 'ready' ? 'bg-green-400' :
+                      aiEngineStatus === 'error' ? 'bg-red-400' :
+                      'bg-yellow-400'
+                    } ${aiEngineStatus === 'initializing' ? 'animate-pulse' : ''}`}></div>
+                    {aiEngineStatus === 'ready' ? 'AI 준비완료' :
+                     aiEngineStatus === 'error' ? 'AI 연결오류' :
+                     'AI 초기화중'}
                   </div>
                 </div>
               </div>

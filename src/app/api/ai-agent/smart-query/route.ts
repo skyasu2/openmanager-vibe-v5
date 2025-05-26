@@ -8,10 +8,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { enhancedAIAgentEngine } from '../../../../modules/ai-agent/core/EnhancedAIAgentEngine';
 
 export async function POST(request: NextRequest) {
   try {
-    const { query, sessionId, userId } = await request.json();
+    const { query, sessionId, userId, forceMode, serverData } = await request.json();
 
     if (!query || typeof query !== 'string') {
       return NextResponse.json({
@@ -32,66 +33,63 @@ export async function POST(request: NextRequest) {
       console.warn('Failed to record AI agent activity:', error);
     }
 
-    // 스마트 쿼리 처리 로직
-    const response = await processSmartQuery(query, sessionId, userId);
+    // Enhanced AI Agent Engine을 통한 스마트 쿼리 처리
+    const response = await enhancedAIAgentEngine.processSmartQuery({
+      query,
+      sessionId: sessionId || `smart_query_${Date.now()}`,
+      userId: userId || 'anonymous',
+      forceMode,
+      serverData,
+      context: {
+        source: 'modal',
+        timestamp: new Date().toISOString()
+      }
+    });
 
     return NextResponse.json({
       success: true,
-      data: response
+      data: {
+        response: response.response,
+        mode: response.mode,
+        confidence: response.analysis.confidence,
+        intent: response.intent.name,
+        suggestions: response.actions,
+        metadata: {
+          processingTime: response.metadata.processingTime,
+          sessionId: response.metadata.sessionId,
+          userId: userId || 'anonymous',
+          engineVersion: response.metadata.engineVersion,
+          detectedMode: response.analysis.detectedMode,
+          reasoning: response.analysis.reasoning
+        }
+      }
     });
 
   } catch (error) {
     console.error('Smart Query API Error:', error);
+    
+    // 에러 타입에 따른 상세 응답
+    let errorMessage = 'Internal server error';
+    let statusCode = 500;
+    
+    if (error instanceof Error) {
+      if (error.message.includes('timeout')) {
+        errorMessage = 'AI 분석 시간이 초과되었습니다. 다시 시도해주세요.';
+        statusCode = 408;
+      } else if (error.message.includes('initialization')) {
+        errorMessage = 'AI 엔진 초기화 중입니다. 잠시 후 다시 시도해주세요.';
+        statusCode = 503;
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    
     return NextResponse.json({
       success: false,
-      error: 'Internal server error'
-    }, { status: 500 });
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.stack : String(error) : undefined
+    }, { status: statusCode });
   }
-}
-
-async function processSmartQuery(query: string, sessionId?: string, userId?: string) {
-  // 기본 응답 구조
-  const response = {
-    query,
-    response: '스마트 쿼리 처리 결과입니다.',
-    confidence: 0.85,
-    intent: 'general_query',
-    suggestions: ['관련 질문 1', '관련 질문 2', '관련 질문 3'],
-    metadata: {
-      processingTime: Date.now(),
-      sessionId: sessionId || 'anonymous',
-      userId: userId || 'guest'
-    }
-  };
-
-  // 쿼리 분석 및 응답 생성
-  if (query.includes('서버') || query.includes('상태')) {
-    response.response = '서버 상태를 확인했습니다. 현재 모든 서버가 정상 작동 중입니다.';
-    response.intent = 'server_status';
-    response.suggestions = [
-      'CPU 사용률이 높은 서버는?',
-      '메모리 부족 서버 확인',
-      '네트워크 상태 점검'
-    ];
-  } else if (query.includes('CPU') || query.includes('성능')) {
-    response.response = 'CPU 사용률을 분석했습니다. 평균 사용률은 45%입니다.';
-    response.intent = 'performance_analysis';
-    response.suggestions = [
-      '메모리 사용률 확인',
-      '디스크 I/O 분석',
-      '네트워크 트래픽 점검'
-    ];
-  } else if (query.includes('에러') || query.includes('오류')) {
-    response.response = '최근 에러 로그를 분석했습니다. 3건의 경미한 오류가 발견되었습니다.';
-    response.intent = 'error_analysis';
-    response.suggestions = [
-      '에러 상세 분석',
-      '해결 방안 제시',
-      '예방 조치 수립'
-    ];
-  }
-
-  return response;
 }
 
 export async function GET() {
