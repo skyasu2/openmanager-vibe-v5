@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import FeedbackButtons from '@/components/ai/FeedbackButtons';
+import { InteractionLogger } from '@/services/ai-agent/logging/InteractionLogger';
 
 interface AnswerDisplayProps {
   question: string;
@@ -14,6 +16,33 @@ export default function AnswerDisplay({
   isLoading
 }: AnswerDisplayProps) {
   const contentRef = useRef<HTMLDivElement>(null);
+  const [interactionId, setInteractionId] = useState<string | null>(null);
+
+  // 답변이 완료되면 상호작용 로깅
+  useEffect(() => {
+    if (answer && !isLoading && question) {
+      const logInteraction = async () => {
+        const logger = InteractionLogger.getInstance();
+        const id = await logger.logInteraction({
+          query: question,
+          intent: 'general_query', // TODO: 실제 의도 분류 결과로 대체
+          confidence: 0.85, // TODO: 실제 신뢰도 점수로 대체
+          response: answer,
+          contextData: {
+            serverState: {}, // TODO: 실제 서버 상태 데이터
+            activeMetrics: [],
+            timeOfDay: new Date().toLocaleTimeString(),
+            userRole: 'user',
+            sessionId: 'session_' + Date.now()
+          },
+          responseTime: 1500 // TODO: 실제 응답 시간 측정
+        });
+        setInteractionId(id);
+      };
+
+      logInteraction();
+    }
+  }, [answer, isLoading, question]);
 
   // 마크다운 서식 변환 (간단한 구현)
   const formatContent = (content: string) => {
@@ -88,8 +117,20 @@ export default function AnswerDisplay({
                   dangerouslySetInnerHTML={{ __html: formatContent(answer) }}
                 />
                 
+                {/* 피드백 버튼 */}
+                {interactionId && (
+                  <div className="mt-6 pt-4 border-t border-gray-100">
+                    <FeedbackButtons 
+                      responseId={interactionId}
+                      onFeedback={(feedback) => {
+                        console.log('피드백 수신:', feedback);
+                      }}
+                    />
+                  </div>
+                )}
+
                 {/* 답변 하단 작업 버튼 */}
-                <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
                   <div className="text-xs text-gray-500">
                     {new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
                   </div>
@@ -99,22 +140,18 @@ export default function AnswerDisplay({
                     <ActionButton 
                       icon="fas fa-copy" 
                       title="복사" 
-                      onClick={() => navigator.clipboard.writeText(answer)}
-                    />
-                    <ActionButton 
-                      icon="fas fa-thumbs-up" 
-                      title="도움이 됨" 
-                      onClick={() => {}}
-                    />
-                    <ActionButton 
-                      icon="fas fa-thumbs-down" 
-                      title="도움이 안 됨" 
-                      onClick={() => {}}
+                      onClick={() => {
+                        navigator.clipboard.writeText(answer);
+                        console.log('답변이 클립보드에 복사되었습니다.');
+                      }}
                     />
                     <ActionButton 
                       icon="fas fa-redo-alt" 
                       title="다시 생성" 
-                      onClick={() => {}}
+                      onClick={() => {
+                        // TODO: 질문 재전송 로직
+                        console.log('답변 재생성 요청');
+                      }}
                     />
                   </div>
                 </div>

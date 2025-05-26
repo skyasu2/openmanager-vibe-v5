@@ -7,6 +7,7 @@ import RightPanel from './components/RightPanel';
 import MobileBottomSheet from './components/MobileBottomSheet';
 import { useModalState } from './hooks/useModalState';
 import { FunctionType, HistoryItem } from './types';
+import { InteractionLogger } from '@/services/ai-agent/logging/InteractionLogger';
 
 interface AIAgentModalProps {
   isOpen: boolean;
@@ -16,6 +17,14 @@ interface AIAgentModalProps {
 export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
   const [isMobile, setIsMobile] = useState(false);
   const { state, dispatch, addToHistory, setBottomSheetState } = useModalState();
+
+  // InteractionLogger 초기화 (브라우저 환경에서만)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && isOpen) {
+      const logger = InteractionLogger.getInstance();
+      logger.loadFromLocalStorage();
+    }
+  }, [isOpen]);
 
   // 화면 크기에 따른 모바일 상태 감지
   useEffect(() => {
