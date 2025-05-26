@@ -721,7 +721,7 @@ export class EnhancedAIAgentEngine {
         description: '디스크 공간이 부족하여 쓰기 작업 실패',
         conditions: [
           () => systemMetrics.disk.status === 'critical',
-          () => logPatterns.errors.some(e => e.includes('No space left on device'))
+          () => logPatterns.errors.some((e: string) => e.includes('No space left on device'))
         ]
       },
       {
@@ -730,7 +730,7 @@ export class EnhancedAIAgentEngine {
         description: '데이터베이스 서버 연결 실패 또는 지연',
         conditions: [
           () => logPatterns.connectionRefused > 0,
-          () => logPatterns.errors.some(e => e.includes('database') || e.includes('DB') || e.includes('SQL'))
+          () => logPatterns.errors.some((e: string) => e.includes('database') || e.includes('DB') || e.includes('SQL'))
         ]
       },
       {
@@ -739,7 +739,7 @@ export class EnhancedAIAgentEngine {
         description: '외부 API 호출 시 응답 시간 초과',
         conditions: [
           () => logPatterns.timeoutPatterns > 0,
-          () => logPatterns.errors.some(e => e.includes('API') || e.includes('request'))
+          () => logPatterns.errors.some((e: string) => e.includes('API') || e.includes('request'))
         ]
       },
       {
@@ -748,7 +748,7 @@ export class EnhancedAIAgentEngine {
         description: '인증 서비스 장애 또는 권한 문제',
         conditions: [
           () => logPatterns.permissionDenied > 0,
-          () => logPatterns.errors.some(e => e.includes('authentication') || e.includes('permission') || e.includes('unauthorized'))
+          () => logPatterns.errors.some((e: string) => e.includes('authentication') || e.includes('permission') || e.includes('unauthorized'))
         ]
       },
       {
@@ -825,27 +825,27 @@ export class EnhancedAIAgentEngine {
     switch (issue.id) {
       case 'MEM_LEAK':
         evidence.push(`메모리 사용률: ${systemMetrics.memory.value}% (임계값: ${systemMetrics.memory.threshold}%)`);
-        evidence.push(...logPatterns.errors.filter(e => e.includes('OutOfMemory') || e.includes('memory')).slice(0, 2));
+        evidence.push(...logPatterns.errors.filter((e: string) => e.includes('OutOfMemory') || e.includes('memory')).slice(0, 2));
         break;
         
       case 'DISK_FULL':
         evidence.push(`디스크 사용률: ${systemMetrics.disk.value}% (임계값: ${systemMetrics.disk.threshold}%)`);
-        evidence.push(...logPatterns.errors.filter(e => e.includes('space') || e.includes('disk')).slice(0, 2));
+        evidence.push(...logPatterns.errors.filter((e: string) => e.includes('space') || e.includes('disk')).slice(0, 2));
         break;
         
       case 'DB_CONN':
-        evidence.push(`데이터베이스 관련 오류: ${logPatterns.errors.filter(e => e.includes('database') || e.includes('DB')).length}건`);
-        evidence.push(...logPatterns.errors.filter(e => e.includes('database') || e.includes('DB')).slice(0, 2));
+        evidence.push(`데이터베이스 관련 오류: ${logPatterns.errors.filter((e: string) => e.includes('database') || e.includes('DB')).length}건`);
+        evidence.push(...logPatterns.errors.filter((e: string) => e.includes('database') || e.includes('DB')).slice(0, 2));
         break;
         
       case 'API_TIMEOUT':
         evidence.push(`타임아웃 패턴 발생 횟수: ${logPatterns.timeoutPatterns}건`);
-        evidence.push(...logPatterns.errors.filter(e => e.includes('timeout') || e.includes('Timeout')).slice(0, 2));
+        evidence.push(...logPatterns.errors.filter((e: string) => e.includes('timeout') || e.includes('Timeout')).slice(0, 2));
         break;
         
       case 'AUTH_FAIL':
         evidence.push(`권한 거부 발생 횟수: ${logPatterns.permissionDenied}건`);
-        evidence.push(...logPatterns.errors.filter(e => e.includes('authentication') || e.includes('permission')).slice(0, 2));
+        evidence.push(...logPatterns.errors.filter((e: string) => e.includes('authentication') || e.includes('permission')).slice(0, 2));
         break;
         
       case 'HIGH_CPU':
