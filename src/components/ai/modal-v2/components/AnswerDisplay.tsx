@@ -3,14 +3,16 @@
 import { useEffect, useRef, useState } from 'react';
 import FeedbackButtons from '@/components/ai/FeedbackButtons';
 import { InteractionLogger } from '@/services/ai-agent/logging/InteractionLogger';
+import ThinkingProcess from './ThinkingProcess';
+import ThinkingLogViewer from './ThinkingLogViewer';
 
-// 생각 과정 단계들
-const THINKING_STEPS = [
-  { text: "서버 데이터를 분석하고 있습니다...", duration: 800 },
-  { text: "패턴을 식별하고 있습니다...", duration: 600 },
-  { text: "성능 메트릭을 검토하고 있습니다...", duration: 700 },
-  { text: "최적의 답변을 생성하고 있습니다...", duration: 500 },
-];
+interface ThinkingStep {
+  timestamp: string;
+  step: string;
+  content: string;
+  type: 'analysis' | 'reasoning' | 'data_processing' | 'pattern_matching' | 'response_generation';
+  duration?: number;
+}
 
 interface AnswerDisplayProps {
   question: string;
@@ -33,30 +35,7 @@ export default function AnswerDisplay({
 }: AnswerDisplayProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [interactionId, setInteractionId] = useState<string | null>(null);
-  const [currentThinkingStep, setCurrentThinkingStep] = useState<number>(0);
-  const [thinkingText, setThinkingText] = useState<string>('');
-
-  // 생각 과정 시뮬레이션
-  useEffect(() => {
-    if (isLoading && question) {
-      setCurrentThinkingStep(0);
-      setThinkingText(THINKING_STEPS[0].text);
-      
-      let stepIndex = 0;
-      const runThinkingSteps = () => {
-        if (stepIndex < THINKING_STEPS.length - 1) {
-          setTimeout(() => {
-            stepIndex++;
-            setCurrentThinkingStep(stepIndex);
-            setThinkingText(THINKING_STEPS[stepIndex].text);
-            runThinkingSteps();
-          }, THINKING_STEPS[stepIndex].duration);
-        }
-      };
-      
-      runThinkingSteps();
-    }
-  }, [isLoading, question]);
+  const [thinkingLogs, setThinkingLogs] = useState<ThinkingStep[]>([]);
 
   // 답변이 완료되면 상호작용 로깅
   useEffect(() => {
@@ -138,66 +117,12 @@ export default function AnswerDisplay({
 
           <div className="flex-1">
             {isLoading ? (
-              // 생각 과정 표시 (드래그/복사 방지)
-              <div className="select-none user-select-none" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="relative">
-                    <div className="w-8 h-8 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
-                    <div className="absolute inset-0 w-8 h-8 border border-purple-100 rounded-full animate-pulse"></div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-purple-700 mb-1">AI가 분석 중입니다</div>
-                    <div className="text-xs text-gray-600">{thinkingText}</div>
-                  </div>
-                </div>
-                
-                {/* 진행 단계 표시 */}
-                <div className="mb-6">
-                  <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                    <span>분석 단계</span>
-                    <span>{currentThinkingStep + 1} / {THINKING_STEPS.length}</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div 
-                      className="bg-gradient-to-r from-purple-500 to-indigo-500 h-1.5 rounded-full transition-all duration-500"
-                      style={{ width: `${((currentThinkingStep + 1) / THINKING_STEPS.length) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-                
-                {/* 가짜 분석 프로세스 표시 */}
-                <div className="space-y-3 text-sm text-gray-600">
-                  {THINKING_STEPS.map((step, index) => (
-                    <div 
-                      key={index}
-                      className={`flex items-center gap-2 transition-all duration-300 ${
-                        index <= currentThinkingStep ? 'opacity-100' : 'opacity-30'
-                      }`}
-                    >
-                      {index < currentThinkingStep ? (
-                        <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                          <i className="fas fa-check text-white text-xs"></i>
-                        </div>
-                      ) : index === currentThinkingStep ? (
-                        <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                      ) : (
-                        <div className="w-4 h-4 border border-gray-300 rounded-full"></div>
-                      )}
-                      <span className={index <= currentThinkingStep ? 'text-gray-800 font-medium' : 'text-gray-400'}>
-                        {step.text}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                
-                {/* 하단 시스템 메시지 */}
-                <div className="mt-6 p-3 bg-purple-50 rounded-lg">
-                  <div className="flex items-center gap-2 text-xs text-purple-700">
-                    <i className="fas fa-info-circle"></i>
-                    <span>실시간 서버 데이터를 기반으로 정확한 분석을 제공합니다</span>
-                  </div>
-                </div>
-              </div>
+              <ThinkingProcess
+                isActive={isLoading}
+                onComplete={(logs) => setThinkingLogs(logs)}
+                query={question}
+                serverData={metadata?.serverState?.servers || []}
+              />
             ) : (
               // 답변 표시
               <div>
@@ -245,6 +170,12 @@ export default function AnswerDisplay({
                     />
                   </div>
                 </div>
+
+                {/* 생각 과정 로그 뷰어 - 답변 완료 후 표시 */}
+                <ThinkingLogViewer 
+                  thinkingLogs={thinkingLogs}
+                  question={question}
+                />
               </div>
             )}
           </div>

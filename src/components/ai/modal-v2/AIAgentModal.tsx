@@ -5,7 +5,9 @@ import ModalHeader from './components/ModalHeader';
 import LeftPanel from './components/LeftPanel';
 import RightPanel from './components/RightPanel';
 import MobileBottomSheet from './components/MobileBottomSheet';
+import NavigationBar from './components/NavigationBar';
 import { useModalState } from './hooks/useModalState';
+import { useModalNavigation } from './hooks/useModalNavigation';
 import { FunctionType, HistoryItem } from './types';
 import { InteractionLogger } from '@/services/ai-agent/logging/InteractionLogger';
 import { useServerDataStore } from '@/stores/serverDataStore';
@@ -20,6 +22,7 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
   const [responseMetadata, setResponseMetadata] = useState<any>(null);
   const { state, dispatch, addToHistory, setBottomSheetState } = useModalState();
   const { servers } = useServerDataStore();
+  const navigation = useModalNavigation();
 
   // InteractionLogger 초기화 (브라우저 환경에서만)
   useEffect(() => {
@@ -76,6 +79,13 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
     const startTime = Date.now();
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'SET_QUESTION', payload: question });
+    
+    // 네비게이션 히스토리에 질문 추가
+    navigation.addToHistory({
+      type: 'question',
+      title: question.length > 50 ? question.substring(0, 50) + '...' : question,
+      data: { question, timestamp: startTime }
+    });
     
     try {
       // 실제 AI 에이전트 API 호출
@@ -238,9 +248,20 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
         {/* 모달 헤더 */}
         <ModalHeader onClose={onClose} />
         
+        {/* 네비게이션 바 */}
+        <NavigationBar
+          canGoBack={navigation.canGoBack}
+          canGoForward={navigation.canGoForward}
+          currentIndex={navigation.currentIndex}
+          history={navigation.history}
+          onGoBack={navigation.goBack}
+          onGoForward={navigation.goForward}
+          onGoToIndex={navigation.goToIndex}
+        />
+        
         {/* 모달 바디 */}
         <div className={`
-          flex flex-col md:flex-row h-[calc(100%-64px)]
+          flex flex-col md:flex-row h-[calc(100%-112px)]
           ${isMobile ? 'overflow-y-auto' : ''}
         `}>
           {/* 왼쪽 패널 (질문-답변 영역) */}
