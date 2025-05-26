@@ -12,6 +12,7 @@ import { persist } from 'zustand/middleware';
 import { systemLogger } from '../lib/logger';
 
 export type SystemState = 'inactive' | 'active' | 'stopping';
+export type AIAgentState = 'disabled' | 'enabled' | 'loading' | 'error';
 
 export interface SystemStatus {
   state: SystemState;
@@ -22,14 +23,29 @@ export interface SystemStatus {
   extendedTime: number;
   totalSessions: number;
   totalActiveTime: number; // 총 활성화 시간 (초)
+  
+  // AI 에이전트 상태
+  aiAgent: {
+    state: AIAgentState;
+    isEnabled: boolean;
+    lastActivated: number | null;
+    totalQueries: number;
+    mcpStatus: 'connected' | 'disconnected' | 'error';
+  };
 }
 
 export interface SystemStore extends SystemStatus {
-  // Actions
+  // System Actions
   startSystem: (durationInSeconds: number) => void;
   stopSystem: () => void;
   extendSession: (additionalMinutes: number) => void;
   aiTriggeredActivation: (reason: string) => void;
+  
+  // AI Agent Actions
+  enableAIAgent: () => Promise<void>;
+  disableAIAgent: () => Promise<void>;
+  toggleAIAgent: () => Promise<void>;
+  updateAIAgentQuery: () => void;
   
   // Getters
   getFormattedTime: () => string;
@@ -107,6 +123,15 @@ export const useSystemStore = create<SystemStore>()(
         extendedTime: 0,
         totalSessions: 0,
         totalActiveTime: 0,
+        
+        // AI 에이전트 상태
+        aiAgent: {
+          state: 'disabled' as AIAgentState,
+          isEnabled: false,
+          lastActivated: null,
+          totalQueries: 0,
+          mcpStatus: 'disconnected' as const
+        },
 
         startSystem: (durationInSeconds: number) => {
           clearTimers();
@@ -300,6 +325,109 @@ export const useSystemStore = create<SystemStore>()(
         canRunSimulation: () => {
           const { state } = get();
           return state === 'active';
+        },
+
+        // AI 에이전트 액션들
+        enableAIAgent: async () => {
+          set((state) => ({
+            aiAgent: {
+              ...state.aiAgent,
+              state: 'loading'
+            }
+          }));
+
+          try {
+            // MCP 서비스 및 AI 에이전트 활성화
+            const response = await fetch('/api/ai-agent/power', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'activate' })
+            });
+
+            if (response.ok) {
+              set((state) => ({
+                aiAgent: {
+                  ...state.aiAgent,
+                  state: 'enabled',
+                  isEnabled: true,
+                  lastActivated: Date.now(),
+                  mcpStatus: 'connected'
+                }
+              }));
+              systemLogger.ai('AI Agent enabled successfully');
+            } else {
+              throw new Error('Failed to enable AI agent');
+            }
+          } catch (error) {
+            set((state) => ({
+              aiAgent: {
+                ...state.aiAgent,
+                state: 'error',
+                isEnabled: false,
+                mcpStatus: 'error'
+              }
+            }));
+            systemLogger.error('Failed to enable AI agent', error);
+          }
+        },
+
+        disableAIAgent: async () => {
+          set((state) => ({
+            aiAgent: {
+              ...state.aiAgent,
+              state: 'loading'
+            }
+          }));
+
+          try {
+            // AI 에이전트 비활성화
+            const response = await fetch('/api/ai-agent/power', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'deactivate' })
+            });
+
+            if (response.ok) {
+              set((state) => ({
+                aiAgent: {
+                  ...state.aiAgent,
+                  state: 'disabled',
+                  isEnabled: false,
+                  mcpStatus: 'disconnected'
+                }
+              }));
+              systemLogger.ai('AI Agent disabled successfully');
+            } else {
+              throw new Error('Failed to disable AI agent');
+            }
+          } catch (error) {
+            set((state) => ({
+              aiAgent: {
+                ...state.aiAgent,
+                state: 'error',
+                mcpStatus: 'error'
+              }
+            }));
+            systemLogger.error('Failed to disable AI agent', error);
+          }
+        },
+
+        toggleAIAgent: async () => {
+          const { aiAgent } = get();
+          if (aiAgent.isEnabled) {
+            await get().disableAIAgent();
+          } else {
+            await get().enableAIAgent();
+          }
+        },
+
+        updateAIAgentQuery: () => {
+          set((state) => ({
+            aiAgent: {
+              ...state.aiAgent,
+              totalQueries: state.aiAgent.totalQueries + 1
+            }
+          }));
         }
       };
     },

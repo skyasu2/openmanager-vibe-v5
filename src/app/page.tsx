@@ -4,7 +4,9 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSystemStore } from '../stores/systemStore';
+import { useSystemControl } from '../hooks/useSystemControl';
 import { smartAIAgent } from '../services/aiAgent';
+import ProfileDropdown from '../components/ProfileDropdown';
 
 // 동적 렌더링 강제 (HTML 파일 생성 방지)
 export const dynamic = 'force-dynamic';
@@ -61,15 +63,27 @@ export default function HomePage() {
   const [selectedFeature, setSelectedFeature] = useState<FeatureDetail | null>(null);
   const [showVibeCoding, setShowVibeCoding] = useState(false);
   const [showMainFeature, setShowMainFeature] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
-  // 시스템 상태 관리
+  // 통합 시스템 제어
+  const {
+    systemState,
+    aiAgentState,
+    isSystemActive,
+    isAIEnabled,
+    formattedTime,
+    startFullSystem,
+    stopFullSystem,
+    restartSystem
+  } = useSystemControl();
+  
+  // 기존 시스템 스토어 (개별 제어용)
   const { 
     state, 
     startSystem, 
     stopSystem,
     getFormattedTime
   } = useSystemStore();
-  const isSystemActive = state === 'active';
 
   // 데이터 생성기 상태 관리
   const [dataGeneratorStatus, setDataGeneratorStatus] = useState<{
@@ -124,57 +138,101 @@ export default function HomePage() {
     };
   }, [isSystemActive, dataGeneratorStatus.isGenerating, updateGeneratorStatus]);
 
-  // 🚀 시스템 데이터 초기화 함수 (프로덕션 환경용)
-  const handleInitializeData = async () => {
-    console.log('🚀 시스템 데이터 초기화 시작...');
+  // 🚀 통합 시스템 시작 함수
+  const handleStartFullSystem = async () => {
+    if (isLoading) return;
+    
+    setIsLoading(true);
+    console.log('🚀 통합 시스템 시작...');
     
     try {
-      // 1. Enterprise 서버 데이터 시딩
-      const seedResponse = await fetch('/api/enterprise/seed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const result = await startFullSystem();
       
-      if (seedResponse.ok) {
-        const seedData = await seedResponse.json();
-        console.log('✅ 서버 데이터 시딩 완료:', seedData);
+      if (result.success) {
+        alert(`✅ ${result.message}\n\n이제 대시보드에서 실시간 데이터와 AI 에이전트를 사용할 수 있습니다.`);
       } else {
-        throw new Error('서버 데이터 시딩 실패');
+        const errorDetails = result.errors.length > 0 
+          ? `\n\n오류 상세:\n${result.errors.join('\n')}` 
+          : '';
+        alert(`⚠️ ${result.message}${errorDetails}\n\n일부 기능이 제한될 수 있습니다.`);
       }
       
-      // 2. 시뮬레이션 시작
-      const simResponse = await fetch('/api/simulate', {
-        method: 'POST'
-      });
-      
-      if (simResponse.ok) {
-        const simData = await simResponse.json();
-        console.log('✅ 시뮬레이션 시작:', simData);
-      }
-      
-      // 3. 데이터 생성기 시작
-      const genResponse = await fetch('/api/data-generator', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'start-realtime', pattern: 'normal' })
-      });
-      
-      if (genResponse.ok) {
-        const genData = await genResponse.json();
-        console.log('✅ 데이터 생성기 시작:', genData);
-        setDataGeneratorStatus(prev => ({
-          ...prev,
-          isGenerating: true,
-          remainingTime: 10 * 60 * 1000,
-          currentPattern: 'normal'
-        }));
-      }
-      
-      alert('✅ 시스템 데이터 초기화가 완료되었습니다!\n이제 대시보드에서 실시간 데이터를 확인할 수 있습니다.');
+      // 데이터 생성기 상태 업데이트
+      setDataGeneratorStatus(prev => ({
+        ...prev,
+        isGenerating: true,
+        remainingTime: 20 * 60 * 1000,
+        currentPattern: 'normal'
+      }));
       
     } catch (error) {
-      console.error('❌ 시스템 데이터 초기화 실패:', error);
-      alert('❌ 시스템 데이터 초기화에 실패했습니다. 개발자 도구 콘솔을 확인해주세요.');
+      console.error('❌ 시스템 시작 실패:', error);
+      alert('❌ 시스템 시작에 실패했습니다. 개발자 도구 콘솔을 확인해주세요.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 🛑 통합 시스템 중지 함수
+  const handleStopFullSystem = async () => {
+    if (isLoading) return;
+    
+    setIsLoading(true);
+    console.log('🛑 통합 시스템 중지...');
+    
+    try {
+      const result = await stopFullSystem();
+      
+      alert(`🔴 ${result.message}`);
+      
+      // 데이터 생성기 상태 초기화
+      setDataGeneratorStatus({
+        isGenerating: false,
+        remainingTime: 0,
+        currentPattern: null,
+        patterns: []
+      });
+      
+    } catch (error) {
+      console.error('❌ 시스템 중지 실패:', error);
+      alert('❌ 시스템 중지에 실패했습니다. 개발자 도구 콘솔을 확인해주세요.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 🔄 시스템 재시작 함수
+  const handleRestartSystem = async () => {
+    if (isLoading) return;
+    
+    setIsLoading(true);
+    console.log('🔄 시스템 재시작...');
+    
+    try {
+      const result = await restartSystem();
+      
+      if (result.success) {
+        alert(`🔄 ${result.message}`);
+      } else {
+        const errorDetails = result.errors.length > 0 
+          ? `\n\n오류 상세:\n${result.errors.join('\n')}` 
+          : '';
+        alert(`⚠️ ${result.message}${errorDetails}`);
+      }
+      
+      // 데이터 생성기 상태 업데이트
+      setDataGeneratorStatus(prev => ({
+        ...prev,
+        isGenerating: true,
+        remainingTime: 20 * 60 * 1000,
+        currentPattern: 'normal'
+      }));
+      
+    } catch (error) {
+      console.error('❌ 시스템 재시작 실패:', error);
+      alert('❌ 시스템 재시작에 실패했습니다.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -1604,17 +1662,23 @@ export default function HomePage() {
       `}</style>
 
       <div className="splash-container">
-        {/* 헤더 로고 */}
+        {/* 헤더 */}
         <header className="absolute top-0 left-0 right-0 p-4 sm:p-6 z-10">
-          <Link href="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity cursor-pointer">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <i className="fas fa-server text-white text-sm sm:text-lg"></i>
-            </div>
-            <div>
-              <h2 className="text-base sm:text-lg font-bold text-white">OpenManager</h2>
-              <p className="text-xs text-white/70">AI 서버 모니터링</p>
-            </div>
-          </Link>
+          <div className="flex items-center justify-between">
+            {/* 로고 */}
+            <Link href="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity cursor-pointer">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <i className="fas fa-server text-white text-sm sm:text-lg"></i>
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-white">OpenManager</h2>
+                <p className="text-xs text-white/70">AI 서버 모니터링</p>
+              </div>
+            </Link>
+            
+            {/* 프로필 드롭다운 */}
+            <ProfileDropdown userName="관리자" />
+          </div>
         </header>
 
         <h1 className="main-title fade-in-up">
@@ -1658,25 +1722,19 @@ export default function HomePage() {
                   <div className="finger-pointer">👆</div>
                   <button 
                     className="btn-primary"
-                    onClick={handleInitializeData}
+                    onClick={handleStartFullSystem}
+                    disabled={isLoading}
                   >
-                    <i className="fas fa-database"></i>
-                    <span>🚀 시스템 데이터 초기화</span>
+                    <i className={isLoading ? "fas fa-spinner fa-spin" : "fas fa-power-off"}></i>
+                    <span>{isLoading ? '시작 중...' : '🚀 시스템 시작'}</span>
                   </button>
                 </div>
                 
-                <button 
-                  className="btn-secondary"
-                  onClick={handleActivateSystem}
-                >
-                  <i className="fas fa-power-off"></i>
-                  <span>⚡ 시스템 활성화 (20분)</span>
-                </button>
               </div>
               
               <p className="text-white/80 text-sm">
-                <strong>1단계:</strong> 데이터 초기화 → <strong>2단계:</strong> 시스템 활성화<br />
-                AI 에이전트 + 데이터 생성기 + 대시보드 모두 시작됩니다
+                <strong>통합 시스템 시작:</strong> 서버 시딩 → 시뮬레이션 → 데이터 생성 → AI 에이전트<br />
+                모든 서비스가 자동으로 순차 시작됩니다 (20분간 활성화)
               </p>
             </div>
           ) : (
@@ -1689,9 +1747,12 @@ export default function HomePage() {
                 </div>
                 <div className="text-green-100 text-sm">
                   <div className="flex items-center justify-center gap-4 mb-2">
-                    <span>⏰ 남은 시간: <strong>{getFormattedTime()}</strong></span>
+                    <span>⏰ 남은 시간: <strong>{formattedTime}</strong></span>
+                    {isAIEnabled && (
+                      <span className="text-blue-300">🤖 AI 활성화</span>
+                    )}
                   </div>
-                  <p>AI 에이전트, 데이터 생성기, 대시보드 모두 활성화됨</p>
+                  <p>시스템 전체 활성화: 서버 모니터링 + AI 에이전트 + 데이터 생성</p>
                 </div>
               </div>
               
@@ -1706,18 +1767,20 @@ export default function HomePage() {
                 
                 <button 
                   className="btn-secondary"
-                  onClick={handleInitializeData}
+                  onClick={handleRestartSystem}
+                  disabled={isLoading}
                 >
-                  <i className="fas fa-database"></i>
-                  <span>🔄 데이터 초기화</span>
+                  <i className={isLoading ? "fas fa-spinner fa-spin" : "fas fa-redo"}></i>
+                  <span>{isLoading ? '재시작 중...' : '🔄 시스템 재시작'}</span>
                 </button>
                 
                 <button 
                   className="btn-secondary"
-                  onClick={handleDeactivateSystem}
+                  onClick={handleStopFullSystem}
+                  disabled={isLoading}
                 >
-                  <i className="fas fa-stop"></i>
-                  <span>⏹️ 시스템 중지</span>
+                  <i className={isLoading ? "fas fa-spinner fa-spin" : "fas fa-stop"}></i>
+                  <span>{isLoading ? '중지 중...' : '⏹️ 시스템 중지'}</span>
                 </button>
               </div>
               
