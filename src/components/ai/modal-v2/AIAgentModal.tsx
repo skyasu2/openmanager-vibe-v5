@@ -79,7 +79,7 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
     
     try {
       // 실제 AI 에이전트 API 호출
-      const response = await fetch('/api/ai-agent/smart-query', {
+      const apiPromise = fetch('/api/ai-agent/smart-query', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,6 +93,12 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
           }
         }),
       });
+
+      // 최소 3초는 생각하는 모습을 보여주기 위해 딜레이 추가
+      const minThinkingTime = new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // API 호출과 최소 대기 시간을 병렬로 실행
+      const [response] = await Promise.all([apiPromise, minThinkingTime]);
 
       if (!response.ok) {
         throw new Error(`AI 에이전트 오류: ${response.status}`);
@@ -120,6 +126,14 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
       
     } catch (error) {
       console.error('AI 에이전트 호출 실패:', error);
+      
+      // 폴백도 최소 시간 보장
+      const elapsed = Date.now() - startTime;
+      const remainingTime = Math.max(0, 3000 - elapsed);
+      
+      if (remainingTime > 0) {
+        await new Promise(resolve => setTimeout(resolve, remainingTime));
+      }
       
       // 폴백 응답 생성
       const fallbackAnswer = generateFallbackResponse(question, servers);
