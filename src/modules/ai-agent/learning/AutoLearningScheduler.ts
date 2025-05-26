@@ -3,11 +3,12 @@ import { InteractionLogger } from '../../../services/ai-agent/logging/Interactio
 
 export interface LearningScheduleConfig {
   analysisInterval: number; // 분석 실행 간격 (분)
-  autoApprovalThreshold: number; // 자동 승인 임계값
+  suggestionThreshold: number; // 제안 생성 임계값 (자동 승인 아님)
   maxConcurrentTests: number; // 최대 동시 테스트 수
   learningWindowDays: number; // 학습 데이터 기간 (일)
-  enableAutoApproval: boolean; // 자동 승인 활성화
+  enableSuggestionGeneration: boolean; // 제안 생성 활성화 (자동 승인 금지)
   enableContinuousLearning: boolean; // 지속적 학습 활성화
+  requireAdminApproval: boolean; // 관리자 승인 필수 (항상 true)
 }
 
 export interface LearningMetrics {
@@ -45,11 +46,12 @@ export class AutoLearningScheduler {
   private getDefaultConfig(): LearningScheduleConfig {
     return {
       analysisInterval: 60, // 1시간마다
-      autoApprovalThreshold: 0.8, // 80% 이상 신뢰도
+      suggestionThreshold: 0.8, // 80% 이상 신뢰도에서 제안 생성
       maxConcurrentTests: 3,
       learningWindowDays: 7,
-      enableAutoApproval: true,
-      enableContinuousLearning: true
+      enableSuggestionGeneration: true, // 제안 생성만 허용
+      enableContinuousLearning: true,
+      requireAdminApproval: true // 항상 관리자 승인 필요
     };
   }
 
@@ -115,9 +117,9 @@ export class AutoLearningScheduler {
         return;
       }
 
-      // 2. 자동 승인 처리
-      if (this.config.enableAutoApproval) {
-        await this.processAutoApprovals(analysisReport);
+      // 2. 제안서 생성 (자동 승인 금지)
+      if (this.config.enableSuggestionGeneration) {
+        await this.generateSuggestionReport(analysisReport);
       }
 
       // 3. 자동 테스트 시작
@@ -133,19 +135,31 @@ export class AutoLearningScheduler {
     }
   }
 
-  private async processAutoApprovals(analysisReport: any): Promise<void> {
+  private async generateSuggestionReport(analysisReport: any): Promise<void> {
     const highConfidencePatterns = analysisReport.patternSuggestions?.filter(
-      (suggestion: any) => suggestion.confidence >= this.config.autoApprovalThreshold
+      (suggestion: any) => suggestion.confidence >= this.config.suggestionThreshold
     ) || [];
 
-    for (const pattern of highConfidencePatterns) {
-      try {
-        await this.patternAnalysisService.approvePatternSuggestion(pattern.id);
-        console.log(`패턴 ${pattern.id}를 자동 승인했습니다. (신뢰도: ${pattern.confidence})`);
-      } catch (error) {
-        console.error(`패턴 ${pattern.id} 자동 승인 실패:`, error);
-      }
-    }
+    // 관리자 검토용 제안서 생성 (자동 승인 금지)
+    const suggestionReport = {
+      analysisId: analysisReport.id,
+      timestamp: new Date(),
+      totalPatterns: analysisReport.patternSuggestions?.length || 0,
+      highConfidencePatterns: highConfidencePatterns.length,
+      recommendedForReview: highConfidencePatterns.map((pattern: any) => ({
+        id: pattern.id,
+        pattern: pattern.suggestedPattern,
+        confidence: pattern.confidence,
+        estimatedImprovement: pattern.estimatedImprovement,
+        requiresAdminApproval: true
+      }))
+    };
+
+    console.log(`📋 [AutoLearningScheduler] 제안서 생성 완료: ${highConfidencePatterns.length}개 고신뢰도 패턴 (관리자 검토 필요)`);
+    console.log('🔒 [AutoLearningScheduler] 자동 승인 금지 - 모든 패턴은 관리자 승인 필요');
+    
+    // TODO: 관리자 알림 시스템에 제안서 전송
+    // await this.notifyAdminForReview(suggestionReport);
   }
 
   private async startAutomaticTests(): Promise<void> {

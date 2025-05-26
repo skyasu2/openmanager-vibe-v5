@@ -97,7 +97,7 @@ export class InteractionLogger {
   /**
    * 상호작용 조회 (날짜 범위 필터 포함)
    */
-  async getInteractions(filters?: { startDate?: Date; endDate?: Date; }): Promise<UserInteractionLog[]> {
+  async getInteractions(filters?: { startDate?: Date; endDate?: Date; limit?: number; }): Promise<UserInteractionLog[]> {
     let interactions = Array.from(this.interactions.values());
 
     if (filters) {
@@ -110,7 +110,14 @@ export class InteractionLogger {
     }
 
     // 최신순 정렬
-    return interactions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    interactions = interactions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    
+    // 제한된 수만큼 반환
+    if (filters?.limit) {
+      interactions = interactions.slice(0, filters.limit);
+    }
+
+    return interactions;
   }
 
   /**

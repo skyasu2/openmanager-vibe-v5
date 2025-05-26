@@ -1,5 +1,98 @@
 # 📋 CHANGELOG
 
+## [5.6.0] - 2025-05-26
+
+### ✨ **AI 컨텍스트 관리 시스템 완전 구현**
+- **디렉토리 기반 컨텍스트 관리자** (ContextManager.ts)
+  - 압축 없는 개별 .md/.json 파일 관리
+  - Git 친화적 버전 관리 (라인별 변경 추적)
+  - 실시간 수정 가능 (압축 해제 불필요)
+  - base/, advanced/, custom/ 디렉토리 자동 생성
+  - 클라이언트별 커스텀 컨텍스트 지원
+
+- **날짜 기준 JSON 로그 저장기** (LogSaver.ts)
+  - 압축 없는 개별 JSON 파일로 날짜별 자동 분류
+  - 실시간 로그 추가 기능
+  - failures, improvements, analysis, interactions, patterns, summaries 카테고리
+  - 자동 백업 및 오래된 로그 정리 기능
+
+- **디렉토리 버전 전환 유틸리티** (VersionSwitcher.ts)
+  - 압축 없는 디렉토리 단위 버전 관리
+  - 자동 백업 생성 및 메타데이터 관리
+  - 버전 비교 기능 (파일 차이점 분석)
+  - 릴리스 버전과 백업 버전 분리 관리
+
+### 🔧 **AI 분석 서비스 확장**
+- **AIAnalysisService.ts** 통합 확장
+  - 새로운 컨텍스트 관리 기능들 완전 통합
+  - 자동 상호작용 로그 기록
+  - 통합 API 인터페이스 제공
+
+### 🌐 **API 엔드포인트 확장 (10개 새로운 액션)**
+- **새로운 GET 액션 (4개)**
+  - `context-versions`: 컨텍스트 버전 목록 조회
+  - `context-load`: 통합 컨텍스트 로드
+  - `log-statistics`: 로그 통계 조회
+  - `version-compare`: 버전 비교
+
+- **새로운 POST 액션 (6개)**
+  - `save-context-document`: 컨텍스트 문서 저장
+  - `save-pattern-file`: 패턴 파일 저장
+  - `switch-context-version`: 컨텍스트 버전 전환
+  - `create-release-version`: 릴리스 버전 생성
+  - `save-failure-log`: 실패 분석 로그 저장
+  - `save-improvement-log`: 개선 분석 로그 저장
+
+### 🎨 **관리자 페이지 재구성 (5탭 시스템)**
+- **sessions**: 분석 세션 목록
+- **new-session**: 새 분석 세션 생성
+- **context**: 컨텍스트 관리 (NEW)
+- **logs**: 로그 관리 (NEW)
+- **detail**: 세션 상세 정보
+
+**새로운 UI 기능:**
+- 컨텍스트 문서 편집 폼
+- 버전 관리 인터페이스
+- 로그 통계 대시보드
+- 버전 비교 도구
+
+### 🛠️ **개발 도구 및 초기화**
+- **초기화 스크립트** (init-ai-context.js)
+  - 자동 디렉토리 구조 생성
+  - 샘플 컨텍스트 파일 생성 (troubleshooting.md, patterns.json 등)
+  - 기본 패턴 파일 제공
+  - README 및 .gitkeep 파일 자동 생성
+- **npm script 추가**: `npm run init:ai-context`
+
+### 📁 **새로운 디렉토리 구조**
+```
+📁 src/mcp/documents/
+├── base/ (기본 서버 관리 지식)
+├── advanced/ (고급 패턴 및 장애 사례)
+├── custom/ (클라이언트별 특화 컨텍스트)
+└── README.md
+
+📁 logs/
+├── failures/ ├── improvements/ ├── analysis/
+├── interactions/ ├── patterns/ ├── summaries/
+└── backups/
+```
+
+### 🎯 **주요 장점**
+- **Git 친화적**: .md/.json 파일의 라인별 변경 추적 가능
+- **실시간 편집**: 압축 없이 즉시 수정 및 테스트 가능
+- **IDE 호환**: VSCode, Cursor 등에서 직접 편집 가능
+- **자동 백업**: 모든 변경사항 자동 백업
+- **확장성**: 클라이언트별 커스텀 컨텍스트 지원
+
+### 📊 **성과 지표**
+- **구현 완료율**: 100% ✅
+- **파일 기반 관리**: Git 호환성 100%
+- **실시간 편집**: 압축 해제 없이 즉시 수정 가능
+- **통합 API**: 10개 새로운 엔드포인트로 완전한 관리 기능 제공
+
+---
+
 ## [5.5.0] - 2024-12-19
 
 ### ✨ 새로운 기능

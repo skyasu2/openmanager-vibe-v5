@@ -31,7 +31,8 @@
     "build:analyze": "ANALYZE=true npm run build",
     "deploy:preview": "vercel --confirm",
     "deploy:prod": "vercel --prod --confirm",
-    "monitor": "npm run health-check:prod && echo '✅ Production health check passed'"
+    "monitor": "npm run health-check:prod && echo '✅ Production health check passed'",
+    "init:ai-context": "node scripts/init-ai-context.js"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",

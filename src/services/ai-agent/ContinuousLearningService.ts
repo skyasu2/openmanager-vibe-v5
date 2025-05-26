@@ -135,8 +135,8 @@ export class ContinuousLearningService {
     // 성능 모니터링 시작
     this.performanceMonitor.startMonitoring();
 
-    // 초기 컨텍스트 업데이트 생성
-    await this.contextUpdateEngine.generateContextUpdates();
+    // 초기 컨텍스트 업데이트 제안서 생성
+    await this.contextUpdateEngine.generateUpdateSuggestions();
 
     console.log('✅ [ContinuousLearningService] 모든 컴포넌트 시작 완료');
   }
