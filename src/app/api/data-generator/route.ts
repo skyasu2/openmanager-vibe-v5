@@ -75,17 +75,31 @@ export async function POST(request: NextRequest) {
         });
 
       case 'init-history':
-        // 백그라운드에서 실행 (시간이 오래 걸릴 수 있음)
-        serverDataGenerator.initializeHistoryData().catch(error => {
+        // 3가지 버전의 24시간 데이터 생성 (백그라운드에서 실행)
+        const historyPattern = pattern || 'random'; // random, normal, crisis 중 선택
+        
+        serverDataGenerator.initializeHistoryDataWithVariants(historyPattern).catch(error => {
           console.error('History data initialization failed:', error);
         });
         
         return NextResponse.json({
           success: true,
-          message: '24시간 히스토리 데이터 초기화를 시작했습니다.',
+          message: `24시간 히스토리 데이터 초기화를 시작했습니다. (${historyPattern} 패턴)`,
           data: {
             action: 'init-history',
-            patterns: ['정상 운영', '고부하', '유지보수'],
+            pattern: historyPattern,
+            variants: [
+              { name: 'normal', description: '정상 운영 (5% 경고, 1% 장애)' },
+              { name: 'busy', description: '바쁜 일상 (15% 경고, 3% 장애)' },
+              { name: 'crisis', description: '위기 상황 (30% 경고, 10% 장애)' }
+            ],
+            features: [
+              '출퇴근 시간 트래픽 급증',
+              '점심시간 사용량 감소',
+              '새벽 백업 작업 영향',
+              '주기적 배치 작업 부하',
+              '랜덤 장애 발생 패턴'
+            ],
             duration: '24 hours',
             timestamp: new Date().toISOString()
           }

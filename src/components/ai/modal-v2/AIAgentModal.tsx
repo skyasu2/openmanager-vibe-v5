@@ -53,7 +53,7 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
     };
   }, [dispatch, setBottomSheetState, state.bottomSheetState]);
 
-  // ESC 키로 모달 닫기
+  // ESC 키로 모달 닫기 & 브라우저 히스토리 차단
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
@@ -61,9 +61,27 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
       }
     };
 
-    window.addEventListener('keydown', handleEscape);
+    // 브라우저 뒤로가기/앞으로가기 차단 (모달 열린 상태에서만)
+    const handlePopState = (e: PopStateEvent) => {
+      if (isOpen) {
+        e.preventDefault();
+        // 히스토리 상태를 현재로 유지
+        window.history.pushState(null, '', window.location.href);
+        console.log('🚫 AI 모달 사용 중 - 브라우저 히스토리 이동 차단됨');
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener('keydown', handleEscape);
+      window.addEventListener('popstate', handlePopState);
+      
+      // 현재 히스토리 상태에 모달 표시 추가
+      window.history.pushState({ aiModalOpen: true }, '', window.location.href);
+    }
+
     return () => {
       window.removeEventListener('keydown', handleEscape);
+      window.removeEventListener('popstate', handlePopState);
     };
   }, [isOpen, onClose]);
 

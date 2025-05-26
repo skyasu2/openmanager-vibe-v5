@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+
 import ThinkingDisplay from './ThinkingDisplay';
 import { 
   Activity, 
@@ -19,24 +20,75 @@ import {
   Clock,
   Star,
   Database,
-  Lock
+  Lock,
+  FileText,
+  Settings,
+  Search,
+  Filter,
+  ChevronRight,
+  Eye,
+  Edit,
+  Trash2,
+  Plus,
+  MessageSquare,
+  Lightbulb,
+  Target,
+  Zap
 } from 'lucide-react';
 
-interface AdminDashboardData {
-  overview: {
-    totalInteractions: number;
-    totalErrors: number;
-    last24hInteractions: number;
-    last7dInteractions: number;
-    successRate: number;
-    avgUserRating: number;
+interface ResponseLogData {
+  id: string;
+  timestamp: string;
+  question: string;
+  response: string;
+  status: 'success' | 'fallback' | 'failed';
+  confidence: number;
+  responseTime: number;
+  fallbackStage?: string;
+  patternMatched?: string;
+  serverContext?: any;
+}
+
+interface PatternSuggestion {
+  id: string;
+  originalQuery: string;
+  suggestedPattern: string;
+  confidence: number;
+  category: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  examples: string[];
+}
+
+interface ContextDocument {
+  id: string;
+  filename: string;
+  category: 'basic' | 'advanced' | 'custom';
+  size: number;
+  lastModified: string;
+  wordCount: number;
+  keywords: string[];
+  content?: string;
+}
+
+interface SystemHealth {
+  aiAgent: {
+    status: 'online' | 'offline' | 'degraded';
+    responseTime: number;
+    uptime: number;
+    version: string;
   };
-  recentInteractions: any[];
-  recentErrors: any[];
-  bestPatterns: any[];
-  worstPatterns: any[];
-  trainingData: any[];
-  metrics: any[];
+  mcp: {
+    status: 'connected' | 'disconnected' | 'error';
+    documentsLoaded: number;
+    lastSync: string;
+  };
+  fallbackRate: number;
+  learningCycle: {
+    lastRun: string;
+    nextRun: string;
+    status: 'idle' | 'running' | 'error';
+  };
 }
 
 interface AuthStats {
@@ -54,23 +106,35 @@ interface AuthStats {
 }
 
 export default function EnhancedAdminDashboard() {
-  const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(null);
+  // 데이터 상태
+  const [responseLogs, setResponseLogs] = useState<ResponseLogData[]>([]);
+  const [patternSuggestions, setPatternSuggestions] = useState<PatternSuggestion[]>([]);
+  const [contextDocuments, setContextDocuments] = useState<ContextDocument[]>([]);
+  const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
+  const [dashboardData, setDashboardData] = useState<any>(null);
   const [authStats, setAuthStats] = useState<AuthStats | null>(null);
+  
+  // UI 상태
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTab, setSelectedTab] = useState('overview');
+  const [selectedTab, setSelectedTab] = useState('logs');
   const [sessionId, setSessionId] = useState<string>('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showThinking, setShowThinking] = useState(false);
   const [currentThinkingSession] = useState(null);
   
   // 필터 상태
-  const [filters] = useState({
+  const [filters, setFilters] = useState({
     dateRange: '24h',
-    category: 'all',
-    success: 'all',
-    severity: 'all'
+    status: 'all',
+    confidence: 'all',
+    search: ''
   });
+  
+  // 선택된 항목 상태
+  const [selectedLog, setSelectedLog] = useState<ResponseLogData | null>(null);
+  const [selectedPattern, setSelectedPattern] = useState<PatternSuggestion | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<ContextDocument | null>(null);
 
   // 복사 방지 기능
   const dashboardRef = useRef<HTMLDivElement>(null);

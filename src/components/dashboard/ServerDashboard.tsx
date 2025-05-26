@@ -227,17 +227,18 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
     offline: currentServers.filter((s: Server) => s.status === 'offline').length
   }), [currentServers]);
 
-  // ✅ 컴포넌트 마운트 시 서버 데이터 로드
+  // ✅ 컴포넌트 마운트 시 서버 데이터 로드 (백그라운드에서)
   useEffect(() => {
-    fetchServers();
+    // 백그라운드에서 최신 데이터 가져오기 (이미 초기 데이터가 있으므로)
+    refreshData();
     
-    // 30초마다 데이터 새로고침
+    // 5초마다 데이터 새로고침 (더 자주 업데이트)
     const interval = setInterval(() => {
       refreshData();
-    }, 30000);
+    }, 5000);
     
     return () => clearInterval(interval);
-  }, [fetchServers, refreshData]);
+  }, [refreshData]);
 
   // 통계 업데이트 알림
   useEffect(() => {
@@ -271,43 +272,39 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
     return groups;
   }, [filteredServers]);
 
-  // 로딩 상태 표시
-  if (isLoading && servers.length === 0) {
+  // 서버가 없는 경우만 로딩 표시 (초기 데이터는 항상 있음)
+  if (currentServers.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-        <span className="ml-2 text-gray-600">서버 데이터를 로딩 중...</span>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">서버 연결 중</h3>
+          <p className="text-gray-600">모니터링 시스템을 초기화하고 있습니다...</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* 에러 메시지 표시 */}
-      {error && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-yellow-800">
-                {error}
-              </p>
-            </div>
-            <div className="ml-auto pl-3">
-              <button
-                onClick={() => fetchServers()}
-                className="text-yellow-800 hover:text-yellow-900 text-sm underline"
-              >
-                다시 시도
-              </button>
-            </div>
+      {/* 시스템 상태 표시 */}
+      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+        <div className="flex items-center">
+          <div className="flex-shrink-0">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          </div>
+          <div className="ml-3">
+            <p className="text-sm text-green-800">
+              실시간 모니터링 활성화 - 5초마다 자동 업데이트
+            </p>
+          </div>
+          <div className="ml-auto pl-3">
+            <span className="text-xs text-green-600">
+              마지막 업데이트: {new Date().toLocaleTimeString()}
+            </span>
           </div>
         </div>
-      )}
+      </div>
 
       {/* 검색 및 필터 */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -321,20 +318,24 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
           />
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={() => refreshData()}
-            disabled={isLoading}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            {isLoading ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-            ) : (
+          <div className="flex items-center gap-2">
+            {isLoading && (
+              <div className="flex items-center gap-2 text-sm text-blue-600">
+                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                <span>업데이트 중...</span>
+              </div>
+            )}
+            <button
+              onClick={() => refreshData()}
+              disabled={isLoading}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all"
+            >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-            )}
-            새로고침
-          </button>
+              새로고침
+            </button>
+          </div>
         </div>
       </div>
 

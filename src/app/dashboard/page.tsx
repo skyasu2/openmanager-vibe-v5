@@ -52,10 +52,7 @@ export default function DashboardPage() {
             <button 
               onClick={() => {
                 console.log('🏠 OpenManager 버튼 클릭 - 랜딩페이지로 이동');
-                // 세션 정리 후 랜딩페이지 이동
-                localStorage.clear();
-                sessionStorage.clear();
-                // window.location.href를 사용하여 확실한 페이지 이동
+                // 서비스 종료하지 않고 단순히 랜딩페이지로 이동
                 window.location.href = '/';
               }}
               className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"

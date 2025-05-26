@@ -50,6 +50,9 @@ export interface ModalState {
   
   // 모바일 바텀시트 상태
   bottomSheetState: BottomSheetState;
+  
+  // 프리셋 돌아가기 플로우
+  showBackToPresets: boolean;
 }
 
 export type ModalAction = 
@@ -62,7 +65,8 @@ export type ModalAction =
   | { type: 'SET_MOBILE'; payload: boolean }
   | { type: 'TOGGLE_HISTORY'; payload?: boolean }
   | { type: 'ADD_HISTORY_ITEM'; payload: HistoryItem }
-  | { type: 'SET_BOTTOM_SHEET_STATE'; payload: BottomSheetState };
+  | { type: 'SET_BOTTOM_SHEET_STATE'; payload: BottomSheetState }
+  | { type: 'SET_BACK_TO_PRESETS'; payload: boolean };
 
 // 히스토리 아이템 타입
 export interface HistoryItem {

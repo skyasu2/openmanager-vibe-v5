@@ -126,6 +126,240 @@ export class ServerDataGenerator {
   }
 
   /**
+   * 24시간 데이터 3가지 변형 버전 생성 (개선된 버전)
+   */
+  async initializeHistoryDataWithVariants(variantType: string = 'random'): Promise<void> {
+    console.log(`🔄 Initializing 24-hour history data with variants (${variantType})...`);
+
+    try {
+      // 서버 목록 생성
+      const servers = this.generateEnhancedServerList();
+      
+      // 3가지 시나리오로 24시간 데이터 생성
+      const scenarios = this.getHistoryScenarios();
+      
+      for (const scenario of scenarios) {
+        console.log(`📈 Generating scenario: ${scenario.name}`);
+        await this.generateRealisticHistoryData(servers, scenario, variantType);
+      }
+
+      console.log('✅ Enhanced 24-hour history data generation completed');
+    } catch (error) {
+      console.error('❌ Failed to initialize history data with variants:', error);
+    }
+  }
+
+  /**
+   * 히스토리 시나리오 정의
+   */
+  private getHistoryScenarios() {
+    return [
+      {
+        id: 'normal-day',
+        name: '평범한 하루',
+        description: '정상적인 비즈니스 운영',
+        characteristics: {
+          morningRush: { start: 8, end: 10, multiplier: 1.5 }, // 출근 시간
+          lunchDip: { start: 12, end: 13, multiplier: 0.7 }, // 점심시간
+          eveningRush: { start: 17, end: 19, multiplier: 1.3 }, // 퇴근 시간
+          nightBackup: { start: 2, end: 4, multiplier: 1.2 }, // 새벽 백업
+          criticalRate: 0.01, // 1% 심각한 장애
+          warningRate: 0.05, // 5% 경고
+          maintenanceWindows: [{ start: 23, end: 1 }] // 유지보수 시간
+        }
+      },
+      {
+        id: 'busy-day',
+        name: '바쁜 하루',
+        description: '높은 트래픽과 부하',
+        characteristics: {
+          morningRush: { start: 7, end: 11, multiplier: 2.0 },
+          lunchDip: { start: 12, end: 13, multiplier: 0.8 },
+          eveningRush: { start: 16, end: 20, multiplier: 1.8 },
+          nightBackup: { start: 2, end: 5, multiplier: 1.5 },
+          criticalRate: 0.03, // 3% 심각한 장애
+          warningRate: 0.15, // 15% 경고
+          maintenanceWindows: [{ start: 22, end: 2 }]
+        }
+      },
+      {
+        id: 'crisis-day',
+        name: '위기 상황',
+        description: '장애가 빈발하는 하루',
+        characteristics: {
+          morningRush: { start: 8, end: 12, multiplier: 2.5 },
+          lunchDip: { start: 12, end: 13, multiplier: 1.0 }, // 점심시간에도 높은 부하
+          eveningRush: { start: 15, end: 21, multiplier: 2.2 },
+          nightBackup: { start: 1, end: 6, multiplier: 2.0 },
+          criticalRate: 0.10, // 10% 심각한 장애
+          warningRate: 0.30, // 30% 경고
+          maintenanceWindows: [] // 응급 상황으로 유지보수 취소
+        }
+      }
+    ];
+  }
+
+  /**
+   * 확장된 서버 리스트 생성 (12대)
+   */
+  private generateEnhancedServerList(): any[] {
+    return Array.from({ length: 12 }, (_, i) => ({
+      serverId: `server-${(i + 1).toString().padStart(2, '0')}`,
+      hostname: `WEB-${(i + 1).toString().padStart(2, '0')}`,
+      role: i < 4 ? 'web' : i < 8 ? 'api' : 'database',
+      tier: i < 2 ? 'critical' : i < 6 ? 'important' : 'standard',
+      baseLoad: {
+        cpu: 20 + Math.random() * 20,
+        memory: 40 + Math.random() * 20,
+        disk: 30 + Math.random() * 15
+      }
+    }));
+  }
+
+  /**
+   * 현실적인 24시간 히스토리 데이터 생성
+   */
+  private async generateRealisticHistoryData(
+    servers: any[], 
+    scenario: any, 
+    variantType: string
+  ): Promise<void> {
+    const endTime = new Date();
+    const startTime = new Date(endTime.getTime() - this.HISTORY_DURATION);
+    const interval = 5 * 60 * 1000; // 5분 간격
+    
+    const dataPoints: GeneratedMetrics[] = [];
+    
+    for (const server of servers) {
+      let currentTime = new Date(startTime);
+      
+      while (currentTime <= endTime) {
+        const metrics = this.generateRealisticMetrics(
+          server,
+          scenario,
+          currentTime,
+          startTime
+        );
+        
+        dataPoints.push(metrics);
+        currentTime = new Date(currentTime.getTime() + interval);
+      }
+    }
+    
+    // 배치로 DB에 저장
+    await this.saveHistoryDataBatch(dataPoints, `${scenario.id}-${variantType}`);
+    console.log(`✅ Generated ${dataPoints.length} realistic data points for ${scenario.name}`);
+  }
+
+  /**
+   * 현실적인 메트릭 생성 (시간대별 패턴 + 장애 시뮬레이션)
+   */
+  private generateRealisticMetrics(
+    server: any,
+    scenario: any,
+    timestamp: Date,
+    startTime: Date
+  ): GeneratedMetrics {
+    const hour = timestamp.getHours();
+    const elapsedHours = (timestamp.getTime() - startTime.getTime()) / (60 * 60 * 1000);
+    
+    // 기본 부하 계산
+    let cpuMultiplier = 1.0;
+    let memoryMultiplier = 1.0;
+    let networkMultiplier = 1.0;
+    
+    // 시간대별 부하 패턴 적용
+    const chars = scenario.characteristics;
+    
+    // 출근 시간 급증
+    if (hour >= chars.morningRush.start && hour <= chars.morningRush.end) {
+      cpuMultiplier *= chars.morningRush.multiplier;
+      memoryMultiplier *= chars.morningRush.multiplier;
+      networkMultiplier *= chars.morningRush.multiplier;
+    }
+    
+    // 점심시간 감소
+    if (hour >= chars.lunchDip.start && hour <= chars.lunchDip.end) {
+      cpuMultiplier *= chars.lunchDip.multiplier;
+      memoryMultiplier *= chars.lunchDip.multiplier;
+      networkMultiplier *= chars.lunchDip.multiplier;
+    }
+    
+    // 퇴근 시간 급증
+    if (hour >= chars.eveningRush.start && hour <= chars.eveningRush.end) {
+      cpuMultiplier *= chars.eveningRush.multiplier;
+      memoryMultiplier *= chars.eveningRush.multiplier;
+      networkMultiplier *= chars.eveningRush.multiplier;
+    }
+    
+    // 새벽 백업 작업
+    if (hour >= chars.nightBackup.start || hour <= chars.nightBackup.end) {
+      cpuMultiplier *= chars.nightBackup.multiplier;
+      memoryMultiplier *= 0.8; // 백업은 CPU 위주
+      networkMultiplier *= chars.nightBackup.multiplier;
+    }
+    
+    // 랜덤 장애 적용
+    const random = Math.random();
+    let status = 'healthy';
+    
+    if (random < chars.criticalRate) {
+      // 심각한 장애 (10% 확률)
+      status = 'critical';
+      cpuMultiplier *= 3.0;
+      memoryMultiplier *= 2.5;
+    } else if (random < chars.criticalRate + chars.warningRate) {
+      // 경고 수준 (20% 확률)
+      status = 'warning';
+      cpuMultiplier *= 1.8;
+      memoryMultiplier *= 1.6;
+    }
+    
+    // 서버 역할별 가중치
+    const roleWeight = server.role === 'database' ? 1.3 : 
+                      server.role === 'api' ? 1.1 : 1.0;
+    
+    cpuMultiplier *= roleWeight;
+    memoryMultiplier *= roleWeight;
+    
+    // 최종 메트릭 계산
+    const cpu = Math.min(100, Math.max(0, 
+      server.baseLoad.cpu * cpuMultiplier + (Math.random() - 0.5) * 10
+    ));
+    
+    const memory = Math.min(100, Math.max(0, 
+      server.baseLoad.memory * memoryMultiplier + (Math.random() - 0.5) * 8
+    ));
+    
+    const disk = Math.min(100, Math.max(0, 
+      server.baseLoad.disk + (Math.random() - 0.5) * 5
+    ));
+    
+    return {
+      serverId: server.serverId,
+      hostname: server.hostname,
+      timestamp,
+      cpu: Math.round(cpu * 10) / 10,
+      memory: Math.round(memory * 10) / 10,
+      disk: Math.round(disk * 10) / 10,
+      network: {
+        bytesIn: networkMultiplier * (50000 + Math.random() * 200000),
+        bytesOut: networkMultiplier * (30000 + Math.random() * 150000),
+        latency: Math.max(1, 5 + Math.random() * 45 * (status === 'critical' ? 3 : 1))
+      },
+      system: {
+        uptime: Math.max(0, Math.random() * 8760 * 3600),
+        processes: 80 + Math.floor(Math.random() * 120),
+        loadAverage: [
+          cpu / 100 * 4,
+          cpu / 100 * 4 + (Math.random() - 0.5) * 0.5,
+          cpu / 100 * 4 + (Math.random() - 0.5) * 1.0
+        ]
+      }
+    };
+  }
+
+  /**
    * 기존 히스토리 데이터 상태 확인
    */
   private async checkExistingHistoryData(): Promise<{ isComplete: boolean; missingHours: number }> {

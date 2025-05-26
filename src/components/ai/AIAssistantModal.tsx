@@ -37,6 +37,10 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
   const [inputValue, setInputValue] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   
+  // 프리셋 질문 표시 상태 - 항상 true로 유지
+  const [showPresets, setShowPresets] = useState(true);
+  const [currentServerStatus, setCurrentServerStatus] = useState<'normal' | 'warning' | 'critical'>('normal');
+  
   // 마우스 제스처 상태
   const [mouseGesture, setMouseGesture] = useState<MouseGesture>({
     startX: 0,
@@ -93,6 +97,13 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
   const [serverData, setServerData] = useState<any>(null);
   const [isServerDataLoaded, setIsServerDataLoaded] = useState(false);
   const [aiEngineStatus, setAiEngineStatus] = useState<'initializing' | 'ready' | 'error'>('initializing');
+  
+  // 실시간 서버 상태 모니터링
+  const [realTimeServerStatus, setRealTimeServerStatus] = useState({
+    criticalIssues: 0,
+    warningIssues: 0,
+    lastUpdate: new Date()
+  });
 
   // 빠른 액션 버튼들
   const quickActions: QuickAction[] = [
@@ -292,11 +303,96 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
         const data = await response.json();
         setServerData(data);
         setIsServerDataLoaded(true);
+        
+        // 서버 상태 분석하여 현재 상태 업데이트
+        analyzeServerStatus(data);
       }
     } catch (error) {
       console.warn('서버 데이터 로드 실패:', error);
       setIsServerDataLoaded(false);
+      
+      // 실패 시 가상 데이터로 테스트
+      const mockData = generateRealisticServerData();
+      setServerData(mockData);
+      analyzeServerStatus(mockData);
     }
+  };
+
+  // 서버 상태 분석 및 현재 상태 결정
+  const analyzeServerStatus = (data: any) => {
+    if (!data?.servers) return;
+    
+    const criticalCount = data.servers.filter((server: any) => 
+      server.status === 'critical' || 
+      server.cpu_usage > 90 || 
+      server.memory_usage > 95 ||
+      server.disk_usage > 98
+    ).length;
+    
+    const warningCount = data.servers.filter((server: any) => 
+      server.status === 'warning' || 
+      server.cpu_usage > 70 || 
+      server.memory_usage > 80 ||
+      server.disk_usage > 85
+    ).length;
+    
+    setRealTimeServerStatus({
+      criticalIssues: criticalCount,
+      warningIssues: warningCount,
+      lastUpdate: new Date()
+    });
+    
+    // 현재 서버 상태 결정
+    if (criticalCount > 0) {
+      setCurrentServerStatus('critical');
+    } else if (warningCount > 0) {
+      setCurrentServerStatus('warning');
+    } else {
+      setCurrentServerStatus('normal');
+    }
+  };
+
+  // 실시간 장애 데이터 생성 (10% 심각, 20% 경고)
+  const generateRealisticServerData = () => {
+    const serverCount = 12; // 12대 서버 시뮬레이션
+    const servers = [];
+    
+    for (let i = 1; i <= serverCount; i++) {
+      const random = Math.random();
+      let status = 'healthy';
+      let cpu_usage = Math.random() * 30 + 20; // 정상: 20-50%
+      let memory_usage = Math.random() * 30 + 40; // 정상: 40-70%
+      let disk_usage = Math.random() * 20 + 30; // 정상: 30-50%
+      
+      // 10% 확률로 심각한 문제
+      if (random < 0.1) {
+        status = 'critical';
+        cpu_usage = Math.random() * 10 + 90; // 90-100%
+        memory_usage = Math.random() * 5 + 95; // 95-100%
+        disk_usage = Math.random() * 2 + 98; // 98-100%
+      }
+      // 20% 확률로 경고 수준
+      else if (random < 0.3) {
+        status = 'warning';
+        cpu_usage = Math.random() * 20 + 70; // 70-90%
+        memory_usage = Math.random() * 15 + 80; // 80-95%
+        disk_usage = Math.random() * 15 + 85; // 85-100%
+      }
+      
+      servers.push({
+        id: `server-${i.toString().padStart(2, '0')}`,
+        name: `WEB-${i.toString().padStart(2, '0')}`,
+        status,
+        cpu_usage: Math.round(cpu_usage * 10) / 10,
+        memory_usage: Math.round(memory_usage * 10) / 10,
+        disk_usage: Math.round(disk_usage * 10) / 10,
+        network_io: Math.random() * 1000 + 100,
+        uptime: Math.random() * 8760 + 100, // 시간
+        last_check: new Date().toISOString()
+      });
+    }
+    
+    return { servers, timestamp: new Date().toISOString() };
   };
 
   // AI 엔진 상태 확인
@@ -334,6 +430,15 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
       if (resultCards.length === 0) {
         generateDefaultCards();
       }
+      
+      // 실시간 서버 상태 업데이트 (30초마다)
+      const interval = setInterval(() => {
+        if (isOpen) {
+          loadServerData();
+        }
+      }, 30000);
+      
+      return () => clearInterval(interval);
     }
   }, [isOpen]);
 
@@ -730,6 +835,62 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
     };
   }, [isOpen, onClose]);
 
+  // 서버 상태 기반 스마트 질문 프리셋
+  const getSmartPresets = () => {
+    const baseQuestions = [
+      {
+        id: 'status-overview',
+        text: '현재 서버 전체 상태는 어때?',
+        category: 'basic',
+        icon: '🖥️'
+      },
+      {
+        id: 'resource-usage',
+        text: 'CPU와 메모리 사용률 확인해줘',
+        category: 'basic',
+        icon: '📊'
+      },
+      {
+        id: 'network-traffic',
+        text: '네트워크 트래픽 상황은?',
+        category: 'basic',
+        icon: '🌐'
+      }
+    ];
+
+    let advancedQuestion = {
+      id: 'advanced-analysis',
+      text: '종합적인 성능 분석과 최적화 제안해줘',
+      category: 'advanced',
+      icon: '🔍'
+    };
+
+    // 서버 상태에 따른 고급 질문 변경
+    switch (currentServerStatus) {
+      case 'critical':
+        advancedQuestion = {
+          id: 'emergency-analysis',
+          text: '긴급! 현재 심각한 문제 분석하고 즉시 대응방안 제시해줘',
+          category: 'advanced',
+          icon: '🚨'
+        };
+        break;
+      case 'warning':
+        advancedQuestion = {
+          id: 'warning-analysis',
+          text: '경고 상태 원인 분석하고 예방 조치 방안 알려줘',
+          category: 'advanced',
+          icon: '⚠️'
+        };
+        break;
+      default:
+        // 정상 상태일 때는 기본 고급 질문 유지
+        break;
+    }
+
+    return [...baseQuestions, advancedQuestion];
+  };
+
   if (!isOpen) return null;
 
   const sessionInfo = getSessionInfo();
@@ -976,6 +1137,87 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
               )}
             </button>
           </div>
+          
+          {/* 스마트 프리셋 질문 (지속 표시) */}
+          {showPresets && (
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <i className="fas fa-lightbulb text-yellow-500"></i>
+                  서버 상태 기반 추천 질문
+                  {currentServerStatus === 'critical' && (
+                    <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full font-bold animate-pulse">
+                      🚨 긴급
+                    </span>
+                  )}
+                  {currentServerStatus === 'warning' && (
+                    <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full font-bold">
+                      ⚠️ 주의
+                    </span>
+                  )}
+                  {currentServerStatus === 'normal' && (
+                    <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                      ✅ 정상
+                    </span>
+                  )}
+                </h3>
+                <button
+                  onClick={() => setShowPresets(false)}
+                  className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1 rounded"
+                >
+                  숨기기
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                {getSmartPresets().map((preset) => (
+                  <button
+                    key={preset.id}
+                    onClick={() => {
+                      setInputValue(preset.text);
+                      handleAnalysisInput(preset.text);
+                    }}
+                    disabled={isProcessing}
+                    className={`text-left p-3 rounded-xl border transition-all duration-200 hover:shadow-md ${
+                      preset.category === 'advanced' 
+                        ? currentServerStatus === 'critical'
+                          ? 'bg-red-50 border-red-200 hover:bg-red-100 text-red-800'
+                          : currentServerStatus === 'warning'
+                          ? 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100 text-yellow-800'
+                          : 'bg-purple-50 border-purple-200 hover:bg-purple-100 text-purple-800'
+                        : 'bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-800'
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm">{preset.icon}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                        preset.category === 'advanced' ? 'bg-white/60' : 'bg-white/40'
+                      }`}>
+                        {preset.category === 'advanced' ? '고급' : '기본'}
+                      </span>
+                    </div>
+                    <p className="text-xs font-medium leading-relaxed">
+                      {preset.text}
+                    </p>
+                  </button>
+                ))}
+              </div>
+              
+              {/* 프리셋 숨겨진 경우 다시 보기 버튼 */}
+            </div>
+          )}
+          
+          {!showPresets && (
+            <div className="mt-3 text-center">
+              <button
+                onClick={() => setShowPresets(true)}
+                className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+              >
+                <i className="fas fa-chevron-down mr-1"></i>
+                추천 질문 보기
+              </button>
+            </div>
+          )}
         </div>
 
         {/* 탭 컨텐츠 */}

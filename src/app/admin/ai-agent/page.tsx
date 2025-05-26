@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import EnhancedAdminDashboard from '../../../components/ai/EnhancedAdminDashboard';
+import AIAgentAdminDashboard from '../../../components/ai/AIAgentAdminDashboard';
 import { Shield } from 'lucide-react';
 
 export default function AIAgentAdminPage() {
@@ -41,7 +41,7 @@ export default function AIAgentAdminPage() {
       </div>
       
       {/* 관리자 대시보드 */}
-      <EnhancedAdminDashboard />
+      <AIAgentAdminDashboard />
     </div>
   );
 } 

@@ -108,6 +108,27 @@ export default function AnswerDisplay({
         </div>
       </div>
 
+      {/* 상단에 AI 사고 과정 표시 */}
+      {isLoading && (
+        <div className="px-6 py-4 bg-gradient-to-r from-indigo-50 to-purple-50 border-b">
+          <div className="mb-2 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+            <div className="flex items-center gap-2 text-indigo-700 font-medium text-sm">
+              <i className="fas fa-lightbulb"></i>
+              <span>AI가 질문을 분석하고 있습니다</span>
+            </div>
+            <div className="mt-1 text-xs text-indigo-600">
+              실제 ChatGPT-o1과 같은 방식으로 단계별 사고 과정을 보여드립니다
+            </div>
+          </div>
+          <ThinkingProcess
+            isActive={isLoading}
+            onComplete={(logs) => setThinkingLogs(logs)}
+            query={question}
+            serverData={metadata?.serverState?.servers || []}
+          />
+        </div>
+      )}
+
       {/* 답변 내용 */}
       <div className="px-6 py-5">
         <div className="flex items-start gap-3">
@@ -116,25 +137,7 @@ export default function AnswerDisplay({
           </div>
 
           <div className="flex-1">
-            {isLoading ? (
-              <div>
-                <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
-                  <div className="flex items-center gap-2 text-indigo-700 font-medium text-sm">
-                    <i className="fas fa-lightbulb"></i>
-                    <span>AI가 질문을 분석하고 있습니다</span>
-                  </div>
-                  <div className="mt-1 text-xs text-indigo-600">
-                    실제 ChatGPT-o1과 같은 방식으로 단계별 사고 과정을 보여드립니다
-                  </div>
-                </div>
-                <ThinkingProcess
-                  isActive={isLoading}
-                  onComplete={(logs) => setThinkingLogs(logs)}
-                  query={question}
-                  serverData={metadata?.serverState?.servers || []}
-                />
-              </div>
-            ) : (
+            {!isLoading ? (
               // 답변 표시
               <div>
                 <div 
@@ -182,12 +185,29 @@ export default function AnswerDisplay({
                   </div>
                 </div>
 
+                {/* 프리셋으로 돌아가기 버튼 */}
+                <div className="mt-4 pt-3 border-t border-gray-100">
+                  <button
+                    onClick={() => {
+                      // 답변 상태를 초기화하고 프리셋 표시
+                      window.location.reload(); // 간단한 방법으로 초기화
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-[1.02]"
+                  >
+                    <i className="fas fa-arrow-left"></i>
+                    <span>다른 기능 선택하기</span>
+                  </button>
+                </div>
+
                 {/* 생각 과정 로그 뷰어 - 답변 완료 후 표시 */}
                 <ThinkingLogViewer 
                   thinkingLogs={thinkingLogs}
                   question={question}
                 />
               </div>
+            ) : (
+              // 로딩 중에는 빈 div
+              <div></div>
             )}
           </div>
         </div>

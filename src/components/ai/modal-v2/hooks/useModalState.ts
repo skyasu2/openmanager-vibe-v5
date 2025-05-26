@@ -31,7 +31,8 @@ const initialState: ModalState = {
   isMobile: false,
   isHistoryOpen: false,
   history: [],
-  bottomSheetState: 'hidden'
+  bottomSheetState: 'hidden',
+  showBackToPresets: false
 };
 
 // 리듀서 함수
@@ -89,6 +90,12 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
       return {
         ...state,
         bottomSheetState: action.payload
+      };
+    
+    case 'SET_BACK_TO_PRESETS':
+      return {
+        ...state,
+        showBackToPresets: action.payload
       };
     
     default:
