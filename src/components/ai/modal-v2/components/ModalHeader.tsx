@@ -119,19 +119,8 @@ export default function ModalHeader({ onClose }: ModalHeaderProps) {
                 >
                   <i className="fas fa-robot text-indigo-600 w-4"></i>
                   <div>
-                    <div className="font-medium text-sm">AI 에이전트 관리</div>
-                    <div className="text-xs text-gray-500">AI 설정 및 성능 분석</div>
-                  </div>
-                </button>
-                
-                <button
-                  onClick={() => handleAdminAccess('/admin/ai-analysis')}
-                  className="w-full px-4 py-3 text-left text-gray-700 hover:bg-purple-50 transition-colors flex items-center gap-3"
-                >
-                  <i className="fas fa-chart-line text-purple-600 w-4"></i>
-                  <div>
-                    <div className="font-medium text-sm">AI 분석 대시보드</div>
-                    <div className="text-xs text-gray-500">성능 지표 및 로그 분석</div>
+                    <div className="font-medium text-sm">AI 에이전트 통합 관리</div>
+                    <div className="text-xs text-gray-500">모니터링, 분석, 로그 관리</div>
                   </div>
                 </button>
                 
