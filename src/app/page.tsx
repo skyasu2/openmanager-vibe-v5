@@ -340,18 +340,20 @@ export default function HomePage() {
         }
 
         .splash-container {
-          height: 100vh;
+          min-height: 100vh;
+          height: auto;
           background: var(--bg-gradient);
           background-size: 400% 400%;
           animation: gradientShift 20s ease infinite;
           display: flex;
           flex-direction: column;
           align-items: center;
-          justify-content: center;
+          justify-content: flex-start;
           text-align: center;
-          padding: 1rem;
+          padding: 6rem 1rem 2rem 1rem;
           position: relative;
-          overflow: hidden;
+          overflow-x: hidden;
+          overflow-y: auto;
         }
 
         .splash-container::before {
@@ -387,10 +389,10 @@ export default function HomePage() {
         }
 
         .main-title {
-          font-size: 3.5rem;
+          font-size: 2.8rem;
           font-weight: 700;
           color: var(--text-white);
-          margin-bottom: 1rem;
+          margin-bottom: 0.8rem;
           text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
           line-height: 1.2;
           z-index: 1;
@@ -406,10 +408,10 @@ export default function HomePage() {
         }
 
         .subtitle {
-          font-size: 1.3rem;
+          font-size: 1.1rem;
           font-weight: 400;
           color: rgba(255, 255, 255, 0.9);
-          margin-bottom: 2rem;
+          margin-bottom: 1.5rem;
           max-width: 500px;
           line-height: 1.6;
           text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -439,12 +441,13 @@ export default function HomePage() {
         .btn-primary {
           display: inline-flex;
           align-items: center;
+          justify-content: center;
           gap: 0.5rem;
           background: var(--pink-purple-gradient);
           color: var(--text-white);
-          font-size: 1.2rem;
+          font-size: 1.1rem;
           font-weight: 700;
-          padding: 1rem 2.5rem;
+          padding: 1rem 2rem;
           border: none;
           border-radius: 50px;
           text-decoration: none;
@@ -453,6 +456,8 @@ export default function HomePage() {
           box-shadow: var(--shadow-pink);
           z-index: 1;
           text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+          min-width: 220px;
+          height: 56px;
         }
 
         .btn-primary:hover {
@@ -466,12 +471,74 @@ export default function HomePage() {
           filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
         }
 
+        .btn-secondary {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          background: linear-gradient(45deg, #ef4444, #dc2626);
+          color: var(--text-white);
+          font-size: 1.1rem;
+          font-weight: 700;
+          padding: 1rem 2rem;
+          border: none;
+          border-radius: 50px;
+          text-decoration: none;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+          z-index: 1;
+          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+          min-width: 220px;
+          height: 56px;
+        }
+
+        .btn-secondary:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 15px 35px rgba(239, 68, 68, 0.4);
+          background: linear-gradient(45deg, #f87171, #ef4444);
+        }
+
+        .btn-secondary i {
+          font-size: 1.1rem;
+          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+        }
+
+        .button-container {
+          display: flex;
+          gap: 1rem;
+          align-items: center;
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+
+        .finger-pointer {
+          position: absolute;
+          top: -60px;
+          left: 50%;
+          transform: translateX(-50%);
+          font-size: 2rem;
+          animation: pointAnimation 2s ease-in-out infinite;
+          z-index: 10;
+        }
+
+        @keyframes pointAnimation {
+          0%, 100% { 
+            transform: translateX(-50%) translateY(0px);
+            opacity: 0.8;
+          }
+          50% { 
+            transform: translateX(-50%) translateY(-10px);
+            opacity: 1;
+          }
+        }
+
         .features-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 1.5rem;
-          margin: 1rem 0;
-          max-width: 1200px;
+          gap: 1rem;
+          margin: 0.8rem 0;
+          max-width: 1000px;
           width: 100%;
           z-index: 1;
         }
@@ -480,18 +547,18 @@ export default function HomePage() {
           background: rgba(255, 255, 255, 0.1);
           backdrop-filter: blur(15px);
           border: 1px solid var(--purple-accent);
-          border-radius: 20px;
-          padding: 2rem;
+          border-radius: 16px;
+          padding: 1.5rem;
           transition: all 0.3s ease;
           cursor: pointer;
           text-align: center;
-          min-height: 280px;
+          min-height: 220px;
           display: flex;
           flex-direction: column;
           justify-content: center;
           box-shadow: 
-            0 8px 32px rgba(0, 0, 0, 0.1),
-            0 0 20px var(--purple-glow);
+            0 6px 24px rgba(0, 0, 0, 0.1),
+            0 0 15px var(--purple-glow);
         }
 
         .feature-card:hover {
@@ -930,7 +997,7 @@ export default function HomePage() {
         }
 
         .vibe-coding-section {
-          margin: 1rem 0;
+          margin: 0.8rem 0;
           text-align: center;
           z-index: 1;
         }
@@ -985,11 +1052,11 @@ export default function HomePage() {
         }
 
         .footer-info {
-          margin-top: 0.5rem;
+          margin-top: 0.8rem;
           padding-top: 0.5rem;
           border-top: 1px solid rgba(255, 255, 255, 0.2);
           text-align: center;
-          font-size: 0.8rem;
+          font-size: 0.75rem;
           color: rgba(255, 255, 255, 0.7);
           z-index: 1;
         }
@@ -1041,7 +1108,7 @@ export default function HomePage() {
         }
 
         .benefits-section {
-          margin: 1.5rem 0 1rem 0;
+          margin: 1rem 0 0.8rem 0;
           z-index: 1;
         }
 
@@ -1049,14 +1116,14 @@ export default function HomePage() {
           background: rgba(255, 255, 255, 0.1);
           backdrop-filter: blur(20px);
           border: 1px solid var(--purple-accent);
-          border-radius: 25px;
-          padding: 2.5rem;
+          border-radius: 20px;
+          padding: 1.8rem;
           text-align: center;
-          max-width: 700px;
+          max-width: 600px;
           margin: 0 auto;
           box-shadow: 
-            0 20px 40px rgba(0, 0, 0, 0.15),
-            0 0 25px var(--purple-glow);
+            0 15px 30px rgba(0, 0, 0, 0.15),
+            0 0 20px var(--purple-glow);
           transition: all 0.4s ease;
           cursor: pointer;
           position: relative;
@@ -1252,34 +1319,34 @@ export default function HomePage() {
 
         @media (max-width: 768px) {
           .splash-container {
-            padding: 1rem;
+            padding: 5rem 1rem 2rem 1rem;
           }
           
           .main-title {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
+            font-size: 2.2rem;
+            margin-bottom: 0.8rem;
           }
           
           .subtitle {
-            font-size: 1.1rem;
-            max-width: 400px;
-            margin-bottom: 1.8rem;
+            font-size: 1rem;
+            max-width: 350px;
+            margin-bottom: 1.2rem;
           }
 
           .features-grid {
             grid-template-columns: 1fr;
-            gap: 1.5rem;
-            max-width: 400px;
+            gap: 1rem;
+            max-width: 350px;
           }
 
           .feature-card {
-            padding: 1.5rem;
-            min-height: 240px;
+            padding: 1.2rem;
+            min-height: 180px;
           }
 
           .feature-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
+            font-size: 2rem;
+            margin-bottom: 0.8rem;
           }
 
           .modal-content {
@@ -1289,30 +1356,42 @@ export default function HomePage() {
           }
           
           .benefits-card {
-            padding: 2rem;
+            padding: 1.5rem;
             margin: 0 1rem;
           }
           
           .benefits-icon {
-            font-size: 3rem;
+            font-size: 2.5rem;
           }
           
           .benefits-title {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
           }
           
           .benefits-text {
-            font-size: 1.05rem;
+            font-size: 1rem;
           }
 
-          .btn-primary {
-            font-size: 1.1rem;
-            padding: 0.9rem 2.2rem;
+          .btn-primary, .btn-secondary {
+            font-size: 1rem;
+            padding: 0.9rem 1.5rem;
+            min-width: 200px;
+            height: 52px;
+          }
+
+          .button-container {
+            flex-direction: column;
+            gap: 0.8rem;
+          }
+
+          .finger-pointer {
+            font-size: 1.8rem;
+            top: -50px;
           }
 
           .vibe-description {
-            font-size: 1rem;
-            max-width: 550px;
+            font-size: 0.95rem;
+            max-width: 400px;
           }
 
           /* 헤더 로고 모바일 최적화 */
@@ -1485,7 +1564,7 @@ export default function HomePage() {
           {!isSystemActive ? (
             <div className="text-center space-y-4">
               {/* 시스템 종료 상태 안내 */}
-              <div className="mb-6 p-4 bg-red-500/20 border border-red-400/30 rounded-2xl backdrop-blur-sm">
+              <div className="mb-4 p-3 bg-red-500/20 border border-red-400/30 rounded-xl backdrop-blur-sm">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
                   <span className="text-red-200 font-semibold">시스템 종료됨</span>
@@ -1496,13 +1575,17 @@ export default function HomePage() {
                 </p>
               </div>
               
-              <button 
-                className="btn-primary"
-                onClick={handleActivateSystem}
-              >
-                <i className="fas fa-power-off"></i>
-                <span>🚀 시스템 활성화 (20분)</span>
-              </button>
+              <div className="relative">
+                <div className="finger-pointer">👆</div>
+                <button 
+                  className="btn-primary"
+                  onClick={handleActivateSystem}
+                >
+                  <i className="fas fa-power-off"></i>
+                  <span>🚀 시스템 활성화 (20분)</span>
+                </button>
+              </div>
+              
               <p className="text-white/80 text-sm">
                 AI 에이전트 + 데이터 생성기 + 대시보드 모두 시작됩니다
               </p>
@@ -1510,7 +1593,7 @@ export default function HomePage() {
           ) : (
             <div className="text-center space-y-4">
               {/* 시스템 활성화 상태 표시 */}
-              <div className="mb-6 p-4 bg-green-500/20 border border-green-400/30 rounded-2xl backdrop-blur-sm">
+              <div className="mb-4 p-3 bg-green-500/20 border border-green-400/30 rounded-xl backdrop-blur-sm">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                   <span className="text-green-200 font-semibold">시스템 실행 중</span>
@@ -1523,23 +1606,23 @@ export default function HomePage() {
                 </div>
               </div>
               
-              <button 
-                className="btn-primary mb-3"
-                onClick={handleGoToDashboard}
-              >
-                <i className="fas fa-tachometer-alt"></i>
-                <span>📊 대시보드 들어가기</span>
-              </button>
-              
-              <br />
-              
-              <button 
-                className="btn-secondary"
-                onClick={handleDeactivateSystem}
-              >
-                <i className="fas fa-stop"></i>
-                <span>⏹️ 시스템 중지</span>
-              </button>
+              <div className="button-container">
+                <button 
+                  className="btn-primary"
+                  onClick={handleGoToDashboard}
+                >
+                  <i className="fas fa-tachometer-alt"></i>
+                  <span>📊 대시보드 들어가기</span>
+                </button>
+                
+                <button 
+                  className="btn-secondary"
+                  onClick={handleDeactivateSystem}
+                >
+                  <i className="fas fa-stop"></i>
+                  <span>⏹️ 시스템 중지</span>
+                </button>
+              </div>
               
               <p className="text-white/60 text-xs mt-2">
                 20분 후 자동 종료됩니다. 재시작하려면 이 페이지로 돌아와주세요.
