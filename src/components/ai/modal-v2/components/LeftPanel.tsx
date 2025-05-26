@@ -8,6 +8,7 @@ interface LeftPanelProps {
   isLoading: boolean;
   currentQuestion: string;
   currentAnswer: string;
+  responseMetadata?: any;
   setQuestion: (question: string) => void;
   sendQuestion: (question: string) => void;
   isMobile: boolean;
@@ -17,6 +18,7 @@ export default function LeftPanel({
   isLoading,
   currentQuestion,
   currentAnswer,
+  responseMetadata,
   setQuestion,
   sendQuestion,
   isMobile
@@ -84,6 +86,7 @@ export default function LeftPanel({
             question={currentQuestion}
             answer={currentAnswer}
             isLoading={isLoading}
+            metadata={responseMetadata}
           />
         )}
       </div>

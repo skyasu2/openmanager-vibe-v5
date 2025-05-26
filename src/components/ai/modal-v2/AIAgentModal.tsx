@@ -17,6 +17,7 @@ interface AIAgentModalProps {
 
 export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
   const [isMobile, setIsMobile] = useState(false);
+  const [responseMetadata, setResponseMetadata] = useState<any>(null);
   const { state, dispatch, addToHistory, setBottomSheetState } = useModalState();
   const { servers } = useServerDataStore();
 
@@ -72,6 +73,7 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
 
   // 질문 전송 핸들러
   const handleSendQuestion = async (question: string) => {
+    const startTime = Date.now();
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'SET_QUESTION', payload: question });
     
@@ -98,6 +100,17 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
 
       const data = await response.json();
       const answer = data.success ? data.data.response : '죄송합니다. 응답을 생성할 수 없습니다.';
+      const responseTime = Date.now() - startTime;
+      
+      // 응답 메타데이터 설정
+      const metadata = {
+        intent: data.data?.intent || 'general_query',
+        confidence: data.data?.confidence || 0.5,
+        responseTime,
+        serverState: { servers, totalCount: servers.length },
+        sessionId: data.data?.metadata?.sessionId || `session_${Date.now()}`
+      };
+      setResponseMetadata(metadata);
       
       dispatch({ type: 'SET_ANSWER', payload: answer });
       dispatch({ type: 'SET_LOADING', payload: false });
@@ -110,6 +123,17 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
       
       // 폴백 응답 생성
       const fallbackAnswer = generateFallbackResponse(question, servers);
+      const responseTime = Date.now() - startTime;
+      
+      // 폴백 메타데이터 설정
+      const fallbackMetadata = {
+        intent: 'fallback_response',
+        confidence: 0.3,
+        responseTime,
+        serverState: { servers, totalCount: servers.length },
+        sessionId: `fallback_session_${Date.now()}`
+      };
+      setResponseMetadata(fallbackMetadata);
       
       dispatch({ type: 'SET_ANSWER', payload: fallbackAnswer });
       dispatch({ type: 'SET_LOADING', payload: false });
@@ -210,6 +234,7 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
             isLoading={state.isLoading}
             currentQuestion={state.currentQuestion}
             currentAnswer={state.currentAnswer}
+            responseMetadata={responseMetadata}
             setQuestion={(question) => dispatch({ type: 'SET_QUESTION', payload: question })}
             sendQuestion={handleSendQuestion}
             isMobile={isMobile}

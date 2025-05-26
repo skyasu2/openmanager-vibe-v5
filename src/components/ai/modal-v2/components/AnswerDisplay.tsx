@@ -8,12 +8,20 @@ interface AnswerDisplayProps {
   question: string;
   answer: string;
   isLoading: boolean;
+  metadata?: {
+    intent?: string;
+    confidence?: number;
+    responseTime?: number;
+    serverState?: any;
+    sessionId?: string;
+  };
 }
 
 export default function AnswerDisplay({
   question,
   answer,
-  isLoading
+  isLoading,
+  metadata
 }: AnswerDisplayProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [interactionId, setInteractionId] = useState<string | null>(null);
@@ -25,17 +33,17 @@ export default function AnswerDisplay({
         const logger = InteractionLogger.getInstance();
         const id = await logger.logInteraction({
           query: question,
-          intent: 'general_query', // TODO: 실제 의도 분류 결과로 대체
-          confidence: 0.85, // TODO: 실제 신뢰도 점수로 대체
+          intent: metadata?.intent || 'general_query',
+          confidence: metadata?.confidence || 0.5,
           response: answer,
           contextData: {
-            serverState: {}, // TODO: 실제 서버 상태 데이터
+            serverState: metadata?.serverState || {},
             activeMetrics: [],
             timeOfDay: new Date().toLocaleTimeString(),
             userRole: 'user',
-            sessionId: 'session_' + Date.now()
+            sessionId: metadata?.sessionId || 'session_' + Date.now()
           },
-          responseTime: 1500 // TODO: 실제 응답 시간 측정
+          responseTime: metadata?.responseTime || 0
         });
         setInteractionId(id);
       };

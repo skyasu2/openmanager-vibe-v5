@@ -100,30 +100,43 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
 export function useModalState() {
   const [state, dispatch] = useReducer(modalReducer, initialState);
 
-  // 기능 데이터 로드 (실제 구현 시 API 호출 등으로 대체)
-  const loadFunctionData = useCallback((functionType: FunctionType) => {
+  // 기능 데이터 로드 (실제 API 호출)
+  const loadFunctionData = useCallback(async (functionType: FunctionType) => {
     dispatch({ 
       type: 'SET_LOADING', 
       payload: true 
     });
 
-    // 임시 데이터 - 실제 구현에서는 API 호출로 대체
-    setTimeout(() => {
-      const mockData = getMockDataForFunction(functionType);
+    try {
+      // 실제 API 호출로 데이터 로드
+      const realData = await fetchFunctionData(functionType);
       
       dispatch({ 
         type: 'UPDATE_FUNCTION_DATA', 
         payload: { 
           type: functionType, 
-          data: mockData 
+          data: realData 
         } 
       });
+    } catch (error) {
+      console.error(`Function data load failed for ${functionType}:`, error);
       
+      // 에러 발생 시 폴백으로 mock 데이터 사용
+      const fallbackData = getMockDataForFunction(functionType);
+      
+      dispatch({ 
+        type: 'UPDATE_FUNCTION_DATA', 
+        payload: { 
+          type: functionType, 
+          data: fallbackData 
+        } 
+      });
+    } finally {
       dispatch({ 
         type: 'SET_LOADING', 
         payload: false 
       });
-    }, 1000);
+    }
   }, []);
 
   // 질문과 답변을 히스토리에 추가
@@ -158,7 +171,101 @@ export function useModalState() {
   };
 }
 
-// 임시 데이터 생성 함수
+// 실제 API 데이터 로드 함수
+async function fetchFunctionData(functionType: FunctionType): Promise<any[]> {
+  try {
+    // 공통 서버 데이터를 사용하는 기능들 (실제 구현된 API)
+    let endpoint = '/api/servers';
+    
+    switch (functionType) {
+      case 'performance':
+      case 'resource-usage':
+      case 'quick-diagnosis':
+        endpoint = '/api/servers';
+        break;
+      case 'auto-report':
+      case 'security-check':
+        endpoint = '/api/health';
+        break;
+      default:
+        // 다른 기능들은 폴백 데이터 사용
+        throw new Error(`Using fallback data for: ${functionType}`);
+    }
+
+    const response = await fetch(endpoint);
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    // 기능별 데이터 변환
+    return transformDataForFunction(data, functionType);
+    
+  } catch (error) {
+    console.log(`Using fallback data for ${functionType}:`, (error as Error).message);
+    throw error;
+  }
+}
+
+// 기능별 데이터 변환
+function transformDataForFunction(apiData: any, functionType: FunctionType): any[] {
+  if (!apiData.success || !apiData.data) {
+    return [];
+  }
+
+  const servers = apiData.data;
+  
+  // 공통 계산
+  const avgCpu = servers.length > 0 ? servers.reduce((sum: number, s: any) => sum + (s.metrics?.cpu || s.cpu || 0), 0) / servers.length : 0;
+  const avgMemory = servers.length > 0 ? servers.reduce((sum: number, s: any) => sum + (s.metrics?.memory || s.memory || 0), 0) / servers.length : 0;
+  const avgDisk = servers.length > 0 ? servers.reduce((sum: number, s: any) => sum + (s.metrics?.disk || s.disk || 0), 0) / servers.length : 0;
+  
+  switch (functionType) {
+    case 'performance':
+      return servers.map((server: any) => ({
+        id: server.id,
+        name: server.name || `Server-${server.id}`,
+        cpu: server.metrics?.cpu || server.cpu || 0,
+        memory: server.metrics?.memory || server.memory || 0,
+        disk: server.metrics?.disk || server.disk || 0
+      }));
+      
+    case 'resource-usage':
+      return [
+        { id: 1, resource: 'CPU', value: `${avgCpu.toFixed(1)}%`, trend: avgCpu > 70 ? 'up' : 'stable' },
+        { id: 2, resource: 'Memory', value: `${avgMemory.toFixed(1)}%`, trend: avgMemory > 80 ? 'up' : 'stable' },
+        { id: 3, resource: 'Disk', value: `${avgDisk.toFixed(1)}%`, trend: avgDisk > 90 ? 'up' : 'down' }
+      ];
+      
+    case 'quick-diagnosis':
+      return [
+        { 
+          id: 1, 
+          name: 'CPU 체크', 
+          status: avgCpu > 80 ? 'critical' : avgCpu > 60 ? 'warning' : 'good', 
+          value: `${avgCpu.toFixed(1)}%` 
+        },
+        { 
+          id: 2, 
+          name: '메모리 체크', 
+          status: avgMemory > 85 ? 'critical' : avgMemory > 70 ? 'warning' : 'good', 
+          value: `${avgMemory.toFixed(1)}%` 
+        },
+        { 
+          id: 3, 
+          name: '서버 상태', 
+          status: servers.filter((s: any) => s.status === 'healthy').length > servers.length * 0.8 ? 'good' : 'warning', 
+          value: `${servers.filter((s: any) => s.status === 'healthy').length}/${servers.length}` 
+        }
+      ];
+      
+    default:
+      return servers;
+  }
+}
+
+// 임시 데이터 생성 함수 (폴백용)
 function getMockDataForFunction(functionType: FunctionType): any[] {
   switch (functionType) {
     case 'auto-report':
