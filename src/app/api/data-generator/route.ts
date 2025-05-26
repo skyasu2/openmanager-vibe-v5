@@ -43,7 +43,11 @@ export async function POST(request: NextRequest) {
     switch (action) {
       case 'start-realtime':
         const startPattern = pattern || 'normal'; // 기본값: 정상 운영
+        console.log(`🎭 [Data Generator] Starting realtime generation with pattern: ${startPattern}`);
+        
         await serverDataGenerator.startRealtimeGeneration(startPattern);
+        
+        console.log(`✅ [Data Generator] Realtime generation started successfully`);
         
         return NextResponse.json({
           success: true,

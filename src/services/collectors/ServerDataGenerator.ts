@@ -201,6 +201,13 @@ export class ServerDataGenerator {
     
     // 서버 목록 가져오기
     const servers = this.generateServerList();
+    console.log(`📋 Generated ${servers.length} servers for realtime monitoring`);
+    
+    // ServerDataCollector에 서버 등록
+    await this.registerServersToCollector(servers);
+    
+    // 첫 번째 데이터 포인트 즉시 생성
+    await this.generateRealtimeDataPoint(servers);
     
     // 5초마다 데이터 생성
     this.realtimeTimer = setInterval(async () => {
@@ -383,6 +390,107 @@ export class ServerDataGenerator {
       { id: 'monitor-01', hostname: 'prometheus-01', type: 'monitoring' },
       { id: 'lb-01', hostname: 'nginx-lb-01', type: 'loadbalancer' }
     ];
+  }
+
+  /**
+   * ServerDataCollector에 서버 등록
+   */
+  private async registerServersToCollector(servers: any[]): Promise<void> {
+    try {
+      // 서버 사이드에서만 실행
+      if (typeof window !== 'undefined') {
+        console.log('Client-side: skipping server registration');
+        return;
+      }
+
+      // 동적 import로 ServerDataCollector 불러오기
+      const { serverDataCollector } = await import('./ServerDataCollector');
+      
+      console.log(`🔗 Registering ${servers.length} servers to ServerDataCollector...`);
+      
+      // 각 서버를 ServerInfo 형태로 변환하여 등록
+      for (const server of servers) {
+        const serverInfo = {
+          id: server.id,
+          hostname: server.hostname,
+          ipAddress: this.generateIPAddress(server.id),
+          status: 'online' as const,
+          location: 'Seoul-DC1',
+          environment: 'production' as const,
+          provider: 'onpremise' as const,
+          tags: {
+            type: server.type,
+            team: 'devops',
+            project: 'openmanager-ai'
+          },
+          metrics: this.generateInitialMetrics(),
+          lastUpdate: new Date(),
+          lastSeen: new Date(),
+          alerts: [],
+          services: [
+            {
+              name: server.type,
+              status: 'running' as const,
+              port: server.type === 'database' ? 5432 : server.type === 'cache' ? 6379 : 80,
+              pid: Math.floor(Math.random() * 10000) + 1000,
+              uptime: Math.floor(Math.random() * 86400),
+              memoryUsage: 100 + Math.floor(Math.random() * 100),
+              cpuUsage: 5 + Math.floor(Math.random() * 15)
+            }
+          ]
+        };
+
+        // ServerDataCollector의 내부 서버 맵에 직접 추가
+        (serverDataCollector as any).servers.set(server.id, serverInfo);
+      }
+      
+      console.log(`✅ Successfully registered ${servers.length} servers to ServerDataCollector`);
+    } catch (error) {
+      console.error('❌ Failed to register servers to collector:', error);
+    }
+  }
+
+  /**
+   * IP 주소 생성
+   */
+  private generateIPAddress(serverId: string): string {
+    const hash = serverId.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    
+    const octet3 = Math.abs(hash) % 256;
+    const octet4 = Math.abs(hash >> 8) % 256;
+    
+    return `192.168.${octet3}.${octet4}`;
+  }
+
+  /**
+   * 초기 메트릭 생성
+   */
+  private generateInitialMetrics(): any {
+    return {
+      cpu: 20 + Math.random() * 40,
+      memory: 30 + Math.random() * 30,
+      disk: 40 + Math.random() * 20,
+      network: {
+        bytesIn: Math.floor(Math.random() * 1000000) + 100000,
+        bytesOut: Math.floor(Math.random() * 800000) + 80000,
+        packetsIn: Math.floor(Math.random() * 10000) + 1000,
+        packetsOut: Math.floor(Math.random() * 8000) + 800,
+        latency: Math.round((Math.random() * 50 + 10) * 100) / 100,
+        connections: Math.floor(Math.random() * 200) + 50
+      },
+      processes: Math.floor(Math.random() * 100) + 100,
+      loadAverage: [
+        Math.round((Math.random() * 2) * 100) / 100,
+        Math.round((Math.random() * 1.5) * 100) / 100,
+        Math.round((Math.random() * 1) * 100) / 100
+      ] as [number, number, number],
+      uptime: Math.floor(Math.random() * 86400),
+      temperature: 40 + Math.random() * 20,
+      powerUsage: 150 + Math.random() * 100
+    };
   }
 
   /**

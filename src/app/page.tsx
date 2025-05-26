@@ -174,9 +174,43 @@ export default function HomePage() {
       }
     } catch (error) {
       console.error('데이터 생성기 시작 실패:', error);
+      
+      // 5-1. 데이터 생성기 실패 시 강제 초기화 시도
+      console.log('🚨 데이터 생성기 실패 - 강제 초기화 시도...');
+      try {
+        const forceInitResponse = await fetch('/api/simulate/force-init', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (forceInitResponse.ok) {
+          const initData = await forceInitResponse.json();
+          console.log('✅ 강제 초기화 성공:', initData);
+        }
+      } catch (forceError) {
+        console.error('❌ 강제 초기화도 실패:', forceError);
+      }
     }
     
-    // 6. AI 에이전트 자동 리포트 생성
+    // 6. 서버 데이터 확인 및 fallback 시도
+    setTimeout(async () => {
+      try {
+        const serverResponse = await fetch('/api/servers');
+        if (serverResponse.ok) {
+          const serverData = await serverResponse.json();
+          console.log(`📊 서버 데이터 확인: ${serverData.data?.servers?.length || 0}개 서버 발견`);
+          
+          if (!serverData.data?.servers?.length) {
+            console.log('⚠️ 서버 데이터 없음 - 추가 강제 초기화 시도');
+            await fetch('/api/simulate/force-init', { method: 'POST' });
+          }
+        }
+      } catch (error) {
+        console.error('서버 데이터 확인 실패:', error);
+      }
+    }, 3000);
+    
+    // 7. AI 에이전트 자동 리포트 생성
     setTimeout(() => {
       smartAIAgent.generateAutoReport();
     }, 1000);

@@ -158,6 +158,51 @@ export async function GET() {
         
         // 실제 서버 데이터 가져오기
         const servers = serverDataCollector.getAllServers();
+        console.log(`📊 [Servers API] Found ${servers.length} servers from ServerDataCollector`);
+        
+        // 서버가 없으면 기본 서버 생성
+        if (servers.length === 0) {
+          console.log('⚠️ No servers found in ServerDataCollector, generating fallback servers...');
+          
+          // 시뮬레이션 초기화 시도
+          try {
+            const { serverDataGenerator } = await import('../../../services/collectors/ServerDataGenerator');
+            console.log('🔄 Starting emergency server generation...');
+            await serverDataGenerator.startRealtimeGeneration('normal');
+            
+            // 잠시 후 다시 확인
+            setTimeout(async () => {
+              const retryServers = serverDataCollector.getAllServers();
+              console.log(`🔄 After generation: ${retryServers.length} servers available`);
+            }, 1000);
+          } catch (generatorError) {
+            console.error('❌ Failed to start generator:', generatorError);
+          }
+          
+          // 즉시 fallback 서버 반환
+          const fallbackServers = generateFallbackServers();
+          console.log(`💾 Returning ${fallbackServers.length} fallback servers`);
+          
+          return NextResponse.json({
+            success: true,
+            fallback: true,
+            data: {
+              servers: fallbackServers,
+              stats: {
+                total: fallbackServers.length,
+                byStatus: {
+                  online: fallbackServers.filter(s => s.status === 'online').length,
+                  warning: fallbackServers.filter(s => s.status === 'warning').length,
+                  critical: fallbackServers.filter(s => s.status === 'critical').length,
+                  offline: fallbackServers.filter(s => s.status === 'offline').length
+                }
+              }
+            },
+            message: 'Using fallback server data',
+            timestamp: new Date().toISOString()
+          });
+        }
+        
         const stats = serverDataCollector.getServerStats();
         const collectionStats = serverDataCollector.getCollectionStats();
         
@@ -403,7 +448,8 @@ export async function DELETE() {
  * 백업 서버 데이터 생성
  */
 function generateFallbackServers() {
-  return Array.from({ length: 5 }, (_, i) => ({
+  console.log('🔄 Generating emergency fallback servers...');
+  return Array.from({ length: 10 }, (_, i) => ({
     id: `fallback-server-${i + 1}`,
     hostname: `server-${String(i + 1).padStart(2, '0')}`,
     ipAddress: `192.168.1.${i + 10}`,
