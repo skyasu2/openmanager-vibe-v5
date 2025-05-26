@@ -11,59 +11,15 @@ export default function ServerDashboardPage() {
   const [isAgentOpen, setIsAgentOpen] = useState(false);
   const [isManualExit, setIsManualExit] = useState(false); // 수동 종료 플래그
 
-  // 권한 확인 (임시로 완화됨)
+  // 권한 확인 완전 제거 (데모용)
   useEffect(() => {
-    const checkAuth = () => {
-      // 수동 종료 중이면 인증 체크 스킵
-      if (isManualExit) return;
-      
-      const authToken = localStorage.getItem('dashboard_auth_token');
-      const sessionAuth = sessionStorage.getItem('dashboard_authorized');
-      const authTime = localStorage.getItem('dashboard_access_time');
-      const fromIndex = localStorage.getItem('authorized_from_index');
-      
-      // 임시 접근 허용: 메인 대시보드에서 온 경우 자동 인증 설정
-      if (!authToken && !sessionAuth) {
-        console.log('🔧 임시 인증 설정 - server-dashboard 접근 허용');
-        localStorage.setItem('dashboard_auth_token', `auto_${Date.now()}`);
-        sessionStorage.setItem('dashboard_authorized', 'true');
-        localStorage.setItem('dashboard_access_time', Date.now().toString());
-        localStorage.setItem('authorized_from_index', 'true');
-        return;
-      }
-      
-      // 기본 인증 확인 (완화됨)
-      if (!authToken || !sessionAuth) {
-        console.log('🔧 임시 인증 재설정');
-        localStorage.setItem('dashboard_auth_token', `auto_${Date.now()}`);
-        sessionStorage.setItem('dashboard_authorized', 'true');
-        localStorage.setItem('dashboard_access_time', Date.now().toString());
-        localStorage.setItem('authorized_from_index', 'true');
-        return;
-      }
-      
-      // 세션 만료 확인 (2시간으로 연장)
-      if (authTime) {
-        const accessTime = parseInt(authTime);
-        const currentTime = Date.now();
-        const twoHours = 2 * 60 * 60 * 1000; // 2시간으로 연장
-        
-        if (currentTime - accessTime > twoHours) {
-          console.log('⏰ 세션 만료 (2시간) - 랜딩페이지로 이동');
-          localStorage.clear();
-          sessionStorage.clear();
-          alert('2시간 체험 세션이 만료되었습니다. 랜딩페이지로 이동합니다.');
-          router.replace('/');
-          return;
-        }
-      }
-    };
-
-    checkAuth();
-    // 5분마다 세션 확인으로 변경 (덜 빈번하게)
-    const interval = setInterval(checkAuth, 5 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, [router, isManualExit]);
+    // 자동 인증 설정 - 누구나 접근 가능
+    console.log('🔓 server-dashboard 완전 개방 - 누구나 접근 가능');
+    localStorage.setItem('dashboard_auth_token', `demo_${Date.now()}`);
+    sessionStorage.setItem('dashboard_authorized', 'true');
+    localStorage.setItem('dashboard_access_time', Date.now().toString());
+    localStorage.setItem('authorized_from_index', 'true');
+  }, []);
 
   const closeAgent = () => {
     setIsAgentOpen(false);
