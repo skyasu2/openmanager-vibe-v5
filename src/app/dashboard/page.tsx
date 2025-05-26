@@ -89,8 +89,27 @@ export default function DashboardPage() {
 
   // 랜딩페이지로 이동 (시스템 상태 정리)
   const handleGoToLanding = () => {
-    console.log('🏠 랜딩페이지로 이동');
-    router.push('/');
+    console.log('🏠 메인 대시보드 OpenManager 버튼 클릭 - 랜딩페이지로 이동');
+    
+    try {
+      // 시스템 절전 모드 진입
+      const { enterSleepMode } = usePowerStore.getState();
+      enterSleepMode();
+      
+      // 로컬/세션 스토리지 정리
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      console.log('✅ 시스템 절전 모드 진입 및 저장소 정리 완료');
+      
+      // window.location.href를 사용하여 확실한 페이지 이동
+      window.location.href = '/';
+      
+    } catch (error) {
+      console.error('❌ 랜딩페이지 이동 중 에러:', error);
+      // fallback으로 직접 이동
+      window.location.href = '/';
+    }
   };
 
   return (
