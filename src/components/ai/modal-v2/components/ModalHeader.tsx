@@ -80,7 +80,7 @@ export default function ModalHeader({ onClose }: ModalHeaderProps) {
   };
 
   return (
-    <div className="bg-gradient-to-r from-indigo-700 to-purple-700 h-16 flex items-center justify-between px-6 text-white shadow-md">
+    <div className="bg-gradient-to-r from-indigo-700 to-purple-700 h-16 flex items-center justify-between px-6 text-white shadow-md relative">
       {/* 로고 및 제목 */}
       <div className="flex items-center gap-3">
         <div className="h-10 w-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -171,15 +171,16 @@ export default function ModalHeader({ onClose }: ModalHeaderProps) {
             </div>
           )}
         </div>
-        
-        <button 
-          onClick={onClose}
-          className="h-9 w-9 bg-white/10 rounded-lg flex items-center justify-center hover:bg-red-500/80 transition-colors"
-          title="닫기"
-        >
-          <i className="fas fa-times"></i>
-        </button>
       </div>
+
+      {/* 우측 상단 X 버튼 */}
+      <button 
+        onClick={onClose}
+        className="absolute top-3 right-3 w-8 h-8 bg-red-500/90 hover:bg-red-600 rounded-full flex items-center justify-center text-white transition-all hover:scale-110 shadow-lg z-50"
+        title="모달 닫기"
+      >
+        <i className="fas fa-times text-sm"></i>
+      </button>
     </div>
   );
 } 

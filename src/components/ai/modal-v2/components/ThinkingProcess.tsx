@@ -161,13 +161,33 @@ export default function ThinkingProcess({ isActive, onComplete, query, serverDat
             <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
           </div>
-          <span className="text-sm font-mono text-gray-300">AI Engine Process Monitor</span>
+          <span className="text-sm font-mono text-gray-300">🧠 AI 사고 과정 분석 중...</span>
           {!isCompleted && (
             <div className="flex items-center gap-2 ml-auto">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-xs text-green-400">실행 중</span>
+              <span className="text-xs text-green-400">실시간 분석 중</span>
             </div>
           )}
+          {isCompleted && (
+            <div className="flex items-center gap-2 ml-auto">
+              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+              <span className="text-xs text-blue-400">분석 완료</span>
+            </div>
+          )}
+        </div>
+        
+        {/* 진행 상황 표시 */}
+        <div className="mt-2">
+          <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
+            <span>분석 진행률</span>
+            <span>{Math.round((steps.length / 6) * 100)}%</span>
+          </div>
+          <div className="w-full bg-gray-700 rounded-full h-1">
+            <div 
+              className="bg-gradient-to-r from-blue-500 to-purple-500 h-1 rounded-full transition-all duration-500"
+              style={{ width: `${(steps.length / 6) * 100}%` }}
+            ></div>
+          </div>
         </div>
       </div>
 
@@ -193,9 +213,19 @@ export default function ThinkingProcess({ isActive, onComplete, query, serverDat
         ))}
         
         {!isCompleted && (
-          <div className="flex items-center gap-2 text-gray-400">
-            <div className="w-4 h-4 border border-gray-500 border-t-blue-500 rounded-full animate-spin"></div>
-            <span>처리 중...</span>
+          <div className="border-l-2 border-blue-500 pl-4 pb-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-blue-400 font-semibold">[AI 분석 진행 중]</span>
+              <span className="text-gray-500 text-xs">
+                {new Date().toLocaleTimeString('ko-KR')}
+              </span>
+            </div>
+            <div className="text-gray-300 pl-6">
+              🧠 질문을 깊이 분석하고 있습니다...<br/>
+              📊 서버 데이터를 실시간으로 처리 중...<br/>
+              🔍 패턴을 찾고 최적의 답변을 준비 중...
+            </div>
           </div>
         )}
       </div>

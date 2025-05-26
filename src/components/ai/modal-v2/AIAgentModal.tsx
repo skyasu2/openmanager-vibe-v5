@@ -229,10 +229,9 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center animate-fade-in">
-      {/* 모달 배경 블러 효과 */}
+      {/* 모달 배경 블러 효과 - 클릭해도 모달이 닫히지 않음 */}
       <div 
         className="absolute inset-0 bg-gray-900/70 backdrop-blur-sm"
-        onClick={onClose}
       />
       
       {/* 모달 컨테이너 */}

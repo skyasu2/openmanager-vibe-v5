@@ -117,12 +117,23 @@ export default function AnswerDisplay({
 
           <div className="flex-1">
             {isLoading ? (
-              <ThinkingProcess
-                isActive={isLoading}
-                onComplete={(logs) => setThinkingLogs(logs)}
-                query={question}
-                serverData={metadata?.serverState?.servers || []}
-              />
+              <div>
+                <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-indigo-700 font-medium text-sm">
+                    <i className="fas fa-lightbulb"></i>
+                    <span>AI가 질문을 분석하고 있습니다</span>
+                  </div>
+                  <div className="mt-1 text-xs text-indigo-600">
+                    실제 ChatGPT-o1과 같은 방식으로 단계별 사고 과정을 보여드립니다
+                  </div>
+                </div>
+                <ThinkingProcess
+                  isActive={isLoading}
+                  onComplete={(logs) => setThinkingLogs(logs)}
+                  query={question}
+                  serverData={metadata?.serverState?.servers || []}
+                />
+              </div>
             ) : (
               // 답변 표시
               <div>

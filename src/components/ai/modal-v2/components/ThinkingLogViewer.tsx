@@ -63,36 +63,60 @@ export default function ThinkingLogViewer({ thinkingLogs, question }: ThinkingLo
   if (!thinkingLogs.length) return null;
 
   return (
-    <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden">
+    <div className="mt-4 border-2 border-indigo-200 rounded-xl overflow-hidden shadow-sm bg-gradient-to-r from-indigo-50 to-purple-50">
       {/* 헤더 - 접힌 상태 */}
       <div 
-        className="bg-gray-50 px-4 py-3 cursor-pointer hover:bg-gray-100 transition-colors select-none"
+        className="bg-gradient-to-r from-indigo-100 to-purple-100 px-4 py-4 cursor-pointer hover:from-indigo-200 hover:to-purple-200 transition-all select-none border-b border-indigo-200"
         onClick={() => setIsExpanded(!isExpanded)}
         style={{ userSelect: 'none' }}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <i className={`fas ${isExpanded ? 'fa-chevron-down' : 'fa-chevron-right'} text-gray-500 text-sm transition-transform`}></i>
-              <i className="fas fa-brain text-purple-600"></i>
-              <span className="font-medium text-gray-800">AI 사고 과정</span>
+              <div className={`w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center transition-transform ${isExpanded ? 'rotate-90' : ''}`}>
+                <i className="fas fa-chevron-right text-white text-xs"></i>
+              </div>
+              <div className="flex items-center gap-2">
+                <i className="fas fa-brain text-purple-600 text-lg"></i>
+                <span className="font-bold text-gray-800">🤖 AI 사고 과정 로그</span>
+              </div>
             </div>
-            <div className="text-sm text-gray-500">
-              {thinkingLogs.length}단계 처리 완료
+            <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
+              {thinkingLogs.length}단계 완료
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            <div className="text-xs text-gray-500">
+          <div className="flex items-center gap-3">
+            <div className="text-xs text-gray-600 bg-white px-2 py-1 rounded">
               {new Date(thinkingLogs[thinkingLogs.length - 1]?.timestamp).toLocaleTimeString('ko-KR')}
             </div>
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-xs text-green-600 font-medium">분석 완료</span>
+            </div>
           </div>
         </div>
         
         {!isExpanded && (
-          <div className="mt-2 text-sm text-gray-600">
-            질의 분석 → 데이터 처리 → 패턴 매칭 → 추론 → 응답 생성
+          <div className="mt-3 p-3 bg-white/60 rounded-lg">
+            <div className="text-sm text-gray-700 font-medium mb-2">
+              💭 AI가 이렇게 생각했습니다:
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">질의분석</span>
+              <i className="fas fa-arrow-right text-gray-400 text-xs"></i>
+              <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">데이터처리</span>
+              <i className="fas fa-arrow-right text-gray-400 text-xs"></i>
+              <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">패턴매칭</span>
+              <i className="fas fa-arrow-right text-gray-400 text-xs"></i>
+              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">추론</span>
+              <i className="fas fa-arrow-right text-gray-400 text-xs"></i>
+              <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs">응답생성</span>
+            </div>
+            <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+              <i className="fas fa-info-circle"></i>
+              <span>클릭하면 상세한 분석 과정을 확인할 수 있습니다</span>
+            </div>
           </div>
         )}
       </div>
