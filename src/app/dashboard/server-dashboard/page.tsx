@@ -9,11 +9,14 @@ import ProfileDropdown from '../../../components/ui/ProfileDropdown';
 export default function ServerDashboardPage() {
   const router = useRouter();
   const [isAgentOpen, setIsAgentOpen] = useState(false);
-
+  const [isManualExit, setIsManualExit] = useState(false); // 수동 종료 플래그
 
   // 권한 확인
   useEffect(() => {
     const checkAuth = () => {
+      // 수동 종료 중이면 인증 체크 스킵
+      if (isManualExit) return;
+      
       const authToken = localStorage.getItem('dashboard_auth_token');
       const sessionAuth = sessionStorage.getItem('dashboard_authorized');
       const authTime = localStorage.getItem('dashboard_access_time');
@@ -21,6 +24,7 @@ export default function ServerDashboardPage() {
       
       // 랜딩페이지를 거치지 않고 직접 접근한 경우
       if (!fromIndex || fromIndex !== 'true') {
+        console.log('🚫 직접 접근 감지 - 랜딩페이지로 이동');
         localStorage.clear();
         sessionStorage.clear();
         router.replace('/');
@@ -29,6 +33,7 @@ export default function ServerDashboardPage() {
       
       // 기본 인증 확인
       if (!authToken || !sessionAuth || !authTime) {
+        console.log('🚫 인증 정보 없음 - 랜딩페이지로 이동');
         localStorage.clear();
         sessionStorage.clear();
         router.replace('/');
@@ -41,6 +46,7 @@ export default function ServerDashboardPage() {
       const oneHour = 60 * 60 * 1000; // 1시간
       
       if (currentTime - accessTime > oneHour) {
+        console.log('⏰ 세션 만료 - 랜딩페이지로 이동');
         localStorage.clear();
         sessionStorage.clear();
         alert('1시간 체험 세션이 만료되었습니다. 랜딩페이지로 이동합니다.');
@@ -53,7 +59,7 @@ export default function ServerDashboardPage() {
     // 1분마다 세션 만료 확인
     const interval = setInterval(checkAuth, 60000);
     return () => clearInterval(interval);
-  }, [router]);
+  }, [router, isManualExit]);
 
   const closeAgent = () => {
     setIsAgentOpen(false);
@@ -82,10 +88,14 @@ export default function ServerDashboardPage() {
             
             <button 
               onClick={() => {
+                console.log('🏠 OpenManager 버튼 클릭 - 랜딩페이지로 이동');
+                // 수동 종료 플래그 설정
+                setIsManualExit(true);
                 // 세션 정리 후 랜딩페이지 이동
                 localStorage.clear();
                 sessionStorage.clear();
-                router.push('/');
+                // window.location.href를 사용하여 확실한 페이지 이동
+                window.location.href = '/';
               }}
               className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
             >
