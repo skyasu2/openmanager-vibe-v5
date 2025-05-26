@@ -8,7 +8,7 @@
  * - 장애 시나리오 시뮬레이션
  */
 
-import { metricsStorage } from '../storage';
+// import { metricsStorage } from '../storage'; // 조건부 로딩으로 변경
 import { useSystemStore } from '../../stores/systemStore';
 
 export interface ServerMetrics {
@@ -1456,80 +1456,73 @@ export class ServerDataCollector {
    * 데이터베이스 통합 메트릭 저장
    */
   private async saveMetricsToDatabase(server: ServerInfo): Promise<void> {
-    try {
-             const totalMemory = 8589934592; // 8GB 기본값
-       const usedMemory = Math.floor(totalMemory * server.metrics.memory / 100);
-       const totalDisk = 107374182400; // 100GB 기본값
-       const usedDisk = Math.floor(totalDisk * server.metrics.disk / 100);
-       
-       const metrics = {
-         serverId: server.id,
-         hostname: server.hostname,
-         timestamp: new Date(),
-         cpu: {
-           usage: server.metrics.cpu,
-           loadAverage: server.metrics.loadAverage,
-           cores: 4 // 기본값
-         },
-         memory: {
-           total: totalMemory,
-           used: usedMemory,
-           available: totalMemory - usedMemory,
-           usage: server.metrics.memory
-         },
-         disk: {
-           total: totalDisk,
-           used: usedDisk,
-           available: totalDisk - usedDisk,
-           usage: server.metrics.disk,
-           iops: {
-             read: Math.floor(Math.random() * 1000),
-             write: Math.floor(Math.random() * 800)
-           }
-         },
-         network: {
-           interface: 'eth0',
-           bytesReceived: server.metrics.network.bytesIn,
-           bytesSent: server.metrics.network.bytesOut,
-           packetsReceived: server.metrics.network.packetsIn,
-           packetsSent: server.metrics.network.packetsOut,
-           errorsReceived: 0,
-           errorsSent: 0
-         },
-         system: {
-           os: 'Linux',
-           platform: 'x86_64',
-           uptime: server.metrics.uptime,
-           bootTime: new Date(Date.now() - server.metrics.uptime * 1000),
-           processes: {
-             total: server.metrics.processes,
-             running: Math.floor(server.metrics.processes * 0.1),
-             sleeping: Math.floor(server.metrics.processes * 0.8),
-             zombie: 0
-           }
-         },
-         services: server.services.map(s => ({
-           name: s.name,
-           status: (s.status === 'running' ? 'running' : 
-                   s.status === 'stopped' ? 'stopped' : 
-                   s.status === 'failed' ? 'error' : 'unknown') as 'running' | 'stopped' | 'error' | 'unknown',
-           port: s.port,
-           pid: s.pid,
-           memory: s.memoryUsage,
-           cpu: s.cpuUsage,
-           restartCount: 0
-         })),
-         metadata: {
-           location: server.location,
-           environment: (server.environment === 'testing' ? 'development' : server.environment) as 'production' | 'staging' | 'development',
-           provider: server.provider,
-           cluster: server.cluster,
-           zone: server.zone,
-           instanceType: server.instanceType
-         }
-       };
+    // 클라이언트 사이드에서는 스킵
+    if (typeof window !== 'undefined') {
+      return;
+    }
 
-             await metricsStorage.saveMetrics(metrics as any);
+    try {
+      // Dynamic import for server-side only
+      const { metricsStorage } = await import('../storage');
+      
+      const metrics: any = {
+        serverId: server.id,
+        hostname: server.hostname,
+        timestamp: new Date(),
+        cpu: {
+          usage: server.metrics.cpu,
+          loadAverage: server.metrics.loadAverage[0],
+          cores: 4
+        },
+        memory: {
+          total: 8 * 1024 * 1024 * 1024, // 8GB
+          used: Math.round((server.metrics.memory / 100) * 8 * 1024 * 1024 * 1024),
+          usage: server.metrics.memory
+        },
+        disk: {
+          total: 500 * 1024 * 1024 * 1024, // 500GB
+          used: Math.round((server.metrics.disk / 100) * 500 * 1024 * 1024 * 1024),
+          usage: server.metrics.disk
+        },
+        network: {
+          interface: 'eth0',
+          bytesReceived: server.metrics.network.bytesIn,
+          bytesSent: server.metrics.network.bytesOut,
+          packetsReceived: server.metrics.network.packetsIn,
+          packetsSent: server.metrics.network.packetsOut,
+          errorsReceived: 0,
+          errorsSent: 0,
+          dropReceived: 0,
+          dropSent: 0
+        },
+        uptime: server.metrics.uptime,
+        processes: server.metrics.processes,
+        loadAverage: server.metrics.loadAverage,
+        temperature: server.metrics.temperature,
+        powerUsage: server.metrics.powerUsage,
+        status: server.status,
+        location: server.location,
+        services: server.services.map(service => ({
+          name: service.name,
+          status: service.status,
+          port: service.port,
+          pid: service.pid,
+          uptime: service.uptime || 0,
+          memoryUsage: service.memoryUsage || 0,
+          cpuUsage: service.cpuUsage || 0,
+          restartCount: 0
+        })),
+        metadata: {
+          location: server.location,
+          environment: (server.environment === 'testing' ? 'development' : server.environment) as 'production' | 'staging' | 'development',
+          provider: server.provider,
+          cluster: server.cluster,
+          zone: server.zone,
+          instanceType: server.instanceType
+        }
+      };
+
+      await metricsStorage.saveMetrics(metrics);
       console.log(`💾 Metrics saved to database for ${server.id}`);
     } catch (error) {
       console.error(`❌ Failed to save metrics to database for ${server.id}:`, error);
@@ -1540,9 +1533,17 @@ export class ServerDataCollector {
    * 데이터베이스에서 서버 목록 복원
    */
   async restoreServersFromDatabase(): Promise<void> {
+    // 클라이언트 사이드에서는 스킵
+    if (typeof window !== 'undefined') {
+      console.log('Client-side: using simulated server data');
+      return;
+    }
+
     try {
       console.log('🔄 Restoring servers from database...');
       
+      // Dynamic import for server-side only
+      const { metricsStorage } = await import('../storage');
       const serverIds = await metricsStorage.getServerList();
       let restoredCount = 0;
       

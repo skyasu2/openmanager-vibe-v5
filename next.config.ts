@@ -20,7 +20,7 @@ const nextConfig: NextConfig = {
   },
 
   // 서버 외부 패키지 (Next.js 15 새 설정)
-  serverExternalPackages: [],
+  serverExternalPackages: ['ioredis'],
 
   // 이미지 최적화
   images: {
@@ -94,9 +94,23 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // 번들 분석기 설정
-  ...(process.env.ANALYZE === 'true' && {
-    webpack: (config: any) => {
+  // Webpack 설정
+  webpack: (config: any, { isServer }: { isServer: boolean }) => {
+    // 클라이언트 사이드에서 Node.js 모듈 제외
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        dns: false,
+        child_process: false,
+        'ioredis': false,
+      };
+    }
+
+    // 번들 분석기 설정
+    if (process.env.ANALYZE === 'true') {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
       config.plugins.push(
@@ -106,9 +120,10 @@ const nextConfig: NextConfig = {
           reportFilename: './analyze/client.html'
         })
       );
-      return config;
     }
-  })
+
+    return config;
+  }
 };
 
 export default nextConfig;
