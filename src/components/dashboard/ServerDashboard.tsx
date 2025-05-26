@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import ServerCard from './ServerCard';
 import ServerDetailModal from './ServerDetailModal';
 import { Server } from '../../types/server';
+import { useServerDataStore } from '../../stores/serverDataStore';
 
 interface ServerDashboardProps {
   onStatsUpdate?: (stats: { total: number; online: number; warning: number; offline: number }) => void;
@@ -189,8 +190,28 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // 정적 서버 데이터 사용 (demoStore 제거)
-  const currentServers = fallbackServers;
+  // 복구된 서버 데이터 스토어 사용
+  const { servers, syncWithCollector } = useServerDataStore();
+  
+  // 서버 데이터를 Server 타입으로 변환
+  const currentServers: Server[] = servers.map(server => ({
+    id: server.id,
+    name: server.name,
+    status: server.status === 'healthy' ? 'online' : 
+            server.status === 'warning' ? 'warning' : 'offline',
+    location: server.location,
+    cpu: server.metrics.cpu,
+    memory: server.metrics.memory,
+    disk: server.metrics.disk,
+    uptime: `${server.uptime}일`,
+    lastUpdate: server.lastUpdate,
+    alerts: server.status === 'critical' ? 3 : server.status === 'warning' ? 1 : 0,
+    services: [
+      { name: 'nginx', status: server.status === 'critical' ? 'stopped' : 'running', port: 80 },
+      { name: 'nodejs', status: 'running', port: 3000 },
+      { name: 'gunicorn', status: 'running', port: 8000 }
+    ]
+  }));
 
   // 서버 통계 계산 (useMemo로 최적화)
   const serverStats = useMemo(() => ({
@@ -199,6 +220,13 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
     warning: currentServers.filter((s: Server) => s.status === 'warning').length,
     offline: currentServers.filter((s: Server) => s.status === 'offline').length
   }), [currentServers]);
+
+  // 컴포넌트 마운트 시 서버 데이터 동기화
+  useEffect(() => {
+    syncWithCollector();
+    const interval = setInterval(syncWithCollector, 30000); // 30초마다 동기화
+    return () => clearInterval(interval);
+  }, [syncWithCollector]);
 
   // 통계 업데이트 알림
   useEffect(() => {
