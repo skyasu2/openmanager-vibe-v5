@@ -613,9 +613,30 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
     generateDefaultCards();
   };
 
+  // 관리자 드롭다운 상태
+  const [showAdminDropdown, setShowAdminDropdown] = useState(false);
+  const adminDropdownRef = useRef<HTMLDivElement>(null);
+
+  // 외부 클릭 시 관리자 드롭다운 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (adminDropdownRef.current && !adminDropdownRef.current.contains(event.target as Node)) {
+        setShowAdminDropdown(false);
+      }
+    };
+
+    if (showAdminDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showAdminDropdown]);
+
   // 관리자 접근 함수
-  const handleAdminAccess = () => {
-    console.log('🔧 AI 에이전트 관리자 설정 버튼 클릭됨');
+  const handleAdminAccess = (path: string) => {
+    console.log('🔧 관리자 페이지 접근:', path);
     
     try {
       // 관리자 세션 정보 설정
@@ -625,25 +646,33 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
       sessionStorage.setItem('admin_authorized', 'true');
       sessionStorage.setItem('admin_access_source', 'ai_assistant_modal');
       
-      console.log('✅ AI 에이전트 관리자 세션 설정 완료');
+      console.log('✅ 관리자 세션 설정 완료');
+      
+      // 드롭다운 닫기
+      setShowAdminDropdown(false);
       
       // 모달 닫기
       onClose();
       
       // 관리자 페이지로 이동
       setTimeout(() => {
-        console.log('🚀 AI 에이전트 관리자 페이지로 이동');
-        router.push('/admin/ai-agent');
+        console.log('🚀 관리자 페이지로 이동:', path);
+        router.push(path);
       }, 200);
       
     } catch (error) {
-      console.error('❌ AI 에이전트 관리자 접근 중 에러:', error);
+      console.error('❌ 관리자 접근 중 에러:', error);
       // 에러 발생 시 직접 이동
+      setShowAdminDropdown(false);
       onClose();
       setTimeout(() => {
-        window.location.href = '/admin/ai-agent';
+        window.location.href = path;
       }, 200);
     }
+  };
+
+  const toggleAdminDropdown = () => {
+    setShowAdminDropdown(!showAdminDropdown);
   };
 
   // 모의 메트릭 생성
@@ -780,13 +809,97 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
             </div>
             
             <div className="flex items-center gap-3">
-              <button
-                onClick={handleAdminAccess}
-                className="w-10 h-10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-all duration-200 backdrop-blur-sm border border-white/20 hover:scale-110 transform"
-                title="AI 에이전트 관리자 설정"
-              >
-                <i className="fas fa-cog"></i>
-              </button>
+              <div className="relative" ref={adminDropdownRef}>
+                <button
+                  onClick={toggleAdminDropdown}
+                  className="w-10 h-10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-all duration-200 backdrop-blur-sm border border-white/20 hover:scale-110 transform"
+                  title="관리자 설정"
+                >
+                  <i className="fas fa-cog"></i>
+                </button>
+                
+                {/* 관리자 드롭다운 메뉴 */}
+                {showAdminDropdown && (
+                  <div className="absolute right-0 top-12 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50">
+                    {/* 드롭다운 헤더 */}
+                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3">
+                      <h3 className="text-white font-bold text-sm flex items-center gap-2">
+                        <i className="fas fa-user-shield"></i>
+                        관리자 페이지
+                      </h3>
+                    </div>
+                    
+                    {/* 드롭다운 옵션들 */}
+                    <div className="py-2">
+                      <button
+                        onClick={() => handleAdminAccess('/admin/ai-agent')}
+                        className="w-full px-4 py-3 text-left text-gray-700 hover:bg-indigo-50 transition-colors flex items-center gap-3"
+                      >
+                        <i className="fas fa-robot text-indigo-600 w-4"></i>
+                        <div>
+                          <div className="font-medium text-sm">AI 에이전트 관리</div>
+                          <div className="text-xs text-gray-500">AI 설정 및 성능 분석</div>
+                        </div>
+                      </button>
+                      
+                      <button
+                        onClick={() => handleAdminAccess('/admin/ai-analysis')}
+                        className="w-full px-4 py-3 text-left text-gray-700 hover:bg-purple-50 transition-colors flex items-center gap-3"
+                      >
+                        <i className="fas fa-chart-line text-purple-600 w-4"></i>
+                        <div>
+                          <div className="font-medium text-sm">AI 분석 대시보드</div>
+                          <div className="text-xs text-gray-500">성능 지표 및 로그 분석</div>
+                        </div>
+                      </button>
+                      
+                      <hr className="my-2 border-gray-200" />
+                      
+                      <button
+                        onClick={() => {
+                          setShowAdminDropdown(false);
+                          console.log('🔧 시스템 설정 기능 준비 중...');
+                        }}
+                        className="w-full px-4 py-3 text-left text-gray-400 cursor-not-allowed flex items-center gap-3"
+                      >
+                        <i className="fas fa-cogs text-gray-400 w-4"></i>
+                        <div>
+                          <div className="font-medium text-sm">시스템 설정</div>
+                          <div className="text-xs text-gray-400">준비 중...</div>
+                        </div>
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          setShowAdminDropdown(false);
+                          console.log('📊 리포트 관리 기능 준비 중...');
+                        }}
+                        className="w-full px-4 py-3 text-left text-gray-400 cursor-not-allowed flex items-center gap-3"
+                      >
+                        <i className="fas fa-file-alt text-gray-400 w-4"></i>
+                        <div>
+                          <div className="font-medium text-sm">리포트 관리</div>
+                          <div className="text-xs text-gray-400">준비 중...</div>
+                        </div>
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          setShowAdminDropdown(false);
+                          console.log('🔐 보안 설정 기능 준비 중...');
+                        }}
+                        className="w-full px-4 py-3 text-left text-gray-400 cursor-not-allowed flex items-center gap-3"
+                      >
+                        <i className="fas fa-shield-alt text-gray-400 w-4"></i>
+                        <div>
+                          <div className="font-medium text-sm">보안 설정</div>
+                          <div className="text-xs text-gray-400">준비 중...</div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
               <button
                 onClick={clearAllCards}
                 className="w-10 h-10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-all duration-200 backdrop-blur-sm border border-white/20"
