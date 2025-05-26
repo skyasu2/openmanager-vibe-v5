@@ -9,13 +9,11 @@ import ProfileDropdown from '../../../components/ui/ProfileDropdown';
 export default function ServerDashboardPage() {
   const router = useRouter();
   const [isAgentOpen, setIsAgentOpen] = useState(false);
-  const [isManualExit, setIsManualExit] = useState(false); // 수동 종료 플래그
 
-  // 권한 확인 완전 제거 (데모용)
+  // 자동 인증 설정 (접근성 개선)
   useEffect(() => {
-    // 자동 인증 설정 - 누구나 접근 가능
-    console.log('🔓 server-dashboard 완전 개방 - 누구나 접근 가능');
-    localStorage.setItem('dashboard_auth_token', `demo_${Date.now()}`);
+    console.log('🔓 Server Dashboard 접근 - 자동 인증 처리');
+    localStorage.setItem('dashboard_auth_token', `auto_${Date.now()}`);
     sessionStorage.setItem('dashboard_authorized', 'true');
     localStorage.setItem('dashboard_access_time', Date.now().toString());
     localStorage.setItem('authorized_from_index', 'true');
@@ -39,18 +37,9 @@ export default function ServerDashboardPage() {
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.back()}
-              className="w-8 h-8 hover:bg-gray-100 rounded-lg flex items-center justify-center transition-colors"
-            >
-              <i className="fas fa-arrow-left text-gray-600 text-sm"></i>
-            </button>
-            
             <button 
               onClick={() => {
                 console.log('🏠 OpenManager 버튼 클릭 - 랜딩페이지로 이동');
-                // 수동 종료 플래그 설정
-                setIsManualExit(true);
                 // 세션 정리 후 랜딩페이지 이동
                 localStorage.clear();
                 sessionStorage.clear();
@@ -64,7 +53,7 @@ export default function ServerDashboardPage() {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">OpenManager</h1>
-                <p className="text-xs text-gray-500">서버 대시보드</p>
+                <p className="text-xs text-gray-500">AI 서버 모니터링</p>
               </div>
             </button>
           </div>
@@ -73,15 +62,19 @@ export default function ServerDashboardPage() {
             {/* 빠른 통계 */}
             <div className="hidden md:flex items-center gap-6">
               <div className="text-center">
-                <div className="text-sm font-medium text-gray-900">6대</div>
+                <div className="text-sm font-medium text-gray-900">10대</div>
                 <div className="text-xs text-gray-500">전체 서버</div>
               </div>
               <div className="text-center">
-                <div className="text-sm font-medium text-green-600">4대</div>
+                <div className="text-sm font-medium text-green-600">3대</div>
                 <div className="text-xs text-gray-500">온라인</div>
               </div>
               <div className="text-center">
-                <div className="text-sm font-medium text-red-600">1대</div>
+                <div className="text-sm font-medium text-orange-600">5대</div>
+                <div className="text-xs text-gray-500">경고</div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm font-medium text-red-600">2대</div>
                 <div className="text-xs text-gray-500">오프라인</div>
               </div>
             </div>
@@ -100,7 +93,7 @@ export default function ServerDashboardPage() {
                   ? 'text-white' 
                   : 'bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent'
               }`}></i>
-              <span className="hidden sm:inline">AI 분석</span>
+              <span className="hidden sm:inline">AI 에이전트</span>
               
               {/* 알림 뱃지 */}
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>
@@ -112,7 +105,7 @@ export default function ServerDashboardPage() {
                 <i className="fas fa-refresh text-gray-600 text-sm bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent"></i>
               </button>
               <button className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center transition-colors">
-                <i className="fas fa-cog text-gray-600 text-sm bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent"></i>
+                <i className="fas fa-bell text-gray-600 text-sm bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent"></i>
               </button>
               <ProfileDropdown />
             </div>
