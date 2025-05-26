@@ -8,6 +8,7 @@ import MobileBottomSheet from './components/MobileBottomSheet';
 import { useModalState } from './hooks/useModalState';
 import { FunctionType, HistoryItem } from './types';
 import { InteractionLogger } from '@/services/ai-agent/logging/InteractionLogger';
+import { useServerDataStore } from '@/stores/serverDataStore';
 
 interface AIAgentModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ interface AIAgentModalProps {
 export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
   const [isMobile, setIsMobile] = useState(false);
   const { state, dispatch, addToHistory, setBottomSheetState } = useModalState();
+  const { servers } = useServerDataStore();
 
   // InteractionLogger 초기화 (브라우저 환경에서만)
   useEffect(() => {
@@ -69,20 +71,110 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
   };
 
   // 질문 전송 핸들러
-  const handleSendQuestion = (question: string) => {
+  const handleSendQuestion = async (question: string) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'SET_QUESTION', payload: question });
     
-    // TODO: 실제 AI 에이전트 호출 및 응답 처리
-    setTimeout(() => {
-      const answer = `이 부분은 실제 AI 에이전트에서 "${question}"에 대한 응답으로 대체됩니다.`;
+    try {
+      // 실제 AI 에이전트 API 호출
+      const response = await fetch('/api/ai-agent/smart-query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: question,
+          serverData: servers,
+          context: {
+            totalServers: servers.length,
+            timestamp: new Date().toISOString()
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`AI 에이전트 오류: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const answer = data.success ? data.data.response : '죄송합니다. 응답을 생성할 수 없습니다.';
       
       dispatch({ type: 'SET_ANSWER', payload: answer });
       dispatch({ type: 'SET_LOADING', payload: false });
       
       // 히스토리에 추가
       addToHistory(question, answer);
-    }, 1500);
+      
+    } catch (error) {
+      console.error('AI 에이전트 호출 실패:', error);
+      
+      // 폴백 응답 생성
+      const fallbackAnswer = generateFallbackResponse(question, servers);
+      
+      dispatch({ type: 'SET_ANSWER', payload: fallbackAnswer });
+      dispatch({ type: 'SET_LOADING', payload: false });
+      
+      // 히스토리에 추가
+      addToHistory(question, fallbackAnswer);
+    }
+  };
+
+  // 폴백 응답 생성기
+  const generateFallbackResponse = (question: string, servers: any[]): string => {
+    const lowerQuery = question.toLowerCase();
+    
+    if (lowerQuery.includes('cpu') || lowerQuery.includes('씨피유')) {
+      const avgCpu = servers.length > 0 
+        ? Math.round(servers.reduce((sum, s) => sum + (s.metrics?.cpu || 0), 0) / servers.length)
+        : 0;
+      const highCpuServers = servers.filter(s => (s.metrics?.cpu || 0) > 80);
+      
+      return `🖥️ **CPU 상태 분석**\n\n` +
+        `• 전체 서버: ${servers.length}대\n` +
+        `• 평균 CPU 사용률: **${avgCpu}%**\n` +
+        `• 고부하 서버: **${highCpuServers.length}대**\n\n` +
+        (highCpuServers.length > 0 
+          ? `⚠️ **주의가 필요한 서버:**\n${highCpuServers.map(s => `- ${s.name}: ${s.metrics?.cpu || 0}%`).join('\n')}`
+          : '✅ 모든 서버가 정상 범위 내에서 동작 중입니다.');
+    }
+    
+    if (lowerQuery.includes('메모리') || lowerQuery.includes('memory') || lowerQuery.includes('ram')) {
+      const avgMemory = servers.length > 0 
+        ? Math.round(servers.reduce((sum, s) => sum + (s.metrics?.memory || 0), 0) / servers.length)
+        : 0;
+      const highMemoryServers = servers.filter(s => (s.metrics?.memory || 0) > 85);
+      
+      return `💾 **메모리 상태 분석**\n\n` +
+        `• 전체 서버: ${servers.length}대\n` +
+        `• 평균 메모리 사용률: **${avgMemory}%**\n` +
+        `• 고사용 서버: **${highMemoryServers.length}대**\n\n` +
+        (highMemoryServers.length > 0 
+          ? `⚠️ **주의가 필요한 서버:**\n${highMemoryServers.map(s => `- ${s.name}: ${s.metrics?.memory || 0}%`).join('\n')}`
+          : '✅ 메모리 사용률이 정상 범위입니다.');
+    }
+    
+    if (lowerQuery.includes('서버') && lowerQuery.includes('상태')) {
+      const healthyCount = servers.filter(s => s.status === 'healthy').length;
+      const warningCount = servers.filter(s => s.status === 'warning').length;
+      const criticalCount = servers.filter(s => s.status === 'critical').length;
+      
+      return `📊 **전체 서버 상태**\n\n` +
+        `• 총 서버 수: **${servers.length}대**\n` +
+        `• 정상: **${healthyCount}대** (${Math.round(healthyCount/servers.length*100)}%)\n` +
+        `• 경고: **${warningCount}대** (${Math.round(warningCount/servers.length*100)}%)\n` +
+        `• 위험: **${criticalCount}대** (${Math.round(criticalCount/servers.length*100)}%)\n\n` +
+        (criticalCount > 0 ? '🚨 위험 상태 서버에 대한 즉시 점검이 필요합니다.' :
+         warningCount > 0 ? '⚠️ 일부 서버에서 경고 상태가 감지되었습니다.' :
+         '✅ 모든 서버가 정상 상태입니다.');
+    }
+    
+    // 기본 응답
+    return `현재 **${servers.length}대**의 서버를 모니터링하고 있습니다.\n\n` +
+      `💡 다음과 같은 질문을 해보세요:\n` +
+      `• "CPU 상태는 어때?"\n` +
+      `• "메모리 사용률 확인해줘"\n` +
+      `• "서버 상태 요약해줘"\n` +
+      `• "성능 분석 결과 보여줘"`;
   };
 
   if (!isOpen) return null;
