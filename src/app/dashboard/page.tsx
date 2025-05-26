@@ -184,6 +184,25 @@ export default function DashboardPage() {
               <button className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center transition-colors">
                 <i className="fas fa-bell text-gray-600 text-sm bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent"></i>
               </button>
+              
+              {/* Server-Dashboard 이동 버튼 */}
+              <button 
+                onClick={() => {
+                  // server-dashboard 접근을 위한 임시 인증 설정
+                  localStorage.setItem('dashboard_auth_token', `temp_${Date.now()}`);
+                  sessionStorage.setItem('dashboard_authorized', 'true');
+                  localStorage.setItem('dashboard_access_time', Date.now().toString());
+                  localStorage.setItem('authorized_from_index', 'true');
+                  
+                  // server-dashboard로 이동
+                  router.push('/dashboard/server-dashboard');
+                }}
+                className="px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-xs font-medium transition-colors"
+                title="Server Dashboard 보기"
+              >
+                서버대시보드
+              </button>
+              
               <ProfileDropdown />
             </div>
           </div>
