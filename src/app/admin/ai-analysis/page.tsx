@@ -16,8 +16,10 @@ import {
   Play,
   RotateCcw,
   Download,
-  BarChart3
+  BarChart3,
+  Home
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface AnalysisSession {
   id: string;
@@ -33,6 +35,7 @@ interface AnalysisSession {
 // AIAnalysisResponse interface removed as it's not used
 
 export default function AdminAIAnalysisPage() {
+  const router = useRouter();
   const [sessions, setSessions] = useState<AnalysisSession[]>([]);
   const [selectedSession, setSelectedSession] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -435,22 +438,56 @@ export default function AdminAIAnalysisPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Brain className="h-8 w-8 text-blue-600" />
-            AI 분석 관리
-          </h1>
-          <p className="text-gray-600 mt-2">
-            사용자 로그를 AI로 분석하여 패턴 발견 및 개선사항을 도출합니다
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      {/* 헤더 */}
+      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <button 
+              onClick={() => router.push('/')}
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+            >
+              <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <i className="fas fa-server text-white text-sm"></i>
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-gray-900">OpenManager</h1>
+                <p className="text-xs text-gray-500">AI 분석 관리</p>
+              </div>
+            </button>
+            
+            <div className="flex items-center gap-4">
+              <Button 
+                onClick={() => router.push('/')}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Home className="h-4 w-4" />
+                홈으로
+              </Button>
+              <Button onClick={loadSessions} variant="outline" size="sm">
+                <RotateCcw className="h-4 w-4 mr-2" />
+                새로고침
+              </Button>
+            </div>
+          </div>
         </div>
-        <Button onClick={loadSessions} variant="outline">
-          <RotateCcw className="h-4 w-4 mr-2" />
-          새로고침
-        </Button>
-      </div>
+      </header>
+
+      {/* 메인 콘텐츠 */}
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <Brain className="h-8 w-8 text-blue-600" />
+              AI 분석 관리
+            </h1>
+            <p className="text-gray-600 mt-2">
+              사용자 로그를 AI로 분석하여 패턴 발견 및 개선사항을 도출합니다
+            </p>
+          </div>
+        </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-5">
@@ -1100,6 +1137,7 @@ export default function AdminAIAnalysisPage() {
 
 
       </Tabs>
+      </div>
     </div>
   );
 } 

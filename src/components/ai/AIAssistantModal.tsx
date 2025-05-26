@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAssistantSession } from '../../hooks/useAssistantSession';
 import ResultCard, { ResultCardData } from './ResultCard';
 import PatternSelector, { PatternOption } from './PatternSelector';
@@ -85,6 +86,7 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
 
   const inputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const { autoActivate, getSessionInfo, isSystemActive } = useAssistantSession();
 
   // 서버 데이터 상태
@@ -611,6 +613,39 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
     generateDefaultCards();
   };
 
+  // 관리자 접근 함수
+  const handleAdminAccess = () => {
+    console.log('🔧 AI 에이전트 관리자 설정 버튼 클릭됨');
+    
+    try {
+      // 관리자 세션 정보 설정
+      const timestamp = Date.now();
+      localStorage.setItem('admin_session_id', `ai_admin_${timestamp}`);
+      localStorage.setItem('admin_auth_token', `ai_admin_${timestamp}`);
+      sessionStorage.setItem('admin_authorized', 'true');
+      sessionStorage.setItem('admin_access_source', 'ai_assistant_modal');
+      
+      console.log('✅ AI 에이전트 관리자 세션 설정 완료');
+      
+      // 모달 닫기
+      onClose();
+      
+      // 관리자 페이지로 이동
+      setTimeout(() => {
+        console.log('🚀 AI 에이전트 관리자 페이지로 이동');
+        router.push('/admin/ai-agent');
+      }, 200);
+      
+    } catch (error) {
+      console.error('❌ AI 에이전트 관리자 접근 중 에러:', error);
+      // 에러 발생 시 직접 이동
+      onClose();
+      setTimeout(() => {
+        window.location.href = '/admin/ai-agent';
+      }, 200);
+    }
+  };
+
   // 모의 메트릭 생성
   const generateMockMetrics = (actionId: string) => {
     switch (actionId) {
@@ -745,6 +780,13 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
             </div>
             
             <div className="flex items-center gap-3">
+              <button
+                onClick={handleAdminAccess}
+                className="w-10 h-10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-all duration-200 backdrop-blur-sm border border-white/20 hover:scale-110 transform"
+                title="AI 에이전트 관리자 설정"
+              >
+                <i className="fas fa-cog"></i>
+              </button>
               <button
                 onClick={clearAllCards}
                 className="w-10 h-10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-all duration-200 backdrop-blur-sm border border-white/20"

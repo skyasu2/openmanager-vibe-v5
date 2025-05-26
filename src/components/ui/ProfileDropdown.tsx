@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { 
   User, 
   Settings, 
@@ -37,16 +38,35 @@ export default function ProfileDropdown({ className = '' }: ProfileDropdownProps
   }, []);
 
   const handleAdminMode = () => {
+    console.log('🔐 관리자 모드 버튼 클릭됨');
     setIsOpen(false);
     
-    // 관리자 세션 정보 설정 (간소화된 접근)
-    const timestamp = Date.now();
-    localStorage.setItem('admin_session_id', `admin_${timestamp}`);
-    localStorage.setItem('admin_auth_token', `admin_${timestamp}`);
-    sessionStorage.setItem('admin_authorized', 'true');
-    
-    // 관리자 페이지로 바로 이동
-    router.push('/admin/ai-agent');
+    try {
+      // 관리자 세션 정보 설정 (간소화된 접근)
+      const timestamp = Date.now();
+      localStorage.setItem('admin_session_id', `admin_${timestamp}`);
+      localStorage.setItem('admin_auth_token', `admin_${timestamp}`);
+      sessionStorage.setItem('admin_authorized', 'true');
+      
+      console.log('✅ 관리자 세션 정보 설정 완료');
+      
+      // 관리자 페이지로 바로 이동
+      console.log('🚀 관리자 페이지로 이동 시도:', '/admin/ai-agent');
+      router.push('/admin/ai-agent');
+      
+      // 대안으로 window.location 사용
+      setTimeout(() => {
+        if (window.location.pathname !== '/admin/ai-agent') {
+          console.log('⚠️ router.push 실패, window.location으로 재시도');
+          window.location.href = '/admin/ai-agent';
+        }
+      }, 1000);
+      
+    } catch (error) {
+      console.error('❌ 관리자 모드 전환 중 에러:', error);
+      // 에러 발생 시 직접 이동
+      window.location.href = '/admin/ai-agent';
+    }
   };
 
   const handleLogout = () => {
@@ -140,8 +160,24 @@ export default function ProfileDropdown({ className = '' }: ProfileDropdownProps
               className="w-full flex items-center space-x-3 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
             >
               <Shield className="w-4 h-4" />
-              <span>관리자 모드</span>
+              <span>관리자 모드 (JS)</span>
             </button>
+            
+            {/* 관리자 모드 대안 (Link) */}
+            <Link 
+              href="/admin/ai-agent"
+              onClick={() => {
+                setIsOpen(false);
+                const timestamp = Date.now();
+                localStorage.setItem('admin_session_id', `admin_${timestamp}`);
+                localStorage.setItem('admin_auth_token', `admin_${timestamp}`);
+                sessionStorage.setItem('admin_authorized', 'true');
+              }}
+              className="w-full flex items-center space-x-3 px-4 py-2 text-blue-600 hover:bg-blue-50 transition-colors"
+            >
+              <Shield className="w-4 h-4" />
+              <span>관리자 모드 (Link)</span>
+            </Link>
 
             {/* 로그아웃 */}
             <button
