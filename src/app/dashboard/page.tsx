@@ -7,6 +7,12 @@ import ProfileDropdown from '../../components/ui/ProfileDropdown';
 
 export default function DashboardPage() {
   const [isAgentOpen, setIsAgentOpen] = useState(false);
+  const [serverStats, setServerStats] = useState({
+    total: 0,
+    online: 0,
+    warning: 0,
+    offline: 0
+  });
 
   // 자동 인증 설정 (접근성 개선)
   useEffect(() => {
@@ -57,22 +63,22 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* 빠른 통계 */}
+            {/* 빠른 통계 - 실시간 데이터 */}
             <div className="hidden md:flex items-center gap-6">
               <div className="text-center">
-                <div className="text-sm font-medium text-gray-900">10대</div>
+                <div className="text-sm font-medium text-gray-900">{serverStats.total}대</div>
                 <div className="text-xs text-gray-500">전체 서버</div>
               </div>
               <div className="text-center">
-                <div className="text-sm font-medium text-green-600">3대</div>
+                <div className="text-sm font-medium text-green-600">{serverStats.online}대</div>
                 <div className="text-xs text-gray-500">온라인</div>
               </div>
               <div className="text-center">
-                <div className="text-sm font-medium text-orange-600">5대</div>
+                <div className="text-sm font-medium text-orange-600">{serverStats.warning}대</div>
                 <div className="text-xs text-gray-500">경고</div>
               </div>
               <div className="text-center">
-                <div className="text-sm font-medium text-red-600">2대</div>
+                <div className="text-sm font-medium text-red-600">{serverStats.offline}대</div>
                 <div className="text-xs text-gray-500">오프라인</div>
               </div>
             </div>
@@ -113,7 +119,7 @@ export default function DashboardPage() {
 
       {/* 메인 컨텐트 영역 */}
       <main className="relative">
-        <ServerDashboard />
+        <ServerDashboard onStatsUpdate={setServerStats} />
         
         {/* AI 에이전트 모달 */}
         <AgentModal isOpen={isAgentOpen} onClose={closeAgent} />
