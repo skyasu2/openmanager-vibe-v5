@@ -5,7 +5,7 @@
  * - 어떤 환경에서든 독립적으로 동작
  * - 플러그인 기반 확장성
  * - 어댑터 패턴으로 환경 추상화
- * - NPU 시뮬레이션 기반 경량 추론
+ * - 지능형 패턴 기반 경량 추론
  */
 
 // Core Engine
@@ -128,7 +128,7 @@ export const createAIAgent = async (options: any = {}) => {
     // AI 에이전트 엔진 설정 변환
     const agentConfig = {
       enableMCP: envConfig.engine.enableMCP,
-      enableNPU: envConfig.engine.enableNPU,
+      enableInference: envConfig.engine.enableInference,
       maxContextLength: envConfig.engine.maxContextLength,
       responseTimeout: envConfig.runtime.timeout,
       debugMode: envConfig.runtime.logLevel === 'debug',
@@ -177,7 +177,7 @@ export const createMobileAIAgent = async (options: any = {}) => {
 export const createProductionAIAgent = async (options: any = {}) => {
   const productionConfig = {
     enableMCP: true,           // 완전한 MCP 프로토콜 지원
-    enableNPU: true,           // NPU 시뮬레이션 활성화
+    enableInference: true,           // NPU 시뮬레이션 활성화
     maxContextLength: 4096,    // 충분한 컨텍스트 길이
     responseTimeout: 10000,    // 안정적인 타임아웃
     debugMode: false,          // 프로덕션 모드
@@ -221,7 +221,7 @@ export const getAIAgentInfo = () => ({
   environment: typeof window !== 'undefined' ? 'browser' : 'node',
   supported: isAIAgentSupported(),
   features: {
-    npu: true,
+    inference: true,
     mcp: true,
     plugins: true,
     adapters: true,

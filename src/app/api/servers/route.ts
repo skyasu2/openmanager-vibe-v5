@@ -144,95 +144,135 @@ function generateTestServers() {
 
 /**
  * GET /api/servers
- * 서버 목록 조회
+ * 서버 목록 및 메트릭 조회 API
+ * 클라이언트에서 서버 데이터를 안전하게 가져오기 위한 엔드포인트
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    console.log('🔄 Generating test server data...');
-    
-    const { searchParams } = new URL(request.url);
-    
-    // 쿼리 파라미터 파싱
-    const status = searchParams.get('status');
-    const provider = searchParams.get('provider');
-    const environment = searchParams.get('environment');
-    const location = searchParams.get('location');
-    const limit = searchParams.get('limit');
-    const offset = searchParams.get('offset');
+    console.log('📡 API: Fetching server data...');
 
-    // 테스트 서버 데이터 생성
-    let servers = generateTestServers();
-
-    // 필터링 적용
-    if (status) {
-      servers = servers.filter(server => server.status === status);
+    // 서버 사이드에서만 ServerDataCollector 동적 로딩
+    if (typeof window === 'undefined') {
+      try {
+        const { serverDataCollector } = await import('../../../services/collectors/ServerDataCollector');
+        
+        // 실제 서버 데이터 가져오기
+        const servers = serverDataCollector.getAllServers();
+        const stats = serverDataCollector.getServerStats();
+        const collectionStats = serverDataCollector.getCollectionStats();
+        
+        return NextResponse.json({
+          success: true,
+          data: {
+            servers: servers.map(server => ({
+              id: server.id,
+              hostname: server.hostname,
+              ipAddress: server.ipAddress,
+              status: server.status,
+              location: server.location,
+              environment: server.environment,
+              provider: server.provider,
+              instanceType: server.instanceType,
+              cluster: server.cluster,
+              zone: server.zone,
+              tags: server.tags,
+              metrics: {
+                cpu: server.metrics.cpu,
+                memory: server.metrics.memory,
+                disk: server.metrics.disk,
+                network: {
+                  latency: server.metrics.network.latency,
+                  bytesIn: server.metrics.network.bytesIn,
+                  bytesOut: server.metrics.network.bytesOut,
+                  connections: server.metrics.network.connections
+                },
+                processes: server.metrics.processes,
+                loadAverage: server.metrics.loadAverage,
+                uptime: server.metrics.uptime,
+                temperature: server.metrics.temperature,
+                powerUsage: server.metrics.powerUsage
+              },
+              lastUpdate: server.lastUpdate,
+              lastSeen: server.lastSeen,
+              alerts: server.alerts.map(alert => ({
+                id: alert.id,
+                severity: alert.severity,
+                type: alert.type,
+                message: alert.message,
+                timestamp: alert.timestamp,
+                acknowledged: alert.acknowledged,
+                resolvedAt: alert.resolvedAt
+              })),
+              services: server.services.map(service => ({
+                name: service.name,
+                status: service.status,
+                port: service.port,
+                pid: service.pid,
+                uptime: service.uptime,
+                memoryUsage: service.memoryUsage,
+                cpuUsage: service.cpuUsage
+              }))
+            })),
+            stats: {
+              total: stats.total,
+              byStatus: stats.byStatus,
+              byProvider: stats.byProvider,
+              averageMetrics: stats.averageMetrics,
+              totalAlerts: stats.totalAlerts
+            },
+            collectionInfo: {
+              isCollecting: collectionStats.isCollecting,
+              isAIMonitoring: collectionStats.isAIMonitoring,
+              lastCollectionTime: collectionStats.lastCollectionTime,
+              systemMode: collectionStats.systemMode,
+              totalServers: collectionStats.totalServers
+            }
+          },
+          timestamp: new Date().toISOString()
+        });
+        
+      } catch (importError) {
+        console.error('Failed to import ServerDataCollector:', importError);
+        
+        // 백업 데이터 반환
+        return NextResponse.json({
+          success: true,
+          data: {
+            servers: generateFallbackServers(),
+            stats: {
+              total: 5,
+              byStatus: { online: 3, warning: 1, critical: 1 },
+              byProvider: { onpremise: 5 },
+              averageMetrics: { cpu: 45, memory: 60, disk: 55 },
+              totalAlerts: 2
+            },
+            collectionInfo: {
+              isCollecting: false,
+              isAIMonitoring: true,
+              lastCollectionTime: new Date(),
+              systemMode: 'fallback',
+              totalServers: 5
+            }
+          },
+          timestamp: new Date().toISOString(),
+          warning: 'Using fallback data due to collector unavailability'
+        });
+      }
+    } else {
+      // 클라이언트 사이드에서는 에러 반환
+      return NextResponse.json({
+        success: false,
+        error: 'This endpoint should only be called server-side'
+      }, { status: 400 });
     }
-    
-    if (provider) {
-      servers = servers.filter(server => server.provider === provider);
-    }
-    
-    if (environment) {
-      servers = servers.filter(server => server.environment === environment);
-    }
-    
-    if (location) {
-      servers = servers.filter(server => 
-        server.location.toLowerCase().includes(location.toLowerCase())
-      );
-    }
-
-    // 정렬 (최근 업데이트 순)
-    servers.sort((a, b) => new Date(b.lastUpdate).getTime() - new Date(a.lastUpdate).getTime());
-
-    // 페이지네이션
-    const totalCount = servers.length;
-    const offsetNum = offset ? parseInt(offset) : 0;
-    const limitNum = limit ? parseInt(limit) : 50;
-    
-    if (limit || offset) {
-      servers = servers.slice(offsetNum, offsetNum + limitNum);
-    }
-
-    // 통계 정보
-    const stats = {
-      total: totalCount,
-      online: servers.filter(s => s.status === 'online').length,
-      warning: servers.filter(s => s.status === 'warning').length,
-      critical: servers.filter(s => s.status === 'critical').length,
-      offline: servers.filter(s => s.status === 'offline').length
-    };
-
-    console.log(`✅ Generated ${servers.length} test servers`);
-
-    return NextResponse.json({
-      success: true,
-      data: servers,
-      pagination: {
-        total: totalCount,
-        offset: offsetNum,
-        limit: limitNum,
-        hasMore: offsetNum + limitNum < totalCount
-      },
-      stats: {
-        ...stats,
-        collection: {
-          isActive: true,
-          lastUpdate: new Date().toISOString(),
-          errors: 0
-        }
-      },
-      timestamp: new Date().toISOString()
-    });
 
   } catch (error) {
-    console.error('❌ Error generating server data:', error);
+    console.error('❌ Server API error:', error);
     
     return NextResponse.json({
       success: false,
       error: 'Failed to fetch server data',
-      message: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString()
+      message: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }
@@ -357,4 +397,69 @@ export async function DELETE() {
       message: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
+}
+
+/**
+ * 백업 서버 데이터 생성
+ */
+function generateFallbackServers() {
+  return Array.from({ length: 5 }, (_, i) => ({
+    id: `fallback-server-${i + 1}`,
+    hostname: `server-${String(i + 1).padStart(2, '0')}`,
+    ipAddress: `192.168.1.${i + 10}`,
+    status: ['online', 'warning', 'critical'][i % 3],
+    location: ['Seoul DC1', 'Seoul DC2', 'Busan DC1'][i % 3],
+    environment: 'production',
+    provider: 'onpremise',
+    instanceType: 'm5.large',
+    cluster: null,
+    zone: `zone-${String.fromCharCode(97 + (i % 3))}`,
+    tags: {
+      environment: 'production',
+      tier: 'backend'
+    },
+    metrics: {
+      cpu: Math.random() * 80 + 10,
+      memory: Math.random() * 70 + 20,
+      disk: Math.random() * 60 + 30,
+      network: {
+        latency: Math.random() * 50 + 10,
+        bytesIn: Math.floor(Math.random() * 1000000),
+        bytesOut: Math.floor(Math.random() * 800000),
+        connections: Math.floor(Math.random() * 500)
+      },
+      processes: Math.floor(Math.random() * 200) + 50,
+      loadAverage: [
+        Math.random() * 2,
+        Math.random() * 1.5,
+        Math.random() * 1
+      ],
+      uptime: Math.floor(Math.random() * 8640000),
+      temperature: Math.floor(Math.random() * 30) + 35,
+      powerUsage: Math.floor(Math.random() * 200) + 100
+    },
+    lastUpdate: new Date(),
+    lastSeen: new Date(),
+    alerts: [],
+    services: [
+      {
+        name: 'nginx',
+        status: 'running',
+        port: 80,
+        pid: Math.floor(Math.random() * 30000) + 1000,
+        uptime: Math.floor(Math.random() * 86400),
+        memoryUsage: Math.random() * 500,
+        cpuUsage: Math.random() * 10
+      },
+      {
+        name: 'nodejs',
+        status: 'running',
+        port: 3000,
+        pid: Math.floor(Math.random() * 30000) + 1000,
+        uptime: Math.floor(Math.random() * 86400),
+        memoryUsage: Math.random() * 800,
+        cpuUsage: Math.random() * 15
+      }
+    ]
+  }));
 } 

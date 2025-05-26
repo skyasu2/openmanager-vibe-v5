@@ -1,7 +1,7 @@
 {
   "name": "@openmanager/ai-agent",
   "version": "1.0.0",
-  "description": "🧠 NPU-based lightweight AI inference engine for server monitoring",
+  "description": "🧠 Lightweight AI inference engine for server monitoring",
   "main": "index.js",
   "types": "index.d.ts",
   "module": "index.esm.js",
@@ -44,7 +44,7 @@
   "keywords": [
     "ai",
     "agent",
-    "npu",
+    "ai-inference",
     "inference",
     "monitoring",
     "server",

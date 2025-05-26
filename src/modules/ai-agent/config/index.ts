@@ -31,7 +31,7 @@ export interface AIAgentEnvironmentConfig {
   
   // AI 엔진 설정
   engine: {
-    enableNPU: boolean;
+    enableInference: boolean;
     enableMCP: boolean;
     maxContextLength: number;
     confidenceThreshold: number;
@@ -117,7 +117,7 @@ export const createDefaultConfig = (overrides: Partial<AIAgentEnvironmentConfig>
     },
     
     engine: {
-      enableNPU: true,
+      enableInference: true,
       enableMCP: true,
       maxContextLength: 4096,
       confidenceThreshold: 0.5,
@@ -383,9 +383,9 @@ export class AIAgentConfigBuilder {
     return this;
   }
   
-  enableNPU(enabled: boolean = true) {
+  enableInference(enabled: boolean = true) {
     if (!this.config.engine) this.config.engine = {};
-    this.config.engine.enableNPU = enabled;
+    this.config.engine.enableInference = enabled;
     return this;
   }
   

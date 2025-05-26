@@ -190,8 +190,14 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // 복구된 서버 데이터 스토어 사용
-  const { servers, syncWithCollector } = useServerDataStore();
+  // ✅ API 기반 서버 데이터 스토어 사용
+  const { 
+    servers, 
+    fetchServers, 
+    refreshData, 
+    isLoading, 
+    error 
+  } = useServerDataStore();
   
   // 서버 데이터를 Server 타입으로 변환
   const currentServers: Server[] = servers.map(server => ({
@@ -221,12 +227,17 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
     offline: currentServers.filter((s: Server) => s.status === 'offline').length
   }), [currentServers]);
 
-  // 컴포넌트 마운트 시 서버 데이터 동기화
+  // ✅ 컴포넌트 마운트 시 서버 데이터 로드
   useEffect(() => {
-    syncWithCollector();
-    const interval = setInterval(syncWithCollector, 30000); // 30초마다 동기화
+    fetchServers();
+    
+    // 30초마다 데이터 새로고침
+    const interval = setInterval(() => {
+      refreshData();
+    }, 30000);
+    
     return () => clearInterval(interval);
-  }, [syncWithCollector]);
+  }, [fetchServers, refreshData]);
 
   // 통계 업데이트 알림
   useEffect(() => {
@@ -235,67 +246,173 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
     }
   }, [onStatsUpdate, serverStats]);
 
-  // 필터링
-  const filteredServers = currentServers.filter((server: Server) => 
-    server.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // 검색 필터링
+  const filteredServers = useMemo(() => {
+    if (!searchTerm) return currentServers;
+    
+    return currentServers.filter(server => 
+      server.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      server.location.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [currentServers, searchTerm]);
 
-  const handleServerClick = (server: Server) => {
+  // 서버 선택 핸들러
+  const handleServerSelect = (server: Server) => {
     setSelectedServer(server);
   };
 
-  const handleCloseModal = () => {
-    setSelectedServer(null);
-  };
+  // 서버 상태별 그룹핑
+  const groupedServers = useMemo(() => {
+    const groups = {
+      critical: filteredServers.filter(s => s.status === 'offline'),
+      warning: filteredServers.filter(s => s.status === 'warning'),
+      healthy: filteredServers.filter(s => s.status === 'online')
+    };
+    return groups;
+  }, [filteredServers]);
+
+  // 로딩 상태 표시
+  if (isLoading && servers.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <span className="ml-2 text-gray-600">서버 데이터를 로딩 중...</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
-      {/* 상단 검색바 */}
-      <div className="mb-4 sm:mb-6">
-        <div className="bg-white rounded-lg p-3 sm:p-4 shadow-sm border border-gray-200">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
-            <div className="flex-1">
-              <input
-                type="text"
-                placeholder="서버 이름 검색..."
-                className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+    <div className="space-y-6">
+      {/* 에러 메시지 표시 */}
+      {error && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
             </div>
-            <div className="flex gap-2">
-              <button className="px-3 sm:px-4 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors">
-                검색
-              </button>
-              <button className="px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors">
-                필터
-              </button>
-              <button className="px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-colors">
-                정렬
+            <div className="ml-3">
+              <p className="text-sm text-yellow-800">
+                {error}
+              </p>
+            </div>
+            <div className="ml-auto pl-3">
+              <button
+                onClick={() => fetchServers()}
+                className="text-yellow-800 hover:text-yellow-900 text-sm underline"
+              >
+                다시 시도
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* 검색 및 필터 */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex-1">
+          <input
+            type="text"
+            placeholder="서버 이름 또는 위치로 검색..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => refreshData()}
+            disabled={isLoading}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {isLoading ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            ) : (
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            )}
+            새로고침
+          </button>
+        </div>
       </div>
 
-      {/* 서버 카드 그리드 - 모바일 친화적 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4">
-        {filteredServers.map((server: Server) => (
-          <ServerCard
-            key={server.id}
-            server={server}
-            onClick={handleServerClick}
-          />
-        ))}
-      </div>
+      {/* 서버 상태별 섹션 */}
+      {groupedServers.critical.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold text-red-600 flex items-center gap-2">
+            <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+            위험 상태 ({groupedServers.critical.length})
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {groupedServers.critical.map((server) => (
+              <ServerCard
+                key={server.id}
+                server={server}
+                onClick={() => handleServerSelect(server)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {groupedServers.warning.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold text-yellow-600 flex items-center gap-2">
+            <span className="w-3 h-3 bg-yellow-500 rounded-full"></span>
+            주의 상태 ({groupedServers.warning.length})
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {groupedServers.warning.map((server) => (
+              <ServerCard
+                key={server.id}
+                server={server}
+                onClick={() => handleServerSelect(server)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {groupedServers.healthy.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold text-green-600 flex items-center gap-2">
+            <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+            정상 상태 ({groupedServers.healthy.length})
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {groupedServers.healthy.map((server) => (
+              <ServerCard
+                key={server.id}
+                server={server}
+                onClick={() => handleServerSelect(server)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 서버가 없는 경우 */}
+      {filteredServers.length === 0 && !isLoading && (
+        <div className="text-center py-12">
+          <div className="mx-auto h-12 w-12 text-gray-400">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">서버가 없습니다</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            {searchTerm ? '검색 조건에 맞는 서버가 없습니다.' : '등록된 서버가 없습니다.'}
+          </p>
+        </div>
+      )}
 
       {/* 서버 상세 모달 */}
-      {selectedServer && (
-        <ServerDetailModal
-          server={selectedServer}
-          onClose={handleCloseModal}
-        />
-      )}
+      <ServerDetailModal
+        server={selectedServer}
+        onClose={() => setSelectedServer(null)}
+      />
     </div>
   );
 } 

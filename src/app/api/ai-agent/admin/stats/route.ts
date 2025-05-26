@@ -35,7 +35,7 @@ const mockStats = {
     },
     byHour: [0, 0, 1, 0, 0, 0, 0, 2, 1, 3, 2, 1, 0, 1, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0],
     topErrors: [
-      { message: 'NPU processing timeout', count: 8 },
+      { message: 'AI processing timeout', count: 8 },
       { message: 'Context validation failed', count: 5 },
       { message: 'MCP connection error', count: 4 },
       { message: 'Memory allocation failed', count: 3 },

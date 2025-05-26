@@ -6,7 +6,7 @@
 
 ## ✨ 주요 특징
 
-- **🔋 NPU 시뮬레이션**: LLM 비용 없는 실시간 AI 추론
+- **🔋 지능형 추론**: LLM 비용 없는 실시간 AI 추론
 - **🔌 MCP 프로토콜**: 표준 모델 컨텍스트 프로토콜 지원
 - **🎯 도메인 특화**: 서버 모니터링에 최적화된 AI
 - **🧩 플러그인 시스템**: 확장 가능한 아키텍처
@@ -77,7 +77,7 @@ const config = createConfig()
   .enableLogging(true)
   .logLevel('debug')
   .storage('localStorage')
-  .enableNPU(true)
+  .enableInference(true)
   .enableMCP(true)
   .timeout(5000)
   .plugins(['debug', 'metrics', 'cache'])
@@ -86,7 +86,7 @@ const config = createConfig()
 // 직접 엔진 생성
 const aiAgent = AIAgentEngine.getInstance({
   enableMCP: true,
-  enableNPU: true,
+  enableInference: true,
   maxContextLength: 4096,
   responseTimeout: 5000,
   debugMode: true,
@@ -123,7 +123,7 @@ interface AIAgentEnvironmentConfig {
   };
   
   engine: {
-    enableNPU: boolean;
+    enableInference: boolean;
     enableMCP: boolean;
     maxContextLength: number;
     confidenceThreshold: number;
@@ -137,7 +137,7 @@ interface AIAgentEnvironmentConfig {
 ```typescript
 interface AIAgentConfig {
   enableMCP: boolean;          // MCP 프로토콜 활성화
-  enableNPU: boolean;          // NPU 시뮬레이션 활성화
+  enableInference: boolean;    // AI 추론 활성화
   maxContextLength: number;    // 최대 컨텍스트 길이
   responseTimeout: number;     // 응답 타임아웃 (ms)
   debugMode: boolean;          // 디버그 모드
@@ -439,7 +439,7 @@ describe('Production AI Agent Tests', () => {
   "keywords": [
     "ai",
     "agent",
-    "npu",
+    "ai-inference",
     "mcp",
     "monitoring",
     "server"

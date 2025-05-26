@@ -20,7 +20,7 @@ interface FeatureDetail {
 const features: FeatureDetail[] = [
   {
     title: "자연어 AI 에이전트",
-    description: "MCP 엔진과 NPU 기반으로 자연어 질의를 실시간 분석하여 서버 상태를 즉시 응답합니다.",
+    description: "지능형 AI 엔진 기반으로 자연어 질의를 실시간 분석하여 서버 상태를 즉시 응답합니다.",
     benefits: [
       "패턴 매칭 기반 의도 분류",
       "LLM 비용 없는 경량화 AI 추론",
@@ -1549,9 +1549,9 @@ export default function HomePage() {
             <div className="benefits-icon">
               <i className="fas fa-brain"></i>
             </div>
-            <h3 className="benefits-title">NPU와 MCP 엔진 기반 AI 에이전트</h3>
+                            <h3 className="benefits-title">지능형 AI 에이전트</h3>
             <p className="benefits-text">
-              <strong>NPU와 MCP 엔진 기반 AI 에이전트로 서버 관리를 혁신합니다</strong><br />
+                              <strong>지능형 AI 에이전트로 서버 관리를 혁신합니다</strong><br />
               <strong className="hidden sm:inline">자연어 질의, 지능형 분석, 예측 알림으로</strong>
               <strong className="sm:hidden">자연어 질의와 지능형 분석으로</strong><br />
               <strong>IT 운영을 완전히 자동화합니다</strong>
@@ -1789,7 +1789,7 @@ export default function HomePage() {
             
             <div className="modal-header">
               <div className="modal-emoji">🧠</div>
-              <h2 className="modal-title">NPU & MCP 엔진 기반 AI 에이전트</h2>
+                              <h2 className="modal-title">지능형 AI 에이전트</h2>
               <p className="modal-description">LLM 없이도 지능형 응답하는 차세대 서버 관리 솔루션</p>
             </div>
 
@@ -1798,7 +1798,7 @@ export default function HomePage() {
               <ul className="benefits-list">
                 <li>
                   <i className="fas fa-microchip benefit-icon"></i>
-                  <span><strong>NPU 기반 경량 AI</strong> - LLM 비용 없는 실시간 AI 추론</span>
+                  <span><strong>경량 AI 추론</strong> - LLM 비용 없는 실시간 AI 추론</span>
                 </li>
                 <li>
                   <i className="fas fa-comments benefit-icon"></i>

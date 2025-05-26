@@ -1,7 +1,6 @@
 import { create } from 'zustand';
-import { serverDataCollector, type ServerInfo } from '../services/collectors/ServerDataCollector';
 
-// 타입 정의 (ServerDataCollector와 호환)
+// ✅ 클라이언트 전용 타입 정의
 interface ServerMetrics {
   cpu: number;
   memory: number;
@@ -49,6 +48,8 @@ interface ServerDataStore {
   isAutoDemo: boolean;
   currentScenarioIndex: number;
   isTyping: boolean;
+  isLoading: boolean;
+  error: string | null;
 
   // Actions
   addMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'>) => void;
@@ -62,99 +63,79 @@ interface ServerDataStore {
   nextScenario: () => void;
   resetDemo: () => void;
   updateSystemStatus: () => void;
-  syncWithCollector: () => void;
+  fetchServers: () => Promise<void>;
+  refreshData: () => Promise<void>;
 }
 
-// 실제 서버 데이터 수집기에서 데이터 가져오기
-const getServersFromCollector = (): Server[] => {
+// ✅ API 기반 서버 데이터 가져오기
+const fetchServersFromAPI = async (): Promise<Server[]> => {
   try {
-    const realServers = serverDataCollector.getAllServers();
+    const response = await fetch('/api/servers');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
     
-    // ServerInfo를 Server 타입으로 변환
-    return realServers.map((serverInfo: ServerInfo) => ({
+    const data = await response.json();
+    
+    // API 응답을 Client Server 타입으로 변환
+    return data.servers?.map((serverInfo: any) => ({
       id: serverInfo.id,
-      name: serverInfo.hostname,
+      name: serverInfo.hostname || serverInfo.name,
       status: serverInfo.status === 'online' ? 'healthy' : 
               serverInfo.status === 'warning' ? 'warning' : 'critical',
       location: serverInfo.location,
-      type: serverInfo.provider.toUpperCase(),
+      type: serverInfo.provider?.toUpperCase() || 'UNKNOWN',
       metrics: {
-        cpu: serverInfo.metrics.cpu,
-        memory: serverInfo.metrics.memory,
-        disk: serverInfo.metrics.disk,
-        network: serverInfo.metrics.network.latency
+        cpu: serverInfo.metrics?.cpu || 0,
+        memory: serverInfo.metrics?.memory || 0,
+        disk: serverInfo.metrics?.disk || 0,
+        network: serverInfo.metrics?.network?.latency || 0
       },
-      uptime: Math.floor(serverInfo.metrics.uptime / 86400), // 초를 일로 변환
-      lastUpdate: serverInfo.lastUpdate
-    }));
+      uptime: Math.floor((serverInfo.metrics?.uptime || 0) / 86400),
+      lastUpdate: new Date(serverInfo.lastUpdate || Date.now())
+    })) || [];
   } catch (error) {
-    console.warn('Failed to get servers from collector, using fallback data:', error);
-    return generateFallbackServers();
+    console.error('Failed to fetch servers from API:', error);
+    throw error;
   }
 };
 
-// 백업용 서버 데이터 생성 (데이터 수집기 실패 시)
+// 백업 데이터 생성
 const generateFallbackServers = (): Server[] => {
-  const serverTypes = ['API', 'Database', 'Web', 'Cache'];
-  const locations = ['US-East', 'US-West', 'EU-Central', 'AP-Tokyo', 'AP-Seoul'];
-  const servers: Server[] = [];
-
-  for (let i = 1; i <= 19; i++) {
-    const serverNum = String(i).padStart(3, '0');
-    const type = serverTypes[Math.floor(Math.random() * serverTypes.length)];
-    const location = locations[Math.floor(Math.random() * locations.length)];
-    
-    // 일부 서버는 의도적으로 문제 상태로 설정
-    let status: 'healthy' | 'warning' | 'critical' = 'healthy';
-    let cpu = Math.floor(Math.random() * 60) + 10; // 10-70%
-    let memory = Math.floor(Math.random() * 50) + 30; // 30-80%
-    
-    if (i === 1) { // 첫 번째 서버는 높은 CPU 사용률
-      status = 'critical';
-      cpu = 89;
-      memory = 76;
-    } else if (i <= 4) { // 몇 개는 경고 상태
-      status = 'warning';
-      cpu = Math.floor(Math.random() * 20) + 70; // 70-90%
-    }
-
-    servers.push({
-      id: `fallback-server-${serverNum}`,
-      name: `${type.toLowerCase()}-${location.toLowerCase().replace('-', '')}-${serverNum}`,
-      status,
-      location,
-      type,
-      metrics: {
-        cpu,
-        memory,
-        disk: Math.floor(Math.random() * 40) + 40, // 40-80%
-        network: Math.floor(Math.random() * 30) + 10 // 10-40%
-      },
-      uptime: Math.floor(Math.random() * 365) + 1,
-      lastUpdate: new Date()
-    });
-  }
-
-  return servers;
+  return Array.from({ length: 10 }, (_, i) => ({
+    id: `server-${i + 1}`,
+    name: `서버-${String(i + 1).padStart(2, '0')}`,
+    status: ['healthy', 'warning', 'critical'][Math.floor(Math.random() * 3)] as Server['status'],
+    location: ['서울', '부산', '대구', '인천'][Math.floor(Math.random() * 4)],
+    type: ['WEB', 'DB', 'API', 'CACHE'][Math.floor(Math.random() * 4)],
+    metrics: {
+      cpu: Math.floor(Math.random() * 100),
+      memory: Math.floor(Math.random() * 100),
+      disk: Math.floor(Math.random() * 100),
+      network: Math.floor(Math.random() * 100)
+    },
+    uptime: Math.floor(Math.random() * 365),
+    lastUpdate: new Date()
+  }));
 };
 
 export const useServerDataStore = create<ServerDataStore>((set, get) => ({
-  // Initial state
-  servers: getServersFromCollector(),
+  // 초기 상태
+  servers: [],
   chatMessages: [
     {
       id: 'welcome-1',
       type: 'ai',
-      content: '안녕하세요! OpenManager AI입니다. 🤖\n현재 19개 서버를 실시간으로 모니터링하고 있습니다.',
+      content: '안녕하세요! OpenManager AI입니다. 🤖\n서버 데이터를 로딩 중입니다...',
       timestamp: new Date(),
     }
   ],
   systemStatus: {
-    totalServers: 19,
-    healthyServers: 15,
-    warningServers: 3,
-    criticalServers: 1,
-    activeAlerts: 4,
+    totalServers: 0,
+    healthyServers: 0,
+    warningServers: 0,
+    criticalServers: 0,
+    activeAlerts: 0,
     lastUpdate: new Date()
   },
   selectedServer: null,
@@ -162,44 +143,43 @@ export const useServerDataStore = create<ServerDataStore>((set, get) => ({
   isAutoDemo: false,
   currentScenarioIndex: 0,
   isTyping: false,
+  isLoading: false,
+  error: null,
 
   // Actions
   addMessage: (message) => set((state) => ({
     chatMessages: [...state.chatMessages, {
       ...message,
-      id: `msg-${Date.now()}`,
+      id: `msg-${Date.now()}-${Math.random()}`,
       timestamp: new Date()
     }]
   })),
 
   highlightServers: (serverIds) => set({ highlightedServers: serverIds }),
-
   clearHighlights: () => set({ highlightedServers: [] }),
-
   selectServer: (server) => set({ selectedServer: server }),
 
   updateServerMetrics: (serverId, metrics) => set((state) => ({
-    servers: state.servers.map(server =>
-      server.id === serverId
+    servers: state.servers.map(server => 
+      server.id === serverId 
         ? { ...server, metrics: { ...server.metrics, ...metrics }, lastUpdate: new Date() }
         : server
     )
   })),
 
   updateServerStatus: (serverId, status) => set((state) => ({
-    servers: state.servers.map(server =>
-      server.id === serverId
+    servers: state.servers.map(server => 
+      server.id === serverId 
         ? { ...server, status, lastUpdate: new Date() }
         : server
     )
   })),
 
   setAutoDemo: (isAuto) => set({ isAutoDemo: isAuto }),
-
   setTyping: (isTyping) => set({ isTyping }),
-
+  
   nextScenario: () => set((state) => ({
-    currentScenarioIndex: state.currentScenarioIndex + 1
+    currentScenarioIndex: (state.currentScenarioIndex + 1) % 5
   })),
 
   resetDemo: () => set({
@@ -207,7 +187,7 @@ export const useServerDataStore = create<ServerDataStore>((set, get) => ({
       {
         id: 'welcome-1',
         type: 'ai',
-        content: '안녕하세요! OpenManager AI입니다. 🤖\n현재 19개 서버를 실시간으로 모니터링하고 있습니다.',
+        content: '안녕하세요! OpenManager AI입니다. 🤖\n현재 서버를 실시간으로 모니터링하고 있습니다.',
         timestamp: new Date(),
       }
     ],
@@ -235,19 +215,46 @@ export const useServerDataStore = create<ServerDataStore>((set, get) => ({
     });
   },
 
-  // 실시간 서버 데이터 동기화
-  syncWithCollector: () => {
+  // ✅ API 기반 서버 데이터 가져오기
+  fetchServers: async () => {
+    set({ isLoading: true, error: null });
+    
     try {
-      const updatedServers = getServersFromCollector();
-      set({ servers: updatedServers });
+      const servers = await fetchServersFromAPI();
+      set({ servers, isLoading: false });
       
-      // 시스템 상태도 업데이트
+      // 시스템 상태 업데이트
       const { updateSystemStatus } = get();
       updateSystemStatus();
       
-      console.log(`🔄 Synced ${updatedServers.length} servers from collector`);
+      console.log(`✅ Fetched ${servers.length} servers from API`);
     } catch (error) {
-      console.error('Failed to sync with collector:', error);
+      console.error('Failed to fetch servers:', error);
+      
+      // 백업 데이터 사용
+      const fallbackServers = generateFallbackServers();
+      set({ 
+        servers: fallbackServers, 
+        isLoading: false,
+        error: 'Failed to fetch real-time data, using cached data'
+      });
+      
+      const { updateSystemStatus } = get();
+      updateSystemStatus();
+    }
+  },
+
+  // ✅ 데이터 새로고침 (주기적 호출용)
+  refreshData: async () => {
+    try {
+      const servers = await fetchServersFromAPI();
+      set({ servers, error: null });
+      
+      const { updateSystemStatus } = get();
+      updateSystemStatus();
+    } catch (error) {
+      console.warn('Background refresh failed:', error);
+      // 에러 시 UI는 그대로 유지 (조용한 실패)
     }
   }
 })); 

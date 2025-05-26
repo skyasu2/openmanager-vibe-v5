@@ -14,7 +14,7 @@ src/modules/
 
 ## 🧠 AI Agent Engine
 
-NPU 기반 경량 AI 추론 엔진입니다.
+지능형 AI 기반 경량 추론 엔진입니다.
 
 ### 특징
 - **LLM 비용 없는 실시간 AI 추론**
@@ -48,7 +48,7 @@ import { AIAgentEngine } from './modules/ai-agent';
 
 const aiEngine = AIAgentEngine.getInstance({
   enableMCP: true,
-  enableNPU: true,
+  enableInference: true,
   debugMode: true
 });
 

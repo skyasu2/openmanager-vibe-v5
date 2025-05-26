@@ -1,7 +1,7 @@
 /**
  * OpenManager AI Agent Engine
  * 
- * 🧠 NPU 기반 경량 AI 추론 엔진
+ * 🧠 지능형 경량 AI 추론 엔진
  * - LLM 비용 없는 실시간 AI 추론
  * - MCP(Model Context Protocol) 기반 의도 분류
  * - 도메인 특화 서버 모니터링 AI
@@ -19,7 +19,7 @@ import { AdminLogger } from './AdminLogger';
 
 export interface AIAgentConfig {
   enableMCP: boolean;
-  enableNPU: boolean;
+  enableInference: boolean;
   maxContextLength: number;
   responseTimeout: number;
   debugMode: boolean;
@@ -88,7 +88,7 @@ export class AIAgentEngine {
     if (!AIAgentEngine.instance) {
       const defaultConfig: AIAgentConfig = {
         enableMCP: true,
-        enableNPU: true,
+        enableInference: true,
         maxContextLength: 4096,
         responseTimeout: 5000,
         debugMode: process.env.NODE_ENV === 'development',
@@ -156,7 +156,7 @@ export class AIAgentEngine {
       // 1. 컨텍스트 로드 및 업데이트
       const context = await this.contextManager.loadContext(sessionId, request.context);
       
-      // 2. 의도 분류 (NPU 시뮬레이션)
+      // 2. 의도 분류 (AI 추론)
       const intent = await this.intentClassifier.classify(request.query, context);
       
       // 3. MCP 프로세서를 통한 추가 분석

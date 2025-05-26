@@ -1,5 +1,5 @@
 // MCP (Model Context Protocol) 엔진
-// NPU 기반 경량 AI 추론을 위한 핵심 모듈
+// 지능형 경량 AI 추론을 위한 핵심 모듈
 
 export interface MCPIntent {
   intent: string;

@@ -22,7 +22,7 @@ import { aiDatabase } from '../../../lib/database';
 
 export interface EnhancedAIAgentConfig {
   enableMCP: boolean;
-  enableNPU: boolean;
+  enableInference: boolean;
   enableAutoMode: boolean;
   enableThinking: boolean;
   enableAdminLogging: boolean;
@@ -100,7 +100,7 @@ export class EnhancedAIAgentEngine {
     if (!EnhancedAIAgentEngine.instance) {
       const defaultConfig: EnhancedAIAgentConfig = {
         enableMCP: true,
-        enableNPU: true,
+        enableInference: true,
         enableAutoMode: true,
         enableThinking: true,
         enableAdminLogging: true,

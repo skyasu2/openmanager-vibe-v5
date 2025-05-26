@@ -2,7 +2,7 @@
  * AI Agent API Endpoint
  * 
  * 🤖 OpenManager AI 에이전트 메인 API
- * - NPU 기반 AI 추론 엔진
+ * - 지능형 AI 추론 엔진
  * - MCP 프로토콜 지원
  * - 실시간 서버 모니터링 AI
  */
