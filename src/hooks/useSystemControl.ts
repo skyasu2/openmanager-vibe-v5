@@ -30,70 +30,27 @@ export const useSystemControl = () => {
       // 1단계: 시스템 타이머 시작 (20분)
       startSystem(20 * 60);
       
-      // 2단계: Enterprise 서버 데이터 시딩
+      // 2단계: 시뮬레이션 엔진 시작 (통합 시스템)
       try {
-        systemLogger.system('1️⃣ 서버 데이터 시딩 시작...');
-        const seedResponse = await fetch('/api/enterprise/seed', {
+        systemLogger.system('1️⃣ 시뮬레이션 엔진 시작...');
+        const systemResponse = await fetch('/api/system/start', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
         });
         
-        if (seedResponse.ok) {
-          const seedData = await seedResponse.json();
-          systemLogger.system(`✅ 서버 데이터 시딩 완료: ${seedData.message}`);
+        if (systemResponse.ok) {
+          const systemData = await systemResponse.json();
+          systemLogger.system(`✅ 시뮬레이션 엔진 시작: ${systemData.message}`);
         } else {
-          throw new Error('서버 데이터 시딩 실패');
+          throw new Error('시뮬레이션 엔진 시작 실패');
         }
       } catch (error) {
-        const errorMsg = '서버 데이터 시딩 실패';
+        const errorMsg = '시뮬레이션 엔진 시작 실패';
         errors.push(errorMsg);
         systemLogger.error(errorMsg, error);
       }
 
-      // 3단계: 시뮬레이션 시작
-      try {
-        systemLogger.system('2️⃣ 시뮬레이션 시작...');
-        const simResponse = await fetch('/api/simulate', {
-          method: 'POST'
-        });
-        
-        if (simResponse.ok) {
-          const simData = await simResponse.json();
-          systemLogger.system(`✅ 시뮬레이션 시작: ${simData.message}`);
-        } else {
-          throw new Error('시뮬레이션 시작 실패');
-        }
-      } catch (error) {
-        const errorMsg = '시뮬레이션 시작 실패';
-        errors.push(errorMsg);
-        systemLogger.error(errorMsg, error);
-      }
-
-      // 4단계: 데이터 생성기 시작
-      try {
-        systemLogger.system('3️⃣ 데이터 생성기 시작...');
-        const genResponse = await fetch('/api/data-generator', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            action: 'start-realtime',
-            pattern: 'normal'
-          })
-        });
-        
-        if (genResponse.ok) {
-          const genData = await genResponse.json();
-          systemLogger.system(`✅ 데이터 생성기 시작: ${genData.message}`);
-        } else {
-          throw new Error('데이터 생성기 시작 실패');
-        }
-      } catch (error) {
-        const errorMsg = '데이터 생성기 시작 실패';
-        errors.push(errorMsg);
-        systemLogger.error(errorMsg, error);
-      }
-
-      // 5단계: AI 에이전트 활성화
+      // 3단계: AI 에이전트 활성화
       try {
         systemLogger.system('4️⃣ AI 에이전트 활성화...');
         await enableAIAgent();
@@ -154,41 +111,24 @@ export const useSystemControl = () => {
         systemLogger.error(errorMsg, error);
       }
 
-      // 2단계: 데이터 생성기 중지
+      // 2단계: 시뮬레이션 엔진 중지 (통합 시스템)
       try {
-        systemLogger.system('2️⃣ 데이터 생성기 중지...');
-        const genResponse = await fetch('/api/data-generator', {
+        systemLogger.system('2️⃣ 시뮬레이션 엔진 중지...');
+        const systemResponse = await fetch('/api/system/stop', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'stop-realtime' })
+          headers: { 'Content-Type': 'application/json' }
         });
         
-        if (genResponse.ok) {
-          systemLogger.system('✅ 데이터 생성기 중지 완료');
+        if (systemResponse.ok) {
+          const systemData = await systemResponse.json();
+          systemLogger.system(`✅ 시뮬레이션 엔진 중지: ${systemData.message}`);
         } else {
-          throw new Error('데이터 생성기 중지 실패');
+          throw new Error('시뮬레이션 엔진 중지 실패');
         }
       } catch (error) {
-        const errorMsg = '데이터 생성기 중지 실패';
+        const errorMsg = '시뮬레이션 엔진 중지 실패';
         errors.push(errorMsg);
         systemLogger.error(errorMsg, error);
-      }
-
-      // 3단계: 시뮬레이션 중지
-      try {
-        systemLogger.system('3️⃣ 시뮬레이션 중지...');
-        const simResponse = await fetch('/api/simulate', {
-          method: 'DELETE'
-        });
-        
-        if (simResponse.ok) {
-          systemLogger.system('✅ 시뮬레이션 중지 완료');
-        } else {
-          // 시뮬레이션 중지 API가 없을 수 있으므로 오류로 처리하지 않음
-          systemLogger.warn('시뮬레이션 중지 API 호출 실패 (무시됨)');
-        }
-      } catch (error) {
-        systemLogger.warn('시뮬레이션 중지 실패 (무시됨)', error);
       }
 
       // 4단계: 시스템 타이머 중지

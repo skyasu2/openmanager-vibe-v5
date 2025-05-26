@@ -3,9 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useSystemStore } from '../stores/systemStore';
 import { useSystemControl } from '../hooks/useSystemControl';
-import { smartAIAgent } from '../services/aiAgent';
 import ProfileDropdown from '../components/ProfileDropdown';
 
 // 동적 렌더링 강제 (HTML 파일 생성 방지)
@@ -73,17 +71,10 @@ export default function HomePage() {
     isAIEnabled,
     formattedTime,
     startFullSystem,
-    stopFullSystem,
-    restartSystem
+    stopFullSystem
   } = useSystemControl();
   
-  // 기존 시스템 스토어 (개별 제어용)
-  const { 
-    state, 
-    startSystem, 
-    stopSystem,
-    getFormattedTime
-  } = useSystemStore();
+
 
   // 데이터 생성기 상태 관리
   const [dataGeneratorStatus, setDataGeneratorStatus] = useState<{
@@ -157,13 +148,13 @@ export default function HomePage() {
         alert(`⚠️ ${result.message}${errorDetails}\n\n일부 기능이 제한될 수 있습니다.`);
       }
       
-      // 데이터 생성기 상태 업데이트
-      setDataGeneratorStatus(prev => ({
-        ...prev,
+      // 데이터 생성기 상태 자동 초기화 및 업데이트
+      setDataGeneratorStatus({
         isGenerating: true,
         remainingTime: 20 * 60 * 1000,
-        currentPattern: 'normal'
-      }));
+        currentPattern: 'normal',
+        patterns: ['normal', 'high-load', 'maintenance']
+      });
       
     } catch (error) {
       console.error('❌ 시스템 시작 실패:', error);
@@ -201,226 +192,15 @@ export default function HomePage() {
     }
   };
 
-  // 🔄 시스템 재시작 함수
-  const handleRestartSystem = async () => {
-    if (isLoading) return;
-    
-    setIsLoading(true);
-    console.log('🔄 시스템 재시작...');
-    
-    try {
-      const result = await restartSystem();
-      
-      if (result.success) {
-        alert(`🔄 ${result.message}`);
-      } else {
-        const errorDetails = result.errors.length > 0 
-          ? `\n\n오류 상세:\n${result.errors.join('\n')}` 
-          : '';
-        alert(`⚠️ ${result.message}${errorDetails}`);
-      }
-      
-      // 데이터 생성기 상태 업데이트
-      setDataGeneratorStatus(prev => ({
-        ...prev,
-        isGenerating: true,
-        remainingTime: 20 * 60 * 1000,
-        currentPattern: 'normal'
-      }));
-      
-    } catch (error) {
-      console.error('❌ 시스템 재시작 실패:', error);
-      alert('❌ 시스템 재시작에 실패했습니다.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
-  // 시스템 활성화 (헬스체커 서비스 + AI 에이전트 + 자동 패턴 변경)
-  const handleActivateSystem = async () => {
-    console.log('🚀 시스템 활성화 시작 (개선된 헬스체커 사용)...');
-    
-    try {
-      // 1. 시스템 활성화
-      startSystem(20 * 60); // 20분 = 1200초
-      
-      // 2. AI 에이전트 활성화
-      try {
-        const aiResponse = await fetch('/api/ai-agent/power', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'activate' })
-        });
-        
-        if (aiResponse.ok) {
-          console.log('🤖 AI 에이전트 활성화됨');
-        }
-      } catch (error) {
-        console.error('AI 에이전트 활성화 실패:', error);
-      }
-      
-      // 3. 헬스체커를 통한 자동 시스템 복구
-      const { systemHealthChecker } = await import('@/services/SystemHealthChecker');
-      const healthResult = await systemHealthChecker.performAutoRecovery({
-        maxRetries: 3,
-        retryDelayMs: 2000,
-        forceInit: true,
-        generateFallback: true
-      });
-      
-      if (healthResult.isHealthy) {
-        console.log(`✅ 시스템 헬스체크 성공! (${healthResult.serverCount}개 서버)`);
-        
-        // 4. 데이터 생성기 시작 (정상적인 데이터가 있는 경우에만)
-        if (healthResult.dataSource === 'api') {
-          try {
-            const response = await fetch('/api/data-generator', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                action: 'start-realtime',
-                pattern: 'normal'
-              })
-            });
-            
-            if (response.ok) {
-              console.log('✅ 데이터 생성기 시작됨 (정상 운영 패턴)');
-              setDataGeneratorStatus(prev => ({
-                ...prev,
-                isGenerating: true,
-                remainingTime: 10 * 60 * 1000,
-                currentPattern: 'normal'
-              }));
-              
-              // 자동 패턴 변경 시작
-              startAutoPatternChange();
-            }
-          } catch (error) {
-            console.warn('데이터 생성기 시작 실패:', error);
-          }
-        } else {
-          console.log('⚠️ Fallback 데이터 사용 중 - 백그라운드에서 실제 데이터 생성 시도');
-        }
-        
-      } else {
-        console.error('❌ 시스템 헬스체크 실패:', healthResult.issues);
-        alert(`시스템 활성화에 문제가 있습니다:\n${healthResult.issues.join('\n')}\n\n권장 조치:\n${healthResult.actions.join('\n')}`);
-      }
-      
-      // 5. AI 에이전트 자동 리포트 생성
-      setTimeout(() => {
-        smartAIAgent.generateAutoReport();
-      }, 2000);
-      
-      console.log('🎉 시스템 활성화 완료!');
-      
-    } catch (error) {
-      console.error('시스템 활성화 중 오류:', error);
-      alert('시스템 활성화 중 오류가 발생했습니다. 다시 시도해주세요.');
-    }
-  };
 
-  // 대시보드로 이동 (인증 로직 제거)
+  // 대시보드로 이동
   const handleGoToDashboard = () => {
     console.log('🏠 대시보드로 이동');
     router.push('/dashboard');
   };
 
-  // 시스템 비활성화 (데이터 생성기 + AI 에이전트도 함께 중지)
-  const handleDeactivateSystem = async () => {
-    console.log('🛑 시스템 비활성화 시작...');
-    
-    // 1. 시스템 비활성화
-    stopSystem();
-    
-    // 2. AI 에이전트 비활성화
-    try {
-      const aiResponse = await fetch('/api/ai-agent/power', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'deactivate' })
-      });
-      
-      if (aiResponse.ok) {
-        console.log('🤖 AI 에이전트 비활성화됨');
-      }
-    } catch (error) {
-      console.error('AI 에이전트 비활성화 실패:', error);
-    }
-    
-    // 3. 데이터 생성기 중지
-    try {
-      const response = await fetch('/api/data-generator', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'stop-realtime' })
-      });
-      
-      if (response.ok) {
-        console.log('✅ 시스템 비활성화와 함께 데이터 생성기 중지됨');
-        setDataGeneratorStatus(prev => ({
-          ...prev,
-          isGenerating: false,
-          remainingTime: 0,
-          currentPattern: null
-        }));
-      }
-    } catch (error) {
-      console.error('데이터 생성기 중지 실패:', error);
-    }
-    
-    // 4. 시스템 비활성화 완료
-    console.log('🔴 시스템 완전 종료 - 모든 서비스가 중지되었습니다.');
-    console.log('💡 재시작하려면 "시스템 활성화" 버튼을 다시 눌러주세요.');
-  };
 
-  // 데이터 패턴 변경 (시스템 활성화 중에만 가능)
-  const handleChangePattern = async (pattern: 'normal' | 'high-load' | 'maintenance') => {
-    if (!isSystemActive) {
-      console.warn('시스템이 활성화되지 않음');
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/data-generator', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          action: 'change-pattern',
-          pattern 
-        })
-      });
-      
-      if (response.ok) {
-        console.log(`✅ 데이터 패턴 변경됨: ${pattern}`);
-        setDataGeneratorStatus(prev => ({
-          ...prev,
-          currentPattern: pattern
-        }));
-      }
-    } catch (error) {
-      console.error('데이터 패턴 변경 실패:', error);
-    }
-  };
-
-  // 자동 패턴 변경 (백그라운드에서 2-3분마다 랜덤 변경)
-  const startAutoPatternChange = () => {
-    const patterns: ('normal' | 'high-load' | 'maintenance')[] = ['normal', 'high-load', 'maintenance'];
-    
-    const changePattern = () => {
-      if (!isSystemActive) return;
-      
-      const randomPattern = patterns[Math.floor(Math.random() * patterns.length)];
-      handleChangePattern(randomPattern);
-      
-      // 다음 변경까지 2-3분 랜덤 대기
-      const nextChangeTime = (2 + Math.random()) * 60 * 1000; // 2-3분
-      setTimeout(changePattern, nextChangeTime);
-    };
-    
-    // 첫 번째 변경은 1분 후
-    setTimeout(changePattern, 60 * 1000);
-  };
 
   const openFeatureModal = (feature: FeatureDetail) => {
     setSelectedFeature(feature);
@@ -648,11 +428,15 @@ export default function HomePage() {
           flex-wrap: wrap;
         }
 
+        .button-container .btn-secondary {
+          min-width: 180px;
+        }
+
         .finger-pointer {
           position: absolute;
-          top: -60px;
-          left: 50%;
-          transform: translateX(-50%);
+          top: 50%;
+          left: -80px;
+          transform: translateY(-50%);
           font-size: 2rem;
           animation: pointAnimation 2s ease-in-out infinite;
           z-index: 10;
@@ -660,11 +444,11 @@ export default function HomePage() {
 
         @keyframes pointAnimation {
           0%, 100% { 
-            transform: translateX(-50%) translateY(0px);
+            transform: translateY(-50%) translateX(0px);
             opacity: 0.8;
           }
           50% { 
-            transform: translateX(-50%) translateY(-10px);
+            transform: translateY(-50%) translateX(10px);
             opacity: 1;
           }
         }
@@ -1522,7 +1306,8 @@ export default function HomePage() {
 
           .finger-pointer {
             font-size: 1.8rem;
-            top: -50px;
+            top: 50%;
+            left: -60px;
           }
 
           .vibe-description {
@@ -1717,19 +1502,16 @@ export default function HomePage() {
                 </p>
               </div>
               
-              <div className="space-y-3">
-                <div className="relative">
-                  <div className="finger-pointer">👆</div>
-                  <button 
-                    className="btn-primary"
-                    onClick={handleStartFullSystem}
-                    disabled={isLoading}
-                  >
-                    <i className={isLoading ? "fas fa-spinner fa-spin" : "fas fa-power-off"}></i>
-                    <span>{isLoading ? '시작 중...' : '🚀 시스템 시작'}</span>
-                  </button>
-                </div>
-                
+              <div className="relative">
+                <div className="finger-pointer">👉</div>
+                <button 
+                  className="btn-primary"
+                  onClick={handleStartFullSystem}
+                  disabled={isLoading}
+                >
+                  <i className={isLoading ? "fas fa-spinner fa-spin" : "fas fa-power-off"}></i>
+                  <span>{isLoading ? '시작 중...' : '🚀 시스템 시작'}</span>
+                </button>
               </div>
               
               <p className="text-white/80 text-sm">
@@ -1756,7 +1538,8 @@ export default function HomePage() {
                 </div>
               </div>
               
-              <div className="button-container">
+              {/* 대시보드 이동 버튼 (시작 버튼 자리) */}
+              <div className="mb-4">
                 <button 
                   className="btn-primary"
                   onClick={handleGoToDashboard}
@@ -1764,16 +1547,10 @@ export default function HomePage() {
                   <i className="fas fa-tachometer-alt"></i>
                   <span>📊 대시보드 들어가기</span>
                 </button>
-                
-                <button 
-                  className="btn-secondary"
-                  onClick={handleRestartSystem}
-                  disabled={isLoading}
-                >
-                  <i className={isLoading ? "fas fa-spinner fa-spin" : "fas fa-redo"}></i>
-                  <span>{isLoading ? '재시작 중...' : '🔄 시스템 재시작'}</span>
-                </button>
-                
+              </div>
+              
+              {/* 시스템 중지 버튼 */}
+              <div className="text-center">
                 <button 
                   className="btn-secondary"
                   onClick={handleStopFullSystem}
@@ -1785,7 +1562,7 @@ export default function HomePage() {
               </div>
               
               <p className="text-white/60 text-xs mt-2">
-                20분 후 자동 종료됩니다. 재시작하려면 이 페이지로 돌아와주세요.
+                20분 후 자동 종료됩니다. 다시 시작하려면 위의 중지 버튼을 누른 후 시작 버튼을 눌러주세요.
               </p>
             </div>
           )}

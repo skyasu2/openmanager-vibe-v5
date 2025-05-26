@@ -8,6 +8,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { dataManager } from '../../../services/dataManager';
+import { simulationEngine } from '../../../services/simulationEngine';
 
 // 현실적인 서버 구성 데이터 생성 (20개 서버)
 function generateTestServers() {
@@ -147,183 +149,54 @@ function generateTestServers() {
  * 서버 목록 및 메트릭 조회 API
  * 클라이언트에서 서버 데이터를 안전하게 가져오기 위한 엔드포인트
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    console.log('📡 API: Fetching server data...');
+    const { searchParams } = new URL(request.url);
+    const serverId = searchParams.get('id');
+    const timeRange = searchParams.get('timeRange') as 'realtime' | 'daily' || 'realtime';
 
-    // 서버 사이드에서만 ServerDataCollector 동적 로딩
-    if (typeof window === 'undefined') {
-      try {
-        const { serverDataCollector } = await import('../../../services/collectors/ServerDataCollector');
-        
-        // 실제 서버 데이터 가져오기
-        const servers = serverDataCollector.getAllServers();
-        console.log(`📊 [Servers API] Found ${servers.length} servers from ServerDataCollector`);
-        
-        // 서버가 없으면 기본 서버 생성
-        if (servers.length === 0) {
-          console.log('⚠️ No servers found in ServerDataCollector, generating fallback servers...');
-          
-          // 시뮬레이션 초기화 시도
-          try {
-            const { serverDataGenerator } = await import('../../../services/collectors/ServerDataGenerator');
-            console.log('🔄 Starting emergency server generation...');
-            await serverDataGenerator.startRealtimeGeneration('normal');
-            
-            // 잠시 후 다시 확인
-            setTimeout(async () => {
-              const retryServers = serverDataCollector.getAllServers();
-              console.log(`🔄 After generation: ${retryServers.length} servers available`);
-            }, 1000);
-          } catch (generatorError) {
-            console.error('❌ Failed to start generator:', generatorError);
-          }
-          
-          // 즉시 fallback 서버 반환
-          const fallbackServers = await generateFallbackServers();
-          console.log(`💾 Returning ${fallbackServers.length} fallback servers`);
-          
-          return NextResponse.json({
-            success: true,
-            fallback: true,
-            data: {
-              servers: fallbackServers,
-              stats: {
-                total: fallbackServers.length,
-                byStatus: {
-                  online: fallbackServers.filter(s => s.status === 'online').length,
-                  warning: fallbackServers.filter(s => s.status === 'warning').length,
-                  critical: fallbackServers.filter(s => s.status === 'critical').length,
-                  offline: fallbackServers.filter(s => s.status === 'offline').length
-                }
-              }
-            },
-            message: 'Using fallback server data',
-            timestamp: new Date().toISOString()
-          });
-        }
-        
-        const stats = serverDataCollector.getServerStats();
-        const collectionStats = serverDataCollector.getCollectionStats();
-        
-        return NextResponse.json({
-          success: true,
-          data: {
-            servers: servers.map(server => ({
-              id: server.id,
-              hostname: server.hostname,
-              ipAddress: server.ipAddress,
-              status: server.status,
-              location: server.location,
-              environment: server.environment,
-              provider: server.provider,
-              instanceType: server.instanceType,
-              cluster: server.cluster,
-              zone: server.zone,
-              tags: server.tags,
-              metrics: {
-                cpu: server.metrics.cpu,
-                memory: server.metrics.memory,
-                disk: server.metrics.disk,
-                network: {
-                  latency: server.metrics.network.latency,
-                  bytesIn: server.metrics.network.bytesIn,
-                  bytesOut: server.metrics.network.bytesOut,
-                  connections: server.metrics.network.connections
-                },
-                processes: server.metrics.processes,
-                loadAverage: server.metrics.loadAverage,
-                uptime: server.metrics.uptime,
-                temperature: server.metrics.temperature,
-                powerUsage: server.metrics.powerUsage
-              },
-              lastUpdate: server.lastUpdate,
-              lastSeen: server.lastSeen,
-              alerts: server.alerts.map(alert => ({
-                id: alert.id,
-                severity: alert.severity,
-                type: alert.type,
-                message: alert.message,
-                timestamp: alert.timestamp,
-                acknowledged: alert.acknowledged,
-                resolvedAt: alert.resolvedAt
-              })),
-              services: server.services.map(service => ({
-                name: service.name,
-                status: service.status,
-                port: service.port,
-                pid: service.pid,
-                uptime: service.uptime,
-                memoryUsage: service.memoryUsage,
-                cpuUsage: service.cpuUsage
-              }))
-            })),
-            stats: {
-              total: stats.total,
-              byStatus: stats.byStatus,
-              byProvider: stats.byProvider,
-              averageMetrics: stats.averageMetrics,
-              totalAlerts: stats.totalAlerts
-            },
-            collectionInfo: {
-              isCollecting: collectionStats.isCollecting,
-              isAIMonitoring: collectionStats.isAIMonitoring,
-              lastCollectionTime: collectionStats.lastCollectionTime,
-              systemMode: collectionStats.systemMode,
-              totalServers: collectionStats.totalServers
-            }
-          },
-          timestamp: new Date().toISOString()
-        });
-        
-      } catch (importError) {
-        console.error('Failed to import ServerDataCollector:', importError);
-        
-        // 백업 데이터 반환
-        const backupServers = await generateFallbackServers();
-        return NextResponse.json({
-          success: true,
-          data: {
-            servers: backupServers,
-            stats: {
-              total: backupServers.length,
-              byStatus: { 
-                online: backupServers.filter(s => s.status === 'online').length,
-                warning: backupServers.filter(s => s.status === 'warning').length,
-                critical: backupServers.filter(s => s.status === 'critical').length,
-                offline: backupServers.filter(s => s.status === 'offline').length
-              },
-              byProvider: { onpremise: backupServers.length },
-              averageMetrics: { cpu: 45, memory: 60, disk: 55 },
-              totalAlerts: 2
-            },
-            collectionInfo: {
-              isCollecting: false,
-              isAIMonitoring: true,
-              lastCollectionTime: new Date(),
-              systemMode: 'fallback',
-              totalServers: backupServers.length
-            }
-          },
-          timestamp: new Date().toISOString(),
-          warning: 'Using fallback data due to collector unavailability'
-        });
-      }
-    } else {
-      // 클라이언트 사이드에서는 에러 반환
+    // 특정 서버의 시계열 데이터 요청
+    if (serverId) {
+      const timeSeries = dataManager.getServerTimeSeries(serverId, timeRange);
+      
       return NextResponse.json({
-        success: false,
-        error: 'This endpoint should only be called server-side'
-      }, { status: 400 });
+        success: true,
+        data: {
+          serverId,
+          timeRange,
+          metrics: timeSeries,
+          count: timeSeries.length
+        }
+      });
     }
 
+    // 모든 서버의 최신 상태
+    const servers = dataManager.getLatestServerStates();
+    const statusDistribution = dataManager.getServerStatusDistribution();
+    const envDistribution = dataManager.getEnvironmentDistribution();
+    const avgMetrics = dataManager.getAverageMetrics();
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        servers,
+        summary: {
+          total: servers.length,
+          byStatus: statusDistribution,
+          byEnvironment: envDistribution,
+          averageMetrics: avgMetrics
+        },
+        isSimulationRunning: simulationEngine.isRunning()
+      }
+    });
+
   } catch (error) {
-    console.error('❌ Server API error:', error);
+    console.error('❌ 서버 데이터 조회 오류:', error);
     
     return NextResponse.json({
       success: false,
-      error: 'Failed to fetch server data',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: '서버 데이터 조회에 실패했습니다.',
+      error: error instanceof Error ? error.message : '알 수 없는 오류'
     }, { status: 500 });
   }
 }

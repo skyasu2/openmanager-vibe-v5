@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import ServerDashboard from '../../components/dashboard/ServerDashboard';
 import AgentModal from '../../components/ai/AgentModal';
 import ProfileDropdown from '../../components/ui/ProfileDropdown';

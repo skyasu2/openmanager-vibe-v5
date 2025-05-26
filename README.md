@@ -1,65 +1,54 @@
-# 🚀 OpenManager AI v5 - 지능형 AI 기반 서버 모니터링
+# 🚀 OpenManager AI v5 - Vercel 최적화 시뮬레이션 시스템
 
-> **🎯 차세대 AI 에이전트 + 자동화된 시스템 관리** + 완전 리팩토링된 서비스 아키텍처  
-> **🏆 혁신 포인트**: LLM 비용 없는 지능형 AI + 자동 복구 시스템 + 팩토리 패턴 기반 확장성  
+> **🎯 Vercel 무료 티어 최적화** + **실시간 서버 시뮬레이션** + **20분 자동 종료** + **AI 기반 모니터링**  
+> **🏆 혁신 포인트**: 메모리 기반 저장소 + 인과관계 장애 시나리오 + 의미있는 서버 구성  
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.3.2-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
-[![AI Engine](https://img.shields.io/badge/AI%20Engine-V5%20Enhanced-green)](./AI_AGENT_CORE_ARCHITECTURE.md)
-[![Architecture](https://img.shields.io/badge/Architecture-Refactored-purple)](src/lib/)
+[![Vercel](https://img.shields.io/badge/Vercel-Optimized-green)](https://vercel.com)
+[![Simulation](https://img.shields.io/badge/Simulation-Engine-purple)](src/services/)
 [![Build](https://img.shields.io/badge/Build-Passing-brightgreen)](npm run build)
 
-## 📋 **핵심 문서**
+## 📋 **프로젝트 개요**
 
-### 🔥 **[AI_AGENT_CORE_ARCHITECTURE.md](./AI_AGENT_CORE_ARCHITECTURE.md)**
-**개발자용 상세 기술 문서** - 아키텍처, 체크리스트, 사용법, 금지사항 등 모든 개발 정보
+### **v5 Vercel 최적화 시뮬레이션 시스템** 🔥
+- **🏭 시뮬레이션 엔진**: 실제적인 서버 장애 시나리오 및 인과관계 기반 연쇄 장애
+- **⏰ 20분 자동 종료**: Vercel 무료 티어 제약 조건 완벽 대응
+- **💾 메모리 기반 저장소**: 데이터베이스 없이 실시간/일일 데이터 분리 관리
+- **🔄 5초 주기 업데이트**: 실시간 메트릭 수집 및 상태 변화 감지
+- **🎭 의미있는 서버 구성**: 20대 서버 (온프레미스/쿠버네티스/AWS/기타)
 
----
+### **핵심 시스템 구성** 🔥
+- **시뮬레이션 엔진**: 점진적 메트릭 변화 + 실제 장애 시나리오
+- **데이터 매니저**: 실시간 데이터 (240개) + 일일 데이터 (17,280개) 자동 관리
+- **시스템 제어**: 통합 시작/중지 API + 자동 타이머 + 데이터 마이그레이션
+- **대시보드 통합**: 실시간 서버 카드 + 상태별 그룹핑 + 자동 새로고침
 
-## 🎯 **프로젝트 개요**
+## 🏗️ **시스템 아키텍처**
 
-### **v5의 혁신적 개선사항** 🔥
-- **🏭 팩토리 패턴 도입**: 중복 코드 83% 감소, 중앙화된 데이터 생성
-- **🔧 서비스 계층 아키텍처**: 싱글톤 패턴 기반 모듈형 서비스 설계
-- **🏥 자동 헬스체크 시스템**: 3단계 자동 복구 + 30초 캐시 최적화
-- **📊 실시간 모니터링**: SystemHealthDashboard + 자동 진단 UI
-- **🚀 무중단 운영**: 자동 failover + fallback 시스템
-
-### **핵심 제품** 🔥
-- **AI 에이전트 엔진**: 실시간 사고 과정, 스마트 모드 감지, 지능형 추론
-- **자동화 관리 시스템**: 엔터프라이즈급 모니터링 및 자동 복구 도구
-- **팩토리 서비스**: 확장 가능한 서버 데이터 생성 및 관리
-
-### **시연 도구** 🧪
-- **서버 시뮬레이터**: 가상 서버 환경 및 모니터링 대시보드
-- **패턴 기반 데이터 생성**: 정상/고부하/유지보수 시나리오 자동 생성
-
-## 🏗️ **새로운 아키텍처**
-
-### **서비스 계층** (src/services/)
+### **백엔드 시뮬레이션 계층** (src/services/)
 ```
 📦 services/
-├── 🏭 ServerRegistrationService.ts    # 서버 등록 전담 (싱글톤)
-├── 🏥 SystemHealthChecker.ts          # 자동 진단 + 복구 (3단계)
-├── 📊 collectors/                     # 데이터 수집 서비스
+├── 🎮 simulationEngine.ts            # 핵심 시뮬레이션 엔진
+├── 💾 dataManager.ts                 # 데이터 저장소 관리자
+├── 📊 collectors/                     # 기타 데이터 수집 서비스
 └── 🤖 ai-agent/                      # AI 에이전트 엔진
 ```
 
-### **팩토리 계층** (src/lib/)
+### **시스템 제어 API** (src/app/api/system/)
 ```
-📦 lib/
-├── 🏭 serverDataFactory.ts           # 중앙화된 서버 데이터 생성
-├── 📋 errorHandler.ts                # 표준화된 에러 처리
-└── 🔧 logger.ts                     # 중앙화된 로깅 시스템
+📦 api/system/
+├── 🚀 start/route.ts                 # 시스템 시작 API
+├── 🛑 stop/route.ts                  # 시스템 중지 API
+└── 📊 status/route.ts                # 시스템 상태 API
 ```
 
-### **API 계층** (src/app/api/)
+### **프론트엔드 통합** (src/components/)
 ```
-📦 api/
-├── 🏥 system/health/                 # 헬스체크 + 자동복구 API
-├── 📊 servers/                       # 서버 관리 API (리팩토링)
-├── 🔧 data-generator/                # 데이터 생성 API
-└── 🤖 ai-agent/                     # AI 에이전트 API
+📦 components/
+├── 📊 dashboard/ServerDashboard.tsx   # 메인 서버 대시보드
+├── 🎛️ hooks/useSystemControl.ts      # 시스템 제어 훅
+└── 📈 stores/serverDataStore.ts       # 서버 데이터 상태 관리
 ```
 
 ## 🚀 **빠른 시작**
@@ -68,161 +57,212 @@
 # 1. 설치 및 실행
 npm install && npm run dev
 
-# 2. 시스템 활성화 (홈페이지에서)
-# - 🚀 시스템 활성화 버튼 클릭
-# - 자동 헬스체크 + 복구 실행
-# - AI 에이전트 + 데이터 생성기 시작
+# 2. 대시보드 접속
+open http://localhost:3000/dashboard
 
-# 3. 핵심 API 확인
-curl http://localhost:3000/api/system/health      # 시스템 상태 체크
-curl http://localhost:3000/api/servers            # 서버 목록 조회
-curl http://localhost:3000/api/ai-agent?action=status  # AI 상태 체크
+# 3. 시스템 시작 (대시보드에서)
+# - "시스템 시작" 버튼 클릭
+# - 20대 서버 시뮬레이션 자동 시작
+# - 5초마다 실시간 데이터 업데이트
+# - 20분 후 자동 중지
 
-# 4. 관리 페이지
-open http://localhost:3000/admin/ai-agent         # AI 관리 페이지
-open http://localhost:3000/dashboard              # 메인 대시보드
-
-# 5. 빌드 테스트
-npm run build  # 반드시 성공!
+# 4. 시스템 API 확인
+curl http://localhost:3000/api/system/status     # 시스템 상태
+curl http://localhost:3000/api/servers           # 서버 데이터
+curl http://localhost:3000/api/system/start -X POST  # 시스템 시작
+curl http://localhost:3000/api/system/stop -X POST   # 시스템 중지
 ```
 
-## 💡 **주요 개선사항**
+## 💡 **시뮬레이션 시스템 특징**
 
-### **🏭 팩토리 패턴 (ServerDataFactory)**
+### **🎮 시뮬레이션 엔진**
 ```typescript
-// 기존: 3곳에 중복된 서버 생성 로직
-// 개선: 1곳에서 통합 관리
-
-import { ServerDataFactory } from '@/lib/serverDataFactory';
-
-// 다양한 목적별 서버 생성
-const baseServers = ServerDataFactory.generateBaseServerList();
-const fallbackServers = ServerDataFactory.generateFallbackServers(10);
-const extendedInfo = ServerDataFactory.extendServerInfo(baseServer);
+// 20대 의미있는 서버 구성
+const servers = [
+  // 온프레미스 (4대)
+  'web-server-01', 'db-primary-01', 'storage-nfs-01', 'monitor-sys-01',
+  
+  // 쿠버네티스 (3대)  
+  'k8s-worker-01', 'k8s-api-01', 'k8s-ingress-01',
+  
+  // AWS (3대)
+  'aws-web-lb-01', 'aws-db-rds-01', 'aws-cache-elasticache-01',
+  
+  // 기타 (10대)
+  'gcp-compute-01', 'azure-vm-01', 'idc-storage-01', ...
+];
 ```
 
-### **🔧 서비스 계층 (Registration + Health)**
+### **🔥 장애 시나리오 (인과관계 기반)**
 ```typescript
-// 서버 등록 서비스 (싱글톤)
-import { serverRegistrationService } from '@/services/ServerRegistrationService';
+// 1. 디스크 용량 부족 → DB 지연 → 웹서비스 응답 지연
+// 2. 메모리 누수 → CPU 증가 → 캐시 서버 임계치 초과  
+// 3. 네트워크 병목 → 스토리지 I/O 포화 → 백업 서비스 타임아웃
 
-const result = await serverRegistrationService.registerBaseServers();
-const count = await serverRegistrationService.getRegisteredServerCount();
-
-// 헬스체크 서비스 (자동 복구)
-import { systemHealthChecker } from '@/services/SystemHealthChecker';
-
-const health = await systemHealthChecker.performHealthCheck();
-const recovery = await systemHealthChecker.performAutoRecovery();
+const scenarios = [
+  { name: '디스크 용량 부족 연쇄 장애', probability: 0.15 },
+  { name: '메모리 누수 장애', probability: 0.12 },
+  { name: '네트워크 병목 장애', probability: 0.08 }
+];
 ```
 
-### **🏥 자동 복구 시스템 (3단계)**
+### **💾 데이터 저장소 관리**
+```typescript
+// 실시간 저장소: 20분간 5초 주기 = 240개 제한
+// 일일 저장소: 24시간 5초 주기 = 17,280개 제한
+// 자동 마이그레이션: 중지 시 realtime → daily 이동
+
+const storage = {
+  realtime_metrics: [], // 현재 세션 데이터
+  daily_metrics: [],    // 장기 보관 데이터  
+  last_cleanup: '2024-01-01T00:00:00.000Z'
+};
+```
+
+## 📊 **Vercel 최적화 설계**
+
+| 최적화 항목 | 설계 | 효과 |
+|------------|------|------|
+| **리소스 제한** | 20분 자동 종료 | 함수 실행 시간 준수 |
+| **메모리 관리** | 메모리 기반 저장소 | DB 비용 없음 |
+| **자동 정리** | 중지 시 데이터 마이그레이션 | 메모리 누수 방지 |
+| **효율성** | 5초 주기 업데이트 | 적절한 실시간성 |
+
+## 🔧 **시스템 제어 플로우**
+
+### **시작 프로세스**
 ```bash
-1단계: 데이터 생성기 트리거 (/api/data-generator)
-2단계: 강제 초기화 (/api/simulate/force-init)  
-3단계: 강제 서버 등록 (ServerRegistrationService)
+1. 시스템 시작 API 호출 (/api/system/start)
+2. 기존 실시간 데이터 클리어
+3. 시뮬레이션 엔진 시작 (20대 서버 생성)
+4. 20분 자동 종료 타이머 설정
+5. 5초마다 데이터 수집 인터벌 시작
 ```
 
-## 📊 **성능 지표 개선**
+### **업데이트 사이클 (5초마다)**
+```bash
+1. 모든 서버 메트릭 점진적 업데이트
+2. 장애 시나리오 확률 기반 실행 (10% 심각, 20% 경고)
+3. 인과관계 연쇄 장애 적용
+4. 서버 상태 재평가 (healthy/warning/critical)
+5. 실시간 저장소에 데이터 저장
+```
 
-| 지표 | v4 (이전) | v5 (현재) | 개선률 |
-|------|-----------|-----------|--------|
-| **코드 중복률** | 30% | 5% | 83% ↓ |
-| **시스템 복구 시간** | 수동 | 자동 3초 | 95% ↓ |
-| **에러 해결률** | 60% | 95% | 58% ↑ |
-| **개발 생산성** | 기준 | +40% | 40% ↑ |
+### **중지 프로세스**
+```bash
+1. 시스템 중지 API 호출 (/api/system/stop)
+2. 시뮬레이션 엔진 중지
+3. 실시간 데이터를 일일 저장소로 마이그레이션
+4. 메모리 정리 및 상태 초기화
+```
 
 ## 💻 **사용법 예시**
 
-### **AI 에이전트 사용**
+### **프론트엔드에서 시스템 제어**
 ```tsx
-// 1. Provider 설정
-import { AIAgentProvider } from '@/modules/ai-agent/infrastructure/AIAgentProvider';
+import { useSystemControl } from '@/hooks/useSystemControl';
 
-<AIAgentProvider>
-  <YourApp />
-</AIAgentProvider>
-
-// 2. Hook 사용
-const { queryAI, state } = useAIAgent();
-const response = await queryAI({ 
-  query: "서버 상태 분석", 
-  mode: "auto" 
-});
+function ControlPanel() {
+  const { startFullSystem, stopFullSystem, isSystemActive } = useSystemControl();
+  
+  const handleStart = async () => {
+    const result = await startFullSystem();
+    console.log(result.message); // "🎉 시스템 전체 시작 완료!"
+  };
+  
+  return (
+    <button onClick={handleStart} disabled={isSystemActive}>
+      {isSystemActive ? '실행 중...' : '시스템 시작'}
+    </button>
+  );
+}
 ```
 
-### **시스템 헬스체크 사용**
-```typescript
-// 헬스체크 실행
-const health = await fetch('/api/system/health').then(r => r.json());
+### **서버 데이터 실시간 연동**
+```tsx
+import { useServerDataStore } from '@/stores/serverDataStore';
 
-// 자동 복구 실행
-const recovery = await fetch('/api/system/health', {
-  method: 'POST',
-  body: JSON.stringify({
-    maxRetries: 3,
-    forceInit: true
-  })
-}).then(r => r.json());
+function ServerList() {
+  const { servers, fetchServers, refreshData } = useServerDataStore();
+  
+  useEffect(() => {
+    fetchServers(); // 초기 로드
+    const interval = setInterval(refreshData, 30000); // 30초마다 새로고침
+    return () => clearInterval(interval);
+  }, []);
+  
+  return (
+    <div>
+      {servers.map(server => (
+        <ServerCard key={server.id} server={server} />
+      ))}
+    </div>
+  );
+}
 ```
 
 ## 🏆 **기술적 혁신**
 
 | 혁신 영역 | 기술 | 효과 |
 |-----------|------|------|
-| **아키텍처** | 팩토리 패턴 + 서비스 계층 | 확장성 300% ↑ |
-| **자동화** | 3단계 자동 복구 시스템 | 안정성 95% ↑ |
-| **최적화** | 싱글톤 + 캐시 (30초) | 성능 40% ↑ |
-| **모니터링** | 실시간 헬스 대시보드 | 운영 효율성 50% ↑ |
+| **시뮬레이션** | 인과관계 기반 장애 시나리오 | 현실성 95% ↑ |
+| **자동화** | 20분 타이머 + 자동 정리 | Vercel 최적화 |
+| **데이터 관리** | 이중 저장소 (실시간/일일) | 메모리 효율성 |
+| **실시간성** | 5초 주기 + 30초 UI 새로고침 | 적절한 성능 |
+
+## 📈 **성능 지표**
+
+| 지표 | 목표 | 달성 |
+|------|------|------|
+| **서버 수** | 20대 | ✅ 20대 |
+| **업데이트 주기** | 5초 | ✅ 5초 |
+| **자동 종료** | 20분 | ✅ 20분 |
+| **데이터 제한** | 메모리 기반 | ✅ 240개/17,280개 |
+| **장애 확률** | 10% 심각, 20% 경고 | ✅ 확률 기반 |
 
 ## 🔧 **개발자 가이드**
 
-### **새로운 서비스 추가**
+### **새로운 장애 시나리오 추가**
 ```typescript
-// 1. 서비스 클래스 생성 (싱글톤 패턴)
-export class NewService {
-  private static instance: NewService;
-  public static getInstance() { /* ... */ }
-}
-
-// 2. 팩토리 메서드 추가
-ServerDataFactory.generateNewTypeData();
-
-// 3. 헬스체크 통합
-systemHealthChecker.addNewHealthCheck();
+// simulationEngine.ts에 새 시나리오 추가
+const newScenario: FailureScenario = {
+  id: 'custom-failure',
+  name: '커스텀 장애',
+  servers: ['target-server-01'],
+  probability: 0.05,
+  steps: [
+    { delay: 0, server_id: 'target-server-01', metric: 'cpu_usage', value: 95 }
+  ]
+};
 ```
 
-### **API 엔드포인트 개발**
+### **서버 구성 수정**
 ```typescript
-// 표준화된 응답 형식
-return NextResponse.json({
-  success: boolean,
-  data: object,
-  timestamp: string,
-  summary?: object,
-  recommendations?: string[]
-});
+// simulationEngine.ts의 generateInitialServers() 수정
+const customServers = [
+  { hostname: 'new-server-01', role: 'web', environment: 'production' }
+];
 ```
 
-## 📚 **상세 문서**
+## 📦 **배포**
 
-- 🔥 **[AI_AGENT_CORE_ARCHITECTURE.md](./AI_AGENT_CORE_ARCHITECTURE.md)** - 개발자 필수 기술 문서
-- 🏗️ **[아키텍처 가이드](docs/02-아키텍처가이드.md)** - v5 서비스 계층 상세 설명
-- 🛠️ **[개발 가이드](docs/02-개발가이드.md)** - 프로젝트 세팅, 환경설정
-- 🚀 **[배포 및 운영 가이드](docs/03-배포-운영가이드.md)** - Vercel/Docker 배포
-- 📊 **[API 문서](docs/03-API문서.md)** - RESTful API 및 WebSocket 엔드포인트
-- 🧪 **[시뮬레이션 사용가이드](docs/시뮬레이션-사용가이드.md)** - 테스트 도구 사용법
-- 📝 **[CHANGELOG.md](./CHANGELOG.md)** - 버전 변경 이력
+```bash
+# Vercel 배포
+vercel deploy
 
-## 🚀 **배포 정보**
+# 환경 변수 설정 (필요시)
+NEXT_PUBLIC_SIMULATION_AUTO_START=false
+NEXT_PUBLIC_MAX_SERVERS=20
+NEXT_PUBLIC_UPDATE_INTERVAL=5000
+```
 
-- **개발 서버**: `npm run dev` (localhost:3000/3002/3004)
-- **프로덕션 빌드**: `npm run build` + `npm start`
-- **Vercel 배포**: 자동 배포 (main 브랜치 푸시 시)
-- **포트 설정**: 자동 감지 (3000 → 3002 → 3004)
+## 🔗 **주요 링크**
+
+- **메인 대시보드**: `/dashboard`
+- **시스템 상태 API**: `/api/system/status`
+- **서버 데이터 API**: `/api/servers`
+- **AI 에이전트**: `/admin/ai-agent`
 
 ---
 
-**🎯 v5 = AI 에이전트 + 자동화 시스템 + 확장 가능한 아키텍처**
-
-**💡 Vibe Coding 개발 방식**: GPT/Claude 브레인스토밍 → Cursor AI 구현 → GitHub 자동 배포
+**🎯 OpenManager AI v5 - Vercel에서 완벽하게 동작하는 실시간 서버 시뮬레이션 시스템**
