@@ -375,9 +375,10 @@ export class ServerDataGenerator {
   }
 
   /**
-   * 서버 목록 생성
+   * 서버 목록 생성 (팩토리 서비스 사용)
    */
   private generateServerList(): any[] {
+    // 기본 서버 리스트 (팩토리 패턴 적용 예정)
     return [
       { id: 'web-01', hostname: 'web-server-01', type: 'web' },
       { id: 'web-02', hostname: 'web-server-02', type: 'web' },
@@ -393,60 +394,20 @@ export class ServerDataGenerator {
   }
 
   /**
-   * ServerDataCollector에 서버 등록
+   * ServerDataCollector에 서버 등록 (리팩토링된 서비스 사용)
    */
   private async registerServersToCollector(servers: any[]): Promise<void> {
     try {
-      // 서버 사이드에서만 실행
-      if (typeof window !== 'undefined') {
-        console.log('Client-side: skipping server registration');
-        return;
+      const { serverRegistrationService } = await import('../ServerRegistrationService');
+      const result = await serverRegistrationService.registerServersToCollector(servers);
+      
+      if (result.success) {
+        console.log(`✅ Successfully registered ${result.registered} servers via service`);
+      } else {
+        console.error(`❌ Server registration failed: ${result.errors.join(', ')}`);
       }
-
-      // 동적 import로 ServerDataCollector 불러오기
-      const { serverDataCollector } = await import('./ServerDataCollector');
-      
-      console.log(`🔗 Registering ${servers.length} servers to ServerDataCollector...`);
-      
-      // 각 서버를 ServerInfo 형태로 변환하여 등록
-      for (const server of servers) {
-        const serverInfo = {
-          id: server.id,
-          hostname: server.hostname,
-          ipAddress: this.generateIPAddress(server.id),
-          status: 'online' as const,
-          location: 'Seoul-DC1',
-          environment: 'production' as const,
-          provider: 'onpremise' as const,
-          tags: {
-            type: server.type,
-            team: 'devops',
-            project: 'openmanager-ai'
-          },
-          metrics: this.generateInitialMetrics(),
-          lastUpdate: new Date(),
-          lastSeen: new Date(),
-          alerts: [],
-          services: [
-            {
-              name: server.type,
-              status: 'running' as const,
-              port: server.type === 'database' ? 5432 : server.type === 'cache' ? 6379 : 80,
-              pid: Math.floor(Math.random() * 10000) + 1000,
-              uptime: Math.floor(Math.random() * 86400),
-              memoryUsage: 100 + Math.floor(Math.random() * 100),
-              cpuUsage: 5 + Math.floor(Math.random() * 15)
-            }
-          ]
-        };
-
-        // ServerDataCollector의 내부 서버 맵에 직접 추가
-        (serverDataCollector as any).servers.set(server.id, serverInfo);
-      }
-      
-      console.log(`✅ Successfully registered ${servers.length} servers to ServerDataCollector`);
     } catch (error) {
-      console.error('❌ Failed to register servers to collector:', error);
+      console.error('❌ Failed to register servers via service:', error);
     }
   }
 

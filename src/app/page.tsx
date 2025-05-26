@@ -124,98 +124,88 @@ export default function HomePage() {
     };
   }, [isSystemActive, dataGeneratorStatus.isGenerating, updateGeneratorStatus]);
 
-  // 시스템 활성화 (20분 타이머 + 데이터 생성기 자동 시작 + AI 에이전트 활성화)
+  // 시스템 활성화 (헬스체커 서비스 + AI 에이전트 + 자동 패턴 변경)
   const handleActivateSystem = async () => {
-    console.log('🚀 시스템 활성화 시작...');
+    console.log('🚀 시스템 활성화 시작 (개선된 헬스체커 사용)...');
     
-    // 1. 시스템 활성화
-    startSystem(20 * 60); // 20분 = 1200초
-    
-    // 2. 시스템 활성화 완료
-    console.log('✅ 시스템 활성화 완료');
-    
-    // 3. AI 에이전트 활성화
     try {
-      const aiResponse = await fetch('/api/ai-agent/power', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'activate' })
-      });
+      // 1. 시스템 활성화
+      startSystem(20 * 60); // 20분 = 1200초
       
-      if (aiResponse.ok) {
-        console.log('🤖 AI 에이전트 활성화됨');
-      }
-    } catch (error) {
-      console.error('AI 에이전트 활성화 실패:', error);
-    }
-    
-    // 4. 데이터 생성기 자동 시작 (기본 패턴: 정상 운영)
-    try {
-      const response = await fetch('/api/data-generator', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          action: 'start-realtime',
-          pattern: 'normal' // 기본 패턴
-        })
-      });
-      
-      if (response.ok) {
-        console.log('✅ 시스템 활성화와 함께 데이터 생성기 시작됨 (정상 운영 패턴)');
-        setDataGeneratorStatus(prev => ({
-          ...prev,
-          isGenerating: true,
-          remainingTime: 10 * 60 * 1000, // 10분
-          currentPattern: 'normal'
-        }));
-        
-        // 5. 자동 패턴 변경 시작 (2-3분마다 랜덤 변경)
-        startAutoPatternChange();
-      }
-    } catch (error) {
-      console.error('데이터 생성기 시작 실패:', error);
-      
-      // 5-1. 데이터 생성기 실패 시 강제 초기화 시도
-      console.log('🚨 데이터 생성기 실패 - 강제 초기화 시도...');
+      // 2. AI 에이전트 활성화
       try {
-        const forceInitResponse = await fetch('/api/simulate/force-init', {
+        const aiResponse = await fetch('/api/ai-agent/power', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'activate' })
         });
         
-        if (forceInitResponse.ok) {
-          const initData = await forceInitResponse.json();
-          console.log('✅ 강제 초기화 성공:', initData);
-        }
-      } catch (forceError) {
-        console.error('❌ 강제 초기화도 실패:', forceError);
-      }
-    }
-    
-    // 6. 서버 데이터 확인 및 fallback 시도
-    setTimeout(async () => {
-      try {
-        const serverResponse = await fetch('/api/servers');
-        if (serverResponse.ok) {
-          const serverData = await serverResponse.json();
-          console.log(`📊 서버 데이터 확인: ${serverData.data?.servers?.length || 0}개 서버 발견`);
-          
-          if (!serverData.data?.servers?.length) {
-            console.log('⚠️ 서버 데이터 없음 - 추가 강제 초기화 시도');
-            await fetch('/api/simulate/force-init', { method: 'POST' });
-          }
+        if (aiResponse.ok) {
+          console.log('🤖 AI 에이전트 활성화됨');
         }
       } catch (error) {
-        console.error('서버 데이터 확인 실패:', error);
+        console.error('AI 에이전트 활성화 실패:', error);
       }
-    }, 3000);
-    
-    // 7. AI 에이전트 자동 리포트 생성
-    setTimeout(() => {
-      smartAIAgent.generateAutoReport();
-    }, 1000);
-    
-    console.log('🎉 시스템 활성화 완료!');
+      
+      // 3. 헬스체커를 통한 자동 시스템 복구
+      const { systemHealthChecker } = await import('@/services/SystemHealthChecker');
+      const healthResult = await systemHealthChecker.performAutoRecovery({
+        maxRetries: 3,
+        retryDelayMs: 2000,
+        forceInit: true,
+        generateFallback: true
+      });
+      
+      if (healthResult.isHealthy) {
+        console.log(`✅ 시스템 헬스체크 성공! (${healthResult.serverCount}개 서버)`);
+        
+        // 4. 데이터 생성기 시작 (정상적인 데이터가 있는 경우에만)
+        if (healthResult.dataSource === 'api') {
+          try {
+            const response = await fetch('/api/data-generator', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                action: 'start-realtime',
+                pattern: 'normal'
+              })
+            });
+            
+            if (response.ok) {
+              console.log('✅ 데이터 생성기 시작됨 (정상 운영 패턴)');
+              setDataGeneratorStatus(prev => ({
+                ...prev,
+                isGenerating: true,
+                remainingTime: 10 * 60 * 1000,
+                currentPattern: 'normal'
+              }));
+              
+              // 자동 패턴 변경 시작
+              startAutoPatternChange();
+            }
+          } catch (error) {
+            console.warn('데이터 생성기 시작 실패:', error);
+          }
+        } else {
+          console.log('⚠️ Fallback 데이터 사용 중 - 백그라운드에서 실제 데이터 생성 시도');
+        }
+        
+      } else {
+        console.error('❌ 시스템 헬스체크 실패:', healthResult.issues);
+        alert(`시스템 활성화에 문제가 있습니다:\n${healthResult.issues.join('\n')}\n\n권장 조치:\n${healthResult.actions.join('\n')}`);
+      }
+      
+      // 5. AI 에이전트 자동 리포트 생성
+      setTimeout(() => {
+        smartAIAgent.generateAutoReport();
+      }, 2000);
+      
+      console.log('🎉 시스템 활성화 완료!');
+      
+    } catch (error) {
+      console.error('시스템 활성화 중 오류:', error);
+      alert('시스템 활성화 중 오류가 발생했습니다. 다시 시도해주세요.');
+    }
   };
 
   // 대시보드로 이동 (인증 로직 제거)

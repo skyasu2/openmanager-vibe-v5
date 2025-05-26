@@ -180,7 +180,7 @@ export async function GET() {
           }
           
           // 즉시 fallback 서버 반환
-          const fallbackServers = generateFallbackServers();
+          const fallbackServers = await generateFallbackServers();
           console.log(`💾 Returning ${fallbackServers.length} fallback servers`);
           
           return NextResponse.json({
@@ -280,14 +280,20 @@ export async function GET() {
         console.error('Failed to import ServerDataCollector:', importError);
         
         // 백업 데이터 반환
+        const backupServers = await generateFallbackServers();
         return NextResponse.json({
           success: true,
           data: {
-            servers: generateFallbackServers(),
+            servers: backupServers,
             stats: {
-              total: 5,
-              byStatus: { online: 3, warning: 1, critical: 1 },
-              byProvider: { onpremise: 5 },
+              total: backupServers.length,
+              byStatus: { 
+                online: backupServers.filter(s => s.status === 'online').length,
+                warning: backupServers.filter(s => s.status === 'warning').length,
+                critical: backupServers.filter(s => s.status === 'critical').length,
+                offline: backupServers.filter(s => s.status === 'offline').length
+              },
+              byProvider: { onpremise: backupServers.length },
               averageMetrics: { cpu: 45, memory: 60, disk: 55 },
               totalAlerts: 2
             },
@@ -296,7 +302,7 @@ export async function GET() {
               isAIMonitoring: true,
               lastCollectionTime: new Date(),
               systemMode: 'fallback',
-              totalServers: 5
+              totalServers: backupServers.length
             }
           },
           timestamp: new Date().toISOString(),
@@ -447,65 +453,28 @@ export async function DELETE() {
 /**
  * 백업 서버 데이터 생성
  */
-function generateFallbackServers() {
-  console.log('🔄 Generating emergency fallback servers...');
-  return Array.from({ length: 10 }, (_, i) => ({
-    id: `fallback-server-${i + 1}`,
-    hostname: `server-${String(i + 1).padStart(2, '0')}`,
-    ipAddress: `192.168.1.${i + 10}`,
-    status: ['online', 'warning', 'critical'][i % 3],
-    location: ['Seoul DC1', 'Seoul DC2', 'Busan DC1'][i % 3],
-    environment: 'production',
-    provider: 'onpremise',
-    instanceType: 'm5.large',
-    cluster: null,
-    zone: `zone-${String.fromCharCode(97 + (i % 3))}`,
-    tags: {
+async function generateFallbackServers() {
+  // 팩토리 서비스를 통한 통합된 fallback 생성
+  try {
+    const { ServerDataFactory } = await import('@/lib/serverDataFactory');
+    return ServerDataFactory.generateFallbackServers(10);
+  } catch (error) {
+    console.error('Failed to import ServerDataFactory, using basic fallback:', error);
+    // 기본 fallback (서비스 import 실패 시)
+    return Array.from({ length: 10 }, (_, i) => ({
+      id: `basic-fallback-${i + 1}`,
+      hostname: `server-${String(i + 1).padStart(2, '0')}`,
+      ipAddress: `192.168.1.${i + 10}`,
+      status: 'online',
+      location: 'Seoul DC1',
       environment: 'production',
-      tier: 'backend'
-    },
-    metrics: {
-      cpu: Math.random() * 80 + 10,
-      memory: Math.random() * 70 + 20,
-      disk: Math.random() * 60 + 30,
-      network: {
-        latency: Math.random() * 50 + 10,
-        bytesIn: Math.floor(Math.random() * 1000000),
-        bytesOut: Math.floor(Math.random() * 800000),
-        connections: Math.floor(Math.random() * 500)
-      },
-      processes: Math.floor(Math.random() * 200) + 50,
-      loadAverage: [
-        Math.random() * 2,
-        Math.random() * 1.5,
-        Math.random() * 1
-      ],
-      uptime: Math.floor(Math.random() * 8640000),
-      temperature: Math.floor(Math.random() * 30) + 35,
-      powerUsage: Math.floor(Math.random() * 200) + 100
-    },
-    lastUpdate: new Date(),
-    lastSeen: new Date(),
-    alerts: [],
-    services: [
-      {
-        name: 'nginx',
-        status: 'running',
-        port: 80,
-        pid: Math.floor(Math.random() * 30000) + 1000,
-        uptime: Math.floor(Math.random() * 86400),
-        memoryUsage: Math.random() * 500,
-        cpuUsage: Math.random() * 10
-      },
-      {
-        name: 'nodejs',
-        status: 'running',
-        port: 3000,
-        pid: Math.floor(Math.random() * 30000) + 1000,
-        uptime: Math.floor(Math.random() * 86400),
-        memoryUsage: Math.random() * 800,
-        cpuUsage: Math.random() * 15
-      }
-    ]
-  }));
+      provider: 'onpremise',
+      tags: { emergency: 'true' },
+      metrics: { cpu: 50, memory: 60, disk: 40 },
+      lastUpdate: new Date(),
+      lastSeen: new Date(),
+      alerts: [],
+      services: []
+    }));
+  }
 } 
