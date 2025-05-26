@@ -76,23 +76,24 @@ const fetchServersFromAPI = async (): Promise<Server[]> => {
     }
     
     const data = await response.json();
+    console.log('API Response structure:', { hasData: !!data.data, hasServers: !!data.data?.servers, serversLength: data.data?.servers?.length });
     
-    // API 응답을 Client Server 타입으로 변환
-    return data.servers?.map((serverInfo: any) => ({
+    // API 응답을 Client Server 타입으로 변환 (올바른 경로: data.data.servers)
+    return data.data?.servers?.map((serverInfo: any) => ({
       id: serverInfo.id,
       name: serverInfo.hostname || serverInfo.name,
-      status: serverInfo.status === 'online' ? 'healthy' : 
+      status: serverInfo.status === 'healthy' ? 'healthy' : 
               serverInfo.status === 'warning' ? 'warning' : 'critical',
-      location: serverInfo.location,
-      type: serverInfo.provider?.toUpperCase() || 'UNKNOWN',
+      location: serverInfo.environment || 'Unknown',
+      type: serverInfo.role?.toUpperCase() || 'UNKNOWN',
       metrics: {
-        cpu: serverInfo.metrics?.cpu || 0,
-        memory: serverInfo.metrics?.memory || 0,
-        disk: serverInfo.metrics?.disk || 0,
-        network: serverInfo.metrics?.network?.latency || 0
+        cpu: serverInfo.cpu_usage || 0,
+        memory: serverInfo.memory_usage || 0,
+        disk: serverInfo.disk_usage || 0,
+        network: serverInfo.response_time || 0
       },
-      uptime: Math.floor((serverInfo.metrics?.uptime || 0) / 86400),
-      lastUpdate: new Date(serverInfo.lastUpdate || Date.now())
+      uptime: Math.floor((serverInfo.uptime || 0) / 86400000), // milliseconds to days
+      lastUpdate: new Date(serverInfo.last_updated || Date.now())
     })) || [];
   } catch (error) {
     console.error('Failed to fetch servers from API:', error);
