@@ -124,6 +124,60 @@ export default function HomePage() {
     };
   }, [isSystemActive, dataGeneratorStatus.isGenerating, updateGeneratorStatus]);
 
+  // 🚀 시스템 데이터 초기화 함수 (프로덕션 환경용)
+  const handleInitializeData = async () => {
+    console.log('🚀 시스템 데이터 초기화 시작...');
+    
+    try {
+      // 1. Enterprise 서버 데이터 시딩
+      const seedResponse = await fetch('/api/enterprise/seed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (seedResponse.ok) {
+        const seedData = await seedResponse.json();
+        console.log('✅ 서버 데이터 시딩 완료:', seedData);
+      } else {
+        throw new Error('서버 데이터 시딩 실패');
+      }
+      
+      // 2. 시뮬레이션 시작
+      const simResponse = await fetch('/api/simulate', {
+        method: 'POST'
+      });
+      
+      if (simResponse.ok) {
+        const simData = await simResponse.json();
+        console.log('✅ 시뮬레이션 시작:', simData);
+      }
+      
+      // 3. 데이터 생성기 시작
+      const genResponse = await fetch('/api/data-generator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'start-realtime', pattern: 'normal' })
+      });
+      
+      if (genResponse.ok) {
+        const genData = await genResponse.json();
+        console.log('✅ 데이터 생성기 시작:', genData);
+        setDataGeneratorStatus(prev => ({
+          ...prev,
+          isGenerating: true,
+          remainingTime: 10 * 60 * 1000,
+          currentPattern: 'normal'
+        }));
+      }
+      
+      alert('✅ 시스템 데이터 초기화가 완료되었습니다!\n이제 대시보드에서 실시간 데이터를 확인할 수 있습니다.');
+      
+    } catch (error) {
+      console.error('❌ 시스템 데이터 초기화 실패:', error);
+      alert('❌ 시스템 데이터 초기화에 실패했습니다. 개발자 도구 콘솔을 확인해주세요.');
+    }
+  };
+
   // 시스템 활성화 (헬스체커 서비스 + AI 에이전트 + 자동 패턴 변경)
   const handleActivateSystem = async () => {
     console.log('🚀 시스템 활성화 시작 (개선된 헬스체커 사용)...');
@@ -1599,18 +1653,29 @@ export default function HomePage() {
                 </p>
               </div>
               
-              <div className="relative">
-                <div className="finger-pointer">👆</div>
+              <div className="space-y-3">
+                <div className="relative">
+                  <div className="finger-pointer">👆</div>
+                  <button 
+                    className="btn-primary"
+                    onClick={handleInitializeData}
+                  >
+                    <i className="fas fa-database"></i>
+                    <span>🚀 시스템 데이터 초기화</span>
+                  </button>
+                </div>
+                
                 <button 
-                  className="btn-primary"
+                  className="btn-secondary"
                   onClick={handleActivateSystem}
                 >
                   <i className="fas fa-power-off"></i>
-                  <span>🚀 시스템 활성화 (20분)</span>
+                  <span>⚡ 시스템 활성화 (20분)</span>
                 </button>
               </div>
               
               <p className="text-white/80 text-sm">
+                <strong>1단계:</strong> 데이터 초기화 → <strong>2단계:</strong> 시스템 활성화<br />
                 AI 에이전트 + 데이터 생성기 + 대시보드 모두 시작됩니다
               </p>
             </div>
@@ -1637,6 +1702,14 @@ export default function HomePage() {
                 >
                   <i className="fas fa-tachometer-alt"></i>
                   <span>📊 대시보드 들어가기</span>
+                </button>
+                
+                <button 
+                  className="btn-secondary"
+                  onClick={handleInitializeData}
+                >
+                  <i className="fas fa-database"></i>
+                  <span>🔄 데이터 초기화</span>
                 </button>
                 
                 <button 
