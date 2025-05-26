@@ -236,7 +236,7 @@ export class ContextManager {
       console.log(`🔄 [ContextManager] 통합 컨텍스트 로드 시작`);
 
       let knowledgeBase = '';
-      let mergedPatterns: any = { intentPatterns: {} };
+      const mergedPatterns: any = { intentPatterns: {} };
       const sources: string[] = [];
 
       // 1. Base 문서들 로드

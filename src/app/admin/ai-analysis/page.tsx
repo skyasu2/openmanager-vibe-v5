@@ -10,20 +10,13 @@ import {
   Brain, 
   Search, 
   TrendingUp, 
-  AlertTriangle, 
   CheckCircle, 
   Clock, 
   FileText,
   Play,
-  Pause,
   RotateCcw,
   Download,
-  Target,
-  Users,
-  History,
-  BarChart3,
-  AlertCircle,
-  Zap
+  BarChart3
 } from 'lucide-react';
 
 interface AnalysisSession {
@@ -37,35 +30,7 @@ interface AnalysisSession {
   hasAIResponse: boolean;
 }
 
-interface AIAnalysisResponse {
-  id: string;
-  timestamp: string;
-  analysisType: string;
-  model: string;
-  tokensUsed: number;
-  findings: {
-    patterns: Array<{
-      pattern: string;
-      frequency: number;
-      confidence: number;
-      examples: string[];
-    }>;
-    improvements: Array<{
-      area: string;
-      suggestion: string;
-      priority: 'high' | 'medium' | 'low';
-      estimatedImpact: number;
-    }>;
-    newIntents: Array<{
-      intent: string;
-      patterns: string[];
-      confidence: number;
-    }>;
-  };
-  summary: string;
-  recommendations: string[];
-  nextSteps: string[];
-}
+// AIAnalysisResponse interface removed as it's not used
 
 export default function AdminAIAnalysisPage() {
   const [sessions, setSessions] = useState<AnalysisSession[]>([]);
@@ -104,11 +69,11 @@ export default function AdminAIAnalysisPage() {
   });
 
   // 새로운 상태 변수들
-  const [topFailures, setTopFailures] = useState<any[]>([]);
-  const [queryGroups, setQueryGroups] = useState<any[]>([]);
-  const [improvementHistory, setImprovementHistory] = useState<any[]>([]);
-  const [recentImprovements, setRecentImprovements] = useState<any>(null);
-  const [advancedAnalysis, setAdvancedAnalysis] = useState<any>(null);
+  // const [topFailures, setTopFailures] = useState<any[]>([]);
+  // const [queryGroups, setQueryGroups] = useState<any[]>([]);
+  // const [improvementHistory, setImprovementHistory] = useState<any[]>([]);
+  // const [recentImprovements, setRecentImprovements] = useState<any>(null);
+  // const [advancedAnalysis, setAdvancedAnalysis] = useState<any>(null);
 
   useEffect(() => {
     loadSessions();
@@ -262,114 +227,7 @@ export default function AdminAIAnalysisPage() {
     }
   };
 
-  // 새로운 API 호출 함수들
-  const loadTopFailures = async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        action: 'top-failures',
-        startDate: newSessionForm.timeRange.start,
-        endDate: newSessionForm.timeRange.end,
-        limit: '50'
-      });
-
-      const response = await fetch(`/api/admin/ai-analysis?${params}`);
-      const result = await response.json();
-      
-      if (result.success) {
-        setTopFailures(result.data.failures);
-      }
-    } catch (error) {
-      console.error('우선순위 실패 로그 로드 실패:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadQueryGroups = async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        action: 'query-groups',
-        startDate: newSessionForm.timeRange.start,
-        endDate: newSessionForm.timeRange.end,
-        threshold: '0.7'
-      });
-
-      const response = await fetch(`/api/admin/ai-analysis?${params}`);
-      const result = await response.json();
-      
-      if (result.success) {
-        setQueryGroups(result.data.groups);
-      }
-    } catch (error) {
-      console.error('유사 질의 그룹 로드 실패:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadImprovementHistory = async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        action: 'improvement-history'
-      });
-
-      const response = await fetch(`/api/admin/ai-analysis?${params}`);
-      const result = await response.json();
-      
-      if (result.success) {
-        setImprovementHistory(result.data.history);
-      }
-    } catch (error) {
-      console.error('개선 이력 로드 실패:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadRecentImprovements = async () => {
-    try {
-      const params = new URLSearchParams({
-        action: 'recent-improvements',
-        days: '7'
-      });
-
-      const response = await fetch(`/api/admin/ai-analysis?${params}`);
-      const result = await response.json();
-      
-      if (result.success) {
-        setRecentImprovements(result.data);
-      }
-    } catch (error) {
-      console.error('최근 개선사항 로드 실패:', error);
-    }
-  };
-
-  const loadAdvancedAnalysis = async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        action: 'advanced-analysis',
-        startDate: newSessionForm.timeRange.start,
-        endDate: newSessionForm.timeRange.end,
-        priorityLimit: '50',
-        similarityThreshold: '0.7'
-      });
-
-      const response = await fetch(`/api/admin/ai-analysis?${params}`);
-      const result = await response.json();
-      
-      if (result.success) {
-        setAdvancedAnalysis(result.data);
-      }
-    } catch (error) {
-      console.error('고급 분석 로드 실패:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 새로운 API 호출 함수들 - 사용하지 않는 함수들 제거됨
 
   // 새로운 컨텍스트 관리 API 호출 함수들
   const loadContextVersions = async (type: 'base' | 'advanced' | 'custom', clientId?: string) => {

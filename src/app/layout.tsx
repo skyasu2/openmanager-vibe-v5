@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
+import { Noto_Sans_KR } from 'next/font/google';
 import "./globals.css";
+
+const notoSansKR = Noto_Sans_KR({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: "OpenManager AI - 서버 모니터링 & 관리 솔루션",
@@ -40,15 +47,14 @@ export default function RootLayout({
         {/* Font Awesome */}
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
         
-        {/* Google Fonts */}
-        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        {/* Google Fonts - moved to local import */}
         
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
-      <body className="font-sans antialiased">
+      <body className={`${notoSansKR.className} antialiased`}>
         <main>
           {children}
         </main>
