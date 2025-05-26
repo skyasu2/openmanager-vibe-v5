@@ -38,11 +38,15 @@ export const useSystemControl = () => {
           headers: { 'Content-Type': 'application/json' }
         });
         
+        const systemData = await systemResponse.json();
+        
         if (systemResponse.ok) {
-          const systemData = await systemResponse.json();
           systemLogger.system(`✅ 시뮬레이션 엔진 시작: ${systemData.message}`);
+        } else if (systemResponse.status === 400 && systemData.message?.includes('이미 실행 중')) {
+          // 이미 실행 중인 경우는 정상적인 상황으로 처리
+          systemLogger.system(`ℹ️ 시뮬레이션 엔진 이미 실행 중: ${systemData.message}`);
         } else {
-          throw new Error('시뮬레이션 엔진 시작 실패');
+          throw new Error(`시뮬레이션 엔진 시작 실패: ${systemData.message || '알 수 없는 오류'}`);
         }
       } catch (error) {
         const errorMsg = '시뮬레이션 엔진 시작 실패';
@@ -119,11 +123,15 @@ export const useSystemControl = () => {
           headers: { 'Content-Type': 'application/json' }
         });
         
+        const systemData = await systemResponse.json();
+        
         if (systemResponse.ok) {
-          const systemData = await systemResponse.json();
           systemLogger.system(`✅ 시뮬레이션 엔진 중지: ${systemData.message}`);
+        } else if (systemResponse.status === 400 && systemData.message?.includes('실행되지 않')) {
+          // 이미 중지된 경우는 정상적인 상황으로 처리
+          systemLogger.system(`ℹ️ 시뮬레이션 엔진 이미 중지됨: ${systemData.message}`);
         } else {
-          throw new Error('시뮬레이션 엔진 중지 실패');
+          throw new Error(`시뮬레이션 엔진 중지 실패: ${systemData.message || '알 수 없는 오류'}`);
         }
       } catch (error) {
         const errorMsg = '시뮬레이션 엔진 중지 실패';
