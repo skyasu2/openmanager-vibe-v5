@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import ServerCard from './ServerCard';
 import ServerDetailModal from './ServerDetailModal';
 import { Server } from '../../types/server';
@@ -9,9 +9,7 @@ interface ServerDashboardProps {
   onStatsUpdate?: (stats: { total: number; online: number; warning: number; offline: number }) => void;
 }
 
-import { useDemoStore } from '../../stores/demoStore';
-
-// 스크린샷과 동일한 목업 서버 데이터 (fallback용)
+// 스크린샷과 동일한 목업 서버 데이터
 const fallbackServers: Server[] = [
   {
     id: 'api-eu-043',
@@ -191,35 +189,8 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // demoStore에서 실제 서버 데이터 가져오기
-  const { servers, syncWithCollector } = useDemoStore();
-  
-  // syncWithCollector를 useCallback으로 최적화
-  const syncData = useCallback(() => {
-    syncWithCollector();
-  }, [syncWithCollector]);
-  
-  // 컴포넌트 마운트 시 데이터 동기화
-  useEffect(() => {
-    syncData();
-  }, [syncData]);
-  
-  const currentServers = servers.length > 0 ? servers.map(s => ({
-    id: s.id,
-    name: s.name,
-    status: s.status === 'healthy' ? 'online' : s.status === 'warning' ? 'warning' : 'offline',
-    location: s.location,
-    cpu: s.metrics.cpu,
-    memory: s.metrics.memory,
-    disk: s.metrics.disk,
-    uptime: `${s.uptime}일`,
-    lastUpdate: s.lastUpdate,
-    alerts: s.status === 'critical' ? 3 : s.status === 'warning' ? 1 : 0,
-    services: [
-      { name: 'nginx', status: 'running', port: 80 },
-      { name: 'nodejs', status: 'running', port: 3000 }
-    ]
-  } as Server)) : fallbackServers;
+  // 정적 서버 데이터 사용 (demoStore 제거)
+  const currentServers = fallbackServers;
 
   // 서버 통계 계산 (useMemo로 최적화)
   const serverStats = useMemo(() => ({

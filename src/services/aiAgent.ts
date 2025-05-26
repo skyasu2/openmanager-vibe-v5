@@ -5,7 +5,6 @@
  */
 
 import { usePowerStore, AutoReport, SystemAlert } from '../stores/powerStore';
-import { useDemoStore } from '../stores/demoStore';
 import { THRESHOLDS } from '../config/thresholds';
 
 export type SystemCondition = 'normal' | 'warning' | 'critical' | 'emergency';
@@ -97,7 +96,6 @@ export class SmartAIAgent {
    * 현재 시스템 상태 분석
    */
   analyzeSystemCondition(): SystemCondition {
-    const { servers } = useDemoStore.getState();
     const { getCriticalAlerts, getActiveAlerts } = usePowerStore.getState();
     
     const criticalAlerts = getCriticalAlerts();
@@ -108,9 +106,10 @@ export class SmartAIAgent {
       return 'critical';
     }
     
-    // 서버 상태 분석
-    const criticalServers = servers.filter(s => s.status === 'critical').length;
-    const warningServers = servers.filter(s => s.status === 'warning').length;
+    // 정적 서버 상태 분석 (10대 서버 기준)
+    const totalServers = 10;
+    const criticalServers = 2; // 오프라인 서버
+    const warningServers = 5;  // 경고 서버
     
     if (criticalServers > 0 || activeAlerts.length > 5) {
       return 'critical';
@@ -154,7 +153,19 @@ export class SmartAIAgent {
     
     const condition = this.analyzeSystemCondition();
     const queryType = this.classifyQuery(query);
-    const { servers } = useDemoStore.getState();
+    // 정적 서버 데이터 사용
+    const servers = [
+      { id: '1', status: 'online' },
+      { id: '2', status: 'online' },
+      { id: '3', status: 'online' },
+      { id: '4', status: 'warning' },
+      { id: '5', status: 'warning' },
+      { id: '6', status: 'warning' },
+      { id: '7', status: 'warning' },
+      { id: '8', status: 'warning' },
+      { id: '9', status: 'offline' },
+      { id: '10', status: 'offline' }
+    ];
     const { autoReports, getActiveAlerts } = usePowerStore.getState();
     
     // 적절한 프리셋 찾기
@@ -211,13 +222,13 @@ export class SmartAIAgent {
    */
   generateAutoReport(): void {
     const condition = this.analyzeSystemCondition();
-    const { servers } = useDemoStore.getState();
     const { addAutoReport, getActiveAlerts } = usePowerStore.getState();
     
     const activeAlerts = getActiveAlerts();
-    const healthyServers = servers.filter(s => s.status === 'healthy').length;
-    const warningServers = servers.filter(s => s.status === 'warning').length;
-    const criticalServers = servers.filter(s => s.status === 'critical').length;
+    // 정적 서버 상태 데이터
+    const healthyServers = 3;
+    const warningServers = 5;
+    const criticalServers = 2;
     
     let reportType: 'daily' | 'warning' | 'critical' | 'performance';
     let severity: 'info' | 'warning' | 'critical';
@@ -246,8 +257,22 @@ export class SmartAIAgent {
         summary = `모든 시스템이 정상 작동 중이며, ${healthyServers}개 서버가 안정적으로 운영되고 있습니다.`;
     }
     
-    const details = this.generateDetailedAnalysis(servers, activeAlerts, condition);
-    const recommendations = this.generateRecommendations(condition, servers);
+    // 정적 서버 데이터 생성
+    const staticServers = [
+      { id: '1', status: 'healthy', metrics: { cpu: 25, memory: 40, disk: 30 } },
+      { id: '2', status: 'healthy', metrics: { cpu: 30, memory: 45, disk: 35 } },
+      { id: '3', status: 'healthy', metrics: { cpu: 20, memory: 35, disk: 25 } },
+      { id: '4', status: 'warning', metrics: { cpu: 75, memory: 80, disk: 60 } },
+      { id: '5', status: 'warning', metrics: { cpu: 70, memory: 75, disk: 55 } },
+      { id: '6', status: 'warning', metrics: { cpu: 65, memory: 70, disk: 50 } },
+      { id: '7', status: 'warning', metrics: { cpu: 80, memory: 85, disk: 65 } },
+      { id: '8', status: 'warning', metrics: { cpu: 72, memory: 78, disk: 58 } },
+      { id: '9', status: 'critical', metrics: { cpu: 95, memory: 95, disk: 90 } },
+      { id: '10', status: 'critical', metrics: { cpu: 90, memory: 90, disk: 85 } }
+    ];
+    
+    const details = this.generateDetailedAnalysis(staticServers, activeAlerts, condition);
+    const recommendations = this.generateRecommendations(condition, staticServers);
     
     addAutoReport({
       type: reportType,
