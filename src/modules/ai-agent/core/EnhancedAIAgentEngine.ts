@@ -57,6 +57,12 @@ export interface EnhancedAIAgentResponse {
     engineVersion: string;
     sessionId: string;
     modeConfig: any;
+    incidentDetails?: {
+      rootCausesCount: number;
+      recommendationsCount: number;
+      severity: string;
+      category: string;
+    };
   };
   error?: string;
   thinkingSessionId?: string;
@@ -500,7 +506,7 @@ export class EnhancedAIAgentEngine {
         };
       } catch (error) {
         console.error('서버 데이터 분석 중 오류:', error);
-        context.analysisError = error.message;
+        context.analysisError = error instanceof Error ? error.message : String(error);
       }
     }
     
@@ -706,7 +712,7 @@ export class EnhancedAIAgentEngine {
         description: '시간이 지남에 따라 메모리 사용량이 지속적으로 증가',
         conditions: [
           () => systemMetrics.memory.status === 'critical',
-          () => logPatterns.errors.some(e => e.includes('OutOfMemory'))
+          () => logPatterns.errors.some((e: string) => e.includes('OutOfMemory'))
         ]
       },
       {

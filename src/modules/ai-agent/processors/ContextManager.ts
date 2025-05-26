@@ -18,6 +18,8 @@ export interface SessionContext {
   lastQuery?: string;
   lastIntent?: string;
   lastResponse?: string;
+  serverAnalysis?: any; // 서버 분석 결과 데이터
+  analysisError?: string; // 분석 중 발생한 오류 메시지
 }
 
 export interface ConversationEntry {

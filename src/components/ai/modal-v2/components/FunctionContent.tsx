@@ -53,7 +53,19 @@ function functionTypeToTitle(type: FunctionType): string {
     'log-analysis': '로그 분석',
     'trend-analysis': '트렌드 분석',
     'quick-diagnosis': '빠른 진단',
-    'solutions': '해결책 제안'
+    'solutions': '해결책 제안',
+    'resource-usage': '리소스 사용량',
+    'security-check': '보안 점검',
+    'deployment-history': '배포 이력',
+    'backup-status': '백업 상태',
+    'network-traffic': '네트워크 트래픽',
+    'config-checker': '설정 검사',
+    'api-monitor': 'API 모니터',
+    'database-health': 'DB 상태',
+    'user-activity': '사용자 활동',
+    'service-health': '서비스 상태',
+    'cost-analysis': '비용 분석',
+    'scheduled-tasks': '예약 작업'
   };
   return titles[type] || '';
 }

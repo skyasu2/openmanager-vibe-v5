@@ -109,6 +109,7 @@ export class AIDatabase {
   private errors: Map<string, AIErrorRecord> = new Map();
   private patterns: Map<string, AILearningPattern> = new Map();
   private metrics: AIPerformanceMetric[] = [];
+  private incidentReports: Map<string, any> = new Map(); // 인시던트 보고서 저장을 위한 맵
   
   private readonly MAX_RECORDS = 10000;
   private readonly MAX_METRICS = 1000;
@@ -526,6 +527,20 @@ export class AIDatabase {
     }
     
     console.log('🧹 AI Database cleanup completed');
+  }
+
+  /**
+   * 인시던트 보고서 저장
+   */
+  async storeIncidentReport(report: any): Promise<string> {
+    const reportId = report.reportId || this.generateId();
+    this.incidentReports.set(reportId, {
+      ...report,
+      reportId
+    });
+    
+    console.log(`📊 Incident report saved: ${reportId}`);
+    return reportId;
   }
 }
 
