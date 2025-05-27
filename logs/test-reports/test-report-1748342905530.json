@@ -1,0 +1,39 @@
+{
+  "startTime": "2025-05-27T10:48:21.528Z",
+  "endTime": "2025-05-27T10:48:25.529Z",
+  "duration": 4001,
+  "summary": {
+    "total": 11,
+    "passed": 9,
+    "failed": 2,
+    "skipped": 0,
+    "successRate": 81.81818181818183
+  },
+  "categories": {
+    "unit": {
+      "passed": 3,
+      "failed": 0
+    },
+    "integration": {
+      "passed": 0,
+      "failed": 0
+    },
+    "performance": {
+      "passed": 0,
+      "failed": 0
+    },
+    "e2e": {
+      "passed": 0,
+      "failed": 1
+    }
+  },
+  "services": {},
+  "performance": {
+    "averageResponseTime": 0,
+    "memoryUsage": 0,
+    "errorRate": 0
+  },
+  "recommendations": [
+    "테스트 성공률이 90% 미만입니다. 실패한 테스트를 검토하세요."
+  ]
+}

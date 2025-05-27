@@ -1,0 +1,43 @@
+{
+  "startTime": 1748342945364,
+  "environment": {
+    "environment": {
+      "platform": "local",
+      "memoryLimit": 512,
+      "timeLimit": 300000,
+      "cpuCores": 4,
+      "isProduction": false,
+      "capabilities": {
+        "pythonAnalysis": true,
+        "heavyComputation": true,
+        "longRunningTasks": true,
+        "fileSystem": true
+      }
+    },
+    "optimization": null,
+    "runtime": {
+      "uptime": 1410.8511498,
+      "memory": {
+        "rss": 403337216,
+        "heapTotal": 251834368,
+        "heapUsed": 206368568,
+        "external": 284840243,
+        "arrayBuffers": 280749249
+      },
+      "platform": "win32",
+      "nodeVersion": "v22.15.1"
+    }
+  },
+  "tests": [],
+  "performance": {
+    "averageResponseTime": 11.75,
+    "successRate": 100,
+    "errorCount": 0,
+    "totalRequests": 4
+  },
+  "summary": {
+    "passed": 10,
+    "failed": 0,
+    "skipped": 0
+  }
+}
