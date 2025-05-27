@@ -164,6 +164,7 @@ export default function PresetQuestions({ onQuestionSelect, currentServerData }:
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lastRefreshTime, setLastRefreshTime] = useState(Date.now());
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // 맥락적 질문 생성
   const generateContextualQuestions = (): PresetQuestion[] => {
@@ -194,17 +195,30 @@ export default function PresetQuestions({ onQuestionSelect, currentServerData }:
     return contextual;
   };
 
-  // 프리셋 질문 조합 생성 (기본 3개 + 고급 1개)
+  // 프리셋 질문 조합 생성 (기본 3개 + 고급 1개) - 더 안정적인 랜덤
   const generatePresetQuestions = () => {
     const contextual = generateContextualQuestions();
     const availableBasic = [...basicQuestions, ...contextual];
     
-    // 기본 질문 3개 랜덤 선택
-    const shuffledBasic = [...availableBasic].sort(() => Math.random() - 0.5);
+    // 시드 기반 랜덤으로 더 안정적인 선택
+    const seed = Math.floor(Date.now() / (5 * 60 * 1000)); // 5분마다 변경
+    const seededRandom = (index: number) => {
+      const x = Math.sin(seed + index) * 10000;
+      return x - Math.floor(x);
+    };
+    
+    // 기본 질문 3개 시드 랜덤 선택
+    const shuffledBasic = availableBasic
+      .map((item, index) => ({ item, sort: seededRandom(index) }))
+      .sort((a, b) => a.sort - b.sort)
+      .map(({ item }) => item);
     const selectedBasic = shuffledBasic.slice(0, 3);
     
-    // 고급 질문 1개 랜덤 선택
-    const shuffledAdvanced = [...advancedQuestions].sort(() => Math.random() - 0.5);
+    // 고급 질문 1개 시드 랜덤 선택
+    const shuffledAdvanced = advancedQuestions
+      .map((item, index) => ({ item, sort: seededRandom(index + 100) }))
+      .sort((a, b) => a.sort - b.sort)
+      .map(({ item }) => item);
     const selectedAdvanced = shuffledAdvanced.slice(0, 1);
     
     return [...selectedBasic, ...selectedAdvanced];
@@ -236,22 +250,37 @@ export default function PresetQuestions({ onQuestionSelect, currentServerData }:
     setCurrentIndex(prev => Math.min(selectedQuestions.length - 2, prev + 2));
   };
 
-  // 초기 질문 생성 및 5분마다 자동 새로고침
+  // 초기 질문 생성 (한 번만)
   useEffect(() => {
-    setSelectedQuestions(generatePresetQuestions());
-    setLastRefreshTime(Date.now());
-    
-    // 5분(300초)마다 자동 새로고침
+    if (!isInitialized) {
+      setSelectedQuestions(generatePresetQuestions());
+      setLastRefreshTime(Date.now());
+      setIsInitialized(true);
+    }
+  }, [isInitialized]);
+
+  // 5분마다 자동 새로고침 (별도 useEffect)
+  useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
       if (now - lastRefreshTime >= 300000) { // 300초 = 5분
+        console.log('⏰ 추천 질문 자동 갱신 (5분 경과)');
         setSelectedQuestions(generatePresetQuestions());
         setLastRefreshTime(now);
       }
-    }, 1000); // 1초마다 체크
+    }, 10000); // 10초마다 체크 (부하 감소)
     
     return () => clearInterval(interval);
-  }, [currentServerData, lastRefreshTime]);
+  }, [lastRefreshTime]);
+
+  // 서버 데이터 변경 시에만 갱신
+  useEffect(() => {
+    if (isInitialized && currentServerData?.criticalServers > 0) {
+      console.log('🚨 긴급 서버 상황 감지 - 추천 질문 갱신');
+      setSelectedQuestions(generatePresetQuestions());
+      setLastRefreshTime(Date.now());
+    }
+  }, [currentServerData?.criticalServers, isInitialized]);
 
   const visibleQuestions = selectedQuestions.slice(currentIndex, currentIndex + 2);
   const canGoPrevious = currentIndex > 0;

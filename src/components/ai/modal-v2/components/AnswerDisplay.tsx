@@ -67,7 +67,7 @@ export default function AnswerDisplay({
       setTimeout(() => {
         console.log('AI 분석 완료 - 로그 페이지로 이동');
         // 실제로는 부모 컴포넌트에서 처리하거나 라우터 사용
-        window.open('/logs/interactions', '_blank');
+        window.open('/logs', '_blank');
       }, 3000);
     }
   }, [answer, isLoading, question, metadata]);
