@@ -1,0 +1,28 @@
+# MCP AI Engine - Python 분석 패키지 요구사항
+# 오프라인 환경에서 설치 가능한 패키지들
+
+# 핵심 데이터 분석 라이브러리
+numpy>=1.24.3
+pandas>=2.0.3
+
+# 시계열 분석 (Facebook Kats)
+kats>=0.3.1
+
+# 이상 탐지 (PyOD)
+pyod>=2.1.0
+
+# 통계 분석 (SciPy)
+scipy>=1.15.0
+
+# 기계학습 (scikit-learn)
+scikit-learn>=1.5.0
+
+# 의존성 패키지들
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# 추가 유틸리티
+joblib>=1.3.0
+
+# 선택적 패키지 (성능 향상)
+numba>=0.57.0 

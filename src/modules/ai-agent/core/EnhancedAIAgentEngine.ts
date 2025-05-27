@@ -19,6 +19,16 @@ import { AIAgentMode, QueryAnalysis } from './SmartModeDetector';
 import { ThinkingProcessor } from './ThinkingProcessor';
 import { AdminLogger } from './AdminLogger';
 import { aiDatabase } from '../../../lib/database';
+import { PythonAnalysisRunner } from './PythonAnalysisRunner';
+import { 
+  PythonAnalysisResult, 
+  MCPIntegratedResponse,
+  ForecastRequest,
+  AnomalyRequest,
+  ClassificationRequest,
+  ClusteringRequest,
+  CorrelationRequest
+} from '../types/PythonAnalysisTypes';
 
 export interface EnhancedAIAgentConfig {
   enableMCP: boolean;
@@ -26,6 +36,7 @@ export interface EnhancedAIAgentConfig {
   enableAutoMode: boolean;
   enableThinking: boolean;
   enableAdminLogging: boolean;
+  enablePythonAnalysis: boolean;
   debugMode: boolean;
 }
 
@@ -79,6 +90,7 @@ export class EnhancedAIAgentEngine {
   private actionExecutor: ActionExecutor;
   private thinkingProcessor: ThinkingProcessor;
   private adminLogger: AdminLogger;
+  private pythonAnalysisRunner: PythonAnalysisRunner;
   private isInitialized: boolean = false;
 
   private constructor(config: EnhancedAIAgentConfig) {
@@ -91,6 +103,7 @@ export class EnhancedAIAgentEngine {
     this.actionExecutor = new ActionExecutor();
     this.thinkingProcessor = new ThinkingProcessor();
     this.adminLogger = new AdminLogger();
+    this.pythonAnalysisRunner = PythonAnalysisRunner.getInstance();
   }
 
   /**
@@ -104,6 +117,7 @@ export class EnhancedAIAgentEngine {
         enableAutoMode: true,
         enableThinking: true,
         enableAdminLogging: true,
+        enablePythonAnalysis: true,
         debugMode: process.env.NODE_ENV === 'development'
       };
       EnhancedAIAgentEngine.instance = new EnhancedAIAgentEngine(config || defaultConfig);
@@ -149,6 +163,16 @@ export class EnhancedAIAgentEngine {
       if (this.config.enableThinking) {
         await this.thinkingProcessor.initialize();
         console.log('✅ 사고 과정 프로세서 초기화 완료');
+      }
+
+      // Python 분석 엔진 초기화
+      if (this.config.enablePythonAnalysis) {
+        const pythonInitialized = await this.pythonAnalysisRunner.initialize();
+        if (pythonInitialized) {
+          console.log('✅ Python 분석 엔진 초기화 완료');
+        } else {
+          console.warn('⚠️ Python 분석 엔진 초기화 실패 - fallback 모드로 동작');
+        }
       }
 
       this.isInitialized = true;
@@ -1228,6 +1252,274 @@ export class EnhancedAIAgentEngine {
   }
 
   /**
+   * 🐍 Python 분석 실행 (서버 메트릭 기반)
+   */
+  async executePythonAnalysis(serverData: any): Promise<PythonAnalysisResult | null> {
+    if (!this.config.enablePythonAnalysis || !this.isInitialized) {
+      return null;
+    }
+
+    try {
+      const analysisResult: PythonAnalysisResult = {
+        summary: {
+          total_execution_time: 0,
+          successful_analyses: [],
+          failed_analyses: [],
+          confidence_score: 0,
+          recommendations: []
+        }
+      };
+
+      const startTime = Date.now();
+
+      // 서버 메트릭을 분석용 데이터로 변환
+      const analysisData = this.prepareAnalysisData(serverData);
+
+      // 1. 시계열 예측 (CPU, Memory 사용률)
+      if (analysisData.timeSeries) {
+        try {
+          const forecastResult = await this.pythonAnalysisRunner.forecastTimeSeries({
+            timestamps: analysisData.timeSeries.timestamps,
+            values: analysisData.timeSeries.values,
+            horizon: 30,
+            model: 'arima'
+          });
+
+          if (forecastResult.success && forecastResult.result) {
+            analysisResult.forecast = forecastResult.result;
+            analysisResult.summary.successful_analyses.push('forecast');
+          }
+        } catch (error) {
+          analysisResult.summary.failed_analyses.push('forecast');
+        }
+      }
+
+      // 2. 이상 탐지 (시스템 메트릭)
+      if (analysisData.features && analysisData.features.length > 0) {
+        try {
+          const anomalyResult = await this.pythonAnalysisRunner.detectAnomalies({
+            features: analysisData.features,
+            contamination: 0.05,
+            algorithm: 'isolation_forest'
+          });
+
+          if (anomalyResult.success && anomalyResult.result) {
+            analysisResult.anomaly = anomalyResult.result;
+            analysisResult.summary.successful_analyses.push('anomaly');
+          }
+        } catch (error) {
+          analysisResult.summary.failed_analyses.push('anomaly');
+        }
+      }
+
+      // 3. 상관관계 분석 (메트릭 간 관계)
+      if (analysisData.variables && analysisData.variables.length >= 2) {
+        try {
+          const correlationResult = await this.pythonAnalysisRunner.analyzeCorrelations({
+            variables: analysisData.variables,
+            method: 'pearson'
+          });
+
+          if (correlationResult.success && correlationResult.result) {
+            analysisResult.correlation = correlationResult.result;
+            analysisResult.summary.successful_analyses.push('correlation');
+          }
+        } catch (error) {
+          analysisResult.summary.failed_analyses.push('correlation');
+        }
+      }
+
+      // 분석 결과 요약
+      analysisResult.summary.total_execution_time = Date.now() - startTime;
+      analysisResult.summary.confidence_score = this.calculateConfidenceScore(analysisResult);
+      analysisResult.summary.recommendations = this.generateRecommendations(analysisResult);
+
+      return analysisResult;
+
+    } catch (error) {
+      console.error('Python 분석 실행 실패:', error);
+      return null;
+    }
+  }
+
+  /**
+   * 📊 분석용 데이터 준비
+   */
+  private prepareAnalysisData(serverData: any): any {
+    const data: any = {
+      timeSeries: null,
+      features: [],
+      variables: []
+    };
+
+    try {
+      // 시계열 데이터 준비 (CPU 사용률)
+      if (serverData?.metrics?.cpu?.history) {
+        const history = serverData.metrics.cpu.history;
+        data.timeSeries = {
+          timestamps: history.map((h: any) => h.timestamp || new Date().toISOString()),
+          values: history.map((h: any) => h.value || 0)
+        };
+      }
+
+      // 특성 데이터 준비 (다차원 메트릭)
+      if (serverData?.metrics) {
+        const metrics = serverData.metrics;
+        const features = [];
+
+        // 현재 메트릭들을 특성으로 변환
+        const cpuUsage = metrics.cpu?.current || 0;
+        const memoryUsage = metrics.memory?.current || 0;
+        const diskUsage = metrics.disk?.current || 0;
+        const networkIn = metrics.network?.in || 0;
+        const networkOut = metrics.network?.out || 0;
+
+        features.push([cpuUsage, memoryUsage, diskUsage, networkIn, networkOut]);
+
+        // 히스토리가 있으면 추가
+        if (metrics.cpu?.history) {
+          metrics.cpu.history.forEach((h: any, i: number) => {
+            const mem = metrics.memory?.history?.[i]?.value || 0;
+            const disk = metrics.disk?.history?.[i]?.value || 0;
+            features.push([h.value || 0, mem, disk, 0, 0]);
+          });
+        }
+
+        data.features = features;
+      }
+
+      // 변수 데이터 준비 (상관관계 분석용)
+      if (serverData?.metrics) {
+        const metrics = serverData.metrics;
+        
+        if (metrics.cpu?.history && metrics.memory?.history) {
+          data.variables = [
+            {
+              name: 'CPU',
+              values: metrics.cpu.history.map((h: any) => h.value || 0)
+            },
+            {
+              name: 'Memory',
+              values: metrics.memory.history.map((h: any) => h.value || 0)
+            }
+          ];
+
+          if (metrics.disk?.history) {
+            data.variables.push({
+              name: 'Disk',
+              values: metrics.disk.history.map((h: any) => h.value || 0)
+            });
+          }
+        }
+      }
+
+    } catch (error) {
+      console.error('분석 데이터 준비 실패:', error);
+    }
+
+    return data;
+  }
+
+  /**
+   * 🎯 신뢰도 점수 계산
+   */
+  private calculateConfidenceScore(analysis: PythonAnalysisResult): number {
+    const total = analysis.summary.successful_analyses.length + analysis.summary.failed_analyses.length;
+    if (total === 0) return 0;
+
+    const successRate = analysis.summary.successful_analyses.length / total;
+    
+    // 각 분석 결과의 품질도 고려
+    let qualityScore = 0;
+    let qualityCount = 0;
+
+    if (analysis.forecast) {
+      qualityScore += analysis.forecast.model_params?.fit_metrics?.mse ? 
+        Math.max(0, 1 - analysis.forecast.model_params.fit_metrics.mse / 100) : 0.7;
+      qualityCount++;
+    }
+
+    if (analysis.anomaly) {
+      qualityScore += analysis.anomaly.statistics.anomaly_percentage < 20 ? 0.8 : 0.6;
+      qualityCount++;
+    }
+
+    if (analysis.correlation) {
+      const avgCorr = analysis.correlation.correlations.reduce((sum, c) => sum + Math.abs(c.coefficient), 0) / 
+                     analysis.correlation.correlations.length;
+      qualityScore += avgCorr > 0.5 ? 0.8 : 0.6;
+      qualityCount++;
+    }
+
+    const avgQuality = qualityCount > 0 ? qualityScore / qualityCount : 0.5;
+    
+    return Math.round((successRate * 0.7 + avgQuality * 0.3) * 100);
+  }
+
+  /**
+   * 💡 추천사항 생성
+   */
+  private generateRecommendations(analysis: PythonAnalysisResult): string[] {
+    const recommendations: string[] = [];
+
+    // 예측 기반 추천
+    if (analysis.forecast) {
+      const forecast = analysis.forecast.forecast;
+      const trend = forecast[forecast.length - 1] - forecast[0];
+      
+      if (trend > 10) {
+        recommendations.push('📈 리소스 사용량 증가 추세 - 용량 확장 검토 필요');
+      } else if (trend < -10) {
+        recommendations.push('📉 리소스 사용량 감소 추세 - 비용 최적화 기회');
+      }
+    }
+
+    // 이상 탐지 기반 추천
+    if (analysis.anomaly) {
+      const anomalyRate = analysis.anomaly.statistics.anomaly_percentage;
+      
+      if (anomalyRate > 10) {
+        recommendations.push('🚨 높은 이상 탐지율 - 시스템 점검 필요');
+      } else if (anomalyRate > 5) {
+        recommendations.push('⚠️ 중간 수준 이상 탐지 - 모니터링 강화 권장');
+      }
+    }
+
+    // 상관관계 기반 추천
+    if (analysis.correlation) {
+      const strongCorrelations = analysis.correlation.correlations.filter(c => 
+        Math.abs(c.coefficient) > 0.7 && c.significance !== 'none'
+      );
+      
+      if (strongCorrelations.length > 0) {
+        recommendations.push('🔗 강한 메트릭 상관관계 발견 - 연관 모니터링 설정 권장');
+      }
+    }
+
+    if (recommendations.length === 0) {
+      recommendations.push('✅ 시스템이 정상 범위 내에서 동작 중');
+    }
+
+    return recommendations;
+  }
+
+  /**
+   * 🐍 Python 엔진 상태 조회
+   */
+  getPythonEngineStatus() {
+    if (!this.config.enablePythonAnalysis) {
+      return { enabled: false, status: 'disabled' };
+    }
+
+    return {
+      enabled: true,
+      status: this.pythonAnalysisRunner.getEngineStatus(),
+      performance: this.pythonAnalysisRunner.getPerformanceMetrics(),
+      cache: this.pythonAnalysisRunner.getCacheStats()
+    };
+  }
+
+  /**
    * 엔진 종료
    */
   async shutdown(): Promise<void> {
@@ -1237,6 +1529,11 @@ export class EnhancedAIAgentEngine {
     await this.actionExecutor.cleanup?.();
     await this.thinkingProcessor.cleanup?.();
     this.modeManager.cleanup();
+    
+    // Python 분석 엔진 종료
+    if (this.config.enablePythonAnalysis) {
+      await this.pythonAnalysisRunner.shutdown();
+    }
     
     this.isInitialized = false;
     console.log('✅ Enhanced AI Agent Engine 종료 완료');

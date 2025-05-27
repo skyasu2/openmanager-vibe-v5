@@ -1,0 +1,35 @@
+# 🚀 Lightweight Python Analysis Engine - 경량화 패키지 (300MB 이하)
+# Vercel 최적화 버전 - 핵심 기능만 유지
+
+# 핵심 데이터 분석 (필수)
+numpy>=1.24.3,<1.26.0
+pandas>=2.0.3,<2.2.0
+
+# 통계 분석 (경량)
+scipy>=1.10.0,<1.12.0
+
+# 기계학습 (핵심만)
+scikit-learn>=1.3.0,<1.4.0
+
+# 시계열 분석 (경량 대안)
+statsmodels>=0.14.0,<0.15.0
+
+# 빠른 그래디언트 부스팅 (XGBoost 대안)
+lightgbm>=4.0.0,<4.2.0
+
+# 기본 시각화 (선택적)
+matplotlib>=3.7.0,<3.8.0
+
+# 성능 최적화
+numba>=0.57.0,<0.59.0
+joblib>=1.3.0,<1.4.0
+
+# 제거된 무거운 패키지들 (주석으로 기록)
+# kats>=0.3.1          # 500MB+ (Facebook 시계열 라이브러리)
+# pyod>=2.1.0          # 300MB+ (이상 탐지 전용)
+# seaborn>=0.12.0      # 100MB+ (고급 시각화)
+# tensorflow           # 2GB+ (딥러닝)
+# torch                # 1.5GB+ (딥러닝)
+# transformers         # 1GB+ (NLP)
+
+# 총 예상 크기: ~280MB (기존 1.8GB에서 84% 절약) 

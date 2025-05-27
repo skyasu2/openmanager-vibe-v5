@@ -32,7 +32,19 @@
     "deploy:preview": "vercel --confirm",
     "deploy:prod": "vercel --prod --confirm",
     "monitor": "npm run health-check:prod && echo '✅ Production health check passed'",
-    "init:ai-context": "node scripts/init-ai-context.js"
+    "init:ai-context": "node scripts/init-ai-context.js",
+    "test:ai-engine": "node scripts/test-ai-engine.js",
+    "test:python": "python --version && python -c \"import kats, pyod, scipy, sklearn; print('✅ All Python packages available')\"",
+    "setup:python": "pip install -r src/modules/ai-agent/python-engine/requirements.txt",
+    "setup:python-lightweight": "pip install -r src/modules/ai-agent/python-engine/requirements-lightweight.txt",
+    "test:python-analysis": "node scripts/test-python-analysis.js",
+    "test:optimized-ai": "node scripts/test-optimized-ai.js",
+    "python:install": "python -m pip install --upgrade pip && npm run setup:python",
+    "python:install-lightweight": "python -m pip install --upgrade pip && npm run setup:python-lightweight",
+    "python:test-engine": "python src/modules/ai-agent/python-engine/engine_runner.py",
+    "python:test-lightweight": "python src/modules/ai-agent/python-engine/lightweight_engine.py",
+    "ai:optimize": "node scripts/test-optimized-ai.js",
+    "ai:benchmark": "node scripts/test-optimized-ai.js --benchmark-only"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
