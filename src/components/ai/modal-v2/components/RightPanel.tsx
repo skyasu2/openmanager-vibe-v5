@@ -32,7 +32,7 @@ export default function RightPanel({
       h-full bg-gray-50
     `}>
       {/* 패널 헤더 */}
-      <div className="p-4 border-b border-gray-200 bg-white flex items-center justify-between">
+      <div className="p-4 border-b border-gray-200 bg-white flex items-center justify-between flex-shrink-0">
         <h3 className="text-sm font-medium text-gray-700">AI 기능 패널</h3>
         <button
           onClick={() => setIsHistoryOpen(true)}
@@ -44,7 +44,7 @@ export default function RightPanel({
       </div>
       
       {/* 기능 카드 영역 */}
-      <div className="p-4 border-b border-gray-200 bg-white">
+      <div className="p-4 border-b border-gray-200 bg-white flex-shrink-0">
         <FunctionCards
           selectedFunction={selectedFunction}
           selectFunction={selectFunction}
@@ -52,8 +52,11 @@ export default function RightPanel({
         />
       </div>
 
-      {/* 선택된 기능 내용 표시 영역 */}
-      <div className="flex-1 overflow-y-auto p-4">
+      {/* 선택된 기능 내용 표시 영역 - 개선된 스크롤 */}
+      <div className="flex-1 overflow-y-auto p-4 custom-scrollbar" style={{
+        scrollBehavior: 'smooth',
+        overscrollBehavior: 'contain'
+      }}>
         <FunctionContent
           functionType={selectedFunction}
           data={functionData[selectedFunction] || []}

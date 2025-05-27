@@ -40,17 +40,21 @@ export default function LeftPanel({
       h-full
     `}>
       {/* 질문 입력창 (상단 고정) */}
-      <div className="p-4 border-b border-gray-200 bg-white">
+      <div className="p-4 border-b border-gray-200 bg-white flex-shrink-0">
         <QuestionInput
           isLoading={isLoading}
           onSendQuestion={sendQuestion}
         />
       </div>
 
-      {/* 답변 표시 영역 (스크롤 가능) */}
+      {/* 답변 표시 영역 (스크롤 가능) - 개선된 스크롤 */}
       <div 
         ref={answerRef}
-        className="flex-1 overflow-y-auto p-6 bg-gray-50"
+        className="flex-1 overflow-y-auto p-6 bg-gray-50 custom-scrollbar"
+        style={{
+          scrollBehavior: 'smooth',
+          overscrollBehavior: 'contain'
+        }}
       >
         {!currentQuestion && !currentAnswer ? (
           // 초기 상태 - 프리셋 질문 표시

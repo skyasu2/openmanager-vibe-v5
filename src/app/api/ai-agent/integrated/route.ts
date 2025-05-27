@@ -166,58 +166,79 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/ai-agent/integrated
- * 통합 AI 분석 요청
+ * 통합 AI 분석 요청 - 타임아웃 개선
  */
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+  
   try {
-    await initializeIntegratedSystem();
+    // 요청 타임아웃 설정 (15초)
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout')), 15000);
+    });
 
-    if (!integrationAdapter || !aiEngine) {
-      return NextResponse.json({
-        success: false,
-        error: '통합 시스템이 초기화되지 않았습니다'
-      }, { status: 500 });
-    }
+    const processRequest = async () => {
+      await initializeIntegratedSystem();
 
-    const body = await request.json();
-    const { action, query, serverId, timeRange, options } = body;
-
-    switch (action) {
-      case 'analyze-server':
-        return await handleServerAnalysis(serverId, options);
-
-      case 'smart-query':
-        return await handleSmartQuery(query, options);
-
-      case 'anomaly-detection':
-        return await handleAnomalyDetection(serverId, timeRange, options);
-
-      case 'health-check':
-        return await handleHealthCheck(options);
-
-      case 'metrics-history':
-        return await handleMetricsHistory(serverId, timeRange, options);
-
-      default:
+      if (!integrationAdapter || !aiEngine) {
         return NextResponse.json({
           success: false,
-          error: '지원하지 않는 액션입니다',
-          supportedActions: [
-            'analyze-server',
-            'smart-query', 
-            'anomaly-detection',
-            'health-check',
-            'metrics-history'
-          ]
-        }, { status: 400 });
-    }
+          error: '통합 시스템이 초기화되지 않았습니다'
+        }, { status: 500 });
+      }
+
+      const body = await request.json();
+      const { action, query, serverId, timeRange, options } = body;
+
+      switch (action) {
+        case 'analyze-server':
+          return await handleServerAnalysis(serverId, options);
+
+        case 'smart-query':
+          return await handleSmartQuery(query, options);
+
+        case 'anomaly-detection':
+          return await handleAnomalyDetection(serverId, timeRange, options);
+
+        case 'health-check':
+          return await handleHealthCheck(options);
+
+        case 'metrics-history':
+          return await handleMetricsHistory(serverId, timeRange, options);
+
+        default:
+          return NextResponse.json({
+            success: false,
+            error: '지원하지 않는 액션입니다',
+            supportedActions: ['analyze-server', 'smart-query', 'anomaly-detection', 'health-check', 'metrics-history']
+          }, { status: 400 });
+      }
+    };
+
+    // 타임아웃과 실제 처리를 경쟁시킴
+    const result = await Promise.race([processRequest(), timeoutPromise]);
+    return result;
 
   } catch (error) {
+    const processingTime = Date.now() - startTime;
     console.error('❌ 통합 AI 분석 요청 실패:', error);
+    
+    // 타임아웃 에러인 경우 특별 처리
+    if (error instanceof Error && error.message === 'Request timeout') {
+      return NextResponse.json({
+        success: false,
+        error: '요청 처리 시간이 초과되었습니다',
+        message: '시스템이 과부하 상태일 수 있습니다. 잠시 후 다시 시도해주세요.',
+        processingTime,
+        timeout: true
+      }, { status: 408 });
+    }
+
     return NextResponse.json({
       success: false,
       error: '통합 AI 분석 요청 실패',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
+      processingTime
     }, { status: 500 });
   }
 }

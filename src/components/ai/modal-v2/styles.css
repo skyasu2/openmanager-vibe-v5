@@ -27,21 +27,70 @@
   animation: slide-in 0.3s ease-out;
 }
 
-/* 커스텀 스크롤바 */
+/* 개선된 커스텀 스크롤바 */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
+  background: #f8fafc;
+  border-radius: 4px;
+  margin: 2px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #c2c2c2;
-  border-radius: 3px;
+  background: linear-gradient(180deg, #cbd5e1 0%, #94a3b8 100%);
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #a5a5a5;
+  background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%);
+  border-color: #cbd5e1;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #64748b 0%, #475569 100%);
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner {
+  background: #f8fafc;
+}
+
+/* 모달 내 스크롤 최적화 */
+.modal-scroll-container {
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 스크롤 영역 포커스 스타일 */
+.custom-scrollbar:focus-within {
+  outline: 2px solid #6366f1;
+  outline-offset: -2px;
+  border-radius: 8px;
+}
+
+/* 모바일 터치 스크롤 개선 */
+@media (max-width: 768px) {
+  .custom-scrollbar {
+    scrollbar-width: auto;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 12px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 6px;
+    border: 2px solid #f8fafc;
+  }
 } 

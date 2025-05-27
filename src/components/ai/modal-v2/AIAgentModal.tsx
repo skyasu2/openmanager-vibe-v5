@@ -142,82 +142,131 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
     dispatch({ type: 'TOGGLE_HISTORY', payload: false });
   };
 
-  // 질문 전송 핸들러
+  // 서버 데이터 로드 함수
+  const loadServerData = async (): Promise<any[]> => {
+    try {
+      // useServerDataStore에서 서버 데이터 가져오기
+      if (servers && servers.length > 0) {
+        return servers;
+      }
+      
+      // 서버 데이터가 없으면 API에서 가져오기
+      const response = await fetch('/api/servers');
+      if (response.ok) {
+        const data = await response.json();
+        return data.success ? data.data.servers : [];
+      }
+      
+      // API 실패 시 기본 서버 데이터 반환
+      return [
+        { id: 'web-prod-01', name: 'web-prod-01', status: 'healthy', metrics: { cpu: 45, memory: 67, disk: 23 } },
+        { id: 'api-prod-01', name: 'api-prod-01', status: 'warning', metrics: { cpu: 78, memory: 82, disk: 45 } },
+        { id: 'db-prod-01', name: 'db-prod-01', status: 'healthy', metrics: { cpu: 34, memory: 56, disk: 67 } }
+      ];
+    } catch (error) {
+      console.warn('서버 데이터 로드 실패:', error);
+      // 에러 시 기본 서버 데이터 반환
+      return [
+        { id: 'web-prod-01', name: 'web-prod-01', status: 'healthy', metrics: { cpu: 45, memory: 67, disk: 23 } },
+        { id: 'api-prod-01', name: 'api-prod-01', status: 'warning', metrics: { cpu: 78, memory: 82, disk: 45 } },
+        { id: 'db-prod-01', name: 'db-prod-01', status: 'healthy', metrics: { cpu: 34, memory: 56, disk: 67 } }
+      ];
+    }
+  };
+
+  // 질문 전송 핸들러 - 개선된 에러 처리
   const handleSendQuestion = async (question: string) => {
+    if (!question.trim() || state.isLoading) return;
+
     const startTime = Date.now();
-    
-    // 질문 전송 시 활동 기록
-    recordActivity();
-    
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'SET_QUESTION', payload: question });
+    dispatch({ type: 'SET_ANSWER', payload: '' });
     
-    // 네비게이션 히스토리에 질문 추가
-    navigation.addToHistory({
-      type: 'question',
-      title: question.length > 50 ? question.substring(0, 50) + '...' : question,
-      data: { question, timestamp: startTime }
-    });
-    
+    // 활동 기록
+    recordActivity();
+
     try {
-      // 실제 AI 에이전트 API 호출
-      const apiPromise = fetch('/api/ai-agent/smart-query', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: question,
-          serverData: servers,
-          context: {
-            totalServers: servers.length,
-            timestamp: new Date().toISOString()
-          }
+      // 서버 데이터 로드 (빠른 실패를 위해 타임아웃 단축)
+      const servers = await Promise.race([
+        loadServerData(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Server data timeout')), 5000)
+        )
+      ]) as any[];
+
+      // AI 에이전트 API 호출 (타임아웃 15초)
+      const aiResponse = await Promise.race([
+        fetch('/api/ai-agent/integrated', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'smart-query',
+            query: question,
+            options: {
+              timeout: 12000, // 백엔드 타임아웃
+              priority: 'high',
+              enableFallback: true
+            }
+          })
         }),
-      });
+        new Promise<Response>((_, reject) => 
+          setTimeout(() => reject(new Error('AI API timeout')), 15000)
+        )
+      ]);
 
-      // 최소 3초는 생각하는 모습을 보여주기 위해 딜레이 추가
-      const minThinkingTime = new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // API 호출과 최소 대기 시간을 병렬로 실행
-      const [response] = await Promise.all([apiPromise, minThinkingTime]);
-
-      if (!response.ok) {
-        throw new Error(`AI 에이전트 오류: ${response.status}`);
+      if (aiResponse.ok) {
+        const data = await aiResponse.json();
+        
+        if (data.success && data.response) {
+          const responseTime = Date.now() - startTime;
+          
+          // 성공적인 AI 응답
+          const metadata = {
+            intent: data.analysis?.intent || 'ai_response',
+            confidence: data.analysis?.confidence || 0.8,
+            responseTime,
+            method: data.method || 'integrated',
+            serverState: { servers, totalCount: servers.length },
+            sessionId: data.metadata?.sessionId || `session_${Date.now()}`
+          };
+          
+          setResponseMetadata(metadata);
+          dispatch({ type: 'SET_ANSWER', payload: data.response });
+          addToHistory(question, data.response);
+          
+        } else {
+          // AI 응답 실패 시 폴백
+          throw new Error(data.error || 'AI 응답 생성 실패');
+        }
+      } else {
+        // HTTP 에러 시 폴백
+        const errorData = await aiResponse.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${aiResponse.status} 에러`);
       }
 
-      const data = await response.json();
-      const answer = data.success ? data.data.response : '죄송합니다. 응답을 생성할 수 없습니다.';
-      const responseTime = Date.now() - startTime;
-      
-      // 응답 수신 시 활동 기록
-      recordActivity();
-      
-      // 응답 메타데이터 설정
-      const metadata = {
-        intent: data.data?.intent || 'general_query',
-        confidence: data.data?.confidence || 0.5,
-        responseTime,
-        serverState: { servers, totalCount: servers.length },
-        sessionId: data.data?.metadata?.sessionId || `session_${Date.now()}`
-      };
-      setResponseMetadata(metadata);
-      
-      dispatch({ type: 'SET_ANSWER', payload: answer });
-      dispatch({ type: 'SET_LOADING', payload: false });
-      
-      // 히스토리에 추가
-      addToHistory(question, answer);
-      
     } catch (error) {
-      console.error('AI 에이전트 호출 실패:', error);
+      console.warn('AI 응답 실패, 폴백 모드로 전환:', error);
       
-      // 폴백도 최소 시간 보장
+      // 폴백 응답 생성 (최소 3초 대기)
       const elapsed = Date.now() - startTime;
       const remainingTime = Math.max(0, 3000 - elapsed);
       
       if (remainingTime > 0) {
         await new Promise(resolve => setTimeout(resolve, remainingTime));
+      }
+      
+      // 서버 데이터 재시도 (폴백용)
+      let servers: any[] = [];
+      try {
+        servers = await loadServerData();
+      } catch {
+        // 서버 데이터도 실패하면 기본 데이터 사용
+        servers = [
+          { name: 'web-prod-01', status: 'healthy', metrics: { cpu: 45, memory: 67, disk: 23 } },
+          { name: 'api-prod-01', status: 'warning', metrics: { cpu: 78, memory: 82, disk: 45 } },
+          { name: 'db-prod-01', status: 'healthy', metrics: { cpu: 34, memory: 56, disk: 67 } }
+        ];
       }
       
       // 폴백 응답 생성
@@ -232,16 +281,19 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
         intent: 'fallback_response',
         confidence: 0.3,
         responseTime,
+        method: 'fallback',
+        error: error instanceof Error ? error.message : 'Unknown error',
         serverState: { servers, totalCount: servers.length },
         sessionId: `fallback_session_${Date.now()}`
       };
       setResponseMetadata(fallbackMetadata);
       
       dispatch({ type: 'SET_ANSWER', payload: fallbackAnswer });
-      dispatch({ type: 'SET_LOADING', payload: false });
       
       // 히스토리에 추가
       addToHistory(question, fallbackAnswer);
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 
@@ -314,18 +366,18 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center animate-fade-in">
       {/* 모달 배경 블러 효과 - 클릭해도 모달이 닫히지 않음 */}
       <div 
         className="absolute inset-0 bg-gray-900/70 backdrop-blur-sm"
       />
       
-      {/* 모달 컨테이너 */}
+      {/* 모달 컨테이너 - 스크롤 문제 해결 */}
       <div 
         className={`
-          relative bg-white rounded-2xl shadow-xl overflow-hidden
+          relative bg-white rounded-2xl shadow-xl
           w-full max-w-7xl max-h-[90vh]
-          animate-scale-in
+          animate-scale-in flex flex-col
           ${isMobile ? 'h-[90vh]' : 'h-[80vh]'}
         `}
         onClick={(e) => {
@@ -359,10 +411,9 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
           }}
         />
         
-        {/* 모달 바디 */}
+        {/* 모달 바디 - 스크롤 가능하도록 수정 */}
         <div className={`
-          flex flex-col md:flex-row h-[calc(100%-112px)]
-          ${isMobile ? 'overflow-y-auto' : ''}
+          flex flex-col md:flex-row flex-1 overflow-hidden
         `}>
           {/* 왼쪽 패널 (질문-답변 영역) */}
           <LeftPanel

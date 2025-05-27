@@ -11,7 +11,8 @@ export async function GET() {
         return {
           heapUsed: Math.round(usage.heapUsed / 1024 / 1024) + 'MB',
           heapTotal: Math.round(usage.heapTotal / 1024 / 1024) + 'MB',
-          external: Math.round(usage.external / 1024 / 1024) + 'MB'
+          external: Math.round(usage.external / 1024 / 1024) + 'MB',
+          rss: Math.round(usage.rss / 1024 / 1024) + 'MB'
         }
       }
       return { status: 'N/A (Serverless)' }
@@ -26,18 +27,65 @@ export async function GET() {
       return 'N/A (Serverless)'
     }
 
+    // AI 에이전트 상태 체크 (빠른 체크)
+    const checkAIAgentStatus = async () => {
+      try {
+        const aiCheckStart = Date.now()
+        const response = await Promise.race([
+          fetch(`${process.env.VERCEL_URL ? 'https://' + process.env.VERCEL_URL : 'http://localhost:3000'}/api/ai-agent/integrated`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          }),
+          new Promise<Response>((_, reject) => 
+            setTimeout(() => reject(new Error('AI timeout')), 3000)
+          )
+        ])
+        
+        const aiCheckTime = Date.now() - aiCheckStart
+        
+        if (response.ok) {
+          return {
+            status: 'operational',
+            responseTime: `${aiCheckTime}ms`,
+            lastCheck: new Date().toISOString()
+          }
+        } else {
+          return {
+            status: 'degraded',
+            responseTime: `${aiCheckTime}ms`,
+            error: `HTTP ${response.status}`,
+            lastCheck: new Date().toISOString()
+          }
+        }
+      } catch (error) {
+        return {
+          status: 'down',
+          error: error instanceof Error ? error.message : 'Unknown error',
+          lastCheck: new Date().toISOString()
+        }
+      }
+    }
+
     // 환경 정보
     const environment = {
       node: process.env.NODE_ENV || 'unknown',
       vercel: process.env.VERCEL_ENV || 'unknown',
-      region: process.env.VERCEL_REGION || 'unknown'
+      region: process.env.VERCEL_REGION || 'unknown',
+      url: process.env.VERCEL_URL || 'localhost:3000'
     }
+
+    // AI 에이전트 상태 체크 (병렬 실행)
+    const aiAgentStatus = await checkAIAgentStatus()
 
     // 응답 시간 계산
     const responseTime = Date.now() - startTime
 
     // 전체 상태 결정
-    const overallStatus = responseTime < 1000 ? 'healthy' : 'slow'
+    const overallStatus = 
+      responseTime > 5000 ? 'unhealthy' :
+      responseTime > 2000 ? 'degraded' :
+      aiAgentStatus.status === 'down' ? 'degraded' :
+      'healthy'
 
     const response = {
       status: overallStatus,
@@ -47,6 +95,13 @@ export async function GET() {
           status: 'operational',
           responseTime: `${responseTime}ms`,
           lastCheck: new Date().toISOString()
+        },
+        aiAgent: aiAgentStatus,
+        database: {
+          status: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'configured' : 'not_configured'
+        },
+        redis: {
+          status: process.env.REDIS_URL ? 'configured' : 'not_configured'
         }
       },
       system: {
@@ -54,12 +109,20 @@ export async function GET() {
         uptime: getUptime(),
         environment
       },
+      performance: {
+        responseTime: `${responseTime}ms`,
+        threshold: {
+          healthy: '< 2000ms',
+          degraded: '2000-5000ms',
+          unhealthy: '> 5000ms'
+        }
+      },
       version: '1.0.0',
-      message: 'Health check completed successfully'
+      message: `Health check completed - ${overallStatus}`
     }
 
     return NextResponse.json(response, {
-      status: 200,
+      status: overallStatus === 'unhealthy' ? 503 : 200,
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
