@@ -9,8 +9,8 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-proje
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-anon-key';
 const REDIS_URL = process.env.REDIS_URL || `redis://localhost:${NETWORK.PORTS.REDIS_DEFAULT}`;
 
-// Supabase 클라이언트 초기화
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Supabase 클라이언트 초기화 (개발 환경 체크)
+const supabase = SUPABASE_URL.includes('your-project') ? null : createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Redis 클라이언트 (서버 사이드에서만 초기화)
 let redis: any = null;
@@ -99,6 +99,11 @@ export class MetricsStorageService {
           return this.getDefaultServerList();
         }
         
+        if (!supabase) {
+          console.warn('⚠️ Supabase 클라이언트가 초기화되지 않음');
+          return this.getDefaultServerList();
+        }
+
         const { data, error } = await Promise.race([
           supabase
             .from('server_metrics')
@@ -186,6 +191,11 @@ export class MetricsStorageService {
    */
   async getMetricsHistory(serverId: string, hours: number = 24): Promise<ServerMetrics[]> {
     try {
+      if (!supabase) {
+        console.warn('⚠️ Supabase 클라이언트가 초기화되지 않음');
+        return [];
+      }
+
       const { data, error } = await supabase
         .from('server_metrics')
         .select('*')
@@ -214,6 +224,11 @@ export class MetricsStorageService {
       }
       
       // Redis가 없으면 Supabase에서 최근 데이터 확인
+      if (!supabase) {
+        console.warn('⚠️ Supabase 클라이언트가 초기화되지 않음');
+        return false;
+      }
+
       const { data, error } = await supabase
         .from('server_metrics')
         .select('server_id')
@@ -231,6 +246,11 @@ export class MetricsStorageService {
   // Private Methods
 
   private async saveToSupabase(metrics: ServerMetrics): Promise<void> {
+    if (!supabase) {
+      console.warn('⚠️ Supabase 클라이언트가 초기화되지 않음');
+      return;
+    }
+
     const { error } = await supabase
       .from('server_metrics')
       .insert({
@@ -277,6 +297,11 @@ export class MetricsStorageService {
   }
 
   private async getLatestFromSupabase(serverId: string): Promise<ServerMetrics | null> {
+    if (!supabase) {
+      console.warn('⚠️ Supabase 클라이언트가 초기화되지 않음');
+      return null;
+    }
+
     const { data, error } = await supabase
       .from('server_metrics')
       .select('*')
