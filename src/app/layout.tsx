@@ -28,8 +28,12 @@ export const metadata: Metadata = {
     title: "OpenManager AI - 서버 모니터링 & 관리 솔루션",
     description: "AI 기반 서버 모니터링과 관리를 통합한 최고의 서버 관리 솔루션",
   },
-  viewport: "width=device-width, initial-scale=1",
-  themeColor: "#1a73e8",
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#1a73e8',
 };
 
 export default function RootLayout({

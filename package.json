@@ -48,7 +48,12 @@
     "ai:test-integrated": "node scripts/test-integrated-ai-system.js",
     "ai:integration-test": "npm run ai:test-integrated",
     "ai:setup-test-data": "node scripts/setup-test-data.js",
-    "system:validate": "npm run ai:setup-test-data && npm run ai:test-integrated && npm run test:optimized-ai"
+    "system:validate": "npm run ai:setup-test-data && npm run ai:test-integrated && npm run test:optimized-ai",
+    "test:comprehensive": "node scripts/run-comprehensive-tests.js",
+    "test:unit": "node scripts/run-comprehensive-tests.js --skip-integration --skip-performance",
+    "test:integration": "node scripts/run-comprehensive-tests.js --skip-performance",
+    "test:performance": "node scripts/run-comprehensive-tests.js --skip-integration",
+    "test:ci": "node scripts/run-comprehensive-tests.js --verbose"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
@@ -66,8 +71,9 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "recharts": "^2.15.3",
+    "reflect-metadata": "^0.2.2",
     "tailwind-merge": "^3.3.0",
-    "zod": "^3.25.23",
+    "zod": "^3.25.30",
     "zustand": "^5.0.5"
   },
   "devDependencies": {

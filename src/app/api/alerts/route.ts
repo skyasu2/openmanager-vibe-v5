@@ -1,267 +1,328 @@
-import { NextResponse } from 'next/server'
-import { CacheService } from '../../../lib/redis'
-import { ENTERPRISE_SERVERS } from '../../../lib/enterprise-servers'
-import { 
-  CRITICAL_FAILURE_CHAINS, 
-  WARNING_FAILURES,
-  FAILURE_TIMELINE 
-} from '../../../lib/enterprise-failures'
+/**
+ * 🚨 Alerts Management API
+ * 
+ * 알림 시스템 관리 API
+ * - 활성 알림 조회
+ * - 알림 히스토리 조회
+ * - 알림 확인/해결
+ * - 알림 규칙 관리
+ * - 알림 통계
+ */
 
-export async function GET() {
+import { NextRequest, NextResponse } from 'next/server';
+import { alertSystem } from '@/services/AlertSystem';
+
+// GET: 알림 데이터 조회
+export async function GET(request: NextRequest) {
   try {
-    // 캐시에서 먼저 확인 (15초 캐시)
-    const cached = await CacheService.get('alerts:active')
-    if (cached) {
-      return NextResponse.json({ 
-        success: true, 
-        data: cached, 
-        timestamp: new Date().toISOString(),
-        cached: true
-      })
-    }
+    const { searchParams } = new URL(request.url);
+    const action = searchParams.get('action');
 
-    const currentTime = new Date()
-
-    // 🚨 활성 알림 생성
-    const activeAlerts = []
-
-    // CRITICAL 알림들
-    for (const failure of CRITICAL_FAILURE_CHAINS) {
-      const server = ENTERPRISE_SERVERS.find(s => s.name === failure.origin)
-      if (server) {
-        activeAlerts.push({
-          id: `critical-${failure.id}`,
-          severity: 'critical' as const,
-          title: failure.name,
-          description: failure.description,
-          server: {
-            id: server.id,
-            name: server.name,
-            location: server.location
-          },
-          metrics: {
-            cpu: server.metrics.cpu,
-            memory: server.metrics.memory,
-            disk: server.metrics.disk,
-            latency: server.metrics.network.latency
-          },
-          startTime: failure.startTime,
-          duration: Math.round((currentTime.getTime() - new Date(failure.startTime).getTime()) / (1000 * 60)), // 분 단위
-          impact: failure.businessImpact,
-          affectedSystems: failure.affected,
-          estimatedResolution: failure.estimatedResolution,
-          rootCause: failure.rootCause,
-          status: 'active',
-          acknowledgedBy: null,
-          actions: [
-            '즉시 해당 서버 점검',
-            '연관 서버 상태 모니터링',
-            '비즈니스 영향 평가',
-            '복구 절차 시작'
-          ]
-        })
+    switch (action) {
+      case 'active': {
+        // 활성 알림 조회
+        const activeAlerts = alertSystem.getActiveAlerts();
+        
+        return NextResponse.json({
+          success: true,
+          data: {
+            alerts: activeAlerts,
+            count: activeAlerts.length
+          }
+        });
       }
-    }
 
-    // WARNING 알림들
-    for (const failure of WARNING_FAILURES) {
-      const server = ENTERPRISE_SERVERS.find(s => s.name === failure.origin)
-      if (server) {
-        activeAlerts.push({
-          id: `warning-${failure.id}`,
-          severity: 'warning' as const,
-          title: failure.name,
-          description: failure.description,
-          server: {
-            id: server.id,
-            name: server.name,
-            location: server.location
-          },
-          metrics: {
-            cpu: server.metrics.cpu,
-            memory: server.metrics.memory,
-            disk: server.metrics.disk,
-            latency: server.metrics.network.latency
-          },
-          startTime: failure.startTime,
-          duration: Math.round((currentTime.getTime() - new Date(failure.startTime).getTime()) / (1000 * 60)),
-          impact: failure.businessImpact,
-          affectedSystems: failure.affected,
-          estimatedResolution: failure.estimatedResolution,
-          rootCause: failure.rootCause,
-          status: 'active',
-          acknowledgedBy: null,
-          actions: [
-            '서버 상태 점검',
-            '성능 지표 모니터링',
-            '예방 조치 검토'
-          ]
-        })
+      case 'history': {
+        // 알림 히스토리 조회
+        const limit = parseInt(searchParams.get('limit') || '50');
+        const history = alertSystem.getAlertHistory(limit);
+        
+        return NextResponse.json({
+          success: true,
+          data: {
+            alerts: history,
+            count: history.length
+          }
+        });
       }
-    }
 
-    // 리소스 임계값 초과 알림
-    const resourceThresholdAlerts = ENTERPRISE_SERVERS
-      .filter(server => 
-        server.metrics.cpu > 90 || 
-        server.metrics.memory > 90 || 
-        server.metrics.disk > 90
-      )
-      .map(server => ({
-        id: `resource-${server.id}`,
-        severity: server.metrics.cpu > 95 || server.metrics.memory > 95 || server.metrics.disk > 95 
-          ? 'critical' as const 
-          : 'warning' as const,
-        title: `리소스 임계값 초과: ${server.name}`,
-        description: `CPU ${server.metrics.cpu}%, 메모리 ${server.metrics.memory}%, 디스크 ${server.metrics.disk}%`,
-        server: {
-          id: server.id,
-          name: server.name,
-          location: server.location
-        },
-        metrics: {
-          cpu: server.metrics.cpu,
-          memory: server.metrics.memory,
-          disk: server.metrics.disk,
-          latency: server.metrics.network.latency
-        },
-        startTime: new Date(currentTime.getTime() - (10 * 60 * 1000)).toISOString(), // 10분 전 시작으로 가정
-        duration: 10,
-        impact: 5,
-        affectedSystems: [server.name],
-        estimatedResolution: '리소스 최적화 또는 확장 필요',
-        rootCause: '높은 리소스 사용률',
-        status: 'active',
-        acknowledgedBy: null,
-        actions: [
-          '리소스 사용량 분석',
-          '불필요한 프로세스 정리',
-          '용량 확장 검토'
-        ]
-      }))
-
-    // 모든 알림 통합 및 정렬
-    const allAlerts = [...activeAlerts, ...resourceThresholdAlerts]
-      .sort((a, b) => {
-        // 심각도 순서: critical > warning > info
-        const severityOrder = { critical: 3, warning: 2, info: 1 }
-        if (severityOrder[a.severity] !== severityOrder[b.severity]) {
-          return severityOrder[b.severity] - severityOrder[a.severity]
-        }
-        // 같은 심각도면 시작 시간 순서 (최신순)
-        return new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
-      })
-
-    // 📊 알림 통계
-    const alertStats = {
-      total: allAlerts.length,
-      critical: allAlerts.filter(a => a.severity === 'critical').length,
-      warning: allAlerts.filter(a => a.severity === 'warning').length,
-      info: 0, // info 알림이 현재 없으므로 0으로 설정
-      acknowledged: allAlerts.filter(a => a.acknowledgedBy !== null).length,
-      unacknowledged: allAlerts.filter(a => a.acknowledgedBy === null).length,
-      averageDuration: Math.round(
-        allAlerts.reduce((sum, alert) => sum + alert.duration, 0) / allAlerts.length
-      ),
-      highImpactAlerts: allAlerts.filter(a => a.impact >= 7).length
-    }
-
-    // 🔔 긴급 알림 (즉시 대응 필요)
-    const urgentAlerts = allAlerts.filter(alert => 
-      alert.severity === 'critical' && 
-      alert.duration > 15 && // 15분 이상 지속
-      alert.acknowledgedBy === null
-    )
-
-    // 📈 시간대별 알림 발생 패턴
-    const timelineEvents = FAILURE_TIMELINE.map(event => ({
-      time: event.time,
-      event: event.event,
-      severity: event.severity,
-      servers: event.servers,
-      timestamp: event.time === '현재' ? currentTime.toISOString() : 
-                new Date(`2024-01-01 ${event.time.replace(' KST', '')}`).toISOString()
-    }))
-
-    const alertData = {
-      // 📊 활성 알림 목록
-      alerts: allAlerts,
-      
-      // 📈 알림 통계
-      statistics: alertStats,
-      
-      // 🚨 긴급 대응 필요
-      urgentAlerts,
-      
-      // ⏰ 장애 타임라인
-      timeline: timelineEvents,
-      
-      // 🎯 권장 조치사항
-      recommendedActions: {
-        immediate: [
-          '🔴 DB 마스터 서버 긴급 점검 및 쿼리 최적화',
-          '🔴 스토리지 서버 디스크 정리 및 용량 확장',
-          '🔴 K8s Control Plane etcd 상태 점검'
-        ],
-        shortTerm: [
-          '⚠️ 영향받는 애플리케이션 모니터링 강화',
-          '⚠️ 백업 시스템 복구 작업 우선 처리',
-          '⚠️ 워커 노드 리소스 재분배'
-        ],
-        longTerm: [
-          '💡 자동 알림 시스템 개선',
-          '💡 예측적 장애 감지 도입',
-          '💡 용량 계획 및 확장 정책 수립'
-        ]
-      },
-      
-      // 📱 알림 설정 정보
-      notificationSettings: {
-        criticalAlertChannels: ['SMS', 'Email', 'Slack', 'PagerDuty'],
-        warningAlertChannels: ['Email', 'Slack'],
-        escalationPolicy: {
-          level1: '즉시 (0분)',
-          level2: '15분 후 팀 리더',
-          level3: '30분 후 부서장',
-          level4: '60분 후 CTO'
-        },
-        businessHoursOnly: false,
-        autoAcknowledgment: false
-      },
-
-      // 🔄 자동 복구 상태
-      autoRecovery: {
-        enabled: true,
-        successRate: 0.67, // 67%
-        attemptedActions: 12,
-        successfulActions: 8,
-        lastAttempt: new Date(currentTime.getTime() - (5 * 60 * 1000)).toISOString()
+      case 'stats': {
+        // 알림 통계 조회
+        const stats = alertSystem.getAlertStats();
+        
+        return NextResponse.json({
+          success: true,
+          data: stats
+        });
       }
-    }
 
-    // 캐시에 저장 (15초)
-    await CacheService.set('alerts:active', alertData, 15)
-
-    return NextResponse.json({
-      success: true,
-      data: alertData,
-      timestamp: new Date().toISOString(),
-      cached: false,
-      metadata: {
-        refreshInterval: 15, // seconds
-        alertCount: allAlerts.length,
-        criticalCount: alertStats.critical,
-        lastUpdated: currentTime.toISOString()
+      case 'rules': {
+        // 알림 규칙 조회
+        const rules = alertSystem.getRules();
+        
+        return NextResponse.json({
+          success: true,
+          data: {
+            rules,
+            count: rules.length
+          }
+        });
       }
-    })
+
+      case 'status': {
+        // 알림 시스템 상태 조회
+        const isRunning = alertSystem.isRunning;
+        const activeAlerts = alertSystem.getActiveAlerts();
+        const stats = alertSystem.getAlertStats();
+        
+        return NextResponse.json({
+          success: true,
+          data: {
+            isRunning,
+            activeAlertsCount: activeAlerts.length,
+            criticalAlertsCount: activeAlerts.filter(a => a.severity === 'critical').length,
+            stats,
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
+
+      default:
+        return NextResponse.json({
+          success: false,
+          error: 'Invalid action parameter. Available: active, history, stats, rules, status'
+        }, { status: 400 });
+    }
 
   } catch (error) {
-    console.error('Alerts API error:', error)
+    console.error('❌ [Alerts API] GET 요청 처리 실패:', error);
+    
     return NextResponse.json({
       success: false,
-      error: 'Failed to fetch alerts',
-      timestamp: new Date().toISOString(),
+      error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    }, { status: 500 });
+  }
+}
+
+// POST: 알림 시스템 관리 작업
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { action } = body;
+
+    switch (action) {
+      case 'start-monitoring': {
+        // 알림 모니터링 시작
+        alertSystem.startMonitoring();
+        
+        return NextResponse.json({
+          success: true,
+          message: '알림 시스템 모니터링이 시작되었습니다.',
+          data: {
+            isRunning: alertSystem.isRunning,
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
+
+      case 'stop-monitoring': {
+        // 알림 모니터링 중지
+        alertSystem.stopMonitoring();
+        
+        return NextResponse.json({
+          success: true,
+          message: '알림 시스템 모니터링이 중지되었습니다.',
+          data: {
+            isRunning: alertSystem.isRunning,
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
+
+      case 'acknowledge': {
+        // 알림 확인
+        const { alertId, acknowledgedBy } = body;
+        
+        if (!alertId || !acknowledgedBy) {
+          return NextResponse.json({
+            success: false,
+            error: 'alertId와 acknowledgedBy 파라미터가 필요합니다.'
+          }, { status: 400 });
+        }
+
+        alertSystem.acknowledgeAlert(alertId, acknowledgedBy);
+        
+        return NextResponse.json({
+          success: true,
+          message: '알림이 확인되었습니다.',
+          data: {
+            alertId,
+            acknowledgedBy,
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
+
+      case 'resolve': {
+        // 알림 해결
+        const { alertId } = body;
+        
+        if (!alertId) {
+          return NextResponse.json({
+            success: false,
+            error: 'alertId 파라미터가 필요합니다.'
+          }, { status: 400 });
+        }
+
+        alertSystem.resolveAlert(alertId);
+        
+        return NextResponse.json({
+          success: true,
+          message: '알림이 해결되었습니다.',
+          data: {
+            alertId,
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
+
+      case 'add-rule': {
+        // 알림 규칙 추가
+        const { rule } = body;
+        
+        if (!rule) {
+          return NextResponse.json({
+            success: false,
+            error: 'rule 파라미터가 필요합니다.'
+          }, { status: 400 });
+        }
+
+        alertSystem.addRule(rule);
+        
+        return NextResponse.json({
+          success: true,
+          message: '알림 규칙이 추가되었습니다.',
+          data: {
+            ruleId: rule.id,
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
+
+      case 'update-rule': {
+        // 알림 규칙 수정
+        const { ruleId, updates } = body;
+        
+        if (!ruleId || !updates) {
+          return NextResponse.json({
+            success: false,
+            error: 'ruleId와 updates 파라미터가 필요합니다.'
+          }, { status: 400 });
+        }
+
+        alertSystem.updateRule(ruleId, updates);
+        
+        return NextResponse.json({
+          success: true,
+          message: '알림 규칙이 수정되었습니다.',
+          data: {
+            ruleId,
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
+
+      case 'delete-rule': {
+        // 알림 규칙 삭제
+        const { ruleId } = body;
+        
+        if (!ruleId) {
+          return NextResponse.json({
+            success: false,
+            error: 'ruleId 파라미터가 필요합니다.'
+          }, { status: 400 });
+        }
+
+        alertSystem.deleteRule(ruleId);
+        
+        return NextResponse.json({
+          success: true,
+          message: '알림 규칙이 삭제되었습니다.',
+          data: {
+            ruleId,
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
+
+      case 'bulk-acknowledge': {
+        // 여러 알림 일괄 확인
+        const { alertIds, acknowledgedBy } = body;
+        
+        if (!alertIds || !Array.isArray(alertIds) || !acknowledgedBy) {
+          return NextResponse.json({
+            success: false,
+            error: 'alertIds (배열)와 acknowledgedBy 파라미터가 필요합니다.'
+          }, { status: 400 });
+        }
+
+        alertIds.forEach((alertId: string) => {
+          alertSystem.acknowledgeAlert(alertId, acknowledgedBy);
+        });
+        
+        return NextResponse.json({
+          success: true,
+          message: `${alertIds.length}개의 알림이 확인되었습니다.`,
+          data: {
+            alertIds,
+            acknowledgedBy,
+            count: alertIds.length,
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
+
+      case 'bulk-resolve': {
+        // 여러 알림 일괄 해결
+        const { alertIds } = body;
+        
+        if (!alertIds || !Array.isArray(alertIds)) {
+          return NextResponse.json({
+            success: false,
+            error: 'alertIds (배열) 파라미터가 필요합니다.'
+          }, { status: 400 });
+        }
+
+        alertIds.forEach((alertId: string) => {
+          alertSystem.resolveAlert(alertId);
+        });
+        
+        return NextResponse.json({
+          success: true,
+          message: `${alertIds.length}개의 알림이 해결되었습니다.`,
+          data: {
+            alertIds,
+            count: alertIds.length,
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
+
+      default:
+        return NextResponse.json({
+          success: false,
+          error: 'Invalid action parameter. Available: start-monitoring, stop-monitoring, acknowledge, resolve, add-rule, update-rule, delete-rule, bulk-acknowledge, bulk-resolve'
+        }, { status: 400 });
+    }
+
+  } catch (error) {
+    console.error('❌ [Alerts API] POST 요청 처리 실패:', error);
+    
+    return NextResponse.json({
+      success: false,
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 } 
