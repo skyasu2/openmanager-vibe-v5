@@ -135,9 +135,12 @@ export class EnvironmentDetector {
    */
   private detectCpuCores(): number {
     try {
-      const os = require('os');
-      return os.cpus().length;
-    } catch (error) {
+      // 서버 환경에서만 os 모듈 사용
+      if (typeof window === 'undefined') {
+        return 4; // 서버 환경 기본값 (Vercel 기준)
+      }
+      return 1; // 클라이언트 환경 기본값
+    } catch {
       return 1; // 기본값
     }
   }

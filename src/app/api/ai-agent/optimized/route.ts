@@ -409,17 +409,4 @@ function generateOptimizationRecommendations(config: any): string[] {
   return recommendations;
 }
 
-/**
- * 🔄 정리 함수 (Vercel에서 자동 호출)
- */
-export async function cleanup() {
-  if (aiEngine) {
-    await aiEngine.shutdown();
-    aiEngine = null;
-  }
-  
-  if (environmentDetector) {
-    environmentDetector.reset();
-    environmentDetector = null;
-  }
-} 
+ 

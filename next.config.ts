@@ -8,8 +8,6 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizeServerReact: true,
     optimizePackageImports: ['lucide-react', 'framer-motion'],
-    // hydration 에러 처리 개선
-    serverComponentsExternalPackages: ['ioredis'],
   },
 
   // React 설정 (hydration 에러 처리)
