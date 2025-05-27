@@ -7,10 +7,10 @@
   
   "functions": {
     "src/app/api/**/*.{js,ts}": {
-      "maxDuration": 10
+      "maxDuration": 30
     },
-    "pages/api/**/*.{js,ts}": {
-      "maxDuration": 10
+    "src/app/api/ai/**/*.{js,ts}": {
+      "maxDuration": 60
     }
   },
   
@@ -31,19 +31,6 @@
           "value": "X-Requested-With, Content-Type, Authorization"
         }
       ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        }
-      ]
     }
   ],
   
@@ -52,13 +39,6 @@
       "source": "/docs",
       "destination": "/docs/01-project-guide",
       "permanent": true
-    }
-  ],
-  
-  "rewrites": [
-    {
-      "source": "/index.html",
-      "destination": "/404"
     }
   ],
   

@@ -305,10 +305,10 @@ export class MCPAIRouter {
     if (this.pythonServiceWarmedUp) return;
     
     const pythonServiceUrl = process.env.AI_ENGINE_URL || 'https://openmanager-vibe-v5.onrender.com';
+    const startTime = Date.now(); // 변수를 상위 스코프로 이동
     
     try {
       console.log('🔥 Python 서비스 웜업 시작...', pythonServiceUrl);
-      const startTime = Date.now();
       
       // 헬스체크로 서버 깨우기
       const controller = new AbortController();
@@ -328,13 +328,21 @@ export class MCPAIRouter {
         console.log(`✅ Python 서비스 웜업 완료! (${warmupTime}ms)`, data);
         this.pythonServiceWarmedUp = true;
         
+        // 📊 웜업 성공 기록
+        monitoringService.recordWarmupAttempt(true, warmupTime);
+        
         // 추가 웜업: 간단한 분석 요청으로 완전히 깨우기
         await this.performWarmupAnalysis();
       } else {
         throw new Error(`웜업 헬스체크 실패: ${response.status}`);
       }
     } catch (error: any) {
+      const warmupTime = Date.now() - startTime;
       console.warn('⚠️ Python 서비스 웜업 실패:', error.message);
+      
+      // 📊 웜업 실패 기록
+      monitoringService.recordWarmupAttempt(false, warmupTime, error.message);
+      
       // 웜업 실패해도 시스템은 계속 동작 (fallback 사용)
     }
   }
@@ -399,4 +407,5 @@ export class MCPAIRouter {
 import { IntentClassifier } from './IntentClassifier';
 import { TaskOrchestrator } from './TaskOrchestrator';
 import { ResponseMerger } from './ResponseMerger';
-import { SessionManager } from './SessionManager'; 
+import { SessionManager } from './SessionManager';
+import { monitoringService } from './MonitoringService'; 
