@@ -2,12 +2,14 @@
  * AI Thinking Process API
  * 
  * 🧠 실제 AI 엔진의 사고 과정을 실시간으로 반환
- * - 단계별 처리 과정 추적
- * - 실시간 스트리밍 지원
+ * - 실제 AI 엔진 로그 기반
+ * - 실시간 처리 과정 추적
  * - 세부 분석 로그 제공
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { thinkingLogger, ThinkingSession } from '@/modules/ai-agent/core/ThinkingLogger';
+import { aiAgentEngine } from '@/modules/ai-agent/core/AIAgentEngine';
 
 interface ThinkingStep {
   timestamp: string;
@@ -28,24 +30,61 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // 실제 AI 엔진 사고 과정 시뮬레이션
-    const thinkingProcess = await generateRealThinkingProcess(query, serverData || [], context);
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        sessionId: `thinking_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        totalSteps: thinkingProcess.length,
-        totalDuration: thinkingProcess.reduce((sum, step) => sum + (step.duration || 0), 0),
-        steps: thinkingProcess,
-        metadata: {
-          engineVersion: '2.0.0',
-          processType: 'enhanced_reasoning',
-          confidence: calculateOverallConfidence(thinkingProcess),
-          timestamp: new Date().toISOString()
-        }
-      }
+    // 🧠 실제 AI 엔진 실행하여 실시간 로깅
+    const aiResponse = await aiAgentEngine.processQuery({
+      query,
+      serverData,
+      context,
+      sessionId: `session_${Date.now()}`
     });
+
+    // ThinkingLogger에서 세션 정보 가져오기
+    const thinkingSessionId = aiResponse.metadata.thinkingSessionId;
+    let thinkingSession: ThinkingSession | undefined;
+    
+    if (thinkingSessionId) {
+      thinkingSession = thinkingLogger.getSession(thinkingSessionId);
+    }
+
+    // 실제 로그가 있으면 그것을 사용, 없으면 폴백
+    if (thinkingSession && thinkingSession.steps.length > 0) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          sessionId: thinkingSessionId,
+          totalSteps: thinkingSession.steps.length,
+          totalDuration: thinkingSession.totalDuration || 0,
+          steps: thinkingSession.steps,
+          metadata: {
+            engineVersion: '2.0.0',
+            processType: 'real_engine_logs',
+            confidence: calculateOverallConfidence(thinkingSession.steps),
+            timestamp: new Date().toISOString(),
+            isRealLog: true
+          }
+        }
+      });
+    } else {
+      // 폴백: 기본 분석 로그 생성
+      const fallbackProcess = await generateRealThinkingProcess(query, serverData || [], context);
+      
+      return NextResponse.json({
+        success: true,
+        data: {
+          sessionId: `fallback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          totalSteps: fallbackProcess.length,
+          totalDuration: fallbackProcess.reduce((sum: number, step: ThinkingStep) => sum + (step.duration || 0), 0),
+          steps: fallbackProcess,
+          metadata: {
+            engineVersion: '2.0.0',
+            processType: 'fallback_simulation',
+            confidence: calculateOverallConfidence(fallbackProcess),
+            timestamp: new Date().toISOString(),
+            isRealLog: false
+          }
+        }
+      });
+    }
 
   } catch (error) {
     console.error('Thinking Process API Error:', error);

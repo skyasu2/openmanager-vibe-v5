@@ -16,6 +16,7 @@ import { ActionExecutor } from '../processors/ActionExecutor';
 import { ModeManager, createDefaultModeConfig, AIAgentMode } from './ModeManager';
 import { ThinkingProcessor } from './ThinkingProcessor';
 import { AdminLogger } from './AdminLogger';
+import { thinkingLogger } from './ThinkingLogger';
 
 export interface AIAgentConfig {
   enableMCP: boolean;
@@ -43,6 +44,8 @@ export interface AIAgentResponse {
     timestamp: string;
     engineVersion: string;
     sessionId: string;
+    thinkingSessionId?: string;
+    error?: string;
   };
   error?: string;
 }
@@ -147,25 +150,71 @@ export class AIAgentEngine {
   async processQuery(request: AIAgentRequest): Promise<AIAgentResponse> {
     const startTime = Date.now();
     const sessionId = request.sessionId || this.generateSessionId();
+    const thinkingSessionId = `thinking_${sessionId}`;
 
     try {
       if (!this.isInitialized) {
         await this.initialize();
       }
 
+      // 🧠 사고 과정 로깅 시작
+      thinkingLogger.startSession(thinkingSessionId, request.query);
+
       // 1. 컨텍스트 로드 및 업데이트
+      thinkingLogger.startStep(thinkingSessionId, '컨텍스트 로드', 'data_processing');
       const context = await this.contextManager.loadContext(sessionId, request.context);
+      thinkingLogger.logStep(
+        thinkingSessionId,
+        `세션 컨텍스트 로드 완료:
+━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 세션 ID: ${sessionId}
+📊 컨텍스트 키: ${Object.keys(context).length}개
+💾 컨텍스트 크기: ${JSON.stringify(context).length} bytes
+⏱️ 기존 세션: ${context.lastQuery ? '재개' : '새로운 세션'}
+🔄 컨텍스트 상태: 정상`,
+        'data_processing',
+        { contextKeys: Object.keys(context).length, sessionType: context.lastQuery ? 'resumed' : 'new' }
+      );
       
       // 2. 의도 분류 (AI 추론)
+      thinkingLogger.startStep(thinkingSessionId, '의도 분류 (AI 추론)', 'analysis');
       const intent = await this.intentClassifier.classify(request.query, context);
+      thinkingLogger.logStep(
+        thinkingSessionId,
+        `AI 의도 분류 완료:
+━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 분류된 의도: ${intent.name}
+📊 신뢰도: ${(intent.confidence * 100).toFixed(1)}%
+🏷️ 추출된 엔티티: ${Object.keys(intent.entities).length}개
+📝 엔티티 상세: ${JSON.stringify(intent.entities, null, 2)}
+🔍 분류 알고리즘: 자연어 처리 + 기계학습
+✨ 분류 성공: ${intent.confidence > 0.7 ? '높은 신뢰도' : '추가 분석 필요'}`,
+        'analysis',
+        { intent: intent.name, confidence: intent.confidence, entityCount: Object.keys(intent.entities).length }
+      );
       
       // 3. MCP 프로세서를 통한 추가 분석
       let mcpResponse;
       if (this.config.enableMCP) {
+        thinkingLogger.startStep(thinkingSessionId, 'MCP 서버 분석', 'data_processing');
         mcpResponse = await this.mcpProcessor.processQuery(request.query, request.serverData);
+        thinkingLogger.logStep(
+          thinkingSessionId,
+          `MCP 서버 분석 완료:
+━━━━━━━━━━━━━━━━━━━━━━━━━
+🖥️ 서버 데이터: ${Array.isArray(request.serverData) ? request.serverData.length : 0}개 서버 분석
+🔄 MCP 프로토콜: 활성화
+📈 분석 결과: ${mcpResponse?.intent?.intent || '일반 분석'}
+🎯 응답 액션: ${mcpResponse?.actions?.length || 0}개
+⚡ 처리 상태: 성공
+💡 권장사항: ${mcpResponse?.actions?.join(', ') || '없음'}`,
+          'data_processing',
+          { serverCount: Array.isArray(request.serverData) ? request.serverData.length : 0, mcpIntent: mcpResponse?.intent?.intent }
+        );
       }
 
       // 4. 응답 생성
+      thinkingLogger.startStep(thinkingSessionId, 'AI 응답 생성', 'response_generation');
       const response = await this.responseGenerator.generate({
         query: request.query,
         intent,
@@ -173,16 +222,58 @@ export class AIAgentEngine {
         serverData: request.serverData,
         mcpResponse
       });
+      thinkingLogger.logStep(
+        thinkingSessionId,
+        `AI 응답 생성 완료:
+━━━━━━━━━━━━━━━━━━━━━━━━━
+📝 응답 텍스트: ${response.text.length}자
+🎨 응답 형식: ${response.format || '텍스트'}
+🌟 응답 품질: ${response.confidence ? (response.confidence * 100).toFixed(1) + '%' : '평가됨'}
+🔧 사용된 템플릿: ${response.template || '동적 생성'}
+💬 톤: ${response.tone || '전문적'}
+🎯 타겟 사용자: ${response.audience || '일반 사용자'}`,
+        'response_generation',
+        { responseLength: response.text.length, confidence: response.confidence, format: response.format }
+      );
 
       // 5. 액션 추출 및 실행 준비
+      thinkingLogger.startStep(thinkingSessionId, '액션 추출', 'pattern_matching');
       const actions = await this.actionExecutor.extractActions(intent, response);
+      thinkingLogger.logStep(
+        thinkingSessionId,
+        `액션 추출 완료:
+━━━━━━━━━━━━━━━━━━━━━━━━━
+⚡ 추출된 액션: ${actions.length}개
+📋 액션 목록: ${actions.join(', ') || '없음'}
+🔄 실행 가능 여부: ${actions.length > 0 ? '예' : '액션 없음'}
+🎯 권장 우선순위: ${actions.length > 0 ? '높음' : '해당 없음'}
+💼 액션 카테고리: 시스템 관리`,
+        'pattern_matching',
+        { actionCount: actions.length, hasActions: actions.length > 0 }
+      );
 
       // 6. 컨텍스트 업데이트
+      thinkingLogger.startStep(thinkingSessionId, '컨텍스트 업데이트', 'data_processing');
       await this.contextManager.updateContext(sessionId, {
         lastQuery: request.query,
         lastIntent: intent.name,
         lastResponse: response.text
       });
+      thinkingLogger.logStep(
+        thinkingSessionId,
+        `컨텍스트 업데이트 완료:
+━━━━━━━━━━━━━━━━━━━━━━━━━
+💾 세션 상태: 저장됨
+🔄 마지막 질의: 업데이트됨
+🎯 마지막 의도: ${intent.name}
+📝 마지막 응답: 저장됨 (${response.text.length}자)
+⏱️ 업데이트 시간: ${new Date().toLocaleTimeString('ko-KR')}`,
+        'data_processing',
+        { sessionId, lastIntent: intent.name }
+      );
+
+      // 🧠 사고 과정 완료
+      thinkingLogger.completeSession(thinkingSessionId);
 
       const processingTime = Date.now() - startTime;
 
@@ -200,12 +291,16 @@ export class AIAgentEngine {
           processingTime,
           timestamp: new Date().toISOString(),
           engineVersion: '1.0.0',
-          sessionId
+          sessionId,
+          thinkingSessionId
         }
       };
 
     } catch (error) {
       const processingTime = Date.now() - startTime;
+      
+      // 🧠 사고 과정 에러 로깅
+      thinkingLogger.errorSession(thinkingSessionId, error instanceof Error ? error.message : '알 수 없는 오류');
       
       console.error('❌ AI Agent 질의 처리 실패:', error);
       
@@ -223,7 +318,9 @@ export class AIAgentEngine {
           processingTime,
           timestamp: new Date().toISOString(),
           engineVersion: '1.0.0',
-          sessionId
+          sessionId,
+          thinkingSessionId,
+          error: error instanceof Error ? error.message : '알 수 없는 오류'
         },
         error: error instanceof Error ? error.message : '알 수 없는 오류'
       };

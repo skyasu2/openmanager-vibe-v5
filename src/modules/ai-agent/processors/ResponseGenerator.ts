@@ -21,6 +21,10 @@ export interface ResponseResult {
   text: string;
   confidence: number;
   metadata: Record<string, any>;
+  format?: string;
+  template?: string;
+  tone?: string;
+  audience?: string;
 }
 
 export class ResponseGenerator {
