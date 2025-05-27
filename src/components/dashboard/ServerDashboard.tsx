@@ -190,6 +190,8 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isClient, setIsClient] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const SERVERS_PER_PAGE = 8; // 페이지당 최대 8개 서버
   
   // ✅ API 기반 서버 데이터 스토어 사용
   const { 
@@ -280,15 +282,33 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
     setSelectedServer(server);
   };
 
-  // 서버 상태별 그룹핑
+  // 페이지네이션 계산
+  const totalPages = Math.ceil(filteredServers.length / SERVERS_PER_PAGE);
+  const startIndex = (currentPage - 1) * SERVERS_PER_PAGE;
+  const endIndex = startIndex + SERVERS_PER_PAGE;
+  const paginatedServers = filteredServers.slice(startIndex, endIndex);
+
+  // 페이지 변경 시 맨 위로 스크롤
+  useEffect(() => {
+    if (currentPage > 1) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [currentPage]);
+
+  // 검색어 변경 시 첫 페이지로 이동
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  // 서버 상태별 그룹핑 (페이지네이션 적용)
   const groupedServers = useMemo(() => {
     const groups = {
-      critical: filteredServers.filter(s => s.status === 'offline'),
-      warning: filteredServers.filter(s => s.status === 'warning'),
-      healthy: filteredServers.filter(s => s.status === 'online')
+      critical: paginatedServers.filter(s => s.status === 'offline'),
+      warning: paginatedServers.filter(s => s.status === 'warning'),
+      healthy: paginatedServers.filter(s => s.status === 'online')
     };
     return groups;
-  }, [filteredServers]);
+  }, [paginatedServers]);
 
   // 서버 사이드 렌더링 시 기본 UI 반환
   if (!isClient) {
@@ -370,6 +390,131 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
         </div>
       </div>
 
+      {/* 페이지네이션 정보 및 컨트롤 */}
+      {filteredServers.length > 0 && (
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-gray-600">
+              전체 <span className="font-semibold text-gray-900">{filteredServers.length}</span>개 서버 중 
+              <span className="font-semibold text-blue-600 mx-1">
+                {startIndex + 1}-{Math.min(endIndex, filteredServers.length)}
+              </span>개 표시
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span className="text-gray-500">페이지당 최대 8개로 제한하여 성능 최적화</span>
+            </div>
+          </div>
+          
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                <i className="fas fa-chevron-left text-xs"></i>
+                이전
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {(() => {
+                  const pages = [];
+                  const maxVisiblePages = 5;
+                  
+                  if (totalPages <= maxVisiblePages) {
+                    // 페이지가 5개 이하면 모두 표시
+                    for (let i = 1; i <= totalPages; i++) {
+                      pages.push(
+                        <button
+                          key={i}
+                          onClick={() => setCurrentPage(i)}
+                          className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                            currentPage === i
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-white border border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          {i}
+                        </button>
+                      );
+                    }
+                  } else {
+                    // 페이지가 많을 때는 현재 페이지 주변만 표시
+                    const startPage = Math.max(1, currentPage - 2);
+                    const endPage = Math.min(totalPages, currentPage + 2);
+                    
+                    // 첫 페이지
+                    if (startPage > 1) {
+                      pages.push(
+                        <button
+                          key={1}
+                          onClick={() => setCurrentPage(1)}
+                          className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                        >
+                          1
+                        </button>
+                      );
+                      if (startPage > 2) {
+                        pages.push(
+                          <span key="start-ellipsis" className="px-2 text-gray-500">...</span>
+                        );
+                      }
+                    }
+                    
+                    // 현재 페이지 주변
+                    for (let i = startPage; i <= endPage; i++) {
+                      pages.push(
+                        <button
+                          key={i}
+                          onClick={() => setCurrentPage(i)}
+                          className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                            currentPage === i
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-white border border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          {i}
+                        </button>
+                      );
+                    }
+                    
+                    // 마지막 페이지
+                    if (endPage < totalPages) {
+                      if (endPage < totalPages - 1) {
+                        pages.push(
+                          <span key="end-ellipsis" className="px-2 text-gray-500">...</span>
+                        );
+                      }
+                      pages.push(
+                        <button
+                          key={totalPages}
+                          onClick={() => setCurrentPage(totalPages)}
+                          className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                        >
+                          {totalPages}
+                        </button>
+                      );
+                    }
+                  }
+                  
+                  return pages;
+                })()}
+              </div>
+              
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                다음
+                <i className="fas fa-chevron-right text-xs"></i>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* 서버 상태별 섹션 */}
       {groupedServers.critical.length > 0 && (
         <div className="space-y-3">
@@ -437,6 +582,27 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
           <p className="mt-1 text-sm text-gray-500">
             {searchTerm ? '검색 조건에 맞는 서버가 없습니다.' : '등록된 서버가 없습니다.'}
           </p>
+        </div>
+      )}
+
+      {/* 현재 페이지에 서버가 없는 경우 (전체 서버는 있지만 현재 페이지가 비어있음) */}
+      {filteredServers.length > 0 && paginatedServers.length === 0 && !isLoading && (
+        <div className="text-center py-12">
+          <div className="mx-auto h-12 w-12 text-gray-400">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">이 페이지에는 서버가 없습니다</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            다른 페이지를 확인하거나 첫 페이지로 이동해보세요.
+          </p>
+          <button
+            onClick={() => setCurrentPage(1)}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            첫 페이지로 이동
+          </button>
         </div>
       )}
 
