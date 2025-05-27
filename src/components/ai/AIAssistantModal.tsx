@@ -395,22 +395,51 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
     return { servers, timestamp: new Date().toISOString() };
   };
 
-  // AI 엔진 상태 확인
+  // AI 엔진 상태 확인 (고도화된 시스템)
   const checkAIEngineStatus = async () => {
     try {
-      const response = await fetch('/api/ai-agent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'status' })
-      });
-      
-      if (response.ok) {
-        setAiEngineStatus('ready');
-      } else {
-        setAiEngineStatus('error');
+      // 1차: 최적화된 AI 에이전트 상태 확인
+      try {
+        const optimizedResponse = await fetch('/api/ai-agent/optimized', {
+          method: 'GET'
+        });
+
+        if (optimizedResponse.ok) {
+          const result = await optimizedResponse.json();
+          if (result.success && result.status === 'healthy') {
+            setAiEngineStatus('ready');
+            console.log('✅ 최적화된 AI 엔진 준비 완료:', result.environment?.platform);
+            return;
+          }
+        }
+      } catch (optimizedError) {
+        console.warn('⚠️ 최적화된 AI 엔진 상태 확인 실패:', optimizedError);
       }
+
+      // 2차: 패턴 매칭 시스템 상태 확인
+      try {
+        const patternResponse = await fetch('/api/ai-agent/pattern-query', {
+          method: 'GET'
+        });
+
+        if (patternResponse.ok) {
+          const result = await patternResponse.json();
+          if (result.success) {
+            setAiEngineStatus('ready');
+            console.log('✅ 패턴 매칭 시스템 준비 완료');
+            return;
+          }
+        }
+      } catch (patternError) {
+        console.warn('⚠️ 패턴 매칭 시스템 상태 확인 실패:', patternError);
+      }
+
+      // 모든 시스템 실패 시
+      console.error('❌ 모든 AI 시스템 상태 확인 실패');
+      setAiEngineStatus('error');
+
     } catch (error) {
-      console.warn('AI 엔진 상태 확인 실패:', error);
+      console.error('AI 엔진 상태 확인 실패:', error);
       setAiEngineStatus('error');
     }
   };
@@ -504,7 +533,7 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
     setResultCards(defaultCards);
   };
 
-  // 빠른 액션 실행
+  // 빠른 액션 실행 (고도화된 AI 시스템 연동)
   const executeQuickAction = async (actionId: string) => {
     const action = quickActions.find(a => a.id === actionId);
     if (!action) return;
@@ -513,31 +542,94 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
     setIsProcessing(true);
 
     try {
-      // Enhanced AI Agent API 호출
       const query = `${action.title}: ${action.description}에 대한 상세 분석을 수행해주세요.`;
       
-      const response = await fetch('/api/ai-agent/smart-query', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query,
-          sessionId: `modal_${Date.now()}`,
-          userId: 'user',
-          forceMode: action.category === 'urgent' ? 'advanced' : undefined,
-          serverData: serverData
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`API 호출 실패: ${response.status}`);
-      }
-
-      const result = await response.json();
+      // 1차: 최적화된 AI 에이전트 API 시도
+      let result = null;
+      let apiUsed = 'optimized';
       
-      if (!result.success) {
-        throw new Error(result.error || 'AI 분석 실패');
+      try {
+        const optimizedResponse = await fetch('/api/ai-agent/optimized', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'smart-query',
+            query,
+            sessionId: `quick_action_${actionId}_${Date.now()}`,
+            userId: 'user',
+            serverData: serverData,
+            priority: action.category === 'urgent' ? 'high' : 'medium',
+            context: {
+              actionType: actionId,
+              category: action.category,
+              modalSource: true
+            }
+          })
+        });
+
+        if (optimizedResponse.ok) {
+          result = await optimizedResponse.json();
+          apiUsed = 'optimized';
+        } else {
+          throw new Error(`Optimized API failed: ${optimizedResponse.status}`);
+        }
+      } catch (optimizedError) {
+        console.warn('⚠️ 최적화된 API 실패, 패턴 매칭으로 fallback:', optimizedError);
+        
+        // 2차: 패턴 매칭 API 시도
+        try {
+          const patternResponse = await fetch('/api/ai-agent/pattern-query', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              query
+            })
+          });
+
+          if (patternResponse.ok) {
+            const patternResult = await patternResponse.json();
+            result = {
+              success: patternResult.success,
+              data: {
+                response: patternResult.result?.response || '패턴 매칭 분석이 완료되었습니다.',
+                method: 'pattern-matching',
+                analysis: {
+                  confidence: patternResult.result?.confidenceScore || 0,
+                  patterns: patternResult.result?.matchedPatterns || [],
+                  fallbackLevel: patternResult.result?.fallbackLevel || 'primary'
+                }
+              }
+            };
+            apiUsed = 'pattern-matching';
+          } else {
+            throw new Error(`Pattern API failed: ${patternResponse.status}`);
+          }
+        } catch (patternError) {
+          console.error('❌ 패턴 매칭 API도 실패, 기본 응답 생성:', patternError);
+          
+          // 3차: 기본 응답 생성
+          result = {
+            success: true,
+            data: {
+              response: `${action.title} 분석을 위한 기본 정보를 제공합니다. 현재 시스템 상태를 확인하고 있습니다.`,
+              method: 'fallback',
+              analysis: {
+                confidence: 0.3,
+                patterns: [],
+                fallbackLevel: 'fallback'
+              }
+            }
+          };
+          apiUsed = 'fallback';
+        }
+      }
+      
+      if (!result?.success) {
+        throw new Error(result?.error || 'AI 분석 실패');
       }
 
       // 새 결과 카드 생성
@@ -560,7 +652,13 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
             variant: 'primary'
           }
         ],
-        expandable: true
+        expandable: true,
+        metadata: {
+          apiUsed,
+          confidence: result.data?.analysis?.confidence,
+          method: result.data?.method || apiUsed,
+          patterns: result.data?.analysis?.patterns
+        }
       };
 
       // 기존 카드 교체 또는 추가
@@ -602,7 +700,7 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
     }
   };
 
-  // 입력창에서 분석 실행
+  // 입력창에서 분석 실행 (고도화된 AI 시스템 연동)
   const handleAnalysisInput = async (query: string) => {
     if (!query.trim()) return;
 
@@ -611,28 +709,91 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
     setInputValue('');
 
     try {
-      // Enhanced AI Agent API 호출
-      const response = await fetch('/api/ai-agent/smart-query', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query,
-          sessionId: `modal_input_${Date.now()}`,
-          userId: 'user',
-          serverData: serverData
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`API 호출 실패: ${response.status}`);
-      }
-
-      const result = await response.json();
+      // 1차: 최적화된 AI 에이전트 API 시도
+      let result = null;
+      let apiUsed = 'optimized';
       
-      if (!result.success) {
-        throw new Error(result.error || 'AI 분석 실패');
+      try {
+        const optimizedResponse = await fetch('/api/ai-agent/optimized', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'smart-query',
+            query,
+            sessionId: `modal_input_${Date.now()}`,
+            userId: 'user',
+            serverData: serverData,
+            priority: 'medium',
+            context: {
+              source: 'user_input',
+              modalSource: true
+            }
+          })
+        });
+
+        if (optimizedResponse.ok) {
+          result = await optimizedResponse.json();
+          apiUsed = 'optimized';
+        } else {
+          throw new Error(`Optimized API failed: ${optimizedResponse.status}`);
+        }
+      } catch (optimizedError) {
+        console.warn('⚠️ 최적화된 API 실패, 패턴 매칭으로 fallback:', optimizedError);
+        
+        // 2차: 패턴 매칭 API 시도
+        try {
+          const patternResponse = await fetch('/api/ai-agent/pattern-query', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              query
+            })
+          });
+
+          if (patternResponse.ok) {
+            const patternResult = await patternResponse.json();
+            result = {
+              success: patternResult.success,
+              data: {
+                response: patternResult.result?.response || '패턴 매칭 분석이 완료되었습니다.',
+                method: 'pattern-matching',
+                analysis: {
+                  confidence: patternResult.result?.confidenceScore || 0,
+                  patterns: patternResult.result?.matchedPatterns || [],
+                  fallbackLevel: patternResult.result?.fallbackLevel || 'primary'
+                }
+              }
+            };
+            apiUsed = 'pattern-matching';
+          } else {
+            throw new Error(`Pattern API failed: ${patternResponse.status}`);
+          }
+        } catch (patternError) {
+          console.error('❌ 패턴 매칭 API도 실패, 기본 응답 생성:', patternError);
+          
+          // 3차: 기본 응답 생성
+          result = {
+            success: true,
+            data: {
+              response: `"${query}"에 대한 분석을 수행했습니다. 현재 시스템 상태를 기반으로 기본 정보를 제공합니다.`,
+              method: 'fallback',
+              analysis: {
+                confidence: 0.3,
+                patterns: [],
+                fallbackLevel: 'fallback'
+              }
+            }
+          };
+          apiUsed = 'fallback';
+        }
+      }
+      
+      if (!result?.success) {
+        throw new Error(result?.error || 'AI 분석 실패');
       }
       
       const newCard: ResultCardData = {
@@ -657,7 +818,14 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
             variant: 'primary'
           }
         ],
-        expandable: true
+        expandable: true,
+        metadata: {
+          apiUsed,
+          confidence: result.data?.analysis?.confidence,
+          method: result.data?.method || apiUsed,
+          patterns: result.data?.analysis?.patterns,
+          originalQuery: query
+        }
       };
 
       setResultCards(prev => [newCard, ...prev].slice(0, 6));

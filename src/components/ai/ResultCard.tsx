@@ -19,6 +19,13 @@ export interface ResultCardData {
     variant: 'primary' | 'secondary' | 'danger';
   }[];
   expandable?: boolean;
+  metadata?: {
+    apiUsed?: string;
+    confidence?: number;
+    method?: string;
+    patterns?: string[];
+    [key: string]: any;
+  };
 }
 
 interface ResultCardProps {
@@ -160,7 +167,58 @@ export default function ResultCard({ data, onRemove, className = '' }: ResultCar
         {isExpanded && data.expandable && (
           <div className="mt-4 pt-4 border-t border-gray-200">
             <div className="text-gray-700 leading-relaxed">
-              {/* 추가 상세 정보가 여기에 들어갈 수 있습니다 */}
+              {/* 메타데이터 정보 표시 */}
+              {data.metadata && (
+                <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                  <h4 className="text-sm font-semibold text-gray-600 mb-2">분석 정보</h4>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {data.metadata.apiUsed && (
+                      <div>
+                        <span className="text-gray-500">API:</span>
+                        <span className={`ml-1 px-2 py-1 rounded ${
+                          data.metadata.apiUsed === 'optimized' ? 'bg-green-100 text-green-700' :
+                          data.metadata.apiUsed === 'pattern-matching' ? 'bg-blue-100 text-blue-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {data.metadata.apiUsed}
+                        </span>
+                      </div>
+                    )}
+                    {data.metadata.confidence !== undefined && (
+                      <div>
+                        <span className="text-gray-500">신뢰도:</span>
+                        <span className={`ml-1 px-2 py-1 rounded ${
+                          data.metadata.confidence >= 0.8 ? 'bg-green-100 text-green-700' :
+                          data.metadata.confidence >= 0.5 ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {(data.metadata.confidence * 100).toFixed(0)}%
+                        </span>
+                      </div>
+                    )}
+                    {data.metadata.method && (
+                      <div>
+                        <span className="text-gray-500">방법:</span>
+                        <span className="ml-1 text-gray-700">{data.metadata.method}</span>
+                      </div>
+                    )}
+                    {data.metadata.patterns && data.metadata.patterns.length > 0 && (
+                      <div className="col-span-2">
+                        <span className="text-gray-500">매칭 패턴:</span>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {data.metadata.patterns.map((pattern: string, index: number) => (
+                            <span key={index} className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs">
+                              {pattern}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* 기본 상세 정보 */}
               <p className="text-sm">
                 상세 분석 결과 및 추가 정보가 여기에 표시됩니다. 
                 서버 로그, 성능 지표, 보안 스캔 결과 등의 세부 사항을 포함할 수 있습니다.
