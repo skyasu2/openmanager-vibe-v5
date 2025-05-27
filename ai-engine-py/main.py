@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
+from predictor import predictor
 
 app = FastAPI(title="AI Analysis Engine", version="1.0.0")
 
@@ -15,25 +16,43 @@ async def root():
         "service": "AI Analysis Engine",
         "version": "1.0.0",
         "status": "운영 중",
-        "endpoints": ["/analyze"]
+        "endpoints": ["/analyze", "/health"],
+        "features": [
+            "CPU/메모리/디스크 메트릭 분석",
+            "쿼리 기반 시스템 진단",
+            "실시간 성능 모니터링",
+            "한국어 분석 결과 제공"
+        ]
     }
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "message": "AI 엔진이 정상 동작 중입니다"}
+    return {
+        "status": "healthy", 
+        "message": "AI 엔진이 정상 동작 중입니다",
+        "predictor_status": "활성화됨",
+        "supported_analysis": [
+            "cpu_performance",
+            "memory_optimization", 
+            "disk_performance",
+            "network_analysis"
+        ]
+    }
 
 @app.post("/analyze")
 async def analyze(request: AnalysisRequest):
     try:
-        return {
-            "summary": "CPU 부하 증가로 인한 응답 지연 가능성",
-            "confidence": 0.92,
-            "recommendations": ["nginx 상태 확인", "DB 커넥션 수 점검"],
-            "analysis_data": {
-                "query": request.query,
-                "metrics_count": len(request.metrics) if request.metrics else 0,
-                "timestamp": "2025-01-27T11:50:00Z"
-            }
-        }
+        # predictor를 사용하여 분석 수행
+        analysis_result = predictor.analyze_metrics(
+            query=request.query,
+            metrics=request.metrics,
+            data=request.data
+        )
+        
+        return analysis_result
+        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"분석 중 오류 발생: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"분석 중 오류 발생: {str(e)}"
+        )

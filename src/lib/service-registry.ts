@@ -10,19 +10,12 @@
 import { container, SERVICE_TOKENS, registerService, registerFactory } from './di-container';
 import { LoggingService } from '@/services/LoggingService';
 import { ErrorHandlingService } from '@/services/ErrorHandlingService';
-import { VirtualServerManager } from '@/services/VirtualServerManager';
-import { AlertSystem } from '@/services/AlertSystem';
-import { VirtualServerDataAdapter } from '@/services/ai/VirtualServerDataAdapter';
-import { UnifiedDataCollectionService } from '@/services/UnifiedDataCollectionService';
 import { SmartCacheService } from '@/services/SmartCacheService';
 import { TestFramework } from '@/testing/TestFramework';
 import { ConfigLoader } from '@/config';
 import { 
   ILogger, 
   IErrorHandler, 
-  IVirtualServerManager, 
-  IAlertSystem, 
-  IVirtualServerDataAdapter,
   IConfigLoader 
 } from '@/interfaces/services';
 
@@ -73,16 +66,7 @@ export class ServiceRegistry {
       // 4. 설정 서비스
       this.registerConfigService();
 
-      // 5. 데이터 서비스들
-      this.registerDataServices();
-
-      // 6. 알림 서비스
-      this.registerAlertService();
-
-      // 7. AI 서비스들
-      this.registerAIServices();
-
-      // 8. 추가 서비스들
+      // 5. 추가 서비스들
       this.registerAdditionalServices();
 
       this.isInitialized = true;
@@ -137,86 +121,6 @@ export class ServiceRegistry {
    */
   private registerConfigService(): void {
     // ConfigLoader는 이미 등록됨
-  }
-
-  /**
-   * 데이터 서비스 등록
-   */
-  private registerDataServices(): void {
-    // Unified Data Collection Service (새로운 통합 서비스)
-    registerFactory(
-      SERVICE_TOKENS.UNIFIED_DATA_COLLECTION,
-      () => {
-        const logger = container.resolve<ILogger>(SERVICE_TOKENS.LOGGER);
-        const errorHandler = container.resolve<IErrorHandler>(SERVICE_TOKENS.ERROR_HANDLER);
-        return new UnifiedDataCollectionService(logger, errorHandler);
-      },
-      'singleton',
-      [SERVICE_TOKENS.LOGGER, SERVICE_TOKENS.ERROR_HANDLER]
-    );
-
-    // Virtual Server Manager (레거시 - 점진적 마이그레이션)
-    registerService(
-      SERVICE_TOKENS.VIRTUAL_SERVER_MANAGER,
-      VirtualServerManager,
-      'singleton'
-    );
-
-    // Virtual Server Data Adapter (레거시 - 점진적 마이그레이션)
-    registerFactory(
-      SERVICE_TOKENS.VIRTUAL_SERVER_DATA_ADAPTER,
-      () => VirtualServerDataAdapter.getInstance(),
-      'singleton'
-    );
-  }
-
-  /**
-   * 알림 서비스 등록
-   */
-  private registerAlertService(): void {
-    registerFactory(
-      SERVICE_TOKENS.ALERT_SYSTEM,
-      () => AlertSystem.getInstance(),
-      'singleton'
-    );
-  }
-
-  /**
-   * AI 서비스 등록
-   */
-  private registerAIServices(): void {
-    // AI Analysis Service (향후 구현)
-    registerFactory(
-      SERVICE_TOKENS.AI_ANALYSIS_SERVICE,
-      () => {
-        // 임시 구현
-        return {
-          analyze: async () => ({ id: 'temp', type: 'temp', timestamp: new Date(), status: 'success' }),
-          getAnalysisHistory: async () => [],
-          getAnalysisById: async () => null,
-          cancelAnalysis: async () => {},
-          isAnalyzing: () => false
-        };
-      },
-      'singleton'
-    );
-
-    // AI Agent Engine (향후 구현)
-    registerFactory(
-      SERVICE_TOKENS.AI_AGENT_ENGINE,
-      () => {
-        // 임시 구현
-        return {
-          processQuery: async () => ({ response: 'AI response' }),
-          startLearning: () => {},
-          stopLearning: () => {},
-          getCapabilities: () => ['analysis', 'prediction'],
-          getStatus: () => ({ status: 'ready' }),
-          configure: () => {}
-        };
-      },
-      'singleton'
-    );
   }
 
   /**
@@ -379,22 +283,7 @@ export class ServiceRegistry {
       const errorHandler = container.resolve<IErrorHandler>(SERVICE_TOKENS.ERROR_HANDLER);
       logger.info('Error handling service initialized');
 
-      // 3. Unified Data Collection Service 초기화
-      const unifiedDataCollection = container.resolve<any>(SERVICE_TOKENS.UNIFIED_DATA_COLLECTION);
-      await unifiedDataCollection.initialize();
-      logger.info('Unified Data Collection Service initialized');
-
-      // 4. Virtual Server Manager 초기화 (레거시)
-      const virtualServerManager = container.resolve<IVirtualServerManager>(SERVICE_TOKENS.VIRTUAL_SERVER_MANAGER);
-      await virtualServerManager.initialize();
-      logger.info('Virtual Server Manager initialized');
-
-      // 5. Alert System 초기화
-      const alertSystem = container.resolve<IAlertSystem>(SERVICE_TOKENS.ALERT_SYSTEM);
-      alertSystem.startMonitoring();
-      logger.info('Alert System initialized');
-
-      // 6. 추가 서비스들 초기화
+      // 3. 추가 서비스들 초기화
       logger.info('Additional services initialized');
 
       console.log('✅ All services initialized successfully');
@@ -412,24 +301,6 @@ export class ServiceRegistry {
     console.log('🧹 Cleaning up services...');
 
     try {
-      // Unified Data Collection Service 정리
-      if (container.isRegistered(SERVICE_TOKENS.UNIFIED_DATA_COLLECTION)) {
-        const unifiedDataCollection = container.resolve<any>(SERVICE_TOKENS.UNIFIED_DATA_COLLECTION);
-        await unifiedDataCollection.cleanup();
-      }
-
-      // Alert System 정리
-      if (container.isRegistered(SERVICE_TOKENS.ALERT_SYSTEM)) {
-        const alertSystem = container.resolve<IAlertSystem>(SERVICE_TOKENS.ALERT_SYSTEM);
-        alertSystem.stopMonitoring();
-      }
-
-      // Virtual Server Manager 정리 (레거시)
-      if (container.isRegistered(SERVICE_TOKENS.VIRTUAL_SERVER_MANAGER)) {
-        const virtualServerManager = container.resolve<IVirtualServerManager>(SERVICE_TOKENS.VIRTUAL_SERVER_MANAGER);
-        virtualServerManager.stopRealtimeGeneration();
-      }
-
       // 로그 정리
       if (container.isRegistered(SERVICE_TOKENS.LOGGER)) {
         const logger = container.resolve<ILogger>(SERVICE_TOKENS.LOGGER);
@@ -492,7 +363,4 @@ export function getService<T>(token: string | symbol): T {
 // 타입 안전한 서비스 접근자들
 export const getLogger = (): ILogger => getService<ILogger>(SERVICE_TOKENS.LOGGER);
 export const getErrorHandler = (): IErrorHandler => getService<IErrorHandler>(SERVICE_TOKENS.ERROR_HANDLER);
-export const getVirtualServerManager = (): IVirtualServerManager => getService<IVirtualServerManager>(SERVICE_TOKENS.VIRTUAL_SERVER_MANAGER);
-export const getAlertSystem = (): IAlertSystem => getService<IAlertSystem>(SERVICE_TOKENS.ALERT_SYSTEM);
-export const getVirtualServerDataAdapter = (): IVirtualServerDataAdapter => getService<IVirtualServerDataAdapter>(SERVICE_TOKENS.VIRTUAL_SERVER_DATA_ADAPTER);
 export const getConfigLoader = (): IConfigLoader => getService<IConfigLoader>(SERVICE_TOKENS.CONFIG_LOADER); 

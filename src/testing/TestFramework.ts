@@ -400,65 +400,6 @@ export class TestFramework {
       ]
     });
 
-    // 3. 통합 데이터 수집 서비스 테스트
-    this.registerSuite({
-      id: 'unified-data-collection',
-      name: 'Unified Data Collection Tests',
-      description: '통합 데이터 수집 서비스 테스트',
-      tests: [
-        {
-          id: 'data-collection-init',
-          name: 'Service Initialization',
-          description: '서비스 초기화 테스트',
-          category: 'integration',
-          priority: 'critical',
-          timeout: 10000,
-          test: async () => {
-            try {
-              const service = getService<any>(SERVICE_TOKENS.UNIFIED_DATA_COLLECTION);
-              const status = service.getCollectionStatus();
-              return { 
-                success: status.serversCount > 0,
-                duration: 0,
-                data: status
-              };
-            } catch (error) {
-              return { 
-                success: false, 
-                duration: 0, 
-                error: error instanceof Error ? error : new Error(String(error))
-              };
-            }
-          }
-        },
-        {
-          id: 'data-collection-performance',
-          name: 'Collection Performance',
-          description: '데이터 수집 성능 테스트',
-          category: 'performance',
-          priority: 'high',
-          timeout: 15000,
-          test: async () => {
-            try {
-              const service = getService<any>(SERVICE_TOKENS.UNIFIED_DATA_COLLECTION);
-              const metrics = service.getPerformanceMetrics();
-              return {
-                success: metrics.collectionsPerSecond >= 0,
-                duration: 0,
-                data: metrics
-              };
-            } catch (error) {
-              return { 
-                success: false, 
-                duration: 0, 
-                error: error instanceof Error ? error : new Error(String(error))
-              };
-            }
-          }
-        }
-      ]
-    });
-
     // 4. 캐시 서비스 테스트
     this.registerSuite({
       id: 'cache-service',

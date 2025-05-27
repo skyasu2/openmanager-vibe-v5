@@ -16,14 +16,6 @@ export type {
   AIAgentResponse 
 } from './core/AIAgentEngine';
 
-// Enhanced Engine with Smart Mode Detection
-export { EnhancedAIAgentEngine, enhancedAIAgentEngine } from './core/EnhancedAIAgentEngine';
-export type { 
-  EnhancedAIAgentConfig, 
-  EnhancedAIAgentRequest, 
-  EnhancedAIAgentResponse 
-} from './core/EnhancedAIAgentEngine';
-
 // Smart Mode Detection System
 export { SmartModeDetector } from './core/SmartModeDetector';
 export type { AIAgentMode, QueryAnalysis } from './core/SmartModeDetector';

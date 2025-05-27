@@ -7,7 +7,6 @@
 export * from './SystemIntegrationAdapter';
 export * from './SupabaseDatabaseAdapter';
 export * from './RedisCacheAdapter';
-export * from './ServerDataCollectorAdapter';
 
 /**
  * AI Agent Adapters

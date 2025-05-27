@@ -194,14 +194,6 @@ export class DIContainer {
 
 // 서비스 토큰 정의
 export const SERVICE_TOKENS = {
-  // 데이터 서비스
-  UNIFIED_DATA_COLLECTION: Symbol('UnifiedDataCollectionService'),
-  VIRTUAL_SERVER_MANAGER: Symbol('VirtualServerManager'),
-  VIRTUAL_SERVER_DATA_ADAPTER: Symbol('VirtualServerDataAdapter'),
-  
-  // 알림 서비스
-  ALERT_SYSTEM: Symbol('AlertSystem'),
-  
   // AI 서비스
   AI_ANALYSIS_SERVICE: Symbol('AIAnalysisService'),
   AI_AGENT_ENGINE: Symbol('AIAgentEngine'),

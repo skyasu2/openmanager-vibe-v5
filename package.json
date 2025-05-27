@@ -34,15 +34,9 @@
     "monitor": "npm run health-check:prod && echo '✅ Production health check passed'",
     "init:ai-context": "node scripts/init-ai-context.js",
     "test:ai-engine": "node scripts/test-ai-engine.js",
-    "test:python": "python --version && python -c \"import kats, pyod, scipy, sklearn; print('✅ All Python packages available')\"",
-    "setup:python": "pip install -r src/modules/ai-agent/python-engine/requirements.txt",
-    "setup:python-lightweight": "pip install -r src/modules/ai-agent/python-engine/requirements-lightweight.txt",
-    "test:python-analysis": "node scripts/test-python-analysis.js",
+
     "test:optimized-ai": "node scripts/test-optimized-ai.js",
-    "python:install": "python -m pip install --upgrade pip && npm run setup:python",
-    "python:install-lightweight": "python -m pip install --upgrade pip && npm run setup:python-lightweight",
-    "python:test-engine": "python src/modules/ai-agent/python-engine/engine_runner.py",
-    "python:test-lightweight": "python src/modules/ai-agent/python-engine/lightweight_engine.py",
+
     "ai:optimize": "node scripts/test-optimized-ai.js",
     "ai:benchmark": "node scripts/test-optimized-ai.js --benchmark-only",
     "ai:test-integrated": "node scripts/test-integrated-ai-system.js",
@@ -53,7 +47,15 @@
     "test:unit": "node scripts/run-comprehensive-tests.js --skip-integration --skip-performance",
     "test:integration": "node scripts/run-comprehensive-tests.js --skip-performance",
     "test:performance": "node scripts/run-comprehensive-tests.js --skip-integration",
-    "test:ci": "node scripts/run-comprehensive-tests.js --verbose"
+    "test:ci": "node scripts/run-comprehensive-tests.js --verbose",
+    "generate:metrics": "tsx scripts/generate-daily-metrics.ts",
+    "generate:metrics:clear": "tsx scripts/generate-daily-metrics.ts --clear",
+    "db:setup": "echo 'Run the SQL file: sql/create-daily-metrics-table.sql in your Supabase dashboard'",
+    "metrics:help": "echo 'Usage: npm run generate:metrics (add data) | npm run generate:metrics:clear (reset & add)'",
+    "test:interpolation": "tsx scripts/test-interpolation.ts",
+    "test:interpolation:basic": "tsx scripts/test-interpolation.ts --basic",
+    "test:interpolation:bridge": "tsx scripts/test-interpolation.ts --bridge",
+    "test:interpolation:performance": "tsx scripts/test-interpolation.ts --performance"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
@@ -85,11 +87,13 @@
     "@typescript-eslint/eslint-plugin": "^8.32.1",
     "@typescript-eslint/parser": "^8.32.1",
     "autoprefixer": "^10.4.21",
+    "dotenv": "^16.4.5",
     "eslint": "^9",
     "eslint-config-next": "15.1.8",
     "postcss": "^8",
     "rimraf": "^6.0.1",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }

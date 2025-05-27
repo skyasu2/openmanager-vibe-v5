@@ -9,7 +9,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { aiAgentEngine, AIAgentRequest } from '../../../modules/ai-agent/core/AIAgentEngine';
-import { serverDataCollector } from '../../../services/collectors/ServerDataCollector';
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,11 +26,9 @@ export async function POST(request: NextRequest) {
     let realServerData = serverData;
     if (!realServerData) {
       try {
-        // 데이터 수집기에서 실시간 서버 데이터 가져오기
-        const allServers = serverDataCollector.getAllServers();
-        realServerData = allServers.length > 0 ? allServers : null;
-        
-        console.log(`📊 Using real server data: ${allServers.length} servers`);
+        // TODO: 새로운 데이터 수집기 구현 후 연결
+        realServerData = null;
+        console.log('📊 No server data available - using provided data');
       } catch (error) {
         console.warn('Failed to get real server data, using provided data:', error);
         realServerData = serverData;
