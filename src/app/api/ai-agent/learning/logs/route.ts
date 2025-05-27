@@ -163,7 +163,6 @@ export async function DELETE(request: NextRequest) {
       case 'clear-all': {
         // 모든 로그 데이터 삭제 (개발 환경에서만)
         if (process.env.NODE_ENV === 'development') {
-          const logger = InteractionLogger.getInstance();
           // 로컬 스토리지 클리어 (클라이언트에서 처리)
           
           return NextResponse.json({
@@ -180,8 +179,6 @@ export async function DELETE(request: NextRequest) {
 
       case 'clear-old': {
         // 30일 이상 된 로그 삭제
-        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-        
         // TODO: 실제 데이터베이스 구현 시 삭제 로직 추가
         
         return NextResponse.json({

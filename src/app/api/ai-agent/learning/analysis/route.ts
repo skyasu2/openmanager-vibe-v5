@@ -272,7 +272,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // 새로운 설정으로 서비스 재초기화
-    const analysisService = PatternAnalysisService.getInstance(config);
+    PatternAnalysisService.getInstance(config);
 
     return NextResponse.json({
       success: true,

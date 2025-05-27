@@ -24,7 +24,7 @@ const realAnalysisEngine = RealAnalysisEngine.getInstance({
 
 export async function POST(request: NextRequest) {
   try {
-    const { query, context } = await request.json();
+    const { query } = await request.json();
 
     // 실제 분석 엔진 초기화
     await realAnalysisEngine.initialize();
@@ -108,7 +108,7 @@ function generateSmartAnswer(query: string, analysis: any): string {
 
   // ML 모델 결과
   answer += `🤖 **기계학습 모델 적용:**\n`;
-  Object.entries(mlModels).forEach(([model, result]: [string, any]) => {
+  Object.entries(mlModels).forEach(([, result]: [string, any]) => {
     answer += `• ${result.modelName}: 정확도 ${(result.accuracy * 100).toFixed(1)}%\n`;
   });
   answer += `\n`;

@@ -25,7 +25,6 @@ export default function DashboardPage() {
     pauseFullSystem,
     resumeFullSystem,
     recordActivity,
-    isPaused,
     pauseReason,
     isUserSession
   } = useSystemControl();
@@ -76,7 +75,7 @@ export default function DashboardPage() {
         document.removeEventListener(event, handleUserActivity);
       });
     };
-  }, [isClient, isSystemActive]);
+  }, [isClient, isSystemActive, recordActivity]);
 
   const closeAgent = () => {
     setIsAgentOpen(false);
