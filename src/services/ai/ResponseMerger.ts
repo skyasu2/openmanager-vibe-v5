@@ -181,7 +181,7 @@ export class ResponseMerger {
     
     // 감정 분석
     if (nlpResult.sentiment) {
-      const sentimentMap = {
+      const sentimentMap: Record<string, string> = {
         'positive': '긍정적',
         'negative': '부정적', 
         'neutral': '중립적'

@@ -19,9 +19,7 @@ export class IntentClassifier {
         
         // 🤗 의도 분류용 모델 (경량화)
         this.classifier = await pipeline('zero-shot-classification', 
-          'Xenova/distilbert-base-uncased-mnli', {
-            device: 'webgpu' // 가능하면 GPU 사용
-          });
+          'Xenova/distilbert-base-uncased-mnli');
         
         // 🏷️ 엔티티 추출용 모델  
         this.nerModel = await pipeline('token-classification',

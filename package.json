@@ -1,6 +1,6 @@
 {
   "name": "openmanager-vibe-v5-clean",
-  "version": "5.6.10",
+  "version": "5.7.0",
   "description": "🤖 OpenManager AI - 지능형 AI 기반 서버 모니터링 시스템 (최적화된 코드베이스)",
   "private": true,
   "keywords": [
@@ -34,9 +34,7 @@
     "monitor": "npm run health-check:prod && echo '✅ Production health check passed'",
     "init:ai-context": "node scripts/init-ai-context.js",
     "test:ai-engine": "node scripts/test-ai-engine.js",
-
     "test:optimized-ai": "node scripts/test-optimized-ai.js",
-
     "ai:optimize": "node scripts/test-optimized-ai.js",
     "ai:benchmark": "node scripts/test-optimized-ai.js --benchmark-only",
     "ai:test-integrated": "node scripts/test-integrated-ai-system.js",
@@ -64,6 +62,7 @@
     "@tailwindcss/line-clamp": "^0.4.4",
     "@types/ioredis": "^4.28.10",
     "@vercel/kv": "^3.0.0",
+    "@xenova/transformers": "^2.17.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.12.2",
@@ -87,7 +86,7 @@
     "@typescript-eslint/eslint-plugin": "^8.32.1",
     "@typescript-eslint/parser": "^8.32.1",
     "autoprefixer": "^10.4.21",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.5.0",
     "eslint": "^9",
     "eslint-config-next": "15.1.8",
     "postcss": "^8",
