@@ -4,7 +4,10 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import ServerDashboard from '../../components/dashboard/ServerDashboard';
 import AgentModal from '../../components/ai/AgentModal';
 import ProfileDropdown from '../../components/ui/ProfileDropdown';
+import ServerGenerationProgress from '../../components/dashboard/ServerGenerationProgress';
+import AnimatedServerCard from '../../components/dashboard/AnimatedServerCard';
 import { useSystemControl } from '../../hooks/useSystemControl';
+import { useSequentialServerGeneration } from '../../hooks/useSequentialServerGeneration';
 
 export default function DashboardPage() {
   const [isAgentOpen, setIsAgentOpen] = useState(false);
@@ -15,6 +18,7 @@ export default function DashboardPage() {
     warning: 0,
     offline: 0
   });
+  const [showSequentialGeneration, setShowSequentialGeneration] = useState(true);
   
   // 개선된 시스템 제어 훅
   const {
@@ -28,6 +32,35 @@ export default function DashboardPage() {
     pauseReason,
     isUserSession
   } = useSystemControl();
+
+  // 순차 서버 생성 훅
+  const { servers, status, actions } = useSequentialServerGeneration({
+    autoStart: true,
+    intervalMs: 1000,
+    onServerAdded: (server) => {
+      console.log('🚀 새 서버 추가:', server.hostname);
+      updateServerStats(servers.concat(server));
+    },
+    onComplete: (allServers) => {
+      console.log('🎉 모든 서버 생성 완료:', allServers.length);
+      setShowSequentialGeneration(false);
+      updateServerStats(allServers);
+    },
+    onError: (error) => {
+      console.error('❌ 서버 생성 오류:', error);
+    }
+  });
+
+  // 서버 통계 업데이트 함수
+  const updateServerStats = useCallback((serverList: any[]) => {
+    const stats = {
+      total: serverList.length,
+      online: serverList.filter(s => s.status === 'online').length,
+      warning: serverList.filter(s => s.status === 'warning').length,
+      offline: serverList.filter(s => s.status === 'offline').length
+    };
+    setServerStats(stats);
+  }, []);
 
   // 클라이언트 사이드 확인
   useEffect(() => {
@@ -327,7 +360,79 @@ export default function DashboardPage() {
 
       {/* 메인 컨텐트 영역 */}
       <main className="relative">
-        <ServerDashboard onStatsUpdate={setServerStats} />
+        {/* 순차 서버 생성 프로그레스 */}
+        {showSequentialGeneration && (
+          <div className="p-6">
+            <ServerGenerationProgress
+              currentCount={status.currentCount}
+              totalServers={status.totalServers}
+              progress={status.progress}
+              isGenerating={status.isGenerating}
+              isComplete={status.isComplete}
+              nextServerType={status.nextServerType}
+              currentMessage={status.currentMessage}
+              error={status.error}
+              lastGeneratedServer={status.lastGeneratedServer}
+            />
+            
+            {/* 서버 카드 그리드 - 순차 등장 애니메이션 */}
+            {servers.length > 0 && (
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    배포된 서버 ({servers.length}/20)
+                  </h2>
+                  
+                  <div className="flex items-center space-x-4">
+                    {!status.isComplete && (
+                      <button
+                        onClick={actions.stop}
+                        className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                      >
+                        배포 중지
+                      </button>
+                    )}
+                    
+                    <button
+                      onClick={actions.reset}
+                      className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                    >
+                      리셋
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {servers.map((server, index) => (
+                    <AnimatedServerCard
+                      key={server.id}
+                      server={server}
+                      index={index}
+                      delay={0}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* 완료 시 대시보드로 전환 버튼 */}
+            {status.isComplete && (
+              <div className="text-center mt-8">
+                <button
+                  onClick={() => setShowSequentialGeneration(false)}
+                  className="px-8 py-3 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white font-medium rounded-lg transition-all transform hover:scale-105 shadow-lg"
+                >
+                  📊 대시보드로 이동하기
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* 기존 서버 대시보드 */}
+        {!showSequentialGeneration && (
+          <ServerDashboard onStatsUpdate={setServerStats} />
+        )}
         
         {/* AI 에이전트 모달 */}
         <AgentModal isOpen={isAgentOpen} onClose={closeAgent} />
