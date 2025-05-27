@@ -108,6 +108,16 @@ export default function AnswerDisplay({
         </div>
       </div>
 
+      {/* AI 사고 과정 로그 - 질문과 답변 사이에 위치 */}
+      {!isLoading && thinkingLogs.length > 0 && (
+        <div className="px-6">
+          <ThinkingLogViewer 
+            thinkingLogs={thinkingLogs}
+            question={question}
+          />
+        </div>
+      )}
+
       {/* 답변 내용 */}
       <div className="px-6 py-5">
         <div className="flex items-start gap-3">
@@ -196,12 +206,6 @@ export default function AnswerDisplay({
                     <span>다른 기능 선택하기</span>
                   </button>
                 </div>
-
-                {/* 생각 과정 로그 뷰어 - 답변 완료 후 표시 */}
-                <ThinkingLogViewer 
-                  thinkingLogs={thinkingLogs}
-                  question={question}
-                />
               </div>
             )}
           </div>

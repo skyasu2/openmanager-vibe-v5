@@ -16,7 +16,7 @@ interface ThinkingLogViewerProps {
 }
 
 export default function ThinkingLogViewer({ thinkingLogs, question }: ThinkingLogViewerProps) {
-  const [isExpanded, setIsExpanded] = useState(true); // 기본적으로 펼쳐진 상태로 시작
+  const [isExpanded, setIsExpanded] = useState(false); // 기본적으로 접힌 상태로 시작
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const getStepTypeColor = (type: ThinkingStep['type']) => {
@@ -70,79 +70,52 @@ export default function ThinkingLogViewer({ thinkingLogs, question }: ThinkingLo
   if (!thinkingLogs.length) return null;
 
   return (
-    <div className="mt-4 border-2 border-indigo-200 rounded-xl overflow-hidden shadow-sm bg-gradient-to-r from-indigo-50 to-purple-50">
-      {/* 헤더 - 접힌 상태 */}
+    <div className="my-3 border border-indigo-200 rounded-lg overflow-hidden shadow-sm bg-gradient-to-r from-indigo-50 to-purple-50">
+      {/* 컴팩트 한 줄 헤더 */}
       <div 
-        className="bg-gradient-to-r from-indigo-100 to-purple-100 px-4 py-4 cursor-pointer hover:from-indigo-200 hover:to-purple-200 transition-all select-none border-b border-indigo-200"
+        className="bg-gradient-to-r from-indigo-100 to-purple-100 px-3 py-2 cursor-pointer hover:from-indigo-200 hover:to-purple-200 transition-all select-none"
         onClick={() => setIsExpanded(!isExpanded)}
         style={{ userSelect: 'none' }}
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <div className={`w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center transition-transform ${isExpanded ? 'rotate-90' : ''}`}>
-                <i className="fas fa-chevron-right text-white text-xs"></i>
-              </div>
-              <div className="flex items-center gap-2">
-                <i className="fas fa-brain text-purple-600 text-lg"></i>
-                <span className="font-bold text-gray-800">🤖 AI 사고 과정 로그</span>
-              </div>
+          <div className="flex items-center gap-2">
+            <div className={`w-4 h-4 bg-indigo-600 rounded-full flex items-center justify-center transition-transform ${isExpanded ? 'rotate-90' : ''}`}>
+              <i className="fas fa-chevron-right text-white text-xs"></i>
             </div>
-            <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
-              {thinkingLogs.length}단계 완료
+            <i className="fas fa-brain text-purple-600 text-sm"></i>
+            <span className="font-medium text-gray-800 text-sm">🤖 AI 사고 과정</span>
+            <div className="px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+              {thinkingLogs.length}단계
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
-            <div className="text-xs text-gray-600 bg-white px-2 py-1 rounded">
-              {new Date(thinkingLogs[thinkingLogs.length - 1]?.timestamp).toLocaleTimeString('ko-KR')}
-            </div>
+          <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-xs text-green-600 font-medium">분석 완료</span>
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+              <span className="text-xs text-green-600 font-medium">완료</span>
+            </div>
+            <div className="text-xs text-gray-500">
+              {new Date(thinkingLogs[thinkingLogs.length - 1]?.timestamp).toLocaleTimeString('ko-KR')}
             </div>
           </div>
         </div>
-        
-        {!isExpanded && (
-          <div className="mt-3 p-3 bg-white/60 rounded-lg">
-            <div className="text-sm text-gray-700 font-medium mb-2">
-              💭 AI가 이렇게 생각했습니다:
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">질의분석</span>
-              <i className="fas fa-arrow-right text-gray-400 text-xs"></i>
-              <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">데이터처리</span>
-              <i className="fas fa-arrow-right text-gray-400 text-xs"></i>
-              <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">패턴매칭</span>
-              <i className="fas fa-arrow-right text-gray-400 text-xs"></i>
-              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">추론</span>
-              <i className="fas fa-arrow-right text-gray-400 text-xs"></i>
-              <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs">응답생성</span>
-            </div>
-            <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
-              <i className="fas fa-info-circle"></i>
-              <span>클릭하면 상세한 분석 과정을 확인할 수 있습니다</span>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* 펼쳐진 상태 - 로그 뷰어 */}
       {isExpanded && (
         <div className="border-t border-gray-200">
-          {/* 툴바 */}
-          <div className="bg-gray-800 px-4 py-2 flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          {/* 컴팩트 툴바 */}
+          <div className="bg-gray-800 px-3 py-1.5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
               <div className="flex gap-1">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               </div>
-              <span className="text-sm font-mono text-gray-300">AI Thinking Process Log</span>
+              <span className="text-xs font-mono text-gray-300">AI Thinking Process</span>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <button
                 onClick={scrollToTop}
                 className="text-gray-400 hover:text-white p-1 rounded text-xs"
@@ -158,13 +131,6 @@ export default function ThinkingLogViewer({ thinkingLogs, question }: ThinkingLo
                 <i className="fas fa-arrow-down"></i>
               </button>
               <button
-                onClick={() => copyToClipboard('')}
-                className="text-gray-400 hover:text-white p-1 rounded text-xs"
-                title="복사 (제한됨)"
-              >
-                <i className="fas fa-copy"></i>
-              </button>
-              <button
                 onClick={() => setIsExpanded(false)}
                 className="text-gray-400 hover:text-white p-1 rounded text-xs"
                 title="접기"
@@ -174,10 +140,10 @@ export default function ThinkingLogViewer({ thinkingLogs, question }: ThinkingLo
             </div>
           </div>
 
-                    {/* 로그 컨텐츠 */}
+          {/* 로그 컨텐츠 */}
           <div 
             ref={scrollRef}
-            className="bg-gray-900 text-gray-100 p-4 h-80 overflow-y-auto font-mono text-sm select-none"
+            className="bg-gray-900 text-gray-100 p-3 h-64 overflow-y-auto font-mono text-xs select-none"
             style={{ 
               userSelect: 'none',
               WebkitUserSelect: 'none',
@@ -187,29 +153,26 @@ export default function ThinkingLogViewer({ thinkingLogs, question }: ThinkingLo
             onContextMenu={(e: React.MouseEvent) => e.preventDefault()}
            >
              {/* 세션 헤더 */}
-             <div className="border-b border-gray-700 pb-3 mb-4">
-               <div className="text-blue-400 font-semibold">
-                 [AI THINKING SESSION START]
+             <div className="border-b border-gray-700 pb-2 mb-3">
+               <div className="text-blue-400 font-semibold text-xs">
+                 [AI THINKING SESSION]
                </div>
-               <div className="text-gray-500 text-xs mt-1">
+               <div className="text-gray-500 text-xs">
                  Query: &quot;{question}&quot;
                </div>
-              <div className="text-gray-500 text-xs">
-                Session ID: {Date.now()}_{Math.random().toString(36).substr(2, 9)}
-              </div>
             </div>
 
             {/* 처리 단계들 */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               {thinkingLogs.map((step, index) => (
-                <div key={index} className="border-l-2 border-gray-600 pl-4">
+                <div key={index} className="border-l border-gray-600 pl-3">
                   {/* 단계 헤더 */}
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className={`px-2 py-1 rounded text-xs font-semibold ${getStepTypeColor(step.type)}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className={`px-1.5 py-0.5 rounded text-xs font-medium ${getStepTypeColor(step.type)}`}>
                       <i className={`${getStepIcon(step.type)} mr-1`}></i>
                       {step.type.toUpperCase()}
                     </div>
-                    <span className="text-blue-400 font-semibold">
+                    <span className="text-blue-400 font-medium text-xs">
                       [{step.step}]
                     </span>
                     <span className="text-gray-500 text-xs">
@@ -218,18 +181,18 @@ export default function ThinkingLogViewer({ thinkingLogs, question }: ThinkingLo
                   </div>
 
                   {/* 단계 내용 */}
-                  <div className="bg-gray-800 rounded p-3 ml-2">
-                    <pre className="text-gray-300 whitespace-pre-wrap text-xs leading-relaxed">
+                  <div className="bg-gray-800 rounded p-2 ml-1">
+                    <pre className="text-gray-300 whitespace-pre-wrap text-xs leading-tight">
                       {step.content}
                     </pre>
                   </div>
 
                   {/* 단계 완료 표시 */}
-                  <div className="flex items-center gap-2 mt-2 ml-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
-                      <i className="fas fa-check text-white text-xs"></i>
+                  <div className="flex items-center gap-1 mt-1 ml-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full flex items-center justify-center">
+                      <i className="fas fa-check text-white" style={{ fontSize: '6px' }}></i>
                     </div>
-                    <span className="text-green-400 text-xs">단계 완료</span>
+                    <span className="text-green-400 text-xs">완료</span>
                     {step.duration && (
                       <span className="text-gray-500 text-xs">
                         ({step.duration}ms)
@@ -241,21 +204,14 @@ export default function ThinkingLogViewer({ thinkingLogs, question }: ThinkingLo
             </div>
 
             {/* 세션 종료 */}
-            <div className="border-t border-gray-700 pt-3 mt-4">
-              <div className="text-green-400 font-semibold">
-                [AI THINKING SESSION COMPLETED]
+            <div className="border-t border-gray-700 pt-2 mt-3">
+              <div className="text-green-400 font-semibold text-xs">
+                [SESSION COMPLETED]
               </div>
-              <div className="text-gray-500 text-xs mt-1">
-                Total Steps: {thinkingLogs.length} | 
-                Total Duration: {thinkingLogs.reduce((sum, step) => sum + (step.duration || 0), 0)}ms
+              <div className="text-gray-500 text-xs">
+                Steps: {thinkingLogs.length} | Duration: {thinkingLogs.reduce((sum, step) => sum + (step.duration || 0), 0)}ms
               </div>
             </div>
-          </div>
-
-          {/* 하단 상태바 */}
-          <div className="bg-gray-100 px-4 py-2 text-xs text-gray-600 flex items-center justify-between">
-            <span>⚠️ 이 로그는 복사 및 드래그가 제한됩니다</span>
-            <span>Scroll: {scrollRef.current?.scrollTop || 0}px</span>
           </div>
         </div>
       )}

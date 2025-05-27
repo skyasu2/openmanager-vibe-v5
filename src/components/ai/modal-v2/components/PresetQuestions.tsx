@@ -162,6 +162,8 @@ const advancedQuestions: PresetQuestion[] = [
 export default function PresetQuestions({ onQuestionSelect, currentServerData }: PresetQuestionsProps) {
   const [selectedQuestions, setSelectedQuestions] = useState<PresetQuestion[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [lastRefreshTime, setLastRefreshTime] = useState(Date.now());
 
   // 맥락적 질문 생성
   const generateContextualQuestions = (): PresetQuestion[] => {
@@ -211,6 +213,7 @@ export default function PresetQuestions({ onQuestionSelect, currentServerData }:
   // 새로고침 핸들러
   const handleRefresh = async () => {
     setIsRefreshing(true);
+    setLastRefreshTime(Date.now());
     
     // 300ms 애니메이션
     setTimeout(() => {
@@ -224,65 +227,112 @@ export default function PresetQuestions({ onQuestionSelect, currentServerData }:
     onQuestionSelect(question.text);
   };
 
-  // 초기 질문 생성
+  // 좌우 스크롤 핸들러
+  const handlePrevious = () => {
+    setCurrentIndex(prev => Math.max(0, prev - 2));
+  };
+
+  const handleNext = () => {
+    setCurrentIndex(prev => Math.min(selectedQuestions.length - 2, prev + 2));
+  };
+
+  // 초기 질문 생성 및 1분마다 자동 새로고침
   useEffect(() => {
     setSelectedQuestions(generatePresetQuestions());
-  }, [currentServerData]);
+    setLastRefreshTime(Date.now());
+    
+    // 1분(60초)마다 자동 새로고침
+    const interval = setInterval(() => {
+      const now = Date.now();
+      if (now - lastRefreshTime >= 60000) { // 60초 = 1분
+        setSelectedQuestions(generatePresetQuestions());
+        setLastRefreshTime(now);
+      }
+    }, 1000); // 1초마다 체크
+    
+    return () => clearInterval(interval);
+  }, [currentServerData, lastRefreshTime]);
+
+  const visibleQuestions = selectedQuestions.slice(currentIndex, currentIndex + 2);
+  const canGoPrevious = currentIndex > 0;
+  const canGoNext = currentIndex + 2 < selectedQuestions.length;
 
   return (
-    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 mb-4 border border-blue-100">
-      {/* 헤더 섹션 */}
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 mb-3 border border-blue-100">
+      {/* 컴팩트 헤더 */}
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center space-x-2">
-          <h3 className="text-lg font-semibold text-gray-800">💡 추천 질문</h3>
-          <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">
-            기본 3개 + 고급 1개
+          <h4 className="text-sm font-semibold text-gray-800">💡 추천 질문</h4>
+          <span className="bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5 rounded-full">
+            1분마다 갱신
           </span>
         </div>
         
-        <button
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          className="flex items-center space-x-1 px-3 py-1.5 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50"
-        >
-          <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          <span className="text-sm font-medium">새로고침</span>
-        </button>
+        <div className="flex items-center space-x-1">
+          {/* 좌우 네비게이션 */}
+          <button
+            onClick={handlePrevious}
+            disabled={!canGoPrevious}
+            className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <i className="fas fa-chevron-left text-xs"></i>
+          </button>
+          
+          <span className="text-xs text-gray-500 px-2">
+            {Math.floor(currentIndex / 2) + 1}/{Math.ceil(selectedQuestions.length / 2)}
+          </span>
+          
+          <button
+            onClick={handleNext}
+            disabled={!canGoNext}
+            className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <i className="fas fa-chevron-right text-xs"></i>
+          </button>
+          
+          <div className="w-px h-4 bg-gray-300 mx-1"></div>
+          
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+            title="수동 새로고침"
+          >
+            <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
 
-      {/* 도움말 */}
-      <p className="text-xs text-gray-600 mb-4">
-        질문을 클릭해도 새로운 추천이 계속 표시됩니다
-      </p>
-
-      {/* 질문 그리드 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {selectedQuestions.map((question) => (
+      {/* 컴팩트 질문 그리드 (2칸) */}
+      <div className="grid grid-cols-2 gap-2">
+        {visibleQuestions.map((question) => (
           <button
             key={question.id}
             onClick={() => handleQuestionClick(question)}
             className={`
-              p-4 rounded-lg border text-left transition-all duration-200 hover:shadow-md
+              p-2 rounded-md border text-left transition-all duration-200 hover:shadow-sm
               ${question.type === 'basic' 
                 ? 'bg-white border-gray-200 hover:bg-gray-50' 
                 : 'bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200 hover:from-purple-100 hover:to-indigo-100'
               }
             `}
           >
-            <div className="flex items-start space-x-3">
-              {/* 아이콘 */}
+            <div className="flex items-start space-x-2">
+              {/* 작은 아이콘 */}
               <div className={`
-                p-2 rounded-md flex-shrink-0
+                p-1 rounded flex-shrink-0
                 ${question.type === 'basic' ? 'bg-green-100 text-green-600' : 'bg-purple-100 text-purple-600'}
               `}>
-                {question.icon}
+                <div className="w-3 h-3">
+                  {question.icon}
+                </div>
               </div>
               
               {/* 내용 */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center space-x-2 mb-1">
+                <div className="flex items-center space-x-1 mb-1">
                   <span className={`
-                    text-xs px-2 py-0.5 rounded-full font-medium
+                    text-xs px-1 py-0.5 rounded font-medium
                     ${question.type === 'basic' 
                       ? 'bg-green-100 text-green-700' 
                       : 'bg-purple-100 text-purple-700'
@@ -290,18 +340,11 @@ export default function PresetQuestions({ onQuestionSelect, currentServerData }:
                   `}>
                     {question.type === 'basic' ? '기본' : '고급'}
                   </span>
-                  <span className="text-xs text-gray-500">{question.category}</span>
                 </div>
                 
-                <p className="text-sm font-medium text-gray-900 mb-1 line-clamp-2">
+                <p className="text-xs font-medium text-gray-900 line-clamp-2 leading-tight">
                   {question.text}
                 </p>
-                
-                {question.description && (
-                  <p className="text-xs text-gray-600 line-clamp-1">
-                    {question.description}
-                  </p>
-                )}
               </div>
             </div>
           </button>
