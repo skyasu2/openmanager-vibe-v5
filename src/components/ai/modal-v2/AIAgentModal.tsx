@@ -11,6 +11,7 @@ import { useModalNavigation } from './hooks/useModalNavigation';
 import { FunctionType, HistoryItem } from './types';
 import { InteractionLogger } from '@/services/ai-agent/logging/InteractionLogger';
 import { useServerDataStore } from '@/stores/serverDataStore';
+import { useSystemControl } from '@/hooks/useSystemControl';
 
 interface AIAgentModalProps {
   isOpen: boolean;
@@ -24,6 +25,9 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
   const { state, dispatch, addToHistory, setBottomSheetState } = useModalState();
   const { servers } = useServerDataStore();
   const navigation = useModalNavigation();
+  
+  // 시스템 제어 훅 추가
+  const { recordActivity } = useSystemControl();
 
   // 클라이언트 사이드 확인
   useEffect(() => {
@@ -65,10 +69,36 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
     };
   }, [dispatch, setBottomSheetState, state.bottomSheetState, isClient]);
 
+  // 사용자 활동 추적 (AI 모달 사용 시)
+  useEffect(() => {
+    if (!isClient || !isOpen) return;
+
+    const handleUserActivity = () => {
+      recordActivity();
+    };
+
+    // AI 모달 내 사용자 활동 이벤트 리스너
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    
+    events.forEach(event => {
+      document.addEventListener(event, handleUserActivity, { passive: true });
+    });
+
+    // 모달 열림 시 활동 기록
+    recordActivity();
+
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, handleUserActivity);
+      });
+    };
+  }, [isClient, isOpen, recordActivity]);
+
   // ESC 키로 모달 닫기 & 브라우저 히스토리 차단
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
+        recordActivity(); // ESC 키도 활동으로 기록
         onClose();
       }
     };
@@ -95,10 +125,11 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
       window.removeEventListener('keydown', handleEscape);
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, recordActivity]);
 
   // 히스토리 아이템 선택 핸들러
   const handleSelectHistoryItem = (item: HistoryItem) => {
+    recordActivity(); // 히스토리 선택도 활동으로 기록
     dispatch({ type: 'SET_QUESTION', payload: item.question });
     dispatch({ type: 'SET_ANSWER', payload: item.answer });
     dispatch({ type: 'TOGGLE_HISTORY', payload: false });
@@ -107,6 +138,10 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
   // 질문 전송 핸들러
   const handleSendQuestion = async (question: string) => {
     const startTime = Date.now();
+    
+    // 질문 전송 시 활동 기록
+    recordActivity();
+    
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'SET_QUESTION', payload: question });
     
@@ -148,6 +183,9 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
       const answer = data.success ? data.data.response : '죄송합니다. 응답을 생성할 수 없습니다.';
       const responseTime = Date.now() - startTime;
       
+      // 응답 수신 시 활동 기록
+      recordActivity();
+      
       // 응답 메타데이터 설정
       const metadata = {
         intent: data.data?.intent || 'general_query',
@@ -178,6 +216,9 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
       // 폴백 응답 생성
       const fallbackAnswer = generateFallbackResponse(question, servers);
       const responseTime = Date.now() - startTime;
+      
+      // 폴백 응답 시에도 활동 기록
+      recordActivity();
       
       // 폴백 메타데이터 설정
       const fallbackMetadata = {
@@ -280,10 +321,16 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
           animate-scale-in
           ${isMobile ? 'h-[90vh]' : 'h-[80vh]'}
         `}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          recordActivity(); // 모달 클릭도 활동으로 기록
+        }}
       >
         {/* 모달 헤더 */}
-        <ModalHeader onClose={onClose} />
+        <ModalHeader onClose={() => {
+          recordActivity(); // 모달 닫기도 활동으로 기록
+          onClose();
+        }} />
         
         {/* 네비게이션 바 */}
         <NavigationBar
@@ -291,9 +338,18 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
           canGoForward={navigation.canGoForward}
           currentIndex={navigation.currentIndex}
           history={navigation.history}
-          onGoBack={navigation.goBack}
-          onGoForward={navigation.goForward}
-          onGoToIndex={navigation.goToIndex}
+          onGoBack={() => {
+            recordActivity();
+            navigation.goBack();
+          }}
+          onGoForward={() => {
+            recordActivity();
+            navigation.goForward();
+          }}
+          onGoToIndex={(index) => {
+            recordActivity();
+            navigation.goToIndex(index);
+          }}
         />
         
         {/* 모달 바디 */}
@@ -307,7 +363,10 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
             currentQuestion={state.currentQuestion}
             currentAnswer={state.currentAnswer}
             responseMetadata={responseMetadata}
-            setQuestion={(question) => dispatch({ type: 'SET_QUESTION', payload: question })}
+            setQuestion={(question) => {
+              recordActivity();
+              dispatch({ type: 'SET_QUESTION', payload: question });
+            }}
             sendQuestion={handleSendQuestion}
             isMobile={isMobile}
           />
@@ -317,9 +376,10 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
             <RightPanel
               selectedFunction={state.selectedFunction}
               functionData={state.functionData}
-              selectFunction={(functionType: FunctionType) => 
-                dispatch({ type: 'SELECT_FUNCTION', payload: functionType })
-              }
+              selectFunction={(functionType: FunctionType) => {
+                recordActivity();
+                dispatch({ type: 'SELECT_FUNCTION', payload: functionType });
+              }}
               isMobile={isMobile}
               historyItems={state.history}
               onSelectHistoryItem={handleSelectHistoryItem}
@@ -332,11 +392,15 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
       {isMobile && (
         <MobileBottomSheet
           state={state.bottomSheetState}
-          setState={setBottomSheetState}
+          setState={(newState) => {
+            recordActivity();
+            setBottomSheetState(newState);
+          }}
           selectedFunction={state.selectedFunction}
-          selectFunction={(functionType: FunctionType) => 
-            dispatch({ type: 'SELECT_FUNCTION', payload: functionType })
-          }
+          selectFunction={(functionType: FunctionType) => {
+            recordActivity();
+            dispatch({ type: 'SELECT_FUNCTION', payload: functionType });
+          }}
           functionData={state.functionData}
         />
       )}

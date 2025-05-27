@@ -63,18 +63,19 @@ export default function HomePage() {
   const [showMainFeature, setShowMainFeature] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-  // 통합 시스템 제어
+  // 개선된 시스템 제어
   const {
-    systemState,
-    aiAgentState,
+    state,
     isSystemActive,
-    isAIEnabled,
+    isSystemPaused,
     formattedTime,
+    aiAgent,
     startFullSystem,
-    stopFullSystem
+    stopFullSystem,
+    resumeFullSystem,
+    isUserSession,
+    pauseReason
   } = useSystemControl();
-  
-
 
   // 데이터 생성기 상태 관리
   const [dataGeneratorStatus, setDataGeneratorStatus] = useState<{
@@ -129,18 +130,22 @@ export default function HomePage() {
     };
   }, [isSystemActive, dataGeneratorStatus.isGenerating, updateGeneratorStatus]);
 
-  // 🚀 통합 시스템 시작 함수
+  // 🚀 사용자 세션 시작 함수 (개선됨)
   const handleStartFullSystem = async () => {
     if (isLoading) return;
     
     setIsLoading(true);
-    console.log('🚀 통합 시스템 시작...');
+    console.log('🚀 사용자 세션 시작...');
     
     try {
       const result = await startFullSystem();
       
       if (result.success) {
-        alert(`✅ ${result.message}\n\n이제 대시보드에서 실시간 데이터와 AI 에이전트를 사용할 수 있습니다.`);
+        if (result.errors.length > 0) {
+          alert(`✅ ${result.message}\n\n경고 사항:\n${result.errors.join('\n')}\n\n대시보드에서 실시간 데이터와 AI 에이전트를 사용할 수 있습니다.`);
+        } else {
+          alert(`✅ ${result.message}\n\n이제 대시보드에서 실시간 데이터와 AI 에이전트를 사용할 수 있습니다.`);
+        }
       } else {
         const errorDetails = result.errors.length > 0 
           ? `\n\n오류 상세:\n${result.errors.join('\n')}` 
@@ -151,7 +156,7 @@ export default function HomePage() {
       // 데이터 생성기 상태 자동 초기화 및 업데이트
       setDataGeneratorStatus({
         isGenerating: true,
-        remainingTime: 20 * 60 * 1000,
+        remainingTime: 60 * 60 * 1000, // 사용자 세션은 60분
         currentPattern: 'normal',
         patterns: ['normal', 'high-load', 'maintenance']
       });
@@ -164,17 +169,31 @@ export default function HomePage() {
     }
   };
 
-  // 🛑 통합 시스템 중지 함수
+  // 🛑 시스템 중지 함수 (개선됨)
   const handleStopFullSystem = async () => {
     if (isLoading) return;
     
+    const sessionType = isUserSession ? '사용자 세션' : 'AI 세션';
+    
+    if (!confirm(`${sessionType}을 중지하시겠습니까?\n\n• 모든 서버 모니터링이 중단됩니다\n• AI 에이전트가 비활성화됩니다`)) {
+      return;
+    }
+    
     setIsLoading(true);
-    console.log('🛑 통합 시스템 중지...');
+    console.log('🛑 시스템 중지...');
     
     try {
       const result = await stopFullSystem();
       
-      alert(`🔴 ${result.message}`);
+      if (result.success) {
+        if (result.errors.length > 0) {
+          alert(`🔴 ${result.message}\n\n경고 사항:\n${result.errors.join('\n')}`);
+        } else {
+          alert(`🔴 ${result.message}`);
+        }
+      } else {
+        alert(`❌ ${result.message}\n\n오류 내용:\n${result.errors.join('\n')}`);
+      }
       
       // 데이터 생성기 상태 초기화
       setDataGeneratorStatus({
@@ -192,15 +211,35 @@ export default function HomePage() {
     }
   };
 
-
+  // ▶️ 시스템 재개 함수
+  const handleResumeSystem = async () => {
+    if (isLoading) return;
+    
+    setIsLoading(true);
+    console.log('▶️ 시스템 재개...');
+    
+    try {
+      const result = await resumeFullSystem();
+      
+      if (result.success) {
+        alert(`▶️ ${result.message}`);
+      } else {
+        alert(`❌ ${result.message}`);
+      }
+      
+    } catch (error) {
+      console.error('❌ 시스템 재개 실패:', error);
+      alert('❌ 시스템 재개에 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // 대시보드로 이동
   const handleGoToDashboard = () => {
     console.log('🏠 대시보드로 이동');
     router.push('/dashboard');
   };
-
-
 
   const openFeatureModal = (feature: FeatureDetail) => {
     setSelectedFeature(feature);
@@ -1476,9 +1515,9 @@ export default function HomePage() {
             <div className="benefits-icon">
               <i className="fas fa-brain"></i>
             </div>
-                            <h3 className="benefits-title">지능형 AI 에이전트</h3>
+            <h3 className="benefits-title">지능형 AI 에이전트</h3>
             <p className="benefits-text">
-                              <strong>지능형 AI 에이전트로 서버 관리를 혁신합니다</strong><br />
+              <strong>지능형 AI 에이전트로 서버 관리를 혁신합니다</strong><br />
               <strong className="hidden sm:inline">자연어 질의, 지능형 분석, 예측 알림으로</strong>
               <strong className="sm:hidden">자연어 질의와 지능형 분석으로</strong><br />
               <strong>IT 운영을 완전히 자동화합니다</strong>
@@ -1516,7 +1555,7 @@ export default function HomePage() {
               
               <p className="text-white/80 text-sm">
                 <strong>통합 시스템 시작:</strong> 서버 시딩 → 시뮬레이션 → 데이터 생성 → AI 에이전트<br />
-                모든 서비스가 자동으로 순차 시작됩니다 (20분간 활성화)
+                모든 서비스가 자동으로 순차 시작됩니다 (60분간 활성화)
               </p>
             </div>
           ) : (
@@ -1530,9 +1569,6 @@ export default function HomePage() {
                 <div className="text-green-100 text-sm">
                   <div className="flex items-center justify-center gap-4 mb-2">
                     <span>⏰ 남은 시간: <strong>{formattedTime}</strong></span>
-                    {isAIEnabled && (
-                      <span className="text-blue-300">🤖 AI 활성화</span>
-                    )}
                   </div>
                   <p>시스템 전체 활성화: 서버 모니터링 + AI 에이전트 + 데이터 생성</p>
                 </div>
@@ -1562,7 +1598,7 @@ export default function HomePage() {
               </div>
               
               <p className="text-white/60 text-xs mt-2">
-                20분 후 자동 종료됩니다. 다시 시작하려면 위의 중지 버튼을 누른 후 시작 버튼을 눌러주세요.
+                60분 후 자동 종료됩니다. 다시 시작하려면 위의 중지 버튼을 누른 후 시작 버튼을 눌러주세요.
               </p>
             </div>
           )}
@@ -1726,7 +1762,7 @@ export default function HomePage() {
             
             <div className="modal-header">
               <div className="modal-emoji">🧠</div>
-                              <h2 className="modal-title">지능형 AI 에이전트</h2>
+              <h2 className="modal-title">지능형 AI 에이전트</h2>
               <p className="modal-description">LLM 없이도 지능형 응답하는 차세대 서버 관리 솔루션</p>
             </div>
 

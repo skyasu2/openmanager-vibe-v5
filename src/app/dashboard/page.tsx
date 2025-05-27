@@ -16,11 +16,18 @@ export default function DashboardPage() {
     offline: 0
   });
   
-  // 시스템 제어 훅
+  // 개선된 시스템 제어 훅
   const {
     isSystemActive,
+    isSystemPaused,
     formattedTime,
-    stopFullSystem
+    stopFullSystem,
+    pauseFullSystem,
+    resumeFullSystem,
+    recordActivity,
+    isPaused,
+    pauseReason,
+    isUserSession
   } = useSystemControl();
 
   // 클라이언트 사이드 확인
@@ -39,8 +46,34 @@ export default function DashboardPage() {
     }
   }, [isClient]);
 
+  // 사용자 활동 추적
+  useEffect(() => {
+    if (!isClient || !isSystemActive) return;
+
+    const handleUserActivity = () => {
+      recordActivity();
+    };
+
+    // 사용자 활동 이벤트 리스너
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    
+    events.forEach(event => {
+      document.addEventListener(event, handleUserActivity, { passive: true });
+    });
+
+    // 초기 활동 기록
+    recordActivity();
+
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, handleUserActivity);
+      });
+    };
+  }, [isClient, isSystemActive, recordActivity]);
+
   const closeAgent = () => {
     setIsAgentOpen(false);
+    recordActivity(); // AI 모달 닫기도 활동으로 기록
   };
 
   const toggleAgent = () => {
@@ -48,12 +81,15 @@ export default function DashboardPage() {
       closeAgent();
     } else {
       setIsAgentOpen(true);
+      recordActivity(); // AI 모달 열기도 활동으로 기록
     }
   };
 
-  // 시스템 중지 핸들러
+  // 시스템 중지 핸들러 (개선됨)
   const handleSystemStop = useCallback(async () => {
-    if (!confirm('시스템을 중지하시겠습니까?\n\n• 모든 서버 모니터링이 중단됩니다\n• AI 에이전트가 비활성화됩니다')) {
+    const sessionType = isUserSession ? '사용자 세션' : 'AI 세션';
+    
+    if (!confirm(`${sessionType}을 중지하시겠습니까?\n\n• 모든 서버 모니터링이 중단됩니다\n• AI 에이전트가 비활성화됩니다\n• 랜딩페이지로 이동합니다`)) {
       return;
     }
 
@@ -62,18 +98,120 @@ export default function DashboardPage() {
       
       if (result.success) {
         console.log('✅ 시스템 중지 완료:', result.message);
-        alert(`${result.message}\n\n랜딩페이지로 이동합니다.`);
+        
+        if (result.errors.length > 0) {
+          alert(`${result.message}\n\n경고 사항:\n${result.errors.join('\n')}\n\n랜딩페이지로 이동합니다.`);
+        } else {
+          alert(`${result.message}\n\n랜딩페이지로 이동합니다.`);
+        }
+        
         // 랜딩페이지로 이동
         window.location.href = '/';
       } else {
-        console.warn('⚠️ 시스템 중지 중 일부 오류:', result.errors);
+        console.warn('⚠️ 시스템 중지 중 오류:', result.errors);
         alert(`${result.message}\n\n오류 내용:\n${result.errors.join('\n')}`);
       }
     } catch (error) {
       console.error('❌ 시스템 중지 실패:', error);
       alert('시스템 중지 중 오류가 발생했습니다.\n다시 시도해주세요.');
     }
-  }, [stopFullSystem]);
+  }, [stopFullSystem, isUserSession]);
+
+  // 시스템 일시정지 핸들러
+  const handleSystemPause = useCallback(async () => {
+    try {
+      const result = await pauseFullSystem('사용자 요청');
+      
+      if (result.success) {
+        console.log('⏸️ 시스템 일시정지:', result.message);
+      }
+    } catch (error) {
+      console.error('❌ 시스템 일시정지 실패:', error);
+    }
+  }, [pauseFullSystem]);
+
+  // 시스템 재개 핸들러
+  const handleSystemResume = useCallback(async () => {
+    try {
+      const result = await resumeFullSystem();
+      
+      if (result.success) {
+        console.log('▶️ 시스템 재개:', result.message);
+      }
+    } catch (error) {
+      console.error('❌ 시스템 재개 실패:', error);
+    }
+  }, [resumeFullSystem]);
+
+  // 시스템 상태 표시 컴포넌트
+  const SystemStatusDisplay = useMemo(() => {
+    if (isSystemPaused) {
+      return (
+        <div className="hidden lg:flex items-center gap-3 px-3 py-1 bg-yellow-50 rounded-lg border border-yellow-200">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+            <span className="text-sm font-medium text-yellow-700">시스템 일시정지</span>
+          </div>
+          <div className="text-xs text-yellow-600">{pauseReason}</div>
+          <button
+            onClick={handleSystemResume}
+            className="text-xs text-green-600 hover:text-green-800 hover:bg-green-100 px-2 py-1 rounded transition-colors"
+            title="시스템 재개"
+          >
+            재개
+          </button>
+        </div>
+      );
+    }
+
+    if (isSystemActive) {
+      const sessionType = isUserSession ? '사용자 세션' : 'AI 세션';
+      
+      return (
+        <div className="hidden lg:flex items-center gap-3 px-3 py-1 bg-green-50 rounded-lg border border-green-200">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium text-green-700">{sessionType} 실행 중</span>
+          </div>
+          <div className="text-xs text-green-600">{formattedTime}</div>
+          <div className="flex gap-1">
+            {isUserSession && (
+              <button
+                onClick={handleSystemPause}
+                className="text-xs text-yellow-600 hover:text-yellow-800 hover:bg-yellow-100 px-2 py-1 rounded transition-colors"
+                title="시스템 일시정지"
+              >
+                일시정지
+              </button>
+            )}
+            <button
+              onClick={handleSystemStop}
+              className="text-xs text-red-600 hover:text-red-800 hover:bg-red-100 px-2 py-1 rounded transition-colors"
+              title="시스템 중지"
+            >
+              중지
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="hidden lg:flex items-center gap-3 px-3 py-1 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+          <span className="text-sm font-medium text-gray-600">시스템 중지됨</span>
+        </div>
+        <button
+          onClick={() => window.location.href = '/'}
+          className="text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-100 px-2 py-1 rounded transition-colors"
+          title="랜딩페이지에서 시스템 시작"
+        >
+          시작하기
+        </button>
+      </div>
+    );
+  }, [isSystemActive, isSystemPaused, isUserSession, formattedTime, pauseReason, handleSystemStop, handleSystemPause, handleSystemResume]);
 
   // 서버 사이드 렌더링 시 기본 UI 반환
   if (!isClient) {
@@ -98,6 +236,7 @@ export default function DashboardPage() {
             <button 
               onClick={() => {
                 console.log('🏠 OpenManager 버튼 클릭 - 랜딩페이지로 이동');
+                recordActivity(); // 네비게이션도 활동으로 기록
                 // 서비스 종료하지 않고 단순히 랜딩페이지로 이동
                 window.location.href = '/';
               }}
@@ -115,39 +254,7 @@ export default function DashboardPage() {
 
           <div className="flex items-center gap-4">
             {/* 시스템 상태 표시 */}
-            {isSystemActive && (
-              <div className="hidden lg:flex items-center gap-3 px-3 py-1 bg-green-50 rounded-lg border border-green-200">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-green-700">시스템 실행 중</span>
-                </div>
-                <div className="text-xs text-green-600">{formattedTime}</div>
-                <button
-                  onClick={handleSystemStop}
-                  className="text-xs text-red-600 hover:text-red-800 hover:bg-red-100 px-2 py-1 rounded transition-colors"
-                  title="시스템 중지"
-                >
-                  중지
-                </button>
-              </div>
-            )}
-            
-            {/* 시스템 중지 상태 표시 */}
-            {!isSystemActive && (
-              <div className="hidden lg:flex items-center gap-3 px-3 py-1 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                  <span className="text-sm font-medium text-gray-600">시스템 중지됨</span>
-                </div>
-                <button
-                  onClick={() => window.location.href = '/'}
-                  className="text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-100 px-2 py-1 rounded transition-colors"
-                  title="랜딩페이지에서 시스템 시작"
-                >
-                  시작하기
-                </button>
-              </div>
-            )}
+            {SystemStatusDisplay}
             
             {/* 빠른 통계 - 실시간 데이터 */}
             <div className="hidden md:flex items-center gap-6">
@@ -191,10 +298,19 @@ export default function DashboardPage() {
 
             {/* 추가 액션 버튼들 */}
             <div className="flex items-center gap-2">
-              <button className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center transition-colors">
+              <button 
+                onClick={() => {
+                  recordActivity();
+                  window.location.reload();
+                }}
+                className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center transition-colors"
+              >
                 <i className="fas fa-refresh text-gray-600 text-sm bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent"></i>
               </button>
-              <button className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center transition-colors">
+              <button 
+                onClick={() => recordActivity()}
+                className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center transition-colors"
+              >
                 <i className="fas fa-bell text-gray-600 text-sm bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent"></i>
               </button>
               <ProfileDropdown />
