@@ -108,27 +108,6 @@ export default function AnswerDisplay({
         </div>
       </div>
 
-      {/* 상단에 AI 사고 과정 표시 */}
-      {isLoading && (
-        <div className="px-6 py-4 bg-gradient-to-r from-indigo-50 to-purple-50 border-b">
-          <div className="mb-2 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
-            <div className="flex items-center gap-2 text-indigo-700 font-medium text-sm">
-              <i className="fas fa-lightbulb"></i>
-              <span>AI가 질문을 분석하고 있습니다</span>
-            </div>
-            <div className="mt-1 text-xs text-indigo-600">
-              실제 ChatGPT-o1과 같은 방식으로 단계별 사고 과정을 보여드립니다
-            </div>
-          </div>
-          <ThinkingProcess
-            isActive={isLoading}
-            onComplete={(logs) => setThinkingLogs(logs)}
-            query={question}
-            serverData={metadata?.serverState?.servers || []}
-          />
-        </div>
-      )}
-
       {/* 답변 내용 */}
       <div className="px-6 py-5">
         <div className="flex items-start gap-3">
@@ -137,7 +116,26 @@ export default function AnswerDisplay({
           </div>
 
           <div className="flex-1">
-            {!isLoading ? (
+            {isLoading ? (
+              // 로딩 중 - AI 사고 과정 표시
+              <div className="space-y-4">
+                <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-indigo-700 font-medium text-sm mb-2">
+                    <i className="fas fa-lightbulb animate-pulse"></i>
+                    <span>AI가 질문을 분석하고 있습니다</span>
+                  </div>
+                  <div className="text-xs text-indigo-600 mb-3">
+                    실제 ChatGPT-o1과 같은 방식으로 단계별 사고 과정을 보여드립니다
+                  </div>
+                  <ThinkingProcess
+                    isActive={isLoading}
+                    onComplete={(logs) => setThinkingLogs(logs)}
+                    query={question}
+                    serverData={metadata?.serverState?.servers || []}
+                  />
+                </div>
+              </div>
+            ) : (
               // 답변 표시
               <div>
                 <div 
@@ -205,9 +203,6 @@ export default function AnswerDisplay({
                   question={question}
                 />
               </div>
-            ) : (
-              // 로딩 중에는 빈 div
-              <div></div>
             )}
           </div>
         </div>
