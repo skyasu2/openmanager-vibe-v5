@@ -56,7 +56,7 @@ export const useSystemControl = () => {
 
       // 3단계: AI 에이전트 활성화
       try {
-        systemLogger.system('4️⃣ AI 에이전트 활성화...');
+        systemLogger.system('2️⃣ AI 에이전트 활성화...');
         await enableAIAgent();
         systemLogger.system('✅ AI 에이전트 활성화 완료');
       } catch (error) {
@@ -65,27 +65,24 @@ export const useSystemControl = () => {
         systemLogger.error(errorMsg, error);
       }
 
+      // 결과 처리
       if (errors.length === 0) {
-        message = '🎉 시스템 전체 시작 완료! 모든 서비스가 정상 동작 중입니다.';
-        systemLogger.system('🎉 통합 시스템 시작 완료');
+        message = '🎉 통합 시스템이 성공적으로 시작되었습니다!';
+        systemLogger.system(message);
         return { success: true, message, errors };
       } else {
-        message = `⚠️ 시스템 시작 완료 (${errors.length}개 오류 발생)`;
-        systemLogger.warn(`시스템 시작 시 ${errors.length}개 오류 발생`);
+        message = `⚠️ 시스템이 부분적으로 시작되었습니다. (${errors.length}개 오류)`;
+        systemLogger.warn(message);
         return { success: false, message, errors };
       }
 
     } catch (error) {
-      const errorMsg = '시스템 시작 중 치명적 오류 발생';
+      const errorMsg = '통합 시스템 시작 중 치명적 오류 발생';
       systemLogger.error(errorMsg, error);
-      
-      // 실패 시 시스템 중지
-      stopSystem();
-      
-      return { 
-        success: false, 
-        message: errorMsg, 
-        errors: [errorMsg, ...errors] 
+      return {
+        success: false,
+        message: errorMsg,
+        errors: [error instanceof Error ? error.message : '알 수 없는 오류']
       };
     }
   };
@@ -127,45 +124,55 @@ export const useSystemControl = () => {
         
         if (systemResponse.ok) {
           systemLogger.system(`✅ 시뮬레이션 엔진 중지: ${systemData.message}`);
-        } else if (systemResponse.status === 400 && systemData.message?.includes('실행되지 않')) {
-          // 이미 중지된 경우는 정상적인 상황으로 처리
-          systemLogger.system(`ℹ️ 시뮬레이션 엔진 이미 중지됨: ${systemData.message}`);
+        } else if (systemResponse.status === 400) {
+          // 400 에러는 이미 중지된 상태로 간주하고 정상 처리
+          if (systemData.message?.includes('실행 중이 아닙니다') || 
+              systemData.message?.includes('실행되지 않')) {
+            systemLogger.system(`ℹ️ 시뮬레이션 엔진 이미 중지됨: ${systemData.message}`);
+          } else {
+            systemLogger.warn(`⚠️ 시뮬레이션 엔진 중지 경고: ${systemData.message}`);
+            errors.push(`시뮬레이션 엔진: ${systemData.message}`);
+          }
         } else {
           throw new Error(`시뮬레이션 엔진 중지 실패: ${systemData.message || '알 수 없는 오류'}`);
         }
       } catch (error) {
-        const errorMsg = '시뮬레이션 엔진 중지 실패';
-        errors.push(errorMsg);
-        systemLogger.error(errorMsg, error);
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+          // 네트워크 오류는 시스템이 이미 중지된 것으로 간주
+          systemLogger.system('ℹ️ 시뮬레이션 엔진 API 접근 불가 (이미 중지된 것으로 추정)');
+        } else {
+          const errorMsg = '시뮬레이션 엔진 중지 실패';
+          errors.push(errorMsg);
+          systemLogger.error(errorMsg, error);
+        }
       }
 
-      // 4단계: 시스템 타이머 중지
+      // 3단계: 시스템 타이머 중지
       stopSystem();
       systemLogger.system('✅ 시스템 타이머 중지 완료');
 
-      const message = errors.length === 0 
-        ? '🔴 시스템 전체 중지 완료' 
-        : `🔴 시스템 중지 완료 (${errors.length}개 경고)`;
-        
-      systemLogger.system('🔴 통합 시스템 중지 완료');
-      
-      return { 
-        success: errors.length === 0, 
-        message, 
-        errors 
-      };
+      // 결과 처리
+      if (errors.length === 0) {
+        const message = '🎉 통합 시스템이 성공적으로 중지되었습니다!';
+        systemLogger.system(message);
+        return { success: true, message, errors };
+      } else {
+        const message = `⚠️ 시스템이 부분적으로 중지되었습니다. (${errors.length}개 경고)`;
+        systemLogger.warn(message);
+        return { success: true, message, errors }; // 부분 실패도 success: true로 처리
+      }
 
     } catch (error) {
-      const errorMsg = '시스템 중지 중 치명적 오류 발생';
+      const errorMsg = '통합 시스템 중지 중 치명적 오류 발생';
       systemLogger.error(errorMsg, error);
       
-      // 강제 중지
+      // 치명적 오류가 발생해도 타이머는 중지
       stopSystem();
       
-      return { 
-        success: false, 
-        message: errorMsg, 
-        errors: [errorMsg, ...errors] 
+      return {
+        success: false,
+        message: errorMsg,
+        errors: [error instanceof Error ? error.message : '알 수 없는 오류']
       };
     }
   };
@@ -197,21 +204,16 @@ export const useSystemControl = () => {
 
   return {
     // 상태
-    systemState: state,
-    aiAgentState: aiAgent,
+    state,
     isSystemActive: state === 'active',
-    isAIEnabled: aiAgent.isEnabled,
     formattedTime: getFormattedTime(),
+    aiAgent,
     
     // 액션
     startFullSystem,
     stopFullSystem,
     restartSystem,
-    
-    // 개별 제어 (필요시)
-    startSystemOnly: () => startSystem(20 * 60),
-    stopSystemOnly: stopSystem,
-    enableAIOnly: enableAIAgent,
-    disableAIOnly: disableAIAgent
+    enableAIAgent,
+    disableAIAgent
   };
 }; 

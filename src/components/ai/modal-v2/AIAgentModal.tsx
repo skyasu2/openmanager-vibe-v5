@@ -19,21 +19,33 @@ interface AIAgentModalProps {
 
 export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
   const [isMobile, setIsMobile] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const [responseMetadata, setResponseMetadata] = useState<any>(null);
   const { state, dispatch, addToHistory, setBottomSheetState } = useModalState();
   const { servers } = useServerDataStore();
   const navigation = useModalNavigation();
 
+  // 클라이언트 사이드 확인
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   // InteractionLogger 초기화 (브라우저 환경에서만)
   useEffect(() => {
-    if (typeof window !== 'undefined' && isOpen) {
-      const logger = InteractionLogger.getInstance();
-      logger.loadFromLocalStorage();
+    if (isClient && isOpen) {
+      try {
+        const logger = InteractionLogger.getInstance();
+        logger.loadFromLocalStorage();
+      } catch (error) {
+        console.warn('InteractionLogger 초기화 실패:', error);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, isClient]);
 
-  // 화면 크기에 따른 모바일 상태 감지
+  // 화면 크기에 따른 모바일 상태 감지 (클라이언트에서만)
   useEffect(() => {
+    if (!isClient) return;
+
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
@@ -51,7 +63,7 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [dispatch, setBottomSheetState, state.bottomSheetState]);
+  }, [dispatch, setBottomSheetState, state.bottomSheetState, isClient]);
 
   // ESC 키로 모달 닫기 & 브라우저 히스토리 차단
   useEffect(() => {
@@ -243,7 +255,15 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
       `• "성능 분석 결과 보여줘"`;
   };
 
-  if (!isOpen) return null;
+  // 서버 사이드 렌더링 시 기본 UI 반환
+  if (!isClient) {
+    return null;
+  }
+
+  // 모달이 닫혀있으면 렌더링하지 않음
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center animate-fade-in">

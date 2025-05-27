@@ -189,6 +189,7 @@ const fallbackServers: Server[] = [
 export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps) {
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isClient, setIsClient] = useState(false);
   
   // ✅ API 기반 서버 데이터 스토어 사용
   const { 
@@ -198,26 +199,41 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
     isLoading, 
     error 
   } = useServerDataStore();
+
+  // 클라이언트 사이드 확인
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   
-  // 서버 데이터를 Server 타입으로 변환
-  const currentServers: Server[] = servers.map(server => ({
-    id: server.id,
-    name: server.name,
-    status: server.status === 'healthy' ? 'online' : 
-            server.status === 'warning' ? 'warning' : 'offline',
-    location: server.location,
-    cpu: server.metrics.cpu,
-    memory: server.metrics.memory,
-    disk: server.metrics.disk,
-    uptime: `${server.uptime}일`,
-    lastUpdate: server.lastUpdate,
-    alerts: server.status === 'critical' ? 3 : server.status === 'warning' ? 1 : 0,
-    services: [
-      { name: 'nginx', status: server.status === 'critical' ? 'stopped' : 'running', port: 80 },
-      { name: 'nodejs', status: 'running', port: 3000 },
-      { name: 'gunicorn', status: 'running', port: 8000 }
-    ]
-  }));
+  // 서버 데이터를 Server 타입으로 변환 (클라이언트에서만)
+  const currentServers: Server[] = useMemo(() => {
+    if (!isClient) {
+      return [];
+    }
+
+    if (servers.length === 0) {
+      return fallbackServers;
+    }
+
+    return servers.map(server => ({
+      id: server.id,
+      name: server.name,
+      status: server.status === 'healthy' ? 'online' : 
+              server.status === 'warning' ? 'warning' : 'offline',
+      location: server.location,
+      cpu: server.metrics.cpu,
+      memory: server.metrics.memory,
+      disk: server.metrics.disk,
+      uptime: `${server.uptime}일`,
+      lastUpdate: server.lastUpdate,
+      alerts: server.status === 'critical' ? 3 : server.status === 'warning' ? 1 : 0,
+      services: [
+        { name: 'nginx', status: server.status === 'critical' ? 'stopped' : 'running', port: 80 },
+        { name: 'nodejs', status: 'running', port: 3000 },
+        { name: 'gunicorn', status: 'running', port: 8000 }
+      ]
+    }));
+  }, [servers, isClient]);
 
   // 서버 통계 계산 (useMemo로 최적화)
   const serverStats = useMemo(() => ({
@@ -227,8 +243,10 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
     offline: currentServers.filter((s: Server) => s.status === 'offline').length
   }), [currentServers]);
 
-  // ✅ 컴포넌트 마운트 시 서버 데이터 로드 (백그라운드에서)
+  // ✅ 컴포넌트 마운트 시 서버 데이터 로드 (클라이언트에서만)
   useEffect(() => {
+    if (!isClient) return;
+
     // 백그라운드에서 최신 데이터 가져오기 (이미 초기 데이터가 있으므로)
     refreshData();
     
@@ -238,14 +256,14 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
     }, 5000);
     
     return () => clearInterval(interval);
-  }, [refreshData]);
+  }, [refreshData, isClient]);
 
   // 통계 업데이트 알림
   useEffect(() => {
-    if (onStatsUpdate) {
+    if (onStatsUpdate && isClient) {
       onStatsUpdate(serverStats);
     }
-  }, [onStatsUpdate, serverStats]);
+  }, [onStatsUpdate, serverStats, isClient]);
 
   // 검색 필터링
   const filteredServers = useMemo(() => {
@@ -271,6 +289,19 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
     };
     return groups;
   }, [filteredServers]);
+
+  // 서버 사이드 렌더링 시 기본 UI 반환
+  if (!isClient) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">서버 연결 중</h3>
+          <p className="text-gray-600">모니터링 시스템을 초기화하고 있습니다...</p>
+        </div>
+      </div>
+    );
+  }
 
   // 서버가 없는 경우만 로딩 표시 (초기 데이터는 항상 있음)
   if (currentServers.length === 0) {

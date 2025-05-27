@@ -24,9 +24,6 @@ interface ChatMessage {
   type: 'user' | 'ai';
   content: string;
   timestamp: Date;
-  relatedServers?: string[];
-  hasChart?: boolean;
-  actionButtons?: string[];
 }
 
 interface SystemStatus {
@@ -39,18 +36,20 @@ interface SystemStatus {
 }
 
 interface ServerDataStore {
-  // State
+  // 서버 데이터
   servers: Server[];
   chatMessages: ChatMessage[];
   systemStatus: SystemStatus;
   selectedServer: Server | null;
   highlightedServers: string[];
+  
+  // UI 상태
   isAutoDemo: boolean;
   currentScenarioIndex: number;
   isTyping: boolean;
   isLoading: boolean;
   error: string | null;
-
+  
   // Actions
   addMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'>) => void;
   highlightServers: (serverIds: string[]) => void;
@@ -66,6 +65,68 @@ interface ServerDataStore {
   fetchServers: () => Promise<void>;
   refreshData: () => Promise<void>;
 }
+
+// ✅ 안전한 초기 서버 데이터 생성 (hydration 에러 방지)
+const getInitialServers = (): Server[] => {
+  // 서버 사이드에서는 빈 배열 반환
+  if (typeof window === 'undefined') {
+    return [];
+  }
+  
+  // 클라이언트 사이드에서만 초기 데이터 생성
+  return [
+    {
+      id: 'api-eu-043',
+      name: 'api-eu-043',
+      status: 'healthy',
+      location: 'EU West',
+      type: 'API',
+      metrics: { cpu: 19, memory: 36.2, disk: 34.6, network: 12 },
+      uptime: 15,
+      lastUpdate: new Date()
+    },
+    {
+      id: 'api-eu-045',
+      name: 'api-eu-045',
+      status: 'warning',
+      location: 'EU West',
+      type: 'API',
+      metrics: { cpu: 48, memory: 29.2, disk: 15.6, network: 25 },
+      uptime: 8,
+      lastUpdate: new Date()
+    },
+    {
+      id: 'api-jp-040',
+      name: 'api-jp-040',
+      status: 'critical',
+      location: 'Asia Pacific',
+      type: 'API',
+      metrics: { cpu: 19, memory: 53.2, disk: 29.6, network: 45 },
+      uptime: 3,
+      lastUpdate: new Date()
+    },
+    {
+      id: 'api-sg-042',
+      name: 'api-sg-042',
+      status: 'warning',
+      location: 'Singapore',
+      type: 'API',
+      metrics: { cpu: 37, memory: 41.2, disk: 19.6, network: 18 },
+      uptime: 8,
+      lastUpdate: new Date()
+    },
+    {
+      id: 'db-us-001',
+      name: 'db-us-001',
+      status: 'healthy',
+      location: 'US East',
+      type: 'DATABASE',
+      metrics: { cpu: 23, memory: 45.8, disk: 67.2, network: 8 },
+      uptime: 22,
+      lastUpdate: new Date()
+    }
+  ];
+};
 
 // ✅ API 기반 서버 데이터 가져오기
 const fetchServersFromAPI = async (): Promise<Server[]> => {
@@ -101,182 +162,74 @@ const fetchServersFromAPI = async (): Promise<Server[]> => {
   }
 };
 
-// 향상된 백업 데이터 생성 (더 현실적이고 일관된 데이터)
-const generateEnhancedServers = (): Server[] => [
-  {
-    id: 'web-prod-01',
-    name: 'web-prod-01',
-    status: 'healthy',
-    location: 'Seoul-IDC-1',
-    type: 'WEB',
-    metrics: { cpu: 45, memory: 62, disk: 34, network: 12 },
-    uptime: 15,
-    lastUpdate: new Date()
-  },
-  {
-    id: 'db-master-01', 
-    name: 'db-master-01',
-    status: 'critical',
-    location: 'Seoul-IDC-1', 
-    type: 'DATABASE',
-    metrics: { cpu: 89, memory: 76, disk: 45, network: 45 },
-    uptime: 8,
-    lastUpdate: new Date()
-  },
-  {
-    id: 'api-gateway-prod',
-    name: 'api-gateway-prod',
-    status: 'warning',
-    location: 'AWS-Seoul-1',
-    type: 'API',
-    metrics: { cpu: 72, memory: 68, disk: 23, network: 28 },
-    uptime: 22,
-    lastUpdate: new Date()
-  },
-  {
-    id: 'cache-redis-01',
-    name: 'cache-redis-01', 
-    status: 'healthy',
-    location: 'Seoul-IDC-1',
-    type: 'CACHE',
-    metrics: { cpu: 28, memory: 45, disk: 67, network: 8 },
-    uptime: 31,
-    lastUpdate: new Date()
-  },
-  {
-    id: 'k8s-worker-01',
-    name: 'k8s-worker-01',
-    status: 'warning',
-    location: 'AWS-Seoul-1',
-    type: 'KUBERNETES', 
-    metrics: { cpu: 67, memory: 58, disk: 34, network: 23 },
-    uptime: 12,
-    lastUpdate: new Date()
-  },
-  {
-    id: 'proxy-nginx-01',
-    name: 'proxy-nginx-01',
-    status: 'healthy',
-    location: 'Seoul-IDC-1',
-    type: 'PROXY',
-    metrics: { cpu: 34, memory: 42, disk: 78, network: 15 },
-    uptime: 45,
-    lastUpdate: new Date()
-  },
-  {
-    id: 'monitoring-elk',
-    name: 'monitoring-elk',
-    status: 'warning',
-    location: 'AWS-Seoul-1',
-    type: 'MONITORING',
-    metrics: { cpu: 78, memory: 84, disk: 56, network: 32 },
-    uptime: 7,
-    lastUpdate: new Date()
-  },
-  {
-    id: 'backup-storage-01',
-    name: 'backup-storage-01',
-    status: 'healthy',
-    location: 'Seoul-IDC-1',
-    type: 'STORAGE',
-    metrics: { cpu: 12, memory: 28, disk: 89, network: 5 },
-    uptime: 67,
-    lastUpdate: new Date()
-  }
-];
+// ✅ 향상된 서버 데이터 생성 (백업용)
+const generateEnhancedServers = (): Server[] => {
+  const serverConfigs = [
+    { id: 'api-eu-043', name: 'api-eu-043', location: 'EU West', type: 'API' },
+    { id: 'api-eu-045', name: 'api-eu-045', location: 'EU West', type: 'API' },
+    { id: 'api-jp-040', name: 'api-jp-040', location: 'Asia Pacific', type: 'API' },
+    { id: 'api-sg-042', name: 'api-sg-042', location: 'Singapore', type: 'API' },
+    { id: 'db-us-001', name: 'db-us-001', location: 'US East', type: 'DATABASE' },
+    { id: 'cache-eu-001', name: 'cache-eu-001', location: 'EU Central', type: 'CACHE' },
+    { id: 'web-us-002', name: 'web-us-002', location: 'US West', type: 'WEB' },
+    { id: 'api-kr-001', name: 'api-kr-001', location: 'Korea', type: 'API' }
+  ];
 
-// 기본 백업 데이터 생성
-const generateFallbackServers = (): Server[] => {
-  return Array.from({ length: 10 }, (_, i) => ({
-    id: `server-${i + 1}`,
-    name: `서버-${String(i + 1).padStart(2, '0')}`,
-    status: ['healthy', 'warning', 'critical'][Math.floor(Math.random() * 3)] as Server['status'],
-    location: ['서울', '부산', '대구', '인천'][Math.floor(Math.random() * 4)],
-    type: ['WEB', 'DB', 'API', 'CACHE'][Math.floor(Math.random() * 4)],
-    metrics: {
-      cpu: Math.floor(Math.random() * 100),
-      memory: Math.floor(Math.random() * 100),
-      disk: Math.floor(Math.random() * 100),
-      network: Math.floor(Math.random() * 100)
-    },
-    uptime: Math.floor(Math.random() * 365),
-    lastUpdate: new Date()
-  }));
+  return serverConfigs.map((config, index) => {
+    const statuses: Server['status'][] = ['healthy', 'warning', 'critical'];
+    const status = statuses[index % 3];
+    
+    return {
+      id: config.id,
+      name: config.name,
+      status,
+      location: config.location,
+      type: config.type,
+      metrics: {
+        cpu: Math.floor(Math.random() * 80) + 10,
+        memory: Math.floor(Math.random() * 70) + 20,
+        disk: Math.floor(Math.random() * 60) + 30,
+        network: Math.floor(Math.random() * 50) + 5
+      },
+      uptime: Math.floor(Math.random() * 30) + 1,
+      lastUpdate: new Date()
+    };
+  });
 };
 
-// ✅ 안정적인 초기 데이터 (즉시 표시용)
-const getInitialServers = (): Server[] => [
-  {
-    id: 'web-prod-01',
-    name: 'web-prod-01',
-    status: 'healthy' as const,
-    location: 'Seoul-IDC-1',
-    type: 'WEB',
-    metrics: { cpu: 45, memory: 62, disk: 34, network: 12 },
-    uptime: 15,
-    lastUpdate: new Date()
-  },
-  {
-    id: 'db-master-01', 
-    name: 'db-master-01',
-    status: 'critical' as const,
-    location: 'Seoul-IDC-1', 
-    type: 'DATABASE',
-    metrics: { cpu: 89, memory: 76, disk: 45, network: 45 },
-    uptime: 8,
-    lastUpdate: new Date()
-  },
-  {
-    id: 'api-gateway-prod',
-    name: 'api-gateway-prod',
-    status: 'warning' as const,
-    location: 'AWS-Seoul-1',
-    type: 'API',
-    metrics: { cpu: 72, memory: 68, disk: 23, network: 28 },
-    uptime: 22,
-    lastUpdate: new Date()
-  },
-  {
-    id: 'cache-redis-01',
-    name: 'cache-redis-01', 
-    status: 'healthy' as const,
-    location: 'Seoul-IDC-1',
-    type: 'CACHE',
-    metrics: { cpu: 28, memory: 45, disk: 67, network: 8 },
-    uptime: 31,
-    lastUpdate: new Date()
-  },
-  {
-    id: 'k8s-worker-01',
-    name: 'k8s-worker-01',
-    status: 'warning' as const,
-    location: 'AWS-Seoul-1',
-    type: 'KUBERNETES', 
-    metrics: { cpu: 67, memory: 58, disk: 34, network: 23 },
-    uptime: 12,
-    lastUpdate: new Date()
+// ✅ 안전한 초기 메시지 생성
+const getInitialMessages = (): ChatMessage[] => {
+  if (typeof window === 'undefined') {
+    return [];
   }
-];
-
-export const useServerDataStore = create<ServerDataStore>((set, get) => ({
-  // 초기 상태 - 즉시 표시되는 안정적인 데이터
-  servers: getInitialServers(),
-  chatMessages: [
+  
+  return [
     {
       id: 'welcome-1',
       type: 'ai',
       content: '안녕하세요! OpenManager AI입니다. 🤖\n실시간 서버 모니터링을 시작합니다.',
       timestamp: new Date(),
     }
-  ],
-  systemStatus: {
-    totalServers: 5,
-    healthyServers: 2,
-    warningServers: 2,
-    criticalServers: 1,
-    activeAlerts: 3,
+  ];
+};
+
+// ✅ 안전한 초기 시스템 상태
+const getInitialSystemStatus = (): SystemStatus => {
+  return {
+    totalServers: 0,
+    healthyServers: 0,
+    warningServers: 0,
+    criticalServers: 0,
+    activeAlerts: 0,
     lastUpdate: new Date()
-  },
+  };
+};
+
+export const useServerDataStore = create<ServerDataStore>((set, get) => ({
+  // 초기 상태 - hydration 에러 방지
+  servers: getInitialServers(),
+  chatMessages: getInitialMessages(),
+  systemStatus: getInitialSystemStatus(),
   selectedServer: null,
   highlightedServers: [],
   isAutoDemo: false,
@@ -322,14 +275,7 @@ export const useServerDataStore = create<ServerDataStore>((set, get) => ({
   })),
 
   resetDemo: () => set({
-    chatMessages: [
-      {
-        id: 'welcome-1',
-        type: 'ai',
-        content: '안녕하세요! OpenManager AI입니다. 🤖\n현재 서버를 실시간으로 모니터링하고 있습니다.',
-        timestamp: new Date(),
-      }
-    ],
+    chatMessages: getInitialMessages(),
     selectedServer: null,
     highlightedServers: [],
     currentScenarioIndex: 0,

@@ -8,6 +8,7 @@ import { useSystemControl } from '../../hooks/useSystemControl';
 
 export default function DashboardPage() {
   const [isAgentOpen, setIsAgentOpen] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const [serverStats, setServerStats] = useState({
     total: 0,
     online: 0,
@@ -22,14 +23,21 @@ export default function DashboardPage() {
     stopFullSystem
   } = useSystemControl();
 
-  // 자동 인증 설정 (접근성 개선)
+  // 클라이언트 사이드 확인
   useEffect(() => {
-    console.log('🔓 대시보드 접근 - 자동 인증 처리');
-    localStorage.setItem('dashboard_auth_token', `auto_${Date.now()}`);
-    sessionStorage.setItem('dashboard_authorized', 'true');
-    localStorage.setItem('dashboard_access_time', Date.now().toString());
-    localStorage.setItem('authorized_from_index', 'true');
+    setIsClient(true);
   }, []);
+
+  // 자동 인증 설정 (클라이언트 사이드에서만)
+  useEffect(() => {
+    if (isClient) {
+      console.log('🔓 대시보드 접근 - 자동 인증 처리');
+      localStorage.setItem('dashboard_auth_token', `auto_${Date.now()}`);
+      sessionStorage.setItem('dashboard_authorized', 'true');
+      localStorage.setItem('dashboard_access_time', Date.now().toString());
+      localStorage.setItem('authorized_from_index', 'true');
+    }
+  }, [isClient]);
 
   const closeAgent = () => {
     setIsAgentOpen(false);
@@ -42,6 +50,44 @@ export default function DashboardPage() {
       setIsAgentOpen(true);
     }
   };
+
+  // 시스템 중지 핸들러
+  const handleSystemStop = useCallback(async () => {
+    if (!confirm('시스템을 중지하시겠습니까?\n\n• 모든 서버 모니터링이 중단됩니다\n• AI 에이전트가 비활성화됩니다')) {
+      return;
+    }
+
+    try {
+      const result = await stopFullSystem();
+      
+      if (result.success) {
+        console.log('✅ 시스템 중지 완료:', result.message);
+        alert(`${result.message}\n\n랜딩페이지로 이동합니다.`);
+        // 랜딩페이지로 이동
+        window.location.href = '/';
+      } else {
+        console.warn('⚠️ 시스템 중지 중 일부 오류:', result.errors);
+        alert(`${result.message}\n\n오류 내용:\n${result.errors.join('\n')}`);
+      }
+    } catch (error) {
+      console.error('❌ 시스템 중지 실패:', error);
+      alert('시스템 중지 중 오류가 발생했습니다.\n다시 시도해주세요.');
+    }
+  }, [stopFullSystem]);
+
+  // 서버 사이드 렌더링 시 기본 UI 반환
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">대시보드를 로드하고 있습니다...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -77,16 +123,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="text-xs text-green-600">{formattedTime}</div>
                 <button
-                  onClick={async () => {
-                    if (confirm('시스템을 중지하시겠습니까?\n\n• 모든 서버 모니터링이 중단됩니다\n• AI 에이전트가 비활성화됩니다')) {
-                      const result = await stopFullSystem();
-                      alert(result.message);
-                      if (result.success) {
-                        // 랜딩페이지로 이동
-                        window.location.href = '/';
-                      }
-                    }
-                  }}
+                  onClick={handleSystemStop}
                   className="text-xs text-red-600 hover:text-red-800 hover:bg-red-100 px-2 py-1 rounded transition-colors"
                   title="시스템 중지"
                 >

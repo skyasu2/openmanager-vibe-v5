@@ -7,8 +7,22 @@ const nextConfig: NextConfig = {
   // App Router 강제 우선순위
   experimental: {
     optimizeServerReact: true,
-    optimizePackageImports: ['lucide-react', 'framer-motion']
+    optimizePackageImports: ['lucide-react', 'framer-motion'],
+    // hydration 에러 처리 개선
+    serverComponentsExternalPackages: ['ioredis'],
   },
+
+  // React 설정 (hydration 에러 처리)
+  reactStrictMode: true,
+  
+  // 개발 환경 설정
+  ...(process.env.NODE_ENV === 'development' && {
+    // 개발 환경에서 hydration 에러 더 자세히 표시
+    onDemandEntries: {
+      maxInactiveAge: 25 * 1000,
+      pagesBufferLength: 2,
+    },
+  }),
 
   // 정적 파일 우선순위 조정
   assetPrefix: '',
@@ -95,7 +109,7 @@ const nextConfig: NextConfig = {
   },
 
   // Webpack 설정
-  webpack: (config: any, { isServer }: { isServer: boolean }) => {
+  webpack: (config: any, { isServer, dev }: { isServer: boolean; dev: boolean }) => {
     // 클라이언트 사이드에서 Node.js 모듈 제외
     if (!isServer) {
       config.resolve.fallback = {
@@ -106,6 +120,15 @@ const nextConfig: NextConfig = {
         dns: false,
         child_process: false,
         'ioredis': false,
+      };
+    }
+
+    // 개발 환경에서 더 나은 에러 처리
+    if (dev) {
+      config.optimization = {
+        ...config.optimization,
+        // 개발 환경에서 minification 비활성화 (에러 메시지 개선)
+        minimize: false,
       };
     }
 
@@ -123,7 +146,14 @@ const nextConfig: NextConfig = {
     }
 
     return config;
-  }
+  },
+
+  // 로깅 설정
+  logging: {
+    fetches: {
+      fullUrl: process.env.NODE_ENV === 'development',
+    },
+  },
 };
 
 export default nextConfig;
