@@ -48,8 +48,8 @@ export default function ProfileDropdown({
     switch (aiAgent.state) {
       case 'enabled': return '활성화됨';
       case 'disabled': return '비활성화됨';
-      case 'loading': return '로딩 중...';
-      case 'error': return '오류';
+      case 'processing': return '처리 중...';
+      case 'idle': return '대기 중';
       default: return '비활성화됨';
     }
   };
@@ -58,8 +58,8 @@ export default function ProfileDropdown({
     switch (aiAgent.state) {
       case 'enabled': return 'text-green-400';
       case 'disabled': return 'text-gray-400';
-      case 'loading': return 'text-blue-400';
-      case 'error': return 'text-red-400';
+      case 'processing': return 'text-blue-400';
+      case 'idle': return 'text-yellow-400';
       default: return 'text-gray-400';
     }
   };
@@ -130,13 +130,13 @@ export default function ProfileDropdown({
               {/* 토글 스위치 */}
               <button
                 onClick={handleToggleAI}
-                disabled={aiAgent.state === 'loading' || systemState !== 'active'}
+                disabled={aiAgent.state === 'processing' || systemState !== 'active'}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
                   aiAgent.isEnabled 
                     ? 'bg-gradient-to-r from-green-500 to-green-600' 
                     : 'bg-gray-600'
                 } ${
-                  aiAgent.state === 'loading' || systemState !== 'active' 
+                  aiAgent.state === 'processing' || systemState !== 'active' 
                     ? 'opacity-50 cursor-not-allowed' 
                     : 'cursor-pointer'
                 }`}

@@ -1,0 +1,5 @@
+fix: ProfileDropdown AIAgentState 타입 오류 수정
+
+- 'loading' -> 'processing'으로 변경
+- 'error' -> 'idle'로 변경
+- TypeScript 타입 시스템과 완전 호환
