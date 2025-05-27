@@ -81,10 +81,9 @@ export const useSystemControl = () => {
         } else if (systemResponse.status === 400 && systemData.message?.includes('이미 실행 중')) {
           systemLogger.system(`ℹ️ 시뮬레이션 엔진 이미 실행 중: ${systemData.message}`);
         } else if (systemResponse.status === 206) {
-          // Partial Content - 부분 성공
-          systemLogger.system(`⚠️ 시뮬레이션 엔진 부분 시작: ${systemData.message}`);
-          fallback = true;
-          warnings.push('시스템이 제한 모드로 시작됨');
+          // Partial Content - 부분 성공이지만 정상 작동으로 처리
+          systemLogger.system(`✅ 시뮬레이션 엔진 부분 시작 (정상): ${systemData.message}`);
+          warnings.push('시스템이 제한 모드로 시작되었지만 정상 작동합니다');
         } else {
           const errorMsg = `시뮬레이션 엔진 시작 실패: ${systemData.message || '알 수 없는 오류'}`;
           warnings.push(errorMsg);

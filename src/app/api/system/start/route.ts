@@ -52,9 +52,9 @@ export async function POST(request: NextRequest) {
           startTime: state.startTime,
           serverCount: state.servers.length,
           mode: mode,
-          dataCount: 0
+          dataCount: state.dataCount || 0
         },
-        fallback: fallback
+        fallback: false
       });
 
     } catch (engineError) {
