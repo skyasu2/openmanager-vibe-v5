@@ -117,7 +117,7 @@ export default function HomePage() {
     
     // 활성 모드일 때 주기적으로 상태 업데이트
     let statusInterval: NodeJS.Timeout;
-    if (isSystemActive || dataGeneratorStatus.isGenerating) {
+    if (isSystemActive || (dataGeneratorStatus && dataGeneratorStatus.isGenerating)) {
       statusInterval = setInterval(() => {
         updateGeneratorStatus();
       }, 1000); // 1초마다 업데이트
@@ -128,7 +128,7 @@ export default function HomePage() {
         clearInterval(statusInterval);
       }
     };
-  }, [isSystemActive, dataGeneratorStatus.isGenerating, updateGeneratorStatus]);
+  }, [isSystemActive, dataGeneratorStatus?.isGenerating, updateGeneratorStatus]);
 
   // 🚀 사용자 세션 시작 함수 (Vercel 최적화)
   const handleStartFullSystem = async () => {
