@@ -46,7 +46,13 @@ export type ServerType =
   | 'storage' 
   | 'gateway' 
   | 'worker' 
-  | 'monitoring';
+  | 'monitoring'
+  | 'mail'
+  | 'proxy'
+  | 'kubernetes'
+  | 'analytics'
+  | 'ci_cd'
+  | 'security';
 
 // 클라우드 제공자 타입
 export type CloudProvider = 

@@ -142,16 +142,36 @@ export class MetricsStorageService {
   }
 
   /**
-   * 기본 서버 목록 (Fallback용)
+   * 기본 서버 목록 (Fallback용) - 20개 서버
    */
   private getDefaultServerList(): string[] {
-    console.log('🔄 기본 서버 목록 사용');
+    console.log('🔄 기본 서버 목록 사용 (20개)');
     return [
+      // 온프레미스 서버 (7개)
       'web-prod-01',
-      'db-master-01', 
-      'api-gateway-01',
+      'db-master-01',
       'cache-redis-01',
-      'worker-01'
+      'backup-storage-01',
+      'mail-server-01',
+      'file-server-nfs',
+      'proxy-nginx-01',
+      
+      // 쿠버네티스 클러스터 (6개)
+      'k8s-master-01',
+      'k8s-worker-01',
+      'k8s-worker-02',
+      'k8s-ingress-01',
+      'k8s-logging-01',
+      'k8s-monitoring-01',
+      
+      // AWS EC2 인스턴스 (7개)
+      'api-gateway-prod',
+      'analytics-worker',
+      'monitoring-elk',
+      'jenkins-ci-cd',
+      'grafana-metrics',
+      'vault-secrets',
+      'staging-web-01'
     ];
   }
 

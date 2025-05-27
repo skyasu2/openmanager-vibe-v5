@@ -103,7 +103,7 @@ export class VirtualServerManager {
       console.error('❌ VirtualServerManager 빠른 초기화 실패:', error);
       // Fallback: 최소한의 서버라도 생성
       if (this.servers.length === 0) {
-        this.servers = this.generateVirtualServers().slice(0, 2); // 2개만 생성
+        this.servers = this.generateVirtualServers().slice(0, 10); // 10개만 생성
         console.log(`🔄 Fallback: ${this.servers.length}개 최소 서버 생성`);
       }
     }
@@ -163,17 +163,18 @@ export class VirtualServerManager {
   }
 
   /**
-   * 5개의 가상 서버 생성
+   * 20개의 가상 서버 생성 (온프레미스 7 + 쿠버네티스 6 + AWS 7)
    */
   private generateVirtualServers(): VirtualServer[] {
     const serverTemplates = [
+      // === 온프레미스 서버 (7개) - Seoul-IDC-1 ===
       {
         hostname: 'web-prod-01',
         name: 'Production Web Server',
         type: 'web' as const,
         environment: 'production' as const,
-        location: 'Seoul, Korea',
-        provider: 'aws' as const,
+        location: 'Seoul-IDC-1',
+        provider: 'onpremise' as const,
         specs: { cpu_cores: 8, memory_gb: 32, disk_gb: 500 },
         baseMetrics: { cpu_base: 35, memory_base: 60, disk_base: 45 },
         patterns: {
@@ -188,8 +189,8 @@ export class VirtualServerManager {
         name: 'Database Master Server',
         type: 'database' as const,
         environment: 'production' as const,
-        location: 'Tokyo, Japan',
-        provider: 'gcp' as const,
+        location: 'Seoul-IDC-1',
+        provider: 'onpremise' as const,
         specs: { cpu_cores: 16, memory_gb: 64, disk_gb: 2000 },
         baseMetrics: { cpu_base: 45, memory_base: 75, disk_base: 60 },
         patterns: {
@@ -200,27 +201,11 @@ export class VirtualServerManager {
         }
       },
       {
-        hostname: 'api-gateway-01',
-        name: 'API Gateway Server',
-        type: 'api' as const,
-        environment: 'production' as const,
-        location: 'Singapore',
-        provider: 'azure' as const,
-        specs: { cpu_cores: 4, memory_gb: 16, disk_gb: 200 },
-        baseMetrics: { cpu_base: 25, memory_base: 50, disk_base: 30 },
-        patterns: {
-          business_hours: true,
-          peak_hours: [8, 11, 13, 17, 20],
-          maintenance_window: 4,
-          failure_rate: 0.03
-        }
-      },
-      {
         hostname: 'cache-redis-01',
         name: 'Redis Cache Server',
         type: 'cache' as const,
         environment: 'production' as const,
-        location: 'Seoul, Korea',
+        location: 'Seoul-IDC-1',
         provider: 'onpremise' as const,
         specs: { cpu_cores: 8, memory_gb: 128, disk_gb: 1000 },
         baseMetrics: { cpu_base: 20, memory_base: 80, disk_base: 25 },
@@ -232,19 +217,279 @@ export class VirtualServerManager {
         }
       },
       {
-        hostname: 'storage-nfs-01',
-        name: 'NFS Storage Server',
+        hostname: 'backup-storage-01',
+        name: 'Backup Storage Server',
         type: 'storage' as const,
         environment: 'production' as const,
-        location: 'Busan, Korea',
+        location: 'Seoul-IDC-1',
         provider: 'onpremise' as const,
-        specs: { cpu_cores: 4, memory_gb: 32, disk_gb: 10000 },
+        specs: { cpu_cores: 4, memory_gb: 16, disk_gb: 5000 },
         baseMetrics: { cpu_base: 15, memory_base: 40, disk_base: 70 },
         patterns: {
           business_hours: false,
           peak_hours: [2, 6, 22],
           maintenance_window: 1,
           failure_rate: 0.005
+        }
+      },
+      {
+        hostname: 'mail-server-01',
+        name: 'Mail Server',
+        type: 'mail' as const,
+        environment: 'production' as const,
+        location: 'Seoul-IDC-1',
+        provider: 'onpremise' as const,
+        specs: { cpu_cores: 4, memory_gb: 16, disk_gb: 1000 },
+        baseMetrics: { cpu_base: 25, memory_base: 45, disk_base: 35 },
+        patterns: {
+          business_hours: true,
+          peak_hours: [9, 13, 17],
+          maintenance_window: 4,
+          failure_rate: 0.01
+        }
+      },
+      {
+        hostname: 'file-server-nfs',
+        name: 'NFS File Server',
+        type: 'storage' as const,
+        environment: 'production' as const,
+        location: 'Seoul-IDC-1',
+        provider: 'onpremise' as const,
+        specs: { cpu_cores: 6, memory_gb: 32, disk_gb: 10000 },
+        baseMetrics: { cpu_base: 18, memory_base: 50, disk_base: 65 },
+        patterns: {
+          business_hours: true,
+          peak_hours: [8, 12, 16, 20],
+          maintenance_window: 3,
+          failure_rate: 0.008
+        }
+      },
+      {
+        hostname: 'proxy-nginx-01',
+        name: 'Nginx Proxy Server',
+        type: 'proxy' as const,
+        environment: 'production' as const,
+        location: 'Seoul-IDC-1',
+        provider: 'onpremise' as const,
+        specs: { cpu_cores: 8, memory_gb: 16, disk_gb: 200 },
+        baseMetrics: { cpu_base: 30, memory_base: 55, disk_base: 25 },
+        patterns: {
+          business_hours: true,
+          peak_hours: [9, 12, 15, 18, 21],
+          maintenance_window: 5,
+          failure_rate: 0.02
+        }
+      },
+
+      // === 쿠버네티스 클러스터 (6개) - AWS-Seoul-1 EKS ===
+      {
+        hostname: 'k8s-master-01',
+        name: 'Kubernetes Master Node',
+        type: 'kubernetes' as const,
+        environment: 'production' as const,
+        location: 'AWS-Seoul-1',
+        provider: 'aws' as const,
+        specs: { cpu_cores: 4, memory_gb: 16, disk_gb: 200 },
+        baseMetrics: { cpu_base: 40, memory_base: 65, disk_base: 30 },
+        patterns: {
+          business_hours: true,
+          peak_hours: [9, 12, 15, 18],
+          maintenance_window: 2,
+          failure_rate: 0.005
+        }
+      },
+      {
+        hostname: 'k8s-worker-01',
+        name: 'Kubernetes Worker Node 1',
+        type: 'kubernetes' as const,
+        environment: 'production' as const,
+        location: 'AWS-Seoul-1',
+        provider: 'aws' as const,
+        specs: { cpu_cores: 8, memory_gb: 32, disk_gb: 500 },
+        baseMetrics: { cpu_base: 50, memory_base: 70, disk_base: 35 },
+        patterns: {
+          business_hours: true,
+          peak_hours: [10, 13, 16, 19],
+          maintenance_window: 3,
+          failure_rate: 0.01
+        }
+      },
+      {
+        hostname: 'k8s-worker-02',
+        name: 'Kubernetes Worker Node 2',
+        type: 'kubernetes' as const,
+        environment: 'production' as const,
+        location: 'AWS-Seoul-1',
+        provider: 'aws' as const,
+        specs: { cpu_cores: 8, memory_gb: 32, disk_gb: 500 },
+        baseMetrics: { cpu_base: 45, memory_base: 68, disk_base: 32 },
+        patterns: {
+          business_hours: true,
+          peak_hours: [9, 14, 17, 20],
+          maintenance_window: 4,
+          failure_rate: 0.01
+        }
+      },
+      {
+        hostname: 'k8s-ingress-01',
+        name: 'Kubernetes Ingress Controller',
+        type: 'kubernetes' as const,
+        environment: 'production' as const,
+        location: 'AWS-Seoul-1',
+        provider: 'aws' as const,
+        specs: { cpu_cores: 4, memory_gb: 16, disk_gb: 100 },
+        baseMetrics: { cpu_base: 35, memory_base: 60, disk_base: 20 },
+        patterns: {
+          business_hours: true,
+          peak_hours: [8, 11, 14, 17, 21],
+          maintenance_window: 5,
+          failure_rate: 0.015
+        }
+      },
+      {
+        hostname: 'k8s-logging-01',
+        name: 'Kubernetes Logging Server',
+        type: 'kubernetes' as const,
+        environment: 'production' as const,
+        location: 'AWS-Seoul-1',
+        provider: 'aws' as const,
+        specs: { cpu_cores: 6, memory_gb: 24, disk_gb: 1000 },
+        baseMetrics: { cpu_base: 25, memory_base: 55, disk_base: 50 },
+        patterns: {
+          business_hours: false,
+          peak_hours: [1, 12, 18],
+          maintenance_window: 2,
+          failure_rate: 0.008
+        }
+      },
+      {
+        hostname: 'k8s-monitoring-01',
+        name: 'Kubernetes Monitoring Server',
+        type: 'kubernetes' as const,
+        environment: 'production' as const,
+        location: 'AWS-Seoul-1',
+        provider: 'aws' as const,
+        specs: { cpu_cores: 6, memory_gb: 24, disk_gb: 500 },
+        baseMetrics: { cpu_base: 30, memory_base: 60, disk_base: 40 },
+        patterns: {
+          business_hours: false,
+          peak_hours: [0, 6, 12, 18],
+          maintenance_window: 4,
+          failure_rate: 0.006
+        }
+      },
+
+      // === AWS EC2 인스턴스 (7개) ===
+      {
+        hostname: 'api-gateway-prod',
+        name: 'API Gateway Production',
+        type: 'api' as const,
+        environment: 'production' as const,
+        location: 'AWS-Seoul-1',
+        provider: 'aws' as const,
+        specs: { cpu_cores: 4, memory_gb: 16, disk_gb: 200 },
+        baseMetrics: { cpu_base: 25, memory_base: 50, disk_base: 30 },
+        patterns: {
+          business_hours: true,
+          peak_hours: [8, 11, 13, 17, 20],
+          maintenance_window: 4,
+          failure_rate: 0.03
+        }
+      },
+      {
+        hostname: 'analytics-worker',
+        name: 'Analytics Worker Server',
+        type: 'analytics' as const,
+        environment: 'production' as const,
+        location: 'AWS-Seoul-1',
+        provider: 'aws' as const,
+        specs: { cpu_cores: 16, memory_gb: 64, disk_gb: 1000 },
+        baseMetrics: { cpu_base: 60, memory_base: 75, disk_base: 45 },
+        patterns: {
+          business_hours: false,
+          peak_hours: [2, 8, 14, 20],
+          maintenance_window: 1,
+          failure_rate: 0.012
+        }
+      },
+      {
+        hostname: 'monitoring-elk',
+        name: 'ELK Monitoring Stack',
+        type: 'monitoring' as const,
+        environment: 'production' as const,
+        location: 'AWS-Seoul-1',
+        provider: 'aws' as const,
+        specs: { cpu_cores: 8, memory_gb: 32, disk_gb: 2000 },
+        baseMetrics: { cpu_base: 35, memory_base: 70, disk_base: 55 },
+        patterns: {
+          business_hours: false,
+          peak_hours: [0, 6, 12, 18],
+          maintenance_window: 3,
+          failure_rate: 0.008
+        }
+      },
+      {
+        hostname: 'jenkins-ci-cd',
+        name: 'Jenkins CI/CD Server',
+        type: 'ci_cd' as const,
+        environment: 'production' as const,
+        location: 'AWS-Seoul-1',
+        provider: 'aws' as const,
+        specs: { cpu_cores: 8, memory_gb: 16, disk_gb: 500 },
+        baseMetrics: { cpu_base: 20, memory_base: 45, disk_base: 35 },
+        patterns: {
+          business_hours: true,
+          peak_hours: [9, 11, 14, 16],
+          maintenance_window: 5,
+          failure_rate: 0.015
+        }
+      },
+      {
+        hostname: 'grafana-metrics',
+        name: 'Grafana Metrics Dashboard',
+        type: 'monitoring' as const,
+        environment: 'production' as const,
+        location: 'AWS-Seoul-1',
+        provider: 'aws' as const,
+        specs: { cpu_cores: 4, memory_gb: 8, disk_gb: 200 },
+        baseMetrics: { cpu_base: 22, memory_base: 48, disk_base: 25 },
+        patterns: {
+          business_hours: true,
+          peak_hours: [9, 12, 15, 18],
+          maintenance_window: 2,
+          failure_rate: 0.01
+        }
+      },
+      {
+        hostname: 'vault-secrets',
+        name: 'HashiCorp Vault Secrets',
+        type: 'security' as const,
+        environment: 'production' as const,
+        location: 'AWS-Seoul-1',
+        provider: 'aws' as const,
+        specs: { cpu_cores: 4, memory_gb: 16, disk_gb: 100 },
+        baseMetrics: { cpu_base: 15, memory_base: 35, disk_base: 20 },
+        patterns: {
+          business_hours: false,
+          peak_hours: [0, 12],
+          maintenance_window: 4,
+          failure_rate: 0.003
+        }
+      },
+      {
+        hostname: 'staging-web-01',
+        name: 'Staging Web Server',
+        type: 'web' as const,
+        environment: 'staging' as const,
+        location: 'AWS-Seoul-1',
+        provider: 'aws' as const,
+        specs: { cpu_cores: 4, memory_gb: 8, disk_gb: 200 },
+        baseMetrics: { cpu_base: 25, memory_base: 50, disk_base: 30 },
+        patterns: {
+          business_hours: true,
+          peak_hours: [10, 14, 16],
+          maintenance_window: 1,
+          failure_rate: 0.02
         }
       }
     ];
