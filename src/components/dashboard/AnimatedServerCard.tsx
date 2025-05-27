@@ -38,12 +38,14 @@ interface AnimatedServerCardProps {
   };
   index: number;
   delay?: number;
+  onClick?: (server: any) => void;
 }
 
 const AnimatedServerCard: React.FC<AnimatedServerCardProps> = ({ 
   server, 
   index,
-  delay = 0
+  delay = 0,
+  onClick
 }) => {
   // 서버 타입별 아이콘
   const getServerIcon = () => {
@@ -79,26 +81,26 @@ const AnimatedServerCard: React.FC<AnimatedServerCardProps> = ({
     return 'from-gray-500 to-gray-600';
   };
   
-  // 상태별 색상
+  // 상태별 색상 (흰색 배경용으로 수정)
   const getStatusColor = () => {
     switch (server.status) {
-      case 'online': return 'text-green-400 bg-green-400/20 border-green-400/30';
-      case 'warning': return 'text-yellow-400 bg-yellow-400/20 border-yellow-400/30';
-      case 'offline': return 'text-red-400 bg-red-400/20 border-red-400/30';
-      default: return 'text-gray-400 bg-gray-400/20 border-gray-400/30';
+      case 'online': return 'text-green-600 bg-green-100 border-green-200';
+      case 'warning': return 'text-yellow-600 bg-yellow-100 border-yellow-200';
+      case 'offline': return 'text-red-600 bg-red-100 border-red-200';
+      default: return 'text-gray-600 bg-gray-100 border-gray-200';
     }
   };
   
-  // 메트릭별 색상
+  // 메트릭별 색상 (흰색 배경용으로 수정)
   const getMetricColor = (value: number, type: 'cpu' | 'memory' | 'disk') => {
     if (type === 'disk') {
-      if (value > 90) return 'text-red-400';
-      if (value > 75) return 'text-yellow-400';
-      return 'text-green-400';
+      if (value > 90) return 'text-red-600';
+      if (value > 75) return 'text-yellow-600';
+      return 'text-green-600';
     } else {
-      if (value > 85) return 'text-red-400';
-      if (value > 70) return 'text-yellow-400';
-      return 'text-green-400';
+      if (value > 85) return 'text-red-600';
+      if (value > 70) return 'text-yellow-600';
+      return 'text-green-600';
     }
   };
   
@@ -128,7 +130,8 @@ const AnimatedServerCard: React.FC<AnimatedServerCardProps> = ({
         scale: 1.02,
         transition: { duration: 0.2 }
       }}
-      className="relative group"
+      className="relative group cursor-pointer"
+      onClick={() => onClick?.(server)}
     >
       {/* 등장 효과 */}
       <motion.div
@@ -145,7 +148,8 @@ const AnimatedServerCard: React.FC<AnimatedServerCardProps> = ({
         }}
       />
       
-      <div className="relative bg-gray-900/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6 hover:border-gray-600 transition-all duration-300">
+      {/* 흰색 배경으로 변경 */}
+      <div className="relative bg-white border border-gray-200 rounded-lg p-6 hover:border-gray-300 hover:shadow-lg transition-all duration-300 shadow-sm">
         {/* 헤더 */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3">
@@ -168,7 +172,7 @@ const AnimatedServerCard: React.FC<AnimatedServerCardProps> = ({
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: delay + (index * 0.1) + 0.6 }}
-                className="text-lg font-semibold text-white"
+                className="text-lg font-semibold text-gray-900"
               >
                 {server.hostname}
               </motion.h3>
@@ -176,7 +180,7 @@ const AnimatedServerCard: React.FC<AnimatedServerCardProps> = ({
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: delay + (index * 0.1) + 0.7 }}
-                className="text-gray-400 text-sm"
+                className="text-gray-600 text-sm"
               >
                 {server.name}
               </motion.p>
@@ -202,8 +206,8 @@ const AnimatedServerCard: React.FC<AnimatedServerCardProps> = ({
             className="text-center"
           >
             <div className="flex items-center justify-center mb-1">
-              <Cpu className="w-4 h-4 text-blue-400 mr-1" />
-              <span className="text-xs text-gray-400">CPU</span>
+              <Cpu className="w-4 h-4 text-blue-500 mr-1" />
+              <span className="text-xs text-gray-600">CPU</span>
             </div>
             <div className={`text-lg font-bold ${getMetricColor(server.cpu, 'cpu')}`}>
               {server.cpu}%
@@ -217,8 +221,8 @@ const AnimatedServerCard: React.FC<AnimatedServerCardProps> = ({
             className="text-center"
           >
             <div className="flex items-center justify-center mb-1">
-              <Activity className="w-4 h-4 text-purple-400 mr-1" />
-              <span className="text-xs text-gray-400">RAM</span>
+              <Activity className="w-4 h-4 text-purple-500 mr-1" />
+              <span className="text-xs text-gray-600">RAM</span>
             </div>
             <div className={`text-lg font-bold ${getMetricColor(server.memory, 'memory')}`}>
               {server.memory}%
@@ -232,8 +236,8 @@ const AnimatedServerCard: React.FC<AnimatedServerCardProps> = ({
             className="text-center"
           >
             <div className="flex items-center justify-center mb-1">
-              <HardDrive className="w-4 h-4 text-green-400 mr-1" />
-              <span className="text-xs text-gray-400">DISK</span>
+              <HardDrive className="w-4 h-4 text-green-500 mr-1" />
+              <span className="text-xs text-gray-600">DISK</span>
             </div>
             <div className={`text-lg font-bold ${getMetricColor(server.disk, 'disk')}`}>
               {server.disk}%
@@ -248,22 +252,22 @@ const AnimatedServerCard: React.FC<AnimatedServerCardProps> = ({
           transition={{ delay: delay + (index * 0.1) + 1.2 }}
           className="space-y-2 text-sm"
         >
-          <div className="flex justify-between text-gray-400">
+          <div className="flex justify-between text-gray-600">
             <span>위치:</span>
-            <span className="text-white">{server.location}</span>
+            <span className="text-gray-900">{server.location}</span>
           </div>
-          <div className="flex justify-between text-gray-400">
+          <div className="flex justify-between text-gray-600">
             <span>제공자:</span>
-            <span className="text-white uppercase">{server.provider}</span>
+            <span className="text-gray-900 uppercase">{server.provider}</span>
           </div>
-          <div className="flex justify-between text-gray-400">
+          <div className="flex justify-between text-gray-600">
             <span>가동시간:</span>
-            <span className="text-white">{server.uptime}</span>
+            <span className="text-gray-900">{server.uptime}</span>
           </div>
           {server.ip && (
-            <div className="flex justify-between text-gray-400">
+            <div className="flex justify-between text-gray-600">
               <span>IP:</span>
-              <span className="text-white font-mono">{server.ip}</span>
+              <span className="text-gray-900 font-mono">{server.ip}</span>
             </div>
           )}
         </motion.div>
@@ -274,9 +278,9 @@ const AnimatedServerCard: React.FC<AnimatedServerCardProps> = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: delay + (index * 0.1) + 1.3 }}
-            className="mt-4 pt-4 border-t border-gray-700"
+            className="mt-4 pt-4 border-t border-gray-200"
           >
-            <div className="text-xs text-gray-400 mb-2">서비스 ({server.services.length}개)</div>
+            <div className="text-xs text-gray-600 mb-2">서비스 ({server.services.length}개)</div>
             <div className="flex flex-wrap gap-1">
               {server.services.slice(0, 3).map((service, idx) => (
                 <motion.span
@@ -286,8 +290,8 @@ const AnimatedServerCard: React.FC<AnimatedServerCardProps> = ({
                   transition={{ delay: delay + (index * 0.1) + 1.4 + (idx * 0.1) }}
                   className={`px-2 py-1 rounded text-xs ${
                     service.status === 'running'
-                      ? 'bg-green-400/20 text-green-400 border border-green-400/30'
-                      : 'bg-gray-400/20 text-gray-400 border border-gray-400/30'
+                      ? 'bg-green-100 text-green-700 border border-green-200'
+                      : 'bg-gray-100 text-gray-700 border border-gray-200'
                   }`}
                 >
                   {service.name}
@@ -298,7 +302,7 @@ const AnimatedServerCard: React.FC<AnimatedServerCardProps> = ({
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: delay + (index * 0.1) + 1.7 }}
-                  className="px-2 py-1 rounded text-xs bg-gray-600/20 text-gray-400 border border-gray-600/30"
+                  className="px-2 py-1 rounded text-xs bg-gray-100 text-gray-700 border border-gray-200"
                 >
                   +{server.services.length - 3}
                 </motion.span>

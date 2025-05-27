@@ -6,12 +6,14 @@ import AgentModal from '../../components/ai/AgentModal';
 import ProfileDropdown from '../../components/ui/ProfileDropdown';
 import ServerGenerationProgress from '../../components/dashboard/ServerGenerationProgress';
 import AnimatedServerCard from '../../components/dashboard/AnimatedServerCard';
+import ServerDetailModal from '../../components/dashboard/ServerDetailModal';
 import { useSystemControl } from '../../hooks/useSystemControl';
 import { useSequentialServerGeneration } from '../../hooks/useSequentialServerGeneration';
 
 export default function DashboardPage() {
   const [isAgentOpen, setIsAgentOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [selectedServer, setSelectedServer] = useState<any | null>(null);
   const [serverStats, setServerStats] = useState({
     total: 0,
     online: 0,
@@ -51,6 +53,31 @@ export default function DashboardPage() {
     }
   });
 
+  // 서버 클릭 핸들러
+  const handleServerClick = useCallback((server: any) => {
+    console.log('🖱️ 서버 카드 클릭:', server.hostname);
+    recordActivity(); // 서버 클릭도 활동으로 기록
+    
+    // 서버 데이터를 Server 타입에 맞게 변환
+    const formattedServer = {
+      id: server.id,
+      name: server.name || server.hostname,
+      status: server.status,
+      cpu: server.cpu,
+      memory: server.memory,
+      disk: server.disk,
+      uptime: server.uptime,
+      location: server.location,
+      alerts: server.alerts || 0,
+      ip: server.ip,
+      os: server.os,
+      lastUpdate: server.lastUpdate || new Date(),
+      services: server.services || []
+    };
+    
+    setSelectedServer(formattedServer);
+  }, [recordActivity]);
+
   // 서버 통계 업데이트 함수
   const updateServerStats = useCallback((serverList: any[]) => {
     const stats = {
@@ -77,6 +104,20 @@ export default function DashboardPage() {
       localStorage.setItem('authorized_from_index', 'true');
     }
   }, [isClient]);
+
+  const closeAgent = () => {
+    setIsAgentOpen(false);
+    recordActivity(); // AI 모달 닫기도 활동으로 기록
+  };
+
+  const toggleAgent = () => {
+    if (isAgentOpen) {
+      closeAgent();
+    } else {
+      setIsAgentOpen(true);
+      recordActivity(); // AI 모달 열기도 활동으로 기록
+    }
+  };
 
   // 사용자 활동 추적 (디바운스 적용)
   useEffect(() => {
@@ -109,20 +150,6 @@ export default function DashboardPage() {
       });
     };
   }, [isClient, isSystemActive, recordActivity]);
-
-  const closeAgent = () => {
-    setIsAgentOpen(false);
-    recordActivity(); // AI 모달 닫기도 활동으로 기록
-  };
-
-  const toggleAgent = () => {
-    if (isAgentOpen) {
-      closeAgent();
-    } else {
-      setIsAgentOpen(true);
-      recordActivity(); // AI 모달 열기도 활동으로 기록
-    }
-  };
 
   // 시스템 중지 핸들러 (개선됨)
   const handleSystemStop = useCallback(async () => {
@@ -409,6 +436,7 @@ export default function DashboardPage() {
                       server={server}
                       index={index}
                       delay={0}
+                      onClick={handleServerClick}
                     />
                   ))}
                 </div>
@@ -436,6 +464,12 @@ export default function DashboardPage() {
         
         {/* AI 에이전트 모달 */}
         <AgentModal isOpen={isAgentOpen} onClose={closeAgent} />
+        
+        {/* 서버 상세 모달 */}
+        <ServerDetailModal
+          server={selectedServer}
+          onClose={() => setSelectedServer(null)}
+        />
       </main>
     </div>
   );
