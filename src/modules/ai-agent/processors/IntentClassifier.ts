@@ -1,6 +1,9 @@
 /**
  * Intent Classifier
  * 
+ * ⚠️ DEPRECATED: 이 클래스는 UnifiedIntentClassifier로 대체됩니다.
+ * @deprecated Use UnifiedIntentClassifier instead
+ * 
  * 🎯 AI 의도 분류 시스템
  * - AI 추론 기반 패턴 매칭
  * - 서버 모니터링 도메인 특화

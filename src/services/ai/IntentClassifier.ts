@@ -1,5 +1,10 @@
 import { Intent } from './MCPAIRouter';
 
+/**
+ * ⚠️ DEPRECATED: 이 클래스는 UnifiedIntentClassifier로 대체됩니다.
+ * @deprecated Use UnifiedIntentClassifier instead
+ */
+
 export class IntentClassifier {
   private initialized = false;
   private classifier: any;

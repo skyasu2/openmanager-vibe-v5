@@ -75,7 +75,7 @@ export interface LogEntry {
 }
 
 export class MCPAIRouter {
-  private intentClassifier: IntentClassifier;
+  private intentClassifier: any; // UnifiedIntentClassifier 또는 fallback
   private taskOrchestrator: TaskOrchestrator;
   private responseMerger: ResponseMerger;
   private sessionManager: SessionManager;
@@ -83,13 +83,30 @@ export class MCPAIRouter {
   private warmupPromise: Promise<void> | null = null;
   
   constructor() {
-    this.intentClassifier = new IntentClassifier();
+    this.initializeIntentClassifier();
     this.taskOrchestrator = new TaskOrchestrator();
     this.responseMerger = new ResponseMerger();
     this.sessionManager = new SessionManager();
     
     // 백그라운드에서 Python 서비스 웜업 시작
     this.startWarmupProcess();
+  }
+
+  /**
+   * 🎯 통합 Intent Classifier 초기화 (Jules 분석 기반)
+   */
+  private async initializeIntentClassifier(): Promise<void> {
+    try {
+      // UnifiedIntentClassifier 사용 시도
+      const { UnifiedIntentClassifier } = await import('./intent/UnifiedIntentClassifier');
+      this.intentClassifier = new UnifiedIntentClassifier();
+      console.log('🎯 통합 Intent Classifier 로드 완료');
+    } catch (error) {
+      console.warn('⚠️ UnifiedIntentClassifier 로드 실패, 기존 분류기 사용:', error);
+      // Fallback: 기존 IntentClassifier 사용
+      const { IntentClassifier } = await import('./IntentClassifier');
+      this.intentClassifier = new IntentClassifier();
+    }
   }
 
   /**
@@ -106,8 +123,8 @@ export class MCPAIRouter {
       // 1. 세션 관리 및 컨텍스트 개선
       const enrichedContext = await this.sessionManager.enrichContext(sessionId, context);
       
-      // 2. 의도 분석 및 작업 분해
-      const intent = await this.intentClassifier.classify(query);
+      // 2. 의도 분석 및 작업 분해 (통합 분류기 사용)
+      const intent = await this.classifyIntent(query);
       const tasks = await this.decomposeTasks(intent, enrichedContext);
       
       // 3. 작업 우선순위 정렬
@@ -135,6 +152,44 @@ export class MCPAIRouter {
     } catch (error) {
       console.error('MCP Router 처리 오류:', error);
       return this.createErrorResponse(error, Date.now() - startTime);
+    }
+  }
+
+  /**
+   * 🎯 통합 의도 분류 (새로운 분류기 호환)
+   */
+  private async classifyIntent(query: string): Promise<Intent> {
+    try {
+      const result = await this.intentClassifier.classify(query);
+      
+      // UnifiedIntentClassifier 결과를 기존 Intent 타입으로 변환
+      if (result.intent && result.confidence !== undefined) {
+        return {
+          primary: result.intent,
+          confidence: result.confidence,
+          needsTimeSeries: result.needsTimeSeries || false,
+          needsNLP: result.needsNLP || false,
+          needsAnomalyDetection: result.needsAnomalyDetection || false,
+          needsComplexML: result.needsComplexML || false,
+          entities: result.entities || [],
+          urgency: result.urgency || 'medium'
+        };
+      }
+      
+      // 기존 IntentClassifier 결과는 그대로 반환
+      return result;
+    } catch (error) {
+      console.warn('⚠️ 의도 분류 실패, 기본값 사용:', error);
+      return {
+        primary: 'general_inquiry',
+        confidence: 0.5,
+        needsTimeSeries: false,
+        needsNLP: false,
+        needsAnomalyDetection: false,
+        needsComplexML: false,
+        entities: [],
+        urgency: 'medium'
+      };
     }
   }
 
