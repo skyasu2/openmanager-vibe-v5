@@ -1,14 +1,39 @@
-# 🚀 OpenManager AI v5 - Vercel 최적화 AI 에이전트 시스템
+# 🚀 OpenManager Vibe v5 - Enterprise Server Monitoring Platform
 
-> **🎯 Vercel 최적화 완료** + **AI 에이전트 엔진 고도화** + **환경별 자동 최적화** + **50% 성능 향상**  
-> **🏆 혁신 포인트**: 환경별 자동 최적화 + 경량화된 Python 엔진 + 강력한 Fallback + **🧠 차세대 AI 시스템**  
-
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/skyasu2/openmanager-vibe-v5)
+[![Version](https://img.shields.io/badge/version-5.6.11-blue)](https://github.com/skyasu2/openmanager-vibe-v5/releases)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-15.3.2-black)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
-[![Vercel](https://img.shields.io/badge/Vercel-Deployed-green)](https://vercel.com)
-[![AI Engine](https://img.shields.io/badge/AI_Engine-Optimized-orange)](src/modules/ai-agent/)
-[![Python](https://img.shields.io/badge/Python-Lightweight-yellow)](src/modules/ai-agent/python-engine/)
-[![Build](https://img.shields.io/badge/Build-Passing-brightgreen)](npm run build)
+
+> **🎯 최신 업데이트 (v5.6.11)**: ESLint 경고사항 대대적 정리 및 코드 품질 개선 완료!
+
+## 📋 목차
+
+- [🌟 주요 특징](#-주요-특징)
+- [🏗️ 아키텍처](#️-아키텍처)
+- [🚀 빠른 시작](#-빠른-시작)
+- [📊 대시보드](#-대시보드)
+- [🤖 AI 에이전트](#-ai-에이전트)
+- [📈 모니터링](#-모니터링)
+- [🔧 설정](#-설정)
+- [📚 문서](#-문서)
+- [🤝 기여](#-기여)
+
+## 🌟 주요 특징
+
+### 🎯 **핵심 기능**
+- **실시간 서버 모니터링**: CPU, 메모리, 디스크, 네트워크 실시간 추적
+- **AI 기반 분석**: 🤖 지능형 패턴 인식 및 예측 분석
+- **통합 대시보드**: 📊 직관적인 관리자 인터페이스
+- **자동 알림 시스템**: 🚨 임계값 기반 실시간 알림
+- **확장 가능한 아키텍처**: 🏗️ 마이크로서비스 기반 설계
+
+### 🔥 **최신 기능 (v5.6.11)**
+- ✅ **코드 품질 대폭 개선**: 100+ ESLint 경고사항 정리
+- ✅ **타입 안전성 강화**: API 라우트 타입 오류 완전 해결
+- ✅ **빌드 성능 최적화**: 7초 내 빌드 완료
+- ✅ **기술 부채 해결**: 미사용 코드 및 변수 정리
 
 ## 📋 **프로젝트 개요**
 

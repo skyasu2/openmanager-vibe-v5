@@ -9,7 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { OptimizedAIAgentEngine, SmartQueryRequest, SmartQueryResponse } from '@/modules/ai-agent/core/OptimizedAIAgentEngine';
+import { OptimizedAIAgentEngine, SmartQueryRequest } from '@/modules/ai-agent/core/OptimizedAIAgentEngine';
 import { EnvironmentDetector } from '@/modules/ai-agent/core/EnvironmentDetector';
 
 // 전역 인스턴스 (메모리 효율성)
@@ -41,7 +41,7 @@ async function getEnvironmentDetector(): Promise<EnvironmentDetector> {
 /**
  * 📊 GET - 엔진 상태 조회
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   const startTime = Date.now();
   
   try {

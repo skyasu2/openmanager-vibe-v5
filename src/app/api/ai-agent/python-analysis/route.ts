@@ -11,7 +11,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { enhancedAIAgentEngine } from '@/modules/ai-agent/core/EnhancedAIAgentEngine';
 import { PythonAnalysisRunner } from '@/modules/ai-agent/core/PythonAnalysisRunner';
 import { 
-  AnalysisRequest,
   ForecastRequest,
   AnomalyRequest,
   ClassificationRequest,

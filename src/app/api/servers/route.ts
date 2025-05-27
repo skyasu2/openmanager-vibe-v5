@@ -11,7 +11,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { dataManager } from '../../../services/dataManager';
 import { simulationEngine } from '../../../services/simulationEngine';
 
-// 현실적인 서버 구성 데이터 생성 (20개 서버)
+// 현실적인 서버 구성 데이터 생성 (20개 서버) - 향후 테스트용
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function generateTestServers() {
   const servers: any[] = [];
   
@@ -326,6 +327,7 @@ export async function DELETE() {
 /**
  * 백업 서버 데이터 생성
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function generateFallbackServers() {
   // 팩토리 서비스를 통한 통합된 fallback 생성
   try {

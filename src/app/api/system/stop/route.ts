@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { simulationEngine } from '../../../../services/simulationEngine';
 import { dataManager } from '../../../../services/dataManager';
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     console.log('🛑 시스템 중지 API 호출');
 

@@ -143,7 +143,7 @@ export async function GET(
     // 히스토리 데이터 필터링
     if (!includeHistory) {
       // history 속성을 제외한 새 객체 생성
-      const { history: _history, ...serverWithoutHistory } = server;
+      const { history, ...serverWithoutHistory } = server;
       return NextResponse.json({
         success: true,
         data: serverWithoutHistory,

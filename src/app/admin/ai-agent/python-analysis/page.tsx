@@ -30,8 +30,7 @@ import {
   Database,
   Clock,
   CheckCircle,
-  XCircle,
-  Info
+  XCircle
 } from 'lucide-react';
 
 interface PythonEngineStatus {

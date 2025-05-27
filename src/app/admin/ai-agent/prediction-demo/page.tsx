@@ -84,7 +84,7 @@ export default function PredictionDemoPage() {
   const [predictions, setPredictions] = useState<PredictionResponse | null>(null);
   const [report, setReport] = useState<PredictionReport | null>(null);
   const [loading, setLoading] = useState(false);
-  const [selectedInterval, setSelectedInterval] = useState<'10min' | '30min' | '1h'>('30min');
+
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
   // 퀵 테스트 설정

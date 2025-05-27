@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import type { AnomalyDetection, StatisticalAnalysis } from '@/services/SystemHealthChecker';
+import type { AnomalyDetection } from '@/services/SystemHealthChecker';
 
 // 📊 관리자 대시보드용 응답 타입 정의
 interface SystemHealthAPIResponse {

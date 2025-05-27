@@ -103,7 +103,7 @@ async function initializeIntegratedSystem(): Promise<void> {
  * GET /api/ai-agent/integrated
  * 통합 시스템 상태 조회
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     await initializeIntegratedSystem();
 
@@ -188,23 +188,23 @@ export async function POST(request: NextRequest) {
       }
 
       const body = await request.json();
-      const { action, query, serverId, timeRange, options } = body;
+      const { action, query, serverId, timeRange } = body;
 
       switch (action) {
         case 'analyze-server':
-          return await handleServerAnalysis(serverId, options);
+          return await handleServerAnalysis(serverId);
 
         case 'smart-query':
-          return await handleSmartQuery(query, options);
+          return await handleSmartQuery(query);
 
         case 'anomaly-detection':
-          return await handleAnomalyDetection(serverId, timeRange, options);
+          return await handleAnomalyDetection(serverId, timeRange);
 
         case 'health-check':
-          return await handleHealthCheck(options);
+          return await handleHealthCheck();
 
         case 'metrics-history':
-          return await handleMetricsHistory(serverId, timeRange, options);
+          return await handleMetricsHistory(serverId, timeRange);
 
         default:
           return NextResponse.json({
@@ -216,7 +216,7 @@ export async function POST(request: NextRequest) {
     };
 
     // 타임아웃과 실제 처리를 경쟁시킴
-    const result = await Promise.race([processRequest(), timeoutPromise]);
+    const result = await Promise.race([processRequest(), timeoutPromise]) as NextResponse;
     return result;
 
   } catch (error) {
@@ -246,7 +246,7 @@ export async function POST(request: NextRequest) {
 /**
  * 🔍 서버 분석 처리
  */
-async function handleServerAnalysis(serverId: string, options: any = {}) {
+async function handleServerAnalysis(serverId: string) {
   if (!serverId) {
     return NextResponse.json({
       success: false,
@@ -305,7 +305,7 @@ async function handleServerAnalysis(serverId: string, options: any = {}) {
 /**
  * 🧠 스마트 쿼리 처리
  */
-async function handleSmartQuery(query: string, options: any = {}) {
+async function handleSmartQuery(query: string) {
   if (!query) {
     return NextResponse.json({
       success: false,
@@ -356,7 +356,7 @@ async function handleSmartQuery(query: string, options: any = {}) {
 /**
  * 🚨 이상 감지 처리
  */
-async function handleAnomalyDetection(serverId: string, timeRange: any, options: any = {}) {
+async function handleAnomalyDetection(serverId: string, timeRange: any) {
   try {
     const endTime = new Date();
     const startTime = new Date(endTime.getTime() - (timeRange?.hours || 24) * 60 * 60 * 1000);
@@ -442,7 +442,7 @@ async function handleAnomalyDetection(serverId: string, timeRange: any, options:
 /**
  * 🏥 헬스 체크 처리
  */
-async function handleHealthCheck(options: any = {}) {
+async function handleHealthCheck() {
   try {
     const serverList = await integrationAdapter!.getServerList();
     const healthStatus = {
@@ -517,7 +517,7 @@ async function handleHealthCheck(options: any = {}) {
 /**
  * 📊 메트릭 히스토리 처리
  */
-async function handleMetricsHistory(serverId: string, timeRange: any, options: any = {}) {
+async function handleMetricsHistory(serverId: string, timeRange: any) {
   if (!serverId) {
     return NextResponse.json({
       success: false,

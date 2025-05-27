@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { predictionEngine, PredictionResult, PredictionReport } from '@/services/ai/prediction/PredictionEngine';
+import { predictionEngine, PredictionResult } from '@/services/ai/prediction/PredictionEngine';
 import { hybridMetricsBridge } from '@/services/metrics/HybridMetricsBridge';
 
 /**
