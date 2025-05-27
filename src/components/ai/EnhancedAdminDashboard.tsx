@@ -105,13 +105,46 @@ interface AuthStats {
   recentFailures: any[];
 }
 
+interface InteractionData {
+  id: string;
+  query: string;
+  response: string;
+  timestamp: number;
+  detectedMode: string;
+  success: boolean;
+  userRating?: number;
+  responseTime: number;
+  isCorrect?: boolean;
+}
+
+interface PatternData {
+  id: string;
+  pattern: string;
+  successRate: number;
+  totalQueries: number;
+}
+
+interface DashboardData {
+  recentInteractions: InteractionData[];
+  bestPatterns: PatternData[];
+  worstPatterns: PatternData[];
+  overview: {
+    totalInteractions: number;
+    last24hInteractions: number;
+    successRate: number;
+    avgUserRating: number;
+    totalErrors: number;
+  };
+  trainingData: any[];
+}
+
 export default function EnhancedAdminDashboard() {
   // 데이터 상태
   const [responseLogs, setResponseLogs] = useState<ResponseLogData[]>([]);
   const [patternSuggestions, setPatternSuggestions] = useState<PatternSuggestion[]>([]);
   const [contextDocuments, setContextDocuments] = useState<ContextDocument[]>([]);
   const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
-  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [authStats, setAuthStats] = useState<AuthStats | null>(null);
   
   // UI 상태
@@ -528,7 +561,7 @@ export default function EnhancedAdminDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {dashboardData.recentInteractions.slice(0, 5).map((interaction) => (
+                    {dashboardData.recentInteractions.slice(0, 5).map((interaction: InteractionData) => (
                       <div key={interaction.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div className="flex-1">
                           <p className="font-medium text-gray-900 truncate">
@@ -575,7 +608,7 @@ export default function EnhancedAdminDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {dashboardData.bestPatterns.slice(0, 5).map((pattern) => (
+                      {dashboardData.bestPatterns.slice(0, 5).map((pattern: PatternData) => (
                         <div key={pattern.id} className="p-3 bg-green-50 rounded-lg">
                           <p className="font-medium text-gray-900 truncate">
                             {pattern.pattern}
@@ -603,7 +636,7 @@ export default function EnhancedAdminDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {dashboardData.worstPatterns.slice(0, 5).map((pattern) => (
+                      {dashboardData.worstPatterns.slice(0, 5).map((pattern: PatternData) => (
                         <div key={pattern.id} className="p-3 bg-red-50 rounded-lg">
                           <p className="font-medium text-gray-900 truncate">
                             {pattern.pattern}
@@ -655,7 +688,7 @@ export default function EnhancedAdminDashboard() {
             <CardContent>
               {dashboardData && (
                 <div className="space-y-4">
-                  {dashboardData.recentInteractions.map((interaction) => (
+                  {dashboardData.recentInteractions.map((interaction: InteractionData) => (
                     <div key={interaction.id} className="p-4 border rounded-lg">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">

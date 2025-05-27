@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAssistantSession } from '../../hooks/useAssistantSession';
 import ResultCard, { ResultCardData } from './ResultCard';
 import PatternSelector, { PatternOption } from './PatternSelector';
+import PresetQuestions from './modal-v2/components/PresetQuestions';
 
 interface AIAssistantModalProps {
   isOpen: boolean;
@@ -37,8 +38,7 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
   const [inputValue, setInputValue] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   
-  // 프리셋 질문 표시 상태 - 항상 true로 유지
-  const [showPresets, setShowPresets] = useState(true);
+  // 프리셋 질문은 항상 표시됨
   const [currentServerStatus, setCurrentServerStatus] = useState<'normal' | 'warning' | 'critical'>('normal');
   
   // 마우스 제스처 상태
@@ -718,6 +718,42 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
     generateDefaultCards();
   };
 
+  // 프리셋 질문 선택 핸들러
+  const handlePresetQuestionSelect = (question: string) => {
+    setInputValue(question);
+    // 입력창에 포커스를 주어 사용자가 바로 전송할 수 있도록 함
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+  };
+
+  // 서버 데이터를 프리셋 질문용으로 변환
+  const getServerDataForPresets = () => {
+    if (!serverData?.servers) return null;
+    
+    const servers = serverData.servers;
+    const criticalServers = servers.filter((server: any) => 
+      server.status === 'critical' || 
+      server.cpu_usage > 90 || 
+      server.memory_usage > 95 ||
+      server.disk_usage > 98
+    ).length;
+    
+    const warningServers = servers.filter((server: any) => 
+      server.status === 'warning' || 
+      server.cpu_usage > 70 || 
+      server.memory_usage > 80 ||
+      server.disk_usage > 85
+    ).length;
+    
+    return {
+      criticalServers,
+      warningServers,
+      totalServers: servers.length,
+      lastUpdate: new Date()
+    };
+  };
+
   // 관리자 드롭다운 상태
   const [showAdminDropdown, setShowAdminDropdown] = useState(false);
   const adminDropdownRef = useRef<HTMLDivElement>(null);
@@ -835,61 +871,7 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
     };
   }, [isOpen, onClose]);
 
-  // 서버 상태 기반 스마트 질문 프리셋
-  const getSmartPresets = () => {
-    const baseQuestions = [
-      {
-        id: 'status-overview',
-        text: '현재 서버 전체 상태는 어때?',
-        category: 'basic',
-        icon: '🖥️'
-      },
-      {
-        id: 'resource-usage',
-        text: 'CPU와 메모리 사용률 확인해줘',
-        category: 'basic',
-        icon: '📊'
-      },
-      {
-        id: 'network-traffic',
-        text: '네트워크 트래픽 상황은?',
-        category: 'basic',
-        icon: '🌐'
-      }
-    ];
 
-    let advancedQuestion = {
-      id: 'advanced-analysis',
-      text: '종합적인 성능 분석과 최적화 제안해줘',
-      category: 'advanced',
-      icon: '🔍'
-    };
-
-    // 서버 상태에 따른 고급 질문 변경
-    switch (currentServerStatus) {
-      case 'critical':
-        advancedQuestion = {
-          id: 'emergency-analysis',
-          text: '긴급! 현재 심각한 문제 분석하고 즉시 대응방안 제시해줘',
-          category: 'advanced',
-          icon: '🚨'
-        };
-        break;
-      case 'warning':
-        advancedQuestion = {
-          id: 'warning-analysis',
-          text: '경고 상태 원인 분석하고 예방 조치 방안 알려줘',
-          category: 'advanced',
-          icon: '⚠️'
-        };
-        break;
-      default:
-        // 정상 상태일 때는 기본 고급 질문 유지
-        break;
-    }
-
-    return [...baseQuestions, advancedQuestion];
-  };
 
   if (!isOpen) return null;
 
@@ -1138,86 +1120,11 @@ export default function AIAssistantModal({ isOpen, onClose }: AIAssistantModalPr
             </button>
           </div>
           
-          {/* 스마트 프리셋 질문 (지속 표시) */}
-          {showPresets && (
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                  <i className="fas fa-lightbulb text-yellow-500"></i>
-                  서버 상태 기반 추천 질문
-                  {currentServerStatus === 'critical' && (
-                    <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full font-bold animate-pulse">
-                      🚨 긴급
-                    </span>
-                  )}
-                  {currentServerStatus === 'warning' && (
-                    <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full font-bold">
-                      ⚠️ 주의
-                    </span>
-                  )}
-                  {currentServerStatus === 'normal' && (
-                    <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                      ✅ 정상
-                    </span>
-                  )}
-                </h3>
-                <button
-                  onClick={() => setShowPresets(false)}
-                  className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1 rounded"
-                >
-                  숨기기
-                </button>
-              </div>
-              
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                {getSmartPresets().map((preset) => (
-                  <button
-                    key={preset.id}
-                    onClick={() => {
-                      setInputValue(preset.text);
-                      handleAnalysisInput(preset.text);
-                    }}
-                    disabled={isProcessing}
-                    className={`text-left p-3 rounded-xl border transition-all duration-200 hover:shadow-md ${
-                      preset.category === 'advanced' 
-                        ? currentServerStatus === 'critical'
-                          ? 'bg-red-50 border-red-200 hover:bg-red-100 text-red-800'
-                          : currentServerStatus === 'warning'
-                          ? 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100 text-yellow-800'
-                          : 'bg-purple-50 border-purple-200 hover:bg-purple-100 text-purple-800'
-                        : 'bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-800'
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm">{preset.icon}</span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                        preset.category === 'advanced' ? 'bg-white/60' : 'bg-white/40'
-                      }`}>
-                        {preset.category === 'advanced' ? '고급' : '기본'}
-                      </span>
-                    </div>
-                    <p className="text-xs font-medium leading-relaxed">
-                      {preset.text}
-                    </p>
-                  </button>
-                ))}
-              </div>
-              
-              {/* 프리셋 숨겨진 경우 다시 보기 버튼 */}
-            </div>
-          )}
-          
-          {!showPresets && (
-            <div className="mt-3 text-center">
-              <button
-                onClick={() => setShowPresets(true)}
-                className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
-              >
-                <i className="fas fa-chevron-down mr-1"></i>
-                추천 질문 보기
-              </button>
-            </div>
-          )}
+          {/* 프리셋 질문 컴포넌트 */}
+          <PresetQuestions
+            onQuestionSelect={handlePresetQuestionSelect}
+            currentServerData={getServerDataForPresets()}
+          />
         </div>
 
         {/* 탭 컨텐츠 */}
