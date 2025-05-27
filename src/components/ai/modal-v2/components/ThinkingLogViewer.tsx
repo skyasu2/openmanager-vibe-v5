@@ -16,7 +16,7 @@ interface ThinkingLogViewerProps {
 }
 
 export default function ThinkingLogViewer({ thinkingLogs, question }: ThinkingLogViewerProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true); // 기본적으로 펼쳐진 상태로 시작
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const getStepTypeColor = (type: ThinkingStep['type']) => {
@@ -54,9 +54,16 @@ export default function ThinkingLogViewer({ thinkingLogs, question }: ThinkingLo
     }
   };
 
+  const scrollToTop = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = 0;
+    }
+  };
+
   useEffect(() => {
     if (isExpanded) {
-      setTimeout(scrollToBottom, 100);
+      // 처음 펼쳐질 때는 맨 위에서 시작
+      setTimeout(scrollToTop, 100);
     }
   }, [isExpanded]);
 
@@ -136,6 +143,13 @@ export default function ThinkingLogViewer({ thinkingLogs, question }: ThinkingLo
             </div>
             
             <div className="flex items-center gap-2">
+              <button
+                onClick={scrollToTop}
+                className="text-gray-400 hover:text-white p-1 rounded text-xs"
+                title="맨 위로"
+              >
+                <i className="fas fa-arrow-up"></i>
+              </button>
               <button
                 onClick={scrollToBottom}
                 className="text-gray-400 hover:text-white p-1 rounded text-xs"
