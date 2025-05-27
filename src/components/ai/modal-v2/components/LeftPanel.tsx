@@ -13,6 +13,7 @@ interface LeftPanelProps {
   setQuestion: (question: string) => void;
   sendQuestion: (question: string) => void;
   isMobile: boolean;
+  onBackToPresets?: () => void;
 }
 
 export default function LeftPanel({
@@ -22,7 +23,8 @@ export default function LeftPanel({
   responseMetadata,
   setQuestion,
   sendQuestion,
-  isMobile
+  isMobile,
+  onBackToPresets
 }: LeftPanelProps) {
   const answerRef = useRef<HTMLDivElement>(null);
 
@@ -86,6 +88,7 @@ export default function LeftPanel({
             answer={currentAnswer}
             isLoading={isLoading}
             metadata={responseMetadata}
+            onBackToPresets={onBackToPresets}
           />
         )}
       </div>

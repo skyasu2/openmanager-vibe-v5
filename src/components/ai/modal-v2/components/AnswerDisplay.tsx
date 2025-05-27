@@ -25,13 +25,15 @@ interface AnswerDisplayProps {
     serverState?: any;
     sessionId?: string;
   };
+  onBackToPresets?: () => void;
 }
 
 export default function AnswerDisplay({
   question,
   answer,
   isLoading,
-  metadata
+  metadata,
+  onBackToPresets
 }: AnswerDisplayProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [interactionId, setInteractionId] = useState<string | null>(null);
@@ -196,10 +198,7 @@ export default function AnswerDisplay({
                 {/* 프리셋으로 돌아가기 버튼 */}
                 <div className="mt-4 pt-3 border-t border-gray-100">
                   <button
-                    onClick={() => {
-                      // 답변 상태를 초기화하고 프리셋 표시
-                      window.location.reload(); // 간단한 방법으로 초기화
-                    }}
+                    onClick={onBackToPresets}
                     className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-[1.02]"
                   >
                     <i className="fas fa-arrow-left"></i>

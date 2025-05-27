@@ -236,15 +236,15 @@ export default function PresetQuestions({ onQuestionSelect, currentServerData }:
     setCurrentIndex(prev => Math.min(selectedQuestions.length - 2, prev + 2));
   };
 
-  // 초기 질문 생성 및 1분마다 자동 새로고침
+  // 초기 질문 생성 및 5분마다 자동 새로고침
   useEffect(() => {
     setSelectedQuestions(generatePresetQuestions());
     setLastRefreshTime(Date.now());
     
-    // 1분(60초)마다 자동 새로고침
+    // 5분(300초)마다 자동 새로고침
     const interval = setInterval(() => {
       const now = Date.now();
-      if (now - lastRefreshTime >= 60000) { // 60초 = 1분
+      if (now - lastRefreshTime >= 300000) { // 300초 = 5분
         setSelectedQuestions(generatePresetQuestions());
         setLastRefreshTime(now);
       }
@@ -264,7 +264,7 @@ export default function PresetQuestions({ onQuestionSelect, currentServerData }:
         <div className="flex items-center space-x-2">
           <h4 className="text-sm font-semibold text-gray-800">💡 추천 질문</h4>
           <span className="bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5 rounded-full">
-            1분마다 갱신
+            5분마다 갱신
           </span>
         </div>
         

@@ -142,6 +142,15 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
     dispatch({ type: 'TOGGLE_HISTORY', payload: false });
   };
 
+  // 프리셋으로 돌아가기 핸들러
+  const handleBackToPresets = () => {
+    recordActivity(); // 초기화도 활동으로 기록
+    dispatch({ type: 'SET_QUESTION', payload: '' });
+    dispatch({ type: 'SET_ANSWER', payload: '' });
+    setResponseMetadata(null);
+    console.log('🔄 AI 모달 초기 상태로 돌아감');
+  };
+
   // 서버 데이터 로드 함수
   const loadServerData = async (): Promise<any[]> => {
     try {
@@ -427,6 +436,7 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
             }}
             sendQuestion={handleSendQuestion}
             isMobile={isMobile}
+            onBackToPresets={handleBackToPresets}
           />
           
           {/* 오른쪽 패널 (기능 영역) - 모바일에서는 숨김 */}

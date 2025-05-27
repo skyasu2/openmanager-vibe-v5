@@ -153,16 +153,26 @@ export default function HomePage() {
         // 성공 메시지 표시
         let message = `✅ ${result.message}`;
         
-        if (result.fallback) {
+        // Fallback 모드는 실제로 심각한 문제가 있을 때만 표시
+        if (result.fallback && result.errors && result.errors.length > 0) {
           message += '\n\n🔄 일부 기능이 Fallback 모드로 동작하고 있습니다.';
         }
         
         if (result.warnings && result.warnings.length > 0) {
-          message += `\n\n⚠️ 주의사항:\n${result.warnings.join('\n')}`;
+          // 중요한 경고만 표시 (Fallback 관련 경고 제외)
+          const importantWarnings = result.warnings.filter(warning => 
+            !warning.includes('Fallback') && 
+            !warning.includes('제한 모드')
+          );
+          
+          if (importantWarnings.length > 0) {
+            message += `\n\n⚠️ 주의사항:\n${importantWarnings.join('\n')}`;
+          }
         }
         
-        if (result.recommendations && result.recommendations.length > 0) {
-          message += `\n\n💡 권장사항:\n${result.recommendations.join('\n')}`;
+        // 성공적인 시작에는 추천사항을 간단하게 표시
+        if (result.recommendations && result.recommendations.length > 0 && !result.fallback) {
+          message += `\n\n💡 ${result.recommendations[0]}`; // 첫 번째 추천사항만 표시
         }
         
         alert(message);
