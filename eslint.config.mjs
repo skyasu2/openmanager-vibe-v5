@@ -19,9 +19,11 @@ const eslintConfig = [
       "@next/next": nextPlugin,
     },
     rules: {
-      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-unused-vars": "off", // 개발 중에는 off로 설정
       "@typescript-eslint/no-explicit-any": "off",
       "react/display-name": "off",
+      "react-hooks/exhaustive-deps": "warn", // 경고로만 표시
+      "@next/next/no-img-element": "warn", // 이미지 최적화 권장사항
     },
   },
 ];

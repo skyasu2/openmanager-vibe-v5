@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { useSystemStore } from '../stores/systemStore';
 
 interface ProfileDropdownProps {
@@ -17,8 +18,6 @@ export default function ProfileDropdown({
   
   const { 
     aiAgent, 
-    enableAIAgent, 
-    disableAIAgent, 
     toggleAIAgent,
     state: systemState 
   } = useSystemStore();
@@ -74,7 +73,7 @@ export default function ProfileDropdown({
         {/* 아바타 */}
         <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
           {userAvatar ? (
-            <img src={userAvatar} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+            <Image src={userAvatar} alt="Avatar" width={32} height={32} className="w-full h-full rounded-full object-cover" />
           ) : (
             <i className="fas fa-user text-white text-sm"></i>
           )}
@@ -100,7 +99,7 @@ export default function ProfileDropdown({
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
                 {userAvatar ? (
-                  <img src={userAvatar} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                  <Image src={userAvatar} alt="Avatar" width={48} height={48} className="w-full h-full rounded-full object-cover" />
                 ) : (
                   <i className="fas fa-user text-white"></i>
                 )}
