@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useSystemStore } from '../stores/systemStore';
 import { systemLogger } from '../lib/logger';
 
@@ -283,9 +284,9 @@ export const useSystemControl = () => {
   /**
    * 📊 사용자 활동 업데이트
    */
-  const recordActivity = () => {
+  const recordActivity = useCallback(() => {
     updateActivity();
-  };
+  }, [updateActivity]);
 
   return {
     // 상태

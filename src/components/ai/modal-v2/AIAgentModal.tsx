@@ -69,12 +69,18 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
     };
   }, [dispatch, setBottomSheetState, state.bottomSheetState, isClient]);
 
-  // 사용자 활동 추적 (AI 모달 사용 시)
+  // 사용자 활동 추적 (AI 모달 사용 시, 디바운스 적용)
   useEffect(() => {
     if (!isClient || !isOpen) return;
 
+    let debounceTimer: NodeJS.Timeout;
+    
     const handleUserActivity = () => {
-      recordActivity();
+      // 디바운스: 1초 내에 여러 번 호출되면 마지막 호출만 실행
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        recordActivity();
+      }, 1000);
     };
 
     // AI 모달 내 사용자 활동 이벤트 리스너
@@ -84,15 +90,16 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
       document.addEventListener(event, handleUserActivity, { passive: true });
     });
 
-    // 모달 열림 시 활동 기록
+    // 모달 열림 시 활동 기록 (디바운스 없이)
     recordActivity();
 
     return () => {
+      clearTimeout(debounceTimer);
       events.forEach(event => {
         document.removeEventListener(event, handleUserActivity);
       });
     };
-  }, [isClient, isOpen, recordActivity]);
+  }, [isClient, isOpen]);
 
   // ESC 키로 모달 닫기 & 브라우저 히스토리 차단
   useEffect(() => {

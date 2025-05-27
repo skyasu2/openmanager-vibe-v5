@@ -46,12 +46,18 @@ export default function DashboardPage() {
     }
   }, [isClient]);
 
-  // 사용자 활동 추적
+  // 사용자 활동 추적 (디바운스 적용)
   useEffect(() => {
     if (!isClient || !isSystemActive) return;
 
+    let debounceTimer: NodeJS.Timeout;
+    
     const handleUserActivity = () => {
-      recordActivity();
+      // 디바운스: 1초 내에 여러 번 호출되면 마지막 호출만 실행
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        recordActivity();
+      }, 1000);
     };
 
     // 사용자 활동 이벤트 리스너
@@ -61,15 +67,16 @@ export default function DashboardPage() {
       document.addEventListener(event, handleUserActivity, { passive: true });
     });
 
-    // 초기 활동 기록
+    // 초기 활동 기록 (디바운스 없이)
     recordActivity();
 
     return () => {
+      clearTimeout(debounceTimer);
       events.forEach(event => {
         document.removeEventListener(event, handleUserActivity);
       });
     };
-  }, [isClient, isSystemActive, recordActivity]);
+  }, [isClient, isSystemActive]);
 
   const closeAgent = () => {
     setIsAgentOpen(false);
