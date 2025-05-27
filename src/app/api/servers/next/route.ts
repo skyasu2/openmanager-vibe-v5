@@ -40,7 +40,16 @@ const SERVER_GENERATION_ORDER = [
 ];
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+  console.log('🔄 [NextServer] API 호출 시작');
+  
   try {
+    // 메모리 사용량 체크
+    if (typeof global !== 'undefined' && global.gc) {
+      const memUsage = process.memoryUsage();
+      console.log(`📊 메모리 사용량: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`);
+    }
+
     const body = await request.json().catch(() => ({}));
     const { currentCount = 0, reset = false } = body;
     
@@ -49,12 +58,21 @@ export async function POST(request: NextRequest) {
     // 리셋 요청 시 처리
     if (reset) {
       console.log('🔄 서버 생성 시퀀스 리셋');
+      try {
+        // VirtualServerManager 강제 재초기화
+        await virtualServerManager.quickInitialize();
+        console.log('✅ VirtualServerManager 재초기화 완료');
+      } catch (resetError) {
+        console.warn('⚠️ 재초기화 중 오류:', resetError);
+      }
+      
       return NextResponse.json({
         success: true,
         message: '서버 생성 시퀀스가 리셋되었습니다',
         currentCount: 0,
         isComplete: false,
-        nextServerType: getServerTypeFromHostname(SERVER_GENERATION_ORDER[0])
+        nextServerType: getServerTypeFromHostname(SERVER_GENERATION_ORDER[0]),
+        timestamp: new Date().toISOString()
       });
     }
     
@@ -135,7 +153,8 @@ export async function POST(request: NextRequest) {
     const isComplete = newCount >= 20;
     const nextServerType = isComplete ? null : getServerTypeFromHostname(SERVER_GENERATION_ORDER[newCount]);
     
-    console.log(`✅ 서버 생성 완료: ${nextServerHostname} (${newCount}/20)`);
+    const processingTime = Date.now() - startTime;
+    console.log(`✅ 서버 생성 완료: ${nextServerHostname} (${newCount}/20) - ${processingTime}ms`);
     
     return NextResponse.json({
       success: true,
@@ -145,20 +164,47 @@ export async function POST(request: NextRequest) {
       nextServerType,
       totalServers: 20,
       progress: Math.round((newCount / 20) * 100),
+      processingTime,
       message: isComplete 
         ? '🎉 모든 서버 배포 완료!' 
         : `⚡ ${nextServerHostname} 서버 배포됨`
     });
     
   } catch (error) {
-    console.error('❌ [NextServer] API 오류:', error);
+    const processingTime = Date.now() - startTime;
+    console.error('❌ [NextServer] API 오류:', {
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined,
+      processingTime
+    });
+    
+    // 상세한 에러 정보 제공
+    let errorDetails = 'Unknown error';
+    let errorCode = 'INTERNAL_ERROR';
+    
+    if (error instanceof Error) {
+      errorDetails = error.message;
+      if (error.message.includes('Cannot read properties')) {
+        errorCode = 'NULL_REFERENCE_ERROR';
+        errorDetails = 'VirtualServerManager 초기화 실패';
+      } else if (error.message.includes('localStorage')) {
+        errorCode = 'STORAGE_ERROR';
+        errorDetails = 'Storage 접근 실패 (서버사이드 제한)';
+      } else if (error.message.includes('fetch')) {
+        errorCode = 'NETWORK_ERROR';
+        errorDetails = '네트워크 연결 실패';
+      }
+    }
     
     return NextResponse.json({
       success: false,
       error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error',
+      errorCode,
+      details: errorDetails,
+      processingTime,
       currentCount: 0,
-      isComplete: false
+      isComplete: false,
+      timestamp: new Date().toISOString()
     }, { status: 500 });
   }
 }
