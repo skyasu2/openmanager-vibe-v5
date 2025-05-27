@@ -1,0 +1,87 @@
+[
+  {
+    "id": "web-prod-01",
+    "hostname": "web-server-01",
+    "status": "online",
+    "metrics": {
+      "cpu": 45.2,
+      "memory": 68.5,
+      "disk": 32.1,
+      "network": {
+        "bytesReceived": 1024000,
+        "bytesSent": 2048000
+      }
+    },
+    "location": "Seoul, Korea",
+    "environment": "production",
+    "provider": "aws"
+  },
+  {
+    "id": "api-prod-01",
+    "hostname": "api-server-01",
+    "status": "warning",
+    "metrics": {
+      "cpu": 82.3,
+      "memory": 89.1,
+      "disk": 45.7,
+      "network": {
+        "bytesReceived": 2048000,
+        "bytesSent": 4096000
+      }
+    },
+    "location": "Seoul, Korea",
+    "environment": "production",
+    "provider": "aws"
+  },
+  {
+    "id": "db-prod-01",
+    "hostname": "database-01",
+    "status": "critical",
+    "metrics": {
+      "cpu": 95.8,
+      "memory": 97.2,
+      "disk": 88.9,
+      "network": {
+        "bytesReceived": 512000,
+        "bytesSent": 1024000
+      }
+    },
+    "location": "Seoul, Korea",
+    "environment": "production",
+    "provider": "aws"
+  },
+  {
+    "id": "cache-prod-01",
+    "hostname": "redis-cache-01",
+    "status": "online",
+    "metrics": {
+      "cpu": 25.4,
+      "memory": 45.8,
+      "disk": 15.2,
+      "network": {
+        "bytesReceived": 8192000,
+        "bytesSent": 4096000
+      }
+    },
+    "location": "Seoul, Korea",
+    "environment": "production",
+    "provider": "aws"
+  },
+  {
+    "id": "monitor-01",
+    "hostname": "monitoring-server",
+    "status": "online",
+    "metrics": {
+      "cpu": 35.7,
+      "memory": 52.3,
+      "disk": 28.6,
+      "network": {
+        "bytesReceived": 1536000,
+        "bytesSent": 768000
+      }
+    },
+    "location": "Seoul, Korea",
+    "environment": "production",
+    "provider": "aws"
+  }
+]

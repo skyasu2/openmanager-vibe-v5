@@ -1,0 +1,146 @@
+{
+  "startTime": "2025-05-27T06:53:20.427Z",
+  "tests": [
+    {
+      "name": "API 엔드포인트 연결",
+      "startTime": "2025-05-27T06:53:20.434Z",
+      "status": "failed",
+      "duration": 0,
+      "result": null,
+      "error": "Test timeout",
+      "endTime": "2025-05-27T06:53:30.501Z"
+    },
+    {
+      "name": "통합 API 상태 확인",
+      "startTime": "2025-05-27T06:53:30.501Z",
+      "status": "failed",
+      "duration": 0,
+      "result": null,
+      "error": "Unexpected token 'I', \"Internal S\"... is not valid JSON",
+      "endTime": "2025-05-27T06:53:31.776Z"
+    },
+    {
+      "name": "데이터베이스 어댑터 연결",
+      "startTime": "2025-05-27T06:53:31.777Z",
+      "status": "failed",
+      "duration": 0,
+      "result": null,
+      "error": "Unexpected token 'I', \"Internal S\"... is not valid JSON",
+      "endTime": "2025-05-27T06:53:31.802Z"
+    },
+    {
+      "name": "Redis 캐시 어댑터 테스트",
+      "startTime": "2025-05-27T06:53:31.802Z",
+      "status": "failed",
+      "duration": 0,
+      "result": null,
+      "error": "Unexpected token 'I', \"Internal S\"... is not valid JSON",
+      "endTime": "2025-05-27T06:53:31.817Z"
+    },
+    {
+      "name": "데이터 수집기 어댑터 테스트",
+      "startTime": "2025-05-27T06:53:31.817Z",
+      "status": "failed",
+      "duration": 0,
+      "result": null,
+      "error": "Unexpected token 'I', \"Internal S\"... is not valid JSON",
+      "endTime": "2025-05-27T06:53:31.830Z"
+    },
+    {
+      "name": "MCP 패턴 매칭 테스트",
+      "startTime": "2025-05-27T06:53:31.831Z",
+      "status": "failed",
+      "duration": 0,
+      "result": null,
+      "error": "Unexpected token 'I', \"Internal S\"... is not valid JSON",
+      "endTime": "2025-05-27T06:53:31.844Z"
+    },
+    {
+      "name": "Python 분석 엔진 테스트",
+      "startTime": "2025-05-27T06:53:31.844Z",
+      "status": "failed",
+      "duration": 0,
+      "result": null,
+      "error": "Unexpected token 'I', \"Internal S\"... is not valid JSON",
+      "endTime": "2025-05-27T06:53:31.859Z"
+    },
+    {
+      "name": "서버 메트릭 조회 테스트",
+      "startTime": "2025-05-27T06:53:31.859Z",
+      "status": "failed",
+      "duration": 0,
+      "result": null,
+      "error": "Unexpected token 'I', \"Internal S\"... is not valid JSON",
+      "endTime": "2025-05-27T06:53:31.871Z"
+    },
+    {
+      "name": "메트릭 히스토리 테스트",
+      "startTime": "2025-05-27T06:53:31.871Z",
+      "status": "failed",
+      "duration": 0,
+      "result": null,
+      "error": "Unexpected token 'I', \"Internal S\"... is not valid JSON",
+      "endTime": "2025-05-27T06:53:31.884Z"
+    },
+    {
+      "name": "응답 시간 벤치마크",
+      "startTime": "2025-05-27T06:53:31.885Z",
+      "status": "failed",
+      "duration": 0,
+      "result": null,
+      "error": "Unexpected token 'I', \"Internal S\"... is not valid JSON",
+      "endTime": "2025-05-27T06:53:31.899Z"
+    },
+    {
+      "name": "동시 요청 처리 테스트",
+      "startTime": "2025-05-27T06:53:31.899Z",
+      "status": "passed",
+      "duration": 21.707400000001144,
+      "result": {
+        "concurrentRequests": 2,
+        "successCount": 2,
+        "totalTime": 20.20679999999993
+      },
+      "error": null,
+      "endTime": "2025-05-27T06:53:31.921Z"
+    },
+    {
+      "name": "잘못된 요청 처리 테스트",
+      "startTime": "2025-05-27T06:53:31.922Z",
+      "status": "failed",
+      "duration": 0,
+      "result": null,
+      "error": "Unexpected token 'I', \"Internal S\"... is not valid JSON",
+      "endTime": "2025-05-27T06:53:31.934Z"
+    },
+    {
+      "name": "타임아웃 처리 테스트",
+      "startTime": "2025-05-27T06:53:31.934Z",
+      "status": "passed",
+      "duration": 12.128099999999904,
+      "result": {
+        "timeoutTest": "passed",
+        "responseReceived": true
+      },
+      "error": null,
+      "endTime": "2025-05-27T06:53:31.947Z"
+    },
+    {
+      "name": "서버 모니터링 시나리오",
+      "startTime": "2025-05-27T06:53:31.947Z",
+      "status": "failed",
+      "duration": 0,
+      "result": null,
+      "error": "Unexpected token 'I', \"Internal S\"... is not valid JSON",
+      "endTime": "2025-05-27T06:53:31.958Z"
+    }
+  ],
+  "summary": {
+    "total": 14,
+    "passed": 2,
+    "failed": 12,
+    "skipped": 0
+  },
+  "endTime": "2025-05-27T06:53:31.958Z",
+  "duration": 11531
+}

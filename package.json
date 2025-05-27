@@ -44,7 +44,11 @@
     "python:test-engine": "python src/modules/ai-agent/python-engine/engine_runner.py",
     "python:test-lightweight": "python src/modules/ai-agent/python-engine/lightweight_engine.py",
     "ai:optimize": "node scripts/test-optimized-ai.js",
-    "ai:benchmark": "node scripts/test-optimized-ai.js --benchmark-only"
+    "ai:benchmark": "node scripts/test-optimized-ai.js --benchmark-only",
+    "ai:test-integrated": "node scripts/test-integrated-ai-system.js",
+    "ai:integration-test": "npm run ai:test-integrated",
+    "ai:setup-test-data": "node scripts/setup-test-data.js",
+    "system:validate": "npm run ai:setup-test-data && npm run ai:test-integrated && npm run test:optimized-ai"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",

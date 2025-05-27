@@ -1,4 +1,15 @@
 /**
+ * 🔌 AI Agent Adapters
+ * 
+ * 통합 어댑터 모듈 내보내기
+ */
+
+export * from './SystemIntegrationAdapter';
+export * from './SupabaseDatabaseAdapter';
+export * from './RedisCacheAdapter';
+export * from './ServerDataCollectorAdapter';
+
+/**
  * AI Agent Adapters
  * 
  * 🔌 환경별 어댑터 시스템
