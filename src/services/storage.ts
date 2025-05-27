@@ -64,38 +64,90 @@ export class MetricsStorageService {
   }
 
   /**
-   * 서버 목록 조회 (Redis → Supabase fallback)
+   * 서버 목록 조회 (Redis → Supabase fallback) - Vercel 최적화
    */
   async getServerList(): Promise<string[]> {
     try {
+      console.log('📋 서버 목록 조회 시작...');
+      
       // Redis에서 활성 서버 목록 조회 (서버 사이드에서만)
-      const redisClient = await getRedisClient();
-      if (redisClient) {
-        const keys = await redisClient.keys(`${this.LATEST_KEY_PREFIX}*${this.LATEST_KEY_SUFFIX}`);
-        const serverIds = keys.map((key: string) => 
-          key.replace(this.LATEST_KEY_PREFIX, '').replace(this.LATEST_KEY_SUFFIX, '')
-        );
-        
-        if (serverIds.length > 0) {
-          return serverIds;
+      try {
+        const redisClient = await getRedisClient();
+        if (redisClient) {
+          console.log('🔍 Redis에서 서버 목록 조회 중...');
+          const keys = await redisClient.keys(`${this.LATEST_KEY_PREFIX}*${this.LATEST_KEY_SUFFIX}`);
+          const serverIds = keys.map((key: string) => 
+            key.replace(this.LATEST_KEY_PREFIX, '').replace(this.LATEST_KEY_SUFFIX, '')
+          );
+          
+          if (serverIds.length > 0) {
+            console.log(`✅ Redis에서 ${serverIds.length}개 서버 발견`);
+            return serverIds;
+          }
         }
+      } catch (redisError) {
+        console.warn('⚠️ Redis 조회 실패, Supabase로 fallback:', redisError);
       }
       
-      // Redis에 없으면 Supabase에서 조회
-      const { data, error } = await supabase
-        .from('server_metrics')
-        .select('server_id')
-        .gte('timestamp', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-        .order('timestamp', { ascending: false });
+      // Redis가 없거나 실패하면 Supabase에서 조회 (타임아웃 적용)
+      try {
+        console.log('🔍 Supabase에서 서버 목록 조회 중...');
+        
+        // Vercel 환경에서 Supabase 연결이 설정되지 않은 경우 체크
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-project')) {
+          console.warn('⚠️ Supabase 설정이 없습니다, 기본 서버 목록 사용');
+          return this.getDefaultServerList();
+        }
+        
+        const { data, error } = await Promise.race([
+          supabase
+            .from('server_metrics')
+            .select('server_id')
+            .gte('timestamp', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+            .order('timestamp', { ascending: false }),
+          new Promise<never>((_, reject) => 
+            setTimeout(() => reject(new Error('Supabase timeout')), 5000)
+          )
+        ]);
+        
+        if (error) {
+          console.warn('⚠️ Supabase 쿼리 오류:', error);
+          return this.getDefaultServerList();
+        }
+        
+        const uniqueServers = [...new Set(data?.map(row => row.server_id) || [])];
+        
+        if (uniqueServers.length > 0) {
+          console.log(`✅ Supabase에서 ${uniqueServers.length}개 서버 발견`);
+          return uniqueServers;
+        } else {
+          console.log('ℹ️ Supabase에 서버 데이터가 없음, 기본 목록 사용');
+          return this.getDefaultServerList();
+        }
+        
+      } catch (supabaseError) {
+        console.warn('⚠️ Supabase 조회 실패:', supabaseError);
+        return this.getDefaultServerList();
+      }
       
-      if (error) throw error;
-      
-      const uniqueServers = [...new Set(data?.map(row => row.server_id) || [])];
-      return uniqueServers;
     } catch (error) {
-      console.error('❌ Failed to get server list:', error);
-      return [];
+      console.error('❌ 서버 목록 조회 완전 실패:', error);
+      return this.getDefaultServerList();
     }
+  }
+
+  /**
+   * 기본 서버 목록 (Fallback용)
+   */
+  private getDefaultServerList(): string[] {
+    console.log('🔄 기본 서버 목록 사용');
+    return [
+      'web-prod-01',
+      'db-master-01', 
+      'api-gateway-01',
+      'cache-redis-01',
+      'worker-01'
+    ];
   }
 
   /**

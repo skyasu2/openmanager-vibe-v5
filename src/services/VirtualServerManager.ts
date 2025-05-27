@@ -79,6 +79,37 @@ export class VirtualServerManager {
   }
 
   /**
+   * 빠른 초기화 - Vercel 환경용 (타임아웃 방지)
+   */
+  async quickInitialize(): Promise<void> {
+    console.log('⚡ VirtualServerManager 빠른 초기화 시작...');
+    
+    try {
+      // 메모리에 임시 서버 생성 (DB 조회 없이)
+      if (this.servers.length === 0) {
+        console.log('🔄 임시 가상 서버 생성...');
+        this.servers = this.generateVirtualServers();
+        console.log(`✅ ${this.servers.length}개 임시 서버 생성 완료`);
+      }
+
+      // 히스토리 데이터는 백그라운드에서 생성
+      this.generateHistoryData().catch(error => {
+        console.warn('⚠️ 히스토리 데이터 생성 지연:', error);
+      });
+      
+      console.log(`⚡ VirtualServerManager 빠른 초기화 완료 - ${this.servers.length}개 서버`);
+      
+    } catch (error) {
+      console.error('❌ VirtualServerManager 빠른 초기화 실패:', error);
+      // Fallback: 최소한의 서버라도 생성
+      if (this.servers.length === 0) {
+        this.servers = this.generateVirtualServers().slice(0, 2); // 2개만 생성
+        console.log(`🔄 Fallback: ${this.servers.length}개 최소 서버 생성`);
+      }
+    }
+  }
+
+  /**
    * 실시간 데이터 생성 시작 (20분간 5초마다)
    */
   async startRealtimeGeneration(): Promise<void> {

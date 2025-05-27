@@ -130,40 +130,93 @@ export default function HomePage() {
     };
   }, [isSystemActive, dataGeneratorStatus.isGenerating, updateGeneratorStatus]);
 
-  // 🚀 사용자 세션 시작 함수 (개선됨)
+  // 🚀 사용자 세션 시작 함수 (Vercel 최적화)
   const handleStartFullSystem = async () => {
     if (isLoading) return;
     
     setIsLoading(true);
-    console.log('🚀 사용자 세션 시작...');
+    console.log('🚀 [Vercel] 빠른 시스템 시작...');
     
     try {
-      const result = await startFullSystem();
+      // 타임아웃 설정 (Vercel 함수 제한 고려)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15초 타임아웃
       
-      if (result.success) {
-        if (result.errors.length > 0) {
-          alert(`✅ ${result.message}\n\n경고 사항:\n${result.errors.join('\n')}\n\n대시보드에서 실시간 데이터와 AI 에이전트를 사용할 수 있습니다.`);
-        } else {
-          alert(`✅ ${result.message}\n\n이제 대시보드에서 실시간 데이터와 AI 에이전트를 사용할 수 있습니다.`);
-        }
-      } else {
-        const errorDetails = result.errors.length > 0 
-          ? `\n\n오류 상세:\n${result.errors.join('\n')}` 
-          : '';
-        alert(`⚠️ ${result.message}${errorDetails}\n\n일부 기능이 제한될 수 있습니다.`);
-      }
-      
-      // 데이터 생성기 상태 자동 초기화 및 업데이트
-      setDataGeneratorStatus({
-        isGenerating: true,
-        remainingTime: 60 * 60 * 1000, // 사용자 세션은 60분
-        currentPattern: 'normal',
-        patterns: ['normal', 'high-load', 'maintenance']
+      const result = await startFullSystem({
+        mode: 'fast',
+        signal: controller.signal
       });
       
-    } catch (error) {
-      console.error('❌ 시스템 시작 실패:', error);
-      alert('❌ 시스템 시작에 실패했습니다. 개발자 도구 콘솔을 확인해주세요.');
+      clearTimeout(timeoutId);
+      
+      if (result.success) {
+        // 성공 메시지 표시
+        let message = `✅ ${result.message}`;
+        
+        if (result.fallback) {
+          message += '\n\n🔄 일부 기능이 Fallback 모드로 동작하고 있습니다.';
+        }
+        
+        if (result.warnings && result.warnings.length > 0) {
+          message += `\n\n⚠️ 주의사항:\n${result.warnings.join('\n')}`;
+        }
+        
+        if (result.recommendations && result.recommendations.length > 0) {
+          message += `\n\n💡 권장사항:\n${result.recommendations.join('\n')}`;
+        }
+        
+        alert(message);
+        
+        // 성공 시 대시보드로 자동 이동 (사용자 선택)
+        if (confirm('대시보드로 이동하시겠습니까?')) {
+          router.push('/dashboard');
+          return;
+        }
+        
+      } else {
+        // 실패 시에도 기본 기능 사용 가능 안내
+        let errorMessage = `⚠️ ${result.message}`;
+        
+        if (result.recommendations && result.recommendations.length > 0) {
+          errorMessage += `\n\n📱 해결방법:\n${result.recommendations.join('\n')}`;
+        }
+        
+        errorMessage += '\n\n💡 기본 기능은 계속 사용할 수 있습니다.';
+        
+        alert(errorMessage);
+      }
+      
+      // 상태 업데이트 (성공/실패 관계없이)
+      setDataGeneratorStatus({
+        isGenerating: result.success || Boolean(result.fallback),
+        remainingTime: 60 * 60 * 1000,
+        currentPattern: result.fallback ? null : 'normal',
+        patterns: result.fallback ? [] : ['normal', 'high-load', 'maintenance']
+      });
+      
+    } catch (error: any) {
+      console.error('❌ [Vercel] 시스템 시작 실패:', error);
+      
+      let errorMessage = '❌ 시스템 시작에 실패했습니다.';
+      
+      if (error.name === 'AbortError') {
+        errorMessage = '⏰ 시스템 시작이 너무 오래 걸리고 있습니다.\n\n📱 기본 대시보드는 사용 가능합니다.';
+      } else if (error.message) {
+        errorMessage += `\n\n오류 내용: ${error.message}`;
+      }
+      
+      errorMessage += '\n\n🔄 해결방법:\n• 페이지를 새로고침 후 다시 시도\n• 대시보드에서 기본 기능 사용\n• 잠시 후 고급 기능 활성화';
+      
+      alert(errorMessage);
+      
+      // 에러 시에도 기본 상태 설정
+      setDataGeneratorStatus({
+        isGenerating: false,
+        remainingTime: 0,
+        currentPattern: null,
+        patterns: []
+      });
+      
     } finally {
       setIsLoading(false);
     }

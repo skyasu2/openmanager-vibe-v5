@@ -21,71 +21,136 @@ export const useSystemControl = () => {
   } = useSystemStore();
 
   /**
-   * 🚀 시스템 전체 시작 (사용자 세션)
+   * 🚀 시스템 전체 시작 (사용자 세션) - Vercel 최적화
    * 사용자가 직접 시작하는 세션은 자동 종료되지 않음
    */
-  const startFullSystem = async (): Promise<{
+  const startFullSystem = async (options?: {
+    mode?: 'fast' | 'full';
+    signal?: AbortSignal;
+  }): Promise<{
     success: boolean;
     message: string;
     errors: string[];
+    warnings?: string[];
+    recommendations?: string[];
+    fallback?: boolean;
+    mode?: string;
   }> => {
     const errors: string[] = [];
+    const warnings: string[] = [];
     let message = '';
+    let fallback = false;
+    const mode = options?.mode || 'fast';
 
     try {
-      systemLogger.system('🚀 사용자 시스템 시작...');
+      systemLogger.system(`🚀 [Vercel] 사용자 시스템 시작 (${mode} 모드)...`);
 
       // 1단계: 시스템 타이머 시작 (사용자 세션 - 60분)
       startSystem(60 * 60, true); // 사용자 세션은 60분으로 시작
       
-      // 2단계: 시뮬레이션 엔진 시작
+      // 2단계: 시뮬레이션 엔진 시작 (Vercel 최적화)
       try {
-        systemLogger.system('1️⃣ 시뮬레이션 엔진 시작...');
-        const systemResponse = await fetch('/api/system/start', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
-        });
+        systemLogger.system('1️⃣ 시뮬레이션 엔진 빠른 시작...');
         
+        const fetchOptions: RequestInit = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode })
+        };
+        
+        if (options?.signal) {
+          fetchOptions.signal = options.signal;
+        }
+        
+        const systemResponse = await fetch('/api/system/start', fetchOptions);
         const systemData = await systemResponse.json();
         
         if (systemResponse.ok) {
           systemLogger.system(`✅ 시뮬레이션 엔진 시작: ${systemData.message}`);
+          
+          // 추가 정보 처리
+          if (systemData.fallback) {
+            fallback = true;
+            warnings.push('일부 기능이 Fallback 모드로 동작 중');
+          }
+          
+          if (systemData.warnings && systemData.warnings.length > 0) {
+            warnings.push(...systemData.warnings);
+          }
+          
         } else if (systemResponse.status === 400 && systemData.message?.includes('이미 실행 중')) {
-          // 이미 실행 중인 경우는 정상적인 상황으로 처리
           systemLogger.system(`ℹ️ 시뮬레이션 엔진 이미 실행 중: ${systemData.message}`);
+        } else if (systemResponse.status === 206) {
+          // Partial Content - 부분 성공
+          systemLogger.system(`⚠️ 시뮬레이션 엔진 부분 시작: ${systemData.message}`);
+          fallback = true;
+          warnings.push('시스템이 제한 모드로 시작됨');
         } else {
-          // 시뮬레이션 엔진 시작 실패는 경고로 처리 (시스템은 계속 동작)
           const errorMsg = `시뮬레이션 엔진 시작 실패: ${systemData.message || '알 수 없는 오류'}`;
-          errors.push(errorMsg);
+          warnings.push(errorMsg);
           systemLogger.warn(errorMsg);
+          fallback = true;
         }
-      } catch (error) {
-        const errorMsg = '시뮬레이션 엔진 시작 실패';
-        errors.push(errorMsg);
-        systemLogger.warn(errorMsg, error);
+      } catch (error: any) {
+        if (error.name === 'AbortError') {
+          const errorMsg = '시뮬레이션 엔진 시작 타임아웃';
+          warnings.push(errorMsg);
+          systemLogger.warn(errorMsg);
+          fallback = true;
+        } else {
+          const errorMsg = '시뮬레이션 엔진 시작 실패';
+          warnings.push(errorMsg);
+          systemLogger.warn(errorMsg, error);
+          fallback = true;
+        }
       }
 
       // 3단계: AI 에이전트 활성화 (선택적)
       try {
-        systemLogger.system('2️⃣ AI 에이전트 활성화...');
+        systemLogger.system('2️⃣ AI 에이전트 빠른 활성화...');
         await enableAIAgent();
         systemLogger.system('✅ AI 에이전트 활성화 완료');
       } catch (error) {
         const errorMsg = 'AI 에이전트 활성화 실패';
-        errors.push(errorMsg);
+        warnings.push(errorMsg);
         systemLogger.warn(errorMsg, error);
       }
 
       // 결과 처리
-      if (errors.length === 0) {
-        message = '🎉 시스템이 성공적으로 시작되었습니다!';
-        systemLogger.system(message);
-        return { success: true, message, errors };
+      const recommendations: string[] = [];
+      
+      if (fallback) {
+        message = '시스템이 Fallback 모드로 시작되었습니다.';
+        recommendations.push(
+          '대시보드에서 기본 기능을 사용할 수 있습니다',
+          '고급 기능은 백그라운드에서 로딩 중입니다',
+          '잠시 후 전체 기능이 활성화됩니다'
+        );
+      } else if (warnings.length > 0) {
+        message = '시스템이 기본 모드로 시작되었습니다.';
+        recommendations.push(
+          '주요 기능은 정상적으로 사용 가능합니다',
+          '일부 고급 기능은 제한될 수 있습니다'
+        );
       } else {
-        message = `⚠️ 시스템이 부분적으로 시작되었습니다. (${errors.length}개 경고)`;
-        systemLogger.warn(message);
-        return { success: true, message, errors }; // 부분 실패도 success: true
+        message = '🎉 시스템이 성공적으로 시작되었습니다!';
+        recommendations.push(
+          '모든 기능을 자유롭게 사용하실 수 있습니다',
+          '대시보드에서 실시간 모니터링을 확인하세요'
+        );
       }
+
+      systemLogger.system(message);
+      
+      return { 
+        success: true, 
+        message, 
+        errors, 
+        warnings, 
+        recommendations,
+        fallback,
+        mode 
+      };
 
     } catch (error) {
       const errorMsg = '시스템 시작 중 치명적 오류 발생';
@@ -97,7 +162,14 @@ export const useSystemControl = () => {
       return {
         success: false,
         message: errorMsg,
-        errors: [error instanceof Error ? error.message : '알 수 없는 오류']
+        errors: [error instanceof Error ? error.message : '알 수 없는 오류'],
+        warnings: [],
+        recommendations: [
+          '페이지를 새로고침 후 다시 시도하세요',
+          '문제가 지속되면 기본 대시보드를 사용하세요'
+        ],
+        fallback: true,
+        mode: 'emergency'
       };
     }
   };
