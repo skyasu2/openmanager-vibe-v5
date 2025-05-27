@@ -91,6 +91,8 @@ export function useSequentialServerGeneration(options: UseSequentialServerGenera
     error?: string;
   }> => {
     try {
+      console.log('🔄 서버 생성 API 호출 시작...');
+      
       // 새로운 AbortController 생성
       abortControllerRef.current = new AbortController();
       
@@ -106,12 +108,35 @@ export function useSequentialServerGeneration(options: UseSequentialServerGenera
         signal: abortControllerRef.current.signal
       });
       
+      console.log(`📡 API 응답 상태: ${response.status} ${response.statusText}`);
+      
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
       const data = await response.json();
-      return data;
+      console.log('📦 서버 생성 API 응답:', data);
+      
+      if (data.success && data.server) {
+        console.log('✅ 서버 생성 성공:', data.server.hostname);
+        return {
+          success: true,
+          server: data.server,
+          currentCount: data.currentCount || servers.length + 1,
+          isComplete: data.isComplete || false,
+          nextServerType: data.nextServerType,
+          progress: data.progress || 0,
+          message: data.message || '서버 생성 완료'
+        };
+      } else {
+        console.error('❌ 서버 생성 실패 - API 응답 형식 오류:', data);
+        return {
+          success: false,
+          currentCount: servers.length,
+          isComplete: false,
+          error: data.error || data.message || '서버 생성 API 응답 형식 오류'
+        };
+      }
       
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
