@@ -1,0 +1,1886 @@
+{
+  "systemStart": [
+    {
+      "testName": "SystemStart_User1",
+      "userId": 1,
+      "timestamp": "2025-05-27T18:32:33.593Z",
+      "success": true,
+      "totalResponseTime": 968,
+      "steps": {
+        "status": {
+          "time": 19,
+          "code": 200
+        },
+        "start": {
+          "time": 920,
+          "code": 200
+        },
+        "health": {
+          "time": 29,
+          "code": 200
+        }
+      },
+      "details": {
+        "statusResponse": {
+          "success": true,
+          "data": {
+            "system": {
+              "isRunning": false,
+              "startTime": null,
+              "runtime": 0,
+              "dataCount": 0,
+              "activeScenarios": []
+            },
+            "storage": {
+              "realtime_count": 0,
+              "daily_count": 0,
+              "total_size_mb": 0,
+              "last_cleanup": "2025-05-27T18:32:32.640Z"
+            }
+          }
+        },
+        "startResponse": {
+          "success": true,
+          "data": {
+            "id": "server-001",
+            "name": "OpenManager-Server-1",
+            "type": "web-server",
+            "status": "running",
+            "createdAt": "2025-05-27T18:32:32.903Z",
+            "specs": {
+              "cpu": 3,
+              "memory": 5,
+              "storage": 51
+            }
+          },
+          "metadata": {
+            "totalServers": 3,
+            "creationTime": 658,
+            "previousId": 2
+          }
+        }
+      }
+    },
+    {
+      "testName": "SystemStart_User5",
+      "userId": 5,
+      "timestamp": "2025-05-27T18:32:33.860Z",
+      "success": true,
+      "totalResponseTime": 1127,
+      "steps": {
+        "status": {
+          "time": 156,
+          "code": 200
+        },
+        "start": {
+          "time": 952,
+          "code": 200
+        },
+        "health": {
+          "time": 19,
+          "code": 200
+        }
+      },
+      "details": {
+        "statusResponse": {
+          "success": true,
+          "data": {
+            "system": {
+              "isRunning": false,
+              "startTime": null,
+              "runtime": 0,
+              "dataCount": 0,
+              "activeScenarios": []
+            },
+            "storage": {
+              "realtime_count": 0,
+              "daily_count": 0,
+              "total_size_mb": 0,
+              "last_cleanup": "2025-05-27T18:32:32.884Z"
+            }
+          }
+        },
+        "startResponse": {
+          "success": true,
+          "data": {
+            "id": "server-001",
+            "name": "OpenManager-Server-1",
+            "type": "web-server",
+            "status": "running",
+            "createdAt": "2025-05-27T18:32:33.098Z",
+            "specs": {
+              "cpu": 3,
+              "memory": 5,
+              "storage": 51
+            }
+          },
+          "metadata": {
+            "totalServers": 7,
+            "creationTime": 674,
+            "previousId": 6
+          }
+        }
+      }
+    },
+    {
+      "testName": "SystemStart_User10",
+      "userId": 10,
+      "timestamp": "2025-05-27T18:32:33.939Z",
+      "success": true,
+      "totalResponseTime": 992,
+      "steps": {
+        "status": {
+          "time": 193,
+          "code": 200
+        },
+        "start": {
+          "time": 778,
+          "code": 200
+        },
+        "health": {
+          "time": 21,
+          "code": 200
+        }
+      },
+      "details": {
+        "statusResponse": {
+          "success": true,
+          "data": {
+            "system": {
+              "isRunning": false,
+              "startTime": null,
+              "runtime": 0,
+              "dataCount": 0,
+              "activeScenarios": []
+            },
+            "storage": {
+              "realtime_count": 0,
+              "daily_count": 0,
+              "total_size_mb": 0,
+              "last_cleanup": "2025-05-27T18:32:33.139Z"
+            }
+          }
+        },
+        "startResponse": {
+          "success": true,
+          "data": {
+            "id": "server-007",
+            "name": "OpenManager-Server-7",
+            "type": "web-server",
+            "status": "running",
+            "createdAt": "2025-05-27T18:32:33.165Z",
+            "specs": {
+              "cpu": 5,
+              "memory": 11,
+              "storage": 57
+            }
+          },
+          "metadata": {
+            "totalServers": 7,
+            "creationTime": 752,
+            "previousId": 6
+          }
+        }
+      }
+    },
+    {
+      "testName": "SystemStart_User6",
+      "userId": 6,
+      "timestamp": "2025-05-27T18:32:34.044Z",
+      "success": true,
+      "totalResponseTime": 1312,
+      "steps": {
+        "status": {
+          "time": 157,
+          "code": 200
+        },
+        "start": {
+          "time": 1137,
+          "code": 200
+        },
+        "health": {
+          "time": 18,
+          "code": 200
+        }
+      },
+      "details": {
+        "statusResponse": {
+          "success": true,
+          "data": {
+            "system": {
+              "isRunning": false,
+              "startTime": null,
+              "runtime": 0,
+              "dataCount": 0,
+              "activeScenarios": []
+            },
+            "storage": {
+              "realtime_count": 0,
+              "daily_count": 0,
+              "total_size_mb": 0,
+              "last_cleanup": "2025-05-27T18:32:32.884Z"
+            }
+          }
+        },
+        "startResponse": {
+          "success": true,
+          "data": {
+            "id": "server-002",
+            "name": "OpenManager-Server-2",
+            "type": "web-server",
+            "status": "running",
+            "createdAt": "2025-05-27T18:32:33.098Z",
+            "specs": {
+              "cpu": 4,
+              "memory": 6,
+              "storage": 52
+            }
+          },
+          "metadata": {
+            "totalServers": 7,
+            "creationTime": 860,
+            "previousId": 6
+          }
+        }
+      }
+    },
+    {
+      "testName": "SystemStart_User3",
+      "userId": 3,
+      "timestamp": "2025-05-27T18:32:34.142Z",
+      "success": true,
+      "totalResponseTime": 1516,
+      "steps": {
+        "status": {
+          "time": 29,
+          "code": 200
+        },
+        "start": {
+          "time": 1465,
+          "code": 200
+        },
+        "health": {
+          "time": 22,
+          "code": 200
+        }
+      },
+      "details": {
+        "statusResponse": {
+          "success": true,
+          "data": {
+            "system": {
+              "isRunning": false,
+              "startTime": null,
+              "runtime": 0,
+              "dataCount": 0,
+              "activeScenarios": []
+            },
+            "storage": {
+              "realtime_count": 0,
+              "daily_count": 0,
+              "total_size_mb": 0,
+              "last_cleanup": "2025-05-27T18:32:32.640Z"
+            }
+          }
+        },
+        "startResponse": {
+          "success": true,
+          "data": {
+            "id": "server-003",
+            "name": "OpenManager-Server-3",
+            "type": "web-server",
+            "status": "running",
+            "createdAt": "2025-05-27T18:32:32.904Z",
+            "specs": {
+              "cpu": 5,
+              "memory": 7,
+              "storage": 53
+            }
+          },
+          "metadata": {
+            "totalServers": 3,
+            "creationTime": 1214,
+            "previousId": 2
+          }
+        }
+      }
+    },
+    {
+      "testName": "SystemStart_User7",
+      "userId": 7,
+      "timestamp": "2025-05-27T18:32:34.155Z",
+      "success": true,
+      "totalResponseTime": 1316,
+      "steps": {
+        "status": {
+          "time": 72,
+          "code": 200
+        },
+        "start": {
+          "time": 1222,
+          "code": 200
+        },
+        "health": {
+          "time": 22,
+          "code": 200
+        }
+      },
+      "details": {
+        "statusResponse": {
+          "success": true,
+          "data": {
+            "system": {
+              "isRunning": false,
+              "startTime": null,
+              "runtime": 0,
+              "dataCount": 0,
+              "activeScenarios": []
+            },
+            "storage": {
+              "realtime_count": 0,
+              "daily_count": 0,
+              "total_size_mb": 0,
+              "last_cleanup": "2025-05-27T18:32:32.884Z"
+            }
+          }
+        },
+        "startResponse": {
+          "success": true,
+          "data": {
+            "id": "server-004",
+            "name": "OpenManager-Server-4",
+            "type": "web-server",
+            "status": "running",
+            "createdAt": "2025-05-27T18:32:33.109Z",
+            "specs": {
+              "cpu": 2,
+              "memory": 8,
+              "storage": 54
+            }
+          },
+          "metadata": {
+            "totalServers": 7,
+            "creationTime": 966,
+            "previousId": 6
+          }
+        }
+      }
+    },
+    {
+      "testName": "SystemStart_User2",
+      "userId": 2,
+      "timestamp": "2025-05-27T18:32:34.343Z",
+      "success": true,
+      "totalResponseTime": 1719,
+      "steps": {
+        "status": {
+          "time": 30,
+          "code": 200
+        },
+        "start": {
+          "time": 1665,
+          "code": 200
+        },
+        "health": {
+          "time": 24,
+          "code": 200
+        }
+      },
+      "details": {
+        "statusResponse": {
+          "success": true,
+          "data": {
+            "system": {
+              "isRunning": false,
+              "startTime": null,
+              "runtime": 0,
+              "dataCount": 0,
+              "activeScenarios": []
+            },
+            "storage": {
+              "realtime_count": 0,
+              "daily_count": 0,
+              "total_size_mb": 0,
+              "last_cleanup": "2025-05-27T18:32:32.640Z"
+            }
+          }
+        },
+        "startResponse": {
+          "success": true,
+          "data": {
+            "id": "server-002",
+            "name": "OpenManager-Server-2",
+            "type": "web-server",
+            "status": "running",
+            "createdAt": "2025-05-27T18:32:32.904Z",
+            "specs": {
+              "cpu": 4,
+              "memory": 6,
+              "storage": 52
+            }
+          },
+          "metadata": {
+            "totalServers": 3,
+            "creationTime": 1414,
+            "previousId": 2
+          }
+        }
+      }
+    },
+    {
+      "testName": "SystemStart_User4",
+      "userId": 4,
+      "timestamp": "2025-05-27T18:32:34.362Z",
+      "success": true,
+      "totalResponseTime": 1631,
+      "steps": {
+        "status": {
+          "time": 158,
+          "code": 200
+        },
+        "start": {
+          "time": 1453,
+          "code": 200
+        },
+        "health": {
+          "time": 20,
+          "code": 200
+        }
+      },
+      "details": {
+        "statusResponse": {
+          "success": true,
+          "data": {
+            "system": {
+              "isRunning": false,
+              "startTime": null,
+              "runtime": 0,
+              "dataCount": 0,
+              "activeScenarios": []
+            },
+            "storage": {
+              "realtime_count": 0,
+              "daily_count": 0,
+              "total_size_mb": 0,
+              "last_cleanup": "2025-05-27T18:32:32.884Z"
+            }
+          }
+        },
+        "startResponse": {
+          "success": true,
+          "data": {
+            "id": "server-003",
+            "name": "OpenManager-Server-3",
+            "type": "web-server",
+            "status": "running",
+            "createdAt": "2025-05-27T18:32:33.098Z",
+            "specs": {
+              "cpu": 5,
+              "memory": 7,
+              "storage": 53
+            }
+          },
+          "metadata": {
+            "totalServers": 7,
+            "creationTime": 1176,
+            "previousId": 6
+          }
+        }
+      }
+    },
+    {
+      "testName": "SystemStart_User9",
+      "userId": 9,
+      "timestamp": "2025-05-27T18:32:34.416Z",
+      "success": true,
+      "totalResponseTime": 1575,
+      "steps": {
+        "status": {
+          "time": 74,
+          "code": 200
+        },
+        "start": {
+          "time": 1482,
+          "code": 200
+        },
+        "health": {
+          "time": 19,
+          "code": 200
+        }
+      },
+      "details": {
+        "statusResponse": {
+          "success": true,
+          "data": {
+            "system": {
+              "isRunning": false,
+              "startTime": null,
+              "runtime": 0,
+              "dataCount": 0,
+              "activeScenarios": []
+            },
+            "storage": {
+              "realtime_count": 0,
+              "daily_count": 0,
+              "total_size_mb": 0,
+              "last_cleanup": "2025-05-27T18:32:32.884Z"
+            }
+          }
+        },
+        "startResponse": {
+          "success": true,
+          "data": {
+            "id": "server-006",
+            "name": "OpenManager-Server-6",
+            "type": "web-server",
+            "status": "running",
+            "createdAt": "2025-05-27T18:32:33.109Z",
+            "specs": {
+              "cpu": 4,
+              "memory": 10,
+              "storage": 56
+            }
+          },
+          "metadata": {
+            "totalServers": 7,
+            "creationTime": 1231,
+            "previousId": 6
+          }
+        }
+      }
+    },
+    {
+      "testName": "SystemStart_User8",
+      "userId": 8,
+      "timestamp": "2025-05-27T18:32:34.432Z",
+      "success": true,
+      "totalResponseTime": 1592,
+      "steps": {
+        "status": {
+          "time": 75,
+          "code": 200
+        },
+        "start": {
+          "time": 1494,
+          "code": 200
+        },
+        "health": {
+          "time": 23,
+          "code": 200
+        }
+      },
+      "details": {
+        "statusResponse": {
+          "success": true,
+          "data": {
+            "system": {
+              "isRunning": false,
+              "startTime": null,
+              "runtime": 0,
+              "dataCount": 0,
+              "activeScenarios": []
+            },
+            "storage": {
+              "realtime_count": 0,
+              "daily_count": 0,
+              "total_size_mb": 0,
+              "last_cleanup": "2025-05-27T18:32:32.884Z"
+            }
+          }
+        },
+        "startResponse": {
+          "success": true,
+          "data": {
+            "id": "server-005",
+            "name": "OpenManager-Server-5",
+            "type": "web-server",
+            "status": "running",
+            "createdAt": "2025-05-27T18:32:33.109Z",
+            "specs": {
+              "cpu": 3,
+              "memory": 9,
+              "storage": 55
+            }
+          },
+          "metadata": {
+            "totalServers": 7,
+            "creationTime": 1243,
+            "previousId": 6
+          }
+        }
+      }
+    }
+  ],
+  "dataGenerator": [
+    {
+      "testName": "DataGen_User1_high-load",
+      "userId": 1,
+      "pattern": "high-load",
+      "timestamp": "2025-05-27T18:32:33.136Z",
+      "success": false,
+      "totalResponseTime": 513,
+      "steps": {
+        "status": {
+          "time": 28,
+          "code": 200
+        },
+        "start": {
+          "time": 246,
+          "code": 405
+        },
+        "metrics": {
+          "time": 239,
+          "code": 200
+        }
+      },
+      "details": {
+        "statusResponse": {
+          "success": true,
+          "cached": false,
+          "data": [
+            {
+              "timestamp": "2025-05-27T18:22:32.648Z",
+              "cpu": 20,
+              "memory": 37,
+              "disk": 66,
+              "networkIn": 2045,
+              "networkOut": 3319,
+              "responseTime": 301
+            },
+            {
+              "timestamp": "2025-05-27T18:23:32.648Z",
+              "cpu": 48,
+              "memory": 77,
+              "disk": 55,
+              "networkIn": 3205,
+              "networkOut": 5299,
+              "responseTime": 412
+            },
+            {
+              "timestamp": "2025-05-27T18:24:32.648Z",
+              "cpu": 47,
+              "memory": 66,
+              "disk": 66,
+              "networkIn": 4469,
+              "networkOut": 2971,
+              "responseTime": 238
+            },
+            {
+              "timestamp": "2025-05-27T18:25:32.648Z",
+              "cpu": 34,
+              "memory": 71,
+              "disk": 52,
+              "networkIn": 2432,
+              "networkOut": 6500,
+              "responseTime": 277
+            },
+            {
+              "timestamp": "2025-05-27T18:26:32.648Z",
+              "cpu": 53,
+              "memory": 78,
+              "disk": 54,
+              "networkIn": 5168,
+              "networkOut": 4036,
+              "responseTime": 431
+            },
+            {
+              "timestamp": "2025-05-27T18:27:32.648Z",
+              "cpu": 60,
+              "memory": 88,
+              "disk": 46,
+              "networkIn": 2071,
+              "networkOut": 7468,
+              "responseTime": 347
+            },
+            {
+              "timestamp": "2025-05-27T18:28:32.648Z",
+              "cpu": 38,
+              "memory": 59,
+              "disk": 72,
+              "networkIn": 2460,
+              "networkOut": 9523,
+              "responseTime": 278
+            },
+            {
+              "timestamp": "2025-05-27T18:29:32.648Z",
+              "cpu": 77,
+              "memory": 61,
+              "disk": 48,
+              "networkIn": 4419,
+              "networkOut": 7371,
+              "responseTime": 190
+            },
+            {
+              "timestamp": "2025-05-27T18:30:32.648Z",
+              "cpu": 73,
+              "memory": 70,
+              "disk": 66,
+              "networkIn": 4910,
+              "networkOut": 9693,
+              "responseTime": 257
+            },
+            {
+              "timestamp": "2025-05-27T18:31:32.648Z",
+              "cpu": 82,
+              "memory": 75,
+              "disk": 51,
+              "networkIn": 2133,
+              "networkOut": 3922,
+              "responseTime": 479
+            }
+          ],
+          "type": "metrics",
+          "count": 10,
+          "timestamp": "2025-05-27T18:32:32.649Z"
+        },
+        "startResponse": null,
+        "metricsCount": 0
+      }
+    },
+    {
+      "testName": "DataGen_User2_maintenance",
+      "userId": 2,
+      "pattern": "maintenance",
+      "timestamp": "2025-05-27T18:32:33.137Z",
+      "success": false,
+      "totalResponseTime": 513,
+      "steps": {
+        "status": {
+          "time": 28,
+          "code": 200
+        },
+        "start": {
+          "time": 245,
+          "code": 405
+        },
+        "metrics": {
+          "time": 240,
+          "code": 200
+        }
+      },
+      "details": {
+        "statusResponse": {
+          "success": true,
+          "cached": true,
+          "data": [
+            {
+              "timestamp": "2025-05-27T18:22:32.648Z",
+              "cpu": 20,
+              "memory": 37,
+              "disk": 66,
+              "networkIn": 2045,
+              "networkOut": 3319,
+              "responseTime": 301
+            },
+            {
+              "timestamp": "2025-05-27T18:23:32.648Z",
+              "cpu": 48,
+              "memory": 77,
+              "disk": 55,
+              "networkIn": 3205,
+              "networkOut": 5299,
+              "responseTime": 412
+            },
+            {
+              "timestamp": "2025-05-27T18:24:32.648Z",
+              "cpu": 47,
+              "memory": 66,
+              "disk": 66,
+              "networkIn": 4469,
+              "networkOut": 2971,
+              "responseTime": 238
+            },
+            {
+              "timestamp": "2025-05-27T18:25:32.648Z",
+              "cpu": 34,
+              "memory": 71,
+              "disk": 52,
+              "networkIn": 2432,
+              "networkOut": 6500,
+              "responseTime": 277
+            },
+            {
+              "timestamp": "2025-05-27T18:26:32.648Z",
+              "cpu": 53,
+              "memory": 78,
+              "disk": 54,
+              "networkIn": 5168,
+              "networkOut": 4036,
+              "responseTime": 431
+            },
+            {
+              "timestamp": "2025-05-27T18:27:32.648Z",
+              "cpu": 60,
+              "memory": 88,
+              "disk": 46,
+              "networkIn": 2071,
+              "networkOut": 7468,
+              "responseTime": 347
+            },
+            {
+              "timestamp": "2025-05-27T18:28:32.648Z",
+              "cpu": 38,
+              "memory": 59,
+              "disk": 72,
+              "networkIn": 2460,
+              "networkOut": 9523,
+              "responseTime": 278
+            },
+            {
+              "timestamp": "2025-05-27T18:29:32.648Z",
+              "cpu": 77,
+              "memory": 61,
+              "disk": 48,
+              "networkIn": 4419,
+              "networkOut": 7371,
+              "responseTime": 190
+            },
+            {
+              "timestamp": "2025-05-27T18:30:32.648Z",
+              "cpu": 73,
+              "memory": 70,
+              "disk": 66,
+              "networkIn": 4910,
+              "networkOut": 9693,
+              "responseTime": 257
+            },
+            {
+              "timestamp": "2025-05-27T18:31:32.648Z",
+              "cpu": 82,
+              "memory": 75,
+              "disk": 51,
+              "networkIn": 2133,
+              "networkOut": 3922,
+              "responseTime": 479
+            }
+          ],
+          "timestamp": "2025-05-27T18:32:32.649Z"
+        },
+        "startResponse": null,
+        "metricsCount": 0
+      }
+    },
+    {
+      "testName": "DataGen_User3_normal",
+      "userId": 3,
+      "pattern": "normal",
+      "timestamp": "2025-05-27T18:32:33.138Z",
+      "success": false,
+      "totalResponseTime": 512,
+      "steps": {
+        "status": {
+          "time": 27,
+          "code": 200
+        },
+        "start": {
+          "time": 245,
+          "code": 405
+        },
+        "metrics": {
+          "time": 240,
+          "code": 200
+        }
+      },
+      "details": {
+        "statusResponse": {
+          "success": true,
+          "cached": true,
+          "data": [
+            {
+              "timestamp": "2025-05-27T18:22:32.648Z",
+              "cpu": 20,
+              "memory": 37,
+              "disk": 66,
+              "networkIn": 2045,
+              "networkOut": 3319,
+              "responseTime": 301
+            },
+            {
+              "timestamp": "2025-05-27T18:23:32.648Z",
+              "cpu": 48,
+              "memory": 77,
+              "disk": 55,
+              "networkIn": 3205,
+              "networkOut": 5299,
+              "responseTime": 412
+            },
+            {
+              "timestamp": "2025-05-27T18:24:32.648Z",
+              "cpu": 47,
+              "memory": 66,
+              "disk": 66,
+              "networkIn": 4469,
+              "networkOut": 2971,
+              "responseTime": 238
+            },
+            {
+              "timestamp": "2025-05-27T18:25:32.648Z",
+              "cpu": 34,
+              "memory": 71,
+              "disk": 52,
+              "networkIn": 2432,
+              "networkOut": 6500,
+              "responseTime": 277
+            },
+            {
+              "timestamp": "2025-05-27T18:26:32.648Z",
+              "cpu": 53,
+              "memory": 78,
+              "disk": 54,
+              "networkIn": 5168,
+              "networkOut": 4036,
+              "responseTime": 431
+            },
+            {
+              "timestamp": "2025-05-27T18:27:32.648Z",
+              "cpu": 60,
+              "memory": 88,
+              "disk": 46,
+              "networkIn": 2071,
+              "networkOut": 7468,
+              "responseTime": 347
+            },
+            {
+              "timestamp": "2025-05-27T18:28:32.648Z",
+              "cpu": 38,
+              "memory": 59,
+              "disk": 72,
+              "networkIn": 2460,
+              "networkOut": 9523,
+              "responseTime": 278
+            },
+            {
+              "timestamp": "2025-05-27T18:29:32.648Z",
+              "cpu": 77,
+              "memory": 61,
+              "disk": 48,
+              "networkIn": 4419,
+              "networkOut": 7371,
+              "responseTime": 190
+            },
+            {
+              "timestamp": "2025-05-27T18:30:32.648Z",
+              "cpu": 73,
+              "memory": 70,
+              "disk": 66,
+              "networkIn": 4910,
+              "networkOut": 9693,
+              "responseTime": 257
+            },
+            {
+              "timestamp": "2025-05-27T18:31:32.648Z",
+              "cpu": 82,
+              "memory": 75,
+              "disk": 51,
+              "networkIn": 2133,
+              "networkOut": 3922,
+              "responseTime": 479
+            }
+          ],
+          "timestamp": "2025-05-27T18:32:32.649Z"
+        },
+        "startResponse": null,
+        "metricsCount": 0
+      }
+    },
+    {
+      "testName": "DataGen_User4_high-load",
+      "userId": 4,
+      "pattern": "high-load",
+      "timestamp": "2025-05-27T18:32:33.157Z",
+      "success": false,
+      "totalResponseTime": 426,
+      "steps": {
+        "status": {
+          "time": 166,
+          "code": 200
+        },
+        "start": {
+          "time": 201,
+          "code": 405
+        },
+        "metrics": {
+          "time": 59,
+          "code": 200
+        }
+      },
+      "details": {
+        "statusResponse": {
+          "success": true,
+          "cached": false,
+          "data": [
+            {
+              "timestamp": "2025-05-27T18:22:32.895Z",
+              "cpu": 26,
+              "memory": 75,
+              "disk": 61,
+              "networkIn": 5937,
+              "networkOut": 8384,
+              "responseTime": 483
+            },
+            {
+              "timestamp": "2025-05-27T18:23:32.895Z",
+              "cpu": 47,
+              "memory": 80,
+              "disk": 56,
+              "networkIn": 5931,
+              "networkOut": 2535,
+              "responseTime": 205
+            },
+            {
+              "timestamp": "2025-05-27T18:24:32.895Z",
+              "cpu": 25,
+              "memory": 48,
+              "disk": 42,
+              "networkIn": 2251,
+              "networkOut": 6345,
+              "responseTime": 193
+            },
+            {
+              "timestamp": "2025-05-27T18:25:32.895Z",
+              "cpu": 56,
+              "memory": 72,
+              "disk": 51,
+              "networkIn": 3243,
+              "networkOut": 9116,
+              "responseTime": 304
+            },
+            {
+              "timestamp": "2025-05-27T18:26:32.895Z",
+              "cpu": 83,
+              "memory": 46,
+              "disk": 51,
+              "networkIn": 2131,
+              "networkOut": 5325,
+              "responseTime": 374
+            },
+            {
+              "timestamp": "2025-05-27T18:27:32.895Z",
+              "cpu": 61,
+              "memory": 60,
+              "disk": 43,
+              "networkIn": 1674,
+              "networkOut": 4094,
+              "responseTime": 334
+            },
+            {
+              "timestamp": "2025-05-27T18:28:32.895Z",
+              "cpu": 40,
+              "memory": 55,
+              "disk": 52,
+              "networkIn": 5493,
+              "networkOut": 5765,
+              "responseTime": 167
+            },
+            {
+              "timestamp": "2025-05-27T18:29:32.895Z",
+              "cpu": 28,
+              "memory": 69,
+              "disk": 68,
+              "networkIn": 4199,
+              "networkOut": 5939,
+              "responseTime": 339
+            },
+            {
+              "timestamp": "2025-05-27T18:30:32.895Z",
+              "cpu": 63,
+              "memory": 51,
+              "disk": 64,
+              "networkIn": 1621,
+              "networkOut": 7789,
+              "responseTime": 193
+            },
+            {
+              "timestamp": "2025-05-27T18:31:32.895Z",
+              "cpu": 33,
+              "memory": 79,
+              "disk": 69,
+              "networkIn": 1560,
+              "networkOut": 5634,
+              "responseTime": 370
+            }
+          ],
+          "type": "metrics",
+          "count": 10,
+          "timestamp": "2025-05-27T18:32:32.895Z"
+        },
+        "startResponse": null,
+        "metricsCount": 0
+      }
+    },
+    {
+      "testName": "DataGen_User5_maintenance",
+      "userId": 5,
+      "pattern": "maintenance",
+      "timestamp": "2025-05-27T18:32:33.157Z",
+      "success": false,
+      "totalResponseTime": 425,
+      "steps": {
+        "status": {
+          "time": 166,
+          "code": 200
+        },
+        "start": {
+          "time": 200,
+          "code": 405
+        },
+        "metrics": {
+          "time": 59,
+          "code": 200
+        }
+      },
+      "details": {
+        "statusResponse": {
+          "success": true,
+          "cached": true,
+          "data": [
+            {
+              "timestamp": "2025-05-27T18:22:32.895Z",
+              "cpu": 26,
+              "memory": 75,
+              "disk": 61,
+              "networkIn": 5937,
+              "networkOut": 8384,
+              "responseTime": 483
+            },
+            {
+              "timestamp": "2025-05-27T18:23:32.895Z",
+              "cpu": 47,
+              "memory": 80,
+              "disk": 56,
+              "networkIn": 5931,
+              "networkOut": 2535,
+              "responseTime": 205
+            },
+            {
+              "timestamp": "2025-05-27T18:24:32.895Z",
+              "cpu": 25,
+              "memory": 48,
+              "disk": 42,
+              "networkIn": 2251,
+              "networkOut": 6345,
+              "responseTime": 193
+            },
+            {
+              "timestamp": "2025-05-27T18:25:32.895Z",
+              "cpu": 56,
+              "memory": 72,
+              "disk": 51,
+              "networkIn": 3243,
+              "networkOut": 9116,
+              "responseTime": 304
+            },
+            {
+              "timestamp": "2025-05-27T18:26:32.895Z",
+              "cpu": 83,
+              "memory": 46,
+              "disk": 51,
+              "networkIn": 2131,
+              "networkOut": 5325,
+              "responseTime": 374
+            },
+            {
+              "timestamp": "2025-05-27T18:27:32.895Z",
+              "cpu": 61,
+              "memory": 60,
+              "disk": 43,
+              "networkIn": 1674,
+              "networkOut": 4094,
+              "responseTime": 334
+            },
+            {
+              "timestamp": "2025-05-27T18:28:32.895Z",
+              "cpu": 40,
+              "memory": 55,
+              "disk": 52,
+              "networkIn": 5493,
+              "networkOut": 5765,
+              "responseTime": 167
+            },
+            {
+              "timestamp": "2025-05-27T18:29:32.895Z",
+              "cpu": 28,
+              "memory": 69,
+              "disk": 68,
+              "networkIn": 4199,
+              "networkOut": 5939,
+              "responseTime": 339
+            },
+            {
+              "timestamp": "2025-05-27T18:30:32.895Z",
+              "cpu": 63,
+              "memory": 51,
+              "disk": 64,
+              "networkIn": 1621,
+              "networkOut": 7789,
+              "responseTime": 193
+            },
+            {
+              "timestamp": "2025-05-27T18:31:32.895Z",
+              "cpu": 33,
+              "memory": 79,
+              "disk": 69,
+              "networkIn": 1560,
+              "networkOut": 5634,
+              "responseTime": 370
+            }
+          ],
+          "timestamp": "2025-05-27T18:32:32.895Z"
+        },
+        "startResponse": null,
+        "metricsCount": 0
+      }
+    },
+    {
+      "testName": "DataGen_User6_normal",
+      "userId": 6,
+      "pattern": "normal",
+      "timestamp": "2025-05-27T18:32:33.157Z",
+      "success": false,
+      "totalResponseTime": 424,
+      "steps": {
+        "status": {
+          "time": 165,
+          "code": 200
+        },
+        "start": {
+          "time": 200,
+          "code": 405
+        },
+        "metrics": {
+          "time": 59,
+          "code": 200
+        }
+      },
+      "details": {
+        "statusResponse": {
+          "success": true,
+          "cached": true,
+          "data": [
+            {
+              "timestamp": "2025-05-27T18:22:32.895Z",
+              "cpu": 26,
+              "memory": 75,
+              "disk": 61,
+              "networkIn": 5937,
+              "networkOut": 8384,
+              "responseTime": 483
+            },
+            {
+              "timestamp": "2025-05-27T18:23:32.895Z",
+              "cpu": 47,
+              "memory": 80,
+              "disk": 56,
+              "networkIn": 5931,
+              "networkOut": 2535,
+              "responseTime": 205
+            },
+            {
+              "timestamp": "2025-05-27T18:24:32.895Z",
+              "cpu": 25,
+              "memory": 48,
+              "disk": 42,
+              "networkIn": 2251,
+              "networkOut": 6345,
+              "responseTime": 193
+            },
+            {
+              "timestamp": "2025-05-27T18:25:32.895Z",
+              "cpu": 56,
+              "memory": 72,
+              "disk": 51,
+              "networkIn": 3243,
+              "networkOut": 9116,
+              "responseTime": 304
+            },
+            {
+              "timestamp": "2025-05-27T18:26:32.895Z",
+              "cpu": 83,
+              "memory": 46,
+              "disk": 51,
+              "networkIn": 2131,
+              "networkOut": 5325,
+              "responseTime": 374
+            },
+            {
+              "timestamp": "2025-05-27T18:27:32.895Z",
+              "cpu": 61,
+              "memory": 60,
+              "disk": 43,
+              "networkIn": 1674,
+              "networkOut": 4094,
+              "responseTime": 334
+            },
+            {
+              "timestamp": "2025-05-27T18:28:32.895Z",
+              "cpu": 40,
+              "memory": 55,
+              "disk": 52,
+              "networkIn": 5493,
+              "networkOut": 5765,
+              "responseTime": 167
+            },
+            {
+              "timestamp": "2025-05-27T18:29:32.895Z",
+              "cpu": 28,
+              "memory": 69,
+              "disk": 68,
+              "networkIn": 4199,
+              "networkOut": 5939,
+              "responseTime": 339
+            },
+            {
+              "timestamp": "2025-05-27T18:30:32.895Z",
+              "cpu": 63,
+              "memory": 51,
+              "disk": 64,
+              "networkIn": 1621,
+              "networkOut": 7789,
+              "responseTime": 193
+            },
+            {
+              "timestamp": "2025-05-27T18:31:32.895Z",
+              "cpu": 33,
+              "memory": 79,
+              "disk": 69,
+              "networkIn": 1560,
+              "networkOut": 5634,
+              "responseTime": 370
+            }
+          ],
+          "timestamp": "2025-05-27T18:32:32.895Z"
+        },
+        "startResponse": null,
+        "metricsCount": 0
+      }
+    },
+    {
+      "testName": "DataGen_User7_high-load",
+      "userId": 7,
+      "pattern": "high-load",
+      "timestamp": "2025-05-27T18:32:33.162Z",
+      "success": false,
+      "totalResponseTime": 322,
+      "steps": {
+        "status": {
+          "time": 79,
+          "code": 200
+        },
+        "start": {
+          "time": 188,
+          "code": 405
+        },
+        "metrics": {
+          "time": 55,
+          "code": 200
+        }
+      },
+      "details": {
+        "statusResponse": {
+          "success": true,
+          "cached": true,
+          "data": [
+            {
+              "timestamp": "2025-05-27T18:22:32.895Z",
+              "cpu": 26,
+              "memory": 75,
+              "disk": 61,
+              "networkIn": 5937,
+              "networkOut": 8384,
+              "responseTime": 483
+            },
+            {
+              "timestamp": "2025-05-27T18:23:32.895Z",
+              "cpu": 47,
+              "memory": 80,
+              "disk": 56,
+              "networkIn": 5931,
+              "networkOut": 2535,
+              "responseTime": 205
+            },
+            {
+              "timestamp": "2025-05-27T18:24:32.895Z",
+              "cpu": 25,
+              "memory": 48,
+              "disk": 42,
+              "networkIn": 2251,
+              "networkOut": 6345,
+              "responseTime": 193
+            },
+            {
+              "timestamp": "2025-05-27T18:25:32.895Z",
+              "cpu": 56,
+              "memory": 72,
+              "disk": 51,
+              "networkIn": 3243,
+              "networkOut": 9116,
+              "responseTime": 304
+            },
+            {
+              "timestamp": "2025-05-27T18:26:32.895Z",
+              "cpu": 83,
+              "memory": 46,
+              "disk": 51,
+              "networkIn": 2131,
+              "networkOut": 5325,
+              "responseTime": 374
+            },
+            {
+              "timestamp": "2025-05-27T18:27:32.895Z",
+              "cpu": 61,
+              "memory": 60,
+              "disk": 43,
+              "networkIn": 1674,
+              "networkOut": 4094,
+              "responseTime": 334
+            },
+            {
+              "timestamp": "2025-05-27T18:28:32.895Z",
+              "cpu": 40,
+              "memory": 55,
+              "disk": 52,
+              "networkIn": 5493,
+              "networkOut": 5765,
+              "responseTime": 167
+            },
+            {
+              "timestamp": "2025-05-27T18:29:32.895Z",
+              "cpu": 28,
+              "memory": 69,
+              "disk": 68,
+              "networkIn": 4199,
+              "networkOut": 5939,
+              "responseTime": 339
+            },
+            {
+              "timestamp": "2025-05-27T18:30:32.895Z",
+              "cpu": 63,
+              "memory": 51,
+              "disk": 64,
+              "networkIn": 1621,
+              "networkOut": 7789,
+              "responseTime": 193
+            },
+            {
+              "timestamp": "2025-05-27T18:31:32.895Z",
+              "cpu": 33,
+              "memory": 79,
+              "disk": 69,
+              "networkIn": 1560,
+              "networkOut": 5634,
+              "responseTime": 370
+            }
+          ],
+          "timestamp": "2025-05-27T18:32:32.917Z"
+        },
+        "startResponse": null,
+        "metricsCount": 0
+      }
+    },
+    {
+      "testName": "DataGen_User8_maintenance",
+      "userId": 8,
+      "pattern": "maintenance",
+      "timestamp": "2025-05-27T18:32:33.163Z",
+      "success": false,
+      "totalResponseTime": 322,
+      "steps": {
+        "status": {
+          "time": 78,
+          "code": 200
+        },
+        "start": {
+          "time": 188,
+          "code": 405
+        },
+        "metrics": {
+          "time": 56,
+          "code": 200
+        }
+      },
+      "details": {
+        "statusResponse": {
+          "success": true,
+          "cached": true,
+          "data": [
+            {
+              "timestamp": "2025-05-27T18:22:32.895Z",
+              "cpu": 26,
+              "memory": 75,
+              "disk": 61,
+              "networkIn": 5937,
+              "networkOut": 8384,
+              "responseTime": 483
+            },
+            {
+              "timestamp": "2025-05-27T18:23:32.895Z",
+              "cpu": 47,
+              "memory": 80,
+              "disk": 56,
+              "networkIn": 5931,
+              "networkOut": 2535,
+              "responseTime": 205
+            },
+            {
+              "timestamp": "2025-05-27T18:24:32.895Z",
+              "cpu": 25,
+              "memory": 48,
+              "disk": 42,
+              "networkIn": 2251,
+              "networkOut": 6345,
+              "responseTime": 193
+            },
+            {
+              "timestamp": "2025-05-27T18:25:32.895Z",
+              "cpu": 56,
+              "memory": 72,
+              "disk": 51,
+              "networkIn": 3243,
+              "networkOut": 9116,
+              "responseTime": 304
+            },
+            {
+              "timestamp": "2025-05-27T18:26:32.895Z",
+              "cpu": 83,
+              "memory": 46,
+              "disk": 51,
+              "networkIn": 2131,
+              "networkOut": 5325,
+              "responseTime": 374
+            },
+            {
+              "timestamp": "2025-05-27T18:27:32.895Z",
+              "cpu": 61,
+              "memory": 60,
+              "disk": 43,
+              "networkIn": 1674,
+              "networkOut": 4094,
+              "responseTime": 334
+            },
+            {
+              "timestamp": "2025-05-27T18:28:32.895Z",
+              "cpu": 40,
+              "memory": 55,
+              "disk": 52,
+              "networkIn": 5493,
+              "networkOut": 5765,
+              "responseTime": 167
+            },
+            {
+              "timestamp": "2025-05-27T18:29:32.895Z",
+              "cpu": 28,
+              "memory": 69,
+              "disk": 68,
+              "networkIn": 4199,
+              "networkOut": 5939,
+              "responseTime": 339
+            },
+            {
+              "timestamp": "2025-05-27T18:30:32.895Z",
+              "cpu": 63,
+              "memory": 51,
+              "disk": 64,
+              "networkIn": 1621,
+              "networkOut": 7789,
+              "responseTime": 193
+            },
+            {
+              "timestamp": "2025-05-27T18:31:32.895Z",
+              "cpu": 33,
+              "memory": 79,
+              "disk": 69,
+              "networkIn": 1560,
+              "networkOut": 5634,
+              "responseTime": 370
+            }
+          ],
+          "timestamp": "2025-05-27T18:32:32.917Z"
+        },
+        "startResponse": null,
+        "metricsCount": 0
+      }
+    },
+    {
+      "testName": "DataGen_User9_normal",
+      "userId": 9,
+      "pattern": "normal",
+      "timestamp": "2025-05-27T18:32:33.163Z",
+      "success": false,
+      "totalResponseTime": 322,
+      "steps": {
+        "status": {
+          "time": 78,
+          "code": 200
+        },
+        "start": {
+          "time": 188,
+          "code": 405
+        },
+        "metrics": {
+          "time": 56,
+          "code": 200
+        }
+      },
+      "details": {
+        "statusResponse": {
+          "success": true,
+          "cached": true,
+          "data": [
+            {
+              "timestamp": "2025-05-27T18:22:32.895Z",
+              "cpu": 26,
+              "memory": 75,
+              "disk": 61,
+              "networkIn": 5937,
+              "networkOut": 8384,
+              "responseTime": 483
+            },
+            {
+              "timestamp": "2025-05-27T18:23:32.895Z",
+              "cpu": 47,
+              "memory": 80,
+              "disk": 56,
+              "networkIn": 5931,
+              "networkOut": 2535,
+              "responseTime": 205
+            },
+            {
+              "timestamp": "2025-05-27T18:24:32.895Z",
+              "cpu": 25,
+              "memory": 48,
+              "disk": 42,
+              "networkIn": 2251,
+              "networkOut": 6345,
+              "responseTime": 193
+            },
+            {
+              "timestamp": "2025-05-27T18:25:32.895Z",
+              "cpu": 56,
+              "memory": 72,
+              "disk": 51,
+              "networkIn": 3243,
+              "networkOut": 9116,
+              "responseTime": 304
+            },
+            {
+              "timestamp": "2025-05-27T18:26:32.895Z",
+              "cpu": 83,
+              "memory": 46,
+              "disk": 51,
+              "networkIn": 2131,
+              "networkOut": 5325,
+              "responseTime": 374
+            },
+            {
+              "timestamp": "2025-05-27T18:27:32.895Z",
+              "cpu": 61,
+              "memory": 60,
+              "disk": 43,
+              "networkIn": 1674,
+              "networkOut": 4094,
+              "responseTime": 334
+            },
+            {
+              "timestamp": "2025-05-27T18:28:32.895Z",
+              "cpu": 40,
+              "memory": 55,
+              "disk": 52,
+              "networkIn": 5493,
+              "networkOut": 5765,
+              "responseTime": 167
+            },
+            {
+              "timestamp": "2025-05-27T18:29:32.895Z",
+              "cpu": 28,
+              "memory": 69,
+              "disk": 68,
+              "networkIn": 4199,
+              "networkOut": 5939,
+              "responseTime": 339
+            },
+            {
+              "timestamp": "2025-05-27T18:30:32.895Z",
+              "cpu": 63,
+              "memory": 51,
+              "disk": 64,
+              "networkIn": 1621,
+              "networkOut": 7789,
+              "responseTime": 193
+            },
+            {
+              "timestamp": "2025-05-27T18:31:32.895Z",
+              "cpu": 33,
+              "memory": 79,
+              "disk": 69,
+              "networkIn": 1560,
+              "networkOut": 5634,
+              "responseTime": 370
+            }
+          ],
+          "timestamp": "2025-05-27T18:32:32.917Z"
+        },
+        "startResponse": null,
+        "metricsCount": 0
+      }
+    },
+    {
+      "testName": "DataGen_User10_high-load",
+      "userId": 10,
+      "pattern": "high-load",
+      "timestamp": "2025-05-27T18:32:33.173Z",
+      "success": false,
+      "totalResponseTime": 226,
+      "steps": {
+        "status": {
+          "time": 160,
+          "code": 200
+        },
+        "start": {
+          "time": 57,
+          "code": 405
+        },
+        "metrics": {
+          "time": 9,
+          "code": 200
+        }
+      },
+      "details": {
+        "statusResponse": {
+          "success": true,
+          "cached": false,
+          "data": [
+            {
+              "timestamp": "2025-05-27T18:22:33.105Z",
+              "cpu": 36,
+              "memory": 54,
+              "disk": 60,
+              "networkIn": 3559,
+              "networkOut": 7640,
+              "responseTime": 233
+            },
+            {
+              "timestamp": "2025-05-27T18:23:33.105Z",
+              "cpu": 28,
+              "memory": 47,
+              "disk": 56,
+              "networkIn": 5316,
+              "networkOut": 9323,
+              "responseTime": 417
+            },
+            {
+              "timestamp": "2025-05-27T18:24:33.105Z",
+              "cpu": 65,
+              "memory": 39,
+              "disk": 60,
+              "networkIn": 2126,
+              "networkOut": 6779,
+              "responseTime": 190
+            },
+            {
+              "timestamp": "2025-05-27T18:25:33.105Z",
+              "cpu": 36,
+              "memory": 63,
+              "disk": 45,
+              "networkIn": 4123,
+              "networkOut": 5245,
+              "responseTime": 188
+            },
+            {
+              "timestamp": "2025-05-27T18:26:33.105Z",
+              "cpu": 79,
+              "memory": 71,
+              "disk": 44,
+              "networkIn": 4785,
+              "networkOut": 4918,
+              "responseTime": 298
+            },
+            {
+              "timestamp": "2025-05-27T18:27:33.105Z",
+              "cpu": 68,
+              "memory": 53,
+              "disk": 48,
+              "networkIn": 5863,
+              "networkOut": 3803,
+              "responseTime": 358
+            },
+            {
+              "timestamp": "2025-05-27T18:28:33.105Z",
+              "cpu": 54,
+              "memory": 68,
+              "disk": 68,
+              "networkIn": 3761,
+              "networkOut": 3611,
+              "responseTime": 406
+            },
+            {
+              "timestamp": "2025-05-27T18:29:33.105Z",
+              "cpu": 49,
+              "memory": 88,
+              "disk": 54,
+              "networkIn": 5061,
+              "networkOut": 7222,
+              "responseTime": 145
+            },
+            {
+              "timestamp": "2025-05-27T18:30:33.105Z",
+              "cpu": 83,
+              "memory": 47,
+              "disk": 69,
+              "networkIn": 4728,
+              "networkOut": 7023,
+              "responseTime": 424
+            },
+            {
+              "timestamp": "2025-05-27T18:31:33.105Z",
+              "cpu": 48,
+              "memory": 62,
+              "disk": 62,
+              "networkIn": 2598,
+              "networkOut": 3945,
+              "responseTime": 388
+            }
+          ],
+          "type": "metrics",
+          "count": 10,
+          "timestamp": "2025-05-27T18:32:33.106Z"
+        },
+        "startResponse": null,
+        "metricsCount": 0
+      }
+    }
+  ],
+  "errors": [],
+  "summary": {
+    "summary": {
+      "totalTests": 20,
+      "successfulTests": 10,
+      "failedTests": 10,
+      "errors": 0,
+      "successRate": "50.00"
+    },
+    "systemStart": {
+      "totalTests": 10,
+      "successful": 10,
+      "failed": 0,
+      "responseTimeStats": {
+        "min": 968,
+        "max": 1719,
+        "avg": 1375,
+        "median": 1516,
+        "p95": 1719
+      }
+    },
+    "dataGenerator": {
+      "totalTests": 10,
+      "successful": 0,
+      "failed": 10,
+      "responseTimeStats": {
+        "min": 0,
+        "max": 0,
+        "avg": 0,
+        "median": 0
+      }
+    },
+    "errors": []
+  }
+}

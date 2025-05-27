@@ -1,4 +1,5 @@
 import { MCPTask, MCPTaskResult } from './MCPAIRouter';
+import { AnalysisRequest, normalizeMetricData } from '../../types/python-api';
 
 export class TaskOrchestrator {
   private engines: Map<string, any> = new Map();
@@ -149,12 +150,15 @@ export class TaskOrchestrator {
   }
 
   /**
-   * 🐍 단일 Python 작업 실행
+   * 🐍 단일 Python 작업 실행 (구조화된 JSON 전용)
    */
   private async executePythonTask(task: MCPTask): Promise<MCPTaskResult> {
     const startTime = Date.now();
     
     try {
+      // 구조화된 요청 생성
+      const structuredRequest = this.createStructuredRequest(task);
+      
       // 환경변수에서 Python 서비스 URL 가져오기
       const pythonServiceUrl = process.env.AI_ENGINE_URL || 'https://openmanager-vibe-v5.onrender.com';
       
@@ -166,11 +170,7 @@ export class TaskOrchestrator {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          query: task.data.query,
-          metrics: task.data.metrics,
-          analysisType: task.data.analysisType
-        }),
+        body: JSON.stringify(structuredRequest),
         signal: controller.signal
       });
       
@@ -188,7 +188,7 @@ export class TaskOrchestrator {
         success: true,
         result,
         executionTime: Date.now() - startTime,
-        engine: 'python_external',
+        engine: 'python_simplified',
         confidence: result.confidence || 0.8
       };
       
@@ -664,5 +664,35 @@ export class TaskOrchestrator {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * 📋 구조화된 Python 요청 생성 (타입 안전)
+   */
+  private createStructuredRequest(task: MCPTask): AnalysisRequest {
+    const { data } = task;
+    
+    // Intent 타입을 Python 분석 타입으로 매핑
+    const analysisTypeMapping = {
+      'capacity_planning': 'capacity_planning' as const,
+      'server_performance_prediction': 'server_performance_prediction' as const,
+      'complex_ml': 'complex_forecasting' as const
+    };
+    
+    // 메트릭 데이터 정규화 (타입 안전한 헬퍼 사용)
+    const normalizedMetrics = (data.metrics || []).map(normalizeMetricData);
+    
+    const analysisType = analysisTypeMapping[data.intent as keyof typeof analysisTypeMapping] || 'complex_forecasting';
+    
+    return {
+      analysis_type: analysisType,
+      metrics: normalizedMetrics,
+      prediction_hours: data.predictionHours || 24,
+      sensitivity: data.sensitivity || 0.8,
+      features: data.features || ['cpu', 'memory', 'disk'],
+      server_id: data.serverId || null,
+      urgency: (data.urgency as 'critical' | 'high' | 'medium' | 'low') || 'medium',
+      confidence_threshold: 0.7
+    };
   }
 } 
