@@ -85,7 +85,18 @@ export function middleware(request: NextRequest) {
     // CSP 헤더 (개발환경에서는 완화)
     const cspValue = process.env.NODE_ENV === 'development' 
       ? "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: https:; connect-src 'self' http://localhost:* ws://localhost:*"
-      : "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https:";
+      : [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://cdn.vercel-insights.com https://*.vercel.app",
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
+          "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:",
+          "img-src 'self' data: https: blob:",
+          "connect-src 'self' https: wss: https://*.vercel.app https://*.render.com https://vitals.vercel-insights.com https://vercel.live",
+          "frame-src 'self' https://vercel.live",
+          "worker-src 'self' blob:",
+          "object-src 'none'",
+          "base-uri 'self'"
+        ].join('; ');
     
     response.headers.set('Content-Security-Policy', cspValue);
 
