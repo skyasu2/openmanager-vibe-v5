@@ -4,11 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ModalHeader from './modal-v2/components/ModalHeader';
 import LeftPanel from './modal-v2/components/LeftPanel';
-import RightPanel from './modal-v2/components/RightPanel';
-import MobileBottomSheet from './modal-v2/components/MobileBottomSheet';
-import NavigationBar from './modal-v2/components/NavigationBar';
 import { useModalState } from './modal-v2/hooks/useModalState';
-import { useModalNavigation } from './modal-v2/hooks/useModalNavigation';
 import { FunctionType, HistoryItem } from './modal-v2/types';
 import { InteractionLogger } from '@/services/ai-agent/logging/InteractionLogger';
 import { useServerDataStore } from '@/stores/serverDataStore';
@@ -87,9 +83,8 @@ export default function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelPr
   const [isTablet, setIsTablet] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [responseMetadata, setResponseMetadata] = useState<any>(null);
-  const { state, dispatch, addToHistory, setBottomSheetState } = useModalState();
+  const { state, dispatch, addToHistory } = useModalState();
   const { servers } = useServerDataStore();
-  const navigation = useModalNavigation();
   
   // 시스템 제어 훅 추가
   const { recordActivity } = useSystemControl();
@@ -146,9 +141,9 @@ export default function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelPr
       setIsTablet(tablet);
       dispatch({ type: 'SET_MOBILE', payload: mobile });
       
-      // 모바일 -> 데스크탑 전환 시 바텀시트 상태 초기화
-      if (!mobile && state.bottomSheetState !== 'hidden') {
-        setBottomSheetState('hidden');
+      // 모바일 -> 데스크탑 전환 시 상태 초기화 (바텀시트 제거로 단순화)
+      if (!mobile) {
+        // 모바일에서 데스크탑으로 전환 시 추가 초기화 작업이 필요하면 여기에 추가
       }
     };
 
@@ -158,7 +153,7 @@ export default function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelPr
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [dispatch, setBottomSheetState, state.bottomSheetState, isClient]);
+  }, [dispatch, isClient]);
 
   // 사용자 활동 추적 (AI 패널 사용 시, 디바운스 적용)
   useEffect(() => {
@@ -544,25 +539,32 @@ export default function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelPr
       `🔄 **복구 진행 중이니 잠시 후 다시 시도해주세요.**`;
   };
 
+  // 패널 너비 계산 - 반응형 최적화
+  const getPanelWidth = () => {
+    if (isMobile) return '100vw'; // 모바일: 전체 화면
+    if (isTablet) return '420px'; // 태블릿: 중간 크기
+    return '600px'; // 데스크탑: 큰 크기 (700px에서 600px로 조정)
+  };
+
+  // 메인 컨텐츠 밀림 거리 계산
+  const getContentPushDistance = () => {
+    if (isMobile) return '0px'; // 모바일에서는 밀지 않음
+    if (isTablet) return '210px'; // 태블릿: 절반만 밀기
+    return '300px'; // 데스크탑: 절반만 밀기
+  };
+
   // 서버 사이드 렌더링 시 기본 UI 반환
   if (!isClient) {
     return null;
   }
 
-  // 패널 너비 계산 - 더 큰 크기로 조정
-  const getPanelWidth = () => {
-    if (isMobile) return '100vw';
-    if (isTablet) return '500px'; // 태블릿에서 더 크게
-    return '700px'; // 데스크탑에서 더 크게 (기존 400px → 700px)
-  };
-
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* 오버레이 배경 */}
+          {/* 사이드바용 투명 오버레이 - 블러 효과 제거 */}
           <motion.div 
-            className="panel-overlay fixed inset-0 bg-black/30 backdrop-blur-sm z-[999]"
+            className="panel-overlay fixed inset-0 bg-transparent z-[999]"
             variants={overlayVariants}
             initial="hidden"
             animate="visible"
@@ -573,13 +575,13 @@ export default function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelPr
             }}
           />
           
-          {/* AI Assistant 패널 */}
+          {/* AI Assistant 사이드바 */}
           <motion.div
             id="ai-assistant-panel"
             className={`
               ai-assistant-panel fixed top-0 right-0 h-screen bg-white 
-              shadow-[-2px_0_20px_rgba(0,0,0,0.15)] z-[1000] 
-              overflow-hidden flex flex-col
+              shadow-[-4px_0_24px_rgba(0,0,0,0.12)] z-[1000] 
+              overflow-hidden flex flex-col border-l border-gray-200
               ${isMobile ? 'w-full' : ''}
             `}
             style={{ 
@@ -590,9 +592,8 @@ export default function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelPr
             initial="hidden"
             animate="visible"
             exit="exit"
-            role="dialog"
-            aria-label="AI Assistant Panel"
-            aria-modal="true"
+            role="complementary"
+            aria-label="AI Assistant Sidebar"
             onClick={(e) => {
               e.stopPropagation();
               recordActivity();
@@ -606,32 +607,12 @@ export default function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelPr
               }} />
             </div>
             
-            {/* 네비게이션 바 */}
-            <div className="panel-navigation border-b border-gray-100">
-              <NavigationBar
-                canGoBack={navigation.canGoBack}
-                canGoForward={navigation.canGoForward}
-                currentIndex={navigation.currentIndex}
-                history={navigation.history}
-                onGoBack={() => {
-                  recordActivity();
-                  navigation.goBack();
-                }}
-                onGoForward={() => {
-                  recordActivity();
-                  navigation.goForward();
-                }}
-                onGoToIndex={(index) => {
-                  recordActivity();
-                  navigation.goToIndex(index);
-                }}
-              />
-            </div>
+            {/* 네비게이션 바 제거 - 사이드바에서는 불필요 */}
             
             {/* 패널 바디 - 스크롤 가능 */}
             <div className="panel-body flex-1 overflow-hidden flex flex-col">
               {isMobile ? (
-                // 모바일: 세로 레이아웃
+                // 모바일: 전체 화면 사용
                 <div className="flex flex-col h-full">
                   <div className="flex-1 overflow-auto">
                     <LeftPanel
@@ -666,55 +647,38 @@ export default function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelPr
                     onBackToPresets={handleBackToPresets}
                   />
                   
-                  {/* 기능 패널은 사이드 패널에서는 축소 표시 */}
-                  {!isMobile && (
-                    <div className="border-t border-gray-200 bg-gray-50">
-                      <div className="p-3">
-                        <div className="text-xs text-gray-500 mb-2">빠른 기능</div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <button
-                            onClick={() => {
-                              recordActivity();
-                              dispatch({ type: 'SELECT_FUNCTION', payload: 'cost-analysis' });
-                            }}
-                            className="p-2 text-xs bg-white rounded border hover:bg-gray-50 transition-colors"
-                          >
-                            시스템 분석
-                          </button>
-                          <button
-                            onClick={() => {
-                              recordActivity();
-                              dispatch({ type: 'TOGGLE_HISTORY', payload: true });
-                            }}
-                            className="p-2 text-xs bg-white rounded border hover:bg-gray-50 transition-colors"
-                          >
-                            히스토리
-                          </button>
-                        </div>
+                  {/* 빠른 기능 버튼 - 사이드바 하단에 간소화 */}
+                  <div className="border-t border-gray-200 bg-gray-50">
+                    <div className="p-4">
+                      <div className="text-xs text-gray-500 mb-3">빠른 기능</div>
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => {
+                            recordActivity();
+                            dispatch({ type: 'SELECT_FUNCTION', payload: 'cost-analysis' });
+                          }}
+                          className="w-full p-3 text-sm bg-white rounded-lg border hover:bg-gray-50 transition-colors text-left"
+                        >
+                          🔍 시스템 분석
+                        </button>
+                        <button
+                          onClick={() => {
+                            recordActivity();
+                            dispatch({ type: 'TOGGLE_HISTORY', payload: true });
+                          }}
+                          className="w-full p-3 text-sm bg-white rounded-lg border hover:bg-gray-50 transition-colors text-left"
+                        >
+                          📝 히스토리
+                        </button>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               )}
             </div>
           </motion.div>
           
-          {/* 모바일 바텀시트 */}
-          {isMobile && (
-            <MobileBottomSheet
-              state={state.bottomSheetState}
-              setState={(newState) => {
-                recordActivity();
-                setBottomSheetState(newState);
-              }}
-              selectedFunction={state.selectedFunction}
-              selectFunction={(functionType: FunctionType) => {
-                recordActivity();
-                dispatch({ type: 'SELECT_FUNCTION', payload: functionType });
-              }}
-              functionData={state.functionData}
-            />
-          )}
+          {/* 모바일 바텀시트 제거 - 사이드바에서는 불필요 */}
         </>
       )}
     </AnimatePresence>

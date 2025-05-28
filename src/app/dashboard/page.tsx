@@ -14,6 +14,8 @@ import { useSequentialServerGeneration } from '../../hooks/useSequentialServerGe
 export default function DashboardPage() {
   const [isAgentOpen, setIsAgentOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
   const [selectedServer, setSelectedServer] = useState<any | null>(null);
   const [serverStats, setServerStats] = useState({
     total: 0,
@@ -35,7 +37,11 @@ export default function DashboardPage() {
       }
     },
     pushed: {
-      transform: 'translateX(-350px)', // AI 에이전트가 700px이므로 절반인 350px만큼 밀기
+      transform: isMobile 
+        ? 'translateX(0px)' // 모바일에서는 밀지 않음
+        : isTablet 
+          ? 'translateX(-210px)' // 태블릿: 절반만 밀기
+          : 'translateX(-300px)', // 데스크탑: 300px 밀기
       transition: {
         type: 'spring',
         damping: 30,
@@ -116,6 +122,27 @@ export default function DashboardPage() {
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // 반응형 화면 크기 감지
+  useEffect(() => {
+    if (!isClient) return;
+
+    const handleResize = () => {
+      const width = window.innerWidth;
+      const mobile = width < 768;
+      const tablet = width >= 768 && width < 1024;
+      
+      setIsMobile(mobile);
+      setIsTablet(tablet);
+    };
+
+    handleResize(); // 초기 로드 시 실행
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isClient]);
 
   // 자동 인증 설정 (클라이언트 사이드에서만)
   useEffect(() => {
