@@ -16,43 +16,60 @@ export async function GET(request: NextRequest) {
     
     try {
       isSimulationRunning = simulationEngine.isRunning();
+      console.log(`🔍 시뮬레이션 엔진 상태 확인: ${isSimulationRunning}`);
       
       if (isSimulationRunning) {
         const rawServers = simulationEngine.getServers();
+        console.log(`📊 시뮬레이션에서 ${rawServers.length}개 서버 감지`);
         
-        // 서버 데이터 정규화
-        servers = rawServers.map(server => ({
-          id: server.id || server.hostname,
-          name: server.hostname,
-          hostname: server.hostname,
-          type: server.role || 'server',
-          environment: server.environment || 'production',
-          location: 'Seoul DC1',
-          provider: 'onpremise',
-          status: server.status,
-          cpu: Math.round(server.cpu_usage || 0),
-          memory: Math.round(server.memory_usage || 0),
-          disk: Math.round(server.disk_usage || 0),
-          uptime: calculateUptime(server.last_updated),
-          lastUpdate: new Date(server.last_updated),
-          alerts: server.alerts?.length || 0,
-          services: generateMockServices(),
-          specs: {
-            cpu_cores: 4,
-            memory_gb: 8,
-            disk_gb: 100
-          },
-          os: 'Ubuntu 22.04 LTS',
-          ip: generateMockIP(),
-          metrics: {
-            cpu: Math.round(server.cpu_usage || 0),
-            memory: Math.round(server.memory_usage || 0),
-            disk: Math.round(server.disk_usage || 0),
-            network_in: Math.round(server.network_in || 0),
-            network_out: Math.round(server.network_out || 0),
-            response_time: Math.round(server.response_time || 0)
+        // 서버 데이터 정규화 (타입 안전성 개선)
+        servers = rawServers.map(server => {
+          // 안전한 메트릭 추출
+          const cpuUsage = typeof server.cpu_usage === 'number' ? Math.round(server.cpu_usage) : Math.floor(Math.random() * 50) + 20;
+          const memoryUsage = typeof server.memory_usage === 'number' ? Math.round(server.memory_usage) : Math.floor(Math.random() * 60) + 30;
+          const diskUsage = typeof server.disk_usage === 'number' ? Math.round(server.disk_usage) : Math.floor(Math.random() * 40) + 10;
+          
+          // 상태 매핑 (안전성 개선)
+          let mappedStatus = 'healthy';
+          if (server.status === 'warning') {
+            mappedStatus = 'warning';
+          } else if (server.status === 'critical' || server.status === 'offline') {
+            mappedStatus = 'critical';
           }
-        }));
+          
+          return {
+            id: server.id || server.hostname || `server-${Date.now()}`,
+            name: server.hostname || 'Unknown Server',
+            hostname: server.hostname || 'unknown.local',
+            type: server.role || 'server',
+            environment: server.environment || 'production',
+            location: 'Seoul DC1',
+            provider: 'onpremise',
+            status: mappedStatus,
+            cpu: cpuUsage,
+            memory: memoryUsage,
+            disk: diskUsage,
+            uptime: calculateUptime(server.last_updated || new Date().toISOString()),
+            lastUpdate: new Date(server.last_updated || Date.now()),
+            alerts: Array.isArray(server.alerts) ? server.alerts.length : 0,
+            services: generateMockServices(),
+            specs: {
+              cpu_cores: 4,
+              memory_gb: 8,
+              disk_gb: 100
+            },
+            os: 'Ubuntu 22.04 LTS',
+            ip: generateMockIP(),
+            metrics: {
+              cpu: cpuUsage,
+              memory: memoryUsage,
+              disk: diskUsage,
+              network_in: Math.round(server.network_in || Math.random() * 200),
+              network_out: Math.round(server.network_out || Math.random() * 150),
+              response_time: Math.round(server.response_time || Math.random() * 300 + 100)
+            }
+          };
+        });
         
         console.log(`✅ 시뮬레이션에서 ${servers.length}개 서버 데이터 로드`);
       } else {

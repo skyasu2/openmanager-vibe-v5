@@ -93,4 +93,32 @@
     border-radius: 6px;
     border: 2px solid #f8fafc;
   }
+}
+
+/* 채팅 영역 전용 스타일 */
+.chat-container {
+  /* 부드러운 애니메이션 */
+  transition: all 0.3s ease;
+}
+
+.chat-message {
+  /* 메시지 카드 호버 효과 */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.chat-message:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* 입력창 포커스 효과 강화 */
+.question-input:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+}
+
+/* 프리셋 질문 버튼 호버 효과 */
+.preset-question:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
 } 

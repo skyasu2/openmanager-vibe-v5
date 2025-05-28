@@ -72,11 +72,11 @@ export default function ServerCard({ server, onClick }: ServerCardProps) {
   return (
     <div 
       className={`
-        relative bg-white rounded-lg p-3 border border-gray-200 
+        relative bg-white rounded-lg p-4 border border-gray-200 
         cursor-pointer transition-all duration-200 
-        hover:shadow-md hover:border-gray-300
-        ${isHovered ? 'shadow-md border-gray-300' : 'shadow-sm'}
-        min-h-[200px] sm:min-h-[220px]
+        hover:shadow-lg hover:border-gray-300
+        ${isHovered ? 'shadow-lg border-gray-300' : 'shadow-sm'}
+        min-h-[240px] sm:min-h-[260px]
       `}
       onClick={() => onClick(server)}
       onMouseEnter={() => setIsHovered(true)}
@@ -94,7 +94,7 @@ export default function ServerCard({ server, onClick }: ServerCardProps) {
       </div>
 
       {/* 리소스 사용률 (컴팩트) */}
-      <div className="space-y-2 mb-3">
+      <div className="space-y-3 mb-4">
         {/* CPU */}
         <div>
           <div className="flex justify-between items-center mb-1">
@@ -142,16 +142,22 @@ export default function ServerCard({ server, onClick }: ServerCardProps) {
       <div className="space-y-1 mb-3 text-xs text-gray-600">
         <div className="flex justify-between">
           <span>위치</span>
-          <span className="font-medium text-gray-900 truncate ml-2">{server.location || 'N/A'}</span>
+          <span className="font-medium text-gray-900 truncate ml-2">{server.location || 'Seoul DC1'}</span>
         </div>
         <div className="flex justify-between">
           <span>업타임</span>
           <span className="font-medium text-gray-900">{server.uptime}</span>
         </div>
         <div className="flex justify-between">
+          <span>IP주소</span>
+          <span className="font-medium text-gray-900 text-xs">
+            {server.ip || '192.168.1.100'}
+          </span>
+        </div>
+        <div className="flex justify-between">
           <span>응답속도</span>
           <span className="font-medium text-gray-900">
-            {(Math.random() * 0.5 + 0.1).toFixed(2)}s
+            {(Math.random() * 200 + 50).toFixed(0)}ms
           </span>
         </div>
       </div>

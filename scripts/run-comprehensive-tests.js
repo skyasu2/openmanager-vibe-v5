@@ -256,11 +256,12 @@ async function runIntegrationTests() {
       name: '데이터 수집 시스템',
       category: 'integration',
       test: async () => {
-        const response = await fetch(`${TEST_CONFIG.baseUrl}/api/dashboard`);
+        const response = await fetch(`${TEST_CONFIG.baseUrl}/api/servers`);
         const data = await response.json();
+        const serverCount = data.data?.servers?.length || 0;
         return { 
-          success: response.ok && data.servers, 
-          message: `${data.servers?.length || 0}개 서버 감지` 
+          success: response.ok && serverCount > 0, 
+          message: `${serverCount}개 서버 감지` 
         };
       }
     },

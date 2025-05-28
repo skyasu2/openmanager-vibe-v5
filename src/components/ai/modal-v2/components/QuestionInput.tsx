@@ -54,15 +54,15 @@ export default function QuestionInput({
           onChange={handleTextareaChange}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all min-h-[48px] max-h-[108px]"
+          className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all min-h-[52px] max-h-[120px] text-gray-800 placeholder-gray-500 shadow-sm hover:shadow-md focus:shadow-lg"
           rows={1}
           disabled={isLoading}
         />
         
-        {/* 입력 힌트 */}
+        {/* 입력 힌트 - 개선된 위치와 스타일 */}
         {!query && (
-          <div className="absolute bottom-2 right-2 text-xs text-gray-400">
-            Enter로 전송, Shift+Enter로 줄바꿈
+          <div className="absolute bottom-2 right-2 text-xs text-gray-400 bg-white px-2 py-1 rounded shadow-sm">
+            💡 Enter: 전송 | Shift+Enter: 줄바꿈
           </div>
         )}
       </div>
@@ -70,11 +70,12 @@ export default function QuestionInput({
       <button
         type="submit"
         disabled={!query.trim() || isLoading}
-        className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+        className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-200 ${
           query.trim() && !isLoading
-            ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:shadow-lg hover:scale-105'
+            ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:shadow-lg hover:scale-105 shadow-md hover:from-purple-700 hover:to-blue-700'
             : 'bg-gray-100 text-gray-400 cursor-not-allowed'
         }`}
+        title={query.trim() ? "메시지 전송" : "질문을 입력하세요"}
       >
         {isLoading ? (
           <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>

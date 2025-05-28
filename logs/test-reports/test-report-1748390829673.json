@@ -1,0 +1,42 @@
+{
+  "startTime": "2025-05-28T00:07:08.687Z",
+  "endTime": "2025-05-28T00:07:09.672Z",
+  "duration": 985,
+  "summary": {
+    "total": 17,
+    "passed": 16,
+    "failed": 1,
+    "skipped": 0,
+    "successRate": 94.11764705882352
+  },
+  "categories": {
+    "unit": {
+      "passed": 3,
+      "failed": 0
+    },
+    "integration": {
+      "passed": 2,
+      "failed": 1
+    },
+    "performance": {
+      "passed": 3,
+      "failed": 0
+    },
+    "e2e": {
+      "passed": 1,
+      "failed": 0
+    }
+  },
+  "services": {},
+  "performance": {
+    "averageResponseTime": 0,
+    "memoryUsage": 8,
+    "errorRate": 0,
+    "responseTime": 8,
+    "concurrentRequests": 5,
+    "totalTime": 76
+  },
+  "recommendations": [
+    "통합 테스트에서 실패가 발생했습니다. 서비스 간 연동을 확인하세요."
+  ]
+}

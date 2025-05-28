@@ -32,12 +32,14 @@ const nextConfig: NextConfig = {
   },
 
   // 서버 외부 패키지 (Next.js 15 새 설정)
-  serverExternalPackages: ['ioredis'],
+  serverExternalPackages: ['ioredis', '@tensorflow/tfjs'],
 
   // 이미지 최적화
   images: {
     domains: ['localhost', 'openmanager-vibe-v5.vercel.app'],
     formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 60,
+    dangerouslyAllowSVG: false,
   },
 
   // 압축 설정
@@ -45,6 +47,10 @@ const nextConfig: NextConfig = {
 
   // API 라우트를 위한 페이지 확장자 설정
   pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
+
+  // 성능 모니터링 강화
+  poweredByHeader: false,
+  generateEtags: true,
 
   // 보안 헤더
   async headers() {

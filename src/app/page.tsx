@@ -524,14 +524,15 @@ export default function HomePage() {
 
         .button-container {
           display: flex;
-          gap: 1rem;
+          gap: 1.2rem;
           align-items: center;
           justify-content: center;
           flex-wrap: wrap;
+          margin: 1.5rem 0;
         }
 
         .button-container .btn-secondary {
-          min-width: 180px;
+          min-width: 200px;
         }
 
         .finger-pointer {
@@ -558,8 +559,8 @@ export default function HomePage() {
         .features-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 1rem;
-          margin: 0.8rem 0;
+          gap: 1.5rem;
+          margin: 2rem 0;
           max-width: 1000px;
           width: 100%;
           z-index: 1;
@@ -1019,7 +1020,7 @@ export default function HomePage() {
         }
 
         .vibe-coding-section {
-          margin: 0.8rem 0;
+          margin: 1.5rem 0;
           text-align: center;
           z-index: 1;
         }
@@ -1130,7 +1131,7 @@ export default function HomePage() {
         }
 
         .benefits-section {
-          margin: 1rem 0 0.8rem 0;
+          margin: 2rem 0 1.5rem 0;
           z-index: 1;
         }
 
@@ -1403,7 +1404,8 @@ export default function HomePage() {
 
           .button-container {
             flex-direction: column;
-            gap: 0.8rem;
+            gap: 1rem;
+            margin: 1rem 0;
           }
 
           .finger-pointer {

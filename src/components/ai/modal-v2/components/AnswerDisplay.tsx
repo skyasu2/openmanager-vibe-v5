@@ -94,7 +94,7 @@ export default function AnswerDisplay({
   };
 
   return (
-    <div className="animate-fade-in bg-white rounded-xl shadow-md overflow-hidden">
+    <div className="animate-fade-in bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
       {/* 질문 표시 헤더 */}
       <div className="bg-gray-100 px-6 py-4 border-b border-gray-200">
         <div className="flex items-start gap-3">
@@ -121,7 +121,7 @@ export default function AnswerDisplay({
       )}
 
       {/* 답변 내용 */}
-      <div className="px-6 py-5">
+      <div className="px-6 py-6">
         <div className="flex items-start gap-3">
           <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm flex-shrink-0 mt-1">
             <i className="fas fa-robot"></i>
@@ -131,7 +131,7 @@ export default function AnswerDisplay({
             {isLoading ? (
               // 로딩 중 - AI 사고 과정 표시
               <div className="space-y-4">
-                <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg">
+                <div className="p-5 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl shadow-sm">
                   <div className="flex items-center gap-2 text-indigo-700 font-medium text-sm mb-2">
                     <i className="fas fa-lightbulb animate-pulse"></i>
                     <span>AI가 질문을 분석하고 있습니다</span>
@@ -175,7 +175,7 @@ export default function AnswerDisplay({
                   </div>
                   
                   {/* 액션 버튼들 */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <ActionButton 
                       icon="fas fa-copy" 
                       title="복사" 
@@ -219,7 +219,7 @@ function ActionButton({ icon, title, onClick }: { icon: string; title: string; o
   return (
     <button
       onClick={onClick}
-      className="text-xs text-gray-500 hover:text-purple-600 p-1.5 rounded hover:bg-purple-50 transition-colors"
+      className="text-xs text-gray-500 hover:text-purple-600 p-2 rounded-lg hover:bg-purple-50 transition-all duration-200 hover:shadow-sm"
       title={title}
     >
       <i className={icon}></i>

@@ -137,7 +137,9 @@ const fetchServersFromAPI = async (): Promise<Server[]> => {
     }
     
     const data = await response.json();
-    console.log('API Response structure:', { hasData: !!data.data, hasServers: !!data.data?.servers, serversLength: data.data?.servers?.length });
+          if (process.env.NODE_ENV === 'development') {
+        console.log('API Response structure:', { hasData: !!data.data, hasServers: !!data.data?.servers, serversLength: data.data?.servers?.length });
+      }
     
     // API 응답을 Client Server 타입으로 변환 (올바른 경로: data.data.servers)
     return data.data?.servers?.map((serverInfo: any) => ({

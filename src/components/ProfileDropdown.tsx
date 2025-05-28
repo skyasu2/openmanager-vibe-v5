@@ -93,7 +93,7 @@ export default function ProfileDropdown({
 
       {/* 드롭다운 메뉴 */}
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 w-80 bg-gray-900/95 backdrop-blur-lg border border-gray-700/50 rounded-xl shadow-2xl z-50">
+        <div className="absolute top-full right-0 mt-2 w-80 sm:w-80 w-screen max-w-sm bg-gray-900/95 backdrop-blur-lg border border-gray-700/50 rounded-xl shadow-2xl z-50 animate-in fade-in-0 zoom-in-95 duration-200">
           {/* 헤더 */}
           <div className="p-4 border-b border-gray-700/50">
             <div className="flex items-center gap-3">
@@ -185,26 +185,93 @@ export default function ProfileDropdown({
             )}
           </div>
 
+          {/* 시스템 통계 섹션 */}
+          <div className="p-4 border-b border-gray-700/50">
+            <div className="flex items-center gap-2 mb-3">
+              <i className="fas fa-chart-bar text-blue-400 text-sm"></i>
+              <span className="text-white font-medium text-sm">시스템 상태</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="bg-gray-800/50 rounded-lg p-2">
+                <div className="text-gray-400 mb-1">시스템</div>
+                <div className={`font-medium ${
+                  systemState === 'active' ? 'text-green-400' : 
+                  systemState === 'paused' ? 'text-yellow-400' : 'text-gray-400'
+                }`}>
+                  {systemState === 'active' ? '활성화' : 
+                   systemState === 'paused' ? '일시정지' : '비활성화'}
+                </div>
+              </div>
+              <div className="bg-gray-800/50 rounded-lg p-2">
+                <div className="text-gray-400 mb-1">접속 시간</div>
+                <div className="text-white font-medium">
+                  {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* 메뉴 항목들 */}
           <div className="p-2">
-            <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800/50 transition-colors text-left">
+            <button 
+              onClick={() => {
+                alert('프로필 설정은 곧 제공될 예정입니다.');
+                setIsOpen(false);
+              }}
+              className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800/50 transition-colors text-left"
+            >
               <i className="fas fa-user text-gray-400"></i>
               <span className="text-white text-sm">프로필 설정</span>
+              <i className="fas fa-chevron-right text-gray-600 text-xs ml-auto"></i>
             </button>
             
-            <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800/50 transition-colors text-left">
+            <button 
+              onClick={() => {
+                alert('환경 설정은 곧 제공될 예정입니다.');
+                setIsOpen(false);
+              }}
+              className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800/50 transition-colors text-left"
+            >
               <i className="fas fa-cog text-gray-400"></i>
               <span className="text-white text-sm">환경 설정</span>
+              <i className="fas fa-chevron-right text-gray-600 text-xs ml-auto"></i>
             </button>
             
-            <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800/50 transition-colors text-left">
+            <button 
+              onClick={() => {
+                window.open('https://github.com/openmanager-ai/docs', '_blank');
+                setIsOpen(false);
+              }}
+              className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800/50 transition-colors text-left"
+            >
               <i className="fas fa-question-circle text-gray-400"></i>
-              <span className="text-white text-sm">도움말</span>
+              <span className="text-white text-sm">도움말 & 문서</span>
+              <i className="fas fa-external-link-alt text-gray-600 text-xs ml-auto"></i>
+            </button>
+            
+            <button 
+              onClick={() => {
+                window.open('/dashboard', '_self');
+                setIsOpen(false);
+              }}
+              className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-blue-500/20 transition-colors text-left"
+            >
+              <i className="fas fa-tachometer-alt text-blue-400"></i>
+              <span className="text-blue-400 text-sm">대시보드로 이동</span>
+              <i className="fas fa-chevron-right text-blue-600 text-xs ml-auto"></i>
             </button>
             
             <hr className="border-gray-700/50 my-2" />
             
-            <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-500/20 transition-colors text-left">
+            <button 
+              onClick={() => {
+                if (confirm('정말 로그아웃하시겠습니까?')) {
+                  alert('로그아웃 기능은 곧 제공될 예정입니다.');
+                  setIsOpen(false);
+                }
+              }}
+              className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-500/20 transition-colors text-left"
+            >
               <i className="fas fa-sign-out-alt text-red-400"></i>
               <span className="text-red-400 text-sm">로그아웃</span>
             </button>

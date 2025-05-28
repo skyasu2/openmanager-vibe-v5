@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { simulationEngine } from '../../../../services/simulationEngine';
-import { dataManager } from '../../../../services/dataManager';
 
 /**
  * 🚀 시스템 시작 API

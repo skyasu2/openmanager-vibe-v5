@@ -52,7 +52,7 @@ export default function LeftPanel({
       {/* 답변 표시 영역 (스크롤 가능) - 개선된 스크롤 */}
       <div 
         ref={answerRef}
-        className="flex-1 overflow-y-auto p-6 bg-gray-50 custom-scrollbar"
+        className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-gray-50 to-gray-100 custom-scrollbar"
         style={{
           scrollBehavior: 'smooth',
           overscrollBehavior: 'contain'
@@ -60,14 +60,15 @@ export default function LeftPanel({
       >
         {!currentQuestion && !currentAnswer ? (
           // 초기 상태 - 프리셋 질문 표시
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div className="text-center">
-              <div className="h-20 w-20 bg-purple-100 rounded-full flex items-center justify-center mb-4 mx-auto">
-                <i className="fas fa-robot text-purple-600 text-3xl"></i>
+              <div className="h-24 w-24 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-full flex items-center justify-center mb-6 mx-auto shadow-lg">
+                <i className="fas fa-robot text-purple-600 text-4xl"></i>
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">AI 에이전트에게 물어보세요</h3>
-              <p className="text-gray-600 mb-6">
-                서버 상태, 성능 분석, 문제 해결 등 다양한 질문에 답변해 드립니다.
+              <h3 className="text-2xl font-bold text-gray-800 mb-3">AI 에이전트에게 물어보세요</h3>
+              <p className="text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
+                서버 상태, 성능 분석, 문제 해결 등 다양한 질문에 답변해 드립니다. 
+                아래 추천 질문을 선택하거나 직접 질문해보세요.
               </p>
             </div>
             

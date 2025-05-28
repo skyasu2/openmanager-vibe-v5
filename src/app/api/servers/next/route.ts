@@ -53,13 +53,16 @@ async function handleGET(request: NextRequest) {
       location: 'Seoul DC1',
       provider: 'onpremise',
       status: 'warning', // pending 상태 대신 warning 사용
-      cpu: 0,
-      memory: 0,
-      disk: 0,
-      uptime: '0d 0h 0m',
+      cpu: Math.floor(Math.random() * 30) + 20, // 20-50%
+      memory: Math.floor(Math.random() * 40) + 30, // 30-70%
+      disk: Math.floor(Math.random() * 20) + 10, // 10-30%
+      uptime: `${Math.floor(Math.random() * 15)}d ${Math.floor(Math.random() * 24)}h ${Math.floor(Math.random() * 60)}m`,
       lastUpdate: new Date(),
-      alerts: 0,
-      services: [],
+      alerts: Math.floor(Math.random() * 3), // 0-2 alerts
+      services: [
+        { name: 'nginx', status: 'running' as const, port: 80 },
+        { name: 'node', status: 'running' as const, port: 3000 }
+      ],
       specs: {
         cpu_cores: 2 + (serverCount % 4),
         memory_gb: 4 + (serverCount % 8),
