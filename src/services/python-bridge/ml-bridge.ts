@@ -27,15 +27,37 @@ export interface MLRequest {
  */
 export class PythonMLBridge {
   private apiUrl: string;
-  private defaultTimeout: number = 30000;
+  private defaultTimeout: number = 15000;
   private retryCount: number = 2;
   private cache: Map<string, { data: any; timestamp: number; ttl: number }> = new Map();
+  
+  // 🔥 서킷 브레이커 패턴 추가
+  private circuitBreaker = {
+    failures: 0,
+    maxFailures: 3,
+    timeout: 60000, // 1분
+    nextAttempt: 0,
+    state: 'CLOSED' as 'CLOSED' | 'OPEN' | 'HALF_OPEN'
+  };
+  
+  // 📊 성능 메트릭 강화
   private requestMetrics = {
     totalRequests: 0,
     successfulRequests: 0,
     failedRequests: 0,
     fallbackUsed: 0,
-    averageResponseTime: 0
+    averageResponseTime: 0,
+    fastestResponse: Infinity,
+    slowestResponse: 0,
+    circuitBreakerTrips: 0
+  };
+
+  // 🎯 타임아웃 적응형 조정
+  private adaptiveTimeout = {
+    baseTimeout: 15000,
+    currentTimeout: 15000,
+    recentResponseTimes: [] as number[],
+    maxSamples: 10
   };
 
   constructor(apiUrl: string) {
@@ -44,31 +66,43 @@ export class PythonMLBridge {
   }
 
   /**
-   * 🚀 Python 서비스 메인 호출 메서드
+   * 🚀 Python 서비스 메인 호출 메서드 (성능 최적화)
    */
   async call(method: string, params: any, timeout?: number): Promise<any> {
     const startTime = Date.now();
     this.requestMetrics.totalRequests++;
 
     try {
-      console.log(`🐍 Python ML 호출: ${method}`);
+      console.log(`🐍 Python ML 호출: ${method} (timeout: ${this.adaptiveTimeout.currentTimeout}ms)`);
 
-      // 캐시 확인
-      const cacheKey = this.generateCacheKey(method, params);
+      // 📋 캐시 확인 (향상된 키 생성)
+      const cacheKey = this.generateEnhancedCacheKey(method, params);
       const cachedResult = this.getFromCache(cacheKey);
       if (cachedResult) {
-        console.log(`📋 캐시에서 결과 반환: ${method}`);
+        console.log(`⚡ 캐시 HIT: ${method}`);
+        this.updateResponseTime(Date.now() - startTime);
         return cachedResult;
       }
 
-      // Python 서비스 호출
-      const result = await this.callPythonService(method, params, timeout);
+      // 🔥 서킷 브레이커 상태 확인
+      if (!this.canAttemptRequest()) {
+        console.log('🚫 서킷 브레이커 OPEN - 즉시 폴백 사용');
+        this.requestMetrics.fallbackUsed++;
+        return await this.localFallback(method, params);
+      }
+
+      // Python 서비스 호출 (적응형 타임아웃)
+      const result = await this.callPythonService(method, params, 
+        timeout || this.adaptiveTimeout.currentTimeout);
       
       if (result.success) {
+        this.onRequestSuccess();
         this.requestMetrics.successfulRequests++;
         
-        // 결과 캐싱 (성공한 경우만)
-        this.setCache(cacheKey, result.data, 300000); // 5분 TTL
+        // 🎯 스마트 캐싱 (중요도 기반 TTL)
+        const importance = this.calculateImportance(method, result.data);
+        const ttl = importance > 0.8 ? 900000 : 300000; // 15분 vs 5분
+        this.setCache(cacheKey, result.data, ttl);
         
         this.updateResponseTime(Date.now() - startTime);
         return result.data;
@@ -79,15 +113,120 @@ export class PythonMLBridge {
     } catch (error: any) {
       console.warn(`⚠️ Python 서비스 오류, 로컬 폴백 사용: ${error.message}`);
       
+      this.onRequestFailure();
       this.requestMetrics.failedRequests++;
       this.requestMetrics.fallbackUsed++;
 
-      // 로컬 폴백 실행
-      const fallbackResult = await this.localFallback(method, params);
+      // 🏠 고성능 로컬 폴백 실행
+      const fallbackResult = await this.enhancedLocalFallback(method, params);
       this.updateResponseTime(Date.now() - startTime);
       
       return fallbackResult;
     }
+  }
+
+  /**
+   * 🔥 서킷 브레이커 - 요청 가능 여부 확인
+   */
+  private canAttemptRequest(): boolean {
+    const now = Date.now();
+    
+    switch (this.circuitBreaker.state) {
+      case 'CLOSED':
+        return true;
+        
+      case 'OPEN':
+        if (now >= this.circuitBreaker.nextAttempt) {
+          this.circuitBreaker.state = 'HALF_OPEN';
+          console.log('🔄 서킷 브레이커 HALF_OPEN 상태로 전환');
+          return true;
+        }
+        return false;
+        
+      case 'HALF_OPEN':
+        return true;
+        
+      default:
+        return true;
+    }
+  }
+
+  /**
+   * ✅ 요청 성공 처리
+   */
+  private onRequestSuccess(): void {
+    this.circuitBreaker.failures = 0;
+    if (this.circuitBreaker.state === 'HALF_OPEN') {
+      this.circuitBreaker.state = 'CLOSED';
+      console.log('✅ 서킷 브레이커 CLOSED 상태로 복구');
+    }
+  }
+
+  /**
+   * ❌ 요청 실패 처리
+   */
+  private onRequestFailure(): void {
+    this.circuitBreaker.failures++;
+    
+    if (this.circuitBreaker.failures >= this.circuitBreaker.maxFailures) {
+      this.circuitBreaker.state = 'OPEN';
+      this.circuitBreaker.nextAttempt = Date.now() + this.circuitBreaker.timeout;
+      this.requestMetrics.circuitBreakerTrips++;
+      console.log(`🚫 서킷 브레이커 OPEN! 다음 시도: ${new Date(this.circuitBreaker.nextAttempt).toLocaleTimeString()}`);
+    }
+  }
+
+  /**
+   * 🔑 향상된 캐시 키 생성
+   */
+  private generateEnhancedCacheKey(method: string, params: any): string {
+    // 더 정확한 해시 생성
+    const paramStr = JSON.stringify(params, Object.keys(params).sort());
+    const timestamp = Math.floor(Date.now() / 60000) * 60000; // 1분 단위로 반올림
+    return `${method}:${this.simpleHash(paramStr)}:${timestamp}`;
+  }
+
+  /**
+   * 📊 중요도 계산 (캐시 TTL 결정용)
+   */
+  private calculateImportance(method: string, data: any): number {
+    let importance = 0.5; // 기본값
+    
+    // 메서드별 중요도
+    const methodWeights = {
+      'statistical_analysis': 0.9,
+      'advanced_anomaly_detection': 0.8,
+      'forecast': 0.7,
+      'correlation_analysis': 0.6,
+      'pattern_analysis': 0.5
+    };
+    
+    importance = methodWeights[method as keyof typeof methodWeights] || 0.5;
+    
+    // 신뢰도 반영
+    if (data.confidence && data.confidence > 0.8) {
+      importance += 0.1;
+    }
+    
+    return Math.min(importance, 1.0);
+  }
+
+  /**
+   * 🏠 향상된 로컬 폴백 (성능 최적화)
+   */
+  private async enhancedLocalFallback(method: string, params: any): Promise<any> {
+    console.log(`🏠 고성능 로컬 폴백: ${method}`);
+    
+    // 폴백 결과에 성능 힌트 추가
+    const fallbackResult = await this.localFallback(method, params);
+    
+    return {
+      ...fallbackResult,
+      performance_mode: 'local_fallback',
+      execution_time: Date.now(),
+      confidence: Math.max((fallbackResult.confidence || 0.6) - 0.1, 0.4),
+      recommendation: '더 정확한 분석을 위해 네트워크 연결을 확인하세요'
+    };
   }
 
   /**
@@ -460,16 +599,42 @@ export class PythonMLBridge {
     }, 600000);
   }
 
+  /**
+   * ⚡ 응답 시간 추적 및 적응형 타임아웃 조정
+   */
   private updateResponseTime(responseTime: number): void {
-    const total = this.requestMetrics.totalRequests;
-    const current = this.requestMetrics.averageResponseTime;
-    this.requestMetrics.averageResponseTime = (current * (total - 1) + responseTime) / total;
+    // 기본 통계 업데이트
+    this.requestMetrics.averageResponseTime = 
+      (this.requestMetrics.averageResponseTime * (this.requestMetrics.totalRequests - 1) + responseTime) 
+      / this.requestMetrics.totalRequests;
+    
+    this.requestMetrics.fastestResponse = Math.min(this.requestMetrics.fastestResponse, responseTime);
+    this.requestMetrics.slowestResponse = Math.max(this.requestMetrics.slowestResponse, responseTime);
+
+    // 📊 적응형 타임아웃 조정
+    this.adaptiveTimeout.recentResponseTimes.push(responseTime);
+    
+    // 최근 10개 샘플만 유지
+    if (this.adaptiveTimeout.recentResponseTimes.length > this.adaptiveTimeout.maxSamples) {
+      this.adaptiveTimeout.recentResponseTimes.shift();
+    }
+
+    // 타임아웃 재계산 (95th percentile + 버퍼)
+    if (this.adaptiveTimeout.recentResponseTimes.length >= 5) {
+      const sorted = [...this.adaptiveTimeout.recentResponseTimes].sort((a, b) => a - b);
+      const p95Index = Math.floor(sorted.length * 0.95);
+      const p95Time = sorted[p95Index];
+      
+      // 새로운 타임아웃 = P95 + 50% 버퍼, 최소 10초, 최대 30초
+      this.adaptiveTimeout.currentTimeout = Math.max(10000, 
+        Math.min(30000, Math.floor(p95Time * 1.5)));
+    }
   }
 
   // === 공개 메서드들 ===
 
   /**
-   * 📊 브릿지 통계 반환
+   * 📊 향상된 브릿지 통계
    */
   getMetrics(): any {
     return {
@@ -480,16 +645,32 @@ export class PythonMLBridge {
         : 0,
       fallbackRate: this.requestMetrics.totalRequests > 0 
         ? Math.round((this.requestMetrics.fallbackUsed / this.requestMetrics.totalRequests) * 10000) / 100 
-        : 0
+        : 0,
+      circuitBreaker: {
+        state: this.circuitBreaker.state,
+        failures: this.circuitBreaker.failures,
+        trips: this.requestMetrics.circuitBreakerTrips
+      },
+      adaptiveTimeout: {
+        current: this.adaptiveTimeout.currentTimeout,
+        base: this.adaptiveTimeout.baseTimeout,
+        recentSamples: this.adaptiveTimeout.recentResponseTimes.length
+      },
+      performance: {
+        fastest: this.requestMetrics.fastestResponse === Infinity ? 0 : this.requestMetrics.fastestResponse,
+        slowest: this.requestMetrics.slowestResponse,
+        average: Math.round(this.requestMetrics.averageResponseTime)
+      }
     };
   }
 
   /**
-   * 🧹 캐시 정리
+   * 🗑️ 캐시 정리
    */
   clearCache(): void {
+    const clearedSize = this.cache.size;
     this.cache.clear();
-    console.log('🧹 Python ML 브릿지 캐시 정리 완료');
+    console.log(`🗑️ Python 브릿지 캐시 정리: ${clearedSize}개 항목 삭제`);
   }
 
   /**

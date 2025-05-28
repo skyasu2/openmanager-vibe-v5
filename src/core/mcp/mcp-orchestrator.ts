@@ -5,10 +5,12 @@
  * - 다중 도구 체인 관리
  * - 컨텍스트 기반 의사결정
  * - Python/JavaScript 하이브리드 처리
+ * - 메모리 최적화 통합
  */
 
 import { ContextManager } from '../context/context-manager';
 import { PythonMLBridge } from '../../services/python-bridge/ml-bridge';
+import { memoryManager } from '../../utils/MemoryManager';
 
 // 🔧 MCP 도구 인터페이스
 export interface MCPTool {
@@ -35,6 +37,10 @@ export interface MCPResponse {
   context_id: string;
   processing_time: number;
   confidence: number;
+  performance: {
+    memoryUsage: any;
+    optimizationApplied: boolean;
+  };
 }
 
 export interface MCPToolResult {
@@ -77,6 +83,14 @@ export class MCPOrchestrator {
   private context: ContextManager;
   private pythonBridge: PythonMLBridge;
   private processingStartTime: number = 0;
+  
+  // 🧠 메모리 관리 통합
+  private memoryMetrics = {
+    requestCount: 0,
+    peakMemoryUsage: 0,
+    memoryCleanupCount: 0,
+    lastCleanupTime: 0
+  };
 
   constructor() {
     this.context = new ContextManager();
@@ -84,6 +98,24 @@ export class MCPOrchestrator {
       process.env.RENDER_API_URL || 'https://openmanager-vibe-v5.onrender.com'
     );
     this.registerTools();
+    this.setupMemoryMonitoring();
+  }
+
+  /**
+   * 🧠 메모리 모니터링 설정
+   */
+  private setupMemoryMonitoring(): void {
+    // 메모리 경고 시 자동 정리
+    memoryManager.monitor.onWarning((metrics) => {
+      console.log('⚠️ MCP 오케스트레이터: 메모리 경고 감지, 자동 정리 시작');
+      this.performMemoryOptimization();
+    });
+
+    // 메모리 위험 시 응급 처리
+    memoryManager.monitor.onCritical((metrics) => {
+      console.log('🚨 MCP 오케스트레이터: 메모리 위험, 응급 최적화 실행');
+      this.performEmergencyOptimization();
+    });
   }
 
   /**
@@ -174,59 +206,336 @@ export class MCPOrchestrator {
   }
 
   /**
-   * 🎯 MCP 요청 처리 메인 메서드
+   * 🎯 MCP 요청 처리 메인 메서드 (메모리 최적화)
    */
   async process(request: MCPRequest): Promise<MCPResponse> {
     this.processingStartTime = Date.now();
     
+    // 📊 메모리 상태 체크 (처리 시작 전)
+    const initialMemory = this.checkMemoryBeforeProcessing();
+    
     try {
       console.log(`🧠 MCP 요청 처리 시작: ${request.query}`);
+      this.memoryMetrics.requestCount++;
 
-      // 1. 컨텍스트 업데이트
+      // 1. 컨텍스트 업데이트 (메모리 효율적)
       await this.context.update(request.context);
 
       // 2. 쿼리 분석 및 도구 선택
       const selectedTools = await this.selectTools(request.query, request.parameters);
 
-      // 3. 도구 체인 실행
-      const results = await this.executeToolChain(selectedTools, request.parameters);
+      // 3. 메모리 상태 확인 (도구 실행 전)
+      if (this.shouldOptimizeBeforeExecution()) {
+        await this.performMemoryOptimization();
+      }
 
-      // 4. 결과 통합 및 분석
-      const mergedResult = await this.mergeToolResults(results);
+      // 4. 도구 체인 실행 (메모리 효율적)
+      const results = await this.executeToolChainOptimized(selectedTools, request.parameters);
 
-      // 5. 컨텍스트 저장
+      // 5. 결과 통합 및 분석 (메모리 풀 사용)
+      const mergedResult = await this.mergeToolResultsOptimized(results);
+
+      // 6. 컨텍스트 저장
       await this.context.save(mergedResult);
 
-      const processingTime = Date.now() - this.processingStartTime;
+      // 📊 메모리 상태 체크 (처리 완료 후)
+      const finalMemory = this.checkMemoryAfterProcessing(initialMemory);
 
-      console.log(`✅ MCP 처리 완료`, {
-        toolsUsed: selectedTools.map(t => t.name),
-        processingTime,
-        confidence: mergedResult.confidence || 0.8
-      });
+      const processingTime = Date.now() - this.processingStartTime;
 
       return {
         result: mergedResult,
         tools_used: selectedTools.map(t => t.name),
-        context_id: this.context.getId(),
+        context_id: await this.context.getId(),
         processing_time: processingTime,
-        confidence: mergedResult.confidence || 0.8
+        confidence: mergedResult.confidence || 0.8,
+        // 메모리 성능 지표 추가
+        performance: {
+          memoryUsage: finalMemory,
+          optimizationApplied: finalMemory.optimizationApplied || false
+        }
       };
 
     } catch (error: any) {
       console.error('❌ MCP 처리 오류:', error);
       
-      return {
-        result: {
-          error: 'MCP 처리 중 오류가 발생했습니다',
-          message: error.message
-        },
-        tools_used: [],
-        context_id: this.context.getId(),
-        processing_time: Date.now() - this.processingStartTime,
-        confidence: 0
-      };
+      // 오류 시에도 메모리 정리
+      this.performMemoryOptimization();
+      
+      throw error;
     }
+  }
+
+  /**
+   * 📊 처리 전 메모리 상태 확인
+   */
+  private checkMemoryBeforeProcessing(): any {
+    const usage = process.memoryUsage();
+    const currentHeap = usage.heapUsed;
+    
+    // 피크 메모리 업데이트
+    if (currentHeap > this.memoryMetrics.peakMemoryUsage) {
+      this.memoryMetrics.peakMemoryUsage = currentHeap;
+    }
+
+    return {
+      heapUsed: Math.round(currentHeap / 1024 / 1024),
+      heapTotal: Math.round(usage.heapTotal / 1024 / 1024),
+      rss: Math.round(usage.rss / 1024 / 1024),
+      timestamp: Date.now()
+    };
+  }
+
+  /**
+   * 📊 처리 후 메모리 상태 확인
+   */
+  private checkMemoryAfterProcessing(initialMemory: any): any {
+    const usage = process.memoryUsage();
+    const finalHeap = Math.round(usage.heapUsed / 1024 / 1024);
+    const memoryDelta = finalHeap - initialMemory.heapUsed;
+
+    return {
+      initial: initialMemory,
+      final: {
+        heapUsed: finalHeap,
+        heapTotal: Math.round(usage.heapTotal / 1024 / 1024),
+        rss: Math.round(usage.rss / 1024 / 1024)
+      },
+      delta: memoryDelta,
+      optimizationApplied: this.memoryMetrics.lastCleanupTime > initialMemory.timestamp
+    };
+  }
+
+  /**
+   * 🎯 실행 전 메모리 최적화 필요성 판단
+   */
+  private shouldOptimizeBeforeExecution(): boolean {
+    const usage = process.memoryUsage();
+    const heapUsedMB = usage.heapUsed / 1024 / 1024;
+    const timeSinceLastCleanup = Date.now() - this.memoryMetrics.lastCleanupTime;
+    
+    // 메모리 사용량이 200MB 이상이고, 마지막 정리 후 5분 이상 경과
+    return heapUsedMB > 200 && timeSinceLastCleanup > 300000;
+  }
+
+  /**
+   * 🧹 메모리 최적화 실행
+   */
+  private async performMemoryOptimization(): Promise<void> {
+    console.log('🧹 MCP 메모리 최적화 시작...');
+    
+    const beforeMemory = process.memoryUsage();
+    
+    // 1. 컨텍스트 매니저 정리
+    this.context.cleanup();
+    
+    // 2. 객체 풀 정리
+    memoryManager.cleanup();
+    
+    // 3. Python 브릿지 캐시 정리
+    this.pythonBridge.clearCache();
+    
+    // 4. 가비지 컬렉션 (가능한 경우)
+    if (global.gc) {
+      global.gc();
+    }
+    
+    // 정리 후 1초 대기
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const afterMemory = process.memoryUsage();
+    const freedMB = Math.round((beforeMemory.heapUsed - afterMemory.heapUsed) / 1024 / 1024);
+    
+    this.memoryMetrics.memoryCleanupCount++;
+    this.memoryMetrics.lastCleanupTime = Date.now();
+    
+    console.log(`✅ MCP 메모리 정리 완료: ${freedMB}MB 해제`);
+  }
+
+  /**
+   * 🚨 응급 메모리 최적화
+   */
+  private async performEmergencyOptimization(): Promise<void> {
+    console.log('🚨 MCP 응급 메모리 최적화 시작...');
+    
+    // 모든 가능한 정리 작업 수행
+    await this.performMemoryOptimization();
+    
+    // 추가 응급 처리
+    memoryManager.emergencyCleanup();
+    
+    console.log('✅ MCP 응급 최적화 완료');
+  }
+
+  /**
+   * ⚡ 메모리 효율적 도구 체인 실행
+   */
+  private async executeToolChainOptimized(tools: MCPTool[], parameters: any): Promise<MCPToolResult[]> {
+    const results: MCPToolResult[] = [];
+    const currentContext = this.context.getCurrent();
+
+    // 도구별 메모리 풀에서 결과 객체 획득
+    for (const tool of tools) {
+      try {
+        console.log(`🔧 MCP 도구 실행: ${tool.name}`);
+        
+        // 메모리 풀에서 결과 객체 획득
+        const resultObj = memoryManager.analysisResultPool.acquire();
+        
+        const startTime = Date.now();
+        const result = await tool.execute(parameters, currentContext);
+        const executionTime = Date.now() - startTime;
+
+        // 결과 객체 설정
+        Object.assign(resultObj, {
+          success: result.success,
+          data: result.data,
+          confidence: result.confidence,
+          processingTime: executionTime,
+          toolName: tool.name
+        });
+
+        results.push(resultObj);
+
+        console.log(`✅ ${tool.name} 완료 (${executionTime}ms)`);
+
+        // 중간 메모리 체크
+        if (results.length % 3 === 0) { // 3개 도구마다 체크
+          const usage = process.memoryUsage();
+          if (usage.heapUsed > 300 * 1024 * 1024) { // 300MB 초과 시
+            console.log('🧹 중간 메모리 정리 실행...');
+            await this.performMemoryOptimization();
+          }
+        }
+
+      } catch (error: any) {
+        console.error(`❌ ${tool.name} 실행 오류:`, error);
+        
+        // 오류 시에도 메모리 풀 객체 사용
+        const errorObj = memoryManager.analysisResultPool.acquire();
+        Object.assign(errorObj, {
+          success: false,
+          data: null,
+          confidence: 0,
+          processingTime: 0,
+          error: error.message,
+          toolName: tool.name
+        });
+        
+        results.push(errorObj);
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * 🔗 메모리 효율적 결과 병합
+   */
+  private async mergeToolResultsOptimized(results: MCPToolResult[]): Promise<any> {
+    console.log('🔗 도구 결과 병합 중...');
+    
+    // 메모리 풀에서 병합 결과 객체 획득
+    const mergedResult = memoryManager.analysisResultPool.acquire();
+    
+    try {
+      const successfulResults = results.filter(r => r.success);
+      const totalProcessingTime = results.reduce((sum, r) => sum + r.processing_time, 0);
+      const avgConfidence = successfulResults.length > 0 
+        ? successfulResults.reduce((sum, r) => sum + r.confidence, 0) / successfulResults.length 
+        : 0;
+
+      // 병합된 데이터 구성
+      const mergedData = {
+        statistical: this.extractDataByType(successfulResults, 'statistical_analysis'),
+        anomalies: this.extractDataByType(successfulResults, 'anomaly_detection'),
+        forecasts: this.extractDataByType(successfulResults, 'time_series_forecast'),
+        patterns: this.extractDataByType(successfulResults, 'pattern_recognition'),
+        rootCauses: this.extractDataByType(successfulResults, 'root_cause_analysis'),
+        optimizations: this.extractDataByType(successfulResults, 'optimization_advisor')
+      };
+
+      // 결과 객체 설정
+      Object.assign(mergedResult, {
+        success: true,
+        data: mergedData,
+        confidence: Math.round(avgConfidence * 100) / 100,
+        processingTime: totalProcessingTime,
+        toolsExecuted: results.length,
+        successfulTools: successfulResults.length,
+        summary: this.generateSummary(mergedData),
+        recommendations: this.extractRecommendations(successfulResults)
+      });
+
+      // 사용한 결과 객체들을 풀에 반환
+      results.forEach(result => {
+        memoryManager.analysisResultPool.release(result);
+      });
+
+      return mergedResult;
+
+    } catch (error: any) {
+      console.error('❌ 결과 병합 오류:', error);
+      
+      // 오류 시 기본 결과 반환
+      Object.assign(mergedResult, {
+        success: false,
+        data: null,
+        confidence: 0,
+        processingTime: 0,
+        error: error.message
+      });
+      
+      return mergedResult;
+    }
+  }
+
+  /**
+   * 📊 타입별 데이터 추출
+   */
+  private extractDataByType(results: MCPToolResult[], toolType: string): any {
+    const typeResult = results.find(r => (r as any).toolName === toolType);
+    return typeResult ? typeResult.data : null;
+  }
+
+  /**
+   * 📋 요약 생성
+   */
+  private generateSummary(data: any): string {
+    const summaryParts = [];
+    
+    if (data.statistical) summaryParts.push('통계 분석 완료');
+    if (data.anomalies) summaryParts.push(`이상 ${data.anomalies.anomalies?.length || 0}개 탐지`);
+    if (data.forecasts) summaryParts.push('예측 분석 완료');
+    if (data.patterns) summaryParts.push('패턴 인식 완료');
+    if (data.rootCauses) summaryParts.push('근본원인 분석 완료');
+    if (data.optimizations) summaryParts.push('최적화 제안 완료');
+    
+    return summaryParts.join(', ') || '분석 완료';
+  }
+
+  /**
+   * 📊 MCP 시스템 메트릭 조회
+   */
+  getSystemMetrics(): any {
+    const memoryStatus = memoryManager.getStatus();
+    const pythonMetrics = this.pythonBridge.getMetrics();
+
+    return {
+      mcp: {
+        requestCount: this.memoryMetrics.requestCount,
+        peakMemoryUsage: Math.round(this.memoryMetrics.peakMemoryUsage / 1024 / 1024),
+        memoryCleanupCount: this.memoryMetrics.memoryCleanupCount,
+        lastCleanupTime: this.memoryMetrics.lastCleanupTime
+      },
+      memory: memoryStatus,
+      python: pythonMetrics,
+      system: {
+        uptime: Math.floor(process.uptime()),
+        nodeVersion: process.version,
+        memoryUsage: process.memoryUsage()
+      }
+    };
   }
 
   /**
@@ -686,22 +995,6 @@ export class MCPOrchestrator {
         actions: []
       }
     ];
-  }
-
-  private async mergeToolResults(results: MCPToolResult[]): Promise<any> {
-    const successfulResults = results.filter(r => r.success);
-    const avgConfidence = successfulResults.reduce((sum, r) => sum + r.confidence, 0) / successfulResults.length;
-
-    return {
-      summary: {
-        total_tools: results.length,
-        successful_tools: successfulResults.length,
-        average_confidence: avgConfidence
-      },
-      detailed_results: successfulResults.map(r => r.data),
-      confidence: avgConfidence,
-      recommendations: this.extractRecommendations(successfulResults)
-    };
   }
 
   private extractRecommendations(results: MCPToolResult[]): any[] {
