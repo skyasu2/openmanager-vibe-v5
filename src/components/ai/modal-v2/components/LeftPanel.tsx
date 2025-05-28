@@ -38,37 +38,37 @@ export default function LeftPanel({
   return (
     <div className={`
       flex flex-col
-      ${isMobile ? 'w-full' : 'w-3/5 border-r border-gray-200'}
+      ${isMobile ? 'w-full' : 'w-full'}
       h-full
     `}>
       {/* 질문 입력창 (상단 고정) */}
-      <div className="p-4 border-b border-gray-200 bg-white flex-shrink-0">
+      <div className="p-3 border-b border-gray-200 bg-white flex-shrink-0">
         <QuestionInput
           isLoading={isLoading}
           onSendQuestion={sendQuestion}
         />
       </div>
 
-      {/* 답변 표시 영역 (스크롤 가능) - 개선된 스크롤 */}
+      {/* 답변 표시 영역 (스크롤 가능) - 여백 줄이고 효율적 공간 활용 */}
       <div 
         ref={answerRef}
-        className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-gray-50 to-gray-100 custom-scrollbar"
+        className="flex-1 overflow-y-auto p-3 bg-gradient-to-b from-gray-50 to-gray-100 custom-scrollbar"
         style={{
           scrollBehavior: 'smooth',
           overscrollBehavior: 'contain'
         }}
       >
         {!currentQuestion && !currentAnswer ? (
-          // 초기 상태 - 프리셋 질문 표시
-          <div className="space-y-8">
+          // 초기 상태 - 프리셋 질문 표시 (여백 줄임)
+          <div className="space-y-4">
             <div className="text-center">
-              <div className="h-24 w-24 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-full flex items-center justify-center mb-6 mx-auto shadow-lg">
-                <i className="fas fa-robot text-purple-600 text-4xl"></i>
+              <div className="h-16 w-16 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-full flex items-center justify-center mb-4 mx-auto shadow-lg">
+                <i className="fas fa-robot text-purple-600 text-2xl"></i>
               </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-3">AI 에이전트에게 물어보세요</h3>
-              <p className="text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
-                서버 상태, 성능 분석, 문제 해결 등 다양한 질문에 답변해 드립니다. 
-                아래 추천 질문을 선택하거나 직접 질문해보세요.
+              <h3 className="text-lg font-bold text-gray-800 mb-2">🤖 AI Assistant</h3>
+              <p className="text-sm text-gray-600 mb-4 max-w-sm mx-auto leading-relaxed">
+                서버 관리와 분석에 도움을 드립니다. 
+                추천 질문을 선택하거나 직접 질문해보세요.
               </p>
             </div>
             

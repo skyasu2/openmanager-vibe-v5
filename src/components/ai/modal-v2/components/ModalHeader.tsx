@@ -83,10 +83,15 @@ export default function ModalHeader({ onClose }: ModalHeaderProps) {
     <div className="bg-gradient-to-r from-indigo-700 to-purple-700 h-16 flex items-center justify-between px-6 text-white shadow-md relative">
       {/* 로고 및 제목 */}
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 bg-white/20 rounded-xl flex items-center justify-center">
+        <div className="h-10 w-10 bg-white/20 rounded-xl flex items-center justify-center animate-pulse">
           <i className="fas fa-robot text-white text-xl"></i>
         </div>
-        <h2 className="text-xl font-bold">AI 에이전트</h2>
+        <div className="flex flex-col">
+          <h2 className="text-lg font-bold leading-tight">
+            <span className="text-yellow-300">✨</span> AI 에이전트에게 물어보세요
+          </h2>
+          <p className="text-xs text-white/80 leading-tight">무엇이든 궁금한 것을 질문해보세요!</p>
+        </div>
       </div>
 
       {/* 헤더 아이콘 */}

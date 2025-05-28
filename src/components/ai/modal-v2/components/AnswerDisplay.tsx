@@ -150,6 +150,73 @@ export default function AnswerDisplay({
             ) : (
               // 답변 표시
               <div>
+                {/* 서버 상태 리포트 카드 (질문에 따라 표시) */}
+                {(question.includes('서버') || question.includes('상태') || question.includes('분석')) && metadata?.serverState && (
+                  <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <i className="fas fa-chart-bar text-blue-600"></i>
+                      <span className="text-sm font-medium text-blue-800">서버 상태 요약</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-white p-3 rounded-lg shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-lg font-bold text-green-600">
+                              {metadata.serverState.healthyServers || 8}
+                            </div>
+                            <div className="text-xs text-gray-600">정상 서버</div>
+                          </div>
+                          <i className="fas fa-check-circle text-green-500"></i>
+                        </div>
+                      </div>
+                      <div className="bg-white p-3 rounded-lg shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-lg font-bold text-yellow-600">
+                              {metadata.serverState.warningServers || 2}
+                            </div>
+                            <div className="text-xs text-gray-600">경고 서버</div>
+                          </div>
+                          <i className="fas fa-exclamation-triangle text-yellow-500"></i>
+                        </div>
+                      </div>
+                      <div className="bg-white p-3 rounded-lg shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-lg font-bold text-red-600">
+                              {metadata.serverState.criticalServers || 0}
+                            </div>
+                            <div className="text-xs text-gray-600">위험 서버</div>
+                          </div>
+                          <i className="fas fa-times-circle text-red-500"></i>
+                        </div>
+                      </div>
+                      <div className="bg-white p-3 rounded-lg shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-lg font-bold text-blue-600">
+                              {metadata.serverState.totalServers || 10}
+                            </div>
+                            <div className="text-xs text-gray-600">전체 서버</div>
+                          </div>
+                          <i className="fas fa-server text-blue-500"></i>
+                        </div>
+                      </div>
+                    </div>
+                    {/* 간단한 성능 지표 */}
+                    <div className="mt-3 pt-3 border-t border-blue-200">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-600">평균 CPU 사용률</span>
+                        <span className="font-medium text-gray-800">{metadata.serverState.avgCpu || '45'}%</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs mt-1">
+                        <span className="text-gray-600">평균 메모리 사용률</span>
+                        <span className="font-medium text-gray-800">{metadata.serverState.avgMemory || '62'}%</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div 
                   ref={contentRef}
                   className="text-gray-800 prose prose-sm max-w-none"

@@ -36,75 +36,75 @@ interface PresetQuestionsProps {
 const basicQuestions: PresetQuestion[] = [
   {
     id: 'status-summary',
-    text: '현재 서버 상태 요약해줘',
+    text: '📊 전체 서버 상태 요약',
     type: 'basic',
     icon: <Server className="w-4 h-4" />,
     category: '상태 확인',
-    description: '전체 서버 현황 한눈에 보기'
+    description: '현재 전체 서버 평균 성능을 요약합니다'
   },
   {
-    id: 'high-cpu',
-    text: 'CPU 사용률이 높은 서버 알려줘',
-    type: 'basic',
-    icon: <Cpu className="w-4 h-4" />,
-    category: 'CPU 분석',
-    description: 'CPU 부하가 높은 서버 찾기'
-  },
-  {
-    id: 'memory-check',
-    text: '메모리 부족한 서버가 있어?',
+    id: 'service-response',
+    text: '⚙️ 개별 서비스 응답속도 분석',
     type: 'basic',
     icon: <Activity className="w-4 h-4" />,
-    category: '메모리 분석',
-    description: '메모리 사용량 점검'
+    category: '응답성 분석',
+    description: '서비스별 응답속도 추이를 분석하고 병목 지점을 찾습니다'
   },
   {
-    id: 'offline-servers',
-    text: '오프라인 서버 체크해줘',
+    id: 'critical-detection',
+    text: '🔥 심각 장애 탐지 여부',
     type: 'basic',
     icon: <AlertTriangle className="w-4 h-4" />,
-    category: '장애 확인',
-    description: '접속 불가 서버 확인'
+    category: '장애 탐지',
+    description: '지금 장애가 발생한 서버가 있는지 즉시 확인합니다'
   },
   {
-    id: 'disk-space',
-    text: '디스크 용량 부족한 곳 있어?',
+    id: 'ai-behavior-analysis',
+    text: '🧠 AI 분석 요약 보기',
     type: 'basic',
-    icon: <HardDrive className="w-4 h-4" />,
-    category: '디스크 분석',
-    description: '저장공간 부족 서버 찾기'
+    icon: <Brain className="w-4 h-4" />,
+    category: 'AI 분석',
+    description: '최근 10분간 이상 행동 패턴을 AI가 분석해 드립니다'
   },
   {
-    id: 'network-latency',
-    text: '네트워크 지연이 심한 서버는?',
+    id: 'cpu-performance',
+    text: '💻 CPU 성능 이슈 진단',
+    type: 'basic',
+    icon: <Cpu className="w-4 h-4" />,
+    category: 'CPU 진단',
+    description: 'CPU 사용률이 높은 서버와 원인을 분석합니다'
+  },
+  {
+    id: 'memory-optimization',
+    text: '🧩 메모리 최적화 제안',
+    type: 'basic',
+    icon: <Activity className="w-4 h-4" />,
+    category: '메모리 최적화',
+    description: '메모리 부족 서버를 찾고 최적화 방안을 제시합니다'
+  },
+  {
+    id: 'network-latency-analysis',
+    text: '🌐 네트워크 지연 원인 분석',
     type: 'basic',
     icon: <Network className="w-4 h-4" />,
-    category: '네트워크 분석',
-    description: '응답시간 지연 서버 확인'
+    category: '네트워크 진단',
+    description: '네트워크 지연이 심한 서버와 개선 방법을 알려드립니다'
   },
   {
-    id: 'recent-changes',
-    text: '최근 1시간동안 변화가 큰 서버는?',
+    id: 'disk-space-management',
+    text: '💾 디스크 용량 관리 전략',
+    type: 'basic',
+    icon: <HardDrive className="w-4 h-4" />,
+    category: '디스크 관리',
+    description: '디스크 용량 부족 위험과 정리 방안을 제안합니다'
+  },
+  {
+    id: 'recent-trend-analysis',
+    text: '📈 최근 성능 트렌드 분석',
     type: 'basic',
     icon: <TrendingUp className="w-4 h-4" />,
     category: '트렌드 분석',
-    description: '급격한 변화 감지'
-  },
-  {
-    id: 'average-performance',
-    text: '전체 서버 평균 성능은 어때?',
-    type: 'basic',
-    icon: <BarChart3 className="w-4 h-4" />,
-    category: '성능 분석',
-    description: '전체 인프라 성능 지표'
-  },
-  {
-    id: 'service-interruption',
-    text: '서비스 중단된 곳이 있어?',
-    type: 'basic',
-    icon: <Clock className="w-4 h-4" />,
-    category: '서비스 확인',
-    description: '서비스 가용성 점검'
+    description: '최근 1시간동안 급격한 변화가 있는 서버를 추적합니다'
   }
 ];
 
@@ -335,48 +335,57 @@ export default function PresetQuestions({ onQuestionSelect, currentServerData }:
       {/* 컴팩트 질문 그리드 (2칸) */}
       <div className="grid grid-cols-2 gap-2">
         {visibleQuestions.map((question) => (
-          <button
-            key={question.id}
-            onClick={() => handleQuestionClick(question)}
-            className={`
-              p-2 rounded-md border text-left transition-all duration-200 hover:shadow-sm
-              ${question.type === 'basic' 
-                ? 'bg-white border-gray-200 hover:bg-gray-50' 
-                : 'bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200 hover:from-purple-100 hover:to-indigo-100'
-              }
-            `}
-          >
-            <div className="flex items-start space-x-2">
-              {/* 작은 아이콘 */}
-              <div className={`
-                p-1 rounded flex-shrink-0
-                ${question.type === 'basic' ? 'bg-green-100 text-green-600' : 'bg-purple-100 text-purple-600'}
-              `}>
-                <div className="w-3 h-3">
-                  {question.icon}
-                </div>
-              </div>
-              
-              {/* 내용 */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center space-x-1 mb-1">
-                  <span className={`
-                    text-xs px-1 py-0.5 rounded font-medium
-                    ${question.type === 'basic' 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-purple-100 text-purple-700'
-                    }
-                  `}>
-                    {question.type === 'basic' ? '기본' : '고급'}
-                  </span>
+          <div key={question.id} className="relative group">
+            <button
+              onClick={() => handleQuestionClick(question)}
+              className={`
+                w-full p-2 rounded-md border text-left transition-all duration-200 hover:shadow-md
+                ${question.type === 'basic' 
+                  ? 'bg-white border-gray-200 hover:bg-blue-50 hover:border-blue-300' 
+                  : 'bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200 hover:from-purple-100 hover:to-indigo-100 hover:border-purple-300'
+                }
+                group-hover:transform group-hover:scale-[1.02]
+              `}
+            >
+              <div className="flex items-start space-x-2">
+                {/* 작은 아이콘 */}
+                <div className={`
+                  p-1 rounded flex-shrink-0
+                  ${question.type === 'basic' ? 'bg-green-100 text-green-600' : 'bg-purple-100 text-purple-600'}
+                `}>
+                  <div className="w-3 h-3">
+                    {question.icon}
+                  </div>
                 </div>
                 
-                <p className="text-xs font-medium text-gray-900 line-clamp-2 leading-tight">
-                  {question.text}
-                </p>
+                {/* 내용 */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className={`
+                      text-xs px-1 py-0.5 rounded font-medium
+                      ${question.type === 'basic' 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-purple-100 text-purple-700'
+                      }
+                    `}>
+                      {question.type === 'basic' ? '기본' : '고급'}
+                    </span>
+                    <span className="text-gray-400 text-xs">💡</span>
+                  </div>
+                  
+                  <p className="text-xs font-medium text-gray-900 line-clamp-2 leading-tight">
+                    {question.text}
+                  </p>
+                </div>
               </div>
+            </button>
+            
+            {/* 툴팁 */}
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-nowrap max-w-xs">
+              {question.description}
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
             </div>
-          </button>
+          </div>
         ))}
       </div>
     </div>
