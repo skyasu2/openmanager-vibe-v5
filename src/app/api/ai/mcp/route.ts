@@ -1,268 +1,136 @@
+/**
+ * 🧠 MCP (Model Context Protocol) API 엔드포인트
+ * 
+ * 컨텍스트 인식 기반 통합 AI 분석
+ * - 자연어 쿼리 처리
+ * - 다중 도구 체인 실행
+ * - 컨텍스트 기반 의사결정
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { MCPAIRouter, MCPContext } from '@/services/ai/MCPAIRouter';
+import { MCPOrchestrator, MCPRequest } from '../../../../core/mcp/mcp-orchestrator';
 
-// 글로벌 MCP 라우터 인스턴스 (싱글톤)
-let mcpRouter: MCPAIRouter | null = null;
+// MCP 오케스트레이터 싱글톤 인스턴스
+let mcpOrchestrator: MCPOrchestrator | null = null;
 
-async function getMCPRouter(): Promise<MCPAIRouter> {
-  if (!mcpRouter) {
-    mcpRouter = new MCPAIRouter();
-    console.log('🧠 MCP AI Router 초기화 완료');
+function getMCPOrchestrator(): MCPOrchestrator {
+  if (!mcpOrchestrator) {
+    console.log('🧠 MCP 오케스트레이터 초기화...');
+    mcpOrchestrator = new MCPOrchestrator();
   }
-  return mcpRouter;
+  return mcpOrchestrator;
 }
 
 /**
- * 🎯 MCP 기반 AI 분석 처리
+ * 🎯 MCP 분석 요청 처리
  */
 export async function POST(request: NextRequest) {
-  try {
-    const { query, context } = await request.json();
-    
-    if (!query || typeof query !== 'string') {
-      return NextResponse.json({
-        success: false,
-        error: '분석할 쿼리가 필요합니다'
-      }, { status: 400 });
-    }
+  const startTime = Date.now();
 
-    // MCP Context 구성
-    const mcpContext: MCPContext = {
-      userQuery: query,
-      serverMetrics: context?.serverMetrics || [],
-      logEntries: context?.logEntries || [],
-      timeRange: context?.timeRange || {
-        start: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        end: new Date()
-      },
-      sessionId: context?.sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  try {
+    const body = await request.json();
+    
+    console.log('🧠 MCP 요청 수신:', {
+      query: body.query?.substring(0, 50) + '...',
+      hasMetrics: !!body.parameters?.metrics,
+      sessionId: body.context?.session_id
+    });
+
+    // MCP 요청 객체 구성
+    const mcpRequest: MCPRequest = {
+      query: body.query || '시스템 상태를 분석해주세요',
+      parameters: body.parameters || {},
+      context: {
+        session_id: body.context?.session_id,
+        user_preferences: body.context?.user_preferences || {},
+        urgency: body.context?.urgency || 'medium'
+      }
     };
 
-    // 🧠 MCP 라우터로 처리
-    const router = await getMCPRouter();
-    const result = await router.processQuery(query, mcpContext);
-    
-    // 📊 상세 로그 (개발용)
-    console.log('🎯 MCP 분석 결과:', {
-      sessionId: mcpContext.sessionId,
-      query: query.substring(0, 100) + '...',
-      success: result.success,
+    // MCP 오케스트레이터 실행
+    const orchestrator = getMCPOrchestrator();
+    const result = await orchestrator.process(mcpRequest);
+
+    const totalTime = Date.now() - startTime;
+
+    console.log('✅ MCP 분석 완료:', {
+      toolsUsed: result.tools_used,
       confidence: result.confidence,
-      enginesUsed: result.enginesUsed,
-      processingTime: result.processingTime
+      totalTime
     });
 
     return NextResponse.json({
       success: true,
-      data: result,
+      data: result.result,
       metadata: {
-        sessionId: mcpContext.sessionId,
-        timestamp: new Date().toISOString(),
-        version: '1.0.0'
+        tools_used: result.tools_used,
+        context_id: result.context_id,
+        processing_time: result.processing_time,
+        confidence: result.confidence,
+        total_time: totalTime
       }
     });
 
   } catch (error: any) {
-    console.error('❌ MCP API 오류:', error);
-    
+    console.error('❌ MCP 처리 오류:', error);
+
     return NextResponse.json({
       success: false,
-      error: '분석 중 오류가 발생했습니다',
-      details: error.message,
-      timestamp: new Date().toISOString()
+      error: 'MCP 분석 중 오류가 발생했습니다',
+      message: error.message,
+      processing_time: Date.now() - startTime
     }, { status: 500 });
   }
 }
 
 /**
- * 🔧 MCP 시스템 상태 확인
+ * 🏥 MCP 시스템 상태 확인
  */
 export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url);
     const action = url.searchParams.get('action');
 
-    const router = await getMCPRouter();
-
-    switch (action) {
-      case 'status':
-        const engineStatus = await router.getEngineStatus();
-        return NextResponse.json({
-          status: 'operational',
-          engines: engineStatus,
-          timestamp: new Date().toISOString(),
-          uptime: process.uptime()
-        });
-
-      case 'stats':
-        // 세션 관리자에서 통계 가져오기
-        const sessionStats = await getSessionStatistics();
-        return NextResponse.json({
-          system: 'MCP AI Router',
-          version: '1.0.0',
-          statistics: sessionStats,
-          timestamp: new Date().toISOString()
-        });
-
-      case 'health':
-        const healthCheck = await performHealthCheck(router);
-        return NextResponse.json(healthCheck);
-
-      default:
-        return NextResponse.json({
-          system: 'MCP AI Router',
-          version: '1.0.0',
-          status: 'ready',
-          endpoints: {
-            analyze: 'POST /api/ai/mcp',
-            status: 'GET /api/ai/mcp?action=status',
-            stats: 'GET /api/ai/mcp?action=stats',
-            health: 'GET /api/ai/mcp?action=health'
-          },
-          capabilities: [
-            'Intent Classification',
-            'Time Series Prediction',
-            'Anomaly Detection', 
-            'NLP Analysis',
-            'External Python Integration',
-            'Session Management'
-          ],
-          timestamp: new Date().toISOString()
-        });
-    }
-
-  } catch (error: any) {
-    console.error('❌ MCP 상태 확인 오류:', error);
-    
-    return NextResponse.json({
-      status: 'error',
-      error: error.message,
-      timestamp: new Date().toISOString()
-    }, { status: 500 });
-  }
-}
-
-/**
- * 📊 세션 통계 가져오기
- */
-async function getSessionStatistics(): Promise<any> {
-  try {
-    // SessionManager에서 시스템 통계 가져오기
-    // 실제 구현에서는 router.sessionManager.getSystemStatistics() 호출
-    return {
-      totalSessions: 0,
-      activeSessions: 0,
-      totalQueries: 0,
-      avgProcessingTime: 0,
-      engineDistribution: {},
-      intentDistribution: {}
-    };
-  } catch (error) {
-    console.warn('⚠️ 세션 통계 가져오기 실패:', error);
-    return {};
-  }
-}
-
-/**
- * 🏥 헬스체크 수행
- */
-async function performHealthCheck(router: MCPAIRouter): Promise<any> {
-  const startTime = Date.now();
-  const checks: any[] = [];
-
-  try {
-    // 1. 엔진 상태 확인
-    const engineStatus = await router.getEngineStatus();
-    checks.push({
-      name: 'AI Engines',
-      status: engineStatus.allReady ? 'healthy' : 'degraded',
-      details: engineStatus,
-      responseTime: Date.now() - startTime
-    });
-
-  } catch (error: any) {
-    checks.push({
-      name: 'AI Engines',
-      status: 'unhealthy',
-      error: error.message,
-      responseTime: Date.now() - startTime
-    });
-  }
-
-  try {
-    // 2. 간단한 분석 테스트
-    const testStart = Date.now();
-    const testResult = await router.processQuery('시스템 상태 확인', {
-      sessionId: 'health_check',
-      serverMetrics: [{
-        timestamp: new Date().toISOString(),
-        cpu: 50,
-        memory: 60,
-        disk: 70,
-        networkIn: 1000,
-        networkOut: 2000
-      }]
-    });
-
-    checks.push({
-      name: 'Analysis Pipeline',
-      status: testResult.success ? 'healthy' : 'unhealthy',
-      responseTime: Date.now() - testStart,
-      confidence: testResult.confidence,
-      enginesUsed: testResult.enginesUsed
-    });
-
-  } catch (error: any) {
-    checks.push({
-      name: 'Analysis Pipeline',
-      status: 'unhealthy',
-      error: error.message,
-      responseTime: Date.now() - startTime
-    });
-  }
-
-  // 전체 상태 결정
-  const allHealthy = checks.every(check => check.status === 'healthy');
-  const anyUnhealthy = checks.some(check => check.status === 'unhealthy');
-  
-  const overallStatus = allHealthy ? 'healthy' : anyUnhealthy ? 'unhealthy' : 'degraded';
-
-  return {
-    status: overallStatus,
-    timestamp: new Date().toISOString(),
-    totalResponseTime: Date.now() - startTime,
-    checks
-  };
-}
-
-/**
- * 🔧 시스템 리소스 정리 (개발용)
- */
-export async function DELETE(request: NextRequest) {
-  try {
-    const url = new URL(request.url);
-    const action = url.searchParams.get('action');
-
-    if (action === 'cleanup') {
-      // 세션 정리 등 관리 작업
-      console.log('🧹 MCP 시스템 정리 수행');
+    if (action === 'health') {
+      const orchestrator = getMCPOrchestrator();
       
       return NextResponse.json({
-        success: true,
-        message: '시스템 정리가 완료되었습니다',
-        timestamp: new Date().toISOString()
+        status: 'healthy',
+        message: 'MCP 오케스트레이터가 정상 동작 중입니다',
+        timestamp: new Date().toISOString(),
+        tools_registered: 6, // statistical_analysis, anomaly_detection, time_series_forecast, pattern_recognition, root_cause_analysis, optimization_advisor
+        context_active: true
+      });
+    }
+
+    if (action === 'tools') {
+      return NextResponse.json({
+        tools: [
+          'statistical_analysis',
+          'anomaly_detection', 
+          'time_series_forecast',
+          'pattern_recognition',
+          'root_cause_analysis',
+          'optimization_advisor'
+        ],
+        description: 'MCP 등록된 도구 목록'
       });
     }
 
     return NextResponse.json({
-      success: false,
-      error: '지원하지 않는 작업입니다'
-    }, { status: 400 });
+      service: 'MCP Orchestrator',
+      version: '1.0.0',
+      endpoints: {
+        'POST /': 'MCP 분석 요청',
+        'GET /?action=health': '시스템 상태 확인',
+        'GET /?action=tools': '등록된 도구 목록'
+      }
+    });
 
   } catch (error: any) {
     return NextResponse.json({
-      success: false,
-      error: error.message
+      error: 'MCP 상태 확인 실패',
+      message: error.message
     }, { status: 500 });
   }
 } 
