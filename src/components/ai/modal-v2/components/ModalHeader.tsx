@@ -30,8 +30,11 @@ export default function ModalHeader({ onClose }: ModalHeaderProps) {
   }, [showAdminDropdown]);
 
   const handleAdminAccess = (path: string) => {
-    console.log('🔧 관리자 페이지 접근:', path);
+    console.log('🔧 관리자 페이지 접근 요청:', path);
+    console.log('🚫 자동 리다이렉션이 비활성화되었습니다 (사용자 요청)');
     
+    // 자동 리다이렉션 제거 - 사용자 요청에 따라 주석 처리
+    /*
     try {
       // 관리자 세션 정보 설정
       const timestamp = Date.now();
@@ -73,6 +76,10 @@ export default function ModalHeader({ onClose }: ModalHeaderProps) {
         window.location.href = path;
       }, 300);
     }
+    */
+    
+    // 드롭다운만 닫기
+    setShowAdminDropdown(false);
   };
 
   const toggleAdminDropdown = () => {

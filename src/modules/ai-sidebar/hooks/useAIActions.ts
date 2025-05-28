@@ -100,11 +100,6 @@ export const useAIActions = (options: AIActionsOptions = {}) => {
         message: '서버 상태를 새로고침했습니다.',
         data: { refreshedAt: new Date().toISOString() }
       },
-      'view_logs': {
-        success: true,
-        message: '로그를 조회했습니다.',
-        data: { logCount: 247, errorCount: 3 }
-      },
       'optimize_performance': {
         success: true,
         message: '성능 최적화를 완료했습니다.',
@@ -139,14 +134,6 @@ export const useAIActions = (options: AIActionsOptions = {}) => {
         icon: '🔄',
         action: () => executeAction('refresh_status'),
         disabled: executingActions.has('refresh_status'),
-        variant: 'secondary'
-      },
-      {
-        id: 'view_logs',
-        label: '로그 보기',
-        icon: '📋',
-        action: () => executeAction('view_logs'),
-        disabled: executingActions.has('view_logs'),
         variant: 'secondary'
       },
       {

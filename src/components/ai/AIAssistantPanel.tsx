@@ -31,9 +31,9 @@ const panelVariants = {
     opacity: 1,
     transition: {
       type: 'spring',
-      damping: 25,
-      stiffness: 300,
-      duration: 0.3
+      damping: 30,
+      stiffness: 400,
+      duration: 0.4
     }
   },
   exit: { 
@@ -41,9 +41,9 @@ const panelVariants = {
     opacity: 0,
     transition: {
       type: 'spring',
-      damping: 25,
-      stiffness: 300,
-      duration: 0.2
+      damping: 30,
+      stiffness: 400,
+      duration: 0.3
     }
   }
 };
@@ -52,11 +52,33 @@ const overlayVariants = {
   hidden: { opacity: 0 },
   visible: { 
     opacity: 1,
-    transition: { duration: 0.2 }
+    transition: { duration: 0.3 }
   },
   exit: { 
     opacity: 0,
-    transition: { duration: 0.2 }
+    transition: { duration: 0.3 }
+  }
+};
+
+// 메인 컨텐츠 애니메이션 변수 (좌측으로 밀리는 효과)
+const mainContentVariants = {
+  normal: {
+    transform: 'translateX(0px)',
+    transition: {
+      type: 'spring',
+      damping: 30,
+      stiffness: 400,
+      duration: 0.4
+    }
+  },
+  pushed: {
+    transform: 'translateX(-350px)', // 좌측으로 350px 밀기
+    transition: {
+      type: 'spring',
+      damping: 30,
+      stiffness: 400,
+      duration: 0.4
+    }
   }
 };
 
@@ -169,39 +191,6 @@ export default function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelPr
       });
     };
   }, [isClient, isOpen, recordActivity]);
-
-  // ESC 키로 패널 닫기 & 브라우저 히스토리 차단
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        recordActivity(); // ESC 키도 활동으로 기록
-        onClose();
-      }
-    };
-
-    // 브라우저 뒤로가기/앞으로가기 차단 (패널 열린 상태에서만)
-    const handlePopState = (e: PopStateEvent) => {
-      if (isOpen) {
-        e.preventDefault();
-        // 히스토리 상태를 현재로 유지
-        window.history.pushState(null, '', window.location.href);
-        console.log('🚫 AI 패널 사용 중 - 브라우저 히스토리 이동 차단됨');
-      }
-    };
-
-    if (isOpen) {
-      window.addEventListener('keydown', handleEscape);
-      window.addEventListener('popstate', handlePopState);
-      
-      // 현재 히스토리 상태에 패널 표시 추가
-      window.history.pushState({ aiPanelOpen: true }, '', window.location.href);
-    }
-
-    return () => {
-      window.removeEventListener('keydown', handleEscape);
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, [isOpen, onClose, recordActivity]);
 
   // 히스토리 아이템 선택 핸들러
   const handleSelectHistoryItem = (item: HistoryItem) => {
@@ -555,55 +544,16 @@ export default function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelPr
       `🔄 **복구 진행 중이니 잠시 후 다시 시도해주세요.**`;
   };
 
-  // 포커스 트랩 설정
-  useEffect(() => {
-    if (!isOpen || !isClient) return;
-
-    const panel = document.getElementById('ai-assistant-panel');
-    if (!panel) return;
-
-    const focusableElements = panel.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    const firstElement = focusableElements[0] as HTMLElement;
-    const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
-
-    const handleTabKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return;
-
-      if (e.shiftKey) {
-        if (document.activeElement === firstElement) {
-          lastElement?.focus();
-          e.preventDefault();
-        }
-      } else {
-        if (document.activeElement === lastElement) {
-          firstElement?.focus();
-          e.preventDefault();
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleTabKey);
-    
-    // 패널 열릴 때 첫 번째 요소에 포커스
-    setTimeout(() => firstElement?.focus(), 100);
-
-    return () => {
-      document.removeEventListener('keydown', handleTabKey);
-    };
-  }, [isOpen, isClient]);
-
   // 서버 사이드 렌더링 시 기본 UI 반환
   if (!isClient) {
     return null;
   }
 
-  // 패널 너비 계산
+  // 패널 너비 계산 - 더 큰 크기로 조정
   const getPanelWidth = () => {
     if (isMobile) return '100vw';
-    if (isTablet) return '350px';
-    return '400px';
+    if (isTablet) return '500px'; // 태블릿에서 더 크게
+    return '700px'; // 데스크탑에서 더 크게 (기존 400px → 700px)
   };
 
   return (

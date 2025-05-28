@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import ServerDashboard from '../../components/dashboard/ServerDashboard';
 import AIAssistantPanel from '../../components/ai/AIAssistantPanel';
 import ProfileDropdown from '../../components/ProfileDropdown';
@@ -21,6 +22,28 @@ export default function DashboardPage() {
     offline: 0
   });
   const [showSequentialGeneration, setShowSequentialGeneration] = useState(true);
+  
+  // 메인 컨텐츠 애니메이션 변수 (AI 에이전트에 맞춰 좌측으로 밀기)
+  const mainContentVariants = {
+    normal: {
+      transform: 'translateX(0px)',
+      transition: {
+        type: 'spring',
+        damping: 30,
+        stiffness: 400,
+        duration: 0.4
+      }
+    },
+    pushed: {
+      transform: 'translateX(-350px)', // AI 에이전트가 700px이므로 절반인 350px만큼 밀기
+      transition: {
+        type: 'spring',
+        damping: 30,
+        stiffness: 400,
+        duration: 0.4
+      }
+    }
+  };
   
   // 개선된 시스템 제어 훅
   const {
@@ -385,8 +408,12 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* 메인 컨텐트 영역 */}
-      <main className="relative">
+      {/* 메인 컨텐트 영역 - AI 에이전트 상태에 따른 애니메이션 적용 */}
+      <motion.main 
+        className="relative"
+        variants={mainContentVariants}
+        animate={isAgentOpen ? 'pushed' : 'normal'}
+      >
         {/* 순차 서버 생성 프로그레스 */}
         {showSequentialGeneration && (
           <div className="p-6">
@@ -462,15 +489,15 @@ export default function DashboardPage() {
           <ServerDashboard onStatsUpdate={setServerStats} />
         )}
         
-        {/* AI 에이전트 모달 */}
-        <AIAssistantPanel isOpen={isAgentOpen} onClose={closeAgent} />
-        
         {/* 서버 상세 모달 */}
         <ServerDetailModal
           server={selectedServer}
           onClose={() => setSelectedServer(null)}
         />
-      </main>
+      </motion.main>
+
+      {/* AI 에이전트 모달 */}
+      <AIAssistantPanel isOpen={isAgentOpen} onClose={closeAgent} />
     </div>
   );
 } 
