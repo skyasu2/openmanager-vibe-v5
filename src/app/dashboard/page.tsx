@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import ServerDashboard from '../../components/dashboard/ServerDashboard';
-import AIAgentModal from '../../components/ai/modal-v2/AIAgentModal';
+import AIAssistantPanel from '../../components/ai/AIAssistantPanel';
 import ProfileDropdown from '../../components/ProfileDropdown';
 import ServerGenerationProgress from '../../components/dashboard/ServerGenerationProgress';
 import AnimatedServerCard from '../../components/dashboard/AnimatedServerCard';
@@ -463,7 +463,7 @@ export default function DashboardPage() {
         )}
         
         {/* AI 에이전트 모달 */}
-        <AIAgentModal isOpen={isAgentOpen} onClose={closeAgent} />
+        <AIAssistantPanel isOpen={isAgentOpen} onClose={closeAgent} />
         
         {/* 서버 상세 모달 */}
         <ServerDetailModal

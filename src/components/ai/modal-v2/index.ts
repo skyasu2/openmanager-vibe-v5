@@ -1,5 +1,6 @@
 // 메인 컴포넌트 내보내기
 export { default as AIAgentModal } from './AIAgentModal';
+export { default as AIAssistantPanel } from '../AIAssistantPanel';
 
 // 하위 컴포넌트 내보내기
 export { default as ModalHeader } from './components/ModalHeader';
