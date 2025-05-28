@@ -73,6 +73,20 @@ const nextConfig: NextConfig = {
           {
             key: 'X-XSS-Protection',
             value: '1; mode=block'
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+              "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+              "img-src 'self' data: https:",
+              "connect-src 'self' https: wss: ws:",
+              "frame-ancestors 'none'",
+              "base-uri 'self'",
+              "object-src 'none'"
+            ].join('; ')
           }
         ]
       },

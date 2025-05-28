@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans_KR } from 'next/font/google';
 import "./globals.css";
+import { ToastContainer } from "@/components/ui/ToastNotification";
 
 const notoSansKR = Noto_Sans_KR({
   subsets: ['latin'],
@@ -62,6 +63,10 @@ export default function RootLayout({
         <main>
           {children}
         </main>
+        {/* 토스트 알림 컨테이너 */}
+        <ToastContainer />
+        {/* 토스트 포털 컨테이너 */}
+        <div id="toast-portal" />
       </body>
     </html>
   );

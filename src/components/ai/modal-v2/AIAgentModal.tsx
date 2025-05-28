@@ -12,6 +12,7 @@ import { FunctionType, HistoryItem } from './types';
 import { InteractionLogger } from '@/services/ai-agent/logging/InteractionLogger';
 import { useServerDataStore } from '@/stores/serverDataStore';
 import { useSystemControl } from '@/hooks/useSystemControl';
+import { ErrorRecoverySystem } from '@/utils/error-recovery';
 
 interface AIAgentModalProps {
   isOpen: boolean;
@@ -204,58 +205,99 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
         )
       ]) as any[];
 
-      // AI 에이전트 API 호출 (타임아웃 15초)
-      const aiResponse = await Promise.race([
-        fetch('/api/ai-agent/integrated', {
+      // 🚀 개선된 AI 에이전트 호출 - 다단계 폴백 시스템
+      let aiResponse: Response | null = null;
+      let finalData: any = null;
+
+      try {
+        // 1차: 최적화된 엔진 시도
+        console.log('🚀 1차: 최적화 엔진 시도...');
+        aiResponse = await fetch('/api/ai-agent/optimized', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'smart-query',
             query: question,
-            options: {
-              timeout: 12000, // 백엔드 타임아웃
-              priority: 'high',
-              enableFallback: true
-            }
+            options: { timeout: 10000, priority: 'high' }
           })
-        }),
-        new Promise<Response>((_, reject) => 
-          setTimeout(() => reject(new Error('AI API timeout')), 15000)
-        )
-      ]);
+        });
 
-      if (aiResponse.ok) {
-        const data = await aiResponse.json();
-        
-        if (data.success && data.response) {
-          const responseTime = Date.now() - startTime;
-          
-          // 성공적인 AI 응답
-          const metadata = {
-            intent: data.analysis?.intent || 'ai_response',
-            confidence: data.analysis?.confidence || 0.8,
-            responseTime,
-            method: data.method || 'integrated',
-            serverState: { servers, totalCount: servers.length },
-            sessionId: data.metadata?.sessionId || `session_${Date.now()}`
-          };
-          
-          setResponseMetadata(metadata);
-          dispatch({ type: 'SET_ANSWER', payload: data.response });
-          addToHistory(question, data.response);
-          
-        } else {
-          // AI 응답 실패 시 폴백
-          throw new Error(data.error || 'AI 응답 생성 실패');
+        if (!aiResponse.ok) {
+          throw new Error(`최적화 엔진 실패: ${aiResponse.status}`);
         }
+
+        finalData = await aiResponse.json();
+        console.log('✅ 최적화 엔진 성공');
+
+      } catch (optimizedError) {
+        console.warn('⚠️ 최적화 엔진 실패, 통합 엔진으로 전환:', optimizedError);
+        
+        // 에러 복구 시스템에 기록
+        await ErrorRecoverySystem.handleAPIError('/api/ai-agent/optimized', optimizedError as Error);
+
+        try {
+          // 2차: 통합 엔진 시도 (이미 수정한 엔진)
+          console.log('🔄 2차: 통합 엔진 시도...');
+          aiResponse = await fetch('/api/ai-agent/integrated', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'smart-query',
+              query: question,
+              options: {
+                timeout: 12000,
+                priority: 'high',
+                enableFallback: true
+              }
+            })
+          });
+
+          if (!aiResponse.ok) {
+            throw new Error(`통합 엔진 실패: ${aiResponse.status}`);
+          }
+
+          finalData = await aiResponse.json();
+          console.log('✅ 통합 엔진 성공');
+
+        } catch (integratedError) {
+          console.warn('⚠️ 통합 엔진도 실패, 로컬 폴백 사용:', integratedError);
+          
+          // 에러 복구 시스템에 기록
+          await ErrorRecoverySystem.handleAPIError('/api/ai-agent/integrated', integratedError as Error);
+          
+          throw new Error('모든 AI 엔진 실패');
+        }
+      }
+
+      // AI 응답 처리
+      if (finalData?.success && finalData?.response) {
+        const responseTime = Date.now() - startTime;
+        
+        // 성공적인 AI 응답
+        const metadata = {
+          intent: finalData.metadata?.intent || 'ai_response',
+          confidence: finalData.metadata?.confidence || 0.8,
+          responseTime,
+          method: finalData.metadata?.method || 'integrated',
+          fallbackUsed: finalData.metadata?.fallbackUsed || false,
+          serverState: { servers, totalCount: servers.length },
+          sessionId: finalData.metadata?.sessionId || `session_${Date.now()}`
+        };
+        
+        setResponseMetadata(metadata);
+        dispatch({ type: 'SET_ANSWER', payload: finalData.response });
+        addToHistory(question, finalData.response);
+        
       } else {
-        // HTTP 에러 시 폴백
-        const errorData = await aiResponse.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${aiResponse.status} 에러`);
+        // AI 응답이 올바르지 않은 경우
+        throw new Error(finalData?.error || 'AI 응답 형식 오류');
       }
 
     } catch (error) {
-      console.warn('AI 응답 실패, 폴백 모드로 전환:', error);
+      console.warn('🏠 모든 AI 엔진 실패, 로컬 폴백 모드로 전환:', error);
+      
+      // 에러 복구 시스템에 최종 에러 기록
+      await ErrorRecoverySystem.handleAPIError('/api/ai-agent/fallback', error as Error);
       
       // 폴백 응답 생성 (최소 3초 대기)
       const elapsed = Date.now() - startTime;
@@ -279,7 +321,7 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
       }
       
       // 폴백 응답 생성
-      const fallbackAnswer = generateFallbackResponse(question, servers);
+      const fallbackAnswer = generateEnhancedFallbackResponse(question, servers, error as Error);
       const responseTime = Date.now() - startTime;
       
       // 폴백 응답 시에도 활동 기록
@@ -290,10 +332,12 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
         intent: 'fallback_response',
         confidence: 0.3,
         responseTime,
-        method: 'fallback',
+        method: 'local_fallback',
         error: error instanceof Error ? error.message : 'Unknown error',
         serverState: { servers, totalCount: servers.length },
-        sessionId: `fallback_session_${Date.now()}`
+        sessionId: `fallback_session_${Date.now()}`,
+        fallbackUsed: true,
+        errorRecoveryApplied: true
       };
       setResponseMetadata(fallbackMetadata);
       
@@ -306,9 +350,16 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
     }
   };
 
-  // 폴백 응답 생성기
-  const generateFallbackResponse = (question: string, servers: any[]): string => {
+  // 향상된 폴백 응답 생성기
+  const generateEnhancedFallbackResponse = (question: string, servers: any[], error: Error): string => {
     const lowerQuery = question.toLowerCase();
+    
+    // 에러 복구 상태 확인
+    const recoveryStatus = ErrorRecoverySystem.getErrorStats();
+    const isSystemHealthy = ErrorRecoverySystem.isHealthy();
+    
+    // 기본 에러 메시지
+    const errorPrefix = `⚠️ **일시적 제한 모드**\n현재 AI 엔진이 일시적으로 사용할 수 없어 기본 분석 모드로 동작합니다.\n\n`;
     
     if (lowerQuery.includes('cpu') || lowerQuery.includes('씨피유')) {
       const avgCpu = servers.length > 0 
@@ -316,13 +367,15 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
         : 0;
       const highCpuServers = servers.filter(s => (s.metrics?.cpu || 0) > 80);
       
-      return `🖥️ **CPU 상태 분석**\n\n` +
+      return errorPrefix +
+        `🖥️ **CPU 상태 분석**\n\n` +
         `• 전체 서버: ${servers.length}대\n` +
         `• 평균 CPU 사용률: **${avgCpu}%**\n` +
         `• 고부하 서버: **${highCpuServers.length}대**\n\n` +
         (highCpuServers.length > 0 
-          ? `⚠️ **주의가 필요한 서버:**\n${highCpuServers.map(s => `- ${s.name}: ${s.metrics?.cpu || 0}%`).join('\n')}`
-          : '✅ 모든 서버가 정상 범위 내에서 동작 중입니다.');
+          ? `⚠️ **주의가 필요한 서버:**\n${highCpuServers.map(s => `- ${s.name}: ${s.metrics?.cpu || 0}%`).join('\n')}\n\n`
+          : '✅ 모든 서버가 정상 범위 내에서 동작 중입니다.\n\n') +
+        `💡 **복구 정보:** ${isSystemHealthy ? '시스템이 곧 정상화될 예정입니다.' : '복구 진행 중입니다.'}`;
     }
     
     if (lowerQuery.includes('메모리') || lowerQuery.includes('memory') || lowerQuery.includes('ram')) {
@@ -331,13 +384,15 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
         : 0;
       const highMemoryServers = servers.filter(s => (s.metrics?.memory || 0) > 85);
       
-      return `💾 **메모리 상태 분석**\n\n` +
+      return errorPrefix +
+        `💾 **메모리 상태 분석**\n\n` +
         `• 전체 서버: ${servers.length}대\n` +
         `• 평균 메모리 사용률: **${avgMemory}%**\n` +
         `• 고사용 서버: **${highMemoryServers.length}대**\n\n` +
         (highMemoryServers.length > 0 
-          ? `⚠️ **주의가 필요한 서버:**\n${highMemoryServers.map(s => `- ${s.name}: ${s.metrics?.memory || 0}%`).join('\n')}`
-          : '✅ 메모리 사용률이 정상 범위입니다.');
+          ? `⚠️ **주의가 필요한 서버:**\n${highMemoryServers.map(s => `- ${s.name}: ${s.metrics?.memory || 0}%`).join('\n')}\n\n`
+          : '✅ 메모리 사용률이 정상 범위입니다.\n\n') +
+        `💡 **복구 정보:** AI 분석 엔진 복구 중, 잠시 후 다시 시도해주세요.`;
     }
     
     if (lowerQuery.includes('서버') && lowerQuery.includes('상태')) {
@@ -345,23 +400,46 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
       const warningCount = servers.filter(s => s.status === 'warning').length;
       const criticalCount = servers.filter(s => s.status === 'critical').length;
       
-      return `📊 **전체 서버 상태**\n\n` +
+      return errorPrefix +
+        `📊 **전체 서버 상태**\n\n` +
         `• 총 서버 수: **${servers.length}대**\n` +
         `• 정상: **${healthyCount}대** (${Math.round(healthyCount/servers.length*100)}%)\n` +
         `• 경고: **${warningCount}대** (${Math.round(warningCount/servers.length*100)}%)\n` +
         `• 위험: **${criticalCount}대** (${Math.round(criticalCount/servers.length*100)}%)\n\n` +
-        (criticalCount > 0 ? '🚨 위험 상태 서버에 대한 즉시 점검이 필요합니다.' :
-         warningCount > 0 ? '⚠️ 일부 서버에서 경고 상태가 감지되었습니다.' :
-         '✅ 모든 서버가 정상 상태입니다.');
+        (criticalCount > 0 ? '🚨 위험 상태 서버에 대한 즉시 점검이 필요합니다.\n' :
+         warningCount > 0 ? '⚠️ 일부 서버에서 경고 상태가 감지되었습니다.\n' :
+         '✅ 모든 서버가 정상 상태입니다.\n') +
+        `\n💡 **시스템 상태:** ${isSystemHealthy ? '복구 거의 완료' : '복구 진행 중'} (에러 ${recoveryStatus.recentErrors}회)`;
     }
     
-    // 기본 응답
-    return `현재 **${servers.length}대**의 서버를 모니터링하고 있습니다.\n\n` +
-      `💡 다음과 같은 질문을 해보세요:\n` +
+    if (lowerQuery.includes('에러') || lowerQuery.includes('오류') || lowerQuery.includes('문제')) {
+      return errorPrefix +
+        `🔧 **에러 진단 정보**\n\n` +
+        `• 에러 유형: ${error.message.includes('timeout') ? 'API 시간 초과' : 
+                     error.message.includes('404') ? '서비스 일시 중단' : 
+                     error.message.includes('500') ? '서버 내부 오류' : '연결 문제'}\n` +
+        `• 최근 에러 횟수: ${recoveryStatus.recentErrors}회\n` +
+        `• 시스템 상태: ${isSystemHealthy ? '정상화 중' : '복구 진행 중'}\n\n` +
+        `🛠️ **해결 방법:**\n` +
+        `• 잠시 후 다시 시도해주세요\n` +
+        `• 문제가 지속되면 페이지를 새로고침해주세요\n` +
+        `• 기본 모니터링 기능은 정상 동작합니다\n\n` +
+        `💡 **예상 복구 시간:** ${isSystemHealthy ? '1-2분 내' : '3-5분 내'}`;
+    }
+    
+    // 기본 응답 (에러 정보 포함)
+    return errorPrefix +
+      `📊 **현재 상황**\n\n` +
+      `• 모니터링 서버: **${servers.length}대**\n` +
+      `• 기본 기능: ✅ 정상 동작\n` +
+      `• AI 분석: ⚠️ 일시 중단\n` +
+      `• 에러 복구: ${isSystemHealthy ? '✅ 거의 완료' : '🔄 진행 중'}\n\n` +
+      `💡 **사용 가능한 질문:**\n` +
       `• "CPU 상태는 어때?"\n` +
       `• "메모리 사용률 확인해줘"\n` +
       `• "서버 상태 요약해줘"\n` +
-      `• "성능 분석 결과 보여줘"`;
+      `• "에러 상황 알려줘"\n\n` +
+      `🔄 **복구 진행 중이니 잠시 후 다시 시도해주세요.**`;
   };
 
   // 서버 사이드 렌더링 시 기본 UI 반환
