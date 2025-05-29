@@ -56,6 +56,16 @@ const features: FeatureDetail[] = [
   }
 ];
 
+// 토스트 알림 타입 정의
+interface ToastNotification {
+  id: string;
+  type: 'success' | 'error' | 'info' | 'warning';
+  title: string;
+  message: string;
+  autoClose?: boolean;
+  duration?: number;
+}
+
 export default function HomePage() {
   const router = useRouter();
   const [selectedFeature, setSelectedFeature] = useState<FeatureDetail | null>(null);
@@ -89,6 +99,11 @@ export default function HomePage() {
     currentPattern: null,
     patterns: []
   });
+
+  // 토스트 알림 상태
+  const [toasts, setToasts] = useState<ToastNotification[]>([]);
+  const [showDashboardChoice, setShowDashboardChoice] = useState(false);
+  const [autoRedirectCountdown, setAutoRedirectCountdown] = useState(0);
 
   // 데이터 생성기 상태 업데이트 함수를 useCallback으로 최적화
   const updateGeneratorStatus = useCallback(async () => {
@@ -150,50 +165,70 @@ export default function HomePage() {
       clearTimeout(timeoutId);
       
       if (result.success) {
-        // 성공 메시지 표시
-        let message = `✅ ${result.message}`;
+        // 성공 토스트 알림
+        addToast({
+          type: 'success',
+          title: '🎉 시스템 시작 완료!',
+          message: result.message,
+          duration: 4000
+        });
         
-        // Fallback 모드는 실제로 심각한 문제가 있을 때만 표시
+        // Fallback 모드 알림 (필요한 경우)
         if (result.fallback && result.errors && result.errors.length > 0) {
-          message += '\n\n🔄 일부 기능이 Fallback 모드로 동작하고 있습니다.';
+          addToast({
+            type: 'warning',
+            title: '🔄 일부 기능 제한',
+            message: '일부 기능이 Fallback 모드로 동작하고 있습니다.',
+            duration: 6000
+          });
         }
         
-        if (result.warnings && result.warnings.length > 0) {
-          // 중요한 경고만 표시 (Fallback 관련 경고 제외)
-          const importantWarnings = result.warnings.filter(warning => 
-            !warning.includes('Fallback') && 
-            !warning.includes('제한 모드')
-          );
-          
-          if (importantWarnings.length > 0) {
-            message += `\n\n⚠️ 주의사항:\n${importantWarnings.join('\n')}`;
-          }
-        }
-        
-        // 성공적인 시작에는 추천사항을 간단하게 표시
+        // 추천사항 알림
         if (result.recommendations && result.recommendations.length > 0 && !result.fallback) {
-          message += `\n\n💡 ${result.recommendations[0]}`; // 첫 번째 추천사항만 표시
+          addToast({
+            type: 'info',
+            title: '💡 추천사항',
+            message: result.recommendations[0],
+            duration: 6000
+          });
         }
         
-        alert(message);
+        // 대시보드 이동 선택 UI 표시
+        setShowDashboardChoice(true);
         
-        // 성공 시 대시보드로 자동 이동 (사용자 선택)
-        if (confirm('대시보드로 이동하시겠습니까?')) {
-          router.push('/dashboard');
-          return;
-        }
+        // 5초 후 자동 리다이렉트 시작
+        setTimeout(() => {
+          setAutoRedirectCountdown(5);
+        }, 2000);
         
       } else {
-        // 실패 시에도 기본 기능 사용 가능 안내
-        let errorMessage = `⚠️ ${result.message}`;
+        // 실패 토스트 알림
+        addToast({
+          type: 'error',
+          title: '⚠️ 시스템 시작 실패',
+          message: result.message,
+          duration: 8000,
+          autoClose: false // 수동으로 닫도록
+        });
         
+        // 해결방법 알림
         if (result.recommendations && result.recommendations.length > 0) {
-          errorMessage += `\n\n📱 해결방법:\n${result.recommendations.join('\n')}`;
+          addToast({
+            type: 'info',
+            title: '📱 해결방법',
+            message: result.recommendations[0],
+            duration: 10000,
+            autoClose: false
+          });
         }
         
-        errorMessage += '\n\n💡 기본 기능은 계속 사용할 수 있습니다.';
-        
-        alert(errorMessage);
+        // 기본 기능 사용 가능 안내
+        addToast({
+          type: 'info',
+          title: '💡 안내',
+          message: '기본 기능은 계속 사용할 수 있습니다.',
+          duration: 6000
+        });
       }
       
       // 상태 업데이트 (성공/실패 관계없이)
@@ -328,6 +363,45 @@ export default function HomePage() {
     setShowMainFeature(false);
   };
 
+  // 토스트 알림 관리 함수들
+  const addToast = useCallback((toast: Omit<ToastNotification, 'id'>) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    const newToast: ToastNotification = {
+      ...toast,
+      id,
+      autoClose: toast.autoClose !== false, // 기본값 true
+      duration: toast.duration || 5000
+    };
+    
+    setToasts(prev => [...prev, newToast]);
+    
+    // 자동 제거
+    if (newToast.autoClose) {
+      setTimeout(() => {
+        removeToast(id);
+      }, newToast.duration);
+    }
+  }, []);
+
+  const removeToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  }, []);
+
+  // 자동 리다이렉트 카운트다운
+  useEffect(() => {
+    if (autoRedirectCountdown > 0) {
+      const timer = setTimeout(() => {
+        if (autoRedirectCountdown === 1) {
+          router.push('/dashboard');
+        } else {
+          setAutoRedirectCountdown(prev => prev - 1);
+        }
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [autoRedirectCountdown, router]);
+
   return (
     <>
       <style jsx global>{`
@@ -454,6 +528,21 @@ export default function HomePage() {
           0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
           40% { transform: translateY(-5px); }
           60% { transform: translateY(-3px); }
+        }
+
+        @keyframes slide-in-right {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+
+        .animate-slide-in-right {
+          animation: slide-in-right 0.3s ease-out;
         }
 
         .btn-primary {
@@ -1639,16 +1728,50 @@ export default function HomePage() {
                 </div>
               </div>
               
-              {/* 대시보드 이동 버튼 (시작 버튼 자리) */}
-              <div className="mb-4">
-                <button 
-                  className="btn-primary"
-                  onClick={handleGoToDashboard}
-                >
-                  <i className="fas fa-tachometer-alt"></i>
-                  <span>📊 대시보드 들어가기</span>
-                </button>
-              </div>
+              {/* 대시보드 이동 선택 UI */}
+              {showDashboardChoice && autoRedirectCountdown > 0 ? (
+                <div className="mb-4 p-4 bg-blue-500/20 border border-blue-400/30 rounded-xl backdrop-blur-sm">
+                  <div className="text-center">
+                    <div className="text-blue-200 font-semibold mb-2">
+                      🚀 시스템이 성공적으로 시작되었습니다!
+                    </div>
+                    <div className="text-blue-100 text-sm mb-3">
+                      <span className="text-yellow-300 font-bold text-lg">{autoRedirectCountdown}</span>초 후 대시보드로 자동 이동합니다
+                    </div>
+                    <div className="flex gap-2 justify-center">
+                      <button 
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                        onClick={() => {
+                          setAutoRedirectCountdown(0);
+                          router.push('/dashboard');
+                        }}
+                      >
+                        지금 이동 →
+                      </button>
+                      <button 
+                        className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
+                        onClick={() => {
+                          setAutoRedirectCountdown(0);
+                          setShowDashboardChoice(false);
+                        }}
+                      >
+                        취소
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* 대시보드 이동 버튼 (기본 상태) */
+                <div className="mb-4">
+                  <button 
+                    className="btn-primary"
+                    onClick={handleGoToDashboard}
+                  >
+                    <i className="fas fa-tachometer-alt"></i>
+                    <span>📊 대시보드 들어가기</span>
+                  </button>
+                </div>
+              )}
               
               {/* 시스템 중지 버튼 */}
               <div className="text-center">
@@ -1709,6 +1832,35 @@ export default function HomePage() {
             <span className="sm:hidden">Copyright(c) 저작자</span>
           </p>
         </div>
+      </div>
+
+      {/* 토스트 알림 컨테이너 */}
+      <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className={`
+              p-4 rounded-lg shadow-lg backdrop-blur-sm border-l-4 animate-slide-in-right
+              ${toast.type === 'success' ? 'bg-green-500/90 border-green-400 text-white' : ''}
+              ${toast.type === 'error' ? 'bg-red-500/90 border-red-400 text-white' : ''}
+              ${toast.type === 'warning' ? 'bg-yellow-500/90 border-yellow-400 text-black' : ''}
+              ${toast.type === 'info' ? 'bg-blue-500/90 border-blue-400 text-white' : ''}
+            `}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1">
+                <div className="font-semibold text-sm">{toast.title}</div>
+                <div className="text-sm mt-1 opacity-90">{toast.message}</div>
+              </div>
+              <button
+                onClick={() => removeToast(toast.id)}
+                className="text-white/70 hover:text-white text-lg leading-none"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* 기능 상세 모달 */}
