@@ -18,7 +18,7 @@ interface ResponsiveDashboardProps {
 
 export default function ResponsiveDashboard({ onStatsUpdate }: ResponsiveDashboardProps) {
   const [isMobile, setIsMobile] = useState(false);
-  const [selectedServer, setSelectedServer] = useState<Server | null>(null);
+  const [selectedServer, setSelectedServer] = useState<any>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [currentServerIndex, setCurrentServerIndex] = useState(0);
 
@@ -41,9 +41,9 @@ export default function ResponsiveDashboard({ onStatsUpdate }: ResponsiveDashboa
     if (onStatsUpdate && servers.length > 0) {
       const stats = {
         total: servers.length,
-        online: servers.filter(s => s.status === 'online').length,
+        online: servers.filter(s => s.status === 'healthy').length,
         warning: servers.filter(s => s.status === 'warning').length,
-        offline: servers.filter(s => s.status === 'offline').length
+        offline: servers.filter(s => s.status === 'critical').length
       };
       onStatsUpdate(stats);
     }
@@ -208,7 +208,7 @@ export default function ResponsiveDashboard({ onStatsUpdate }: ResponsiveDashboa
 
           {/* 모바일 요약 카드 */}
           <MobileSummaryCard
-            servers={servers}
+            servers={servers as any}
             onServerSelect={handleMobileServerSelect}
             onViewAll={handleViewAll}
             lastUpdate={new Date()}
@@ -224,7 +224,7 @@ export default function ResponsiveDashboard({ onStatsUpdate }: ResponsiveDashboa
           {/* 모바일 서버 시트 */}
           <MobileServerSheet
             server={selectedServer}
-            servers={servers}
+            servers={servers as any}
             isOpen={isSheetOpen}
             onClose={() => setIsSheetOpen(false)}
             onSwipeNext={handleSwipeNext}
