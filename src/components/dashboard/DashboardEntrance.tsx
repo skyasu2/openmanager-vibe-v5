@@ -232,10 +232,21 @@ const DashboardEntrance: React.FC<DashboardEntranceProps> = ({ onStatsUpdate }) 
   // 컴포넌트 로딩 애니메이션
   const ComponentsLoadingAnimation = () => (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, y: -50 }}
-      className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center"
+      initial={{ opacity: 0, background: 'linear-gradient(135deg, #1e293b, #0f172a)' }}
+      animate={{ 
+        opacity: 1, 
+        background: [
+          'linear-gradient(135deg, #1e293b, #0f172a)',
+          'linear-gradient(135deg, #f1f5f9, #e2e8f0)',
+          'linear-gradient(135deg, #ffffff, #f8fafc)'
+        ]
+      }}
+      transition={{ 
+        duration: 1.5,
+        background: { duration: 1.2, ease: 'easeInOut' }
+      }}
+      exit={{ opacity: 0 }}
+      className="min-h-screen flex items-center justify-center"
     >
       <div className="text-center">
         <motion.div
