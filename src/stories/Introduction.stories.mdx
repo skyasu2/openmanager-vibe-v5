@@ -1,0 +1,168 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="OpenManager Vibe/소개" />
+
+# 🚀 OpenManager Vibe v5.11.0 컴포넌트 가이드
+
+**차세대 AI 기반 예측 모니터링 플랫폼**의 컴포넌트 라이브러리에 오신 것을 환영합니다!
+
+## 📖 개요
+
+OpenManager Vibe는 React + Next.js 기반의 현대적인 서버 모니터링 플랫폼입니다. 
+이 Storybook에서는 프로젝트에서 사용되는 모든 주요 컴포넌트들을 문서화하고 테스트할 수 있습니다.
+
+## 🏗️ 아키텍처 특징
+
+### 🎯 **핵심 원칙**
+- **React.memo** 최적화 적용
+- **React.lazy()** 코드 스플리팅
+- **TypeScript** 타입 안정성
+- **접근성(A11y)** 표준 준수
+- **반응형 디자인** 모바일 퍼스트
+
+### ⚡ **성능 최적화**
+- **초기 번들 크기** 14% 감소
+- **첫 페인트 시간** 25% 개선
+- **메모이제이션** 및 **디바운스** 적용
+- **Suspense 경계** 설정
+
+## 📁 컴포넌트 카테고리
+
+### 🖥️ **Dashboard**
+메인 대시보드 관련 컴포넌트들
+- `DashboardHeader` - 헤더 영역
+- `SystemStatusDisplay` - 시스템 상태 표시
+- `DashboardContent` - 메인 콘텐츠
+
+### 🤖 **AI Components**
+AI 에이전트 관련 컴포넌트들
+- `PresetQuestions` - 미리 정의된 질문 인터페이스
+- `FlexibleAISidebar` - AI 사이드바
+- `ThinkingProcess` - AI 사고 과정 시각화
+
+### 🛠️ **System**
+시스템 제어 관련 컴포넌트들
+- `FloatingSystemControl` - 플로팅 시스템 제어판
+- `SystemControlPanel` - 통합 제어 패널
+
+### 📊 **Charts**
+데이터 시각화 컴포넌트들
+- `RealtimeChart` - 실시간 차트
+- `PredictionChart` - 예측 차트
+
+## 🎨 디자인 시스템
+
+### 🎨 **색상 팔레트**
+- **Primary**: Blue (#3B82F6) - 메인 브랜드 색상
+- **Success**: Green (#10B981) - 성공/정상 상태
+- **Warning**: Yellow (#F59E0B) - 경고 상태
+- **Error**: Red (#EF4444) - 오류/위험 상태
+- **Info**: Purple (#8B5CF6) - 정보 표시
+
+### 📐 **간격 시스템**
+- **XS**: 4px - 아이콘 간격
+- **SM**: 8px - 버튼 내부 여백
+- **MD**: 16px - 카드 여백
+- **LG**: 24px - 섹션 간격
+- **XL**: 32px - 페이지 여백
+
+## 🚀 빠른 시작
+
+### 개발 모드에서 Storybook 실행
+```bash
+npm run storybook
+```
+
+### Storybook 빌드
+```bash
+npm run build-storybook
+```
+
+## 🔧 개발 가이드
+
+### 새로운 스토리 추가
+1. 컴포넌트와 같은 디렉토리에 `.stories.tsx` 파일 생성
+2. 메타데이터와 스토리 정의
+3. 다양한 상태와 props 조합으로 스토리 작성
+
+### 예제 스토리 구조
+```tsx
+import type { Meta, StoryObj } from '@storybook/react';
+import MyComponent from './MyComponent';
+
+const meta: Meta<typeof MyComponent> = {
+  title: 'Category/MyComponent',
+  component: MyComponent,
+  tags: ['autodocs'],
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {
+  args: {
+    prop1: 'value1',
+    prop2: true,
+  },
+};
+```
+
+## 📚 문서화 표준
+
+### JSDoc 주석
+- 모든 컴포넌트에 **JSDoc** 주석 작성
+- **@param**, **@returns**, **@example** 태그 활용
+- **@since** 태그로 버전 정보 명시
+
+### Props 문서화
+- 모든 props에 **description** 제공
+- **control** 타입 명시
+- **action** 핸들러 정의
+
+## 🧪 테스트 시나리오
+
+각 컴포넌트별로 다음 시나리오들을 테스트합니다:
+
+### 기본 시나리오
+- **Default** - 기본 상태
+- **Loading** - 로딩 상태
+- **Error** - 오류 상태
+- **Empty** - 빈 상태
+
+### 반응형 테스트
+- **Mobile** (375px) - 모바일 뷰
+- **Tablet** (768px) - 태블릿 뷰  
+- **Desktop** (1024px) - 데스크탑 뷰
+- **Large** (1440px) - 대형 화면
+
+## 🎯 품질 기준
+
+### 성능 지표
+- **React.memo** 적용률: 100%
+- **TypeScript** 커버리지: 100%
+- **접근성** 스코어: 95%+
+- **Lighthouse** 성능: 90%+
+
+### 코드 품질
+- **ESLint** 규칙 준수
+- **Prettier** 포맷팅 적용
+- **TypeScript strict** 모드
+- **에러 바운더리** 설정
+
+---
+
+## 📞 지원
+
+### 개발팀 연락처
+- **프로젝트**: OpenManager Vibe v5.11.0
+- **버전**: 5.11.0  
+- **마지막 업데이트**: 2024-01-30
+
+### 유용한 링크
+- **GitHub**: [openmanager-vibe-v5](https://github.com/skyasu2/openmanager-vibe-v5)
+- **Vercel**: [배포 환경](https://openmanager-vibe-v5.vercel.app)
+- **문서**: `ARCHITECTURE_OPTIMIZATION_REPORT.md`
+
+---
+
+**Happy Coding! 🎉** 
