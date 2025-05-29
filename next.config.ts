@@ -54,13 +54,16 @@ const nextConfig: NextConfig = {
 
   // 보안 헤더
   async headers() {
+    // 개발 환경에서는 보안 정책 완화
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    
     return [
       {
         source: '/(.*)',
         headers: [
           {
             key: 'X-Frame-Options',
-            value: 'DENY'
+            value: isDevelopment ? 'ALLOWALL' : 'DENY'
           },
           {
             key: 'X-Content-Type-Options',
@@ -74,20 +77,22 @@ const nextConfig: NextConfig = {
             key: 'X-XSS-Protection',
             value: '1; mode=block'
           },
-          {
+          // 개발 환경에서는 CSP 완화
+          ...(isDevelopment ? [] : [{
             key: 'Content-Security-Policy',
             value: [
-              "default-src 'self'",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
-              "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
-              "img-src 'self' data: https:",
-              "connect-src 'self' https: wss: ws:",
-              "frame-ancestors 'none'",
+              "default-src 'self' *",
+              "style-src 'self' 'unsafe-inline' *",
+              "font-src 'self' *",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' *",
+              "img-src 'self' data: * blob:",
+              "connect-src 'self' * ws: wss:",
+              "frame-src 'self' *",
+              "frame-ancestors 'self'",
               "base-uri 'self'",
               "object-src 'none'"
             ].join('; ')
-          }
+          }])
         ]
       },
       {
