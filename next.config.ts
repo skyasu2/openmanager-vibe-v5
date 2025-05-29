@@ -4,10 +4,21 @@ const nextConfig: NextConfig = {
   // 정적 HTML 생성 완전 차단
   trailingSlash: false,
   
-  // App Router 강제 우선순위
+  // App Router 강제 우선순위 및 성능 최적화
   experimental: {
     optimizeServerReact: true,
-    optimizePackageImports: ['lucide-react', 'framer-motion'],
+    optimizePackageImports: [
+      'lucide-react', 
+      'framer-motion', 
+      'recharts',
+      '@tanstack/react-query',
+      'react-hot-toast'
+    ],
+    // 🚀 추가 성능 최적화
+    serverMinification: true,
+    serverSourceMaps: false,
+    optimizeCss: true,
+    webVitalsAttribution: ['CLS', 'LCP'],
   },
 
   // React 설정 (hydration 에러 처리)
@@ -34,12 +45,14 @@ const nextConfig: NextConfig = {
   // 서버 외부 패키지 (Next.js 15 새 설정)
   serverExternalPackages: ['ioredis', '@tensorflow/tfjs'],
 
-  // 이미지 최적화
+  // 이미지 최적화 강화
   images: {
     domains: ['localhost', 'openmanager-vibe-v5.vercel.app'],
     formats: ['image/webp', 'image/avif'],
     minimumCacheTTL: 60,
     dangerouslyAllowSVG: false,
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 
   // 압축 설정
@@ -51,6 +64,14 @@ const nextConfig: NextConfig = {
   // 성능 모니터링 강화
   poweredByHeader: false,
   generateEtags: true,
+
+  // 🚀 성능 최적화 추가
+  swcMinify: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn']
+    } : false,
+  },
 
   // 보안 헤더
   async headers() {

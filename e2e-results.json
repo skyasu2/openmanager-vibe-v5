@@ -1,0 +1,2364 @@
+{
+  "config": {
+    "configFile": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\playwright.config.ts",
+    "rootDir": "D:/cursor/openmanager-vibe-v5/openmanager-vibe-v5/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 4
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "e2e-results.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "D:/cursor/openmanager-vibe-v5/openmanager-vibe-v5/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "D:/cursor/openmanager-vibe-v5/openmanager-vibe-v5/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.e2e.{ts,js}"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "D:/cursor/openmanager-vibe-v5/openmanager-vibe-v5/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "D:/cursor/openmanager-vibe-v5/openmanager-vibe-v5/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.e2e.{ts,js}"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "D:/cursor/openmanager-vibe-v5/openmanager-vibe-v5/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "D:/cursor/openmanager-vibe-v5/openmanager-vibe-v5/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.e2e.{ts,js}"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "D:/cursor/openmanager-vibe-v5/openmanager-vibe-v5/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "D:/cursor/openmanager-vibe-v5/openmanager-vibe-v5/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.e2e.{ts,js}"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "D:/cursor/openmanager-vibe-v5/openmanager-vibe-v5/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "D:/cursor/openmanager-vibe-v5/openmanager-vibe-v5/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.e2e.{ts,js}"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.52.0",
+    "workers": 4,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:3004",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "dashboard.e2e.ts",
+      "file": "dashboard.e2e.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "📊 Dashboard E2E Tests",
+          "file": "dashboard.e2e.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "🏠 대시보드 메인 페이지 로딩 테스트",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11354,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✅ 대시보드 메인 페이지 로딩 성공\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:38:13.354Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-9cdd52945122777016de",
+              "file": "dashboard.e2e.ts",
+              "line": 20,
+              "column": 7
+            },
+            {
+              "title": "📈 서버 통계 표시 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 14664,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:42:34",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 34,
+                          "line": 42
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 40 |\u001b[39m     \u001b[90m// 서버 통계 컨테이너 확인\u001b[39m\n \u001b[90m 41 |\u001b[39m     \u001b[36mconst\u001b[39m statsContainer \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"status\"][aria-label=\"서버 통계\"]'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(statsContainer)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 43 |\u001b[39m     \n \u001b[90m 44 |\u001b[39m     \u001b[90m// 전체 서버 수 표시 확인\u001b[39m\n \u001b[90m 45 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[32m'전체 서버'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 34,
+                            "line": 42
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 40 |\u001b[39m     \u001b[90m// 서버 통계 컨테이너 확인\u001b[39m\n \u001b[90m 41 |\u001b[39m     \u001b[36mconst\u001b[39m statsContainer \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"status\"][aria-label=\"서버 통계\"]'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(statsContainer)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 43 |\u001b[39m     \n \u001b[90m 44 |\u001b[39m     \u001b[90m// 전체 서버 수 표시 확인\u001b[39m\n \u001b[90m 45 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[32m'전체 서버'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:42:34\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:38:13.356Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📈-서버-통계-표시-테스트-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📈-서버-통계-표시-테스트-chromium\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📈-서버-통계-표시-테스트-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 34,
+                        "line": 42
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-19351ba0b0e96869ad65",
+              "file": "dashboard.e2e.ts",
+              "line": 36,
+              "column": 7
+            },
+            {
+              "title": "🤖 AI 에이전트 토글 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "timedOut",
+                      "duration": 36381,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 31,
+                            "line": 62
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: /ai 에이전트/i })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /ai 에이전트/i })\u001b[22m\n\n\n\u001b[0m \u001b[90m 60 |\u001b[39m     \u001b[90m// AI 에이전트 버튼 찾기\u001b[39m\n \u001b[90m 61 |\u001b[39m     \u001b[36mconst\u001b[39m agentButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[35m/ai 에이전트/i\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 62 |\u001b[39m     \u001b[36mawait\u001b[39m expect(agentButton)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 63 |\u001b[39m     \n \u001b[90m 64 |\u001b[39m     \u001b[90m// 초기 상태 확인 (닫힌 상태)\u001b[39m\n \u001b[90m 65 |\u001b[39m     \u001b[36mawait\u001b[39m expect(agentButton)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m'aria-pressed'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'false'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:62:31\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:38:13.352Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🤖-AI-에이전트-토글-테스트-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🤖-AI-에이전트-토글-테스트-chromium\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-1",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🤖-AI-에이전트-토글-테스트-chromium\\error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-0fd2e9ec0c832902f3fa",
+              "file": "dashboard.e2e.ts",
+              "line": 59,
+              "column": 7
+            },
+            {
+              "title": "🏠 홈 버튼 네비게이션 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 13743,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:85:30",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 30,
+                          "line": 85
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 83 |\u001b[39m     \u001b[90m// 홈 버튼 찾기 (aria-label로 더 구체적 선택)\u001b[39m\n \u001b[90m 84 |\u001b[39m     \u001b[36mconst\u001b[39m homeButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'홈으로 이동'\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 85 |\u001b[39m     \u001b[36mawait\u001b[39m expect(homeButton)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 86 |\u001b[39m     \n \u001b[90m 87 |\u001b[39m     \u001b[90m// 홈 버튼 클릭\u001b[39m\n \u001b[90m 88 |\u001b[39m     \u001b[36mawait\u001b[39m homeButton\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 30,
+                            "line": 85
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n\n\n\u001b[0m \u001b[90m 83 |\u001b[39m     \u001b[90m// 홈 버튼 찾기 (aria-label로 더 구체적 선택)\u001b[39m\n \u001b[90m 84 |\u001b[39m     \u001b[36mconst\u001b[39m homeButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'홈으로 이동'\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 85 |\u001b[39m     \u001b[36mawait\u001b[39m expect(homeButton)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 86 |\u001b[39m     \n \u001b[90m 87 |\u001b[39m     \u001b[90m// 홈 버튼 클릭\u001b[39m\n \u001b[90m 88 |\u001b[39m     \u001b[36mawait\u001b[39m homeButton\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:85:30\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:38:13.373Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🏠-홈-버튼-네비게이션-테스트-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🏠-홈-버튼-네비게이션-테스트-chromium\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🏠-홈-버튼-네비게이션-테스트-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 30,
+                        "line": 85
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-4816e4a98ba1da7de72d",
+              "file": "dashboard.e2e.ts",
+              "line": 82,
+              "column": 7
+            },
+            {
+              "title": "📱 반응형 디자인 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 28823,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:99:71",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 71,
+                          "line": 99
+                        },
+                        "snippet": "\u001b[0m \u001b[90m  97 |\u001b[39m     \u001b[90m// 데스크탑 뷰 (기본) - 서버 통계가 보여야 함\u001b[39m\n \u001b[90m  98 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m1200\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m800\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  99 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"status\"][aria-label=\"서버 통계\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 100 |\u001b[39m     \n \u001b[90m 101 |\u001b[39m     \u001b[90m// 태블릿 뷰 - 서버 통계가 여전히 보여야 함\u001b[39m\n \u001b[90m 102 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m768\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m1024\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 71,
+                            "line": 99
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m  97 |\u001b[39m     \u001b[90m// 데스크탑 뷰 (기본) - 서버 통계가 보여야 함\u001b[39m\n \u001b[90m  98 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m1200\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m800\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  99 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"status\"][aria-label=\"서버 통계\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 100 |\u001b[39m     \n \u001b[90m 101 |\u001b[39m     \u001b[90m// 태블릿 뷰 - 서버 통계가 여전히 보여야 함\u001b[39m\n \u001b[90m 102 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m768\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m1024\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:99:71\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:38:25.297Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📱-반응형-디자인-테스트-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📱-반응형-디자인-테스트-chromium\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📱-반응형-디자인-테스트-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 71,
+                        "line": 99
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-cf96b9554ee2c65ceeb0",
+              "file": "dashboard.e2e.ts",
+              "line": 96,
+              "column": 7
+            },
+            {
+              "title": "⚡ 페이지 성능 테스트",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 21227,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✅ 페이지 로딩 시간: 3976ms\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:38:31.157Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-8012905e6400c0bf21c9",
+              "file": "dashboard.e2e.ts",
+              "line": 117,
+              "column": 7
+            },
+            {
+              "title": "♿ 접근성 기본 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 22095,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: have attribute\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toHaveAttribute with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: have attribute\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toHaveAttribute with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:139:30",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 30,
+                          "line": 139
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 137 |\u001b[39m     \u001b[90m// 홈 버튼 접근성 확인\u001b[39m\n \u001b[90m 138 |\u001b[39m     \u001b[36mconst\u001b[39m homeButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'홈으로 이동'\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 139 |\u001b[39m     \u001b[36mawait\u001b[39m expect(homeButton)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m'aria-label'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 140 |\u001b[39m     \n \u001b[90m 141 |\u001b[39m     \u001b[90m// AI 에이전트 버튼 접근성 확인\u001b[39m\n \u001b[90m 142 |\u001b[39m     \u001b[36mconst\u001b[39m agentButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[35m/ai 에이전트/i\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 30,
+                            "line": 139
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: have attribute\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toHaveAttribute with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n\n\n\u001b[0m \u001b[90m 137 |\u001b[39m     \u001b[90m// 홈 버튼 접근성 확인\u001b[39m\n \u001b[90m 138 |\u001b[39m     \u001b[36mconst\u001b[39m homeButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'홈으로 이동'\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 139 |\u001b[39m     \u001b[36mawait\u001b[39m expect(homeButton)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m'aria-label'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 140 |\u001b[39m     \n \u001b[90m 141 |\u001b[39m     \u001b[90m// AI 에이전트 버튼 접근성 확인\u001b[39m\n \u001b[90m 142 |\u001b[39m     \u001b[36mconst\u001b[39m agentButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[35m/ai 에이전트/i\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:139:30\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:38:31.706Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-♿-접근성-기본-테스트-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-♿-접근성-기본-테스트-chromium\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-♿-접근성-기본-테스트-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 30,
+                        "line": 139
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-ccd9a4ce20a6bb68f485",
+              "file": "dashboard.e2e.ts",
+              "line": 133,
+              "column": 7
+            },
+            {
+              "title": "🏠 대시보드 메인 페이지 로딩 테스트",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 5990,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✅ 대시보드 메인 페이지 로딩 성공\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:38:55.497Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-a77d2ee1f7d1661ba70a",
+              "file": "dashboard.e2e.ts",
+              "line": 20,
+              "column": 7
+            },
+            {
+              "title": "📈 서버 통계 표시 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 15816,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:42:34",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 34,
+                          "line": 42
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 40 |\u001b[39m     \u001b[90m// 서버 통계 컨테이너 확인\u001b[39m\n \u001b[90m 41 |\u001b[39m     \u001b[36mconst\u001b[39m statsContainer \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"status\"][aria-label=\"서버 통계\"]'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(statsContainer)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 43 |\u001b[39m     \n \u001b[90m 44 |\u001b[39m     \u001b[90m// 전체 서버 수 표시 확인\u001b[39m\n \u001b[90m 45 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[32m'전체 서버'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 34,
+                            "line": 42
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 40 |\u001b[39m     \u001b[90m// 서버 통계 컨테이너 확인\u001b[39m\n \u001b[90m 41 |\u001b[39m     \u001b[36mconst\u001b[39m statsContainer \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"status\"][aria-label=\"서버 통계\"]'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(statsContainer)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 43 |\u001b[39m     \n \u001b[90m 44 |\u001b[39m     \u001b[90m// 전체 서버 수 표시 확인\u001b[39m\n \u001b[90m 45 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[32m'전체 서버'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:42:34\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:38:56.449Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📈-서버-통계-표시-테스트-firefox\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📈-서버-통계-표시-테스트-firefox\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📈-서버-통계-표시-테스트-firefox\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 34,
+                        "line": 42
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-b5060ef0de04995a219b",
+              "file": "dashboard.e2e.ts",
+              "line": 36,
+              "column": 7
+            },
+            {
+              "title": "🤖 AI 에이전트 토글 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 14926,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: /ai 에이전트/i })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /ai 에이전트/i })\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: /ai 에이전트/i })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /ai 에이전트/i })\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:62:31",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 31,
+                          "line": 62
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 60 |\u001b[39m     \u001b[90m// AI 에이전트 버튼 찾기\u001b[39m\n \u001b[90m 61 |\u001b[39m     \u001b[36mconst\u001b[39m agentButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[35m/ai 에이전트/i\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 62 |\u001b[39m     \u001b[36mawait\u001b[39m expect(agentButton)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 63 |\u001b[39m     \n \u001b[90m 64 |\u001b[39m     \u001b[90m// 초기 상태 확인 (닫힌 상태)\u001b[39m\n \u001b[90m 65 |\u001b[39m     \u001b[36mawait\u001b[39m expect(agentButton)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m'aria-pressed'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'false'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 31,
+                            "line": 62
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: /ai 에이전트/i })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /ai 에이전트/i })\u001b[22m\n\n\n\u001b[0m \u001b[90m 60 |\u001b[39m     \u001b[90m// AI 에이전트 버튼 찾기\u001b[39m\n \u001b[90m 61 |\u001b[39m     \u001b[36mconst\u001b[39m agentButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[35m/ai 에이전트/i\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 62 |\u001b[39m     \u001b[36mawait\u001b[39m expect(agentButton)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 63 |\u001b[39m     \n \u001b[90m 64 |\u001b[39m     \u001b[90m// 초기 상태 확인 (닫힌 상태)\u001b[39m\n \u001b[90m 65 |\u001b[39m     \u001b[36mawait\u001b[39m expect(agentButton)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m'aria-pressed'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'false'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:62:31\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:38:57.674Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🤖-AI-에이전트-토글-테스트-firefox\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🤖-AI-에이전트-토글-테스트-firefox\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🤖-AI-에이전트-토글-테스트-firefox\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 31,
+                        "line": 62
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-c43c8973ebdec92b930c",
+              "file": "dashboard.e2e.ts",
+              "line": 59,
+              "column": 7
+            },
+            {
+              "title": "🏠 홈 버튼 네비게이션 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 13765,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:85:30",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 30,
+                          "line": 85
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 83 |\u001b[39m     \u001b[90m// 홈 버튼 찾기 (aria-label로 더 구체적 선택)\u001b[39m\n \u001b[90m 84 |\u001b[39m     \u001b[36mconst\u001b[39m homeButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'홈으로 이동'\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 85 |\u001b[39m     \u001b[36mawait\u001b[39m expect(homeButton)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 86 |\u001b[39m     \n \u001b[90m 87 |\u001b[39m     \u001b[90m// 홈 버튼 클릭\u001b[39m\n \u001b[90m 88 |\u001b[39m     \u001b[36mawait\u001b[39m homeButton\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 30,
+                            "line": 85
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n\n\n\u001b[0m \u001b[90m 83 |\u001b[39m     \u001b[90m// 홈 버튼 찾기 (aria-label로 더 구체적 선택)\u001b[39m\n \u001b[90m 84 |\u001b[39m     \u001b[36mconst\u001b[39m homeButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'홈으로 이동'\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 85 |\u001b[39m     \u001b[36mawait\u001b[39m expect(homeButton)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 86 |\u001b[39m     \n \u001b[90m 87 |\u001b[39m     \u001b[90m// 홈 버튼 클릭\u001b[39m\n \u001b[90m 88 |\u001b[39m     \u001b[36mawait\u001b[39m homeButton\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:85:30\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:38:57.568Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🏠-홈-버튼-네비게이션-테스트-firefox\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🏠-홈-버튼-네비게이션-테스트-firefox\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🏠-홈-버튼-네비게이션-테스트-firefox\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 30,
+                        "line": 85
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-f6c48dd9ed8f27d26147",
+              "file": "dashboard.e2e.ts",
+              "line": 82,
+              "column": 7
+            },
+            {
+              "title": "📱 반응형 디자인 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 2,
+                      "status": "failed",
+                      "duration": 12039,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:99:71",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 71,
+                          "line": 99
+                        },
+                        "snippet": "\u001b[0m \u001b[90m  97 |\u001b[39m     \u001b[90m// 데스크탑 뷰 (기본) - 서버 통계가 보여야 함\u001b[39m\n \u001b[90m  98 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m1200\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m800\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  99 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"status\"][aria-label=\"서버 통계\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 100 |\u001b[39m     \n \u001b[90m 101 |\u001b[39m     \u001b[90m// 태블릿 뷰 - 서버 통계가 여전히 보여야 함\u001b[39m\n \u001b[90m 102 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m768\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m1024\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 71,
+                            "line": 99
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m  97 |\u001b[39m     \u001b[90m// 데스크탑 뷰 (기본) - 서버 통계가 보여야 함\u001b[39m\n \u001b[90m  98 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m1200\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m800\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  99 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"status\"][aria-label=\"서버 통계\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 100 |\u001b[39m     \n \u001b[90m 101 |\u001b[39m     \u001b[90m// 태블릿 뷰 - 서버 통계가 여전히 보여야 함\u001b[39m\n \u001b[90m 102 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m768\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m1024\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:99:71\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:39:03.343Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📱-반응형-디자인-테스트-firefox\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📱-반응형-디자인-테스트-firefox\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📱-반응형-디자인-테스트-firefox\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 71,
+                        "line": 99
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-fb0aedbc4f9b01fc446a",
+              "file": "dashboard.e2e.ts",
+              "line": 96,
+              "column": 7
+            },
+            {
+              "title": "⚡ 페이지 성능 테스트",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 10278,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✅ 페이지 로딩 시간: 4773ms\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:39:17.637Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-5225e23a94de4f6d0dd9",
+              "file": "dashboard.e2e.ts",
+              "line": 117,
+              "column": 7
+            },
+            {
+              "title": "♿ 접근성 기본 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 13462,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: have attribute\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toHaveAttribute with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: have attribute\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toHaveAttribute with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:139:30",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 30,
+                          "line": 139
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 137 |\u001b[39m     \u001b[90m// 홈 버튼 접근성 확인\u001b[39m\n \u001b[90m 138 |\u001b[39m     \u001b[36mconst\u001b[39m homeButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'홈으로 이동'\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 139 |\u001b[39m     \u001b[36mawait\u001b[39m expect(homeButton)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m'aria-label'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 140 |\u001b[39m     \n \u001b[90m 141 |\u001b[39m     \u001b[90m// AI 에이전트 버튼 접근성 확인\u001b[39m\n \u001b[90m 142 |\u001b[39m     \u001b[36mconst\u001b[39m agentButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[35m/ai 에이전트/i\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 30,
+                            "line": 139
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: have attribute\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toHaveAttribute with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n\n\n\u001b[0m \u001b[90m 137 |\u001b[39m     \u001b[90m// 홈 버튼 접근성 확인\u001b[39m\n \u001b[90m 138 |\u001b[39m     \u001b[36mconst\u001b[39m homeButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'홈으로 이동'\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 139 |\u001b[39m     \u001b[36mawait\u001b[39m expect(homeButton)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m'aria-label'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 140 |\u001b[39m     \n \u001b[90m 141 |\u001b[39m     \u001b[90m// AI 에이전트 버튼 접근성 확인\u001b[39m\n \u001b[90m 142 |\u001b[39m     \u001b[36mconst\u001b[39m agentButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[35m/ai 에이전트/i\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:139:30\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:39:17.801Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-♿-접근성-기본-테스트-firefox\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-♿-접근성-기본-테스트-firefox\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-♿-접근성-기본-테스트-firefox\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 30,
+                        "line": 139
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-908427d2cd53fc057a8b",
+              "file": "dashboard.e2e.ts",
+              "line": 133,
+              "column": 7
+            },
+            {
+              "title": "🏠 대시보드 메인 페이지 로딩 테스트",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 3629,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✅ 대시보드 메인 페이지 로딩 성공\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:39:18.050Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-c20242de337267be07c1",
+              "file": "dashboard.e2e.ts",
+              "line": 20,
+              "column": 7
+            },
+            {
+              "title": "📈 서버 통계 표시 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 13,
+                      "parallelIndex": 2,
+                      "status": "failed",
+                      "duration": 14958,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:42:34",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 34,
+                          "line": 42
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 40 |\u001b[39m     \u001b[90m// 서버 통계 컨테이너 확인\u001b[39m\n \u001b[90m 41 |\u001b[39m     \u001b[36mconst\u001b[39m statsContainer \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"status\"][aria-label=\"서버 통계\"]'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(statsContainer)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 43 |\u001b[39m     \n \u001b[90m 44 |\u001b[39m     \u001b[90m// 전체 서버 수 표시 확인\u001b[39m\n \u001b[90m 45 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[32m'전체 서버'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 34,
+                            "line": 42
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 40 |\u001b[39m     \u001b[90m// 서버 통계 컨테이너 확인\u001b[39m\n \u001b[90m 41 |\u001b[39m     \u001b[36mconst\u001b[39m statsContainer \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"status\"][aria-label=\"서버 통계\"]'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(statsContainer)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 43 |\u001b[39m     \n \u001b[90m 44 |\u001b[39m     \u001b[90m// 전체 서버 수 표시 확인\u001b[39m\n \u001b[90m 45 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[32m'전체 서버'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:42:34\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:39:18.470Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📈-서버-통계-표시-테스트-webkit\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📈-서버-통계-표시-테스트-webkit\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📈-서버-통계-표시-테스트-webkit\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 34,
+                        "line": 42
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-dbec41339da7cf70f14a",
+              "file": "dashboard.e2e.ts",
+              "line": 36,
+              "column": 7
+            },
+            {
+              "title": "🤖 AI 에이전트 토글 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 17126,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: /ai 에이전트/i })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /ai 에이전트/i })\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: /ai 에이전트/i })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /ai 에이전트/i })\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:62:31",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 31,
+                          "line": 62
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 60 |\u001b[39m     \u001b[90m// AI 에이전트 버튼 찾기\u001b[39m\n \u001b[90m 61 |\u001b[39m     \u001b[36mconst\u001b[39m agentButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[35m/ai 에이전트/i\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 62 |\u001b[39m     \u001b[36mawait\u001b[39m expect(agentButton)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 63 |\u001b[39m     \n \u001b[90m 64 |\u001b[39m     \u001b[90m// 초기 상태 확인 (닫힌 상태)\u001b[39m\n \u001b[90m 65 |\u001b[39m     \u001b[36mawait\u001b[39m expect(agentButton)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m'aria-pressed'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'false'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 31,
+                            "line": 62
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: /ai 에이전트/i })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /ai 에이전트/i })\u001b[22m\n\n\n\u001b[0m \u001b[90m 60 |\u001b[39m     \u001b[90m// AI 에이전트 버튼 찾기\u001b[39m\n \u001b[90m 61 |\u001b[39m     \u001b[36mconst\u001b[39m agentButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[35m/ai 에이전트/i\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 62 |\u001b[39m     \u001b[36mawait\u001b[39m expect(agentButton)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 63 |\u001b[39m     \n \u001b[90m 64 |\u001b[39m     \u001b[90m// 초기 상태 확인 (닫힌 상태)\u001b[39m\n \u001b[90m 65 |\u001b[39m     \u001b[36mawait\u001b[39m expect(agentButton)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m'aria-pressed'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'false'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:62:31\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:39:21.815Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🤖-AI-에이전트-토글-테스트-webkit\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🤖-AI-에이전트-토글-테스트-webkit\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🤖-AI-에이전트-토글-테스트-webkit\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 31,
+                        "line": 62
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-10dfe43b8304048574fb",
+              "file": "dashboard.e2e.ts",
+              "line": 59,
+              "column": 7
+            },
+            {
+              "title": "🏠 홈 버튼 네비게이션 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 14550,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:85:30",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 30,
+                          "line": 85
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 83 |\u001b[39m     \u001b[90m// 홈 버튼 찾기 (aria-label로 더 구체적 선택)\u001b[39m\n \u001b[90m 84 |\u001b[39m     \u001b[36mconst\u001b[39m homeButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'홈으로 이동'\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 85 |\u001b[39m     \u001b[36mawait\u001b[39m expect(homeButton)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 86 |\u001b[39m     \n \u001b[90m 87 |\u001b[39m     \u001b[90m// 홈 버튼 클릭\u001b[39m\n \u001b[90m 88 |\u001b[39m     \u001b[36mawait\u001b[39m homeButton\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 30,
+                            "line": 85
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n\n\n\u001b[0m \u001b[90m 83 |\u001b[39m     \u001b[90m// 홈 버튼 찾기 (aria-label로 더 구체적 선택)\u001b[39m\n \u001b[90m 84 |\u001b[39m     \u001b[36mconst\u001b[39m homeButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'홈으로 이동'\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 85 |\u001b[39m     \u001b[36mawait\u001b[39m expect(homeButton)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 86 |\u001b[39m     \n \u001b[90m 87 |\u001b[39m     \u001b[90m// 홈 버튼 클릭\u001b[39m\n \u001b[90m 88 |\u001b[39m     \u001b[36mawait\u001b[39m homeButton\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:85:30\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:39:33.521Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🏠-홈-버튼-네비게이션-테스트-webkit\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🏠-홈-버튼-네비게이션-테스트-webkit\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 30,
+                        "line": 85
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-094f1da52c08bd74d0aa",
+              "file": "dashboard.e2e.ts",
+              "line": 82,
+              "column": 7
+            },
+            {
+              "title": "📱 반응형 디자인 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 2,
+                      "status": "failed",
+                      "duration": 15678,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:99:71",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 71,
+                          "line": 99
+                        },
+                        "snippet": "\u001b[0m \u001b[90m  97 |\u001b[39m     \u001b[90m// 데스크탑 뷰 (기본) - 서버 통계가 보여야 함\u001b[39m\n \u001b[90m  98 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m1200\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m800\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  99 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"status\"][aria-label=\"서버 통계\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 100 |\u001b[39m     \n \u001b[90m 101 |\u001b[39m     \u001b[90m// 태블릿 뷰 - 서버 통계가 여전히 보여야 함\u001b[39m\n \u001b[90m 102 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m768\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m1024\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 71,
+                            "line": 99
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m  97 |\u001b[39m     \u001b[90m// 데스크탑 뷰 (기본) - 서버 통계가 보여야 함\u001b[39m\n \u001b[90m  98 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m1200\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m800\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  99 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"status\"][aria-label=\"서버 통계\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 100 |\u001b[39m     \n \u001b[90m 101 |\u001b[39m     \u001b[90m// 태블릿 뷰 - 서버 통계가 여전히 보여야 함\u001b[39m\n \u001b[90m 102 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m768\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m1024\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:99:71\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:39:36.822Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📱-반응형-디자인-테스트-webkit\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📱-반응형-디자인-테스트-webkit\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📱-반응형-디자인-테스트-webkit\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 71,
+                        "line": 99
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-34c605d6b0616eb0d4ab",
+              "file": "dashboard.e2e.ts",
+              "line": 96,
+              "column": 7
+            },
+            {
+              "title": "⚡ 페이지 성능 테스트",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 16,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6536,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✅ 페이지 로딩 시간: 2945ms\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:39:37.662Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-238e44d518d070ec92d0",
+              "file": "dashboard.e2e.ts",
+              "line": 117,
+              "column": 7
+            },
+            {
+              "title": "♿ 접근성 기본 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 17,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 22699,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: have attribute\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toHaveAttribute with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: have attribute\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toHaveAttribute with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:139:30",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 30,
+                          "line": 139
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 137 |\u001b[39m     \u001b[90m// 홈 버튼 접근성 확인\u001b[39m\n \u001b[90m 138 |\u001b[39m     \u001b[36mconst\u001b[39m homeButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'홈으로 이동'\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 139 |\u001b[39m     \u001b[36mawait\u001b[39m expect(homeButton)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m'aria-label'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 140 |\u001b[39m     \n \u001b[90m 141 |\u001b[39m     \u001b[90m// AI 에이전트 버튼 접근성 확인\u001b[39m\n \u001b[90m 142 |\u001b[39m     \u001b[36mconst\u001b[39m agentButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[35m/ai 에이전트/i\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 30,
+                            "line": 139
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: have attribute\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toHaveAttribute with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n\n\n\u001b[0m \u001b[90m 137 |\u001b[39m     \u001b[90m// 홈 버튼 접근성 확인\u001b[39m\n \u001b[90m 138 |\u001b[39m     \u001b[36mconst\u001b[39m homeButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'홈으로 이동'\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 139 |\u001b[39m     \u001b[36mawait\u001b[39m expect(homeButton)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m'aria-label'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 140 |\u001b[39m     \n \u001b[90m 141 |\u001b[39m     \u001b[90m// AI 에이전트 버튼 접근성 확인\u001b[39m\n \u001b[90m 142 |\u001b[39m     \u001b[36mconst\u001b[39m agentButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[35m/ai 에이전트/i\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:139:30\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:39:43.805Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-♿-접근성-기본-테스트-webkit\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-♿-접근성-기본-테스트-webkit\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 30,
+                        "line": 139
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-164011b8fda7668f2714",
+              "file": "dashboard.e2e.ts",
+              "line": 133,
+              "column": 7
+            },
+            {
+              "title": "🏠 대시보드 메인 페이지 로딩 테스트",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 18,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4348,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✅ 대시보드 메인 페이지 로딩 성공\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:39:48.082Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-3ca32d1493adc0030d56",
+              "file": "dashboard.e2e.ts",
+              "line": 20,
+              "column": 7
+            },
+            {
+              "title": "📈 서버 통계 표시 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 19,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 13752,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:42:34",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 34,
+                          "line": 42
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 40 |\u001b[39m     \u001b[90m// 서버 통계 컨테이너 확인\u001b[39m\n \u001b[90m 41 |\u001b[39m     \u001b[36mconst\u001b[39m statsContainer \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"status\"][aria-label=\"서버 통계\"]'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(statsContainer)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 43 |\u001b[39m     \n \u001b[90m 44 |\u001b[39m     \u001b[90m// 전체 서버 수 표시 확인\u001b[39m\n \u001b[90m 45 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[32m'전체 서버'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 34,
+                            "line": 42
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 40 |\u001b[39m     \u001b[90m// 서버 통계 컨테이너 확인\u001b[39m\n \u001b[90m 41 |\u001b[39m     \u001b[36mconst\u001b[39m statsContainer \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"status\"][aria-label=\"서버 통계\"]'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(statsContainer)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 43 |\u001b[39m     \n \u001b[90m 44 |\u001b[39m     \u001b[90m// 전체 서버 수 표시 확인\u001b[39m\n \u001b[90m 45 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[32m'전체 서버'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:42:34\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:39:53.926Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📈-서버-통계-표시-테스트-Mobile-Chrome\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📈-서버-통계-표시-테스트-Mobile-Chrome\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📈-서버-통계-표시-테스트-Mobile-Chrome\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 34,
+                        "line": 42
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-fb69e5cd0195ee623973",
+              "file": "dashboard.e2e.ts",
+              "line": 36,
+              "column": 7
+            },
+            {
+              "title": "🤖 AI 에이전트 토글 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 20,
+                      "parallelIndex": 2,
+                      "status": "failed",
+                      "duration": 9531,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: /ai 에이전트/i })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /ai 에이전트/i })\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: /ai 에이전트/i })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /ai 에이전트/i })\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:62:31",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 31,
+                          "line": 62
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 60 |\u001b[39m     \u001b[90m// AI 에이전트 버튼 찾기\u001b[39m\n \u001b[90m 61 |\u001b[39m     \u001b[36mconst\u001b[39m agentButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[35m/ai 에이전트/i\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 62 |\u001b[39m     \u001b[36mawait\u001b[39m expect(agentButton)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 63 |\u001b[39m     \n \u001b[90m 64 |\u001b[39m     \u001b[90m// 초기 상태 확인 (닫힌 상태)\u001b[39m\n \u001b[90m 65 |\u001b[39m     \u001b[36mawait\u001b[39m expect(agentButton)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m'aria-pressed'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'false'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 31,
+                            "line": 62
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: /ai 에이전트/i })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /ai 에이전트/i })\u001b[22m\n\n\n\u001b[0m \u001b[90m 60 |\u001b[39m     \u001b[90m// AI 에이전트 버튼 찾기\u001b[39m\n \u001b[90m 61 |\u001b[39m     \u001b[36mconst\u001b[39m agentButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[35m/ai 에이전트/i\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 62 |\u001b[39m     \u001b[36mawait\u001b[39m expect(agentButton)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 63 |\u001b[39m     \n \u001b[90m 64 |\u001b[39m     \u001b[90m// 초기 상태 확인 (닫힌 상태)\u001b[39m\n \u001b[90m 65 |\u001b[39m     \u001b[36mawait\u001b[39m expect(agentButton)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m'aria-pressed'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'false'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:62:31\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:39:58.732Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🤖-AI-에이전트-토글-테스트-Mobile-Chrome\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🤖-AI-에이전트-토글-테스트-Mobile-Chrome\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🤖-AI-에이전트-토글-테스트-Mobile-Chrome\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 31,
+                        "line": 62
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-7191a057a4dbc09afda3",
+              "file": "dashboard.e2e.ts",
+              "line": 59,
+              "column": 7
+            },
+            {
+              "title": "🏠 홈 버튼 네비게이션 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 18,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 11410,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:85:30",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 30,
+                          "line": 85
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 83 |\u001b[39m     \u001b[90m// 홈 버튼 찾기 (aria-label로 더 구체적 선택)\u001b[39m\n \u001b[90m 84 |\u001b[39m     \u001b[36mconst\u001b[39m homeButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'홈으로 이동'\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 85 |\u001b[39m     \u001b[36mawait\u001b[39m expect(homeButton)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 86 |\u001b[39m     \n \u001b[90m 87 |\u001b[39m     \u001b[90m// 홈 버튼 클릭\u001b[39m\n \u001b[90m 88 |\u001b[39m     \u001b[36mawait\u001b[39m homeButton\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 30,
+                            "line": 85
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n\n\n\u001b[0m \u001b[90m 83 |\u001b[39m     \u001b[90m// 홈 버튼 찾기 (aria-label로 더 구체적 선택)\u001b[39m\n \u001b[90m 84 |\u001b[39m     \u001b[36mconst\u001b[39m homeButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'홈으로 이동'\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 85 |\u001b[39m     \u001b[36mawait\u001b[39m expect(homeButton)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 86 |\u001b[39m     \n \u001b[90m 87 |\u001b[39m     \u001b[90m// 홈 버튼 클릭\u001b[39m\n \u001b[90m 88 |\u001b[39m     \u001b[36mawait\u001b[39m homeButton\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:85:30\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:39:52.930Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🏠-홈-버튼-네비게이션-테스트-Mobile-Chrome\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🏠-홈-버튼-네비게이션-테스트-Mobile-Chrome\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🏠-홈-버튼-네비게이션-테스트-Mobile-Chrome\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 30,
+                        "line": 85
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-67e19ca1d909d46dedc2",
+              "file": "dashboard.e2e.ts",
+              "line": 82,
+              "column": 7
+            },
+            {
+              "title": "📱 반응형 디자인 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 21,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 13353,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:99:71",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 71,
+                          "line": 99
+                        },
+                        "snippet": "\u001b[0m \u001b[90m  97 |\u001b[39m     \u001b[90m// 데스크탑 뷰 (기본) - 서버 통계가 보여야 함\u001b[39m\n \u001b[90m  98 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m1200\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m800\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  99 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"status\"][aria-label=\"서버 통계\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 100 |\u001b[39m     \n \u001b[90m 101 |\u001b[39m     \u001b[90m// 태블릿 뷰 - 서버 통계가 여전히 보여야 함\u001b[39m\n \u001b[90m 102 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m768\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m1024\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 71,
+                            "line": 99
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m  97 |\u001b[39m     \u001b[90m// 데스크탑 뷰 (기본) - 서버 통계가 보여야 함\u001b[39m\n \u001b[90m  98 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m1200\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m800\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  99 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"status\"][aria-label=\"서버 통계\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 100 |\u001b[39m     \n \u001b[90m 101 |\u001b[39m     \u001b[90m// 태블릿 뷰 - 서버 통계가 여전히 보여야 함\u001b[39m\n \u001b[90m 102 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m768\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m1024\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:99:71\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:40:09.336Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📱-반응형-디자인-테스트-Mobile-Chrome\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📱-반응형-디자인-테스트-Mobile-Chrome\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📱-반응형-디자인-테스트-Mobile-Chrome\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 71,
+                        "line": 99
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-039d87960df26bd97ba9",
+              "file": "dashboard.e2e.ts",
+              "line": 96,
+              "column": 7
+            },
+            {
+              "title": "⚡ 페이지 성능 테스트",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 22,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 8564,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✅ 페이지 로딩 시간: 2381ms\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:40:09.756Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-282c2f2ae93c44dd47a1",
+              "file": "dashboard.e2e.ts",
+              "line": 117,
+              "column": 7
+            },
+            {
+              "title": "♿ 접근성 기본 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 23,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 9338,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: have attribute\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toHaveAttribute with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: have attribute\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toHaveAttribute with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:139:30",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 30,
+                          "line": 139
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 137 |\u001b[39m     \u001b[90m// 홈 버튼 접근성 확인\u001b[39m\n \u001b[90m 138 |\u001b[39m     \u001b[36mconst\u001b[39m homeButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'홈으로 이동'\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 139 |\u001b[39m     \u001b[36mawait\u001b[39m expect(homeButton)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m'aria-label'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 140 |\u001b[39m     \n \u001b[90m 141 |\u001b[39m     \u001b[90m// AI 에이전트 버튼 접근성 확인\u001b[39m\n \u001b[90m 142 |\u001b[39m     \u001b[36mconst\u001b[39m agentButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[35m/ai 에이전트/i\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 30,
+                            "line": 139
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: have attribute\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toHaveAttribute with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n\n\n\u001b[0m \u001b[90m 137 |\u001b[39m     \u001b[90m// 홈 버튼 접근성 확인\u001b[39m\n \u001b[90m 138 |\u001b[39m     \u001b[36mconst\u001b[39m homeButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'홈으로 이동'\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 139 |\u001b[39m     \u001b[36mawait\u001b[39m expect(homeButton)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m'aria-label'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 140 |\u001b[39m     \n \u001b[90m 141 |\u001b[39m     \u001b[90m// AI 에이전트 버튼 접근성 확인\u001b[39m\n \u001b[90m 142 |\u001b[39m     \u001b[36mconst\u001b[39m agentButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[35m/ai 에이전트/i\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:139:30\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:40:13.119Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-♿-접근성-기본-테스트-Mobile-Chrome\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-♿-접근성-기본-테스트-Mobile-Chrome\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-♿-접근성-기본-테스트-Mobile-Chrome\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 30,
+                        "line": 139
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-397e53556d4e17f2623f",
+              "file": "dashboard.e2e.ts",
+              "line": 133,
+              "column": 7
+            },
+            {
+              "title": "🏠 대시보드 메인 페이지 로딩 테스트",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 24,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 3902,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✅ 대시보드 메인 페이지 로딩 성공\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:40:18.834Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-c13b73b1bdbbd8ef294b",
+              "file": "dashboard.e2e.ts",
+              "line": 20,
+              "column": 7
+            },
+            {
+              "title": "📈 서버 통계 표시 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 25,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 18809,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:42:34",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 34,
+                          "line": 42
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 40 |\u001b[39m     \u001b[90m// 서버 통계 컨테이너 확인\u001b[39m\n \u001b[90m 41 |\u001b[39m     \u001b[36mconst\u001b[39m statsContainer \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"status\"][aria-label=\"서버 통계\"]'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(statsContainer)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 43 |\u001b[39m     \n \u001b[90m 44 |\u001b[39m     \u001b[90m// 전체 서버 수 표시 확인\u001b[39m\n \u001b[90m 45 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[32m'전체 서버'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 34,
+                            "line": 42
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 40 |\u001b[39m     \u001b[90m// 서버 통계 컨테이너 확인\u001b[39m\n \u001b[90m 41 |\u001b[39m     \u001b[36mconst\u001b[39m statsContainer \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"status\"][aria-label=\"서버 통계\"]'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(statsContainer)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 43 |\u001b[39m     \n \u001b[90m 44 |\u001b[39m     \u001b[90m// 전체 서버 수 표시 확인\u001b[39m\n \u001b[90m 45 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[32m'전체 서버'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:42:34\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:40:23.043Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📈-서버-통계-표시-테스트-Mobile-Safari\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📈-서버-통계-표시-테스트-Mobile-Safari\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 34,
+                        "line": 42
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-87b6b5665ac9365a8009",
+              "file": "dashboard.e2e.ts",
+              "line": 36,
+              "column": 7
+            },
+            {
+              "title": "🤖 AI 에이전트 토글 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 24,
+                      "parallelIndex": 2,
+                      "status": "failed",
+                      "duration": 9441,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: /ai 에이전트/i })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /ai 에이전트/i })\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: /ai 에이전트/i })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /ai 에이전트/i })\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:62:31",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 31,
+                          "line": 62
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 60 |\u001b[39m     \u001b[90m// AI 에이전트 버튼 찾기\u001b[39m\n \u001b[90m 61 |\u001b[39m     \u001b[36mconst\u001b[39m agentButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[35m/ai 에이전트/i\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 62 |\u001b[39m     \u001b[36mawait\u001b[39m expect(agentButton)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 63 |\u001b[39m     \n \u001b[90m 64 |\u001b[39m     \u001b[90m// 초기 상태 확인 (닫힌 상태)\u001b[39m\n \u001b[90m 65 |\u001b[39m     \u001b[36mawait\u001b[39m expect(agentButton)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m'aria-pressed'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'false'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 31,
+                            "line": 62
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: /ai 에이전트/i })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: /ai 에이전트/i })\u001b[22m\n\n\n\u001b[0m \u001b[90m 60 |\u001b[39m     \u001b[90m// AI 에이전트 버튼 찾기\u001b[39m\n \u001b[90m 61 |\u001b[39m     \u001b[36mconst\u001b[39m agentButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[35m/ai 에이전트/i\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 62 |\u001b[39m     \u001b[36mawait\u001b[39m expect(agentButton)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 63 |\u001b[39m     \n \u001b[90m 64 |\u001b[39m     \u001b[90m// 초기 상태 확인 (닫힌 상태)\u001b[39m\n \u001b[90m 65 |\u001b[39m     \u001b[36mawait\u001b[39m expect(agentButton)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m'aria-pressed'\u001b[39m\u001b[33m,\u001b[39m \u001b[32m'false'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:62:31\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:40:22.944Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🤖-AI-에이전트-토글-테스트-Mobile-Safari\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🤖-AI-에이전트-토글-테스트-Mobile-Safari\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🤖-AI-에이전트-토글-테스트-Mobile-Safari\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 31,
+                        "line": 62
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-7be5649f084060a598ad",
+              "file": "dashboard.e2e.ts",
+              "line": 59,
+              "column": 7
+            },
+            {
+              "title": "🏠 홈 버튼 네비게이션 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 26,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 10235,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:85:30",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 30,
+                          "line": 85
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 83 |\u001b[39m     \u001b[90m// 홈 버튼 찾기 (aria-label로 더 구체적 선택)\u001b[39m\n \u001b[90m 84 |\u001b[39m     \u001b[36mconst\u001b[39m homeButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'홈으로 이동'\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 85 |\u001b[39m     \u001b[36mawait\u001b[39m expect(homeButton)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 86 |\u001b[39m     \n \u001b[90m 87 |\u001b[39m     \u001b[90m// 홈 버튼 클릭\u001b[39m\n \u001b[90m 88 |\u001b[39m     \u001b[36mawait\u001b[39m homeButton\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 30,
+                            "line": 85
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n\n\n\u001b[0m \u001b[90m 83 |\u001b[39m     \u001b[90m// 홈 버튼 찾기 (aria-label로 더 구체적 선택)\u001b[39m\n \u001b[90m 84 |\u001b[39m     \u001b[36mconst\u001b[39m homeButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'홈으로 이동'\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 85 |\u001b[39m     \u001b[36mawait\u001b[39m expect(homeButton)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 86 |\u001b[39m     \n \u001b[90m 87 |\u001b[39m     \u001b[90m// 홈 버튼 클릭\u001b[39m\n \u001b[90m 88 |\u001b[39m     \u001b[36mawait\u001b[39m homeButton\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:85:30\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:40:25.714Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🏠-홈-버튼-네비게이션-테스트-Mobile-Safari\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🏠-홈-버튼-네비게이션-테스트-Mobile-Safari\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-🏠-홈-버튼-네비게이션-테스트-Mobile-Safari\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 30,
+                        "line": 85
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-94209193c4cee1ba42e2",
+              "file": "dashboard.e2e.ts",
+              "line": 82,
+              "column": 7
+            },
+            {
+              "title": "📱 반응형 디자인 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 27,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 18605,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:99:71",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 71,
+                          "line": 99
+                        },
+                        "snippet": "\u001b[0m \u001b[90m  97 |\u001b[39m     \u001b[90m// 데스크탑 뷰 (기본) - 서버 통계가 보여야 함\u001b[39m\n \u001b[90m  98 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m1200\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m800\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  99 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"status\"][aria-label=\"서버 통계\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 100 |\u001b[39m     \n \u001b[90m 101 |\u001b[39m     \u001b[90m// 태블릿 뷰 - 서버 통계가 여전히 보여야 함\u001b[39m\n \u001b[90m 102 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m768\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m1024\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 71,
+                            "line": 99
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m\n\nLocator: locator('[role=\"status\"][aria-label=\"서버 통계\"]')\nExpected: visible\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toBeVisible with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[role=\"status\"][aria-label=\"서버 통계\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m  97 |\u001b[39m     \u001b[90m// 데스크탑 뷰 (기본) - 서버 통계가 보여야 함\u001b[39m\n \u001b[90m  98 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m1200\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m800\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  99 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[role=\"status\"][aria-label=\"서버 통계\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 100 |\u001b[39m     \n \u001b[90m 101 |\u001b[39m     \u001b[90m// 태블릿 뷰 - 서버 통계가 여전히 보여야 함\u001b[39m\n \u001b[90m 102 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39msetViewportSize({ width\u001b[33m:\u001b[39m \u001b[35m768\u001b[39m\u001b[33m,\u001b[39m height\u001b[33m:\u001b[39m \u001b[35m1024\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:99:71\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:40:25.803Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📱-반응형-디자인-테스트-Mobile-Safari\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-📱-반응형-디자인-테스트-Mobile-Safari\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 71,
+                        "line": 99
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-37145f7b912203f7c055",
+              "file": "dashboard.e2e.ts",
+              "line": 96,
+              "column": 7
+            },
+            {
+              "title": "⚡ 페이지 성능 테스트",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 28,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 3042,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✅ 페이지 로딩 시간: 1065ms\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:40:34.783Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-c8e968b14a4e423920e9",
+              "file": "dashboard.e2e.ts",
+              "line": 117,
+              "column": 7
+            },
+            {
+              "title": "♿ 접근성 기본 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 29,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 8697,
+                      "error": {
+                        "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: have attribute\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toHaveAttribute with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n",
+                        "stack": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: have attribute\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toHaveAttribute with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n\n    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:139:30",
+                        "location": {
+                          "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                          "column": 30,
+                          "line": 139
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 137 |\u001b[39m     \u001b[90m// 홈 버튼 접근성 확인\u001b[39m\n \u001b[90m 138 |\u001b[39m     \u001b[36mconst\u001b[39m homeButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'홈으로 이동'\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 139 |\u001b[39m     \u001b[36mawait\u001b[39m expect(homeButton)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m'aria-label'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 140 |\u001b[39m     \n \u001b[90m 141 |\u001b[39m     \u001b[90m// AI 에이전트 버튼 접근성 확인\u001b[39m\n \u001b[90m 142 |\u001b[39m     \u001b[36mconst\u001b[39m agentButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[35m/ai 에이전트/i\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                            "column": 30,
+                            "line": 139
+                          },
+                          "message": "Error: \u001b[31mTimed out 5000ms waiting for \u001b[39m\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m()\u001b[22m\n\nLocator: getByRole('button', { name: '홈으로 이동' })\nExpected: have attribute\nReceived: <element(s) not found>\nCall log:\n\u001b[2m  - expect.toHaveAttribute with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('button', { name: '홈으로 이동' })\u001b[22m\n\n\n\u001b[0m \u001b[90m 137 |\u001b[39m     \u001b[90m// 홈 버튼 접근성 확인\u001b[39m\n \u001b[90m 138 |\u001b[39m     \u001b[36mconst\u001b[39m homeButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[32m'홈으로 이동'\u001b[39m })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 139 |\u001b[39m     \u001b[36mawait\u001b[39m expect(homeButton)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m'aria-label'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 140 |\u001b[39m     \n \u001b[90m 141 |\u001b[39m     \u001b[90m// AI 에이전트 버튼 접근성 확인\u001b[39m\n \u001b[90m 142 |\u001b[39m     \u001b[36mconst\u001b[39m agentButton \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByRole(\u001b[32m'button'\u001b[39m\u001b[33m,\u001b[39m { name\u001b[33m:\u001b[39m \u001b[35m/ai 에이전트/i\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts:139:30\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-05-29T16:40:38.579Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-♿-접근성-기본-테스트-Mobile-Safari\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-♿-접근성-기본-테스트-Mobile-Safari\\video.webm"
+                        },
+                        {
+                          "name": "_error-context-0",
+                          "contentType": "text/markdown",
+                          "path": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\test-results\\dashboard.e2e.ts-📊-Dashboard-E2E-Tests-♿-접근성-기본-테스트-Mobile-Safari\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\cursor\\openmanager-vibe-v5\\openmanager-vibe-v5\\e2e\\dashboard.e2e.ts",
+                        "column": 30,
+                        "line": 139
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "a0db60fc20293746878e-6864317ef4c79721720c",
+              "file": "dashboard.e2e.ts",
+              "line": 133,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-05-29T16:37:44.038Z",
+    "duration": 184342.695,
+    "expected": 10,
+    "skipped": 0,
+    "unexpected": 25,
+    "flaky": 0
+  }
+}
