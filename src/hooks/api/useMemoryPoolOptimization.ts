@@ -36,7 +36,7 @@ export const createObjectPool = <T>(
   maxSize: number = 50
 ): MemoryPool<T> => {
   const pool: T[] = [];
-  let currentSize = 0;
+  const currentSize = 0;
 
   return {
     pool,

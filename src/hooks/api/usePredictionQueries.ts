@@ -402,7 +402,7 @@ export const usePredictionSummary = () => {
       acc[metric].count++;
       acc[metric].predictions.push(pred);
       acc[metric].avgAccuracy = acc[metric].predictions
-        .reduce((sum, p) => sum + p.accuracy_score, 0) / acc[metric].count;
+        .reduce((sum: number, p: PredictionResult) => sum + p.accuracy_score, 0) / acc[metric].count;
       acc[metric].latestTrend = acc[metric].predictions[0]?.trend || 'stable';
       return acc;
     }, {} as Record<string, any>),

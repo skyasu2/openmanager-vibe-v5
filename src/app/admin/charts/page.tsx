@@ -1,10 +1,11 @@
+'use client';
+
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 
-// 🚀 차트 컴포넌트 동적 로딩
+// 🚀 차트 컴포넌트 동적 로딩 (Next.js 15 호환)
 const AdminDashboardCharts = dynamic(() => import('@/components/AdminDashboardCharts'), {
   loading: () => <ChartsSkeleton />,
-  ssr: false,
 });
 
 // 🎨 차트 전용 스켈레톤

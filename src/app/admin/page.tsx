@@ -1,15 +1,15 @@
+'use client';
+
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 
-// 🚀 동적 임포트로 코드 스플리팅
+// 🚀 동적 임포트로 코드 스플리팅 (Next.js 15 호환)
 const AdminDashboardCharts = dynamic(() => import('@/components/AdminDashboardCharts'), {
   loading: () => <AdminDashboardSkeleton />,
-  ssr: false, // 클라이언트 사이드에서만 로드
 });
 
 const AIAgentAdminDashboard = dynamic(() => import('@/components/ai/AIAgentAdminDashboard'), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
-  ssr: false,
 });
 
 // 🎨 스켈레톤 로딩 컴포넌트

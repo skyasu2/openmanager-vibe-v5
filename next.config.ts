@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
     // 🚀 추가 성능 최적화
     serverMinification: true,
     serverSourceMaps: false,
-    optimizeCss: true,
+    // optimizeCss: true, // critters 모듈 에러로 인해 임시 비활성화
     webVitalsAttribution: ['CLS', 'LCP'],
   },
 
@@ -65,8 +65,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   generateEtags: true,
 
-  // 🚀 성능 최적화 추가
-  swcMinify: true,
+  // 🚀 성능 최적화 추가 (Next.js 15에서 swcMinify는 기본값)
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? {
       exclude: ['error', 'warn']
