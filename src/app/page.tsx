@@ -5,6 +5,23 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSystemControl } from '../hooks/useSystemControl';
 import ProfileDropdown from '../components/ProfileDropdown';
+import { 
+  Server, 
+  MessageCircle, 
+  SearchCheck, 
+  FileText, 
+  Brain, 
+  Code, 
+  Play, 
+  Loader2, 
+  Gauge, 
+  StopCircle,
+  Power,
+  CheckCircle,
+  Lightbulb,
+  Cpu,
+  X
+} from 'lucide-react';
 
 // 동적 렌더링 강제 (HTML 파일 생성 방지)
 export const dynamic = 'force-dynamic';
@@ -28,7 +45,7 @@ const features: FeatureDetail[] = [
       "실시간 메트릭 연동"
     ],
     image: "💬",
-    icon: "fas fa-comments"
+    icon: "MessageCircle"
   },
   {
     title: "지능형 분석 시스템",
@@ -40,7 +57,7 @@ const features: FeatureDetail[] = [
       "연관 관계 분석 및 자동 해결책"
     ],
     image: "🔍",
-    icon: "fas fa-search-plus"
+    icon: "SearchCheck"
   },
   {
     title: "자동 보고서 생성",
@@ -52,7 +69,7 @@ const features: FeatureDetail[] = [
       "베스트 프랙티스 권장사항"
     ],
     image: "📋",
-    icon: "fas fa-file-alt"
+    icon: "FileText"
   }
 ];
 
@@ -401,6 +418,22 @@ export default function HomePage() {
       return () => clearTimeout(timer);
     }
   }, [autoRedirectCountdown, router]);
+
+  // 아이콘 렌더링 함수
+  const renderIcon = (iconName: string, className?: string) => {
+    const iconProps = { className: className || "w-6 h-6" };
+    
+    switch (iconName) {
+      case 'MessageCircle': return <MessageCircle {...iconProps} />;
+      case 'SearchCheck': return <SearchCheck {...iconProps} />;
+      case 'FileText': return <FileText {...iconProps} />;
+      case 'Brain': return <Brain {...iconProps} />;
+      case 'Code': return <Code {...iconProps} />;
+      case 'Server': return <Server {...iconProps} />;
+      case 'CheckCircle': return <CheckCircle {...iconProps} />;
+      default: return <Server {...iconProps} />;
+    }
+  };
 
   return (
     <>
@@ -1646,7 +1679,7 @@ export default function HomePage() {
             {/* 로고 */}
             <Link href="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity cursor-pointer">
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <i className="fas fa-server text-white text-sm sm:text-lg"></i>
+                <Server className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div>
                 <h2 className="text-base sm:text-lg font-bold text-white">OpenManager</h2>
@@ -1667,7 +1700,7 @@ export default function HomePage() {
         <div className="benefits-section fade-in-up">
           <div className="benefits-card" onClick={openMainFeatureModal}>
             <div className="benefits-icon">
-              <i className="fas fa-brain"></i>
+              <Brain className="w-14 h-14 text-white" />
             </div>
             <h3 className="benefits-title">지능형 AI 에이전트</h3>
             <p className="benefits-text">
@@ -1702,7 +1735,11 @@ export default function HomePage() {
                   onClick={handleStartFullSystem}
                   disabled={isLoading}
                 >
-                  <i className={isLoading ? "fas fa-spinner fa-spin" : "fas fa-power-off"}></i>
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Power className="w-5 h-5" />
+                  )}
                   <span>{isLoading ? '시작 중...' : '🚀 시스템 시작'}</span>
                 </button>
               </div>
@@ -1767,7 +1804,7 @@ export default function HomePage() {
                     className="btn-primary"
                     onClick={handleGoToDashboard}
                   >
-                    <i className="fas fa-tachometer-alt"></i>
+                    <Gauge className="w-5 h-5" />
                     <span>📊 대시보드 들어가기</span>
                   </button>
                 </div>
@@ -1780,7 +1817,11 @@ export default function HomePage() {
                   onClick={handleStopFullSystem}
                   disabled={isLoading}
                 >
-                  <i className={isLoading ? "fas fa-spinner fa-spin" : "fas fa-stop"}></i>
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <StopCircle className="w-5 h-5" />
+                  )}
                   <span>{isLoading ? '중지 중...' : '⏹️ 시스템 중지'}</span>
                 </button>
               </div>
@@ -1801,7 +1842,7 @@ export default function HomePage() {
               onClick={() => openFeatureModal(feature)}
             >
               <div className="feature-icon">
-                <i className={feature.icon}></i>
+                {renderIcon(feature.icon)}
               </div>
               <h3 className="feature-title">{feature.title}</h3>
               <p className="feature-description">
@@ -1814,7 +1855,7 @@ export default function HomePage() {
         {/* Vibe Coding 기술 강조 */}
         <div className="vibe-coding-section fade-in-up">
           <div className="vibe-badge" onClick={openVibeCodingModal}>
-            <i className="fas fa-code"></i>
+            {renderIcon('Code')}
             <span>Vibe Coding</span>
           </div>
           <p className="vibe-description">
@@ -1877,7 +1918,7 @@ export default function HomePage() {
               onTouchStart={(e) => e.stopPropagation()}
               aria-label="모달 닫기"
             >
-              ×
+              <X className="w-5 h-5" />
             </button>
             
             <div className="modal-header">
