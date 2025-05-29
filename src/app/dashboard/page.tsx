@@ -9,6 +9,7 @@ import ServerGenerationProgress from '../../components/dashboard/ServerGeneratio
 import AnimatedServerCard from '../../components/dashboard/AnimatedServerCard';
 import ServerDetailModal from '../../components/dashboard/ServerDetailModal';
 import { SystemControlPanel } from '../../components/system/SystemControlPanel';
+import DashboardEntrance from '../../components/dashboard/DashboardEntrance';
 import { useSystemControl } from '../../hooks/useSystemControl';
 import { useSequentialServerGeneration } from '../../hooks/useSequentialServerGeneration';
 
@@ -24,7 +25,8 @@ export default function DashboardPage() {
     warning: 0,
     offline: 0
   });
-  const [showSequentialGeneration, setShowSequentialGeneration] = useState(true);
+  const [showEntrance, setShowEntrance] = useState(true);
+  const [showSequentialGeneration, setShowSequentialGeneration] = useState(false);
   
   // 메인 컨텐츠 애니메이션 변수 (AI 에이전트에 맞춰 좌측으로 밀기)
   const mainContentVariants = {
@@ -65,9 +67,9 @@ export default function DashboardPage() {
     isUserSession
   } = useSystemControl();
 
-  // 순차 서버 생성 훅
+  // 순차 서버 생성 훅 (옵션으로 활성화)
   const { servers, status, actions } = useSequentialServerGeneration({
-    autoStart: true,
+    autoStart: showSequentialGeneration,
     intervalMs: 1000,
     onServerAdded: (server) => {
       console.log('🚀 새 서버 추가:', server.hostname);
@@ -124,6 +126,18 @@ export default function DashboardPage() {
     setIsClient(true);
   }, []);
 
+  // 엔트런스 애니메이션 완료 후 처리
+  useEffect(() => {
+    if (isClient && showEntrance) {
+      // 6초 후 엔트런스 애니메이션 완료
+      const timer = setTimeout(() => {
+        setShowEntrance(false);
+      }, 6000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isClient, showEntrance]);
+
   // 반응형 화면 크기 감지
   useEffect(() => {
     if (!isClient) return;
@@ -172,7 +186,7 @@ export default function DashboardPage() {
 
   // 사용자 활동 추적 (디바운스 적용)
   useEffect(() => {
-    if (!isClient || !isSystemActive) return;
+    if (!isClient || !isSystemActive || showEntrance) return;
 
     let debounceTimer: NodeJS.Timeout;
     
@@ -200,7 +214,7 @@ export default function DashboardPage() {
         document.removeEventListener(event, handleUserActivity);
       });
     };
-  }, [isClient, isSystemActive, recordActivity]);
+  }, [isClient, isSystemActive, recordActivity, showEntrance]);
 
   // 시스템 중지 핸들러 (개선됨)
   const handleSystemStop = useCallback(async () => {
@@ -344,6 +358,11 @@ export default function DashboardPage() {
     );
   }
 
+  // 엔트런스 애니메이션 표시
+  if (showEntrance) {
+    return <DashboardEntrance onStatsUpdate={setServerStats} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 메인 헤더 */}
@@ -431,6 +450,22 @@ export default function DashboardPage() {
                 <i className="fas fa-bell text-gray-600 text-sm bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent"></i>
               </button>
               <ProfileDropdown />
+              
+              {/* 순차 서버 생성 토글 버튼 */}
+              <button
+                onClick={() => {
+                  setShowSequentialGeneration(!showSequentialGeneration);
+                  recordActivity();
+                }}
+                className={`px-3 py-1 text-xs rounded-lg font-medium transition-all ${
+                  showSequentialGeneration
+                    ? 'bg-orange-500 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                title="순차 서버 생성 토글"
+              >
+                {showSequentialGeneration ? '생성 중지' : '서버 생성'}
+              </button>
             </div>
           </div>
         </div>
