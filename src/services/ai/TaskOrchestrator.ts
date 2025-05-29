@@ -1,12 +1,30 @@
 import { MCPTask, MCPTaskResult } from './MCPAIRouter';
 import { AnalysisRequest, normalizeMetricData } from '../../types/python-api';
+import { 
+  LightweightAnomalyDetector, 
+  createLightweightAnomalyDetector,
+  MetricData 
+} from './lightweight-anomaly-detector';
+import { 
+  enhancedDataGenerator,
+  ScenarioType 
+} from '../../utils/enhanced-data-generator';
 
 export class TaskOrchestrator {
   private engines: Map<string, any> = new Map();
+  private anomalyDetector: LightweightAnomalyDetector;
   
   constructor() {
     // 엔진들을 지연 로딩으로 초기화
     this.initializeEngines();
+    
+    // 경량화된 이상 탐지기 초기화
+    this.anomalyDetector = createLightweightAnomalyDetector({
+      threshold: 2.0,
+      windowSize: 15,
+      sensitivity: 0.85,
+      methods: ['zscore', 'iqr', 'trend', 'threshold']
+    });
   }
 
   private async initializeEngines() {
@@ -352,160 +370,58 @@ export class TaskOrchestrator {
   }
 
   /**
-   * ⚡ 이상 탐지 작업 (ONNX.js 사용)
+   * ⚡ 이상 탐지 작업 (Enhanced 버전)
    */
   private async executeAnomalyTask(task: MCPTask): Promise<any> {
     const metrics = task.data.metrics;
-    const sensitivity = task.data.sensitivity || 0.9;
+    const sensitivity = task.data.sensitivity || 0.85;
     
     if (!metrics || metrics.length === 0) {
       throw new Error('이상 탐지를 위한 메트릭 데이터가 없습니다');
     }
 
-    try {
-      // ONNX.js 동적 import
-      const ort = await import('onnxruntime-web');
-      
-      console.log('⚡ ONNX.js 이상 탐지 분석 시작...');
-      
-      // 특성 데이터 준비
-      const features = metrics.map((m: any) => [
-        m.cpu / 100,
-        m.memory / 100, 
-        m.disk / 100,
-        (m.networkIn + m.networkOut) / 10000
-      ]);
-      
-      // Z-score 기반 이상 탐지 (ONNX 모델 대신 고급 통계 분석)
-      const anomalies = [];
-      const windowSize = 5;
-      
-      for (let i = windowSize; i < features.length; i++) {
-        const window = features.slice(i - windowSize, i);
-        const current = features[i];
-        
-        // 각 특성별 평균과 표준편차 계산
-        const means = [0, 1, 2, 3].map(featureIdx => 
-          window.reduce((sum: number, f: number[]) => sum + f[featureIdx], 0) / windowSize
-        );
-        
-        const stds = [0, 1, 2, 3].map(featureIdx => {
-          const mean = means[featureIdx];
-          const variance = window.reduce((sum: number, f: number[]) => sum + Math.pow(f[featureIdx] - mean, 2), 0) / windowSize;
-          return Math.sqrt(variance);
-        });
-        
-        // Z-score 계산
-        const zScores = [0, 1, 2, 3].map(featureIdx => 
-          stds[featureIdx] > 0 ? Math.abs(current[featureIdx] - means[featureIdx]) / stds[featureIdx] : 0
-        );
-        
-        const maxZScore = Math.max(...zScores);
-        const threshold = (1 - sensitivity) * 3; // sensitivity를 z-score 임계값으로 변환
-        
-        if (maxZScore > threshold) {
-          const metric = metrics[i];
-          const anomalyType = zScores.indexOf(maxZScore);
-          const featureNames = ['cpu', 'memory', 'disk', 'network'];
-          
-          anomalies.push({
-            timestamp: metric.timestamp,
-            type: 'statistical_outlier',
-            severity: maxZScore > 3 ? 'high' : maxZScore > 2 ? 'medium' : 'low',
-            score: Math.min(1, maxZScore / 3),
-            feature: featureNames[anomalyType],
-            value: anomalyType < 3 ? metric[featureNames[anomalyType]] : 
-                   (metric.networkIn + metric.networkOut),
-            zScore: maxZScore,
-            description: `${featureNames[anomalyType]} 값이 비정상적으로 높습니다 (Z-score: ${maxZScore.toFixed(2)})`
-          });
-        }
-      }
-      
-      // 패턴 기반 이상 탐지
-      const patternAnomalies = this.detectPatternAnomalies(metrics);
-      anomalies.push(...patternAnomalies);
-      
-      // 결과 정렬 (심각도 순)
-      anomalies.sort((a: any, b: any) => {
-        const severityOrder: { [key: string]: number } = { high: 3, medium: 2, low: 1 };
-        return severityOrder[b.severity] - severityOrder[a.severity];
-      });
-      
-      const overallScore = anomalies.length > 0 ? 
-        Math.max(...anomalies.map(a => a.score)) : 0;
-      
-      const confidence = Math.max(0.75, Math.min(0.95, 
-        1 - (anomalies.length * 0.1) // 이상치가 많을수록 신뢰도 감소
-      ));
-      
-      return {
-        type: 'anomaly_detection',
-        anomalies: anomalies.slice(0, 10), // 최대 10개만 반환
-        overallScore,
-        confidence,
-        method: 'onnx-js-statistical',
-        totalDataPoints: metrics.length,
-        windowSize,
+    console.log('⚡ Enhanced 이상 탐지 분석 시작...');
+    
+    // 메트릭 데이터 변환
+    const formattedMetrics: MetricData[] = metrics.map((m: any) => ({
+      timestamp: m.timestamp || new Date().toISOString(),
+      cpu: m.cpu,
+      memory: m.memory,
+      disk: m.disk,
+      networkIn: m.networkIn,
+      networkOut: m.networkOut,
+      responseTime: m.responseTime
+    }));
+    
+    // 경량화된 이상 탐지 실행
+    const result = await this.anomalyDetector.detectAnomalies(
+      formattedMetrics,
+      ['cpu', 'memory', 'disk'],
+      {
+        windowSize: Math.min(20, Math.floor(metrics.length / 3)),
         sensitivity
-      };
-      
-    } catch (error) {
-      console.warn('ONNX.js 실패, 기본 통계적 fallback 사용:', error);
-      
-      // Fallback to basic statistical analysis
-      const anomalies = this.detectAnomaliesFallback(metrics, sensitivity);
-      
-      return {
-        type: 'anomaly_detection',
-        anomalies,
-        overallScore: anomalies.length > 0 ? Math.max(...anomalies.map(a => a.score)) : 0,
-        confidence: 0.70,
-        method: 'statistical-fallback'
-      };
-    }
-  }
-
-  /**
-   * 🔍 패턴 기반 이상 탐지
-   */
-  private detectPatternAnomalies(metrics: any[]): any[] {
-    const anomalies = [];
-    
-    // 갑작스러운 스파이크 탐지
-    for (let i = 1; i < metrics.length; i++) {
-      const prev = metrics[i - 1];
-      const curr = metrics[i];
-      
-      const cpuJump = Math.abs(curr.cpu - prev.cpu);
-      const memoryJump = Math.abs(curr.memory - prev.memory);
-      
-      if (cpuJump > 30) {
-        anomalies.push({
-          timestamp: curr.timestamp,
-          type: 'sudden_spike',
-          severity: cpuJump > 50 ? 'high' : 'medium',
-          score: Math.min(1, cpuJump / 100),
-          feature: 'cpu',
-          value: curr.cpu,
-          description: `CPU 사용률이 급격히 변화했습니다 (${cpuJump.toFixed(1)}% 증가)`
-        });
       }
-      
-      if (memoryJump > 20) {
-        anomalies.push({
-          timestamp: curr.timestamp,
-          type: 'sudden_spike',
-          severity: memoryJump > 40 ? 'high' : 'medium',
-          score: Math.min(1, memoryJump / 100),
-          feature: 'memory',
-          value: curr.memory,
-          description: `메모리 사용률이 급격히 변화했습니다 (${memoryJump.toFixed(1)}% 증가)`
-        });
-      }
-    }
+    );
     
-    return anomalies;
+    // 기존 형식으로 결과 변환
+    return {
+      type: 'enhanced_anomaly_detection',
+      anomalies: result.anomalies.map(anomaly => ({
+        timestamp: anomaly.timestamp,
+        type: anomaly.type,
+        severity: anomaly.severity,
+        score: anomaly.score,
+        feature: anomaly.feature,
+        value: anomaly.value,
+        zScore: anomaly.zScore,
+        description: anomaly.description
+      })),
+      overallScore: result.overallScore,
+      confidence: result.confidence,
+      method: 'lightweight-statistics',
+      processingTime: result.processingTime,
+      recommendations: result.recommendations
+    };
   }
 
   /**
@@ -577,34 +493,6 @@ export class TaskOrchestrator {
       warningLogs: warnCount,
       severity: errorCount > 0 ? 'high' : warnCount > 5 ? 'medium' : 'low'
     };
-  }
-
-  private detectAnomaliesFallback(metrics: any[], sensitivity: number): any[] {
-    const anomalies: any[] = [];
-    
-    metrics.forEach((metric, index) => {
-      let score = 0;
-      
-      // CPU 이상 검사
-      if (metric.cpu > 90) score += 0.8;
-      else if (metric.cpu > 80) score += 0.6;
-      
-      // 메모리 이상 검사
-      if (metric.memory > 85) score += 0.7;
-      else if (metric.memory > 75) score += 0.5;
-      
-      // 임계값을 넘으면 이상으로 판단
-      if (score >= (1 - sensitivity)) {
-        anomalies.push({
-          timestamp: metric.timestamp,
-          score,
-          type: 'statistical_anomaly',
-          details: `CPU: ${metric.cpu}%, Memory: ${metric.memory}%`
-        });
-      }
-    });
-    
-    return anomalies;
   }
 
   private generateBasicRecommendations(current: any, averages: any): string[] {

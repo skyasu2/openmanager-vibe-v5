@@ -64,6 +64,7 @@
     "load-test:verbose": "DEBUG=* node scripts/load-test.js"
   },
   "dependencies": {
+    "@faker-js/faker": "^9.8.0",
     "@fortawesome/fontawesome-free": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
@@ -86,6 +87,7 @@
     "react-dom": "^19.1.0",
     "recharts": "^2.15.3",
     "reflect-metadata": "^0.2.2",
+    "simple-statistics": "^7.8.8",
     "tailwind-merge": "^3.3.0",
     "zod": "^3.25.30",
     "zustand": "^5.0.5"
