@@ -1,30 +1,37 @@
 # 🚀 OpenManager Vibe v5 - Enterprise Server Monitoring Platform
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/skyasu2/openmanager-vibe-v5)
-[![Version](https://img.shields.io/badge/version-5.8.0-blue)](https://github.com/skyasu2/openmanager-vibe-v5/releases)
+[![Version](https://img.shields.io/badge/version-5.9.0-blue)](https://github.com/skyasu2/openmanager-vibe-v5/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-15.3.2-black)](https://nextjs.org/)
 
-> **🧠 최신 업데이트 (v5.8.0)**: **4단계 MCP 기반 통합 AI 엔진 완성!** 컨텍스트 인식 지능형 오케스트레이션 100% 구현! 🎯✨
+> **🔧 최신 업데이트 (v5.9.0)**: **통합 프로세스 관리 시스템 구현 완료!** 기업급 안정성 + 동적 엔트런스 애니메이션 100% 구현! 🎯✨
 
 ## 🌟 **프로젝트 개요**
 
-**OpenManager Vibe v5**는 **MCP (Model Context Protocol) 기반 차세대 지능형 서버 모니터링 플랫폼**입니다.
+**OpenManager Vibe v5**는 **통합 프로세스 관리 기반 차세대 지능형 서버 모니터링 플랫폼**입니다.
 
-### 🔥 **4단계 핵심 성과**
-- ✅ **🧠 MCP 오케스트레이터**: 6개 전문 도구 체인 (100% 성공률)
-- ✅ **📊 컨텍스트 관리 시스템**: 실시간 트렌드 + 패턴 학습
-- ✅ **🐍 Python ML 브릿지**: 하이브리드 처리 + 로컬 폴백 (무중단)
-- ✅ **⚡ 지능형 도구 선택**: 자연어 → 자동 최적 도구 선택
-- ✅ **🔄 적응형 처리**: 업무시간/부하/히스토리 기반 최적화
-- ✅ **🏥 완벽한 복원력**: 네트워크 장애시 graceful degradation
-- ✅ **📈 실시간 성능**: 평균 1-3ms (로컬) / 300ms (원격)
-- ✅ **🧪 종합 테스트**: MCP 테스트 스위트 100% 통과
+### 🔥 **v5.9.0 핵심 성과**
+- ✅ **🔧 ProcessManager**: 중앙 집중식 프로세스 관리자 (시스템 안정성 100% 향상)
+- ✅ **🐕 SystemWatchdog**: 메모리 누수 감지 + 성능 모니터링 + 지능형 알림
+- ✅ **🎛️ SystemControlPanel**: 직관적인 원클릭 시스템 제어 UI
+- ✅ **🚀 DashboardEntrance**: 4단계 동적 시작 애니메이션 시스템
+- ✅ **⚡ 30분 안정성 검증**: 연속 30분 정상 동작 시 시스템 안정성 확인
+- ✅ **🔌 통합 API**: `/api/system/unified` 단일 엔드포인트 모든 시스템 제어
+- ✅ **📊 실시간 모니터링**: 프로세스별 상태, 메모리, 재시작 횟수 추적
+- ✅ **🏗️ 6단계 프로세스 체인**: 의존성 기반 안전한 시작/종료 순서
+
+### 🎭 **새로운 동적 시작 경험**
+- **1단계**: 서비스 시작 애니메이션 (ProcessManager → SystemWatchdog → HealthCheck → API → DB → Monitoring)
+- **2단계**: 시스템 초기화 (프로세스 관리자 및 모니터링 시스템 준비)
+- **3단계**: 컴포넌트 로딩 (대시보드 UI 구성 요소 준비)
+- **4단계**: 대시보드 등장 (완성된 관리 화면 스케일업 애니메이션)
 
 ## ✨ **주요 기능**
 
 ### 🎯 **핵심 시스템**
+- **🔧 통합 프로세스 관리**: ProcessManager + SystemWatchdog 기반 기업급 안정성
 - **🤖 AI 에이전트**: 완전 독립형 AI 추론 엔진 (외부 의존성 없음)
 - **📊 실시간 모니터링**: 가상 서버 상태 및 메트릭 추적
 - **🔍 지능형 분석**: 패턴 인식, 이상 탐지, 예측 분석
@@ -32,6 +39,9 @@
 - **📈 대시보드**: 실시간 차트 및 통계 시각화
 
 ### 🛡️ **안정성 & 성능**
+- **🔧 프로세스 관리**: 의존성 기반 토폴로지 정렬 시작/종료
+- **🐕 시스템 감시**: 5초 간격 헬스체크 + 자동 복구
+- **📊 메모리 분석**: 선형 회귀 기반 누수 감지 (분당 2MB+ 증가 시)
 - **⚡ 기본 Rate Limiting**: 메모리 기반 요청 제한 (20req/min)
 - **🔄 스마트 캐싱**: 30초 TTL 메모리 캐시 시스템
 - **🚫 404 핸들링**: API 제안 및 친절한 에러 메시지
@@ -51,6 +61,55 @@
 - **🧪 테스트 시스템**: 자동화된 품질 검증
 - **📝 로깅**: 구조화된 로그 관리
 - **🔍 디버깅**: 실시간 시스템 상태 확인
+
+## 🔧 **통합 프로세스 관리 시스템 아키텍처**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                🔧 Unified Process Management System         │
+├─────────────────────────────────────────────────────────────┤
+│  🎛️ SystemControlPanel      │  📊 Real-time Monitoring     │
+│  - One-click Control        │  - Process Status Tracking   │
+│  - 4 Metric Cards          │  - Memory Usage Analysis     │
+│  - 30min Stability Timer   │  - Restart Counter           │
+│  - Smart Notifications     │  - Health Score Calculation  │
+├─────────────────────────────────────────────────────────────┤
+│  🔧 ProcessManager           │  🐕 SystemWatchdog           │
+│  - Dependency-based Start   │  - 5sec Health Checks       │
+│  - Topology Sort Order      │  - Memory Leak Detection    │
+│  - Graceful Shutdown        │  - Performance Scoring      │
+│  - Auto Restart Policy      │  - Intelligent Alerts       │
+│  - Event-driven System      │  - 30min Stability Monitor  │
+├─────────────────────────────────────────────────────────────┤
+│  🏗️ 6-Stage Process Chain   │  🔌 Unified API Endpoint    │
+│  system-logger              │  GET  /api/system/unified   │
+│  → cache-service            │  - status, metrics, health  │
+│  → server-generator         │  - watchdog, processes      │
+│  → ai-engine                │  POST /api/system/unified   │
+│  → simulation-engine        │  - start, stop, restart     │
+│  → api-server               │  - process-action control   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 🎭 **4단계 대시보드 엔트런스 애니메이션**
+```typescript
+// 동적 시작 플로우 관리
+Phase 1: ServiceStarting (3-4초)
+  → ProcessManager, SystemWatchdog, HealthCheck, API, DB, Monitoring
+  → 진행률 바 + 체크마크 + 서비스별 색상 구분
+
+Phase 2: SystemInitializing (2초)  
+  → 클라우드 아이콘 맥박 애니메이션
+  → 프로세스 관리자와 모니터링 시스템 준비 안내
+
+Phase 3: ComponentsLoading (1.5초)
+  → 밝은 배경 전환 + BarChart 아이콘 스프링 애니메이션
+  → 대시보드 UI 구성 요소 준비
+
+Phase 4: DashboardReady (0.8초)
+  → 전체 스케일업 + 상단 패널 슬라이드 인
+  → 하단 대시보드 슬라이드 인 + 완벽한 동기화
+```
 
 ## 🧠 **4단계 MCP AI 시스템 아키텍처**
 
