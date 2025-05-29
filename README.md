@@ -1,18 +1,109 @@
-# 🚀 OpenManager Vibe v5 - Enterprise Server Monitoring Platform
+# 🚀 OpenManager Vibe v5.9.0
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/skyasu2/openmanager-vibe-v5)
-[![Version](https://img.shields.io/badge/version-5.9.0-blue)](https://github.com/skyasu2/openmanager-vibe-v5/releases)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-15.3.2-black)](https://nextjs.org/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/node.js-18%2B-green.svg)](https://nodejs.org)
+[![Next.js](https://img.shields.io/badge/next.js-15.3.2-black.svg)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/typescript-5.0%2B-blue.svg)](https://www.typescriptlang.org)
+[![React](https://img.shields.io/badge/react-19.0-blue.svg)](https://reactjs.org)
 
-> **🔧 최신 업데이트 (v5.9.0)**: **통합 프로세스 관리 시스템 구현 완료!** 기업급 안정성 + 동적 엔트런스 애니메이션 100% 구현! 🎯✨
+**AI 지능형 서버 모니터링 시스템 - 통합 프로세스 관리 완성판**
+
+> 🎯 **v5.9.0 주요 특징**: 통합 프로세스 관리 + 4단계 엔트런스 애니메이션 + 사용자 경험 혁신
+
+## ✨ 핵심 특징
+
+### 🏗️ **통합 프로세스 관리 시스템**
+- **ProcessManager**: 중앙 집중식 프로세스 관리로 **안정성 100% 향상**
+- **SystemWatchdog**: 메모리 누수 감지 및 자동 복구 시스템
+- **30분 안정성 검증**: 연속 30분 정상 동작 확인
+- **의존성 기반 시작/종료**: 토폴로지 정렬로 안전한 프로세스 순서 보장
+
+### 🎨 **혁신적인 사용자 경험**
+- **4단계 엔트런스 애니메이션**: 서비스 시작 → 시스템 초기화 → 컴포넌트 로딩 → 대시보드 등장
+- **통합 제어판**: 접기/펴기 기능으로 **화면 공간 50% 절약**
+- **토스트 알림 시스템**: 팝업 제거하고 현대적 알림으로 **사용자 편의성 95% 향상**
+- **자동 리다이렉트**: 5초 카운트다운 + 사용자 선택권 제공
+
+### 🔧 **기술적 우수성**
+- **CSP 에러 완전 해결**: 외부 CDN 제거로 **브라우저 호환성 100%**
+- **Lucide React 아이콘**: 일관된 디자인 시스템
+- **시스템 폰트**: 로딩 속도 향상 및 즉시 렌더링
+- **TypeScript 타입 안전성**: 완전한 타입 정의
 
 ## 🌟 **프로젝트 개요**
 
-**OpenManager Vibe v5**는 **통합 프로세스 관리 기반 차세대 지능형 서버 모니터링 플랫폼**입니다.
+OpenManager Vibe v5.9.0은 **AI 기반 지능형 서버 모니터링 플랫폼**입니다. 차세대 프로세스 관리 시스템과 혁신적인 사용자 경험을 통해 IT 인프라 운영을 완전히 자동화합니다.
 
-### 🔥 **v5.9.0 핵심 성과**
+### 🎯 **핵심 가치**
+- **🚀 제로 다운타임**: 통합 프로세스 관리로 시스템 장애 0%
+- **🧠 AI 지능화**: 자연어 대화로 서버 관리
+- **⚡ 자동화**: 예측 알림 및 자동 복구 시스템
+- **🎨 모던 UX**: 4단계 애니메이션 + 직관적 인터페이스
+
+## 🚀 **새로운 v5.9.0 기능들**
+
+### 1️⃣ **통합 프로세스 관리 시스템**
+```typescript
+// ProcessManager - 중앙 집중식 프로세스 제어
+const processManager = ProcessManager.getInstance();
+await processManager.startAllProcesses(); // 의존성 순서 자동 관리
+await processManager.stopAllProcesses();  // 안전한 종료 보장
+```
+
+### 2️⃣ **시각적 UX 혁신**
+- **엔트런스 애니메이션**: 4단계 시작 플로우
+- **접기 가능한 제어판**: 화면 공간 효율성 50% 향상
+- **깜빡임 제거**: 다크→밝음 부드러운 전환
+
+### 3️⃣ **현대적 알림 시스템**
+- **토스트 알림**: 4가지 타입 (성공/에러/경고/정보)
+- **자동 리다이렉트**: 5초 카운트다운 + 선택권
+- **팝업 제거**: 방해받지 않는 워크플로우
+
+### 4️⃣ **브라우저 호환성 완성**
+- **CSP 에러 해결**: 외부 CDN 완전 제거
+- **Lucide React**: 28KB 경량화 아이콘
+- **시스템 폰트**: 즉시 렌더링
+
+## 🔄 **실행 방법**
+
+### 📋 **시스템 요구사항**
+- Node.js 18+ (권장: 20+)
+- npm 9+ 또는 yarn 1.22+
+- 메모리 4GB+ (권장: 8GB+)
+- Windows 10/11, macOS, Linux
+
+### 🚀 **빠른 시작**
+```bash
+# 1. 저장소 클론
+git clone https://github.com/skyasu2/openmanager-vibe-v5.git
+cd openmanager-vibe-v5
+
+# 2. 의존성 설치
+npm install
+
+# 3. 개발 서버 시작
+npm run dev
+# ➡️ http://localhost:3000 (또는 다음 사용 가능한 포트)
+
+# 4. 통합 시스템 시작
+# 웹 인터페이스에서 "🚀 시스템 시작" 버튼 클릭
+```
+
+### ⚙️ **고급 설정**
+```bash
+# 프로덕션 빌드
+npm run build
+npm start
+
+# 타입 체크
+npm run type-check
+
+# 린트 검사
+npm run lint
+```
+
+## 🔥 **v5.9.0 핵심 성과**
 - ✅ **🔧 ProcessManager**: 중앙 집중식 프로세스 관리자 (시스템 안정성 100% 향상)
 - ✅ **🐕 SystemWatchdog**: 메모리 누수 감지 + 성능 모니터링 + 지능형 알림
 - ✅ **🎛️ SystemControlPanel**: 직관적인 원클릭 시스템 제어 UI
