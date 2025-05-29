@@ -8,6 +8,7 @@ import ProfileDropdown from '../../components/ProfileDropdown';
 import ServerGenerationProgress from '../../components/dashboard/ServerGenerationProgress';
 import AnimatedServerCard from '../../components/dashboard/AnimatedServerCard';
 import ServerDetailModal from '../../components/dashboard/ServerDetailModal';
+import { SystemControlPanel } from '../../components/system/SystemControlPanel';
 import { useSystemControl } from '../../hooks/useSystemControl';
 import { useSequentialServerGeneration } from '../../hooks/useSequentialServerGeneration';
 
@@ -513,7 +514,15 @@ export default function DashboardPage() {
         
         {/* 기존 서버 대시보드 */}
         {!showSequentialGeneration && (
-          <ServerDashboard onStatsUpdate={setServerStats} />
+          <div className="space-y-6">
+            {/* 통합 시스템 제어 패널 */}
+            <div className="p-6">
+              <SystemControlPanel />
+            </div>
+            
+            {/* 서버 대시보드 */}
+            <ServerDashboard onStatsUpdate={setServerStats} />
+          </div>
         )}
         
         {/* 서버 상세 모달 */}
