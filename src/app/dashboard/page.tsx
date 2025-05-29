@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import ServerDashboard from '../../components/dashboard/ServerDashboard';
-import AIAssistantPanel from '../../components/ai/AIAssistantPanel';
+import FlexibleAISidebar from '../../components/ai/FlexibleAISidebar';
 import ProfileDropdown from '../../components/ProfileDropdown';
 import ServerGenerationProgress from '../../components/dashboard/ServerGenerationProgress';
 import AnimatedServerCard from '../../components/dashboard/AnimatedServerCard';
@@ -524,7 +524,11 @@ export default function DashboardPage() {
       </motion.main>
 
       {/* AI 에이전트 모달 */}
-      <AIAssistantPanel isOpen={isAgentOpen} onClose={closeAgent} />
+      <FlexibleAISidebar 
+        isOpen={isAgentOpen} 
+        onClose={closeAgent} 
+        serverMetrics={serverStats}
+      />
     </div>
   );
 } 
