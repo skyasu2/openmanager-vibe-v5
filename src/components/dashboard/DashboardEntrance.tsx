@@ -93,7 +93,14 @@ const DashboardEntrance: React.FC<DashboardEntranceProps> = ({ onStatsUpdate }) 
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
+      exit={{ 
+        opacity: 0,
+        scale: 0.98,
+        filter: 'brightness(1.1)'
+      }}
+      transition={{ 
+        exit: { duration: 0.5, ease: 'easeInOut' }
+      }}
       className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center"
     >
       <div className="text-center max-w-md mx-auto px-6">
@@ -195,10 +202,28 @@ const DashboardEntrance: React.FC<DashboardEntranceProps> = ({ onStatsUpdate }) 
   // 시스템 초기화 애니메이션
   const SystemInitializingAnimation = () => (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 1.1 }}
-      className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center"
+      initial={{ 
+        opacity: 0,
+        background: 'linear-gradient(135deg, #1e293b, #0f172a, #312e81)'
+      }}
+      animate={{ 
+        opacity: 1,
+        background: [
+          'linear-gradient(135deg, #1e293b, #0f172a, #312e81)',
+          'linear-gradient(135deg, #374151, #1f2937, #4c1d95)',
+          'linear-gradient(135deg, #6b7280, #374151, #6366f1)'
+        ]
+      }}
+      exit={{ 
+        opacity: 0,
+        scale: 1.1,
+        background: 'linear-gradient(135deg, #6b7280, #374151, #6366f1)'
+      }}
+      transition={{ 
+        duration: 2,
+        background: { duration: 1.8, ease: 'easeInOut' }
+      }}
+      className="min-h-screen flex items-center justify-center"
     >
       <div className="text-center">
         <motion.div
@@ -232,18 +257,22 @@ const DashboardEntrance: React.FC<DashboardEntranceProps> = ({ onStatsUpdate }) 
   // 컴포넌트 로딩 애니메이션
   const ComponentsLoadingAnimation = () => (
     <motion.div
-      initial={{ opacity: 0, background: 'linear-gradient(135deg, #1e293b, #0f172a)' }}
+      initial={{ 
+        opacity: 0, 
+        background: 'linear-gradient(135deg, #6b7280, #374151, #6366f1)' 
+      }}
       animate={{ 
         opacity: 1, 
         background: [
-          'linear-gradient(135deg, #1e293b, #0f172a)',
-          'linear-gradient(135deg, #f1f5f9, #e2e8f0)',
-          'linear-gradient(135deg, #ffffff, #f8fafc)'
+          'linear-gradient(135deg, #6b7280, #374151, #6366f1)',
+          'linear-gradient(135deg, #9ca3af, #6b7280, #8b5cf6)',
+          'linear-gradient(135deg, #e5e7eb, #d1d5db, #c7d2fe)',
+          'linear-gradient(135deg, #ffffff, #f8fafc, #f1f5f9)'
         ]
       }}
       transition={{ 
         duration: 1.5,
-        background: { duration: 1.2, ease: 'easeInOut' }
+        background: { duration: 1.4, ease: 'easeInOut' }
       }}
       exit={{ opacity: 0 }}
       className="min-h-screen flex items-center justify-center"
@@ -307,11 +336,19 @@ const DashboardEntrance: React.FC<DashboardEntranceProps> = ({ onStatsUpdate }) 
   );
 
   return (
-    <AnimatePresence mode="wait">
-      {currentPhase === 'service-starting' && <ServiceStartingAnimation key="service-starting" />}
-      {currentPhase === 'system-initializing' && <SystemInitializingAnimation key="system-initializing" />}
-      {currentPhase === 'components-loading' && <ComponentsLoadingAnimation key="components-loading" />}
-      {currentPhase === 'dashboard-ready' && <DashboardReadyAnimation key="dashboard-ready" />}
+    <AnimatePresence mode="wait" initial={false}>
+      {currentPhase === 'service-starting' && (
+        <ServiceStartingAnimation key="service-starting" />
+      )}
+      {currentPhase === 'system-initializing' && (
+        <SystemInitializingAnimation key="system-initializing" />
+      )}
+      {currentPhase === 'components-loading' && (
+        <ComponentsLoadingAnimation key="components-loading" />
+      )}
+      {currentPhase === 'dashboard-ready' && (
+        <DashboardReadyAnimation key="dashboard-ready" />
+      )}
     </AnimatePresence>
   );
 };
