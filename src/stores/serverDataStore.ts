@@ -137,12 +137,24 @@ const fetchServersFromAPI = async (): Promise<Server[]> => {
     }
     
     const data = await response.json();
-          if (process.env.NODE_ENV === 'development') {
-        console.log('API Response structure:', { hasData: !!data.data, hasServers: !!data.data?.servers, serversLength: data.data?.servers?.length });
-      }
+    if (process.env.NODE_ENV === 'development') {
+      console.log('API Response structure:', { 
+        hasData: !!data.data, 
+        hasServers: !!data.data?.servers, 
+        serversLength: data.data?.servers?.length,
+        serversType: typeof data.data?.servers
+      });
+    }
     
-    // API 응답을 Client Server 타입으로 변환 (올바른 경로: data.data.servers)
-    return data.data?.servers?.map((serverInfo: any) => ({
+    // 🚀 안전한 배열 처리: 배열이 아닌 경우 빈 배열로 처리
+    const rawServers = data.data?.servers;
+    if (!Array.isArray(rawServers)) {
+      console.warn('⚠️ API에서 반환된 servers 데이터가 배열이 아닙니다:', typeof rawServers);
+      return [];
+    }
+    
+    // API 응답을 Client Server 타입으로 변환
+    return rawServers.map((serverInfo: any) => ({
       id: serverInfo.id,
       name: serverInfo.hostname || serverInfo.name,
       status: serverInfo.status === 'healthy' ? 'healthy' : 
@@ -150,14 +162,14 @@ const fetchServersFromAPI = async (): Promise<Server[]> => {
       location: serverInfo.environment || 'Unknown',
       type: serverInfo.role?.toUpperCase() || 'UNKNOWN',
       metrics: {
-        cpu: serverInfo.cpu_usage || 0,
-        memory: serverInfo.memory_usage || 0,
-        disk: serverInfo.disk_usage || 0,
+        cpu: serverInfo.cpu_usage || serverInfo.cpu || 0,
+        memory: serverInfo.memory_usage || serverInfo.memory || 0,
+        disk: serverInfo.disk_usage || serverInfo.disk || 0,
         network: serverInfo.response_time || 0
       },
       uptime: Math.floor((serverInfo.uptime || 0) / 86400000), // milliseconds to days
       lastUpdate: new Date(serverInfo.last_updated || Date.now())
-    })) || [];
+    }));
   } catch (error) {
     console.error('Failed to fetch servers from API:', error);
     throw error;
@@ -286,6 +298,23 @@ export const useServerDataStore = create<ServerDataStore>((set, get) => ({
 
   updateSystemStatus: () => {
     const { servers } = get();
+    
+    // 🚀 안전한 배열 처리: servers가 배열이 아닌 경우 기본값 설정
+    if (!Array.isArray(servers)) {
+      console.warn('⚠️ servers가 배열이 아닙니다:', typeof servers);
+      set({
+        systemStatus: {
+          totalServers: 0,
+          healthyServers: 0,
+          warningServers: 0,
+          criticalServers: 0,
+          activeAlerts: 0,
+          lastUpdate: new Date()
+        }
+      });
+      return;
+    }
+    
     const healthy = servers.filter(s => s.status === 'healthy').length;
     const warning = servers.filter(s => s.status === 'warning').length;
     const critical = servers.filter(s => s.status === 'critical').length;

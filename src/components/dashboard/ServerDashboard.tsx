@@ -246,12 +246,20 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
   }, [servers, isClient]);
 
   // 서버 통계 계산 (useMemo로 최적화)
-  const serverStats = useMemo(() => ({
-    total: currentServers.length,
-    online: currentServers.filter((s: Server) => s.status === 'online').length,
-    warning: currentServers.filter((s: Server) => s.status === 'warning').length,
-    offline: currentServers.filter((s: Server) => s.status === 'offline').length
-  }), [currentServers]);
+  const serverStats = useMemo(() => {
+    // 🚀 안전한 배열 처리: currentServers가 배열인지 확인
+    if (!Array.isArray(currentServers)) {
+      console.warn('⚠️ currentServers가 배열이 아닙니다:', typeof currentServers);
+      return { total: 0, online: 0, warning: 0, offline: 0 };
+    }
+    
+    return {
+      total: currentServers.length,
+      online: currentServers.filter((s: Server) => s?.status === 'online').length,
+      warning: currentServers.filter((s: Server) => s?.status === 'warning').length,
+      offline: currentServers.filter((s: Server) => s?.status === 'offline').length
+    };
+  }, [currentServers]);
 
   // ✅ 컴포넌트 마운트 시 서버 데이터 로드 (클라이언트에서만)
   useEffect(() => {
@@ -277,11 +285,16 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
 
   // 검색 필터링
   const filteredServers = useMemo(() => {
+    // 🚀 안전한 배열 처리: currentServers가 배열인지 확인
+    if (!Array.isArray(currentServers)) {
+      return [];
+    }
+    
     if (!searchTerm) return currentServers;
     
     return currentServers.filter(server => 
-      server.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      server.location.toLowerCase().includes(searchTerm.toLowerCase())
+      server?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      server?.location?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [currentServers, searchTerm]);
 
@@ -291,10 +304,10 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
   };
 
   // 페이지네이션 계산
-  const totalPages = Math.ceil(filteredServers.length / SERVERS_PER_PAGE);
+  const totalPages = Math.ceil((filteredServers?.length || 0) / SERVERS_PER_PAGE);
   const startIndex = (currentPage - 1) * SERVERS_PER_PAGE;
   const endIndex = startIndex + SERVERS_PER_PAGE;
-  const paginatedServers = filteredServers.slice(startIndex, endIndex);
+  const paginatedServers = Array.isArray(filteredServers) ? filteredServers.slice(startIndex, endIndex) : [];
 
   // 페이지 변경 시 맨 위로 스크롤
   useEffect(() => {
@@ -310,10 +323,15 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
 
   // 서버 상태별 그룹핑 (페이지네이션 적용)
   const groupedServers = useMemo(() => {
+    // 🚀 안전한 배열 처리: paginatedServers가 배열인지 확인
+    if (!Array.isArray(paginatedServers)) {
+      return { critical: [], warning: [], healthy: [] };
+    }
+    
     const groups = {
-      critical: paginatedServers.filter(s => s.status === 'offline'),
-      warning: paginatedServers.filter(s => s.status === 'warning'),
-      healthy: paginatedServers.filter(s => s.status === 'online')
+      critical: paginatedServers.filter(s => s?.status === 'offline'),
+      warning: paginatedServers.filter(s => s?.status === 'warning'),
+      healthy: paginatedServers.filter(s => s?.status === 'online')
     };
     return groups;
   }, [paginatedServers]);
