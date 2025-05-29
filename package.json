@@ -1,6 +1,6 @@
 {
   "name": "openmanager-vibe-v5-clean",
-  "version": "5.9.0",
+  "version": "5.9.1",
   "description": "🤖 OpenManager AI - 지능형 AI 기반 서버 모니터링 시스템 (최적화된 코드베이스)",
   "private": true,
   "keywords": [
@@ -64,6 +64,9 @@
     "load-test:verbose": "DEBUG=* node scripts/load-test.js"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.7.2",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/react-fontawesome": "^0.2.2",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.12",
     "@supabase/supabase-js": "^2.49.8",

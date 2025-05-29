@@ -54,7 +54,7 @@ const nextConfig: NextConfig = {
 
   // 보안 헤더
   async headers() {
-    // 개발 환경에서는 보안 정책 완화
+    // 개발 환경에서는 보안 정책 완화, 프로덕션에서는 엄격한 CSP 적용
     const isDevelopment = process.env.NODE_ENV === 'development';
     
     return [
@@ -77,22 +77,22 @@ const nextConfig: NextConfig = {
             key: 'X-XSS-Protection',
             value: '1; mode=block'
           },
-          // 개발 환경에서는 CSP 완화
-          ...(isDevelopment ? [] : [{
+          // 🚀 Vercel 최적화된 CSP: 외부 CDN 제거, 로컬 리소스만 허용
+          ...(!isDevelopment ? [{
             key: 'Content-Security-Policy',
             value: [
-              "default-src 'self' *",
-              "style-src 'self' 'unsafe-inline' *",
-              "font-src 'self' *",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' *",
-              "img-src 'self' data: * blob:",
-              "connect-src 'self' * ws: wss:",
-              "frame-src 'self' *",
+              "default-src 'self'",
+              "style-src 'self' 'unsafe-inline'", // Tailwind CSS 호환성
+              "font-src 'self' data:",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // Next.js 호환성
+              "img-src 'self' data: blob: https:",
+              "connect-src 'self' https: ws: wss:",
+              "frame-src 'self'",
               "frame-ancestors 'self'",
               "base-uri 'self'",
               "object-src 'none'"
             ].join('; ')
-          }])
+          }] : [])
         ]
       },
       {

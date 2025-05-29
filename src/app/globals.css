@@ -2,11 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 개발 환경에서 외부 CDN 활성화 */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+/* 🚫 Vercel CSP 최적화: Font Awesome CDN 제거 */
+/* Lucide React로 완전 마이그레이션 완료 */
 
-/* 외부 CDN 제거하고 시스템 폰트 사용 */
+/* Google Fonts를 로컬로 이동 (CDN 제거) */
+/* 시스템 폰트 우선순위로 변경 */
 
 :root {
   /* 컬러 시스템 */

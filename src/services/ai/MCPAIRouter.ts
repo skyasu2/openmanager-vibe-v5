@@ -81,6 +81,7 @@ export class MCPAIRouter {
   private sessionManager: SessionManager;
   private pythonServiceWarmedUp: boolean = false;
   private warmupPromise: Promise<void> | null = null;
+  private warmupInterval: NodeJS.Timeout | null = null; // 10분 주기 웜업
   
   constructor() {
     this.initializeIntentClassifier();
@@ -90,6 +91,7 @@ export class MCPAIRouter {
     
     // 백그라운드에서 Python 서비스 웜업 시작
     this.startWarmupProcess();
+    this.schedulePeriodicWarmup(); // 주기적 웜업 스케줄
   }
 
   /**
@@ -455,6 +457,14 @@ export class MCPAIRouter {
     if (!this.pythonServiceWarmedUp && this.warmupPromise) {
       await this.warmupPromise;
     }
+  }
+
+  private schedulePeriodicWarmup(): void {
+    if (this.warmupInterval) clearInterval(this.warmupInterval);
+    
+    this.warmupInterval = setInterval(async () => {
+      await this.startWarmupProcess();
+    }, 10 * 60 * 1000); // 10분 주기
   }
 }
 
