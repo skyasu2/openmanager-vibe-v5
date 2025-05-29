@@ -5,7 +5,12 @@ declare module 'ml-regression' {
     slope: number;
     intercept: number;
     predict(x: number): number;
-    coefficientOfDetermination(x: number[], y: number[]): number;
+    score(x: number[], y: number[]): {
+      r: number;
+      r2: number;
+      chi2: number;
+      rmsd: number;
+    };
   }
 }
 

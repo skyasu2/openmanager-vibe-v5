@@ -197,7 +197,10 @@ export class TimeSeriesPredictor {
     
     const regression = new SimpleLinearRegression(x, y);
     const slope = regression.slope;
-    const rSquared = regression.coefficientOfDetermination(x, y);
+    
+    // score() 메서드를 사용하여 r2 값을 얻습니다
+    const scoreResult = regression.score(x, y);
+    const rSquared = scoreResult.r2 || 0;
     
     let trend: 'increasing' | 'decreasing' | 'stable';
     if (Math.abs(slope) < 0.1) {
