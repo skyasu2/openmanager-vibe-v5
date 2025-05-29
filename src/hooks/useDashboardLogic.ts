@@ -4,13 +4,64 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSystemControl } from './useSystemControl';
 import { useSequentialServerGeneration } from './useSequentialServerGeneration';
 
+/**
+ * 서버 통계 인터페이스
+ */
 interface ServerStats {
+  /** 전체 서버 수 */
   total: number;
+  /** 온라인 서버 수 */
   online: number;
+  /** 경고 상태 서버 수 */
   warning: number;
+  /** 오프라인 서버 수 */
   offline: number;
 }
 
+/**
+ * 대시보드 페이지의 모든 비즈니스 로직을 관리하는 커스텀 훅
+ * 
+ * @description
+ * 이 훅은 대시보드 페이지의 복잡한 상태 관리와 비즈니스 로직을 캡슐화합니다.
+ * 
+ * **주요 기능:**
+ * - 상태 관리 (UI 상태, 서버 선택, 통계 등)
+ * - 시스템 제어 (시작/중지/일시정지)
+ * - AI 에이전트 제어
+ * - 반응형 레이아웃 처리
+ * - 사용자 활동 추적
+ * - 애니메이션 제어
+ * 
+ * **최적화된 기능:**
+ * - React.memo와 useCallback을 통한 불필요한 리렌더링 방지
+ * - 디바운스를 적용한 사용자 활동 추적
+ * - 반응형 애니메이션 변수 최적화
+ * 
+ * @example
+ * ```tsx
+ * function DashboardPage() {
+ *   const {
+ *     isAgentOpen,
+ *     serverStats,
+ *     toggleAgent,
+ *     handleNavigateHome,
+ *     systemControl
+ *   } = useDashboardLogic();
+ * 
+ *   return (
+ *     <div>
+ *       <Header onToggle={toggleAgent} stats={serverStats} />
+ *       // ... 기타 컴포넌트
+ *     </div>
+ *   );
+ * }
+ * ```
+ * 
+ * @returns {Object} 대시보드 관련 상태와 핸들러들
+ * 
+ * @since 5.11.0
+ * @author OpenManager Team
+ */
 export function useDashboardLogic() {
   // State management
   const [isAgentOpen, setIsAgentOpen] = useState(false);
@@ -74,7 +125,10 @@ export function useDashboardLogic() {
     }
   }), [isMobile, isTablet]);
 
-  // Server statistics update function
+  /**
+   * 서버 통계를 업데이트하는 함수
+   * @param serverList - 서버 목록
+   */
   const updateServerStats = useCallback((serverList: any[]) => {
     const stats = {
       total: serverList.length,
@@ -85,7 +139,10 @@ export function useDashboardLogic() {
     setServerStats(stats);
   }, []);
 
-  // Server click handler
+  /**
+   * 서버 클릭 핸들러
+   * @param server - 클릭된 서버 객체
+   */
   const handleServerClick = useCallback((server: any) => {
     console.log('🖱️ 서버 카드 클릭:', server.hostname);
     systemControl.recordActivity();
@@ -110,12 +167,17 @@ export function useDashboardLogic() {
     setSelectedServer(formattedServer);
   }, [systemControl.recordActivity]);
 
-  // AI agent control
+  /**
+   * AI 에이전트 닫기 핸들러
+   */
   const closeAgent = useCallback(() => {
     setIsAgentOpen(false);
     systemControl.recordActivity();
   }, [systemControl.recordActivity]);
 
+  /**
+   * AI 에이전트 토글 핸들러
+   */
   const toggleAgent = useCallback(() => {
     if (isAgentOpen) {
       closeAgent();
@@ -125,14 +187,18 @@ export function useDashboardLogic() {
     }
   }, [isAgentOpen, closeAgent, systemControl.recordActivity]);
 
-  // Navigation handlers
+  /**
+   * 홈 페이지로 네비게이션 핸들러
+   */
   const handleNavigateHome = useCallback(() => {
     console.log('🏠 OpenManager 버튼 클릭 - 랜딩페이지로 이동');
     systemControl.recordActivity();
     window.location.href = '/';
   }, [systemControl.recordActivity]);
 
-  // System control handlers
+  /**
+   * 시스템 중지 핸들러
+   */
   const handleSystemStop = useCallback(async () => {
     const sessionType = systemControl.isUserSession ? '사용자 세션' : 'AI 세션';
     
@@ -163,6 +229,9 @@ export function useDashboardLogic() {
     }
   }, [systemControl]);
 
+  /**
+   * 시스템 일시정지 핸들러
+   */
   const handleSystemPause = useCallback(async () => {
     try {
       const result = await systemControl.pauseFullSystem('사용자 요청');
@@ -174,6 +243,9 @@ export function useDashboardLogic() {
     }
   }, [systemControl.pauseFullSystem]);
 
+  /**
+   * 시스템 재개 핸들러
+   */
   const handleSystemResume = useCallback(async () => {
     try {
       const result = await systemControl.resumeFullSystem();
@@ -233,12 +305,16 @@ export function useDashboardLogic() {
     }
   }, [isClient]);
 
-  // User activity tracking
+  // User activity tracking with debounce optimization
   useEffect(() => {
     if (!isClient || !systemControl.isSystemActive || showEntrance) return;
 
     let debounceTimer: NodeJS.Timeout;
     
+    /**
+     * 디바운스된 사용자 활동 핸들러
+     * 1초 내에 여러 번 호출되면 마지막 호출만 실행
+     */
     const handleUserActivity = () => {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
