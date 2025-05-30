@@ -316,7 +316,8 @@ export class SmartCache {
     // 10분마다 만료된 캐시 정리
     setInterval(() => {
       this.cleanupExpiredEntries();
-    }, 10 * 60 * 1000);
+      this.optimizeCache();
+    }, 10 * 60 * 1000); // 10분마다 정리 (성능 최적화)
   }
 
   private cleanupExpiredEntries(): void {
@@ -334,6 +335,10 @@ export class SmartCache {
     if (cleanedCount > 0) {
       console.log(`🧹 만료된 캐시 ${cleanedCount}개 정리 완료`);
     }
+  }
+
+  private optimizeCache(): void {
+    // 캐시 최적화 로직 구현
   }
 
   private calculateCacheSize(): string {

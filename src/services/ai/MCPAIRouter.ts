@@ -464,7 +464,7 @@ export class MCPAIRouter {
     
     this.warmupInterval = setInterval(async () => {
       await this.startWarmupProcess();
-    }, 10 * 60 * 1000); // 10분 주기
+    }, 30 * 60 * 1000); // 30분마다 웜업 (10분 → 30분으로 최적화)
   }
 }
 

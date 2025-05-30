@@ -180,7 +180,7 @@ export const useSystemStore = create<SystemStore>()(
           const sessionType = userInitiated ? '사용자 세션' : 'AI 자동 세션';
           systemLogger.system(`🚀 시스템 활성화 (${sessionType}, ${durationInSeconds / 60}분)`);
 
-          // 1초마다 남은 시간 업데이트
+          // 시스템 상태 업데이트 간격을 3초로 최적화 (1초 → 3초)
           timer = setInterval(() => {
             const current = get();
             if (current.state !== 'active') return;
@@ -201,7 +201,7 @@ export const useSystemStore = create<SystemStore>()(
             } else {
               set({ remainingTime: remaining });
             }
-          }, 1000);
+          }, 3000); // 3초마다 업데이트 (1초 → 3초로 성능 최적화)
 
           // 경고 타이머 설정 (사용자 세션만)
           startWarningTimers(durationInSeconds, userInitiated);
@@ -279,6 +279,7 @@ export const useSystemStore = create<SystemStore>()(
           
           const startTime = current.sessionStartTime!;
           
+          // 세션 연장 시에도 3초 간격으로 최적화
           timer = setInterval(() => {
             const currentState = get();
             if (currentState.state !== 'active') return;
@@ -298,7 +299,7 @@ export const useSystemStore = create<SystemStore>()(
             } else {
               set({ remainingTime: remaining });
             }
-          }, 1000);
+          }, 3000); // 3초마다 업데이트 (성능 최적화)
 
           set({
             remainingTime: newRemainingTime,

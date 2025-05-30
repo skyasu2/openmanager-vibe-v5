@@ -69,7 +69,7 @@ export class SimulationEngine {
     prometheusEnabled: true // 기본적으로 활성화
   };
 
-  private UPDATE_INTERVAL = 10000; // 10초
+  private UPDATE_INTERVAL = 30000; // 30초 (성능 최적화)
 
   private failureScenarios: FailureScenario[] = [
     {

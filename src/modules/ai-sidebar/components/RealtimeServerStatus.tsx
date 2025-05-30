@@ -74,21 +74,13 @@ const RealtimeServerStatusComponent: React.FC<RealtimeServerStatusProps> = ({
     }
   };
 
-  // 적응형 업데이트 주기 - 상황에 따라 조정
+  // 단순화된 업데이트 주기 - 성능 최적화
   const getUpdateInterval = () => {
-    // 심각한 문제가 있으면 더 빠르게 (20초)
-    if (status.errorServers > 0 || status.criticalAlerts > 0) {
-      return 20000;
-    }
-    // 경고 상태면 보통 속도 (30초)
-    if (status.warningServers > 2) {
-      return 30000;
-    }
-    // 모든 것이 정상이면 여유있게 (45초)
-    return 45000;
+    // 모든 상황에서 60초로 통일 (성능 최적화)
+    return 60000; // 60초
   };
 
-  // 30초~45초 적응형 업데이트 - TimerManager 사용
+  // 60초 간격으로 단순화된 업데이트 - TimerManager 사용
   useEffect(() => {
     // AI 처리 중이면 타이머 정지
     if (isProcessing) {
@@ -97,46 +89,24 @@ const RealtimeServerStatusComponent: React.FC<RealtimeServerStatusProps> = ({
       return;
     }
 
-    console.log('📊 서버 상태 업데이트 타이머 시작');
+    console.log('📊 서버 상태 업데이트 타이머 시작 (60초 간격)');
     
     // 즉시 첫 업데이트 실행
     updateServerStatus();
 
-    const scheduleNextUpdate = () => {
-      if (isProcessing) {
-        console.log('🚫 업데이트 실행 취소 - AI 처리 중');
-        return;
-      }
-      
-      updateServerStatus();
-      
-      // 상황에 따른 동적 간격 조정
-      const interval = getUpdateInterval();
-      console.log('📊 다음 업데이트 예정:', interval / 1000 + '초 후');
-      
-      // 기존 타이머 해제하고 새 간격으로 재등록
-      timerManager.unregister('realtime-server-status');
-      timerManager.register({
-        id: 'realtime-server-status',
-        callback: scheduleNextUpdate,
-        interval: interval,
-        priority: 'high'
-      });
-    };
-
-    // 초기 타이머 등록
+    // 단순화된 타이머 등록 - 복잡한 로직 제거
     timerManager.register({
       id: 'realtime-server-status',
-      callback: scheduleNextUpdate,
-      interval: getUpdateInterval(),
-      priority: 'high'
+      callback: updateServerStatus,
+      interval: 60000, // 60초 고정
+      priority: 'low' // 우선순위 낮춤
     });
 
     return () => {
       console.log('🧹 서버 상태 업데이트 타이머 정리');
       timerManager.unregister('realtime-server-status');
     };
-  }, [isProcessing, getUpdateInterval]);
+  }, [isProcessing]); // getUpdateInterval 의존성 제거
 
   // 상태에 따른 색상 결정
   const getStatusColor = () => {

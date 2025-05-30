@@ -175,7 +175,7 @@ export const RealTimeMonitoringDashboard: React.FC = () => {
   useEffect(() => {
     fetchSystemData().then(() => setIsLoading(false));
     
-    const interval = setInterval(fetchSystemData, 10000); // 10초마다 업데이트
+    const interval = setInterval(fetchSystemData, 30000); // 30초마다 업데이트 (10초 → 30초로 최적화)
     return () => clearInterval(interval);
   }, [fetchSystemData]);
 

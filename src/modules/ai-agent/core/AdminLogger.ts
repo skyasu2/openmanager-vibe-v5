@@ -526,24 +526,10 @@ export class AdminLogger {
   }
 
   private startLogCleanup(): void {
-    // 1시간마다 오래된 로그 정리
+    // 30분마다 오래된 로그 정리
     setInterval(() => {
-      const now = Date.now();
-      const maxAge = 7 * 24 * 60 * 60 * 1000; // 7일
-      
-      const oldInteractionCount = this.interactionLogs.length;
-      const oldErrorCount = this.errorLogs.length;
-      
-      this.interactionLogs = this.interactionLogs.filter(log => (now - log.timestamp) < maxAge);
-      this.errorLogs = this.errorLogs.filter(log => (now - log.timestamp) < maxAge);
-      
-      const cleanedInteractions = oldInteractionCount - this.interactionLogs.length;
-      const cleanedErrors = oldErrorCount - this.errorLogs.length;
-      
-      if (cleanedInteractions > 0 || cleanedErrors > 0) {
-        console.log(`🧹 Cleaned up ${cleanedInteractions} interaction logs and ${cleanedErrors} error logs`);
-      }
-    }, 60 * 60 * 1000);
+      this.cleanupOldLogs();
+    }, 30 * 60 * 1000); // 30분마다 정리 (성능 최적화)
   }
 
   /**
@@ -554,5 +540,23 @@ export class AdminLogger {
     this.errorLogs = [];
     this.performanceMetrics = [];
     console.log('🧹 Admin Logger cleanup completed');
+  }
+
+  private cleanupOldLogs(): void {
+    const now = Date.now();
+    const maxAge = 7 * 24 * 60 * 60 * 1000; // 7일
+    
+    const oldInteractionCount = this.interactionLogs.length;
+    const oldErrorCount = this.errorLogs.length;
+    
+    this.interactionLogs = this.interactionLogs.filter(log => (now - log.timestamp) < maxAge);
+    this.errorLogs = this.errorLogs.filter(log => (now - log.timestamp) < maxAge);
+    
+    const cleanedInteractions = oldInteractionCount - this.interactionLogs.length;
+    const cleanedErrors = oldErrorCount - this.errorLogs.length;
+    
+    if (cleanedInteractions > 0 || cleanedErrors > 0) {
+      console.log(`🧹 Cleaned up ${cleanedInteractions} interaction logs and ${cleanedErrors} error logs`);
+    }
   }
 } 

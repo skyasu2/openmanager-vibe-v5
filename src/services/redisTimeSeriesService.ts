@@ -99,8 +99,8 @@ export class RedisTimeSeriesService {
       // 메모리 기반 시계열 저장 (Redis 대안)
       await this.storePointsInMemory(timeSeriesPoints);
       
-      // 주기적으로 Supabase에 백업 (5분마다)
-      if (timestamp % (5 * 60 * 1000) < 10000) { // 5분 간격으로 백업
+      // 주기적으로 Supabase에 백업 (30분마다, 성능 최적화)
+      if (timestamp % (30 * 60 * 1000) < 10000) { // 30분 간격으로 백업 (5분 → 30분)
         await this.backupToSupabase(timeSeriesPoints);
       }
 

@@ -176,13 +176,13 @@ export class PerformanceTester {
     let failedRequests = 0;
     const allResponseTimes: number[] = [];
 
-    // 메트릭 수집 인터벌
+    // 메트릭 수집 인터벌 - 성능 최적화
     const metricsInterval = setInterval(async () => {
       if (!this.isRunning) return;
       
       const metrics = await this.collectCurrentMetrics();
       this.metrics.push(metrics);
-    }, 1000);
+    }, 5000); // 5초마다 수집 (1초 → 5초로 최적화)
 
     // 부하 생성
     const loadPromises: Promise<void>[] = [];

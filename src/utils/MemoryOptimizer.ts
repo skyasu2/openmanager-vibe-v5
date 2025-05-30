@@ -407,7 +407,7 @@ export class MemoryOptimizer {
   /**
    * 🔄 자동 메모리 모니터링 시작
    */
-  startMemoryMonitoring(intervalMs: number = 30000): void {
+  startMemoryMonitoring(intervalMs: number = 60000): void {
     if (this.monitoringInterval) {
       console.log('⚠️ 메모리 모니터링이 이미 실행 중입니다');
       return;
@@ -418,7 +418,7 @@ export class MemoryOptimizer {
     this.monitoringInterval = setInterval(async () => {
       const stats = this.getCurrentMemoryStats();
       
-      // 임계값 확인
+      // 임계값 확인 - 더 신중한 최적화
       if (stats.usagePercent >= this.CRITICAL_THRESHOLD) {
         console.log(`🚨 위험: 메모리 사용률 ${stats.usagePercent}% - 즉시 최적화 실행`);
         
@@ -433,8 +433,8 @@ export class MemoryOptimizer {
         
         await this.optimizeMemoryNow();
       } else if (stats.usagePercent >= this.WARNING_THRESHOLD) {
-        // 마지막 최적화 후 충분한 시간이 지났는지 확인
-        if (Date.now() - this.lastOptimization > this.OPTIMIZATION_COOLDOWN) {
+        // 마지막 최적화 후 충분한 시간이 지났는지 확인 (쿨다운을 2분으로 증가)
+        if (Date.now() - this.lastOptimization > 120000) { // 2분 쿨다운
           console.log(`⚠️ 경고: 메모리 사용률 ${stats.usagePercent}% - 예방적 최적화 실행`);
           
           // 경고 수준 슬랙 알림 전송

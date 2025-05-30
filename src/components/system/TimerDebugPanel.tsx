@@ -27,7 +27,7 @@ export const TimerDebugPanel: React.FC = () => {
     timers: TimerStatus[];
   }>({ totalTimers: 0, activeTimers: 0, timers: [] });
 
-  // 🔄 3초마다 타이머 상태 업데이트 (기존 1초에서 감소)
+  // 🔄 10초마다 타이머 상태 업데이트 (성능 최적화)
   useEffect(() => {
     const updateStatus = () => {
       const status = timerManager.getStatus();
@@ -35,7 +35,7 @@ export const TimerDebugPanel: React.FC = () => {
     };
 
     updateStatus(); // 초기 로드
-    const interval = setInterval(updateStatus, 3000); // 3초마다
+    const interval = setInterval(updateStatus, 10000); // 10초마다 (3초 → 10초로 최적화)
 
     return () => clearInterval(interval);
   }, []);

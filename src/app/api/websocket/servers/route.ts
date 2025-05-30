@@ -92,10 +92,10 @@ export async function GET(request: NextRequest) {
         }
       }, 10000);
 
-      // 🚨 알림 업데이트 (45초마다, 기존 15초에서 증가)
+      // 🚨 알림 업데이트 (2분마다, 성능 최적화)
       const alertInterval = setInterval(() => {
         try {
-          const shouldSendAlert = Math.random() < 0.2; // 20% 확률
+          const shouldSendAlert = Math.random() < 0.1; // 10% 확률로 줄임
           if (shouldSendAlert) {
             const alert = {
               id: `alert-${Date.now()}`,
@@ -109,9 +109,9 @@ export async function GET(request: NextRequest) {
         } catch (error) {
           console.error('알림 전송 실패:', error);
         }
-      }, 45000);
+      }, 120000); // 2분마다 (45초 → 2분으로 최적화)
 
-      // 🏥 시스템 헬스 업데이트 (90초마다, 기존 60초에서 증가)
+      // 🏥 시스템 헬스 업데이트 (3분마다, 성능 최적화)
       const healthInterval = setInterval(() => {
         try {
           const systemHealth = {
@@ -126,16 +126,16 @@ export async function GET(request: NextRequest) {
         } catch (error) {
           console.error('시스템 헬스 전송 실패:', error);
         }
-      }, 90000);
+      }, 180000); // 3분마다 (90초 → 3분으로 최적화)
 
-      // 💓 하트비트 (60초마다, 기존 30초에서 증가)
+      // 💓 하트비트 (2분마다, 성능 최적화)
       const heartbeatInterval = setInterval(() => {
         try {
           sendMessage('heartbeat', { timestamp: new Date().toISOString() });
         } catch (error) {
           console.error('하트비트 전송 실패:', error);
         }
-      }, 60000);
+      }, 120000); // 2분마다 (60초 → 2분으로 최적화)
 
       // 🧹 정리 함수
       const cleanup = () => {

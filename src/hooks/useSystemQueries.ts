@@ -97,8 +97,8 @@ export function useDataGeneratorStatus() {
   return useQuery({
     queryKey: queryKeys.dataGeneratorStatus,
     queryFn: () => api.dataGenerator.getStatus(),
-    staleTime: 1000 * 10, // 10초
-    refetchInterval: 2000, // 2초마다 새로고침 (생성기는 빠르게 변함)
+    staleTime: 1000 * 30, // 30초로 변경
+    refetchInterval: 30000, // 30초마다 새로고침 (2초 → 30초로 성능 최적화)
     select: (data) => {
       if (data?.success && data?.data?.generation) {
         return data.data.generation;

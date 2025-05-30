@@ -247,6 +247,77 @@ class TimerManager {
     console.groupEnd();
     console.groupEnd();
   }
+
+  /**
+   * 🚀 성능 최적화 모드 활성화
+   * - 모든 타이머 간격을 2배로 늘림
+   * - low 우선순위 타이머 일시 정지
+   */
+  enablePerformanceMode(): void {
+    console.log('🚀 성능 최적화 모드 활성화');
+    
+    for (const [id, timer] of this.timers) {
+      // low 우선순위 타이머 정지
+      if (timer.priority === 'low') {
+        this.toggle(id, false);
+        (timer as any)._pausedForPerformance = true;
+        continue;
+      }
+      
+      // 나머지 타이머 간격 2배로 늘림
+      if (timer.enabled) {
+        this.stopTimer(id);
+        timer.interval = timer.interval * 2;
+        (timer as any)._originalInterval = timer.interval / 2;
+        this.startTimer(id);
+      }
+    }
+  }
+
+  /**
+   * 🔄 성능 최적화 모드 비활성화
+   */
+  disablePerformanceMode(): void {
+    console.log('🔄 성능 최적화 모드 비활성화');
+    
+    for (const [id, timer] of this.timers) {
+      // 성능 모드로 정지된 타이머 재시작
+      if ((timer as any)._pausedForPerformance) {
+        this.toggle(id, true);
+        delete (timer as any)._pausedForPerformance;
+      }
+      
+      // 원래 간격으로 복원
+      if ((timer as any)._originalInterval) {
+        this.stopTimer(id);
+        timer.interval = (timer as any)._originalInterval;
+        delete (timer as any)._originalInterval;
+        if (timer.enabled) {
+          this.startTimer(id);
+        }
+      }
+    }
+  }
+
+  /**
+   * 📊 시스템 부하 기반 자동 최적화
+   */
+  autoOptimize(): void {
+    const stats = this.getStatus();
+    const memoryUsage = process.memoryUsage();
+    const memoryPercent = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
+    
+    // 메모리 사용률이 80% 이상이거나 활성 타이머가 20개 이상이면 최적화
+    if (memoryPercent > 80 || stats.activeTimers > 20) {
+      console.log(`🚨 자동 최적화 트리거: 메모리 ${memoryPercent.toFixed(1)}%, 타이머 ${stats.activeTimers}개`);
+      this.enablePerformanceMode();
+      
+      // 5분 후 자동으로 복원
+      setTimeout(() => {
+        this.disablePerformanceMode();
+      }, 5 * 60 * 1000);
+    }
+  }
 }
 
 // 전역 인스턴스 생성
