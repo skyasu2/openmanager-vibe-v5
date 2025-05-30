@@ -87,12 +87,25 @@ export function useDashboardLogic() {
     intervalMs: 1000,
     onServerAdded: (server) => {
       console.log('🚀 새 서버 추가:', server.hostname);
-      updateServerStats(serverGeneration.servers.concat(server));
+      const allServers = serverGeneration.servers.concat(server);
+      const stats = {
+        total: allServers.length,
+        online: allServers.filter(s => s.status === 'online').length,
+        warning: allServers.filter(s => s.status === 'warning').length,
+        offline: allServers.filter(s => s.status === 'offline').length
+      };
+      updateServerStats(stats);
     },
     onComplete: (allServers) => {
       console.log('🎉 모든 서버 생성 완료:', allServers.length);
       setShowSequentialGeneration(false);
-      updateServerStats(allServers);
+      const stats = {
+        total: allServers.length,
+        online: allServers.filter(s => s.status === 'online').length,
+        warning: allServers.filter(s => s.status === 'warning').length,
+        offline: allServers.filter(s => s.status === 'offline').length
+      };
+      updateServerStats(stats);
     },
     onError: (error) => {
       console.error('❌ 서버 생성 오류:', error);
@@ -127,15 +140,9 @@ export function useDashboardLogic() {
 
   /**
    * 서버 통계를 업데이트하는 함수
-   * @param serverList - 서버 목록
+   * @param stats - 서버 통계 객체
    */
-  const updateServerStats = useCallback((serverList: any[]) => {
-    const stats = {
-      total: serverList.length,
-      online: serverList.filter(s => s.status === 'online').length,
-      warning: serverList.filter(s => s.status === 'warning').length,
-      offline: serverList.filter(s => s.status === 'offline').length
-    };
+  const updateServerStats = useCallback((stats: ServerStats) => {
     setServerStats(stats);
   }, []);
 

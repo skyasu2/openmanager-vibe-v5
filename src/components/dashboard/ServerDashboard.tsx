@@ -202,8 +202,20 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
     error 
   } = useServerDataStore();
 
+  // 🚀 디버깅 로그 추가
+  console.log('📊 ServerDashboard 렌더링:', {
+    serversCount: servers?.length,
+    isClient,
+    isLoading,
+    error,
+    searchTerm,
+    currentPage,
+    timestamp: new Date().toISOString()
+  });
+
   // 클라이언트 사이드 확인
   useEffect(() => {
+    console.log('✅ ServerDashboard 클라이언트 설정');
     setIsClient(true);
   }, []);
   

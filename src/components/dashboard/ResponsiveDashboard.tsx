@@ -38,12 +38,15 @@ export default function ResponsiveDashboard({ onStatsUpdate }: ResponsiveDashboa
 
   // 통계 업데이트
   useEffect(() => {
-    if (onStatsUpdate && servers.length > 0) {
+    // 🚀 안전한 배열 처리: servers가 배열인지 확인
+    const safeServers = Array.isArray(servers) ? servers : [];
+    
+    if (onStatsUpdate && safeServers.length > 0) {
       const stats = {
-        total: servers.length,
-        online: servers.filter(s => s.status === 'healthy').length,
-        warning: servers.filter(s => s.status === 'warning').length,
-        offline: servers.filter(s => s.status === 'critical').length
+        total: safeServers.length,
+        online: safeServers.filter(s => s.status === 'healthy').length,
+        warning: safeServers.filter(s => s.status === 'warning').length,
+        offline: safeServers.filter(s => s.status === 'critical').length
       };
       onStatsUpdate(stats);
     }

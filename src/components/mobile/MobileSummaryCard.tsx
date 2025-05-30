@@ -32,20 +32,27 @@ export default function MobileSummaryCard({
   lastUpdate 
 }: MobileSummaryCardProps) {
   
+  // 🚀 안전한 배열 처리: servers가 배열인지 확인
+  const safeServers = Array.isArray(servers) ? servers : [];
+  
+  if (!Array.isArray(servers)) {
+    console.warn('⚠️ MobileSummaryCard: servers가 배열이 아닙니다:', typeof servers);
+  }
+  
   // 서버 통계 계산
   const stats: ServerStats = {
-    total: servers.length,
-    online: servers.filter(s => s.status === 'online').length,
-    warning: servers.filter(s => s.status === 'warning').length,
-    offline: servers.filter(s => s.status === 'offline').length,
-    criticalAlerts: servers.reduce((sum, s) => sum + (s.alerts || 0), 0)
+    total: safeServers.length,
+    online: safeServers.filter(s => s.status === 'online').length,
+    warning: safeServers.filter(s => s.status === 'warning').length,
+    offline: safeServers.filter(s => s.status === 'offline').length,
+    criticalAlerts: safeServers.reduce((sum, s) => sum + (s.alerts || 0), 0)
   };
 
   // 상태별 우선순위 서버 (가장 중요한 것부터)
   const priorityServers = [
-    ...servers.filter(s => s.status === 'offline').slice(0, 2),
-    ...servers.filter(s => s.status === 'warning').slice(0, 2),
-    ...servers.filter(s => s.status === 'online').slice(0, 1)
+    ...safeServers.filter(s => s.status === 'offline').slice(0, 2),
+    ...safeServers.filter(s => s.status === 'warning').slice(0, 2),
+    ...safeServers.filter(s => s.status === 'online').slice(0, 1)
   ].slice(0, 3);
 
   // 전체 상태 결정

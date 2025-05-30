@@ -362,14 +362,17 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
     const errorPrefix = `⚠️ **일시적 제한 모드**\n현재 AI 엔진이 일시적으로 사용할 수 없어 기본 분석 모드로 동작합니다.\n\n`;
     
     if (lowerQuery.includes('cpu') || lowerQuery.includes('씨피유')) {
-      const avgCpu = servers.length > 0 
-        ? Math.round(servers.reduce((sum, s) => sum + (s.metrics?.cpu || 0), 0) / servers.length)
+      // 🚀 안전한 배열 처리: servers가 배열인지 확인
+      const safeServers = Array.isArray(servers) ? servers : [];
+      
+      const avgCpu = safeServers.length > 0 
+        ? Math.round(safeServers.reduce((sum, s) => sum + (s.metrics?.cpu || 0), 0) / safeServers.length)
         : 0;
-      const highCpuServers = servers.filter(s => (s.metrics?.cpu || 0) > 80);
+      const highCpuServers = safeServers.filter(s => (s.metrics?.cpu || 0) > 80);
       
       return errorPrefix +
         `🖥️ **CPU 상태 분석**\n\n` +
-        `• 전체 서버: ${servers.length}대\n` +
+        `• 전체 서버: ${safeServers.length}대\n` +
         `• 평균 CPU 사용률: **${avgCpu}%**\n` +
         `• 고부하 서버: **${highCpuServers.length}대**\n\n` +
         (highCpuServers.length > 0 
@@ -379,14 +382,17 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
     }
     
     if (lowerQuery.includes('메모리') || lowerQuery.includes('memory') || lowerQuery.includes('ram')) {
-      const avgMemory = servers.length > 0 
-        ? Math.round(servers.reduce((sum, s) => sum + (s.metrics?.memory || 0), 0) / servers.length)
+      // 🚀 안전한 배열 처리: servers가 배열인지 확인
+      const safeServers = Array.isArray(servers) ? servers : [];
+      
+      const avgMemory = safeServers.length > 0 
+        ? Math.round(safeServers.reduce((sum, s) => sum + (s.metrics?.memory || 0), 0) / safeServers.length)
         : 0;
-      const highMemoryServers = servers.filter(s => (s.metrics?.memory || 0) > 85);
+      const highMemoryServers = safeServers.filter(s => (s.metrics?.memory || 0) > 85);
       
       return errorPrefix +
         `💾 **메모리 상태 분석**\n\n` +
-        `• 전체 서버: ${servers.length}대\n` +
+        `• 전체 서버: ${safeServers.length}대\n` +
         `• 평균 메모리 사용률: **${avgMemory}%**\n` +
         `• 고사용 서버: **${highMemoryServers.length}대**\n\n` +
         (highMemoryServers.length > 0 
@@ -396,16 +402,19 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
     }
     
     if (lowerQuery.includes('서버') && lowerQuery.includes('상태')) {
-      const healthyCount = servers.filter(s => s.status === 'healthy').length;
-      const warningCount = servers.filter(s => s.status === 'warning').length;
-      const criticalCount = servers.filter(s => s.status === 'critical').length;
+      // 🚀 안전한 배열 처리: servers가 배열인지 확인
+      const safeServers = Array.isArray(servers) ? servers : [];
+      
+      const healthyCount = safeServers.filter(s => s.status === 'healthy').length;
+      const warningCount = safeServers.filter(s => s.status === 'warning').length;
+      const criticalCount = safeServers.filter(s => s.status === 'critical').length;
       
       return errorPrefix +
         `📊 **전체 서버 상태**\n\n` +
-        `• 총 서버 수: **${servers.length}대**\n` +
-        `• 정상: **${healthyCount}대** (${Math.round(healthyCount/servers.length*100)}%)\n` +
-        `• 경고: **${warningCount}대** (${Math.round(warningCount/servers.length*100)}%)\n` +
-        `• 위험: **${criticalCount}대** (${Math.round(criticalCount/servers.length*100)}%)\n\n` +
+        `• 총 서버 수: **${safeServers.length}대**\n` +
+        `• 정상: **${healthyCount}대** (${Math.round(healthyCount/safeServers.length*100)}%)\n` +
+        `• 경고: **${warningCount}대** (${Math.round(warningCount/safeServers.length*100)}%)\n` +
+        `• 위험: **${criticalCount}대** (${Math.round(criticalCount/safeServers.length*100)}%)\n\n` +
         (criticalCount > 0 ? '🚨 위험 상태 서버에 대한 즉시 점검이 필요합니다.\n' :
          warningCount > 0 ? '⚠️ 일부 서버에서 경고 상태가 감지되었습니다.\n' :
          '✅ 모든 서버가 정상 상태입니다.\n') +
@@ -428,9 +437,12 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
     }
     
     // 기본 응답 (에러 정보 포함)
+    // 🚀 안전한 배열 처리: servers가 배열인지 확인
+    const safeServers = Array.isArray(servers) ? servers : [];
+    
     return errorPrefix +
       `📊 **현재 상황**\n\n` +
-      `• 모니터링 서버: **${servers.length}대**\n` +
+      `• 모니터링 서버: **${safeServers.length}대**\n` +
       `• 기본 기능: ✅ 정상 동작\n` +
       `• AI 분석: ⚠️ 일시 중단\n` +
       `• 에러 복구: ${isSystemHealthy ? '✅ 거의 완료' : '🔄 진행 중'}\n\n` +
