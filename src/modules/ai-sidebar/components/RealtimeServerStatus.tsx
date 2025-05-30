@@ -11,6 +11,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { timerManager } from '../../../utils/TimerManager';
 
 interface ServerStatus {
   totalServers: number;
@@ -64,11 +65,23 @@ const RealtimeServerStatusComponent: React.FC = () => {
     }
   };
 
-  // 15초마다 업데이트
+  // 15초마다 업데이트 - TimerManager 사용
   useEffect(() => {
+    // 초기 데이터 로드
     updateServerStatus();
-    const interval = setInterval(updateServerStatus, 15000);
-    return () => clearInterval(interval);
+
+    // TimerManager에 타이머 등록
+    timerManager.register({
+      id: 'realtime-server-status',
+      callback: updateServerStatus,
+      interval: 15000,
+      priority: 'high'
+    });
+
+    return () => {
+      // 컴포넌트 언마운트 시 타이머 해제
+      timerManager.unregister('realtime-server-status');
+    };
   }, []);
 
   // 상태에 따른 색상 결정

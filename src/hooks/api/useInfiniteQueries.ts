@@ -9,7 +9,7 @@
  */
 
 import { useInfiniteQuery, useQueryClient, InfiniteData } from '@tanstack/react-query';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useEffect } from 'react';
 
 // 📄 페이지네이션 응답 타입
 interface PaginatedResponse<T> {
@@ -319,10 +319,10 @@ export const useInfiniteScrollManager = () => {
   }, [queryClient]);
 
   // ⏰ 자동 메모리 최적화 (5분마다)
-  useCallback(() => {
+  useEffect(() => {
     const interval = setInterval(optimizeMemory, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [optimizeMemory])();
+  }, [optimizeMemory]);
 
   return {
     getAllInfiniteQueries,

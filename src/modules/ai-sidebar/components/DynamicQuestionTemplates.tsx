@@ -11,6 +11,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { timerManager } from '../../../utils/TimerManager';
 
 interface QuestionTemplate {
   id: string;
@@ -103,16 +104,24 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
   const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
   const [isRotating, setIsRotating] = useState(true);
 
-  // 15초마다 질문 템플릿 변경 - 질문 처리 중에는 정지
+  // 15초마다 질문 템플릿 변경 - TimerManager 사용
   useEffect(() => {
-    if (!isRotating || isProcessing) return; // 처리 중일 때도 정지
+    if (!isRotating || isProcessing) return;
 
-    const interval = setInterval(() => {
-      setCurrentTemplateIndex((prev) => (prev + 1) % questionTemplates.length);
-    }, 15000);
+    // TimerManager에 질문 회전 타이머 등록
+    timerManager.register({
+      id: 'dynamic-question-rotation',
+      callback: () => {
+        setCurrentTemplateIndex((prev) => (prev + 1) % questionTemplates.length);
+      },
+      interval: 15000,
+      priority: 'medium'
+    });
 
-    return () => clearInterval(interval);
-  }, [isRotating, isProcessing]); // isProcessing 의존성 추가
+    return () => {
+      timerManager.unregister('dynamic-question-rotation');
+    };
+  }, [isRotating, isProcessing]);
 
   // 처리 상태에 따른 회전 제어
   useEffect(() => {
