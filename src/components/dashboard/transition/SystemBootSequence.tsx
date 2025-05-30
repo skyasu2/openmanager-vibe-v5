@@ -167,13 +167,14 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
         width: '100vw',
         height: '100vh',
         backgroundColor: '#1e293b',
-        zIndex: 9999,
+        zIndex: 99999, // 더 높은 z-index
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         color: 'white',
         fontSize: '24px',
-        fontFamily: 'system-ui'
+        fontFamily: 'system-ui',
+        overflow: 'hidden' // 스크롤 방지
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ 
@@ -188,6 +189,16 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
           <div>🚀 OpenManager 시스템 초기화 중...</div>
           <div style={{ fontSize: '16px', marginTop: '10px', opacity: 0.8 }}>
             서버 데이터: {servers.length}개 | 단계: {currentPhase}
+          </div>
+          <div style={{ 
+            fontSize: '14px', 
+            marginTop: '20px', 
+            padding: '10px',
+            backgroundColor: 'rgba(255,255,255,0.1)',
+            borderRadius: '8px',
+            border: '2px solid #10b981'
+          }}>
+            ✅ 로직 정상 작동 - CSS 렌더링 테스트 중
           </div>
         </div>
         <style>{`
@@ -209,10 +220,20 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
           {/* 메인 로더 (코어 시스템 로딩) */}
           <AnimatePresence mode="wait">
             {(currentPhase === 'initializing' || currentPhase === 'core-loading') && (
-              <DashboardLoader
-                onBootComplete={handleCoreBootComplete}
-                onPhaseChange={handlePhaseChange}
-              />
+              <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                zIndex: 99999,
+                backgroundColor: '#0f172a'
+              }}>
+                <DashboardLoader
+                  onBootComplete={handleCoreBootComplete}
+                  onPhaseChange={handlePhaseChange}
+                />
+              </div>
             )}
           </AnimatePresence>
 
