@@ -28,7 +28,7 @@ jobs:
         run: npm run type-check
         
       - name: 🧪 Run unit tests
-        run: npm run test:unit:run
+        run: npm run test:unit
         
       - name: 📊 Generate coverage report
         run: npm run test:unit:coverage
