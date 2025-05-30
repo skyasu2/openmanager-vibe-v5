@@ -46,6 +46,10 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
     
     if (autoStart) {
       setIsActive(true);
+      // 🚨 즉시 시작 - initializing에서 core-loading으로 빠르게 전환
+      setTimeout(() => {
+        setCurrentPhase('core-loading');
+      }, 500);
     }
   }, [skipAnimation, autoStart, onBootComplete]);
 
@@ -143,6 +147,57 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
   // 렌더링 단계별 분기
   if (skipAnimation || currentPhase === 'complete') {
     return null;
+  }
+
+  // 🚨 임시 디버깅 - 화면이 비어있는 문제 해결
+  console.log('🔍 SystemBootSequence 렌더링:', { 
+    currentPhase, 
+    skipAnimation, 
+    isActive,
+    servers: servers.length 
+  });
+
+  // 임시 응급처치 - 기본 로딩 화면 먼저 표시
+  if (currentPhase === 'initializing' && servers.length === 0) {
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: '#1e293b',
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        fontSize: '24px',
+        fontFamily: 'system-ui'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ 
+            width: '60px', 
+            height: '60px', 
+            border: '4px solid #3b82f6', 
+            borderTop: '4px solid #ffffff',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 20px'
+          }}></div>
+          <div>🚀 OpenManager 시스템 초기화 중...</div>
+          <div style={{ fontSize: '16px', marginTop: '10px', opacity: 0.8 }}>
+            서버 데이터: {servers.length}개 | 단계: {currentPhase}
+          </div>
+        </div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
   }
 
   return (

@@ -77,10 +77,22 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
   const [progress, setProgress] = useState(0);
   const [isAnimating, setIsAnimating] = useState(true);
 
+  // 🚨 디버깅 로그 추가
+  console.log('🔍 DashboardLoader 렌더링:', { 
+    currentPhaseIndex, 
+    progress, 
+    isAnimating,
+    totalPhases: BOOT_SEQUENCE.length 
+  });
+
   useEffect(() => {
+    // 🚨 안전장치 - 컴포넌트가 마운트되었음을 즉시 알림
+    console.log('🚀 DashboardLoader 마운트됨');
+    
     if (currentPhaseIndex >= BOOT_SEQUENCE.length) {
       // 부팅 완료
       setTimeout(() => {
+        console.log('✅ DashboardLoader 완료');
         setIsAnimating(false);
         onBootComplete();
       }, 500);

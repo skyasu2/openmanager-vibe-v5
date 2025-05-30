@@ -125,6 +125,28 @@ export default function DashboardPage() {
 
   // ✨ 새로운 부팅 시퀀스 표시
   if (showBootSequence) {
+    // 🚨 긴급 우회 - URL 파라미터로 강제 스킵 가능
+    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const forceSkip = urlParams?.get('force-skip') === 'true';
+    
+    if (forceSkip) {
+      console.log('🚨 Force skip 모드 - 즉시 대시보드 표시');
+      return (
+        <div className="min-h-screen bg-gray-50">
+          <div className="p-8 text-center">
+            <h1 className="text-2xl font-bold mb-4">🚨 긴급 모드 - 대시보드 로딩</h1>
+            <p className="text-gray-600 mb-4">정상 전환 시스템을 우회하고 있습니다.</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              정상 모드로 재시도
+            </button>
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <SystemBootSequence
         servers={serverGeneration.servers}
