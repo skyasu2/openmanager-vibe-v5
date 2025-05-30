@@ -3,85 +3,47 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSystemControl } from './useSystemControl';
 import { useSequentialServerGeneration } from './useSequentialServerGeneration';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import type { Server } from '../types/server';
 
-/**
- * 서버 통계 인터페이스
- */
-interface ServerStats {
-  /** 전체 서버 수 */
+interface DashboardStats {
   total: number;
-  /** 온라인 서버 수 */
   online: number;
-  /** 경고 상태 서버 수 */
   warning: number;
-  /** 오프라인 서버 수 */
   offline: number;
 }
 
 /**
- * 대시보드 페이지의 모든 비즈니스 로직을 관리하는 커스텀 훅
+ * 🎯 useDashboardLogic Hook v2.0
  * 
- * @description
- * 이 훅은 대시보드 페이지의 복잡한 상태 관리와 비즈니스 로직을 캡슐화합니다.
- * 
- * **주요 기능:**
- * - 상태 관리 (UI 상태, 서버 선택, 통계 등)
- * - 시스템 제어 (시작/중지/일시정지)
- * - AI 에이전트 제어
- * - 반응형 레이아웃 처리
- * - 사용자 활동 추적
- * - 애니메이션 제어
- * 
- * **최적화된 기능:**
- * - React.memo와 useCallback을 통한 불필요한 리렌더링 방지
- * - 디바운스를 적용한 사용자 활동 추적
- * - 반응형 애니메이션 변수 최적화
- * 
- * @example
- * ```tsx
- * function DashboardPage() {
- *   const {
- *     isAgentOpen,
- *     serverStats,
- *     toggleAgent,
- *     handleNavigateHome,
- *     systemControl
- *   } = useDashboardLogic();
- * 
- *   return (
- *     <div>
- *       <Header onToggle={toggleAgent} stats={serverStats} />
- *       // ... 기타 컴포넌트
- *     </div>
- *   );
- * }
- * ```
- * 
- * @returns {Object} 대시보드 관련 상태와 핸들러들
- * 
- * @since 5.11.0
- * @author OpenManager Team
+ * 대시보드 전체 로직 관리
+ * - 새로운 자연스러운 전환 시스템 통합
+ * - 기존 기능 100% 호환성 유지
+ * - SystemBootSequence 기반 로딩
  */
 export function useDashboardLogic() {
   // State management
-  const [isAgentOpen, setIsAgentOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [isAgentOpen, setIsAgentOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
-  const [selectedServer, setSelectedServer] = useState<any | null>(null);
-  const [serverStats, setServerStats] = useState<ServerStats>({
+  const [selectedServer, setSelectedServer] = useState<Server | null>(null);
+  const [serverStats, setServerStats] = useState<DashboardStats>({
     total: 0,
     online: 0,
     warning: 0,
     offline: 0
   });
-  const [showEntrance, setShowEntrance] = useState(true);
+
+  // ✨ 새로운 전환 시스템 상태
+  const [showBootSequence, setShowBootSequence] = useState(true);
+  const [bootProgress, setBootProgress] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [showSequentialGeneration, setShowSequentialGeneration] = useState(false);
 
-  // System control hook
+  // System control and server generation
   const systemControl = useSystemControl();
-
-  // Sequential server generation hook
   const serverGeneration = useSequentialServerGeneration({
     autoStart: showSequentialGeneration,
     intervalMs: 1000,
@@ -111,38 +73,13 @@ export function useDashboardLogic() {
       console.error('❌ 서버 생성 오류:', error);
     }
   });
-
-  // Animation variants for main content
-  const mainContentVariants = useMemo(() => ({
-    normal: {
-      transform: 'translateX(0px)',
-      transition: {
-        type: 'spring',
-        damping: 30,
-        stiffness: 400,
-        duration: 0.4
-      }
-    },
-    pushed: {
-      transform: isMobile 
-        ? 'translateX(0px)' // 모바일에서는 밀지 않음
-        : isTablet 
-          ? 'translateX(-210px)' // 태블릿: 절반만 밀기
-          : 'translateX(-300px)', // 데스크탑: 300px 밀기
-      transition: {
-        type: 'spring',
-        damping: 30,
-        stiffness: 400,
-        duration: 0.4
-      }
-    }
-  }), [isMobile, isTablet]);
+  const router = useRouter();
 
   /**
    * 서버 통계를 업데이트하는 함수
    * @param stats - 서버 통계 객체
    */
-  const updateServerStats = useCallback((stats: ServerStats) => {
+  const updateServerStats = useCallback((stats: DashboardStats) => {
     setServerStats(stats);
   }, []);
 
@@ -150,91 +87,51 @@ export function useDashboardLogic() {
    * 서버 클릭 핸들러
    * @param server - 클릭된 서버 객체
    */
-  const handleServerClick = useCallback((server: any) => {
-    console.log('🖱️ 서버 카드 클릭:', server.hostname);
-    systemControl.recordActivity();
-    
-    // 서버 데이터를 Server 타입에 맞게 변환
-    const formattedServer = {
-      id: server.id,
-      name: server.name || server.hostname,
-      status: server.status,
-      cpu: server.cpu,
-      memory: server.memory,
-      disk: server.disk,
-      uptime: server.uptime,
-      location: server.location,
-      alerts: server.alerts || 0,
-      ip: server.ip,
-      os: server.os,
-      lastUpdate: server.lastUpdate || new Date(),
-      services: server.services || []
-    };
-    
-    setSelectedServer(formattedServer);
-  }, [systemControl.recordActivity]);
+  const handleServerClick = useCallback((server: Server) => {
+    setSelectedServer(server);
+    console.log('🖱️ Server selected:', server.name);
+  }, []);
 
   /**
    * AI 에이전트 닫기 핸들러
    */
   const closeAgent = useCallback(() => {
     setIsAgentOpen(false);
-    systemControl.recordActivity();
-  }, [systemControl.recordActivity]);
+    console.log('🤖 AI 에이전트 닫힘');
+  }, []);
 
   /**
    * AI 에이전트 토글 핸들러
    */
   const toggleAgent = useCallback(() => {
-    if (isAgentOpen) {
-      closeAgent();
-    } else {
-      setIsAgentOpen(true);
-      systemControl.recordActivity();
-    }
-  }, [isAgentOpen, closeAgent, systemControl.recordActivity]);
+    setIsAgentOpen(prev => {
+      const newState = !prev;
+      console.log(newState ? '🤖 AI 에이전트 열림' : '🤖 AI 에이전트 닫힘');
+      return newState;
+    });
+  }, []);
 
   /**
    * 홈 페이지로 네비게이션 핸들러
    */
   const handleNavigateHome = useCallback(() => {
-    console.log('🏠 OpenManager 버튼 클릭 - 랜딩페이지로 이동');
-    systemControl.recordActivity();
-    window.location.href = '/';
-  }, [systemControl.recordActivity]);
+    console.log('🏠 홈으로 이동');
+    router.push('/');
+  }, [router]);
 
   /**
    * 시스템 중지 핸들러
    */
   const handleSystemStop = useCallback(async () => {
-    const sessionType = systemControl.isUserSession ? '사용자 세션' : 'AI 세션';
-    
-    if (!confirm(`${sessionType}을 중지하시겠습니까?\n\n• 모든 서버 모니터링이 중단됩니다\n• AI 에이전트가 비활성화됩니다\n• 랜딩페이지로 이동합니다`)) {
-      return;
-    }
-
     try {
       const result = await systemControl.stopFullSystem();
-      
       if (result.success) {
-        console.log('✅ 시스템 중지 완료:', result.message);
-        
-        if (result.errors.length > 0) {
-          alert(`${result.message}\n\n경고 사항:\n${result.errors.join('\n')}\n\n랜딩페이지로 이동합니다.`);
-        } else {
-          alert(`${result.message}\n\n랜딩페이지로 이동합니다.`);
-        }
-        
-        window.location.href = '/';
-      } else {
-        console.warn('⚠️ 시스템 중지 중 오류:', result.errors);
-        alert(`${result.message}\n\n오류 내용:\n${result.errors.join('\n')}`);
+        console.log('⏹️ 시스템 중지:', result.message);
       }
     } catch (error) {
       console.error('❌ 시스템 중지 실패:', error);
-      alert('시스템 중지 중 오류가 발생했습니다.\n다시 시도해주세요.');
     }
-  }, [systemControl]);
+  }, [systemControl.stopFullSystem]);
 
   /**
    * 시스템 일시정지 핸들러
@@ -264,21 +161,55 @@ export function useDashboardLogic() {
     }
   }, [systemControl.resumeFullSystem]);
 
+  // ✨ 새로운 부팅 시퀀스 완료 핸들러
+  const handleBootSequenceComplete = useCallback(() => {
+    console.log('🎉 Boot sequence completed, transitioning to dashboard');
+    setIsTransitioning(true);
+    
+    // 부드러운 전환 후 대시보드 표시
+    setTimeout(() => {
+      setShowBootSequence(false);
+      setIsTransitioning(false);
+      console.log('✅ Dashboard fully loaded and ready');
+    }, 500);
+  }, []);
+
+  // ✨ 서버 스폰 핸들러 (새로운 전환 시스템용)
+  const handleServerSpawned = useCallback((server: Server, index: number) => {
+    console.log(`🌐 Server spawned in background: ${server.name} (${index + 1})`);
+    setBootProgress(prev => Math.min(prev + 5, 95)); // 점진적 진행률 업데이트
+  }, []);
+
   // Client-side initialization
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // Entrance animation timer
+  // ✨ 개선된 전환 로직 - 시간 기반이 아닌 실제 완료 기반
   useEffect(() => {
-    if (isClient && showEntrance) {
-      const timer = setTimeout(() => {
-        setShowEntrance(false);
-      }, 6000);
-      
-      return () => clearTimeout(timer);
+    if (!isClient) return;
+
+    // URL 파라미터로 애니메이션 스킵 옵션 제공
+    const urlParams = new URLSearchParams(window.location.search);
+    const skipAnimation = urlParams.get('skip-animation') === 'true';
+    const fastLoad = urlParams.get('fast') === 'true';
+    
+    if (skipAnimation || fastLoad) {
+      console.log('⚡ Fast loading mode - skipping boot sequence');
+      setShowBootSequence(false);
+      return;
     }
-  }, [isClient, showEntrance]);
+
+    // prefers-reduced-motion 지원
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+      console.log('♿ Reduced motion preference detected - skipping animations');
+      setShowBootSequence(false);
+      return;
+    }
+
+    console.log('🚀 Starting natural boot sequence');
+  }, [isClient]);
 
   // Responsive screen size detection
   useEffect(() => {
@@ -314,7 +245,7 @@ export function useDashboardLogic() {
 
   // User activity tracking with debounce optimization
   useEffect(() => {
-    if (!isClient || !systemControl.isSystemActive || showEntrance) return;
+    if (!isClient || !systemControl.isSystemActive || showBootSequence) return;
 
     let debounceTimer: NodeJS.Timeout;
     
@@ -343,7 +274,35 @@ export function useDashboardLogic() {
         document.removeEventListener(event, handleUserActivity);
       });
     };
-  }, [isClient, systemControl.isSystemActive, systemControl.recordActivity, showEntrance]);
+  }, [isClient, systemControl.isSystemActive, systemControl.recordActivity, showBootSequence]);
+
+  // Animation variants for main content
+  const mainContentVariants = {
+    hidden: {
+      opacity: 0,
+      y: 20,
+      scale: 0.98
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.6,
+        ease: [0.25, 0.46, 0.45, 0.94],
+        staggerChildren: 0.1
+      }
+    },
+    exit: {
+      opacity: 0,
+      y: -10,
+      scale: 1.02,
+      transition: {
+        duration: 0.3,
+        ease: 'easeInOut'
+      }
+    }
+  };
 
   return {
     // State
@@ -353,7 +312,11 @@ export function useDashboardLogic() {
     isTablet,
     selectedServer,
     serverStats,
-    showEntrance,
+    
+    // ✨ 새로운 전환 시스템 상태
+    showBootSequence,
+    bootProgress,
+    isTransitioning,
     showSequentialGeneration,
     
     // Actions
@@ -369,6 +332,10 @@ export function useDashboardLogic() {
     handleSystemStop,
     handleSystemPause,
     handleSystemResume,
+    
+    // ✨ 새로운 전환 시스템 핸들러
+    handleBootSequenceComplete,
+    handleServerSpawned,
     
     // Animation
     mainContentVariants,

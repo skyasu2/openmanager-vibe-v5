@@ -3,9 +3,9 @@
 import { Suspense, lazy } from 'react';
 import { useDashboardLogic } from '../../hooks/useDashboardLogic';
 import { AISidebar, type AISidebarConfig } from '../../modules/ai-sidebar';
+import { SystemBootSequence } from '../../components/dashboard/transition';
 
 // 동적 임포트로 코드 스플리팅 적용
-const DashboardEntrance = lazy(() => import('../../components/dashboard/DashboardEntrance'));
 const DashboardHeader = lazy(() => import('../../components/dashboard/DashboardHeader'));
 const DashboardContent = lazy(() => import('../../components/dashboard/DashboardContent'));
 const SystemStatusDisplay = lazy(() => import('../../components/dashboard/SystemStatusDisplay'));
@@ -54,7 +54,7 @@ export default function DashboardPage() {
     isClient,
     selectedServer,
     serverStats,
-    showEntrance,
+    showBootSequence,
     showSequentialGeneration,
     
     // Actions
@@ -70,6 +70,10 @@ export default function DashboardPage() {
     handleSystemStop,
     handleSystemPause,
     handleSystemResume,
+    
+    // ✨ 새로운 전환 시스템 핸들러
+    handleBootSequenceComplete,
+    handleServerSpawned,
     
     // Animation
     mainContentVariants,
@@ -119,19 +123,16 @@ export default function DashboardPage() {
     );
   }
 
-  // Entrance animation
-  if (showEntrance) {
+  // ✨ 새로운 부팅 시퀀스 표시
+  if (showBootSequence) {
     return (
-      <Suspense fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-            <p className="text-gray-600">시스템 초기화 중...</p>
-          </div>
-        </div>
-      }>
-        <DashboardEntrance onStatsUpdate={updateServerStats} />
-      </Suspense>
+      <SystemBootSequence
+        servers={serverGeneration.servers}
+        onBootComplete={handleBootSequenceComplete}
+        onServerSpawned={handleServerSpawned}
+        skipAnimation={false}
+        autoStart={true}
+      />
     );
   }
 
@@ -192,15 +193,17 @@ export default function DashboardPage() {
 
       {/* 플로팅 시스템 제어판 */}
       <Suspense fallback={null}>
-        <FloatingSystemControl
-          systemState={systemControl}
-          aiAgentState={{ state: 'active' }}
-          isSystemActive={systemControl.isSystemActive}
-          isSystemPaused={systemControl.isSystemPaused}
-          onStartSystem={async () => { window.location.href = '/'; }}
-          onStopSystem={handleSystemStop}
-          onResumeSystem={handleSystemResume}
-        />
+        <div className="fixed bottom-6 right-6 z-30">
+          <FloatingSystemControl
+            systemState={systemControl}
+            aiAgentState={{ state: 'active' }}
+            isSystemActive={systemControl.isSystemActive}
+            isSystemPaused={systemControl.isSystemPaused}
+            onStartSystem={async () => { window.location.href = '/'; }}
+            onStopSystem={handleSystemStop}
+            onResumeSystem={handleSystemResume}
+          />
+        </div>
       </Suspense>
     </div>
   );
