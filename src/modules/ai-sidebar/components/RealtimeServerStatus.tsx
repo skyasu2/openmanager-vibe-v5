@@ -48,7 +48,10 @@ const RealtimeServerStatusComponent: React.FC<RealtimeServerStatusProps> = ({
       const response = await fetch('/api/dashboard');
       if (response.ok) {
         const data = await response.json();
-        const servers = data.servers || [];
+        // API 응답 구조에 맞춰 서버 데이터 접근
+        const servers = data.data?.servers || data.servers || [];
+        
+        console.log('📊 서버 데이터 수신:', servers.length + '개');
         
         const newStatus: ServerStatus = {
           totalServers: servers.length,

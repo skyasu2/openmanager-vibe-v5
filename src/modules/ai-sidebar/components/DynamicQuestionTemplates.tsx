@@ -168,7 +168,10 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
         const response = await fetch('/api/dashboard');
         if (response.ok) {
           const data = await response.json();
-          const servers = data.servers || [];
+          // API 응답 구조에 맞춰 서버 데이터 접근
+          const servers = data.data?.servers || data.servers || [];
+          
+          console.log('🎯 질문 우선순위 업데이트 - 서버 데이터:', servers.length + '개');
           
           // 서버 상황 분석
           const criticalCount = servers.reduce((count: number, s: any) => {

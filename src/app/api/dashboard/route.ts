@@ -72,6 +72,9 @@ export async function GET(request: NextRequest) {
 
     // 5. 대시보드 데이터 구성
     const dashboardData = {
+      // 🖥️ 서버 원본 데이터 (AI 컴포넌트용)
+      servers: servers,
+
       // 📊 전체 현황 요약
       overview: {
         total_servers: servers.length,
