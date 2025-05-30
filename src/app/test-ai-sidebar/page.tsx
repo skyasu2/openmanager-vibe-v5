@@ -130,9 +130,9 @@ export default function TestAISidebarPage() {
                 Before: 기존 AI 인터페이스
               </h3>
               <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 text-sm">
-                <p className="text-gray-600 dark:text-gray-400 mb-2">사용자: "서버 상태 확인"</p>
+                <p className="text-gray-600 dark:text-gray-400 mb-2">사용자: &quot;서버 상태 확인&quot;</p>
                 <p className="text-gray-500 dark:text-gray-500 mb-2">[3초 대기...]</p>
-                <p className="text-gray-800 dark:text-gray-200">AI: "정상입니다"</p>
+                <p className="text-gray-800 dark:text-gray-200">AI: &quot;정상입니다&quot;</p>
               </div>
             </div>
 
@@ -141,10 +141,10 @@ export default function TestAISidebarPage() {
                 After: LangGraph + ReAct
               </h3>
               <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-sm">
-                <p className="text-blue-800 dark:text-blue-200 mb-1">💭 "사용자가 서버 상태에 대해 질문했습니다"</p>
-                <p className="text-green-800 dark:text-green-200 mb-1">👀 "20개 서버 상태 확인 완료"</p>
-                <p className="text-orange-800 dark:text-orange-200 mb-1">⚡ "server_status_check 분석 실행"</p>
-                <p className="text-purple-800 dark:text-purple-200">✅ "전체 20개 서버 중: 정상 15개, 경고 3개, 오류 2개"</p>
+                <p className="text-blue-800 dark:text-blue-200 mb-1">💭 &quot;사용자가 서버 상태에 대해 질문했습니다&quot;</p>
+                <p className="text-green-800 dark:text-green-200 mb-1">👀 &quot;20개 서버 상태 확인 완료&quot;</p>
+                <p className="text-orange-800 dark:text-orange-200 mb-1">⚡ &quot;server_status_check 분석 실행&quot;</p>
+                <p className="text-purple-800 dark:text-purple-200">✅ &quot;전체 20개 서버 중: 정상 15개, 경고 3개, 오류 2개&quot;</p>
               </div>
             </div>
           </div>
@@ -160,7 +160,7 @@ export default function TestAISidebarPage() {
           <div className="space-y-4 text-green-700 dark:text-green-300">
             <div className="flex items-start space-x-3">
               <span className="font-bold text-green-600 dark:text-green-400">1.</span>
-              <p>상단의 <strong>"AI 사이드바 열기"</strong> 버튼을 클릭하세요</p>
+              <p>상단의 <strong>&quot;AI 사이드바 열기&quot;</strong> 버튼을 클릭하세요</p>
             </div>
             <div className="flex items-start space-x-3">
               <span className="font-bold text-green-600 dark:text-green-400">2.</span>
