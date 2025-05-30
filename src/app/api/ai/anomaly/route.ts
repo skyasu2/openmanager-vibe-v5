@@ -95,7 +95,7 @@ async function runAnomalyDetectionHandler(request: NextRequest) {
 
     // 서버 데이터 가져오기
     const dataGenerator = new EnhancedDataGenerator();
-    let enhancedServers = dataGenerator.generateRealisticServerMetrics(10, 'normal');
+    const enhancedServers = dataGenerator.generateRealisticServerMetrics(10, 'normal');
     
     // EnhancedServerMetrics를 기존 형식으로 변환
     let servers = enhancedServers.map(enhancedServer => ({

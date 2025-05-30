@@ -136,7 +136,7 @@ const RealtimeServerStatusComponent: React.FC<RealtimeServerStatusProps> = ({
       console.log('🧹 서버 상태 업데이트 타이머 정리');
       timerManager.unregister('realtime-server-status');
     };
-  }, [isProcessing]); // 의존성을 isProcessing만으로 단순화
+  }, [isProcessing, getUpdateInterval]);
 
   // 상태에 따른 색상 결정
   const getStatusColor = () => {

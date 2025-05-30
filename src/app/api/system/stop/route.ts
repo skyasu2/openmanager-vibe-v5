@@ -7,7 +7,7 @@ import { createSuccessResponse, createErrorResponse, withErrorHandler } from '..
  * POST /api/system/stop
  * 통합 상태 관리자를 통한 시뮬레이션 엔진 중지
  */
-async function stopSystemHandler(request?: NextRequest) {
+async function stopSystemHandler(request: NextRequest) {
   const startTime = Date.now();
   
   try {

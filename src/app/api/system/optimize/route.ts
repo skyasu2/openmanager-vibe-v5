@@ -108,12 +108,8 @@ async function optimizeMemoryHandler(request: NextRequest) {
       `메모리 최적화 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
       'INTERNAL_SERVER_ERROR',
       {
-        currentMemory: {
-          usagePercent: currentStats.usagePercent,
-          heapUsed: currentStats.heapUsed,
-          status: currentStats.usagePercent >= 90 ? 'critical' : 'warning'
-        },
-        apiResponseTime: Date.now() - startTime
+        error: `현재 메모리 상태: ${currentStats.usagePercent}% (${currentStats.heapUsed}MB) - 상태: ${currentStats.usagePercent >= 90 ? 'critical' : 'warning'}`,
+        code: 'MEMORY_OPTIMIZATION_FAILED'
       }
     );
   }
@@ -157,7 +153,7 @@ async function getMemoryStatusHandler(request: NextRequest) {
     console.error('❌ 메모리 상태 조회 실패:', error);
     return createErrorResponse(
       `메모리 상태 조회 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-      500
+      'INTERNAL_SERVER_ERROR'
     );
   }
 }
