@@ -6,13 +6,16 @@ import LeftPanel from './components/LeftPanel';
 import RightPanel from './components/RightPanel';
 import MobileBottomSheet from './components/MobileBottomSheet';
 import NavigationBar from './components/NavigationBar';
+import LangGraphThinkingDisplay from './components/LangGraphThinkingDisplay';
 import { useModalState } from './hooks/useModalState';
 import { useModalNavigation } from './hooks/useModalNavigation';
+import { useLangGraphThinking } from './hooks/useLangGraphThinking';
 import { FunctionType, HistoryItem } from './types';
 import { InteractionLogger } from '@/services/ai-agent/logging/InteractionLogger';
 import { useServerDataStore } from '@/stores/serverDataStore';
 import { useSystemControl } from '@/hooks/useSystemControl';
 import { ErrorRecoverySystem } from '@/utils/error-recovery';
+import { mcpLangGraphAgent } from '@/services/ai-agent/MCPLangGraphAgent';
 
 interface AIAgentModalProps {
   isOpen: boolean;
@@ -26,6 +29,14 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
   const { state, dispatch, addToHistory, setBottomSheetState } = useModalState();
   const { servers } = useServerDataStore();
   const navigation = useModalNavigation();
+  
+  // 🧠 LangGraph Thinking Hook 추가
+  const thinking = useLangGraphThinking({
+    autoAnimate: true,
+    animationSpeed: 1200,
+    showReActSteps: true,
+    maxHistorySteps: 20
+  });
   
   // 시스템 제어 훅 추가
   const { recordActivity } = useSystemControl();
@@ -184,8 +195,8 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
     }
   };
 
-  // 질문 전송 핸들러 - 개선된 에러 처리
-  const handleSendQuestion = async (question: string) => {
+  // 질문 처리 함수 - LangGraph Agent 통합
+  const handleQuestion = async (question: string, functionType?: FunctionType) => {
     if (!question.trim() || state.isLoading) return;
 
     const startTime = Date.now();
@@ -197,107 +208,57 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
     recordActivity();
 
     try {
-      // 서버 데이터 로드 (빠른 실패를 위해 타임아웃 단축)
-      const servers = await Promise.race([
-        loadServerData(),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Server data timeout')), 5000)
-        )
-      ]) as any[];
+      // 🧠 LangGraph 사고 과정 시작
+      const sessionId = `session_${Date.now()}`;
+      thinking.startThinking(sessionId, question, 'react');
 
-      // 🚀 개선된 AI 에이전트 호출 - 다단계 폴백 시스템
-      let aiResponse: Response | null = null;
-      let finalData: any = null;
+      // MCP Agent 초기화
+      await mcpLangGraphAgent.initialize();
 
-      try {
-        // 1차: 최적화된 엔진 시도
-        console.log('🚀 1차: 최적화 엔진 시도...');
-        aiResponse = await fetch('/api/ai-agent/optimized', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'smart-query',
-            query: question,
-            options: { timeout: 10000, priority: 'high' }
-          })
-        });
+      // MCP 질의 생성
+      const mcpQuery = {
+        id: `query_${Date.now()}`,
+        question,
+        context: functionType ? `Function: ${functionType}` : undefined,
+        priority: 'medium' as const,
+        category: determineCategoryFromQuestion(question)
+      };
 
-        if (!aiResponse.ok) {
-          throw new Error(`최적화 엔진 실패: ${aiResponse.status}`);
-        }
-
-        finalData = await aiResponse.json();
-        console.log('✅ 최적화 엔진 성공');
-
-      } catch (optimizedError) {
-        console.warn('⚠️ 최적화 엔진 실패, 통합 엔진으로 전환:', optimizedError);
-        
-        // 에러 복구 시스템에 기록
-        await ErrorRecoverySystem.handleAPIError('/api/ai-agent/optimized', optimizedError as Error);
-
-        try {
-          // 2차: 통합 엔진 시도 (이미 수정한 엔진)
-          console.log('🔄 2차: 통합 엔진 시도...');
-          aiResponse = await fetch('/api/ai-agent/integrated', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'smart-query',
-              query: question,
-              options: {
-                timeout: 12000,
-                priority: 'high',
-                enableFallback: true
-              }
-            })
-          });
-
-          if (!aiResponse.ok) {
-            throw new Error(`통합 엔진 실패: ${aiResponse.status}`);
-          }
-
-          finalData = await aiResponse.json();
-          console.log('✅ 통합 엔진 성공');
-
-        } catch (integratedError) {
-          console.warn('⚠️ 통합 엔진도 실패, 로컬 폴백 사용:', integratedError);
-          
-          // 에러 복구 시스템에 기록
-          await ErrorRecoverySystem.handleAPIError('/api/ai-agent/integrated', integratedError as Error);
-          
-          throw new Error('모든 AI 엔진 실패');
-        }
-      }
-
-      // AI 응답 처리
-      if (finalData?.success && finalData?.response) {
-        const responseTime = Date.now() - startTime;
-        
-        // 성공적인 AI 응답
-        const metadata = {
-          intent: finalData.metadata?.intent || 'ai_response',
-          confidence: finalData.metadata?.confidence || 0.8,
-          responseTime,
-          method: finalData.metadata?.method || 'integrated',
-          fallbackUsed: finalData.metadata?.fallbackUsed || false,
-          serverState: { servers, totalCount: servers.length },
-          sessionId: finalData.metadata?.sessionId || `session_${Date.now()}`
-        };
-        
-        setResponseMetadata(metadata);
-        dispatch({ type: 'SET_ANSWER', payload: finalData.response });
-        addToHistory(question, finalData.response);
-        
-      } else {
-        // AI 응답이 올바르지 않은 경우
-        throw new Error(finalData?.error || 'AI 응답 형식 오류');
-      }
-
-    } catch (error) {
-      console.warn('🏠 모든 AI 엔진 실패, 로컬 폴백 모드로 전환:', error);
+      // MCP LangGraph Agent로 처리
+      const mcpResponse = await mcpLangGraphAgent.processQuery(mcpQuery);
       
-      // 에러 복구 시스템에 최종 에러 기록
-      await ErrorRecoverySystem.handleAPIError('/api/ai-agent/fallback', error as Error);
+      const responseTime = Date.now() - startTime;
+      
+      // 메타데이터 설정
+      const metadata = {
+        intent: mcpResponse.query_id,
+        confidence: mcpResponse.confidence,
+        responseTime,
+        method: 'mcp_langgraph_agent',
+        reasoning_steps: mcpResponse.reasoning_steps,
+        recommendations: mcpResponse.recommendations,
+        related_servers: mcpResponse.related_servers,
+        sources: mcpResponse.sources,
+        sessionId,
+        langGraphEnabled: true,
+        thinkingSteps: thinking.allSteps.length
+      };
+      setResponseMetadata(metadata);
+
+      // 답변 설정
+      dispatch({ type: 'SET_ANSWER', payload: mcpResponse.answer });
+      
+      // 히스토리에 추가
+      addToHistory(question, mcpResponse.answer);
+      
+      // 사고 과정 완료
+      thinking.completeThinking(mcpResponse);
+      
+    } catch (error) {
+      console.error('❌ LangGraph Agent 처리 실패:', error);
+      
+      // 에러 복구 시스템에 기록
+      await ErrorRecoverySystem.handleAPIError('/api/ai-agent/langgraph', error as Error);
       
       // 폴백 응답 생성 (최소 3초 대기)
       const elapsed = Date.now() - startTime;
@@ -324,9 +285,6 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
       const fallbackAnswer = generateEnhancedFallbackResponse(question, servers, error as Error);
       const responseTime = Date.now() - startTime;
       
-      // 폴백 응답 시에도 활동 기록
-      recordActivity();
-      
       // 폴백 메타데이터 설정
       const fallbackMetadata = {
         intent: 'fallback_response',
@@ -337,7 +295,8 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
         serverState: { servers, totalCount: servers.length },
         sessionId: `fallback_session_${Date.now()}`,
         fallbackUsed: true,
-        errorRecoveryApplied: true
+        errorRecoveryApplied: true,
+        langGraphEnabled: false
       };
       setResponseMetadata(fallbackMetadata);
       
@@ -345,8 +304,28 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
       
       // 히스토리에 추가
       addToHistory(question, fallbackAnswer);
+      
+      // 사고 과정 에러 처리
+      thinking.processor.errorThinking(error instanceof Error ? error.message : '알 수 없는 오류');
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  };
+
+  // 질문에서 카테고리 결정하는 유틸리티 함수
+  const determineCategoryFromQuestion = (question: string): 'monitoring' | 'analysis' | 'prediction' | 'incident' | 'general' => {
+    const lowerQuestion = question.toLowerCase();
+    
+    if (lowerQuestion.includes('모니터') || lowerQuestion.includes('감시') || lowerQuestion.includes('상태')) {
+      return 'monitoring';
+    } else if (lowerQuestion.includes('분석') || lowerQuestion.includes('성능') || lowerQuestion.includes('패턴')) {
+      return 'analysis';
+    } else if (lowerQuestion.includes('예측') || lowerQuestion.includes('예상') || lowerQuestion.includes('트렌드')) {
+      return 'prediction';
+    } else if (lowerQuestion.includes('장애') || lowerQuestion.includes('오류') || lowerQuestion.includes('문제') || lowerQuestion.includes('알림')) {
+      return 'incident';
+    } else {
+      return 'general';
     }
   };
 
@@ -511,10 +490,8 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
         />
         
         {/* 모달 바디 - 스크롤 가능하도록 수정 */}
-        <div className={`
-          flex flex-col md:flex-row flex-1 overflow-hidden
-        `}>
-          {/* 왼쪽 패널 (질문-답변 영역) */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* 왼쪽 패널 (대화 영역) */}
           <LeftPanel
             isLoading={state.isLoading}
             currentQuestion={state.currentQuestion}
@@ -524,10 +501,40 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
               recordActivity();
               dispatch({ type: 'SET_QUESTION', payload: question });
             }}
-            sendQuestion={handleSendQuestion}
+            sendQuestion={handleQuestion}
             isMobile={isMobile}
             onBackToPresets={handleBackToPresets}
           />
+          
+          {/* 중앙 패널 (LangGraph 사고 과정) - 사고 중이거나 스텝이 있을 때만 표시 */}
+          {(thinking.isThinking || thinking.allSteps.length > 0) && (
+            <div className="w-80 border-l border-gray-200 bg-gray-50/50 overflow-hidden">
+              <div className="h-full flex flex-col">
+                <div className="p-3 border-b border-gray-200 bg-white">
+                  <h3 className="font-semibold text-gray-900 text-sm flex items-center">
+                    🧠 AI 사고 과정
+                    {thinking.isThinking && (
+                      <span className="ml-2 w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    )}
+                  </h3>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {thinking.isThinking ? '분석 진행 중...' : `${thinking.allSteps.length}개 단계 완료`}
+                  </p>
+                </div>
+                <div className="flex-1 overflow-y-auto p-3">
+                  <LangGraphThinkingDisplay
+                    steps={thinking.allSteps}
+                    reactSteps={thinking.reactSteps}
+                    currentStep={thinking.currentStep}
+                    isThinking={thinking.isThinking}
+                    animate={thinking.animate}
+                    showReActSteps={true}
+                    compact={true}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
           
           {/* 오른쪽 패널 (기능 영역) - 모바일에서는 숨김 */}
           {!isMobile && (

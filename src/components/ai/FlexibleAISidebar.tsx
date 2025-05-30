@@ -1,10 +1,16 @@
+/**
+ * 🤖 유연한 AI 사이드바 컴포넌트
+ * 
+ * 새로운 AI 사이드바 모듈을 활용한 통합 컴포넌트
+ * - 실시간 서버 상황 표시
+ * - 동적 질문 템플릿
+ * - 통합 AI 응답 (질문→사고과정→답변)
+ */
+
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronUp, MessageSquare, Brain, Sparkles, Settings, History, FileText, X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import ChatSection from './ChatSection';
+import React from 'react';
+import { AISidebar, type AISidebarConfig } from '../../modules/ai-sidebar';
 
 interface FlexibleAISidebarProps {
   isOpen: boolean;
@@ -12,152 +18,59 @@ interface FlexibleAISidebarProps {
   serverMetrics?: any;
 }
 
-interface QuickActionButton {
-  id: string;
-  icon: React.ReactNode;
-  label: string;
-  path: string;
-  color: string;
-}
-
-export default function FlexibleAISidebar({ isOpen, onClose, serverMetrics }: FlexibleAISidebarProps) {
-  const [isClient, setIsClient] = useState(false);
-  const router = useRouter();
-
-  // 클라이언트 사이드 확인
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // 서버 사이드 렌더링 시 기본 UI 반환
-  if (!isClient) {
-    return null;
-  }
-
-  const quickActions: QuickActionButton[] = [
-    {
-      id: 'analysis',
-      icon: <Sparkles className="w-4 h-4" />,
-      label: '고급 분석',
-      path: '/admin/ai-analysis',
-      color: 'bg-purple-500 hover:bg-purple-600'
+export default function FlexibleAISidebar({ 
+  isOpen, 
+  onClose, 
+  serverMetrics 
+}: FlexibleAISidebarProps) {
+  
+  // AI 사이드바 설정
+  const sidebarConfig: AISidebarConfig = {
+    // API 설정
+    apiEndpoint: '/api/ai/unified',
+    
+    // UI 설정
+    theme: 'auto',
+    position: 'right',
+    width: 400,
+    height: '100vh',
+    
+    // 기능 설정
+    enableVoice: false,
+    enableFileUpload: false,
+    enableHistory: true,
+    maxHistoryLength: 10,
+    
+    // 커스터마이징
+    title: 'OpenManager AI',
+    placeholder: 'AI에게 질문하세요...',
+    welcomeMessage: '안녕하세요! OpenManager AI 에이전트입니다. 서버 모니터링, 성능 분석, 장애 예측 등에 대해 궁금한 점을 자유롭게 물어보세요.',
+    
+    // 이벤트 핸들러
+    onMessage: (message) => {
+      console.log('사용자 메시지:', message);
     },
-    {
-      id: 'history',
-      icon: <History className="w-4 h-4" />,
-      label: '대화 기록',
-      path: '/admin/ai-agent',
-      color: 'bg-blue-500 hover:bg-blue-600'
+    onResponse: (response) => {
+      console.log('AI 응답:', response);
     },
-    {
-      id: 'reports',
-      icon: <FileText className="w-4 h-4" />,
-      label: '보고서',
-      path: '/admin/charts',
-      color: 'bg-green-500 hover:bg-green-600'
+    onError: (error) => {
+      console.error('AI 사이드바 오류:', error);
     },
-    {
-      id: 'servers',
-      icon: <Brain className="w-4 h-4" />,
-      label: '가상 서버',
-      path: '/admin/virtual-servers',
-      color: 'bg-orange-500 hover:bg-orange-600'
+    onOpen: () => {
+      console.log('AI 사이드바 열림');
+    },
+    onClose: () => {
+      console.log('AI 사이드바 닫힘');
+      onClose();
     }
-  ];
-
-  const handleQuickAction = (action: QuickActionButton) => {
-    router.push(action.path);
-    onClose(); // 사이드바 닫기
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* 투명 오버레이 */}
-          <motion.div 
-            className="fixed inset-0 bg-black bg-opacity-20 z-[999]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-          />
-          
-          {/* 메인 사이드바 컨테이너 */}
-          <motion.div
-            className="fixed top-0 right-0 h-screen bg-white shadow-[-4px_0_24px_rgba(0,0,0,0.15)] 
-                       z-[1000] border-l border-gray-200 w-[600px] max-w-[90vw]"
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 400 }}
-          >
-            <div className="relative h-full flex flex-col bg-white">
-              {/* 메인 채팅 영역 */}
-              <div className="flex-1 overflow-hidden">
-                <ChatSection serverMetrics={serverMetrics} onClose={onClose} />
-              </div>
-
-              {/* 하단 빠른 액션 버튼들 */}
-              <div className="border-t bg-gradient-to-r from-gray-50 to-gray-100 p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-medium text-gray-700">빠른 액션</h3>
-                  <span className="text-xs text-gray-500">페이지로 이동</span>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-2">
-                  {quickActions.map((action) => (
-                    <motion.button
-                      key={action.id}
-                      whileHover={{ scale: 1.02, y: -1 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => handleQuickAction(action)}
-                      className={`
-                        ${action.color} text-white p-3 rounded-lg 
-                        shadow-sm transition-all duration-200
-                        flex items-center gap-2 text-sm font-medium
-                        hover:shadow-md
-                      `}
-                    >
-                      {action.icon}
-                      <span>{action.label}</span>
-                    </motion.button>
-                  ))}
-                </div>
-
-                <div className="mt-3 text-center">
-                  <p className="text-xs text-gray-400">
-                    💡 각 버튼을 클릭하면 전용 페이지로 이동합니다
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* 오른쪽 모서리 빠른 액션 버튼들 */}
-            <div className="absolute right-[-60px] top-1/2 transform -translate-y-1/2 flex flex-col gap-2">
-              {quickActions.map((action, index) => (
-                <motion.button
-                  key={`quick-${action.id}`}
-                  initial={{ x: 100, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ scale: 1.1, x: -5 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => handleQuickAction(action)}
-                  className={`
-                    ${action.color} text-white p-2 rounded-full 
-                    shadow-lg hover:shadow-xl transition-all duration-200
-                    w-10 h-10 flex items-center justify-center
-                  `}
-                  title={action.label}
-                >
-                  {action.icon}
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+    <AISidebar
+      config={sidebarConfig}
+      isOpen={isOpen}
+      onClose={onClose}
+      className="z-50"
+    />
   );
 } 

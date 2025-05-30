@@ -1,32 +1,29 @@
 /**
  * AI Sidebar Module
  * 
- * 🎨 독립적인 AI 사이드바 UI 모듈
- * - 어떤 프로젝트에든 쉽게 통합 가능
- * - AI 에이전트 엔진과 연동
- * - 커스터마이징 가능한 UI 컴포넌트
- * - 반응형 디자인 지원
+ * 🎨 AI 사이드바 모듈의 진입점
+ * - 메인 컴포넌트 및 타입 exports
+ * - 유틸리티 함수들
+ * - 훅 모음
  */
 
-import type { AISidebarConfig } from './types';
-import { createAISidebarInstance } from './utils';
-
-// Core Components
+// 컴포넌트 exports
 export { AISidebar } from './components/AISidebar';
 export { AISidebarMobile } from './components/AISidebarMobile';
 export { ChatInterface } from './components/ChatInterface';
 export { MessageBubble } from './components/MessageBubble';
-export { ActionButtons } from './components/ActionButtons';
 export { StatusIndicator } from './components/StatusIndicator';
+export { ActionButtons } from './components/ActionButtons';
+export { RealtimeServerStatus } from './components/RealtimeServerStatus';
+export { DynamicQuestionTemplates } from './components/DynamicQuestionTemplates';
+export { IntegratedAIResponse } from './components/IntegratedAIResponse';
 
-// Hooks
+// 훅 exports
 export { useAIChat } from './hooks/useAIChat';
 export { useAISidebar } from './hooks/useAISidebar';
-export { useChatHistory } from './hooks/useChatHistory';
-export { useAIActions } from './hooks/useAIActions';
 
-// Types
-export type {
+// 타입 exports
+export type { 
   AISidebarConfig,
   ChatMessage,
   AIResponse,
@@ -35,9 +32,8 @@ export type {
   ChatSession
 } from './types';
 
-// Utils
+// 유틸리티 exports
 export { 
-  createAISidebarInstance,
   getDefaultSidebarConfig,
   formatAIResponse,
   validateSidebarConfig
