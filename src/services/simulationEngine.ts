@@ -28,6 +28,7 @@ import { timerManager } from '../utils/TimerManager';
 import { cacheService } from './cacheService';
 import { vercelStatusService } from './vercelStatusService';
 import { redisTimeSeriesService } from './redisTimeSeriesService';
+import { memoryOptimizer } from '../utils/MemoryOptimizer';
 
 // 확장된 서버 메트릭 인터페이스
 export interface EnhancedServerMetrics extends BaseServerMetrics {
@@ -131,11 +132,16 @@ export class SimulationEngine {
 
   private useRealisticPatterns: boolean = true;
   private previousMetricsCache: Map<string, any> = new Map();
+  private lastMemoryOptimization: number = 0;
+  private readonly MEMORY_CHECK_INTERVAL = 60000; // 1분마다 메모리 체크
 
   constructor() {
     // Vercel 상태 기반 동적 서버 생성
     this.initializeWithAutoScaling();
     console.log('🎯 Vercel 오토스케일링 엔진 통합 완료 (Prometheus 지원)');
+    
+    // 메모리 최적화 모니터링 시작
+    this.startMemoryOptimization();
   }
 
   /**
@@ -765,6 +771,42 @@ export class SimulationEngine {
       last_updated: new Date().toISOString(),
       alerts
     };
+  }
+
+  /**
+   * 🧠 메모리 최적화 시작
+   */
+  private startMemoryOptimization(): void {
+    // 메모리 모니터링 시작 (30초 간격)
+    memoryOptimizer.startMemoryMonitoring(30000);
+    console.log('🧠 시뮬레이션 엔진 메모리 최적화 활성화');
+  }
+
+  /**
+   * 🔄 메모리 정리 체크
+   */
+  private async checkMemoryOptimization(): Promise<void> {
+    const now = Date.now();
+    
+    // 1분마다 체크
+    if (now - this.lastMemoryOptimization > this.MEMORY_CHECK_INTERVAL) {
+      const memoryStats = memoryOptimizer.getCurrentMemoryStats();
+      
+      // 75% 이상 사용 시 정리
+      if (memoryStats.usagePercent > 75) {
+        console.log(`🧠 메모리 정리 필요: ${memoryStats.usagePercent}%`);
+        
+        // 캐시된 메트릭 정리 (100개 이상 시)
+        if (this.previousMetricsCache.size > 100) {
+          this.previousMetricsCache.clear();
+          console.log('🗑️ 메트릭 캐시 정리 완료');
+        }
+        
+        // 메모리 최적화 실행
+        await memoryOptimizer.optimizeMemoryNow();
+        this.lastMemoryOptimization = now;
+      }
+    }
   }
 }
 

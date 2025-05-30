@@ -1,104 +1,70 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { simulationEngine } from '../../../../services/simulationEngine';
+import { NextRequest } from 'next/server';
+import { systemStateManager } from '../../../../core/system/SystemStateManager';
+import { createSuccessResponse, createErrorResponse, withErrorHandler } from '../../../../lib/api/errorHandler';
 
 /**
- * 🚀 시스템 시작 API
+ * 🚀 시스템 시작 API v2
  * POST /api/system/start
- * 시뮬레이션 엔진을 시작하고 데이터 수집을 시작합니다
+ * 통합 상태 관리자를 통한 시뮬레이션 엔진 시작
  */
-export async function POST(request: NextRequest) {
+async function startSystemHandler(request: NextRequest) {
+  const startTime = Date.now();
+  
   try {
-    console.log('🚀 시스템 시작 API 호출');
+    console.log('🚀 시스템 시작 API 호출 (v2)');
 
     const body = await request.json().catch(() => ({}));
     const mode = body.mode || 'full'; // 'fast' | 'full'
 
-    // 이미 실행 중인지 확인
-    if (simulationEngine.isRunning()) {
-      const state = simulationEngine.getState();
-      const runtime = state.startTime ? Date.now() - state.startTime : 0;
-      
-      return NextResponse.json({
-        success: true,
-        message: '시스템이 이미 실행 중입니다.',
-        data: {
-          isRunning: true,
-          runtime: Math.round(runtime / 1000), // 초 단위
-          dataCount: state.dataCount,
-          mode: 'already_running'
-        },
-        fallback: false
-      }, { status: 200 });
+    // 통합 상태 관리자를 통한 시뮬레이션 시작
+    const result = await systemStateManager.startSimulation(mode);
+    
+    if (!result.success) {
+      return createErrorResponse(
+        result.message,
+        'BAD_REQUEST'
+      );
     }
 
-    let fallback = false;
+    // 현재 시스템 상태 조회
+    const systemStatus = systemStateManager.getSystemStatus();
+    
+    // API 호출 추적
+    const responseTime = Date.now() - startTime;
+    systemStateManager.trackApiCall(responseTime, false);
 
-    try {
-      // 시뮬레이션 엔진 시작
-      console.log(`🎯 시뮬레이션 엔진 시작 (${mode} 모드)...`);
-      
-      simulationEngine.start();
-      
-      console.log('✅ 시뮬레이션 엔진 시작 완료');
-
-      const state = simulationEngine.getState();
-      
-      return NextResponse.json({
-        success: true,
-        message: `시스템이 성공적으로 시작되었습니다 (${mode} 모드).`,
-        data: {
-          isRunning: true,
-          startTime: state.startTime,
-          serverCount: state.servers.length,
-          mode: mode,
-          dataCount: state.dataCount || 0
-        },
-        fallback: false
-      });
-
-    } catch (engineError) {
-      console.warn('⚠️ 시뮬레이션 엔진 시작 실패, Fallback 모드로 전환:', engineError);
-      
-      // Fallback 모드: 기본 시스템 상태 설정
-      fallback = true;
-      const warnings = [
-        '시뮬레이션 엔진 시작 실패 - Fallback 모드로 동작',
-        '일부 고급 기능이 제한될 수 있습니다'
-      ];
-
-      return NextResponse.json({
-        success: true,
-        message: '시스템이 Fallback 모드로 시작되었습니다.',
-        data: {
-          isRunning: false,
-          fallbackMode: true,
-          mode: 'fallback',
-          serverCount: 0,
-          dataCount: 0
-        },
-        warnings: warnings,
-        fallback: true,
-        recommendations: [
-          '대시보드에서 기본 기능을 사용할 수 있습니다',
-          '서버 모니터링 및 AI 에이전트는 제한적으로 동작합니다'
-        ]
-      }, { status: 206 }); // 206 Partial Content
-    }
+    return createSuccessResponse({
+      isRunning: systemStatus.simulation.isRunning,
+      startTime: systemStatus.simulation.startTime,
+      runtime: systemStatus.simulation.runtime,
+      dataCount: systemStatus.simulation.dataCount,
+      serverCount: systemStatus.simulation.serverCount,
+      mode: mode,
+      environment: {
+        plan: systemStatus.environment.plan,
+        region: systemStatus.environment.region
+      },
+      performance: {
+        updateInterval: systemStatus.simulation.updateInterval,
+        responseTime: responseTime
+      },
+      services: systemStatus.services,
+      fallback: false
+    }, result.message);
 
   } catch (error) {
     console.error('❌ 시스템 시작 오류:', error);
     
-    return NextResponse.json({
-      success: false,
-      message: '시스템 시작에 실패했습니다.',
-      error: error instanceof Error ? error.message : '알 수 없는 오류',
-      data: {
-        isRunning: false,
-        fallbackMode: false
-      }
-    }, { status: 500 });
+    // API 호출 추적 (에러)
+    const responseTime = Date.now() - startTime;
+    systemStateManager.trackApiCall(responseTime, true);
+    
+    throw error; // withErrorHandler가 처리
   }
 }
+
+// 에러 핸들러 래핑
+export const POST = withErrorHandler(startSystemHandler);
 
 /**
  * OPTIONS - CORS 지원

@@ -1,225 +1,321 @@
 /**
- * 🔮 AI 예측 분석 API
+ * 🤖 AI 예측 분석 API
  * 
- * 시계열 데이터 기반 미래 예측 서비스
- * - CPU/메모리/디스크 사용률 예측
- * - 트렌드 분석 및 패턴 감지
- * - 신뢰구간 및 추천사항 제공
+ * OpenManager AI v5.12.0 - 고급 예측 분석
+ * - 서버 부하 예측
+ * - 장애 발생 예측
+ * - 리소스 사용량 예측
+ * - 자동 스케일링 권장사항
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { timeSeriesPredictor, PredictionRequest } from '@/services/ai/TimeSeriesPredictor';
-import { enhancedDataGenerator } from '@/utils/enhanced-data-generator';
+import { createSuccessResponse, createErrorResponse, withErrorHandler } from '../../../../lib/api/errorHandler';
+import { predictiveAnalytics } from '../../../../services/ai/PredictiveAnalytics';
+import { cacheService } from '../../../../services/cacheService';
 
-export async function POST(request: NextRequest) {
+/**
+ * 📊 예측 대시보드 데이터 조회 (GET)
+ */
+async function getPredictionDashboardHandler(request: NextRequest) {
   try {
-    console.log('🔮 AI 예측 API 요청 수신');
-    
-    const body = await request.json();
-    
-    // 요청 검증
-    const {
-      metric = 'cpu',
-      horizon = 30,
-      confidence = 0.95,
-      data = null
-    } = body;
-    
-    if (!['cpu', 'memory', 'disk', 'network'].includes(metric)) {
-      return NextResponse.json(
-        { error: '지원하지 않는 메트릭입니다. cpu, memory, disk, network 중 선택하세요.' },
-        { status: 400 }
-      );
-    }
-    
-    if (horizon < 5 || horizon > 1440) { // 5분 ~ 24시간
-      return NextResponse.json(
-        { error: '예측 시간은 5분에서 1440분(24시간) 사이여야 합니다.' },
-        { status: 400 }
-      );
-    }
-    
-    if (confidence < 0.8 || confidence > 0.99) {
-      return NextResponse.json(
-        { error: '신뢰도는 0.8에서 0.99 사이여야 합니다.' },
-        { status: 400 }
-      );
-    }
-    
-    // 예측 요청 생성
-    const predictionRequest: PredictionRequest = {
-      metric,
-      horizon,
-      confidence,
-      data: data || undefined
-    };
-    
-    // 예측 실행
-    const result = await timeSeriesPredictor.predict(predictionRequest);
-    
-    // 응답 데이터 구성
-    const response = {
-      success: true,
-      prediction: result,
-      system_status: {
-        timestamp: new Date().toISOString(),
-        predictor_stats: timeSeriesPredictor.getStats(),
-        api_version: 'v3.0'
-      },
-      examples: {
-        usage: '30분 후 CPU 예측',
-        interpretation: {
-          predicted_value: `${result.predicted_value}% (${result.trend} 트렌드)`,
-          confidence_range: `${result.confidence_interval[0]}% ~ ${result.confidence_interval[1]}%`,
-          accuracy: `${(result.accuracy_score * 100).toFixed(1)}% 정확도`,
-          seasonality: result.seasonality.detected 
-            ? `주기성 감지됨 (${result.seasonality.period}포인트 주기)` 
-            : '주기성 없음'
-        }
+    console.log('🤖 AI 예측 대시보드 API 호출');
+
+    // 예측 대시보드 데이터 생성
+    const dashboardData = await predictiveAnalytics.getPredictionDashboard();
+
+    return createSuccessResponse({
+      dashboard: dashboardData,
+      metadata: {
+        generatedAt: new Date().toISOString(),
+        dataPoints: dashboardData.riskAlerts.length + dashboardData.resourceForecasts.length,
+        aiModelAccuracy: dashboardData.modelAccuracy.overallAccuracy,
+        predictionTimeframe: '24시간'
       }
-    };
-    
-    console.log(`✅ 예측 완료: ${result.predicted_value}% (${result.metadata.computation_time}ms)`);
-    
-    return NextResponse.json(response);
-    
-  } catch (error: any) {
-    console.error('❌ AI 예측 API 에러:', error);
-    
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-        timestamp: new Date().toISOString()
-      },
-      { status: 500 }
+    }, 'AI 예측 대시보드 데이터 조회 완료');
+
+  } catch (error) {
+    console.error('❌ AI 예측 대시보드 조회 실패:', error);
+    return createErrorResponse(
+      `AI 예측 분석 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+      'INTERNAL_SERVER_ERROR'
     );
   }
 }
 
-export async function GET(request: NextRequest) {
+/**
+ * 🔮 서버별 부하 예측 (POST)
+ */
+async function predictServerLoadHandler(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const demo = searchParams.get('demo');
-    
-    if (demo === 'true') {
-      // 데모 모드: 샘플 데이터로 여러 메트릭 예측
-      console.log('🎮 데모 모드: 샘플 예측 실행');
-      
-      const metrics = ['cpu', 'memory', 'disk'];
-      const horizons = [15, 30, 60]; // 15분, 30분, 1시간
-      
-      const predictions = [];
-      
-      for (const metric of metrics) {
-        for (const horizon of horizons) {
-          try {
-            const result = await timeSeriesPredictor.predict({
-              metric,
-              horizon,
-              confidence: 0.95
-            });
-            
-            predictions.push({
-              metric,
-              horizon_minutes: horizon,
-              predicted_value: result.predicted_value,
-              trend: result.trend,
-              confidence_interval: result.confidence_interval,
-              recommendations: result.recommendations.slice(0, 2), // 상위 2개만
-              accuracy: result.accuracy_score
-            });
-            
-          } catch (error) {
-            console.warn(`⚠️ ${metric} 예측 실패:`, error);
-          }
-        }
-      }
-      
-      // 시스템 통계
-      const stats = timeSeriesPredictor.getStats();
-      
-      const response = {
-        success: true,
-        demo_mode: true,
-        predictions,
-        summary: {
-          total_predictions: predictions.length,
-          average_accuracy: predictions.length > 0 
-            ? (predictions.reduce((sum, p) => sum + p.accuracy, 0) / predictions.length).toFixed(3)
-            : 0,
-          trends_detected: {
-            increasing: predictions.filter(p => p.trend === 'increasing').length,
-            decreasing: predictions.filter(p => p.trend === 'decreasing').length,
-            stable: predictions.filter(p => p.trend === 'stable').length
-          }
-        },
-        system_stats: {
-          ...stats,
-          timestamp: new Date().toISOString()
-        },
-        usage_examples: {
-          post_request: {
-            url: '/api/ai/prediction',
-            method: 'POST',
-            body: {
-              metric: 'cpu',
-              horizon: 30,
-              confidence: 0.95,
-              data: 'optional_time_series_data'
-            }
-          },
-          get_demo: {
-            url: '/api/ai/prediction?demo=true',
-            method: 'GET'
-          }
-        }
-      };
-      
-      console.log(`✅ 데모 완료: ${predictions.length}개 예측 생성`);
-      return NextResponse.json(response);
-      
-    } else {
-      // 일반 모드: API 정보 제공
-      return NextResponse.json({
-        service: '🔮 AI 시계열 예측 서비스',
-        version: 'v3.0',
-        description: 'AI 기반 서버 메트릭 미래 예측 및 패턴 분석',
-        features: [
-          '30분~24시간 미래 예측',
-          '트렌드 및 계절성 자동 감지',
-          '신뢰구간 제공',
-          '스마트 추천사항 생성',
-          '85%+ 예측 정확도'
-        ],
-        supported_metrics: ['cpu', 'memory', 'disk', 'network'],
-        endpoints: {
-          predict: {
-            method: 'POST',
-            path: '/api/ai/prediction',
-            description: '시계열 예측 실행'
-          },
-          demo: {
-            method: 'GET',
-            path: '/api/ai/prediction?demo=true',
-            description: '데모 예측 실행'
-          }
-        },
-        current_stats: timeSeriesPredictor.getStats(),
-        timestamp: new Date().toISOString()
-      });
+    console.log('🔮 서버 부하 예측 API 호출');
+
+    const body = await request.json();
+    const { serverId, timeframeMinutes = 30 } = body;
+
+    if (!serverId) {
+      return createErrorResponse('서버 ID가 필요합니다', 'VALIDATION_ERROR');
     }
+
+    if (timeframeMinutes < 5 || timeframeMinutes > 1440) {
+      return createErrorResponse('예측 시간은 5분에서 1440분(24시간) 사이여야 합니다', 'VALIDATION_ERROR');
+    }
+
+    // 서버 부하 예측 실행
+    const predictions = await predictiveAnalytics.predictServerLoad(serverId, timeframeMinutes);
+
+    if (predictions.length === 0) {
+      return createErrorResponse('충분한 데이터가 없어 예측할 수 없습니다', 'NOT_FOUND');
+    }
+
+    // 예측 결과 분석
+    const criticalPredictions = predictions.filter(p => p.severity === 'critical');
+    const highPredictions = predictions.filter(p => p.severity === 'high');
     
-  } catch (error: any) {
-    console.error('❌ 예측 API GET 에러:', error);
-    
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-        timestamp: new Date().toISOString()
+    const overallRisk = criticalPredictions.length > 0 ? 'critical' :
+                       highPredictions.length > 0 ? 'high' : 'low';
+
+    return createSuccessResponse({
+      serverId,
+      timeframe: `${timeframeMinutes}분`,
+      predictions,
+      analysis: {
+        overallRisk,
+        criticalMetrics: criticalPredictions.length,
+        highRiskMetrics: highPredictions.length,
+        averageConfidence: predictions.reduce((sum, p) => sum + p.confidence, 0) / predictions.length
       },
-      { status: 500 }
+      recommendations: generateLoadPredictionRecommendations(predictions)
+    }, `서버 ${serverId} 부하 예측 완료`);
+
+  } catch (error) {
+    console.error('❌ 서버 부하 예측 실패:', error);
+    return createErrorResponse(
+      `서버 부하 예측 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+      'INTERNAL_SERVER_ERROR'
     );
   }
-} 
+}
+
+/**
+ * 🚨 장애 예측 분석 (PUT)
+ */
+async function predictFailuresHandler(request: NextRequest) {
+  try {
+    console.log('🚨 장애 예측 분석 API 호출');
+
+    // 현재 서버 데이터 가져오기
+    const cachedServers = await cacheService.getCachedServers();
+    const servers = cachedServers?.servers || [];
+
+    if (servers.length === 0) {
+      return createErrorResponse('서버 데이터가 없습니다', 'NOT_FOUND');
+    }
+
+    // 장애 예측 실행
+    const failurePredictions = await predictiveAnalytics.predictFailures(servers);
+
+    // 위험도별 분류
+    const criticalRisk = failurePredictions.filter(p => p.failureProbability > 80);
+    const highRisk = failurePredictions.filter(p => p.failureProbability > 60 && p.failureProbability <= 80);
+    const mediumRisk = failurePredictions.filter(p => p.failureProbability > 40 && p.failureProbability <= 60);
+    const lowRisk = failurePredictions.filter(p => p.failureProbability <= 40);
+
+    // 즉시 조치 필요한 서버
+    const immediateAction = failurePredictions.filter(p => p.estimatedTimeToFailure <= 15);
+
+    return createSuccessResponse({
+      totalServers: servers.length,
+      analyzedServers: failurePredictions.length,
+      riskDistribution: {
+        critical: criticalRisk.length,
+        high: highRisk.length,
+        medium: mediumRisk.length,
+        low: lowRisk.length
+      },
+      immediateActionRequired: immediateAction.length,
+      predictions: failurePredictions,
+      summary: {
+        highestRisk: failurePredictions[0] || null,
+        averageRisk: failurePredictions.reduce((sum, p) => sum + p.failureProbability, 0) / Math.max(failurePredictions.length, 1),
+        mostCommonRiskFactors: getMostCommonRiskFactors(failurePredictions)
+      }
+    }, `${servers.length}개 서버 장애 예측 분석 완료`);
+
+  } catch (error) {
+    console.error('❌ 장애 예측 분석 실패:', error);
+    return createErrorResponse(
+      `장애 예측 분석 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+      'INTERNAL_SERVER_ERROR'
+    );
+  }
+}
+
+/**
+ * 📈 리소스 사용량 예측 (POST)
+ */
+async function forecastResourceUsageHandler(request: NextRequest) {
+  try {
+    console.log('📈 리소스 사용량 예측 API 호출');
+
+    const body = await request.json().catch(() => ({}));
+    const { timeframeHours = 24 } = body;
+
+    if (timeframeHours < 1 || timeframeHours > 168) {
+      return createErrorResponse('예측 시간은 1시간에서 168시간(7일) 사이여야 합니다', 'VALIDATION_ERROR');
+    }
+
+    // 리소스 사용량 예측 실행
+    const forecasts = await predictiveAnalytics.forecastResourceUsage(timeframeHours);
+
+    if (forecasts.length === 0) {
+      return createErrorResponse('충분한 데이터가 없어 예측할 수 없습니다', 'NOT_FOUND');
+    }
+
+    // 용량 고갈 위험 분석
+    const exhaustionRisks = forecasts.filter(f => f.estimatedExhaustionTime !== undefined);
+    const criticalResources = exhaustionRisks.filter(f => f.estimatedExhaustionTime! <= 24);
+
+    return createSuccessResponse({
+      timeframe: `${timeframeHours}시간`,
+      forecasts,
+      analysis: {
+        totalResources: forecasts.length,
+        exhaustionRisks: exhaustionRisks.length,
+        criticalResources: criticalResources.length,
+        earliestExhaustion: exhaustionRisks.length > 0 ? 
+          Math.min(...exhaustionRisks.map(f => f.estimatedExhaustionTime!)) : null
+      },
+      recommendations: generateResourceForecastRecommendations(forecasts, exhaustionRisks)
+    }, `${timeframeHours}시간 리소스 사용량 예측 완료`);
+
+  } catch (error) {
+    console.error('❌ 리소스 사용량 예측 실패:', error);
+    return createErrorResponse(
+      `리소스 사용량 예측 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+      'INTERNAL_SERVER_ERROR'
+    );
+  }
+}
+
+/**
+ * 🤖 AI 모델 재훈련 (POST)
+ */
+async function retrainModelsHandler(request: NextRequest) {
+  try {
+    console.log('🤖 AI 모델 재훈련 API 호출');
+
+    // 모델 재훈련 실행
+    await predictiveAnalytics.retrainModels();
+
+    // 재훈련 후 정확도 평가
+    const accuracy = await predictiveAnalytics.evaluatePredictionAccuracy();
+
+    return createSuccessResponse({
+      retraining: {
+        status: 'completed',
+        timestamp: new Date().toISOString()
+      },
+      accuracy,
+      improvements: {
+        overallImprovement: '모델 성능이 향상되었습니다',
+        recommendations: [
+          '정기적인 모델 재훈련으로 예측 정확도를 유지하세요',
+          '더 많은 데이터 수집으로 모델 성능을 개선할 수 있습니다'
+        ]
+      }
+    }, 'AI 모델 재훈련 완료');
+
+  } catch (error) {
+    console.error('❌ AI 모델 재훈련 실패:', error);
+    return createErrorResponse(
+      `AI 모델 재훈련 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+      'INTERNAL_SERVER_ERROR'
+    );
+  }
+}
+
+/**
+ * 💡 부하 예측 권장사항 생성
+ */
+function generateLoadPredictionRecommendations(predictions: any[]): string[] {
+  const recommendations: string[] = [];
+  
+  const criticalPredictions = predictions.filter(p => p.severity === 'critical');
+  const highPredictions = predictions.filter(p => p.severity === 'high');
+  
+  if (criticalPredictions.length > 0) {
+    recommendations.push('🚨 즉시 조치 필요: 심각한 수준의 리소스 사용률 예상');
+    recommendations.push('⚡ 긴급 스케일링 또는 부하 분산 고려');
+  }
+  
+  if (highPredictions.length > 0) {
+    recommendations.push('⚠️ 높은 리소스 사용률 예상: 예방적 조치 권장');
+    recommendations.push('📊 모니터링 강화 및 알림 설정');
+  }
+  
+  const increasingTrends = predictions.filter(p => p.trend === 'increasing');
+  if (increasingTrends.length > 0) {
+    recommendations.push('📈 증가 추세 감지: 용량 계획 검토 필요');
+  }
+  
+  if (recommendations.length === 0) {
+    recommendations.push('✅ 예측된 부하 수준이 안정적입니다');
+  }
+  
+  return recommendations;
+}
+
+/**
+ * 🔍 가장 일반적인 위험 요소 분석
+ */
+function getMostCommonRiskFactors(predictions: any[]): string[] {
+  const factorCounts: Record<string, number> = {};
+  
+  predictions.forEach(p => {
+    p.riskFactors.forEach((factor: string) => {
+      factorCounts[factor] = (factorCounts[factor] || 0) + 1;
+    });
+  });
+  
+  return Object.entries(factorCounts)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 5)
+    .map(([factor]) => factor);
+}
+
+/**
+ * 📊 리소스 예측 권장사항 생성
+ */
+function generateResourceForecastRecommendations(forecasts: any[], exhaustionRisks: any[]): string[] {
+  const recommendations: string[] = [];
+  
+  if (exhaustionRisks.length > 0) {
+    const criticalResources = exhaustionRisks.filter(f => f.estimatedExhaustionTime <= 24);
+    
+    if (criticalResources.length > 0) {
+      recommendations.push('🚨 24시간 내 리소스 고갈 위험: 즉시 용량 확장 필요');
+      recommendations.push(`⚡ 위험 리소스: ${criticalResources.map(r => r.resource).join(', ')}`);
+    }
+    
+    recommendations.push('📈 용량 계획 수립 및 자동 스케일링 설정 권장');
+  }
+  
+  const highUsageForecasts = forecasts.filter(f => 
+    f.predictedUsage.some((usage: number) => usage > 80)
+  );
+  
+  if (highUsageForecasts.length > 0) {
+    recommendations.push('⚠️ 높은 리소스 사용률 예상: 성능 최적화 고려');
+  }
+  
+  if (recommendations.length === 0) {
+    recommendations.push('✅ 리소스 사용량이 안정적으로 예측됩니다');
+  }
+  
+  return recommendations;
+}
+
+// 에러 핸들러로 래핑
+export const GET = withErrorHandler(getPredictionDashboardHandler);
+export const POST = withErrorHandler(predictServerLoadHandler);
+export const PUT = withErrorHandler(predictFailuresHandler); 

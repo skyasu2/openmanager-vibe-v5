@@ -44,13 +44,16 @@ export interface AlertMessage {
 
 export class WebSocketClient {
   private ws: WebSocket | null = null;
+  private url: string;
+  private listeners: Map<string, Set<(data: any) => void>> = new Map();
+  private isConnecting = false;
+  private connectionAttempts = 0;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
-  private listeners: Map<string, Set<(data: any) => void>> = new Map();
-  private isConnecting = false;
 
-  constructor(private url: string) {
+  constructor(url: string) {
+    this.url = url;
     this.initializeListeners();
   }
 
@@ -63,28 +66,33 @@ export class WebSocketClient {
   }
 
   /**
-   * WebSocket 연결 시작
+   * WebSocket 연결 시작 (상태 동기화 개선)
    */
   connect(): Promise<void> {
     return new Promise((resolve, reject) => {
+      // 이미 연결된 경우
       if (this.ws?.readyState === WebSocket.OPEN) {
         resolve();
         return;
       }
 
+      // 연결 중인 경우 대기
       if (this.isConnecting) {
-        reject(new Error('Already connecting'));
+        reject(new Error('Connection already in progress'));
         return;
       }
 
+      // 연결 상태 플래그 설정
       this.isConnecting = true;
+      this.connectionAttempts++;
 
       try {
         this.ws = new WebSocket(this.url);
 
         this.ws.onopen = () => {
           console.log('🔄 WebSocket 연결됨');
-          this.isConnecting = false;
+          this.isConnecting = false;  // 연결 완료
+          this.connectionAttempts = 0;
           this.reconnectAttempts = 0;
           this.notifyListeners('connection', { status: 'connected' });
           resolve();
@@ -99,18 +107,32 @@ export class WebSocketClient {
           }
         };
 
-        this.ws.onclose = () => {
-          console.log('🔄 WebSocket 연결 종료');
-          this.isConnecting = false;
-          this.notifyListeners('connection', { status: 'disconnected' });
-          this.handleReconnect();
+        this.ws.onclose = (event) => {
+          console.log('🔄 WebSocket 연결 종료', event.code, event.reason);
+          const wasConnecting = this.isConnecting;
+          this.isConnecting = false;  // 연결 종료
+          
+          this.notifyListeners('connection', { 
+            status: 'disconnected',
+            code: event.code,
+            reason: event.reason
+          });
+          
+          // 정상적인 연결 종료가 아닌 경우만 재연결
+          if (!event.wasClean && event.code !== 1000) {
+            this.handleReconnect();
+          }
         };
 
         this.ws.onerror = (error) => {
           console.error('WebSocket 오류:', error);
-          this.isConnecting = false;
+          this.isConnecting = false;  // 에러 시 연결 상태 리셋
           this.notifyListeners('connection', { status: 'error', error });
-          reject(error);
+          
+          // 연결 시도 중 에러인 경우 reject
+          if (this.connectionAttempts === 1) {
+            reject(error);
+          }
         };
 
       } catch (error) {

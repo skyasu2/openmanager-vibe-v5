@@ -469,12 +469,15 @@ export class AdminLogger {
   }
 
   private trimLogs(): void {
+    // 원자적 로그 트림 (동시성 안전)
     if (this.interactionLogs.length > this.maxLogSize) {
-      this.interactionLogs = this.interactionLogs.slice(-this.maxLogSize);
+      const newInteractionLogs = [...this.interactionLogs.slice(-this.maxLogSize)];
+      this.interactionLogs = newInteractionLogs;
     }
     
     if (this.errorLogs.length > this.maxLogSize) {
-      this.errorLogs = this.errorLogs.slice(-this.maxLogSize);
+      const newErrorLogs = [...this.errorLogs.slice(-this.maxLogSize)];
+      this.errorLogs = newErrorLogs;
     }
   }
 

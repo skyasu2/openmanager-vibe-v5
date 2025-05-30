@@ -1,52 +1,63 @@
-import { NextResponse } from 'next/server';
-import { simulationEngine } from '../../../../services/simulationEngine';
-import { dataManager } from '../../../../services/dataManager';
+import { NextRequest } from 'next/server';
+import { systemStateManager } from '../../../../core/system/SystemStateManager';
+import { createSuccessResponse, createErrorResponse, withErrorHandler } from '../../../../lib/api/errorHandler';
 
-export async function POST() {
+/**
+ * 🛑 시스템 중지 API v2
+ * POST /api/system/stop
+ * 통합 상태 관리자를 통한 시뮬레이션 엔진 중지
+ */
+async function stopSystemHandler(request?: NextRequest) {
+  const startTime = Date.now();
+  
   try {
-    console.log('🛑 시스템 중지 API 호출');
+    console.log('🛑 시스템 중지 API 호출 (v2)');
 
-    // 실행 중인지 확인
-    if (!simulationEngine.isRunning()) {
-      return NextResponse.json({
-        success: false,
-        message: '시스템이 실행 중이 아닙니다.',
-        data: {
-          isRunning: false
-        }
-      }, { status: 400 });
+    // 통합 상태 관리자를 통한 시뮬레이션 중지
+    const result = await systemStateManager.stopSimulation();
+    
+    if (!result.success) {
+      return createErrorResponse(
+        result.message,
+        'BAD_REQUEST'
+      );
     }
 
-    const state = simulationEngine.getState();
-    const runtime = state.startTime ? Date.now() - state.startTime : 0;
+    // 현재 시스템 상태 조회
+    const systemStatus = systemStateManager.getSystemStatus();
+    
+    // API 호출 추적
+    const responseTime = Date.now() - startTime;
+    systemStateManager.trackApiCall(responseTime, false);
 
-    // 시뮬레이션 엔진 중지
-    simulationEngine.stop();
-
-    // 실시간 데이터를 일일 저장소로 마이그레이션
-    dataManager.migrateToDaily();
-
-    // 저장소 정보 조회
-    const storageInfo = dataManager.getStorageInfo();
-
-    return NextResponse.json({
-      success: true,
-      message: '시스템이 성공적으로 중지되었습니다.',
-      data: {
-        isRunning: false,
-        runtime: Math.round(runtime / 1000), // 초 단위
-        dataCollected: state.dataCount,
-        storageInfo
+    return createSuccessResponse({
+      isRunning: systemStatus.simulation.isRunning,
+      runtime: systemStatus.simulation.runtime,
+      dataCollected: systemStatus.simulation.dataCount,
+      serverCount: systemStatus.simulation.serverCount,
+      performance: {
+        totalApiCalls: systemStatus.performance.apiCalls,
+        averageResponseTime: systemStatus.performance.averageResponseTime,
+        errorRate: systemStatus.performance.errorRate,
+        responseTime: responseTime
+      },
+      services: systemStatus.services,
+      storageInfo: {
+        lastUpdated: systemStatus.lastUpdated,
+        health: systemStatus.health
       }
-    });
+    }, result.message);
 
   } catch (error) {
     console.error('❌ 시스템 중지 오류:', error);
     
-    return NextResponse.json({
-      success: false,
-      message: '시스템 중지에 실패했습니다.',
-      error: error instanceof Error ? error.message : '알 수 없는 오류'
-    }, { status: 500 });
+    // API 호출 추적 (에러)
+    const responseTime = Date.now() - startTime;
+    systemStateManager.trackApiCall(responseTime, true);
+    
+    throw error; // withErrorHandler가 처리
   }
-} 
+}
+
+// 에러 핸들러 래핑
+export const POST = withErrorHandler(stopSystemHandler); 
