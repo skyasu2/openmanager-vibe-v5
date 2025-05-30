@@ -610,6 +610,13 @@ export class SimulationEngine {
   public getServerById(id: string): EnhancedServerMetrics | undefined {
     return this.state.servers.find(server => server.id === id);
   }
+
+  /**
+   * 🔍 시뮬레이션 실행 상태 확인
+   */
+  public isRunning(): boolean {
+    return this.state.isRunning;
+  }
 }
 
 // 싱글톤 인스턴스
