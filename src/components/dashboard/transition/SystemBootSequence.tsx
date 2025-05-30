@@ -212,188 +212,107 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
   }
 
   return (
-    <SmoothTransition
-      isLoading={true}
-      className="fixed inset-0 z-50"
-      loadingComponent={
-        <div className="relative w-full h-full">
-          {/* 메인 로더 (코어 시스템 로딩) */}
-          <AnimatePresence mode="wait">
-            {(currentPhase === 'initializing' || currentPhase === 'core-loading') && (
-              <div style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '100vh',
-                zIndex: 99999,
-                backgroundColor: '#0f172a'
-              }}>
-                <DashboardLoader
-                  onBootComplete={handleCoreBootComplete}
-                  onPhaseChange={handlePhaseChange}
-                />
-              </div>
-            )}
-          </AnimatePresence>
-
-          {/* 서버 스포너 (서버 인프라 구동) */}
-          {currentPhase === 'server-spawning' && (
-            <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
-              {/* 배경 효과 */}
-              <div className="absolute inset-0 opacity-20">
-                <motion.div
-                  className="absolute top-1/4 left-1/4 w-96 h-96 bg-green-400 rounded-full filter blur-3xl"
-                  animate={{
-                    scale: [1, 1.3, 1],
-                    opacity: [0.3, 0.7, 0.3]
-                  }}
-                  transition={{ duration: 5, repeat: Infinity }}
-                />
-                <motion.div
-                  className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-400 rounded-full filter blur-3xl"
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    opacity: [0.2, 0.6, 0.2]
-                  }}
-                  transition={{ duration: 4, repeat: Infinity, delay: 1.5 }}
-                />
-              </div>
-
-              {/* 중앙 상태 표시 */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="text-center max-w-md mx-auto px-8"
-                >
-                  <motion.div
-                    className="w-24 h-24 bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl"
-                    animate={{ 
-                      boxShadow: [
-                        "0 0 40px rgba(34, 197, 94, 0.5)",
-                        "0 0 80px rgba(34, 197, 94, 0.8)",
-                        "0 0 40px rgba(34, 197, 94, 0.5)"
-                      ]
-                    }}
-                    transition={{ 
-                      boxShadow: { duration: 3, repeat: Infinity }
-                    }}
-                  >
-                    <motion.span
-                      className="text-4xl"
-                      animate={{ rotate: [0, 360] }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                    >
-                      🌐
-                    </motion.span>
-                  </motion.div>
-                  
-                  <motion.h2 
-                    className="text-3xl font-bold text-white mb-4"
-                    animate={{ 
-                      opacity: [0.8, 1, 0.8]
-                    }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    서버 인프라 구동 중
-                  </motion.h2>
-                  
-                  <motion.p 
-                    className="text-lg text-green-200 mb-6"
-                    key={currentMessage}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {currentMessage}
-                  </motion.p>
-
-                  {/* 전체 진행률 */}
-                  <div className="w-full max-w-sm mx-auto">
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-white/80 text-sm">전체 진행률</span>
-                      <span className="text-white font-bold text-lg">{Math.round(bootProgress)}%</span>
-                    </div>
-                    
-                    <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden border border-white/20">
-                      <motion.div
-                        className={`h-full rounded-full bg-gradient-to-r ${getProgressColor(bootProgress)}`}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${bootProgress}%` }}
-                        transition={{ duration: 0.5, ease: "easeOut" }}
-                      >
-                        <motion.div
-                          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-full"
-                          animate={{ x: ["-100%", "200%"] }}
-                          transition={{ duration: 2.5, repeat: Infinity }}
-                        />
-                      </motion.div>
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
-
-              {/* 서버 카드 스포너 */}
-              <ServerCardSpawner
-                servers={servers}
-                onServerSpawned={handleServerSpawned}
-                onAllServersSpawned={handleAllServersSpawned}
-                isActive={true}
-                spawnDelay={400}
-              />
-            </div>
-          )}
-
-          {/* 최종 단계 */}
-          {currentPhase === 'finalizing' && (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      background: '#000000',
+      zIndex: 999998,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      {currentPhase === 'initializing' && (
+        <DashboardLoader
+          onBootComplete={handleCoreBootComplete}
+          onPhaseChange={handlePhaseChange}
+        />
+      )}
+      
+      {currentPhase === 'server-spawning' && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
+          zIndex: 999997,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <ServerCardSpawner
+            servers={servers}
+            onServerSpawned={handleServerSpawned}
+            onAllServersSpawned={handleAllServersSpawned}
+            isActive={true}
+            spawnDelay={400}
+          />
+        </div>
+      )}
+      
+      {currentPhase === 'finalizing' && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-gradient-to-br from-green-900 via-blue-900 to-purple-900 flex items-center justify-center"
+        >
+          <div className="text-center">
             <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", damping: 10 }}
+              className="w-32 h-32 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl"
+            >
+              <motion.span
+                className="text-6xl"
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 2, ease: "linear" }}
+              >
+                ✅
+              </motion.span>
+            </motion.div>
+            
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-4xl font-bold text-white mb-4"
+            >
+              시스템 준비 완료!
+            </motion.h1>
+            
+            <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="fixed inset-0 bg-gradient-to-br from-green-900 via-blue-900 to-purple-900 flex items-center justify-center"
+              transition={{ delay: 0.6 }}
+              className="text-xl text-green-200"
             >
-              <div className="text-center">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", damping: 10 }}
-                  className="w-32 h-32 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl"
-                >
-                  <motion.span
-                    className="text-6xl"
-                    animate={{ rotate: [0, 360] }}
-                    transition={{ duration: 2, ease: "linear" }}
-                  >
-                    ✅
-                  </motion.span>
-                </motion.div>
-                
-                <motion.h1
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="text-4xl font-bold text-white mb-4"
-                >
-                  시스템 준비 완료!
-                </motion.h1>
-                
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.6 }}
-                  className="text-xl text-green-200"
-                >
-                  OpenManager 대시보드를 시작합니다
-                </motion.p>
-              </div>
-            </motion.div>
-          )}
-        </div>
-      }
-    >
-      {/* 빈 children - 로딩 중에는 표시하지 않음 */}
-      <div></div>
-    </SmoothTransition>
+              OpenManager 대시보드를 시작합니다
+            </motion.p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* 🚨 응급 표시 확인 */}
+      <div style={{
+        position: 'fixed',
+        bottom: '20px',
+        right: '20px',
+        padding: '1rem',
+        background: 'rgba(34, 197, 94, 0.9)',
+        color: 'white',
+        borderRadius: '8px',
+        zIndex: 999999,
+        fontSize: '0.875rem',
+        border: '2px solid #10b981'
+      }}>
+        🚀 SystemBootSequence 강제 렌더링 활성화
+      </div>
+    </div>
   );
 });
 

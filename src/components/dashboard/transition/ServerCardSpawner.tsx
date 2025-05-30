@@ -158,141 +158,251 @@ const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(({
   const progress = totalServers > 0 ? (spawnedCount / totalServers) * 100 : 0;
 
   return (
-    <div className="fixed bottom-6 left-6 z-40 max-w-sm">
-      <AnimatePresence>
-        {isSpawning && currentGroup && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.8 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            transition={{ duration: 0.4, type: "spring" }}
-            className="bg-black/80 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-2xl"
-          >
-            {/* 헤더 */}
-            <div className="flex items-center gap-3 mb-4">
-              <motion.div
-                className="text-3xl"
-                animate={{ 
-                  rotate: [0, 360],
-                  scale: [1, 1.1, 1]
-                }}
-                transition={{ 
-                  rotate: { duration: 2, repeat: Infinity, ease: "linear" },
-                  scale: { duration: 1.5, repeat: Infinity }
-                }}
-              >
-                {currentGroup.icon}
-              </motion.div>
-              <div>
-                <div className="text-white font-semibold">서버 인프라 구동</div>
-                <div className="text-gray-300 text-sm">
-                  {spawnedCount}/{totalServers} 서버 활성화
-                </div>
-              </div>
-            </div>
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 999996,
+      overflow: 'hidden',
+      fontFamily: 'system-ui, -apple-system, sans-serif'
+    }}>
+      {/* 배경 효과 */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        opacity: 0.2
+      }}>
+        <motion.div
+          style={{
+            position: 'absolute',
+            top: '25%',
+            left: '25%',
+            width: '384px',
+            height: '384px',
+            background: '#4ade80',
+            borderRadius: '50%',
+            filter: 'blur(48px)'
+          }}
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.3, 0.7, 0.3]
+          }}
+          transition={{ duration: 5, repeat: Infinity }}
+        />
+        <motion.div
+          style={{
+            position: 'absolute',
+            bottom: '25%',
+            right: '25%',
+            width: '320px',
+            height: '320px',
+            background: '#a855f7',
+            borderRadius: '50%',
+            filter: 'blur(48px)'
+          }}
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.2, 0.6, 0.2]
+          }}
+          transition={{ duration: 4, repeat: Infinity, delay: 1.5 }}
+        />
+      </div>
 
-            {/* 현재 진행 중인 그룹 */}
+      {/* 중앙 상태 표시 */}
+      <div style={{
+        position: 'relative',
+        zIndex: 10,
+        textAlign: 'center',
+        maxWidth: '448px',
+        margin: '0 auto',
+        padding: '2rem'
+      }}>
+        <motion.div
+          style={{
+            width: '96px',
+            height: '96px',
+            background: 'linear-gradient(135deg, #4ade80 0%, #3b82f6 50%, #a855f7 100%)',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 1.5rem',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+          }}
+          animate={{ 
+            boxShadow: [
+              "0 0 40px rgba(34, 197, 94, 0.5)",
+              "0 0 80px rgba(34, 197, 94, 0.8)",
+              "0 0 40px rgba(34, 197, 94, 0.5)"
+            ]
+          }}
+          transition={{ 
+            boxShadow: { duration: 3, repeat: Infinity }
+          }}
+        >
+          <motion.span
+            style={{
+              fontSize: '2.5rem',
+              color: 'white'
+            }}
+            animate={{ rotate: [0, 360] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+          >
+            🌐
+          </motion.span>
+        </motion.div>
+        
+        <motion.h2 
+          style={{
+            fontSize: '2rem',
+            fontWeight: 'bold',
+            color: 'white',
+            marginBottom: '1rem'
+          }}
+          animate={{ 
+            opacity: [0.8, 1, 0.8]
+          }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          서버 인프라 구동 중
+        </motion.h2>
+        
+        <motion.p 
+          style={{
+            fontSize: '1.125rem',
+            color: '#bbf7d0',
+            marginBottom: '2rem'
+          }}
+          key={currentGroup.message}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          {currentGroup.message}
+        </motion.p>
+
+        {/* 전체 진행률 */}
+        <div style={{
+          width: '100%',
+          maxWidth: '384px',
+          margin: '0 auto'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '0.75rem'
+          }}>
+            <span style={{
+              color: 'rgba(255, 255, 255, 0.8)',
+              fontSize: '0.875rem'
+            }}>전체 진행률</span>
+            <span style={{
+              color: 'white',
+              fontWeight: 'bold',
+              fontSize: '1.125rem'
+            }}>{Math.round(progress)}%</span>
+          </div>
+          
+          <div style={{
+            width: '100%',
+            background: 'rgba(255, 255, 255, 0.1)',
+            borderRadius: '9999px',
+            height: '12px',
+            overflow: 'hidden',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
+            <motion.div
+              style={{
+                height: '100%',
+                borderRadius: '9999px',
+                background: progress < 30 ? 'linear-gradient(90deg, #ef4444 0%, #f97316 100%)' :
+                           progress < 70 ? 'linear-gradient(90deg, #f59e0b 0%, #3b82f6 100%)' :
+                           'linear-gradient(90deg, #4ade80 0%, #22c55e 100%)',
+                position: 'relative'
+              }}
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            >
+              <motion.div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
+                  width: '100%'
+                }}
+                animate={{ x: ["-100%", "200%"] }}
+                transition={{ duration: 2.5, repeat: Infinity }}
+              />
+            </motion.div>
+          </div>
+        </div>
+
+        {/* 현재 스포닝 타입 표시 */}
+        <AnimatePresence mode="wait">
+          {currentGroup && (
             <motion.div
               key={currentGroup.type}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="mb-4"
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: -20 }}
+              transition={{ duration: 0.4 }}
+              style={{
+                marginTop: '2rem',
+                padding: '1rem',
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(16px)',
+                borderRadius: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
+              }}
             >
-              <div className={`${currentGroup.color} font-medium mb-2`}>
-                {currentGroup.message}
+              <div style={{
+                color: 'white',
+                fontWeight: '600',
+                fontSize: '1rem'
+              }}>
+                현재 생성 중: {currentGroup.type}
               </div>
-              
-              {/* 현재 그룹 내 서버들 */}
-              <div className="space-y-1">
-                {currentGroup.servers.slice(0, currentServerInGroup + 1).map((server, index) => (
-                  <motion.div
-                    key={server.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="flex items-center gap-2 text-sm"
-                  >
-                    <motion.div
-                      className="w-2 h-2 bg-green-400 rounded-full"
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{ duration: 1, repeat: Infinity }}
-                    />
-                    <span className="text-gray-300">{server.name}</span>
-                    {spawnedServers.has(server.id) && (
-                      <motion.span
-                        initial={{ opacity: 0, scale: 0 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="text-green-400 text-xs"
-                      >
-                        ✓
-                      </motion.span>
-                    )}
-                  </motion.div>
-                ))}
+              <div style={{
+                color: 'rgba(255, 255, 255, 0.7)',
+                fontSize: '0.875rem',
+                marginTop: '0.25rem'
+              }}>
+                {currentGroup.servers.length}개 서버 초기화
               </div>
             </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
-            {/* 전체 진행률 */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">전체 진행률</span>
-                <span className="text-white font-medium">{Math.round(progress)}%</span>
-              </div>
-              
-              <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progress}%` }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-full"
-                    animate={{ x: ["-100%", "200%"] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                </motion.div>
-              </div>
-            </div>
-
-            {/* 다음 예정 그룹 미리보기 */}
-            {currentGroupIndex < groupedServers.length - 1 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.6 }}
-                className="mt-4 pt-3 border-t border-gray-600"
-              >
-                <div className="text-xs text-gray-400 mb-1">다음 단계</div>
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <span>{groupedServers[currentGroupIndex + 1]?.icon}</span>
-                  <span>{groupedServers[currentGroupIndex + 1]?.message}</span>
-                </div>
-              </motion.div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* 스폰된 서버 카운터 (항상 표시) */}
-      {spawnedCount > 0 && !isSpawning && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-green-600/90 backdrop-blur-md rounded-xl p-3 border border-green-400/30"
-        >
-          <div className="flex items-center gap-2 text-white">
-            <motion.span
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            >
-              ✨
-            </motion.span>
-            <span className="font-medium">
-              {spawnedCount}개 서버 활성화 완료
-            </span>
-          </div>
-        </motion.div>
-      )}
+      {/* 🚨 강제 표시 확인 메시지 */}
+      <div style={{
+        position: 'fixed',
+        bottom: '80px',
+        right: '20px',
+        padding: '1rem',
+        background: 'rgba(34, 197, 94, 0.9)',
+        borderRadius: '8px',
+        border: '2px solid #10b981',
+        color: 'white',
+        zIndex: 999999,
+        fontSize: '0.875rem'
+      }}>
+        🌐 ServerCardSpawner 강제 렌더링 활성화
+      </div>
     </div>
   );
 });

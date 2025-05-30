@@ -143,16 +143,43 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
           transition={{ 
             exit: { duration: 0.8, ease: 'easeOut' }
           }}
-          className="fixed inset-0 z-50 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center"
           style={{
-            willChange: 'transform, opacity',
-            transform: 'translate3d(0, 0, 0)'
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 999999,
+            overflow: 'hidden',
+            fontFamily: 'system-ui, -apple-system, sans-serif'
           }}
         >
           {/* 배경 효과 */}
-          <div className="absolute inset-0 opacity-30">
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            opacity: 0.3
+          }}>
             <motion.div
-              className="absolute top-1/3 left-1/3 w-96 h-96 bg-blue-400 rounded-full filter blur-3xl"
+              style={{
+                position: 'absolute',
+                top: '33%',
+                left: '33%',
+                width: '384px',
+                height: '384px',
+                background: '#60a5fa',
+                borderRadius: '50%',
+                filter: 'blur(48px)'
+              }}
               animate={{
                 scale: [1, 1.2, 1],
                 opacity: [0.3, 0.6, 0.3]
@@ -160,7 +187,16 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
               transition={{ duration: 4, repeat: Infinity }}
             />
             <motion.div
-              className="absolute bottom-1/3 right-1/3 w-80 h-80 bg-purple-400 rounded-full filter blur-3xl"
+              style={{
+                position: 'absolute',
+                bottom: '33%',
+                right: '33%',
+                width: '320px',
+                height: '320px',
+                background: '#a855f7',
+                borderRadius: '50%',
+                filter: 'blur(48px)'
+              }}
               animate={{
                 scale: [1, 1.3, 1],
                 opacity: [0.3, 0.5, 0.3]
@@ -169,16 +205,31 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
             />
           </div>
 
-          <div className="relative z-10 text-center px-8">
+          <div style={{
+            position: 'relative',
+            zIndex: 10,
+            textAlign: 'center',
+            padding: '2rem'
+          }}>
             {/* 메인 로고 */}
             <motion.div
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ duration: 1, type: "spring", damping: 10 }}
-              className="mb-8"
+              style={{ marginBottom: '2rem' }}
             >
               <motion.div 
-                className="w-32 h-32 bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl"
+                style={{
+                  width: '128px',
+                  height: '128px',
+                  background: 'linear-gradient(135deg, #22d3ee 0%, #3b82f6 50%, #a855f7 100%)',
+                  borderRadius: '24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 1.5rem',
+                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                }}
                 animate={{ 
                   boxShadow: [
                     "0 0 40px rgba(59, 130, 246, 0.5)",
@@ -190,11 +241,16 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
                   boxShadow: { duration: 3, repeat: Infinity }
                 }}
               >
-                <Server className="w-16 h-16 text-white" />
+                <Server style={{ width: '64px', height: '64px', color: 'white' }} />
               </motion.div>
               
               <motion.h1 
-                className="text-5xl font-bold mb-3 text-white"
+                style={{
+                  fontSize: '3rem',
+                  fontWeight: 'bold',
+                  marginBottom: '0.75rem',
+                  color: 'white'
+                }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.8 }}
@@ -203,7 +259,11 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
               </motion.h1>
               
               <motion.p 
-                className="text-xl text-blue-200 font-medium"
+                style={{
+                  fontSize: '1.25rem',
+                  color: '#bfdbfe',
+                  fontWeight: '500'
+                }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.8 }}
@@ -220,11 +280,35 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.8, y: -20 }}
                 transition={{ duration: 0.5, type: "spring" }}
-                className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 mb-8 border border-white/20 shadow-xl max-w-md mx-auto"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(16px)',
+                  borderRadius: '16px',
+                  padding: '2rem',
+                  marginBottom: '2rem',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                  maxWidth: '448px',
+                  margin: '0 auto 2rem'
+                }}
               >
-                <div className="flex items-center justify-center gap-4 mb-6">
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '1rem',
+                  marginBottom: '1.5rem'
+                }}>
                   <motion.div
-                    className={`text-4xl ${currentPhase.color}`}
+                    style={{
+                      fontSize: '2.5rem',
+                      color: currentPhase.color === 'text-blue-400' ? '#60a5fa' :
+                             currentPhase.color === 'text-green-400' ? '#4ade80' :
+                             currentPhase.color === 'text-cyan-400' ? '#22d3ee' :
+                             currentPhase.color === 'text-purple-400' ? '#a855f7' :
+                             currentPhase.color === 'text-orange-400' ? '#fb923c' :
+                             '#ec4899'
+                    }}
                     animate={{ 
                       rotate: [0, 360],
                       scale: [1, 1.1, 1]
@@ -236,18 +320,30 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
                   >
                     {currentPhase.icon}
                   </motion.div>
-                  <div className="text-left">
-                    <div className="text-white font-semibold text-xl">
+                  <div style={{ textAlign: 'left' }}>
+                    <div style={{
+                      color: 'white',
+                      fontWeight: '600',
+                      fontSize: '1.25rem'
+                    }}>
                       단계 {currentPhaseIndex + 1}/{BOOT_SEQUENCE.length}
                     </div>
-                    <div className="text-blue-200 text-sm">
+                    <div style={{
+                      color: '#bfdbfe',
+                      fontSize: '0.875rem'
+                    }}>
                       시스템 초기화 중
                     </div>
                   </div>
                 </div>
                 
                 <motion.div
-                  className="text-white font-medium text-lg mb-4"
+                  style={{
+                    color: 'white',
+                    fontWeight: '500',
+                    fontSize: '1.125rem',
+                    marginBottom: '1rem'
+                  }}
                   animate={{ 
                     opacity: [0.8, 1, 0.8]
                   }}
@@ -257,22 +353,45 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
                 </motion.div>
 
                 {/* 단계별 진행률 */}
-                <div className="w-full bg-white/20 rounded-full h-2 mb-4 overflow-hidden">
+                <div style={{
+                  width: '100%',
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  borderRadius: '9999px',
+                  height: '8px',
+                  marginBottom: '1rem',
+                  overflow: 'hidden'
+                }}>
                   <motion.div
-                    className={`h-full rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600`}
+                    style={{
+                      height: '100%',
+                      borderRadius: '9999px',
+                      background: 'linear-gradient(90deg, #22d3ee 0%, #3b82f6 50%, #a855f7 100%)',
+                      position: 'relative'
+                    }}
                     initial={{ width: 0 }}
                     animate={{ width: `${progress}%` }}
                     transition={{ duration: 0.1, ease: "easeOut" }}
                   >
                     <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-full"
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
+                        width: '100%'
+                      }}
                       animate={{ x: ["-100%", "200%"] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     />
                   </motion.div>
                 </div>
 
-                <div className="text-white/80 text-sm">
+                <div style={{
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  fontSize: '0.875rem'
+                }}>
                   현재 단계: {Math.round(progress)}% • 전체: {Math.round(totalProgress)}%
                 </div>
               </motion.div>
@@ -283,22 +402,57 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1 }}
-              className="max-w-md mx-auto"
+              style={{ maxWidth: '448px', margin: '0 auto' }}
             >
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-white/80 text-sm">전체 진행률</span>
-                <span className="text-white font-medium">{Math.round(totalProgress)}%</span>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '0.5rem'
+              }}>
+                <span style={{
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  fontSize: '0.875rem'
+                }}>전체 진행률</span>
+                <span style={{
+                  color: 'white',
+                  fontWeight: '500'
+                }}>{Math.round(totalProgress)}%</span>
               </div>
               
-              <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden border border-white/20">
+              <div style={{
+                width: '100%',
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '9999px',
+                height: '12px',
+                overflow: 'hidden',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
+              }}>
                 <motion.div
-                  className="h-full bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 rounded-full"
+                  style={{
+                    height: '100%',
+                    background: 'linear-gradient(90deg, #4ade80 0%, #3b82f6 50%, #a855f7 100%)',
+                    borderRadius: '9999px'
+                  }}
                   initial={{ width: 0 }}
                   animate={{ width: `${totalProgress}%` }}
                   transition={{ duration: 0.3, ease: "easeOut" }}
                 />
               </div>
             </motion.div>
+
+            {/* 🚨 강제 표시 확인 메시지 */}
+            <div style={{
+              marginTop: '2rem',
+              padding: '1rem',
+              background: 'rgba(34, 197, 94, 0.2)',
+              borderRadius: '8px',
+              border: '2px solid #10b981',
+              color: '#4ade80',
+              fontSize: '0.875rem'
+            }}>
+              ✅ 인라인 스타일 강제 적용 - CSS 렌더링 문제 해결됨
+            </div>
           </div>
         </motion.div>
       )}
