@@ -65,44 +65,59 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
         // LangGraph 사고 흐름 시작
         const sessionId = `sidebar_${Date.now()}`;
         if (isMounted) {
-          startThinking(sessionId, question, 'enterprise');
+          try {
+            startThinking(sessionId, question, 'enterprise');
+            console.log('✅ LangGraph 시작 성공');
+          } catch (langError) {
+            console.error('❌ LangGraph 시작 실패:', langError);
+            throw new Error('LangGraph 초기화 실패');
+          }
         }
         
         console.log('🤖 MCP Agent 초기화 중...');
         // MCP Agent 초기화
-        const mcpAgent = MCPLangGraphAgent.getInstance();
-        await mcpAgent.initialize();
-        console.log('✅ MCP Agent 초기화 완료');
-        
-        // 질문 처리
-        const mcpQuery = {
-          id: `query_${Date.now()}`,
-          question: question,
-          priority: 'high' as const,
-          category: determineCategory(question)
-        };
-        
-        console.log('🚀 질문 처리 시작:', mcpQuery);
-        
-        if (isMounted) {
-          const result = await mcpAgent.processQuery(mcpQuery);
-          console.log('✅ 질문 처리 완료:', result);
+        try {
+          const mcpAgent = MCPLangGraphAgent.getInstance();
+          await mcpAgent.initialize();
+          console.log('✅ MCP Agent 초기화 완료');
           
-          // 응답 설정
+          // 질문 처리
+          const mcpQuery = {
+            id: `query_${Date.now()}`,
+            question: question,
+            priority: 'high' as const,
+            category: determineCategory(question)
+          };
+          
+          console.log('🚀 질문 처리 시작:', mcpQuery);
+          
           if (isMounted) {
-            setResponse(result.answer);
-            setIsThinking(false);
-            completeThinking(result);
-            
-            // 완료 콜백 (지연 실행)
-            setTimeout(() => {
+            try {
+              const result = await mcpAgent.processQuery(mcpQuery);
+              console.log('✅ 질문 처리 완료:', result);
+              
+              // 응답 설정
               if (isMounted) {
-                onComplete();
+                setResponse(result.answer);
+                setIsThinking(false);
+                completeThinking(result);
+                
+                // 완료 콜백 (지연 실행)
+                setTimeout(() => {
+                  if (isMounted) {
+                    onComplete();
+                  }
+                }, 2000); // 2초로 연장하여 사용자가 결과를 확인할 시간 제공
               }
-            }, 2000); // 2초로 연장하여 사용자가 결과를 확인할 시간 제공
+            } catch (queryError) {
+              console.error('❌ 질문 처리 실패:', queryError);
+              throw new Error(`질문 처리 중 오류: ${queryError instanceof Error ? queryError.message : '알 수 없는 오류'}`);
+            }
           }
+        } catch (mcpError) {
+          console.error('❌ MCP Agent 오류:', mcpError);
+          throw new Error(`MCP Agent 오류: ${mcpError instanceof Error ? mcpError.message : '알 수 없는 오류'}`);
         }
-        
       } catch (error) {
         console.error('❌ AI 질문 처리 실패:', error);
         if (isMounted) {
