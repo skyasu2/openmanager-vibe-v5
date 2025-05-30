@@ -102,4 +102,4 @@ cat docs/archive/PHASE7_REACT_QUERY_API_INTEGRATION_PLAN.md
 
 ---
 
-*Archive 문서 - 2024년 12월 26일 정리* 
+*Archive 문서 - 2025년 5월 30일 정리* 
