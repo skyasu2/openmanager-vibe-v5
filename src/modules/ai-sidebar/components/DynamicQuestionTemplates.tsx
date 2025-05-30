@@ -23,6 +23,7 @@ interface QuestionTemplate {
 
 interface DynamicQuestionTemplatesProps {
   onQuestionSelect: (question: string) => void;
+  isProcessing?: boolean;
   className?: string;
 }
 
@@ -95,22 +96,36 @@ const questionTemplates: QuestionTemplate[] = [
 
 export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> = ({
   onQuestionSelect,
+  isProcessing = false,
   className = ''
 }) => {
   const [currentTemplateIndex, setCurrentTemplateIndex] = useState(0);
   const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
   const [isRotating, setIsRotating] = useState(true);
 
-  // 15초마다 질문 템플릿 변경
+  // 15초마다 질문 템플릿 변경 - 질문 처리 중에는 정지
   useEffect(() => {
-    if (!isRotating) return;
+    if (!isRotating || isProcessing) return; // 처리 중일 때도 정지
 
     const interval = setInterval(() => {
       setCurrentTemplateIndex((prev) => (prev + 1) % questionTemplates.length);
     }, 15000);
 
     return () => clearInterval(interval);
-  }, [isRotating]);
+  }, [isRotating, isProcessing]); // isProcessing 의존성 추가
+
+  // 처리 상태에 따른 회전 제어
+  useEffect(() => {
+    if (isProcessing) {
+      setIsRotating(false); // 처리 중이면 회전 정지
+    } else {
+      // 처리 완료 후 5초 뒤에 회전 재개
+      const timeout = setTimeout(() => {
+        setIsRotating(true);
+      }, 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, [isProcessing]);
 
   // 서버 상황에 따른 우선순위 질문 선택
   useEffect(() => {

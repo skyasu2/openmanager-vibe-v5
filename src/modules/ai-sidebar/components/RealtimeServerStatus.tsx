@@ -9,7 +9,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ServerStatus {
@@ -21,7 +21,7 @@ interface ServerStatus {
   lastUpdate: number;
 }
 
-export const RealtimeServerStatus: React.FC = () => {
+const RealtimeServerStatusComponent: React.FC = () => {
   const [status, setStatus] = useState<ServerStatus>({
     totalServers: 20,
     healthyServers: 15,
@@ -175,4 +175,8 @@ export const RealtimeServerStatus: React.FC = () => {
       </div>
     </motion.div>
   );
-}; 
+};
+
+// 메모이제이션으로 불필요한 리렌더링 방지
+const MemoizedRealtimeServerStatus = React.memo(RealtimeServerStatusComponent);
+export { MemoizedRealtimeServerStatus as RealtimeServerStatus }; 

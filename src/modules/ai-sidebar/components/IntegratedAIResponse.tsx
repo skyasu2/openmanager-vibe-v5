@@ -47,12 +47,20 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
     showReActSteps: true
   });
 
-  // 질문 처리 시작
+  // 질문 처리 시작 - 의존성 최적화
   useEffect(() => {
-    if (isProcessing && question) {
+    if (isProcessing && question && !isThinking && !response) {
       processQuestion();
     }
-  }, [isProcessing, question]);
+  }, [isProcessing, question]); // isThinking과 response 제거하여 무한 루프 방지
+
+  // 컴포넌트가 언마운트되거나 새 질문이 들어올 때 정리
+  useEffect(() => {
+    return () => {
+      // 컴포넌트 정리 시 타이머나 진행 중인 요청 정리
+      setIsThinking(false);
+    };
+  }, [question]); // question이 바뀔 때만 정리
 
   const processQuestion = async () => {
     setIsThinking(true);

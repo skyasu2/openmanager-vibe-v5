@@ -139,6 +139,7 @@ export const AISidebar: React.FC<AISidebarProps> = ({
         {/* 🎯 동적 질문 템플릿 */}
         <DynamicQuestionTemplates 
           onQuestionSelect={handleQuestionSelect}
+          isProcessing={!!activeQuestion}
         />
 
         {/* 📝 질문 입력 영역 */}
