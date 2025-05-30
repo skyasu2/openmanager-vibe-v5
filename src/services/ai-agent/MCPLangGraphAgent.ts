@@ -146,14 +146,31 @@ export class MCPLangGraphAgent {
     langGraphProcessor.thought("분석에 필요한 컨텍스트 데이터를 수집해야 합니다.");
     
     try {
+      console.log('📡 대시보드 API 호출 시작...');
       // 시뮬레이션 엔진에서 서버 데이터 가져오기
       const response = await fetch('/api/dashboard');
+      
       if (!response.ok) {
-        throw new Error(`서버 데이터 로드 실패: ${response.status}`);
+        console.error('❌ 대시보드 API 호출 실패:', response.status, response.statusText);
+        throw new Error(`API 호출 실패: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
-      const servers: ServerMetrics[] = data.servers || [];
+      console.log('✅ 대시보드 API 응답 수신:', {
+        hasData: !!data.data,
+        hasServers: !!(data.data?.servers || data.servers),
+        serversCount: (data.data?.servers || data.servers || []).length
+      });
+      
+      // API 응답 구조에 맞춰 서버 데이터 접근
+      const servers = data.data?.servers || data.servers || [];
+      
+      console.log('🖥️ 서버 데이터 파싱 완료:', servers.length + '개 서버');
+      
+      if (servers.length === 0) {
+        console.warn('⚠️ 서버 데이터가 비어있습니다');
+        throw new Error('서버 데이터를 찾을 수 없습니다');
+      }
       
       const relevantData: any = {
         query: query.question,

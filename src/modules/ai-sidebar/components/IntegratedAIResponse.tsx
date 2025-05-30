@@ -61,15 +61,18 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
       setResponse('');
       
       try {
+        console.log('🔄 LangGraph 사고 흐름 시작...');
         // LangGraph 사고 흐름 시작
         const sessionId = `sidebar_${Date.now()}`;
         if (isMounted) {
           startThinking(sessionId, question, 'enterprise');
         }
         
+        console.log('🤖 MCP Agent 초기화 중...');
         // MCP Agent 초기화
         const mcpAgent = MCPLangGraphAgent.getInstance();
         await mcpAgent.initialize();
+        console.log('✅ MCP Agent 초기화 완료');
         
         // 질문 처리
         const mcpQuery = {
@@ -79,8 +82,11 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
           category: determineCategory(question)
         };
         
+        console.log('🚀 질문 처리 시작:', mcpQuery);
+        
         if (isMounted) {
           const result = await mcpAgent.processQuery(mcpQuery);
+          console.log('✅ 질문 처리 완료:', result);
           
           // 응답 설정
           if (isMounted) {
