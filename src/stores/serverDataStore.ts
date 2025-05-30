@@ -359,13 +359,14 @@ export const useServerDataStore = create<ServerDataState>()(
               }));
               
               // 성능 모니터링 (30초마다)
-              if (state.performance.totalRequests % 6 === 0) {
+              const currentState = get();
+              if (currentState.performance.totalRequests % 6 === 0) {
                 console.log('📈 서버 데이터 스토어 성능:', {
                   servers_count: servers.length,
-                  total_requests: state.performance.totalRequests,
-                  avg_response_time: Math.round(state.performance.avgResponseTime) + 'ms',
-                  cache_hit_rate: state.performance.cacheHitRate + '%',
-                  unified_manager_running: state.unifiedManagerStatus?.isRunning
+                  total_requests: currentState.performance.totalRequests,
+                  avg_response_time: Math.round(currentState.performance.avgResponseTime) + 'ms',
+                  cache_hit_rate: currentState.performance.cacheHitRate + '%',
+                  unified_manager_running: currentState.unifiedManagerStatus?.isRunning
                 });
               }
               

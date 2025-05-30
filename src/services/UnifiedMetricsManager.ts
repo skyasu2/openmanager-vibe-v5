@@ -513,7 +513,8 @@ export class UnifiedMetricsManager {
     
     try {
       const servers = Array.from(this.servers.values());
-      await this.analyzeWithAI(servers);
+      // await this.analyzeWithAI(servers);
+      console.log('🤖 AI 분석 기능 일시 비활성화 (데모용)');
       this.metrics.ai_analysis_count++;
     } catch (error) {
       console.error('❌ AI 분석 실패:', error);
@@ -700,7 +701,7 @@ export class UnifiedMetricsManager {
   /**
    * 📋 서버 목록 조회 (ServerDashboard 호환)
    */
-  getServers(): EnhancedServerMetrics[] {
+  getServers(): any[] {
     return Array.from(this.servers.values()).map(server => ({
       id: server.id,
       hostname: server.hostname,
