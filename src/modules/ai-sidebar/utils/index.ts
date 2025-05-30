@@ -16,7 +16,7 @@ export const getDefaultSidebarConfig = (): AISidebarConfig => ({
   // UI 설정
   theme: 'auto',
   position: 'right',
-  width: 400,
+  width: 500,
   height: '100vh',
   
   // 기능 설정

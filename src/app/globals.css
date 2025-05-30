@@ -88,6 +88,17 @@ a {
   }
 }
 
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @keyframes float {
   0%, 100% {
     transform: translateY(0px);
@@ -114,7 +125,7 @@ a {
     opacity: 1;
   }
   50% {
-    opacity: 0.7;
+    opacity: 0.5;
   }
 }
 
@@ -173,4 +184,241 @@ a {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   background-size: 400% 400%;
   animation: gradientShift 15s ease infinite;
+}
+
+/* 🎨 반응형 디자인 개선 */
+
+/* 모바일 첫 번째 (Mobile First) */
+.responsive-container {
+  padding: 0.75rem; /* 12px */
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+/* 사이드바 반응형 개선 */
+.sidebar-responsive {
+  width: 100vw; /* 모바일: 전체 화면 */
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* 작은 화면 (Small screens - 태블릿) */
+@media (min-width: 768px) {
+  .responsive-container {
+    padding: 1.5rem; /* 24px */
+    max-width: 100%;
+  }
+  
+  .sidebar-responsive {
+    width: 420px; /* 태블릿: 중간 크기 */
+  }
+  
+  /* 네비게이션 개선 */
+  .nav-responsive {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  
+  /* 카드 그리드 개선 */
+  .card-grid-responsive {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+/* 중간 화면 (Medium screens - 노트북 14-15인치) */
+@media (min-width: 1024px) {
+  .responsive-container {
+    padding: 2rem; /* 32px */
+    max-width: 1200px;
+  }
+  
+  .sidebar-responsive {
+    width: 500px; /* 노트북: 더 큰 크기 */
+  }
+  
+  /* 대시보드 레이아웃 개선 */
+  .dashboard-layout-responsive {
+    display: grid;
+    grid-template-columns: 1fr 500px; /* 메인 콘텐츠 + 사이드바 */
+    gap: 2rem;
+  }
+  
+  /* 카드 그리드 개선 */
+  .card-grid-responsive {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+  
+  /* 차트 컨테이너 개선 */
+  .chart-container-responsive {
+    height: 350px;
+  }
+}
+
+/* 큰 화면 (Large screens - 데스크탑) */
+@media (min-width: 1280px) {
+  .responsive-container {
+    padding: 3rem; /* 48px */
+    max-width: 1400px;
+  }
+  
+  .sidebar-responsive {
+    width: 600px; /* 데스크탑: 가장 큰 크기 */
+  }
+  
+  /* 대시보드 레이아웃 개선 */
+  .dashboard-layout-responsive {
+    grid-template-columns: 1fr 600px;
+    gap: 3rem;
+  }
+  
+  /* 카드 그리드 개선 */
+  .card-grid-responsive {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2.5rem;
+  }
+  
+  /* 차트 컨테이너 개선 */
+  .chart-container-responsive {
+    height: 400px;
+  }
+}
+
+/* 매우 큰 화면 (Extra large screens - 대형 모니터) */
+@media (min-width: 1536px) {
+  .responsive-container {
+    max-width: 1600px;
+    padding: 4rem; /* 64px */
+  }
+  
+  .sidebar-responsive {
+    width: 700px; /* 대형 모니터: 최대 크기 */
+  }
+  
+  /* 대시보드 레이아웃 개선 */
+  .dashboard-layout-responsive {
+    grid-template-columns: 1fr 700px;
+    gap: 4rem;
+  }
+}
+
+/* 🎯 컴포넌트별 반응형 유틸리티 */
+
+/* 버튼 반응형 */
+.btn-responsive {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem; /* 14px */
+}
+
+@media (min-width: 768px) {
+  .btn-responsive {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem; /* 16px */
+  }
+}
+
+/* 텍스트 반응형 */
+.text-responsive-sm {
+  font-size: 0.75rem; /* 12px */
+}
+
+.text-responsive-base {
+  font-size: 0.875rem; /* 14px */
+}
+
+.text-responsive-lg {
+  font-size: 1rem; /* 16px */
+}
+
+@media (min-width: 768px) {
+  .text-responsive-sm {
+    font-size: 0.875rem; /* 14px */
+  }
+  
+  .text-responsive-base {
+    font-size: 1rem; /* 16px */
+  }
+  
+  .text-responsive-lg {
+    font-size: 1.125rem; /* 18px */
+  }
+}
+
+/* 간격 반응형 */
+.spacing-responsive-sm {
+  margin: 0.5rem;
+  padding: 0.5rem;
+}
+
+.spacing-responsive-md {
+  margin: 1rem;
+  padding: 1rem;
+}
+
+@media (min-width: 768px) {
+  .spacing-responsive-sm {
+    margin: 1rem;
+    padding: 1rem;
+  }
+  
+  .spacing-responsive-md {
+    margin: 1.5rem;
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .spacing-responsive-sm {
+    margin: 1.5rem;
+    padding: 1.5rem;
+  }
+  
+  .spacing-responsive-md {
+    margin: 2rem;
+    padding: 2rem;
+  }
+}
+
+/* 🚀 성능 최적화 */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.smooth-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 🎨 접근성 개선 */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 고대비 모드 지원 */
+@media (prefers-contrast: high) {
+  :root {
+    --primary: #0066cc;
+    --secondary: #008800;
+    --accent: #cc0000;
+    --text-primary: #000000;
+    --text-secondary: #333333;
+  }
+}
+
+/* 다크 모드 지원 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+  }
+  
+  body {
+    background: #0f172a;
+    color: var(--text-primary);
+  }
 }

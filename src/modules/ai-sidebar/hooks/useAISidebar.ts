@@ -10,7 +10,7 @@ import { SidebarHookOptions } from '../types';
 export const useAISidebar = (options: SidebarHookOptions = {}) => {
   const [isOpen, setIsOpen] = useState(options.defaultOpen || false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [width, setWidth] = useState(options.width || 400);
+  const [width, setWidth] = useState(options.width || 500);
   const [position] = useState(options.position || 'right');
 
   /**
@@ -57,10 +57,10 @@ export const useAISidebar = (options: SidebarHookOptions = {}) => {
   }, []);
 
   /**
-   * 너비 조정
+   * 너비 조정 - 범위를 350~900px로 확장
    */
   const resizeWidth = useCallback((newWidth: number) => {
-    const clampedWidth = Math.max(300, Math.min(800, newWidth));
+    const clampedWidth = Math.max(350, Math.min(900, newWidth));
     setWidth(clampedWidth);
   }, []);
 

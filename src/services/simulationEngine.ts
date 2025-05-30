@@ -136,9 +136,14 @@ export class SimulationEngine {
   private readonly MEMORY_CHECK_INTERVAL = 60000; // 1분마다 메모리 체크
 
   constructor() {
-    // Vercel 상태 기반 동적 서버 생성
-    this.initializeWithAutoScaling();
-    console.log('🎯 Vercel 오토스케일링 엔진 통합 완료 (Prometheus 지원)');
+    // 즉시 기본 서버 생성 (동기적)
+    this.state.servers = this.generateInitialServers();
+    console.log('🎯 시뮬레이션 엔진 초기화 완료 (Prometheus 지원)');
+    
+    // Vercel 상태 기반 최적화 (비동기적, 백그라운드)
+    this.initializeWithAutoScaling().catch(error => {
+      console.warn('⚠️ 오토스케일링 최적화 실패, 기본 설정 유지:', error);
+    });
     
     // 메모리 최적화 모니터링 시작
     this.startMemoryOptimization();
@@ -679,8 +684,19 @@ export class SimulationEngine {
   }
 
   private generateInitialServers(): EnhancedServerMetrics[] {
-    const servers: EnhancedServerMetrics[] = [];
-    // Implementation of generateInitialServers method
+    console.log('🏗️ 초기 서버 생성 시작...');
+    
+    // 기본 스케일링 설정으로 서버 생성
+    const defaultScalingConfig = {
+      minServers: 8,
+      maxServers: 16, // 8~16개 서버로 시작
+      targetCpuUsage: 70,
+      targetMemoryUsage: 75
+    };
+    
+    const servers = this.generateServersBasedOnPlan(defaultScalingConfig);
+    
+    console.log(`✅ 초기 서버 ${servers.length}개 생성 완료`);
     return servers;
   }
 
