@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Search, Filter, LayoutGrid, List, ChevronDown } from 'lucide-react';
 import ServerCard from './ServerCard';
 import ServerDetailModal from './ServerDetailModal';
 import { Server } from '../../types/server';
 import { useServerDataStore } from '../../stores/serverDataStore';
 import { timerManager } from '../../utils/TimerManager';
-import { LayoutGrid, List, Search, RefreshCw } from 'lucide-react';
 
 interface ServerDashboardProps {
   onStatsUpdate?: (stats: { total: number; online: number; warning: number; offline: number }) => void;
