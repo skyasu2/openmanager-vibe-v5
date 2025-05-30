@@ -117,7 +117,19 @@ export async function GET(request: NextRequest) {
       trends: analyzeTrends(servers),
 
       // 💡 권장사항
-      recommendations: generateRecommendations(servers, alertsSummary)
+      recommendations: generateRecommendations(servers, alertsSummary),
+
+      // 🔄 호환성을 위한 중첩 구조 (기존 코드 지원)
+      data: {
+        servers: servers,
+        overview: {
+          total_servers: servers.length,
+          healthy_servers: statusDistribution.healthy,
+          warning_servers: statusDistribution.warning,
+          critical_servers: statusDistribution.critical,
+          offline_servers: statusDistribution.offline
+        }
+      }
     };
 
     // 6. Prometheus 메트릭 추가 (요청시)

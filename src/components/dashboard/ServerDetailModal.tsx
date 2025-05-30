@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Server } from '../../types/server';
+import { timerManager } from '../../utils/TimerManager';
 
 interface ServerDetailModalProps {
   server: Server | null;
@@ -76,9 +77,18 @@ export default function ServerDetailModal({ server, onClose }: ServerDetailModal
     };
 
     updateRealTimeMetrics();
-    const interval = setInterval(updateRealTimeMetrics, 3000);
+    
+    // TimerManager를 사용한 실시간 메트릭 업데이트
+    timerManager.register({
+      id: `server-detail-metrics-${server.id}`,
+      callback: updateRealTimeMetrics,
+      interval: 3000,
+      priority: 'medium'
+    });
 
-    return () => clearInterval(interval);
+    return () => {
+      timerManager.unregister(`server-detail-metrics-${server.id}`);
+    };
   }, [server]);
 
   useEffect(() => {

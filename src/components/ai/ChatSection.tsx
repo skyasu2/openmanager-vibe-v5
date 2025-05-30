@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send, Loader2, Brain, X, ChevronLeft, ChevronRight, History, AlertCircle, Lightbulb, Server, TrendingUp, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { timerManager } from '../../utils/TimerManager';
 
 interface Message {
   id: string;
@@ -117,8 +118,18 @@ export default function ChatSection({ serverMetrics, onClose }: ChatSectionProps
     };
 
     updatePresets();
-    const interval = setInterval(updatePresets, 15000);
-    return () => clearInterval(interval);
+    
+    // TimerManager를 사용한 프리셋 업데이트
+    timerManager.register({
+      id: 'chat-section-presets-update',
+      callback: updatePresets,
+      interval: 15000,
+      priority: 'low'
+    });
+    
+    return () => {
+      timerManager.unregister('chat-section-presets-update');
+    };
   }, [serverMetrics]);
 
   // 중복 질문 확인

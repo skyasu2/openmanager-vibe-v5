@@ -13,6 +13,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Play, Square, RefreshCw, Activity, AlertCircle, CheckCircle, Clock, Cpu, HardDrive, Zap, Shield, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { timerManager } from '../../utils/TimerManager';
 
 interface SystemStatus {
   isRunning: boolean;
@@ -189,28 +190,54 @@ export function SystemControlPanel() {
   // 초기 로드 및 주기적 업데이트
   useEffect(() => {
     fetchSystemStatus();
-    const interval = setInterval(fetchSystemStatus, 2000); // 2초마다
-    return () => clearInterval(interval);
+    
+    // TimerManager를 사용한 주기적 업데이트
+    timerManager.register({
+      id: 'system-status-fetcher',
+      callback: fetchSystemStatus,
+      interval: 2000,
+      priority: 'high'
+    });
+    
+    return () => {
+      timerManager.unregister('system-status-fetcher');
+    };
   }, [fetchSystemStatus]);
 
   // 안정성 타이머 업데이트
   useEffect(() => {
     if (stabilityTimer > 0) {
-      const interval = setInterval(() => {
-        setStabilityTimer(prev => Math.max(0, prev - 1));
-      }, 1000);
-      return () => clearInterval(interval);
+      timerManager.register({
+        id: 'stability-timer',
+        callback: () => setStabilityTimer(prev => Math.max(0, prev - 1)),
+        interval: 1000,
+        priority: 'medium'
+      });
+    } else {
+      timerManager.unregister('stability-timer');
     }
+    
+    return () => {
+      timerManager.unregister('stability-timer');
+    };
   }, [stabilityTimer]);
 
   // 알림 자동 제거
   useEffect(() => {
-    const timer = setInterval(() => {
-      setAlerts(prev => prev.filter(alert => 
-        Date.now() - alert.timestamp.getTime() < 10000 // 10초 후 제거
-      ));
-    }, 1000);
-    return () => clearInterval(timer);
+    timerManager.register({
+      id: 'alert-cleanup',
+      callback: () => {
+        setAlerts(prev => prev.filter(alert => 
+          Date.now() - alert.timestamp.getTime() < 10000 // 10초 후 제거
+        ));
+      },
+      interval: 1000,
+      priority: 'low'
+    });
+    
+    return () => {
+      timerManager.unregister('alert-cleanup');
+    };
   }, []);
 
   return (

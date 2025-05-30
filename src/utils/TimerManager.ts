@@ -177,6 +177,76 @@ class TimerManager {
     }
     console.log(`🎯 ${priority} priority timers ${enabled ? 'enabled' : 'disabled'}`);
   }
+
+  /**
+   * 🤖 AI 처리 상태에 따른 전역 타이머 제어
+   */
+  setAIProcessingMode(isProcessing: boolean): void {
+    if (isProcessing) {
+      console.log('🤖 AI 처리 모드 활성화 - 모든 타이머 일시 정지');
+      // critical을 제외한 모든 타이머 정지
+      for (const [id, timer] of this.timers) {
+        if (timer.priority !== 'critical' && timer.enabled) {
+          this.toggle(id, false);
+          // 재시작을 위해 플래그 설정
+          (timer as any)._pausedForAI = true;
+        }
+      }
+    } else {
+      console.log('🤖 AI 처리 모드 비활성화 - 타이머 복원');
+      // AI 처리로 인해 정지된 타이머들 재시작
+      for (const [id, timer] of this.timers) {
+        if ((timer as any)._pausedForAI) {
+          this.toggle(id, true);
+          delete (timer as any)._pausedForAI;
+        }
+      }
+    }
+  }
+
+  /**
+   * 🛡️ 타이머 충돌 방지 - 같은 카테고리 내에서 한 번에 하나만 실행
+   */
+  registerExclusive(config: Omit<TimerConfig, 'enabled' | 'lastRun' | 'errorCount'>, category: string): void {
+    // 같은 카테고리의 다른 타이머들 정지
+    for (const [id, timer] of this.timers) {
+      if ((timer as any)._category === category && id !== config.id) {
+        this.unregister(id);
+      }
+    }
+
+    // 새 타이머 등록
+    this.register(config);
+    (this.timers.get(config.id) as any)._category = category;
+    console.log(`🛡️ Exclusive timer registered: ${config.id} in category: ${category}`);
+  }
+
+  /**
+   * 📊 디버깅을 위한 상세 상태 출력
+   */
+  debugStatus(): void {
+    console.group('🕒 TimerManager 상태');
+    console.log('실행 중:', this.isRunning);
+    console.log('등록된 타이머 수:', this.timers.size);
+    console.log('활성 인터벌 수:', this.intervals.size);
+    
+    console.group('타이머 목록:');
+    for (const [id, timer] of this.timers) {
+      const interval = this.intervals.get(id);
+      console.log(`${id}:`, {
+        enabled: timer.enabled,
+        priority: timer.priority,
+        interval: timer.interval,
+        hasInterval: !!interval,
+        lastRun: timer.lastRun ? new Date(timer.lastRun).toLocaleTimeString() : 'never',
+        errorCount: timer.errorCount,
+        pausedForAI: !!(timer as any)._pausedForAI,
+        category: (timer as any)._category
+      });
+    }
+    console.groupEnd();
+    console.groupEnd();
+  }
 }
 
 // 전역 인스턴스 생성

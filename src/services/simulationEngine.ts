@@ -24,6 +24,7 @@ import {
   FailureScenario,
   SimulationState
 } from '../types/server';
+import { timerManager } from '../utils/TimerManager';
 
 // 확장된 서버 메트릭 인터페이스
 export interface EnhancedServerMetrics extends BaseServerMetrics {
@@ -64,8 +65,7 @@ export class SimulationEngine {
     prometheusEnabled: true // 기본적으로 활성화
   };
 
-  private intervalId: NodeJS.Timeout | null = null;
-  private readonly UPDATE_INTERVAL = 10000; // 10초 (기존 5초에서 증가)
+  private UPDATE_INTERVAL = 10000; // 10초
 
   private failureScenarios: FailureScenario[] = [
     {
@@ -561,9 +561,14 @@ export class SimulationEngine {
     }
 
     this.state.isRunning = true;
-    this.intervalId = setInterval(() => {
-      this.updateSimulation();
-    }, this.UPDATE_INTERVAL);
+    
+    // TimerManager를 사용한 시뮬레이션 업데이트
+    timerManager.register({
+      id: 'simulation-engine-update',
+      callback: () => this.updateSimulation(),
+      interval: this.UPDATE_INTERVAL,
+      priority: 'high'
+    });
 
     console.log(`🚀 시뮬레이션 시작 (${this.state.servers.length}개 서버, ${this.UPDATE_INTERVAL/1000}초 간격, Prometheus: ${this.state.prometheusEnabled ? 'ON' : 'OFF'})`);
   }
@@ -575,12 +580,9 @@ export class SimulationEngine {
     }
 
     this.state.isRunning = false;
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
-    }
-
-    console.log(`✅ 시뮬레이션 중지 (총 ${this.state.dataCount}회 업데이트)`);
+    timerManager.unregister('simulation-engine-update');
+    
+    console.log('🛑 시뮬레이션 정지');
   }
 
   /**

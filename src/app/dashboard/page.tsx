@@ -2,9 +2,9 @@
 
 import { Suspense, lazy } from 'react';
 import { useDashboardLogic } from '../../hooks/useDashboardLogic';
+import { AISidebar, type AISidebarConfig } from '../../modules/ai-sidebar';
 
 // 동적 임포트로 코드 스플리팅 적용
-const FlexibleAISidebar = lazy(() => import('../../components/ai/FlexibleAISidebar'));
 const DashboardEntrance = lazy(() => import('../../components/dashboard/DashboardEntrance'));
 const DashboardHeader = lazy(() => import('../../components/dashboard/DashboardHeader'));
 const DashboardContent = lazy(() => import('../../components/dashboard/DashboardContent'));
@@ -80,6 +80,30 @@ export default function DashboardPage() {
     // Server generation
     serverGeneration
   } = useDashboardLogic();
+
+  // AI 사이드바 설정
+  const aiSidebarConfig: AISidebarConfig = {
+    apiEndpoint: '/api/ai/unified',
+    theme: 'auto',
+    position: 'right',
+    width: 400,
+    height: '100vh',
+    enableVoice: false,
+    enableFileUpload: false,
+    enableHistory: true,
+    maxHistoryLength: 10,
+    title: 'OpenManager AI',
+    placeholder: 'AI에게 질문하세요...',
+    welcomeMessage: '안녕하세요! OpenManager AI 에이전트입니다. 서버 모니터링, 성능 분석, 장애 예측 등에 대해 궁금한 점을 자유롭게 물어보세요.',
+    onMessage: (message) => console.log('사용자 메시지:', message),
+    onResponse: (response) => console.log('AI 응답:', response),
+    onError: (error) => console.error('AI 사이드바 오류:', error),
+    onOpen: () => console.log('AI 사이드바 열림'),
+    onClose: () => {
+      console.log('AI 사이드바 닫힘');
+      closeAgent();
+    }
+  };
 
   // Server-side rendering fallback
   if (!isClient) {
@@ -157,10 +181,11 @@ export default function DashboardPage() {
       {/* AI 에이전트 모달 */}
       {isAgentOpen && (
         <Suspense fallback={<LoadingSpinner />}>
-          <FlexibleAISidebar 
+          <AISidebar 
+            config={aiSidebarConfig}
             isOpen={isAgentOpen} 
-            onClose={closeAgent} 
-            serverMetrics={serverStats}
+            onClose={closeAgent}
+            className="z-50"
           />
         </Suspense>
       )}

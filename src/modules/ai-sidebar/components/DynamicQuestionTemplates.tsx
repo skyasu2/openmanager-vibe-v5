@@ -51,47 +51,47 @@ const questionTemplates: QuestionTemplate[] = [
     icon: '📊',
     category: 'analysis',
     priority: 'medium',
-    description: 'CPU, 메모리, 디스크 사용률 등 성능 지표를 분석합니다'
+    description: 'CPU, 메모리, 디스크 사용률 및 응답시간을 종합 분석합니다'
   },
   {
-    id: 'error_prediction',
+    id: 'failure_prediction',
     question: '장애 예측 결과를 알려주세요',
     icon: '🔮',
     category: 'prediction',
     priority: 'high',
-    description: 'AI 기반 패턴 분석으로 잠재적 장애를 예측합니다'
+    description: 'AI 기반 장애 예측 모델의 최신 분석 결과를 제공합니다'
   },
   {
     id: 'memory_issues',
-    question: '메모리 누수가 의심되는 서버가 있나요?',
+    question: '메모리 사용률이 높은 서버는?',
     icon: '💾',
-    category: 'incident',
+    category: 'monitoring',
     priority: 'high',
-    description: '메모리 사용률 급증 패턴을 감지하고 원인을 분석합니다'
+    description: '메모리 사용률 80% 이상인 서버들의 상세 정보를 확인합니다'
   },
   {
-    id: 'disk_usage',
+    id: 'disk_space',
     question: '디스크 공간이 부족한 서버는?',
     icon: '💿',
     category: 'monitoring',
     priority: 'medium',
-    description: '디스크 사용률이 임계치를 초과한 서버를 찾아줍니다'
+    description: '디스크 사용률이 높거나 여유 공간이 부족한 서버를 찾습니다'
   },
   {
     id: 'network_latency',
-    question: '네트워크 지연 문제가 있나요?',
+    question: '네트워크 지연이 발생하고 있나요?',
     icon: '🌐',
     category: 'analysis',
     priority: 'medium',
-    description: '네트워크 응답 시간과 패킷 손실률을 분석합니다'
+    description: '네트워크 응답시간과 연결 상태를 실시간으로 모니터링합니다'
   },
   {
     id: 'load_balancing',
     question: '로드 밸런싱 상태는 어떤가요?',
     icon: '⚖️',
-    category: 'monitoring',
+    category: 'analysis',
     priority: 'low',
-    description: '서버 간 부하 분산 상태와 트래픽 분포를 확인합니다'
+    description: '서버 간 부하 분산 상태와 트래픽 분배 효율성을 분석합니다'
   }
 ];
 
@@ -110,6 +110,8 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
     if (isProcessing) {
       console.log('🚫 AI 처리 중 - 질문 회전 정지');
       setIsRotating(false);
+      timerManager.unregister('dynamic-question-rotation');
+      timerManager.unregister('dynamic-question-interaction');
       return;
     }
 
@@ -142,13 +144,22 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
       
       console.log('🎯 질문 회전 실행 - 다음 간격:', interval / 1000 + '초');
       setCurrentTemplateIndex((prev) => (prev + 1) % questionTemplates.length);
+      
+      // 동적 간격 조정
+      timerManager.unregister('dynamic-question-rotation');
+      timerManager.register({
+        id: 'dynamic-question-rotation',
+        callback: rotateQuestions,
+        interval: interval,
+        priority: 'medium'
+      });
     };
 
-    // TimerManager에 등록 (isProcessing 변경 시 자동 해제됨)
+    // TimerManager에 등록
     timerManager.register({
       id: 'dynamic-question-rotation',
       callback: rotateQuestions,
-      interval: baseInterval, // 기본 주기로 시작
+      interval: baseInterval,
       priority: 'medium'
     });
 
@@ -158,11 +169,14 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
       window.removeEventListener('click', handleUserInteraction);
       window.removeEventListener('keydown', handleUserInteraction);
       timerManager.unregister('dynamic-question-rotation');
+      timerManager.unregister('dynamic-question-interaction');
     };
-  }, [questionTemplates.length, isProcessing]); // isProcessing을 의존성에 추가
+  }, [isProcessing]); // 의존성을 isProcessing만으로 단순화
 
   // 🎯 서버 상황 기반 질문 우선순위 업데이트 (2분마다)
   useEffect(() => {
+    if (isProcessing) return; // AI 처리 중에는 우선순위 업데이트 중지
+
     const updateBasedOnServerStatus = async () => {
       try {
         const response = await fetch('/api/dashboard');
@@ -198,19 +212,19 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
     timerManager.register({
       id: 'question-priority-updater',
       callback: updateBasedOnServerStatus,
-      interval: 2 * 60 * 1000, // 2분
+      interval: 120000, // 2분
       priority: 'low'
     });
 
     return () => {
       timerManager.unregister('question-priority-updater');
     };
-  }, [questionTemplates]);
+  }, [isProcessing]);
 
   const currentTemplate = questionTemplates[currentTemplateIndex];
 
   const handleQuestionClick = (template: QuestionTemplate) => {
-    setIsRotating(false); // 회전 정지
+    console.log('🎯 질문 선택:', template.question);
     onQuestionSelect(template.question);
   };
 
@@ -218,26 +232,50 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
     switch (priority) {
       case 'critical': return 'bg-red-500 text-white';
       case 'high': return 'bg-orange-500 text-white';
-      case 'medium': return 'bg-yellow-500 text-white';
-      case 'low': return 'bg-blue-500 text-white';
+      case 'medium': return 'bg-yellow-500 text-black';
+      case 'low': return 'bg-green-500 text-white';
       default: return 'bg-gray-500 text-white';
     }
   };
 
+  if (isProcessing) {
+    return (
+      <div className={`p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg ${className}`}>
+        <div className="flex items-center space-x-2">
+          <motion.div
+            className="w-2 h-2 bg-yellow-500 rounded-full"
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [1, 0.6, 1],
+            }}
+            transition={{
+              duration: 1,
+              repeat: Infinity,
+            }}
+          />
+          <span className="text-sm text-yellow-700 dark:text-yellow-300">
+            AI가 질문을 처리하고 있습니다...
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`px-4 py-2 border-b dark:border-gray-700 ${className}`}>
-      <div className="flex items-center space-x-3">
-        {/* 현재 활성 질문 템플릿 */}
-        <motion.div
+    <div className={`${className}`}>
+      <div className="flex items-center justify-between space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border dark:border-gray-700">
+        {/* 메인 추천 질문 */}
+        <motion.div 
           className="relative"
-          onHoverStart={() => setHoveredTemplate(currentTemplate.id)}
-          onHoverEnd={() => setHoveredTemplate(null)}
+          key={currentTemplate.id}
         >
           <motion.button
             onClick={() => handleQuestionClick(currentTemplate)}
+            onHoverStart={() => setHoveredTemplate(currentTemplate.id)}
+            onHoverEnd={() => setHoveredTemplate(null)}
             className={`
-              w-8 h-8 rounded-lg flex items-center justify-center text-sm
-              ${getPriorityColor(currentTemplate.priority)}
+              w-12 h-12 rounded-xl flex items-center justify-center text-lg
+              bg-gradient-to-br from-blue-500 to-purple-600 text-white
               hover:scale-110 transition-transform duration-200
               shadow-md hover:shadow-lg
             `}
@@ -364,4 +402,4 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
       )}
     </div>
   );
-}; 
+};

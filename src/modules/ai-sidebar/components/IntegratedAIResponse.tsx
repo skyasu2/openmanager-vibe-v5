@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLangGraphThinking } from '../../../components/ai/modal-v2/hooks/useLangGraphThinking';
 import LangGraphThinkingDisplay from '../../../components/ai/modal-v2/components/LangGraphThinkingDisplay';
 import { MCPLangGraphAgent } from '../../../services/ai-agent/MCPLangGraphAgent';
+import { timerManager } from '../../../utils/TimerManager';
 
 interface IntegratedAIResponseProps {
   question: string;
@@ -57,6 +58,10 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
       }
       
       console.log('🤖 AI 질문 처리 시작:', question);
+      
+      // 전역 타이머 제어 - AI 처리 모드 활성화
+      timerManager.setAIProcessingMode(true);
+      
       setIsThinking(true);
       setResponse('');
       
@@ -105,6 +110,8 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
                 // 완료 콜백 (지연 실행)
                 setTimeout(() => {
                   if (isMounted) {
+                    // 전역 타이머 제어 - AI 처리 모드 비활성화
+                    timerManager.setAIProcessingMode(false);
                     onComplete();
                   }
                 }, 2000); // 2초로 연장하여 사용자가 결과를 확인할 시간 제공
@@ -123,6 +130,8 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
         if (isMounted) {
           setResponse('죄송합니다. 질문 처리 중 오류가 발생했습니다.');
           setIsThinking(false);
+          // 오류 시에도 타이머 복원
+          timerManager.setAIProcessingMode(false);
           onComplete();
         }
       }
@@ -134,6 +143,10 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
 
     return () => {
       isMounted = false;
+      // 컴포넌트 언마운트 시 타이머 복원 보장
+      if (isThinking) {
+        timerManager.setAIProcessingMode(false);
+      }
     };
   }, [isProcessing, question]); // 의존성 최소화
 

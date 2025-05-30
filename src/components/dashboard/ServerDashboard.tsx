@@ -5,6 +5,7 @@ import ServerCard from './ServerCard';
 import ServerDetailModal from './ServerDetailModal';
 import { Server } from '../../types/server';
 import { useServerDataStore } from '../../stores/serverDataStore';
+import { timerManager } from '../../utils/TimerManager';
 
 interface ServerDashboardProps {
   onStatsUpdate?: (stats: { total: number; online: number; warning: number; offline: number }) => void;
@@ -276,16 +277,21 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
   // ✅ 컴포넌트 마운트 시 서버 데이터 로드 (클라이언트에서만)
   useEffect(() => {
     if (!isClient) return;
-
+    
     // 백그라운드에서 최신 데이터 가져오기 (이미 초기 데이터가 있으므로)
     refreshData();
     
-    // 5초마다 데이터 새로고침 (더 자주 업데이트)
-    const interval = setInterval(() => {
-      refreshData();
-    }, 5000);
+    // TimerManager를 사용한 5초마다 데이터 새로고침
+    timerManager.register({
+      id: 'server-dashboard-refresh',
+      callback: refreshData,
+      interval: 5000,
+      priority: 'medium'
+    });
     
-    return () => clearInterval(interval);
+    return () => {
+      timerManager.unregister('server-dashboard-refresh');
+    };
   }, [refreshData, isClient]);
 
   // 통계 업데이트 알림

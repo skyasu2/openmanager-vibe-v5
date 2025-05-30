@@ -28,6 +28,7 @@ import { Line } from 'react-chartjs-2';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { timerManager } from '../../utils/TimerManager';
 
 // Chart.js 등록
 ChartJS.register(
@@ -413,11 +414,16 @@ export default function RealtimeChart({
   
   // 🔄 주기적 업데이트
   useEffect(() => {
-    const interval = setInterval(() => {
-      processRealtimeData();
-    }, refreshInterval);
+    timerManager.register({
+      id: 'realtime-chart-update',
+      callback: processRealtimeData,
+      interval: refreshInterval,
+      priority: 'medium'
+    });
     
-    return () => clearInterval(interval);
+    return () => {
+      timerManager.unregister('realtime-chart-update');
+    };
   }, [processRealtimeData, refreshInterval]);
   
   if (isLoading) {

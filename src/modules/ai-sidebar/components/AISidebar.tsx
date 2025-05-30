@@ -64,6 +64,7 @@ export const AISidebar: React.FC<AISidebarProps> = ({
     };
     
     setActiveQuestion(newQuestion);
+    console.log('🎯 AISidebar: 새 질문 활성화', question);
   };
 
   // 질문 처리 완료
@@ -80,9 +81,18 @@ export const AISidebar: React.FC<AISidebarProps> = ({
         ...prev.slice(0, 4)
       ]);
       
-      setActiveQuestion(null);
+      console.log('✅ AISidebar: 질문 처리 완료');
+      
+      // 3초 후 활성 질문 초기화 (사용자가 결과를 볼 시간 제공)
+      setTimeout(() => {
+        setActiveQuestion(null);
+        console.log('🧹 AISidebar: 활성 질문 초기화');
+      }, 3000);
     }
   };
+
+  // 현재 AI 처리 상태 확인
+  const isAIProcessing = activeQuestion?.isProcessing || false;
 
   return (
     <>
@@ -134,12 +144,13 @@ export const AISidebar: React.FC<AISidebarProps> = ({
         </div>
 
         {/* 📊 실시간 서버 상황 */}
-        <RealtimeServerStatus isProcessing={!!activeQuestion} />
+        <RealtimeServerStatus isProcessing={isAIProcessing} />
 
         {/* 🎯 동적 질문 템플릿 */}
         <DynamicQuestionTemplates 
           onQuestionSelect={handleQuestionSelect}
-          isProcessing={!!activeQuestion}
+          isProcessing={isAIProcessing}
+          className="mx-4 my-2"
         />
 
         {/* 📝 질문 입력 영역 */}
@@ -183,12 +194,13 @@ export const AISidebar: React.FC<AISidebarProps> = ({
             
             {/* 현재 처리 중인 질문 */}
             {activeQuestion && (
-              <IntegratedAIResponse
-                question={activeQuestion.question}
-                isProcessing={activeQuestion.isProcessing}
-                onComplete={handleQuestionComplete}
-                className="border-2 border-blue-200 dark:border-blue-800"
-              />
+              <div className="mx-4 my-2">
+                <IntegratedAIResponse
+                  question={activeQuestion.question}
+                  isProcessing={activeQuestion.isProcessing}
+                  onComplete={handleQuestionComplete}
+                />
+              </div>
             )}
 
             {/* 질문 히스토리 */}

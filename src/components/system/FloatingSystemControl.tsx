@@ -17,6 +17,7 @@ import {
   WifiOff,
   X
 } from 'lucide-react';
+import { timerManager } from '../../utils/TimerManager';
 
 interface SystemHealth {
   hasError: boolean;
@@ -92,8 +93,18 @@ export default function FloatingSystemControl({
 
   useEffect(() => {
     checkSystemHealth();
-    const healthCheckInterval = setInterval(checkSystemHealth, 5000);
-    return () => clearInterval(healthCheckInterval);
+    
+    // TimerManager를 사용한 헬스체크
+    timerManager.register({
+      id: 'floating-system-health-check',
+      callback: checkSystemHealth,
+      interval: 5000,
+      priority: 'high'
+    });
+    
+    return () => {
+      timerManager.unregister('floating-system-health-check');
+    };
   }, [checkSystemHealth]);
 
   const getStatusColor = () => {

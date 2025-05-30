@@ -35,6 +35,7 @@ import {
   Brain,
   Zap
 } from 'lucide-react';
+import { timerManager } from '../../../utils/TimerManager';
 
 interface VirtualServer {
   id: string;
@@ -135,13 +136,21 @@ export default function VirtualServersPage() {
 
   // 자동 새로고침
   useEffect(() => {
-    if (!autoRefresh) return;
+    if (!autoRefresh) {
+      timerManager.unregister('admin-virtual-servers-refresh');
+      return;
+    }
 
-    const interval = setInterval(() => {
-      loadData();
-    }, 5000); // 5초마다 새로고침
+    timerManager.register({
+      id: 'admin-virtual-servers-refresh',
+      callback: loadData,
+      interval: 5000,
+      priority: 'medium'
+    });
 
-    return () => clearInterval(interval);
+    return () => {
+      timerManager.unregister('admin-virtual-servers-refresh');
+    };
   }, [autoRefresh, loadData]);
 
   // 시스템 초기화

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Lightbulb, Server, TrendingUp, AlertTriangle } from 'lucide-react';
+import { timerManager } from '../../utils/TimerManager';
 
 interface DynamicPresetsProps {
   serverMetrics?: any;
@@ -45,8 +46,18 @@ export default function DynamicPresets({ serverMetrics, onSelect }: DynamicPrese
     };
 
     updatePresets();
-    const interval = setInterval(updatePresets, 15000);
-    return () => clearInterval(interval);
+    
+    // TimerManager를 사용한 프리셋 업데이트
+    timerManager.register({
+      id: 'dynamic-presets-update',
+      callback: updatePresets,
+      interval: 15000,
+      priority: 'low'
+    });
+    
+    return () => {
+      timerManager.unregister('dynamic-presets-update');
+    };
   }, [serverMetrics]);
 
   const getQuestionIcon = (question: string) => {

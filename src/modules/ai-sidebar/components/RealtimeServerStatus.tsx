@@ -99,47 +99,44 @@ const RealtimeServerStatusComponent: React.FC<RealtimeServerStatusProps> = ({
 
     console.log('📊 서버 상태 업데이트 타이머 시작');
     
-    // 초기 데이터 로드
+    // 즉시 첫 업데이트 실행
     updateServerStatus();
 
-    // TimerManager에 타이머 등록
-    timerManager.register({
-      id: 'realtime-server-status',
-      callback: updateServerStatus,
-      interval: getUpdateInterval(),
-      priority: 'high'
-    });
-
-    // 상태 변화에 따른 주기 재조정
-    const adjustInterval = () => {
+    const scheduleNextUpdate = () => {
       if (isProcessing) {
-        console.log('🚫 주기 재조정 취소 - AI 처리 중');
+        console.log('🚫 업데이트 실행 취소 - AI 처리 중');
         return;
       }
       
-      const newInterval = getUpdateInterval();
+      updateServerStatus();
+      
+      // 상황에 따른 동적 간격 조정
+      const interval = getUpdateInterval();
+      console.log('📊 다음 업데이트 예정:', interval / 1000 + '초 후');
+      
+      // 기존 타이머 해제하고 새 간격으로 재등록
       timerManager.unregister('realtime-server-status');
       timerManager.register({
         id: 'realtime-server-status',
-        callback: updateServerStatus,
-        interval: newInterval,
+        callback: scheduleNextUpdate,
+        interval: interval,
         priority: 'high'
       });
     };
 
-    // 5분마다 주기 재평가 (AI 처리 중이 아닐 때만)
-    const intervalAdjuster = setInterval(() => {
-      if (!isProcessing) {
-        adjustInterval();
-      }
-    }, 5 * 60 * 1000);
+    // 초기 타이머 등록
+    timerManager.register({
+      id: 'realtime-server-status',
+      callback: scheduleNextUpdate,
+      interval: getUpdateInterval(),
+      priority: 'high'
+    });
 
     return () => {
       console.log('🧹 서버 상태 업데이트 타이머 정리');
-      clearInterval(intervalAdjuster);
       timerManager.unregister('realtime-server-status');
     };
-  }, [status.errorServers, status.criticalAlerts, status.warningServers, isProcessing]);
+  }, [isProcessing]); // 의존성을 isProcessing만으로 단순화
 
   // 상태에 따른 색상 결정
   const getStatusColor = () => {

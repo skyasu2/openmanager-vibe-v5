@@ -17,6 +17,7 @@ import {
   Legend
 } from 'recharts';
 import { Activity, Server, AlertTriangle, TrendingUp, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { timerManager } from '../utils/TimerManager';
 
 // 📊 API 응답 타입 정의
 interface SystemHealthAPIResponse {
@@ -150,16 +151,22 @@ export default function AdminDashboardCharts() {
   useEffect(() => {
     fetchHealthData(); // 초기 로드
     
-    let interval: NodeJS.Timeout | null = null;
-    
     if (autoRefresh) {
-      interval = setInterval(fetchHealthData, 30000); // 30초마다 새로고침
+      // TimerManager를 사용한 자동 새로고침
+      timerManager.register({
+        id: 'admin-dashboard-charts-refresh',
+        callback: fetchHealthData,
+        interval: 30000,
+        priority: 'medium'
+      });
+    } else {
+      timerManager.unregister('admin-dashboard-charts-refresh');
     }
     
     return () => {
-      if (interval) clearInterval(interval);
+      timerManager.unregister('admin-dashboard-charts-refresh');
     };
-  }, [fetchHealthData, autoRefresh]);
+  }, [autoRefresh, fetchHealthData]);
 
   // 📊 성능 차트 데이터 변환
   const getPerformanceChartData = () => {
