@@ -162,107 +162,106 @@ export class SimulationEngine {
   }
 
   /**
-   * 📊 스케일링 설정 기반 서버 생성
+   * 📊 스케일링 설정 기반 서버 생성 (8-30개 범위, 상태 분포 보장)
    */
   private generateServersBasedOnPlan(scalingConfig: any): EnhancedServerMetrics[] {
-    const maxServers = scalingConfig.maxServers;
+    // 8-30개 범위로 제한
+    const maxServers = Math.min(Math.max(scalingConfig.maxServers, 8), 30);
     const servers: EnhancedServerMetrics[] = [];
     
-    console.log(`🏗️ ${maxServers}개 서버 생성 중...`);
+    console.log(`🏗️ ${maxServers}개 서버 생성 중 (상태 분포: 10% 심각, 20% 경고, 70% 정상)...`);
     
+    // 📊 상태 분포 계산 (10% 심각, 20% 경고, 70% 정상)
+    const criticalCount = Math.max(1, Math.round(maxServers * 0.1));  // 최소 1개, 10%
+    const warningCount = Math.max(1, Math.round(maxServers * 0.2));   // 최소 1개, 20%
+    const healthyCount = maxServers - criticalCount - warningCount;   // 나머지는 정상
+
+    console.log(`📊 상태 분포: 심각 ${criticalCount}개, 경고 ${warningCount}개, 정상 ${healthyCount}개`);
+
     // 서버 타입별 비율 (전체 maxServers 기준)
-    const onPremCount = Math.max(2, Math.floor(maxServers * 0.2)); // 최소 2개, 전체의 20%
-    const awsCount = Math.floor(maxServers * 0.4); // 전체의 40%
-    const k8sCount = Math.floor(maxServers * 0.2); // 전체의 20%
+    const onPremCount = Math.max(2, Math.floor(maxServers * 0.25)); // 최소 2개, 전체의 25%
+    const awsCount = Math.floor(maxServers * 0.35); // 전체의 35%
+    const k8sCount = Math.floor(maxServers * 0.25); // 전체의 25%
     const multiCount = maxServers - onPremCount - awsCount - k8sCount; // 나머지
+
+    // 상태 카운터
+    let criticalAssigned = 0;
+    let warningAssigned = 0;
+    let serverIndex = 0;
+
+    // 📍 상태 할당 함수
+    const getServerStatus = (): 'healthy' | 'warning' | 'critical' => {
+      if (criticalAssigned < criticalCount) {
+        criticalAssigned++;
+        return 'critical';
+      } else if (warningAssigned < warningCount) {
+        warningAssigned++;
+        return 'warning';
+      } else {
+        return 'healthy';
+      }
+    };
 
     // 온프레미스 서버
     for (let i = 1; i <= onPremCount; i++) {
-      servers.push({
-        id: `server-onprem-${i.toString().padStart(2, '0')}`,
-        hostname: `onprem-${i.toString().padStart(2, '0')}.local`,
-        environment: 'onpremise',
-        role: i <= 2 ? 'web' : i === 3 ? 'database' : 'cache',
-        status: 'healthy',
-        cpu_usage: this.randomBetween(20, 40),
-        memory_usage: this.randomBetween(30, 50),
-        disk_usage: this.randomBetween(40, 60),
-        network_in: this.randomBetween(50, 150),
-        network_out: this.randomBetween(40, 120),
-        response_time: this.randomBetween(80, 200),
-        uptime: this.randomBetween(720, 8760),
-        last_updated: new Date().toISOString(),
-        alerts: []
-      });
+      const status = getServerStatus();
+      servers.push(this.createServerWithStatus(
+        `onprem-${String(i).padStart(2, '0')}.local`,
+        'onpremise',
+        'database',
+        status,
+        ++serverIndex
+      ));
     }
 
     // AWS 서버
     for (let i = 1; i <= awsCount; i++) {
-      const roles: ServerRole[] = ['web', 'database', 'cache'];
-      servers.push({
-        id: `server-aws-${i.toString().padStart(2, '0')}`,
-        hostname: `aws-${roles[i % roles.length]}-${i.toString().padStart(2, '0')}.amazonaws.com`,
-        environment: 'aws',
-        role: roles[i % roles.length],
-        status: 'healthy',
-        cpu_usage: this.randomBetween(15, 35),
-        memory_usage: this.randomBetween(25, 45),
-        disk_usage: this.randomBetween(30, 50),
-        network_in: this.randomBetween(100, 300),
-        network_out: this.randomBetween(80, 250),
-        response_time: this.randomBetween(50, 150),
-        uptime: this.randomBetween(720, 8760),
-        last_updated: new Date().toISOString(),
-        alerts: []
-      });
+      const status = getServerStatus();
+      const serverTypes = ['web', 'database', 'cache'];
+      const serverType = serverTypes[Math.floor(Math.random() * serverTypes.length)];
+      servers.push(this.createServerWithStatus(
+        `aws-${serverType}-${String(i).padStart(2, '0')}.amazonaws.com`,
+        'aws',
+        serverType as any,
+        status,
+        ++serverIndex
+      ));
     }
 
     // Kubernetes 서버
     for (let i = 1; i <= k8sCount; i++) {
-      servers.push({
-        id: `server-k8s-${i.toString().padStart(2, '0')}`,
-        hostname: `k8s-worker-${i.toString().padStart(2, '0')}.cluster.local`,
-        environment: 'kubernetes',
-        role: i === 1 ? 'worker' : i === 2 ? 'api' : 'monitoring',
-        status: 'healthy',
-        cpu_usage: this.randomBetween(25, 45),
-        memory_usage: this.randomBetween(35, 55),
-        disk_usage: this.randomBetween(20, 40),
-        network_in: this.randomBetween(80, 200),
-        network_out: this.randomBetween(60, 180),
-        response_time: this.randomBetween(40, 120),
-        uptime: this.randomBetween(168, 8760),
-        last_updated: new Date().toISOString(),
-        alerts: []
-      });
+      const status = getServerStatus();
+      servers.push(this.createServerWithStatus(
+        `k8s-worker-${String(i).padStart(2, '0')}.cluster.local`,
+        'kubernetes',
+        'web',
+        status,
+        ++serverIndex
+      ));
     }
 
-    // 나머지 다양한 환경 서버
+    // 멀티클라우드 서버
     for (let i = 1; i <= multiCount; i++) {
-      const environments: ServerEnvironment[] = ['gcp', 'azure', 'idc', 'vdi'];
-      const roles: ServerRole[] = ['web', 'api', 'storage', 'monitoring', 'worker'];
-      const env = environments[i % environments.length];
-      const role = roles[i % roles.length];
-      
-      servers.push({
-        id: `server-multi-${i.toString().padStart(2, '0')}`,
-        hostname: `multi-${i.toString().padStart(2, '0')}.example.com`,
-        environment: env,
-        role: role,
-        status: 'healthy',
-        cpu_usage: this.randomBetween(20, 50),
-        memory_usage: this.randomBetween(30, 60),
-        disk_usage: this.randomBetween(25, 45),
-        network_in: this.randomBetween(60, 180),
-        network_out: this.randomBetween(50, 160),
-        response_time: this.randomBetween(60, 180),
-        uptime: this.randomBetween(168, 8760),
-        last_updated: new Date().toISOString(),
-        alerts: []
-      });
+      const status = getServerStatus();
+      servers.push(this.createServerWithStatus(
+        `multi-${String(i).padStart(2, '0')}.example.com`,
+        'gcp',
+        'web',
+        status,
+        ++serverIndex
+      ));
     }
 
-    console.log(`✅ 총 ${servers.length}개 서버 생성 완료 (계획: ${maxServers}개)`);
+    // 📊 최종 상태 분포 검증
+    const finalStats = {
+      critical: servers.filter(s => s.status === 'critical').length,
+      warning: servers.filter(s => s.status === 'warning').length,
+      healthy: servers.filter(s => s.status === 'healthy').length,
+      total: servers.length
+    };
+
+    console.log(`✅ 서버 생성 완료 - 총 ${finalStats.total}개: 심각 ${finalStats.critical}개(${(finalStats.critical/finalStats.total*100).toFixed(1)}%), 경고 ${finalStats.warning}개(${(finalStats.warning/finalStats.total*100).toFixed(1)}%), 정상 ${finalStats.healthy}개(${(finalStats.healthy/finalStats.total*100).toFixed(1)}%)`);
+
     return servers;
   }
 
@@ -677,6 +676,95 @@ export class SimulationEngine {
     const servers: EnhancedServerMetrics[] = [];
     // Implementation of generateInitialServers method
     return servers;
+  }
+
+  /**
+   * 🔧 상태에 따른 서버 생성 (메트릭 및 알림 포함)
+   */
+  private createServerWithStatus(hostname: string, environment: ServerEnvironment, role: ServerRole, status: ServerStatus, index: number): EnhancedServerMetrics {
+    // 상태에 따른 메트릭 조정
+    let cpuBase = 20, memoryBase = 30, diskBase = 40, responseBase = 80;
+    const alerts: ServerAlert[] = [];
+
+    switch (status) {
+      case 'critical':
+        // 심각 상태: 높은 리소스 사용률, 긴 응답시간, 알림 생성
+        cpuBase = 85;
+        memoryBase = 90;
+        diskBase = 95;
+        responseBase = 800;
+        
+        // 심각 상태 알림 추가
+        alerts.push({
+          id: `alert-${index}-critical`,
+          server_id: `server-${role}-${index.toString().padStart(2, '0')}`,
+          type: 'cpu',
+          message: `심각: CPU 사용률 ${cpuBase}% 초과`,
+          severity: 'critical',
+          timestamp: new Date().toISOString(),
+          resolved: false
+        });
+        
+        if (diskBase > 90) {
+          alerts.push({
+            id: `alert-${index}-disk`,
+            server_id: `server-${role}-${index.toString().padStart(2, '0')}`,
+            type: 'disk',
+            message: `심각: 디스크 사용률 ${diskBase}% - 즉시 조치 필요`,
+            severity: 'critical',
+            timestamp: new Date().toISOString(),
+            resolved: false
+          });
+        }
+        break;
+
+      case 'warning':
+        // 경고 상태: 중간 리소스 사용률, 약간 긴 응답시간
+        cpuBase = 70;
+        memoryBase = 75;
+        diskBase = 80;
+        responseBase = 400;
+        
+        // 경고 상태 알림 추가
+        alerts.push({
+          id: `alert-${index}-warning`,
+          server_id: `server-${role}-${index.toString().padStart(2, '0')}`,
+          type: 'memory',
+          message: `경고: 성능 저하 감지 - CPU ${cpuBase}%, 메모리 ${memoryBase}%`,
+          severity: 'warning',
+          timestamp: new Date().toISOString(),
+          resolved: false
+        });
+        break;
+
+      case 'healthy':
+      default:
+        // 정상 상태: 낮은 리소스 사용률, 빠른 응답시간
+        cpuBase = this.randomBetween(15, 45);
+        memoryBase = this.randomBetween(20, 50);
+        diskBase = this.randomBetween(25, 65);
+        responseBase = this.randomBetween(50, 150);
+        break;
+    }
+
+    return {
+      id: `server-${role}-${index.toString().padStart(2, '0')}`,
+      hostname,
+      environment,
+      role,
+      status,
+      cpu_usage: cpuBase + this.randomBetween(-5, 5), // ±5% 변동
+      memory_usage: memoryBase + this.randomBetween(-5, 5),
+      disk_usage: diskBase + this.randomBetween(-3, 3),
+      network_in: this.randomBetween(50, 200),
+      network_out: this.randomBetween(40, 180),
+      response_time: responseBase + this.randomBetween(-20, 50),
+      uptime: status === 'critical' 
+        ? this.randomBetween(24, 168)  // 심각 상태: 1일-1주
+        : this.randomBetween(168, 8760), // 정상/경고: 1주-1년
+      last_updated: new Date().toISOString(),
+      alerts
+    };
   }
 }
 

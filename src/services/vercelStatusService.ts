@@ -151,33 +151,33 @@ export class VercelStatusService {
   }
 
   /**
-   * 🎯 계획별 스케일링 설정 적용
+   * 🎯 계획별 스케일링 설정 적용 (8-30개 서버 제한)
    */
   getScalingConfigForPlan(plan: VercelPlan): ScalingConfig {
     const configs: Record<VercelPlan, ScalingConfig> = {
       hobby: {
-        maxServers: 5,           // 무료: 5개 서버
-        maxMetrics: 100,         // 무료: 100개 메트릭
-        updateInterval: 30000,   // 무료: 30초 간격
+        maxServers: 8,           // 무료: 8개 서버 (최소값)
+        maxMetrics: 200,         // 무료: 200개 메트릭
+        updateInterval: 15000,   // 무료: 15초 간격
         cacheEnabled: true,      // Redis 캐싱 필수
         prometheusEnabled: false,// 무료: Prometheus 비활성화
         alertThrottle: 10000     // 무료: 10초 알림 제한
       },
       pro: {
         maxServers: 20,          // Pro: 20개 서버
-        maxMetrics: 511,         // Pro: 511개 메트릭
+        maxMetrics: 500,         // Pro: 500개 메트릭
         updateInterval: 10000,   // Pro: 10초 간격
         cacheEnabled: true,      // Redis 캐싱 활성화
         prometheusEnabled: true, // Pro: Prometheus 활성화
         alertThrottle: 5000      // Pro: 5초 알림 제한
       },
       enterprise: {
-        maxServers: 100,         // Enterprise: 100개 서버
-        maxMetrics: 2000,        // Enterprise: 2000개 메트릭
-        updateInterval: 5000,    // Enterprise: 5초 간격
+        maxServers: 30,          // Enterprise: 30개 서버 (최대값)
+        maxMetrics: 750,         // Enterprise: 750개 메트릭
+        updateInterval: 8000,    // Enterprise: 8초 간격
         cacheEnabled: true,      // Redis 고성능 캐싱
         prometheusEnabled: true, // Enterprise: 고급 메트릭
-        alertThrottle: 1000      // Enterprise: 1초 알림
+        alertThrottle: 3000      // Enterprise: 3초 알림
       }
     };
 
@@ -185,24 +185,33 @@ export class VercelStatusService {
   }
 
   /**
-   * 🔄 현재 상태 기반 동적 설정 업데이트
+   * 🔄 현재 상태 기반 동적 설정 업데이트 (8-30개 서버 범위 제한)
    */
   async updateScalingConfig(): Promise<ScalingConfig> {
     const status = await this.checkResourceUsage();
     const baseConfig = this.getScalingConfigForPlan(status.plan);
 
-    // 리소스 사용률에 따른 동적 조절
+    // 리소스 사용률에 따른 동적 조절 (8-30 범위 내에서)
     if (status.executions.percentage > 80) {
-      // 사용률 80% 이상시 보수적 설정
-      baseConfig.maxServers = Math.floor(baseConfig.maxServers * 0.7);
-      baseConfig.updateInterval = Math.min(baseConfig.updateInterval * 1.5, 60000);
-      console.log(`⚠️ 높은 리소스 사용률 감지 (${status.executions.percentage.toFixed(1)}%), 보수적 설정 적용`);
+      // 사용률 80% 이상시 보수적 설정 (최소 8개 보장)
+      baseConfig.maxServers = Math.max(
+        Math.floor(baseConfig.maxServers * 0.8), 
+        8  // 최소 8개 서버 보장
+      );
+      baseConfig.updateInterval = Math.min(baseConfig.updateInterval * 1.3, 20000);
+      console.log(`⚠️ 높은 리소스 사용률 감지 (${status.executions.percentage.toFixed(1)}%), 보수적 설정: ${baseConfig.maxServers}개 서버`);
     } else if (status.executions.percentage < 30) {
-      // 사용률 30% 미만시 적극적 설정
-      baseConfig.maxServers = Math.floor(baseConfig.maxServers * 1.2);
-      baseConfig.updateInterval = Math.max(baseConfig.updateInterval * 0.8, 5000);
-      console.log(`✅ 낮은 리소스 사용률 (${status.executions.percentage.toFixed(1)}%), 적극적 설정 적용`);
+      // 사용률 30% 미만시 적극적 설정 (최대 30개 제한)
+      baseConfig.maxServers = Math.min(
+        Math.floor(baseConfig.maxServers * 1.2), 
+        30  // 최대 30개 서버 제한
+      );
+      baseConfig.updateInterval = Math.max(baseConfig.updateInterval * 0.9, 8000);
+      console.log(`✅ 낮은 리소스 사용률 (${status.executions.percentage.toFixed(1)}%), 적극적 설정: ${baseConfig.maxServers}개 서버`);
     }
+
+    // 📊 상태 분포 보장 설정 추가
+    baseConfig.alertThrottle = Math.max(baseConfig.alertThrottle, 3000); // 최소 3초 알림 간격
 
     this.scalingConfig = baseConfig;
     
