@@ -12,9 +12,11 @@
  * - AI 에이전트 최적화된 API
  */
 
-import Redis from 'ioredis';
 import { timerManager } from '../../utils/TimerManager';
 import { memoryOptimizer } from '../../utils/MemoryOptimizer';
+
+// Redis 타입 정의 (동적 import용)
+type Redis = any;
 
 // 데이터베이스 인터페이스 (간단한 구현)
 interface DatabaseConnection {
@@ -141,13 +143,19 @@ export class PrometheusDataHub {
    */
   private async initializeConnections(): Promise<void> {
     try {
-      // Redis 연결 (시계열 데이터)
-      this.redis = new Redis({
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-        db: 2, // 메트릭 전용 DB
-        keyPrefix: 'prometheus:'
-      });
+      // Redis 연결 (시계열 데이터) - 동적 import로 서버 사이드에서만 실행
+      if (typeof window === 'undefined') {
+        const { Redis } = await import('ioredis');
+        this.redis = new Redis({
+          host: process.env.REDIS_HOST || 'localhost',
+          port: parseInt(process.env.REDIS_PORT || '6379'),
+          db: 2, // 메트릭 전용 DB
+          keyPrefix: 'prometheus:'
+        });
+      } else {
+        // 클라이언트 사이드에서는 Redis 연결 건너뛰기
+        console.log('⚠️ 클라이언트 환경: Redis 연결 건너뛰기');
+      }
 
       // 간단한 PostgreSQL 연결 (실제로는 외부 라이브러리 사용)
       this.db = {
