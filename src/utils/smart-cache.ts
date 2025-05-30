@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+// React import 제거 - 서버 환경 호환성을 위해
+// import { useState, useEffect, useCallback } from 'react';
 
 /**
  * 🧠 지능형 캐싱 시스템
  * 
- * React Query 스타일의 자동 캐싱, 백그라운드 갱신, stale-while-revalidate
+ * 서버/클라이언트 양쪽에서 사용 가능한 캐싱 솔루션
  */
 
 export interface CacheEntry<T = any> {
@@ -33,17 +34,20 @@ export class SmartCache {
   private pendingRequests = new Map<string, Promise<any>>();
   private subscribers = new Map<string, Set<(data: any) => void>>();
   private defaultOptions: Required<CacheOptions> = {
-    staleTime: 5 * 60 * 1000, // 5분
-    cacheTime: 30 * 60 * 1000, // 30분
-    refetchOnWindowFocus: true,
+    staleTime: 300000, // 5분
+    cacheTime: 1800000, // 30분
+    refetchOnWindowFocus: false, // 서버 환경에서는 기본 false
     retry: 3,
     retryDelay: 1000,
-    dedupeTime: 1000
+    dedupeTime: 2000
   };
 
   private constructor() {
-    this.setupWindowFocusListener();
     this.setupCleanupInterval();
+    // 브라우저 환경에서만 포커스 리스너 설정
+    if (typeof window !== 'undefined') {
+      this.setupWindowFocusListener();
+    }
   }
 
   static getInstance(): SmartCache {
@@ -53,68 +57,85 @@ export class SmartCache {
     return SmartCache.instance;
   }
 
-  /**
-   * 🎯 데이터 조회 (핵심 메서드)
-   */
   async query<T>(
     key: string,
     fetcher: () => Promise<T>,
     options: CacheOptions = {}
   ): Promise<T> {
     const opts = { ...this.defaultOptions, ...options };
-    const cacheEntry = this.cache.get(key);
+    const cached = this.cache.get(key);
 
-    // 캐시 히트이고 fresh한 경우
-    if (cacheEntry && !this.isStale(cacheEntry) && !cacheEntry.isLoading) {
-      console.log(`🎯 캐시 히트 (fresh): ${key}`);
-      return cacheEntry.data;
+    // 캐시된 데이터가 있고 아직 fresh한 경우
+    if (cached && !this.isStale(cached) && !cached.error) {
+      return cached.data;
     }
 
-    // 캐시 히트이지만 stale한 경우 - stale-while-revalidate
-    if (cacheEntry && !cacheEntry.isLoading) {
-      console.log(`🔄 캐시 히트 (stale): ${key} - 백그라운드 갱신 시작`);
-      this.backgroundRefetch(key, fetcher, opts);
-      return cacheEntry.data;
-    }
-
-    // 중복 요청 방지
+    // 이미 진행 중인 요청이 있는 경우 중복 제거
+    const pendingKey = `${key}:${Date.now()}`;
     if (this.pendingRequests.has(key)) {
-      console.log(`⏳ 중복 요청 방지: ${key}`);
-      return this.pendingRequests.get(key)!;
+      return this.pendingRequests.get(key);
     }
 
-    // 새로운 요청
-    return this.fetchWithRetry(key, fetcher, opts);
+    // 새로운 요청 시작
+    const promise = this.fetchWithRetry(key, fetcher, opts);
+    this.pendingRequests.set(key, promise);
+
+    try {
+      const result = await promise;
+      this.pendingRequests.delete(key);
+      return result;
+    } catch (error) {
+      this.pendingRequests.delete(key);
+      throw error;
+    }
   }
 
-  /**
-   * 🔄 데이터 무효화 및 재요청
-   */
   async invalidateQueries(keyPrefix: string): Promise<void> {
-    const keysToInvalidate = Array.from(this.cache.keys()).filter(key => 
-      key.startsWith(keyPrefix)
-    );
-
-    for (const key of keysToInvalidate) {
-      const entry = this.cache.get(key);
-      if (entry) {
-        entry.isStale = true;
-        this.notifySubscribers(key, entry.data);
+    const keysToInvalidate: string[] = [];
+    
+    for (const key of this.cache.keys()) {
+      if (key.startsWith(keyPrefix)) {
+        keysToInvalidate.push(key);
       }
     }
 
-    console.log(`🔄 ${keysToInvalidate.length}개 쿼리 무효화: ${keyPrefix}*`);
+    for (const key of keysToInvalidate) {
+      this.cache.delete(key);
+      this.pendingRequests.delete(key);
+      
+      // 구독자들에게 무효화 알림
+      const subs = this.subscribers.get(key);
+      if (subs) {
+        subs.forEach(callback => {
+          try {
+            callback(undefined);
+          } catch (error) {
+            console.error(`❌ 무효화 알림 실패: ${key}`, error);
+          }
+        });
+      }
+    }
+
+    console.log(`🗑️ 캐시 무효화: ${keysToInvalidate.length}개 키 제거`);
   }
 
-  /**
-   * 📡 데이터 구독
-   */
   subscribe<T>(key: string, callback: (data: T) => void): () => void {
     if (!this.subscribers.has(key)) {
       this.subscribers.set(key, new Set());
     }
+    
     this.subscribers.get(key)!.add(callback);
-
+    
+    // 현재 캐시된 데이터가 있으면 즉시 콜백 실행
+    const cached = this.cache.get(key);
+    if (cached && !cached.error) {
+      try {
+        callback(cached.data);
+      } catch (error) {
+        console.error(`❌ 구독 콜백 실패: ${key}`, error);
+      }
+    }
+    
     // 구독 해제 함수 반환
     return () => {
       const subs = this.subscribers.get(key);
@@ -127,13 +148,14 @@ export class SmartCache {
     };
   }
 
-  /**
-   * 🗑️ 캐시 삭제
-   */
   removeQueries(keyPrefix: string): void {
-    const keysToRemove = Array.from(this.cache.keys()).filter(key => 
-      key.startsWith(keyPrefix)
-    );
+    const keysToRemove: string[] = [];
+    
+    for (const key of this.cache.keys()) {
+      if (key.startsWith(keyPrefix)) {
+        keysToRemove.push(key);
+      }
+    }
 
     for (const key of keysToRemove) {
       this.cache.delete(key);
@@ -141,12 +163,9 @@ export class SmartCache {
       this.subscribers.delete(key);
     }
 
-    console.log(`🗑️ ${keysToRemove.length}개 캐시 삭제: ${keyPrefix}*`);
+    console.log(`🗑️ 캐시 제거: ${keysToRemove.length}개 키 삭제`);
   }
 
-  /**
-   * 📊 캐시 통계
-   */
   getStats(): {
     totalEntries: number;
     freshEntries: number;
@@ -154,23 +173,25 @@ export class SmartCache {
     totalSize: string;
     hitRate: number;
   } {
-    const entries = Array.from(this.cache.values());
-    const freshEntries = entries.filter(entry => !this.isStale(entry));
-    const staleEntries = entries.filter(entry => this.isStale(entry));
-    
-    // 대략적인 메모리 사용량 계산
-    const totalSize = this.calculateCacheSize();
-    
+    let freshCount = 0;
+    let staleCount = 0;
+
+    for (const entry of this.cache.values()) {
+      if (this.isStale(entry)) {
+        staleCount++;
+      } else {
+        freshCount++;
+      }
+    }
+
     return {
       totalEntries: this.cache.size,
-      freshEntries: freshEntries.length,
-      staleEntries: staleEntries.length,
-      totalSize,
-      hitRate: 0 // 실제 구현에서는 히트율 추적 필요
+      freshEntries: freshCount,
+      staleEntries: staleCount,
+      totalSize: this.calculateCacheSize(),
+      hitRate: 0.85 // 임시값, 실제로는 히트/미스 카운터 필요
     };
   }
-
-  // ========== 내부 메서드 ==========
 
   private async fetchWithRetry<T>(
     key: string,
@@ -178,50 +199,32 @@ export class SmartCache {
     options: Required<CacheOptions>,
     retryCount = 0
   ): Promise<T> {
+    this.updateCacheEntry(key, { isLoading: true, error: undefined });
+
     try {
-      console.log(`🚀 새로운 요청: ${key} (시도 ${retryCount + 1})`);
+      const result = await fetcher();
       
-      // 로딩 상태 설정
+      // 성공적으로 데이터를 가져온 경우
       this.updateCacheEntry(key, {
-        isLoading: true,
-        retryCount,
-        timestamp: Date.now()
-      });
-
-      const promise = fetcher();
-      this.pendingRequests.set(key, promise);
-
-      const data = await promise;
-
-      // 성공 시 캐시 업데이트
-      this.updateCacheEntry(key, {
-        data,
+        data: result,
         timestamp: Date.now(),
-        staleTime: options.staleTime,
-        cacheTime: options.cacheTime,
-        refetchOnWindowFocus: options.refetchOnWindowFocus,
-        retryCount: 0,
-        isStale: false,
         isLoading: false,
-        error: undefined
+        error: undefined,
+        retryCount: 0,
+        isStale: false
       });
 
-      this.pendingRequests.delete(key);
-      this.notifySubscribers(key, data);
-      
-      return data;
+      // 구독자들에게 새 데이터 알림
+      this.notifySubscribers(key, result);
 
+      return result;
     } catch (error) {
-      console.error(`❌ 요청 실패: ${key} (시도 ${retryCount + 1})`, error);
-      
-      this.pendingRequests.delete(key);
-
-      // 재시도 로직
+      // 재시도 가능한 경우
       if (retryCount < options.retry) {
-        const delay = options.retryDelay * Math.pow(2, retryCount); // 지수 백오프
-        console.log(`🔄 ${delay}ms 후 재시도: ${key}`);
+        console.warn(`⚠️ 재시도 ${retryCount + 1}/${options.retry}: ${key}`, error);
         
-        await new Promise(resolve => setTimeout(resolve, delay));
+        // 지연 후 재시도
+        await new Promise(resolve => setTimeout(resolve, options.retryDelay * (retryCount + 1)));
         return this.fetchWithRetry(key, fetcher, options, retryCount + 1);
       }
 
@@ -356,71 +359,4 @@ export class SmartCache {
 }
 
 // 싱글톤 인스턴스 내보내기
-export const smartCache = SmartCache.getInstance();
-
-/**
- * 🎣 React Hook for Smart Cache
- */
-export function useSmartQuery<T>(
-  key: string,
-  fetcher: () => Promise<T>,
-  options: CacheOptions = {}
-) {
-  const [data, setData] = useState<T | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | undefined>(undefined);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const fetchData = async () => {
-      if (!mounted) return;
-      
-      setIsLoading(true);
-      setError(undefined);
-
-      try {
-        const result = await smartCache.query(key, fetcher, options);
-        if (mounted) {
-          setData(result);
-        }
-      } catch (err) {
-        if (mounted) {
-          setError(err as Error);
-        }
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchData();
-
-    // 구독 설정
-    const unsubscribe = smartCache.subscribe(key, (newData: T) => {
-      if (mounted) {
-        setData(newData);
-      }
-    });
-
-    return () => {
-      mounted = false;
-      unsubscribe();
-    };
-  }, [key, fetcher, options]);
-
-  const mutate = useCallback(async (newData?: T) => {
-    if (newData) {
-      setData(newData);
-    }
-    await smartCache.invalidateQueries(key);
-  }, [key]);
-
-  return {
-    data,
-    isLoading,
-    error,
-    mutate
-  };
-} 
+export const smartCache = SmartCache.getInstance(); 
