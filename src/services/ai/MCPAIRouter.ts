@@ -29,6 +29,7 @@ export interface MCPResponse {
     tasksExecuted: number;
     successRate: number;
     fallbacksUsed: number;
+    pythonWarmupTriggered: boolean;
   };
 }
 
@@ -81,7 +82,6 @@ export class MCPAIRouter {
   private sessionManager: SessionManager;
   private pythonServiceWarmedUp: boolean = false;
   private warmupPromise: Promise<void> | null = null;
-  private warmupInterval: NodeJS.Timeout | null = null; // 10분 주기 웜업
   
   constructor() {
     this.initializeIntentClassifier();
@@ -89,9 +89,7 @@ export class MCPAIRouter {
     this.responseMerger = new ResponseMerger();
     this.sessionManager = new SessionManager();
     
-    // 백그라운드에서 Python 서비스 웜업 시작
-    this.startWarmupProcess();
-    this.schedulePeriodicWarmup(); // 주기적 웜업 스케줄
+    console.log('🔧 MCP AI Router 초기화 (온디맨드 웜업 모드)');
   }
 
   /**
@@ -119,9 +117,6 @@ export class MCPAIRouter {
     const sessionId = context.sessionId || this.generateSessionId();
     
     try {
-      // 0. Python 서비스 준비 상태 확인 (필요시 대기)
-      await this.ensurePythonServiceReady();
-      
       // 1. 세션 관리 및 컨텍스트 개선
       const enrichedContext = await this.sessionManager.enrichContext(sessionId, context);
       
@@ -131,6 +126,13 @@ export class MCPAIRouter {
       
       // 3. 작업 우선순위 정렬
       const prioritizedTasks = this.prioritizeTasks(tasks, intent.urgency);
+      
+      // 🔥 온디맨드 웜업: Python 작업이 있을 때만 웜업
+      const hasPythonTasks = prioritizedTasks.some(task => task.type === 'complex_ml');
+      if (hasPythonTasks) {
+        console.log('🐍 Python 작업 감지 - 온디맨드 웜업 시작');
+        await this.ensurePythonServiceReady();
+      }
       
       // 4. 병렬 처리 (JavaScript + Python)
       const results = await this.taskOrchestrator.executeParallel(prioritizedTasks);
@@ -147,7 +149,8 @@ export class MCPAIRouter {
         metadata: {
           tasksExecuted: results.length,
           successRate: results.filter(r => r.success).length / results.length,
-          fallbacksUsed: results.filter(r => r.warning?.includes('fallback')).length
+          fallbacksUsed: results.filter(r => r.warning?.includes('fallback')).length,
+          pythonWarmupTriggered: hasPythonTasks
         }
       };
       
@@ -308,7 +311,8 @@ export class MCPAIRouter {
       metadata: {
         tasksExecuted: 0,
         successRate: 0,
-        fallbacksUsed: 0
+        fallbacksUsed: 0,
+        pythonWarmupTriggered: false
       }
     };
   }
@@ -346,34 +350,46 @@ export class MCPAIRouter {
   }
 
   /**
-   * 🚀 Python 서비스 웜업 프로세스 시작
+   * 🚀 Python 서비스 웜업 프로세스 시작 (온디맨드)
    */
   private async startWarmupProcess(): Promise<void> {
-    if (this.warmupPromise) return this.warmupPromise;
+    if (this.pythonServiceWarmedUp) {
+      console.log('✅ Python 서비스 이미 웜업됨 - 건너뛰기');
+      return;
+    }
     
+    if (this.warmupPromise) {
+      console.log('🔄 Python 웜업 진행 중 - 대기');
+      return this.warmupPromise;
+    }
+    
+    console.log('🚀 온디맨드 Python 웜업 시작');
     this.warmupPromise = this.warmupPythonService();
     return this.warmupPromise;
   }
 
   /**
-   * 🔥 Python 서비스 웜업 (잠든 서버 깨우기)
+   * 🔥 Python 서비스 웜업 (잠든 서버 깨우기) - 최적화된 온디맨드 버전
    */
   private async warmupPythonService(): Promise<void> {
     if (this.pythonServiceWarmedUp) return;
     
     const pythonServiceUrl = process.env.AI_ENGINE_URL || 'https://openmanager-vibe-v5.onrender.com';
-    const startTime = Date.now(); // 변수를 상위 스코프로 이동
+    const startTime = Date.now();
     
     try {
-      console.log('🔥 Python 서비스 웜업 시작...', pythonServiceUrl);
+      console.log('🔥 Python 서비스 웜업 시작 (온디맨드)...', pythonServiceUrl);
       
-      // 헬스체크로 서버 깨우기
+      // 헬스체크로 서버 깨우기 (타임아웃 단축)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30초 타임아웃
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20초로 단축
       
       const response = await fetch(`${pythonServiceUrl}/health`, {
         method: 'GET',
-        signal: controller.signal
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'OpenManager-OnDemand-Warmup'
+        }
       });
       
       clearTimeout(timeoutId);
@@ -382,30 +398,57 @@ export class MCPAIRouter {
         const data = await response.json();
         const warmupTime = Date.now() - startTime;
         
-        console.log(`✅ Python 서비스 웜업 완료! (${warmupTime}ms)`, data);
+        console.log(`✅ 온디맨드 Python 웜업 완료! (${warmupTime}ms)`, data);
         this.pythonServiceWarmedUp = true;
         
         // 📊 웜업 성공 기록
         monitoringService.recordWarmupAttempt(true, warmupTime);
         
-        // 추가 웜업: 간단한 분석 요청으로 완전히 깨우기
-        await this.performWarmupAnalysis();
+        // 🎯 온디맨드 모드: 간단한 분석은 생략 (필요시에만)
+        console.log('🎯 온디맨드 모드: 기본 웜업만 완료');
       } else {
         throw new Error(`웜업 헬스체크 실패: ${response.status}`);
       }
     } catch (error: any) {
       const warmupTime = Date.now() - startTime;
-      console.warn('⚠️ Python 서비스 웜업 실패:', error.message);
+      console.warn('⚠️ 온디맨드 Python 웜업 실패:', error.message);
       
       // 📊 웜업 실패 기록
       monitoringService.recordWarmupAttempt(false, warmupTime, error.message);
       
-      // 웜업 실패해도 시스템은 계속 동작 (fallback 사용)
+      // 온디맨드 모드에서는 웜업 실패 시 Python 작업 건너뛰기
+      console.log('🔄 Python 작업 건너뛰고 JavaScript 엔진으로 처리');
+    } finally {
+      this.warmupPromise = null; // 프로미스 리셋
     }
   }
 
   /**
-   * 🧪 웜업용 간단한 분석 수행
+   * 🔄 Python 서비스 준비 상태 보장 (온디맨드)
+   */
+  private async ensurePythonServiceReady(): Promise<void> {
+    if (!this.pythonServiceWarmedUp) {
+      await this.startWarmupProcess();
+    }
+  }
+
+  /**
+   * 🔧 엔진 상태 확인 (온디맨드 상태 포함)
+   */
+  async getEngineStatus(): Promise<any> {
+    return {
+      tensorflow: await this.taskOrchestrator.checkTensorFlowStatus(),
+      transformers: await this.taskOrchestrator.checkTransformersStatus(),
+      onnx: await this.taskOrchestrator.checkONNXStatus(),
+      python: await this.taskOrchestrator.checkPythonStatus(),
+      pythonWarmedUp: this.pythonServiceWarmedUp,
+      warmupMode: 'on-demand', // 온디맨드 모드 표시
+      allReady: true
+    };
+  }
+
+  /**
+   * 🧪 웜업용 간단한 분석 수행 (수동 웜업 전용)
    */
   private async performWarmupAnalysis(): Promise<void> {
     try {
@@ -415,7 +458,7 @@ export class MCPAIRouter {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          query: 'warmup test',
+          query: 'manual warmup test',
           metrics: [{
             timestamp: new Date().toISOString(),
             cpu: 50, memory: 60, disk: 70,
@@ -426,45 +469,33 @@ export class MCPAIRouter {
       });
       
       if (response.ok) {
-        console.log('🎯 Python 서비스 완전 웜업 완료');
+        console.log('🎯 Python 서비스 완전 웜업 완료 (수동 트리거)');
       }
     } catch (error) {
-      console.warn('⚠️ 웜업 분석 실패 (정상):', error);
+      console.warn('⚠️ 완전 웜업 분석 실패 (정상):', error);
     }
   }
 
   /**
-   * 🔧 엔진 상태 확인
+   * 🔄 수동 웜업 트리거 (관리자용)
    */
-  async getEngineStatus(): Promise<any> {
-    // 웜업 상태도 포함
-    await this.ensurePythonServiceReady();
-    
-    return {
-      tensorflow: await this.taskOrchestrator.checkTensorFlowStatus(),
-      transformers: await this.taskOrchestrator.checkTransformersStatus(),
-      onnx: await this.taskOrchestrator.checkONNXStatus(),
-      python: await this.taskOrchestrator.checkPythonStatus(),
-      pythonWarmedUp: this.pythonServiceWarmedUp,
-      allReady: true
-    };
-  }
-
-  /**
-   * 🔄 Python 서비스 준비 상태 보장
-   */
-  private async ensurePythonServiceReady(): Promise<void> {
-    if (!this.pythonServiceWarmedUp && this.warmupPromise) {
-      await this.warmupPromise;
-    }
-  }
-
-  private schedulePeriodicWarmup(): void {
-    if (this.warmupInterval) clearInterval(this.warmupInterval);
-    
-    this.warmupInterval = setInterval(async () => {
+  async triggerManualWarmup(): Promise<boolean> {
+    try {
+      console.log('🔧 수동 웜업 트리거 시작');
       await this.startWarmupProcess();
-    }, 30 * 60 * 1000); // 30분마다 웜업 (10분 → 30분으로 최적화)
+      
+      // 수동 웜업에서는 완전 웜업 수행
+      if (this.pythonServiceWarmedUp) {
+        await this.performWarmupAnalysis();
+        console.log('✅ 수동 웜업 완료 (완전 웜업)');
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('❌ 수동 웜업 실패:', error);
+      return false;
+    }
   }
 }
 

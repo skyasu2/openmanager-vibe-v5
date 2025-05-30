@@ -362,7 +362,8 @@ export class UnifiedAIEngine {
         metadata: {
           tasksExecuted: results.length,
           successRate: 1.0,
-          fallbacksUsed: 1
+          fallbacksUsed: 1,
+          pythonWarmupTriggered: false
         }
       };
 
@@ -379,7 +380,8 @@ export class UnifiedAIEngine {
         metadata: {
           tasksExecuted: 0,
           successRate: 0,
-          fallbacksUsed: 1
+          fallbacksUsed: 1,
+          pythonWarmupTriggered: false
         }
       };
     }
