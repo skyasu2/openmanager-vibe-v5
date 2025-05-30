@@ -105,8 +105,21 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
         sessionId
       };
 
-      setQAItems(prev => [...prev, newQA]);
-      setCurrentIndex(prev => prev + 1);
+      // qaItems 배열에 추가하고 인덱스를 마지막으로 설정
+      let newIndex = 0;
+      setQAItems(prev => {
+        const updated = [...prev, newQA];
+        newIndex = updated.length - 1;
+        console.log('📝 QA 아이템 추가:', { length: updated.length, newIndex });
+        return updated;
+      });
+      
+      // 인덱스를 새로 추가된 아이템으로 설정 (즉시 실행)
+      setTimeout(() => {
+        setCurrentIndex(newIndex);
+        console.log('📍 현재 인덱스 설정:', newIndex);
+      }, 0);
+      
       setIsThinkingExpanded(true);
       
       // 실제 AI 에이전트 처리 과정
@@ -159,7 +172,7 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
     };
 
     processQuestion();
-  }, [isProcessing, question, logEngine]);
+  }, [isProcessing, question, logEngine]); // qaItems.length 의존성 제거 (무한루프 방지)
 
   /**
    * 실제 AI 엔진 처리 과정 (실제 API 호출 및 로그)
@@ -341,20 +354,28 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
   const canGoNext = currentIndex < qaItems.length - 1;
 
   const goToPrev = () => {
-    if (canGoPrev) {
-      setCurrentIndex(prev => prev - 1);
-      const item = qaItems[currentIndex - 1];
-      if (item && item.answer) {
+    if (canGoPrev && !isTyping) { // 타이핑 중이면 네비게이션 방지
+      const newIndex = currentIndex - 1;
+      setCurrentIndex(newIndex);
+      console.log('⬅️ 이전 질문으로:', { currentIndex, newIndex, total: qaItems.length });
+      
+      const item = qaItems[newIndex];
+      if (item && item.answer && !item.isProcessing) {
+        setTypingText(''); // 기존 텍스트 초기화
         startTypingAnimation(item.answer);
       }
     }
   };
 
   const goToNext = () => {
-    if (canGoNext) {
-      setCurrentIndex(prev => prev + 1);
-      const item = qaItems[currentIndex + 1];
-      if (item && item.answer) {
+    if (canGoNext && !isTyping) { // 타이핑 중이면 네비게이션 방지
+      const newIndex = currentIndex + 1;
+      setCurrentIndex(newIndex);
+      console.log('➡️ 다음 질문으로:', { currentIndex, newIndex, total: qaItems.length });
+      
+      const item = qaItems[newIndex];
+      if (item && item.answer && !item.isProcessing) {
+        setTypingText(''); // 기존 텍스트 초기화
         startTypingAnimation(item.answer);
       }
     }
@@ -422,7 +443,7 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
           </div>
           <div>
             <span className="text-sm font-medium text-gray-900 dark:text-white">
-              질문 {currentIndex + 1} / {qaItems.length}
+              {qaItems.length > 0 ? `질문 ${Math.min(currentIndex + 1, qaItems.length)} / ${qaItems.length}` : '질문 대기 중...'}
             </span>
           </div>
         </div>
@@ -431,12 +452,13 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
         <div className="flex items-center space-x-1">
           <button
             onClick={goToPrev}
-            disabled={!canGoPrev}
+            disabled={!canGoPrev || isTyping}
             className={`p-2 rounded-lg transition-colors ${
-              canGoPrev 
+              canGoPrev && !isTyping
                 ? 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300' 
                 : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
             }`}
+            title={isTyping ? '타이핑 중에는 이동할 수 없습니다' : '이전 질문'}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -444,12 +466,13 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
           </button>
           <button
             onClick={goToNext}
-            disabled={!canGoNext}
+            disabled={!canGoNext || isTyping}
             className={`p-2 rounded-lg transition-colors ${
-              canGoNext 
+              canGoNext && !isTyping
                 ? 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300' 
                 : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
             }`}
+            title={isTyping ? '타이핑 중에는 이동할 수 없습니다' : '다음 질문'}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

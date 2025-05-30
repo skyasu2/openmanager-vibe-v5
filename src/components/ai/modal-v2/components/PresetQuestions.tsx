@@ -222,13 +222,19 @@ export default function PresetQuestions({ onQuestionSelect, currentServerData }:
   };
 
   const handleQuestionClick = async (question: PresetQuestion) => {
+    console.log('🎯 프리셋 질문 클릭:', question.title, question.fullText);
+    
+    // 먼저 질문을 상위 컴포넌트로 전송 (우선순위 1)
+    onQuestionSelect(question.fullText);
+    
+    // 그 다음 로컬 처리 시작 (우선순위 2)
     setIsProcessing(true);
     setCurrentAnswer(null);
     
     try {
       // 🔥 특별 처리: "현재 서버 상태는 어떤가요?" 질문
       if (question.id === 'status-summary' || question.title.includes('📊 서버 상태')) {
-        console.log('🔍 서버 상태 질문 처리 시작');
+        console.log('🔍 서버 상태 질문 - 로컬 답변 생성');
         
         // 실제 서버 데이터 조회 시도
         try {
@@ -264,8 +270,6 @@ export default function PresetQuestions({ onQuestionSelect, currentServerData }:
               processingTime: 380
             });
             
-            // 실제 질문도 전송
-            onQuestionSelect(question.fullText);
             return;
           }
         } catch (apiError) {
@@ -273,10 +277,7 @@ export default function PresetQuestions({ onQuestionSelect, currentServerData }:
         }
       }
       
-      // 실제 질문 전송도 함께 실행
-      onQuestionSelect(question.fullText);
-      
-      // 엔진 분석 수행
+      // 다른 질문들에 대한 엔진 분석 수행 (로컬 표시용)
       const response = await mockEngineProcess(question.title);
       setCurrentAnswer(response);
     } catch (error) {
