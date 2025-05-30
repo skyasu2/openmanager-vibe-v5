@@ -364,7 +364,7 @@ export class PrometheusDataHub {
   private parsePrometheusText(text: string, target: ScrapeTarget): PrometheusMetric[] {
     const metrics: PrometheusMetric[] = [];
     const lines = text.split('\n');
-    let currentMetric: Partial<PrometheusMetric> = {};
+    const currentMetric: Partial<PrometheusMetric> = {};
     
     for (const line of lines) {
       if (line.startsWith('#')) {

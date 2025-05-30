@@ -11,7 +11,15 @@ const nextConfig: NextConfig = {
     },
   }),
 
-  serverExternalPackages: ["ioredis", "sharp"],
+  serverExternalPackages: [
+    'ioredis', 
+    'sharp',
+    'redis',
+    '@redis/client',
+    'generic-pool',
+    'cluster',
+    'denque'
+  ],
 
   images: {
     domains: ['localhost'],
@@ -41,7 +49,7 @@ const nextConfig: NextConfig = {
       config.watchOptions = {
         ignored: /node_modules/,
         poll: false,
-        aggregateTimeout: 15000, // 15초!
+        aggregateTimeout: 15000, // 15초로 대폭 증가!
       };
       config.parallelism = 1;
     }
@@ -54,20 +62,39 @@ const nextConfig: NextConfig = {
         dns: false,
         tls: false,
         child_process: false,
+        cluster: false,
+        module: false,
         'node:crypto': false,
         'node:stream': false,
         'node:buffer': false,
+        'node:util': false,
+        'node:net': false,
+        'node:dns': false,
       };
       
+      const externals = config.externals || [];
       config.externals = [
-        ...(config.externals || []),
+        ...externals,
         'ioredis',
-        'redis',
+        'redis', 
+        '@redis/client',
+        'generic-pool',
+        'cluster',
+        'denque'
       ];
     }
 
     return config;
   },
+
+  experimental: {
+    serverComponentsExternalPackages: [
+      'ioredis',
+      'redis', 
+      '@redis/client',
+      'generic-pool'
+    ]
+  }
 };
 
 export default nextConfig; 

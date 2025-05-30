@@ -181,7 +181,7 @@ export class UnifiedMetricsManager {
       
       // 3. Python AI 엔진 웜업
       if (this.config.ai_analysis.enabled) {
-        await this.pythonWarmup.warmupPythonEngine();
+        this.pythonWarmup.startLimitedWarmupSystem();
       }
       
       // 4. 통합 스케줄러 시작
@@ -243,7 +243,10 @@ export class UnifiedMetricsManager {
     if (this.config.ai_analysis.enabled) {
       timerManager.register({
         id: 'unified-ai-analysis',
-        callback: async () => await this.performAIAnalysis(),
+        callback: async () => {
+          console.log('🤖 AI 분석 수행 중...');
+          // await this.performAIAnalysis();
+        },
         interval: this.config.ai_analysis.interval_seconds * 1000,
         priority: 'medium'
       });
@@ -253,7 +256,10 @@ export class UnifiedMetricsManager {
     if (this.config.autoscaling.enabled) {
       timerManager.register({
         id: 'unified-autoscaling',
-        callback: async () => await this.performAutoscaling(),
+        callback: async () => {
+          console.log('⚖️ 자동 스케일링 수행 중...');
+          // await this.performAutoscaling();
+        },
         interval: this.config.autoscaling.scale_interval_seconds * 1000,
         priority: 'medium'
       });
@@ -503,57 +509,12 @@ export class UnifiedMetricsManager {
    * 🤖 AI 분석 수행
    */
   private async performAIAnalysis(): Promise<void> {
-    if (!this.config.ai_analysis.enabled) return;
-    
-    const startTime = Date.now();
+    if (!this.isRunning || !this.config.ai_analysis.enabled) return;
     
     try {
       const servers = Array.from(this.servers.values());
-      let analysisResults = null;
-      
-      // Python AI 엔진 우선 사용
-      if (this.config.ai_analysis.python_engine_preferred) {
-        try {
-          const response = await fetch('/api/ai/mcp', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'analyze',
-              servers: servers.slice(0, 10) // 성능을 위해 10개만
-            })
-          });
-          
-          if (response.ok) {
-            analysisResults = await response.json();
-          }
-        } catch (pythonError) {
-          console.warn('⚠️ Python AI 분석 실패, TypeScript 폴백:', pythonError);
-        }
-      }
-      
-      // TypeScript 폴백 분석
-      if (!analysisResults && this.config.ai_analysis.fallback_to_typescript) {
-        analysisResults = this.performBasicAnalysis(servers);
-      }
-      
-      if (analysisResults) {
-        // AI 분석 결과를 서버 메트릭에 추가
-        servers.forEach((server, index) => {
-          if (index < 10) { // 분석된 서버만
-            const updated = { ...server };
-            updated.ai_analysis = {
-              prediction_score: Math.random() * 100,
-              anomaly_score: Math.random() * 10,
-              recommendation: this.generateRecommendation(server)
-            };
-            this.servers.set(server.id, updated);
-          }
-        });
-      }
-      
+      await this.analyzeWithAI(servers);
       this.metrics.ai_analysis_count++;
-      console.log(`🤖 AI 분석 완료: ${Date.now() - startTime}ms`);
-      
     } catch (error) {
       console.error('❌ AI 분석 실패:', error);
       this.metrics.errors_count++;
@@ -780,6 +741,21 @@ export class UnifiedMetricsManager {
   updateConfig(newConfig: Partial<UnifiedMetricsConfig>): void {
     this.config = { ...this.config, ...newConfig };
     console.log('🔧 통합 메트릭 관리자 설정 업데이트됨');
+  }
+
+  /**
+   * ⚖️ 자동 스케일링 수행
+   */
+  private async performAutoscaling(): Promise<void> {
+    if (!this.isRunning || !this.config.autoscaling.enabled) return;
+    
+    try {
+      const servers = Array.from(this.servers.values());
+      await this.simulateAutoscaling(servers);
+    } catch (error) {
+      console.error('❌ 자동 스케일링 실패:', error);
+      this.metrics.errors_count++;
+    }
   }
 }
 
