@@ -160,9 +160,15 @@ export class UnifiedMetricsManager {
   }
 
   /**
-   * 🚀 통합 메트릭 시스템 시작
+   * 🚀 통합 메트릭 관리자 시작
    */
   async start(): Promise<void> {
+    // 클라이언트 사이드에서는 실행하지 않음
+    if (typeof window !== 'undefined') {
+      console.log('⚠️ 클라이언트 환경: UnifiedMetricsManager 시작 건너뛰기');
+      return;
+    }
+    
     if (this.isRunning) {
       console.log('⚠️ 통합 메트릭 관리자가 이미 실행 중입니다');
       return;
@@ -689,51 +695,55 @@ export class UnifiedMetricsManager {
    * 📊 현재 상태 조회
    */
   getStatus(): any {
-    return {
-      isRunning: this.isRunning,
-      config: this.config,
-      servers_count: this.servers.size,
-      performance_metrics: this.metrics,
-      prometheus_hub_status: prometheusDataHub.getStatus()
-    };
+    // 클라이언트 사이드에서는 기본 상태 반환
+    if (typeof window !== 'undefined') {
+      return {
+        isRunning: false,
+        servers_count: 0,
+        environment: 'client',
+        performance_metrics: {
+          last_update: Date.now()
+        }
+      };
+    }
+    
+    try {
+      return {
+        isRunning: this.isRunning,
+        servers_count: this.servers.size,
+        current_config: this.config,
+        performance_metrics: this.metrics,
+        last_update: Date.now()
+      };
+    } catch (error) {
+      console.warn('⚠️ 상태 조회 실패:', error);
+      return {
+        isRunning: false,
+        servers_count: 0,
+        error: true
+      };
+    }
   }
 
   /**
    * 📋 서버 목록 조회 (ServerDashboard 호환)
    */
   getServers(): any[] {
-    return Array.from(this.servers.values()).map(server => ({
-      id: server.id,
-      hostname: server.hostname,
-      environment: server.environment,
-      role: server.role,
-      status: server.status,
-      cpu_usage: server.node_cpu_usage_percent,
-      memory_usage: server.node_memory_usage_percent,
-      disk_usage: server.node_disk_usage_percent,
-      network_in: server.node_network_receive_rate_mbps,
-      network_out: server.node_network_transmit_rate_mbps,
-      uptime: server.node_uptime_seconds / 3600, // 초를 시간으로 변환
-      response_time: server.http_request_duration_seconds * 1000, // 초를 ms로 변환
-      last_updated: new Date(server.timestamp).toISOString(),
-      alerts: server.status === 'critical' ? 3 : server.status === 'warning' ? 1 : 0,
-      
-      // AI 분석 결과
-      pattern_info: server.ai_analysis ? {
-        server_profile: server.role,
-        current_load: server.node_cpu_usage_percent > 70 ? 'high' : 
-                     server.node_cpu_usage_percent > 40 ? 'medium' : 'low',
-        time_multiplier: 1.0,
-        seasonal_multiplier: 1.0,
-        burst_active: server.node_cpu_usage_percent > 80
-      } : undefined,
-      
-      correlation_metrics: server.ai_analysis ? {
-        cpu_memory_correlation: 0.7, // CPU와 메모리 상관관계
-        response_time_impact: server.http_request_duration_seconds,
-        stability_score: server.ai_analysis.prediction_score / 100
-      } : undefined
-    }));
+    // 클라이언트 사이드에서는 빈 배열 반환
+    if (typeof window !== 'undefined') {
+      console.log('⚠️ 클라이언트 환경: 빈 서버 목록 반환');
+      return [];
+    }
+    
+    try {
+      return Array.from(this.servers.values()).map(server => ({
+        ...server,
+        environment: server.environment || 'development'
+      }));
+    } catch (error) {
+      console.warn('⚠️ 서버 목록 조회 실패:', error);
+      return [];
+    }
   }
 
   /**

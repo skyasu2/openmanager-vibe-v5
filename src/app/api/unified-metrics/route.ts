@@ -12,6 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { unifiedMetricsManager } from '../../../services/UnifiedMetricsManager';
 import { prometheusDataHub } from '../../../modules/prometheus-integration/PrometheusDataHub';
+import { createSuccessResponse, createErrorResponse, withErrorHandler } from '../../../lib/api/errorHandler';
 
 /**
  * 📊 GET: 통합 메트릭 조회
@@ -98,7 +99,7 @@ export async function GET(request: NextRequest) {
             return createErrorResponse('쿼리 파라미터가 필요합니다', 'BAD_REQUEST');
           }
           
-          const result = await prometheusDataHub.query({
+          const result = await prometheusDataHub.queryMetrics({
             query,
             start: start ? parseInt(start) : undefined,
             end: end ? parseInt(end) : undefined
@@ -106,19 +107,18 @@ export async function GET(request: NextRequest) {
           
           return createSuccessResponse({
             query,
-            result: result || { data: [] },
+            result: result || [],
             timestamp: new Date().toISOString(),
             demo_mode: true
           });
         } catch (error) {
           console.warn('⚠️ Prometheus 쿼리 실패, 기본값 반환:', error);
           // 기본 메트릭 데이터
-          const demoMetrics = {
-            data: [{
-              metric: { __name__: query || 'demo_metric' },
-              values: [[Date.now() / 1000, (Math.random() * 100).toFixed(2)]]
-            }]
-          };
+          const demoMetrics = [{
+            metric_name: query || 'demo_metric',
+            labels: {},
+            values: [{ timestamp: Date.now(), value: Math.random() * 100 }]
+          }];
           
           return createSuccessResponse({
             query: query || 'demo_metric',
