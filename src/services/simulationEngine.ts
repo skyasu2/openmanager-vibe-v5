@@ -25,6 +25,7 @@ import {
   SimulationState
 } from '../types/server';
 import { timerManager } from '../utils/TimerManager';
+import { cacheService } from './cacheService';
 
 // 확장된 서버 메트릭 인터페이스
 export interface EnhancedServerMetrics extends BaseServerMetrics {
@@ -586,7 +587,7 @@ export class SimulationEngine {
   }
 
   /**
-   * 🔄 업데이트 로직 교체 (기존 메서드 오버라이드)
+   * 📊 시뮬레이션 업데이트 (캐싱 포함)
    */
   private updateSimulation(): void {
     if (!this.state.isRunning) return;
@@ -596,6 +597,11 @@ export class SimulationEngine {
     );
 
     this.state.dataCount++;
+
+    // 🔥 Redis 캐싱 추가
+    cacheService.cacheServerMetrics(this.state.servers).catch(error => {
+      console.warn('⚠️ 캐싱 실패 (시뮬레이션은 계속):', error.message);
+    });
 
     const summary = this.getSimulationSummary();
     console.log(`📊 시뮬레이션 업데이트 ${this.state.dataCount}: ${summary.totalServers}개 서버, ${summary.totalMetrics}개 메트릭 (패턴: ${this.useRealisticPatterns ? 'ON' : 'OFF'}, Prometheus: ${summary.prometheusEnabled ? 'ON' : 'OFF'})`);
