@@ -39,6 +39,9 @@ export {
   validateSidebarConfig
 } from './utils';
 
+import type { AISidebarConfig } from './types';
+import { getDefaultSidebarConfig } from './utils';
+
 // Constants
 export const AI_SIDEBAR_VERSION = '1.0.0';
 export const SUPPORTED_THEMES = ['light', 'dark', 'auto'] as const;
@@ -58,5 +61,8 @@ export const SUPPORTED_THEMES = ['light', 'dark', 'auto'] as const;
  * ```
  */
 export const setupAISidebar = (config: Partial<AISidebarConfig> = {}) => {
-  return createAISidebarInstance(config);
+  return {
+    ...getDefaultSidebarConfig(),
+    ...config
+  };
 }; 
