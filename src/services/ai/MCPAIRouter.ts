@@ -401,10 +401,16 @@ export class MCPAIRouter {
         console.log(`✅ 온디맨드 Python 웜업 완료! (${warmupTime}ms)`, data);
         this.pythonServiceWarmedUp = true;
         
-        // 📊 웜업 성공 기록
-        monitoringService.recordWarmupAttempt(true, warmupTime);
+        // 📊 웜업 성공 기록 (안전한 호출)
+        try {
+          if (typeof monitoringService !== 'undefined' && monitoringService.recordWarmupAttempt) {
+            monitoringService.recordWarmupAttempt(true, warmupTime);
+          }
+        } catch (monitoringError) {
+          console.warn('⚠️ 모니터링 서비스 기록 실패 (무시):', monitoringError);
+        }
         
-        // 🎯 온디맨드 모드: 간단한 분석은 생략 (필요시에만)
+        // 🎯 온디맨드 모드: 기본 웜업만 완료
         console.log('🎯 온디맨드 모드: 기본 웜업만 완료');
       } else {
         throw new Error(`웜업 헬스체크 실패: ${response.status}`);
@@ -413,8 +419,14 @@ export class MCPAIRouter {
       const warmupTime = Date.now() - startTime;
       console.warn('⚠️ 온디맨드 Python 웜업 실패:', error.message);
       
-      // 📊 웜업 실패 기록
-      monitoringService.recordWarmupAttempt(false, warmupTime, error.message);
+      // 📊 웜업 실패 기록 (안전한 호출)
+      try {
+        if (typeof monitoringService !== 'undefined' && monitoringService.recordWarmupAttempt) {
+          monitoringService.recordWarmupAttempt(false, warmupTime, error.message);
+        }
+      } catch (monitoringError) {
+        console.warn('⚠️ 모니터링 서비스 기록 실패 (무시):', monitoringError);
+      }
       
       // 온디맨드 모드에서는 웜업 실패 시 Python 작업 건너뛰기
       console.log('🔄 Python 작업 건너뛰고 JavaScript 엔진으로 처리');

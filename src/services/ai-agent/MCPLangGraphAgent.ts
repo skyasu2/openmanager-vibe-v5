@@ -146,104 +146,91 @@ export class MCPLangGraphAgent {
     langGraphProcessor.thought("분석에 필요한 컨텍스트 데이터를 수집해야 합니다.");
     
     try {
-      console.log('📡 대시보드 API 호출 시작...');
-      // 시뮬레이션 엔진에서 서버 데이터 가져오기
-      const response = await fetch('/api/dashboard');
+      console.log('📡 서버 데이터 수집 시작...');
       
-      if (!response.ok) {
-        console.error('❌ 대시보드 API 호출 실패:', response.status, response.statusText);
-        throw new Error(`API 호출 실패: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      console.log('✅ 대시보드 API 응답 수신:', {
-        hasData: !!data.data,
-        hasServers: !!(data.data?.servers || data.servers),
-        serversCount: (data.data?.servers || data.servers || []).length,
-        topLevelKeys: Object.keys(data),
-        dataKeys: data.data ? Object.keys(data.data) : null
-      });
-      
-      // API 응답 구조에 맞춰 서버 데이터 접근 (다중 경로 지원)
-      let servers = [];
-      
-      // 경로 1: data.servers (최상위)
-      if (data.servers && Array.isArray(data.servers)) {
-        servers = data.servers;
-        console.log('✅ 최상위 servers 배열 사용:', servers.length + '개');
-      }
-      // 경로 2: data.data.servers (중첩 구조)
-      else if (data.data?.servers && Array.isArray(data.data.servers)) {
-        servers = data.data.servers;
-        console.log('✅ 중첩 data.servers 배열 사용:', servers.length + '개');
-      }
-      // 경로 3: overview에서 서버 수만 확인 (응급 처리)
-      else if (data.overview?.total_servers) {
-        console.warn('⚠️ 서버 배열을 찾을 수 없음. overview 데이터로 대체 처리');
-        // 기본 서버 데이터 구조 생성
-        servers = Array.from({ length: data.overview.total_servers }, (_, i) => ({
-          hostname: `server-${i + 1}`,
-          status: i < data.overview.healthy_servers ? 'healthy' : 
-                  i < data.overview.healthy_servers + data.overview.warning_servers ? 'warning' : 'critical',
-          cpu_usage: Math.random() * 100,
-          memory_usage: Math.random() * 100,
-          response_time: Math.random() * 1000,
-          alerts: []
-        }));
-        console.log('🔧 시뮬레이션 서버 데이터 생성:', servers.length + '개');
-      }
-      
-      console.log('🖥️ 서버 데이터 파싱 완료:', servers.length + '개 서버');
+      // 🔧 서버사이드에서는 시뮬레이션 엔진 직접 사용
+      const servers = simulationEngine.getServers();
+      console.log('✅ 시뮬레이션 엔진에서 직접 데이터 수신:', servers.length + '개 서버');
       
       if (servers.length === 0) {
-        console.warn('⚠️ 서버 데이터가 비어있습니다');
-        console.log('📊 응답 구조 상세 분석:', JSON.stringify(data, null, 2));
-        throw new Error('서버 데이터를 찾을 수 없습니다. API 응답 구조를 확인해주세요.');
+        console.warn('⚠️ 서버 데이터가 비어있습니다. 시뮬레이션 엔진 시작...');
+        simulationEngine.start();
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const retryServers = simulationEngine.getServers();
+        console.log('🔄 재시도 후 서버 수:', retryServers.length);
+        
+        if (retryServers.length === 0) {
+          throw new Error('시뮬레이션 엔진에서 서버 데이터를 가져올 수 없습니다');
+        }
+        
+        return await this.processServerData(retryServers, intent);
       }
       
-      const relevantData: any = {
-        query: query.question,
+      const context = await this.processServerData(servers, intent);
+      
+      observation(`컨텍스트 수집 완료: ${servers.length}개 서버, 분석 대상 선정됨`);
+      langGraphProcessor.completeStep(stepId, context);
+      
+      return context;
+      
+    } catch (error) {
+      console.error('❌ 컨텍스트 수집 실패:', error);
+      langGraphProcessor.errorStep(stepId, error instanceof Error ? error.message : '컨텍스트 수집 실패');
+      
+      // 🔄 Fallback: 기본 컨텍스트 생성
+      const fallbackContext = {
+        servers: [],
         intent,
-        servers,
-        timestamp: Date.now(),
-        serverCount: servers.length
+        timestamp: new Date().toISOString(),
+        source: 'fallback',
+        error: error instanceof Error ? error.message : '데이터 수집 실패'
       };
       
-      // 시뮬레이션 엔진 상태 확인
-      const engineState = simulationEngine.getState();
-      if (!engineState.isRunning) {
-        action("시뮬레이션 엔진 시작");
-        simulationEngine.start();
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
+      observation(`Fallback 컨텍스트 사용: 오류로 인한 기본 데이터 생성`);
+      langGraphProcessor.completeStep(stepId, fallbackContext);
       
-      // 서버 데이터 조회
-      const summary = simulationEngine.getSimulationSummary();
-      
-      observation(`시스템 데이터 수집 완료: ${servers.length}개 서버, 시뮬레이션 메트릭 ${summary.totalMetrics}개`);
-      
-      // 의도에 따른 필터링
-      if (intent === 'server_status_check') {
-        relevantData.healthyServers = servers.filter((s: ServerMetrics) => s.status === 'healthy');
-        relevantData.warningServers = servers.filter((s: ServerMetrics) => s.status === 'warning');
-        relevantData.errorServers = servers.filter((s: ServerMetrics) => s.status === 'critical');
-      } else if (intent === 'performance_analysis') {
-        relevantData.highCpuServers = servers.filter((s: ServerMetrics) => s.cpu_usage > 80);
-        relevantData.highMemoryServers = servers.filter((s: ServerMetrics) => s.memory_usage > 80);
-        relevantData.slowResponseServers = servers.filter((s: ServerMetrics) => s.response_time > 500);
-      } else if (intent === 'incident_investigation') {
-        relevantData.alertedServers = servers.filter((s: ServerMetrics) => s.alerts && s.alerts.length > 0);
-        relevantData.criticalAlerts = servers.flatMap((s: ServerMetrics) => s.alerts || []).filter((a: any) => Number(a.severity) >= 3);
-      }
-      
-      langGraphProcessor.completeStep(stepId, relevantData);
-      return relevantData;
-    } catch (error) {
-      console.error('컨텍스트 수집 실패:', error);
-      langGraphProcessor.errorThinking(error instanceof Error ? error.message : '알 수 없는 오류');
-      
-      throw error;
+      return fallbackContext;
     }
+  }
+
+  /**
+   * 🔧 서버 데이터 처리 및 분석
+   */
+  private async processServerData(servers: any[], intent: string): Promise<any> {
+    // 의도에 따른 관련 서버 필터링 및 분석
+    const relevantServers = servers.filter(server => {
+      if (intent === 'server_status_check') return true;
+      if (intent === 'performance_analysis') return server.cpu_usage > 70 || server.memory_usage > 80;
+      if (intent === 'incident_investigation') return server.status !== 'healthy' || server.alerts?.length > 0;
+      return true; // 기본적으로 모든 서버 포함
+    });
+
+    // 상태별 분류
+    const statusSummary = {
+      healthy: relevantServers.filter(s => s.status === 'healthy').length,
+      warning: relevantServers.filter(s => s.status === 'warning').length,
+      critical: relevantServers.filter(s => s.status === 'critical').length,
+      total: relevantServers.length
+    };
+
+    // 성능 메트릭 요약
+    const performanceSummary = {
+      avg_cpu: relevantServers.reduce((sum, s) => sum + (s.cpu_usage || 0), 0) / relevantServers.length,
+      avg_memory: relevantServers.reduce((sum, s) => sum + (s.memory_usage || 0), 0) / relevantServers.length,
+      max_response_time: Math.max(...relevantServers.map(s => s.response_time || 0)),
+      total_alerts: relevantServers.reduce((sum, s) => sum + (s.alerts?.length || 0), 0)
+    };
+
+    const relevantData: any = {
+      servers: relevantServers,
+      status_summary: statusSummary,
+      performance_summary: performanceSummary,
+      intent,
+      timestamp: new Date().toISOString(),
+      analysis_scope: `${relevantServers.length}/${servers.length} 서버 분석`
+    };
+
+    return relevantData;
   }
 
   /**
