@@ -106,7 +106,15 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
 
   // 🔄 자동 질문 회전 (45초마다, 상호작용 시 더 활발하게)
   useEffect(() => {
-    if (isProcessing) return; // 처리 중일 때는 회전하지 않음
+    // AI 처리 중이면 모든 타이머 정지
+    if (isProcessing) {
+      console.log('🚫 AI 처리 중 - 질문 회전 정지');
+      setIsRotating(false);
+      return;
+    }
+
+    console.log('🔄 질문 회전 타이머 시작');
+    setIsRotating(true);
 
     const baseInterval = 45000; // 기본 45초
     const activeInterval = 25000; // 활발한 상태일 때 25초
@@ -123,16 +131,20 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
     window.addEventListener('keydown', handleUserInteraction);
 
     const rotateQuestions = () => {
-      if (isProcessing) return;
+      if (isProcessing) {
+        console.log('🚫 회전 실행 취소 - AI 처리 중');
+        return;
+      }
       
       // 최근 2분 내 상호작용이 있었다면 더 빠르게
       const isUserActive = Date.now() - lastInteraction < 2 * 60 * 1000;
       const interval = isUserActive ? activeInterval : baseInterval;
       
+      console.log('🎯 질문 회전 실행 - 다음 간격:', interval / 1000 + '초');
       setCurrentTemplateIndex((prev) => (prev + 1) % questionTemplates.length);
     };
 
-    // TimerManager에 등록
+    // TimerManager에 등록 (isProcessing 변경 시 자동 해제됨)
     timerManager.register({
       id: 'dynamic-question-rotation',
       callback: rotateQuestions,
@@ -141,12 +153,13 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
     });
 
     return () => {
+      console.log('🧹 질문 회전 타이머 정리');
       window.removeEventListener('mousemove', handleUserInteraction);
       window.removeEventListener('click', handleUserInteraction);
       window.removeEventListener('keydown', handleUserInteraction);
       timerManager.unregister('dynamic-question-rotation');
     };
-  }, [questionTemplates.length, isProcessing]);
+  }, [questionTemplates.length, isProcessing]); // isProcessing을 의존성에 추가
 
   // 🎯 서버 상황 기반 질문 우선순위 업데이트 (2분마다)
   useEffect(() => {

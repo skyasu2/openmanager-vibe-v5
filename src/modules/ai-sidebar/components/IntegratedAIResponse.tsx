@@ -47,61 +47,74 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
     showReActSteps: true
   });
 
-  // 질문 처리 시작 - 의존성 최적화
+  // 질문 처리 시작 - 무한 루프 방지 및 강력한 상태 보호
   useEffect(() => {
-    if (isProcessing && question && !isThinking && !response) {
-      processQuestion();
-    }
-  }, [isProcessing, question]); // isThinking과 response 제거하여 무한 루프 방지
-
-  // 컴포넌트가 언마운트되거나 새 질문이 들어올 때 정리
-  useEffect(() => {
-    return () => {
-      // 컴포넌트 정리 시 타이머나 진행 중인 요청 정리
-      setIsThinking(false);
-    };
-  }, [question]); // question이 바뀔 때만 정리
-
-  const processQuestion = async () => {
-    setIsThinking(true);
-    setResponse('');
+    let isMounted = true;
     
-    try {
-      // LangGraph 사고 흐름 시작
-      const sessionId = `sidebar_${Date.now()}`;
-      startThinking(sessionId, question, 'enterprise');
+    const processQuestionSafely = async () => {
+      if (!isMounted || !isProcessing || !question || isThinking || response) {
+        return;
+      }
       
-      // MCP Agent 초기화
-      const mcpAgent = MCPLangGraphAgent.getInstance();
-      await mcpAgent.initialize();
+      console.log('🤖 AI 질문 처리 시작:', question);
+      setIsThinking(true);
+      setResponse('');
       
-      // 질문 처리
-      const mcpQuery = {
-        id: `query_${Date.now()}`,
-        question: question,
-        priority: 'high' as const,
-        category: determineCategory(question)
-      };
-      
-      const result = await mcpAgent.processQuery(mcpQuery);
-      
-      // 응답 설정
-      setResponse(result.answer);
-      setIsThinking(false);
-      completeThinking(result);
-      
-      // 완료 콜백
-      setTimeout(() => {
-        onComplete();
-      }, 1000);
-      
-    } catch (error) {
-      console.error('질문 처리 실패:', error);
-      setResponse('죄송합니다. 질문 처리 중 오류가 발생했습니다.');
-      setIsThinking(false);
-      onComplete();
+      try {
+        // LangGraph 사고 흐름 시작
+        const sessionId = `sidebar_${Date.now()}`;
+        if (isMounted) {
+          startThinking(sessionId, question, 'enterprise');
+        }
+        
+        // MCP Agent 초기화
+        const mcpAgent = MCPLangGraphAgent.getInstance();
+        await mcpAgent.initialize();
+        
+        // 질문 처리
+        const mcpQuery = {
+          id: `query_${Date.now()}`,
+          question: question,
+          priority: 'high' as const,
+          category: determineCategory(question)
+        };
+        
+        if (isMounted) {
+          const result = await mcpAgent.processQuery(mcpQuery);
+          
+          // 응답 설정
+          if (isMounted) {
+            setResponse(result.answer);
+            setIsThinking(false);
+            completeThinking(result);
+            
+            // 완료 콜백 (지연 실행)
+            setTimeout(() => {
+              if (isMounted) {
+                onComplete();
+              }
+            }, 2000); // 2초로 연장하여 사용자가 결과를 확인할 시간 제공
+          }
+        }
+        
+      } catch (error) {
+        console.error('❌ AI 질문 처리 실패:', error);
+        if (isMounted) {
+          setResponse('죄송합니다. 질문 처리 중 오류가 발생했습니다.');
+          setIsThinking(false);
+          onComplete();
+        }
+      }
+    };
+
+    if (isProcessing && question && !isThinking && !response) {
+      processQuestionSafely();
     }
-  };
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isProcessing, question]); // 의존성 최소화
 
   const determineCategory = (question: string): 'monitoring' | 'analysis' | 'prediction' | 'incident' | 'general' => {
     const lowered = question.toLowerCase();

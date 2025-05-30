@@ -22,7 +22,13 @@ interface ServerStatus {
   lastUpdate: number;
 }
 
-const RealtimeServerStatusComponent: React.FC = () => {
+interface RealtimeServerStatusProps {
+  isProcessing?: boolean;
+}
+
+const RealtimeServerStatusComponent: React.FC<RealtimeServerStatusProps> = ({ 
+  isProcessing = false 
+}) => {
   const [status, setStatus] = useState<ServerStatus>({
     totalServers: 20,
     healthyServers: 15,
@@ -81,6 +87,15 @@ const RealtimeServerStatusComponent: React.FC = () => {
 
   // 30초~45초 적응형 업데이트 - TimerManager 사용
   useEffect(() => {
+    // AI 처리 중이면 타이머 정지
+    if (isProcessing) {
+      console.log('🚫 AI 처리 중 - 서버 상태 업데이트 정지');
+      timerManager.unregister('realtime-server-status');
+      return;
+    }
+
+    console.log('📊 서버 상태 업데이트 타이머 시작');
+    
     // 초기 데이터 로드
     updateServerStatus();
 
@@ -94,6 +109,11 @@ const RealtimeServerStatusComponent: React.FC = () => {
 
     // 상태 변화에 따른 주기 재조정
     const adjustInterval = () => {
+      if (isProcessing) {
+        console.log('🚫 주기 재조정 취소 - AI 처리 중');
+        return;
+      }
+      
       const newInterval = getUpdateInterval();
       timerManager.unregister('realtime-server-status');
       timerManager.register({
@@ -104,14 +124,19 @@ const RealtimeServerStatusComponent: React.FC = () => {
       });
     };
 
-    // 5분마다 주기 재평가
-    const intervalAdjuster = setInterval(adjustInterval, 5 * 60 * 1000);
+    // 5분마다 주기 재평가 (AI 처리 중이 아닐 때만)
+    const intervalAdjuster = setInterval(() => {
+      if (!isProcessing) {
+        adjustInterval();
+      }
+    }, 5 * 60 * 1000);
 
     return () => {
+      console.log('🧹 서버 상태 업데이트 타이머 정리');
       clearInterval(intervalAdjuster);
       timerManager.unregister('realtime-server-status');
     };
-  }, [status.errorServers, status.criticalAlerts, status.warningServers]);
+  }, [status.errorServers, status.criticalAlerts, status.warningServers, isProcessing]);
 
   // 상태에 따른 색상 결정
   const getStatusColor = () => {

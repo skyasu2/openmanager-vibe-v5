@@ -134,7 +134,7 @@ export const AISidebar: React.FC<AISidebarProps> = ({
         </div>
 
         {/* 📊 실시간 서버 상황 */}
-        <RealtimeServerStatus />
+        <RealtimeServerStatus isProcessing={!!activeQuestion} />
 
         {/* 🎯 동적 질문 템플릿 */}
         <DynamicQuestionTemplates 
