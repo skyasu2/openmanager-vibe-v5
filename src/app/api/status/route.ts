@@ -1,34 +1,49 @@
-import { NextResponse } from 'next/server'
+/**
+ * 🏥 시스템 상태 확인 API
+ * 전역 상태 동기화를 위한 엔드포인트
+ */
 
-export async function GET() {
+import { NextRequest, NextResponse } from 'next/server';
+import { PythonWarmupService } from '@/services/ai/PythonWarmupService';
+
+const pythonWarmup = PythonWarmupService.getInstance();
+
+export async function GET(request: NextRequest) {
   try {
-    // 시스템 상태 확인
-    const status = {
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      version: '1.0.0',
-      uptime: process.uptime(),
-      memory: process.memoryUsage(),
-      environment: process.env.NODE_ENV || 'development'
-    }
-
-    // 간단한 헬스체크 수행
-    await Promise.resolve(); // 비동기 작업 시뮬레이션
-
-    return NextResponse.json({
-      success: true,
-      data: status
-    })
-
-  } catch (error) {
-    console.error('Status check failed:', error)
+    // 웜업 상태 확인
+    const warmupStats = pythonWarmup.getWarmupStats();
+    const pythonStatus = await pythonWarmup.checkPythonStatus();
     
+    // 시스템 활성화 여부 판단
+    const isActive = 
+      warmupStats.systemActive || 
+      warmupStats.isCompleted || 
+      pythonStatus.isWarm;
+
     return NextResponse.json({
-      success: false,
-      status: 'unhealthy',
-      error: error instanceof Error ? error.message : 'Unknown error',
+      isActive,
+      status: isActive ? 'active' : 'inactive',
+      warmup: {
+        active: warmupStats.systemActive,
+        completed: warmupStats.isCompleted,
+        count: warmupStats.warmupCount,
+        remaining: warmupStats.remainingWarmups
+      },
+      python: {
+        isWarm: pythonStatus.isWarm,
+        status: pythonStatus.status,
+        responseTime: pythonStatus.responseTime
+      },
       timestamp: new Date().toISOString()
-    }, { status: 500 })
+    });
+
+  } catch (error: any) {
+    return NextResponse.json({
+      isActive: false,
+      status: 'error',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    }, { status: 500 });
   }
 }
 

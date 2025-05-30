@@ -13,7 +13,9 @@
     "optimized"
   ],
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
+    "dev:standalone": "next dev -p 3001",
+    "dev:integrated": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
     "storybook": "storybook dev -p 6006",

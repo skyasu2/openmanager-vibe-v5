@@ -88,165 +88,193 @@ const DashboardEntrance: React.FC<DashboardEntranceProps> = ({ onStatsUpdate }) 
     }
   }, [currentPhase]);
 
-  // 서비스 시작 애니메이션
+  // 서비스 시작 애니메이션 - 개선된 버전
   const ServiceStartingAnimation = () => (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ 
         opacity: 0,
-        scale: 0.98,
-        filter: 'brightness(1.1)'
+        scale: 0.95,
+        filter: 'brightness(1.2)'
       }}
       transition={{ 
-        exit: { duration: 0.5, ease: 'easeInOut' }
+        exit: { duration: 0.6, ease: 'easeOut' }
       }}
-      className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center relative overflow-hidden"
+      className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center relative overflow-hidden"
     >
-      {/* 배경 파티클 효과 */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-white rounded-full filter blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-300 rounded-full filter blur-3xl animate-pulse delay-1000"></div>
+      {/* 개선된 배경 효과 */}
+      <div className="absolute inset-0 opacity-30">
+        <motion.div
+          className="absolute top-1/3 left-1/3 w-96 h-96 bg-blue-400 rounded-full filter blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.6, 0.3]
+          }}
+          transition={{ duration: 4, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute bottom-1/3 right-1/3 w-80 h-80 bg-purple-400 rounded-full filter blur-3xl"
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.3, 0.5, 0.3]
+          }}
+          transition={{ duration: 5, repeat: Infinity, delay: 1 }}
+        />
       </div>
 
-      <div className="text-center max-w-md mx-auto px-6 relative z-10">
-        {/* 로고 영역 */}
+      <div className="text-center max-w-lg mx-auto px-6 relative z-10">
+        {/* 메인 로고 - 더 크고 임팩트 있게 */}
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.8 }}
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ duration: 1, type: "spring", damping: 10 }}
           className="mb-8"
         >
           <motion.div 
-            className="w-20 h-20 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6"
+            className="w-28 h-28 bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl"
             animate={{ 
               boxShadow: [
-                "0 0 20px rgba(236, 72, 153, 0.3)",
-                "0 0 40px rgba(236, 72, 153, 0.6)",
-                "0 0 20px rgba(236, 72, 153, 0.3)"
-              ]
+                "0 0 40px rgba(59, 130, 246, 0.5)",
+                "0 0 80px rgba(139, 92, 246, 0.8)",
+                "0 0 40px rgba(59, 130, 246, 0.5)"
+              ],
+              rotateY: [0, 360]
             }}
-            transition={{ duration: 2, repeat: Infinity }}
+            transition={{ 
+              boxShadow: { duration: 3, repeat: Infinity },
+              rotateY: { duration: 8, repeat: Infinity, ease: "linear" }
+            }}
           >
-            <Server className="w-10 h-10 text-white" />
+            <Server className="w-14 h-14 text-white" />
           </motion.div>
           
-          {/* 개선된 타이틀 - 그라데이션 효과 */}
+          {/* 타이틀 - 더 화려한 효과 */}
           <motion.h1 
-            className="text-4xl font-bold mb-2 bg-gradient-to-b from-white via-gray-100 to-gray-400 bg-clip-text text-transparent"
+            className="text-5xl font-bold mb-3"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
             style={{
-              textShadow: "0 0 30px rgba(255, 255, 255, 0.5), 0 0 60px rgba(255, 255, 255, 0.2)"
+              background: "linear-gradient(45deg, #ffffff 0%, #60a5fa 25%, #a78bfa 50%, #ec4899 75%, #ffffff 100%)",
+              backgroundSize: "300% 300%",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              animation: "gradient-shift 4s ease infinite"
             }}
-            animate={{
-              filter: [
-                "drop-shadow(0 0 10px rgba(255, 255, 255, 0.3))",
-                "drop-shadow(0 0 20px rgba(255, 255, 255, 0.6))",
-                "drop-shadow(0 0 10px rgba(255, 255, 255, 0.3))"
-              ]
-            }}
-            transition={{ duration: 3, repeat: Infinity }}
           >
             OpenManager
           </motion.h1>
           
-          {/* 개선된 부제목 */}
+          {/* 부제목 */}
           <motion.p 
-            className="bg-gradient-to-b from-gray-100 via-gray-300 to-gray-500 bg-clip-text text-transparent font-medium"
+            className="text-xl text-blue-200 font-medium mb-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.8 }}
           >
             AI 서버 모니터링 시스템
           </motion.p>
+          
+          <motion.p 
+            className="text-sm text-blue-300/80"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+          >
+            v5.7.4 • Python AI + TypeScript 하이브리드
+          </motion.p>
         </motion.div>
 
-        {/* 개선된 진행률 바 */}
+        {/* 간소화된 진행률 */}
         <div className="mb-8">
-          <div className="w-full bg-gray-700/50 backdrop-blur-sm rounded-full h-3 overflow-hidden border border-gray-600/30">
+          <motion.div
+            className="w-full bg-white/10 backdrop-blur-sm rounded-full h-4 overflow-hidden border border-white/20 shadow-inner"
+            initial={{ width: 0 }}
+            animate={{ width: "100%" }}
+            transition={{ delay: 1.2, duration: 0.8 }}
+          >
             <motion.div
-              className="h-full bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 rounded-full relative"
-              style={{ width: `${progress}%` }}
-              transition={{ duration: 0.3 }}
+              className="h-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 rounded-full relative overflow-hidden"
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+              {/* 빛나는 효과 */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-full"
+                animate={{ x: ["-100%", "200%"] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
             </motion.div>
-          </div>
+          </motion.div>
+          
           <motion.div 
-            className="mt-3 bg-gradient-to-b from-white to-gray-300 bg-clip-text text-transparent text-sm font-semibold"
-            animate={{ opacity: [0.7, 1, 0.7] }}
+            className="mt-4 text-white font-semibold text-lg"
+            animate={{ 
+              scale: [1, 1.05, 1],
+              opacity: [0.8, 1, 0.8]
+            }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            {Math.round(progress)}% 완료
+            {Math.round(progress)}% 시스템 준비 중...
           </motion.div>
         </div>
 
-        {/* 현재 서비스 - 안정적인 애니메이션 */}
+        {/* 현재 작업 - 더 시각적으로 */}
         <AnimatePresence mode="wait">
           <motion.div
             key={currentService}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
-            className="flex items-center justify-center gap-3 mb-8 bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10"
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: -20 }}
+            transition={{ duration: 0.5, type: "spring" }}
+            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 shadow-xl"
           >
-            <div className={`${services[currentService]?.color || 'text-gray-400'}`}>
-              {services[currentService]?.icon}
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <motion.div
+                className={`text-3xl ${services[currentService]?.color || 'text-blue-400'}`}
+                animate={{ 
+                  rotate: [0, 360],
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{ 
+                  rotate: { duration: 2, repeat: Infinity, ease: "linear" },
+                  scale: { duration: 1.5, repeat: Infinity }
+                }}
+              >
+                {services[currentService]?.icon}
+              </motion.div>
+              <div className="text-left">
+                <div className="text-white font-semibold text-lg">
+                  {services[currentService]?.name}
+                </div>
+                <div className="text-blue-200 text-sm">
+                  초기화 중...
+                </div>
+              </div>
             </div>
-            <span className="bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent font-medium">
-              {services[currentService]?.name} 시작 중...
-            </span>
+            
+            {/* 로딩 스피너 */}
             <motion.div
+              className="w-8 h-8 mx-auto border-3 border-white/30 border-t-white rounded-full"
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="w-4 h-4 border-2 border-white/60 border-t-white rounded-full"
             />
           </motion.div>
         </AnimatePresence>
 
-        {/* 서비스 리스트 - 간소화된 애니메이션 */}
-        <div className="space-y-2">
-          {services.map((service, index) => (
-            <motion.div
-              key={service.name}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ 
-                opacity: index <= currentService ? 1 : 0.4,
-                x: 0 
-              }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg backdrop-blur-sm border transition-all duration-300 ${
-                index < currentService 
-                  ? 'bg-green-500/10 border-green-400/30 shadow-lg shadow-green-500/10'
-                  : index === currentService
-                    ? 'bg-blue-500/10 border-blue-400/30 shadow-lg shadow-blue-500/10'
-                    : 'bg-white/5 border-gray-600/20'
-              }`}
-            >
-              <div className={index <= currentService ? service.color : 'text-gray-500'}>
-                {service.icon}
-              </div>
-              <span className={`text-sm font-medium ${
-                index < currentService 
-                  ? 'text-green-300'
-                  : index === currentService
-                    ? 'text-blue-300'
-                    : 'text-gray-400'
-              }`}>
-                {service.name}
-              </span>
-              {index < currentService && (
-                <motion.div
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  className="ml-auto text-green-400 text-lg"
-                >
-                  ✓
-                </motion.div>
-              )}
-            </motion.div>
-          ))}
-        </div>
+        {/* 하단 정보 */}
+        <motion.div
+          className="mt-8 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.5 }}
+        >
+          <div className="text-blue-200/60 text-sm">
+            잠시만 기다려주세요. 시스템을 준비하고 있습니다.
+          </div>
+        </motion.div>
       </div>
     </motion.div>
   );

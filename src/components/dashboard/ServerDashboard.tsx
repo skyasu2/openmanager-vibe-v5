@@ -6,6 +6,7 @@ import ServerDetailModal from './ServerDetailModal';
 import { Server } from '../../types/server';
 import { useServerDataStore } from '../../stores/serverDataStore';
 import { timerManager } from '../../utils/TimerManager';
+import { LayoutGrid, List, Search, RefreshCw } from 'lucide-react';
 
 interface ServerDashboardProps {
   onStatsUpdate?: (stats: { total: number; online: number; warning: number; offline: number }) => void;
@@ -192,7 +193,7 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
   const [searchTerm, setSearchTerm] = useState('');
   const [isClient, setIsClient] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const SERVERS_PER_PAGE = 8; // 페이지당 최대 8개 서버
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
   // ✅ API 기반 서버 데이터 스토어 사용
   const { 
@@ -203,6 +204,17 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
     error 
   } = useServerDataStore();
 
+  // 🚀 동적 페이지네이션: 오토스케일링에 맞춰 조정
+  const SERVERS_PER_PAGE = useMemo(() => {
+    const serverCount = servers?.length || 0;
+    
+    // 서버 수에 따른 동적 페이지 크기 결정
+    if (serverCount <= 12) return serverCount; // 12개 이하면 모두 표시
+    if (serverCount <= 20) return 10; // 20개 이하면 10개씩
+    if (serverCount <= 30) return 15; // 30개 이하면 15개씩
+    return 20; // 30개 초과시 20개씩
+  }, [servers?.length]);
+  
   // 🚀 디버깅 로그 추가
   console.log('📊 ServerDashboard 렌더링:', {
     serversCount: servers?.length,
@@ -449,34 +461,30 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
       </div>
 
       {/* 검색 및 필터 */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="flex-1">
-          <input
-            type="text"
-            placeholder="서버 이름 또는 위치로 검색..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        <div className="flex gap-2">
-          <div className="flex items-center gap-2">
-            {isLoading && (
-              <div className="flex items-center gap-2 text-sm text-blue-600">
-                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
-                <span>업데이트 중...</span>
-              </div>
-            )}
-            <button
-              onClick={() => refreshData()}
-              disabled={isLoading}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all"
-            >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              새로고침
-            </button>
+      <div className="mb-6">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          {/* 검색 및 뷰 모드 컨트롤 */}
+          <div className="flex gap-3 items-center">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="서버 이름 또는 위치 검색..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+            </div>
+            
+            {/* 뷰 모드 토글 */}
+            <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode(prev => prev === 'grid' ? 'list' : 'grid')}
+                className="px-4 py-2 bg-gray-200 text-gray-500 rounded-lg hover:bg-gray-300"
+              >
+                {viewMode === 'grid' ? <LayoutGrid className="h-4 w-4" /> : <List className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -484,125 +492,19 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
       {/* 페이지네이션 정보 및 컨트롤 */}
       {filteredServers.length > 0 && (
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-gray-600">
-              전체 <span className="font-semibold text-gray-900">{filteredServers.length}</span>개 서버 중 
-              <span className="font-semibold text-blue-600 mx-1">
-                {startIndex + 1}-{Math.min(endIndex, filteredServers.length)}
-              </span>개 표시
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span className="text-gray-500">페이지당 최대 8개로 제한하여 성능 최적화</span>
-            </div>
+          <div className="text-sm text-gray-600">
+            전체 <span className="font-semibold text-gray-900">{filteredServers.length}</span>개 서버 중 
+            <span className="font-semibold text-blue-600 mx-1">
+              {startIndex + 1}-{Math.min(endIndex, filteredServers.length)}
+            </span>개 표시
           </div>
-          
-          {totalPages > 1 && (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-              >
-                <i className="fas fa-chevron-left text-xs"></i>
-                이전
-              </button>
-              
-              <div className="flex items-center gap-1">
-                {(() => {
-                  const pages = [];
-                  const maxVisiblePages = 5;
-                  
-                  if (totalPages <= maxVisiblePages) {
-                    // 페이지가 5개 이하면 모두 표시
-                    for (let i = 1; i <= totalPages; i++) {
-                      pages.push(
-                        <button
-                          key={i}
-                          onClick={() => setCurrentPage(i)}
-                          className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                            currentPage === i
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-white border border-gray-300 hover:bg-gray-50'
-                          }`}
-                        >
-                          {i}
-                        </button>
-                      );
-                    }
-                  } else {
-                    // 페이지가 많을 때는 현재 페이지 주변만 표시
-                    const startPage = Math.max(1, currentPage - 2);
-                    const endPage = Math.min(totalPages, currentPage + 2);
-                    
-                    // 첫 페이지
-                    if (startPage > 1) {
-                      pages.push(
-                        <button
-                          key={1}
-                          onClick={() => setCurrentPage(1)}
-                          className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                        >
-                          1
-                        </button>
-                      );
-                      if (startPage > 2) {
-                        pages.push(
-                          <span key="start-ellipsis" className="px-2 text-gray-500">...</span>
-                        );
-                      }
-                    }
-                    
-                    // 현재 페이지 주변
-                    for (let i = startPage; i <= endPage; i++) {
-                      pages.push(
-                        <button
-                          key={i}
-                          onClick={() => setCurrentPage(i)}
-                          className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                            currentPage === i
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-white border border-gray-300 hover:bg-gray-50'
-                          }`}
-                        >
-                          {i}
-                        </button>
-                      );
-                    }
-                    
-                    // 마지막 페이지
-                    if (endPage < totalPages) {
-                      if (endPage < totalPages - 1) {
-                        pages.push(
-                          <span key="end-ellipsis" className="px-2 text-gray-500">...</span>
-                        );
-                      }
-                      pages.push(
-                        <button
-                          key={totalPages}
-                          onClick={() => setCurrentPage(totalPages)}
-                          className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                        >
-                          {totalPages}
-                        </button>
-                      );
-                    }
-                  }
-                  
-                  return pages;
-                })()}
-              </div>
-              
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-              >
-                다음
-                <i className="fas fa-chevron-right text-xs"></i>
-              </button>
-            </div>
-          )}
+          <div className="flex items-center gap-2 text-xs">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <span className="text-gray-500">
+              동적 페이지네이션: {SERVERS_PER_PAGE}개씩 표시 
+              {filteredServers.length <= 12 ? '(전체 표시)' : ''}
+            </span>
+          </div>
         </div>
       )}
 

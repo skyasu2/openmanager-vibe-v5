@@ -1,28 +1,21 @@
 /**
- * 🧠 MCP (Model Context Protocol) API 엔드포인트
- * 
- * 컨텍스트 인식 기반 통합 AI 분석
- * - 자연어 쿼리 처리
- * - 다중 도구 체인 실행
- * - 컨텍스트 기반 의사결정
+ * 🧠 하이브리드 MCP API 엔드포인트
+ * Python 우선, TypeScript 통합 엔진 폴백
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { MCPOrchestrator, MCPRequest } from '../../../../core/mcp/mcp-orchestrator';
+import { PythonWarmupService } from '@/services/ai/PythonWarmupService';
+import { IntegratedAIEngine } from '@/core/ai/integrated-ai-engine';
 
-// MCP 오케스트레이터 싱글톤 인스턴스
-let mcpOrchestrator: MCPOrchestrator | null = null;
+// 서비스 인스턴스들
+const pythonWarmup = PythonWarmupService.getInstance();
+const integratedEngine = IntegratedAIEngine.getInstance();
 
-function getMCPOrchestrator(): MCPOrchestrator {
-  if (!mcpOrchestrator) {
-    console.log('🧠 MCP 오케스트레이터 초기화...');
-    mcpOrchestrator = new MCPOrchestrator();
-  }
-  return mcpOrchestrator;
-}
+// ⚠️ 자동 웜업 제거 - 수동 시작 모드
+// pythonWarmup.startWarmupSystem(); // 제거됨
 
 /**
- * 🎯 MCP 분석 요청 처리
+ * 🎯 하이브리드 AI 분석 처리
  */
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -30,61 +23,107 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    console.log('🧠 MCP 요청 수신:', {
+    console.log('🧠 하이브리드 MCP 요청 수신:', {
       query: body.query?.substring(0, 50) + '...',
       hasMetrics: !!body.parameters?.metrics,
       sessionId: body.context?.session_id
     });
 
-    // MCP 요청 객체 구성
-    const mcpRequest: MCPRequest = {
-      query: body.query || '시스템 상태를 분석해주세요',
-      parameters: body.parameters || {},
-      context: {
-        session_id: body.context?.session_id,
-        user_preferences: body.context?.user_preferences || {},
-        urgency: body.context?.urgency || 'medium'
+    // 1차: Python AI 엔진 시도 (고급 분석)
+    try {
+      console.log('🐍 Python AI 엔진 시도...');
+      
+      const pythonResult = await pythonWarmup.smartAIRequest(
+        body.query || '시스템 상태를 분석해주세요',
+        body.parameters?.metrics || [],
+        body.parameters || {}
+      );
+
+      const totalTime = Date.now() - startTime;
+
+      console.log('✅ Python AI 분석 성공:', {
+        confidence: pythonResult.confidence,
+        totalTime,
+        engine: 'python-primary'
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: pythonResult,
+        metadata: {
+          engine: 'PythonAI',
+          engine_version: 'python-2.0.0',
+          processing_time: totalTime,
+          timestamp: new Date().toISOString(),
+          fallback_used: false,
+          python_status: 'healthy'
+        }
+      });
+
+    } catch (pythonError: any) {
+      console.warn('⚠️ Python AI 실패, 통합 엔진으로 폴백:', pythonError.message);
+      
+      // 2차: 통합 TypeScript 엔진 폴백
+      try {
+        console.log('🔄 통합 TypeScript 엔진 폴백...');
+        
+        await integratedEngine.initialize();
+        
+        const fallbackResult = await integratedEngine.analyzeMetrics(
+          body.query || '시스템 상태를 분석해주세요',
+          body.parameters?.metrics || [],
+          body.parameters || {}
+        );
+
+        const totalTime = Date.now() - startTime;
+
+        console.log('✅ 폴백 분석 성공:', {
+          confidence: fallbackResult.confidence,
+          totalTime,
+          engine: 'typescript-fallback'
+        });
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            summary: fallbackResult.summary,
+            confidence: fallbackResult.confidence * 0.9, // 폴백 패널티
+            recommendations: fallbackResult.recommendations,
+            analysis_data: fallbackResult.analysis_data
+          },
+          metadata: {
+            engine: 'IntegratedAI',
+            engine_version: 'integrated-1.0.0',
+            processing_time: totalTime,
+            timestamp: new Date().toISOString(),
+            fallback_used: true,
+            python_error: pythonError.message,
+            python_status: 'failed'
+          }
+        });
+
+      } catch (fallbackError: any) {
+        console.error('❌ 폴백 엔진도 실패:', fallbackError);
+        throw new Error(`모든 AI 엔진 실패: Python(${pythonError.message}), Fallback(${fallbackError.message})`);
       }
-    };
-
-    // MCP 오케스트레이터 실행
-    const orchestrator = getMCPOrchestrator();
-    const result = await orchestrator.process(mcpRequest);
-
-    const totalTime = Date.now() - startTime;
-
-    console.log('✅ MCP 분석 완료:', {
-      toolsUsed: result.tools_used,
-      confidence: result.confidence,
-      totalTime
-    });
-
-    return NextResponse.json({
-      success: true,
-      data: result.result,
-      metadata: {
-        tools_used: result.tools_used,
-        context_id: result.context_id,
-        processing_time: result.processing_time,
-        confidence: result.confidence,
-        total_time: totalTime
-      }
-    });
+    }
 
   } catch (error: any) {
-    console.error('❌ MCP 처리 오류:', error);
+    console.error('❌ 하이브리드 MCP 처리 오류:', error);
 
     return NextResponse.json({
       success: false,
-      error: 'MCP 분석 중 오류가 발생했습니다',
+      error: 'AI 분석 중 오류가 발생했습니다',
       message: error.message,
-      processing_time: Date.now() - startTime
+      processing_time: Date.now() - startTime,
+      available_engines: ['python', 'integrated'],
+      engine_status: 'all_failed'
     }, { status: 500 });
   }
 }
 
 /**
- * 🏥 MCP 시스템 상태 확인
+ * 🏥 하이브리드 시스템 상태 확인
  */
 export async function GET(request: NextRequest) {
   try {
@@ -92,44 +131,75 @@ export async function GET(request: NextRequest) {
     const action = url.searchParams.get('action');
 
     if (action === 'health') {
-      const orchestrator = getMCPOrchestrator();
+      // Python 서비스 상태 확인
+      const pythonStatus = await pythonWarmup.checkPythonStatus();
+      const warmupStats = pythonWarmup.getWarmupStats();
+      const integratedStatus = integratedEngine.getSystemStatus();
       
       return NextResponse.json({
         status: 'healthy',
-        message: 'MCP 오케스트레이터가 정상 동작 중입니다',
+        message: '하이브리드 AI 시스템이 정상 동작 중입니다',
         timestamp: new Date().toISOString(),
-        tools_registered: 6, // statistical_analysis, anomaly_detection, time_series_forecast, pattern_recognition, root_cause_analysis, optimization_advisor
-        context_active: true
+        engines: {
+          python: {
+            status: pythonStatus.status,
+            isWarm: pythonStatus.isWarm,
+            responseTime: pythonStatus.responseTime,
+            averageResponseTime: warmupStats.averageResponseTime,
+            lastWarmup: warmupStats.lastWarmup,
+            nextWarmup: warmupStats.nextWarmup
+          },
+          integrated: {
+            status: integratedStatus.initialized ? 'ready' : 'initializing',
+            uptime: integratedStatus.uptime,
+            requestCount: integratedStatus.requestCount,
+            version: integratedStatus.version
+          }
+        },
+        strategy: 'python_primary_with_typescript_fallback',
+        advantages: [
+          'Python 고급 AI 분석 우선 사용',
+          'TypeScript 폴백으로 안정성 보장',
+          '자동 웜업으로 콜드 스타트 방지',
+          'Vercel 배포 완전 호환'
+        ]
       });
     }
 
-    if (action === 'tools') {
+    if (action === 'python-status') {
+      const status = await pythonWarmup.checkPythonStatus();
+      const stats = pythonWarmup.getWarmupStats();
+      
       return NextResponse.json({
-        tools: [
-          'statistical_analysis',
-          'anomaly_detection', 
-          'time_series_forecast',
-          'pattern_recognition',
-          'root_cause_analysis',
-          'optimization_advisor'
-        ],
-        description: 'MCP 등록된 도구 목록'
+        ...status,
+        warmup_stats: stats
       });
+    }
+
+    if (action === 'integrated-status') {
+      return NextResponse.json(integratedEngine.getSystemStatus());
     }
 
     return NextResponse.json({
-      service: 'MCP Orchestrator',
-      version: '1.0.0',
+      service: 'Hybrid MCP System',
+      version: 'hybrid-1.0.0',
+      description: 'Python 우선, TypeScript 폴백 AI 분석 시스템',
       endpoints: {
-        'POST /': 'MCP 분석 요청',
-        'GET /?action=health': '시스템 상태 확인',
-        'GET /?action=tools': '등록된 도구 목록'
+        'POST /': 'AI 분석 요청 (하이브리드)',
+        'GET /?action=health': '전체 시스템 상태',
+        'GET /?action=python-status': 'Python 서비스 상태',
+        'GET /?action=integrated-status': '통합 엔진 상태'
+      },
+      architecture: {
+        primary: 'Python FastAPI (Render)',
+        fallback: 'TypeScript Engine (Vercel)',
+        strategy: 'Smart warmup + Graceful fallback'
       }
     });
 
   } catch (error: any) {
     return NextResponse.json({
-      error: 'MCP 상태 확인 실패',
+      error: '하이브리드 시스템 상태 확인 실패',
       message: error.message
     }, { status: 500 });
   }
