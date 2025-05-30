@@ -12,7 +12,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLangGraphThinking } from '../../../components/ai/modal-v2/hooks/useLangGraphThinking';
-import { MCPLangGraphAgent } from '../../../services/ai-agent/MCPLangGraphAgent';
 import { timerManager } from '../../../utils/TimerManager';
 import { RealTimeLogEngine, RealTimeLogEntry } from '../../ai-agent/core/RealTimeLogEngine';
 
@@ -31,6 +30,20 @@ interface IntegratedAIResponseProps {
   isProcessing: boolean;
   onComplete: () => void;
   className?: string;
+}
+
+// API 응답 타입 정의
+interface MCPApiResponse {
+  success: boolean;
+  data?: {
+    answer: string;
+    confidence: number;
+    reasoning_steps: string[];
+    recommendations: string[];
+    related_servers: string[];
+    execution_time: number;
+  };
+  error?: string;
 }
 
 export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
@@ -81,7 +94,7 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
     if (!isProcessing || !question) return;
 
     const processQuestion = async () => {
-      console.log('🤖 실제 AI 로그 처리 시작:', question);
+      console.log('🤖 API를 통한 AI 질의 처리 시작:', question);
       
       // 실시간 로그 세션 시작
       const sessionId = logEngine.startSession(
@@ -122,35 +135,40 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
       
       setIsThinkingExpanded(true);
       
-      // 실제 AI 에이전트 처리 과정
+      // API를 통한 AI 에이전트 처리
       try {
-        await processRealAIEngine(sessionId, question);
+        // 로깅을 위한 기본 처리 과정 시뮬레이션
+        logEngine.addLog(sessionId, {
+          level: 'INFO',
+          module: 'QueryProcessor',
+          message: 'Starting API-based query processing',
+          details: `Query: "${question}", Category: ${determineCategory(question)}`,
+          metadata: { 
+            queryLength: question.length,
+            category: determineCategory(question),
+            apiMode: true
+          }
+        });
         
-        // MCP Agent 처리
-        const mcpAgent = MCPLangGraphAgent.getInstance();
-        await mcpAgent.initialize();
+        // MCP Agent API 호출
+        const mcpResponse = await callMCPAgentAPI(question);
         
-        const mcpQuery = {
-          id: `query_${Date.now()}`,
-          question: question,
-          priority: 'high' as const,
-          category: determineCategory(question)
-        };
-        
-        const result = await mcpAgent.processQuery(mcpQuery);
-        
-        // 세션 완료
-        logEngine.completeSession(sessionId, 'success', result.answer);
-        
-        // 답변 완료 - 타이핑 효과로 표시
-        setQAItems(prev => prev.map(item => 
-          item.sessionId === sessionId 
-            ? { ...item, answer: result.answer, isProcessing: false }
-            : item
-        ));
+        if (mcpResponse.success && mcpResponse.data) {
+          // 세션 완료
+          logEngine.completeSession(sessionId, 'success', mcpResponse.data.answer);
+          
+          // 답변 완료 - 타이핑 효과로 표시
+          setQAItems(prev => prev.map(item => 
+            item.sessionId === sessionId 
+              ? { ...item, answer: mcpResponse.data!.answer, isProcessing: false }
+              : item
+          ));
 
-        // 타이핑 애니메이션 시작
-        startTypingAnimation(result.answer);
+          // 타이핑 애니메이션 시작
+          startTypingAnimation(mcpResponse.data.answer);
+        } else {
+          throw new Error(mcpResponse.error || 'API 호출 실패');
+        }
         
         onComplete();
         
@@ -172,155 +190,39 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
     };
 
     processQuestion();
-  }, [isProcessing, question, logEngine]); // qaItems.length 의존성 제거 (무한루프 방지)
+  }, [isProcessing, question, logEngine]);
 
   /**
-   * 실제 AI 엔진 처리 과정 (실제 API 호출 및 로그)
+   * 🔌 MCP Agent API 호출 (클라이언트에서 서버로)
    */
-  const processRealAIEngine = async (sessionId: string, question: string) => {
-    // 1. 쿼리 검증 및 분석
-    logEngine.addLog(sessionId, {
-      level: 'INFO',
-      module: 'QueryValidator',
-      message: 'Query validation and analysis started',
-      details: `Query length: ${question.length} chars, Category: ${determineCategory(question)}`,
-      metadata: { 
-        queryLength: question.length,
-        category: determineCategory(question),
-        validation: true
-      }
-    });
-    await new Promise(resolve => setTimeout(resolve, 400));
-
-    // 2. 실제 Redis 연결 상태 확인
+  const callMCPAgentAPI = async (question: string): Promise<MCPApiResponse> => {
     try {
-      await logEngine.addApiCallLog(sessionId, '/api/health', 'GET');
-    } catch (error) {
-      logEngine.addLog(sessionId, {
-        level: 'WARNING',
-        module: 'RedisConnector',
-        message: 'Redis connection failed, using fallback',
-        details: 'Switching to local memory cache',
-        metadata: { fallback: true, cacheType: 'memory' }
+      const response = await fetch('/api/ai/mcp/query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          question,
+          priority: 'high',
+          category: determineCategory(question)
+        })
       });
-    }
-    await new Promise(resolve => setTimeout(resolve, 400));
 
-    // 3. 실제 메트릭 데이터 수집
-    try {
-      await logEngine.addApiCallLog(sessionId, '/api/metrics/performance', 'GET');
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP ${response.status}`);
+      }
+
+      return data;
     } catch (error) {
-      logEngine.addLog(sessionId, {
-        level: 'INFO',
-        module: 'MetricsCollector',
-        message: 'Using synthetic metrics data',
-        details: 'Real metrics unavailable, generating fallback data',
-        metadata: { synthetic: true, dataSource: 'generator' }
-      });
+      console.error('❌ MCP API 호출 실패:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : '알 수 없는 오류'
+      };
     }
-    await new Promise(resolve => setTimeout(resolve, 400));
-
-    // 4. NLP 처리 (실제 키워드 추출)
-    const nlpKeywords = question.toLowerCase().match(/\b(서버|메모리|cpu|상태|분석|예측|장애|성능|모니터링)\b/g) || [];
-    const confidence = Math.random() * 0.3 + 0.7; // 0.7~1.0
-    
-    logEngine.addLog(sessionId, {
-      level: 'ANALYSIS',
-      module: 'NLPProcessor',
-      message: 'Natural Language Processing completed',
-      details: `Keywords: [${nlpKeywords.join(', ')}], Confidence: ${confidence.toFixed(3)}`,
-      metadata: { 
-        algorithm: 'compromise.js',
-        keywords: nlpKeywords,
-        confidence: confidence,
-        library: 'nlp-compromise'
-      }
-    });
-    await new Promise(resolve => setTimeout(resolve, 400));
-
-    // 5. ML 예측 엔진
-    const category = determineCategory(question);
-    const mlScore = Math.random() * 0.4 + 0.6; // 0.6~1.0
-    
-    logEngine.addLog(sessionId, {
-      level: 'PROCESSING',
-      module: 'MLEngine',
-      message: 'Machine Learning prediction completed',
-      details: `Algorithm: Linear Regression + ARIMA, Score: ${mlScore.toFixed(3)}`,
-      metadata: { 
-        algorithm: 'LinearRegression_ARIMA',
-        category: category,
-        score: mlScore,
-        library: 'sklearn'
-      }
-    });
-    await new Promise(resolve => setTimeout(resolve, 400));
-
-    // 6. 이상 탐지 엔진
-    const anomalyScore = Math.random() * 0.3 + 0.1; // 0.1~0.4
-    const anomalyStatus = anomalyScore > 0.25 ? 'ALERT' : 'NORMAL';
-    
-    logEngine.addLog(sessionId, {
-      level: anomalyStatus === 'ALERT' ? 'WARNING' : 'SUCCESS',
-      module: 'AnomalyDetector',
-      message: 'Anomaly detection analysis completed',
-      details: `Method: Z-Score + IQR, Score: ${anomalyScore.toFixed(3)}, Status: ${anomalyStatus}`,
-      metadata: { 
-        algorithm: 'ZScore_IQR',
-        score: anomalyScore,
-        status: anomalyStatus,
-        threshold: 0.25
-      }
-    });
-    await new Promise(resolve => setTimeout(resolve, 400));
-
-    // 7. 컨텍스트 빌딩
-    const contextSize = Math.floor(Math.random() * 500 + 200);
-    
-    logEngine.addLog(sessionId, {
-      level: 'DEBUG',
-      module: 'ContextBuilder',
-      message: 'Response context building completed',
-      details: `Template Engine: Handlebars.js, Context Size: ${contextSize} tokens`,
-      metadata: { 
-        engine: 'handlebars',
-        contextSize: contextSize,
-        templatesLoaded: 12,
-        optimized: true
-      }
-    });
-    await new Promise(resolve => setTimeout(resolve, 400));
-
-    // 8. 응답 생성 및 품질 검증
-    const qualityScore = Math.random() * 0.25 + 0.75; // 0.75~1.0
-    
-    logEngine.addLog(sessionId, {
-      level: 'SUCCESS',
-      module: 'ResponseGenerator',
-      message: 'Response generation and validation completed',
-      details: `Generator: Transformer, Quality Score: ${qualityScore.toFixed(3)}, Validation: PASSED`,
-      metadata: { 
-        generator: 'GPT_Transformer',
-        qualityScore: qualityScore,
-        validation: 'PASSED',
-        tokenCount: Math.floor(Math.random() * 200 + 50)
-      }
-    });
-    await new Promise(resolve => setTimeout(resolve, 400));
-
-    // 9. 데이터베이스 로깅
-    logEngine.addLog(sessionId, {
-      level: 'INFO',
-      module: 'DatabaseLogger',
-      message: 'Interaction logged to database',
-      details: `DB: PostgreSQL, Table: ai_interactions, Record ID: ${Date.now()}`,
-      metadata: { 
-        database: 'PostgreSQL',
-        table: 'ai_interactions',
-        recordId: Date.now(),
-        indexed: true
-      }
-    });
   };
 
   const determineCategory = (question: string): 'monitoring' | 'analysis' | 'prediction' | 'incident' | 'general' => {

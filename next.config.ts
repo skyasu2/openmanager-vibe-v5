@@ -1,33 +1,27 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // 기본 설정
   trailingSlash: false,
   reactStrictMode: true,
   
-  // 🚀 개발 환경 컴파일 최적화 (안전한 설정만)
-  ...(process.env.NODE_ENV === 'development' && {
+  ...(process.env.NODE_ENV === "development" && {
     onDemandEntries: {
       maxInactiveAge: 300 * 1000, // 5분으로 대폭 증가
       pagesBufferLength: 20, // 더 많은 페이지 캐시
     },
   }),
 
-  // 서버 외부 패키지
-  serverExternalPackages: ['ioredis', 'sharp'],
+  serverExternalPackages: ["ioredis", "sharp"],
 
-  // 이미지 최적화
   images: {
     domains: ['localhost'],
     formats: ['image/webp'],
   },
 
-  // 기본 압축
   compress: true,
   pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
   poweredByHeader: false,
 
-  // 기본 헤더
   async headers() {
     return [
       {
@@ -42,8 +36,7 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Webpack 설정 (최소한의 안전한 설정)
-  webpack: (config: any, { dev }: { dev: boolean }) => {
+  webpack: (config: any, { dev, isServer }: { dev: boolean; isServer: boolean }) => {
     if (dev) {
       config.watchOptions = {
         ignored: /node_modules/,
@@ -52,6 +45,27 @@ const nextConfig: NextConfig = {
       };
       config.parallelism = 1;
     }
+
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        dns: false,
+        tls: false,
+        child_process: false,
+        'node:crypto': false,
+        'node:stream': false,
+        'node:buffer': false,
+      };
+      
+      config.externals = [
+        ...(config.externals || []),
+        'ioredis',
+        'redis',
+      ];
+    }
+
     return config;
   },
 };
