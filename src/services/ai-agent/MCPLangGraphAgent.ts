@@ -18,6 +18,7 @@ import {
   reflection 
 } from '@/modules/ai-agent/core/LangGraphThinkingProcessor';
 import { simulationEngine } from '@/services/simulationEngine';
+import type { ServerMetrics } from '@/types/server';
 
 export interface MCPQuery {
   id: string;
@@ -152,7 +153,7 @@ export class MCPLangGraphAgent {
       }
       
       const data = await response.json();
-      const servers = data.servers || [];
+      const servers: ServerMetrics[] = data.servers || [];
       
       const relevantData: any = {
         query: query.question,
@@ -177,16 +178,16 @@ export class MCPLangGraphAgent {
       
       // 의도에 따른 필터링
       if (intent === 'server_status_check') {
-        relevantData.healthyServers = servers.filter(s => s.status === 'healthy');
-        relevantData.warningServers = servers.filter(s => s.status === 'warning');
-        relevantData.errorServers = servers.filter(s => s.status === 'critical');
+        relevantData.healthyServers = servers.filter((s: ServerMetrics) => s.status === 'healthy');
+        relevantData.warningServers = servers.filter((s: ServerMetrics) => s.status === 'warning');
+        relevantData.errorServers = servers.filter((s: ServerMetrics) => s.status === 'critical');
       } else if (intent === 'performance_analysis') {
-        relevantData.highCpuServers = servers.filter(s => s.cpu_usage > 80);
-        relevantData.highMemoryServers = servers.filter(s => s.memory_usage > 80);
-        relevantData.slowResponseServers = servers.filter(s => s.response_time > 500);
+        relevantData.highCpuServers = servers.filter((s: ServerMetrics) => s.cpu_usage > 80);
+        relevantData.highMemoryServers = servers.filter((s: ServerMetrics) => s.memory_usage > 80);
+        relevantData.slowResponseServers = servers.filter((s: ServerMetrics) => s.response_time > 500);
       } else if (intent === 'incident_investigation') {
-        relevantData.alertedServers = servers.filter(s => s.alerts && s.alerts.length > 0);
-        relevantData.criticalAlerts = servers.flatMap(s => s.alerts || []).filter(a => Number(a.severity) >= 3);
+        relevantData.alertedServers = servers.filter((s: ServerMetrics) => s.alerts && s.alerts.length > 0);
+        relevantData.criticalAlerts = servers.flatMap((s: ServerMetrics) => s.alerts || []).filter((a: any) => Number(a.severity) >= 3);
       }
       
       langGraphProcessor.completeStep(stepId, relevantData);
