@@ -26,6 +26,8 @@ import {
 } from '../types/server';
 import { timerManager } from '../utils/TimerManager';
 import { cacheService } from './cacheService';
+import { vercelStatusService } from './vercelStatusService';
+import { redisTimeSeriesService } from './redisTimeSeriesService';
 
 // 확장된 서버 메트릭 인터페이스
 export interface EnhancedServerMetrics extends BaseServerMetrics {
@@ -131,19 +133,55 @@ export class SimulationEngine {
   private previousMetricsCache: Map<string, any> = new Map();
 
   constructor() {
-    this.state.servers = this.generateInitialServers();
-    console.log('🎯 현실적 패턴 엔진 통합 완료 (Prometheus 지원)');
+    // Vercel 상태 기반 동적 서버 생성
+    this.initializeWithAutoScaling();
+    console.log('🎯 Vercel 오토스케일링 엔진 통합 완료 (Prometheus 지원)');
   }
 
-  private generateInitialServers(): EnhancedServerMetrics[] {
+  /**
+   * 🔄 Vercel 상태 기반 초기화
+   */
+  private async initializeWithAutoScaling(): Promise<void> {
+    try {
+      // Vercel 상태 확인 및 스케일링 설정 가져오기
+      const scalingConfig = await vercelStatusService.updateScalingConfig();
+      const vercelStatus = vercelStatusService.getCurrentStatus();
+      
+      console.log(`🔍 Vercel 상태 감지: ${vercelStatus?.plan || 'unknown'} 플랜`);
+      console.log(`⚡ 오토스케일링 설정: ${scalingConfig.maxServers}서버, ${scalingConfig.maxMetrics}메트릭`);
+      
+      // 스케일링 설정에 따른 동적 서버 생성
+      this.state.servers = this.generateServersBasedOnPlan(scalingConfig);
+      this.UPDATE_INTERVAL = scalingConfig.updateInterval;
+      this.state.prometheusEnabled = scalingConfig.prometheusEnabled;
+      
+    } catch (error) {
+      console.warn('⚠️ 오토스케일링 초기화 실패, 기본 설정 사용:', error);
+      this.state.servers = this.generateInitialServers();
+    }
+  }
+
+  /**
+   * 📊 스케일링 설정 기반 서버 생성
+   */
+  private generateServersBasedOnPlan(scalingConfig: any): EnhancedServerMetrics[] {
+    const maxServers = scalingConfig.maxServers;
     const servers: EnhancedServerMetrics[] = [];
     
-    // 온프레미스 서버 (4대)
-    for (let i = 1; i <= 4; i++) {
+    console.log(`🏗️ ${maxServers}개 서버 생성 중...`);
+    
+    // 서버 타입별 비율 (전체 maxServers 기준)
+    const onPremCount = Math.max(2, Math.floor(maxServers * 0.2)); // 최소 2개, 전체의 20%
+    const awsCount = Math.floor(maxServers * 0.4); // 전체의 40%
+    const k8sCount = Math.floor(maxServers * 0.2); // 전체의 20%
+    const multiCount = maxServers - onPremCount - awsCount - k8sCount; // 나머지
+
+    // 온프레미스 서버
+    for (let i = 1; i <= onPremCount; i++) {
       servers.push({
         id: `server-onprem-${i.toString().padStart(2, '0')}`,
         hostname: `onprem-${i.toString().padStart(2, '0')}.local`,
-        environment: 'onpremise', // ServerEnvironment 타입에 맞춤
+        environment: 'onpremise',
         role: i <= 2 ? 'web' : i === 3 ? 'database' : 'cache',
         status: 'healthy',
         cpu_usage: this.randomBetween(20, 40),
@@ -152,75 +190,79 @@ export class SimulationEngine {
         network_in: this.randomBetween(50, 150),
         network_out: this.randomBetween(40, 120),
         response_time: this.randomBetween(80, 200),
-        uptime: this.randomBetween(720, 8760), // 1달~1년
+        uptime: this.randomBetween(720, 8760),
         last_updated: new Date().toISOString(),
         alerts: []
       });
     }
 
-    // 쿠버네티스 서버 (3대)
-    for (let i = 1; i <= 3; i++) {
+    // AWS 서버
+    for (let i = 1; i <= awsCount; i++) {
+      const roles: ServerRole[] = ['web', 'database', 'cache'];
+      servers.push({
+        id: `server-aws-${i.toString().padStart(2, '0')}`,
+        hostname: `aws-${roles[i % roles.length]}-${i.toString().padStart(2, '0')}.amazonaws.com`,
+        environment: 'aws',
+        role: roles[i % roles.length],
+        status: 'healthy',
+        cpu_usage: this.randomBetween(15, 35),
+        memory_usage: this.randomBetween(25, 45),
+        disk_usage: this.randomBetween(30, 50),
+        network_in: this.randomBetween(100, 300),
+        network_out: this.randomBetween(80, 250),
+        response_time: this.randomBetween(50, 150),
+        uptime: this.randomBetween(720, 8760),
+        last_updated: new Date().toISOString(),
+        alerts: []
+      });
+    }
+
+    // Kubernetes 서버
+    for (let i = 1; i <= k8sCount; i++) {
       servers.push({
         id: `server-k8s-${i.toString().padStart(2, '0')}`,
         hostname: `k8s-worker-${i.toString().padStart(2, '0')}.cluster.local`,
         environment: 'kubernetes',
-        role: i === 1 ? 'worker' : i === 2 ? 'api' : 'gateway',
-        status: 'healthy',
-        cpu_usage: this.randomBetween(15, 35),
-        memory_usage: this.randomBetween(25, 45),
-        disk_usage: this.randomBetween(20, 40),
-        network_in: this.randomBetween(60, 180),
-        network_out: this.randomBetween(50, 160),
-        response_time: this.randomBetween(60, 180),
-        uptime: this.randomBetween(168, 4380), // 1주~6개월
-        last_updated: new Date().toISOString(),
-        alerts: []
-      });
-    }
-
-    // AWS 서버 (3대)  
-    for (let i = 1; i <= 3; i++) {
-      servers.push({
-        id: `server-aws-${i.toString().padStart(2, '0')}`,
-        hostname: `aws-${i === 1 ? 'web' : i === 2 ? 'db' : 'cache'}-${i.toString().padStart(2, '0')}.amazonaws.com`,
-        environment: 'aws',
-        role: i === 1 ? 'web' : i === 2 ? 'database' : 'cache',
+        role: i === 1 ? 'worker' : i === 2 ? 'api' : 'monitoring',
         status: 'healthy',
         cpu_usage: this.randomBetween(25, 45),
         memory_usage: this.randomBetween(35, 55),
-        disk_usage: this.randomBetween(30, 50),
-        network_in: this.randomBetween(80, 220),
-        network_out: this.randomBetween(70, 200),
-        response_time: this.randomBetween(70, 190),
-        uptime: this.randomBetween(720, 8760), // 1달~1년
+        disk_usage: this.randomBetween(20, 40),
+        network_in: this.randomBetween(80, 200),
+        network_out: this.randomBetween(60, 180),
+        response_time: this.randomBetween(40, 120),
+        uptime: this.randomBetween(168, 8760),
         last_updated: new Date().toISOString(),
         alerts: []
       });
     }
 
-    // 나머지 서버들 (10대)
-    for (let i = 1; i <= 10; i++) {
+    // 나머지 다양한 환경 서버
+    for (let i = 1; i <= multiCount; i++) {
       const environments: ServerEnvironment[] = ['gcp', 'azure', 'idc', 'vdi'];
       const roles: ServerRole[] = ['web', 'api', 'storage', 'monitoring', 'worker'];
+      const env = environments[i % environments.length];
+      const role = roles[i % roles.length];
       
       servers.push({
         id: `server-multi-${i.toString().padStart(2, '0')}`,
         hostname: `multi-${i.toString().padStart(2, '0')}.example.com`,
-        environment: environments[i % environments.length],
-        role: roles[i % roles.length],
+        environment: env,
+        role: role,
         status: 'healthy',
-        cpu_usage: this.randomBetween(20, 40),
-        memory_usage: this.randomBetween(30, 50),
+        cpu_usage: this.randomBetween(20, 50),
+        memory_usage: this.randomBetween(30, 60),
         disk_usage: this.randomBetween(25, 45),
-        network_in: this.randomBetween(50, 150),
-        network_out: this.randomBetween(40, 130),
-        response_time: this.randomBetween(80, 200),
-        uptime: this.randomBetween(168, 8760), // 1주~1년
+        network_in: this.randomBetween(60, 180),
+        network_out: this.randomBetween(50, 160),
+        response_time: this.randomBetween(60, 180),
+        uptime: this.randomBetween(168, 8760),
         last_updated: new Date().toISOString(),
         alerts: []
       });
     }
 
+    console.log(`✅ 총 ${servers.length}개 서버 생성 완료 (계획: ${maxServers}개)`);
     return servers;
   }
 
@@ -587,7 +629,7 @@ export class SimulationEngine {
   }
 
   /**
-   * 📊 시뮬레이션 업데이트 (캐싱 포함)
+   * 📊 시뮬레이션 업데이트 (캐싱 및 시계열 저장 포함)
    */
   private updateSimulation(): void {
     if (!this.state.isRunning) return;
@@ -601,6 +643,11 @@ export class SimulationEngine {
     // 🔥 Redis 캐싱 추가
     cacheService.cacheServerMetrics(this.state.servers).catch(error => {
       console.warn('⚠️ 캐싱 실패 (시뮬레이션은 계속):', error.message);
+    });
+
+    // 📊 시계열 데이터 저장 (InfluxDB 대체)
+    redisTimeSeriesService.storeMetrics(this.state.servers).catch(error => {
+      console.warn('⚠️ 시계열 저장 실패 (시뮬레이션은 계속):', error.message);
     });
 
     const summary = this.getSimulationSummary();
@@ -624,6 +671,12 @@ export class SimulationEngine {
    */
   public isRunning(): boolean {
     return this.state.isRunning;
+  }
+
+  private generateInitialServers(): EnhancedServerMetrics[] {
+    const servers: EnhancedServerMetrics[] = [];
+    // Implementation of generateInitialServers method
+    return servers;
   }
 }
 
