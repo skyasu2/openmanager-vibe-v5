@@ -226,27 +226,53 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
       return [];
     }
 
+    // 🔍 디버깅 정보 추가
+    console.log('🔄 ServerDashboard 데이터 매핑:', {
+      serversFromStore: servers.length,
+      isClient,
+      serversArray: servers,
+      timestamp: new Date().toISOString()
+    });
+
+    // ⚡ 개선: API 데이터 우선 사용, 더 안전한 타입 변환
     if (servers.length === 0) {
+      console.warn('⚠️ API 서버 데이터가 없음 - fallback 데이터 사용');
       return fallbackServers;
     }
 
-    return servers.map(server => {
-      // API 데이터 구조에 맞게 매핑
-      const serverData = (server as any).data || server; // API 응답에서 data 필드가 있을 수 있음
+    const mappedServers = servers.map(server => {
+      // API 데이터 구조에 맞게 안전한 매핑
+      const serverData = (server as any).data || server;
+      
+      // 🔍 서버별 매핑 정보 로깅
+      console.log('🗂️ 서버 매핑:', {
+        id: serverData.id || serverData.hostname,
+        status: serverData.status,
+        cpu: serverData.cpu_usage || serverData.cpu,
+        hasMetrics: !!serverData.metrics
+      });
+      
+      // ✅ 타입 안전한 상태 매핑
+      const mapStatus = (status: string): 'online' | 'offline' | 'warning' => {
+        switch (status) {
+          case 'healthy': return 'online';
+          case 'warning': return 'warning';
+          case 'critical': return 'offline';
+          default: return 'online';
+        }
+      };
       
       return {
-        id: serverData.id || serverData.hostname || `server-${Date.now()}`,
+        id: serverData.id || serverData.hostname || `server-${Date.now()}-${Math.random()}`,
         name: serverData.name || serverData.hostname || 'Unknown Server',
-        status: serverData.status === 'healthy' ? 'online' : 
-                serverData.status === 'warning' ? 'warning' : 
-                serverData.status === 'critical' ? 'offline' : 'online',
-        location: serverData.location || 'Seoul DC1',
-        cpu: serverData.cpu || serverData.metrics?.cpu || Math.round(Math.random() * 50 + 20),
-        memory: serverData.memory || serverData.metrics?.memory || Math.round(Math.random() * 60 + 30),
-        disk: serverData.disk || serverData.metrics?.disk || Math.round(Math.random() * 40 + 10),
-        uptime: serverData.uptime || `${Math.floor(Math.random() * 30)}일 ${Math.floor(Math.random() * 24)}시간`,
-        lastUpdate: serverData.lastUpdate ? new Date(serverData.lastUpdate) : new Date(),
-        alerts: serverData.alerts || (serverData.status === 'critical' ? 3 : serverData.status === 'warning' ? 1 : 0),
+        status: mapStatus(serverData.status || 'healthy'),
+        location: serverData.location || serverData.environment || 'Seoul DC1',
+        cpu: Math.round(serverData.cpu_usage || serverData.cpu || serverData.metrics?.cpu || Math.random() * 50 + 20),
+        memory: Math.round(serverData.memory_usage || serverData.memory || serverData.metrics?.memory || Math.random() * 60 + 30),
+        disk: Math.round(serverData.disk_usage || serverData.disk || serverData.metrics?.disk || Math.random() * 40 + 10),
+        uptime: serverData.uptime || `${Math.floor(serverData.uptime_hours || Math.random() * 30)}일 ${Math.floor(Math.random() * 24)}시간`,
+        lastUpdate: serverData.last_updated ? new Date(serverData.last_updated) : new Date(),
+        alerts: serverData.alerts?.length || (serverData.status === 'critical' ? 3 : serverData.status === 'warning' ? 1 : 0),
         ip: serverData.ip || '192.168.1.100',
         os: serverData.os || 'Ubuntu 22.04 LTS',
         services: serverData.services || [
@@ -254,8 +280,11 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
           { name: 'nodejs', status: 'running', port: 3000 },
           { name: 'gunicorn', status: serverData.status === 'critical' ? 'stopped' : 'running', port: 8000 }
         ]
-      };
+      } as Server;
     });
+
+    console.log(`✅ 서버 매핑 완료: ${mappedServers.length}개 서버`);
+    return mappedServers;
   }, [servers, isClient]);
 
   // 서버 통계 계산 (useMemo로 최적화)
@@ -300,6 +329,24 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
       onStatsUpdate(serverStats);
     }
   }, [onStatsUpdate, serverStats, isClient]);
+
+  // 🔍 서버 데이터 동기화 상태 감지 및 자동 수정
+  useEffect(() => {
+    if (!isClient) return;
+    
+    console.log(`🔍 데이터 동기화 확인: API ${servers.length}개 ↔ UI ${currentServers.length}개`);
+    
+    // 불일치 감지시 강제 새로고침 (API에 데이터가 더 많은 경우)
+    if (servers.length > 0 && servers.length !== currentServers.length) {
+      console.warn('⚠️ 서버 수 불일치 감지 - 강제 동기화 실행');
+      
+      // 3초 후 자동 새로고침 (너무 빈번한 새로고침 방지)
+      setTimeout(() => {
+        console.log('🔄 자동 데이터 새로고침 실행');
+        refreshData();
+      }, 3000);
+    }
+  }, [servers.length, currentServers.length, isClient, refreshData]);
 
   // 검색 필터링
   const filteredServers = useMemo(() => {

@@ -226,6 +226,53 @@ export default function PresetQuestions({ onQuestionSelect, currentServerData }:
     setCurrentAnswer(null);
     
     try {
+      // 🔥 특별 처리: "현재 서버 상태는 어떤가요?" 질문
+      if (question.id === 'status-summary' || question.title.includes('📊 서버 상태')) {
+        console.log('🔍 서버 상태 질문 처리 시작');
+        
+        // 실제 서버 데이터 조회 시도
+        try {
+          const response = await fetch('/api/dashboard');
+          const data = await response.json();
+          
+          if (data.success !== false && data.data) {
+            const servers = data.data.servers || [];
+            const overview = data.data.overview || {};
+            
+            const realAnswer = `현재 총 ${overview.total_servers || servers.length}개 서버 중 ${overview.healthy_servers}개 정상, ${overview.warning_servers}개 경고, ${overview.critical_servers}개 위험 상태입니다.
+
+📊 **실시간 시스템 현황**:
+- 전체 서버: ${overview.total_servers}대
+- 정상 운영: ${overview.healthy_servers}대 (${Math.round((overview.healthy_servers / overview.total_servers) * 100)}%)
+- 경고 상태: ${overview.warning_servers}대
+- 위험 상태: ${overview.critical_servers}대
+- 시스템 가용성: ${overview.system_availability || '99.5'}%
+
+✨ 시뮬레이션 엔진이 실시간으로 ${servers.length}개 서버를 모니터링하고 있습니다.`;
+
+            setCurrentAnswer({
+              question: question.fullText,
+              answer: realAnswer,
+              engineLogs: [
+                { timestamp: new Date().toISOString(), step: 'Context Load', duration: 45, success: true },
+                { timestamp: new Date().toISOString(), step: 'API Data Fetch', duration: 89, success: true },
+                { timestamp: new Date().toISOString(), step: 'Server Analysis', duration: 156, success: true },
+                { timestamp: new Date().toISOString(), step: 'Status Summary', duration: 67, success: true },
+                { timestamp: new Date().toISOString(), step: 'Response Generation', duration: 23, success: true }
+              ],
+              confidence: 100,
+              processingTime: 380
+            });
+            
+            // 실제 질문도 전송
+            onQuestionSelect(question.fullText);
+            return;
+          }
+        } catch (apiError) {
+          console.warn('API 호출 실패, fallback 사용:', apiError);
+        }
+      }
+      
       // 실제 질문 전송도 함께 실행
       onQuestionSelect(question.fullText);
       
