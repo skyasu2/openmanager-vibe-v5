@@ -65,7 +65,7 @@ export class SimulationEngine {
   };
 
   private intervalId: NodeJS.Timeout | null = null;
-  private readonly UPDATE_INTERVAL = 5000; // 5초
+  private readonly UPDATE_INTERVAL = 10000; // 10초 (기존 5초에서 증가)
 
   private failureScenarios: FailureScenario[] = [
     {

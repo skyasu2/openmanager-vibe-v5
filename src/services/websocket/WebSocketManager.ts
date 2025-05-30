@@ -72,8 +72,8 @@ export class WebSocketManager {
         methods: ['GET', 'POST'],
         credentials: true
       },
-      pingTimeout: 30000,
-      pingInterval: 10000,
+      pingTimeout: 60000,
+      pingInterval: 25000,
       connectTimeout: 45000,
       allowEIO3: true
     });

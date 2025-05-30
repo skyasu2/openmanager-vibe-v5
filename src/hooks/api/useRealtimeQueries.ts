@@ -46,7 +46,7 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
     url = '/api/websocket/servers',
     reconnectInterval = 3000,
     maxReconnectAttempts = 5,
-    heartbeatInterval = 30000,
+    heartbeatInterval = 45000,
     autoConnect = true,
   } = config;
 

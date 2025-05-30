@@ -104,39 +104,51 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
   const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
   const [isRotating, setIsRotating] = useState(true);
 
-  // 15초마다 질문 템플릿 변경 - TimerManager 사용
+  // 🔄 자동 질문 회전 (45초마다, 상호작용 시 더 활발하게)
   useEffect(() => {
-    if (!isRotating || isProcessing) return;
+    if (isProcessing) return; // 처리 중일 때는 회전하지 않음
 
-    // TimerManager에 질문 회전 타이머 등록
+    const baseInterval = 45000; // 기본 45초
+    const activeInterval = 25000; // 활발한 상태일 때 25초
+
+    // 사용자 상호작용 감지
+    let lastInteraction = Date.now();
+    const handleUserInteraction = () => {
+      lastInteraction = Date.now();
+    };
+
+    // 전역 이벤트 리스너 등록
+    window.addEventListener('mousemove', handleUserInteraction);
+    window.addEventListener('click', handleUserInteraction);
+    window.addEventListener('keydown', handleUserInteraction);
+
+    const rotateQuestions = () => {
+      if (isProcessing) return;
+      
+      // 최근 2분 내 상호작용이 있었다면 더 빠르게
+      const isUserActive = Date.now() - lastInteraction < 2 * 60 * 1000;
+      const interval = isUserActive ? activeInterval : baseInterval;
+      
+      setCurrentTemplateIndex((prev) => (prev + 1) % questionTemplates.length);
+    };
+
+    // TimerManager에 등록
     timerManager.register({
       id: 'dynamic-question-rotation',
-      callback: () => {
-        setCurrentTemplateIndex((prev) => (prev + 1) % questionTemplates.length);
-      },
-      interval: 15000,
+      callback: rotateQuestions,
+      interval: baseInterval, // 기본 주기로 시작
       priority: 'medium'
     });
 
     return () => {
+      window.removeEventListener('mousemove', handleUserInteraction);
+      window.removeEventListener('click', handleUserInteraction);
+      window.removeEventListener('keydown', handleUserInteraction);
       timerManager.unregister('dynamic-question-rotation');
     };
-  }, [isRotating, isProcessing]);
+  }, [questionTemplates.length, isProcessing]);
 
-  // 처리 상태에 따른 회전 제어
-  useEffect(() => {
-    if (isProcessing) {
-      setIsRotating(false); // 처리 중이면 회전 정지
-    } else {
-      // 처리 완료 후 5초 뒤에 회전 재개
-      const timeout = setTimeout(() => {
-        setIsRotating(true);
-      }, 5000);
-      return () => clearTimeout(timeout);
-    }
-  }, [isProcessing]);
-
-  // 서버 상황에 따른 우선순위 질문 선택
+  // 🎯 서버 상황 기반 질문 우선순위 업데이트 (2분마다)
   useEffect(() => {
     const updateBasedOnServerStatus = async () => {
       try {
@@ -145,26 +157,39 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
           const data = await response.json();
           const servers = data.servers || [];
           
-          // 심각한 문제가 있으면 우선순위 질문으로 변경
-          const hasErrors = servers.some((s: any) => s.status === 'error');
-          const hasCriticalAlerts = servers.some((s: any) => 
-            (s.alerts || []).some((a: any) => Number(a.severity) >= 3)
-          );
+          // 서버 상황 분석
+          const criticalCount = servers.reduce((count: number, s: any) => {
+            return count + (s.alerts || []).filter((a: any) => Number(a.severity) >= 3).length;
+          }, 0);
           
-          if (hasErrors || hasCriticalAlerts) {
-            const criticalTemplate = questionTemplates.findIndex(t => t.priority === 'critical');
-            if (criticalTemplate !== -1) {
-              setCurrentTemplateIndex(criticalTemplate);
+          const errorServers = servers.filter((s: any) => s.status === 'error').length;
+          
+          // 우선순위 재조정
+          if (criticalCount > 0 || errorServers > 0) {
+            const urgentQuestion = questionTemplates.find(t => t.priority === 'critical');
+            if (urgentQuestion) {
+              const urgentIndex = questionTemplates.indexOf(urgentQuestion);
+              setCurrentTemplateIndex(urgentIndex);
             }
           }
         }
       } catch (error) {
-        console.error('서버 상태 기반 질문 업데이트 실패:', error);
+        console.error('서버 상황 기반 질문 업데이트 실패:', error);
       }
     };
 
-    updateBasedOnServerStatus();
-  }, []);
+    // 2분마다 서버 상황 체크
+    timerManager.register({
+      id: 'question-priority-updater',
+      callback: updateBasedOnServerStatus,
+      interval: 2 * 60 * 1000, // 2분
+      priority: 'low'
+    });
+
+    return () => {
+      timerManager.unregister('question-priority-updater');
+    };
+  }, [questionTemplates]);
 
   const currentTemplate = questionTemplates[currentTemplateIndex];
 

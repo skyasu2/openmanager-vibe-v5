@@ -92,8 +92,8 @@ export const useInfiniteLogs = (filters: {
     queryFn: fetchLogs,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: 0,
-    staleTime: 30000, // 30초
-    refetchInterval: 60000, // 1분 자동 갱신
+    staleTime: 2 * 60 * 1000, // 2분 (기존 30초에서 증가)
+    refetchInterval: 5 * 60 * 1000, // 5분 자동 갱신 (기존 1분에서 증가)
     select: (data: InfiniteData<PaginatedResponse<LogEntry>>) => ({
       pages: data.pages,
       pageParams: data.pageParams,
@@ -174,7 +174,7 @@ export const useInfiniteMetrics = (serverId: string, metric: string, timeRange: 
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: 0,
     enabled: !!serverId && !!metric,
-    staleTime: 60000, // 1분
+    staleTime: 3 * 60 * 1000, // 3분 (기존 1분에서 증가)
     select: (data: InfiniteData<PaginatedResponse<MetricHistoryEntry>>) => ({
       pages: data.pages,
       pageParams: data.pageParams,
@@ -217,7 +217,7 @@ export const useInfinitePredictionHistory = (filters: {
     queryFn: fetchPredictions,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: 0,
-    staleTime: 120000, // 2분
+    staleTime: 5 * 60 * 1000, // 5분 (기존 2분에서 증가)
     select: (data: InfiniteData<PaginatedResponse<PredictionHistoryEntry>>) => ({
       pages: data.pages,
       pageParams: data.pageParams,
@@ -256,8 +256,8 @@ export const useInfiniteAlerts = (filters: {
     queryFn: fetchAlerts,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: 0,
-    staleTime: 30000, // 30초
-    refetchInterval: 120000, // 2분
+    staleTime: 90 * 1000, // 90초 (기존 30초에서 증가)
+    refetchInterval: 3 * 60 * 1000, // 3분 (기존 2분에서 증가)
     select: (data: InfiniteData<PaginatedResponse<any>>) => ({
       pages: data.pages,
       pageParams: data.pageParams,
@@ -318,9 +318,9 @@ export const useInfiniteScrollManager = () => {
     });
   }, [queryClient]);
 
-  // ⏰ 자동 메모리 최적화 (5분마다)
+  // ⏰ 자동 메모리 최적화 (10분마다, 기존 5분에서 증가)
   useEffect(() => {
-    const interval = setInterval(optimizeMemory, 5 * 60 * 1000);
+    const interval = setInterval(optimizeMemory, 10 * 60 * 1000);
     return () => clearInterval(interval);
   }, [optimizeMemory]);
 

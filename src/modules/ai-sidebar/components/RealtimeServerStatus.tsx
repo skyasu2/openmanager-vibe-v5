@@ -65,7 +65,21 @@ const RealtimeServerStatusComponent: React.FC = () => {
     }
   };
 
-  // 15초마다 업데이트 - TimerManager 사용
+  // 적응형 업데이트 주기 - 상황에 따라 조정
+  const getUpdateInterval = () => {
+    // 심각한 문제가 있으면 더 빠르게 (20초)
+    if (status.errorServers > 0 || status.criticalAlerts > 0) {
+      return 20000;
+    }
+    // 경고 상태면 보통 속도 (30초)
+    if (status.warningServers > 2) {
+      return 30000;
+    }
+    // 모든 것이 정상이면 여유있게 (45초)
+    return 45000;
+  };
+
+  // 30초~45초 적응형 업데이트 - TimerManager 사용
   useEffect(() => {
     // 초기 데이터 로드
     updateServerStatus();
@@ -74,15 +88,30 @@ const RealtimeServerStatusComponent: React.FC = () => {
     timerManager.register({
       id: 'realtime-server-status',
       callback: updateServerStatus,
-      interval: 15000,
+      interval: getUpdateInterval(),
       priority: 'high'
     });
 
+    // 상태 변화에 따른 주기 재조정
+    const adjustInterval = () => {
+      const newInterval = getUpdateInterval();
+      timerManager.unregister('realtime-server-status');
+      timerManager.register({
+        id: 'realtime-server-status',
+        callback: updateServerStatus,
+        interval: newInterval,
+        priority: 'high'
+      });
+    };
+
+    // 5분마다 주기 재평가
+    const intervalAdjuster = setInterval(adjustInterval, 5 * 60 * 1000);
+
     return () => {
-      // 컴포넌트 언마운트 시 타이머 해제
+      clearInterval(intervalAdjuster);
       timerManager.unregister('realtime-server-status');
     };
-  }, []);
+  }, [status.errorServers, status.criticalAlerts, status.warningServers]);
 
   // 상태에 따른 색상 결정
   const getStatusColor = () => {

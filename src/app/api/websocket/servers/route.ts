@@ -82,21 +82,28 @@ export async function GET(request: NextRequest) {
       // 연결 성공 메시지
       sendMessage('connected', { message: '서버 모니터링 시작' });
 
-      // 🔄 정기적인 서버 상태 업데이트 (15초마다)
+      // 📡 서버 메트릭 업데이트 (10초마다, 기존 5초에서 증가)
       const serverUpdateInterval = setInterval(() => {
         try {
-          const serverUpdate = generateMockServerUpdate();
-          sendMessage('server_update', serverUpdate);
+          const update = generateMockServerUpdate();
+          sendMessage('server_update', update);
         } catch (error) {
           console.error('서버 업데이트 전송 실패:', error);
         }
-      }, 15000);
+      }, 10000);
 
-      // 🚨 무작위 알림 (30-120초마다)
+      // 🚨 알림 업데이트 (45초마다, 기존 15초에서 증가)
       const alertInterval = setInterval(() => {
         try {
-          if (Math.random() > 0.7) { // 30% 확률로 알림 생성
-            const alert = generateMockAlert();
+          const shouldSendAlert = Math.random() < 0.2; // 20% 확률
+          if (shouldSendAlert) {
+            const alert = {
+              id: `alert-${Date.now()}`,
+              type: ['warning', 'error', 'info'][Math.floor(Math.random() * 3)],
+              message: '서버 상태 알림',
+              server_id: `server-${Math.floor(Math.random() * 5) + 1}`,
+              timestamp: new Date().toISOString()
+            };
             sendMessage('alert', alert);
           }
         } catch (error) {
@@ -104,7 +111,7 @@ export async function GET(request: NextRequest) {
         }
       }, 45000);
 
-      // 🏥 시스템 헬스 업데이트 (60초마다)
+      // 🏥 시스템 헬스 업데이트 (90초마다, 기존 60초에서 증가)
       const healthInterval = setInterval(() => {
         try {
           const systemHealth = {
@@ -119,16 +126,16 @@ export async function GET(request: NextRequest) {
         } catch (error) {
           console.error('시스템 헬스 전송 실패:', error);
         }
-      }, 60000);
+      }, 90000);
 
-      // 💓 하트비트 (30초마다)
+      // 💓 하트비트 (60초마다, 기존 30초에서 증가)
       const heartbeatInterval = setInterval(() => {
         try {
           sendMessage('heartbeat', { timestamp: new Date().toISOString() });
         } catch (error) {
           console.error('하트비트 전송 실패:', error);
         }
-      }, 30000);
+      }, 60000);
 
       // 🧹 정리 함수
       const cleanup = () => {

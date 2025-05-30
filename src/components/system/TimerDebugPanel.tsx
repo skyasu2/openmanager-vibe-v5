@@ -27,14 +27,16 @@ export const TimerDebugPanel: React.FC = () => {
     timers: TimerStatus[];
   }>({ totalTimers: 0, activeTimers: 0, timers: [] });
 
-  // 1초마다 타이머 상태 업데이트
+  // 🔄 3초마다 타이머 상태 업데이트 (기존 1초에서 감소)
   useEffect(() => {
     const updateStatus = () => {
-      setTimerStatus(timerManager.getStatus());
+      const status = timerManager.getStatus();
+      setTimerStatus(status);
     };
 
-    updateStatus();
-    const interval = setInterval(updateStatus, 1000);
+    updateStatus(); // 초기 로드
+    const interval = setInterval(updateStatus, 3000); // 3초마다
+
     return () => clearInterval(interval);
   }, []);
 
