@@ -353,10 +353,23 @@ export class MetricsStorage {
         return { status: 'error', message: 'InfluxDB client not initialized' };
       }
 
-      const health = await this.influxDB.ping();
+      // InfluxDB 연결 상태를 간단한 쿼리로 확인
+      const queryApi = this.influxDB.getQueryApi(this.org);
+      const query = `buckets() |> limit(n:1)`;
+      
+      // 타임아웃을 설정하여 연결 확인
+      const timeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('InfluxDB connection timeout')), 5000)
+      );
+      
+      await Promise.race([
+        queryApi.collectRows(query),
+        timeout
+      ]);
+      
       return { 
-        status: health ? 'connected' : 'error',
-        message: health ? 'InfluxDB connected successfully' : 'InfluxDB ping failed'
+        status: 'connected',
+        message: 'InfluxDB connected successfully'
       };
     } catch (error) {
       return {
