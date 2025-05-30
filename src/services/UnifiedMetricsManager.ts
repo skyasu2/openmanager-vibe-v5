@@ -736,14 +736,90 @@ export class UnifiedMetricsManager {
     }
     
     try {
-      return Array.from(this.servers.values()).map(server => ({
+      // 서버가 비어있으면 초기화 재시도
+      if (this.servers.size === 0) {
+        console.log('📊 서버 목록이 비어있음. 재초기화 시도...');
+        this.initializeServers();
+      }
+
+      const serverList = Array.from(this.servers.values()).map(server => ({
         ...server,
-        environment: server.environment || 'development'
+        environment: server.environment || 'development',
+        // ServerDashboard 호환성을 위한 추가 필드
+        cpu_usage: server.node_cpu_usage_percent,
+        memory_usage: server.node_memory_usage_percent,
+        disk_usage: server.node_disk_usage_percent,
+        response_time: server.http_request_duration_seconds * 1000,
+        uptime: server.node_uptime_seconds / 3600, // 시간 단위로 변환
+        last_updated: new Date(server.timestamp).toISOString()
       }));
+
+      console.log(`📋 서버 목록 조회 성공: ${serverList.length}개 서버`);
+      return serverList;
+
     } catch (error) {
-      console.warn('⚠️ 서버 목록 조회 실패:', error);
-      return [];
+      console.warn('⚠️ 서버 목록 조회 실패, 기본 데이터 생성:', error);
+      
+      // 실패시 기본 서버 데이터 생성
+      return this.generateFallbackServers();
     }
+  }
+
+  /**
+   * 🆘 Fallback 서버 데이터 생성
+   */
+  private generateFallbackServers(): any[] {
+    console.log('🆘 Fallback 서버 데이터 생성 중...');
+    
+    const fallbackServers = Array.from({ length: 16 }, (_, i) => {
+      const serverTypes = ['web', 'api', 'database', 'cache'];
+      const environments = ['production', 'staging'];
+      const serverType = serverTypes[i % serverTypes.length];
+      const environment = environments[i % environments.length];
+      const serverNum = Math.floor(i / serverTypes.length) + 1;
+      
+      const baseId = `${serverType}-${environment.slice(0, 4)}-${String(serverNum).padStart(2, '0')}`;
+      const timestamp = Date.now();
+      
+      return {
+        id: baseId,
+        hostname: baseId,
+        environment,
+        role: serverType,
+        status: i < 12 ? 'healthy' : (i < 14 ? 'warning' : 'critical'),
+        
+        // Prometheus 표준 메트릭
+        node_cpu_usage_percent: 20 + Math.random() * 60,
+        node_memory_usage_percent: 30 + Math.random() * 50,
+        node_disk_usage_percent: 40 + Math.random() * 40,
+        node_network_receive_rate_mbps: 1 + Math.random() * 99,
+        node_network_transmit_rate_mbps: 1 + Math.random() * 99,
+        node_uptime_seconds: 24 * 3600 * (1 + Math.random() * 30),
+        http_request_duration_seconds: (50 + Math.random() * 200) / 1000,
+        http_requests_total: Math.floor(Math.random() * 10000),
+        http_requests_errors_total: Math.floor(Math.random() * 100),
+        
+        // ServerDashboard 호환 필드
+        cpu_usage: 20 + Math.random() * 60,
+        memory_usage: 30 + Math.random() * 50,
+        disk_usage: 40 + Math.random() * 40,
+        response_time: 50 + Math.random() * 200,
+        uptime: 24 * (1 + Math.random() * 30),
+        last_updated: new Date(timestamp).toISOString(),
+        
+        timestamp,
+        labels: {
+          environment,
+          role: serverType,
+          cluster: 'openmanager-v5',
+          version: '5.12.0',
+          fallback: 'true'
+        }
+      };
+    });
+
+    console.log(`✅ Fallback 서버 데이터 생성 완료: ${fallbackServers.length}개`);
+    return fallbackServers;
   }
 
   /**

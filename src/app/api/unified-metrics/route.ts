@@ -62,34 +62,111 @@ export async function GET(request: NextRequest) {
 
       case 'servers':
         try {
+          // 디버깅 정보 추가
+          console.log('🔍 UnifiedMetricsManager 상태 확인 중...');
+          
           const servers = unifiedMetricsManager.getServers();
-          return createSuccessResponse({
-            servers: servers || [],
-            count: (servers || []).length,
-            timestamp: new Date().toISOString(),
-            demo_mode: true
+          
+          console.log('🔍 UnifiedMetricsManager 디버그 정보:', {
+            serversFound: servers ? servers.length : 0,
+            isArray: Array.isArray(servers),
+            firstServer: servers && servers[0] ? servers[0].id : 'none'
           });
+
+          // 서버가 있으면 반환
+          if (servers && servers.length > 0) {
+            return createSuccessResponse({
+              servers: servers,
+              count: servers.length,
+              timestamp: new Date().toISOString(),
+              demo_mode: true,
+              source: 'unified_metrics_manager'
+            });
+          }
+
+          // Fallback: 기본 20개 서버 데이터 생성
+          console.warn('⚠️ 서버 목록이 비어있음. Fallback 데이터 생성 중...');
+          
+          const fallbackServers = Array.from({ length: 20 }, (_, i) => {
+            const serverTypes = ['web', 'api', 'database', 'cache'];
+            const environments = ['production', 'staging'];
+            const serverType = serverTypes[i % serverTypes.length];
+            const environment = environments[i % environments.length];
+            const serverNum = Math.floor(i / serverTypes.length) + 1;
+            
+            return {
+              id: `${serverType}-${environment.slice(0, 4)}-${String(serverNum).padStart(2, '0')}`,
+              hostname: `${serverType}-${environment.slice(0, 4)}-${String(serverNum).padStart(2, '0')}`,
+              environment,
+              role: serverType,
+              status: i < 16 ? 'healthy' : (i < 18 ? 'warning' : 'critical'),
+              node_cpu_usage_percent: 20 + Math.random() * 60,
+              node_memory_usage_percent: 30 + Math.random() * 50,
+              node_disk_usage_percent: 40 + Math.random() * 40,
+              node_network_receive_rate_mbps: 1 + Math.random() * 99,
+              node_network_transmit_rate_mbps: 1 + Math.random() * 99,
+              node_uptime_seconds: 24 * 3600 * (1 + Math.random() * 30),
+              http_request_duration_seconds: (50 + Math.random() * 200) / 1000,
+              http_requests_total: Math.floor(Math.random() * 10000),
+              http_requests_errors_total: Math.floor(Math.random() * 100),
+              timestamp: Date.now(),
+              labels: {
+                environment,
+                role: serverType,
+                cluster: 'openmanager-v5',
+                version: '5.12.0'
+              }
+            };
+          });
+          
+          console.log(`✅ Fallback 서버 데이터 생성 완료: ${fallbackServers.length}개`);
+          
+          return createSuccessResponse({
+            servers: fallbackServers,
+            count: fallbackServers.length,
+            timestamp: new Date().toISOString(),
+            demo_mode: true,
+            fallback: true,
+            source: 'fallback_generator'
+          });
+
         } catch (error) {
-          console.warn('⚠️ 서버 목록 조회 실패, 기본값 반환:', error);
-          // 기본 데모 서버 데이터
-          const demoServers = Array.from({ length: 8 }, (_, i) => ({
-            id: `demo-server-${i + 1}`,
-            hostname: `demo-server-${i + 1}`,
-            status: i < 6 ? 'healthy' : (i === 6 ? 'warning' : 'critical'),
-            cpu_usage: 20 + Math.random() * 60,
-            memory_usage: 30 + Math.random() * 50,
-            disk_usage: 40 + Math.random() * 40,
-            response_time: 50 + Math.random() * 200,
-            uptime: 24 * 7 * (1 + Math.random() * 10),
-            last_updated: new Date().toISOString()
+          console.error('❌ 서버 목록 조회 중 오류:', error);
+          
+          // 최종 Fallback: 기본 8개 서버
+          const emergencyServers = Array.from({ length: 8 }, (_, i) => ({
+            id: `emergency-server-${i + 1}`,
+            hostname: `emergency-server-${i + 1}`,
+            environment: 'production' as const,
+            role: 'web' as const,
+            status: 'healthy' as const,
+            node_cpu_usage_percent: 20 + Math.random() * 60,
+            node_memory_usage_percent: 30 + Math.random() * 50,
+            node_disk_usage_percent: 40 + Math.random() * 40,
+            node_network_receive_rate_mbps: 1 + Math.random() * 99,
+            node_network_transmit_rate_mbps: 1 + Math.random() * 99,
+            node_uptime_seconds: 24 * 3600 * 7,
+            http_request_duration_seconds: 0.1,
+            http_requests_total: 1000,
+            http_requests_errors_total: 10,
+            timestamp: Date.now(),
+            labels: {
+              environment: 'production',
+              role: 'web',
+              cluster: 'openmanager-v5',
+              version: '5.12.0'
+            }
           }));
           
           return createSuccessResponse({
-            servers: demoServers,
-            count: demoServers.length,
+            servers: emergencyServers,
+            count: emergencyServers.length,
             timestamp: new Date().toISOString(),
             demo_mode: true,
-            fallback: true
+            fallback: true,
+            emergency: true,
+            source: 'emergency_fallback',
+            error_message: error instanceof Error ? error.message : 'Unknown error'
           });
         }
 

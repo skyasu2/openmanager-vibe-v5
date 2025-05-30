@@ -276,7 +276,7 @@ export const useServerDataStore = create<ServerDataState>()(
       },
 
       /**
-       * 📊 서버 데이터 가져오기 (통합 메트릭 관리자에서)
+       * 📊 서버 데이터 가져오기 (Enhanced with API support)
        */
       fetchServers: async () => {
         const startTime = Date.now();
@@ -284,22 +284,169 @@ export const useServerDataStore = create<ServerDataState>()(
         set({ isLoading: true, error: null });
         
         try {
-          // 통합 메트릭 관리자가 실행되지 않았다면 시작
-          const status = unifiedMetricsManager.getStatus();
-          if (!status.isRunning) {
-            console.log('📊 통합 메트릭 관리자 시작 중...');
-            await unifiedMetricsManager.start();
+          // 1. API를 통한 서버 데이터 조회 (우선순위)
+          console.log('🌐 API를 통한 서버 데이터 조회 시도...');
+          
+          const apiResponse = await fetch('/api/unified-metrics?action=servers');
+          
+          if (apiResponse.ok) {
+            const apiResult = await apiResponse.json();
+            
+            if (apiResult.success && apiResult.data?.servers && apiResult.data.servers.length > 0) {
+              const servers = apiResult.data.servers;
+              const responseTime = Date.now() - startTime;
+              
+              console.log(`✅ API에서 서버 데이터 로드 완료: ${servers.length}개 서버, ${responseTime}ms`);
+              console.log('🔍 서버 데이터 소스:', apiResult.data.source || 'unknown');
+              
+              set(state => ({
+                servers,
+                isLoading: false,
+                lastUpdate: new Date(),
+                unifiedManagerStatus: { isRunning: true, servers_count: servers.length },
+                performance: {
+                  ...state.performance,
+                  totalRequests: state.performance.totalRequests + 1,
+                  avgResponseTime: (state.performance.avgResponseTime + responseTime) / 2,
+                  lastSyncTime: new Date()
+                }
+              }));
+              
+              return; // API로 성공적으로 데이터를 가져왔으므로 종료
+            }
           }
           
-          // 서버 데이터 가져오기
-          const servers = unifiedMetricsManager.getServers();
+          // 2. API 실패 시 direct method 시도 (서버 사이드 전용)
+          console.warn('⚠️ API 서버 데이터 조회 실패, direct method 시도...');
+          
+          if (typeof window === 'undefined') {
+            // 서버 사이드에서만 실행
+            const status = unifiedMetricsManager.getStatus();
+            if (!status.isRunning) {
+              console.log('📊 통합 메트릭 관리자 시작 중...');
+              await unifiedMetricsManager.start();
+            }
+            
+            const servers = unifiedMetricsManager.getServers();
+            const responseTime = Date.now() - startTime;
+            
+            if (servers && servers.length > 0) {
+              console.log(`✅ Direct method로 서버 데이터 로드 완료: ${servers.length}개 서버, ${responseTime}ms`);
+              
+              set(state => ({
+                servers,
+                isLoading: false,
+                lastUpdate: new Date(),
+                unifiedManagerStatus: unifiedMetricsManager.getStatus(),
+                performance: {
+                  ...state.performance,
+                  totalRequests: state.performance.totalRequests + 1,
+                  avgResponseTime: (state.performance.avgResponseTime + responseTime) / 2,
+                  lastSyncTime: new Date()
+                }
+              }));
+              
+              return;
+            }
+          }
+          
+          // 3. 모든 방법 실패 시 Fallback 데이터 사용
+          console.warn('⚠️ 모든 서버 데이터 소스 실패, Fallback 데이터 사용');
+          
+          const fallbackServers = [
+            {
+              id: 'web-server-01',
+              hostname: 'web-server-01',
+              environment: 'aws' as const,
+              role: 'web' as const,
+              status: 'healthy' as const,
+              node_cpu_usage_percent: 45.2,
+              node_memory_usage_percent: 62.8,
+              node_disk_usage_percent: 34.1,
+              cpu_usage: 45.2,
+              memory_usage: 62.8,
+              disk_usage: 34.1,
+              network_in: 1024.5,
+              network_out: 2048.7,
+              response_time: 120,
+              uptime: 360,
+              alerts: [] as any[],
+              last_updated: new Date().toISOString(),
+              timestamp: Date.now(),
+              labels: { environment: 'aws', role: 'web' }
+            },
+            {
+              id: 'api-server-02',
+              hostname: 'api-server-02',
+              environment: 'aws' as const,
+              role: 'api' as const,
+              status: 'warning' as const,
+              node_cpu_usage_percent: 67.2,
+              node_memory_usage_percent: 78.5,
+              node_disk_usage_percent: 45.3,
+              cpu_usage: 67.2,
+              memory_usage: 78.5,
+              disk_usage: 45.3,
+              network_in: 2048.3,
+              network_out: 1536.2,
+              response_time: 245,
+              uptime: 120,
+              alerts: [] as any[],
+              last_updated: new Date().toISOString(),
+              timestamp: Date.now(),
+              labels: { environment: 'aws', role: 'api' }
+            },
+            {
+              id: 'db-master-01',
+              hostname: 'db-master-01',
+              environment: 'aws' as const,
+              role: 'database' as const,
+              status: 'healthy' as const,
+              node_cpu_usage_percent: 34.6,
+              node_memory_usage_percent: 65.8,
+              node_disk_usage_percent: 82.1,
+              cpu_usage: 34.6,
+              memory_usage: 65.8,
+              disk_usage: 82.1,
+              network_in: 512.1,
+              network_out: 256.5,
+              response_time: 45,
+              uptime: 720,
+              alerts: [] as any[],
+              last_updated: new Date().toISOString(),
+              timestamp: Date.now(),
+              labels: { environment: 'aws', role: 'database' }
+            },
+            {
+              id: 'cache-redis-01',
+              hostname: 'cache-redis-01',
+              environment: 'aws' as const,
+              role: 'cache' as const,
+              status: 'critical' as const,
+              node_cpu_usage_percent: 89.3,
+              node_memory_usage_percent: 94.2,
+              node_disk_usage_percent: 23.7,
+              cpu_usage: 89.3,
+              memory_usage: 94.2,
+              disk_usage: 23.7,
+              network_in: 4096.8,
+              network_out: 3072.4,
+              response_time: 2100,
+              uptime: 48,
+              alerts: [] as any[],
+              last_updated: new Date().toISOString(),
+              timestamp: Date.now(),
+              labels: { environment: 'aws', role: 'cache' }
+            }
+          ];
+          
           const responseTime = Date.now() - startTime;
           
           set(state => ({
-            servers,
+            servers: fallbackServers,
             isLoading: false,
             lastUpdate: new Date(),
-            unifiedManagerStatus: unifiedMetricsManager.getStatus(),
+            unifiedManagerStatus: { isRunning: false, servers_count: fallbackServers.length },
             performance: {
               ...state.performance,
               totalRequests: state.performance.totalRequests + 1,
@@ -308,10 +455,10 @@ export const useServerDataStore = create<ServerDataState>()(
             }
           }));
           
-          console.log(`📊 서버 데이터 로드 완료: ${servers.length}개 서버, ${responseTime}ms`);
+          console.log(`🆘 Fallback 서버 데이터 로드 완료: ${fallbackServers.length}개 서버, ${responseTime}ms`);
           
         } catch (error) {
-          console.error('❌ 서버 데이터 로드 실패:', error);
+          console.error('❌ 서버 데이터 로드 완전 실패:', error);
           
           set({
             servers: [],
@@ -342,32 +489,67 @@ export const useServerDataStore = create<ServerDataState>()(
             const startTime = Date.now();
             
             try {
-              // 통합 메트릭 관리자에서 최신 데이터 가져오기
-              const servers = unifiedMetricsManager.getServers();
-              const responseTime = Date.now() - startTime;
+              // 1. API를 통한 실시간 데이터 조회
+              const apiResponse = await fetch('/api/unified-metrics?action=servers');
               
-              set(state => ({
-                servers,
-                lastUpdate: new Date(),
-                unifiedManagerStatus: unifiedMetricsManager.getStatus(),
-                performance: {
-                  ...state.performance,
-                  totalRequests: state.performance.totalRequests + 1,
-                  avgResponseTime: (state.performance.avgResponseTime + responseTime) / 2,
-                  lastSyncTime: new Date()
+              if (apiResponse.ok) {
+                const apiResult = await apiResponse.json();
+                
+                if (apiResult.success && apiResult.data?.servers) {
+                  const servers = apiResult.data.servers;
+                  const responseTime = Date.now() - startTime;
+                  
+                  set(state => {
+                    const newState = {
+                      servers,
+                      lastUpdate: new Date(),
+                      unifiedManagerStatus: { isRunning: true, servers_count: servers.length },
+                      performance: {
+                        ...state.performance,
+                        totalRequests: state.performance.totalRequests + 1,
+                        avgResponseTime: (state.performance.avgResponseTime + responseTime) / 2,
+                        lastSyncTime: new Date()
+                      }
+                    };
+                    
+                    // 성능 모니터링 (30초마다)
+                    if (newState.performance.totalRequests % 6 === 0) {
+                      console.log('📈 서버 데이터 스토어 성능:', {
+                        servers_count: servers.length,
+                        total_requests: newState.performance.totalRequests,
+                        avg_response_time: Math.round(newState.performance.avgResponseTime) + 'ms',
+                        cache_hit_rate: newState.performance.cacheHitRate + '%',
+                        unified_manager_running: newState.unifiedManagerStatus?.isRunning,
+                        data_source: apiResult.data.source || 'api'
+                      });
+                    }
+                    
+                    return newState;
+                  });
+                  
+                  return; // API 성공시 종료
                 }
-              }));
+              }
               
-              // 성능 모니터링 (30초마다)
-              const currentState = get();
-              if (currentState.performance.totalRequests % 6 === 0) {
-                console.log('📈 서버 데이터 스토어 성능:', {
-                  servers_count: servers.length,
-                  total_requests: currentState.performance.totalRequests,
-                  avg_response_time: Math.round(currentState.performance.avgResponseTime) + 'ms',
-                  cache_hit_rate: currentState.performance.cacheHitRate + '%',
-                  unified_manager_running: currentState.unifiedManagerStatus?.isRunning
-                });
+              // 2. API 실패시 fallback (서버 사이드만)
+              if (typeof window === 'undefined') {
+                console.warn('⚠️ API 실패, direct method 사용...');
+                const servers = unifiedMetricsManager.getServers();
+                const responseTime = Date.now() - startTime;
+                
+                set(state => ({
+                  servers,
+                  lastUpdate: new Date(),
+                  unifiedManagerStatus: unifiedMetricsManager.getStatus(),
+                  performance: {
+                    ...state.performance,
+                    totalRequests: state.performance.totalRequests + 1,
+                    avgResponseTime: (state.performance.avgResponseTime + responseTime) / 2,
+                    lastSyncTime: new Date()
+                  }
+                }));
+              } else {
+                console.warn('⚠️ 클라이언트에서 API 실패, 기존 데이터 유지');
               }
               
             } catch (error) {
