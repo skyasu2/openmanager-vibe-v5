@@ -409,11 +409,19 @@ export class MemoryOptimizer {
    */
   startMemoryMonitoring(intervalMs: number = 60000): void {
     if (this.monitoringInterval) {
-      console.log('⚠️ 메모리 모니터링이 이미 실행 중입니다');
+      // 더 상세한 로그로 중복 호출 추적
+      console.log('⚠️ 메모리 모니터링이 이미 실행 중입니다 - 중복 호출 무시됨');
       return;
     }
 
     console.log(`🔍 자동 메모리 모니터링 시작 (${intervalMs/1000}초 간격)`);
+    
+    // 전역 플래그로 중복 방지 강화
+    if ((global as any).__memoryMonitoringActive) {
+      console.log('⚠️ 전역 메모리 모니터링이 이미 활성화됨 - 중복 방지');
+      return;
+    }
+    (global as any).__memoryMonitoringActive = true;
 
     this.monitoringInterval = setInterval(async () => {
       const stats = this.getCurrentMemoryStats();
@@ -461,6 +469,12 @@ export class MemoryOptimizer {
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
+      
+      // 전역 플래그 제거
+      if ((global as any).__memoryMonitoringActive) {
+        delete (global as any).__memoryMonitoringActive;
+      }
+      
       console.log('⏹️ 메모리 모니터링 중지');
     }
   }
