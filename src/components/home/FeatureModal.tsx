@@ -4,7 +4,8 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ExternalLink, CheckCircle } from 'lucide-react';
 
-interface FeatureData {
+// FeatureCardsGrid와 동일한 타입 사용
+export interface FeatureCardData {
   id: string;
   title: string;
   description: string;
@@ -20,7 +21,7 @@ interface FeatureData {
 }
 
 interface FeatureModalProps {
-  feature: FeatureData;
+  feature: FeatureCardData;
   onClose: () => void;
   onAction: (url: string) => void;
 }
