@@ -1,5 +1,6 @@
 /* eslint-disable prefer-const */
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { safeConsoleError, safeErrorMessage } from '../lib/utils-functions';
 
 interface UseNaturalLoadingTimeProps {
   actualLoadingPromise?: Promise<any> | null;
@@ -66,8 +67,13 @@ export const useNaturalLoadingTime = ({
       
       // 콜백 호출 (약간의 지연으로 안정성 확보)
       setTimeout(() => {
-        console.log('🎉 onComplete 콜백 호출');
-        onComplete?.();
+        try {
+          console.log('🎉 onComplete 콜백 호출');
+          onComplete?.();
+        } catch (error) {
+          safeConsoleError('❌ onComplete 콜백 실행 중 에러', error);
+          // 콜백 에러가 발생해도 로딩은 완료된 것으로 처리
+        }
       }, 100);
     }
   }, [isCompleted, onComplete]);
@@ -201,7 +207,8 @@ export const useNaturalLoadingTime = ({
       } catch (error) {
         if (isCleanedUp || isCompleted) return;
         
-        console.error('❌ 시스템 로딩 에러:', error);
+        // 🔥 안전한 에러 처리
+        safeConsoleError('❌ 시스템 로딩 에러', error);
         
         // 에러가 발생해도 자연스럽게 처리
         setTimeout(() => {

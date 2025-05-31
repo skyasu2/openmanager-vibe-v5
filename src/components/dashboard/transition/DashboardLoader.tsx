@@ -7,9 +7,12 @@
  * - 실제 부팅 순서 반영
  */
 
-import React, { useState, useEffect, memo, useMemo, useCallback } from 'react';
+'use client';
+
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Server, Database, Cloud, Shield, BarChart3, Zap } from 'lucide-react';
+import { Cpu, Database, Activity, CheckCircle } from 'lucide-react';
+import { safeConsoleError } from '../../../lib/utils-functions';
 
 interface DashboardLoaderProps {
   onBootComplete: () => void;
@@ -20,6 +23,11 @@ interface DashboardLoaderProps {
   elapsedTime?: number;
 }
 
+// 시간 포맷 함수
+const formatTime = (ms: number): string => {
+  return `${Math.ceil(ms / 1000)}초`;
+};
+
 interface BootPhase {
   key: string;
   icon: React.ReactNode;
@@ -28,48 +36,34 @@ interface BootPhase {
   duration: number;
 }
 
-const BOOT_SEQUENCE: BootPhase[] = [
-  { 
-    key: 'core', 
-    icon: <Zap />, 
-    message: '🔧 시스템 코어 로딩...', 
-    color: 'text-blue-400', 
-    duration: 800 
+const bootPhases: BootPhase[] = [
+  {
+    key: 'system-starting',
+    icon: <Cpu className="w-8 h-8" />,
+    message: '시스템 초기화 중...',
+    color: 'text-blue-400',
+    duration: 2000
   },
-  { 
-    key: 'metrics', 
-    icon: <BarChart3 />, 
-    message: '📊 메트릭 수집기 시작...', 
-    color: 'text-green-400', 
-    duration: 700 
+  {
+    key: 'data-loading',
+    icon: <Database className="w-8 h-8" />,
+    message: '데이터 로딩 중...',
+    color: 'text-cyan-400',
+    duration: 1500
   },
-  { 
-    key: 'network', 
-    icon: <Cloud />, 
-    message: '🔗 네트워크 연결 확인...', 
-    color: 'text-cyan-400', 
-    duration: 600 
+  {
+    key: 'python-warmup',
+    icon: <Activity className="w-8 h-8" />,
+    message: '시스템 최적화 중...',
+    color: 'text-green-400',
+    duration: 1000
   },
-  { 
-    key: 'security', 
-    icon: <Shield />, 
-    message: '🔒 보안 시스템 초기화...', 
-    color: 'text-purple-400', 
-    duration: 700 
-  },
-  { 
-    key: 'database', 
-    icon: <Database />, 
-    message: '🗄️ 데이터베이스 연결...', 
-    color: 'text-orange-400', 
-    duration: 800 
-  },
-  { 
-    key: 'servers', 
-    icon: <Server />, 
-    message: '🌐 서버 인프라 구동...', 
-    color: 'text-pink-400', 
-    duration: 900 
+  {
+    key: 'completed',
+    icon: <CheckCircle className="w-8 h-8" />,
+    message: '준비 완료!',
+    color: 'text-emerald-400',
+    duration: 500
   }
 ];
 
@@ -107,7 +101,12 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
       setIsCompleted(true);
       setIsAnimating(false);
       setTimeout(() => {
-        onBootComplete();
+        try {
+          onBootComplete();
+        } catch (error) {
+          safeConsoleError('❌ onBootComplete 콜백 에러', error);
+          // 에러가 발생해도 계속 진행
+        }
       }, 300);
     }
   }, [isCompleted, onBootComplete]);
@@ -122,63 +121,46 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
     return () => clearTimeout(forceCompleteTimer);
   }, [handleComplete]);
 
-  // ✨ 다중 완료 조건 처리
+  // 외부에서 전달받은 단계에 따른 인덱스 업데이트
   useEffect(() => {
-    if (isCompleted) return;
-
-    // 조건 1: 외부에서 완료 신호
-    if (externalProgress >= 100 && loadingPhase === 'completed') {
-      console.log('✅ 외부 완료 신호 감지 - 즉시 완료');
-      handleComplete();
-      return;
-    }
-    
-    // 조건 2: 내부 애니메이션 6단계 완료
-    if (currentPhaseIndex >= BOOT_SEQUENCE.length) {
-      console.log('✅ 6단계 애니메이션 완료 - 정상 완료');
-      handleComplete();
-      return;
-    }
-
-    // 조건 3: 경과 시간 기반 (8초 후)
-    if (elapsedTime >= 8000) {
-      console.log('✅ 8초 경과 - 시간 기반 완료');
-      handleComplete();
-      return;
-    }
-
-    // 내부 애니메이션 로직 (기존)
-    const currentPhase = BOOT_SEQUENCE[currentPhaseIndex];
-    onPhaseChange?.(currentPhase.key, currentPhase.message);
-
-    let progressValue = 0;
-    const incrementValue = 100 / (currentPhase.duration / 50);
-    
-    const progressInterval = setInterval(() => {
-      progressValue += incrementValue;
-      if (progressValue >= 100) {
-        progressValue = 100;
-        clearInterval(progressInterval);
-        
-        setTimeout(() => {
-          setCurrentPhaseIndex(prev => prev + 1);
-          setProgress(0);
-        }, 200);
+    const phaseIndex = bootPhases.findIndex(phase => phase.key === loadingPhase);
+    if (phaseIndex !== -1 && phaseIndex !== currentPhaseIndex) {
+      console.log('🔄 단계 변경:', loadingPhase, '→ 인덱스:', phaseIndex);
+      setCurrentPhaseIndex(phaseIndex);
+      
+      // 단계 변경 콜백 호출
+      if (onPhaseChange) {
+        try {
+          onPhaseChange(loadingPhase, bootPhases[phaseIndex].message);
+        } catch (error) {
+          safeConsoleError('❌ onPhaseChange 콜백 에러', error);
+        }
       }
-      setProgress(progressValue);
-    }, 50);
+    }
+  }, [loadingPhase, currentPhaseIndex, onPhaseChange]);
 
-    return () => clearInterval(progressInterval);
-  }, [currentPhaseIndex, handleComplete, externalProgress, loadingPhase, elapsedTime, onPhaseChange, isCompleted]);
+  // 내부 진행률 애니메이션 (외부 진행률이 없을 때만)
+  useEffect(() => {
+    if (externalProgress > 0 || isCompleted) return;
 
-  const currentPhase = BOOT_SEQUENCE[currentPhaseIndex] || BOOT_SEQUENCE[0];
-  const totalProgress = ((currentPhaseIndex * 100) + displayProgress) / BOOT_SEQUENCE.length;
+    const interval = setInterval(() => {
+      const elapsed = Date.now() % 5000; // 5초 주기
+      const newProgress = Math.min((elapsed / 5000) * 100, 95);
+      setProgress(newProgress);
+    }, 100);
 
-  // 시간 포맷팅 헬퍼
-  const formatTime = (ms: number): string => {
-    const seconds = Math.ceil(ms / 1000);
-    return seconds > 60 ? `${Math.floor(seconds / 60)}분 ${seconds % 60}초` : `${seconds}초`;
-  };
+    return () => clearInterval(interval);
+  }, [externalProgress, isCompleted]);
+
+  // 진행률이 100%에 도달하면 완료 처리
+  useEffect(() => {
+    if (displayProgress >= 100 && loadingPhase === 'completed' && !isCompleted) {
+      console.log('📊 진행률 100% 도달 - 완료 처리');
+      setTimeout(() => handleComplete(), 500);
+    }
+  }, [displayProgress, loadingPhase, isCompleted, handleComplete]);
+
+  const currentPhase = bootPhases[currentPhaseIndex];
 
   return (
     <AnimatePresence>
@@ -218,177 +200,119 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
           onAnimationComplete={() => console.log('🎬 DashboardLoader 애니메이션 완료!')}
         >
           {/* 배경 효과 */}
-          <div className="absolute inset-0 opacity-30">
-            <motion.div
-              className="absolute top-1/3 left-1/3 w-96 h-96 bg-blue-400 rounded-full filter blur-3xl"
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.3, 0.6, 0.3]
-              }}
-              transition={{ duration: 4, repeat: Infinity }}
-            />
-            <motion.div
-              className="absolute bottom-1/3 right-1/3 w-80 h-80 bg-purple-400 rounded-full filter blur-3xl"
-              animate={{
-                scale: [1, 1.3, 1],
-                opacity: [0.3, 0.5, 0.3]
-              }}
-              transition={{ duration: 5, repeat: Infinity, delay: 1 }}
-            />
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute -inset-10 opacity-30">
+              <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse" />
+              <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse" style={{ animationDelay: '2s' }} />
+              <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse" style={{ animationDelay: '4s' }} />
+            </div>
           </div>
 
-          <div className="relative z-10 text-center px-8">
-            {/* 메인 로고 */}
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ duration: 1, type: "spring", damping: 10 }}
+          {/* 메인 콘텐츠 */}
+          <div className="relative z-10 text-center max-w-md mx-auto p-8">
+            {/* 브랜드 로고 영역 */}
+            <motion.div 
               className="mb-8"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.6 }}
             >
-              <motion.div 
-                className="w-32 h-32 bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl"
-                animate={{ 
-                  boxShadow: [
-                    "0 0 40px rgba(59, 130, 246, 0.5)",
-                    "0 0 80px rgba(139, 92, 246, 0.8)",
-                    "0 0 40px rgba(59, 130, 246, 0.5)"
-                  ]
-                }}
-                transition={{ 
-                  boxShadow: { duration: 3, repeat: Infinity }
-                }}
-              >
-                <Server className="w-16 h-16 text-white" />
-              </motion.div>
-              
-              <motion.h1 
-                className="text-5xl font-bold mb-3 text-white"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5, duration: 0.8 }}
-              >
-                OpenManager
-              </motion.h1>
-              
-              <motion.p 
-                className="text-xl text-blue-200 font-medium"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.8 }}
-              >
-                AI 서버 모니터링 시스템
-              </motion.p>
+              <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                <motion.div 
+                  className="text-white text-2xl font-bold"
+                  animate={{ rotate: [0, 360] }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                >
+                  OM
+                </motion.div>
+              </div>
+              <h1 className="text-3xl font-bold text-white mb-2">OpenManager</h1>
+              <p className="text-blue-200 text-lg">시스템 부팅 중...</p>
             </motion.div>
 
-            {/* 현재 단계 표시 */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentPhaseIndex}
-                initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                transition={{ duration: 0.5, type: "spring" }}
-                className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 mb-8 border border-white/20 shadow-xl max-w-md mx-auto"
-              >
-                <div className="flex items-center justify-center gap-4 mb-6">
-                  <motion.div
-                    className={`text-4xl ${currentPhase.color}`}
-                    animate={{ 
-                      rotate: [0, 360],
-                      scale: [1, 1.1, 1]
-                    }}
-                    transition={{ 
-                      rotate: { duration: 2, repeat: Infinity, ease: "linear" },
-                      scale: { duration: 1.5, repeat: Infinity }
-                    }}
-                  >
-                    {currentPhase.icon}
-                  </motion.div>
-                  <div className="text-left">
-                    <div className="text-white font-semibold text-xl">
-                      단계 {currentPhaseIndex + 1}/{BOOT_SEQUENCE.length}
-                    </div>
-                    <div className="text-blue-200 text-sm">
-                      시스템 초기화 중
-                    </div>
-                  </div>
-                </div>
-                
-                <motion.div
-                  className="text-white font-medium text-lg mb-4"
-                  animate={{ 
-                    opacity: [0.8, 1, 0.8]
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  {currentPhase.message}
-                </motion.div>
-
-                {/* 단계별 진행률 */}
-                <div className="w-full bg-white/20 rounded-full h-2 mb-4 overflow-hidden">
-                  <motion.div
-                    className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${displayProgress}%` }}
-                    transition={{ duration: 0.1, ease: "easeOut" }}
-                  >
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-full"
-                      animate={{ x: ["-100%", "200%"] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    />
-                  </motion.div>
-                </div>
-
-                <div className="text-white/80 text-sm">
-                  현재 단계: {Math.round(displayProgress)}% • 전체: {Math.round(totalProgress)}%
-                </div>
-              </motion.div>
-            </AnimatePresence>
-
-            {/* 전체 진행률 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1 }}
-              className="max-w-md mx-auto"
-            >
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-white/80 text-sm">전체 진행률</span>
-                <span className="text-white font-medium">{Math.round(totalProgress)}%</span>
-              </div>
-              
-              <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden border border-white/20">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 rounded-full"
+            {/* 진행률 바 */}
+            <div className="mb-8">
+              <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden shadow-inner">
+                <motion.div 
+                  className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 shadow-lg"
                   initial={{ width: 0 }}
-                  animate={{ width: `${totalProgress}%` }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
+                  animate={{ width: `${displayProgress}%` }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
                 />
               </div>
-              
-              {/* ✨ 추가된 로딩 상태 정보 */}
-              <div className="mt-4 text-center space-y-2">
-                {estimatedTimeRemaining > 0 && (
-                  <div className="text-blue-200 text-sm">
-                    예상 남은 시간: {formatTime(estimatedTimeRemaining)}
-                  </div>
-                )}
-                
-                {elapsedTime > 0 && (
-                  <div className="text-white/60 text-xs">
-                    경과 시간: {formatTime(elapsedTime)}
-                  </div>
-                )}
-                
-                <div className="text-cyan-300 text-xs font-medium">
-                  {loadingPhase === 'system-starting' && '🔧 시스템 코어 초기화 중...'}
-                  {loadingPhase === 'data-loading' && '📊 서버 데이터 수집 중...'}
-                  {loadingPhase === 'python-warmup' && '🐍 파이썬 엔진 웜업 중...'}
-                  {loadingPhase === 'completed' && '✅ 모든 시스템 준비 완료!'}
-                </div>
+              <div className="flex justify-between mt-2 text-sm">
+                <span className="text-blue-200">{Math.round(displayProgress)}%</span>
+                <span className="text-blue-200">
+                  {displayProgress >= 100 ? '완료!' : '진행 중...'}
+                </span>
               </div>
+            </div>
+
+            {/* 현재 단계 표시 */}
+            <motion.div 
+              className="mb-6"
+              key={currentPhaseIndex}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <div className={`flex items-center justify-center mb-3 ${currentPhase.color}`}>
+                <motion.div
+                  animate={{ 
+                    scale: [1, 1.1, 1],
+                    rotate: currentPhase.key === 'python-warmup' ? [0, 360] : 0
+                  }}
+                  transition={{ 
+                    scale: { duration: 2, repeat: Infinity },
+                    rotate: { duration: 3, repeat: Infinity, ease: "linear" }
+                  }}
+                >
+                  {currentPhase.icon}
+                </motion.div>
+              </div>
+              <p className="text-xl font-medium text-white">
+                {currentPhase.message}
+              </p>
             </motion.div>
+
+            {/* 단계 표시기 */}
+            <div className="flex justify-center space-x-3 mb-6">
+              {bootPhases.slice(0, -1).map((phase, index) => (
+                <motion.div
+                  key={phase.key}
+                  className={`w-3 h-3 rounded-full ${
+                    index <= currentPhaseIndex 
+                      ? 'bg-gradient-to-r from-blue-400 to-cyan-400' 
+                      : 'bg-gray-600'
+                  }`}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: index * 0.1 }}
+                />
+              ))}
+            </div>
+
+            {/* 시간 정보 */}
+            <div className="mt-4 text-center space-y-2">
+              {estimatedTimeRemaining > 0 && (
+                <div className="text-blue-200 text-sm">
+                  예상 남은 시간: {formatTime(estimatedTimeRemaining)}
+                </div>
+              )}
+              
+              {elapsedTime > 0 && (
+                <div className="text-white/60 text-xs">
+                  경과 시간: {formatTime(elapsedTime)}
+                </div>
+              )}
+              
+              <div className="text-cyan-300 text-xs font-medium">
+                {loadingPhase === 'system-starting' && '🔧 시스템 코어 초기화 중...'}
+                {loadingPhase === 'data-loading' && '📊 서버 데이터 수집 중...'}
+                {loadingPhase === 'python-warmup' && '🐍 파이썬 엔진 웜업 중...'}
+                {loadingPhase === 'completed' && '✅ 모든 시스템 준비 완료!'}
+              </div>
+            </div>
           </div>
         </motion.div>
       )}

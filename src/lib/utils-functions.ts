@@ -180,21 +180,66 @@ export async function hashString(str: string): Promise<string> {
 }
 
 /**
- * Parse error to get readable message
+ * Parse error to get readable message - 안전한 에러 처리
  * @param error - Error object
  * @returns Error message string
  */
 export function parseError(error: unknown): string {
+  // null이나 undefined 체크
+  if (error === null || error === undefined) {
+    return 'An unknown error occurred';
+  }
+  
+  // Error 인스턴스 체크
   if (error instanceof Error) {
-    return error.message
+    return error.message || 'Error occurred without message';
   }
+  
+  // 문자열 체크
   if (typeof error === 'string') {
-    return error
+    return error || 'Empty error message';
   }
+  
+  // 객체에 message 속성이 있는지 안전하게 체크
   if (error && typeof error === 'object' && 'message' in error) {
-    return String(error.message)
+    const message = (error as any).message;
+    return typeof message === 'string' ? message : String(message);
   }
-  return 'An unknown error occurred'
+  
+  // 최후의 수단으로 JSON.stringify 시도
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return 'An unknown error occurred (could not serialize)';
+  }
+}
+
+/**
+ * 안전한 에러 메시지 추출
+ */
+export function safeErrorMessage(error: unknown, fallback = 'Unknown error'): string {
+  try {
+    return parseError(error);
+  } catch {
+    return fallback;
+  }
+}
+
+/**
+ * 콘솔 에러 로깅 - 안전한 버전
+ */
+export function safeConsoleError(prefix: string, error: unknown): void {
+  try {
+    const message = parseError(error);
+    console.error(`${prefix}:`, message);
+    
+    // 개발 환경에서는 전체 에러 객체도 출력
+    if (process.env.NODE_ENV === 'development' && error) {
+      console.error('Full error object:', error);
+    }
+  } catch (consoleError) {
+    console.error(`${prefix}: Error while logging error`, consoleError);
+  }
 }
 
 /**

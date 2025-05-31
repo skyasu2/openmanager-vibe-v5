@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import ServerDashboard from './ServerDashboard';
 import { Server } from '../../types/server';
+import { safeConsoleError, safeErrorMessage } from '../../lib/utils-functions';
 
 interface DashboardContentProps {
   showSequentialGeneration: boolean;
@@ -49,8 +50,8 @@ export default function DashboardContent({
       console.log('✅ DashboardContent 마운트됨');
       setRenderError(null);
     } catch (error) {
-      console.error('❌ DashboardContent 마운트 에러:', error);
-      setRenderError(error instanceof Error ? error.message : '알 수 없는 에러');
+      safeConsoleError('❌ DashboardContent 마운트 에러', error);
+      setRenderError(safeErrorMessage(error, '알 수 없는 마운트 에러'));
     }
   }, []);
 
@@ -129,7 +130,7 @@ export default function DashboardContent({
       </main>
     );
   } catch (error) {
-    console.error('❌ DashboardContent 렌더링 에러:', error);
+    safeConsoleError('❌ DashboardContent 렌더링 에러', error);
     return (
       <div className="min-h-screen bg-red-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
@@ -138,6 +139,9 @@ export default function DashboardContent({
             <h2 className="text-xl font-semibold text-gray-900 mb-2">컴포넌트 오류</h2>
             <p className="text-gray-600 mb-4">
               대시보드를 렌더링하는 중 오류가 발생했습니다.
+            </p>
+            <p className="text-gray-500 text-sm mb-4">
+              {safeErrorMessage(error, '상세 정보 없음')}
             </p>
             <button
               onClick={() => window.location.reload()}
