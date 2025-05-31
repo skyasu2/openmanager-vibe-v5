@@ -11,44 +11,52 @@ import { NextRequest, NextResponse } from 'next/server';
 import { aiDatabase } from '../../../../../lib/database';
 import { authManager } from '../../../../../lib/auth';
 
+export async function GET(request: NextRequest) {
+  try {
+    // 데모 데이터 제공
+    const demoData = {
+      timestamp: new Date().toISOString(),
+      status: 'success',
+      data: {
+        agents: [
+          { id: 1, name: 'AI Agent 1', status: 'active', performance: 95 },
+          { id: 2, name: 'AI Agent 2', status: 'active', performance: 87 },
+          { id: 3, name: 'AI Agent 3', status: 'inactive', performance: 0 }
+        ],
+        metrics: {
+          totalRequests: 1245,
+          successRate: 98.2,
+          averageResponseTime: 125
+        }
+      }
+    };
+
+    return NextResponse.json(demoData);
+  } catch (error) {
+    console.error('Demo data error:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch demo data' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { action, count = 50, sessionId: bodySessionId } = await request.json();
-    const sessionId = bodySessionId || request.headers.get('x-session-id');
-
-    // 인증 확인
-    if (!sessionId || !authManager.hasPermission(sessionId, 'system:admin')) {
-      return NextResponse.json({
-        success: false,
-        error: '관리자 권한이 필요합니다.'
-      }, { status: 403 });
-    }
-
-    switch (action) {
-      case 'generate-interactions':
-        return generateInteractions(count);
-      
-      case 'generate-errors':
-        return generateErrors(count);
-      
-      case 'generate-all':
-        return generateAllDemoData(count);
-      
-      default:
-        return NextResponse.json({
-          success: false,
-          error: '지원하지 않는 액션입니다.'
-        }, { status: 400 });
-    }
-
-  } catch (error) {
-    console.error('Demo Data API Error:', error);
+    const body = await request.json();
     
     return NextResponse.json({
-      success: false,
-      error: '데모 데이터 생성 중 오류가 발생했습니다.',
-      details: error instanceof Error ? error.message : '알 수 없는 오류'
-    }, { status: 500 });
+      timestamp: new Date().toISOString(),
+      status: 'success',
+      message: 'Demo data updated',
+      data: body
+    });
+  } catch (error) {
+    console.error('Demo data update error:', error);
+    return NextResponse.json(
+      { error: 'Failed to update demo data' },
+      { status: 500 }
+    );
   }
 }
 

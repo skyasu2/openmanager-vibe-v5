@@ -78,121 +78,16 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
   const [isAnimating, setIsAnimating] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
 
-  // 🚨 디버깅 로그 추가
-  console.log('🔍 DashboardLoader 렌더링:', { 
-    currentPhaseIndex, 
-    progress, 
-    isAnimating,
-    totalPhases: BOOT_SEQUENCE.length,
-    isMounted,
-    environment: typeof window !== 'undefined' ? 'client' : 'server'
-  });
-
-  // 🚨 Vercel SSR 대응 - 클라이언트에서만 실행
+  // 클라이언트 마운트 확인
   useEffect(() => {
     setIsMounted(true);
-    console.log('🚀 DashboardLoader 클라이언트 마운트 완료');
   }, []);
-
-  // 🚨 body 전체 스타일 강제 오버라이드 (클라이언트에서만)
-  useEffect(() => {
-    if (typeof window === 'undefined' || !isMounted) return;
-    
-    console.log('🚀 DashboardLoader 마운트됨 - 강제 body 오버라이드 (Vercel 환경)');
-    
-    // Vercel 환경을 위한 더 강력한 스타일 제거
-    try {
-      // 모든 기존 스타일시트 비활성화
-      const styleSheets = document.styleSheets;
-      for (let i = 0; i < styleSheets.length; i++) {
-        try {
-          styleSheets[i].disabled = true;
-        } catch (e) {
-          console.log('스타일시트 비활성화 실패:', i);
-        }
-      }
-
-      // 기존 스타일 모두 제거
-      document.body.style.cssText = '';
-      document.body.className = '';
-      document.documentElement.style.cssText = '';
-      document.documentElement.className = '';
-      
-      // body 전체를 강제로 설정
-      const bodyStyles = {
-        margin: '0 !important',
-        padding: '0 !important',
-        position: 'fixed !important',
-        top: '0 !important',
-        left: '0 !important',
-        width: '100vw !important',
-        height: '100vh !important',
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%) !important',
-        overflow: 'hidden !important',
-        zIndex: '999999 !important',
-        fontFamily: 'system-ui, -apple-system, sans-serif !important'
-      };
-
-      Object.entries(bodyStyles).forEach(([key, value]) => {
-        document.body.style.setProperty(key, value, 'important');
-      });
-
-      // html도 강제 설정
-      const htmlStyles = {
-        margin: '0',
-        padding: '0',
-        width: '100vw',
-        height: '100vh',
-        overflow: 'hidden'
-      };
-
-      Object.entries(htmlStyles).forEach(([key, value]) => {
-        document.documentElement.style.setProperty(key, value, 'important');
-      });
-
-      // Vercel 환경에서 추가 안전장치
-      setTimeout(() => {
-        document.body.style.setProperty('background', 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%)', 'important');
-        document.body.style.setProperty('display', 'flex', 'important');
-        document.body.style.setProperty('align-items', 'center', 'important');
-        document.body.style.setProperty('justify-content', 'center', 'important');
-      }, 100);
-
-    } catch (error) {
-      console.error('Vercel 환경 스타일 설정 오류:', error);
-    }
-
-    return () => {
-      // 컴포넌트 언마운트 시 복원
-      try {
-        document.body.style.cssText = '';
-        document.documentElement.style.cssText = '';
-        
-        // 스타일시트 재활성화
-        const styleSheets = document.styleSheets;
-        for (let i = 0; i < styleSheets.length; i++) {
-          try {
-            styleSheets[i].disabled = false;
-          } catch (e) {
-            console.log('스타일시트 재활성화 실패:', i);
-          }
-        }
-      } catch (error) {
-        console.error('스타일 복원 오류:', error);
-      }
-    };
-  }, [isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
     
-    // 🚨 안전장치 - 컴포넌트가 마운트되었음을 즉시 알림
-    console.log('🚀 DashboardLoader useEffect 시작');
-    
     if (currentPhaseIndex >= BOOT_SEQUENCE.length) {
-      // 부팅 완료
       setTimeout(() => {
-        console.log('✅ DashboardLoader 완료');
         setIsAnimating(false);
         onBootComplete();
       }, 500);
@@ -200,11 +95,8 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
     }
 
     const currentPhase = BOOT_SEQUENCE[currentPhaseIndex];
-    
-    // 현재 단계 시작 알림
     onPhaseChange?.(currentPhase.key, currentPhase.message);
 
-    // 진행률 애니메이션
     let progressValue = 0;
     const incrementValue = 100 / (currentPhase.duration / 50);
     
@@ -214,7 +106,6 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
         progressValue = 100;
         clearInterval(progressInterval);
         
-        // 다음 단계로 이동
         setTimeout(() => {
           setCurrentPhaseIndex(prev => prev + 1);
           setProgress(0);
@@ -226,383 +117,197 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
     return () => clearInterval(progressInterval);
   }, [currentPhaseIndex, onBootComplete, onPhaseChange, isMounted]);
 
-  // SSR 환경에서는 렌더링하지 않음
-  if (typeof window === 'undefined' || !isMounted) {
+  // SSR에서는 렌더링하지 않음
+  if (!isMounted) {
     return null;
   }
 
   const currentPhase = BOOT_SEQUENCE[currentPhaseIndex] || BOOT_SEQUENCE[0];
   const totalProgress = ((currentPhaseIndex * 100) + progress) / BOOT_SEQUENCE.length;
 
-  // 🚨 Vercel 환경 전용 절대적 강제 렌더링
   return (
-    <>
-      {/* 🚨 Vercel 환경 완전한 화면 덮개 */}
-      <div
-        style={{
-          position: 'fixed !important' as any,
-          top: '0 !important',
-          left: '0 !important',
-          right: '0 !important',
-          bottom: '0 !important',
-          width: '100vw !important',
-          height: '100vh !important',
-          background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%) !important',
-          zIndex: '2147483647', // 최대 z-index
-          display: 'flex !important',
-          alignItems: 'center !important',
-          justifyContent: 'center !important',
-          overflow: 'hidden !important',
-          fontFamily: 'system-ui, -apple-system, sans-serif !important',
-          margin: '0 !important',
-          padding: '0 !important'
-        }}
-      >
-        <AnimatePresence>
-          {isAnimating && (
+    <AnimatePresence>
+      {isAnimating && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ 
+            opacity: 0, 
+            scale: 1.05,
+            filter: 'blur(10px)'
+          }}
+          transition={{ 
+            exit: { duration: 0.8, ease: 'easeOut' }
+          }}
+          className="fixed inset-0 z-[9999] bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center overflow-hidden"
+          style={{
+            // Vercel 환경 대응
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 9999,
+            background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          {/* 배경 효과 */}
+          <div className="absolute inset-0 opacity-30">
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ 
-                opacity: 0, 
-                scale: 1.05,
-                filter: 'blur(10px)'
+              className="absolute top-1/3 left-1/3 w-96 h-96 bg-blue-400 rounded-full filter blur-3xl"
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.3, 0.6, 0.3]
               }}
-              transition={{ 
-                exit: { duration: 0.8, ease: 'easeOut' }
+              transition={{ duration: 4, repeat: Infinity }}
+            />
+            <motion.div
+              className="absolute bottom-1/3 right-1/3 w-80 h-80 bg-purple-400 rounded-full filter blur-3xl"
+              animate={{
+                scale: [1, 1.3, 1],
+                opacity: [0.3, 0.5, 0.3]
               }}
-              style={{
-                position: 'relative',
-                zIndex: 10,
-                textAlign: 'center',
-                padding: '2rem',
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexDirection: 'column'
-              }}
-            >
-              {/* 배경 효과 */}
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                opacity: 0.3,
-                pointerEvents: 'none'
-              }}>
-                <motion.div
-                  style={{
-                    position: 'absolute',
-                    top: '33%',
-                    left: '33%',
-                    width: '384px',
-                    height: '384px',
-                    background: '#60a5fa',
-                    borderRadius: '50%',
-                    filter: 'blur(48px)'
-                  }}
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    opacity: [0.3, 0.6, 0.3]
-                  }}
-                  transition={{ duration: 4, repeat: Infinity }}
-                />
-                <motion.div
-                  style={{
-                    position: 'absolute',
-                    bottom: '33%',
-                    right: '33%',
-                    width: '320px',
-                    height: '320px',
-                    background: '#a855f7',
-                    borderRadius: '50%',
-                    filter: 'blur(48px)'
-                  }}
-                  animate={{
-                    scale: [1, 1.3, 1],
-                    opacity: [0.3, 0.5, 0.3]
-                  }}
-                  transition={{ duration: 5, repeat: Infinity, delay: 1 }}
-                />
-              </div>
+              transition={{ duration: 5, repeat: Infinity, delay: 1 }}
+            />
+          </div>
 
-              <div style={{
-                position: 'relative',
-                zIndex: 10
-              }}>
-                {/* 메인 로고 */}
-                <motion.div
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ duration: 1, type: "spring", damping: 10 }}
-                  style={{ marginBottom: '2rem' }}
-                >
-                  <motion.div 
-                    style={{
-                      width: '128px',
-                      height: '128px',
-                      background: 'linear-gradient(135deg, #22d3ee 0%, #3b82f6 50%, #a855f7 100%)',
-                      borderRadius: '24px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: '0 auto 1.5rem',
-                      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-                    }}
+          <div className="relative z-10 text-center px-8">
+            {/* 메인 로고 */}
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ duration: 1, type: "spring", damping: 10 }}
+              className="mb-8"
+            >
+              <motion.div 
+                className="w-32 h-32 bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl"
+                animate={{ 
+                  boxShadow: [
+                    "0 0 40px rgba(59, 130, 246, 0.5)",
+                    "0 0 80px rgba(139, 92, 246, 0.8)",
+                    "0 0 40px rgba(59, 130, 246, 0.5)"
+                  ]
+                }}
+                transition={{ 
+                  boxShadow: { duration: 3, repeat: Infinity }
+                }}
+              >
+                <Server className="w-16 h-16 text-white" />
+              </motion.div>
+              
+              <motion.h1 
+                className="text-5xl font-bold mb-3 text-white"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.8 }}
+              >
+                OpenManager
+              </motion.h1>
+              
+              <motion.p 
+                className="text-xl text-blue-200 font-medium"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+              >
+                AI 서버 모니터링 시스템
+              </motion.p>
+            </motion.div>
+
+            {/* 현재 단계 표시 */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentPhaseIndex}
+                initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.8, y: -20 }}
+                transition={{ duration: 0.5, type: "spring" }}
+                className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 mb-8 border border-white/20 shadow-xl max-w-md mx-auto"
+              >
+                <div className="flex items-center justify-center gap-4 mb-6">
+                  <motion.div
+                    className={`text-4xl ${currentPhase.color}`}
                     animate={{ 
-                      boxShadow: [
-                        "0 0 40px rgba(59, 130, 246, 0.5)",
-                        "0 0 80px rgba(139, 92, 246, 0.8)",
-                        "0 0 40px rgba(59, 130, 246, 0.5)"
-                      ]
+                      rotate: [0, 360],
+                      scale: [1, 1.1, 1]
                     }}
                     transition={{ 
-                      boxShadow: { duration: 3, repeat: Infinity }
+                      rotate: { duration: 2, repeat: Infinity, ease: "linear" },
+                      scale: { duration: 1.5, repeat: Infinity }
                     }}
                   >
-                    <Server style={{ width: '64px', height: '64px', color: 'white' }} />
+                    {currentPhase.icon}
                   </motion.div>
-                  
-                  <motion.h1 
-                    style={{
-                      fontSize: '3rem',
-                      fontWeight: 'bold',
-                      marginBottom: '0.75rem',
-                      color: 'white'
-                    }}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5, duration: 0.8 }}
-                  >
-                    OpenManager
-                  </motion.h1>
-                  
-                  <motion.p 
-                    style={{
-                      fontSize: '1.25rem',
-                      color: '#bfdbfe',
-                      fontWeight: '500'
-                    }}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.8 }}
-                  >
-                    AI 서버 모니터링 시스템
-                  </motion.p>
-                </motion.div>
-
-                {/* 현재 단계 표시 */}
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={currentPhaseIndex}
-                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                    transition={{ duration: 0.5, type: "spring" }}
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      backdropFilter: 'blur(16px)',
-                      borderRadius: '16px',
-                      padding: '2rem',
-                      marginBottom: '2rem',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-                      maxWidth: '448px',
-                      margin: '0 auto 2rem'
-                    }}
-                  >
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '1rem',
-                      marginBottom: '1.5rem'
-                    }}>
-                      <motion.div
-                        style={{
-                          fontSize: '2.5rem',
-                          color: currentPhase.color === 'text-blue-400' ? '#60a5fa' :
-                                 currentPhase.color === 'text-green-400' ? '#4ade80' :
-                                 currentPhase.color === 'text-cyan-400' ? '#22d3ee' :
-                                 currentPhase.color === 'text-purple-400' ? '#a855f7' :
-                                 currentPhase.color === 'text-orange-400' ? '#fb923c' :
-                                 '#ec4899'
-                        }}
-                        animate={{ 
-                          rotate: [0, 360],
-                          scale: [1, 1.1, 1]
-                        }}
-                        transition={{ 
-                          rotate: { duration: 2, repeat: Infinity, ease: "linear" },
-                          scale: { duration: 1.5, repeat: Infinity }
-                        }}
-                      >
-                        {currentPhase.icon}
-                      </motion.div>
-                      <div style={{ textAlign: 'left' }}>
-                        <div style={{
-                          color: 'white',
-                          fontWeight: '600',
-                          fontSize: '1.25rem'
-                        }}>
-                          단계 {currentPhaseIndex + 1}/{BOOT_SEQUENCE.length}
-                        </div>
-                        <div style={{
-                          color: '#bfdbfe',
-                          fontSize: '0.875rem'
-                        }}>
-                          시스템 초기화 중
-                        </div>
-                      </div>
+                  <div className="text-left">
+                    <div className="text-white font-semibold text-xl">
+                      단계 {currentPhaseIndex + 1}/{BOOT_SEQUENCE.length}
                     </div>
-                    
-                    <motion.div
-                      style={{
-                        color: 'white',
-                        fontWeight: '500',
-                        fontSize: '1.125rem',
-                        marginBottom: '1rem'
-                      }}
-                      animate={{ 
-                        opacity: [0.8, 1, 0.8]
-                      }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      {currentPhase.message}
-                    </motion.div>
-
-                    {/* 단계별 진행률 */}
-                    <div style={{
-                      width: '100%',
-                      background: 'rgba(255, 255, 255, 0.2)',
-                      borderRadius: '9999px',
-                      height: '8px',
-                      marginBottom: '1rem',
-                      overflow: 'hidden'
-                    }}>
-                      <motion.div
-                        style={{
-                          height: '100%',
-                          borderRadius: '9999px',
-                          background: 'linear-gradient(90deg, #22d3ee 0%, #3b82f6 50%, #a855f7 100%)',
-                          position: 'relative'
-                        }}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${progress}%` }}
-                        transition={{ duration: 0.1, ease: "easeOut" }}
-                      >
-                        <motion.div
-                          style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
-                            width: '100%'
-                          }}
-                          animate={{ x: ["-100%", "200%"] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        />
-                      </motion.div>
+                    <div className="text-blue-200 text-sm">
+                      시스템 초기화 중
                     </div>
-
-                    <div style={{
-                      color: 'rgba(255, 255, 255, 0.8)',
-                      fontSize: '0.875rem'
-                    }}>
-                      현재 단계: {Math.round(progress)}% • 전체: {Math.round(totalProgress)}%
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-
-                {/* 전체 진행률 */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1 }}
-                  style={{ maxWidth: '448px', margin: '0 auto' }}
-                >
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '0.5rem'
-                  }}>
-                    <span style={{
-                      color: 'rgba(255, 255, 255, 0.8)',
-                      fontSize: '0.875rem'
-                    }}>전체 진행률</span>
-                    <span style={{
-                      color: 'white',
-                      fontWeight: '500'
-                    }}>{Math.round(totalProgress)}%</span>
                   </div>
-                  
-                  <div style={{
-                    width: '100%',
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    borderRadius: '9999px',
-                    height: '12px',
-                    overflow: 'hidden',
-                    border: '1px solid rgba(255, 255, 255, 0.2)'
-                  }}>
-                    <motion.div
-                      style={{
-                        height: '100%',
-                        background: 'linear-gradient(90deg, #4ade80 0%, #3b82f6 50%, #a855f7 100%)',
-                        borderRadius: '9999px'
-                      }}
-                      initial={{ width: 0 }}
-                      animate={{ width: `${totalProgress}%` }}
-                      transition={{ duration: 0.3, ease: "easeOut" }}
-                    />
-                  </div>
-                </motion.div>
-
-                {/* 🚨 Vercel 환경 확인 메시지 */}
-                <div style={{
-                  marginTop: '2rem',
-                  padding: '1rem',
-                  background: 'rgba(34, 197, 94, 0.2)',
-                  borderRadius: '8px',
-                  border: '2px solid #10b981',
-                  color: '#4ade80',
-                  fontSize: '0.875rem'
-                }}>
-                  ✅ Vercel 환경 대응 완료 - SSR/CSR 렌더링 최적화!
                 </div>
+                
+                <motion.div
+                  className="text-white font-medium text-lg mb-4"
+                  animate={{ 
+                    opacity: [0.8, 1, 0.8]
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  {currentPhase.message}
+                </motion.div>
+
+                {/* 단계별 진행률 */}
+                <div className="w-full bg-white/20 rounded-full h-2 mb-4 overflow-hidden">
+                  <motion.div
+                    className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 0.1, ease: "easeOut" }}
+                  >
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-full"
+                      animate={{ x: ["-100%", "200%"] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
+                  </motion.div>
+                </div>
+
+                <div className="text-white/80 text-sm">
+                  현재 단계: {Math.round(progress)}% • 전체: {Math.round(totalProgress)}%
+                </div>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* 전체 진행률 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1 }}
+              className="max-w-md mx-auto"
+            >
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-white/80 text-sm">전체 진행률</span>
+                <span className="text-white font-medium">{Math.round(totalProgress)}%</span>
+              </div>
+              
+              <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden border border-white/20">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${totalProgress}%` }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                />
               </div>
             </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* 🚨 Vercel 환경 추가 안전장치 - 절대적 덮개 */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          background: '#1e3a8a',
-          zIndex: 999998,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'white',
-          fontSize: '24px',
-          fontWeight: 'bold'
-        }}
-      >
-        🚀 Vercel 환경 렌더링: Progress {Math.round(totalProgress)}%
-      </div>
-    </>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 });
 
