@@ -1,11 +1,12 @@
 /**
- * 🔧 useSystemChecklist Hook v1.0
+ * 🔧 useSystemChecklist Hook v2.0
  * 
- * 실제 시스템 구성 요소별 체크리스트 기반 병렬 로딩
+ * 실제 시스템 구성 요소별 체크리스트 기반 병렬 로딩 + 강화된 디버깅
  * - 8개 실제 구성 요소의 병렬 체크
  * - 의존성 관리 및 순차 실행
  * - 우선순위 기반 완료 조건
  * - 실제 API 헬스체크 함수
+ * - 강화된 에러 추적 및 네트워크 모니터링
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -29,7 +30,56 @@ export interface ComponentStatus {
   completedTime?: number;
   progress: number;
   error?: string;
+  networkInfo?: {
+    url: string;
+    method: string;
+    responseTime: number;
+    statusCode: number;
+    headers?: Record<string, string>;
+  };
 }
+
+// 🔍 네트워크 요청 추적을 위한 래퍼 함수
+const fetchWithTracking = async (url: string, options: RequestInit = {}): Promise<{ response: Response; networkInfo: any }> => {
+  const startTime = Date.now();
+  const method = options.method || 'GET';
+  
+  console.log(`🌐 API 요청 시작: ${method} ${url}`);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      // 타임아웃 설정을 정확히 적용
+      signal: AbortSignal.timeout(5000)
+    });
+    
+    const responseTime = Date.now() - startTime;
+    const networkInfo = {
+      url,
+      method,
+      responseTime,
+      statusCode: response.status,
+      headers: Object.fromEntries(response.headers.entries())
+    };
+    
+    console.log(`📊 API 응답: ${method} ${url} - ${response.status} (${responseTime}ms)`);
+    
+    return { response, networkInfo };
+  } catch (error) {
+    const responseTime = Date.now() - startTime;
+    const networkInfo = {
+      url,
+      method,
+      responseTime,
+      statusCode: 0,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+    
+    console.error(`❌ API 에러: ${method} ${url} - ${error} (${responseTime}ms)`);
+    
+    throw { originalError: error, networkInfo };
+  }
+};
 
 const OPENMANAGER_COMPONENTS: SystemComponent[] = [
   {
@@ -41,12 +91,35 @@ const OPENMANAGER_COMPONENTS: SystemComponent[] = [
     estimatedTime: 800,
     checkFunction: async () => {
       try {
-        const response = await fetch('/api/health', { 
-          method: 'GET',
-          timeout: 5000 
-        } as RequestInit);
+        const { response, networkInfo } = await fetchWithTracking('/api/health', { 
+          method: 'GET'
+        });
+        
+        // 전역 네트워크 추적에 정보 전달
+        if (typeof window !== 'undefined') {
+          (window as any).__networkRequests = (window as any).__networkRequests || [];
+          (window as any).__networkRequests.push({
+            ...networkInfo,
+            timestamp: new Date().toISOString(),
+            success: response.ok,
+            component: 'api-server'
+          });
+        }
+        
         return response.ok;
-      } catch {
+      } catch (error: any) {
+        // 네트워크 에러 정보도 기록
+        if (typeof window !== 'undefined' && error.networkInfo) {
+          (window as any).__networkRequests = (window as any).__networkRequests || [];
+          (window as any).__networkRequests.push({
+            ...error.networkInfo,
+            timestamp: new Date().toISOString(),
+            success: false,
+            component: 'api-server'
+          });
+        }
+        
+        safeErrorLog('🌐 API 서버 연결 실패', error.originalError || error);
         return false;
       }
     }
@@ -60,12 +133,33 @@ const OPENMANAGER_COMPONENTS: SystemComponent[] = [
     estimatedTime: 1000,
     checkFunction: async () => {
       try {
-        const response = await fetch('/api/unified-metrics?action=health', {
-          method: 'GET',
-          timeout: 5000
-        } as RequestInit);
+        const { response, networkInfo } = await fetchWithTracking('/api/unified-metrics?action=health', {
+          method: 'GET'
+        });
+        
+        if (typeof window !== 'undefined') {
+          (window as any).__networkRequests = (window as any).__networkRequests || [];
+          (window as any).__networkRequests.push({
+            ...networkInfo,
+            timestamp: new Date().toISOString(),
+            success: response.ok,
+            component: 'metrics-database'
+          });
+        }
+        
         return response.ok;
-      } catch {
+      } catch (error: any) {
+        if (typeof window !== 'undefined' && error.networkInfo) {
+          (window as any).__networkRequests = (window as any).__networkRequests || [];
+          (window as any).__networkRequests.push({
+            ...error.networkInfo,
+            timestamp: new Date().toISOString(),
+            success: false,
+            component: 'metrics-database'
+          });
+        }
+        
+        safeErrorLog('📊 메트릭 데이터베이스 연결 실패', error.originalError || error);
         return false;
       }
     }
@@ -80,14 +174,35 @@ const OPENMANAGER_COMPONENTS: SystemComponent[] = [
     dependencies: ['api-server'],
     checkFunction: async () => {
       try {
-        const response = await fetch('/api/ai/integrated', {
+        const { response, networkInfo } = await fetchWithTracking('/api/ai/integrated', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'health-check' }),
-          timeout: 5000
-        } as RequestInit);
+          body: JSON.stringify({ action: 'health-check' })
+        });
+        
+        if (typeof window !== 'undefined') {
+          (window as any).__networkRequests = (window as any).__networkRequests || [];
+          (window as any).__networkRequests.push({
+            ...networkInfo,
+            timestamp: new Date().toISOString(),
+            success: response.ok,
+            component: 'ai-analysis-engine'
+          });
+        }
+        
         return response.ok;
-      } catch {
+      } catch (error: any) {
+        if (typeof window !== 'undefined' && error.networkInfo) {
+          (window as any).__networkRequests = (window as any).__networkRequests || [];
+          (window as any).__networkRequests.push({
+            ...error.networkInfo,
+            timestamp: new Date().toISOString(),
+            success: false,
+            component: 'ai-analysis-engine'
+          });
+        }
+        
+        safeErrorLog('🧠 AI 분석 엔진 초기화 실패', error.originalError || error);
         return false;
       }
     }
@@ -102,12 +217,33 @@ const OPENMANAGER_COMPONENTS: SystemComponent[] = [
     dependencies: ['metrics-database'],
     checkFunction: async () => {
       try {
-        const response = await fetch('/api/prometheus/hub?query=up', {
-          method: 'GET',
-          timeout: 5000
-        } as RequestInit);
+        const { response, networkInfo } = await fetchWithTracking('/api/prometheus/hub?query=up', {
+          method: 'GET'
+        });
+        
+        if (typeof window !== 'undefined') {
+          (window as any).__networkRequests = (window as any).__networkRequests || [];
+          (window as any).__networkRequests.push({
+            ...networkInfo,
+            timestamp: new Date().toISOString(),
+            success: response.ok,
+            component: 'prometheus-hub'
+          });
+        }
+        
         return response.ok;
-      } catch {
+      } catch (error: any) {
+        if (typeof window !== 'undefined' && error.networkInfo) {
+          (window as any).__networkRequests = (window as any).__networkRequests || [];
+          (window as any).__networkRequests.push({
+            ...error.networkInfo,
+            timestamp: new Date().toISOString(),
+            success: false,
+            component: 'prometheus-hub'
+          });
+        }
+        
+        safeErrorLog('📈 Prometheus 허브 연결 실패', error.originalError || error);
         return false;
       }
     }
@@ -121,12 +257,33 @@ const OPENMANAGER_COMPONENTS: SystemComponent[] = [
     estimatedTime: 600,
     checkFunction: async () => {
       try {
-        const response = await fetch('/api/servers/next', {
-          method: 'GET',
-          timeout: 5000
-        } as RequestInit);
+        const { response, networkInfo } = await fetchWithTracking('/api/servers/next', {
+          method: 'GET'
+        });
+        
+        if (typeof window !== 'undefined') {
+          (window as any).__networkRequests = (window as any).__networkRequests || [];
+          (window as any).__networkRequests.push({
+            ...networkInfo,
+            timestamp: new Date().toISOString(),
+            success: response.ok,
+            component: 'server-generator'
+          });
+        }
+        
         return response.ok;
-      } catch {
+      } catch (error: any) {
+        if (typeof window !== 'undefined' && error.networkInfo) {
+          (window as any).__networkRequests = (window as any).__networkRequests || [];
+          (window as any).__networkRequests.push({
+            ...error.networkInfo,
+            timestamp: new Date().toISOString(),
+            success: false,
+            component: 'server-generator'
+          });
+        }
+        
+        safeErrorLog('🖥️ 서버 생성기 연결 실패', error.originalError || error);
         return false;
       }
     }
@@ -140,7 +297,9 @@ const OPENMANAGER_COMPONENTS: SystemComponent[] = [
     estimatedTime: 400,
     checkFunction: async () => {
       // 캐시 시스템 체크 - 시뮬레이션
+      console.log('⚡ 캐시 시스템 체크 시작');
       await new Promise(resolve => setTimeout(resolve, 300));
+      console.log('✅ 캐시 시스템 체크 완료');
       return true;
     }
   },
@@ -153,7 +312,9 @@ const OPENMANAGER_COMPONENTS: SystemComponent[] = [
     estimatedTime: 700,
     checkFunction: async () => {
       // 보안 검증 로직 - 시뮬레이션
+      console.log('🔒 보안 검증 시작');
       await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('✅ 보안 검증 완료');
       return true;
     }
   },
@@ -167,7 +328,9 @@ const OPENMANAGER_COMPONENTS: SystemComponent[] = [
     dependencies: ['api-server', 'metrics-database'],
     checkFunction: async () => {
       // UI 컴포넌트 준비 체크 - 시뮬레이션
+      console.log('🎨 UI 컴포넌트 준비 시작');
       await new Promise(resolve => setTimeout(resolve, 200));
+      console.log('✅ UI 컴포넌트 준비 완료');
       return true;
     }
   }
@@ -210,7 +373,7 @@ export const useSystemChecklist = ({
   const [isCompleted, setIsCompleted] = useState(false);
   const [canSkip, setCanSkip] = useState(false);
 
-  // 컴포넌트 체크 함수
+  // 🔍 강화된 컴포넌트 체크 함수
   const checkComponent = useCallback(async (componentDef: SystemComponent) => {
     const componentId = componentDef.id;
     
@@ -225,7 +388,11 @@ export const useSystemChecklist = ({
       }
     }));
     
-    console.log(`🔄 ${componentDef.name} 확인 시작`);
+    console.group(`🔄 ${componentDef.name} 확인 시작`);
+    console.log('컴포넌트 ID:', componentId);
+    console.log('우선순위:', componentDef.priority);
+    console.log('예상 시간:', componentDef.estimatedTime + 'ms');
+    console.log('의존성:', componentDef.dependencies || '없음');
     
     // 진행률 애니메이션
     const startTime = Date.now();
@@ -271,16 +438,36 @@ export const useSystemChecklist = ({
             completedTime: Date.now()
           }
         }));
-        console.log(`✅ ${componentDef.name} 완료`);
+        console.log(`✅ ${componentDef.name} 완료 (${Date.now() - startTime}ms)`);
       } else {
         throw new Error(`${componentDef.name} 체크 실패`);
       }
-    } catch (error) {
+    } catch (error: any) {
       if (animationFrame) {
         cancelAnimationFrame(animationFrame);
       }
       
-      console.warn(`❌ ${componentDef.name} 실패:`, error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const networkInfo = error.networkInfo;
+      
+      console.error(`❌ ${componentDef.name} 실패:`, error);
+      console.error('에러 메시지:', errorMessage);
+      console.error('네트워크 정보:', networkInfo);
+      console.error('소요 시간:', Date.now() - startTime + 'ms');
+      
+      // 전역 에러 추적
+      if (typeof window !== 'undefined') {
+        (window as any).__componentErrors = (window as any).__componentErrors || [];
+        (window as any).__componentErrors.push({
+          component: componentId,
+          componentName: componentDef.name,
+          error: errorMessage,
+          timestamp: new Date().toISOString(),
+          networkInfo,
+          stack: error.stack,
+          priority: componentDef.priority
+        });
+      }
       
       if (componentDef.priority === 'critical') {
         // Critical 컴포넌트 실패 시 재시도 (최대 2회)
@@ -289,6 +476,7 @@ export const useSystemChecklist = ({
           (window as any)[`retry_${componentId}`] = retryCount + 1;
           console.log(`🔄 ${componentDef.name} 재시도 (${retryCount + 1}/2)`);
           setTimeout(() => checkComponent(componentDef), 1000);
+          console.groupEnd();
           return;
         }
       }
@@ -300,10 +488,13 @@ export const useSystemChecklist = ({
           ...prev[componentId],
           status: 'failed',
           progress: 100,
-          error: (error as Error).message
+          error: errorMessage,
+          networkInfo
         }
       }));
     }
+    
+    console.groupEnd();
   }, []);
   
   // 의존성 확인 및 컴포넌트 시작
@@ -399,20 +590,110 @@ export const useSystemChecklist = ({
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [canSkip, isCompleted, onComplete]);
 
-  // 전역 디버깅 함수 등록
+  // 🛠️ 강화된 전역 디버깅 함수 등록
   useEffect(() => {
-    (window as any).debugSystemChecklist = {
+    const enhancedDebugTools = {
       components,
       stats,
       isCompleted,
-      canSkip
+      canSkip,
+      
+      // 네트워크 요청 히스토리
+      getNetworkHistory: () => (window as any).__networkRequests || [],
+      
+      // 에러 히스토리
+      getErrorHistory: () => (window as any).__componentErrors || [],
+      
+      // 컴포넌트별 상세 분석
+      analyzeComponent: (componentId: string) => {
+        const component = OPENMANAGER_COMPONENTS.find(c => c.id === componentId);
+        const status = components[componentId];
+        const networkRequests = ((window as any).__networkRequests || []).filter((req: any) => req.component === componentId);
+        const errors = ((window as any).__componentErrors || []).filter((err: any) => err.component === componentId);
+        
+        console.group(`🔍 컴포넌트 상세 분석: ${component?.name || componentId}`);
+        console.log('📋 컴포넌트 정의:', component);
+        console.log('📊 현재 상태:', status);
+        console.log('🌐 네트워크 요청:', networkRequests);
+        console.log('❌ 에러 히스토리:', errors);
+        console.groupEnd();
+        
+        return { component, status, networkRequests, errors };
+      },
+      
+      // 성능 분석
+      analyzePerformance: () => {
+        const completedComponents = Object.entries(components)
+          .filter(([_, status]) => status.status === 'completed' && status.startTime && status.completedTime)
+          .map(([id, status]) => ({
+            id,
+            name: OPENMANAGER_COMPONENTS.find(c => c.id === id)?.name || id,
+            duration: status.completedTime! - status.startTime!
+          }));
+        
+        const networkRequests = (window as any).__networkRequests || [];
+        const avgNetworkTime = networkRequests.length > 0 
+          ? networkRequests.reduce((sum: number, req: any) => sum + req.responseTime, 0) / networkRequests.length 
+          : 0;
+        
+        console.group('⚡ 성능 분석 보고서');
+        console.log('완료된 컴포넌트:', completedComponents);
+        console.log('평균 네트워크 응답 시간:', avgNetworkTime.toFixed(2) + 'ms');
+        console.log('가장 느린 컴포넌트:', completedComponents.sort((a, b) => b.duration - a.duration)[0]);
+        console.log('가장 빠른 컴포넌트:', completedComponents.sort((a, b) => a.duration - b.duration)[0]);
+        console.groupEnd();
+        
+        return { completedComponents, avgNetworkTime };
+      },
+      
+      // 전체 상태 내보내기
+      exportFullState: () => {
+        const fullState = {
+          timestamp: new Date().toISOString(),
+          components,
+          stats,
+          isCompleted,
+          canSkip,
+          networkHistory: (window as any).__networkRequests || [],
+          errorHistory: (window as any).__componentErrors || [],
+          userAgent: navigator.userAgent,
+          url: window.location.href
+        };
+        
+        console.log('📤 전체 상태 내보내기:', fullState);
+        
+        // JSON 다운로드
+        const blob = new Blob([JSON.stringify(fullState, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `system-checklist-debug-${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        return fullState;
+      }
     };
+    
+    (window as any).debugSystemChecklist = enhancedDebugTools;
+    (window as any).systemChecklistDebugAdvanced = enhancedDebugTools;
 
     (window as any).emergencyCompleteChecklist = () => {
       console.log('🚨 시스템 체크리스트 비상 완료');
       setIsCompleted(true);
       onComplete?.();
     };
+    
+    // 개발 환경에서만 초기 안내 출력
+    if (process.env.NODE_ENV === 'development' && Object.keys(components).length > 0) {
+      console.group('🛠️ SystemChecklist 고급 디버깅 도구');
+      console.log('상태 확인:', 'debugSystemChecklist');
+      console.log('성능 분석:', 'debugSystemChecklist.analyzePerformance()');
+      console.log('네트워크 히스토리:', 'debugSystemChecklist.getNetworkHistory()');
+      console.log('에러 히스토리:', 'debugSystemChecklist.getErrorHistory()');
+      console.log('상태 내보내기:', 'debugSystemChecklist.exportFullState()');
+      console.groupEnd();
+    }
   }, [components, stats, isCompleted, canSkip, onComplete]);
   
   return {
