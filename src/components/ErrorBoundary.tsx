@@ -119,6 +119,53 @@ class ErrorBoundary extends Component<Props, State> {
     window.location.href = '/';
   };
 
+  private isSystemHealthError(error: Error): boolean {
+    const message = error.message.toLowerCase();
+    return message.includes('system') && (message.includes('health') || message.includes('status')) ||
+           message.includes('fetch') && message.includes('/api/') ||
+           message.includes('503') || message.includes('service unavailable');
+  }
+
+  private generateSystemHealthFallback(): ReactNode {
+    return (
+      <div style={{
+        background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+        minHeight: '200px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: '8px',
+        margin: '1rem',
+        color: 'white',
+        padding: '2rem',
+        textAlign: 'center'
+      }}>
+        <div>
+          <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⚠️</div>
+          <h3 style={{ marginBottom: '0.5rem' }}>시스템 상태 확인 중</h3>
+          <p style={{ opacity: 0.9, fontSize: '0.9rem' }}>
+            시스템 헬스 체크에 일시적인 문제가 발생했습니다.<br/>
+            잠시 후 자동으로 복구됩니다.
+          </p>
+          <button
+            onClick={this.handleRetry}
+            style={{
+              marginTop: '1rem',
+              padding: '0.5rem 1rem',
+              background: 'rgba(255,255,255,0.2)',
+              border: '1px solid rgba(255,255,255,0.3)',
+              borderRadius: '4px',
+              color: 'white',
+              cursor: 'pointer'
+            }}
+          >
+            다시 시도
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   render() {
     if (this.state.hasError) {
       // Custom fallback UI
@@ -128,6 +175,12 @@ class ErrorBoundary extends Component<Props, State> {
 
       const isHydrationError = this.state.error && this.isHydrationError(this.state.error);
       const isMinifiedError = this.state.error && this.isMinifiedReactError(this.state.error);
+      const isSystemHealthError = this.state.error && this.isSystemHealthError(this.state.error);
+
+      // 시스템 헬스 에러인 경우 간소화된 fallback UI 제공
+      if (isSystemHealthError) {
+        return this.generateSystemHealthFallback();
+      }
 
       // Default error UI
       return (

@@ -211,11 +211,15 @@ export const useSystemHealth = (options?: {
   return useQuery({
     queryKey: systemKeys.health(),
     queryFn: fetchSystemHealth,
-    refetchInterval: options?.refetchInterval ?? 5000, // 5초 간격
-    staleTime: 2000, // 2초 동안 stale하지 않음
+    refetchInterval: options?.refetchInterval ?? 30000, // 30초 간격으로 증가 (이전 5초)
+    staleTime: 20000, // 20초 동안 fresh 상태 유지 (이전 2초)
+    gcTime: 5 * 60 * 1000, // 5분간 캐시 보관 (이전 cacheTime 없음)
     enabled: options?.enabled ?? true,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retry: 2, // 재시도 횟수 감소 (이전 3회)
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000), // 최대 10초
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 비활성화
+    refetchOnMount: true, // 마운트 시에만 재요청
+    refetchOnReconnect: true, // 재연결 시 재요청 활성화
     placeholderData: keepPreviousData,
     select: (data) => ({
       ...data,

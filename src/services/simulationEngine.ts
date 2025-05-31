@@ -400,8 +400,19 @@ export class SimulationEngine {
         }
       };
     } else {
-      // 기존 단순 랜덤 방식 (폴백)
-      return this.updateServerMetricsLegacy(server);
+      // 현실적 패턴이 비활성화된 경우 기본 변동 적용
+      const variation = 5;
+      
+      return {
+        ...server,
+        cpu_usage: Math.max(0, Math.min(100, server.cpu_usage + (Math.random() - 0.5) * variation)),
+        memory_usage: Math.max(0, Math.min(100, server.memory_usage + (Math.random() - 0.5) * variation)),
+        disk_usage: Math.max(0, Math.min(100, server.disk_usage + (Math.random() - 0.5) * (variation / 2))),
+        network_in: Math.max(0, server.network_in + (Math.random() - 0.5) * 20),
+        network_out: Math.max(0, server.network_out + (Math.random() - 0.5) * 15),
+        response_time: Math.max(10, server.response_time + (Math.random() - 0.5) * 50),
+        last_updated: new Date().toISOString()
+      };
     }
   }
 
@@ -541,25 +552,6 @@ export class SimulationEngine {
     const messageArray = messages[failureType] || messages['general_slowdown'];
     const index = Math.min(severity - 1, messageArray.length - 1);
     return messageArray[index];
-  }
-
-  /**
-   * 🔄 레거시 메트릭 업데이트 (폴백용)
-   */
-  private updateServerMetricsLegacy(server: EnhancedServerMetrics): EnhancedServerMetrics {
-    // 기존 단순 랜덤 방식 유지
-    const variation = 5;
-    
-    return {
-      ...server,
-      cpu_usage: Math.max(0, Math.min(100, server.cpu_usage + (Math.random() - 0.5) * variation)),
-      memory_usage: Math.max(0, Math.min(100, server.memory_usage + (Math.random() - 0.5) * variation)),
-      disk_usage: Math.max(0, Math.min(100, server.disk_usage + (Math.random() - 0.5) * (variation / 2))),
-      network_in: Math.max(0, server.network_in + (Math.random() - 0.5) * 20),
-      network_out: Math.max(0, server.network_out + (Math.random() - 0.5) * 15),
-      response_time: Math.max(10, server.response_time + (Math.random() - 0.5) * 50),
-      last_updated: new Date().toISOString()
-    };
   }
 
   /**
@@ -794,35 +786,39 @@ export class SimulationEngine {
    * 🧠 메모리 최적화 시작
    */
   private startMemoryOptimization(): void {
-    // 메모리 모니터링 시작 (30초 간격)
-    memoryOptimizer.startMemoryMonitoring(30000);
-    console.log('🧠 시뮬레이션 엔진 메모리 최적화 활성화');
+    console.log('🧠 메모리 최적화 시작...');
+    
+    setInterval(() => {
+      this.checkMemoryOptimization();
+    }, this.MEMORY_CHECK_INTERVAL);
   }
 
   /**
-   * 🔄 메모리 정리 체크
+   * 메모리 최적화 체크
    */
   private async checkMemoryOptimization(): Promise<void> {
-    const now = Date.now();
+    const memUsage = process.memoryUsage();
+    const heapUsedMB = memUsage.heapUsed / 1024 / 1024;
     
-    // 1분마다 체크
-    if (now - this.lastMemoryOptimization > this.MEMORY_CHECK_INTERVAL) {
-      const memoryStats = memoryOptimizer.getCurrentMemoryStats();
+    // 메모리 사용량이 200MB 이상이면 캐시 정리
+    if (heapUsedMB > 200) {
+      console.log(`🧠 메모리 정리: ${heapUsedMB.toFixed(1)}MB 사용 중`);
       
-      // 75% 이상 사용 시 정리
-      if (memoryStats.usagePercent > 75) {
-        console.log(`🧠 메모리 정리 필요: ${memoryStats.usagePercent}%`);
-        
-        // 캐시된 메트릭 정리 (100개 이상 시)
-        if (this.previousMetricsCache.size > 100) {
-          this.previousMetricsCache.clear();
-          console.log('🗑️ 메트릭 캐시 정리 완료');
-        }
-        
-        // 메모리 최적화 실행
-        await memoryOptimizer.optimizeMemoryNow();
-        this.lastMemoryOptimization = now;
+      // 이전 메트릭 캐시 정리
+      const cacheSize = this.previousMetricsCache.size;
+      if (cacheSize > 100) {
+        const keysToDelete = Array.from(this.previousMetricsCache.keys()).slice(0, 50);
+        keysToDelete.forEach(key => this.previousMetricsCache.delete(key));
+        console.log(`🗑️ 캐시 정리: ${keysToDelete.length}개 항목 제거`);
       }
+      
+      // 강제 가비지 컬렉션 (가능한 경우)
+      if (global.gc) {
+        global.gc();
+        console.log('🗑️ 수동 가비지 컬렉션 실행');
+      }
+      
+      this.lastMemoryOptimization = Date.now();
     }
   }
 }

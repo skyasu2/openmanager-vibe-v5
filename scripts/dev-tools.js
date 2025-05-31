@@ -409,4 +409,14 @@ if (require.main === module) {
   });
 }
 
-module.exports = { main }; 
+console.log('🔧 개발 도구가 로드되었습니다.');
+console.log('사용 가능한 도구: 없음 (레거시 함수들이 제거되었습니다)');
+
+// 레거시 함수들은 UnifiedMetricsManager와 OptimizedDataGenerator로 대체되었습니다.
+// 실제 서버 메트릭이 필요한 경우 다음을 사용하세요:
+// - unifiedMetricsManager.getServers()
+// - optimizedDataGenerator.generateBatch()
+
+module.exports = {
+  // 향후 필요한 개발 도구들을 여기에 추가
+}; 

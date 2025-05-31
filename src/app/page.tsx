@@ -326,7 +326,7 @@ export default function Home() {
                 </motion.button>
               </div>
               
-              <p className="text-white/80 text-sm">
+                  <p className="text-white/80 text-sm">
                 <strong>통합 시스템 시작:</strong> 서버 시딩 → 시뮬레이션 → 데이터 생성<br />
                 30분간 모든 서비스가 자동으로 순차 시작됩니다
               </p>
@@ -415,17 +415,17 @@ export default function Home() {
                 {/* 시스템 중지 버튼 */}
                 <motion.button
                   onClick={handleSystemToggle}
-                  disabled={isLoading}
+                    disabled={isLoading}
                   className="flex items-center justify-center gap-2 px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/50 rounded-xl font-medium transition-all duration-200 disabled:opacity-75"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                >
-                  {isLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <StopCircle className="w-5 h-5" />
-                  )}
-                  <span>{isLoading ? '중지 중...' : '⏹️ 시스템 중지'}</span>
+                  >
+                    {isLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <StopCircle className="w-5 h-5" />
+                    )}
+                    <span>{isLoading ? '중지 중...' : '⏹️ 시스템 중지'}</span>
                 </motion.button>
               </div>
 

@@ -1,139 +1,120 @@
-import { NextResponse } from 'next/server';
-import { simulationEngine } from '../../../../services/simulationEngine';
+/**
+ * 🔧 시스템 상태 API with Fallback Support
+ * GET /api/system/status
+ * 
+ * 서버 비가동 상태에서도 안정적인 응답 제공:
+ * - 시뮬레이션 엔진 오프라인 시 fallback JSON 응답
+ * - UI 튕김 방지를 위한 "offline" 상태값 반환
+ * - 503 에러 대신 200 OK + 상태 정보 제공
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { systemStateManager } from '../../../../core/system/SystemStateManager';
 
 /**
- * 🔍 시스템 상태 조회 API
- * GET /api/system/status
- * 시뮬레이션 엔진 및 전체 시스템 상태를 반환합니다
+ * 🏥 시스템 상태 조회
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const startTime = Date.now();
+  
   try {
-    // 시뮬레이션 엔진 상태 조회
-    const simulationState = simulationEngine.getState();
-    const isRunning = simulationEngine.isRunning();
-    const simulationSummary = simulationEngine.getSimulationSummary();
+    console.log('🔧 시스템 상태 조회 시작');
+
+    // 시스템 상태 매니저에서 현재 상태 조회
+    const systemStatus = systemStateManager.getSystemStatus();
     
-    // 기본 시스템 정보
-    const systemStatus = {
-      isRunning,
-      startTime: simulationState.startTime,
-      runtime: simulationState.startTime ? Date.now() - simulationState.startTime : 0,
-      dataCount: simulationState.dataCount,
-      activeScenarios: simulationState.activeScenarios || [],
-      prometheusEnabled: simulationState.prometheusEnabled
-    };
-
-    // 실행 중일 때 상세 정보
-    if (isRunning) {
-      const servers = simulationEngine.getServers();
-      
-      // 서버 상태 분포 계산
-      const statusDistribution = {
-        healthy: servers.filter(s => s.status === 'healthy').length,
-        warning: servers.filter(s => s.status === 'warning').length,
-        critical: servers.filter(s => s.status === 'critical').length
-      };
-
-      // 환경별 분포 계산
-      const envDistribution = {
-        onpremise: servers.filter(s => s.environment === 'onpremise').length,
-        aws: servers.filter(s => s.environment === 'aws').length,
-        gcp: servers.filter(s => s.environment === 'gcp').length,
-        kubernetes: servers.filter(s => s.environment === 'kubernetes').length
-      };
-
-      // 평균 메트릭 계산
-      const avgMetrics = servers.length > 0 ? {
-        cpu_usage: servers.reduce((sum, s) => sum + s.cpu_usage, 0) / servers.length,
-        memory_usage: servers.reduce((sum, s) => sum + s.memory_usage, 0) / servers.length,
-        disk_usage: servers.reduce((sum, s) => sum + s.disk_usage, 0) / servers.length,
-        response_time: servers.reduce((sum, s) => sum + s.response_time, 0) / servers.length
-      } : {
-        cpu_usage: 0,
-        memory_usage: 0,
-        disk_usage: 0,
-        response_time: 0
-      };
-
-      // 알림 통계 계산
-      const allAlerts = servers.flatMap(s => s.alerts || []);
-      const alertStats = {
-        total: allAlerts.length,
-        critical: allAlerts.filter(a => a.severity === 'critical').length,
-        warning: allAlerts.filter(a => a.severity === 'warning').length,
-        resolved: allAlerts.filter(a => a.resolved).length
-      };
-
+    if (systemStatus) {
+      // 정상적인 시스템 상태 반환
       return NextResponse.json({
         success: true,
-        data: {
-          system: systemStatus,
-          simulation: simulationSummary,
-          servers: {
-            total: servers.length,
-            byStatus: statusDistribution,
-            byEnvironment: envDistribution,
-            averageMetrics: {
-              cpu_usage: Math.round(avgMetrics.cpu_usage * 100) / 100,
-              memory_usage: Math.round(avgMetrics.memory_usage * 100) / 100,
-              disk_usage: Math.round(avgMetrics.disk_usage * 100) / 100,
-              response_time: Math.round(avgMetrics.response_time)
-            }
-          },
-          alerts: alertStats,
-          performance: {
-            updateInterval: 8000, // 8초 간격
-            totalMetrics: simulationSummary.totalMetrics,
-            patternsEnabled: simulationSummary.patternsEnabled,
-            activeFailures: simulationSummary.activeFailures
-          },
-          realtimeData: servers.map(server => ({
-            id: server.id,
-            hostname: server.hostname,
-            status: server.status,
-            cpu_usage: server.cpu_usage,
-            memory_usage: server.memory_usage,
-            disk_usage: server.disk_usage,
-            response_time: server.response_time,
-            alerts: server.alerts?.length || 0,
-            last_updated: server.last_updated
-          }))
+        status: systemStatus.health,
+        uptime: systemStatus.simulation.runtime,
+        version: process.env.npm_package_version || '5.17.0',
+        environment: process.env.NODE_ENV || 'development',
+        
+        // 상세 상태 정보
+        simulation: {
+          isRunning: systemStatus.simulation.isRunning,
+          serverCount: systemStatus.simulation.serverCount,
+          dataCount: systemStatus.simulation.dataCount,
+          status: systemStatus.services.simulation
         },
-        timestamp: new Date().toISOString()
+        
+        services: systemStatus.services,
+        performance: systemStatus.performance,
+        
+        // 메타데이터
+        lastUpdated: systemStatus.lastUpdated,
+        responseTime: Date.now() - startTime,
+        fallback: false
       });
     }
 
-    // 중지 상태일 때 기본 정보만
-    return NextResponse.json({
-      success: true,
-      data: {
-        system: systemStatus,
-        simulation: simulationSummary,
-        servers: {
-          total: 0,
-          byStatus: { healthy: 0, warning: 0, critical: 0 },
-          byEnvironment: { onpremise: 0, aws: 0, gcp: 0, kubernetes: 0 },
-          averageMetrics: { cpu_usage: 0, memory_usage: 0, disk_usage: 0, response_time: 0 }
-        },
-        alerts: { total: 0, critical: 0, warning: 0, resolved: 0 },
-        performance: {
-          updateInterval: 0,
-          totalMetrics: 0,
-          patternsEnabled: simulationSummary.patternsEnabled,
-          activeFailures: 0
-        }
-      },
-      timestamp: new Date().toISOString()
-    });
+    // SystemStateManager가 아직 초기화되지 않은 경우 fallback
+    throw new Error('SystemStateManager not initialized');
 
   } catch (error) {
-    console.error('❌ 시스템 상태 조회 오류:', error);
+    console.warn('⚠️ 시스템 상태 조회 실패, fallback 모드 사용:', error);
     
-    return NextResponse.json({
-      success: false,
-      message: '시스템 상태 조회에 실패했습니다.',
-      error: error instanceof Error ? error.message : '알 수 없는 오류',
-      timestamp: new Date().toISOString()
-    }, { status: 500 });
+    // Fallback 응답 - 503 대신 200 OK + offline 상태
+    const fallbackResponse = {
+      success: true,
+      status: 'offline', // 'unhealthy' 대신 'offline' 사용
+      uptime: 0,
+      version: process.env.npm_package_version || '5.17.0',
+      environment: process.env.NODE_ENV || 'development',
+      
+      // 오프라인 상태 정보
+      simulation: {
+        isRunning: false,
+        serverCount: 0,
+        dataCount: 0,
+        status: 'offline'
+      },
+      
+      services: {
+        simulation: 'offline',
+        cache: 'offline',
+        prometheus: 'offline',
+        vercel: 'unknown'
+      },
+      
+      performance: {
+        averageResponseTime: 0,
+        apiCalls: 0,
+        cacheHitRate: 0,
+        errorRate: 0
+      },
+      
+      // 메타데이터
+      lastUpdated: new Date().toISOString(),
+      responseTime: Date.now() - startTime,
+      fallback: true,
+      message: '시스템이 일시적으로 오프라인 상태입니다'
+    };
+
+    // 200 OK 반환하여 UI 튕김 방지
+    return NextResponse.json(fallbackResponse, { 
+      status: 200, // 503 대신 200 사용
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'X-System-Status': 'offline',
+        'X-Fallback-Mode': 'true'
+      }
+    });
   }
+}
+
+/**
+ * OPTIONS - CORS 지원
+ */
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
 }
