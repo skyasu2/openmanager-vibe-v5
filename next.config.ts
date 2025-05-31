@@ -28,10 +28,9 @@ const nextConfig: NextConfig = {
     },
   }),
 
-  // 환경변수 기본값 설정
+  // 환경변수 기본값 설정 (NODE_ENV 제거)
   env: {
     SKIP_ENV_VALIDATION: skipEnvValidation ? 'true' : 'false',
-    NODE_ENV: process.env.NODE_ENV || 'development',
   },
 
   serverExternalPackages: [
