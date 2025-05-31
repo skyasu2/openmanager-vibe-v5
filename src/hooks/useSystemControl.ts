@@ -1,8 +1,27 @@
-import { useCallback } from 'react';
+'use client';
+
+import { useState, useCallback } from 'react';
 import { useSystemStore } from '../stores/systemStore';
 import { systemLogger } from '../lib/logger';
+import { createSafeError, safeErrorLog, safeErrorMessage } from '../lib/error-handler';
 
-export const useSystemControl = () => {
+interface SystemStatus {
+  isRunning: boolean;
+  lastStarted?: Date;
+  uptime?: number;
+  errors: string[];
+}
+
+interface UseSystemControlReturn {
+  status: SystemStatus;
+  isLoading: boolean;
+  startSystem: () => Promise<void>;
+  stopSystem: () => Promise<void>;
+  restartSystem: () => Promise<void>;
+  checkStatus: () => Promise<void>;
+}
+
+export function useSystemControl(): UseSystemControlReturn {
   const {
     state,
     startSystem,
@@ -19,6 +38,153 @@ export const useSystemControl = () => {
     pauseReason,
     userInitiated
   } = useSystemStore();
+
+  const [status, setStatus] = useState<SystemStatus>({
+    isRunning: false,
+    errors: []
+  });
+  const [isLoading, setIsLoading] = useState(false);
+
+  const checkStatus = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/system/status');
+      
+      if (!response.ok) {
+        throw new Error(`Status check failed: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setStatus({
+        isRunning: data.isRunning || false,
+        lastStarted: data.lastStarted ? new Date(data.lastStarted) : undefined,
+        uptime: data.uptime || 0,
+        errors: []
+      });
+    } catch (error) {
+      const safeError = safeErrorLog('❌ 시스템 상태 확인 실패', error);
+      setStatus(prev => ({
+        ...prev,
+        errors: [safeError.message]
+      }));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const startSystem = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/system/start', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`System start failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setStatus(prev => ({
+          ...prev,
+          isRunning: true,
+          lastStarted: new Date(),
+          errors: []
+        }));
+      } else {
+        throw new Error(data.message || 'System start failed');
+      }
+    } catch (error) {
+      const safeError = safeErrorLog('❌ 시스템 시작 실패', error);
+      setStatus(prev => ({
+        ...prev,
+        isRunning: false,
+        errors: [safeError.message]
+      }));
+      throw error; // Re-throw for UI handling
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const stopSystem = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/system/stop', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`System stop failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setStatus(prev => ({
+          ...prev,
+          isRunning: false,
+          errors: []
+        }));
+      } else {
+        throw new Error(data.message || 'System stop failed');
+      }
+    } catch (error) {
+      const safeError = safeErrorLog('❌ 시스템 중지 실패', error);
+      
+      // Network errors might indicate system is already stopped
+      if (safeError.name === 'TypeError' && safeError.message.includes('fetch')) {
+        console.log('🔍 네트워크 에러 - 시스템이 이미 중지되었을 수 있음');
+        setStatus(prev => ({
+          ...prev,
+          isRunning: false,
+          errors: ['시스템이 이미 중지되었을 수 있습니다']
+        }));
+      } else {
+        setStatus(prev => ({
+          ...prev,
+          errors: [safeError.message]
+        }));
+        throw error; // Re-throw for UI handling
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const restartSystem = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      console.log('🔄 시스템 재시작 시도...');
+      
+      // First stop the system
+      await stopSystem();
+      
+      // Wait a bit before starting
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Then start it again
+      await startSystem();
+      
+      console.log('✅ 시스템 재시작 완료');
+    } catch (error) {
+      const safeError = safeErrorLog('❌ 시스템 재시작 실패', error);
+      setStatus(prev => ({
+        ...prev,
+        errors: [safeError.message]
+      }));
+      throw error; // Re-throw for UI handling
+    } finally {
+      setIsLoading(false);
+    }
+  }, [startSystem, stopSystem]);
 
   /**
    * 🚀 시스템 전체 시작 (사용자 세션) - Vercel 최적화
@@ -304,31 +470,6 @@ export const useSystemControl = () => {
   };
 
   /**
-   * 🔄 시스템 재시작
-   */
-  const restartSystem = async (): Promise<{
-    success: boolean;
-    message: string;
-    errors: string[];
-  }> => {
-    systemLogger.system('🔄 시스템 재시작...');
-    
-    // 중지 후 시작
-    const stopResult = await stopFullSystem();
-    
-    // 3초 대기 후 시작
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    const startResult = await startFullSystem();
-    
-    return {
-      success: stopResult.success && startResult.success,
-      message: `🔄 재시작 완료: ${startResult.message}`,
-      errors: [...stopResult.errors, ...startResult.errors]
-    };
-  };
-
-  /**
    * 🤖 AI 트리거 시스템 시작 (자동 세션)
    */
   const startAISession = async (reason: string): Promise<{
@@ -360,7 +501,12 @@ export const useSystemControl = () => {
   }, [updateActivity]);
 
   return {
-    // 상태
+    status,
+    isLoading,
+    startSystem,
+    stopSystem,
+    restartSystem,
+    checkStatus,
     state,
     isSystemActive: state === 'active',
     isSystemPaused: state === 'paused',
@@ -370,16 +516,13 @@ export const useSystemControl = () => {
     pauseReason,
     isUserSession: userInitiated,
     shouldAutoStop: shouldAutoStop(),
-    
-    // 액션
     startFullSystem,
     stopFullSystem,
     pauseFullSystem,
     resumeFullSystem,
-    restartSystem,
     startAISession,
     recordActivity,
     enableAIAgent,
     disableAIAgent
   };
-}; 
+} 

@@ -5,6 +5,7 @@
  */
 
 import { AISidebarConfig, ChatMessage, AIResponse, SidebarTheme } from '../types';
+import { createSafeError } from '../../../lib/error-handler';
 
 /**
  * 기본 사이드바 설정 반환
@@ -189,9 +190,11 @@ export const getConfidenceLevel = (confidence: number): 'low' | 'medium' | 'high
 };
 
 /**
- * 에러 메시지 포맷팅
+ * 에러 메시지 포맷팅 (안전한 버전)
  */
-export const formatErrorMessage = (error: Error | string): string => {
+export const formatErrorMessage = (error: Error | string | unknown): string => {
   if (typeof error === 'string') return error;
-  return error.message || '알 수 없는 오류가 발생했습니다.';
+  
+  const safeError = createSafeError(error);
+  return safeError.message || '알 수 없는 오류가 발생했습니다.';
 }; 

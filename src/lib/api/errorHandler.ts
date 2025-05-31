@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { createSafeError, safeErrorLog } from '../error-handler';
 
 /**
  * 🚨 표준 API 에러 응답 인터페이스
@@ -24,58 +25,55 @@ export interface StandardApiSuccess<T = any> {
 }
 
 /**
- * 🔧 에러 타입 정의
+ * 🔧 API 에러 타입 정의
  */
 export type ApiErrorType = 
   | 'VALIDATION_ERROR'
-  | 'NOT_FOUND'
+  | 'NOT_FOUND' 
   | 'UNAUTHORIZED'
   | 'FORBIDDEN'
   | 'INTERNAL_SERVER_ERROR'
   | 'SERVICE_UNAVAILABLE'
-  | 'BAD_REQUEST'
-  | 'CONFLICT'
-  | 'TOO_MANY_REQUESTS';
+  | 'TIMEOUT'
+  | 'NETWORK_ERROR';
 
 /**
  * 🎯 에러 타입별 HTTP 상태 코드 매핑
  */
-const ERROR_STATUS_MAP: Record<ApiErrorType, number> = {
+const statusMap: Record<ApiErrorType, number> = {
   VALIDATION_ERROR: 400,
-  BAD_REQUEST: 400,
+  NOT_FOUND: 404,
   UNAUTHORIZED: 401,
   FORBIDDEN: 403,
-  NOT_FOUND: 404,
-  CONFLICT: 409,
-  TOO_MANY_REQUESTS: 429,
   INTERNAL_SERVER_ERROR: 500,
-  SERVICE_UNAVAILABLE: 503
+  SERVICE_UNAVAILABLE: 503,
+  TIMEOUT: 408,
+  NETWORK_ERROR: 502
 };
 
 /**
- * 🚨 표준화된 에러 응답 생성
+ * 🚨 API 에러 응답 생성
  */
 export function createErrorResponse(
   message: string,
-  errorType: ApiErrorType = 'INTERNAL_SERVER_ERROR',
-  details?: {
-    error?: string;
-    path?: string;
-    method?: string;
-    code?: string;
-  }
-): NextResponse<StandardApiError> {
-  const statusCode = ERROR_STATUS_MAP[errorType];
-  
-  const errorResponse: StandardApiError = {
-    success: false,
-    message,
-    timestamp: new Date().toISOString(),
-    code: errorType,
-    ...details
-  };
+  type: ApiErrorType = 'INTERNAL_SERVER_ERROR',
+  details?: any,
+  status?: number
+): NextResponse {
+  const responseStatus = status || statusMap[type] || 500;
 
-  return NextResponse.json(errorResponse, { status: statusCode });
+  return NextResponse.json(
+    {
+      success: false,
+      error: {
+        type,
+        message,
+        details,
+        timestamp: new Date().toISOString()
+      }
+    },
+    { status: responseStatus }
+  );
 }
 
 /**
@@ -96,60 +94,69 @@ export function createSuccessResponse<T>(
 }
 
 /**
- * 🔍 에러 감지 및 분류
+ * 🔍 에러 감지 및 분류 (안전한 버전)
  */
 export function classifyError(error: unknown): {
   type: ApiErrorType;
   message: string;
   details?: string;
 } {
-  if (error instanceof Error) {
-    const errorMessage = error.message.toLowerCase();
-    
-    // 에러 메시지 기반 분류
-    if (errorMessage.includes('not found') || errorMessage.includes('404')) {
-      return {
-        type: 'NOT_FOUND',
-        message: '요청한 리소스를 찾을 수 없습니다.',
-        details: error.message
-      };
-    }
-    
-    if (errorMessage.includes('unauthorized') || errorMessage.includes('401')) {
-      return {
-        type: 'UNAUTHORIZED',
-        message: '인증이 필요합니다.',
-        details: error.message
-      };
-    }
-    
-    if (errorMessage.includes('validation') || errorMessage.includes('invalid')) {
-      return {
-        type: 'VALIDATION_ERROR',
-        message: '입력 데이터가 유효하지 않습니다.',
-        details: error.message
-      };
-    }
-    
-    if (errorMessage.includes('service unavailable') || errorMessage.includes('503')) {
-      return {
-        type: 'SERVICE_UNAVAILABLE',
-        message: '서비스를 사용할 수 없습니다.',
-        details: error.message
-      };
-    }
-    
+  const safeError = createSafeError(error);
+  const errorMessage = safeError.message.toLowerCase();
+  
+  // 에러 메시지 기반 분류
+  if (errorMessage.includes('not found') || errorMessage.includes('404')) {
     return {
-      type: 'INTERNAL_SERVER_ERROR',
-      message: '내부 서버 오류가 발생했습니다.',
-      details: error.message
+      type: 'NOT_FOUND',
+      message: '요청한 리소스를 찾을 수 없습니다.',
+      details: safeError.message
+    };
+  }
+  
+  if (errorMessage.includes('unauthorized') || errorMessage.includes('401')) {
+    return {
+      type: 'UNAUTHORIZED',
+      message: '인증이 필요합니다.',
+      details: safeError.message
+    };
+  }
+  
+  if (errorMessage.includes('validation') || errorMessage.includes('invalid')) {
+    return {
+      type: 'VALIDATION_ERROR',
+      message: '입력 데이터가 유효하지 않습니다.',
+      details: safeError.message
+    };
+  }
+  
+  if (errorMessage.includes('service unavailable') || errorMessage.includes('503')) {
+    return {
+      type: 'SERVICE_UNAVAILABLE',
+      message: '서비스를 사용할 수 없습니다.',
+      details: safeError.message
+    };
+  }
+  
+  if (errorMessage.includes('timeout') || errorMessage.includes('시간 초과')) {
+    return {
+      type: 'TIMEOUT',
+      message: '요청 시간이 초과되었습니다.',
+      details: safeError.message
+    };
+  }
+  
+  if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+    return {
+      type: 'NETWORK_ERROR',
+      message: '네트워크 오류가 발생했습니다.',
+      details: safeError.message
     };
   }
   
   return {
     type: 'INTERNAL_SERVER_ERROR',
-    message: '알 수 없는 오류가 발생했습니다.',
-    details: String(error)
+    message: '내부 서버 오류가 발생했습니다.',
+    details: safeError.message
   };
 }
 
@@ -163,7 +170,7 @@ export function withErrorHandler<T extends any[], R>(
     try {
       return await handler(...args);
     } catch (error) {
-      console.error('❌ API 에러 캐치:', error);
+      const safeError = safeErrorLog('❌ API 에러 캐치', error);
       
       const { type, message, details } = classifyError(error);
       
@@ -195,7 +202,7 @@ export function createSystemStatusResponse(
 }
 
 /**
- * 🔄 비동기 작업 에러 핸들링
+ * 🔄 비동기 작업 에러 핸들링 (안전한 버전)
  */
 export async function safeAsyncOperation<T>(
   operation: () => Promise<T>,
@@ -205,12 +212,12 @@ export async function safeAsyncOperation<T>(
     const data = await operation();
     return { success: true, data };
   } catch (error) {
-    const { message } = classifyError(error);
-    console.warn('⚠️ 비동기 작업 실패:', message);
+    const safeError = createSafeError(error);
+    safeErrorLog('⚠️ 비동기 작업 실패', error);
     
     return {
       success: false,
-      error: message,
+      error: safeError.message,
       ...(fallbackValue !== undefined && { data: fallbackValue })
     };
   }
