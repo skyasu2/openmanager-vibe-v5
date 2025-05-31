@@ -1,93 +1,15 @@
-name: ⚡ Fast Deploy (Optimized for Speed)
-
+name: Simple CI
 on:
-  # 검증된 안정 배포 방식 - daa02c8 참조
   push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
-  workflow_dispatch:
-
+    branches: [ main ]
 jobs:
-  # 1. 빠른 빌드 & 배포 (병렬 실행)
-  fast-deploy:
-    name: ⚡ Fast Build & Deploy
+  test:
     runs-on: ubuntu-latest
-    timeout-minutes: 5  # 5분으로 단축
-    outputs:
-      deploy-url: ${{ steps.deploy.outputs.deploy-url }}
     steps:
-    - name: 📦 Checkout
-      uses: actions/checkout@v4
-
-    - name: ⚡ Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        cache-dependency-path: package-lock.json
-
-    - name: 📥 Install (Fast)
-      run: |
-        npm ci --prefer-offline --no-audit --no-fund
-        
-    - name: 🏗️ Build (Optimized)
-      run: |
-        npm run build
-      env:
-        NODE_ENV: production
-        NEXT_TELEMETRY_DISABLED: 1
-
-    - name: 🚀 Deploy to Vercel (Fast)
-      id: deploy
-      run: |
-        npm install --global vercel@latest
-        if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-          echo "🚀 Production deploy..."
-          URL=$(vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes --force)
-        else
-          echo "🚀 Preview deploy..."
-          URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }} --yes --force)
-        fi
-        echo "deploy-url=$URL" >> $GITHUB_OUTPUT
-        echo "✅ Deployed: $URL"
-
-  # 2. 간단한 헬스체크 (선택적)
-  health-check:
-    name: 🏥 Quick Health Check
-    runs-on: ubuntu-latest
-    needs: fast-deploy
-    timeout-minutes: 2  # 2분으로 단축
-    if: github.ref == 'refs/heads/main'  # main 브랜치에서만
-    steps:
-    - name: 🔍 Quick Test
-      run: |
-        URL="${{ needs.fast-deploy.outputs.deploy-url }}"
-        echo "Testing: $URL"
-        
-        # 간단한 HTTP 응답 확인
-        if curl -s --head --fail "$URL" > /dev/null; then
-          echo "✅ Site is live!"
-        else
-          echo "⚠️ Site might be starting up..."
-        fi
-
-  # 3. 결과 알림 (즉시)
-  notify:
-    name: 📢 Done!
-    runs-on: ubuntu-latest
-    needs: [fast-deploy]
-    if: always()
-    timeout-minutes: 1
-    steps:
-    - name: 🎉 Success
-      if: needs.fast-deploy.result == 'success'
-      run: |
-        echo "🎉 DEPLOYED SUCCESSFULLY!"
-        echo "URL: ${{ needs.fast-deploy.outputs.deploy-url }}"
-        echo "⏱️ Time saved with fast deployment!"
-
-    - name: 💥 Failed
-      if: needs.fast-deploy.result == 'failure'
-      run: |
-        echo "💥 Deploy failed - check logs" 
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build 
