@@ -440,7 +440,7 @@ export default function Home() {
                       ease: "easeInOut"
                     }}
                   >
-                    👆
+                    👇
                   </motion.div>
 
                   <motion.button

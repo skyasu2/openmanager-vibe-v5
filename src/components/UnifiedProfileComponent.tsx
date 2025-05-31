@@ -10,12 +10,14 @@ import {
   Power,
   Settings,
   LogOut,
-  ChevronDown
+  ChevronDown,
+  Database
 } from 'lucide-react';
 import Image from 'next/image';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { UnifiedAuthModal } from './UnifiedAuthModal';
 import { useToast } from '@/components/ui/ToastNotification';
+import { ServerGeneratorModal } from './ServerGeneratorModal';
 
 interface UnifiedProfileComponentProps {
   userName?: string;
@@ -28,6 +30,7 @@ export default function UnifiedProfileComponent({
 }: UnifiedProfileComponentProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showServerGeneratorModal, setShowServerGeneratorModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   const {
@@ -330,6 +333,26 @@ export default function UnifiedProfileComponent({
                   </div>
                 </motion.button>
 
+                {/* AI 모드에서만 표시되는 서버 데이터 생성기 설정 */}
+                {aiAgent.isEnabled && (
+                  <motion.button
+                    whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                    onClick={() => {
+                      setShowServerGeneratorModal(true);
+                      setIsOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors"
+                  >
+                    <div className="p-2 rounded-lg bg-blue-500/20">
+                      <Database className="w-4 h-4 text-blue-400" />
+                    </div>
+                    <div>
+                      <div className="text-white font-medium">서버 데이터 생성기 설정</div>
+                      <div className="text-gray-400 text-xs">시뮬레이터 상태 확인 및 제어</div>
+                    </div>
+                  </motion.button>
+                )}
+
                 {aiAgent.isEnabled && (
                   <motion.button
                     whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
@@ -363,6 +386,12 @@ export default function UnifiedProfileComponent({
         isLocked={isLocked}
         attempts={attempts}
         lockoutEndTime={lockoutEndTime}
+      />
+
+      {/* 서버 데이터 생성기 모달 */}
+      <ServerGeneratorModal
+        isOpen={showServerGeneratorModal}
+        onClose={() => setShowServerGeneratorModal(false)}
       />
     </>
   );
