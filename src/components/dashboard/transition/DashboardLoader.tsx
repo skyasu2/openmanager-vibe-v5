@@ -15,7 +15,7 @@ interface DashboardLoaderProps {
   onBootComplete: () => void;
   onPhaseChange?: (phase: string, message: string) => void;
   externalProgress?: number;
-  loadingPhase?: 'minimum-wait' | 'actual-loading' | 'completed' | 'system-starting' | 'data-loading' | 'python-warmup';
+  loadingPhase?: 'system-starting' | 'data-loading' | 'python-warmup' | 'completed';
   estimatedTimeRemaining?: number;
   elapsedTime?: number;
 }
@@ -77,7 +77,7 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
   onBootComplete,
   onPhaseChange,
   externalProgress = 0,
-  loadingPhase = 'minimum-wait',
+  loadingPhase = 'system-starting',
   estimatedTimeRemaining = 0,
   elapsedTime = 0
 }) => {
@@ -376,7 +376,7 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
                 )}
                 
                 <div className="text-cyan-300 text-xs font-medium">
-                  {loadingPhase === 'system-starting' && '�� 시스템 코어 초기화 중...'}
+                  {loadingPhase === 'system-starting' && '🔧 시스템 코어 초기화 중...'}
                   {loadingPhase === 'data-loading' && '📊 서버 데이터 수집 중...'}
                   {loadingPhase === 'python-warmup' && '🐍 파이썬 엔진 웜업 중...'}
                   {loadingPhase === 'completed' && '✅ 모든 시스템 준비 완료!'}

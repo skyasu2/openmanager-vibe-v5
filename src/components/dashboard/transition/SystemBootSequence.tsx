@@ -21,7 +21,7 @@ interface SystemBootSequenceProps {
   skipAnimation?: boolean;
   autoStart?: boolean;
   loadingProgress?: number;
-  loadingPhase?: 'minimum-wait' | 'actual-loading' | 'completed';
+  loadingPhase?: 'system-starting' | 'data-loading' | 'python-warmup' | 'completed';
   estimatedTimeRemaining?: number;
   elapsedTime?: number;
 }
@@ -35,7 +35,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
   skipAnimation = false,
   autoStart = true,
   loadingProgress = 0,
-  loadingPhase = 'minimum-wait',
+  loadingPhase = 'system-starting',
   estimatedTimeRemaining = 0,
   elapsedTime = 0
 }) => {
