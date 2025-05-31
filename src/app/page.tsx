@@ -323,7 +323,7 @@ export default function HomePage() {
         </div>
         
         <div className="flex items-center space-x-4">
-          <ProfileDropdown />
+          <ProfileDropdown onToast={addToast} />
         </div>
       </header>
 
@@ -493,13 +493,13 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* 토스트 알림 컨테이너 */}
-      <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
+      {/* 토스트 알림 컨테이너 - 왼쪽 상단 로고 아래로 이동 */}
+      <div className="fixed top-20 left-6 z-50 space-y-2 max-w-sm">
         {toasts.map((toast) => (
           <div
             key={toast.id}
             className={`
-              p-4 rounded-lg shadow-lg backdrop-blur-sm border-l-4 animate-slide-in-right
+              p-4 rounded-lg shadow-lg backdrop-blur-sm border-l-4 animate-slide-in-left
               ${toast.type === 'success' ? 'bg-green-500/90 border-green-400 text-white' : ''}
               ${toast.type === 'error' ? 'bg-red-500/90 border-red-400 text-white' : ''}
               ${toast.type === 'warning' ? 'bg-yellow-500/90 border-yellow-400 text-black' : ''}
@@ -826,6 +826,21 @@ export default function HomePage() {
           font-weight: 500;
           color: rgba(255, 255, 255, 0.8);
           text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes slideInLeft {
+          from {
+            transform: translateX(-100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        
+        .animate-slide-in-left {
+          animation: slideInLeft 0.3s ease-out;
         }
       `}</style>
     </div>

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Brain, Database, Layers, Activity, Zap, Settings } from 'lucide-react';
 import { FeatureModal } from './FeatureModal';
+import { useAdminMode } from '../../hooks/useAdminMode';
 
 // 카드 데이터 타입 정의
 export interface FeatureCardData {
@@ -18,6 +19,7 @@ export interface FeatureCardData {
   actionText: string;
   actionUrl: string;
   isSpecial?: boolean;
+  requiresAdmin?: boolean;
 }
 
 // 3개 주요 기능 카드 데이터
@@ -38,7 +40,8 @@ export const featureCards: FeatureCardData[] = [
       '패턴 매칭 기반 의도 분류 및 실시간 응답'
     ],
     actionText: 'AI 에이전트 보기',
-    actionUrl: '/admin/ai-agent'
+    actionUrl: '/admin/ai-agent',
+    requiresAdmin: true
   },
   {
     id: 'monitoring-system',
@@ -82,10 +85,66 @@ interface FeatureCardsGridProps {
   className?: string;
 }
 
+// 개발중 모달 컴포넌트
+const DevelopmentModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
+  if (!isOpen) return null;
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        className="absolute inset-0 bg-black/60 backdrop-blur-md"
+        onClick={onClose}
+      />
+      
+      <motion.div
+        className="relative w-full max-w-md bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl p-6"
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+      >
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Settings className="w-8 h-8 text-white animate-spin" style={{ animationDuration: '3s' }} />
+          </div>
+          
+          <h2 className="text-xl font-bold text-white mb-2">개발 중인 기능</h2>
+          <p className="text-gray-300 mb-6">
+            AI 에이전트 기능을 사용하려면 <strong className="text-purple-400">관리자 모드</strong>를 활성화해주세요.
+            <br />
+            <span className="text-sm text-gray-400 mt-2 block">
+              오른쪽 상단 프로필 → 관리자 모드 토글
+            </span>
+          </p>
+          
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-3 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-lg font-medium transition-all"
+          >
+            확인
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 export const FeatureCardsGrid: React.FC<FeatureCardsGridProps> = ({ className = '' }) => {
   const [selectedFeature, setSelectedFeature] = useState<FeatureCardData | null>(null);
+  const [showDevelopmentModal, setShowDevelopmentModal] = useState(false);
+  const { isAdminMode } = useAdminMode();
 
   const handleCardClick = (feature: FeatureCardData) => {
+    // AI 에이전트 카드이고 관리자 모드가 아닌 경우
+    if (feature.requiresAdmin && !isAdminMode) {
+      setShowDevelopmentModal(true);
+      return;
+    }
+    
     setSelectedFeature(feature);
   };
 
@@ -136,12 +195,13 @@ export const FeatureCardsGrid: React.FC<FeatureCardsGridProps> = ({ className = 
         {featureCards.map((feature, index) => (
           <motion.div
             key={feature.id}
-            className="
+            className={`
               relative group cursor-pointer
               p-6 rounded-2xl backdrop-blur-sm border transition-all duration-300
               bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20
               hover:scale-105 hover:-translate-y-2
-            "
+              ${feature.requiresAdmin && !isAdminMode ? 'opacity-75' : ''}
+            `}
             variants={cardVariants}
             whileHover={{ 
               scale: 1.05,
@@ -152,7 +212,7 @@ export const FeatureCardsGrid: React.FC<FeatureCardsGridProps> = ({ className = 
             onClick={() => handleCardClick(feature)}
           >
             {/* 아이콘 영역 */}
-            <div className="flex items-start justify-start mb-6">
+            <div className="flex items-start justify-between mb-6">
               <motion.div
                 className="w-14 h-14 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center"
                 whileHover={{ rotate: 360 }}
@@ -160,6 +220,13 @@ export const FeatureCardsGrid: React.FC<FeatureCardsGridProps> = ({ className = 
               >
                 <feature.icon className="w-7 h-7 text-white" />
               </motion.div>
+              
+              {/* 관리자 모드 필요 뱃지 */}
+              {feature.requiresAdmin && !isAdminMode && (
+                <div className="px-2 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full">
+                  <span className="text-xs text-orange-300 font-medium">관리자 전용</span>
+                </div>
+              )}
             </div>
 
             {/* 텍스트 영역 */}
@@ -189,7 +256,7 @@ export const FeatureCardsGrid: React.FC<FeatureCardsGridProps> = ({ className = 
         ))}
       </motion.div>
 
-      {/* 모달 */}
+      {/* 기능 상세 모달 */}
       {selectedFeature && (
         <FeatureModal
           feature={selectedFeature}
@@ -197,6 +264,12 @@ export const FeatureCardsGrid: React.FC<FeatureCardsGridProps> = ({ className = 
           onAction={handleAction}
         />
       )}
+
+      {/* 개발중 모달 */}
+      <DevelopmentModal
+        isOpen={showDevelopmentModal}
+        onClose={() => setShowDevelopmentModal(false)}
+      />
     </>
   );
 }; 
