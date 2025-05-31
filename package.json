@@ -117,6 +117,9 @@
     "@tanstack/react-virtual": "^3.13.9",
     "@tensorflow/tfjs": "^4.22.0",
     "@types/ioredis": "^4.28.10",
+    "@types/node": "^20.17.50",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
     "@use-gesture/react": "^10.3.1",
     "@vercel/kv": "^3.0.0",
     "@xenova/transformers": "^2.17.2",
@@ -149,6 +152,7 @@
     "socket.io-client": "^4.8.1",
     "tailwind-merge": "^3.3.0",
     "tailwindcss": "^3.4.1",
+    "typescript": "^5",
     "vaul": "^1.1.2",
     "ws": "^8.18.2",
     "zod": "^3.25.30",
@@ -165,9 +169,6 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
-    "@types/node": "^20.17.50",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
     "@typescript-eslint/eslint-plugin": "^8.32.1",
     "@typescript-eslint/parser": "^8.32.1",
     "@vitejs/plugin-react": "^4.5.0",
@@ -181,7 +182,6 @@
     "rimraf": "^6.0.1",
     "storybook": "^8.6.14",
     "tsx": "^4.19.2",
-    "typescript": "^5",
     "vitest": "^3.1.4"
   }
 }
