@@ -23,10 +23,12 @@ import {
   Lightbulb,
   Cpu,
   X,
-  BarChart3
+  BarChart3,
+  PlayCircle,
+  Bot
 } from 'lucide-react';
 import { ToastContainer, useToast } from '@/components/ui/ToastNotification';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // 동적 렌더링 강제 (HTML 파일 생성 방지)
 export const dynamic = 'force-dynamic';
@@ -43,8 +45,9 @@ interface ToastNotification {
 
 export default function Home() {
   const router = useRouter();
-  const { isSystemStarted, startSystem, stopSystem } = useUnifiedAdminStore();
-  const { success, error, info } = useToast();
+  const { isSystemStarted, aiAgent, startSystem, stopSystem } = useUnifiedAdminStore();
+  const { success, error, info, warning } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   // AI 단어에 그라데이션 애니메이션 적용하는 함수
   const renderTextWithAIGradient = (text: string) => {
@@ -76,18 +79,41 @@ export default function Home() {
     });
   };
 
-  const handleSystemToggle = () => {
-    if (isSystemStarted) {
-      stopSystem();
-      info('시스템이 정지되었습니다.');
-    } else {
-      startSystem();
-      success('시스템이 시작되었습니다.');
+  const handleSystemToggle = async () => {
+    setIsLoading(true);
+    try {
+      if (isSystemStarted) {
+        stopSystem();
+        success('시스템이 정지되었습니다. 모든 서비스가 비활성화됩니다.');
+      } else {
+        startSystem();
+        success('시스템이 시작되었습니다. 모든 서비스가 활성화됩니다.');
+      }
+    } catch (err) {
+      console.error('시스템 제어 오류:', err);
+      error('시스템 제어 중 오류가 발생했습니다.');
+    } finally {
+      // 약간의 지연 후 로딩 해제 (시각적 피드백)
+      setTimeout(() => setIsLoading(false), 1000);
     }
   };
 
   const handleDashboardClick = () => {
+    if (!isSystemStarted) {
+      warning('시스템을 먼저 시작해주세요.');
+      return;
+    }
     router.push('/dashboard');
+  };
+
+  const handleAIAgentToggle = () => {
+    if (!isSystemStarted) {
+      warning('시스템을 먼저 시작해주세요.');
+      return;
+    }
+    
+    // 프로필 컴포넌트에서 처리하도록 안내
+    info('우측 상단 프로필 메뉴에서 AI 에이전트를 활성화할 수 있습니다.');
   };
 
   return (
@@ -130,41 +156,148 @@ export default function Home() {
           </p>
         </div>
 
-        {/* 서버 제어 버튼들 */}
-        <div className="flex justify-center gap-4 mb-8">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleSystemToggle}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
-              isSystemStarted
-                ? 'bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/50'
-                : 'bg-green-500/20 hover:bg-green-500/30 text-green-300 border border-green-500/50'
-            }`}
-          >
-            {isSystemStarted ? (
-              <>
-                <StopCircle className="w-5 h-5" />
-                시스템 중지
-              </>
-            ) : (
-              <>
-                <Play className="w-5 h-5" />
-                시스템 시작
-              </>
-            )}
-          </motion.button>
+        {/* 시스템 제어 섹션 */}
+        <motion.div
+          className="mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          {!isSystemStarted ? (
+            /* 시스템 중지 상태 */
+            <div className="max-w-md mx-auto text-center">
+              {/* 시스템 종료 상태 안내 */}
+              <div className="mb-6 p-4 bg-red-500/20 border border-red-400/30 rounded-xl backdrop-blur-sm">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="text-red-200 font-semibold">시스템 종료됨</span>
+                </div>
+                <p className="text-red-100 text-sm">
+                  모든 서비스가 중지되었습니다.<br />
+                  <strong>아래 버튼을 눌러 시스템을 다시 시작하세요.</strong>
+                </p>
+              </div>
+              
+              {/* 손가락 표시 애니메이션 */}
+              <div className="relative mb-6">
+                <motion.div
+                  className="absolute -top-12 left-1/2 transform -translate-x-1/2 text-2xl"
+                  animate={{
+                    y: [0, -10, 0],
+                    rotate: [0, 10, -10, 0]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  👇
+                </motion.div>
+                
+                <motion.button
+                  onClick={handleSystemToggle}
+                  disabled={isLoading}
+                  className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl font-semibold text-white shadow-xl hover:shadow-2xl transition-all duration-300 disabled:opacity-75"
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                  ) : (
+                    <Power className="w-6 h-6" />
+                  )}
+                  <span>{isLoading ? '시작 중...' : '🚀 시스템 시작'}</span>
+                </motion.button>
+              </div>
+              
+              <p className="text-white/80 text-sm">
+                <strong>통합 시스템 시작:</strong> 서버 시딩 → 시뮬레이션 → 데이터 생성<br />
+                모든 서비스가 자동으로 순차 시작됩니다
+              </p>
+            </div>
+          ) : (
+            /* 시스템 활성 상태 */
+            <div className="max-w-2xl mx-auto">
+              {/* 시스템 활성 상태 안내 */}
+              <div className="mb-6 p-4 bg-green-500/20 border border-green-400/30 rounded-xl backdrop-blur-sm">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-green-200 font-semibold">시스템 실행 중</span>
+                </div>
+                <p className="text-green-100 text-sm text-center">
+                  모든 서비스가 정상적으로 실행되고 있습니다.
+                </p>
+              </div>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleDashboardClick}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/50 transition-all duration-200"
-          >
-            <BarChart3 className="w-5 h-5" />
-            대시보드
-          </motion.button>
-        </div>
+              {/* 제어 버튼들 */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                {/* 대시보드 버튼 */}
+                <motion.button
+                  onClick={handleDashboardClick}
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/50 rounded-xl font-medium transition-all duration-200"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <BarChart3 className="w-5 h-5" />
+                  📊 대시보드 들어가기
+                </motion.button>
+
+                {/* AI 에이전트 버튼 */}
+                <motion.button
+                  onClick={handleAIAgentToggle}
+                  className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 border ${
+                    aiAgent.isEnabled
+                      ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 text-purple-300 border-purple-500/50'
+                      : 'bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 border-orange-500/50'
+                  }`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <motion.div
+                    animate={aiAgent.isEnabled ? {
+                      rotate: [0, 360],
+                      scale: [1, 1.1, 1]
+                    } : {}}
+                    transition={{
+                      rotate: { duration: 3, repeat: Infinity, ease: "linear" },
+                      scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+                    }}
+                  >
+                    <Bot className="w-5 h-5" />
+                  </motion.div>
+                  {aiAgent.isEnabled ? (
+                    <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent font-bold">
+                      🤖 AI 에이전트 활성
+                    </span>
+                  ) : (
+                    '🤖 AI 에이전트 설정'
+                  )}
+                </motion.button>
+
+                {/* 시스템 중지 버튼 */}
+                <motion.button
+                  onClick={handleSystemToggle}
+                  disabled={isLoading}
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/50 rounded-xl font-medium transition-all duration-200 disabled:opacity-75"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <StopCircle className="w-5 h-5" />
+                  )}
+                  <span>{isLoading ? '중지 중...' : '⏹️ 시스템 중지'}</span>
+                </motion.button>
+              </div>
+
+              <p className="text-white/60 text-xs mt-4 text-center">
+                시스템이 활성화되어 있습니다. 대시보드에서 상세 모니터링을 확인하세요.
+              </p>
+            </div>
+          )}
+        </motion.div>
 
         {/* 기능 카드 그리드 */}
         <div className="mb-12">

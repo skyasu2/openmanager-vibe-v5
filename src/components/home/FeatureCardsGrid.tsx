@@ -200,18 +200,18 @@ export default function FeatureCardsGrid() {
                 />
               )}
               
-              {/* 바이브 코딩 카드 황금 그라데이션 애니메이션 */}
+              {/* 바이브 코딩 카드 골드 그라데이션 애니메이션 */}
               {card.isVibeCard && (
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-br from-amber-400/20 via-orange-500/20 to-yellow-600/20 rounded-2xl"
+                  className="absolute inset-0 rounded-2xl"
                   animate={{
                     background: [
-                      'linear-gradient(135deg, rgba(251,191,36,0.2) 0%, rgba(249,115,22,0.2) 50%, rgba(234,179,8,0.2) 100%)',
-                      'linear-gradient(135deg, rgba(234,179,8,0.2) 0%, rgba(251,191,36,0.2) 50%, rgba(249,115,22,0.2) 100%)',
-                      'linear-gradient(135deg, rgba(249,115,22,0.2) 0%, rgba(234,179,8,0.2) 50%, rgba(251,191,36,0.2) 100%)',
-                      'linear-gradient(135deg, rgba(251,191,36,0.2) 0%, rgba(249,115,22,0.2) 50%, rgba(234,179,8,0.2) 100%)'
+                      'linear-gradient(135deg, rgba(251,191,36,0.3) 0%, rgba(249,115,22,0.3) 50%, rgba(234,179,8,0.3) 100%)',
+                      'linear-gradient(135deg, rgba(234,179,8,0.3) 0%, rgba(251,191,36,0.3) 50%, rgba(249,115,22,0.3) 100%)',
+                      'linear-gradient(135deg, rgba(249,115,22,0.3) 0%, rgba(234,179,8,0.3) 50%, rgba(251,191,36,0.3) 100%)',
+                      'linear-gradient(135deg, rgba(251,191,36,0.3) 0%, rgba(249,115,22,0.3) 50%, rgba(234,179,8,0.3) 100%)'
                     ],
-                    opacity: [0.2, 0.4, 0.2]
+                    opacity: [0.3, 0.6, 0.3]
                   }}
                   transition={{
                     duration: 3,
@@ -272,13 +272,6 @@ export default function FeatureCardsGrid() {
                 {card.requiresAI && !aiAgent.isEnabled && (
                   <div className="mt-2 px-2 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full text-orange-300 text-xs text-center">
                     AI 에이전트 모드 필요
-                  </div>
-                )}
-
-                {/* 특별 카드 배지 */}
-                {card.isSpecial && (
-                  <div className="mt-2 px-2 py-1 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-full text-amber-300 text-xs text-center">
-                    ✨ 황금 경험
                   </div>
                 )}
               </div>

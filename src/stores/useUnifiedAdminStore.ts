@@ -49,169 +49,287 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
       
       // 시스템 제어
       startSystem: () => {
-        set({ isSystemStarted: true });
-        console.log('🚀 시스템 시작됨 - 기본 모니터링 모드');
+        try {
+          set((state) => ({ 
+            ...state,
+            isSystemStarted: true 
+          }));
+          
+          console.log('🚀 [System] 시스템 시작됨 - 기본 모니터링 모드');
+          
+          // 시스템 시작 이벤트 발생
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('system:started', {
+              detail: { timestamp: Date.now() }
+            }));
+          }
+        } catch (error) {
+          console.error('❌ [System] 시스템 시작 실패:', error);
+        }
       },
       
       stopSystem: () => {
-        set({ 
-          isSystemStarted: false,
-          aiAgent: { isEnabled: false, isAuthenticated: false, state: 'disabled' }
-        });
-        console.log('⏹️ 시스템 정지됨 - 모든 기능 비활성화');
+        try {
+          set((state) => ({ 
+            ...state,
+            isSystemStarted: false,
+            aiAgent: { 
+              isEnabled: false, 
+              isAuthenticated: false, 
+              state: 'disabled' 
+            }
+          }));
+          
+          console.log('⏹️ [System] 시스템 정지됨 - 모든 기능 비활성화');
+          
+          // AI 모드가 활성화되어 있었다면 종료
+          try {
+            modeTimerManager.switchMode('monitoring');
+          } catch (timerError) {
+            console.warn('⚠️ [Timer] ModeTimerManager 정리 중 오류:', timerError);
+          }
+          
+          // 시스템 종료 이벤트 발생
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('system:stopped', {
+              detail: { timestamp: Date.now() }
+            }));
+          }
+        } catch (error) {
+          console.error('❌ [System] 시스템 정지 실패:', error);
+        }
       },
       
       // 잠금 상태 확인
       checkLockStatus: () => {
-        const { isLocked, lockoutEndTime } = get();
-        
-        if (isLocked && lockoutEndTime) {
-          const now = Date.now();
-          if (now < lockoutEndTime) {
-            return false; // 아직 잠김
-          } else {
-            // 잠금 해제
-            set({ 
-              isLocked: false, 
-              lockoutEndTime: null, 
-              attempts: 0 
-            });
-            return true;
+        try {
+          const { isLocked, lockoutEndTime } = get();
+          
+          if (isLocked && lockoutEndTime) {
+            const now = Date.now();
+            if (now < lockoutEndTime) {
+              return false; // 아직 잠김
+            } else {
+              // 잠금 해제
+              set((state) => ({ 
+                ...state,
+                isLocked: false, 
+                lockoutEndTime: null, 
+                attempts: 0 
+              }));
+              console.log('🔓 [Auth] 계정 잠금 해제됨');
+              return true;
+            }
           }
+          
+          return !isLocked;
+        } catch (error) {
+          console.error('❌ [Auth] 잠금 상태 확인 실패:', error);
+          return false;
         }
-        
-        return !isLocked;
       },
       
       // 남은 잠금 시간
       getRemainingLockTime: () => {
-        const { isLocked, lockoutEndTime } = get();
-        if (!isLocked || !lockoutEndTime) return 0;
-        return Math.max(0, lockoutEndTime - Date.now());
+        try {
+          const { isLocked, lockoutEndTime } = get();
+          if (!isLocked || !lockoutEndTime) return 0;
+          return Math.max(0, lockoutEndTime - Date.now());
+        } catch (error) {
+          console.error('❌ [Auth] 잠금 시간 계산 실패:', error);
+          return 0;
+        }
       },
       
       // AI 에이전트 인증 (관리자 모드 통합)
       authenticateAIAgent: (password: string) => {
-        const { attempts, checkLockStatus } = get();
-        
-        // 잠금 상태 확인
-        if (!checkLockStatus()) {
-          const remainingTime = get().getRemainingLockTime();
-          return {
-            success: false,
-            message: `5번 틀려서 10분간 잠겼습니다. ${Math.ceil(remainingTime / 1000)}초 후 다시 시도하세요.`,
-            remainingTime
-          };
-        }
-        
-        if (password === ADMIN_PASSWORD) {
-          set({ 
-            aiAgent: {
-              isEnabled: true,
-              isAuthenticated: true,
-              state: 'enabled'
-            },
-            attempts: 0
-          });
+        try {
+          const { attempts, checkLockStatus, isSystemStarted } = get();
           
-          console.log('✅ AI 에이전트 모드 활성화 - 지능형 분석 시작');
-          
-          // ModeTimerManager를 사용한 AI 모드 시작
-          modeTimerManager.switchMode('ai');
-          window.dispatchEvent(new CustomEvent('stopCurrentMode'));
-          window.dispatchEvent(new CustomEvent('startAIMode'));
-          
-          return { 
-            success: true, 
-            message: 'AI 에이전트 모드가 활성화되었습니다. 지능형 분석을 시작합니다.' 
-          };
-        } else {
-          const newAttempts = attempts + 1;
-          
-          if (newAttempts >= MAX_ATTEMPTS) {
-            const lockoutEndTime = Date.now() + LOCKOUT_DURATION;
-            set({ 
-              attempts: newAttempts,
-              isLocked: true,
-              lockoutEndTime
-            });
+          // 시스템이 실행 중인지 확인
+          if (!isSystemStarted) {
             return {
               success: false,
-              message: '5번 틀려서 10분간 잠겼습니다. 잠시 후 다시 시도하세요.'
-            };
-          } else {
-            set({ attempts: newAttempts });
-            return {
-              success: false,
-              message: `비밀번호가 틀렸습니다. (${newAttempts}/${MAX_ATTEMPTS})`
+              message: '시스템을 먼저 시작해주세요.'
             };
           }
+          
+          // 잠금 상태 확인
+          if (!checkLockStatus()) {
+            const remainingTime = get().getRemainingLockTime();
+            console.warn('🔒 [Auth] 계정 잠금 상태 - 인증 시도 차단');
+            return {
+              success: false,
+              message: `5번 틀려서 잠겼습니다. ${Math.ceil(remainingTime / 1000)}초 후 다시 시도하세요.`,
+              remainingTime
+            };
+          }
+          
+          if (password === ADMIN_PASSWORD) {
+            set((state) => ({ 
+              ...state,
+              aiAgent: {
+                isEnabled: true,
+                isAuthenticated: true,
+                state: 'enabled'
+              },
+              attempts: 0
+            }));
+            
+            console.log('✅ [AI] AI 에이전트 모드 활성화 - 지능형 분석 시작');
+            
+            // ModeTimerManager를 사용한 AI 모드 시작
+            try {
+              modeTimerManager.switchMode('ai');
+              
+              // 이벤트 발생
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('ai:enabled', {
+                  detail: { timestamp: Date.now() }
+                }));
+              }
+            } catch (timerError) {
+              console.warn('⚠️ [Timer] ModeTimerManager 전환 중 오류:', timerError);
+            }
+            
+            return { 
+              success: true, 
+              message: 'AI 에이전트 모드가 활성화되었습니다. 지능형 분석을 시작합니다.' 
+            };
+          } else {
+            const newAttempts = attempts + 1;
+            console.warn(`🚫 [Auth] 인증 실패 (${newAttempts}/${MAX_ATTEMPTS})`);
+            
+            if (newAttempts >= MAX_ATTEMPTS) {
+              const lockoutEndTime = Date.now() + LOCKOUT_DURATION;
+              set((state) => ({ 
+                ...state,
+                attempts: newAttempts,
+                isLocked: true,
+                lockoutEndTime
+              }));
+              console.error('🔒 [Auth] 계정 잠금 - 최대 시도 횟수 초과');
+              return {
+                success: false,
+                message: '5번 틀려서 잠겼습니다. 잠시 후 다시 시도하세요.'
+              };
+            } else {
+              set((state) => ({ ...state, attempts: newAttempts }));
+              return {
+                success: false,
+                message: `비밀번호가 틀렸습니다. (${newAttempts}/${MAX_ATTEMPTS})`
+              };
+            }
+          }
+        } catch (error) {
+          console.error('❌ [AI] AI 에이전트 인증 실패:', error);
+          return {
+            success: false,
+            message: '인증 처리 중 오류가 발생했습니다.'
+          };
         }
       },
       
       // AI 에이전트 비활성화
       disableAIAgent: () => {
-        set({ 
-          aiAgent: {
-            isEnabled: false,
-            isAuthenticated: false,
-            state: 'disabled'
+        try {
+          set((state) => ({ 
+            ...state,
+            aiAgent: {
+              isEnabled: false,
+              isAuthenticated: false,
+              state: 'disabled'
+            }
+          }));
+          
+          console.log('🔐 [AI] AI 에이전트 모드 종료 - 기본 모니터링 모드로 전환');
+          
+          // ModeTimerManager를 사용한 기본 모니터링으로 전환
+          try {
+            modeTimerManager.switchMode('monitoring');
+            
+            // 이벤트 발생
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('ai:disabled', {
+                detail: { timestamp: Date.now() }
+              }));
+            }
+          } catch (timerError) {
+            console.warn('⚠️ [Timer] ModeTimerManager 전환 중 오류:', timerError);
           }
-        });
-        
-        console.log('🔐 AI 에이전트 모드 종료 - 기본 모니터링 모드로 전환');
-        
-        // ModeTimerManager를 사용한 기본 모니터링으로 전환
-        modeTimerManager.switchMode('monitoring');
-        window.dispatchEvent(new CustomEvent('stopCurrentMode'));
-        window.dispatchEvent(new CustomEvent('startMonitoringMode'));
+        } catch (error) {
+          console.error('❌ [AI] AI 에이전트 비활성화 실패:', error);
+        }
       },
       
       // AI 처리 토글 (더 이상 사용하지 않음)
       toggleAIProcessing: async () => {
-        const { aiAgent } = get();
-        
-        if (!aiAgent.isEnabled || !aiAgent.isAuthenticated) {
-          throw new Error('AI 에이전트 모드가 필요합니다.');
-        }
-        
-        // 간단한 상태 토글만 수행
-        const newState = aiAgent.state === 'processing' ? 'enabled' : 'processing';
-        
-        set({ 
-          aiAgent: { 
-            ...aiAgent,
-            state: newState
+        try {
+          const { aiAgent } = get();
+          
+          if (!aiAgent.isEnabled || !aiAgent.isAuthenticated) {
+            throw new Error('AI 에이전트 모드가 필요합니다.');
           }
-        });
+          
+          // 간단한 상태 토글만 수행
+          const newState = aiAgent.state === 'processing' ? 'enabled' : 'processing';
+          
+          set((state) => ({ 
+            ...state,
+            aiAgent: { 
+              ...state.aiAgent,
+              state: newState
+            }
+          }));
+          
+          console.log(`🔄 [AI] AI 처리 상태 변경: ${newState}`);
+        } catch (error) {
+          console.error('❌ [AI] AI 처리 토글 실패:', error);
+          throw error;
+        }
       },
       
       // 로그아웃
       logout: () => {
-        set({ 
-          aiAgent: {
-            isEnabled: false,
-            isAuthenticated: false,
-            state: 'disabled'
+        try {
+          set((state) => ({ 
+            ...state,
+            aiAgent: {
+              isEnabled: false,
+              isAuthenticated: false,
+              state: 'disabled'
+            }
+          }));
+          
+          console.log('🔐 [Auth] 로그아웃 - 기본 모니터링 모드로 전환');
+          
+          // ModeTimerManager 정리
+          try {
+            modeTimerManager.switchMode('monitoring');
+          } catch (timerError) {
+            console.warn('⚠️ [Timer] ModeTimerManager 정리 중 오류:', timerError);
           }
-        });
-        
-        console.log('🔐 로그아웃 - 기본 모니터링 모드로 전환');
-        
-        // ModeTimerManager를 사용한 기본 모니터링으로 전환
-        modeTimerManager.switchMode('monitoring');
-        window.dispatchEvent(new CustomEvent('stopCurrentMode'));
-        window.dispatchEvent(new CustomEvent('startMonitoringMode'));
+          
+          // 로그아웃 이벤트 발생
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('auth:logout', {
+              detail: { timestamp: Date.now() }
+            }));
+          }
+        } catch (error) {
+          console.error('❌ [Auth] 로그아웃 실패:', error);
+        }
       }
     }),
     {
-      name: 'unified-admin-store',
-      partialize: (state) => ({ 
+      name: 'unified-admin-storage',
+      partialize: (state) => ({
+        isSystemStarted: state.isSystemStarted,
         aiAgent: state.aiAgent,
         attempts: state.attempts,
         isLocked: state.isLocked,
         lockoutEndTime: state.lockoutEndTime
-      })
+      }),
     }
   )
 ); 

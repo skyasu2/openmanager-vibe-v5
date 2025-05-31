@@ -37,6 +37,205 @@
   background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
 }
 
+/* 손가락 포인터 애니메이션 */
+.finger-pointer {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5rem;
+  animation: fingerBounce 2s ease-in-out infinite;
+}
+
+@keyframes fingerBounce {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateX(-50%) translateY(-8px) rotate(5deg);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-4px) rotate(-5deg);
+  }
+  75% {
+    transform: translateX(-50%) translateY(-8px) rotate(5deg);
+  }
+}
+
+/* AI 그라데이션 버튼 스타일 */
+.ai-gradient-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-gradient-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.ai-gradient-button:hover::before {
+  left: 100%;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 시스템 버튼 펄스 효과 */
+.system-button-pulse {
+  animation: systemPulse 2s ease-in-out infinite;
+}
+
+@keyframes systemPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 15px rgba(34, 197, 94, 0);
+  }
+}
+
+/* AI 텍스트 그라데이션 애니메이션 */
+.ai-text-gradient {
+  background: linear-gradient(135deg, #a855f7, #ec4899, #06b6d4);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: textGradientFlow 3s ease infinite;
+}
+
+@keyframes textGradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 버튼 호버 애니메이션 강화 */
+.enhanced-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.enhanced-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.4s ease, height 0.4s ease;
+}
+
+.enhanced-button:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* 상태 표시 점 애니메이션 */
+.status-dot {
+  position: relative;
+}
+
+.status-dot::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  animation: statusRipple 2s ease-out infinite;
+}
+
+.status-dot.active::after {
+  border: 2px solid #22c55e;
+}
+
+.status-dot.inactive::after {
+  border: 2px solid #ef4444;
+}
+
+.status-dot.warning::after {
+  border: 2px solid #f59e0b;
+}
+
+@keyframes statusRipple {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+/* 로딩 스피너 개선 */
+.enhanced-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid #ffffff;
+  border-radius: 50%;
+  animation: enhancedSpin 1s linear infinite;
+}
+
+@keyframes enhancedSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 카드 호버 효과 강화 */
+.feature-card-enhanced {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.feature-card-enhanced:hover::before {
+  transform: translateX(100%);
+}
+
 /* 커스텀 스크롤바 개선 */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
@@ -148,4 +347,168 @@
 
 .ai-assistant-panel::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* 골드 그라데이션 애니메이션 강화 */
+.gold-gradient-animation {
+  background: linear-gradient(
+    135deg, 
+    rgba(251,191,36,0.4) 0%, 
+    rgba(249,115,22,0.4) 25%,
+    rgba(234,179,8,0.4) 50%,
+    rgba(245,158,11,0.4) 75%,
+    rgba(251,191,36,0.4) 100%
+  );
+  background-size: 300% 300%;
+  animation: goldFlow 4s ease-in-out infinite;
+  border-radius: inherit;
+}
+
+@keyframes goldFlow {
+  0% {
+    background-position: 0% 50%;
+    opacity: 0.3;
+  }
+  25% {
+    background-position: 50% 0%;
+    opacity: 0.6;
+  }
+  50% {
+    background-position: 100% 50%;
+    opacity: 0.8;
+  }
+  75% {
+    background-position: 50% 100%;
+    opacity: 0.6;
+  }
+  100% {
+    background-position: 0% 50%;
+    opacity: 0.3;
+  }
+}
+
+/* 시스템 상태 그라데이션 */
+.system-active-gradient {
+  background: linear-gradient(
+    135deg,
+    rgba(34,197,94,0.3) 0%,
+    rgba(16,185,129,0.3) 50%,
+    rgba(5,150,105,0.3) 100%
+  );
+  animation: systemPulse 3s ease-in-out infinite;
+}
+
+.system-inactive-gradient {
+  background: linear-gradient(
+    135deg,
+    rgba(239,68,68,0.3) 0%,
+    rgba(220,38,38,0.3) 50%,
+    rgba(185,28,28,0.3) 100%
+  );
+  animation: inactivePulse 2s ease-in-out infinite;
+}
+
+@keyframes inactivePulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.02);
+  }
+}
+
+/* 버튼 상태별 그라데이션 */
+.button-gradient-green {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 4px 15px rgba(16,185,129,0.3);
+  transition: all 0.3s ease;
+}
+
+.button-gradient-green:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  box-shadow: 0 6px 20px rgba(16,185,129,0.4);
+  transform: translateY(-1px);
+}
+
+.button-gradient-red {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 4px 15px rgba(239,68,68,0.3);
+  transition: all 0.3s ease;
+}
+
+.button-gradient-red:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  box-shadow: 0 6px 20px rgba(239,68,68,0.4);
+  transform: translateY(-1px);
+}
+
+.button-gradient-blue {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 4px 15px rgba(59,130,246,0.3);
+  transition: all 0.3s ease;
+}
+
+.button-gradient-blue:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  box-shadow: 0 6px 20px rgba(59,130,246,0.4);
+  transform: translateY(-1px);
+}
+
+/* AI 에이전트 활성 상태 그라데이션 */
+.ai-active-gradient {
+  background: linear-gradient(
+    135deg,
+    rgba(168,85,247,0.4) 0%,
+    rgba(236,72,153,0.4) 50%,
+    rgba(6,182,212,0.4) 100%
+  );
+  background-size: 200% 200%;
+  animation: aiActiveFlow 3s ease infinite;
+}
+
+@keyframes aiActiveFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 향상된 로딩 애니메이션 */
+.loading-spinner-enhanced {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top: 3px solid #ffffff;
+  border-radius: 50%;
+  animation: spinEnhanced 1s linear infinite;
+}
+
+@keyframes spinEnhanced {
+  0% { 
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  25% {
+    transform: rotate(90deg) scale(1.1);
+    opacity: 0.8;
+  }
+  50% { 
+    transform: rotate(180deg) scale(1);
+    opacity: 1;
+  }
+  75% {
+    transform: rotate(270deg) scale(1.1);
+    opacity: 0.8;
+  }
+  100% { 
+    transform: rotate(360deg) scale(1);
+    opacity: 1;
+  }
 } 
