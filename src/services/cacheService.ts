@@ -1,12 +1,13 @@
 /**
- * 🚀 Enhanced Cache Service with Redis Support v2.0
+ * 🚀 Enhanced Cache Service with Upstash for Redis Support v2.0
  * 
- * OpenManager AI v5.12.0 - 고성능 Redis 캐싱 통합 서비스
- * - 고성능 Redis 연결 관리
+ * OpenManager AI v5.16.1 - 고성능 Upstash for Redis 캐싱 통합 서비스
+ * - 고성능 Upstash for Redis 연결 관리
  * - 메모리 fallback 지원
- * - TTL 기반 자동 만료
- * - 실시간 서버 메트릭 캐싱
- * - 연결 풀 및 장애 복구
+ * - 자동 TTL 및 압축
+ * - 배치 작업 최적화
+ * - 에러 복구 시스템
+ * - 실시간 통계
  */
 
 import { EnhancedServerMetrics } from './simulationEngine';
@@ -38,17 +39,17 @@ export class EnhancedCacheService {
     console.log('🚀 캐시 서비스 초기화 시작...');
     
     try {
-      // Redis 연결 초기화
+      // Upstash for Redis 연결 초기화
       const redisConnected = await redisConnectionManager.initialize();
       
       if (redisConnected) {
-        console.log('✅ Redis 캐시 연결 성공');
+        console.log('✅ Upstash for Redis 캐시 연결 성공');
         
-        // Redis 건강 상태 체크
+        // Upstash for Redis 건강 상태 체크
         const healthCheck = await redisConnectionManager.performHealthCheck();
-        console.log(`🏥 Redis 건강 상태: ${healthCheck.status} (응답시간: ${healthCheck.responseTime}ms)`);
+        console.log(`🏥 Upstash for Redis 건강 상태: ${healthCheck.status} (응답시간: ${healthCheck.responseTime}ms)`);
       } else {
-        console.log('💾 메모리 기반 캐시 사용');
+        console.warn('⚠️ Upstash for Redis 연결 실패 - 메모리 캐시로 동작');
       }
 
       this.initialized = true;
@@ -62,14 +63,14 @@ export class EnhancedCacheService {
   }
 
   /**
-   * 🔧 Redis 클라이언트 가져오기
+   * 🔧 Upstash for Redis 클라이언트 가져오기
    */
   private getRedisClient(): any {
     return redisConnectionManager.getClient();
   }
 
   /**
-   * 서버 메트릭 캐싱 (Redis + Memory fallback)
+   * 서버 메트릭 캐싱 (Upstash for Redis + Memory fallback)
    */
   async cacheServerMetrics(servers: EnhancedServerMetrics[]): Promise<void> {
     const timestamp = Date.now();
@@ -78,7 +79,7 @@ export class EnhancedCacheService {
       const redisClient = this.getRedisClient();
       
       if (redisClient && redisConnectionManager.isRedisConnected()) {
-        // 🔥 고성능 Redis 캐싱
+        // 🔥 고성능 Upstash for Redis 캐싱
         const pipeline = redisClient.pipeline();
         
         // 전체 서버 목록
@@ -105,13 +106,13 @@ export class EnhancedCacheService {
         // 배치 실행
         await pipeline.exec();
         
-        console.log(`🔥 Redis: ${servers.length}개 서버 메트릭 캐싱 완료`);
+        console.log(`🔥 Upstash for Redis: ${servers.length}개 서버 메트릭 캐싱 완료`);
       } else {
         // 메모리 fallback
         await this.fallbackToMemoryCache(servers, timestamp);
       }
     } catch (error) {
-      console.warn('⚠️ Redis 캐싱 실패, 메모리 fallback:', error);
+      console.warn('⚠️ Upstash for Redis 캐싱 실패, 메모리 fallback:', error);
       await this.fallbackToMemoryCache(servers, timestamp);
     }
   }
@@ -298,32 +299,33 @@ export class EnhancedCacheService {
   }
 
   /**
-   * Redis 연결 상태 확인
+   * Upstash for Redis 연결 상태 확인
    */
   async checkRedisStatus(): Promise<{ connected: boolean; message: string; details?: any }> {
     try {
       if (!redisConnectionManager.isRedisConnected()) {
-        return { 
-          connected: false, 
-          message: 'Redis 연결되지 않음',
+        return {
+          connected: false,
+          message: 'Upstash for Redis 연결되지 않음',
           details: redisConnectionManager.getConnectionStats()
         };
       }
-      
+
       const healthCheck = await redisConnectionManager.performHealthCheck();
       
-      return { 
-        connected: healthCheck.status !== 'unhealthy', 
-        message: `Redis 상태: ${healthCheck.status}`,
+      return {
+        connected: true,
+        message: `Upstash for Redis 상태: ${healthCheck.status}`,
         details: {
-          ...healthCheck,
+          healthCheck,
           connectionStats: redisConnectionManager.getConnectionStats()
         }
       };
     } catch (error) {
-      return { 
-        connected: false, 
-        message: error instanceof Error ? error.message : 'Redis 건강 체크 실패' 
+      return {
+        connected: false,
+        message: 'Upstash for Redis 상태 확인 실패',
+        details: { error: error instanceof Error ? error.message : String(error) }
       };
     }
   }

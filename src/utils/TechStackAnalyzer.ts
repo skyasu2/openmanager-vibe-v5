@@ -113,16 +113,25 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     importance: 'high'
   },
   'ioredis': {
-    name: 'Redis (IORedis)',
+    name: 'Upstash for Redis (IORedis)',
     category: 'database-backend',
-    description: '고성능 인메모리 캐시 및 세션 스토어',
-    importance: 'high'
+    description: 'Upstash Redis 전용 Node.js 클라이언트 라이브러리',
+    importance: 'high',
+    isCore: true
   },
   'redis': {
-    name: 'Redis',
+    name: 'Upstash for Redis',
     category: 'database-backend',
-    description: '인메모리 데이터 구조 저장소',
-    importance: 'high'
+    description: '서버리스 환경을 위한 고성능 클라우드 Redis 서비스',
+    importance: 'high',
+    isCore: true
+  },
+  'upstash': {
+    name: 'Upstash for Redis',
+    category: 'database-backend',
+    description: 'Vercel과 완벽 호환되는 서버리스 Redis 키-값 스토어',
+    importance: 'high',
+    isCore: true
   },
   '@vercel/kv': {
     name: 'Vercel KV',

@@ -206,7 +206,7 @@ export default function FeatureCards() {
       description: "Prometheus 표준 기반 현실적 서버 메트릭 생성 시스템. 507줄 최적화 엔진으로 65% 데이터 압축과 현실적 패턴을 구현합니다.",
       currentFeatures: "507줄 최적화 엔진, 베이스라인+델타 압축, 24시간 주기 패턴, 30개 가상 서버",
       futureFeatures: "실제 서버 연동, 패턴 학습 시스템, 장애 시나리오 시뮬레이션",
-      techStack: "OptimizedDataGenerator.ts, Prometheus, Redis, Mathematical algorithms",
+      techStack: "OptimizedDataGenerator.ts, Prometheus, Upstash for Redis, Mathematical algorithms",
       action: "데이터 생성기 확인",
       href: "/dashboard",
       icon: <Database className="w-8 h-8" />,
@@ -317,7 +317,7 @@ export default function FeatureCards() {
               {[
                 "Next.js 15.3.2", "React 19", "TypeScript", "TailwindCSS", 
                 "Framer Motion", "Cursor AI", "Claude 3.5", "Vercel", 
-                "Python FastAPI", "Redis", "Prometheus"
+                "Python FastAPI", "Upstash for Redis", "Prometheus"
               ].map((tech, index) => (
                 <motion.span
                   key={tech}

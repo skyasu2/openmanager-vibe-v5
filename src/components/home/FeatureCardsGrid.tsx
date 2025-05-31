@@ -51,7 +51,7 @@ const cardData = [
       technologies: [
         'prom-client, faker.js',
         'Recharts, zustand, TimerManager',
-        'Express (Fastify), Redis',
+        'Express (Fastify), Upstash for Redis',
         'delta-compression'
       ]
     },
@@ -69,11 +69,11 @@ const cardData = [
         'Next.js 14 (App Router), React 19, Tailwind 3.x',
         'Zustand + React Query로 전역 및 API 상태 관리',
         'Vercel 기반 자동 배포 + GitHub Actions 분기별 배포 구성',
-        '백엔드는 Node.js + Redis + Supabase 구성'
+        '백엔드는 Node.js + Upstash for Redis + Supabase 구성'
       ],
       technologies: [
         'Next.js, Tailwind, React Query, Zustand',
-        'Supabase, Upstash Redis, Vercel',
+        'Supabase, Upstash for Redis, Vercel',
         'lucide-react, shadcn/ui, clsx',
         'framer-motion'
       ]

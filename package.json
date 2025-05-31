@@ -1,7 +1,7 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.16.1",
-  "description": "🎯 AI 기반 차세대 지능형 인프라 모니터링 플랫폼 - v5.16.1: 대시보드 안정성 개선 + AI API 에러 처리 강화",
+  "version": "5.16.2",
+  "description": "🎯 AI 기반 차세대 지능형 인프라 모니터링 플랫폼 - v5.16.2: Upstash for Redis 브랜딩 통일 + 서버리스 최적화",
   "private": true,
   "keywords": [
     "ai-agent",
