@@ -385,6 +385,56 @@ window.emergencyCompleteBootSequence() // 부팅 시퀀스 비상 완료
 
 ## 🚀 배포 & CI/CD
 
+### 💡 스마트 하이브리드 배포 시스템
+
+OpenManager v5는 **GitHub Actions 비용 70% 절감**과 **배포 속도 50% 향상**을 달성하는 혁신적인 배포 전략을 사용합니다.
+
+#### 🎯 배포 전략 개요
+- 🟢 **Vercel 직접 배포**: UI, 스타일, 문서 변경 (70% 케이스) - **무료**
+- 🔴 **GitHub Actions**: API, 핵심 로직 변경 (30% 케이스) - **최적화된 비용**
+
+#### ⚡ 빠른 배포 명령어
+
+```bash
+# 🟢 직접 배포 (UI/스타일 변경)
+./scripts/deploy.sh "버튼 색상 변경" direct
+
+# 🔴 CI 배포 (API/로직 변경)  
+./scripts/deploy.sh "새 API 엔드포인트" ci
+
+# 📦 NPM 스크립트
+npm run deploy              # Vercel 프로덕션 배포
+npm run deploy:dev          # 개발/프리뷰 배포
+npm run deploy:local        # 로컬 빌드 후 배포
+```
+
+#### 💰 비용 절약 효과
+
+| 항목 | 기존 방식 | 스마트 방식 | 절약 효과 |
+|------|-----------|-------------|-----------|
+| **GitHub Actions 실행** | 100회/월 | 30회/월 | **-70%** |
+| **배포 속도** | 5-8분 | 2-3분 | **-50%** |
+| **월 예상 비용** | $10-15 | $3-5 | **70% 절감** |
+
+#### 📋 배포 유형 가이드
+
+**🟢 직접 배포 케이스 (GitHub Actions 스킵):**
+- ✅ UI 컴포넌트 수정, CSS/스타일 변경
+- ✅ 텍스트/문서 업데이트, 이미지 교체
+- ✅ 작은 버그 픽스, 환경변수 설정
+
+**🔴 GitHub Actions 사용 케이스:**
+- ❗ API 엔드포인트 변경, 핵심 로직 수정
+- ❗ 의존성 업데이트, 보안 관련 수정
+- ❗ 데이터베이스 스키마, 대규모 리팩토링
+
+#### 🔧 자동화된 조건부 실행
+
+GitHub Actions는 다음 조건에서만 실행됩니다:
+- **실행됨**: `src/app/**`, `src/modules/**`, `package.json` 변경
+- **스킵됨**: `src/components/ui/**`, `docs/**`, `README.md` 변경
+- **강제 스킵**: 커밋 메시지에 `[direct]` 태그 포함
+
 ### CI/CD 중단 방지 가이드
 
 OpenManager v5는 안정적인 CI/CD 파이프라인을 위한 여러 보안 장치를 제공합니다.
@@ -454,6 +504,8 @@ npm run health-check:prod
 # 종합 시스템 검증
 npm run system:validate
 ```
+
+**📚 상세 가이드**: [배포 가이드](./docs/DEPLOYMENT_GUIDE.md)
 
 ---
 

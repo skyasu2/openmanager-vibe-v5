@@ -1,8 +1,25 @@
-name: 🧪 CI
+name: 🧪 CI (Major Changes Only)
 
 on:
   push:
     branches: [main, develop]
+    paths: 
+      - 'src/app/**'           # 라우터 변경
+      - 'src/modules/**'       # 핵심 모듈 변경
+      - 'src/lib/**'           # 라이브러리 변경
+      - 'src/services/**'      # 서비스 로직 변경
+      - 'package*.json'        # 의존성 변경
+      - 'next.config.*'        # 설정 변경
+      - '.github/workflows/**' # CI 변경
+      - 'vercel.json'          # 배포 설정 변경
+    # 제외할 경로들 (직접 배포할 항목들)
+    paths-ignore:
+      - 'src/components/ui/**'     # UI 컴포넌트 
+      - 'src/styles/**'            # 스타일
+      - 'README.md'                # 문서
+      - 'docs/**'                  # 문서
+      - 'public/**'                # 정적 파일
+      - '**/*.md'                  # 모든 마크다운
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -11,7 +28,8 @@ jobs:
   build:
     name: 🏗️ Build & Lint
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
+    if: "!contains(github.event.head_commit.message, '[direct]')"
     strategy:
       fail-fast: false
       matrix:

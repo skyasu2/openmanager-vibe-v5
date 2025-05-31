@@ -5,6 +5,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "framework": "nextjs",
+  "installCommand": "npm ci --prefer-offline --no-audit --no-fund",
   "build": {
     "env": {
       "NODE_ENV": "production",
@@ -21,7 +22,8 @@
   "regions": ["icn1"],
   "github": {
     "autoAlias": false,
-    "silent": true
+    "silent": true,
+    "enabled": true
   },
   "headers": [
     {
