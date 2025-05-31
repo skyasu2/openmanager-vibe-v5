@@ -1,11 +1,10 @@
 /**
- * 🔧 SystemChecklist Component v1.1
+ * 🔧 SystemChecklist Component v2.0
  * 
- * 실제 시스템 구성 요소별 체크리스트 UI
- * - 8개 구성 요소의 병렬 진행 표시
- * - 컴팩트하고 모바일 친화적인 디자인
- * - 완료 후 2초 대기 시간
- * - 실시간 체크마크 애니메이션
+ * 미니멀하고 시각적인 시스템 체크리스트
+ * - 텍스트 최소화, 아이콘 중심 디자인
+ * - 화면 깜박임 방지
+ * - 실제 검증 실패 시 대기
  */
 
 'use client';
@@ -19,360 +18,313 @@ interface SystemChecklistProps {
   skipCondition?: boolean;
 }
 
-// 우선순위별 색상 매핑
-const getPriorityColor = (priority: SystemComponent['priority']) => {
-  switch (priority) {
-    case 'critical': return 'text-red-400 bg-red-500/10 border-red-500/30';
-    case 'high': return 'text-orange-400 bg-orange-500/10 border-orange-500/30';
-    case 'medium': return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30';
-    case 'low': return 'text-gray-400 bg-gray-500/10 border-gray-500/30';
+// 컴포넌트 아이콘 매핑 (텍스트 대신 시각적 아이콘)
+const getComponentIcon = (name: string) => {
+  switch (name) {
+    case 'API 서버 연결': return '🌐';
+    case '메트릭 데이터베이스': return '📊';
+    case 'AI 분석 엔진': return '🧠';
+    case 'Prometheus 허브': return '📈';
+    case '서버 생성기': return '🖥️';
+    case '캐시 시스템': return '⚡';
+    case '보안 검증': return '🔒';
+    case 'UI 컴포넌트': return '🎨';
+    default: return '⚙️';
   }
 };
 
-// 상태별 아이콘 컴포넌트 (더 작게)
-const StatusIcon: React.FC<{ status: ComponentStatus }> = ({ status }) => {
+// 상태별 아이콘
+const getStatusIcon = (status: ComponentStatus) => {
+  if (status.status === 'loading') {
+    return (
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full"
+      />
+    );
+  }
+  
   switch (status.status) {
     case 'completed':
       return (
         <motion.div
-          initial={{ scale: 0, rotate: -180 }}
-          animate={{ scale: 1, rotate: 0 }}
-          className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shadow-lg"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center"
         >
-          <motion.span 
-            className="text-white text-xs font-bold"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            ✓
-          </motion.span>
+          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+          </svg>
         </motion.div>
-      );
-    case 'loading':
-      return (
-        <div className="relative">
-          <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          <motion.div 
-            className="absolute inset-0 bg-blue-500/20 rounded-full"
-            animate={{ 
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.6, 0.3]
-            }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-        </div>
       );
     case 'failed':
       return (
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center"
-        >
-          <span className="text-white text-xs font-bold">✗</span>
-        </motion.div>
+        <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </div>
       );
-    default: // pending
-      return (
-        <div className="w-5 h-5 bg-slate-600 rounded-full border-2 border-slate-500" />
-      );
+    case 'pending':
+      return <div className="w-4 h-4 bg-gray-600 rounded-full opacity-50" />;
+    default:
+      return <div className="w-4 h-4 bg-gray-600 rounded-full opacity-50" />;
   }
 };
 
-// 개별 컴포넌트 행 (더 컴팩트)
-const ComponentRow: React.FC<{
-  component: SystemComponent;
-  status: ComponentStatus;
-  index: number;
-}> = ({ component, status, index }) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.05 }}
-      className="flex items-center p-3 bg-slate-800/40 backdrop-blur-sm rounded-lg border border-slate-700/50 hover:bg-slate-800/60 transition-all duration-300"
-    >
-      {/* 상태 아이콘 */}
-      <div className="mr-3 flex-shrink-0">
-        <StatusIcon status={status} />
-      </div>
-      
-      {/* 컴포넌트 정보 */}
-      <div className="flex-grow min-w-0">
-        <div className="flex items-center mb-1">
-          <span className="text-lg mr-2">{component.icon}</span>
-          <h3 className="text-white font-medium text-sm truncate">
-            {component.name}
-          </h3>
-          <span className={`ml-2 px-1.5 py-0.5 text-xs rounded-full font-medium ${getPriorityColor(component.priority)}`}>
-            {component.priority}
-          </span>
-        </div>
-        
-        <p className="text-slate-300 text-xs leading-relaxed mb-1">
-          {component.description}
-        </p>
-        
-        {/* 의존성 표시 (컴팩트) */}
-        {component.dependencies && component.dependencies.length > 0 && (
-          <div className="text-slate-400 text-xs">
-            <span className="mr-1">의존성:</span>
-            {component.dependencies.map((dep, i) => (
-              <span key={dep} className="text-blue-300">
-                {dep}{i < component.dependencies!.length - 1 ? ', ' : ''}
-              </span>
-            ))}
-          </div>
-        )}
-        
-        {/* 진행률 바 (더 작게) */}
-        {status.status === 'loading' && (
-          <div className="mt-2">
-            <div className="flex justify-between text-xs text-slate-400 mb-1">
-              <span>진행률</span>
-              <span>{Math.round(status.progress)}%</span>
-            </div>
-            <div className="w-full bg-slate-700 rounded-full h-1.5 overflow-hidden">
-              <motion.div
-                className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${status.progress}%` }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-              />
-            </div>
-          </div>
-        )}
-        
-        {/* 에러 메시지 (실패 시) */}
-        {status.status === 'failed' && status.error && (
-          <div className="mt-2 p-2 bg-red-900/20 border border-red-500/30 rounded text-red-300 text-xs">
-            ❌ {status.error}
-          </div>
-        )}
-      </div>
-    </motion.div>
-  );
+// 우선순위별 테두리 색상
+const getPriorityBorder = (priority: SystemComponent['priority']) => {
+  switch (priority) {
+    case 'critical': return 'border-red-500/50';
+    case 'high': return 'border-orange-500/50';
+    case 'medium': return 'border-yellow-500/50';
+    case 'low': return 'border-gray-500/50';
+  }
 };
 
-export const SystemChecklist: React.FC<SystemChecklistProps> = ({ 
-  onComplete, 
-  skipCondition = false 
-}) => {
-  const [showCompletionMessage, setShowCompletionMessage] = useState(false);
-  const [completionStartTime, setCompletionStartTime] = useState<number | null>(null);
-
-  const {
-    components,
+export default function SystemChecklist({ onComplete, skipCondition = false }: SystemChecklistProps) {
+  const { 
+    components, 
     componentDefinitions,
     isCompleted,
     totalProgress,
-    completedCount,
+    completedCount, 
     failedCount,
     loadingCount,
     canSkip
-  } = useSystemChecklist({ 
-    onComplete: () => {
-      // 완료 시 즉시 콜백하지 않고 2초 대기
-      setShowCompletionMessage(true);
-      setCompletionStartTime(Date.now());
-    }, 
+  } = useSystemChecklist({
+    onComplete,
     skipCondition,
-    autoStart: true 
+    autoStart: true
   });
+  
+  const [showCompleted, setShowCompleted] = useState(false);
+  const [shouldProceed, setShouldProceed] = useState(false);
 
-  // 완료 후 2초 대기 로직
+  // 완료 처리 로직 개선
   useEffect(() => {
-    if (showCompletionMessage && completionStartTime) {
+    if (isCompleted && !showCompleted) {
+      setShowCompleted(true);
+      
+      // 2초 후 완전히 준비된 상태에서만 진행
       const timer = setTimeout(() => {
-        onComplete();
+        // Critical 컴포넌트가 모두 성공했는지 확인
+        const criticalComponents = componentDefinitions.filter(c => c.priority === 'critical');
+        const allCriticalCompleted = criticalComponents.every(c => {
+          const status = components[c.id];
+          return status && status.status === 'completed';
+        });
+        
+        if (allCriticalCompleted || skipCondition) {
+          setShouldProceed(true);
+          setTimeout(() => onComplete(), 300); // 부드러운 전환을 위한 짧은 지연
+        }
       }, 2000);
-
+      
       return () => clearTimeout(timer);
     }
-  }, [showCompletionMessage, completionStartTime, onComplete]);
+  }, [isCompleted, showCompleted, skipCondition, onComplete, components, componentDefinitions]);
 
-  if (isCompleted && !showCompletionMessage) {
+  // 키보드 단축키 (이미 훅에서 처리되고 있지만 추가 재시도 기능)
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        // 재시도 로직 - 실패한 컴포넌트를 다시 시작
+        window.location.reload();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
+  // 스킵된 경우 즉시 완료 처리
+  if (isCompleted && skipCondition) {
     return null;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
-        {/* 🏢 헤더 (더 컴팩트) */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 
+                    flex items-center justify-center p-4 relative overflow-hidden">
+      
+      {/* 배경 애니메이션 */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500 rounded-full blur-3xl animate-pulse delay-1000" />
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: shouldProceed ? 0 : 1, scale: shouldProceed ? 0.9 : 1 }}
+        transition={{ duration: 0.3 }}
+        className="relative z-10 w-full max-w-md"
+      >
+        {/* 로고 섹션 */}
         <motion.div 
-          className="text-center mb-6"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <motion.div 
-            className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500 rounded-full flex items-center justify-center shadow-xl"
-            animate={{ 
-              boxShadow: [
-                '0 0 20px rgba(59, 130, 246, 0.4)',
-                '0 0 30px rgba(139, 92, 246, 0.6)',
-                '0 0 20px rgba(59, 130, 246, 0.4)'
-              ]
-            }}
-            transition={{ duration: 3, repeat: Infinity }}
-          >
-            <motion.div 
-              className="text-white text-xl font-bold"
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-            >
-              OM
-            </motion.div>
-          </motion.div>
-          <h1 className="text-2xl md:text-3xl font-bold text-white mb-2 drop-shadow-lg">OpenManager</h1>
-          <p className="text-blue-200 text-sm md:text-base">시스템 구성 요소를 준비하고 있습니다...</p>
-        </motion.div>
-        
-        {/* 📊 전체 진행률 (컴팩트) */}
-        <motion.div 
-          className="mb-6"
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <div className="flex justify-between text-white mb-2">
-            <span className="text-sm md:text-base font-semibold">전체 진행률</span>
-            <span className="text-sm md:text-base font-mono">{totalProgress}%</span>
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r 
+                          from-blue-500 to-purple-600 rounded-2xl mb-4 shadow-2xl">
+            <span className="text-2xl font-bold text-white">OM</span>
           </div>
-          <div className="w-full bg-slate-700 rounded-full h-3 overflow-hidden border border-slate-600">
+          <h1 className="text-2xl font-bold text-white mb-2">OpenManager</h1>
+          <p className="text-sm text-gray-300">시스템 초기화 중...</p>
+        </motion.div>
+
+        {/* 전체 진행률 */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-300">전체 진행률</span>
+            <span className="text-sm font-bold text-white">{totalProgress}%</span>
+          </div>
+          <div className="w-full bg-gray-700/50 rounded-full h-2 overflow-hidden">
             <motion.div
-              className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-green-500 rounded-full shadow-lg"
+              className="h-full bg-gradient-to-r from-blue-500 to-green-500 rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${totalProgress}%` }}
               transition={{ duration: 0.5, ease: "easeOut" }}
             />
           </div>
-        </motion.div>
+        </div>
 
-        {/* 📈 상태 요약 (더 작게) */}
-        <motion.div 
-          className="grid grid-cols-3 gap-3 mb-6"
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 text-center">
-            <div className="text-green-400 text-lg md:text-xl font-bold">{completedCount}</div>
-            <div className="text-green-300 text-xs">완료</div>
-          </div>
-          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 text-center">
-            <div className="text-blue-400 text-lg md:text-xl font-bold">{loadingCount}</div>
-            <div className="text-blue-300 text-xs">진행 중</div>
-          </div>
-          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-center">
-            <div className="text-red-400 text-lg md:text-xl font-bold">{failedCount}</div>
-            <div className="text-red-300 text-xs">실패</div>
-          </div>
-        </motion.div>
-        
-        {/* 🔧 시스템 구성 요소 체크리스트 (컴팩트) */}
-        <motion.div 
-          className="bg-slate-800/30 backdrop-blur-sm rounded-xl p-4 mb-4 border border-slate-700/50"
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <h2 className="text-lg md:text-xl font-bold text-white mb-4 flex items-center">
-            <span className="mr-2">🔧</span>
-            시스템 구성 요소
-            <span className="ml-2 text-xs font-normal text-slate-400">
-              ({completedCount + failedCount}/{componentDefinitions.length})
-            </span>
-          </h2>
-          
-          <div className="space-y-3">
-            {componentDefinitions.map((comp, index) => (
-              <ComponentRow
-                key={comp.id}
-                component={comp}
-                status={components[comp.id]}
-                index={index}
-              />
-            ))}
-          </div>
-        </motion.div>
+        {/* 컴팩트한 체크리스트 */}
+        <div className="space-y-2">
+          {componentDefinitions.map((component, index) => {
+            const status = components[component.id];
+            if (!status) return null;
 
-        {/* 🎉 완료 메시지 (2초 표시) */}
+            return (
+              <motion.div
+                key={component.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className={`
+                  flex items-center p-3 rounded-xl border backdrop-blur-sm
+                  ${getPriorityBorder(component.priority)}
+                  ${status.status === 'completed' ? 'bg-green-500/10' : 
+                    status.status === 'failed' ? 'bg-red-500/10' : 
+                    status.status === 'loading' ? 'bg-blue-500/10' : 'bg-gray-500/10'}
+                  transition-all duration-300
+                `}
+              >
+                {/* 컴포넌트 아이콘 */}
+                <span className="text-2xl mr-3">{getComponentIcon(component.name)}</span>
+                
+                {/* 상태 정보 */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-white truncate">
+                      {component.name}
+                    </span>
+                    {getStatusIcon(status)}
+                  </div>
+                  
+                  {/* 진행률 바 (로딩 중일 때만) */}
+                  {status.status === 'loading' && (
+                    <div className="w-full bg-gray-600/30 rounded-full h-1 mt-2 overflow-hidden">
+                      <motion.div
+                        className="h-full bg-blue-400 rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${status.progress}%` }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* 상태 정보 */}
+        <div className="mt-6 flex items-center justify-center space-x-6 text-sm">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full" />
+            <span className="text-gray-300">완료 {completedCount}</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-red-500 rounded-full" />
+            <span className="text-gray-300">실패 {failedCount}</span>
+          </div>
+        </div>
+
+        {/* 에러 시 재시도 버튼 */}
+        {failedCount > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4 text-center"
+          >
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-red-500/20 text-red-300 rounded-lg border border-red-500/50 
+                         hover:bg-red-500/30 transition-colors text-sm"
+            >
+              재시도 (R)
+            </button>
+          </motion.div>
+        )}
+
+        {/* 완료 상태 표시 */}
         <AnimatePresence>
-          {showCompletionMessage && (
+          {showCompleted && (
             <motion.div
-              className="text-center mb-4"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.5 }}
+              className="absolute inset-0 flex items-center justify-center 
+                         bg-green-500/20 backdrop-blur-sm rounded-2xl border border-green-500/50"
             >
-              <div className="bg-green-500/20 border border-green-500/30 rounded-xl p-4">
-                <div className="text-green-400 text-xl font-bold mb-2">🎉 시스템 준비 완료!</div>
-                <div className="text-green-300 text-sm">모든 핵심 구성 요소가 성공적으로 로드되었습니다</div>
-                <div className="text-green-200 text-xs mt-2">대시보드로 이동 중...</div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        
-        {/* 🚀 스킵 옵션 (3초 후 표시) */}
-        <AnimatePresence>
-          {canSkip && !showCompletionMessage && (
-            <motion.div
-              className="text-center"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.4 }}
-            >
-              <motion.button
-                onClick={onComplete}
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg border border-blue-500/30"
-                whileHover={{ 
-                  boxShadow: '0 0 20px rgba(59, 130, 246, 0.4)' 
-                }}
-                whileTap={{ scale: 0.95 }}
-              >
-                🚀 대시보드로 바로 이동
-              </motion.button>
-              
-              <div className="mt-3 text-blue-200 text-xs space-y-1">
-                <div>또는 키보드 단축키:</div>
-                <div className="font-mono text-blue-300">Enter • Space • Escape</div>
+              <div className="text-center">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                  className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4"
+                >
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </motion.div>
+                <h3 className="text-xl font-bold text-white mb-2">시스템 준비 완료!</h3>
+                <p className="text-sm text-gray-300">OpenManager를 시작합니다...</p>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* 🛠️ 개발자 디버깅 정보 (더 작게) */}
-        {process.env.NODE_ENV === 'development' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="mt-4 p-3 bg-slate-900/70 backdrop-blur-lg text-white text-xs rounded-lg border border-slate-600/50 max-w-sm mx-auto"
-          >
-            <div className="font-semibold text-cyan-400 mb-2">🛠️ 개발자 도구</div>
-            <div className="grid grid-cols-2 gap-2 text-slate-300">
-              <div>완료: {completedCount}/{componentDefinitions.length}</div>
-              <div>진행률: {totalProgress}%</div>
-              <div>로딩 중: {loadingCount}</div>
-              <div>실패: {failedCount}</div>
-              <div>스킵 가능: {canSkip ? '✅' : '❌'}</div>
-              <div>완료 상태: {isCompleted ? '✅' : '❌'}</div>
-            </div>
-            <div className="border-t border-slate-600/50 pt-2 mt-2 text-yellow-300">
-              <div className="mb-1">🚀 강제 완료:</div>
-              <div>• Enter/Space/Escape 키</div>
-              <div>• emergencyCompleteChecklist()</div>
-            </div>
-          </motion.div>
-        )}
-      </div>
+        {/* 스킵 버튼 (3초 후 표시) */}
+        <AnimatePresence>
+          {canSkip && !showCompleted && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mt-4 text-center"
+            >
+              <button
+                onClick={onComplete}
+                className="px-4 py-2 bg-blue-500/20 text-blue-300 rounded-lg border border-blue-500/50 
+                           hover:bg-blue-500/30 transition-colors text-sm"
+              >
+                건너뛰기 (ESC)
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 단축키 안내 */}
+        <div className="mt-6 text-center text-xs text-gray-500">
+          <p>ESC/Space: 건너뛰기 • R: 재시도</p>
+        </div>
+      </motion.div>
     </div>
   );
-};
-
-export default SystemChecklist; 
+} 
