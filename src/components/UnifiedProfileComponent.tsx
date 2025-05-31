@@ -18,6 +18,7 @@ import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { UnifiedAuthModal } from './UnifiedAuthModal';
 import { useToast } from '@/components/ui/ToastNotification';
 import { ServerGeneratorModal } from './ServerGeneratorModal';
+import { ServerMonitorModal } from './ServerMonitorModal';
 
 interface UnifiedProfileComponentProps {
   userName?: string;
@@ -31,6 +32,7 @@ export default function UnifiedProfileComponent({
   const [isOpen, setIsOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showServerGeneratorModal, setShowServerGeneratorModal] = useState(false);
+  const [showServerMonitorModal, setShowServerMonitorModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   const {
@@ -353,6 +355,26 @@ export default function UnifiedProfileComponent({
                   </motion.button>
                 )}
 
+                {/* AI 모드에서만 표시되는 서버 모니터링 상태 확인 */}
+                {aiAgent.isEnabled && (
+                  <motion.button
+                    whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                    onClick={() => {
+                      setShowServerMonitorModal(true);
+                      setIsOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors"
+                  >
+                    <div className="p-2 rounded-lg bg-green-500/20">
+                      <Monitor className="w-4 h-4 text-green-400" />
+                    </div>
+                    <div>
+                      <div className="text-white font-medium">서버 모니터링 상태 확인</div>
+                      <div className="text-gray-400 text-xs">실시간 모니터링 상태 및 제어</div>
+                    </div>
+                  </motion.button>
+                )}
+
                 {aiAgent.isEnabled && (
                   <motion.button
                     whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
@@ -392,6 +414,12 @@ export default function UnifiedProfileComponent({
       <ServerGeneratorModal
         isOpen={showServerGeneratorModal}
         onClose={() => setShowServerGeneratorModal(false)}
+      />
+
+      {/* 서버 모니터링 모달 */}
+      <ServerMonitorModal
+        isOpen={showServerMonitorModal}
+        onClose={() => setShowServerMonitorModal(false)}
       />
     </>
   );
