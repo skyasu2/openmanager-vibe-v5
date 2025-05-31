@@ -348,17 +348,6 @@ export default function Home() {
 
               {/* 제어 버튼들 */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                {/* 대시보드 버튼 */}
-                <motion.button
-                  onClick={handleDashboardClick}
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/50 rounded-xl font-medium transition-all duration-200"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <BarChart3 className="w-5 h-5" />
-                  📊 대시보드 들어가기
-                </motion.button>
-
                 {/* AI 에이전트 버튼 */}
                 <motion.button
                   onClick={handleAIAgentToggle}
@@ -389,6 +378,17 @@ export default function Home() {
                   ) : (
                     '🤖 AI 에이전트 설정'
                   )}
+                </motion.button>
+
+                {/* 대시보드 버튼 */}
+                <motion.button
+                  onClick={handleDashboardClick}
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/50 rounded-xl font-medium transition-all duration-200"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <BarChart3 className="w-5 h-5" />
+                  📊 대시보드 들어가기
                 </motion.button>
                 
                 {/* 시스템 중지 버튼 */}

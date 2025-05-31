@@ -191,10 +191,10 @@ export default function FeatureCards() {
   const features = [
     {
       title: "🧠 MCP AI 에이전트",
-      description: "Model Context Protocol 기반 다중 도구 AI 분석 시스템. 6개 전문 도구와 Python ML Bridge를 활용한 서버 상태 분석을 제공합니다.",
-      currentFeatures: "MCP 오케스트레이터, Python ML Bridge + TypeScript 폴백, SSE 실시간 스트리밍",
-      futureFeatures: "컨텍스트 학습 고도화, 분석 도구 확장, 예측 모델 정확도 향상",
-      techStack: "@xenova/transformers, FastAPI, React Query, Server-Sent Events",
+      description: "자연어로 서버 상태를 질의하면 AI가 6개 도구를 조합하여 분석하는 지능형 시스템입니다.",
+      currentFeatures: "MCP 프로토콜 기반 다중 도구 선택, Python 머신러닝 + TypeScript 폴백",
+      futureFeatures: "예측 분석 정확도 향상, 자동 최적화 제안, 컨텍스트 학습 시스템",
+      techStack: "MCP SDK, Python FastAPI, React Query",
       action: "AI 에이전트 체험",
       href: "/admin/ai-agent",
       icon: <Brain className="w-8 h-8" />,
@@ -202,11 +202,11 @@ export default function FeatureCards() {
       isSpecial: false
     },
     {
-      title: "🧪 지능형 데이터 생성기",
-      description: "Prometheus 표준 기반 현실적 서버 메트릭 생성 시스템. 507줄 최적화 엔진으로 65% 데이터 압축과 현실적 패턴을 구현합니다.",
-      currentFeatures: "507줄 최적화 엔진, 베이스라인+델타 압축, 24시간 주기 패턴, 30개 가상 서버",
-      futureFeatures: "실제 서버 연동, 패턴 학습 시스템, 장애 시나리오 시뮬레이션",
-      techStack: "OptimizedDataGenerator.ts, Prometheus, Upstash for Redis, Mathematical algorithms",
+      title: "🧪 실시간 데이터 생성기",
+      description: "Prometheus 표준으로 30개 가상 서버의 현실적 메트릭을 생성하는 507줄 최적화 엔진입니다.",
+      currentFeatures: "베이스라인+델타 압축으로 65% 데이터 절약, 24시간 주기 패턴 시뮬레이션",
+      futureFeatures: "실제 서버 데이터 연동, 장애 시나리오 자동 생성, 부하 테스트 통합",
+      techStack: "Prometheus, 수학적 알고리즘, Redis",
       action: "데이터 생성기 확인",
       href: "/dashboard",
       icon: <Database className="w-8 h-8" />,
@@ -214,23 +214,23 @@ export default function FeatureCards() {
       isSpecial: false
     },
     {
-      title: "🌐 실제 기술 생태계",
-      description: "프로젝트에서 실제로 사용한 모든 기술과 도구들. Next.js 15 + React 19, AI 개발 도구, 클라우드 인프라를 포함한 완전한 기술 스택입니다.",
-      currentFeatures: "Next.js 15.3.2, TypeScript 100%, Cursor AI, Vercel 배포, GitHub Actions CI/CD",
-      futureFeatures: "마이크로서비스 아키텍처, 컨테이너화, 모니터링 시스템 확장",
-      techStack: "Next.js, TypeScript, TailwindCSS, Framer Motion, Vercel, Render",
-      action: "기술 스택 확인",
+      title: "🌐 모던 웹 인프라",
+      description: "Next.js 15 + React 19 기반으로 86개 페이지를 빌드하고 Vercel에 자동 배포되는 시스템입니다.",
+      currentFeatures: "TypeScript 100% 적용, 자동 빌드/배포, 실시간 모니터링 대시보드",
+      futureFeatures: "마이크로서비스 전환, 컨테이너 오케스트레이션, 성능 최적화 자동화",
+      techStack: "Next.js 15, TypeScript, Vercel",
+      action: "인프라 확인",
       href: "/dashboard/realtime",
       icon: <Cpu className="w-8 h-8" />,
       gradient: "bg-gradient-to-r from-purple-500 to-pink-600",
       isSpecial: false
     },
     {
-      title: "⚡ AI 협업 개발 과정",
-      description: "실제 사용한 AI 도구와 개발 방법론. Cursor AI, Claude, GitHub Copilot을 활용한 현실적인 개발 워크플로우를 경험해보세요.",
-      currentFeatures: "Cursor Composer 멀티파일 편집, 타이머 시스템 최적화 (23개→4개), 자동 배포",
-      futureFeatures: "AI 코드 리뷰 시스템, 자동 테스트 생성, 성능 최적화 자동화",
-      techStack: "Cursor AI, Claude 3.5 Sonnet, GitHub Copilot, Chrome DevTools",
+      title: "⚡ Vibe Coding 워크플로우",
+      description: "Cursor AI + Claude로 협업하여 '코드를 치지 않고도' 기능을 완성하는 혁신적 개발 방법론입니다.",
+      currentFeatures: "Cursor Composer 멀티파일 편집, AI 페어 프로그래밍, 자동 문서화",
+      futureFeatures: "AI 코드 리뷰 자동화, 테스트 케이스 자동 생성, 성능 병목 자동 탐지",
+      techStack: "Cursor AI, Claude 3.5 Sonnet",
       action: "🛠️ 개발 과정 보기",
       href: "/vibe-coding",
       icon: <Sparkles className="w-8 h-8" />,
@@ -250,7 +250,7 @@ export default function FeatureCards() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            실제 구현된 핵심 기능
+            실제 구현된 <span className="text-white">핵심 기능</span>
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             발표 가능한 실제 성과와 측정 가능한 개선사항들을 확인해보세요
@@ -315,9 +315,8 @@ export default function FeatureCards() {
             </div>
             <div className="flex flex-wrap justify-center gap-3">
               {[
-                "Next.js 15.3.2", "React 19", "TypeScript", "TailwindCSS", 
-                "Framer Motion", "Cursor AI", "Claude 3.5", "Vercel", 
-                "Python FastAPI", "Upstash for Redis", "Prometheus"
+                "Next.js 15", "React 19", "TypeScript", "TailwindCSS", 
+                "Cursor AI", "Claude 3.5", "Vercel", "Python FastAPI", "Redis"
               ].map((tech, index) => (
                 <motion.span
                   key={tech}

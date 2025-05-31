@@ -333,17 +333,17 @@ export default function FeatureCardsGrid() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className={`relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl ${
+              className={`relative w-full max-w-2xl max-h-[80vh] overflow-y-auto bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-xl shadow-2xl ${
                 selectedCardData.isSpecial ? 'border-amber-500/50 bg-gradient-to-br from-gray-900/95 to-amber-900/20' : ''
               } ${
                 selectedCardData.isAICard ? 'border-pink-500/50 bg-gradient-to-br from-gray-900/95 to-pink-900/20' : ''
               }`}
             >
               {/* 헤더 */}
-              <div className="p-6 border-b border-gray-700/50">
+              <div className="p-4 border-b border-gray-700/50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 bg-gradient-to-br ${selectedCardData.gradient} rounded-lg flex items-center justify-center ${
+                    <div className={`w-10 h-10 bg-gradient-to-br ${selectedCardData.gradient} rounded-lg flex items-center justify-center ${
                       selectedCardData.isSpecial ? 'shadow-lg shadow-amber-500/25' : ''
                     } ${
                       selectedCardData.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
@@ -359,7 +359,7 @@ export default function FeatureCardsGrid() {
                             scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
                           }}
                         >
-                          <selectedCardData.icon className="w-6 h-6 text-white" />
+                          <selectedCardData.icon className="w-5 h-5 text-white" />
                         </motion.div>
                       ) : selectedCardData.isVibeCard ? (
                         <motion.div
@@ -373,17 +373,17 @@ export default function FeatureCardsGrid() {
                             ease: "easeInOut"
                           }}
                         >
-                          <selectedCardData.icon className="w-6 h-6 text-white" />
+                          <selectedCardData.icon className="w-5 h-5 text-white" />
                         </motion.div>
                       ) : (
-                        <selectedCardData.icon className="w-6 h-6 text-white" />
+                        <selectedCardData.icon className="w-5 h-5 text-white" />
                       )}
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold text-white">
+                      <h2 className="text-lg font-bold text-white">
                         {renderTextWithAIGradient(selectedCardData.title)}
                       </h2>
-                      <p className="text-sm text-gray-400">
+                      <p className="text-xs text-gray-400">
                         {renderTextWithAIGradient(selectedCardData.description)}
                       </p>
                     </div>
@@ -398,22 +398,22 @@ export default function FeatureCardsGrid() {
               </div>
 
               {/* 상세 내용 */}
-              <div className="p-6 space-y-6">
+              <div className="p-4 space-y-4">
                 {/* 개요 */}
                 <div>
-                  <h3 className="text-white font-medium mb-3 text-lg">📖 개요</h3>
-                  <p className="text-gray-300 leading-relaxed">
+                  <h3 className="text-white font-medium mb-2 text-base">📖 개요</h3>
+                  <p className="text-gray-300 leading-relaxed text-sm">
                     {renderTextWithAIGradient(selectedCardData.detailedContent.overview)}
                   </p>
                 </div>
 
                 {/* 주요 기능 */}
                 <div>
-                  <h3 className="text-white font-medium mb-4 text-lg">⚡ 주요 기능</h3>
-                  <ul className="space-y-3">
+                  <h3 className="text-white font-medium mb-3 text-base">⚡ 주요 기능</h3>
+                  <ul className="space-y-2">
                     {selectedCardData.detailedContent.features.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-3 text-sm">
-                        <div className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${
+                      <li key={index} className="flex items-start gap-2 text-xs">
+                        <div className={`w-1 h-1 rounded-full mt-1.5 flex-shrink-0 ${
                           selectedCardData.isAICard 
                             ? 'bg-pink-400' 
                             : selectedCardData.isSpecial 
@@ -433,7 +433,7 @@ export default function FeatureCardsGrid() {
                   <TechStackDisplay 
                     categories={analyzedTechStack}
                     showHeader={true}
-                    compact={false}
+                    compact={true}
                   />
                 </div>
               </div>
