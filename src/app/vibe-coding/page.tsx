@@ -110,7 +110,7 @@ export default function AICollaborationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900 overflow-hidden">
       
       {/* 홈 버튼 */}
       <div className="absolute top-6 left-6 z-50">
@@ -135,7 +135,7 @@ export default function AICollaborationPage() {
           }}
           transition={{ duration: 4, repeat: Infinity }}
           className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
-                     w-96 h-96 bg-gradient-to-r from-blue-500/30 to-purple-500/30 rounded-full blur-3xl"
+                     w-96 h-96 bg-gradient-to-r from-green-500/30 to-cyan-500/30 rounded-full blur-3xl"
         />
       </div>
 
