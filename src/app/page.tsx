@@ -161,7 +161,7 @@ export default function HomePage() {
         // 성공 토스트 알림
         addToast({
           type: 'success',
-          title: '🎉 시스템 시작 완료!',
+          title: '시스템 시작 완료!',
           message: result.message,
           duration: 4000
         });
@@ -170,7 +170,7 @@ export default function HomePage() {
         if (result.fallback && result.errors && result.errors.length > 0) {
           addToast({
             type: 'warning',
-            title: '🔄 일부 기능 제한',
+            title: '일부 기능 제한',
             message: '일부 기능이 Fallback 모드로 동작하고 있습니다.',
             duration: 6000
           });
@@ -196,7 +196,7 @@ export default function HomePage() {
         // 오류 토스트 알림
         addToast({
           type: 'error',
-          title: '❌ 시스템 시작 실패',
+          title: '시스템 시작 실패',
           message: result.message || '시스템을 시작할 수 없습니다.',
           duration: 6000
         });
@@ -206,7 +206,7 @@ export default function HomePage() {
       
       addToast({
         type: 'error',
-        title: '🔌 연결 오류',
+        title: '연결 오류',
         message: error.name === 'AbortError' ? '요청 시간 초과' : '네트워크 연결을 확인해주세요.',
         duration: 6000
       });
@@ -227,7 +227,7 @@ export default function HomePage() {
       if (result.success) {
         addToast({
           type: 'success',
-          title: '⏹️ 시스템 중지 완료',
+          title: '시스템 중지 완료',
           message: result.message,
           duration: 3000
         });
@@ -237,7 +237,7 @@ export default function HomePage() {
       } else {
         addToast({
           type: 'error',
-          title: '❌ 시스템 중지 실패',
+          title: '시스템 중지 실패',
           message: result.message || '시스템을 중지할 수 없습니다.',
           duration: 4000
         });
@@ -246,7 +246,7 @@ export default function HomePage() {
       console.error('시스템 중지 오류:', error);
       addToast({
         type: 'error',
-        title: '🔌 연결 오류',
+        title: '연결 오류',
         message: '네트워크 연결을 확인해주세요.',
         duration: 4000
       });
@@ -267,7 +267,7 @@ export default function HomePage() {
       if (result.success) {
         addToast({
           type: 'success',
-          title: '▶️ 시스템 재시작 완료',
+          title: '시스템 재시작 완료',
           message: result.message,
           duration: 3000
         });
@@ -370,7 +370,7 @@ export default function HomePage() {
                     <Play className="w-6 h-6" />
                   )}
                   <span className="text-lg font-semibold">
-                    {isLoading ? '시작 중...' : '🚀 AI 시스템 시작하기'}
+                    {isLoading ? '시작 중...' : 'AI 시스템 시작하기'}
                   </span>
                 </button>
                 
@@ -401,7 +401,7 @@ export default function HomePage() {
                   ) : (
                     <Play className="w-5 h-5" />
                   )}
-                  <span>{isLoading ? '재시작 중...' : '▶️ 시스템 재시작'}</span>
+                  <span>{isLoading ? '재시작 중...' : '시스템 재시작'}</span>
                 </button>
               </div>
             </div>
@@ -430,7 +430,7 @@ export default function HomePage() {
                       onClick={handleGoToDashboard}
                     >
                       <Gauge className="w-5 h-5" />
-                      <span>📊 지금 대시보드 보기</span>
+                      <span>지금 대시보드 보기</span>
                     </button>
                   </div>
                 ) : (
@@ -441,7 +441,7 @@ export default function HomePage() {
                       onClick={handleGoToDashboard}
                     >
                       <Gauge className="w-5 h-5" />
-                      <span>📊 대시보드 들어가기</span>
+                      <span>대시보드 들어가기</span>
                     </button>
                   </div>
                 )}
@@ -458,7 +458,7 @@ export default function HomePage() {
                     ) : (
                       <StopCircle className="w-5 h-5" />
                     )}
-                    <span>{isLoading ? '중지 중...' : '⏹️ 시스템 중지'}</span>
+                    <span>{isLoading ? '중지 중...' : '시스템 중지'}</span>
                   </button>
                 </div>
                 

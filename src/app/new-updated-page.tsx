@@ -39,7 +39,6 @@ interface ToastNotification {
 
 export default function HomePage() {
   const router = useRouter();
-  const [showVibeCoding, setShowVibeCoding] = useState(false);
   const [showMainFeature, setShowMainFeature] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -162,7 +161,7 @@ export default function HomePage() {
         // 성공 토스트 알림
         addToast({
           type: 'success',
-          title: '🎉 시스템 시작 완료!',
+          title: '시스템 시작 완료!',
           message: result.message,
           duration: 4000
         });
@@ -171,7 +170,7 @@ export default function HomePage() {
         if (result.fallback && result.errors && result.errors.length > 0) {
           addToast({
             type: 'warning',
-            title: '🔄 일부 기능 제한',
+            title: '일부 기능 제한',
             message: '일부 기능이 Fallback 모드로 동작하고 있습니다.',
             duration: 6000
           });
@@ -197,7 +196,7 @@ export default function HomePage() {
         // 오류 토스트 알림
         addToast({
           type: 'error',
-          title: '❌ 시스템 시작 실패',
+          title: '시스템 시작 실패',
           message: result.message || '시스템을 시작할 수 없습니다.',
           duration: 6000
         });
@@ -207,7 +206,7 @@ export default function HomePage() {
       
       addToast({
         type: 'error',
-        title: '🔌 연결 오류',
+        title: '연결 오류',
         message: error.name === 'AbortError' ? '요청 시간 초과' : '네트워크 연결을 확인해주세요.',
         duration: 6000
       });
@@ -228,7 +227,7 @@ export default function HomePage() {
       if (result.success) {
         addToast({
           type: 'success',
-          title: '⏹️ 시스템 중지 완료',
+          title: '시스템 중지 완료',
           message: result.message,
           duration: 3000
         });
@@ -238,7 +237,7 @@ export default function HomePage() {
       } else {
         addToast({
           type: 'error',
-          title: '❌ 시스템 중지 실패',
+          title: '시스템 중지 실패',
           message: result.message || '시스템을 중지할 수 없습니다.',
           duration: 4000
         });
@@ -247,7 +246,7 @@ export default function HomePage() {
       console.error('시스템 중지 오류:', error);
       addToast({
         type: 'error',
-        title: '🔌 연결 오류',
+        title: '연결 오류',
         message: '네트워크 연결을 확인해주세요.',
         duration: 4000
       });
@@ -268,7 +267,7 @@ export default function HomePage() {
       if (result.success) {
         addToast({
           type: 'success',
-          title: '▶️ 시스템 재시작 완료',
+          title: '시스템 재시작 완료',
           message: result.message,
           duration: 3000
         });
@@ -283,14 +282,6 @@ export default function HomePage() {
   const handleGoToDashboard = () => {
     setShowDashboardChoice(false);
     router.push('/dashboard/realtime');
-  };
-
-  const openVibeCodingModal = () => {
-    setShowVibeCoding(true);
-  };
-
-  const closeVibeCodingModal = () => {
-    setShowVibeCoding(false);
   };
 
   const openMainFeatureModal = () => {
@@ -386,7 +377,7 @@ export default function HomePage() {
                     <Play className="w-6 h-6" />
                   )}
                   <span className="text-lg font-semibold">
-                    {isLoading ? '시작 중...' : '🚀 AI 시스템 시작하기'}
+                    {isLoading ? '시작 중...' : 'AI 시스템 시작하기'}
                   </span>
                 </button>
                 
@@ -417,7 +408,7 @@ export default function HomePage() {
                   ) : (
                     <Play className="w-5 h-5" />
                   )}
-                  <span>{isLoading ? '재시작 중...' : '▶️ 시스템 재시작'}</span>
+                  <span>{isLoading ? '재시작 중...' : '시스템 재시작'}</span>
                 </button>
               </div>
             </div>
@@ -446,7 +437,7 @@ export default function HomePage() {
                       onClick={handleGoToDashboard}
                     >
                       <Gauge className="w-5 h-5" />
-                      <span>📊 지금 대시보드 보기</span>
+                      <span>지금 대시보드 보기</span>
                     </button>
                   </div>
                 ) : (
@@ -457,7 +448,7 @@ export default function HomePage() {
                       onClick={handleGoToDashboard}
                     >
                       <Gauge className="w-5 h-5" />
-                      <span>📊 대시보드 들어가기</span>
+                      <span>대시보드 들어가기</span>
                     </button>
                   </div>
                 )}
@@ -474,7 +465,7 @@ export default function HomePage() {
                     ) : (
                       <StopCircle className="w-5 h-5" />
                     )}
-                    <span>{isLoading ? '중지 중...' : '⏹️ 시스템 중지'}</span>
+                    <span>{isLoading ? '중지 중...' : '시스템 중지'}</span>
                   </button>
                 </div>
                 
@@ -498,20 +489,6 @@ export default function HomePage() {
           </div>
           
           <FeatureCardsGrid className="mb-8" />
-        </div>
-
-        {/* Vibe Coding 기술 강조 */}
-        <div className="vibe-coding-section fade-in-up">
-          <div className="vibe-badge" onClick={openVibeCodingModal}>
-            {renderIcon('Code')}
-            <span>Vibe Coding</span>
-          </div>
-          <p className="vibe-description">
-            <span className="hidden sm:inline">GPT/Claude + Cursor AI 협업으로 개발된 차세대 AI 에이전트 시스템</span>
-            <span className="sm:hidden">GPT/Claude + Cursor AI 협업 개발</span>
-            <br />
-            <strong>경량화 AI (No LLM Cost)</strong> • <strong>도메인 특화</strong> • <strong className="hidden sm:inline">확장 가능</strong><strong className="sm:hidden">확장성</strong>
-          </p>
         </div>
 
         {/* 푸터 */}
@@ -552,65 +529,6 @@ export default function HomePage() {
         ))}
       </div>
 
-      {/* Vibe Coding 상세 모달 */}
-      {showVibeCoding && (
-        <div className="modal-overlay" onClick={closeVibeCodingModal}>
-          <div className="modal-content vibe-modal" onClick={(e) => e.stopPropagation()}>
-            <button 
-              className="modal-close" 
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                closeVibeCodingModal();
-              }}
-              onTouchStart={(e) => e.stopPropagation()}
-              aria-label="모달 닫기"
-            >
-              ×
-            </button>
-            
-            <div className="modal-header">
-              <div className="modal-emoji">🚀</div>
-              <h2 className="modal-title">Vibe Coding 개발 방식</h2>
-              <p className="modal-description">AI 협업을 통한 차세대 개발 방법론</p>
-            </div>
-
-            <div className="modal-benefits">
-              <h4>🚀 핵심 특징</h4>
-              <ul className="benefits-list">
-                <li>
-                  <i className="fas fa-brain benefit-icon"></i>
-                  <span><strong>GPT/Claude 브레인스토밍</strong> - 아이디어 구체화 후 정확한 프롬프트 작성</span>
-                </li>
-                <li>
-                  <i className="fas fa-code benefit-icon"></i>
-                  <span><strong>Cursor AI 개발</strong> - 완성된 프롬프트로 실시간 코드 구현</span>
-                </li>
-                <li>
-                  <i className="fas fa-upload benefit-icon"></i>
-                  <span><strong>GitHub 자동 배포</strong> - 개발 완료 즉시 자동으로 라이브 반영</span>
-                </li>
-              </ul>
-
-              <div className="vibe-stats">
-                <div className="stat-item">
-                  <span className="stat-number">100%</span>
-                  <span className="stat-label">AI 생성 코드</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-number">실시간</span>
-                  <span className="stat-label">자동 배포</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-number">AI 프롬프트</span>
-                  <span className="stat-label">정확도 향상</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* 메인 AI 에이전트 상세 모달 */}
       {showMainFeature && (
         <div className="modal-overlay" onClick={closeMainFeatureModal}>
@@ -629,13 +547,12 @@ export default function HomePage() {
             </button>
             
             <div className="modal-header">
-              <div className="modal-emoji">🧠</div>
               <h2 className="modal-title">지능형 AI 에이전트</h2>
               <p className="modal-description">LLM 없이도 지능형 응답하는 차세대 서버 관리 솔루션</p>
             </div>
 
             <div className="modal-benefits">
-              <h4>⚡ 핵심 기능</h4>
+              <h4>핵심 기능</h4>
               <ul className="benefits-list">
                 <li>
                   <i className="fas fa-microchip benefit-icon"></i>

@@ -12,7 +12,6 @@ export interface FeatureCardData {
   description: string;
   detailedDescription: string;
   icon: any;
-  emoji: string;
   gradientFrom: string;
   gradientTo: string;
   features: string[];
@@ -29,7 +28,6 @@ export const featureCards: FeatureCardData[] = [
     description: 'MCP 기반 AI 시스템으로 자연어 분석 및 대응',
     detailedDescription: '서버 메트릭을 분석하여 원인 탐지, 예측, 최적화까지 수행하는 차세대 AI 시스템입니다.',
     icon: Brain,
-    emoji: '🧠',
     gradientFrom: 'from-white/5',
     gradientTo: 'to-white/10',
     features: [
@@ -48,7 +46,6 @@ export const featureCards: FeatureCardData[] = [
     description: '실시간 서버 메트릭 수집과 고성능 데이터 분석',
     detailedDescription: 'Prometheus 메트릭을 실시간으로 수집하고 다양한 서버 시나리오를 모니터링하는 고성능 시스템입니다.',
     icon: Activity,
-    emoji: '📊',
     gradientFrom: 'from-white/5',
     gradientTo: 'to-white/10',
     features: [
@@ -67,7 +64,6 @@ export const featureCards: FeatureCardData[] = [
     description: 'Next.js 14 + Supabase + Redis 통합 아키텍처',
     detailedDescription: '최신 웹 기술 스택으로 구축된 확장 가능하고 성능 최적화된 모던 아키텍처입니다.',
     icon: Layers,
-    emoji: '⚡',
     gradientFrom: 'from-white/5',
     gradientTo: 'to-white/10',
     features: [
@@ -156,28 +152,13 @@ export const FeatureCardsGrid: React.FC<FeatureCardsGridProps> = ({ className = 
             onClick={() => handleCardClick(feature)}
           >
             {/* 아이콘 영역 */}
-            <div className="flex items-start justify-between mb-6">
+            <div className="flex items-start justify-start mb-6">
               <motion.div
                 className="w-14 h-14 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center"
                 whileHover={{ rotate: 360 }}
                 transition={{ duration: 0.6 }}
               >
                 <feature.icon className="w-7 h-7 text-white" />
-              </motion.div>
-              
-              <motion.div
-                className="text-4xl opacity-60"
-                animate={{ 
-                  rotate: [0, 10, -10, 0],
-                  scale: [1, 1.1, 1]
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              >
-                {feature.emoji}
               </motion.div>
             </div>
 

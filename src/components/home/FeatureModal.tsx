@@ -11,7 +11,6 @@ export interface FeatureCardData {
   description: string;
   detailedDescription: string;
   icon: any;
-  emoji: string;
   gradientFrom: string;
   gradientTo: string;
   features: string[];
@@ -152,20 +151,6 @@ export const FeatureModal: React.FC<FeatureModalProps> = ({
                   >
                     <feature.icon className="w-10 h-10 text-white" />
                   </motion.div>
-                  <motion.div
-                    className="ml-4 text-8xl opacity-20"
-                    animate={{ 
-                      rotate: [0, 5, -5, 0],
-                      scale: [1, 1.05, 1]
-                    }}
-                    transition={{
-                      duration: 4,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    {feature.emoji}
-                  </motion.div>
                 </div>
 
                 <h2 className="text-3xl font-bold text-white mb-4">
@@ -207,23 +192,19 @@ export const FeatureModal: React.FC<FeatureModalProps> = ({
 
               {/* 액션 버튼 */}
               <motion.div
-                className="text-center pt-6"
+                className="text-center"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
               >
                 <motion.button
-                  className="group inline-flex items-center gap-3 px-8 py-4 bg-white/20 backdrop-blur-sm rounded-xl font-semibold text-white hover:bg-white/30 transition-all duration-300 border border-white/30"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-white/20 backdrop-blur-sm rounded-xl text-white font-medium hover:bg-white/30 transition-colors"
                   onClick={() => onAction(feature.actionUrl)}
-                  whileHover={{ 
-                    scale: 1.05, 
-                    y: -2,
-                    boxShadow: "0 20px 60px rgba(255, 255, 255, 0.1)"
-                  }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  <span>{feature.actionText}</span>
-                  <ExternalLink className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  <ExternalLink className="w-5 h-5" />
+                  {feature.actionText}
                 </motion.button>
               </motion.div>
             </div>
