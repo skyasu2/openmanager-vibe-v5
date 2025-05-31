@@ -7,7 +7,7 @@
  * - 실제 부팅 순서 반영
  */
 
-import React, { useState, useEffect, memo, useMemo } from 'react';
+import React, { useState, useEffect, memo, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Server, Database, Cloud, Shield, BarChart3, Zap } from 'lucide-react';
 
@@ -92,6 +92,7 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
   const [currentPhaseIndex, setCurrentPhaseIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isAnimating, setIsAnimating] = useState(true);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   // 외부 진행률과 내부 애니메이션 진행률 조합
   const displayProgress = useMemo(() => {
@@ -99,27 +100,54 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
     return Math.max(progress, externalProgress);
   }, [progress, externalProgress]);
 
-  // 로딩 완료 조건 개선
-  useEffect(() => {
-    // 외부에서 완료 신호가 오면 즉시 완료
-    if (externalProgress >= 100 && loadingPhase === 'completed') {
-      console.log('✅ External loading completed - finishing animation');
+  // ✨ 완료 처리 통합 함수
+  const handleComplete = useCallback(() => {
+    if (!isCompleted) {
+      console.log('🎉 DashboardLoader 완료 처리 실행');
+      setIsCompleted(true);
+      setIsAnimating(false);
       setTimeout(() => {
-        setIsAnimating(false);
         onBootComplete();
-      }, 500);
+      }, 300);
+    }
+  }, [isCompleted, onBootComplete]);
+
+  // 🚨 강제 완료 안전장치 (10초)
+  useEffect(() => {
+    const forceCompleteTimer = setTimeout(() => {
+      console.log('🚨 10초 후 DashboardLoader 강제 완료');
+      handleComplete();
+    }, 10000);
+
+    return () => clearTimeout(forceCompleteTimer);
+  }, [handleComplete]);
+
+  // ✨ 다중 완료 조건 처리
+  useEffect(() => {
+    if (isCompleted) return;
+
+    // 조건 1: 외부에서 완료 신호
+    if (externalProgress >= 100 && loadingPhase === 'completed') {
+      console.log('✅ 외부 완료 신호 감지 - 즉시 완료');
+      handleComplete();
       return;
     }
     
-    // 기존 내부 애니메이션 로직
+    // 조건 2: 내부 애니메이션 6단계 완료
     if (currentPhaseIndex >= BOOT_SEQUENCE.length) {
-      setTimeout(() => {
-        setIsAnimating(false);
-        onBootComplete();
-      }, 500);
+      console.log('✅ 6단계 애니메이션 완료 - 정상 완료');
+      handleComplete();
       return;
     }
 
+    // 조건 3: 경과 시간 기반 (8초 후)
+    if (elapsedTime >= 8000) {
+      console.log('✅ 8초 경과 - 시간 기반 완료');
+      handleComplete();
+      return;
+    }
+
+    // 내부 애니메이션 로직 (기존)
     const currentPhase = BOOT_SEQUENCE[currentPhaseIndex];
     onPhaseChange?.(currentPhase.key, currentPhase.message);
 
@@ -141,7 +169,7 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
     }, 50);
 
     return () => clearInterval(progressInterval);
-  }, [currentPhaseIndex, onBootComplete, onPhaseChange, externalProgress, loadingPhase]);
+  }, [currentPhaseIndex, handleComplete, externalProgress, loadingPhase, elapsedTime, onPhaseChange, isCompleted]);
 
   const currentPhase = BOOT_SEQUENCE[currentPhaseIndex] || BOOT_SEQUENCE[0];
   const totalProgress = ((currentPhaseIndex * 100) + displayProgress) / BOOT_SEQUENCE.length;
