@@ -25,7 +25,14 @@ interface DashboardStats {
  */
 export function useDashboardLogic() {
   // State management
-  const [isClient, setIsClient] = useState(false);
+  const [isClient, setIsClient] = useState(() => {
+    // 🚨 긴급 수정: 브라우저 환경이면 즉시 true로 설정
+    if (typeof window !== 'undefined') {
+      console.log('🌐 브라우저 환경 감지 - isClient 즉시 활성화');
+      return true;
+    }
+    return false;
+  });
   const [isAgentOpen, setIsAgentOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
@@ -183,8 +190,22 @@ export function useDashboardLogic() {
 
   // Client-side initialization
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    // 🚨 강화된 클라이언트 초기화
+    if (typeof window !== 'undefined' && !isClient) {
+      console.log('🔧 강제 클라이언트 활성화');
+      setIsClient(true);
+    }
+    
+    // 추가 안전장치: 100ms 후 다시 체크
+    const timer = setTimeout(() => {
+      if (typeof window !== 'undefined' && !isClient) {
+        console.log('🚨 지연된 클라이언트 활성화');
+        setIsClient(true);
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [isClient]);
 
   // ✨ 데이터 로딩 Promise 생성
   const dataLoadingPromise = useDataLoadingPromise(
