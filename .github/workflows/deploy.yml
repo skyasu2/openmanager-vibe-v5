@@ -27,11 +27,16 @@ jobs:
 
     - name: Install dependencies
       run: npm ci
+      env:
+        NODE_OPTIONS: '--max-old-space-size=4096'
 
     - name: Build application
       run: npm run build
       env:
         NODE_ENV: production
+        CI: true
+        NODE_OPTIONS: '--max-old-space-size=4096'
+        SKIP_ENV_VALIDATION: true
 
   # 2. Vercel 배포 (개인 계정용 - ORG_ID/PROJECT_ID 불필요)
   deploy:
@@ -51,9 +56,15 @@ jobs:
     - name: Deploy to Vercel
       id: deploy
       run: |
+        # Vercel 토큰 확인
+        if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+          echo "❌ VERCEL_TOKEN이 설정되지 않았습니다"
+          exit 1
+        fi
+        
         if [ "${{ github.ref }}" = "refs/heads/main" ]; then
           echo "🚀 Deploying to production..."
-          URL=$(vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes)
+          URL=$(vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes --confirm)
           echo "production-url=$URL" >> $GITHUB_OUTPUT
         else
           echo "🚀 Deploying preview..."
@@ -61,6 +72,9 @@ jobs:
           echo "preview-url=$URL" >> $GITHUB_OUTPUT
         fi
         echo "Deployed to: $URL"
+      env:
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        NODE_OPTIONS: '--max-old-space-size=4096'
 
   # 3. 헬스체크
   health-check:
@@ -76,15 +90,27 @@ jobs:
         URL="${{ needs.deploy.outputs.production-url || needs.deploy.outputs.preview-url }}"
         echo "Testing health endpoint: $URL/api/health"
         
-        HEALTH_RESPONSE=$(curl -s -w "%{http_code}" "$URL/api/health" || echo "000")
-        HTTP_CODE="${HEALTH_RESPONSE: -3}"
+        # 최대 3번 재시도
+        for i in {1..3}; do
+          echo "Attempt $i/3..."
+          HEALTH_RESPONSE=$(curl -s -w "%{http_code}" "$URL/api/health" || echo "000")
+          HTTP_CODE="${HEALTH_RESPONSE: -3}"
+          
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Health check passed on attempt $i"
+            exit 0
+          else
+            echo "❌ Health check failed with code: $HTTP_CODE (attempt $i)"
+            echo "Response: $HEALTH_RESPONSE"
+            if [ $i -lt 3 ]; then
+              echo "Waiting 10 seconds before retry..."
+              sleep 10
+            fi
+          fi
+        done
         
-        if [ "$HTTP_CODE" = "200" ]; then
-          echo "✅ Health check passed"
-        else
-          echo "❌ Health check failed with code: $HTTP_CODE"
-          echo "Response: $HEALTH_RESPONSE"
-        fi
+        echo "❌ Health check failed after 3 attempts"
+        exit 1
 
   # 4. 알림
   notify:
@@ -102,9 +128,11 @@ jobs:
         echo "✅ All health checks passed"
 
     - name: Deployment Failure
-      if: needs.health-check.result == 'failure'
+      if: needs.health-check.result == 'failure' || needs.deploy.result == 'failure'
       run: |
         echo "💥 Deployment or health check failed!"
+        echo "Deploy result: ${{ needs.deploy.result }}"
+        echo "Health check result: ${{ needs.health-check.result }}"
         echo "Check the logs above for details"
 
   # 5. 자동 롤백 (프로덕션 실패 시)
@@ -122,5 +150,11 @@ jobs:
         echo "🔄 Rolling back to previous version..."
         # 이전 성공적인 배포로 롤백하는 로직
         # Vercel CLI의 rollback 기능 사용
-        vercel rollback --token=${{ secrets.VERCEL_TOKEN }} --yes
-        echo "✅ Rollback completed" 
+        if [ -n "${{ secrets.VERCEL_TOKEN }}" ]; then
+          vercel rollback --token=${{ secrets.VERCEL_TOKEN }} --yes
+          echo "✅ Rollback completed"
+        else
+          echo "❌ VERCEL_TOKEN not found, cannot rollback"
+        fi
+      env:
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }} 

@@ -23,15 +23,27 @@ jobs:
           
       - name: 📦 Install dependencies
         run: npm ci
-        
+        env:
+          NODE_OPTIONS: '--max-old-space-size=4096'
+          
       - name: 🔍 Type check
         run: npm run type-check
+        env:
+          NODE_OPTIONS: '--max-old-space-size=4096'
         
       - name: 🧪 Run unit tests
         run: npm run test:unit
+        env:
+          NODE_ENV: test
+          CI: true
+          NODE_OPTIONS: '--max-old-space-size=4096'
         
       - name: 📊 Generate coverage report
         run: npm run test:unit:coverage
+        env:
+          NODE_ENV: test
+          CI: true
+          NODE_OPTIONS: '--max-old-space-size=4096'
         
       - name: 📤 Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -64,9 +76,17 @@ jobs:
           
       - name: 📦 Install dependencies
         run: npm ci
+        env:
+          NODE_OPTIONS: '--max-old-space-size=4096'
         
       - name: 🏗️ Build project
         run: npm run build
+        env:
+          NODE_ENV: production
+          CI: true
+          NODE_OPTIONS: '--max-old-space-size=4096'
+          # CI 환경에서는 최소한의 환경변수만 사용
+          SKIP_ENV_VALIDATION: true
         
       - name: 📝 Build summary
         run: |
@@ -89,6 +109,10 @@ jobs:
           
       - name: 📦 Install dependencies
         run: npm ci
+        env:
+          NODE_OPTIONS: '--max-old-space-size=4096'
         
       - name: 🔍 Run ESLint
-        run: npm run lint 
+        run: npm run lint
+        env:
+          NODE_OPTIONS: '--max-old-space-size=4096' 
