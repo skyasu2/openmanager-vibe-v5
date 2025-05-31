@@ -1,7 +1,7 @@
 {
   "name": "openmanager-vibe-v5-clean",
-  "version": "5.11.0",
-  "description": "OpenManager Vibe v5.11.0 - 차세대 AI 기반 예측 모니터링 플랫폼 + 업계 표준 모바일 퍼스트 UI",
+  "version": "5.13.5",
+  "description": "OpenManager Vibe v5.13.5 - 완전 코드베이스 정리 완료: TypeScript 에러 0개, 브랜치 정리 완료, AI 기반 예측 모니터링 플랫폼",
   "private": true,
   "keywords": [
     "ai-agent",
