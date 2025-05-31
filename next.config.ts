@@ -1,8 +1,25 @@
 import type { NextConfig } from "next";
 
+// CI 환경 감지
+const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+const skipEnvValidation = process.env.SKIP_ENV_VALIDATION === 'true';
+
 const nextConfig: NextConfig = {
   trailingSlash: false,
   reactStrictMode: true,
+  
+  // CI 환경에서는 더 관대한 설정
+  ...(isCI && {
+    typescript: {
+      ignoreBuildErrors: false, // 타입 에러는 여전히 체크
+    },
+    eslint: {
+      ignoreDuringBuilds: false, // ESLint 에러도 여전히 체크
+    },
+    experimental: {
+      optimizePackageImports: ['lucide-react', '@heroicons/react'],
+    },
+  }),
   
   ...(process.env.NODE_ENV === "development" && {
     onDemandEntries: {
@@ -10,6 +27,12 @@ const nextConfig: NextConfig = {
       pagesBufferLength: 20, // 더 많은 페이지 캐시
     },
   }),
+
+  // 환경변수 기본값 설정
+  env: {
+    SKIP_ENV_VALIDATION: skipEnvValidation ? 'true' : 'false',
+    NODE_ENV: process.env.NODE_ENV || 'development',
+  },
 
   serverExternalPackages: [
     'ioredis', 
@@ -45,6 +68,21 @@ const nextConfig: NextConfig = {
   },
 
   webpack: (config: any, { dev, isServer }: { dev: boolean; isServer: boolean }) => {
+    // CI 환경에서 메모리 최적화
+    if (isCI) {
+      config.optimization = {
+        ...config.optimization,
+        minimize: false, // CI에서는 압축 비활성화로 메모리 절약
+        splitChunks: {
+          ...config.optimization.splitChunks,
+          cacheGroups: {
+            default: false,
+            vendors: false,
+          },
+        },
+      };
+    }
+
     if (dev) {
       config.watchOptions = {
         ignored: /node_modules/,

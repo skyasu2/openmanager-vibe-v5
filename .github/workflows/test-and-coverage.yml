@@ -18,24 +18,44 @@ jobs:
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version-file: '.nvmrc'
           cache: 'npm'
           
+      - name: 🧹 Clear npm cache
+        run: npm cache clean --force
+          
       - name: 📦 Install dependencies
-        run: npm ci
+        run: |
+          echo "Installing dependencies with CI optimizations..."
+          npm ci --no-audit --no-fund --prefer-offline
         env:
           NODE_OPTIONS: '--max-old-space-size=4096'
+          
+      - name: 🔍 Pre-test diagnostics
+        run: |
+          echo "=== Environment ==="
+          node --version
+          npm --version
+          echo "NODE_ENV: ${NODE_ENV:-not set}"
+          echo "CI: ${CI:-not set}"
+          echo "=== Memory ==="
+          free -h
+          echo "=== Dependencies ==="
+          npm list --depth=0 | head -20
           
       - name: 🔍 Type check
         run: npm run type-check
         env:
           NODE_OPTIONS: '--max-old-space-size=4096'
+          CI: true
+          SKIP_ENV_VALIDATION: true
         
       - name: 🧪 Run unit tests
         run: npm run test:unit
         env:
           NODE_ENV: test
           CI: true
+          SKIP_ENV_VALIDATION: true
           NODE_OPTIONS: '--max-old-space-size=4096'
         
       - name: 📊 Generate coverage report
@@ -43,6 +63,7 @@ jobs:
         env:
           NODE_ENV: test
           CI: true
+          SKIP_ENV_VALIDATION: true
           NODE_OPTIONS: '--max-old-space-size=4096'
         
       - name: 📤 Upload coverage to Codecov
@@ -71,27 +92,37 @@ jobs:
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version-file: '.nvmrc'
           cache: 'npm'
           
+      - name: 🧹 Clear npm cache
+        run: npm cache clean --force
+          
       - name: 📦 Install dependencies
-        run: npm ci
+        run: |
+          echo "Installing dependencies for build..."
+          npm ci --no-audit --no-fund --prefer-offline
         env:
           NODE_OPTIONS: '--max-old-space-size=4096'
         
       - name: 🏗️ Build project
-        run: npm run build
+        run: |
+          echo "Building with production optimizations..."
+          npm run build
         env:
           NODE_ENV: production
           CI: true
-          NODE_OPTIONS: '--max-old-space-size=4096'
-          # CI 환경에서는 최소한의 환경변수만 사용
           SKIP_ENV_VALIDATION: true
+          NODE_OPTIONS: '--max-old-space-size=4096'
+          # 빌드 시 불필요한 검증 건너뛰기
+          NEXT_TELEMETRY_DISABLED: 1
         
       - name: 📝 Build summary
         run: |
           echo "✅ Build completed successfully!" >> $GITHUB_STEP_SUMMARY
           echo "📦 Ready for deployment to Vercel" >> $GITHUB_STEP_SUMMARY
+          echo "📊 Build size:" >> $GITHUB_STEP_SUMMARY
+          du -sh .next/ >> $GITHUB_STEP_SUMMARY
 
   lint:
     name: 🔍 Code Quality
@@ -104,15 +135,22 @@ jobs:
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version-file: '.nvmrc'
           cache: 'npm'
           
+      - name: 🧹 Clear npm cache
+        run: npm cache clean --force
+          
       - name: 📦 Install dependencies
-        run: npm ci
+        run: |
+          echo "Installing dependencies for linting..."
+          npm ci --no-audit --no-fund --prefer-offline
         env:
           NODE_OPTIONS: '--max-old-space-size=4096'
         
       - name: 🔍 Run ESLint
         run: npm run lint
         env:
-          NODE_OPTIONS: '--max-old-space-size=4096' 
+          NODE_OPTIONS: '--max-old-space-size=4096'
+          CI: true
+          SKIP_ENV_VALIDATION: true 

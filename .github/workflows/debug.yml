@@ -1,0 +1,83 @@
+name: 🔍 Debug CI Environment
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  debug-environment:
+    name: 🔍 Environment Debug
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: 🔍 Environment Info
+        run: |
+          echo "=== Environment Information ==="
+          echo "Node.js version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          echo "Working directory: $(pwd)"
+          echo "Available memory: $(free -h)"
+          echo "Disk space: $(df -h)"
+          echo ""
+          echo "=== Environment Variables ==="
+          echo "NODE_ENV: ${NODE_ENV:-not set}"
+          echo "CI: ${CI:-not set}"
+          echo "GITHUB_ACTIONS: ${GITHUB_ACTIONS:-not set}"
+          echo ""
+          echo "=== Package.json Scripts ==="
+          cat package.json | grep -A 20 '"scripts":'
+          
+      - name: 📦 Install dependencies (with detailed output)
+        run: |
+          echo "=== Installing dependencies ==="
+          npm ci --verbose
+          echo "=== Installation completed ==="
+          
+      - name: 📋 List installed packages
+        run: |
+          echo "=== Main dependencies ==="
+          npm list --depth=0 || true
+          echo ""
+          echo "=== Package-lock integrity ==="
+          npm audit --audit-level=none || echo "Audit completed with warnings"
+          
+      - name: 🔧 Try TypeScript check
+        run: |
+          echo "=== TypeScript Check ==="
+          npm run type-check || echo "Type check failed - continuing"
+          
+      - name: 🧪 Try Unit Tests
+        run: |
+          echo "=== Unit Tests ==="
+          npm run test:unit || echo "Unit tests failed - continuing"
+          
+      - name: 🏗️ Try Build
+        run: |
+          echo "=== Build Attempt ==="
+          NODE_OPTIONS="--max-old-space-size=4096" npm run build || echo "Build failed - continuing"
+          
+      - name: 🔍 Post-failure diagnostics
+        if: always()
+        run: |
+          echo "=== Post-failure diagnostics ==="
+          echo "Current directory contents:"
+          ls -la
+          echo ""
+          echo "Node modules size:"
+          du -sh node_modules/ || echo "node_modules not found"
+          echo ""
+          echo "Memory usage:"
+          free -h
+          echo ""
+          echo "Disk usage:"
+          df -h 
