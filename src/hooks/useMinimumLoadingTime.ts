@@ -64,6 +64,7 @@ export const useMinimumLoadingTime = ({
 
     console.log('🎬 최소 로딩 시간 보장 시작:', minimumDuration, 'ms');
     
+    // eslint-disable-next-line prefer-const
     let intervalId: NodeJS.Timeout;
     let cleanupTimer: NodeJS.Timeout;
     let isCleanedUp = false;
