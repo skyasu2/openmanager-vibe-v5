@@ -25,7 +25,8 @@ import {
   X,
   BarChart3,
   PlayCircle,
-  Bot
+  Bot,
+  Clock
 } from 'lucide-react';
 import { ToastContainer, useToast } from '@/components/ui/ToastNotification';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -45,10 +46,35 @@ interface ToastNotification {
 
 export default function Home() {
   const router = useRouter();
-  const { isSystemStarted, aiAgent, startSystem, stopSystem } = useUnifiedAdminStore();
+  const { isSystemStarted, aiAgent, startSystem, stopSystem, getSystemRemainingTime } = useUnifiedAdminStore();
   const { success, error, info, warning } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-
+  const [systemTimeRemaining, setSystemTimeRemaining] = useState(0);
+  
+  // 시스템 타이머 업데이트
+  useEffect(() => {
+    if (isSystemStarted) {
+      const updateTimer = () => {
+        const remaining = getSystemRemainingTime();
+        setSystemTimeRemaining(remaining);
+      };
+      
+      updateTimer();
+      const interval = setInterval(updateTimer, 1000);
+      
+      return () => clearInterval(interval);
+    } else {
+      setSystemTimeRemaining(0);
+    }
+  }, [isSystemStarted, getSystemRemainingTime]);
+  
+  // 시간 포맷 함수
+  const formatTime = (ms: number) => {
+    const minutes = Math.floor(ms / (1000 * 60));
+    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+  
   // AI 단어에 그라데이션 애니메이션 적용하는 함수
   const renderTextWithAIGradient = (text: string) => {
     if (!text.includes('AI')) return text;
@@ -87,7 +113,7 @@ export default function Home() {
         success('시스템이 정지되었습니다. 모든 서비스가 비활성화됩니다.');
       } else {
         startSystem();
-        success('시스템이 시작되었습니다. 모든 서비스가 활성화됩니다.');
+        success('시스템이 시작되었습니다. 30분간 운영되며 모든 서비스가 활성화됩니다.');
       }
     } catch (err) {
       console.error('시스템 제어 오류:', err);
@@ -116,21 +142,84 @@ export default function Home() {
     info('우측 상단 프로필 메뉴에서 AI 에이전트를 활성화할 수 있습니다.');
   };
 
+  // 배경 클래스 결정
+  const getBackgroundClass = () => {
+    if (!isSystemStarted) {
+      return 'dark-gradient-background';
+    } else if (aiAgent.isEnabled) {
+      return 'dark-gradient-ai';
+    } else {
+      return 'dark-gradient-active';
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900">
+    <div className={`min-h-screen ${getBackgroundClass()}`}>
       {/* 기본 헤더 */}
       <header className="relative z-10 flex justify-between items-center p-6">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-cyan-500 rounded-lg flex items-center justify-center">
-            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
+          {/* AI 컨셉 아이콘 */}
+          <motion.div 
+            className="w-10 h-10 rounded-lg flex items-center justify-center relative"
+            animate={aiAgent.isEnabled ? {
+              background: [
+                'linear-gradient(135deg, #a855f7, #ec4899)',
+                'linear-gradient(135deg, #ec4899, #06b6d4)',
+                'linear-gradient(135deg, #06b6d4, #a855f7)'
+              ]
+            } : isSystemStarted ? {
+              background: [
+                'linear-gradient(135deg, #10b981, #059669)',
+                'linear-gradient(135deg, #059669, #047857)',
+                'linear-gradient(135deg, #047857, #10b981)'
+              ]
+            } : {
+              background: 'linear-gradient(135deg, #6b7280, #4b5563)'
+            }}
+            transition={{
+              duration: aiAgent.isEnabled ? 2 : 3,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            {aiAgent.isEnabled ? (
+              <motion.div
+                animate={{
+                  rotate: [0, 360],
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{
+                  rotate: { duration: 4, repeat: Infinity, ease: "linear" },
+                  scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+                }}
+              >
+                <Bot className="w-6 h-6 text-white" />
+              </motion.div>
+            ) : (
+              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            )}
+          </motion.div>
+          
           <div>
             <h1 className="text-xl font-bold text-white">OpenManager</h1>
             <p className="text-sm text-white">
               {renderTextWithAIGradient('AI-Powered Server Monitoring')}
             </p>
+            
+            {/* 시스템 타이머 표시 */}
+            {isSystemStarted && (
+              <motion.div 
+                className="flex items-center gap-1 text-xs text-white/70 mt-1"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                <Clock className="w-3 h-3" />
+                <span>남은시간: {formatTime(systemTimeRemaining)}</span>
+              </motion.div>
+            )}
           </div>
         </div>
         
@@ -154,6 +243,29 @@ export default function Home() {
             <br />
             <strong className="text-white">스마트한 모니터링을 경험하세요</strong>
           </p>
+          
+          {/* 시스템 상태 표시 */}
+          {isSystemStarted && (
+            <motion.div 
+              className="mt-4 p-3 bg-white/10 backdrop-blur-sm rounded-lg max-w-md mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="flex items-center justify-center gap-3 text-white/90">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium">
+                  시스템 운영 중 ({formatTime(systemTimeRemaining)} 남음)
+                </span>
+                {aiAgent.isEnabled && (
+                  <>
+                    <div className="w-1 h-4 bg-white/30"></div>
+                    <span className="text-sm text-purple-300">AI 활성</span>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          )}
         </div>
 
         {/* 시스템 제어 섹션 */}
@@ -207,13 +319,13 @@ export default function Home() {
                   ) : (
                     <Power className="w-6 h-6" />
                   )}
-                  <span>{isLoading ? '시작 중...' : '🚀 시스템 시작'}</span>
+                  <span>{isLoading ? '시작 중...' : '🚀 시스템 시작 (30분)'}</span>
                 </motion.button>
               </div>
               
               <p className="text-white/80 text-sm">
                 <strong>통합 시스템 시작:</strong> 서버 시딩 → 시뮬레이션 → 데이터 생성<br />
-                모든 서비스가 자동으로 순차 시작됩니다
+                30분간 모든 서비스가 자동으로 순차 시작됩니다
               </p>
             </div>
           ) : (
@@ -224,9 +336,13 @@ export default function Home() {
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                   <span className="text-green-200 font-semibold">시스템 실행 중</span>
+                  <div className="w-1 h-4 bg-green-300/30"></div>
+                  <span className="text-green-300 text-sm">{formatTime(systemTimeRemaining)} 남음</span>
                 </div>
                 <p className="text-green-100 text-sm text-center">
-                  모든 서비스가 정상적으로 실행되고 있습니다.
+                  {aiAgent.isEnabled 
+                    ? 'AI 에이전트가 활성화되어 지능형 분석이 가능합니다.'
+                    : '기본 서버 모니터링이 실행되고 있습니다.'}
                 </p>
               </div>
 
@@ -274,7 +390,7 @@ export default function Home() {
                     '🤖 AI 에이전트 설정'
                   )}
                 </motion.button>
-
+                
                 {/* 시스템 중지 버튼 */}
                 <motion.button
                   onClick={handleSystemToggle}
@@ -320,7 +436,7 @@ export default function Home() {
           </p>
         </div>
       </div>
-      
+
       {/* 토스트 알림 컨테이너 */}
       <ToastContainer />
     </div>

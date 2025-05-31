@@ -5,10 +5,13 @@ import { modeTimerManager } from '@/utils/ModeTimerManager';
 const ADMIN_PASSWORD = '4231';
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 10000; // 10초 (UI에서는 10분이라고 표시)
+const SYSTEM_AUTO_SHUTDOWN_TIME = 30 * 60 * 1000; // 30분
 
 interface UnifiedAdminState {
   // 시스템 상태
   isSystemStarted: boolean;
+  systemStartTime: number | null;
+  systemShutdownTimer: NodeJS.Timeout | null;
   
   // AI 에이전트 통합 상태 (관리자 모드와 통합)
   aiAgent: {
@@ -30,6 +33,7 @@ interface UnifiedAdminState {
   toggleAIProcessing: () => Promise<void>;
   checkLockStatus: () => boolean;
   getRemainingLockTime: () => number;
+  getSystemRemainingTime: () => number;
   logout: () => void;
 }
 
@@ -38,6 +42,8 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
     (set, get) => ({
       // 초기 상태 - AI 기능 기본 오프
       isSystemStarted: false,
+      systemStartTime: null,
+      systemShutdownTimer: null,
       aiAgent: {
         isEnabled: false,
         isAuthenticated: false,
@@ -50,17 +56,37 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
       // 시스템 제어
       startSystem: () => {
         try {
+          const now = Date.now();
+          
+          // 기존 타이머가 있다면 정리
+          const currentTimer = get().systemShutdownTimer;
+          if (currentTimer) {
+            clearTimeout(currentTimer);
+          }
+          
+          // 30분 후 자동 종료 타이머 설정
+          const shutdownTimer = setTimeout(() => {
+            console.log('⏰ [System] 30분 경과 - 자동 시스템 종료');
+            get().stopSystem();
+          }, SYSTEM_AUTO_SHUTDOWN_TIME);
+          
           set((state) => ({ 
             ...state,
-            isSystemStarted: true 
+            isSystemStarted: true,
+            systemStartTime: now,
+            systemShutdownTimer: shutdownTimer
           }));
           
-          console.log('🚀 [System] 시스템 시작됨 - 기본 모니터링 모드');
+          console.log('🚀 [System] 시스템 시작됨 - 30분 후 자동 종료 예약');
+          console.log(`⏰ [System] 종료 예정 시간: ${new Date(now + SYSTEM_AUTO_SHUTDOWN_TIME).toLocaleTimeString()}`);
           
           // 시스템 시작 이벤트 발생
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('system:started', {
-              detail: { timestamp: Date.now() }
+              detail: { 
+                timestamp: now,
+                autoShutdownTime: now + SYSTEM_AUTO_SHUTDOWN_TIME
+              }
             }));
           }
         } catch (error) {
@@ -70,9 +96,18 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
       
       stopSystem: () => {
         try {
+          // 자동 종료 타이머 정리
+          const currentTimer = get().systemShutdownTimer;
+          if (currentTimer) {
+            clearTimeout(currentTimer);
+          }
+          
           set((state) => ({ 
             ...state,
             isSystemStarted: false,
+            systemStartTime: null,
+            systemShutdownTimer: null,
+            // AI 기능 자동 종료
             aiAgent: { 
               isEnabled: false, 
               isAuthenticated: false, 
@@ -81,6 +116,7 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
           }));
           
           console.log('⏹️ [System] 시스템 정지됨 - 모든 기능 비활성화');
+          console.log('🤖 [AI] AI 에이전트 자동 비활성화');
           
           // AI 모드가 활성화되어 있었다면 종료
           try {
@@ -97,6 +133,21 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
           }
         } catch (error) {
           console.error('❌ [System] 시스템 정지 실패:', error);
+        }
+      },
+      
+      // 시스템 남은 시간 계산
+      getSystemRemainingTime: () => {
+        try {
+          const { isSystemStarted, systemStartTime } = get();
+          if (!isSystemStarted || !systemStartTime) return 0;
+          
+          const elapsed = Date.now() - systemStartTime;
+          const remaining = Math.max(0, SYSTEM_AUTO_SHUTDOWN_TIME - elapsed);
+          return remaining;
+        } catch (error) {
+          console.error('❌ [System] 남은 시간 계산 실패:', error);
+          return 0;
         }
       },
       
@@ -325,6 +376,7 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
       name: 'unified-admin-storage',
       partialize: (state) => ({
         isSystemStarted: state.isSystemStarted,
+        systemStartTime: state.systemStartTime,
         aiAgent: state.aiAgent,
         attempts: state.attempts,
         isLocked: state.isLocked,
