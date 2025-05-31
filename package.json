@@ -94,11 +94,12 @@
     "deploy:safe": "npm run ci:health && npm run build && npm run deploy:prod",
     "emergency:rollback": "echo '🚨 Emergency rollback - contact administrator'",
     "verify:production": "npm run health-check:prod && echo '✅ Production verification passed'",
-    "deploy": "vercel --prod",
+    "deploy": "echo '🚀 GitHub Actions에서 자동 배포가 진행됩니다. Vercel 대시보드를 확인해주세요.'",
     "deploy:dev": "vercel",
-    "deploy:skip-ci": "vercel --prod --skip-build",
-    "deploy:local": "npm run build && npm run deploy",
-    "deploy:quick": "npm run deploy:skip-ci"
+    "deploy:skip-ci": "echo '⚠️ GitHub Actions를 사용해주세요: git push origin main'",
+    "deploy:local": "npm run build && echo '🏗️ 로컬 빌드 완료. GitHub Actions로 배포하세요.'",
+    "deploy:quick": "git add -A && git commit -m '🚀 빠른 배포' && git push origin main",
+    "deploy:github": "git push origin main && echo '🚀 GitHub Actions 배포 트리거됨'"
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",
