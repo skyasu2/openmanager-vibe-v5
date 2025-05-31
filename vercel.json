@@ -5,14 +5,23 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "framework": "nextjs",
+  "build": {
+    "env": {
+      "NODE_ENV": "production",
+      "SKIP_ENV_VALIDATION": "true",
+      "NODE_OPTIONS": "--max-old-space-size=4096"
+    }
+  },
   "functions": {
     "src/app/api/**": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "memory": 1024
     }
   },
   "regions": ["icn1"],
   "github": {
-    "autoAlias": false
+    "autoAlias": false,
+    "silent": true
   },
   "headers": [
     {

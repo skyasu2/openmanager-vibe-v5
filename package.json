@@ -86,7 +86,14 @@
     "perf:vitals": "lighthouse http://localhost:3000 --chrome-flags='--headless' --output=html --output-path=./reports/lighthouse.html",
     "perf:bundle": "ANALYZE=true npm run build",
     "perf:preload": "echo '🚀 Preload testing - check console for metrics'",
-    "perf:monitor": "npm run build && npm run start && npm run perf:vitals"
+    "perf:monitor": "npm run build && npm run start && npm run perf:vitals",
+    "ci:recovery": "bash scripts/ci-recovery.sh",
+    "ci:trigger": "git commit --allow-empty -m '🔄 CI 재트리거' && git push origin main",
+    "ci:status": "echo '🔗 GitHub Actions: https://github.com/$(git config --get remote.origin.url | sed \"s/.*github.com[:\/]\\([^.]*\\).*/\\1/\")/actions'",
+    "ci:health": "npm run health-check:prod && npm run lint && npm run type-check",
+    "deploy:safe": "npm run ci:health && npm run build && npm run deploy:prod",
+    "emergency:rollback": "echo '🚨 Emergency rollback - contact administrator'",
+    "verify:production": "npm run health-check:prod && echo '✅ Production verification passed'"
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",

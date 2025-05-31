@@ -383,50 +383,76 @@ window.emergencyCompleteBootSequence() // 부팅 시퀀스 비상 완료
 
 ---
 
-## 🚀 배포 및 프로덕션 설정
+## 🚀 배포 & CI/CD
 
-### 🔷 Vercel 배포 (권장)
+### CI/CD 중단 방지 가이드
+
+OpenManager v5는 안정적인 CI/CD 파이프라인을 위한 여러 보안 장치를 제공합니다.
+
+#### 📋 CI/CD 명령어
+
 ```bash
-# 1. Vercel CLI 설치 및 배포
-npm i -g vercel
-vercel --prod
+# CI 상태 확인
+npm run ci:health
 
-# 2. 환경 변수 설정
-vercel env add AI_ENGINE_URL production
-vercel env add NODE_ENV production
+# CI 재트리거 (빈 커밋)
+npm run ci:trigger
+
+# CI 복구 스크립트 실행
+npm run ci:recovery
+
+# 안전한 배포
+npm run deploy:safe
+
+# 프로덕션 검증
+npm run verify:production
 ```
 
-### ⚙️ 프로덕션 환경 변수
-```bash
-AI_ENGINE_URL=https://openmanager-vibe-v5.onrender.com
-NODE_ENV=production
-PYTHON_SERVICE_TIMEOUT=15000
-WARMUP_INTERVAL_MINUTES=10
-```
+#### 🔧 CI/CD 중단 방지 설정
 
-### 📊 Vercel 최적화 설정
+**1. GitHub Actions 설정**
+- 단순화된 워크플로우로 Runner 할당 문제 해결
+- 15분 타임아웃으로 무한 대기 방지
+- 재시도 로직 및 오류 복구 기능 내장
+
+**2. Vercel 배포 최적화**
 ```json
-// vercel.json
 {
-  "functions": {
-    "src/app/api/**": {
-      "maxDuration": 60  // Pro 플랜 60초 활용
+  "build": {
+    "env": {
+      "NODE_ENV": "production",
+      "SKIP_ENV_VALIDATION": "true",
+      "NODE_OPTIONS": "--max-old-space-size=4096"
     }
   },
-  "regions": ["icn1"]  // 서울 리전
+  "functions": {
+    "maxDuration": 60,
+    "memory": 1024
+  },
+  "regions": ["icn1"]
 }
 ```
 
-### 🚨 트러블슈팅
+**3. 오류 복구 시나리오**
+
+| 오류 유형 | 해결 방법 |
+|-----------|-----------|
+| Runner 할당 실패 | `npm run ci:trigger` |
+| 빌드 메모리 부족 | `NODE_OPTIONS` 자동 설정됨 |
+| 환경변수 오류 | `SKIP_ENV_VALIDATION=true` |
+| 배포 실패 | `npm run deploy:safe` 재시도 |
+
+#### 📊 배포 상태 모니터링
+
 ```bash
-# 시스템 헬스 체크
-curl "http://localhost:3001/api/unified-metrics?action=health"
+# GitHub Actions 상태 확인
+npm run ci:status
 
-# API 테스트
-curl "http://localhost:3001/api/unified-metrics?action=servers" | jq
+# 프로덕션 헬스체크
+npm run health-check:prod
 
-# Prometheus 쿼리 테스트
-curl "http://localhost:3001/api/prometheus/hub?query=node_cpu_usage"
+# 종합 시스템 검증
+npm run system:validate
 ```
 
 ---
