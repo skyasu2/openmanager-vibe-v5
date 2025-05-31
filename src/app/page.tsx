@@ -39,7 +39,6 @@ interface ToastNotification {
 
 export default function HomePage() {
   const router = useRouter();
-  const [showVibeCoding, setShowVibeCoding] = useState(false);
   const [showMainFeature, setShowMainFeature] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -285,14 +284,6 @@ export default function HomePage() {
     router.push('/dashboard/realtime');
   };
 
-  const openVibeCodingModal = () => {
-    setShowVibeCoding(true);
-  };
-
-  const closeVibeCodingModal = () => {
-    setShowVibeCoding(false);
-  };
-
   const openMainFeatureModal = () => {
     setShowMainFeature(true);
   };
@@ -319,13 +310,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900">
-      {/* 배경 애니메이션 */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-20 w-72 h-72 bg-green-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-72 h-72 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-1000"></div>
-        <div className="absolute bottom-20 left-40 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-2000"></div>
-      </div>
-
       {/* 헤더 */}
       <header className="relative z-10 flex justify-between items-center p-6">
         <div className="flex items-center space-x-3">
@@ -486,7 +470,7 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* 새로운 4개 기능 카드 그리드 */}
+        {/* 새로운 3개 기능 카드 그리드 */}
         <div className="fade-in-up my-16">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
@@ -498,20 +482,6 @@ export default function HomePage() {
           </div>
           
           <FeatureCardsGrid className="mb-8" />
-        </div>
-
-        {/* Vibe Coding 기술 강조 */}
-        <div className="vibe-coding-section fade-in-up">
-          <div className="vibe-badge" onClick={openVibeCodingModal}>
-            {renderIcon('Code')}
-            <span>Vibe Coding</span>
-          </div>
-          <p className="vibe-description">
-            <span className="hidden sm:inline">GPT/Claude + Cursor AI 협업으로 개발된 차세대 AI 에이전트 시스템</span>
-            <span className="sm:hidden">GPT/Claude + Cursor AI 협업 개발</span>
-            <br />
-            <strong>경량화 AI (No LLM Cost)</strong> • <strong>도메인 특화</strong> • <strong className="hidden sm:inline">확장 가능</strong><strong className="sm:hidden">확장성</strong>
-          </p>
         </div>
 
         {/* 푸터 */}
@@ -551,65 +521,6 @@ export default function HomePage() {
           </div>
         ))}
       </div>
-
-      {/* Vibe Coding 상세 모달 */}
-      {showVibeCoding && (
-        <div className="modal-overlay" onClick={closeVibeCodingModal}>
-          <div className="modal-content vibe-modal" onClick={(e) => e.stopPropagation()}>
-            <button 
-              className="modal-close" 
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                closeVibeCodingModal();
-              }}
-              onTouchStart={(e) => e.stopPropagation()}
-              aria-label="모달 닫기"
-            >
-              ×
-            </button>
-            
-            <div className="modal-header">
-              <div className="modal-emoji">🚀</div>
-              <h2 className="modal-title">Vibe Coding 개발 방식</h2>
-              <p className="modal-description">AI 협업을 통한 차세대 개발 방법론</p>
-            </div>
-
-            <div className="modal-benefits">
-              <h4>🚀 핵심 특징</h4>
-              <ul className="benefits-list">
-                <li>
-                  <i className="fas fa-brain benefit-icon"></i>
-                  <span><strong>GPT/Claude 브레인스토밍</strong> - 아이디어 구체화 후 정확한 프롬프트 작성</span>
-                </li>
-                <li>
-                  <i className="fas fa-code benefit-icon"></i>
-                  <span><strong>Cursor AI 개발</strong> - 완성된 프롬프트로 실시간 코드 구현</span>
-                </li>
-                <li>
-                  <i className="fas fa-upload benefit-icon"></i>
-                  <span><strong>GitHub 자동 배포</strong> - 개발 완료 즉시 자동으로 라이브 반영</span>
-                </li>
-              </ul>
-
-              <div className="vibe-stats">
-                <div className="stat-item">
-                  <span className="stat-number">100%</span>
-                  <span className="stat-label">AI 생성 코드</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-number">실시간</span>
-                  <span className="stat-label">자동 배포</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-number">AI 프롬프트</span>
-                  <span className="stat-label">정확도 향상</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 메인 AI 에이전트 상세 모달 */}
       {showMainFeature && (
@@ -696,14 +607,6 @@ export default function HomePage() {
           }
         }
         
-        .animation-delay-1000 {
-          animation-delay: 1s;
-        }
-        
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        
         .btn-primary {
           display: flex;
           align-items: center;
@@ -758,56 +661,6 @@ export default function HomePage() {
           opacity: 0.6;
           cursor: not-allowed;
           transform: none;
-        }
-        
-        .vibe-coding-section {
-          margin: 1.5rem 0;
-          text-align: center;
-          z-index: 1;
-        }
-        
-        .vibe-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-          color: #1a1a1a;
-          font-size: 1rem;
-          font-weight: 700;
-          padding: 0.8rem 1.5rem;
-          border-radius: 25px;
-          box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3);
-          margin-bottom: 1rem;
-          animation: pulse 2s ease-in-out infinite;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-        }
-        
-        .vibe-badge:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 15px 40px rgba(251, 191, 36, 0.4);
-          background: linear-gradient(135deg, #fcd34d 0%, #fbbf24 100%);
-        }
-        
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-        }
-        
-        .vibe-description {
-          font-size: 1.1rem;
-          color: rgba(255, 255, 255, 0.9);
-          line-height: 1.6;
-          max-width: 600px;
-          margin: 0 auto;
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        
-        .vibe-description strong {
-          color: white;
-          font-weight: 600;
-          text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
         }
         
         .footer-info {
