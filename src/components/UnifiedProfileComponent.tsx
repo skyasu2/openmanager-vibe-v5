@@ -35,61 +35,140 @@ const ServerMonitorModal = dynamic(() => import('./ServerMonitorModal'), {
   ssr: false
 });
 
-// 환경설정 모달을 위한 간단한 컴포넌트
-const SettingsModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => (
-  <AnimatePresence>
-    {isOpen && (
-      <motion.div
-        className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-      >
+// 환경설정 모달 컴포넌트
+const SettingsModal = ({ isOpen, onClose, clickPosition }: { 
+  isOpen: boolean; 
+  onClose: () => void;
+  clickPosition?: { x: number; y: number };
+}) => {
+  const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
+
+  // 클릭 위치 기반 모달 위치 계산
+  useEffect(() => {
+    if (isOpen && clickPosition) {
+      const modalWidth = 500; // 모달 너비
+      const modalHeight = 400; // 모달 높이
+      const padding = 20; // 화면 가장자리 여백
+      
+      // 화면 크기 가져오기
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+      
+      // 클릭 위치 기준으로 모달 위치 계산
+      let x = clickPosition.x - modalWidth / 2;
+      let y = clickPosition.y - modalHeight / 2;
+      
+      // 화면 경계 확인 및 조정
+      if (x < padding) x = padding;
+      if (x + modalWidth > screenWidth - padding) x = screenWidth - modalWidth - padding;
+      if (y < padding) y = padding;
+      if (y + modalHeight > screenHeight - padding) y = screenHeight - modalHeight - padding;
+      
+      setModalPosition({ x, y });
+    } else {
+      // 기본값: 화면 중앙
+      setModalPosition({ x: 0, y: 0 });
+    }
+  }, [isOpen, clickPosition]);
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
         <motion.div
-          className="absolute inset-0 bg-black/70 backdrop-blur-md"
-          onClick={onClose}
-        />
-        <motion.div
-          className="w-full max-w-md bg-gray-900/98 backdrop-blur-xl border border-gray-700/70 rounded-2xl shadow-2xl"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9 }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
         >
-          <div className="p-6 border-b border-gray-700/50">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-white">시스템 설정</h2>
-              <button onClick={onClose} className="p-2 hover:bg-gray-700/50 rounded-lg transition-colors">
-                <X className="w-5 h-5 text-gray-400" />
-              </button>
+          <motion.div
+            className="absolute inset-0 bg-black/70 backdrop-blur-md"
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+          <motion.div
+            className={`w-full max-w-md bg-gray-900/98 backdrop-blur-xl border border-gray-700/70 rounded-2xl shadow-2xl shadow-black/50 ${
+              clickPosition ? 'fixed transform-none' : 'relative'
+            }`}
+            initial={{ 
+              opacity: 0, 
+              scale: 0.9, 
+              x: clickPosition ? -250 : 0,
+              y: clickPosition ? -200 : 0
+            }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1,
+              x: clickPosition ? modalPosition.x - 250 : 0,
+              y: clickPosition ? modalPosition.y - 200 : 0
+            }}
+            exit={{ 
+              opacity: 0, 
+              scale: 0.9,
+              x: clickPosition ? modalPosition.x - 250 : 0,
+              y: clickPosition ? modalPosition.y - 200 : 0
+            }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            style={clickPosition ? { 
+              left: modalPosition.x, 
+              top: modalPosition.y,
+              transform: `translate(-50%, -50%)`
+            } : {}}
+          >
+            <div className="p-6 border-b border-gray-700/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-gray-500 to-slate-600">
+                    <Settings className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-white">시스템 설정</h2>
+                    <p className="text-sm text-gray-400">환경설정 및 시스템 관리</p>
+                  </div>
+                </div>
+                <button onClick={onClose} className="p-2 hover:bg-gray-700/50 rounded-lg transition-colors">
+                  <X className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              <div className="p-4 bg-blue-500/20 border border-blue-500/30 rounded-lg">
-                <h3 className="text-white font-medium mb-2">환경설정</h3>
-                <p className="text-blue-200 text-sm">
-                  시스템 환경설정 기능이 곧 추가될 예정입니다.
-                </p>
-              </div>
-              <div className="p-4 bg-purple-500/20 border border-purple-500/30 rounded-lg">
-                <h3 className="text-white font-medium mb-2">AI 설정</h3>
-                <p className="text-purple-200 text-sm">
-                  AI 에이전트 고급 설정 기능이 곧 추가될 예정입니다.
-                </p>
-              </div>
-              <div className="p-4 bg-green-500/20 border border-green-500/30 rounded-lg">
-                <h3 className="text-white font-medium mb-2">알림 설정</h3>
-                <p className="text-green-200 text-sm">
-                  알림 및 경고 설정 기능이 곧 추가될 예정입니다.
-                </p>
+            <div className="p-6">
+              <div className="space-y-4">
+                <div className="p-4 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+                  <h3 className="text-white font-medium mb-2 flex items-center gap-2">
+                    <Database className="w-4 h-4 text-blue-400" />
+                    환경설정
+                  </h3>
+                  <p className="text-blue-200 text-sm">
+                    시스템 환경설정 기능이 곧 추가될 예정입니다.
+                  </p>
+                </div>
+                <div className="p-4 bg-purple-500/20 border border-purple-500/30 rounded-lg">
+                  <h3 className="text-white font-medium mb-2 flex items-center gap-2">
+                    <Bot className="w-4 h-4 text-purple-400" />
+                    AI 설정
+                  </h3>
+                  <p className="text-purple-200 text-sm">
+                    AI 에이전트 고급 설정 기능이 곧 추가될 예정입니다.
+                  </p>
+                </div>
+                <div className="p-4 bg-green-500/20 border border-green-500/30 rounded-lg">
+                  <h3 className="text-white font-medium mb-2 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-green-400" />
+                    알림 설정
+                  </h3>
+                  <p className="text-green-200 text-sm">
+                    알림 및 경고 설정 기능이 곧 추가될 예정입니다.
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
-      </motion.div>
-    )}
-  </AnimatePresence>
-);
+      )}
+    </AnimatePresence>
+  );
+};
 
 interface UnifiedProfileComponentProps {
   userName?: string;
@@ -407,7 +486,14 @@ export default function UnifiedProfileComponent({
               <div className="p-2">
                 <motion.button
                   whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                  onClick={() => {
+                  onClick={(event) => {
+                    // 클릭 위치 캡처
+                    const rect = event.currentTarget.getBoundingClientRect();
+                    const x = rect.left + rect.width / 2;
+                    const y = rect.top + rect.height / 2;
+                    console.log('⚙️ 설정 버튼 클릭 위치:', { x, y });
+                    setClickPosition({ x, y });
+                    
                     setShowSettingsModal(true);
                     setIsOpen(false);
                   }}
@@ -490,7 +576,11 @@ export default function UnifiedProfileComponent({
       {/* 환경설정 모달 */}
       <SettingsModal
         isOpen={showSettingsModal}
-        onClose={() => setShowSettingsModal(false)}
+        onClose={() => {
+          setShowSettingsModal(false);
+          setClickPosition(undefined);
+        }}
+        clickPosition={clickPosition}
       />
 
       {/* 인증 모달 */}
