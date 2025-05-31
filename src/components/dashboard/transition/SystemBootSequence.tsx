@@ -1,19 +1,19 @@
 /**
- * 🚀 SystemBootSequence Component v1.0
+ * 🚀 SystemBootSequence Component v2.0
  * 
- * 전체 시스템 부팅 시퀀스 관리
- * - DashboardLoader와 ServerCardSpawner 조합
- * - 실제 데이터와 연동
- * - 완전한 전환 제어
+ * 순차적 단계별 부팅 시퀀스 관리
+ * - SequentialLoader 사용으로 명확한 5단계 진행
+ * - 각 단계별 충분한 시간 (3초씩) 보장
+ * - 병렬 처리 제거로 순차성 확보
+ * - 사용자 제어 옵션 (스킵 기능)
  */
 
 'use client';
 
 import React, { useState, useCallback, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import DashboardLoader from './DashboardLoader';
+import SequentialLoader from './SequentialLoader';
 import ServerCardSpawner from './ServerCardSpawner';
-import SmoothTransition from './SmoothTransition';
 import { Server } from '../../../types/server';
 import { setupGlobalErrorHandler, safeErrorLog, isLoadingRelatedError } from '../../../lib/error-handler';
 
@@ -29,8 +29,6 @@ interface SystemBootSequenceProps {
   elapsedTime?: number;
 }
 
-type BootPhase = 'initializing' | 'core-loading' | 'server-spawning' | 'finalizing' | 'complete';
-
 const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
   servers,
   onBootComplete,
@@ -42,7 +40,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
   estimatedTimeRemaining = 0,
   elapsedTime = 0
 }) => {
-  const [showBootSequence, setShowBootSequence] = useState(true);
+  const [showSequentialLoader, setShowSequentialLoader] = useState(true);
   const [showSpawning, setShowSpawning] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [showEmergencyButton, setShowEmergencyButton] = useState(false);
@@ -108,14 +106,14 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
       try {
         console.log('🎉 SystemBootSequence 최종 완료 처리');
         setIsComplete(true);
-        setShowBootSequence(false);
+        setShowSequentialLoader(false);
         setShowSpawning(false);
         onBootComplete();
       } catch (error) {
         safeErrorLog('❌ onBootComplete 콜백 에러', error);
         // 에러가 발생해도 완료 처리
         setIsComplete(true);
-        setShowBootSequence(false);
+        setShowSequentialLoader(false);
         setShowSpawning(false);
       }
     }
@@ -129,47 +127,54 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
     }
   }, [skipAnimation, handleFinalComplete]);
 
-  // ✨ 로딩 완료 조건 개선 - 외부 진행률 기반
-  useEffect(() => {
-    if (loadingProgress >= 100 && loadingPhase === 'completed') {
-      console.log('✅ External loading completed, starting server spawning');
-      setShowBootSequence(false);
+  // 🎬 순차적 로더 완료 핸들러
+  const handleSequentialLoaderComplete = useCallback(() => {
+    console.log('✅ 순차적 로딩 완료 - 서버 스포닝 시작');
+    setShowSequentialLoader(false);
+    
+    // 서버가 있으면 서버 스포닝 단계로, 없으면 바로 완료
+    if (servers && servers.length > 0) {
       setShowSpawning(true);
+    } else {
+      // 서버가 없으면 바로 완료
+      setTimeout(() => {
+        handleFinalComplete();
+      }, 500);
     }
-  }, [loadingProgress, loadingPhase]);
+  }, [servers, handleFinalComplete]);
 
-  // DashboardLoader 완료 핸들러
-  const handleBootComplete = useCallback(() => {
-    console.log('🔄 DashboardLoader에서 완료 신호 받음');
-    handleFinalComplete();
-  }, [handleFinalComplete]);
-
-  // 최종 완료 핸들러
+  // 서버 스포닝 완료 핸들러
   const handleSpawnerComplete = useCallback(() => {
-    console.log('🎉 All spawning completed');
+    console.log('🎉 서버 스포닝 완료');
     handleFinalComplete();
   }, [handleFinalComplete]);
 
   // 🛠️ 개발자 도구 등록
   useEffect(() => {
-    (window as any).debugOpenManager = {
+    (window as any).debugSystemBootSequence = {
       forceComplete: () => {
-        console.log('🚨 강제 완료 실행');
+        console.log('🚨 SystemBootSequence 강제 완료 실행');
         handleFinalComplete();
       },
       skipAnimation: () => {
-        console.log('🚀 애니메이션 스킵');
+        console.log('🚀 SystemBootSequence 애니메이션 스킵');
         handleFinalComplete();
       },
       getState: () => ({
-        showBootSequence,
+        showSequentialLoader,
         showSpawning,
         isComplete,
-        loadingProgress,
-        loadingPhase
+        errorCount,
+        serversCount: servers.length
       })
     };
-  }, [handleFinalComplete, showBootSequence, showSpawning, isComplete, loadingProgress, loadingPhase]);
+    
+    // 전역 비상 완료 함수
+    (window as any).emergencyCompleteBootSequence = () => {
+      console.log('🚨 부팅 시퀀스 비상 완료');
+      handleFinalComplete();
+    };
+  }, [handleFinalComplete, showSequentialLoader, showSpawning, isComplete, errorCount, servers.length]);
 
   if (skipAnimation || isComplete) {
     return null;
@@ -185,30 +190,25 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
         }
       }}
     >
-      {/* 🚨 긴급 수정: SmoothTransition 우회 - 직접 렌더링 */}
       <AnimatePresence mode="wait">
-        {showBootSequence && (
+        {/* 🎬 순차적 로딩 단계 */}
+        {showSequentialLoader && (
           <motion.div
-            key="boot-loader"
+            key="sequential-loader"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.5 }}
             className="absolute inset-0"
           >
-            <DashboardLoader
-              onBootComplete={handleBootComplete}
-              onPhaseChange={(phase, message) => {
-                console.log(`Phase: ${phase}, Message: ${message}`);
-              }}
-              externalProgress={loadingProgress}
-              loadingPhase={loadingPhase}
-              estimatedTimeRemaining={estimatedTimeRemaining}
-              elapsedTime={elapsedTime}
+            <SequentialLoader
+              onComplete={handleSequentialLoaderComplete}
+              skipCondition={skipAnimation}
             />
           </motion.div>
         )}
         
+        {/* 🚀 서버 스포닝 단계 */}
         {showSpawning && (
           <motion.div
             key="server-spawner"
@@ -223,7 +223,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
               onServerSpawned={onServerSpawned}
               onAllServersSpawned={handleSpawnerComplete}
               isActive={true}
-              spawnDelay={400}
+              spawnDelay={200}
             />
           </motion.div>
         )}
@@ -279,51 +279,33 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
           <div className="text-cyan-300 font-medium">💡 빠른 완료 방법</div>
           <div>🖱️ 화면 아무 곳이나 클릭</div>
           <div>⌨️ Enter, Space, ESC 키</div>
-          <div>⏱️ 자동 완료: 6초 후</div>
+          <div>⏱️ 자동 완료: 12초 후</div>
         </div>
       </motion.div>
 
       {/* 🛠️ 디버깅 정보 패널 */}
-      <motion.div
-        initial={{ opacity: 0, x: 100 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 1 }}
-        className="fixed bottom-4 right-4 bg-black/80 backdrop-blur-lg text-white text-xs p-3 rounded-lg border border-white/20 max-w-xs"
-      >
-        <div className="space-y-1">
-          <div className="font-semibold text-cyan-400 mb-2">🛠️ 개발자 도구</div>
-          <div>진행률: {loadingProgress}%</div>
-          <div>단계: {loadingPhase}</div>
-          <div>부팅: {showBootSequence ? '✅' : '❌'}</div>
-          <div>생성: {showSpawning ? '✅' : '❌'}</div>
-          <div>완료: {isComplete ? '✅' : '❌'}</div>
-          <div className="border-t border-white/20 pt-2 mt-2">
-            <div className="text-yellow-300">🚀 강제 완료:</div>
-            <div>• 화면 클릭</div>
-            <div>• ESC 키</div>
-            <div>• F12 → emergencyComplete()</div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* 🔧 개발 모드 디버깅 정보 */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="fixed top-4 right-4 bg-black/80 text-white p-3 rounded-lg text-xs max-w-xs z-[10000]">
-          <div className="font-medium text-green-400 mb-1">🔧 디버깅 정보</div>
+        <motion.div
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 1 }}
+          className="fixed bottom-4 right-4 bg-black/80 backdrop-blur-lg text-white text-xs p-3 rounded-lg border border-white/20 max-w-xs"
+        >
           <div className="space-y-1">
+            <div className="font-semibold text-cyan-400 mb-2">🛠️ 개발자 도구</div>
+            <div>순차 로더: {showSequentialLoader ? '✅' : '❌'}</div>
+            <div>서버 스포닝: {showSpawning ? '✅' : '❌'}</div>
+            <div>완료 상태: {isComplete ? '✅' : '❌'}</div>
+            <div>서버 수: {servers.length}</div>
             <div>에러 횟수: {errorCount}</div>
-            <div>비상 버튼: {showEmergencyButton ? '표시됨' : '숨김'}</div>
-            <div>완료 상태: {isComplete ? '완료' : '진행중'}</div>
+            <div className="border-t border-white/20 pt-2 mt-2">
+              <div className="text-yellow-300">🚀 강제 완료:</div>
+              <div>• 화면 클릭</div>
+              <div>• ESC 키</div>
+              <div>• emergencyCompleteBootSequence()</div>
+            </div>
           </div>
-          <div className="mt-2 pt-2 border-t border-gray-600">
-            <button 
-              onClick={() => (window as any).testErrorHandler?.()}
-              className="text-blue-400 hover:text-blue-300 text-xs"
-            >
-              테스트 에러 발생
-            </button>
-          </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );
