@@ -928,3 +928,33 @@ MIT License - 자세한 내용은 [LICENSE](./LICENSE) 파일을 참조하세요
 
 **🎯 OpenManager V5로 서버 관리의 새로운 차원을 경험하세요!**  
 *Powered by AI • Built with ❤️ • Enhanced by Community*
+
+<!-- GitHub Actions Status Test - 2025.01.25 -->
+
+## 🚀 Overview
+
+OpenManager Vibe V5는 고도로 최적화된 서버 관리 및 모니터링 플랫폼입니다.
+
+## ✨ Features
+
+- 실시간 서버 모니터링
+- AI 기반 분석 및 예측
+- 대시보드 및 시각화
+- 자동화된 알림 시스템
+
+## 🔧 Installation
+
+```bash
+npm install
+npm run dev
+```
+
+## 📊 GitHub Actions Status
+
+이 프로젝트는 최적화된 CI/CD 파이프라인을 사용합니다:
+- ✅ Cost-optimized workflow
+- ⚡ Fast execution times
+- 🔒 Security checks included
+
+---
+*Last updated: 2025-01-25*
