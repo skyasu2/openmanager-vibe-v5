@@ -31,6 +31,8 @@ http://localhost:3001
 ## 🔧 개발 프로세스 체크리스트
 
 ### 📋 개발 시작 전 필수 점검
+- [ ] **의존성 설치**: `npm install` - 패키지 설치
+- [ ] **개발 환경 설정**: `npm run setup:dev` - Git hooks 설정 (로컬만)
 - [ ] **포트 정리**: `npm run clean:ports` - 기존 Node.js 프로세스 종료
 - [ ] **단일 서버 실행**: `npm run dev:clean` - 깔끔한 개발 서버 시작
 - [ ] **포트 확인**: `netstat -ano | findstr :3001` - 단일 프로세스만 실행 중
@@ -61,6 +63,11 @@ window.skipToServer()
 2. **개발 시작**: `npm run dev`
 3. **테스트**: 로딩 애니메이션 → 대시보드 전환 확인
 4. **문제 발생 시**: F12 → `emergencyComplete()` 실행
+
+### 🚀 배포 환경 대응
+- [ ] **Vercel 배포**: 자동으로 production 최적화 적용
+- [ ] **환경별 스크립트**: husky 설치가 CI/CD에서 자동 스킵
+- [ ] **빌드 최적화**: 불필요한 파일 제외로 배포 속도 향상
 
 ---
 

@@ -29,7 +29,7 @@
     "test:e2e:headed": "playwright test --headed",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "prepare": "husky install",
+    "setup:dev": "node scripts/setup-husky.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
