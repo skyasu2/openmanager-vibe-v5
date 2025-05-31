@@ -90,7 +90,7 @@ const nextConfig: NextConfig = {
     if (!dev) {
       config.module.rules.push({
         test: /\.(stories|spec|test)\.(ts|tsx|js|jsx)$/,
-        loader: 'ignore-loader'
+        use: 'null-loader'
       });
     }
 
