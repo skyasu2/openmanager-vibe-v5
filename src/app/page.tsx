@@ -26,10 +26,13 @@ import {
   BarChart3,
   PlayCircle,
   Bot,
-  Clock
+  Clock,
+  Zap,
+  Shield
 } from 'lucide-react';
 import { ToastContainer, useToast } from '@/components/ui/ToastNotification';
 import { motion, AnimatePresence } from 'framer-motion';
+import { UnifiedAuthModal } from '@/components/UnifiedAuthModal';
 
 // 동적 렌더링 강제 (HTML 파일 생성 방지)
 export const dynamic = 'force-dynamic';
@@ -46,10 +49,24 @@ interface ToastNotification {
 
 export default function Home() {
   const router = useRouter();
-  const { isSystemStarted, aiAgent, startSystem, stopSystem, getSystemRemainingTime } = useUnifiedAdminStore();
+  const { 
+    isSystemStarted, 
+    aiAgent, 
+    startSystem, 
+    stopSystem,
+    checkLockStatus,
+    getSystemRemainingTime,
+    getRemainingLockTime,
+    isLocked,
+    attempts,
+    lockoutEndTime,
+    authenticateAIAgent
+  } = useUnifiedAdminStore();
   const { success, error, info, warning } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [systemTimeRemaining, setSystemTimeRemaining] = useState(0);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [clickPosition, setClickPosition] = useState<{ x: number; y: number } | undefined>();
   
   // 시스템 타이머 업데이트
   useEffect(() => {
@@ -132,14 +149,39 @@ export default function Home() {
     router.push('/dashboard');
   };
 
-  const handleAIAgentToggle = () => {
-    if (!isSystemStarted) {
-      warning('시스템을 먼저 시작해주세요.');
-      return;
+  const handleAIAgentToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (aiAgent.isEnabled) {
+      // AI 에이전트 비활성화
+      const { disableAIAgent } = useUnifiedAdminStore.getState();
+      disableAIAgent();
+      info('AI 에이전트가 비활성화되었습니다.');
+    } else {
+      // 클릭 위치 저장
+      const rect = event.currentTarget.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      setClickPosition({ x, y });
+      
+      if (isLocked) {
+        const remainingTime = getRemainingLockTime();
+        error(`계정이 잠겼습니다. ${Math.ceil(remainingTime / 1000)}초 후 다시 시도하세요.`);
+        return;
+      }
+      setShowAuthModal(true);
     }
+  };
+
+  const handleAuthSubmit = (password: string) => {
+    const result = authenticateAIAgent(password);
     
-    // 프로필 컴포넌트에서 처리하도록 안내
-    info('우측 상단 프로필 메뉴에서 AI 에이전트를 활성화할 수 있습니다.');
+    if (result.success) {
+      success('AI 에이전트 모드가 활성화되었습니다.');
+      setShowAuthModal(false);
+    } else {
+      error(result.message);
+    }
+
+    return result;
   };
 
   // 배경 클래스 결정
@@ -460,6 +502,17 @@ export default function Home() {
 
       {/* 토스트 알림 컨테이너 */}
       <ToastContainer />
+
+      {/* AI 에이전트 인증 모달 */}
+      <UnifiedAuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onSubmit={handleAuthSubmit}
+        isLocked={isLocked}
+        attempts={attempts}
+        lockoutEndTime={lockoutEndTime}
+        clickPosition={clickPosition}
+      />
     </div>
   );
 } 

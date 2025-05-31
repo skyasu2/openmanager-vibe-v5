@@ -11,6 +11,7 @@ interface UnifiedAuthModalProps {
   isLocked: boolean;
   attempts: number;
   lockoutEndTime: number | null;
+  clickPosition?: { x: number; y: number };
 }
 
 export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
@@ -19,7 +20,8 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
   onSubmit,
   isLocked,
   attempts,
-  lockoutEndTime
+  lockoutEndTime,
+  clickPosition
 }) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -27,7 +29,36 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | 'warning'>('error');
   const [remainingTime, setRemainingTime] = useState(0);
+  const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // 클릭 위치 기반 모달 위치 계산
+  useEffect(() => {
+    if (isOpen && clickPosition) {
+      const modalWidth = 400; // 모달 너비
+      const modalHeight = 500; // 모달 높이
+      const padding = 20; // 화면 가장자리 여백
+      
+      // 화면 크기 가져오기
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+      
+      // 클릭 위치 기준으로 모달 위치 계산
+      let x = clickPosition.x - modalWidth / 2;
+      let y = clickPosition.y - modalHeight / 2;
+      
+      // 화면 경계 확인 및 조정
+      if (x < padding) x = padding;
+      if (x + modalWidth > screenWidth - padding) x = screenWidth - modalWidth - padding;
+      if (y < padding) y = padding;
+      if (y + modalHeight > screenHeight - padding) y = screenHeight - modalHeight - padding;
+      
+      setModalPosition({ x, y });
+    } else {
+      // 기본값: 화면 중앙
+      setModalPosition({ x: 0, y: 0 });
+    }
+  }, [isOpen, clickPosition]);
 
   // 잠금 시간 카운트다운
   useEffect(() => {
@@ -123,11 +154,33 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
 
           {/* 모달 */}
           <motion.div
-            className="relative w-full max-w-md bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl"
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className={`absolute w-full max-w-md bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl ${
+              clickPosition ? 'transform-none' : 'relative'
+            }`}
+            initial={{ 
+              opacity: 0, 
+              scale: 0.8, 
+              x: clickPosition ? modalPosition.x : 0,
+              y: clickPosition ? modalPosition.y : 0 
+            }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1,
+              x: clickPosition ? modalPosition.x : 0,
+              y: clickPosition ? modalPosition.y : 0 
+            }}
+            exit={{ 
+              opacity: 0, 
+              scale: 0.8,
+              x: clickPosition ? modalPosition.x : 0,
+              y: clickPosition ? modalPosition.y : 0 
+            }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            style={clickPosition ? { 
+              left: modalPosition.x, 
+              top: modalPosition.y,
+              position: 'fixed'
+            } : {}}
           >
             {/* 헤더 */}
             <div className="p-6 border-b border-gray-700/50">

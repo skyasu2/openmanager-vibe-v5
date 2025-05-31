@@ -215,7 +215,7 @@ export default function FeatureCards() {
       description: "Prometheus 표준으로 30개 가상 서버의 현실적 메트릭을 생성하는 507줄 최적화 엔진입니다.",
       currentFeatures: "베이스라인+델타 압축으로 65% 데이터 절약, 24시간 주기 패턴 시뮬레이션, Prometheus 호환",
       futureFeatures: "실제 서버 데이터 연동, 장애 시나리오 자동 생성, 부하 테스트 통합, 멀티클러스터 지원",
-      techStack: "🔵 오픈소스: Node.js 20+ • IORedis • PostgreSQL • WebSocket",
+      techStack: "🔵 오픈소스: Node.js 20+ • IORedis • Upstash for Redis • WebSocket • Prometheus Client",
       customStack: "🟢 자체 개발: OptimizedDataGenerator (507줄) • TimerManager • MemoryOptimizer • SmartCache",
       action: "데이터 생성기 확인",
       href: "/dashboard",
@@ -228,7 +228,7 @@ export default function FeatureCards() {
       description: "Next.js 15 + React 19 기반으로 86개 페이지를 빌드하고 Vercel에 자동 배포되는 시스템입니다.",
       currentFeatures: "TypeScript 100% 적용, 자동 빌드/배포, 실시간 모니터링 대시보드, React Query 캐싱",
       futureFeatures: "마이크로서비스 전환, 컨테이너 오케스트레이션, 성능 최적화 자동화, 엣지 컴퓨팅",
-      techStack: "🔵 오픈소스: Next.js 15 • React 19 • TypeScript 5.x • TailwindCSS • Zustand",
+      techStack: "🔵 오픈소스: Next.js 15 • React 19 • TypeScript 5.x • TailwindCSS • Supabase PostgreSQL",
       customStack: "🟢 자체 개발: UnifiedMetricsManager (774줄) • PrometheusDataHub • 실시간 UI 컴포넌트",
       action: "인프라 확인",
       href: "/dashboard/realtime",
@@ -354,7 +354,7 @@ export default function FeatureCards() {
                     백엔드 런타임
                   </h6>
                   <div className="flex flex-wrap gap-2">
-                    {["Node.js 20+", "IORedis", "PostgreSQL", "WebSocket"].map((tech) => (
+                    {["Node.js 20+", "IORedis", "Upstash for Redis", "WebSocket", "Prometheus Client"].map((tech) => (
                       <span key={tech} className="px-2 py-1 bg-green-500/20 text-green-300 rounded text-xs">
                         {tech}
                       </span>
@@ -365,10 +365,10 @@ export default function FeatureCards() {
                 <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg p-4">
                   <h6 className="text-purple-300 font-medium mb-2 flex items-center gap-2">
                     <Cpu className="w-4 h-4" />
-                    프론트엔드 프레임워크
+                    프론트엔드 및 데이터베이스
                   </h6>
                   <div className="flex flex-wrap gap-2">
-                    {["Next.js 15", "React 19", "TypeScript 5.x", "TailwindCSS", "Zustand"].map((tech) => (
+                    {["Next.js 15", "React 19", "TypeScript 5.x", "TailwindCSS", "Supabase PostgreSQL"].map((tech) => (
                       <span key={tech} className="px-2 py-1 bg-purple-500/20 text-purple-300 rounded text-xs">
                         {tech}
                       </span>
@@ -379,10 +379,10 @@ export default function FeatureCards() {
                 <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-lg p-4">
                   <h6 className="text-yellow-300 font-medium mb-2 flex items-center gap-2">
                     <Sparkles className="w-4 h-4" />
-                    개발 도구
+                    개발 도구 & 상태 관리
                   </h6>
                   <div className="flex flex-wrap gap-2">
-                    {["Cursor AI", "Claude 3.5", "GitHub Actions", "Playwright", "ESLint"].map((tech) => (
+                    {["Cursor AI", "Claude 3.5", "GitHub Actions", "Playwright", "Zustand"].map((tech) => (
                       <span key={tech} className="px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded text-xs">
                         {tech}
                       </span>
