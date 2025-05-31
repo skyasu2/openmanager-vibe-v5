@@ -1,7 +1,7 @@
 {
-  "name": "openmanager-vibe-v5-clean",
-  "version": "5.16.0",
-  "description": "OpenManager Vibe v5.16.0 - 모달 UI 개선 및 기술 스택 자동 분석: 외부 클릭 닫기, 역할별 기술 분류, AI 기반 예측 모니터링 플랫폼",
+  "name": "openmanager-vibe-v5",
+  "version": "5.16.1",
+  "description": "🎯 AI 기반 차세대 지능형 인프라 모니터링 플랫폼 - v5.16.1: 대시보드 안정성 개선 + AI API 에러 처리 강화",
   "private": true,
   "keywords": [
     "ai-agent",

@@ -106,4 +106,97 @@ export function safeIncludes(text: any, searchString: string): boolean {
     console.warn('⚠️ [safeIncludes] 안전한 includes 체크 실패:', error);
     return false;
   }
+}
+
+/**
+ * 안전한 배열 접근
+ * @param array - 배열
+ * @param index - 인덱스
+ * @param fallback - 기본값
+ * @returns 안전한 배열 요소
+ */
+export function safeArrayAccess<T>(array: any, index: number, fallback: T): T {
+  try {
+    if (!Array.isArray(array) || index < 0 || index >= array.length) {
+      return fallback;
+    }
+    return array[index] ?? fallback;
+  } catch (error) {
+    console.warn('⚠️ [safeArrayAccess] 안전한 배열 접근 실패:', error);
+    return fallback;
+  }
+}
+
+/**
+ * 안전한 객체 속성 접근
+ * @param obj - 객체
+ * @param path - 속성 경로 (점 표기법)
+ * @param fallback - 기본값
+ * @returns 안전한 속성 값
+ */
+export function safePropertyAccess<T>(obj: any, path: string, fallback: T): T {
+  try {
+    if (!obj || typeof obj !== 'object') {
+      return fallback;
+    }
+    
+    const keys = path.split('.');
+    let current = obj;
+    
+    for (const key of keys) {
+      if (current == null || typeof current !== 'object' || !(key in current)) {
+        return fallback;
+      }
+      current = current[key];
+    }
+    
+    return current ?? fallback;
+  } catch (error) {
+    console.warn('⚠️ [safePropertyAccess] 안전한 속성 접근 실패:', error);
+    return fallback;
+  }
+}
+
+/**
+ * 안전한 JSON 파싱
+ * @param jsonString - JSON 문자열
+ * @param fallback - 기본값
+ * @returns 파싱된 객체 또는 기본값
+ */
+export function safeJsonParse<T>(jsonString: any, fallback: T): T {
+  try {
+    if (typeof jsonString !== 'string') {
+      return fallback;
+    }
+    return JSON.parse(jsonString) ?? fallback;
+  } catch (error) {
+    console.warn('⚠️ [safeJsonParse] JSON 파싱 실패:', error);
+    return fallback;
+  }
+}
+
+/**
+ * 안전한 숫자 변환
+ * @param value - 변환할 값
+ * @param fallback - 기본값
+ * @returns 숫자 또는 기본값
+ */
+export function safeNumber(value: any, fallback: number = 0): number {
+  try {
+    if (typeof value === 'number' && !isNaN(value)) {
+      return value;
+    }
+    
+    if (typeof value === 'string') {
+      const parsed = parseFloat(value);
+      if (!isNaN(parsed)) {
+        return parsed;
+      }
+    }
+    
+    return fallback;
+  } catch (error) {
+    console.warn('⚠️ [safeNumber] 숫자 변환 실패:', error);
+    return fallback;
+  }
 } 

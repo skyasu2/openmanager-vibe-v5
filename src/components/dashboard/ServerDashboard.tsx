@@ -254,25 +254,51 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
 
     const mappedServers = servers.map(server => {
       // API 데이터 구조에 맞게 안전한 매핑
-      const serverData = (server as any).data || server;
+      const serverData = server as any; // 타입 안전성을 위한 any 캐스팅
       
-      // 🔍 서버별 매핑 정보 로깅
-      console.log('🗂️ 서버 매핑:', {
-        id: serverData.id || serverData.hostname,
-        status: serverData.status,
-        cpu: serverData.cpu_usage || serverData.cpu,
-        hasMetrics: !!serverData.metrics
-      });
-      
-      // ✅ 타입 안전한 상태 매핑
+      // 상태 매핑 함수
       const mapStatus = (status: string): 'online' | 'offline' | 'warning' => {
-        switch (status) {
-          case 'healthy': return 'online';
-          case 'warning': return 'warning';
-          case 'critical': return 'offline';
-          default: return 'online';
-        }
+        if (!status || typeof status !== 'string') return 'offline';
+        
+        const normalizedStatus = status.toLowerCase();
+        if (normalizedStatus.includes('healthy') || normalizedStatus.includes('online') || normalizedStatus.includes('running')) return 'online';
+        if (normalizedStatus.includes('warning') || normalizedStatus.includes('degraded')) return 'warning';
+        return 'offline';
       };
+
+      // 🛡️ 안전한 uptime 처리
+      const safeUptime = (() => {
+        const uptimeValue = serverData.uptime;
+        
+        // 이미 문자열인 경우
+        if (typeof uptimeValue === 'string' && uptimeValue.trim()) {
+          return uptimeValue;
+        }
+        
+        // 숫자인 경우 (초 또는 시간 단위)
+        if (typeof uptimeValue === 'number') {
+          if (uptimeValue > 86400) {
+            // 초 단위로 추정
+            const days = Math.floor(uptimeValue / 86400);
+            const hours = Math.floor((uptimeValue % 86400) / 3600);
+            return `${days}일 ${hours}시간`;
+          } else {
+            // 시간 단위로 추정
+            const hours = Math.floor(uptimeValue);
+            return `${hours}시간`;
+          }
+        }
+        
+        // uptime_hours가 있는 경우
+        if (typeof serverData.uptime_hours === 'number') {
+          const days = Math.floor(serverData.uptime_hours / 24);
+          const hours = serverData.uptime_hours % 24;
+          return `${days}일 ${hours}시간`;
+        }
+        
+        // 기본값
+        return `${Math.floor(Math.random() * 30 + 1)}일 ${Math.floor(Math.random() * 24)}시간`;
+      })();
       
       return {
         id: serverData.id || serverData.hostname || `server-${Date.now()}-${Math.random()}`,
@@ -282,7 +308,7 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
         cpu: Math.round(serverData.cpu_usage || serverData.cpu || serverData.metrics?.cpu || Math.random() * 50 + 20),
         memory: Math.round(serverData.memory_usage || serverData.memory || serverData.metrics?.memory || Math.random() * 60 + 30),
         disk: Math.round(serverData.disk_usage || serverData.disk || serverData.metrics?.disk || Math.random() * 40 + 10),
-        uptime: serverData.uptime || `${Math.floor(serverData.uptime_hours || Math.random() * 30)}일 ${Math.floor(Math.random() * 24)}시간`,
+        uptime: safeUptime,
         lastUpdate: serverData.last_updated ? new Date(serverData.last_updated) : new Date(),
         alerts: serverData.alerts?.length || (serverData.status === 'critical' ? 3 : serverData.status === 'warning' ? 1 : 0),
         ip: serverData.ip || '192.168.1.100',

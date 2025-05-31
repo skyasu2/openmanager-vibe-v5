@@ -223,10 +223,49 @@ export function isLoadingRelatedError(error: unknown): boolean {
   return message.includes('loading') || 
          message.includes('boot') || 
          message.includes('complete') ||
-         message.includes('onComplete') ||
+         message.includes('oncomplete') ||
          message.includes('로딩') ||
          message.includes('완료') ||
+         message.includes('uptime') ||
+         message.includes('includes is not a function') ||
+         message.includes('cannot read property') ||
          classifyErrorType(safeError) === 'LOADING_ERROR';
+}
+
+/**
+ * 🛡️ 타입 안전성 에러 감지
+ */
+export function isTypeSafetyError(error: unknown): boolean {
+  const safeError = createSafeError(error);
+  const message = safeError.message.toLowerCase();
+  
+  return message.includes('includes is not a function') ||
+         message.includes('cannot read property') ||
+         message.includes('undefined is not a function') ||
+         message.includes('null is not a function') ||
+         message.includes('trim is not a function') ||
+         message.includes('split is not a function') ||
+         message.includes('map is not a function') ||
+         message.includes('filter is not a function');
+}
+
+/**
+ * 🔧 자동 복구 가능한 에러인지 확인
+ */
+export function isAutoRecoverableError(error: unknown): boolean {
+  const safeError = createSafeError(error);
+  const message = safeError.message.toLowerCase();
+  
+  // 타입 안전성 에러는 자동 복구 가능
+  if (isTypeSafetyError(error)) return true;
+  
+  // 네트워크 에러는 자동 복구 가능
+  if (message.includes('network') || message.includes('fetch')) return true;
+  
+  // 일시적인 서버 에러는 자동 복구 가능
+  if (message.includes('500') || message.includes('503')) return true;
+  
+  return false;
 }
 
 /**
