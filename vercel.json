@@ -3,6 +3,7 @@
   "name": "openmanager-vibe-v5",
   "alias": ["openmanager-vibe-v5"],
   "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
   "outputDirectory": ".next",
   "framework": "nextjs",
   "installCommand": "npm ci --prefer-offline --no-audit --no-fund",
@@ -10,16 +11,19 @@
     "env": {
       "NODE_ENV": "production",
       "SKIP_ENV_VALIDATION": "true",
-      "NODE_OPTIONS": "--max-old-space-size=4096"
+      "NODE_OPTIONS": "--max-old-space-size=4096",
+      "NEXT_TELEMETRY_DISABLED": "1",
+      "CI": "true",
+      "ESLINT_NO_DEV_ERRORS": "true",
+      "DISABLE_ESLINT_PLUGIN": "false"
     }
   },
   "functions": {
-    "src/app/api/**": {
-      "maxDuration": 60,
+    "src/app/api/**/*.ts": {
       "memory": 1024
     }
   },
-  "regions": ["icn1"],
+  "regions": ["iad1"],
   "github": {
     "autoAlias": false,
     "silent": true,
@@ -85,5 +89,11 @@
     }
   ],
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "crons": [
+    {
+      "path": "/api/health",
+      "schedule": "*/5 * * * *"
+    }
+  ]
 } 

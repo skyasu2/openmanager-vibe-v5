@@ -14,6 +14,26 @@ out/index.html
 # 루트 api 폴더
 /api
 
+# Storybook 관련 파일들 (프로덕션 빌드 제외)
+**/*.stories.tsx
+**/*.stories.ts
+**/*.stories.js
+**/*.stories.jsx
+.storybook/
+storybook-static/
+*.storybook.*
+
+# 테스트 관련 파일들
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+e2e/
+tests/
+test-results/
+playwright-report/
+coverage/
+
 # 환경 변수 및 로그
 .env.local
 .env*.local
@@ -28,7 +48,6 @@ yarn-error.log*
 .idea/
 
 # 테스트 관련
-coverage/
 .nyc_output
 *.tgz
 *.tar.gz

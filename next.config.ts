@@ -53,6 +53,15 @@ const nextConfig: NextConfig = {
   pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
   poweredByHeader: false,
 
+  // Storybook 및 테스트 파일 제외 설정
+  ...(process.env.NODE_ENV === 'production' && {
+    excludeDefaultMoments: true,
+    experimental: {
+      // Storybook 파일들을 번들링에서 제외
+      optimizeCss: true,
+    },
+  }),
+
   async headers() {
     return [
       {
@@ -76,6 +85,14 @@ const nextConfig: NextConfig = {
       '@/lib': path.resolve(__dirname, './src/lib'),
       '@/utils': path.resolve(__dirname, './src/utils'),
     };
+
+    // Storybook 및 테스트 파일 제외 (프로덕션 환경)
+    if (!dev) {
+      config.module.rules.push({
+        test: /\.(stories|spec|test)\.(ts|tsx|js|jsx)$/,
+        loader: 'ignore-loader'
+      });
+    }
 
     // CI 환경에서 메모리 최적화
     if (isCI) {
