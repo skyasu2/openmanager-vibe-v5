@@ -76,57 +76,118 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
   const [currentPhaseIndex, setCurrentPhaseIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isAnimating, setIsAnimating] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
 
   // 🚨 디버깅 로그 추가
   console.log('🔍 DashboardLoader 렌더링:', { 
     currentPhaseIndex, 
     progress, 
     isAnimating,
-    totalPhases: BOOT_SEQUENCE.length 
+    totalPhases: BOOT_SEQUENCE.length,
+    isMounted,
+    environment: typeof window !== 'undefined' ? 'client' : 'server'
   });
 
-  // 🚨 body 전체 스타일 강제 오버라이드
+  // 🚨 Vercel SSR 대응 - 클라이언트에서만 실행
   useEffect(() => {
-    console.log('🚀 DashboardLoader 마운트됨 - 강제 body 오버라이드');
-    
-    // 기존 스타일 모두 제거
-    document.body.style.cssText = '';
-    document.body.className = '';
-    
-    // body 전체를 강제로 설정
-    Object.assign(document.body.style, {
-      margin: '0',
-      padding: '0',
-      position: 'fixed',
-      top: '0',
-      left: '0',
-      width: '100vw',
-      height: '100vh',
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%) !important',
-      overflow: 'hidden',
-      zIndex: '999999',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
-    });
+    setIsMounted(true);
+    console.log('🚀 DashboardLoader 클라이언트 마운트 완료');
+  }, []);
 
-    // html도 강제 설정
-    document.documentElement.style.cssText = `
-      margin: 0 !important;
-      padding: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      overflow: hidden !important;
-    `;
+  // 🚨 body 전체 스타일 강제 오버라이드 (클라이언트에서만)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !isMounted) return;
+    
+    console.log('🚀 DashboardLoader 마운트됨 - 강제 body 오버라이드 (Vercel 환경)');
+    
+    // Vercel 환경을 위한 더 강력한 스타일 제거
+    try {
+      // 모든 기존 스타일시트 비활성화
+      const styleSheets = document.styleSheets;
+      for (let i = 0; i < styleSheets.length; i++) {
+        try {
+          styleSheets[i].disabled = true;
+        } catch (e) {
+          console.log('스타일시트 비활성화 실패:', i);
+        }
+      }
+
+      // 기존 스타일 모두 제거
+      document.body.style.cssText = '';
+      document.body.className = '';
+      document.documentElement.style.cssText = '';
+      document.documentElement.className = '';
+      
+      // body 전체를 강제로 설정
+      const bodyStyles = {
+        margin: '0 !important',
+        padding: '0 !important',
+        position: 'fixed !important',
+        top: '0 !important',
+        left: '0 !important',
+        width: '100vw !important',
+        height: '100vh !important',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%) !important',
+        overflow: 'hidden !important',
+        zIndex: '999999 !important',
+        fontFamily: 'system-ui, -apple-system, sans-serif !important'
+      };
+
+      Object.entries(bodyStyles).forEach(([key, value]) => {
+        document.body.style.setProperty(key, value, 'important');
+      });
+
+      // html도 강제 설정
+      const htmlStyles = {
+        margin: '0',
+        padding: '0',
+        width: '100vw',
+        height: '100vh',
+        overflow: 'hidden'
+      };
+
+      Object.entries(htmlStyles).forEach(([key, value]) => {
+        document.documentElement.style.setProperty(key, value, 'important');
+      });
+
+      // Vercel 환경에서 추가 안전장치
+      setTimeout(() => {
+        document.body.style.setProperty('background', 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%)', 'important');
+        document.body.style.setProperty('display', 'flex', 'important');
+        document.body.style.setProperty('align-items', 'center', 'important');
+        document.body.style.setProperty('justify-content', 'center', 'important');
+      }, 100);
+
+    } catch (error) {
+      console.error('Vercel 환경 스타일 설정 오류:', error);
+    }
 
     return () => {
       // 컴포넌트 언마운트 시 복원
-      document.body.style.cssText = '';
-      document.documentElement.style.cssText = '';
+      try {
+        document.body.style.cssText = '';
+        document.documentElement.style.cssText = '';
+        
+        // 스타일시트 재활성화
+        const styleSheets = document.styleSheets;
+        for (let i = 0; i < styleSheets.length; i++) {
+          try {
+            styleSheets[i].disabled = false;
+          } catch (e) {
+            console.log('스타일시트 재활성화 실패:', i);
+          }
+        }
+      } catch (error) {
+        console.error('스타일 복원 오류:', error);
+      }
     };
-  }, []);
+  }, [isMounted]);
 
   useEffect(() => {
+    if (!isMounted) return;
+    
     // 🚨 안전장치 - 컴포넌트가 마운트되었음을 즉시 알림
-    console.log('🚀 DashboardLoader 마운트됨');
+    console.log('🚀 DashboardLoader useEffect 시작');
     
     if (currentPhaseIndex >= BOOT_SEQUENCE.length) {
       // 부팅 완료
@@ -163,15 +224,20 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
     }, 50);
 
     return () => clearInterval(progressInterval);
-  }, [currentPhaseIndex, onBootComplete, onPhaseChange]);
+  }, [currentPhaseIndex, onBootComplete, onPhaseChange, isMounted]);
+
+  // SSR 환경에서는 렌더링하지 않음
+  if (typeof window === 'undefined' || !isMounted) {
+    return null;
+  }
 
   const currentPhase = BOOT_SEQUENCE[currentPhaseIndex] || BOOT_SEQUENCE[0];
   const totalProgress = ((currentPhaseIndex * 100) + progress) / BOOT_SEQUENCE.length;
 
-  // 🚨 절대적 강제 렌더링 - 모든 기존 요소 무시
+  // 🚨 Vercel 환경 전용 절대적 강제 렌더링
   return (
     <>
-      {/* 🚨 완전한 화면 덮개 */}
+      {/* 🚨 Vercel 환경 완전한 화면 덮개 */}
       <div
         style={{
           position: 'fixed !important' as any,
@@ -187,7 +253,9 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
           alignItems: 'center !important',
           justifyContent: 'center !important',
           overflow: 'hidden !important',
-          fontFamily: 'system-ui, -apple-system, sans-serif !important'
+          fontFamily: 'system-ui, -apple-system, sans-serif !important',
+          margin: '0 !important',
+          padding: '0 !important'
         }}
       >
         <AnimatePresence>
@@ -496,7 +564,7 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
                   </div>
                 </motion.div>
 
-                {/* 🚨 강제 표시 확인 메시지 */}
+                {/* 🚨 Vercel 환경 확인 메시지 */}
                 <div style={{
                   marginTop: '2rem',
                   padding: '1rem',
@@ -506,7 +574,7 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
                   color: '#4ade80',
                   fontSize: '0.875rem'
                 }}>
-                  ✅ BODY 강제 오버라이드 적용 - 렌더링 문제 해결 완료!
+                  ✅ Vercel 환경 대응 완료 - SSR/CSR 렌더링 최적화!
                 </div>
               </div>
             </motion.div>
@@ -514,7 +582,7 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
         </AnimatePresence>
       </div>
 
-      {/* 🚨 추가 안전장치 - 절대적 덮개 */}
+      {/* 🚨 Vercel 환경 추가 안전장치 - 절대적 덮개 */}
       <div
         style={{
           position: 'fixed',
@@ -532,7 +600,7 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
           fontWeight: 'bold'
         }}
       >
-        🚀 응급 렌더링 활성화: Progress {Math.round(totalProgress)}%
+        🚀 Vercel 환경 렌더링: Progress {Math.round(totalProgress)}%
       </div>
     </>
   );
