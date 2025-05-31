@@ -4,9 +4,6 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, 
-  Shield, 
-  ShieldCheck, 
-  ShieldX, 
   Bot, 
   Monitor, 
   AlertTriangle, 
@@ -228,7 +225,7 @@ export default function UnifiedProfileComponent({
                     {isLocked ? (
                       <AlertTriangle className="w-6 h-6 text-white" />
                     ) : aiAgent.isEnabled ? (
-                      <ShieldCheck className="w-6 h-6 text-white" />
+                      <Bot className="w-6 h-6 text-white" />
                     ) : (
                       <Monitor className="w-6 h-6 text-white" />
                     )}
@@ -344,7 +341,7 @@ export default function UnifiedProfileComponent({
                     className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors"
                   >
                     <div className="p-2 rounded-lg bg-red-500/20">
-                      <ShieldX className="w-4 h-4 text-red-400" />
+                      <LogOut className="w-4 h-4 text-red-400" />
                     </div>
                     <div>
                       <div className="text-white font-medium">종료</div>

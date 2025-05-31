@@ -145,7 +145,7 @@ export default function Home() {
   // 배경 클래스 결정
   const getBackgroundClass = () => {
     if (!isSystemStarted) {
-      return 'dark-gradient-background';
+      return 'enhanced-dark-background';
     } else if (aiAgent.isEnabled) {
       return 'dark-gradient-ai';
     } else {
@@ -155,6 +155,9 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen ${getBackgroundClass()}`}>
+      {/* 웨이브 파티클 배경 효과 */}
+      <div className="wave-particles"></div>
+      
       {/* 기본 헤더 */}
       <header className="relative z-10 flex justify-between items-center p-6">
         <div className="flex items-center space-x-3">
@@ -228,7 +231,7 @@ export default function Home() {
       </header>
 
       {/* 메인 컨텐츠 */}
-      <div className="container mx-auto px-6 pb-12">
+      <div className="container mx-auto px-6 pb-12 relative z-10">
         {/* 메인 타이틀 */}
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">

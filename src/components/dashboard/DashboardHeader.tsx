@@ -2,6 +2,9 @@
 
 import { memo } from 'react';
 
+// 추가된 임포트
+import UnifiedProfileComponent from '../UnifiedProfileComponent';
+
 /**
  * 서버 통계 인터페이스
  */
@@ -76,33 +79,8 @@ const DashboardHeader = memo(function DashboardHeader({
               <p className="text-xs text-gray-500">AI 서버 모니터링</p>
             </div>
           </button>
-        </div>
 
-        <div className="flex items-center gap-4">
-          {/* 시스템 상태 표시 */}
-          {systemStatusDisplay}
-          
-          {/* 빠른 통계 - 실시간 데이터 */}
-          <div className="hidden md:flex items-center gap-6" role="status" aria-label="서버 통계">
-            <div className="text-center">
-              <div className="text-sm font-medium text-gray-900">{serverStats.total}대</div>
-              <div className="text-xs text-gray-500">전체 서버</div>
-            </div>
-            <div className="text-center">
-              <div className="text-sm font-medium text-green-600">{serverStats.online}대</div>
-              <div className="text-xs text-gray-500">온라인</div>
-            </div>
-            <div className="text-center">
-              <div className="text-sm font-medium text-orange-600">{serverStats.warning}대</div>
-              <div className="text-xs text-gray-500">경고</div>
-            </div>
-            <div className="text-center">
-              <div className="text-sm font-medium text-red-600">{serverStats.offline}대</div>
-              <div className="text-xs text-gray-500">오프라인</div>
-            </div>
-          </div>
-
-          {/* AI 에이전트 토글 버튼 */}
+          {/* AI 에이전트 토글 버튼 - 왼쪽 배치 */}
           <button
             onClick={onToggleAgent}
             className={`
@@ -133,6 +111,34 @@ const DashboardHeader = memo(function DashboardHeader({
               ></div>
             )}
           </button>
+        </div>
+
+        <div className="flex items-center gap-4">
+          {/* 시스템 상태 표시 */}
+          {systemStatusDisplay}
+          
+          {/* 빠른 통계 - 실시간 데이터 */}
+          <div className="hidden md:flex items-center gap-6" role="status" aria-label="서버 통계">
+            <div className="text-center">
+              <div className="text-sm font-medium text-gray-900">{serverStats.total}대</div>
+              <div className="text-xs text-gray-500">전체 서버</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm font-medium text-green-600">{serverStats.online}대</div>
+              <div className="text-xs text-gray-500">온라인</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm font-medium text-orange-600">{serverStats.warning}대</div>
+              <div className="text-xs text-gray-500">경고</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm font-medium text-red-600">{serverStats.offline}대</div>
+              <div className="text-xs text-gray-500">오프라인</div>
+            </div>
+          </div>
+
+          {/* 프로필 컴포넌트 - 오른쪽 배치 */}
+          <UnifiedProfileComponent userName="사용자" />
         </div>
       </div>
     </header>
