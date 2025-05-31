@@ -364,7 +364,8 @@ export class OptimizedDataGenerator {
         console.log(`📊 실시간 데이터 생성: ${servers.length}개 서버 (업데이트 #${this.updateCounter})`);
       },
       interval: this.UPDATE_INTERVAL,
-      priority: 'medium'
+      priority: 'medium',
+      enabled: true
     });
     
     console.log(`✅ OptimizedDataGenerator 시작 완료 (${this.UPDATE_INTERVAL/1000}초 간격)`);

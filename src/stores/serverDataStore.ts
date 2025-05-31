@@ -562,7 +562,8 @@ export const useServerDataStore = create<ServerDataState>()(
             }
           },
           interval: 5000, // 5초마다 (UI 업데이트용)
-          priority: 'medium'
+          priority: 'medium',
+          enabled: true
         });
       },
 

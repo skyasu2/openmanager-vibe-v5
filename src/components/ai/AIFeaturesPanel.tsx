@@ -24,26 +24,27 @@ interface AIStatus {
 }
 
 export function AIFeaturesPanel() {
-  const { isAIAdminMode, isAuthenticated } = useSystemStore();
   const [aiStatus, setAIStatus] = useState<AIStatus>({
     agent: 'inactive',
     mcp: 'disconnected',
     analytics: 'idle'
   });
-  const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState<Array<{
     type: 'user' | 'ai';
     message: string;
     timestamp: Date;
   }>>([]);
+  const [chatInput, setChatInput] = useState('');
 
-  // AI 모드가 아니거나 인증되지 않은 경우 표시하지 않음
-  if (!isAIAdminMode || !isAuthenticated) {
-    return null;
-  }
+  const { isAIAdminMode, isAuthenticated } = useSystemStore();
 
-  // AI 상태 모니터링
+  // AI 상태 모니터링 - Hook 규칙 준수
   useEffect(() => {
+    // AI 모드가 아니거나 인증되지 않은 경우 조기 종료
+    if (!isAIAdminMode || !isAuthenticated) {
+      return;
+    }
+
     const checkAIStatus = async () => {
       try {
         // AI 에이전트 상태 확인
@@ -78,7 +79,12 @@ export function AIFeaturesPanel() {
     const statusInterval = setInterval(checkAIStatus, 30000);
 
     return () => clearInterval(statusInterval);
-  }, []);
+  }, [isAIAdminMode, isAuthenticated]);
+
+  // AI 모드가 아니거나 인증되지 않은 경우 표시하지 않음
+  if (!isAIAdminMode || !isAuthenticated) {
+    return null;
+  }
 
   // AI 채팅 메시지 전송
   const handleSendMessage = async () => {
@@ -226,7 +232,7 @@ export function AIFeaturesPanel() {
             <div className="text-center text-gray-400 mt-16">
               <Brain className="w-8 h-8 mx-auto mb-2 opacity-50" />
               <p>AI 에이전트에게 서버 상태를 질문해보세요</p>
-              <p className="text-xs mt-1">예: "CPU 사용률이 어떻게 되나요?"</p>
+              <p className="text-xs mt-1">예: &quot;CPU 사용률이 어떻게 되나요?&quot;</p>
             </div>
           ) : (
             <div className="space-y-3">

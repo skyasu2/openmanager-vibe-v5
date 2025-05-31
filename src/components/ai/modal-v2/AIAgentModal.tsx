@@ -220,7 +220,7 @@ export default function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
         id: `query_${Date.now()}`,
         question,
         context: functionType ? `Function: ${functionType}` : undefined,
-        priority: 'medium',
+        priority: 'medium' as const,
         enabled: true as const,
         category: determineCategoryFromQuestion(question)
       };

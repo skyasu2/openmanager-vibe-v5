@@ -314,7 +314,8 @@ export class PrometheusDataHub {
         }
       },
       interval: 15000, // 15초
-      priority: 'high'
+      priority: 'high',
+      enabled: true
     });
   }
 
@@ -576,7 +577,8 @@ export class PrometheusDataHub {
         await this.performAggregations();
       },
       interval: 60000, // 1분
-      priority: 'medium'
+      priority: 'medium',
+      enabled: true
     });
   }
 
@@ -681,7 +683,8 @@ export class PrometheusDataHub {
         await this.performCleanup();
       },
       interval: 3600000, // 1시간
-      priority: 'low'
+      priority: 'low',
+      enabled: true
     });
   }
 

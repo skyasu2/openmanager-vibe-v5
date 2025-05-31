@@ -241,7 +241,8 @@ export class UnifiedMetricsManager {
         id: 'unified-metrics-generation',
         callback: async () => await this.generateMetrics(),
         interval: this.config.generation.interval_seconds * 1000,
-        priority: 'high'
+        priority: 'high',
+        enabled: true
       });
     }
 
@@ -254,7 +255,8 @@ export class UnifiedMetricsManager {
           // await this.performAIAnalysis();
         },
         interval: this.config.ai_analysis.interval_seconds * 1000,
-        priority: 'medium'
+        priority: 'medium',
+        enabled: true
       });
     }
 
@@ -267,7 +269,8 @@ export class UnifiedMetricsManager {
           // await this.performAutoscaling();
         },
         interval: this.config.autoscaling.scale_interval_seconds * 1000,
-        priority: 'medium'
+        priority: 'medium',
+        enabled: true
       });
     }
 
@@ -276,7 +279,8 @@ export class UnifiedMetricsManager {
       id: 'unified-performance-monitor',
       callback: async () => await this.monitorPerformance(),
       interval: 120000,
-      priority: 'low'
+      priority: 'low',
+      enabled: true
     });
 
     console.log('⏰ 통합 스케줄러 시작 완료');

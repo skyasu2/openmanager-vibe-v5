@@ -620,7 +620,8 @@ export class SimulationEngine {
       id: 'simulation-engine-update',
       callback: () => this.updateSimulation(),
       interval: this.UPDATE_INTERVAL,
-      priority: 'high'
+      priority: 'high',
+      enabled: true
     });
 
     console.log(`🚀 시뮬레이션 시작 (${this.state.servers.length}개 서버, ${this.UPDATE_INTERVAL/1000}초 간격, Prometheus: ${this.state.prometheusEnabled ? 'ON' : 'OFF'})`);

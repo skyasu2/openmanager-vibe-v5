@@ -26,28 +26,29 @@ interface AIStatus {
 }
 
 export function AISidebar() {
-  const { isAIAdminMode, isAuthenticated } = useSystemStore();
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [aiStatus, setAIStatus] = useState<AIStatus>({
     agent: 'inactive',
     mcp: 'disconnected',
     analytics: 'idle'
   });
-  const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState<Array<{
     type: 'user' | 'ai';
     message: string;
     timestamp: Date;
   }>>([]);
+  const [chatInput, setChatInput] = useState('');
 
-  // AI 모드가 아니거나 인증되지 않은 경우 표시하지 않음
-  if (!isAIAdminMode || !isAuthenticated) {
-    return null;
-  }
+  const { isAIAdminMode, isAuthenticated } = useSystemStore();
 
-  // AI 상태 모니터링
+  // AI 상태 모니터링 - Hook 규칙 준수
   useEffect(() => {
+    // AI 모드가 아니거나 인증되지 않은 경우 조기 종료
+    if (!isAIAdminMode || !isAuthenticated) {
+      return;
+    }
+
     const checkAIStatus = async () => {
       try {
         const agentResponse = await fetch('/api/ai/unified', {
@@ -76,7 +77,12 @@ export function AISidebar() {
     checkAIStatus();
     const statusInterval = setInterval(checkAIStatus, 30000);
     return () => clearInterval(statusInterval);
-  }, []);
+  }, [isAIAdminMode, isAuthenticated]);
+
+  // AI 모드가 아니거나 인증되지 않은 경우 표시하지 않음
+  if (!isAIAdminMode || !isAuthenticated) {
+    return null;
+  }
 
   // AI 채팅 메시지 전송
   const handleSendMessage = async () => {
@@ -254,9 +260,10 @@ export function AISidebar() {
             <div className="flex-1 overflow-y-auto p-4">
               {chatMessages.length === 0 ? (
                 <div className="text-center text-gray-400 mt-8">
-                  <Brain className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-xs">AI 에이전트에게 질문해보세요</p>
-                  <p className="text-xs mt-1 opacity-70">예: "서버 상태는?"</p>
+                  <Brain className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                  <p className="text-xs text-gray-400">AI 에이전트에게</p>
+                  <p className="text-xs text-gray-400">질문해보세요</p>
+                  <p className="text-xs mt-1 text-purple-300">예: &quot;서버 상태&quot;</p>
                 </div>
               ) : (
                 <div className="space-y-3">
