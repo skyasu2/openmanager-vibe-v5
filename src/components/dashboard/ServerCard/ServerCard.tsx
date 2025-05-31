@@ -11,9 +11,10 @@
 import React, { memo, useState, useCallback } from 'react';
 import { Server } from '../../../types/server';
 import ServerIcon from './ServerIcon';
-import MetricsDisplay from './MetricsDisplay';
 import StatusBadge from './StatusBadge';
+import MetricsDisplay from './MetricsDisplay';
 import ActionButtons from './ActionButtons';
+import { safeFormatUptime } from '../../../utils/safeFormat';
 
 interface ServerCardProps {
   server: Server;
@@ -160,7 +161,7 @@ const ServerCard: React.FC<ServerCardProps> = memo(({
           </div>
           <div className="flex justify-between">
             <span>업타임</span>
-            <span className="font-medium text-gray-900">{server.uptime}</span>
+            <span className="font-medium text-gray-900">{safeFormatUptime(server.uptime)}</span>
           </div>
           {variant !== 'compact' && (
             <>
@@ -203,7 +204,7 @@ const ServerCard: React.FC<ServerCardProps> = memo(({
               <div className="space-y-1">
                 <div className="flex justify-between">
                   <span className="text-gray-600">업타임</span>
-                  <span className="font-medium">{server.uptime}</span>
+                  <span className="font-medium">{safeFormatUptime(server.uptime)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">응답</span>

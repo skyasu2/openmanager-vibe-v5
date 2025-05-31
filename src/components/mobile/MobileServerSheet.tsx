@@ -15,6 +15,7 @@ import {
   CheckCircleIcon
 } from '@heroicons/react/24/outline';
 import { Server } from '../../types/server';
+import { safeFormatUptime } from '../../utils/safeFormat';
 
 interface MobileServerSheetProps {
   server: Server | null;
@@ -190,7 +191,7 @@ export default function MobileServerSheet({
                       <ClockIcon className="h-5 w-5 text-gray-500" />
                       <div>
                         <div className="text-sm font-medium text-gray-700">가동 시간</div>
-                        <div className="text-lg font-semibold text-gray-900">{server.uptime}</div>
+                        <div className="text-lg font-semibold text-gray-900">{safeFormatUptime(server.uptime)}</div>
                       </div>
                     </div>
                   </motion.div>

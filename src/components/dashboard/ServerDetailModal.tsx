@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Server } from '../../types/server';
 import { timerManager } from '../../utils/TimerManager';
+import { safeFormatUptime } from '../../utils/safeFormat';
 
 interface ServerDetailModalProps {
   server: Server | null;
@@ -362,7 +363,7 @@ export default function ServerDetailModal({ server, onClose }: ServerDetailModal
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">가동시간</span>
-                        <span className="font-medium">{server.uptime}</span>
+                        <span className="font-medium">{safeFormatUptime(server.uptime)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">IP 주소</span>

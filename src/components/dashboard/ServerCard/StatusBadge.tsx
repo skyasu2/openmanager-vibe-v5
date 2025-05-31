@@ -9,6 +9,7 @@
 
 import React, { memo } from 'react';
 import { Server } from '../../../types/server';
+import { extractDaysFromUptime, safeFormatUptime } from '../../../utils/safeFormat';
 
 interface StatusBadgeProps {
   server: Server;
@@ -94,14 +95,18 @@ const StatusBadge: React.FC<StatusBadgeProps> = memo(({
 
   // 업타임 기반 추가 정보
   const getUptimeInfo = () => {
-    const uptimeText = server.uptime;
-    if (uptimeText.includes('day')) {
-      const days = parseInt(uptimeText);
+    try {
+      const days = extractDaysFromUptime(server.uptime);
+      
       if (days > 365) return { badge: '🏆', text: '1년+', color: 'text-green-600' };
       if (days > 90) return { badge: '⭐', text: '90일+', color: 'text-blue-600' };
       if (days > 30) return { badge: '✅', text: '30일+', color: 'text-green-600' };
+      
+      return null;
+    } catch (error) {
+      console.error('❌ [StatusBadge] getUptimeInfo 에러:', error);
+      return null;
     }
-    return null;
   };
 
   const uptimeInfo = getUptimeInfo();
@@ -142,7 +147,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = memo(({
             px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg 
             flex items-center gap-1 text-xs font-medium ${uptimeInfo.color}
           `}
-          title={`연속 가동 시간: ${server.uptime}`}
+          title={`연속 가동 시간: ${safeFormatUptime(server.uptime)}`}
         >
           <span>{uptimeInfo.badge}</span>
           <span>{uptimeInfo.text}</span>

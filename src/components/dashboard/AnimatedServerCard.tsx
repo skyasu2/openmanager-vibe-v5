@@ -7,9 +7,11 @@
  * - 실시간 메트릭 표시
  */
 
-import React from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Server, Database, Cloud, Shield, BarChart3, GitBranch, Mail, Layers, Cpu, HardDrive, Activity } from 'lucide-react';
+import { Server as ServerType } from '../../types/server';
+import { safeFormatUptime } from '../../utils/safeFormat';
 
 interface AnimatedServerCardProps {
   server: {
@@ -262,7 +264,7 @@ const AnimatedServerCard: React.FC<AnimatedServerCardProps> = ({
           </div>
           <div className="flex justify-between text-gray-600">
             <span>가동시간:</span>
-            <span className="text-gray-900">{server.uptime}</span>
+            <span className="text-gray-900">{safeFormatUptime(server.uptime)}</span>
           </div>
           {server.ip && (
             <div className="flex justify-between text-gray-600">
