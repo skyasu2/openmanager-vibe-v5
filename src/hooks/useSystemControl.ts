@@ -19,13 +19,30 @@ interface UseSystemControlReturn {
   stopSystem: () => Promise<void>;
   restartSystem: () => Promise<void>;
   checkStatus: () => Promise<void>;
+  state: any;
+  isSystemActive: boolean;
+  isSystemPaused: boolean;
+  formattedTime: string;
+  aiAgent: any;
+  isPaused: boolean;
+  pauseReason?: string;
+  isUserSession: boolean;
+  shouldAutoStop: boolean;
+  startFullSystem: any;
+  stopFullSystem: any;
+  pauseFullSystem: any;
+  resumeFullSystem: any;
+  startAISession: any;
+  recordActivity: () => void;
+  enableAIAgent: any;
+  disableAIAgent: any;
 }
 
 export function useSystemControl(): UseSystemControlReturn {
   const {
     state,
-    startSystem,
-    stopSystem,
+    startSystem: storeStartSystem,
+    stopSystem: storeStopSystem,
     pauseSystem,
     resumeSystem,
     aiAgent,
@@ -212,7 +229,7 @@ export function useSystemControl(): UseSystemControlReturn {
       systemLogger.system(`🚀 [Vercel] 사용자 시스템 시작 (${mode} 모드)...`);
 
       // 1단계: 시스템 타이머 시작 (사용자 세션 - 60분)
-      startSystem(60 * 60, true); // 사용자 세션은 60분으로 시작
+      storeStartSystem(60 * 60, true); // 사용자 세션은 60분으로 시작
       
       // 2단계: 시뮬레이션 엔진 시작 (Vercel 최적화)
       try {
@@ -322,12 +339,12 @@ export function useSystemControl(): UseSystemControlReturn {
       systemLogger.error(errorMsg, error);
       
       // 치명적 오류 시 시스템 중지
-      stopSystem('시작 실패');
+      storeStopSystem('시작 실패');
       
       return {
         success: false,
         message: errorMsg,
-        errors: [error instanceof Error ? error.message : '알 수 없는 오류'],
+        errors: [safeErrorMessage(error, '알 수 없는 오류')],
         warnings: [],
         recommendations: [
           '페이지를 새로고침 후 다시 시도하세요',
@@ -391,7 +408,7 @@ export function useSystemControl(): UseSystemControlReturn {
           systemLogger.warn(errorMsg);
         }
       } catch (error) {
-        if (error instanceof TypeError && error.message.includes('fetch')) {
+        if (safeErrorMessage(error).includes('fetch')) {
           // 네트워크 오류는 시스템이 이미 중지된 것으로 간주
           systemLogger.system('ℹ️ 시뮬레이션 엔진 API 접근 불가 (이미 중지된 것으로 추정)');
         } else {
@@ -402,7 +419,7 @@ export function useSystemControl(): UseSystemControlReturn {
       }
 
       // 3단계: 시스템 타이머 중지
-      stopSystem('사용자 요청');
+      storeStopSystem('사용자 요청');
       systemLogger.system('✅ 시스템 타이머 중지 완료');
 
       // 결과 처리
@@ -421,12 +438,12 @@ export function useSystemControl(): UseSystemControlReturn {
       systemLogger.error(errorMsg, error);
       
       // 치명적 오류가 발생해도 타이머는 중지
-      stopSystem('중지 실패');
+      storeStopSystem('중지 실패');
       
       return {
         success: false,
         message: errorMsg,
-        errors: [error instanceof Error ? error.message : '알 수 없는 오류']
+        errors: [safeErrorMessage(error, '알 수 없는 오류')]
       };
     }
   };
@@ -478,7 +495,7 @@ export function useSystemControl(): UseSystemControlReturn {
   }> => {
     try {
       // AI 세션은 20분으로 시작하고 자동 종료됨
-      startSystem(20 * 60, false);
+      storeStartSystem(20 * 60, false);
       
       // AI 에이전트 활성화
       await enableAIAgent();

@@ -85,15 +85,6 @@ const nextConfig: NextConfig = {
     }
 
     return config;
-  },
-
-  experimental: {
-    serverComponentsExternalPackages: [
-      'ioredis',
-      'redis', 
-      '@redis/client',
-      'generic-pool'
-    ]
   }
 };
 
