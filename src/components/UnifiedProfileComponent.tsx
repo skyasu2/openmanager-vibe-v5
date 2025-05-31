@@ -12,7 +12,8 @@ import {
   Settings,
   LogOut,
   ChevronDown,
-  Database
+  Database,
+  X
 } from 'lucide-react';
 import Image from 'next/image';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
@@ -34,6 +35,62 @@ const ServerMonitorModal = dynamic(() => import('./ServerMonitorModal').then(mod
   ssr: false
 });
 
+// 환경설정 모달을 위한 간단한 컴포넌트
+const SettingsModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => (
+  <AnimatePresence>
+    {isOpen && (
+      <motion.div
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <motion.div
+          className="absolute inset-0 bg-black/70 backdrop-blur-md"
+          onClick={onClose}
+        />
+        <motion.div
+          className="w-full max-w-md bg-gray-900/98 backdrop-blur-xl border border-gray-700/70 rounded-2xl shadow-2xl"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+        >
+          <div className="p-6 border-b border-gray-700/50">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-white">시스템 설정</h2>
+              <button onClick={onClose} className="p-2 hover:bg-gray-700/50 rounded-lg transition-colors">
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+          </div>
+          <div className="p-6">
+            <div className="space-y-4">
+              <div className="p-4 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+                <h3 className="text-white font-medium mb-2">환경설정</h3>
+                <p className="text-blue-200 text-sm">
+                  시스템 환경설정 기능이 곧 추가될 예정입니다.
+                </p>
+              </div>
+              <div className="p-4 bg-purple-500/20 border border-purple-500/30 rounded-lg">
+                <h3 className="text-white font-medium mb-2">AI 설정</h3>
+                <p className="text-purple-200 text-sm">
+                  AI 에이전트 고급 설정 기능이 곧 추가될 예정입니다.
+                </p>
+              </div>
+              <div className="p-4 bg-green-500/20 border border-green-500/30 rounded-lg">
+                <h3 className="text-white font-medium mb-2">알림 설정</h3>
+                <p className="text-green-200 text-sm">
+                  알림 및 경고 설정 기능이 곧 추가될 예정입니다.
+                </p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
+
 interface UnifiedProfileComponentProps {
   userName?: string;
   userAvatar?: string;
@@ -47,6 +104,7 @@ export default function UnifiedProfileComponent({
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showServerGeneratorModal, setShowServerGeneratorModal] = useState(false);
   const [showServerMonitorModal, setShowServerMonitorModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [clickPosition, setClickPosition] = useState<{ x: number; y: number } | undefined>(undefined);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
@@ -344,7 +402,10 @@ export default function UnifiedProfileComponent({
               <div className="p-2">
                 <motion.button
                   whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => {
+                    setShowSettingsModal(true);
+                    setIsOpen(false);
+                  }}
                   className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors"
                 >
                   <div className="p-2 rounded-lg bg-gray-500/20">
@@ -420,6 +481,12 @@ export default function UnifiedProfileComponent({
           )}
         </AnimatePresence>
       </div>
+
+      {/* 환경설정 모달 */}
+      <SettingsModal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+      />
 
       {/* 인증 모달 */}
       <UnifiedAuthModal

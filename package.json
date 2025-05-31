@@ -1,6 +1,6 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.17.5",
+  "version": "5.17.6",
   "description": "🎯 AI 기반 차세대 지능형 인프라 모니터링 플랫폼 - v5.17.5: Dynamic Import 최적화 및 빌드 사이즈 대폭 감소",
   "private": true,
   "keywords": [
