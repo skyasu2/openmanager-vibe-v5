@@ -2,70 +2,106 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Bot, Activity, Layers, X, Sparkles } from 'lucide-react';
+import { Bot, Activity, Layers, X, Sparkles, Cpu, Database, Code, Zap } from 'lucide-react';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useToast } from '@/components/ui/ToastNotification';
 
 // 카드 데이터
 const cardData = [
   {
-    id: 'ai-agent',
-    title: 'MCP 기반 AI 에이전트',
-    description: 'Model Context Protocol로 구동하는 차세대 AI',
+    id: 'mcp-ai-engine',
+    title: 'MCP 기반 AI 엔진',
+    description: '자연어로 서버 상태를 질의하면, MCP 프로토콜을 통해 AI 엔진이 다중 도구를 선택하고 분석 결과를 생성합니다.',
     icon: Bot,
     gradient: 'from-blue-500 via-pink-500 to-cyan-400',
-    features: [
-      'MCP 표준 프로토콜 기반 AI 추론',
-      '자연어로 서버 상태 질의',
-      '지능형 근본원인 분석',
-      '예측적 알림 및 권장사항'
-    ],
+    detailedContent: {
+      overview: 'MCP(Model Context Protocol) 표준을 활용한 차세대 AI 분석 엔진으로, 자연어 질의를 통해 복잡한 서버 분석을 수행합니다.',
+      features: [
+        '자연어로 CPU, 메모리, 응답속도 등을 질의할 수 있습니다',
+        'MCP Orchestrator는 내부에서 statistical_analysis, anomaly_detection, root_cause_analysis 등의 도구를 조합하여 분석을 수행합니다',
+        'Python 기반 AI 엔진과 TypeScript 폴백 엔진이 자동으로 선택됩니다',
+        '결과는 실시간 사고과정 표시와 함께 자연어로 응답됩니다'
+      ],
+      technologies: [
+        '@modelcontextprotocol/server-filesystem',
+        'OpenManager MCP',
+        'scikit-learn, prophet',
+        'react-use, zustand, SSE'
+      ]
+    },
     requiresAI: true,
-    isAICard: true // AI 카드 특별 애니메이션
+    isAICard: true
   },
   {
-    id: 'prometheus',
-    title: 'Prometheus 모니터링',
-    description: '실시간 메트릭 수집 및 시각화',
-    icon: Activity,
-    gradient: 'from-cyan-500 to-blue-600',
-    features: [
-      '실시간 서버 메트릭 수집',
-      '커스텀 알림 설정',
-      '히스토리 데이터 분석',
-      '다양한 시각화 차트'
-    ],
+    id: 'data-generator',
+    title: '서버 데이터 생성기',
+    description: 'Prometheus 스타일의 서버 메트릭 데이터를 자동 생성하여 AI 에이전트의 테스트 및 학습에 활용되는 시뮬레이터입니다.',
+    icon: Database,
+    gradient: 'from-emerald-500 to-teal-600',
+    detailedContent: {
+      overview: '실제 운영 환경을 시뮬레이션하는 고성능 데이터 생성기로, AI 학습과 테스트를 위한 다양한 시나리오를 제공합니다.',
+      features: [
+        '실시간 20분 구간과 24시간 고정 데이터 기반 시계열 구성',
+        'CPU, 메모리, 디스크, 응답속도 등 다양한 메트릭 자동 생성',
+        '10% 심각, 20% 경고 상태를 시뮬레이션하여 AI 분석 훈련 가능',
+        '/api/data-generator를 통해 타 시스템에도 제공 가능'
+      ],
+      technologies: [
+        'prom-client, faker.js',
+        'Recharts, zustand, TimerManager',
+        'Express (Fastify), Redis',
+        'delta-compression'
+      ]
+    },
     requiresAI: false
   },
   {
     id: 'tech-stack',
-    title: '기술 스택',
-    description: '현대적이고 확장 가능한 아키텍처',
-    icon: Layers,
-    gradient: 'from-emerald-500 to-teal-600',
-    features: [
-      'Next.js 15 + TypeScript',
-      'Zustand 상태 관리',
-      'Tailwind CSS 스타일링',
-      'Vercel 배포 최적화'
-    ],
+    title: '최신 프론트/백엔드 기술',
+    description: 'OpenManager는 최신 기술 스택으로 구현되어 있으며, 높은 성능과 확장성을 자랑합니다.',
+    icon: Code,
+    gradient: 'from-purple-500 to-indigo-600',
+    detailedContent: {
+      overview: '모던 웹 개발의 베스트 프랙티스를 적용한 확장 가능하고 유지보수하기 쉬운 아키텍처를 제공합니다.',
+      features: [
+        'Next.js 14 (App Router), React 19, Tailwind 3.x',
+        'Zustand + React Query로 전역 및 API 상태 관리',
+        'Vercel 기반 자동 배포 + GitHub Actions 분기별 배포 구성',
+        '백엔드는 Node.js + Redis + Supabase 구성'
+      ],
+      technologies: [
+        'Next.js, Tailwind, React Query, Zustand',
+        'Supabase, Upstash Redis, Vercel',
+        'lucide-react, shadcn/ui, clsx',
+        'framer-motion'
+      ]
+    },
     requiresAI: false
   },
   {
     id: 'vibe-coding',
     title: '✨ Vibe Coding',
-    description: 'Cursor + Claude로 만드는 창의적 개발 경험',
+    description: 'GPT/Claude + Cursor AI로 협업하여 구현된 MCP 기반 차세대 AI 에이전트 개발 워크플로우입니다.',
     icon: Sparkles,
     gradient: 'from-amber-400 via-orange-500 to-yellow-600',
-    features: [
-      'Cursor AI 기반 페어 프로그래밍',
-      'Claude Sonnet과 실시간 협업',
-      '창의적이고 직관적인 코딩',
-      '인간과 AI의 완벽한 하모니'
-    ],
+    detailedContent: {
+      overview: '인간과 AI가 협업하는 혁신적인 개발 방식으로, "코드를 치지 않고도" 완성도 높은 기능을 구현하는 차세대 워크플로우입니다.',
+      features: [
+        'MCP 서버 설정, 테스트 자동화, 문서 자동 생성까지 커서 기반으로 개발 가능',
+        '비즈니스 도메인에 최적화된 AI 학습 루프 설계',
+        '"코드를 치지 않고도" 기능을 완성하는 Vibe-Driven 방식 실현',
+        'AI와 인간의 창의적 협업을 통한 혁신적 개발 경험'
+      ],
+      technologies: [
+        'Cursor AI, Claude',
+        '@modelcontextprotocol/sdk',
+        'auto-doc-generator.js, testing-mcp-server.js',
+        'Vibe Coding 기반 프롬프트 템플릿 시스템'
+      ]
+    },
     requiresAI: false,
-    isSpecial: true, // 황금카드 특수 효과
-    isVibeCard: true // 바이브 코딩 카드 특별 애니메이션
+    isSpecial: true,
+    isVibeCard: true
   }
 ];
 
@@ -185,21 +221,6 @@ export default function FeatureCardsGrid() {
                 />
               )}
               
-              {/* 특별 카드 황금 효과 (기존) */}
-              {card.isSpecial && !card.isVibeCard && (
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-br from-amber-400/20 via-orange-500/20 to-pink-500/20 rounded-2xl"
-                  animate={{
-                    opacity: [0.1, 0.3, 0.1],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                />
-              )}
-              
               {/* 아이콘 */}
               <div className={`w-12 h-12 bg-gradient-to-br ${card.gradient} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 relative z-10 ${
                 card.isSpecial ? 'shadow-lg shadow-amber-500/25' : ''
@@ -282,7 +303,7 @@ export default function FeatureCardsGrid() {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className={`relative w-full max-w-md bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl ${
+            className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl ${
               selectedCardData.isSpecial ? 'border-amber-500/50 bg-gradient-to-br from-gray-900/95 to-amber-900/20' : ''
             } ${
               selectedCardData.isAICard ? 'border-pink-500/50 bg-gradient-to-br from-gray-900/95 to-pink-900/20' : ''
@@ -292,7 +313,7 @@ export default function FeatureCardsGrid() {
             <div className="p-6 border-b border-gray-700/50">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 bg-gradient-to-br ${selectedCardData.gradient} rounded-lg flex items-center justify-center ${
+                  <div className={`w-12 h-12 bg-gradient-to-br ${selectedCardData.gradient} rounded-lg flex items-center justify-center ${
                     selectedCardData.isSpecial ? 'shadow-lg shadow-amber-500/25' : ''
                   } ${
                     selectedCardData.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
@@ -308,7 +329,7 @@ export default function FeatureCardsGrid() {
                           scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
                         }}
                       >
-                        <selectedCardData.icon className="w-5 h-5 text-white" />
+                        <selectedCardData.icon className="w-6 h-6 text-white" />
                       </motion.div>
                     ) : selectedCardData.isVibeCard ? (
                       <motion.div
@@ -322,14 +343,14 @@ export default function FeatureCardsGrid() {
                           ease: "easeInOut"
                         }}
                       >
-                        <selectedCardData.icon className="w-5 h-5 text-white" />
+                        <selectedCardData.icon className="w-6 h-6 text-white" />
                       </motion.div>
                     ) : (
-                      <selectedCardData.icon className="w-5 h-5 text-white" />
+                      <selectedCardData.icon className="w-6 h-6 text-white" />
                     )}
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-white">
+                    <h2 className="text-xl font-bold text-white">
                       {renderTextWithAIGradient(selectedCardData.title)}
                     </h2>
                     <p className="text-sm text-gray-400">
@@ -346,25 +367,59 @@ export default function FeatureCardsGrid() {
               </div>
             </div>
 
-            {/* 기능 목록 */}
+            {/* 상세 내용 */}
             <div className="p-6">
-              <h3 className="text-white font-medium mb-4">주요 기능</h3>
-              <ul className="space-y-3">
-                {selectedCardData.features.map((feature, index) => (
-                  <li key={index} className="flex items-start gap-3 text-sm">
-                    <div className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${
-                      selectedCardData.isAICard 
-                        ? 'bg-pink-400' 
-                        : selectedCardData.isSpecial 
-                        ? 'bg-amber-400' 
-                        : 'bg-green-400'
-                    }`} />
-                    <span className="text-gray-300">
-                      {renderTextWithAIGradient(feature)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              {/* 개요 */}
+              <div className="mb-6">
+                <h3 className="text-white font-medium mb-3 text-lg">📖 개요</h3>
+                <p className="text-gray-300 leading-relaxed">
+                  {renderTextWithAIGradient(selectedCardData.detailedContent.overview)}
+                </p>
+              </div>
+
+              {/* 주요 기능 */}
+              <div className="mb-6">
+                <h3 className="text-white font-medium mb-4 text-lg">⚡ 주요 기능</h3>
+                <ul className="space-y-3">
+                  {selectedCardData.detailedContent.features.map((feature, index) => (
+                    <li key={index} className="flex items-start gap-3 text-sm">
+                      <div className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${
+                        selectedCardData.isAICard 
+                          ? 'bg-pink-400' 
+                          : selectedCardData.isSpecial 
+                          ? 'bg-amber-400' 
+                          : 'bg-green-400'
+                      }`} />
+                      <span className="text-gray-300 leading-relaxed">
+                        {renderTextWithAIGradient(feature)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* 사용 기술/오픈소스 */}
+              <div>
+                <h3 className="text-white font-medium mb-4 text-lg">🧩 사용 오픈소스/기술</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {selectedCardData.detailedContent.technologies.map((tech, index) => (
+                    <div
+                      key={index}
+                      className={`p-3 rounded-lg bg-gray-800/50 border border-gray-700/50 ${
+                        selectedCardData.isAICard 
+                          ? 'hover:border-pink-500/50' 
+                          : selectedCardData.isSpecial 
+                          ? 'hover:border-amber-500/50' 
+                          : 'hover:border-green-500/50'
+                      } transition-colors`}
+                    >
+                      <span className="text-gray-300 text-sm font-mono">
+                        {tech}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </motion.div>
         </div>
