@@ -15,7 +15,7 @@ interface DashboardLoaderProps {
   onBootComplete: () => void;
   onPhaseChange?: (phase: string, message: string) => void;
   externalProgress?: number;
-  loadingPhase?: 'minimum-wait' | 'actual-loading' | 'completed';
+  loadingPhase?: 'minimum-wait' | 'actual-loading' | 'completed' | 'system-starting' | 'data-loading' | 'python-warmup';
   estimatedTimeRemaining?: number;
   elapsedTime?: number;
 }
@@ -376,9 +376,10 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
                 )}
                 
                 <div className="text-cyan-300 text-xs font-medium">
-                  {loadingPhase === 'minimum-wait' && '⏱️ 안정적인 로딩 시간 보장 중...'}
-                  {loadingPhase === 'actual-loading' && '📊 데이터 로딩 중...'}
-                  {loadingPhase === 'completed' && '✅ 로딩 완료!'}
+                  {loadingPhase === 'system-starting' && '�� 시스템 코어 초기화 중...'}
+                  {loadingPhase === 'data-loading' && '📊 서버 데이터 수집 중...'}
+                  {loadingPhase === 'python-warmup' && '🐍 파이썬 엔진 웜업 중...'}
+                  {loadingPhase === 'completed' && '✅ 모든 시스템 준비 완료!'}
                 </div>
               </div>
             </motion.div>

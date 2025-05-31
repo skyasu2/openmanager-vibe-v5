@@ -230,9 +230,8 @@ export function useDashboardLogic() {
     return skipAnimation || fastLoad || instantLoad || forceSkip;
   }, [isClient]);
 
-  // ✨ 최소 로딩 시간 보장 (5초)
-  const minimumLoadingState = useMinimumLoadingTime({
-    minimumDuration: 5000, // 5초 최소 보장
+  // ✨ 자연스러운 로딩 시간 반영 (5초 최소 조건 제거)
+  const naturalLoadingState = useMinimumLoadingTime({
     actualLoadingPromise: dataLoadingPromise,
     skipCondition
   });
@@ -241,9 +240,9 @@ export function useDashboardLogic() {
   const shouldShowBootSequence = useMemo(() => {
     console.log('🎬 Boot sequence decision:', {
       skipCondition,
-      isLoading: minimumLoadingState.isLoading,
-      phase: minimumLoadingState.phase,
-      progress: minimumLoadingState.progress
+      isLoading: naturalLoadingState.isLoading,
+      phase: naturalLoadingState.phase,
+      progress: naturalLoadingState.progress
     });
     
     // 스킵 조건이 있으면 부팅 시퀀스 숨김
@@ -253,11 +252,11 @@ export function useDashboardLogic() {
     }
     
     // 🚨 기본값: 로딩 중이면 부팅 시퀀스 표시
-    const shouldShow = minimumLoadingState.isLoading;
+    const shouldShow = naturalLoadingState.isLoading;
     console.log('🎯 Boot sequence decision result:', shouldShow);
     
     return shouldShow;
-  }, [skipCondition, minimumLoadingState.isLoading, minimumLoadingState.phase, minimumLoadingState.progress]);
+  }, [skipCondition, naturalLoadingState.isLoading, naturalLoadingState.phase, naturalLoadingState.progress]);
 
   // Responsive screen size detection
   useEffect(() => {
@@ -359,18 +358,18 @@ export function useDashboardLogic() {
       showBootSequence: shouldShowBootSequence,
       serversCount: serverGeneration.servers.length,
       systemActive: systemControl.isSystemActive,
-      loadingProgress: minimumLoadingState.progress,
-      loadingPhase: minimumLoadingState.phase,
-      estimatedTimeRemaining: minimumLoadingState.estimatedTimeRemaining
+      loadingProgress: naturalLoadingState.progress,
+      loadingPhase: naturalLoadingState.phase,
+      estimatedTimeRemaining: naturalLoadingState.estimatedTimeRemaining
     });
   }, [
     isClient, 
     shouldShowBootSequence, 
     serverGeneration.servers.length, 
     systemControl.isSystemActive,
-    minimumLoadingState.progress,
-    minimumLoadingState.phase,
-    minimumLoadingState.estimatedTimeRemaining
+    naturalLoadingState.progress,
+    naturalLoadingState.phase,
+    naturalLoadingState.estimatedTimeRemaining
   ]);
 
   return {
@@ -384,15 +383,15 @@ export function useDashboardLogic() {
     
     // ✨ 새로운 전환 시스템 상태 (개선됨)
     showBootSequence: shouldShowBootSequence,
-    bootProgress: minimumLoadingState.progress,
+    bootProgress: naturalLoadingState.progress,
     isTransitioning,
     showSequentialGeneration,
     
     // ✨ 추가된 로딩 상태 정보
-    loadingPhase: minimumLoadingState.phase,
-    estimatedTimeRemaining: minimumLoadingState.estimatedTimeRemaining,
-    elapsedTime: minimumLoadingState.elapsedTime,
-    isDataReady: !minimumLoadingState.isLoading && serverGeneration.servers.length > 0,
+    loadingPhase: naturalLoadingState.phase,
+    estimatedTimeRemaining: naturalLoadingState.estimatedTimeRemaining,
+    elapsedTime: naturalLoadingState.elapsedTime,
+    isDataReady: !naturalLoadingState.isLoading && serverGeneration.servers.length > 0,
     
     // Actions
     setSelectedServer,
