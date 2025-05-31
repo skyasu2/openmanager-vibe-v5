@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, Activity, Layers, X, Sparkles, Cpu, Database, Code, Zap } from 'lucide-react';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useToast } from '@/components/ui/ToastNotification';
+import TechStackDisplay from '@/components/ui/TechStackDisplay';
+import { analyzeTechStack } from '@/utils/TechStackAnalyzer';
 
 // 카드 데이터
 const cardData = [
@@ -108,9 +110,37 @@ const cardData = [
 export default function FeatureCardsGrid() {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [showDevModal, setShowDevModal] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
   
   const { aiAgent } = useUnifiedAdminStore();
   const { warning } = useToast();
+
+  // 모달 외부 클릭 시 닫기 처리
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setSelectedCard(null);
+      }
+    };
+
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setSelectedCard(null);
+      }
+    };
+
+    if (selectedCard) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscapeKey);
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscapeKey);
+      document.body.style.overflow = 'unset';
+    };
+  }, [selectedCard]);
 
   const handleCardClick = (cardId: string) => {
     const card = cardData.find(c => c.id === cardId);
@@ -130,6 +160,11 @@ export default function FeatureCardsGrid() {
   };
 
   const selectedCardData = cardData.find(card => card.id === selectedCard);
+  
+  // 선택된 카드의 기술 스택 분석
+  const analyzedTechStack = selectedCardData 
+    ? analyzeTechStack(selectedCardData.detailedContent.technologies)
+    : [];
 
   // AI 단어에 그라데이션 애니메이션 적용하는 함수
   const renderTextWithAIGradient = (text: string) => {
@@ -289,151 +324,142 @@ export default function FeatureCardsGrid() {
         ))}
       </div>
 
-      {/* 상세 모달 */}
-      {selectedCard && selectedCardData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl ${
-              selectedCardData.isSpecial ? 'border-amber-500/50 bg-gradient-to-br from-gray-900/95 to-amber-900/20' : ''
-            } ${
-              selectedCardData.isAICard ? 'border-pink-500/50 bg-gradient-to-br from-gray-900/95 to-pink-900/20' : ''
-            }`}
-          >
-            {/* 헤더 */}
-            <div className="p-6 border-b border-gray-700/50">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`w-12 h-12 bg-gradient-to-br ${selectedCardData.gradient} rounded-lg flex items-center justify-center ${
-                    selectedCardData.isSpecial ? 'shadow-lg shadow-amber-500/25' : ''
-                  } ${
-                    selectedCardData.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
-                  }`}>
-                    {selectedCardData.isAICard ? (
-                      <motion.div
-                        animate={{
-                          rotate: [0, 360],
-                          scale: [1, 1.1, 1]
-                        }}
-                        transition={{
-                          rotate: { duration: 8, repeat: Infinity, ease: "linear" },
-                          scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-                        }}
-                      >
+      {/* 개선된 상세 모달 */}
+      <AnimatePresence>
+        {selectedCard && selectedCardData && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+            <motion.div
+              ref={modalRef}
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className={`relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl ${
+                selectedCardData.isSpecial ? 'border-amber-500/50 bg-gradient-to-br from-gray-900/95 to-amber-900/20' : ''
+              } ${
+                selectedCardData.isAICard ? 'border-pink-500/50 bg-gradient-to-br from-gray-900/95 to-pink-900/20' : ''
+              }`}
+            >
+              {/* 헤더 */}
+              <div className="p-6 border-b border-gray-700/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 bg-gradient-to-br ${selectedCardData.gradient} rounded-lg flex items-center justify-center ${
+                      selectedCardData.isSpecial ? 'shadow-lg shadow-amber-500/25' : ''
+                    } ${
+                      selectedCardData.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
+                    }`}>
+                      {selectedCardData.isAICard ? (
+                        <motion.div
+                          animate={{
+                            rotate: [0, 360],
+                            scale: [1, 1.1, 1]
+                          }}
+                          transition={{
+                            rotate: { duration: 8, repeat: Infinity, ease: "linear" },
+                            scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+                          }}
+                        >
+                          <selectedCardData.icon className="w-6 h-6 text-white" />
+                        </motion.div>
+                      ) : selectedCardData.isVibeCard ? (
+                        <motion.div
+                          animate={{
+                            scale: [1, 1.2, 1],
+                            rotate: [0, 5, -5, 0]
+                          }}
+                          transition={{
+                            duration: 2.5,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                          }}
+                        >
+                          <selectedCardData.icon className="w-6 h-6 text-white" />
+                        </motion.div>
+                      ) : (
                         <selectedCardData.icon className="w-6 h-6 text-white" />
-                      </motion.div>
-                    ) : selectedCardData.isVibeCard ? (
-                      <motion.div
-                        animate={{
-                          scale: [1, 1.2, 1],
-                          rotate: [0, 5, -5, 0]
-                        }}
-                        transition={{
-                          duration: 2.5,
-                          repeat: Infinity,
-                          ease: "easeInOut"
-                        }}
-                      >
-                        <selectedCardData.icon className="w-6 h-6 text-white" />
-                      </motion.div>
-                    ) : (
-                      <selectedCardData.icon className="w-6 h-6 text-white" />
-                    )}
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-white">
-                      {renderTextWithAIGradient(selectedCardData.title)}
-                    </h2>
-                    <p className="text-sm text-gray-400">
-                      {renderTextWithAIGradient(selectedCardData.description)}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={closeModal}
-                  className="w-8 h-8 rounded-full bg-gray-800/50 hover:bg-gray-700/50 flex items-center justify-center transition-colors"
-                >
-                  <X className="w-4 h-4 text-gray-400" />
-                </button>
-              </div>
-            </div>
-
-            {/* 상세 내용 */}
-            <div className="p-6">
-              {/* 개요 */}
-              <div className="mb-6">
-                <h3 className="text-white font-medium mb-3 text-lg">📖 개요</h3>
-                <p className="text-gray-300 leading-relaxed">
-                  {renderTextWithAIGradient(selectedCardData.detailedContent.overview)}
-                </p>
-              </div>
-
-              {/* 주요 기능 */}
-              <div className="mb-6">
-                <h3 className="text-white font-medium mb-4 text-lg">⚡ 주요 기능</h3>
-                <ul className="space-y-3">
-                  {selectedCardData.detailedContent.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-3 text-sm">
-                      <div className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${
-                        selectedCardData.isAICard 
-                          ? 'bg-pink-400' 
-                          : selectedCardData.isSpecial 
-                          ? 'bg-amber-400' 
-                          : 'bg-green-400'
-                      }`} />
-                      <span className="text-gray-300 leading-relaxed">
-                        {renderTextWithAIGradient(feature)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* 사용 기술/오픈소스 */}
-              <div>
-                <h3 className="text-white font-medium mb-4 text-lg">🧩 사용 오픈소스/기술</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {selectedCardData.detailedContent.technologies.map((tech, index) => (
-                    <div
-                      key={index}
-                      className={`p-3 rounded-lg bg-gray-800/50 border border-gray-700/50 ${
-                        selectedCardData.isAICard 
-                          ? 'hover:border-pink-500/50' 
-                          : selectedCardData.isSpecial 
-                          ? 'hover:border-amber-500/50' 
-                          : 'hover:border-green-500/50'
-                      } transition-colors`}
-                    >
-                      <span className="text-gray-300 text-sm font-mono">
-                        {tech}
-                      </span>
+                      )}
                     </div>
-                  ))}
+                    <div>
+                      <h2 className="text-xl font-bold text-white">
+                        {renderTextWithAIGradient(selectedCardData.title)}
+                      </h2>
+                      <p className="text-sm text-gray-400">
+                        {renderTextWithAIGradient(selectedCardData.description)}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={closeModal}
+                    className="w-8 h-8 rounded-full bg-gray-800/50 hover:bg-gray-700/50 flex items-center justify-center transition-colors"
+                  >
+                    <X className="w-4 h-4 text-gray-400" />
+                  </button>
                 </div>
               </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
+
+              {/* 상세 내용 */}
+              <div className="p-6 space-y-6">
+                {/* 개요 */}
+                <div>
+                  <h3 className="text-white font-medium mb-3 text-lg">📖 개요</h3>
+                  <p className="text-gray-300 leading-relaxed">
+                    {renderTextWithAIGradient(selectedCardData.detailedContent.overview)}
+                  </p>
+                </div>
+
+                {/* 주요 기능 */}
+                <div>
+                  <h3 className="text-white font-medium mb-4 text-lg">⚡ 주요 기능</h3>
+                  <ul className="space-y-3">
+                    {selectedCardData.detailedContent.features.map((feature, index) => (
+                      <li key={index} className="flex items-start gap-3 text-sm">
+                        <div className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${
+                          selectedCardData.isAICard 
+                            ? 'bg-pink-400' 
+                            : selectedCardData.isSpecial 
+                            ? 'bg-amber-400' 
+                            : 'bg-green-400'
+                        }`} />
+                        <span className="text-gray-300 leading-relaxed">
+                          {renderTextWithAIGradient(feature)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* 기술 스택 분석 */}
+                <div>
+                  <TechStackDisplay 
+                    categories={analyzedTechStack}
+                    showHeader={true}
+                    compact={false}
+                  />
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* 개발 중 모달 */}
-      {showDevModal && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.8, y: 10 }}
-          className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 p-4 bg-orange-500/90 text-white rounded-lg shadow-lg"
-        >
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <Bot className="w-4 h-4" />
-            <span>
-              {renderTextWithAIGradient('AI 에이전트 모드를 활성화해주세요')}
-            </span>
-          </div>
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {showDevModal && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 10 }}
+            className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 p-4 bg-orange-500/90 text-white rounded-lg shadow-lg"
+          >
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Bot className="w-4 h-4" />
+              <span>
+                {renderTextWithAIGradient('AI 에이전트 모드를 활성화해주세요')}
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 } 

@@ -1,7 +1,7 @@
 {
   "name": "openmanager-vibe-v5-clean",
-  "version": "5.15.2",
-  "description": "OpenManager Vibe v5.14.0 - 중복 기능 통합 완료: 6개 중복 파일 → 3개 통합 파일, 단일 진실 소스 구현, AI 기반 예측 모니터링 플랫폼",
+  "version": "5.16.0",
+  "description": "OpenManager Vibe v5.16.0 - 모달 UI 개선 및 기술 스택 자동 분석: 외부 클릭 닫기, 역할별 기술 분류, AI 기반 예측 모니터링 플랫폼",
   "private": true,
   "keywords": [
     "ai-agent",
