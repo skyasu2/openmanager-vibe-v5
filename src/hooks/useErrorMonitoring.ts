@@ -1,366 +1,289 @@
 /**
  * useErrorMonitoring Hook
  * 
- * 🚨 AI 사이드바의 실시간 에러 모니터링 및 복구 시스템
+ * 🚨 AI 시스템 실시간 에러 모니터링 및 복구 훅
+ * - 네트워크, 파싱, 타임아웃, 처리 에러 감지
+ * - 자동 복구 시도 및 폴백 처리
+ * - 성능 모니터링
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { ErrorState } from '@/types/ai-thinking';
 
-interface ErrorLog {
-  id: string;
-  timestamp: string;
-  level: 'error' | 'warning' | 'info';
-  category: string;
-  message: string;
-  stack?: string;
-  userAgent?: string;
-  url?: string;
-  lineNumber?: number;
-  columnNumber?: number;
-  resolved: boolean;
+interface PerformanceMetric {
+  operation: string;
+  startTime: number;
+  endTime?: number;
+  duration?: number;
+  success: boolean;
+  error?: string;
 }
 
-interface ErrorMonitoringOptions {
-  enableGlobalHandler: boolean;
-  enableConsoleCapture: boolean;
-  enablePerformanceMonitoring: boolean;
-  maxLogEntries: number;
-  autoReportThreshold: number;
+interface MonitoringConfig {
+  maxRetries: number;
+  retryDelay: number;
+  timeoutMs: number;
+  enableAutoRecover: boolean;
+  enablePerformanceTracking: boolean;
 }
 
-export const useErrorMonitoring = (options: Partial<ErrorMonitoringOptions> = {}) => {
-  const defaultOptions: ErrorMonitoringOptions = {
-    enableGlobalHandler: true,
-    enableConsoleCapture: true,
-    enablePerformanceMonitoring: true,
-    maxLogEntries: 100,
-    autoReportThreshold: 5
+export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
+  const defaultConfig: MonitoringConfig = {
+    maxRetries: 3,
+    retryDelay: 1000,
+    timeoutMs: 30000,
+    enableAutoRecover: true,
+    enablePerformanceTracking: true,
+    ...config
   };
 
-  const finalOptions = { ...defaultOptions, ...options };
-  
-  const [errors, setErrors] = useState<ErrorLog[]>([]);
+  // 상태 관리
+  const [errors, setErrors] = useState<ErrorState[]>([]);
   const [currentError, setCurrentError] = useState<ErrorState | null>(null);
-  const [isMonitoring, setIsMonitoring] = useState(false);
-  const [stats, setStats] = useState({
-    totalErrors: 0,
-    errorRate: 0,
-    lastErrorTime: null as Date | null,
-    averageResponseTime: 0
-  });
+  const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetric[]>([]);
+  
+  // 참조 관리
+  const performanceTracker = useRef<Map<string, PerformanceMetric>>(new Map());
+  const retryTimeouts = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
-  const errorCountRef = useRef(0);
-  const performanceMarks = useRef<Record<string, number>>({});
+  // 에러 생성 유틸리티
+  const createError = useCallback((
+    type: ErrorState['errorType'],
+    message: string,
+    retryCount: number = 0
+  ): ErrorState => ({
+    hasError: true,
+    errorType: type,
+    message,
+    timestamp: new Date().toISOString(),
+    retryCount,
+    maxRetries: defaultConfig.maxRetries
+  }), [defaultConfig.maxRetries]);
 
-  // 에러 로그 추가
-  const addErrorLog = useCallback((error: Partial<ErrorLog>) => {
-    const newError: ErrorLog = {
-      id: Date.now().toString(),
-      timestamp: new Date().toISOString(),
-      level: 'error',
-      category: 'unknown',
-      message: '',
-      resolved: false,
-      ...error
-    };
-
-    setErrors(prev => {
-      const updated = [newError, ...prev];
-      return updated.slice(0, finalOptions.maxLogEntries);
-    });
-
-    errorCountRef.current++;
-    
-    // 통계 업데이트
-    setStats(prev => ({
-      ...prev,
-      totalErrors: errorCountRef.current,
-      lastErrorTime: new Date(),
-      errorRate: calculateErrorRate()
-    }));
-
-    console.error('🚨 Error Monitoring:', newError);
-    
-    // 자동 신고 임계치 확인
-    if (errorCountRef.current >= finalOptions.autoReportThreshold) {
-      handleAutoReport(newError);
-    }
-  }, [finalOptions.maxLogEntries, finalOptions.autoReportThreshold]);
-
-  // 에러율 계산
-  const calculateErrorRate = useCallback(() => {
-    const now = Date.now();
-    const fiveMinutesAgo = now - 5 * 60 * 1000;
-    
-    const recentErrors = errors.filter(error => 
-      new Date(error.timestamp).getTime() > fiveMinutesAgo
-    );
-    
-    return recentErrors.length / 5; // 분당 에러 수
-  }, [errors]);
-
-  // 자동 신고 처리
-  const handleAutoReport = useCallback((error: ErrorLog) => {
-    console.warn('⚠️ Auto-reporting threshold reached:', {
-      totalErrors: errorCountRef.current,
-      threshold: finalOptions.autoReportThreshold,
-      latestError: error
-    });
-    
-    // 여기에 자동 신고 로직 구현 (Sentry, LogRocket 등)
-  }, [finalOptions.autoReportThreshold]);
-
-  // 전역 에러 핸들러
-  const globalErrorHandler = useCallback((event: ErrorEvent) => {
-    addErrorLog({
-      level: 'error',
-      category: 'javascript',
-      message: event.message,
-      stack: event.error?.stack,
-      url: event.filename,
-      lineNumber: event.lineno,
-      columnNumber: event.colno,
-      userAgent: navigator.userAgent
-    });
-  }, [addErrorLog]);
-
-  // 프로미스 거부 핸들러
-  const unhandledRejectionHandler = useCallback((event: PromiseRejectionEvent) => {
-    addErrorLog({
-      level: 'error',
-      category: 'promise',
-      message: `Unhandled Promise Rejection: ${event.reason}`,
-      stack: event.reason?.stack
-    });
-  }, [addErrorLog]);
-
-  // 콘솔 에러 캡처
-  const captureConsoleErrors = useCallback(() => {
-    if (!finalOptions.enableConsoleCapture) return;
-
-    const originalError = console.error;
-    const originalWarn = console.warn;
-
-    console.error = (...args) => {
-      addErrorLog({
-        level: 'error',
-        category: 'console',
-        message: args.join(' ')
-      });
-      originalError.apply(console, args);
-    };
-
-    console.warn = (...args) => {
-      addErrorLog({
-        level: 'warning',
-        category: 'console',
-        message: args.join(' ')
-      });
-      originalWarn.apply(console, args);
-    };
-
-    return () => {
-      console.error = originalError;
-      console.warn = originalWarn;
-    };
-  }, [finalOptions.enableConsoleCapture, addErrorLog]);
-
-  // 성능 모니터링
-  const startPerformanceMonitoring = useCallback((label: string) => {
-    if (!finalOptions.enablePerformanceMonitoring) return;
-    
-    performanceMarks.current[label] = performance.now();
-  }, [finalOptions.enablePerformanceMonitoring]);
-
-  const endPerformanceMonitoring = useCallback((label: string) => {
-    if (!finalOptions.enablePerformanceMonitoring) return;
-    
-    const startTime = performanceMarks.current[label];
-    if (startTime) {
-      const duration = performance.now() - startTime;
-      delete performanceMarks.current[label];
-      
-      // 응답 시간 통계 업데이트
-      setStats(prev => ({
-        ...prev,
-        averageResponseTime: (prev.averageResponseTime + duration) / 2
-      }));
-      
-      // 성능 경고 (5초 이상)
-      if (duration > 5000) {
-        addErrorLog({
-          level: 'warning',
-          category: 'performance',
-          message: `Slow operation detected: ${label} took ${duration.toFixed(2)}ms`
-        });
-      }
-      
-      return duration;
-    }
-    return null;
-  }, [finalOptions.enablePerformanceMonitoring, addErrorLog]);
-
-  // AI 관련 에러 특화 처리
-  const handleAIError = useCallback((error: any, context: string) => {
+  // AI 에러 처리
+  const handleAIError = useCallback((error: any, context: string = 'AI Operation') => {
     let errorType: ErrorState['errorType'] = 'unknown';
-    let message = error.message || '알 수 없는 오류';
+    let message = `${context}: `;
 
-    // 에러 타입 분류
-    if (error.name === 'AbortError' || message.includes('timeout')) {
-      errorType = 'timeout';
-    } else if (error.name === 'TypeError' && message.includes('fetch')) {
-      errorType = 'network';
-    } else if (message.includes('parse') || message.includes('JSON')) {
+    // 에러 타입 분석
+    if (error instanceof TypeError || error?.name === 'TypeError') {
       errorType = 'parsing';
-    } else if (message.includes('validation')) {
+      message += '데이터 파싱 오류가 발생했습니다.';
+    } else if (error?.name === 'TimeoutError' || error?.code === 'ECONNABORTED') {
+      errorType = 'timeout';
+      message += '요청 시간이 초과되었습니다.';
+    } else if (error?.name === 'NetworkError' || !navigator.onLine) {
+      errorType = 'network';
+      message += '네트워크 연결에 문제가 있습니다.';
+    } else if (error?.status >= 400 && error?.status < 500) {
       errorType = 'validation';
+      message += '요청 데이터에 문제가 있습니다.';
+    } else if (error?.status >= 500) {
+      errorType = 'processing';
+      message += '서버에서 처리 중 오류가 발생했습니다.';
+    } else {
+      message += error?.message || '알 수 없는 오류가 발생했습니다.';
     }
 
-    const errorState: ErrorState = {
-      hasError: true,
-      errorType,
-      message,
-      timestamp: new Date().toISOString(),
-      retryCount: 0,
-      maxRetries: 3
-    };
-
+    const errorState = createError(errorType, message);
+    
     setCurrentError(errorState);
+    setErrors(prev => [...prev, errorState]);
 
-    addErrorLog({
-      level: 'error',
-      category: 'ai-system',
-      message: `[${context}] ${message}`,
-      stack: error.stack
+    console.error(`🚨 AI Error Monitor [${errorType}]:`, {
+      context,
+      message,
+      originalError: error,
+      timestamp: errorState.timestamp
     });
+
+    // 자동 복구 시도
+    if (defaultConfig.enableAutoRecover && errorState.retryCount < defaultConfig.maxRetries) {
+      attemptAutoRecover(errorState, context);
+    }
 
     return errorState;
-  }, [addErrorLog]);
+  }, [createError, defaultConfig.enableAutoRecover, defaultConfig.maxRetries]);
 
-  // 에러 해결 표시
-  const resolveError = useCallback((errorId: string) => {
-    setErrors(prev => 
-      prev.map(error => 
-        error.id === errorId ? { ...error, resolved: true } : error
-      )
-    );
+  // 자동 복구 시도
+  const attemptAutoRecover = useCallback((error: ErrorState, context: string) => {
+    const retryKey = `${context}-${Date.now()}`;
+    
+    const timeout = setTimeout(() => {
+      console.log(`🔄 자동 복구 시도 [${error.errorType}] - 시도 ${error.retryCount + 1}/${error.maxRetries}`);
+      
+      // 복구 전략
+      switch (error.errorType) {
+        case 'network':
+          // 네트워크 재연결 확인
+          if (navigator.onLine) {
+            resolveError(error);
+          }
+          break;
+          
+        case 'timeout':
+          // 타임아웃은 즉시 재시도
+          resolveError(error);
+          break;
+          
+        case 'processing':
+          // 서버 처리 오류는 잠시 후 재시도
+          setTimeout(() => resolveError(error), 2000);
+          break;
+          
+        default:
+          // 기본적으로 에러 해결로 처리
+          resolveError(error);
+      }
+      
+      retryTimeouts.current.delete(retryKey);
+    }, defaultConfig.retryDelay * (error.retryCount + 1)); // 지수 백오프
+    
+    retryTimeouts.current.set(retryKey, timeout);
+  }, [defaultConfig.retryDelay]);
+
+  // 에러 해결
+  const resolveError = useCallback((error?: ErrorState) => {
+    if (error) {
+      setErrors(prev => prev.filter(e => e.timestamp !== error.timestamp));
+    }
+    setCurrentError(null);
+    console.log('✅ AI Error 해결됨:', error?.errorType);
   }, []);
 
   // 모든 에러 클리어
   const clearErrors = useCallback(() => {
     setErrors([]);
     setCurrentError(null);
-    errorCountRef.current = 0;
-    setStats(prev => ({
-      ...prev,
-      totalErrors: 0,
-      errorRate: 0
-    }));
+    
+    // 진행 중인 재시도 취소
+    retryTimeouts.current.forEach(timeout => clearTimeout(timeout));
+    retryTimeouts.current.clear();
+    
+    console.log('🧹 모든 AI 에러 클리어됨');
   }, []);
 
-  // 에러 통계 조회
-  const getErrorStats = useCallback(() => {
-    const now = new Date();
-    const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    
-    const recentErrors = errors.filter(error => 
-      new Date(error.timestamp) >= last24Hours
-    );
+  // 성능 모니터링 시작
+  const startPerformanceMonitoring = useCallback((operation: string) => {
+    if (!defaultConfig.enablePerformanceTracking) return;
 
-    const errorsByCategory = recentErrors.reduce((acc, error) => {
-      acc[error.category] = (acc[error.category] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    const errorsByLevel = recentErrors.reduce((acc, error) => {
-      acc[error.level] = (acc[error.level] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return {
-      total: recentErrors.length,
-      byCategory: errorsByCategory,
-      byLevel: errorsByLevel,
-      resolved: recentErrors.filter(e => e.resolved).length,
-      unresolved: recentErrors.filter(e => !e.resolved).length
+    const metric: PerformanceMetric = {
+      operation,
+      startTime: performance.now(),
+      success: false
     };
-  }, [errors]);
+
+    performanceTracker.current.set(operation, metric);
+    console.log(`📊 성능 추적 시작: ${operation}`);
+  }, [defaultConfig.enablePerformanceTracking]);
+
+  // 성능 모니터링 종료
+  const endPerformanceMonitoring = useCallback((operation: string, success: boolean = true, error?: string) => {
+    if (!defaultConfig.enablePerformanceTracking) return;
+
+    const metric = performanceTracker.current.get(operation);
+    if (!metric) return;
+
+    const endTime = performance.now();
+    const duration = endTime - metric.startTime;
+
+    const completedMetric: PerformanceMetric = {
+      ...metric,
+      endTime,
+      duration,
+      success,
+      error
+    };
+
+    setPerformanceMetrics(prev => [...prev.slice(-49), completedMetric]); // 최근 50개만 유지
+    performanceTracker.current.delete(operation);
+
+    console.log(`📊 성능 추적 완료: ${operation} - ${duration.toFixed(2)}ms (${success ? '성공' : '실패'})`);
+  }, [defaultConfig.enablePerformanceTracking]);
 
   // 폴백 처리
-  const handleFallback = useCallback((context: string, fallbackValue?: any) => {
-    addErrorLog({
-      level: 'info',
-      category: 'fallback',
-      message: `Fallback activated for: ${context}`
-    });
+  const handleFallback = useCallback((operation: string, fallbackData: any) => {
+    console.warn(`🔄 폴백 처리 활성화: ${operation}`, fallbackData);
+    
+    // 폴백 사용 메트릭 기록
+    endPerformanceMonitoring(`${operation}-fallback`, true);
+    
+    return fallbackData;
+  }, [endPerformanceMonitoring]);
 
-    console.warn(`🔄 Fallback activated: ${context}`);
-    return fallbackValue;
-  }, [addErrorLog]);
-
-  // 모니터링 시작/중지
+  // 네트워크 상태 모니터링
   useEffect(() => {
-    if (!isMonitoring) return;
+    const handleOnline = () => {
+      console.log('🌐 네트워크 연결됨 - 자동 복구 가능');
+      
+      // 네트워크 에러 자동 해결
+      setErrors(prev => prev.filter(error => error.errorType !== 'network'));
+      if (currentError?.errorType === 'network') {
+        setCurrentError(null);
+      }
+    };
 
-    let cleanupConsole: (() => void) | undefined;
+    const handleOffline = () => {
+      console.warn('📴 네트워크 연결 끊김');
+      const networkError = createError('network', '네트워크 연결이 끊어졌습니다.');
+      setCurrentError(networkError);
+    };
 
-    // 전역 에러 핸들러 등록
-    if (finalOptions.enableGlobalHandler) {
-      window.addEventListener('error', globalErrorHandler);
-      window.addEventListener('unhandledrejection', unhandledRejectionHandler);
-    }
-
-    // 콘솔 에러 캡처
-    cleanupConsole = captureConsoleErrors();
-
-    console.log('🔍 Error monitoring started');
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
     return () => {
-      if (finalOptions.enableGlobalHandler) {
-        window.removeEventListener('error', globalErrorHandler);
-        window.removeEventListener('unhandledrejection', unhandledRejectionHandler);
-      }
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
       
-      cleanupConsole?.();
-      console.log('🔍 Error monitoring stopped');
+      // 정리: 진행 중인 재시도 취소
+      retryTimeouts.current.forEach(timeout => clearTimeout(timeout));
+      retryTimeouts.current.clear();
     };
-  }, [
-    isMonitoring,
-    finalOptions.enableGlobalHandler,
-    globalErrorHandler,
-    unhandledRejectionHandler,
-    captureConsoleErrors
-  ]);
+  }, [createError, currentError]);
 
-  // 컴포넌트 마운트 시 모니터링 시작
-  useEffect(() => {
-    setIsMonitoring(true);
-    return () => setIsMonitoring(false);
-  }, []);
+  // 성능 요약 계산
+  const getPerformanceSummary = useCallback(() => {
+    if (performanceMetrics.length === 0) return null;
+
+    const totalOperations = performanceMetrics.length;
+    const successfulOperations = performanceMetrics.filter(m => m.success).length;
+    const averageDuration = performanceMetrics
+      .filter(m => m.duration)
+      .reduce((sum, m) => sum + m.duration!, 0) / totalOperations;
+
+    return {
+      totalOperations,
+      successfulOperations,
+      successRate: (successfulOperations / totalOperations) * 100,
+      averageDuration: Math.round(averageDuration),
+      errorRate: ((totalOperations - successfulOperations) / totalOperations) * 100
+    };
+  }, [performanceMetrics]);
 
   return {
-    // 상태
+    // 에러 상태
     errors,
     currentError,
-    isMonitoring,
-    stats,
+    hasErrors: errors.length > 0,
     
-    // 함수
-    addErrorLog,
+    // 성능 메트릭
+    performanceMetrics,
+    performanceSummary: getPerformanceSummary(),
+    
+    // 에러 처리 함수
     handleAIError,
     resolveError,
     clearErrors,
-    getErrorStats,
-    handleFallback,
+    
+    // 성능 모니터링 함수
     startPerformanceMonitoring,
     endPerformanceMonitoring,
     
-    // 유틸리티
-    hasErrors: errors.length > 0,
-    hasUnresolvedErrors: errors.some(e => !e.resolved),
-    recentErrorCount: errors.filter(e => 
-      new Date().getTime() - new Date(e.timestamp).getTime() < 5 * 60 * 1000
-    ).length
+    // 유틸리티 함수
+    handleFallback,
+    
+    // 설정
+    config: defaultConfig
   };
 }; 

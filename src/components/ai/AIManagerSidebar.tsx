@@ -6,11 +6,12 @@
  * - 육하원칙 기반 구조화된 응답
  * - 실시간 에러 모니터링 및 복구
  * - 반응형 UI/UX 및 애니메이션
+ * - 접근성 및 키보드 네비게이션 지원
  */
 
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSystemStore } from '@/stores/useSystemStore';
 import { useAIResponseFormatter } from '@/hooks/useAIResponseFormatter';
@@ -39,7 +40,14 @@ import {
   Eye,
   EyeOff,
   Trash2,
-  History
+  History,
+  X,
+  RefreshCw,
+  Sparkles,
+  Monitor,
+  Shield,
+  TrendingUp,
+  Clock
 } from 'lucide-react';
 import { 
   AIThinkingStep, 
@@ -102,6 +110,10 @@ export const AIManagerSidebar: React.FC<Partial<AIManagerSidebarProps>> = ({
   // 현재 응답 상태
   const [currentStructuredResponse, setCurrentStructuredResponse] = useState<SixWPrincipleResponse | null>(null);
 
+  // Refs
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
   // 훅 사용
   const { 
     formatResponse, 
@@ -118,7 +130,8 @@ export const AIManagerSidebar: React.FC<Partial<AIManagerSidebarProps>> = ({
     clearErrors,
     startPerformanceMonitoring,
     endPerformanceMonitoring,
-    handleFallback
+    handleFallback,
+    performanceSummary
   } = useErrorMonitoring();
 
   // 계산된 속성
@@ -128,7 +141,7 @@ export const AIManagerSidebar: React.FC<Partial<AIManagerSidebarProps>> = ({
 
   // AI 상태 모니터링
   useEffect(() => {
-    if (!isOpen) return; // early return but after all hooks
+    if (!isOpen) return;
 
     const checkAIStatus = async () => {
       startPerformanceMonitoring('ai-status-check');
@@ -164,6 +177,41 @@ export const AIManagerSidebar: React.FC<Partial<AIManagerSidebarProps>> = ({
     const statusInterval = setInterval(checkAIStatus, 30000);
     return () => clearInterval(statusInterval);
   }, [isOpen, startPerformanceMonitoring, endPerformanceMonitoring, handleAIError]);
+
+  // 채팅 스크롤 자동 조정
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
+
+  // 키보드 단축키
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + Enter: 메시지 전송
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        handleSendMessage();
+      }
+      
+      // ESC: 사이드바 닫기
+      if (e.key === 'Escape') {
+        setIsMinimized(true);
+      }
+      
+      // Tab 네비게이션 (Ctrl + 1-4)
+      if (e.ctrlKey && ['1', '2', '3', '4'].includes(e.key)) {
+        e.preventDefault();
+        const tabs: Array<typeof activeTab> = ['chat', 'thinking', 'response', 'monitor'];
+        setActiveTab(tabs[parseInt(e.key) - 1]);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, chatInput]);
 
   // AI 채팅 메시지 전송
   const handleSendMessage = useCallback(async () => {
@@ -201,7 +249,7 @@ export const AIManagerSidebar: React.FC<Partial<AIManagerSidebarProps>> = ({
         })
       });
 
-      const duration = endPerformanceMonitoring('ai-chat-response');
+      endPerformanceMonitoring('ai-chat-response');
 
       if (response.ok) {
         const data = await response.json();
@@ -296,19 +344,70 @@ export const AIManagerSidebar: React.FC<Partial<AIManagerSidebarProps>> = ({
     setChatMessages([]);
     setCurrentStructuredResponse(null);
     clearFormatError();
-  }, [clearFormatError]);
+    clearErrors();
+  }, [clearFormatError, clearErrors]);
 
-  // 탭 아이콘 렌더링
-  const getTabIcon = useCallback((tab: typeof activeTab) => {
-    const baseClass = "w-4 h-4";
-    switch (tab) {
-      case 'chat': return <MessageSquare className={baseClass} />;
-      case 'thinking': return <Brain className={baseClass} />;
-      case 'response': return <FileText className={baseClass} />;
-      case 'monitor': return <Activity className={baseClass} />;
-      default: return <MessageSquare className={baseClass} />;
+  // 탭 구성
+  const tabs = useMemo(() => [
+    {
+      id: 'chat' as const,
+      label: '채팅',
+      icon: MessageSquare,
+      count: chatMessages.length,
+      badge: isLoading
+    },
+    {
+      id: 'thinking' as const,
+      label: '사고과정',
+      icon: Brain,
+      count: thinkingState.steps.length,
+      badge: thinkingState.isActive
+    },
+    {
+      id: 'response' as const,
+      label: '구조화 응답',
+      icon: FileText,
+      count: currentStructuredResponse ? 1 : 0,
+      badge: isFormatting
+    },
+    {
+      id: 'monitor' as const,
+      label: '모니터링',
+      icon: Activity,
+      count: monitoringErrors.length,
+      badge: currentError !== null
     }
-  }, []);
+  ], [chatMessages.length, thinkingState, currentStructuredResponse, isFormatting, monitoringErrors.length, currentError, isLoading]);
+
+  // 애니메이션 variants
+  const sidebarVariants = {
+    expanded: { width: 384 }, // w-96
+    collapsed: { width: 64 }, // w-16
+    minimized: { x: '100%', opacity: 0 }
+  };
+
+  const contentVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.3,
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const tabVariants = {
+    inactive: { 
+      backgroundColor: 'rgba(0,0,0,0)',
+      color: '#9CA3AF'
+    },
+    active: { 
+      backgroundColor: 'rgba(139, 69, 219, 0.2)',
+      color: '#A855F7'
+    }
+  };
 
   // AI 모드가 아니거나 인증되지 않은 경우 표시하지 않음
   if (!isOpen) {
@@ -319,454 +418,539 @@ export const AIManagerSidebar: React.FC<Partial<AIManagerSidebarProps>> = ({
   if (isMinimized) {
     return (
       <motion.div 
-        className="fixed top-1/2 right-4 transform -translate-y-1/2 z-40"
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ duration: 0.3 }}
+        className="fixed top-1/2 right-4 transform -translate-y-1/2 z-50"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0, opacity: 0 }}
+        transition={{ duration: 0.3, type: "spring" }}
       >
-        <button
+        <motion.button
           onClick={() => setIsMinimized(false)}
-          className="p-3 bg-purple-600 hover:bg-purple-700 rounded-lg shadow-lg border border-purple-500/30 text-white transition-all duration-300 relative"
+          className="p-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl shadow-lg border border-purple-400/30 text-white transition-all duration-300 relative group"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           <Brain className="w-5 h-5" />
           {(monitoringErrors.length > 0 || currentError) && (
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+            <motion.div 
+              className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 1, repeat: Infinity }}
+            />
           )}
-        </button>
+          
+          {/* 툴팁 */}
+          <div className="absolute right-full mr-2 top-1/2 transform -translate-y-1/2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            AI 관리자 열기
+          </div>
+        </motion.button>
       </motion.div>
     );
   }
 
   return (
     <motion.div 
-      className={`fixed top-0 right-0 h-full bg-slate-900/95 backdrop-blur-sm border-l border-purple-500/30 shadow-2xl z-50 transition-all duration-300 ${
-        isExpanded ? 'w-96' : 'w-16'
-      }`}
-      initial={{ x: '100%' }}
-      animate={{ x: 0 }}
-      exit={{ x: '100%' }}
+      className={`fixed top-0 right-0 h-full bg-gradient-to-br from-slate-900/95 to-gray-900/95 backdrop-blur-lg border-l border-purple-500/30 shadow-2xl z-50 flex flex-col`}
+      variants={sidebarVariants}
+      animate={isExpanded ? 'expanded' : 'collapsed'}
+      initial="expanded"
       transition={{ duration: 0.3, ease: 'easeInOut' }}
     >
       {/* 사이드바 헤더 */}
-      <div className="flex items-center justify-between p-4 border-b border-purple-500/30">
+      <motion.div 
+        className="flex items-center justify-between p-4 border-b border-purple-500/30 bg-gradient-to-r from-purple-600/10 to-indigo-600/10"
+        variants={contentVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {isExpanded ? (
           <>
-            <div className="flex items-center gap-2">
-              <Brain className="w-5 h-5 text-purple-400" />
+            <div className="flex items-center gap-3">
+              <motion.div 
+                className="p-2 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-lg shadow-lg"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
+                <Brain className="w-5 h-5 text-white" />
+              </motion.div>
               <div>
-                <h3 className="font-semibold text-white">AI 관리자</h3>
-                <div className="flex items-center gap-1">
+                <h3 className="font-semibold text-white text-lg">AI 관리자</h3>
+                <div className="flex items-center gap-2">
                   {aiStatus.agent === 'active' && (
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <motion.div 
+                      className="w-2 h-2 bg-green-400 rounded-full"
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
                   )}
                   <span className="text-xs text-gray-400">
-                    {currentMode === 'ai-admin' ? 'AI 모드' : '모니터링 모드'}
+                    {currentMode === 'ai-admin' ? 'AI 모드 활성' : '모니터링 모드'}
                   </span>
                 </div>
               </div>
             </div>
+            
             <div className="flex items-center gap-1">
               {/* 에러 인디케이터 */}
               {(monitoringErrors.length > 0 || currentError) && (
-                <div className="relative">
+                <motion.div 
+                  className="relative"
+                  whileHover={{ scale: 1.1 }}
+                >
                   <AlertTriangle className="w-4 h-4 text-red-400" />
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                </div>
-              )}
-              
-              <button
-                onClick={() => setIsMinimized(true)}
-                className="p-1 hover:bg-purple-600/30 rounded text-gray-400 hover:text-white transition-colors"
-                title="최소화"
-              >
-                <Minimize2 className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setIsExpanded(false)}
-                className="p-1 hover:bg-purple-600/30 rounded text-gray-400 hover:text-white transition-colors"
-                title="축소"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </>
-        ) : (
-          <div className="w-full flex flex-col items-center gap-2">
-            <button
-              onClick={() => setIsExpanded(true)}
-              className="p-2 hover:bg-purple-600/30 rounded text-purple-400 hover:text-white transition-colors"
-              title="확장"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            {aiStatus.agent === 'active' && (
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* 확장된 사이드바 내용 */}
-      {isExpanded && (
-        <div className="flex flex-col h-full">
-          {/* AI 상태 섹션 */}
-          <div className="p-4 border-b border-purple-500/30">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-medium text-purple-300">시스템 상태</h4>
-              <button
-                onClick={() => setShowAdvanced(!showAdvanced)}
-                className="p-1 hover:bg-purple-600/30 rounded text-gray-400 hover:text-white transition-colors"
-                title={showAdvanced ? "간단히 보기" : "자세히 보기"}
-              >
-                {showAdvanced ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-              </button>
-            </div>
-            
-            <div className="space-y-2">
-              {/* 기본 상태 */}
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <Brain className="w-3 h-3 text-purple-400" />
-                  <span className="text-gray-300">AI 에이전트</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  {getStatusIcon(aiStatus.agent)}
-                  <span className="text-gray-400 capitalize">{aiStatus.agent}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <Network className="w-3 h-3 text-purple-400" />
-                  <span className="text-gray-300">MCP</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  {getStatusIcon(aiStatus.mcp)}
-                  <span className="text-gray-400 capitalize">{aiStatus.mcp}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="w-3 h-3 text-purple-400" />
-                  <span className="text-gray-300">분석 엔진</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  {getStatusIcon(aiStatus.analytics)}
-                  <span className="text-gray-400 capitalize">{aiStatus.analytics}</span>
-                </div>
-              </div>
-
-              {/* 고급 상태 정보 */}
-              <AnimatePresence>
-                {showAdvanced && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="pt-2 border-t border-purple-500/20 space-y-1"
-                  >
-                    <div className="flex justify-between text-xs text-gray-400">
-                      <span>오류 수:</span>
-                      <span className={monitoringErrors.length > 0 ? 'text-red-400' : 'text-green-400'}>
-                        {monitoringErrors.length}
-                      </span>
-                    </div>
-                    {formatError && (
-                      <div className="flex justify-between text-xs text-gray-400">
-                        <span>포맷 오류:</span>
-                        <span className="text-red-400">있음</span>
-                      </div>
-                    )}
-                    {isProcessing && (
-                      <div className="flex justify-between text-xs text-gray-400">
-                        <span>처리 중:</span>
-                        <span className="text-blue-400">예</span>
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-
-          {/* 탭 네비게이션 */}
-          <div className="flex border-b border-purple-500/30">
-            {[
-              { key: 'chat', label: '채팅' },
-              { key: 'thinking', label: '사고' },
-              { key: 'response', label: '응답' },
-              { key: 'monitor', label: '모니터' }
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key as typeof activeTab)}
-                className={`flex-1 flex items-center justify-center gap-1 p-3 text-xs transition-colors ${
-                  activeTab === tab.key 
-                    ? 'text-purple-300 border-b-2 border-purple-400' 
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                {getTabIcon(tab.key as typeof activeTab)}
-                <span className="hidden sm:inline">{tab.label}</span>
-                {/* 알림 배지 */}
-                {tab.key === 'monitor' && monitoringErrors.length > 0 && (
-                  <div className="w-1.5 h-1.5 bg-red-400 rounded-full" />
-                )}
-                {tab.key === 'thinking' && isProcessing && (
-                  <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
-                )}
-              </button>
-            ))}
-          </div>
-
-          {/* 탭 컨텐츠 */}
-          <div className="flex-1 overflow-hidden">
-            <AnimatePresence mode="wait">
-              {activeTab === 'chat' && (
-                <motion.div
-                  key="chat"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.2 }}
-                  className="h-full flex flex-col"
-                >
-                  {/* 채팅 헤더 */}
-                  <div className="p-4 border-b border-purple-500/30 flex items-center justify-between">
-                    <h4 className="text-sm font-medium text-purple-300">AI 채팅</h4>
-                    <div className="flex gap-1">
-                      <button
-                        onClick={clearChatHistory}
-                        className="p-1 hover:bg-purple-600/30 rounded text-gray-400 hover:text-white transition-colors"
-                        title="채팅 기록 삭제"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* 채팅 메시지 영역 */}
-                  <div className="flex-1 overflow-y-auto p-4">
-                    {chatMessages.length === 0 ? (
-                      <div className="text-center text-gray-400 mt-8">
-                        <Brain className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                        <p className="text-xs">AI 에이전트에게 질문해보세요</p>
-                        <p className="text-xs mt-1 opacity-70">예: "서버 상태는?"</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {chatMessages.map((msg) => (
-                          <motion.div
-                            key={msg.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                          >
-                            <div className={`max-w-[80%] p-3 rounded-lg text-xs ${
-                              msg.type === 'user' 
-                                ? 'bg-purple-600 text-white' 
-                                : msg.error
-                                  ? 'bg-red-900/50 text-red-200 border border-red-500/30'
-                                  : 'bg-slate-700 text-gray-100'
-                            }`}>
-                              <p className="whitespace-pre-wrap">{msg.content}</p>
-                              <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-600/50">
-                                <p className="text-xs opacity-60">
-                                  {msg.timestamp.toLocaleTimeString()}
-                                </p>
-                                {msg.structured && (
-                                  <button
-                                    onClick={() => {
-                                      setCurrentStructuredResponse(msg.structured!);
-                                      setActiveTab('response');
-                                    }}
-                                    className="text-xs text-purple-300 hover:text-purple-200"
-                                  >
-                                    구조화된 응답 보기
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          </motion.div>
-                        ))}
-                        {isLoading && (
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="flex justify-start"
-                          >
-                            <div className="bg-slate-700 text-gray-100 p-3 rounded-lg text-xs flex items-center gap-2">
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                              AI가 응답을 생성하고 있습니다...
-                            </div>
-                          </motion.div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 채팅 입력 */}
-                  <div className="p-4 border-t border-purple-500/30">
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={chatInput}
-                        onChange={(e) => setChatInput(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                        placeholder="질문하기..."
-                        className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-xs placeholder-gray-400 focus:outline-none focus:border-purple-500"
-                        disabled={isLoading || aiStatus.agent !== 'active'}
-                      />
-                      <button
-                        onClick={handleSendMessage}
-                        disabled={!chatInput.trim() || isLoading || aiStatus.agent !== 'active'}
-                        className="px-3 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-                      >
-                        <Send className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {activeTab === 'thinking' && (
-                <motion.div
-                  key="thinking"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.2 }}
-                  className="h-full overflow-y-auto p-4"
-                >
-                  <ThinkingProcessVisualizer
-                    steps={propThinkingSteps}
-                    isActive={isProcessing}
-                    showProgress={true}
-                    showSubSteps={true}
-                    enableAnimations={true}
+                  <motion.div 
+                    className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"
+                    animate={{ scale: [1, 1.3, 1] }}
+                    transition={{ duration: 1, repeat: Infinity }}
                   />
                 </motion.div>
               )}
+              
+              <motion.button
+                onClick={() => setIsMinimized(true)}
+                className="p-1.5 hover:bg-purple-600/30 rounded-lg text-gray-400 hover:text-white transition-colors"
+                title="최소화 (ESC)"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <Minimize2 className="w-4 h-4" />
+              </motion.button>
+              <motion.button
+                onClick={() => setIsExpanded(false)}
+                className="p-1.5 hover:bg-purple-600/30 rounded-lg text-gray-400 hover:text-white transition-colors"
+                title="축소"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </motion.button>
+            </div>
+          </>
+        ) : (
+          <div className="w-full flex flex-col items-center gap-3">
+            <motion.button
+              onClick={() => setIsExpanded(true)}
+              className="p-2 hover:bg-purple-600/30 rounded-lg text-purple-400 hover:text-white transition-colors"
+              title="확장"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </motion.button>
+            
+            {/* 축소된 상태에서도 AI 상태 표시 */}
+            <div className="flex flex-col items-center gap-2">
+              {getStatusIcon(aiStatus.agent)}
+              {getStatusIcon(aiStatus.mcp)}
+              {getStatusIcon(aiStatus.analytics)}
+            </div>
+          </div>
+        )}
+      </motion.div>
 
+      {/* 탭 네비게이션 */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div 
+            className="flex border-b border-purple-500/30 bg-gray-800/30"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {tabs.map((tab) => (
+              <motion.button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-all relative ${
+                  activeTab === tab.id 
+                    ? 'text-purple-300 bg-purple-600/20' 
+                    : 'text-gray-400 hover:text-gray-300 hover:bg-gray-800/50'
+                }`}
+                variants={tabVariants}
+                animate={activeTab === tab.id ? 'active' : 'inactive'}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <tab.icon className="w-4 h-4" />
+                <span className="hidden lg:inline">{tab.label}</span>
+                
+                {/* 배지 */}
+                {(tab.count > 0 || tab.badge) && (
+                  <motion.div 
+                    className={`absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full text-xs font-bold flex items-center justify-center ${
+                      tab.badge 
+                        ? 'bg-yellow-500 text-yellow-900' 
+                        : 'bg-purple-500 text-white'
+                    }`}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 500 }}
+                  >
+                    {tab.badge ? '!' : tab.count}
+                  </motion.div>
+                )}
+                
+                {/* 활성 탭 인디케이터 */}
+                {activeTab === tab.id && (
+                  <motion.div 
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-400 to-indigo-400"
+                    layoutId="activeTab"
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                )}
+              </motion.button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 메인 콘텐츠 영역 */}
+      <div className="flex-1 overflow-hidden">
+        <AnimatePresence mode="wait">
+          {isExpanded && (
+            <motion.div
+              key={activeTab}
+              className="h-full flex flex-col"
+              variants={contentVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              transition={{ duration: 0.3 }}
+            >
+              {/* 채팅 탭 */}
+              {activeTab === 'chat' && (
+                <div className="flex-1 flex flex-col">
+                  {/* 채팅 메시지 영역 */}
+                  <div 
+                    ref={chatContainerRef}
+                    className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-purple-600 scrollbar-track-gray-800"
+                  >
+                    <AnimatePresence>
+                      {chatMessages.map((message, index) => (
+                        <motion.div
+                          key={message.id}
+                          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                          transition={{ 
+                            duration: 0.3, 
+                            delay: index * 0.05,
+                            type: "spring",
+                            stiffness: 500,
+                            damping: 30
+                          }}
+                          className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div className={`max-w-[85%] ${
+                            message.type === 'user' 
+                              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' 
+                              : message.error
+                                ? 'bg-gradient-to-r from-red-600/20 to-red-700/20 border border-red-500/30 text-red-300'
+                                : 'bg-gradient-to-r from-gray-700 to-gray-800 text-gray-100'
+                          } rounded-2xl px-4 py-3 shadow-lg relative group`}>
+                            <div className="text-sm leading-relaxed">{message.content}</div>
+                            
+                            {/* 메시지 시간 */}
+                            <div className={`text-xs mt-2 opacity-70 ${
+                              message.type === 'user' ? 'text-purple-200' : 'text-gray-400'
+                            }`}>
+                              {message.timestamp.toLocaleTimeString()}
+                            </div>
+                            
+                            {/* 에러 표시 */}
+                            {message.error && (
+                              <div className="mt-2 text-xs text-red-400 bg-red-900/20 p-2 rounded">
+                                Error: {message.error}
+                              </div>
+                            )}
+                            
+                            {/* 구조화된 응답 미리보기 */}
+                            {message.structured && (
+                              <motion.button
+                                onClick={() => {
+                                  setCurrentStructuredResponse(message.structured!);
+                                  setActiveTab('response');
+                                }}
+                                className="mt-2 text-xs text-purple-300 hover:text-purple-200 underline"
+                                whileHover={{ scale: 1.05 }}
+                              >
+                                📋 구조화된 응답 보기
+                              </motion.button>
+                            )}
+                          </div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                    
+                    {/* 로딩 인디케이터 */}
+                    <AnimatePresence>
+                      {isLoading && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          className="flex justify-start"
+                        >
+                          <div className="bg-gradient-to-r from-gray-700 to-gray-800 rounded-2xl px-4 py-3 flex items-center gap-2">
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                            >
+                              <Loader2 className="w-4 h-4 text-purple-400" />
+                            </motion.div>
+                            <span className="text-sm text-gray-300">AI가 응답을 생성중입니다...</span>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                  
+                  {/* 채팅 입력 영역 */}
+                  <div className="p-4 border-t border-purple-500/30 bg-gray-800/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <button
+                        onClick={clearChatHistory}
+                        className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                        title="채팅 기록 삭제"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      <div className="text-xs text-gray-500">
+                        메시지 {chatMessages.length}개 • Ctrl+Enter로 전송
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-end gap-2">
+                      <div className="flex-1 relative">
+                        <input
+                          ref={inputRef}
+                          type="text"
+                          value={chatInput}
+                          onChange={(e) => setChatInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              handleSendMessage();
+                            }
+                          }}
+                          placeholder="AI에게 질문하세요..."
+                          className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                          disabled={isLoading}
+                        />
+                        
+                        {/* 입력 상태 인디케이터 */}
+                        <AnimatePresence>
+                          {chatInput.length > 0 && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.8 }}
+                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-400"
+                            >
+                              {chatInput.length}/500
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                      
+                      <motion.button
+                        onClick={handleSendMessage}
+                        disabled={!chatInput.trim() || isLoading}
+                        className="p-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white rounded-xl shadow-lg transition-all"
+                        whileHover={!isLoading ? { scale: 1.05 } : {}}
+                        whileTap={!isLoading ? { scale: 0.95 } : {}}
+                      >
+                        {isLoading ? (
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                          >
+                            <Loader2 className="w-5 h-5" />
+                          </motion.div>
+                        ) : (
+                          <Send className="w-5 h-5" />
+                        )}
+                      </motion.button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* 사고 과정 탭 */}
+              {activeTab === 'thinking' && (
+                <div className="flex-1 overflow-y-auto p-4">
+                  <ThinkingProcessVisualizer
+                    thinkingState={thinkingState}
+                    isActive={thinkingState.isActive}
+                    onStepComplete={(step) => {
+                      console.log('🧠 사고 과정 단계 완료:', step);
+                    }}
+                    showSubSteps={true}
+                    animate={true}
+                  />
+                </div>
+              )}
+              
+              {/* 구조화된 응답 탭 */}
               {activeTab === 'response' && (
-                <motion.div
-                  key="response"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.2 }}
-                  className="h-full overflow-y-auto p-4"
-                >
-                  {currentStructuredResponse || propCurrentResponse ? (
+                <div className="flex-1 overflow-y-auto p-4">
+                  {currentStructuredResponse ? (
                     <SixWPrincipleDisplay
-                      response={currentStructuredResponse || propCurrentResponse!}
-                      showSources={true}
+                      response={currentStructuredResponse}
+                      showCopyButtons={true}
                       showConfidence={true}
-                      enableCopy={true}
-                      expandable={false}
+                      showSources={true}
+                      onCopy={(content, type) => {
+                        console.log(`📋 복사됨 [${type}]:`, content);
+                      }}
                     />
                   ) : (
-                    <div className="text-center text-gray-400 mt-8">
-                      <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-xs">구조화된 응답이 없습니다</p>
-                      <p className="text-xs mt-1 opacity-70">AI와 채팅하여 응답을 받아보세요</p>
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                      <FileText className="w-12 h-12 mb-4 opacity-50" />
+                      <p className="text-lg font-medium mb-2">구조화된 응답 없음</p>
+                      <p className="text-sm text-center">
+                        AI와 대화를 시작하면<br />
+                        육하원칙 기반 구조화된 응답을 볼 수 있습니다.
+                      </p>
                     </div>
                   )}
-                </motion.div>
+                </div>
               )}
-
+              
+              {/* 모니터링 탭 */}
               {activeTab === 'monitor' && (
-                <motion.div
-                  key="monitor"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.2 }}
-                  className="h-full overflow-y-auto p-4"
-                >
-                  <div className="space-y-4">
-                    {/* 에러 모니터링 헤더 */}
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-medium text-purple-300">에러 모니터링</h4>
-                      <div className="flex gap-1">
-                        <button
-                          onClick={clearErrors}
-                          className="p-1 hover:bg-purple-600/30 rounded text-gray-400 hover:text-white transition-colors"
-                          title="모든 에러 삭제"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {/* AI 시스템 상태 */}
+                  <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
+                    <h4 className="font-medium text-white mb-3 flex items-center gap-2">
+                      <Monitor className="w-4 h-4 text-purple-400" />
+                      시스템 상태
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-400">AI 에이전트</span>
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(aiStatus.agent)}
+                          <span className="text-xs text-gray-300 capitalize">{aiStatus.agent}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-400">MCP 연결</span>
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(aiStatus.mcp)}
+                          <span className="text-xs text-gray-300 capitalize">{aiStatus.mcp}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-400">분석 엔진</span>
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(aiStatus.analytics)}
+                          <span className="text-xs text-gray-300 capitalize">{aiStatus.analytics}</span>
+                        </div>
                       </div>
                     </div>
-
-                    {/* 현재 에러 */}
-                    {currentError && (
-                      <div className="p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                          <AlertTriangle className="w-4 h-4 text-red-400" />
-                          <span className="text-sm font-medium text-red-300">현재 에러</span>
+                  </div>
+                  
+                  {/* 성능 메트릭 */}
+                  {performanceSummary && (
+                    <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
+                      <h4 className="font-medium text-white mb-3 flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-green-400" />
+                        성능 요약
+                      </h4>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-green-400">
+                            {Math.round(performanceSummary.successRate)}%
+                          </div>
+                          <div className="text-xs text-gray-400">성공률</div>
                         </div>
-                        <p className="text-xs text-red-200">{currentError.message}</p>
-                        <div className="flex items-center justify-between mt-2 text-xs text-red-400">
-                          <span>타입: {currentError.errorType}</span>
-                          <span>재시도: {currentError.retryCount}/{currentError.maxRetries}</span>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-blue-400">
+                            {performanceSummary.averageDuration}ms
+                          </div>
+                          <div className="text-xs text-gray-400">평균 응답</div>
                         </div>
                       </div>
-                    )}
-
-                    {/* 에러 로그 */}
-                    {monitoringErrors.length > 0 ? (
-                      <div className="space-y-2">
-                        {monitoringErrors.slice(0, 5).map((error) => (
-                          <div
-                            key={error.id}
-                            className={`p-2 rounded border text-xs ${
-                              error.level === 'error' 
-                                ? 'bg-red-900/10 border-red-500/20 text-red-300'
-                                : error.level === 'warning'
-                                  ? 'bg-yellow-900/10 border-yellow-500/20 text-yellow-300'
-                                  : 'bg-blue-900/10 border-blue-500/20 text-blue-300'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="font-medium">{error.category}</span>
-                              <button
-                                onClick={() => resolveError(error.id)}
-                                className="text-green-400 hover:text-green-300"
-                                title="해결 표시"
-                              >
-                                <CheckCircle className="w-3 h-3" />
-                              </button>
-                            </div>
-                            <p className="opacity-80">{error.message}</p>
-                            <p className="opacity-60 mt-1">
+                    </div>
+                  )}
+                  
+                  {/* 에러 목록 */}
+                  {monitoringErrors.length > 0 && (
+                    <div className="bg-red-900/20 rounded-xl p-4 border border-red-500/30">
+                      <h4 className="font-medium text-red-300 mb-3 flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4" />
+                        에러 로그 ({monitoringErrors.length})
+                      </h4>
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                        {monitoringErrors.slice(-5).map((error, index) => (
+                          <div key={index} className="text-xs text-red-200 bg-red-800/20 p-2 rounded">
+                            <div className="font-medium">{error.errorType}</div>
+                            <div className="opacity-75">{error.message}</div>
+                            <div className="opacity-50 mt-1">
                               {new Date(error.timestamp).toLocaleTimeString()}
-                            </p>
+                            </div>
                           </div>
                         ))}
-                        {monitoringErrors.length > 5 && (
-                          <p className="text-xs text-gray-400 text-center">
-                            그 외 {monitoringErrors.length - 5}개 더...
-                          </p>
-                        )}
                       </div>
-                    ) : (
-                      <div className="text-center text-gray-400 mt-8">
-                        <CheckCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                        <p className="text-xs">에러가 없습니다</p>
-                        <p className="text-xs mt-1 opacity-70">시스템이 정상 작동 중입니다</p>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
+                      <button
+                        onClick={clearErrors}
+                        className="mt-3 w-full text-xs text-red-300 hover:text-red-200 border border-red-500/30 hover:border-red-400/50 rounded py-2 transition-colors"
+                      >
+                        에러 로그 지우기
+                      </button>
+                    </div>
+                  )}
+                  
+                  {/* 에러가 없을 때 */}
+                  {monitoringErrors.length === 0 && !currentError && (
+                    <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                      <Shield className="w-12 h-12 mb-4 opacity-50" />
+                      <p className="text-lg font-medium mb-2">시스템 정상</p>
+                      <p className="text-sm text-center">
+                        모든 시스템이 정상적으로<br />
+                        작동하고 있습니다.
+                      </p>
+                    </div>
+                  )}
+                </div>
               )}
-            </AnimatePresence>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+      
+      {/* 하단 상태바 */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div 
+            className="p-3 border-t border-purple-500/30 bg-gray-800/30"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+          >
+            <div className="flex items-center justify-between text-xs text-gray-400">
+              <div className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                <span>{new Date().toLocaleTimeString()}</span>
+              </div>
+              <div className="flex items-center gap-4">
+                {isProcessing && (
+                  <div className="flex items-center gap-1 text-yellow-400">
+                    <Sparkles className="w-3 h-3 animate-pulse" />
+                    <span>처리중</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1">
+                  <Network className="w-3 h-3" />
+                  <span>연결됨</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

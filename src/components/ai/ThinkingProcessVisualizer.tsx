@@ -1,9 +1,9 @@
 /**
  * ThinkingProcessVisualizer Component
  * 
- * 🧠 AI의 사고 과정을 실시간으로 시각화하는 컴포넌트
- * - 5단계 프로세스 (분석→추론→처리→생성→완료)
- * - 실시간 진행률 표시
+ * 🧠 AI 사고 과정 실시간 시각화 컴포넌트
+ * - 단계별 진행 상황 표시
+ * - 실시간 로그 스트림
  * - 애니메이션 효과
  */
 
@@ -12,364 +12,275 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Search, 
   Brain, 
+  Search, 
   Cpu, 
-  Edit3, 
+  FileText, 
   CheckCircle, 
-  AlertCircle,
+  AlertTriangle,
   Loader2,
   Clock,
   Zap,
-  Activity
+  Eye
 } from 'lucide-react';
-import { AIThinkingStep, ThinkingProcessState, ErrorState } from '@/types/ai-thinking';
+import { AIThinkingStep, ThinkingProcessState } from '@/types/ai-thinking';
 
 interface ThinkingProcessVisualizerProps {
-  steps: AIThinkingStep[];
+  thinkingState: ThinkingProcessState;
   isActive: boolean;
-  onComplete?: () => void;
-  onError?: (error: ErrorState) => void;
-  className?: string;
-  showProgress?: boolean;
+  onStepComplete?: (step: AIThinkingStep) => void;
   showSubSteps?: boolean;
-  enableAnimations?: boolean;
+  animate?: boolean;
 }
 
+const stepIcons = {
+  analyzing: Search,
+  processing: Cpu,
+  reasoning: Brain,
+  generating: FileText,
+  completed: CheckCircle,
+  error: AlertTriangle
+};
+
+const stepColors = {
+  analyzing: 'text-blue-500 bg-blue-50',
+  processing: 'text-purple-500 bg-purple-50',
+  reasoning: 'text-green-500 bg-green-50',
+  generating: 'text-orange-500 bg-orange-50',
+  completed: 'text-emerald-500 bg-emerald-50',
+  error: 'text-red-500 bg-red-50'
+};
+
 export const ThinkingProcessVisualizer: React.FC<ThinkingProcessVisualizerProps> = ({
-  steps,
+  thinkingState,
   isActive,
-  onComplete,
-  onError,
-  className = '',
-  showProgress = true,
+  onStepComplete,
   showSubSteps = true,
-  enableAnimations = true
+  animate = true
 }) => {
+  const [visibleSteps, setVisibleSteps] = useState<AIThinkingStep[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [processState, setProcessState] = useState<ThinkingProcessState>({
-    steps: [],
-    currentStepIndex: 0,
-    isActive: false,
-    totalDuration: 0,
-    startTime: undefined,
-    endTime: undefined
-  });
 
-  // 기본 사고 단계 정의
-  const defaultSteps: AIThinkingStep[] = [
-    {
-      id: 'analyzing',
-      timestamp: new Date().toISOString(),
-      type: 'analyzing',
-      title: '🔍 분석 중',
-      description: '입력된 질문을 분석하고 있습니다...',
-      progress: 0,
-      icon: 'Search',
-      subSteps: ['질문 구조 분석', '키워드 추출', '의도 파악']
-    },
-    {
-      id: 'reasoning',
-      timestamp: new Date().toISOString(),
-      type: 'reasoning',
-      title: '🧠 추론 중',
-      description: '관련 정보를 조합하여 추론하고 있습니다...',
-      progress: 0,
-      icon: 'Brain',
-      subSteps: ['데이터 연관성 분석', '패턴 인식', '논리적 추론']
-    },
-    {
-      id: 'processing',
-      timestamp: new Date().toISOString(),
-      type: 'processing',
-      title: '⚙️ 처리 중',
-      description: '시스템 데이터를 처리하고 있습니다...',
-      progress: 0,
-      icon: 'Cpu',
-      subSteps: ['메트릭 수집', '상태 확인', '데이터 정제']
-    },
-    {
-      id: 'generating',
-      timestamp: new Date().toISOString(),
-      type: 'generating',
-      title: '✍️ 생성 중',
-      description: '응답을 생성하고 있습니다...',
-      progress: 0,
-      icon: 'Edit3',
-      subSteps: ['응답 구조화', '내용 생성', '검증 수행']
-    },
-    {
-      id: 'completed',
-      timestamp: new Date().toISOString(),
-      type: 'completed',
-      title: '✅ 완료',
-      description: '응답 생성이 완료되었습니다!',
-      progress: 100,
-      icon: 'CheckCircle',
-      subSteps: ['최종 검토', '품질 확인', '응답 전달']
-    }
-  ];
-
-  // 스텝 아이콘 매핑
-  const getStepIcon = useCallback((iconName: string, isActive: boolean, isCompleted: boolean) => {
-    const iconProps = {
-      className: `w-5 h-5 transition-all duration-300 ${
-        isCompleted ? 'text-green-400' : 
-        isActive ? 'text-blue-400' : 'text-gray-400'
-      }`,
-      style: enableAnimations && isActive ? { 
-        animation: 'pulse 2s infinite'
-      } : {}
-    };
-
-    switch (iconName) {
-      case 'Search': return <Search {...iconProps} />;
-      case 'Brain': return <Brain {...iconProps} />;
-      case 'Cpu': return <Cpu {...iconProps} />;
-      case 'Edit3': return <Edit3 {...iconProps} />;
-      case 'CheckCircle': return <CheckCircle {...iconProps} />;
-      case 'AlertCircle': return <AlertCircle {...iconProps} />;
-      default: return <Activity {...iconProps} />;
-    }
-  }, [enableAnimations]);
-
-  // 프로세스 상태 업데이트
+  // 단계 업데이트 처리
   useEffect(() => {
-    if (isActive && steps.length > 0) {
-      setProcessState(prev => ({
-        ...prev,
-        steps: steps.length > 0 ? steps : defaultSteps,
-        isActive: true,
-        startTime: prev.startTime || new Date()
-      }));
-    } else if (!isActive) {
-      setProcessState(prev => ({
-        ...prev,
-        isActive: false,
-        endTime: new Date()
-      }));
-    }
-  }, [isActive, steps, defaultSteps]);
-
-  // 단계 진행 시뮬레이션
-  useEffect(() => {
-    if (!isActive || processState.steps.length === 0) return;
-
-    const currentSteps = steps.length > 0 ? steps : defaultSteps;
-    
-    const interval = setInterval(() => {
-      setCurrentStepIndex(prev => {
-        const nextIndex = prev + 1;
-        
-        if (nextIndex >= currentSteps.length) {
-          // 프로세스 완료
-          setProcessState(state => ({
-            ...state,
-            isActive: false,
-            endTime: new Date(),
-            totalDuration: state.startTime ? Date.now() - state.startTime.getTime() : 0
-          }));
-          
-          onComplete?.();
-          return prev;
-        }
-        
-        return nextIndex;
+    if (thinkingState.steps.length > visibleSteps.length) {
+      const newSteps = thinkingState.steps.slice(visibleSteps.length);
+      
+      newSteps.forEach((step, index) => {
+        setTimeout(() => {
+          setVisibleSteps(prev => [...prev, step]);
+          if (onStepComplete) {
+            onStepComplete(step);
+          }
+        }, index * 500); // 0.5초 간격으로 단계적 표시
       });
-    }, 2000); // 2초마다 다음 단계
+    }
+  }, [thinkingState.steps, visibleSteps.length, onStepComplete]);
 
-    return () => clearInterval(interval);
-  }, [isActive, processState.steps.length, steps, defaultSteps, onComplete]);
+  // 현재 단계 인덱스 업데이트
+  useEffect(() => {
+    setCurrentStepIndex(thinkingState.currentStepIndex);
+  }, [thinkingState.currentStepIndex]);
 
   // 진행률 계산
-  const calculateProgress = useCallback(() => {
-    if (!isActive || processState.steps.length === 0) return 0;
-    
-    const totalSteps = processState.steps.length;
-    const completedSteps = currentStepIndex;
-    
-    return Math.min((completedSteps / totalSteps) * 100, 100);
-  }, [isActive, processState.steps.length, currentStepIndex]);
+  const overallProgress = thinkingState.steps.length > 0 
+    ? Math.round((currentStepIndex / thinkingState.steps.length) * 100)
+    : 0;
 
-  // 에러 처리
-  const handleStepError = useCallback((stepId: string, error: string) => {
-    const errorState: ErrorState = {
-      hasError: true,
-      errorType: 'processing',
-      message: error,
-      timestamp: new Date().toISOString(),
-      retryCount: 0,
-      maxRetries: 3
-    };
-
-    onError?.(errorState);
-    console.error(`🚨 AI Thinking Step Error [${stepId}]:`, error);
-  }, [onError]);
-
-  // 시간 포맷팅
-  const formatDuration = useCallback((milliseconds: number) => {
-    const seconds = Math.floor(milliseconds / 1000);
-    const minutes = Math.floor(seconds / 60);
-    
-    if (minutes > 0) {
-      return `${minutes}분 ${seconds % 60}초`;
+  // 단계 애니메이션 설정
+  const stepVariants = {
+    hidden: { 
+      opacity: 0, 
+      x: -20,
+      scale: 0.95 
+    },
+    visible: { 
+      opacity: 1, 
+      x: 0,
+      scale: 1,
+      transition: {
+        duration: 0.4,
+        ease: "easeOut"
+      }
+    },
+    completed: {
+      scale: 1.05,
+      transition: {
+        duration: 0.2,
+        yoyo: 1
+      }
     }
-    return `${seconds}초`;
+  };
+
+  // 진행률 바 애니메이션
+  const progressVariants = {
+    initial: { width: 0 },
+    animate: { 
+      width: `${overallProgress}%`,
+      transition: {
+        duration: 0.8,
+        ease: "easeInOut"
+      }
+    }
+  };
+
+  // 펄스 애니메이션 (활성 단계용)
+  const pulseVariants = {
+    pulse: {
+      scale: [1, 1.05, 1],
+      transition: {
+        duration: 1.5,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }
+    }
+  };
+
+  const formatDuration = useCallback((ms: number) => {
+    if (ms < 1000) return `${ms}ms`;
+    return `${(ms / 1000).toFixed(1)}s`;
   }, []);
 
-  const currentSteps = steps.length > 0 ? steps : defaultSteps;
-  const progress = calculateProgress();
-
-  if (!isActive && processState.steps.length === 0) {
-    return null;
+  if (!isActive && visibleSteps.length === 0) {
+    return (
+      <div className="flex items-center justify-center p-8 text-gray-500 text-sm">
+        <Brain className="w-5 h-5 mr-2" />
+        AI 사고 과정을 시작해주세요
+      </div>
+    );
   }
 
   return (
-    <div className={`bg-slate-800/50 rounded-lg border border-purple-500/30 p-4 ${className}`}>
-      {/* 헤더 */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div className={`p-2 rounded-lg ${isActive ? 'bg-purple-600/20' : 'bg-gray-600/20'}`}>
-            {isActive ? (
-              <Loader2 className="w-4 h-4 text-purple-400 animate-spin" />
-            ) : (
-              <CheckCircle className="w-4 h-4 text-green-400" />
+    <div className="space-y-4">
+      {/* 전체 진행률 헤더 */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Brain className="w-5 h-5 text-indigo-600" />
+            <span className="font-medium text-gray-900">AI 사고 과정</span>
+            {isActive && (
+              <motion.div 
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              >
+                <Loader2 className="w-4 h-4 text-blue-500" />
+              </motion.div>
             )}
           </div>
-          <div>
-            <h3 className="text-sm font-medium text-white">
-              {isActive ? 'AI 사고 과정' : '분석 완료'}
-            </h3>
-            <p className="text-xs text-gray-400">
-              {isActive ? '단계별 처리 중...' : `총 소요시간: ${formatDuration(processState.totalDuration)}`}
-            </p>
+          <div className="text-sm text-gray-600">
+            {currentStepIndex}/{thinkingState.steps.length} 단계
           </div>
         </div>
-
-        {showProgress && (
-          <div className="text-right">
-            <div className="text-xs text-gray-300 mb-1">
-              {currentStepIndex + 1} / {currentSteps.length}
-            </div>
-            <div className="w-16 h-1 bg-gray-700 rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-gradient-to-r from-purple-500 to-blue-500"
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.5, ease: 'easeInOut' }}
-              />
-            </div>
-          </div>
-        )}
+        
+        {/* 전체 진행률 바 */}
+        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+          <motion.div
+            className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"
+            variants={progressVariants}
+            initial="initial"
+            animate="animate"
+          />
+        </div>
+        
+        <div className="flex justify-between text-xs text-gray-500">
+          <span>진행률: {overallProgress}%</span>
+          {thinkingState.startTime && (
+            <span>
+              <Clock className="w-3 h-3 inline mr-1" />
+              {formatDuration(Date.now() - thinkingState.startTime.getTime())}
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* 단계 목록 */}
-      <div className="space-y-3">
-        <AnimatePresence mode="wait">
-          {currentSteps.map((step, index) => {
-            const isActive = index === currentStepIndex && processState.isActive;
-            const isCompleted = index < currentStepIndex || !processState.isActive;
-            const isFuture = index > currentStepIndex;
-
+      {/* 단계별 상세 표시 */}
+      <div className="space-y-3 max-h-96 overflow-y-auto">
+        <AnimatePresence>
+          {visibleSteps.map((step, index) => {
+            const StepIcon = stepIcons[step.type] || Brain;
+            const isCurrentStep = index === currentStepIndex && isActive;
+            const isCompleted = step.type === 'completed' || index < currentStepIndex;
+            
             return (
               <motion.div
                 key={step.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ 
-                  opacity: isFuture ? 0.4 : 1,
-                  y: 0,
-                  scale: isActive ? 1.02 : 1
-                }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ 
-                  duration: enableAnimations ? 0.3 : 0,
-                  ease: 'easeInOut'
-                }}
-                className={`
-                  flex items-start gap-3 p-3 rounded-lg transition-all duration-300
-                  ${isActive ? 'bg-purple-600/10 border border-purple-500/30' : ''}
-                  ${isCompleted ? 'bg-green-600/5 border border-green-500/20' : ''}
-                  ${isFuture ? 'bg-gray-600/5' : ''}
-                `}
+                variants={stepVariants}
+                initial="hidden"
+                animate={isCompleted ? "completed" : "visible"}
+                exit="hidden"
+                className={`p-3 rounded-lg border ${stepColors[step.type] || 'text-gray-500 bg-gray-50'} 
+                  ${isCurrentStep ? 'ring-2 ring-indigo-200 ring-opacity-50' : ''}`}
               >
-                {/* 아이콘 */}
-                <div className={`
-                  flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center
-                  ${isCompleted ? 'bg-green-600/20' : 
-                    isActive ? 'bg-purple-600/20' : 'bg-gray-600/20'}
-                `}>
-                  {getStepIcon(step.icon || 'Activity', isActive, isCompleted)}
-                </div>
-
-                {/* 내용 */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className={`text-sm font-medium ${
-                      isCompleted ? 'text-green-300' :
-                      isActive ? 'text-purple-300' : 'text-gray-300'
-                    }`}>
-                      {step.title}
-                    </h4>
+                <div className="flex items-start space-x-3">
+                  <motion.div
+                    variants={isCurrentStep ? pulseVariants : {}}
+                    animate={isCurrentStep ? "pulse" : ""}
+                    className={`p-2 rounded-full ${stepColors[step.type]}`}
+                  >
+                    <StepIcon className="w-4 h-4" />
+                  </motion.div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <h4 className="font-medium text-sm text-gray-900">
+                        {step.title}
+                      </h4>
+                      {step.duration && (
+                        <span className="text-xs text-gray-500">
+                          {formatDuration(step.duration)}
+                        </span>
+                      )}
+                    </div>
                     
-                    {isActive && (
-                      <div className="flex items-center gap-1 text-xs text-purple-400">
-                        <Clock className="w-3 h-3" />
-                        <motion.span
-                          key={step.timestamp}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          처리 중...
-                        </motion.span>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {step.description}
+                    </p>
+                    
+                    {/* 단계별 진행률 */}
+                    <div className="w-full bg-white bg-opacity-50 rounded-full h-1.5 mb-2">
+                      <motion.div
+                        className="h-full bg-current rounded-full opacity-70"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${step.progress}%` }}
+                        transition={{ duration: 0.5 }}
+                      />
+                    </div>
+                    
+                    {/* 서브 스텝 */}
+                    {showSubSteps && step.subSteps && step.subSteps.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {step.subSteps.map((subStep, subIndex) => (
+                          <motion.div
+                            key={subIndex}
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            transition={{ delay: subIndex * 0.1 }}
+                            className="text-xs text-gray-500 flex items-center pl-2 border-l-2 border-current border-opacity-20"
+                          >
+                            <Eye className="w-3 h-3 mr-1 opacity-50" />
+                            {subStep}
+                          </motion.div>
+                        ))}
                       </div>
                     )}
+                    
+                    {/* 메타데이터 */}
+                    {step.metadata && Object.keys(step.metadata).length > 0 && (
+                      <details className="mt-2">
+                        <summary className="text-xs text-gray-400 cursor-pointer hover:text-gray-600">
+                          상세 정보
+                        </summary>
+                        <div className="mt-1 text-xs text-gray-500 bg-white bg-opacity-30 p-2 rounded">
+                          {Object.entries(step.metadata).map(([key, value]) => (
+                            <div key={key} className="flex justify-between">
+                              <span className="font-medium">{key}:</span>
+                              <span>{String(value)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    )}
                   </div>
-
-                  <p className="text-xs text-gray-400 mb-2">
-                    {step.description}
-                  </p>
-
-                  {/* 세부 단계 */}
-                  {showSubSteps && step.subSteps && isActive && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="mt-2 space-y-1"
-                    >
-                      {step.subSteps.map((subStep, subIndex) => (
-                        <motion.div
-                          key={subIndex}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ 
-                            duration: 0.3, 
-                            delay: subIndex * 0.1 
-                          }}
-                          className="flex items-center gap-2 text-xs text-gray-500"
-                        >
-                          <div className="w-1 h-1 bg-purple-400 rounded-full animate-pulse" />
-                          {subStep}
-                        </motion.div>
-                      ))}
-                    </motion.div>
-                  )}
-
-                  {/* 진행률 바 (개별 단계) */}
-                  {isActive && step.progress !== undefined && (
-                    <div className="mt-2">
-                      <div className="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
-                        <motion.div
-                          className="h-full bg-purple-400"
-                          initial={{ width: 0 }}
-                          animate={{ width: `${step.progress}%` }}
-                          transition={{ duration: 0.5 }}
-                        />
-                      </div>
-                    </div>
-                  )}
                 </div>
               </motion.div>
             );
@@ -377,22 +288,25 @@ export const ThinkingProcessVisualizer: React.FC<ThinkingProcessVisualizerProps>
         </AnimatePresence>
       </div>
 
-      {/* 전체 진행률 */}
-      {showProgress && (
-        <div className="mt-4 pt-3 border-t border-gray-700/50">
-          <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
-            <span>전체 진행률</span>
-            <span>{Math.round(progress)}%</span>
-          </div>
-          <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-gradient-to-r from-purple-500 via-blue-500 to-green-500"
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.5, ease: 'easeInOut' }}
-            />
-          </div>
-        </div>
+      {/* 활성 상태 인디케이터 */}
+      {isActive && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center justify-center p-3 bg-blue-50 rounded-lg border border-blue-200"
+        >
+          <Zap className="w-4 h-4 text-blue-500 mr-2" />
+          <span className="text-sm text-blue-700 font-medium">
+            AI가 사고 중입니다...
+          </span>
+          <motion.div
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 1, repeat: Infinity }}
+            className="ml-2"
+          >
+            <div className="w-2 h-2 bg-blue-500 rounded-full" />
+          </motion.div>
+        </motion.div>
       )}
     </div>
   );
