@@ -15,6 +15,7 @@ interface TimerConfig {
   enabled: boolean;
   lastRun?: number;
   errorCount?: number;
+  immediate?: boolean;
 }
 
 class TimerManager {
@@ -36,21 +37,23 @@ class TimerManager {
   /**
    * 타이머 등록
    */
-  register(config: Omit<TimerConfig, 'enabled' | 'lastRun' | 'errorCount'>): void {
-    if (this.timers.has(config.id)) {
-      console.warn(`⚠️ Timer ${config.id} already exists, updating...`);
-      this.unregister(config.id);
+  register(config: TimerConfig): void {
+    this.stop(config.id); // 기존 타이머 정리
+    
+    this.timers.set(config.id, config);
+    
+    // 즉시 실행 옵션
+    if (config.immediate) {
+      this.executeCallback(config);
     }
-
-    this.timers.set(config.id, {
-      ...config,
-      enabled: true,
-      lastRun: 0,
-      errorCount: 0
-    });
-
-    this.startTimer(config.id);
-    console.log(`⏰ Timer registered: ${config.id} (${config.interval}ms, ${config.priority})`);
+    
+    // 주기적 실행
+    const timer = setInterval(() => {
+      this.executeCallback(config);
+    }, config.interval);
+    
+    this.intervals.set(config.id, timer);
+    console.log(`⏰ Timer registered: ${config.id} (${config.interval}ms)`);
   }
 
   /**
@@ -216,7 +219,13 @@ class TimerManager {
     }
 
     // 새 타이머 등록
-    this.register(config);
+    const fullConfig: TimerConfig = {
+      ...config,
+      enabled: true,
+      lastRun: undefined,
+      errorCount: 0
+    };
+    this.register(fullConfig);
     (this.timers.get(config.id) as any)._category = category;
     console.log(`🛡️ Exclusive timer registered: ${config.id} in category: ${category}`);
   }
@@ -316,6 +325,175 @@ class TimerManager {
       setTimeout(() => {
         this.disablePerformanceMode();
       }, 5 * 60 * 1000);
+    }
+  }
+
+  // 콜백 실행 (에러 핸들링 포함)
+  private async executeCallback(config: TimerConfig): Promise<void> {
+    try {
+      await config.callback();
+    } catch (error) {
+      console.error(`❌ Timer callback error [${config.id}]:`, error);
+    }
+  }
+
+  // 특정 타이머 중지
+  stop(id: string): void {
+    const timer = this.intervals.get(id);
+    if (timer) {
+      clearInterval(timer);
+      this.intervals.delete(id);
+      this.timers.delete(id);
+      console.log(`⏹️ Timer stopped: ${id}`);
+    }
+  }
+
+  // 모든 타이머 중지
+  stopAll(): void {
+    console.log('🔄 Stopping all timers for mode change...');
+    
+    for (const [id, timer] of this.intervals) {
+      clearInterval(timer);
+      console.log(`⏹️ Timer stopped: ${id}`);
+    }
+    
+    this.intervals.clear();
+    this.timers.clear();
+    console.log('✅ All timers stopped');
+  }
+
+  // 활성 타이머 목록
+  getActiveTimers(): string[] {
+    return Array.from(this.intervals.keys());
+  }
+
+  // 타이머 상태 확인
+  isActive(id: string): boolean {
+    return this.intervals.has(id);
+  }
+
+  // AI 관리자 모드를 위한 새로운 메소드들
+  /**
+   * AI 관리자 모드 타이머 시작
+   */
+  startAIMode(): void {
+    console.log('🤖 Starting AI Admin Mode timers...');
+    
+    // AI 에이전트 하트비트
+    this.registerExclusive({
+      id: 'ai-agent-heartbeat',
+      callback: async () => {
+        try {
+          const response = await fetch('/api/ai/unified', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              query: 'status_check',
+              mode: 'heartbeat'
+            })
+          });
+          
+          if (!response.ok) {
+            console.warn('⚠️ AI Agent heartbeat failed');
+          }
+        } catch (error) {
+          console.error('❌ AI Agent heartbeat error:', error);
+        }
+      },
+      interval: 5000, // 5초
+      priority: 'high'
+    }, 'ai-mode');
+
+    // MCP 시스템 모니터링
+    this.registerExclusive({
+      id: 'mcp-monitor',
+      callback: async () => {
+        try {
+          const response = await fetch('/api/ai/mcp/test');
+          if (response.ok) {
+            const data = await response.json();
+            console.log('🔍 MCP Status:', data.success ? '✅' : '⚠️');
+          }
+        } catch (error) {
+          console.error('❌ MCP Monitor error:', error);
+        }
+      },
+      interval: 15000, // 15초
+      priority: 'medium'
+    }, 'ai-mode');
+
+    // AI 분석 데이터 수집
+    this.registerExclusive({
+      id: 'ai-analytics-collector',
+      callback: async () => {
+        try {
+          console.log('📊 Collecting AI analytics data...');
+          // AI 분석 데이터 수집 로직
+        } catch (error) {
+          console.error('❌ AI Analytics error:', error);
+        }
+      },
+      interval: 30000, // 30초
+      priority: 'low'
+    }, 'ai-mode');
+  }
+
+  /**
+   * 기본 모니터링 모드 타이머 시작
+   */
+  startMonitoringMode(): void {
+    console.log('📊 Starting Basic Monitoring Mode timers...');
+    
+    // 기본 서버 모니터링
+    this.registerExclusive({
+      id: 'basic-monitoring',
+      callback: async () => {
+        try {
+          const response = await fetch('/api/health');
+          if (response.ok) {
+            console.log('✅ Basic monitoring check passed');
+          }
+        } catch (error) {
+          console.error('❌ Basic monitoring error:', error);
+        }
+      },
+      interval: 15000, // 15초
+      priority: 'high'
+    }, 'monitoring-mode');
+
+    // 데이터 생성기 상태 확인
+    this.registerExclusive({
+      id: 'data-generator-status',
+      callback: async () => {
+        try {
+          const response = await fetch('/api/data-generator');
+          if (response.ok) {
+            const data = await response.json();
+            console.log('🧪 Data Generator:', data.data?.generation?.isGenerating ? '✅' : '⏸️');
+          }
+        } catch (error) {
+          console.error('❌ Data Generator status error:', error);
+        }
+      },
+      interval: 10000, // 10초
+      priority: 'medium'
+    }, 'monitoring-mode');
+  }
+
+  /**
+   * 모드별 타이머 전환
+   */
+  switchMode(mode: 'ai' | 'monitoring'): void {
+    console.log(`🔄 Switching to ${mode} mode...`);
+    
+    // 기존 모든 타이머 정지
+    this.cleanup();
+    
+    // 새 모드 타이머 시작
+    if (mode === 'ai') {
+      this.startAIMode();
+    } else {
+      this.startMonitoringMode();
     }
   }
 }

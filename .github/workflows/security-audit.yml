@@ -1,0 +1,242 @@
+name: 🛡️ Security & Dependency Audit
+
+# 보안 취약점 및 의존성 검사
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'package*.json'
+      - 'yarn.lock'
+      - '.github/workflows/security-audit.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'package*.json'
+      - 'yarn.lock'
+  schedule:
+    # 매주 월요일 오전 9시 (UTC)
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # 🔍 의존성 취약점 스캔
+  dependency-audit:
+    name: 🔍 Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: 🔍 npm audit
+        run: |
+          echo "🔍 Running npm audit..."
+          npm audit --audit-level=moderate --progress=false > audit-report.txt 2>&1 || AUDIT_EXIT_CODE=$?
+          
+          echo "## 🛡️ NPM Audit Report" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat audit-report.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          
+          # 높은 수준의 취약점이 있으면 실패
+          if [ "${AUDIT_EXIT_CODE:-0}" -gt 0 ]; then
+            echo "❌ High/Critical vulnerabilities found!"
+            exit 1
+          else
+            echo "✅ No high/critical vulnerabilities found"
+          fi
+          
+      - name: 📊 Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          path: audit-report.txt
+          retention-days: 30
+
+  # 🔒 보안 정책 검사
+  security-policy-check:
+    name: 🔒 Security Policy Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 🔍 Check security files
+        run: |
+          echo "🔍 Checking security-related files..."
+          
+          # Security.md 파일 확인
+          if [ -f SECURITY.md ]; then
+            echo "✅ SECURITY.md exists"
+          else
+            echo "⚠️ SECURITY.md not found - creating basic template"
+            cat > SECURITY.md << 'EOF'
+          # Security Policy
+          
+          ## Supported Versions
+          
+          | Version | Supported          |
+          | ------- | ------------------ |
+          | 5.x.x   | :white_check_mark: |
+          | < 5.0   | :x:                |
+          
+          ## Reporting a Vulnerability
+          
+          Please report security vulnerabilities to: security@openmanager.dev
+          EOF
+          fi
+          
+          # .nvmrc 파일 확인 (Node.js 버전 고정)
+          if [ -f .nvmrc ]; then
+            NODE_VERSION_FILE=$(cat .nvmrc)
+            echo "✅ Node.js version pinned: $NODE_VERSION_FILE"
+          else
+            echo "⚠️ .nvmrc not found - Node.js version not pinned"
+          fi
+          
+          # package.json engines 필드 확인
+          if grep -q '"engines"' package.json; then
+            echo "✅ Node.js engine requirements specified"
+          else
+            echo "⚠️ No engine requirements in package.json"
+          fi
+          
+      - name: 📊 Security summary
+        run: |
+          echo "## 🔒 Security Policy Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Basic security files checked" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Node.js version requirements validated" >> $GITHUB_STEP_SUMMARY
+
+  # 🔍 라이센스 호환성 검사
+  license-compliance:
+    name: 🔍 License Compliance Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: 📦 Install license checker
+        run: npm install -g license-checker
+        
+      - name: 🔍 Check licenses
+        run: |
+          echo "🔍 Checking package licenses..."
+          
+          # 금지된 라이센스 목록
+          FORBIDDEN_LICENSES="GPL-2.0,GPL-3.0,AGPL-1.0,AGPL-3.0"
+          
+          # 라이센스 검사 실행
+          license-checker --onlyAllow "MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;Unlicense;CC0-1.0" --production --failOn "$FORBIDDEN_LICENSES" > license-report.txt 2>&1 || LICENSE_EXIT_CODE=$?
+          
+          echo "## 📄 License Compliance Report" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          head -50 license-report.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${LICENSE_EXIT_CODE:-0}" -gt 0 ]; then
+            echo "❌ License compliance issues found!"
+            cat license-report.txt
+            exit 1
+          else
+            echo "✅ All licenses are compliant"
+          fi
+          
+      - name: 📊 Upload license report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-compliance-report
+          path: license-report.txt
+          retention-days: 30
+
+  # 🔒 코드 보안 분석 (CodeQL)
+  codeql-analysis:
+    name: 🔒 CodeQL Security Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+      
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['javascript']
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 🔍 Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          config-file: ./.github/codeql/codeql-config.yml
+          
+      - name: 🏗️ Autobuild
+        uses: github/codeql-action/autobuild@v3
+        
+      - name: 🔍 Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
+
+  # 📊 보안 종합 보고서
+  security-summary:
+    name: 📊 Security Summary Report
+    runs-on: ubuntu-latest
+    needs: [dependency-audit, security-policy-check, license-compliance, codeql-analysis]
+    if: always()
+    
+    steps:
+      - name: 📥 Download security reports
+        uses: actions/download-artifact@v4
+        with:
+          path: security-reports/
+          
+      - name: 📊 Generate security summary
+        run: |
+          echo "# 🛡️ OpenManager V5 - Security Audit Summary" > SECURITY_SUMMARY.md
+          echo "Generated: $(date)" >> SECURITY_SUMMARY.md
+          echo "" >> SECURITY_SUMMARY.md
+          
+          echo "## Security Checks Status" >> SECURITY_SUMMARY.md
+          echo "- 🔍 Dependency Audit: ${{ needs.dependency-audit.result }}" >> SECURITY_SUMMARY.md
+          echo "- 🔒 Security Policy: ${{ needs.security-policy-check.result }}" >> SECURITY_SUMMARY.md
+          echo "- 📄 License Compliance: ${{ needs.license-compliance.result }}" >> SECURITY_SUMMARY.md
+          echo "- 🔍 CodeQL Analysis: ${{ needs.codeql-analysis.result }}" >> SECURITY_SUMMARY.md
+          echo "" >> SECURITY_SUMMARY.md
+          
+          echo "## Report Files Generated" >> SECURITY_SUMMARY.md
+          find security-reports/ -type f | sort >> SECURITY_SUMMARY.md || echo "No report files found"
+          
+          cat SECURITY_SUMMARY.md >> $GITHUB_STEP_SUMMARY
+          
+      - name: 📤 Upload security summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit-summary
+          path: SECURITY_SUMMARY.md
+          retention-days: 90 
