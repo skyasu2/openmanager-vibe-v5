@@ -43,11 +43,11 @@ node_modules/
 .cache/
 .parcel-cache/
 
-# 기타 불필요한 파일들
+# 문서 및 스크립트 (배포에 불필요)
 docs/
 scripts/
 .github/
-*.md
+README.md
 .env.example
 .env.template
 tsconfig.tsbuildinfo 
