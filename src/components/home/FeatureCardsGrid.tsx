@@ -10,17 +10,18 @@ import { useToast } from '@/components/ui/ToastNotification';
 const cardData = [
   {
     id: 'ai-agent',
-    title: 'AI 에이전트',
-    description: 'LLM 없이도 지능형 분석하는 차세대 AI',
+    title: 'MCP 기반 AI 에이전트',
+    description: 'Model Context Protocol로 구동하는 차세대 AI',
     icon: Bot,
-    gradient: 'from-purple-500 to-pink-600',
+    gradient: 'from-purple-500 via-blue-500 to-cyan-500',
     features: [
-      'LLM 비용 없는 실시간 AI 추론',
+      'MCP 표준 프로토콜 기반 AI 추론',
       '자연어로 서버 상태 질의',
       '지능형 근본원인 분석',
       '예측적 알림 및 권장사항'
     ],
-    requiresAI: true
+    requiresAI: true,
+    isAICard: true // AI 카드 특별 애니메이션
   },
   {
     id: 'prometheus',
@@ -52,10 +53,10 @@ const cardData = [
   },
   {
     id: 'vibe-coding',
-    title: '✨ 바이브 코딩',
+    title: '✨ Vibe Coding',
     description: 'Cursor + Claude로 만드는 창의적 개발 경험',
     icon: Sparkles,
-    gradient: 'from-amber-500 via-orange-500 to-pink-500',
+    gradient: 'from-amber-400 via-orange-500 to-yellow-600',
     features: [
       'Cursor AI 기반 페어 프로그래밍',
       'Claude Sonnet과 실시간 협업',
@@ -63,7 +64,8 @@ const cardData = [
       '인간과 AI의 완벽한 하모니'
     ],
     requiresAI: false,
-    isSpecial: true // 황금카드 특수 효과
+    isSpecial: true, // 황금카드 특수 효과
+    isVibeCard: true // 바이브 코딩 카드 특별 애니메이션
   }
 ];
 
@@ -142,8 +144,49 @@ export default function FeatureCardsGrid() {
               {/* 그라데이션 배경 */}
               <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300`} />
               
-              {/* 특별 카드 황금 효과 */}
-              {card.isSpecial && (
+              {/* AI 카드 특별 이색 그라데이션 애니메이션 */}
+              {card.isAICard && (
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-br from-purple-500/30 via-blue-500/30 to-cyan-500/30 rounded-2xl"
+                  animate={{
+                    background: [
+                      'linear-gradient(135deg, rgba(168,85,247,0.3) 0%, rgba(59,130,246,0.3) 50%, rgba(34,197,94,0.3) 100%)',
+                      'linear-gradient(135deg, rgba(34,197,94,0.3) 0%, rgba(168,85,247,0.3) 50%, rgba(59,130,246,0.3) 100%)',
+                      'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(34,197,94,0.3) 50%, rgba(168,85,247,0.3) 100%)',
+                      'linear-gradient(135deg, rgba(168,85,247,0.3) 0%, rgba(59,130,246,0.3) 50%, rgba(34,197,94,0.3) 100%)'
+                    ]
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+              )}
+              
+              {/* 바이브 코딩 카드 황금 그라데이션 애니메이션 */}
+              {card.isVibeCard && (
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-br from-amber-400/20 via-orange-500/20 to-yellow-600/20 rounded-2xl"
+                  animate={{
+                    background: [
+                      'linear-gradient(135deg, rgba(251,191,36,0.2) 0%, rgba(249,115,22,0.2) 50%, rgba(234,179,8,0.2) 100%)',
+                      'linear-gradient(135deg, rgba(234,179,8,0.2) 0%, rgba(251,191,36,0.2) 50%, rgba(249,115,22,0.2) 100%)',
+                      'linear-gradient(135deg, rgba(249,115,22,0.2) 0%, rgba(234,179,8,0.2) 50%, rgba(251,191,36,0.2) 100%)',
+                      'linear-gradient(135deg, rgba(251,191,36,0.2) 0%, rgba(249,115,22,0.2) 50%, rgba(234,179,8,0.2) 100%)'
+                    ],
+                    opacity: [0.2, 0.4, 0.2]
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+              )}
+              
+              {/* 특별 카드 황금 효과 (기존) */}
+              {card.isSpecial && !card.isVibeCard && (
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-br from-amber-400/20 via-orange-500/20 to-pink-500/20 rounded-2xl"
                   animate={{
@@ -160,8 +203,39 @@ export default function FeatureCardsGrid() {
               {/* 아이콘 */}
               <div className={`w-14 h-14 bg-gradient-to-br ${card.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 relative z-10 ${
                 card.isSpecial ? 'shadow-lg shadow-amber-500/25' : ''
+              } ${
+                card.isAICard ? 'shadow-lg shadow-purple-500/25' : ''
               }`}>
-                <card.icon className="w-7 h-7 text-white" />
+                {card.isAICard ? (
+                  <motion.div
+                    animate={{
+                      rotate: [0, 360],
+                      scale: [1, 1.1, 1]
+                    }}
+                    transition={{
+                      rotate: { duration: 8, repeat: Infinity, ease: "linear" },
+                      scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+                    }}
+                  >
+                    <card.icon className="w-7 h-7 text-white" />
+                  </motion.div>
+                ) : card.isVibeCard ? (
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.2, 1],
+                      rotate: [0, 5, -5, 0]
+                    }}
+                    transition={{
+                      duration: 2.5,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    <card.icon className="w-7 h-7 text-white" />
+                  </motion.div>
+                ) : (
+                  <card.icon className="w-7 h-7 text-white" />
+                )}
               </div>
               
               {/* 컨텐츠 */}
@@ -189,8 +263,12 @@ export default function FeatureCardsGrid() {
               </div>
               
               {/* 호버 효과 */}
-              <div className={`absolute inset-0 ring-2 ring-transparent group-hover:ring-white/30 rounded-2xl transition-all duration-300 ${
-                card.isSpecial ? 'group-hover:ring-amber-400/50' : ''
+              <div className={`absolute inset-0 ring-2 ring-transparent transition-all duration-300 rounded-2xl ${
+                card.isAICard 
+                  ? 'group-hover:ring-purple-400/50 group-hover:shadow-lg group-hover:shadow-purple-500/25'
+                  : card.isSpecial 
+                  ? 'group-hover:ring-amber-400/50 group-hover:shadow-lg group-hover:shadow-amber-500/25' 
+                  : 'group-hover:ring-white/30'
               }`} />
             </div>
           </motion.div>
@@ -206,6 +284,8 @@ export default function FeatureCardsGrid() {
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             className={`relative w-full max-w-md bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl ${
               selectedCardData.isSpecial ? 'border-amber-500/50 bg-gradient-to-br from-gray-900/95 to-amber-900/20' : ''
+            } ${
+              selectedCardData.isAICard ? 'border-purple-500/50 bg-gradient-to-br from-gray-900/95 to-purple-900/20' : ''
             }`}
           >
             {/* 헤더 */}
@@ -214,8 +294,39 @@ export default function FeatureCardsGrid() {
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 bg-gradient-to-br ${selectedCardData.gradient} rounded-lg flex items-center justify-center ${
                     selectedCardData.isSpecial ? 'shadow-lg shadow-amber-500/25' : ''
+                  } ${
+                    selectedCardData.isAICard ? 'shadow-lg shadow-purple-500/25' : ''
                   }`}>
-                    <selectedCardData.icon className="w-5 h-5 text-white" />
+                    {selectedCardData.isAICard ? (
+                      <motion.div
+                        animate={{
+                          rotate: [0, 360],
+                          scale: [1, 1.1, 1]
+                        }}
+                        transition={{
+                          rotate: { duration: 8, repeat: Infinity, ease: "linear" },
+                          scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+                        }}
+                      >
+                        <selectedCardData.icon className="w-5 h-5 text-white" />
+                      </motion.div>
+                    ) : selectedCardData.isVibeCard ? (
+                      <motion.div
+                        animate={{
+                          scale: [1, 1.2, 1],
+                          rotate: [0, 5, -5, 0]
+                        }}
+                        transition={{
+                          duration: 2.5,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      >
+                        <selectedCardData.icon className="w-5 h-5 text-white" />
+                      </motion.div>
+                    ) : (
+                      <selectedCardData.icon className="w-5 h-5 text-white" />
+                    )}
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-white">
@@ -242,7 +353,11 @@ export default function FeatureCardsGrid() {
                 {selectedCardData.features.map((feature, index) => (
                   <li key={index} className="flex items-start gap-3 text-sm">
                     <div className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${
-                      selectedCardData.isSpecial ? 'bg-amber-400' : 'bg-green-400'
+                      selectedCardData.isAICard 
+                        ? 'bg-purple-400' 
+                        : selectedCardData.isSpecial 
+                        ? 'bg-amber-400' 
+                        : 'bg-green-400'
                     }`} />
                     <span className="text-gray-300">
                       {renderTextWithAIGradient(feature)}
