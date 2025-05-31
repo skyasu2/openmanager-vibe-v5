@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import dynamic from 'next/dynamic';
 import { 
   User, 
   Bot, 
@@ -15,10 +16,23 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-import { UnifiedAuthModal } from './UnifiedAuthModal';
 import { useToast } from '@/components/ui/ToastNotification';
-import { ServerGeneratorModal } from './ServerGeneratorModal';
-import { ServerMonitorModal } from './ServerMonitorModal';
+
+// Dynamic imports for modal components
+const UnifiedAuthModal = dynamic(() => import('./UnifiedAuthModal').then(mod => ({ default: mod.UnifiedAuthModal })), {
+  loading: () => <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"><div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>,
+  ssr: false
+});
+
+const ServerGeneratorModal = dynamic(() => import('./ServerGeneratorModal').then(mod => ({ default: mod.ServerGeneratorModal })), {
+  loading: () => <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"><div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>,
+  ssr: false
+});
+
+const ServerMonitorModal = dynamic(() => import('./ServerMonitorModal').then(mod => ({ default: mod.ServerMonitorModal })), {
+  loading: () => <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"><div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div></div>,
+  ssr: false
+});
 
 interface UnifiedProfileComponentProps {
   userName?: string;

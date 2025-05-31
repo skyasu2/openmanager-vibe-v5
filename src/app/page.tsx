@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { useSystemControl } from '../hooks/useSystemControl';
 import FeatureCardsGrid from '@/components/home/FeatureCardsGrid';
 import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
@@ -32,10 +33,15 @@ import {
 } from 'lucide-react';
 import { ToastContainer, useToast } from '@/components/ui/ToastNotification';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UnifiedAuthModal } from '@/components/UnifiedAuthModal';
+
+// Dynamic imports for heavy components
+const UnifiedAuthModal = dynamic(() => import('@/components/UnifiedAuthModal').then(mod => ({ default: mod.UnifiedAuthModal })), {
+  loading: () => <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"><div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>,
+  ssr: false
+});
 
 // 동적 렌더링 강제 (HTML 파일 생성 방지)
-export const dynamic = 'force-dynamic';
+export const dynamicConfig = 'force-dynamic';
 
 // 토스트 알림 타입 정의
 interface ToastNotification {

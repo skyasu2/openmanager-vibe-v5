@@ -353,92 +353,46 @@ export const useServerDataStore = create<ServerDataState>()(
           // 3. 모든 방법 실패 시 Fallback 데이터 사용
           console.warn('⚠️ 모든 서버 데이터 소스 실패, Fallback 데이터 사용');
           
-          const fallbackServers = [
-            {
-              id: 'web-server-01',
-              hostname: 'web-server-01',
-              environment: 'aws' as const,
-              role: 'web' as const,
-              status: 'healthy' as const,
-              node_cpu_usage_percent: 45.2,
-              node_memory_usage_percent: 62.8,
-              node_disk_usage_percent: 34.1,
-              cpu_usage: 45.2,
-              memory_usage: 62.8,
-              disk_usage: 34.1,
-              network_in: 1024.5,
-              network_out: 2048.7,
-              response_time: 120,
-              uptime: 360,
-              alerts: [] as any[],
-              last_updated: new Date().toISOString(),
+          // 📊 Fallback 서버 데이터 (API 장애 시)
+          let fallbackServers;
+          try {
+            const fallbackResponse = await fetch('/data/mock-servers.json');
+            const fallbackData = await fallbackResponse.json();
+            fallbackServers = fallbackData.map((server: any) => ({
+              ...server,
+              node_cpu_usage_percent: server.cpu_usage,
+              node_memory_usage_percent: server.memory_usage,
+              node_disk_usage_percent: server.disk_usage,
+              alerts: [],
               timestamp: Date.now(),
-              labels: { environment: 'aws', role: 'web' }
-            },
-            {
-              id: 'api-server-02',
-              hostname: 'api-server-02',
-              environment: 'aws' as const,
-              role: 'api' as const,
-              status: 'warning' as const,
-              node_cpu_usage_percent: 67.2,
-              node_memory_usage_percent: 78.5,
-              node_disk_usage_percent: 45.3,
-              cpu_usage: 67.2,
-              memory_usage: 78.5,
-              disk_usage: 45.3,
-              network_in: 2048.3,
-              network_out: 1536.2,
-              response_time: 245,
-              uptime: 120,
-              alerts: [] as any[],
-              last_updated: new Date().toISOString(),
-              timestamp: Date.now(),
-              labels: { environment: 'aws', role: 'api' }
-            },
-            {
-              id: 'db-master-01',
-              hostname: 'db-master-01',
-              environment: 'aws' as const,
-              role: 'database' as const,
-              status: 'healthy' as const,
-              node_cpu_usage_percent: 34.6,
-              node_memory_usage_percent: 65.8,
-              node_disk_usage_percent: 82.1,
-              cpu_usage: 34.6,
-              memory_usage: 65.8,
-              disk_usage: 82.1,
-              network_in: 512.1,
-              network_out: 256.5,
-              response_time: 45,
-              uptime: 720,
-              alerts: [] as any[],
-              last_updated: new Date().toISOString(),
-              timestamp: Date.now(),
-              labels: { environment: 'aws', role: 'database' }
-            },
-            {
-              id: 'cache-redis-01',
-              hostname: 'cache-redis-01',
-              environment: 'aws' as const,
-              role: 'cache' as const,
-              status: 'critical' as const,
-              node_cpu_usage_percent: 89.3,
-              node_memory_usage_percent: 94.2,
-              node_disk_usage_percent: 23.7,
-              cpu_usage: 89.3,
-              memory_usage: 94.2,
-              disk_usage: 23.7,
-              network_in: 4096.8,
-              network_out: 3072.4,
-              response_time: 2100,
-              uptime: 48,
-              alerts: [] as any[],
-              last_updated: new Date().toISOString(),
-              timestamp: Date.now(),
-              labels: { environment: 'aws', role: 'cache' }
-            }
-          ];
+              labels: { environment: server.environment, role: server.role }
+            }));
+          } catch (error) {
+            // JSON 로드 실패 시 최소 데이터
+            fallbackServers = [
+              {
+                id: 'fallback-server-01',
+                hostname: 'fallback-server-01',
+                environment: 'local' as const,
+                role: 'web' as const,
+                status: 'healthy' as const,
+                node_cpu_usage_percent: 25.0,
+                node_memory_usage_percent: 45.0,
+                node_disk_usage_percent: 15.0,
+                cpu_usage: 25.0,
+                memory_usage: 45.0,
+                disk_usage: 15.0,
+                network_in: 512.0,
+                network_out: 1024.0,
+                response_time: 100,
+                uptime: 3600,
+                alerts: [] as any[],
+                last_updated: new Date().toISOString(),
+                timestamp: Date.now(),
+                labels: { environment: 'local', role: 'web' }
+              }
+            ];
+          }
           
           const responseTime = Date.now() - startTime;
           

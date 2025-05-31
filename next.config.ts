@@ -19,6 +19,24 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: isCI,
   },
   
+  // 실험적 기능 - 패키지 최적화 및 Dynamic Import 지원
+  experimental: {
+    optimizePackageImports: [
+      'lucide-react', 
+      '@heroicons/react',
+      'recharts',
+      'framer-motion',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-toast'
+    ],
+    // Dynamic Import 최적화
+    optimizeCss: true,
+    // Tree shaking 강화
+    turbo: {
+      resolveExtensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+    },
+  },
+  
   // CI 환경에서는 더 관대한 설정
   ...(isCI && {
     experimental: {
@@ -150,7 +168,17 @@ const nextConfig: NextConfig = {
     }
 
     return config;
-  }
+  },
+
+  // 청크 분할 최적화
+  async rewrites() {
+    return [
+      {
+        source: '/data/:path*',
+        destination: '/public/data/:path*',
+      },
+    ];
+  },
 };
 
 export default nextConfig; 
