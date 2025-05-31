@@ -138,14 +138,14 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
           {/* 백드롭 */}
           <motion.div
-            className="absolute inset-0 bg-black/60 backdrop-blur-md"
+            className="absolute inset-0 bg-black/70 backdrop-blur-md"
             onClick={onClose}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -154,32 +154,32 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
 
           {/* 모달 */}
           <motion.div
-            className={`absolute w-full max-w-md bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl ${
-              clickPosition ? 'transform-none' : 'relative'
+            className={`w-full max-w-md bg-gray-900/98 backdrop-blur-xl border border-gray-700/70 rounded-2xl shadow-2xl shadow-black/50 ${
+              clickPosition ? 'fixed transform-none' : 'relative'
             }`}
             initial={{ 
               opacity: 0, 
-              scale: 0.8, 
-              x: clickPosition ? modalPosition.x : 0,
-              y: clickPosition ? modalPosition.y : 0 
+              scale: 0.9, 
+              x: clickPosition ? -200 : 0,
+              y: clickPosition ? -250 : 0
             }}
             animate={{ 
               opacity: 1, 
               scale: 1,
-              x: clickPosition ? modalPosition.x : 0,
-              y: clickPosition ? modalPosition.y : 0 
+              x: clickPosition ? modalPosition.x - 200 : 0,
+              y: clickPosition ? modalPosition.y - 250 : 0
             }}
             exit={{ 
               opacity: 0, 
-              scale: 0.8,
-              x: clickPosition ? modalPosition.x : 0,
-              y: clickPosition ? modalPosition.y : 0 
+              scale: 0.9,
+              x: clickPosition ? modalPosition.x - 200 : 0,
+              y: clickPosition ? modalPosition.y - 250 : 0
             }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
             style={clickPosition ? { 
               left: modalPosition.x, 
               top: modalPosition.y,
-              position: 'fixed'
+              transform: `translate(-50%, -50%)`
             } : {}}
           >
             {/* 헤더 */}

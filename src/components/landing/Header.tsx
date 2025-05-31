@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Moon, Sun, Menu, X } from 'lucide-react';
-import { ProfileButton } from '../layout/ProfileButton';
 
 interface HeaderProps {
   isDark: boolean;
@@ -93,9 +92,6 @@ export default function Header({ isDark, onThemeToggle }: HeaderProps) {
                 <Moon className="w-5 h-5 text-blue-400" />
               )}
             </motion.button>
-
-            {/* 프로필 버튼 */}
-            <ProfileButton />
 
             {/* 모바일 메뉴 버튼 */}
             <button

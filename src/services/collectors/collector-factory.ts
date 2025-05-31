@@ -99,12 +99,12 @@ export class MetricCollectionManager {
   private async collectFromSingleCollector(name: string, collector: MetricCollector): Promise<void> {
     try {
       const serverList = await collector.getServerList();
-      const { metricsStorage } = await import('../storage');
-
+      
       const collectPromises = serverList.map(async (serverId) => {
         try {
           const metrics = await collector.collectMetrics(serverId);
-          await metricsStorage.saveMetrics(metrics);
+          // TODO: 메트릭 저장 로직 구현 필요 (storage 모듈 제거됨)
+          console.log(`📊 Collected metrics for ${serverId}:`, metrics);
         } catch (error) {
           console.error(`❌ Failed to collect metrics for ${serverId}:`, error);
         }

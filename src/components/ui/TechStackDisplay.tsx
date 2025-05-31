@@ -150,7 +150,7 @@ const TechStackDisplay: React.FC<TechStackDisplayProps> = ({
                       </p>
                       {!compact && tech.usage && (
                         <div className="text-xs text-gray-400 font-mono bg-gray-900/30 px-2 py-1 rounded">
-                          "{tech.usage}"
+                          &quot;{tech.usage}&quot;
                         </div>
                       )}
                     </div>

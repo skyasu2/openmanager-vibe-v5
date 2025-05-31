@@ -33,6 +33,7 @@ export default function UnifiedProfileComponent({
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showServerGeneratorModal, setShowServerGeneratorModal] = useState(false);
   const [showServerMonitorModal, setShowServerMonitorModal] = useState(false);
+  const [clickPosition, setClickPosition] = useState<{ x: number; y: number } | undefined>(undefined);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   const {
@@ -76,11 +77,17 @@ export default function UnifiedProfileComponent({
     setIsOpen(false);
   };
 
-  const handleAIAgentToggle = () => {
+  const handleAIAgentToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (aiAgent.isEnabled) {
       disableAIAgent();
       info('AI 에이전트가 비활성화되었습니다. 기본 모니터링 모드로 전환됩니다.');
     } else {
+      // 클릭 위치 캡처
+      const rect = event.currentTarget.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      setClickPosition({ x, y });
+
       if (isLocked) {
         const remainingTime = getRemainingLockTime();
         error(`계정이 잠겼습니다. ${Math.ceil(remainingTime / 1000)}초 후 다시 시도하세요.`);
@@ -403,11 +410,15 @@ export default function UnifiedProfileComponent({
       {/* 인증 모달 */}
       <UnifiedAuthModal
         isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
+        onClose={() => {
+          setShowAuthModal(false);
+          setClickPosition(undefined);
+        }}
         onSubmit={handleAuthSubmit}
         isLocked={isLocked}
         attempts={attempts}
         lockoutEndTime={lockoutEndTime}
+        clickPosition={clickPosition}
       />
 
       {/* 서버 데이터 생성기 모달 */}

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSystemStore } from '@/stores/useSystemStore';
 import { 
   Brain, 
   MessageSquare, 
@@ -36,15 +35,8 @@ export function AIFeaturesPanel() {
   }>>([]);
   const [chatInput, setChatInput] = useState('');
 
-  const { isAIAdminMode, isAuthenticated } = useSystemStore();
-
   // AI 상태 모니터링 - Hook 규칙 준수
   useEffect(() => {
-    // AI 모드가 아니거나 인증되지 않은 경우 조기 종료
-    if (!isAIAdminMode || !isAuthenticated) {
-      return;
-    }
-
     const checkAIStatus = async () => {
       try {
         // AI 에이전트 상태 확인
@@ -79,12 +71,7 @@ export function AIFeaturesPanel() {
     const statusInterval = setInterval(checkAIStatus, 30000);
 
     return () => clearInterval(statusInterval);
-  }, [isAIAdminMode, isAuthenticated]);
-
-  // AI 모드가 아니거나 인증되지 않은 경우 표시하지 않음
-  if (!isAIAdminMode || !isAuthenticated) {
-    return null;
-  }
+  }, []);
 
   // AI 채팅 메시지 전송
   const handleSendMessage = async () => {

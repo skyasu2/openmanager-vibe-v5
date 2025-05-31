@@ -13,7 +13,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSystemStore } from '@/stores/useSystemStore';
 import { useAIResponseFormatter } from '@/hooks/useAIResponseFormatter';
 import { useErrorMonitoring } from '@/hooks/useErrorMonitoring';
 import { ThinkingProcessVisualizer } from './ThinkingProcessVisualizer';
@@ -80,9 +79,6 @@ export const AIManagerSidebar: React.FC<Partial<AIManagerSidebarProps>> = ({
   isProcessing: propIsProcessing = false,
   currentResponse: propCurrentResponse
 }) => {
-  // 시스템 상태
-  const { isAIAdminMode, isAuthenticated } = useSystemStore();
-  
   // 로컬 상태
   const [isExpanded, setIsExpanded] = useState(true);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -135,8 +131,8 @@ export const AIManagerSidebar: React.FC<Partial<AIManagerSidebarProps>> = ({
   } = useErrorMonitoring();
 
   // 계산된 속성
-  const isOpen = propIsOpen ?? (isAIAdminMode && isAuthenticated);
-  const currentMode = propCurrentMode ?? (isAIAdminMode ? 'ai-admin' : 'monitoring');
+  const isOpen = propIsOpen ?? true;
+  const currentMode = propCurrentMode ?? 'monitoring';
   const isProcessing = propIsProcessing || isLoading || thinkingState.isActive;
 
   // AI 상태 모니터링

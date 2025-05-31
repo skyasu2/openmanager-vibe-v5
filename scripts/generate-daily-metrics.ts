@@ -11,7 +11,6 @@
 
 import * as dotenv from 'dotenv';
 import { DailyMetric, ServerConfig, ServerType, insertMetrics, clearMetrics } from '../src/lib/supabase-metrics';
-import { FailurePatternEngine } from '../src/lib/failure-pattern-engine';
 
 // 환경 변수 로드
 dotenv.config({ path: '.env.local' });
@@ -234,20 +233,6 @@ const generateDailyMetrics = async (): Promise<DailyMetric[]> => {
   console.log(`📊 서버 ${servers.length}대, ${timePoints}개 시점 생성`);
   console.log('🔥 장애 패턴 엔진 초기화 중...');
 
-  // 장애 패턴 엔진 초기화
-  const failureEngine = new FailurePatternEngine(servers);
-  const failureEvents = failureEngine.getFailureEvents();
-  
-  console.log(`💥 생성된 장애 이벤트: ${failureEvents.length}개`);
-  failureEvents.forEach((event, index) => {
-    const startTimeStr = new Date(startTime.getTime() + event.startTime * 10 * 60 * 1000).toLocaleTimeString();
-    const duration = (event.duration * 10) / 60; // 시간 단위
-    console.log(`   ${index + 1}. ${event.pattern} - ${event.serverId} (${startTimeStr}, ${duration.toFixed(1)}h, severity: ${event.severity.toFixed(2)})`);
-    if (event.affectedServers?.length) {
-      console.log(`      연쇄 영향: ${event.affectedServers.join(', ')}`);
-    }
-  });
-
   const allMetrics: DailyMetric[] = [];
 
   // 각 서버별로 데이터 생성
@@ -258,14 +243,11 @@ const generateDailyMetrics = async (): Promise<DailyMetric[]> => {
       // 기본 메트릭 생성
       const baseMetrics = generateBaseMetrics(server, timeIndex, timePoints);
       
-      // 장애 영향 적용
-      const failureImpact = failureEngine.getFailureImpact(server.id, timeIndex);
-      
       // 최종 메트릭 계산
-      const cpu = Math.min(100, baseMetrics.cpu + failureImpact.cpuImpact);
-      const memory = Math.min(100, baseMetrics.memory + failureImpact.memoryImpact);
-      const disk = Math.min(100, baseMetrics.disk + failureImpact.diskImpact);
-      const responseTime = Math.round(baseMetrics.response_time * failureImpact.responseTimeMultiplier);
+      const cpu = Math.min(100, baseMetrics.cpu);
+      const memory = Math.min(100, baseMetrics.memory);
+      const disk = Math.min(100, baseMetrics.disk);
+      const responseTime = Math.round(baseMetrics.response_time);
 
       // 타임스탬프 계산
       const timestamp = new Date(startTime.getTime() + timeIndex * 10 * 60 * 1000);
