@@ -384,15 +384,33 @@ export default function Home() {
                 </motion.button>
 
                 {/* 대시보드 버튼 */}
-                <motion.button
-                  onClick={handleDashboardClick}
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/50 rounded-xl font-medium transition-all duration-200"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <BarChart3 className="w-5 h-5" />
-                  📊 대시보드 들어가기
-                </motion.button>
+                <div className="relative">
+                  {/* 손가락 애니메이션 - 대시보드 들어가기 버튼 가이드 */}
+                  <motion.div
+                    className="absolute -top-12 left-1/2 transform -translate-x-1/2 text-2xl pointer-events-none z-10"
+                    animate={{
+                      y: [0, -8, 0],
+                      rotate: [0, 15, -15, 0]
+                    }}
+                    transition={{
+                      duration: 2.5,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    👆
+                  </motion.div>
+
+                  <motion.button
+                    onClick={handleDashboardClick}
+                    className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/50 rounded-xl font-medium transition-all duration-200"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <BarChart3 className="w-5 h-5" />
+                    📊 대시보드 들어가기
+                  </motion.button>
+                </div>
                 
                 {/* 시스템 중지 버튼 */}
                 <motion.button
