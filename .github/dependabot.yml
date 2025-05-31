@@ -4,19 +4,10 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"  # 월간 업데이트로 빈도 제한
-    open-pull-requests-limit: 5  # PR 수 제한
+    open-pull-requests-limit: 0  # PR 생성 완전 비활성화
     ignore:
-      # 메이저 버전 업데이트 무시 (안정성 확보)
+      # 모든 자동 업데이트 무시 (수동 관리)
       - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
-    groups:
-      # 관련 패키지 그룹핑으로 PR 수 감소
-      dependencies:
-        patterns:
-          - "@types/*"
-          - "eslint*"
-          - "prettier*"
-          - "@next/*"
     assignees:
       - "skyasu2"
     reviewers:
