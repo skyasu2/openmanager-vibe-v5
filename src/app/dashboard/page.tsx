@@ -337,20 +337,22 @@ export default function DashboardPage() {
         </Suspense>
       )}
 
-      {/* 플로팅 시스템 제어판 */}
-      <Suspense fallback={null}>
-        <div className="fixed bottom-6 right-6 z-30">
-          <FloatingSystemControl
-            systemState={systemControl}
-            aiAgentState={{ state: 'active' }}
-            isSystemActive={systemControl.isSystemActive}
-            isSystemPaused={systemControl.isSystemPaused}
-            onStartSystem={async () => { window.location.href = '/'; }}
-            onStopSystem={handleSystemStop}
-            onResumeSystem={handleSystemResume}
-          />
-        </div>
-      </Suspense>
+      {/* 플로팅 시스템 제어판 - 시스템 비활성 시에만 표시 */}
+      {!systemControl.isSystemActive && (
+        <Suspense fallback={null}>
+          <div className="fixed bottom-6 right-6 z-30">
+            <FloatingSystemControl
+              systemState={systemControl}
+              aiAgentState={{ state: 'active' }}
+              isSystemActive={systemControl.isSystemActive}
+              isSystemPaused={systemControl.isSystemPaused}
+              onStartSystem={async () => { window.location.href = '/'; }}
+              onStopSystem={handleSystemStop}
+              onResumeSystem={handleSystemResume}
+            />
+          </div>
+        </Suspense>
+      )}
     </div>
   );
 } 

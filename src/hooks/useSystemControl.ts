@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useSystemStore } from '../stores/systemStore';
+import { useUnifiedAdminStore } from '../stores/useUnifiedAdminStore';
 import { systemLogger } from '../lib/logger';
 import { createSafeError, safeErrorLog, safeErrorMessage } from '../lib/error-handler';
 
@@ -40,6 +41,14 @@ interface UseSystemControlReturn {
 
 export function useSystemControl(): UseSystemControlReturn {
   const {
+    isSystemStarted: unifiedSystemStarted,
+    aiAgent: unifiedAiAgent,
+    startSystem: unifiedStartSystem,
+    stopSystem: unifiedStopSystem,
+    getSystemRemainingTime
+  } = useUnifiedAdminStore();
+
+  const {
     state,
     startSystem: storeStartSystem,
     stopSystem: storeStopSystem,
@@ -61,6 +70,16 @@ export function useSystemControl(): UseSystemControlReturn {
     errors: []
   });
   const [isLoading, setIsLoading] = useState(false);
+
+  const isSystemActive = unifiedSystemStarted;
+  
+  const formatTime = (ms: number) => {
+    const minutes = Math.floor(ms / (1000 * 60));
+    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+  
+  const formattedTime = formatTime(getSystemRemainingTime());
 
   const checkStatus = useCallback(async () => {
     try {
@@ -226,12 +245,12 @@ export function useSystemControl(): UseSystemControlReturn {
     const mode = options?.mode || 'fast';
 
     try {
-      systemLogger.system(`🚀 [Vercel] 사용자 시스템 시작 (${mode} 모드)...`);
+      systemLogger.system(`🚀 [Unified] 통합 시스템 시작 (${mode} 모드)...`);
 
-      // 1단계: 시스템 타이머 시작 (사용자 세션 - 60분)
-      storeStartSystem(60 * 60, true); // 사용자 세션은 60분으로 시작
+      // UnifiedAdminStore의 시스템 시작 사용
+      unifiedStartSystem();
       
-      // 2단계: 시뮬레이션 엔진 시작 (Vercel 최적화)
+      // 시뮬레이션 엔진 시작 (기존 로직 유지)
       try {
         systemLogger.system('1️⃣ 시뮬레이션 엔진 빠른 시작...');
         
@@ -251,7 +270,6 @@ export function useSystemControl(): UseSystemControlReturn {
         if (systemResponse.ok) {
           systemLogger.system(`✅ 시뮬레이션 엔진 시작: ${systemData.message}`);
           
-          // 추가 정보 처리
           if (systemData.fallback) {
             fallback = true;
             warnings.push('일부 기능이 Fallback 모드로 동작 중');
@@ -264,7 +282,6 @@ export function useSystemControl(): UseSystemControlReturn {
         } else if (systemResponse.status === 400 && systemData.message?.includes('이미 실행 중')) {
           systemLogger.system(`ℹ️ 시뮬레이션 엔진 이미 실행 중: ${systemData.message}`);
         } else if (systemResponse.status === 206) {
-          // Partial Content - 부분 성공이지만 정상 작동으로 처리
           systemLogger.system(`✅ 시뮬레이션 엔진 부분 시작 (정상): ${systemData.message}`);
           warnings.push('시스템이 제한 모드로 시작되었지만 정상 작동합니다');
         } else {
@@ -287,39 +304,13 @@ export function useSystemControl(): UseSystemControlReturn {
         }
       }
 
-      // 3단계: AI 에이전트 활성화 (선택적)
-      try {
-        systemLogger.system('2️⃣ AI 에이전트 빠른 활성화...');
-        await enableAIAgent();
-        systemLogger.system('✅ AI 에이전트 활성화 완료');
-      } catch (error) {
-        const errorMsg = 'AI 에이전트 활성화 실패';
-        warnings.push(errorMsg);
-        systemLogger.warn(errorMsg, error);
-      }
-
-      // 결과 처리
-      const recommendations: string[] = [];
-      
+      // 결과 메시지 설정
       if (fallback) {
         message = '시스템이 Fallback 모드로 시작되었습니다.';
-        recommendations.push(
-          '대시보드에서 기본 기능을 사용할 수 있습니다',
-          '고급 기능은 백그라운드에서 로딩 중입니다',
-          '잠시 후 전체 기능이 활성화됩니다'
-        );
       } else if (warnings.length > 0) {
         message = '시스템이 기본 모드로 시작되었습니다.';
-        recommendations.push(
-          '주요 기능은 정상적으로 사용 가능합니다',
-          '일부 고급 기능은 제한될 수 있습니다'
-        );
       } else {
         message = '🎉 시스템이 성공적으로 시작되었습니다!';
-        recommendations.push(
-          '모든 기능을 자유롭게 사용하실 수 있습니다',
-          '대시보드에서 실시간 모니터링을 확인하세요'
-        );
       }
 
       systemLogger.system(message);
@@ -329,7 +320,7 @@ export function useSystemControl(): UseSystemControlReturn {
         message, 
         errors, 
         warnings, 
-        recommendations,
+        recommendations: ['대시보드에서 상세 모니터링을 확인하세요'],
         fallback,
         mode 
       };
@@ -339,17 +330,14 @@ export function useSystemControl(): UseSystemControlReturn {
       systemLogger.error(errorMsg, error);
       
       // 치명적 오류 시 시스템 중지
-      storeStopSystem('시작 실패');
+      unifiedStopSystem();
       
       return {
         success: false,
         message: errorMsg,
         errors: [safeErrorMessage(error, '알 수 없는 오류')],
         warnings: [],
-        recommendations: [
-          '페이지를 새로고침 후 다시 시도하세요',
-          '문제가 지속되면 기본 대시보드를 사용하세요'
-        ],
+        recommendations: ['페이지를 새로고침 후 다시 시도하세요'],
         fallback: true,
         mode: 'emergency'
       };
@@ -368,77 +356,43 @@ export function useSystemControl(): UseSystemControlReturn {
     const errors: string[] = [];
     
     try {
-      systemLogger.system('🛑 시스템 중지 시작...');
+      systemLogger.system('🛑 [Unified] 통합 시스템 중지 시작...');
 
-      // 1단계: AI 에이전트 비활성화
-      try {
-        systemLogger.system('1️⃣ AI 에이전트 비활성화...');
-        await disableAIAgent();
-        systemLogger.system('✅ AI 에이전트 비활성화 완료');
-      } catch (error) {
-        const errorMsg = 'AI 에이전트 비활성화 실패';
-        errors.push(errorMsg);
-        systemLogger.warn(errorMsg, error);
-      }
+      // UnifiedAdminStore의 시스템 중지 사용
+      unifiedStopSystem();
 
-      // 2단계: 시뮬레이션 엔진 중지
+      // 시뮬레이션 엔진 중지 (기존 로직)
       try {
-        systemLogger.system('2️⃣ 시뮬레이션 엔진 중지...');
-        const systemResponse = await fetch('/api/system/stop', {
+        systemLogger.system('1️⃣ 시뮬레이션 엔진 중지...');
+        const response = await fetch('/api/system/stop', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
         });
         
-        const systemData = await systemResponse.json();
-        
-        if (systemResponse.ok) {
-          systemLogger.system(`✅ 시뮬레이션 엔진 중지: ${systemData.message}`);
-        } else if (systemResponse.status === 400) {
-          // 400 에러는 이미 중지된 상태로 간주하고 정상 처리
-          if (systemData.message?.includes('실행 중이 아닙니다') || 
-              systemData.message?.includes('실행되지 않')) {
-            systemLogger.system(`ℹ️ 시뮬레이션 엔진 이미 중지됨: ${systemData.message}`);
-          } else {
-            systemLogger.warn(`⚠️ 시뮬레이션 엔진 중지 경고: ${systemData.message}`);
-            errors.push(`시뮬레이션 엔진: ${systemData.message}`);
-          }
+        if (response.ok || response.status === 503) {
+          systemLogger.system('✅ 시뮬레이션 엔진 중지 완료');
         } else {
-          const errorMsg = `시뮬레이션 엔진 중지 실패: ${systemData.message || '알 수 없는 오류'}`;
+          const errorMsg = '시뮬레이션 엔진 중지 실패';
           errors.push(errorMsg);
           systemLogger.warn(errorMsg);
         }
       } catch (error) {
-        if (safeErrorMessage(error).includes('fetch')) {
-          // 네트워크 오류는 시스템이 이미 중지된 것으로 간주
-          systemLogger.system('ℹ️ 시뮬레이션 엔진 API 접근 불가 (이미 중지된 것으로 추정)');
-        } else {
-          const errorMsg = '시뮬레이션 엔진 중지 실패';
-          errors.push(errorMsg);
-          systemLogger.warn(errorMsg, error);
-        }
+        const errorMsg = '시뮬레이션 엔진 중지 실패';
+        errors.push(errorMsg);
+        systemLogger.warn(errorMsg, error);
       }
-
-      // 3단계: 시스템 타이머 중지
-      storeStopSystem('사용자 요청');
-      systemLogger.system('✅ 시스템 타이머 중지 완료');
-
-      // 결과 처리
-      if (errors.length === 0) {
-        const message = '🎉 시스템이 성공적으로 중지되었습니다!';
-        systemLogger.system(message);
-        return { success: true, message, errors };
-      } else {
-        const message = `⚠️ 시스템이 부분적으로 중지되었습니다. (${errors.length}개 경고)`;
-        systemLogger.warn(message);
-        return { success: true, message, errors }; // 부분 실패도 success: true로 처리
-      }
+      
+      systemLogger.system('✅ 통합 시스템 중지 완료');
+      
+      return {
+        success: true,
+        message: '시스템이 안전하게 중지되었습니다.',
+        errors
+      };
 
     } catch (error) {
-      const errorMsg = '시스템 중지 중 치명적 오류 발생';
+      const errorMsg = '시스템 중지 중 오류 발생';
       systemLogger.error(errorMsg, error);
-      
-      // 치명적 오류가 발생해도 타이머는 중지
-      storeStopSystem('중지 실패');
       
       return {
         success: false,
@@ -525,9 +479,9 @@ export function useSystemControl(): UseSystemControlReturn {
     restartSystem,
     checkStatus,
     state,
-    isSystemActive: state === 'active',
+    isSystemActive,
     isSystemPaused: state === 'paused',
-    formattedTime: getFormattedTime(),
+    formattedTime,
     aiAgent,
     isPaused,
     pauseReason,

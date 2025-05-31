@@ -121,7 +121,7 @@ export default function FloatingSystemControl({
     }
     if (isSystemActive) return '시스템 정상 운영 중';
     if (isSystemPaused) return '시스템 일시 정지됨';
-    return '시스템 비활성 상태';
+    return '시스템 시작이 필요합니다';
   };
 
   const handleToggleMinimize = () => {
