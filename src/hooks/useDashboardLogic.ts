@@ -203,10 +203,10 @@ export function useDashboardLogic() {
     const instantLoad = urlParams.get('instant') === 'true';
     const forceSkip = urlParams.get('force-skip') === 'true';
     
-    // prefers-reduced-motion 지원
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // 🚨 긴급 수정: prefers-reduced-motion은 제거하고 명시적 스킵만 허용
+    console.log('🔍 Skip condition check:', { skipAnimation, fastLoad, instantLoad, forceSkip });
     
-    return skipAnimation || fastLoad || instantLoad || forceSkip || prefersReducedMotion;
+    return skipAnimation || fastLoad || instantLoad || forceSkip;
   }, [isClient]);
 
   // ✨ 최소 로딩 시간 보장 (5초)
@@ -218,15 +218,25 @@ export function useDashboardLogic() {
 
   // ✨ showBootSequence 조건 개선
   const shouldShowBootSequence = useMemo(() => {
+    console.log('🎬 Boot sequence decision:', {
+      skipCondition,
+      isLoading: minimumLoadingState.isLoading,
+      phase: minimumLoadingState.phase,
+      progress: minimumLoadingState.progress
+    });
+    
     // 스킵 조건이 있으면 부팅 시퀀스 숨김
     if (skipCondition) {
       console.log('⚡ Boot sequence skipped due to skip condition');
       return false;
     }
     
-    // 최소 로딩 시간이 끝나지 않았으면 부팅 시퀀스 표시
-    return minimumLoadingState.isLoading;
-  }, [skipCondition, minimumLoadingState.isLoading]);
+    // 🚨 기본값: 로딩 중이면 부팅 시퀀스 표시
+    const shouldShow = minimumLoadingState.isLoading;
+    console.log('🎯 Boot sequence decision result:', shouldShow);
+    
+    return shouldShow;
+  }, [skipCondition, minimumLoadingState.isLoading, minimumLoadingState.phase, minimumLoadingState.progress]);
 
   // Responsive screen size detection
   useEffect(() => {
