@@ -20,17 +20,17 @@ import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useToast } from '@/components/ui/ToastNotification';
 
 // Dynamic imports for modal components
-const UnifiedAuthModal = dynamic(() => import('./UnifiedAuthModal').then(mod => ({ default: mod.UnifiedAuthModal })), {
+const UnifiedAuthModal = dynamic(() => import('./UnifiedAuthModal'), {
   loading: () => <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"><div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>,
   ssr: false
 });
 
-const ServerGeneratorModal = dynamic(() => import('./ServerGeneratorModal').then(mod => ({ default: mod.ServerGeneratorModal })), {
+const ServerGeneratorModal = dynamic(() => import('./ServerGeneratorModal'), {
   loading: () => <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"><div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>,
   ssr: false
 });
 
-const ServerMonitorModal = dynamic(() => import('./ServerMonitorModal').then(mod => ({ default: mod.ServerMonitorModal })), {
+const ServerMonitorModal = dynamic(() => import('./ServerMonitorModal'), {
   loading: () => <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"><div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div></div>,
   ssr: false
 });
@@ -150,6 +150,8 @@ export default function UnifiedProfileComponent({
   };
 
   const handleAIAgentToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
+    console.log('🤖 AI 에이전트 버튼 클릭됨', { isEnabled: aiAgent.isEnabled, isLocked });
+    
     if (aiAgent.isEnabled) {
       disableAIAgent();
       info('AI 에이전트가 비활성화되었습니다. 기본 모니터링 모드로 전환됩니다.');
@@ -158,6 +160,7 @@ export default function UnifiedProfileComponent({
       const rect = event.currentTarget.getBoundingClientRect();
       const x = rect.left + rect.width / 2;
       const y = rect.top + rect.height / 2;
+      console.log('📍 클릭 위치:', { x, y });
       setClickPosition({ x, y });
 
       if (isLocked) {
@@ -165,6 +168,8 @@ export default function UnifiedProfileComponent({
         error(`계정이 잠겼습니다. ${Math.ceil(remainingTime / 1000)}초 후 다시 시도하세요.`);
         return;
       }
+      
+      console.log('🔓 모달 열기 시도');
       setShowAuthModal(true);
     }
     setIsOpen(false);

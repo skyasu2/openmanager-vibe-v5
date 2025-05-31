@@ -23,6 +23,8 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
   lockoutEndTime,
   clickPosition
 }) => {
+  console.log('🎯 UnifiedAuthModal 렌더링:', { isOpen, isLocked, attempts });
+
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -349,4 +351,6 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
       )}
     </AnimatePresence>
   );
-}; 
+};
+
+export default UnifiedAuthModal; 

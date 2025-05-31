@@ -35,7 +35,7 @@ import { ToastContainer, useToast } from '@/components/ui/ToastNotification';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Dynamic imports for heavy components
-const UnifiedAuthModal = dynamic(() => import('@/components/UnifiedAuthModal').then(mod => ({ default: mod.UnifiedAuthModal })), {
+const UnifiedAuthModal = dynamic(() => import('@/components/UnifiedAuthModal'), {
   loading: () => <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"><div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>,
   ssr: false
 });

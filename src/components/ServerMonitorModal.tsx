@@ -473,4 +473,6 @@ export const ServerMonitorModal: React.FC<ServerMonitorModalProps> = ({
       )}
     </AnimatePresence>
   );
-}; 
+};
+
+export default ServerMonitorModal; 

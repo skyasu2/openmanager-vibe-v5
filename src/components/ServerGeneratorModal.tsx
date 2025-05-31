@@ -423,4 +423,6 @@ export const ServerGeneratorModal: React.FC<ServerGeneratorModalProps> = ({
       )}
     </AnimatePresence>
   );
-}; 
+};
+
+export default ServerGeneratorModal; 
