@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useSystemControl } from '../hooks/useSystemControl';
 import FeatureCardsGrid from '@/components/home/FeatureCardsGrid';
 import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { 
   Server, 
   MessageCircle, 
@@ -21,9 +22,10 @@ import {
   CheckCircle,
   Lightbulb,
   Cpu,
-  X
+  X,
+  BarChart3
 } from 'lucide-react';
-import { ToastContainer } from '@/components/ui/ToastNotification';
+import { ToastContainer, useToast } from '@/components/ui/ToastNotification';
 import { motion } from 'framer-motion';
 
 // 동적 렌더링 강제 (HTML 파일 생성 방지)
@@ -40,6 +42,10 @@ interface ToastNotification {
 }
 
 export default function Home() {
+  const router = useRouter();
+  const { isSystemStarted, startSystem, stopSystem } = useUnifiedAdminStore();
+  const { success, error, info } = useToast();
+
   // AI 단어에 그라데이션 애니메이션 적용하는 함수
   const renderTextWithAIGradient = (text: string) => {
     if (!text.includes('AI')) return text;
@@ -70,6 +76,20 @@ export default function Home() {
     });
   };
 
+  const handleSystemToggle = () => {
+    if (isSystemStarted) {
+      stopSystem();
+      info('시스템이 정지되었습니다.');
+    } else {
+      startSystem();
+      success('시스템이 시작되었습니다.');
+    }
+  };
+
+  const handleDashboardClick = () => {
+    router.push('/dashboard');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900">
       {/* 기본 헤더 */}
@@ -82,7 +102,7 @@ export default function Home() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-white">OpenManager</h1>
-            <p className="text-sm text-green-300">
+            <p className="text-sm text-white">
               {renderTextWithAIGradient('AI-Powered Server Monitoring')}
             </p>
           </div>
@@ -97,17 +117,53 @@ export default function Home() {
         {/* 메인 타이틀 */}
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
-            <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <span className="text-white">
               {renderTextWithAIGradient('AI 기반')}
             </span>
             <br />
             서버 모니터링
           </h1>
-          <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg md:text-xl text-white max-w-3xl mx-auto leading-relaxed">
             차세대 서버 관리 솔루션으로
             <br />
-            <strong className="text-cyan-300">스마트한 모니터링을 경험하세요</strong>
+            <strong className="text-white">스마트한 모니터링을 경험하세요</strong>
           </p>
+        </div>
+
+        {/* 서버 제어 버튼들 */}
+        <div className="flex justify-center gap-4 mb-8">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleSystemToggle}
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+              isSystemStarted
+                ? 'bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/50'
+                : 'bg-green-500/20 hover:bg-green-500/30 text-green-300 border border-green-500/50'
+            }`}
+          >
+            {isSystemStarted ? (
+              <>
+                <StopCircle className="w-5 h-5" />
+                시스템 중지
+              </>
+            ) : (
+              <>
+                <Play className="w-5 h-5" />
+                시스템 시작
+              </>
+            )}
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleDashboardClick}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/50 transition-all duration-200"
+          >
+            <BarChart3 className="w-5 h-5" />
+            대시보드
+          </motion.button>
         </div>
 
         {/* 기능 카드 그리드 */}

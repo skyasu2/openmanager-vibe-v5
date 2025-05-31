@@ -167,48 +167,23 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
         window.dispatchEvent(new CustomEvent('startMonitoringMode'));
       },
       
-      // AI 처리 토글 (AI 에이전트가 활성화된 상태에서만)
+      // AI 처리 토글 (더 이상 사용하지 않음)
       toggleAIProcessing: async () => {
-        const { aiAgent, isSystemStarted } = get();
+        const { aiAgent } = get();
         
         if (!aiAgent.isEnabled || !aiAgent.isAuthenticated) {
           throw new Error('AI 에이전트 모드가 필요합니다.');
         }
         
-        if (!isSystemStarted) {
-          throw new Error('시스템이 활성화되어 있을 때만 AI 처리를 시작할 수 있습니다.');
-        }
-        
-        const newState = aiAgent.state === 'processing' ? 'idle' : 'processing';
+        // 간단한 상태 토글만 수행
+        const newState = aiAgent.state === 'processing' ? 'enabled' : 'processing';
         
         set({ 
           aiAgent: { 
             ...aiAgent,
-            state: 'processing'
+            state: newState
           }
         });
-        
-        try {
-          // 실제 AI 처리 로직 (시뮬레이션)
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          set({ 
-            aiAgent: { 
-              ...aiAgent,
-              state: newState
-            }
-          });
-          
-          console.log(`🤖 AI 처리 ${newState === 'processing' ? '시작' : '완료'}`);
-        } catch (error) {
-          set({ 
-            aiAgent: { 
-              ...aiAgent,
-              state: 'idle'
-            }
-          });
-          throw error;
-        }
       },
       
       // 로그아웃

@@ -77,7 +77,7 @@ export default function UnifiedProfileComponent({
   const handleAIAgentToggle = () => {
     if (aiAgent.isEnabled) {
       disableAIAgent();
-      info('AI 에이전트 모드가 종료되었습니다. 기본 모니터링 모드로 전환됩니다.');
+      info('AI 에이전트가 비활성화되었습니다. 기본 모니터링 모드로 전환됩니다.');
     } else {
       if (isLocked) {
         const remainingTime = getRemainingLockTime();
@@ -90,27 +90,8 @@ export default function UnifiedProfileComponent({
   };
 
   const handleAIProcessingToggle = async () => {
-    if (!aiAgent.isEnabled) {
-      warning('AI 에이전트를 사용하려면 AI 에이전트 모드를 활성화해주세요.');
-      return;
-    }
-
-    if (!isSystemStarted) {
-      warning('시스템이 활성화되어 있을 때만 AI 처리를 시작할 수 있습니다.');
-      return;
-    }
-
-    try {
-      await toggleAIProcessing();
-      if (aiAgent.state === 'processing') {
-        success('AI 처리가 완료되었습니다.');
-      } else {
-        success('AI 처리가 시작되었습니다.');
-      }
-    } catch (err) {
-      error(err instanceof Error ? err.message : 'AI 처리 중 오류가 발생했습니다.');
-    }
-    setIsOpen(false);
+    // 이 함수는 더 이상 사용하지 않음
+    return;
   };
 
   const handleAuthSubmit = (password: string) => {
@@ -302,40 +283,35 @@ export default function UnifiedProfileComponent({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className={`p-2 rounded-lg ${
-                        !aiAgent.isEnabled 
-                          ? 'bg-orange-500/20' 
-                          : aiAgent.state === 'processing' 
-                          ? 'bg-green-500/20' 
+                        aiAgent.isEnabled 
+                          ? 'bg-purple-500/20' 
                           : 'bg-gray-500/20'
                       }`}>
-                        <Bot className={`w-4 h-4 ${getAIStatusColor()}`} />
+                        <Bot className={`w-4 h-4 ${
+                          aiAgent.isEnabled ? 'text-purple-400' : 'text-gray-400'
+                        }`} />
                       </div>
                       <div>
                         <div className="text-white text-sm font-medium">AI 에이전트</div>
-                        <div className={`text-xs ${getAIStatusColor()}`}>
-                          {getAIStatusText()}
+                        <div className={`text-xs ${
+                          aiAgent.isEnabled ? 'text-purple-400' : 'text-gray-400'
+                        }`}>
+                          {aiAgent.isEnabled ? '활성화됨' : '비활성화됨'}
                         </div>
                       </div>
                     </div>
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={aiAgent.isEnabled ? handleAIProcessingToggle : handleAIAgentToggle}
-                      disabled={isLocked || (!aiAgent.isEnabled && !isSystemStarted) || aiAgent.state === 'processing'}
+                      onClick={handleAIAgentToggle}
+                      disabled={isLocked}
                       className={`px-3 py-1 rounded-md text-xs font-medium transition-colors disabled:opacity-50 ${
                         aiAgent.isEnabled
-                          ? aiAgent.state === 'processing'
-                            ? 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30'
-                            : 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/30'
+                          ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30'
                           : 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/30'
                       }`}
                     >
-                      {aiAgent.isEnabled 
-                        ? aiAgent.state === 'processing' 
-                          ? '처리중...' 
-                          : 'AI 처리'
-                        : '활성화'
-                      }
+                      {aiAgent.isEnabled ? '비활성화' : '활성화'}
                     </motion.button>
                   </div>
                 </div>
