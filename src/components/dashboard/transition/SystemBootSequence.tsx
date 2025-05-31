@@ -1,10 +1,10 @@
 /**
- * 🚀 SystemBootSequence Component v2.0
+ * 🚀 SystemBootSequence Component v3.0
  * 
- * 순차적 단계별 부팅 시퀀스 관리
- * - SequentialLoader 사용으로 명확한 5단계 진행
- * - 각 단계별 충분한 시간 (3초씩) 보장
- * - 병렬 처리 제거로 순차성 확보
+ * 체크리스트 기반 병렬 부팅 시퀀스 관리
+ * - SystemChecklist 사용으로 실제 구성 요소별 진행
+ * - 병렬 처리로 효율적인 시스템 준비
+ * - 의존성 관리 및 우선순위 기반 완료
  * - 사용자 제어 옵션 (스킵 기능)
  */
 
@@ -12,7 +12,7 @@
 
 import React, { useState, useCallback, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import SequentialLoader from './SequentialLoader';
+import SystemChecklist from './SystemChecklist';
 import ServerCardSpawner from './ServerCardSpawner';
 import { Server } from '../../../types/server';
 import { setupGlobalErrorHandler, safeErrorLog, isLoadingRelatedError } from '../../../lib/error-handler';
@@ -40,7 +40,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
   estimatedTimeRemaining = 0,
   elapsedTime = 0
 }) => {
-  const [showSequentialLoader, setShowSequentialLoader] = useState(true);
+  const [showSystemChecklist, setShowSystemChecklist] = useState(true);
   const [showSpawning, setShowSpawning] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [showEmergencyButton, setShowEmergencyButton] = useState(false);
@@ -106,14 +106,14 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
       try {
         console.log('🎉 SystemBootSequence 최종 완료 처리');
         setIsComplete(true);
-        setShowSequentialLoader(false);
+        setShowSystemChecklist(false);
         setShowSpawning(false);
         onBootComplete();
       } catch (error) {
         safeErrorLog('❌ onBootComplete 콜백 에러', error);
         // 에러가 발생해도 완료 처리
         setIsComplete(true);
-        setShowSequentialLoader(false);
+        setShowSystemChecklist(false);
         setShowSpawning(false);
       }
     }
@@ -127,10 +127,10 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
     }
   }, [skipAnimation, handleFinalComplete]);
 
-  // 🎬 순차적 로더 완료 핸들러
-  const handleSequentialLoaderComplete = useCallback(() => {
-    console.log('✅ 순차적 로딩 완료 - 서버 스포닝 시작');
-    setShowSequentialLoader(false);
+  // 🔧 시스템 체크리스트 완료 핸들러
+  const handleSystemChecklistComplete = useCallback(() => {
+    console.log('✅ 시스템 체크리스트 완료 - 서버 스포닝 시작');
+    setShowSystemChecklist(false);
     
     // 서버가 있으면 서버 스포닝 단계로, 없으면 바로 완료
     if (servers && servers.length > 0) {
@@ -161,7 +161,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
         handleFinalComplete();
       },
       getState: () => ({
-        showSequentialLoader,
+        showSystemChecklist,
         showSpawning,
         isComplete,
         errorCount,
@@ -174,7 +174,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
       console.log('🚨 부팅 시퀀스 비상 완료');
       handleFinalComplete();
     };
-  }, [handleFinalComplete, showSequentialLoader, showSpawning, isComplete, errorCount, servers.length]);
+  }, [handleFinalComplete, showSystemChecklist, showSpawning, isComplete, errorCount, servers.length]);
 
   if (skipAnimation || isComplete) {
     return null;
@@ -191,18 +191,18 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
       }}
     >
       <AnimatePresence mode="wait">
-        {/* 🎬 순차적 로딩 단계 */}
-        {showSequentialLoader && (
+        {/* 🔧 시스템 체크리스트 단계 */}
+        {showSystemChecklist && (
           <motion.div
-            key="sequential-loader"
+            key="system-checklist"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
             className="absolute inset-0"
           >
-            <SequentialLoader
-              onComplete={handleSequentialLoaderComplete}
+            <SystemChecklist
+              onComplete={handleSystemChecklistComplete}
               skipCondition={skipAnimation}
             />
           </motion.div>
@@ -279,7 +279,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
           <div className="text-cyan-300 font-medium">💡 빠른 완료 방법</div>
           <div>🖱️ 화면 아무 곳이나 클릭</div>
           <div>⌨️ Enter, Space, ESC 키</div>
-          <div>⏱️ 자동 완료: 12초 후</div>
+          <div>⏱️ 자동 완료: 체크리스트 기반</div>
         </div>
       </motion.div>
 
@@ -293,7 +293,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
         >
           <div className="space-y-1">
             <div className="font-semibold text-cyan-400 mb-2">🛠️ 개발자 도구</div>
-            <div>순차 로더: {showSequentialLoader ? '✅' : '❌'}</div>
+            <div>체크리스트: {showSystemChecklist ? '✅' : '❌'}</div>
             <div>서버 스포닝: {showSpawning ? '✅' : '❌'}</div>
             <div>완료 상태: {isComplete ? '✅' : '❌'}</div>
             <div>서버 수: {servers.length}</div>
@@ -303,6 +303,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
               <div>• 화면 클릭</div>
               <div>• ESC 키</div>
               <div>• emergencyCompleteBootSequence()</div>
+              <div>• emergencyCompleteChecklist()</div>
             </div>
           </div>
         </motion.div>

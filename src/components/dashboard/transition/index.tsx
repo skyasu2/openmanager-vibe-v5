@@ -13,6 +13,14 @@ export { default as ServerCardSpawner } from './ServerCardSpawner';
 export { default as SequentialLoader } from './SequentialLoader';
 export { default as SystemBootSequence } from './SystemBootSequence';
 export { default as SmoothTransition } from './SmoothTransition';
+export { default as SystemChecklist } from './SystemChecklist';
+
+// 🔧 시스템 체크리스트 관련 hooks
+export { useSystemChecklist } from '../../../hooks/useSystemChecklist';
+export type { SystemComponent, ComponentStatus } from '../../../hooks/useSystemChecklist';
+
+// 🎬 순차적 로딩 관련 hooks (백업용)
+export { useSequentialLoadingTime } from '../../../hooks/useSequentialLoadingTime';
 
 // 타입 정의
 export interface TransitionConfig {
