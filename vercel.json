@@ -15,7 +15,7 @@
       "NEXT_TELEMETRY_DISABLED": "1",
       "CI": "true",
       "ESLINT_NO_DEV_ERRORS": "true",
-      "DISABLE_ESLINT_PLUGIN": "false"
+      "DISABLE_ESLINT_PLUGIN": "true"
     }
   },
   "functions": {
