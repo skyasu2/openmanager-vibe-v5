@@ -13,7 +13,7 @@ const cardData = [
     title: 'MCP 기반 AI 에이전트',
     description: 'Model Context Protocol로 구동하는 차세대 AI',
     icon: Bot,
-    gradient: 'from-purple-500 via-blue-500 to-cyan-500',
+    gradient: 'from-blue-500 via-pink-500 to-cyan-400',
     features: [
       'MCP 표준 프로토콜 기반 AI 추론',
       '자연어로 서버 상태 질의',
@@ -147,13 +147,13 @@ export default function FeatureCardsGrid() {
               {/* AI 카드 특별 이색 그라데이션 애니메이션 */}
               {card.isAICard && (
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-br from-purple-500/30 via-blue-500/30 to-cyan-500/30 rounded-2xl"
+                  className="absolute inset-0 bg-gradient-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30 rounded-2xl"
                   animate={{
                     background: [
-                      'linear-gradient(135deg, rgba(168,85,247,0.3) 0%, rgba(59,130,246,0.3) 50%, rgba(34,197,94,0.3) 100%)',
-                      'linear-gradient(135deg, rgba(34,197,94,0.3) 0%, rgba(168,85,247,0.3) 50%, rgba(59,130,246,0.3) 100%)',
-                      'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(34,197,94,0.3) 50%, rgba(168,85,247,0.3) 100%)',
-                      'linear-gradient(135deg, rgba(168,85,247,0.3) 0%, rgba(59,130,246,0.3) 50%, rgba(34,197,94,0.3) 100%)'
+                      'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(236,72,153,0.3) 50%, rgba(34,197,94,0.3) 100%)',
+                      'linear-gradient(135deg, rgba(236,72,153,0.3) 0%, rgba(34,197,94,0.3) 50%, rgba(59,130,246,0.3) 100%)',
+                      'linear-gradient(135deg, rgba(34,197,94,0.3) 0%, rgba(59,130,246,0.3) 50%, rgba(236,72,153,0.3) 100%)',
+                      'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(236,72,153,0.3) 50%, rgba(34,197,94,0.3) 100%)'
                     ]
                   }}
                   transition={{
@@ -204,7 +204,7 @@ export default function FeatureCardsGrid() {
               <div className={`w-14 h-14 bg-gradient-to-br ${card.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 relative z-10 ${
                 card.isSpecial ? 'shadow-lg shadow-amber-500/25' : ''
               } ${
-                card.isAICard ? 'shadow-lg shadow-purple-500/25' : ''
+                card.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
               }`}>
                 {card.isAICard ? (
                   <motion.div
@@ -265,7 +265,7 @@ export default function FeatureCardsGrid() {
               {/* 호버 효과 */}
               <div className={`absolute inset-0 ring-2 ring-transparent transition-all duration-300 rounded-2xl ${
                 card.isAICard 
-                  ? 'group-hover:ring-purple-400/50 group-hover:shadow-lg group-hover:shadow-purple-500/25'
+                  ? 'group-hover:ring-pink-400/50 group-hover:shadow-lg group-hover:shadow-pink-500/25'
                   : card.isSpecial 
                   ? 'group-hover:ring-amber-400/50 group-hover:shadow-lg group-hover:shadow-amber-500/25' 
                   : 'group-hover:ring-white/30'
@@ -285,7 +285,7 @@ export default function FeatureCardsGrid() {
             className={`relative w-full max-w-md bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl ${
               selectedCardData.isSpecial ? 'border-amber-500/50 bg-gradient-to-br from-gray-900/95 to-amber-900/20' : ''
             } ${
-              selectedCardData.isAICard ? 'border-purple-500/50 bg-gradient-to-br from-gray-900/95 to-purple-900/20' : ''
+              selectedCardData.isAICard ? 'border-pink-500/50 bg-gradient-to-br from-gray-900/95 to-pink-900/20' : ''
             }`}
           >
             {/* 헤더 */}
@@ -295,7 +295,7 @@ export default function FeatureCardsGrid() {
                   <div className={`w-10 h-10 bg-gradient-to-br ${selectedCardData.gradient} rounded-lg flex items-center justify-center ${
                     selectedCardData.isSpecial ? 'shadow-lg shadow-amber-500/25' : ''
                   } ${
-                    selectedCardData.isAICard ? 'shadow-lg shadow-purple-500/25' : ''
+                    selectedCardData.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
                   }`}>
                     {selectedCardData.isAICard ? (
                       <motion.div
@@ -354,7 +354,7 @@ export default function FeatureCardsGrid() {
                   <li key={index} className="flex items-start gap-3 text-sm">
                     <div className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${
                       selectedCardData.isAICard 
-                        ? 'bg-purple-400' 
+                        ? 'bg-pink-400' 
                         : selectedCardData.isSpecial 
                         ? 'bg-amber-400' 
                         : 'bg-green-400'
