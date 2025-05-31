@@ -47,6 +47,23 @@ const SettingsModal = ({ isOpen, onClose, buttonRef }: {
     console.log('🎯 SettingsModal 팝업 렌더링됨');
   }
   
+  const { info, warning } = useToast();
+  
+  const handleEnvironmentSettings = () => {
+    console.log('🔧 환경설정 클릭됨');
+    info('환경설정 기능이 곧 추가될 예정입니다.');
+  };
+  
+  const handleAISettings = () => {
+    console.log('🤖 AI 설정 클릭됨');
+    warning('AI 에이전트 고급 설정 기능을 준비 중입니다.');
+  };
+  
+  const handleNotificationSettings = () => {
+    console.log('🔔 알림 설정 클릭됨');
+    info('알림 및 경고 설정 기능이 곧 추가될 예정입니다.');
+  };
+  
   return (
     <AnimatePresence>
       {isOpen && (
@@ -92,33 +109,42 @@ const SettingsModal = ({ isOpen, onClose, buttonRef }: {
             </div>
             <div className="p-6">
               <div className="space-y-4">
-                <div className="p-4 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+                <button
+                  onClick={handleEnvironmentSettings}
+                  className="w-full p-4 bg-blue-500/20 border border-blue-500/30 rounded-lg hover:bg-blue-500/30 transition-colors cursor-pointer"
+                >
                   <h3 className="text-white font-medium mb-2 flex items-center gap-2">
                     <Database className="w-4 h-4 text-blue-400" />
                     환경설정
                   </h3>
-                  <p className="text-blue-200 text-sm">
+                  <p className="text-blue-200 text-sm text-left">
                     시스템 환경설정 기능이 곧 추가될 예정입니다.
                   </p>
-                </div>
-                <div className="p-4 bg-purple-500/20 border border-purple-500/30 rounded-lg">
+                </button>
+                <button
+                  onClick={handleAISettings}
+                  className="w-full p-4 bg-purple-500/20 border border-purple-500/30 rounded-lg hover:bg-purple-500/30 transition-colors cursor-pointer"
+                >
                   <h3 className="text-white font-medium mb-2 flex items-center gap-2">
                     <Bot className="w-4 h-4 text-purple-400" />
                     AI 설정
                   </h3>
-                  <p className="text-purple-200 text-sm">
+                  <p className="text-purple-200 text-sm text-left">
                     AI 에이전트 고급 설정 기능이 곧 추가될 예정입니다.
                   </p>
-                </div>
-                <div className="p-4 bg-green-500/20 border border-green-500/30 rounded-lg">
+                </button>
+                <button
+                  onClick={handleNotificationSettings}
+                  className="w-full p-4 bg-green-500/20 border border-green-500/30 rounded-lg hover:bg-green-500/30 transition-colors cursor-pointer"
+                >
                   <h3 className="text-white font-medium mb-2 flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-green-400" />
                     알림 설정
                   </h3>
-                  <p className="text-green-200 text-sm">
+                  <p className="text-green-200 text-sm text-left">
                     알림 및 경고 설정 기능이 곧 추가될 예정입니다.
                   </p>
-                </div>
+                </button>
               </div>
             </div>
           </motion.div>
@@ -169,6 +195,11 @@ export default function UnifiedProfileComponent({
     console.log('🔍 showSettingsModal 상태 변화:', showSettingsModal);
   }, [showSettingsModal]);
 
+  // 디버깅: showAuthModal 상태 변화 감지
+  useEffect(() => {
+    console.log('🔍 showAuthModal 상태 변화:', showAuthModal);
+  }, [showAuthModal]);
+
   // 외부 클릭 시 드롭다운 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -193,28 +224,57 @@ export default function UnifiedProfileComponent({
   };
 
   const handleAIAgentToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
+    // 🚨 가장 먼저 확인: 클릭 이벤트가 발생하는가?
+    alert('🤖 AI 에이전트 버튼이 클릭되었습니다!');
+    
     console.log('🤖 AI 에이전트 버튼 클릭됨', { isEnabled: aiAgent.isEnabled, isLocked });
     
     if (aiAgent.isEnabled) {
+      console.log('🔄 AI 에이전트 비활성화 중...');
       disableAIAgent();
       info('AI 에이전트가 비활성화되었습니다. 기본 모니터링 모드로 전환됩니다.');
     } else {
-      // 클릭 위치 캡처
-      const rect = event.currentTarget.getBoundingClientRect();
-      const x = rect.left + rect.width / 2;
-      const y = rect.top + rect.height / 2;
-      console.log('📍 클릭 위치:', { x, y });
-      setClickPosition({ x, y });
-
+      console.log('🚀 AI 에이전트 활성화 시도 중...');
+      
       if (isLocked) {
         const remainingTime = getRemainingLockTime();
+        console.log('❌ 계정 잠김 상태:', remainingTime);
         error(`계정이 잠겼습니다. ${Math.ceil(remainingTime / 1000)}초 후 다시 시도하세요.`);
+        setIsOpen(false);
         return;
       }
       
-      console.log('🔓 모달 열기 시도');
-      setShowAuthModal(true);
+      // 클릭 위치 캡처 - 더 안정적인 방법
+      try {
+        const rect = event.currentTarget.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        console.log('📍 AI 버튼 클릭 위치:', { x, y, rect });
+        setClickPosition({ x, y });
+        
+        console.log('🔓 AI 인증 모달 열기 시도');
+        
+        // 🚨 두 번째 확인: 모달 상태 변경
+        alert('🔓 AI 인증 모달을 열려고 합니다!');
+        setShowAuthModal(true);
+        alert('✅ setShowAuthModal(true) 완료!');
+        
+        // 디버깅용 타이머
+        setTimeout(() => {
+          console.log('⏰ 1초 후 모달 상태 체크:', { showAuthModal });
+          alert(`⏰ 1초 후 showAuthModal 상태: ${showAuthModal}`);
+        }, 1000);
+        
+      } catch (error) {
+        console.error('❌ 클릭 위치 캡처 실패:', error);
+        alert('❌ 클릭 위치 캡처 실패!');
+        // 위치 캡처 실패 시 기본값으로 모달 열기
+        setClickPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+        setShowAuthModal(true);
+      }
     }
+    
+    console.log('🚪 드롭다운 닫기');
     setIsOpen(false);
   };
 
@@ -540,6 +600,39 @@ export default function UnifiedProfileComponent({
         }}
         buttonRef={settingsButtonRef}
       />
+
+      {/* 🚨 테스트용 간단한 AI 인증 모달 */}
+      {showAuthModal && (
+        <div 
+          className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center"
+          onClick={() => setShowAuthModal(false)}
+        >
+          <div 
+            className="bg-white p-8 rounded-lg max-w-md w-full mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-black text-xl font-bold mb-4">🔒 AI 에이전트 인증</h2>
+            <p className="text-black mb-4">이것은 테스트용 간단한 모달입니다.</p>
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setShowAuthModal(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded"
+              >
+                취소
+              </button>
+              <button 
+                onClick={() => {
+                  alert('AI 에이전트가 활성화되었습니다!');
+                  setShowAuthModal(false);
+                }}
+                className="px-4 py-2 bg-blue-500 text-white rounded"
+              >
+                활성화
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 인증 모달 */}
       <UnifiedAuthModal

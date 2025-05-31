@@ -24,6 +24,10 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
   clickPosition
 }) => {
   console.log('🎯 UnifiedAuthModal 렌더링:', { isOpen, isLocked, attempts });
+  
+  if (isOpen) {
+    console.log('✅ UnifiedAuthModal이 열려있음, 백드롭과 모달 렌더링 중');
+  }
 
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
