@@ -194,7 +194,7 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
           transition={{ 
             exit: { duration: 0.8, ease: 'easeOut' }
           }}
-          className="fixed inset-0 z-[9999] bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center overflow-hidden"
+          className="fixed inset-0 z-[9999] bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center overflow-hidden cursor-pointer"
           style={{
             // 🚨 Vercel 환경 및 SSR 대응 - 모든 스타일 인라인으로
             position: 'fixed',
@@ -207,6 +207,12 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
+          }}
+          onClick={() => {
+            if (!isCompleted) {
+              console.log('🖱️ DashboardLoader 클릭으로 완료');
+              handleComplete();
+            }
           }}
           onAnimationStart={() => console.log('🎬 DashboardLoader 애니메이션 시작!')}
           onAnimationComplete={() => console.log('🎬 DashboardLoader 애니메이션 완료!')}

@@ -133,7 +133,15 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black">
+    <div 
+      className="fixed inset-0 z-50 bg-black cursor-pointer" 
+      onClick={() => {
+        if (!isComplete) {
+          console.log('🖱️ 화면 클릭으로 완료');
+          handleFinalComplete();
+        }
+      }}
+    >
       {/* 🚨 긴급 수정: SmoothTransition 우회 - 직접 렌더링 */}
       <AnimatePresence mode="wait">
         {showBootSequence && (
@@ -178,6 +186,21 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
         )}
       </AnimatePresence>
 
+      {/* 🔥 사용자 안내 */}
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 2 }}
+        className="fixed bottom-4 left-4 text-white text-sm bg-black/50 backdrop-blur-lg p-4 rounded-lg border border-white/30 max-w-xs"
+      >
+        <div className="space-y-2">
+          <div className="text-cyan-300 font-medium">💡 빠른 완료 방법</div>
+          <div>🖱️ 화면 아무 곳이나 클릭</div>
+          <div>⌨️ Enter, Space, ESC 키</div>
+          <div>⏱️ 자동 완료: 6초 후</div>
+        </div>
+      </motion.div>
+
       {/* 🛠️ 디버깅 정보 패널 */}
       <motion.div
         initial={{ opacity: 0, x: 100 }}
@@ -194,8 +217,9 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
           <div>완료: {isComplete ? '✅' : '❌'}</div>
           <div className="border-t border-white/20 pt-2 mt-2">
             <div className="text-yellow-300">🚀 강제 완료:</div>
+            <div>• 화면 클릭</div>
             <div>• ESC 키</div>
-            <div>• F12 → debugOpenManager.forceComplete()</div>
+            <div>• F12 → emergencyComplete()</div>
           </div>
         </div>
       </motion.div>

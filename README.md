@@ -28,6 +28,42 @@ http://localhost:3001
 
 ---
 
+## 🔧 개발 프로세스 체크리스트
+
+### 📋 개발 시작 전 필수 점검
+- [ ] **포트 정리**: `npm run clean:ports` - 기존 Node.js 프로세스 종료
+- [ ] **단일 서버 실행**: `npm run dev:clean` - 깔끔한 개발 서버 시작
+- [ ] **포트 확인**: `netstat -ano | findstr :3001` - 단일 프로세스만 실행 중
+
+### 🚨 로딩 애니메이션 디버깅
+- [ ] **Console 로그 확인**: 브라우저 F12 → Console 탭
+- [ ] **단계별 진행**: 시스템 시작 → 데이터 로딩 → 파이썬 웜업 → 완료
+- [ ] **강제 완료 테스트**: ESC, Enter, Space 키 또는 화면 클릭
+- [ ] **비상 완료**: F12 → `emergencyComplete()` 실행
+
+### 🎮 개발자 도구 (브라우저 Console)
+```javascript
+// 현재 로딩 상태 확인
+window.debugLoadingState
+
+// 즉시 강제 완료
+window.emergencyComplete()
+
+// 서버 대시보드로 바로 이동
+window.skipToServer()
+
+// URL 파라미터로 애니메이션 스킵
+// http://localhost:3001/dashboard?instant=true
+```
+
+### ⚡ 추천 개발 워크플로우
+1. **서버 정리**: `npm run clean:ports`
+2. **개발 시작**: `npm run dev`
+3. **테스트**: 로딩 애니메이션 → 대시보드 전환 확인
+4. **문제 발생 시**: F12 → `emergencyComplete()` 실행
+
+---
+
 ## 🏆 주요 성과 지표
 
 | 메트릭 | 개선 전 | 개선 후 | 개선율 |

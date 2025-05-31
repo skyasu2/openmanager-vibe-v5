@@ -230,10 +230,17 @@ export function useDashboardLogic() {
     return skipAnimation || fastLoad || instantLoad || forceSkip;
   }, [isClient]);
 
+  // 🔥 부팅 시퀀스 완료 핸들러 (useNaturalLoadingTime 완료 시 호출)
+  const handleNaturalLoadingComplete = useCallback(() => {
+    console.log('🎯 자연스러운 로딩 완료 - 부팅 시퀀스 종료');
+    setShowBootSequence(false);
+  }, []);
+
   // ✨ 자연스러운 로딩 시간 반영 (5초 최소 조건 제거)
   const naturalLoadingState = useMinimumLoadingTime({
     actualLoadingPromise: dataLoadingPromise,
-    skipCondition
+    skipCondition,
+    onComplete: handleNaturalLoadingComplete // 🔥 완료 콜백 연결
   });
 
   // ✨ showBootSequence 조건 개선
@@ -251,8 +258,8 @@ export function useDashboardLogic() {
       return false;
     }
     
-    // 🚨 기본값: 로딩 중이면 부팅 시퀀스 표시
-    const shouldShow = naturalLoadingState.isLoading;
+    // 🔥 확실한 조건: 로딩 중이면서 아직 완료되지 않은 경우만 표시
+    const shouldShow = naturalLoadingState.isLoading && naturalLoadingState.phase !== 'completed';
     console.log('🎯 Boot sequence decision result:', shouldShow);
     
     return shouldShow;

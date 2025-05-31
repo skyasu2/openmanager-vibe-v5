@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 interface UseNaturalLoadingTimeProps {
   actualLoadingPromise?: Promise<any> | null;
   skipCondition?: boolean; // 스킵 조건
+  onComplete?: () => void; // 🔥 새로 추가: 완료 콜백
 }
 
 interface LoadingState {
@@ -15,25 +16,29 @@ interface LoadingState {
 }
 
 /**
- * 🎬 useNaturalLoadingTime Hook
+ * 🎬 useNaturalLoadingTime Hook v2.0
  * 
  * 실제 시스템 가동 시간을 자연스럽게 반영하는 로딩 훅
  * - 시스템 초기화 (파이썬 엔진 가동)
  * - 데이터 로딩 (서버 목록, 메트릭)
  * - 최종 준비 완료
+ * - 🔥 다중 안전장치로 확실한 완료 보장
  * 
  * @param actualLoadingPromise - 실제 데이터 로딩 Promise
  * @param skipCondition - 스킵 조건 (URL 파라미터 등)
+ * @param onComplete - 완료 시 호출될 콜백 함수
  */
 export const useNaturalLoadingTime = ({
   actualLoadingPromise = null,
-  skipCondition = false
+  skipCondition = false,
+  onComplete
 }: UseNaturalLoadingTimeProps): LoadingState => {
   const [isLoading, setIsLoading] = useState(true);
   const [progress, setProgress] = useState(0);
   const [phase, setPhase] = useState<LoadingState['phase']>('system-starting');
   const [startTime] = useState(() => Date.now());
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   // 예상 남은 시간 계산 (자연스러운 추정)
   const estimatedTimeRemaining = useMemo(() => {
@@ -50,20 +55,70 @@ export const useNaturalLoadingTime = ({
     return Math.max(500, currentPhaseEstimate - (elapsedTime % 2000));
   }, [phase, elapsedTime]);
 
+  // 🔥 확실한 완료 처리 함수 (중복 호출 방지)
+  const handleComplete = useCallback(() => {
+    if (!isCompleted) {
+      console.log('🎯 useNaturalLoadingTime 완료 처리 시작');
+      setIsCompleted(true);
+      setIsLoading(false);
+      setPhase('completed');
+      setProgress(100);
+      
+      // 콜백 호출 (약간의 지연으로 안정성 확보)
+      setTimeout(() => {
+        console.log('🎉 onComplete 콜백 호출');
+        onComplete?.();
+      }, 100);
+    }
+  }, [isCompleted, onComplete]);
+
   // 스킵 조건 체크
   useEffect(() => {
     if (skipCondition) {
       console.log('⚡ 로딩 애니메이션 스킵 - 즉시 완료');
-      setIsLoading(false);
-      setProgress(100);
-      setPhase('completed');
+      handleComplete();
       return;
     }
-  }, [skipCondition]);
+  }, [skipCondition, handleComplete]);
+
+  // 🔥 키보드 단축키로 즉시 완료
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') && !isCompleted) {
+        console.log(`🚀 ${e.key} 키로 즉시 완료`);
+        handleComplete();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleComplete, isCompleted]);
+
+  // 🔥 전역 개발자 도구 등록
+  useEffect(() => {
+    (window as any).debugLoadingState = {
+      isLoading,
+      phase,
+      progress,
+      isCompleted,
+      elapsedTime,
+      timestamp: Date.now()
+    };
+    
+    (window as any).emergencyComplete = () => {
+      console.log('🚨 비상 완료 실행!');
+      handleComplete();
+    };
+    
+    (window as any).skipToServer = () => {
+      console.log('🚀 서버 대시보드로 바로 이동');
+      window.location.href = '/dashboard?instant=true';
+    };
+  }, [isLoading, phase, progress, isCompleted, elapsedTime, handleComplete]);
 
   // 자연스러운 로딩 로직
   useEffect(() => {
-    if (skipCondition) return;
+    if (skipCondition || isCompleted) return;
 
     console.log('🎬 자연스러운 시스템 로딩 시작');
     
@@ -104,7 +159,7 @@ export const useNaturalLoadingTime = ({
     const startPhaseTransitions = () => {
       // 2초 후: 데이터 로딩 단계
       setTimeout(() => {
-        if (!isCleanedUp) {
+        if (!isCleanedUp && !isCompleted) {
           console.log('📊 데이터 로딩 단계 시작');
           setPhase('data-loading');
         }
@@ -112,7 +167,7 @@ export const useNaturalLoadingTime = ({
 
       // 3.5초 후: 파이썬 웜업 단계  
       setTimeout(() => {
-        if (!isCleanedUp) {
+        if (!isCleanedUp && !isCompleted) {
           console.log('🐍 파이썬 시스템 웜업 단계 시작');
           setPhase('python-warmup');
         }
@@ -139,29 +194,20 @@ export const useNaturalLoadingTime = ({
           await new Promise(resolve => setTimeout(resolve, remainingTime));
         }
 
-        if (!isCleanedUp) {
-          console.log('🎉 전체 시스템 로딩 완료');
-          setProgress(100);
-          setPhase('completed');
-          
-          // 완료 애니메이션을 위한 짧은 딜레이
-          setTimeout(() => {
-            if (!isCleanedUp) {
-              setIsLoading(false);
-            }
-          }, 300);
+        if (!isCleanedUp && !isCompleted) {
+          console.log('✅ 모든 시스템 준비 완료');
+          handleComplete();
         }
       } catch (error) {
-        if (isCleanedUp) return;
+        if (isCleanedUp || isCompleted) return;
         
         console.error('❌ 시스템 로딩 에러:', error);
         
         // 에러가 발생해도 자연스럽게 처리
         setTimeout(() => {
-          if (!isCleanedUp) {
-            setProgress(100);
-            setPhase('completed');
-            setIsLoading(false);
+          if (!isCleanedUp && !isCompleted) {
+            console.log('🔄 에러 후 강제 완료');
+            handleComplete();
           }
         }, 1000);
       }
@@ -169,9 +215,41 @@ export const useNaturalLoadingTime = ({
 
     handleActualLoading();
 
+    // 🔥 1차 안전장치: 6초 후 비상 완료
+    const emergencyComplete1 = setTimeout(() => {
+      if (!isCompleted) {
+        console.log('🚨 6초 후 비상 완료 (1차)');
+        handleComplete();
+      }
+    }, 6000);
+
+    // 🔥 2차 안전장치: 10초 후 최종 강제 완료
+    const emergencyComplete2 = setTimeout(() => {
+      if (!isCompleted) {
+        console.log('🚨 10초 후 최종 강제 완료 (2차)');
+        handleComplete();
+      }
+    }, 10000);
+
+    // 🔥 마우스 클릭으로도 완료 (3초 후부터)
+    const enableClickComplete = setTimeout(() => {
+      const handleClick = () => {
+        if (!isCompleted) {
+          console.log('🖱️ 클릭으로 완료');
+          handleComplete();
+        }
+      };
+      document.addEventListener('click', handleClick, { once: true });
+    }, 3000);
+
     // 컴포넌트 언마운트 시 정리
-    return cleanup;
-  }, [actualLoadingPromise, skipCondition, startTime, phase]);
+    return () => {
+      cleanup();
+      clearTimeout(emergencyComplete1);
+      clearTimeout(emergencyComplete2);
+      clearTimeout(enableClickComplete);
+    };
+  }, [actualLoadingPromise, skipCondition, phase, handleComplete, isCompleted, startTime]);
 
   return {
     isLoading,
