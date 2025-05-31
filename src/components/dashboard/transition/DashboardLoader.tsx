@@ -81,15 +81,17 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
   estimatedTimeRemaining = 0,
   elapsedTime = 0
 }) => {
+  // 🚨 즉시 실행 로그 - 컴포넌트 렌더링 확인
+  console.log('🚀 DashboardLoader 컴포넌트 시작!', {
+    externalProgress,
+    loadingPhase,
+    estimatedTimeRemaining,
+    elapsedTime
+  });
+  
   const [currentPhaseIndex, setCurrentPhaseIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isAnimating, setIsAnimating] = useState(true);
-  const [isMounted, setIsMounted] = useState(false);
-
-  // 클라이언트 마운트 확인
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   // 외부 진행률과 내부 애니메이션 진행률 조합
   const displayProgress = useMemo(() => {
@@ -99,8 +101,6 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
 
   // 로딩 완료 조건 개선
   useEffect(() => {
-    if (!isMounted) return;
-    
     // 외부에서 완료 신호가 오면 즉시 완료
     if (externalProgress >= 100 && loadingPhase === 'completed') {
       console.log('✅ External loading completed - finishing animation');
@@ -141,12 +141,7 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
     }, 50);
 
     return () => clearInterval(progressInterval);
-  }, [currentPhaseIndex, onBootComplete, onPhaseChange, isMounted, externalProgress, loadingPhase]);
-
-  // SSR에서는 렌더링하지 않음
-  if (!isMounted) {
-    return null;
-  }
+  }, [currentPhaseIndex, onBootComplete, onPhaseChange, externalProgress, loadingPhase]);
 
   const currentPhase = BOOT_SEQUENCE[currentPhaseIndex] || BOOT_SEQUENCE[0];
   const totalProgress = ((currentPhaseIndex * 100) + displayProgress) / BOOT_SEQUENCE.length;
@@ -173,7 +168,7 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
           }}
           className="fixed inset-0 z-[9999] bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center overflow-hidden"
           style={{
-            // Vercel 환경 대응
+            // 🚨 Vercel 환경 및 SSR 대응 - 모든 스타일 인라인으로
             position: 'fixed',
             top: 0,
             left: 0,
@@ -185,6 +180,8 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
             alignItems: 'center',
             justifyContent: 'center'
           }}
+          onAnimationStart={() => console.log('🎬 DashboardLoader 애니메이션 시작!')}
+          onAnimationComplete={() => console.log('🎬 DashboardLoader 애니메이션 완료!')}
         >
           {/* 배경 효과 */}
           <div className="absolute inset-0 opacity-30">

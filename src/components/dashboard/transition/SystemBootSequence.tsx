@@ -81,33 +81,51 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
   }
 
   return (
-    <SmoothTransition
-      isLoading={!isComplete}
-      className="fixed inset-0 z-50"
-    >
-      {showBootSequence && (
-        <DashboardLoader
-          onBootComplete={handleBootComplete}
-          onPhaseChange={(phase, message) => {
-            console.log(`Phase: ${phase}, Message: ${message}`);
-          }}
-          externalProgress={loadingProgress}
-          loadingPhase={loadingPhase}
-          estimatedTimeRemaining={estimatedTimeRemaining}
-          elapsedTime={elapsedTime}
-        />
-      )}
-      
-      {showSpawning && (
-        <ServerCardSpawner
-          servers={servers}
-          onServerSpawned={onServerSpawned}
-          onAllServersSpawned={handleSpawnerComplete}
-          isActive={true}
-          spawnDelay={400}
-        />
-      )}
-    </SmoothTransition>
+    <div className="fixed inset-0 z-50 bg-black">
+      {/* 🚨 긴급 수정: SmoothTransition 우회 - 직접 렌더링 */}
+      <AnimatePresence mode="wait">
+        {showBootSequence && (
+          <motion.div
+            key="boot-loader"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0"
+          >
+            <DashboardLoader
+              onBootComplete={handleBootComplete}
+              onPhaseChange={(phase, message) => {
+                console.log(`Phase: ${phase}, Message: ${message}`);
+              }}
+              externalProgress={loadingProgress}
+              loadingPhase={loadingPhase}
+              estimatedTimeRemaining={estimatedTimeRemaining}
+              elapsedTime={elapsedTime}
+            />
+          </motion.div>
+        )}
+        
+        {showSpawning && (
+          <motion.div
+            key="server-spawner"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0"
+          >
+            <ServerCardSpawner
+              servers={servers}
+              onServerSpawned={onServerSpawned}
+              onAllServersSpawned={handleSpawnerComplete}
+              isActive={true}
+              spawnDelay={400}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 });
 
