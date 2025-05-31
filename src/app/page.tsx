@@ -95,15 +95,15 @@ export default function Home() {
       {/* 메인 컨텐츠 */}
       <div className="container mx-auto px-6 pb-12">
         {/* 메인 타이틀 */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
             <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
               {renderTextWithAIGradient('AI 기반')}
             </span>
             <br />
             서버 모니터링
           </h1>
-          <p className="text-xl md:text-2xl text-white/80 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
             차세대 서버 관리 솔루션으로
             <br />
             <strong className="text-cyan-300">스마트한 모니터링을 경험하세요</strong>
@@ -111,12 +111,12 @@ export default function Home() {
         </div>
 
         {/* 기능 카드 그리드 */}
-        <div className="my-16">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+        <div className="mb-12">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
               핵심 <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">기능</span>
             </h2>
-            <p className="text-white/70 text-lg max-w-2xl mx-auto">
+            <p className="text-white/70 text-base max-w-2xl mx-auto">
               {renderTextWithAIGradient('AI 기반 서버 모니터링의 모든 것을 경험해보세요')}
             </p>
           </div>
@@ -125,7 +125,7 @@ export default function Home() {
         </div>
 
         {/* 푸터 */}
-        <div className="mt-16 pt-8 border-t border-white/20 text-center">
+        <div className="mt-8 pt-6 border-t border-white/20 text-center">
           <p className="text-white/70">
             Copyright(c) OpenManager. All rights reserved.
           </p>

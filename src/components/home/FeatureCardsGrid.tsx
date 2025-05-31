@@ -127,7 +127,7 @@ export default function FeatureCardsGrid() {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-7xl mx-auto">
         {cardData.map((card, index) => (
           <motion.div
             key={card.id}
@@ -135,10 +135,10 @@ export default function FeatureCardsGrid() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
             whileHover={{ scale: 1.05, y: -5 }}
-            className={`group cursor-pointer relative ${card.isSpecial ? 'lg:col-span-2' : ''}`}
+            className="group cursor-pointer relative"
             onClick={() => handleCardClick(card.id)}
           >
-            <div className={`relative p-6 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl hover:bg-white/20 transition-all duration-300 h-full ${
+            <div className={`relative p-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl hover:bg-white/20 transition-all duration-300 h-full ${
               card.isSpecial ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/30' : ''
             }`}>
               {/* 그라데이션 배경 */}
@@ -201,7 +201,7 @@ export default function FeatureCardsGrid() {
               )}
               
               {/* 아이콘 */}
-              <div className={`w-14 h-14 bg-gradient-to-br ${card.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 relative z-10 ${
+              <div className={`w-12 h-12 bg-gradient-to-br ${card.gradient} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 relative z-10 ${
                 card.isSpecial ? 'shadow-lg shadow-amber-500/25' : ''
               } ${
                 card.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
@@ -217,7 +217,7 @@ export default function FeatureCardsGrid() {
                       scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
                     }}
                   >
-                    <card.icon className="w-7 h-7 text-white" />
+                    <card.icon className="w-5 h-5 text-white" />
                   </motion.div>
                 ) : card.isVibeCard ? (
                   <motion.div
@@ -231,32 +231,32 @@ export default function FeatureCardsGrid() {
                       ease: "easeInOut"
                     }}
                   >
-                    <card.icon className="w-7 h-7 text-white" />
+                    <card.icon className="w-5 h-5 text-white" />
                   </motion.div>
                 ) : (
-                  <card.icon className="w-7 h-7 text-white" />
+                  <card.icon className="w-5 h-5 text-white" />
                 )}
               </div>
               
               {/* 컨텐츠 */}
               <div className="relative z-10">
-                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-white transition-colors">
+                <h3 className="text-lg font-bold text-white mb-2 group-hover:text-white transition-colors">
                   {renderTextWithAIGradient(card.title)}
                 </h3>
-                <p className="text-white/70 text-sm leading-relaxed group-hover:text-white/90 transition-colors">
+                <p className="text-white/70 text-xs leading-relaxed group-hover:text-white/90 transition-colors">
                   {renderTextWithAIGradient(card.description)}
                 </p>
                 
                 {/* AI 에이전트 필요 표시 */}
                 {card.requiresAI && !aiAgent.isEnabled && (
-                  <div className="mt-3 px-3 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full text-orange-300 text-xs text-center">
+                  <div className="mt-2 px-2 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full text-orange-300 text-xs text-center">
                     AI 에이전트 모드 필요
                   </div>
                 )}
 
                 {/* 특별 카드 배지 */}
                 {card.isSpecial && (
-                  <div className="mt-3 px-3 py-1 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-full text-amber-300 text-xs text-center">
+                  <div className="mt-2 px-2 py-1 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-full text-amber-300 text-xs text-center">
                     ✨ 황금 경험
                   </div>
                 )}
