@@ -36,85 +36,43 @@ const ServerMonitorModal = dynamic(() => import('./ServerMonitorModal'), {
 });
 
 // 환경설정 모달 컴포넌트
-const SettingsModal = ({ isOpen, onClose, clickPosition }: { 
+const SettingsModal = ({ isOpen, onClose, buttonRef }: { 
   isOpen: boolean; 
   onClose: () => void;
-  clickPosition?: { x: number; y: number };
+  buttonRef?: React.RefObject<HTMLButtonElement | null>;
 }) => {
-  const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
-
-  // 클릭 위치 기반 모달 위치 계산
-  useEffect(() => {
-    if (isOpen && clickPosition) {
-      const modalWidth = 500; // 모달 너비
-      const modalHeight = 400; // 모달 높이
-      const padding = 20; // 화면 가장자리 여백
-      
-      // 화면 크기 가져오기
-      const screenWidth = window.innerWidth;
-      const screenHeight = window.innerHeight;
-      
-      // 클릭 위치 기준으로 모달 위치 계산
-      let x = clickPosition.x - modalWidth / 2;
-      let y = clickPosition.y - modalHeight / 2;
-      
-      // 화면 경계 확인 및 조정
-      if (x < padding) x = padding;
-      if (x + modalWidth > screenWidth - padding) x = screenWidth - modalWidth - padding;
-      if (y < padding) y = padding;
-      if (y + modalHeight > screenHeight - padding) y = screenHeight - modalHeight - padding;
-      
-      setModalPosition({ x, y });
-    } else {
-      // 기본값: 화면 중앙
-      setModalPosition({ x: 0, y: 0 });
-    }
-  }, [isOpen, clickPosition]);
-
+  console.log('🔧 SettingsModal 렌더링:', { isOpen });
+  
+  if (isOpen) {
+    console.log('🎯 SettingsModal 팝업 렌더링됨');
+  }
+  
   return (
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+          className="fixed inset-0 z-[9999]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          onClick={onClose}
         >
           <motion.div
-            className="absolute inset-0 bg-black/70 backdrop-blur-md"
-            onClick={onClose}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          />
-          <motion.div
-            className={`w-full max-w-md bg-gray-900/98 backdrop-blur-xl border border-gray-700/70 rounded-2xl shadow-2xl shadow-black/50 ${
-              clickPosition ? 'fixed transform-none' : 'relative'
-            }`}
-            initial={{ 
-              opacity: 0, 
-              scale: 0.9, 
-              x: clickPosition ? -250 : 0,
-              y: clickPosition ? -200 : 0
-            }}
-            animate={{ 
-              opacity: 1, 
-              scale: 1,
-              x: clickPosition ? modalPosition.x - 250 : 0,
-              y: clickPosition ? modalPosition.y - 200 : 0
-            }}
-            exit={{ 
-              opacity: 0, 
-              scale: 0.9,
-              x: clickPosition ? modalPosition.x - 250 : 0,
-              y: clickPosition ? modalPosition.y - 200 : 0
-            }}
+            className="absolute bg-gray-900/98 backdrop-blur-xl border border-gray-700/70 rounded-2xl shadow-2xl shadow-black/50 w-80"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            style={clickPosition ? { 
-              left: modalPosition.x, 
-              top: modalPosition.y,
-              transform: `translate(-50%, -50%)`
-            } : {}}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              top: buttonRef?.current ? 
+                `${buttonRef.current.getBoundingClientRect().bottom + window.scrollY + 8}px` : 
+                '50%',
+              left: buttonRef?.current ? 
+                `${buttonRef.current.getBoundingClientRect().left + window.scrollX}px` : 
+                '50%',
+              transform: buttonRef?.current ? 'none' : 'translate(-50%, -50%)'
+            }}
           >
             <div className="p-6 border-b border-gray-700/50">
               <div className="flex items-center justify-between">
@@ -186,6 +144,7 @@ export default function UnifiedProfileComponent({
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [clickPosition, setClickPosition] = useState<{ x: number; y: number } | undefined>(undefined);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const settingsButtonRef = useRef<HTMLButtonElement>(null);
   
   const {
     isSystemStarted,
@@ -204,6 +163,11 @@ export default function UnifiedProfileComponent({
   } = useUnifiedAdminStore();
 
   const { success, error, warning, info } = useToast();
+
+  // 디버깅: showSettingsModal 상태 변화 감지
+  useEffect(() => {
+    console.log('🔍 showSettingsModal 상태 변화:', showSettingsModal);
+  }, [showSettingsModal]);
 
   // 외부 클릭 시 드롭다운 닫기
   useEffect(() => {
@@ -485,15 +449,10 @@ export default function UnifiedProfileComponent({
               {/* 메뉴 아이템들 */}
               <div className="p-2">
                 <motion.button
+                  ref={settingsButtonRef}
                   whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                  onClick={(event) => {
-                    // 클릭 위치 캡처
-                    const rect = event.currentTarget.getBoundingClientRect();
-                    const x = rect.left + rect.width / 2;
-                    const y = rect.top + rect.height / 2;
-                    console.log('⚙️ 설정 버튼 클릭 위치:', { x, y });
-                    setClickPosition({ x, y });
-                    
+                  onClick={() => {
+                    console.log('⚙️ 설정 버튼 클릭됨');
                     setShowSettingsModal(true);
                     setIsOpen(false);
                   }}
@@ -578,9 +537,8 @@ export default function UnifiedProfileComponent({
         isOpen={showSettingsModal}
         onClose={() => {
           setShowSettingsModal(false);
-          setClickPosition(undefined);
         }}
-        clickPosition={clickPosition}
+        buttonRef={settingsButtonRef}
       />
 
       {/* 인증 모달 */}
