@@ -244,10 +244,10 @@ export default function NewHomePage() {
 
       {/* 메인 컨텐츠 */}
       <div className="relative z-10 pt-24 pb-12">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 max-w-7xl">
           {/* 타이틀 섹션 */}
           <motion.div
-            className="text-center mb-16"
+            className="text-center mb-8 sm:mb-12"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
@@ -340,7 +340,7 @@ export default function NewHomePage() {
 
             {/* 시스템 상태 및 제어 */}
             <motion.div
-              className="mb-12"
+              className="mb-6 sm:mb-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
