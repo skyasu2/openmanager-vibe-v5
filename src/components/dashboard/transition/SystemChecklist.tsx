@@ -260,37 +260,20 @@ export default function SystemChecklist({ onComplete, skipCondition = false }: S
     updatePerformanceInfo();
   }, [components, componentDefinitions]);
 
-  // 완료 처리 로직 개선
+  // ✅ 완료 상태 모니터링 및 자동 전환
   useEffect(() => {
     if (isCompleted && !showCompleted) {
       setShowCompleted(true);
       
-      // 2초 후 완전히 준비된 상태에서만 진행
-      const timer = setTimeout(() => {
-        // Critical 컴포넌트가 모두 성공했는지 확인
-        const criticalComponents = componentDefinitions.filter(c => c.priority === 'critical');
-        const allCriticalCompleted = criticalComponents.every(c => {
-          const status = components[c.id];
-          return status && status.status === 'completed';
-        });
-        
-        if (allCriticalCompleted || skipCondition) {
-          setShouldProceed(true);
-          setTimeout(() => onComplete(), 300); // 부드러운 전환을 위한 짧은 지연
-        } else {
-          // Critical 컴포넌트 실패 시 에러 추적
-          criticalComponents.forEach(c => {
-            const status = components[c.id];
-            if (status && status.status === 'failed') {
-              trackError(c.id, status.error || 'Critical component failed', '');
-            }
-          });
-        }
+      // 2초 후 자동 전환 (사용자가 클릭 안 할 경우)
+      const autoCompleteTimer = setTimeout(() => {
+        setShouldProceed(true);
+        setTimeout(onComplete, 500); // 애니메이션 완료 후
       }, 2000);
       
-      return () => clearTimeout(timer);
+      return () => clearTimeout(autoCompleteTimer);
     }
-  }, [isCompleted, showCompleted, skipCondition, onComplete, components, componentDefinitions]);
+  }, [isCompleted, showCompleted, onComplete]);
 
   // 키보드 단축키 (이미 훅에서 처리되고 있지만 추가 재시도 기능)
   useEffect(() => {
@@ -663,7 +646,13 @@ export default function SystemChecklist({ onComplete, skipCondition = false }: S
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               className="absolute inset-0 flex items-center justify-center 
-                         bg-green-500/20 backdrop-blur-sm rounded-2xl border border-green-500/50"
+                         bg-green-500/20 backdrop-blur-sm rounded-2xl border border-green-500/50
+                         cursor-pointer"
+              onClick={() => {
+                setShouldProceed(true);
+                setTimeout(onComplete, 300);
+              }}
+              title="클릭하여 계속하기"
             >
               <div className="text-center">
                 <motion.div
@@ -677,7 +666,18 @@ export default function SystemChecklist({ onComplete, skipCondition = false }: S
                   </svg>
                 </motion.div>
                 <h3 className="text-xl font-bold text-white mb-2">시스템 준비 완료!</h3>
-                <p className="text-sm text-gray-300">OpenManager를 시작합니다...</p>
+                <p className="text-sm text-gray-300 mb-3">OpenManager를 시작합니다...</p>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1 }}
+                  className="inline-flex items-center space-x-2 px-4 py-2 bg-green-500/30 rounded-lg border border-green-400/50"
+                >
+                  <span className="text-sm text-green-200">클릭하여 계속</span>
+                  <svg className="w-4 h-4 text-green-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </motion.div>
               </div>
             </motion.div>
           )}
@@ -707,6 +707,32 @@ export default function SystemChecklist({ onComplete, skipCondition = false }: S
         <div className="mt-6 text-center text-xs text-gray-500">
           <p>ESC/Space: 건너뛰기 • R: 재시도 • D: 디버그 패널</p>
         </div>
+      </motion.div>
+
+      {/* 돌아가기 버튼 (왼쪽 아래 고정) */}
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.5 }}
+        className="absolute bottom-6 left-6 z-20"
+      >
+        <button
+          onClick={() => {
+            if (typeof window !== 'undefined') {
+              window.history.back();
+            }
+          }}
+          className="flex items-center space-x-2 px-4 py-2 bg-gray-700/80 backdrop-blur-sm 
+                     text-gray-300 rounded-lg border border-gray-600/50 
+                     hover:bg-gray-600/80 hover:text-white transition-all duration-200
+                     focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+          title="이전 페이지로 돌아가기"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span className="text-sm">돌아가기</span>
+        </button>
       </motion.div>
     </div>
   );
