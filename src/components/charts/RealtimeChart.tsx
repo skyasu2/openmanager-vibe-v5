@@ -418,7 +418,8 @@ export default function RealtimeChart({
       id: 'realtime-chart-update',
       callback: processRealtimeData,
       interval: refreshInterval,
-      priority: 'medium'
+      priority: 'medium',
+        enabled: true
     });
     
     return () => {

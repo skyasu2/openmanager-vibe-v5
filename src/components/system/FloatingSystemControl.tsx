@@ -99,7 +99,8 @@ export default function FloatingSystemControl({
       id: 'floating-system-health-check',
       callback: checkSystemHealth,
       interval: 5000,
-      priority: 'high'
+      priority: 'high',
+        enabled: true
     });
     
     return () => {

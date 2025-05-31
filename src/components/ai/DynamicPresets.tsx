@@ -52,7 +52,8 @@ export default function DynamicPresets({ serverMetrics, onSelect }: DynamicPrese
       id: 'dynamic-presets-update',
       callback: updatePresets,
       interval: 15000,
-      priority: 'low'
+      priority: 'low',
+        enabled: true
     });
     
     return () => {

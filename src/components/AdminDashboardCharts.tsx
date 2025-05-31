@@ -157,7 +157,8 @@ export default function AdminDashboardCharts() {
         id: 'admin-dashboard-charts-refresh',
         callback: fetchHealthData,
         interval: 30000,
-        priority: 'medium'
+        priority: 'medium',
+        enabled: true
       });
     } else {
       timerManager.unregister('admin-dashboard-charts-refresh');

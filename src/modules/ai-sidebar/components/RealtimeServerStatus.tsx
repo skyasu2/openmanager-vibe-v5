@@ -99,7 +99,8 @@ const RealtimeServerStatusComponent: React.FC<RealtimeServerStatusProps> = ({
       id: 'realtime-server-status',
       callback: updateServerStatus,
       interval: 60000, // 60초 고정
-      priority: 'low' // 우선순위 낮춤
+      priority: 'low',
+        enabled: true // 우선순위 낮춤
     });
 
     return () => {

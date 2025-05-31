@@ -205,6 +205,7 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
         body: JSON.stringify({
           question,
           priority: 'high',
+        enabled: true,
           category: determineCategory(question)
         })
       });

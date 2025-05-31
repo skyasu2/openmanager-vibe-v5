@@ -18,7 +18,8 @@ interface QuestionTemplate {
   question: string;
   icon: string;
   category: 'monitoring' | 'analysis' | 'prediction' | 'incident';
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  priority: 'low',
+        enabled: true | 'medium' | 'high' | 'critical';
   description: string;
 }
 
@@ -35,6 +36,7 @@ const questionTemplates: QuestionTemplate[] = [
     icon: '🖥️',
     category: 'monitoring',
     priority: 'high',
+        enabled: true,
     description: '전체 서버의 현재 상태와 헬스체크 결과를 확인합니다'
   },
   {
@@ -43,6 +45,7 @@ const questionTemplates: QuestionTemplate[] = [
     icon: '🚨',
     category: 'incident',
     priority: 'critical',
+        enabled: true,
     description: '심각도가 높은 알림과 즉시 대응이 필요한 이슈를 확인합니다'
   },
   {
@@ -51,6 +54,7 @@ const questionTemplates: QuestionTemplate[] = [
     icon: '📊',
     category: 'analysis',
     priority: 'medium',
+        enabled: true,
     description: 'CPU, 메모리, 디스크 사용률 및 응답시간을 종합 분석합니다'
   },
   {
@@ -59,6 +63,7 @@ const questionTemplates: QuestionTemplate[] = [
     icon: '🔮',
     category: 'prediction',
     priority: 'high',
+        enabled: true,
     description: 'AI 기반 장애 예측 모델의 최신 분석 결과를 제공합니다'
   },
   {
@@ -67,6 +72,7 @@ const questionTemplates: QuestionTemplate[] = [
     icon: '💾',
     category: 'monitoring',
     priority: 'high',
+        enabled: true,
     description: '메모리 사용률 80% 이상인 서버들의 상세 정보를 확인합니다'
   },
   {
@@ -75,6 +81,7 @@ const questionTemplates: QuestionTemplate[] = [
     icon: '💿',
     category: 'monitoring',
     priority: 'medium',
+        enabled: true,
     description: '디스크 사용률이 높거나 여유 공간이 부족한 서버를 찾습니다'
   },
   {
@@ -83,6 +90,7 @@ const questionTemplates: QuestionTemplate[] = [
     icon: '🌐',
     category: 'analysis',
     priority: 'medium',
+        enabled: true,
     description: '네트워크 응답시간과 연결 상태를 실시간으로 모니터링합니다'
   },
   {
@@ -91,6 +99,7 @@ const questionTemplates: QuestionTemplate[] = [
     icon: '⚖️',
     category: 'analysis',
     priority: 'low',
+        enabled: true,
     description: '서버 간 부하 분산 상태와 트래픽 분배 효율성을 분석합니다'
   }
 ];
@@ -151,7 +160,8 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
         id: 'dynamic-question-rotation',
         callback: rotateQuestions,
         interval: interval,
-        priority: 'medium'
+        priority: 'medium',
+        enabled: true
       });
     };
 
@@ -160,7 +170,8 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
       id: 'dynamic-question-rotation',
       callback: rotateQuestions,
       interval: baseInterval,
-      priority: 'medium'
+      priority: 'medium',
+        enabled: true
     });
 
     return () => {
@@ -213,7 +224,8 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
       id: 'question-priority-updater',
       callback: updateBasedOnServerStatus,
       interval: 120000, // 2분
-      priority: 'low'
+      priority: 'low',
+        enabled: true
     });
 
     return () => {

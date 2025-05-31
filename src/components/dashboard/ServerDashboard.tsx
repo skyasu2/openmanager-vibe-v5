@@ -327,7 +327,8 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
       id: 'server-dashboard-refresh',
       callback: refreshData,
       interval: 5000,
-      priority: 'medium'
+      priority: 'medium',
+        enabled: true
     });
     
     return () => {

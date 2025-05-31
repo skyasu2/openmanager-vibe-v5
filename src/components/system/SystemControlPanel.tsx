@@ -196,7 +196,8 @@ export function SystemControlPanel() {
       id: 'system-status-fetcher',
       callback: fetchSystemStatus,
       interval: 2000,
-      priority: 'high'
+      priority: 'high',
+        enabled: true
     });
     
     return () => {
@@ -211,7 +212,8 @@ export function SystemControlPanel() {
         id: 'stability-timer',
         callback: () => setStabilityTimer(prev => Math.max(0, prev - 1)),
         interval: 1000,
-        priority: 'medium'
+        priority: 'medium',
+        enabled: true
       });
     } else {
       timerManager.unregister('stability-timer');
@@ -232,7 +234,8 @@ export function SystemControlPanel() {
         ));
       },
       interval: 1000,
-      priority: 'low'
+      priority: 'low',
+        enabled: true
     });
     
     return () => {

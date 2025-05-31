@@ -145,7 +145,8 @@ export default function VirtualServersPage() {
       id: 'admin-virtual-servers-refresh',
       callback: loadData,
       interval: 5000,
-      priority: 'medium'
+      priority: 'medium',
+      enabled: true
     });
 
     return () => {

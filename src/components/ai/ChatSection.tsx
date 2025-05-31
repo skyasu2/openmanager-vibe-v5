@@ -124,7 +124,8 @@ export default function ChatSection({ serverMetrics, onClose }: ChatSectionProps
       id: 'chat-section-presets-update',
       callback: updatePresets,
       interval: 15000,
-      priority: 'low'
+      priority: 'low',
+        enabled: true
     });
     
     return () => {

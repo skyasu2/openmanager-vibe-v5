@@ -83,7 +83,8 @@ export default function ServerDetailModal({ server, onClose }: ServerDetailModal
       id: `server-detail-metrics-${server.id}`,
       callback: updateRealTimeMetrics,
       interval: 3000,
-      priority: 'medium'
+      priority: 'medium',
+        enabled: true
     });
 
     return () => {

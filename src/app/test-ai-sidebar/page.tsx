@@ -74,7 +74,8 @@ export default function TestAISidebarPage() {
       id: 'test-page-debug-info',
       callback: updateDebugInfo,
       interval: 5000,
-      priority: 'low'
+      priority: 'low',
+        enabled: true
     });
     updateDebugInfo(); // 즉시 실행
     

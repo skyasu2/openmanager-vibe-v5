@@ -270,7 +270,8 @@ export default function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelPr
           body: JSON.stringify({
             action: 'smart-query',
             query: question,
-            options: { timeout: 10000, priority: 'high' }
+            options: { timeout: 10000, priority: 'high',
+        enabled: true }
           })
         });
 
@@ -299,6 +300,7 @@ export default function AIAssistantPanel({ isOpen, onClose }: AIAssistantPanelPr
               options: {
                 timeout: 12000,
                 priority: 'high',
+        enabled: true,
                 enableFallback: true
               }
             })
