@@ -199,12 +199,28 @@ export default function NewHomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-      {/* 배경 효과 */}
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black relative overflow-hidden">
+      {/* 배경 효과 - 사이버펑크 스타일 */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-green-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        
+        {/* 매트릭스 스타일 그리드 */}
+        <div 
+          className="absolute inset-0 opacity-5"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: '50px 50px'
+          }}
+        />
+        
+        {/* 사이버펑크 라인 효과 */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-green-500/50 to-transparent animate-pulse" />
+        <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent animate-pulse" style={{ animationDelay: '1.5s' }} />
       </div>
 
       {/* 헤더 (기존 유지) */}
@@ -236,11 +252,90 @@ export default function NewHomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6">
-              OpenManager <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">AI</span>
+            {/* 터미널 창 추가 */}
+            <motion.div
+              className="max-w-2xl mx-auto mb-8 bg-black border border-green-500/30 rounded-lg overflow-hidden shadow-2xl shadow-green-500/10"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              {/* 터미널 헤더 */}
+              <div className="flex items-center justify-between px-4 py-3 bg-gray-900 border-b border-green-500/20">
+                <div className="flex space-x-2">
+                  <div className="w-3 h-3 bg-red-500 rounded-full hover:bg-red-400 transition-colors cursor-pointer"></div>
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full hover:bg-yellow-400 transition-colors cursor-pointer"></div>
+                  <div className="w-3 h-3 bg-green-500 rounded-full hover:bg-green-400 transition-colors cursor-pointer"></div>
+                </div>
+                <div className="text-xs text-green-400 font-mono">user@openmanager</div>
+              </div>
+              
+              {/* 터미널 내용 */}
+              <div className="p-4 font-mono text-sm space-y-1">
+                <div className="text-green-400">
+                  <span className="text-cyan-400">user@openmanager</span>
+                  <span className="text-white">:</span>
+                  <span className="text-blue-400">~</span>
+                  <span className="text-white">$ ./init_ai_monitoring.sh</span>
+                </div>
+                <motion.div 
+                  className="text-cyan-400"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.8 }}
+                >
+                  [INFO] MCP Engine: ONLINE ✓
+                </motion.div>
+                <motion.div 
+                  className="text-green-400"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.0 }}
+                >
+                  [SUCCESS] AI Agent: 91% 예측 정확도 달성!
+                </motion.div>
+                <motion.div 
+                  className="text-yellow-400"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.2 }}
+                >
+                  [INFO] Prometheus: 실시간 메트릭 수집 중...
+                </motion.div>
+                <motion.div 
+                  className="text-purple-400"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.4 }}
+                >
+                  [READY] System fully operational!
+                </motion.div>
+                <div className="text-green-400 mt-2">
+                  <span className="text-cyan-400">user@openmanager</span>
+                  <span className="text-white">:</span>
+                  <span className="text-blue-400">~</span>
+                  <span className="text-white">$ </span>
+                  <motion.span 
+                    className="bg-green-400 text-black px-1"
+                    animate={{ opacity: [0, 1, 0] }}
+                    transition={{ duration: 1, repeat: Infinity }}
+                  >
+                    |
+                  </motion.span>
+                </div>
+              </div>
+            </motion.div>
+
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold font-mono mb-6">
+              <span className="text-white">OpenManager </span>
+              <span 
+                className="bg-gradient-to-r from-green-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent"
+                style={{ textShadow: '0 0 30px rgba(0, 255, 255, 0.3)' }}
+              >
+                AI
+              </span>
             </h1>
-            <p className="text-xl md:text-2xl text-white/80 mb-8 max-w-3xl mx-auto leading-relaxed">
-              지능형 AI 에이전트로 서버 관리를 혁신합니다
+            <p className="text-xl md:text-2xl text-green-300 mb-8 max-w-3xl mx-auto leading-relaxed font-mono">
+              {">"} 지능형 AI 에이전트로 서버 관리를 혁신합니다
             </p>
 
             {/* 시스템 상태 및 제어 */}

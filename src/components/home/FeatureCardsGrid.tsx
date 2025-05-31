@@ -30,8 +30,8 @@ export const featureCards: FeatureCardData[] = [
     detailedDescription: '서버 메트릭을 분석하여 원인 탐지, 예측, 최적화까지 수행하는 차세대 AI 시스템입니다.',
     icon: Brain,
     emoji: '🧠',
-    gradientFrom: 'from-violet-600/90',
-    gradientTo: 'to-purple-700/90',
+    gradientFrom: 'from-cyan-600/90',
+    gradientTo: 'to-blue-700/90',
     features: [
       'MCP Protocol 기반 AI 엔진으로 실시간 자연어 처리',
       'Python ML 모델과 TypeScript 엔진의 하이브리드 구조',
@@ -50,7 +50,7 @@ export const featureCards: FeatureCardData[] = [
     icon: Database,
     emoji: '📊',
     gradientFrom: 'from-blue-600/90',
-    gradientTo: 'to-cyan-700/90',
+    gradientTo: 'to-purple-700/90',
     features: [
       'Prometheus 호환 메트릭 실시간 생성 (65% 압축률)',
       'Normal, High-Load, Maintenance 시나리오 시뮬레이션',
@@ -68,8 +68,8 @@ export const featureCards: FeatureCardData[] = [
     detailedDescription: '최신 웹 기술 스택으로 구축된 확장 가능하고 성능 최적화된 모던 아키텍처입니다.',
     icon: Layers,
     emoji: '🚀',
-    gradientFrom: 'from-emerald-600/90',
-    gradientTo: 'to-teal-700/90',
+    gradientFrom: 'from-green-600/90',
+    gradientTo: 'to-emerald-700/90',
     features: [
       'Next.js 14 App Router + TypeScript 100% 적용',
       'Supabase PostgreSQL + Redis 하이브리드 데이터베이스',
@@ -166,16 +166,28 @@ export const FeatureCardsGrid: React.FC<FeatureCardsGridProps> = ({ className = 
               bg-gradient-to-br ${feature.gradientFrom} ${feature.gradientTo}
               ${feature.isSpecial ? 'ring-2 ring-yellow-400/50 ring-offset-2 ring-offset-transparent' : ''}
               shadow-lg hover:shadow-2xl
+              ${feature.id === 'mcp-ai-agent' ? 'hover:shadow-cyan-500/25 shadow-cyan-500/10' : ''}
+              ${feature.id === 'prometheus-data-generator' ? 'hover:shadow-blue-500/25 shadow-blue-500/10' : ''}
+              ${feature.id === 'modern-tech-stack' ? 'hover:shadow-green-500/25 shadow-green-500/10' : ''}
+              ${feature.id === 'vibe-coding' ? 'hover:shadow-yellow-500/25 shadow-yellow-500/10' : ''}
               transition-all duration-300
+              font-mono
             `}
             variants={cardVariants}
             whileHover={{ 
               scale: 1.05,
               y: -5,
+              rotateY: 2,
               transition: { type: "spring", stiffness: 300 }
             }}
             whileTap={{ scale: 0.98 }}
             onClick={() => handleCardClick(feature)}
+            style={{
+              boxShadow: feature.id === 'mcp-ai-agent' ? '0 0 30px rgba(0, 255, 255, 0.1)' :
+                         feature.id === 'prometheus-data-generator' ? '0 0 30px rgba(59, 130, 246, 0.1)' :
+                         feature.id === 'modern-tech-stack' ? '0 0 30px rgba(34, 197, 94, 0.1)' :
+                         feature.id === 'vibe-coding' ? '0 0 30px rgba(251, 191, 36, 0.1)' : 'none'
+            }}
           >
             {/* 특수 효과 - 황금카드용 */}
             {feature.isSpecial && (
@@ -220,26 +232,32 @@ export const FeatureCardsGrid: React.FC<FeatureCardsGridProps> = ({ className = 
 
             {/* 텍스트 영역 */}
             <div className="space-y-3">
-              <h3 className="text-xl font-bold text-white group-hover:text-white/90 transition-colors">
-                {feature.title}
+              <h3 className="text-xl font-bold text-white group-hover:text-white/90 transition-colors font-mono">
+                {">"} {feature.title}
               </h3>
-              <p className="text-white/80 text-sm leading-relaxed">
+              <p className="text-gray-300 text-sm leading-relaxed font-mono">
                 {feature.description}
               </p>
             </div>
 
-            {/* 호버 효과용 그라데이션 오버레이 */}
+            {/* 호버 효과용 네온 그라데이션 오버레이 */}
             <motion.div
-              className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              className={`
+                absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300
+                ${feature.id === 'mcp-ai-agent' ? 'bg-gradient-to-br from-cyan-500/5 to-blue-500/5' : ''}
+                ${feature.id === 'prometheus-data-generator' ? 'bg-gradient-to-br from-blue-500/5 to-purple-500/5' : ''}
+                ${feature.id === 'modern-tech-stack' ? 'bg-gradient-to-br from-green-500/5 to-emerald-500/5' : ''}
+                ${feature.id === 'vibe-coding' ? 'bg-gradient-to-br from-yellow-500/5 to-orange-500/5' : ''}
+              `}
               initial={false}
             />
 
-            {/* 클릭 힌트 */}
+            {/* 사이버펑크 클릭 힌트 */}
             <motion.div
-              className="absolute bottom-4 right-4 text-white/60 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              className="absolute bottom-4 right-4 text-green-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-mono"
               initial={false}
             >
-              클릭하여 자세히 보기
+              [ENTER] 자세히 보기
             </motion.div>
           </motion.div>
         ))}
