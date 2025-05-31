@@ -11,9 +11,7 @@
 export { AISidebar } from './components/AISidebar';
 export { AISidebarMobile } from './components/AISidebarMobile';
 export { ChatInterface } from './components/ChatInterface';
-export { MessageBubble } from './components/MessageBubble';
 export { StatusIndicator } from './components/StatusIndicator';
-export { ActionButtons } from './components/ActionButtons';
 export { RealtimeServerStatus } from './components/RealtimeServerStatus';
 export { DynamicQuestionTemplates } from './components/DynamicQuestionTemplates';
 export { IntegratedAIResponse } from './components/IntegratedAIResponse';

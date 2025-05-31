@@ -9,8 +9,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AISidebarConfig } from '../types';
 import { useAIChat } from '../hooks/useAIChat';
-import { MessageBubble } from './MessageBubble';
-import { ActionButtons } from './ActionButtons';
 import { usePowerStore } from '../../../stores/powerStore';
 import { smartAIAgent } from '../../../services/aiAgent';
 
@@ -19,6 +17,43 @@ interface ChatInterfaceProps {
   welcomeMessage?: string;
   className?: string;
 }
+
+// 간단한 메시지 버블 컴포넌트 (인라인)
+const SimpleMessageBubble = ({ message }: { message: any }) => {
+  const isUser = message.type === 'user';
+  
+  return (
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+      <div className={`max-w-[80%] px-4 py-2 rounded-lg ${
+        isUser 
+          ? 'bg-purple-500 text-white' 
+          : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+      }`}>
+        <div className="text-sm whitespace-pre-wrap">{message.content}</div>
+        <div className="text-xs opacity-70 mt-1">
+          {message.timestamp?.toLocaleTimeString() || new Date().toLocaleTimeString()}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// 간단한 액션 버튼 컴포넌트 (인라인)
+const SimpleActionButtons = ({ actions }: { actions: any[] }) => {
+  return (
+    <div className="flex gap-2 flex-wrap">
+      {actions.map((action, index) => (
+        <button
+          key={index}
+          onClick={() => action.onClick?.()}
+          className="px-3 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+        >
+          {action.label}
+        </button>
+      ))}
+    </div>
+  );
+};
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   config,
@@ -129,7 +164,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
         {/* 메시지 목록 */}
         {messages.map((message) => (
-          <MessageBubble
+          <SimpleMessageBubble
             key={message.id}
             message={message}
           />
@@ -189,7 +224,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       {/* 액션 버튼 영역 */}
       {config.customActions && config.customActions.length > 0 && (
         <div className="px-4 py-2 border-t dark:border-gray-700">
-          <ActionButtons actions={config.customActions} />
+          <SimpleActionButtons actions={config.customActions} />
         </div>
       )}
 

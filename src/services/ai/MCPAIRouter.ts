@@ -97,15 +97,25 @@ export class MCPAIRouter {
    */
   private async initializeIntentClassifier(): Promise<void> {
     try {
-      // UnifiedIntentClassifier 사용 시도
-      const { UnifiedIntentClassifier } = await import('./intent/UnifiedIntentClassifier');
-      this.intentClassifier = new UnifiedIntentClassifier();
-      console.log('🎯 통합 Intent Classifier 로드 완료');
-    } catch (error) {
-      console.warn('⚠️ UnifiedIntentClassifier 로드 실패, 기존 분류기 사용:', error);
-      // Fallback: 기존 IntentClassifier 사용
+      // 기존 IntentClassifier 사용
       const { IntentClassifier } = await import('./IntentClassifier');
       this.intentClassifier = new IntentClassifier();
+      console.log('🎯 Intent Classifier 로드 완료');
+    } catch (error) {
+      console.warn('⚠️ IntentClassifier 로드 실패:', error);
+      // 기본 fallback
+      this.intentClassifier = {
+        classify: async (query: string) => ({
+          primary: 'general_inquiry',
+          confidence: 0.5,
+          needsTimeSeries: false,
+          needsNLP: false,
+          needsAnomalyDetection: false,
+          needsComplexML: false,
+          entities: [],
+          urgency: 'medium'
+        })
+      };
     }
   }
 

@@ -87,6 +87,12 @@ const nextConfig: NextConfig = {
         test: /\.(stories|spec|test)\.(ts|tsx|js|jsx)$/,
         use: 'null-loader'
       });
+      
+      // archive 디렉토리 제외
+      config.module.rules.push({
+        test: /archive\/.*\.(ts|tsx|js|jsx)$/,
+        use: 'null-loader'
+      });
     }
 
     // CI 환경에서 메모리 최적화
