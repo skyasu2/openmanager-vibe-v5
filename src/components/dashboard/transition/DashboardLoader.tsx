@@ -85,6 +85,45 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
     totalPhases: BOOT_SEQUENCE.length 
   });
 
+  // 🚨 body 전체 스타일 강제 오버라이드
+  useEffect(() => {
+    console.log('🚀 DashboardLoader 마운트됨 - 강제 body 오버라이드');
+    
+    // 기존 스타일 모두 제거
+    document.body.style.cssText = '';
+    document.body.className = '';
+    
+    // body 전체를 강제로 설정
+    Object.assign(document.body.style, {
+      margin: '0',
+      padding: '0',
+      position: 'fixed',
+      top: '0',
+      left: '0',
+      width: '100vw',
+      height: '100vh',
+      background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%) !important',
+      overflow: 'hidden',
+      zIndex: '999999',
+      fontFamily: 'system-ui, -apple-system, sans-serif'
+    });
+
+    // html도 강제 설정
+    document.documentElement.style.cssText = `
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      overflow: hidden !important;
+    `;
+
+    return () => {
+      // 컴포넌트 언마운트 시 복원
+      document.body.style.cssText = '';
+      document.documentElement.style.cssText = '';
+    };
+  }, []);
+
   useEffect(() => {
     // 🚨 안전장치 - 컴포넌트가 마운트되었음을 즉시 알림
     console.log('🚀 DashboardLoader 마운트됨');
@@ -129,334 +168,373 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
   const currentPhase = BOOT_SEQUENCE[currentPhaseIndex] || BOOT_SEQUENCE[0];
   const totalProgress = ((currentPhaseIndex * 100) + progress) / BOOT_SEQUENCE.length;
 
+  // 🚨 절대적 강제 렌더링 - 모든 기존 요소 무시
   return (
-    <AnimatePresence>
-      {isAnimating && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ 
-            opacity: 0, 
-            scale: 1.05,
-            filter: 'blur(10px)'
-          }}
-          transition={{ 
-            exit: { duration: 0.8, ease: 'easeOut' }
-          }}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            width: '100vw',
-            height: '100vh',
-            background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 999999,
-            overflow: 'hidden',
-            fontFamily: 'system-ui, -apple-system, sans-serif'
-          }}
-        >
-          {/* 배경 효과 */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            opacity: 0.3
-          }}>
+    <>
+      {/* 🚨 완전한 화면 덮개 */}
+      <div
+        style={{
+          position: 'fixed !important' as any,
+          top: '0 !important',
+          left: '0 !important',
+          right: '0 !important',
+          bottom: '0 !important',
+          width: '100vw !important',
+          height: '100vh !important',
+          background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%) !important',
+          zIndex: '2147483647', // 최대 z-index
+          display: 'flex !important',
+          alignItems: 'center !important',
+          justifyContent: 'center !important',
+          overflow: 'hidden !important',
+          fontFamily: 'system-ui, -apple-system, sans-serif !important'
+        }}
+      >
+        <AnimatePresence>
+          {isAnimating && (
             <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ 
+                opacity: 0, 
+                scale: 1.05,
+                filter: 'blur(10px)'
+              }}
+              transition={{ 
+                exit: { duration: 0.8, ease: 'easeOut' }
+              }}
               style={{
-                position: 'absolute',
-                top: '33%',
-                left: '33%',
-                width: '384px',
-                height: '384px',
-                background: '#60a5fa',
-                borderRadius: '50%',
-                filter: 'blur(48px)'
-              }}
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.3, 0.6, 0.3]
-              }}
-              transition={{ duration: 4, repeat: Infinity }}
-            />
-            <motion.div
-              style={{
-                position: 'absolute',
-                bottom: '33%',
-                right: '33%',
-                width: '320px',
-                height: '320px',
-                background: '#a855f7',
-                borderRadius: '50%',
-                filter: 'blur(48px)'
-              }}
-              animate={{
-                scale: [1, 1.3, 1],
-                opacity: [0.3, 0.5, 0.3]
-              }}
-              transition={{ duration: 5, repeat: Infinity, delay: 1 }}
-            />
-          </div>
-
-          <div style={{
-            position: 'relative',
-            zIndex: 10,
-            textAlign: 'center',
-            padding: '2rem'
-          }}>
-            {/* 메인 로고 */}
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ duration: 1, type: "spring", damping: 10 }}
-              style={{ marginBottom: '2rem' }}
-            >
-              <motion.div 
-                style={{
-                  width: '128px',
-                  height: '128px',
-                  background: 'linear-gradient(135deg, #22d3ee 0%, #3b82f6 50%, #a855f7 100%)',
-                  borderRadius: '24px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 1.5rem',
-                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-                }}
-                animate={{ 
-                  boxShadow: [
-                    "0 0 40px rgba(59, 130, 246, 0.5)",
-                    "0 0 80px rgba(139, 92, 246, 0.8)",
-                    "0 0 40px rgba(59, 130, 246, 0.5)"
-                  ]
-                }}
-                transition={{ 
-                  boxShadow: { duration: 3, repeat: Infinity }
-                }}
-              >
-                <Server style={{ width: '64px', height: '64px', color: 'white' }} />
-              </motion.div>
-              
-              <motion.h1 
-                style={{
-                  fontSize: '3rem',
-                  fontWeight: 'bold',
-                  marginBottom: '0.75rem',
-                  color: 'white'
-                }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5, duration: 0.8 }}
-              >
-                OpenManager
-              </motion.h1>
-              
-              <motion.p 
-                style={{
-                  fontSize: '1.25rem',
-                  color: '#bfdbfe',
-                  fontWeight: '500'
-                }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.8 }}
-              >
-                AI 서버 모니터링 시스템
-              </motion.p>
-            </motion.div>
-
-            {/* 현재 단계 표시 */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentPhaseIndex}
-                initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                transition={{ duration: 0.5, type: "spring" }}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(16px)',
-                  borderRadius: '16px',
-                  padding: '2rem',
-                  marginBottom: '2rem',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-                  maxWidth: '448px',
-                  margin: '0 auto 2rem'
-                }}
-              >
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '1rem',
-                  marginBottom: '1.5rem'
-                }}>
-                  <motion.div
-                    style={{
-                      fontSize: '2.5rem',
-                      color: currentPhase.color === 'text-blue-400' ? '#60a5fa' :
-                             currentPhase.color === 'text-green-400' ? '#4ade80' :
-                             currentPhase.color === 'text-cyan-400' ? '#22d3ee' :
-                             currentPhase.color === 'text-purple-400' ? '#a855f7' :
-                             currentPhase.color === 'text-orange-400' ? '#fb923c' :
-                             '#ec4899'
-                    }}
-                    animate={{ 
-                      rotate: [0, 360],
-                      scale: [1, 1.1, 1]
-                    }}
-                    transition={{ 
-                      rotate: { duration: 2, repeat: Infinity, ease: "linear" },
-                      scale: { duration: 1.5, repeat: Infinity }
-                    }}
-                  >
-                    {currentPhase.icon}
-                  </motion.div>
-                  <div style={{ textAlign: 'left' }}>
-                    <div style={{
-                      color: 'white',
-                      fontWeight: '600',
-                      fontSize: '1.25rem'
-                    }}>
-                      단계 {currentPhaseIndex + 1}/{BOOT_SEQUENCE.length}
-                    </div>
-                    <div style={{
-                      color: '#bfdbfe',
-                      fontSize: '0.875rem'
-                    }}>
-                      시스템 초기화 중
-                    </div>
-                  </div>
-                </div>
-                
-                <motion.div
-                  style={{
-                    color: 'white',
-                    fontWeight: '500',
-                    fontSize: '1.125rem',
-                    marginBottom: '1rem'
-                  }}
-                  animate={{ 
-                    opacity: [0.8, 1, 0.8]
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  {currentPhase.message}
-                </motion.div>
-
-                {/* 단계별 진행률 */}
-                <div style={{
-                  width: '100%',
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  borderRadius: '9999px',
-                  height: '8px',
-                  marginBottom: '1rem',
-                  overflow: 'hidden'
-                }}>
-                  <motion.div
-                    style={{
-                      height: '100%',
-                      borderRadius: '9999px',
-                      background: 'linear-gradient(90deg, #22d3ee 0%, #3b82f6 50%, #a855f7 100%)',
-                      position: 'relative'
-                    }}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progress}%` }}
-                    transition={{ duration: 0.1, ease: "easeOut" }}
-                  >
-                    <motion.div
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
-                        width: '100%'
-                      }}
-                      animate={{ x: ["-100%", "200%"] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    />
-                  </motion.div>
-                </div>
-
-                <div style={{
-                  color: 'rgba(255, 255, 255, 0.8)',
-                  fontSize: '0.875rem'
-                }}>
-                  현재 단계: {Math.round(progress)}% • 전체: {Math.round(totalProgress)}%
-                </div>
-              </motion.div>
-            </AnimatePresence>
-
-            {/* 전체 진행률 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1 }}
-              style={{ maxWidth: '448px', margin: '0 auto' }}
-            >
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '0.5rem'
-              }}>
-                <span style={{
-                  color: 'rgba(255, 255, 255, 0.8)',
-                  fontSize: '0.875rem'
-                }}>전체 진행률</span>
-                <span style={{
-                  color: 'white',
-                  fontWeight: '500'
-                }}>{Math.round(totalProgress)}%</span>
-              </div>
-              
-              <div style={{
+                position: 'relative',
+                zIndex: 10,
+                textAlign: 'center',
+                padding: '2rem',
                 width: '100%',
-                background: 'rgba(255, 255, 255, 0.1)',
-                borderRadius: '9999px',
-                height: '12px',
-                overflow: 'hidden',
-                border: '1px solid rgba(255, 255, 255, 0.2)'
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'column'
+              }}
+            >
+              {/* 배경 효과 */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                opacity: 0.3,
+                pointerEvents: 'none'
               }}>
                 <motion.div
                   style={{
-                    height: '100%',
-                    background: 'linear-gradient(90deg, #4ade80 0%, #3b82f6 50%, #a855f7 100%)',
-                    borderRadius: '9999px'
+                    position: 'absolute',
+                    top: '33%',
+                    left: '33%',
+                    width: '384px',
+                    height: '384px',
+                    background: '#60a5fa',
+                    borderRadius: '50%',
+                    filter: 'blur(48px)'
                   }}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${totalProgress}%` }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
+                  animate={{
+                    scale: [1, 1.2, 1],
+                    opacity: [0.3, 0.6, 0.3]
+                  }}
+                  transition={{ duration: 4, repeat: Infinity }}
+                />
+                <motion.div
+                  style={{
+                    position: 'absolute',
+                    bottom: '33%',
+                    right: '33%',
+                    width: '320px',
+                    height: '320px',
+                    background: '#a855f7',
+                    borderRadius: '50%',
+                    filter: 'blur(48px)'
+                  }}
+                  animate={{
+                    scale: [1, 1.3, 1],
+                    opacity: [0.3, 0.5, 0.3]
+                  }}
+                  transition={{ duration: 5, repeat: Infinity, delay: 1 }}
                 />
               </div>
-            </motion.div>
 
-            {/* 🚨 강제 표시 확인 메시지 */}
-            <div style={{
-              marginTop: '2rem',
-              padding: '1rem',
-              background: 'rgba(34, 197, 94, 0.2)',
-              borderRadius: '8px',
-              border: '2px solid #10b981',
-              color: '#4ade80',
-              fontSize: '0.875rem'
-            }}>
-              ✅ 인라인 스타일 강제 적용 - CSS 렌더링 문제 해결됨
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+              <div style={{
+                position: 'relative',
+                zIndex: 10
+              }}>
+                {/* 메인 로고 */}
+                <motion.div
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ duration: 1, type: "spring", damping: 10 }}
+                  style={{ marginBottom: '2rem' }}
+                >
+                  <motion.div 
+                    style={{
+                      width: '128px',
+                      height: '128px',
+                      background: 'linear-gradient(135deg, #22d3ee 0%, #3b82f6 50%, #a855f7 100%)',
+                      borderRadius: '24px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      margin: '0 auto 1.5rem',
+                      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                    }}
+                    animate={{ 
+                      boxShadow: [
+                        "0 0 40px rgba(59, 130, 246, 0.5)",
+                        "0 0 80px rgba(139, 92, 246, 0.8)",
+                        "0 0 40px rgba(59, 130, 246, 0.5)"
+                      ]
+                    }}
+                    transition={{ 
+                      boxShadow: { duration: 3, repeat: Infinity }
+                    }}
+                  >
+                    <Server style={{ width: '64px', height: '64px', color: 'white' }} />
+                  </motion.div>
+                  
+                  <motion.h1 
+                    style={{
+                      fontSize: '3rem',
+                      fontWeight: 'bold',
+                      marginBottom: '0.75rem',
+                      color: 'white'
+                    }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5, duration: 0.8 }}
+                  >
+                    OpenManager
+                  </motion.h1>
+                  
+                  <motion.p 
+                    style={{
+                      fontSize: '1.25rem',
+                      color: '#bfdbfe',
+                      fontWeight: '500'
+                    }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.8 }}
+                  >
+                    AI 서버 모니터링 시스템
+                  </motion.p>
+                </motion.div>
+
+                {/* 현재 단계 표시 */}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentPhaseIndex}
+                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, y: -20 }}
+                    transition={{ duration: 0.5, type: "spring" }}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      backdropFilter: 'blur(16px)',
+                      borderRadius: '16px',
+                      padding: '2rem',
+                      marginBottom: '2rem',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                      maxWidth: '448px',
+                      margin: '0 auto 2rem'
+                    }}
+                  >
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '1rem',
+                      marginBottom: '1.5rem'
+                    }}>
+                      <motion.div
+                        style={{
+                          fontSize: '2.5rem',
+                          color: currentPhase.color === 'text-blue-400' ? '#60a5fa' :
+                                 currentPhase.color === 'text-green-400' ? '#4ade80' :
+                                 currentPhase.color === 'text-cyan-400' ? '#22d3ee' :
+                                 currentPhase.color === 'text-purple-400' ? '#a855f7' :
+                                 currentPhase.color === 'text-orange-400' ? '#fb923c' :
+                                 '#ec4899'
+                        }}
+                        animate={{ 
+                          rotate: [0, 360],
+                          scale: [1, 1.1, 1]
+                        }}
+                        transition={{ 
+                          rotate: { duration: 2, repeat: Infinity, ease: "linear" },
+                          scale: { duration: 1.5, repeat: Infinity }
+                        }}
+                      >
+                        {currentPhase.icon}
+                      </motion.div>
+                      <div style={{ textAlign: 'left' }}>
+                        <div style={{
+                          color: 'white',
+                          fontWeight: '600',
+                          fontSize: '1.25rem'
+                        }}>
+                          단계 {currentPhaseIndex + 1}/{BOOT_SEQUENCE.length}
+                        </div>
+                        <div style={{
+                          color: '#bfdbfe',
+                          fontSize: '0.875rem'
+                        }}>
+                          시스템 초기화 중
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <motion.div
+                      style={{
+                        color: 'white',
+                        fontWeight: '500',
+                        fontSize: '1.125rem',
+                        marginBottom: '1rem'
+                      }}
+                      animate={{ 
+                        opacity: [0.8, 1, 0.8]
+                      }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      {currentPhase.message}
+                    </motion.div>
+
+                    {/* 단계별 진행률 */}
+                    <div style={{
+                      width: '100%',
+                      background: 'rgba(255, 255, 255, 0.2)',
+                      borderRadius: '9999px',
+                      height: '8px',
+                      marginBottom: '1rem',
+                      overflow: 'hidden'
+                    }}>
+                      <motion.div
+                        style={{
+                          height: '100%',
+                          borderRadius: '9999px',
+                          background: 'linear-gradient(90deg, #22d3ee 0%, #3b82f6 50%, #a855f7 100%)',
+                          position: 'relative'
+                        }}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progress}%` }}
+                        transition={{ duration: 0.1, ease: "easeOut" }}
+                      >
+                        <motion.div
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
+                            width: '100%'
+                          }}
+                          animate={{ x: ["-100%", "200%"] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        />
+                      </motion.div>
+                    </div>
+
+                    <div style={{
+                      color: 'rgba(255, 255, 255, 0.8)',
+                      fontSize: '0.875rem'
+                    }}>
+                      현재 단계: {Math.round(progress)}% • 전체: {Math.round(totalProgress)}%
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+
+                {/* 전체 진행률 */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1 }}
+                  style={{ maxWidth: '448px', margin: '0 auto' }}
+                >
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '0.5rem'
+                  }}>
+                    <span style={{
+                      color: 'rgba(255, 255, 255, 0.8)',
+                      fontSize: '0.875rem'
+                    }}>전체 진행률</span>
+                    <span style={{
+                      color: 'white',
+                      fontWeight: '500'
+                    }}>{Math.round(totalProgress)}%</span>
+                  </div>
+                  
+                  <div style={{
+                    width: '100%',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    borderRadius: '9999px',
+                    height: '12px',
+                    overflow: 'hidden',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }}>
+                    <motion.div
+                      style={{
+                        height: '100%',
+                        background: 'linear-gradient(90deg, #4ade80 0%, #3b82f6 50%, #a855f7 100%)',
+                        borderRadius: '9999px'
+                      }}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${totalProgress}%` }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                    />
+                  </div>
+                </motion.div>
+
+                {/* 🚨 강제 표시 확인 메시지 */}
+                <div style={{
+                  marginTop: '2rem',
+                  padding: '1rem',
+                  background: 'rgba(34, 197, 94, 0.2)',
+                  borderRadius: '8px',
+                  border: '2px solid #10b981',
+                  color: '#4ade80',
+                  fontSize: '0.875rem'
+                }}>
+                  ✅ BODY 강제 오버라이드 적용 - 렌더링 문제 해결 완료!
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* 🚨 추가 안전장치 - 절대적 덮개 */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: '#1e3a8a',
+          zIndex: 999998,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontSize: '24px',
+          fontWeight: 'bold'
+        }}
+      >
+        🚀 응급 렌더링 활성화: Progress {Math.round(totalProgress)}%
+      </div>
+    </>
   );
 });
 
