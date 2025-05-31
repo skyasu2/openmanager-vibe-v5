@@ -173,7 +173,7 @@ export async function GET(request: NextRequest) {
       case 'prometheus':
         try {
           if (!query) {
-            return createErrorResponse('쿼리 파라미터가 필요합니다', 'BAD_REQUEST');
+            return createErrorResponse('쿼리 파라미터가 필요합니다', 'VALIDATION_ERROR');
           }
           
           const result = await prometheusDataHub.queryMetrics({
@@ -245,7 +245,7 @@ export async function GET(request: NextRequest) {
       default:
         return createErrorResponse(
           `알 수 없는 액션: ${action}. 사용 가능한 액션: health, servers, prometheus, start, stop`,
-          'BAD_REQUEST'
+          'VALIDATION_ERROR'
         );
     }
 

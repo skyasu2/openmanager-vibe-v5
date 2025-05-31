@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSystemControl } from './useSystemControl';
 import { useSequentialServerGeneration } from './useSequentialServerGeneration';
 import { useMinimumLoadingTime, useDataLoadingPromise } from './useMinimumLoadingTime';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import type { Server } from '../types/server';
 import { setupGlobalErrorHandler, safeErrorLog, isLoadingRelatedError } from '../lib/error-handler';
@@ -36,7 +36,14 @@ interface DashboardLogicState {
  */
 export function useDashboardLogic() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const [searchParams, setSearchParams] = useState<URLSearchParams | null>(null);
+  
+  // 클라이언트 사이드에서만 searchParams 설정
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setSearchParams(new URLSearchParams(window.location.search));
+    }
+  }, []);
   
   const [state, setState] = useState<DashboardLogicState>({
     isBootSequenceComplete: false,
@@ -529,7 +536,10 @@ export function useDashboardLogic() {
     
     // ✨ 새로운 전환 시스템 핸들러
     handleBootComplete,
-    handleServerSpawned,
+    handleServerSpawned: (server: any, index: number) => {
+      console.log(`🚀 서버 생성됨: ${server.name} (${index + 1}/${serverGeneration.servers.length})`);
+    },
+    handleBootSequenceComplete: handleBootComplete,
     
     // Animation
     mainContentVariants,

@@ -19,7 +19,7 @@ async function stopSystemHandler(request: NextRequest) {
     if (!result.success) {
       return createErrorResponse(
         result.message,
-        'BAD_REQUEST'
+        'VALIDATION_ERROR'
       );
     }
 

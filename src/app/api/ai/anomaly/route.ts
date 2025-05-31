@@ -116,7 +116,7 @@ async function runAnomalyDetectionHandler(request: NextRequest) {
     }
 
     if (servers.length === 0) {
-      return createErrorResponse('분석할 서버가 없습니다', 'BAD_REQUEST');
+      return createErrorResponse('분석할 서버가 없습니다', 'VALIDATION_ERROR');
     }
 
     // 민감도에 따른 임계값 조정

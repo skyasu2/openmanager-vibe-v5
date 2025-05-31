@@ -83,7 +83,7 @@ async function runLoadTestHandler(request: NextRequest) {
 
     // 이미 테스트가 실행 중인지 확인
     if (performanceTester.isTestRunning()) {
-      return createErrorResponse('이미 부하 테스트가 실행 중입니다', 'CONFLICT');
+      return createErrorResponse('이미 부하 테스트가 실행 중입니다', 'VALIDATION_ERROR');
     }
 
     // 부하 테스트 설정
