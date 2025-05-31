@@ -15,22 +15,27 @@ jobs:
   build-test:
     name: 🏗️ Build Test
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      timeout-minutes: 2
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
+      timeout-minutes: 3
       with:
-        node-version: '18'
+        node-version-file: '.nvmrc'
         cache: 'npm'
 
     - name: Install dependencies
+      timeout-minutes: 3
       run: npm ci
       env:
         NODE_OPTIONS: '--max-old-space-size=4096'
 
     - name: Build application
+      timeout-minutes: 5
       run: npm run build
       env:
         NODE_ENV: production

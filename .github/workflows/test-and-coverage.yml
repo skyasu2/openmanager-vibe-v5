@@ -10,21 +10,26 @@ jobs:
   test:
     name: 🧪 Unit Tests & Coverage
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
+        timeout-minutes: 2
         
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
+        timeout-minutes: 3
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
           
       - name: 🧹 Clear npm cache
+        timeout-minutes: 1
         run: npm cache clean --force
           
       - name: 📦 Install dependencies
+        timeout-minutes: 5
         run: |
           echo "Installing dependencies with CI optimizations..."
           npm ci --no-audit --no-fund --prefer-offline
