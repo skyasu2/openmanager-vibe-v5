@@ -204,14 +204,6 @@ export const FeatureCardsGrid: React.FC<FeatureCardsGridProps> = ({ className = 
               className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-white/5 to-white/10"
               initial={false}
             />
-
-            {/* 클릭 힌트 */}
-            <motion.div
-              className="absolute bottom-4 right-4 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-cyan-400"
-              initial={false}
-            >
-              자세히 보기 →
-            </motion.div>
           </motion.div>
         ))}
       </motion.div>
