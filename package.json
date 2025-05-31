@@ -99,7 +99,12 @@
     "deploy:skip-ci": "echo '⚠️ GitHub Actions를 사용해주세요: git push origin main'",
     "deploy:local": "npm run build && echo '🏗️ 로컬 빌드 완료. GitHub Actions로 배포하세요.'",
     "deploy:quick": "git add -A && git commit -m '🚀 빠른 배포' && git push origin main",
-    "deploy:github": "git push origin main && echo '🚀 GitHub Actions 배포 트리거됨'"
+    "deploy:github": "git push origin main && echo '🚀 GitHub Actions 배포 트리거됨'",
+    "consolidate": "node scripts/consolidate-project.js",
+    "consolidate:report": "node scripts/consolidate-project.js && cat CONSOLIDATION_REPORT.md",
+    "project:analyze": "node scripts/consolidate-project.js --analyze-only",
+    "project:cleanup": "node scripts/consolidate-project.js --cleanup-only",
+    "project:optimize": "npm run project:cleanup && npm run consolidate && npm run test:quality"
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",
