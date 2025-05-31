@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSystemControl } from './useSystemControl';
 import { useSequentialServerGeneration } from './useSequentialServerGeneration';
+import { useMinimumLoadingTime, useDataLoadingPromise } from './useMinimumLoadingTime';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import type { Server } from '../types/server';
@@ -185,31 +186,47 @@ export function useDashboardLogic() {
     setIsClient(true);
   }, []);
 
-  // ✨ 개선된 전환 로직 - 시간 기반이 아닌 실제 완료 기반
-  useEffect(() => {
-    if (!isClient) return;
+  // ✨ 데이터 로딩 Promise 생성
+  const dataLoadingPromise = useDataLoadingPromise(
+    serverGeneration.servers,
+    serverGeneration.status.isGenerating,
+    serverGeneration.status.error
+  );
 
-    // URL 파라미터로 애니메이션 스킵 옵션 제공
+  // ✨ URL 파라미터 기반 스킵 조건 확인
+  const skipCondition = useMemo(() => {
+    if (!isClient) return false;
+    
     const urlParams = new URLSearchParams(window.location.search);
     const skipAnimation = urlParams.get('skip-animation') === 'true';
     const fastLoad = urlParams.get('fast') === 'true';
+    const instantLoad = urlParams.get('instant') === 'true';
+    const forceSkip = urlParams.get('force-skip') === 'true';
     
-    if (skipAnimation || fastLoad) {
-      console.log('⚡ Fast loading mode - skipping boot sequence');
-      setShowBootSequence(false);
-      return;
-    }
-
     // prefers-reduced-motion 지원
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) {
-      console.log('♿ Reduced motion preference detected - skipping animations');
-      setShowBootSequence(false);
-      return;
-    }
-
-    console.log('🚀 Starting natural boot sequence');
+    
+    return skipAnimation || fastLoad || instantLoad || forceSkip || prefersReducedMotion;
   }, [isClient]);
+
+  // ✨ 최소 로딩 시간 보장 (5초)
+  const minimumLoadingState = useMinimumLoadingTime({
+    minimumDuration: 5000, // 5초 최소 보장
+    actualLoadingPromise: dataLoadingPromise,
+    skipCondition
+  });
+
+  // ✨ showBootSequence 조건 개선
+  const shouldShowBootSequence = useMemo(() => {
+    // 스킵 조건이 있으면 부팅 시퀀스 숨김
+    if (skipCondition) {
+      console.log('⚡ Boot sequence skipped due to skip condition');
+      return false;
+    }
+    
+    // 최소 로딩 시간이 끝나지 않았으면 부팅 시퀀스 표시
+    return minimumLoadingState.isLoading;
+  }, [skipCondition, minimumLoadingState.isLoading]);
 
   // Responsive screen size detection
   useEffect(() => {
@@ -308,11 +325,22 @@ export function useDashboardLogic() {
   useEffect(() => {
     console.log('🔍 useDashboardLogic 상태:', {
       isClient,
-      showBootSequence,
+      showBootSequence: shouldShowBootSequence,
       serversCount: serverGeneration.servers.length,
-      systemActive: systemControl.isSystemActive
+      systemActive: systemControl.isSystemActive,
+      loadingProgress: minimumLoadingState.progress,
+      loadingPhase: minimumLoadingState.phase,
+      estimatedTimeRemaining: minimumLoadingState.estimatedTimeRemaining
     });
-  }, [isClient, showBootSequence, serverGeneration.servers.length, systemControl.isSystemActive]);
+  }, [
+    isClient, 
+    shouldShowBootSequence, 
+    serverGeneration.servers.length, 
+    systemControl.isSystemActive,
+    minimumLoadingState.progress,
+    minimumLoadingState.phase,
+    minimumLoadingState.estimatedTimeRemaining
+  ]);
 
   return {
     // State
@@ -323,11 +351,17 @@ export function useDashboardLogic() {
     selectedServer,
     serverStats,
     
-    // ✨ 새로운 전환 시스템 상태
-    showBootSequence,
-    bootProgress,
+    // ✨ 새로운 전환 시스템 상태 (개선됨)
+    showBootSequence: shouldShowBootSequence,
+    bootProgress: minimumLoadingState.progress,
     isTransitioning,
     showSequentialGeneration,
+    
+    // ✨ 추가된 로딩 상태 정보
+    loadingPhase: minimumLoadingState.phase,
+    estimatedTimeRemaining: minimumLoadingState.estimatedTimeRemaining,
+    elapsedTime: minimumLoadingState.elapsedTime,
+    isDataReady: !minimumLoadingState.isLoading && serverGeneration.servers.length > 0,
     
     // Actions
     setSelectedServer,

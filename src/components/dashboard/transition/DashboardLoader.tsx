@@ -7,13 +7,17 @@
  * - 실제 부팅 순서 반영
  */
 
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, memo, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Server, Database, Cloud, Shield, BarChart3, Zap } from 'lucide-react';
 
 interface DashboardLoaderProps {
   onBootComplete: () => void;
   onPhaseChange?: (phase: string, message: string) => void;
+  externalProgress?: number;
+  loadingPhase?: 'minimum-wait' | 'actual-loading' | 'completed';
+  estimatedTimeRemaining?: number;
+  elapsedTime?: number;
 }
 
 interface BootPhase {
@@ -71,7 +75,11 @@ const BOOT_SEQUENCE: BootPhase[] = [
 
 const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
   onBootComplete,
-  onPhaseChange
+  onPhaseChange,
+  externalProgress = 0,
+  loadingPhase = 'minimum-wait',
+  estimatedTimeRemaining = 0,
+  elapsedTime = 0
 }) => {
   const [currentPhaseIndex, setCurrentPhaseIndex] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -83,9 +91,27 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
     setIsMounted(true);
   }, []);
 
+  // 외부 진행률과 내부 애니메이션 진행률 조합
+  const displayProgress = useMemo(() => {
+    // 외부 진행률이 있으면 우선 사용, 없으면 내부 진행률 사용
+    return Math.max(progress, externalProgress);
+  }, [progress, externalProgress]);
+
+  // 로딩 완료 조건 개선
   useEffect(() => {
     if (!isMounted) return;
     
+    // 외부에서 완료 신호가 오면 즉시 완료
+    if (externalProgress >= 100 && loadingPhase === 'completed') {
+      console.log('✅ External loading completed - finishing animation');
+      setTimeout(() => {
+        setIsAnimating(false);
+        onBootComplete();
+      }, 500);
+      return;
+    }
+    
+    // 기존 내부 애니메이션 로직
     if (currentPhaseIndex >= BOOT_SEQUENCE.length) {
       setTimeout(() => {
         setIsAnimating(false);
@@ -115,7 +141,7 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
     }, 50);
 
     return () => clearInterval(progressInterval);
-  }, [currentPhaseIndex, onBootComplete, onPhaseChange, isMounted]);
+  }, [currentPhaseIndex, onBootComplete, onPhaseChange, isMounted, externalProgress, loadingPhase]);
 
   // SSR에서는 렌더링하지 않음
   if (!isMounted) {
@@ -123,7 +149,13 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
   }
 
   const currentPhase = BOOT_SEQUENCE[currentPhaseIndex] || BOOT_SEQUENCE[0];
-  const totalProgress = ((currentPhaseIndex * 100) + progress) / BOOT_SEQUENCE.length;
+  const totalProgress = ((currentPhaseIndex * 100) + displayProgress) / BOOT_SEQUENCE.length;
+
+  // 시간 포맷팅 헬퍼
+  const formatTime = (ms: number): string => {
+    const seconds = Math.ceil(ms / 1000);
+    return seconds > 60 ? `${Math.floor(seconds / 60)}분 ${seconds % 60}초` : `${seconds}초`;
+  };
 
   return (
     <AnimatePresence>
@@ -266,7 +298,7 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
                   <motion.div
                     className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600"
                     initial={{ width: 0 }}
-                    animate={{ width: `${progress}%` }}
+                    animate={{ width: `${displayProgress}%` }}
                     transition={{ duration: 0.1, ease: "easeOut" }}
                   >
                     <motion.div
@@ -278,7 +310,7 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
                 </div>
 
                 <div className="text-white/80 text-sm">
-                  현재 단계: {Math.round(progress)}% • 전체: {Math.round(totalProgress)}%
+                  현재 단계: {Math.round(displayProgress)}% • 전체: {Math.round(totalProgress)}%
                 </div>
               </motion.div>
             </AnimatePresence>
@@ -302,6 +334,27 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(({
                   animate={{ width: `${totalProgress}%` }}
                   transition={{ duration: 0.3, ease: "easeOut" }}
                 />
+              </div>
+              
+              {/* ✨ 추가된 로딩 상태 정보 */}
+              <div className="mt-4 text-center space-y-2">
+                {estimatedTimeRemaining > 0 && (
+                  <div className="text-blue-200 text-sm">
+                    예상 남은 시간: {formatTime(estimatedTimeRemaining)}
+                  </div>
+                )}
+                
+                {elapsedTime > 0 && (
+                  <div className="text-white/60 text-xs">
+                    경과 시간: {formatTime(elapsedTime)}
+                  </div>
+                )}
+                
+                <div className="text-cyan-300 text-xs font-medium">
+                  {loadingPhase === 'minimum-wait' && '⏱️ 안정적인 로딩 시간 보장 중...'}
+                  {loadingPhase === 'actual-loading' && '📊 데이터 로딩 중...'}
+                  {loadingPhase === 'completed' && '✅ 로딩 완료!'}
+                </div>
               </div>
             </motion.div>
           </div>

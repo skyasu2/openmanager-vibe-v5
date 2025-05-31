@@ -20,6 +20,10 @@ interface SystemBootSequenceProps {
   onServerSpawned?: (server: Server, index: number) => void;
   skipAnimation?: boolean;
   autoStart?: boolean;
+  loadingProgress?: number;
+  loadingPhase?: 'minimum-wait' | 'actual-loading' | 'completed';
+  estimatedTimeRemaining?: number;
+  elapsedTime?: number;
 }
 
 type BootPhase = 'initializing' | 'core-loading' | 'server-spawning' | 'finalizing' | 'complete';
@@ -29,7 +33,11 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
   onBootComplete,
   onServerSpawned,
   skipAnimation = false,
-  autoStart = true
+  autoStart = true,
+  loadingProgress = 0,
+  loadingPhase = 'minimum-wait',
+  estimatedTimeRemaining = 0,
+  elapsedTime = 0
 }) => {
   const [showBootSequence, setShowBootSequence] = useState(true);
   const [showSpawning, setShowSpawning] = useState(false);
@@ -43,6 +51,15 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
       return;
     }
   }, [skipAnimation, onBootComplete]);
+
+  // ✨ 로딩 완료 조건 개선 - 외부 진행률 기반
+  useEffect(() => {
+    if (loadingProgress >= 100 && loadingPhase === 'completed') {
+      console.log('✅ External loading completed, starting server spawning');
+      setShowBootSequence(false);
+      setShowSpawning(true);
+    }
+  }, [loadingProgress, loadingPhase]);
 
   // DashboardLoader 완료 핸들러
   const handleBootComplete = useCallback(() => {
@@ -74,6 +91,10 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(({
           onPhaseChange={(phase, message) => {
             console.log(`Phase: ${phase}, Message: ${message}`);
           }}
+          externalProgress={loadingProgress}
+          loadingPhase={loadingPhase}
+          estimatedTimeRemaining={estimatedTimeRemaining}
+          elapsedTime={elapsedTime}
         />
       )}
       

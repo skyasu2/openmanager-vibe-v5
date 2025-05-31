@@ -57,6 +57,13 @@ export default function DashboardPage() {
     showBootSequence,
     showSequentialGeneration,
     
+    // ✨ 새로운 로딩 상태 정보
+    bootProgress,
+    loadingPhase,
+    estimatedTimeRemaining,
+    elapsedTime,
+    isDataReady,
+    
     // Actions
     setSelectedServer,
     setShowSequentialGeneration,
@@ -131,7 +138,7 @@ export default function DashboardPage() {
     const instantLoad = urlParams?.get('instant') === 'true'; // 🚨 새로운 즉시 로딩 옵션
     
     // 🚨 추가 안전장치: 서버 데이터가 없으면 자동 스킵
-    if (forceSkip || instantLoad || serverGeneration.servers.length === 0) {
+    if (forceSkip || instantLoad) {
       console.log('🚨 Emergency skip activated:', { forceSkip, instantLoad, serversCount: serverGeneration.servers.length });
       
       // 즉시 대시보드 표시
@@ -169,6 +176,11 @@ export default function DashboardPage() {
                 <li>• 서버 수: {serverGeneration.servers.length}</li>
                 <li>• 시스템 상태: {systemControl.isSystemActive ? '활성' : '비활성'}</li>
                 <li>• 클라이언트: {isClient ? '준비됨' : '로딩중'}</li>
+                <li>• 로딩 진행률: {Math.round(bootProgress)}%</li>
+                <li>• 로딩 단계: {loadingPhase}</li>
+                {estimatedTimeRemaining > 0 && (
+                  <li>• 예상 남은 시간: {Math.ceil(estimatedTimeRemaining / 1000)}초</li>
+                )}
               </ul>
             </div>
           </div>
@@ -183,6 +195,11 @@ export default function DashboardPage() {
         onServerSpawned={handleServerSpawned}
         skipAnimation={false}
         autoStart={true}
+        // ✨ 새로운 로딩 상태 정보 전달
+        loadingProgress={bootProgress}
+        loadingPhase={loadingPhase}
+        estimatedTimeRemaining={estimatedTimeRemaining}
+        elapsedTime={elapsedTime}
       />
     );
   }
