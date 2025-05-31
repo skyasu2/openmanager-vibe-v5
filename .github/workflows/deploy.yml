@@ -1,85 +1,45 @@
-name: 🚀 Deploy to Vercel (Personal Account)
+name: 🚀 Deploy to Vercel
 
 on:
   # Secrets 설정 완료! 자동 배포 활성화
   push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+    branches: [main]
   workflow_dispatch:
 
 # Vercel 환경변수는 Secrets에서 직접 처리
 
 jobs:
-  # 1. 빌드 테스트
-  build-test:
-    name: 🏗️ Build Test
+  deploy:
+    name: 🚀 Deploy
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      timeout-minutes: 2
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      timeout-minutes: 3
-      with:
-        node-version-file: '.nvmrc'
-        cache: 'npm'
-
-    - name: Install dependencies
-      timeout-minutes: 3
-      run: npm ci
-      env:
-        NODE_OPTIONS: '--max-old-space-size=4096'
-
-    - name: Build application
-      timeout-minutes: 5
-      run: npm run build
-      env:
-        NODE_ENV: production
-        CI: true
-        NODE_OPTIONS: '--max-old-space-size=4096'
-        SKIP_ENV_VALIDATION: true
-
-  # 2. Vercel 배포 (개인 계정용 - ORG_ID/PROJECT_ID 불필요)
-  deploy:
-    name: 🚀 Deploy to Vercel
-    runs-on: ubuntu-latest
-    needs: build-test
-    outputs:
-      preview-url: ${{ steps.deploy.outputs.preview-url }}
-      production-url: ${{ steps.deploy.outputs.production-url }}
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Install Vercel CLI
-      run: npm install --global vercel@latest
-
-    - name: Deploy to Vercel
-      id: deploy
-      run: |
-        # Vercel 토큰 확인
-        if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
-          echo "❌ VERCEL_TOKEN이 설정되지 않았습니다"
-          exit 1
-        fi
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
         
-        if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-          echo "🚀 Deploying to production..."
-          URL=$(vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes --confirm)
-          echo "production-url=$URL" >> $GITHUB_OUTPUT
-        else
-          echo "🚀 Deploying preview..."
-          URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }} --yes)
-          echo "preview-url=$URL" >> $GITHUB_OUTPUT
-        fi
-        echo "Deployed to: $URL"
-      env:
-        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        NODE_OPTIONS: '--max-old-space-size=4096'
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: 📦 Install dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
+        
+      - name: 🏗️ Build
+        run: npm run build
+        env:
+          CI: true
+          SKIP_ENV_VALIDATION: true
+          NODE_OPTIONS: '--max-old-space-size=4096'
+          
+      - name: 🚀 Deploy to Vercel
+        run: |
+          npm install --global vercel@latest
+          vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
   # 3. 헬스체크
   health-check:
