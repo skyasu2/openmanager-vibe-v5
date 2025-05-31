@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Bot, Activity, Layers, X } from 'lucide-react';
+import { Bot, Activity, Layers, X, Sparkles } from 'lucide-react';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useToast } from '@/components/ui/ToastNotification';
 
@@ -20,7 +20,7 @@ const cardData = [
       '지능형 근본원인 분석',
       '예측적 알림 및 권장사항'
     ],
-    requiresAdmin: true
+    requiresAI: true
   },
   {
     id: 'prometheus',
@@ -34,7 +34,7 @@ const cardData = [
       '히스토리 데이터 분석',
       '다양한 시각화 차트'
     ],
-    requiresAdmin: false
+    requiresAI: false
   },
   {
     id: 'tech-stack',
@@ -48,7 +48,22 @@ const cardData = [
       'Tailwind CSS 스타일링',
       'Vercel 배포 최적화'
     ],
-    requiresAdmin: false
+    requiresAI: false
+  },
+  {
+    id: 'vibe-coding',
+    title: '✨ 바이브 코딩',
+    description: 'Cursor + Claude로 만드는 창의적 개발 경험',
+    icon: Sparkles,
+    gradient: 'from-amber-500 via-orange-500 to-pink-500',
+    features: [
+      'Cursor AI 기반 페어 프로그래밍',
+      'Claude Sonnet과 실시간 협업',
+      '창의적이고 직관적인 코딩',
+      '인간과 AI의 완벽한 하모니'
+    ],
+    requiresAI: false,
+    isSpecial: true // 황금카드 특수 효과
   }
 ];
 
@@ -56,14 +71,14 @@ export default function FeatureCardsGrid() {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [showDevModal, setShowDevModal] = useState(false);
   
-  const { isAdminMode } = useUnifiedAdminStore();
+  const { aiAgent } = useUnifiedAdminStore();
   const { warning } = useToast();
 
   const handleCardClick = (cardId: string) => {
     const card = cardData.find(c => c.id === cardId);
     
-    if (card?.requiresAdmin && !isAdminMode) {
-      // 관리자 모드가 필요한 기능에 일반 사용자가 접근할 때
+    if (card?.requiresAI && !aiAgent.isEnabled) {
+      // AI 에이전트가 필요한 기능에 일반 사용자가 접근할 때
       setShowDevModal(true);
       setTimeout(() => setShowDevModal(false), 3000);
       return;
@@ -78,9 +93,39 @@ export default function FeatureCardsGrid() {
 
   const selectedCardData = cardData.find(card => card.id === selectedCard);
 
+  // AI 단어에 그라데이션 애니메이션 적용하는 함수
+  const renderTextWithAIGradient = (text: string) => {
+    if (!text.includes('AI')) return text;
+    
+    return text.split(/(AI)/g).map((part, index) => {
+      if (part === 'AI') {
+        return (
+          <motion.span
+            key={index}
+            className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent font-bold"
+            animate={{
+              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+            style={{
+              backgroundSize: '200% 200%'
+            }}
+          >
+            {part}
+          </motion.span>
+        );
+      }
+      return part;
+    });
+  };
+
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
         {cardData.map((card, index) => (
           <motion.div
             key={card.id}
@@ -88,37 +133,65 @@ export default function FeatureCardsGrid() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
             whileHover={{ scale: 1.05, y: -5 }}
-            className="group cursor-pointer"
+            className={`group cursor-pointer relative ${card.isSpecial ? 'lg:col-span-2' : ''}`}
             onClick={() => handleCardClick(card.id)}
           >
-            <div className="relative p-6 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl hover:bg-white/20 transition-all duration-300 h-full">
+            <div className={`relative p-6 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl hover:bg-white/20 transition-all duration-300 h-full ${
+              card.isSpecial ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/30' : ''
+            }`}>
               {/* 그라데이션 배경 */}
               <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300`} />
               
+              {/* 특별 카드 황금 효과 */}
+              {card.isSpecial && (
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-br from-amber-400/20 via-orange-500/20 to-pink-500/20 rounded-2xl"
+                  animate={{
+                    opacity: [0.1, 0.3, 0.1],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+              )}
+              
               {/* 아이콘 */}
-              <div className={`w-14 h-14 bg-gradient-to-br ${card.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+              <div className={`w-14 h-14 bg-gradient-to-br ${card.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 relative z-10 ${
+                card.isSpecial ? 'shadow-lg shadow-amber-500/25' : ''
+              }`}>
                 <card.icon className="w-7 h-7 text-white" />
               </div>
               
               {/* 컨텐츠 */}
               <div className="relative z-10">
                 <h3 className="text-xl font-bold text-white mb-2 group-hover:text-white transition-colors">
-                  {card.title}
+                  {renderTextWithAIGradient(card.title)}
                 </h3>
                 <p className="text-white/70 text-sm leading-relaxed group-hover:text-white/90 transition-colors">
-                  {card.description}
+                  {renderTextWithAIGradient(card.description)}
                 </p>
                 
-                {/* 관리자 모드 필요 표시 */}
-                {card.requiresAdmin && !isAdminMode && (
+                {/* AI 에이전트 필요 표시 */}
+                {card.requiresAI && !aiAgent.isEnabled && (
                   <div className="mt-3 px-3 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full text-orange-300 text-xs text-center">
-                    관리자 모드 필요
+                    AI 에이전트 모드 필요
+                  </div>
+                )}
+
+                {/* 특별 카드 배지 */}
+                {card.isSpecial && (
+                  <div className="mt-3 px-3 py-1 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-full text-amber-300 text-xs text-center">
+                    ✨ 황금 경험
                   </div>
                 )}
               </div>
               
               {/* 호버 효과 */}
-              <div className="absolute inset-0 ring-2 ring-transparent group-hover:ring-white/30 rounded-2xl transition-all duration-300" />
+              <div className={`absolute inset-0 ring-2 ring-transparent group-hover:ring-white/30 rounded-2xl transition-all duration-300 ${
+                card.isSpecial ? 'group-hover:ring-amber-400/50' : ''
+              }`} />
             </div>
           </motion.div>
         ))}
@@ -131,18 +204,26 @@ export default function FeatureCardsGrid() {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-md bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl"
+            className={`relative w-full max-w-md bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl ${
+              selectedCardData.isSpecial ? 'border-amber-500/50 bg-gradient-to-br from-gray-900/95 to-amber-900/20' : ''
+            }`}
           >
             {/* 헤더 */}
             <div className="p-6 border-b border-gray-700/50">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 bg-gradient-to-br ${selectedCardData.gradient} rounded-lg flex items-center justify-center`}>
+                  <div className={`w-10 h-10 bg-gradient-to-br ${selectedCardData.gradient} rounded-lg flex items-center justify-center ${
+                    selectedCardData.isSpecial ? 'shadow-lg shadow-amber-500/25' : ''
+                  }`}>
                     <selectedCardData.icon className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-white">{selectedCardData.title}</h2>
-                    <p className="text-sm text-gray-400">{selectedCardData.description}</p>
+                    <h2 className="text-lg font-bold text-white">
+                      {renderTextWithAIGradient(selectedCardData.title)}
+                    </h2>
+                    <p className="text-sm text-gray-400">
+                      {renderTextWithAIGradient(selectedCardData.description)}
+                    </p>
                   </div>
                 </div>
                 <button
@@ -160,8 +241,12 @@ export default function FeatureCardsGrid() {
               <ul className="space-y-3">
                 {selectedCardData.features.map((feature, index) => (
                   <li key={index} className="flex items-start gap-3 text-sm">
-                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full mt-2 flex-shrink-0" />
-                    <span className="text-gray-300">{feature}</span>
+                    <div className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${
+                      selectedCardData.isSpecial ? 'bg-amber-400' : 'bg-green-400'
+                    }`} />
+                    <span className="text-gray-300">
+                      {renderTextWithAIGradient(feature)}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -180,7 +265,9 @@ export default function FeatureCardsGrid() {
         >
           <div className="flex items-center gap-2 text-sm font-medium">
             <Bot className="w-4 h-4" />
-            <span>관리자 모드를 활성화해주세요</span>
+            <span>
+              {renderTextWithAIGradient('AI 에이전트 모드를 활성화해주세요')}
+            </span>
           </div>
         </motion.div>
       )}

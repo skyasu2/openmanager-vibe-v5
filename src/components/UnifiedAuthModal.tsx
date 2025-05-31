@@ -142,10 +142,10 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-white">
-                      {isLocked ? '계정 잠김' : 'AI 관리자 모드'}
+                      {isLocked ? '계정 잠김' : 'AI 에이전트 모드'}
                     </h2>
                     <p className="text-sm text-gray-400">
-                      {isLocked ? '접근이 일시적으로 제한되었습니다' : '관리자 인증이 필요합니다'}
+                      {isLocked ? '접근이 일시적으로 제한되었습니다' : 'AI 에이전트 활성화를 위한 인증'}
                     </p>
                   </div>
                 </div>
@@ -186,10 +186,10 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
                   <div className="flex items-start gap-3 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                     <Lock className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
                     <div className="text-sm">
-                      <p className="text-blue-300 font-medium mb-1">관리자 모드 활성화</p>
+                      <p className="text-blue-300 font-medium mb-1">AI 에이전트 모드 활성화</p>
                       <p className="text-blue-200/80">
-                        AI 에이전트 기능을 사용하려면 관리자 모드를 활성화해야 합니다.
-                        <br />일반 모드에서는 서버 모니터링 기능만 사용할 수 있습니다.
+                        지능형 AI 분석 기능을 사용하려면 AI 에이전트 모드를 활성화해야 합니다.
+                        <br />기본 모드에서는 서버 모니터링 기능만 사용할 수 있습니다.
                       </p>
                     </div>
                   </div>
@@ -201,7 +201,7 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      관리자 비밀번호
+                      AI 에이전트 비밀번호
                     </label>
                     <div className="relative">
                       <input

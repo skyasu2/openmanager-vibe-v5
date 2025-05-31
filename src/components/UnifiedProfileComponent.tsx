@@ -35,17 +35,15 @@ export default function UnifiedProfileComponent({
   
   const {
     isSystemStarted,
-    isAdminMode,
-    isAuthenticated,
+    aiAgent,
     attempts,
     isLocked,
     lockoutEndTime,
-    aiAgent,
     startSystem,
     stopSystem,
-    authenticateAdmin,
-    exitAdminMode,
-    toggleAIAgent,
+    authenticateAIAgent,
+    disableAIAgent,
+    toggleAIProcessing,
     checkLockStatus,
     getRemainingLockTime,
     logout
@@ -76,10 +74,10 @@ export default function UnifiedProfileComponent({
     setIsOpen(false);
   };
 
-  const handleAdminModeToggle = () => {
-    if (isAdminMode) {
-      exitAdminMode();
-      info('관리자 모드가 종료되었습니다. 서버 모니터링 모드로 전환됩니다.');
+  const handleAIAgentToggle = () => {
+    if (aiAgent.isEnabled) {
+      disableAIAgent();
+      info('AI 에이전트 모드가 종료되었습니다. 기본 모니터링 모드로 전환됩니다.');
     } else {
       if (isLocked) {
         const remainingTime = getRemainingLockTime();
@@ -91,35 +89,35 @@ export default function UnifiedProfileComponent({
     setIsOpen(false);
   };
 
-  const handleAIAgentToggle = async () => {
-    if (!isAdminMode) {
-      warning('AI 에이전트를 사용하려면 관리자 모드를 활성화해주세요.');
+  const handleAIProcessingToggle = async () => {
+    if (!aiAgent.isEnabled) {
+      warning('AI 에이전트를 사용하려면 AI 에이전트 모드를 활성화해주세요.');
       return;
     }
 
     if (!isSystemStarted) {
-      warning('시스템이 활성화되어 있을 때만 AI 에이전트를 사용할 수 있습니다.');
+      warning('시스템이 활성화되어 있을 때만 AI 처리를 시작할 수 있습니다.');
       return;
     }
 
     try {
-      await toggleAIAgent();
-      if (aiAgent.isActive) {
-        success('AI 에이전트가 비활성화되었습니다.');
+      await toggleAIProcessing();
+      if (aiAgent.state === 'processing') {
+        success('AI 처리가 완료되었습니다.');
       } else {
-        success('AI 에이전트가 활성화되었습니다.');
+        success('AI 처리가 시작되었습니다.');
       }
     } catch (err) {
-      error(err instanceof Error ? err.message : 'AI 에이전트 토글 중 오류가 발생했습니다.');
+      error(err instanceof Error ? err.message : 'AI 처리 중 오류가 발생했습니다.');
     }
     setIsOpen(false);
   };
 
   const handleAuthSubmit = (password: string) => {
-    const result = authenticateAdmin(password);
+    const result = authenticateAIAgent(password);
     
     if (result.success) {
-      success('AI 관리자 모드가 활성화되었습니다.');
+      success('AI 에이전트 모드가 활성화되었습니다.');
     } else {
       error(result.message);
     }
@@ -128,21 +126,21 @@ export default function UnifiedProfileComponent({
   };
 
   const getModeDisplayText = () => {
-    return isAdminMode ? 'AI 관리자 모드' : '서버 모니터링 모드';
+    return aiAgent.isEnabled ? 'AI 에이전트 모드' : '기본 모니터링 모드';
   };
 
   const getModeStatusColor = () => {
-    return isAdminMode ? 'text-purple-400' : 'text-cyan-400';
+    return aiAgent.isEnabled ? 'text-purple-400' : 'text-cyan-400';
   };
 
   const getSystemStatusColor = () => {
     if (isLocked) return 'text-red-400';
     if (!isSystemStarted) return 'text-gray-400';
-    return isAdminMode ? 'text-purple-400' : 'text-cyan-400';
+    return aiAgent.isEnabled ? 'text-purple-400' : 'text-cyan-400';
   };
 
   const getAIStatusText = () => {
-    if (!isAdminMode) return '관리자 모드 필요';
+    if (!aiAgent.isEnabled) return 'AI 에이전트 모드 필요';
     switch (aiAgent.state) {
       case 'enabled': return '활성화됨';
       case 'disabled': return '비활성화됨';
@@ -153,7 +151,7 @@ export default function UnifiedProfileComponent({
   };
 
   const getAIStatusColor = () => {
-    if (!isAdminMode) return 'text-orange-400';
+    if (!aiAgent.isEnabled) return 'text-orange-400';
     switch (aiAgent.state) {
       case 'enabled': return 'text-green-400';
       case 'disabled': return 'text-gray-400';
@@ -174,7 +172,7 @@ export default function UnifiedProfileComponent({
           className={`flex items-center gap-3 p-2 rounded-xl backdrop-blur-sm border transition-all duration-200 ${
             isLocked
               ? 'bg-red-500/20 border-red-500/50 shadow-red-500/20 shadow-lg'
-              : isAdminMode
+              : aiAgent.isEnabled
               ? 'bg-purple-500/20 border-purple-500/50 shadow-purple-500/20 shadow-lg'
               : 'bg-white/10 border-white/20 hover:bg-white/20'
           }`}
@@ -183,7 +181,7 @@ export default function UnifiedProfileComponent({
           <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
             isLocked
               ? 'bg-gradient-to-br from-red-500 to-orange-600'
-              : isAdminMode
+              : aiAgent.isEnabled
               ? 'bg-gradient-to-br from-purple-500 to-pink-600'
               : 'bg-gradient-to-br from-cyan-500 to-blue-600'
           }`}>
@@ -211,7 +209,7 @@ export default function UnifiedProfileComponent({
           {/* 상태 인디케이터 */}
           <div className="flex items-center gap-1">
             {/* AI 에이전트 상태 */}
-            {isAdminMode && aiAgent.isActive && (
+            {aiAgent.isEnabled && aiAgent.state === 'processing' && (
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             )}
             
@@ -242,13 +240,13 @@ export default function UnifiedProfileComponent({
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
                     isLocked
                       ? 'bg-gradient-to-br from-red-500 to-orange-600'
-                      : isAdminMode
+                      : aiAgent.isEnabled
                       ? 'bg-gradient-to-br from-purple-500 to-pink-600'
                       : 'bg-gradient-to-br from-cyan-500 to-blue-600'
                   }`}>
                     {isLocked ? (
                       <AlertTriangle className="w-6 h-6 text-white" />
-                    ) : isAdminMode ? (
+                    ) : aiAgent.isEnabled ? (
                       <ShieldCheck className="w-6 h-6 text-white" />
                     ) : (
                       <Monitor className="w-6 h-6 text-white" />
@@ -300,53 +298,13 @@ export default function UnifiedProfileComponent({
                     </motion.button>
                   </div>
 
-                  {/* 관리자 모드 토글 */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${
-                        isLocked 
-                          ? 'bg-red-500/20' 
-                          : isAdminMode 
-                          ? 'bg-purple-500/20' 
-                          : 'bg-gray-500/20'
-                      }`}>
-                        {isLocked ? (
-                          <ShieldX className="w-4 h-4 text-red-400" />
-                        ) : isAdminMode ? (
-                          <ShieldCheck className="w-4 h-4 text-purple-400" />
-                        ) : (
-                          <Shield className="w-4 h-4 text-gray-400" />
-                        )}
-                      </div>
-                      <div>
-                        <div className="text-white text-sm font-medium">관리자 모드</div>
-                        <div className={`text-xs ${getModeStatusColor()}`}>
-                          {isLocked ? '계정 잠김' : isAdminMode ? '활성화됨' : '비활성화됨'}
-                        </div>
-                      </div>
-                    </div>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={handleAdminModeToggle}
-                      disabled={isLocked}
-                      className={`px-3 py-1 rounded-md text-xs font-medium transition-colors disabled:opacity-50 ${
-                        isAdminMode
-                          ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30'
-                          : 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/30'
-                      }`}
-                    >
-                      {isAdminMode ? '종료' : '활성화'}
-                    </motion.button>
-                  </div>
-
                   {/* AI 에이전트 토글 */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className={`p-2 rounded-lg ${
-                        !isAdminMode 
+                        !aiAgent.isEnabled 
                           ? 'bg-orange-500/20' 
-                          : aiAgent.isActive 
+                          : aiAgent.state === 'processing' 
                           ? 'bg-green-500/20' 
                           : 'bg-gray-500/20'
                       }`}>
@@ -362,15 +320,22 @@ export default function UnifiedProfileComponent({
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={handleAIAgentToggle}
-                      disabled={!isAdminMode || !isSystemStarted || aiAgent.state === 'processing'}
+                      onClick={aiAgent.isEnabled ? handleAIProcessingToggle : handleAIAgentToggle}
+                      disabled={isLocked || (!aiAgent.isEnabled && !isSystemStarted) || aiAgent.state === 'processing'}
                       className={`px-3 py-1 rounded-md text-xs font-medium transition-colors disabled:opacity-50 ${
-                        aiAgent.isActive
-                          ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30'
-                          : 'bg-green-500/20 text-green-300 hover:bg-green-500/30'
+                        aiAgent.isEnabled
+                          ? aiAgent.state === 'processing'
+                            ? 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30'
+                            : 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/30'
+                          : 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/30'
                       }`}
                     >
-                      {aiAgent.state === 'processing' ? '처리중...' : aiAgent.isActive ? '비활성화' : '활성화'}
+                      {aiAgent.isEnabled 
+                        ? aiAgent.state === 'processing' 
+                          ? '처리중...' 
+                          : 'AI 처리'
+                        : '활성화'
+                      }
                     </motion.button>
                   </div>
                 </div>
@@ -392,22 +357,22 @@ export default function UnifiedProfileComponent({
                   </div>
                 </motion.button>
 
-                {isAuthenticated && (
+                {aiAgent.isEnabled && (
                   <motion.button
                     whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
                     onClick={() => {
-                      logout();
-                      info('로그아웃되었습니다.');
+                      disableAIAgent();
+                      info('AI 에이전트 모드가 종료되었습니다. 기본 모니터링 모드로 전환됩니다.');
                       setIsOpen(false);
                     }}
                     className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors"
                   >
                     <div className="p-2 rounded-lg bg-red-500/20">
-                      <LogOut className="w-4 h-4 text-red-400" />
+                      <ShieldX className="w-4 h-4 text-red-400" />
                     </div>
                     <div>
-                      <div className="text-white font-medium">로그아웃</div>
-                      <div className="text-gray-400 text-xs">관리자 모드 종료</div>
+                      <div className="text-white font-medium">종료</div>
+                      <div className="text-gray-400 text-xs">AI 에이전트 모드 종료</div>
                     </div>
                   </motion.button>
                 )}

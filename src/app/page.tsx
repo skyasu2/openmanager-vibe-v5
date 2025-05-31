@@ -4,8 +4,8 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSystemControl } from '../hooks/useSystemControl';
-import ProfileDropdown from '../components/ProfileDropdown';
 import FeatureCardsGrid from '@/components/home/FeatureCardsGrid';
+import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
 import { 
   Server, 
   MessageCircle, 
@@ -23,11 +23,8 @@ import {
   Cpu,
   X
 } from 'lucide-react';
-import Hero from '@/components/home/Hero';
-import TechStackSection from '@/components/home/TechStackSection';
-import Footer from '@/components/home/Footer';
-import Navbar from '@/components/home/Navbar';
 import { ToastContainer } from '@/components/ui/ToastNotification';
+import { motion } from 'framer-motion';
 
 // 동적 렌더링 강제 (HTML 파일 생성 방지)
 export const dynamic = 'force-dynamic';
@@ -43,6 +40,36 @@ interface ToastNotification {
 }
 
 export default function Home() {
+  // AI 단어에 그라데이션 애니메이션 적용하는 함수
+  const renderTextWithAIGradient = (text: string) => {
+    if (!text.includes('AI')) return text;
+    
+    return text.split(/(AI)/g).map((part, index) => {
+      if (part === 'AI') {
+        return (
+          <motion.span
+            key={index}
+            className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent font-bold"
+            animate={{
+              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+            style={{
+              backgroundSize: '200% 200%'
+            }}
+          >
+            {part}
+          </motion.span>
+        );
+      }
+      return part;
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900">
       {/* 기본 헤더 */}
@@ -55,9 +82,14 @@ export default function Home() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-white">OpenManager</h1>
-            <p className="text-sm text-green-300">AI-Powered Server Monitoring</p>
+            <p className="text-sm text-green-300">
+              {renderTextWithAIGradient('AI-Powered Server Monitoring')}
+            </p>
           </div>
         </div>
+        
+        {/* 통합 프로필 컴포넌트 */}
+        <UnifiedProfileComponent userName="사용자" />
       </header>
 
       {/* 메인 컨텐츠 */}
@@ -66,7 +98,7 @@ export default function Home() {
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
             <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              AI 기반
+              {renderTextWithAIGradient('AI 기반')}
             </span>
             <br />
             서버 모니터링
@@ -85,7 +117,7 @@ export default function Home() {
               핵심 <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">기능</span>
             </h2>
             <p className="text-white/70 text-lg max-w-2xl mx-auto">
-              AI 기반 서버 모니터링의 모든 것을 경험해보세요
+              {renderTextWithAIGradient('AI 기반 서버 모니터링의 모든 것을 경험해보세요')}
             </p>
           </div>
           

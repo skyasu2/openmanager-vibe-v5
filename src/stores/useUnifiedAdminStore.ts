@@ -9,26 +9,25 @@ const LOCKOUT_DURATION = 10000; // 10초 (UI에서는 10분이라고 표시)
 interface UnifiedAdminState {
   // 시스템 상태
   isSystemStarted: boolean;
-  isAdminMode: boolean;
+  
+  // AI 에이전트 통합 상태 (관리자 모드와 통합)
+  aiAgent: {
+    isEnabled: boolean;        // AI 에이전트 활성화 여부 (관리자 모드와 동일)
+    isAuthenticated: boolean;  // 인증 상태
+    state: 'disabled' | 'enabled' | 'processing' | 'idle';
+  };
   
   // 인증 및 보안
-  isAuthenticated: boolean;
   attempts: number;
   isLocked: boolean;
   lockoutEndTime: number | null;
   
-  // AI 에이전트 상태
-  aiAgent: {
-    state: 'enabled' | 'disabled' | 'processing' | 'idle';
-    isActive: boolean;
-  };
-  
   // 액션 메소드
   startSystem: () => void;
   stopSystem: () => void;
-  authenticateAdmin: (password: string) => { success: boolean; message: string; remainingTime?: number };
-  exitAdminMode: () => void;
-  toggleAIAgent: () => Promise<void>;
+  authenticateAIAgent: (password: string) => { success: boolean; message: string; remainingTime?: number };
+  disableAIAgent: () => void;
+  toggleAIProcessing: () => Promise<void>;
   checkLockStatus: () => boolean;
   getRemainingLockTime: () => number;
   logout: () => void;
@@ -37,31 +36,29 @@ interface UnifiedAdminState {
 export const useUnifiedAdminStore = create<UnifiedAdminState>()(
   persist(
     (set, get) => ({
-      // 초기 상태
+      // 초기 상태 - AI 기능 기본 오프
       isSystemStarted: false,
-      isAdminMode: false,
-      isAuthenticated: false,
+      aiAgent: {
+        isEnabled: false,
+        isAuthenticated: false,
+        state: 'disabled'
+      },
       attempts: 0,
       isLocked: false,
       lockoutEndTime: null,
-      aiAgent: {
-        state: 'disabled',
-        isActive: false
-      },
       
       // 시스템 제어
       startSystem: () => {
         set({ isSystemStarted: true });
-        console.log('🚀 시스템 시작됨 - 서버 모니터링 모드');
+        console.log('🚀 시스템 시작됨 - 기본 모니터링 모드');
       },
       
       stopSystem: () => {
         set({ 
-          isSystemStarted: false, 
-          isAdminMode: false,
-          aiAgent: { state: 'disabled', isActive: false }
+          isSystemStarted: false,
+          aiAgent: { isEnabled: false, isAuthenticated: false, state: 'disabled' }
         });
-        console.log('⏹️ 시스템 정지됨 - 모든 사용자에게 적용');
+        console.log('⏹️ 시스템 정지됨 - 모든 기능 비활성화');
       },
       
       // 잠금 상태 확인
@@ -93,8 +90,8 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
         return Math.max(0, lockoutEndTime - Date.now());
       },
       
-      // 관리자 인증
-      authenticateAdmin: (password: string) => {
+      // AI 에이전트 인증 (관리자 모드 통합)
+      authenticateAIAgent: (password: string) => {
         const { attempts, checkLockStatus } = get();
         
         // 잠금 상태 확인
@@ -109,12 +106,15 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
         
         if (password === ADMIN_PASSWORD) {
           set({ 
-            isAdminMode: true,
-            isAuthenticated: true,
+            aiAgent: {
+              isEnabled: true,
+              isAuthenticated: true,
+              state: 'enabled'
+            },
             attempts: 0
           });
           
-          console.log('✅ AI 관리자 인증 성공 - AI 관리자 모드 활성화');
+          console.log('✅ AI 에이전트 모드 활성화 - 지능형 분석 시작');
           
           // ModeTimerManager를 사용한 AI 모드 시작
           modeTimerManager.switchMode('ai');
@@ -123,7 +123,7 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
           
           return { 
             success: true, 
-            message: 'AI 관리자 모드가 활성화되었습니다.' 
+            message: 'AI 에이전트 모드가 활성화되었습니다. 지능형 분석을 시작합니다.' 
           };
         } else {
           const newAttempts = attempts + 1;
@@ -149,15 +149,17 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
         }
       },
       
-      // 관리자 모드 종료
-      exitAdminMode: () => {
+      // AI 에이전트 비활성화
+      disableAIAgent: () => {
         set({ 
-          isAdminMode: false,
-          isAuthenticated: false,
-          aiAgent: { state: 'disabled', isActive: false }
+          aiAgent: {
+            isEnabled: false,
+            isAuthenticated: false,
+            state: 'disabled'
+          }
         });
         
-        console.log('🔐 AI 관리자 모드 종료 - 서버 모니터링 모드로 전환');
+        console.log('🔐 AI 에이전트 모드 종료 - 기본 모니터링 모드로 전환');
         
         // ModeTimerManager를 사용한 기본 모니터링으로 전환
         modeTimerManager.switchMode('monitoring');
@@ -165,45 +167,44 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
         window.dispatchEvent(new CustomEvent('startMonitoringMode'));
       },
       
-      // AI 에이전트 토글
-      toggleAIAgent: async () => {
-        const { isAdminMode, isSystemStarted, aiAgent } = get();
+      // AI 처리 토글 (AI 에이전트가 활성화된 상태에서만)
+      toggleAIProcessing: async () => {
+        const { aiAgent, isSystemStarted } = get();
         
-        if (!isAdminMode) {
-          throw new Error('관리자 모드가 필요합니다.');
+        if (!aiAgent.isEnabled || !aiAgent.isAuthenticated) {
+          throw new Error('AI 에이전트 모드가 필요합니다.');
         }
         
         if (!isSystemStarted) {
-          throw new Error('시스템이 활성화되어 있을 때만 AI 에이전트를 사용할 수 있습니다.');
+          throw new Error('시스템이 활성화되어 있을 때만 AI 처리를 시작할 수 있습니다.');
         }
         
-        const newState = aiAgent.isActive ? 'disabled' : 'enabled';
-        const newActive = !aiAgent.isActive;
+        const newState = aiAgent.state === 'processing' ? 'idle' : 'processing';
         
         set({ 
           aiAgent: { 
-            state: newActive ? 'processing' : 'disabled',
-            isActive: newActive 
+            ...aiAgent,
+            state: 'processing'
           }
         });
         
         try {
-          // 실제 AI 에이전트 토글 로직 (시뮬레이션)
+          // 실제 AI 처리 로직 (시뮬레이션)
           await new Promise(resolve => setTimeout(resolve, 1000));
           
           set({ 
             aiAgent: { 
-              state: newState,
-              isActive: newActive 
+              ...aiAgent,
+              state: newState
             }
           });
           
-          console.log(`🤖 AI 에이전트 ${newActive ? '활성화' : '비활성화'}`);
+          console.log(`🤖 AI 처리 ${newState === 'processing' ? '시작' : '완료'}`);
         } catch (error) {
           set({ 
             aiAgent: { 
-              state: 'disabled',
-              isActive: false 
+              ...aiAgent,
+              state: 'idle'
             }
           });
           throw error;
@@ -213,12 +214,14 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
       // 로그아웃
       logout: () => {
         set({ 
-          isAuthenticated: false, 
-          isAdminMode: false,
-          aiAgent: { state: 'disabled', isActive: false }
+          aiAgent: {
+            isEnabled: false,
+            isAuthenticated: false,
+            state: 'disabled'
+          }
         });
         
-        console.log('🔐 로그아웃 - 서버 모니터링 모드로 전환');
+        console.log('🔐 로그아웃 - 기본 모니터링 모드로 전환');
         
         // ModeTimerManager를 사용한 기본 모니터링으로 전환
         modeTimerManager.switchMode('monitoring');
@@ -229,12 +232,10 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
     {
       name: 'unified-admin-store',
       partialize: (state) => ({ 
-        isAuthenticated: state.isAuthenticated,
-        isAdminMode: state.isAdminMode,
+        aiAgent: state.aiAgent,
         attempts: state.attempts,
         isLocked: state.isLocked,
-        lockoutEndTime: state.lockoutEndTime,
-        aiAgent: state.aiAgent
+        lockoutEndTime: state.lockoutEndTime
       })
     }
   )
