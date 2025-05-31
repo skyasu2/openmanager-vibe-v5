@@ -128,20 +128,49 @@ export default function DashboardPage() {
     // 🚨 긴급 우회 - URL 파라미터로 강제 스킵 가능
     const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const forceSkip = urlParams?.get('force-skip') === 'true';
+    const instantLoad = urlParams?.get('instant') === 'true'; // 🚨 새로운 즉시 로딩 옵션
     
-    if (forceSkip) {
-      console.log('🚨 Force skip 모드 - 즉시 대시보드 표시');
+    // 🚨 추가 안전장치: 서버 데이터가 없으면 자동 스킵
+    if (forceSkip || instantLoad || serverGeneration.servers.length === 0) {
+      console.log('🚨 Emergency skip activated:', { forceSkip, instantLoad, serversCount: serverGeneration.servers.length });
+      
+      // 즉시 대시보드 표시
       return (
         <div className="min-h-screen bg-gray-50">
           <div className="p-8 text-center">
-            <h1 className="text-2xl font-bold mb-4">🚨 긴급 모드 - 대시보드 로딩</h1>
-            <p className="text-gray-600 mb-4">정상 전환 시스템을 우회하고 있습니다.</p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              정상 모드로 재시도
-            </button>
+            <div className="mb-6">
+              <div className="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                ✅ 긴급 모드 활성화 - 즉시 로딩 완료
+              </div>
+            </div>
+            
+            <h1 className="text-2xl font-bold mb-4">🎯 OpenManager v5 대시보드</h1>
+            <p className="text-gray-600 mb-6">정상 전환 시스템을 우회하여 즉시 로딩되었습니다.</p>
+            
+            <div className="space-x-4">
+              <button 
+                onClick={() => window.location.href = '/dashboard'}
+                className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                정상 모드로 재시도
+              </button>
+              
+              <button 
+                onClick={() => window.location.href = '/dashboard?skip-animation=true'}
+                className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                애니메이션 비활성화 모드
+              </button>
+            </div>
+            
+            <div className="mt-8 p-4 bg-blue-50 rounded-lg text-left max-w-md mx-auto">
+              <h3 className="font-medium text-blue-900 mb-2">🔧 개발자 정보</h3>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• 서버 수: {serverGeneration.servers.length}</li>
+                <li>• 시스템 상태: {systemControl.isSystemActive ? '활성' : '비활성'}</li>
+                <li>• 클라이언트: {isClient ? '준비됨' : '로딩중'}</li>
+              </ul>
+            </div>
           </div>
         </div>
       );

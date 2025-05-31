@@ -37,7 +37,7 @@ export function useDashboardLogic() {
   });
 
   // ✨ 새로운 전환 시스템 상태
-  const [showBootSequence, setShowBootSequence] = useState(true);
+  const [showBootSequence, setShowBootSequence] = useState(false);
   const [bootProgress, setBootProgress] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showSequentialGeneration, setShowSequentialGeneration] = useState(false);
@@ -303,6 +303,16 @@ export function useDashboardLogic() {
       }
     }
   };
+
+  // 🚨 긴급 디버깅 로그
+  useEffect(() => {
+    console.log('🔍 useDashboardLogic 상태:', {
+      isClient,
+      showBootSequence,
+      serversCount: serverGeneration.servers.length,
+      systemActive: systemControl.isSystemActive
+    });
+  }, [isClient, showBootSequence, serverGeneration.servers.length, systemControl.isSystemActive]);
 
   return {
     // State
