@@ -25,6 +25,9 @@ export interface MCPQuery {
   timestamp: number;
 }
 
+// MCPRequest는 MCPQuery와 동일한 구조
+export type MCPRequest = MCPQuery;
+
 export interface MCPResponse {
   id: string;
   queryId: string;

@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { unifiedAIEngine, UnifiedAnalysisRequest } from '@/core/ai/UnifiedAIEngine';
-import { MCPOrchestrator, MCPRequest } from '@/core/mcp/mcp-orchestrator';
+import { MCPOrchestrator, MCPRequest, MCPQuery } from '@/core/mcp/mcp-orchestrator';
 
 // 🧠 MCP 오케스트레이터 인스턴스
 let mcpOrchestrator: MCPOrchestrator | null = null;
@@ -97,27 +97,31 @@ export async function POST(request: NextRequest) {
 
     // 🧠 MCP 오케스트레이터 우선 시도
     try {
-      const mcpRequest: MCPRequest = {
-        query: body.query.trim(),
-        parameters: {
-          metrics: analysisRequest.context?.serverMetrics,
-          logs: analysisRequest.context?.logEntries,
-          data: analysisRequest.context?.serverMetrics
-        },
+      // MCP 처리를 위한 요청 구성
+      const mcpRequest: MCPQuery = {
+        id: `v1_api_${Date.now()}`,
+        question: body.query.trim(),
+        userId: 'api_user',
+        organizationId: 'default_org',
         context: {
-          session_id: analysisRequest.context?.sessionId,
-          user_preferences: body.context?.user_preferences || {},
-          urgency: analysisRequest.context?.urgency || 'medium'
-        }
+          sessionId: analysisRequest.context?.sessionId,
+          previousQueries: [],
+          userPreferences: {
+            metrics: analysisRequest.context?.serverMetrics,
+            logs: analysisRequest.context?.logEntries,
+            urgency: analysisRequest.context?.urgency || 'medium'
+          }
+        },
+        timestamp: Date.now()
       };
 
       const orchestrator = getMCPOrchestrator();
-      const mcpResult = await orchestrator.process(mcpRequest);
+      const mcpResult = await orchestrator.processQuery(mcpRequest);
 
       console.log('✅ MCP 분석 성공:', {
-        toolsUsed: mcpResult.tools_used,
+        sources: mcpResult.sources.length,
         confidence: mcpResult.confidence,
-        processingTime: mcpResult.processing_time
+        processingTime: mcpResult.processingTime
       });
 
       // MCP 결과를 V1 API 형식으로 변환
@@ -128,12 +132,12 @@ export async function POST(request: NextRequest) {
         data: {
           intent: { primary: 'mcp_analysis', confidence: mcpResult.confidence },
           analysis: {
-            summary: mcpResult.result.summary || 'MCP 기반 분석이 완료되었습니다',
+            summary: mcpResult.answer || 'MCP 기반 분석이 완료되었습니다',
             confidence: mcpResult.confidence,
-            detailed_results: mcpResult.result.detailed_results,
-            recommendations: mcpResult.result.recommendations
+            detailed_results: mcpResult.sources,
+            recommendations: mcpResult.recommendations
           },
-          recommendations: mcpResult.result.recommendations || []
+          recommendations: mcpResult.recommendations || []
         },
         
         // 🔧 메타데이터
@@ -142,16 +146,16 @@ export async function POST(request: NextRequest) {
           processingTime: Date.now() - startTime,
           engines: {
             used: ['MCP-Orchestrator'],
-            details: mcpResult.tools_used
+            details: mcpResult.sources.map(s => s.type)
           },
           apiVersion: 'v1.0.0',
           engine: 'MCPOrchestrator',
           timestamp: new Date().toISOString(),
           cached: false,
           mcp: {
-            context_id: mcpResult.context_id,
-            tools_used: mcpResult.tools_used,
-            processing_time: mcpResult.processing_time
+            context_id: mcpResult.id,
+            tools_used: mcpResult.sources.map(s => s.type),
+            processing_time: mcpResult.processingTime
           }
         }
       };
@@ -165,7 +169,7 @@ export async function POST(request: NextRequest) {
         success: true,
         intent: 'mcp_analysis',
         confidence: mcpResult.confidence,
-        enginesUsed: mcpResult.tools_used.length,
+        enginesUsed: mcpResult.sources.length,
         totalTime: Date.now() - startTime
       });
 

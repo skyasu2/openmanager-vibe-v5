@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { MCPOrchestrator, MCPRequest } from '../../../../../core/mcp/mcp-orchestrator';
+import { MCPOrchestrator, MCPRequest, MCPQuery } from '../../../../../core/mcp/mcp-orchestrator';
 
 /**
  * 🧪 MCP 기능 테스트
@@ -29,19 +29,19 @@ export async function POST(request: NextRequest) {
       try {
         console.log(`🔍 테스트 실행: ${scenario.name}`);
         
-        const result = await orchestrator.process(scenario.request);
+        const result = await orchestrator.processQuery(scenario.request);
         
         results.push({
           scenario: scenario.name,
           success: true,
-          tools_used: result.tools_used,
+          tools_used: [], // MCPResponse에서 추출 필요
           confidence: result.confidence,
-          processing_time: result.processing_time,
-          sample_result: scenario.extractSample ? scenario.extractSample(result.result) : result.result
+          processing_time: result.processingTime,
+          sample_result: scenario.extractSample ? scenario.extractSample(result) : result
         });
 
         console.log(`✅ 테스트 성공: ${scenario.name}`, {
-          toolsUsed: result.tools_used,
+          toolsUsed: [],
           confidence: result.confidence
         });
 
@@ -92,40 +92,42 @@ function getTestScenarios(testType: string): any[] {
     {
       name: '통계 분석 테스트',
       request: {
-        query: '시스템 성능 통계를 분석해주세요',
-        parameters: {
-          data: [85, 92, 78, 91, 88, 94, 76, 89, 95, 87],
-          detailed: true
-        },
+        id: `test_stats_${Date.now()}`,
+        question: '시스템 성능 통계를 분석해주세요',
         context: {
-          session_id: 'test_session_stats',
-          urgency: 'medium'
-        }
-      } as MCPRequest,
+          sessionId: 'test_session_stats',
+          userPreferences: {
+            data: [85, 92, 78, 91, 88, 94, 76, 89, 95, 87],
+            detailed: true
+          }
+        },
+        timestamp: Date.now()
+      } as MCPQuery,
       extractSample: (result: any) => ({
-        analysis_type: result.detailed_results?.[0]?.analysis_type,
+        analysis_type: result.sources?.[0]?.type,
         confidence: result.confidence
       })
     },
     {
       name: '이상 탐지 테스트',
       request: {
-        query: '시스템에서 이상한 패턴을 찾아주세요',
-        parameters: {
-          metrics: {
-            cpu: [45, 47, 46, 89, 48, 46, 47, 92, 45],
-            memory: [60, 62, 61, 58, 95, 62, 61, 59, 60]
-          },
-          sensitivity: 0.1
-        },
+        id: `test_anomaly_${Date.now()}`,
+        question: '시스템에서 이상한 패턴을 찾아주세요',
         context: {
-          session_id: 'test_session_anomaly',
-          urgency: 'high'
-        }
-      } as MCPRequest,
+          sessionId: 'test_session_anomaly',
+          userPreferences: {
+            metrics: {
+              cpu: [45, 47, 46, 89, 48, 46, 47, 92, 45],
+              memory: [60, 62, 61, 58, 95, 62, 61, 59, 60]
+            },
+            sensitivity: 0.1
+          }
+        },
+        timestamp: Date.now()
+      } as MCPQuery,
       extractSample: (result: any) => ({
-        analysis_type: result.detailed_results?.[0]?.analysis_type,
-        tools_count: result.summary?.successful_tools
+        analysis_type: result.sources?.[0]?.type,
+        tools_count: result.sources?.length || 0
       })
     }
   ];
@@ -134,60 +136,63 @@ function getTestScenarios(testType: string): any[] {
     {
       name: '예측 분석 테스트',
       request: {
-        query: '향후 시스템 부하를 예측해주세요',
-        parameters: {
-          historical_data: [65, 68, 72, 69, 71, 74, 70, 73, 75, 72],
-          forecast_periods: 5,
-          model_type: 'simple'
-        },
+        id: `test_forecast_${Date.now()}`,
+        question: '향후 시스템 부하를 예측해주세요',
         context: {
-          session_id: 'test_session_forecast',
-          urgency: 'medium'
-        }
-      } as MCPRequest,
+          sessionId: 'test_session_forecast',
+          userPreferences: {
+            historical_data: [65, 68, 72, 69, 71, 74, 70, 73, 75, 72],
+            forecast_periods: 5,
+            model_type: 'simple'
+          }
+        },
+        timestamp: Date.now()
+      } as MCPQuery,
       extractSample: (result: any) => ({
-        has_predictions: !!result.detailed_results?.find((r: any) => r.analysis_type === 'time_series_forecast')
+        has_predictions: !!result.sources?.find((s: any) => s.type === 'time_series_forecast')
       })
     },
     {
       name: '패턴 인식 테스트',
       request: {
-        query: '반복되는 패턴을 찾아주세요',
-        parameters: {
-          data: generateTimeSeriesData(),
-          pattern_types: ['daily', 'weekly']
-        },
+        id: `test_pattern_${Date.now()}`,
+        question: '반복되는 패턴을 찾아주세요',
         context: {
-          session_id: 'test_session_pattern',
-          urgency: 'low'
-        }
-      } as MCPRequest,
+          sessionId: 'test_session_pattern',
+          userPreferences: {
+            data: generateTimeSeriesData(),
+            pattern_types: ['daily', 'weekly']
+          }
+        },
+        timestamp: Date.now()
+      } as MCPQuery,
       extractSample: (result: any) => ({
-        patterns_found: result.detailed_results?.length || 0
+        patterns_found: result.sources?.length || 0
       })
     },
     {
       name: '최적화 제안 테스트',
       request: {
-        query: '시스템 성능을 최적화하는 방법을 제안해주세요',
-        parameters: {
-          current_state: {
-            cpu: 85,
-            memory: 78,
-            disk: 65,
-            response_time: 245
-          },
-          target_metrics: {
-            cpu: 70,
-            memory: 60,
-            response_time: 200
+        id: `test_optimization_${Date.now()}`,
+        question: '시스템 성능을 최적화하는 방법을 제안해주세요',
+        context: {
+          sessionId: 'test_session_optimization',
+          userPreferences: {
+            current_state: {
+              cpu: 85,
+              memory: 78,
+              disk: 65,
+              response_time: 245
+            },
+            target_metrics: {
+              cpu: 70,
+              memory: 60,
+              response_time: 200
+            }
           }
         },
-        context: {
-          session_id: 'test_session_optimization',
-          urgency: 'medium'
-        }
-      } as MCPRequest,
+        timestamp: Date.now()
+      } as MCPQuery,
       extractSample: (result: any) => ({
         has_recommendations: !!result.recommendations?.length
       })

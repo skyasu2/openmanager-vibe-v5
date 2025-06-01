@@ -307,20 +307,9 @@ export default function Home() {
                 </motion.button>
                 
                 {/* 손가락 아이콘 - 버튼 아래에서 위로 가리키도록 수정 */}
-                <motion.div
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-3 sm:mt-4 text-2xl pointer-events-none z-[60] rotate-180"
-                  animate={{
-                    y: [0, 8, 0],
-                    rotate: [180, 170, 190, 180]
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                >
-                  👇
-                </motion.div>
+                <div className="finger-pointer-primary">
+                  👆
+                </div>
               </div>
               
               <p className="text-white/80 text-sm">
@@ -393,20 +382,9 @@ export default function Home() {
                   </motion.button>
                   
                   {/* 손가락 아이콘 - 버튼 아래에서 위로 가리키도록 수정 */}
-                  <motion.div
-                    className="absolute top-full left-1/2 -translate-x-1/2 mt-2 sm:mt-3 text-2xl pointer-events-none z-[60] rotate-180"
-                    animate={{
-                      y: [0, 6, 0],
-                      rotate: [180, 165, 195, 180]
-                    }}
-                    transition={{
-                      duration: 2.5,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    👇
-                  </motion.div>
+                  <div className="finger-pointer-primary">
+                    👆
+                  </div>
                 </div>
                 
                 {/* 시스템 중지 버튼 */}

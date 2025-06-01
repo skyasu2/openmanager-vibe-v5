@@ -242,20 +242,9 @@ const DashboardHeader = memo(function DashboardHeader({
               
               {/* 손가락 아이콘 - AI 비활성화 시에만 표시, 버튼 아래에서 위로 가리키도록 수정 */}
               {!aiAgent.isEnabled && !isSidebarOpen && (
-                <motion.div
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-2 text-xl pointer-events-none z-[60] rotate-180"
-                  animate={{
-                    y: [0, 4, 0],
-                    rotate: [180, 170, 190, 180]
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                >
+                <div className="finger-pointer-ai">
                   👆
-                </motion.div>
+                </div>
               )}
             </div>
 
