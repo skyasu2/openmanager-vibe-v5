@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: isCI,
   },
   
-  // 실험적 기능 - 패키지 최적화 및 Dynamic Import 지원
+  // ⚡ Next.js 15 최적화 설정
   experimental: {
     optimizePackageImports: [
       'lucide-react', 
@@ -27,14 +27,21 @@ const nextConfig: NextConfig = {
       'recharts',
       'framer-motion',
       '@radix-ui/react-dialog',
-      '@radix-ui/react-toast'
+      '@radix-ui/react-toast',
+      'zustand',
+      '@tanstack/react-query'
     ],
-    // Dynamic Import 최적화
     optimizeCss: true,
-    // Tree shaking 강화
-    turbo: {
-      resolveExtensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
-    },
+    // Server Actions 활성화
+    serverActions: {
+      allowedOrigins: ['localhost:3001', 'localhost:3010', '*.vercel.app'],
+      bodySizeLimit: '2mb'
+    }
+  },
+
+  // 🚀 Turbopack 설정 (experimental.turbo → turbopack)
+  turbopack: {
+    resolveExtensions: ['.ts', '.tsx', '.js', '.jsx', '.json']
   },
   
   // CI 환경에서는 더 관대한 설정
@@ -68,7 +75,10 @@ const nextConfig: NextConfig = {
 
   images: {
     domains: ['localhost'],
-    formats: ['image/webp'],
+    formats: ['image/webp', 'image/avif'],
+    // 이미지 최적화 강화
+    minimumCacheTTL: 31536000, // 1년
+    dangerouslyAllowSVG: false
   },
 
   compress: true,
@@ -83,6 +93,14 @@ const nextConfig: NextConfig = {
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff'
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY'
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
           }
         ]
       }
@@ -97,6 +115,9 @@ const nextConfig: NextConfig = {
       '@/components': path.resolve(__dirname, './src/components'),
       '@/lib': path.resolve(__dirname, './src/lib'),
       '@/utils': path.resolve(__dirname, './src/utils'),
+      '@/stores': path.resolve(__dirname, './src/stores'),
+      '@/hooks': path.resolve(__dirname, './src/hooks'),
+      '@/actions': path.resolve(__dirname, './src/actions')
     };
 
     // Storybook 및 테스트 파일 제외 (프로덕션 환경)
@@ -106,11 +127,15 @@ const nextConfig: NextConfig = {
         use: 'null-loader'
       });
       
-      // archive 디렉토리 제외
+      // backup 디렉토리 제외
       config.module.rules.push({
-        test: /archive\/.*\.(ts|tsx|js|jsx)$/,
+        test: /backup\/.*\.(ts|tsx|js|jsx)$/,
         use: 'null-loader'
       });
+
+      // Tree-shaking 최적화
+      config.optimization.usedExports = true;
+      config.optimization.sideEffects = false;
     }
 
     // CI 환경에서 메모리 최적화

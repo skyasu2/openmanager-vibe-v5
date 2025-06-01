@@ -10,10 +10,49 @@ import {
   StopCircle, 
   Loader2 
 } from 'lucide-react';
-import { ToastContainer, useToast } from '@/components/ui/ToastNotification';
 import { motion } from 'framer-motion';
-import FeatureCardsGrid from '@/components/home/FeatureCardsGrid';
-import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
+import dynamic from 'next/dynamic';
+
+// 🚀 Dynamic Import로 성능 최적화
+const ToastContainer = dynamic(() => import('@/components/ui/ToastNotification').then(mod => ({ default: mod.ToastContainer })), {
+  ssr: false
+});
+
+const FeatureCardsGrid = dynamic(() => import('@/components/home/FeatureCardsGrid'), {
+  ssr: false,
+  loading: () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+      {[...Array(6)].map((_, i) => (
+        <div key={i} className="h-32 bg-white/10 backdrop-blur-sm rounded-lg animate-pulse" />
+      ))}
+    </div>
+  )
+});
+
+const UnifiedProfileComponent = dynamic(() => import('@/components/UnifiedProfileComponent'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-10 h-10 bg-white/20 rounded-full animate-pulse" />
+  )
+});
+
+// 🎨 Toast Hook은 조건부 import
+const useToast = () => {
+  const [toast, setToast] = useState<any>(null);
+  
+  useEffect(() => {
+    import('@/components/ui/ToastNotification').then(({ useToast }) => {
+      setToast(useToast);
+    });
+  }, []);
+  
+  return toast || {
+    success: (msg: string) => console.log('Success:', msg),
+    error: (msg: string) => console.log('Error:', msg),
+    info: (msg: string) => console.log('Info:', msg),
+    warning: (msg: string) => console.log('Warning:', msg)
+  };
+};
 
 // 동적 렌더링 강제
 export const dynamicConfig = 'force-dynamic';
