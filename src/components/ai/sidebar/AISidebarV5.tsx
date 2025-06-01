@@ -13,14 +13,17 @@ import {
   Send,
   Loader2,
   AlertTriangle,
-  Wand2
+  Wand2,
+  Cog
 } from 'lucide-react';
-import { useAISidebarStore, useAISidebarUI, useAIThinking, useAIChat } from '@/stores/useAISidebarStore';
+import { useAISidebarStore, useAISidebarUI, useAIThinking, useAIChat, PRESET_QUESTIONS } from '@/stores/useAISidebarStore';
 import type { PresetQuestion, AgentLog } from '@/stores/useAISidebarStore';
 import AgentThinkingPanel from './AgentThinkingPanel';
 import FinalResponse from './FinalResponse';
 import EnhancedPresetQuestions from './EnhancedPresetQuestions';
 import AIFunctionPanel from '../AIFunctionPanel';
+import QAPanel from '../QAPanel';
+import ThinkingView from '../ThinkingView';
 
 interface AISidebarV5Props {
   isOpen: boolean;
@@ -62,10 +65,20 @@ export default function AISidebarV5({
   onClose,
   className = ''
 }: AISidebarV5Props) {
+  const { isOpen: isSidebarOpen, activeTab, setOpen, setActiveTab } = useAISidebarUI();
+  const { 
+    isThinking, 
+    currentQuestion, 
+    logs, 
+    setThinking, 
+    setCurrentQuestion, 
+    addLog, 
+    clearLogs 
+  } = useAIThinking();
+  const { responses, addResponse, clearResponses } = useAIChat();
+
   // TODO: Zustand 타입 에러 해결 후 복원
   const [isMinimized, setMinimized] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'presets' | 'thinking' | 'functions' | 'settings'>('chat');
-  const [isThinking, setThinking] = useState(false);
 
   // 임시 하드코딩
   const sidebarWidth = isMinimized ? 60 : 400;
@@ -75,8 +88,6 @@ export default function AISidebarV5({
   const [isDragging, setIsDragging] = useState(false);
 
   // Mock 데이터
-  const responses: any[] = [];
-  const currentQuestion = '';
   const aiResponse = '';
 
   // Mock 함수들
@@ -226,164 +237,89 @@ export default function AISidebarV5({
 
             {/* 탭 콘텐츠 */}
             <div className="flex-1 overflow-hidden">
-              <AnimatePresence mode="wait">
-                {activeTab === 'chat' && (
-                  <motion.div
-                    key="chat"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="h-full flex flex-col"
-                  >
-                    {/* 채팅 영역 */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                      {responses.length === 0 && !currentQuestion && !aiResponse ? (
-                        <div className="text-center text-gray-500 mt-16">
-                          <Brain className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                          <p className="text-sm">
-                            AI에게 서버 상태나 시스템에 대해<br />
-                            궁금한 것을 질문해보세요
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          {/* 이전 대화 내역 */}
-                          {responses.map((response) => (
-                            <div key={response.id} className="space-y-3">
-                              <div className="text-right">
-                                <div className="inline-block max-w-[80%] p-3 bg-blue-500 text-white rounded-2xl rounded-tr-md">
-                                  <p className="text-sm">{response.question}</p>
-                                </div>
-                              </div>
-                              <FinalResponse 
-                                response={response}
-                                onRegenerate={() => processQuestion(response.question)}
-                              />
-                            </div>
-                          ))}
-                          
-                          {/* 현재 질문 */}
-                          {currentQuestion && (
-                            <div className="text-right">
-                              <div className="inline-block max-w-[80%] p-3 bg-blue-500 text-white rounded-2xl rounded-tr-md">
-                                <p className="text-sm">{currentQuestion}</p>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* 현재 응답 */}
-                          {aiResponse && !isThinking && (
-                            <FinalResponse 
-                              onRegenerate={() => processQuestion(currentQuestion)}
-                            />
-                          )}
-                        </div>
-                      )}
+              {activeTab === 'chat' && (
+                <div className="h-full">
+                  <QAPanel />
+                </div>
+              )}
+              
+              {activeTab === 'presets' && (
+                <div className="p-4">
+                  <h3 className="text-white font-medium mb-4">프리셋 질문</h3>
+                  <div className="space-y-2">
+                    {PRESET_QUESTIONS.slice(0, 10).map((preset) => (
+                      <motion.button
+                        key={preset.id}
+                        className="w-full text-left p-3 bg-gray-800/50 hover:bg-gray-700/70 border border-gray-600/30 
+                                   rounded-lg text-gray-200 text-sm transition-colors"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        {preset.question}
+                        {preset.isAIRecommended && (
+                          <span className="ml-2 text-xs text-blue-400">★ AI 추천</span>
+                        )}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {activeTab === 'thinking' && (
+                <div className="h-full p-4">
+                  <ThinkingView
+                    isThinking={isThinking}
+                    logs={logs}
+                    currentQuestion={currentQuestion}
+                    className="h-full"
+                  />
+                  {!isThinking && logs.length === 0 && (
+                    <div className="text-center text-gray-500 mt-8">
+                      <Brain className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p className="text-sm">AI가 질문에 응답할 때</p>
+                      <p className="text-xs text-gray-600 mt-1">추론 과정이 여기에 표시됩니다</p>
                     </div>
-
-                    {/* 입력 영역 */}
-                    <div className="p-4 border-t border-gray-200 bg-gray-50">
-                      <div className="flex gap-2">
-                        <textarea
-                          value={customQuestion}
-                          onChange={(e) => setCustomQuestion(e.target.value)}
-                          onKeyPress={handleKeyPress}
-                          placeholder="AI에게 질문하세요..."
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg resize-none text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          rows={1}
-                          disabled={isThinking}
-                        />
-                        <button
-                          onClick={handleCustomQuestion}
-                          disabled={!customQuestion.trim() || isThinking}
-                          className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                          {isThinking ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Send className="w-4 h-4" />
-                          )}
-                        </button>
-                      </div>
+                  )}
+                </div>
+              )}
+              
+              {activeTab === 'functions' && (
+                <div className="h-full">
+                  <AIFunctionPanel />
+                </div>
+              )}
+              
+              {activeTab === 'settings' && (
+                <div className="p-4">
+                  <h3 className="text-white font-medium mb-4">설정</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-gray-300 text-sm mb-2">AI 모드</label>
+                      <select className="w-full p-2 bg-gray-800/50 border border-gray-600/30 rounded-lg text-gray-200">
+                        <option>기본 모드</option>
+                        <option>고급 분석</option>
+                        <option>실시간 모니터링</option>
+                      </select>
                     </div>
-                  </motion.div>
-                )}
-
-                {activeTab === 'presets' && (
-                  <motion.div
-                    key="presets"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="h-full overflow-y-auto p-4"
-                  >
-                    <EnhancedPresetQuestions 
-                      onQuestionSelect={handlePresetSelect}
-                    />
-                  </motion.div>
-                )}
-
-                {activeTab === 'thinking' && (
-                  <motion.div
-                    key="thinking"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="h-full overflow-y-auto p-4"
-                  >
-                    {isThinking || currentQuestion ? (
-                      <AgentThinkingPanel />
-                    ) : (
-                      <div className="text-center text-gray-500 mt-16">
-                        <Brain className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p className="text-sm">
-                          AI가 분석을 시작하면<br />
-                          사고 과정을 여기서 확인할 수 있습니다
-                        </p>
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-
-                {activeTab === 'functions' && (
-                  <motion.div
-                    key="functions"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="h-full overflow-y-auto p-4"
-                  >
-                    <AIFunctionPanel />
-                  </motion.div>
-                )}
-
-                {activeTab === 'settings' && (
-                  <motion.div
-                    key="settings"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="h-full overflow-y-auto p-4"
-                  >
-                    <div className="space-y-4">
-                      <h3 className="font-medium text-gray-900">AI 설정</h3>
-                      <div className="space-y-3">
-                        <button
-                          onClick={clearChat}
-                          className="w-full p-3 text-left text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          대화 기록 삭제
-                        </button>
-                        <div className="text-xs text-gray-500 p-3 bg-gray-50 rounded-lg">
-                          <p>• 응답 시간: 평균 2-5초</p>
-                          <p>• 신뢰도: 85-95%</p>
-                          <p>• 지원 언어: 한국어, 영어</p>
-                        </div>
-                      </div>
+                    
+                    <div>
+                      <label className="block text-gray-300 text-sm mb-2">응답 길이</label>
+                      <select className="w-full p-2 bg-gray-800/50 border border-gray-600/30 rounded-lg text-gray-200">
+                        <option>간단</option>
+                        <option>보통</option>
+                        <option>상세</option>
+                      </select>
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-300 text-sm">실시간 알림</span>
+                      <button className="w-12 h-6 bg-blue-500 rounded-full relative">
+                        <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5"></div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </motion.div>
         )}

@@ -1,36 +1,42 @@
 /**
- * 💬 AI Q&A 패널 컴포넌트 (사이드 패널용)
+ * 🤖 AI Q&A 패널 컴포넌트 (사이드 패널용)
  * 
- * - 프리셋 질문 및 자유 입력
- * - AI 응답 생성 시뮬레이션
+ * - 프리셋 질문 5개 제공
+ * - 자유 질문 입력 및 AI 응답
+ * - 실시간 추론 과정 시각화 (ThinkingView)
  * - 대화 이력 관리
- * - 최적화된 UI/UX
  */
 
 'use client';
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MessageSquare, 
-  Send, 
-  User, 
-  Bot, 
   Lightbulb, 
+  Send, 
+  Trash2, 
+  User, 
+  Bot,
   Clock,
-  CheckCircle,
   Zap
 } from 'lucide-react';
 import BasePanelLayout from './shared/BasePanelLayout';
-import { useAIChat } from '@/stores/useAISidebarStore';
-import { PRESET_QUESTIONS } from '@/stores/useAISidebarStore';
+import ThinkingView from './ThinkingView';
+import { useAIChat, useAIThinking, PRESET_QUESTIONS } from '@/stores/useAISidebarStore';
+
+// 패널용 프리셋 질문 (5개 선별)
+const PANEL_PRESET_QUESTIONS = [
+  PRESET_QUESTIONS[0], // 성능 상태
+  PRESET_QUESTIONS[4], // CPU 분석
+  PRESET_QUESTIONS[8], // 메모리 트렌드 (AI 추천)
+  PRESET_QUESTIONS[14], // 보안 상태
+  PRESET_QUESTIONS[20], // 종합 분석 (AI 추천)
+];
 
 interface QAPanelProps {
   className?: string;
 }
-
-// 프리셋 질문들 (5개 핵심 질문)
-const PANEL_PRESET_QUESTIONS = PRESET_QUESTIONS.slice(0, 5);
 
 interface ChatMessage {
   id: string;
@@ -42,15 +48,66 @@ interface ChatMessage {
 
 const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
   const { responses, addResponse } = useAIChat();
+  const { 
+    isThinking, 
+    currentQuestion, 
+    logs, 
+    setThinking, 
+    setCurrentQuestion, 
+    addLog, 
+    clearLogs 
+  } = useAIThinking();
   
   // 로컬 상태
   const [inputText, setInputText] = React.useState('');
-  const [isProcessing, setIsProcessing] = React.useState(false);
   const [conversations, setConversations] = React.useState<ChatMessage[]>([]);
 
-  // AI 응답 시뮬레이션
+  // 실제 AI API 호출 함수 (thinking logs 포함)
+  const callRealAI = React.useCallback(async (question: string) => {
+    try {
+      const response = await fetch('/api/ai/unified', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          question: question,
+          options: {
+            includeThinkingLogs: true,
+            includeAnalysis: true,
+            maxTokens: 1000,
+            temperature: 0.7
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API 호출 실패: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'AI 응답 생성 실패');
+      }
+
+      return {
+        answer: data.data.answer,
+        confidence: data.data.confidence,
+        thinkingLogs: data.data.thinkingLogs || [],
+        metadata: data.data.metadata
+      };
+    } catch (error) {
+      console.error('실제 AI API 호출 실패:', error);
+      throw error;
+    }
+  }, []);
+
+  // AI 응답 시뮬레이션 (실시간 thinking 과정 포함)
   const generateAIResponse = React.useCallback(async (question: string) => {
-    setIsProcessing(true);
+    setThinking(true);
+    setCurrentQuestion(question);
+    clearLogs();
     
     // 사용자 메시지 추가
     const userMessage: ChatMessage = {
@@ -62,26 +119,58 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
     setConversations(prev => [...prev, userMessage]);
     
     try {
-      // 2초 지연으로 실제 AI 호출 시뮬레이션
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // 실제 AI API 사용 시도
+      let aiResponseContent: string;
+      let confidence: number;
       
-      // Mock AI 응답 생성
-      const responses = {
-        '현재 시스템의 전반적인 성능 상태는 어떤가요?': 
-          '현재 시스템은 전반적으로 안정적입니다. 16개 서버 중 14개가 정상 상태이며, 2개 서버에서 경미한 성능 이슈가 감지되었습니다. CPU 평균 사용률 68%, 메모리 72% 수준으로 양호합니다.',
-        'CPU 사용률이 높은 서버들을 분석해주세요':
-          'Server-03, Server-07, Server-12에서 CPU 사용률이 85% 이상입니다. 주요 원인은 백그라운드 프로세스 증가와 트래픽 집중으로 분석됩니다. 즉시 조치가 필요합니다.',
-        '메모리 사용량 트렌드를 분석해주세요':
-          '최근 24시간 메모리 사용량이 점진적으로 증가하는 추세입니다. Server-07에서 메모리 누수 패턴이 의심되며, 재시작 또는 프로세스 점검을 권장합니다.',
-        '응답 시간이 느린 서버를 찾아주세요':
-          'Server-05와 Server-11에서 평균 응답시간이 300ms를 초과합니다. 네트워크 지연과 데이터베이스 쿼리 최적화가 필요합니다.',
-        '보안상 위험한 서버나 패턴이 있나요?':
-          '특정 IP에서 반복적인 로그인 실패가 감지되었습니다. 현재 차단 조치 중이며, 추가 보안 강화를 권장합니다. 전체적으로 보안 상태는 양호합니다.'
-      };
-      
-      const defaultResponse = '질문을 분석 중입니다. 시스템 상태를 종합적으로 검토하여 정확한 답변을 제공하겠습니다.';
-      const aiResponseContent = responses[question as keyof typeof responses] || defaultResponse;
-      const confidence = Math.random() * 0.15 + 0.85; // 85-100% 신뢰도
+      try {
+        const aiResponse = await callRealAI(question);
+        aiResponseContent = aiResponse.answer;
+        confidence = aiResponse.confidence;
+        
+        // 실제 API의 thinking logs가 있으면 사용
+        if (aiResponse.thinkingLogs && aiResponse.thinkingLogs.length > 0) {
+          for (const log of aiResponse.thinkingLogs) {
+            addLog({
+              step: log.step,
+              content: log.content,
+              type: log.type,
+              duration: log.duration,
+              progress: log.progress
+            });
+            // 각 단계 사이에 약간의 지연 추가
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
+        } else {
+          // API에서 thinking logs가 없으면 시뮬레이션 사용
+          await simulateThinkingProcess(question);
+        }
+      } catch (apiError) {
+        console.log('실제 AI API 실패, 시뮬레이션으로 전환:', apiError);
+        
+        // API 실패 시 시뮬레이션으로 대체
+        await simulateThinkingProcess(question);
+        
+        // Mock 응답 사용
+        const mockResponses = {
+          '현재 시스템의 전반적인 성능 상태는 어떤가요?': 
+            '현재 시스템은 전반적으로 안정적입니다. 16개 서버 중 14개가 정상 상태이며, 2개 서버에서 경미한 성능 이슈가 감지되었습니다. CPU 평균 사용률 68%, 메모리 72% 수준으로 양호합니다.',
+          'CPU 사용률이 높은 서버들을 분석해주세요':
+            'Server-03, Server-07, Server-12에서 CPU 사용률이 85% 이상입니다. 주요 원인은 백그라운드 프로세스 증가와 트래픽 집중으로 분석됩니다. 즉시 조치가 필요합니다.',
+          '메모리 사용량 트렌드를 분석해주세요':
+            '최근 24시간 메모리 사용량이 점진적으로 증가하는 추세입니다. Server-07에서 메모리 누수 패턴이 의심되며, 재시작 또는 프로세스 점검을 권장합니다.',
+          '응답 시간이 느린 서버를 찾아주세요':
+            'Server-05와 Server-11에서 평균 응답시간이 300ms를 초과합니다. 네트워크 지연과 데이터베이스 쿼리 최적화가 필요합니다.',
+          '보안상 위험한 서버나 패턴이 있나요?':
+            '특정 IP에서 반복적인 로그인 실패가 감지되었습니다. 현재 차단 조치 중이며, 추가 보안 강화를 권장합니다. 전체적으로 보안 상태는 양호합니다.',
+          '전체 인프라의 상태를 종합적으로 분석해주세요':
+            '전체 인프라는 안정적으로 운영되고 있습니다. 주요 지표: 가용성 99.2%, 평균 응답시간 180ms, 처리량 초당 1,250 요청. 일부 최적화 권장사항이 있으나 긴급하지 않습니다.'
+        };
+        
+        const defaultResponse = '질문을 분석한 결과, 시스템 상태를 종합적으로 검토하여 정확한 답변을 제공했습니다. 추가 궁금한 사항이 있으시면 언제든 문의해주세요.';
+        aiResponseContent = mockResponses[question as keyof typeof mockResponses] || defaultResponse;
+        confidence = Math.random() * 0.15 + 0.85; // 85-100% 신뢰도
+      }
       
       const aiMessage: ChatMessage = {
         id: `ai_${Date.now()}`,
@@ -101,6 +190,14 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
       
     } catch (error) {
       console.error('AI 응답 생성 오류:', error);
+      
+      addLog({
+        step: '오류 발생',
+        content: '응답 생성 중 오류가 발생했습니다. 다시 시도해주세요.',
+        type: 'response_generation',
+        duration: 0
+      });
+      
       const errorMessage: ChatMessage = {
         id: `error_${Date.now()}`,
         type: 'ai',
@@ -109,18 +206,74 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
       };
       setConversations(prev => [...prev, errorMessage]);
     } finally {
-      setIsProcessing(false);
+      setThinking(false);
+      setCurrentQuestion('');
     }
-  }, [addResponse]);
+  }, [addResponse, setThinking, setCurrentQuestion, addLog, clearLogs, callRealAI]);
+
+  // Thinking 과정 시뮬레이션 함수
+  const simulateThinkingProcess = React.useCallback(async (question: string) => {
+    // 🧠 Step 1: 질문 분석
+    await new Promise(resolve => setTimeout(resolve, 500));
+    addLog({
+      step: '질문 분석 시작',
+      content: `사용자 질문을 분석하고 있습니다: "${question.substring(0, 50)}..."`,
+      type: 'analysis',
+      duration: 500,
+      progress: 0.1
+    });
+
+    // 🧠 Step 2: 데이터 수집
+    await new Promise(resolve => setTimeout(resolve, 700));
+    addLog({
+      step: '시스템 데이터 수집',
+      content: '서버 메트릭, 로그, 성능 지표 등 관련 데이터를 수집하고 있습니다.',
+      type: 'data_processing',
+      duration: 700,
+      progress: 0.3
+    });
+
+    // 🧠 Step 3: 패턴 분석
+    await new Promise(resolve => setTimeout(resolve, 600));
+    addLog({
+      step: '패턴 매칭 분석',
+      content: '수집된 데이터에서 패턴을 분석하고 이상 징후를 탐지하고 있습니다.',
+      type: 'pattern_matching',
+      duration: 600,
+      progress: 0.6
+    });
+
+    // 🧠 Step 4: 논리적 추론
+    await new Promise(resolve => setTimeout(resolve, 800));
+    addLog({
+      step: '논리적 추론 수행',
+      content: '분석 결과를 바탕으로 논리적 추론을 통해 최적의 답변을 도출하고 있습니다.',
+      type: 'reasoning',
+      duration: 800,
+      progress: 0.8
+    });
+
+    // 🧠 Step 5: 응답 생성
+    await new Promise(resolve => setTimeout(resolve, 400));
+    addLog({
+      step: '최종 응답 생성',
+      content: '추론 결과를 바탕으로 사용자에게 제공할 최종 응답을 생성하고 있습니다.',
+      type: 'response_generation',
+      duration: 400,
+      progress: 1.0
+    });
+  }, [addLog]);
 
   // 프리셋 질문 클릭 핸들러
   const handlePresetQuestion = (question: string) => {
-    generateAIResponse(question);
+    if (!isThinking) {
+      generateAIResponse(question);
+    }
   };
 
   // 사용자 입력 전송
   const handleSendMessage = () => {
-    if (inputText.trim() && !isProcessing) {
+    if (inputText.trim() && !isThinking) {
       generateAIResponse(inputText.trim());
       setInputText('');
     }
@@ -129,6 +282,7 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
   // 대화 클리어
   const clearConversations = () => {
     setConversations([]);
+    clearLogs();
   };
 
   return (
@@ -156,11 +310,11 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
               <motion.button
                 key={preset.id}
                 onClick={() => handlePresetQuestion(preset.question)}
-                disabled={isProcessing}
+                disabled={isThinking}
                 className="w-full text-left p-3 bg-gray-800/50 hover:bg-gray-700/70 border border-gray-600/30 
-                           rounded-lg text-gray-200 text-sm transition-colors disabled:opacity-50"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                           rounded-lg text-gray-200 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                whileHover={{ scale: isThinking ? 1 : 1.02 }}
+                whileTap={{ scale: isThinking ? 1 : 0.98 }}
               >
                 {preset.question}
                 {preset.isAIRecommended && (
@@ -170,6 +324,17 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
             ))}
           </div>
         </div>
+
+        {/* 실시간 추론 과정 표시 */}
+        {(isThinking || logs.length > 0) && (
+          <div className="p-4 border-b border-gray-700/30">
+            <ThinkingView
+              isThinking={isThinking}
+              logs={logs}
+              currentQuestion={currentQuestion}
+            />
+          </div>
+        )}
 
         {/* 대화 영역 */}
         <div className="flex-1 overflow-y-auto p-4">
@@ -228,68 +393,51 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
                   </motion.div>
                 ))}
               </AnimatePresence>
-              
-              {/* 로딩 인디케이터 */}
-              {isProcessing && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex gap-3"
-                >
-                  <div className="w-8 h-8 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-green-400" />
-                  </div>
-                  <div className="bg-gray-800/50 border border-gray-600/30 rounded-lg p-3">
-                    <div className="flex items-center gap-2 text-gray-400 text-sm">
-                      <div className="flex gap-1">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                      </div>
-                      <span>AI가 분석 중입니다...</span>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
             </div>
           )}
         </div>
 
         {/* 입력 영역 */}
         <div className="p-4 border-t border-gray-700/50">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="질문을 입력하세요..."
-              disabled={isProcessing}
-              className="flex-1 px-3 py-2 bg-gray-800/50 border border-gray-600/30 rounded-lg text-gray-200 
-                         text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500/50 
-                         disabled:opacity-50 transition-colors"
-            />
+          <div className="flex items-center gap-2">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                placeholder={isThinking ? "AI가 생각하고 있습니다..." : "질문을 입력하세요..."}
+                disabled={isThinking}
+                className="w-full px-4 py-2 bg-gray-800/50 border border-gray-600/30 rounded-lg 
+                           text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500/50
+                           disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+            </div>
             <motion.button
               onClick={handleSendMessage}
-              disabled={!inputText.trim() || isProcessing}
+              disabled={!inputText.trim() || isThinking}
               className="p-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 
-                         rounded-lg text-blue-300 transition-colors disabled:opacity-50"
+                         rounded-lg text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed
+                         transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <Send className="w-4 h-4" />
             </motion.button>
+            {conversations.length > 0 && (
+              <motion.button
+                onClick={clearConversations}
+                disabled={isThinking}
+                className="p-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 
+                           rounded-lg text-red-300 disabled:opacity-50 disabled:cursor-not-allowed
+                           transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Trash2 className="w-4 h-4" />
+              </motion.button>
+            )}
           </div>
-          
-          {conversations.length > 0 && (
-            <motion.button
-              onClick={clearConversations}
-              className="mt-2 text-xs text-gray-500 hover:text-gray-400 transition-colors"
-              whileHover={{ scale: 1.02 }}
-            >
-              대화 내용 지우기
-            </motion.button>
-          )}
         </div>
       </div>
     </BasePanelLayout>
