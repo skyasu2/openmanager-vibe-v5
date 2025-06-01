@@ -118,6 +118,81 @@ export const AISidebar: React.FC<AISidebarProps> = ({
 }) => {
   const { aiAgent } = useSystemStore();
   const [activeTab, setActiveTab] = useState<'overview' | 'patterns' | 'predictions' | 'chat'>('overview');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // 🛡️ AI 에이전트 상태 안전성 검증
+  const isAIReady = React.useMemo(() => {
+    try {
+      return aiAgent && 
+             typeof aiAgent === 'object' && 
+             aiAgent.isEnabled === true &&
+             aiAgent.state !== undefined;
+    } catch (err) {
+      console.warn('⚠️ [AISidebar] AI 상태 검증 실패:', err);
+      return false;
+    }
+  }, [aiAgent]);
+
+  // 🛡️ 안전한 AI 데이터 접근
+  const safeAIData = React.useMemo(() => {
+    if (!isAIReady || !aiAgent) {
+      return {
+        totalQueries: 0,
+        mcpStatus: 'disconnected' as const,
+        lastActivated: null,
+        isEnabled: false,
+        state: 'disabled' as const
+      };
+    }
+
+    return {
+      totalQueries: aiAgent.totalQueries || 0,
+      mcpStatus: aiAgent.mcpStatus || 'disconnected',
+      lastActivated: aiAgent.lastActivated || null,
+      isEnabled: aiAgent.isEnabled || false,
+      state: aiAgent.state || 'disabled'
+    };
+  }, [aiAgent, isAIReady]);
+
+  // 🔄 AI 상태 초기화 및 에러 복구
+  useEffect(() => {
+    let mounted = true;
+    
+    const initializeAI = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // 1초 대기 후 상태 확인 (초기화 시간 확보)
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        if (!mounted) return;
+
+        if (!isAIReady) {
+          console.warn('⚠️ [AISidebar] AI 에이전트가 준비되지 않음');
+          setError('AI 에이전트를 초기화하는 중입니다...');
+        } else {
+          console.log('✅ [AISidebar] AI 에이전트 준비 완료');
+        }
+      } catch (err) {
+        console.error('❌ [AISidebar] 초기화 실패:', err);
+        setError('AI 에이전트 연결에 실패했습니다.');
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    if (isOpen) {
+      initializeAI();
+    }
+
+    return () => {
+      mounted = false;
+    };
+  }, [isOpen, isAIReady]);
 
   // ESC 키로 사이드바 닫기
   useEffect(() => {
@@ -155,6 +230,14 @@ export const AISidebar: React.FC<AISidebarProps> = ({
     closed: { opacity: 0 }
   };
 
+  // 🚨 에러 복구 핸들러
+  const handleRetry = () => {
+    setError(null);
+    setIsLoading(true);
+    // 강제 리마운트를 위해 탭 초기화
+    setActiveTab('overview');
+  };
+
   return (
     <>
       {/* 플로팅 토글 버튼 */}
@@ -162,7 +245,7 @@ export const AISidebar: React.FC<AISidebarProps> = ({
         isOpen={isOpen}
         onClick={onToggle}
         position={position}
-        aiEnabled={aiAgent.isEnabled}
+        aiEnabled={safeAIData.isEnabled}
       />
 
       {/* 사이드바 및 오버레이 */}
@@ -198,7 +281,9 @@ export const AISidebar: React.FC<AISidebarProps> = ({
                     <div>
                       <h2 className="font-bold">AI 기능 센터</h2>
                       <p className="text-xs text-purple-100">
-                        {aiAgent.isEnabled ? '활성화됨' : '비활성화됨'}
+                        {isLoading ? '초기화 중...' : 
+                         error ? '오류 발생' :
+                         safeAIData.isEnabled ? '활성화됨' : '비활성화됨'}
                       </p>
                     </div>
                   </div>
@@ -211,8 +296,44 @@ export const AISidebar: React.FC<AISidebarProps> = ({
                 </div>
               </div>
 
+              {/* 로딩 상태 */}
+              {isLoading && (
+                <div className="p-8 text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4" />
+                  <h3 className="font-semibold text-gray-800 mb-2">AI 에이전트 초기화 중</h3>
+                  <p className="text-sm text-gray-600">
+                    잠시만 기다려주세요...
+                  </p>
+                </div>
+              )}
+
+              {/* 에러 상태 */}
+              {error && !isLoading && (
+                <div className="p-4">
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                    <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
+                    <h3 className="font-semibold text-red-800 mb-1">AI 사이드바 오류</h3>
+                    <p className="text-sm text-red-600 mb-3">{error}</p>
+                    <div className="space-y-2">
+                      <button 
+                        onClick={handleRetry}
+                        className="w-full px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition-colors"
+                      >
+                        다시 시도
+                      </button>
+                      <button 
+                        onClick={onClose}
+                        className="w-full px-4 py-2 bg-gray-500 text-white rounded-lg text-sm hover:bg-gray-600 transition-colors"
+                      >
+                        닫기
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* AI 비활성화 상태 */}
-              {!aiAgent.isEnabled && (
+              {!safeAIData.isEnabled && !isLoading && !error && (
                 <div className="p-4">
                   <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
                     <AlertCircle className="w-8 h-8 text-orange-500 mx-auto mb-2" />
@@ -220,15 +341,18 @@ export const AISidebar: React.FC<AISidebarProps> = ({
                     <p className="text-sm text-orange-600 mb-3">
                       AI 기능을 사용하려면 먼저 활성화해주세요.
                     </p>
-                    <button className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm hover:bg-orange-600 transition-colors">
-                      AI 활성화
+                    <button 
+                      onClick={() => window.location.href = '/'}
+                      className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm hover:bg-orange-600 transition-colors"
+                    >
+                      홈에서 AI 활성화
                     </button>
                   </div>
                 </div>
               )}
 
               {/* AI 활성화 상태 - 탭 네비게이션 */}
-              {aiAgent.isEnabled && (
+              {safeAIData.isEnabled && !isLoading && !error && (
                 <>
                   <div className="border-b border-gray-200 bg-white">
                     <div className="flex">
@@ -262,25 +386,33 @@ export const AISidebar: React.FC<AISidebarProps> = ({
                           title="AI 상태 요약"
                           description="전체 AI 시스템 현황"
                           icon={Brain}
-                          isActive={aiAgent.isEnabled}
+                          isActive={safeAIData.isEnabled}
                         >
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                               <span>총 쿼리</span>
-                              <span className="font-medium">{aiAgent.totalQueries || 0}</span>
+                              <span className="font-medium">{safeAIData.totalQueries}</span>
                             </div>
                             <div className="flex justify-between">
                               <span>MCP 상태</span>
                               <span className={`font-medium ${
-                                aiAgent.mcpStatus === 'connected' ? 'text-green-600' : 'text-red-600'
+                                safeAIData.mcpStatus === 'connected' ? 'text-green-600' : 'text-red-600'
                               }`}>
-                                {aiAgent.mcpStatus}
+                                {safeAIData.mcpStatus}
                               </span>
                             </div>
                             <div className="flex justify-between">
                               <span>마지막 활성화</span>
                               <span className="font-medium text-gray-500">
-                                {aiAgent.lastActivated ? new Date(aiAgent.lastActivated).toLocaleTimeString() : '-'}
+                                {safeAIData.lastActivated ? new Date(safeAIData.lastActivated).toLocaleTimeString() : '-'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>상태</span>
+                              <span className={`font-medium ${
+                                safeAIData.state === 'enabled' ? 'text-green-600' : 'text-orange-600'
+                              }`}>
+                                {safeAIData.state}
                               </span>
                             </div>
                           </div>
@@ -295,7 +427,13 @@ export const AISidebar: React.FC<AISidebarProps> = ({
                         icon={Activity}
                         isActive={true}
                       >
-                        <PatternAnalysisWidget />
+                        <React.Suspense fallback={
+                          <div className="animate-pulse bg-gray-100 rounded-lg h-32 flex items-center justify-center">
+                            <span className="text-gray-500">패턴 분석 로딩 중...</span>
+                          </div>
+                        }>
+                          <PatternAnalysisWidget />
+                        </React.Suspense>
                       </AIFeatureCard>
                     )}
 
@@ -306,11 +444,17 @@ export const AISidebar: React.FC<AISidebarProps> = ({
                         icon={TrendingUp}
                         isActive={true}
                       >
-                        <PredictionDashboard 
-                          serverId="web-server-01"
-                          autoRefresh={true}
-                          refreshInterval={30000}
-                        />
+                        <React.Suspense fallback={
+                          <div className="animate-pulse bg-gray-100 rounded-lg h-48 flex items-center justify-center">
+                            <span className="text-gray-500">예측 분석 로딩 중...</span>
+                          </div>
+                        }>
+                          <PredictionDashboard 
+                            serverId="web-server-01"
+                            autoRefresh={true}
+                            refreshInterval={30000}
+                          />
+                        </React.Suspense>
                       </AIFeatureCard>
                     )}
 
@@ -321,10 +465,16 @@ export const AISidebar: React.FC<AISidebarProps> = ({
                         icon={Bot}
                         isActive={true}
                       >
-                        <AISidebarV5 
-                          isOpen={true} 
-                          onClose={() => {}}
-                        />
+                        <React.Suspense fallback={
+                          <div className="animate-pulse bg-gray-100 rounded-lg h-64 flex items-center justify-center">
+                            <span className="text-gray-500">AI 채팅 로딩 중...</span>
+                          </div>
+                        }>
+                          <AISidebarV5 
+                            isOpen={true} 
+                            onClose={() => {}}
+                          />
+                        </React.Suspense>
                       </AIFeatureCard>
                     )}
                   </div>

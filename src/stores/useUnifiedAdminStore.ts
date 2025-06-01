@@ -241,7 +241,17 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
       // AI 에이전트 인증 (관리자 모드 통합)
       authenticateAIAgent: (password: string) => {
         try {
-          const { attempts, checkLockStatus, isSystemStarted } = get();
+          // 🛡️ 상태 안전성 검증
+          const state = get();
+          if (!state) {
+            console.error('❌ [Auth] 스토어 상태가 없음 - 인증 중단');
+            return {
+              success: false,
+              message: '스토어 상태를 읽을 수 없습니다.'
+            };
+          }
+
+          const { attempts, checkLockStatus, isSystemStarted } = state;
           
           // 시스템이 실행 중인지 확인
           if (!isSystemStarted) {
@@ -253,7 +263,7 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
           
           // 잠금 상태 확인
           if (!checkLockStatus()) {
-            const remainingTime = get().getRemainingLockTime();
+            const remainingTime = get()?.getRemainingLockTime() || 0;
             console.warn('🔒 [Auth] 계정 잠금 상태 - 인증 시도 차단');
             return {
               success: false,
@@ -263,15 +273,20 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
           }
           
           if (password === ADMIN_PASSWORD) {
-            set((state) => ({ 
-              ...state,
-              aiAgent: {
-                isEnabled: true,
-                isAuthenticated: true,
-                state: 'enabled'
-              },
-              attempts: 0
-            }));
+            // 🛡️ 안전한 상태 업데이트
+            set((state) => {
+              if (!state) return state;
+              
+              return { 
+                ...state,
+                aiAgent: {
+                  isEnabled: true,
+                  isAuthenticated: true,
+                  state: 'enabled'
+                },
+                attempts: 0
+              };
+            });
             
             console.log('✅ [AI] AI 에이전트 모드 활성화 - 지능형 분석 시작');
             
@@ -299,19 +314,26 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
             
             if (newAttempts >= MAX_ATTEMPTS) {
               const lockoutEndTime = Date.now() + LOCKOUT_DURATION;
-              set((state) => ({ 
-                ...state,
-                attempts: newAttempts,
-                isLocked: true,
-                lockoutEndTime
-              }));
+              set((state) => {
+                if (!state) return state;
+                
+                return { 
+                  ...state,
+                  attempts: newAttempts,
+                  isLocked: true,
+                  lockoutEndTime
+                };
+              });
               console.error('🔒 [Auth] 계정 잠금 - 최대 시도 횟수 초과');
               return {
                 success: false,
                 message: '5번 틀려서 잠겼습니다. 잠시 후 다시 시도하세요.'
               };
             } else {
-              set((state) => ({ ...state, attempts: newAttempts }));
+              set((state) => {
+                if (!state) return state;
+                return { ...state, attempts: newAttempts };
+              });
               return {
                 success: false,
                 message: `비밀번호가 틀렸습니다. (${newAttempts}/${MAX_ATTEMPTS})`
@@ -330,14 +352,25 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
       // AI 에이전트 비활성화
       disableAIAgent: () => {
         try {
-          set((state) => ({ 
-            ...state,
-            aiAgent: {
-              isEnabled: false,
-              isAuthenticated: false,
-              state: 'disabled'
-            }
-          }));
+          // 🛡️ 상태 안전성 검증
+          const state = get();
+          if (!state) {
+            console.error('❌ [AI] 스토어 상태가 없음 - 비활성화 중단');
+            return;
+          }
+
+          set((state) => {
+            if (!state) return state;
+            
+            return { 
+              ...state,
+              aiAgent: {
+                isEnabled: false,
+                isAuthenticated: false,
+                state: 'disabled'
+              }
+            };
+          });
           
           console.log('🔐 [AI] AI 에이전트 모드 종료 - 기본 모니터링 모드로 전환');
           
@@ -362,22 +395,33 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
       // AI 처리 토글 (더 이상 사용하지 않음)
       toggleAIProcessing: async () => {
         try {
-          const { aiAgent } = get();
+          // 🛡️ 상태 안전성 검증
+          const state = get();
+          if (!state) {
+            console.error('❌ [AI] 스토어 상태가 없음 - 토글 중단');
+            throw new Error('스토어 상태를 읽을 수 없습니다.');
+          }
+
+          const { aiAgent } = state;
           
-          if (!aiAgent.isEnabled || !aiAgent.isAuthenticated) {
+          if (!aiAgent || !aiAgent.isEnabled || !aiAgent.isAuthenticated) {
             throw new Error('AI 에이전트 모드가 필요합니다.');
           }
           
           // 간단한 상태 토글만 수행
           const newState = aiAgent.state === 'processing' ? 'enabled' : 'processing';
           
-          set((state) => ({ 
-            ...state,
-            aiAgent: { 
-              ...state.aiAgent,
-              state: newState
-            }
-          }));
+          set((state) => {
+            if (!state) return state;
+            
+            return { 
+              ...state,
+              aiAgent: { 
+                ...state.aiAgent,
+                state: newState
+              }
+            };
+          });
           
           console.log(`🔄 [AI] AI 처리 상태 변경: ${newState}`);
         } catch (error) {
@@ -389,14 +433,25 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
       // 로그아웃
       logout: () => {
         try {
-          set((state) => ({ 
-            ...state,
-            aiAgent: {
-              isEnabled: false,
-              isAuthenticated: false,
-              state: 'disabled'
-            }
-          }));
+          // 🛡️ 상태 안전성 검증
+          const state = get();
+          if (!state) {
+            console.error('❌ [Auth] 스토어 상태가 없음 - 로그아웃 중단');
+            return;
+          }
+
+          set((state) => {
+            if (!state) return state;
+            
+            return { 
+              ...state,
+              aiAgent: {
+                isEnabled: false,
+                isAuthenticated: false,
+                state: 'disabled'
+              }
+            };
+          });
           
           console.log('🔐 [Auth] 로그아웃 - 기본 모니터링 모드로 전환');
           

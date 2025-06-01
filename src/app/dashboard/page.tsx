@@ -11,7 +11,7 @@ import { NotificationToast } from '@/components/system/NotificationToast';
 import { cn } from '@/lib/utils';
 
 // ⚡ Dynamic Import로 코드 스플리팅 적용 (Vercel 최적화)
-const CompactMonitoringHeader = dynamic(() => import('../../components/dashboard/CompactMonitoringHeader').then(mod => ({ default: mod.CompactMonitoringHeader })), {
+const DashboardHeader = dynamic(() => import('../../components/dashboard/DashboardHeader'), {
   ssr: false,
   loading: () => <HeaderLoadingSkeleton />
 });
@@ -166,9 +166,6 @@ export default function DashboardPage() {
     };
   }, []);
 
-  // AI 상태 가져오기
-  const { aiAgent } = useUnifiedAdminStore();
-
   // Server-side rendering fallback
   if (!isClient) {
     return (
@@ -259,104 +256,32 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 컴팩트 모니터링 헤더 */}
+      {/* 기존 대시보드 헤더 (적절한 크기) */}
       <Suspense fallback={<HeaderLoadingSkeleton />}>
-        <CompactMonitoringHeader
+        <DashboardHeader
           serverStats={serverStats}
-          onSettingsClick={() => console.log('설정 클릭')}
+          onNavigateHome={handleNavigateHome}
+          onToggleAgent={toggleAgent}
+          isAgentOpen={isAgentOpen}
+          systemStatusDisplay={
+            <Suspense fallback={<LoadingSpinner />}>
+              <SystemStatusDisplay
+                isSystemActive={systemControl.isSystemActive}
+                isSystemPaused={systemControl.isSystemPaused}
+                isUserSession={systemControl.isUserSession}
+                formattedTime={systemControl.formattedTime}
+                pauseReason={systemControl.pauseReason || ''}
+                onSystemStop={handleSystemStop}
+                onSystemPause={handleSystemPause}
+                onSystemResume={handleSystemResume}
+              />
+            </Suspense>
+          }
         />
       </Suspense>
 
-      {/* 시스템 상태 표시 (헤더 아래 별도 영역) */}
-      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-3">
-        <Suspense fallback={<LoadingSpinner />}>
-          <SystemStatusDisplay
-            isSystemActive={systemControl.isSystemActive}
-            isSystemPaused={systemControl.isSystemPaused}
-            isUserSession={systemControl.isUserSession}
-            formattedTime={systemControl.formattedTime}
-            pauseReason={systemControl.pauseReason || ''}
-            onSystemStop={handleSystemStop}
-            onSystemPause={handleSystemPause}
-            onSystemResume={handleSystemResume}
-          />
-        </Suspense>
-      </div>
-
-      {/* AI 모드 상태 배너 */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className={`border-b ${
-          aiAgent.isEnabled 
-            ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200' 
-            : 'bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {aiAgent.isEnabled ? (
-                <>
-                  <motion.div
-                    animate={{
-                      rotate: [0, 360],
-                      scale: [1, 1.1, 1]
-                    }}
-                    transition={{
-                      rotate: { duration: 3, repeat: Infinity, ease: "linear" },
-                      scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-                    }}
-                    className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center"
-                  >
-                    <Bot className="w-4 h-4 text-white" />
-                  </motion.div>
-                  <div>
-                    <span className="text-purple-800 font-semibold text-sm">
-                      🤖 AI 에이전트 모드 활성
-                    </span>
-                    <p className="text-purple-600 text-xs">
-                      지능형 분석, 예측, 자연어 질의 등 모든 AI 기능을 사용할 수 있습니다.
-                    </p>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
-                    <Monitor className="w-4 h-4 text-white" />
-                  </div>
-                  <div>
-                    <span className="text-blue-800 font-semibold text-sm flex items-center gap-2">
-                      📊 기본 모니터링 모드
-                      <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full">
-                        AI 기능 제한
-                      </span>
-                    </span>
-                    <p className="text-blue-600 text-xs">
-                      서버 상태, 메트릭 차트, 알림 등 기본 모니터링 기능만 사용 가능합니다.
-                    </p>
-                  </div>
-                </>
-              )}
-            </div>
-            
-            {!aiAgent.isEnabled && (
-              <motion.div
-                className="flex items-center gap-2 text-orange-600"
-                animate={{ opacity: [1, 0.7, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <AlertTriangle className="w-4 h-4" />
-                <span className="text-xs font-medium">AI 활성화 필요</span>
-              </motion.div>
-            )}
-          </div>
-        </div>
-      </motion.div>
-
-      {/* 메인 콘텐츠 - 2/3 영역 */}
-      <div className="min-h-[67vh]">
+      {/* 메인 콘텐츠 - 전체 영역 */}
+      <div className="flex-1">
         <Suspense fallback={<ContentLoadingSkeleton />}>
           <DashboardContent
             showSequentialGeneration={showSequentialGeneration}
