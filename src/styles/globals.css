@@ -37,17 +37,17 @@
   background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
 }
 
-/* 손가락 포인터 애니메이션 - 버튼 아래에서 위로 가리키도록 개선 */
+/* 손가락 포인터 애니메이션 - 좌우 흔들림으로 개선 */
 .finger-pointer {
   position: absolute;
   top: 100%;
   left: 50%;
-  transform: translateX(-50%) rotate(180deg);
+  transform: translateX(-50%);
   margin-top: 0.75rem;
   font-size: 1.5rem;
   pointer-events: none;
   z-index: 60;
-  animation: fingerBounceUp 2s ease-in-out infinite;
+  animation: fingerWiggle 1.5s ease-in-out infinite;
 }
 
 .finger-pointer-primary {
@@ -59,7 +59,7 @@
   font-size: 1.5rem;
   pointer-events: none;
   z-index: 60;
-  animation: fingerBounceUpPrimary 2s ease-in-out infinite;
+  animation: fingerWigglePrimary 1.5s ease-in-out infinite;
 }
 
 .finger-pointer-dashboard {
@@ -71,7 +71,7 @@
   font-size: 1.25rem;
   pointer-events: none;
   z-index: 60;
-  animation: fingerBounceUpDashboard 2.5s ease-in-out infinite;
+  animation: fingerWiggleDashboard 2s ease-in-out infinite;
 }
 
 .finger-pointer-ai {
@@ -83,66 +83,64 @@
   font-size: 1.125rem;
   pointer-events: none;
   z-index: 60;
-  animation: fingerBounceUpAI 2s ease-in-out infinite;
+  animation: fingerWiggleAI 1.8s ease-in-out infinite;
 }
 
-@keyframes fingerBounceUp {
-  0%, 100% {
-    transform: translateX(-50%) translateY(0) rotate(180deg);
+/* 좌우 흔들림 애니메이션들 */
+@keyframes fingerWiggle {
+  0%, 100% { 
+    transform: translateX(-50%) rotate(0deg); 
   }
-  25% {
-    transform: translateX(-50%) translateY(6px) rotate(175deg);
+  25% { 
+    transform: translateX(-50%) rotate(5deg); 
   }
-  50% {
-    transform: translateX(-50%) translateY(3px) rotate(185deg);
-  }
-  75% {
-    transform: translateX(-50%) translateY(6px) rotate(175deg);
-  }
-}
-
-@keyframes fingerBounceUpPrimary {
-  0%, 100% {
-    transform: translateX(-50%) translateY(0);
-  }
-  25% {
-    transform: translateX(-50%) translateY(8px) rotate(-5deg);
-  }
-  50% {
-    transform: translateX(-50%) translateY(4px) rotate(0deg);
-  }
-  75% {
-    transform: translateX(-50%) translateY(8px) rotate(5deg);
+  75% { 
+    transform: translateX(-50%) rotate(-5deg); 
   }
 }
 
-@keyframes fingerBounceUpDashboard {
-  0%, 100% {
-    transform: translateX(-50%) translateY(0);
+@keyframes fingerWigglePrimary {
+  0%, 100% { 
+    transform: translateX(-50%) rotate(0deg) scale(1); 
   }
-  25% {
-    transform: translateX(-50%) translateY(6px) rotate(-3deg);
+  25% { 
+    transform: translateX(-50%) rotate(8deg) scale(1.1); 
   }
-  50% {
-    transform: translateX(-50%) translateY(3px) rotate(0deg);
+  50% { 
+    transform: translateX(-50%) rotate(0deg) scale(1); 
   }
-  75% {
-    transform: translateX(-50%) translateY(6px) rotate(3deg);
+  75% { 
+    transform: translateX(-50%) rotate(-8deg) scale(1.1); 
   }
 }
 
-@keyframes fingerBounceUpAI {
-  0%, 100% {
-    transform: translateX(-50%) translateY(0);
+@keyframes fingerWiggleDashboard {
+  0%, 100% { 
+    transform: translateX(-50%) rotate(0deg); 
   }
-  25% {
-    transform: translateX(-50%) translateY(4px) rotate(-2deg);
+  20% { 
+    transform: translateX(-50%) rotate(6deg); 
   }
-  50% {
-    transform: translateX(-50%) translateY(2px) rotate(0deg);
+  40% { 
+    transform: translateX(-50%) rotate(-3deg); 
   }
-  75% {
-    transform: translateX(-50%) translateY(4px) rotate(2deg);
+  60% { 
+    transform: translateX(-50%) rotate(4deg); 
+  }
+  80% { 
+    transform: translateX(-50%) rotate(-6deg); 
+  }
+}
+
+@keyframes fingerWiggleAI {
+  0%, 100% { 
+    transform: translateX(-50%) rotate(0deg); 
+  }
+  25% { 
+    transform: translateX(-50%) rotate(7deg); 
+  }
+  75% { 
+    transform: translateX(-50%) rotate(-7deg); 
   }
 }
 

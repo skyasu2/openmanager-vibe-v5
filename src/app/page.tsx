@@ -338,42 +338,52 @@ export default function Home() {
               {/* 제어 버튼들 */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 {/* AI 에이전트 버튼 */}
-                <motion.button
-                  onClick={handleAIAgentInfo}
-                  className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 border ${
-                    aiAgent.isEnabled
-                      ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 text-purple-300 border-purple-500/50'
-                      : 'bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 border-orange-500/50'
-                  }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <motion.div
-                    animate={aiAgent.isEnabled ? {
-                      rotate: [0, 360],
-                      scale: [1, 1.1, 1]
-                    } : {}}
-                    transition={{
-                      rotate: { duration: 3, repeat: Infinity, ease: "linear" },
-                      scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-                    }}
+                <div className="relative">
+                  <motion.button
+                    onClick={handleAIAgentInfo}
+                    className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border ${
+                      aiAgent.isEnabled
+                        ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 text-purple-300 border-purple-500/50'
+                        : 'bg-orange-600 hover:bg-orange-700 text-white border-orange-500/50'
+                    }`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                   >
-                    <Bot className="w-5 h-5" />
-                  </motion.div>
-                  {aiAgent.isEnabled ? (
-                    <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent font-bold">
-                      🤖 AI 에이전트 활성
-                    </span>
-                  ) : (
-                    '🤖 AI 에이전트 설정'
-                  )}
-                </motion.button>
+                    <motion.div
+                      animate={aiAgent.isEnabled ? {
+                        rotate: [0, 360],
+                        scale: [1, 1.1, 1]
+                      } : {}}
+                      transition={{
+                        rotate: { duration: 3, repeat: Infinity, ease: "linear" },
+                        scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+                      }}
+                    >
+                      <Bot className="w-5 h-5" />
+                    </motion.div>
+                    {aiAgent.isEnabled ? (
+                      <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent font-bold">
+                        🤖 AI 에이전트 활성
+                      </span>
+                    ) : (
+                      '🤖 AI 에이전트 설정'
+                    )}
+                  </motion.button>
+                  
+                  {/* 손가락 아이콘 + 클릭 문구 */}
+                  <div className="finger-pointer-ai">
+                    👉
+                  </div>
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-8 flex items-center justify-center gap-1">
+                    <span className="text-white text-xs opacity-70">클릭하세요</span>
+                  </div>
+                </div>
 
                 {/* 대시보드 버튼 */}
                 <div className="relative">
                   <motion.button
                     onClick={handleDashboardClick}
-                    className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/50 rounded-xl font-medium transition-all duration-200"
+                    className="w-52 h-14 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border border-blue-500/50 rounded-xl font-semibold transition-all duration-200"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -381,27 +391,40 @@ export default function Home() {
                     📊 대시보드 들어가기
                   </motion.button>
                   
-                  {/* 손가락 아이콘 - 버튼 아래에서 위로 가리키도록 수정 */}
-                  <div className="finger-pointer-primary">
-                    👆
+                  {/* 손가락 아이콘 + 클릭 문구 */}
+                  <div className="finger-pointer-dashboard">
+                    👉
+                  </div>
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-8 flex items-center justify-center gap-1">
+                    <span className="text-white text-xs opacity-70">클릭하세요</span>
                   </div>
                 </div>
                 
                 {/* 시스템 중지 버튼 */}
-                <motion.button
-                  onClick={handleSystemToggle}
-                  disabled={isLoading}
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/50 rounded-xl font-medium transition-all duration-200 disabled:opacity-75"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {isLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <StopCircle className="w-5 h-5" />
-                  )}
-                  <span>{isLoading ? '중지 중...' : '⏹️ 시스템 중지'}</span>
-                </motion.button>
+                <div className="relative">
+                  <motion.button
+                    onClick={handleSystemToggle}
+                    disabled={isLoading}
+                    className="w-52 h-14 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white border border-red-500/50 rounded-xl font-semibold transition-all duration-200 disabled:opacity-75"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {isLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <StopCircle className="w-5 h-5" />
+                    )}
+                    <span>{isLoading ? '중지 중...' : '⏹️ 시스템 중지'}</span>
+                  </motion.button>
+                  
+                  {/* 손가락 아이콘 + 클릭 문구 */}
+                  <div className="finger-pointer-ai">
+                    👉
+                  </div>
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-8 flex items-center justify-center gap-1">
+                    <span className="text-white text-xs opacity-70">클릭하세요</span>
+                  </div>
+                </div>
               </div>
 
               <p className="text-white/60 text-xs mt-4 text-center">
