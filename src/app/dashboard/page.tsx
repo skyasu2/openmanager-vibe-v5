@@ -11,9 +11,19 @@ import { NotificationToast } from '@/components/system/NotificationToast';
 import { cn } from '@/lib/utils';
 
 // ⚡ Dynamic Import로 코드 스플리팅 적용 (Vercel 최적화)
-const DashboardHeader = dynamic(() => import('../../components/dashboard/DashboardHeader'), {
+const CompactMonitoringHeader = dynamic(() => import('../../components/dashboard/CompactMonitoringHeader').then(mod => ({ default: mod.CompactMonitoringHeader })), {
   ssr: false,
   loading: () => <HeaderLoadingSkeleton />
+});
+
+const AISidebar = dynamic(() => import('../../components/dashboard/AISidebar').then(mod => ({ default: mod.AISidebar })), {
+  ssr: false,
+  loading: () => <div className="fixed right-0 top-0 h-full w-[400px] bg-white shadow-lg border-l border-gray-200 z-50 flex items-center justify-center">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-2" />
+      <p className="text-sm text-gray-600">AI 사이드바 로딩 중...</p>
+    </div>
+  </div>
 });
 
 const DashboardContent = dynamic(() => import('../../components/dashboard/DashboardContent'), {
@@ -30,19 +40,6 @@ const FloatingSystemControl = dynamic(() => import('../../components/system/Floa
   ssr: false,
   loading: () => (
     <div className="fixed bottom-6 right-6 w-14 h-14 bg-gray-200 rounded-full animate-pulse" />
-  )
-});
-
-// 🎯 AI 사이드바 V5로 통일
-const AISidebarV5 = dynamic(() => import('../../components/ai/sidebar/AISidebarV5'), {
-  ssr: false,
-  loading: () => (
-    <div className="fixed right-0 top-0 h-full w-[400px] bg-white shadow-lg border-l border-gray-200 z-50 flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-2" />
-        <p className="text-sm text-gray-600">AI 로딩 중...</p>
-      </div>
-    </div>
   )
 });
 
@@ -262,29 +259,29 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 메인 헤더 */}
+      {/* 컴팩트 모니터링 헤더 */}
       <Suspense fallback={<HeaderLoadingSkeleton />}>
-        <DashboardHeader
+        <CompactMonitoringHeader
           serverStats={serverStats}
-          onNavigateHome={handleNavigateHome}
-          onToggleAgent={toggleAgent}
-          isAgentOpen={isAgentOpen}
-          systemStatusDisplay={
-            <Suspense fallback={<LoadingSpinner />}>
-              <SystemStatusDisplay
-                isSystemActive={systemControl.isSystemActive}
-                isSystemPaused={systemControl.isSystemPaused}
-                isUserSession={systemControl.isUserSession}
-                formattedTime={systemControl.formattedTime}
-                pauseReason={systemControl.pauseReason || ''}
-                onSystemStop={handleSystemStop}
-                onSystemPause={handleSystemPause}
-                onSystemResume={handleSystemResume}
-              />
-            </Suspense>
-          }
+          onSettingsClick={() => console.log('설정 클릭')}
         />
       </Suspense>
+
+      {/* 시스템 상태 표시 (헤더 아래 별도 영역) */}
+      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-3">
+        <Suspense fallback={<LoadingSpinner />}>
+          <SystemStatusDisplay
+            isSystemActive={systemControl.isSystemActive}
+            isSystemPaused={systemControl.isSystemPaused}
+            isUserSession={systemControl.isUserSession}
+            formattedTime={systemControl.formattedTime}
+            pauseReason={systemControl.pauseReason || ''}
+            onSystemStop={handleSystemStop}
+            onSystemPause={handleSystemPause}
+            onSystemResume={handleSystemResume}
+          />
+        </Suspense>
+      </div>
 
       {/* AI 모드 상태 배너 */}
       <motion.div
@@ -358,59 +355,33 @@ export default function DashboardPage() {
         </div>
       </motion.div>
 
-      {/* 메인 콘텐츠 */}
-      <Suspense fallback={<ContentLoadingSkeleton />}>
-        {/* 🎯 Phase 1 + 2.1 시스템 통합 위젯 */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <SystemStatusWidget 
-            className="mb-6"
-            showControls={true}
-            compactMode={false}
-          />
-          
-          {/* 🧠 Phase 3: 머신러닝 기반 장애 예측 시스템 */}
-          {aiAgent.isEnabled && (
-            <div className="mb-6">
-              <PredictionDashboard 
-                serverId="web-server-01"
-                autoRefresh={true}
-                refreshInterval={30000}
-              />
-            </div>
-          )}
-          
-          {/* 🔍 AI 패턴 분석 위젯 (AI 모드에서만 표시) */}
-          {aiAgent.isEnabled && (
-            <div className="mb-6">
-              <PatternAnalysisWidget />
-            </div>
-          )}
-        </div>
-        
-        <DashboardContent
-          showSequentialGeneration={showSequentialGeneration}
-          servers={serverGeneration.servers}
-          status={serverGeneration.status}
-          actions={serverGeneration.actions}
-          selectedServer={selectedServer}
-          onServerClick={handleServerClick}
-          onServerModalClose={() => setSelectedServer(null)}
-          onStatsUpdate={updateServerStats}
-          onShowSequentialChange={setShowSequentialGeneration}
-          mainContentVariants={mainContentVariants}
-          isAgentOpen={isAgentOpen}
-        />
-      </Suspense>
-
-      {/* AI 에이전트 모달 */}
-      {isAgentOpen && (
-        <Suspense fallback={<LoadingSpinner />}>
-          <AISidebarV5 
-            isOpen={isAgentOpen} 
-            onClose={closeAgent}
+      {/* 메인 콘텐츠 - 2/3 영역 */}
+      <div className="min-h-[67vh]">
+        <Suspense fallback={<ContentLoadingSkeleton />}>
+          <DashboardContent
+            showSequentialGeneration={showSequentialGeneration}
+            servers={serverGeneration.servers}
+            status={serverGeneration.status}
+            actions={serverGeneration.actions}
+            selectedServer={selectedServer}
+            onServerClick={handleServerClick}
+            onServerModalClose={() => setSelectedServer(null)}
+            onStatsUpdate={updateServerStats}
+            onShowSequentialChange={setShowSequentialGeneration}
+            mainContentVariants={mainContentVariants}
+            isAgentOpen={isAgentOpen}
           />
         </Suspense>
-      )}
+      </div>
+
+      {/* AI 에이전트 사이드바 */}
+      <Suspense fallback={<LoadingSpinner />}>
+        <AISidebar 
+          isOpen={isAgentOpen} 
+          onToggle={toggleAgent}
+          onClose={closeAgent}
+        />
+      </Suspense>
 
       {/* 플로팅 시스템 제어판 - 시스템 비활성 시에만 표시 */}
       {!systemControl.isSystemActive && (
