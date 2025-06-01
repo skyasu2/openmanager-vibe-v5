@@ -42,3 +42,12 @@ next-env.d.ts
 
 # cursor IDE configuration (contains sensitive data)
 .cursor/
+
+# backup and dev sandbox
+backup/dev-sandbox/
+backup/legacy-stores/
+*.backup.*
+temp-*
+test2-*
+debug-*
+copy-*

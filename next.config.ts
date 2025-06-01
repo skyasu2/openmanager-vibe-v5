@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 import path from "path";
 
+// 번들 분석기 import
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
+
 // CI 환경 감지
 const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
 const skipEnvValidation = process.env.SKIP_ENV_VALIDATION === 'true';
@@ -34,7 +39,7 @@ const nextConfig: NextConfig = {
     optimizeCss: true,
     // Server Actions 활성화
     serverActions: {
-      allowedOrigins: ['localhost:3001', 'localhost:3010', '*.vercel.app'],
+      allowedOrigins: ['localhost:3001', 'localhost:3010', 'localhost:3011', '*.vercel.app'],
       bodySizeLimit: '2mb'
     }
   },
@@ -206,4 +211,5 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig; 
+// 번들 분석기 적용
+export default withBundleAnalyzer(nextConfig); 
