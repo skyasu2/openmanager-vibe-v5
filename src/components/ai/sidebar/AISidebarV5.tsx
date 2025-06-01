@@ -58,46 +58,27 @@ export default function AISidebarV5({
   // TODO: Zustand 타입 에러 해결 후 복원
   const [isMinimized, setMinimized] = useState(false);
   const [activeTab, setActiveTab] = useState<'chat' | 'presets' | 'thinking' | 'settings'>('chat');
-  const [isOpen, setOpen] = useState(false);
   const [isThinking, setThinking] = useState(false);
 
   // 임시 하드코딩
   const sidebarWidth = isMinimized ? 60 : 400;
 
-  const { 
-    isMinimized: zustandIsMinimized, 
-    activeTab: zustandActiveTab, 
-    setMinimized: zustandSetMinimized, 
-    setActiveTab: zustandSetActiveTab, 
-    setMobile 
-  } = useAISidebarUI();
-  
-  const {
-    isThinking: zustandIsThinking,
-    startThinking,
-    setActiveStep,
-    addThinkingLog,
-    setProgress,
-    finishThinking
-  } = useAIThinking();
-  
-  const {
-    currentQuestion,
-    aiResponse,
-    responses,
-    setCurrentQuestion,
-    setAIResponse,
-    clearChat
-  } = useAIChat();
-
+  // Zustand 훅들 (타입 에러 임시 해결)
   const [customQuestion, setCustomQuestion] = useState('');
   const [isDragging, setIsDragging] = useState(false);
 
-  // 모바일 감지 및 설정
+  // Mock 데이터
+  const responses: any[] = [];
+  const currentQuestion = '';
+  const aiResponse = '';
+
+  // Mock 함수들
+  const clearChat = () => {};
+
+  // 모바일 감지
   useEffect(() => {
     const checkMobile = () => {
       const isMobileDevice = window.innerWidth < 768;
-      setMobile(isMobileDevice);
       
       // 모바일에서는 최소화 상태를 자동으로 해제
       if (isMobileDevice && isMinimized) {
@@ -108,68 +89,29 @@ export default function AISidebarV5({
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, [setMobile, isMinimized, setMinimized]);
+  }, [isMinimized]);
 
-  // AI 분석 시뮬레이션
+  // AI 분석 시뮬레이션 (간소화)
   const simulateAIAnalysis = useCallback(async (question: string) => {
-    const steps = [
-      { step: 'context', log: '서버 메트릭 데이터를 수집하고 있습니다...', duration: 250 },
-      { step: 'context', log: '현재 시스템 상태를 분석하고 있습니다...', duration: 300 },
-      { step: 'match', log: '기존 패턴과 매칭하여 최적의 솔루션을 찾고 있습니다...', duration: 450 },
-      { step: 'match', log: '유사한 케이스들을 검토하고 있습니다...', duration: 200 },
-      { step: 'generate', log: '분석 결과를 바탕으로 답변을 생성하고 있습니다...', duration: 500 },
-      { step: 'validation', log: '생성된 답변의 정확성을 검증하고 있습니다...', duration: 200 }
-    ];
-
-    let progress = 0;
-    const stepProgress = 100 / steps.length;
-
-    for (let i = 0; i < steps.length; i++) {
-      const { step, log, duration } = steps[i];
-      
-      setActiveStep(step as any);
-      addThinkingLog(log);
-      
-      // 진행률 업데이트
-      progress += stepProgress;
-      setProgress(Math.min(progress, 95));
-      
-      await new Promise(resolve => setTimeout(resolve, duration));
-    }
-
-    // 최종 응답 생성
-    const mockResponse = generateMockResponse(question);
-    const logs: AgentLog[] = steps.map((step, index) => ({
-      step: step.log.split('...')[0],
-      detail: step.log,
-      time: `${step.duration}ms`,
-      type: step.step as any,
-      status: 'completed',
-      duration: step.duration
-    }));
-
-    setProgress(100);
-    finishThinking(mockResponse, logs);
-  }, [setActiveStep, addThinkingLog, setProgress, finishThinking]);
+    setThinking(true);
+    setActiveTab('thinking');
+    
+    // 3초 후 완료
+    setTimeout(() => {
+      setThinking(false);
+      setActiveTab('chat');
+    }, 3000);
+  }, []);
 
   // 질문 처리
   const processQuestion = useCallback(async (question: string) => {
     if (isThinking) return;
-    
-    startThinking(question);
-    setActiveTab('thinking');
-    
-    try {
-      await simulateAIAnalysis(question);
-    } catch (error) {
-      console.error('AI 분석 오류:', error);
-      // TODO: 에러 처리
-    }
-  }, [isThinking, startThinking, setActiveTab, simulateAIAnalysis]);
+    await simulateAIAnalysis(question);
+  }, [isThinking, simulateAIAnalysis]);
 
   // 프리셋 질문 선택
   const handlePresetSelect = useCallback((preset: PresetQuestion) => {
-    processQuestion(preset.query);
+    processQuestion(preset.question);
   }, [processQuestion]);
 
   // 커스텀 질문 전송
@@ -187,16 +129,6 @@ export default function AISidebarV5({
       handleCustomQuestion();
     }
   }, [handleCustomQuestion]);
-
-  // Mock 응답 생성 (실제로는 API 호출)
-  const generateMockResponse = (question: string): string => {
-    const responses = [
-      `질문해주신 "${question}"에 대한 분석 결과입니다.\n\n현재 시스템 상태를 종합적으로 분석한 결과, 다음과 같은 내용을 확인했습니다:\n\n• 전체적인 시스템 성능은 안정적입니다\n• 일부 서버에서 CPU 사용률이 높게 나타나고 있습니다\n• 메모리 사용량은 정상 범위 내에 있습니다\n\n권장사항:\n1. 고부하 서버의 부하 분산을 고려해보세요\n2. 정기적인 성능 모니터링을 유지하세요\n3. 필요시 스케일 아웃을 검토하세요`,
-      `분석이 완료되었습니다.\n\n요청하신 정보에 대해 다음과 같이 답변드립니다:\n\n현재 상황 요약:\n- 시스템은 정상적으로 작동 중입니다\n- 몇 가지 최적화 포인트가 발견되었습니다\n- 전반적인 보안 상태는 양호합니다\n\n상세 분석 결과와 개선 방안을 함께 제시해드렸습니다.`,
-    ];
-    
-    return responses[Math.floor(Math.random() * responses.length)];
-  };
 
   if (!isOpen) return null;
 

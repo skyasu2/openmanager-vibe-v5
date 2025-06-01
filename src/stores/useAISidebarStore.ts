@@ -211,54 +211,69 @@ export const useAISidebarStore = create<AISidebarState>()(
   )
 );
 
-// 🎯 성능 최적화된 개별 훅들
-export const useAISidebarUI = () => 
-  useAISidebarStore(
-    (state) => ({
-      isOpen: state.isOpen,
-      isMinimized: state.isMinimized,
-      activeTab: state.activeTab,
-      setOpen: state.setOpen,
-      setMinimized: state.setMinimized,
-      setActiveTab: state.setActiveTab
-    }),
-    shallow
-  );
+// 🎯 성능 최적화된 개별 훅들 (임시 단순화)
+export const useAISidebarUI = () => {
+  const isOpen = useAISidebarStore((state) => state.isOpen);
+  const isMinimized = useAISidebarStore((state) => state.isMinimized);
+  const activeTab = useAISidebarStore((state) => state.activeTab);
+  const setOpen = useAISidebarStore((state) => state.setOpen);
+  const setMinimized = useAISidebarStore((state) => state.setMinimized);
+  const setActiveTab = useAISidebarStore((state) => state.setActiveTab);
+  
+  return {
+    isOpen,
+    isMinimized,
+    activeTab,
+    setOpen,
+    setMinimized,
+    setActiveTab
+  };
+};
 
-export const useAIThinking = () =>
-  useAISidebarStore(
-    (state) => ({
-      isThinking: state.isThinking,
-      currentQuestion: state.currentQuestion,
-      logs: state.logs,
-      setThinking: state.setThinking,
-      setCurrentQuestion: state.setCurrentQuestion,
-      addLog: state.addLog,
-      clearLogs: state.clearLogs
-    }),
-    shallow
-  );
+export const useAIThinking = () => {
+  const isThinking = useAISidebarStore((state) => state.isThinking);
+  const currentQuestion = useAISidebarStore((state) => state.currentQuestion);
+  const logs = useAISidebarStore((state) => state.logs);
+  const setThinking = useAISidebarStore((state) => state.setThinking);
+  const setCurrentQuestion = useAISidebarStore((state) => state.setCurrentQuestion);
+  const addLog = useAISidebarStore((state) => state.addLog);
+  const clearLogs = useAISidebarStore((state) => state.clearLogs);
+  
+  return {
+    isThinking,
+    currentQuestion,
+    logs,
+    setThinking,
+    setCurrentQuestion,
+    addLog,
+    clearLogs
+  };
+};
 
-export const useAIChat = () =>
-  useAISidebarStore(
-    (state) => ({
-      responses: state.responses,
-      addResponse: state.addResponse,
-      clearResponses: state.clearResponses
-    }),
-    shallow
-  );
+export const useAIChat = () => {
+  const responses = useAISidebarStore((state) => state.responses);
+  const addResponse = useAISidebarStore((state) => state.addResponse);
+  const clearResponses = useAISidebarStore((state) => state.clearResponses);
+  
+  return {
+    responses,
+    addResponse,
+    clearResponses
+  };
+};
 
 // 🧩 유틸리티 훅들
-export const useAISidebarActions = () =>
-  useAISidebarStore(
-    (state) => ({
-      reset: state.reset,
-      clearLogs: state.clearLogs,
-      clearResponses: state.clearResponses
-    }),
-    shallow
-  );
+export const useAISidebarActions = () => {
+  const reset = useAISidebarStore((state) => state.reset);
+  const clearLogs = useAISidebarStore((state) => state.clearLogs);
+  const clearResponses = useAISidebarStore((state) => state.clearResponses);
+  
+  return {
+    reset,
+    clearLogs,
+    clearResponses
+  };
+};
 
 // 📊 선택자들 (메모이제이션 최적화)
 export const selectIsAIActive = (state: AISidebarState) => state.isOpen && state.isThinking;
@@ -267,9 +282,10 @@ export const selectLatestResponse = (state: AISidebarState) =>
 export const selectRecentLogs = (state: AISidebarState) => 
   state.logs.slice(-10); // 최근 10개만
 
-// 🔄 구독 헬퍼 (필요시 사용)
-export const subscribeToAIState = (callback: (isActive: boolean) => void) =>
-  useAISidebarStore.subscribe(
-    selectIsAIActive,
-    callback
-  ); 
+// TODO: Zustand subscribe 타입 에러 해결 후 복원
+// export const subscribeToAIState = (callback: (isActive: boolean) => void) => {
+//   return useAISidebarStore.subscribe(
+//     (state) => selectIsAIActive(state),
+//     callback
+//   );
+// }; 

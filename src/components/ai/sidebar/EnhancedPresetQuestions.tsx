@@ -10,7 +10,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
-  Zap
+  Zap,
+  MessageSquare
 } from 'lucide-react';
 import { useAISidebarStore, PRESET_QUESTIONS } from '@/stores/useAISidebarStore';
 import type { PresetQuestion } from '@/stores/useAISidebarStore';
@@ -60,7 +61,8 @@ export default function EnhancedPresetQuestions({
   className = '',
   onQuestionSelect 
 }: EnhancedPresetQuestionsProps) {
-  const { activePreset, setActivePreset } = useAISidebarStore();
+  // TODO: Zustand 타입 에러 해결 후 복원
+  const [activePreset, setActivePreset] = useState<PresetQuestion | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('performance');
   const [isMobile, setIsMobile] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -189,83 +191,99 @@ export default function EnhancedPresetQuestions({
           transition={{ duration: 0.3 }}
           className="space-y-3"
         >
-          {filteredQuestions.map((question, index) => {
-            const categoryInfo = CATEGORY_INFO[question.category];
-            const Icon = categoryInfo.icon;
+          {filteredQuestions.map((question) => {
             const isSelected = activePreset?.id === question.id;
+            const isRecommended = question.isAIRecommended;
             
             return (
               <motion.button
                 key={question.id}
                 onClick={() => handleQuestionSelect(question)}
-                className={`w-full p-4 text-left rounded-xl border transition-all duration-200 ${
-                  isSelected
-                    ? `${categoryInfo.bgColor} ${categoryInfo.borderColor} scale-[1.02]`
-                    : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-md'
-                }`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.02 }}
+                className={`
+                  group relative p-4 bg-white rounded-xl border-2 transition-all duration-200 text-left h-full
+                  ${isSelected 
+                    ? 'border-purple-500 bg-purple-50 shadow-lg scale-105' 
+                    : 'border-gray-200 hover:border-purple-300 hover:shadow-md hover:scale-102'
+                  }
+                `}
+                whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <div className="flex items-start gap-3">
-                  {/* 아이콘 */}
-                  <motion.div
-                    className={`p-2 rounded-lg ${
-                      isSelected ? categoryInfo.bgColor : 'bg-gray-100'
-                    }`}
-                    animate={isSelected ? { scale: [1, 1.1, 1] } : {}}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {question.icon ? (
-                      <span className="text-lg">{question.icon}</span>
-                    ) : (
-                      <Icon className={`w-4 h-4 ${
-                        isSelected ? categoryInfo.color : 'text-gray-600'
-                      }`} />
-                    )}
-                  </motion.div>
-
-                  {/* 내용 */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className={`font-medium mb-1 ${
-                      isSelected ? categoryInfo.color : 'text-gray-900'
-                    }`}>
-                      {question.title}
-                    </h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">
-                      {question.description}
-                    </p>
-                    
-                    {/* AI 추천 뱃지 */}
-                    {index === 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.5 }}
-                        className="flex items-center gap-1 mt-2"
-                      >
-                        <Sparkles className="w-3 h-3 text-yellow-500" />
-                        <span className="text-xs text-yellow-600 font-medium">
-                          AI 추천
-                        </span>
-                      </motion.div>
-                    )}
-                  </div>
-
-                  {/* 선택 표시 */}
-                  {isSelected && (
+                {/* 추천 배지 */}
+                {isRecommended && (
+                  <div className="absolute -top-2 -right-2 z-10">
                     <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 200 }}
-                      className={`p-1 rounded-full ${categoryInfo.bgColor}`}
+                      animate={{ 
+                        rotate: [0, 10, -10, 0],
+                        scale: [1, 1.1, 1]
+                      }}
+                      transition={{ 
+                        duration: 2, 
+                        repeat: Infinity,
+                        ease: "easeInOut" 
+                      }}
+                      className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 shadow-lg"
                     >
-                      <Zap className={`w-3 h-3 ${categoryInfo.color}`} />
+                      <Sparkles className="w-3 h-3" />
+                      AI 추천
                     </motion.div>
-                  )}
+                  </div>
+                )}
+
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`
+                    p-2 rounded-lg transition-colors
+                    ${isSelected 
+                      ? 'bg-purple-500 text-white' 
+                      : 'bg-gray-100 text-gray-600 group-hover:bg-purple-100 group-hover:text-purple-600'
+                    }
+                  `}>
+                    <MessageSquare className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className={`
+                      font-semibold text-sm transition-colors truncate
+                      ${isSelected ? 'text-purple-900' : 'text-gray-900 group-hover:text-purple-900'}
+                    `}>
+                      {question.question.length > 30 ? `${question.question.substring(0, 30)}...` : question.question}
+                    </h3>
+                  </div>
                 </div>
+
+                <p className={`
+                  text-xs leading-relaxed transition-colors
+                  ${isSelected ? 'text-purple-700' : 'text-gray-600 group-hover:text-purple-700'}
+                `}>
+                  {question.question}
+                </p>
+
+                {/* 선택 효과 */}
+                {isSelected && (
+                  <motion.div
+                    layoutId="selectedCard"
+                    className="absolute inset-0 border-2 border-purple-500 rounded-xl"
+                    initial={false}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+
+                {/* 클릭 효과 */}
+                <motion.div
+                  className="absolute top-3 right-3"
+                  animate={isSelected ? { 
+                    rotate: [0, 360],
+                    scale: [1, 1.2, 1]
+                  } : {}}
+                  transition={{ 
+                    duration: 0.5, 
+                    ease: "easeInOut" 
+                  }}
+                >
+                  <Zap className={`
+                    w-4 h-4 transition-colors
+                    ${isSelected ? 'text-purple-500' : 'text-gray-400 group-hover:text-purple-500'}
+                  `} />
+                </motion.div>
               </motion.button>
             );
           })}

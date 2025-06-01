@@ -1,294 +1,162 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  CheckCircle, 
   Copy, 
+  Check, 
   ThumbsUp, 
   ThumbsDown, 
-  RotateCcw,
+  Sparkles,
   Clock,
-  Zap,
-  TrendingUp,
-  AlertTriangle
+  MessageSquare,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
-import { useAIChat } from '@/stores/useAISidebarStore';
-import type { AIResponse } from '@/stores/useAISidebarStore';
-
-interface FinalResponseProps {
-  response?: AIResponse;
-  className?: string;
-  onRegenerate?: () => void;
-  onFeedback?: (type: 'positive' | 'negative') => void;
-}
-
-// 🎨 신뢰도별 컬러
-const getConfidenceColor = (confidence: number) => {
-  if (confidence >= 0.9) return 'text-green-400';
-  if (confidence >= 0.7) return 'text-yellow-400';
-  return 'text-orange-400';
-};
-
-const getConfidenceIcon = (confidence: number) => {
-  if (confidence >= 0.9) return CheckCircle;
-  if (confidence >= 0.7) return TrendingUp;
-  return AlertTriangle;
-};
 
 export default function FinalResponse({ 
-  response,
-  className = '',
-  onRegenerate,
-  onFeedback 
-}: FinalResponseProps) {
-  const { aiResponse } = useAIChat();
+  response, 
+  onFeedback
+}: any) {
+  // 간단한 상태 관리
   const [displayedText, setDisplayedText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-  const [showMetadata, setShowMetadata] = useState(false);
 
-  const currentResponse = response || (aiResponse ? {
-    id: 'current',
-    question: '',
-    answer: aiResponse,
-    confidence: 0.85,
-    processingTime: 0,
-    logs: [],
-    timestamp: new Date()
-  } as AIResponse : null);
-
-  // 타이프라이터 효과
-  useEffect(() => {
-    if (!currentResponse?.answer) {
-      setDisplayedText('');
-      return;
+  // Mock response for display
+  const currentResponse = response || {
+    content: '현재 시스템 상태를 분석한 결과, 전반적으로 안정적인 상태입니다. CPU 사용률은 평균 45%, 메모리 사용률은 68%로 정상 범위 내에 있습니다.',
+    confidence: 0.95,
+    timestamp: new Date().toISOString(),
+    metadata: {
+      processingTime: 2.5,
+      sources: ['서버 메트릭', '로그 분석', 'AI 예측 모델']
     }
+  };
 
-    setIsTyping(true);
-    setDisplayedText('');
-    let charIndex = 0;
-    
-    const typeInterval = setInterval(() => {
-      if (charIndex < currentResponse.answer.length) {
-        setDisplayedText(currentResponse.answer.slice(0, charIndex + 1));
-        charIndex++;
-      } else {
-        setIsTyping(false);
-        clearInterval(typeInterval);
-      }
-    }, 20); // 20ms마다 한 글자씩
+  // 타이핑 애니메이션
+  useEffect(() => {
+    if (currentResponse.content) {
+      setIsTyping(true);
+      let index = 0;
+      const text = currentResponse.content;
+      
+      const timer = setInterval(() => {
+        if (index < text.length) {
+          setDisplayedText(text.slice(0, index + 1));
+          index++;
+        } else {
+          setIsTyping(false);
+          clearInterval(timer);
+        }
+      }, 30);
 
-    return () => clearInterval(typeInterval);
-  }, [currentResponse?.answer]);
+      return () => clearInterval(timer);
+    }
+  }, [currentResponse.content]);
 
   // 복사 기능
-  const handleCopy = useCallback(async () => {
-    if (!currentResponse?.answer) return;
-    
+  const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(currentResponse.answer);
+      await navigator.clipboard.writeText(currentResponse.content);
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
     } catch (err) {
       console.error('복사 실패:', err);
     }
-  }, [currentResponse?.answer]);
-
-  // 피드백 처리
-  const handleFeedback = useCallback((type: 'positive' | 'negative') => {
-    onFeedback?.(type);
-    // TODO: 피드백을 서버에 전송하는 로직 추가
-  }, [onFeedback]);
+  };
 
   if (!currentResponse) {
-    return null;
+    return (
+      <div className="text-center text-gray-500 py-8">
+        <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
+        <p className="text-sm">아직 응답이 없습니다.</p>
+      </div>
+    );
   }
-
-  const ConfidenceIcon = getConfidenceIcon(currentResponse.confidence);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className={`bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl shadow-lg ${className}`}
+      className="bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-200 shadow-sm overflow-hidden"
     >
       {/* 헤더 */}
-      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
+      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border-b border-gray-200 px-4 py-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg"
-            >
-              <CheckCircle className="w-4 h-4 text-white" />
-            </motion.div>
-            <div>
-              <h3 className="text-gray-900 font-medium">AI 응답 완료</h3>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <Clock className="w-3 h-3" />
-                <span>{currentResponse.timestamp.toLocaleTimeString()}</span>
-                {currentResponse.processingTime > 0 && (
-                  <>
-                    <span>•</span>
-                    <Zap className="w-3 h-3" />
-                    <span>{currentResponse.processingTime.toFixed(0)}ms</span>
-                  </>
-                )}
-              </div>
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg">
+              <Sparkles className="w-4 h-4 text-white" />
+            </div>
+            <h3 className="font-semibold text-gray-900">AI 분석 결과</h3>
+            <div className="flex items-center gap-1 text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+              {Math.round(currentResponse.confidence * 100)}% 신뢰도
             </div>
           </div>
-
-          {/* 신뢰도 표시 */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="flex items-center gap-2"
-          >
-            <ConfidenceIcon className={`w-4 h-4 ${getConfidenceColor(currentResponse.confidence)}`} />
-            <span className={`text-sm font-medium ${getConfidenceColor(currentResponse.confidence)}`}>
-              {Math.round(currentResponse.confidence * 100)}%
-            </span>
-          </motion.div>
+          
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleCopy}
+              className="p-1.5 text-gray-500 hover:text-purple-600 hover:bg-purple-100 rounded-lg transition-colors"
+              title="복사"
+            >
+              {isCopied ? (
+                <Check className="w-4 h-4 text-green-600" />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* 응답 내용 */}
+      {/* 본문 */}
       <div className="p-4">
         <div className="prose prose-sm max-w-none">
-          <motion.div
-            className="text-gray-900 leading-relaxed whitespace-pre-wrap"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}
-          >
+          <p className="text-gray-700 leading-relaxed">
             {displayedText}
             {isTyping && (
               <motion.span
                 animate={{ opacity: [1, 0] }}
-                transition={{ duration: 0.5, repeat: Infinity }}
-                className="text-blue-500 font-bold"
-              >
-                |
-              </motion.span>
+                transition={{ duration: 0.8, repeat: Infinity }}
+                className="inline-block w-0.5 h-4 bg-purple-500 ml-1"
+              />
             )}
-          </motion.div>
+          </p>
         </div>
 
-        {/* 메타데이터 토글 */}
-        {currentResponse.logs && currentResponse.logs.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="mt-4 pt-4 border-t border-gray-200"
-          >
-            <button
-              onClick={() => setShowMetadata(!showMetadata)}
-              className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              {showMetadata ? '분석 과정 숨기기' : '분석 과정 보기'} ({currentResponse.logs.length}단계)
-            </button>
-            
-            <AnimatePresence>
-              {showMetadata && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="mt-3 space-y-2 overflow-hidden"
-                >
-                  {currentResponse.logs.map((log, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="flex items-center gap-3 p-2 bg-gray-50 rounded-md"
-                    >
-                      <div className={`w-2 h-2 rounded-full ${
-                        log.status === 'completed' ? 'bg-green-400' :
-                        log.status === 'processing' ? 'bg-yellow-400' :
-                        'bg-red-400'
-                      }`} />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-medium text-gray-700">{log.step}</span>
-                          {log.duration && (
-                            <span className="text-xs text-gray-500">{log.duration}ms</span>
-                          )}
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">{log.detail}</p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        )}
-      </div>
-
-      {/* 액션 버튼들 */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
-        className="p-4 border-t border-gray-200 bg-gray-50/50"
-      >
-        <div className="flex items-center justify-between">
+        {/* 메타데이터 */}
+        <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+          <div className="flex items-center gap-4 text-xs text-gray-500">
+            <div className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {new Date(currentResponse.timestamp).toLocaleTimeString()}
+            </div>
+            <div>
+              처리시간: {currentResponse.metadata?.processingTime || 2.5}초
+            </div>
+          </div>
+          
+          {/* 피드백 버튼 */}
           <div className="flex items-center gap-2">
-            {/* 복사 버튼 */}
-            <motion.button
-              onClick={handleCopy}
-              className="flex items-center gap-2 px-3 py-2 text-xs text-gray-600 hover:text-gray-900 hover:bg-white rounded-lg transition-colors"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
+              onClick={() => onFeedback?.('positive')}
+              className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+              title="도움이 됨"
             >
-              <Copy className="w-3 h-3" />
-              {isCopied ? '복사됨!' : '복사'}
-            </motion.button>
-
-            {/* 재생성 버튼 */}
-            {onRegenerate && (
-              <motion.button
-                onClick={onRegenerate}
-                className="flex items-center gap-2 px-3 py-2 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <RotateCcw className="w-3 h-3" />
-                재생성
-              </motion.button>
-            )}
-          </div>
-
-          {/* 피드백 버튼들 */}
-          <div className="flex items-center gap-1">
-            <motion.button
-              onClick={() => handleFeedback('positive')}
-              className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+              <ThumbsUp className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onFeedback?.('negative')}
+              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              title="도움이 안됨"
             >
-              <ThumbsUp className="w-3 h-3" />
-            </motion.button>
-            <motion.button
-              onClick={() => handleFeedback('negative')}
-              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <ThumbsDown className="w-3 h-3" />
-            </motion.button>
+              <ThumbsDown className="w-4 h-4" />
+            </button>
           </div>
         </div>
-      </motion.div>
+      </div>
     </motion.div>
   );
 } 
