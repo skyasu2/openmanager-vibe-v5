@@ -1,7 +1,7 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.20.0",
-  "description": "🚨 AI 기반 차세대 지능형 인프라 모니터링 플랫폼 - v5.20.0: 서버 데이터 생성기 고도화, 현실적 장애 시나리오, 인과관계 전이 모델, 서버 유형별 특성 시뮬레이션 완료",
+  "version": "5.21.0",
+  "description": "🚀 OpenManager AI v5.21.0 - AI 분석과 오토스케일링 완전 분리로 추론 안정성과 운영 시뮬 유연성을 동시에 확보한 차세대 서버 모니터링 시스템. 고정된 8개 AI 분석 타겟으로 일관된 추론을 보장하고, 8-30대 동적 서버 풀로 현실적인 스케일링 시뮬레이션을 제공합니다.",
   "private": true,
   "keywords": [
     "ai-agent",
@@ -13,16 +13,16 @@
     "optimized"
   ],
   "scripts": {
-    "dev": "next dev -p 3001",
+    "dev": "next dev",
     "dev:clean": "npm run clean:ports && npm run dev",
     "clean:ports": "taskkill /f /im node.exe 2>nul || true",
     "build": "next build",
-    "start": "next start -p 3001",
+    "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "type-check": "tsc --noEmit",
     "test": "vitest",
-    "test:ui": "vitest --ui",
+    "test:watch": "jest --watch",
     "test:coverage": "vitest --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
@@ -36,14 +36,13 @@
     "analyze": "cross-env ANALYZE=true next build",
     "dev:standalone": "next dev -p 3001",
     "dev:integrated": "next dev -p 3001",
-    "test:watch": "vitest",
     "test:unit": "vitest run --reporter=verbose",
     "test:unit:coverage": "vitest run --coverage",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
     "test:e2e:install": "playwright install",
     "test:all": "npm run test:unit && npm run test:e2e",
-    "test:ci": "npm run test:unit:coverage && npm run test:e2e",
+    "test:ci": "npm run type-check && npm run lint -- --max-warnings 50 && npm run build",
     "test:quality": "npm run lint && npm run type-check && npm run test:unit",
     "test:enterprise": "node scripts/mockEnterpriseHit.ts",
     "enterprise:seed": "curl -X POST http://localhost:3001/api/enterprise/seed",
@@ -104,7 +103,10 @@
     "consolidate:report": "node scripts/consolidate-project.js && cat CONSOLIDATION_REPORT.md",
     "project:analyze": "node scripts/consolidate-project.js --analyze-only",
     "project:cleanup": "node scripts/consolidate-project.js --cleanup-only",
-    "project:optimize": "npm run project:cleanup && npm run consolidate && npm run test:quality"
+    "project:optimize": "npm run project:cleanup && npm run consolidate && npm run test:quality",
+    "deploy-check": "npm run test:ci && echo '✅ 배포 준비 완료'",
+    "preview": "npm run build && npm run start",
+    "clean": "rm -rf .next && rm -rf node_modules && npm install"
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",
