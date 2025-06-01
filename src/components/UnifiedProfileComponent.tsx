@@ -16,9 +16,11 @@ import {
   Eye,
   EyeOff,
   Check,
-  Loader2
+  Loader2,
+  Shield
 } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useToast } from '@/components/ui/ToastNotification';
 
@@ -78,7 +80,7 @@ const UnifiedSettingsPanel = ({
           error(`계정이 잠겼습니다. ${Math.ceil(remainingTime / 1000)}초 후 다시 시도하세요.`);
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       error('인증 처리 중 오류가 발생했습니다.');
       console.error('AI 인증 오류:', err);
     } finally {
@@ -104,7 +106,7 @@ const UnifiedSettingsPanel = ({
       } else {
         warning('서버 데이터 생성기 상태 확인에 실패했습니다.');
       }
-    } catch (err) {
+    } catch (err: any) {
       error('서버 데이터 생성기 연결에 실패했습니다.');
     }
   };
@@ -120,7 +122,7 @@ const UnifiedSettingsPanel = ({
       } else {
         warning('서버 모니터링 상태 확인에 실패했습니다.');
       }
-    } catch (err) {
+    } catch (err: any) {
       error('서버 모니터링 시스템 연결에 실패했습니다.');
     }
   };
@@ -128,7 +130,10 @@ const UnifiedSettingsPanel = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div 
+      className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={onClose}
+    >
       <motion.div
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -669,7 +674,26 @@ export default function UnifiedProfileComponent({
               </div>
 
               {/* 메뉴 아이템들 */}
-              <div className="p-2">
+              <div className="space-y-2">
+                {/* AI 관리자 페이지 버튼 - AI 모드 활성화 시에만 표시 */}
+                {aiAgent.isEnabled && aiAgent.isAuthenticated && (
+                  <Link href="/admin/ai-agent">
+                    <motion.button
+                      whileHover={{ backgroundColor: 'rgba(139, 92, 246, 0.1)' }}
+                      onClick={() => setIsOpen(false)}
+                      className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors"
+                    >
+                      <div className="p-2 rounded-lg bg-purple-500/20">
+                        <Shield className="w-4 h-4 text-purple-400" />
+                      </div>
+                      <div>
+                        <div className="text-white font-medium">🧠 AI 관리자 페이지</div>
+                        <div className="text-gray-400 text-xs">AI 로그, 컨텍스트, A/B 테스트 관리</div>
+                      </div>
+                    </motion.button>
+                  </Link>
+                )}
+
                 <motion.button
                   whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
                   onClick={() => {

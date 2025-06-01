@@ -1,20 +1,19 @@
 /**
- * 🤖 AI 사이드바 통합 상태 관리 스토어 - Vercel 최적화
+ * 🤖 AI 사이드바 통합 상태 관리 스토어 - 최적화 버전
  * 
- * ⚡ Vercel 서버리스 환경 최적화:
+ * ⚡ 최적화 사항:
  * - SSR 안전성 보장
- * - 지연 로딩 지원
  * - 메모리 사용량 최적화
- * - Edge Runtime 호환
+ * - 함수 패널 기능 통합
+ * - 공통 로직 중앙화
  */
 
 'use client';
 
 import { create } from 'zustand';
-import { devtools, subscribeWithSelector, persist } from 'zustand/middleware';
-import { shallow } from 'zustand/shallow';
+import { devtools, persist } from 'zustand/middleware';
 
-// 🔧 타입 정의 (최적화)
+// 🔧 타입 정의
 export interface AgentLog {
   id: string;
   step: string;
@@ -44,7 +43,7 @@ export interface PresetQuestion {
   isAIRecommended?: boolean;
 }
 
-// 🎯 프리셋 질문 상수 (메모리 최적화)
+// 🎯 프리셋 질문 상수
 export const PRESET_QUESTIONS: readonly PresetQuestion[] = [
   // 성능 분석
   { id: 'perf-1', question: '현재 시스템의 전반적인 성능 상태는 어떤가요?', category: 'performance' },
@@ -56,19 +55,16 @@ export const PRESET_QUESTIONS: readonly PresetQuestion[] = [
   { id: 'sec-1', question: '보안상 위험한 서버나 패턴이 있나요?', category: 'security' },
   { id: 'sec-2', question: '비정상적인 네트워크 활동을 감지해주세요', category: 'security', isAIRecommended: true },
   { id: 'sec-3', question: '접근 권한 관련 이슈가 있는지 확인해주세요', category: 'security' },
-  { id: 'sec-4', question: '최근 보안 로그에서 특이사항을 찾아주세요', category: 'security' },
   
   // 예측 분석
   { id: 'pred-1', question: '향후 1시간 내 장애 가능성이 있는 서버는?', category: 'prediction' },
   { id: 'pred-2', question: '리소스 부족으로 인한 문제가 예상되는 곳은?', category: 'prediction', isAIRecommended: true },
   { id: 'pred-3', question: '내일까지 주의 깊게 모니터링해야 할 서버는?', category: 'prediction' },
-  { id: 'pred-4', question: '확장이 필요한 서버나 서비스를 추천해주세요', category: 'prediction' },
   
   // 종합 분석
   { id: 'anal-1', question: '전체 인프라의 상태를 종합적으로 분석해주세요', category: 'analysis' },
   { id: 'anal-2', question: '최적화가 필요한 부분을 우선순위별로 알려주세요', category: 'analysis', isAIRecommended: true },
-  { id: 'anal-3', question: '비용 절감을 위한 개선사항을 제안해주세요', category: 'analysis' },
-  { id: 'anal-4', question: '현재 운영 중인 서비스의 안정성을 평가해주세요', category: 'analysis' }
+  { id: 'anal-3', question: '비용 절감을 위한 개선사항을 제안해주세요', category: 'analysis' }
 ] as const;
 
 // 🏪 메인 스토어 인터페이스
@@ -76,7 +72,11 @@ interface AISidebarState {
   // UI 상태
   isOpen: boolean;
   isMinimized: boolean;
-  activeTab: 'chat' | 'presets' | 'thinking' | 'settings';
+  activeTab: 'chat' | 'presets' | 'thinking' | 'settings' | 'functions';
+  
+  // 함수 패널 관련 상태
+  functionTab: 'qa' | 'report' | 'patterns' | 'logs' | 'context';
+  selectedContext: 'basic' | 'advanced' | 'custom';
   
   // AI 상태
   isThinking: boolean;
@@ -84,16 +84,12 @@ interface AISidebarState {
   logs: AgentLog[];
   responses: AIResponse[];
   
-  // 성능 최적화를 위한 상태 분리
-  uiState: {
-    activeTab: 'chat' | 'presets' | 'thinking' | 'settings';
-    isMinimized: boolean;
-  };
-  
   // 액션들
   setOpen: (open: boolean) => void;
   setMinimized: (minimized: boolean) => void;
-  setActiveTab: (tab: 'chat' | 'presets' | 'thinking' | 'settings') => void;
+  setActiveTab: (tab: 'chat' | 'presets' | 'thinking' | 'settings' | 'functions') => void;
+  setFunctionTab: (tab: 'qa' | 'report' | 'patterns' | 'logs' | 'context') => void;
+  setSelectedContext: (context: 'basic' | 'advanced' | 'custom') => void;
   setThinking: (thinking: boolean) => void;
   setCurrentQuestion: (question: string) => void;
   addLog: (log: Omit<AgentLog, 'id' | 'timestamp'>) => void;
@@ -103,33 +99,7 @@ interface AISidebarState {
   reset: () => void;
 }
 
-// 🔧 초기 상태 (SSR 안전)
-const getInitialState = (): AISidebarState => ({
-  isOpen: false,
-  isMinimized: false,
-  activeTab: 'chat',
-  isThinking: false,
-  currentQuestion: '',
-  logs: [],
-  responses: [],
-  uiState: {
-    activeTab: 'chat',
-    isMinimized: false
-  },
-  // 액션들 (임시 - 실제로는 create에서 구현됨)
-  setOpen: () => {},
-  setMinimized: () => {},
-  setActiveTab: () => {},
-  setThinking: () => {},
-  setCurrentQuestion: () => {},
-  addLog: () => {},
-  addResponse: () => {},
-  clearLogs: () => {},
-  clearResponses: () => {},
-  reset: () => {}
-});
-
-// ⚡ 메인 스토어 (Vercel 최적화)
+// ⚡ 메인 스토어 (최적화)
 export const useAISidebarStore = create<AISidebarState>()(
   devtools(
     persist(
@@ -138,35 +108,33 @@ export const useAISidebarStore = create<AISidebarState>()(
         isOpen: false,
         isMinimized: false,
         activeTab: 'chat',
+        functionTab: 'qa',
+        selectedContext: 'basic',
         isThinking: false,
         currentQuestion: '',
         logs: [],
         responses: [],
-        uiState: {
-          activeTab: 'chat',
-          isMinimized: false
-        },
         
-        // UI 액션들 (최적화된)
+        // UI 액션들
         setOpen: (open) => set((state) => ({ 
           isOpen: open,
-          // 열릴 때 최소화 해제
           isMinimized: open ? false : state.isMinimized 
         })),
         
         setMinimized: (minimized) => set({ isMinimized: minimized }),
         
-        setActiveTab: (tab) => set((state) => ({
-          activeTab: tab,
-          uiState: { ...state.uiState, activeTab: tab }
-        })),
+        setActiveTab: (tab) => set({ activeTab: tab }),
+        
+        setFunctionTab: (tab) => set({ functionTab: tab }),
+        
+        setSelectedContext: (context) => set({ selectedContext: context }),
         
         // AI 액션들
         setThinking: (thinking) => set({ isThinking: thinking }),
         setCurrentQuestion: (question) => set({ currentQuestion: question }),
         
         addLog: (logData) => set((state) => ({
-          logs: [...state.logs, {
+          logs: [...state.logs.slice(-19), { // 최대 20개 유지
             ...logData,
             id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             timestamp: new Date().toISOString()
@@ -174,7 +142,7 @@ export const useAISidebarStore = create<AISidebarState>()(
         })),
         
         addResponse: (responseData) => set((state) => ({
-          responses: [...state.responses, {
+          responses: [...state.responses.slice(-9), { // 최대 10개 유지
             ...responseData,
             id: `response_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             timestamp: new Date().toISOString()
@@ -183,50 +151,54 @@ export const useAISidebarStore = create<AISidebarState>()(
         
         clearLogs: () => set({ logs: [] }),
         clearResponses: () => set({ responses: [] }),
+        
         reset: () => set({
           isOpen: false,
           isMinimized: false,
           activeTab: 'chat',
+          functionTab: 'qa',
+          selectedContext: 'basic',
           isThinking: false,
           currentQuestion: '',
           logs: [],
-          responses: [],
-          uiState: {
-            activeTab: 'chat',
-            isMinimized: false
-          }
+          responses: []
         })
       }),
       {
         name: 'ai-sidebar-storage',
-        // 중요한 상태만 저장
         partialize: (state) => ({
-          isOpen: state.isOpen,
+          // 중요한 상태만 영속화
+          isMinimized: state.isMinimized,
           activeTab: state.activeTab,
-          isMinimized: state.isMinimized
+          functionTab: state.functionTab,
+          selectedContext: state.selectedContext
         })
       }
     ),
-    { name: 'ai-sidebar-store' }
+    { name: 'AISidebarStore' }
   )
 );
 
-// 🎯 성능 최적화된 개별 훅들 (임시 단순화)
+// 🎛️ 선택적 훅들 (성능 최적화)
 export const useAISidebarUI = () => {
   const isOpen = useAISidebarStore((state) => state.isOpen);
   const isMinimized = useAISidebarStore((state) => state.isMinimized);
   const activeTab = useAISidebarStore((state) => state.activeTab);
+  const functionTab = useAISidebarStore((state) => state.functionTab);
   const setOpen = useAISidebarStore((state) => state.setOpen);
   const setMinimized = useAISidebarStore((state) => state.setMinimized);
   const setActiveTab = useAISidebarStore((state) => state.setActiveTab);
+  const setFunctionTab = useAISidebarStore((state) => state.setFunctionTab);
   
   return {
     isOpen,
     isMinimized,
     activeTab,
+    functionTab,
     setOpen,
     setMinimized,
-    setActiveTab
+    setActiveTab,
+    setFunctionTab
   };
 };
 
@@ -262,30 +234,19 @@ export const useAIChat = () => {
   };
 };
 
-// 🧩 유틸리티 훅들
-export const useAISidebarActions = () => {
-  const reset = useAISidebarStore((state) => state.reset);
-  const clearLogs = useAISidebarStore((state) => state.clearLogs);
-  const clearResponses = useAISidebarStore((state) => state.clearResponses);
+export const useAIContext = () => {
+  const selectedContext = useAISidebarStore((state) => state.selectedContext);
+  const setSelectedContext = useAISidebarStore((state) => state.setSelectedContext);
   
   return {
-    reset,
-    clearLogs,
-    clearResponses
+    selectedContext,
+    setSelectedContext
   };
 };
 
-// 📊 선택자들 (메모이제이션 최적화)
+// 🔍 선택자 함수들 (메모화)
 export const selectIsAIActive = (state: AISidebarState) => state.isOpen && state.isThinking;
 export const selectLatestResponse = (state: AISidebarState) => 
   state.responses[state.responses.length - 1];
 export const selectRecentLogs = (state: AISidebarState) => 
-  state.logs.slice(-10); // 최근 10개만
-
-// TODO: Zustand subscribe 타입 에러 해결 후 복원
-// export const subscribeToAIState = (callback: (isActive: boolean) => void) => {
-//   return useAISidebarStore.subscribe(
-//     (state) => selectIsAIActive(state),
-//     callback
-//   );
-// }; 
+  state.logs.slice(-10); // 최근 10개만 

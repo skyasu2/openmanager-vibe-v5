@@ -488,324 +488,455 @@ export default function AIAgentAdminDashboard() {
 
       {/* 탭 네비게이션 */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">개요</TabsTrigger>
-          <TabsTrigger value="logs">응답 로그</TabsTrigger>
-          <TabsTrigger value="learning">학습 관리</TabsTrigger>
-          <TabsTrigger value="documents">문서 관리</TabsTrigger>
-          <TabsTrigger value="realtime-logs">실시간 로그</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="logs">🤖 AI 로그</TabsTrigger>
+          <TabsTrigger value="contexts">📚 컨텍스트 관리</TabsTrigger>
+          <TabsTrigger value="ab-test">🧪 A/B 테스트</TabsTrigger>
+          <TabsTrigger value="feedback">👍 품질 피드백</TabsTrigger>
         </TabsList>
 
-        {/* 탭 1: 응답 로그 분석 */}
+        {/* 탭 1: AI 로그 뷰어 (실시간 + 히스토리) */}
         <TabsContent value="logs" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="w-5 h-5" />
-                  AI 에이전트 응답 로그 분석
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="질문 검색..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
-                  </div>
-                  <select
-                    value={filters.status}
-                    onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-                    className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  >
-                    <option value="all">모든 상태</option>
-                    <option value="success">성공</option>
-                    <option value="fallback">Fallback</option>
-                    <option value="failed">실패</option>
-                  </select>
-                  <Button size="sm" variant="outline">
-                    <Download className="w-4 h-4 mr-2" />
-                    내보내기
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {filteredLogs.slice(0, 20).map((log) => (
-                  <div 
-                    key={log.id} 
-                    className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
-                    onClick={() => setSelectedLog(log)}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge 
-                            variant={log.status === 'success' ? 'default' : log.status === 'fallback' ? 'secondary' : 'destructive'}
-                          >
-                            {log.status === 'success' ? '성공' : log.status === 'fallback' ? 'Fallback' : '실패'}
-                          </Badge>
-                          <span className="text-sm text-gray-500">
-                            신뢰도: {(log.confidence * 100).toFixed(0)}%
-                          </span>
-                          <span className="text-sm text-gray-500">
-                            {log.responseTime}ms
-                          </span>
-                        </div>
-                        <p className="font-medium text-gray-900 mb-1">{log.question}</p>
-                        <p className="text-sm text-gray-600 truncate">{log.response}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-gray-500">
-                          {new Date(log.timestamp).toLocaleString('ko-KR')}
-                        </p>
-                        <ChevronRight className="w-4 h-4 text-gray-400 mt-1" />
-                      </div>
-                    </div>
-                    {log.fallbackStage && (
-                      <div className="mt-2 text-xs text-orange-600">
-                        Fallback 단계: {log.fallbackStage}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* 탭 2: 패턴 개선 제안 */}
-        <TabsContent value="learning" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="w-5 h-5" />
-                AI 학습 패턴 개선 제안
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {patternSuggestions.map((suggestion) => (
-                  <div key={suggestion.id} className="border rounded-lg p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="outline">{suggestion.category}</Badge>
-                          <Badge 
-                            variant={suggestion.status === 'pending' ? 'secondary' : 
-                                    suggestion.status === 'approved' ? 'default' : 'destructive'}
-                          >
-                            {suggestion.status === 'pending' ? '대기중' : 
-                             suggestion.status === 'approved' ? '승인됨' : '거부됨'}
-                          </Badge>
-                          <span className="text-sm text-gray-500">
-                            신뢰도: {(suggestion.confidence * 100).toFixed(0)}%
-                          </span>
-                        </div>
-                        <div className="space-y-2">
-                          <div>
-                            <p className="text-sm text-gray-600">원본 질문:</p>
-                            <p className="font-medium text-gray-900">&ldquo;{suggestion.originalQuery}&rdquo;</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-600">제안된 패턴:</p>
-                            <p className="font-medium text-blue-600">&ldquo;{suggestion.suggestedPattern}&rdquo;</p>
-                          </div>
-                        </div>
-                      </div>
-                      {suggestion.status === 'pending' && (
-                        <div className="flex items-center gap-2">
-                          <Button 
-                            size="sm" 
-                            onClick={() => handlePatternAction(suggestion.id, 'approve')}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            승인
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handlePatternAction(suggestion.id, 'reject')}
-                          >
-                            <Trash2 className="w-4 h-4 mr-1" />
-                            거부
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      생성일: {new Date(suggestion.createdAt).toLocaleString('ko-KR')}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* 탭 3: 문서 컨텍스트 관리 */}
-        <TabsContent value="documents" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Database className="w-5 h-5" />
-                  AI 컨텍스트 문서 관리
-                </CardTitle>
-                <Button size="sm">
-                  <Plus className="w-4 h-4 mr-2" />
-                  문서 추가
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {['basic', 'advanced', 'custom'].map((category) => (
-                  <div key={category} className="space-y-3">
-                    <h3 className="font-semibold text-gray-900 capitalize">{category} 문서</h3>
-                    <div className="space-y-2">
-                      {contextDocuments
-                        .filter(doc => doc.category === category)
-                        .map((doc) => (
-                          <div 
-                            key={doc.id} 
-                            className="border rounded-lg p-3 hover:bg-gray-50 cursor-pointer"
-                            onClick={() => setSelectedDocument(doc)}
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <p className="font-medium text-sm text-gray-900 truncate">
-                                {doc.filename}
-                              </p>
-                              <div className="flex items-center gap-1">
-                                <Eye className="w-3 h-3 text-gray-400" />
-                                <Edit className="w-3 h-3 text-gray-400" />
-                              </div>
-                            </div>
-                            <div className="text-xs text-gray-500 space-y-1">
-                              <p>크기: {(doc.size / 1024).toFixed(1)}KB</p>
-                              <p>단어: {doc.wordCount.toLocaleString()}개</p>
-                              <p>수정: {new Date(doc.lastModified).toLocaleDateString('ko-KR')}</p>
-                            </div>
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {doc.keywords.slice(0, 3).map((keyword, i) => (
-                                <Badge key={i} variant="outline" className="text-xs">
-                                  {keyword}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* 탭 4: 실시간 로그 모니터링 */}
-        <TabsContent value="realtime-logs" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* 실시간 로그 */}
+            <Card>
+              <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Activity className="w-5 h-5" />
-                  실시간 AI 로그 모니터링
+                  실시간 AI 추론 로그
                 </CardTitle>
-                <div className="text-sm text-gray-500">
-                  실제 AI 에이전트의 처리 과정을 실시간으로 모니터링
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <RealTimeLogMonitor 
-                className="w-full"
-                autoStart={true}
-                maxLogs={500}
-              />
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent>
+                <RealTimeLogMonitor />
+              </CardContent>
+            </Card>
 
-          {/* 로그 분석 요약 */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5" />
-                로그 분석 인사이트
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-blue-600">평균 처리 시간</p>
-                      <p className="text-2xl font-bold text-blue-900">2.3초</p>
+            {/* 히스토리 로그 */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="w-5 h-5" />
+                    응답 히스토리
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="질문 검색..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
                     </div>
-                    <Clock className="w-8 h-8 text-blue-500" />
+                    <select
+                      value={filters.status}
+                      onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+                      className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    >
+                      <option value="all">모든 상태</option>
+                      <option value="success">성공</option>
+                      <option value="fallback">Fallback</option>
+                      <option value="failed">실패</option>
+                    </select>
                   </div>
-                  <p className="text-xs text-blue-600 mt-2">
-                    실시간 로그 기반 계산
-                  </p>
                 </div>
-
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-green-600">성공률</p>
-                      <p className="text-2xl font-bold text-green-900">94.2%</p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {filteredLogs.slice(0, 10).map((log) => (
+                    <div 
+                      key={log.id} 
+                      className="border rounded-lg p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => setSelectedLog(log)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge 
+                              variant={log.status === 'success' ? 'default' : log.status === 'fallback' ? 'secondary' : 'destructive'}
+                            >
+                              {log.status === 'success' ? '성공' : log.status === 'fallback' ? 'Fallback' : '실패'}
+                            </Badge>
+                            <span className="text-xs text-gray-500">
+                              {log.responseTime}ms
+                            </span>
+                          </div>
+                          <p className="text-sm font-medium text-gray-900 mb-1">{log.question}</p>
+                          <p className="text-xs text-gray-600 truncate">{log.response}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-gray-500">
+                            {new Date(log.timestamp).toLocaleString('ko-KR')}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <CheckCircle className="w-8 h-8 text-green-500" />
-                  </div>
-                  <p className="text-xs text-green-600 mt-2">
-                    최근 100개 세션 기준
-                  </p>
+                  ))}
                 </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
-                <div className="p-4 bg-purple-50 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-purple-600">활성 알고리즘</p>
-                      <p className="text-2xl font-bold text-purple-900">8</p>
+        {/* 탭 2: 컨텍스트 버전 관리자 */}
+        <TabsContent value="contexts" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* 현재 활성 컨텍스트 */}
+            <Card className="lg:col-span-1">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="w-5 h-5" />
+                  현재 적용 중
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                      <span className="font-medium text-green-800">Advanced Context</span>
                     </div>
-                    <Settings className="w-8 h-8 text-purple-500" />
+                    <p className="text-sm text-green-700">
+                      고급 서버 모니터링 및 AI 분석 컨텍스트가 적용되어 있습니다.
+                    </p>
+                    <div className="mt-3 text-xs text-green-600">
+                      • 문서 수: 12개
+                      • 마지막 업데이트: 2시간 전
+                      • 상태: 정상
+                    </div>
                   </div>
-                  <p className="text-xs text-purple-600 mt-2">
-                    동적 로그 패턴 감지
-                  </p>
-                </div>
-              </div>
 
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-semibold text-gray-900 mb-3">🔍 실시간 로그 시스템 특징</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                  <div>
-                    <h5 className="font-medium text-gray-800">🚀 기술적 우수성</h5>
-                    <ul className="mt-2 space-y-1">
-                      <li>• 실제 API 호출 및 검증</li>
-                      <li>• 동적 로그 패턴 파싱</li>
-                      <li>• WebSocket 실시간 스트리밍</li>
-                      <li>• AI 엔진 변경에 자동 대응</li>
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-gray-900">빠른 전환</h4>
+                    <div className="space-y-2">
+                      <button className="w-full p-2 text-left text-sm bg-gray-50 hover:bg-gray-100 rounded border">
+                        Basic Context
+                      </button>
+                      <button className="w-full p-2 text-left text-sm bg-green-100 border border-green-300 rounded font-medium">
+                        Advanced Context (현재)
+                      </button>
+                      <button className="w-full p-2 text-left text-sm bg-gray-50 hover:bg-gray-100 rounded border">
+                        Custom Context
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 컨텍스트 문서 목록 */}
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  컨텍스트 문서 관리
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {contextDocuments.map((doc) => (
+                    <div 
+                      key={doc.id} 
+                      className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => setSelectedDocument(doc)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge 
+                              variant={doc.category === 'advanced' ? 'default' : doc.category === 'custom' ? 'secondary' : 'outline'}
+                            >
+                              {doc.category === 'basic' ? '기본' : doc.category === 'advanced' ? '고급' : '커스텀'}
+                            </Badge>
+                            <span className="text-sm font-medium text-gray-900">{doc.filename}</span>
+                          </div>
+                          <div className="flex items-center gap-4 text-xs text-gray-500">
+                            <span>{(doc.size / 1024).toFixed(1)}KB</span>
+                            <span>{doc.wordCount.toLocaleString()}단어</span>
+                            <span>{new Date(doc.lastModified).toLocaleDateString('ko-KR')}</span>
+                          </div>
+                          <div className="mt-2">
+                            <div className="flex flex-wrap gap-1">
+                              {doc.keywords.slice(0, 3).map((keyword, idx) => (
+                                <span key={idx} className="inline-block px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
+                                  {keyword}
+                                </span>
+                              ))}
+                              {doc.keywords.length > 3 && (
+                                <span className="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                                  +{doc.keywords.length - 3}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" variant="outline">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* 탭 3: A/B 테스트 현황 */}
+        <TabsContent value="ab-test" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* 실험 그룹 분포 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  실험 그룹 분포
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 className="font-medium text-blue-800 mb-2">실험 A: 기본 응답 전략</h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-blue-700">참여자 비율</span>
+                      <span className="font-medium text-blue-800">50% (245명)</span>
+                    </div>
+                    <div className="w-full bg-blue-200 rounded-full h-2">
+                      <div className="bg-blue-600 h-2 rounded-full" style={{width: '50%'}}></div>
+                    </div>
+                    <div className="mt-2 text-xs text-blue-600">
+                      평균 응답시간: 1.2초 | 만족도: 8.2/10
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                    <h4 className="font-medium text-purple-800 mb-2">실험 B: AI 강화 응답</h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-purple-700">참여자 비율</span>
+                      <span className="font-medium text-purple-800">50% (243명)</span>
+                    </div>
+                    <div className="w-full bg-purple-200 rounded-full h-2">
+                      <div className="bg-purple-600 h-2 rounded-full" style={{width: '50%'}}></div>
+                    </div>
+                    <div className="mt-2 text-xs text-purple-600">
+                      평균 응답시간: 1.8초 | 만족도: 8.7/10
+                    </div>
+                  </div>
+
+                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <h5 className="font-medium text-green-800 mb-1">현재 상태</h5>
+                    <p className="text-sm text-green-700">
+                      실험 B가 응답 품질에서 우수한 성과를 보이고 있습니다. 
+                      통계적 유의성 달성까지 <strong>47시간</strong> 남았습니다.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 전략별 응답 비교 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Zap className="w-5 h-5" />
+                  전략별 성능 비교
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left py-2">지표</th>
+                          <th className="text-center py-2">실험 A</th>
+                          <th className="text-center py-2">실험 B</th>
+                          <th className="text-center py-2">개선율</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-gray-600">
+                        <tr className="border-b">
+                          <td className="py-2">평균 응답시간</td>
+                          <td className="text-center">1.2초</td>
+                          <td className="text-center">1.8초</td>
+                          <td className="text-center text-red-600">-33%</td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2">사용자 만족도</td>
+                          <td className="text-center">8.2/10</td>
+                          <td className="text-center">8.7/10</td>
+                          <td className="text-center text-green-600">+6%</td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2">정확도</td>
+                          <td className="text-center">92%</td>
+                          <td className="text-center">96%</td>
+                          <td className="text-center text-green-600">+4%</td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2">에러율</td>
+                          <td className="text-center">3.2%</td>
+                          <td className="text-center">1.8%</td>
+                          <td className="text-center text-green-600">-44%</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <h5 className="font-medium text-yellow-800 mb-1">권장사항</h5>
+                    <p className="text-sm text-yellow-700">
+                      실험 B의 품질 개선이 응답시간 증가를 상쇄하고 있습니다. 
+                      통계적 검증 완료 후 실험 B로 전환을 권장합니다.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* 탭 4: 품질 피드백 로그 */}
+        <TabsContent value="feedback" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* 피드백 통계 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  품질 통계
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="text-center p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600 mb-1">87%</div>
+                    <div className="text-sm text-green-700">전체 만족도</div>
+                    <div className="text-xs text-green-600 mt-1">👍 347 / 👎 52</div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">매우 좋음</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 bg-gray-200 rounded-full h-2">
+                          <div className="bg-green-500 h-2 rounded-full" style={{width: '65%'}}></div>
+                        </div>
+                        <span className="text-sm text-gray-800">65%</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">좋음</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 bg-gray-200 rounded-full h-2">
+                          <div className="bg-blue-500 h-2 rounded-full" style={{width: '22%'}}></div>
+                        </div>
+                        <span className="text-sm text-gray-800">22%</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">보통</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 bg-gray-200 rounded-full h-2">
+                          <div className="bg-yellow-500 h-2 rounded-full" style={{width: '8%'}}></div>
+                        </div>
+                        <span className="text-sm text-gray-800">8%</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">나쁨</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 bg-gray-200 rounded-full h-2">
+                          <div className="bg-red-500 h-2 rounded-full" style={{width: '5%'}}></div>
+                        </div>
+                        <span className="text-sm text-gray-800">5%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h5 className="font-medium text-blue-800 mb-1">개선 포인트</h5>
+                    <ul className="text-sm text-blue-700 space-y-1">
+                      <li>• 응답 속도 개선 필요</li>
+                      <li>• 기술적 질문 정확도 향상</li>
+                      <li>• 컨텍스트 이해도 개선</li>
                     </ul>
                   </div>
-                  <div>
-                    <h5 className="font-medium text-gray-800">📊 모니터링 기능</h5>
-                    <ul className="mt-2 space-y-1">
-                      <li>• 세션별 로그 추적</li>
-                      <li>• 로그 레벨별 필터링</li>
-                      <li>• 실시간 성능 메트릭</li>
-                      <li>• 자동 로그 백업</li>
-                    </ul>
-                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+
+            {/* 최근 피드백 */}
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5" />
+                  최근 피드백 로그
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {/* 모의 피드백 데이터 */}
+                  {[
+                    {
+                      id: 1,
+                      timestamp: '2024-12-19 14:32',
+                      question: 'CPU 사용률이 높은 서버를 찾아주세요',
+                      feedback: 'positive',
+                      comment: '정확한 서버 목록과 상세 정보를 제공해줘서 도움이 되었습니다.',
+                      rating: 5
+                    },
+                    {
+                      id: 2,
+                      timestamp: '2024-12-19 14:28',
+                      question: '네트워크 트래픽 분석 결과는?',
+                      feedback: 'negative',
+                      comment: '응답이 너무 늦고 정보가 부족합니다.',
+                      rating: 2
+                    },
+                    {
+                      id: 3,
+                      timestamp: '2024-12-19 14:25',
+                      question: '시스템 전체 상태를 요약해주세요',
+                      feedback: 'positive',
+                      comment: '종합적이고 이해하기 쉬운 요약이었습니다.',
+                      rating: 4
+                    }
+                  ].map((feedback) => (
+                    <div key={feedback.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Badge variant={feedback.feedback === 'positive' ? 'default' : 'destructive'}>
+                            {feedback.feedback === 'positive' ? '👍 긍정' : '👎 부정'}
+                          </Badge>
+                          <div className="flex items-center gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <span 
+                                key={i} 
+                                className={`text-sm ${i < feedback.rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                              >
+                                ⭐
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <span className="text-xs text-gray-500">{feedback.timestamp}</span>
+                      </div>
+                      <p className="text-sm font-medium text-gray-900 mb-1">{feedback.question}</p>
+                      <p className="text-sm text-gray-600">{feedback.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
 

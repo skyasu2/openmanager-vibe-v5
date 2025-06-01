@@ -12,13 +12,15 @@ import {
   Settings,
   Send,
   Loader2,
-  AlertTriangle
+  AlertTriangle,
+  Wand2
 } from 'lucide-react';
 import { useAISidebarStore, useAISidebarUI, useAIThinking, useAIChat } from '@/stores/useAISidebarStore';
 import type { PresetQuestion, AgentLog } from '@/stores/useAISidebarStore';
 import AgentThinkingPanel from './AgentThinkingPanel';
 import FinalResponse from './FinalResponse';
 import EnhancedPresetQuestions from './EnhancedPresetQuestions';
+import AIFunctionPanel from '../AIFunctionPanel';
 
 interface AISidebarV5Props {
   isOpen: boolean;
@@ -43,6 +45,11 @@ const TAB_INFO = {
     label: '사고과정',
     description: 'AI의 분석 과정'
   },
+  functions: {
+    icon: Wand2,
+    label: '기능',
+    description: 'AI 고급 기능'
+  },
   settings: {
     icon: Settings,
     label: '설정',
@@ -57,7 +64,7 @@ export default function AISidebarV5({
 }: AISidebarV5Props) {
   // TODO: Zustand 타입 에러 해결 후 복원
   const [isMinimized, setMinimized] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'presets' | 'thinking' | 'settings'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'presets' | 'thinking' | 'functions' | 'settings'>('chat');
   const [isThinking, setThinking] = useState(false);
 
   // 임시 하드코딩
@@ -335,6 +342,18 @@ export default function AISidebarV5({
                         </p>
                       </div>
                     )}
+                  </motion.div>
+                )}
+
+                {activeTab === 'functions' && (
+                  <motion.div
+                    key="functions"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="h-full overflow-y-auto p-4"
+                  >
+                    <AIFunctionPanel />
                   </motion.div>
                 )}
 

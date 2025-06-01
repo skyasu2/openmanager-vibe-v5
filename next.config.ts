@@ -1,10 +1,16 @@
 import type { NextConfig } from "next";
 import path from "path";
 
-// 번들 분석기 import
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
-  enabled: process.env.ANALYZE === 'true',
-});
+// 번들 분석기 import - 안전한 방식으로 수정
+let withBundleAnalyzer: any;
+try {
+  withBundleAnalyzer = require('@next/bundle-analyzer')({
+    enabled: process.env.ANALYZE === 'true',
+  });
+} catch (e) {
+  // @next/bundle-analyzer가 없으면 기본 설정 함수 사용
+  withBundleAnalyzer = (config: NextConfig) => config;
+}
 
 // CI 환경 감지
 const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';

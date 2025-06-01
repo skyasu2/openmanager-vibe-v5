@@ -8,12 +8,14 @@ import {
   Power, 
   BarChart3, 
   StopCircle, 
-  Loader2 
+  Loader2,
+  Shield
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 
-// 🚀 Dynamic Import로 성능 최적화
+// �� Dynamic Import로 성능 최적화
 const ToastContainer = dynamic(() => import('@/components/ui/ToastNotification').then(mod => ({ default: mod.ToastContainer })), {
   ssr: false
 });
@@ -223,8 +225,25 @@ export default function Home() {
           </div>
         </div>
 
-        {/* 프로필 컴포넌트 */}
-        <UnifiedProfileComponent userName="사용자" />
+        {/* 오른쪽 헤더 컨트롤 */}
+        <div className="flex items-center gap-3">
+          {/* AI 관리자 페이지 버튼 - AI 모드 활성화 시에만 표시 */}
+          {aiAgent.isEnabled && aiAgent.isAuthenticated && (
+            <Link href="/admin/ai-agent">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-purple-500/20 border border-purple-500/50 rounded-lg text-purple-300 hover:bg-purple-500/30 transition-all duration-200"
+              >
+                <Shield className="w-4 h-4" />
+                <span className="text-sm font-medium">🧠 AI 관리자</span>
+              </motion.button>
+            </Link>
+          )}
+
+          {/* 프로필 컴포넌트 */}
+          <UnifiedProfileComponent userName="사용자" />
+        </div>
       </header>
 
       {/* 메인 콘텐츠 */}
@@ -238,8 +257,9 @@ export default function Home() {
         >
           <h1 className="text-3xl md:text-5xl font-bold mb-4">
             <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              {renderTextWithAIGradient('AI 기반')}
+              {renderTextWithAIGradient('AI')}
             </span>{' '}
+            <span className="text-white font-semibold">기반</span>{' '}
             <span className="text-white">서버 모니터링</span>
           </h1>
           <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
