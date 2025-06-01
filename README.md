@@ -45,6 +45,16 @@ npm run dev
 
 ## ⚡ 최신 최적화 사항 (v5.18.0)
 
+### 🖥️ 서버 데이터 생성기 대폭 개선 (v5.18.1)
+- **직관적인 호스트네임**: 역할별 명명 체계 도입 (`postgres01`, `redis02`, `nginx03`)
+- **역할 기반 OS 배치**: 서버 용도에 맞는 운영체제 자동 할당
+  - 데이터베이스: CentOS 8, RHEL 9, Rocky Linux (안정성 중시)
+  - 웹서버: Ubuntu LTS, Alpine Linux (경량화)
+  - 캐시: Alpine Linux, Debian (최적화)
+- **다양한 서버 상태**: 60% 정상, 25% 경고, 15% 오프라인 현실적 분포
+- **실시간 데이터 동기화**: 프론트엔드와 실제 생성된 서버 데이터 완전 연동
+- **서버 타입 다양화**: Web, Database, Cache, Worker, API 서버별 특성화
+
 ### 👆 UI 가이드 개선 (v5.18.0)
 - **Finger Pointer 위치 통일**: 모든 버튼 아래에서 위쪽을 가리키도록 일관성 확보
 - **CSS 클래스 기반**: 재사용 가능한 `.finger-pointer-primary`, `.finger-pointer-ai` 클래스 추가

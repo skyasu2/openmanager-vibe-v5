@@ -427,7 +427,77 @@ export const useServerDataStore = create<ServerDataState>()(
        * 🔄 데이터 새로고침
        */
       refreshData: async () => {
-        await get().fetchServers();
+        const startTime = Date.now();
+        
+        set({ isLoading: true, error: null });
+        
+        try {
+          console.log('🔄 서버 데이터 새로고침 시작...');
+          
+          // 🚀 1. 실제 생성된 서버 데이터 조회 (최우선)
+          try {
+            const generatedResponse = await fetch('/api/servers/next?action=list');
+            
+            if (generatedResponse.ok) {
+              const generatedData = await generatedResponse.json();
+              
+              if (generatedData.success && generatedData.data && generatedData.data.length > 0) {
+                const servers = generatedData.data.map((server: any) => ({
+                  ...server,
+                  node_cpu_usage_percent: server.cpu,
+                  node_memory_usage_percent: server.memory,
+                  node_disk_usage_percent: server.disk,
+                  cpu_usage: server.cpu,
+                  memory_usage: server.memory,
+                  disk_usage: server.disk,
+                  network_in: Math.random() * 100,
+                  network_out: Math.random() * 100,
+                  response_time: Math.random() * 200 + 50,
+                  uptime: Math.random() * 3600 * 24 * 30,
+                  alerts: [],
+                  last_updated: server.lastUpdate || new Date().toISOString(),
+                  timestamp: Date.now(),
+                  labels: { 
+                    environment: server.environment || 'production', 
+                    role: server.type || 'web' 
+                  }
+                }));
+                
+                const responseTime = Date.now() - startTime;
+                
+                console.log(`✅ 생성된 서버 데이터 로드 성공: ${servers.length}개 서버, ${responseTime}ms`);
+                
+                set(state => ({
+                  servers,
+                  isLoading: false,
+                  lastUpdate: new Date(),
+                  performance: {
+                    ...state.performance,
+                    totalRequests: state.performance.totalRequests + 1,
+                    avgResponseTime: (state.performance.avgResponseTime + responseTime) / 2,
+                    lastSyncTime: new Date()
+                  }
+                }));
+                
+                return; // 성공적으로 데이터를 가져왔으므로 종료
+              }
+            }
+          } catch (error) {
+            console.warn('⚠️ 생성된 서버 데이터 조회 실패, 기존 API 시도:', error);
+          }
+          
+          // 🚀 2. 기존 fetchServers 로직 실행
+          await get().fetchServers();
+          
+        } catch (error) {
+          console.error('❌ 데이터 새로고침 실패:', error);
+          
+          set({
+            isLoading: false,
+            error: error instanceof Error ? error.message : '데이터 새로고침 실패',
+            lastUpdate: new Date()
+          });
+        }
       },
 
       /**
