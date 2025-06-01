@@ -18,21 +18,22 @@ export class IntentClassifier {
     if (this.initialized) return;
     
     try {
-      // 브라우저 환경에서만 Transformers.js 로드
-      if (typeof window !== 'undefined') {
-        const { pipeline } = await import('@xenova/transformers');
+      // 브라우저 환경에서만 Transformers.js 로드 (임시 비활성화)
+      if (false && typeof window !== 'undefined') {
+        // TODO: @xenova/transformers 패키지 재설치 후 활성화
+        // const { pipeline } = await import('@xenova/transformers');
         
         // 🤗 의도 분류용 모델 (경량화)
-        this.classifier = await pipeline('zero-shot-classification', 
-          'Xenova/distilbert-base-uncased-mnli');
+        // this.classifier = await pipeline('zero-shot-classification', 
+        //   'Xenova/distilbert-base-uncased-mnli');
         
         // 🏷️ 엔티티 추출용 모델  
-        this.nerModel = await pipeline('token-classification',
-          'Xenova/bert-base-NER');
+        // this.nerModel = await pipeline('token-classification',
+        //   'Xenova/bert-base-NER');
       }
       
       this.initialized = true;
-      console.log('🧠 Intent Classifier 초기화 완료');
+      console.log('🧠 Intent Classifier 초기화 완료 (Fallback 모드)');
     } catch (error) {
       console.warn('⚠️ Transformers.js 로드 실패, fallback 모드 사용:', error);
       this.initialized = false;

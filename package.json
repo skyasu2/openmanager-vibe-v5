@@ -1,7 +1,7 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.17.10",
-  "description": "🎯 AI 기반 차세대 지능형 인프라 모니터링 플랫폼 - v5.17.10: 모달 반응성 개선, 디버깅 강화, 테스트용 fallback 모달 추가",
+  "version": "5.18.0",
+  "description": "🎯 AI 기반 차세대 지능형 인프라 모니터링 플랫폼 - v5.18.0: Finger Pointer 위치 수정, UI 가이드 개선, Vercel 빌드 최적화",
   "private": true,
   "keywords": [
     "ai-agent",
@@ -139,7 +139,6 @@
     "@use-gesture/react": "^10.3.1",
     "@vercel/kv": "^3.0.0",
     "@vitest/ui": "^3.1.4",
-    "@xenova/transformers": "^2.17.2",
     "autoprefixer": "^10.4.21",
     "axios": "^1.7.9",
     "chart.js": "^4.4.9",
