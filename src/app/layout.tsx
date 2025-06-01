@@ -4,7 +4,7 @@ import './globals.css'
 import { Toaster } from 'react-hot-toast'
 import { setupGlobalErrorHandler } from '../lib/error-handler'
 import { QueryProvider } from "../components/providers/QueryProvider";
-import ErrorBoundary from '../components/ErrorBoundary'
+import { AIAgentErrorBoundary } from '../components/providers/ErrorBoundary'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -49,7 +49,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
       <body className={inter.className}>
-        <ErrorBoundary>
+        <AIAgentErrorBoundary maxRetries={3}>
           <QueryProvider>
             <ClientErrorHandler />
             {children}
@@ -77,7 +77,7 @@ export default function RootLayout({
               }}
             />
           </QueryProvider>
-        </ErrorBoundary>
+        </AIAgentErrorBoundary>
       </body>
     </html>
   )

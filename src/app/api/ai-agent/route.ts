@@ -16,17 +16,94 @@ const getAIAgent = async () => {
   return aiAgentEngine;
 };
 
-// 🔧 요청 검증 함수 분리
+// 🔧 요청 검증 함수 강화
 const validateRequest = (body: any) => {
-  const { query } = body;
+  // body가 없거나 null인 경우
+  if (!body || typeof body !== 'object') {
+    return {
+      isValid: false,
+      error: {
+        success: false,
+        error: '요청 본문이 필요합니다.',
+        message: '유효한 JSON 데이터를 제공해주세요.',
+        retryable: false
+      }
+    };
+  }
+
+  const { query, sessionId, context, serverData } = body;
   
-  if (!query || typeof query !== 'string') {
+  // query 검증 강화
+  if (!query) {
     return {
       isValid: false,
       error: {
         success: false,
         error: 'query 파라미터가 필요합니다.',
-        message: '유효한 문자열 쿼리를 제공해주세요.'
+        message: '질문이나 명령을 입력해주세요.',
+        retryable: false
+      }
+    };
+  }
+  
+  if (typeof query !== 'string') {
+    return {
+      isValid: false,
+      error: {
+        success: false,
+        error: 'query는 문자열이어야 합니다.',
+        message: '질문을 문자열 형태로 제공해주세요.',
+        retryable: false
+      }
+    };
+  }
+
+  if (query.trim().length === 0) {
+    return {
+      isValid: false,
+      error: {
+        success: false,
+        error: '빈 query는 처리할 수 없습니다.',
+        message: '실제 질문이나 명령을 입력해주세요.',
+        retryable: false
+      }
+    };
+  }
+
+  if (query.length > 5000) {
+    return {
+      isValid: false,
+      error: {
+        success: false,
+        error: 'query가 너무 깁니다.',
+        message: '5000자 이하의 질문을 입력해주세요.',
+        retryable: false
+      }
+    };
+  }
+
+  // sessionId 검증 (선택적)
+  if (sessionId && typeof sessionId !== 'string') {
+    return {
+      isValid: false,
+      error: {
+        success: false,
+        error: 'sessionId는 문자열이어야 합니다.',
+        message: '올바른 세션 ID를 제공해주세요.',
+        retryable: false
+      }
+    };
+  }
+
+  // context 검증 (선택적)
+  if (context && typeof context !== 'object') {
+    return {
+      isValid: false,
+      error: {
+        success: false,
+        error: 'context는 객체여야 합니다.',
+        message: '올바른 컨텍스트 데이터를 제공해주세요.',
+        retryable: false
       }
     };
   }

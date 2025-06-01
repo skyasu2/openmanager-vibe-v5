@@ -185,33 +185,127 @@ export const AIAgentProvider: React.FC<AIAgentProviderProps> = ({
   const [state, dispatch] = useReducer(aiAgentReducer, initialState);
   const service = React.useMemo(() => new AIAgentService(config), [config]);
 
-  // 초기화 및 헬스체크
+  // 헬스체크 함수 먼저 정의
+  const checkHealth = useCallback(async (): Promise<void> => {
+    try {
+      const status = await service.getStatus();
+      dispatch({ type: 'SET_HEALTHY', payload: status.healthy });
+      
+      // 전원 모드 동기화
+      if (status.mode === 'active') {
+        dispatch({ type: 'SET_POWER_MODE', payload: 'active' });
+      } else if (status.mode === 'sleep') {
+        dispatch({ type: 'SET_POWER_MODE', payload: 'sleep' });
+      } else {
+        dispatch({ type: 'SET_POWER_MODE', payload: 'inactive' });
+      }
+      
+    } catch (error) {
+      console.error('Health check failed:', error);
+      dispatch({ type: 'SET_HEALTHY', payload: false });
+      dispatch({ type: 'SET_ERROR', payload: '서버 연결 실패' });
+    }
+  }, [service]);
+
+  // 초기화 및 헬스체크 강화
   useEffect(() => {
+    let isMounted = true;
+    let initializationTimeout: NodeJS.Timeout;
+
     const initialize = async () => {
       try {
-        await checkHealth();
-        dispatch({ type: 'SET_CONNECTED', payload: true });
-        
-        // 세션 ID 생성
+        // 초기화 타임아웃 설정 (30초)
+        initializationTimeout = setTimeout(() => {
+          if (isMounted) {
+            console.warn('🟡 AI Agent 초기화 시간 초과, fallback 모드로 전환');
+            dispatch({ type: 'SET_ERROR', payload: '초기화 시간 초과 - fallback 모드' });
+            dispatch({ type: 'SET_CONNECTED', payload: false });
+            dispatch({ type: 'SET_HEALTHY', payload: false });
+          }
+        }, 30000);
+
+        // 세션 ID 우선 생성 (통신 실패와 무관하게)
         const sessionId = `ai_session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        dispatch({ type: 'SET_SESSION_ID', payload: sessionId });
+        if (isMounted) {
+          dispatch({ type: 'SET_SESSION_ID', payload: sessionId });
+        }
+
+        // 헬스체크 시도 (여러 번 재시도)
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        while (retryCount < maxRetries && isMounted) {
+          try {
+            await checkHealth();
+            if (isMounted) {
+              dispatch({ type: 'SET_CONNECTED', payload: true });
+              console.log('✅ AI Agent 초기화 성공');
+            }
+            break;
+          } catch (healthError) {
+            retryCount++;
+            console.warn(`🟡 AI Agent 헬스체크 실패 (${retryCount}/${maxRetries}):`, healthError);
+            
+            if (retryCount < maxRetries) {
+              // 지수 백오프로 재시도
+              await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+            } else {
+              // 최종 실패 시 disconnected 상태로 설정하되, 에러는 기록하지 않음
+              if (isMounted) {
+                console.warn('⚠️ AI Agent 연결 실패, offline 모드로 동작');
+                dispatch({ type: 'SET_CONNECTED', payload: false });
+                dispatch({ type: 'SET_HEALTHY', payload: false });
+                dispatch({ type: 'SET_POWER_MODE', payload: 'inactive' });
+                // 에러 메시지는 사용자에게 노출하지 않음 (시스템이 여전히 작동 가능)
+              }
+            }
+          }
+        }
+
+        // 타임아웃 정리
+        if (initializationTimeout) {
+          clearTimeout(initializationTimeout);
+        }
         
       } catch (error) {
-        console.error('AI Agent initialization failed:', error);
-        dispatch({ type: 'SET_ERROR', payload: '초기화 실패' });
+        if (isMounted) {
+          console.error('❌ AI Agent 초기화 중 예상치 못한 오류:', error);
+          dispatch({ type: 'SET_ERROR', payload: 'AI 에이전트 초기화 실패' });
+          dispatch({ type: 'SET_CONNECTED', payload: false });
+          dispatch({ type: 'SET_HEALTHY', payload: false });
+        }
       }
     };
 
+    // 초기화 실행
     initialize();
 
-    // 정기적 헬스체크 (10분마다 - 이전 5분에서 증가)
-    const healthInterval = setInterval(checkHealth, 10 * 60 * 1000);
+    // 정기적 헬스체크 (10분마다, 연결된 경우에만)
+    const healthInterval = setInterval(() => {
+      if (isMounted) {
+        checkHealth().catch((error: any) => {
+          console.warn('정기 헬스체크 실패:', error);
+          // 헬스체크 실패 시 연결 상태만 업데이트, 에러는 노출하지 않음
+          dispatch({ type: 'SET_HEALTHY', payload: false });
+        });
+      }
+    }, 10 * 60 * 1000);
     
     return () => {
+      isMounted = false;
+      if (initializationTimeout) {
+        clearTimeout(initializationTimeout);
+      }
       clearInterval(healthInterval);
-      service.destroy();
+      
+      // 서비스 정리
+      try {
+        service.destroy();
+      } catch (error) {
+        console.warn('서비스 정리 중 오류:', error);
+      }
     };
-  }, []);
+  }, [checkHealth]);
 
   // AI 질의 처리
   const queryAI = useCallback(async (query: AIQuery): Promise<AIResponse> => {
@@ -325,28 +419,6 @@ export const AIAgentProvider: React.FC<AIAgentProviderProps> = ({
     } catch (error) {
       console.error('AI deactivation failed:', error);
       return false;
-    }
-  }, [service]);
-
-  // 헬스체크
-  const checkHealth = useCallback(async (): Promise<void> => {
-    try {
-      const status = await service.getStatus();
-      dispatch({ type: 'SET_HEALTHY', payload: status.healthy });
-      
-      // 전원 모드 동기화
-      if (status.mode === 'active') {
-        dispatch({ type: 'SET_POWER_MODE', payload: 'active' });
-      } else if (status.mode === 'sleep') {
-        dispatch({ type: 'SET_POWER_MODE', payload: 'sleep' });
-      } else {
-        dispatch({ type: 'SET_POWER_MODE', payload: 'inactive' });
-      }
-      
-    } catch (error) {
-      console.error('Health check failed:', error);
-      dispatch({ type: 'SET_HEALTHY', payload: false });
-      dispatch({ type: 'SET_ERROR', payload: '서버 연결 실패' });
     }
   }, [service]);
 
