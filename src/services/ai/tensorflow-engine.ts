@@ -362,7 +362,7 @@ export class TensorFlowAIEngine {
     if (sequences.length === 0) return [];
 
     const lastSequence = sequences[sequences.length - 1];
-    let currentSequence = [...lastSequence];
+    const currentSequence = [...lastSequence];
 
     try {
       const predictions = [];
@@ -489,7 +489,7 @@ export class TensorFlowAIEngine {
     const max = Math.max(...metrics);
     const range = max - min || 1;
     
-    let normalized = metrics.map(val => (val - min) / range);
+    const normalized = metrics.map(val => (val - min) / range);
 
     // 길이 조정
     if (normalized.length === targetLength) return normalized;
