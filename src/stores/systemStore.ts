@@ -335,15 +335,25 @@ export const useSystemStore = create<SystemStore>()(
               return;
             }
 
-            set({ lastActivity: Date.now() });
-            
-            // 비활성 타이머 리셋 (AI 세션만)
-            if (current.state === 'active' && !current.userInitiated) {
-              if (inactivityTimer) {
-                clearTimeout(inactivityTimer);
+            // 🔒 React 안전 모드: 배치 업데이트로 처리
+            Promise.resolve().then(() => {
+              try {
+                const latestState = get();
+                if (latestState && latestState.state !== 'inactive') {
+                  set({ lastActivity: Date.now() });
+                  
+                  // 비활성 타이머 리셋 (AI 세션만)
+                  if (latestState.state === 'active' && !latestState.userInitiated) {
+                    if (inactivityTimer) {
+                      clearTimeout(inactivityTimer);
+                    }
+                    startInactivityTimer();
+                  }
+                }
+              } catch (batchError) {
+                console.warn('⚠️ [SystemStore] 배치 업데이트 실패 (무시):', batchError);
               }
-              startInactivityTimer();
-            }
+            });
           } catch (error) {
             console.error('❌ [SystemStore] updateActivity 실패:', error);
             // 에러 발생 시에도 안전하게 계속 진행
@@ -556,18 +566,28 @@ export const useSystemStore = create<SystemStore>()(
               return;
             }
 
-            set({
-              aiAgent: {
-                ...current.aiAgent,
-                totalQueries: current.aiAgent.totalQueries + 1
+            // 🔒 React 안전 모드: 배치 업데이트로 처리
+            Promise.resolve().then(() => {
+              try {
+                const latestState = get();
+                if (latestState && latestState.aiAgent) {
+                  set({
+                    aiAgent: {
+                      ...latestState.aiAgent,
+                      totalQueries: latestState.aiAgent.totalQueries + 1
+                    }
+                  });
+                  
+                  // 활동 업데이트 - 안전하게 호출
+                  const updateActivity = get().updateActivity;
+                  if (updateActivity) {
+                    updateActivity();
+                  }
+                }
+              } catch (batchError) {
+                console.warn('⚠️ [SystemStore] AI 에이전트 배치 업데이트 실패 (무시):', batchError);
               }
             });
-            
-            // 활동 업데이트 - 안전하게 호출
-            const updateActivity = get().updateActivity;
-            if (updateActivity) {
-              updateActivity();
-            }
           } catch (error) {
             console.error('❌ [SystemStore] updateAIAgentQuery 실패:', error);
             // 에러 발생 시에도 안전하게 계속 진행

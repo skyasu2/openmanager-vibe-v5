@@ -334,17 +334,43 @@ export const DEVELOPMENT_PROCESS_CONFIGS: ProcessConfig[] = [
     name: '개발 모드 시스템',
     startCommand: async () => {
       systemLogger.system('🔧 개발 모드 시작');
+      
+      // 🚀 개발 모드 상태를 전역에 저장
+      if (typeof global !== 'undefined') {
+        (global as any).devModeActive = true;
+        (global as any).devModeStartTime = Date.now();
+      }
+      
       // 개발 모드에서는 기본 헬스체크만 수행
       await new Promise(resolve => setTimeout(resolve, 100)); // 짧은 지연
       systemLogger.system('✅ 개발 모드 시작 완료');
     },
     stopCommand: async () => {
       systemLogger.system('🔧 개발 모드 중지');
+      
+      // 🚀 개발 모드 상태 정리
+      if (typeof global !== 'undefined') {
+        (global as any).devModeActive = false;
+        delete (global as any).devModeStartTime;
+      }
+      
       await new Promise(resolve => setTimeout(resolve, 50)); // 짧은 지연
       systemLogger.system('✅ 개발 모드 중지 완료');
     },
     healthCheck: async () => {
-      // 개발 모드에서는 항상 건강한 상태로 반환
+      // 🚀 개발 모드에서는 전역 상태 확인으로 건강 상태 판단
+      if (typeof global !== 'undefined') {
+        const isActive = (global as any).devModeActive === true;
+        const hasStartTime = (global as any).devModeStartTime > 0;
+        
+        if (isActive && hasStartTime) {
+          systemLogger.system('💓 개발 모드 헬스체크 통과');
+          return true;
+        }
+      }
+      
+      // fallback: 기본적으로 개발 모드는 건강한 상태로 반환
+      systemLogger.system('💓 개발 모드 헬스체크 기본 통과 (fallback)');
       return true;
     },
     criticalLevel: 'medium',

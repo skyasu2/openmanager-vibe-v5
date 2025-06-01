@@ -180,6 +180,66 @@ export async function GET(request: NextRequest) {
     const manager = getProcessManager();
 
     switch (action) {
+      case 'start':
+        {
+          // GET으로 start 요청이 왔을 때는 안전하게 시작 시도
+          systemLogger.system('🚀 통합 시스템 시작 요청 (GET)');
+          
+          try {
+            const result = await manager.startSystem({ 
+              mode: 'fast', 
+              skipStabilityCheck: true 
+            });
+            
+            return NextResponse.json({
+              success: result.success,
+              message: result.message,
+              errors: result.errors,
+              warnings: result.warnings,
+              timestamp: new Date().toISOString()
+            });
+          } catch (startError) {
+            // 시작 실패 시에도 graceful하게 처리
+            const errorMessage = startError instanceof Error ? startError.message : '시스템 시작 실패';
+            systemLogger.warn('시스템 시작 실패 (GET):', startError);
+            
+            return NextResponse.json({
+              success: false,
+              message: `시스템 시작 실패: ${errorMessage}`,
+              errors: [errorMessage],
+              warnings: [],
+              timestamp: new Date().toISOString()
+            }, { status: 503 });
+          }
+        }
+
+      case 'stop':
+        {
+          // GET으로 stop 요청 처리
+          systemLogger.system('🛑 통합 시스템 중지 요청 (GET)');
+          
+          try {
+            const result = await manager.stopSystem();
+            
+            return NextResponse.json({
+              success: result.success,
+              message: result.message,
+              errors: result.errors,
+              timestamp: new Date().toISOString()
+            });
+          } catch (stopError) {
+            const errorMessage = stopError instanceof Error ? stopError.message : '시스템 중지 실패';
+            systemLogger.warn('시스템 중지 실패 (GET):', stopError);
+            
+            return NextResponse.json({
+              success: false,
+              message: `시스템 중지 실패: ${errorMessage}`,
+              errors: [errorMessage],
+              timestamp: new Date().toISOString()
+            }, { status: 500 });
+          }
+        }
+
       case 'status':
         {
           const status = manager.getSystemStatus();

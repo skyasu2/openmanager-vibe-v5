@@ -179,7 +179,17 @@ export const usePowerStore = create<PowerStore>()(
             return;
           }
 
-          set({ lastActivity: new Date() });
+          // 🔒 React 안전 모드: 배치 업데이트로 처리
+          Promise.resolve().then(() => {
+            try {
+              const latestState = get();
+              if (latestState) {
+                set({ lastActivity: new Date() });
+              }
+            } catch (batchError) {
+              console.warn('⚠️ [PowerStore] 배치 업데이트 실패 (무시):', batchError);
+            }
+          });
         } catch (error) {
           console.error('❌ [PowerStore] updateActivity 실패:', error);
           // 에러 발생 시에도 안전하게 계속 진행

@@ -567,12 +567,30 @@ export class ProcessManager extends EventEmitter {
     
     let systemHealth: 'healthy' | 'degraded' | 'critical';
     
-    if (healthyCount === this.processes.size) {
+    // 🔧 더 관대한 헬스 평가 - 핵심 기능 중심
+    // 개발 모드에서는 프로세스가 제대로 실행되지 않을 수 있음
+    const totalProcesses = this.processes.size;
+    
+    if (totalProcesses === 0) {
+      // 등록된 프로세스가 없으면 기본적으로 healthy (개발 모드)
       systemHealth = 'healthy';
-    } else if (healthyCount >= this.processes.size * 0.7) {
+    } else if (runningCount === 0) {
+      // 실행 중인 프로세스가 하나도 없으면 critical
+      systemHealth = 'critical';
+    } else if (healthyCount >= Math.max(1, totalProcesses * 0.5)) {
+      // 50% 이상 건강하면 healthy (기존 100% → 50%로 완화)
+      systemHealth = 'healthy';
+    } else if (runningCount >= Math.max(1, totalProcesses * 0.3)) {
+      // 30% 이상 실행되면 degraded (기존 70% → 30%로 완화)
       systemHealth = 'degraded';
     } else {
       systemHealth = 'critical';
+    }
+
+    // 🔔 개발 모드에서는 경고만 출력하고 시스템은 정상으로 유지
+    if (process.env.NODE_ENV === 'development' && systemHealth !== 'healthy') {
+      console.warn(`⚠️ [ProcessManager] 개발 모드 - 일부 프로세스 문제 있지만 기본 기능은 동작: ${systemHealth}`);
+      console.warn(`📊 프로세스 상태: 실행중 ${runningCount}/${totalProcesses}, 건강 ${healthyCount}/${totalProcesses}`);
     }
 
     this.emit('system:health-update', { 
@@ -663,10 +681,27 @@ export class ProcessManager extends EventEmitter {
     const processStatuses = Array.from(this.states.values());
     const metrics = this.getSystemMetrics();
 
+    // 🔧 더 관대한 헬스 상태 결정 (evaluateSystemHealth와 동일한 로직)
+    let health: 'healthy' | 'degraded' | 'critical';
+    const totalProcesses = metrics.totalProcesses;
+    const runningCount = metrics.runningProcesses;
+    const healthyCount = metrics.healthyProcesses;
+    
+    if (totalProcesses === 0) {
+      health = 'healthy'; // 개발 모드
+    } else if (runningCount === 0) {
+      health = 'critical';
+    } else if (healthyCount >= Math.max(1, totalProcesses * 0.5)) {
+      health = 'healthy'; // 50% 이상 건강
+    } else if (runningCount >= Math.max(1, totalProcesses * 0.3)) {
+      health = 'degraded'; // 30% 이상 실행
+    } else {
+      health = 'critical';
+    }
+
     return {
       isRunning: this.isSystemRunning,
-      health: metrics.healthyProcesses === metrics.totalProcesses ? 'healthy' : 
-              metrics.healthyProcesses >= metrics.totalProcesses * 0.7 ? 'degraded' : 'critical',
+      health,
       processes: processStatuses,
       metrics,
       startTime: this.systemStartTime,

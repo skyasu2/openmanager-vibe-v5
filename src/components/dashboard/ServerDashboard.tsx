@@ -345,22 +345,33 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
   useEffect(() => {
     if (!isClient) return;
     
+    // 🔒 컴포넌트 언마운트 상태 추적
+    let isMounted = true;
+    
     // 백그라운드에서 최신 데이터 가져오기 (이미 초기 데이터가 있으므로)
-    refreshData();
-    
-    // TimerManager를 사용한 5초마다 데이터 새로고침
-    timerManager.register({
-      id: 'server-dashboard-refresh',
-      callback: refreshData,
-      interval: 5000,
-      priority: 'medium',
-        enabled: true
-    });
-    
-    return () => {
-      timerManager.unregister('server-dashboard-refresh');
+    const loadData = async () => {
+      try {
+        await refreshData();
+        
+        // 🚨 컴포넌트가 언마운트되었다면 상태 업데이트 중단
+        if (!isMounted) {
+          console.warn('⚠️ [ServerDashboard] 컴포넌트 언마운트됨 - 데이터 로드 중단');
+          return;
+        }
+        
+        console.log('✅ [ServerDashboard] 서버 데이터 갱신 완료');
+      } catch (error) {
+        console.error('❌ [ServerDashboard] 서버 데이터 로드 실패:', error);
+      }
     };
-  }, [refreshData, isClient]);
+    
+    loadData();
+    
+    // 정리 함수
+    return () => {
+      isMounted = false;
+    };
+  }, [isClient, refreshData]);
 
   // 통계 업데이트 알림
   useEffect(() => {

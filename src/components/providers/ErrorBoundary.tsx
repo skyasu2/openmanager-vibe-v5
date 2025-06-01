@@ -73,12 +73,37 @@ export class AIAgentErrorBoundary extends Component<ErrorBoundaryProps, ErrorBou
     // 🚨 Zustand 스토어 관련 오류 감지
     if (error.message.includes('forceStoreRerender') || 
         error.message.includes('setState') ||
-        error.stack?.includes('updateActivity')) {
+        error.stack?.includes('updateActivity') ||
+        error.message.includes('Cannot read properties of') ||
+        error.message.includes('Minified React error #185')) {
       console.error('🚨 [ErrorBoundary] Zustand 스토어 오류 감지:', {
         error: error.message,
         isZustandError: true,
-        component: errorInfo.componentStack
+        component: errorInfo.componentStack,
+        timestamp: new Date().toISOString()
       });
+      
+      // 🔄 스토어 상태 복구 시도
+      try {
+        // 전역 window에서 스토어 리셋 함수 찾기
+        if (typeof window !== 'undefined') {
+          // SystemStore 리셋
+          const systemStoreKey = Object.keys(localStorage).find(key => key.includes('system-store'));
+          if (systemStoreKey) {
+            localStorage.removeItem(systemStoreKey);
+            console.log('🔄 [ErrorBoundary] SystemStore 상태 리셋');
+          }
+          
+          // PowerStore 리셋  
+          const powerStoreKey = Object.keys(localStorage).find(key => key.includes('power-store'));
+          if (powerStoreKey) {
+            localStorage.removeItem(powerStoreKey);
+            console.log('🔄 [ErrorBoundary] PowerStore 상태 리셋');
+          }
+        }
+      } catch (resetError) {
+        console.warn('⚠️ [ErrorBoundary] 스토어 리셋 실패:', resetError);
+      }
     }
 
     console.error('🚨 AI Agent Error Boundary 감지된 오류:', error);
