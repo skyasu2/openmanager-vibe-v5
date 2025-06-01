@@ -307,7 +307,7 @@ export default function Home() {
               </div>
               
               {/* 손가락 표시 애니메이션 */}
-              <div className="relative mb-6">
+              <div className="flex flex-col items-center">
                 <motion.button
                   onClick={handleSystemToggle}
                   disabled={isLoading}
@@ -324,8 +324,11 @@ export default function Home() {
                 </motion.button>
                 
                 {/* 손가락 아이콘 - 버튼 아래에서 위로 가리키도록 수정 */}
-                <div className="finger-pointer-primary">
-                  👆
+                <div className="mt-2 flex justify-center">
+                  <span className="animate-wiggle text-yellow-400 text-2xl">👆</span>
+                </div>
+                <div className="mt-1 flex justify-center">
+                  <span className="text-white text-xs opacity-70 animate-point-bounce">클릭하세요</span>
                 </div>
               </div>
               
@@ -355,7 +358,7 @@ export default function Home() {
               {/* 제어 버튼들 */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 {/* AI 에이전트 버튼 */}
-                <div className="relative">
+                <div className="flex flex-col items-center">
                   <motion.button
                     onClick={handleAIAgentInfo}
                     className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border ${
@@ -387,17 +390,17 @@ export default function Home() {
                     )}
                   </motion.button>
                   
-                  {/* 손가락 아이콘 + 클릭 문구 */}
-                  <div className="finger-pointer-ai">
-                    👉
+                  {/* 손가락 아이콘 + 클릭 문구 - 중앙 정렬 & 애니메이션 */}
+                  <div className="mt-2 flex justify-center">
+                    <span className="animate-wiggle text-yellow-400 text-xl">👉</span>
                   </div>
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-8 flex items-center justify-center gap-1">
-                    <span className="text-white text-xs opacity-70">클릭하세요</span>
+                  <div className="mt-1 flex justify-center">
+                    <span className="text-white text-xs opacity-70 animate-point-bounce">클릭하세요</span>
                   </div>
                 </div>
 
                 {/* 대시보드 버튼 */}
-                <div className="relative">
+                <div className="flex flex-col items-center">
                   <motion.button
                     onClick={handleDashboardClick}
                     className="w-52 h-14 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border border-blue-500/50 rounded-xl font-semibold transition-all duration-200"
@@ -408,17 +411,17 @@ export default function Home() {
                     📊 대시보드 들어가기
                   </motion.button>
                   
-                  {/* 손가락 아이콘 + 클릭 문구 */}
-                  <div className="finger-pointer-dashboard">
-                    👉
+                  {/* 손가락 아이콘 + 클릭 문구 - 중앙 정렬 & 애니메이션 */}
+                  <div className="mt-2 flex justify-center">
+                    <span className="animate-wiggle text-yellow-400 text-xl">👉</span>
                   </div>
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-8 flex items-center justify-center gap-1">
-                    <span className="text-white text-xs opacity-70">클릭하세요</span>
+                  <div className="mt-1 flex justify-center">
+                    <span className="text-white text-xs opacity-70 animate-point-bounce">클릭하세요</span>
                   </div>
                 </div>
                 
                 {/* 시스템 중지 버튼 */}
-                <div className="relative">
+                <div className="flex flex-col items-center">
                   <motion.button
                     onClick={handleSystemToggle}
                     disabled={isLoading}
@@ -434,12 +437,12 @@ export default function Home() {
                     <span>{isLoading ? '중지 중...' : '⏹️ 시스템 중지'}</span>
                   </motion.button>
                   
-                  {/* 손가락 아이콘 + 클릭 문구 */}
-                  <div className="finger-pointer-ai">
-                    👉
+                  {/* 손가락 아이콘 + 클릭 문구 - 중앙 정렬 & 애니메이션 */}
+                  <div className="mt-2 flex justify-center">
+                    <span className="animate-wiggle text-yellow-400 text-xl">👉</span>
                   </div>
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-8 flex items-center justify-center gap-1">
-                    <span className="text-white text-xs opacity-70">클릭하세요</span>
+                  <div className="mt-1 flex justify-center">
+                    <span className="text-white text-xs opacity-70 animate-point-bounce">클릭하세요</span>
                   </div>
                 </div>
               </div>
