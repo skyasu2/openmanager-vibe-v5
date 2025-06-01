@@ -19,7 +19,8 @@ import {
   Check,
   Loader2,
   Shield,
-  StopCircle
+  StopCircle,
+  HardDrive
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -569,6 +570,7 @@ export default function UnifiedProfileComponent({
 }: UnifiedProfileComponentProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const dropdownRef = useRef<HTMLDivElement>(null);
   const profileButtonRef = useRef<HTMLButtonElement>(null);
   
@@ -584,24 +586,61 @@ export default function UnifiedProfileComponent({
 
   const { success, info } = useToast();
 
-  // 외부 클릭 감지 (드롭다운용)
+  // 드롭다운 위치 계산
+  const calculateDropdownPosition = () => {
+    if (!profileButtonRef.current) return;
+    
+    const buttonRect = profileButtonRef.current.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // 기본 위치: 버튼 아래, 오른쪽 정렬
+    let top = buttonRect.bottom + 8;
+    let right = viewportWidth - buttonRect.right;
+    
+    // 드롭다운이 화면 아래로 넘어가는 경우 위쪽에 표시
+    const dropdownHeight = 400; // 예상 드롭다운 높이
+    if (top + dropdownHeight > viewportHeight) {
+      top = buttonRect.top - dropdownHeight - 8;
+    }
+    
+    // 모바일에서는 중앙 정렬
+    if (viewportWidth < 640) {
+      right = (viewportWidth - 320) / 2; // 드롭다운 너비 320px 기준
+      if (right < 16) right = 16; // 최소 여백
+    }
+    
+    setDropdownPosition({ top, right });
+  };
+
+  // 외부 클릭 감지 (강화된 버전)
   useEffect(() => {
     if (!isOpen) return;
 
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+    const handleClickOutside = (event: Event) => {
+      const target = event.target as Node;
+      
+      // 프로필 버튼 클릭은 제외
+      if (profileButtonRef.current?.contains(target)) {
+        return;
+      }
+      
+      // 드롭다운 외부 클릭 시 닫기
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
         setIsOpen(false);
       }
     };
 
-    // 약간의 지연을 두어 버튼 클릭과 충돌 방지
-    const timeoutId = setTimeout(() => {
-      document.addEventListener('mousedown', handleClickOutside);
-    }, 100);
+    // 여러 이벤트 리스너로 강화
+    const events = ['mousedown', 'touchstart'];
+    events.forEach(eventType => {
+      document.addEventListener(eventType, handleClickOutside, true);
+    });
 
     return () => {
-      clearTimeout(timeoutId);
-      document.removeEventListener('mousedown', handleClickOutside);
+      events.forEach(eventType => {
+        document.removeEventListener(eventType, handleClickOutside, true);
+      });
     };
   }, [isOpen]);
 
@@ -612,12 +651,34 @@ export default function UnifiedProfileComponent({
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
+        e.stopPropagation();
         setIsOpen(false);
       }
     };
 
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+    document.addEventListener('keydown', handleEscape, true);
+    return () => document.removeEventListener('keydown', handleEscape, true);
+  }, [isOpen]);
+
+  // 스크롤 시 드롭다운 닫기
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleScroll = () => setIsOpen(false);
+    window.addEventListener('scroll', handleScroll, true);
+    return () => window.removeEventListener('scroll', handleScroll, true);
+  }, [isOpen]);
+
+  // 윈도우 리사이즈 시 위치 재계산
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleResize = () => {
+      calculateDropdownPosition();
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [isOpen]);
 
   // 설정 패널이 열릴 때 드롭다운 자동 닫기
@@ -627,7 +688,23 @@ export default function UnifiedProfileComponent({
     }
   }, [showSettingsPanel]);
 
-  const handleSystemToggle = () => {
+  // 드롭다운 열기/닫기 핸들러
+  const handleToggleDropdown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!isOpen) {
+      calculateDropdownPosition();
+      setIsOpen(true);
+    } else {
+      setIsOpen(false);
+    }
+  };
+
+  const handleSystemToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (isSystemStarted) {
       stopSystem();
     } else {
@@ -636,14 +713,26 @@ export default function UnifiedProfileComponent({
     setIsOpen(false);
   };
 
-  const handleSettingsClick = () => {
+  const handleSettingsClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setShowSettingsPanel(true);
     setIsOpen(false);
   };
 
-  const handleLogout = () => {
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     logout();
     info('로그아웃되었습니다.');
+    setIsOpen(false);
+  };
+
+  const handleAIDisable = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    disableAIAgent();
+    info('AI 에이전트가 비활성화되었습니다.');
     setIsOpen(false);
   };
 
@@ -661,15 +750,215 @@ export default function UnifiedProfileComponent({
     return aiAgent.isEnabled ? 'text-purple-400' : 'text-cyan-400';
   };
 
+  // 드롭다운 컴포넌트 (Portal로 렌더링)
+  const DropdownPortal = () => {
+    if (typeof window === 'undefined') return null;
+    
+    return createPortal(
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* 오버레이 (모바일용) */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[9998] sm:hidden"
+              onClick={() => setIsOpen(false)}
+            />
+            
+            {/* 드롭다운 메뉴 */}
+            <motion.div
+              ref={dropdownRef}
+              initial={{ opacity: 0, scale: 0.95, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -10 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+              className="fixed bg-gray-900/95 backdrop-blur-lg border border-gray-700/50 rounded-xl shadow-2xl z-[9999] min-w-[280px] max-w-[320px]"
+              style={{
+                top: `${dropdownPosition.top}px`,
+                right: `${dropdownPosition.right}px`,
+                maxHeight: 'calc(100vh - 100px)',
+                overflowY: 'auto'
+              }}
+              role="menu"
+              aria-orientation="vertical"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* 헤더 */}
+              <div className="p-4 border-b border-gray-700/50">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    isLocked
+                      ? 'bg-gradient-to-br from-red-500 to-orange-600'
+                      : aiAgent.isEnabled
+                      ? 'bg-gradient-to-br from-purple-500 to-pink-600'
+                      : 'bg-gradient-to-br from-cyan-500 to-blue-600'
+                  }`}>
+                    {userAvatar ? (
+                      <Image 
+                        src={userAvatar} 
+                        alt="Avatar" 
+                        width={40} 
+                        height={40} 
+                        className="w-full h-full rounded-full object-cover" 
+                      />
+                    ) : (
+                      <User className="w-5 h-5 text-white" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-white font-medium">{userName}</div>
+                    <div className={`text-sm ${getModeStatusColor()}`}>
+                      {getModeDisplayText()}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 시스템 상태 */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400 text-sm">시스템 상태</span>
+                    <span className={`text-sm font-medium ${getSystemStatusColor()}`}>
+                      {isLocked ? '🔒 잠김' : isSystemStarted ? '🟢 실행 중' : '🔴 중지됨'}
+                    </span>
+                  </div>
+
+                  {/* 시스템 토글 버튼 */}
+                  <motion.button
+                    whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleSystemToggle}
+                    disabled={isLocked}
+                    className="w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    role="menuitem"
+                  >
+                    <div className={`p-2 rounded-lg ${
+                      isSystemStarted ? 'bg-red-500/20' : 'bg-green-500/20'
+                    }`}>
+                      {isSystemStarted ? (
+                        <StopCircle className="w-4 h-4 text-red-400" />
+                      ) : (
+                        <Power className="w-4 h-4 text-green-400" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-white font-medium">
+                        {isSystemStarted ? '시스템 종료' : '시스템 시작'}
+                      </div>
+                      <div className="text-gray-400 text-xs">
+                        {isSystemStarted ? '모든 기능을 중지합니다' : '모니터링을 시작합니다'}
+                      </div>
+                    </div>
+                  </motion.button>
+
+                  {/* AI 에이전트 상태 */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${
+                        aiAgent.isEnabled 
+                          ? 'bg-purple-500/20' 
+                          : 'bg-gray-500/20'
+                      }`}>
+                        <Bot className={`w-4 h-4 ${
+                          aiAgent.isEnabled ? 'text-purple-400' : 'text-gray-400'
+                        }`} />
+                      </div>
+                      <div>
+                        <div className="text-white text-sm font-medium">AI 에이전트</div>
+                        <div className={`text-xs ${
+                          aiAgent.isEnabled ? 'text-purple-400' : 'text-gray-400'
+                        }`}>
+                          {aiAgent.isEnabled ? '활성화됨' : '비활성화됨'}
+                        </div>
+                      </div>
+                    </div>
+                    {aiAgent.isEnabled && (
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleAIDisable}
+                        className="px-3 py-1 rounded-md text-xs font-medium bg-red-500/20 text-red-300 hover:bg-red-500/30 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+                      >
+                        비활성화
+                      </motion.button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* 메뉴 아이템들 */}
+              <div className="p-2">
+                {/* AI 관리자 페이지 버튼 - AI 모드 활성화 시에만 표시 */}
+                {aiAgent.isEnabled && aiAgent.isAuthenticated && (
+                  <Link href="/admin/ai-agent">
+                    <motion.button
+                      whileHover={{ backgroundColor: 'rgba(139, 92, 246, 0.1)' }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setIsOpen(false)}
+                      className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      role="menuitem"
+                    >
+                      <div className="p-2 rounded-lg bg-purple-500/20">
+                        <Shield className="w-4 h-4 text-purple-400" />
+                      </div>
+                      <div>
+                        <div className="text-white font-medium">🧠 AI 관리자 페이지</div>
+                        <div className="text-gray-400 text-xs">AI 로그, 컨텍스트, A/B 테스트 관리</div>
+                      </div>
+                    </motion.button>
+                  </Link>
+                )}
+
+                <motion.button
+                  whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleSettingsClick}
+                  className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  role="menuitem"
+                >
+                  <div className="p-2 rounded-lg bg-purple-500/20">
+                    <Settings className="w-4 h-4 text-purple-400" />
+                  </div>
+                  <div>
+                    <div className="text-white font-medium">통합 설정</div>
+                    <div className="text-gray-400 text-xs">AI 모드, 데이터 생성기, 모니터링 제어</div>
+                  </div>
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+                  role="menuitem"
+                >
+                  <div className="p-2 rounded-lg bg-red-500/20">
+                    <LogOut className="w-4 h-4 text-red-400" />
+                  </div>
+                  <div>
+                    <div className="text-white font-medium">로그아웃</div>
+                    <div className="text-gray-400 text-xs">현재 세션을 종료합니다</div>
+                  </div>
+                </motion.button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>,
+      document.body
+    );
+  };
+
   return (
     <>
-      <div className="relative" ref={dropdownRef}>
+      <div className="relative">
         {/* 프로필 버튼 */}
         <motion.button
           ref={profileButtonRef}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={handleToggleDropdown}
           className={`flex items-center gap-3 p-2 rounded-xl backdrop-blur-sm border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent ${
             isLocked
               ? 'bg-red-500/20 border-red-500/50 shadow-red-500/20 shadow-lg focus:ring-red-500'
@@ -728,179 +1017,10 @@ export default function UnifiedProfileComponent({
             }`} />
           </div>
         </motion.button>
-
-        {/* 드롭다운 메뉴 */}
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: -10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -10 }}
-              className="absolute top-full right-0 mt-2 w-80 bg-gray-900/95 backdrop-blur-lg border border-gray-700/50 rounded-xl shadow-2xl z-[8000]"
-              role="menu"
-              aria-orientation="vertical"
-            >
-              {/* 헤더 */}
-              <div className="p-4 border-b border-gray-700/50">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    isLocked
-                      ? 'bg-gradient-to-br from-red-500 to-orange-600'
-                      : aiAgent.isEnabled
-                      ? 'bg-gradient-to-br from-purple-500 to-pink-600'
-                      : 'bg-gradient-to-br from-cyan-500 to-blue-600'
-                  }`}>
-                    {userAvatar ? (
-                      <Image 
-                        src={userAvatar} 
-                        alt="Avatar" 
-                        width={40} 
-                        height={40} 
-                        className="w-full h-full rounded-full object-cover" 
-                      />
-                    ) : (
-                      <User className="w-5 h-5 text-white" />
-                    )}
-                  </div>
-                  <div>
-                    <div className="text-white font-medium">{userName}</div>
-                    <div className={`text-sm ${getModeStatusColor()}`}>
-                      {getModeDisplayText()}
-                    </div>
-                  </div>
-                </div>
-
-                {/* 시스템 상태 */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-sm">시스템 상태</span>
-                    <span className={`text-sm font-medium ${getSystemStatusColor()}`}>
-                      {isLocked ? '🔒 잠김' : isSystemStarted ? '🟢 실행 중' : '🔴 중지됨'}
-                    </span>
-                  </div>
-
-                  {/* 시스템 토글 버튼 */}
-                  <motion.button
-                    whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                    onClick={handleSystemToggle}
-                    disabled={isLocked}
-                    className="w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    role="menuitem"
-                  >
-                    <div className={`p-2 rounded-lg ${
-                      isSystemStarted ? 'bg-red-500/20' : 'bg-green-500/20'
-                    }`}>
-                      {isSystemStarted ? (
-                        <StopCircle className="w-4 h-4 text-red-400" />
-                      ) : (
-                        <Power className="w-4 h-4 text-green-400" />
-                      )}
-                    </div>
-                    <div>
-                      <div className="text-white font-medium">
-                        {isSystemStarted ? '시스템 종료' : '시스템 시작'}
-                      </div>
-                      <div className="text-gray-400 text-xs">
-                        {isSystemStarted ? '모든 기능을 중지합니다' : '모니터링을 시작합니다'}
-                      </div>
-                    </div>
-                  </motion.button>
-
-                  {/* AI 에이전트 상태 */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${
-                        aiAgent.isEnabled 
-                          ? 'bg-purple-500/20' 
-                          : 'bg-gray-500/20'
-                      }`}>
-                        <Bot className={`w-4 h-4 ${
-                          aiAgent.isEnabled ? 'text-purple-400' : 'text-gray-400'
-                        }`} />
-                      </div>
-                      <div>
-                        <div className="text-white text-sm font-medium">AI 에이전트</div>
-                        <div className={`text-xs ${
-                          aiAgent.isEnabled ? 'text-purple-400' : 'text-gray-400'
-                        }`}>
-                          {aiAgent.isEnabled ? '활성화됨' : '비활성화됨'}
-                        </div>
-                      </div>
-                    </div>
-                    {aiAgent.isEnabled && (
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => {
-                          disableAIAgent();
-                          info('AI 에이전트가 비활성화되었습니다.');
-                          setIsOpen(false);
-                        }}
-                        className="px-3 py-1 rounded-md text-xs font-medium bg-red-500/20 text-red-300 hover:bg-red-500/30 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
-                      >
-                        비활성화
-                      </motion.button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* 메뉴 아이템들 */}
-              <div className="p-2">
-                {/* AI 관리자 페이지 버튼 - AI 모드 활성화 시에만 표시 */}
-                {aiAgent.isEnabled && aiAgent.isAuthenticated && (
-                  <Link href="/admin/ai-agent">
-                    <motion.button
-                      whileHover={{ backgroundColor: 'rgba(139, 92, 246, 0.1)' }}
-                      onClick={() => setIsOpen(false)}
-                      className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      role="menuitem"
-                    >
-                      <div className="p-2 rounded-lg bg-purple-500/20">
-                        <Shield className="w-4 h-4 text-purple-400" />
-                      </div>
-                      <div>
-                        <div className="text-white font-medium">🧠 AI 관리자 페이지</div>
-                        <div className="text-gray-400 text-xs">AI 로그, 컨텍스트, A/B 테스트 관리</div>
-                      </div>
-                    </motion.button>
-                  </Link>
-                )}
-
-                <motion.button
-                  whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                  onClick={handleSettingsClick}
-                  className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  role="menuitem"
-                >
-                  <div className="p-2 rounded-lg bg-purple-500/20">
-                    <Settings className="w-4 h-4 text-purple-400" />
-                  </div>
-                  <div>
-                    <div className="text-white font-medium">통합 설정</div>
-                    <div className="text-gray-400 text-xs">AI 모드, 데이터 생성기, 모니터링 제어</div>
-                  </div>
-                </motion.button>
-
-                <motion.button
-                  whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
-                  role="menuitem"
-                >
-                  <div className="p-2 rounded-lg bg-red-500/20">
-                    <LogOut className="w-4 h-4 text-red-400" />
-                  </div>
-                  <div>
-                    <div className="text-white font-medium">로그아웃</div>
-                    <div className="text-gray-400 text-xs">현재 세션을 종료합니다</div>
-                  </div>
-                </motion.button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
+
+      {/* 드롭다운 메뉴 (Portal로 렌더링) */}
+      <DropdownPortal />
 
       {/* 통합 설정 패널 */}
       <AnimatePresence>
