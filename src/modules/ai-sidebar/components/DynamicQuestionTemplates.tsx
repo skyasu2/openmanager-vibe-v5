@@ -101,6 +101,42 @@ const questionTemplates: QuestionTemplate[] = [
     priority: 'low',
     enabled: true,
     description: '서버 간 부하 분산 상태와 트래픽 분배 효율성을 분석합니다'
+  },
+  {
+    id: 'system_optimization',
+    question: '시스템 최적화 권장사항은?',
+    icon: '🔧',
+    category: 'analysis',
+    priority: 'medium',
+    enabled: true,
+    description: '현재 시스템 상태를 기반으로 성능 최적화 방안을 제안합니다'
+  },
+  {
+    id: 'ai_insights',
+    question: 'AI가 발견한 패턴이나 이상징후가 있나요?',
+    icon: '🧠',
+    category: 'prediction',
+    priority: 'high',
+    enabled: true,
+    description: 'AI 패턴 분석을 통해 발견된 이상징후나 트렌드를 알려드립니다'
+  },
+  {
+    id: 'resource_trending',
+    question: '리소스 사용률 트렌드는 어떤가요?',
+    icon: '📈',
+    category: 'analysis',
+    priority: 'medium',
+    enabled: true,
+    description: 'CPU, 메모리, 디스크 사용률의 시간별 트렌드를 분석합니다'
+  },
+  {
+    id: 'security_status',
+    question: '보안 상태는 어떤가요?',
+    icon: '🔒',
+    category: 'monitoring',
+    priority: 'high',
+    enabled: true,
+    description: '시스템 보안 상태와 잠재적 보안 위험을 점검합니다'
   }
 ];
 

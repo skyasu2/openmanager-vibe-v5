@@ -2,12 +2,13 @@
 
 import { Suspense, lazy } from 'react';
 import { useDashboardLogic } from '../../hooks/useDashboardLogic';
-import { AISidebar, type AISidebarConfig } from '../../modules/ai-sidebar';
 import { SystemBootSequence } from '../../components/dashboard/transition';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
 import { AlertTriangle, Monitor, Bot } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { NotificationToast } from '@/components/system/NotificationToast';
+import { cn } from '@/lib/utils';
 
 // ⚡ Dynamic Import로 코드 스플리팅 적용 (Vercel 최적화)
 const DashboardHeader = dynamic(() => import('../../components/dashboard/DashboardHeader'), {
@@ -32,8 +33,8 @@ const FloatingSystemControl = dynamic(() => import('../../components/system/Floa
   )
 });
 
-// 🎯 AI 사이드바도 Dynamic Import 적용
-const AISidebarDynamic = dynamic(() => import('../../modules/ai-sidebar').then(mod => ({ default: mod.AISidebar })), {
+// 🎯 AI 사이드바 V5로 통일
+const AISidebarV5 = dynamic(() => import('../../components/ai/sidebar/AISidebarV5'), {
   ssr: false,
   loading: () => (
     <div className="fixed right-0 top-0 h-full w-[400px] bg-white shadow-lg border-l border-gray-200 z-50 flex items-center justify-center">
@@ -80,6 +81,22 @@ const ContentLoadingSkeleton = () => (
     </div>
   </div>
 );
+
+// Dynamic imports for better performance
+const SystemStatusWidget = dynamic(() => import('./components/SystemStatusWidget'), {
+  loading: () => <div className="animate-pulse bg-gray-800 rounded-lg h-32" />,
+  ssr: false
+});
+
+const PatternAnalysisWidget = dynamic(() => import('@/components/ai/PatternAnalysisWidget'), {
+  loading: () => <div className="animate-pulse bg-gray-800 rounded-lg h-64" />,
+  ssr: false
+});
+
+const PredictionDashboard = dynamic(() => import('@/components/prediction/PredictionDashboard'), {
+  loading: () => <div className="animate-pulse bg-gray-800 rounded-lg h-80" />,
+  ssr: false
+});
 
 export default function DashboardPage() {
   const {
@@ -128,30 +145,6 @@ export default function DashboardPage() {
 
   // AI 상태 가져오기
   const { aiAgent } = useUnifiedAdminStore();
-
-  // AI 사이드바 설정
-  const aiSidebarConfig: AISidebarConfig = {
-    apiEndpoint: '/api/ai/unified',
-    theme: 'auto',
-    position: 'right',
-    width: 400,
-    height: '100vh',
-    enableVoice: false,
-    enableFileUpload: false,
-    enableHistory: true,
-    maxHistoryLength: 10,
-    title: 'OpenManager AI',
-    placeholder: 'AI에게 질문하세요...',
-    welcomeMessage: '안녕하세요! OpenManager AI 에이전트입니다. 서버 모니터링, 성능 분석, 장애 예측 등에 대해 궁금한 점을 자유롭게 물어보세요.',
-    onMessage: (message) => console.log('사용자 메시지:', message),
-    onResponse: (response) => console.log('AI 응답:', response),
-    onError: (error) => console.error('AI 사이드바 오류:', error),
-    onOpen: () => console.log('AI 사이드바 열림'),
-    onClose: () => {
-      console.log('AI 사이드바 닫힘');
-      closeAgent();
-    }
-  };
 
   // Server-side rendering fallback
   if (!isClient) {
@@ -341,6 +334,33 @@ export default function DashboardPage() {
 
       {/* 메인 콘텐츠 */}
       <Suspense fallback={<ContentLoadingSkeleton />}>
+        {/* 🎯 Phase 1 + 2.1 시스템 통합 위젯 */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <SystemStatusWidget 
+            className="mb-6"
+            showControls={true}
+            compactMode={false}
+          />
+          
+          {/* 🧠 Phase 3: 머신러닝 기반 장애 예측 시스템 */}
+          {aiAgent.isEnabled && (
+            <div className="mb-6">
+              <PredictionDashboard 
+                serverId="web-server-01"
+                autoRefresh={true}
+                refreshInterval={30000}
+              />
+            </div>
+          )}
+          
+          {/* 🔍 AI 패턴 분석 위젯 (AI 모드에서만 표시) */}
+          {aiAgent.isEnabled && (
+            <div className="mb-6">
+              <PatternAnalysisWidget />
+            </div>
+          )}
+        </div>
+        
         <DashboardContent
           showSequentialGeneration={showSequentialGeneration}
           servers={serverGeneration.servers}
@@ -359,11 +379,9 @@ export default function DashboardPage() {
       {/* AI 에이전트 모달 */}
       {isAgentOpen && (
         <Suspense fallback={<LoadingSpinner />}>
-          <AISidebar 
-            config={aiSidebarConfig}
+          <AISidebarV5 
             isOpen={isAgentOpen} 
             onClose={closeAgent}
-            className="z-50"
           />
         </Suspense>
       )}
@@ -384,6 +402,14 @@ export default function DashboardPage() {
           </div>
         </Suspense>
       )}
+
+      {/* 🔔 실시간 알림 토스트 */}
+      <NotificationToast 
+        position="top-right"
+        maxNotifications={5}
+        autoHideDuration={5000}
+        enableSound={true}
+      />
     </div>
   );
 } 

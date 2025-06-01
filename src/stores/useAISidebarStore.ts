@@ -24,16 +24,20 @@ export interface AgentLog {
   progress?: number;
 }
 
-export interface AIResponse {
+export interface ChatMessage {
   id: string;
   content: string;
+  role: 'user' | 'assistant';
+  timestamp: string;
+}
+
+export interface AIResponse {
+  id: string;
+  query: string;
+  response: string;
   confidence: number;
   timestamp: string;
-  metadata?: {
-    processingTime?: number;
-    sources?: string[];
-    reasoning?: string[];
-  };
+  context?: string;
 }
 
 export interface PresetQuestion {
@@ -80,9 +84,12 @@ interface AISidebarState {
   
   // AI 상태
   isThinking: boolean;
-  currentQuestion: string;
+  currentQuestion: string | null;
   logs: AgentLog[];
   responses: AIResponse[];
+  
+  // 채팅 관련
+  messages: ChatMessage[];
   
   // 액션들
   setOpen: (open: boolean) => void;
@@ -91,12 +98,16 @@ interface AISidebarState {
   setFunctionTab: (tab: 'qa' | 'report' | 'patterns' | 'logs' | 'context') => void;
   setSelectedContext: (context: 'basic' | 'advanced' | 'custom') => void;
   setThinking: (thinking: boolean) => void;
-  setCurrentQuestion: (question: string) => void;
+  setCurrentQuestion: (question: string | null) => void;
   addLog: (log: Omit<AgentLog, 'id' | 'timestamp'>) => void;
   addResponse: (response: Omit<AIResponse, 'id' | 'timestamp'>) => void;
   clearLogs: () => void;
   clearResponses: () => void;
   reset: () => void;
+  
+  // 채팅 Actions
+  sendMessage: (content: string) => Promise<void>;
+  clearMessages: () => void;
 }
 
 // ⚡ 메인 스토어 (최적화)
@@ -111,9 +122,10 @@ export const useAISidebarStore = create<AISidebarState>()(
         functionTab: 'qa',
         selectedContext: 'basic',
         isThinking: false,
-        currentQuestion: '',
+        currentQuestion: null,
         logs: [],
         responses: [],
+        messages: [],
         
         // UI 액션들
         setOpen: (open) => set((state) => ({ 
@@ -159,10 +171,40 @@ export const useAISidebarStore = create<AISidebarState>()(
           functionTab: 'qa',
           selectedContext: 'basic',
           isThinking: false,
-          currentQuestion: '',
+          currentQuestion: null,
           logs: [],
-          responses: []
-        })
+          responses: [],
+          messages: []
+        }),
+        
+        // 채팅 Actions
+        sendMessage: async (content: string) => {
+          const { messages } = get();
+          
+          // 사용자 메시지 추가
+          const userMessage: ChatMessage = {
+            id: `msg_${Date.now()}`,
+            content,
+            role: 'user',
+            timestamp: new Date().toISOString()
+          };
+          
+          set({ messages: [...messages, userMessage] });
+          
+          // AI 응답 시뮬레이션
+          setTimeout(() => {
+            const assistantMessage: ChatMessage = {
+              id: `msg_${Date.now() + 1}`,
+              content: `"${content}"에 대한 AI 응답입니다.`,
+              role: 'assistant', 
+              timestamp: new Date().toISOString()
+            };
+            
+            const currentMessages = get().messages;
+            set({ messages: [...currentMessages, assistantMessage] });
+          }, 1000);
+        },
+        clearMessages: () => set({ messages: [] })
       }),
       {
         name: 'ai-sidebar-storage',

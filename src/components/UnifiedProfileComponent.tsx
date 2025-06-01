@@ -188,10 +188,11 @@ const UnifiedSettingsPanel = ({
   // Portal을 사용하여 모달을 body에 직접 렌더링
   return createPortal(
     <div 
-      className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-[99999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="settings-modal-title"
+      style={{ zIndex: 99999 }}
     >
       <motion.div
         ref={modalRef}
@@ -199,7 +200,8 @@ const UnifiedSettingsPanel = ({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
         transition={{ type: "spring", damping: 20, stiffness: 300 }}
-        className="w-full max-w-2xl bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden"
+        className="w-full max-w-2xl bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden relative"
+        style={{ zIndex: 100000 }}
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
         {/* 헤더 */}
@@ -687,7 +689,7 @@ export default function UnifiedProfileComponent({
               initial={{ opacity: 0, scale: 0.95, y: -10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -10 }}
-              className="absolute top-full right-0 mt-2 w-80 bg-gray-900/95 backdrop-blur-lg border border-gray-700/50 rounded-xl shadow-2xl z-50"
+              className="absolute top-full right-0 mt-2 w-80 bg-gray-900/95 backdrop-blur-lg border border-gray-700/50 rounded-xl shadow-2xl z-[8000]"
               role="menu"
               aria-orientation="vertical"
             >

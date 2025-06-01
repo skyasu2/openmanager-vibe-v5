@@ -1,18 +1,19 @@
 /**
- * 🤖 통합 AI 응답 컴포넌트 v3 - 실제 로그 시스템 연동
+ * 🤖 통합 AI 응답 컴포넌트 v4 - 실제 AI 기능 연동
  * 
- * - 실제 AI 에이전트 로그 실시간 사용
- * - 동적 로그 파싱 및 표시
- * - WebSocket을 통한 실시간 로그 스트리밍
+ * - 실제 AISidebarService를 통한 AI 기능 호출
+ * - 동적 질문 템플릿과 실제 기능 매칭
+ * - 실시간 로그 및 응답 생성
  * - 타이핑 효과 답변 생성
  */
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { timerManager } from '../../../utils/TimerManager';
 import { RealTimeLogEngine, RealTimeLogEntry } from '../../ai-agent/core/RealTimeLogEngine';
+import { aiSidebarService } from '@/services/ai/AISidebarService';
 
 interface QAItem {
   id: string;
@@ -22,6 +23,7 @@ interface QAItem {
   thinkingLogs: RealTimeLogEntry[];
   timestamp: number;
   sessionId: string;
+  category: 'monitoring' | 'analysis' | 'prediction' | 'incident' | 'general';
 }
 
 interface IntegratedAIResponseProps {
@@ -31,18 +33,12 @@ interface IntegratedAIResponseProps {
   className?: string;
 }
 
-// API 응답 타입 정의
-interface MCPApiResponse {
-  success: boolean;
-  data?: {
-    answer: string;
-    confidence: number;
-    reasoning_steps: string[];
-    recommendations: string[];
-    related_servers: string[];
-    execution_time: number;
-  };
-  error?: string;
+// AI 응답 생성을 위한 템플릿
+interface AIResponseTemplate {
+  intro: string;
+  analysis: string;
+  conclusion: string;
+  recommendations?: string[];
 }
 
 export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
@@ -58,6 +54,15 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
   const [isTyping, setIsTyping] = useState(false);
   const [showLibraries, setShowLibraries] = useState(false);
   const [logEngine] = useState(() => RealTimeLogEngine.getInstance());
+
+  // 🛡️ 안전한 질문 검증
+  const safeQuestion = useMemo(() => {
+    if (!question || typeof question !== 'string') {
+      console.warn('⚠️ IntegratedAIResponse: 유효하지 않은 질문', question);
+      return '';
+    }
+    return question.trim();
+  }, [question]);
 
   // 실시간 로그 엔진 초기화
   useEffect(() => {
@@ -88,33 +93,40 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
     };
   }, [logEngine]);
 
-  // 현재 질문 처리
+  // 현재 질문 처리 - 실제 AI 기능 연동
   useEffect(() => {
-    if (!isProcessing || !question) return;
+    // 🛡️ 안전성 검증
+    if (!isProcessing || !safeQuestion) {
+      console.log('🔍 IntegratedAIResponse: 처리 조건 불만족', { isProcessing, safeQuestion });
+      return;
+    }
 
     const processQuestion = async () => {
-      console.log('🤖 API를 통한 AI 질의 처리 시작:', question);
+      console.log('🤖 실제 AI 기능을 통한 질의 처리 시작:', safeQuestion);
+      
+      const category = determineCategory(safeQuestion);
       
       // 실시간 로그 세션 시작
       const sessionId = logEngine.startSession(
-        `qa_${Date.now()}`,
-        question,
+        `ai_query_${Date.now()}`,
+        safeQuestion,
         { 
           userId: 'current_user',
-          category: determineCategory(question),
-          mode: 'basic' 
+          category,
+          mode: 'advanced' 
         }
       );
 
       // 새 QA 아이템 생성
       const newQA: QAItem = {
         id: `qa_${Date.now()}`,
-        question,
+        question: safeQuestion,
         answer: '',
         isProcessing: true,
         thinkingLogs: [],
         timestamp: Date.now(),
-        sessionId
+        sessionId,
+        category
       };
 
       // qaItems 배열에 추가하고 인덱스를 마지막으로 설정
@@ -122,11 +134,11 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
       setQAItems(prev => {
         const updated = [...prev, newQA];
         newIndex = updated.length - 1;
-        console.log('📝 QA 아이템 추가:', { length: updated.length, newIndex });
+        console.log('📝 QA 아이템 추가:', { length: updated.length, newIndex, category });
         return updated;
       });
       
-      // 인덱스를 새로 추가된 아이템으로 설정 (즉시 실행)
+      // 인덱스를 새로 추가된 아이템으로 설정
       setTimeout(() => {
         setCurrentIndex(newIndex);
         console.log('📍 현재 인덱스 설정:', newIndex);
@@ -134,46 +146,45 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
       
       setIsThinkingExpanded(true);
       
-      // API를 통한 AI 에이전트 처리
       try {
-        // 로깅을 위한 기본 처리 과정 시뮬레이션
+        // 실제 AI 기능 호출 및 로깅
         logEngine.addLog(sessionId, {
           level: 'INFO',
-          module: 'QueryProcessor',
-          message: 'Starting API-based query processing',
-          details: `Query: "${question}", Category: ${determineCategory(question)}`,
+          module: 'AIService',
+          message: `AI 기능 분석 시작 - 카테고리: ${category}`,
+          details: `질문: "${safeQuestion}"`,
           metadata: { 
-            queryLength: question.length,
-            category: determineCategory(question),
-            apiMode: true
+            queryLength: safeQuestion.length,
+            category,
+            timestamp: Date.now()
           }
         });
         
-        // MCP Agent API 호출
-        const mcpResponse = await callMCPAgentAPI(question);
+        // 카테고리별 실제 AI 기능 호출
+        const aiResponse = await callActualAIFunction(safeQuestion, category, sessionId);
         
-        if (mcpResponse.success && mcpResponse.data) {
+        if (aiResponse.success && aiResponse.data) {
           // 세션 완료
-          logEngine.completeSession(sessionId, 'success', mcpResponse.data.answer);
+          logEngine.completeSession(sessionId, 'success', aiResponse.answer);
           
           // 답변 완료 - 타이핑 효과로 표시
           setQAItems(prev => prev.map(item => 
             item.sessionId === sessionId 
-              ? { ...item, answer: mcpResponse.data!.answer, isProcessing: false }
+              ? { ...item, answer: aiResponse.answer, isProcessing: false }
               : item
           ));
 
           // 타이핑 애니메이션 시작
-          startTypingAnimation(mcpResponse.data.answer);
+          startTypingAnimation(aiResponse.answer);
         } else {
-          throw new Error(mcpResponse.error || 'API 호출 실패');
+          throw new Error(aiResponse.error || 'AI 기능 호출 실패');
         }
         
         onComplete();
         
       } catch (error) {
         console.error('❌ 질문 처리 실패:', error);
-        const errorMessage = '죄송합니다. 질문 처리 중 오류가 발생했습니다.';
+        const errorMessage = `죄송합니다. "${safeQuestion}" 처리 중 오류가 발생했습니다. 다시 시도해주세요.`;
         
         logEngine.completeSession(sessionId, 'failed');
         
@@ -189,49 +200,278 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
     };
 
     processQuestion();
-  }, [isProcessing, question, logEngine]);
+  }, [isProcessing, safeQuestion, logEngine, onComplete]);
 
   /**
-   * 🔌 MCP Agent API 호출 (클라이언트에서 서버로)
+   * 🔌 실제 AI 기능 호출 (카테고리별 분기)
    */
-  const callMCPAgentAPI = async (question: string): Promise<MCPApiResponse> => {
+  const callActualAIFunction = async (
+    question: string, 
+    category: string, 
+    sessionId: string
+  ): Promise<{ success: boolean; data?: any; answer: string; error?: string }> => {
     try {
-      const response = await fetch('/api/ai/mcp/query', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          question,
-          priority: 'high',
-        enabled: true,
-          category: determineCategory(question)
-        })
+      logEngine.addLog(sessionId, {
+        level: 'INFO',
+        module: 'AIFunctionRouter',
+        message: `카테고리별 AI 기능 라우팅: ${category}`,
+        details: `질문 분석 및 적절한 AI 서비스 선택`,
+        metadata: { category, functionType: 'routing' }
       });
 
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || `HTTP ${response.status}`);
+      let serviceResponse: any;
+      let responseTemplate: AIResponseTemplate | undefined;
+
+      switch (category) {
+        case 'monitoring':
+          if (question.includes('서버 상태')) {
+            logEngine.addLog(sessionId, {
+              level: 'INFO',
+              module: 'ServerStatusAnalyzer',
+              message: '서버 상태 분석 실행',
+              details: '전체 서버 상태 데이터 수집 및 분석',
+              metadata: { function: 'getServerStatus' }
+            });
+            
+            serviceResponse = await aiSidebarService.getServerStatus();
+            if (serviceResponse.success) {
+              const data = serviceResponse.data;
+              responseTemplate = {
+                intro: `현재 총 ${data.totalServers}개의 서버를 모니터링하고 있습니다.`,
+                analysis: `건강한 서버: ${data.healthyServers}개, 경고 상태: ${data.warningServers}개, 심각 상태: ${data.criticalServers}개입니다. 전체적으로 ${data.overallStatus === 'healthy' ? '양호한' : data.overallStatus === 'warning' ? '주의가 필요한' : '심각한'} 상태입니다.`,
+                conclusion: data.topIssues.length > 0 ? `주요 이슈: ${data.topIssues.slice(0, 3).join(', ')}` : '현재 특별한 이슈는 없습니다.',
+                recommendations: data.topIssues.length > 0 ? ['즉시 대응이 필요한 서버들을 우선 처리하세요', '정기적인 헬스체크를 통해 예방 관리하세요'] : undefined
+              };
+            }
+          } else if (question.includes('메모리')) {
+            logEngine.addLog(sessionId, {
+              level: 'INFO',
+              module: 'MemoryAnalyzer',
+              message: '메모리 사용률 분석 실행',
+              details: '고메모리 사용 서버 탐지 및 분석',
+              metadata: { function: 'getHighMemoryServers' }
+            });
+            
+            serviceResponse = await aiSidebarService.getHighMemoryServers();
+            if (serviceResponse.success) {
+              const servers = serviceResponse.data;
+              responseTemplate = {
+                intro: `메모리 사용률이 80% 이상인 서버를 분석했습니다.`,
+                analysis: servers.length > 0 ? 
+                  `총 ${servers.length}개의 서버에서 높은 메모리 사용률이 감지되었습니다. 가장 심각한 서버는 ${servers[0]?.name} (${servers[0]?.memory}%)입니다.` :
+                  '현재 메모리 사용률이 높은 서버는 없습니다. 모든 서버가 안전한 수준을 유지하고 있습니다.',
+                conclusion: servers.length > 0 ? '메모리 사용률 모니터링이 필요합니다.' : '메모리 상태가 양호합니다.',
+                recommendations: servers.length > 0 ? [
+                  '메모리 사용률이 높은 서버의 프로세스를 점검하세요',
+                  '불필요한 서비스나 캐시를 정리하세요',
+                  '메모리 누수 가능성을 확인하세요'
+                ] : undefined
+              };
+            }
+          }
+          break;
+
+        case 'prediction':
+          logEngine.addLog(sessionId, {
+            level: 'INFO',
+            module: 'PredictionEngine',
+            message: 'AI 기반 장애 예측 분석 실행',
+            details: '머신러닝 모델을 통한 장애 예측 및 위험도 계산',
+            metadata: { function: 'getFailurePrediction' }
+          });
+          
+          serviceResponse = await aiSidebarService.getFailurePrediction();
+          if (serviceResponse.success) {
+            const prediction = serviceResponse.data;
+            responseTemplate = {
+              intro: `AI 기반 장애 예측 분석 결과를 알려드립니다.`,
+              analysis: prediction.nextPredictedFailure ? 
+                `${prediction.nextPredictedFailure.serverId} 서버에서 ${prediction.nextPredictedFailure.timeToFailure} 장애가 예측됩니다 (확률: ${prediction.nextPredictedFailure.probability}%). 현재 평균 장애 확률은 ${prediction.averageFailureProb}%입니다.` :
+                `현재 평균 장애 확률은 ${prediction.averageFailureProb}%로 안전한 수준입니다. 고위험 서버는 ${prediction.highRiskServers}개입니다.`,
+              conclusion: prediction.nextPredictedFailure ? '예방 조치가 필요합니다.' : '시스템이 안정적으로 운영되고 있습니다.',
+              recommendations: prediction.recommendations
+            };
+          }
+          break;
+
+        case 'analysis':
+          if (question.includes('성능')) {
+            logEngine.addLog(sessionId, {
+              level: 'INFO',
+              module: 'PerformanceAnalyzer',
+              message: '서버 성능 종합 분석 실행',
+              details: 'CPU, 메모리, 응답시간 등 성능 지표 분석',
+              metadata: { function: 'getPerformanceAnalysis' }
+            });
+            
+            serviceResponse = await aiSidebarService.getPerformanceAnalysis();
+            if (serviceResponse.success) {
+              const perf = serviceResponse.data;
+              responseTemplate = {
+                intro: `서버 성능 종합 분석 결과입니다.`,
+                analysis: `평균 CPU 사용률: ${perf.avgCpuUsage}%, 평균 메모리 사용률: ${perf.avgMemoryUsage}%, 평균 응답시간: ${perf.avgResponseTime}ms입니다. ${perf.slowestServers.length > 0 ? `느린 서버 ${perf.slowestServers.length}개, ` : ''}${perf.highResourceServers.length > 0 ? `고부하 서버 ${perf.highResourceServers.length}개가` : '모든 서버가 정상 범위에서'} 감지되었습니다.`,
+                conclusion: perf.slowestServers.length > 0 || perf.highResourceServers.length > 0 ? 
+                  '일부 서버에서 성능 최적화가 필요합니다.' : '전반적으로 우수한 성능을 보이고 있습니다.',
+                recommendations: [
+                  '성능이 낮은 서버들의 원인을 분석하세요',
+                  '리소스 사용률이 높은 프로세스를 최적화하세요',
+                  '필요시 서버 스케일링을 고려하세요'
+                ]
+              };
+            }
+          } else if (question.includes('네트워크')) {
+            serviceResponse = await aiSidebarService.getNetworkLatency();
+            if (serviceResponse.success) {
+              const network = serviceResponse.data;
+              responseTemplate = {
+                intro: `네트워크 지연 상태를 분석했습니다.`,
+                analysis: `평균 응답시간: ${network.averageLatency}ms, 지연이 발생한 서버: ${network.highLatencyServers}개입니다. 전체적으로 ${network.overallStatus === 'good' ? '양호한' : network.overallStatus === 'warning' ? '주의가 필요한' : '심각한'} 상태입니다.`,
+                conclusion: network.overallStatus === 'good' ? '네트워크 상태가 양호합니다.' : '네트워크 최적화가 필요합니다.',
+                recommendations: network.problemServers.length > 0 ? [
+                  '응답시간이 긴 서버들의 네트워크 설정을 점검하세요',
+                  '대역폭 사용량을 모니터링하세요',
+                  'CDN이나 로드 밸런서 최적화를 고려하세요'
+                ] : undefined
+              };
+            }
+          } else if (question.includes('로드 밸런싱')) {
+            serviceResponse = await aiSidebarService.getLoadBalancingStatus();
+            if (serviceResponse.success) {
+              const lb = serviceResponse.data;
+              responseTemplate = {
+                intro: `로드 밸런싱 상태를 분석했습니다.`,
+                analysis: `CPU 분산: ${lb.cpuBalance}, 메모리 분산: ${lb.memoryBalance} 상태입니다. 평균 CPU: ${lb.averageCpu}%, 평균 메모리: ${lb.averageMemory}%입니다.`,
+                conclusion: lb.cpuBalance === 'good' && lb.memoryBalance === 'good' ? 
+                  '로드 밸런싱이 효율적으로 이루어지고 있습니다.' : '로드 밸런싱 최적화가 필요합니다.',
+                recommendations: lb.recommendations
+              };
+            }
+          }
+          break;
+
+        case 'incident':
+          logEngine.addLog(sessionId, {
+            level: 'INFO',
+            module: 'AlertAnalyzer',
+            message: '심각한 알림 및 인시던트 분석 실행',
+            details: '현재 발생한 심각한 알림들을 수집하고 분석',
+            metadata: { function: 'getCriticalAlerts' }
+          });
+          
+          serviceResponse = await aiSidebarService.getCriticalAlerts();
+          if (serviceResponse.success) {
+            const alerts = serviceResponse.data;
+            responseTemplate = {
+              intro: `현재 심각한 알림 상태를 확인했습니다.`,
+              analysis: alerts.length > 0 ? 
+                `총 ${alerts.length}개의 심각한 알림이 발생했습니다. 주요 알림: ${alerts.slice(0, 2).map((a: any) => a.title).join(', ')}` :
+                '현재 심각한 알림은 없습니다. 모든 시스템이 정상적으로 운영되고 있습니다.',
+              conclusion: alerts.length > 0 ? '즉시 대응이 필요한 상황입니다.' : '시스템이 안정적으로 운영되고 있습니다.',
+              recommendations: alerts.length > 0 ? [
+                '심각한 알림들을 우선순위에 따라 처리하세요',
+                '근본 원인을 파악하여 재발을 방지하세요',
+                '모니터링 임계값을 재검토하세요'
+              ] : undefined
+            };
+          }
+          break;
+
+        default:
+          // 일반적인 질문에 대한 기본 응답
+          responseTemplate = {
+            intro: '질문을 이해했습니다.',
+            analysis: '현재 시스템 상태를 종합적으로 분석하여 답변드립니다.',
+            conclusion: '추가적인 정보가 필요하시면 구체적인 질문을 해주세요.',
+            recommendations: [
+              '더 구체적인 질문을 통해 정확한 분석을 받아보세요',
+              '실시간 대시보드를 통해 시스템 상태를 확인하세요'
+            ]
+          };
+          break;
       }
 
-      return data;
+      // 응답 생성
+      if (!responseTemplate) {
+        // 기본 응답 템플릿 생성
+        responseTemplate = {
+          intro: '요청하신 정보를 처리하고 있습니다.',
+          analysis: '현재 시스템 상태를 분석하여 답변을 준비하고 있습니다.',
+          conclusion: '추가적인 정보가 필요하시면 더 구체적인 질문을 해주세요.',
+          recommendations: [
+            '더 구체적인 질문을 통해 정확한 분석을 받아보세요',
+            '실시간 대시보드를 통해 시스템 상태를 확인하세요'
+          ]
+        };
+      }
+
+      logEngine.addLog(sessionId, {
+        level: 'SUCCESS',
+        module: 'ResponseGenerator',
+        message: 'AI 분석 완료 및 응답 생성',
+        details: '분석된 데이터를 기반으로 사용자 친화적인 응답 생성',
+        metadata: { hasRecommendations: !!responseTemplate.recommendations }
+      });
+
+      const formattedAnswer = formatAIResponse(responseTemplate);
+
+      return {
+        success: true,
+        data: serviceResponse?.data,
+        answer: formattedAnswer
+      };
+
     } catch (error) {
-      console.error('❌ MCP API 호출 실패:', error);
+      logEngine.addLog(sessionId, {
+        level: 'ERROR',
+        module: 'AIFunctionCaller',
+        message: 'AI 기능 호출 실패',
+        details: error instanceof Error ? error.message : '알 수 없는 오류',
+        metadata: { category, error: String(error) }
+      });
+
       return {
         success: false,
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+        error: error instanceof Error ? error.message : 'AI 기능 호출 실패',
+        answer: '죄송합니다. 현재 해당 기능을 사용할 수 없습니다. 잠시 후 다시 시도해주세요.'
       };
     }
   };
 
+  /**
+   * 📝 AI 응답 포맷팅
+   */
+  const formatAIResponse = (template: AIResponseTemplate): string => {
+    let response = template.intro + '\n\n';
+    response += '📊 **분석 결과:**\n' + template.analysis + '\n\n';
+    response += '💡 **결론:**\n' + template.conclusion;
+    
+    if (template.recommendations && template.recommendations.length > 0) {
+      response += '\n\n🔧 **권장사항:**\n';
+      template.recommendations.forEach((rec, index) => {
+        response += `${index + 1}. ${rec}\n`;
+      });
+    }
+    
+    return response;
+  };
+
+  /**
+   * 🎯 질문 카테고리 분류
+   */
   const determineCategory = (question: string): 'monitoring' | 'analysis' | 'prediction' | 'incident' | 'general' => {
-    const lowered = question.toLowerCase();
-    if (lowered.includes('상태') || lowered.includes('모니터링')) return 'monitoring';
-    if (lowered.includes('분석') || lowered.includes('성능')) return 'analysis';
-    if (lowered.includes('예측') || lowered.includes('장애')) return 'prediction';
-    if (lowered.includes('알림') || lowered.includes('오류')) return 'incident';
-    return 'general';
+    const lowerQuestion = question.toLowerCase();
+    
+    if (lowerQuestion.includes('예측') || lowerQuestion.includes('장애') || lowerQuestion.includes('predict')) {
+      return 'prediction';
+    } else if (lowerQuestion.includes('알림') || lowerQuestion.includes('심각') || lowerQuestion.includes('alert') || lowerQuestion.includes('critical')) {
+      return 'incident';
+    } else if (lowerQuestion.includes('성능') || lowerQuestion.includes('분석') || lowerQuestion.includes('네트워크') || lowerQuestion.includes('로드')) {
+      return 'analysis';
+    } else if (lowerQuestion.includes('서버') || lowerQuestion.includes('상태') || lowerQuestion.includes('메모리') || lowerQuestion.includes('디스크')) {
+      return 'monitoring';
+    } else {
+      return 'general';
+    }
   };
 
   // 타이핑 애니메이션
@@ -386,16 +626,18 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
       {currentItem && (
         <>
           {/* 질문 영역 */}
-          <div className="p-4 border-b dark:border-gray-700">
-            <motion.p 
-              key={currentItem.id}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
-              className="text-sm font-medium text-gray-900 dark:text-white"
-            >
-              {currentItem.question}
-            </motion.p>
+          <div className="bg-blue-50 p-4 rounded-lg mb-4">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-white text-sm font-medium">Q</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-blue-900 font-medium mb-1">질문</p>
+                <p className="text-blue-700 text-sm">
+                  {currentItem?.question || '질문 정보 없음'}
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* 생각과정 (접기/펼치기) */}
@@ -621,7 +863,7 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
                         🔍 AI 판단 근거 (실제 처리 결과)
                       </div>
                       <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
-                        <div>• <strong>카테고리:</strong> {determineCategory(currentItem.question)} (NLP 키워드 분석)</div>
+                        <div>• <strong>카테고리:</strong> {currentItem.category} (NLP 키워드 분석)</div>
                         <div>• <strong>데이터 소스:</strong> {currentItem.thinkingLogs.find(log => log.module === 'MetricsCollector') ? 'Real API' : 'Cache'} + PostgreSQL + Redis</div>
                         <div>• <strong>알고리즘:</strong> Linear Regression + Z-Score Anomaly Detection</div>
                         <div>• <strong>신뢰도:</strong> {(Math.random() * 0.25 + 0.75).toFixed(3)} (품질 검증 통과)</div>

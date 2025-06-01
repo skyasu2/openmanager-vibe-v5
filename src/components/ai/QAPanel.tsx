@@ -184,7 +184,8 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
       
       // 전역 상태에도 추가
       addResponse({
-        content: aiResponseContent,
+        query: currentQuestion || '질문 없음',
+        response: aiResponseContent,
         confidence: confidence
       });
       
@@ -331,7 +332,7 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
             <ThinkingView
               isThinking={isThinking}
               logs={logs}
-              currentQuestion={currentQuestion}
+              currentQuestion={currentQuestion || ''}
             />
           </div>
         )}
