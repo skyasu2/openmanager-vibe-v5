@@ -73,7 +73,7 @@ interface UnifiedAIHealth {
   };
 }
 
-interface MCPMonitoringPageProps {}
+type MCPMonitoringPageProps = Record<string, never>;
 
 export default function MCPMonitoringPage() {
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);

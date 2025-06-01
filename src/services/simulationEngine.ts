@@ -218,7 +218,7 @@ export class SimulationEngine {
       const status = getServerStatus();
       servers.push(this.createServerWithStatus(
         `onprem-${String(i).padStart(2, '0')}.local`,
-        'onpremise',
+        'on-premise',
         'database',
         status,
         ++serverIndex
@@ -491,17 +491,18 @@ export class SimulationEngine {
    */
   private mapRoleToServerType(role: ServerRole): string {
     const mapping: Record<ServerRole, string> = {
-      'web': 'web',
-      'database': 'database',
-      'api': 'api',
-      'worker': 'kubernetes',
-      'gateway': 'api',
-      'cache': 'cache',
-      'storage': 'storage',
-      'monitoring': 'monitoring'
+      'web': 'web_server',
+      'api': 'api_server', 
+      'database': 'database_server',
+      'cache': 'cache_server',
+      'storage': 'storage_server',
+      'k8s-control': 'kubernetes_master',
+      'k8s-worker': 'kubernetes_worker',
+      'load-balancer': 'load_balancer',
+      'backup': 'backup_server'
     };
     
-    return mapping[role] || 'web';
+    return mapping[role] || 'unknown_server';
   }
 
   /**

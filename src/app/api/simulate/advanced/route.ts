@@ -23,14 +23,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const includeScenarios = searchParams.get('includeScenarios') !== 'false';
 
     // 서버 데이터 조회
-    let servers = advancedSimulationEngine.getServers();
+    let servers = advancedSimulationEngine.getAnalysisTargets();
     
     // 서버 유형 필터링
     if (serverType) {
       servers = servers.filter(server => server.role === serverType);
     }
 
-    const summary = advancedSimulationEngine.getSummary();
+    const summary = advancedSimulationEngine.getIntegratedAIMetrics();
     const activeScenarios = includeScenarios ? advancedSimulationEngine.getActiveScenarios() : [];
 
     // 응답 형식별 처리
@@ -39,10 +39,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     switch (format) {
       case 'summary':
         responseData = {
-          summary,
-          activeScenarios,
-          serverCount: servers.length,
-          isRunning: advancedSimulationEngine.isRunning()
+          ...summary.aiAnalysisMetrics,
+          metadata: summary.metadata
         };
         break;
 
@@ -164,7 +162,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         break;
 
       case 'status':
-        const summary = advancedSimulationEngine.getSummary();
+        const summary = advancedSimulationEngine.getIntegratedAIMetrics();
         const activeScenarios = advancedSimulationEngine.getActiveScenarios();
         
         result = {

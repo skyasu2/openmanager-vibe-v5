@@ -115,7 +115,7 @@ const ThinkingView: React.FC<ThinkingViewProps> = ({
             {isThinking ? 'AI가 생각하고 있습니다...' : '추론 과정 완료'}
           </h3>
           {currentQuestion && (
-            <p className="text-gray-400 text-sm">"{currentQuestion.length > 50 ? currentQuestion.substring(0, 50) + '...' : currentQuestion}"</p>
+            <p className="text-gray-400 text-sm">&ldquo;{currentQuestion.length > 50 ? currentQuestion.substring(0, 50) + '...' : currentQuestion}&rdquo;</p>
           )}
         </div>
       </div>

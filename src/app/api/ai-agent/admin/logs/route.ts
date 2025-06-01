@@ -12,42 +12,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { aiDatabase } from '../../../../../lib/database';
 import { authManager } from '../../../../../lib/auth';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const url = new URL(request.url);
-    const limit = parseInt(url.searchParams.get('limit') || '50');
-    const level = url.searchParams.get('level') || 'all';
-
-    // 데모 로그 데이터
-    const logs = Array.from({ length: limit }, (_, i) => ({
-      id: i + 1,
-      timestamp: new Date(Date.now() - i * 60000).toISOString(),
-      level: ['info', 'warn', 'error'][Math.floor(Math.random() * 3)],
-      message: `AI Agent log entry ${i + 1}`,
-      source: `agent-${Math.floor(Math.random() * 3) + 1}`,
-      details: {
-        duration: Math.floor(Math.random() * 1000),
-        memory: Math.floor(Math.random() * 100),
-        cpu: Math.floor(Math.random() * 50)
-      }
-    })).filter(log => level === 'all' || log.level === level);
+    // AI 에이전트 admin 로그 조회
+    const logs = {
+      timestamp: new Date().toISOString(),
+      logs: [],
+      total: 0,
+      status: 'active'
+    };
 
     return NextResponse.json({
-      timestamp: new Date().toISOString(),
-      status: 'success',
-      data: {
-        logs,
-        total: logs.length,
-        level,
-        limit
-      }
+      success: true,
+      data: logs
     });
   } catch (error) {
-    console.error('Logs API error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch logs' },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to fetch AI agent admin logs'
+    }, { status: 500 });
   }
 }
 

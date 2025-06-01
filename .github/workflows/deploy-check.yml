@@ -1,0 +1,36 @@
+name: 🚀 Deploy Check
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  deploy-check:
+    name: 🔍 배포 준비 검증
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 코드 체크아웃
+        uses: actions/checkout@v4
+        
+      - name: 📦 Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: 📋 의존성 설치
+        run: npm ci
+        
+      - name: 🔍 타입 체크
+        run: npm run type-check
+        
+      - name: 🔍 ESLint 검사
+        run: npm run lint
+        
+      - name: 🏗️ 빌드 테스트
+        run: npm run build
+        
+      - name: ✅ 배포 준비 완료
+        run: echo "🎉 모든 체크 통과! 배포 준비 완료입니다." 

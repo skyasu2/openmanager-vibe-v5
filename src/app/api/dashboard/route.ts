@@ -81,7 +81,6 @@ export async function GET(request: NextRequest) {
         healthy_servers: statusDistribution.healthy,
         warning_servers: statusDistribution.warning,
         critical_servers: statusDistribution.critical,
-        offline_servers: statusDistribution.offline,
         health_score: calculateHealthScore(statusDistribution),
         system_availability: calculateSystemAvailability(servers),
         active_incidents: alertsSummary.total_alerts,
@@ -126,8 +125,7 @@ export async function GET(request: NextRequest) {
           total_servers: servers.length,
           healthy_servers: statusDistribution.healthy,
           warning_servers: statusDistribution.warning,
-          critical_servers: statusDistribution.critical,
-          offline_servers: statusDistribution.offline
+          critical_servers: statusDistribution.critical
         }
       }
     };
@@ -209,13 +207,14 @@ export async function GET(request: NextRequest) {
  * 📊 서버 상태 분석
  */
 function analyzeServerStatus(servers: EnhancedServerMetrics[]) {
-  return {
+  const summary = {
     healthy: servers.filter(s => s.status === 'healthy').length,
     warning: servers.filter(s => s.status === 'warning').length,
     critical: servers.filter(s => s.status === 'critical').length,
-    offline: servers.filter(s => s.status === 'offline').length,
     total: servers.length
   };
+
+  return summary;
 }
 
 /**
@@ -331,7 +330,7 @@ function analyzeAlerts(servers: EnhancedServerMetrics[]) {
       disk: allAlerts.filter(a => a.type === 'disk').length,
       network: allAlerts.filter(a => a.type === 'network').length,
       response_time: allAlerts.filter(a => a.type === 'response_time').length,
-      service_down: allAlerts.filter(a => a.type === 'service_down').length
+      custom: allAlerts.filter(a => a.type === 'custom').length
     },
     servers_with_alerts: servers.filter(s => s.alerts && s.alerts.length > 0).length
   };
@@ -459,8 +458,7 @@ function calculateHealthScore(statusDistribution: any): number {
   const score = (
     (statusDistribution.healthy * 100) +
     (statusDistribution.warning * 70) +
-    (statusDistribution.critical * 30) +
-    (statusDistribution.offline * 0)
+    (statusDistribution.critical * 30)
   ) / total;
   
   return Math.round(score);
@@ -470,8 +468,8 @@ function calculateHealthScore(statusDistribution: any): number {
  * 📡 시스템 가용성 계산
  */
 function calculateSystemAvailability(servers: EnhancedServerMetrics[]): number {
-  const onlineServers = servers.filter(s => s.status !== 'offline').length;
-  return servers.length > 0 ? Math.round((onlineServers / servers.length) * 10000) / 100 : 100;
+  const healthyServers = servers.filter(s => s.status === 'healthy' || s.status === 'warning').length;
+  return servers.length > 0 ? Math.round((healthyServers / servers.length) * 10000) / 100 : 100;
 }
 
 /**
@@ -496,7 +494,7 @@ function generateHistoricalSummary(servers: EnhancedServerMetrics[]) {
         (servers.reduce((sum, s) => sum + s.memory_usage, 0) / servers.length) * businessHourMultiplier
       ),
       total_alerts: Math.floor(servers.reduce((sum, s) => sum + (s.alerts?.length || 0), 0) * businessHourMultiplier),
-      active_servers: servers.filter(s => s.status !== 'offline').length
+      active_servers: servers.filter(s => s.status === 'healthy' || s.status === 'warning' || s.status === 'critical').length
     });
   }
   

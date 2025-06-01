@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '../../../../lib/supabase'
 import { ENTERPRISE_SERVERS } from '../../../../lib/enterprise-servers'
-import { CacheService } from '../../../../lib/redis'
+import { cacheService } from '../../../../services/cacheService'
 
 export async function POST() {
   try {
@@ -71,9 +71,15 @@ export async function POST() {
       }
     }
 
+    // 캐시에서 확인
+    const cached = await cacheService.get('enterprise:seed')
+
+    // 캐시에 저장 (5분)
+    await cacheService.set('enterprise:seed', seedData, 300)
+
     // 캐시 초기화
-    await CacheService.del('servers:all')
-    await CacheService.del('enterprise:overview')
+    await cacheService.invalidateCache('servers:all')
+    await cacheService.invalidateCache('enterprise:overview')
     console.log('🧹 관련 캐시 초기화 완료')
 
     return NextResponse.json({

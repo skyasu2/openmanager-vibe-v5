@@ -25,9 +25,8 @@ interface Client {
   request(request: any): Promise<any>;
 }
 
-interface StdioClientTransport {
-  // 임시 구현
-}
+// 임시 구현
+type StdioClientTransport = Record<string, never>;
 
 interface CallToolRequest {
   method: string;
@@ -83,6 +82,13 @@ export interface MCPStandardConfig {
     retryAttempts: number;
     keepAlive: boolean;
   };
+}
+
+// 빈 인터페이스 대신 명확한 타입 정의
+interface MCPClientConfig {
+  serverUrl?: string;
+  timeout?: number;
+  // 향후 설정이 추가될 수 있음
 }
 
 export class OfficialMCPClient {

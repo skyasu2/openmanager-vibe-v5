@@ -67,6 +67,18 @@ interface BaseLoadConfig {
   responseTime: number;
 }
 
+const HIGH_LOAD_CONFIGS: Record<ServerRole, BaseLoadConfig> = {
+  web: { cpu: 85, memory: 75, disk: 50, networkIn: 300, networkOut: 280, responseTime: 250 },
+  api: { cpu: 90, memory: 85, disk: 45, networkIn: 250, networkOut: 200, responseTime: 350 },
+  database: { cpu: 70, memory: 80, disk: 60, networkIn: 80, networkOut: 60, responseTime: 50 }, 
+  cache: { cpu: 30, memory: 85, disk: 20, networkIn: 200, networkOut: 180, responseTime: 30 },
+  'k8s-worker': { cpu: 80, memory: 60, disk: 45, networkIn: 50, networkOut: 40, responseTime: 200 },
+  'k8s-control': { cpu: 25, memory: 40, disk: 70, networkIn: 60, networkOut: 80, responseTime: 100 },
+  storage: { cpu: 40, memory: 50, disk: 85, networkIn: 120, networkOut: 100, responseTime: 150 },
+  'load-balancer': { cpu: 50, memory: 45, disk: 30, networkIn: 300, networkOut: 350, responseTime: 60 },
+  backup: { cpu: 35, memory: 40, disk: 90, networkIn: 30, networkOut: 150, responseTime: 120 }
+};
+
 export class OptimizedDataGenerator {
   private static instance: OptimizedDataGenerator;
   private isRunning: boolean = false;
@@ -193,10 +205,11 @@ export class OptimizedDataGenerator {
       api: { cpu: 60, memory: 65, disk: 35, networkIn: 100, networkOut: 120, responseTime: 80 },
       database: { cpu: 70, memory: 80, disk: 60, networkIn: 80, networkOut: 60, responseTime: 50 },
       cache: { cpu: 30, memory: 85, disk: 20, networkIn: 200, networkOut: 180, responseTime: 30 },
-      worker: { cpu: 80, memory: 60, disk: 45, networkIn: 50, networkOut: 40, responseTime: 200 },
-      monitoring: { cpu: 25, memory: 40, disk: 70, networkIn: 60, networkOut: 80, responseTime: 100 },
+      'k8s-worker': { cpu: 80, memory: 60, disk: 45, networkIn: 50, networkOut: 40, responseTime: 200 },
+      'k8s-control': { cpu: 25, memory: 40, disk: 70, networkIn: 60, networkOut: 80, responseTime: 100 },
       storage: { cpu: 40, memory: 50, disk: 85, networkIn: 120, networkOut: 100, responseTime: 150 },
-      gateway: { cpu: 50, memory: 45, disk: 30, networkIn: 300, networkOut: 350, responseTime: 60 }
+      'load-balancer': { cpu: 50, memory: 45, disk: 30, networkIn: 300, networkOut: 350, responseTime: 60 },
+      backup: { cpu: 35, memory: 40, disk: 90, networkIn: 30, networkOut: 150, responseTime: 120 }
     };
     
     const base = baseLoads[role];

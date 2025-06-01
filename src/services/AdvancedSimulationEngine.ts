@@ -1,13 +1,12 @@
 /**
- * 🚀 고도화된 서버 시뮬레이션 엔진 v3.0
+ * �� 고도화된 서버 시뮬레이션 엔진 v4.0
  * 
  * ✨ 새로운 기능들:
- * - 서버 유형별 특성 기반 메트릭 생성
- * - 현실적 장애 시나리오 & 전이 모델
- * - 인과관계 기반 장애 전파
- * - 점진적 상태 변화 (normal → warning → critical)
- * - 복구 흐름 포함
- * - Redis/Supabase 저장 최적화
+ * - 🎯 AI 분석 로직과 오토스케일링 완전 분리
+ * - 🔄 운영 시뮬레이션: 동적 서버 풀 관리 
+ * - 🤖 AI 분석: 고정된 타겟 서버 기반 안정적 추론
+ * - 📊 메타 이벤트: 스케일링 이벤트는 참조용으로만 제공
+ * - 💾 Redis/Supabase 최적화 연동
  */
 
 import { 
@@ -24,9 +23,14 @@ import {
 import { simulationEngine } from './simulationEngine';
 import { cacheService } from './cacheService';
 import { redisTimeSeriesService } from './redisTimeSeriesService';
+import { 
+  scalingSimulationEngine, 
+  AIAnalysisTarget, 
+  ScalingEvent 
+} from './ScalingSimulationEngine';
 
 /**
- * 🎭 고도화된 서버 메트릭 (기본 + 확장)
+ * 🎭 고도화된 서버 메트릭 (AI 분석용)
  */
 export interface AdvancedServerMetrics extends ServerMetrics {
   // 서버 유형 정보
@@ -49,6 +53,10 @@ export interface AdvancedServerMetrics extends ServerMetrics {
   cache_hit_ratio?: number; // 캐시 서버용
   pod_count?: number; // K8s 서버용
   ssl_cert_days_remaining?: number; // 웹/로드밸런서용
+  
+  // AI 분석 관련
+  isAnalysisTarget?: boolean; // AI 분석 대상 여부
+  analysisRole?: 'primary' | 'secondary' | 'monitoring'; // 분석 우선순위
 }
 
 /**
@@ -233,36 +241,36 @@ const REALISTIC_FAILURE_SCENARIOS: RealisticFailureScenario[] = [
 ];
 
 /**
- * 🎮 고도화된 시뮬레이션 엔진
+ * 🎮 고도화된 시뮬레이션 엔진 (AI 분석 전용)
  */
 export class AdvancedSimulationEngine {
-  private servers: AdvancedServerMetrics[] = [];
+  private analysisTargets: AdvancedServerMetrics[] = [];
   private activeScenarios: Map<string, { startTime: number; scenario: RealisticFailureScenario }> = new Map();
   private simulationRunning: boolean = false;
   private updateInterval: NodeJS.Timeout | null = null;
   private readonly UPDATE_FREQUENCY_MS = 30000; // 30초마다 업데이트
 
   constructor() {
-    this.initializeServers();
-    console.log('🚀 고도화된 시뮬레이션 엔진 초기화 완료');
+    this.initializeAnalysisTargets();
+    console.log('🚀 고도화된 시뮬레이션 엔진 (AI 분석 전용) 초기화 완료');
   }
 
   /**
-   * 🏭 서버 초기화 (기존 시뮬레이션 엔진 기반)
+   * 🎯 AI 분석 대상 서버 초기화
    */
-  private initializeServers(): void {
-    // 기존 시뮬레이션 엔진에서 서버 가져오기
-    const baseServers = simulationEngine.getServers();
+  private initializeAnalysisTargets(): void {
+    // 스케일링 엔진에서 고정된 분석 대상 서버 가져오기
+    const aiTargets = scalingSimulationEngine.getAnalysisTargets();
     
-    this.servers = baseServers.map(server => this.enhanceServerMetrics(server));
+    this.analysisTargets = aiTargets.map(target => this.enhanceServerMetrics(target));
     
-    console.log(`✅ ${this.servers.length}개 서버 고도화 완료`);
+    console.log(`✅ ${this.analysisTargets.length}개 AI 분석 대상 서버 고도화 완료`);
   }
 
   /**
-   * 🎯 서버 메트릭 고도화 (유형별 특성 적용)
+   * 🎯 서버 메트릭 고도화 (AI 분석용)
    */
-  private enhanceServerMetrics(baseServer: any): AdvancedServerMetrics {
+  private enhanceServerMetrics(baseServer: AIAnalysisTarget): AdvancedServerMetrics {
     const serverTypeDef = SERVER_TYPE_DEFINITIONS[baseServer.role as ServerRole] || SERVER_TYPE_DEFINITIONS.web;
     
     // 서버 유형 특성 기반 메트릭 조정
@@ -285,6 +293,10 @@ export class AdvancedSimulationEngine {
       // 초기 상태
       active_scenarios: [],
       recovery_progress: 0,
+      
+      // AI 분석 관련
+      isAnalysisTarget: true,
+      analysisRole: baseServer.analysisRole,
       
       // 서버 유형별 추가 메트릭
       ...this.generateTypeSpecificMetrics(baseServer.role)
@@ -388,7 +400,7 @@ export class AdvancedSimulationEngine {
   }
 
   /**
-   * 🌊 장애 시나리오 실행
+   * 🌊 장애 시나리오 실행 (AI 분석 대상 서버만)
    */
   private processFailureScenarios(): void {
     REALISTIC_FAILURE_SCENARIOS.forEach(scenario => {
@@ -403,14 +415,14 @@ export class AdvancedSimulationEngine {
   }
 
   /**
-   * 🎯 시나리오 트리거 체크 및 실행
+   * 🎯 시나리오 트리거 체크 및 실행 (AI 분석 대상만)
    */
   private checkAndTriggerScenario(scenario: RealisticFailureScenario): void {
     // 이미 활성화된 시나리오는 무시
     if (this.activeScenarios.has(scenario.id)) return;
 
-    // 트리거 조건 체크
-    const triggerServers = this.servers.filter(server => 
+    // 트리거 조건 체크 (AI 분석 대상 서버만)
+    const triggerServers = this.analysisTargets.filter(server => 
       server.role === scenario.triggerCondition.serverType
     );
 
@@ -428,7 +440,7 @@ export class AdvancedSimulationEngine {
       }
 
       if (conditionMet) {
-        console.log(`🚨 장애 시나리오 발생: ${scenario.name} (트리거: ${server.id})`);
+        console.log(`🚨 AI 분석 대상 장애 시나리오 발생: ${scenario.name} (트리거: ${server.id})`);
         this.triggerScenario(scenario, server);
         break;
       }
@@ -457,13 +469,13 @@ export class AdvancedSimulationEngine {
   }
 
   /**
-   * 🌀 연쇄 효과 적용
+   * 🌀 연쇄 효과 적용 (AI 분석 대상만)
    */
   private applyCascadeEffect(
     effect: RealisticFailureScenario['cascadeEffect'][0], 
     scenarioId: string
   ): void {
-    const targetServers = this.servers.filter(server => server.role === effect.targetServerType);
+    const targetServers = this.analysisTargets.filter(server => server.role === effect.targetServerType);
     
     targetServers.forEach(server => {
       // 메트릭 영향 적용
@@ -492,7 +504,7 @@ export class AdvancedSimulationEngine {
       if (!server.alerts) server.alerts = [];
       server.alerts.push(alert);
       
-      console.log(`⚡ 연쇄 효과 적용: ${server.id} (${effect.impact.metric}: ${currentValue} → ${newValue})`);
+      console.log(`⚡ AI 분석 대상 연쇄 효과 적용: ${server.id} (${effect.impact.metric}: ${currentValue} → ${newValue})`);
     });
   }
 
@@ -507,7 +519,7 @@ export class AdvancedSimulationEngine {
       const recoveryTime = data.scenario.recoveryTimeMs;
       
       if (elapsed >= recoveryTime) {
-        console.log(`✅ 장애 시나리오 복구 완료: ${data.scenario.name}`);
+        console.log(`✅ AI 분석 대상 장애 시나리오 복구 완료: ${data.scenario.name}`);
         this.recoverFromScenario(scenarioId);
         this.activeScenarios.delete(scenarioId);
       } else {
@@ -522,7 +534,7 @@ export class AdvancedSimulationEngine {
    * 🔧 시나리오 복구
    */
   private recoverFromScenario(scenarioId: string): void {
-    this.servers.forEach(server => {
+    this.analysisTargets.forEach(server => {
       if (server.active_scenarios.includes(scenarioId)) {
         // 시나리오 제거
         server.active_scenarios = server.active_scenarios.filter(id => id !== scenarioId);
@@ -549,7 +561,7 @@ export class AdvancedSimulationEngine {
    * 📈 복구 진행률 업데이트
    */
   private updateRecoveryProgress(scenarioId: string, progress: number): void {
-    this.servers.forEach(server => {
+    this.analysisTargets.forEach(server => {
       if (server.active_scenarios.includes(scenarioId)) {
         server.recovery_progress = progress;
       }
@@ -584,7 +596,7 @@ export class AdvancedSimulationEngine {
    */
   public start(): void {
     if (this.simulationRunning) {
-      console.log('⚠️ 고도화된 시뮬레이션이 이미 실행 중입니다');
+      console.log('⚠️ AI 분석 전용 시뮬레이션이 이미 실행 중입니다');
       return;
     }
 
@@ -594,7 +606,7 @@ export class AdvancedSimulationEngine {
       this.updateSimulation();
     }, this.UPDATE_FREQUENCY_MS);
 
-    console.log(`🚀 고도화된 시뮬레이션 시작 (${this.servers.length}개 서버, ${this.UPDATE_FREQUENCY_MS/1000}초 간격)`);
+    console.log(`🚀 AI 분석 전용 시뮬레이션 시작 (${this.analysisTargets.length}개 서버, ${this.UPDATE_FREQUENCY_MS/1000}초 간격)`);
   }
 
   /**
@@ -602,7 +614,7 @@ export class AdvancedSimulationEngine {
    */
   public stop(): void {
     if (!this.simulationRunning) {
-      console.log('⚠️ 고도화된 시뮬레이션이 실행 중이 아닙니다');
+      console.log('⚠️ AI 분석 전용 시뮬레이션이 실행 중이 아닙니다');
       return;
     }
 
@@ -613,36 +625,33 @@ export class AdvancedSimulationEngine {
       this.updateInterval = null;
     }
 
-    console.log('🛑 고도화된 시뮬레이션 정지');
+    console.log('🛑 AI 분석 전용 시뮬레이션 정지');
   }
 
   /**
    * 🔄 시뮬레이션 업데이트
    */
   private updateSimulation(): void {
-    // 1. 장애 시나리오 처리
+    // 1. 장애 시나리오 처리 (AI 분석 대상만)
     this.processFailureScenarios();
     
-    // 2. 일반적인 메트릭 변동
+    // 2. 일반적인 메트릭 변동 (AI 분석 대상만)
     this.updateNormalVariations();
     
     // 3. 의존성 건강도 업데이트
     this.updateDependencyHealth();
     
-    // 4. 상태 동기화 (기존 시뮬레이션 엔진과)
-    this.syncWithBaseEngine();
-    
-    // 5. 캐싱 및 저장
+    // 4. 캐싱 및 저장
     this.saveMetrics();
     
-    console.log(`🔄 고도화된 시뮬레이션 업데이트 (활성 시나리오: ${this.activeScenarios.size}개)`);
+    console.log(`🔄 AI 분석 전용 시뮬레이션 업데이트 (활성 시나리오: ${this.activeScenarios.size}개)`);
   }
 
   /**
-   * 📊 일반적인 메트릭 변동
+   * 📊 일반적인 메트릭 변동 (AI 분석 대상만)
    */
   private updateNormalVariations(): void {
-    this.servers.forEach(server => {
+    this.analysisTargets.forEach(server => {
       // 활성 시나리오가 없는 서버만 자연스러운 변동
       if (server.active_scenarios.length === 0) {
         const variation = () => Math.random() * 6 - 3; // ±3% 변동
@@ -662,35 +671,14 @@ export class AdvancedSimulationEngine {
    * 🔗 의존성 건강도 업데이트
    */
   private updateDependencyHealth(): void {
-    this.servers.forEach(server => {
+    this.analysisTargets.forEach(server => {
       const dependencies = server.serverType.dependencies;
       
       if (dependencies.length > 0) {
-        const depServers = this.servers.filter(s => dependencies.includes(s.role));
+        const depServers = this.analysisTargets.filter(s => dependencies.includes(s.role));
         const avgHealth = depServers.reduce((sum, s) => sum + s.health_score, 0) / depServers.length;
         
         server.dependency_health = Math.round(avgHealth || 100);
-      }
-    });
-  }
-
-  /**
-   * 🔄 기존 엔진과 동기화
-   */
-  private syncWithBaseEngine(): void {
-    // 기존 시뮬레이션 엔진의 서버들 업데이트
-    const baseServers = simulationEngine.getServers();
-    
-    baseServers.forEach((baseServer: any) => {
-      const enhanced = this.servers.find(s => s.id === baseServer.id);
-      if (enhanced) {
-        // 핵심 메트릭만 동기화
-        baseServer.cpu_usage = enhanced.cpu_usage;
-        baseServer.memory_usage = enhanced.memory_usage;
-        baseServer.disk_usage = enhanced.disk_usage;
-        baseServer.response_time = enhanced.response_time;
-        baseServer.alerts = enhanced.alerts;
-        baseServer.status = enhanced.predicted_status;
       }
     });
   }
@@ -700,42 +688,77 @@ export class AdvancedSimulationEngine {
    */
   private async saveMetrics(): Promise<void> {
     try {
-      // Redis 캐싱
-      await cacheService.cacheServerMetrics(this.servers);
+      // Redis 캐싱 (AI 분석 대상만)
+      await cacheService.cacheServerMetrics(this.analysisTargets as any);
       
-      // 시계열 데이터 저장
-      await redisTimeSeriesService.storeMetrics(this.servers);
+      // 시계열 데이터 저장 (AI 분석 대상만)
+      await redisTimeSeriesService.storeMetrics(this.analysisTargets as any);
       
     } catch (error) {
-      console.warn('⚠️ 고도화된 메트릭 저장 실패:', error);
+      console.warn('⚠️ AI 분석 전용 메트릭 저장 실패:', error);
     }
   }
 
   /**
-   * 📊 상태 조회 메서드들
+   * 📊 AI 전용 상태 조회 메서드들
    */
-  public getServers(): AdvancedServerMetrics[] {
-    return [...this.servers];
+
+  // AI 분석 대상 서버 (고정)
+  public getAnalysisTargets(): AdvancedServerMetrics[] {
+    return [...this.analysisTargets];
   }
 
-  public getServerById(id: string): AdvancedServerMetrics | undefined {
-    return this.servers.find(server => server.id === id);
+  // 운영 서버 정보 (참조용)
+  public getOperationalSummary() {
+    const operationalServers = scalingSimulationEngine.getOperationalServers();
+    const operationalMetrics = scalingSimulationEngine.getAIMetrics().operationalSummary;
+    
+    return {
+      totalOperationalServers: operationalServers.length,
+      operationalMetrics,
+      recentScalingEvents: scalingSimulationEngine.getScalingHistory(5)
+    };
+  }
+
+  // AI 완전 통합 메트릭
+  public getIntegratedAIMetrics() {
+    const analysisTargets = this.getAnalysisTargets();
+    const operationalSummary = this.getOperationalSummary();
+    
+    return {
+      // 🎯 AI 분석 대상 (고정 - 추론 안정성)
+      analysisTargets: analysisTargets,
+      
+      // 📊 운영 환경 상태 (참조 - 메타 정보)
+      operationalContext: {
+        summary: operationalSummary.operationalMetrics,
+        recentScalingEvents: operationalSummary.recentScalingEvents,
+        totalServers: operationalSummary.totalOperationalServers
+      },
+      
+      // 🧠 AI 추론 기준 메트릭
+      aiAnalysisMetrics: {
+        totalAnalysisTargets: analysisTargets.length,
+        healthyTargets: analysisTargets.filter(s => s.predicted_status === 'healthy').length,
+        warningTargets: analysisTargets.filter(s => s.predicted_status === 'warning').length,
+        criticalTargets: analysisTargets.filter(s => s.predicted_status === 'critical').length,
+        avgHealthScore: Math.round(analysisTargets.reduce((sum, s) => sum + s.health_score, 0) / analysisTargets.length),
+        highRiskTargets: analysisTargets.filter(s => s.cascade_risk > 60).length,
+        activeFailureScenarios: this.activeScenarios.size
+      },
+      
+      // ⏰ 메타 정보
+      metadata: {
+        lastAnalyzed: Date.now(),
+        analysisMode: 'stable_targets',
+        simulationMode: 'dynamic_scaling',
+        dataSeparation: true
+      }
+    };
   }
 
   public getActiveScenarios(): string[] {
     return Array.from(this.activeScenarios.keys());
-  }
-
-  public getSummary() {
-    return {
-      totalServers: this.servers.length,
-      healthyServers: this.servers.filter(s => s.predicted_status === 'healthy').length,
-      warningServers: this.servers.filter(s => s.predicted_status === 'warning').length,
-      criticalServers: this.servers.filter(s => s.predicted_status === 'critical').length,
-      activeScenarios: this.activeScenarios.size,
-      avgHealthScore: Math.round(this.servers.reduce((sum, s) => sum + s.health_score, 0) / this.servers.length),
-      highRiskServers: this.servers.filter(s => s.cascade_risk > 60).length
-    };
   }
 
   public isRunning(): boolean {

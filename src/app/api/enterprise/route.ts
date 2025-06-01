@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { CacheService } from '../../../lib/redis'
+import { cacheService } from '../../../services/cacheService'
 import { ENTERPRISE_SERVERS, SERVER_STATS, IDC_LOCATIONS } from '../../../lib/enterprise-servers'
 import { 
   CRITICAL_FAILURE_CHAINS, 
@@ -20,7 +20,7 @@ import {
 export async function GET() {
   try {
     // 캐시에서 먼저 확인 (1분 캐시)
-    const cached = await CacheService.get('enterprise:overview')
+    const cached = await cacheService.get('enterprise:overview')
     if (cached) {
       return NextResponse.json({ 
         success: true, 
@@ -170,7 +170,7 @@ export async function GET() {
     }
 
     // 캐시에 저장 (1분)
-    await CacheService.set('enterprise:overview', enterpriseOverview, 60)
+    await cacheService.set('enterprise:overview', enterpriseOverview, 60)
 
     return NextResponse.json({
       success: true,
