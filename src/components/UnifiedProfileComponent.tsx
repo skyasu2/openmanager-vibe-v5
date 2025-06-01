@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import dynamic from 'next/dynamic';
 import { 
   User, 
   Bot, 
@@ -13,194 +12,446 @@ import {
   LogOut,
   ChevronDown,
   Database,
-  X
+  X,
+  Eye,
+  EyeOff,
+  Check,
+  Loader2
 } from 'lucide-react';
 import Image from 'next/image';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useToast } from '@/components/ui/ToastNotification';
-
-// Dynamic imports for modal components
-const UnifiedAuthModal = dynamic(() => import('./UnifiedAuthModal'), {
-  loading: () => <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"><div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>,
-  ssr: false
-});
-
-const ServerGeneratorModal = dynamic(() => import('./ServerGeneratorModal'), {
-  loading: () => <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"><div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>,
-  ssr: false
-});
-
-const ServerMonitorModal = dynamic(() => import('./ServerMonitorModal'), {
-  loading: () => <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"><div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div></div>,
-  ssr: false
-});
-
-// 환경설정 모달 컴포넌트
-const SettingsModal = ({ isOpen, onClose, buttonRef }: { 
-  isOpen: boolean; 
-  onClose: () => void;
-  buttonRef?: React.RefObject<HTMLButtonElement | null>;
-}) => {
-  console.log('🔧 SettingsModal 렌더링:', { isOpen });
-  
-  if (isOpen) {
-    console.log('🎯 SettingsModal 팝업 렌더링됨');
-  }
-  
-  const { info, warning } = useToast();
-  
-  const handleEnvironmentSettings = () => {
-    console.log('🔧 환경설정 클릭됨');
-    info('환경설정 기능이 곧 추가될 예정입니다.');
-  };
-  
-  const handleAISettings = () => {
-    console.log('🤖 AI 설정 클릭됨');
-    warning('AI 에이전트 고급 설정 기능을 준비 중입니다.');
-  };
-  
-  const handleNotificationSettings = () => {
-    console.log('🔔 알림 설정 클릭됨');
-    info('알림 및 경고 설정 기능이 곧 추가될 예정입니다.');
-  };
-  
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          className="fixed inset-0 z-[9999]"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-        >
-          <motion.div
-            className="absolute bg-gray-900/98 backdrop-blur-xl border border-gray-700/70 rounded-2xl shadow-2xl shadow-black/50 w-80"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              top: buttonRef?.current ? 
-                `${buttonRef.current.getBoundingClientRect().bottom + window.scrollY + 8}px` : 
-                '50%',
-              left: buttonRef?.current ? 
-                `${buttonRef.current.getBoundingClientRect().left + window.scrollX}px` : 
-                '50%',
-              transform: buttonRef?.current ? 'none' : 'translate(-50%, -50%)'
-            }}
-          >
-            <div className="p-6 border-b border-gray-700/50">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-gray-500 to-slate-600">
-                    <Settings className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-bold text-white">시스템 설정</h2>
-                    <p className="text-sm text-gray-400">환경설정 및 시스템 관리</p>
-                  </div>
-                </div>
-                <button onClick={onClose} className="p-2 hover:bg-gray-700/50 rounded-lg transition-colors">
-                  <X className="w-5 h-5 text-gray-400" />
-                </button>
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                <button
-                  onClick={handleEnvironmentSettings}
-                  className="w-full p-4 bg-blue-500/20 border border-blue-500/30 rounded-lg hover:bg-blue-500/30 transition-colors cursor-pointer"
-                >
-                  <h3 className="text-white font-medium mb-2 flex items-center gap-2">
-                    <Database className="w-4 h-4 text-blue-400" />
-                    환경설정
-                  </h3>
-                  <p className="text-blue-200 text-sm text-left">
-                    시스템 환경설정 기능이 곧 추가될 예정입니다.
-                  </p>
-                </button>
-                <button
-                  onClick={handleAISettings}
-                  className="w-full p-4 bg-purple-500/20 border border-purple-500/30 rounded-lg hover:bg-purple-500/30 transition-colors cursor-pointer"
-                >
-                  <h3 className="text-white font-medium mb-2 flex items-center gap-2">
-                    <Bot className="w-4 h-4 text-purple-400" />
-                    AI 설정
-                  </h3>
-                  <p className="text-purple-200 text-sm text-left">
-                    AI 에이전트 고급 설정 기능이 곧 추가될 예정입니다.
-                  </p>
-                </button>
-                <button
-                  onClick={handleNotificationSettings}
-                  className="w-full p-4 bg-green-500/20 border border-green-500/30 rounded-lg hover:bg-green-500/30 transition-colors cursor-pointer"
-                >
-                  <h3 className="text-white font-medium mb-2 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-green-400" />
-                    알림 설정
-                  </h3>
-                  <p className="text-green-200 text-sm text-left">
-                    알림 및 경고 설정 기능이 곧 추가될 예정입니다.
-                  </p>
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-};
 
 interface UnifiedProfileComponentProps {
   userName?: string;
   userAvatar?: string;
 }
 
+// 통합 설정 패널 컴포넌트
+const UnifiedSettingsPanel = ({ 
+  isOpen, 
+  onClose, 
+  buttonRef 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void;
+  buttonRef?: React.RefObject<HTMLButtonElement | null>;
+}) => {
+  const [activeTab, setActiveTab] = useState<'ai' | 'generator' | 'monitor' | 'general'>('ai');
+  const [aiPassword, setAiPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  
+  const { 
+    aiAgent, 
+    isSystemStarted,
+    authenticateAIAgent, 
+    disableAIAgent,
+    attempts,
+    isLocked,
+    getRemainingLockTime
+  } = useUnifiedAdminStore();
+  
+  const { success, error, info, warning } = useToast();
+
+  // AI 에이전트 인증 처리
+  const handleAIAuthentication = async () => {
+    if (!aiPassword.trim()) {
+      warning('비밀번호를 입력해주세요.');
+      return;
+    }
+
+    setIsAuthenticating(true);
+    
+    try {
+      // 실제 인증 처리
+      const result = authenticateAIAgent(aiPassword);
+      
+      if (result.success) {
+        success('🤖 AI 에이전트 모드가 활성화되었습니다!');
+        setAiPassword('');
+        setActiveTab('general');
+      } else {
+        error(result.message);
+        if (isLocked) {
+          const remainingTime = getRemainingLockTime();
+          error(`계정이 잠겼습니다. ${Math.ceil(remainingTime / 1000)}초 후 다시 시도하세요.`);
+        }
+      }
+    } catch (err) {
+      error('인증 처리 중 오류가 발생했습니다.');
+      console.error('AI 인증 오류:', err);
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
+  // AI 에이전트 비활성화
+  const handleAIDisable = () => {
+    disableAIAgent();
+    success('AI 에이전트가 비활성화되었습니다.');
+    setActiveTab('general');
+  };
+
+  // 서버 데이터 생성기 상태 확인
+  const handleGeneratorCheck = async () => {
+    try {
+      info('서버 데이터 생성기 상태를 확인하고 있습니다...');
+      // 실제 API 호출로 대체 예정
+      const response = await fetch('/api/data-generator');
+      if (response.ok) {
+        success('서버 데이터 생성기가 정상 동작중입니다.');
+      } else {
+        warning('서버 데이터 생성기 상태 확인에 실패했습니다.');
+      }
+    } catch (err) {
+      error('서버 데이터 생성기 연결에 실패했습니다.');
+    }
+  };
+
+  // 서버 모니터링 상태 확인
+  const handleMonitorCheck = async () => {
+    try {
+      info('서버 모니터링 시스템을 확인하고 있습니다...');
+      // 실제 API 호출로 대체 예정
+      const response = await fetch('/api/health');
+      if (response.ok) {
+        success('서버 모니터링 시스템이 정상 동작중입니다.');
+      } else {
+        warning('서버 모니터링 상태 확인에 실패했습니다.');
+      }
+    } catch (err) {
+      error('서버 모니터링 시스템 연결에 실패했습니다.');
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        className="w-full max-w-2xl bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* 헤더 */}
+        <div className="p-6 border-b border-gray-700/50 bg-gradient-to-r from-gray-800/50 to-gray-900/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                <Settings className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white">시스템 설정</h2>
+                <p className="text-gray-400">AI 모드, 데이터 생성기, 모니터링 제어</p>
+              </div>
+            </div>
+            <button 
+              onClick={onClose}
+              className="p-2 hover:bg-gray-700/50 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5 text-gray-400" />
+            </button>
+          </div>
+        </div>
+
+        {/* 탭 네비게이션 */}
+        <div className="flex border-b border-gray-700/50 bg-gray-800/30">
+          {[
+            { id: 'ai', label: 'AI 모드', icon: Bot },
+            { id: 'generator', label: '데이터 생성기', icon: Database },
+            { id: 'monitor', label: '모니터링', icon: Monitor },
+            { id: 'general', label: '일반 설정', icon: Settings }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex-1 flex items-center justify-center gap-2 p-4 transition-all ${
+                activeTab === tab.id
+                  ? 'bg-purple-500/20 text-purple-300 border-b-2 border-purple-500'
+                  : 'text-gray-400 hover:text-gray-300 hover:bg-gray-700/30'
+              }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              <span className="text-sm font-medium">{tab.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* 콘텐츠 */}
+        <div className="p-6 max-h-96 overflow-y-auto">
+          {/* AI 모드 탭 */}
+          {activeTab === 'ai' && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 ${
+                  aiAgent.isEnabled
+                    ? 'bg-gradient-to-br from-purple-500 to-pink-600'
+                    : 'bg-gray-600'
+                }`}>
+                  <Bot className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">
+                  AI 에이전트 모드
+                </h3>
+                <p className="text-gray-400 text-sm mb-4">
+                  {aiAgent.isEnabled 
+                    ? 'AI 에이전트가 활성화되어 고급 분석 기능을 사용할 수 있습니다.' 
+                    : 'AI 에이전트를 활성화하여 지능형 서버 분석 기능을 사용하세요.'
+                  }
+                </p>
+              </div>
+
+              {!aiAgent.isEnabled ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      관리자 비밀번호
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={aiPassword}
+                        onChange={(e) => setAiPassword(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleAIAuthentication()}
+                        className="w-full p-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="비밀번호를 입력하세요..."
+                        disabled={isLocked}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {isLocked && (
+                    <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                      <p className="text-red-300 text-sm">
+                        ⚠️ 계정이 잠겼습니다. {Math.ceil(getRemainingLockTime() / 1000)}초 후 다시 시도하세요.
+                      </p>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleAIAuthentication}
+                    disabled={isAuthenticating || isLocked || !aiPassword.trim()}
+                    className="w-full p-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                  >
+                    {isAuthenticating ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        인증 중...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4" />
+                        AI 모드 활성화
+                      </>
+                    )}
+                  </button>
+
+                  <div className="text-xs text-gray-500 text-center">
+                    잘못된 시도 {attempts}/5회. 5회 실패 시 10초간 잠깁니다.
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="p-4 bg-green-500/20 border border-green-500/30 rounded-lg">
+                    <div className="flex items-center gap-2 text-green-300 mb-2">
+                      <Check className="w-4 h-4" />
+                      <span className="font-medium">AI 에이전트 활성화됨</span>
+                    </div>
+                    <p className="text-green-200 text-sm">
+                      자연어 질의, 예측 분석, 이상 탐지 등 모든 AI 기능을 사용할 수 있습니다.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleAIDisable}
+                    className="w-full p-3 bg-red-500/20 border border-red-500/30 text-red-300 rounded-lg font-medium hover:bg-red-500/30 transition-colors"
+                  >
+                    AI 모드 비활성화
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 데이터 생성기 탭 */}
+          {activeTab === 'generator' && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center mb-4">
+                  <Database className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">
+                  서버 데이터 생성기
+                </h3>
+                <p className="text-gray-400 text-sm mb-4">
+                  시뮬레이션용 서버 메트릭 데이터를 생성하고 관리합니다.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <button
+                  onClick={handleGeneratorCheck}
+                  className="w-full p-4 bg-blue-500/20 border border-blue-500/30 rounded-lg hover:bg-blue-500/30 transition-colors"
+                >
+                  <h4 className="text-white font-medium mb-2">생성기 상태 확인</h4>
+                  <p className="text-blue-200 text-sm text-left">
+                    현재 서버 데이터 생성기의 동작 상태를 확인합니다.
+                  </p>
+                </button>
+
+                <div className="p-4 bg-gray-800/30 rounded-lg">
+                  <h4 className="text-white font-medium mb-2">시뮬레이션 정보</h4>
+                  <div className="space-y-2 text-sm text-gray-300">
+                    <div className="flex justify-between">
+                      <span>활성 서버:</span>
+                      <span className="text-green-400">16개</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>데이터 생성 주기:</span>
+                      <span className="text-blue-400">5초</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>상태 분포:</span>
+                      <span className="text-gray-400">70% 정상, 20% 경고, 10% 심각</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 모니터링 탭 */}
+          {activeTab === 'monitor' && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mb-4">
+                  <Monitor className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">
+                  서버 모니터링
+                </h3>
+                <p className="text-gray-400 text-sm mb-4">
+                  실시간 서버 모니터링 시스템의 상태를 확인하고 관리합니다.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <button
+                  onClick={handleMonitorCheck}
+                  className="w-full p-4 bg-green-500/20 border border-green-500/30 rounded-lg hover:bg-green-500/30 transition-colors"
+                >
+                  <h4 className="text-white font-medium mb-2">모니터링 상태 확인</h4>
+                  <p className="text-green-200 text-sm text-left">
+                    헬스 체크 API와 모니터링 시스템의 동작 상태를 확인합니다.
+                  </p>
+                </button>
+
+                <div className="p-4 bg-gray-800/30 rounded-lg">
+                  <h4 className="text-white font-medium mb-2">모니터링 정보</h4>
+                  <div className="space-y-2 text-sm text-gray-300">
+                    <div className="flex justify-between">
+                      <span>헬스 체크 주기:</span>
+                      <span className="text-green-400">60초</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>알림 상태:</span>
+                      <span className="text-blue-400">활성화</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>데이터 보관 기간:</span>
+                      <span className="text-gray-400">24시간</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 일반 설정 탭 */}
+          {activeTab === 'general' && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-gray-500 to-slate-600 flex items-center justify-center mb-4">
+                  <Settings className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">
+                  일반 설정
+                </h3>
+                <p className="text-gray-400 text-sm mb-4">
+                  시스템 환경 설정 및 기타 옵션을 관리합니다.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <button
+                  onClick={() => info('알림 설정 기능이 곧 추가될 예정입니다.')}
+                  className="w-full p-4 bg-orange-500/20 border border-orange-500/30 rounded-lg hover:bg-orange-500/30 transition-colors"
+                >
+                  <h4 className="text-white font-medium mb-2">알림 설정</h4>
+                  <p className="text-orange-200 text-sm text-left">
+                    시스템 알림 및 경고 메시지 설정을 관리합니다.
+                  </p>
+                </button>
+
+                <button
+                  onClick={() => info('테마 설정 기능이 곧 추가될 예정입니다.')}
+                  className="w-full p-4 bg-indigo-500/20 border border-indigo-500/30 rounded-lg hover:bg-indigo-500/30 transition-colors"
+                >
+                  <h4 className="text-white font-medium mb-2">테마 설정</h4>
+                  <p className="text-indigo-200 text-sm text-left">
+                    다크/라이트 모드 및 색상 테마를 설정합니다.
+                  </p>
+                </button>
+
+                <button
+                  onClick={() => info('백업 설정 기능이 곧 추가될 예정입니다.')}
+                  className="w-full p-4 bg-purple-500/20 border border-purple-500/30 rounded-lg hover:bg-purple-500/30 transition-colors"
+                >
+                  <h4 className="text-white font-medium mb-2">백업 설정</h4>
+                  <p className="text-purple-200 text-sm text-left">
+                    데이터 백업 주기 및 복원 설정을 관리합니다.
+                  </p>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 export default function UnifiedProfileComponent({ 
   userName = "사용자", 
   userAvatar
 }: UnifiedProfileComponentProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showServerGeneratorModal, setShowServerGeneratorModal] = useState(false);
-  const [showServerMonitorModal, setShowServerMonitorModal] = useState(false);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [clickPosition, setClickPosition] = useState<{ x: number; y: number } | undefined>(undefined);
+  const [showSettingsPanel, setShowSettingsPanel] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const settingsButtonRef = useRef<HTMLButtonElement>(null);
   
   const {
     isSystemStarted,
     aiAgent,
-    attempts,
     isLocked,
-    lockoutEndTime,
     startSystem,
     stopSystem,
-    authenticateAIAgent,
     disableAIAgent,
-    toggleAIProcessing,
-    checkLockStatus,
-    getRemainingLockTime,
     logout
   } = useUnifiedAdminStore();
 
-  const { success, error, warning, info } = useToast();
+  const { success, info } = useToast();
 
-  // 디버깅: showSettingsModal 상태 변화 감지
-  useEffect(() => {
-    console.log('🔍 showSettingsModal 상태 변화:', showSettingsModal);
-  }, [showSettingsModal]);
-
-  // 디버깅: showAuthModal 상태 변화 감지
-  useEffect(() => {
-    console.log('🔍 showAuthModal 상태 변화:', showAuthModal);
-  }, [showAuthModal]);
-
-  // 외부 클릭 시 드롭다운 닫기
+  // 외부 클릭 감지
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -208,91 +459,22 @@ export default function UnifiedProfileComponent({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
 
   const handleSystemToggle = () => {
     if (isSystemStarted) {
       stopSystem();
-      info('시스템이 정지되었습니다.');
     } else {
       startSystem();
-      success('시스템이 시작되었습니다.');
     }
     setIsOpen(false);
-  };
-
-  const handleAIAgentToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
-    // 🚨 가장 먼저 확인: 클릭 이벤트가 발생하는가?
-    alert('🤖 AI 에이전트 버튼이 클릭되었습니다!');
-    
-    console.log('🤖 AI 에이전트 버튼 클릭됨', { isEnabled: aiAgent.isEnabled, isLocked });
-    
-    if (aiAgent.isEnabled) {
-      console.log('🔄 AI 에이전트 비활성화 중...');
-      disableAIAgent();
-      info('AI 에이전트가 비활성화되었습니다. 기본 모니터링 모드로 전환됩니다.');
-    } else {
-      console.log('🚀 AI 에이전트 활성화 시도 중...');
-      
-      if (isLocked) {
-        const remainingTime = getRemainingLockTime();
-        console.log('❌ 계정 잠김 상태:', remainingTime);
-        error(`계정이 잠겼습니다. ${Math.ceil(remainingTime / 1000)}초 후 다시 시도하세요.`);
-        setIsOpen(false);
-        return;
-      }
-      
-      // 클릭 위치 캡처 - 더 안정적인 방법
-      try {
-        const rect = event.currentTarget.getBoundingClientRect();
-        const x = rect.left + rect.width / 2;
-        const y = rect.top + rect.height / 2;
-        console.log('📍 AI 버튼 클릭 위치:', { x, y, rect });
-        setClickPosition({ x, y });
-        
-        console.log('🔓 AI 인증 모달 열기 시도');
-        
-        // 🚨 두 번째 확인: 모달 상태 변경
-        alert('🔓 AI 인증 모달을 열려고 합니다!');
-        setShowAuthModal(true);
-        alert('✅ setShowAuthModal(true) 완료!');
-        
-        // 디버깅용 타이머
-        setTimeout(() => {
-          console.log('⏰ 1초 후 모달 상태 체크:', { showAuthModal });
-          alert(`⏰ 1초 후 showAuthModal 상태: ${showAuthModal}`);
-        }, 1000);
-        
-      } catch (error) {
-        console.error('❌ 클릭 위치 캡처 실패:', error);
-        alert('❌ 클릭 위치 캡처 실패!');
-        // 위치 캡처 실패 시 기본값으로 모달 열기
-        setClickPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
-        setShowAuthModal(true);
-      }
-    }
-    
-    console.log('🚪 드롭다운 닫기');
-    setIsOpen(false);
-  };
-
-  const handleAIProcessingToggle = async () => {
-    // 이 함수는 더 이상 사용하지 않음
-    return;
-  };
-
-  const handleAuthSubmit = (password: string) => {
-    const result = authenticateAIAgent(password);
-    
-    if (result.success) {
-      success('AI 에이전트 모드가 활성화되었습니다.');
-    } else {
-      error(result.message);
-    }
-
-    return result;
   };
 
   const getModeDisplayText = () => {
@@ -307,28 +489,6 @@ export default function UnifiedProfileComponent({
     if (isLocked) return 'text-red-400';
     if (!isSystemStarted) return 'text-gray-400';
     return aiAgent.isEnabled ? 'text-purple-400' : 'text-cyan-400';
-  };
-
-  const getAIStatusText = () => {
-    if (!aiAgent.isEnabled) return 'AI 에이전트 모드 필요';
-    switch (aiAgent.state) {
-      case 'enabled': return '활성화됨';
-      case 'disabled': return '비활성화됨';
-      case 'processing': return '처리 중...';
-      case 'idle': return '대기 중';
-      default: return '비활성화됨';
-    }
-  };
-
-  const getAIStatusColor = () => {
-    if (!aiAgent.isEnabled) return 'text-orange-400';
-    switch (aiAgent.state) {
-      case 'enabled': return 'text-green-400';
-      case 'disabled': return 'text-gray-400';
-      case 'processing': return 'text-blue-400';
-      case 'idle': return 'text-yellow-400';
-      default: return 'text-gray-400';
-    }
   };
 
   return (
@@ -425,29 +585,31 @@ export default function UnifiedProfileComponent({
                   <div>
                     <div className="text-white font-medium">{userName}</div>
                     <div className={`text-sm ${getSystemStatusColor()}`}>
-                      {isLocked ? '계정 잠김' : getModeDisplayText()}
+                      {getModeDisplayText()}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* 시스템 상태 */}
+              {/* 제어 영역 */}
               <div className="p-4 border-b border-gray-700/50">
                 <div className="space-y-3">
-                  {/* 시스템 토글 */}
+                  {/* 시스템 제어 */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className={`p-2 rounded-lg ${
-                        isSystemStarted ? 'bg-green-500/20' : 'bg-gray-500/20'
+                        isSystemStarted 
+                          ? 'bg-green-500/20' 
+                          : 'bg-red-500/20'
                       }`}>
                         <Power className={`w-4 h-4 ${
-                          isSystemStarted ? 'text-green-400' : 'text-gray-400'
+                          isSystemStarted ? 'text-green-400' : 'text-red-400'
                         }`} />
                       </div>
                       <div>
-                        <div className="text-white text-sm font-medium">시스템</div>
+                        <div className="text-white text-sm font-medium">시스템 제어</div>
                         <div className={`text-xs ${
-                          isSystemStarted ? 'text-green-400' : 'text-gray-400'
+                          isSystemStarted ? 'text-green-400' : 'text-red-400'
                         }`}>
                           {isSystemStarted ? '실행 중' : '정지됨'}
                         </div>
@@ -457,8 +619,7 @@ export default function UnifiedProfileComponent({
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={handleSystemToggle}
-                      disabled={isLocked}
-                      className={`px-3 py-1 rounded-md text-xs font-medium transition-colors disabled:opacity-50 ${
+                      className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                         isSystemStarted
                           ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30'
                           : 'bg-green-500/20 text-green-300 hover:bg-green-500/30'
@@ -468,7 +629,7 @@ export default function UnifiedProfileComponent({
                     </motion.button>
                   </div>
 
-                  {/* AI 에이전트 토글 */}
+                  {/* AI 에이전트 표시 */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className={`p-2 rounded-lg ${
@@ -489,19 +650,20 @@ export default function UnifiedProfileComponent({
                         </div>
                       </div>
                     </div>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={handleAIAgentToggle}
-                      disabled={isLocked}
-                      className={`px-3 py-1 rounded-md text-xs font-medium transition-colors disabled:opacity-50 ${
-                        aiAgent.isEnabled
-                          ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30'
-                          : 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/30'
-                      }`}
-                    >
-                      {aiAgent.isEnabled ? '비활성화' : '활성화'}
-                    </motion.button>
+                    {aiAgent.isEnabled && (
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                          disableAIAgent();
+                          info('AI 에이전트가 비활성화되었습니다.');
+                          setIsOpen(false);
+                        }}
+                        className="px-3 py-1 rounded-md text-xs font-medium bg-red-500/20 text-red-300 hover:bg-red-500/30 transition-colors"
+                      >
+                        비활성화
+                      </motion.button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -509,156 +671,54 @@ export default function UnifiedProfileComponent({
               {/* 메뉴 아이템들 */}
               <div className="p-2">
                 <motion.button
-                  ref={settingsButtonRef}
                   whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
                   onClick={() => {
-                    console.log('⚙️ 설정 버튼 클릭됨');
-                    setShowSettingsModal(true);
+                    setShowSettingsPanel(true);
                     setIsOpen(false);
                   }}
                   className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors"
                 >
-                  <div className="p-2 rounded-lg bg-gray-500/20">
-                    <Settings className="w-4 h-4 text-gray-400" />
+                  <div className="p-2 rounded-lg bg-purple-500/20">
+                    <Settings className="w-4 h-4 text-purple-400" />
                   </div>
                   <div>
-                    <div className="text-white font-medium">설정</div>
-                    <div className="text-gray-400 text-xs">시스템 설정 및 환경설정</div>
+                    <div className="text-white font-medium">통합 설정</div>
+                    <div className="text-gray-400 text-xs">AI 모드, 데이터 생성기, 모니터링 제어</div>
                   </div>
                 </motion.button>
 
-                {/* AI 모드에서만 표시되는 서버 데이터 생성기 설정 */}
-                {aiAgent.isEnabled && (
-                  <motion.button
-                    whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                    onClick={() => {
-                      setShowServerGeneratorModal(true);
-                      setIsOpen(false);
-                    }}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors"
-                  >
-                    <div className="p-2 rounded-lg bg-blue-500/20">
-                      <Database className="w-4 h-4 text-blue-400" />
-                    </div>
-                    <div>
-                      <div className="text-white font-medium">서버 데이터 생성기 설정</div>
-                      <div className="text-gray-400 text-xs">시뮬레이터 상태 확인 및 제어</div>
-                    </div>
-                  </motion.button>
-                )}
-
-                {/* AI 모드에서만 표시되는 서버 모니터링 상태 확인 */}
-                {aiAgent.isEnabled && (
-                  <motion.button
-                    whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                    onClick={() => {
-                      setShowServerMonitorModal(true);
-                      setIsOpen(false);
-                    }}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors"
-                  >
-                    <div className="p-2 rounded-lg bg-green-500/20">
-                      <Monitor className="w-4 h-4 text-green-400" />
-                    </div>
-                    <div>
-                      <div className="text-white font-medium">서버 모니터링 상태 확인</div>
-                      <div className="text-gray-400 text-xs">실시간 모니터링 상태 및 제어</div>
-                    </div>
-                  </motion.button>
-                )}
-
-                {aiAgent.isEnabled && (
-                  <motion.button
-                    whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                    onClick={() => {
-                      disableAIAgent();
-                      info('AI 에이전트 모드가 종료되었습니다. 기본 모니터링 모드로 전환됩니다.');
-                      setIsOpen(false);
-                    }}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors"
-                  >
-                    <div className="p-2 rounded-lg bg-red-500/20">
-                      <LogOut className="w-4 h-4 text-red-400" />
-                    </div>
-                    <div>
-                      <div className="text-white font-medium">종료</div>
-                      <div className="text-gray-400 text-xs">AI 에이전트 모드 종료</div>
-                    </div>
-                  </motion.button>
-                )}
+                <motion.button
+                  whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                  onClick={() => {
+                    logout();
+                    info('로그아웃되었습니다.');
+                    setIsOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors"
+                >
+                  <div className="p-2 rounded-lg bg-red-500/20">
+                    <LogOut className="w-4 h-4 text-red-400" />
+                  </div>
+                  <div>
+                    <div className="text-white font-medium">로그아웃</div>
+                    <div className="text-gray-400 text-xs">현재 세션을 종료합니다</div>
+                  </div>
+                </motion.button>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* 환경설정 모달 */}
-      <SettingsModal
-        isOpen={showSettingsModal}
-        onClose={() => {
-          setShowSettingsModal(false);
-        }}
-        buttonRef={settingsButtonRef}
-      />
-
-      {/* 🚨 테스트용 간단한 AI 인증 모달 */}
-      {showAuthModal && (
-        <div 
-          className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center"
-          onClick={() => setShowAuthModal(false)}
-        >
-          <div 
-            className="bg-white p-8 rounded-lg max-w-md w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-black text-xl font-bold mb-4">🔒 AI 에이전트 인증</h2>
-            <p className="text-black mb-4">이것은 테스트용 간단한 모달입니다.</p>
-            <div className="flex gap-4">
-              <button 
-                onClick={() => setShowAuthModal(false)}
-                className="px-4 py-2 bg-gray-500 text-white rounded"
-              >
-                취소
-              </button>
-              <button 
-                onClick={() => {
-                  alert('AI 에이전트가 활성화되었습니다!');
-                  setShowAuthModal(false);
-                }}
-                className="px-4 py-2 bg-blue-500 text-white rounded"
-              >
-                활성화
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 인증 모달 */}
-      <UnifiedAuthModal
-        isOpen={showAuthModal}
-        onClose={() => {
-          setShowAuthModal(false);
-          setClickPosition(undefined);
-        }}
-        onSubmit={handleAuthSubmit}
-        isLocked={isLocked}
-        attempts={attempts}
-        lockoutEndTime={lockoutEndTime}
-        clickPosition={clickPosition}
-      />
-
-      {/* 서버 데이터 생성기 모달 */}
-      <ServerGeneratorModal
-        isOpen={showServerGeneratorModal}
-        onClose={() => setShowServerGeneratorModal(false)}
-      />
-
-      {/* 서버 모니터링 모달 */}
-      <ServerMonitorModal
-        isOpen={showServerMonitorModal}
-        onClose={() => setShowServerMonitorModal(false)}
-      />
+      {/* 통합 설정 패널 */}
+      <AnimatePresence>
+        {showSettingsPanel && (
+          <UnifiedSettingsPanel
+            isOpen={showSettingsPanel}
+            onClose={() => setShowSettingsPanel(false)}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 } 

@@ -37,28 +37,39 @@
   background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
 }
 
-/* 손가락 포인터 애니메이션 */
+/* 손가락 포인터 애니메이션 - 버튼 아래에서 위로 가리키도록 개선 */
 .finger-pointer {
   position: absolute;
-  top: -40px;
+  top: 100%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) rotate(180deg);
+  margin-top: 0.75rem;
   font-size: 1.5rem;
-  animation: fingerBounce 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 60;
+  animation: fingerBounceUp 2s ease-in-out infinite;
 }
 
-@keyframes fingerBounce {
+@keyframes fingerBounceUp {
   0%, 100% {
-    transform: translateX(-50%) translateY(0) rotate(0deg);
+    transform: translateX(-50%) translateY(0) rotate(180deg);
   }
   25% {
-    transform: translateX(-50%) translateY(-8px) rotate(5deg);
+    transform: translateX(-50%) translateY(6px) rotate(175deg);
   }
   50% {
-    transform: translateX(-50%) translateY(-4px) rotate(-5deg);
+    transform: translateX(-50%) translateY(3px) rotate(185deg);
   }
   75% {
-    transform: translateX(-50%) translateY(-8px) rotate(5deg);
+    transform: translateX(-50%) translateY(6px) rotate(175deg);
+  }
+}
+
+/* 모바일 최적화 손가락 포인터 */
+@media (max-width: 768px) {
+  .finger-pointer {
+    font-size: 1.25rem;
+    margin-top: 0.5rem;
   }
 }
 

@@ -147,8 +147,13 @@ export default function FeatureCardsGrid() {
     
     if (card?.requiresAI && !aiAgent.isEnabled) {
       // AI 에이전트가 필요한 기능에 일반 사용자가 접근할 때
-      setShowDevModal(true);
-      setTimeout(() => setShowDevModal(false), 3000);
+      warning('🚧 이 기능은 AI 에이전트 모드에서만 사용 가능합니다. 홈 화면에서 AI 모드를 활성화해주세요.', {
+        duration: 5000,
+        action: {
+          label: '활성화하기',
+          onClick: () => window.location.href = '/'
+        }
+      });
       return;
     }
     

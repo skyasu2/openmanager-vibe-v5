@@ -1,57 +1,22 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import dynamic from 'next/dynamic';
-import { useSystemControl } from '../hooks/useSystemControl';
-import FeatureCardsGrid from '@/components/home/FeatureCardsGrid';
-import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { 
-  Server, 
-  MessageCircle, 
-  SearchCheck, 
-  FileText, 
-  Brain, 
-  Code, 
-  Play, 
-  Loader2, 
-  Gauge, 
-  StopCircle,
-  Power,
-  CheckCircle,
-  Lightbulb,
-  Cpu,
-  X,
-  BarChart3,
-  PlayCircle,
-  Bot,
-  Clock,
-  Zap,
-  Shield
+  Bot, 
+  Power, 
+  BarChart3, 
+  StopCircle, 
+  Loader2 
 } from 'lucide-react';
 import { ToastContainer, useToast } from '@/components/ui/ToastNotification';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import FeatureCardsGrid from '@/components/home/FeatureCardsGrid';
+import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
 
-// Dynamic imports for heavy components
-const UnifiedAuthModal = dynamic(() => import('@/components/UnifiedAuthModal'), {
-  loading: () => <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"><div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>,
-  ssr: false
-});
-
-// 동적 렌더링 강제 (HTML 파일 생성 방지)
+// 동적 렌더링 강제
 export const dynamicConfig = 'force-dynamic';
-
-// 토스트 알림 타입 정의
-interface ToastNotification {
-  id: string;
-  type: 'success' | 'error' | 'info' | 'warning';
-  title: string;
-  message: string;
-  autoClose?: boolean;
-  duration?: number;
-}
 
 export default function Home() {
   const router = useRouter();
@@ -60,19 +25,11 @@ export default function Home() {
     aiAgent, 
     startSystem, 
     stopSystem,
-    checkLockStatus,
-    getSystemRemainingTime,
-    getRemainingLockTime,
-    isLocked,
-    attempts,
-    lockoutEndTime,
-    authenticateAIAgent
+    getSystemRemainingTime
   } = useUnifiedAdminStore();
   const { success, error, info, warning } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [systemTimeRemaining, setSystemTimeRemaining] = useState(0);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [clickPosition, setClickPosition] = useState<{ x: number; y: number } | undefined>();
   
   // 시스템 타이머 업데이트
   useEffect(() => {
@@ -142,7 +99,6 @@ export default function Home() {
       console.error('시스템 제어 오류:', err);
       error('시스템 제어 중 오류가 발생했습니다.');
     } finally {
-      // 약간의 지연 후 로딩 해제 (시각적 피드백)
       setTimeout(() => setIsLoading(false), 1000);
     }
   };
@@ -155,39 +111,18 @@ export default function Home() {
     router.push('/dashboard');
   };
 
-  const handleAIAgentToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleAIAgentInfo = () => {
     if (aiAgent.isEnabled) {
-      // AI 에이전트 비활성화
-      const { disableAIAgent } = useUnifiedAdminStore.getState();
-      disableAIAgent();
-      info('AI 에이전트가 비활성화되었습니다.');
+      info('AI 에이전트가 활성화되어 있습니다. 프로필에서 설정을 변경할 수 있습니다.');
     } else {
-      // 클릭 위치 저장
-      const rect = event.currentTarget.getBoundingClientRect();
-      const x = rect.left + rect.width / 2;
-      const y = rect.top + rect.height / 2;
-      setClickPosition({ x, y });
-      
-      if (isLocked) {
-        const remainingTime = getRemainingLockTime();
-        error(`계정이 잠겼습니다. ${Math.ceil(remainingTime / 1000)}초 후 다시 시도하세요.`);
-        return;
-      }
-      setShowAuthModal(true);
+      info('AI 에이전트를 활성화하려면 화면 우상단 프로필 → 통합 설정에서 활성화하세요.', {
+        duration: 5000,
+        action: {
+          label: '설정 확인',
+          onClick: () => info('화면 우상단의 프로필 버튼을 확인해주세요.')
+        }
+      });
     }
-  };
-
-  const handleAuthSubmit = (password: string) => {
-    const result = authenticateAIAgent(password);
-    
-    if (result.success) {
-      success('AI 에이전트 모드가 활성화되었습니다.');
-      setShowAuthModal(false);
-    } else {
-      error(result.message);
-    }
-
-    return result;
   };
 
   // 배경 클래스 결정
@@ -206,7 +141,7 @@ export default function Home() {
       {/* 웨이브 파티클 배경 효과 */}
       <div className="wave-particles"></div>
       
-      {/* 기본 헤더 */}
+      {/* 헤더 */}
       <header className="relative z-10 flex justify-between items-center p-6">
         <div className="flex items-center space-x-3">
           {/* AI 컨셉 아이콘 */}
@@ -233,96 +168,50 @@ export default function Home() {
               ease: "easeInOut"
             }}
           >
-            {aiAgent.isEnabled ? (
-              <motion.div
-                animate={{
-                  rotate: [0, 360],
-                  scale: [1, 1.1, 1]
-                }}
-                transition={{
-                  rotate: { duration: 4, repeat: Infinity, ease: "linear" },
-                  scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-                }}
-              >
-                <Bot className="w-6 h-6 text-white" />
-              </motion.div>
-            ) : (
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            )}
+            <i className="fas fa-server text-white text-lg" aria-hidden="true"></i>
           </motion.div>
-          
+
+          {/* 브랜드 텍스트 */}
           <div>
             <h1 className="text-xl font-bold text-white">OpenManager</h1>
-            <p className="text-sm text-white">
-              {renderTextWithAIGradient('AI-Powered Server Monitoring')}
+            <p className="text-xs text-white/70">
+              {aiAgent.isEnabled 
+                ? 'AI 에이전트 모드' 
+                : isSystemStarted 
+                ? '기본 모니터링' 
+                : '시스템 정지'}
             </p>
-            
-            {/* 시스템 타이머 표시 */}
-            {isSystemStarted && (
-              <motion.div 
-                className="flex items-center gap-1 text-xs text-white/70 mt-1"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                <Clock className="w-3 h-3" />
-                <span>남은시간: {formatTime(systemTimeRemaining)}</span>
-              </motion.div>
-            )}
           </div>
         </div>
-        
-        {/* 통합 프로필 컴포넌트 */}
+
+        {/* 프로필 컴포넌트 */}
         <UnifiedProfileComponent userName="사용자" />
       </header>
 
-      {/* 메인 컨텐츠 */}
-      <div className="container mx-auto px-6 pb-12 relative z-10">
-        {/* 메인 타이틀 */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
-            <span className="text-white">
+      {/* 메인 콘텐츠 */}
+      <div className="relative z-10 container mx-auto px-6 pt-8">
+        {/* 타이틀 섹션 */}
+        <motion.div
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h1 className="text-3xl md:text-5xl font-bold mb-4">
+            <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
               {renderTextWithAIGradient('AI 기반')}
-            </span>
-            <br />
-            서버 모니터링
+            </span>{' '}
+            <span className="text-white">서버 모니터링</span>
           </h1>
-          <p className="text-lg md:text-xl text-white max-w-3xl mx-auto leading-relaxed">
-            차세대 서버 관리 솔루션으로
-            <br />
-            <strong className="text-white">스마트한 모니터링을 경험하세요</strong>
+          <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
+            차세대 {renderTextWithAIGradient('AI 에이전트')}와 함께하는 지능형 서버 관리 솔루션
           </p>
-          
-          {/* 시스템 상태 표시 */}
-          {isSystemStarted && (
-            <motion.div 
-              className="mt-4 p-3 bg-white/10 backdrop-blur-sm rounded-lg max-w-md mx-auto"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <div className="flex items-center justify-center gap-3 text-white/90">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium">
-                  시스템 운영 중 ({formatTime(systemTimeRemaining)} 남음)
-                </span>
-                {aiAgent.isEnabled && (
-                  <>
-                    <div className="w-1 h-4 bg-white/30"></div>
-                    <span className="text-sm text-purple-300">AI 활성</span>
-                  </>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </div>
+        </motion.div>
 
-        {/* 시스템 제어 섹션 */}
+        {/* 제어 패널 */}
         <motion.div
           className="mb-12"
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
@@ -343,21 +232,6 @@ export default function Home() {
               
               {/* 손가락 표시 애니메이션 */}
               <div className="relative mb-6">
-                <motion.div
-                  className="absolute -top-12 left-1/2 transform -translate-x-1/2 text-2xl"
-                  animate={{
-                    y: [0, -10, 0],
-                    rotate: [0, 10, -10, 0]
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                >
-                  👇
-                </motion.div>
-                
                 <motion.button
                   onClick={handleSystemToggle}
                   disabled={isLoading}
@@ -372,9 +246,25 @@ export default function Home() {
                   )}
                   <span>{isLoading ? '시작 중...' : '🚀 시스템 시작 (30분)'}</span>
                 </motion.button>
+                
+                {/* 손가락 아이콘 - 버튼 아래에서 위로 가리키도록 수정 */}
+                <motion.div
+                  className="absolute top-full left-1/2 -translate-x-1/2 mt-3 sm:mt-4 text-2xl pointer-events-none z-[60] rotate-180"
+                  animate={{
+                    y: [0, 8, 0],
+                    rotate: [180, 170, 190, 180]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  👇
+                </motion.div>
               </div>
               
-                  <p className="text-white/80 text-sm">
+              <p className="text-white/80 text-sm">
                 <strong>통합 시스템 시작:</strong> 서버 시딩 → 시뮬레이션 → 데이터 생성<br />
                 30분간 모든 서비스가 자동으로 순차 시작됩니다
               </p>
@@ -401,7 +291,7 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 {/* AI 에이전트 버튼 */}
                 <motion.button
-                  onClick={handleAIAgentToggle}
+                  onClick={handleAIAgentInfo}
                   className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 border ${
                     aiAgent.isEnabled
                       ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 text-purple-300 border-purple-500/50'
@@ -433,22 +323,6 @@ export default function Home() {
 
                 {/* 대시보드 버튼 */}
                 <div className="relative">
-                  {/* 손가락 애니메이션 - 대시보드 들어가기 버튼 가이드 */}
-                  <motion.div
-                    className="absolute -top-12 left-1/2 transform -translate-x-1/2 text-2xl pointer-events-none z-10"
-                    animate={{
-                      y: [0, -8, 0],
-                      rotate: [0, 15, -15, 0]
-                    }}
-                    transition={{
-                      duration: 2.5,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    👇
-                  </motion.div>
-
                   <motion.button
                     onClick={handleDashboardClick}
                     className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/50 rounded-xl font-medium transition-all duration-200"
@@ -458,22 +332,38 @@ export default function Home() {
                     <BarChart3 className="w-5 h-5" />
                     📊 대시보드 들어가기
                   </motion.button>
+                  
+                  {/* 손가락 아이콘 - 버튼 아래에서 위로 가리키도록 수정 */}
+                  <motion.div
+                    className="absolute top-full left-1/2 -translate-x-1/2 mt-2 sm:mt-3 text-2xl pointer-events-none z-[60] rotate-180"
+                    animate={{
+                      y: [0, 6, 0],
+                      rotate: [180, 165, 195, 180]
+                    }}
+                    transition={{
+                      duration: 2.5,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    👇
+                  </motion.div>
                 </div>
                 
                 {/* 시스템 중지 버튼 */}
                 <motion.button
                   onClick={handleSystemToggle}
-                    disabled={isLoading}
+                  disabled={isLoading}
                   className="flex items-center justify-center gap-2 px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/50 rounded-xl font-medium transition-all duration-200 disabled:opacity-75"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  >
-                    {isLoading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <StopCircle className="w-5 h-5" />
-                    )}
-                    <span>{isLoading ? '중지 중...' : '⏹️ 시스템 중지'}</span>
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <StopCircle className="w-5 h-5" />
+                  )}
+                  <span>{isLoading ? '중지 중...' : '⏹️ 시스템 중지'}</span>
                 </motion.button>
               </div>
 
@@ -487,8 +377,9 @@ export default function Home() {
         {/* 기능 카드 그리드 */}
         <div className="mb-12">
           <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
-              핵심 <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">기능</span>
+            <h2 className="text-2xl md:text-3xl font-bold mb-3">
+              <span className="text-fuchsia-400">핵심</span>{' '}
+              <span className="text-white">기능</span>
             </h2>
             <p className="text-white/70 text-base max-w-2xl mx-auto">
               {renderTextWithAIGradient('AI 기반 서버 모니터링의 모든 것을 경험해보세요')}
@@ -508,17 +399,6 @@ export default function Home() {
 
       {/* 토스트 알림 컨테이너 */}
       <ToastContainer />
-
-      {/* AI 에이전트 인증 모달 */}
-      <UnifiedAuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onSubmit={handleAuthSubmit}
-        isLocked={isLocked}
-        attempts={attempts}
-        lockoutEndTime={lockoutEndTime}
-        clickPosition={clickPosition}
-      />
     </div>
   );
 } 

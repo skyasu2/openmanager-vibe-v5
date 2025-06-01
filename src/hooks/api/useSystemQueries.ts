@@ -211,16 +211,17 @@ export const useSystemHealth = (options?: {
   return useQuery({
     queryKey: systemKeys.health(),
     queryFn: fetchSystemHealth,
-    refetchInterval: options?.refetchInterval ?? 30000, // 30초 간격으로 증가 (이전 5초)
-    staleTime: 20000, // 20초 동안 fresh 상태 유지 (이전 2초)
-    gcTime: 5 * 60 * 1000, // 5분간 캐시 보관 (이전 cacheTime 없음)
+    refetchInterval: options?.refetchInterval ?? 60000, // 30초 → 60초로 증가하여 호출 빈도 감소
+    staleTime: 45000, // 20초 → 45초로 증가하여 캐시 효율성 향상
+    gcTime: 10 * 60 * 1000, // 5분 → 10분으로 증가하여 캐시 보관 시간 연장
     enabled: options?.enabled ?? true,
-    retry: 2, // 재시도 횟수 감소 (이전 3회)
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000), // 최대 10초
+    retry: 1, // 재시도 횟수 감소 (2회 → 1회)
+    retryDelay: (attemptIndex) => Math.min(2000 * 2 ** attemptIndex, 15000), // 재시도 간격 증가 (최대 15초)
     refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 비활성화
-    refetchOnMount: true, // 마운트 시에만 재요청
+    refetchOnMount: 'always', // 마운트 시 항상 재요청
     refetchOnReconnect: true, // 재연결 시 재요청 활성화
     placeholderData: keepPreviousData,
+    throwOnError: false, // 에러 발생 시 throw하지 않고 에러 상태 반환
     select: (data) => ({
       ...data,
       overallHealth: calculateOverallHealth(data),

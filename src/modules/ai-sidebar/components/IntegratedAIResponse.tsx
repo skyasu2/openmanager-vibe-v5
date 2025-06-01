@@ -11,7 +11,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useLangGraphThinking } from '../../../components/ai/modal-v2/hooks/useLangGraphThinking';
 import { timerManager } from '../../../utils/TimerManager';
 import { RealTimeLogEngine, RealTimeLogEntry } from '../../ai-agent/core/RealTimeLogEngine';
 

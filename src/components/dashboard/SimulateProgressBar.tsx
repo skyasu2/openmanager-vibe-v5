@@ -83,10 +83,7 @@ const SimulateProgressBar: React.FC<SimulateProgressBarProps> = memo(({
   const handleStepChange = useCallback((step: number, description: string) => {
     if (showToastNotifications) {
       const stepNumber = step + 1;
-      info(`🔄 단계 ${stepNumber}: ${description}`, {
-        duration: 3000,
-        dismissible: true
-      });
+      info(`🔄 단계 ${stepNumber}: ${description}`);
     }
     onStepChange?.(step, description);
   }, [showToastNotifications, onStepChange, info]);
@@ -102,10 +99,7 @@ const SimulateProgressBar: React.FC<SimulateProgressBarProps> = memo(({
   useEffect(() => {
     if (isComplete && onComplete && !error) {
       if (showToastNotifications) {
-        success('🎉 시뮬레이션 완료! 시스템이 성공적으로 준비되었습니다.', {
-          duration: 5000,
-          dismissible: true
-        });
+        success('🎉 시뮬레이션 완료! 시스템이 성공적으로 준비되었습니다.');
       }
       const timer = setTimeout(onComplete, 1000);
       return () => clearTimeout(timer);
@@ -115,10 +109,7 @@ const SimulateProgressBar: React.FC<SimulateProgressBarProps> = memo(({
   // 오류 발생시 토스트 알림
   useEffect(() => {
     if (error && showToastNotifications) {
-      showError(`❌ 시뮬레이션 오류: ${error}`, {
-        duration: 7000,
-        dismissible: true
-      });
+      showError(`❌ 시뮬레이션 오류: ${error}`);
     }
   }, [error, showToastNotifications, showError]);
 

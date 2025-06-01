@@ -204,8 +204,8 @@ export const AIAgentProvider: React.FC<AIAgentProviderProps> = ({
 
     initialize();
 
-    // 정기적 헬스체크 (5분마다)
-    const healthInterval = setInterval(checkHealth, 5 * 60 * 1000);
+    // 정기적 헬스체크 (10분마다 - 이전 5분에서 증가)
+    const healthInterval = setInterval(checkHealth, 10 * 60 * 1000);
     
     return () => {
       clearInterval(healthInterval);

@@ -261,8 +261,10 @@ export default function FeatureCards() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            실제 구현된 <span className="text-white">핵심 기능</span>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            <span className="text-white">실제 구현된</span>{' '}
+            <span className="text-fuchsia-400">핵심</span>{' '}
+            <span className="text-white">기능</span>
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             발표 가능한 실제 성과와 측정 가능한 개선사항들을 확인해보세요
