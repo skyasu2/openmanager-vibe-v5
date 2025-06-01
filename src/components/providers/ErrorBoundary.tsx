@@ -39,6 +39,48 @@ export class AIAgentErrorBoundary extends Component<ErrorBoundaryProps, ErrorBou
   }
 
   componentDidCatch(error: Error, errorInfo: any) {
+    // 🚨 React minified error #185 전용 처리
+    if (error.message.includes('Minified React error #185')) {
+      console.error('🚨 [ErrorBoundary] React #185 오류 감지 - Zustand 상태 관리 문제:', {
+        error: error.message,
+        stack: error.stack,
+        errorInfo,
+        url: 'https://react.dev/errors/185'
+      });
+      
+      // 상태 저장소 정리 시도
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          const storeKeys = Object.keys(localStorage).filter(key => 
+            key.includes('system-store') || 
+            key.includes('unified-admin-storage') ||
+            key.includes('power-store')
+          );
+          storeKeys.forEach(key => {
+            try {
+              localStorage.removeItem(key);
+              console.log(`🧹 [ErrorBoundary] 정리된 스토어: ${key}`);
+            } catch (e) {
+              console.warn(`⚠️ [ErrorBoundary] 스토어 정리 실패: ${key}`, e);
+            }
+          });
+        }
+      } catch (cleanupError) {
+        console.warn('⚠️ [ErrorBoundary] 상태 정리 중 오류:', cleanupError);
+      }
+    }
+    
+    // 🚨 Zustand 스토어 관련 오류 감지
+    if (error.message.includes('forceStoreRerender') || 
+        error.message.includes('setState') ||
+        error.stack?.includes('updateActivity')) {
+      console.error('🚨 [ErrorBoundary] Zustand 스토어 오류 감지:', {
+        error: error.message,
+        isZustandError: true,
+        component: errorInfo.componentStack
+      });
+    }
+
     console.error('🚨 AI Agent Error Boundary 감지된 오류:', error);
     console.error('📍 오류 정보:', errorInfo);
     
@@ -54,7 +96,7 @@ export class AIAgentErrorBoundary extends Component<ErrorBoundaryProps, ErrorBou
 
     // 개발 모드에서 상세 로깅
     if (process.env.NODE_ENV === 'development') {
-      console.group('🔍 Error Boundary 상세 정보');
+      console.group('🔍 [Dev] 상세 에러 정보');
       console.error('Error:', error);
       console.error('Error Info:', errorInfo);
       console.error('Component Stack:', errorInfo.componentStack);

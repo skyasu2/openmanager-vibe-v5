@@ -469,7 +469,18 @@ export function useSystemControl(): UseSystemControlReturn {
    * 📊 사용자 활동 업데이트
    */
   const recordActivity = useCallback(() => {
-    updateActivity();
+    try {
+      // 🚨 컴포넌트 언마운트 후 호출 방지
+      if (!updateActivity) {
+        console.warn('⚠️ [useSystemControl] recordActivity: updateActivity 함수가 없음 - 업데이트 중단');
+        return;
+      }
+      
+      updateActivity();
+    } catch (error) {
+      console.error('❌ [useSystemControl] recordActivity 실패:', error);
+      // 에러 발생 시에도 안전하게 계속 진행
+    }
   }, [updateActivity]);
 
   return {

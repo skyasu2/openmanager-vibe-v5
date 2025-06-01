@@ -85,17 +85,32 @@ export const useSystemStore = create<SystemStore>()(
       let inactivityTimer: NodeJS.Timeout | null = null;
 
       const clearTimers = () => {
-        if (timer) {
-          clearInterval(timer);
-          timer = null;
-        }
-        if (warningTimer) {
-          clearTimeout(warningTimer);
-          warningTimer = null;
-        }
-        if (inactivityTimer) {
-          clearTimeout(inactivityTimer);
-          inactivityTimer = null;
+        try {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+          if (inactivityTimer) {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = null;
+          }
+          
+          // 추가 안전장치: 모든 타이머 정리
+          const timers = [timer, inactivityTimer];
+          timers.forEach(t => {
+            if (t) {
+              try {
+                clearInterval(t);
+                clearTimeout(t);
+              } catch (e) {
+                console.warn('⚠️ [SystemStore] 타이머 정리 중 경고:', e);
+              }
+            }
+          });
+          
+          console.log('🧹 [SystemStore] 모든 타이머 정리 완료');
+        } catch (error) {
+          console.error('❌ [SystemStore] 타이머 정리 실패:', error);
         }
       };
 
@@ -313,15 +328,26 @@ export const useSystemStore = create<SystemStore>()(
         },
 
         updateActivity: () => {
-          set({ lastActivity: Date.now() });
-          
-          // 비활성 타이머 리셋 (AI 세션만)
-          const current = get();
-          if (current.state === 'active' && !current.userInitiated) {
-            if (inactivityTimer) {
-              clearTimeout(inactivityTimer);
+          try {
+            // 🚨 컴포넌트 언마운트 후 상태 업데이트 방지
+            const current = get();
+            if (!current) {
+              console.warn('⚠️ [SystemStore] updateActivity: 스토어 상태가 없음 - 업데이트 중단');
+              return;
             }
-            startInactivityTimer();
+
+            set({ lastActivity: Date.now() });
+            
+            // 비활성 타이머 리셋 (AI 세션만)
+            if (current.state === 'active' && !current.userInitiated) {
+              if (inactivityTimer) {
+                clearTimeout(inactivityTimer);
+              }
+              startInactivityTimer();
+            }
+          } catch (error) {
+            console.error('❌ [SystemStore] updateActivity 실패:', error);
+            // 에러 발생 시에도 안전하게 계속 진행
           }
         },
 
@@ -523,15 +549,30 @@ export const useSystemStore = create<SystemStore>()(
         },
 
         updateAIAgentQuery: () => {
-          set({
-            aiAgent: {
-              ...get().aiAgent,
-              totalQueries: get().aiAgent.totalQueries + 1
+          try {
+            // 🚨 컴포넌트 언마운트 후 상태 업데이트 방지
+            const current = get();
+            if (!current || !current.aiAgent) {
+              console.warn('⚠️ [SystemStore] updateAIAgentQuery: 스토어 상태가 없음 - 업데이트 중단');
+              return;
             }
-          });
-          
-          // 활동 업데이트
-          get().updateActivity();
+
+            set({
+              aiAgent: {
+                ...current.aiAgent,
+                totalQueries: current.aiAgent.totalQueries + 1
+              }
+            });
+            
+            // 활동 업데이트 - 안전하게 호출
+            const updateActivity = get().updateActivity;
+            if (updateActivity) {
+              updateActivity();
+            }
+          } catch (error) {
+            console.error('❌ [SystemStore] updateAIAgentQuery 실패:', error);
+            // 에러 발생 시에도 안전하게 계속 진행
+          }
         }
       };
     },
