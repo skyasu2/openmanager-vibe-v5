@@ -102,21 +102,27 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
             clearTimeout(currentTimer);
           }
           
+          // 상태 완전 초기화
           set((state) => ({ 
             ...state,
             isSystemStarted: false,
             systemStartTime: null,
             systemShutdownTimer: null,
-            // AI 기능 자동 종료
+            // AI 기능 완전 초기화
             aiAgent: { 
               isEnabled: false, 
               isAuthenticated: false, 
               state: 'disabled' 
-            }
+            },
+            // 인증 상태도 초기화 (보안 강화)
+            attempts: 0,
+            isLocked: false,
+            lockoutEndTime: null
           }));
           
           console.log('⏹️ [System] 시스템 정지됨 - 모든 기능 비활성화');
-          console.log('🤖 [AI] AI 에이전트 자동 비활성화');
+          console.log('🤖 [AI] AI 에이전트 완전 초기화');
+          console.log('🔐 [Auth] 인증 상태 초기화');
           
           // AI 모드가 활성화되어 있었다면 종료
           try {
@@ -125,14 +131,54 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
             console.warn('⚠️ [Timer] ModeTimerManager 정리 중 오류:', timerError);
           }
           
+          // 브라우저 저장소 정리 (선택적)
+          try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+              // AI 관련 임시 데이터 정리
+              const keysToRemove = Object.keys(localStorage).filter(key => 
+                key.startsWith('ai-temp-') || 
+                key.startsWith('agent-cache-') ||
+                key.startsWith('processing-state-')
+              );
+              keysToRemove.forEach(key => localStorage.removeItem(key));
+              console.log('🧹 [Cleanup] 임시 AI 데이터 정리 완료');
+            }
+          } catch (cleanupError) {
+            console.warn('⚠️ [Cleanup] 브라우저 저장소 정리 중 오류:', cleanupError);
+          }
+          
           // 시스템 종료 이벤트 발생
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('system:stopped', {
-              detail: { timestamp: Date.now() }
+              detail: { 
+                timestamp: Date.now(),
+                fullReset: true 
+              }
             }));
           }
         } catch (error) {
           console.error('❌ [System] 시스템 정지 실패:', error);
+          
+          // 에러 발생 시에도 강제 초기화
+          try {
+            set((state) => ({ 
+              ...state,
+              isSystemStarted: false,
+              systemStartTime: null,
+              systemShutdownTimer: null,
+              aiAgent: { 
+                isEnabled: false, 
+                isAuthenticated: false, 
+                state: 'disabled' 
+              },
+              attempts: 0,
+              isLocked: false,
+              lockoutEndTime: null
+            }));
+            console.log('🔧 [System] 강제 초기화 완료');
+          } catch (forceResetError) {
+            console.error('❌ [System] 강제 초기화도 실패:', forceResetError);
+          }
         }
       },
       
