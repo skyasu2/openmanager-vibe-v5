@@ -390,12 +390,12 @@ export default function Home() {
                     )}
                   </motion.button>
                   
-                  {/* 손가락 아이콘 + 클릭 문구 - 중앙 정렬 & 애니메이션 */}
+                  {/* AI 에이전트 버튼에는 손가락 표시 제거 */}
                   <div className="mt-2 flex justify-center">
-                    <span className="animate-wiggle text-yellow-400 text-xl">👉</span>
+                    <span className="text-transparent text-xl">👆</span>
                   </div>
                   <div className="mt-1 flex justify-center">
-                    <span className="text-white text-xs opacity-70 animate-point-bounce">클릭하세요</span>
+                    <span className="text-transparent text-xs opacity-0">클릭하세요</span>
                   </div>
                 </div>
 
@@ -411,9 +411,9 @@ export default function Home() {
                     📊 대시보드 들어가기
                   </motion.button>
                   
-                  {/* 손가락 아이콘 + 클릭 문구 - 중앙 정렬 & 애니메이션 */}
+                  {/* 손가락 아이콘 + 클릭 문구 - 대시보드에만 표시, 위를 향하는 이모지로 변경 */}
                   <div className="mt-2 flex justify-center">
-                    <span className="animate-wiggle text-yellow-400 text-xl">👉</span>
+                    <span className="animate-wiggle text-yellow-400 text-xl">👆</span>
                   </div>
                   <div className="mt-1 flex justify-center">
                     <span className="text-white text-xs opacity-70 animate-point-bounce">클릭하세요</span>
@@ -437,12 +437,12 @@ export default function Home() {
                     <span>{isLoading ? '중지 중...' : '⏹️ 시스템 중지'}</span>
                   </motion.button>
                   
-                  {/* 손가락 아이콘 + 클릭 문구 - 중앙 정렬 & 애니메이션 */}
+                  {/* 시스템 중지 버튼에는 손가락 표시 제거 */}
                   <div className="mt-2 flex justify-center">
-                    <span className="animate-wiggle text-yellow-400 text-xl">👉</span>
+                    <span className="text-transparent text-xl">👆</span>
                   </div>
                   <div className="mt-1 flex justify-center">
-                    <span className="text-white text-xs opacity-70 animate-point-bounce">클릭하세요</span>
+                    <span className="text-transparent text-xs opacity-0">클릭하세요</span>
                   </div>
                 </div>
               </div>
