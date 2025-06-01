@@ -1,7 +1,7 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.18.0",
-  "description": "🎯 AI 기반 차세대 지능형 인프라 모니터링 플랫폼 - v5.18.0: Finger Pointer 위치 수정, UI 가이드 개선, Vercel 빌드 최적화",
+  "version": "5.19.0",
+  "description": "🤖 AI 기반 차세대 지능형 인프라 모니터링 플랫폼 - v5.19.0: AI 에이전트 시스템 통합, Smart Query API, 실시간 모니터링 연동, 코드 정리 완료",
   "private": true,
   "keywords": [
     "ai-agent",
