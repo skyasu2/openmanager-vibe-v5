@@ -200,6 +200,7 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
     };
 
     processQuestion();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isProcessing, safeQuestion, logEngine, onComplete]);
 
   /**

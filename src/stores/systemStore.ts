@@ -81,7 +81,6 @@ export const useSystemStore = create<SystemStore>()(
   persist(
     (set, get) => {
       let timer: NodeJS.Timeout | null = null;
-      let warningTimer: NodeJS.Timeout | null = null;
       let inactivityTimer: NodeJS.Timeout | null = null;
 
       const clearTimers = () => {
