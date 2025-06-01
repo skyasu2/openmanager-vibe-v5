@@ -17,8 +17,36 @@ export const useAIResponseFormatter = () => {
   const [isFormatting, setIsFormatting] = useState(false);
   const [error, setError] = useState<ErrorState | null>(null);
 
-  // 🎯 키워드 패턴 매핑 (메모화)
-  const keywordPatterns = useMemo(() => ({
+  // 🎯 6W1H 패턴 매핑 (메모화)
+  const sixWPatterns = useMemo(() => ({
+    who: {
+      ko: /(?:누가|관리자|시스템|사용자|AI|에이전트|운영자)/i,
+      en: /(?:who|admin|system|user|ai|agent|operator)/i
+    },
+    what: {
+      ko: /(?:무엇을|작업|분석|모니터링|처리|실행|관리|제어)/i,
+      en: /(?:what|task|analysis|monitoring|processing|execution|management|control)/i
+    },
+    when: {
+      ko: /(?:언제|시간|현재|실시간|지속적|즉시|정기적)/i,
+      en: /(?:when|time|current|realtime|continuous|immediate|regular)/i
+    },
+    where: {
+      ko: /(?:어디서|위치|서버|시스템|환경|플랫폼|OpenManager)/i,
+      en: /(?:where|location|server|system|environment|platform|OpenManager)/i
+    },
+    why: {
+      ko: /(?:왜|이유|목적|안정성|성능|최적화|보안|효율성)/i,
+      en: /(?:why|reason|purpose|stability|performance|optimization|security|efficiency)/i
+    },
+    how: {
+      ko: /(?:어떻게|방법|자동|수동|AI기반|알고리즘|프로세스)/i,
+      en: /(?:how|method|automatic|manual|ai-based|algorithm|process)/i
+    }
+  }), []);
+
+  // 🎯 키워드-아이콘 매핑 (메모화)
+  const keywordIcons = useMemo(() => ({
     // 시스템 관련
     '시스템': '🖥️',
     '서버': '🌐',
@@ -144,18 +172,19 @@ export const useAIResponseFormatter = () => {
   }, []);
 
   // 신뢰도 계산
-  const calculateConfidence = useCallback((text: string, patterns: typeof keywordPatterns, language: 'ko' | 'en') => {
+  const calculateConfidence = useCallback((text: string, language: 'ko' | 'en') => {
     let matches = 0;
     const total = 6;
 
-    Object.values(patterns).forEach(pattern => {
+    // 6W1H 패턴 매칭 확인
+    Object.values(sixWPatterns).forEach(pattern => {
       if (pattern[language].test(text)) {
         matches++;
       }
     });
 
     return Math.min(matches / total + 0.3, 1.0); // 최소 0.3, 최대 1.0
-  }, []);
+  }, [sixWPatterns]);
 
   // 구조화된 응답 파싱 (형식: "누가: 내용\n무엇을: 내용...")
   const parseStructuredResponse = useCallback((response: string, language: 'ko' | 'en'): SixWPrincipleResponse => {
@@ -197,7 +226,7 @@ export const useAIResponseFormatter = () => {
       }
       
       // 키워드 기반 파싱
-      const patterns = keywordPatterns;
+      const patterns = sixWPatterns;
       
       const who = extractSection(rawResponse, [patterns.who[language]], 
         enableFallback ? 'AI 시스템' : '정보 없음');
@@ -218,7 +247,7 @@ export const useAIResponseFormatter = () => {
         enableFallback ? 'AI 기반 자동 분석 및 모니터링' : '정보 없음');
 
       // 신뢰도 계산 (키워드 매칭 기반)
-      const confidence = calculateConfidence(rawResponse, patterns, language);
+      const confidence = calculateConfidence(rawResponse, language);
 
       return {
         who,
@@ -235,7 +264,7 @@ export const useAIResponseFormatter = () => {
       console.error('❌ 응답 파싱 실패:', error);
       throw new Error('응답 파싱 중 오류가 발생했습니다.');
     }
-  }, [extractSection, calculateConfidence, keywordPatterns, parseStructuredResponse]);
+  }, [extractSection, calculateConfidence, sixWPatterns, parseStructuredResponse]);
 
   // 메인 포맷 함수
   const formatResponse = useCallback(async (
