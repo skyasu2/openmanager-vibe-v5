@@ -72,6 +72,23 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [systemTimeRemaining, setSystemTimeRemaining] = useState(0);
   
+  // 🔧 상태 변화 디버깅
+  useEffect(() => {
+    console.log('🔍 Home - 시스템 상태 변화:', {
+      isSystemStarted,
+      aiAgentEnabled: aiAgent.isEnabled,
+      aiAgentState: aiAgent.state,
+      timeRemaining: systemTimeRemaining
+    });
+  }, [isSystemStarted, aiAgent.isEnabled, aiAgent.state, systemTimeRemaining]);
+
+  // 🛡️ 상태 불일치 방지 - AI 에이전트가 시스템 중지 시 비활성화되는지 확인
+  useEffect(() => {
+    if (!isSystemStarted && aiAgent.isEnabled) {
+      console.warn('⚠️ 상태 불일치 감지: 시스템이 중지되었지만 AI 에이전트가 여전히 활성 상태');
+    }
+  }, [isSystemStarted, aiAgent.isEnabled]);
+
   // 시스템 타이머 업데이트
   useEffect(() => {
     if (isSystemStarted) {
@@ -80,7 +97,7 @@ export default function Home() {
         setSystemTimeRemaining(remaining);
       };
       
-      updateTimer();
+      updateTimer(); // 즉시 실행
       const interval = setInterval(updateTimer, 1000);
       
       return () => clearInterval(interval);

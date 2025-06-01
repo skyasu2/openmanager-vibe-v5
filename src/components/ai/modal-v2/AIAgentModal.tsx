@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
@@ -64,11 +64,77 @@ export default function AIAgentModal({
   const [isLoading, setIsLoading] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [activeTab, setActiveTab] = useState<'chat' | 'thinking' | 'settings'>('chat');
+  
+  const modalRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // AI Agent 상태 - 임시 기본값
   const isEnabled = true;
   const status = 'enabled';
   
+  // 🔧 모달 열림 시 포커스 관리
+  useEffect(() => {
+    if (isOpen && !isMinimized) {
+      // 약간의 지연 후 입력 필드에 포커스
+      const timeoutId = setTimeout(() => {
+        if (activeTab === 'chat' && inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isOpen, isMinimized, activeTab]);
+
+  // 🛡️ ESC 키 처리
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape, { capture: true });
+    return () => document.removeEventListener('keydown', handleEscape, { capture: true });
+  }, [isOpen, onClose]);
+
+  // 🛡️ 외부 클릭 처리
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    // 약간의 지연을 두어 모달 열림과 충돌 방지
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, onClose]);
+
+  // 🛡️ Body 스크롤 방지
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   // 임시 sendMessage 함수
   const sendMessage = async (message: string, context?: any) => {
     // 실제 구현 시 AI 서비스와 연동
@@ -219,6 +285,7 @@ export default function AIAgentModal({
           initial="hidden"
           animate="visible"
           exit="exit"
+          ref={modalRef}
         >
           {/* 헤더 */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
@@ -340,6 +407,7 @@ export default function AIAgentModal({
                       className="flex-1 p-3 border border-gray-300 dark:border-gray-600 rounded-lg resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                       rows={2}
                       disabled={isLoading}
+                      ref={inputRef}
                     />
                     <Button
                       onClick={handleSendMessage}

@@ -155,15 +155,38 @@ const UnifiedSettingsPanel = ({
   const handleGeneratorCheck = async () => {
     try {
       info('서버 데이터 생성기 상태를 확인하고 있습니다...');
-      // 실제 API 호출로 대체 예정
-      const response = await fetch('/api/data-generator');
+      
+      // 🛡️ API 호출 시간 제한 설정
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 제한
+      
+      const response = await fetch('/api/data-generator', {
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      clearTimeout(timeoutId);
+      
       if (response.ok) {
-        success('서버 데이터 생성기가 정상 동작중입니다.');
+        const data = await response.json();
+        success(`서버 데이터 생성기가 정상 동작중입니다. ${data?.status ? `(상태: ${data.status})` : ''}`);
+      } else if (response.status === 404) {
+        warning('서버 데이터 생성기 엔드포인트를 찾을 수 없습니다.');
       } else {
-        warning('서버 데이터 생성기 상태 확인에 실패했습니다.');
+        const errorData = await response.json().catch(() => null);
+        warning(`서버 데이터 생성기 상태 확인에 실패했습니다. (${response.status}${errorData?.message ? `: ${errorData.message}` : ''})`);
       }
     } catch (err: any) {
-      error('서버 데이터 생성기 연결에 실패했습니다.');
+      if (err.name === 'AbortError') {
+        error('서버 데이터 생성기 상태 확인이 시간 초과되었습니다.');
+      } else if (err.code === 'ENOTFOUND' || err.message?.includes('fetch')) {
+        error('네트워크 연결을 확인해주세요.');
+      } else {
+        error(`서버 데이터 생성기 연결에 실패했습니다: ${err.message || '알 수 없는 오류'}`);
+      }
+      console.error('🔍 Generator Check Error:', err);
     }
   };
 
@@ -171,15 +194,38 @@ const UnifiedSettingsPanel = ({
   const handleMonitorCheck = async () => {
     try {
       info('서버 모니터링 시스템을 확인하고 있습니다...');
-      // 실제 API 호출로 대체 예정
-      const response = await fetch('/api/health');
+      
+      // 🛡️ API 호출 시간 제한 설정
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 제한
+      
+      const response = await fetch('/api/health', {
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      clearTimeout(timeoutId);
+      
       if (response.ok) {
-        success('서버 모니터링 시스템이 정상 동작중입니다.');
+        const data = await response.json();
+        success(`서버 모니터링 시스템이 정상 동작중입니다. ${data?.uptime ? `(업타임: ${data.uptime})` : ''}`);
+      } else if (response.status === 404) {
+        warning('서버 모니터링 엔드포인트를 찾을 수 없습니다.');
       } else {
-        warning('서버 모니터링 상태 확인에 실패했습니다.');
+        const errorData = await response.json().catch(() => null);
+        warning(`서버 모니터링 상태 확인에 실패했습니다. (${response.status}${errorData?.message ? `: ${errorData.message}` : ''})`);
       }
     } catch (err: any) {
-      error('서버 모니터링 시스템 연결에 실패했습니다.');
+      if (err.name === 'AbortError') {
+        error('서버 모니터링 상태 확인이 시간 초과되었습니다.');
+      } else if (err.code === 'ENOTFOUND' || err.message?.includes('fetch')) {
+        error('네트워크 연결을 확인해주세요.');
+      } else {
+        error(`서버 모니터링 시스템 연결에 실패했습니다: ${err.message || '알 수 없는 오류'}`);
+      }
+      console.error('🔍 Monitor Check Error:', err);
     }
   };
 

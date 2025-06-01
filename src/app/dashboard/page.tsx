@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useState, useEffect } from 'react';
 import { useDashboardLogic } from '../../hooks/useDashboardLogic';
 import { SystemBootSequence } from '../../components/dashboard/transition';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
@@ -142,6 +142,32 @@ export default function DashboardPage() {
     // Server generation
     serverGeneration
   } = useDashboardLogic();
+
+  const {
+    isSystemStarted,
+    getSystemRemainingTime
+  } = useUnifiedAdminStore();
+
+  // 🛡️ 대시보드 진입 시 시스템 상태 검증
+  useEffect(() => {
+    if (isClient) {
+      console.log('📊 [Dashboard] 페이지 진입 - 시스템 상태 검증');
+      
+      if (!isSystemStarted) {
+        console.warn('⚠️ [Dashboard] 시스템이 비활성 상태에서 대시보드 접근');
+      } else {
+        const remainingTime = getSystemRemainingTime();
+        console.log(`✅ [Dashboard] 시스템 활성 확인 - 남은 시간: ${Math.floor(remainingTime / 1000)}초`);
+      }
+    }
+  }, [isClient, isSystemStarted, getSystemRemainingTime]);
+
+  // 🧹 컴포넌트 언마운트 시 정리
+  useEffect(() => {
+    return () => {
+      console.log('🧹 [Dashboard] 페이지 언마운트 - 리소스 정리');
+    };
+  }, []);
 
   // AI 상태 가져오기
   const { aiAgent } = useUnifiedAdminStore();
