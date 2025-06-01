@@ -70,11 +70,11 @@ export function useDashboardLogic() {
   }, []);
   
   const [state, setState] = useState<DashboardLogicState>({
-    isBootSequenceComplete: false,
-    showBootSequence: true,
-    loadingPhase: 'system-starting',
-    progress: 0,
-    skipAnimation: false,
+    isBootSequenceComplete: true,
+    showBootSequence: false,
+    loadingPhase: 'completed',
+    progress: 100,
+    skipAnimation: true,
     errorCount: 0,
     emergencyModeActive: false
   });
