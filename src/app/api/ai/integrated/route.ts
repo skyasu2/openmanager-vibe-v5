@@ -4,10 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { IntegratedAIEngine } from '@/core/ai/integrated-ai-engine';
-
-// 통합 AI 엔진 인스턴스
-const aiEngine = IntegratedAIEngine.getInstance();
+import { getAIEngine } from '@/core/ai/integrated-ai-engine';
 
 /**
  * 🎯 통합 AI 분석 요청 처리
@@ -36,61 +33,54 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // AI 엔진 초기화 (필요시)
-    try {
-      await aiEngine.initialize();
-    } catch (initError) {
-      console.error('❌ AI 엔진 초기화 실패:', initError);
+    // AI 엔진 인스턴스 가져오기
+    const aiEngine = getAIEngine();
+
+    // 기본 AI 분석 수행 (analyze 메서드 사용)
+    const analysisRequest = {
+      type: 'prediction' as const,
+      serverId: body.serverId,
+      data: body.data || body.metrics || {}
+    };
+
+    const result = await aiEngine.analyze(analysisRequest);
+
+    // 🔍 결과 검증 및 변환
+    if (!result || result.status === 'error') {
+      console.error('❌ AI 엔진 분석 실패:', result?.error);
       return NextResponse.json({
         success: false,
-        error: 'AI 엔진을 초기화할 수 없습니다',
-        message: 'AI 서비스가 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요.',
-        retryable: true
-      }, { status: 503 });
-    }
-
-    // 분석 수행
-    const result = await aiEngine.analyzeMetrics(
-      body.query,
-      body.metrics || [],
-      body.data || {}
-    );
-
-    // 🔍 결과 검증
-    if (!result || typeof result !== 'object') {
-      console.error('❌ AI 엔진에서 잘못된 결과:', result);
-      return NextResponse.json({
-        success: false,
-        error: 'AI 분석 결과가 올바르지 않습니다',
+        error: result?.error || 'AI 분석 실패',
         message: '분석을 완료할 수 없습니다. 다시 시도해주세요.'
       }, { status: 500 });
     }
 
     const totalTime = Date.now() - startTime;
 
+    // 결과를 기존 형식에 맞게 변환
+    const aiResult = result.result as any;
+    
     console.log('✅ 통합 AI 분석 완료:', {
-      success: result.success,
-      confidence: result.confidence,
+      success: result.status === 'success',
+      confidence: aiResult?.confidence,
       totalTime,
-      engine: 'integrated-typescript',
-      hasRecommendations: !!result.recommendations,
-      hasSummary: !!result.summary
+      engine: 'integrated-typescript'
     });
 
     return NextResponse.json({
       success: true,
       data: {
-        summary: result.summary || '분석이 완료되었습니다.',
-        confidence: result.confidence || 0.8,
-        recommendations: result.recommendations || [],
-        analysis_data: result.analysis_data || {}
+        summary: `AI 분석이 완료되었습니다. 신뢰도: ${((aiResult?.confidence || 0.8) * 100).toFixed(1)}%`,
+        confidence: aiResult?.confidence || 0.8,
+        recommendations: aiResult?.recommendations || ['시스템이 정상적으로 작동 중입니다.'],
+        analysis_data: aiResult?.predictions || {}
       },
       metadata: {
         engine: 'IntegratedAIEngine',
         engine_version: 'integrated-1.0.0',
         processing_time: totalTime,
         timestamp: new Date().toISOString(),
-        standalone: true // 외부 Python 서비스 불필요
+        standalone: true
       }
     });
 
@@ -99,37 +89,10 @@ export async function POST(request: NextRequest) {
     
     console.error('❌ 통합 AI 처리 오류:', {
       error: error.message,
-      stack: error.stack?.split('\n')[0], // 첫 번째 스택 라인만
       processingTime: totalTime,
       timestamp: new Date().toISOString()
     });
 
-    // 🔧 개발 모드에서 더 상세한 로깅
-    if (process.env.NODE_ENV === 'development') {
-      console.error('🔍 상세 에러 정보:', error);
-    }
-
-    // 🛡️ 에러 타입별 적절한 응답
-    if (error.name === 'SyntaxError') {
-      return NextResponse.json({
-        success: false,
-        error: '요청 데이터 형식이 올바르지 않습니다',
-        message: 'JSON 형식을 확인해주세요.',
-        code: 'INVALID_JSON'
-      }, { status: 400 });
-    }
-
-    if (error.message?.includes('timeout') || error.code === 'TIMEOUT') {
-      return NextResponse.json({
-        success: false,
-        error: 'AI 분석이 시간 초과되었습니다',
-        message: '요청이 너무 복잡하거나 시스템이 바쁩니다. 잠시 후 다시 시도해주세요.',
-        retryable: true,
-        code: 'TIMEOUT'
-      }, { status: 408 });
-    }
-
-    // 기본 500 에러 응답
     return NextResponse.json({
       success: false,
       error: '통합 AI 분석 중 오류가 발생했습니다',
@@ -150,9 +113,10 @@ export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url);
     const action = url.searchParams.get('action');
+    const aiEngine = getAIEngine();
 
     if (action === 'health') {
-      const status = aiEngine.getSystemStatus();
+      const status = aiEngine.getEngineStatus();
       
       return NextResponse.json({
         status: 'healthy',
@@ -165,7 +129,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (action === 'status') {
-      return NextResponse.json(aiEngine.getSystemStatus());
+      return NextResponse.json(aiEngine.getEngineStatus());
     }
 
     return NextResponse.json({

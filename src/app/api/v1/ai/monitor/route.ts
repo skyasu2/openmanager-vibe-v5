@@ -94,8 +94,8 @@ export async function POST(request: NextRequest) {
         sessionId: body.sessionId
       },
       options: {
-        enablePython: statusAssessment.overallLevel === 'critical', // 심각한 경우에만 Python 사용
-        enableJavaScript: true,
+        enableMCP: statusAssessment.overallLevel === 'critical', // 심각한 경우에만 MCP 도구 사용
+        enableAnalysis: true,
         maxResponseTime: 15000, // 모니터링은 빠르게
         confidenceThreshold: 0.6
       }

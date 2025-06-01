@@ -81,8 +81,8 @@ export async function POST(request: NextRequest) {
         urgency: body.context?.urgency || 'medium'
       },
       options: {
-        enablePython: body.options?.enablePython !== false,
-        enableJavaScript: body.options?.enableJavaScript !== false,
+        enableMCP: body.options?.enableMCP !== false,
+        enableAnalysis: body.options?.enableAnalysis !== false,
         maxResponseTime: body.options?.maxResponseTime || 30000,
         confidenceThreshold: body.options?.confidenceThreshold || 0.3
       }

@@ -5,11 +5,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { PythonWarmupService } from '@/services/ai/PythonWarmupService';
-import { IntegratedAIEngine } from '@/core/ai/integrated-ai-engine';
+import { getAIEngine } from '@/core/ai/integrated-ai-engine';
 
 // 서비스 인스턴스들
 const pythonWarmup = PythonWarmupService.getInstance();
-const integratedEngine = IntegratedAIEngine.getInstance();
 
 // ⚠️ 자동 웜업 제거 - 수동 시작 모드
 // pythonWarmup.startWarmupSystem(); // 제거됨
@@ -67,18 +66,25 @@ export async function POST(request: NextRequest) {
       try {
         console.log('🔄 통합 TypeScript 엔진 폴백...');
         
-        await integratedEngine.initialize();
+        const integratedEngine = getAIEngine();
         
-        const fallbackResult = await integratedEngine.analyzeMetrics(
-          body.query || '시스템 상태를 분석해주세요',
-          body.parameters?.metrics || [],
-          body.parameters || {}
-        );
+        const analysisRequest = {
+          type: 'prediction' as const,
+          serverId: body.context?.server_id,
+          data: body.parameters || {}
+        };
 
+        const fallbackResult = await integratedEngine.analyze(analysisRequest);
+
+        if (fallbackResult.status === 'error') {
+          throw new Error(fallbackResult.error || 'AI 분석 실패');
+        }
+
+        const aiResult = fallbackResult.result as any;
         const totalTime = Date.now() - startTime;
 
         console.log('✅ 폴백 분석 성공:', {
-          confidence: fallbackResult.confidence,
+          confidence: aiResult?.confidence,
           totalTime,
           engine: 'typescript-fallback'
         });
@@ -86,10 +92,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           data: {
-            summary: fallbackResult.summary,
-            confidence: fallbackResult.confidence * 0.9, // 폴백 패널티
-            recommendations: fallbackResult.recommendations,
-            analysis_data: fallbackResult.analysis_data
+            summary: `AI 분석이 완료되었습니다. 신뢰도: ${((aiResult?.confidence || 0.8) * 100).toFixed(1)}%`,
+            confidence: (aiResult?.confidence || 0.8) * 0.9, // 폴백 패널티
+            recommendations: aiResult?.recommendations || ['시스템이 정상적으로 작동 중입니다.'],
+            analysis_data: aiResult?.predictions || {}
           },
           metadata: {
             engine: 'IntegratedAI',
@@ -134,7 +140,8 @@ export async function GET(request: NextRequest) {
       // Python 서비스 상태 확인
       const pythonStatus = await pythonWarmup.checkPythonStatus();
       const warmupStats = pythonWarmup.getWarmupStats();
-      const integratedStatus = integratedEngine.getSystemStatus();
+      const integratedEngine = getAIEngine();
+      const integratedStatus = integratedEngine.getEngineStatus();
       
       return NextResponse.json({
         status: 'healthy',
@@ -150,10 +157,10 @@ export async function GET(request: NextRequest) {
             nextWarmup: warmupStats.nextWarmup
           },
           integrated: {
-            status: integratedStatus.initialized ? 'ready' : 'initializing',
-            uptime: integratedStatus.uptime,
-            requestCount: integratedStatus.requestCount,
-            version: integratedStatus.version
+            status: integratedStatus.isInitialized ? 'ready' : 'initializing',
+            totalModels: integratedStatus.totalModels,
+            loadedModels: integratedStatus.loadedModels,
+            activeAnalyses: integratedStatus.activeAnalyses
           }
         },
         strategy: 'python_primary_with_typescript_fallback',
@@ -177,7 +184,8 @@ export async function GET(request: NextRequest) {
     }
 
     if (action === 'integrated-status') {
-      return NextResponse.json(integratedEngine.getSystemStatus());
+      const integratedEngine = getAIEngine();
+      return NextResponse.json(integratedEngine.getEngineStatus());
     }
 
     return NextResponse.json({

@@ -8,7 +8,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { unifiedAIEngine, UnifiedAnalysisRequest } from '@/core/ai/UnifiedAIEngine';
+import { realAIProcessor } from '@/services/ai/RealAIProcessor';
+import { realPrometheusCollector } from '@/services/collectors/RealPrometheusCollector';
+import { getRedisClient } from '@/lib/redis';
 
 interface MetricsRequest {
   metrics: Array<{
@@ -38,7 +40,8 @@ const METRICS_CACHE_TTL = 60 * 1000; // 1분
  */
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
-  
+  console.log('📊 AI 메트릭 분석 요청 수신');
+
   try {
     const body: MetricsRequest = await request.json();
     
@@ -51,219 +54,207 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // 캐시 키 생성
+    // 캐시 확인
     const cacheKey = generateMetricsCacheKey(body);
     const cached = getCachedMetrics(cacheKey);
-    
     if (cached) {
-      console.log('🚀 메트릭 캐시 히트:', cacheKey);
+      console.log('💨 캐시된 메트릭 분석 결과 반환');
       return NextResponse.json({
         ...cached,
-        meta: {
-          ...cached.meta,
+        metadata: {
+          ...cached.metadata,
           cached: true,
           totalTime: Date.now() - startTime
         }
       });
     }
 
-    // 분석 타입에 따른 쿼리 생성
-    const query = generateAnalysisQuery(body.analysisType || 'comprehensive', body.metrics);
-
-    // UnifiedAnalysisRequest 구성
-    const analysisRequest: UnifiedAnalysisRequest = {
-      query,
+    // 실제 시스템 메트릭 수집
+    await realPrometheusCollector.initialize();
+    const currentMetrics = await realPrometheusCollector.collectMetrics();
+    
+    // AI 분석 수행
+    const aiAnalysis = await realAIProcessor.processQuery({
+      query: generateAnalysisQuery(body.analysisType || 'comprehensive', body.metrics),
       context: {
-        serverMetrics: body.metrics.map(metric => ({
-          timestamp: metric.timestamp,
-          cpu: metric.cpu,
-          memory: metric.memory,
-          disk: metric.disk,
-          networkIn: metric.networkIn || 0,
-          networkOut: metric.networkOut || 0,
-          responseTime: metric.responseTime || 0,
-          activeConnections: metric.activeConnections || 0
-        })),
-        timeRange: body.timeRange ? {
-          start: new Date(body.timeRange.start),
-          end: new Date(body.timeRange.end)
-        } : {
-          start: new Date(Date.now() - 24 * 60 * 60 * 1000),
-          end: new Date()
-        },
-        sessionId: body.sessionId,
-        urgency: determineUrgency(body.metrics)
+        serverMetrics: body.metrics,
+        systemState: currentMetrics
       },
       options: {
-        enablePython: true,
-        enableJavaScript: true,
-        maxResponseTime: 20000, // 메트릭 분석은 더 빠르게
-        confidenceThreshold: 0.5
+        model: 'gpt-3.5-turbo',
+        useCache: true,
+        usePython: false
       }
-    };
-
-    console.log('🔥 V1 메트릭 분석:', {
-      analysisType: body.analysisType,
-      metricsCount: body.metrics.length,
-      timeSpan: body.timeRange ? 'custom' : 'default',
-      urgency: analysisRequest.context?.urgency
     });
 
-    // UnifiedAIEngine으로 분석 수행
-    const result = await unifiedAIEngine.processQuery(analysisRequest);
-
-    // 메트릭 특화 응답 구성
-    const response = {
-      success: result.success,
-      
-      // 🧠 메트릭 분석 결과
-      data: {
-        analysis: {
-          ...result.analysis,
-          metricsInsights: extractMetricsInsights(body.metrics),
-          performanceScore: calculatePerformanceScore(body.metrics),
-          trends: analyzeTrends(body.metrics)
-        },
-        recommendations: enhanceRecommendations(result.recommendations, body.metrics),
-        alerts: generateAlerts(body.metrics)
+    // 메트릭 인사이트 생성
+    const insights = extractMetricsInsights(body.metrics);
+    const performanceScore = calculatePerformanceScore(body.metrics);
+    const trends = analyzeTrends(body.metrics);
+    
+    // 결과 구성
+    const result = {
+      success: true,
+      timestamp: new Date().toISOString(),
+      query: generateAnalysisQuery(body.analysisType || 'comprehensive', body.metrics),
+      analysis: {
+        intent: aiAnalysis.intent,
+        confidence: aiAnalysis.confidence,
+        summary: aiAnalysis.summary,
+        details: aiAnalysis.details,
+        urgency: aiAnalysis.urgency
       },
-      
-      // 🔧 메타데이터
-      meta: {
-        sessionId: result.metadata.sessionId,
+      insights,
+      performance: {
+        score: performanceScore,
+        grade: performanceScore >= 80 ? 'excellent' : performanceScore >= 60 ? 'good' : 'poor',
+        trends,
+        currentMetrics: {
+          cpu: currentMetrics.cpu.usage,
+          memory: currentMetrics.memory.usage,
+          disk: currentMetrics.disk.usage,
+          uptime: currentMetrics.server.uptime
+        }
+      },
+      recommendations: aiAnalysis.actions,
+      alerts: generateAlerts(body.metrics),
+      metadata: {
+        sessionId: body.sessionId || `metrics_${Date.now()}`,
         processingTime: Date.now() - startTime,
-        engines: result.engines,
-        apiVersion: 'v1.0.0',
-        analysisType: body.analysisType || 'comprehensive',
-        metricsCount: body.metrics.length,
-        timestamp: new Date().toISOString(),
-        cached: false
+        metricsAnalyzed: body.metrics.length,
+        realTimeData: true,
+        aiModel: aiAnalysis.model,
+        version: '2.1.0'
       }
     };
 
-    // 결과 캐싱
-    if (result.success) {
-      setCachedMetrics(cacheKey, response);
-    }
+    // 결과 캐시
+    setCachedMetrics(cacheKey, result);
 
-    console.log('✅ V1 메트릭 응답:', {
-      success: result.success,
-      performanceScore: response.data.analysis.performanceScore,
-      alertsCount: response.data.alerts.length,
-      totalTime: Date.now() - startTime
-    });
+    console.log(`✅ AI 메트릭 분석 완료 (${Date.now() - startTime}ms)`);
+    return NextResponse.json(result);
 
-    return NextResponse.json(response);
-
-  } catch (error: any) {
-    console.error('❌ V1 메트릭 API 오류:', error);
+  } catch (error) {
+    console.error('❌ AI 메트릭 분석 실패:', error);
     
     return NextResponse.json({
       success: false,
-      error: '메트릭 분석 중 오류가 발생했습니다',
-      code: 'METRICS_ANALYSIS_ERROR',
-      message: error.message,
-      meta: {
+      error: error instanceof Error ? error.message : '메트릭 분석 실패',
+      timestamp: new Date().toISOString(),
+      metadata: {
         processingTime: Date.now() - startTime,
-        apiVersion: 'v1.0.0',
-        timestamp: new Date().toISOString()
+        fallback: true
       }
     }, { status: 500 });
   }
 }
 
 /**
- * 🔍 메트릭 시스템 상태
+ * 📊 메트릭 분석 상태 조회
  */
 export async function GET(request: NextRequest) {
+  const startTime = Date.now();
+  
   try {
-    const url = new URL(request.url);
-    const action = url.searchParams.get('action');
+    const { searchParams } = new URL(request.url);
+    const sessionId = searchParams.get('sessionId');
+    const analysisType = searchParams.get('type') || 'status';
 
-    switch (action) {
+    let response: any = {};
+
+    switch (analysisType) {
       case 'health':
-        return NextResponse.json({
-          status: 'healthy',
-          version: 'v1.0.0',
-          cache: {
-            size: metricsCache.size,
-            ttl: METRICS_CACHE_TTL / 1000 + 's'
-          },
-          capabilities: [
-            'real-time metrics analysis',
-            'performance scoring',
-            'trend analysis',
-            'anomaly detection',
-            'predictive insights'
-          ],
-          timestamp: new Date().toISOString()
-        });
-
+        response = await realAIProcessor.healthCheck();
+        break;
+      
+      case 'collector':
+        response = await realPrometheusCollector.healthCheck();
+        break;
+      
+      case 'summary':
+        response = await realPrometheusCollector.getMetricsSummary();
+        break;
+      
       default:
-        return NextResponse.json({
-          name: 'Metrics Analysis API v1',
-          version: 'v1.0.0',
-          description: '서버 메트릭 전용 AI 분석',
-          analysisTypes: [
-            'performance - 성능 분석',
-            'anomaly - 이상 탐지', 
-            'trend - 트렌드 분석',
-            'prediction - 예측 분석',
-            'comprehensive - 종합 분석'
+        response = {
+          status: 'running',
+          version: '2.1.0',
+          features: [
+            'Real-time metrics collection',
+            'AI-powered analysis',
+            'Performance insights',
+            'Anomaly detection',
+            'Trend prediction'
           ],
-          endpoints: {
-            'POST /api/v1/ai/metrics': '메트릭 분석',
-            'GET /api/v1/ai/metrics?action=health': '시스템 상태'
-          },
-          timestamp: new Date().toISOString()
-        });
+          capabilities: {
+            aiModels: ['gpt-3.5-turbo', 'claude-3-haiku', 'gemini-1.5-flash', 'local-analyzer'],
+            collectors: ['system-metrics', 'prometheus', 'docker'],
+            analytics: ['performance', 'trends', 'anomalies', 'predictions']
+          }
+        };
     }
 
-  } catch (error: any) {
     return NextResponse.json({
-      status: 'error',
-      message: error.message,
-      timestamp: new Date().toISOString()
+      success: true,
+      data: response,
+      metadata: {
+        timestamp: new Date().toISOString(),
+        processingTime: Date.now() - startTime,
+        sessionId
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ 메트릭 분석 상태 조회 실패:', error);
+    
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : '상태 조회 실패',
+      metadata: {
+        processingTime: Date.now() - startTime
+      }
     }, { status: 500 });
   }
 }
 
-// 🔧 메트릭 유틸리티 함수들
+/**
+ * 🔧 유틸리티 함수들
+ */
 function generateMetricsCacheKey(body: MetricsRequest): string {
   const keyData = {
-    type: body.analysisType || 'comprehensive',
+    type: body.analysisType,
     count: body.metrics.length,
-    latest: body.metrics[body.metrics.length - 1]?.timestamp || '',
-    checksum: body.metrics.slice(-3).map(m => `${m.cpu}-${m.memory}-${m.disk}`).join('|')
+    latest: body.metrics[body.metrics.length - 1]?.timestamp
   };
-  return `metrics_${Buffer.from(JSON.stringify(keyData)).toString('base64').slice(0, 20)}`;
+  return `metrics:${Buffer.from(JSON.stringify(keyData)).toString('base64').substring(0, 32)}`;
 }
 
 function getCachedMetrics(key: string): any {
   const cached = metricsCache.get(key);
-  if (!cached) return null;
-  
-  if (Date.now() - cached.timestamp > METRICS_CACHE_TTL) {
-    metricsCache.delete(key);
-    return null;
+  if (cached && Date.now() - cached.timestamp < METRICS_CACHE_TTL) {
+    return cached.result;
   }
   
-  return cached.result;
+  if (cached) {
+    metricsCache.delete(key);
+  }
+  
+  return null;
 }
 
 function setCachedMetrics(key: string, result: any): void {
-  // 캐시 크기 제한 (500개)
-  if (metricsCache.size >= 500) {
+  metricsCache.set(key, {
+    result,
+    timestamp: Date.now()
+  });
+  
+  // 캐시 크기 제한 (최대 50개)
+  if (metricsCache.size > 50) {
     const firstKey = metricsCache.keys().next().value;
     if (firstKey) {
       metricsCache.delete(firstKey);
     }
   }
-  
-  metricsCache.set(key, {
-    result,
-    timestamp: Date.now()
-  });
 }
 
 function generateAnalysisQuery(type: string, metrics: any[]): string {
@@ -271,136 +262,119 @@ function generateAnalysisQuery(type: string, metrics: any[]): string {
   
   switch (type) {
     case 'performance':
-      return `현재 서버 성능 상태를 분석해주세요. CPU: ${latest.cpu}%, 메모리: ${latest.memory}%, 디스크: ${latest.disk}%`;
+      return `현재 서버 성능을 분석해주세요. CPU ${latest?.cpu}%, 메모리 ${latest?.memory}%, 디스크 ${latest?.disk}%`;
     case 'anomaly':
-      return `서버 메트릭에서 이상 징후를 탐지하고 분석해주세요. ${metrics.length}개의 데이터 포인트를 검토합니다.`;
+      return '시스템 메트릭에서 이상 징후가 있는지 분석해주세요';
     case 'trend':
-      return `서버 성능 트렌드를 분석하고 향후 예상 변화를 예측해주세요.`;
+      return '메트릭 트렌드를 분석하고 향후 예측을 제공해주세요';
     case 'prediction':
-      return `현재 메트릭 기반으로 향후 서버 성능을 예측하고 용량 계획을 수립해주세요.`;
+      return '시스템 리소스 사용량 예측과 용량 계획을 도와주세요';
     default:
-      return `서버 메트릭을 종합적으로 분석하여 성능 상태, 이상 징후, 트렌드, 예측을 제공해주세요.`;
+      return `종합적인 시스템 메트릭 분석을 수행해주세요. ${metrics.length}개의 데이터 포인트가 있습니다`;
   }
 }
 
 function determineUrgency(metrics: any[]): 'low' | 'medium' | 'high' | 'critical' {
   const latest = metrics[metrics.length - 1];
+  if (!latest) return 'low';
   
-  if (latest.cpu > 90 || latest.memory > 95 || latest.disk > 95) return 'critical';
-  if (latest.cpu > 80 || latest.memory > 85 || latest.disk > 90) return 'high';
-  if (latest.cpu > 70 || latest.memory > 75 || latest.disk > 80) return 'medium';
+  const maxUsage = Math.max(latest.cpu || 0, latest.memory || 0, latest.disk || 0);
+  
+  if (maxUsage >= 95) return 'critical';
+  if (maxUsage >= 85) return 'high';
+  if (maxUsage >= 70) return 'medium';
   return 'low';
 }
 
 function extractMetricsInsights(metrics: any[]): any {
+  if (metrics.length === 0) return { message: '분석할 메트릭이 없습니다' };
+
   const latest = metrics[metrics.length - 1];
-  const previous = metrics[metrics.length - 2] || latest;
-  
+  const avg = {
+    cpu: metrics.reduce((sum, m) => sum + (m.cpu || 0), 0) / metrics.length,
+    memory: metrics.reduce((sum, m) => sum + (m.memory || 0), 0) / metrics.length,
+    disk: metrics.reduce((sum, m) => sum + (m.disk || 0), 0) / metrics.length
+  };
+
   return {
-    current: latest,
-    changes: {
-      cpu: latest.cpu - previous.cpu,
-      memory: latest.memory - previous.memory,
-      disk: latest.disk - previous.disk
-    },
-    peaks: {
-      cpu: Math.max(...metrics.map(m => m.cpu)),
-      memory: Math.max(...metrics.map(m => m.memory)),
-      disk: Math.max(...metrics.map(m => m.disk))
+    current: {
+      cpu: latest?.cpu || 0,
+      memory: latest?.memory || 0,
+      disk: latest?.disk || 0,
+      timestamp: latest?.timestamp
     },
     averages: {
-      cpu: metrics.reduce((sum, m) => sum + m.cpu, 0) / metrics.length,
-      memory: metrics.reduce((sum, m) => sum + m.memory, 0) / metrics.length,
-      disk: metrics.reduce((sum, m) => sum + m.disk, 0) / metrics.length
-    }
+      cpu: Math.round(avg.cpu * 100) / 100,
+      memory: Math.round(avg.memory * 100) / 100,
+      disk: Math.round(avg.disk * 100) / 100
+    },
+    dataPoints: metrics.length,
+    timeSpan: `${Math.round((new Date(latest?.timestamp || Date.now()).getTime() - new Date(metrics[0]?.timestamp || Date.now()).getTime()) / 1000 / 60)} 분`
   };
 }
 
 function calculatePerformanceScore(metrics: any[]): number {
+  if (metrics.length === 0) return 0;
+
   const latest = metrics[metrics.length - 1];
-  
-  // 100점 만점 성능 점수 계산
-  const cpuScore = Math.max(0, 100 - latest.cpu);
-  const memoryScore = Math.max(0, 100 - latest.memory);
-  const diskScore = Math.max(0, 100 - latest.disk);
-  
-  return Math.round((cpuScore + memoryScore + diskScore) / 3);
+  const cpuScore = Math.max(0, (100 - (latest?.cpu || 0)) / 100);
+  const memoryScore = Math.max(0, (100 - (latest?.memory || 0)) / 100);
+  const diskScore = Math.max(0, (100 - (latest?.disk || 0)) / 100);
+
+  return Math.round((cpuScore + memoryScore + diskScore) / 3 * 100);
 }
 
 function analyzeTrends(metrics: any[]): any {
-  if (metrics.length < 3) {
-    return { status: 'insufficient_data' };
+  if (metrics.length < 2) {
+    return { cpu: 'stable', memory: 'stable', disk: 'stable' };
   }
-  
-  const recent = metrics.slice(-5);
-  const cpuTrend = calculateTrend(recent.map(m => m.cpu));
-  const memoryTrend = calculateTrend(recent.map(m => m.memory));
-  const diskTrend = calculateTrend(recent.map(m => m.disk));
-  
+
+  const cpuTrend = calculateTrend(metrics.slice(-5).map(m => m.cpu || 0));
+  const memoryTrend = calculateTrend(metrics.slice(-5).map(m => m.memory || 0));
+  const diskTrend = calculateTrend(metrics.slice(-5).map(m => m.disk || 0));
+
   return {
-    cpu: { direction: getTrendDirection(cpuTrend), value: cpuTrend },
-    memory: { direction: getTrendDirection(memoryTrend), value: memoryTrend },
-    disk: { direction: getTrendDirection(diskTrend), value: diskTrend }
+    cpu: getTrendDirection(cpuTrend),
+    memory: getTrendDirection(memoryTrend),
+    disk: getTrendDirection(diskTrend),
+    values: { cpu: cpuTrend, memory: memoryTrend, disk: diskTrend }
   };
 }
 
 function calculateTrend(values: number[]): number {
   if (values.length < 2) return 0;
-  const first = values[0];
-  const last = values[values.length - 1];
-  return ((last - first) / first) * 100;
+  return ((values[values.length - 1] - values[0]) / values.length);
 }
 
 function getTrendDirection(trend: number): string {
-  if (Math.abs(trend) < 2) return 'stable';
-  return trend > 0 ? 'increasing' : 'decreasing';
-}
-
-function enhanceRecommendations(baseRecommendations: string[], metrics: any[]): string[] {
-  const enhanced = [...baseRecommendations];
-  const latest = metrics[metrics.length - 1];
-  
-  // 메트릭 기반 추가 권장사항
-  if (latest.cpu > 85) {
-    enhanced.push('CPU 부하가 높습니다. 프로세스 최적화를 고려하세요.');
-  }
-  if (latest.memory > 90) {
-    enhanced.push('메모리 사용률이 위험 수준입니다. 즉시 메모리 정리가 필요합니다.');
-  }
-  if (latest.disk > 95) {
-    enhanced.push('디스크 공간이 거의 없습니다. 긴급한 정리 작업이 필요합니다.');
-  }
-  
-  return enhanced;
+  if (trend > 2) return 'increasing';
+  if (trend < -2) return 'decreasing';
+  return 'stable';
 }
 
 function generateAlerts(metrics: any[]): Array<{ level: string; message: string; metric: string }> {
-  const alerts = [];
+  const alerts: Array<{ level: string; message: string; metric: string }> = [];
   const latest = metrics[metrics.length - 1];
   
-  if (latest.cpu > 90) {
-    alerts.push({
-      level: 'critical',
-      message: `CPU 사용률이 ${latest.cpu}%로 위험 수준입니다`,
-      metric: 'cpu'
-    });
+  if (!latest) return alerts;
+
+  if (latest.cpu >= 90) {
+    alerts.push({ level: 'critical', message: `CPU 사용률이 위험 수준입니다 (${latest.cpu}%)`, metric: 'cpu' });
+  } else if (latest.cpu >= 80) {
+    alerts.push({ level: 'warning', message: `CPU 사용률이 높습니다 (${latest.cpu}%)`, metric: 'cpu' });
   }
-  
-  if (latest.memory > 95) {
-    alerts.push({
-      level: 'critical',
-      message: `메모리 사용률이 ${latest.memory}%로 위험 수준입니다`,
-      metric: 'memory'
-    });
+
+  if (latest.memory >= 90) {
+    alerts.push({ level: 'critical', message: `메모리 사용률이 위험 수준입니다 (${latest.memory}%)`, metric: 'memory' });
+  } else if (latest.memory >= 80) {
+    alerts.push({ level: 'warning', message: `메모리 사용률이 높습니다 (${latest.memory}%)`, metric: 'memory' });
   }
-  
-  if (latest.disk > 95) {
-    alerts.push({
-      level: 'critical',
-      message: `디스크 사용률이 ${latest.disk}%로 위험 수준입니다`,
-      metric: 'disk'
-    });
+
+  if (latest.disk >= 95) {
+    alerts.push({ level: 'critical', message: `디스크 사용률이 위험 수준입니다 (${latest.disk}%)`, metric: 'disk' });
+  } else if (latest.disk >= 85) {
+    alerts.push({ level: 'warning', message: `디스크 사용률이 높습니다 (${latest.disk}%)`, metric: 'disk' });
   }
-  
+
   return alerts;
 } 

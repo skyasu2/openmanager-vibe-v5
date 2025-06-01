@@ -230,6 +230,114 @@ const UnifiedSettingsPanel = ({
     }
   };
 
+  // 메트릭 생성 설정 처리
+  const handleMetricsConfig = async () => {
+    try {
+      success('메트릭 생성 설정을 확인합니다...');
+      
+      // 메트릭 설정 API 호출
+      const response = await fetch('/api/admin/metrics-config');
+      const config = await response.json();
+      
+      info(`현재 메트릭 설정: 간격 ${config.interval || 5}초, 패턴 ${config.realistic ? '현실적' : '기본'}`);
+    } catch (err: any) {
+      error('메트릭 설정 확인 실패');
+    }
+  };
+
+  // 시나리오 관리 처리
+  const handleScenarioManager = async () => {
+    try {
+      success('시나리오 관리자를 실행합니다...');
+      
+      // 시나리오 목록 조회
+      const response = await fetch('/api/admin/scenarios');
+      const scenarios = await response.json();
+      
+      info(`현재 시나리오: ${scenarios.active || 0}개 활성, ${scenarios.total || 0}개 총`);
+    } catch (err: any) {
+      error('시나리오 관리 실패');
+    }
+  };
+
+  // 알림 임계값 설정 처리
+  const handleThresholdConfig = async () => {
+    try {
+      success('알림 임계값 설정을 확인합니다...');
+      
+      // 임계값 설정 조회
+      const response = await fetch('/api/admin/thresholds');
+      const thresholds = await response.json();
+      
+      info(`현재 임계값: CPU ${thresholds.cpu || 80}%, 메모리 ${thresholds.memory || 85}%, 디스크 ${thresholds.disk || 90}%`);
+    } catch (err: any) {
+      error('임계값 설정 확인 실패');
+    }
+  };
+
+  // 대시보드 커스터마이징 처리
+  const handleDashboardCustomize = async () => {
+    try {
+      success('대시보드 설정을 확인합니다...');
+      
+      // 대시보드 설정 조회
+      const response = await fetch('/api/admin/dashboard-config');
+      const config = await response.json();
+      
+      info(`현재 대시보드: ${config.layout || 'grid'} 레이아웃, ${config.widgets || 0}개 위젯`);
+    } catch (err: any) {
+      error('대시보드 설정 확인 실패');
+    }
+  };
+
+  // 알림 설정 처리
+  const handleNotificationConfig = async () => {
+    try {
+      success('알림 설정을 확인합니다...');
+      
+      // 알림 설정 조회
+      const response = await fetch('/api/admin/notification-config');
+      const config = await response.json();
+      
+      info(`알림 설정: ${config.slack ? '슬랙 ' : ''}${config.email ? '이메일 ' : ''}${config.webhook ? '웹훅 ' : ''}활성화됨`);
+    } catch (err: any) {
+      error('알림 설정 확인 실패');
+    }
+  };
+
+  // 테마 설정 처리
+  const handleThemeConfig = async () => {
+    try {
+      success('테마 설정을 변경합니다...');
+      
+      // 현재 테마 토글 (다크 ↔ 라이트)
+      const currentTheme = localStorage.getItem('theme') || 'dark';
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      localStorage.setItem('theme', newTheme);
+      document.documentElement.setAttribute('data-theme', newTheme);
+      
+      success(`테마가 ${newTheme === 'dark' ? '다크' : '라이트'} 모드로 변경되었습니다!`);
+    } catch (err: any) {
+      error('테마 설정 변경 실패');
+    }
+  };
+
+  // 백업 설정 처리
+  const handleBackupConfig = async () => {
+    try {
+      success('백업 설정을 확인합니다...');
+      
+      // 백업 상태 조회
+      const response = await fetch('/api/admin/backup-status');
+      const status = await response.json();
+      
+      info(`백업 상태: 마지막 백업 ${status.lastBackup || '없음'}, 자동 백업 ${status.autoBackup ? '활성' : '비활성'}`);
+    } catch (err: any) {
+      error('백업 설정 확인 실패');
+    }
+  };
+
   if (!isOpen) return null;
 
   // Portal을 사용하여 모달을 body에 직접 렌더링
@@ -438,7 +546,7 @@ const UnifiedSettingsPanel = ({
                 </button>
 
                 <button
-                  onClick={() => info('메트릭 설정 기능이 곧 추가될 예정입니다.')}
+                  onClick={handleMetricsConfig}
                   className="w-full p-4 bg-blue-500/20 border border-blue-500/30 rounded-lg hover:bg-blue-500/30 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <h4 className="text-white font-medium mb-2">메트릭 생성 설정</h4>
@@ -448,7 +556,7 @@ const UnifiedSettingsPanel = ({
                 </button>
 
                 <button
-                  onClick={() => info('시나리오 관리 기능이 곧 추가될 예정입니다.')}
+                  onClick={handleScenarioManager}
                   className="w-full p-4 bg-green-500/20 border border-green-500/30 rounded-lg hover:bg-green-500/30 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
                   <h4 className="text-white font-medium mb-2">시나리오 관리</h4>
@@ -487,7 +595,7 @@ const UnifiedSettingsPanel = ({
                 </button>
 
                 <button
-                  onClick={() => info('알림 임계값 설정 기능이 곧 추가될 예정입니다.')}
+                  onClick={handleThresholdConfig}
                   className="w-full p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg hover:bg-yellow-500/30 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500"
                 >
                   <h4 className="text-white font-medium mb-2">알림 임계값 설정</h4>
@@ -497,7 +605,7 @@ const UnifiedSettingsPanel = ({
                 </button>
 
                 <button
-                  onClick={() => info('대시보드 커스터마이징 기능이 곧 추가될 예정입니다.')}
+                  onClick={handleDashboardCustomize}
                   className="w-full p-4 bg-purple-500/20 border border-purple-500/30 rounded-lg hover:bg-purple-500/30 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
                   <h4 className="text-white font-medium mb-2">대시보드 설정</h4>
@@ -526,7 +634,7 @@ const UnifiedSettingsPanel = ({
 
               <div className="space-y-4">
                 <button
-                  onClick={() => info('알림 설정 기능이 곧 추가될 예정입니다.')}
+                  onClick={handleNotificationConfig}
                   className="w-full p-4 bg-orange-500/20 border border-orange-500/30 rounded-lg hover:bg-orange-500/30 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500"
                 >
                   <h4 className="text-white font-medium mb-2">알림 설정</h4>
@@ -536,7 +644,7 @@ const UnifiedSettingsPanel = ({
                 </button>
 
                 <button
-                  onClick={() => info('테마 설정 기능이 곧 추가될 예정입니다.')}
+                  onClick={handleThemeConfig}
                   className="w-full p-4 bg-indigo-500/20 border border-indigo-500/30 rounded-lg hover:bg-indigo-500/30 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   <h4 className="text-white font-medium mb-2">테마 설정</h4>
@@ -546,7 +654,7 @@ const UnifiedSettingsPanel = ({
                 </button>
 
                 <button
-                  onClick={() => info('백업 설정 기능이 곧 추가될 예정입니다.')}
+                  onClick={handleBackupConfig}
                   className="w-full p-4 bg-purple-500/20 border border-purple-500/30 rounded-lg hover:bg-purple-500/30 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
                   <h4 className="text-white font-medium mb-2">백업 설정</h4>
