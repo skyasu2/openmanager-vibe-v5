@@ -193,6 +193,7 @@ const UnifiedSettingsPanel = ({
       aria-modal="true"
       aria-labelledby="settings-modal-title"
       style={{ zIndex: 99999 }}
+      onClick={onClose}
     >
       <motion.div
         ref={modalRef}
@@ -227,7 +228,7 @@ const UnifiedSettingsPanel = ({
         </div>
 
         {/* 탭 네비게이션 */}
-        <div className="flex border-b border-gray-700/50 bg-gray-800/30" role="tablist">
+        <div className="flex border-b border-gray-700/50">
           {[
             { id: 'ai', label: 'AI 모드', icon: Bot },
             { id: 'generator', label: '데이터 생성기', icon: Database },
@@ -253,7 +254,7 @@ const UnifiedSettingsPanel = ({
         </div>
 
         {/* 콘텐츠 */}
-        <div className="p-6 max-h-96 overflow-y-auto">
+        <div className="p-6 max-h-[70vh] overflow-y-auto">
           {/* AI 모드 탭 */}
           {activeTab === 'ai' && (
             <div id="tab-panel-ai" role="tabpanel" aria-labelledby="tab-ai" className="space-y-6">
