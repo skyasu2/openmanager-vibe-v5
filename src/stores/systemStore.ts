@@ -444,6 +444,17 @@ export const useSystemStore = create<SystemStore>()(
 
         // AI Agent Actions
         enableAIAgent: async () => {
+          // 🔐 보안 강화: useUnifiedAdminStore를 통한 인증 확인 필수
+          const { useUnifiedAdminStore } = await import('./useUnifiedAdminStore');
+          const adminStore = useUnifiedAdminStore.getState();
+          
+          // AI 에이전트가 이미 인증되어 활성화된 경우에만 허용
+          if (!adminStore.aiAgent.isEnabled || !adminStore.aiAgent.isAuthenticated) {
+            systemLogger.error('🚫 AI 에이전트 활성화 실패: 인증되지 않은 접근 시도');
+            console.warn('🚫 [Security] AI 에이전트 활성화 차단 - 인증 필요');
+            throw new Error('AI 에이전트 사용을 위해서는 관리자 인증이 필요합니다.');
+          }
+          
           try {
             const response = await fetch('/api/ai-agent/power', {
               method: 'POST',
@@ -460,10 +471,11 @@ export const useSystemStore = create<SystemStore>()(
                   lastActivated: Date.now()
                 }
               });
-              systemLogger.ai('AI 에이전트 활성화 완료');
+              systemLogger.ai('✅ AI 에이전트 활성화 완료 (인증 확인됨)');
             }
           } catch (error) {
-            systemLogger.error('AI 에이전트 활성화 실패:', error);
+            systemLogger.error('❌ AI 에이전트 활성화 실패:', error);
+            throw error;
           }
         },
 
@@ -491,10 +503,21 @@ export const useSystemStore = create<SystemStore>()(
         },
 
         toggleAIAgent: async () => {
+          // 🔐 보안 강화: 토글도 인증 확인 필수
+          const { useUnifiedAdminStore } = await import('./useUnifiedAdminStore');
+          const adminStore = useUnifiedAdminStore.getState();
+          
           const { aiAgent } = get();
           if (aiAgent.isEnabled) {
+            // 비활성화는 항상 허용
             await get().disableAIAgent();
           } else {
+            // 활성화는 인증 필요
+            if (!adminStore.aiAgent.isEnabled || !adminStore.aiAgent.isAuthenticated) {
+              systemLogger.error('🚫 AI 에이전트 토글 실패: 인증되지 않은 접근 시도');
+              console.warn('🚫 [Security] AI 에이전트 토글 차단 - 인증 필요');
+              throw new Error('AI 에이전트 사용을 위해서는 관리자 인증이 필요합니다.');
+            }
             await get().enableAIAgent();
           }
         },

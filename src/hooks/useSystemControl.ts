@@ -451,10 +451,11 @@ export function useSystemControl(): UseSystemControlReturn {
       // AI 세션은 20분으로 시작하고 자동 종료됨
       storeStartSystem(20 * 60, false);
       
-      // AI 에이전트 활성화
-      await enableAIAgent();
+      // 🔐 AI 에이전트 활성화는 별도의 인증이 필요함
+      // enableAIAgent는 useUnifiedAdminStore를 통한 인증 후에만 사용 가능
+      console.log('ℹ️ [AI Session] 시스템 시작됨 - AI 에이전트는 별도 인증 필요');
       
-      const message = `🤖 AI 세션 시작: ${reason}`;
+      const message = `🤖 AI 세션 시작: ${reason} (AI 에이전트는 별도 인증 필요)`;
       systemLogger.ai(message);
       return { success: true, message };
     } catch (error) {

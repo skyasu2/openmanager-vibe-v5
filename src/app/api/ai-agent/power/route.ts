@@ -196,11 +196,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 🔐 보안 강화: activate 액션에 대한 인증 체크
+    if (action === 'activate') {
+      try {
+        // useUnifiedAdminStore에서 인증 상태 확인
+        const { useUnifiedAdminStore } = await import('../../../../stores/useUnifiedAdminStore');
+        const adminStore = useUnifiedAdminStore.getState();
+        
+        // AI 에이전트가 인증되어 활성화된 상태인지 확인
+        if (!adminStore.aiAgent.isEnabled || !adminStore.aiAgent.isAuthenticated) {
+          console.warn('🚫 [Security] AI 에이전트 Power API 접근 차단 - 인증 필요');
+          return NextResponse.json({
+            success: false,
+            error: 'AI 에이전트 사용을 위해서는 관리자 인증이 필요합니다.',
+            code: 'AUTHENTICATION_REQUIRED'
+          }, { status: 401 });
+        }
+      } catch (error) {
+        console.error('❌ 인증 상태 확인 중 오류:', error);
+        return NextResponse.json({
+          success: false,
+          error: '인증 확인 중 오류가 발생했습니다.',
+          code: 'AUTH_CHECK_FAILED'
+        }, { status: 500 });
+      }
+    }
+
     console.log(`🔋 AI Agent power action: ${action}`);
 
     switch (action) {
       case 'activate':
         const activateResult = aiPowerManager.activate();
+        console.log('✅ AI Agent Power API - 인증된 사용자의 활성화 요청 승인');
         return NextResponse.json({
           success: true,
           data: activateResult,
