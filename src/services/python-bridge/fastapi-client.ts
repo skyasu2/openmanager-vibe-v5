@@ -414,8 +414,29 @@ export class FastAPIClient {
    * 🔑 캐시 키 생성
    */
   private generateCacheKey(text: string): string {
-    // 간단한 해시 생성 (실제로는 crypto.createHash 사용 권장)
-    return btoa(text).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
+    // Node.js 환경에서 btoa 대신 Buffer 사용
+    try {
+      if (typeof Buffer !== 'undefined') {
+        // Node.js 환경
+        return Buffer.from(text, 'utf8')
+          .toString('base64')
+          .replace(/[^a-zA-Z0-9]/g, '')
+          .substring(0, 32);
+      } else {
+        // 브라우저 환경 (fallback)
+        return btoa(text).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
+      }
+    } catch (error) {
+      // 에러 시 간단한 해시 대체
+      console.warn('⚠️ [FastAPI] 캐시 키 생성 실패, 단순 해시 사용:', error);
+      let hash = 0;
+      for (let i = 0; i < text.length; i++) {
+        const char = text.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // 32bit 정수로 변환
+      }
+      return Math.abs(hash).toString(36).substring(0, 32);
+    }
   }
 
   /**
