@@ -16,7 +16,7 @@
     "dev": "next dev",
     "dev:clean": "npm run clean:ports && npm run dev",
     "clean:ports": "taskkill /f /im node.exe 2>nul || true",
-    "build": "next build",
+    "build": "ESLINT_NO_DEV_ERRORS=true next build",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",

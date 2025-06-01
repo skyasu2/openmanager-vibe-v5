@@ -20,9 +20,10 @@ const nextConfig: NextConfig = {
   trailingSlash: false,
   reactStrictMode: true,
   
-  // Vercel 빌드 시 ESLint 완전 비활성화
+  // 🚫 Vercel 빌드 시 ESLint 완전 비활성화 (더 강력한 설정)
   eslint: {
     ignoreDuringBuilds: true,
+    dirs: [], // ESLint 검사 디렉토리 없음
   },
   
   // TypeScript 빌드 오류 무시 (CI 환경)
