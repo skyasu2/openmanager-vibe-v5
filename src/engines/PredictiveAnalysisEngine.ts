@@ -229,7 +229,7 @@ export class PredictiveAnalysisEngine {
     
     let totalProbability = 0;
     let totalConfidence = 0;
-    let triggerMetrics: string[] = [];
+    const triggerMetrics: string[] = [];
     let dominantType: 'trend' | 'anomaly' | 'pattern' | 'hybrid' = 'hybrid';
 
     // 트렌드 분석 결과 처리

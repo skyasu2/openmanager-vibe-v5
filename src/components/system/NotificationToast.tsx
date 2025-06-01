@@ -332,6 +332,10 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
     }
   };
 
+  const handleClose = useCallback((id: string) => {
+    removeNotification(id);
+  }, [removeNotification]);
+
   if (notifications.length === 0) return null;
 
   return (
@@ -360,7 +364,7 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
             <ToastNotification
               key={notification.id}
               notification={notification}
-              onDismiss={removeNotification}
+              onDismiss={handleClose}
               index={index}
             />
           ))}

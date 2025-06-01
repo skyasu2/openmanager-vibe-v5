@@ -330,7 +330,7 @@ export const cssVariables = {
   '--shadow-lg': shadows.lg
 } as const;
 
-export default {
+const designTokens = {
   colors,
   spacing,
   typography,
@@ -343,4 +343,6 @@ export default {
   getSpacing,
   getFontSize,
   cssVariables
-}; 
+};
+
+export default designTokens; 

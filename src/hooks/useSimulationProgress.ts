@@ -234,7 +234,7 @@ const useSimulationProgress = ({
   }, [fetchSimulationData, maxRetries, pauseWhenHidden]);
 
   /**
-   * �� 폴링 시작 (최적화됨)
+   * 🎯 폴링 시작 (최적화됨)
    */
   const startPolling = useCallback(() => {
     if (isPolling || intervalRef.current) return;
@@ -330,6 +330,62 @@ const useSimulationProgress = ({
       }
     };
   }, []); // 빈 의존성 배열로 한 번만 실행
+
+  // Pause when page is hidden
+  useEffect(() => {
+    if (!autoStart) return;
+    
+    const handleVisibilityChange = () => {
+      if (document.hidden && pauseWhenHidden) {
+        stopPolling();
+      } else if (!document.hidden && pauseWhenHidden) {
+        startPolling();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [autoStart, pauseWhenHidden, startPolling, stopPolling]);
+
+  const resetSimulation = useCallback(() => {
+    setData(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        currentStep: 0,
+        progress: 0,
+        isActive: false
+      };
+    });
+    
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    
+    stopPolling();
+  }, [stopPolling]);
+
+  // Main effect for controlling polling lifecycle
+  useEffect(() => {
+    const currentCache = cacheRef.current;
+    
+    return () => {
+      if (currentCache) {
+        currentCache.clear();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (autoStart && !isComplete) {
+      startPolling();
+    }
+    
+    return () => {
+      stopPolling();
+    };
+  }, [autoStart, isComplete, startPolling, stopPolling]);
 
   // 메모화된 반환값
   return useMemo(() => ({

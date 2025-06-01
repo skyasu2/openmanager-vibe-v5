@@ -88,30 +88,12 @@ export function useDashboardLogic() {
 
     // 로딩 관련 에러 감지 리스너
     const handleLoadingError = (event: ErrorEvent | PromiseRejectionEvent) => {
-      const error = 'error' in event ? event.error : event.reason;
-      
-      if (isLoadingRelatedError(error)) {
-        setState(prev => ({
-          ...prev,
-          errorCount: prev.errorCount + 1
-        }));
-        
-        safeErrorLog('🚨 Dashboard 로딩 에러 감지', error);
-        
-        // 3번 이상 에러 발생 시 비상 모드 활성화
-        if (state.errorCount >= 2) {
-          console.log('🚨 비상 모드 활성화 - 강제 완료 처리');
-          setState(prev => ({
-            ...prev,
-            emergencyModeActive: true,
-            skipAnimation: true
-          }));
-          
-          setTimeout(() => {
-            handleBootComplete();
-          }, 1000);
-        }
-      }
+      console.error('❌ 로딩 에러 감지:', event);
+      setState(prev => ({ 
+        ...prev, 
+        errorCount: prev.errorCount + 1,
+        emergencyModeActive: prev.errorCount >= 2
+      }));
     };
 
     window.addEventListener('error', handleLoadingError as EventListener);
@@ -121,7 +103,7 @@ export function useDashboardLogic() {
       window.removeEventListener('error', handleLoadingError as EventListener);
       window.removeEventListener('unhandledrejection', handleLoadingError as EventListener);
     };
-  }, [state.errorCount]);
+  }, []);
 
   // URL 파라미터 기반 스킵 조건 확인
   const shouldSkipAnimation = useMemo(() => {
@@ -138,20 +120,8 @@ export function useDashboardLogic() {
            state.emergencyModeActive;
   }, [searchParams, state.skipAnimation, state.emergencyModeActive]);
 
-  // 자연스러운 로딩 시간 훅 사용
-  const {
-    isLoading,
-    progress,
-    phase,
-    estimatedTimeRemaining,
-    elapsedTime
-  } = useMinimumLoadingTime({
-    skipCondition: shouldSkipAnimation,
-    onComplete: handleBootComplete
-  });
-
   // 🎯 부팅 완료 핸들러 (안전한 버전)
-  function handleBootComplete() {
+  const handleBootComplete = useCallback(() => {
     try {
       console.log('🎉 Dashboard 부팅 완료 처리');
       
@@ -188,7 +158,26 @@ export function useDashboardLogic() {
         emergencyModeActive: true
       }));
     }
-  }
+  }, [shouldSkipAnimation, router]);
+
+  // 자연스러운 로딩 시간 훅 사용
+  const {
+    isLoading,
+    progress,
+    phase,
+    estimatedTimeRemaining,
+    elapsedTime
+  } = useMinimumLoadingTime({
+    skipCondition: shouldSkipAnimation,
+    onComplete: handleBootComplete
+  });
+
+  // 부팅 완료 시 handleBootComplete 실행
+  useEffect(() => {
+    if (isLoading === false && !state.isBootSequenceComplete) {
+      handleBootComplete();
+    }
+  }, [isLoading, state.isBootSequenceComplete, handleBootComplete]);
 
   // 🚀 강제 완료 함수 (전역에서 호출 가능)
   const forceComplete = useCallback(() => {
@@ -199,7 +188,7 @@ export function useDashboardLogic() {
       emergencyModeActive: true
     }));
     handleBootComplete();
-  }, []);
+  }, [handleBootComplete]);
 
   // 전역 함수 등록
   useEffect(() => {
@@ -373,7 +362,7 @@ export function useDashboardLogic() {
     } catch (error) {
       console.error('❌ 시스템 중지 실패:', error);
     }
-  }, [systemControl.stopFullSystem]);
+  }, [systemControl]);
 
   /**
    * 시스템 일시정지 핸들러
@@ -387,7 +376,7 @@ export function useDashboardLogic() {
     } catch (error) {
       console.error('❌ 시스템 일시정지 실패:', error);
     }
-  }, [systemControl.pauseFullSystem]);
+  }, [systemControl]);
 
   /**
    * 시스템 재개 핸들러
@@ -401,7 +390,7 @@ export function useDashboardLogic() {
     } catch (error) {
       console.error('❌ 시스템 재개 실패:', error);
     }
-  }, [systemControl.resumeFullSystem]);
+  }, [systemControl]);
 
   // ✨ 서버 스폰 핸들러 (새로운 전환 시스템용)
   const handleServerSpawned = useCallback((server: Server | null | undefined, index: number) => {
@@ -511,7 +500,7 @@ export function useDashboardLogic() {
         document.removeEventListener(event, handleUserActivity);
       });
     };
-  }, [isClient, systemControl?.isSystemActive, systemControl?.recordActivity, state.showBootSequence]);
+  }, [isClient, systemControl, state.showBootSequence]);
 
   // Animation variants for main content
   const mainContentVariants = {

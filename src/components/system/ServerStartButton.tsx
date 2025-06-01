@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 
 interface WarmupProgress {
@@ -23,9 +23,10 @@ export default function ServerStartButton() {
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState<WarmupProgress | null>(null);
   const [pollInterval, setPollInterval] = useState<NodeJS.Timeout | null>(null);
+  const [showWarmupProgress, setShowWarmupProgress] = useState(true);
 
   // 웜업 상태 폴링
-  const pollWarmupStatus = async () => {
+  const pollWarmupStatus = useCallback(async () => {
     try {
       const response = await fetch('/api/system/start-warmup');
       if (response.ok) {
@@ -44,7 +45,7 @@ export default function ServerStartButton() {
     } catch (error) {
       console.error('웜업 상태 확인 실패:', error);
     }
-  };
+  }, [pollInterval]);
 
   // 서버 시작 실행
   const handleStartServer = async () => {
@@ -119,10 +120,12 @@ export default function ServerStartButton() {
     };
   }, [pollInterval]);
 
-  // 페이지 로드 시 현재 상태 확인
+  // 워밍업 상태 폴링 시작
   useEffect(() => {
-    pollWarmupStatus();
-  }, []);
+    if (showWarmupProgress) {
+      pollWarmupStatus();
+    }
+  }, [showWarmupProgress, pollWarmupStatus]);
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 border">
