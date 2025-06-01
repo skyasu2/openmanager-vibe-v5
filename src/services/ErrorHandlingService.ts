@@ -492,92 +492,26 @@ export class ErrorHandlingService implements IErrorHandler {
   }
 
   /**
-   * 외부 API 에러 처리
-   */
-  private async handleExternalAPIError(error: ServiceError): Promise<void> {
-    try {
-      console.log('Switching to cached data...');
-      
-      // 캐시된 데이터 사용
-      await fetch('/api/external/use-cache', { method: 'POST' });
-      
-      // 외부 API 상태 모니터링 시작
-      setTimeout(async () => {
-        try {
-          await fetch('/api/external/health-check', { method: 'GET' });
-          console.log('External API health check completed');
-        } catch {
-          console.log('External API still unavailable');
-        }
-      }, 30000);
-      
-    } catch (recoveryError) {
-      console.error('External API fallback failed:', recoveryError);
-    }
-  }
-
-  /**
-   * 웹소켓 연결 에러 처리
-   */
-  private async handleWebSocketError(error: ServiceError): Promise<void> {
-    try {
-      console.log('Attempting WebSocket reconnection...');
-      
-      // 웹소켓 재연결 시도
-      await fetch('/api/websocket/reconnect', { method: 'POST' });
-      
-      console.log('WebSocket reconnection initiated');
-    } catch (recoveryError) {
-      console.error('WebSocket reconnection failed:', recoveryError);
-    }
-  }
-
-  /**
-   * 파일 시스템 에러 처리
-   */
-  private async handleFileSystemError(error: ServiceError): Promise<void> {
-    try {
-      console.log('Checking file system health...');
-      
-      // 파일 시스템 권한 확인
-      await fetch('/api/system/check-permissions', { method: 'GET' });
-      
-      // 디스크 공간 확인
-      await fetch('/api/system/check-disk-space', { method: 'GET' });
-      
-      console.log('File system health check completed');
-    } catch (recoveryError) {
-      console.error('File system check failed:', recoveryError);
-    }
-  }
-
-  /**
    * 보안 위반 에러 처리
    */
   private async handleSecurityBreachError(error: ServiceError): Promise<void> {
     try {
-      console.error('SECURITY BREACH - Implementing emergency protocols');
+      console.error('SECURITY BREACH - 보안 위반 감지');
       
-      // 즉시 보안 모드 활성화
-      await fetch('/api/security/emergency-mode', { method: 'POST' });
+      // TODO: 보안 기능은 Phase 2에서 구현 예정
+      console.log('⚠️ 긴급 보안 모드는 현재 개발 중입니다');
       
-      // 관리자에게 즉시 알림
-      await fetch('/api/notifications/security-alert', { 
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          level: 'CRITICAL',
-          message: error.message,
-          timestamp: error.timestamp
-        })
+      // 기본적인 로깅만 수행
+      console.error('보안 위반 로그:', {
+        level: 'CRITICAL',
+        message: error.message,
+        timestamp: error.timestamp,
+        action: 'logged_only'
       });
       
-      // 의심스러운 세션 종료
-      await fetch('/api/security/terminate-suspicious-sessions', { method: 'POST' });
-      
-      console.error('Emergency security protocols activated');
+      console.error('보안 프로토콜 로그 완료');
     } catch (recoveryError) {
-      console.error('Security breach response failed:', recoveryError);
+      console.error('보안 위반 대응 실패:', recoveryError);
     }
   }
 
@@ -604,17 +538,136 @@ export class ErrorHandlingService implements IErrorHandler {
    */
   private async handleServiceDependencyError(error: ServiceError): Promise<void> {
     try {
-      console.log('Checking service dependencies...');
+      console.log('서비스 의존성 확인 중...');
       
-      // 의존성 서비스 상태 확인
-      await fetch('/api/health/dependencies', { method: 'GET' });
+      // TODO: 의존성 체크 API는 Phase 2에서 구현 예정
+      console.log('⚠️ 의존성 체크 기능은 현재 개발 중입니다');
       
-      // 실패한 의존성에 대한 폴백 활성화
-      await fetch('/api/services/enable-fallbacks', { method: 'POST' });
+      // 기본적인 로깅만 수행
+      console.log('의존성 체크 로그:', {
+        error: error.message,
+        timestamp: new Date().toISOString(),
+        action: 'logged_only'
+      });
       
-      console.log('Service dependency check completed');
+      console.log('서비스 의존성 체크 로그 완료');
     } catch (recoveryError) {
-      console.error('Service dependency check failed:', recoveryError);
+      console.error('서비스 의존성 체크 실패:', recoveryError);
+    }
+  }
+
+  /**
+   * 파일 시스템 에러 처리
+   */
+  private async handleFileSystemError(error: ServiceError): Promise<void> {
+    try {
+      console.log('파일 시스템 상태 확인 중...');
+      
+      // TODO: 파일 시스템 체크 API는 Phase 2에서 구현 예정
+      console.log('⚠️ 파일 시스템 체크 기능은 현재 개발 중입니다');
+      
+      // 기본적인 로깅만 수행
+      console.log('파일 시스템 체크 로그:', {
+        error: error.message,
+        timestamp: new Date().toISOString(),
+        action: 'logged_only'
+      });
+      
+      console.log('파일 시스템 헬스 체크 로그 완료');
+    } catch (recoveryError) {
+      console.error('파일 시스템 체크 실패:', recoveryError);
+    }
+  }
+
+  /**
+   * 외부 API 에러 처리
+   */
+  private async handleExternalAPIError(error: ServiceError): Promise<void> {
+    try {
+      console.log('외부 API 장애 대응 중...');
+      
+      // TODO: 외부 API 연동은 Phase 2에서 구현 예정
+      console.log('⚠️ 외부 API 연동 기능은 현재 개발 중입니다');
+      
+      // 기본적인 로깅만 수행
+      console.log('외부 API 에러 로그:', {
+        error: error.message,
+        timestamp: new Date().toISOString(),
+        action: 'logged_only'
+      });
+      
+      console.log('외부 API 에러 처리 로그 완료');
+    } catch (recoveryError) {
+      console.error('외부 API 에러 처리 실패:', recoveryError);
+    }
+  }
+
+  /**
+   * 웹소켓 연결 에러 처리
+   */
+  private async handleWebSocketError(error: ServiceError): Promise<void> {
+    try {
+      console.log('웹소켓 연결 에러 대응 중...');
+      
+      // TODO: 웹소켓 재연결 기능은 Phase 2에서 구현 예정
+      console.log('⚠️ 웹소켓 재연결 기능은 현재 개발 중입니다');
+      
+      // 기본적인 로깅만 수행
+      console.log('웹소켓 에러 로그:', {
+        error: error.message,
+        timestamp: new Date().toISOString(),
+        action: 'logged_only'
+      });
+      
+      console.log('웹소켓 재연결 로그 완료');
+    } catch (recoveryError) {
+      console.error('웹소켓 에러 처리 실패:', recoveryError);
+    }
+  }
+
+  /**
+   * 🔒 보안 위협 대응
+   */
+  private async handleSecurityThreat(): Promise<void> {
+    try {
+      console.log('🔒 보안 위협 감지 - 긴급 모드 활성화');
+      
+      // 실제 구현된 기능만 사용
+      // TODO: 보안 기능은 Phase 2에서 구현 예정
+      console.log('⚠️ 보안 기능은 현재 개발 중입니다');
+      
+      // 기본적인 로깅만 수행
+      console.log('보안 이벤트 로그:', {
+        event: 'security_threat_detected',
+        timestamp: new Date().toISOString(),
+        action: 'logged_only'
+      });
+      
+    } catch (error) {
+      console.error('❌ 보안 대응 실패:', error);
+    }
+  }
+
+  /**
+   * 🌐 외부 서비스 장애 대응
+   */
+  private async handleExternalServiceFailure(): Promise<void> {
+    try {
+      console.log('🌐 외부 서비스 장애 감지');
+      
+      // 실제 구현된 기능만 사용
+      // TODO: 외부 서비스 연동은 Phase 2에서 구현 예정
+      console.log('⚠️ 외부 서비스 연동 기능은 현재 개발 중입니다');
+      
+      // 기본적인 로깅만 수행
+      console.log('외부 서비스 이벤트 로그:', {
+        event: 'external_service_failure',
+        timestamp: new Date().toISOString(),
+        action: 'logged_only'
+      });
+      
+    } catch (error) {
+      console.error('❌ 외부 서비스 대응 실패:', error);
     }
   }
 }

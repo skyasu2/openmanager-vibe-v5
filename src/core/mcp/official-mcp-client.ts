@@ -1,13 +1,15 @@
 /**
  * 🎭 공식 MCP 클라이언트 통합
  * 
- * ✅ Model Context Protocol 표준 구현
- * ✅ 다중 도구 지원 (파일시스템, 데이터베이스, API)
- * ✅ 스트리밍 및 배치 처리
- * ✅ 한국어 자연어 처리 지원
+ * ⚠️ 현재 상태: 임시 Mock 구현 (Phase 2에서 실제 MCP SDK 연동 예정)
+ * ✅ Model Context Protocol 표준 구현 예정
+ * ✅ 다중 도구 지원 (파일시스템, 데이터베이스, API) 예정
+ * ✅ 스트리밍 및 배치 처리 예정
+ * ✅ 한국어 자연어 처리 지원 예정
  */
 
-// TODO: MCP SDK 패키지 설치 후 활성화
+// TODO: Phase 2에서 MCP SDK 패키지 설치 후 활성화
+// npm install @modelcontextprotocol/sdk
 // import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 // import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 // import {
@@ -18,7 +20,7 @@
 //   Tool
 // } from '@modelcontextprotocol/sdk/types.js';
 
-// 임시 타입 정의
+// 임시 타입 정의 (Phase 2에서 실제 SDK 타입으로 교체)
 interface Client {
   connect(): Promise<void>;
   close(): Promise<void>;
