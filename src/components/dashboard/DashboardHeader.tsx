@@ -1,15 +1,38 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { Bot } from 'lucide-react';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useToast } from '../ui/ToastNotification';
+import dynamic from 'next/dynamic';
 
 // 추가된 임포트
 import UnifiedProfileComponent from '../UnifiedProfileComponent';
-import AISidebarV5 from '../ai/sidebar/AISidebarV5';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
+
+// ⚡ Dynamic Import로 AI 사이드바 최적화 (Vercel 서버리스 환경에 최적화)
+const AISidebarV5 = dynamic(() => import('../ai/sidebar/AISidebarV5'), {
+  ssr: false, // AI 컴포넌트는 클라이언트 전용
+  loading: () => (
+    <div className="fixed right-0 top-0 h-full w-[400px] bg-white shadow-lg border-l border-gray-200 z-50 flex items-center justify-center">
+      <div className="flex items-center space-x-2">
+        <motion.div
+          className="w-4 h-4 bg-purple-500 rounded-full"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.5, 1, 0.5]
+          }}
+          transition={{
+            duration: 1,
+            repeat: Infinity
+          }}
+        />
+        <span className="text-sm text-gray-600">AI 로딩 중...</span>
+      </div>
+    </div>
+  )
+});
 
 /**
  * 서버 통계 인터페이스

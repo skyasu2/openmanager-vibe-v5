@@ -1,14 +1,78 @@
 /**
- * AI Agent API Endpoint
+ * AI Agent API Endpoint - Vercel 서버리스 최적화
  * 
  * 🤖 OpenManager AI 에이전트 메인 API
  * - 지능형 AI 추론 엔진
  * - MCP 프로토콜 지원
  * - 실시간 서버 모니터링 AI
+ * - 함수 크기 최적화 (Vercel 50MB 제한 대응)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { aiAgentEngine, AIAgentRequest } from '../../../modules/ai-agent/core/AIAgentEngine';
+
+// ⚡ Dynamic Import로 AI 엔진 지연 로딩 (번들 사이즈 최적화)
+const getAIAgent = async () => {
+  const { aiAgentEngine } = await import('../../../modules/ai-agent/core/AIAgentEngine');
+  return aiAgentEngine;
+};
+
+// 🔧 요청 검증 함수 분리
+const validateRequest = (body: any) => {
+  const { query } = body;
+  
+  if (!query || typeof query !== 'string') {
+    return {
+      isValid: false,
+      error: {
+        success: false,
+        error: 'query 파라미터가 필요합니다.',
+        message: '유효한 문자열 쿼리를 제공해주세요.'
+      }
+    };
+  }
+  
+  return { isValid: true };
+};
+
+// 🛡️ 에러 응답 생성 함수
+const createErrorResponse = (error: any, processingTime: number) => {
+  let errorMessage = '죄송합니다. AI 에이전트 처리 중 오류가 발생했습니다.';
+  let statusCode = 500;
+  
+  if (error instanceof SyntaxError) {
+    errorMessage = '요청 데이터 형식이 올바르지 않습니다.';
+    statusCode = 400;
+  } else if (error instanceof Error) {
+    if (error.message.includes('timeout')) {
+      errorMessage = 'AI 처리가 시간 초과되었습니다. 잠시 후 다시 시도해주세요.';
+      statusCode = 408;
+    } else if (error.message.includes('connection')) {
+      errorMessage = 'AI 서비스 연결에 문제가 있습니다. 잠시 후 다시 시도해주세요.';
+      statusCode = 503;
+    }
+  }
+  
+  return {
+    responseData: {
+      success: false,
+      response: errorMessage,
+      intent: { name: 'error', confidence: 0, entities: {} },
+      actions: [],
+      context: {},
+      metadata: {
+        processingTime,
+        timestamp: new Date().toISOString(),
+        engineVersion: '1.0.0',
+        sessionId: 'error'
+      },
+      error: process.env.NODE_ENV === 'development' 
+        ? (error instanceof Error ? error.message : '알 수 없는 오류')
+        : '서비스 오류',
+      retryable: statusCode >= 500
+    },
+    statusCode
+  };
+};
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -17,58 +81,25 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { query, sessionId, serverData, context } = body;
 
-    console.log('🤖 AI 에이전트 요청 수신:', {
-      query: query?.substring?.(0, 50) + '...',
+    // 📊 요청 로깅 (간소화)
+    console.log('🤖 AI 에이전트 요청:', {
+      queryLength: query?.length,
       hasSessionId: !!sessionId,
-      hasServerData: !!serverData,
-      hasContext: !!context,
       timestamp: new Date().toISOString()
     });
 
-    // 🛡️ 요청 데이터 검증
-    if (!query || typeof query !== 'string') {
-      console.warn('⚠️ 잘못된 쿼리 형식:', { query: typeof query, length: query?.length });
-      return NextResponse.json(
-        { 
-          success: false,
-          error: 'query 파라미터가 필요합니다.',
-          message: '유효한 문자열 쿼리를 제공해주세요.'
-        },
-        { status: 400 }
-      );
+    // 🛡️ 요청 검증
+    const validation = validateRequest(body);
+    if (!validation.isValid) {
+      return NextResponse.json(validation.error, { status: 400 });
     }
 
-    // 실제 서버 데이터 가져오기 (serverData가 없는 경우)
-    let realServerData = serverData;
-    if (!realServerData) {
-      try {
-        // TODO: 새로운 데이터 수집기 구현 후 연결
-        realServerData = null;
-        console.log('📊 No server data available - using provided data');
-      } catch (error) {
-        console.warn('Failed to get real server data, using provided data:', error);
-        realServerData = serverData;
-      }
-    }
-
-    // AI 에이전트 요청 구성
-    const agentRequest: AIAgentRequest = {
-      query: query.trim(),
-      sessionId: sessionId || undefined,
-      context: context || {},
-      serverData: realServerData,
-      metadata: {
-        userAgent: request.headers.get('user-agent'),
-        timestamp: new Date().toISOString(),
-        ip: request.headers.get('x-forwarded-for') || 'unknown',
-        dataSource: realServerData ? 'real-time' : 'none'
-      }
-    };
-
-    // 🧠 AI 엔진 상태 확인
+    // ⚡ AI 엔진 동적 로딩
+    const aiAgentEngine = await getAIAgent();
+    
+    // 🧠 엔진 상태 확인
     const engineStatus = aiAgentEngine.getEngineStatus();
     if (!engineStatus.isInitialized) {
-      console.warn('⚠️ AI 엔진이 준비되지 않음:', engineStatus);
       return NextResponse.json({
         success: false,
         error: 'AI 에이전트가 아직 준비되지 않았습니다',
@@ -78,98 +109,43 @@ export async function POST(request: NextRequest) {
       }, { status: 503 });
     }
 
-    // AI 에이전트 엔진으로 질의 처리
+    // 🔧 AI 요청 구성 (최소화)
+    const agentRequest = {
+      query: query.trim(),
+      sessionId: sessionId || undefined,
+      context: context || {},
+      serverData: serverData,
+      metadata: {
+        timestamp: new Date().toISOString(),
+        dataSource: serverData ? 'real-time' : 'none'
+      }
+    };
+
+    // 🤖 AI 처리
     const response = await aiAgentEngine.processQuery(agentRequest);
     
     const totalTime = Date.now() - startTime;
-    console.log('✅ AI 에이전트 처리 완료:', {
-      success: response.success,
-      processingTime: totalTime,
-      hasResponse: !!response.response
-    });
+    console.log('✅ AI 처리 완료:', { success: response.success, time: totalTime });
 
     return NextResponse.json(response);
 
   } catch (error) {
     const totalTime = Date.now() - startTime;
+    console.error('❌ AI Agent API 오류:', error instanceof Error ? error.message : '알 수 없는 오류');
     
-    console.error('❌ AI Agent API 오류:', {
-      error: error instanceof Error ? error.message : '알 수 없는 오류',
-      stack: error instanceof Error ? error.stack?.split('\n')[0] : undefined,
-      processingTime: totalTime,
-      timestamp: new Date().toISOString()
-    });
-
-    // 🔧 개발 모드에서 더 상세한 로깅
-    if (process.env.NODE_ENV === 'development') {
-      console.error('🔍 AI 에이전트 상세 에러:', error);
-    }
-    
-    // 🛡️ 에러 타입별 응답
-    let errorMessage = '죄송합니다. AI 에이전트 처리 중 오류가 발생했습니다.';
-    let statusCode = 500;
-    
-    if (error instanceof SyntaxError) {
-      errorMessage = '요청 데이터 형식이 올바르지 않습니다.';
-      statusCode = 400;
-    } else if (error instanceof Error) {
-      if (error.message.includes('timeout')) {
-        errorMessage = 'AI 처리가 시간 초과되었습니다. 잠시 후 다시 시도해주세요.';
-        statusCode = 408;
-      } else if (error.message.includes('connection')) {
-        errorMessage = 'AI 서비스 연결에 문제가 있습니다. 잠시 후 다시 시도해주세요.';
-        statusCode = 503;
-      }
-    }
-    
-    return NextResponse.json(
-      {
-        success: false,
-        response: errorMessage,
-        intent: {
-          name: 'error',
-          confidence: 0,
-          entities: {}
-        },
-        actions: [],
-        context: {},
-        metadata: {
-          processingTime: totalTime,
-          timestamp: new Date().toISOString(),
-          engineVersion: '1.0.0',
-          sessionId: 'error'
-        },
-        error: process.env.NODE_ENV === 'development' 
-          ? (error instanceof Error ? error.message : '알 수 없는 오류')
-          : '서비스 오류',
-        retryable: statusCode >= 500
-      },
-      { status: statusCode }
-    );
+    const { responseData, statusCode } = createErrorResponse(error, totalTime);
+    return NextResponse.json(responseData, { status: statusCode });
   }
 }
 
+// ⚡ GET 요청 최적화 (빠른 상태 확인용)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action');
 
     switch (action) {
-      case 'status':
-        // AI 엔진 상태 확인
-        const status = aiAgentEngine.getEngineStatus();
-        return NextResponse.json({
-          success: true,
-          data: status
-        });
-
-      case 'quick-status':
-        // 빠른 시스템 상태 확인
-        const quickStatus = await aiAgentEngine.getQuickStatus();
-        return NextResponse.json(quickStatus);
-
       case 'health':
-        // 헬스 체크
         return NextResponse.json({
           success: true,
           status: 'healthy',
@@ -177,21 +153,20 @@ export async function GET(request: NextRequest) {
           version: '1.0.0'
         });
 
+      case 'status':
+        const aiAgentEngine = await getAIAgent();
+        const status = aiAgentEngine.getEngineStatus();
+        return NextResponse.json({ success: true, data: status });
+
       default:
         return NextResponse.json(
           { error: '지원하지 않는 액션입니다.' },
           { status: 400 }
         );
     }
-
   } catch (error) {
-    console.error('❌ AI Agent GET API 오류:', error);
-    
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : '알 수 없는 오류' 
-      },
+      { success: false, error: error instanceof Error ? error.message : '알 수 없는 오류' },
       { status: 500 }
     );
   }

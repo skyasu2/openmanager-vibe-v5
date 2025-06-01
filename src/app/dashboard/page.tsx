@@ -7,12 +7,43 @@ import { SystemBootSequence } from '../../components/dashboard/transition';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
 import { AlertTriangle, Monitor, Bot } from 'lucide-react';
+import dynamic from 'next/dynamic';
 
-// 동적 임포트로 코드 스플리팅 적용
-const DashboardHeader = lazy(() => import('../../components/dashboard/DashboardHeader'));
-const DashboardContent = lazy(() => import('../../components/dashboard/DashboardContent'));
-const SystemStatusDisplay = lazy(() => import('../../components/dashboard/SystemStatusDisplay'));
-const FloatingSystemControl = lazy(() => import('../../components/system/FloatingSystemControl'));
+// ⚡ Dynamic Import로 코드 스플리팅 적용 (Vercel 최적화)
+const DashboardHeader = dynamic(() => import('../../components/dashboard/DashboardHeader'), {
+  ssr: false,
+  loading: () => <HeaderLoadingSkeleton />
+});
+
+const DashboardContent = dynamic(() => import('../../components/dashboard/DashboardContent'), {
+  ssr: false,
+  loading: () => <ContentLoadingSkeleton />
+});
+
+const SystemStatusDisplay = dynamic(() => import('../../components/dashboard/SystemStatusDisplay'), {
+  ssr: false,
+  loading: () => <LoadingSpinner />
+});
+
+const FloatingSystemControl = dynamic(() => import('../../components/system/FloatingSystemControl'), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed bottom-6 right-6 w-14 h-14 bg-gray-200 rounded-full animate-pulse" />
+  )
+});
+
+// 🎯 AI 사이드바도 Dynamic Import 적용
+const AISidebarDynamic = dynamic(() => import('../../modules/ai-sidebar').then(mod => ({ default: mod.AISidebar })), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed right-0 top-0 h-full w-[400px] bg-white shadow-lg border-l border-gray-200 z-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-2" />
+        <p className="text-sm text-gray-600">AI 로딩 중...</p>
+      </div>
+    </div>
+  )
+});
 
 // 로딩 컴포넌트들
 const LoadingSpinner = () => (

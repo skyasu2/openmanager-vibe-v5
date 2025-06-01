@@ -55,16 +55,25 @@ export default function AISidebarV5({
   onClose,
   className = ''
 }: AISidebarV5Props) {
+  // TODO: Zustand 타입 에러 해결 후 복원
+  const [isMinimized, setMinimized] = useState(false);
+  const [activeTab, setActiveTab] = useState<'chat' | 'presets' | 'thinking' | 'settings'>('chat');
+  const [isOpen, setOpen] = useState(false);
+  const [isThinking, setThinking] = useState(false);
+
+  // 임시 하드코딩
+  const sidebarWidth = isMinimized ? 60 : 400;
+
   const { 
-    isMinimized, 
-    activeTab, 
-    setMinimized, 
-    setActiveTab, 
+    isMinimized: zustandIsMinimized, 
+    activeTab: zustandActiveTab, 
+    setMinimized: zustandSetMinimized, 
+    setActiveTab: zustandSetActiveTab, 
     setMobile 
   } = useAISidebarUI();
   
   const {
-    isThinking,
+    isThinking: zustandIsThinking,
     startThinking,
     setActiveStep,
     addThinkingLog,
