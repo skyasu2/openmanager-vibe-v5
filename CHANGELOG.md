@@ -84,7 +84,6 @@ curl -X POST https://openmanager-vibe-v5.vercel.app/api/v3/ai \
 ```
 
 ### 📝 **문서 업데이트**
-- **[AI_ENGINE_V3_DEPLOYMENT_SUCCESS_REPORT.md](./AI_ENGINE_V3_DEPLOYMENT_SUCCESS_REPORT.md)** - v3.0 배포 성공 종합 보고서
 - **[README.md](./README.md)** - AI 엔진 v3.0 내용 반영
 - 기술 스택 및 아키텍처 문서 업데이트
 
