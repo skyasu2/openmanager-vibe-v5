@@ -4,10 +4,10 @@
  * NOTE: UnifiedIntentClassifier 모듈이 제거되어 일시적으로 비활성화됨
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it } from 'vitest';
 
-describe('🎯 통합 Intent Classification 시스템 (비활성화)', () => {
+describe.skip('🎯 통합 Intent Classification 시스템 (비활성화)', () => {
   it('테스트가 임시로 비활성화됨', () => {
-    expect(true).toBe(true);
+    // UnifiedIntentClassifier 모듈 제거로 인해 테스트가 비활성화되었습니다.
   });
-}); 
+});
