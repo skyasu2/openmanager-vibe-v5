@@ -82,8 +82,9 @@ export class VercelPlanDetector {
    */
   private async detectByEnvironmentVariables(): Promise<Partial<VercelPlanInfo>> {
     try {
+      const nodeProcess = typeof globalThis !== 'undefined' ? (globalThis as any).process : undefined;
       // 직접적인 플랜 정보
-      const vercelPlan = process.env.NEXT_PUBLIC_VERCEL_PLAN || process.env.VERCEL_PLAN;
+      const vercelPlan = nodeProcess?.env?.NEXT_PUBLIC_VERCEL_PLAN || nodeProcess?.env?.VERCEL_PLAN;
       if (vercelPlan) {
         return {
           plan: vercelPlan as any,
@@ -93,9 +94,9 @@ export class VercelPlanDetector {
       }
 
       // Vercel 환경 감지
-      const isVercel = process.env.VERCEL === '1';
-      const vercelUrl = process.env.VERCEL_URL;
-      const vercelEnv = process.env.VERCEL_ENV;
+      const isVercel = nodeProcess?.env?.VERCEL === '1';
+      const vercelUrl = nodeProcess?.env?.VERCEL_URL;
+      const vercelEnv = nodeProcess?.env?.VERCEL_ENV;
 
       if (isVercel) {
         // 도메인 패턴으로 플랜 추정
@@ -137,8 +138,9 @@ export class VercelPlanDetector {
    */
   private async detectByMemoryLimits(): Promise<Partial<VercelPlanInfo>> {
     try {
-      if (typeof process !== 'undefined' && process.memoryUsage) {
-        const memUsage = process.memoryUsage();
+      const nodeProcess = typeof globalThis !== 'undefined' ? (globalThis as any).process : undefined;
+      if (nodeProcess && typeof nodeProcess.memoryUsage === 'function') {
+        const memUsage = nodeProcess.memoryUsage();
         const totalMemory = memUsage.heapTotal + memUsage.external;
 
         // Hobby: ~50MB, Pro: ~1GB, Enterprise: ~3GB+

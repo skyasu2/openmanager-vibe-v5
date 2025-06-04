@@ -21,9 +21,9 @@ interface TimerConfig {
 class TimerManager {
   private static instance: TimerManager;
   private timers = new Map<string, TimerConfig>();
-  private intervals = new Map<string, NodeJS.Timeout>();
+  private intervals = new Map<string, ReturnType<typeof setInterval>>();
   private isRunning = false;
-  private masterInterval: NodeJS.Timeout | null = null;
+  private masterInterval: ReturnType<typeof setInterval> | null = null;
 
   private constructor() {}
 
@@ -313,7 +313,8 @@ class TimerManager {
    */
   autoOptimize(): void {
     const stats = this.getStatus();
-    const memoryUsage = process.memoryUsage();
+    const nodeProcess = typeof globalThis !== 'undefined' ? (globalThis as any).process : undefined;
+    const memoryUsage = nodeProcess && typeof nodeProcess.memoryUsage === 'function' ? nodeProcess.memoryUsage() : { heapUsed: 0, heapTotal: 1 };
     const memoryPercent = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
     
     // 메모리 사용률이 80% 이상이거나 활성 타이머가 20개 이상이면 최적화
