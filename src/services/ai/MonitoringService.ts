@@ -325,7 +325,7 @@ export class MonitoringService {
     
     // 🔧 Python 서비스 체크 - 실패해도 전체 시스템에 영향 없음
     try {
-      const pythonServiceUrl = process.env.AI_ENGINE_URL || 'https://openmanager-vibe-v5.onrender.com';
+      const pythonServiceUrl = process.env.FASTAPI_BASE_URL || 'https://openmanager-ai-engine.onrender.com';
       const startTime = Date.now();
       
       const response = await fetch(`${pythonServiceUrl}/health`, {

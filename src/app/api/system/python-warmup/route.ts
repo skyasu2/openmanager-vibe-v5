@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     // Python Render 서비스 수동 웜업
-    const pythonServiceUrl = process.env.AI_ENGINE_URL || 'https://openmanager-vibe-v5.onrender.com';
+    const pythonServiceUrl = process.env.FASTAPI_BASE_URL || 'https://openmanager-ai-engine.onrender.com';
     const startTime = Date.now();
     
     console.log('🔧 Python 수동 웜업 API 요청');
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   // 현재 Python 서비스 상태 확인
   try {
-    const pythonServiceUrl = process.env.AI_ENGINE_URL || 'https://openmanager-vibe-v5.onrender.com';
+    const pythonServiceUrl = process.env.FASTAPI_BASE_URL || 'https://openmanager-ai-engine.onrender.com';
     
     const response = await fetch(`${pythonServiceUrl}/health`, {
       method: 'GET',
@@ -116,7 +116,7 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       data: {
-        pythonServiceUrl: process.env.AI_ENGINE_URL || 'https://openmanager-vibe-v5.onrender.com',
+        pythonServiceUrl: process.env.FASTAPI_BASE_URL || 'https://openmanager-ai-engine.onrender.com',
         isActive: false,
         status: 'sleeping',
         warmupMode: 'on-demand',

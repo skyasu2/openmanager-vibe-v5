@@ -11,7 +11,7 @@ import { PythonMLBridge } from '@/services/python-bridge/ml-bridge';
 let pythonBridge: PythonMLBridge | null = null;
 function getPythonBridge(): PythonMLBridge {
   if (!pythonBridge) {
-    pythonBridge = new PythonMLBridge(process.env.AI_ENGINE_URL || 'https://openmanager-vibe-v5.onrender.com');
+    pythonBridge = new PythonMLBridge(process.env.FASTAPI_BASE_URL || 'https://openmanager-ai-engine.onrender.com');
   }
   return pythonBridge;
 }
@@ -188,7 +188,7 @@ async function getSpecificMetric(metric: string) {
         data: {
           health,
           metrics: bridge.getMetrics(),
-          url: process.env.AI_ENGINE_URL || 'https://openmanager-vibe-v5.onrender.com'
+          url: process.env.FASTAPI_BASE_URL || 'https://openmanager-ai-engine.onrender.com'
         },
         collectionTime: Date.now() - startTime
       });
@@ -241,7 +241,7 @@ async function handlePerformanceAction(action: string) {
         python: {
           health: pythonHealth,
           metrics: pythonMetrics,
-          url: process.env.AI_ENGINE_URL
+          url: process.env.FASTAPI_BASE_URL
         },
         timestamp: new Date().toISOString()
       });
@@ -352,7 +352,7 @@ async function resetPythonBridge() {
   const result = {
     reset: true,
     health,
-    url: process.env.AI_ENGINE_URL,
+    url: process.env.FASTAPI_BASE_URL,
     timestamp: new Date().toISOString()
   };
   
@@ -448,7 +448,7 @@ async function warmupPython() {
       success: health,
       warmupTime,
       pythonHealth: health,
-      url: process.env.AI_ENGINE_URL
+      url: process.env.FASTAPI_BASE_URL
     };
     
     console.log('✅ Python 웜업 완료:', result);

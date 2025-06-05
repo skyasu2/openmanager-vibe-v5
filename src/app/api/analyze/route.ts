@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     const body: AIAnalysisRequest = await request.json();
     
     // AI Engine URL 가져오기
-    const aiEngineUrl = process.env.AI_ENGINE_URL;
+    const aiEngineUrl = process.env.FASTAPI_BASE_URL || 'https://openmanager-ai-engine.onrender.com';
     
     if (!aiEngineUrl) {
       return NextResponse.json(
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
 
 // GET 요청으로 상태 확인
 export async function GET() {
-  const aiEngineUrl = process.env.AI_ENGINE_URL;
+  const aiEngineUrl = process.env.FASTAPI_BASE_URL || 'https://openmanager-ai-engine.onrender.com';
   
   try {
     if (!aiEngineUrl) {
