@@ -23,18 +23,8 @@ export async function POST(request: NextRequest) {
   try {
     const body: AIAnalysisRequest = await request.json();
     
-    // AI Engine URL 가져오기
-    const aiEngineUrl = process.env.AI_ENGINE_URL;
-    
-    if (!aiEngineUrl) {
-      return NextResponse.json(
-        { error: 'AI Engine URL이 설정되지 않았습니다' },
-        { status: 500 }
-      );
-    }
-
-    // AI 엔진으로 요청 전송
-    const response = await fetch(`${aiEngineUrl}/analyze`, {
+    // 내부 AI 엔진(v3)을 호출
+    const response = await fetch('/api/v3/ai', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -78,27 +68,15 @@ export async function POST(request: NextRequest) {
 
 // GET 요청으로 상태 확인
 export async function GET() {
-  const aiEngineUrl = process.env.AI_ENGINE_URL;
-  
   try {
-    if (!aiEngineUrl) {
-      return NextResponse.json(
-        { 
-          status: 'error', 
-          message: 'AI Engine URL이 설정되지 않았습니다' 
-        },
-        { status: 500 }
-      );
-    }
-
-    // AI 엔진 헬스체크
-    const response = await fetch(`${aiEngineUrl}/health`);
+    // 내부 AI 엔진 헬스체크
+    const response = await fetch('/api/v3/ai?action=health');
     const healthData = await response.json();
 
     return NextResponse.json({
       status: 'ok',
       aiEngine: {
-        url: aiEngineUrl,
+        url: '/api/v3/ai',
         health: healthData,
         lastChecked: new Date().toISOString()
       }
