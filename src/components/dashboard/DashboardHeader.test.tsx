@@ -1,6 +1,8 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import DashboardHeader from './DashboardHeader';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { useAISidebarStore } from '@/stores/useAISidebarStore';
 
 // Mock props 타입 정의
 const mockProps = {
@@ -12,9 +14,15 @@ const mockProps = {
   },
   onNavigateHome: vi.fn(),
   onToggleAgent: vi.fn(),
-  isAgentOpen: false,
   systemStatusDisplay: <div data-testid="system-status">시스템 정상</div>,
 };
+
+beforeEach(() => {
+  useUnifiedAdminStore.setState({
+    aiAgent: { isEnabled: true, isAuthenticated: false, state: 'enabled' }
+  });
+  useAISidebarStore.setState({ isOpen: false });
+});
 
 describe('DashboardHeader', () => {
   it('서버 통계를 올바르게 표시해야 함', () => {
@@ -55,13 +63,10 @@ describe('DashboardHeader', () => {
   });
 
   it('AI 에이전트가 열린 상태일 때 버튼 스타일이 변경되어야 함', () => {
-    const propsWithAgentOpen = {
-      ...mockProps,
-      isAgentOpen: true,
-    };
-    
-    render(<DashboardHeader {...propsWithAgentOpen} />);
-    
+    useAISidebarStore.setState({ isOpen: true });
+
+    render(<DashboardHeader {...mockProps} />);
+
     const agentButton = screen.getByRole('button', { name: /ai 에이전트/i });
     expect(agentButton).toHaveAttribute('aria-pressed', 'true');
   });
