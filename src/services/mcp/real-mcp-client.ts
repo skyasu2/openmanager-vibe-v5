@@ -8,6 +8,9 @@
  */
 
 import { env, envLog, shouldEnableDebugLogging } from '@/config/environment';
+import { spawn, ChildProcess } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
 
 // MCP SDK는 아직 설치되지 않았을 수 있으므로 폴백 구현
 interface MCPClient {
@@ -15,9 +18,12 @@ interface MCPClient {
   request(request: any): Promise<any>;
   close(): Promise<void>;
   // 실제 구현용 프로퍼티 (optional)
-  process?: any;
+  process?: ChildProcess;
   nextId?: number;
-  pendingRequests?: Map<number, { resolve: Function; reject: Function }>;
+  pendingRequests?: Map<number, { 
+    resolve: (value: any) => void; 
+    reject: (reason?: any) => void; 
+  }>;
 }
 
 interface MCPServerConfig {
@@ -148,7 +154,6 @@ export class RealMCPClient {
       console.log(`📍 명령어: ${config.command} ${config.args.join(' ')}`);
 
       // 실제 MCP 서버와 stdio를 통한 JSON-RPC 통신
-      const { spawn } = require('child_process');
       const serverProcess = spawn(config.command, config.args, {
         stdio: ['pipe', 'pipe', 'pipe'],
         env: { ...process.env, ...config.env }
@@ -187,7 +192,7 @@ export class RealMCPClient {
               this.pendingRequests!.set(requestId, { resolve, reject });
 
               // 응답 데이터 처리
-              this.process!.stdout.on('data', (data: any) => {
+              this.process!.stdout?.on('data', (data: any) => {
                 try {
                   const lines = data.toString().split('\n').filter((line: string) => line.trim());
                   for (const line of lines) {
@@ -211,7 +216,7 @@ export class RealMCPClient {
               });
 
               // 오류 처리
-              this.process!.stderr.on('data', (data: any) => {
+              this.process!.stderr?.on('data', (data: any) => {
                 console.warn(`⚠️ MCP 서버 오류 (${serverName}):`, data.toString());
               });
 
@@ -220,7 +225,7 @@ export class RealMCPClient {
               });
 
               // 초기화 요청 전송
-              this.process!.stdin.write(JSON.stringify(initRequest) + '\n');
+              this.process!.stdin?.write(JSON.stringify(initRequest) + '\n');
 
               // 5초 타임아웃
               setTimeout(() => {
@@ -245,7 +250,7 @@ export class RealMCPClient {
               this.pendingRequests!.set(requestId, { resolve, reject });
 
               // 요청 전송
-              this.process!.stdin.write(JSON.stringify(jsonRpcRequest) + '\n');
+              this.process!.stdin?.write(JSON.stringify(jsonRpcRequest) + '\n');
 
               // 5초 타임아웃
               setTimeout(() => {
@@ -459,8 +464,6 @@ export class RealMCPClient {
       
       // 실제 파일시스템 fallback
       try {
-        const fs = require('fs');
-        const path = require('path');
         const fullPath = path.resolve(filePath);
         const content = fs.readFileSync(fullPath, 'utf8');
         console.log(`✅ Fallback 파일 읽기 성공: ${filePath} (${content.length}자)`);
@@ -499,8 +502,6 @@ export class RealMCPClient {
       
       // 실제 파일시스템 fallback
       try {
-        const fs = require('fs');
-        const path = require('path');
         const fullPath = path.resolve(dirPath);
         const files = fs.readdirSync(fullPath);
         console.log(`✅ Fallback 디렉토리 목록 조회 성공: ${dirPath} (${files.length}개 파일)`);

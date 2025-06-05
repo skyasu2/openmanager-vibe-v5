@@ -1,4 +1,4 @@
-/* eslint-disable prefer-const */
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { safeConsoleError, safeErrorMessage } from '../lib/utils-functions';
 
