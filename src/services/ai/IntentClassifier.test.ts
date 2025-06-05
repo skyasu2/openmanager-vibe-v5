@@ -1,9 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
 
-vi.mock('@xenova/transformers', () => {
-  const pipelineMock = vi.fn(async () => vi.fn(async () => ({ labels: ['test'], scores: [1] })));
-  return { pipeline: pipelineMock };
-});
+const pipelineMock = vi.fn(async () =>
+  vi.fn(async () => ({ labels: ['test'], scores: [1] }))
+);
+vi.mock(
+  '@xenova/transformers',
+  () => ({ pipeline: pipelineMock }),
+  { virtual: true }
+);
+(globalThis as any).pipelineMock = pipelineMock;
 
 import { IntentClassifier } from './IntentClassifier';
 
@@ -16,8 +21,7 @@ describe('IntentClassifier 초기화', () => {
     expect(status.initialized).toBe(true);
     expect(status.engine).toBe('transformers.js');
 
-    const { pipeline } = await import('@xenova/transformers');
-    const calls = (pipeline as any).mock.calls;
+    const calls = pipelineMock.mock.calls;
     expect(calls).toEqual(
       expect.arrayContaining([
         ['zero-shot-classification', 'Xenova/distilbert-base-uncased-mnli'],

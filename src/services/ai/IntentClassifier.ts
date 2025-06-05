@@ -18,22 +18,20 @@ export class IntentClassifier {
     if (this.initialized) return;
     
     try {
-      // 브라우저 환경에서만 Transformers.js 로드
-      if (typeof window !== 'undefined') {
-        const { pipeline } = await import('@xenova/transformers');
+      const pipeline =
+        (globalThis as any).pipelineMock ?? (await import('@xenova/transformers')).pipeline;
 
-        // 🤗 의도 분류용 모델 (경량화)
-        this.classifier = await pipeline(
-          'zero-shot-classification',
-          'Xenova/distilbert-base-uncased-mnli'
-        );
+      // 🤗 의도 분류용 모델 (경량화)
+      this.classifier = await pipeline(
+        'zero-shot-classification',
+        'Xenova/distilbert-base-uncased-mnli'
+      );
 
-        // 🏷️ 엔티티 추출용 모델
-        this.nerModel = await pipeline(
-          'token-classification',
-          'Xenova/bert-base-NER'
-        );
-      }
+      // 🏷️ 엔티티 추출용 모델
+      this.nerModel = await pipeline(
+        'token-classification',
+        'Xenova/bert-base-NER'
+      );
       
       this.initialized = true;
       console.log('🧠 Intent Classifier 초기화 완료 (Fallback 모드)');
