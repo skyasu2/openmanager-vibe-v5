@@ -282,6 +282,15 @@ npm run analyze
 npm run benchmark:ai
 ```
 
+### **샘플 메트릭 데이터 생성**
+```bash
+# 기본 20대 서버 기준 데이터 생성
+npm run generate:metrics
+
+# 서버 수 지정 예시
+npm run generate:metrics -- --web 8 --api 8 --db 4 --cache 2 --worker 2
+```
+
 ---
 
 ## 📈 **성능 메트릭**

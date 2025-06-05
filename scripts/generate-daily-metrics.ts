@@ -2,7 +2,7 @@
 /**
  * 📊 Daily Metrics Generator
  * 
- * 서버 20대의 24시간치 현실적인 시계열 데이터 생성
+ * 지정된 서버 수의 24시간치 현실적인 시계열 데이터 생성
  * - 10분 간격 (144 포인트/서버)
  * - 총 2880개 레코드
  * - 현실적인 장애 패턴 포함
@@ -16,11 +16,27 @@ import { DailyMetric, ServerConfig, ServerType, insertMetrics, clearMetrics } fr
 dotenv.config({ path: '.env.local' });
 
 // 서버 구성 정의
-const createServerConfigs = (): ServerConfig[] => {
+interface ServerCounts {
+  web?: number;
+  api?: number;
+  db?: number;
+  cache?: number;
+  worker?: number;
+}
+
+const createServerConfigs = (counts: ServerCounts = {}): ServerConfig[] => {
+  const {
+    web = 6,
+    api = 6,
+    db = 4,
+    cache = 2,
+    worker = 2
+  } = counts;
+
   const configs: ServerConfig[] = [];
 
-  // 웹 서버 (6대)
-  for (let i = 1; i <= 6; i++) {
+  // 웹 서버
+  for (let i = 1; i <= web; i++) {
     configs.push({
       id: `web-${i.toString().padStart(2, '0')}`,
       type: 'web',
@@ -39,8 +55,8 @@ const createServerConfigs = (): ServerConfig[] => {
     });
   }
 
-  // API 서버 (6대)
-  for (let i = 1; i <= 6; i++) {
+  // API 서버
+  for (let i = 1; i <= api; i++) {
     configs.push({
       id: `api-${i.toString().padStart(2, '0')}`,
       type: 'api',
@@ -59,8 +75,8 @@ const createServerConfigs = (): ServerConfig[] => {
     });
   }
 
-  // 데이터베이스 서버 (4대)
-  for (let i = 1; i <= 4; i++) {
+  // 데이터베이스 서버
+  for (let i = 1; i <= db; i++) {
     configs.push({
       id: `db-${i.toString().padStart(2, '0')}`,
       type: 'db',
@@ -79,8 +95,8 @@ const createServerConfigs = (): ServerConfig[] => {
     });
   }
 
-  // 캐시 서버 (2대)
-  for (let i = 1; i <= 2; i++) {
+  // 캐시 서버
+  for (let i = 1; i <= cache; i++) {
     configs.push({
       id: `cache-${i.toString().padStart(2, '0')}`,
       type: 'cache',
@@ -99,8 +115,8 @@ const createServerConfigs = (): ServerConfig[] => {
     });
   }
 
-  // 워커 서버 (2대)
-  for (let i = 1; i <= 2; i++) {
+  // 워커 서버
+  for (let i = 1; i <= worker; i++) {
     configs.push({
       id: `worker-${i.toString().padStart(2, '0')}`,
       type: 'worker',
@@ -222,10 +238,8 @@ const calculateStatus = (cpu: number, memory: number, disk: number, responseTime
 };
 
 // 메인 생성 함수
-const generateDailyMetrics = async (): Promise<DailyMetric[]> => {
+const generateDailyMetrics = async (servers: ServerConfig[]): Promise<DailyMetric[]> => {
   console.log('🚀 시작: 서버 메트릭 데이터 생성');
-  
-  const servers = createServerConfigs();
   const timePoints = 144; // 24시간 * 6 (10분 간격)
   const startTime = new Date();
   startTime.setHours(0, 0, 0, 0); // 오늘 00:00:00부터 시작
@@ -329,14 +343,33 @@ const main = async (): Promise<void> => {
     // 기존 데이터 삭제 여부 확인
     const args = process.argv.slice(2);
     const shouldClear = args.includes('--clear') || args.includes('-c');
-    
+
+    const getArgValue = (name: string): number | undefined => {
+      const index = args.indexOf(`--${name}`);
+      if (index !== -1 && args[index + 1]) {
+        const value = Number(args[index + 1]);
+        return isNaN(value) ? undefined : value;
+      }
+      return undefined;
+    };
+
+    const counts = {
+      web: getArgValue('web') ?? Number(process.env.WEB_COUNT) || undefined,
+      api: getArgValue('api') ?? Number(process.env.API_COUNT) || undefined,
+      db: getArgValue('db') ?? Number(process.env.DB_COUNT) || undefined,
+      cache: getArgValue('cache') ?? Number(process.env.CACHE_COUNT) || undefined,
+      worker: getArgValue('worker') ?? Number(process.env.WORKER_COUNT) || undefined
+    };
+
+    const servers = createServerConfigs(counts);
+
     if (shouldClear) {
       console.log('🗑️ 기존 데이터 삭제 중...');
       await clearMetrics();
     }
 
     // 데이터 생성
-    const metrics = await generateDailyMetrics();
+    const metrics = await generateDailyMetrics(servers);
 
     // 데이터 삽입
     await insertData(metrics);
@@ -345,7 +378,7 @@ const main = async (): Promise<void> => {
     console.log('✨ 작업 완료!');
     console.log(`📊 생성된 메트릭: ${metrics.length}개`);
     console.log(`🕐 기간: 24시간 (10분 간격)`);
-    console.log(`🖥️ 서버: 20대`);
+    console.log(`🖥️ 서버: ${servers.length}대`);
     console.log('');
     console.log('다음 명령어로 데이터를 확인할 수 있습니다:');
     console.log('SELECT COUNT(*) FROM daily_metrics;');
