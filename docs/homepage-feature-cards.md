@@ -13,7 +13,7 @@ OpenManager V5 홈페이지에는 4개의 주요 기능을 소개하는 인터�
 - **MCP Protocol** 기반 AI 엔진과 `@modelcontextprotocol/sdk`
 - **OpenAI·Claude·Gemini** 통합 분석 지원
 - **Scikit‑learn**과 **Transformers.js** 연동
-- **Supabase** 및 **Redis** 실시간 데이터 활용
+- **Supabase(Postgres)** 및 **Upstash Redis** 실시간 데이터 활용
 
 **목적**: 자연어 질의를 통한 서버 모니터링 및 장애 분석
 
@@ -23,10 +23,10 @@ OpenManager V5 홈페이지에는 4개의 주요 기능을 소개하는 인터�
 **설명**: 실시간 서버 메트릭 시뮬레이터와 고성능 모니터링
 
 #### 🛠️ 기술 스택
-- **Prometheus** 호환 메트릭을 실시간 생성
+- `prom-client`으로 **Prometheus** 호환 메트릭 실시간 생성
 - **TimerManager** 최적화로 CPU 사용량 최소화
-- **Redis** 캐싱과 **delta-compression** 지원
-- **/api/data-generator** 엔드포인트 제공
+- **Upstash Redis** 캐싱과 `delta-compression` 모듈로 65% 압축률 달성
+- **Express** 라우터 `/api/data-generator` 엔드포인트 제공
 
 **목적**: 실제 서버 환경을 모방한 테스트 데이터 생성
 
@@ -39,7 +39,7 @@ OpenManager V5 홈페이지에는 4개의 주요 기능을 소개하는 인터�
 - **Next.js 15** App Router와 **React 19** 기반
 - **Zustand**와 **TanStack Query**로 상태 관리
 - **Vercel**과 **GitHub Actions** 자동 배포 파이프라인
-- **Supabase**와 **Upstash Redis** 백엔드 구성
+- **Supabase(Postgres)**와 **Upstash Redis** 백엔드 구성
 
 **목적**: 현대적이고 확장 가능한 웹 애플리케이션 아키텍처 구현
 
