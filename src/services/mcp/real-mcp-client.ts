@@ -47,13 +47,7 @@ export class RealMCPClient {
       enabled: true
     });
 
-    // 🧠 메모리 MCP 서버 (세션 관리)
-    this.servers.set('memory', {
-      name: 'memory',
-      command: 'npx',
-      args: ['@modelcontextprotocol/server-memory'],
-      enabled: true
-    });
+
 
     // 🗄️ PostgreSQL MCP 서버 (데이터베이스 연동)
     this.servers.set('postgres', {

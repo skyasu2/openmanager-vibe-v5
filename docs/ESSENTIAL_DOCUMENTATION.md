@@ -470,10 +470,7 @@ sudo apt install redis-server  # Ubuntu
       "command": "npx",
       "args": ["@modelcontextprotocol/server-filesystem", "/path/to/project"]
     },
-    "memory": {
-      "command": "npx", 
-      "args": ["@modelcontextprotocol/server-memory"]
-    }
+
   }
 }
 ```

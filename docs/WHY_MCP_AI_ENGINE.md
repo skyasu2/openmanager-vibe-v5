@@ -14,7 +14,7 @@ OpenManager Vibe v5의 핵심은 **MCP(Model Context Protocol) 기반의 독립�
 **🚀 차후 개발**: 선택적 LLM API 연동으로 성능 향상 예정 (베타 버전에서 활용법 시연)
 
 > ⚠️ **중요 구분**: 
-> - **Cursor AI용 MCP**: 개발도구에서 사용하는 filesystem, memory, git 서버
+> - **Cursor AI용 MCP**: 개발도구에서 사용하는 filesystem, github 서버
 > - **OpenManager AI 엔진용 MCP**: 애플리케이션 내부에서 컨텍스트 관리에 사용
 
 ### **핵심 철학**
