@@ -374,6 +374,29 @@ curl -X POST https://your-app.vercel.app/api/system/stop
 
 ---
 
+## 🔋 시스템 전원 관리
+
+프로젝트는 Vercel 무료·유료 플랜 모두에서 동작하도록 설계되었습니다. 서버리스 함수 기반의 구조로 콜드 스타트를 최소화하며, AI 에이전트는 절전 모드를 활용해 무료 플랜에서도 실행 시간 한도를 초과하지 않습니다.
+
+### 시스템 시작/종료
+```bash
+# 시스템 시작
+curl -X POST https://your-project.vercel.app/api/system/start
+
+# 시스템 종료
+curl -X POST https://your-project.vercel.app/api/system/stop
+```
+
+### AI 에이전트 절전 모드
+```bash
+# 에이전트 활성화
+curl -X POST https://your-project.vercel.app/api/ai-agent/power \
+  -H 'Content-Type: application/json' \
+  -d '{"action":"activate"}'
+```
+에이전트는 활동이 없으면 자동으로 `idle` → `sleep` 모드로 전환되며, `activity` 액션으로 다시 깨울 수 있습니다.
+
+
 ## 📚 **문서**
 
 - **[DEPLOY_GUIDE.md](./DEPLOY_GUIDE.md)** - 상세 배포 가이드
