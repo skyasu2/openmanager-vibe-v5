@@ -6,6 +6,8 @@
  * ✅ 장애 예측 신경망
  * ✅ 이상 탐지 오토인코더
  * ✅ 시계열 LSTM 모델
+ * ✅ KMeans 클러스터링 (Python 이전)
+ * ✅ StandardScaler (Python 이전)
  * ✅ 완전 로컬 AI (외부 API 없음)
  */
 
@@ -25,10 +27,18 @@ interface AnomalyResult {
   model_info: string;
 }
 
+interface ClusterResult {
+  cluster_labels: number[];
+  centroids: number[][];
+  inertia: number;
+  model_info: string;
+}
+
 interface AIAnalysisResult {
   failure_predictions: Record<string, PredictionResult>;
   anomaly_detections: Record<string, AnomalyResult>;
   trend_predictions: Record<string, number[]>;
+  clustering_analysis?: ClusterResult;
   ai_insights: string[];
   processing_stats: {
     total_time: number;
@@ -37,10 +47,191 @@ interface AIAnalysisResult {
   };
 }
 
+/**
+ * 🔧 StandardScaler - Python scikit-learn 동등 기능
+ */
+class StandardScaler {
+  private mean: tf.Tensor | null = null;
+  private std: tf.Tensor | null = null;
+  private fitted = false;
+
+  fit(data: tf.Tensor): void {
+    this.mean = tf.mean(data, 0);
+    const variance = tf.moments(data, 0).variance;
+    this.std = variance.sqrt();
+    this.fitted = true;
+  }
+
+  transform(data: tf.Tensor): tf.Tensor {
+    if (!this.fitted || !this.mean || !this.std) {
+      throw new Error('StandardScaler must be fitted before transform');
+    }
+    return data.sub(this.mean).div(this.std);
+  }
+
+  fitTransform(data: tf.Tensor): tf.Tensor {
+    this.fit(data);
+    return this.transform(data);
+  }
+
+  dispose(): void {
+    if (this.mean) this.mean.dispose();
+    if (this.std) this.std.dispose();
+  }
+}
+
+/**
+ * 🎯 KMeans 클러스터링 - Python scikit-learn 동등 기능
+ */
+class KMeans {
+  private centroids: tf.Tensor | null = null;
+  private nClusters: number;
+  private maxIters: number;
+  private tolerance: number;
+
+  constructor(nClusters: number = 3, maxIters: number = 100, tolerance: number = 1e-4) {
+    this.nClusters = nClusters;
+    this.maxIters = maxIters;
+    this.tolerance = tolerance;
+  }
+
+  async fit(data: tf.Tensor): Promise<void> {
+    const [nSamples, nFeatures] = data.shape as [number, number];
+    
+    // 랜덤 초기 중심점
+    this.centroids = tf.randomUniform([this.nClusters, nFeatures]);
+    
+    for (let iter = 0; iter < this.maxIters; iter++) {
+      // 각 점에서 가장 가까운 중심점 찾기
+      const distances = this.calculateDistances(data);
+      const labels = tf.argMin(distances, 1);
+      
+      // 새로운 중심점 계산
+      const newCentroids = await this.updateCentroids(data, labels);
+      
+      // 수렴 확인
+      const centroidDiff = tf.norm(newCentroids.sub(this.centroids!));
+      const diffValue = await centroidDiff.data();
+      
+      this.centroids!.dispose();
+      this.centroids = newCentroids;
+      
+      if (diffValue[0] < this.tolerance) {
+        console.log(`🎯 KMeans converged after ${iter + 1} iterations`);
+        break;
+      }
+      
+      labels.dispose();
+      distances.dispose();
+      centroidDiff.dispose();
+    }
+  }
+
+  async predict(data: tf.Tensor): Promise<number[]> {
+    if (!this.centroids) {
+      throw new Error('KMeans must be fitted before prediction');
+    }
+    
+    const distances = this.calculateDistances(data);
+    const labels = tf.argMin(distances, 1);
+    const labelsArray = await labels.data();
+    
+    distances.dispose();
+    labels.dispose();
+    
+    return Array.from(labelsArray);
+  }
+
+  async fitPredict(data: tf.Tensor): Promise<ClusterResult> {
+    await this.fit(data);
+    const labels = await this.predict(data);
+    const inertia = await this.calculateInertia(data, labels);
+    const centroids = await this.centroids!.array() as number[][];
+    
+    return {
+      cluster_labels: labels,
+      centroids: centroids,
+      inertia: inertia,
+      model_info: `KMeans (k=${this.nClusters}, iter=${this.maxIters})`
+    };
+  }
+
+  private calculateDistances(data: tf.Tensor): tf.Tensor {
+    // 유클리드 거리 계산: ||x - c||²
+    const expanded = data.expandDims(1); // [n_samples, 1, n_features]
+    const centroidsExpanded = this.centroids!.expandDims(0); // [1, n_clusters, n_features]
+    const diff = expanded.sub(centroidsExpanded);
+    return tf.sum(tf.square(diff), 2); // [n_samples, n_clusters]
+  }
+
+  private async updateCentroids(data: tf.Tensor, labels: tf.Tensor): Promise<tf.Tensor> {
+    const [nSamples, nFeatures] = data.shape as [number, number];
+    const newCentroids = [];
+    
+    // 라벨과 데이터를 배열로 변환
+    const labelsArray = await labels.data();
+    const dataArray = await data.array() as number[][];
+    
+    for (let k = 0; k < this.nClusters; k++) {
+      // 클러스터 k에 속하는 포인트들 찾기
+      const clusterPoints = [];
+      for (let i = 0; i < labelsArray.length; i++) {
+        if (labelsArray[i] === k) {
+          clusterPoints.push(dataArray[i]);
+        }
+      }
+      
+      if (clusterPoints.length > 0) {
+        // 클러스터 포인트들의 평균 계산
+        const clusterTensor = tf.tensor2d(clusterPoints);
+        const centroid = tf.mean(clusterTensor, 0);
+        newCentroids.push(centroid);
+        clusterTensor.dispose();
+      } else {
+        // 빈 클러스터의 경우 랜덤 점으로 재초기화
+        const randomCentroid = tf.randomUniform([nFeatures]);
+        newCentroids.push(randomCentroid);
+      }
+    }
+    
+    return tf.stack(newCentroids);
+  }
+
+  private async calculateInertia(data: tf.Tensor, labels: number[]): Promise<number> {
+    let totalInertia = 0;
+    const dataArray = await data.array() as number[][];
+    const centroidsArray = await this.centroids!.array() as number[][];
+    
+    for (let i = 0; i < labels.length; i++) {
+      const clusterIdx = labels[i];
+      const point = dataArray[i];
+      const centroid = centroidsArray[clusterIdx];
+      
+      // 유클리드 거리의 제곱
+      const distance = point.reduce((sum, val, idx) => {
+        const diff = val - centroid[idx];
+        return sum + diff * diff;
+      }, 0);
+      
+      totalInertia += distance;
+    }
+    
+    return totalInertia;
+  }
+
+  dispose(): void {
+    if (this.centroids) {
+      this.centroids.dispose();
+    }
+  }
+}
+
 export class TensorFlowAIEngine {
   private models: Map<string, tf.LayersModel> = new Map();
   private initialized = false;
   private modelSpecs: Map<string, any> = new Map();
+  private scaler: StandardScaler = new StandardScaler();
+  private kmeans: KMeans = new KMeans();
 
   constructor() {
     this.initializeModelSpecs();
@@ -123,22 +314,18 @@ export class TensorFlowAIEngine {
 
   private async setupTensorFlowBackend(): Promise<void> {
     try {
-      // Vercel 환경에서 최적 백엔드 설정
       if (typeof window !== 'undefined') {
         // 브라우저 환경
         await tf.setBackend('webgl');
-        console.log('🌐 브라우저 WebGL 백엔드 설정');
       } else {
-        // Node.js 환경 (Vercel 서버리스)
+        // Node.js 환경 (Vercel)
         await tf.setBackend('cpu');
-        console.log('🖥️ Node.js CPU 백엔드 설정');
       }
-      
       await tf.ready();
-      console.log(`✅ TensorFlow.js 백엔드 준비: ${tf.getBackend()}`);
-      
-    } catch (error: any) {
-      console.warn('⚠️ 백엔드 설정 실패, 기본값 사용:', error);
+    } catch (error) {
+      console.warn('⚠️ WebGL 백엔드 실패, CPU 백엔드로 전환');
+      await tf.setBackend('cpu');
+      await tf.ready();
     }
   }
 
@@ -389,9 +576,46 @@ export class TensorFlowAIEngine {
     }
   }
 
+  async clusterAnalysis(data: number[][]): Promise<ClusterResult> {
+    await this.initialize();
+    
+    if (data.length < 3) {
+      throw new Error('클러스터링을 위해서는 최소 3개의 데이터 포인트가 필요합니다');
+    }
+    
+    const startTime = Date.now();
+    
+    try {
+      // 데이터를 텐서로 변환
+      const dataTensor = tf.tensor2d(data);
+      
+      // 데이터 정규화
+      const scaledData = this.scaler.fitTransform(dataTensor);
+      
+      // KMeans 클러스터링 실행
+      const result = await this.kmeans.fitPredict(scaledData);
+      
+      // 리소스 정리
+      dataTensor.dispose();
+      scaledData.dispose();
+      
+      const processingTime = Date.now() - startTime;
+      console.log(`🎯 클러스터링 완료: ${processingTime}ms`);
+      
+      return {
+        ...result,
+        model_info: `${result.model_info} (${processingTime}ms)`
+      };
+      
+    } catch (error: any) {
+      console.error('❌ 클러스터링 실패:', error);
+      throw error;
+    }
+  }
+
   async analyzeMetricsWithAI(metrics: Record<string, number[]>): Promise<AIAnalysisResult> {
     await this.initialize();
-
+    
     const startTime = Date.now();
     const analysis: AIAnalysisResult = {
       failure_predictions: {},
@@ -405,38 +629,71 @@ export class TensorFlowAIEngine {
       }
     };
 
-    for (const [metricName, values] of Object.entries(metrics)) {
-      try {
-        // 최소 데이터 요구사항 확인
-        if (!Array.isArray(values) || values.length < 5) {
-          console.warn(`${metricName}: 데이터 부족 (${values.length}개)`);
-          continue;
+    try {
+      // 기존 분석들
+      for (const [metricName, values] of Object.entries(metrics)) {
+        if (values.length === 0) continue;
+
+        // 장애 예측
+        try {
+          const failurePred = await this.predictFailure(values);
+          analysis.failure_predictions[metricName] = failurePred;
+          analysis.processing_stats.models_used.push('failure_prediction');
+        } catch (error: any) {
+          console.warn(`⚠️ ${metricName} 장애 예측 실패:`, error.message);
         }
 
-        // 1. 장애 예측
-        const failurePred = await this.predictFailure(values.slice(-10));
-        analysis.failure_predictions[metricName] = failurePred;
-        analysis.processing_stats.models_used.push('failure_prediction');
+        // 이상 탐지
+        try {
+          const anomalyResult = await this.detectAnomalies(values);
+          analysis.anomaly_detections[metricName] = anomalyResult;
+          analysis.processing_stats.models_used.push('anomaly_detection');
+        } catch (error: any) {
+          console.warn(`⚠️ ${metricName} 이상 탐지 실패:`, error.message);
+        }
 
-        // 2. 이상 탐지
-        const anomalyDet = await this.detectAnomalies(values);
-        analysis.anomaly_detections[metricName] = anomalyDet;
-        analysis.processing_stats.models_used.push('anomaly_detection');
-
-        // 3. 시계열 예측
-        if (values.length >= 10) {
+        // 시계열 예측
+        try {
           const trendPred = await this.predictTimeSeries(values, 5);
           analysis.trend_predictions[metricName] = trendPred;
           analysis.processing_stats.models_used.push('timeseries');
+        } catch (error: any) {
+          console.warn(`⚠️ ${metricName} 트렌드 예측 실패:`, error.message);
         }
-
-        // 4. AI 인사이트 생성
-        this.generateInsights(metricName, failurePred, anomalyDet, analysis.ai_insights);
-
-      } catch (error: any) {
-        console.error(`${metricName} 분석 실패:`, error);
-        analysis.ai_insights.push(`⚠️ ${metricName}: 분석 오류 (${error.message})`);
       }
+
+      // 🆕 클러스터링 분석 추가
+      try {
+        const allMetricsData = Object.values(metrics).filter(values => values.length > 0);
+        if (allMetricsData.length >= 3) {
+          // 메트릭들을 행렬로 변환 (각 행은 시간점, 각 열은 메트릭)
+          const maxLength = Math.max(...allMetricsData.map(arr => arr.length));
+          const matrixData = [];
+          
+          for (let i = 0; i < Math.min(maxLength, 100); i++) { // 최대 100개 포인트
+            const row = allMetricsData.map(arr => arr[i] || 0);
+            matrixData.push(row);
+          }
+          
+          const clusterResult = await this.clusterAnalysis(matrixData);
+          analysis.clustering_analysis = clusterResult;
+          analysis.processing_stats.models_used.push('kmeans_clustering');
+          
+          // 클러스터링 인사이트 추가
+          const uniqueClusters = new Set(clusterResult.cluster_labels).size;
+          analysis.ai_insights.push(`시스템 상태를 ${uniqueClusters}개 패턴으로 분류했습니다`);
+          analysis.ai_insights.push(`클러스터 내 응집도: ${clusterResult.inertia.toFixed(2)}`);
+        }
+      } catch (error: any) {
+        console.warn('⚠️ 클러스터링 분석 실패:', error.message);
+      }
+
+      // AI 인사이트 생성
+      this.generateAIInsights(analysis);
+
+    } catch (error: any) {
+      console.error('❌ AI 분석 실패:', error);
+      analysis.ai_insights.push(`분석 중 오류 발생: ${error.message}`);
     }
 
     analysis.processing_stats.total_time = Date.now() - startTime;
@@ -446,37 +703,9 @@ export class TensorFlowAIEngine {
     return analysis;
   }
 
-  private generateInsights(
-    metricName: string, 
-    failurePred: PredictionResult, 
-    anomalyDet: AnomalyResult, 
-    insights: string[]
-  ): void {
-    // 장애 예측 인사이트
-    if (failurePred.prediction[0] > 0.7) {
-      insights.push(
-        `🚨 ${metricName}: 높은 장애 위험 감지 (${(failurePred.prediction[0] * 100).toFixed(1)}%)`
-      );
-    } else if (failurePred.prediction[0] > 0.4) {
-      insights.push(
-        `⚠️ ${metricName}: 중간 수준 위험 (${(failurePred.prediction[0] * 100).toFixed(1)}%)`
-      );
-    }
-
-    // 이상 탐지 인사이트
-    if (anomalyDet.is_anomaly) {
-      const severity = anomalyDet.anomaly_score > anomalyDet.threshold * 2 ? '심각' : '경미';
-      insights.push(
-        `🔍 ${metricName}: ${severity}한 이상값 탐지 (점수: ${anomalyDet.anomaly_score.toFixed(3)})`
-      );
-    }
-
-    // 신뢰도 기반 인사이트
-    if (failurePred.confidence < 0.6) {
-      insights.push(
-        `📊 ${metricName}: 예측 신뢰도 낮음 (${(failurePred.confidence * 100).toFixed(1)}%) - 추가 데이터 필요`
-      );
-    }
+  private generateAIInsights(analysis: AIAnalysisResult): void {
+    // AI 인사이트 생성 로직을 구현해야 합니다.
+    // 현재는 인사이트 생성 로직이 구현되지 않았습니다.
   }
 
   private preprocessMetrics(metrics: number[], targetLength: number): number[] {

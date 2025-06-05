@@ -10,7 +10,76 @@
 
 import { RealMCPClient } from '@/services/mcp/real-mcp-client';
 import { TensorFlowAIEngine } from './tensorflow-engine';
-import { FastAPIClient } from '@/services/python-bridge/fastapi-client';
+
+// FastAPI 클라이언트 타입 정의
+interface FastAPIConfig {
+  baseUrl: string;
+  retryAttempts?: number;
+  timeout?: number;
+}
+
+// 간단한 FastAPI 클라이언트 구현
+class FastAPIClient {
+  private baseUrl: string;
+  private retryAttempts: number;
+  private timeout: number;
+
+  constructor(config: FastAPIConfig) {
+    this.baseUrl = config.baseUrl;
+    this.retryAttempts = config.retryAttempts || 2;
+    this.timeout = config.timeout || 30000;
+  }
+
+  async post(endpoint: string, data: any): Promise<any> {
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        signal: AbortSignal.timeout(this.timeout)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.warn(`FastAPI POST ${endpoint} 실패:`, error);
+      throw error;
+    }
+  }
+
+  async get(endpoint: string): Promise<any> {
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: 'GET',
+        signal: AbortSignal.timeout(this.timeout)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.warn(`FastAPI GET ${endpoint} 실패:`, error);
+      throw error;
+    }
+  }
+
+  async ping(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.baseUrl}/health`, { 
+        method: 'GET',
+        signal: AbortSignal.timeout(5000)
+      });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
+}
 
 interface DocumentContext {
   path: string;
@@ -57,7 +126,6 @@ export class EnhancedAIEngine {
     this.tensorflowEngine = new TensorFlowAIEngine();
     this.fastApiClient = new FastAPIClient({
       baseUrl: process.env.FASTAPI_URL || 'https://openmanager-ml.onrender.com',
-      enableCache: true,
       retryAttempts: 2
     });
   }
@@ -634,7 +702,7 @@ export class EnhancedAIEngine {
     // 5분마다 ping 전송
     this.renderPingInterval = setInterval(async () => {
       try {
-        const isHealthy = await this.fastApiClient.healthCheck();
+        const isHealthy = await this.fastApiClient.ping();
         if (isHealthy) {
           console.log('✅ Render 서비스 정상 (ping 성공)');
         } else {
@@ -659,7 +727,7 @@ export class EnhancedAIEngine {
    */
   private async checkRenderStatus(): Promise<'active' | 'sleeping' | 'error'> {
     try {
-      const isHealthy = await this.fastApiClient.healthCheck();
+      const isHealthy = await this.fastApiClient.ping();
       return isHealthy ? 'active' : 'sleeping';
     } catch (error) {
       return 'error';

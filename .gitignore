@@ -45,6 +45,12 @@ next-env.d.ts
 # cursor IDE configuration (contains sensitive data)
 .cursor/
 
+# MCP configuration files (contains tokens and sensitive data)
+mcp.json
+cursor-mcp-config.json
+corrected-cursor-mcp.json
+*-mcp-config.json
+
 # backup and dev sandbox
 backup/dev-sandbox/
 backup/legacy-stores/

@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem", "D:/cursor/openmanager-vibe-v5/docs", "D:/cursor/openmanager-vibe-v5/src"],
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    "memory": {
+      "command": "npx", 
+      "args": ["@modelcontextprotocol/server-memory"]
+    },
+    "git": {
+      "command": "npx",
+      "args": ["git-mob-mcp-server"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      }
+    }
+  }
+} 
