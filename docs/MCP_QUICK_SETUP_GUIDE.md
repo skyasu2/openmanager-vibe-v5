@@ -4,6 +4,9 @@
 > **갱신일**: 2025년 6월 2일  
 > **대상**: 모든 개발자 (Windows/Mac/Linux)
 
+> ⚠️ **통합 안내**: 이 문서는 [ESSENTIAL_DOCUMENTATION.md - MCP 시스템](./ESSENTIAL_DOCUMENTATION.md#-mcp-시스템)에 통합되었습니다.  
+> 📚 **최신 정보**는 **메인 문서**를 참조해주세요. 여기는 **빠른 설정용**으로만 유지됩니다.
+
 ---
 
 ## ⚡ 원클릭 자동 설정
