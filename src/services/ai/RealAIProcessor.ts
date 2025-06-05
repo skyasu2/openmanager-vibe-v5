@@ -2,18 +2,13 @@
  * 🤖 실제 AI 처리 서비스
  * 
  * 기술 스택:
- * - Vercel AI SDK (무료, 상업이용 가능)
  * - OpenAI GPT-3.5-turbo (무료 tier)
  * - Google Gemini (무료 tier)
  * - Anthropic Claude (무료 tier)
  * - Redis 캐싱
  * - Render Python 서버 연동
- */
+*/
 
-import { openai } from '@ai-sdk/openai';
-import { anthropic } from '@ai-sdk/anthropic';
-import { google } from '@ai-sdk/google';
-import { generateText, streamText, generateObject } from 'ai';
 import { z } from 'zod';
 import { getRedisClient } from '@/lib/redis';
 
@@ -179,16 +174,18 @@ export class RealAIProcessor {
     const systemPrompt = this.buildSystemPrompt(request.context);
     const userPrompt = this.buildUserPrompt(request.query, request.context);
 
-    try {
-      // 구조화된 응답 생성
-      const { object } = await generateObject({
-        model: this.getModelInstance(model),
-        schema: AIResponseSchema,
-        prompt: `${systemPrompt}\n\n사용자 질문: ${userPrompt}`,
-        temperature: request.options?.temperature || 0.7,
-        maxTokens: request.options?.maxTokens || 1000,
-      });
+    const jsonPrompt = `${systemPrompt}\n\n사용자 질문: ${userPrompt}\n\n` +
+      '다음 형식의 JSON으로만 응답하세요: ' +
+      '{"intent":"","confidence":0,"summary":"","details":[],"actions":[],"urgency":""}';
 
+    try {
+      const raw = await this.callModelAPI(
+        model,
+        jsonPrompt,
+        request.options?.temperature || 0.7,
+        request.options?.maxTokens || 1000
+      );
+      const object = AIResponseSchema.parse(JSON.parse(raw));
       return {
         success: true,
         intent: object.intent,
@@ -201,18 +198,14 @@ export class RealAIProcessor {
         model,
         cached: false
       };
-
     } catch (error) {
       console.warn(`⚠️ ${model} 처리 실패, 텍스트 생성으로 대체:`, error);
-      
-      // 구조화된 응답 실패 시 일반 텍스트 생성
-      const { text } = await generateText({
-        model: this.getModelInstance(model),
-        prompt: `${systemPrompt}\n\n사용자 질문: ${userPrompt}\n\n한국어로 답변해주세요.`,
-        temperature: request.options?.temperature || 0.7,
-        maxTokens: request.options?.maxTokens || 800,
-      });
-
+      const text = await this.callModelAPI(
+        model,
+        `${systemPrompt}\n\n사용자 질문: ${userPrompt}\n\n한국어로 답변해주세요.`,
+        request.options?.temperature || 0.7,
+        request.options?.maxTokens || 800
+      );
       return this.parseTextResponse(text, model);
     }
   }
@@ -296,17 +289,69 @@ export class RealAIProcessor {
     return 'local-analyzer';
   }
 
-  private getModelInstance(model: string): any {
-    switch (model) {
-      case 'gpt-3.5-turbo':
-        return openai('gpt-3.5-turbo');
-      case 'claude-3-haiku':
-        return anthropic('claude-3-haiku-20250630');
-      case 'gemini-1.5-flash':
-        return google('gemini-1.5-flash');
-      default:
-        throw new Error(`지원하지 않는 모델: ${model}`);
+  private async callModelAPI(
+    model: string,
+    prompt: string,
+    temperature: number,
+    maxTokens: number
+  ): Promise<string> {
+    const controller = new AbortController();
+    const options = { signal: controller.signal } as RequestInit;
+    setTimeout(() => controller.abort(), 20000);
+
+    let url = '';
+    let headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    let body: any = {};
+
+    if (model === 'gpt-3.5-turbo') {
+      url = 'https://api.openai.com/v1/chat/completions';
+      headers['Authorization'] = `Bearer ${process.env.OPENAI_API_KEY}`;
+      body = {
+        model,
+        messages: [{ role: 'user', content: prompt }],
+        temperature,
+        max_tokens: maxTokens
+      };
+    } else if (model === 'claude-3-haiku') {
+      url = 'https://api.anthropic.com/v1/messages';
+      headers['x-api-key'] = process.env.ANTHROPIC_API_KEY || '';
+      headers['anthropic-version'] = '2023-06-01';
+      body = {
+        model: 'claude-3-haiku-20250630',
+        messages: [{ role: 'user', content: prompt }],
+        temperature,
+        max_tokens: maxTokens
+      };
+    } else if (model === 'gemini-1.5-flash') {
+      url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GOOGLE_GENERATIVE_AI_API_KEY}`;
+      body = {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature, maxOutputTokens: maxTokens }
+      };
+    } else {
+      throw new Error(`지원하지 않는 모델: ${model}`);
     }
+
+    options.method = 'POST';
+    options.headers = headers;
+    options.body = JSON.stringify(body);
+
+    const res = await fetch(url, options);
+    if (!res.ok) {
+      throw new Error(`${model} API error: ${res.status}`);
+    }
+    const data = await res.json();
+
+    if (model === 'gpt-3.5-turbo') {
+      return data.choices[0].message.content as string;
+    }
+    if (model === 'claude-3-haiku') {
+      return data.content[0].text as string;
+    }
+    // gemini
+    return (data.candidates?.[0]?.content?.parts || [])
+      .map((p: any) => p.text)
+      .join('');
   }
 
   private buildSystemPrompt(context?: any): string {
