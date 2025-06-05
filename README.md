@@ -311,7 +311,6 @@ docker run -p 3000:3000 openmanager-vibe
 
 ## 📚 **문서**
 
-- **[AI_ENGINE_V3_DEPLOYMENT_SUCCESS_REPORT.md](./AI_ENGINE_V3_DEPLOYMENT_SUCCESS_REPORT.md)** - v3.0 배포 성공 보고서
 - **[DEPLOY_GUIDE.md](./DEPLOY_GUIDE.md)** - 상세 배포 가이드
 - **[API Documentation](./docs/api/)** - API 상세 문서
 - **[CHANGELOG.md](./CHANGELOG.md)** - 변경 사항 로그
