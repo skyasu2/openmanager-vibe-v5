@@ -245,10 +245,13 @@ export class RedisTimeSeriesService {
    */
   private async backupToSupabase(points: TimeSeriesPoint[]): Promise<void> {
     try {
-      // Supabase 백업 로직 (실제 구현시 주석 해제)
-      /*
       const { supabase } = await import('../lib/supabase');
-      
+
+      if (!supabase) {
+        console.warn('⚠️ Supabase client not initialized. 백업을 건너뜁니다');
+        return;
+      }
+
       const backupData = points.map(point => ({
         server_id: point.server_id,
         timestamp: new Date(point.timestamp).toISOString(),
@@ -260,12 +263,15 @@ export class RedisTimeSeriesService {
         alerts_count: point.alerts_count
       }));
 
-      await supabase
+      const { error } = await supabase
         .from('server_metrics_timeseries')
         .insert(backupData);
-      */
-      
-      console.log(`💾 Supabase 백업 시뮬레이션: ${points.length}개 포인트`);
+
+      if (error) {
+        console.warn('⚠️ Supabase 백업 실패:', error);
+      } else {
+        console.log(`💾 Supabase 백업 완료: ${points.length}개 포인트`);
+      }
     } catch (error) {
       console.warn('⚠️ Supabase 백업 실패:', error);
     }
