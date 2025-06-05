@@ -887,7 +887,7 @@ export default function AIAgentAdminDashboard() {
                   {[
                     {
                       id: 1,
-                      timestamp: '2025-06-19 14:32',
+                      timestamp: '2025-12-19 14:32',
                       question: 'CPU 사용률이 높은 서버를 찾아주세요',
                       feedback: 'positive',
                       comment: '정확한 서버 목록과 상세 정보를 제공해줘서 도움이 되었습니다.',
@@ -895,7 +895,7 @@ export default function AIAgentAdminDashboard() {
                     },
                     {
                       id: 2,
-                      timestamp: '2025-06-19 14:28',
+                      timestamp: '2025-12-19 14:28',
                       question: '네트워크 트래픽 분석 결과는?',
                       feedback: 'negative',
                       comment: '응답이 너무 늦고 정보가 부족합니다.',
@@ -903,7 +903,7 @@ export default function AIAgentAdminDashboard() {
                     },
                     {
                       id: 3,
-                      timestamp: '2025-06-19 14:25',
+                      timestamp: '2025-12-19 14:25',
                       question: '시스템 전체 상태를 요약해주세요',
                       feedback: 'positive',
                       comment: '종합적이고 이해하기 쉬운 요약이었습니다.',
