@@ -19,7 +19,7 @@ const cardData = [
     detailedContent: {
       overview: 'MCP(Model Context Protocol) 표준을 활용한 차세대 AI 분석 엔진으로, 자연어 질의를 통해 복잡한 서버 분석을 수행합니다.',
       features: [
-        'OpenAI·Claude·Gemini 모델을 자동 선택해 분석합니다',
+        'Cursor AI 기반 분석, 필요하면 OpenAI·Claude·Gemini API를 선택적으로 사용합니다',
         'MCP Orchestrator가 statistical_analysis와 anomaly_detection을 조합합니다',
         'Python(Scikit-learn)과 Transformers.js 기반 AI 엔진을 연동합니다',
         'Supabase와 Redis 데이터를 실시간으로 참조합니다'

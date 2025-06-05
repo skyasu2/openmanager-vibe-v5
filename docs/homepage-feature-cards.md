@@ -11,7 +11,7 @@ OpenManager V5 홈페이지에는 4개의 주요 기능을 소개하는 인터�
 
 #### 🛠️ 기술 스택
 - **MCP Protocol** 기반 AI 엔진과 `@modelcontextprotocol/sdk`
-- **OpenAI·Claude·Gemini** 통합 분석 지원
+- **Cursor AI**와 **Claude**로 개발, 필요 시 OpenAI/Gemini API 연동 가능
 - **Scikit‑learn**과 **Transformers.js** 연동
 - **Supabase** 및 **Redis** 실시간 데이터 활용
 

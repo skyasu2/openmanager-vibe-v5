@@ -3,11 +3,12 @@
  * 
  * 기술 스택:
  * - Vercel AI SDK (무료, 상업이용 가능)
- * - OpenAI GPT-3.5-turbo (무료 tier)
- * - Google Gemini (무료 tier)
- * - Anthropic Claude (무료 tier)
+ * - (옵션) OpenAI GPT-3.5-turbo (무료 tier)
+ * - (옵션) Google Gemini (무료 tier)
+ * - (옵션) Anthropic Claude (무료 tier)
  * - Redis 캐싱
  * - Render Python 서버 연동
+ * 기본적으로는 로컬 MCP 엔진만 사용합니다.
  */
 
 import { openai } from '@ai-sdk/openai';

@@ -17,13 +17,13 @@ FASTAPI_BASE_URL="https://your-python-ai-engine.render.com"
 ### 2. AI 모델 API 키 (선택사항)
 
 ```bash
-# OpenAI
+# OpenAI (선택 사항)
 OPENAI_API_KEY="sk-your-openai-api-key"
 
-# Anthropic Claude
+# Anthropic Claude (선택 사항)
 ANTHROPIC_API_KEY="your-anthropic-api-key"
 
-# Google Gemini
+# Google Gemini (선택 사항)
 GOOGLE_API_KEY="your-google-api-key"
 ```
 
