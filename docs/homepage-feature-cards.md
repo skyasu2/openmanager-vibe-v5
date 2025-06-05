@@ -10,10 +10,10 @@ OpenManager V5 홈페이지에는 4개의 주요 기능을 소개하는 인터�
 **설명**: MCP 기반 AI 시스템으로 자연어 분석 및 대응
 
 #### 🛠️ 기술 스택
-- **MCP Protocol** 기반 AI 엔진과 `@modelcontextprotocol/sdk`
-- **OpenAI·Claude·Gemini** 통합 분석 지원
-- **Scikit‑learn**과 **Transformers.js** 연동
-- **Supabase** 및 **Redis** 실시간 데이터 활용
+- **OpenAI·Claude·Gemini** 모델을 자동 선택하여 분석
+- **MCP Orchestrator**가 `statistical_analysis`와 `anomaly_detection` 플러그인을 조합
+- **Scikit‑learn**과 **Transformers.js** 기반 Python 엔진 연동
+- **Supabase**와 **Upstash Redis** 데이터를 실시간 참조
 
 **목적**: 자연어 질의를 통한 서버 모니터링 및 장애 분석
 
@@ -23,10 +23,10 @@ OpenManager V5 홈페이지에는 4개의 주요 기능을 소개하는 인터�
 **설명**: 실시간 서버 메트릭 시뮬레이터와 고성능 모니터링
 
 #### 🛠️ 기술 스택
-- **Prometheus** 호환 메트릭을 실시간 생성
-- **TimerManager** 최적화로 CPU 사용량 최소화
-- **Redis** 캐싱과 **delta-compression** 지원
-- **/api/data-generator** 엔드포인트 제공
+- **prom-client**로 Prometheus 호환 메트릭 실시간 생성
+- **timer-manager** 라이브러리 최적화로 CPU 사용량 최소화
+- **Upstash Redis** 캐싱과 **delta-compression** 모듈로 65% 압축률 달성
+- **/api/data-generator** 엔드포인트로 외부 시스템 연동
 
 **목적**: 실제 서버 환경을 모방한 테스트 데이터 생성
 
@@ -49,10 +49,10 @@ OpenManager V5 홈페이지에는 4개의 주요 기능을 소개하는 인터�
 **설명**: Cursor AI + Claude 협업으로 구현된 차세대 개발 방식
 
 #### 🛠️ 기술 스택
-- **Cursor AI**와 **Claude** 협업 워크플로우
+- **Cursor IDE**와 **Claude API** 협업으로 코드 최소화
 - **MCP** 설정부터 테스트 자동화까지 프롬프트 제어
-- **GitHub Copilot**과 **auto-doc-generator** 활용
-- **4단계 Vibe Coding** 프로세스로 86페이지 자동 생성
+- **GitHub Copilot**과 **auto-doc-generator.js** 활용
+- **4단계 Vibe Coding** 프로세스로 86페이지 자동 제작
 
 **목적**: AI 협업을 통한 혁신적인 개발 방법론 소개
 
