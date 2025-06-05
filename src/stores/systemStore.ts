@@ -42,11 +42,11 @@ export interface SystemStore extends SystemStatus {
   aiAgent: AIAgentStatus;
   
   // System Actions
-  startSystem: (durationInSeconds: number, userInitiated?: boolean) => void;
+  startSystem: (durationInSeconds: number, userInitiated?: boolean) => Promise<void>;
   stopSystem: (reason?: string) => void;
   pauseSystem: (reason: string) => void;
   resumeSystem: () => void;
-  extendSession: (additionalMinutes: number) => void;
+  extendSession: (additionalMinutes: number) => Promise<void>;
   aiTriggeredActivation: (reason: string) => void;
   updateActivity: () => void; // 사용자 활동 업데이트
   
@@ -73,7 +73,7 @@ export interface SystemStore extends SystemStatus {
   
   // Internal methods
   _updateRemainingTime: () => void;
-  _handleSessionEnd: () => void;
+  _handleSessionEnd: () => Promise<void>;
   _checkInactivity: () => void;
 }
 
@@ -172,7 +172,7 @@ export const useSystemStore = create<SystemStore>()(
           mcpStatus: 'disconnected' as const
         },
 
-        startSystem: (durationInSeconds: number, userInitiated = false) => {
+        startSystem: async (durationInSeconds: number, userInitiated = false) => {
           clearTimers();
           
           const startTime = Date.now();
@@ -195,7 +195,7 @@ export const useSystemStore = create<SystemStore>()(
           systemLogger.system(`🚀 시스템 활성화 (${sessionType}, ${durationInSeconds / 60}분)`);
 
           // 시스템 상태 업데이트 간격을 3초로 최적화 (1초 → 3초)
-          timer = setInterval(() => {
+          timer = setInterval(async () => {
             const current = get();
             if (current.state !== 'active') return;
 
@@ -206,7 +206,7 @@ export const useSystemStore = create<SystemStore>()(
               // 자동 중지 여부 확인
               if (get().shouldAutoStop()) {
                 systemLogger.system('⏰ 세션 시간 만료 - 시스템 중지');
-                get()._handleSessionEnd();
+                await get()._handleSessionEnd();
               } else {
                 // 사용자 세션은 자동 연장
                 systemLogger.system('⏰ 세션 시간 만료 - 사용자 세션 자동 연장 (10분)');
@@ -276,7 +276,7 @@ export const useSystemStore = create<SystemStore>()(
           systemLogger.system('▶️ 시스템 재개');
         },
 
-        extendSession: (additionalMinutes: number) => {
+        extendSession: async (additionalMinutes: number) => {
           const current = get();
           
           if (current.state !== 'active') {
@@ -294,7 +294,7 @@ export const useSystemStore = create<SystemStore>()(
           const startTime = current.sessionStartTime!;
           
           // 세션 연장 시에도 3초 간격으로 최적화
-          timer = setInterval(() => {
+          timer = setInterval(async () => {
             const currentState = get();
             if (currentState.state !== 'active') return;
 
@@ -304,7 +304,7 @@ export const useSystemStore = create<SystemStore>()(
             if (remaining <= 0) {
               if (get().shouldAutoStop()) {
                 systemLogger.system('⏰ 연장된 세션 시간 만료 - 시스템 중지');
-                get()._handleSessionEnd();
+                await get()._handleSessionEnd();
               } else {
                 // 사용자 세션은 추가 연장
                 systemLogger.system('⏰ 연장된 세션 시간 만료 - 추가 연장 (10분)');
@@ -369,7 +369,7 @@ export const useSystemStore = create<SystemStore>()(
           // 내부 메서드 - 직접 호출하지 말 것
         },
 
-        _handleSessionEnd: () => {
+        _handleSessionEnd: async () => {
           clearTimers();
           
           // 모든 서비스 중지
@@ -401,7 +401,7 @@ export const useSystemStore = create<SystemStore>()(
           };
           
           // 서비스 중지 실행
-          stopAllServices();
+          await stopAllServices();
           
           set({
             state: 'stopping',
