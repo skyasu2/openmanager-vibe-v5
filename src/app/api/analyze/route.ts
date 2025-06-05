@@ -23,7 +23,10 @@ export async function POST(request: NextRequest) {
   try {
     const body: AIAnalysisRequest = await request.json();
     
-    // 내부 AI 엔진(v3)을 호출
+    // 내부 AI 엔진(v3)을 호출 (우선순위)
+    // 외부 AI 엔진 URL은 백업용으로 환경변수에서 참조
+    const aiEngineUrl = process.env.FASTAPI_BASE_URL || 'https://openmanager-ai-engine.onrender.com';
+    
     const response = await fetch('/api/v3/ai', {
       method: 'POST',
       headers: {
@@ -68,6 +71,8 @@ export async function POST(request: NextRequest) {
 
 // GET 요청으로 상태 확인
 export async function GET() {
+  const aiEngineUrl = process.env.FASTAPI_BASE_URL || 'https://openmanager-ai-engine.onrender.com';
+  
   try {
     // 내부 AI 엔진 헬스체크
     const response = await fetch('/api/v3/ai?action=health');
@@ -77,6 +82,7 @@ export async function GET() {
       status: 'ok',
       aiEngine: {
         url: '/api/v3/ai',
+        fallbackUrl: aiEngineUrl,
         health: healthData,
         lastChecked: new Date().toISOString()
       }

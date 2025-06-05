@@ -4,7 +4,7 @@ echo "🔥 AI 시스템 웜업 및 온/오프 테스트 시작..."
 echo "================================================"
 
 # Python 서비스 URL
-PYTHON_URL="https://openmanager-vibe-v5.onrender.com"
+PYTHON_URL="https://openmanager-ai-engine.onrender.com"
 LOCAL_URL="http://localhost:3000"
 
 echo ""

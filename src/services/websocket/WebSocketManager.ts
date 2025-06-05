@@ -67,7 +67,7 @@ export class WebSocketManager {
     this.io = new SocketIOServer(server, {
       cors: {
         origin: process.env.NODE_ENV === 'production' 
-          ? ['https://openmanager-vibe-v5.vercel.app', 'https://openmanager-vibe-v5.onrender.com']
+          ? ['https://openmanager-vibe-v5.vercel.app', 'https://openmanager-ai-engine.onrender.com']
           : ['http://localhost:3000'],
         methods: ['GET', 'POST'],
         credentials: true

@@ -326,7 +326,7 @@ describe('MCP Integration', () => {
 
   it('Python 엔진 실패 시 TypeScript 폴백이 작동한다', async () => {
     // Python 엔진 URL을 잘못된 값으로 설정
-    process.env.AI_ENGINE_URL = 'http://invalid-url:9999';
+    process.env.FASTAPI_BASE_URL = 'http://invalid-url:9999';
 
     const request = {
       query: 'CPU 분석',

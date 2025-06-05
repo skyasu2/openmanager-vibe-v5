@@ -178,7 +178,7 @@ export class TaskOrchestrator {
       const structuredRequest = this.createStructuredRequest(task);
       
       // 환경변수에서 Python 서비스 URL 가져오기
-      const pythonServiceUrl = process.env.AI_ENGINE_URL || 'https://openmanager-vibe-v5.onrender.com';
+      const pythonServiceUrl = process.env.FASTAPI_BASE_URL || 'https://openmanager-ai-engine.onrender.com';
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), task.timeout || 20000);
@@ -543,7 +543,7 @@ export class TaskOrchestrator {
 
   async checkPythonStatus(): Promise<boolean> {
     try {
-      const pythonServiceUrl = process.env.AI_ENGINE_URL || 'https://openmanager-vibe-v5.onrender.com';
+      const pythonServiceUrl = process.env.FASTAPI_BASE_URL || 'https://openmanager-ai-engine.onrender.com';
       const response = await fetch(`${pythonServiceUrl}/health`, { 
         method: 'GET',
         signal: AbortSignal.timeout(5000)

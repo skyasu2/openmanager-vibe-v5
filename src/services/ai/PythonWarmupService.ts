@@ -19,7 +19,7 @@ export class PythonWarmupService {
   private pythonServiceUrl: string;
 
   private constructor() {
-    this.pythonServiceUrl = process.env.AI_ENGINE_URL || 'https://openmanager-vibe-v5.onrender.com';
+    this.pythonServiceUrl = process.env.FASTAPI_BASE_URL || 'https://openmanager-ai-engine.onrender.com';
     this.warmupStatus = {
       isWarm: false,
       lastWarmup: new Date(0),

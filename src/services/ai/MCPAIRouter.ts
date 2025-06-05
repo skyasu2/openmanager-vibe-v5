@@ -384,7 +384,7 @@ export class MCPAIRouter {
   private async warmupPythonService(): Promise<void> {
     if (this.pythonServiceWarmedUp) return;
     
-    const pythonServiceUrl = process.env.AI_ENGINE_URL || 'https://openmanager-vibe-v5.onrender.com';
+    const pythonServiceUrl = process.env.FASTAPI_BASE_URL || 'https://openmanager-ai-engine.onrender.com';
     const startTime = Date.now();
     
     try {
@@ -474,7 +474,7 @@ export class MCPAIRouter {
    */
   private async performWarmupAnalysis(): Promise<void> {
     try {
-      const pythonServiceUrl = process.env.AI_ENGINE_URL || 'https://openmanager-vibe-v5.onrender.com';
+      const pythonServiceUrl = process.env.FASTAPI_BASE_URL || 'https://openmanager-ai-engine.onrender.com';
       
       const response = await fetch(`${pythonServiceUrl}/analyze`, {
         method: 'POST',
