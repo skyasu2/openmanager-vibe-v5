@@ -7,6 +7,9 @@
 - **📚 문서 완성도 향상** - 시스템 제어 및 전원 관리 가이드 추가
 - **🧪 통합 테스트 확장** - 시스템 시작/중지 API 테스트 구현
 - **🎨 UI/UX 개선** - 배터리 수명 표현 정확성 향상
+- **📊 메트릭 시스템 개선** - 사용자 정의 서버 수 지원
+- **🔄 데이터 백업 강화** - Supabase 백업 및 Redis 시계열 안정화
+- **⚡ Prometheus 최적화** - 컬렉터 초기화 개선
 
 ### 🛠️ **기술적 개선사항**
 
@@ -42,6 +45,22 @@
 - ✅ **배터리 수명 표시 개선** (`src/stores/powerStore.ts`)
   - "예상 배터리 수명" → 정확한 표현으로 수정
   - 사용자 경험 일관성 향상
+
+#### **메트릭 시스템 개선**
+- ✅ **일일 메트릭 생성기 강화** (`scripts/generate-daily-metrics.ts`)
+  - 사용자 정의 서버 수 지원
+  - createServerConfigs 함수 매개변수 최적화
+  - 메트릭 생성 유연성 향상
+
+#### **시스템 안정성 강화**
+- ✅ **Prometheus 컬렉터 수정** (`src/services/data-generator/RealServerDataGenerator.ts`)
+  - 컬렉터 초기화 버그 수정
+  - 메트릭 수집 안정성 향상
+
+- ✅ **Redis 백업 시스템** (`src/services/redisTimeSeriesService.ts`)
+  - Supabase 백업 기능 활성화
+  - 시계열 데이터 보호 강화
+  - 데이터 복구 테스트 추가
 
 ### 🧪 **새로운 테스트 시나리오**
 ```typescript
