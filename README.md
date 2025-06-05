@@ -29,8 +29,15 @@
 git clone https://github.com/your-username/openmanager-vibe-v5.git
 cd openmanager-vibe-v5
 
+
 # 의존성 설치
-npm install
+npm ci
+
+# 테스트 실행 (필수)
+npm run test
+
+# 린트 실행 (필수)
+npm run lint
 
 # 환경 변수 설정
 cp .env.example .env.local
@@ -39,6 +46,11 @@ cp .env.example .env.local
 # 개발 서버 시작
 npm run dev
 ```
+
+> 💡 **테스트가 실패할 경우?**
+> - Playwright 등 테스트 도구가 설치되지 않았다면 `npm run test:e2e:install`을 실행합니다.
+> - 의존성 오류가 나타나면 `npm ci`를 다시 실행해 패키지를 재설치합니다.
+> - Node.js 버전이 `.nvmrc`와 일치하는지 `nvm use`로 확인하세요.
 
 ### **2. Vercel 배포**
 ```bash
