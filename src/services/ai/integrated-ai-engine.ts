@@ -1,12 +1,12 @@
 /**
  * 🤖 통합 AI 엔진 v3.0
  * 
- * ✅ 기본: MCP + TensorFlow.js + NLP 로컬 추론
- * ✅ LLM 없이도 동작하는 자연어 질의응답
+ * ✅ 현재: MCP + TensorFlow.js + NLP 로컬 추론 (완전 독립 동작)
+ * ✅ LLM API 없이도 동작하는 자연어 질의응답
  * ✅ 실시간 장애 예측
  * ✅ 자동 보고서 생성
  * ✅ Vercel Edge Runtime 최적화
- * ✅ 차후 개발: 외부 LLM 연동으로 성능 향상 예정
+ * 🚀 향후: 선택적 외부 LLM API 연동으로 고급 기능 확장 계획
  */
 
 import { realMCPClient } from '../mcp/real-mcp-client';

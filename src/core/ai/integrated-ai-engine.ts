@@ -1,11 +1,11 @@
 /**
  * 🧠 통합 AI 엔진 v2.0
  * 
- * 기본: LLM 없는 로컬 AI 추론 
+ * ⚡ 현재: LLM API 없는 완전 독립 동작 
  * - TensorFlow.js 기반 실시간 추론
  * - 다중 AI 모델 관리
  * - 컨텍스트 인식 분석
- * - 차후 개발: 외부 LLM API 연동 예정
+ * 🚀 향후: 선택적 외부 LLM API 연동으로 성능 향상 계획
  */
 
 import { IAIAnalysisService, AIAnalysisRequest, AIAnalysisResult } from '@/interfaces/services';

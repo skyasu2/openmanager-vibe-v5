@@ -120,11 +120,12 @@ export async function GET(request: NextRequest) {
       
       return NextResponse.json({
         status: 'healthy',
-        message: '통합 AI 엔진이 정상 동작 중입니다 (LLM 없이 독립 동작)',
+        message: '통합 AI 엔진이 정상 동작 중입니다 (현재: LLM API 없이 완전 독립 동작, 향후: 선택적 API 연동 확장 가능)',
         timestamp: new Date().toISOString(),
         engine_info: status,
         standalone: true,
-        external_dependencies: false
+        external_dependencies: false,
+        future_enhancement: 'Optional LLM API integration planned'
       });
     }
 

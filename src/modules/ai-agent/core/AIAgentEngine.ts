@@ -1,11 +1,11 @@
 /**
  * OpenManager AI Agent Engine
  * 
- * 🧠 지능형 경량 AI 추론 엔진
- * - 기본: LLM 없는 실시간 AI 추론
+ * �� 지능형 경량 AI 추론 엔진
+ * ⚡ 현재: LLM API 없는 완전 독립 실시간 AI 추론
  * - MCP(Model Context Protocol) 기반 의도 분류
  * - 도메인 특화 서버 모니터링 AI
- * - 차후 개발: LLM 연동으로 성능 향상 예정
+ * 🚀 향후: 선택적 LLM API 연동으로 고급 추론 기능 확장 계획
  */
 
 import { MCPProcessor } from '../../mcp';

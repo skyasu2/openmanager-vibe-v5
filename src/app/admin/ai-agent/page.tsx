@@ -105,7 +105,7 @@ export default function AIAgentAdminPage() {
           {/* 중앙: 관리자 모드 표시 */}
           <div className="flex items-center space-x-2">
             <Shield className="w-4 h-4" />
-            <span className="text-sm font-medium">🧠 AI 관리자 모드 - 보안 영역</span>
+            <span className="text-sm font-medium">🧠 AI 엔진 관리 모드 - 보안 영역</span>
           </div>
           
           {/* 오른쪽: 대시보드 버튼 */}

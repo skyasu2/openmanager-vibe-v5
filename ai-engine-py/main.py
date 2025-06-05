@@ -10,7 +10,7 @@ from predictor import predictor
 app = FastAPI(
     title="AI Analysis Engine v2.0", 
     version="2.0.0",
-    description="LLM 없이 동작하는 로컬 AI 분석 엔진 (차후 개발: LLM 연동 예정)"
+    description="현재: LLM API 없이 완전 독립 동작하는 로컬 AI 분석 엔진 | 향후: 선택적 LLM API 연동으로 확장 가능"
 )
 
 # 🧠 글로벌 ML 서비스 클래스 (싱글톤)

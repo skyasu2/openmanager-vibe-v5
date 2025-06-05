@@ -124,16 +124,26 @@ cat docs/CHANGELOG.md
 ## 🚀 Enhanced AI Engine v2.0
 
 ### 📚 **MCP 문서 활용 극대화**
+- **현재**: LLM API 없이 완전 독립 동작하는 로컬 AI 엔진
 - **벡터 DB 없는 검색**: 키워드 기반 고성능 검색
 - **실시간 컨텍스트 학습**: 세션별 지능형 응답
 - **Render 자동 관리**: 무료 서비스 최적화
+- **향후 확장**: 선택적 LLM API 연동으로 성능 향상 계획
 
-### 🎯 **핵심 API**
+### 🎯 **핵심 API (현재 기능)**
 ```bash
-# Enhanced AI 엔진 테스트
+# Enhanced AI 엔진 테스트 (LLM API 불필요)
 curl -X POST http://localhost:3000/api/ai/enhanced \
   -H "Content-Type: application/json" \
   -d '{"query": "시스템 최적화 방법", "sessionId": "test"}'
+```
+
+### 🔮 **향후 발전 계획**
+```bash
+# 계획: 선택적 LLM API 연동 (기본 기능은 항상 동작)
+curl -X POST http://localhost:3000/api/ai/enhanced \
+  -H "Content-Type: application/json" \
+  -d '{"query": "고급 분석", "useLLM": true, "sessionId": "test"}'
 ```
 
 ---

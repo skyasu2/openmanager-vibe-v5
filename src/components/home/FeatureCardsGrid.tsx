@@ -13,22 +13,22 @@ const cardData = [
   {
     id: 'mcp-ai-engine',
     title: 'MCP 기반 AI 엔진',
-    description: 'TensorFlow.js와 Scikit-learn 기반 로컬 AI 추론. 기본적으로 LLM 없이 동작하며, 향후 API 연동으로 성능 향상 가능.',
+    description: 'LLM 없이 완전 독립 동작하는 로컬 AI 엔진. 차후 개발에서 선택적 LLM API 연동으로 성능 향상 예정.',
     icon: Bot,
     gradient: 'from-blue-500 via-pink-500 to-cyan-400',
     detailedContent: {
-      overview: '애플리케이션 내부에서 동작하는 AI 엔진으로, MCP 프로토콜을 통해 컨텍스트와 도구를 관리합니다. 기본적으로 로컬 AI 모델만으로 모든 핵심 기능이 동작하며, 차후 개발 과정에서 LLM API 연동을 통한 성능 향상이 가능합니다.',
+      overview: '애플리케이션 내부에서 완전히 독립적으로 동작하는 AI 엔진으로, MCP 프로토콜을 통해 컨텍스트와 도구를 관리합니다. 외부 LLM API 없이도 모든 핵심 기능이 정상 동작하며, 차후 개발 단계에서 선택적 LLM API 연동을 통한 고급 기능 확장이 가능합니다.',
       features: [
-        'TensorFlow.js 3개 모델: 장애예측, 이상탐지, 시계열분석 (로컬 추론)',
-        'Python Scikit-learn 연동을 통한 통계적 분석 (독립 동작)',
-        'MCP 프로토콜을 통한 컨텍스트 및 도구 체인 관리',
-        '차후 개발: OpenAI/Claude/Gemini API 연동으로 성능 향상 가능'
+        '✅ TensorFlow.js 3개 모델로 로컬 추론 (장애예측, 이상탐지, 시계열분석)',
+        '✅ Python Scikit-learn 연동을 통한 통계적 분석 (완전 독립 동작)',
+        '✅ MCP 프로토콜을 통한 지능적 컨텍스트 관리',
+        '🔮 차후 개발: 선택적 LLM API 연동으로 고급 추론 기능 확장 계획'
       ],
       technologies: [
         'TensorFlow.js, Python Scikit-learn',
         'MCP SDK (애플리케이션용)',
         'FastAPI, Upstash Redis',
-        'Future: OpenAI/Anthropic/Google APIs (베타 기능)'
+        'Future Extension: OpenAI/Anthropic/Google APIs (베타 버전에서 시연 예정)'
       ]
     },
     requiresAI: true,
@@ -83,22 +83,22 @@ const cardData = [
   {
     id: 'vibe-coding',
     title: '✨ Vibe Coding',
-    description: 'GPT/Claude + Cursor AI로 협업하여 구현된 MCP 기반 차세대 AI 에이전트 개발 워크플로우입니다.',
+    description: 'GPT/Claude + Cursor AI로 협업하여 구현된 MCP 기반 차세대 개발 워크플로우입니다.',
     icon: Sparkles,
     gradient: 'from-amber-400 via-orange-500 to-yellow-600',
     detailedContent: {
       overview: '인간과 AI가 협업하는 혁신적인 개발 방식으로, "코드를 치지 않고도" 완성도 높은 기능을 구현하는 차세대 워크플로우입니다.',
       features: [
-        'Cursor AI와 Claude 협업으로 코드를 최소화합니다',
-        'MCP 설정부터 테스트 자동화까지 프롬프트로 제어합니다',
+        'Cursor AI의 MCP 시스템으로 개발 효율성 3-5배 향상',
+        'npm run mcp:full-setup 한 번으로 완벽한 MCP 환경 구성',
         'GitHub Copilot과 auto-doc-generator로 문서를 자동 생성합니다',
-        '4단계 Vibe Coding 프로세스로 86개 페이지를 자동 제작합니다'
+        '프로젝트 클론 후 3분 안에 완전한 개발 환경 준비 완료'
       ],
       technologies: [
-        'Cursor AI, Claude',
-        '@modelcontextprotocol/sdk',
-        'auto-doc-generator.js, testing-mcp-server.js',
-        'Vibe Coding 기반 프롬프트 템플릿 시스템'
+        'Cursor AI + MCP (Filesystem + GitHub)',
+        '@modelcontextprotocol/sdk 자동 설정',
+        'auto-doc-generator.js, setup-mcp.js',
+        'Vibe Coding 기반 자동화 워크플로우'
       ]
     },
     requiresAI: false,
@@ -146,8 +146,8 @@ export default function FeatureCardsGrid() {
     const card = cardData.find(c => c.id === cardId);
     
     if (card?.requiresAI && !aiAgent.isEnabled) {
-      // AI 에이전트가 필요한 기능에 일반 사용자가 접근할 때
-      warning('🚧 이 기능은 AI 에이전트 모드에서만 사용 가능합니다. 홈 화면에서 AI 모드를 활성화해주세요.', {
+      // AI 엔진이 필요한 기능에 일반 사용자가 접근할 때
+      warning('🚧 이 기능은 AI 엔진 모드에서만 사용 가능합니다. 홈 화면에서 AI 모드를 활성화해주세요.', {
         duration: 5000,
         action: {
           label: '활성화하기',

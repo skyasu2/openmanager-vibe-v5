@@ -171,9 +171,9 @@ export default function Home() {
 
   const handleAIAgentInfo = () => {
     if (aiAgent.isEnabled) {
-      info('AI 에이전트가 활성화되어 있습니다. 프로필에서 설정을 변경할 수 있습니다.');
+      info('AI 엔진이 활성화되어 있습니다. 프로필에서 설정을 변경할 수 있습니다.');
     } else {
-      info('AI 에이전트를 활성화하려면 화면 우상단 프로필 → 통합 설정에서 활성화하세요.', {
+      info('AI 엔진을 활성화하려면 화면 우상단 프로필 → 통합 설정에서 활성화하세요.', {
         duration: 5000,
         action: {
           label: '설정 확인',
@@ -234,7 +234,7 @@ export default function Home() {
             <h1 className="text-xl font-bold text-white">OpenManager</h1>
             <p className="text-xs text-white/70">
               {aiAgent.isEnabled 
-                ? 'AI 에이전트 모드' 
+                ? 'AI 엔진 모드' 
                 : isSystemStarted 
                 ? '기본 모니터링' 
                 : '시스템 정지'}
@@ -253,7 +253,7 @@ export default function Home() {
                 className="hidden sm:flex items-center gap-2 px-4 py-2 bg-purple-500/20 border border-purple-500/50 rounded-lg text-purple-300 hover:bg-purple-500/30 transition-all duration-200"
               >
                 <Shield className="w-4 h-4" />
-                <span className="text-sm font-medium">🧠 AI 관리자</span>
+                <span className="text-sm font-medium">🧠 AI 엔진 관리</span>
               </motion.button>
             </Link>
           )}
@@ -280,7 +280,9 @@ export default function Home() {
             <span className="text-white">서버 모니터링</span>
           </h1>
           <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
-            차세대 {renderTextWithAIGradient('AI 에이전트')}와 함께하는 지능형 서버 관리 솔루션
+            차세대 {renderTextWithAIGradient('AI 엔진')}과 함께하는 지능형 서버 관리 솔루션
+            <br />
+            <span className="text-sm text-white/60">완전 독립 동작 AI 엔진 | 향후 개발: 선택적 LLM API 연동 확장</span>
           </p>
         </motion.div>
 
@@ -350,7 +352,7 @@ export default function Home() {
                 </div>
                 <p className="text-green-100 text-sm text-center">
                   {aiAgent.isEnabled 
-                    ? 'AI 에이전트가 활성화되어 지능형 분석이 가능합니다.'
+                    ? 'AI 엔진이 활성화되어 지능형 분석이 가능합니다. (독립 동작 엔진, 향후 개발에서 고급 기능 확장 예정)'
                     : '기본 서버 모니터링이 실행되고 있습니다.'}
                 </p>
               </div>
@@ -383,10 +385,10 @@ export default function Home() {
                     </motion.div>
                     {aiAgent.isEnabled ? (
                       <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent font-bold">
-                        🤖 AI 에이전트 활성
+                        🧠 AI 엔진 활성
                       </span>
                     ) : (
-                      '🤖 AI 에이전트 설정'
+                      '🧠 AI 엔진 설정'
                     )}
                   </motion.button>
                   
@@ -462,7 +464,7 @@ export default function Home() {
               <span className="text-white">기능</span>
             </h2>
             <p className="text-white/70 text-base max-w-2xl mx-auto">
-              {renderTextWithAIGradient('AI 기반 서버 모니터링의 모든 것을 경험해보세요')}
+              {renderTextWithAIGradient('AI 엔진 기반 서버 모니터링의 모든 것을 경험해보세요')}
             </p>
           </div>
           

@@ -5,7 +5,7 @@
 
 ## 🎯 프로젝트 개요
 
-OpenManager Vibe v5는 **MCP(Model Context Protocol) 기반 AI 엔진**을 활용한 지능형 서버 모니터링 플랫폼입니다.
+OpenManager Vibe v5는 **MCP(Model Context Protocol) 기반 독립형 AI 엔진**을 활용한 지능형 서버 모니터링 플랫폼입니다.
 
 ### ✨ 핵심 특징
 
@@ -13,7 +13,7 @@ OpenManager Vibe v5는 **MCP(Model Context Protocol) 기반 AI 엔진**을 활�
 - 📚 **MCP 문서 활용 극대화**: 실시간 컨텍스트 학습
 - 🔄 **Render 자동 관리**: 무료 서비스 최적화
 - ⚡ **Vercel 무료 최적화**: 1GB 메모리 제한 대응
-- 🎯 **LLM 없이 완전 동작**: 기본 TensorFlow.js + MCP
+- 🎯 **LLM 없이 완전 동작**: 독립형 TensorFlow.js + MCP 엔진
 
 ## 🚀 빠른 시작
 
@@ -25,9 +25,22 @@ cd openmanager-vibe-v5
 # 의존성 설치
 npm install
 
+# MCP 자동 설정 (Cursor AI 개발 효율성 3-5배 향상)
+npm run mcp:full-setup
+
 # 개발 서버 실행
 npm run dev
 ```
+
+### ⚡ MCP 설정으로 개발 효율성 극대화
+
+**프로젝트 클론 후 3분 안에 완벽한 Cursor AI 환경 구성!**
+
+- 📁 **Filesystem MCP**: 프로젝트 파일 자동 분석
+- 🐙 **GitHub MCP**: 저장소 연동 및 협업 도구
+- 🎯 **자동 설정**: `npm run mcp:full-setup` 한 번으로 완료
+
+> 🔗 **상세 가이드**: [MCP 빠른 설정 가이드](./docs/MCP_QUICK_SETUP_GUIDE.md)
 
 ## 📚 상세 문서
 
@@ -36,7 +49,7 @@ npm run dev
 ### 📖 시작하기
 - 📋 [**시스템 개요**](./docs/1_SYSTEM_OVERVIEW.md) - 전체 구조 이해
 - ⚡ [**설치 및 설정**](./docs/3_INSTALLATION_AND_SETUP.md) - 5분 빠른 시작
-- 🤖 [**AI 에이전트 가이드**](./docs/4_AI_AGENT_GUIDE.md) - Enhanced AI 사용법
+- 🤖 [**AI 엔진 가이드**](./docs/4_AI_AGENT_GUIDE.md) - Enhanced AI 사용법
 
 ### 🔧 개발자용
 - 🏗️ [**아키텍처 가이드**](./docs/2_ARCHITECTURE_GUIDE.md) - 시스템 설계
@@ -61,15 +74,15 @@ graph LR
     D --> F[고급 분석<br/>1-5초]
 ```
 
-### ⚡ **베르셀 AI 엔진 (90% 기능)**
-- 🚀 **TensorFlow.js**: 장애 예측, 이상 탐지, 시계열 분석
+### ⚡ **베르셀 AI 엔진 (90% 기능) - 완전 독립 동작**
+- 🚀 **TensorFlow.js**: 장애 예측, 이상 탐지, 시계열 분석 (LLM 없이 동작)
 - 🎯 **KMeans 클러스터링**: Python scikit-learn 동등 기능
-- 📊 **StandardScaler**: 데이터 정규화 (Python 이전)
+- 📊 **StandardScaler**: 데이터 정규화 (완전 독립 처리)
 - ⚡ **응답 속도**: 50-200ms (20-100배 개선)
 - 🌐 **확장성**: 무제한 동시 요청 처리
 
-### 🐍 **Render AI 서버 (10% 고급 기능)**
-- 🔬 **복잡한 ML 모델**: 고급 패턴 인식, 정밀 예측
+### 🐍 **Render AI 서버 (10% 고급 기능) - 차후 개발 계획**
+- 🔬 **복잡한 ML 모델**: 고급 패턴 인식, 정밀 예측 (베타 버전에서 활용법 시연 예정)
 - 🔧 **시스템 진단**: OS 레벨 분석, 프로세스 관리
 - 📈 **배치 처리**: 대용량 로그 분석, 모델 재훈련
 - 💾 **처리 시간**: 1-5초 (복잡한 분석)

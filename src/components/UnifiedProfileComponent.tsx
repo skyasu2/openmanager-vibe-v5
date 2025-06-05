@@ -997,7 +997,7 @@ export default function UnifiedProfileComponent({
 
               {/* 메뉴 아이템들 */}
               <div className="p-2">
-                {/* AI 관리자 페이지 버튼 - AI 모드 활성화 시에만 표시 */}
+                {/* AI 엔진 관리 페이지 버튼 - AI 모드 활성화 시에만 표시 */}
                 {aiAgent.isEnabled && aiAgent.isAuthenticated && (
                   <Link href="/admin/ai-agent">
                     <motion.button
@@ -1011,7 +1011,7 @@ export default function UnifiedProfileComponent({
                         <Shield className="w-4 h-4 text-purple-400" />
                       </div>
                       <div>
-                        <div className="text-white font-medium">🧠 AI 관리자 페이지</div>
+                        <div className="text-white font-medium">🧠 AI 엔진 관리 페이지</div>
                         <div className="text-gray-400 text-xs">AI 로그, 컨텍스트, A/B 테스트 관리</div>
                       </div>
                     </motion.button>

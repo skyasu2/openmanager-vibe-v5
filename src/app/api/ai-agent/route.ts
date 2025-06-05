@@ -2,10 +2,11 @@
  * AI Agent API Endpoint - Vercel 서버리스 최적화
  * 
  * 🤖 OpenManager AI 에이전트 메인 API
- * - 지능형 AI 추론 엔진 (LLM 없이 동작)
+ * ⚡ 현재: LLM API 없이 완전 독립 동작하는 지능형 AI 추론 엔진
  * - MCP 프로토콜 지원
  * - 실시간 서버 모니터링 AI
  * - 함수 크기 최적화 (Vercel 50MB 제한 대응)
+ * 🚀 향후: 선택적 LLM API 연동으로 고급 기능 확장 계획
  */
 
 import { NextRequest, NextResponse } from 'next/server';
