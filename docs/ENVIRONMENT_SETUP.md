@@ -14,7 +14,9 @@ FASTAPI_BASE_URL="http://localhost:8000"
 FASTAPI_BASE_URL="https://your-python-ai-engine.render.com"
 ```
 
-### 2. AI 모델 API 키 (선택사항)
+### 2. AI 모델 API 키 (선택 사항)
+
+API 키를 입력하지 않으면 기본적으로 로컬 AI 엔진만 사용합니다.
 
 ```bash
 # OpenAI
