@@ -1,6 +1,7 @@
 # 🎨 OpenManager V5 - UI/UX 디자인 가이드
 
-> **최신 업데이트**: 2025-06-30  
+> **최신 업데이트**: 2025-06-02  
+> **개발자**: jhhong  
 > **Cursor AI 기반 Vibe Coding으로 구현된 모던 UI/UX 시스템**
 
 ---

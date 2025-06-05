@@ -2,10 +2,10 @@
  * 🤖 실제 AI 처리 서비스
  *
  * 기술 스택:
- * - 기본적으로는 MCP 엔진을 사용하며, 외부 LLM은 옵션
- * - OpenAI GPT-3.5-turbo (무료 tier)
- * - Google Gemini (무료 tier)
- * - Anthropic Claude (무료 tier)
+ * - 기본: 로컬 MCP 엔진으로 LLM 없이 동작
+ * - 베타: OpenAI GPT-3.5-turbo 연동 (선택사항)
+ * - 베타: Google Gemini 연동 (선택사항)
+ * - 베타: Anthropic Claude 연동 (선택사항)
  * - Redis 캐싱
  * - Render Python 서버 연동
  */

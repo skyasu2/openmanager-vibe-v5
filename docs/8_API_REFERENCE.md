@@ -163,7 +163,7 @@ curl -X POST https://your-project.vercel.app/api/ai-agent/power \
 {
   "success": true,
   "data": { "isActive": true, "powerMode": "active" },
-  "timestamp": "2025-06-05T09:00:00Z"
+  "timestamp": "2025-06-02T09:00:00Z"
 }
 ```
 

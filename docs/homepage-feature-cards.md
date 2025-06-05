@@ -7,15 +7,15 @@ OpenManager V5 홈페이지에는 4개의 주요 기능을 소개하는 인터�
 ## 🎯 카드 구성
 
 ### 1. 지능형 AI 에이전트 (🧠)
-**설명**: Cursor AI와 Claude 기반 개발, 필요 시 OpenAI/Gemini API를 연동 가능
+**설명**: 기본 AI 추론 엔진으로 동작하며, 향후 OpenAI/Claude/Gemini API 연동으로 성능 향상 가능
 
 #### 🛠️ 기술 스택
 - **MCP Protocol** 기반 AI 엔진과 `@modelcontextprotocol/sdk`
-- **OpenAI·Claude·Gemini** 통합 분석 지원
-- **Scikit‑learn**과 **Transformers.js** 연동
+- **로컬 AI 추론**: Scikit‑learn과 Transformers.js 기반 (LLM 불필요)
+- **베타 기능**: OpenAI·Claude·Gemini API 연동 지원 예정
 - **Supabase(Postgres)** 및 **Upstash Redis** 실시간 데이터 활용
 
-**목적**: 자연어 질의를 통한 서버 모니터링 및 장애 분석
+**목적**: LLM 없이도 기본 서버 모니터링 및 분석, 향후 고급 분석 기능 확장
 
 ---
 

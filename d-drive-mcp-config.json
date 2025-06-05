@@ -1,0 +1,33 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem", "D:\\cursor\\openmanager-vibe-v5\\docs", "D:\\cursor\\openmanager-vibe-v5\\src"],
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    "postgres": {
+      "command": "npx", 
+      "args": ["@modelcontextprotocol/server-postgres"],
+      "env": {
+        "DATABASE_URL": "postgresql://localhost:5432/openmanager",
+        "NODE_ENV": "development"
+      }
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-memory"]
+    },
+    "git": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-git", "--repository", "D:\\cursor\\openmanager-vibe-v5"]
+    }
+  },
+  "globalShortcut": "Ctrl+Shift+M",
+  "defaultServer": "filesystem",
+  "timeout": 30000,
+  "retryAttempts": 3,
+  "loggingEnabled": true,
+  "logLevel": "debug"
+} 

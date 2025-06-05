@@ -13,22 +13,22 @@ const cardData = [
   {
     id: 'mcp-ai-engine',
     title: 'MCP 기반 AI 엔진',
-    description: 'Cursor AI와 Claude 기반 개발, 필요 시 OpenAI/Gemini API를 연동 가능',
+    description: 'TensorFlow.js와 Scikit-learn 기반 로컬 AI 추론. MCP 프로토콜로 컨텍스트 관리.',
     icon: Bot,
     gradient: 'from-blue-500 via-pink-500 to-cyan-400',
     detailedContent: {
-      overview: 'MCP(Model Context Protocol) 표준을 활용한 차세대 AI 분석 엔진으로, 자연어 질의를 통해 복잡한 서버 분석을 수행합니다.',
+      overview: '애플리케이션 내부에서 동작하는 AI 엔진으로, MCP 프로토콜을 통해 컨텍스트와 도구를 관리합니다. 기본적으로 로컬 AI 모델로 동작하며, 선택적으로 외부 LLM API 연동이 가능합니다.',
       features: [
-        'OpenAI·Claude·Gemini 모델을 자동 선택해 분석합니다',
-        'MCP Orchestrator가 statistical_analysis와 anomaly_detection을 조합합니다',
-        'Python(Scikit-learn)과 Transformers.js 기반 AI 엔진을 연동합니다',
-        'Supabase(Postgres)와 Upstash Redis 데이터를 실시간으로 참조합니다'
+        'TensorFlow.js 3개 모델: 장애예측, 이상탐지, 시계열분석',
+        'Python Scikit-learn 연동을 통한 통계적 분석',
+        'MCP 프로토콜을 통한 컨텍스트 및 도구 체인 관리',
+        '옵션: OpenAI/Claude/Gemini API 연동 지원'
       ],
       technologies: [
-        '@modelcontextprotocol/server-filesystem, @modelcontextprotocol/sdk',
-        '@ai-sdk/openai, @ai-sdk/google, @ai-sdk/anthropic',
-        '@supabase/supabase-js, redis',
-        '@xenova/transformers, scikit-learn'
+        'TensorFlow.js, Python Scikit-learn',
+        'MCP SDK (애플리케이션용)',
+        'FastAPI, Upstash Redis',
+        'Optional: OpenAI/Anthropic/Google APIs'
       ]
     },
     requiresAI: true,

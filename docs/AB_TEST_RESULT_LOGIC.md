@@ -511,8 +511,8 @@ export const AB_TESTS: ABTestConfig[] = [
     targeting: {
       userTypes: ['returning'],
       timeRange: {
-        start: '2025-06-20T00:00:00Z',
-        end: '2025-06-30T23:59:59Z'
+        start: '2025-05-28T00:00:00Z',
+end: '2025-06-02T23:59:59Z'
       }
     }
   }

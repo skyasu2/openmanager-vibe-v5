@@ -1,6 +1,7 @@
 # 📚 OpenManager V5 - 통합 문서 가이드
 
-> **최종 통합 완료**: 2025-06-30  
+> **최종 통합 완료**: 2025-06-02  
+> **개발자**: jhhong (개인 프로젝트)  
 > **전체 .md 문서를 10개 이하로 체계적 통폐합 완료**  
 > **개발 도구**: Cursor AI + MCP (Model Context Protocol) 활용
 
@@ -71,6 +72,8 @@
 ```
 
 #### 3. **🧪 테스팅 MCP 서버** (testing-mcp-server) [🟢 설정 완료]
+
+#### 4. **🐙 GitHub MCP 서버** (@smithery-ai/github) [🟢 설정 완료]
 ```bash
 # 자동 테스트 케이스 생성 및 실행
 node .cursor/scripts/testing-mcp-server.js src/components/Button.tsx --type=unit
@@ -177,6 +180,11 @@ const developmentSteps = [
 
 ## 📖 통합 문서 구조
 
+### 🤖 **AI 엔진 철학 문서** (핵심)
+| 문서명 | 크기 | 설명 |
+|--------|------|------|
+| [**WHY_MCP_AI_ENGINE.md**](./WHY_MCP_AI_ENGINE.md) | 25KB | 💡 **MCP 기반 AI 엔진 구현 철학** - 서버 모니터링 Perfect Fit 이론 |
+
 ### 🔢 순서대로 읽기 (권장)
 
 | 번호 | 문서명 | 크기 | 설명 |
@@ -192,7 +200,13 @@ const developmentSteps = [
 | **9** | [9_MCP_ENGINE_REFERENCE.md](./9_MCP_ENGINE_REFERENCE.md) | 18KB | 🧠 MCP 엔진 상세 가이드 |
 | **10** | [10_UI_UX_GUIDE.md](./10_UI_UX_GUIDE.md) | 15KB | 🎨 UI/UX 디자인 시스템 |
 
-**총 문서 크기**: ~130KB (압축된 핵심 정보)
+**총 문서 크기**: ~155KB (압축된 핵심 정보)
+
+### 📚 **추가 전문 가이드**
+| 문서명 | 설명 |
+|--------|------|
+| [MCP_USAGE_GUIDE.md](./MCP_USAGE_GUIDE.md) | 🔧 MCP 사용 구분 가이드 (개발도구 vs 애플리케이션) |
+| [GITHUB_MCP_SETUP.md](./GITHUB_MCP_SETUP.md) | 🐙 GitHub MCP 서버 설정 상세 가이드 |
 
 ---
 
@@ -258,7 +272,7 @@ const developmentSteps = [
 
 ### 📝 문서 품질 기준
 - **실행 가능성**: 모든 코드는 복사-붙여넣기로 실행 가능
-- **최신성**: 2025-06-30 기준 최신 정보 반영
+- **최신성**: 2025-06-02 기준 최신 정보 반영
 - **완전성**: 각 주제별 완전한 정보 제공
 - **접근성**: 초보자도 이해할 수 있는 설명
 - **개발 친화성**: 실제 MCP 도구 사용 경험 기반
@@ -332,7 +346,7 @@ docs/7_TROUBLESHOOTING.md
 - **완전성**: 각 주제별 완전한 정보 제공
 - **일관성**: 통일된 문서 형식 및 스타일
 - **실용성**: 실행 가능한 예제 중심
-- **최신성**: 2025-06-30 기준 최신 정보
+- **최신성**: 2025-06-02 기준 최신 정보
 - **개발 친화성**: 실제 MCP 도구 활용 가이드 포함
 
 ---

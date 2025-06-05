@@ -14,17 +14,17 @@ FASTAPI_BASE_URL="http://localhost:8000"
 FASTAPI_BASE_URL="https://your-python-ai-engine.render.com"
 ```
 
-### 2. AI 모델 API 키 (선택사항)
-(선택 사항 - 로컬 MCP 엔진만으로도 동작)
+### 2. LLM API 키 (베타 기능 - 완전 선택사항)
+기본 AI 엔진은 LLM 없이 동작하며, 아래 설정은 베타/향후 개발용입니다:
 
 ```bash
-# OpenAI
+# 베타 기능: OpenAI 연동 (향후 고급 분석용)
 OPENAI_API_KEY="sk-your-openai-api-key"
 
-# Anthropic Claude
+# 베타 기능: Anthropic Claude 연동
 ANTHROPIC_API_KEY="your-anthropic-api-key"
 
-# Google Gemini
+# 베타 기능: Google Gemini 연동  
 GOOGLE_API_KEY="your-google-api-key"
 ```
 
@@ -146,7 +146,8 @@ curl $FASTAPI_BASE_URL/health
 - 폴백 사용 빈도 모니터링
 - 캐시 적중률 확인
 
-## 최신 업데이트 (2025-06-05)
+## 최신 업데이트 (2025-06-02)
+**개발자**: jhhong
 
 ### 🔧 주요 개선사항
 - **URL 파싱 오류 수정**: Node.js 환경에서 내부 AI 엔진 직접 호출 지원

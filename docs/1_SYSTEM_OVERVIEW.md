@@ -1,7 +1,8 @@
 # 🎯 OpenManager v5.21.0 - 시스템 개요
 
 **버전**: v5.21.0  
-**최종 업데이트**: 2025-06-01  
+**최종 업데이트**: 2025-06-02  
+**개발자**: jhhong  
 **아키텍처**: AI 분석-오토스케일링 분리 구조 + MCP 통합 시스템  
 
 ---
@@ -250,7 +251,7 @@ graph LR
 ### **5분 로컬 실행**
 ```bash
 # 1. 저장소 클론
-git clone https://github.com/skyasu2/openmanager-vibe-v5
+git clone https://github.com/jhhong/openmanager-vibe-v5
 cd openmanager-vibe-v5
 
 # 2. 의존성 설치

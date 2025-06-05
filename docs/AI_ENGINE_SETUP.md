@@ -1,10 +1,19 @@
-# AI Engine Setup Guide
+# 🤖 AI 엔진 설정 가이드
 
-## 개요
+> **최신 업데이트**: 2025-06-02  
+> **개발자**: jhhong  
+> **버전**: v5.21.2  
+> **상태**: 로컬 AI 엔진 + 선택적 LLM 연동 완료 ✅
 
-OpenManager Vibe v5는 하이브리드 AI 엔진 아키텍처를 사용합니다:
-- **내부 AI 엔진 (v3)**: 주요 분석 엔진 (`/api/v3/ai`)
-- **외부 Python AI 엔진**: FastAPI 기반 백업 엔진
+## 📋 개요
+
+> 💡 **[MCP 기반 AI 엔진 구현 철학](./WHY_MCP_AI_ENGINE.md)** 참고
+
+OpenManager Vibe v5는 로컬 AI 모델 기반 엔진을 사용합니다:
+- **TensorFlow.js 엔진**: 브라우저 내 3개 모델 (장애예측, 이상탐지, 시계열분석)
+- **Python Scikit-learn**: FastAPI 기반 통계적 분석
+- **MCP 컨텍스트 관리**: 애플리케이션 내부 AI 기능용 (개발도구와 별개)
+- **선택사항**: OpenAI/Claude/Gemini API 연동 지원
 
 ## 환경변수 설정
 
@@ -117,11 +126,12 @@ PYTHON_SERVICE_WARMUP_ENABLED=true
 PYTHON_SERVICE_MAX_WARMUPS=4
 ```
 
-## MCP 서버 구성
+## 🤖 애플리케이션 MCP 구성
 
-- MCP 서버는 **Next.js API Routes** 기반으로 동작하며 `/api/mcp`에서 요청을 처리합니다.
-- Node.js 20 런타임에서 실행되며 **Vercel SDK** 없이 Route Handler만 사용합니다.
-- Python 엔진 호출 주소는 `FASTAPI_BASE_URL` 환경변수로 지정합니다.
+- **애플리케이션 내부 AI 엔진용 MCP**: `/api/mcp`에서 컨텍스트 관리
+- **개발도구 MCP와 구분**: Cursor IDE용과 완전히 별개 시스템
+- Node.js 20 런타임에서 실행되며 Route Handler 기반
+- Python 엔진 호출 주소는 `FASTAPI_BASE_URL` 환경변수로 지정
 
 ## 컨텍스트 사용 방식
 

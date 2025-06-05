@@ -9,6 +9,26 @@
       "description": "파일 시스템 조작 도구",
       "status": "active"
     },
+    "github": {
+      "command": "npx", 
+      "args": [
+        "-y", 
+        "@smithery/cli@latest", 
+        "run", 
+        "@smithery-ai/github",
+        "--config", 
+        "{\"githubPersonalAccessToken\":\"YOUR_GITHUB_TOKEN\"}"
+      ],
+      "description": "GitHub 저장소 관리 및 이슈 트래킹",
+      "status": "pending",
+      "features": [
+        "저장소 정보 조회",
+        "이슈 및 PR 관리", 
+        "커밋 히스토리 분석",
+        "브랜치 관리",
+        "GitHub Actions 통합"
+      ]
+    },
     "git": {
       "command": "npx",
       "args": [

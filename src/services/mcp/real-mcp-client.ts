@@ -39,11 +39,11 @@ export class RealMCPClient {
   }
 
   private initializeServers(): void {
-    // 📁 파일시스템 MCP 서버 (문서 검색)
+    // 📁 파일시스템 MCP 서버 (문서 검색) - D 드라이브 경로 설정
     this.servers.set('filesystem', {
       name: 'filesystem',
       command: 'npx',
-      args: ['@modelcontextprotocol/server-filesystem', './docs', './src'],
+      args: ['@modelcontextprotocol/server-filesystem', 'D:\\cursor\\openmanager-vibe-v5\\docs', 'D:\\cursor\\openmanager-vibe-v5\\src'],
       enabled: true
     });
 
@@ -52,6 +52,26 @@ export class RealMCPClient {
       name: 'memory',
       command: 'npx',
       args: ['@modelcontextprotocol/server-memory'],
+      enabled: true
+    });
+
+    // 🗄️ PostgreSQL MCP 서버 (데이터베이스 연동)
+    this.servers.set('postgres', {
+      name: 'postgres',
+      command: 'npx',
+      args: ['@modelcontextprotocol/server-postgres'],
+      env: { 
+        DATABASE_URL: process.env.DATABASE_URL || 'postgresql://localhost:5432/openmanager',
+        NODE_ENV: process.env.NODE_ENV || 'development'
+      },
+      enabled: true
+    });
+
+    // 🔧 Git MCP 서버 (버전 관리)
+    this.servers.set('git', {
+      name: 'git',
+      command: 'npx',
+      args: ['@modelcontextprotocol/server-git', '--repository', 'D:\\cursor\\openmanager-vibe-v5'],
       enabled: true
     });
 

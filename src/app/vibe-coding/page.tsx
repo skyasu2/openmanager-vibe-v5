@@ -27,37 +27,37 @@ export default function AICollaborationPage() {
   const developmentSteps = [
     {
       id: 'analysis',
-      title: '📋 문제 분석 & 설계',
-      description: 'Claude와 함께 시스템 아키텍처 설계',
-      details: 'MCP 시스템, 데이터 생성 엔진, 타이머 최적화 방향 결정',
-      tools: ['Claude 3.5 Sonnet', 'GitHub Issues', 'Mermaid 다이어그램'],
+      title: '📋 시스템 설계',
+      description: 'AI 모델과 함께 아키텍처 설계 및 기술스택 결정',
+      details: '애플리케이션 AI 엔진, 데이터 생성기, 타이머 최적화 설계',
+      tools: ['Claude 4.0', 'GPT-4', 'Mermaid'],
       color: 'from-blue-400 to-blue-600',
       status: '완료'
     },
     {
       id: 'implementation',
-      title: '⚡ Cursor AI 협업 코딩',
-      description: 'Cursor Composer로 멀티파일 동시 편집',
-      details: '507줄 데이터 생성 엔진, MCP 오케스트레이터, 타입 안전성 보장',
-      tools: ['Cursor AI', 'TypeScript', 'ESLint', 'Prettier'],
+      title: '⚡ Cursor IDE 코딩',
+      description: 'Cursor Composer와 MCP 개발도구를 활용한 구현',
+      details: '507줄 데이터 생성 엔진, AI 추론 시스템, TypeScript 구현',
+      tools: ['Cursor Composer', 'MCP 개발도구', 'GitHub Codex'],
       color: 'from-green-400 to-green-600',
       status: '완료'
     },
     {
       id: 'optimization',
-      title: '🔧 시스템 최적화',
-      description: '타이머 시스템 통합 및 성능 개선',
-      details: '23개 개별 타이머 → 4개 통합 시스템으로 최적화',
+      title: '🔧 성능 최적화',
+      description: '타이머 시스템 통합 및 메모리 사용량 최적화',
+      details: '23개 개별 타이머를 4개 통합 TimerManager로 재구성',
       tools: ['Chrome DevTools', 'React DevTools', 'Performance Monitor'],
       color: 'from-purple-400 to-purple-600',
       status: '완료'
     },
     {
       id: 'deployment',
-      title: '🚀 자동화된 배포',
-      description: 'CI/CD 파이프라인 구축 및 모니터링',
-      details: 'GitHub Actions, Vercel 자동 배포, 실시간 성능 모니터링',
-      tools: ['GitHub Actions', 'Vercel', 'Render', 'Monitoring'],
+      title: '🚀 배포 및 테스트',
+      description: 'Vercel 배포 및 CI/CD 파이프라인 구성',
+      details: 'GitHub Actions, Vercel 자동 배포, E2E 테스트 구현',
+      tools: ['GitHub Actions', 'Vercel', 'Playwright'],
       color: 'from-orange-400 to-orange-600',
       status: '완료'
     }
@@ -155,13 +155,13 @@ export default function AICollaborationPage() {
               ⚡ AI 협업 개발 과정
             </motion.h1>
             <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
-              Cursor AI, Claude, GitHub Copilot을 활용한 실제 개발 워크플로우
+              Cursor IDE의 MCP 개발도구와 AI 모델들을 활용한 1주일 집중 개발 과정
             </p>
             
             {/* 실제 성과 배지 */}
             <div className="flex flex-wrap justify-center gap-4 mb-8">
               {[
-                '507줄 엔진 구현', '65% 압축률', '100% TypeScript', '86개 페이지'
+                'MCP 3서버 활성화', '507줄 엔진 구현', '65% 압축률', '100% TypeScript', '86개 페이지'
               ].map((achievement) => (
                 <span key={achievement} className="px-4 py-2 bg-blue-500/20 text-blue-300 rounded-full text-sm font-medium">
                   ✅ {achievement}
