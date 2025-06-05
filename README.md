@@ -257,6 +257,19 @@ POST /api/metrics/analyze
 - **ML-Matrix** - 수학적 연산
 - **Chart.js** - 데이터 시각화
 
+## 사용 중인 오픈소스
+
+| 라이브러리 | 사용 목적 |
+|------------|-----------|
+| Next.js | 프론트엔드와 API 서버 구축 |
+| React | 사용자 인터페이스 구성 |
+| TensorFlow.js | Node.js/브라우저 AI 추론 |
+| Scikit-learn | Python AI 엔진 학습 모델 |
+| FastAPI | Python 기반 AI API 제공 |
+| Redis | 세션 및 캐시 관리, 시계열 데이터 저장 |
+| PostgreSQL | 메타데이터 저장소 |
+| MCP SDK (@modelcontextprotocol/sdk 등) | MCP 도구 통합 및 제어 |
+
 ---
 
 ## 🧪 **테스트 및 품질**
