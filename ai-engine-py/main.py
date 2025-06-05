@@ -49,7 +49,7 @@ class MLService:
         """🔥 Predictor 워밍업"""
         # 더미 데이터로 워밍업
         dummy_metrics = [
-            {"timestamp": "2024-01-01T00:00:00Z", "cpu": 50, "memory": 60, "disk": 70}
+            {"timestamp": "2025-06-01T00:00:00Z", "cpu": 50, "memory": 60, "disk": 70}
         ]
         
         try:

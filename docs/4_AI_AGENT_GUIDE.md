@@ -1,7 +1,7 @@
 # 🤖 OpenManager v5 - AI 에이전트 가이드
 
 **버전**: v5.13.5  
-**최종 업데이트**: 2024-12-28  
+**최종 업데이트**: 2025-06-30  
 **핵심 기술**: MCP (Model Context Protocol) + 하이브리드 AI 엔진  
 **개발 도구**: Cursor AI + Claude + GitHub Copilot
 
