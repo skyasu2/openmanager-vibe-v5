@@ -106,7 +106,7 @@ export const usePowerStore = create<PowerStore>()(
 
 ⚡ **에너지 효율성**
 - 현재 절전 레벨: ${get().energySavingLevel}
-- 예상 배터리 수명: 8시간
+- 예상 세션 지속 시간: 8시간
 - 백그라운드 최적화: 활성화
           `,
           severity: 'info',
