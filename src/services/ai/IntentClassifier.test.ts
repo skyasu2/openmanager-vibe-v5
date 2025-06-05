@@ -3,11 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 const pipelineMock = vi.fn(async () =>
   vi.fn(async () => ({ labels: ['test'], scores: [1] }))
 );
-vi.mock(
-  '@xenova/transformers',
-  () => ({ pipeline: pipelineMock }),
-  { virtual: true }
-);
+vi.mock('@xenova/transformers', () => ({ pipeline: pipelineMock }));
 (globalThis as any).pipelineMock = pipelineMock;
 
 import { IntentClassifier } from './IntentClassifier';
