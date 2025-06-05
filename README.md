@@ -338,6 +338,40 @@ docker build -t openmanager-vibe .
 docker run -p 3000:3000 openmanager-vibe
 ```
 
+## ⚙️ **시스템 온·오프 및 절전 모드**
+
+### **운영 흐름**
+1. `POST /api/system/start` 호출로 전체 서비스를 기동합니다.
+2. 모니터링 모듈 → AI 엔진 → 데이터베이스 순으로 활성화됩니다.
+3. 운영 중 자원 절약이 필요할 경우 `POST /api/ai-agent/power`에 `{ "mode": "sleep" }`을 전송해 절전 모드에 진입합니다.
+4. 시스템 종료 시 `POST /api/system/stop`으로 세션을 안전하게 마감합니다.
+
+### **API 사용 예시**
+```bash
+# 시스템 시작
+curl -X POST https://your-app.vercel.app/api/system/start
+
+# 절전 모드 진입
+curl -X POST https://your-app.vercel.app/api/ai-agent/power \
+  -H "Content-Type: application/json" \
+  -d '{"mode":"sleep"}'
+
+# 시스템 종료
+curl -X POST https://your-app.vercel.app/api/system/stop
+```
+
+**예상 응답**
+```json
+{ "success": true, "message": "ok" }
+```
+
+### **Vercel 플랜별 자동 스케일링**
+- **Hobby**: 1개 인스턴스로 자동 확장, 작은 데모에 적합합니다.
+- **Pro**: 요청량에 따라 여러 인스턴스로 스케일, 최대 약 1000 동시 연결을 지원합니다.
+- **Enterprise**: 글로벌 배포와 무제한 스케일을 제공하며 대규모 트래픽에 대응합니다.
+
+데모 환경은 Hobby 플랜에서도 동작하지만, 안정적인 테스트를 위해 Pro 플랜 이상을 권장합니다. `vercel --prod` 실행 시 선택한 플랜에 맞춰 인프라가 자동으로 확장됩니다.
+
 ---
 
 ## 📚 **문서**
