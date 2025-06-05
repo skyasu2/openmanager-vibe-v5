@@ -121,7 +121,7 @@ PORT=3001
 # AI 엔진 설정 (선택사항)
 PYTHON_PATH=python3
 AI_ENGINE_MODE=optimized
-AI_ENGINE_URL=https://your-python-service.onrender.com
+FASTAPI_BASE_URL=https://openmanager-ai-engine.onrender.com
 
 # 데이터베이스 설정 (선택사항)
 # Supabase 또는 기타 PostgreSQL
@@ -144,7 +144,7 @@ VERCEL_PLAN=hobby  # 또는 pro
 
 # AI 엔진 (프로덕션)
 AI_ENGINE_MODE=production
-AI_ENGINE_URL=https://your-production-ai-service.com
+FASTAPI_BASE_URL=https://openmanager-ai-engine.onrender.com
 
 # 보안 설정
 ADMIN_PIN=your_secure_pin
