@@ -79,7 +79,7 @@ npm run clean:ports
 **해결 방법:**
 ```bash
 # 1. Python 엔진 연결 확인
-curl $AI_ENGINE_URL/health
+curl $PYTHON_SERVICE_URL/health
 
 # 2. TypeScript 폴백 테스트
 curl http://localhost:3001/api/ai-agent/integrated

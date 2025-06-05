@@ -81,8 +81,10 @@ export class RealAIProcessor {
   private enabledModels: string[] = [];
 
   private constructor() {
-    // Render Python 서버 URL (무료 tier)
-    this.pythonServiceUrl = process.env.PYTHON_SERVICE_URL || 'https://openmanager-ai-python.onrender.com';
+    // Python 분석 서버 URL
+    this.pythonServiceUrl =
+      process.env.PYTHON_SERVICE_URL ||
+      'https://openmanager-vibe-v5.onrender.com';
     
     // 사용 가능한 모델들 확인
     this.initializeModels();

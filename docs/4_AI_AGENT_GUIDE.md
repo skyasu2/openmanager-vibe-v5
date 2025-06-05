@@ -802,7 +802,7 @@ curl http://localhost:3001/api/ai-agent/admin/metrics
 
 #### 일반적인 문제
 1. **Python 엔진 연결 실패**
-   - 환경 변수 `AI_ENGINE_URL` 확인
+   - 환경 변수 `PYTHON_SERVICE_URL` 확인
    - 네트워크 연결 상태 확인
    - TypeScript 폴백으로 자동 전환됨
 

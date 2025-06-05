@@ -219,7 +219,9 @@ export async function POST(request: NextRequest) {
     let pythonAnalysis: any = null;
     if (body.options?.usePython && metrics) {
       try {
-        const pythonUrl = process.env.PYTHON_SERVICE_URL || 'https://openmanager-ai-python.onrender.com';
+        const pythonUrl =
+          process.env.PYTHON_SERVICE_URL ||
+          'https://openmanager-vibe-v5.onrender.com';
         const response = await fetch(`${pythonUrl}/analyze`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -503,7 +505,9 @@ function combineRecommendations(aiAnalysis: any, pythonAnalysis: any, mcpResults
 
 async function checkPythonService(): Promise<any> {
   try {
-    const pythonUrl = process.env.PYTHON_SERVICE_URL || 'https://openmanager-ai-python.onrender.com';
+    const pythonUrl =
+      process.env.PYTHON_SERVICE_URL ||
+      'https://openmanager-vibe-v5.onrender.com';
     const response = await fetch(`${pythonUrl}/health`, {
       method: 'GET',
       signal: AbortSignal.timeout(5000)
