@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { makeAIRequest } from '@/utils/aiEngineConfig';
 
 // AI 분석 응답 타입 정의
 interface AIAnalysisResponse {
@@ -23,29 +24,14 @@ export async function POST(request: NextRequest) {
   try {
     const body: AIAnalysisRequest = await request.json();
     
-    // 내부 AI 엔진(v3)을 호출 (우선순위)
-    // 외부 AI 엔진 URL은 백업용으로 환경변수에서 참조
-    const aiEngineUrl = process.env.FASTAPI_BASE_URL || 'https://openmanager-ai-engine.onrender.com';
-    
-    const response = await fetch('/api/v3/ai', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (!response.ok) {
-      throw new Error(`AI Engine 응답 오류: ${response.status}`);
-    }
-
-    const aiResult: AIAnalysisResponse = await response.json();
+    // AI 엔진 설정 매니저를 통해 하이브리드 AI 엔진 호출
+    // 내부 AI 엔진(v3) 우선, 실패 시 외부 엔진으로 폴백
+    const aiResult = await makeAIRequest('', body, true); // true = 내부 엔진 우선
 
     // 응답 로그 (개발용)
     console.log('AI Analysis Result:', {
       query: body.query,
-      summary: aiResult.summary,
-      confidence: aiResult.confidence,
+      success: aiResult?.success,
       timestamp: new Date().toISOString()
     });
 
@@ -71,19 +57,20 @@ export async function POST(request: NextRequest) {
 
 // GET 요청으로 상태 확인
 export async function GET() {
-  const aiEngineUrl = process.env.FASTAPI_BASE_URL || 'https://openmanager-ai-engine.onrender.com';
-  
   try {
-    // 내부 AI 엔진 헬스체크
-    const response = await fetch('/api/v3/ai?action=health');
-    const healthData = await response.json();
+    // AI 엔진 설정 확인
+    const aiEngineUrl = process.env.FASTAPI_BASE_URL || 'https://openmanager-ai-engine.onrender.com';
+    
+    // 내부 AI 엔진 헬스체크 시도
+    const healthData = await makeAIRequest('?action=health', {}, true);
 
     return NextResponse.json({
       status: 'ok',
       aiEngine: {
-        url: '/api/v3/ai',
-        fallbackUrl: aiEngineUrl,
+        internalEngine: '/api/v3/ai',
+        externalEngine: aiEngineUrl,
         health: healthData,
+        hybridMode: true,
         lastChecked: new Date().toISOString()
       }
     });

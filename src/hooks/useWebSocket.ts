@@ -45,11 +45,7 @@ export interface AlertData {
 
 export const useWebSocket = (config: WebSocketConfig = {}) => {
   const {
-<<<<<<< HEAD
-    url = process.env.NODE_ENV === 'production' 
-=======
     url = process.env.NODE_ENV === 'production'
->>>>>>> codex/update-urls-in-test-warmup.sh-and-codebase
       ? 'https://openmanager-ai-engine.onrender.com'
       : 'http://localhost:3000',
     autoConnect = true,

@@ -96,43 +96,86 @@ export class AIEngineConfigManager {
     body?: any, 
     useInternal: boolean = true
   ): Promise<any> {
-    const url = useInternal ? '/api/v3/ai' : `${this.config.fastApiBaseUrl}${endpoint}`;
-    const options = this.createRequestOptions(body);
-    
     let lastError: Error | null = null;
     
-    for (let attempt = 1; attempt <= this.config.retryCount; attempt++) {
+    // 내부 엔진 시도
+    if (useInternal && this.config.internalEngineEnabled) {
       try {
-        console.log(`🤖 AI 요청 시도 ${attempt}/${this.config.retryCount}: ${url}`);
+        console.log(`🤖 내부 AI 엔진 호출 시도: /api/v3/ai${endpoint}`);
         
-        const response = await fetch(url, options);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        // 서버 환경에서는 직접 함수 호출, 클라이언트에서는 fetch 사용
+        if (typeof window === 'undefined') {
+          // 서버 환경: 동적 import로 내부 AI 엔진 함수 직접 호출
+          try {
+            const { POST } = await import('@/app/api/v3/ai/route');
+            const mockRequest = {
+              json: () => Promise.resolve(body || {}),
+              url: `/api/v3/ai${endpoint}`,
+              method: 'POST'
+            } as any;
+            
+            const response = await POST(mockRequest);
+            const result = await response.json();
+            
+            console.log(`✅ 내부 AI 엔진 직접 호출 성공`);
+            return result;
+          } catch (importError) {
+            console.warn('⚠️ 내부 AI 엔진 직접 호출 실패:', importError);
+            throw importError;
+          }
+        } else {
+          // 클라이언트 환경: fetch 사용
+          const url = `${window.location.origin}/api/v3/ai${endpoint}`;
+          const options = this.createRequestOptions(body);
+          
+          const response = await fetch(url, options);
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          
+          const result = await response.json();
+          console.log(`✅ 내부 AI 엔진 fetch 성공`);
+          return result;
         }
-        
-        const result = await response.json();
-        console.log(`✅ AI 요청 성공 (시도 ${attempt})`);
-        return result;
         
       } catch (error) {
         lastError = error instanceof Error ? error : new Error('Unknown error');
-        console.warn(`⚠️ AI 요청 실패 (시도 ${attempt}):`, lastError.message);
-        
-        // 마지막 시도가 아니면 잠시 대기
-        if (attempt < this.config.retryCount) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        console.warn(`⚠️ 내부 AI 엔진 호출 실패:`, lastError.message);
+      }
+    }
+    
+    // 외부 엔진 폴백 시도
+    if (this.config.fallbackEnabled) {
+      for (let attempt = 1; attempt <= this.config.retryCount; attempt++) {
+        try {
+          const url = `${this.config.fastApiBaseUrl}${endpoint}`;
+          const options = this.createRequestOptions(body);
+          
+          console.log(`🔄 외부 AI 엔진 시도 ${attempt}/${this.config.retryCount}: ${url}`);
+          
+          const response = await fetch(url, options);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          
+          const result = await response.json();
+          console.log(`✅ 외부 AI 엔진 성공 (시도 ${attempt})`);
+          return result;
+          
+        } catch (error) {
+          lastError = error instanceof Error ? error : new Error('Unknown error');
+          console.warn(`⚠️ 외부 AI 엔진 실패 (시도 ${attempt}):`, lastError.message);
+          
+          // 마지막 시도가 아니면 잠시 대기
+          if (attempt < this.config.retryCount) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          }
         }
       }
     }
     
-    // 모든 시도 실패 시 폴백 시도
-    if (useInternal && this.config.fallbackEnabled) {
-      console.log('🔄 외부 AI 엔진으로 폴백 시도...');
-      return this.makeAIRequest(endpoint, body, false);
-    }
-    
-    throw lastError || new Error('AI 요청 실패');
+    throw lastError || new Error('모든 AI 엔진 호출 실패');
   }
 
   /**

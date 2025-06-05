@@ -66,11 +66,7 @@ export class WebSocketManager {
   initialize(server: any): void {
     this.io = new SocketIOServer(server, {
       cors: {
-<<<<<<< HEAD
-        origin: process.env.NODE_ENV === 'production' 
-=======
         origin: process.env.NODE_ENV === 'production'
->>>>>>> codex/update-urls-in-test-warmup.sh-and-codebase
           ? ['https://openmanager-vibe-v5.vercel.app', 'https://openmanager-ai-engine.onrender.com']
           : ['http://localhost:3000'],
         methods: ['GET', 'POST'],
