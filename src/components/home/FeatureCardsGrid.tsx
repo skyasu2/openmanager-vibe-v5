@@ -19,16 +19,16 @@ const cardData = [
     detailedContent: {
       overview: 'MCP(Model Context Protocol) 표준을 활용한 차세대 AI 분석 엔진으로, 자연어 질의를 통해 복잡한 서버 분석을 수행합니다.',
       features: [
-        '자연어로 CPU, 메모리, 응답속도 등을 질의할 수 있습니다',
-        'MCP Orchestrator는 내부에서 statistical_analysis, anomaly_detection, root_cause_analysis 등의 도구를 조합하여 분석을 수행합니다',
-        'Python 기반 AI 엔진과 TypeScript 폴백 엔진이 자동으로 선택됩니다',
-        '결과는 실시간 사고과정 표시와 함께 자연어로 응답됩니다'
+        'OpenAI·Claude·Gemini 모델을 자동 선택해 분석합니다',
+        'MCP Orchestrator가 statistical_analysis와 anomaly_detection을 조합합니다',
+        'Python(Scikit-learn)과 Transformers.js 기반 AI 엔진을 연동합니다',
+        'Supabase와 Redis 데이터를 실시간으로 참조합니다'
       ],
       technologies: [
-        '@modelcontextprotocol/server-filesystem',
-        'OpenManager MCP',
-        'scikit-learn, prophet',
-        'react-use, zustand, SSE'
+        '@modelcontextprotocol/server-filesystem, @modelcontextprotocol/sdk',
+        '@ai-sdk/openai, @ai-sdk/google, @ai-sdk/anthropic',
+        '@supabase/supabase-js, redis',
+        '@xenova/transformers, scikit-learn'
       ]
     },
     requiresAI: true,
@@ -43,15 +43,15 @@ const cardData = [
     detailedContent: {
       overview: '실제 운영 환경을 시뮬레이션하는 고성능 데이터 생성기로, AI 학습과 테스트를 위한 다양한 시나리오를 제공합니다.',
       features: [
-        '실시간 20분 구간과 24시간 고정 데이터 기반 시계열 구성',
-        'CPU, 메모리, 디스크, 응답속도 등 다양한 메트릭 자동 생성',
-        '10% 심각, 20% 경고 상태를 시뮬레이션하여 AI 분석 훈련 가능',
-        '/api/data-generator를 통해 타 시스템에도 제공 가능'
+        'Prometheus 호환 메트릭을 실시간으로 생성합니다',
+        'TimerManager 최적화로 CPU 사용량을 최소화합니다',
+        'Redis 캐싱과 delta-compression으로 65% 압축률을 달성합니다',
+        '/api/data-generator 엔드포인트로 외부 시스템과 연동됩니다'
       ],
       technologies: [
-        'prom-client, faker.js',
-        'Recharts, zustand, TimerManager',
-        'Express (Fastify), Upstash for Redis',
+        '@faker-js/faker, prom-client',
+        'TimerManager, recharts',
+        'express, upstash-redis',
         'delta-compression'
       ]
     },
@@ -66,10 +66,10 @@ const cardData = [
     detailedContent: {
       overview: '모던 웹 개발의 베스트 프랙티스를 적용한 확장 가능하고 유지보수하기 쉬운 아키텍처를 제공합니다.',
       features: [
-        'Next.js 14 (App Router), React 19, Tailwind 3.x',
-        'Zustand + React Query로 전역 및 API 상태 관리',
-        'Vercel 기반 자동 배포 + GitHub Actions 분기별 배포 구성',
-        '백엔드는 Node.js + Supabase + Upstash for Redis 구성'
+        'Next.js 15과 React 19 기반 최신 프론트엔드',
+        'Zustand와 TanStack Query로 상태와 캐시를 관리합니다',
+        'Vercel과 GitHub Actions를 활용한 자동 배포 파이프라인',
+        'Supabase와 Upstash Redis로 백엔드를 구성합니다'
       ],
       technologies: [
         'Next.js, Tailwind, React Query, Zustand',
@@ -89,10 +89,10 @@ const cardData = [
     detailedContent: {
       overview: '인간과 AI가 협업하는 혁신적인 개발 방식으로, "코드를 치지 않고도" 완성도 높은 기능을 구현하는 차세대 워크플로우입니다.',
       features: [
-        'MCP 서버 설정, 테스트 자동화, 문서 자동 생성까지 커서 기반으로 개발 가능',
-        '비즈니스 도메인에 최적화된 AI 학습 루프 설계',
-        '"코드를 치지 않고도" 기능을 완성하는 Vibe-Driven 방식 실현',
-        'AI와 인간의 창의적 협업을 통한 혁신적 개발 경험'
+        'Cursor AI와 Claude 협업으로 코드를 최소화합니다',
+        'MCP 설정부터 테스트 자동화까지 프롬프트로 제어합니다',
+        'GitHub Copilot과 auto-doc-generator로 문서를 자동 생성합니다',
+        '4단계 Vibe Coding 프로세스로 86개 페이지를 자동 제작합니다'
       ],
       technologies: [
         'Cursor AI, Claude',
