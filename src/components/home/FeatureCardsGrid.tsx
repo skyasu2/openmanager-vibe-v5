@@ -13,7 +13,7 @@ const cardData = [
   {
     id: 'mcp-ai-engine',
     title: 'MCP 기반 AI 엔진',
-    description: '자연어로 서버 상태를 질의하면, MCP 프로토콜을 통해 AI 엔진이 다중 도구를 선택하고 분석 결과를 생성합니다.',
+    description: 'Cursor AI와 Claude 기반 개발, 필요 시 OpenAI/Gemini API를 연동 가능',
     icon: Bot,
     gradient: 'from-blue-500 via-pink-500 to-cyan-400',
     detailedContent: {

@@ -7,7 +7,7 @@ OpenManager V5 홈페이지에는 4개의 주요 기능을 소개하는 인터�
 ## 🎯 카드 구성
 
 ### 1. 지능형 AI 에이전트 (🧠)
-**설명**: MCP 기반 AI 시스템으로 자연어 분석 및 대응
+**설명**: Cursor AI와 Claude 기반 개발, 필요 시 OpenAI/Gemini API를 연동 가능
 
 #### 🛠️ 기술 스택
 - **MCP Protocol** 기반 AI 엔진과 `@modelcontextprotocol/sdk`
