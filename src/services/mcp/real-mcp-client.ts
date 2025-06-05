@@ -2,10 +2,12 @@
  * 🎯 실제 MCP 표준 클라이언트 v3.0
  * 
  * ✅ @modelcontextprotocol/sdk 사용
- * ✅ 파일시스템, 메모리, 웹검색 서버 연동
+ * ✅ 환경별 서버 구성 (개발/테스트/스테이징/프로덕션)
  * ✅ JSON-RPC 2.0 프로토콜
  * ✅ 표준화된 도구 호출
  */
+
+import { env, envLog, shouldEnableDebugLogging } from '@/config/environment';
 
 // MCP SDK는 아직 설치되지 않았을 수 있으므로 폴백 구현
 interface MCPClient {
@@ -39,20 +41,43 @@ export class RealMCPClient {
   }
 
   private initializeServers(): void {
-    // 📁 파일시스템 MCP 서버 (문서 검색) - D 드라이브 경로 설정
-    this.servers.set('filesystem', {
-      name: 'filesystem',
-      command: 'npx',
-      args: ['@modelcontextprotocol/server-filesystem', 'D:\\cursor\\openmanager-vibe-v5\\docs', 'D:\\cursor\\openmanager-vibe-v5\\src'],
-      enabled: true
-    });
+    envLog('info', `🔧 환경별 MCP 서버 초기화: ${env.name}`);
+    
+    const enabledServers = env.mcp.enabledServers;
+    
+    // 📁 파일시스템 MCP 서버 (환경별 경로 설정)
+    if (enabledServers.includes('filesystem')) {
+      const filesystemPaths = env.mcp.useLocalPaths 
+        ? ['D:\\cursor\\openmanager-vibe-v5\\docs', 'D:\\cursor\\openmanager-vibe-v5\\src']
+        : ['/var/task/docs', '/var/task/src']; // Vercel 경로
+        
+      this.servers.set('filesystem', {
+        name: 'filesystem',
+        command: 'npx',
+        args: ['@modelcontextprotocol/server-filesystem', ...filesystemPaths],
+        enabled: true
+      });
+      
+      envLog('debug', `📁 파일시스템 서버 설정: ${filesystemPaths.join(', ')}`);
+    }
 
-
-
-
+    // 🐙 GitHub MCP 서버 (환경별 활성화)
+    if (enabledServers.includes('github') && process.env.GITHUB_PERSONAL_ACCESS_TOKEN) {
+      this.servers.set('github', {
+        name: 'github',
+        command: 'npx',
+        args: ['@modelcontextprotocol/server-github'],
+        env: { 
+          GITHUB_PERSONAL_ACCESS_TOKEN: process.env.GITHUB_PERSONAL_ACCESS_TOKEN 
+        },
+        enabled: true
+      });
+      
+      envLog('debug', '🐙 GitHub 서버 활성화');
+    }
 
     // 🌐 웹 검색 서버 (선택사항)
-    if (process.env.BRAVE_API_KEY) {
+    if (enabledServers.includes('web-search') && process.env.BRAVE_API_KEY) {
       this.servers.set('web-search', {
         name: 'web-search',
         command: 'npx',
@@ -60,9 +85,12 @@ export class RealMCPClient {
         env: { BRAVE_API_KEY: process.env.BRAVE_API_KEY },
         enabled: true
       });
+      
+      envLog('debug', '🌐 웹 검색 서버 활성화');
     }
 
-    console.log('🔧 MCP 서버 구성 완료:', Array.from(this.servers.keys()));
+    const activeServers = Array.from(this.servers.keys());
+    envLog('info', `🔧 MCP 서버 구성 완료: [${activeServers.join(', ')}]`);
   }
 
   async initialize(): Promise<void> {

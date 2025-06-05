@@ -1,7 +1,8 @@
 /**
- * 🎲 서버 시뮬레이션 엔진 v2.1 - Prometheus 통합
+ * 🎲 서버 시뮬레이션 엔진 v2.2 - 환경별 설정 통합
  * 
- * 현실적 패턴 기반 고도화된 서버 데이터 생성
+ * 환경별 최적화된 서버 데이터 생성
+ * - 개발/테스트/스테이징/프로덕션 환경 구분
  * - RealisticPatternEngine 통합
  * - Prometheus 메트릭 지원
  * - 서버별 특성화된 메트릭
@@ -9,6 +10,7 @@
  * - 상관관계 모델링
  */
 
+import { env, envLog } from '../config/environment';
 import { realisticPatternEngine } from '../modules/data-generation/RealisticPatternEngine';
 import { 
   prometheusFormatter, 
@@ -136,17 +138,23 @@ export class SimulationEngine {
   private readonly MEMORY_CHECK_INTERVAL = 60000; // 1분마다 메모리 체크
 
   constructor() {
-    // 즉시 기본 서버 생성 (동기적)
-    this.state.servers = this.generateInitialServers();
-    console.log('🎯 시뮬레이션 엔진 초기화 완료 (Prometheus 지원)');
+    envLog('info', `🎯 시뮬레이션 엔진 초기화: ${env.name} 환경`);
     
-    // Vercel 상태 기반 최적화 (비동기적, 백그라운드)
-    this.initializeWithAutoScaling().catch(error => {
-      console.warn('⚠️ 오토스케일링 최적화 실패, 기본 설정 유지:', error);
-    });
+    // 환경별 서버 생성
+    this.state.servers = this.generateEnvironmentServers();
+    envLog('info', `🎯 시뮬레이션 엔진 초기화 완료 (${env.name} 환경)`);
     
-    // 메모리 최적화 모니터링 시작
-    this.startMemoryOptimization();
+    // 환경별 최적화 (프로덕션/스테이징만)
+    if (!env.isTest && !env.isDevelopment) {
+      this.initializeWithAutoScaling().catch(error => {
+        envLog('warn', '⚠️ 오토스케일링 최적화 실패, 기본 설정 유지:', error);
+      });
+    }
+    
+    // 메모리 최적화 (프로덕션 환경만)
+    if (env.performance.enableOptimizations) {
+      this.startMemoryOptimization();
+    }
   }
 
   /**
@@ -675,6 +683,84 @@ export class SimulationEngine {
    */
   public isRunning(): boolean {
     return this.state.isRunning;
+  }
+
+  /**
+   * 🌍 환경별 서버 생성
+   */
+  private generateEnvironmentServers(): EnhancedServerMetrics[] {
+    const serverCount = env.performance.serverCount;
+    
+    envLog('debug', `🏗️ ${serverCount}개 서버 생성 중 (환경: ${env.name})`);
+    
+    if (env.isTest) {
+      return this.generateTestServers();
+    }
+    
+    if (env.isDevelopment) {
+      return this.generateDevelopmentServers(serverCount);
+    }
+    
+    return this.generateProductionServers(serverCount);
+  }
+
+  /**
+   * 🧪 테스트 환경용 최소 서버
+   */
+  private generateTestServers(): EnhancedServerMetrics[] {
+    return [
+      this.createServerWithStatus('test-web-01', 'aws', 'web', 'healthy', 1),
+      this.createServerWithStatus('test-api-01', 'aws', 'api', 'warning', 2),
+    ];
+  }
+
+  /**
+   * 🛠️ 개발 환경용 현실적인 서버
+   */
+  private generateDevelopmentServers(count: number): EnhancedServerMetrics[] {
+    const servers: EnhancedServerMetrics[] = [];
+    const environments: ServerEnvironment[] = ['on-premise', 'aws', 'azure'];
+    const roles: ServerRole[] = ['web', 'api', 'database', 'cache'];
+    
+    for (let i = 1; i <= count; i++) {
+      const env = environments[i % environments.length];
+      const role = roles[i % roles.length];
+      const status = this.getRandomStatus(0.7, 0.2, 0.1); // 70% healthy, 20% warning, 10% critical
+      
+      servers.push(this.createServerWithStatus(`dev-${role}-${String(i).padStart(2, '0')}`, env, role, status, i));
+    }
+    
+    return servers;
+  }
+
+  /**
+   * 🚀 프로덕션 환경용 최적화된 서버
+   */
+  private generateProductionServers(count: number): EnhancedServerMetrics[] {
+    const servers: EnhancedServerMetrics[] = [];
+    const environments: ServerEnvironment[] = ['aws', 'kubernetes', 'gcp'];
+    const roles: ServerRole[] = ['web', 'api', 'database', 'cache', 'storage'];
+    
+    for (let i = 1; i <= count; i++) {
+      const env = environments[i % environments.length];
+      const role = roles[i % roles.length];
+      const status = this.getRandomStatus(0.85, 0.12, 0.03); // 85% healthy, 12% warning, 3% critical
+      
+      servers.push(this.createServerWithStatus(`prod-${role}-${String(i).padStart(2, '0')}`, env, role, status, i));
+    }
+    
+    return servers;
+  }
+
+  /**
+   * 📊 확률 기반 상태 생성
+   */
+  private getRandomStatus(healthyRate: number, warningRate: number, criticalRate: number): ServerStatus {
+    const rand = Math.random();
+    
+    if (rand < healthyRate) return 'healthy';
+    if (rand < healthyRate + warningRate) return 'warning';
+    return 'critical';
   }
 
   private generateInitialServers(): EnhancedServerMetrics[] {
