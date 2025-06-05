@@ -22,7 +22,7 @@ const cardData = [
         'OpenAI·Claude·Gemini 모델을 자동 선택해 분석합니다',
         'MCP Orchestrator가 statistical_analysis와 anomaly_detection을 조합합니다',
         'Python(Scikit-learn)과 Transformers.js 기반 AI 엔진을 연동합니다',
-        'Supabase와 Redis 데이터를 실시간으로 참조합니다'
+        'Supabase(Postgres)와 Upstash Redis 데이터를 실시간으로 참조합니다'
       ],
       technologies: [
         '@modelcontextprotocol/server-filesystem, @modelcontextprotocol/sdk',
@@ -45,7 +45,7 @@ const cardData = [
       features: [
         'Prometheus 호환 메트릭을 실시간으로 생성합니다',
         'TimerManager 최적화로 CPU 사용량을 최소화합니다',
-        'Redis 캐싱과 delta-compression으로 65% 압축률을 달성합니다',
+        'Redis(Upstash) 캐싱과 delta-compression으로 65% 압축률을 달성합니다',
         '/api/data-generator 엔드포인트로 외부 시스템과 연동됩니다'
       ],
       technologies: [
@@ -69,7 +69,7 @@ const cardData = [
         'Next.js 15과 React 19 기반 최신 프론트엔드',
         'Zustand와 TanStack Query로 상태와 캐시를 관리합니다',
         'Vercel과 GitHub Actions를 활용한 자동 배포 파이프라인',
-        'Supabase와 Upstash Redis로 백엔드를 구성합니다'
+        'Supabase(Postgres)와 Upstash Redis로 백엔드를 구성합니다'
       ],
       technologies: [
         'Next.js, Tailwind, React Query, Zustand',
@@ -91,7 +91,7 @@ const cardData = [
       features: [
         'Cursor AI와 Claude 협업으로 코드를 최소화합니다',
         'MCP 설정부터 테스트 자동화까지 프롬프트로 제어합니다',
-        'GitHub Copilot과 auto-doc-generator로 문서를 자동 생성합니다',
+        'GitHub Copilot과 auto-doc-generator.js로 문서를 자동 생성합니다',
         '4단계 Vibe Coding 프로세스로 86개 페이지를 자동 제작합니다'
       ],
       technologies: [
