@@ -1,7 +1,8 @@
 /**
  * 🤖 실제 AI 처리 서비스
- * 
+ *
  * 기술 스택:
+ * - 기본적으로는 MCP 엔진을 사용하며, 외부 LLM은 옵션
  * - Vercel AI SDK (무료, 상업이용 가능)
  * - OpenAI GPT-3.5-turbo (무료 tier)
  * - Google Gemini (무료 tier)

@@ -15,6 +15,7 @@ FASTAPI_BASE_URL="https://your-python-ai-engine.render.com"
 ```
 
 ### 2. AI 모델 API 키 (선택사항)
+(선택 사항 - 로컬 MCP 엔진만으로도 동작)
 
 ```bash
 # OpenAI
