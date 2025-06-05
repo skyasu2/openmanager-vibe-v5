@@ -120,7 +120,7 @@ function getApiDocumentation() {
           query: '서버 상태를 분석해주세요',
           context: {
             serverMetrics: [
-              { timestamp: '2024-01-01T00:00:00Z', cpu: 75, memory: 80, disk: 60 }
+              { timestamp: '2025-06-01T00:00:00Z', cpu: 75, memory: 80, disk: 60 }
             ]
           }
         }
@@ -130,7 +130,7 @@ function getApiDocumentation() {
         method: 'POST',
         body: {
           metrics: [
-            { timestamp: '2024-01-01T00:00:00Z', cpu: 75, memory: 80, disk: 60 }
+            { timestamp: '2025-06-01T00:00:00Z', cpu: 75, memory: 80, disk: 60 }
           ],
           analysisType: 'performance'
         }
@@ -140,7 +140,7 @@ function getApiDocumentation() {
         method: 'POST',
         body: {
           serverName: 'web-server-01',
-          currentStatus: { timestamp: '2024-01-01T00:00:00Z', cpu: 75, memory: 80, disk: 60 },
+          currentStatus: { timestamp: '2025-06-01T00:00:00Z', cpu: 75, memory: 80, disk: 60 },
           checkType: 'health'
         }
       }

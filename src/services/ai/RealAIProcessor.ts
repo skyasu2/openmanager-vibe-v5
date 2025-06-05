@@ -301,7 +301,7 @@ export class RealAIProcessor {
       case 'gpt-3.5-turbo':
         return openai('gpt-3.5-turbo');
       case 'claude-3-haiku':
-        return anthropic('claude-3-haiku-20240307');
+        return anthropic('claude-3-haiku-20250630');
       case 'gemini-1.5-flash':
         return google('gemini-1.5-flash');
       default:

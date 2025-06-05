@@ -64,7 +64,7 @@ const BACKUP_STATUS: BackupStatus = {
   },
   recentBackups: [
     {
-      id: 'backup_20240101_02',
+      id: 'backup_20250601_02',
       date: new Date(Date.now() - 86400000).toISOString(),
       size: '52.3 MB',
       status: 'success',
@@ -72,7 +72,7 @@ const BACKUP_STATUS: BackupStatus = {
       type: 'auto'
     },
     {
-      id: 'backup_20231231_02',
+      id: 'backup_20250630_02',
       date: new Date(Date.now() - 172800000).toISOString(),
       size: '51.8 MB',
       status: 'success',
@@ -80,7 +80,7 @@ const BACKUP_STATUS: BackupStatus = {
       type: 'auto'
     },
     {
-      id: 'backup_20231230_15',
+      id: 'backup_20250629_15',
       date: new Date(Date.now() - 216000000).toISOString(),
       size: '48.9 MB',
       status: 'success',
@@ -88,7 +88,7 @@ const BACKUP_STATUS: BackupStatus = {
       type: 'manual'
     },
     {
-      id: 'backup_20231230_02',
+      id: 'backup_20250629_02',
       date: new Date(Date.now() - 259200000).toISOString(),
       size: '49.2 MB',
       status: 'failed',

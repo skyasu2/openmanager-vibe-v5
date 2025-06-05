@@ -311,7 +311,7 @@ export class CustomAPICollector implements MetricCollector {
  *   "success": true,
  *   "data": {
  *     "hostname": "server-01.company.local",
- *     "timestamp": "2024-01-15T10:30:00Z",
+ *     "timestamp": "2025-06-15T10:30:00Z",
  *     "cpu": {
  *       "usage": 45.2,
  *       "load_average": [1.2, 1.5, 1.8],
@@ -346,7 +346,7 @@ export class CustomAPICollector implements MetricCollector {
  *       "os": "Ubuntu 22.04 LTS",
  *       "platform": "linux",
  *       "uptime": 259200,
- *       "boot_time": "2024-01-12T10:30:00Z",
+ *       "boot_time": "2025-06-12T10:30:00Z",
  *       "processes": {
  *         "total": 150,
  *         "running": 5,
