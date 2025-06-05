@@ -45,8 +45,8 @@ export interface AlertData {
 
 export const useWebSocket = (config: WebSocketConfig = {}) => {
   const {
-    url = process.env.NODE_ENV === 'production' 
-      ? 'https://openmanager-vibe-v5.onrender.com'
+    url = process.env.NODE_ENV === 'production'
+      ? 'https://openmanager-ai-engine.onrender.com'
       : 'http://localhost:3000',
     autoConnect = true,
     reconnectAttempts = 5,
