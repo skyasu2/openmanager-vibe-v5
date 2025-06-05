@@ -1,85 +1,17 @@
 /**
- * 🧠 Enhanced AI Engine v2.0
+ * 🧠 Enhanced AI Engine v3.0 - 한국어 NLP 특화
  * 
+ * ✅ 한국어 자연어 처리 완전 지원
  * ✅ MCP 문서 활용 극대화
  * ✅ 벡터 DB 없는 고성능 검색
- * ✅ TensorFlow.js + MCP 하이브리드
+ * ✅ TensorFlow.js + 한국어 NLP 하이브리드
  * ✅ 실시간 컨텍스트 학습
- * ✅ Render 자동 관리
+ * ✅ Vercel 완전 독립형 (Python/Render 제거)
  */
 
 import { RealMCPClient } from '@/services/mcp/real-mcp-client';
 import { TensorFlowAIEngine } from './tensorflow-engine';
-
-// FastAPI 클라이언트 타입 정의
-interface FastAPIConfig {
-  baseUrl: string;
-  retryAttempts?: number;
-  timeout?: number;
-}
-
-// 간단한 FastAPI 클라이언트 구현
-class FastAPIClient {
-  private baseUrl: string;
-  private retryAttempts: number;
-  private timeout: number;
-
-  constructor(config: FastAPIConfig) {
-    this.baseUrl = config.baseUrl;
-    this.retryAttempts = config.retryAttempts || 2;
-    this.timeout = config.timeout || 30000;
-  }
-
-  async post(endpoint: string, data: any): Promise<any> {
-    try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-        signal: AbortSignal.timeout(this.timeout)
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.warn(`FastAPI POST ${endpoint} 실패:`, error);
-      throw error;
-    }
-  }
-
-  async get(endpoint: string): Promise<any> {
-    try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        method: 'GET',
-        signal: AbortSignal.timeout(this.timeout)
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.warn(`FastAPI GET ${endpoint} 실패:`, error);
-      throw error;
-    }
-  }
-
-  async ping(): Promise<boolean> {
-    try {
-      const response = await fetch(`${this.baseUrl}/health`, { 
-        method: 'GET',
-        signal: AbortSignal.timeout(5000)
-      });
-      return response.ok;
-    } catch {
-      return false;
-    }
-  }
-}
+import { KoreanAIEngine } from './korean-ai-engine';
 
 interface DocumentContext {
   path: string;
@@ -97,9 +29,10 @@ interface AIAnalysisResult {
   sources: DocumentContext[];
   reasoning: string[];
   tensorflowPredictions?: any;
+  koreanNLU?: any;
   mcpActions: string[];
   processingTime: number;
-  renderStatus?: 'active' | 'sleeping' | 'error';
+  engineUsed: 'korean' | 'tensorflow' | 'hybrid';
 }
 
 interface SmartQuery {
@@ -109,54 +42,51 @@ interface SmartQuery {
   requiredDocs: string[];
   mcpActions: string[];
   tensorflowModels: string[];
+  isKorean: boolean;
 }
 
 export class EnhancedAIEngine {
   private mcpClient: RealMCPClient;
   private tensorflowEngine: TensorFlowAIEngine;
-  private fastApiClient: FastAPIClient;
+  private koreanEngine: KoreanAIEngine;
   private documentIndex: Map<string, DocumentContext> = new Map();
   private contextMemory: Map<string, any> = new Map();
   private lastIndexUpdate: number = 0;
-  private renderPingInterval?: NodeJS.Timeout;
   private isInitialized = false;
 
   constructor() {
     this.mcpClient = new RealMCPClient();
     this.tensorflowEngine = new TensorFlowAIEngine();
-    this.fastApiClient = new FastAPIClient({
-      baseUrl: process.env.FASTAPI_URL || 'https://openmanager-ml.onrender.com',
-      retryAttempts: 2
-    });
+    this.koreanEngine = new KoreanAIEngine();
   }
 
   /**
-   * 🚀 Enhanced AI 엔진 초기화
+   * �� Enhanced AI 엔진 초기화 (한국어 특화)
    */
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
-    console.log('🧠 Enhanced AI Engine 초기화 시작...');
+    console.log('🧠 Enhanced AI Engine v3.0 초기화 시작...');
     
     try {
-      // 1. MCP 클라이언트 초기화 (필수)
+      // 1. 한국어 AI 엔진 우선 초기화 (최고 우선순위)
+      await this.koreanEngine.initialize();
+      console.log('✅ 한국어 AI 엔진 초기화 완료');
+
+      // 2. MCP 클라이언트 초기화 (필수)
       await this.mcpClient.initialize();
       console.log('✅ MCP 클라이언트 초기화 완료');
 
-      // 2. 문서 인덱스 구축 (빠른 응답을 위해 우선 처리)
+      // 3. 문서 인덱스 구축 (빠른 응답을 위해 우선 처리)
       await this.buildDocumentIndex();
       console.log('✅ 문서 인덱스 구축 완료');
 
-      // 3. 백그라운드에서 TensorFlow.js 엔진 초기화 (지연 로딩)
-      this.initializeTensorFlowInBackground();
-      console.log('⏳ TensorFlow.js 엔진 백그라운드 초기화 시작');
+             // 4. 백그라운드에서 TensorFlow.js 엔진 초기화 (지연 로딩)
+       this.initializeTensorFlowInBackground();
+       console.log('⏳ TensorFlow.js 엔진 백그라운드 초기화 시작');
 
-      // 4. Render 자동 관리 시작 (백그라운드)
-      this.startRenderManagement();
-      console.log('✅ Render 자동 관리 시작');
-
-      this.isInitialized = true;
-      console.log('🎉 Enhanced AI Engine 초기화 완료 (고속 모드)');
+       this.isInitialized = true;
+      console.log('�� Enhanced AI Engine v3.0 초기화 완료 (한국어 NLP 모드)');
 
     } catch (error) {
       console.error('❌ Enhanced AI Engine 초기화 실패:', error);
@@ -198,90 +128,35 @@ export class EnhancedAIEngine {
 
     try {
       console.log('🔍 문서 인덱싱 시작...');
+
+      // MCP를 통한 문서 검색
+      const mcpResult = await this.mcpClient.searchDocuments('');
       
-      // MCP가 실패하면 직접 파일 스캔 시도
-      let allFiles: string[] = [];
-      
-      try {
-        // MCP를 통한 AI 컨텍스트 파일 스캔 시도
-        const contextFiles = await this.mcpClient.listDirectory('src/modules/ai-agent/context');
-        allFiles = contextFiles;
-        console.log(`📁 MCP를 통해 ${allFiles.length}개 AI 컨텍스트 파일 발견`);
-      } catch (mcpError) {
-        console.warn('⚠️ MCP 디렉토리 스캔 실패, 대체 방법 사용:', mcpError);
+      if (mcpResult.success && mcpResult.results.length > 0) {
+        console.log(`📚 MCP를 통해 ${mcpResult.results.length}개 문서 발견`);
         
-        // 대체 방법: AI 컨텍스트 파일들 하드코딩 (기본→고급→커스텀 순)
-        allFiles = [
-          // 기본 레벨 (Basic)
-          'src/modules/ai-agent/context/system-knowledge.md',
-          'src/modules/ai-agent/context/api-reference.md',
-          'src/modules/ai-agent/context/troubleshooting-guide.md',
-          // 고급 레벨 (Advanced)
-          'src/modules/ai-agent/context/advanced-monitoring.md',
-          // 커스텀 레벨 (Custom)
-          'src/modules/ai-agent/context/custom-scenarios.md',
-          // 환경별 가이드
-          'src/modules/ai-agent/context/environment-guides.md',
-          // 아키텍처 문서
-          'src/modules/ai-agent/context/ai-engine-architecture.md',
-          'docs/AI-ENGINE-ARCHITECTURE.md'
-        ];
-        console.log(`📋 하드코딩된 ${allFiles.length}개 AI 컨텍스트 파일 사용`);
-      }
-
-      // .md 파일만 필터링
-      const markdownFiles = allFiles.filter(file => 
-        file.endsWith('.md') || file.includes('.md')
-      );
-
-      console.log(`📄 ${markdownFiles.length}개 마크다운 문서 발견`);
-
-      // 각 문서 처리
-      for (const file of markdownFiles) {
-        try {
-          const content = await this.mcpClient.readFile(file);
-          if (content && content.length > 50) { // 최소 길이 체크
-            const context = await this.analyzeDocument(file, content);
-            this.documentIndex.set(file, context);
+        for (const doc of mcpResult.results) {
+          try {
+            const docContext = await this.analyzeDocument(doc.path, doc.content);
+            this.documentIndex.set(doc.path, docContext);
             documentCount++;
-
-            // 로컬 메모리에 문서 메타데이터 저장
-            await this.mcpClient.storeContext(`doc:${file}`, {
-              keywords: context.keywords,
-              summary: content.substring(0, 200),
-              lastAnalyzed: Date.now()
-            });
-            
-            console.log(`✅ 문서 인덱싱 완료: ${file} (${context.keywords.length}개 키워드)`);
-          } else {
-            console.warn(`⚠️ 문서 내용 없음 또는 너무 짧음: ${file}`);
-          }
-        } catch (error) {
-          console.warn(`⚠️ 문서 처리 실패: ${file}`, error);
-          
-          // 문서 읽기 실패시 기본 컨텍스트 생성
-          if (file.includes('ESSENTIAL_DOCUMENTATION') || file.includes('README')) {
-            const fallbackContext = await this.createFallbackDocumentContext(file);
-            this.documentIndex.set(file, fallbackContext);
-            documentCount++;
-            console.log(`📋 기본 컨텍스트 생성: ${file}`);
+          } catch (error) {
+            console.warn(`⚠️ 문서 분석 실패: ${doc.path}`, error);
           }
         }
+      } else {
+        console.log('📚 MCP 문서 검색 실패, 폴백 지식베이스 로드');
+        await this.loadFallbackKnowledge();
+        documentCount = this.documentIndex.size;
       }
 
-      this.lastIndexUpdate = Date.now();
       const processingTime = Date.now() - startTime;
+      this.lastIndexUpdate = Date.now();
       
-      console.log(`✅ 문서 인덱스 구축 완료: ${documentCount}개 문서, ${processingTime}ms`);
-      
-      // 인덱스가 비어있으면 기본 지식 로드
-      if (documentCount === 0) {
-        await this.loadFallbackKnowledge();
-        console.log('📚 기본 지식 베이스 로드 완료');
-      }
+      console.log(`✅ 문서 인덱싱 완료: ${documentCount}개 문서, ${processingTime}ms`);
 
     } catch (error) {
-      console.error('❌ 문서 인덱스 구축 실패:', error);
+      console.error('❌ 문서 인덱싱 실패:', error);
       await this.loadFallbackKnowledge();
     }
   }
@@ -505,67 +380,124 @@ export class EnhancedAIEngine {
   }
 
   /**
-   * 🧠 스마트 쿼리 분석 및 처리
+   * 🧠 스마트 쿼리 처리 (한국어 특화)
    */
   async processSmartQuery(query: string, sessionId?: string): Promise<AIAnalysisResult> {
-    await this.initialize();
     const startTime = Date.now();
-
+    
     try {
-      console.log(`🤔 스마트 쿼리 분석: "${query}"`);
+      console.log('🔍 스마트 쿼리 처리 시작:', query);
 
-      // 1. 쿼리 의도 분석
+      // 1. 한국어 감지 및 처리
+      const isKorean = this.detectKorean(query);
+      console.log(`🌏 언어 감지: ${isKorean ? '한국어' : '영어'}`);
+
+      if (isKorean) {
+        // 한국어 처리 경로
+        const koreanResult = await this.koreanEngine.processQuery(query);
+        
+        if (koreanResult.success) {
+          return {
+            success: true,
+            answer: koreanResult.response.message,
+            confidence: koreanResult.understanding.confidence,
+            sources: [],
+            reasoning: koreanResult.additionalInfo.tips,
+            koreanNLU: koreanResult.understanding,
+            mcpActions: [],
+            processingTime: Date.now() - startTime,
+            engineUsed: 'korean'
+          };
+        }
+      }
+
+      // 2. 쿼리 의도 분석
       const smartQuery = await this.analyzeQueryIntent(query);
-      
-      // 2. MCP 기반 관련 문서 검색
+      smartQuery.isKorean = isKorean;
+
+      // 3. 관련 문서 검색
       const relevantDocs = await this.searchRelevantDocuments(smartQuery);
-      
-      // 3. TensorFlow.js 모델 실행 (필요시)
+      console.log(`📚 관련 문서 ${relevantDocs.length}개 발견`);
+
+      // 4. TensorFlow.js 분석 (복잡한 쿼리만)
       let tensorflowPredictions;
-      if (smartQuery.tensorflowModels.length > 0) {
+      if (smartQuery.intent === 'prediction' || smartQuery.intent === 'analysis') {
+        await this.ensureTensorFlowInitialized();
         tensorflowPredictions = await this.runTensorFlowAnalysis(smartQuery, relevantDocs);
       }
 
-      // 4. 컨텍스트 기반 답변 생성
-      const answer = await this.generateContextualAnswer(smartQuery, relevantDocs, tensorflowPredictions);
+      // 5. 컨텍스트 기반 답변 생성
+      const answerResult = await this.generateContextualAnswer(
+        smartQuery, 
+        relevantDocs, 
+        tensorflowPredictions
+      );
 
-      // 5. MCP memory에 학습 데이터 저장
-      if (sessionId) {
-        await this.mcpClient.storeContext(`session:${sessionId}:query`, {
-          query,
-          answer: answer.text,
-          confidence: answer.confidence,
-          timestamp: Date.now()
-        });
-      }
+      // 6. MCP 액션 실행
+      const mcpActions = await this.executeMCPActions(smartQuery);
 
       const processingTime = Date.now() - startTime;
+      console.log(`✅ 스마트 쿼리 처리 완료 (${processingTime}ms)`);
 
       return {
         success: true,
-        answer: answer.text,
-        confidence: answer.confidence,
+        answer: answerResult.text,
+        confidence: answerResult.confidence,
         sources: relevantDocs,
-        reasoning: answer.reasoning,
+        reasoning: answerResult.reasoning,
         tensorflowPredictions,
-        mcpActions: smartQuery.mcpActions,
+        mcpActions,
         processingTime,
-        renderStatus: await this.checkRenderStatus()
+        engineUsed: tensorflowPredictions ? 'hybrid' : 'korean'
       };
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ 스마트 쿼리 처리 실패:', error);
       
       return {
         success: false,
-        answer: '죄송합니다. 쿼리 처리 중 오류가 발생했습니다.',
+        answer: `죄송합니다. 처리 중 오류가 발생했습니다: ${error.message}`,
         confidence: 0,
         sources: [],
-        reasoning: [`처리 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`],
+        reasoning: ['오류로 인한 실패'],
         mcpActions: [],
-        processingTime: Date.now() - startTime
+        processingTime: Date.now() - startTime,
+        engineUsed: 'korean'
       };
     }
+  }
+
+  /**
+   * 🇰🇷 한국어 감지
+   */
+  private detectKorean(text: string): boolean {
+    const koreanRegex = /[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/;
+    return koreanRegex.test(text);
+  }
+
+  /**
+   * 🎯 MCP 액션 실행
+   */
+  private async executeMCPActions(smartQuery: SmartQuery): Promise<string[]> {
+    const actions: string[] = [];
+    
+    try {
+      if (smartQuery.mcpActions.includes('search_docs')) {
+        const result = await this.mcpClient.searchDocuments(smartQuery.originalQuery);
+        actions.push(`문서 검색 완료: ${result.results.length}개 결과`);
+      }
+
+      if (smartQuery.mcpActions.includes('check_system')) {
+        const status = await this.mcpClient.getServerStatus();
+        actions.push(`시스템 상태 확인 완료`);
+      }
+
+    } catch (error) {
+      console.warn('⚠️ MCP 액션 실행 실패:', error);
+      actions.push('일부 액션 실행 실패');
+    }
+
+    return actions;
   }
 
   /**
@@ -615,7 +547,8 @@ export class EnhancedAIEngine {
       keywords,
       requiredDocs,
       mcpActions,
-      tensorflowModels
+      tensorflowModels,
+      isKorean: false
     };
   }
 
@@ -872,53 +805,7 @@ export class EnhancedAIEngine {
     return steps.join('\n');
   }
 
-  /**
-   * 🔄 Render 자동 관리
-   */
-  private async startRenderManagement(): Promise<void> {
-    // 환경변수 확인
-    const renderUrl = process.env.FASTAPI_URL;
-    if (!renderUrl?.includes('onrender.com')) {
-      console.log('⚠️ Render URL이 아닙니다. 자동 관리 건너뛰기');
-      return;
-    }
 
-    console.log('🔄 Render 자동 관리 시작...');
-
-    // 5분마다 ping 전송
-    this.renderPingInterval = setInterval(async () => {
-      try {
-        const isHealthy = await this.fastApiClient.ping();
-        if (isHealthy) {
-          console.log('✅ Render 서비스 정상 (ping 성공)');
-        } else {
-          console.log('⚠️ Render 서비스 응답 없음');
-        }
-      } catch (error) {
-        console.log('❌ Render ping 실패:', error instanceof Error ? error.message : '알 수 없는 오류');
-      }
-    }, 5 * 60 * 1000); // 5분
-
-    // 프로세스 종료 시 정리
-    process.on('beforeExit', () => {
-      if (this.renderPingInterval) {
-        clearInterval(this.renderPingInterval);
-        console.log('🔄 Render 자동 관리 중지');
-      }
-    });
-  }
-
-  /**
-   * 🏥 Render 상태 확인
-   */
-  private async checkRenderStatus(): Promise<'active' | 'sleeping' | 'error'> {
-    try {
-      const isHealthy = await this.fastApiClient.ping();
-      return isHealthy ? 'active' : 'sleeping';
-    } catch (error) {
-      return 'error';
-    }
-  }
 
   /**
    * 🎲 모의 메트릭 데이터 생성
@@ -938,21 +825,17 @@ export class EnhancedAIEngine {
   }
 
   /**
-   * 🗑️ 리소스 정리
+   * 🗑️ 리소스 정리 (Python/Render 관련 제거됨)
    */
   dispose(): void {
-    console.log('🗑️ Enhanced AI Engine 정리 중...');
-    
-    if (this.renderPingInterval) {
-      clearInterval(this.renderPingInterval);
+    if (this.contextMemory) {
+      this.contextMemory.clear();
     }
     
-    this.documentIndex.clear();
-    this.contextMemory.clear();
-    
-    this.tensorflowEngine.dispose();
-    
-    this.isInitialized = false;
-    console.log('✅ Enhanced AI Engine 정리 완료');
+    if (this.documentIndex) {
+      this.documentIndex.clear();
+    }
+
+    console.log('🧹 Enhanced AI Engine 리소스 정리 완료');
   }
 } 
