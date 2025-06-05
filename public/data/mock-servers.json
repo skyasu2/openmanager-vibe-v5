@@ -12,7 +12,7 @@
     "network_out": 2048.7,
     "response_time": 120,
     "uptime": 360,
-    "last_updated": "2025-06-01T00:00:00Z"
+    "last_updated": "2025-07-15T00:00:00Z"
   },
   {
     "id": "api-server-02",
@@ -27,7 +27,7 @@
     "network_out": 1536.2,
     "response_time": 245,
     "uptime": 120,
-    "last_updated": "2025-06-01T00:00:00Z"
+    "last_updated": "2025-07-15T00:00:00Z"
   },
   {
     "id": "db-master-01",
@@ -42,7 +42,7 @@
     "network_out": 256.5,
     "response_time": 45,
     "uptime": 720,
-    "last_updated": "2025-06-01T00:00:00Z"
+    "last_updated": "2025-07-15T00:00:00Z"
   },
   {
     "id": "cache-redis-01",
@@ -57,6 +57,6 @@
     "network_out": 3072.4,
     "response_time": 2100,
     "uptime": 48,
-    "last_updated": "2025-06-01T00:00:00Z"
+    "last_updated": "2025-07-15T00:00:00Z"
   }
 ] 
