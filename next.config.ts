@@ -198,6 +198,7 @@ const nextConfig: NextConfig = {
         'ioredis',
         'redis', 
         '@redis/client',
+        'webworker-threads', // Natural 패키지 경고 해결
         'generic-pool',
         'cluster',
         'denque'

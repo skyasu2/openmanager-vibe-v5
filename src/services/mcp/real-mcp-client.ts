@@ -49,25 +49,7 @@ export class RealMCPClient {
 
 
 
-    // 🗄️ PostgreSQL MCP 서버 (데이터베이스 연동)
-    this.servers.set('postgres', {
-      name: 'postgres',
-      command: 'npx',
-      args: ['@modelcontextprotocol/server-postgres'],
-      env: { 
-        DATABASE_URL: process.env.DATABASE_URL || 'postgresql://localhost:5432/openmanager',
-        NODE_ENV: process.env.NODE_ENV || 'development'
-      },
-      enabled: true
-    });
 
-    // 🔧 Git MCP 서버 (버전 관리)
-    this.servers.set('git', {
-      name: 'git',
-      command: 'npx',
-      args: ['@modelcontextprotocol/server-git', '--repository', 'D:\\cursor\\openmanager-vibe-v5'],
-      enabled: true
-    });
 
     // 🌐 웹 검색 서버 (선택사항)
     if (process.env.BRAVE_API_KEY) {
