@@ -1,5 +1,77 @@
 # 📋 OpenManager Vibe v5 - Changelog
 
+## 🎯 [v5.21.2] - 2025-06-05 - 시스템 관리 및 테스트 강화
+
+### ✨ **주요 업데이트**
+- **🔧 CI/CD 품질 강화** - 빌드 전 린트 및 테스트 자동화
+- **📚 문서 완성도 향상** - 시스템 제어 및 전원 관리 가이드 추가
+- **🧪 통합 테스트 확장** - 시스템 시작/중지 API 테스트 구현
+- **🎨 UI/UX 개선** - 배터리 수명 표현 정확성 향상
+
+### 🛠️ **기술적 개선사항**
+
+#### **CI/CD 파이프라인 강화**
+- ✅ **GitHub Actions 워크플로우** (`.github/workflows/ci.yml`)
+  - 빌드 전 린트 검사 자동화
+  - 테스트 실행 단계 추가
+  - 코드 품질 보장 강화
+
+#### **통합 테스트 시스템**
+- ✅ **시스템 제어 테스트** (`tests/integration/system-control.test.ts`)
+  - 시스템 시작/중지 API 테스트
+  - 상태 관리 검증
+  - 타이머 매니저 안정성 테스트
+
+- ✅ **확장된 통합 테스트** (`tests/integration/system-start-stop.test.ts`)
+  - 추가적인 시스템 제어 시나리오
+  - Vitest 설정 최적화
+  - 테스트 커버리지 향상
+
+#### **문서 시스템 완성**
+- ✅ **시스템 제어 가이드** (README.md 확장)
+  - 시스템 흐름 및 API 설명 추가
+  - Vercel 스케일링 가이드
+  - 실제 사용 사례 및 예제
+
+- ✅ **전원 관리 API 문서** (`docs/8_API_REFERENCE.md`)
+  - 시스템 전원 관리 API 명세
+  - 전원 상태 모니터링 가이드
+  - 배터리 최적화 방법론
+
+#### **UI/UX 정확성 개선**
+- ✅ **배터리 수명 표시 개선** (`src/stores/powerStore.ts`)
+  - "예상 배터리 수명" → 정확한 표현으로 수정
+  - 사용자 경험 일관성 향상
+
+### 🧪 **새로운 테스트 시나리오**
+```typescript
+// 시스템 제어 통합 테스트
+describe('System start/stop API', () => {
+  it('시뮬레이션을 시작하고 중지한다', async () => {
+    // 시스템 시작 테스트
+    const startResponse = await startPOST(startRequest);
+    expect(startResponse.status).toBe(200);
+    
+    // 시스템 중지 테스트
+    const stopResponse = await stopPOST(stopRequest);
+    expect(stopResponse.status).toBe(200);
+  });
+});
+```
+
+### 📊 **CI/CD 개선 효과**
+- **코드 품질**: 빌드 전 자동 린트 검사
+- **안정성**: 테스트 통과 후 빌드 진행
+- **개발 효율성**: 문제 조기 발견 및 해결
+- **배포 신뢰성**: 검증된 코드만 프로덕션 배포
+
+### 📝 **문서 업데이트**
+- **[README.md](./README.md)** - 시스템 제어 및 스케일링 가이드 추가
+- **[docs/8_API_REFERENCE.md](./docs/8_API_REFERENCE.md)** - 전원 관리 API 명세서 신규 작성
+- **[docs/BRANCH_CLEANUP.md](./docs/BRANCH_CLEANUP.md)** - 브랜치 정리 작업 기록
+
+---
+
 ## 🚀 [v5.21.1] - 2025-06-05 - 하이브리드 AI 엔진 완성
 
 ### ✨ **주요 업데이트**
