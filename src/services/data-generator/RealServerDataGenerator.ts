@@ -122,9 +122,9 @@ export class RealServerDataGenerator {
   public async initialize(): Promise<void> {
     try {
       this.redis = await getRedisClient();
+      await realPrometheusCollector.initialize();
       console.log('✅ 실제 서버 데이터 생성기 초기화 완료');
-      
-      // 자동 생성 시작
+
       this.startAutoGeneration();
       
     } catch (error) {
