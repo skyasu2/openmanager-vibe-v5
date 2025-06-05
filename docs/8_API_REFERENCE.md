@@ -112,6 +112,64 @@ curl http://localhost:3001/api/system/timers
 }
 ```
 
+### 시스템 전원 관리
+
+프로젝트는 Vercel 무료 플랜에서도 동작하도록 전원 관리 기능을 제공합니다. 모든 서버리스 함수는 호출이 없으면 자동으로 종료됩니다.
+
+#### POST /api/system/start
+시스템을 수동으로 시작합니다.
+
+```bash
+curl -X POST https://your-project.vercel.app/api/system/start
+```
+
+**응답 예시**
+```json
+{
+  "success": true,
+  "data": { "isRunning": true, "mode": "fast" },
+  "message": "데모 모드에서 시스템이 시작되었습니다."
+}
+```
+
+#### POST /api/system/stop
+시스템을 안전하게 종료합니다.
+
+```bash
+curl -X POST https://your-project.vercel.app/api/system/stop
+```
+
+**응답 예시**
+```json
+{
+  "success": true,
+  "data": { "isRunning": false, "runtime": 3600 },
+  "message": "시스템이 정상적으로 중지되었습니다."
+}
+```
+
+#### POST /api/ai-agent/power
+AI 에이전트의 활성화와 절전 모드를 제어합니다.
+
+```bash
+# 에이전트 활성화
+curl -X POST https://your-project.vercel.app/api/ai-agent/power \
+  -H 'Content-Type: application/json' \
+  -d '{"action":"activate"}'
+```
+
+**응답 예시**
+```json
+{
+  "success": true,
+  "data": { "isActive": true, "powerMode": "active" },
+  "timestamp": "2025-06-05T09:00:00Z"
+}
+```
+
+AI 에이전트는 일정 시간 활동이 없으면 `idle`에서 `sleep` 모드로 전환되어 무료 플랜에서도 과금 없이 유지됩니다. 필요 시 `activity` 액션으로 다시 깨울 수 있습니다.
+
+
 ---
 
 ## 📊 메트릭 API
