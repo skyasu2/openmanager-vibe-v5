@@ -115,4 +115,29 @@ INTERNAL_AI_ENGINE_ENABLED=true
 INTERNAL_AI_ENGINE_FALLBACK=true
 PYTHON_SERVICE_WARMUP_ENABLED=true
 PYTHON_SERVICE_MAX_WARMUPS=4
-``` 
+```
+
+## MCP 서버 구성
+
+- MCP 서버는 **Next.js API Routes** 기반으로 동작하며 `/api/mcp`에서 요청을 처리합니다.
+- Node.js 20 런타임에서 실행되며 **Vercel SDK** 없이 Route Handler만 사용합니다.
+- Python 엔진 호출 주소는 `FASTAPI_BASE_URL` 환경변수로 지정합니다.
+
+## 컨텍스트 사용 방식
+
+- 모든 AI 요청은 `sessionId`를 기준으로 컨텍스트를 로드합니다.
+- 단기 컨텍스트는 메모리 Map으로 관리하고, 장기 컨텍스트는 Redis에 저장됩니다.
+- 프론트엔드에서 전달한 `context` 값과 병합해 MCP 서버에 전달합니다.
+
+## Render 기반 Python 엔진 위치
+
+- Python ML 엔진은 Render에서 운영되며 기본 URL은 `https://openmanager-ai-engine.onrender.com` 입니다.
+- 로컬 테스트 시 위 주소 대신 로컬 FastAPI 서버 주소를 `FASTAPI_BASE_URL`에 설정합니다.
+
+## 🛠️ 기술 스택
+
+- Next.js 15 API Routes (Node.js)
+- FastAPI
+- Scikit-learn
+- Transformers.js
+- Redis

@@ -3,13 +3,33 @@
 **버전**: v5.13.5  
 **최종 업데이트**: 2025-05-31  
 **MCP 버전**: 1.0.0  
-**핵심 기술**: Model Context Protocol + 하이브리드 AI 엔진  
+**핵심 기술**: Model Context Protocol + 하이브리드 AI 엔진
 
 ---
+
+### 🛠️ 기술 스택
+
+- Next.js API Routes (Node.js)
+- FastAPI (Render 호스팅)
+- Scikit-learn
+- Transformers.js
+- Redis
 
 ## 🎯 MCP 엔진 개요
 
 OpenManager v5의 **MCP(Model Context Protocol) 엔진**은 자연어 질의를 6개의 전문화된 도구로 자동 변환하여 지능형 서버 분석을 수행하는 핵심 시스템입니다. Python ML 엔진과 TypeScript 폴백을 통한 하이브리드 아키텍처로 99.9% 가용성을 보장합니다.
+
+### MCP 서버 구성
+- MCP 서버는 **Next.js API Routes**를 사용하여 `/api/mcp` 경로에서 동작합니다.
+- Node.js 20 환경에서 실행되며 Vercel SDK는 사용하지 않습니다.
+
+### 컨텍스트 사용 방식
+- `ContextManager`가 세션별 단기 메모리와 Redis 기반 장기 메모리를 결합합니다.
+- 클라이언트에서 전달된 `context` 정보는 우선적으로 병합되어 도구 선택에 활용됩니다.
+
+### Render 기반 Python 엔진 위치
+- Python ML 엔진은 Render의 `https://openmanager-ai-engine.onrender.com`에 배포되어 있습니다.
+- MCP 서버는 해당 주소로 HTTP POST 요청을 보내 분석 결과를 받아옵니다.
 
 ## 🏗️ MCP 아키텍처 상세
 

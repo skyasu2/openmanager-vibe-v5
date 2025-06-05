@@ -1,10 +1,17 @@
 # 📘 OpenManager V5 - AI 에이전트 & 엔진 전체 아키텍처 설계
 
 > **최종 작성**: 2025-01-27  
-> **기반 기술**: Next.js 15 + TypeScript + Zustand + MCP Protocol  
+> **기반 기술**: Next.js 15 + TypeScript + Zustand + MCP Protocol
 > **설계 범위**: 프론트엔드 → 백엔드 → AI 엔진 → 상태 흐름 → 보안 제어
 
 ---
+
+### 🛠️ 기술 스택
+
+- Next.js 15 API Routes (Node.js)
+- FastAPI (Render 호스팅)
+- Scikit-learn, Transformers.js
+- Redis, Zustand
 
 ## 🎯 1. 전체 시스템 아키텍처 설계
 
@@ -444,8 +451,24 @@ class MetricsPredictor:
             metric_analysis = self._analyze_metrics_data(metrics)
             analysis_result.update(metric_analysis)
             
-        return analysis_result
+return analysis_result
 ```
+
+### 3.5 MCP 서버 구성
+
+- MCPProcessor는 **Next.js API Routes** 기반 `/api/mcp` 엔드포인트에서 실행됩니다.
+- Node.js 런타임에서 직접 동작하며 Vercel SDK는 사용하지 않습니다.
+- Python 엔진 주소는 `FASTAPI_BASE_URL` 환경변수로 관리됩니다.
+
+### 3.6 컨텍스트 사용 방식
+
+- `ContextManager`가 세션별 단기 메모리와 Redis 장기 메모리를 결합하여 컨텍스트를 제공합니다.
+- 프론트엔드에서 전달된 `context` 객체를 우선 적용한 후 서버 저장 컨텍스트와 병합합니다.
+
+### 3.7 Render 기반 Python 엔진 위치
+
+- Python ML 엔진은 Render의 `https://openmanager-ai-engine.onrender.com`에서 동작합니다.
+- MCPProcessor는 해당 주소로 HTTP POST 요청을 전송해 분석 결과를 가져옵니다.
 
 ---
 
