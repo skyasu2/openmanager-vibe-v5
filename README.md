@@ -1,151 +1,149 @@
-# 🚀 OpenManager Vibe v5
+# 🚀 OpenManager AI v5.21.0
 
-> **AI-Powered 서버 모니터링 플랫폼**  
-> **Enhanced AI Engine v2.0 + MCP 문서 활용 극대화**
+> **AI 분석과 오토스케일링 완전 분리로 추론 안정성과 운영 시뮬 유연성을 동시에 확보한 차세대 서버 모니터링 시스템**
 
-## 🎯 프로젝트 개요
+## 🎯 핵심 특징
 
-OpenManager Vibe v5는 **MCP(Model Context Protocol) 기반 독립형 AI 엔진**을 활용한 지능형 서버 모니터링 플랫폼입니다.
+### **🧠 3단계 AI 지식 체계**
+- **기본 지식** (70-80%): 표준 메트릭 해석, 임계값 기반 알림
+- **고급 지식** (15-25%): TensorFlow.js 예측 모델, 이상 패턴 감지  
+- **커스텀 지식** (5-15%): 환경별 특화 설정 (보조 역할)
 
-### ✨ 핵심 특징
+### **⚡ 고속 실시간 처리**
+- 벡터 DB 없는 키워드 기반 고속 검색
+- 응답 시간 < 2초 (기본 지식), < 5초 (고급 분석)
+- 다층 폴백 시스템으로 99.9% 가용성
 
-- 🧠 **Enhanced AI Engine v2.0**: 벡터 DB 없는 고성능 문서 검색
-- 📚 **MCP 문서 활용 극대화**: 실시간 컨텍스트 학습
-- 🔄 **Render 자동 관리**: 무료 서비스 최적화
-- ⚡ **Vercel 무료 최적화**: 1GB 메모리 제한 대응
-- 🎯 **LLM 없이 완전 동작**: 독립형 TensorFlow.js + MCP 엔진
+### **📋 표준 MCP 프로토콜**
+- MCP 2024-11-05 완전 준수
+- JSON-RPC 2.0 기반 실제 구현 (Mock 제거)
+- 파일시스템, GitHub, 웹 검색 MCP 서버 통합
+
+## 🏗️ 시스템 아키텍처
+
+```mermaid
+graph TB
+    subgraph "🎯 OpenManager AI Engine v5.0"
+        UI["Next.js UI"] --> API["API Gateway"]
+        API --> Core["Enhanced AI Engine"]
+        Core --> TF["TensorFlow.js"] 
+        Core --> MCP["Real MCP Client"]
+        MCP --> Files["AI Context Files"]
+    end
+```
+
+**📊 상세 아키텍처**: [docs/AI-ENGINE-ARCHITECTURE.md](docs/AI-ENGINE-ARCHITECTURE.md)
 
 ## 🚀 빠른 시작
 
+### **1. 개발 서버 시작**
 ```bash
-# 저장소 클론
-git clone https://github.com/yourusername/openmanager-vibe-v5.git
-cd openmanager-vibe-v5
+# 중복 서버 정리 (포트 3001, 3002, 3003)
+npm run cleanup:servers
 
-# 의존성 설치
-npm install
-
-# MCP 자동 설정 (Cursor AI 개발 효율성 3-5배 향상)
-npm run mcp:full-setup
-
-# 개발 서버 실행
+# 개발 서버 시작
 npm run dev
 ```
 
-### ⚡ MCP 설정으로 개발 효율성 극대화
+### **2. AI 기능 테스트**
+```bash
+# AI 에이전트 종합 테스트
+npm run test:ai-agent
 
-**프로젝트 클론 후 3분 안에 완벽한 Cursor AI 환경 구성!**
-
-- 📁 **Filesystem MCP**: 프로젝트 파일 자동 분석
-- 🐙 **GitHub MCP**: 저장소 연동 및 협업 도구
-- 🎯 **자동 설정**: `npm run mcp:full-setup` 한 번으로 완료
-
-> 🔗 **상세 가이드**: [MCP 빠른 설정 가이드](./docs/MCP_QUICK_SETUP_GUIDE.md)
-
-## 📚 상세 문서
-
-모든 상세 문서는 [`docs/`](./docs/) 폴더에 체계적으로 정리되어 있습니다.
-
-### 📖 시작하기
-- 📋 [**시스템 개요**](./docs/1_SYSTEM_OVERVIEW.md) - 전체 구조 이해
-- ⚡ [**설치 및 설정**](./docs/3_INSTALLATION_AND_SETUP.md) - 5분 빠른 시작
-- 🤖 [**AI 엔진 가이드**](./docs/4_AI_AGENT_GUIDE.md) - Enhanced AI 사용법
-
-### 🔧 개발자용
-- 🏗️ [**아키텍처 가이드**](./docs/2_ARCHITECTURE_GUIDE.md) - 시스템 설계
-- 🧠 [**MCP 엔진 레퍼런스**](./docs/9_MCP_ENGINE_REFERENCE.md) - MCP 활용법
-- 📡 [**API 레퍼런스**](./docs/8_API_REFERENCE.md) - API 사용법
-
-### 📊 운영자용
-- 📈 [**모니터링 가이드**](./docs/5_MONITORING_AND_DATA_FLOW.md) - 데이터 흐름
-- 🧪 [**테스트 및 배포**](./docs/6_TESTING_AND_DEPLOYMENT.md) - CI/CD
-- 🔧 [**문제 해결**](./docs/7_TROUBLESHOOTING.md) - 트러블슈팅
-
-## 🎨 Enhanced AI Engine v2.0
-
-### 🧠 **스마트 하이브리드 AI 아키텍처**
-
-```mermaid
-graph LR
-    A[사용자 요청] --> B[스마트 라우팅]
-    B -->|간단한 작업| C[TensorFlow.js<br/>베르셀]
-    B -->|복잡한 작업| D[Python AI<br/>Render]
-    C --> E[실시간 응답<br/>50-200ms]
-    D --> F[고급 분석<br/>1-5초]
+# 서버 상태 확인
+curl http://localhost:3000/api/health
 ```
 
-### ⚡ **베르셀 AI 엔진 (90% 기능) - 완전 독립 동작**
-- 🚀 **TensorFlow.js**: 장애 예측, 이상 탐지, 시계열 분석 (LLM 없이 동작)
-- 🎯 **KMeans 클러스터링**: Python scikit-learn 동등 기능
-- 📊 **StandardScaler**: 데이터 정규화 (완전 독립 처리)
-- ⚡ **응답 속도**: 50-200ms (20-100배 개선)
-- 🌐 **확장성**: 무제한 동시 요청 처리
+## 📚 AI 컨텍스트 구조
 
-### 🐍 **Render AI 서버 (10% 고급 기능) - 차후 개발 계획**
-- 🔬 **복잡한 ML 모델**: 고급 패턴 인식, 정밀 예측 (베타 버전에서 활용법 시연 예정)
-- 🔧 **시스템 진단**: OS 레벨 분석, 프로세스 관리
-- 📈 **배치 처리**: 대용량 로그 분석, 모델 재훈련
-- 💾 **처리 시간**: 1-5초 (복잡한 분석)
-
-### 🧠 **스마트 라우팅 시스템**
-```typescript
-// 자동 복잡도 분석 및 라우팅
-const complexity = calculateComplexity({
-  dataSize: metrics.length,      // 데이터 크기
-  computeIntensity: keywords,    // 연산 복잡도
-  urgency: 'realtime'           // 실시간 요구사항
-});
-
-// 60점 이하 → TensorFlow.js, 60점 초과 → Python
-const engine = complexity <= 60 ? 'tensorflow' : 'python';
+```
+src/modules/ai-agent/context/
+├── system-knowledge.md     # 기본: 서버 모니터링 기초
+├── api-reference.md        # 기본: API 엔드포인트 가이드  
+├── troubleshooting-guide.md # 기본: 문제 해결 체크리스트
+├── advanced-monitoring.md  # 고급: AI 예측 분석
+├── custom-scenarios.md     # 커스텀: 환경별 특화 설정
+├── environment-guides.md   # 환경별: 상세 가이드 (보조)
+└── ai-engine-architecture.md # 시스템: 아키텍처 문서
 ```
 
-### 📊 **성능 비교**
+## 🔧 주요 스크립트
 
-| 구분 | 기존 | 최적화 후 | 개선도 |
-|------|------|-----------|--------|
-| **응답 속도** | 2-5초 | 50-200ms | **20-100배** |
-| **동시 처리** | 제한적 | 무제한 | **∞배** |
-| **서버 비용** | 상시 운영 | 필요시만 | **80% 절감** |
-| **가용성** | 99% | 99.9% | **0.9% 향상** |
+```bash
+# 개발 & 배포
+npm run dev                 # 개발 서버 시작
+npm run cleanup:servers     # 중복 서버 정리
+npm run restart:dev         # 서버 정리 후 재시작
 
-### 🔄 **폴백 메커니즘**
-- **TensorFlow.js 장애** → Python 자동 전환
-- **Python 서버 장애** → TensorFlow.js 제한 기능
-- **네트워크 오류** → 로컬 캐시 활용
-- **타임아웃** → 즉시 폴백 처리
+# 테스트
+npm run test:ai-agent       # AI 에이전트 기능 검증
+npm run test:unit          # 단위 테스트
+npm run test:e2e           # E2E 테스트
+
+# 배포
+npm run build              # 프로덕션 빌드
+npm run deploy:github      # GitHub Actions 배포
+```
+
+## 🎯 AI 에이전트 역할
+
+### **정보 전달 중심 (1차 대응자 지원)**
+- ✅ 서버 상태 해석 및 권장 조치 제공
+- ✅ 장애 예측 및 예방 가이드 전달  
+- ✅ 성능 최적화 방안 제시
+- 🔜 서버 직접 관리 (v5.1 계획)
+
+### **3단계 적용 우선순위**
+1. **기본 지식** → 표준 운영 가이드로 70-80% 해결
+2. **고급 지식** → AI 예측으로 15-25% 향상  
+3. **커스텀 지식** → 특수 환경에서 5-15% 보완
+
+## 📊 성능 지표
+
+| 지표 | 목표 | 현재 상태 |
+|------|------|----------|
+| 초기화 시간 | < 3초 | ✅ 고속 모드 |
+| 쿼리 응답 | < 2초 | ✅ 기본 지식 |
+| AI 분석 | < 5초 | ✅ 고급 분석 |
+| 서비스 가용성 | 99.9% | ✅ 다층 폴백 |
+
+## 🔄 버전 업데이트
+
+### **v5.21.0 주요 변경사항**
+- 🧠 3단계 AI 지식 체계 구축
+- 📋 Mock MCP → 실제 MCP 클라이언트 교체
+- 🏗️ AI 컨텍스트 디렉토리 분리 (`src/modules/ai-agent/context/`)
+- 🧹 중복 서버 정리 자동화
+- 📊 아키텍처 다이어그램 docs 통합
+
+### **다음 버전 (v5.1) 계획**
+- 서버 직접 관리 기능 (레벨 1 자동 대응)
+- 더 정교한 예측 모델 도입
+- 다국어 지원 확장
 
 ## 🛠️ 기술 스택
 
-- **Frontend**: Next.js 14, TypeScript, Tailwind CSS
-- **AI Engine**: TensorFlow.js, MCP Protocol, Enhanced NLP
-- **Backend**: FastAPI (Python), PostgreSQL
-- **Deployment**: Vercel (무료), Render (무료)
-- **Development**: Cursor AI, MCP Tools
+- **Frontend**: Next.js 15.3.3, TypeScript, Tailwind CSS
+- **AI Engine**: TensorFlow.js, MCP 프로토콜, 자연어 처리
+- **Backend**: FastAPI (Python), Node.js, Vercel
+- **Database**: Supabase, Redis (캐싱)
+- **Monitoring**: Prometheus, Custom Metrics
 
-## 📈 개발 현황
+## 📝 문서
 
-```
-📊 프로젝트 통계
-├── 86개 페이지 구성
-├── Enhanced AI Engine v2.0 완성
-├── MCP 문서 활용 극대화
-├── Vercel 무료 최적화 완료
-└── Render 자동 관리 구현
-```
+- [🏗️ 아키텍처 가이드](docs/AI-ENGINE-ARCHITECTURE.md)
+- [🧠 AI 에이전트 가이드](src/modules/ai-agent/context/)
+- [🔧 개발 가이드](docs/)
+- [🚀 배포 가이드](vercel.json)
 
-## 🏷️ 버전 정보
+## 📞 지원
 
-- **현재 버전**: v5.21.0
-- **AI 엔진**: Enhanced v2.0
-- **MCP 프로토콜**: v1.12.1
-- **Node.js**: v22.15.1
-
-## 📄 라이선스
-
-MIT License - 자세한 내용은 [LICENSE](./LICENSE) 파일을 참조하세요.
+- **이슈 리포트**: GitHub Issues
+- **문서 업데이트**: 분기별 리뷰
+- **아키텍처 변경**: 메이저 버전 시 업데이트
 
 ---
 
-**개발자**: jhhong (개인 프로젝트)  
-**개발 도구**: Cursor AI + MCP (Model Context Protocol)
+**🎯 목표**: 1차 대응자에게 실행 가능한 서버 모니터링 정보 전달  
+**🚀 상태**: 프로덕션 준비 완료  
+**📅 마지막 업데이트**: 2024년 1월

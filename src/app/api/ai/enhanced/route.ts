@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { EnhancedAIEngine } from '@/services/ai/enhanced-ai-engine';
+import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 
 /**
  * 🧠 Enhanced AI Engine API v2.0
@@ -26,16 +27,40 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { query, sessionId, mode = 'smart' } = body;
+    const { query, sessionId, action, config } = body;
 
-    if (!query || typeof query !== 'string') {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Query parameter is required and must be a string' 
-        },
-        { status: 400 }
-      );
+    if (action === 'update-environment') {
+      // 환경 설정 업데이트
+      const dataGenerator = RealServerDataGenerator.getInstance();
+      dataGenerator.updateEnvironmentConfig(config);
+      
+      return NextResponse.json({
+        success: true,
+        message: '환경 설정이 업데이트되었습니다',
+        newConfig: dataGenerator.getEnvironmentConfig()
+      });
+    }
+
+    if (action === 'test-custom-scenario') {
+      // 커스텀 시나리오 테스트
+      const aiEngine = await getEnhancedAIEngine();
+      const testQuery = query || `현재 ${config?.serverArchitecture || '로드밸런싱'} 환경에서 ${config?.specialWorkload || '표준'} 워크로드 모니터링 방법`;
+      
+      const result = await aiEngine.processSmartQuery(testQuery, sessionId || 'test-custom');
+      
+      return NextResponse.json({
+        success: true,
+        query: testQuery,
+        result,
+        environmentConfig: config
+      });
+    }
+
+    if (!query) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'query가 필요합니다' 
+      }, { status: 400 });
     }
 
     console.log(`🧠 Enhanced AI 쿼리: "${query}" (세션: ${sessionId || 'anonymous'})`);
@@ -48,8 +73,8 @@ export async function POST(request: NextRequest) {
 
     const totalTime = Date.now() - startTime;
 
-    // 성공 응답
-    return NextResponse.json({
+    // 성공 응답 (UTF-8 인코딩 명시)
+    const response = NextResponse.json({
       success: true,
       mode: 'enhanced',
       query,
@@ -81,6 +106,10 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    // UTF-8 인코딩 헤더 설정
+    response.headers.set('Content-Type', 'application/json; charset=utf-8');
+    return response;
+
   } catch (error: any) {
     console.error('❌ Enhanced AI API 오류:', error);
 
@@ -104,41 +133,38 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    // Enhanced AI Engine 상태 조회
-    const aiEngine = await getEnhancedAIEngine();
+    const { searchParams } = new URL(request.url);
+    const action = searchParams.get('action');
 
-    return NextResponse.json({
-      success: true,
-      status: 'active',
-      engine: 'Enhanced AI Engine v2.0',
-      features: [
-        'MCP 문서 활용 극대화',
-        '벡터 DB 없는 고성능 검색',
-        'TensorFlow.js + MCP 하이브리드',
-        '실시간 컨텍스트 학습',
-        'Render 자동 관리'
-      ],
-      capabilities: {
-        documentSearch: true,
-        intentAnalysis: true,
-        tensorflowPredictions: true,
-        contextualAnswers: true,
-        renderManagement: true
-      },
-      performance: {
-        initialized: true,
-        memoryOptimized: true,
-        serverless: true
-      }
+    if (action === 'environment-config') {
+      // 현재 서버 데이터 생성기 환경 설정 조회
+      const dataGenerator = RealServerDataGenerator.getInstance();
+      const config = dataGenerator.getEnvironmentConfig();
+      
+      return NextResponse.json({
+        success: true,
+        currentConfig: config,
+        availableOptions: {
+          serverArchitecture: ['single', 'master-slave', 'load-balanced', 'microservices'],
+          databaseType: ['single', 'replica', 'sharded', 'distributed'],
+          networkTopology: ['simple', 'dmz', 'multi-cloud', 'hybrid'],
+          specialWorkload: ['standard', 'gpu', 'storage', 'container'],
+          scalingPolicy: ['manual', 'auto', 'predictive'],
+          securityLevel: ['basic', 'enhanced', 'enterprise']
+        }
+      });
+    }
+
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Invalid action parameter' 
     });
 
-  } catch (error: any) {
-    console.error('❌ Enhanced AI 상태 조회 실패:', error);
-
-    return NextResponse.json({
-      success: false,
-      status: 'error',
-      error: error.message || '상태 조회 실패'
+  } catch (error) {
+    console.error('❌ Enhanced AI API 오류:', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: '서버 내부 오류' 
     }, { status: 500 });
   }
 } 

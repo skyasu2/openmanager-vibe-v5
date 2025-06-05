@@ -6,22 +6,37 @@
  * - 현실적인 서버 부하 시뮬레이션
  * - 다양한 서버 시나리오 생성
  * - 시계열 데이터 패턴
+ * - 커스텀 환경별 특화 구성
  */
 
 import { realPrometheusCollector } from '../collectors/RealPrometheusCollector';
 import { getRedisClient } from '@/lib/redis';
 
+// 커스텀 환경 설정 인터페이스
+export interface CustomEnvironmentConfig {
+  serverArchitecture: 'single' | 'master-slave' | 'load-balanced' | 'microservices';
+  databaseType: 'single' | 'replica' | 'sharded' | 'distributed';
+  networkTopology: 'simple' | 'dmz' | 'multi-cloud' | 'hybrid';
+  specialWorkload: 'standard' | 'gpu' | 'storage' | 'container';
+  scalingPolicy: 'manual' | 'auto' | 'predictive';
+  securityLevel: 'basic' | 'enhanced' | 'enterprise';
+}
+
+// 확장된 서버 인터페이스
 export interface ServerInstance {
   id: string;
   name: string;
-  type: 'web' | 'api' | 'database' | 'cache' | 'queue' | 'cdn';
+  type: 'web' | 'api' | 'database' | 'cache' | 'queue' | 'cdn' | 'gpu' | 'storage';
+  role: 'master' | 'slave' | 'primary' | 'replica' | 'worker' | 'standalone';
   location: string;
-  status: 'running' | 'stopped' | 'warning' | 'error';
+  status: 'running' | 'stopped' | 'warning' | 'error' | 'maintenance';
+  environment: 'production' | 'staging' | 'development' | 'test';
   specs: {
-    cpu: { cores: number; model: string };
-    memory: { total: number; type: string };
-    disk: { total: number; type: string };
-    network: { bandwidth: number };
+    cpu: { cores: number; model: string; architecture?: string };
+    memory: { total: number; type: string; speed?: number };
+    disk: { total: number; type: string; iops?: number };
+    network: { bandwidth: number; latency?: number };
+    gpu?: { count: number; model: string; memory: number };
   };
   metrics: {
     cpu: number;
@@ -31,11 +46,26 @@ export interface ServerInstance {
     requests: number;
     errors: number;
     uptime: number;
+    // 특화 메트릭
+    customMetrics?: {
+      replication_lag?: number;
+      connection_pool?: number;
+      cache_hit_ratio?: number;
+      gpu_utilization?: number;
+      storage_iops?: number;
+      container_count?: number;
+    };
   };
   health: {
     score: number;
     issues: string[];
     lastCheck: string;
+  };
+  security?: {
+    level: 'basic' | 'enhanced' | 'enterprise';
+    lastSecurityScan: string;
+    vulnerabilities: number;
+    patchLevel: string;
   };
 }
 
@@ -90,6 +120,16 @@ export class RealServerDataGenerator {
   private clusters: Map<string, ServerCluster> = new Map();
   private applications: Map<string, ApplicationMetrics> = new Map();
   
+  // 커스텀 환경 설정
+  private environmentConfig: CustomEnvironmentConfig = {
+    serverArchitecture: 'load-balanced',
+    databaseType: 'replica',
+    networkTopology: 'simple',
+    specialWorkload: 'standard',
+    scalingPolicy: 'auto',
+    securityLevel: 'enhanced'
+  };
+  
   // 시뮬레이션 설정
   private simulationConfig = {
     baseLoad: 0.3, // 기본 부하 30%
@@ -117,6 +157,27 @@ export class RealServerDataGenerator {
   }
 
   /**
+   * 🔧 환경 설정 변경
+   */
+  public updateEnvironmentConfig(config: Partial<CustomEnvironmentConfig>): void {
+    this.environmentConfig = { ...this.environmentConfig, ...config };
+    console.log('🔧 환경 설정 업데이트:', this.environmentConfig);
+    
+    // 기존 서버 정리 후 새로운 환경으로 재구성
+    this.servers.clear();
+    this.clusters.clear();
+    this.applications.clear();
+    this.initializeServers();
+  }
+
+  /**
+   * 📋 현재 환경 설정 조회
+   */
+  public getEnvironmentConfig(): CustomEnvironmentConfig {
+    return { ...this.environmentConfig };
+  }
+
+  /**
    * 🚀 초기화
    */
   public async initialize(): Promise<void> {
@@ -133,27 +194,82 @@ export class RealServerDataGenerator {
   }
 
   /**
-   * 🏭 초기 서버 구성
+   * 🏭 초기 서버 구성 (환경별 맞춤 구성)
    */
   private initializeServers(): void {
+    switch (this.environmentConfig.serverArchitecture) {
+      case 'single':
+        this.createSingleServerEnvironment();
+        break;
+      case 'master-slave':
+        this.createMasterSlaveEnvironment();
+        break;
+      case 'load-balanced':
+        this.createLoadBalancedEnvironment();
+        break;
+      case 'microservices':
+        this.createMicroservicesEnvironment();
+        break;
+      default:
+        this.createLoadBalancedEnvironment();
+    }
+  }
+
+  /**
+   * 🔧 단일 서버 환경 구성
+   */
+  private createSingleServerEnvironment(): void {
+    this.createServer('single-01', 'All-in-One Server', 'web', 'Seoul-1A', 'standalone', 'production');
+    console.log('✅ 단일 서버 환경 구성 완료');
+  }
+
+  /**
+   * 🔧 마스터-슬레이브 환경 구성
+   */
+  private createMasterSlaveEnvironment(): void {
+    // 마스터 서버들
+    this.createServer('web-master', 'Web Master', 'web', 'Seoul-1A', 'master', 'production');
+    this.createServer('api-master', 'API Master', 'api', 'Seoul-1A', 'master', 'production');
+    this.createServer('db-master', 'DB Master', 'database', 'Seoul-1A', 'primary', 'production');
+
+    // 슬레이브 서버들
+    this.createServer('web-slave', 'Web Slave', 'web', 'Busan-2A', 'slave', 'production');
+    this.createServer('api-slave', 'API Slave', 'api', 'Busan-2A', 'slave', 'production');
+    this.createServer('db-slave', 'DB Replica', 'database', 'Busan-2A', 'replica', 'production');
+
+    console.log('✅ 마스터-슬레이브 환경 구성 완료');
+  }
+
+  /**
+   * 🔧 로드밸런싱 환경 구성
+   */
+  private createLoadBalancedEnvironment(): void {
     // Web 서버들
-    this.createServer('web-01', 'Frontend Server 1', 'web', 'Seoul-1A');
-    this.createServer('web-02', 'Frontend Server 2', 'web', 'Seoul-1B');
-    this.createServer('web-03', 'Frontend Server 3', 'web', 'Busan-2A');
+    this.createServer('web-01', 'Frontend Server 1', 'web', 'Seoul-1A', 'worker', 'production');
+    this.createServer('web-02', 'Frontend Server 2', 'web', 'Seoul-1B', 'worker', 'production');
+    this.createServer('web-03', 'Frontend Server 3', 'web', 'Busan-2A', 'worker', 'production');
 
     // API 서버들
-    this.createServer('api-01', 'API Gateway 1', 'api', 'Seoul-1A');
-    this.createServer('api-02', 'API Gateway 2', 'api', 'Seoul-1B');
-    this.createServer('api-03', 'Microservice API', 'api', 'Seoul-1C');
+    this.createServer('api-01', 'API Gateway 1', 'api', 'Seoul-1A', 'worker', 'production');
+    this.createServer('api-02', 'API Gateway 2', 'api', 'Seoul-1B', 'worker', 'production');
+    this.createServer('api-03', 'Microservice API', 'api', 'Seoul-1C', 'worker', 'production');
 
     // 데이터베이스
-    this.createServer('db-01', 'PostgreSQL Primary', 'database', 'Seoul-1A');
-    this.createServer('db-02', 'PostgreSQL Replica', 'database', 'Busan-2A');
-    this.createServer('db-03', 'Redis Cache', 'cache', 'Seoul-1B');
+    this.createServer('db-01', 'PostgreSQL Primary', 'database', 'Seoul-1A', 'primary', 'production');
+    this.createServer('db-02', 'PostgreSQL Replica', 'database', 'Busan-2A', 'replica', 'production');
+    this.createServer('cache-01', 'Redis Cache', 'cache', 'Seoul-1B', 'standalone', 'production');
+
+    // 특수 워크로드 서버 추가
+    if (this.environmentConfig.specialWorkload === 'gpu') {
+      this.createServer('gpu-01', 'GPU Compute Node', 'gpu', 'Seoul-1A', 'worker', 'production');
+    }
+    if (this.environmentConfig.specialWorkload === 'storage') {
+      this.createServer('storage-01', 'High-Performance Storage', 'storage', 'Seoul-1A', 'standalone', 'production');
+    }
 
     // 큐 서버
-    this.createServer('queue-01', 'Message Queue', 'queue', 'Seoul-1C');
-    this.createServer('cdn-01', 'CDN Edge', 'cdn', 'Global');
+    this.createServer('queue-01', 'Message Queue', 'queue', 'Seoul-1C', 'standalone', 'production');
+    this.createServer('cdn-01', 'CDN Edge', 'cdn', 'Global', 'standalone', 'production');
 
     // 클러스터 구성
     this.createCluster('web-cluster', '웹 서버 클러스터', ['web-01', 'web-02', 'web-03']);
@@ -161,19 +277,48 @@ export class RealServerDataGenerator {
 
     // 애플리케이션 메트릭
     this.createApplication('openmanager-vibe', 'OpenManager Vibe v5');
+
+    console.log('✅ 로드밸런싱 환경 구성 완료');
+  }
+
+  /**
+   * 🔧 마이크로서비스 환경 구성
+   */
+  private createMicroservicesEnvironment(): void {
+    // 게이트웨이
+    this.createServer('gateway-01', 'API Gateway', 'api', 'Seoul-1A', 'master', 'production');
+
+    // 마이크로서비스들
+    this.createServer('user-service', 'User Service', 'api', 'Seoul-1A', 'worker', 'production');
+    this.createServer('auth-service', 'Auth Service', 'api', 'Seoul-1B', 'worker', 'production');
+    this.createServer('monitor-service', 'Monitor Service', 'api', 'Seoul-1C', 'worker', 'production');
+    this.createServer('notification-service', 'Notification Service', 'api', 'Busan-2A', 'worker', 'production');
+
+    // 전용 데이터베이스
+    this.createServer('user-db', 'User Database', 'database', 'Seoul-1A', 'standalone', 'production');
+    this.createServer('auth-db', 'Auth Database', 'database', 'Seoul-1B', 'standalone', 'production');
+    this.createServer('monitor-db', 'Monitor Database', 'database', 'Seoul-1C', 'standalone', 'production');
+
+    // 공유 캐시 및 큐
+    this.createServer('redis-shared', 'Shared Cache', 'cache', 'Seoul-1A', 'standalone', 'production');
+    this.createServer('message-queue', 'Message Queue', 'queue', 'Seoul-1B', 'standalone', 'production');
+
+    console.log('✅ 마이크로서비스 환경 구성 완료');
   }
 
   /**
    * 🖥️ 서버 생성
    */
-  private createServer(id: string, name: string, type: ServerInstance['type'], location: string): void {
+  private createServer(id: string, name: string, type: ServerInstance['type'], location: string, role: ServerInstance['role'] = 'standalone', environment: ServerInstance['environment'] = 'production'): void {
     const specs = this.generateServerSpecs(type);
     
     const server: ServerInstance = {
       id,
       name,
       type,
+      role,
       location,
+      environment,
       status: 'running',
       specs,
       metrics: {
@@ -183,12 +328,19 @@ export class RealServerDataGenerator {
         network: { in: Math.random() * 100, out: Math.random() * 80 },
         requests: Math.floor(Math.random() * 1000),
         errors: Math.floor(Math.random() * 10),
-        uptime: Math.random() * 2592000000 // 최대 30일
+        uptime: Math.random() * 2592000000, // 최대 30일
+        customMetrics: this.generateCustomMetrics(type, role)
       },
       health: {
         score: 85 + Math.random() * 15,
         issues: [],
         lastCheck: new Date().toISOString()
+      },
+      security: {
+        level: this.environmentConfig.securityLevel,
+        lastSecurityScan: new Date().toISOString(),
+        vulnerabilities: Math.floor(Math.random() * 5),
+        patchLevel: 'current'
       }
     };
 
@@ -201,44 +353,85 @@ export class RealServerDataGenerator {
   private generateServerSpecs(type: ServerInstance['type']) {
     const specTemplates = {
       web: {
-        cpu: { cores: 4, model: 'Intel Xeon E5-2686v4' },
-        memory: { total: 8 * 1024 * 1024 * 1024, type: 'DDR4' },
-        disk: { total: 100 * 1024 * 1024 * 1024, type: 'SSD' },
-        network: { bandwidth: 1000 }
+        cpu: { cores: 4, model: 'Intel Xeon E5-2686v4', architecture: 'x86_64' },
+        memory: { total: 8 * 1024 * 1024 * 1024, type: 'DDR4', speed: 2400 },
+        disk: { total: 100 * 1024 * 1024 * 1024, type: 'SSD', iops: 3000 },
+        network: { bandwidth: 1000, latency: 1 }
       },
       api: {
-        cpu: { cores: 8, model: 'Intel Xeon E5-2686v4' },
-        memory: { total: 16 * 1024 * 1024 * 1024, type: 'DDR4' },
-        disk: { total: 200 * 1024 * 1024 * 1024, type: 'SSD' },
-        network: { bandwidth: 1000 }
+        cpu: { cores: 8, model: 'Intel Xeon E5-2686v4', architecture: 'x86_64' },
+        memory: { total: 16 * 1024 * 1024 * 1024, type: 'DDR4', speed: 2400 },
+        disk: { total: 200 * 1024 * 1024 * 1024, type: 'SSD', iops: 3000 },
+        network: { bandwidth: 1000, latency: 1 }
       },
       database: {
-        cpu: { cores: 16, model: 'Intel Xeon Platinum 8175M' },
-        memory: { total: 64 * 1024 * 1024 * 1024, type: 'DDR4' },
-        disk: { total: 1 * 1024 * 1024 * 1024 * 1024, type: 'NVMe SSD' },
-        network: { bandwidth: 10000 }
+        cpu: { cores: 16, model: 'Intel Xeon Platinum 8175M', architecture: 'x86_64' },
+        memory: { total: 64 * 1024 * 1024 * 1024, type: 'DDR4', speed: 2666 },
+        disk: { total: 1 * 1024 * 1024 * 1024 * 1024, type: 'NVMe SSD', iops: 50000 },
+        network: { bandwidth: 10000, latency: 0.5 }
       },
       cache: {
-        cpu: { cores: 8, model: 'Intel Xeon E5-2686v4' },
-        memory: { total: 32 * 1024 * 1024 * 1024, type: 'DDR4' },
-        disk: { total: 100 * 1024 * 1024 * 1024, type: 'SSD' },
-        network: { bandwidth: 1000 }
+        cpu: { cores: 8, model: 'Intel Xeon E5-2686v4', architecture: 'x86_64' },
+        memory: { total: 32 * 1024 * 1024 * 1024, type: 'DDR4', speed: 2400 },
+        disk: { total: 100 * 1024 * 1024 * 1024, type: 'SSD', iops: 3000 },
+        network: { bandwidth: 1000, latency: 1 }
       },
       queue: {
-        cpu: { cores: 4, model: 'Intel Xeon E5-2686v4' },
-        memory: { total: 8 * 1024 * 1024 * 1024, type: 'DDR4' },
-        disk: { total: 200 * 1024 * 1024 * 1024, type: 'SSD' },
-        network: { bandwidth: 1000 }
+        cpu: { cores: 4, model: 'Intel Xeon E5-2686v4', architecture: 'x86_64' },
+        memory: { total: 8 * 1024 * 1024 * 1024, type: 'DDR4', speed: 2400 },
+        disk: { total: 200 * 1024 * 1024 * 1024, type: 'SSD', iops: 3000 },
+        network: { bandwidth: 1000, latency: 1 }
       },
       cdn: {
-        cpu: { cores: 2, model: 'Intel Xeon E5-2686v4' },
-        memory: { total: 4 * 1024 * 1024 * 1024, type: 'DDR4' },
-        disk: { total: 500 * 1024 * 1024 * 1024, type: 'SSD' },
-        network: { bandwidth: 10000 }
+        cpu: { cores: 2, model: 'Intel Xeon E5-2686v4', architecture: 'x86_64' },
+        memory: { total: 4 * 1024 * 1024 * 1024, type: 'DDR4', speed: 2400 },
+        disk: { total: 500 * 1024 * 1024 * 1024, type: 'SSD', iops: 5000 },
+        network: { bandwidth: 10000, latency: 0.5 }
+      },
+      gpu: {
+        cpu: { cores: 32, model: 'Intel Xeon Gold 6248', architecture: 'x86_64' },
+        memory: { total: 256 * 1024 * 1024 * 1024, type: 'DDR4', speed: 2933 },
+        disk: { total: 2 * 1024 * 1024 * 1024 * 1024, type: 'NVMe SSD', iops: 100000 },
+        network: { bandwidth: 25000, latency: 0.2 },
+        gpu: { count: 8, model: 'NVIDIA A100', memory: 40 * 1024 * 1024 * 1024 }
+      },
+      storage: {
+        cpu: { cores: 16, model: 'Intel Xeon Silver 4214', architecture: 'x86_64' },
+        memory: { total: 128 * 1024 * 1024 * 1024, type: 'DDR4', speed: 2400 },
+        disk: { total: 100 * 1024 * 1024 * 1024 * 1024, type: 'NVMe SSD', iops: 500000 },
+        network: { bandwidth: 100000, latency: 0.1 }
       }
     };
 
     return specTemplates[type];
+  }
+
+  /**
+   * 🎯 커스텀 메트릭 생성
+   */
+  private generateCustomMetrics(type: ServerInstance['type'], role: ServerInstance['role']) {
+    const customMetrics: any = {};
+
+    switch (type) {
+      case 'database':
+        customMetrics.replication_lag = role === 'replica' ? Math.random() * 5 : 0;
+        customMetrics.connection_pool = 50 + Math.floor(Math.random() * 50);
+        break;
+      case 'cache':
+        customMetrics.cache_hit_ratio = 85 + Math.random() * 15;
+        customMetrics.connection_pool = 100 + Math.floor(Math.random() * 100);
+        break;
+      case 'gpu':
+        customMetrics.gpu_utilization = Math.random() * 100;
+        break;
+      case 'storage':
+        customMetrics.storage_iops = 1000 + Math.floor(Math.random() * 50000);
+        break;
+      default:
+        break;
+    }
+
+    return customMetrics;
   }
 
   /**

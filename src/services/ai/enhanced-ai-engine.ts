@@ -139,28 +139,53 @@ export class EnhancedAIEngine {
     console.log('🧠 Enhanced AI Engine 초기화 시작...');
     
     try {
-      // 1. MCP 클라이언트 초기화
+      // 1. MCP 클라이언트 초기화 (필수)
       await this.mcpClient.initialize();
       console.log('✅ MCP 클라이언트 초기화 완료');
 
-      // 2. TensorFlow.js 엔진 초기화
-      await this.tensorflowEngine.initialize();
-      console.log('✅ TensorFlow.js 엔진 초기화 완료');
-
-      // 3. 문서 인덱스 구축
+      // 2. 문서 인덱스 구축 (빠른 응답을 위해 우선 처리)
       await this.buildDocumentIndex();
       console.log('✅ 문서 인덱스 구축 완료');
 
-      // 4. Render 자동 관리 시작
-      await this.startRenderManagement();
+      // 3. 백그라운드에서 TensorFlow.js 엔진 초기화 (지연 로딩)
+      this.initializeTensorFlowInBackground();
+      console.log('⏳ TensorFlow.js 엔진 백그라운드 초기화 시작');
+
+      // 4. Render 자동 관리 시작 (백그라운드)
+      this.startRenderManagement();
       console.log('✅ Render 자동 관리 시작');
 
       this.isInitialized = true;
-      console.log('🎉 Enhanced AI Engine 초기화 완료');
+      console.log('🎉 Enhanced AI Engine 초기화 완료 (고속 모드)');
 
     } catch (error) {
       console.error('❌ Enhanced AI Engine 초기화 실패:', error);
       throw error;
+    }
+  }
+
+  /**
+   * 🚀 TensorFlow.js 엔진 백그라운드 초기화 (성능 최적화)
+   */
+  private async initializeTensorFlowInBackground(): Promise<void> {
+    try {
+      setTimeout(async () => {
+        await this.tensorflowEngine.initialize();
+        console.log('✅ TensorFlow.js 엔진 백그라운드 초기화 완료');
+      }, 100); // 100ms 지연으로 메인 스레드 블로킹 방지
+    } catch (error) {
+      console.warn('⚠️ TensorFlow.js 백그라운드 초기화 실패 (기본 모드로 동작):', error);
+    }
+  }
+
+  /**
+   * 🔄 TensorFlow.js 엔진 지연 로딩 (필요시에만 초기화)
+   */
+  private async ensureTensorFlowInitialized(): Promise<void> {
+    if (!this.tensorflowEngine || !(this.tensorflowEngine as any).isInitialized) {
+      console.log('⚡ TensorFlow.js 엔진 즉시 초기화...');
+      await this.tensorflowEngine.initialize();
+      console.log('✅ TensorFlow.js 엔진 즉시 초기화 완료');
     }
   }
 
@@ -172,36 +197,75 @@ export class EnhancedAIEngine {
     let documentCount = 0;
 
     try {
-      // docs 폴더 스캔
-      const docsFiles = await this.mcpClient.listDirectory('docs');
-      const srcFiles = await this.mcpClient.listDirectory('src');
-      const allFiles = [...docsFiles, ...srcFiles];
+      console.log('🔍 문서 인덱싱 시작...');
+      
+      // MCP가 실패하면 직접 파일 스캔 시도
+      let allFiles: string[] = [];
+      
+      try {
+        // MCP를 통한 AI 컨텍스트 파일 스캔 시도
+        const contextFiles = await this.mcpClient.listDirectory('src/modules/ai-agent/context');
+        allFiles = contextFiles;
+        console.log(`📁 MCP를 통해 ${allFiles.length}개 AI 컨텍스트 파일 발견`);
+      } catch (mcpError) {
+        console.warn('⚠️ MCP 디렉토리 스캔 실패, 대체 방법 사용:', mcpError);
+        
+        // 대체 방법: AI 컨텍스트 파일들 하드코딩 (기본→고급→커스텀 순)
+        allFiles = [
+          // 기본 레벨 (Basic)
+          'src/modules/ai-agent/context/system-knowledge.md',
+          'src/modules/ai-agent/context/api-reference.md',
+          'src/modules/ai-agent/context/troubleshooting-guide.md',
+          // 고급 레벨 (Advanced)
+          'src/modules/ai-agent/context/advanced-monitoring.md',
+          // 커스텀 레벨 (Custom)
+          'src/modules/ai-agent/context/custom-scenarios.md',
+          // 환경별 가이드
+          'src/modules/ai-agent/context/environment-guides.md',
+          // 아키텍처 문서
+          'src/modules/ai-agent/context/ai-engine-architecture.md',
+          'docs/AI-ENGINE-ARCHITECTURE.md'
+        ];
+        console.log(`📋 하드코딩된 ${allFiles.length}개 AI 컨텍스트 파일 사용`);
+      }
 
       // .md 파일만 필터링
       const markdownFiles = allFiles.filter(file => 
         file.endsWith('.md') || file.includes('.md')
       );
 
-      console.log(`📄 ${markdownFiles.length}개 문서 발견`);
+      console.log(`📄 ${markdownFiles.length}개 마크다운 문서 발견`);
 
       // 각 문서 처리
       for (const file of markdownFiles) {
         try {
           const content = await this.mcpClient.readFile(file);
-          if (content) {
+          if (content && content.length > 50) { // 최소 길이 체크
             const context = await this.analyzeDocument(file, content);
             this.documentIndex.set(file, context);
             documentCount++;
 
-            // MCP memory에 저장
+            // 로컬 메모리에 문서 메타데이터 저장
             await this.mcpClient.storeContext(`doc:${file}`, {
               keywords: context.keywords,
               summary: content.substring(0, 200),
               lastAnalyzed: Date.now()
             });
+            
+            console.log(`✅ 문서 인덱싱 완료: ${file} (${context.keywords.length}개 키워드)`);
+          } else {
+            console.warn(`⚠️ 문서 내용 없음 또는 너무 짧음: ${file}`);
           }
         } catch (error) {
           console.warn(`⚠️ 문서 처리 실패: ${file}`, error);
+          
+          // 문서 읽기 실패시 기본 컨텍스트 생성
+          if (file.includes('ESSENTIAL_DOCUMENTATION') || file.includes('README')) {
+            const fallbackContext = await this.createFallbackDocumentContext(file);
+            this.documentIndex.set(file, fallbackContext);
+            documentCount++;
+            console.log(`📋 기본 컨텍스트 생성: ${file}`);
+          }
         }
       }
 
@@ -209,10 +273,125 @@ export class EnhancedAIEngine {
       const processingTime = Date.now() - startTime;
       
       console.log(`✅ 문서 인덱스 구축 완료: ${documentCount}개 문서, ${processingTime}ms`);
+      
+      // 인덱스가 비어있으면 기본 지식 로드
+      if (documentCount === 0) {
+        await this.loadFallbackKnowledge();
+        console.log('📚 기본 지식 베이스 로드 완료');
+      }
 
     } catch (error) {
       console.error('❌ 문서 인덱스 구축 실패:', error);
+      await this.loadFallbackKnowledge();
     }
+  }
+
+  /**
+   * 📋 기본 문서 컨텍스트 생성 (파일 읽기 실패시)
+   */
+  private async createFallbackDocumentContext(path: string): Promise<DocumentContext> {
+    const fallbackKeywords = this.getFallbackKeywords(path);
+    
+    return {
+      path,
+      content: `문서 파일: ${path}`,
+      keywords: fallbackKeywords,
+      lastModified: Date.now(),
+      relevanceScore: 2.0,
+      contextLinks: []
+    };
+  }
+
+  /**
+   * 📚 기본 지식 베이스 로드 (모든 문서 인덱싱 실패시)
+   */
+  private async loadFallbackKnowledge(): Promise<void> {
+    const fallbackDocs = [
+      // 기본 레벨 (Basic) - 기초 지식
+      {
+        path: 'src/modules/ai-agent/context/system-knowledge.md',
+        keywords: ['시스템', '환경설정', 'MCP', 'AI엔진', '모니터링', 'development', 'production', '최적화'],
+        content: 'AI 엔진 시스템 지식 베이스 - 환경별 설정 및 핵심 기능',
+        relevanceScore: 5.0
+      },
+      {
+        path: 'src/modules/ai-agent/context/api-reference.md',
+        keywords: ['API', '엔드포인트', 'REST', 'POST', 'GET', '서버', '메트릭', '알림'],
+        content: 'AI 엔진 API 참조 - 엔드포인트 및 사용법',
+        relevanceScore: 4.5
+      },
+      {
+        path: 'src/modules/ai-agent/context/troubleshooting-guide.md',
+        keywords: ['문제해결', '오류', '성능', '진단', '최적화', '메모리', 'CPU', '데이터베이스'],
+        content: 'AI 엔진 문제 해결 가이드 - 증상, 원인, 해결방법',
+        relevanceScore: 4.8
+      },
+      // 고급 레벨 (Advanced) - 전문 지식
+      {
+        path: 'src/modules/ai-agent/context/advanced-monitoring.md',
+        keywords: ['고급', '예측', '분석', 'TensorFlow', '이상탐지', '자동화', '대시보드', 'ML'],
+        content: '고급 모니터링 및 분석 가이드 - AI 기반 예측 모니터링',
+        relevanceScore: 4.3
+      },
+      // 커스텀 레벨 (Custom) - 특화 솔루션
+      {
+        path: 'src/modules/ai-agent/context/custom-scenarios.md',
+        keywords: ['커스텀', '특화', '산업별', '금융', 'IoT', 'Kubernetes', '마이크로서비스', '서버리스'],
+        content: '커스텀 시나리오 및 특화 솔루션 - 산업별 맞춤 가이드',
+        relevanceScore: 4.0
+      }
+    ];
+
+    for (const doc of fallbackDocs) {
+      const context: DocumentContext = {
+        path: doc.path,
+        content: doc.content,
+        keywords: doc.keywords,
+        lastModified: Date.now(),
+        relevanceScore: doc.relevanceScore,
+        contextLinks: []
+      };
+      
+      this.documentIndex.set(doc.path, context);
+    }
+    
+    console.log(`📚 ${fallbackDocs.length}개 기본 문서 로드 완료`);
+  }
+
+  /**
+   * 🔤 파일 경로 기반 기본 키워드 생성 (서버 모니터링 AI 에이전트 특화)
+   */
+  private getFallbackKeywords(path: string): string[] {
+    const keywords: string[] = [];
+    
+    // 기본 레벨 (Basic) - 서버 모니터링 기초
+    if (path.includes('system-knowledge')) {
+      keywords.push('서버모니터링', 'AI에이전트', '메트릭해석', '임계값', '알림', '성능분석', 
+                   'CPU', 'Memory', 'Disk', 'Network', '클러스터', '로드밸런서', '헬스체크');
+    }
+    if (path.includes('api-reference')) {
+      keywords.push('API', '엔드포인트', '서버상태', '메트릭수집', '실시간데이터', 'REST', 
+                   '모니터링API', '대시보드', '알림설정');
+    }
+    if (path.includes('troubleshooting-guide')) {
+      keywords.push('문제해결', '서버오류', '성능저하', '메모리누수', '디스크부족', 'CPU과부하', 
+                   '네트워크지연', '진단', '복구', '예방조치');
+    }
+    
+    // 고급 레벨 (Advanced) - AI 기반 고급 모니터링
+    if (path.includes('advanced-monitoring')) {
+      keywords.push('예측분석', '장애예측', 'TensorFlow', '이상탐지', '자동스케일링', 
+                   '머신러닝', '패턴분석', '용량계획', '성능최적화');
+    }
+    
+    // 커스텀 레벨 (Custom) - 환경별 특화 시나리오
+    if (path.includes('custom-scenarios')) {
+      keywords.push('커스텀환경', '서버아키텍처', '단일서버', '마스터슬레이브', '로드밸런싱', 
+                   '마이크로서비스', '데이터베이스환경', '네트워크토폴로지', 'GPU컴퓨팅', 
+                   '고성능스토리지', '컨테이너', 'Kubernetes', 'DMZ', '멀티클라우드', '하이브리드');
+    }
+    
+    return keywords.length > 0 ? keywords : ['서버모니터링', 'AI가이드'];
   }
 
   /**
@@ -504,6 +683,9 @@ export class EnhancedAIEngine {
     try {
       // 의도에 따른 모델 실행
       if (smartQuery.intent === 'prediction' || smartQuery.intent === 'analysis') {
+        // TensorFlow.js 엔진이 필요한 경우에만 초기화
+        await this.ensureTensorFlowInitialized();
+        
         // 모의 메트릭 데이터 생성 (실제로는 MCP에서 가져옴)
         const mockMetrics = this.generateMockMetrics();
 
@@ -523,6 +705,10 @@ export class EnhancedAIEngine {
           });
           predictions.timeseriesAnalysis = analysisResult;
         }
+      } else {
+        // TensorFlow.js가 필요하지 않은 경우 건너뛰기
+        console.log('⚡ TensorFlow.js 분석 불필요 - 응답 시간 최적화');
+        return { optimized: true, message: 'TensorFlow.js 분석 생략됨' };
       }
 
       return predictions;

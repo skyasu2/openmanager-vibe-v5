@@ -11,9 +11,13 @@ import { env, envLog, shouldEnableDebugLogging } from '@/config/environment';
 
 // MCP SDK는 아직 설치되지 않았을 수 있으므로 폴백 구현
 interface MCPClient {
-  connect(transport: any): Promise<void>;
+  connect(transport?: any): Promise<void>;
   request(request: any): Promise<any>;
   close(): Promise<void>;
+  // 실제 구현용 프로퍼티 (optional)
+  process?: any;
+  nextId?: number;
+  pendingRequests?: Map<number, { resolve: Function; reject: Function }>;
 }
 
 interface MCPServerConfig {
@@ -45,11 +49,11 @@ export class RealMCPClient {
     
     const enabledServers = env.mcp.enabledServers;
     
-    // 📁 파일시스템 MCP 서버 (환경별 경로 설정)
+    // 📁 파일시스템 MCP 서버 (AI 컨텍스트 전용)
     if (enabledServers.includes('filesystem')) {
       const filesystemPaths = env.mcp.useLocalPaths 
-        ? ['D:\\cursor\\openmanager-vibe-v5\\docs', 'D:\\cursor\\openmanager-vibe-v5\\src']
-        : ['/var/task/docs', '/var/task/src']; // Vercel 경로
+        ? ['./src/modules/ai-agent/context', './docs']
+        : ['/var/task/src/modules/ai-agent/context', '/var/task/docs']; // Vercel 경로
         
       this.servers.set('filesystem', {
         name: 'filesystem',
@@ -140,28 +144,135 @@ export class RealMCPClient {
     }
 
     try {
-      // 폴백 구현 (실제 MCP SDK가 없을 경우)
-      const mockClient: MCPClient = {
-        async connect(transport: any): Promise<void> {
-          console.log(`Mock MCP 연결: ${serverName}`);
-        },
-        async request(request: any): Promise<any> {
-          console.log(`Mock MCP 요청: ${request.method}`);
-          return { tools: [], content: [] };
-        },
-        async close(): Promise<void> {
-          console.log(`Mock MCP 연결 해제: ${serverName}`);
-        }
-      };
+      console.log(`🔌 실제 MCP 서버 연결 시도: ${serverName}`);
+      console.log(`📍 명령어: ${config.command} ${config.args.join(' ')}`);
 
-      await mockClient.connect({});
-      this.clients.set(serverName, mockClient);
+      // 실제 MCP 서버와 stdio를 통한 JSON-RPC 통신
+      const { spawn } = require('child_process');
+      const serverProcess = spawn(config.command, config.args, {
+        stdio: ['pipe', 'pipe', 'pipe'],
+        env: { ...process.env, ...config.env }
+      });
+
+      if (!serverProcess.pid) {
+        throw new Error(`MCP 서버 프로세스 시작 실패: ${serverName}`);
+      }
+
+      console.log(`🚀 MCP 서버 프로세스 시작됨: PID ${serverProcess.pid}`);
+
+              // JSON-RPC 클라이언트 구현
+        const client: MCPClient = {
+          process: serverProcess,
+          nextId: 1,
+          pendingRequests: new Map(),
+
+          async connect(): Promise<void> {
+            // 초기화 요청 전송
+            const initRequest = {
+              jsonrpc: '2.0',
+              id: this.nextId!++,
+              method: 'initialize',
+              params: {
+                protocolVersion: '2024-11-05',
+                capabilities: {},
+                clientInfo: {
+                  name: 'openmanager-vibe',
+                  version: '5.21.0'
+                }
+              }
+            };
+
+            return new Promise((resolve, reject) => {
+              const requestId = initRequest.id;
+              this.pendingRequests!.set(requestId, { resolve, reject });
+
+              // 응답 데이터 처리
+              this.process!.stdout.on('data', (data: any) => {
+                try {
+                  const lines = data.toString().split('\n').filter((line: string) => line.trim());
+                  for (const line of lines) {
+                    if (line.trim()) {
+                      const response = JSON.parse(line);
+                      if (response.id && this.pendingRequests!.has(response.id)) {
+                        const pending = this.pendingRequests!.get(response.id)!;
+                        this.pendingRequests!.delete(response.id);
+                        
+                        if (response.error) {
+                          pending.reject(new Error(response.error.message || 'MCP 오류'));
+                        } else {
+                          pending.resolve(response.result);
+                        }
+                      }
+                    }
+                  }
+                } catch (error) {
+                  console.warn('⚠️ MCP 응답 파싱 실패:', error);
+                }
+              });
+
+              // 오류 처리
+              this.process!.stderr.on('data', (data: any) => {
+                console.warn(`⚠️ MCP 서버 오류 (${serverName}):`, data.toString());
+              });
+
+              this.process!.on('exit', (code: any) => {
+                console.log(`🔌 MCP 서버 종료 (${serverName}): 코드 ${code}`);
+              });
+
+              // 초기화 요청 전송
+              this.process!.stdin.write(JSON.stringify(initRequest) + '\n');
+
+              // 5초 타임아웃
+              setTimeout(() => {
+                if (this.pendingRequests!.has(requestId)) {
+                  this.pendingRequests!.delete(requestId);
+                  reject(new Error('MCP 초기화 타임아웃'));
+                }
+              }, 5000);
+            });
+          },
+
+          async request(request: any): Promise<any> {
+            return new Promise((resolve, reject) => {
+              const requestId = this.nextId!++;
+              const jsonRpcRequest = {
+                jsonrpc: '2.0',
+                id: requestId,
+                method: request.method,
+                params: request.params || {}
+              };
+
+              this.pendingRequests!.set(requestId, { resolve, reject });
+
+              // 요청 전송
+              this.process!.stdin.write(JSON.stringify(jsonRpcRequest) + '\n');
+
+              // 5초 타임아웃
+              setTimeout(() => {
+                if (this.pendingRequests!.has(requestId)) {
+                  this.pendingRequests!.delete(requestId);
+                  reject(new Error(`MCP 요청 타임아웃: ${request.method}`));
+                }
+              }, 5000);
+            });
+          },
+
+          async close(): Promise<void> {
+            if (this.process && !this.process.killed) {
+              this.process.kill();
+              console.log(`🔌 MCP 서버 프로세스 종료: ${serverName}`);
+            }
+          }
+        };
+
+      await client.connect();
+      this.clients.set(serverName, client);
       
-      console.log(`✅ MCP 서버 연결 성공: ${serverName}`);
-      return mockClient;
+      console.log(`✅ 실제 MCP 서버 연결 성공: ${serverName}`);
+      return client;
 
     } catch (error: any) {
-      console.error(`❌ MCP 서버 연결 실패: ${serverName}`, error);
+      console.error(`❌ 실제 MCP 서버 연결 실패: ${serverName}`, error);
       throw error;
     }
   }
@@ -280,12 +391,21 @@ export class RealMCPClient {
     await this.initialize();
 
     try {
-      await this.callTool('memory', 'store', {
-        key: `session_${sessionId}`,
-        value: JSON.stringify(context)
-      });
+      // Memory MCP 서버 대신 로컬 메모리 사용
+      // 환경별 설정에서 memory 서버가 제거되어 파일시스템으로 대체
+      const contextData = {
+        sessionId,
+        timestamp: Date.now(),
+        ...context
+      };
       
-      console.log(`💾 컨텍스트 저장 완료: ${sessionId}`);
+      // 로컬 메모리에 임시 저장 (향후 Redis/DB로 확장 가능)
+      if (typeof globalThis !== 'undefined') {
+        (globalThis as any).__mcp_context_store = (globalThis as any).__mcp_context_store || new Map();
+        (globalThis as any).__mcp_context_store.set(`session_${sessionId}`, contextData);
+      }
+      
+      console.log(`💾 컨텍스트 저장 완료 (로컬): ${sessionId}`);
       return true;
 
     } catch (error: any) {
@@ -298,13 +418,20 @@ export class RealMCPClient {
     await this.initialize();
 
     try {
-      const result = await this.callTool('memory', 'retrieve', {
-        key: `session_${sessionId}`
-      });
+      // Memory MCP 서버 대신 로컬 메모리 사용
+      // 환경별 설정에서 memory 서버가 제거되어 로컬 저장소로 대체
+      let context = {};
       
-      const contextText = result.content?.[0]?.text || '{}';
-      const context = JSON.parse(contextText);
-      console.log(`📖 컨텍스트 조회 완료: ${sessionId}`);
+      if (typeof globalThis !== 'undefined' && (globalThis as any).__mcp_context_store) {
+        const storedData = (globalThis as any).__mcp_context_store.get(`session_${sessionId}`);
+        if (storedData) {
+          context = storedData;
+          console.log(`📖 컨텍스트 조회 완료 (로컬): ${sessionId}`);
+        } else {
+          console.log(`📖 컨텍스트 없음: ${sessionId}`);
+        }
+      }
+      
       return context;
 
     } catch (error: any) {
@@ -317,15 +444,31 @@ export class RealMCPClient {
     await this.initialize();
 
     try {
+      console.log(`📖 실제 파일 읽기: ${filePath}`);
       const result = await this.callTool('filesystem', 'read_file', {
         path: filePath
       });
 
-      return result.content?.[0]?.text || '';
+      // 실제 MCP 응답 구조에 맞게 수정
+      const content = result.content?.[0]?.text || result.text || '';
+      console.log(`✅ 파일 읽기 성공: ${filePath} (${content.length}자)`);
+      return content;
 
     } catch (error: any) {
-      console.error(`파일 읽기 실패: ${filePath}`, error);
-      return '';
+      console.error(`❌ 파일 읽기 실패: ${filePath}`, error);
+      
+      // 실제 파일시스템 fallback
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        const fullPath = path.resolve(filePath);
+        const content = fs.readFileSync(fullPath, 'utf8');
+        console.log(`✅ Fallback 파일 읽기 성공: ${filePath} (${content.length}자)`);
+        return content;
+      } catch (fsError) {
+        console.error(`❌ Fallback 파일 읽기도 실패: ${filePath}`, fsError);
+        return '';
+      }
     }
   }
 
@@ -333,19 +476,39 @@ export class RealMCPClient {
     await this.initialize();
 
     try {
+      console.log(`📁 실제 디렉토리 목록 조회: ${dirPath}`);
       const result = await this.callTool('filesystem', 'list_directory', {
         path: dirPath
       });
 
-      const fileListText = result.content?.[0]?.text || '';
-      const fileList = typeof fileListText === 'string' ? 
-        fileListText.split('\n').filter((line: string) => line.trim()) : [];
+      // 실제 MCP 응답 구조에 맞게 수정
+      let fileList: string[] = [];
+      if (result.content?.[0]?.text) {
+        fileList = result.content[0].text.split('\n').filter((line: string) => line.trim());
+      } else if (result.files && Array.isArray(result.files)) {
+        fileList = result.files;
+      } else if (typeof result === 'string') {
+        fileList = result.split('\n').filter((line: string) => line.trim());
+      }
       
+      console.log(`✅ 디렉토리 목록 조회 성공: ${dirPath} (${fileList.length}개 파일)`);
       return fileList;
 
     } catch (error: any) {
-      console.error(`디렉토리 목록 조회 실패: ${dirPath}`, error);
-      return [];
+      console.error(`❌ 디렉토리 목록 조회 실패: ${dirPath}`, error);
+      
+      // 실제 파일시스템 fallback
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        const fullPath = path.resolve(dirPath);
+        const files = fs.readdirSync(fullPath);
+        console.log(`✅ Fallback 디렉토리 목록 조회 성공: ${dirPath} (${files.length}개 파일)`);
+        return files.map((file: string) => path.join(dirPath, file));
+      } catch (fsError) {
+        console.error(`❌ Fallback 디렉토리 목록 조회도 실패: ${dirPath}`, fsError);
+        return [];
+      }
     }
   }
 

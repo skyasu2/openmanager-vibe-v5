@@ -295,8 +295,17 @@ export class TensorFlowAIEngine {
     console.log('🧠 TensorFlow.js AI 엔진 초기화 중...');
     
     try {
+      // 기존 모델들 완전 정리 (중복 방지)
+      this.dispose();
+      
+      // TensorFlow.js 전역 변수 정리
+      await this.cleanupTensorFlowGlobals();
+      
       // TensorFlow.js 백엔드 설정
       await this.setupTensorFlowBackend();
+      
+      // 모델 스펙 초기화
+      this.initializeModelSpecs();
       
       // 모델들 초기화
       await this.initializeAllModels();
@@ -308,7 +317,52 @@ export class TensorFlowAIEngine {
       
     } catch (error: any) {
       console.error('❌ TensorFlow.js 초기화 실패:', error);
-      throw error;
+      // 초기화 실패해도 계속 진행 (fallback 모드)
+      this.initialized = false;
+    }
+  }
+  private async cleanupTensorFlowGlobals(): Promise<void> {
+    try {
+      // 기존 모델들 완전 dispose
+      if (this.models.size > 0) {
+        console.log(`🧹 ${this.models.size}개 기존 모델 정리 중...`);
+        for (const [name, model] of this.models.entries()) {
+          try {
+            model.dispose();
+            console.log(`✅ 모델 정리: ${name}`);
+          } catch (error) {
+            console.warn(`⚠️ 모델 정리 실패: ${name}`, error);
+          }
+        }
+        this.models.clear();
+      }
+      
+      // 모든 TensorFlow.js 텐서와 변수 정리
+      tf.disposeVariables();
+      
+      // 메모리 강제 정리
+      const memoryInfo = tf.memory();
+      if (memoryInfo.numTensors > 0) {
+        console.log(`🧹 ${memoryInfo.numTensors}개 텐서 정리 중...`);
+        
+        // 백엔드 완전 재설정
+        const currentBackend = tf.getBackend();
+        try {
+          await tf.removeBackend(currentBackend);
+          console.log(`🔄 백엔드 ${currentBackend} 제거됨`);
+        } catch (error) {
+          console.warn('⚠️ 백엔드 제거 실패 (계속 진행):', error);
+        }
+        
+        // 백엔드 재설정
+        await tf.setBackend(currentBackend);
+        await tf.ready();
+        console.log(`🔄 백엔드 ${currentBackend} 재설정 완료`);
+      }
+      
+      console.log('✅ TensorFlow.js 전역 상태 정리 완료');
+    } catch (error) {
+      console.warn('⚠️ TensorFlow.js 전역 정리 실패 (계속 진행):', error);
     }
   }
 
@@ -342,6 +396,7 @@ export class TensorFlowAIEngine {
 
   private async initializeFailurePredictionModel(): Promise<void> {
     const spec = this.modelSpecs.get('failure_prediction')!;
+    const timestamp = Date.now();
     
     const model = tf.sequential({
       layers: [
@@ -349,24 +404,24 @@ export class TensorFlowAIEngine {
           inputShape: spec.input_shape, 
           units: 64, 
           activation: 'relu',
-          name: 'failure_hidden1'
+          name: `failure_hidden1_${timestamp}`
         }),
         tf.layers.dropout({ rate: 0.2 }),
         tf.layers.dense({ 
           units: 32, 
           activation: 'relu',
-          name: 'failure_hidden2'
+          name: `failure_hidden2_${timestamp}`
         }),
         tf.layers.dropout({ rate: 0.2 }),
         tf.layers.dense({ 
           units: 16, 
           activation: 'relu',
-          name: 'failure_hidden3'
+          name: `failure_hidden3_${timestamp}`
         }),
         tf.layers.dense({ 
           units: 1, 
           activation: 'sigmoid',
-          name: 'failure_output'
+          name: `failure_output_${timestamp}`
         })
       ]
     });
@@ -382,6 +437,8 @@ export class TensorFlowAIEngine {
   }
 
   private async initializeAnomalyDetectionModel(): Promise<void> {
+    const timestamp = Date.now();
+    
     // 오토인코더 인코더
     const encoder = tf.sequential({
       layers: [
@@ -389,17 +446,17 @@ export class TensorFlowAIEngine {
           inputShape: [20], 
           units: 16, 
           activation: 'relu',
-          name: 'encoder_1'
+          name: `encoder_1_${timestamp}`
         }),
         tf.layers.dense({ 
           units: 8, 
           activation: 'relu',
-          name: 'encoder_2'
+          name: `encoder_2_${timestamp}`
         }),
         tf.layers.dense({ 
           units: 4, 
           activation: 'relu',
-          name: 'bottleneck'
+          name: `bottleneck_${timestamp}`
         })
       ]
     });
@@ -411,17 +468,17 @@ export class TensorFlowAIEngine {
           inputShape: [4], 
           units: 8, 
           activation: 'relu',
-          name: 'decoder_1'
+          name: `decoder_1_${timestamp}`
         }),
         tf.layers.dense({ 
           units: 16, 
           activation: 'relu',
-          name: 'decoder_2'
+          name: `decoder_2_${timestamp}`
         }),
         tf.layers.dense({ 
           units: 20, 
           activation: 'linear',
-          name: 'decoder_output'
+          name: `decoder_output_${timestamp}`
         })
       ]
     });
@@ -441,28 +498,30 @@ export class TensorFlowAIEngine {
   }
 
   private async initializeTimeSeriesModel(): Promise<void> {
+    const timestamp = Date.now();
+    
     const model = tf.sequential({
       layers: [
         tf.layers.lstm({ 
           units: 50, 
           returnSequences: true, 
           inputShape: [10, 1],
-          name: 'lstm_1'
+          name: `lstm_1_${timestamp}`
         }),
         tf.layers.dropout({ rate: 0.2 }),
         tf.layers.lstm({ 
           units: 50, 
           returnSequences: false,
-          name: 'lstm_2'
+          name: `lstm_2_${timestamp}`
         }),
         tf.layers.dropout({ rate: 0.2 }),
         tf.layers.dense({ 
           units: 25,
-          name: 'dense_1'
+          name: `dense_1_${timestamp}`
         }),
         tf.layers.dense({ 
           units: 1,
-          name: 'output'
+          name: `output_${timestamp}`
         })
       ]
     });
