@@ -259,8 +259,9 @@ export async function DELETE(request: NextRequest) {
       case 'clear-reports': {
         // 보고서 히스토리 삭제 (개발 환경에서만)
         if (process.env.NODE_ENV === 'development') {
-          // TODO: 보고서 히스토리 삭제 구현
-          
+          const continuousLearningService = ContinuousLearningService.getInstance();
+          continuousLearningService.clearReportHistory();
+
           return NextResponse.json({
             success: true,
             message: '보고서 히스토리가 삭제되었습니다.'

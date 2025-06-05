@@ -341,6 +341,16 @@ export class ContinuousLearningService {
   }
 
   /**
+   * 보고서 히스토리 초기화
+   */
+  clearReportHistory(): void {
+    this.reportHistory = [];
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🗑️ [ContinuousLearningService] 보고서 히스토리 초기화');
+    }
+  }
+
+  /**
    * 설정 업데이트
    */
   async updateConfig(newConfig: Partial<ContinuousLearningConfig>): Promise<void> {
