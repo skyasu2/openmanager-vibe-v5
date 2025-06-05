@@ -10,10 +10,8 @@
  * - Render Python 서버 연동
  */
 
-import { openai } from '@ai-sdk/openai';
-import { anthropic } from '@ai-sdk/anthropic';
-import { google } from '@ai-sdk/google';
-import { generateText, streamText, generateObject } from 'ai';
+// Vercel AI SDK 의존성 제거
+// 각 LLM은 fetch 기반 직접 호출로 처리
 import { z } from 'zod';
 import { getRedisClient } from '@/lib/redis';
 
@@ -178,42 +176,31 @@ export class RealAIProcessor {
   private async processWithAI(request: AIProcessingRequest, model: string): Promise<AIProcessingResponse> {
     const systemPrompt = this.buildSystemPrompt(request.context);
     const userPrompt = this.buildUserPrompt(request.query, request.context);
+    const prompt = `${systemPrompt}\n\n사용자 질문: ${userPrompt}\n\n다음 형식의 JSON으로 답변하세요: {"intent":"...","confidence":0.9,"summary":"...","details":["..."],"actions":["..."],"urgency":"low"}`;
 
     try {
-      // 구조화된 응답 생성
-      const { object } = await generateObject({
-        model: this.getModelInstance(model),
-        schema: AIResponseSchema,
-        prompt: `${systemPrompt}\n\n사용자 질문: ${userPrompt}`,
-        temperature: request.options?.temperature || 0.7,
-        maxTokens: request.options?.maxTokens || 1000,
-      });
-
-      return {
-        success: true,
-        intent: object.intent,
-        confidence: object.confidence,
-        summary: object.summary,
-        details: object.details,
-        actions: object.actions,
-        urgency: object.urgency,
-        processingTime: 0,
-        model,
-        cached: false
-      };
-
+      const text = await this.callModelAPI(model, prompt, request.options?.temperature || 0.7, request.options?.maxTokens || 1000);
+      try {
+        const object = JSON.parse(text);
+        return {
+          success: true,
+          intent: object.intent,
+          confidence: object.confidence,
+          summary: object.summary,
+          details: object.details,
+          actions: object.actions,
+          urgency: object.urgency,
+          processingTime: 0,
+          model,
+          cached: false,
+        };
+      } catch (parseError) {
+        console.warn('⚠️ JSON 파싱 실패, 텍스트 응답으로 처리:', parseError);
+        return this.parseTextResponse(text, model);
+      }
     } catch (error) {
-      console.warn(`⚠️ ${model} 처리 실패, 텍스트 생성으로 대체:`, error);
-      
-      // 구조화된 응답 실패 시 일반 텍스트 생성
-      const { text } = await generateText({
-        model: this.getModelInstance(model),
-        prompt: `${systemPrompt}\n\n사용자 질문: ${userPrompt}\n\n한국어로 답변해주세요.`,
-        temperature: request.options?.temperature || 0.7,
-        maxTokens: request.options?.maxTokens || 800,
-      });
-
-      return this.parseTextResponse(text, model);
+      console.warn(`⚠️ ${model} 호출 실패, 로컬 파싱으로 대체:`, error);
+      return this.createFallbackResponse(request, 0, error);
     }
   }
 
@@ -296,14 +283,72 @@ export class RealAIProcessor {
     return 'local-analyzer';
   }
 
-  private getModelInstance(model: string): any {
+  // 각 모델별 API 호출 구현
+  private async callModelAPI(model: string, prompt: string, temperature: number, maxTokens: number): Promise<string> {
     switch (model) {
-      case 'gpt-3.5-turbo':
-        return openai('gpt-3.5-turbo');
-      case 'claude-3-haiku':
-        return anthropic('claude-3-haiku-20250630');
-      case 'gemini-1.5-flash':
-        return google('gemini-1.5-flash');
+      case 'gpt-3.5-turbo': {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: 'gpt-3.5-turbo',
+            messages: [
+              { role: 'user', content: prompt }
+            ],
+            temperature,
+            max_tokens: maxTokens
+          }),
+          signal: AbortSignal.timeout(15000)
+        });
+        if (!response.ok) {
+          throw new Error(`OpenAI API 오류: ${response.status}`);
+        }
+        const data = await response.json();
+        return data.choices[0].message.content.trim();
+      }
+      case 'claude-3-haiku': {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.ANTHROPIC_API_KEY || '',
+            'anthropic-version': '2023-06-01'
+          },
+          body: JSON.stringify({
+            model: 'claude-3-haiku-20240307',
+            max_tokens: maxTokens,
+            temperature,
+            messages: [
+              { role: 'user', content: prompt }
+            ]
+          }),
+          signal: AbortSignal.timeout(15000)
+        });
+        if (!response.ok) {
+          throw new Error(`Anthropic API 오류: ${response.status}`);
+        }
+        const data = await response.json();
+        return data.content[0].text.trim();
+      }
+      case 'gemini-1.5-flash': {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GOOGLE_GENERATIVE_AI_API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature, maxOutputTokens: maxTokens }
+          }),
+          signal: AbortSignal.timeout(15000)
+        });
+        if (!response.ok) {
+          throw new Error(`Google API 오류: ${response.status}`);
+        }
+        const data = await response.json();
+        return data.candidates[0].content.parts[0].text.trim();
+      }
       default:
         throw new Error(`지원하지 않는 모델: ${model}`);
     }
