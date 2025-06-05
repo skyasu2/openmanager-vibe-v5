@@ -487,7 +487,7 @@ class ABTestDecisionEngine {
 ### A/B 테스트 설정
 
 ```typescript
-// config/ab-tests.ts
+// src/modules/ai-agent/testing/ABTestManager.ts
 export const AB_TESTS: ABTestConfig[] = [
   {
     testId: 'ai_algorithm_v2',
@@ -522,7 +522,7 @@ export const AB_TESTS: ABTestConfig[] = [
 ### 실제 적용 코드
 
 ```typescript
-// src/services/ai/unified-ai-system.ts
+// src/core/ai/unified-ai-system.ts
 class UnifiedAISystem {
   async processQuery(query: string, context: QueryContext): Promise<AIResponse> {
     // A/B 테스트 변형 확인
@@ -563,7 +563,7 @@ class UnifiedAISystem {
 ### 결과 분석 대시보드
 
 ```typescript
-// src/app/admin/ab-tests/page.tsx
+// src/components/ai/AIAgentAdminDashboard.tsx
 export default function ABTestDashboard() {
   const [testResults, setTestResults] = useState<ABTestResult[]>([]);
   
