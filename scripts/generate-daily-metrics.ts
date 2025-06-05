@@ -354,11 +354,11 @@ const main = async (): Promise<void> => {
     };
 
     const counts = {
-      web: getArgValue('web') ?? Number(process.env.WEB_COUNT) || undefined,
-      api: getArgValue('api') ?? Number(process.env.API_COUNT) || undefined,
-      db: getArgValue('db') ?? Number(process.env.DB_COUNT) || undefined,
-      cache: getArgValue('cache') ?? Number(process.env.CACHE_COUNT) || undefined,
-      worker: getArgValue('worker') ?? Number(process.env.WORKER_COUNT) || undefined
+      web: (getArgValue('web') ?? Number(process.env.WEB_COUNT)) || undefined,
+      api: (getArgValue('api') ?? Number(process.env.API_COUNT)) || undefined,
+      db: (getArgValue('db') ?? Number(process.env.DB_COUNT)) || undefined,
+      cache: (getArgValue('cache') ?? Number(process.env.CACHE_COUNT)) || undefined,
+      worker: (getArgValue('worker') ?? Number(process.env.WORKER_COUNT)) || undefined
     };
 
     const servers = createServerConfigs(counts);
