@@ -397,8 +397,8 @@ chore: 빌드 프로세스 또는 보조 도구 변경
 - [TailwindCSS 가이드](https://tailwindcss.com/docs)
 - [Prometheus 문서](https://prometheus.io/docs)
 
-### 🎓 학습 자료
-- [React 19 새로운 기능](https://react.dev/blog/2024/04/25/react-19)
+-### 🎓 학습 자료
+- [React 19 새로운 기능](https://react.dev/blog/2025/06/30/react-19)
 - [MCP 프로토콜 가이드](https://modelcontextprotocol.io)
 - [AI 에이전트 개발 패턴](https://docs.anthropic.com/claude/docs)
 
