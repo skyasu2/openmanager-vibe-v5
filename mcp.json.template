@@ -7,14 +7,6 @@
         "NODE_ENV": "development"
       }
     },
-    "memory": {
-      "command": "npx", 
-      "args": ["@modelcontextprotocol/server-memory"]
-    },
-    "git": {
-      "command": "npx",
-      "args": ["git-mob-mcp-server"]
-    },
     "github": {
       "command": "npx",
       "args": ["@modelcontextprotocol/server-github"],
