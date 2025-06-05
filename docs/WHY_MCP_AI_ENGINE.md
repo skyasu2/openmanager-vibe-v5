@@ -10,6 +10,10 @@
 
 OpenManager Vibe v5의 핵심은 **MCP(Model Context Protocol) 기반의 순수 AI 엔진**입니다. 이는 외부 LLM에 의존하지 않고, 문서와 컨텍스트 시스템만으로 지능적인 추론을 수행하는 혁신적인 접근입니다.
 
+> ⚠️ **중요 구분**: 
+> - **Cursor AI용 MCP**: 개발도구에서 사용하는 filesystem, memory, git 서버
+> - **OpenManager AI 엔진용 MCP**: 애플리케이션 내부에서 컨텍스트 관리에 사용
+
 ### **핵심 철학**
 > "복잡한 언어 모델보다는 정확하고 예측 가능한 로직이 비즈니스에 더 중요하다"
 

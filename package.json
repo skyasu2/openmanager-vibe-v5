@@ -118,6 +118,7 @@
     "@influxdata/influxdb-client": "^1.35.0",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "@modelcontextprotocol/server-filesystem": "^2025.3.28",
+    "@modelcontextprotocol/server-github": "^2025.4.8",
     "@modelcontextprotocol/server-postgres": "^0.6.2",
     "@next/bundle-analyzer": "^15.4.0-canary.51",
     "@radix-ui/react-slot": "^1.2.3",

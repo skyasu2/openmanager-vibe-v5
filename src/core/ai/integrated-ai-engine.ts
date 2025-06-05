@@ -5,7 +5,7 @@
  * - TensorFlow.js 기반 실시간 추론
  * - 다중 AI 모델 관리
  * - 컨텍스트 인식 분석
- * - 베타: 외부 LLM API 연동 지원 예정
+ * - 차후 개발: 외부 LLM API 연동 예정
  */
 
 import { IAIAnalysisService, AIAnalysisRequest, AIAnalysisResult } from '@/interfaces/services';

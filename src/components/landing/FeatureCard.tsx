@@ -199,9 +199,9 @@ export default function FeatureCards() {
   const features = [
     {
       title: "🧠 MCP AI 에이전트",
-      description: "기본 AI 추론으로 서버 분석을 수행하며, 베타 버전에서 고급 LLM 연동으로 성능 향상 가능합니다.",
+      description: "로컬 AI 모델 기반으로 서버 분석을 수행하며, 차후 개발 버전에서 고급 LLM 연동으로 성능 향상이 가능합니다.",
       currentFeatures: "MCP 프로토콜 기반 로컬 AI 추론, 하이브리드 Python+TypeScript 엔진, 실시간 의도 분류",
-      futureFeatures: "베타: LLM API 연동, 예측 분석 정확도 향상, 자동 최적화 제안, 컨텍스트 학습 시스템",
+      futureFeatures: "차후 개발: LLM API 연동, 예측 분석 정확도 향상, 자동 최적화 제안, 컨텍스트 학습 시스템",
       techStack: "🔵 오픈소스: MCP SDK • Python 3.11 • FastAPI • NumPy/Pandas • Scikit-learn",
       customStack: "🟢 자체 개발: AI 하이브리드 엔진 • PythonWarmupService • 의도 분류 모델",
       action: "AI 에이전트 체험",

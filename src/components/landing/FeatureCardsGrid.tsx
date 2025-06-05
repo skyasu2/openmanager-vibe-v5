@@ -13,22 +13,22 @@ const cardData = [
   {
     id: 'mcp-ai-engine',
     title: 'MCP 기반 AI 엔진',
-    description: 'TensorFlow.js와 Scikit-learn 기반 로컬 AI 추론. 기본적으로 LLM 없이 동작하며, 향후 API 연동으로 성능 향상 가능.',
+    description: 'TensorFlow.js와 Scikit-learn 기반 로컬 AI 추론. 기본적으로 LLM 없이 동작하며, MCP를 통한 향후 확장으로 더 정교한 분석 가능.',
     icon: Bot,
     gradient: 'from-blue-500 via-pink-500 to-cyan-400',
     detailedContent: {
-      overview: '애플리케이션 내부에서 동작하는 AI 엔진으로, MCP 프로토콜을 통해 컨텍스트와 도구를 관리합니다. 기본적으로 로컬 AI 모델만으로 모든 핵심 기능이 동작하며, 차후 개발 과정에서 LLM API 연동을 통한 성능 향상이 가능합니다.',
+      overview: '애플리케이션 내부에서 동작하는 AI 엔진으로, MCP 프로토콜을 통해 컨텍스트와 도구를 관리합니다. 기본적으로 로컬 AI 모델만으로 모든 핵심 기능이 동작하며, 향후 확장으로 더 정교한 분석이 가능합니다.',
       features: [
         'TensorFlow.js 3개 모델: 장애예측, 이상탐지, 시계열분석 (로컬 추론)',
         'Python Scikit-learn 연동을 통한 통계적 분석 (독립 동작)',
         'MCP 프로토콜을 통한 컨텍스트 및 도구 체인 관리',
-        '차후 개발: OpenAI/Claude/Gemini API 연동으로 성능 향상 가능'
+        '향후 확장: MCP를 통한 LLM 연동으로 성능 향상 가능'
       ],
       technologies: [
         'TensorFlow.js, Python Scikit-learn',
         'MCP SDK (애플리케이션용)',
         'FastAPI, Upstash Redis',
-        'Future: OpenAI/Anthropic/Google APIs (베타 기능)'
+        'Future: Local LLM/API via MCP'
       ]
     },
     requiresAI: true,
@@ -243,15 +243,14 @@ export default function FeatureCardsGrid() {
               {/* 바이브 코딩 카드 골드 그라데이션 애니메이션 */}
               {card.isVibeCard && (
                 <motion.div
-                  className="absolute inset-0 rounded-2xl"
+                  className="absolute inset-0 bg-gradient-to-br from-amber-400/20 via-yellow-500/20 to-orange-500/20 rounded-2xl"
                   animate={{
                     background: [
-                      'linear-gradient(135deg, rgba(251,191,36,0.3) 0%, rgba(249,115,22,0.3) 50%, rgba(234,179,8,0.3) 100%)',
-                      'linear-gradient(135deg, rgba(234,179,8,0.3) 0%, rgba(251,191,36,0.3) 50%, rgba(249,115,22,0.3) 100%)',
-                      'linear-gradient(135deg, rgba(249,115,22,0.3) 0%, rgba(234,179,8,0.3) 50%, rgba(251,191,36,0.3) 100%)',
-                      'linear-gradient(135deg, rgba(251,191,36,0.3) 0%, rgba(249,115,22,0.3) 50%, rgba(234,179,8,0.3) 100%)'
-                    ],
-                    opacity: [0.3, 0.6, 0.3]
+                      'linear-gradient(135deg, rgba(251,191,36,0.2) 0%, rgba(245,158,11,0.2) 50%, rgba(249,115,22,0.2) 100%)',
+                      'linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(249,115,22,0.2) 50%, rgba(251,191,36,0.2) 100%)',
+                      'linear-gradient(135deg, rgba(249,115,22,0.2) 0%, rgba(251,191,36,0.2) 50%, rgba(245,158,11,0.2) 100%)',
+                      'linear-gradient(135deg, rgba(251,191,36,0.2) 0%, rgba(245,158,11,0.2) 50%, rgba(249,115,22,0.2) 100%)'
+                    ]
                   }}
                   transition={{
                     duration: 3,
@@ -260,7 +259,7 @@ export default function FeatureCardsGrid() {
                   }}
                 />
               )}
-              
+
               {/* 아이콘 */}
               <div className={`w-12 h-12 bg-gradient-to-br ${card.gradient} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 relative z-10 ${
                 card.isSpecial ? 'shadow-lg shadow-amber-500/25' : ''
@@ -345,45 +344,17 @@ export default function FeatureCardsGrid() {
               }`}
             >
               {/* 헤더 */}
-              <div className="p-4 border-b border-gray-700/50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 bg-gradient-to-br ${selectedCardData.gradient} rounded-lg flex items-center justify-center ${
+              <div className="sticky top-0 z-10 bg-gray-900/90 backdrop-blur-sm border-b border-gray-700/50 p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className={`w-12 h-12 bg-gradient-to-br ${selectedCardData.gradient} rounded-xl flex items-center justify-center ${
                       selectedCardData.isSpecial ? 'shadow-lg shadow-amber-500/25' : ''
                     } ${
                       selectedCardData.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
                     }`}>
-                      {selectedCardData.isAICard ? (
-                        <motion.div
-                          animate={{
-                            rotate: [0, 360],
-                            scale: [1, 1.1, 1]
-                          }}
-                          transition={{
-                            rotate: { duration: 8, repeat: Infinity, ease: "linear" },
-                            scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-                          }}
-                        >
-                          <selectedCardData.icon className="w-5 h-5 text-white" />
-                        </motion.div>
-                      ) : selectedCardData.isVibeCard ? (
-                        <motion.div
-                          animate={{
-                            scale: [1, 1.2, 1],
-                            rotate: [0, 5, -5, 0]
-                          }}
-                          transition={{
-                            duration: 2.5,
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                          }}
-                        >
-                          <selectedCardData.icon className="w-5 h-5 text-white" />
-                        </motion.div>
-                      ) : (
-                        <selectedCardData.icon className="w-5 h-5 text-white" />
-                      )}
+                      <selectedCardData.icon className="w-6 h-6 text-white" />
                     </div>
+
                     <div>
                       <h2 className="text-lg font-bold text-white">
                         {renderTextWithAIGradient(selectedCardData.title)}
@@ -403,7 +374,7 @@ export default function FeatureCardsGrid() {
               </div>
 
               {/* 상세 내용 */}
-              <div className="p-4 space-y-4">
+              <div className="p-6 space-y-6">
                 {/* 개요 */}
                 <div>
                   <h3 className="text-white font-medium mb-2 text-base">📖 개요</h3>
@@ -467,4 +438,4 @@ export default function FeatureCardsGrid() {
       </AnimatePresence>
     </>
   );
-} 
+}

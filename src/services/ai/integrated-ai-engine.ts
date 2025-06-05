@@ -6,7 +6,7 @@
  * ✅ 실시간 장애 예측
  * ✅ 자동 보고서 생성
  * ✅ Vercel Edge Runtime 최적화
- * ✅ 베타: 외부 LLM 연동으로 성능 향상 가능
+ * ✅ 차후 개발: 외부 LLM 연동으로 성능 향상 예정
  */
 
 import { realMCPClient } from '../mcp/real-mcp-client';
@@ -74,9 +74,62 @@ export class IntegratedAIEngine {
   private initialized = false;
   private lastAnalysisCache: Map<string, any> = new Map();
   private activeSessions: Set<string> = new Set();
+  private renderPingInterval?: NodeJS.Timeout;
+  private renderStatus: 'active' | 'sleeping' | 'error' = 'active';
 
   constructor() {
     // 컴포넌트들은 이미 초기화됨
+    this.startRenderManagement();
+  }
+
+  /**
+   * 🔄 Render 자동 관리 시작
+   */
+  private startRenderManagement(): void {
+    // 환경변수 확인
+    const renderUrl = process.env.FASTAPI_URL;
+    if (!renderUrl?.includes('onrender.com')) {
+      console.log('⚠️ Render URL이 아닙니다. 자동 관리 건너뛰기');
+      return;
+    }
+
+    console.log('🔄 Render 자동 관리 시작...');
+
+    // 5분마다 ping 전송
+    this.renderPingInterval = setInterval(async () => {
+      try {
+        const response = await fetch(renderUrl + '/health', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (response.ok) {
+          this.renderStatus = 'active';
+          console.log('✅ Render 서비스 정상 (ping 성공)');
+        } else {
+          this.renderStatus = 'sleeping';
+          console.log('⚠️ Render 서비스 응답 없음');
+        }
+      } catch (error) {
+        this.renderStatus = 'error';
+        console.log('❌ Render ping 실패:', error instanceof Error ? error.message : '알 수 없는 오류');
+      }
+    }, 5 * 60 * 1000); // 5분
+
+    // 프로세스 종료 시 정리
+    process.on('beforeExit', () => {
+      if (this.renderPingInterval) {
+        clearInterval(this.renderPingInterval);
+        console.log('🔄 Render 자동 관리 중지');
+      }
+    });
+  }
+
+  /**
+   * 🏥 Render 상태 확인
+   */
+  getRenderStatus(): 'active' | 'sleeping' | 'error' {
+    return this.renderStatus;
   }
 
   async initialize(): Promise<void> {
@@ -441,17 +494,130 @@ export class IntegratedAIEngine {
     request: AIQueryRequest, 
     response: AIQueryResponse
   ): Promise<void> {
-    console.log('🤖 일반 질의 모드 실행');
+    console.log('🤖 일반 질의 모드 실행 (Enhanced MCP 활용)');
     
     try {
-      // MCP로 관련 문서 검색
+      // Enhanced MCP 문서 검색
       const searchResults = await realMCPClient.searchDocuments(request.query);
       response.mcp_results = searchResults;
       response.processing_stats.components_used.push('mcp_client');
 
+      // 키워드 기반 문서 분석
+      const keywords = this.extractQueryKeywords(request.query);
+      console.log(`🔍 추출된 키워드: ${keywords.join(', ')}`);
+
+      // MCP filesystem을 통한 상세 문서 검색
+      if (keywords.length > 0) {
+        const detailedResults = await this.searchDocumentsByKeywords(keywords);
+        if (detailedResults.length > 0) {
+          response.mcp_results.enhanced_search = detailedResults;
+          response.processing_stats.data_sources.push('mcp_filesystem');
+        }
+      }
+
+      // 컨텍스트 기반 답변 강화
+      if (response.mcp_results.results?.length > 0) {
+        response.confidence = Math.min(0.9, response.confidence + 0.2);
+      }
+
     } catch (error: any) {
       console.error('일반 질의 처리 실패:', error);
     }
+  }
+
+  /**
+   * 🔍 쿼리에서 키워드 추출 (한국어 + 영어)
+   */
+  private extractQueryKeywords(query: string): string[] {
+    const keywords = new Set<string>();
+    
+    // 한국어 키워드 (2글자 이상)
+    const koreanWords = query.match(/[가-힣]{2,}/g) || [];
+    koreanWords.forEach(word => {
+      if (word.length >= 2) {
+        keywords.add(word);
+      }
+    });
+
+    // 영어 키워드 (3글자 이상)
+    const englishWords = query.match(/\b[a-zA-Z]{3,}\b/g) || [];
+    englishWords.forEach(word => {
+      if (word.length >= 3 && !this.isCommonWord(word)) {
+        keywords.add(word.toLowerCase());
+      }
+    });
+
+    return Array.from(keywords).slice(0, 10); // 상위 10개만
+  }
+
+  /**
+   * 📚 키워드 기반 문서 검색
+   */
+  private async searchDocumentsByKeywords(keywords: string[]): Promise<any[]> {
+    const results: any[] = [];
+    
+    try {
+      // docs 폴더 검색
+      const docsFiles = await realMCPClient.listDirectory('docs');
+      const relevantFiles = docsFiles.filter(file => 
+        file.endsWith('.md') && keywords.some(keyword => 
+          file.toLowerCase().includes(keyword.toLowerCase())
+        )
+      );
+
+      for (const file of relevantFiles.slice(0, 3)) { // 상위 3개만
+        try {
+          const content = await realMCPClient.readFile(file);
+          if (content) {
+            results.push({
+              path: file,
+              relevanceScore: this.calculateKeywordRelevance(content, keywords),
+              summary: content.substring(0, 200) + '...',
+              keywords: keywords.filter(k => content.toLowerCase().includes(k.toLowerCase()))
+            });
+          }
+        } catch (error) {
+          console.warn(`⚠️ 파일 읽기 실패: ${file}`, error);
+        }
+      }
+
+      // 관련도 순으로 정렬
+      results.sort((a, b) => b.relevanceScore - a.relevanceScore);
+      
+    } catch (error) {
+      console.error('❌ 키워드 기반 문서 검색 실패:', error);
+    }
+
+    return results;
+  }
+
+  /**
+   * ⭐ 키워드 관련도 계산
+   */
+  private calculateKeywordRelevance(content: string, keywords: string[]): number {
+    let score = 0;
+    const contentLower = content.toLowerCase();
+    
+    keywords.forEach(keyword => {
+      const count = (contentLower.match(new RegExp(keyword.toLowerCase(), 'g')) || []).length;
+      score += count * 1.5; // 키워드 빈도 점수
+      
+      // 제목이나 헤딩에 있으면 가중치
+      if (contentLower.includes(`# ${keyword.toLowerCase()}`)) score += 5;
+      if (contentLower.includes(`## ${keyword.toLowerCase()}`)) score += 3;
+    });
+
+    return score;
+  }
+
+  /**
+   * 🚫 일반적인 단어 필터링
+   */
+  private isCommonWord(word: string): boolean {
+    const commonWords = new Set([
+      'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'her', 'was', 'one', 'our', 'had', 'words', 'from', 'they', 'this', 'been', 'have', 'with', 'that', 'will', 'what', 'your', 'how', 'said', 'each', 'she', 'which', 'their', 'time', 'would', 'there', 'way', 'could', 'than', 'now', 'find', 'these', 'more', 'long', 'make', 'many', 'over', 'did', 'just', 'very', 'where', 'come', 'made', 'may', 'part'
+    ]);
+    return commonWords.has(word.toLowerCase());
   }
 
   private async generateComprehensiveAnswer(
@@ -822,6 +988,11 @@ export class IntegratedAIEngine {
 
   dispose(): void {
     console.log('🗑️ 통합 AI 엔진 정리 중...');
+    
+    // Render 관리 정리
+    if (this.renderPingInterval) {
+      clearInterval(this.renderPingInterval);
+    }
     
     this.lastAnalysisCache.clear();
     this.activeSessions.clear();

@@ -5,7 +5,7 @@
  * - 기본: LLM 없는 실시간 AI 추론
  * - MCP(Model Context Protocol) 기반 의도 분류
  * - 도메인 특화 서버 모니터링 AI
- * - 베타: LLM 연동으로 성능 향상 가능
+ * - 차후 개발: LLM 연동으로 성능 향상 예정
  */
 
 import { MCPProcessor } from '../../mcp';

@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
       
       return NextResponse.json({
         status: 'healthy',
-        message: '통합 AI 엔진이 정상 동작 중입니다',
+        message: '통합 AI 엔진이 정상 동작 중입니다 (LLM 없이 독립 동작)',
         timestamp: new Date().toISOString(),
         engine_info: status,
         standalone: true,
