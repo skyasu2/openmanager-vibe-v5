@@ -32,7 +32,7 @@ export const IntegrationConfigSchema = z.object({
     enableAggregation: z.boolean().default(true)
   }),
   aiAgent: z.object({
-    enablePythonAnalysis: z.boolean().default(true),
+    enablePythonAnalysis: z.boolean().default(false),
     enableMCP: z.boolean().default(true),
     enableCaching: z.boolean().default(true),
     maxConcurrentRequests: z.number().default(5)

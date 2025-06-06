@@ -10,7 +10,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { unifiedAISystem } from '../../../../core/ai/unified-ai-system';
 import { keepAliveSystem } from '../../../../services/ai/keep-alive-system';
-import { fastApiClient } from '../../../../services/python-bridge/fastapi-client';
+
+const fastApiClient = {
+  async getConnectionStatus() {
+    return { isConnected: false, healthStatus: 'removed', lastHealthCheck: Date.now() };
+  },
+  async checkHealth() {
+    return { isConnected: false, healthStatus: 'removed', lastHealthCheck: Date.now() };
+  },
+  async warmup() {
+    return false;
+  }
+};
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
