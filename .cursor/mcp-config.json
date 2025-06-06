@@ -10,37 +10,43 @@
       "description": "파일 시스템 조작 도구",
       "status": "active"
     },
-    "github": {
-      "command": "node", 
-      "args": [
-        "-e",
-        "require('@smithery/cli').run(['run', '@smithery-ai/github', '--config', '{\"githubPersonalAccessToken\":\"YOUR_GITHUB_TOKEN\"}'])"
-      ],
-      "description": "GitHub 저장소 관리 및 이슈 트래킹",
-      "status": "pending",
-      "features": [
-        "저장소 정보 조회",
-        "이슈 및 PR 관리", 
-        "커밋 히스토리 분석",
-        "브랜치 관리",
-        "GitHub Actions 통합"
-      ]
-    },
     "git": {
       "command": "npx",
-      "args": [
-        "@modelcontextprotocol/server-git",
-        "--repository",
-        "."
-      ],
+      "args": ["-y", "@smithery/git-mcp"],
       "description": "Git 브랜치 관리 및 커밋 자동화",
-      "status": "planned",
+      "status": "active",
       "features": [
         "브랜치 관리 자동화",
         "커밋 메시지 자동 생성",
         "PR 생성 및 관리",
         "충돌 해결 지원",
         "코드 리뷰 자동화"
+      ]
+    },
+    "browser-tools": {
+      "command": "npx",
+      "args": ["-y", "@smithery/browser-tools-mcp"],
+      "description": "웹 브라우저 자동화 및 스크래핑 도구",
+      "status": "active",
+      "features": [
+        "웹 페이지 자동 탐색",
+        "데이터 스크래핑",
+        "스크린샷 캡처",
+        "폼 자동 입력",
+        "웹 테스팅 자동화"
+      ]
+    },
+    "apidog": {
+      "command": "npx",
+      "args": ["-y", "@smithery/apidog-mcp"],
+      "description": "API 테스팅 및 문서화 도구",
+      "status": "active",
+      "features": [
+        "API 엔드포인트 자동 테스트",
+        "API 문서 자동 생성",
+        "HTTP 요청/응답 분석",
+        "API 성능 모니터링",
+        "OpenAPI 스펙 생성"
       ]
     },
     "postgres": {
