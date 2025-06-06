@@ -1,14 +1,15 @@
 # Render Configuration
 services:
   - type: web
-    name: openmanager-vibe-v5
+    name: openmanager-mcp-server
     runtime: node
     plan: starter
     region: oregon
     branch: main
-    buildCommand: npm install && npm install @modelcontextprotocol/server-filesystem @smithery/cli canvas && NODE_ENV=production ESLINT_NO_DEV_ERRORS=true npx next build
+    rootDir: mcp-server
+    buildCommand: npm ci && npm run build
     startCommand: npm start
-    healthCheckPath: /api/health
+    healthCheckPath: /health
     autoDeploy: false
     envVars:
       - key: NODE_ENV

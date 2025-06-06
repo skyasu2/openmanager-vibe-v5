@@ -10,6 +10,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import fs from 'fs';
 import path from 'path';
+import http from 'http';
 
 class OpenManagerMCPServer {
   constructor() {
@@ -156,9 +157,76 @@ class OpenManagerMCPServer {
   }
 
   async run() {
+    // HTTP 건강 체크 서버 시작 (Render 배포용)
+    this.startHealthCheckServer();
+
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
     console.error('OpenManager MCP Server running on stdio');
+  }
+
+  startHealthCheckServer() {
+    const PORT = process.env.PORT || 3002;
+
+    const healthServer = http.createServer((req, res) => {
+      // CORS 헤더 설정
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      res.setHeader('Content-Type', 'application/json');
+
+      if (req.method === 'OPTIONS') {
+        res.writeHead(200);
+        res.end();
+        return;
+      }
+
+      if (req.url === '/health' && req.method === 'GET') {
+        const healthStatus = {
+          status: 'healthy',
+          timestamp: new Date().toISOString(),
+          uptime: process.uptime(),
+          memory: process.memoryUsage(),
+          server: 'OpenManager MCP Server',
+          version: '0.1.0',
+          environment: process.env.NODE_ENV || 'development',
+        };
+
+        res.writeHead(200);
+        res.end(JSON.stringify(healthStatus, null, 2));
+      } else if (req.url === '/ping' && req.method === 'GET') {
+        res.writeHead(200);
+        res.end(
+          JSON.stringify({
+            pong: true,
+            timestamp: new Date().toISOString(),
+            message: 'MCP Server is alive!',
+          })
+        );
+      } else {
+        res.writeHead(404);
+        res.end(
+          JSON.stringify({
+            error: 'Not Found',
+            message: 'MCP Server endpoint not found',
+            availableEndpoints: ['/health', '/ping'],
+          })
+        );
+      }
+    });
+
+    healthServer.listen(PORT, '0.0.0.0', () => {
+      console.error(`🏥 MCP Health Check Server running on port ${PORT}`);
+      console.error(`📡 Health check: http://localhost:${PORT}/health`);
+    });
+
+    // 우아한 종료
+    process.on('SIGTERM', () => {
+      console.error('🛑 MCP 서버 종료 신호 받음');
+      healthServer.close(() => {
+        console.error('✅ Health Check 서버 종료 완료');
+      });
+    });
   }
 }
 

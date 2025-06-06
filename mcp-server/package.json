@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "build": "echo 'MCP Server - Build completed successfully!' && node --check server.js",
+    "dev": "node --watch server.js",
+    "health": "node health-check.js"
   },
   "dependencies": {
     "@modelcontextprotocol/server-filesystem": "^2025.3.28",
