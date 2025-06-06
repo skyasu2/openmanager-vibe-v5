@@ -11,6 +11,11 @@ import { env, envLog, shouldEnableDebugLogging } from '@/config/environment';
 import { spawn, ChildProcess } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import {
+  detectEnvironment,
+  checkPaths,
+  getMCPConfig,
+} from '../../utils/environment';
 
 // MCP SDK는 아직 설치되지 않았을 수 있으므로 폴백 구현
 interface MCPClient {
@@ -29,7 +34,7 @@ interface MCPClient {
   >;
 }
 
-interface MCPServerConfig {
+export interface MCPServerConfig {
   name: string;
   command: string;
   args: string[];
@@ -54,41 +59,36 @@ export class RealMCPClient {
   }
 
   private initializeServers(): void {
-    // 환경 감지
-    const isRender =
-      process.env.RENDER === 'true' || process.env.NODE_ENV === 'production';
-    const isWindows = process.platform === 'win32';
-    const npxCommand = isWindows ? 'npx.cmd' : 'npx';
+    // 환경 감지 유틸리티 사용
+    const env = detectEnvironment();
+    const mcpConfig = getMCPConfig();
 
-    // Render 환경 경로 설정
-    const projectRoot = isRender ? '/opt/render/project' : '.';
-    const srcPath = isRender
-      ? '/opt/render/project/src'
-      : './src/modules/ai-agent/context';
-    const docsPath = isRender ? '/opt/render/project/docs' : './docs';
+    console.log(`🌍 환경: ${env.name.toUpperCase()} (${env.platform})`);
+    console.log(`📂 프로젝트 루트: ${env.paths.actual}`);
 
-    console.log(
-      `🌍 환경: ${isRender ? 'Render' : 'Local'} ${isWindows ? '(Windows)' : '(Unix)'}`
-    );
-    console.log(`📂 프로젝트 루트: ${projectRoot}`);
+    // 경로 존재 여부 확인
+    checkPaths();
+
+    const npxCommand = env.platform === 'win32' ? 'npx.cmd' : 'npx';
 
     // 🗂️ filesystem 서버 (파일 시스템 조작)
     this.servers.set('filesystem', {
       name: 'filesystem',
       command: npxCommand,
-      args: ['@modelcontextprotocol/server-filesystem', srcPath, docsPath],
+      args: [
+        '@modelcontextprotocol/server-filesystem',
+        env.paths.src,
+        env.paths.docs,
+      ],
       env: {
-        NODE_OPTIONS: isRender
-          ? '--max-old-space-size=512'
-          : '--max-old-space-size=1024',
-        PROJECT_ROOT: projectRoot,
+        NODE_OPTIONS: env.limits.memory,
+        PROJECT_ROOT: env.paths.root,
       },
-      enabled: true,
+      enabled: mcpConfig.filesystem.enabled,
     });
 
-    // 🐙 GitHub 서버 (저장소 관리) - Render에서는 환경변수 확인
-    const githubToken =
-      process.env.GITHUB_TOKEN || process.env.GITHUB_PERSONAL_ACCESS_TOKEN;
+    // 🐙 GitHub 서버 (저장소 관리)
+    const githubToken = mcpConfig.github.token;
     this.servers.set('github', {
       name: 'github',
       command: npxCommand,
@@ -101,15 +101,15 @@ export class RealMCPClient {
         GITHUB_TOKEN: githubToken || 'demo-token',
         NODE_OPTIONS: '--max-old-space-size=256',
       },
-      enabled: !!githubToken,
+      enabled: mcpConfig.github.enabled,
     });
 
     console.log(
-      `🔧 MCP 서버 초기화 완료 (${isRender ? 'Render' : 'Local'} - ${npxCommand})`
+      `🔧 MCP 서버 초기화 완료 (${env.name.toUpperCase()} - ${npxCommand})`
     );
     console.log('📋 사용 가능한 서버:', Array.from(this.servers.keys()));
 
-    if (isRender) {
+    if (env.isRender) {
       console.log('🚀 Render 환경 감지 - 프로덕션 최적화 적용');
     }
   }

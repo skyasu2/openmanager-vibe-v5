@@ -6,8 +6,7 @@ services:
     plan: starter
     region: oregon
     branch: main
-    rootDir: .
-    buildCommand: npm ci && npm run build
+    buildCommand: npm ci && npm install @modelcontextprotocol/server-filesystem @smithery/cli canvas && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
     autoDeploy: false
