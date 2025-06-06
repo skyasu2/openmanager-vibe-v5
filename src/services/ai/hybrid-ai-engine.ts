@@ -695,13 +695,44 @@ export class HybridAIEngine {
   }
 
   private async runTensorFlowAnalysis(smartQuery: SmartQuery, docs: DocumentContext[]): Promise<any> {
-    // TensorFlow.js 분석 로직 (기존 코드 재사용)
-    return { prediction: 'tensorflow analysis result' };
+    try {
+      const mockMetrics = this.generateMockMetrics();
+      const result = await this.tensorflowEngine.analyzeMetricsWithAI({
+        cpu: mockMetrics,
+        memory: mockMetrics,
+        disk: mockMetrics
+      });
+      return result;
+    } catch (error) {
+      console.warn('⚠️ TensorFlow.js 분석 실패:', error);
+      return { error: error instanceof Error ? error.message : '분석 실패' };
+    }
+  }
+
+  private generateMockMetrics(): number[] {
+    return Array.from({ length: 10 }, () => Math.random() * 100);
   }
 
   private async executeMCPActions(smartQuery: SmartQuery): Promise<string[]> {
-    // MCP 액션 실행 (기존 코드 재사용)
-    return ['mcp action executed'];
+    const actions: string[] = [];
+
+    try {
+      if (smartQuery.mcpActions.includes('search_docs')) {
+        const result = await this.mcpClient.searchDocuments(smartQuery.originalQuery);
+        actions.push(`문서 검색 완료: ${result.results.length}개 결과`);
+      }
+
+      if (smartQuery.mcpActions.includes('check_system')) {
+        await this.mcpClient.getServerStatus();
+        actions.push('시스템 상태 확인 완료');
+      }
+
+    } catch (error) {
+      console.warn('⚠️ MCP 액션 실행 실패:', error);
+      actions.push('일부 액션 실행 실패');
+    }
+
+    return actions;
   }
 
   private generateDocumentSummary(doc: DocumentContext, keywords: string[]): string {
