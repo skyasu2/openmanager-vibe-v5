@@ -1,23 +1,20 @@
 {
   "mcpServers": {
     "filesystem": {
-      "command": "npx",
+      "command": "node",
       "args": [
-        "@modelcontextprotocol/server-filesystem",
+        "-e", 
+        "require('@modelcontextprotocol/server-filesystem').run()",
         "D:/cursor/openmanager-vibe-v5"
       ],
       "description": "파일 시스템 조작 도구",
       "status": "active"
     },
     "github": {
-      "command": "npx", 
+      "command": "node", 
       "args": [
-        "-y", 
-        "@smithery/cli@latest", 
-        "run", 
-        "@smithery-ai/github",
-        "--config", 
-        "{\"githubPersonalAccessToken\":\"YOUR_GITHUB_TOKEN\"}"
+        "-e",
+        "require('@smithery/cli').run(['run', '@smithery-ai/github', '--config', '{\"githubPersonalAccessToken\":\"YOUR_GITHUB_TOKEN\"}'])"
       ],
       "description": "GitHub 저장소 관리 및 이슈 트래킹",
       "status": "pending",

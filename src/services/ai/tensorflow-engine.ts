@@ -375,20 +375,33 @@ export class TensorFlowAIEngine {
     }
   }
 
+  /**
+   * 🔧 TensorFlow.js 백엔드 설정
+   */
   private async setupTensorFlowBackend(): Promise<void> {
     try {
-      if (typeof window !== 'undefined') {
-        // 브라우저 환경
-        await tf.setBackend('webgl');
-      } else {
-        // Node.js 환경 (Vercel)
+      // Node.js 환경에서 CPU 백엔드 우선 사용
+      if (typeof window === 'undefined') {
+        // Node.js 환경
         await tf.setBackend('cpu');
+        console.log('✅ TensorFlow.js CPU 백엔드 설정 완료 (Node.js)');
+      } else {
+        // 브라우저 환경에서는 WebGL 시도, 실패하면 CPU로 폴백
+        try {
+          await tf.setBackend('webgl');
+          console.log('✅ TensorFlow.js WebGL 백엔드 설정 완료 (브라우저)');
+        } catch (webglError) {
+          console.warn('⚠️ WebGL 백엔드 실패, CPU로 폴백:', webglError);
+          await tf.setBackend('cpu');
+          console.log('✅ TensorFlow.js CPU 백엔드 설정 완료 (폴백)');
+        }
       }
+
       await tf.ready();
-    } catch (error) {
-      console.warn('⚠️ WebGL 백엔드 실패, CPU 백엔드로 전환');
-      await tf.setBackend('cpu');
-      await tf.ready();
+      console.log(`🎯 TensorFlow.js 백엔드 준비 완료: ${tf.getBackend()}`);
+    } catch (error: any) {
+      console.warn('⚠️ TensorFlow.js 백엔드 설정 실패:', error);
+      // 기본 백엔드로 계속 진행
     }
   }
 
