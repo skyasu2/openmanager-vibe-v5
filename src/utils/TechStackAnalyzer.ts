@@ -337,6 +337,12 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     description: 'Anthropic의 대화형 AI 어시스턴트',
     importance: 'high'
   },
+  'claude-sonnet': {
+    name: 'Claude 3 Sonnet',
+    category: 'ai-development',
+    description: 'Anthropic Claude 3 패밀리 중 Sonnet 버전',
+    importance: 'high'
+  },
   'auto-doc-generator.js': {
     name: 'Auto Doc Generator',
     category: 'ai-development',
@@ -460,11 +466,16 @@ function normalizeTechName(tech: string): string {
     'tailwind': 'tailwindcss',
     'react-query': '@tanstack/react-query',
     'mcp': '@modelcontextprotocol/server-filesystem',
+    'mcp sdk': '@modelcontextprotocol/server-filesystem',
     'sklearn': 'scikit-learn',
     'tf.js': '@tensorflow/tfjs',
     'socketio': 'socket.io',
     'faker': '@faker-js/faker',
-    'playwright': '@playwright/test'
+    'playwright': '@playwright/test',
+    'cursor': 'cursor-ai',
+    'cursorai': 'cursor-ai',
+    'cursor ai': 'cursor-ai',
+    'claude sonnet': 'claude'
   };
 
   return normalizeMap[tech] || tech;
