@@ -8,10 +8,39 @@ afterEach(() => {
   cleanup();
 });
 
-// 전역 fetch mock 설정
-beforeAll(() => {
-  global.fetch = vi.fn();
-});
+// 전역 환경 변수 설정
+global.process.env = {
+  ...process.env,
+  NODE_ENV: 'test',
+  NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
+  // 테스트용 환경변수 추가
+  NEXT_PUBLIC_SUPABASE_URL: 'https://test.supabase.co',
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-anon-key',
+  SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
+  UPSTASH_REDIS_REST_URL: 'https://test-redis.upstash.io',
+  UPSTASH_REDIS_REST_TOKEN: 'test-redis-token',
+};
+
+// 기본 fetch mock
+global.fetch = vi.fn();
+
+// console 메서드 mock (테스트 출력 정리)
+global.console = {
+  ...console,
+  log: vi.fn(),
+  error: console.error, // 에러는 실제 출력
+  warn: vi.fn(),
+  info: vi.fn(),
+  debug: vi.fn(),
+};
+
+// 테스트용 타이머 mock
+vi.mock('timers', () => ({
+  setInterval: vi.fn(),
+  clearInterval: vi.fn(),
+  setTimeout: vi.fn(),
+  clearTimeout: vi.fn(),
+}));
 
 // React Query 테스트 유틸리티
 export const createTestQueryClient = () => {
@@ -29,13 +58,13 @@ export const createTestQueryClient = () => {
   });
 };
 
-// Mock 데이터
+// 최적화된 Mock 서버 데이터 (2개만 유지)
 export const mockServerData = {
   success: true,
   data: {
     servers: [
       {
-        id: 'test-server-1',
+        id: 'test-web-01',
         hostname: 'test-web-01',
         name: 'test-web-01',
         status: 'healthy',
@@ -49,7 +78,7 @@ export const mockServerData = {
         last_updated: new Date().toISOString(),
       },
       {
-        id: 'test-server-2',
+        id: 'test-api-01',
         hostname: 'test-api-01',
         name: 'test-api-01',
         status: 'warning',
@@ -90,4 +119,23 @@ export const createMockResponse = (data: any, ok = true) => {
     status: ok ? 200 : 500,
     json: () => Promise.resolve(data),
   } as Response);
+};
+
+// 테스트용 유틸리티 함수
+export const createMockRequest = (url: string, options: RequestInit = {}) => {
+  return new Request(url, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+  });
+};
+
+export const createMockNextRequest = (url: string, init: RequestInit = {}) => {
+  return {
+    url,
+    method: init.method || 'GET',
+    headers: new Headers(init.headers),
+    json: async () => JSON.parse((init.body as string) || '{}'),
+    text: async () => (init.body as string) || '',
+  } as any;
 };
