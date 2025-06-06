@@ -103,8 +103,7 @@ class OpenManagerMCPServer {
   }
 
   async readProjectFile(relativePath) {
-    const projectRoot =
-      process.env.PROJECT_ROOT || path.join(process.cwd(), '..');
+    const projectRoot = process.env.PROJECT_ROOT || '.';
     const fullPath = path.resolve(projectRoot, relativePath);
 
     // Security check to ensure path is within project
@@ -128,8 +127,7 @@ class OpenManagerMCPServer {
   }
 
   async listProjectDirectory(relativePath) {
-    const projectRoot =
-      process.env.PROJECT_ROOT || path.join(process.cwd(), '..');
+    const projectRoot = process.env.PROJECT_ROOT || '.';
     const fullPath = path.resolve(projectRoot, relativePath);
 
     // Security check
@@ -169,8 +167,10 @@ class OpenManagerMCPServer {
   }
 
   async run() {
-    // HTTP 건강 체크 서버 시작 (Render 배포용)
-    this.startHealthCheckServer();
+    // MCP는 stdio로만 통신하므로 HTTP 서버는 AI Engine 모드에서만 실행
+    if (this.isAIEngineMode) {
+      this.startHealthCheckServer();
+    }
 
     const transport = new StdioServerTransport();
     await this.server.connect(transport);

@@ -2,45 +2,34 @@
   "mcpServers": {
     "openmanager-local": {
       "command": "node",
-      "args": ["./mcp-server/server.js"],
-      "cwd": ".",
-      "description": "로컬 OpenManager MCP 서버 (개발 전용)",
+      "args": ["mcp-server/server.js"],
+      "cwd": "D:/cursor/openmanager-vibe-v5",
       "env": {
         "NODE_ENV": "development",
-        "PROJECT_ROOT": "."
+        "MCP_ENV": "cursor"
       }
     },
     "filesystem": {
       "command": "npx",
-      "args": ["@modelcontextprotocol/server-filesystem", "./docs", "./src"],
-      "description": "파일 시스템 조작 도구 (개발 필수)",
+      "args": [
+        "@modelcontextprotocol/server-filesystem",
+        "D:/cursor/openmanager-vibe-v5"
+      ],
       "env": {
         "NODE_ENV": "development"
       }
     },
     "git": {
       "command": "npx",
-      "args": ["-y", "@smithery/git-mcp"],
-      "description": "Git 브랜치 관리 및 커밋 자동화",
-      "env": {
-        "NODE_ENV": "development"
-      }
+      "args": [
+        "@modelcontextprotocol/server-git",
+        "--repository",
+        "D:/cursor/openmanager-vibe-v5"
+      ]
     },
     "browser-tools": {
       "command": "npx",
-      "args": ["-y", "@smithery/browser-tools-mcp"],
-      "description": "웹 브라우저 자동화 및 스크래핑 도구",
-      "env": {
-        "NODE_ENV": "development"
-      }
-    },
-    "apidog": {
-      "command": "npx",
-      "args": ["-y", "@smithery/apidog-mcp"],
-      "description": "API 테스팅 및 문서화 도구",
-      "env": {
-        "NODE_ENV": "development"
-      }
+      "args": ["@modelcontextprotocol/server-browser-tools"]
     }
   }
 }

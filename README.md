@@ -164,11 +164,22 @@ graph TB
 
 ## 🚀 빠른 시작
 
+### **📋 시스템 요구사항 (업데이트됨)**
+
+- **Node.js**: 20.18.0 LTS (권장) - Render.com 호환성 최적화
+- **npm**: 최신 버전
+- **Git**: 최신 버전
+- **MCP 서버**: 별도 프로세스 (자동 설정)
+
 ### **1. 저장소 클론**
 
 ```bash
 git clone https://github.com/skyasu2/openmanager-vibe-v5.git
 cd openmanager-vibe-v5
+
+# Node.js 버전 확인 (20.18.0 권장)
+node --version
+
 npm install
 ```
 
@@ -257,10 +268,22 @@ openmanager-vibe-v5/
 | **일반 프로덕션** | `mcp.json`          | 환경변수 기반         | 기타 프로덕션          |
 | **템플릿**        | `mcp.json.template` | `{{PROJECT_PATH}}`    | 커스텀 설정시          |
 
+### **🚀 MCP 서버 의존성 (최신 업데이트)**
+
+```json
+{
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@modelcontextprotocol/server-filesystem": "^2025.3.28",
+    "@modelcontextprotocol/server-github": "^2025.4.8"
+  }
+}
+```
+
 ### **🛠️ MCP 설정 및 사용법**
 
 ```bash
-# 1. MCP 서버 자동 설정
+# 1. MCP 서버 자동 설정 (의존성 자동 설치)
 chmod +x scripts/setup-mcp.sh
 ./scripts/setup-mcp.sh
 
@@ -268,39 +291,36 @@ chmod +x scripts/setup-mcp.sh
 cd mcp-server
 npm start
 
-# 3. MCP 클라이언트에서 설정 파일 지정
-# Claude Desktop의 경우:
-# ~/.claude_desktop_config.json 파일에 다음 추가:
-{
-  "mcpServers": {
-    "openmanager": {
-      "command": "node",
-      "args": ["./mcp-server/server.js"],
-      "cwd": "/path/to/openmanager-vibe-v5",
-      "env": {
-        "PROJECT_ROOT": "/path/to/openmanager-vibe-v5"
-      }
-    }
-  }
-}
+# 3. Cursor IDE에서 MCP 사용 (mcp-cursor.json)
+# Cursor 설정에서 다음 파일 참조:
+# ./mcp-cursor.json
+
+# 4. Render.com AI 엔진 배포 (mcp-render.json)
+# 배포 시 자동으로 다음 설정 사용:
+# ./mcp-render.json
+
+# 5. 일반 환경 (mcp.dev.json, mcp.json)
+# 개발: ./mcp.dev.json
+# 프로덕션: ./mcp.json
 ```
 
-### **🛠️ MCP 문제 해결**
+### **🛠️ MCP 문제 해결 및 배포 최적화**
 
 ```bash
 # MCP 서버 상태 확인
 cd mcp-server && node server.js
 
-# MCP 설정 테스트
-cat mcp.dev.json  # 개발환경 설정 확인
-cat mcp.json      # 프로덕션 설정 확인
+# Node.js 버전 확인 (20.18.0 LTS 권장)
+node --version
 
-# MCP 서버 재설정
-rm -rf mcp-server/node_modules
-./scripts/setup-mcp.sh
+# MCP 의존성 최신화
+cd mcp-server
+npm install @modelcontextprotocol/sdk@^1.12.1
+npm install @modelcontextprotocol/server-filesystem@^2025.3.28
+npm install @modelcontextprotocol/server-github@^2025.4.8
 
-# 로그에서 "Root directory does not exist" 오류 해결됨
-# 환경별 올바른 경로 자동 설정으로 해결
+# Render.com 배포 문제 해결
+# render.yaml buildCommand가 MCP 서버 의존성도 자동 설치
 
 # MCP 환경 상태 확인
 curl http://localhost:3000/api/mcp/status
@@ -309,20 +329,29 @@ curl http://localhost:3000/api/mcp/status
 curl -X POST http://localhost:3000/api/mcp/status \
   -H "Content-Type: application/json" \
   -d '{"action": "test", "serverName": "ai-engine-filesystem"}'
+
+# 환경별 MCP 설정 자동 감지 확인
+curl http://localhost:3000/api/mcp/status?env=check
 ```
 
-### **6. AI 엔진 테스트**
+### **6. AI 엔진 + MCP 통합 테스트**
 
 ```bash
-# 한국어 AI 엔진 테스트
+# 한국어 AI 엔진 + MCP 테스트
 curl -X POST http://localhost:3000/api/ai/korean \
   -H "Content-Type: application/json" \
   -d '{"query": "서버 CPU 사용률이 높습니다", "language": "korean"}'
 
-# 하이브리드 AI 엔진 테스트
+# 하이브리드 AI 엔진 + MCP 테스트
 curl -X POST http://localhost:3000/api/ai/hybrid \
   -H "Content-Type: application/json" \
   -d '{"query": "시스템 성능 분석", "useKorean": true}'
+
+# MCP 서버와 AI 엔진 연동 상태 확인
+curl http://localhost:3000/api/ai/mcp/test
+
+# Render.com 배포된 AI 엔진에서 MCP 사용 확인
+curl https://your-app.onrender.com/api/mcp/status
 ```
 
 ## 🔧 새로운 빌드 최적화 시스템
