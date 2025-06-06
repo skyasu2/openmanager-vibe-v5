@@ -1,6 +1,6 @@
 /**
  * 🎯 동적 질문 템플릿 컴포넌트
- * 
+ *
  * 15초마다 바뀌는 서버 상황 기반 질문 템플릿
  * - 작은 아이콘 형태로 표시
  * - 마우스 오버 시 툴팁으로 질문 내용 표시
@@ -37,7 +37,7 @@ const questionTemplates: QuestionTemplate[] = [
     category: 'monitoring',
     priority: 'high',
     enabled: true,
-    description: '전체 서버의 현재 상태와 헬스체크 결과를 확인합니다'
+    description: '전체 서버의 현재 상태와 헬스체크 결과를 확인합니다',
   },
   {
     id: 'critical_alerts',
@@ -46,7 +46,7 @@ const questionTemplates: QuestionTemplate[] = [
     category: 'incident',
     priority: 'critical',
     enabled: true,
-    description: '심각도가 높은 알림과 즉시 대응이 필요한 이슈를 확인합니다'
+    description: '심각도가 높은 알림과 즉시 대응이 필요한 이슈를 확인합니다',
   },
   {
     id: 'performance_analysis',
@@ -55,7 +55,7 @@ const questionTemplates: QuestionTemplate[] = [
     category: 'analysis',
     priority: 'medium',
     enabled: true,
-    description: 'CPU, 메모리, 디스크 사용률 및 응답시간을 종합 분석합니다'
+    description: 'CPU, 메모리, 디스크 사용률 및 응답시간을 종합 분석합니다',
   },
   {
     id: 'failure_prediction',
@@ -64,7 +64,7 @@ const questionTemplates: QuestionTemplate[] = [
     category: 'prediction',
     priority: 'high',
     enabled: true,
-    description: 'AI 기반 장애 예측 모델의 최신 분석 결과를 제공합니다'
+    description: 'AI 기반 장애 예측 모델의 최신 분석 결과를 제공합니다',
   },
   {
     id: 'memory_issues',
@@ -73,7 +73,7 @@ const questionTemplates: QuestionTemplate[] = [
     category: 'monitoring',
     priority: 'high',
     enabled: true,
-    description: '메모리 사용률 80% 이상인 서버들의 상세 정보를 확인합니다'
+    description: '메모리 사용률 80% 이상인 서버들의 상세 정보를 확인합니다',
   },
   {
     id: 'disk_space',
@@ -82,7 +82,7 @@ const questionTemplates: QuestionTemplate[] = [
     category: 'monitoring',
     priority: 'medium',
     enabled: true,
-    description: '디스크 사용률이 높거나 여유 공간이 부족한 서버를 찾습니다'
+    description: '디스크 사용률이 높거나 여유 공간이 부족한 서버를 찾습니다',
   },
   {
     id: 'network_latency',
@@ -91,7 +91,7 @@ const questionTemplates: QuestionTemplate[] = [
     category: 'analysis',
     priority: 'medium',
     enabled: true,
-    description: '네트워크 응답시간과 연결 상태를 실시간으로 모니터링합니다'
+    description: '네트워크 응답시간과 연결 상태를 실시간으로 모니터링합니다',
   },
   {
     id: 'load_balancing',
@@ -100,7 +100,7 @@ const questionTemplates: QuestionTemplate[] = [
     category: 'analysis',
     priority: 'low',
     enabled: true,
-    description: '서버 간 부하 분산 상태와 트래픽 분배 효율성을 분석합니다'
+    description: '서버 간 부하 분산 상태와 트래픽 분배 효율성을 분석합니다',
   },
   {
     id: 'system_optimization',
@@ -109,7 +109,7 @@ const questionTemplates: QuestionTemplate[] = [
     category: 'analysis',
     priority: 'medium',
     enabled: true,
-    description: '현재 시스템 상태를 기반으로 성능 최적화 방안을 제안합니다'
+    description: '현재 시스템 상태를 기반으로 성능 최적화 방안을 제안합니다',
   },
   {
     id: 'ai_insights',
@@ -118,7 +118,7 @@ const questionTemplates: QuestionTemplate[] = [
     category: 'prediction',
     priority: 'high',
     enabled: true,
-    description: 'AI 패턴 분석을 통해 발견된 이상징후나 트렌드를 알려드립니다'
+    description: 'AI 패턴 분석을 통해 발견된 이상징후나 트렌드를 알려드립니다',
   },
   {
     id: 'resource_trending',
@@ -127,7 +127,7 @@ const questionTemplates: QuestionTemplate[] = [
     category: 'analysis',
     priority: 'medium',
     enabled: true,
-    description: 'CPU, 메모리, 디스크 사용률의 시간별 트렌드를 분석합니다'
+    description: 'CPU, 메모리, 디스크 사용률의 시간별 트렌드를 분석합니다',
   },
   {
     id: 'security_status',
@@ -136,15 +136,13 @@ const questionTemplates: QuestionTemplate[] = [
     category: 'monitoring',
     priority: 'high',
     enabled: true,
-    description: '시스템 보안 상태와 잠재적 보안 위험을 점검합니다'
-  }
+    description: '시스템 보안 상태와 잠재적 보안 위험을 점검합니다',
+  },
 ];
 
-export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> = ({
-  onQuestionSelect,
-  isProcessing = false,
-  className = ''
-}) => {
+export const DynamicQuestionTemplates: React.FC<
+  DynamicQuestionTemplatesProps
+> = ({ onQuestionSelect, isProcessing = false, className = '' }) => {
   const [currentTemplateIndex, setCurrentTemplateIndex] = useState(0);
   const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
   const [isRotating, setIsRotating] = useState(true);
@@ -182,14 +180,14 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
         console.log('🚫 회전 실행 취소 - AI 처리 중');
         return;
       }
-      
+
       // 최근 2분 내 상호작용이 있었다면 더 빠르게
       const isUserActive = Date.now() - lastInteraction < 2 * 60 * 1000;
       const interval = isUserActive ? activeInterval : baseInterval;
-      
+
       console.log('🎯 질문 회전 실행 - 다음 간격:', interval / 1000 + '초');
-      setCurrentTemplateIndex((prev) => (prev + 1) % questionTemplates.length);
-      
+      setCurrentTemplateIndex(prev => (prev + 1) % questionTemplates.length);
+
       // 동적 간격 조정
       timerManager.unregister('dynamic-question-rotation');
       timerManager.register({
@@ -197,7 +195,7 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
         callback: rotateQuestions,
         interval: interval,
         priority: 'medium',
-        enabled: true
+        enabled: true,
       });
     };
 
@@ -207,7 +205,7 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
       callback: rotateQuestions,
       interval: baseInterval,
       priority: 'medium',
-      enabled: true
+      enabled: true,
     });
 
     return () => {
@@ -231,19 +229,30 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
           const data = await response.json();
           // API 응답 구조에 맞춰 서버 데이터 접근
           const servers = data.data?.servers || data.servers || [];
-          
-          console.log('🎯 질문 우선순위 업데이트 - 서버 데이터:', servers.length + '개');
-          
+
+          console.log(
+            '🎯 질문 우선순위 업데이트 - 서버 데이터:',
+            servers.length + '개'
+          );
+
           // 서버 상황 분석
           const criticalCount = servers.reduce((count: number, s: any) => {
-            return count + (s.alerts || []).filter((a: any) => Number(a.severity) >= 3).length;
+            return (
+              count +
+              (s.alerts || []).filter((a: any) => Number(a.severity) >= 3)
+                .length
+            );
           }, 0);
-          
-          const errorServers = servers.filter((s: any) => s.status === 'error').length;
-          
+
+          const errorServers = servers.filter(
+            (s: any) => s.status === 'error'
+          ).length;
+
           // 우선순위 재조정
           if (criticalCount > 0 || errorServers > 0) {
-            const urgentQuestion = questionTemplates.find(t => t.priority === 'critical');
+            const urgentQuestion = questionTemplates.find(
+              t => t.priority === 'critical'
+            );
             if (urgentQuestion) {
               const urgentIndex = questionTemplates.indexOf(urgentQuestion);
               setCurrentTemplateIndex(urgentIndex);
@@ -261,7 +270,7 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
       callback: updateBasedOnServerStatus,
       interval: 120000, // 2분
       priority: 'low',
-      enabled: true
+      enabled: true,
     });
 
     return () => {
@@ -269,29 +278,91 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
     };
   }, [isProcessing]);
 
-  const currentTemplate = questionTemplates[currentTemplateIndex];
+  // 🛡️ 안전한 템플릿 접근
+  const currentTemplate = React.useMemo(() => {
+    if (!questionTemplates || questionTemplates.length === 0) {
+      return {
+        id: 'default',
+        question: '현재 서버 상태는 어떤가요?',
+        icon: '🖥️',
+        category: 'monitoring' as const,
+        priority: 'medium' as const,
+        enabled: true,
+        description: '기본 서버 상태 확인',
+      };
+    }
+
+    const templateIndex = Math.max(
+      0,
+      Math.min(currentTemplateIndex, questionTemplates.length - 1)
+    );
+    const template = questionTemplates[templateIndex];
+
+    if (!template || !template.question) {
+      console.warn('⚠️ 유효하지 않은 템플릿 데이터:', template);
+      return (
+        questionTemplates[0] || {
+          id: 'fallback',
+          question: '서버 상태를 확인해주세요',
+          icon: '🖥️',
+          category: 'monitoring' as const,
+          priority: 'medium' as const,
+          enabled: true,
+          description: '기본 서버 상태 확인',
+        }
+      );
+    }
+
+    return template;
+  }, [currentTemplateIndex]);
 
   const handleQuestionClick = (template: QuestionTemplate) => {
-    console.log('🎯 질문 선택:', template.question);
-    onQuestionSelect(template.question);
+    try {
+      if (
+        !template ||
+        !template.question ||
+        typeof template.question !== 'string'
+      ) {
+        console.warn('⚠️ 유효하지 않은 질문 템플릿:', template);
+        return;
+      }
+
+      const question = template.question.trim();
+      if (question.length === 0) {
+        console.warn('⚠️ 빈 질문 문자열');
+        return;
+      }
+
+      console.log('🎯 질문 선택:', question);
+      onQuestionSelect(question);
+    } catch (error) {
+      console.error('❌ 질문 클릭 처리 실패:', error);
+    }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'critical': return 'bg-red-500 text-white';
-      case 'high': return 'bg-orange-500 text-white';
-      case 'medium': return 'bg-yellow-500 text-black';
-      case 'low': return 'bg-green-500 text-white';
-      default: return 'bg-gray-500 text-white';
+      case 'critical':
+        return 'bg-red-500 text-white';
+      case 'high':
+        return 'bg-orange-500 text-white';
+      case 'medium':
+        return 'bg-yellow-500 text-black';
+      case 'low':
+        return 'bg-green-500 text-white';
+      default:
+        return 'bg-gray-500 text-white';
     }
   };
 
   if (isProcessing) {
     return (
-      <div className={`p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg ${className}`}>
-        <div className="flex items-center space-x-2">
+      <div
+        className={`p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg ${className}`}
+      >
+        <div className='flex items-center space-x-2'>
           <motion.div
-            className="w-2 h-2 bg-yellow-500 rounded-full"
+            className='w-2 h-2 bg-yellow-500 rounded-full'
             animate={{
               scale: [1, 1.2, 1],
               opacity: [1, 0.6, 1],
@@ -301,7 +372,7 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
               repeat: Infinity,
             }}
           />
-          <span className="text-sm text-yellow-700 dark:text-yellow-300">
+          <span className='text-sm text-yellow-700 dark:text-yellow-300'>
             AI가 질문을 처리하고 있습니다...
           </span>
         </div>
@@ -311,12 +382,9 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
 
   return (
     <div className={`${className}`}>
-      <div className="flex items-center justify-between space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border dark:border-gray-700">
+      <div className='flex items-center justify-between space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border dark:border-gray-700'>
         {/* 메인 추천 질문 */}
-        <motion.div 
-          className="relative"
-          key={currentTemplate.id}
-        >
+        <motion.div className='relative' key={currentTemplate.id}>
           <motion.button
             onClick={() => handleQuestionClick(currentTemplate)}
             onHoverStart={() => setHoveredTemplate(currentTemplate.id)}
@@ -335,7 +403,7 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
             transition={{
               duration: 2,
               repeat: isRotating ? Infinity : 0,
-              repeatDelay: 13
+              repeatDelay: 13,
             }}
           >
             {currentTemplate.icon}
@@ -348,19 +416,25 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
                 initial={{ opacity: 0, y: -10, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.9 }}
-                className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-10"
+                className='absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-10'
               >
-                <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl max-w-xs">
-                  <div className="font-medium mb-1">{currentTemplate.question}</div>
-                  <div className="text-gray-300 text-xs">{currentTemplate.description}</div>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className={`px-2 py-1 rounded text-xs ${getPriorityColor(currentTemplate.priority)}`}>
+                <div className='bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl max-w-xs'>
+                  <div className='font-medium mb-1'>
+                    {currentTemplate.question}
+                  </div>
+                  <div className='text-gray-300 text-xs'>
+                    {currentTemplate.description}
+                  </div>
+                  <div className='flex items-center justify-between mt-2'>
+                    <span
+                      className={`px-2 py-1 rounded text-xs ${getPriorityColor(currentTemplate.priority)}`}
+                    >
                       {currentTemplate.priority.toUpperCase()}
                     </span>
-                    <span className="text-gray-400 text-xs">클릭하여 질문</span>
+                    <span className='text-gray-400 text-xs'>클릭하여 질문</span>
                   </div>
                   {/* 화살표 */}
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-b-gray-900" />
+                  <div className='absolute bottom-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-b-gray-900' />
                 </div>
               </motion.div>
             )}
@@ -368,7 +442,7 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
         </motion.div>
 
         {/* 다른 추천 질문들 (작은 아이콘) */}
-        <div className="flex items-center space-x-1">
+        <div className='flex items-center space-x-1'>
           {questionTemplates
             .filter((_, index) => index !== currentTemplateIndex)
             .slice(0, 3)
@@ -378,12 +452,12 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
                 onClick={() => handleQuestionClick(template)}
                 onHoverStart={() => setHoveredTemplate(template.id)}
                 onHoverEnd={() => setHoveredTemplate(null)}
-                className="
+                className='
                   w-6 h-6 rounded-md flex items-center justify-center text-xs
                   bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400
                   hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors
                   relative
-                "
+                '
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.1 }}
@@ -399,11 +473,11 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
                       initial={{ opacity: 0, y: -5 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -5 }}
-                      className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 z-10"
+                      className='absolute top-full left-1/2 transform -translate-x-1/2 mt-1 z-10'
                     >
-                      <div className="bg-gray-800 text-white text-xs rounded p-2 whitespace-nowrap shadow-lg">
+                      <div className='bg-gray-800 text-white text-xs rounded p-2 whitespace-nowrap shadow-lg'>
                         {template.question}
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 border-2 border-transparent border-b-gray-800" />
+                        <div className='absolute bottom-full left-1/2 transform -translate-x-1/2 border-2 border-transparent border-b-gray-800' />
                       </div>
                     </motion.div>
                   )}
@@ -413,7 +487,7 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
         </div>
 
         {/* 상태 표시 */}
-        <div className="flex items-center space-x-1 ml-auto">
+        <div className='flex items-center space-x-1 ml-auto'>
           <motion.div
             className={`w-1.5 h-1.5 rounded-full ${isRotating ? 'bg-green-400' : 'bg-gray-400'}`}
             animate={{
@@ -425,7 +499,7 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
               repeat: isRotating ? Infinity : 0,
             }}
           />
-          <span className="text-xs text-gray-500 dark:text-gray-400">
+          <span className='text-xs text-gray-500 dark:text-gray-400'>
             {isRotating ? '자동' : '수동'}
           </span>
         </div>
@@ -433,11 +507,9 @@ export const DynamicQuestionTemplates: React.FC<DynamicQuestionTemplatesProps> =
 
       {/* 진행 표시 바 */}
       {isRotating && (
-        <motion.div
-          className="mt-2 h-0.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
-        >
+        <motion.div className='mt-2 h-0.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden'>
           <motion.div
-            className="h-full bg-blue-500 rounded-full"
+            className='h-full bg-blue-500 rounded-full'
             initial={{ width: '0%' }}
             animate={{ width: '100%' }}
             transition={{
