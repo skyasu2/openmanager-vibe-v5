@@ -697,98 +697,189 @@ export default function FeatureCardsGrid() {
 
               {/* 상세 내용 */}
               <div className='p-4 space-y-6'>
-                {/* 핵심 기능 카드들 */}
+                {/* 핵심 기능 대형 카드들 */}
                 <div>
-                  <h3 className='text-white font-medium mb-4 text-xl'>
+                  <h3 className='text-white font-medium mb-6 text-2xl flex items-center gap-3'>
+                    <div
+                      className={`w-8 h-8 bg-gradient-to-br ${selectedCardData.gradient} rounded-lg flex items-center justify-center`}
+                    >
+                      <Sparkles className='w-4 h-4 text-white' />
+                    </div>
                     {selectedCardData.detailedContent.overview.title}
                   </h3>
-                  <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                  <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
                     {selectedCardData.detailedContent.overview.features.map(
                       (feature, index) => (
                         <motion.div
                           key={index}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          className='p-4 bg-gray-800/50 rounded-lg border border-gray-700/50 hover:bg-gray-700/50 transition-colors'
+                          initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          transition={{
+                            delay: index * 0.15,
+                            type: 'spring',
+                            stiffness: 100,
+                          }}
+                          whileHover={{
+                            scale: 1.05,
+                            y: -5,
+                            transition: { duration: 0.2 },
+                          }}
+                          className='relative p-6 bg-gradient-to-br from-gray-800/60 via-gray-900/40 to-gray-800/60 rounded-xl border border-gray-700/50 hover:border-gray-600/70 transition-all duration-300 group overflow-hidden cursor-pointer'
                         >
-                          <div className='flex items-center gap-3 mb-2'>
+                          {/* 배경 그라데이션 */}
+                          <div
+                            className={`absolute inset-0 opacity-5 group-hover:opacity-10 transition-opacity duration-300 ${
+                              selectedCardData.isAICard
+                                ? 'bg-gradient-to-br from-pink-500 to-purple-600'
+                                : selectedCardData.isSpecial
+                                  ? 'bg-gradient-to-br from-amber-500 to-orange-600'
+                                  : 'bg-gradient-to-br from-blue-500 to-cyan-600'
+                            }`}
+                          />
+
+                          {/* 상단 아이콘 */}
+                          <motion.div
+                            whileHover={{
+                              scale: 1.2,
+                              rotate: 10,
+                              transition: { duration: 0.3 },
+                            }}
+                            className='relative mb-4'
+                          >
                             <div
-                              className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                              className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300 ${
                                 selectedCardData.isAICard
-                                  ? 'bg-pink-500/20 text-pink-400'
+                                  ? 'bg-gradient-to-br from-pink-500 to-purple-600'
                                   : selectedCardData.isSpecial
-                                    ? 'bg-amber-500/20 text-amber-400'
-                                    : 'bg-blue-500/20 text-blue-400'
+                                    ? 'bg-gradient-to-br from-amber-500 to-orange-600'
+                                    : 'bg-gradient-to-br from-blue-500 to-cyan-600'
                               }`}
                             >
-                              <feature.icon className='w-4 h-4' />
+                              <feature.icon className='w-7 h-7 text-white' />
                             </div>
-                            <h4 className='font-medium text-white text-sm'>
+                          </motion.div>
+
+                          {/* 콘텐츠 */}
+                          <div className='relative z-10'>
+                            <h4 className='font-bold text-white text-lg mb-3 group-hover:text-gray-100 transition-colors'>
                               {feature.title}
                             </h4>
+                            <p className='text-gray-300 text-sm leading-relaxed group-hover:text-gray-200 transition-colors'>
+                              {feature.description}
+                            </p>
                           </div>
-                          <p className='text-gray-300 text-xs'>
-                            {feature.description}
-                          </p>
+
+                          {/* 하단 장식 라인 */}
+                          <div
+                            className={`absolute bottom-0 left-0 w-full h-1 transition-all duration-300 ${
+                              selectedCardData.isAICard
+                                ? 'bg-gradient-to-r from-pink-500/50 via-purple-600/50 to-pink-500/50'
+                                : selectedCardData.isSpecial
+                                  ? 'bg-gradient-to-r from-amber-500/50 via-orange-600/50 to-amber-500/50'
+                                  : 'bg-gradient-to-r from-blue-500/50 via-cyan-600/50 to-blue-500/50'
+                            }`}
+                          />
+
+                          {/* 호버 시 빛나는 효과 */}
+                          <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transform translate-x-[-100%] group-hover:translate-x-[100%] transition-all duration-1000 ease-out' />
                         </motion.div>
                       )
                     )}
                   </div>
                 </div>
 
-                {/* 기술 카테고리 카드들 */}
-                {selectedCardData.detailedContent.categories.map(
-                  (categoryId: string, categoryIndex: number) => {
-                    const category =
-                      techCategories[categoryId as keyof typeof techCategories];
-                    return (
-                      <div key={categoryId}>
-                        <div className='flex items-center gap-2 mb-4'>
+                {/* 기술 카테고리 대형 카드들 */}
+                <div className='space-y-6'>
+                  {selectedCardData.detailedContent.categories.map(
+                    (categoryId: string, categoryIndex: number) => {
+                      const category =
+                        techCategories[
+                          categoryId as keyof typeof techCategories
+                        ];
+                      return (
+                        <motion.div
+                          key={categoryId}
+                          initial={{ opacity: 0, y: 30 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: categoryIndex * 0.15 }}
+                          className={`relative p-6 bg-gradient-to-br from-gray-900/80 via-gray-800/60 to-gray-900/80 rounded-xl border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 group overflow-hidden`}
+                        >
+                          {/* 배경 그라데이션 효과 */}
                           <div
-                            className={`w-6 h-6 bg-gradient-to-r ${category.color} rounded-lg flex items-center justify-center`}
-                          >
-                            <category.icon className='w-3 h-3 text-white' />
+                            className={`absolute inset-0 bg-gradient-to-r ${category.color} opacity-5 group-hover:opacity-10 transition-opacity duration-300`}
+                          />
+
+                          {/* 카테고리 헤더 */}
+                          <div className='relative flex items-center gap-4 mb-6'>
+                            <motion.div
+                              whileHover={{ scale: 1.1, rotate: 5 }}
+                              className={`w-12 h-12 bg-gradient-to-br ${category.color} rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300`}
+                            >
+                              <category.icon className='w-6 h-6 text-white' />
+                            </motion.div>
+                            <div>
+                              <h3 className='text-xl font-bold text-white mb-1'>
+                                {category.title}
+                              </h3>
+                              <p className='text-gray-400 text-sm'>
+                                {category.techs.length}개 기술 스택
+                              </p>
+                            </div>
                           </div>
-                          <h3 className='text-white font-medium text-lg'>
-                            {category.title}
-                          </h3>
-                        </div>
-                        <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-                          {category.techs.map(
-                            (tech: any, techIndex: number) => (
-                              <motion.div
-                                key={tech.name}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{
-                                  delay: categoryIndex * 0.1 + techIndex * 0.05,
-                                }}
-                                className='p-3 bg-gray-800/30 rounded-lg border border-gray-700/30 hover:bg-gray-700/30 transition-colors group'
-                              >
-                                <div className='flex items-center gap-3'>
-                                  <div
-                                    className={`w-8 h-8 ${tech.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}
-                                  >
-                                    <tech.icon className='w-4 h-4 text-white' />
+
+                          {/* 기술 스택 그리드 */}
+                          <div className='relative grid grid-cols-1 md:grid-cols-2 gap-4'>
+                            {category.techs.map(
+                              (tech: any, techIndex: number) => (
+                                <motion.div
+                                  key={tech.name}
+                                  initial={{ opacity: 0, scale: 0.9 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  transition={{
+                                    delay:
+                                      categoryIndex * 0.1 + techIndex * 0.08,
+                                  }}
+                                  whileHover={{
+                                    scale: 1.02,
+                                    transition: { duration: 0.2 },
+                                  }}
+                                  className='p-4 bg-gray-800/40 backdrop-blur-sm rounded-lg border border-gray-700/40 hover:bg-gray-700/40 hover:border-gray-600/40 transition-all duration-300 group/tech cursor-pointer'
+                                >
+                                  <div className='flex items-center gap-3'>
+                                    <motion.div
+                                      whileHover={{
+                                        scale: 1.15,
+                                        rotate: 360,
+                                        transition: { duration: 0.6 },
+                                      }}
+                                      className={`w-10 h-10 ${tech.color} rounded-lg flex items-center justify-center shadow-md group-hover/tech:shadow-lg transition-shadow duration-300`}
+                                    >
+                                      <tech.icon className='w-5 h-5 text-white' />
+                                    </motion.div>
+                                    <div className='flex-1'>
+                                      <h4 className='font-semibold text-white text-sm mb-1 group-hover/tech:text-gray-100 transition-colors'>
+                                        {renderTextWithAIGradient(tech.name)}
+                                      </h4>
+                                      <p className='text-gray-400 text-xs group-hover/tech:text-gray-300 transition-colors'>
+                                        {tech.description}
+                                      </p>
+                                    </div>
                                   </div>
-                                  <div>
-                                    <h4 className='font-medium text-white text-sm'>
-                                      {renderTextWithAIGradient(tech.name)}
-                                    </h4>
-                                    <p className='text-gray-400 text-xs'>
-                                      {tech.description}
-                                    </p>
-                                  </div>
-                                </div>
-                              </motion.div>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    );
-                  }
-                )}
+
+                                  {/* 호버 시 빛나는 효과 */}
+                                  <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover/tech:opacity-100 transform translate-x-[-100%] group-hover/tech:translate-x-[100%] transition-all duration-700 ease-out' />
+                                </motion.div>
+                              )
+                            )}
+                          </div>
+
+                          {/* 카드 하단 장식 */}
+                          <div className='absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-600/50 to-transparent' />
+                        </motion.div>
+                      );
+                    }
+                  )}
+                </div>
               </div>
             </motion.div>
           </div>
