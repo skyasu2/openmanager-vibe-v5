@@ -1,7 +1,5 @@
 {
   "version": 2,
-  "name": "openmanager-vibe-v5",
-  "alias": ["openmanager-vibe-v5"],
   "framework": "nextjs",
   "build": {
     "env": {
@@ -86,18 +84,5 @@
     }
   ],
   "cleanUrls": true,
-  "trailingSlash": false,
-  "crons": [
-    {
-      "path": "/api/health",
-      "schedule": "*/5 * * * *"
-    },
-    {
-      "path": "/api/cron/keep-alive",
-      "schedule": "0 */4 * * *"
-    }
-  ],
-  "env": {
-    "CRON_SECRET": "@cron-secret"
-  }
+  "trailingSlash": false
 }

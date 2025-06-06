@@ -225,7 +225,60 @@ export const useRealTimeData = () => {
 
 ## 🚨 트러블슈팅
 
-### ❌ 일반적인 문제들
+### 🔥 배포 관련 문제 (가장 중요)
+
+#### ⭐ Vercel 배포 실패 - 가장 흔한 문제
+
+**증상**: GitHub Actions는 성공하지만 Vercel 배포 실패
+
+**해결 순서**:
+
+```bash
+# 1. Vercel 프로젝트 연결 상태 확인
+npx vercel env ls
+
+# 2. 연결 끊어진 경우 재연결
+npx vercel link --yes
+# → skyasus-projects/openmanager-vibe-v5 선택
+
+# 3. vercel.json 구문 검증
+# JSON Lint로 문법 오류 확인
+
+# 4. 수동 배포 테스트
+npx vercel --prod
+```
+
+#### 🔄 GitHub Actions 워크플로우 충돌
+
+**증상**: 여러 워크플로우가 동시 실행되며 서로 간섭
+
+**해결법**:
+
+```bash
+# 불필요한 워크플로우 비활성화
+mkdir -p .github/workflows/disabled
+mv .github/workflows/ci*.yml .github/workflows/disabled/
+mv .github/workflows/deploy*.yml .github/workflows/disabled/
+
+# simple-deploy.yml만 활성 상태로 유지
+ls -la .github/workflows/
+```
+
+#### 📝 vercel.json 설정 오류
+
+**흔한 문제들**:
+
+- CRON_SECRET 환경변수 참조 오류
+- JSON 구문 오류 (쉼표, 괄호)
+- deprecated 속성 사용
+
+**해결법**:
+
+- CRON 관련 설정 제거
+- [jsonlint.com](https://jsonlint.com)에서 구문 검증
+- `name`, `alias` 속성 제거 (deprecated)
+
+### ❌ 일반적인 개발 문제들
 
 #### 1. TypeScript 에러
 
@@ -264,6 +317,26 @@ npm run test:unit -- --grep "테스트명"
 # 테스트 디버깅
 npm run test:unit -- --inspect
 ```
+
+### 🆘 배포 실패 시 응급 대응
+
+1. **즉시 확인사항**:
+
+   - `npx vercel link --yes` 실행
+   - `.github/workflows/` 폴더에 파일 1개만 있는지 확인
+   - `vercel.json` JSON 구문 검증
+
+2. **로컬 검증**:
+
+   ```bash
+   npm run validate:all
+   npm run build
+   npx vercel --prod --debug
+   ```
+
+3. **문제 지속 시**:
+   - 이전 정상 배포 커밋으로 롤백
+   - Vercel 대시보드에서 이전 배포로 복원
 
 ### 🆘 도움 요청
 
