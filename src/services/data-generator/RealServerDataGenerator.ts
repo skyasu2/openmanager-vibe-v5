@@ -772,6 +772,8 @@ export class RealServerDataGenerator {
     const servers = this.getAllServers();
     const clusters = this.getAllClusters();
     const apps = this.getAllApplications();
+    const serverCount = servers.length;
+    const appCount = apps.length;
 
     return {
       overview: {
@@ -781,14 +783,23 @@ export class RealServerDataGenerator {
         totalApplications: apps.length
       },
       health: {
-        averageScore: servers.reduce((sum, s) => sum + s.health.score, 0) / servers.length,
+        averageScore:
+          serverCount > 0
+            ? servers.reduce((sum, s) => sum + s.health.score, 0) / serverCount
+            : 0,
         criticalIssues: servers.reduce((sum, s) => sum + s.health.issues.length, 0),
-        availability: apps.reduce((sum, a) => sum + a.performance.availability, 0) / apps.length
+        availability:
+          appCount > 0
+            ? apps.reduce((sum, a) => sum + a.performance.availability, 0) / appCount
+            : 0
       },
       performance: {
-        avgCpu: servers.reduce((sum, s) => sum + s.metrics.cpu, 0) / servers.length,
-        avgMemory: servers.reduce((sum, s) => sum + s.metrics.memory, 0) / servers.length,
-        avgDisk: servers.reduce((sum, s) => sum + s.metrics.disk, 0) / servers.length,
+        avgCpu:
+          serverCount > 0 ? servers.reduce((sum, s) => sum + s.metrics.cpu, 0) / serverCount : 0,
+        avgMemory:
+          serverCount > 0 ? servers.reduce((sum, s) => sum + s.metrics.memory, 0) / serverCount : 0,
+        avgDisk:
+          serverCount > 0 ? servers.reduce((sum, s) => sum + s.metrics.disk, 0) / serverCount : 0,
         totalRequests: servers.reduce((sum, s) => sum + s.metrics.requests, 0),
         totalErrors: servers.reduce((sum, s) => sum + s.metrics.errors, 0)
       },
