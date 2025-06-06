@@ -781,14 +781,24 @@ export class RealServerDataGenerator {
         totalApplications: apps.length
       },
       health: {
-        averageScore: servers.reduce((sum, s) => sum + s.health.score, 0) / servers.length,
+        averageScore: servers.length
+          ? servers.reduce((sum, s) => sum + s.health.score, 0) / servers.length
+          : 0,
         criticalIssues: servers.reduce((sum, s) => sum + s.health.issues.length, 0),
-        availability: apps.reduce((sum, a) => sum + a.performance.availability, 0) / apps.length
+        availability: apps.length
+          ? apps.reduce((sum, a) => sum + a.performance.availability, 0) / apps.length
+          : 0
       },
       performance: {
-        avgCpu: servers.reduce((sum, s) => sum + s.metrics.cpu, 0) / servers.length,
-        avgMemory: servers.reduce((sum, s) => sum + s.metrics.memory, 0) / servers.length,
-        avgDisk: servers.reduce((sum, s) => sum + s.metrics.disk, 0) / servers.length,
+        avgCpu: servers.length
+          ? servers.reduce((sum, s) => sum + s.metrics.cpu, 0) / servers.length
+          : 0,
+        avgMemory: servers.length
+          ? servers.reduce((sum, s) => sum + s.metrics.memory, 0) / servers.length
+          : 0,
+        avgDisk: servers.length
+          ? servers.reduce((sum, s) => sum + s.metrics.disk, 0) / servers.length
+          : 0,
         totalRequests: servers.reduce((sum, s) => sum + s.metrics.requests, 0),
         totalErrors: servers.reduce((sum, s) => sum + s.metrics.errors, 0)
       },
