@@ -1,6 +1,43 @@
-# 🚀 OpenManager Vibe v5.30.0
+# 🚀 OpenManager Vibe v5.31.0
 
-> **세계 최초 한국어 특화 AI 하이브리드 엔진 - Korean NLP + Transformers.js + TensorFlow.js + Vector DB 통합 서버 모니터링 시스템**
+> **세계 최초 한국어 특화 AI 하이브리드 엔진 - Korean NLP + Transformers.js + TensorFlow.js + Vector DB 통합 서버 모니터링 시스템**  
+> **⚠️ 더미 데이터 완전 제거 - 실제 환경변수 필수 요구**
+
+## 🚨 **중요: 실제 환경변수 필수**
+
+**이 프로젝트는 더미 데이터를 일체 사용하지 않습니다.**  
+모든 서비스가 실제 환경변수와 클라우드 서비스를 요구합니다.
+
+### 📋 **필수 환경변수 설정**
+
+```bash
+# 1. .env.example을 .env.local로 복사
+cp .env.example .env.local
+
+# 2. 실제 값으로 수정 (모두 필수!)
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_real_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_real_service_key
+UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your_real_redis_token
+```
+
+### 🔧 **클라우드 서비스 계정 필요**
+
+| 서비스 | 용도 | 가입 링크 |
+|--------|------|-----------|
+| **Supabase** | 데이터베이스 | https://supabase.com |
+| **Upstash Redis** | 캐싱 시스템 | https://upstash.com |
+| **Vercel** | 배포 플랫폼 | https://vercel.com |
+
+### ❌ **더미 데이터 제거된 항목들**
+
+- ❌ 더미 Redis 클라이언트
+- ❌ 더미 Supabase 연결
+- ❌ 더미 환경변수 폴백
+- ❌ 시연 모드
+- ❌ 개발용 Mock 데이터
 
 ## 🎯 혁신적 특징
 
@@ -26,7 +63,7 @@
 
 ```mermaid
 graph TB
-    subgraph "🎯 Korean AI Hybrid Engine v5.30"
+    subgraph "🎯 Korean AI Hybrid Engine v5.31"
         UI["Next.js UI"] --> Gateway["API Gateway"]
         Gateway --> Hybrid["Hybrid AI Controller"]
         
@@ -43,27 +80,54 @@ graph TB
         Cache --> Metrics["Prometheus Metrics"]
         Metrics --> Monitor["Real-time Monitoring"]
     end
+    
+    subgraph "☁️ 실제 클라우드 서비스"
+        Supabase["Supabase Database"]
+        Redis["Upstash Redis"]
+        Vercel["Vercel Hosting"]
+    end
+    
+    Gateway --> Supabase
+    Cache --> Redis
+    UI --> Vercel
 ```
 
 ## 🚀 빠른 시작
 
-### **1. 환경 설정**
+### **1. 클라우드 서비스 설정**
 ```bash
-git clone https://github.com/your-repo/openmanager-vibe-v5.git
-cd openmanager-vibe-v5
-npm install
+# Supabase 프로젝트 생성
+1. https://supabase.com 방문
+2. 새 프로젝트 생성
+3. API 키와 URL 복사
+
+# Upstash Redis 생성
+1. https://upstash.com 방문
+2. Redis 데이터베이스 생성
+3. REST URL과 토큰 복사
 ```
 
-### **2. 개발 서버 시작**
+### **2. 환경변수 설정**
 ```bash
-# 개발 서버 시작
+git clone https://github.com/skyasu2/openmanager-vibe-v5.git
+cd openmanager-vibe-v5
+npm install
+
+# 환경변수 설정 (필수!)
+cp .env.example .env.local
+# .env.local 파일에서 실제 값으로 수정
+```
+
+### **3. 개발 서버 시작**
+```bash
+# 환경변수가 올바르게 설정된 경우에만 실행됨
 npm run dev
 
 # 브라우저에서 열기
 # http://localhost:3000
 ```
 
-### **3. AI 엔진 테스트**
+### **4. AI 엔진 테스트**
 ```bash
 # 한국어 AI 엔진 테스트
 curl -X POST http://localhost:3000/api/ai/korean \
@@ -148,7 +212,12 @@ GET  /api/servers        # 서버 목록
 GET  /api/dashboard      # 대시보드 데이터
 ```
 
-## 🔄 최신 업데이트 (v5.30.0)
+## 🔄 최신 업데이트 (v5.31.0)
+
+### **🚨 BREAKING CHANGES**
+- **더미 데이터 완전 제거**: 모든 더미 모드 삭제
+- **환경변수 필수 요구**: Supabase, Redis 계정 필수
+- **실제 클라우드만 지원**: 개발용 Mock 데이터 제거
 
 ### **✨ 새로운 기능**
 - 🇰🇷 **Korean NLP Engine**: 완전 한국어 특화 AI 엔진
@@ -164,7 +233,7 @@ GET  /api/dashboard      # 대시보드 데이터
 - 실시간 모니터링 대시보드
 
 ### **📈 성과**
-- 빌드 성공률: 100%
+- 빌드 성공률: 100% (환경변수 설정 시)
 - 응답 속도: 75%+ 향상
 - 메모리 사용: 50% 감소
 - 한국어 처리 정확도: 95%+
@@ -190,9 +259,9 @@ GET  /api/dashboard      # 대시보드 데이터
 - WebSocket 실시간 통신
 
 ### **Database & Storage**
-- 로컬 Vector DB
-- Redis 캐싱
-- Supabase (선택적)
+- Supabase (PostgreSQL)
+- Upstash Redis (캐싱)
+- Vercel (배포)
 
 ## 📚 문서 및 가이드
 
@@ -202,7 +271,7 @@ GET  /api/dashboard      # 대시보드 데이터
 - [📊 메트릭 모니터링 가이드](docs/METRICS_GUIDE.md)
 - [🚀 배포 가이드](docs/DEPLOYMENT.md)
 
-## 🔮 로드맵 (v5.31+)
+## 🔮 로드맵 (v5.32+)
 
 ### **단기 목표 (1-2개월)**
 - 🌐 **다국어 지원**: 영어, 일본어 확장
@@ -235,9 +304,16 @@ GitHub Issues를 통해 버그 리포트 및 기능 요청
 - **개발팀**: dev@openmanager-vibe.com
 - **문서 업데이트**: docs@openmanager-vibe.com
 
+## ⚠️ **주의사항**
+
+- **환경변수 누락 시 빌드 실패**: 의도된 동작입니다
+- **클라우드 계정 필요**: 무료 티어로 시작 가능
+- **더미 데이터 요청 거부**: 실제 서비스만 지원
+
 ---
 
 **🎯 Mission**: 세계 최고 수준의 한국어 AI 서버 모니터링 시스템  
-**🚀 Status**: 프로덕션 배포 완료  
+**🚀 Status**: 프로덕션 배포 완료 (환경변수 설정 시)  
 **📅 Last Update**: 2024년 1월  
-**🏆 Achievement**: Korean AI 혁신상 수상 후보
+**🏆 Achievement**: Korean AI 혁신상 수상 후보  
+**⚠️ Policy**: 더미 데이터 완전 금지 - 실제 클라우드 서비스 전용

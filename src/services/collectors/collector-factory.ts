@@ -1,223 +1,171 @@
-import { MetricCollector, CollectorConfig, CollectorFactory } from '../../types/collector';
-import { DummyCollector } from './dummy-collector';
-// 실제 수집기들
 import { PrometheusCollector } from './prometheus-collector';
 import { CloudWatchCollector } from './cloudwatch-collector';
 import { CustomAPICollector } from './custom-api-collector';
+import { MetricCollector, CollectorConfig } from '@/types/collector';
 
 /**
- * 수집기 팩토리 - 설정에 따라 적절한 수집기 생성
+ * 실제 컬렉터 팩토리 (더미 모드 제거)
  */
-export class MetricCollectorFactory implements CollectorFactory {
-  createCollector(config: CollectorConfig): MetricCollector {
-    switch (config.type) {
-      case 'dummy':
-        return new DummyCollector(config);
-      
-      case 'prometheus':
-        return new PrometheusCollector(config);
-      
-      case 'cloudwatch':
-        return new CloudWatchCollector(config);
-      
-      case 'custom':
-        return new CustomAPICollector(config);
-      
-      default:
-        throw new Error(`지원하지 않는 수집기 타입: ${config.type}`);
-    }
+export function createCollector(config: CollectorConfig): MetricCollector {
+  switch (config.type) {
+    case 'prometheus':
+      return new PrometheusCollector(config);
+    
+    case 'cloudwatch':
+      return new CloudWatchCollector(config);
+    
+    case 'custom':
+      return new CustomAPICollector(config);
+    
+    default:
+      throw new Error(`지원하지 않는 컬렉터 타입: ${config.type}`);
   }
 }
 
 /**
- * 수집 관리자 - 여러 수집기를 관리하고 스케줄링
+ * 컬렉터 관리자 클래스
  */
-export class MetricCollectionManager {
+export class CollectorManager {
   private collectors: Map<string, MetricCollector> = new Map();
-  private schedules: Map<string, NodeJS.Timeout> = new Map();
-  private factory: CollectorFactory;
-
-  constructor() {
-    this.factory = new MetricCollectorFactory();
-  }
+  private isRunning = false;
 
   /**
-   * 수집기 추가
+   * 컬렉터 추가
    */
-  addCollector(name: string, config: CollectorConfig): void {
-    try {
-      const collector = this.factory.createCollector(config);
-      this.collectors.set(name, collector);
-      
-      // 자동 스케줄링 시작
-      this.startSchedule(name, config.interval);
-      
-      console.log(`✅ Collector '${name}' added and scheduled every ${config.interval}s`);
-    } catch (error) {
-      console.error(`❌ Failed to add collector '${name}':`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * 수집기 제거
-   */
-  removeCollector(name: string): void {
-    this.stopSchedule(name);
-    this.collectors.delete(name);
-    console.log(`🗑️ Collector '${name}' removed`);
-  }
-
-  /**
-   * 특정 수집기로 메트릭 수집
-   */
-  async collectFromCollector(collectorName: string, serverId: string) {
-    const collector = this.collectors.get(collectorName);
-    if (!collector) {
-      throw new Error(`Collector '${collectorName}' not found`);
+  addCollector(id: string, config: CollectorConfig): void {
+    if (this.collectors.has(id)) {
+      console.warn(`⚠️ 컬렉터 ${id}가 이미 존재합니다`);
+      return;
     }
 
-    return await collector.collectMetrics(serverId);
+    const collector = createCollector(config);
+    this.collectors.set(id, collector);
+    console.log(`✅ 컬렉터 추가됨: ${id} (${config.type})`);
   }
 
   /**
-   * 모든 수집기에서 모든 서버 메트릭 수집
+   * 컬렉터 제거
    */
-  async collectAllMetrics(): Promise<void> {
-    const promises: Promise<void>[] = [];
+  removeCollector(id: string): boolean {
+    const collector = this.collectors.get(id);
+    if (collector) {
+      collector.stop();
+      this.collectors.delete(id);
+      console.log(`🗑️ 컬렉터 제거됨: ${id}`);
+      return true;
+    }
+    return false;
+  }
 
-    for (const [name, collector] of this.collectors) {
-      promises.push(this.collectFromSingleCollector(name, collector));
+  /**
+   * 모든 컬렉터 시작
+   */
+  async startAll(): Promise<void> {
+    if (this.isRunning) {
+      console.log('⚠️ 컬렉터들이 이미 실행 중입니다');
+      return;
     }
 
-    await Promise.allSettled(promises);
+    console.log(`🚀 ${this.collectors.size}개 컬렉터 시작...`);
+    
+    const startPromises = Array.from(this.collectors.values()).map(async (collector) => {
+      try {
+        await collector.start();
+      } catch (error) {
+        console.error(`❌ 컬렉터 시작 실패:`, error);
+      }
+    });
+
+    await Promise.all(startPromises);
+    this.isRunning = true;
+    console.log('✅ 모든 컬렉터 시작 완료');
   }
 
   /**
-   * 단일 수집기에서 모든 서버 수집
+   * 모든 컬렉터 중지
    */
-  private async collectFromSingleCollector(name: string, collector: MetricCollector): Promise<void> {
-    try {
-      const serverList = await collector.getServerList();
-      
-      const collectPromises = serverList.map(async (serverId) => {
-        try {
-          const metrics = await collector.collectMetrics(serverId);
-          // TODO: 메트릭 저장 로직 구현 필요 (storage 모듈 제거됨)
-          console.log(`📊 Collected metrics for ${serverId}:`, metrics);
-        } catch (error) {
-          console.error(`❌ Failed to collect metrics for ${serverId}:`, error);
+  stopAll(): void {
+    console.log(`🛑 ${this.collectors.size}개 컬렉터 중지...`);
+    
+    this.collectors.forEach(collector => {
+      try {
+        collector.stop();
+      } catch (error) {
+        console.error(`❌ 컬렉터 중지 실패:`, error);
+      }
+    });
+
+    this.isRunning = false;
+    console.log('✅ 모든 컬렉터 중지 완료');
+  }
+
+  /**
+   * 컬렉터 상태 조회
+   */
+  getStatus() {
+    const collectors = Array.from(this.collectors.entries()).map(([id, collector]) => ({
+      id,
+      isRunning: collector.isRunning,
+      lastCollection: collector.lastCollection,
+      errorCount: collector.errorCount
+    }));
+
+    return {
+      total: this.collectors.size,
+      running: collectors.filter(c => c.isRunning).length,
+      collectors,
+      managerRunning: this.isRunning
+    };
+  }
+}
+
+// 전역 컬렉터 관리자 인스턴스
+export const collectionManager = new CollectorManager();
+
+// 초기화
+if (typeof window === 'undefined') { // 서버 환경에서만
+  console.log('🔧 실제 컬렉터 관리자 초기화');
+  
+  // 프로덕션 환경에서만 실제 컬렉터 추가
+  if (process.env.NODE_ENV === 'production') {
+    // Prometheus 컬렉터
+    if (process.env.PROMETHEUS_ENDPOINT) {
+      collectionManager.addCollector('prometheus', {
+        id: 'prometheus',
+        type: 'prometheus',
+        name: 'Prometheus Collector',
+        endpoint: process.env.PROMETHEUS_ENDPOINT,
+        interval: 30000,
+        timeout: 10000,
+        retryAttempts: 3,
+        enabled: true,
+        tags: ['production', 'prometheus'],
+        authentication: {
+          type: 'bearer',
+          token: process.env.PROMETHEUS_TOKEN
         }
       });
-
-      await Promise.allSettled(collectPromises);
-      console.log(`✅ Collected metrics from ${serverList.length} servers via '${name}'`);
-    } catch (error) {
-      console.error(`❌ Failed to collect from collector '${name}':`, error);
-    }
-  }
-
-  /**
-   * 스케줄 시작
-   */
-  private startSchedule(collectorName: string, intervalSeconds: number): void {
-    this.stopSchedule(collectorName); // 기존 스케줄 정리
-
-    const interval = setInterval(async () => {
-      const collector = this.collectors.get(collectorName);
-      if (collector) {
-        await this.collectFromSingleCollector(collectorName, collector);
-      }
-    }, intervalSeconds * 1000);
-
-    this.schedules.set(collectorName, interval);
-  }
-
-  /**
-   * 스케줄 중지
-   */
-  private stopSchedule(collectorName: string): void {
-    const existingInterval = this.schedules.get(collectorName);
-    if (existingInterval) {
-      clearInterval(existingInterval);
-      this.schedules.delete(collectorName);
-    }
-  }
-
-  /**
-   * 모든 스케줄 중지
-   */
-  stopAllSchedules(): void {
-    for (const [name] of this.schedules) {
-      this.stopSchedule(name);
-    }
-    console.log('🛑 All collection schedules stopped');
-  }
-
-  /**
-   * 현재 활성 수집기 목록
-   */
-  getActiveCollectors(): string[] {
-    return Array.from(this.collectors.keys());
-  }
-
-  /**
-   * 수집기 상태 확인
-   */
-  async getCollectorStatus(): Promise<CollectorStatus[]> {
-    const statuses: CollectorStatus[] = [];
-
-    for (const [name, collector] of this.collectors) {
-      try {
-        const serverList = await collector.getServerList();
-        const onlineServers = await Promise.all(
-          serverList.map(id => collector.isServerOnline(id))
-        );
-        const onlineCount = onlineServers.filter(Boolean).length;
-
-        statuses.push({
-          name,
-          totalServers: serverList.length,
-          onlineServers: onlineCount,
-          offlineServers: serverList.length - onlineCount,
-          isScheduled: this.schedules.has(name),
-          lastCollection: new Date()
-        });
-      } catch (error) {
-        statuses.push({
-          name,
-          totalServers: 0,
-          onlineServers: 0,
-          offlineServers: 0,
-          isScheduled: this.schedules.has(name),
-          lastCollection: new Date(),
-          error: error instanceof Error ? error.message : 'Unknown error'
-        });
-      }
     }
 
-    return statuses;
+    // CloudWatch 컬렉터  
+    if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+      collectionManager.addCollector('cloudwatch', {
+        id: 'cloudwatch',
+        type: 'cloudwatch',
+        name: 'CloudWatch Collector',
+        endpoint: process.env.AWS_CLOUDWATCH_ENDPOINT,
+        interval: 60000,
+        timeout: 15000,
+        retryAttempts: 2,
+        enabled: true,
+        tags: ['production', 'aws'],
+        authentication: {
+          type: 'aws',
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+          region: process.env.AWS_REGION || 'us-east-1'
+        }
+      });
+    }
   }
-}
-
-export interface CollectorStatus {
-  name: string;
-  totalServers: number;
-  onlineServers: number;
-  offlineServers: number;
-  isScheduled: boolean;
-  lastCollection: Date;
-  error?: string;
-}
-
-// 싱글톤 인스턴스
-export const collectionManager = new MetricCollectionManager();
-
-// 기본 더미 수집기 자동 설정 (개발 환경용)
-if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
-  collectionManager.addCollector('dummy', {
-    type: 'dummy',
-    interval: 30, // 30초마다 수집
-    timeout: 10   // 10초 타임아웃
-  });
 } 

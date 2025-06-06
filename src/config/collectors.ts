@@ -1,4 +1,4 @@
-import { CollectorConfig } from '../types/collector';
+import { CollectorConfig } from '@/types/collector';
 
 /**
  * 수집기 설정 중앙 관리
@@ -6,93 +6,97 @@ import { CollectorConfig } from '../types/collector';
  * 환경변수나 설정 파일에 따라 더미 모드와 실제 모드를 전환할 수 있습니다.
  */
 
-const COLLECTOR_MODE = process.env.COLLECTOR_MODE || 'dummy'; // 'dummy' | 'production'
+// 프로덕션 전용 설정
+const COLLECTOR_MODE = process.env.COLLECTOR_MODE || 'production'; // 'production' only
 
-// 더미 모드 설정 (개발/테스트용)
-const dummyConfigs: CollectorConfig[] = [
-  {
-    type: 'dummy',
-    interval: 30,   // 30초마다 수집
-    timeout: 10     // 10초 타임아웃
-  }
-];
-
-// 프로덕션 모드 설정 (실제 서버 연동)
+/**
+ * 프로덕션 Collector 설정들
+ */
 const productionConfigs: CollectorConfig[] = [
-  // Kubernetes 클러스터 (Prometheus)
   {
+    id: 'prometheus',
     type: 'prometheus',
-    endpoint: process.env.PROMETHEUS_ENDPOINT || 'http://prometheus.kube-system:9090',
-    credentials: {
-      apiKey: process.env.PROMETHEUS_API_KEY
-    },
-    interval: 60,   // 1분마다 수집
-    timeout: 30     // 30초 타임아웃
+    name: 'Prometheus Metrics',
+    endpoint: process.env.PROMETHEUS_ENDPOINT || 'http://localhost:9090',
+    interval: 30000, // 30초
+    timeout: 10000,
+    retryAttempts: 3,
+    enabled: true,
+    tags: ['metrics', 'monitoring', 'performance'],
+    authentication: {
+      type: 'bearer',
+      token: process.env.PROMETHEUS_TOKEN
+    }
   },
-  
-  // AWS EC2 인스턴스 (CloudWatch)
   {
-    type: 'cloudwatch',
-    credentials: {
-      apiKey: process.env.AWS_ACCESS_KEY_ID || '',
-      secretKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-      region: process.env.AWS_REGION || 'us-east-1'
-    },
-    interval: 300,  // 5분마다 수집 (CloudWatch 기본 간격)
-    timeout: 60     // 60초 타임아웃
-  },
-  
-  // 온프레미스 서버 (Custom API)
-  {
+    id: 'grafana',
     type: 'custom',
-    endpoint: process.env.ONPREM_API_ENDPOINT || 'https://monitoring.company.local',
-    credentials: {
-      apiKey: process.env.ONPREM_API_KEY || '',
-      secretKey: process.env.ONPREM_API_SECRET || ''
-    },
-    interval: 120,  // 2분마다 수집
-    timeout: 45     // 45초 타임아웃
+    name: 'Grafana API',
+    endpoint: process.env.GRAFANA_ENDPOINT || 'http://localhost:3000/api',
+    interval: 60000, // 1분
+    timeout: 15000,
+    retryAttempts: 2,
+    enabled: Boolean(process.env.GRAFANA_ENDPOINT),
+    tags: ['visualization', 'dashboards'],
+    authentication: {
+      type: 'api-key',
+      apiKey: process.env.GRAFANA_API_KEY
+    }
+  },
+  {
+    id: 'cloudwatch',
+    type: 'cloudwatch',
+    name: 'AWS CloudWatch',
+    endpoint: process.env.AWS_CLOUDWATCH_ENDPOINT,
+    interval: 120000, // 2분
+    timeout: 20000,
+    retryAttempts: 3,
+    enabled: Boolean(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY),
+    tags: ['aws', 'cloud', 'metrics'],
+    authentication: {
+      type: 'aws',
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      region: process.env.AWS_REGION || 'us-east-1'
+    }
+  },
+  {
+    id: 'custom-webhook',
+    type: 'custom',
+    name: 'Custom Webhook Collector',
+    endpoint: process.env.CUSTOM_WEBHOOK_ENDPOINT,
+    interval: 45000, // 45초
+    timeout: 12000,
+    retryAttempts: 2,
+    enabled: Boolean(process.env.CUSTOM_WEBHOOK_ENDPOINT),
+    tags: ['webhook', 'custom', 'integration'],
+    authentication: {
+      type: 'bearer',
+      token: process.env.CUSTOM_WEBHOOK_TOKEN
+    }
   }
 ];
 
 /**
- * 현재 모드에 따른 수집기 설정 반환
+ * 실제 환경변수 기반 Collector 설정 반환
  */
 export function getCollectorConfigs(): CollectorConfig[] {
-  if (COLLECTOR_MODE === 'production') {
-    console.log('🚀 프로덕션 모드: 실제 수집기 사용');
-    return productionConfigs.filter(config => {
-      // 필수 환경변수가 설정된 수집기만 활성화
-      if (config.type === 'prometheus') {
-        return !!process.env.PROMETHEUS_ENDPOINT;
-      }
-      if (config.type === 'cloudwatch') {
-        return !!(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY);
-      }
-      if (config.type === 'custom') {
-        return !!(process.env.ONPREM_API_ENDPOINT && process.env.ONPREM_API_KEY);
-      }
-      return true;
-    });
-  }
-  
-  console.log('🧪 더미 모드: 시뮬레이션 데이터 사용');
-  return dummyConfigs;
+  console.log(`🔧 프로덕션 Collector 모드: ${COLLECTOR_MODE}`);
+  return productionConfigs.filter(config => config.enabled);
 }
 
 /**
- * 특정 타입의 수집기 설정 조회
+ * 특정 Collector 설정 가져오기
  */
-export function getCollectorConfig(type: string): CollectorConfig | undefined {
-  const configs = getCollectorConfigs();
-  return configs.find(config => config.type === type);
+export function getCollectorConfig(id: string): CollectorConfig | undefined {
+  return productionConfigs.find(config => config.id === id);
 }
 
 /**
- * 수집기 모드 확인
+ * 활성화된 Collector 개수
  */
-export function isProductionMode(): boolean {
-  return COLLECTOR_MODE === 'production';
+export function getActiveCollectorCount(): number {
+  return productionConfigs.filter(config => config.enabled).length;
 }
 
 /**

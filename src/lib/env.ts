@@ -1,70 +1,39 @@
 import { z } from 'zod'
 
-// 개발 환경 또는 CI 환경에서는 더미 값도 허용하도록 설정
-const isDevelopment = process.env.NODE_ENV === 'development'
-const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true'
-const skipValidation = process.env.SKIP_ENV_VALIDATION === 'true'
-
 const EnvironmentSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
-  NEXT_PUBLIC_SUPABASE_URL: (isDevelopment || isCI || skipValidation)
-    ? z.string().default('https://dummy-project.supabase.co')
-    : z.string().url(),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).default('dummy_anon_key'),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).default('dummy_service_key'),
-  UPSTASH_REDIS_REST_URL: (isDevelopment || isCI || skipValidation)
-    ? z.string().default('https://dummy-redis.upstash.io')
-    : z.string().url(),
-  UPSTASH_REDIS_REST_TOKEN: z.string().min(1).default('dummy_redis_token'),
+  NEXT_PUBLIC_APP_URL: z.string().url(),
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+  UPSTASH_REDIS_REST_URL: z.string().url(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
 })
 
 function validateEnvironment() {
-  // CI 환경이거나 검증을 건너뛰는 경우 바로 폴백 값 반환
-  if (isCI || skipValidation) {
-    console.log('🔧 CI/Skip mode: Using fallback values for environment variables')
-    return {
-      NODE_ENV: (process.env.NODE_ENV || 'development') as 'development' | 'production' | 'test',
-      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dummy-project.supabase.co',
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy_anon_key',
-      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || 'dummy_service_key',
-      UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL || 'https://dummy-redis.upstash.io',
-      UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN || 'dummy_redis_token',
-    }
-  }
-
   try {
     const parsed = EnvironmentSchema.parse({
       NODE_ENV: process.env.NODE_ENV || 'development',
-      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dummy-project.supabase.co',
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy_anon_key',
-      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || 'dummy_service_key',
-      UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL || 'https://dummy-redis.upstash.io',
-      UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN || 'dummy_redis_token',
+      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+      UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
+      UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
     })
-    
-    if (isDevelopment) {
-      console.log('🔧 Development mode: Using fallback values for missing environment variables')
-    }
     
     return parsed
   } catch (error) {
-    console.error('Environment validation failed:', error)
-    if (isDevelopment || isCI) {
-      console.warn('⚠️ Using fallback values for development/CI')
-      return {
-        NODE_ENV: 'development' as const,
-        NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
-        NEXT_PUBLIC_SUPABASE_URL: 'https://dummy-project.supabase.co',
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: 'dummy_anon_key',
-        SUPABASE_SERVICE_ROLE_KEY: 'dummy_service_key',
-        UPSTASH_REDIS_REST_URL: 'https://dummy-redis.upstash.io',
-        UPSTASH_REDIS_REST_TOKEN: 'dummy_redis_token',
-      }
-    }
-    throw new Error('Invalid environment configuration')
+    console.error('❌ 환경변수 설정이 필요합니다:')
+    console.error('NEXT_PUBLIC_APP_URL - 애플리케이션 URL')
+    console.error('NEXT_PUBLIC_SUPABASE_URL - Supabase 프로젝트 URL')
+    console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY - Supabase 익명 키')
+    console.error('SUPABASE_SERVICE_ROLE_KEY - Supabase 서비스 역할 키')
+    console.error('UPSTASH_REDIS_REST_URL - Upstash Redis URL')
+    console.error('UPSTASH_REDIS_REST_TOKEN - Upstash Redis 토큰')
+    console.error('')
+    console.error('📋 .env.local 파일을 생성하고 위 환경변수들을 설정해주세요.')
+    throw new Error('필수 환경변수가 설정되지 않았습니다')
   }
 }
 
