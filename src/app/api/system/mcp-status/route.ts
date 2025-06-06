@@ -10,7 +10,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { unifiedAISystem } from '../../../../core/ai/unified-ai-system';
 import { keepAliveSystem } from '../../../../services/ai/keep-alive-system';
-import { fastApiClient } from '../../../../services/python-bridge/fastapi-client';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -35,7 +34,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
               ].filter(comp => comp.status === 'healthy').length
             },
             version: '5.17.10-MCP',
-            architecture: 'MCP + FastAPI Hybrid',
+            architecture: 'MCP Node Only',
             components: {
               totalComponents: Object.keys(systemHealth.components).length,
               healthyComponents: [
@@ -60,11 +59,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         const [
           systemHealthDetail,
           keepAliveStatus,
-          fastApiStatus
         ] = await Promise.allSettled([
           unifiedAISystem.getSystemHealth(),
           keepAliveSystem.getStatus(),
-          fastApiClient.getConnectionStatus()
+          Promise.resolve({ isConnected: false, lastHealthCheck: 0, healthStatus: null })
         ]);
 
         return NextResponse.json({
@@ -96,19 +94,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
                 : null
             },
             fastAPI: {
-              status: fastApiStatus.status === 'fulfilled' && fastApiStatus.value.isConnected
-                ? 'connected'
-                : 'disconnected',
-              details: fastApiStatus.status === 'fulfilled'
-                ? {
-                    lastHealthCheck: fastApiStatus.value.lastHealthCheck,
-                    healthStatus: fastApiStatus.value.healthStatus
-                  }
-                : null
+              status: 'disabled',
+              details: null
             }
-          },
-          timestamp: Date.now()
-        });
+         },
+         timestamp: Date.now()
+       });
 
       case 'performance':
         // 성능 메트릭
@@ -161,7 +152,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       case 'diagnostic':
         // 진단 정보
         const keepAliveData = await keepAliveSystem.getStatus();
-        const fastApiData = await fastApiClient.getConnectionStatus();
         
         const diagnostics = {
           mcp: {
@@ -170,7 +160,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             recommendations: [] as string[]
           },
           fastapi: {
-            status: fastApiData.isConnected ? 'connected' : 'disconnected',
+            status: 'disabled',
             issues: [] as string[],
             recommendations: [] as string[]
           },
@@ -182,10 +172,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         };
 
         // FastAPI 진단
-        if (!fastApiData.isConnected) {
-          diagnostics.fastapi.issues.push('AI 엔진 연결 실패');
-          diagnostics.fastapi.recommendations.push('FastAPI 서버 상태를 확인하세요');
-        }
 
         // Keep-Alive 진단
         if (!keepAliveData.isActive) {
@@ -228,8 +214,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
               },
               {
                 name: 'health_check',
-                description: 'FastAPI 헬스체크',
-                endpoint: 'POST /api/system/mcp-status?action=health',
+                description: 'FastAPI 헬스체크 (비활성화됨)',
+                endpoint: '#',
                 payload: {}
               }
             ]
@@ -283,27 +269,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         });
 
       case 'health':
-        // FastAPI 헬스체크 강제 실행
-        const health = await fastApiClient.checkHealth();
-        
         return NextResponse.json({
           success: true,
-          data: health,
-          message: 'FastAPI 헬스체크 완료',
+          data: { status: 'disabled' },
+          message: 'FastAPI 기능이 비활성화되었습니다',
           timestamp: Date.now()
         });
 
       case 'warmup':
-        // FastAPI 웜업 실행
-        const warmupResult = await fastApiClient.warmup();
-        
         return NextResponse.json({
-          success: true,
-          data: {
-            triggered: true,
-            result: warmupResult ? 'success' : 'failed'
-          },
-          message: warmupResult ? 'AI 엔진 웜업 성공' : 'AI 엔진 웜업 실패',
+          success: false,
+          message: 'FastAPI 기능이 비활성화되어 있습니다',
           timestamp: Date.now()
         });
 
@@ -322,7 +298,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         return NextResponse.json({
           error: '알 수 없는 액션',
           code: 'UNKNOWN_ACTION',
-          available: ['ping', 'health', 'warmup', 'reset_stats'],
+          available: ['ping', 'reset_stats'],
           timestamp: Date.now()
         }, { status: 400 });
     }

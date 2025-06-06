@@ -203,7 +203,7 @@ export default function FeatureCards() {
       currentFeatures: "MCP 프로토콜 기반 로컬 AI 추론, 하이브리드 Python+TypeScript 엔진, 실시간 의도 분류",
       futureFeatures: "차후 개발: LLM API 연동, 예측 분석 정확도 향상, 자동 최적화 제안, 컨텍스트 학습 시스템",
       techStack: "🔵 오픈소스: MCP SDK • Python 3.11 • FastAPI • NumPy/Pandas • Scikit-learn",
-      customStack: "🟢 자체 개발: AI 하이브리드 엔진 • PythonWarmupService • 의도 분류 모델",
+      customStack: "🟢 자체 개발: 통합 AI 엔진 • 의도 분류 모델",
       action: "AI 에이전트 체험",
       href: "/admin/ai-agent",
       icon: <Brain className="w-8 h-8" />,
@@ -407,7 +407,7 @@ export default function FeatureCards() {
                     AI 핵심 엔진
                   </h6>
                   <div className="flex flex-wrap gap-2">
-                    {["AI 하이브리드 엔진", "PythonWarmupService", "의도 분류 모델"].map((tech) => (
+                    {["통합 AI 엔진", "의도 분류 모델"].map((tech) => (
                       <span key={tech} className="px-2 py-1 bg-emerald-500/20 text-emerald-300 rounded text-xs">
                         {tech}
                       </span>

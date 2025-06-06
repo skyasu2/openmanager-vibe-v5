@@ -13,7 +13,6 @@ export interface KeepAliveConfig {
   maxRetries: number; // 최대 재시도 횟수
   endpoints: {
     health: string;
-    warmup: string;
     status: string;
   };
   scheduler: {
@@ -48,7 +47,6 @@ export class KeepAliveSystem {
       maxRetries: 3,
       endpoints: {
         health: '/api/health',
-        warmup: '/api/system/python-warmup',
         status: '/api/system/status'
       },
       scheduler: {
@@ -186,10 +184,6 @@ export class KeepAliveSystem {
       // 헬스 체크
       await this.pingEndpoint(this.config.endpoints.health);
       
-      // AI 엔진 웜업 (랜덤하게 실행)
-      if (Math.random() < 0.3) { // 30% 확률로 웜업 실행
-        await this.pingEndpoint(this.config.endpoints.warmup);
-      }
 
       // 시스템 상태 체크
       await this.pingEndpoint(this.config.endpoints.status);

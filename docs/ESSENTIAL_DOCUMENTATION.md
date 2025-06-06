@@ -28,16 +28,14 @@ OpenManager Vibe v5는 **MCP(Model Context Protocol) 기반 AI 엔진**을 활�
 
 ### ✨ 핵심 특징
 - 🧠 **Enhanced AI Engine v2.0**: 벡터 DB 없는 고성능 문서 검색
-- 📚 **MCP 문서 활용 극대화**: 실시간 컨텍스트 학습
-- 🔄 **Render 자동 관리**: 무료 서비스 최적화
-- ⚡ **Vercel 무료 최적화**: 1GB 메모리 제한 대응
+- 📚 **MCP 문서 활용 극대화**: 실시간 컨텍스트 학습- ⚡ **Vercel 무료 최적화**: 1GB 메모리 제한 대응
 - 🎯 **LLM 없이 완전 동작**: 기본 TensorFlow.js + MCP
 
 ### 🛠️ 기술 스택
 - **Frontend**: Next.js 14, TypeScript, Tailwind CSS
 - **AI Engine**: TensorFlow.js, MCP Protocol, Enhanced NLP
-- **Backend**: FastAPI (Python), PostgreSQL
-- **Deployment**: Vercel (무료), Render (무료)
+- **Backend**: Node.js (Express), PostgreSQL
+- **Deployment**: Vercel (독립형)
 - **Development**: Cursor AI, MCP Tools
 
 ---
@@ -68,8 +66,6 @@ REDIS_URL="your_redis_url"
 NEXTAUTH_SECRET="your_secret_key"
 
 # AI 엔진 설정 (선택사항)
-RENDER_API_KEY="your_render_key"
-FASTAPI_BASE_URL="https://your-ai-engine.onrender.com"
 ```
 
 ### 3. 데이터베이스 초기화
@@ -184,7 +180,6 @@ envLog('error', '오류 발생');  // 모든 환경에서 출력
 - **MCP 문서 검색**: 벡터 DB 없는 키워드 검색
 - **컨텍스트 학습**: 실시간 세션 기반 학습
 - **TensorFlow.js**: 경량 ML 모델 실행
-- **Render 자동화**: 무료 서비스 활용 극대화
 
 ---
 
@@ -210,31 +205,10 @@ class EnhancedAIEngine {
 }
 ```
 
-#### **2. Render 자동 관리**
-```typescript
-class RenderManager {
-  // 자동 ping으로 슬립 방지
-  async keepAlive(): Promise<void> {
-    setInterval(async () => {
-      await fetch(`${RENDER_SERVICE_URL}/ping`);
-    }, 14 * 60 * 1000); // 14분마다
-  }
-
-  // 비용 효율적 서비스 관리
-  async manageResources(): Promise<void> {
-    if (this.isLowUsage()) {
-      await this.scaleDown();
-    } else {
-      await this.scaleUp();
-    }
-  }
-}
-```
 
 ### 📊 성능 지표
 - ⚡ **5초 내 응답**: 벡터 DB 없는 경량 검색
 - 🧠 **90%+ 신뢰도**: MCP 문서 컨텍스트 활용
-- 🔄 **자동 Render 관리**: 무료 서비스 최적화
 - 💾 **1GB 메모리 내**: Vercel 무료 제한 준수
 
 ### 🎯 API 사용법
@@ -619,12 +593,7 @@ docker run -p 3000:3000 openmanager-vibe
 # 엔진 상태 확인
 curl http://localhost:3000/api/ai/enhanced
 
-# Render 서비스 확인
-curl https://your-ai-engine.onrender.com/health
-```
 
-**해결 방법**:
-- Render 서비스가 슬립 상태인지 확인
 - 환경 변수 `RENDER_API_KEY` 설정 확인
 - 네트워크 연결 상태 점검
 
