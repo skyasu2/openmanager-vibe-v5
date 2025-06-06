@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "ai-engine": {
+      "command": "node",
+      "args": ["./mcp-server/server.js"],
+      "description": "AI 분석 및 서버 모니터링 인텔리전스 엔진",
+      "env": {
+        "NODE_ENV": "production",
+        "AI_ENGINE_MODE": "true",
+        "PROJECT_ROOT": "/opt/render/project/src"
+      }
+    }
+  },
+  "aiEngineConfig": {
+    "purpose": "서버 모니터링 AI 분석 엔진",
+    "capabilities": [
+      "서버 상태 분석",
+      "이상 징후 탐지",
+      "성능 최적화 권장",
+      "예측 분석",
+      "한국어 서버 관리 지식베이스"
+    ],
+    "environment": "render_production",
+    "healthCheck": {
+      "endpoint": "/health",
+      "interval": 30
+    }
+  }
+}

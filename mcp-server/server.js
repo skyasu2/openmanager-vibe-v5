@@ -14,9 +14,15 @@ import http from 'http';
 
 class OpenManagerMCPServer {
   constructor() {
+    // AI 엔진 모드 감지
+    this.isAIEngineMode = process.env.AI_ENGINE_MODE === 'true';
+    this.environment = process.env.NODE_ENV || 'development';
+
     this.server = new Server(
       {
-        name: 'openmanager-mcp-server',
+        name: this.isAIEngineMode
+          ? 'openmanager-ai-engine'
+          : 'openmanager-mcp-server',
         version: '0.1.0',
       },
       {
@@ -28,6 +34,12 @@ class OpenManagerMCPServer {
 
     this.setupToolHandlers();
     this.setupErrorHandling();
+
+    if (this.isAIEngineMode) {
+      console.error('🤖 AI Engine Mode: 서버 모니터링 분석 엔진 실행');
+    } else {
+      console.error('🛠️ Development Mode: 개발 도구 MCP 서버 실행');
+    }
   }
 
   setupToolHandlers() {

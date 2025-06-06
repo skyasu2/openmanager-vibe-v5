@@ -1,31 +1,19 @@
 {
   "mcpServers": {
-    "openmanager-filesystem": {
+    "openmanager-local": {
       "command": "node",
       "args": ["./mcp-server/server.js"],
       "cwd": ".",
+      "description": "로컬 OpenManager MCP 서버 (개발 전용)",
       "env": {
         "NODE_ENV": "development",
         "PROJECT_ROOT": "."
       }
     },
-    "render-mcp": {
-      "command": "curl",
-      "args": [
-        "-X",
-        "POST",
-        "https://openmanager-mcp-server.onrender.com/mcp",
-        "-H",
-        "Content-Type: application/json"
-      ],
-      "description": "Render에 배포된 OpenManager MCP 서버",
-      "env": {
-        "NODE_ENV": "production"
-      }
-    },
     "filesystem": {
       "command": "npx",
       "args": ["@modelcontextprotocol/server-filesystem", "./docs", "./src"],
+      "description": "파일 시스템 조작 도구 (개발 필수)",
       "env": {
         "NODE_ENV": "development"
       }
@@ -33,6 +21,7 @@
     "git": {
       "command": "npx",
       "args": ["-y", "@smithery/git-mcp"],
+      "description": "Git 브랜치 관리 및 커밋 자동화",
       "env": {
         "NODE_ENV": "development"
       }
@@ -40,6 +29,7 @@
     "browser-tools": {
       "command": "npx",
       "args": ["-y", "@smithery/browser-tools-mcp"],
+      "description": "웹 브라우저 자동화 및 스크래핑 도구",
       "env": {
         "NODE_ENV": "development"
       }
@@ -47,6 +37,7 @@
     "apidog": {
       "command": "npx",
       "args": ["-y", "@smithery/apidog-mcp"],
+      "description": "API 테스팅 및 문서화 도구",
       "env": {
         "NODE_ENV": "development"
       }
