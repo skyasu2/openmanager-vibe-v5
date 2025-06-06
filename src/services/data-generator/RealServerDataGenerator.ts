@@ -10,7 +10,7 @@
  */
 
 import { realPrometheusCollector } from '../collectors/RealPrometheusCollector';
-import { getRedisClient } from '@/lib/redis';
+import { smartRedis } from '@/lib/redis';
 
 // 커스텀 환경 설정 인터페이스
 export interface CustomEnvironmentConfig {
@@ -179,18 +179,23 @@ export class RealServerDataGenerator {
 
   /**
    * 🚀 초기화
-   */
+  */
   public async initialize(): Promise<void> {
     try {
-      this.redis = await getRedisClient();
+      // 스마트 Redis 사용 (실제 Redis가 없을 때 메모리 캐시 동작)
+      this.redis = smartRedis;
+
       await realPrometheusCollector.initialize();
       console.log('✅ 실제 서버 데이터 생성기 초기화 완료');
-
-      this.startAutoGeneration();
-      
     } catch (error) {
       console.warn('⚠️ 서버 데이터 생성기 초기화 실패:', error);
+
+      // 초기화 실패 시에도 스마트 Redis 적용
+      this.redis = smartRedis;
     }
+
+    // 실패 여부와 관계없이 자동 생성 루프 시작
+    this.startAutoGeneration();
   }
 
   /**
@@ -723,16 +728,19 @@ export class RealServerDataGenerator {
    */
   private async cacheGeneratedData(): Promise<void> {
     try {
-      if (this.redis) {
-        const data = {
-          servers: Array.from(this.servers.values()),
-          clusters: Array.from(this.clusters.values()),
-          applications: Array.from(this.applications.values()),
-          timestamp: new Date().toISOString()
-        };
-        
-        await this.redis.setex('server:generated:data', 60, JSON.stringify(data));
+      // Redis 인스턴스가 없더라도 스마트 Redis 사용
+      if (!this.redis) {
+        this.redis = smartRedis;
       }
+
+      const data = {
+        servers: Array.from(this.servers.values()),
+        clusters: Array.from(this.clusters.values()),
+        applications: Array.from(this.applications.values()),
+        timestamp: new Date().toISOString()
+      };
+
+      await this.redis.set('server:generated:data', JSON.stringify(data), { ex: 60 });
     } catch (error) {
       console.warn('⚠️ 생성된 데이터 캐시 실패:', error);
     }
