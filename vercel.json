@@ -20,7 +20,8 @@
   },
   "functions": {
     "src/app/api/**/*.ts": {
-      "memory": 1024
+      "memory": 1024,
+      "maxDuration": 60
     }
   },
   "regions": ["iad1"],
@@ -38,7 +39,7 @@
           "value": "nosniff"
         },
         {
-          "key": "X-Frame-Options", 
+          "key": "X-Frame-Options",
           "value": "DENY"
         },
         {
@@ -72,7 +73,7 @@
           "value": "*"
         },
         {
-          "key": "Access-Control-Allow-Methods", 
+          "key": "Access-Control-Allow-Methods",
           "value": "GET, POST, PUT, DELETE, OPTIONS"
         },
         {
@@ -94,6 +95,13 @@
     {
       "path": "/api/health",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/keep-alive",
+      "schedule": "0 */4 * * *"
     }
-  ]
-} 
+  ],
+  "env": {
+    "CRON_SECRET": "@cron-secret"
+  }
+}

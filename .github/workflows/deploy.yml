@@ -1,0 +1,153 @@
+name: 🚀 Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # 1단계: 코드 품질 검증
+  quality-check:
+    name: 📋 Code Quality Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📂 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 📝 TypeScript type check
+        run: npm run type-check
+
+      - name: 🔧 ESLint check
+        run: npm run lint
+
+      - name: ✨ Prettier check
+        run: npx prettier --check .
+
+  # 2단계: 테스트 실행
+  test:
+    name: 🧪 Run Tests
+    runs-on: ubuntu-latest
+    needs: quality-check
+    steps:
+      - name: 📂 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 🧪 Run unit tests
+        run: npm run test:unit
+
+      - name: 📊 Upload coverage
+        uses: codecov/codecov-action@v3
+        if: always()
+
+  # 3단계: 빌드 검증
+  build:
+    name: 🏗️ Build Check
+    runs-on: ubuntu-latest
+    needs: [quality-check, test]
+    steps:
+      - name: 📂 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 🏗️ Build application
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+      - name: 📦 Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-files
+          path: .next/
+
+  # 4단계: 보안 검사
+  security:
+    name: 🔒 Security Audit
+    runs-on: ubuntu-latest
+    needs: quality-check
+    steps:
+      - name: 📂 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 🔒 Security audit
+        run: npm audit --audit-level=high
+
+  # 5단계: Vercel 배포 (main 브랜치만)
+  deploy:
+    name: 🚀 Deploy to Vercel
+    runs-on: ubuntu-latest
+    needs: [quality-check, test, build, security]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: 📂 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🚀 Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+
+  # 6단계: 배포 후 검증
+  post-deploy:
+    name: ✅ Post-Deploy Verification
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: 🏥 Health check
+        run: |
+          sleep 30  # 배포 완료 대기
+          curl -f https://openmanager-vibe-v5.vercel.app/api/health || exit 1
+
+      - name: 📊 Performance check
+        run: |
+          npx lighthouse https://openmanager-vibe-v5.vercel.app --output=json --quiet || true
+
+      - name: 📢 Deployment notification
+        run: |
+          echo "🎉 배포 완료!"
+          echo "📍 URL: https://openmanager-vibe-v5.vercel.app"
+          echo "🕐 시간: $(date)"

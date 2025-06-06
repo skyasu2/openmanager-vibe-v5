@@ -1,8 +1,13 @@
-import { MetricCollector, ServerMetrics, ServiceStatus, CollectorConfig } from '../../types/collector';
+import {
+  MetricCollector,
+  ServerMetrics,
+  ServiceStatus,
+  CollectorConfig,
+} from '../../types/collector';
 
 /**
  * Custom API 메트릭 수집기
- * 
+ *
  * REST API 엔드포인트에서 메트릭을 수집하는 범용 수집기
  * 온프레미스 서버나 커스텀 모니터링 시스템과 연동할 때 사용합니다.
  */
@@ -11,6 +16,11 @@ export class CustomAPICollector implements MetricCollector {
   private baseUrl: string;
   private headers: Record<string, string>;
 
+  // 상태 속성들
+  public isRunning: boolean = false;
+  public lastCollection: Date | null = null;
+  public errorCount: number = 0;
+
   constructor(config: CollectorConfig) {
     this.config = config;
     this.baseUrl = config.endpoint || 'http://localhost:8080';
@@ -18,12 +28,38 @@ export class CustomAPICollector implements MetricCollector {
       'Content-Type': 'application/json',
       'User-Agent': 'OpenManager-Vibe-Collector/1.0',
       ...(config.credentials?.apiKey && {
-        'Authorization': `Bearer ${config.credentials.apiKey}`
+        Authorization: `Bearer ${config.credentials.apiKey}`,
       }),
       ...(config.credentials?.secretKey && {
-        'X-API-Secret': config.credentials.secretKey
-      })
+        'X-API-Secret': config.credentials.secretKey,
+      }),
     };
+  }
+
+  /**
+   * 수집기 시작
+   */
+  async start(): Promise<void> {
+    try {
+      // API 연결 테스트
+      const url = `${this.baseUrl}/api/health`;
+      await this.makeAPIRequest('GET', url);
+      this.isRunning = true;
+      this.errorCount = 0;
+      console.log(`✅ Custom API 수집기 시작됨: ${this.baseUrl}`);
+    } catch (error) {
+      this.errorCount++;
+      console.error('❌ Custom API 수집기 시작 실패:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 수집기 중지
+   */
+  async stop(): Promise<void> {
+    this.isRunning = false;
+    console.log('🛑 Custom API 수집기 중지됨');
   }
 
   /**
@@ -57,16 +93,22 @@ export class CustomAPICollector implements MetricCollector {
       const response = await this.makeAPIRequest('GET', url);
 
       if (!response.success) {
-        throw new Error(`서버 목록 조회 실패: ${response.error || 'Unknown error'}`);
+        throw new Error(
+          `서버 목록 조회 실패: ${response.error || 'Unknown error'}`
+        );
       }
 
       // API 응답에서 서버 ID 목록 추출
       if (Array.isArray(response.data)) {
-        return response.data.map((server: any) => server.id || server.serverId || server.hostname);
+        return response.data.map(
+          (server: any) => server.id || server.serverId || server.hostname
+        );
       }
 
       if (response.data.servers && Array.isArray(response.data.servers)) {
-        return response.data.servers.map((server: any) => server.id || server.serverId || server.hostname);
+        return response.data.servers.map(
+          (server: any) => server.id || server.serverId || server.hostname
+        );
       }
 
       return [];
@@ -100,11 +142,15 @@ export class CustomAPICollector implements MetricCollector {
 
   // Private Methods
 
-  private async makeAPIRequest(method: string, url: string, body?: any): Promise<any> {
+  private async makeAPIRequest(
+    method: string,
+    url: string,
+    body?: any
+  ): Promise<any> {
     const options: RequestInit = {
       method,
       headers: this.headers,
-      signal: AbortSignal.timeout(this.config.timeout * 1000)
+      signal: AbortSignal.timeout(this.config.timeout * 1000),
     };
 
     if (body && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
@@ -132,64 +178,128 @@ export class CustomAPICollector implements MetricCollector {
       serverId,
       hostname: apiData.hostname || apiData.server_name || serverId,
       timestamp,
-      
+
       cpu: {
         usage: this.extractNumber(apiData.cpu?.usage || apiData.cpu_usage, 0),
-        loadAverage: this.extractArray(apiData.cpu?.load_average || apiData.load_avg, [0, 0, 0]),
-        cores: this.extractNumber(apiData.cpu?.cores || apiData.cpu_cores, 1)
+        loadAverage: this.extractArray(
+          apiData.cpu?.load_average || apiData.load_avg,
+          [0, 0, 0]
+        ),
+        cores: this.extractNumber(apiData.cpu?.cores || apiData.cpu_cores, 1),
       },
-      
+
       memory: {
-        total: this.extractNumber(apiData.memory?.total || apiData.mem_total, 0),
+        total: this.extractNumber(
+          apiData.memory?.total || apiData.mem_total,
+          0
+        ),
         used: this.extractNumber(apiData.memory?.used || apiData.mem_used, 0),
-        available: this.extractNumber(apiData.memory?.available || apiData.mem_available, 0),
-        usage: this.extractNumber(apiData.memory?.usage || apiData.mem_usage, 0)
+        available: this.extractNumber(
+          apiData.memory?.available || apiData.mem_available,
+          0
+        ),
+        usage: this.extractNumber(
+          apiData.memory?.usage || apiData.mem_usage,
+          0
+        ),
       },
-      
+
       disk: {
         total: this.extractNumber(apiData.disk?.total || apiData.disk_total, 0),
         used: this.extractNumber(apiData.disk?.used || apiData.disk_used, 0),
-        available: this.extractNumber(apiData.disk?.available || apiData.disk_available, 0),
+        available: this.extractNumber(
+          apiData.disk?.available || apiData.disk_available,
+          0
+        ),
         usage: this.extractNumber(apiData.disk?.usage || apiData.disk_usage, 0),
         iops: {
-          read: this.extractNumber(apiData.disk?.iops?.read || apiData.disk_read_iops, 0),
-          write: this.extractNumber(apiData.disk?.iops?.write || apiData.disk_write_iops, 0)
-        }
+          read: this.extractNumber(
+            apiData.disk?.iops?.read || apiData.disk_read_iops,
+            0
+          ),
+          write: this.extractNumber(
+            apiData.disk?.iops?.write || apiData.disk_write_iops,
+            0
+          ),
+        },
       },
-      
+
       network: {
-        interface: apiData.network?.interface || apiData.net_interface || 'eth0',
-        bytesReceived: this.extractNumber(apiData.network?.bytes_received || apiData.net_rx_bytes, 0),
-        bytesSent: this.extractNumber(apiData.network?.bytes_sent || apiData.net_tx_bytes, 0),
-        packetsReceived: this.extractNumber(apiData.network?.packets_received || apiData.net_rx_packets, 0),
-        packetsSent: this.extractNumber(apiData.network?.packets_sent || apiData.net_tx_packets, 0),
-        errorsReceived: this.extractNumber(apiData.network?.errors_received || apiData.net_rx_errors, 0),
-        errorsSent: this.extractNumber(apiData.network?.errors_sent || apiData.net_tx_errors, 0)
+        interface:
+          apiData.network?.interface || apiData.net_interface || 'eth0',
+        bytesReceived: this.extractNumber(
+          apiData.network?.bytes_received || apiData.net_rx_bytes,
+          0
+        ),
+        bytesSent: this.extractNumber(
+          apiData.network?.bytes_sent || apiData.net_tx_bytes,
+          0
+        ),
+        packetsReceived: this.extractNumber(
+          apiData.network?.packets_received || apiData.net_rx_packets,
+          0
+        ),
+        packetsSent: this.extractNumber(
+          apiData.network?.packets_sent || apiData.net_tx_packets,
+          0
+        ),
+        errorsReceived: this.extractNumber(
+          apiData.network?.errors_received || apiData.net_rx_errors,
+          0
+        ),
+        errorsSent: this.extractNumber(
+          apiData.network?.errors_sent || apiData.net_tx_errors,
+          0
+        ),
       },
-      
+
       system: {
         os: apiData.system?.os || apiData.operating_system || 'Linux',
         platform: apiData.system?.platform || apiData.platform || 'linux',
         uptime: this.extractNumber(apiData.system?.uptime || apiData.uptime, 0),
-        bootTime: new Date(apiData.system?.boot_time || apiData.boot_time || Date.now() - (this.extractNumber(apiData.system?.uptime || apiData.uptime, 0) * 1000)),
+        bootTime: new Date(
+          apiData.system?.boot_time ||
+            apiData.boot_time ||
+            Date.now() -
+              this.extractNumber(apiData.system?.uptime || apiData.uptime, 0) *
+                1000
+        ),
         processes: {
-          total: this.extractNumber(apiData.system?.processes?.total || apiData.proc_total, 0),
-          running: this.extractNumber(apiData.system?.processes?.running || apiData.proc_running, 0),
-          sleeping: this.extractNumber(apiData.system?.processes?.sleeping || apiData.proc_sleeping, 0),
-          zombie: this.extractNumber(apiData.system?.processes?.zombie || apiData.proc_zombie, 0)
-        }
+          total: this.extractNumber(
+            apiData.system?.processes?.total || apiData.proc_total,
+            0
+          ),
+          running: this.extractNumber(
+            apiData.system?.processes?.running || apiData.proc_running,
+            0
+          ),
+          sleeping: this.extractNumber(
+            apiData.system?.processes?.sleeping || apiData.proc_sleeping,
+            0
+          ),
+          zombie: this.extractNumber(
+            apiData.system?.processes?.zombie || apiData.proc_zombie,
+            0
+          ),
+        },
       },
-      
-      services: this.extractServices(apiData.services || apiData.service_status || []),
-      
+
+      services: this.extractServices(
+        apiData.services || apiData.service_status || []
+      ),
+
       metadata: {
         location: apiData.metadata?.location || apiData.location || 'Unknown',
-        environment: this.extractEnvironment(apiData.metadata?.environment || apiData.environment),
+        environment: this.extractEnvironment(
+          apiData.metadata?.environment || apiData.environment
+        ),
         cluster: apiData.metadata?.cluster || apiData.cluster,
         zone: apiData.metadata?.zone || apiData.availability_zone,
         instanceType: apiData.metadata?.instance_type || apiData.instance_type,
-        provider: this.extractProvider(apiData.metadata?.provider || apiData.provider)
-      }
+        provider: this.extractProvider(
+          apiData.metadata?.provider || apiData.provider
+        ),
+      },
     };
   }
 
@@ -226,18 +336,32 @@ export class CustomAPICollector implements MetricCollector {
       name: service.name || service.service_name || 'unknown',
       status: this.normalizeServiceStatus(service.status || service.state),
       port: service.port ? this.extractNumber(service.port, 0) : undefined,
-      pid: service.pid || service.process_id ? this.extractNumber(service.pid || service.process_id, 0) : undefined,
-      memory: service.memory || service.memory_usage ? this.extractNumber(service.memory || service.memory_usage, 0) : undefined,
-      cpu: service.cpu || service.cpu_usage ? this.extractNumber(service.cpu || service.cpu_usage, 0) : undefined,
-      restartCount: service.restart_count || service.restarts ? this.extractNumber(service.restart_count || service.restarts, 0) : undefined
+      pid:
+        service.pid || service.process_id
+          ? this.extractNumber(service.pid || service.process_id, 0)
+          : undefined,
+      memory:
+        service.memory || service.memory_usage
+          ? this.extractNumber(service.memory || service.memory_usage, 0)
+          : undefined,
+      cpu:
+        service.cpu || service.cpu_usage
+          ? this.extractNumber(service.cpu || service.cpu_usage, 0)
+          : undefined,
+      restartCount:
+        service.restart_count || service.restarts
+          ? this.extractNumber(service.restart_count || service.restarts, 0)
+          : undefined,
     }));
   }
 
-  private normalizeServiceStatus(status: string): 'running' | 'stopped' | 'error' | 'unknown' {
+  private normalizeServiceStatus(
+    status: string
+  ): 'running' | 'stopped' | 'error' | 'unknown' {
     if (!status) return 'unknown';
-    
+
     const normalizedStatus = status.toLowerCase().trim();
-    
+
     if (['running', 'active', 'up', 'online'].includes(normalizedStatus)) {
       return 'running';
     }
@@ -247,30 +371,34 @@ export class CustomAPICollector implements MetricCollector {
     if (['error', 'failed', 'crashed', 'dead'].includes(normalizedStatus)) {
       return 'error';
     }
-    
+
     return 'unknown';
   }
 
-  private extractEnvironment(env: any): 'production' | 'staging' | 'development' {
+  private extractEnvironment(
+    env: any
+  ): 'production' | 'staging' | 'development' {
     if (typeof env !== 'string') return 'development';
-    
+
     const normalizedEnv = env.toLowerCase().trim();
-    
+
     if (['production', 'prod', 'live'].includes(normalizedEnv)) {
       return 'production';
     }
     if (['staging', 'stage', 'test'].includes(normalizedEnv)) {
       return 'staging';
     }
-    
+
     return 'development';
   }
 
-  private extractProvider(provider: any): 'aws' | 'gcp' | 'azure' | 'kubernetes' | 'onpremise' {
+  private extractProvider(
+    provider: any
+  ): 'aws' | 'gcp' | 'azure' | 'kubernetes' | 'onpremise' {
     if (typeof provider !== 'string') return 'onpremise';
-    
+
     const normalizedProvider = provider.toLowerCase().trim();
-    
+
     if (['aws', 'amazon'].includes(normalizedProvider)) {
       return 'aws';
     }
@@ -283,14 +411,14 @@ export class CustomAPICollector implements MetricCollector {
     if (['kubernetes', 'k8s', 'kube'].includes(normalizedProvider)) {
       return 'kubernetes';
     }
-    
+
     return 'onpremise';
   }
 }
 
 /**
  * Custom API 수집기 설정 예제
- * 
+ *
  * const config: CollectorConfig = {
  *   type: 'custom',
  *   endpoint: 'https://your-api-server.com',
@@ -305,7 +433,7 @@ export class CustomAPICollector implements MetricCollector {
 
 /**
  * API 응답 형식 예제
- * 
+ *
  * GET /api/servers/{serverId}/metrics 응답:
  * {
  *   "success": true,
@@ -372,4 +500,4 @@ export class CustomAPICollector implements MetricCollector {
  *     }
  *   }
  * }
- */ 
+ */

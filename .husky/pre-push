@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🚀 Pre-push 종합 검증 시작..."
+
+# 전체 검증 실행
+echo "🔍 종합 품질 검사..."
+npm run validate:all
+if [ $? -ne 0 ]; then
+  echo "❌ 검증 실패! 다음 항목들을 확인하세요:"
+  echo "   - TypeScript 타입 에러"
+  echo "   - ESLint 에러"
+  echo "   - 단위 테스트 실패"
+  echo "   - 빌드 에러"
+  exit 1
+fi
+
+echo "✅ Pre-push 검증 완료! 배포 준비됨 🎉" 

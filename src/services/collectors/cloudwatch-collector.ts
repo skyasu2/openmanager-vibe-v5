@@ -1,8 +1,13 @@
-import { MetricCollector, ServerMetrics, ServiceStatus, CollectorConfig } from '../../types/collector';
+import {
+  MetricCollector,
+  ServerMetrics,
+  ServiceStatus,
+  CollectorConfig,
+} from '../../types/collector';
 
 /**
  * AWS CloudWatch 메트릭 수집기
- * 
+ *
  * CloudWatch API를 사용하여 EC2 인스턴스의 메트릭을 수집합니다.
  * AWS SDK v3를 사용하여 구현됩니다.
  */
@@ -14,18 +19,48 @@ export class CloudWatchCollector implements MetricCollector {
     secretAccessKey: string;
   };
 
+  // 상태 속성들
+  public isRunning: boolean = false;
+  public lastCollection: Date | null = null;
+  public errorCount: number = 0;
+
   constructor(config: CollectorConfig) {
     this.config = config;
     this.region = config.credentials?.region || 'us-east-1';
-    
+
     if (!config.credentials?.apiKey || !config.credentials?.secretKey) {
       throw new Error('CloudWatch 수집기에는 AWS credentials가 필요합니다');
     }
-    
+
     this.credentials = {
       accessKeyId: config.credentials.apiKey,
-      secretAccessKey: config.credentials.secretKey
+      secretAccessKey: config.credentials.secretKey,
     };
+  }
+
+  /**
+   * 수집기 시작
+   */
+  async start(): Promise<void> {
+    try {
+      // AWS 연결 테스트
+      await this.makeAWSRequest('ec2', 'DescribeRegions', {});
+      this.isRunning = true;
+      this.errorCount = 0;
+      console.log(`✅ CloudWatch 수집기 시작됨: ${this.region}`);
+    } catch (error) {
+      this.errorCount++;
+      console.error('❌ CloudWatch 수집기 시작 실패:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 수집기 중지
+   */
+  async stop(): Promise<void> {
+    this.isRunning = false;
+    console.log('🛑 CloudWatch 수집기 중지됨');
   }
 
   /**
@@ -44,14 +79,14 @@ export class CloudWatchCollector implements MetricCollector {
         diskMetrics,
         networkMetrics,
         systemMetrics,
-        serviceMetrics
+        serviceMetrics,
       ] = await Promise.all([
         this.getCPUMetrics(instanceId),
         this.getMemoryMetrics(instanceId),
         this.getDiskMetrics(instanceId),
         this.getNetworkMetrics(instanceId),
         this.getSystemMetrics(instanceId),
-        this.getServiceMetrics(instanceId)
+        this.getServiceMetrics(instanceId),
       ]);
 
       return {
@@ -64,7 +99,7 @@ export class CloudWatchCollector implements MetricCollector {
         network: networkMetrics,
         system: systemMetrics,
         services: serviceMetrics,
-        metadata: await this.getMetadata(instanceId)
+        metadata: await this.getMetadata(instanceId),
       };
     } catch (error) {
       console.error(`❌ CloudWatch 수집 실패 (${serverId}):`, error);
@@ -82,9 +117,9 @@ export class CloudWatchCollector implements MetricCollector {
         Filters: [
           {
             Name: 'instance-state-name',
-            Values: ['running', 'stopped']
-          }
-        ]
+            Values: ['running', 'stopped'],
+          },
+        ],
       });
 
       const servers: string[] = [];
@@ -108,9 +143,9 @@ export class CloudWatchCollector implements MetricCollector {
   async isServerOnline(serverId: string): Promise<boolean> {
     try {
       const instanceId = this.getInstanceIdFromServerId(serverId);
-      
+
       const response = await this.makeAWSRequest('ec2', 'DescribeInstances', {
-        InstanceIds: [instanceId]
+        InstanceIds: [instanceId],
       });
 
       const instance = response.Reservations?.[0]?.Instances?.[0];
@@ -139,11 +174,11 @@ export class CloudWatchCollector implements MetricCollector {
 
     // CloudWatch Basic Monitoring에서는 로드 평균 직접 제공 안함
     // CloudWatch Agent나 사용자 정의 메트릭 필요
-    
+
     return {
       usage: cpuUsageData || 0,
       loadAverage: [0, 0, 0], // CloudWatch Agent 필요
-      cores: await this.getInstanceCores(instanceId)
+      cores: await this.getInstanceCores(instanceId),
     };
   }
 
@@ -163,13 +198,13 @@ export class CloudWatchCollector implements MetricCollector {
 
     // 인스턴스 타입별 메모리 용량 (하드코딩 또는 별도 API)
     const totalMemory = await this.getInstanceMemory(instanceId);
-    const used = totalMemory * (memoryUsage || 0) / 100;
+    const used = (totalMemory * (memoryUsage || 0)) / 100;
 
     return {
       total: totalMemory,
       used: Math.round(used),
       available: totalMemory - Math.round(used),
-      usage: memoryUsage || 0
+      usage: memoryUsage || 0,
     };
   }
 
@@ -209,7 +244,7 @@ export class CloudWatchCollector implements MetricCollector {
 
     // EBS 볼륨 크기 조회
     const totalDisk = await this.getInstanceDiskSize(instanceId);
-    const used = totalDisk * (diskUsage || 0) / 100;
+    const used = (totalDisk * (diskUsage || 0)) / 100;
 
     return {
       total: totalDisk,
@@ -218,8 +253,8 @@ export class CloudWatchCollector implements MetricCollector {
       usage: diskUsage || 0,
       iops: {
         read: Math.round((readOps || 0) / 300), // 5분 합계를 초당으로 변환
-        write: Math.round((writeOps || 0) / 300)
-      }
+        write: Math.round((writeOps || 0) / 300),
+      },
     };
   }
 
@@ -270,14 +305,14 @@ export class CloudWatchCollector implements MetricCollector {
       packetsReceived: Math.round((packetsIn || 0) / 300),
       packetsSent: Math.round((packetsOut || 0) / 300),
       errorsReceived: 0, // CloudWatch에서 직접 제공 안함
-      errorsSent: 0
+      errorsSent: 0,
     };
   }
 
   private async getSystemMetrics(instanceId: string) {
     // EC2 인스턴스 정보 조회
     const instanceInfo = await this.getInstanceInfo(instanceId);
-    
+
     const launchTime = new Date(instanceInfo.LaunchTime);
     const uptime = Math.floor((Date.now() - launchTime.getTime()) / 1000);
 
@@ -290,16 +325,16 @@ export class CloudWatchCollector implements MetricCollector {
         total: 0, // CloudWatch Agent 필요
         running: 0,
         sleeping: 0,
-        zombie: 0
-      }
+        zombie: 0,
+      },
     };
   }
 
-  private async getServiceMetrics(_instanceId: string): Promise<ServiceStatus[]> {
+  private async getServiceMetrics(
+    _instanceId: string
+  ): Promise<ServiceStatus[]> {
     // 서비스 상태는 CloudWatch Agent나 Systems Manager 필요
-    return [
-      { name: 'cloudwatch-agent', status: 'running' }
-    ];
+    return [{ name: 'cloudwatch-agent', status: 'running' }];
   }
 
   private async getCloudWatchMetric(
@@ -316,26 +351,31 @@ export class CloudWatchCollector implements MetricCollector {
         { Name: 'InstanceId', Value: instanceId },
         ...Object.entries(additionalDimensions || {}).map(([key, value]) => ({
           Name: key,
-          Value: value
-        }))
+          Value: value,
+        })),
       ];
 
-      const response = await this.makeAWSRequest('cloudwatch', 'GetMetricStatistics', {
-        Namespace: namespace,
-        MetricName: metricName,
-        Dimensions: dimensions,
-        StartTime: startTime.toISOString(),
-        EndTime: endTime.toISOString(),
-        Period: 300, // 5분
-        Statistics: [statistic]
-      });
+      const response = await this.makeAWSRequest(
+        'cloudwatch',
+        'GetMetricStatistics',
+        {
+          Namespace: namespace,
+          MetricName: metricName,
+          Dimensions: dimensions,
+          StartTime: startTime.toISOString(),
+          EndTime: endTime.toISOString(),
+          Period: 300, // 5분
+          Statistics: [statistic],
+        }
+      );
 
       const datapoints = response.Datapoints || [];
       if (datapoints.length === 0) return null;
 
       // 최신 데이터포인트 사용
-      const latest = datapoints.sort((a: any, b: any) => 
-        new Date(b.Timestamp).getTime() - new Date(a.Timestamp).getTime()
+      const latest = datapoints.sort(
+        (a: any, b: any) =>
+          new Date(b.Timestamp).getTime() - new Date(a.Timestamp).getTime()
       )[0];
 
       return latest[statistic] || null;
@@ -345,68 +385,87 @@ export class CloudWatchCollector implements MetricCollector {
     }
   }
 
-  private async makeAWSRequest(service: string, action: string, params: any): Promise<any> {
+  private async makeAWSRequest(
+    service: string,
+    action: string,
+    params: any
+  ): Promise<any> {
     // 실제 구현에서는 AWS SDK v3 사용
     // 예: import { EC2Client, DescribeInstancesCommand } from "@aws-sdk/client-ec2";
-    
+
     const endpoint = `https://${service}.${this.region}.amazonaws.com/`;
     const headers = await this.signAWSRequest(service, action, params);
-    
+
     const response = await fetch(endpoint, {
       method: 'POST',
       headers,
       body: JSON.stringify(params),
-      signal: AbortSignal.timeout(this.config.timeout * 1000)
+      signal: AbortSignal.timeout(this.config.timeout * 1000),
     });
 
     if (!response.ok) {
-      throw new Error(`AWS API 오류: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `AWS API 오류: ${response.status} ${response.statusText}`
+      );
     }
 
     return await response.json();
   }
 
-  private async signAWSRequest(service: string, action: string, params: any): Promise<Record<string, string>> {
+  private async signAWSRequest(
+    service: string,
+    action: string,
+    params: any
+  ): Promise<Record<string, string>> {
     // AWS Signature Version 4 구현 필요
     // 실제로는 AWS SDK가 자동으로 처리
     return {
       'Content-Type': 'application/x-amz-json-1.1',
       'X-Amz-Target': `${action}`,
-      'Authorization': `AWS4-HMAC-SHA256 Credential=${this.credentials.accessKeyId}/...`
+      Authorization: `AWS4-HMAC-SHA256 Credential=${this.credentials.accessKeyId}/...`,
     };
   }
 
   private async getHostname(instanceId: string): Promise<string> {
     const instanceInfo = await this.getInstanceInfo(instanceId);
-    return instanceInfo.PrivateDnsName || instanceInfo.PublicDnsName || instanceId;
+    return (
+      instanceInfo.PrivateDnsName || instanceInfo.PublicDnsName || instanceId
+    );
   }
 
   private async getInstanceInfo(instanceId: string): Promise<any> {
     const response = await this.makeAWSRequest('ec2', 'DescribeInstances', {
-      InstanceIds: [instanceId]
+      InstanceIds: [instanceId],
     });
-    
+
     return response.Reservations?.[0]?.Instances?.[0] || {};
   }
 
   private async getInstanceCores(instanceId: string): Promise<number> {
     const instanceInfo = await this.getInstanceInfo(instanceId);
     const instanceType = instanceInfo.InstanceType;
-    
+
     // 인스턴스 타입별 vCPU 수 매핑 (간소화)
     const cpuMapping: Record<string, number> = {
-      't3.micro': 2, 't3.small': 2, 't3.medium': 2, 't3.large': 2,
-      'm5.large': 2, 'm5.xlarge': 4, 'm5.2xlarge': 8,
-      'c5.large': 2, 'c5.xlarge': 4, 'c5.2xlarge': 8
+      't3.micro': 2,
+      't3.small': 2,
+      't3.medium': 2,
+      't3.large': 2,
+      'm5.large': 2,
+      'm5.xlarge': 4,
+      'm5.2xlarge': 8,
+      'c5.large': 2,
+      'c5.xlarge': 4,
+      'c5.2xlarge': 8,
     };
-    
+
     return cpuMapping[instanceType] || 2;
   }
 
   private async getInstanceMemory(instanceId: string): Promise<number> {
     const instanceInfo = await this.getInstanceInfo(instanceId);
     const instanceType = instanceInfo.InstanceType;
-    
+
     // 인스턴스 타입별 메모리 매핑 (바이트 단위)
     const memoryMapping: Record<string, number> = {
       't3.micro': 1 * 1024 * 1024 * 1024,
@@ -414,9 +473,9 @@ export class CloudWatchCollector implements MetricCollector {
       't3.medium': 4 * 1024 * 1024 * 1024,
       't3.large': 8 * 1024 * 1024 * 1024,
       'm5.large': 8 * 1024 * 1024 * 1024,
-      'm5.xlarge': 16 * 1024 * 1024 * 1024
+      'm5.xlarge': 16 * 1024 * 1024 * 1024,
     };
-    
+
     return memoryMapping[instanceType] || 2 * 1024 * 1024 * 1024;
   }
 
@@ -425,29 +484,31 @@ export class CloudWatchCollector implements MetricCollector {
     const response = await this.makeAWSRequest('ec2', 'DescribeVolumes', {
       Filters: [
         { Name: 'attachment.instance-id', Values: [instanceId] },
-        { Name: 'attachment.device', Values: ['/dev/sda1', '/dev/xvda'] }
-      ]
+        { Name: 'attachment.device', Values: ['/dev/sda1', '/dev/xvda'] },
+      ],
     });
-    
+
     const volume = response.Volumes?.[0];
     return volume ? volume.Size * 1024 * 1024 * 1024 : 20 * 1024 * 1024 * 1024; // 기본 20GB
   }
 
   private async getMetadata(instanceId: string) {
     const instanceInfo = await this.getInstanceInfo(instanceId);
-    
+
     return {
       location: this.region,
       environment: this.getEnvironmentFromTags(instanceInfo.Tags || []),
       instanceType: instanceInfo.InstanceType,
-      provider: 'aws' as const
+      provider: 'aws' as const,
     };
   }
 
-  private getEnvironmentFromTags(tags: any[]): 'production' | 'staging' | 'development' {
+  private getEnvironmentFromTags(
+    tags: any[]
+  ): 'production' | 'staging' | 'development' {
     const envTag = tags.find(tag => tag.Key.toLowerCase() === 'environment');
     const env = envTag?.Value?.toLowerCase();
-    
+
     if (env === 'production' || env === 'prod') return 'production';
     if (env === 'staging' || env === 'stage') return 'staging';
     return 'development';
@@ -468,4 +529,4 @@ export class CloudWatchCollector implements MetricCollector {
     // instanceId -> serverId 매핑
     return instanceId.replace('i-', 'aws-ec2-');
   }
-} 
+}

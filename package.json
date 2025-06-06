@@ -19,7 +19,7 @@
     "cleanup:servers": "node scripts/cleanup-servers.js",
     "restart:dev": "node scripts/cleanup-servers.js --start",
     "test:ai-agent": "node scripts/test-ai-agent.js",
-    "build": "ESLINT_NO_DEV_ERRORS=true next build",
+    "build": "cross-env ESLINT_NO_DEV_ERRORS=true next build",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
@@ -93,7 +93,7 @@
     "ci:trigger": "git commit --allow-empty -m '🔄 CI 재트리거' && git push origin main",
     "ci:status": "echo '🔗 GitHub Actions: https://github.com/$(git config --get remote.origin.url | sed \"s/.*github.com[:/]\\([^.]*\\).*/\\1/\")/actions'",
     "ci:health": "npm run health-check:prod && npm run lint && npm run type-check",
-    "deploy:safe": "npm run ci:health && npm run build && npm run deploy:prod",
+    "deploy:safe": "npm run validate:all && echo '✅ 검증 통과 - 배포 진행' && git push origin main",
     "emergency:rollback": "echo '🚨 Emergency rollback - contact administrator'",
     "verify:production": "npm run health-check:prod && echo '✅ Production verification passed'",
     "deploy": "echo '🚀 GitHub Actions에서 자동 배포가 진행됩니다. Vercel 대시보드를 확인해주세요.'",
@@ -104,6 +104,11 @@
     "deploy:github": "git push origin main && echo '🚀 GitHub Actions 배포 트리거됨'",
     "deploy:v5.21.0": "scripts/deploy-v5.21.0.bat",
     "deploy:bash": "bash scripts/deploy-v5.21.0.sh",
+    "prepare": "husky",
+    "pre-commit": "lint-staged",
+    "pre-push": "npm run validate:all",
+    "validate:all": "npm run type-check && npm run lint && npm run test:unit && npm run build",
+    "validate:quick": "npm run type-check && npm run lint",
     "consolidate": "node scripts/consolidate-project.js",
     "consolidate:report": "node scripts/consolidate-project.js && cat CONSOLIDATION_REPORT.md",
     "mcp:setup": "node scripts/setup-mcp.js",
@@ -199,6 +204,15 @@
     "zod": "^3.25.46",
     "zustand": "^5.0.5"
   },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@playwright/test": "^1.52.0",
@@ -211,8 +225,11 @@
     "@vitest/ui": "^3.2.1",
     "cross-env": "^7.0.3",
     "dotenv": "^16.5.0",
+    "husky": "^9.1.7",
     "jest-environment-jsdom": "^30.0.0-beta.3",
+    "lint-staged": "^16.1.0",
     "playwright": "^1.52.0",
+    "prettier": "^3.5.3",
     "rimraf": "^6.0.1",
     "storybook": "^8.6.14",
     "tsx": "^4.19.2",
