@@ -1,6 +1,6 @@
 /**
  * 🔍 실제 Prometheus 메트릭 수집기
- * 
+ *
  * 기술 스택:
  * - Node.js 시스템 메트릭 (os, process 모듈)
  * - 외부 Prometheus 서버 연동 (선택적)
@@ -96,7 +96,7 @@ const DEFAULT_CONFIG: CollectorConfig = {
   collectInterval: 10000, // 10초
   cacheTimeout: 30, // 30초
   maxProcesses: 10,
-  maxLogs: 50
+  maxLogs: 50,
 };
 
 export class RealPrometheusCollector {
@@ -104,7 +104,10 @@ export class RealPrometheusCollector {
   private redis: any;
   private memoryCache: Record<string, PrometheusMetrics> = {};
   private config: CollectorConfig;
-  private lastNetworkStats: Map<string, { rx: number; tx: number; timestamp: number }> = new Map();
+  private lastNetworkStats: Map<
+    string,
+    { rx: number; tx: number; timestamp: number }
+  > = new Map();
   private isCollecting = false;
   private collectInterval: NodeJS.Timeout | null = null;
 
@@ -112,7 +115,9 @@ export class RealPrometheusCollector {
     this.config = { ...DEFAULT_CONFIG, ...config };
   }
 
-  public static getInstance(config?: Partial<CollectorConfig>): RealPrometheusCollector {
+  public static getInstance(
+    config?: Partial<CollectorConfig>
+  ): RealPrometheusCollector {
     if (!RealPrometheusCollector.instance) {
       RealPrometheusCollector.instance = new RealPrometheusCollector(config);
     }
@@ -141,7 +146,7 @@ export class RealPrometheusCollector {
    */
   public async collectMetrics(): Promise<PrometheusMetrics> {
     const timestamp = new Date().toISOString();
-    
+
     try {
       // 외부 Prometheus 서버 시도
       if (this.config.prometheusUrl) {
@@ -155,12 +160,11 @@ export class RealPrometheusCollector {
       // 시스템 메트릭 직접 수집
       const systemMetrics = await this.collectSystemMetrics();
       await this.cacheMetrics('system', systemMetrics);
-      
-      return systemMetrics;
 
+      return systemMetrics;
     } catch (error) {
       console.error('❌ 메트릭 수집 실패:', error);
-      
+
       // 캐시된 메트릭 반환
       const cached = await this.getCachedMetrics();
       if (cached) {
@@ -187,7 +191,7 @@ export class RealPrometheusCollector {
         'node_filesystem_size_bytes',
         'node_filesystem_free_bytes',
         'node_network_receive_bytes_total',
-        'node_network_transmit_bytes_total'
+        'node_network_transmit_bytes_total',
       ];
 
       const results = await Promise.all(
@@ -195,7 +199,6 @@ export class RealPrometheusCollector {
       );
 
       return this.parsePrometheusResults(results);
-
     } catch (error) {
       console.warn('⚠️ 외부 Prometheus 수집 실패:', error);
       return null;
@@ -207,14 +210,14 @@ export class RealPrometheusCollector {
    */
   private async collectSystemMetrics(): Promise<PrometheusMetrics> {
     const timestamp = new Date().toISOString();
-    
+
     // 서버 정보
     const server = {
       hostname: os.hostname(),
       ip: this.getLocalIP(),
       platform: os.platform(),
       arch: os.arch(),
-      uptime: os.uptime()
+      uptime: os.uptime(),
     };
 
     // CPU 정보
@@ -223,21 +226,21 @@ export class RealPrometheusCollector {
       usage: await this.getCPUUsage(),
       cores: cpus.length,
       model: cpus[0]?.model || 'Unknown',
-      temperature: await this.getCPUTemperature()
+      temperature: await this.getCPUTemperature(),
     };
 
     // 메모리 정보
     const totalMemory = os.totalmem();
     const freeMemory = os.freemem();
     const usedMemory = totalMemory - freeMemory;
-    
+
     const memory = {
       total: totalMemory,
       free: freeMemory,
       used: usedMemory,
       usage: (usedMemory / totalMemory) * 100,
       cached: await this.getCachedMemory(),
-      buffers: await this.getBuffersMemory()
+      buffers: await this.getBuffersMemory(),
     };
 
     // 디스크 정보
@@ -264,7 +267,7 @@ export class RealPrometheusCollector {
       network,
       processes,
       services,
-      logs
+      logs,
     };
   }
 
@@ -272,14 +275,15 @@ export class RealPrometheusCollector {
    * 🔄 CPU 사용률 계산
    */
   private async getCPUUsage(): Promise<number> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const startMeasure = this.cpuAverage();
-      
+
       setTimeout(() => {
         const endMeasure = this.cpuAverage();
         const idleDifference = endMeasure.idle - startMeasure.idle;
         const totalDifference = endMeasure.total - startMeasure.total;
-        const percentageCPU = 100 - ~~(100 * idleDifference / totalDifference);
+        const percentageCPU =
+          100 - ~~((100 * idleDifference) / totalDifference);
         resolve(percentageCPU);
       }, 1000);
     });
@@ -299,7 +303,7 @@ export class RealPrometheusCollector {
 
     return {
       idle: totalIdle / cpus.length,
-      total: totalTick / cpus.length
+      total: totalTick / cpus.length,
     };
   }
 
@@ -310,7 +314,9 @@ export class RealPrometheusCollector {
     if (os.platform() !== 'linux') return undefined;
 
     try {
-      const { stdout } = await execAsync('cat /sys/class/thermal/thermal_zone0/temp');
+      const { stdout } = await execAsync(
+        'cat /sys/class/thermal/thermal_zone0/temp'
+      );
       return parseInt(stdout.trim()) / 1000; // milli-celsius to celsius
     } catch {
       return undefined;
@@ -324,7 +330,9 @@ export class RealPrometheusCollector {
     try {
       if (os.platform() === 'win32') {
         // Windows
-        const { stdout } = await execAsync('wmic logicaldisk get size,freespace,caption');
+        const { stdout } = await execAsync(
+          'wmic logicaldisk get size,freespace,caption'
+        );
         return this.parseWindowsDiskInfo(stdout);
       } else {
         // Unix/Linux
@@ -337,7 +345,7 @@ export class RealPrometheusCollector {
         total: 100 * 1024 * 1024 * 1024, // 100GB 기본값
         free: 50 * 1024 * 1024 * 1024,
         used: 50 * 1024 * 1024 * 1024,
-        usage: 50
+        usage: 50,
       };
     }
   }
@@ -353,7 +361,7 @@ export class RealPrometheusCollector {
 
     for (const [name, addrs] of Object.entries(networkInterfaces)) {
       if (!addrs) continue;
-      
+
       const stats = await this.getNetworkStats(name);
       if (stats) {
         interfaces.push({
@@ -361,9 +369,9 @@ export class RealPrometheusCollector {
           rx: stats.rx,
           tx: stats.tx,
           rxRate: stats.rxRate,
-          txRate: stats.txRate
+          txRate: stats.txRate,
         });
-        
+
         totalRx += stats.rx;
         totalTx += stats.tx;
       }
@@ -372,7 +380,7 @@ export class RealPrometheusCollector {
     return {
       interfaces,
       totalRx,
-      totalTx
+      totalTx,
     };
   }
 
@@ -403,17 +411,17 @@ export class RealPrometheusCollector {
       { name: 'nodejs', port: 3000 },
       { name: 'postgresql', port: 5432 },
       { name: 'redis', port: 6379 },
-      { name: 'docker', port: 2375 }
+      { name: 'docker', port: 2375 },
     ];
 
     const services = [];
-    
+
     for (const service of commonServices) {
       const status = await this.checkServiceStatus(service.name, service.port);
       services.push({
         ...service,
         status,
-        uptime: status === 'running' ? Math.random() * 86400 : undefined
+        uptime: status === 'running' ? Math.random() * 86400 : undefined,
       });
     }
 
@@ -438,19 +446,24 @@ export class RealPrometheusCollector {
       'High memory usage warning',
       'Failed to connect to database',
       'SSL certificate expires soon',
-      'Backup completed successfully'
+      'Backup completed successfully',
     ];
 
     for (let i = 0; i < this.config.maxLogs; i++) {
       logs.push({
-        timestamp: new Date(now.getTime() - Math.random() * 3600000).toISOString(),
+        timestamp: new Date(
+          now.getTime() - Math.random() * 3600000
+        ).toISOString(),
         level: logLevels[Math.floor(Math.random() * logLevels.length)],
         source: logSources[Math.floor(Math.random() * logSources.length)],
-        message: logMessages[Math.floor(Math.random() * logMessages.length)]
+        message: logMessages[Math.floor(Math.random() * logMessages.length)],
       });
     }
 
-    return logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    return logs.sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
   }
 
   /**
@@ -470,7 +483,9 @@ export class RealPrometheusCollector {
   }
 
   private async queryPrometheus(query: string): Promise<any> {
-    const response = await fetch(`${this.config.prometheusUrl}/api/v1/query?query=${encodeURIComponent(query)}`);
+    const response = await fetch(
+      `${this.config.prometheusUrl}/api/v1/query?query=${encodeURIComponent(query)}`
+    );
     return await response.json();
   }
 
@@ -523,7 +538,7 @@ export class RealPrometheusCollector {
       total: totalSize,
       free: totalFree,
       used,
-      usage: totalSize > 0 ? (used / totalSize) * 100 : 0
+      usage: totalSize > 0 ? (used / totalSize) * 100 : 0,
     };
   }
 
@@ -543,43 +558,45 @@ export class RealPrometheusCollector {
       total,
       free,
       used,
-      usage: total > 0 ? (used / total) * 100 : 0
+      usage: total > 0 ? (used / total) * 100 : 0,
     };
   }
 
   private async getNetworkStats(interfaceName: string): Promise<any> {
     try {
       if (os.platform() === 'linux') {
-        const { stdout } = await execAsync(`cat /proc/net/dev | grep ${interfaceName}`);
+        const { stdout } = await execAsync(
+          `cat /proc/net/dev | grep ${interfaceName}`
+        );
         const parts = stdout.trim().split(/\s+/);
         if (parts.length >= 10) {
           const rx = parseInt(parts[1]);
           const tx = parseInt(parts[9]);
-          
+
           const lastStats = this.lastNetworkStats.get(interfaceName);
           const now = Date.now();
-          
+
           let rxRate = 0;
           let txRate = 0;
-          
+
           if (lastStats) {
             const timeDiff = (now - lastStats.timestamp) / 1000; // seconds
             rxRate = (rx - lastStats.rx) / timeDiff;
             txRate = (tx - lastStats.tx) / timeDiff;
           }
-          
+
           this.lastNetworkStats.set(interfaceName, { rx, tx, timestamp: now });
-          
+
           return { rx, tx, rxRate, txRate };
         }
       }
-      
+
       // Fallback for other platforms or errors
       return {
         rx: Math.floor(Math.random() * 1000000000),
         tx: Math.floor(Math.random() * 1000000000),
         rxRate: Math.floor(Math.random() * 1000000),
-        txRate: Math.floor(Math.random() * 1000000)
+        txRate: Math.floor(Math.random() * 1000000),
       };
     } catch {
       return null;
@@ -599,7 +616,7 @@ export class RealPrometheusCollector {
           name: parts[0],
           cpu: Math.random() * 100,
           memory: parseInt(parts[4]?.replace(/[^\d]/g, '')) || 0,
-          status: 'running'
+          status: 'running',
         });
       }
     }
@@ -620,7 +637,7 @@ export class RealPrometheusCollector {
           name: parts[10],
           cpu: parseFloat(parts[2]) || 0,
           memory: parseFloat(parts[3]) || 0,
-          status: 'running'
+          status: 'running',
         });
       }
     }
@@ -628,7 +645,10 @@ export class RealPrometheusCollector {
     return processes.slice(0, this.config.maxProcesses);
   }
 
-  private async checkServiceStatus(serviceName: string, port: number): Promise<'running' | 'stopped' | 'error'> {
+  private async checkServiceStatus(
+    serviceName: string,
+    port: number
+  ): Promise<'running' | 'stopped' | 'error'> {
     try {
       // 포트 연결 테스트
       const { stdout } = await execAsync(`netstat -an | grep :${port}`);
@@ -646,37 +666,40 @@ export class RealPrometheusCollector {
         ip: this.getLocalIP(),
         platform: os.platform(),
         arch: os.arch(),
-        uptime: os.uptime()
+        uptime: os.uptime(),
       },
       cpu: {
         usage: 20 + Math.random() * 60,
         cores: os.cpus().length,
-        model: os.cpus()[0]?.model || 'Unknown'
+        model: os.cpus()[0]?.model || 'Unknown',
       },
       memory: {
         total: os.totalmem(),
         free: os.freemem(),
         used: os.totalmem() - os.freemem(),
-        usage: ((os.totalmem() - os.freemem()) / os.totalmem()) * 100
+        usage: ((os.totalmem() - os.freemem()) / os.totalmem()) * 100,
       },
       disk: {
         total: 100 * 1024 * 1024 * 1024,
         free: 50 * 1024 * 1024 * 1024,
         used: 50 * 1024 * 1024 * 1024,
-        usage: 50
+        usage: 50,
       },
       network: {
         interfaces: [],
         totalRx: Math.floor(Math.random() * 1000000000),
-        totalTx: Math.floor(Math.random() * 1000000000)
+        totalTx: Math.floor(Math.random() * 1000000000),
       },
       processes: [],
       services: [],
-      logs: []
+      logs: [],
     };
   }
 
-  private async cacheMetrics(source: string, metrics: PrometheusMetrics): Promise<void> {
+  private async cacheMetrics(
+    source: string,
+    metrics: PrometheusMetrics
+  ): Promise<void> {
     // 메모리에도 저장
     this.memoryCache[source] = metrics;
 
@@ -726,31 +749,35 @@ export class RealPrometheusCollector {
     if (this.isCollecting) return;
 
     this.isCollecting = true;
-    const runCollection = async () => {
+
+    const loop = async () => {
+      if (!this.isCollecting) return;
       try {
         await this.collectMetrics();
       } catch (error) {
         console.error('❌ 자동 메트릭 수집 실패:', error);
-      }
-
-      if (this.isCollecting) {
-        this.collectInterval = setTimeout(runCollection, this.config.collectInterval);
+      } finally {
+        if (this.isCollecting) {
+          this.collectInterval = setTimeout(loop, this.config.collectInterval);
+        }
       }
     };
 
-    runCollection();
-    console.log(`🔄 자동 메트릭 수집 시작 (${this.config.collectInterval}ms 간격)`);
+    loop();
+    console.log(
+      `🔄 자동 메트릭 수집 시작 (${this.config.collectInterval}ms 간격)`
+    );
   }
 
   /**
    * ⏹️ 자동 수집 중지
    */
   public stopAutoCollection(): void {
+    this.isCollecting = false;
     if (this.collectInterval) {
       clearTimeout(this.collectInterval);
       this.collectInterval = null;
     }
-    this.isCollecting = false;
     console.log('⏹️ 자동 메트릭 수집 중지');
   }
 
@@ -759,13 +786,13 @@ export class RealPrometheusCollector {
    */
   public async healthCheck(): Promise<any> {
     const metrics = await this.collectMetrics();
-    
+
     return {
       status: 'healthy',
       collector: 'running',
       lastCollection: metrics.timestamp,
       config: this.config,
-      server: metrics.server
+      server: metrics.server,
     };
   }
 
@@ -774,7 +801,7 @@ export class RealPrometheusCollector {
    */
   public async getMetricsSummary(): Promise<any> {
     const metrics = await this.collectMetrics();
-    
+
     return {
       timestamp: metrics.timestamp,
       cpu: metrics.cpu.usage,
@@ -782,10 +809,10 @@ export class RealPrometheusCollector {
       disk: metrics.disk.usage,
       uptime: metrics.server.uptime,
       processes: metrics.processes.length,
-      services: metrics.services.filter(s => s.status === 'running').length
+      services: metrics.services.filter(s => s.status === 'running').length,
     };
   }
 }
 
 // 싱글톤 인스턴스
-export const realPrometheusCollector = RealPrometheusCollector.getInstance(); 
+export const realPrometheusCollector = RealPrometheusCollector.getInstance();
