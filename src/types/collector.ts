@@ -87,15 +87,30 @@ export interface ServiceStatus {
 
 // 수집기 설정
 export interface CollectorConfig {
+  id: string;
   type: 'dummy' | 'prometheus' | 'cloudwatch' | 'custom';
+  name: string;
   endpoint?: string;
-  credentials?: {
+  interval: number;      // 수집 간격 (밀리초)
+  timeout: number;       // 타임아웃 (밀리초)
+  retryAttempts: number; // 재시도 횟수
+  enabled: boolean;      // 활성화 여부
+  tags: string[];        // 태그 목록
+  authentication?: {     // 인증 정보
+    type: 'bearer' | 'api-key' | 'aws' | 'basic';
+    token?: string;
+    apiKey?: string;
+    username?: string;
+    password?: string;
+    accessKeyId?: string;
+    secretAccessKey?: string;
+    region?: string;
+  };
+  credentials?: {        // 레거시 호환성
     apiKey?: string;
     secretKey?: string;
     region?: string;
   };
-  interval: number;      // 수집 간격 (초)
-  timeout: number;       // 타임아웃 (초)
 }
 
 // 수집기 팩토리 인터페이스

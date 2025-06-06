@@ -9,6 +9,11 @@ import { CollectorConfig } from '@/types/collector';
 // 프로덕션 전용 설정
 const COLLECTOR_MODE = process.env.COLLECTOR_MODE || 'production'; // 'production' only
 
+// 빌드 타임 체크 함수
+function isBuildTime() {
+  return process.env.NODE_ENV === undefined || process.env.npm_lifecycle_event === 'build'
+}
+
 /**
  * 프로덕션 Collector 설정들
  */
@@ -103,6 +108,12 @@ export function getActiveCollectorCount(): number {
  * 환경변수 검증
  */
 export function validateEnvironment(): { valid: boolean; errors: string[] } {
+  // 빌드 타임에는 검증 건너뛰기
+  if (isBuildTime()) {
+    console.log('🔨 빌드 타임: Collector 환경변수 검증 건너뜀')
+    return { valid: true, errors: [] }
+  }
+
   const errors: string[] = [];
   
   if (COLLECTOR_MODE === 'production') {
