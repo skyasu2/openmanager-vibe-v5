@@ -30,26 +30,18 @@ const cardData = [
     detailedContent: {
       overview:
         'MCP(Model Context Protocol)는 AI 모델과 외부 데이터 소스 간의 표준화된 통신 프로토콜입니다. 이를 통해 AI가 파일시스템, GitHub, 데이터베이스 등과 안전하게 상호작용하며 컨텍스트를 관리할 수 있습니다. 본 엔진은 TensorFlow.js와 Hugging Face Transformers를 브라우저에서 직접 실행하여 서버 의존성 없이 AI 추론을 수행합니다.',
-      features: [
-        'MCP 프로토콜: @modelcontextprotocol/sdk로 AI-데이터 간 표준 통신',
-        'MCP 서버: filesystem, github 서버로 문서 검색 및 컨텍스트 관리',
-        'TensorFlow.js: 브라우저 내 기계학습 모델 실행 엔진',
-        'Transformers.js: Hugging Face 사전 훈련된 모델 활용',
-        '자연어 처리: natural, korean-js로 한국어 텍스트 분석',
-        'ML 라이브러리: ml-matrix, ml-regression으로 통계 분석',
-        '검색 엔진: fuse.js, fuzzyset.js로 유사도 기반 검색',
-      ],
       technologies: [
-        'MCP SDK - AI 모델과 데이터 소스 간 표준 프로토콜',
-        'TensorFlow.js - 브라우저 기반 기계학습 프레임워크',
-        'Transformers.js - Hugging Face 모델 브라우저 실행',
-        'natural - 영어 자연어 처리 라이브러리',
-        'korean-js - 한국어 형태소 분석 및 처리',
-        'ml-matrix - 행렬 연산 및 선형대수',
-        'ml-regression - 회귀 분석 알고리즘',
-        'fuse.js - 퍼지 검색 엔진',
-        'fuzzyset.js - 문자열 유사도 매칭',
-        'compromise - 자연어 이해 및 파싱',
+        'MCP SDK - AI 모델과 데이터 소스 간 표준 프로토콜 통신',
+        'MCP 서버 - filesystem, github 서버로 문서 검색 및 컨텍스트 관리',
+        'TensorFlow.js - 브라우저 내 기계학습 모델 실행 엔진',
+        'Transformers.js - Hugging Face 사전 훈련된 모델 브라우저 실행',
+        'natural - 영어 자연어 처리 및 토큰화 라이브러리',
+        'korean-js - 한국어 형태소 분석 및 언어 처리',
+        'ml-matrix - 행렬 연산 및 선형대수 계산',
+        'ml-regression - 회귀 분석 및 예측 알고리즘',
+        'fuse.js - 퍼지 검색 엔진 및 유사도 매칭',
+        'fuzzyset.js - 문자열 유사도 검색 및 자동완성',
+        'compromise - 자연어 이해, 파싱 및 구문 분석',
       ],
     },
     requiresAI: true,
@@ -65,27 +57,17 @@ const cardData = [
     detailedContent: {
       overview:
         '실제 서버 환경을 시뮬레이션하는 데이터 생성 시스템입니다. Faker.js로 현실적인 서버 데이터를 생성하고, Prometheus 클라이언트로 메트릭을 수집합니다. Redis와 Supabase로 데이터를 저장하며, node-cron으로 스케줄링을 관리합니다.',
-      features: [
-        'Faker.js: 현실적인 서버 이름, IP, 로그 메시지 생성',
-        'Prometheus: prom-client로 표준 메트릭 수집 및 출력',
-        '시스템 모니터링: systeminformation으로 실제 시스템 정보 수집',
-        'Redis 캐싱: @upstash/redis, ioredis로 고성능 데이터 캐싱',
-        'Supabase DB: PostgreSQL 기반 데이터 저장소',
-        '스케줄링: node-cron으로 정기 작업 관리',
-        '압축: compression으로 네트워크 최적화',
-        '날짜 처리: date-fns로 시계열 데이터 관리',
-      ],
       technologies: [
-        '@faker-js/faker - 현실적인 가짜 데이터 생성기',
-        'prom-client - Prometheus 메트릭 수집 클라이언트',
-        'systeminformation - 시스템 하드웨어/소프트웨어 정보',
-        '@upstash/redis - 서버리스 Redis 클라이언트',
+        '@faker-js/faker - 현실적인 서버 이름, IP, 로그 메시지 생성',
+        'prom-client - Prometheus 표준 메트릭 수집 및 출력',
+        'systeminformation - 실제 시스템 하드웨어/소프트웨어 정보 수집',
+        '@upstash/redis - 서버리스 Redis 클라이언트 및 캐싱',
         'ioredis - 고성능 Redis Node.js 클라이언트',
-        '@supabase/supabase-js - PostgreSQL 데이터베이스',
+        '@supabase/supabase-js - PostgreSQL 기반 데이터 저장소',
         'node-cron - Unix cron 스타일 작업 스케줄러',
-        'compression - gzip/deflate 압축 미들웨어',
-        'date-fns - 현대적인 JavaScript 날짜 유틸리티',
-        'axios - HTTP 클라이언트 라이브러리',
+        'compression - gzip/deflate HTTP 압축 및 네트워크 최적화',
+        'date-fns - 현대적인 JavaScript 날짜 유틸리티 및 시계열 관리',
+        'axios - Promise 기반 HTTP 클라이언트 라이브러리',
       ],
     },
     requiresAI: false,
@@ -100,31 +82,19 @@ const cardData = [
     detailedContent: {
       overview:
         '최신 React 생태계 기반의 모던 풀스택 애플리케이션입니다. Next.js App Router, React Server Components 활용하고, Zustand와 TanStack Query로 클라이언트 상태를 관리합니다. 모든 시각화, 애니메이션, 스타일링이 오픈소스 라이브러리로 구현되었습니다.',
-      features: [
-        'Next.js: React 기반 풀스택 프레임워크 (App Router)',
-        'React: 사용자 인터페이스 구축 라이브러리',
-        'TypeScript: 정적 타입 체크 JavaScript 슈퍼셋',
-        'Tailwind CSS: 유틸리티 우선 CSS 프레임워크',
-        'Zustand: 가벼운 상태 관리 라이브러리',
-        'TanStack Query: 서버 상태 관리 및 캐싱',
-        'Framer Motion: 고성능 애니메이션 라이브러리',
-        'Chart.js: 반응형 차트 라이브러리',
-        'Recharts: React 기반 차트 컴포넌트',
-        'D3.js: 데이터 기반 문서 조작 라이브러리',
-      ],
       technologies: [
-        'Next.js - React 메타프레임워크',
-        'React - 컴포넌트 기반 UI 라이브러리',
-        'TypeScript - 정적 타입 JavaScript',
-        'Tailwind CSS - 유틸리티 CSS 프레임워크',
-        'Zustand - 간단한 상태 관리',
-        '@tanstack/react-query - 서버 상태 관리',
-        'framer-motion - React 애니메이션 라이브러리',
-        'chart.js - 캔버스 기반 차트',
-        'recharts - React 차트 컴포넌트',
-        'd3 - 데이터 시각화 라이브러리',
-        'lucide-react - 아이콘 라이브러리',
-        '@headlessui/react - 무스타일 UI 컴포넌트',
+        'Next.js - React 메타프레임워크 및 App Router',
+        'React - 컴포넌트 기반 UI 라이브러리 및 Server Components',
+        'TypeScript - 정적 타입 체크 JavaScript 슈퍼셋',
+        'Tailwind CSS - 유틸리티 우선 CSS 프레임워크',
+        'Zustand - 가벼운 클라이언트 상태 관리',
+        '@tanstack/react-query - 서버 상태 관리 및 캐싱',
+        'framer-motion - 고성능 React 애니메이션 라이브러리',
+        'chart.js - 캔버스 기반 반응형 차트',
+        'recharts - React 전용 차트 컴포넌트',
+        'd3 - 데이터 기반 문서 조작 및 시각화',
+        'lucide-react - 현대적인 SVG 아이콘 라이브러리',
+        '@headlessui/react - 무스타일 접근성 UI 컴포넌트',
         '@radix-ui/react-* - 접근 가능한 UI 프리미티브',
         'class-variance-authority - 조건부 CSS 클래스 관리',
         'clsx - 동적 className 유틸리티',
@@ -142,33 +112,21 @@ const cardData = [
     detailedContent: {
       overview:
         'Cursor AI는 AI 네이티브 코드 에디터로 MCP(Model Context Protocol)를 통해 프로젝트 전체 컨텍스트를 이해합니다. Claude Sonnet 3.7/4.0을 주력 모델로 사용하며, 프롬프트 상세 작성과 브레인스토밍은 ChatGPT로, 최근 출시된 OpenAI Codex는 개발 후기 작성에 활용합니다. 모든 코드 품질 관리와 테스트는 오픈소스 도구로 자동화되어 있습니다.',
-      features: [
-        'Cursor AI: Claude Sonnet 3.7/4.0 기반 AI 네이티브 코드 에디터',
-        'MCP 프로토콜: 프로젝트 전체 컨텍스트 이해 및 코드 생성',
-        'ChatGPT: 상세 프롬프트 작성, 기술 브레인스토밍, 아키텍처 설계',
-        'OpenAI Codex: 개발 후기 작성, 코드 리뷰, 문서화',
-        'ESLint: 코드 품질 및 스타일 규칙 검사',
-        'Prettier: 일관된 코드 포맷팅',
-        'Vitest: 빠른 단위 테스트 러너',
-        'Playwright: End-to-End 테스트 자동화',
-        'Husky: Git hooks로 커밋 전 품질 검사',
-        'lint-staged: 스테이징된 파일만 린트 실행',
-      ],
       technologies: [
-        'Cursor AI - Claude Sonnet 3.7/4.0 기반 AI 코드 에디터',
-        'MCP SDK - AI와 프로젝트 간 컨텍스트 통신',
-        'ChatGPT - 프롬프트 설계 및 기술 브레인스토밍',
-        'OpenAI Codex - 개발 후기 및 문서 작성',
-        'ESLint - JavaScript/TypeScript 코드 품질 검사',
-        'Prettier - 코드 포맷팅 자동화',
-        'Vitest - 빠른 테스트 러너 (Jest 호환)',
-        'Playwright - 크로스 브라우저 E2E 테스트',
-        'Husky - Git hooks 관리',
-        'lint-staged - 스테이징 파일 린트',
-        '@typescript-eslint - TypeScript ESLint 규칙',
-        'cross-env - 크로스 플랫폼 환경변수',
-        'tsx - TypeScript 실행기',
-        '@testing-library - React 컴포넌트 테스트',
+        'Cursor AI - Claude Sonnet 3.7/4.0 기반 AI 네이티브 코드 에디터',
+        'MCP SDK - AI와 프로젝트 간 컨텍스트 통신 프로토콜',
+        'ChatGPT - 상세 프롬프트 설계 및 기술 브레인스토밍',
+        'OpenAI Codex - 개발 후기 작성 및 기술 문서화',
+        'ESLint - JavaScript/TypeScript 코드 품질 및 스타일 검사',
+        'Prettier - 일관된 코드 포맷팅 자동화',
+        'Vitest - 빠른 단위 테스트 러너 (Jest 호환)',
+        'Playwright - 크로스 브라우저 End-to-End 테스트 자동화',
+        'Husky - Git hooks 관리 및 커밋 전 품질 검사',
+        'lint-staged - 스테이징된 파일만 린트 실행',
+        '@typescript-eslint - TypeScript 전용 ESLint 규칙',
+        'cross-env - 크로스 플랫폼 환경변수 설정',
+        'tsx - TypeScript 직접 실행기',
+        '@testing-library - React 컴포넌트 테스트 라이브러리',
         'autoprefixer - CSS 벤더 프리픽스 자동 추가',
       ],
     },
@@ -492,10 +450,10 @@ export default function FeatureCardsGrid() {
                       )}
                     </div>
                     <div>
-                      <h2 className='text-lg font-bold text-white'>
+                      <h2 className='text-2xl font-bold text-white'>
                         {renderTextWithAIGradient(selectedCardData.title)}
                       </h2>
-                      <p className='text-xs text-gray-400'>
+                      <p className='text-base text-gray-400'>
                         {renderTextWithAIGradient(selectedCardData.description)}
                       </p>
                     </div>
@@ -513,30 +471,30 @@ export default function FeatureCardsGrid() {
               <div className='p-4 space-y-4'>
                 {/* 개요 */}
                 <div>
-                  <h3 className='text-white font-medium mb-2 text-base'>
+                  <h3 className='text-white font-medium mb-3 text-xl'>
                     📖 개요
                   </h3>
-                  <p className='text-gray-300 leading-relaxed text-sm'>
+                  <p className='text-gray-200 leading-relaxed text-lg'>
                     {renderTextWithAIGradient(
                       selectedCardData.detailedContent.overview
                     )}
                   </p>
                 </div>
 
-                {/* 주요 기능 */}
+                {/* 적용 기술 */}
                 <div>
-                  <h3 className='text-white font-medium mb-3 text-base'>
-                    ⚡ 주요 기능
+                  <h3 className='text-white font-medium mb-3 text-xl'>
+                    🛠️ 적용 기술
                   </h3>
-                  <ul className='space-y-2'>
-                    {selectedCardData.detailedContent.features.map(
-                      (feature, index) => (
+                  <ul className='space-y-3'>
+                    {selectedCardData.detailedContent.technologies.map(
+                      (tech, index) => (
                         <li
                           key={index}
-                          className='flex items-start gap-2 text-xs'
+                          className='flex items-start gap-3 text-base'
                         >
                           <div
-                            className={`w-1 h-1 rounded-full mt-1.5 flex-shrink-0 ${
+                            className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
                               selectedCardData.isAICard
                                 ? 'bg-pink-400'
                                 : selectedCardData.isSpecial
@@ -544,8 +502,8 @@ export default function FeatureCardsGrid() {
                                   : 'bg-green-400'
                             }`}
                           />
-                          <span className='text-gray-300 leading-relaxed'>
-                            {renderTextWithAIGradient(feature)}
+                          <span className='text-gray-200 leading-relaxed'>
+                            {renderTextWithAIGradient(tech)}
                           </span>
                         </li>
                       )
