@@ -763,8 +763,33 @@ export class TensorFlowAIEngine {
   }
 
   private generateAIInsights(analysis: AIAnalysisResult): void {
-    // AI 인사이트 생성 로직을 구현해야 합니다.
-    // 현재는 인사이트 생성 로직이 구현되지 않았습니다.
+    // 장애 예측 결과 요약
+    for (const [metric, result] of Object.entries(analysis.failure_predictions)) {
+      const probability = result.prediction[0];
+      if (probability >= 0.8) {
+        analysis.ai_insights.push(`${metric}: 장애 위험 높음 (확률 ${(probability * 100).toFixed(1)}%)`);
+      } else if (probability >= 0.5) {
+        analysis.ai_insights.push(`${metric}: 장애 가능성 주의 (확률 ${(probability * 100).toFixed(1)}%)`);
+      }
+    }
+
+    // 이상 탐지 결과 요약
+    for (const [metric, result] of Object.entries(analysis.anomaly_detections)) {
+      if (result.is_anomaly && result.anomaly_score > result.threshold) {
+        analysis.ai_insights.push(`${metric}: 이상 패턴 감지 (스코어 ${result.anomaly_score.toFixed(3)})`);
+      }
+    }
+
+    // 추세 예측 요약
+    for (const [metric, preds] of Object.entries(analysis.trend_predictions)) {
+      if (preds.length >= 2) {
+        const diff = preds[preds.length - 1] - preds[0];
+        if (Math.abs(diff) > 0.05) {
+          const direction = diff > 0 ? '상승' : '하락';
+          analysis.ai_insights.push(`${metric}: 향후 ${direction} 추세 예상`);
+        }
+      }
+    }
   }
 
   private preprocessMetrics(metrics: number[], targetLength: number): number[] {
@@ -867,4 +892,4 @@ export class TensorFlowAIEngine {
 }
 
 // 싱글톤 인스턴스
-export const tensorFlowAIEngine = new TensorFlowAIEngine(); 
+export const tensorFlowAIEngine = new TensorFlowAIEngine();
