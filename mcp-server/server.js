@@ -189,7 +189,12 @@ class OpenManagerMCPServer {
   }
 
   startHealthCheckServer() {
-    const PORT = process.env.PORT || 3002;
+    // Render에서는 반드시 process.env.PORT 사용 (기본값 제거)
+    const PORT = process.env.PORT || 10000;
+
+    console.error(
+      `🔧 포트 설정 확인: PORT=${process.env.PORT}, 사용 포트=${PORT}`
+    );
 
     const healthServer = http.createServer((req, res) => {
       // CORS 헤더 설정
@@ -305,6 +310,9 @@ class OpenManagerMCPServer {
     healthServer.listen(PORT, '0.0.0.0', () => {
       console.error(`🏥 MCP Health Check Server running on port ${PORT}`);
       console.error(`📡 Health check: http://localhost:${PORT}/health`);
+      console.error(
+        `🌍 External URL: https://openmanager-mcp-server.onrender.com/health`
+      );
     });
 
     // 우아한 종료
