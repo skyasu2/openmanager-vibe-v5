@@ -21,7 +21,12 @@ export class MCPHealthChecker {
 
   async checkHealth(): Promise<boolean> {
     try {
-      const response = await fetch('/api/mcp/health', { timeout: 2000 });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      const response = await fetch('/api/mcp/health', {
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         this.recordSuccess();
@@ -44,7 +49,9 @@ export class MCPHealthChecker {
   recordFailure(): void {
     this.failureCount++;
     this.consecutiveFailures++;
-    console.warn(`⚠️ MCP 건강성 체크 실패 (연속 ${this.consecutiveFailures}회)`);
+    console.warn(
+      `⚠️ MCP 건강성 체크 실패 (연속 ${this.consecutiveFailures}회)`
+    );
   }
 
   isHealthy(): boolean {
@@ -65,4 +72,3 @@ export class MCPHealthChecker {
     };
   }
 }
-

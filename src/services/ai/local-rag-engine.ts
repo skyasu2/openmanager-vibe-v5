@@ -44,7 +44,9 @@ class KoreanNLUProcessor {
 }
 
 class KoreanResponseGenerator {
-  async generate(_: any): Promise<{ text: string; confidence: number; suggestions?: string[] }> {
+  async generate(
+    _: any
+  ): Promise<{ text: string; confidence: number; suggestions?: string[] }> {
     return { text: '준비 중입니다.', confidence: 0.5 };
   }
 }
@@ -79,7 +81,9 @@ export class LocalRAGEngine {
       await this.koreanNLU.initialize();
       this.ready = true;
       this.lastInitialized = Date.now();
-      console.log(`✅ RAG 엔진 초기화 완료 (${this.documentIndex.size}개 문서)`);
+      console.log(
+        `✅ RAG 엔진 초기화 완료 (${this.documentIndex.size}개 문서)`
+      );
     } catch (error) {
       console.error('❌ RAG 엔진 초기화 실패:', error);
       this.loadMinimalKnowledgeBase();
@@ -104,7 +108,8 @@ export class LocalRAGEngine {
         'memory-issue',
         {
           id: 'memory-issue',
-          content: '메모리 사용률이 높을 때는 메모리 누수를 확인하고 재시작을 고려하세요.',
+          content:
+            '메모리 사용률이 높을 때는 메모리 누수를 확인하고 재시작을 고려하세요.',
           keywords: ['메모리', '높음', '누수', '재시작'],
           category: 'performance',
           priority: 1,
@@ -115,7 +120,8 @@ export class LocalRAGEngine {
         'disk-full',
         {
           id: 'disk-full',
-          content: '디스크 공간이 부족할 때는 로그 파일을 정리하고 불필요한 파일을 삭제하세요.',
+          content:
+            '디스크 공간이 부족할 때는 로그 파일을 정리하고 불필요한 파일을 삭제하세요.',
           keywords: ['디스크', '공간', '부족', '정리'],
           category: 'storage',
           priority: 1,
@@ -129,13 +135,17 @@ export class LocalRAGEngine {
   private extractKeywords(text: string): string[] {
     const korean = text.match(/[가-힣]{2,}/g) || [];
     const english = text.match(/[a-zA-Z]{3,}/g) || [];
-    const technical = text.match(/\b(?:CPU|API|DB|RAM|SSD|HTTP|JSON|서버|모니터링)\b/gi) || [];
+    const technical =
+      text.match(/\b(?:CPU|API|DB|RAM|SSD|HTTP|JSON|서버|모니터링)\b/gi) || [];
     return [...new Set([...korean, ...english, ...technical])]
       .map(k => k.toLowerCase())
       .filter(k => k.length >= 2);
   }
 
-  private searchRelevantDocuments(query: string, intent: IntentAnalysis): DocumentContext[] {
+  private searchRelevantDocuments(
+    query: string,
+    intent: IntentAnalysis
+  ): DocumentContext[] {
     const keywords = this.extractKeywords(query);
     const scored = new Map<string, number>();
 
@@ -169,7 +179,12 @@ export class LocalRAGEngine {
 
   private async getCurrentServerMetrics(): Promise<any> {
     try {
-      const response = await fetch('/api/metrics/current', { timeout: 1000 });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1000);
+      const response = await fetch('/api/metrics/current', {
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
       return response.ok ? await response.json() : null;
     } catch {
       return null;
@@ -216,4 +231,3 @@ export class LocalRAGEngine {
     };
   }
 }
-
