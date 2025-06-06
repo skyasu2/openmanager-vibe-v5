@@ -1,14 +1,22 @@
 /**
  * 🧠 통합 AI 시스템 관리자
- * 
+ *
  * ✅ MCP 오케스트레이터 + FastAPI 클라이언트 통합
  * ✅ Keep-Alive 시스템 자동 관리
  * ✅ 3단계 컨텍스트 시스템 조율
  * ✅ 한국어 NLP 최적화
  */
 
-import { MCPOrchestrator, MCPQuery, MCPResponse } from '../mcp/mcp-orchestrator';
-import { FastAPIClient, AIQuery, AIResponse } from '../../services/fastapi-stub';
+import {
+  MCPOrchestrator,
+  MCPQuery,
+  MCPResponse,
+} from '../mcp/mcp-orchestrator';
+import {
+  FastAPIClient,
+  AIQuery,
+  AIResponse,
+} from '../../services/fastapi-stub';
 import { KeepAliveSystem } from '../../services/ai/keep-alive-system';
 import { BasicContextManager } from '../../context/basic-context-manager';
 import { AdvancedContextManager } from '../../context/advanced-context-manager';
@@ -114,7 +122,7 @@ export class UnifiedAISystem {
       fallbackToMCP: true,
       maxResponseTime: 30000, // 30초
       cacheEnabled: true,
-      ...config
+      ...config,
     };
 
     this.mcpOrchestrator = new MCPOrchestrator();
@@ -174,11 +182,10 @@ export class UnifiedAISystem {
 
       this.isInitialized = true;
       console.log('✅ [UnifiedAI] 통합 AI 시스템 초기화 완료');
-      
+
       // 초기화 후 상태 로깅
       const health = await this.getSystemHealth();
       console.log('📊 [UnifiedAI] 시스템 상태:', health.overall);
-
     } catch (error) {
       console.error('❌ [UnifiedAI] 초기화 실패:', error);
       throw error;
@@ -224,19 +231,22 @@ export class UnifiedAISystem {
       this.updateStats(processingTime, true);
 
       response.metadata.processingTime = processingTime;
-      
+
       console.log(`✅ [UnifiedAI] 질의 처리 완료 (${processingTime}ms)`);
       return response;
-
     } catch (error) {
       console.error('❌ [UnifiedAI] 질의 처리 실패:', error);
-      
+
       // 실패 통계 업데이트
       const processingTime = Date.now() - startTime;
       this.updateStats(processingTime, false);
 
       // 폴백 응답 생성
-      return this.generateFallbackResponse(query, error as Error, processingTime);
+      return this.generateFallbackResponse(
+        query,
+        error as Error,
+        processingTime
+      );
     }
   }
 
@@ -250,7 +260,11 @@ export class UnifiedAISystem {
     }
 
     // 하이브리드 모드 사용 조건
-    if (this.config.hybridMode && this.config.enableFastAPI && this.config.enableMCP) {
+    if (
+      this.config.hybridMode &&
+      this.config.enableFastAPI &&
+      this.config.enableMCP
+    ) {
       // 복잡한 질의나 분석이 필요한 경우 하이브리드
       if (query.text.length > 100 || query.options?.includeAnalysis) {
         return 'hybrid';
@@ -270,20 +284,21 @@ export class UnifiedAISystem {
   /**
    * 🐍 FastAPI 질의 처리
    */
-  private async processFastAPIQuery(query: UnifiedQuery): Promise<UnifiedResponse> {
+  private async processFastAPIQuery(
+    query: UnifiedQuery
+  ): Promise<UnifiedResponse> {
     try {
       const aiQuery: AIQuery = {
-        id: `ai_${Date.now()}`,
         text: query.text,
-        context: query.context,
-        userId: query.userId,
-        sessionId: query.sessionId,
         options: {
           includeEmbedding: true,
           includeEntities: true,
           includeSentiment: true,
-          language: 'ko'
-        }
+          language: 'ko',
+          context: query.context,
+          userId: query.userId,
+          sessionId: query.sessionId,
+        },
       };
 
       const aiResponse = await this.fastApiClient.analyzeText(aiQuery);
@@ -293,16 +308,18 @@ export class UnifiedAISystem {
         queryId: query.id,
         answer: aiResponse.response,
         confidence: aiResponse.confidence,
-        sources: [{
-          type: 'fastapi',
-          content: aiResponse.analysis,
-          confidence: aiResponse.confidence
-        }],
+        sources: [
+          {
+            type: 'fastapi',
+            content: aiResponse.analysis,
+            confidence: aiResponse.confidence,
+          },
+        ],
         analysis: {
           sentiment: aiResponse.analysis.sentiment,
           intent: aiResponse.analysis.intent,
           entities: aiResponse.analysis.entities,
-          keywords: aiResponse.analysis.intent.keywords
+          keywords: aiResponse.analysis.intent.keywords,
         },
         recommendations: this.generateRecommendations(aiResponse.analysis),
         actions: [],
@@ -310,11 +327,10 @@ export class UnifiedAISystem {
           processingTime: aiResponse.processingTime,
           engine: 'fastapi',
           fromCache: aiResponse.fromCache,
-          contextUsed: { basic: false, advanced: false, custom: false }
+          contextUsed: { basic: false, advanced: false, custom: false },
         },
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
-
     } catch (error) {
       // FastAPI 실패 시 MCP로 폴백
       if (this.config.fallbackToMCP && this.config.enableMCP) {
@@ -336,9 +352,9 @@ export class UnifiedAISystem {
       organizationId: query.organizationId,
       context: {
         sessionId: query.sessionId,
-        userPreferences: query.context
+        userPreferences: query.context,
       },
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     const mcpResponse = await this.mcpOrchestrator.processQuery(mcpQuery);
@@ -351,7 +367,7 @@ export class UnifiedAISystem {
       sources: mcpResponse.sources.map(source => ({
         type: 'mcp' as const,
         content: source,
-        confidence: source.confidence
+        confidence: source.confidence,
       })),
       analysis: undefined, // MCP는 기본적으로 자세한 분석 제공하지 않음
       recommendations: mcpResponse.recommendations,
@@ -360,22 +376,27 @@ export class UnifiedAISystem {
         processingTime: mcpResponse.processingTime,
         engine: 'mcp',
         fromCache: false,
-        contextUsed: mcpResponse.contextUsed
+        contextUsed: mcpResponse.contextUsed,
       },
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
   /**
    * 🔀 하이브리드 질의 처리
    */
-  private async processHybridQuery(query: UnifiedQuery): Promise<UnifiedResponse> {
+  private async processHybridQuery(
+    query: UnifiedQuery
+  ): Promise<UnifiedResponse> {
     console.log('🔀 [UnifiedAI] 하이브리드 모드 처리');
 
     // FastAPI와 MCP를 병렬로 실행
     const [fastApiResult, mcpResult] = await Promise.allSettled([
-      this.processFastAPIQuery({ ...query, options: { ...query.options, preferFastAPI: true } }),
-      this.processMCPQuery(query)
+      this.processFastAPIQuery({
+        ...query,
+        options: { ...query.options, preferFastAPI: true },
+      }),
+      this.processMCPQuery(query),
     ]);
 
     // 결과 통합
@@ -397,13 +418,10 @@ export class UnifiedAISystem {
     const hybridResponse: UnifiedResponse = {
       ...primaryResult,
       id: `unified_hybrid_${Date.now()}`,
-      sources: [
-        ...primaryResult.sources,
-        ...(secondaryResult?.sources || [])
-      ],
+      sources: [...primaryResult.sources, ...(secondaryResult?.sources || [])],
       recommendations: [
         ...primaryResult.recommendations,
-        ...(secondaryResult?.recommendations || [])
+        ...(secondaryResult?.recommendations || []),
       ].slice(0, 5), // 최대 5개로 제한
       metadata: {
         ...primaryResult.metadata,
@@ -411,13 +429,14 @@ export class UnifiedAISystem {
         processingTime: Math.max(
           primaryResult.metadata.processingTime,
           secondaryResult?.metadata.processingTime || 0
-        )
-      }
+        ),
+      },
     };
 
     // 신뢰도 조정 (하이브리드에서는 평균값 사용)
     if (secondaryResult) {
-      hybridResponse.confidence = (primaryResult.confidence + secondaryResult.confidence) / 2;
+      hybridResponse.confidence =
+        (primaryResult.confidence + secondaryResult.confidence) / 2;
     }
 
     return hybridResponse;
@@ -454,29 +473,30 @@ export class UnifiedAISystem {
    * 🆘 폴백 응답 생성
    */
   private generateFallbackResponse(
-    query: UnifiedQuery, 
-    error: Error, 
+    query: UnifiedQuery,
+    error: Error,
     processingTime: number
   ): UnifiedResponse {
     return {
       id: `unified_fallback_${Date.now()}`,
       queryId: query.id,
-      answer: '죄송합니다. 현재 시스템에 일시적인 문제가 있어 정확한 답변을 드리기 어렵습니다. 잠시 후 다시 시도해 주세요.',
+      answer:
+        '죄송합니다. 현재 시스템에 일시적인 문제가 있어 정확한 답변을 드리기 어렵습니다. 잠시 후 다시 시도해 주세요.',
       confidence: 0.1,
       sources: [],
       recommendations: [
         '잠시 후 다시 시도해 주세요',
         '시스템 관리자에게 문의하세요',
-        '간단한 질문으로 다시 요청해 보세요'
+        '간단한 질문으로 다시 요청해 보세요',
       ],
       actions: [],
       metadata: {
         processingTime,
         engine: 'fastapi',
         fromCache: false,
-        contextUsed: { basic: false, advanced: false, custom: false }
+        contextUsed: { basic: false, advanced: false, custom: false },
       },
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -503,18 +523,18 @@ export class UnifiedAISystem {
       keepAliveStatus,
       basicContextStatus,
       advancedContextStats,
-      customContextStats
+      customContextStats,
     ] = await Promise.allSettled([
       this.fastApiClient.getConnectionStatus(),
       this.keepAliveSystem.getStatus(),
       this.basicContext.getCurrentContext(),
       this.advancedContext.getStatistics(),
-      this.customContext.getStatistics()
+      this.customContext.getStatistics(),
     ]);
 
     // 전체 상태 판단
     let overall: SystemHealth['overall'] = 'healthy';
-    
+
     if (!this.config.enableFastAPI && !this.config.enableMCP) {
       overall = 'unhealthy';
     } else if (this.getSuccessRate() < 0.8) {
@@ -525,42 +545,66 @@ export class UnifiedAISystem {
       overall,
       components: {
         fastapi: {
-          status: fastApiStatus.status === 'fulfilled' && fastApiStatus.value.isConnected ? 'healthy' : 'unhealthy',
-          latency: fastApiStatus.status === 'fulfilled' && fastApiStatus.value.healthStatus 
-            ? 0 : -1
+          status:
+            fastApiStatus.status === 'fulfilled' &&
+            fastApiStatus.value.isConnected
+              ? 'healthy'
+              : 'unhealthy',
+          latency:
+            fastApiStatus.status === 'fulfilled' &&
+            fastApiStatus.value.healthStatus
+              ? 0
+              : -1,
         },
         mcp: {
           status: this.config.enableMCP ? 'healthy' : 'disabled',
-          initialized: this.isInitialized
+          initialized: this.isInitialized,
         },
         keepAlive: {
-          status: keepAliveStatus.status === 'fulfilled' && keepAliveStatus.value.isActive ? 'healthy' : 'inactive',
-          uptime: keepAliveStatus.status === 'fulfilled' ? keepAliveStatus.value.uptimeHours : 0
+          status:
+            keepAliveStatus.status === 'fulfilled' &&
+            keepAliveStatus.value.isActive
+              ? 'healthy'
+              : 'inactive',
+          uptime:
+            keepAliveStatus.status === 'fulfilled'
+              ? keepAliveStatus.value.uptimeHours
+              : 0,
         },
         contexts: {
           basic: {
-            status: basicContextStatus.status === 'fulfilled' ? 'healthy' : 'error',
-            lastUpdate: basicContextStatus.status === 'fulfilled' && basicContextStatus.value 
-              ? basicContextStatus.value.lastUpdate : 0
+            status:
+              basicContextStatus.status === 'fulfilled' ? 'healthy' : 'error',
+            lastUpdate:
+              basicContextStatus.status === 'fulfilled' &&
+              basicContextStatus.value
+                ? basicContextStatus.value.lastUpdate
+                : 0,
           },
           advanced: {
-            status: advancedContextStats.status === 'fulfilled' ? 'healthy' : 'error',
-            documentsCount: advancedContextStats.status === 'fulfilled' 
-              ? advancedContextStats.value.totalDocuments : 0
+            status:
+              advancedContextStats.status === 'fulfilled' ? 'healthy' : 'error',
+            documentsCount:
+              advancedContextStats.status === 'fulfilled'
+                ? advancedContextStats.value.totalDocuments
+                : 0,
           },
           custom: {
-            status: customContextStats.status === 'fulfilled' ? 'healthy' : 'error',
-            rulesCount: customContextStats.status === 'fulfilled' 
-              ? customContextStats.value.totalRules : 0
-          }
-        }
+            status:
+              customContextStats.status === 'fulfilled' ? 'healthy' : 'error',
+            rulesCount:
+              customContextStats.status === 'fulfilled'
+                ? customContextStats.value.totalRules
+                : 0,
+          },
+        },
       },
       stats: {
         totalQueries: this.queryCount,
         avgResponseTime: this.getAverageResponseTime(),
         successRate: this.getSuccessRate(),
-        cacheHitRate: this.getCacheHitRate()
-      }
+        cacheHitRate: this.getCacheHitRate(),
+      },
     };
   }
 
@@ -575,8 +619,9 @@ export class UnifiedAISystem {
    * ⚡ 평균 응답 시간 계산
    */
   private getAverageResponseTime(): number {
-    return this.responseTimes.length > 0 
-      ? this.responseTimes.reduce((sum, time) => sum + time, 0) / this.responseTimes.length 
+    return this.responseTimes.length > 0
+      ? this.responseTimes.reduce((sum, time) => sum + time, 0) /
+          this.responseTimes.length
       : 0;
   }
 
@@ -592,10 +637,10 @@ export class UnifiedAISystem {
    */
   async restart(): Promise<void> {
     console.log('🔄 [UnifiedAI] 시스템 재시작 중...');
-    
+
     await this.shutdown();
     await this.initialize();
-    
+
     console.log('✅ [UnifiedAI] 시스템 재시작 완료');
   }
 
@@ -604,7 +649,7 @@ export class UnifiedAISystem {
    */
   async shutdown(): Promise<void> {
     console.log('🛑 [UnifiedAI] 시스템 종료 중...');
-    
+
     if (this.config.enableKeepAlive) {
       this.keepAliveSystem.stop();
     }
@@ -614,11 +659,11 @@ export class UnifiedAISystem {
     }
 
     this.basicContext.stopCollection();
-    
+
     this.isInitialized = false;
     console.log('✅ [UnifiedAI] 시스템 종료 완료');
   }
 }
 
 // 전역 인스턴스
-export const unifiedAISystem = new UnifiedAISystem(); 
+export const unifiedAISystem = new UnifiedAISystem();
