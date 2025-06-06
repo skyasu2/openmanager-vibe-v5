@@ -196,11 +196,15 @@ export default function Home() {
       const healthResponse = await fetch('/api/health');
       const healthData = await healthResponse.json();
 
-      // 2. 서버 생성기 상태 확인
-      const serverGenResponse = await fetch('/api/system/status');
+      // 2. 웹소켓 상태 확인
+      const websocketResponse = await fetch('/api/websocket/status');
+      const websocketData = await websocketResponse.json();
+
+      // 3. 서버 생성기 상태 확인
+      const serverGenResponse = await fetch('/api/servers/next?action=health');
       const serverGenData = await serverGenResponse.json();
 
-      // 3. MCP 상태 확인 (선택적)
+      // 4. MCP 상태 확인 (선택적)
       let mcpStatus = { success: false, ready: false };
       try {
         const mcpResponse = await fetch('/api/mcp/status');
@@ -212,8 +216,9 @@ export default function Home() {
       // 📊 점검 결과 로깅
       const systemReadiness = {
         health: healthData.success,
+        websocket: websocketData.success && websocketData.websocket?.connected,
         serverGeneration:
-          serverGenData.success && serverGenData.data?.isGenerating,
+          serverGenData.success && serverGenData.data?.isHealthy,
         mcp: mcpStatus.success,
         timestamp: new Date().toISOString(),
       };
@@ -222,7 +227,9 @@ export default function Home() {
 
       // 🚨 문제 발견 시 디버그 모드 활성화
       const isSystemReady =
-        systemReadiness.health && systemReadiness.serverGeneration;
+        systemReadiness.health &&
+        systemReadiness.websocket &&
+        systemReadiness.serverGeneration;
 
       if (!isSystemReady) {
         console.warn(
@@ -234,6 +241,7 @@ export default function Home() {
           `⚠️ 시스템 준비가 완료되지 않았습니다.\n\n` +
             `📊 시스템 상태:\n` +
             `• 헬스체크: ${systemReadiness.health ? '✅' : '❌'}\n` +
+            `• 웹소켓: ${systemReadiness.websocket ? '✅' : '❌'}\n` +
             `• 서버 생성기: ${systemReadiness.serverGeneration ? '✅' : '❌'}\n` +
             `• MCP 서버: ${systemReadiness.mcp ? '✅' : '⚠️'}\n\n` +
             `🔧 F12를 눌러 개발자 도구에서 상세 로그를 확인하세요.\n\n` +

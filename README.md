@@ -1,4 +1,4 @@
-# 🚀 OpenManager Vibe v5.33.0
+# 🚀 OpenManager Vibe v5.34.0
 
 > **세계 최초 한국어 특화 AI 하이브리드 엔진 - Korean NLP + Transformers.js + TensorFlow.js + Vector DB 통합 서버 모니터링 시스템**  
 > **✅ 실제 환경변수 복구 완료 + 🔄 Keep-Alive 시스템 + 🔨 Vercel 빌드 최적화 - Supabase + Upstash Redis 연결**
@@ -124,7 +124,7 @@ UPSTASH_REDIS_REST_TOKEN=AbYGAAIj...AxMA
 
 ```mermaid
 graph TB
-    subgraph "🎯 Korean AI Hybrid Engine v5.33"
+    subgraph "🎯 Korean AI Hybrid Engine v5.34"
         UI["Next.js UI"] --> Gateway["API Gateway"]
         Gateway --> Hybrid["Hybrid AI Controller"]
 
@@ -161,6 +161,48 @@ graph TB
     UI --> Vercel
     BuildOptimizer --> Vercel
 ```
+
+## 🔍 **NEW! 4단계 시스템 상태 점검 (v5.34.0)**
+
+**대시보드 이동 전 완전한 시스템 준비 상태를 검증하는 스마트 상태 점검 시스템!**
+
+### ✅ **개선된 상태 점검 시스템**
+
+- **4단계 상태 검증**: 헬스체크 → 웹소켓 → 서버생성기 → MCP
+- **실시간 진단**: 각 서비스별 상세 상태 정보 제공
+- **F12 디버그 모드**: 문제 발생 시 상세 로그 안내
+- **사용자 선택권**: 문제 있어도 강제 진입 가능
+
+### 📊 **상태 점검 프로세스**
+
+```mermaid
+graph LR
+    A["대시보드 클릭"] --> B["1️⃣ 헬스체크<br/>/api/health"]
+    B --> C["2️⃣ 웹소켓<br/>/api/websocket/status"]
+    C --> D["3️⃣ 서버생성기<br/>/api/servers/next?action=health"]
+    D --> E["4️⃣ MCP 서버<br/>/api/mcp/status"]
+    E --> F{모든 서비스<br/>정상?}
+    F -->|Yes| G["✅ 즉시 대시보드 이동"]
+    F -->|No| H["⚠️ 상태 안내 + 사용자 선택"]
+    H --> I["🔧 F12 디버그 모드 안내"]
+    H --> J["🚀 강제 진입 옵션"]
+```
+
+### 🔧 **새로운 API 엔드포인트**
+
+| API                               | 기능                 | 응답                                               | 상태          |
+| --------------------------------- | -------------------- | -------------------------------------------------- | ------------- |
+| `/api/websocket/status`           | 웹소켓 연결 상태     | `{ websocket: { connected: boolean } }`            | ✅ **NEW**    |
+| `/api/servers/next?action=health` | 서버 생성기 헬스체크 | `{ data: { isHealthy: boolean, status: string } }` | ✅ **강화**   |
+| `/api/health`                     | 시스템 헬스체크      | `{ success: boolean }`                             | ✅ **기존**   |
+| `/api/mcp/status`                 | MCP 서버 상태        | `{ success: boolean }`                             | ⚠️ **선택적** |
+
+### 💡 **사용자 경험 개선**
+
+- **즉시 진단**: 시스템 문제를 즉시 감지하고 알림
+- **상세 정보**: 각 서비스별 구체적인 상태 정보 제공
+- **개발자 친화적**: F12 콘솔에서 상세 디버그 정보 확인
+- **유연한 진입**: 문제가 있어도 사용자 판단으로 진입 가능
 
 ## 🚀 빠른 시작
 
