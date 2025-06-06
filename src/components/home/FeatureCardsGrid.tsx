@@ -210,21 +210,35 @@ const techCategories = {
     techs: [
       {
         name: 'Cursor AI',
-        description: 'Claude 기반 에디터',
+        description:
+          '🎯 핵심 - Claude Sonnet 4.0 기반 컨텍스트 이해형 AI 에디터',
         icon: Code,
-        color: 'bg-purple-500',
+        color: 'bg-purple-600',
+      },
+      {
+        name: 'Claude Sonnet',
+        description: '커서 개발 모델 - 대규모 컨텍스트 처리 및 코드 이해',
+        icon: Brain,
+        color: 'bg-indigo-500',
       },
       {
         name: 'ChatGPT',
-        description: '브레인스토밍',
+        description: '브레인스토밍 + 프롬프트 작성 초반 단계',
         icon: Brain,
         color: 'bg-green-500',
       },
       {
-        name: 'OpenAI Codex',
-        description: '문서화',
-        icon: Code,
+        name: 'Jules (Google AI)',
+        description: 'AI 워크플로우 자동화 도우미 - 대화형 업무 실행 병행',
+        icon: Settings,
         color: 'bg-blue-500',
+      },
+      {
+        name: 'GPT Codex',
+        description:
+          '코드 특화 GPT-3 파생 모델 - 프로그래밍 언어 특화 병행 후반',
+        icon: Code,
+        color: 'bg-cyan-500',
       },
     ],
   },
@@ -337,27 +351,30 @@ const cardData = [
   {
     id: 'vibe-coding',
     title: '✨ Vibe Coding',
-    description: 'Cursor AI + MCP 다중 AI 모델 협업 개발',
+    description: 'Cursor AI 중심 다중 AI 모델 협업 개발 워크플로우',
     icon: Sparkles,
     gradient: 'from-amber-400 via-orange-500 to-yellow-600',
     detailedContent: {
       overview: {
-        title: '🎯 핵심 기능',
+        title: '🎯 핵심 워크플로우',
         features: [
           {
-            icon: Brain,
-            title: 'AI 네이티브',
-            description: 'Claude Sonnet 기반 컨텍스트 이해',
+            icon: Code,
+            title: 'Cursor AI 핵심',
+            description:
+              'Claude Sonnet 4.0 기반 컨텍스트 이해형 AI 에디터가 메인 개발 도구',
           },
           {
             icon: Network,
-            title: 'MCP 통합',
-            description: '프로젝트와 AI 간 실시간 통신',
+            title: 'MCP 실시간 통신',
+            description:
+              'AI 모델과 프로젝트 데이터 간 표준화된 실시간 통신 프로토콜',
           },
           {
-            icon: Shield,
-            title: '품질 보장',
-            description: '자동 테스트 + 린트 + 포맷팅',
+            icon: Brain,
+            title: '다중 AI 협업',
+            description:
+              'ChatGPT 브레인스토밍 → Jules 자동화 → Codex 특화 작업 병행',
           },
         ],
       },
