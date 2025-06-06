@@ -9,6 +9,23 @@ import { smartRedis } from '@/lib/redis';
 import { usageMonitor } from '@/lib/usage-monitor';
 
 export async function GET(request: Request) {
+  // 빌드 타임 체크 - 빌드 시에는 더미 응답 반환
+  if (
+    process.env.npm_lifecycle_event === 'build' ||
+    !process.env.NEXT_PUBLIC_SUPABASE_URL
+  ) {
+    return NextResponse.json({
+      success: true,
+      message: 'Build time - Keep-Alive skipped',
+      results: {
+        timestamp: new Date().toISOString(),
+        supabase: { success: true, error: null },
+        redis: { success: true, error: null },
+        usage: null,
+      },
+    });
+  }
+
   // 인증 확인 (Cron 요청만 허용)
   const authHeader = request.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET || 'default-secret';
