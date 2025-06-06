@@ -379,13 +379,13 @@ export default function FeatureCardsGrid() {
       {/* 개선된 상세 모달 */}
       <AnimatePresence>
         {selectedCard && selectedCardData && (
-          <div className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md'>
+          <div className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60'>
             <motion.div
               ref={modalRef}
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className={`relative w-full max-w-2xl max-h-[80vh] overflow-y-auto bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-xl shadow-2xl ${
+              className={`relative w-full max-w-2xl max-h-[80vh] overflow-y-auto bg-gray-900 border border-gray-700/50 rounded-xl shadow-2xl ${
                 selectedCardData.isSpecial
                   ? 'border-amber-500/50 bg-gradient-to-br from-gray-900/95 to-amber-900/20'
                   : ''
