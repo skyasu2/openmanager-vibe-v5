@@ -2,11 +2,7 @@
   "version": 2,
   "name": "openmanager-vibe-v5",
   "alias": ["openmanager-vibe-v5"],
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "outputDirectory": ".next",
   "framework": "nextjs",
-  "installCommand": "npm ci --prefer-offline --no-audit --no-fund",
   "build": {
     "env": {
       "NODE_ENV": "production",

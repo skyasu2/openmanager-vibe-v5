@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "name": "openmanager-vibe-v5",
+  "framework": "nextjs",
+  "build": {
+    "env": {
+      "NODE_ENV": "production",
+      "SKIP_ENV_VALIDATION": "true",
+      "ESLINT_NO_DEV_ERRORS": "true"
+    }
+  },
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/health",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/keep-alive",
+      "schedule": "0 */4 * * *"
+    }
+  ]
+}
