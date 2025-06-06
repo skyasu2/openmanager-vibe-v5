@@ -6,7 +6,7 @@ services:
     plan: starter
     region: oregon
     branch: main
-    buildCommand: npm install && if [ -d "mcp-server" ]; then cd mcp-server && npm install && cd ..; fi && npm run build
+    buildCommand: npm install && npm install @modelcontextprotocol/server-filesystem @smithery/cli canvas && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
     autoDeploy: false
