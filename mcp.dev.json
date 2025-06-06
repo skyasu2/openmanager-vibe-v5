@@ -22,6 +22,10 @@
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
       }
+    },
+    "duckduckgo-search": {
+      "command": "npx",
+      "args": ["duckduckgo-mcp-server"]
     }
   }
 }

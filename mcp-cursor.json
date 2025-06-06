@@ -30,6 +30,10 @@
     "browser-tools": {
       "command": "npx",
       "args": ["@modelcontextprotocol/server-browser-tools"]
+    },
+    "duckduckgo-search": {
+      "command": "npx",
+      "args": ["duckduckgo-mcp-server"]
     }
   }
 }
