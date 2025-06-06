@@ -1,13 +1,16 @@
 /**
  * 🎯 MCP 분석 통합 테스트
- * 
- * NOTE: UnifiedIntentClassifier 모듈이 제거되어 일시적으로 비활성화됨
  */
 
-import { describe, it } from 'vitest';
+import { describe, it, expect } from 'vitest';
+import { IntentClassifier } from '@/services/ai/IntentClassifier';
 
-describe.skip('🎯 통합 Intent Classification 시스템 (비활성화)', () => {
-  it('테스트가 임시로 비활성화됨', () => {
-    // UnifiedIntentClassifier 모듈 제거로 인해 테스트가 비활성화되었습니다.
+describe('🎯 통합 Intent Classification 시스템', () => {
+  it('예측 관련 문구를 정확히 분류한다', async () => {
+    const classifier = new IntentClassifier();
+    const result = await classifier.classify('서버 성능을 예측해 줘');
+
+    expect(result.primary).toBe('server_performance_prediction');
+    expect(result.confidence).toBeGreaterThan(0);
   });
 });
