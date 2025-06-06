@@ -73,6 +73,10 @@ cp .env.example .env.local
 - ✅ **서버 데이터 생성기 개선** - 비동기 루프 및 제로값 처리
 - ✅ **Vercel 배포 최적화** - 빌드 성공률 100%
 - ✅ **Keep-Alive 시스템** - Supabase/Redis 자동 보호
+- 🆕 **4개 카드 모달 대폭 개선** (2025.01.06)
+  - 50개 오픈소스 라이브러리 완전 공개
+  - MCP(Model Context Protocol) 상세 설명 추가
+  - Cursor AI + Claude Sonnet + ChatGPT + OpenAI Codex 워크플로우 명시
 
 ## 🚀 데모 및 배포
 
