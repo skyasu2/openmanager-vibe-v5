@@ -282,7 +282,19 @@ const cardData = [
           },
         ],
       },
-      categories: ['mcp-integration', 'ai-ml'],
+      technologies: [
+        'MCP SDK - AI 모델과 데이터 소스 간 표준 프로토콜 통신',
+        'MCP 서버 - filesystem, github 서버로 문서 검색 및 컨텍스트 관리',
+        'TensorFlow.js - 브라우저 내 기계학습 모델 실행 엔진',
+        'Transformers.js - Hugging Face 사전 훈련된 모델 브라우저 실행',
+        'natural - 영어 자연어 처리 및 토큰화 라이브러리',
+        'korean-js - 한국어 형태소 분석 및 언어 처리',
+        'ml-matrix - 행렬 연산 및 선형대수 계산',
+        'ml-regression - 회귀 분석 및 예측 알고리즘',
+        'fuse.js - 퍼지 검색 엔진 및 유사도 매칭',
+        'fuzzyset.js - 문자열 유사도 검색 및 자동완성',
+        'compromise - 자연어 이해, 파싱 및 구문 분석',
+      ],
     },
     requiresAI: true,
     isAICard: true,
@@ -314,7 +326,18 @@ const cardData = [
           },
         ],
       },
-      categories: ['data-storage', 'monitoring'],
+      technologies: [
+        '@faker-js/faker - 현실적인 서버 이름, IP, 로그 메시지 생성',
+        'prom-client - Prometheus 표준 메트릭 수집 및 출력',
+        'systeminformation - 실제 시스템 하드웨어/소프트웨어 정보 수집',
+        '@upstash/redis - 서버리스 Redis 클라이언트 및 캐싱',
+        'ioredis - 고성능 Redis Node.js 클라이언트',
+        '@supabase/supabase-js - PostgreSQL 기반 데이터 저장소',
+        'node-cron - Unix cron 스타일 작업 스케줄러',
+        'compression - gzip/deflate HTTP 압축 및 네트워크 최적화',
+        'date-fns - 현대적인 JavaScript 날짜 유틸리티 및 시계열 관리',
+        'axios - Promise 기반 HTTP 클라이언트 라이브러리',
+      ],
     },
     requiresAI: false,
   },
@@ -345,7 +368,23 @@ const cardData = [
           },
         ],
       },
-      categories: ['frontend', 'visualization'],
+      technologies: [
+        'Next.js - React 메타프레임워크 및 App Router',
+        'React - 컴포넌트 기반 UI 라이브러리 및 Server Components',
+        'TypeScript - 정적 타입 체크 JavaScript 슈퍼셋',
+        'Tailwind CSS - 유틸리티 우선 CSS 프레임워크',
+        'Zustand - 가벼운 클라이언트 상태 관리',
+        '@tanstack/react-query - 서버 상태 관리 및 캐싱',
+        'framer-motion - 고성능 React 애니메이션 라이브러리',
+        'chart.js - 캔버스 기반 반응형 차트',
+        'recharts - React 전용 차트 컴포넌트',
+        'd3 - 데이터 기반 문서 조작 및 시각화',
+        'lucide-react - 현대적인 SVG 아이콘 라이브러리',
+        '@headlessui/react - 무스타일 접근성 UI 컴포넌트',
+        '@radix-ui/react-* - 접근 가능한 UI 프리미티브',
+        'class-variance-authority - 조건부 CSS 클래스 관리',
+        'clsx - 동적 className 유틸리티',
+      ],
     },
     requiresAI: false,
   },
@@ -379,7 +418,23 @@ const cardData = [
           },
         ],
       },
-      categories: ['mcp-integration', 'ai-development', 'development'],
+      technologies: [
+        'Cursor AI - Claude Sonnet 3.7/4.0 기반 AI 네이티브 코드 에디터',
+        'MCP SDK - AI와 프로젝트 간 컨텍스트 통신 프로토콜',
+        'ChatGPT - 상세 프롬프트 설계 및 기술 브레인스토밍',
+        'OpenAI Codex - 개발 후기 작성 및 기술 문서화',
+        'ESLint - JavaScript/TypeScript 코드 품질 및 스타일 검사',
+        'Prettier - 일관된 코드 포맷팅 자동화',
+        'Vitest - 빠른 단위 테스트 러너 (Jest 호환)',
+        'Playwright - 크로스 브라우저 End-to-End 테스트 자동화',
+        'Husky - Git hooks 관리 및 커밋 전 품질 검사',
+        'lint-staged - 스테이징된 파일만 린트 실행',
+        '@typescript-eslint - TypeScript 전용 ESLint 규칙',
+        'cross-env - 크로스 플랫폼 환경변수 설정',
+        'tsx - TypeScript 직접 실행기',
+        '@testing-library - React 컴포넌트 테스트 라이브러리',
+        'autoprefixer - CSS 벤더 프리픽스 자동 추가',
+      ],
     },
     requiresAI: false,
     isSpecial: true,
@@ -622,7 +677,7 @@ export default function FeatureCardsGrid() {
         ))}
       </div>
 
-      {/* 개선된 상세 모달 */}
+      {/* 개선된 상세 모달 - 2255f45 버전 기반 */}
       <AnimatePresence>
         {selectedCard && selectedCardData && (
           <div className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60'>
@@ -715,9 +770,9 @@ export default function FeatureCardsGrid() {
 
               {/* 상세 내용 */}
               <div className='p-4 space-y-6'>
-                {/* 핵심 기능 대형 카드들 */}
+                {/* 핵심 기능 카드들 */}
                 <div>
-                  <h3 className='text-white font-medium mb-6 text-2xl flex items-center gap-3'>
+                  <h3 className='text-white font-medium mb-4 text-xl flex items-center gap-3'>
                     <div
                       className={`w-8 h-8 bg-gradient-to-br ${selectedCardData.gradient} rounded-lg flex items-center justify-center`}
                     >
@@ -725,24 +780,24 @@ export default function FeatureCardsGrid() {
                     </div>
                     {selectedCardData.detailedContent.overview.title}
                   </h3>
-                  <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+                  <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                     {selectedCardData.detailedContent.overview.features.map(
                       (feature, index) => (
                         <motion.div
                           key={index}
-                          initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                          initial={{ opacity: 0, y: 20, scale: 0.95 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           transition={{
-                            delay: index * 0.15,
+                            delay: index * 0.1,
                             type: 'spring',
                             stiffness: 100,
                           }}
                           whileHover={{
-                            scale: 1.05,
-                            y: -5,
+                            scale: 1.02,
+                            y: -2,
                             transition: { duration: 0.2 },
                           }}
-                          className='relative p-6 bg-gradient-to-br from-gray-800/60 via-gray-900/40 to-gray-800/60 rounded-xl border border-gray-700/50 hover:border-gray-600/70 transition-all duration-300 group overflow-hidden cursor-pointer'
+                          className='relative p-4 bg-gradient-to-br from-gray-800/60 via-gray-900/40 to-gray-800/60 rounded-lg border border-gray-700/50 hover:border-gray-600/70 transition-all duration-300 group overflow-hidden cursor-pointer'
                         >
                           {/* 배경 그라데이션 */}
                           <div
@@ -758,14 +813,14 @@ export default function FeatureCardsGrid() {
                           {/* 상단 아이콘 */}
                           <motion.div
                             whileHover={{
-                              scale: 1.2,
-                              rotate: 10,
+                              scale: 1.1,
+                              rotate: 5,
                               transition: { duration: 0.3 },
                             }}
-                            className='relative mb-4'
+                            className='relative mb-3'
                           >
                             <div
-                              className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300 ${
+                              className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300 ${
                                 selectedCardData.isAICard
                                   ? 'bg-gradient-to-br from-pink-500 to-purple-600'
                                   : selectedCardData.isSpecial
@@ -773,16 +828,16 @@ export default function FeatureCardsGrid() {
                                     : 'bg-gradient-to-br from-blue-500 to-cyan-600'
                               }`}
                             >
-                              <feature.icon className='w-7 h-7 text-white' />
+                              <feature.icon className='w-5 h-5 text-white' />
                             </div>
                           </motion.div>
 
                           {/* 콘텐츠 */}
                           <div className='relative z-10'>
-                            <h4 className='font-bold text-white text-lg mb-3 group-hover:text-gray-100 transition-colors'>
+                            <h4 className='font-bold text-white text-base mb-2 group-hover:text-gray-100 transition-colors'>
                               {feature.title}
                             </h4>
-                            <p className='text-gray-300 text-sm leading-relaxed group-hover:text-gray-200 transition-colors'>
+                            <p className='text-gray-300 text-xs leading-relaxed group-hover:text-gray-200 transition-colors'>
                               {feature.description}
                             </p>
                           </div>
@@ -806,97 +861,57 @@ export default function FeatureCardsGrid() {
                   </div>
                 </div>
 
-                {/* 기술 카테고리 대형 카드들 */}
-                <div className='space-y-6'>
-                  {selectedCardData.detailedContent.categories.map(
-                    (categoryId: string, categoryIndex: number) => {
-                      const category =
-                        techCategories[
-                          categoryId as keyof typeof techCategories
-                        ];
-                      return (
+                {/* 적용 기술 - 카드 형태로 변경 */}
+                <div>
+                  <h3 className='text-white font-medium mb-4 text-xl'>
+                    🛠️ 적용 기술
+                  </h3>
+                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                    {selectedCardData.detailedContent.technologies.map(
+                      (tech, index) => (
                         <motion.div
-                          key={categoryId}
-                          initial={{ opacity: 0, y: 30 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: categoryIndex * 0.15 }}
-                          className={`relative p-6 bg-gradient-to-br from-gray-900/80 via-gray-800/60 to-gray-900/80 rounded-xl border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 group overflow-hidden`}
+                          key={index}
+                          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          transition={{
+                            delay: index * 0.05,
+                            type: 'spring',
+                            stiffness: 100,
+                          }}
+                          whileHover={{
+                            scale: 1.02,
+                            y: -2,
+                            transition: { duration: 0.2 },
+                          }}
+                          className='relative p-3 bg-gradient-to-br from-gray-800/40 via-gray-900/30 to-gray-800/40 rounded-lg border border-gray-700/30 hover:border-gray-600/50 transition-all duration-300 group overflow-hidden cursor-pointer'
                         >
-                          {/* 배경 그라데이션 효과 */}
+                          {/* 배경 그라데이션 */}
                           <div
-                            className={`absolute inset-0 bg-gradient-to-r ${category.color} opacity-5 group-hover:opacity-10 transition-opacity duration-300`}
+                            className={`absolute inset-0 bg-gradient-to-br ${selectedCardData.gradient} opacity-3 group-hover:opacity-8 transition-opacity duration-300`}
                           />
 
-                          {/* 카테고리 헤더 */}
-                          <div className='relative flex items-center gap-4 mb-6'>
-                            <motion.div
-                              whileHover={{ scale: 1.1, rotate: 5 }}
-                              className={`w-12 h-12 bg-gradient-to-br ${category.color} rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300`}
-                            >
-                              <category.icon className='w-6 h-6 text-white' />
-                            </motion.div>
-                            <div>
-                              <h3 className='text-xl font-bold text-white mb-1'>
-                                {category.title}
-                              </h3>
-                              <p className='text-gray-400 text-sm'>
-                                {category.techs.length}개 기술 스택
-                              </p>
-                            </div>
+                          {/* 메인 콘텐츠 */}
+                          <div className='relative z-10 flex items-start gap-3'>
+                            <div
+                              className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                                selectedCardData.isAICard
+                                  ? 'bg-pink-400'
+                                  : selectedCardData.isSpecial
+                                    ? 'bg-amber-400'
+                                    : 'bg-green-400'
+                              }`}
+                            />
+                            <span className='text-gray-200 text-sm leading-relaxed group-hover:text-gray-100 transition-colors'>
+                              {renderTextWithAIGradient(tech)}
+                            </span>
                           </div>
 
-                          {/* 기술 스택 그리드 */}
-                          <div className='relative grid grid-cols-1 md:grid-cols-2 gap-4'>
-                            {category.techs.map(
-                              (tech: any, techIndex: number) => (
-                                <motion.div
-                                  key={tech.name}
-                                  initial={{ opacity: 0, scale: 0.9 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  transition={{
-                                    delay:
-                                      categoryIndex * 0.1 + techIndex * 0.08,
-                                  }}
-                                  whileHover={{
-                                    scale: 1.02,
-                                    transition: { duration: 0.2 },
-                                  }}
-                                  className='p-4 bg-gray-800/40 backdrop-blur-sm rounded-lg border border-gray-700/40 hover:bg-gray-700/40 hover:border-gray-600/40 transition-all duration-300 group/tech cursor-pointer'
-                                >
-                                  <div className='flex items-center gap-3'>
-                                    <motion.div
-                                      whileHover={{
-                                        scale: 1.15,
-                                        rotate: 360,
-                                        transition: { duration: 0.6 },
-                                      }}
-                                      className={`w-10 h-10 ${tech.color} rounded-lg flex items-center justify-center shadow-md group-hover/tech:shadow-lg transition-shadow duration-300`}
-                                    >
-                                      <tech.icon className='w-5 h-5 text-white' />
-                                    </motion.div>
-                                    <div className='flex-1'>
-                                      <h4 className='font-semibold text-white text-sm mb-1 group-hover/tech:text-gray-100 transition-colors'>
-                                        {renderTextWithAIGradient(tech.name)}
-                                      </h4>
-                                      <p className='text-gray-400 text-xs group-hover/tech:text-gray-300 transition-colors'>
-                                        {tech.description}
-                                      </p>
-                                    </div>
-                                  </div>
-
-                                  {/* 호버 시 빛나는 효과 */}
-                                  <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover/tech:opacity-100 transform translate-x-[-100%] group-hover/tech:translate-x-[100%] transition-all duration-700 ease-out' />
-                                </motion.div>
-                              )
-                            )}
-                          </div>
-
-                          {/* 카드 하단 장식 */}
-                          <div className='absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-600/50 to-transparent' />
+                          {/* 호버 시 빛나는 스위프 효과 */}
+                          <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent opacity-0 group-hover:opacity-100 transform translate-x-[-100%] group-hover:translate-x-[100%] transition-all duration-1000 ease-out' />
                         </motion.div>
-                      );
-                    }
-                  )}
+                      )
+                    )}
+                  </div>
                 </div>
               </div>
             </motion.div>
