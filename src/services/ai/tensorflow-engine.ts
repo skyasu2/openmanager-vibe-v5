@@ -763,8 +763,29 @@ export class TensorFlowAIEngine {
   }
 
   private generateAIInsights(analysis: AIAnalysisResult): void {
-    // AI 인사이트 생성 로직을 구현해야 합니다.
-    // 현재는 인사이트 생성 로직이 구현되지 않았습니다.
+    const failureValues = Object.entries(analysis.failure_predictions);
+    if (failureValues.length > 0) {
+      const highest = failureValues.reduce((a, b) =>
+        a[1].prediction[0] > b[1].prediction[0] ? a : b
+      );
+      const avgConf =
+        failureValues.reduce((sum, [, v]) => sum + v.confidence, 0) /
+        failureValues.length;
+      analysis.ai_insights.push(
+        `가장 높은 장애 확률 메트릭: ${highest[0]} ${(highest[1].prediction[0] * 100).toFixed(1)}%`
+      );
+      analysis.ai_insights.push(
+        `평균 예측 신뢰도: ${(avgConf * 100).toFixed(1)}%`
+      );
+    }
+
+    const anomalies = Object.values(analysis.anomaly_detections).filter(a => a.is_anomaly);
+    if (anomalies.length > 0) {
+      const maxScore = anomalies.reduce((a, b) => (a.anomaly_score > b.anomaly_score ? a : b));
+      analysis.ai_insights.push(
+        `이상 탐지 발견: 총 ${anomalies.length}건, 최고 점수 ${maxScore.anomaly_score.toFixed(2)}`
+      );
+    }
   }
 
   private preprocessMetrics(metrics: number[], targetLength: number): number[] {
