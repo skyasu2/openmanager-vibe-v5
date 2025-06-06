@@ -3,11 +3,11 @@ services:
   - type: web
     name: openmanager-mcp-server
     runtime: node
-    plan: starter
+    plan: free
     region: oregon
     branch: main
     rootDir: mcp-server
-    buildCommand: npm install && npm run build
+    buildCommand: npm ci && npm run build
     startCommand: npm start
     healthCheckPath: /health
     autoDeploy: false
@@ -19,7 +19,7 @@ services:
       - key: AI_ENGINE_MODE
         value: 'true'
       - key: NODE_OPTIONS
-        value: '--max-old-space-size=1024'
+        value: '--max-old-space-size=512'
       - key: NEXT_TELEMETRY_DISABLED
         value: '1'
       - key: PROJECT_ROOT
@@ -34,12 +34,13 @@ services:
         sync: false
       - key: UPSTASH_REDIS_REST_TOKEN
         sync: false
-    disk:
-      name: openmanager-data
-      mountPath: /opt/render/project/data
-      sizeGB: 1
-    scaling:
-      minInstances: 1
-      maxInstances: 2
-      targetMemoryPercent: 75
-      targetCPUPercent: 75
+    # 무료 플랜에서는 persistent disk와 scaling 미지원
+    # disk:
+    #   name: openmanager-data
+    #   mountPath: /opt/render/project/data
+    #   sizeGB: 1
+    # scaling:
+    #   minInstances: 1
+    #   maxInstances: 2
+    #   targetMemoryPercent: 75
+    #   targetCPUPercent: 75
