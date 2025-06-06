@@ -9,7 +9,7 @@
  * - 시스템 로그 실시간 수집
  */
 
-import { getRedisClient } from '@/lib/redis';
+import { smartRedis, checkRedisConnection } from '@/lib/redis';
 import os from 'os';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -102,6 +102,7 @@ const DEFAULT_CONFIG: CollectorConfig = {
 export class RealPrometheusCollector {
   private static instance: RealPrometheusCollector | null = null;
   private redis: any;
+  private memoryCache: Record<string, PrometheusMetrics> = {};
   private config: CollectorConfig;
   private lastNetworkStats: Map<string, { rx: number; tx: number; timestamp: number }> = new Map();
   private isCollecting = false;
@@ -123,13 +124,15 @@ export class RealPrometheusCollector {
    */
   public async initialize(): Promise<void> {
     try {
-      this.redis = await getRedisClient();
+      await checkRedisConnection();
+      this.redis = smartRedis;
       console.log('✅ Prometheus 수집기 초기화 완료');
-      
-      // 자동 수집 시작
-      this.startAutoCollection();
     } catch (error) {
       console.warn('⚠️ Prometheus 수집기 초기화 실패:', error);
+      this.redis = smartRedis;
+    } finally {
+      // 자동 수집 시작
+      this.startAutoCollection();
     }
   }
 
@@ -674,9 +677,24 @@ export class RealPrometheusCollector {
   }
 
   private async cacheMetrics(source: string, metrics: PrometheusMetrics): Promise<void> {
+    // 메모리에도 저장
+    this.memoryCache[source] = metrics;
+
     try {
       if (this.redis) {
-        await this.redis.setex(`metrics:${source}:latest`, this.config.cacheTimeout, JSON.stringify(metrics));
+        if (typeof this.redis.setex === 'function') {
+          await this.redis.setex(
+            `metrics:${source}:latest`,
+            this.config.cacheTimeout,
+            JSON.stringify(metrics)
+          );
+        } else if (typeof this.redis.set === 'function') {
+          await this.redis.set(
+            `metrics:${source}:latest`,
+            JSON.stringify(metrics),
+            { ex: this.config.cacheTimeout }
+          );
+        }
       }
     } catch (error) {
       console.warn('⚠️ 메트릭 캐시 저장 실패:', error);
@@ -686,14 +704,19 @@ export class RealPrometheusCollector {
   private async getCachedMetrics(): Promise<PrometheusMetrics | null> {
     try {
       if (this.redis) {
-        const cached = await this.redis.get('metrics:system:latest') || await this.redis.get('metrics:external:latest');
-        return cached ? JSON.parse(cached) : null;
+        const cached =
+          (await this.redis.get('metrics:system:latest')) ||
+          (await this.redis.get('metrics:external:latest'));
+        if (cached) {
+          return typeof cached === 'string' ? JSON.parse(cached) : cached;
+        }
       }
-      return null;
     } catch (error) {
       console.warn('⚠️ 메트릭 캐시 조회 실패:', error);
-      return null;
     }
+
+    // Redis 캐시가 없을 경우 메모리 캐시 사용
+    return this.memoryCache['system'] || this.memoryCache['external'] || null;
   }
 
   /**
