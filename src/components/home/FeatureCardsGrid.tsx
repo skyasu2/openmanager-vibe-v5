@@ -35,9 +35,9 @@ const techCategories = {
     techs: [
       {
         name: 'MCP SDK',
-        description: 'AI-데이터 표준 프로토콜',
+        description: '🎯 핵심 - AI 모델 문맥 이해를 위한 lightweight 프로토콜',
         icon: Network,
-        color: 'bg-purple-500',
+        color: 'bg-purple-600',
       },
     ],
   },
@@ -257,27 +257,28 @@ const cardData = [
   {
     id: 'mcp-ai-engine',
     title: 'MCP 기반 AI 엔진',
-    description: 'MCP로 구동되는 브라우저 기반 AI 엔진',
+    description: 'Model Context Protocol 중심 브라우저 네이티브 AI 엔진',
     icon: Bot,
     gradient: 'from-blue-500 via-pink-500 to-cyan-400',
     detailedContent: {
       overview: {
-        title: '🎯 핵심 기능',
+        title: '🎯 MCP 핵심 기능',
         features: [
           {
             icon: Network,
-            title: 'MCP 프로토콜',
-            description: 'AI 모델과 데이터 소스 간 표준 통신',
+            title: 'MCP 프로토콜 핵심',
+            description:
+              'AI 모델이 문맥(Context)을 더 잘 이해하고 응답하도록 설계된 lightweight 프로토콜',
           },
           {
             icon: Brain,
-            title: '브라우저 AI',
-            description: '서버 없이 클라이언트에서 AI 추론',
+            title: '구조화된 인터페이스',
+            description: '문맥 이해 향상을 위한 표준화된 AI-데이터 통신 구조',
           },
           {
             icon: Globe,
-            title: '다국어 NLP',
-            description: '영어/한국어 자연어 처리 지원',
+            title: '브라우저 네이티브',
+            description: '서버 의존성 없는 클라이언트 사이드 AI 추론 실행',
           },
         ],
       },
