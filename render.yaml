@@ -6,7 +6,7 @@ services:
     plan: starter
     region: oregon
     branch: main
-    buildCommand: npm install && npm install @modelcontextprotocol/server-filesystem @smithery/cli canvas && npm run build
+    buildCommand: npm install && npm install @modelcontextprotocol/server-filesystem @smithery/cli canvas && NODE_ENV=production ESLINT_NO_DEV_ERRORS=true npx next build
     startCommand: npm start
     healthCheckPath: /api/health
     autoDeploy: false
