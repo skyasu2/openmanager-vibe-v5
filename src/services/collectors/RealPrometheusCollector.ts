@@ -726,14 +726,19 @@ export class RealPrometheusCollector {
     if (this.isCollecting) return;
 
     this.isCollecting = true;
-    this.collectInterval = setInterval(async () => {
+    const runCollection = async () => {
       try {
         await this.collectMetrics();
       } catch (error) {
         console.error('❌ 자동 메트릭 수집 실패:', error);
       }
-    }, this.config.collectInterval);
 
+      if (this.isCollecting) {
+        this.collectInterval = setTimeout(runCollection, this.config.collectInterval);
+      }
+    };
+
+    runCollection();
     console.log(`🔄 자동 메트릭 수집 시작 (${this.config.collectInterval}ms 간격)`);
   }
 
@@ -742,7 +747,7 @@ export class RealPrometheusCollector {
    */
   public stopAutoCollection(): void {
     if (this.collectInterval) {
-      clearInterval(this.collectInterval);
+      clearTimeout(this.collectInterval);
       this.collectInterval = null;
     }
     this.isCollecting = false;
