@@ -1,8 +1,8 @@
 # 📊 OpenManager Vibe v5 프로젝트 상태
 
 **마지막 업데이트**: 2025-01-06  
-**현재 버전**: v5.34.0  
-**배포 상태**: ✅ Production Ready - 4단계 시스템 상태 점검 구현
+**현재 버전**: v5.35.0  
+**배포 상태**: ✅ Production Ready - 통합 헬스체크 API 완성
 
 ---
 
@@ -31,20 +31,42 @@
 
 ## ✅ 최근 완료된 작업
 
-### 🔍 4단계 시스템 상태 점검 구현 (2025-01-06)
+### 🏥 시스템 헬스체크 API 완전 개선 (2025-01-06)
 
-- [x] **웹소켓 상태 확인 API**: `/api/websocket/status` 엔드포인트 신규 생성
-- [x] **서버 생성기 헬스체크 강화**: `/api/servers/next?action=health` 개선
-- [x] **대시보드 상태 점검 로직**: 4단계 검증 프로세스 구현
-- [x] **F12 디버그 모드**: 문제 발생 시 상세 진단 정보 제공
-- [x] **사용자 경험 개선**: 문제 상황에서도 유연한 대시보드 진입
+- [x] **통합 헬스체크 API 생성**: `/api/system/health` 엔드포인트 신규 구축
+- [x] **health: undefined 문제 해결**: 명시적 true/false 응답 구조 구현
+- [x] **웹소켓 상태 검증 강화**: SSE 기반 실시간 ping 테스트 추가
+- [x] **MCP 서버 상태 최적화**: 환경 변수 기반 안정적 상태 판별
+- [x] **프론트엔드 연동 수정**: `/api/health` → `/api/system/health` 경로 업데이트
+- [x] **에러 처리 개선**: AbortController 기반 타임아웃 처리
+- [x] **시스템 준비 상태 로직 강화**: 4단계 검증 프로세스 완성
 
-#### 📊 새로운 상태 점검 프로세스
+#### 📊 새로운 통합 헬스체크 시스템
 
-1. **헬스체크**: `/api/health` - 기본 시스템 상태
-2. **웹소켓**: `/api/websocket/status` - 실시간 통신 상태
-3. **서버생성기**: `/api/servers/next?action=health` - 서버 생성 엔진 상태
-4. **MCP 서버**: `/api/mcp/status` - MCP 연결 상태 (선택적)
+```json
+{
+  "success": true,
+  "health": true, // ✅ 더 이상 undefined 없음
+  "websocket": true, // ✅ SSE 기반 실시간 상태 확인
+  "mcp": true, // ✅ 환경 변수 기반 안정적 판별
+  "reverseGeneration": true,
+  "details": {
+    "systemRunning": true,
+    "mcpConnection": true,
+    "websocketConnection": true,
+    "serverCount": 5,
+    "dataCount": 1000
+  },
+  "timestamp": "2025-01-06T12:20:08.017Z"
+}
+```
+
+#### 🔧 기술적 개선사항
+
+1. **통합 API**: `/api/system/health` - 모든 상태를 한 번에 확인
+2. **병렬 처리**: Promise.allSettled로 성능 최적화
+3. **타임아웃 제어**: AbortController 기반 3초 타임아웃
+4. **폴백 로직**: 개별 서비스 실패 시에도 전체 상태 제공
 
 #### 🎯 사용자 경험 개선 효과
 

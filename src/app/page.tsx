@@ -193,7 +193,7 @@ export default function Home() {
 
     try {
       // 1. 시스템 헬스체크
-      const healthResponse = await fetch('/api/health');
+      const healthResponse = await fetch('/api/system/health');
       const healthData = await healthResponse.json();
 
       // 2. 웹소켓 상태 확인
@@ -215,11 +215,13 @@ export default function Home() {
 
       // 📊 점검 결과 로깅
       const systemReadiness = {
-        health: healthData.success,
-        websocket: websocketData.success && websocketData.websocket?.connected,
+        health: healthData.success && healthData.health, // 새로운 헬스체크 API 구조
+        websocket:
+          healthData.websocket ||
+          (websocketData.success && websocketData.websocket?.connected),
         serverGeneration:
           serverGenData.success && serverGenData.data?.isHealthy,
-        mcp: mcpStatus.success,
+        mcp: healthData.mcp || mcpStatus.success,
         timestamp: new Date().toISOString(),
       };
 
