@@ -265,12 +265,11 @@ const cardData = [
     gradient: 'from-blue-500 via-pink-500 to-cyan-400',
     detailedContent: {
       overview:
-        'MCP(Model Context Protocol) SDK를 중심으로 구현된 브라우저 네이티브 AI 엔진입니다. Claude Sonnet과 연동하여 문맥 이해를 극대화하고, 클라이언트 사이드에서 직접 AI 추론을 실행합니다.',
+        'MCP SDK 기반 브라우저 AI 엔진입니다. Claude Sonnet과 연동해 문맥을 이해하며 클라이언트에서 직접 추론합니다.',
       features: [
-        'MCP SDK로 AI 모델 문맥 이해 향상을 위한 lightweight 프로토콜 구현',
-        'Claude Sonnet 기반 대규모 컨텍스트 처리 및 문서 분석',
-        'TensorFlow.js와 Transformers.js로 브라우저 네이티브 추론',
-        'Filesystem/GitHub MCP 서버로 실시간 코드베이스 분석 및 검색',
+        'MCP SDK로 문맥 이해 극대화',
+        'Claude Sonnet 연동 대규모 컨텍스트 처리',
+        '브라우저 추론과 코드 실시간 분석',
       ],
       technologies: [
         'MCP SDK',
@@ -291,12 +290,11 @@ const cardData = [
     gradient: 'from-emerald-500 to-teal-600',
     detailedContent: {
       overview:
-        '실제 운영 환경을 시뮬레이션하는 고도화된 데이터 생성 시스템입니다. Faker.js로 현실적인 서버 데이터를 생성하고, Prometheus 메트릭 형태로 출력하여 모니터링 시스템과 완벽 호환됩니다.',
+        'Faker.js로 현실적인 서버 데이터를 만들고 Prometheus 형식으로 출력합니다. 모니터링 시뮬레이션을 손쉽게 구성할 수 있습니다.',
       features: [
-        'Faker.js로 CPU, 메모리, 네트워크 등 현실적인 서버 메트릭 생성',
-        'Prometheus Client로 표준 메트릭 포맷 출력',
-        'SystemInformation으로 실제 시스템 리소스 정보 수집 및 혼합',
-        'Upstash Redis 캐싱과 Node Cron 스케줄링으로 고성능 처리',
+        'Faker.js로 서버 메트릭 생성',
+        'Prometheus 형식으로 출력',
+        'SystemInformation + Redis 캐싱으로 고성능 시뮬레이션',
       ],
       technologies: [
         'Faker.js',
@@ -316,12 +314,11 @@ const cardData = [
     gradient: 'from-purple-500 to-indigo-600',
     detailedContent: {
       overview:
-        '최신 웹 기술 스택으로 구현된 풀스택 애플리케이션입니다. Next.js와 React로 최신 기능을 활용하고, Supabase와 Upstash Redis 하이브리드 아키텍처로 확장성과 성능을 모두 확보했습니다.',
+        'Next.js와 React 기반 풀스택 예제입니다. Supabase와 Redis 하이브리드 구조로 확장성과 성능을 확보했습니다.',
       features: [
-        'Next.js + React 최신 프레임워크로 SSR/SSG 하이브리드 렌더링',
-        'TypeScript + Zustand로 타입 안전한 상태 관리',
-        'Supabase PostgreSQL + Upstash Redis 하이브리드 데이터 레이어',
-        'Chart.js + Recharts + D3.js 트리플 차트 라이브러리로 고급 시각화',
+        'Next.js + React로 SSR/SSG 지원',
+        'TypeScript와 Zustand 상태 관리',
+        'Supabase와 Redis 데이터 레이어',
       ],
       technologies: [
         'Next.js',
@@ -329,7 +326,6 @@ const cardData = [
         'TypeScript',
         'Zustand',
         'Supabase',
-        'Upstash Redis',
         'Tailwind CSS',
         'Framer Motion',
       ],
@@ -345,17 +341,14 @@ const cardData = [
     gradient: 'from-amber-400 via-orange-500 to-yellow-600',
     detailedContent: {
       overview:
-        'Cursor AI를 핵심으로 하는 AI 기반 개발 워크플로우입니다. Claude Sonnet의 대규모 컨텍스트 이해 능력과 MCP 프로토콜을 활용하여 코드 품질과 개발 효율성을 극대화합니다.',
+        'Cursor AI와 Claude Sonnet으로 코드 컨텍스트를 폭넓게 활용하는 개발 흐름입니다. MCP 프로토콜로 에디터와 AI를 연결해 효율을 높입니다.',
       features: [
-        'Cursor AI + Claude Sonnet 조합으로 대규모 컨텍스트 기반 코드 개발',
-        'MCP SDK로 AI와 개발 환경 간 구조화된 통신',
-        'ESLint + Prettier + Husky로 자동화된 코드 품질 관리',
-        'Vitest + Playwright로 AI 지원 테스트 자동화',
+        'Cursor AI와 Claude Sonnet으로 컨텍스트 중심 개발',
+        'MCP SDK 기반 AI 통신',
+        'ESLint/Prettier와 테스트 자동화',
       ],
       technologies: [
         'Cursor AI',
-        'Claude Sonnet',
-        'MCP SDK',
         'ESLint',
         'Prettier',
         'Husky',
