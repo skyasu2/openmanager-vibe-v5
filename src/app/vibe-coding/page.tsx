@@ -66,25 +66,25 @@ export default function AICollaborationPage() {
 
   const achievements = [
     {
-      title: '이중 MCP 아키텍처 구축',
-      before: '단일 MCP 시스템',
-      after: '개발용 + AI엔진용 완전 분리',
-      improvement: '목적별 최적화 달성',
+      title: 'MCP 도구 활용 전략',
+      before: '기본 IDE 기능만 사용',
+      after: 'Filesystem+GitHub+Browser 통합',
+      improvement: '코딩 생산성 3배 향상',
       icon: <Settings className='w-6 h-6' />,
     },
     {
-      title: 'Cursor 개발용 MCP',
-      before: '기본 IDE 기능만 사용',
-      after: 'Local+GitHub+Browser 통합',
-      improvement: '코딩 생산성 3배 향상',
-      icon: <Code2 className='w-6 h-6' />,
+      title: 'AI 엔진용 MCP 서버 개발',
+      before: '로컬 AI 처리 방식',
+      after: 'HTTP API 서버 클라우드 배포',
+      improvement: 'AI 분석 전용 시스템 구축',
+      icon: <Brain className='w-6 h-6' />,
     },
     {
-      title: 'Render AI 엔진 MCP',
-      before: '로컬 AI 처리',
-      after: '클라우드 전용 분석 서버',
-      improvement: 'AI 분석 성능 최적화',
-      icon: <Brain className='w-6 h-6' />,
+      title: 'Render 클라우드 최적화',
+      before: '배포 실패 반복',
+      after: '안정적인 포트 10000 서비스',
+      improvement: 'MCP 서버 배포 성공',
+      icon: <Code2 className='w-6 h-6' />,
     },
     {
       title: 'TypeScript 코드 품질',
@@ -180,9 +180,9 @@ export default function AICollaborationPage() {
             {/* 실제 성과 배지 */}
             <div className='flex flex-wrap justify-center gap-4 mb-8'>
               {[
-                '이중 MCP 아키텍처',
-                'Cursor 개발용 MCP',
-                'Render AI 엔진 MCP',
+                'MCP 도구 활용법',
+                'MCP 서버 개발',
+                'Render 클라우드 배포',
                 '507줄 엔진 구현',
                 '65% 압축률',
                 '100% TypeScript',
@@ -349,16 +349,16 @@ export default function AICollaborationPage() {
           >
             <div className='text-center mb-12'>
               <h2 className='text-3xl font-bold text-white mb-4'>
-                🚀 이중 MCP 아키텍처 시스템
+                🚀 MCP 활용 & 개발 아키텍처
               </h2>
               <p className='text-gray-400'>
-                개발용 MCP 도구 + AI 엔진용 MCP 서버 완전 분리
+                개발 도구 활용 방안 + AI 엔진 개발 결과물 분석
               </p>
             </div>
 
             {/* 아키텍처 구분 */}
             <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12'>
-              {/* 1. Cursor 개발용 MCP */}
+              {/* 1. MCP 도구 활용 방안 */}
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 className='p-6 bg-gradient-to-br from-blue-600/20 to-cyan-600/20 backdrop-blur-lg rounded-2xl border-2 border-blue-500/30'
@@ -367,9 +367,11 @@ export default function AICollaborationPage() {
                   <Code2 className='w-10 h-10 text-blue-400' />
                   <div>
                     <h3 className='text-2xl font-bold text-blue-300'>
-                      1️⃣ Cursor IDE 개발용 MCP
+                      1️⃣ 바이브코딩시 MCP 도구 활용
                     </h3>
-                    <p className='text-sm text-gray-400'>코딩 생산성 도구</p>
+                    <p className='text-sm text-gray-400'>
+                      개발 과정에서의 MCP 활용 방안
+                    </p>
                   </div>
                 </div>
 
@@ -413,12 +415,13 @@ export default function AICollaborationPage() {
 
                 <div className='mt-4 p-3 bg-blue-500/5 rounded-lg'>
                   <p className='text-xs text-blue-200'>
-                    <strong>목적:</strong> 개발자 생산성 향상, 실시간 코딩 지원
+                    <strong>활용 효과:</strong> 코딩 속도 3배 향상, 실시간
+                    컨텍스트 이해
                   </p>
                 </div>
               </motion.div>
 
-              {/* 2. Render AI 엔진용 MCP */}
+              {/* 2. AI 엔진 MCP 개발 결과물 */}
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 className='p-6 bg-gradient-to-br from-orange-600/20 to-red-600/20 backdrop-blur-lg rounded-2xl border-2 border-orange-500/30'
@@ -427,9 +430,11 @@ export default function AICollaborationPage() {
                   <Brain className='w-10 h-10 text-orange-400' />
                   <div>
                     <h3 className='text-2xl font-bold text-orange-300'>
-                      2️⃣ Render AI 엔진용 MCP
+                      2️⃣ AI 엔진용 MCP 서버 개발
                     </h3>
-                    <p className='text-sm text-gray-400'>AI 분석 전용 서버</p>
+                    <p className='text-sm text-gray-400'>
+                      실제 개발한 MCP 서버 시스템
+                    </p>
                   </div>
                 </div>
 
@@ -473,7 +478,8 @@ export default function AICollaborationPage() {
 
                 <div className='mt-4 p-3 bg-orange-500/5 rounded-lg'>
                   <p className='text-xs text-orange-200'>
-                    <strong>목적:</strong> AI 분석 엔진 전용, 서버 모니터링 특화
+                    <strong>개발 결과:</strong> HTTP API 서버, Render.com 배포
+                    완료
                   </p>
                 </div>
               </motion.div>
@@ -482,36 +488,36 @@ export default function AICollaborationPage() {
             {/* 핵심 차이점 강조 */}
             <div className='text-center p-6 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 backdrop-blur-lg rounded-2xl border border-cyan-500/20'>
               <h4 className='text-lg font-bold text-cyan-300 mb-4'>
-                🎯 완전 분리된 이중 MCP 아키텍처
+                🎯 MCP 활용법 vs 개발 결과물 구분
               </h4>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-6 text-sm'>
                 <div className='space-y-2'>
                   <h5 className='font-bold text-blue-300'>
-                    1️⃣ Cursor 개발용 (로컬)
+                    1️⃣ MCP 도구 활용 (개발 과정)
                   </h5>
                   <p className='text-gray-300'>
-                    • <strong>용도:</strong> 실시간 코딩 지원
-                    <br />• <strong>위치:</strong> 로컬 개발 환경
-                    <br />• <strong>연결:</strong> Cursor IDE 직접 연동
-                    <br />• <strong>설정:</strong> mcp-cursor.json
+                    • <strong>성격:</strong> 개발할 때 사용한 도구
+                    <br />• <strong>위치:</strong> Cursor IDE 로컬 환경
+                    <br />• <strong>역할:</strong> 코딩 생산성 향상 지원
+                    <br />• <strong>활용:</strong> Filesystem, GitHub, Browser
                   </p>
                 </div>
                 <div className='space-y-2'>
                   <h5 className='font-bold text-orange-300'>
-                    2️⃣ AI 엔진용 (클라우드)
+                    2️⃣ MCP 서버 개발 (개발 결과물)
                   </h5>
                   <p className='text-gray-300'>
-                    • <strong>용도:</strong> AI 분석 및 모니터링
-                    <br />• <strong>위치:</strong> Render.com 배포
-                    <br />• <strong>연결:</strong> HTTP API 서버
-                    <br />• <strong>설정:</strong> 독립적인 Node.js 서버
+                    • <strong>성격:</strong> 실제로 개발한 시스템
+                    <br />• <strong>위치:</strong> Render.com 클라우드 배포
+                    <br />• <strong>역할:</strong> AI 엔진용 MCP 서버
+                    <br />• <strong>구현:</strong> HTTP API, 포트 10000
                   </p>
                 </div>
               </div>
               <div className='mt-4 p-3 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-lg'>
                 <p className='text-xs text-green-200 font-semibold'>
-                  🚀 <strong>핵심 혁신:</strong> 개발 도구와 AI 엔진을 완전
-                  분리하여 각각 최적화된 MCP 환경 구축
+                  🚀 <strong>핵심 구분:</strong> 개발 과정의 도구 활용 vs 실제
+                  개발한 결과물을 명확히 분리
                 </p>
               </div>
             </div>
@@ -528,21 +534,19 @@ export default function AICollaborationPage() {
             </h3>
             <div className='flex flex-wrap justify-center gap-3'>
               {[
-                'Dual MCP Architecture',
-                'Cursor IDE MCP Tools',
-                'Render AI Engine MCP',
+                'MCP Tools Usage',
+                'MCP Server Development',
+                'Cursor IDE Integration',
+                'Render Cloud Deployment',
                 'Claude 3.5 Sonnet',
-                'Local Filesystem',
-                'GitHub Integration',
-                'Browser Tools',
+                'HTTP API Server',
                 'Next.js 15.3.2',
                 'TypeScript',
                 'React 19',
                 'TailwindCSS',
                 'Framer Motion',
                 'Vercel',
-                'Render.com',
-                'Node.js HTTP Server',
+                'Node.js',
               ].map((tech, index) => (
                 <motion.span
                   key={tech}
