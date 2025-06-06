@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "ai-engine-filesystem": {
+      "command": "node",
+      "args": ["/opt/render/project/mcp-server/server.js"],
+      "cwd": "/opt/render/project",
+      "env": {
+        "NODE_ENV": "production",
+        "PROJECT_ROOT": "/opt/render/project"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-filesystem",
+        "/opt/render/project/docs",
+        "/opt/render/project/src",
+        "/opt/render/project/logs"
+      ],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      }
+    }
+  }
+}
