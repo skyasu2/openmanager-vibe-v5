@@ -625,18 +625,6 @@ export default function Home() {
 
         {/* 기능 카드 그리드 */}
         <div className='mb-12'>
-          <div className='text-center mb-8'>
-            <h2 className='text-2xl md:text-3xl font-bold mb-3'>
-              <span className='text-fuchsia-400'>핵심</span>{' '}
-              <span className='text-white'>기능</span>
-            </h2>
-            <p className='text-white/70 text-base max-w-2xl mx-auto'>
-              {renderTextWithAIGradient(
-                'AI 엔진 기반 서버 모니터링의 모든 것을 경험해보세요'
-              )}
-            </p>
-          </div>
-
           <FeatureCardsGrid />
         </div>
 
