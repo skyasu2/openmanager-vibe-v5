@@ -15,6 +15,7 @@ import React, {
   useReducer,
   useEffect,
   useCallback,
+  useMemo,
   ReactNode,
 } from 'react';
 import AIAgentService, {
@@ -23,6 +24,7 @@ import AIAgentService, {
   ThinkingStep,
   AIAgentConfig,
 } from './AIAgentService';
+import { HybridFailoverEngine, HybridEngineStatus } from '@/services/ai/hybrid-failover-engine';
 
 // AI 에이전트 상태 인터페이스
 interface AIAgentState {
@@ -177,6 +179,10 @@ interface AIAgentContextType {
   resetSession: () => void;
   clearThinking: () => void;
 
+  // 하이브리드 엔진 제어
+  setEngineMode: (mode: 'mcp' | 'rag' | 'auto') => void;
+  getEngineStatus: () => HybridEngineStatus;
+
   // 서비스 인스턴스 (고급 사용자용)
   service: AIAgentService;
 }
@@ -197,6 +203,7 @@ export const AIAgentProvider: React.FC<AIAgentProviderProps> = ({
 }) => {
   const [state, dispatch] = useReducer(aiAgentReducer, initialState);
   const service = React.useMemo(() => new AIAgentService(config), [config]);
+  const hybridEngine = useMemo(() => new HybridFailoverEngine(), []);
 
   // 헬스체크 함수 먼저 정의 (강화된 에러 핸들링)
   const checkHealth = useCallback(async (): Promise<void> => {
@@ -510,6 +517,17 @@ export const AIAgentProvider: React.FC<AIAgentProviderProps> = ({
     dispatch({ type: 'SET_THINKING', payload: false });
   }, []);
 
+  const setEngineMode = useCallback(
+    (mode: 'mcp' | 'rag' | 'auto') => {
+      hybridEngine.setMode(mode);
+    },
+    [hybridEngine]
+  );
+
+  const getEngineStatus = useCallback((): HybridEngineStatus => {
+    return hybridEngine.getStatus();
+  }, [hybridEngine]);
+
   const contextValue: AIAgentContextType = {
     state,
     queryAI,
@@ -519,6 +537,8 @@ export const AIAgentProvider: React.FC<AIAgentProviderProps> = ({
     checkHealth,
     resetSession,
     clearThinking,
+    setEngineMode,
+    getEngineStatus,
     service,
   };
 
