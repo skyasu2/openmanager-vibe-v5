@@ -506,13 +506,21 @@ export class RealServerDataGenerator {
     if (this.isGenerating) return;
 
     this.isGenerating = true;
-    this.generationInterval = setInterval(async () => {
+
+    const loop = async () => {
+      if (!this.isGenerating) return;
       try {
         await this.generateRealtimeData();
       } catch (error) {
         console.error('❌ 실시간 데이터 생성 실패:', error);
+      } finally {
+        if (this.isGenerating) {
+          this.generationInterval = setTimeout(loop, 5000);
+        }
       }
-    }, 5000); // 5초마다 업데이트
+    };
+
+    loop();
 
     console.log('🔄 실시간 서버 데이터 생성 시작');
   }
@@ -521,11 +529,11 @@ export class RealServerDataGenerator {
    * ⏹️ 자동 데이터 생성 중지
    */
   public stopAutoGeneration(): void {
+    this.isGenerating = false;
     if (this.generationInterval) {
-      clearInterval(this.generationInterval);
+      clearTimeout(this.generationInterval);
       this.generationInterval = null;
     }
-    this.isGenerating = false;
     console.log('⏹️ 실시간 서버 데이터 생성 중지');
   }
 
