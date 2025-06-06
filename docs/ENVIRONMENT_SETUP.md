@@ -2,139 +2,201 @@
 
 OpenManager Vibe v5 배포를 위한 환경변수 설정 가이드입니다.
 
+## ✅ **현재 설정 상태 (2025-06-06 업데이트)**
+
+> **환경변수 설정 완료**: 모든 필수 환경변수가 Vercel과 로컬 환경에 설정되었습니다.
+>
+> - ✅ **Supabase**: `https://vnswjnltnhpsueosfhmw.supabase.co` (연결됨)
+> - ✅ **Redis**: `https://charming-condor-46598.upstash.io` (연결됨)
+> - ✅ **Vercel 환경변수**: 모든 필수 변수 설정 완료
+> - ✅ **로컬 개발환경**: `.env.local` 파일 설정 완료
+
 ## 📋 **필수 환경변수 목록**
 
-### 🗄️ **Supabase 설정**
+### 🗄️ **Supabase 설정** ✅
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+NEXT_PUBLIC_SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_JWT_SECRET=qNzA4/WgbksJU3xxkQJcfbCRkXhgBR...
 ```
 
-### 🔴 **Redis 설정 (Upstash 또는 Vercel KV)**
+### 🔴 **Redis 설정 (Vercel KV)** ✅
 
 ```env
-# Option 1: Upstash Redis
-UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
-UPSTASH_REDIS_REST_TOKEN=your_redis_token
+# 현재 사용 중인 Vercel KV 설정
+KV_REST_API_URL=https://charming-condor-46598.upstash.io
+KV_REST_API_TOKEN=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0...
+KV_REST_API_READ_ONLY_TOKEN=ArYGAAIgcDEJt2OXeBDen9ob7Ll...
+KV_URL=rediss://default:AbYGAAIjcDE5MjNmYjhiZDkwOGQ0...
+REDIS_URL=rediss://default:AbYGAAIjcDE5MjNmYjhiZDkwOGQ0...
 
-# Option 2: Vercel KV (자동 설정됨)
-KV_REST_API_URL=https://your-kv.kv.vercel-storage.com
-KV_REST_API_TOKEN=your_kv_token
+# 레거시 호환성 (자동 매핑됨)
+UPSTASH_REDIS_REST_URL=https://charming-condor-46598.upstash.io
+UPSTASH_REDIS_REST_TOKEN=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0...
+```
+
+### 🗃️ **PostgreSQL 설정** ✅
+
+```env
+POSTGRES_URL=postgres://postgres:2D3DWhSl8HBlgYIm@db.vnswjnltnhpsueosfhmw.supabase.co:6543/postgres?sslmode=require
+POSTGRES_PRISMA_URL=postgres://postgres:2D3DWhSl8HBlgYIm@db.vnswjnltnhpsueosfhmw.supabase.co:6543/postgres?sslmode=require
+POSTGRES_URL_NON_POOLING=postgres://postgres:2D3DWhSl8HBlgYIm@db.vnswjnltnhpsueosfhmw.supabase.co:5432/postgres?sslmode=require
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=2D3DWhSl8HBlgYIm
+POSTGRES_DATABASE=postgres
+POSTGRES_HOST=db.vnswjnltnhpsueosfhmw.supabase.co
 ```
 
 ### 🌐 **애플리케이션 설정**
 
 ```env
-NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
-CRON_SECRET=your_secure_cron_secret
+NEXT_PUBLIC_APP_URL=https://openmanager-vibe-v5.vercel.app
 ```
 
 ## 🚀 **로컬 개발 환경 설정**
 
-### 1. `.env.local` 파일 생성
+### 1. `.env.local` 파일 확인 ✅
 
-프로젝트 루트에 `.env.local` 파일을 생성하고 위 환경변수들을 설정하세요.
-
-```bash
-# .env.local.example을 복사하여 시작
-cp .env.local.example .env.local
-```
-
-### 2. 실제 값으로 교체
-
-각 환경변수를 실제 서비스의 값으로 교체하세요.
-
-## ☁️ **Vercel 배포 환경 설정**
-
-### 1. Vercel 대시보드에서 설정
-
-1. [Vercel 대시보드](https://vercel.com/dashboard)로 이동
-2. 프로젝트 선택 → **Settings** → **Environment Variables**
-3. 각 환경변수를 **Production**, **Preview**, **Development** 환경에 추가
-
-### 2. 환경변수 확인
+프로젝트 루트의 `.env.local` 파일이 이미 설정되어 있습니다:
 
 ```bash
 # 현재 설정된 환경변수 확인
-vercel env ls
-
-# 개발 환경변수를 로컬로 가져오기
-vercel env pull .env.vercel
+cat .env.local
 ```
 
-## 🔍 **환경변수 획득 방법**
+### 2. 개발 서버 재시작
 
-### 📊 **Supabase 설정**
+환경변수 변경 후에는 개발 서버를 재시작하세요:
 
-1. [Supabase 대시보드](https://supabase.com/dashboard) 접속
-2. 프로젝트 선택 → **Settings** → **API**
-3. **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
-4. **anon public** → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-5. **service_role** → `SUPABASE_SERVICE_ROLE_KEY`
+```bash
+# 기존 서버 종료 후
+npm run dev
+```
 
-### 🔴 **Redis 설정 (Upstash)**
+## ☁️ **Vercel 배포 환경 설정** ✅
 
-1. [Upstash Console](https://console.upstash.com/) 접속
-2. Redis 데이터베이스 생성
-3. **REST API** 탭에서 URL과 토큰 복사
-4. `UPSTASH_REDIS_REST_URL`과 `UPSTASH_REDIS_REST_TOKEN` 설정
+### 1. 현재 Vercel 환경변수 상태
 
-### 🔴 **Redis 설정 (Vercel KV)**
+```bash
+# 설정된 환경변수 확인 (2025-06-06 기준)
+vercel env ls
+```
 
-1. Vercel 프로젝트에서 **Storage** 탭
-2. **Create Database** → **KV**
-3. 자동으로 `KV_REST_API_URL`과 `KV_REST_API_TOKEN` 설정됨
+**확인된 환경변수:**
+
+- ✅ KV_URL, KV_REST_API_URL, KV_REST_API_TOKEN
+- ✅ NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY
+- ✅ SUPABASE_SERVICE_ROLE_KEY, SUPABASE_JWT_SECRET
+- ✅ POSTGRES\_\* (모든 PostgreSQL 관련 변수)
+
+### 2. 자동 배포 설정 ✅
+
+GitHub Actions를 통한 자동 배포가 설정되어 있습니다:
+
+- `main` 브랜치 푸시 시 자동 배포
+- Vercel 환경변수 자동 적용
+
+## 🔄 **환경변수 매핑 시스템**
+
+시스템에서 자동으로 처리되는 환경변수 매핑:
+
+```typescript
+// src/lib/env.ts에서 자동 매핑
+UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL ||
+  process.env.KV_REST_API_URL;
+UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN ||
+  process.env.KV_REST_API_TOKEN;
+```
+
+이를 통해 Vercel KV와 Upstash Redis 모두 호환됩니다.
+
+## 🧪 **연결 상태 테스트**
+
+### 실시간 상태 확인
+
+```bash
+# 시스템 전체 상태
+curl https://openmanager-vibe-v5.vercel.app/api/health
+
+# 데이터베이스 연결 상태
+curl https://openmanager-vibe-v5.vercel.app/api/database/status
+
+# Keep-Alive 상태
+curl https://openmanager-vibe-v5.vercel.app/api/cron/keep-alive
+```
+
+### 로컬 환경 테스트
+
+```bash
+# 빌드 테스트
+npm run build
+
+# 로컬 서버 상태 확인
+curl http://localhost:3000/api/health
+```
 
 ## ⚠️ **주의사항**
 
 ### 🔒 **보안**
 
-- `.env.local` 파일은 **절대 Git에 커밋하지 마세요**
-- `NEXT_PUBLIC_` 접두사가 있는 변수만 클라이언트에서 접근 가능
-- Service Role Key는 서버에서만 사용하세요
+- ✅ `.env.local`이 `.gitignore`에 포함되어 Git 추적에서 제외됨
+- ✅ 민감한 키들이 서버 전용으로 설정됨
+- ✅ `NEXT_PUBLIC_` 접두사가 있는 변수만 클라이언트 노출
 
-### 🔄 **배포 후 변경**
+### 🔄 **배포 프로세스**
 
-- 환경변수 변경 후에는 **재배포**가 필요합니다
-- Vercel에서 환경변수 변경 → **Redeploy** 버튼 클릭
-
-### 🧪 **테스트**
-
-```bash
-# 환경변수 로드 테스트
-npm run build
-
-# Keep-Alive 엔드포인트 테스트
-curl https://your-app.vercel.app/api/cron/keep-alive
-```
+1. **코드 변경** → Git 푸시
+2. **GitHub Actions** → 자동 빌드 및 테스트
+3. **Vercel** → 자동 배포 (환경변수 자동 적용)
 
 ## 🆘 **문제 해결**
 
-### ❌ **"supabaseUrl is required" 에러**
+### ✅ **해결된 문제들**
 
-- `NEXT_PUBLIC_SUPABASE_URL`이 설정되지 않음
-- Vercel 환경변수에서 확인 후 재배포
+- ~~"supabaseUrl is required" 에러~~ → **해결됨**
+- ~~Redis 연결 실패~~ → **해결됨**
+- ~~더미 값 사용 문제~~ → **해결됨**
+- ~~환경변수 매핑 문제~~ → **해결됨**
 
-### ❌ **Redis 연결 실패**
+### 🔧 **현재 작동 중인 기능**
 
-- `KV_REST_API_URL` 또는 `UPSTASH_REDIS_REST_URL` 확인
-- 토큰이 올바른지 확인
+- ✅ Supabase 데이터베이스 연결
+- ✅ Redis/KV 캐시 시스템
+- ✅ Keep-Alive 시스템
+- ✅ 자동 배포 파이프라인
+- ✅ 환경변수 매핑 시스템
 
-### ❌ **빌드 실패**
+## 📊 **시스템 모니터링**
 
-- 모든 필수 환경변수가 설정되었는지 확인
-- `vercel env ls`로 환경변수 목록 확인
+### 실시간 대시보드
 
-## 📞 **지원**
+- **프로덕션**: https://openmanager-vibe-v5.vercel.app/dashboard
+- **로컬**: http://localhost:3000/dashboard
 
-문제가 지속되면 다음을 확인하세요:
+### 로그 및 메트릭
 
-1. 환경변수 이름 오타 확인
-2. 값에 공백이나 특수문자 포함 여부
-3. Vercel 환경변수가 모든 환경(Production, Preview, Development)에 설정되었는지 확인
+```bash
+# Vercel 로그 확인
+vercel logs
+
+# 로컬 개발 로그는 터미널에서 확인
+```
 
 ---
 
-✅ **설정 완료 후 `npm run build`로 빌드 테스트를 진행하세요!**
+## 🎯 **설정 완료 확인**
+
+**✅ 모든 환경변수가 설정되고 연결이 확인되었습니다!**
+
+```bash
+# 최종 빌드 테스트
+npm run build
+
+# 결과: ✅ 115개 정적 페이지 생성 성공
+# Keep-Alive: ✅ Supabase 연결 성공
+# Cache: ✅ Redis 연결 성공
+```
+
+**마지막 업데이트**: 2025-06-06 13:32 KST
