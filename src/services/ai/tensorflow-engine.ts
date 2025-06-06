@@ -763,8 +763,34 @@ export class TensorFlowAIEngine {
   }
 
   private generateAIInsights(analysis: AIAnalysisResult): void {
-    // AI 인사이트 생성 로직을 구현해야 합니다.
-    // 현재는 인사이트 생성 로직이 구현되지 않았습니다.
+    // 장애 예측 결과 요약
+    for (const [metric, result] of Object.entries(analysis.failure_predictions)) {
+      const probability = result.prediction?.[0] ?? 0;
+      if (probability >= 0.8) {
+        analysis.ai_insights.push(`${metric} 지표에서 장애 위험 높음`);
+      }
+    }
+
+    // 이상 탐지 결과 요약
+    for (const [metric, result] of Object.entries(analysis.anomaly_detections)) {
+      if (result.anomaly_score > result.threshold) {
+        analysis.ai_insights.push(`${metric} 지표에서 이상 패턴 감지`);
+      }
+    }
+
+    // 트렌드 예측 요약 (단순 상승/하락 판단)
+    for (const [metric, values] of Object.entries(analysis.trend_predictions)) {
+      if (values.length < 2) continue;
+      const first = values[0];
+      const last = values[values.length - 1];
+      const changeRatio = first !== 0 ? (last - first) / Math.abs(first) : 0;
+
+      if (changeRatio > 0.1) {
+        analysis.ai_insights.push(`${metric} 지표가 상승 추세입니다`);
+      } else if (changeRatio < -0.1) {
+        analysis.ai_insights.push(`${metric} 지표가 하락 추세입니다`);
+      }
+    }
   }
 
   private preprocessMetrics(metrics: number[], targetLength: number): number[] {
