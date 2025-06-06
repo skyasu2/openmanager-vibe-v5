@@ -12,35 +12,262 @@ import {
   Database,
   Code,
   Zap,
+  Network,
+  Monitor,
+  Globe,
+  Palette,
+  Brain,
+  Cloud,
+  Shield,
+  BarChart3,
+  Settings,
+  Wrench,
 } from 'lucide-react';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useToast } from '@/components/ui/ToastNotification';
-import TechStackDisplay from '@/components/ui/TechStackDisplay';
-import { analyzeTechStack } from '@/utils/TechStackAnalyzer';
+
+// 기술 카테고리별 데이터
+const techCategories = {
+  'mcp-integration': {
+    title: '🔗 MCP 통합',
+    icon: Network,
+    color: 'from-purple-500 to-indigo-500',
+    techs: [
+      {
+        name: 'MCP SDK',
+        description: 'AI-데이터 표준 프로토콜',
+        icon: Network,
+        color: 'bg-purple-500',
+      },
+    ],
+  },
+  'ai-ml': {
+    title: '🤖 AI/ML',
+    icon: Brain,
+    color: 'from-pink-500 to-rose-500',
+    techs: [
+      {
+        name: 'TensorFlow.js',
+        description: '브라우저 ML 실행',
+        icon: Brain,
+        color: 'bg-orange-500',
+      },
+      {
+        name: 'Transformers.js',
+        description: '사전훈련 모델',
+        icon: Cpu,
+        color: 'bg-red-500',
+      },
+      {
+        name: 'natural',
+        description: '영어 NLP',
+        icon: Globe,
+        color: 'bg-green-500',
+      },
+      {
+        name: 'korean-js',
+        description: '한국어 형태소',
+        icon: Globe,
+        color: 'bg-blue-500',
+      },
+    ],
+  },
+  frontend: {
+    title: '💻 프론트엔드',
+    icon: Monitor,
+    color: 'from-blue-500 to-cyan-500',
+    techs: [
+      {
+        name: 'Next.js',
+        description: 'React 메타프레임워크',
+        icon: Globe,
+        color: 'bg-black',
+      },
+      {
+        name: 'React',
+        description: 'UI 컴포넌트',
+        icon: Code,
+        color: 'bg-blue-400',
+      },
+      {
+        name: 'TypeScript',
+        description: '정적 타입 체크',
+        icon: Code,
+        color: 'bg-blue-600',
+      },
+      {
+        name: 'Tailwind CSS',
+        description: '유틸리티 CSS',
+        icon: Palette,
+        color: 'bg-cyan-500',
+      },
+    ],
+  },
+  'data-storage': {
+    title: '🗄️ 데이터 & 저장',
+    icon: Database,
+    color: 'from-emerald-500 to-teal-500',
+    techs: [
+      {
+        name: 'Supabase',
+        description: 'PostgreSQL DB',
+        icon: Database,
+        color: 'bg-green-600',
+      },
+      {
+        name: 'Redis',
+        description: '서버리스 캐싱',
+        icon: Database,
+        color: 'bg-red-600',
+      },
+      {
+        name: 'Faker.js',
+        description: '데이터 생성',
+        icon: Zap,
+        color: 'bg-yellow-500',
+      },
+    ],
+  },
+  monitoring: {
+    title: '📊 모니터링',
+    icon: BarChart3,
+    color: 'from-orange-500 to-red-500',
+    techs: [
+      {
+        name: 'Prometheus',
+        description: '메트릭 수집',
+        icon: BarChart3,
+        color: 'bg-orange-500',
+      },
+      {
+        name: 'SystemInfo',
+        description: '시스템 정보',
+        icon: Monitor,
+        color: 'bg-gray-600',
+      },
+    ],
+  },
+  visualization: {
+    title: '📈 시각화',
+    icon: BarChart3,
+    color: 'from-violet-500 to-purple-500',
+    techs: [
+      {
+        name: 'Chart.js',
+        description: '캔버스 차트',
+        icon: BarChart3,
+        color: 'bg-pink-500',
+      },
+      {
+        name: 'Recharts',
+        description: 'React 차트',
+        icon: BarChart3,
+        color: 'bg-purple-500',
+      },
+      {
+        name: 'D3',
+        description: '데이터 시각화',
+        icon: BarChart3,
+        color: 'bg-indigo-500',
+      },
+    ],
+  },
+  development: {
+    title: '🛠️ 개발도구',
+    icon: Wrench,
+    color: 'from-gray-500 to-slate-500',
+    techs: [
+      {
+        name: 'ESLint',
+        description: '코드 품질',
+        icon: Shield,
+        color: 'bg-purple-600',
+      },
+      {
+        name: 'Prettier',
+        description: '코드 포맷팅',
+        icon: Settings,
+        color: 'bg-gray-700',
+      },
+      {
+        name: 'Vitest',
+        description: '단위 테스트',
+        icon: Shield,
+        color: 'bg-green-500',
+      },
+      {
+        name: 'Playwright',
+        description: 'E2E 테스트',
+        icon: Shield,
+        color: 'bg-blue-500',
+      },
+    ],
+  },
+  'ai-development': {
+    title: '✨ AI 개발',
+    icon: Sparkles,
+    color: 'from-amber-500 to-yellow-500',
+    techs: [
+      {
+        name: 'Cursor AI',
+        description: 'Claude 기반 에디터',
+        icon: Code,
+        color: 'bg-purple-500',
+      },
+      {
+        name: 'ChatGPT',
+        description: '브레인스토밍',
+        icon: Brain,
+        color: 'bg-green-500',
+      },
+      {
+        name: 'OpenAI Codex',
+        description: '문서화',
+        icon: Code,
+        color: 'bg-blue-500',
+      },
+    ],
+  },
+};
+
+// 카드별 기술 카테고리 매핑
+const cardTechMapping = {
+  'mcp-ai-engine': ['mcp-integration', 'ai-ml'],
+  'data-generator': ['data-storage', 'monitoring'],
+  'tech-stack': ['frontend', 'visualization'],
+  'vibe-coding': ['mcp-integration', 'ai-development', 'development'],
+};
 
 // 카드 데이터
 const cardData = [
   {
     id: 'mcp-ai-engine',
     title: 'MCP 기반 AI 엔진',
-    description:
-      'MCP(Model Context Protocol)로 구동되는 브라우저 기반 AI 엔진.',
+    description: 'MCP로 구동되는 브라우저 기반 AI 엔진',
     icon: Bot,
     gradient: 'from-blue-500 via-pink-500 to-cyan-400',
     detailedContent: {
-      overview:
-        'MCP는 AI 모델과 외부 데이터 소스 간의 표준화된 통신 프로토콜입니다. 본 엔진은 TensorFlow.js와 Transformers.js를 활용하여 서버 의존성 없이 브라우저에서 직접 AI 추론을 수행합니다.',
-      technologies: [
-        'MCP SDK - AI 모델과 데이터 소스 간 표준 프로토콜',
-        'TensorFlow.js - 브라우저 내 기계학습 실행',
-        'Transformers.js - 사전 훈련된 모델 실행',
-        'natural - 영어 자연어 처리',
-        'korean-js - 한국어 형태소 분석',
-        'ml-matrix - 행렬 연산 및 선형대수',
-        'ml-regression - 회귀 분석 및 예측',
-        'fuse.js - 퍼지 검색 엔진',
-        'compromise - 자연어 이해 및 파싱',
-      ],
+      overview: {
+        title: '🎯 핵심 기능',
+        features: [
+          {
+            icon: Network,
+            title: 'MCP 프로토콜',
+            description: 'AI 모델과 데이터 소스 간 표준 통신',
+          },
+          {
+            icon: Brain,
+            title: '브라우저 AI',
+            description: '서버 없이 클라이언트에서 AI 추론',
+          },
+          {
+            icon: Globe,
+            title: '다국어 NLP',
+            description: '영어/한국어 자연어 처리 지원',
+          },
+        ],
+      },
+      categories: ['mcp-integration', 'ai-ml'],
     },
     requiresAI: true,
     isAICard: true,
@@ -48,74 +275,93 @@ const cardData = [
   {
     id: 'data-generator',
     title: '서버 데이터 생성기',
-    description: '오픈소스 라이브러리로 구현된 실시간 서버 메트릭 시뮬레이터.',
+    description: '실시간 서버 메트릭 시뮬레이터',
     icon: Database,
     gradient: 'from-emerald-500 to-teal-600',
     detailedContent: {
-      overview:
-        '실제 서버 환경을 시뮬레이션하는 데이터 생성 시스템입니다. Faker.js로 현실적인 데이터를 생성하고, Prometheus로 메트릭을 수집하며, Redis와 Supabase로 데이터를 저장합니다.',
-      technologies: [
-        '@faker-js/faker - 현실적인 서버 데이터 생성',
-        'prom-client - Prometheus 메트릭 수집',
-        'systeminformation - 시스템 정보 수집',
-        '@upstash/redis - 서버리스 Redis 캐싱',
-        '@supabase/supabase-js - PostgreSQL 데이터 저장',
-        'node-cron - 작업 스케줄링',
-        'date-fns - 시계열 데이터 관리',
-        'axios - HTTP 클라이언트',
-      ],
+      overview: {
+        title: '🎯 핵심 기능',
+        features: [
+          {
+            icon: Zap,
+            title: '실시간 생성',
+            description: 'Faker.js로 현실적인 데이터 생성',
+          },
+          {
+            icon: BarChart3,
+            title: '메트릭 수집',
+            description: 'Prometheus로 시스템 메트릭 수집',
+          },
+          {
+            icon: Database,
+            title: '이중 저장',
+            description: 'Redis 캐싱 + Supabase 영구 저장',
+          },
+        ],
+      },
+      categories: ['data-storage', 'monitoring'],
     },
     requiresAI: false,
   },
   {
     id: 'tech-stack',
     title: '적용 기술',
-    description: '최신 웹 기술 스택으로 구현된 풀스택 애플리케이션.',
+    description: '최신 웹 기술 스택 풀스택 애플리케이션',
     icon: Code,
     gradient: 'from-purple-500 to-indigo-600',
     detailedContent: {
-      overview:
-        '최신 React 생태계 기반의 모던 풀스택 애플리케이션입니다. Next.js App Router와 React Server Components를 활용하고, Zustand로 상태를 관리합니다.',
-      technologies: [
-        'Next.js - React 메타프레임워크',
-        'React - 컴포넌트 기반 UI 라이브러리',
-        'TypeScript - 정적 타입 체크',
-        'Tailwind CSS - 유틸리티 CSS 프레임워크',
-        'Zustand - 클라이언트 상태 관리',
-        '@tanstack/react-query - 서버 상태 관리',
-        'framer-motion - React 애니메이션',
-        'chart.js - 캔버스 기반 차트',
-        'recharts - React 전용 차트',
-        'd3 - 데이터 시각화',
-        'lucide-react - SVG 아이콘',
-        '@headlessui/react - 접근성 UI 컴포넌트',
-      ],
+      overview: {
+        title: '🎯 핵심 기능',
+        features: [
+          {
+            icon: Code,
+            title: 'Modern React',
+            description: 'Next.js App Router + Server Components',
+          },
+          {
+            icon: Palette,
+            title: '반응형 UI',
+            description: 'Tailwind CSS + Framer Motion',
+          },
+          {
+            icon: BarChart3,
+            title: '데이터 시각화',
+            description: 'Chart.js, Recharts, D3 통합',
+          },
+        ],
+      },
+      categories: ['frontend', 'visualization'],
     },
     requiresAI: false,
   },
   {
     id: 'vibe-coding',
     title: '✨ Vibe Coding',
-    description:
-      'Cursor AI + MCP 기반 개발 워크플로우. 다중 AI 모델 협업 개발.',
+    description: 'Cursor AI + MCP 다중 AI 모델 협업 개발',
     icon: Sparkles,
     gradient: 'from-amber-400 via-orange-500 to-yellow-600',
     detailedContent: {
-      overview:
-        'Cursor AI는 MCP를 통해 프로젝트 컨텍스트를 이해하는 AI 네이티브 에디터입니다. Claude Sonnet 3.7/4.0을 주력으로, ChatGPT와 OpenAI Codex를 상황별로 활용하여 개발합니다.',
-      technologies: [
-        'Cursor AI - Claude Sonnet 기반 AI 에디터',
-        'MCP SDK - AI와 프로젝트 간 통신',
-        'ChatGPT - 프롬프트 설계 및 브레인스토밍',
-        'OpenAI Codex - 문서화 및 후기 작성',
-        'ESLint - 코드 품질 검사',
-        'Prettier - 코드 포맷팅',
-        'Vitest - 단위 테스트',
-        'Playwright - E2E 테스트',
-        'Husky - Git hooks 관리',
-        '@typescript-eslint - TypeScript 린트',
-        '@testing-library - React 테스트',
-      ],
+      overview: {
+        title: '🎯 핵심 기능',
+        features: [
+          {
+            icon: Brain,
+            title: 'AI 네이티브',
+            description: 'Claude Sonnet 기반 컨텍스트 이해',
+          },
+          {
+            icon: Network,
+            title: 'MCP 통합',
+            description: '프로젝트와 AI 간 실시간 통신',
+          },
+          {
+            icon: Shield,
+            title: '품질 보장',
+            description: '자동 테스트 + 린트 + 포맷팅',
+          },
+        ],
+      },
+      categories: ['mcp-integration', 'ai-development', 'development'],
     },
     requiresAI: false,
     isSpecial: true,
@@ -187,11 +433,6 @@ export default function FeatureCardsGrid() {
   };
 
   const selectedCardData = cardData.find(card => card.id === selectedCard);
-
-  // 선택된 카드의 기술 스택 분석
-  const analyzedTechStack = selectedCardData
-    ? analyzeTechStack(selectedCardData.detailedContent.technologies)
-    : [];
 
   // AI 단어에 그라데이션 애니메이션 적용하는 함수
   const renderTextWithAIGradient = (text: string) => {
@@ -455,57 +696,99 @@ export default function FeatureCardsGrid() {
               </div>
 
               {/* 상세 내용 */}
-              <div className='p-4 space-y-4'>
-                {/* 개요 */}
+              <div className='p-4 space-y-6'>
+                {/* 핵심 기능 카드들 */}
                 <div>
-                  <h3 className='text-white font-medium mb-3 text-xl'>
-                    📖 개요
+                  <h3 className='text-white font-medium mb-4 text-xl'>
+                    {selectedCardData.detailedContent.overview.title}
                   </h3>
-                  <p className='text-gray-200 leading-relaxed text-lg'>
-                    {renderTextWithAIGradient(
-                      selectedCardData.detailedContent.overview
-                    )}
-                  </p>
-                </div>
-
-                {/* 적용 기술 */}
-                <div>
-                  <h3 className='text-white font-medium mb-3 text-xl'>
-                    🛠️ 적용 기술
-                  </h3>
-                  <ul className='space-y-3'>
-                    {selectedCardData.detailedContent.technologies.map(
-                      (tech, index) => (
-                        <li
+                  <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                    {selectedCardData.detailedContent.overview.features.map(
+                      (feature, index) => (
+                        <motion.div
                           key={index}
-                          className='flex items-start gap-3 text-base'
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className='p-4 bg-gray-800/50 rounded-lg border border-gray-700/50 hover:bg-gray-700/50 transition-colors'
                         >
-                          <div
-                            className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                              selectedCardData.isAICard
-                                ? 'bg-pink-400'
-                                : selectedCardData.isSpecial
-                                  ? 'bg-amber-400'
-                                  : 'bg-green-400'
-                            }`}
-                          />
-                          <span className='text-gray-200 leading-relaxed'>
-                            {renderTextWithAIGradient(tech)}
-                          </span>
-                        </li>
+                          <div className='flex items-center gap-3 mb-2'>
+                            <div
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                selectedCardData.isAICard
+                                  ? 'bg-pink-500/20 text-pink-400'
+                                  : selectedCardData.isSpecial
+                                    ? 'bg-amber-500/20 text-amber-400'
+                                    : 'bg-blue-500/20 text-blue-400'
+                              }`}
+                            >
+                              <feature.icon className='w-4 h-4' />
+                            </div>
+                            <h4 className='font-medium text-white text-sm'>
+                              {feature.title}
+                            </h4>
+                          </div>
+                          <p className='text-gray-300 text-xs'>
+                            {feature.description}
+                          </p>
+                        </motion.div>
                       )
                     )}
-                  </ul>
+                  </div>
                 </div>
 
-                {/* 기술 스택 분석 */}
-                <div>
-                  <TechStackDisplay
-                    categories={analyzedTechStack}
-                    showHeader={true}
-                    compact={true}
-                  />
-                </div>
+                {/* 기술 카테고리 카드들 */}
+                {selectedCardData.detailedContent.categories.map(
+                  (categoryId: string, categoryIndex: number) => {
+                    const category =
+                      techCategories[categoryId as keyof typeof techCategories];
+                    return (
+                      <div key={categoryId}>
+                        <div className='flex items-center gap-2 mb-4'>
+                          <div
+                            className={`w-6 h-6 bg-gradient-to-r ${category.color} rounded-lg flex items-center justify-center`}
+                          >
+                            <category.icon className='w-3 h-3 text-white' />
+                          </div>
+                          <h3 className='text-white font-medium text-lg'>
+                            {category.title}
+                          </h3>
+                        </div>
+                        <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+                          {category.techs.map(
+                            (tech: any, techIndex: number) => (
+                              <motion.div
+                                key={tech.name}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{
+                                  delay: categoryIndex * 0.1 + techIndex * 0.05,
+                                }}
+                                className='p-3 bg-gray-800/30 rounded-lg border border-gray-700/30 hover:bg-gray-700/30 transition-colors group'
+                              >
+                                <div className='flex items-center gap-3'>
+                                  <div
+                                    className={`w-8 h-8 ${tech.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}
+                                  >
+                                    <tech.icon className='w-4 h-4 text-white' />
+                                  </div>
+                                  <div>
+                                    <h4 className='font-medium text-white text-sm'>
+                                      {renderTextWithAIGradient(tech.name)}
+                                    </h4>
+                                    <p className='text-gray-400 text-xs'>
+                                      {tech.description}
+                                    </p>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+                )}
               </div>
             </motion.div>
           </div>
