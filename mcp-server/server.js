@@ -167,14 +167,25 @@ class OpenManagerMCPServer {
   }
 
   async run() {
-    // MCP는 stdio로만 통신하므로 HTTP 서버는 AI Engine 모드에서만 실행
-    if (this.isAIEngineMode) {
+    // 🌍 Render 환경에서는 항상 HTTP 서버 실행 (포트 바인딩 필요)
+    const isRenderEnvironment =
+      process.env.RENDER || process.env.RENDER_SERVICE_NAME;
+
+    if (this.isAIEngineMode || isRenderEnvironment) {
+      console.error('🌐 Render/AI Engine 모드: HTTP 서버 시작');
       this.startHealthCheckServer();
     }
 
-    const transport = new StdioServerTransport();
-    await this.server.connect(transport);
-    console.error('OpenManager MCP Server running on stdio');
+    // 🔄 Render 환경에서는 stdio 서버 비활성화 (HTTP만 사용)
+    if (!isRenderEnvironment) {
+      const transport = new StdioServerTransport();
+      await this.server.connect(transport);
+      console.error('OpenManager MCP Server running on stdio');
+    } else {
+      console.error('🚀 Render 환경: HTTP 서버 전용 모드로 실행');
+      // 무한 루프로 서버 유지
+      await new Promise(() => {}); // 영원히 대기
+    }
   }
 
   startHealthCheckServer() {
@@ -202,6 +213,10 @@ class OpenManagerMCPServer {
           server: 'OpenManager MCP Server',
           version: '0.1.0',
           environment: process.env.NODE_ENV || 'development',
+          isRenderEnvironment: !!(
+            process.env.RENDER || process.env.RENDER_SERVICE_NAME
+          ),
+          mode: this.isAIEngineMode ? 'AI Engine' : 'Development',
         };
 
         res.writeHead(200);
@@ -215,13 +230,73 @@ class OpenManagerMCPServer {
             message: 'MCP Server is alive!',
           })
         );
+      } else if (req.url === '/mcp/tools' && req.method === 'GET') {
+        // 🔧 MCP 도구 목록 HTTP API
+        const tools = [
+          {
+            name: 'read_project_file',
+            description: 'Read a file from the project directory',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                path: {
+                  type: 'string',
+                  description: 'Path to the file relative to project root',
+                },
+              },
+              required: ['path'],
+            },
+          },
+          {
+            name: 'list_project_directory',
+            description: 'List contents of a project directory',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                path: {
+                  type: 'string',
+                  description: 'Path to the directory relative to project root',
+                },
+              },
+              required: ['path'],
+            },
+          },
+        ];
+
+        res.writeHead(200);
+        res.end(JSON.stringify({ tools, success: true }, null, 2));
+      } else if (req.url === '/mcp/status' && req.method === 'GET') {
+        // 🔧 MCP 상태 확인 API
+        res.writeHead(200);
+        res.end(
+          JSON.stringify(
+            {
+              success: true,
+              mcp: {
+                connected: true,
+                server: 'OpenManager MCP Server',
+                version: '0.1.0',
+                capabilities: ['tools'],
+                toolCount: 2,
+              },
+              timestamp: new Date().toISOString(),
+            },
+            null,
+            2
+          )
+        );
       } else {
         res.writeHead(404);
         res.end(
           JSON.stringify({
             error: 'Not Found',
             message: 'MCP Server endpoint not found',
-            availableEndpoints: ['/health', '/ping'],
+            availableEndpoints: [
+              '/health',
+              '/ping',
+              '/mcp/tools',
+              '/mcp/status',
+            ],
           })
         );
       }
