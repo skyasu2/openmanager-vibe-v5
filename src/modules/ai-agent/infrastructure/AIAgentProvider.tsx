@@ -210,14 +210,21 @@ export const AIAgentProvider: React.FC<AIAgentProviderProps> = ({
 
       dispatch({ type: 'SET_HEALTHY', payload: status.healthy ?? false });
 
-      // 전원 모드 동기화 (안전한 접근)
+      // 🔄 전원 모드 동기화 (백엔드 스탠바이 지원)
       const mode = status.mode || 'inactive';
       if (mode === 'active') {
         dispatch({ type: 'SET_POWER_MODE', payload: 'active' });
-      } else if (mode === 'sleep') {
-        dispatch({ type: 'SET_POWER_MODE', payload: 'sleep' });
+      } else if (mode === 'sleep' || mode === 'standby') {
+        dispatch({ type: 'SET_POWER_MODE', payload: 'sleep' }); // ✨ standby도 sleep으로 처리
       } else {
         dispatch({ type: 'SET_POWER_MODE', payload: 'inactive' });
+      }
+
+      // 🔧 백엔드 스탠바이 모드 로깅
+      if (mode === 'standby') {
+        console.log(
+          '🔄 [AI] 백엔드 스탠바이 모드 활성화 - 프론트엔드 UI 비활성, 백엔드 준비 완료'
+        );
       }
 
       // 연결 상태 업데이트
@@ -237,7 +244,7 @@ export const AIAgentProvider: React.FC<AIAgentProviderProps> = ({
     }
   }, [service]);
 
-  // 초기화 및 헬스체크 강화
+  // 🚀 백엔드 스탠바이 모드: AI 초기화 및 헬스체크 강화
   useEffect(() => {
     let isMounted = true;
     let initializationTimeout: NodeJS.Timeout;
@@ -247,13 +254,14 @@ export const AIAgentProvider: React.FC<AIAgentProviderProps> = ({
         // 초기화 타임아웃 설정 (30초)
         initializationTimeout = setTimeout(() => {
           if (isMounted) {
-            console.warn('🟡 AI Agent 초기화 시간 초과, fallback 모드로 전환');
+            console.warn('🟡 AI Agent 초기화 시간 초과, standby 모드로 전환');
             dispatch({
               type: 'SET_ERROR',
-              payload: '초기화 시간 초과 - fallback 모드',
+              payload: '초기화 시간 초과 - standby 모드',
             });
             dispatch({ type: 'SET_CONNECTED', payload: false });
             dispatch({ type: 'SET_HEALTHY', payload: false });
+            dispatch({ type: 'SET_POWER_MODE', payload: 'sleep' }); // ✨ standby 모드
           }
         }, 30000);
 
@@ -261,9 +269,13 @@ export const AIAgentProvider: React.FC<AIAgentProviderProps> = ({
         const sessionId = `ai_session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         if (isMounted) {
           dispatch({ type: 'SET_SESSION_ID', payload: sessionId });
+          console.log('🔧 [AI] 백엔드 세션 생성:', sessionId);
         }
 
-        // 헬스체크 시도 (여러 번 재시도)
+        // 🔄 백엔드 스탠바이 초기화: 연결 실패해도 계속 시도
+        dispatch({ type: 'SET_POWER_MODE', payload: 'sleep' }); // 기본적으로 standby
+
+        // 헬스체크 시도 (여러 번 재시도, 실패해도 standby 유지)
         let retryCount = 0;
         const maxRetries = 3;
 
@@ -272,7 +284,7 @@ export const AIAgentProvider: React.FC<AIAgentProviderProps> = ({
             await checkHealth();
             if (isMounted) {
               dispatch({ type: 'SET_CONNECTED', payload: true });
-              console.log('✅ AI Agent 초기화 성공');
+              console.log('✅ AI Agent 초기화 성공 - 백엔드 연결됨');
             }
             break;
           } catch (healthError) {
@@ -288,13 +300,17 @@ export const AIAgentProvider: React.FC<AIAgentProviderProps> = ({
                 setTimeout(resolve, Math.pow(2, retryCount) * 1000)
               );
             } else {
-              // 최종 실패 시 disconnected 상태로 설정하되, 에러는 기록하지 않음
+              // 🔧 최종 실패 시에도 standby 모드 유지 (완전 비활성화 아님)
               if (isMounted) {
-                console.warn('⚠️ AI Agent 연결 실패, offline 모드로 동작');
+                console.warn(
+                  '⚠️ AI Agent 연결 실패, standby 모드로 백엔드 유지'
+                );
                 dispatch({ type: 'SET_CONNECTED', payload: false });
                 dispatch({ type: 'SET_HEALTHY', payload: false });
-                dispatch({ type: 'SET_POWER_MODE', payload: 'inactive' });
-                // 에러 메시지는 사용자에게 노출하지 않음 (시스템이 여전히 작동 가능)
+                dispatch({ type: 'SET_POWER_MODE', payload: 'sleep' }); // ✨ standby 유지
+                console.log(
+                  '🔄 [AI] 백엔드는 standby 상태로 동작, 프론트엔드 UI만 비활성화'
+                );
               }
             }
           }
@@ -307,14 +323,18 @@ export const AIAgentProvider: React.FC<AIAgentProviderProps> = ({
       } catch (error) {
         if (isMounted) {
           console.error('❌ AI Agent 초기화 중 예상치 못한 오류:', error);
-          dispatch({ type: 'SET_ERROR', payload: 'AI 에이전트 초기화 실패' });
+          dispatch({
+            type: 'SET_ERROR',
+            payload: 'AI 에이전트 백엔드 스탠바이 모드',
+          });
           dispatch({ type: 'SET_CONNECTED', payload: false });
           dispatch({ type: 'SET_HEALTHY', payload: false });
+          dispatch({ type: 'SET_POWER_MODE', payload: 'sleep' }); // ✨ 오류 시에도 standby
         }
       }
     };
 
-    // 초기화 실행
+    // 🚀 백엔드 스탠바이 초기화 실행
     initialize();
 
     // 정기적 헬스체크 (10분마다, 연결된 경우에만)

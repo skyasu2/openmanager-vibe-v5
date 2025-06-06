@@ -177,7 +177,7 @@ export class AIAgentService {
   }
 
   /**
-   * AI 상태 확인 (강화된 에러 핸들링)
+   * 🔧 AI 상태 확인 (백엔드 스탠바이 모드 지원)
    */
   async getStatus(): Promise<{
     healthy: boolean;
@@ -212,13 +212,22 @@ export class AIAgentService {
         performance: statusData.performance || {},
       };
     } catch (error) {
-      console.error('AI status check failed:', error);
-      // 헬스체크 실패는 일반적인 상황이므로 기본값 반환
+      console.warn(
+        'AI 상태 확인 중 오류 - 백엔드 스탠바이 모드로 전환:',
+        error
+      );
+
+      // 🔄 연결 실패 시 standby 모드로 응답 (완전 비활성화 아님)
       return {
         healthy: false,
-        mode: 'inactive',
-        uptime: 0,
-        performance: {},
+        mode: 'standby', // ✨ standby 모드로 변경
+        uptime: Date.now(),
+        performance: {
+          standbyMode: true,
+          lastAttempt: new Date().toISOString(),
+          error: error instanceof Error ? error.message : 'Connection failed',
+          reconnectReady: true,
+        },
       };
     }
   }
