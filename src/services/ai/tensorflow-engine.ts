@@ -1,8 +1,8 @@
 /**
  * 🧠 TensorFlow.js AI 엔진 v3.0
- * 
+ *
  * ✅ Vercel 서버리스 완전 호환
- * ✅ 브라우저 + Node.js 지원  
+ * ✅ 브라우저 + Node.js 지원
  * ✅ 장애 예측 신경망
  * ✅ 이상 탐지 오토인코더
  * ✅ 시계열 LSTM 모델
@@ -89,7 +89,11 @@ class KMeans {
   private maxIters: number;
   private tolerance: number;
 
-  constructor(nClusters: number = 3, maxIters: number = 100, tolerance: number = 1e-4) {
+  constructor(
+    nClusters: number = 3,
+    maxIters: number = 100,
+    tolerance: number = 1e-4
+  ) {
     this.nClusters = nClusters;
     this.maxIters = maxIters;
     this.tolerance = tolerance;
@@ -97,30 +101,30 @@ class KMeans {
 
   async fit(data: tf.Tensor): Promise<void> {
     const [nSamples, nFeatures] = data.shape as [number, number];
-    
+
     // 랜덤 초기 중심점
     this.centroids = tf.randomUniform([this.nClusters, nFeatures]);
-    
+
     for (let iter = 0; iter < this.maxIters; iter++) {
       // 각 점에서 가장 가까운 중심점 찾기
       const distances = this.calculateDistances(data);
       const labels = tf.argMin(distances, 1);
-      
+
       // 새로운 중심점 계산
       const newCentroids = await this.updateCentroids(data, labels);
-      
+
       // 수렴 확인
       const centroidDiff = tf.norm(newCentroids.sub(this.centroids!));
       const diffValue = await centroidDiff.data();
-      
+
       this.centroids!.dispose();
       this.centroids = newCentroids;
-      
+
       if (diffValue[0] < this.tolerance) {
         console.log(`🎯 KMeans converged after ${iter + 1} iterations`);
         break;
       }
-      
+
       labels.dispose();
       distances.dispose();
       centroidDiff.dispose();
@@ -131,14 +135,14 @@ class KMeans {
     if (!this.centroids) {
       throw new Error('KMeans must be fitted before prediction');
     }
-    
+
     const distances = this.calculateDistances(data);
     const labels = tf.argMin(distances, 1);
     const labelsArray = await labels.data();
-    
+
     distances.dispose();
     labels.dispose();
-    
+
     return Array.from(labelsArray);
   }
 
@@ -146,13 +150,13 @@ class KMeans {
     await this.fit(data);
     const labels = await this.predict(data);
     const inertia = await this.calculateInertia(data, labels);
-    const centroids = await this.centroids!.array() as number[][];
-    
+    const centroids = (await this.centroids!.array()) as number[][];
+
     return {
       cluster_labels: labels,
       centroids: centroids,
       inertia: inertia,
-      model_info: `KMeans (k=${this.nClusters}, iter=${this.maxIters})`
+      model_info: `KMeans (k=${this.nClusters}, iter=${this.maxIters})`,
     };
   }
 
@@ -164,14 +168,17 @@ class KMeans {
     return tf.sum(tf.square(diff), 2); // [n_samples, n_clusters]
   }
 
-  private async updateCentroids(data: tf.Tensor, labels: tf.Tensor): Promise<tf.Tensor> {
+  private async updateCentroids(
+    data: tf.Tensor,
+    labels: tf.Tensor
+  ): Promise<tf.Tensor> {
     const [nSamples, nFeatures] = data.shape as [number, number];
     const newCentroids = [];
-    
+
     // 라벨과 데이터를 배열로 변환
     const labelsArray = await labels.data();
-    const dataArray = await data.array() as number[][];
-    
+    const dataArray = (await data.array()) as number[][];
+
     for (let k = 0; k < this.nClusters; k++) {
       // 클러스터 k에 속하는 포인트들 찾기
       const clusterPoints = [];
@@ -180,7 +187,7 @@ class KMeans {
           clusterPoints.push(dataArray[i]);
         }
       }
-      
+
       if (clusterPoints.length > 0) {
         // 클러스터 포인트들의 평균 계산
         const clusterTensor = tf.tensor2d(clusterPoints);
@@ -193,29 +200,32 @@ class KMeans {
         newCentroids.push(randomCentroid);
       }
     }
-    
+
     return tf.stack(newCentroids);
   }
 
-  private async calculateInertia(data: tf.Tensor, labels: number[]): Promise<number> {
+  private async calculateInertia(
+    data: tf.Tensor,
+    labels: number[]
+  ): Promise<number> {
     let totalInertia = 0;
-    const dataArray = await data.array() as number[][];
-    const centroidsArray = await this.centroids!.array() as number[][];
-    
+    const dataArray = (await data.array()) as number[][];
+    const centroidsArray = (await this.centroids!.array()) as number[][];
+
     for (let i = 0; i < labels.length; i++) {
       const clusterIdx = labels[i];
       const point = dataArray[i];
       const centroid = centroidsArray[clusterIdx];
-      
+
       // 유클리드 거리의 제곱
       const distance = point.reduce((sum, val, idx) => {
         const diff = val - centroid[idx];
         return sum + diff * diff;
       }, 0);
-      
+
       totalInertia += distance;
     }
-    
+
     return totalInertia;
   }
 
@@ -247,11 +257,11 @@ export class TensorFlowAIEngine {
         { type: 'dense', units: 32, activation: 'relu' },
         { type: 'dropout', rate: 0.2 },
         { type: 'dense', units: 16, activation: 'relu' },
-        { type: 'dense', units: 1, activation: 'sigmoid' }
+        { type: 'dense', units: 1, activation: 'sigmoid' },
       ],
       optimizer: 'adam',
       loss: 'binaryCrossentropy',
-      description: '장애 확률 예측 신경망'
+      description: '장애 확률 예측 신경망',
     });
 
     // 🔍 이상 탐지 모델 스펙 (오토인코더)
@@ -260,16 +270,16 @@ export class TensorFlowAIEngine {
       encoder_layers: [
         { type: 'dense', units: 16, activation: 'relu' },
         { type: 'dense', units: 8, activation: 'relu' },
-        { type: 'dense', units: 4, activation: 'relu' }
+        { type: 'dense', units: 4, activation: 'relu' },
       ],
       decoder_layers: [
         { type: 'dense', units: 8, activation: 'relu' },
         { type: 'dense', units: 16, activation: 'relu' },
-        { type: 'dense', units: 20, activation: 'linear' }
+        { type: 'dense', units: 20, activation: 'linear' },
       ],
       optimizer: 'adam',
       loss: 'meanSquaredError',
-      description: '오토인코더 기반 이상 탐지'
+      description: '오토인코더 기반 이상 탐지',
     });
 
     // 📈 시계열 예측 모델 스펙 (LSTM)
@@ -281,11 +291,11 @@ export class TensorFlowAIEngine {
         { type: 'lstm', units: 50, return_sequences: false },
         { type: 'dropout', rate: 0.2 },
         { type: 'dense', units: 25 },
-        { type: 'dense', units: 1 }
+        { type: 'dense', units: 1 },
       ],
       optimizer: 'adam',
       loss: 'meanSquaredError',
-      description: 'LSTM 기반 시계열 예측'
+      description: 'LSTM 기반 시계열 예측',
     });
   }
 
@@ -293,28 +303,27 @@ export class TensorFlowAIEngine {
     if (this.initialized) return;
 
     console.log('🧠 TensorFlow.js AI 엔진 초기화 중...');
-    
+
     try {
       // 기존 모델들 완전 정리 (중복 방지)
       this.dispose();
-      
+
       // TensorFlow.js 전역 변수 정리
       await this.cleanupTensorFlowGlobals();
-      
+
       // TensorFlow.js 백엔드 설정
       await this.setupTensorFlowBackend();
-      
+
       // 모델 스펙 초기화
       this.initializeModelSpecs();
-      
+
       // 모델들 초기화
       await this.initializeAllModels();
-      
+
       this.initialized = true;
       console.log('✅ TensorFlow.js AI 엔진 초기화 완료');
       console.log(`🔧 백엔드: ${tf.getBackend()}`);
       console.log(`📊 메모리 사용: ${JSON.stringify(tf.memory())}`);
-      
     } catch (error: any) {
       console.error('❌ TensorFlow.js 초기화 실패:', error);
       // 초기화 실패해도 계속 진행 (fallback 모드)
@@ -336,15 +345,15 @@ export class TensorFlowAIEngine {
         }
         this.models.clear();
       }
-      
+
       // 모든 TensorFlow.js 텐서와 변수 정리
       tf.disposeVariables();
-      
+
       // 메모리 강제 정리
       const memoryInfo = tf.memory();
       if (memoryInfo.numTensors > 0) {
         console.log(`🧹 ${memoryInfo.numTensors}개 텐서 정리 중...`);
-        
+
         // 백엔드 완전 재설정
         const currentBackend = tf.getBackend();
         try {
@@ -353,13 +362,13 @@ export class TensorFlowAIEngine {
         } catch (error) {
           console.warn('⚠️ 백엔드 제거 실패 (계속 진행):', error);
         }
-        
+
         // 백엔드 재설정
         await tf.setBackend(currentBackend);
         await tf.ready();
         console.log(`🔄 백엔드 ${currentBackend} 재설정 완료`);
       }
-      
+
       console.log('✅ TensorFlow.js 전역 상태 정리 완료');
     } catch (error) {
       console.warn('⚠️ TensorFlow.js 전역 정리 실패 (계속 진행):', error);
@@ -387,7 +396,7 @@ export class TensorFlowAIEngine {
     const modelPromises = [
       this.initializeFailurePredictionModel(),
       this.initializeAnomalyDetectionModel(),
-      this.initializeTimeSeriesModel()
+      this.initializeTimeSeriesModel(),
     ];
 
     await Promise.all(modelPromises);
@@ -397,39 +406,39 @@ export class TensorFlowAIEngine {
   private async initializeFailurePredictionModel(): Promise<void> {
     const spec = this.modelSpecs.get('failure_prediction')!;
     const timestamp = Date.now();
-    
+
     const model = tf.sequential({
       layers: [
-        tf.layers.dense({ 
-          inputShape: spec.input_shape, 
-          units: 64, 
+        tf.layers.dense({
+          inputShape: spec.input_shape,
+          units: 64,
           activation: 'relu',
-          name: `failure_hidden1_${timestamp}`
+          name: `failure_hidden1_${timestamp}`,
         }),
         tf.layers.dropout({ rate: 0.2 }),
-        tf.layers.dense({ 
-          units: 32, 
+        tf.layers.dense({
+          units: 32,
           activation: 'relu',
-          name: `failure_hidden2_${timestamp}`
+          name: `failure_hidden2_${timestamp}`,
         }),
         tf.layers.dropout({ rate: 0.2 }),
-        tf.layers.dense({ 
-          units: 16, 
+        tf.layers.dense({
+          units: 16,
           activation: 'relu',
-          name: `failure_hidden3_${timestamp}`
+          name: `failure_hidden3_${timestamp}`,
         }),
-        tf.layers.dense({ 
-          units: 1, 
+        tf.layers.dense({
+          units: 1,
           activation: 'sigmoid',
-          name: `failure_output_${timestamp}`
-        })
-      ]
+          name: `failure_output_${timestamp}`,
+        }),
+      ],
     });
 
     model.compile({
       optimizer: tf.train.adam(0.001),
       loss: 'binaryCrossentropy',
-      metrics: ['accuracy']
+      metrics: ['accuracy'],
     });
 
     this.models.set('failure_prediction', model);
@@ -438,49 +447,49 @@ export class TensorFlowAIEngine {
 
   private async initializeAnomalyDetectionModel(): Promise<void> {
     const timestamp = Date.now();
-    
+
     // 오토인코더 인코더
     const encoder = tf.sequential({
       layers: [
-        tf.layers.dense({ 
-          inputShape: [20], 
-          units: 16, 
+        tf.layers.dense({
+          inputShape: [20],
+          units: 16,
           activation: 'relu',
-          name: `encoder_1_${timestamp}`
+          name: `encoder_1_${timestamp}`,
         }),
-        tf.layers.dense({ 
-          units: 8, 
+        tf.layers.dense({
+          units: 8,
           activation: 'relu',
-          name: `encoder_2_${timestamp}`
+          name: `encoder_2_${timestamp}`,
         }),
-        tf.layers.dense({ 
-          units: 4, 
+        tf.layers.dense({
+          units: 4,
           activation: 'relu',
-          name: `bottleneck_${timestamp}`
-        })
-      ]
+          name: `bottleneck_${timestamp}`,
+        }),
+      ],
     });
 
     // 오토인코더 디코더
     const decoder = tf.sequential({
       layers: [
-        tf.layers.dense({ 
-          inputShape: [4], 
-          units: 8, 
+        tf.layers.dense({
+          inputShape: [4],
+          units: 8,
           activation: 'relu',
-          name: `decoder_1_${timestamp}`
+          name: `decoder_1_${timestamp}`,
         }),
-        tf.layers.dense({ 
-          units: 16, 
+        tf.layers.dense({
+          units: 16,
           activation: 'relu',
-          name: `decoder_2_${timestamp}`
+          name: `decoder_2_${timestamp}`,
         }),
-        tf.layers.dense({ 
-          units: 20, 
+        tf.layers.dense({
+          units: 20,
           activation: 'linear',
-          name: `decoder_output_${timestamp}`
-        })
-      ]
+          name: `decoder_output_${timestamp}`,
+        }),
+      ],
     });
 
     // 전체 오토인코더
@@ -490,7 +499,7 @@ export class TensorFlowAIEngine {
 
     autoencoder.compile({
       optimizer: 'adam',
-      loss: 'meanSquaredError'
+      loss: 'meanSquaredError',
     });
 
     this.models.set('anomaly_detection', autoencoder);
@@ -499,37 +508,37 @@ export class TensorFlowAIEngine {
 
   private async initializeTimeSeriesModel(): Promise<void> {
     const timestamp = Date.now();
-    
+
     const model = tf.sequential({
       layers: [
-        tf.layers.lstm({ 
-          units: 50, 
-          returnSequences: true, 
+        tf.layers.lstm({
+          units: 50,
+          returnSequences: true,
           inputShape: [10, 1],
-          name: `lstm_1_${timestamp}`
+          name: `lstm_1_${timestamp}`,
         }),
         tf.layers.dropout({ rate: 0.2 }),
-        tf.layers.lstm({ 
-          units: 50, 
+        tf.layers.lstm({
+          units: 50,
           returnSequences: false,
-          name: `lstm_2_${timestamp}`
+          name: `lstm_2_${timestamp}`,
         }),
         tf.layers.dropout({ rate: 0.2 }),
-        tf.layers.dense({ 
+        tf.layers.dense({
           units: 25,
-          name: `dense_1_${timestamp}`
+          name: `dense_1_${timestamp}`,
         }),
-        tf.layers.dense({ 
+        tf.layers.dense({
           units: 1,
-          name: `output_${timestamp}`
-        })
-      ]
+          name: `output_${timestamp}`,
+        }),
+      ],
     });
 
     model.compile({
       optimizer: 'adam',
       loss: 'meanSquaredError',
-      metrics: ['mae']
+      metrics: ['mae'],
     });
 
     this.models.set('timeseries', model);
@@ -538,7 +547,7 @@ export class TensorFlowAIEngine {
 
   async predictFailure(metrics: number[]): Promise<PredictionResult> {
     await this.initialize();
-    
+
     const startTime = Date.now();
     const model = this.models.get('failure_prediction');
     if (!model) throw new Error('장애 예측 모델이 로드되지 않음');
@@ -550,14 +559,17 @@ export class TensorFlowAIEngine {
     try {
       const prediction = model.predict(inputTensor) as tf.Tensor;
       const predictionArray = await prediction.data();
-      
+
       const processingTime = Date.now() - startTime;
-      
+
       return {
         prediction: Array.from(predictionArray),
-        confidence: predictionArray[0] > 0.5 ? predictionArray[0] : 1 - predictionArray[0],
+        confidence:
+          predictionArray[0] > 0.5
+            ? predictionArray[0]
+            : 1 - predictionArray[0],
         model_info: 'TensorFlow.js 신경망 (4층, ReLU+Sigmoid)',
-        processing_time: processingTime
+        processing_time: processingTime,
       };
     } finally {
       inputTensor.dispose();
@@ -566,7 +578,7 @@ export class TensorFlowAIEngine {
 
   async detectAnomalies(timeSeries: number[]): Promise<AnomalyResult> {
     await this.initialize();
-    
+
     const model = this.models.get('anomaly_detection');
     if (!model) throw new Error('이상 탐지 모델이 로드되지 않음');
 
@@ -577,29 +589,35 @@ export class TensorFlowAIEngine {
     try {
       const reconstruction = model.predict(inputTensor) as tf.Tensor;
       const reconstructionData = await reconstruction.data();
-      
+
       // 재구성 오차 계산 (MSE)
       const originalData = await inputTensor.data();
-      const mse = this.calculateMSE(Array.from(originalData), Array.from(reconstructionData));
-      
+      const mse = this.calculateMSE(
+        Array.from(originalData),
+        Array.from(reconstructionData)
+      );
+
       // 동적 임계값 (데이터의 표준편차 기반)
       const threshold = this.calculateDynamicThreshold(processedData);
       const isAnomaly = mse > threshold;
-      
+
       return {
         is_anomaly: isAnomaly,
         anomaly_score: mse,
         threshold: threshold,
-        model_info: 'TensorFlow.js 오토인코더 (20→4→20)'
+        model_info: 'TensorFlow.js 오토인코더 (20→4→20)',
       };
     } finally {
       inputTensor.dispose();
     }
   }
 
-  async predictTimeSeries(historicalData: number[], steps: number = 5): Promise<number[]> {
+  async predictTimeSeries(
+    historicalData: number[],
+    steps: number = 5
+  ): Promise<number[]> {
     await this.initialize();
-    
+
     const model = this.models.get('timeseries');
     if (!model) throw new Error('시계열 모델이 로드되지 않음');
 
@@ -617,13 +635,13 @@ export class TensorFlowAIEngine {
         const sequenceTensor = tf.tensor3d([currentSequence]);
         const prediction = model.predict(sequenceTensor) as tf.Tensor;
         const predictionValue = (await prediction.data())[0];
-        
+
         predictions.push(predictionValue);
-        
+
         // 다음 예측을 위해 시퀀스 업데이트
         currentSequence.shift();
         currentSequence.push([predictionValue]);
-        
+
         sequenceTensor.dispose();
         prediction.dispose();
       }
@@ -637,44 +655,47 @@ export class TensorFlowAIEngine {
 
   async clusterAnalysis(data: number[][]): Promise<ClusterResult> {
     await this.initialize();
-    
+
     if (data.length < 3) {
-      throw new Error('클러스터링을 위해서는 최소 3개의 데이터 포인트가 필요합니다');
+      throw new Error(
+        '클러스터링을 위해서는 최소 3개의 데이터 포인트가 필요합니다'
+      );
     }
-    
+
     const startTime = Date.now();
-    
+
     try {
       // 데이터를 텐서로 변환
       const dataTensor = tf.tensor2d(data);
-      
+
       // 데이터 정규화
       const scaledData = this.scaler.fitTransform(dataTensor);
-      
+
       // KMeans 클러스터링 실행
       const result = await this.kmeans.fitPredict(scaledData);
-      
+
       // 리소스 정리
       dataTensor.dispose();
       scaledData.dispose();
-      
+
       const processingTime = Date.now() - startTime;
       console.log(`🎯 클러스터링 완료: ${processingTime}ms`);
-      
+
       return {
         ...result,
-        model_info: `${result.model_info} (${processingTime}ms)`
+        model_info: `${result.model_info} (${processingTime}ms)`,
       };
-      
     } catch (error: any) {
       console.error('❌ 클러스터링 실패:', error);
       throw error;
     }
   }
 
-  async analyzeMetricsWithAI(metrics: Record<string, number[]>): Promise<AIAnalysisResult> {
+  async analyzeMetricsWithAI(
+    metrics: Record<string, number[]>
+  ): Promise<AIAnalysisResult> {
     await this.initialize();
-    
+
     const startTime = Date.now();
     const analysis: AIAnalysisResult = {
       failure_predictions: {},
@@ -684,8 +705,8 @@ export class TensorFlowAIEngine {
       processing_stats: {
         total_time: 0,
         models_used: [],
-        metrics_analyzed: Object.keys(metrics).length
-      }
+        metrics_analyzed: Object.keys(metrics).length,
+      },
     };
 
     try {
@@ -723,25 +744,32 @@ export class TensorFlowAIEngine {
 
       // 🆕 클러스터링 분석 추가
       try {
-        const allMetricsData = Object.values(metrics).filter(values => values.length > 0);
+        const allMetricsData = Object.values(metrics).filter(
+          values => values.length > 0
+        );
         if (allMetricsData.length >= 3) {
           // 메트릭들을 행렬로 변환 (각 행은 시간점, 각 열은 메트릭)
           const maxLength = Math.max(...allMetricsData.map(arr => arr.length));
           const matrixData = [];
-          
-          for (let i = 0; i < Math.min(maxLength, 100); i++) { // 최대 100개 포인트
+
+          for (let i = 0; i < Math.min(maxLength, 100); i++) {
+            // 최대 100개 포인트
             const row = allMetricsData.map(arr => arr[i] || 0);
             matrixData.push(row);
           }
-          
+
           const clusterResult = await this.clusterAnalysis(matrixData);
           analysis.clustering_analysis = clusterResult;
           analysis.processing_stats.models_used.push('kmeans_clustering');
-          
+
           // 클러스터링 인사이트 추가
           const uniqueClusters = new Set(clusterResult.cluster_labels).size;
-          analysis.ai_insights.push(`시스템 상태를 ${uniqueClusters}개 패턴으로 분류했습니다`);
-          analysis.ai_insights.push(`클러스터 내 응집도: ${clusterResult.inertia.toFixed(2)}`);
+          analysis.ai_insights.push(
+            `시스템 상태를 ${uniqueClusters}개 패턴으로 분류했습니다`
+          );
+          analysis.ai_insights.push(
+            `클러스터 내 응집도: ${clusterResult.inertia.toFixed(2)}`
+          );
         }
       } catch (error: any) {
         console.warn('⚠️ 클러스터링 분석 실패:', error.message);
@@ -749,47 +777,47 @@ export class TensorFlowAIEngine {
 
       // AI 인사이트 생성
       this.generateAIInsights(analysis);
-
     } catch (error: any) {
       console.error('❌ AI 분석 실패:', error);
       analysis.ai_insights.push(`분석 중 오류 발생: ${error.message}`);
     }
 
     analysis.processing_stats.total_time = Date.now() - startTime;
-    analysis.processing_stats.models_used = [...new Set(analysis.processing_stats.models_used)];
+    analysis.processing_stats.models_used = [
+      ...new Set(analysis.processing_stats.models_used),
+    ];
 
     console.log(`🧠 AI 분석 완료: ${analysis.processing_stats.total_time}ms`);
     return analysis;
   }
 
   private generateAIInsights(analysis: AIAnalysisResult): void {
-    // 장애 예측 결과 요약
-    for (const [metric, result] of Object.entries(analysis.failure_predictions)) {
-      const probability = result.prediction?.[0] ?? 0;
-      if (probability >= 0.8) {
-        analysis.ai_insights.push(`${metric} 지표에서 장애 위험 높음`);
-      }
+    const failureValues = Object.entries(analysis.failure_predictions);
+    if (failureValues.length > 0) {
+      const highest = failureValues.reduce((a, b) =>
+        a[1].prediction[0] > b[1].prediction[0] ? a : b
+      );
+      const avgConf =
+        failureValues.reduce((sum, [, v]) => sum + v.confidence, 0) /
+        failureValues.length;
+      analysis.ai_insights.push(
+        `가장 높은 장애 확률 메트릭: ${highest[0]} ${(highest[1].prediction[0] * 100).toFixed(1)}%`
+      );
+      analysis.ai_insights.push(
+        `평균 예측 신뢰도: ${(avgConf * 100).toFixed(1)}%`
+      );
     }
 
-    // 이상 탐지 결과 요약
-    for (const [metric, result] of Object.entries(analysis.anomaly_detections)) {
-      if (result.anomaly_score > result.threshold) {
-        analysis.ai_insights.push(`${metric} 지표에서 이상 패턴 감지`);
-      }
-    }
-
-    // 트렌드 예측 요약 (단순 상승/하락 판단)
-    for (const [metric, values] of Object.entries(analysis.trend_predictions)) {
-      if (values.length < 2) continue;
-      const first = values[0];
-      const last = values[values.length - 1];
-      const changeRatio = first !== 0 ? (last - first) / Math.abs(first) : 0;
-
-      if (changeRatio > 0.1) {
-        analysis.ai_insights.push(`${metric} 지표가 상승 추세입니다`);
-      } else if (changeRatio < -0.1) {
-        analysis.ai_insights.push(`${metric} 지표가 하락 추세입니다`);
-      }
+    const anomalies = Object.values(analysis.anomaly_detections).filter(
+      a => a.is_anomaly
+    );
+    if (anomalies.length > 0) {
+      const maxScore = anomalies.reduce((a, b) =>
+        a.anomaly_score > b.anomaly_score ? a : b
+      );
+      analysis.ai_insights.push(
+        `이상 탐지 발견: 총 ${anomalies.length}건, 최고 점수 ${maxScore.anomaly_score.toFixed(2)}`
+      );
     }
   }
 
@@ -802,18 +830,19 @@ export class TensorFlowAIEngine {
     const min = Math.min(...metrics);
     const max = Math.max(...metrics);
     const range = max - min || 1;
-    
+
     const normalized = metrics.map(val => (val - min) / range);
 
     // 길이 조정
     if (normalized.length === targetLength) return normalized;
-    
+
     if (normalized.length > targetLength) {
       // 최근 데이터만 사용
       return normalized.slice(-targetLength);
     } else {
       // 평균값으로 패딩
-      const mean = normalized.reduce((sum, val) => sum + val, 0) / normalized.length;
+      const mean =
+        normalized.reduce((sum, val) => sum + val, 0) / normalized.length;
       const padded = [...normalized];
       while (padded.length < targetLength) {
         padded.unshift(mean);
@@ -822,9 +851,12 @@ export class TensorFlowAIEngine {
     }
   }
 
-  private createSequences(data: number[], sequenceLength: number): number[][][] {
+  private createSequences(
+    data: number[],
+    sequenceLength: number
+  ): number[][][] {
     if (data.length < sequenceLength) return [];
-    
+
     const sequences = [];
     for (let i = 0; i <= data.length - sequenceLength; i++) {
       const sequence = data.slice(i, i + sequenceLength).map(val => [val]);
@@ -835,21 +867,23 @@ export class TensorFlowAIEngine {
 
   private calculateMSE(original: number[], reconstructed: number[]): number {
     if (original.length !== reconstructed.length) return Infinity;
-    
-    const mse = original.reduce((sum, val, i) => {
-      const error = val - reconstructed[i];
-      return sum + error * error;
-    }, 0) / original.length;
-    
+
+    const mse =
+      original.reduce((sum, val, i) => {
+        const error = val - reconstructed[i];
+        return sum + error * error;
+      }, 0) / original.length;
+
     return mse;
   }
 
   private calculateDynamicThreshold(data: number[]): number {
     // 표준편차 기반 동적 임계값
     const mean = data.reduce((sum, val) => sum + val, 0) / data.length;
-    const variance = data.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / data.length;
+    const variance =
+      data.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / data.length;
     const stdDev = Math.sqrt(variance);
-    
+
     // 2-sigma 규칙 적용
     return Math.max(0.01, stdDev * 2);
   }
@@ -868,14 +902,14 @@ export class TensorFlowAIEngine {
         '이상 탐지',
         '시계열 예측',
         '실시간 분석',
-        'Vercel 서버리스 호환'
-      ]
+        'Vercel 서버리스 호환',
+      ],
     };
   }
 
   dispose(): void {
     console.log('🗑️ TensorFlow.js 모델 정리 중...');
-    
+
     this.models.forEach((model, name) => {
       try {
         model.dispose();
@@ -884,13 +918,13 @@ export class TensorFlowAIEngine {
         console.error(`❌ ${name} 모델 정리 실패:`, error);
       }
     });
-    
+
     this.models.clear();
     this.initialized = false;
-    
+
     console.log(`📊 메모리 정리 완료: ${JSON.stringify(tf.memory())}`);
   }
 }
 
 // 싱글톤 인스턴스
-export const tensorFlowAIEngine = new TensorFlowAIEngine(); 
+export const tensorFlowAIEngine = new TensorFlowAIEngine();

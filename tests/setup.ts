@@ -7,12 +7,12 @@ import { vi } from 'vitest';
 // 브라우저 전역 객체 모의
 Object.defineProperty(global, 'window', {
   value: {},
-  writable: true
+  writable: true,
 });
 
 Object.defineProperty(global, 'document', {
   value: {},
-  writable: true
+  writable: true,
 });
 
 // matchMedia 모의
@@ -38,7 +38,7 @@ const localStorageMock = {
   clear: vi.fn(),
 };
 Object.defineProperty(global.window, 'localStorage', {
-  value: localStorageMock
+  value: localStorageMock,
 });
 
 // fetch 모의
@@ -47,4 +47,4 @@ global.fetch = vi.fn();
 // 환경 변수 설정
 if (!process.env.NODE_ENV) {
   (process.env as any).NODE_ENV = 'test';
-} 
+}

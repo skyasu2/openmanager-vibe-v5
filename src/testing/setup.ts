@@ -90,4 +90,4 @@ export const createMockResponse = (data: any, ok = true) => {
     status: ok ? 200 : 500,
     json: () => Promise.resolve(data),
   } as Response);
-}; 
+};
