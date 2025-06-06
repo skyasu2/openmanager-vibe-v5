@@ -260,12 +260,12 @@ const cardData = [
     id: 'mcp-ai-engine',
     title: 'MCP 기반 AI 엔진',
     description:
-      'Model Context Protocol 중심 브라우저 네이티브 AI 엔진. Claude Sonnet과 MCP SDK로 문맥 이해 시스템 구현.',
+      'Anthropic의 Model Context Protocol(MCP) 기반 브라우저 네이티브 AI 엔진. Claude Sonnet과 MCP SDK로 문맥 이해 시스템 구현.',
     icon: Bot,
     gradient: 'from-blue-500 via-pink-500 to-cyan-400',
     detailedContent: {
       overview:
-        'MCP(Model Context Protocol) SDK를 중심으로 구현된 브라우저 네이티브 AI 엔진입니다. Claude Sonnet과 연동하여 문맥 이해를 극대화하고, 클라이언트 사이드에서 직접 AI 추론을 실행합니다.',
+        'Anthropic이 개발한 Model Context Protocol(MCP) SDK를 중심으로 구현된 브라우저 네이티브 AI 엔진입니다. Claude Sonnet과 연동하여 문맥 이해를 극대화하고, 클라이언트 사이드에서 직접 AI 추론을 실행합니다.',
       features: [
         'MCP SDK로 AI 모델 문맥 이해 향상을 위한 lightweight 프로토콜 구현',
         'Claude Sonnet 기반 대규모 컨텍스트 처리 및 문서 분석',

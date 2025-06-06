@@ -144,7 +144,7 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
   '@modelcontextprotocol/server-filesystem': {
     name: 'Model Context Protocol',
     category: 'ai-ml',
-    description: 'AI 에이전트 간 통신 표준 프로토콜',
+    description: 'Anthropic에서 만든 MCP(Model Context Protocol) 프로토콜',
     importance: 'high',
     isCore: true
   },
