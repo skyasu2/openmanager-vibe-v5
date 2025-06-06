@@ -17,12 +17,12 @@ class ModeTimerManager {
   // 모든 타이머 정지
   stopAll(): void {
     console.log('🔄 Stopping all mode timers...');
-    
+
     for (const [id, timer] of this.timers) {
       clearInterval(timer);
       console.log(`⏹️ Timer stopped: ${id}`);
     }
-    
+
     this.timers.clear();
     console.log('✅ All mode timers stopped');
   }
@@ -45,7 +45,9 @@ class ModeTimerManager {
     }, config.interval);
 
     this.timers.set(config.id, timer);
-    console.log(`⏰ Mode timer registered: ${config.id} (${config.interval}ms)`);
+    console.log(
+      `⏰ Mode timer registered: ${config.id} (${config.interval}ms)`
+    );
   }
 
   // 콜백 실행 (에러 핸들링 포함)
@@ -61,50 +63,55 @@ class ModeTimerManager {
   startAIMode(): void {
     console.log('🤖 Starting AI Admin Mode timers...');
     this.currentMode = 'ai';
-    
-    // AI 에이전트 하트비트
+
+    // AI 에이전트 하트비트 (GET 방식으로 변경)
     this.registerTimer({
       id: 'ai-agent-heartbeat',
       callback: async () => {
         try {
-          const response = await fetch('/api/ai/unified', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              query: 'status_check',
-              mode: 'heartbeat'
-            })
+          const response = await fetch('/api/ai-agent?action=health', {
+            method: 'GET',
           });
-          
+
           if (!response.ok) {
-            console.warn('⚠️ AI Agent heartbeat failed');
+            console.warn(`⚠️ AI Agent heartbeat failed: ${response.status}`);
           } else {
-            console.log('✅ AI Agent heartbeat successful');
+            const data = await response.json();
+            if (data.success) {
+              console.log('✅ AI Agent heartbeat successful');
+            } else {
+              console.warn('⚠️ AI Agent heartbeat failed (response)');
+            }
           }
         } catch (error) {
-          console.error('❌ AI Agent heartbeat error:', error);
+          console.warn(
+            '⚠️ AI Agent heartbeat error (expected in offline mode):',
+            error
+          );
         }
       },
-      interval: 5000, // 5초
-      immediate: true
+      interval: 15000, // 15초로 간격 증가 (부하 감소)
+      immediate: false, // 즉시 실행 비활성화
     });
 
-    // MCP 시스템 모니터링
+    // MCP 시스템 모니터링 (GET 방식으로 개선)
     this.registerTimer({
       id: 'mcp-monitor',
       callback: async () => {
         try {
-          const response = await fetch('/api/ai/mcp/test');
+          const response = await fetch('/api/mcp/status');
           if (response.ok) {
             const data = await response.json();
             console.log('🔍 MCP Status:', data.success ? '✅' : '⚠️');
+          } else {
+            console.warn(`🔍 MCP Status: ⚠️ (${response.status})`);
           }
         } catch (error) {
-          console.error('❌ MCP Monitor error:', error);
+          console.warn('🔍 MCP Monitor: ⚠️ (offline mode)');
         }
       },
-      interval: 15000, // 15초
-      immediate: false
+      interval: 30000, // 30초로 간격 증가
+      immediate: false,
     });
 
     // AI 분석 데이터 수집
@@ -119,7 +126,7 @@ class ModeTimerManager {
         }
       },
       interval: 30000, // 30초
-      immediate: false
+      immediate: false,
     });
   }
 
@@ -127,7 +134,7 @@ class ModeTimerManager {
   startMonitoringMode(): void {
     console.log('📊 Starting Basic Monitoring Mode timers...');
     this.currentMode = 'monitoring';
-    
+
     // 기본 서버 모니터링
     this.registerTimer({
       id: 'basic-monitoring',
@@ -142,7 +149,7 @@ class ModeTimerManager {
         }
       },
       interval: 15000, // 15초
-      immediate: true
+      immediate: true,
     });
 
     // 데이터 생성기 상태 확인
@@ -153,14 +160,17 @@ class ModeTimerManager {
           const response = await fetch('/api/data-generator');
           if (response.ok) {
             const data = await response.json();
-            console.log('🧪 Data Generator:', data.data?.generation?.isGenerating ? '✅' : '⏸️');
+            console.log(
+              '🧪 Data Generator:',
+              data.data?.generation?.isGenerating ? '✅' : '⏸️'
+            );
           }
         } catch (error) {
           console.error('❌ Data Generator status error:', error);
         }
       },
       interval: 10000, // 10초
-      immediate: false
+      immediate: false,
     });
 
     // 시스템 메트릭 모니터링
@@ -178,17 +188,19 @@ class ModeTimerManager {
         }
       },
       interval: 20000, // 20초
-      immediate: false
+      immediate: false,
     });
   }
 
   // 모드 전환
   switchMode(mode: 'ai' | 'monitoring'): void {
-    console.log(`🔄 Switching from ${this.currentMode || 'none'} to ${mode} mode...`);
-    
+    console.log(
+      `🔄 Switching from ${this.currentMode || 'none'} to ${mode} mode...`
+    );
+
     // 기존 모든 타이머 정지
     this.stopAll();
-    
+
     // 새 모드 타이머 시작
     if (mode === 'ai') {
       this.startAIMode();
@@ -226,4 +238,4 @@ export const modeTimerManager = new ModeTimerManager();
 // React Hook 형태로도 제공
 export function useModeTimerManager() {
   return modeTimerManager;
-} 
+}

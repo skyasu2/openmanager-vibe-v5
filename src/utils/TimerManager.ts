@@ -1,6 +1,6 @@
 /**
  * 🕒 통합 타이머 관리자
- * 
+ *
  * 시스템 전체의 setInterval을 통합 관리하여
  * - 타이머 충돌 방지
  * - 리소스 최적화
@@ -39,19 +39,19 @@ class TimerManager {
    */
   register(config: TimerConfig): void {
     this.stop(config.id); // 기존 타이머 정리
-    
+
     this.timers.set(config.id, config);
-    
+
     // 즉시 실행 옵션
     if (config.immediate) {
       this.executeCallback(config);
     }
-    
+
     // 주기적 실행
     const timer = setInterval(() => {
       this.executeCallback(config);
     }, config.interval);
-    
+
     this.intervals.set(config.id, timer);
     console.log(`⏰ Timer registered: ${config.id} (${config.interval}ms)`);
   }
@@ -76,7 +76,7 @@ class TimerManager {
     if (!timer) return;
 
     timer.enabled = enabled;
-    
+
     if (enabled) {
       this.startTimer(timerId);
     } else {
@@ -104,11 +104,16 @@ class TimerManager {
         timer.errorCount = 0;
       } catch (error) {
         timer.errorCount = (timer.errorCount || 0) + 1;
-        console.error(`❌ Timer ${timerId} error (${timer.errorCount}/3):`, error);
+        console.error(
+          `❌ Timer ${timerId} error (${timer.errorCount}/3):`,
+          error
+        );
 
         // 3회 연속 실패 시 타이머 비활성화
         if (timer.errorCount >= 3) {
-          console.error(`🚫 Timer ${timerId} disabled due to repeated failures`);
+          console.error(
+            `🚫 Timer ${timerId} disabled due to repeated failures`
+          );
           this.toggle(timerId, false);
         }
       }
@@ -132,16 +137,16 @@ class TimerManager {
    */
   cleanup(): void {
     console.log('🧹 Cleaning up all timers...');
-    
+
     for (const [timerId] of this.intervals) {
       this.unregister(timerId);
     }
-    
+
     if (this.masterInterval) {
       clearInterval(this.masterInterval);
       this.masterInterval = null;
     }
-    
+
     this.isRunning = false;
     console.log('✅ All timers cleaned up');
   }
@@ -158,14 +163,14 @@ class TimerManager {
         priority: timer.priority,
         lastRun: timer.lastRun,
         errorCount: timer.errorCount,
-        nextRun: timer.lastRun ? timer.lastRun + timer.interval : Date.now()
+        nextRun: timer.lastRun ? timer.lastRun + timer.interval : Date.now(),
       }))
       .sort((a, b) => a.nextRun - b.nextRun);
 
     return {
       totalTimers: this.timers.size,
       activeTimers: activeTimers.length,
-      timers: activeTimers
+      timers: activeTimers,
     };
   }
 
@@ -178,7 +183,9 @@ class TimerManager {
         this.toggle(id, enabled);
       }
     }
-    console.log(`🎯 ${priority} priority timers ${enabled ? 'enabled' : 'disabled'}`);
+    console.log(
+      `🎯 ${priority} priority timers ${enabled ? 'enabled' : 'disabled'}`
+    );
   }
 
   /**
@@ -210,7 +217,10 @@ class TimerManager {
   /**
    * 🛡️ 타이머 충돌 방지 - 같은 카테고리 내에서 한 번에 하나만 실행
    */
-  registerExclusive(config: Omit<TimerConfig, 'enabled' | 'lastRun' | 'errorCount'>, category: string): void {
+  registerExclusive(
+    config: Omit<TimerConfig, 'enabled' | 'lastRun' | 'errorCount'>,
+    category: string
+  ): void {
     // 같은 카테고리의 다른 타이머들 정지
     for (const [id, timer] of this.timers) {
       if ((timer as any)._category === category && id !== config.id) {
@@ -223,11 +233,13 @@ class TimerManager {
       ...config,
       enabled: true,
       lastRun: undefined,
-      errorCount: 0
+      errorCount: 0,
     };
     this.register(fullConfig);
     (this.timers.get(config.id) as any)._category = category;
-    console.log(`🛡️ Exclusive timer registered: ${config.id} in category: ${category}`);
+    console.log(
+      `🛡️ Exclusive timer registered: ${config.id} in category: ${category}`
+    );
   }
 
   /**
@@ -238,7 +250,7 @@ class TimerManager {
     console.log('실행 중:', this.isRunning);
     console.log('등록된 타이머 수:', this.timers.size);
     console.log('활성 인터벌 수:', this.intervals.size);
-    
+
     console.group('타이머 목록:');
     for (const [id, timer] of this.timers) {
       const interval = this.intervals.get(id);
@@ -247,10 +259,12 @@ class TimerManager {
         priority: timer.priority,
         interval: timer.interval,
         hasInterval: !!interval,
-        lastRun: timer.lastRun ? new Date(timer.lastRun).toLocaleTimeString() : 'never',
+        lastRun: timer.lastRun
+          ? new Date(timer.lastRun).toLocaleTimeString()
+          : 'never',
         errorCount: timer.errorCount,
         pausedForAI: !!(timer as any)._pausedForAI,
-        category: (timer as any)._category
+        category: (timer as any)._category,
       });
     }
     console.groupEnd();
@@ -264,7 +278,7 @@ class TimerManager {
    */
   enablePerformanceMode(): void {
     console.log('🚀 성능 최적화 모드 활성화');
-    
+
     for (const [id, timer] of this.timers) {
       // low 우선순위 타이머 정지
       if (timer.priority === 'low') {
@@ -272,7 +286,7 @@ class TimerManager {
         (timer as any)._pausedForPerformance = true;
         continue;
       }
-      
+
       // 나머지 타이머 간격 2배로 늘림
       if (timer.enabled) {
         this.stopTimer(id);
@@ -288,14 +302,14 @@ class TimerManager {
    */
   disablePerformanceMode(): void {
     console.log('🔄 성능 최적화 모드 비활성화');
-    
+
     for (const [id, timer] of this.timers) {
       // 성능 모드로 정지된 타이머 재시작
       if ((timer as any)._pausedForPerformance) {
         this.toggle(id, true);
         delete (timer as any)._pausedForPerformance;
       }
-      
+
       // 원래 간격으로 복원
       if ((timer as any)._originalInterval) {
         this.stopTimer(id);
@@ -313,19 +327,30 @@ class TimerManager {
    */
   autoOptimize(): void {
     const stats = this.getStatus();
-    const nodeProcess = typeof globalThis !== 'undefined' ? (globalThis as any).process : undefined;
-    const memoryUsage = nodeProcess && typeof nodeProcess.memoryUsage === 'function' ? nodeProcess.memoryUsage() : { heapUsed: 0, heapTotal: 1 };
+    const nodeProcess =
+      typeof globalThis !== 'undefined'
+        ? (globalThis as any).process
+        : undefined;
+    const memoryUsage =
+      nodeProcess && typeof nodeProcess.memoryUsage === 'function'
+        ? nodeProcess.memoryUsage()
+        : { heapUsed: 0, heapTotal: 1 };
     const memoryPercent = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
-    
+
     // 메모리 사용률이 80% 이상이거나 활성 타이머가 20개 이상이면 최적화
     if (memoryPercent > 80 || stats.activeTimers > 20) {
-      console.log(`🚨 자동 최적화 트리거: 메모리 ${memoryPercent.toFixed(1)}%, 타이머 ${stats.activeTimers}개`);
+      console.log(
+        `🚨 자동 최적화 트리거: 메모리 ${memoryPercent.toFixed(1)}%, 타이머 ${stats.activeTimers}개`
+      );
       this.enablePerformanceMode();
-      
+
       // 5분 후 자동으로 복원
-      setTimeout(() => {
-        this.disablePerformanceMode();
-      }, 5 * 60 * 1000);
+      setTimeout(
+        () => {
+          this.disablePerformanceMode();
+        },
+        5 * 60 * 1000
+      );
     }
   }
 
@@ -352,12 +377,12 @@ class TimerManager {
   // 모든 타이머 중지
   stopAll(): void {
     console.log('🔄 Stopping all timers for mode change...');
-    
+
     for (const [id, timer] of this.intervals) {
       clearInterval(timer);
       console.log(`⏹️ Timer stopped: ${id}`);
     }
-    
+
     this.intervals.clear();
     this.timers.clear();
     console.log('✅ All timers stopped');
@@ -379,64 +404,80 @@ class TimerManager {
    */
   startAIMode(): void {
     console.log('🤖 Starting AI Admin Mode timers...');
-    
-    // AI 에이전트 하트비트
-    this.registerExclusive({
-      id: 'ai-agent-heartbeat',
-      callback: async () => {
-        try {
-          const response = await fetch('/api/ai/unified', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              query: 'status_check',
-              mode: 'heartbeat'
-            })
-          });
-          
-          if (!response.ok) {
-            console.warn('⚠️ AI Agent heartbeat failed');
-          }
-        } catch (error) {
-          console.error('❌ AI Agent heartbeat error:', error);
-        }
-      },
-      interval: 5000, // 5초
-      priority: 'high'
-    }, 'ai-mode');
 
-    // MCP 시스템 모니터링
-    this.registerExclusive({
-      id: 'mcp-monitor',
-      callback: async () => {
-        try {
-          const response = await fetch('/api/ai/mcp/test');
-          if (response.ok) {
-            const data = await response.json();
-            console.log('🔍 MCP Status:', data.success ? '✅' : '⚠️');
+    // AI 에이전트 하트비트 (GET 방식으로 변경)
+    this.registerExclusive(
+      {
+        id: 'ai-agent-heartbeat',
+        callback: async () => {
+          try {
+            const response = await fetch('/api/ai-agent?action=health', {
+              method: 'GET',
+            });
+
+            if (!response.ok) {
+              console.warn(`⚠️ AI Agent heartbeat failed: ${response.status}`);
+            } else {
+              const data = await response.json();
+              if (data.success) {
+                console.log('✅ AI Agent heartbeat successful');
+              } else {
+                console.warn('⚠️ AI Agent heartbeat failed (response)');
+              }
+            }
+          } catch (error) {
+            console.warn(
+              '⚠️ AI Agent heartbeat error (expected in offline mode):',
+              error
+            );
           }
-        } catch (error) {
-          console.error('❌ MCP Monitor error:', error);
-        }
+        },
+        interval: 15000, // 15초로 간격 증가
+        priority: 'medium', // 우선순위 낮춤
       },
-      interval: 15000, // 15초
-      priority: 'medium'
-    }, 'ai-mode');
+      'ai-mode'
+    );
+
+    // MCP 시스템 모니터링 (GET 방식으로 개선)
+    this.registerExclusive(
+      {
+        id: 'mcp-monitor',
+        callback: async () => {
+          try {
+            const response = await fetch('/api/mcp/status');
+            if (response.ok) {
+              const data = await response.json();
+              console.log('🔍 MCP Status:', data.success ? '✅' : '⚠️');
+            } else {
+              console.warn(`🔍 MCP Status: ⚠️ (${response.status})`);
+            }
+          } catch (error) {
+            console.warn('🔍 MCP Monitor: ⚠️ (offline mode)');
+          }
+        },
+        interval: 30000, // 30초로 간격 증가
+        priority: 'low', // 우선순위를 낮춤
+      },
+      'ai-mode'
+    );
 
     // AI 분석 데이터 수집
-    this.registerExclusive({
-      id: 'ai-analytics-collector',
-      callback: async () => {
-        try {
-          console.log('📊 Collecting AI analytics data...');
-          // AI 분석 데이터 수집 로직
-        } catch (error) {
-          console.error('❌ AI Analytics error:', error);
-        }
+    this.registerExclusive(
+      {
+        id: 'ai-analytics-collector',
+        callback: async () => {
+          try {
+            console.log('📊 Collecting AI analytics data...');
+            // AI 분석 데이터 수집 로직
+          } catch (error) {
+            console.error('❌ AI Analytics error:', error);
+          }
+        },
+        interval: 30000, // 30초
+        priority: 'low',
       },
-      interval: 30000, // 30초
-      priority: 'low'
-    }, 'ai-mode');
+      'ai-mode'
+    );
   }
 
   /**
@@ -444,41 +485,50 @@ class TimerManager {
    */
   startMonitoringMode(): void {
     console.log('📊 Starting Basic Monitoring Mode timers...');
-    
+
     // 기본 서버 모니터링
-    this.registerExclusive({
-      id: 'basic-monitoring',
-      callback: async () => {
-        try {
-          const response = await fetch('/api/health');
-          if (response.ok) {
-            console.log('✅ Basic monitoring check passed');
+    this.registerExclusive(
+      {
+        id: 'basic-monitoring',
+        callback: async () => {
+          try {
+            const response = await fetch('/api/health');
+            if (response.ok) {
+              console.log('✅ Basic monitoring check passed');
+            }
+          } catch (error) {
+            console.error('❌ Basic monitoring error:', error);
           }
-        } catch (error) {
-          console.error('❌ Basic monitoring error:', error);
-        }
+        },
+        interval: 15000, // 15초
+        priority: 'high',
       },
-      interval: 15000, // 15초
-      priority: 'high'
-    }, 'monitoring-mode');
+      'monitoring-mode'
+    );
 
     // 데이터 생성기 상태 확인
-    this.registerExclusive({
-      id: 'data-generator-status',
-      callback: async () => {
-        try {
-          const response = await fetch('/api/data-generator');
-          if (response.ok) {
-            const data = await response.json();
-            console.log('🧪 Data Generator:', data.data?.generation?.isGenerating ? '✅' : '⏸️');
+    this.registerExclusive(
+      {
+        id: 'data-generator-status',
+        callback: async () => {
+          try {
+            const response = await fetch('/api/data-generator');
+            if (response.ok) {
+              const data = await response.json();
+              console.log(
+                '🧪 Data Generator:',
+                data.data?.generation?.isGenerating ? '✅' : '⏸️'
+              );
+            }
+          } catch (error) {
+            console.error('❌ Data Generator status error:', error);
           }
-        } catch (error) {
-          console.error('❌ Data Generator status error:', error);
-        }
+        },
+        interval: 10000, // 10초
+        priority: 'medium',
       },
-      interval: 10000, // 10초
-      priority: 'medium'
-    }, 'monitoring-mode');
+      'monitoring-mode'
+    );
   }
 
   /**
@@ -486,10 +536,10 @@ class TimerManager {
    */
   switchMode(mode: 'ai' | 'monitoring'): void {
     console.log(`🔄 Switching to ${mode} mode...`);
-    
+
     // 기존 모든 타이머 정지
     this.cleanup();
-    
+
     // 새 모드 타이머 시작
     if (mode === 'ai') {
       this.startAIMode();
@@ -509,4 +559,4 @@ if (typeof window !== 'undefined') {
   });
 }
 
-export default TimerManager; 
+export default TimerManager;

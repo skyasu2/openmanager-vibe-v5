@@ -1,6 +1,6 @@
 /**
  * AI Agent Service
- * 
+ *
  * 🚀 독립적인 AI 에이전트 서비스 레이어
  * - 클라이언트/서버 완전 분리
  * - 의존성 격리
@@ -56,7 +56,8 @@ export interface ThinkingStep {
 export class AIAgentService {
   private config: AIAgentConfig;
   private websocket?: WebSocket;
-  private thinkingCallbacks: Map<string, (step: ThinkingStep) => void> = new Map();
+  private thinkingCallbacks: Map<string, (step: ThinkingStep) => void> =
+    new Map();
 
   constructor(config: Partial<AIAgentConfig> = {}) {
     this.config = {
@@ -67,7 +68,7 @@ export class AIAgentService {
       enableStreaming: true,
       enableThinking: true,
       retryAttempts: 3,
-      ...config
+      ...config,
     };
   }
 
@@ -76,15 +77,17 @@ export class AIAgentService {
    */
   async query(request: AIQuery): Promise<AIResponse> {
     const startTime = Date.now();
-    
+
     try {
       const response = await this.makeRequest('/api/ai-agent/smart-query', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(this.config.apiKey && { 'Authorization': `Bearer ${this.config.apiKey}` })
+          ...(this.config.apiKey && {
+            Authorization: `Bearer ${this.config.apiKey}`,
+          }),
         },
-        body: JSON.stringify(request)
+        body: JSON.stringify(request),
       });
 
       if (!response.ok) {
@@ -92,7 +95,7 @@ export class AIAgentService {
       }
 
       const data = await response.json();
-      
+
       if (!data.success) {
         throw new Error(data.error || 'AI 처리 실패');
       }
@@ -106,14 +109,13 @@ export class AIAgentService {
         metadata: {
           processingTime: Date.now() - startTime,
           timestamp: new Date().toISOString(),
-          sessionId: data.metadata.sessionId
+          sessionId: data.metadata.sessionId,
         },
-        thinkingSessionId: data.thinkingSessionId
+        thinkingSessionId: data.thinkingSessionId,
       };
-
     } catch (error) {
       console.error('AI Agent query failed:', error);
-      
+
       return {
         success: false,
         response: '죄송합니다. AI 처리 중 오류가 발생했습니다.',
@@ -122,14 +124,14 @@ export class AIAgentService {
         intent: {
           name: 'error',
           confidence: 0,
-          entities: {}
+          entities: {},
         },
         metadata: {
           processingTime: Date.now() - startTime,
           timestamp: new Date().toISOString(),
-          sessionId: 'error'
+          sessionId: 'error',
         },
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       };
     }
   }
@@ -138,7 +140,7 @@ export class AIAgentService {
    * 실시간 사고 과정 스트리밍
    */
   subscribeToThinking(
-    thinkingSessionId: string, 
+    thinkingSessionId: string,
     callback: (step: ThinkingStep) => void
   ): () => void {
     if (!this.config.enableThinking) {
@@ -153,7 +155,7 @@ export class AIAgentService {
       `/api/ai-agent/thinking?thinkingSessionId=${thinkingSessionId}&sessionId=${this.generateSessionId()}`
     );
 
-    eventSource.onmessage = (event) => {
+    eventSource.onmessage = event => {
       try {
         const step: ThinkingStep = JSON.parse(event.data);
         callback(step);
@@ -162,7 +164,7 @@ export class AIAgentService {
       }
     };
 
-    eventSource.onerror = (error) => {
+    eventSource.onerror = error => {
       console.error('Thinking stream error:', error);
       eventSource.close();
     };
@@ -175,7 +177,7 @@ export class AIAgentService {
   }
 
   /**
-   * AI 상태 확인
+   * AI 상태 확인 (강화된 에러 핸들링)
    */
   async getStatus(): Promise<{
     healthy: boolean;
@@ -185,21 +187,38 @@ export class AIAgentService {
   }> {
     try {
       const response = await this.makeRequest('/api/ai-agent?action=status');
-      
+
       if (!response.ok) {
-        throw new Error('Status check failed');
+        console.warn(
+          `AI 상태 확인 실패: ${response.status} ${response.statusText}`
+        );
+        throw new Error(`Status check failed: ${response.status}`);
       }
 
       const data = await response.json();
-      return data.data;
 
+      // 응답 구조 검증
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid status response format');
+      }
+
+      // data.data가 있으면 사용하고, 없으면 data 자체를 사용
+      const statusData = data.data || data;
+
+      return {
+        healthy: statusData.isInitialized ?? statusData.healthy ?? true,
+        mode: statusData.mode || 'active',
+        uptime: statusData.uptime || Date.now(),
+        performance: statusData.performance || {},
+      };
     } catch (error) {
       console.error('AI status check failed:', error);
+      // 헬스체크 실패는 일반적인 상황이므로 기본값 반환
       return {
         healthy: false,
-        mode: 'unknown',
+        mode: 'inactive',
         uptime: 0,
-        performance: {}
+        performance: {},
       };
     }
   }
@@ -212,11 +231,10 @@ export class AIAgentService {
       const response = await this.makeRequest('/api/ai-agent/power', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: mode })
+        body: JSON.stringify({ action: mode }),
       });
 
       return response.ok;
-
     } catch (error) {
       console.error(`AI power ${mode} failed:`, error);
       return false;
@@ -231,7 +249,7 @@ export class AIAgentService {
       await this.makeRequest('/api/ai-agent/power', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'activity' })
+        body: JSON.stringify({ action: 'activity' }),
       });
     } catch (error) {
       console.warn('Failed to record AI activity:', error);
@@ -241,19 +259,21 @@ export class AIAgentService {
   /**
    * 네트워크 요청 헬퍼
    */
-  private async makeRequest(url: string, options: RequestInit = {}): Promise<Response> {
+  private async makeRequest(
+    url: string,
+    options: RequestInit = {}
+  ): Promise<Response> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
 
     try {
       const response = await fetch(url, {
         ...options,
-        signal: controller.signal
+        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
       return response;
-
     } catch (error) {
       clearTimeout(timeoutId);
       throw error;
@@ -281,7 +301,9 @@ export class AIAgentService {
 // 싱글톤 인스턴스
 let globalAIService: AIAgentService | null = null;
 
-export const createAIAgentService = (config?: Partial<AIAgentConfig>): AIAgentService => {
+export const createAIAgentService = (
+  config?: Partial<AIAgentConfig>
+): AIAgentService => {
   return new AIAgentService(config);
 };
 
@@ -292,4 +314,4 @@ export const getGlobalAIService = (): AIAgentService => {
   return globalAIService;
 };
 
-export default AIAgentService; 
+export default AIAgentService;

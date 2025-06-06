@@ -38,6 +38,13 @@ export class MCPConfigManager {
 
     try {
       const configPath = path.resolve(process.cwd(), configFile);
+
+      // 파일 존재 확인
+      if (!fs.existsSync(configPath)) {
+        console.warn(`[MCP] 설정 파일이 없음: ${configFile}, 기본 설정 사용`);
+        return this.getDefaultConfig();
+      }
+
       const configContent = fs.readFileSync(configPath, 'utf-8');
       this.config = JSON.parse(configContent);
 
@@ -45,8 +52,28 @@ export class MCPConfigManager {
       return this.config!;
     } catch (error) {
       console.error(`[MCP] 설정 파일 로드 실패: ${configFile}`, error);
-      throw new Error(`MCP 설정 파일을 찾을 수 없습니다: ${configFile}`);
+      console.log(`[MCP] 기본 설정으로 대체`);
+      return this.getDefaultConfig();
     }
+  }
+
+  /**
+   * 기본 MCP 설정을 반환합니다.
+   */
+  private getDefaultConfig(): MCPConfig {
+    this.config = {
+      mcpServers: {
+        'local-filesystem': {
+          command: 'node',
+          args: ['./mcp-server/server.js'],
+          cwd: process.cwd(),
+          env: {
+            PROJECT_ROOT: process.cwd(),
+          },
+        },
+      },
+    };
+    return this.config;
   }
 
   /**

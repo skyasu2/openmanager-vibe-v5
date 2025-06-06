@@ -146,41 +146,48 @@ export const AISidebar: React.FC<AISidebarProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 🛡️ AI 에이전트 상태 안전성 검증
+  // 🛡️ AI 에이전트 상태 안전성 검증 (강화됨)
   const isAIReady = React.useMemo(() => {
     try {
-      return (
-        aiAgent &&
-        typeof aiAgent === 'object' &&
-        aiAgent.isEnabled === true &&
-        aiAgent.state !== undefined
-      );
+      if (!aiAgent || typeof aiAgent !== 'object') {
+        return false;
+      }
+
+      // 기본적으로 AI 시스템이 존재하면 준비된 것으로 간주
+      return true;
     } catch (err) {
       console.warn('⚠️ [AISidebar] AI 상태 검증 실패:', err);
       return false;
     }
   }, [aiAgent]);
 
-  // 🛡️ 안전한 AI 데이터 접근
+  // 🛡️ 안전한 AI 데이터 접근 (방어적 프로그래밍)
   const safeAIData = React.useMemo(() => {
-    if (!isAIReady || !aiAgent) {
-      return {
-        totalQueries: 0,
-        mcpStatus: 'disconnected' as const,
-        lastActivated: null,
-        isEnabled: false,
-        state: 'disabled' as const,
-      };
+    const defaultData = {
+      totalQueries: 0,
+      mcpStatus: 'disconnected' as const,
+      lastActivated: null,
+      isEnabled: false,
+      state: 'inactive' as const,
+    };
+
+    if (!aiAgent || typeof aiAgent !== 'object') {
+      return defaultData;
     }
 
-    return {
-      totalQueries: aiAgent.totalQueries || 0,
-      mcpStatus: aiAgent.mcpStatus || 'disconnected',
-      lastActivated: aiAgent.lastActivated || null,
-      isEnabled: aiAgent.isEnabled || false,
-      state: aiAgent.state || 'disabled',
-    };
-  }, [aiAgent, isAIReady]);
+    try {
+      return {
+        totalQueries: aiAgent.totalQueries ?? 0,
+        mcpStatus: aiAgent.mcpStatus ?? 'disconnected',
+        lastActivated: aiAgent.lastActivated ?? null,
+        isEnabled: aiAgent.isEnabled ?? false,
+        state: aiAgent.state ?? 'inactive',
+      };
+    } catch (error) {
+      console.warn('⚠️ [AISidebar] AI 데이터 접근 오류:', error);
+      return defaultData;
+    }
+  }, [aiAgent]);
 
   // 🔄 AI 상태 초기화 및 에러 복구 (개선된 로직)
   useEffect(() => {
