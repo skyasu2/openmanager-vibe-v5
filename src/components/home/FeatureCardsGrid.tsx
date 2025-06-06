@@ -260,23 +260,23 @@ const cardData = [
     id: 'mcp-ai-engine',
     title: 'MCP 기반 AI 엔진',
     description:
-      'TensorFlow.js와 Transformers.js로 구현된 브라우저 기반 AI 엔진. MCP 프로토콜로 문서 검색과 컨텍스트 관리.',
+      'Model Context Protocol 중심 브라우저 네이티브 AI 엔진. Claude Sonnet과 MCP SDK로 문맥 이해 시스템 구현.',
     icon: Bot,
     gradient: 'from-blue-500 via-pink-500 to-cyan-400',
     detailedContent: {
       overview:
-        'TensorFlow.js 4.22.0과 Hugging Face Transformers 2.17.2를 사용하여 브라우저에서 직접 실행되는 AI 엔진입니다. MCP(Model Context Protocol) SDK를 통해 문서 검색과 컨텍스트 관리를 수행합니다.',
+        'MCP(Model Context Protocol) SDK를 중심으로 구현된 브라우저 네이티브 AI 엔진입니다. Claude Sonnet 4.0과 연동하여 문맥 이해를 극대화하고, 클라이언트 사이드에서 직접 AI 추론을 실행합니다.',
       features: [
-        'TensorFlow.js 4.22.0으로 브라우저 내 기계학습 모델 실행',
-        '@xenova/transformers 2.17.2로 사전 훈련된 모델 활용',
-        'MCP SDK 1.12.1 + filesystem/github 서버로 문서 검색',
-        'natural 8.1.0, korean-js 0.8.2로 자연어 처리',
+        'MCP SDK 1.12.1로 AI 모델 문맥 이해 향상을 위한 lightweight 프로토콜 구현',
+        'Claude Sonnet 4.0 기반 대규모 컨텍스트 처리 및 문서 분석',
+        'TensorFlow.js 4.22.0과 Transformers.js로 브라우저 네이티브 추론',
+        'Filesystem/GitHub MCP 서버로 실시간 코드베이스 분석 및 검색',
       ],
       technologies: [
+        '@modelcontextprotocol/sdk 1.12.1',
+        'Claude Sonnet 4.0 API',
         '@tensorflow/tfjs 4.22.0',
         '@xenova/transformers 2.17.2',
-        '@modelcontextprotocol/sdk 1.12.1',
-        'natural 8.1.0, korean-js 0.8.2',
       ],
     },
     requiresAI: true,
@@ -286,17 +286,17 @@ const cardData = [
     id: 'data-generator',
     title: '서버 데이터 생성기',
     description:
-      'Faker.js와 Prometheus 클라이언트로 구현된 서버 메트릭 시뮬레이터. 실시간 시계열 데이터 생성.',
+      'Faker.js와 Prometheus 기반 실시간 서버 메트릭 생성기. Upstash Redis 캐싱으로 고성능 시뮬레이션.',
     icon: Database,
     gradient: 'from-emerald-500 to-teal-600',
     detailedContent: {
       overview:
-        '@faker-js/faker 9.8.0과 prom-client 15.1.3을 사용하여 실제적인 서버 메트릭을 생성합니다. systeminformation 5.27.1로 시스템 정보를 수집하고 Redis로 캐싱합니다.',
+        '실제 운영 환경을 시뮬레이션하는 고도화된 데이터 생성 시스템입니다. Faker.js로 현실적인 서버 데이터를 생성하고, Prometheus 메트릭 형태로 출력하여 모니터링 시스템과 완벽 호환됩니다.',
       features: [
-        '@faker-js/faker 9.8.0으로 현실적인 서버 데이터 생성',
-        'prom-client 15.1.3으로 Prometheus 호환 메트릭 출력',
-        'systeminformation 5.27.1로 실제 시스템 정보 수집',
-        '@upstash/redis 1.34.3과 node-cron 4.0.7로 스케줄링',
+        'Faker.js 9.8.0으로 CPU, 메모리, 네트워크 등 현실적인 서버 메트릭 생성',
+        'prom-client 15.1.3으로 Prometheus 표준 메트릭 포맷 출력',
+        'systeminformation 5.27.1로 실제 시스템 리소스 정보 수집 및 혼합',
+        'Upstash Redis 1.34.3 캐싱과 node-cron 스케줄링으로 고성능 처리',
       ],
       technologies: [
         '@faker-js/faker 9.8.0',
@@ -311,23 +311,23 @@ const cardData = [
     id: 'tech-stack',
     title: '적용 기술',
     description:
-      'Next.js 15, React 19, TypeScript 기반 풀스택 구현. Supabase와 Redis로 데이터 관리.',
+      'Next.js 15 + React 19 기반 최신 풀스택 구현. Supabase PostgreSQL과 Upstash Redis 하이브리드 아키텍처.',
     icon: Code,
     gradient: 'from-purple-500 to-indigo-600',
     detailedContent: {
       overview:
-        'Next.js 15.3.2와 React 19.1.0 기반의 모던 풀스택 애플리케이션입니다. Zustand와 TanStack Query로 상태 관리, Supabase와 Upstash Redis로 데이터 관리를 구현했습니다.',
+        '최신 웹 기술 스택으로 구현된 풀스택 애플리케이션입니다. Next.js 15와 React 19로 최신 기능을 활용하고, Supabase와 Upstash Redis 하이브리드 아키텍처로 확장성과 성능을 모두 확보했습니다.',
       features: [
-        'Next.js 15.3.2, React 19.1.0, TypeScript 5로 프론트엔드 구현',
-        'Zustand 5.0.5, @tanstack/react-query 5.79.0으로 상태 관리',
-        '@supabase/supabase-js 2.49.8, @upstash/redis 1.34.3으로 백엔드',
-        'Chart.js 4.4.9, Recharts 2.15.3, D3 7.9.0으로 시각화',
+        'Next.js 15.3.2 + React 19.1.0 최신 프레임워크로 SSR/SSG 하이브리드 렌더링',
+        'TypeScript 5 + Zustand 5.0.5로 타입 안전한 상태 관리',
+        'Supabase PostgreSQL + Upstash Redis 하이브리드 데이터 레이어',
+        'Chart.js + Recharts + D3.js 트리플 차트 라이브러리로 고급 시각화',
       ],
       technologies: [
-        'Next.js 15.3.2, React 19.1.0',
-        'Zustand 5.0.5, TanStack Query 5.79.0',
-        'Supabase 2.49.8, Upstash Redis 1.34.3',
-        'Tailwind CSS 3.4.1, Framer Motion 12.15.0',
+        'Next.js 15.3.2 + React 19.1.0',
+        'TypeScript 5 + Zustand 5.0.5',
+        'Supabase 2.49.8 + Upstash Redis 1.34.3',
+        'Tailwind CSS 3.4.1 + Framer Motion 12.15.0',
       ],
     },
     requiresAI: false,
@@ -336,23 +336,23 @@ const cardData = [
     id: 'vibe-coding',
     title: '✨ Vibe Coding',
     description:
-      'Cursor AI와 MCP 기반 개발 워크플로우. ESLint, Prettier, Vitest, Playwright로 코드 품질 관리.',
+      'Cursor AI 중심 개발 워크플로우. MCP 프로토콜과 AI 도구들로 구성된 차세대 개발 환경.',
     icon: Sparkles,
     gradient: 'from-amber-400 via-orange-500 to-yellow-600',
     detailedContent: {
       overview:
-        'Cursor AI와 MCP(Model Context Protocol)를 활용한 개발 워크플로우입니다. ESLint 9, Prettier 3.5.3으로 코드 품질을 관리하고, Vitest와 Playwright로 테스트를 자동화했습니다.',
+        'Cursor AI를 핵심으로 하는 AI 기반 개발 워크플로우입니다. Claude Sonnet 4.0의 대규모 컨텍스트 이해 능력과 MCP 프로토콜을 활용하여 코드 품질과 개발 효율성을 극대화합니다.',
       features: [
-        '@modelcontextprotocol/sdk로 Cursor AI 개발 환경 구성',
-        'ESLint 9, Prettier 3.5.3, lint-staged로 코드 품질 관리',
-        'Vitest 3.2.1, @playwright/test 1.52.0으로 테스트 자동화',
-        'Husky 9.1.7, GitHub Actions로 CI/CD 파이프라인 구축',
+        'Cursor AI + Claude Sonnet 4.0 조합으로 대규모 컨텍스트 기반 코드 개발',
+        'MCP SDK 1.12.1로 AI와 개발 환경 간 구조화된 통신',
+        'ESLint 9 + Prettier 3.5.3 + Husky 9.1.7로 자동화된 코드 품질 관리',
+        'Vitest 3.2.1 + Playwright 1.52.0으로 AI 지원 테스트 자동화',
       ],
       technologies: [
+        'Cursor AI + Claude Sonnet 4.0',
         '@modelcontextprotocol/sdk 1.12.1',
-        'ESLint 9, Prettier 3.5.3',
-        'Vitest 3.2.1, Playwright 1.52.0',
-        'Husky 9.1.7, GitHub Actions',
+        'ESLint 9 + Prettier 3.5.3',
+        'Vitest 3.2.1 + Playwright 1.52.0',
       ],
     },
     requiresAI: false,
