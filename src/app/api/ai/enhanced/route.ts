@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
         reasoning: result.reasoning,
         mcpActions: result.mcpActions,
         tensorflowPredictions: result.tensorflowPredictions,
-        renderStatus: result.renderStatus
+        engineUsed: result.engineUsed
       },
       performance: {
         aiProcessingTime: result.processingTime,

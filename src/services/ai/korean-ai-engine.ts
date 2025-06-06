@@ -1,4 +1,4 @@
-import Korean from 'korean-js';
+// import Korean from 'korean-js'; // 모듈 오류로 인해 주석 처리
 import * as natural from 'natural';
 import compromise from 'compromise';
 
