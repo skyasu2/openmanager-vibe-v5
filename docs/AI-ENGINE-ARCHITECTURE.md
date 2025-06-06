@@ -39,7 +39,6 @@ graph TB
         subgraph "🤖 AI Processing Components"
             TF["TensorFlow.js Engine<br/>🧮 ML 예측 모델"]
             MCP["Real MCP Client<br/>📋 표준 문서 관리"]
-            FastAPI["FastAPI Bridge<br/>🐍 Python ML 연동"]
         end
         
         subgraph "📚 Knowledge Base"
@@ -60,7 +59,6 @@ graph TB
         end
         
         subgraph "☁️ External Services"
-            Render["Render ML Service<br/>🚀 고성능 ML API"]
             Prometheus["Prometheus<br/>📊 메트릭 수집"]
         end
     end
@@ -77,7 +75,6 @@ graph TB
     Core --> Context
     Core --> TF
     Core --> MCP
-    Core --> FastAPI
     
     MCP --> FileSystem
     MCP --> GitHub
@@ -89,8 +86,6 @@ graph TB
     
     Core --> DataGen
     DataGen --> Metrics
-    
-    FastAPI --> Render
     Metrics --> Prometheus
 ```
 
@@ -135,11 +130,6 @@ Real MCP Client:
   - JSON-RPC 2.0 통신
   - 표준 MCP 프로토콜
   - 다중 서버 관리
-
-FastAPI Bridge:
-  - Python ML 연동
-  - 고성능 연산 처리
-  - Render 서버 통신
 ```
 
 ## 📚 3단계 지식 체계
@@ -215,7 +205,7 @@ ML 예측: < 10초 (복잡한 예측)
 ```yaml
 1차 폴백: MCP 연결 실패 → 로컬 캐시 사용
 2차 폴백: TensorFlow 미준비 → 기본 분석 모드
-3차 폴백: FastAPI 서버 비활성 → 로컬 ML 모드
+3차 폴백: 외부 서비스 장애 → 로컬 ML 모드
 ```
 
 ## 🔧 버전 관리
