@@ -15,7 +15,6 @@
 
 import { timerManager } from '../utils/TimerManager';
 import { prometheusDataHub } from '../modules/prometheus-integration/PrometheusDataHub';
-import { PythonWarmupService } from './ai/PythonWarmupService';
 import type { EnhancedServerMetrics } from './simulationEngine';
 
 // 통합된 서버 메트릭 인터페이스
@@ -100,7 +99,6 @@ export class UnifiedMetricsManager {
   private static instance: UnifiedMetricsManager;
   private isRunning: boolean = false;
   private servers: Map<string, UnifiedServerMetrics> = new Map();
-  private pythonWarmup: PythonWarmupService;
   
   // 기본 설정 (업계 표준)
   private config: UnifiedMetricsConfig = {
@@ -148,7 +146,6 @@ export class UnifiedMetricsManager {
   };
 
   private constructor() {
-    this.pythonWarmup = PythonWarmupService.getInstance();
     this.initializeServers();
   }
 
@@ -185,12 +182,7 @@ export class UnifiedMetricsManager {
         await prometheusDataHub.start();
       }
       
-      // 3. Python AI 엔진 웜업
-      if (this.config.ai_analysis.enabled) {
-        this.pythonWarmup.startLimitedWarmupSystem();
-      }
-      
-      // 4. 통합 스케줄러 시작
+      // 3. 통합 스케줄러 시작
       this.startUnifiedSchedulers();
       
       this.isRunning = true;

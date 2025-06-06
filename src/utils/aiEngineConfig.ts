@@ -8,14 +8,10 @@ declare const process: {
 };
 
 export interface AIEngineConfig {
-  fastApiBaseUrl: string;
   timeout: number;
   retryCount: number;
   internalEngineEnabled: boolean;
   fallbackEnabled: boolean;
-  warmupEnabled: boolean;
-  maxWarmups: number;
-  warmupInterval: number;
 }
 
 export class AIEngineConfigManager {
@@ -38,14 +34,10 @@ export class AIEngineConfigManager {
    */
   private loadConfig(): AIEngineConfig {
     return {
-      fastApiBaseUrl: process.env.FASTAPI_BASE_URL || 'https://openmanager-ai-engine.onrender.com',
       timeout: parseInt(process.env.AI_ENGINE_TIMEOUT || '30000'),
       retryCount: parseInt(process.env.AI_ENGINE_RETRY_COUNT || '3'),
       internalEngineEnabled: process.env.INTERNAL_AI_ENGINE_ENABLED !== 'false',
-      fallbackEnabled: process.env.INTERNAL_AI_ENGINE_FALLBACK !== 'false',
-      warmupEnabled: process.env.PYTHON_SERVICE_WARMUP_ENABLED !== 'false',
-      maxWarmups: parseInt(process.env.PYTHON_SERVICE_MAX_WARMUPS || '4'),
-      warmupInterval: parseInt(process.env.PYTHON_SERVICE_WARMUP_INTERVAL || '480000')
+      fallbackEnabled: process.env.INTERNAL_AI_ENGINE_FALLBACK !== 'false'
     };
   }
 
@@ -70,7 +62,7 @@ export class AIEngineConfigManager {
     if (preferInternal && this.config.internalEngineEnabled) {
       return '/api/v3/ai';
     }
-    return `${this.config.fastApiBaseUrl}/analyze`;
+    return '/api/v3/ai';
   }
 
   /**
@@ -144,36 +136,7 @@ export class AIEngineConfigManager {
       }
     }
     
-    // 외부 엔진 폴백 시도
-    if (this.config.fallbackEnabled) {
-      for (let attempt = 1; attempt <= this.config.retryCount; attempt++) {
-        try {
-          const url = `${this.config.fastApiBaseUrl}${endpoint}`;
-          const options = this.createRequestOptions(body);
-          
-          console.log(`🔄 외부 AI 엔진 시도 ${attempt}/${this.config.retryCount}: ${url}`);
-          
-          const response = await fetch(url, options);
-          
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-          
-          const result = await response.json();
-          console.log(`✅ 외부 AI 엔진 성공 (시도 ${attempt})`);
-          return result;
-          
-        } catch (error) {
-          lastError = error instanceof Error ? error : new Error('Unknown error');
-          console.warn(`⚠️ 외부 AI 엔진 실패 (시도 ${attempt}):`, lastError.message);
-          
-          // 마지막 시도가 아니면 잠시 대기
-          if (attempt < this.config.retryCount) {
-            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-          }
-        }
-      }
-    }
+    // 외부 엔진은 더 이상 사용하지 않음
     
     throw lastError || new Error('모든 AI 엔진 호출 실패');
   }
@@ -184,9 +147,6 @@ export class AIEngineConfigManager {
   public validateConfig(): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
     
-    if (!this.config.fastApiBaseUrl) {
-      errors.push('FASTAPI_BASE_URL이 설정되지 않았습니다');
-    }
     
     if (this.config.timeout < 1000) {
       errors.push('AI_ENGINE_TIMEOUT은 최소 1000ms 이상이어야 합니다');
@@ -196,9 +156,6 @@ export class AIEngineConfigManager {
       errors.push('AI_ENGINE_RETRY_COUNT는 1-10 사이여야 합니다');
     }
     
-    if (this.config.maxWarmups < 1 || this.config.maxWarmups > 20) {
-      errors.push('PYTHON_SERVICE_MAX_WARMUPS는 1-20 사이여야 합니다');
-    }
     
     return {
       isValid: errors.length === 0,
@@ -211,14 +168,11 @@ export class AIEngineConfigManager {
    */
   public logConfig(): void {
     console.log('🔧 AI Engine Configuration:', {
-      fastApiBaseUrl: this.config.fastApiBaseUrl,
       timeout: `${this.config.timeout}ms`,
       retryCount: this.config.retryCount,
       internalEngineEnabled: this.config.internalEngineEnabled,
       fallbackEnabled: this.config.fallbackEnabled,
-      warmupEnabled: this.config.warmupEnabled,
-      maxWarmups: this.config.maxWarmups,
-      warmupInterval: `${this.config.warmupInterval}ms`
+      // Python 관련 옵션 제거됨
     });
   }
 }

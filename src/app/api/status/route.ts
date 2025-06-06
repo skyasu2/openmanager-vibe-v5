@@ -4,35 +4,22 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { PythonWarmupService } from '@/services/ai/PythonWarmupService';
-
-const pythonWarmup = PythonWarmupService.getInstance();
 
 export async function GET(request: NextRequest) {
   try {
-    // 웜업 상태 확인
-    const warmupStats = pythonWarmup.getWarmupStats();
-    const pythonStatus = await pythonWarmup.checkPythonStatus();
-    
-    // 시스템 활성화 여부 판단
-    const isActive = 
-      warmupStats.systemActive || 
-      warmupStats.isCompleted || 
-      pythonStatus.isWarm;
-
     return NextResponse.json({
-      isActive,
-      status: isActive ? 'active' : 'inactive',
+      isActive: false,
+      status: 'inactive',
       warmup: {
-        active: warmupStats.systemActive,
-        completed: warmupStats.isCompleted,
-        count: warmupStats.warmupCount,
-        remaining: warmupStats.remainingWarmups
+        active: false,
+        completed: false,
+        count: 0,
+        remaining: 0
       },
       python: {
-        isWarm: pythonStatus.isWarm,
-        status: pythonStatus.status,
-        responseTime: pythonStatus.responseTime
+        isWarm: false,
+        status: 'removed',
+        responseTime: 0
       },
       timestamp: new Date().toISOString()
     });

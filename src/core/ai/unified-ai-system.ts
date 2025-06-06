@@ -8,7 +8,7 @@
  */
 
 import { MCPOrchestrator, MCPQuery, MCPResponse } from '../mcp/mcp-orchestrator';
-import { FastAPIClient, AIQuery, AIResponse } from '../../services/python-bridge/fastapi-client';
+import { FastAPIClient, AIQuery, AIResponse } from '../../services/fastapi-stub';
 import { KeepAliveSystem } from '../../services/ai/keep-alive-system';
 import { BasicContextManager } from '../../context/basic-context-manager';
 import { AdvancedContextManager } from '../../context/advanced-context-manager';
