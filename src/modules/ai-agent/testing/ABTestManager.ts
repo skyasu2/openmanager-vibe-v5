@@ -62,7 +62,7 @@ export class ABTestManager {
       confidenceLevel: 0.95,
       significanceThreshold: 0.05,
       trafficSplit: 0.1,
-      ...config
+      ...config,
     };
   }
 
@@ -70,11 +70,11 @@ export class ABTestManager {
    * 새로운 패턴 테스트 시작
    */
   async testNewPattern(
-    pattern: RegexPattern, 
+    pattern: RegexPattern,
     testGroup: string = 'default'
   ): Promise<TestResult> {
     const testId = this.generateTestId();
-    
+
     const testResult: TestResult = {
       testId,
       patternId: pattern.id,
@@ -84,7 +84,7 @@ export class ABTestManager {
       metrics: this.initializeMetrics(),
       sampleSize: 0,
       confidenceLevel: this.config.confidenceLevel,
-      statisticalSignificance: false
+      statisticalSignificance: false,
     };
 
     this.activeTests.set(testId, testResult);
@@ -94,7 +94,7 @@ export class ABTestManager {
       patternId: pattern.id,
       pattern: pattern.pattern,
       category: pattern.category,
-      testGroup
+      testGroup,
     });
 
     return testResult;
@@ -104,24 +104,34 @@ export class ABTestManager {
    * 패턴 성능 비교
    */
   async comparePatternPerformance(
-    oldPattern: RegexPattern, 
+    oldPattern: RegexPattern,
     newPattern: RegexPattern,
     interactions: UserInteractionLog[]
   ): Promise<Comparison> {
     const comparisonId = this.generateComparisonId();
 
     // 기존 패턴 성능 분석
-    const controlMetrics = await this.analyzePatternPerformance(oldPattern, interactions);
-    
+    const controlMetrics = await this.analyzePatternPerformance(
+      oldPattern,
+      interactions
+    );
+
     // 새 패턴 성능 분석 (시뮬레이션)
-    const testMetrics = await this.simulatePatternPerformance(newPattern, interactions);
+    const testMetrics = await this.simulatePatternPerformance(
+      newPattern,
+      interactions
+    );
 
     // 개선 효과 계산
     const improvement = this.calculateImprovement(controlMetrics, testMetrics);
 
     // 권장사항 결정
     const recommendation = this.determineRecommendation(improvement);
-    const reasoning = this.generateReasoning(improvement, controlMetrics, testMetrics);
+    const reasoning = this.generateReasoning(
+      improvement,
+      controlMetrics,
+      testMetrics
+    );
 
     const comparison: Comparison = {
       comparisonId,
@@ -132,7 +142,7 @@ export class ABTestManager {
       improvement,
       recommendation,
       reasoning,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
 
     console.log(`📊 [ABTestManager] 패턴 성능 비교 완료:`, {
@@ -140,7 +150,7 @@ export class ABTestManager {
       controlPattern: oldPattern.pattern,
       testPattern: newPattern.pattern,
       recommendation,
-      overallImprovement: improvement.overall
+      overallImprovement: improvement.overall,
     });
 
     return comparison;
@@ -149,7 +159,10 @@ export class ABTestManager {
   /**
    * 테스트 결과 업데이트
    */
-  async updateTestResult(testId: string, interaction: UserInteractionLog): Promise<void> {
+  async updateTestResult(
+    testId: string,
+    interaction: UserInteractionLog
+  ): Promise<void> {
     const test = this.activeTests.get(testId);
     if (!test || test.status !== 'running') return;
 
@@ -209,9 +222,11 @@ export class ABTestManager {
     test.endDate = new Date();
 
     // 최종 메트릭 계산
-    test.metrics.conversionRate = test.metrics.totalQueries > 0 ? 
-      test.metrics.successfulMatches / test.metrics.totalQueries : 0;
-    
+    test.metrics.conversionRate =
+      test.metrics.totalQueries > 0
+        ? test.metrics.successfulMatches / test.metrics.totalQueries
+        : 0;
+
     test.metrics.errorRate = 1 - test.metrics.conversionRate;
 
     // 히스토리에 추가
@@ -223,7 +238,7 @@ export class ABTestManager {
       duration: test.endDate.getTime() - test.startDate.getTime(),
       sampleSize: test.sampleSize,
       conversionRate: test.metrics.conversionRate,
-      statisticalSignificance: test.statisticalSignificance
+      statisticalSignificance: test.statisticalSignificance,
     });
 
     return test;
@@ -249,12 +264,13 @@ export class ABTestManager {
   getCompletedTests(): TestResult[] {
     return this.testHistory.filter(test => {
       if (test.status !== 'completed') return false;
-      
+
       // 통계적 유의성과 개선 효과를 기반으로 승인 여부 결정
-      const shouldApprove = test.statisticalSignificance && 
-                           test.metrics.conversionRate > 0.7 &&
-                           test.metrics.userSatisfactionRate > 0.6;
-      
+      const shouldApprove =
+        test.statisticalSignificance &&
+        test.metrics.conversionRate > 0.7 &&
+        test.metrics.userSatisfactionRate > 0.6;
+
       // shouldApprove 속성 추가
       (test as any).shouldApprove = shouldApprove;
       return true;
@@ -265,10 +281,10 @@ export class ABTestManager {
    * 패턴 성능 분석
    */
   private async analyzePatternPerformance(
-    pattern: RegexPattern, 
+    pattern: RegexPattern,
     interactions: UserInteractionLog[]
   ): Promise<TestMetrics> {
-    const relevantInteractions = interactions.filter(i => 
+    const relevantInteractions = interactions.filter(i =>
       this.testPatternMatch(pattern.pattern, i.query)
     );
 
@@ -277,14 +293,25 @@ export class ABTestManager {
     }
 
     const totalQueries = relevantInteractions.length;
-    const successfulMatches = relevantInteractions.filter(i => i.confidence >= 0.6).length;
-    const averageConfidence = relevantInteractions.reduce((sum, i) => sum + i.confidence, 0) / totalQueries;
-    
-    const feedbackInteractions = relevantInteractions.filter(i => i.userFeedback);
-    const userSatisfactionRate = feedbackInteractions.length > 0 ?
-      feedbackInteractions.filter(i => i.userFeedback === 'helpful').length / feedbackInteractions.length : 0;
-    
-    const responseTime = relevantInteractions.reduce((sum, i) => sum + i.responseTime, 0) / totalQueries;
+    const successfulMatches = relevantInteractions.filter(
+      i => i.confidence >= 0.6
+    ).length;
+    const averageConfidence =
+      relevantInteractions.reduce((sum, i) => sum + i.confidence, 0) /
+      totalQueries;
+
+    const feedbackInteractions = relevantInteractions.filter(
+      i => i.userFeedback
+    );
+    const userSatisfactionRate =
+      feedbackInteractions.length > 0
+        ? feedbackInteractions.filter(i => i.userFeedback === 'helpful')
+            .length / feedbackInteractions.length
+        : 0;
+
+    const responseTime =
+      relevantInteractions.reduce((sum, i) => sum + i.responseTime, 0) /
+      totalQueries;
     const conversionRate = successfulMatches / totalQueries;
     const errorRate = 1 - conversionRate;
 
@@ -295,7 +322,7 @@ export class ABTestManager {
       userSatisfactionRate,
       responseTime,
       errorRate,
-      conversionRate
+      conversionRate,
     };
   }
 
@@ -303,11 +330,11 @@ export class ABTestManager {
    * 패턴 성능 시뮬레이션
    */
   private async simulatePatternPerformance(
-    pattern: RegexPattern, 
+    pattern: RegexPattern,
     interactions: UserInteractionLog[]
   ): Promise<TestMetrics> {
     // 새 패턴이 기존 상호작용에 어떻게 작동할지 시뮬레이션
-    const potentialMatches = interactions.filter(i => 
+    const potentialMatches = interactions.filter(i =>
       this.testPatternMatch(pattern.pattern, i.query)
     );
 
@@ -318,18 +345,20 @@ export class ABTestManager {
     // 패턴 신뢰도를 기반으로 성능 예측
     const baseConfidence = pattern.confidence;
     const totalQueries = potentialMatches.length;
-    
+
     // 예상 성능 계산 (패턴 신뢰도 기반)
     const expectedSuccessRate = Math.min(baseConfidence * 1.1, 0.95); // 최대 10% 개선
     const successfulMatches = Math.round(totalQueries * expectedSuccessRate);
-    
+
     const averageConfidence = Math.min(baseConfidence + 0.05, 0.95); // 약간의 신뢰도 향상
     const userSatisfactionRate = Math.min(expectedSuccessRate * 0.9, 0.9); // 성공률의 90%
-    
+
     // 기존 응답 시간 기준으로 약간 개선
-    const baseResponseTime = potentialMatches.reduce((sum, i) => sum + i.responseTime, 0) / totalQueries;
+    const baseResponseTime =
+      potentialMatches.reduce((sum, i) => sum + i.responseTime, 0) /
+      totalQueries;
     const responseTime = baseResponseTime * 0.95; // 5% 개선
-    
+
     const conversionRate = expectedSuccessRate;
     const errorRate = 1 - conversionRate;
 
@@ -340,7 +369,7 @@ export class ABTestManager {
       userSatisfactionRate,
       responseTime,
       errorRate,
-      conversionRate
+      conversionRate,
     };
   }
 
@@ -348,29 +377,42 @@ export class ABTestManager {
    * 개선 효과 계산
    */
   private calculateImprovement(control: TestMetrics, test: TestMetrics): any {
-    const safeDiv = (a: number, b: number) => b === 0 ? 0 : (a - b) / b * 100;
+    const safeDiv = (a: number, b: number) =>
+      b === 0 ? 0 : ((a - b) / b) * 100;
 
-    const confidence = safeDiv(test.averageConfidence, control.averageConfidence);
-    const satisfaction = safeDiv(test.userSatisfactionRate, control.userSatisfactionRate);
+    const confidence = safeDiv(
+      test.averageConfidence,
+      control.averageConfidence
+    );
+    const satisfaction = safeDiv(
+      test.userSatisfactionRate,
+      control.userSatisfactionRate
+    );
     const responseTime = -safeDiv(test.responseTime, control.responseTime); // 음수가 개선
     const errorRate = -safeDiv(test.errorRate, control.errorRate); // 음수가 개선
-    
+
     // 전체 개선 점수 (가중 평균)
-    const overall = (confidence * 0.3 + satisfaction * 0.4 + responseTime * 0.2 + errorRate * 0.1);
+    const overall =
+      confidence * 0.3 +
+      satisfaction * 0.4 +
+      responseTime * 0.2 +
+      errorRate * 0.1;
 
     return {
       confidence: Math.round(confidence * 100) / 100,
       satisfaction: Math.round(satisfaction * 100) / 100,
       responseTime: Math.round(responseTime * 100) / 100,
       errorRate: Math.round(errorRate * 100) / 100,
-      overall: Math.round(overall * 100) / 100
+      overall: Math.round(overall * 100) / 100,
     };
   }
 
   /**
    * 권장사항 결정
    */
-  private determineRecommendation(improvement: any): 'adopt' | 'reject' | 'continue_testing' {
+  private determineRecommendation(
+    improvement: any
+  ): 'adopt' | 'reject' | 'continue_testing' {
     const { overall, satisfaction, confidence } = improvement;
 
     if (overall >= 10 && satisfaction >= 5 && confidence >= 5) {
@@ -385,31 +427,49 @@ export class ABTestManager {
   /**
    * 권장사항 근거 생성
    */
-  private generateReasoning(improvement: any, control: TestMetrics, test: TestMetrics): string[] {
+  private generateReasoning(
+    improvement: any,
+    control: TestMetrics,
+    test: TestMetrics
+  ): string[] {
     const reasoning: string[] = [];
 
     if (improvement.overall > 10) {
-      reasoning.push(`전체 성능이 ${improvement.overall}% 개선되어 채택을 권장합니다.`);
+      reasoning.push(
+        `전체 성능이 ${improvement.overall}% 개선되어 채택을 권장합니다.`
+      );
     } else if (improvement.overall < -5) {
-      reasoning.push(`전체 성능이 ${Math.abs(improvement.overall)}% 저하되어 기존 패턴 유지를 권장합니다.`);
+      reasoning.push(
+        `전체 성능이 ${Math.abs(improvement.overall)}% 저하되어 기존 패턴 유지를 권장합니다.`
+      );
     }
 
     if (improvement.satisfaction > 15) {
-      reasoning.push(`사용자 만족도가 ${improvement.satisfaction}% 크게 향상되었습니다.`);
+      reasoning.push(
+        `사용자 만족도가 ${improvement.satisfaction}% 크게 향상되었습니다.`
+      );
     } else if (improvement.satisfaction < -10) {
-      reasoning.push(`사용자 만족도가 ${Math.abs(improvement.satisfaction)}% 저하되었습니다.`);
+      reasoning.push(
+        `사용자 만족도가 ${Math.abs(improvement.satisfaction)}% 저하되었습니다.`
+      );
     }
 
     if (improvement.confidence > 10) {
-      reasoning.push(`응답 신뢰도가 ${improvement.confidence}% 향상되었습니다.`);
+      reasoning.push(
+        `응답 신뢰도가 ${improvement.confidence}% 향상되었습니다.`
+      );
     }
 
     if (improvement.responseTime > 10) {
-      reasoning.push(`응답 시간이 ${improvement.responseTime}% 개선되었습니다.`);
+      reasoning.push(
+        `응답 시간이 ${improvement.responseTime}% 개선되었습니다.`
+      );
     }
 
     if (test.totalQueries < this.config.minSampleSize) {
-      reasoning.push(`샘플 크기(${test.totalQueries})가 최소 요구사항(${this.config.minSampleSize})보다 작아 추가 테스트가 필요합니다.`);
+      reasoning.push(
+        `샘플 크기(${test.totalQueries})가 최소 요구사항(${this.config.minSampleSize})보다 작아 추가 테스트가 필요합니다.`
+      );
     }
 
     return reasoning;
@@ -431,7 +491,11 @@ export class ABTestManager {
   /**
    * 실행 평균 업데이트
    */
-  private updateRunningAverage(currentAvg: number, newValue: number, count: number): number {
+  private updateRunningAverage(
+    currentAvg: number,
+    newValue: number,
+    count: number
+  ): number {
     return (currentAvg * (count - 1) + newValue) / count;
   }
 
@@ -440,8 +504,10 @@ export class ABTestManager {
    */
   private checkStatisticalSignificance(test: TestResult): boolean {
     // 간단한 통계적 유의성 확인 (실제로는 더 복잡한 통계 테스트 필요)
-    return test.sampleSize >= this.config.minSampleSize && 
-           test.metrics.conversionRate > 0.1;
+    return (
+      test.sampleSize >= this.config.minSampleSize &&
+      test.metrics.conversionRate > 0.1
+    );
   }
 
   /**
@@ -451,8 +517,11 @@ export class ABTestManager {
     const testDuration = Date.now() - test.startDate.getTime();
     const maxDuration = this.config.testDuration * 24 * 60 * 60 * 1000; // ms
 
-    return testDuration >= maxDuration || 
-           (test.sampleSize >= this.config.minSampleSize * 2 && test.statisticalSignificance);
+    return (
+      testDuration >= maxDuration ||
+      (test.sampleSize >= this.config.minSampleSize * 2 &&
+        test.statisticalSignificance)
+    );
   }
 
   /**
@@ -466,15 +535,18 @@ export class ABTestManager {
       userSatisfactionRate: 0,
       responseTime: 0,
       errorRate: 0,
-      conversionRate: 0
+      conversionRate: 0,
     };
   }
 
   /**
    * 패턴 조회 (임시 구현)
    */
-  private async getPatternById(patternId: string): Promise<RegexPattern | null> {
-    // TODO: 실제 패턴 저장소에서 조회
+  private async getPatternById(
+    patternId: string
+  ): Promise<RegexPattern | null> {
+    // Phase 2: 패턴 저장소 연동 예정 (Supabase patterns 테이블)
+    // Phase 2: 패턴 저장소 연동 예정 (Supabase patterns 테이블)
     return null;
   }
 
@@ -488,4 +560,4 @@ export class ABTestManager {
   private generateComparisonId(): string {
     return `comparison_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
-} 
+}

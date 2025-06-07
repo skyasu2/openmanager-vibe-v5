@@ -3,7 +3,7 @@
  * 무료 티어 서비스 휴면/삭제 방지 시스템
  */
 
-import { smartRedis } from './redis';
+import { smartRedis, getRedisClient } from './redis';
 import { smartSupabase } from './supabase';
 import { usageMonitor } from './usage-monitor';
 
@@ -32,7 +32,7 @@ class KeepAliveScheduler {
   // Keep-alive 주기 설정
   private readonly INTERVALS = {
     supabase: 4 * 60 * 60 * 1000, // 4시간마다 (하루 6회)
-    redis: 12 * 60 * 60 * 1000,   // 12시간마다 (하루 2회)
+    redis: 12 * 60 * 60 * 1000, // 12시간마다 (하루 2회)
   };
 
   constructor() {
@@ -41,7 +41,7 @@ class KeepAliveScheduler {
       supabase: null,
       redis: null,
     };
-    
+
     this.initializeScheduler();
   }
 
@@ -60,13 +60,19 @@ class KeepAliveScheduler {
       const parsed = JSON.parse(stored);
       return {
         lastPing: {
-          supabase: parsed.lastPing.supabase ? new Date(parsed.lastPing.supabase) : null,
+          supabase: parsed.lastPing.supabase
+            ? new Date(parsed.lastPing.supabase)
+            : null,
           redis: parsed.lastPing.redis ? new Date(parsed.lastPing.redis) : null,
         },
         isActive: parsed.isActive || { supabase: false, redis: false },
         nextScheduled: {
-          supabase: parsed.nextScheduled.supabase ? new Date(parsed.nextScheduled.supabase) : null,
-          redis: parsed.nextScheduled.redis ? new Date(parsed.nextScheduled.redis) : null,
+          supabase: parsed.nextScheduled.supabase
+            ? new Date(parsed.nextScheduled.supabase)
+            : null,
+          redis: parsed.nextScheduled.redis
+            ? new Date(parsed.nextScheduled.redis)
+            : null,
         },
       };
     } catch {
@@ -85,7 +91,7 @@ class KeepAliveScheduler {
   // 상태 저장
   private saveStatusToStorage(): void {
     if (typeof window === 'undefined') return;
-    
+
     localStorage.setItem('keep-alive-status', JSON.stringify(this.status));
   }
 
@@ -93,9 +99,11 @@ class KeepAliveScheduler {
   private initializeScheduler(): void {
     this.startSupabaseKeepAlive();
     this.startRedisKeepAlive();
-    
+
     console.log('🔄 Keep-Alive 스케줄러 시작됨');
-    console.log(`📊 Supabase: ${this.INTERVALS.supabase / 1000 / 60 / 60}시간 간격`);
+    console.log(
+      `📊 Supabase: ${this.INTERVALS.supabase / 1000 / 60 / 60}시간 간격`
+    );
     console.log(`📊 Redis: ${this.INTERVALS.redis / 1000 / 60 / 60}시간 간격`);
   }
 
@@ -114,7 +122,9 @@ class KeepAliveScheduler {
     }, this.INTERVALS.supabase);
 
     this.status.isActive.supabase = true;
-    this.status.nextScheduled.supabase = new Date(Date.now() + this.INTERVALS.supabase);
+    this.status.nextScheduled.supabase = new Date(
+      Date.now() + this.INTERVALS.supabase
+    );
     this.saveStatusToStorage();
   }
 
@@ -133,7 +143,9 @@ class KeepAliveScheduler {
     }, this.INTERVALS.redis);
 
     this.status.isActive.redis = true;
-    this.status.nextScheduled.redis = new Date(Date.now() + this.INTERVALS.redis);
+    this.status.nextScheduled.redis = new Date(
+      Date.now() + this.INTERVALS.redis
+    );
     this.saveStatusToStorage();
   }
 
@@ -146,26 +158,31 @@ class KeepAliveScheduler {
       }
 
       console.log('🔔 Supabase keep-alive 실행 중...');
-      
+
       // 매우 가벼운 쿼리 실행 (최소 사용량)
       const result = await smartSupabase.select('servers', 'count');
-      
+
       this.status.lastPing.supabase = new Date();
       this.saveStatusToStorage();
-      
-      console.log('✅ Supabase keep-alive 성공:', this.status.lastPing.supabase.toLocaleString());
-      
+
+      console.log(
+        '✅ Supabase keep-alive 성공:',
+        this.status.lastPing.supabase.toLocaleString()
+      );
+
       // 사용량 기록 (매우 적은 양)
       usageMonitor.recordSupabaseUsage(0.01, 1); // 10KB, 1 request
-      
     } catch (error) {
       console.warn('❌ Supabase keep-alive 실패:', error);
-      
+
       // 재시도 로직 (5분 후)
-      setTimeout(() => {
-        console.log('🔄 Supabase keep-alive 재시도...');
-        this.pingSupabase();
-      }, 5 * 60 * 1000);
+      setTimeout(
+        () => {
+          console.log('🔄 Supabase keep-alive 재시도...');
+          this.pingSupabase();
+        },
+        5 * 60 * 1000
+      );
     }
   }
 
@@ -178,34 +195,36 @@ class KeepAliveScheduler {
       }
 
       console.log('🔔 Redis keep-alive 실행 중...');
-      
-      // 가벼운 ping 명령 실행
-      const pingKey = 'keep-alive-ping';
-      const pingValue = Date.now().toString();
-      
-      await smartRedis.set(pingKey, pingValue, { ex: 60 }); // 1분 TTL
-      const result = await smartRedis.get(pingKey);
-      
-      if (result === pingValue) {
+
+      // 직접 Redis 클라이언트의 ping 명령 사용 (더 안정적)
+      const redisClient = await getRedisClient();
+      const pingResult = await redisClient.ping();
+
+      if (pingResult === 'PONG') {
         this.status.lastPing.redis = new Date();
         this.saveStatusToStorage();
-        
-        console.log('✅ Redis keep-alive 성공:', this.status.lastPing.redis.toLocaleString());
-        
-        // 사용량 기록 (최소 명령)
-        usageMonitor.recordRedisUsage(2); // SET + GET = 2 commands
+
+        console.log(
+          '✅ Redis keep-alive 성공:',
+          this.status.lastPing.redis.toLocaleString()
+        );
+
+        // 사용량 기록 (1개 ping 명령)
+        usageMonitor.recordRedisUsage(1);
       } else {
-        throw new Error('Redis ping 응답 불일치');
+        throw new Error(`Redis ping 응답 오류: ${pingResult}`);
       }
-      
     } catch (error) {
       console.warn('❌ Redis keep-alive 실패:', error);
-      
+
       // 재시도 로직 (5분 후)
-      setTimeout(() => {
-        console.log('🔄 Redis keep-alive 재시도...');
-        this.pingRedis();
-      }, 5 * 60 * 1000);
+      setTimeout(
+        () => {
+          console.log('🔄 Redis keep-alive 재시도...');
+          this.pingRedis();
+        },
+        5 * 60 * 1000
+      );
     }
   }
 
@@ -261,10 +280,10 @@ class KeepAliveScheduler {
   }
 
   // 상태 정보 반환
-  getStatus(): KeepAliveStatus & { 
-    timeSinceLastPing: { 
-      supabase: number | null; 
-      redis: number | null; 
+  getStatus(): KeepAliveStatus & {
+    timeSinceLastPing: {
+      supabase: number | null;
+      redis: number | null;
     };
     timeToNext: {
       supabase: number | null;
@@ -272,23 +291,23 @@ class KeepAliveScheduler {
     };
   } {
     const now = Date.now();
-    
+
     return {
       ...this.status,
       timeSinceLastPing: {
-        supabase: this.status.lastPing.supabase 
-          ? now - this.status.lastPing.supabase.getTime() 
+        supabase: this.status.lastPing.supabase
+          ? now - this.status.lastPing.supabase.getTime()
           : null,
-        redis: this.status.lastPing.redis 
-          ? now - this.status.lastPing.redis.getTime() 
+        redis: this.status.lastPing.redis
+          ? now - this.status.lastPing.redis.getTime()
           : null,
       },
       timeToNext: {
-        supabase: this.status.nextScheduled.supabase 
-          ? this.status.nextScheduled.supabase.getTime() - now 
+        supabase: this.status.nextScheduled.supabase
+          ? this.status.nextScheduled.supabase.getTime() - now
           : null,
-        redis: this.status.nextScheduled.redis 
-          ? this.status.nextScheduled.redis.getTime() - now 
+        redis: this.status.nextScheduled.redis
+          ? this.status.nextScheduled.redis.getTime() - now
           : null,
       },
     };
@@ -301,12 +320,12 @@ class KeepAliveScheduler {
   } {
     const now = Date.now();
     const DAY_MS = 24 * 60 * 60 * 1000;
-    
-    const supabaseDays = this.status.lastPing.supabase 
+
+    const supabaseDays = this.status.lastPing.supabase
       ? Math.floor((now - this.status.lastPing.supabase.getTime()) / DAY_MS)
       : 999;
-      
-    const redisDays = this.status.lastPing.redis 
+
+    const redisDays = this.status.lastPing.redis
       ? Math.floor((now - this.status.lastPing.redis.getTime()) / DAY_MS)
       : 999;
 
@@ -337,11 +356,11 @@ export function useKeepAlive() {
   return {
     getStatus: () => keepAliveScheduler.getStatus(),
     getDangerStatus: () => keepAliveScheduler.getDangerStatus(),
-    manualPing: (service: 'supabase' | 'redis') => 
+    manualPing: (service: 'supabase' | 'redis') =>
       keepAliveScheduler.manualPing(service),
-    stopKeepAlive: (service?: 'supabase' | 'redis') => 
+    stopKeepAlive: (service?: 'supabase' | 'redis') =>
       keepAliveScheduler.stopKeepAlive(service),
-    restartKeepAlive: (service?: 'supabase' | 'redis') => 
+    restartKeepAlive: (service?: 'supabase' | 'redis') =>
       keepAliveScheduler.restartKeepAlive(service),
   };
 }

@@ -64,7 +64,9 @@ export const supabaseAdmin = createClient(
   getSupabaseServiceKey()
 );
 
-console.log('✅ Supabase 클라이언트 초기화됨:', env.NEXT_PUBLIC_SUPABASE_URL);
+if (process.env.NODE_ENV === 'development') {
+  console.log('✅ Supabase 클라이언트 초기화됨:', env.NEXT_PUBLIC_SUPABASE_URL);
+}
 
 export async function checkSupabaseConnection() {
   try {

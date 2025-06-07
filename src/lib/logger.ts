@@ -1,6 +1,6 @@
 /**
  * 환경별 로깅 시스템
- * 
+ *
  * 🔧 개발/프로덕션 환경에 맞는 로깅 제공
  * - 개발: 상세한 디버그 정보
  * - 프로덕션: 필요한 정보만 간결하게
@@ -21,13 +21,13 @@ class Logger {
 
   constructor(config: Partial<LoggerConfig> = {}) {
     this.isDevelopment = process.env.NODE_ENV === 'development';
-    
+
     this.config = {
       enableConsole: true,
       enableFile: false,
       minLevel: this.isDevelopment ? 'debug' : 'info',
       prefix: '[OpenManager]',
-      ...config
+      ...config,
     };
   }
 
@@ -36,7 +36,7 @@ class Logger {
       debug: 0,
       info: 1,
       warn: 2,
-      error: 3
+      error: 3,
     };
 
     return levels[level] >= levels[this.config.minLevel];
@@ -48,7 +48,7 @@ class Logger {
       debug: '🔍',
       info: 'ℹ️',
       warn: '⚠️',
-      error: '❌'
+      error: '❌',
     }[level];
 
     if (this.isDevelopment) {
@@ -60,9 +60,9 @@ class Logger {
 
   debug(message: string, data?: any): void {
     if (!this.shouldLog('debug') || !this.config.enableConsole) return;
-    
+
     const formattedMessage = this.formatMessage('debug', message, data);
-    
+
     if (this.isDevelopment && data !== undefined) {
       console.debug(formattedMessage, data);
     } else {
@@ -72,9 +72,9 @@ class Logger {
 
   info(message: string, data?: any): void {
     if (!this.shouldLog('info') || !this.config.enableConsole) return;
-    
+
     const formattedMessage = this.formatMessage('info', message, data);
-    
+
     if (this.isDevelopment && data !== undefined) {
       console.info(formattedMessage, data);
     } else {
@@ -84,9 +84,9 @@ class Logger {
 
   warn(message: string, data?: any): void {
     if (!this.shouldLog('warn') || !this.config.enableConsole) return;
-    
+
     const formattedMessage = this.formatMessage('warn', message, data);
-    
+
     if (this.isDevelopment && data !== undefined) {
       console.warn(formattedMessage, data);
     } else {
@@ -96,9 +96,9 @@ class Logger {
 
   error(message: string, error?: Error | any): void {
     if (!this.shouldLog('error') || !this.config.enableConsole) return;
-    
+
     const formattedMessage = this.formatMessage('error', message, error);
-    
+
     if (this.isDevelopment && error !== undefined) {
       console.error(formattedMessage, error);
     } else {
@@ -136,32 +136,64 @@ class Logger {
 // 기본 로거 인스턴스들
 export const logger = new Logger();
 
-export const apiLogger = new Logger({ 
+export const apiLogger = new Logger({
   prefix: '[API]',
-  minLevel: process.env.NODE_ENV === 'development' ? 'debug' : 'warn'
+  minLevel: process.env.NODE_ENV === 'development' ? 'debug' : 'warn',
 });
 
-export const aiLogger = new Logger({ 
+export const aiLogger = new Logger({
   prefix: '[AI-Agent]',
-  minLevel: process.env.NODE_ENV === 'development' ? 'debug' : 'info'
+  minLevel: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
 });
 
-export const systemLogger = new Logger({ 
+export const systemLogger = new Logger({
   prefix: '[System]',
-  minLevel: 'info'
+  minLevel: 'info',
 });
 
-// 레거시 console.log 대체 함수들
+// 🚀 Production-Safe 로깅 함수들
+export const safeConsole = {
+  log: (message: string, ...args: any[]) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(message, ...args);
+    }
+  },
+  warn: (message: string, ...args: any[]) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(message, ...args);
+    }
+  },
+  error: (message: string, ...args: any[]) => {
+    // 에러는 프로덕션에서도 기록 (중요)
+    console.error(message, ...args);
+  },
+  info: (message: string, ...args: any[]) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.info(message, ...args);
+    }
+  },
+};
+
+// 기존 devLog 함수 개선
 export const devLog = (message: string, data?: any) => {
   if (process.env.NODE_ENV === 'development') {
-    console.log(message, data || '');
+    const timestamp = new Date().toISOString();
+    if (data) {
+      console.log(`[DEV ${timestamp}] ${message}`, data);
+    } else {
+      console.log(`[DEV ${timestamp}] ${message}`);
+    }
   }
 };
 
-export const prodLog = (message: string) => {
-  if (process.env.NODE_ENV === 'production') {
-    console.log(`${new Date().toISOString()} ${message}`);
+// 시스템 로그 (항상 기록)
+export const systemLog = (message: string, data?: any) => {
+  const timestamp = new Date().toISOString();
+  if (data) {
+    console.log(`[SYSTEM ${timestamp}] ${message}`, data);
+  } else {
+    console.log(`[SYSTEM ${timestamp}] ${message}`);
   }
 };
 
-export default logger; 
+export default logger;

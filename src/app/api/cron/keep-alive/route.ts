@@ -71,20 +71,21 @@ export async function GET(request: Request) {
       try {
         console.log('🔔 서버 Redis Keep-Alive 실행...');
 
-        const pingKey = 'server-keep-alive-ping';
-        const pingValue = Date.now().toString();
+        // 직접 Redis ping 명령 사용 (더 안정적)
+        const redisClient = await import('@/lib/redis').then(m =>
+          m.getRedisClient()
+        );
+        const client = await redisClient;
+        const pingResult = await client.ping();
 
-        await smartRedis.set(pingKey, pingValue, { ex: 300 }); // 5분 TTL
-        const result = await smartRedis.get(pingKey);
-
-        if (result === pingValue) {
+        if (pingResult === 'PONG') {
           // 사용량 기록
-          usageMonitor.recordRedisUsage(2);
+          usageMonitor.recordRedisUsage(1);
 
           results.redis.success = true;
           console.log('✅ 서버 Redis Keep-Alive 성공');
         } else {
-          throw new Error('Redis ping 응답 불일치');
+          throw new Error(`Redis ping 응답 오류: ${pingResult}`);
         }
       } catch (error) {
         results.redis.error =

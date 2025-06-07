@@ -28,6 +28,24 @@ import { useToast } from '@/components/ui/ToastNotification';
 import TechStackDisplay from '@/components/ui/TechStackDisplay';
 import { analyzeTechStack } from '@/utils/TechStackAnalyzer';
 
+// FeatureCard 타입 정의
+interface FeatureCard {
+  id: string;
+  title: string;
+  description: string;
+  icon: any;
+  gradient: string;
+  detailedContent: {
+    overview: string;
+    features: string[];
+    technologies: string[];
+  };
+  requiresAI: boolean;
+  isAICard?: boolean;
+  isSpecial?: boolean;
+  isVibeCard?: boolean;
+}
+
 // 기술 카테고리별 데이터
 const techCategories = {
   'mcp-integration': {
@@ -255,7 +273,7 @@ const cardTechMapping = {
 };
 
 // 카드 데이터
-const cardData = [
+const cardData: FeatureCard[] = [
   {
     id: 'mcp-ai-engine',
     title: 'MCP 기반 AI 엔진',

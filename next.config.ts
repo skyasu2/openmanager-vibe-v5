@@ -203,6 +203,8 @@ const nextConfig: NextConfig = {
         'webworker-threads': false,
       };
 
+      // natural 라이브러리의 webworker-threads 모듈 제외 (externals로 처리)
+
       const externals = config.externals || [];
       config.externals = [
         ...externals,

@@ -240,5 +240,8 @@
     "storybook": "^8.6.14",
     "tsx": "^4.19.2",
     "vitest": "^3.2.1"
+  },
+  "optionalDependencies": {
+    "webworker-threads": "^0.7.17"
   }
 }
