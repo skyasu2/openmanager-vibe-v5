@@ -1,6 +1,6 @@
 /**
  * 📊 Redis 기반 시계열 데이터 서비스
- * 
+ *
  * OpenManager AI v5.11.0 - InfluxDB 대체 솔루션
  * - Redis 스트림을 활용한 시계열 데이터 저장
  * - JSON 구조 기반 메트릭 집계
@@ -8,7 +8,7 @@
  * - Supabase 백업 연동
  */
 
-import { EnhancedServerMetrics } from './simulationEngine';
+import type { EnhancedServerMetrics } from '../types/server';
 import { cacheService } from './cacheService';
 
 // 시계열 데이터 포인트 타입
@@ -90,21 +90,24 @@ export class RedisTimeSeriesService {
             response_time: server.response_time,
           },
           status: server.status,
-          alerts_count: server.alerts?.length || 0
+          alerts_count: server.alerts?.length || 0,
         };
-        
+
         timeSeriesPoints.push(point);
       }
 
       // 메모리 기반 시계열 저장 (Redis 대안)
       await this.storePointsInMemory(timeSeriesPoints);
-      
+
       // 주기적으로 Supabase에 백업 (30분마다, 성능 최적화)
-      if (timestamp % (30 * 60 * 1000) < 10000) { // 30분 간격으로 백업 (5분 → 30분)
+      if (timestamp % (30 * 60 * 1000) < 10000) {
+        // 30분 간격으로 백업 (5분 → 30분)
         await this.backupToSupabase(timeSeriesPoints);
       }
 
-      console.log(`📊 시계열 데이터 ${timeSeriesPoints.length}개 포인트 저장 완료`);
+      console.log(
+        `📊 시계열 데이터 ${timeSeriesPoints.length}개 포인트 저장 완료`
+      );
     } catch (error) {
       console.error('❌ 시계열 데이터 저장 실패:', error);
     }
@@ -118,7 +121,7 @@ export class RedisTimeSeriesService {
 
     for (const point of points) {
       const key = `timeseries:${point.server_id}`;
-      
+
       if (!storage[key]) {
         storage[key] = [];
       }
@@ -133,7 +136,7 @@ export class RedisTimeSeriesService {
       }
 
       // 오래된 데이터 정리 (24시간 초과)
-      const cutoffTime = Date.now() - (this.RETENTION_HOURS * 60 * 60 * 1000);
+      const cutoffTime = Date.now() - this.RETENTION_HOURS * 60 * 60 * 1000;
       storage[key] = storage[key].filter(p => p.timestamp > cutoffTime);
     }
 
@@ -145,28 +148,28 @@ export class RedisTimeSeriesService {
    * 🔍 시계열 데이터 조회
    */
   async queryMetrics(
-    serverId: string, 
+    serverId: string,
     timeRange: string = '1h',
     metrics: string[] = ['cpu_usage', 'memory_usage', 'disk_usage']
   ): Promise<TimeSeriesResult> {
     try {
       const storage = this.getTimeSeriesStorage();
       const key = `timeseries:${serverId}`;
-      
+
       if (!storage[key]) {
         return {
           server_id: serverId,
           points: [],
-          aggregations: this.generateEmptyAggregations(metrics)
+          aggregations: this.generateEmptyAggregations(metrics),
         };
       }
 
       // 시간 범위 필터링
       const timeRangeMs = this.parseTimeRange(timeRange);
       const cutoffTime = Date.now() - timeRangeMs;
-      
-      const filteredPoints = storage[key].filter(point => 
-        point.timestamp > cutoffTime
+
+      const filteredPoints = storage[key].filter(
+        point => point.timestamp > cutoffTime
       );
 
       // 집계 계산
@@ -175,14 +178,14 @@ export class RedisTimeSeriesService {
       return {
         server_id: serverId,
         points: filteredPoints,
-        aggregations
+        aggregations,
       };
     } catch (error) {
       console.error('❌ 시계열 데이터 조회 실패:', error);
       return {
         server_id: serverId,
         points: [],
-        aggregations: this.generateEmptyAggregations(metrics)
+        aggregations: this.generateEmptyAggregations(metrics),
       };
     }
   }
@@ -209,7 +212,7 @@ export class RedisTimeSeriesService {
    * 📊 집계 계산
    */
   private calculateAggregations(
-    points: TimeSeriesPoint[], 
+    points: TimeSeriesPoint[],
     metrics: string[]
   ): AggregationData {
     if (points.length === 0) return this.generateEmptyAggregations(metrics);
@@ -218,14 +221,17 @@ export class RedisTimeSeriesService {
       avg: {},
       max: {},
       min: {},
-      latest: {}
+      latest: {},
     };
 
     for (const metric of metrics) {
-      const values = points.map(p => (p.metrics as any)[metric]).filter(v => v !== undefined);
-      
+      const values = points
+        .map(p => (p.metrics as any)[metric])
+        .filter(v => v !== undefined);
+
       if (values.length > 0) {
-        aggregations.avg[metric] = values.reduce((a, b) => a + b, 0) / values.length;
+        aggregations.avg[metric] =
+          values.reduce((a, b) => a + b, 0) / values.length;
         aggregations.max[metric] = Math.max(...values);
         aggregations.min[metric] = Math.min(...values);
         aggregations.latest[metric] = values[values.length - 1];
@@ -260,7 +266,7 @@ export class RedisTimeSeriesService {
         role: point.role,
         metrics: point.metrics,
         status: point.status,
-        alerts_count: point.alerts_count
+        alerts_count: point.alerts_count,
       }));
 
       const { error } = await supabase
@@ -285,10 +291,14 @@ export class RedisTimeSeriesService {
     const value = parseInt(timeRange.slice(0, -1));
 
     switch (unit) {
-      case 'm': return value * 60 * 1000; // 분
-      case 'h': return value * 60 * 60 * 1000; // 시간
-      case 'd': return value * 24 * 60 * 60 * 1000; // 일
-      default: return 60 * 60 * 1000; // 기본 1시간
+      case 'm':
+        return value * 60 * 1000; // 분
+      case 'h':
+        return value * 60 * 60 * 1000; // 시간
+      case 'd':
+        return value * 24 * 60 * 60 * 1000; // 일
+      default:
+        return 60 * 60 * 1000; // 기본 1시간
     }
   }
 
@@ -300,7 +310,7 @@ export class RedisTimeSeriesService {
       avg: {},
       max: {},
       min: {},
-      latest: {}
+      latest: {},
     };
 
     for (const metric of metrics) {
@@ -326,7 +336,9 @@ export class RedisTimeSeriesService {
     return {};
   }
 
-  private setTimeSeriesStorage(storage: Record<string, TimeSeriesPoint[]>): void {
+  private setTimeSeriesStorage(
+    storage: Record<string, TimeSeriesPoint[]>
+  ): void {
     if (typeof globalThis !== 'undefined') {
       (globalThis as any).timeSeriesStorage = storage;
     }
@@ -344,7 +356,7 @@ export class RedisTimeSeriesService {
   } {
     const storage = this.getTimeSeriesStorage();
     const serverIds = Object.keys(storage);
-    
+
     let totalPoints = 0;
     let oldestPoint: number | null = null;
     let newestPoint: number | null = null;
@@ -367,19 +379,17 @@ export class RedisTimeSeriesService {
     }
 
     // 대략적인 메모리 사용량 계산 (JSON 문자열 길이 기준)
-    const memoryUsageKB = Math.round(
-      JSON.stringify(storage).length / 1024
-    );
+    const memoryUsageKB = Math.round(JSON.stringify(storage).length / 1024);
 
     return {
       totalServers: serverIds.length,
       totalPoints,
       oldestPoint,
       newestPoint,
-      memoryUsageKB
+      memoryUsageKB,
     };
   }
 }
 
 // 싱글톤 인스턴스 export
-export const redisTimeSeriesService = RedisTimeSeriesService.getInstance(); 
+export const redisTimeSeriesService = RedisTimeSeriesService.getInstance();

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { simulationEngine } from '../../../../services/simulationEngine';
 import { prometheusFormatter } from '../../../../modules/data-generation/PrometheusMetricsFormatter';
-import type { EnhancedServerMetrics } from '../../../../services/simulationEngine';
+import type { EnhancedServerMetrics } from '../../../../types/server';
 
 /**
  * 📊 개별 서버 정보 조회 API - Enhanced & Prometheus Compatible
@@ -13,7 +13,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const startTime = Date.now();
-  
+
   try {
     const { id } = await params;
     const { searchParams } = new URL(request.url);
@@ -23,7 +23,9 @@ export async function GET(
     const includeMetrics = searchParams.get('include_metrics') === 'true';
     const includePatterns = searchParams.get('include_patterns') === 'true';
 
-    console.log(`📊 서버 [${id}] 정보 조회: history=${includeHistory}, range=${range}, format=${format}`);
+    console.log(
+      `📊 서버 [${id}] 정보 조회: history=${includeHistory}, range=${range}, format=${format}`
+    );
 
     // 1. 시뮬레이션 엔진 상태 확인
     const currentState = simulationEngine.getState();
@@ -34,8 +36,9 @@ export async function GET(
     }
 
     // 2. 서버 찾기
-    let server: EnhancedServerMetrics | undefined = simulationEngine.getServerById(id);
-    
+    let server: EnhancedServerMetrics | undefined =
+      simulationEngine.getServerById(id);
+
     if (!server) {
       // hostname으로도 검색
       const servers = simulationEngine.getServers();
@@ -43,22 +46,30 @@ export async function GET(
     }
 
     if (!server) {
-      return NextResponse.json({
-        success: false,
-        error: 'Server not found',
-        message: `서버 '${id}'를 찾을 수 없습니다`,
-        available_servers: simulationEngine.getServers().map(s => ({ id: s.id, hostname: s.hostname })),
-        timestamp: new Date().toISOString()
-      }, { status: 404 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Server not found',
+          message: `서버 '${id}'를 찾을 수 없습니다`,
+          available_servers: simulationEngine
+            .getServers()
+            .map(s => ({ id: s.id, hostname: s.hostname })),
+          timestamp: new Date().toISOString(),
+        },
+        { status: 404 }
+      );
     }
 
-    console.log(`✅ 서버 [${id}] 발견: ${server.hostname} (${server.environment}/${server.role})`);
+    console.log(
+      `✅ 서버 [${id}] 발견: ${server.hostname} (${server.environment}/${server.role})`
+    );
 
     // 3. 응답 형식에 따른 처리
     if (format === 'prometheus') {
       // Prometheus 메트릭 형식
       const serverMetrics = prometheusFormatter.formatServerMetrics(server);
-      const prometheusText = prometheusFormatter.formatToPrometheusText(serverMetrics);
+      const prometheusText =
+        prometheusFormatter.formatToPrometheusText(serverMetrics);
 
       return new NextResponse(prometheusText, {
         status: 200,
@@ -67,10 +78,9 @@ export async function GET(
           'X-Server-Id': server.id,
           'X-Hostname': server.hostname,
           'X-Total-Metrics': serverMetrics.length.toString(),
-          'X-Processing-Time-Ms': (Date.now() - startTime).toString()
-        }
+          'X-Processing-Time-Ms': (Date.now() - startTime).toString(),
+        },
       });
-
     } else if (format === 'legacy') {
       // 레거시 형식
       const legacyServer = {
@@ -81,13 +91,19 @@ export async function GET(
         environment: server.environment,
         location: getLocationByEnvironment(server.environment),
         provider: getProviderByEnvironment(server.environment),
-        status: server.status === 'healthy' ? 'online' : 
-                server.status === 'warning' ? 'warning' : 'offline',
+        status:
+          server.status === 'normal'
+            ? 'online'
+            : server.status === 'warning'
+              ? 'warning'
+              : 'offline',
         cpu: Math.round(server.cpu_usage),
         memory: Math.round(server.memory_usage),
         disk: Math.round(server.disk_usage),
         uptime: formatUptime(server.uptime),
-        lastUpdate: new Date(server.last_updated),
+        lastUpdate: new Date(
+          server.last_updated || server.timestamp || Date.now()
+        ),
         alerts: server.alerts?.length || 0,
         services: generateServices(server.role),
         specs: generateSpecs(server.id),
@@ -99,8 +115,8 @@ export async function GET(
           disk: Math.round(server.disk_usage),
           network_in: Math.round(server.network_in),
           network_out: Math.round(server.network_out),
-          response_time: Math.round(server.response_time)
-        }
+          response_time: Math.round(server.response_time),
+        },
       };
 
       // 히스토리 데이터 생성 (요청시)
@@ -118,10 +134,9 @@ export async function GET(
           include_history: includeHistory,
           range,
           timestamp: new Date().toISOString(),
-          processing_time_ms: Date.now() - startTime
-        }
+          processing_time_ms: Date.now() - startTime,
+        },
       });
-
     } else {
       // Enhanced 형식 (기본)
       const enhancedResponse = {
@@ -133,9 +148,9 @@ export async function GET(
           role: server.role,
           status: server.status,
           uptime: formatUptime(server.uptime),
-          last_updated: server.last_updated
+          last_updated: server.last_updated,
         },
-        
+
         // 현재 메트릭
         current_metrics: {
           cpu_usage: server.cpu_usage,
@@ -143,7 +158,7 @@ export async function GET(
           disk_usage: server.disk_usage,
           network_in: server.network_in,
           network_out: server.network_out,
-          response_time: server.response_time
+          response_time: server.response_time,
         },
 
         // 리소스 정보
@@ -151,30 +166,35 @@ export async function GET(
         network: {
           ip: generateIP(server.id),
           hostname: server.hostname,
-          interface: 'eth0'
+          interface: 'eth0',
         },
-        
+
         // 알람 정보
         alerts: server.alerts || [],
 
         // 서비스 정보
-        services: generateServices(server.role)
+        services: generateServices(server.role),
       };
 
       // 패턴 정보 포함 (요청시)
       if (includePatterns && server.pattern_info) {
         (enhancedResponse as any).pattern_info = server.pattern_info;
-        (enhancedResponse as any).correlation_metrics = server.correlation_metrics;
+        (enhancedResponse as any).correlation_metrics =
+          server.correlation_metrics;
       }
 
       // Prometheus 메트릭 포함 (요청시)
       if (includeMetrics) {
-        (enhancedResponse as any).prometheus_metrics = prometheusFormatter.formatServerMetrics(server);
+        (enhancedResponse as any).prometheus_metrics =
+          prometheusFormatter.formatServerMetrics(server);
       }
 
       // 히스토리 데이터 (요청시)
       if (includeHistory) {
-        (enhancedResponse as any).history = generateServerHistory(server, range);
+        (enhancedResponse as any).history = generateServerHistory(
+          server,
+          range
+        );
       }
 
       // 메타데이터
@@ -188,11 +208,11 @@ export async function GET(
             include_patterns: includePatterns,
             range,
             processing_time_ms: Date.now() - startTime,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           },
-          simulation_info: simulationEngine.getSimulationSummary()
+          simulation_info: simulationEngine.getSimulationSummary(),
         },
-        data: enhancedResponse
+        data: enhancedResponse,
       };
 
       return NextResponse.json(response, {
@@ -200,20 +220,25 @@ export async function GET(
           'X-Server-Id': server.id,
           'X-Hostname': server.hostname,
           'X-Server-Status': server.status,
-          'X-Processing-Time-Ms': (Date.now() - startTime).toString()
-        }
+          'X-Processing-Time-Ms': (Date.now() - startTime).toString(),
+        },
       });
     }
-
   } catch (error) {
     console.error(`❌ 서버 [${(await params).id}] 정보 조회 실패:`, error);
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Server information retrieval failed',
-      message: error instanceof Error ? error.message : '서버 정보 조회 중 오류가 발생했습니다',
-      timestamp: new Date().toISOString()
-    }, { status: 500 });
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Server information retrieval failed',
+        message:
+          error instanceof Error
+            ? error.message
+            : '서버 정보 조회 중 오류가 발생했습니다',
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -222,13 +247,13 @@ export async function GET(
  */
 function getLocationByEnvironment(environment: string): string {
   const locationMap: Record<string, string> = {
-    'aws': 'AWS Seoul (ap-northeast-2)',
-    'azure': 'Azure Korea Central',
-    'gcp': 'GCP Seoul (asia-northeast3)',
-    'kubernetes': 'Kubernetes Cluster',
-    'idc': 'Seoul IDC',
-    'vdi': 'Virtual Desktop Infrastructure',
-    'onpremise': 'On-Premise Seoul DC1'
+    aws: 'AWS Seoul (ap-northeast-2)',
+    azure: 'Azure Korea Central',
+    gcp: 'GCP Seoul (asia-northeast3)',
+    kubernetes: 'Kubernetes Cluster',
+    idc: 'Seoul IDC',
+    vdi: 'Virtual Desktop Infrastructure',
+    onpremise: 'On-Premise Seoul DC1',
   };
   return locationMap[environment] || 'Unknown Location';
 }
@@ -238,13 +263,13 @@ function getLocationByEnvironment(environment: string): string {
  */
 function getProviderByEnvironment(environment: string): string {
   const providerMap: Record<string, string> = {
-    'aws': 'Amazon Web Services',
-    'azure': 'Microsoft Azure',
-    'gcp': 'Google Cloud Platform',
-    'kubernetes': 'Kubernetes',
-    'idc': 'Internet Data Center',
-    'vdi': 'VMware vSphere',
-    'onpremise': 'On-Premise'
+    aws: 'Amazon Web Services',
+    azure: 'Microsoft Azure',
+    gcp: 'Google Cloud Platform',
+    kubernetes: 'Kubernetes',
+    idc: 'Internet Data Center',
+    vdi: 'VMware vSphere',
+    onpremise: 'On-Premise',
   };
   return providerMap[environment] || 'Unknown Provider';
 }
@@ -252,54 +277,58 @@ function getProviderByEnvironment(environment: string): string {
 /**
  * 🔧 역할별 서비스 생성
  */
-function generateServices(role: string): Array<{name: string; status: 'running' | 'stopped'; port: number}> {
-  const serviceMap: Record<string, Array<{name: string; port: number}>> = {
-    'web': [
+function generateServices(
+  role: string
+): Array<{ name: string; status: 'running' | 'stopped'; port: number }> {
+  const serviceMap: Record<string, Array<{ name: string; port: number }>> = {
+    web: [
       { name: 'nginx', port: 80 },
       { name: 'nodejs', port: 3000 },
-      { name: 'pm2', port: 0 }
+      { name: 'pm2', port: 0 },
     ],
-    'database': [
+    database: [
       { name: 'postgresql', port: 5432 },
       { name: 'redis', port: 6379 },
-      { name: 'pgbouncer', port: 6432 }
+      { name: 'pgbouncer', port: 6432 },
     ],
-    'api': [
+    api: [
       { name: 'api-server', port: 8080 },
       { name: 'auth-service', port: 8081 },
-      { name: 'rate-limiter', port: 8082 }
+      { name: 'rate-limiter', port: 8082 },
     ],
-    'cache': [
+    cache: [
       { name: 'redis', port: 6379 },
       { name: 'memcached', port: 11211 },
-      { name: 'redis-sentinel', port: 26379 }
+      { name: 'redis-sentinel', port: 26379 },
     ],
-    'worker': [
+    worker: [
       { name: 'worker-process', port: 9000 },
       { name: 'queue-manager', port: 9001 },
-      { name: 'scheduler', port: 9002 }
+      { name: 'scheduler', port: 9002 },
     ],
-    'gateway': [
+    gateway: [
       { name: 'nginx', port: 80 },
       { name: 'envoy', port: 8000 },
-      { name: 'consul', port: 8500 }
+      { name: 'consul', port: 8500 },
     ],
-    'storage': [
+    storage: [
       { name: 'minio', port: 9000 },
       { name: 'nfs-server', port: 2049 },
-      { name: 'rsync', port: 873 }
+      { name: 'rsync', port: 873 },
     ],
-    'monitoring': [
+    monitoring: [
       { name: 'prometheus', port: 9090 },
       { name: 'grafana', port: 3000 },
-      { name: 'alertmanager', port: 9093 }
-    ]
+      { name: 'alertmanager', port: 9093 },
+    ],
   };
 
-  const services = serviceMap[role] || [{ name: 'unknown-service', port: 8080 }];
+  const services = serviceMap[role] || [
+    { name: 'unknown-service', port: 8080 },
+  ];
   return services.map(service => ({
     ...service,
-    status: Math.random() > 0.05 ? 'running' as const : 'stopped' as const
+    status: Math.random() > 0.05 ? ('running' as const) : ('stopped' as const),
   }));
 }
 
@@ -308,32 +337,42 @@ function generateServices(role: string): Array<{name: string; status: 'running' 
  */
 function generateIP(serverId: string): string {
   const hash = serverId.split('').reduce((a, b) => {
-    a = ((a << 5) - a) + b.charCodeAt(0);
+    a = (a << 5) - a + b.charCodeAt(0);
     return a & a;
   }, 0);
-  
-  const subnet = Math.abs(hash) % 254 + 1;
-  const host = Math.abs(hash >> 8) % 254 + 1;
-  
+
+  const subnet = (Math.abs(hash) % 254) + 1;
+  const host = (Math.abs(hash >> 8) % 254) + 1;
+
   return `192.168.${subnet}.${host}`;
 }
 
 /**
  * 💻 서버 ID로 스펙 생성
  */
-function generateSpecs(serverId: string): { cpu_cores: number; memory_gb: number; disk_gb: number; os: string } {
+function generateSpecs(serverId: string): {
+  cpu_cores: number;
+  memory_gb: number;
+  disk_gb: number;
+  os: string;
+} {
   const hash = serverId.split('').reduce((a, b) => {
-    a = ((a << 5) - a) + b.charCodeAt(0);
+    a = (a << 5) - a + b.charCodeAt(0);
     return a & a;
   }, 0);
-  
+
   const cpuCores = (Math.abs(hash) % 16) + 2; // 2-18 cores
   const memoryGb = Math.pow(2, (Math.abs(hash >> 4) % 5) + 2); // 4, 8, 16, 32, 64 GB
   const diskGb = (Math.abs(hash >> 8) % 500) + 100; // 100-600 GB
-  
-  const osOptions = ['Ubuntu 22.04 LTS', 'CentOS 8', 'RHEL 8', 'Amazon Linux 2'];
+
+  const osOptions = [
+    'Ubuntu 22.04 LTS',
+    'CentOS 8',
+    'RHEL 8',
+    'Amazon Linux 2',
+  ];
   const os = osOptions[Math.abs(hash >> 12) % osOptions.length];
-  
+
   return { cpu_cores: cpuCores, memory_gb: memoryGb, disk_gb: diskGb, os };
 }
 
@@ -344,14 +383,17 @@ function formatUptime(uptimeSeconds: number): string {
   const days = Math.floor(uptimeSeconds / (24 * 3600));
   const hours = Math.floor((uptimeSeconds % (24 * 3600)) / 3600);
   const minutes = Math.floor((uptimeSeconds % 3600) / 60);
-  
+
   return `${days}d ${hours}h ${minutes}m`;
 }
 
 /**
  * 📈 서버 히스토리 생성 (시뮬레이션)
  */
-function generateServerHistory(server: EnhancedServerMetrics, range: string): any {
+function generateServerHistory(
+  server: EnhancedServerMetrics,
+  range: string
+): any {
   const timeRangeMs = parseTimeRange(range);
   const endTime = Date.now();
   const startTime = endTime - timeRangeMs;
@@ -362,24 +404,48 @@ function generateServerHistory(server: EnhancedServerMetrics, range: string): an
     start_time: new Date(startTime).toISOString(),
     end_time: new Date(endTime).toISOString(),
     interval_ms: intervalMs,
-    data_points: [] as any[]
+    data_points: [] as any[],
   };
 
   // 히스토리 데이터 포인트 생성
   for (let time = startTime; time <= endTime; time += intervalMs) {
     const timeOfDay = new Date(time).getHours();
     const variation = Math.sin((timeOfDay / 24) * 2 * Math.PI) * 0.3; // 일일 패턴
-    
+
     history.data_points.push({
       timestamp: new Date(time).toISOString(),
       metrics: {
-        cpu_usage: Math.max(0, Math.min(100, server.cpu_usage + variation * 20 + (Math.random() - 0.5) * 10)),
-        memory_usage: Math.max(0, Math.min(100, server.memory_usage + variation * 15 + (Math.random() - 0.5) * 8)),
-        disk_usage: Math.max(0, Math.min(100, server.disk_usage + (Math.random() - 0.5) * 2)),
-        network_in: Math.max(0, server.network_in + variation * 50 + (Math.random() - 0.5) * 30),
-        network_out: Math.max(0, server.network_out + variation * 40 + (Math.random() - 0.5) * 25),
-        response_time: Math.max(0, server.response_time + variation * 100 + (Math.random() - 0.5) * 50)
-      }
+        cpu_usage: Math.max(
+          0,
+          Math.min(
+            100,
+            server.cpu_usage + variation * 20 + (Math.random() - 0.5) * 10
+          )
+        ),
+        memory_usage: Math.max(
+          0,
+          Math.min(
+            100,
+            server.memory_usage + variation * 15 + (Math.random() - 0.5) * 8
+          )
+        ),
+        disk_usage: Math.max(
+          0,
+          Math.min(100, server.disk_usage + (Math.random() - 0.5) * 2)
+        ),
+        network_in: Math.max(
+          0,
+          server.network_in + variation * 50 + (Math.random() - 0.5) * 30
+        ),
+        network_out: Math.max(
+          0,
+          server.network_out + variation * 40 + (Math.random() - 0.5) * 25
+        ),
+        response_time: Math.max(
+          0,
+          server.response_time + variation * 100 + (Math.random() - 0.5) * 50
+        ),
+      },
     });
   }
 
@@ -392,11 +458,15 @@ function generateServerHistory(server: EnhancedServerMetrics, range: string): an
 function parseTimeRange(timeRange: string): number {
   const unit = timeRange.slice(-1);
   const value = parseInt(timeRange.slice(0, -1));
-  
+
   switch (unit) {
-    case 'm': return value * 60 * 1000; // 분
-    case 'h': return value * 60 * 60 * 1000; // 시간
-    case 'd': return value * 24 * 60 * 60 * 1000; // 일
-    default: return 24 * 60 * 60 * 1000; // 기본 24시간
+    case 'm':
+      return value * 60 * 1000; // 분
+    case 'h':
+      return value * 60 * 60 * 1000; // 시간
+    case 'd':
+      return value * 24 * 60 * 60 * 1000; // 일
+    default:
+      return 24 * 60 * 60 * 1000; // 기본 24시간
   }
-} 
+}

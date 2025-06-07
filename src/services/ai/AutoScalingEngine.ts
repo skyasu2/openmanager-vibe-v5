@@ -1,6 +1,6 @@
 /**
  * 🤖 AI 기반 자동 스케일링 엔진 v2.0
- * 
+ *
  * OpenManager AI v5.12.0 - 지능형 자동 스케일링
  * - 예측 기반 프로액티브 스케일링
  * - 다중 메트릭 기반 의사결정
@@ -9,7 +9,7 @@
  * - 학습 기반 임계값 조정
  */
 
-import { EnhancedServerMetrics } from '../simulationEngine';
+import type { EnhancedServerMetrics } from '../../types/server';
 import { predictiveAnalytics } from './PredictiveAnalytics';
 import { cacheService } from '../cacheService';
 import { slackNotificationService } from '../SlackNotificationService';
@@ -87,7 +87,7 @@ export class AutoScalingEngine {
     scaleUpStep: 2,
     scaleDownStep: 1,
     predictiveScaling: true,
-    costOptimization: true
+    costOptimization: true,
   };
 
   // 기본 스케일링 규칙
@@ -99,7 +99,7 @@ export class AutoScalingEngine {
       threshold: { scaleUp: 80, scaleDown: 30 },
       duration: 180, // 3분
       weight: 0.4,
-      enabled: true
+      enabled: true,
     },
     {
       id: 'memory_rule',
@@ -108,7 +108,7 @@ export class AutoScalingEngine {
       threshold: { scaleUp: 85, scaleDown: 40 },
       duration: 180,
       weight: 0.3,
-      enabled: true
+      enabled: true,
     },
     {
       id: 'response_time_rule',
@@ -117,7 +117,7 @@ export class AutoScalingEngine {
       threshold: { scaleUp: 2000, scaleDown: 500 },
       duration: 120, // 2분
       weight: 0.2,
-      enabled: true
+      enabled: true,
     },
     {
       id: 'composite_rule',
@@ -126,8 +126,8 @@ export class AutoScalingEngine {
       threshold: { scaleUp: 75, scaleDown: 35 },
       duration: 240, // 4분
       weight: 0.1,
-      enabled: true
-    }
+      enabled: true,
+    },
   ];
 
   static getInstance(): AutoScalingEngine {
@@ -140,25 +140,28 @@ export class AutoScalingEngine {
   /**
    * 🤖 자동 스케일링 의사결정 실행
    */
-  async makeScalingDecision(servers: EnhancedServerMetrics[]): Promise<ScalingDecision> {
+  async makeScalingDecision(
+    servers: EnhancedServerMetrics[]
+  ): Promise<ScalingDecision> {
     console.log('🤖 자동 스케일링 의사결정 시작...');
 
     const currentServers = servers.length;
     const metrics = this.calculateMetrics(servers);
-    
+
     // 1. 기본 규칙 기반 평가
     const ruleBasedDecision = await this.evaluateRules(servers, metrics);
-    
+
     // 2. 예측 기반 평가 (활성화된 경우)
     let predictiveDecision = null;
     if (this.policy.predictiveScaling) {
       predictiveDecision = await this.evaluatePredictiveScaling(servers);
     }
-    
+
     // 3. 비용 최적화 평가
-    const costOptimization = this.policy.costOptimization ? 
-      await this.evaluateCostOptimization(servers, metrics) : null;
-    
+    const costOptimization = this.policy.costOptimization
+      ? await this.evaluateCostOptimization(servers, metrics)
+      : null;
+
     // 4. 최종 의사결정 통합
     const finalDecision = this.integrateDecisions(
       ruleBasedDecision,
@@ -171,19 +174,27 @@ export class AutoScalingEngine {
     // 5. 안전 장치 적용
     const safeDecision = this.applySafetyChecks(finalDecision, currentServers);
 
-    console.log(`🎯 스케일링 결정: ${safeDecision.action} (${currentServers} → ${safeDecision.targetServers})`);
-    
+    console.log(
+      `🎯 스케일링 결정: ${safeDecision.action} (${currentServers} → ${safeDecision.targetServers})`
+    );
+
     return safeDecision;
   }
 
   /**
    * 📊 서버 메트릭 계산
    */
-  private calculateMetrics(servers: EnhancedServerMetrics[]): ScalingDecision['metrics'] {
-    const avgCpu = servers.reduce((sum, s) => sum + s.cpu_usage, 0) / servers.length;
-    const avgMemory = servers.reduce((sum, s) => sum + s.memory_usage, 0) / servers.length;
-    const avgDisk = servers.reduce((sum, s) => sum + s.disk_usage, 0) / servers.length;
-    const avgResponseTime = servers.reduce((sum, s) => sum + s.response_time, 0) / servers.length;
+  private calculateMetrics(
+    servers: EnhancedServerMetrics[]
+  ): ScalingDecision['metrics'] {
+    const avgCpu =
+      servers.reduce((sum, s) => sum + s.cpu_usage, 0) / servers.length;
+    const avgMemory =
+      servers.reduce((sum, s) => sum + s.memory_usage, 0) / servers.length;
+    const avgDisk =
+      servers.reduce((sum, s) => sum + s.disk_usage, 0) / servers.length;
+    const avgResponseTime =
+      servers.reduce((sum, s) => sum + s.response_time, 0) / servers.length;
 
     return { avgCpu, avgMemory, avgDisk, avgResponseTime };
   }
@@ -192,7 +203,7 @@ export class AutoScalingEngine {
    * 📏 규칙 기반 평가
    */
   private async evaluateRules(
-    servers: EnhancedServerMetrics[], 
+    servers: EnhancedServerMetrics[],
     metrics: ScalingDecision['metrics']
   ): Promise<{ action: string; score: number; reasons: string[] }> {
     let scaleUpScore = 0;
@@ -228,16 +239,25 @@ export class AutoScalingEngine {
 
       // 스케일 업 평가
       if (currentValue > rule.threshold.scaleUp) {
-        const score = rule.weight * ((currentValue - rule.threshold.scaleUp) / rule.threshold.scaleUp);
+        const score =
+          rule.weight *
+          ((currentValue - rule.threshold.scaleUp) / rule.threshold.scaleUp);
         scaleUpScore += score;
-        reasons.push(`${metricName} 높음: ${currentValue.toFixed(1)} > ${rule.threshold.scaleUp}`);
+        reasons.push(
+          `${metricName} 높음: ${currentValue.toFixed(1)} > ${rule.threshold.scaleUp}`
+        );
       }
 
       // 스케일 다운 평가
       if (currentValue < rule.threshold.scaleDown) {
-        const score = rule.weight * ((rule.threshold.scaleDown - currentValue) / rule.threshold.scaleDown);
+        const score =
+          rule.weight *
+          ((rule.threshold.scaleDown - currentValue) /
+            rule.threshold.scaleDown);
         scaleDownScore += score;
-        reasons.push(`${metricName} 낮음: ${currentValue.toFixed(1)} < ${rule.threshold.scaleDown}`);
+        reasons.push(
+          `${metricName} 낮음: ${currentValue.toFixed(1)} < ${rule.threshold.scaleDown}`
+        );
       }
     }
 
@@ -247,14 +267,20 @@ export class AutoScalingEngine {
     } else if (scaleDownScore > scaleUpScore && scaleDownScore > 0.2) {
       return { action: 'scale_down', score: scaleDownScore, reasons };
     } else {
-      return { action: 'maintain', score: 0, reasons: ['모든 메트릭이 정상 범위'] };
+      return {
+        action: 'maintain',
+        score: 0,
+        reasons: ['모든 메트릭이 정상 범위'],
+      };
     }
   }
 
   /**
    * 🔮 예측 기반 스케일링 평가
    */
-  private async evaluatePredictiveScaling(servers: EnhancedServerMetrics[]): Promise<{
+  private async evaluatePredictiveScaling(
+    servers: EnhancedServerMetrics[]
+  ): Promise<{
     action: string;
     confidence: number;
     reasons: string[];
@@ -262,43 +288,62 @@ export class AutoScalingEngine {
     try {
       // 30분 후 예측
       const predictions = await Promise.all(
-        servers.slice(0, 5).map(server => // 상위 5개 서버만 예측
-          predictiveAnalytics.predictServerLoad(server.id, 30)
+        servers.slice(0, 5).map(
+          (
+            server // 상위 5개 서버만 예측
+          ) => predictiveAnalytics.predictServerLoad(server.id, 30)
         )
       );
 
       const flatPredictions = predictions.flat();
-      const criticalPredictions = flatPredictions.filter(p => p.severity === 'critical');
-      const highPredictions = flatPredictions.filter(p => p.severity === 'high');
+      const criticalPredictions = flatPredictions.filter(
+        p => p.severity === 'critical'
+      );
+      const highPredictions = flatPredictions.filter(
+        p => p.severity === 'high'
+      );
 
-      const avgConfidence = flatPredictions.reduce((sum, p) => sum + p.confidence, 0) / 
-                           Math.max(flatPredictions.length, 1);
+      const avgConfidence =
+        flatPredictions.reduce((sum, p) => sum + p.confidence, 0) /
+        Math.max(flatPredictions.length, 1);
 
       const reasons: string[] = [];
 
       if (criticalPredictions.length > 0) {
-        reasons.push(`30분 내 ${criticalPredictions.length}개 메트릭이 위험 수준 예상`);
+        reasons.push(
+          `30분 내 ${criticalPredictions.length}개 메트릭이 위험 수준 예상`
+        );
         return { action: 'scale_up', confidence: avgConfidence, reasons };
       }
 
       if (highPredictions.length > 2) {
-        reasons.push(`30분 내 ${highPredictions.length}개 메트릭이 높은 수준 예상`);
+        reasons.push(
+          `30분 내 ${highPredictions.length}개 메트릭이 높은 수준 예상`
+        );
         return { action: 'scale_up', confidence: avgConfidence, reasons };
       }
 
       // 모든 예측이 안정적인 경우
-      const stablePredictions = flatPredictions.filter(p => p.severity === 'low');
-      if (stablePredictions.length === flatPredictions.length && servers.length > this.policy.minServers) {
+      const stablePredictions = flatPredictions.filter(
+        p => p.severity === 'low'
+      );
+      if (
+        stablePredictions.length === flatPredictions.length &&
+        servers.length > this.policy.minServers
+      ) {
         reasons.push('모든 메트릭이 안정적으로 예측됨');
         return { action: 'scale_down', confidence: avgConfidence, reasons };
       }
 
       reasons.push('예측 결과 현재 상태 유지 권장');
       return { action: 'maintain', confidence: avgConfidence, reasons };
-
     } catch (error) {
       console.warn('⚠️ 예측 기반 스케일링 평가 실패:', error);
-      return { action: 'maintain', confidence: 0, reasons: ['예측 데이터 부족'] };
+      return {
+        action: 'maintain',
+        confidence: 0,
+        reasons: ['예측 데이터 부족'],
+      };
     }
   }
 
@@ -313,12 +358,21 @@ export class AutoScalingEngine {
     const reasons: string[] = [];
 
     // 리소스 사용률이 낮고 서버 수가 최소값보다 많은 경우
-    if (metrics.avgCpu < 25 && metrics.avgMemory < 30 && servers.length > this.policy.minServers) {
-      const targetServers = Math.max(this.policy.minServers, servers.length - this.policy.scaleDownStep);
+    if (
+      metrics.avgCpu < 25 &&
+      metrics.avgMemory < 30 &&
+      servers.length > this.policy.minServers
+    ) {
+      const targetServers = Math.max(
+        this.policy.minServers,
+        servers.length - this.policy.scaleDownStep
+      );
       const projectedCost = this.calculateServerCost(targetServers);
       const savings = currentCost - projectedCost;
 
-      reasons.push(`낮은 리소스 사용률로 ${savings.toFixed(0)}원/시간 절약 가능`);
+      reasons.push(
+        `낮은 리소스 사용률로 ${savings.toFixed(0)}원/시간 절약 가능`
+      );
       return { action: 'scale_down', savings, reasons };
     }
 
@@ -334,9 +388,9 @@ export class AutoScalingEngine {
     // CPU, 메모리, 응답시간을 종합한 점수 (0-100)
     const cpuScore = metrics.avgCpu;
     const memoryScore = metrics.avgMemory;
-    const responseTimeScore = Math.min(100, (metrics.avgResponseTime / 50)); // 5초 = 100점
+    const responseTimeScore = Math.min(100, metrics.avgResponseTime / 50); // 5초 = 100점
 
-    return (cpuScore * 0.4) + (memoryScore * 0.4) + (responseTimeScore * 0.2);
+    return cpuScore * 0.4 + memoryScore * 0.4 + responseTimeScore * 0.2;
   }
 
   /**
@@ -394,10 +448,16 @@ export class AutoScalingEngine {
     // 최종 결정
     if (scaleUpScore > scaleDownScore && scaleUpScore > 0.4) {
       action = 'scale_up';
-      targetServers = Math.min(this.policy.maxServers, currentServers + this.policy.scaleUpStep);
+      targetServers = Math.min(
+        this.policy.maxServers,
+        currentServers + this.policy.scaleUpStep
+      );
     } else if (scaleDownScore > scaleUpScore && scaleDownScore > 0.3) {
       action = 'scale_down';
-      targetServers = Math.max(this.policy.minServers, currentServers - this.policy.scaleDownStep);
+      targetServers = Math.max(
+        this.policy.minServers,
+        currentServers - this.policy.scaleDownStep
+      );
     }
 
     // 비용 계산
@@ -415,34 +475,42 @@ export class AutoScalingEngine {
       costImpact: {
         currentCost,
         projectedCost,
-        savings
+        savings,
       },
       timeline: {
         immediate: action !== 'maintain',
-        estimatedTime: action === 'scale_up' ? 3 : action === 'scale_down' ? 5 : 0
-      }
+        estimatedTime:
+          action === 'scale_up' ? 3 : action === 'scale_down' ? 5 : 0,
+      },
     };
   }
 
   /**
    * 🛡️ 안전 장치 적용
    */
-  private applySafetyChecks(decision: ScalingDecision, currentServers: number): ScalingDecision {
+  private applySafetyChecks(
+    decision: ScalingDecision,
+    currentServers: number
+  ): ScalingDecision {
     const now = Date.now();
     const reasoning = [...decision.reasoning];
 
     // 쿨다운 체크
     const timeSinceLastAction = now - this.lastScalingAction;
-    const requiredCooldown = decision.action === 'scale_up' ? 
-      this.policy.scaleUpCooldown * 1000 : this.policy.scaleDownCooldown * 1000;
+    const requiredCooldown =
+      decision.action === 'scale_up'
+        ? this.policy.scaleUpCooldown * 1000
+        : this.policy.scaleDownCooldown * 1000;
 
     if (timeSinceLastAction < requiredCooldown) {
-      reasoning.push(`쿨다운 기간 중 (${Math.ceil((requiredCooldown - timeSinceLastAction) / 1000)}초 남음)`);
+      reasoning.push(
+        `쿨다운 기간 중 (${Math.ceil((requiredCooldown - timeSinceLastAction) / 1000)}초 남음)`
+      );
       return {
         ...decision,
         action: 'maintain',
         targetServers: currentServers,
-        reasoning
+        reasoning,
       };
     }
 
@@ -452,7 +520,7 @@ export class AutoScalingEngine {
       return {
         ...decision,
         targetServers: this.policy.minServers,
-        reasoning
+        reasoning,
       };
     }
 
@@ -461,21 +529,23 @@ export class AutoScalingEngine {
       return {
         ...decision,
         targetServers: this.policy.maxServers,
-        reasoning
+        reasoning,
       };
     }
 
     // 급격한 변화 방지
     const maxChange = Math.ceil(currentServers * 0.5); // 최대 50% 변화
     if (Math.abs(decision.targetServers - currentServers) > maxChange) {
-      const safeTarget = decision.action === 'scale_up' ? 
-        currentServers + maxChange : currentServers - maxChange;
-      
+      const safeTarget =
+        decision.action === 'scale_up'
+          ? currentServers + maxChange
+          : currentServers - maxChange;
+
       reasoning.push(`급격한 변화 방지 (최대 ${maxChange}개 변화)`);
       return {
         ...decision,
         targetServers: safeTarget,
-        reasoning
+        reasoning,
       };
     }
 
@@ -504,12 +574,14 @@ export class AutoScalingEngine {
       return {
         success: true,
         actualServers: decision.currentServers,
-        duration: 0
+        duration: 0,
       };
     }
 
     const startTime = Date.now();
-    console.log(`⚡ 스케일링 실행: ${decision.action} (${decision.currentServers} → ${decision.targetServers})`);
+    console.log(
+      `⚡ 스케일링 실행: ${decision.action} (${decision.currentServers} → ${decision.targetServers})`
+    );
 
     try {
       // 실제 스케일링 로직 (시뮬레이션)
@@ -526,7 +598,7 @@ export class AutoScalingEngine {
         toServers: decision.targetServers,
         trigger: decision.reasoning[0] || 'Unknown',
         success: true,
-        duration
+        duration,
       });
 
       // Slack 알림
@@ -537,9 +609,8 @@ export class AutoScalingEngine {
       return {
         success: true,
         actualServers: decision.targetServers,
-        duration
+        duration,
       };
-
     } catch (error) {
       console.error('❌ 스케일링 실행 실패:', error);
 
@@ -551,17 +622,21 @@ export class AutoScalingEngine {
         toServers: decision.targetServers,
         trigger: decision.reasoning[0] || 'Unknown',
         success: false,
-        duration: Date.now() - startTime
+        duration: Date.now() - startTime,
       });
 
       // 실패 알림
-      await this.sendScalingNotification(decision, false, error instanceof Error ? error.message : '알 수 없는 오류');
+      await this.sendScalingNotification(
+        decision,
+        false,
+        error instanceof Error ? error.message : '알 수 없는 오류'
+      );
 
       return {
         success: false,
         actualServers: decision.currentServers,
         duration: Date.now() - startTime,
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       };
     }
   }
@@ -584,21 +659,21 @@ export class AutoScalingEngine {
    * 📱 스케일링 알림 전송
    */
   private async sendScalingNotification(
-    decision: ScalingDecision, 
-    success: boolean, 
+    decision: ScalingDecision,
+    success: boolean,
     error?: string
   ): Promise<void> {
     try {
-      const message = success ? 
-        `🤖 자동 스케일링 완료\n` +
-        `• 작업: ${decision.action}\n` +
-        `• 서버 수: ${decision.currentServers} → ${decision.targetServers}\n` +
-        `• 신뢰도: ${(decision.confidence * 100).toFixed(1)}%\n` +
-        `• 비용 영향: ${decision.costImpact.savings > 0 ? '절약' : '증가'} ${Math.abs(decision.costImpact.savings).toFixed(0)}원/시간` :
-        `❌ 자동 스케일링 실패\n` +
-        `• 작업: ${decision.action}\n` +
-        `• 오류: ${error}\n` +
-        `• 현재 서버 수: ${decision.currentServers}개`;
+      const message = success
+        ? `🤖 자동 스케일링 완료\n` +
+          `• 작업: ${decision.action}\n` +
+          `• 서버 수: ${decision.currentServers} → ${decision.targetServers}\n` +
+          `• 신뢰도: ${(decision.confidence * 100).toFixed(1)}%\n` +
+          `• 비용 영향: ${decision.costImpact.savings > 0 ? '절약' : '증가'} ${Math.abs(decision.costImpact.savings).toFixed(0)}원/시간`
+        : `❌ 자동 스케일링 실패\n` +
+          `• 작업: ${decision.action}\n` +
+          `• 오류: ${error}\n` +
+          `• 현재 서버 수: ${decision.currentServers}개`;
 
       await slackNotificationService.sendSystemNotification(
         message,
@@ -614,7 +689,7 @@ export class AutoScalingEngine {
    */
   private addToHistory(entry: ScalingHistory): void {
     this.scalingHistory.unshift(entry);
-    
+
     if (this.scalingHistory.length > this.maxHistorySize) {
       this.scalingHistory = this.scalingHistory.slice(0, this.maxHistorySize);
     }
@@ -632,18 +707,23 @@ export class AutoScalingEngine {
   } {
     const totalActions = this.scalingHistory.length;
     const successfulActions = this.scalingHistory.filter(h => h.success).length;
-    const successRate = totalActions > 0 ? (successfulActions / totalActions) * 100 : 0;
-    
-    const durations = this.scalingHistory.filter(h => h.success).map(h => h.duration);
-    const averageDuration = durations.length > 0 ? 
-      durations.reduce((sum, d) => sum + d, 0) / durations.length : 0;
+    const successRate =
+      totalActions > 0 ? (successfulActions / totalActions) * 100 : 0;
+
+    const durations = this.scalingHistory
+      .filter(h => h.success)
+      .map(h => h.duration);
+    const averageDuration =
+      durations.length > 0
+        ? durations.reduce((sum, d) => sum + d, 0) / durations.length
+        : 0;
 
     return {
       totalActions,
       successRate,
       averageDuration,
       lastAction: this.scalingHistory[0] || null,
-      recentActions: this.scalingHistory.slice(0, 10)
+      recentActions: this.scalingHistory.slice(0, 10),
     };
   }
 
@@ -684,10 +764,10 @@ export class AutoScalingEngine {
       enabled: this.isEnabled,
       policy: this.policy,
       rules: this.rules,
-      lastAction: this.lastScalingAction
+      lastAction: this.lastScalingAction,
     };
   }
 }
 
 // 싱글톤 인스턴스 export
-export const autoScalingEngine = AutoScalingEngine.getInstance(); 
+export const autoScalingEngine = AutoScalingEngine.getInstance();

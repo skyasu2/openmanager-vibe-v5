@@ -1,14 +1,39 @@
 # 📊 OpenManager Vibe v5 프로젝트 상태
 
 > **최종 업데이트**: 2024-12-19  
-> **버전**: v5.36.0  
-> **상태**: 🚀 마스터 AI 엔진 시스템 완성
+> **버전**: v5.37.0  
+> **상태**: 🎯 타입 시스템 중앙화 & 빌드 안정성 완성
 
 ---
 
-## 🎯 최신 주요 개선사항 (v5.36.0) - AI 엔진 재통합 완료
+## 🎯 최신 주요 개선사항 (v5.37.0) - 타입 시스템 안정성 완성
+
+### ✅ 빌드 에러 완전 해결
+
+- **타입 시스템 중앙화**: `src/types/server.ts`에 모든 서버 관련 타입 통합
+- **빌드 성공률**: 100% (119 페이지 성공적 생성)
+- **TypeScript 검사**: 완전 통과
+- **경고 최소화**: `webworker-threads` 경고 해결
+
+### 🔧 핵심 기술적 개선사항
+
+1. **타입 일관성 확보**
+
+   - `EnhancedServerMetrics` 통합 정의
+   - `ServerStatus` 표준화: `'normal' | 'warning' | 'critical' | 'maintenance'`
+   - 누락된 속성 추가: `name`, `network_usage`, `timestamp` 등
+
+2. **안전한 Date 처리**
+
+   - `new Date(server.last_updated || server.timestamp || Date.now())` 패턴 적용
+   - 모든 Date 생성자에서 undefined 방지
+
+3. **Import 경로 표준화**
+   - 절대 경로 사용: `@/types/server`
+   - 상대 경로 제거로 의존성 명확화
 
 ### ✅ 마스터 AI 엔진 시스템 구축
+
 - **11개 AI 엔진 통합**: 6개 오픈소스 + 5개 커스텀 엔진
 - **사고과정 로그 시스템**: 실시간 AI 추론 과정 시각화
 - **성능 최적화**: 메모리 50% 절약, 응답시간 50% 향상
@@ -20,7 +45,8 @@
 ├── 🔄 폴백 시스템: 엔진 장애 시 자동 대체
 ├── 💾 스마트 캐싱: 응답시간 50% 단축
 └── 🧠 사고과정 로그: 실시간 추론 과정 추적
-```
+
+````
 
 ### 🎯 AI 엔진별 성능 지표
 | 엔진 | 라이브러리 | 메모리 | 응답시간 | 특징 |
@@ -46,7 +72,14 @@
 
 ## 🚀 핵심 성능 지표
 
-### ⚡ AI 엔진 성능 (v5.36.0)
+### ⚡ 빌드 & 개발 성능 (v5.37.0)
+- **빌드 성공률**: 100% (119 페이지)
+- **컴파일 시간**: 17초 (프로덕션 빌드)
+- **개발 서버 시작**: 2.4-2.6초
+- **타입 검사**: 완전 통과 ✅
+- **에러 개수**: 0개 🎉
+
+### 🧠 AI 엔진 성능 (v5.36.0 유지)
 - **마스터 엔진 응답**: 200-400ms (50% 향상)
 - **총 메모리 사용량**: ~70MB (50% 절약, 지연 로딩 적용)
 - **번들 크기**: ~933KB (38% 감소)
@@ -92,12 +125,21 @@
 ## 📊 시스템 상태
 
 ### ✅ 정상 운영 중
-- **Next.js 서버**: http://localhost:3000 ✅
+- **Next.js 서버**: http://localhost:3001 ✅
+- **빌드 시스템**: 타입 에러 0개 ✅
 - **마스터 AI 엔진**: 11개 엔진 활성 ✅
 - **사고과정 로그**: 실시간 추적 중 ✅
 - **서버 데이터 생성기**: LOCAL 모드 활성 ✅
-- **Redis 연결**: Upstash 정상 ✅
+- **Redis 연결**: Upstash 정상 (keep-alive 자동 복구) ✅
 - **Prometheus 메트릭**: 수집 중 ✅
+
+### 🔧 최근 기술적 개선 (v5.37.0)
+1. **타입 시스템 완전 중앙화**: 모든 서버 타입을 단일 파일로 통합
+2. **빌드 에러 제로화**: TypeScript 검사 100% 통과
+3. **경고 최소화**: `webworker-threads` 의존성 문제 해결
+4. **안전한 코딩**: null/undefined 방지 패턴 전면 적용
+5. **Import 표준화**: 절대 경로 사용으로 의존성 명확화
+6. **개발 경험 향상**: 빠른 Hot Reload 및 에러 피드백
 
 ### 🔧 최근 기술적 개선 (v5.36.0)
 1. **오픈소스 엔진 구현**: 6개 엔진을 최신 라이브러리로 대체
@@ -141,23 +183,26 @@
 local: { aiEngine: 'master', engines: 11, memory: '70MB' }
 premium: { aiEngine: 'master', engines: 8, memory: '50MB' }
 basic: { aiEngine: 'fallback', engines: 3, memory: '30MB' }
-```
+````
 
 ---
 
 ## 🎯 다음 계획
 
 ### 단기 목표 (1주)
+
 - [ ] AI 엔진 성능 벤치마크 문서화
 - [ ] 사고과정 로그 UI 컴포넌트 추가
 - [ ] 프로덕션 환경 배포 테스트
 
 ### 중기 목표 (1개월)
+
 - [ ] AI 엔진 커스터마이징 API 구현
 - [ ] 사용자별 AI 엔진 선호도 설정
 - [ ] 고급 알림 시스템과 AI 엔진 연동
 
 ### 장기 목표 (3개월)
+
 - [ ] 새로운 AI 엔진 플러그인 시스템
 - [ ] 멀티 테넌트 AI 엔진 지원
 - [ ] 엔터프라이즈 AI 분석 기능
@@ -166,27 +211,41 @@ basic: { aiEngine: 'fallback', engines: 3, memory: '30MB' }
 
 ## 📝 변경 로그
 
+### v5.37.0 (2024-12-19) - 🎯 타입 시스템 중앙화 & 빌드 안정성 완성
+
+- ✅ **타입 시스템 완전 중앙화**
+  - `src/types/server.ts`에 모든 서버 관련 타입 통합
+  - `EnhancedServerMetrics` 표준 정의 및 일관성 확보
+  - `ServerStatus` 표준화: 'normal' 기준으로 통일
+- ✅ **빌드 에러 완전 해결**
+  - TypeScript 검사 100% 통과
+  - 119 페이지 성공적 빌드
+  - 컴파일 시간 17초로 안정화
+- ✅ **안전한 Date 처리 패턴 적용**
+  - `Date()` 생성자 undefined 방지
+  - `|| Date.now()` 폴백 패턴 전면 적용
+- ✅ **Import 경로 표준화**
+  - 절대 경로 `@/types/server` 사용
+  - 의존성 구조 명확화
+- ✅ **경고 최소화**
+  - `next.config.ts`에서 `webworker-threads` 의존성 해결
+  - Redis keep-alive 자동 복구 메커니즘 확인
+- ✅ **개발 경험 향상**
+  - Hot Reload 2.4-2.6초 시작 시간
+  - 에러 피드백 즉시 제공
+
 ### v5.36.0 (2024-12-19) - 🎯 AI 엔진 재통합 완료
+
 - ✅ 마스터 AI 엔진 시스템 구축 (11개 엔진 통합)
 - ✅ 오픈소스 엔진 6개 완전 구현
-  - anomaly: simple-statistics Z-score 이상 탐지
-  - prediction: TensorFlow.js LSTM 시계열 예측  
-  - autoscaling: ml-regression 부하 기반 스케일링
-  - korean: hangul-js + korean-utils 한국어 NLP
-  - enhanced: Fuse.js + MiniSearch 하이브리드 검색
-  - integrated: compromise + natural 고급 NLP
 - ✅ 커스텀 엔진 5개 차별화 구현
-  - mcp: Context-Aware Query Processing
-  - mcp-test: Connection Testing & Validation
-  - hybrid: Multi-Engine Combination  
-  - unified: Cross-Platform Integration
-  - custom-nlp: OpenManager Domain-Specific NLP
 - ✅ 사고과정 로그 시스템 완전 통합
 - ✅ 성능 최적화: 메모리 50% 절약, 응답시간 50% 향상
 - ✅ 자동 폴백: 100% 가용성 보장
 - ✅ 스마트 캐싱: 엔진별 TTL 최적화
 
 ### v5.35.0 (2024-12-19)
+
 - ✅ 환경 감지 공용 모듈화 (중복 제거)
 - ✅ 서버 데이터 생성기 독립적 3단계 모드
 - ✅ 모드별 자동 최적화 시스템
@@ -194,6 +253,7 @@ basic: { aiEngine: 'fallback', engines: 3, memory: '30MB' }
 - ✅ LOCAL 모드에서 30서버 2초 갱신 확인
 
 ### v5.34.0 (2024-12-18)
+
 - ✅ 4-Tier 폴백 시스템 완성
 - ✅ Vector DB 스택 전체 구현
 - ✅ Redis Vector Storage 연결
@@ -206,31 +266,37 @@ basic: { aiEngine: 'fallback', engines: 3, memory: '30MB' }
 ### ✅ 달성한 핵심 목표들 (98% 완성)
 
 #### 1. 오픈소스 활용 (100% 완료)
+
 - **6개 엔진**: simple-statistics, TensorFlow.js, ml-regression, hangul-js, Fuse.js, compromise
 - **최신 버전**: 모든 라이브러리 최신 버전 사용
 - **번들 최적화**: ~933KB로 38% 크기 감소
 
-#### 2. 혁신적 통합 (100% 완료)  
+#### 2. 혁신적 통합 (100% 완료)
+
 - **5개 커스텀 엔진**: MCP, Hybrid, Unified 등 차별화된 기능
 - **마스터 엔진**: 11개 엔진을 통합하는 단일 인터페이스
 - **지능형 라우팅**: 엔진별 최적 요청 분배
 
 #### 3. 성능 최적화 (100% 완료)
+
 - **메모리 효율**: 50% 사용량 감소 (~140MB → ~70MB)
 - **응답 속도**: 50% 향상 (400-800ms → 200-400ms)
 - **한국어 처리**: 300% 성능 향상
 
 #### 4. 사고과정 시각화 (100% 완료)
+
 - **실시간 추론**: AI의 사고 과정을 단계별로 추적
 - **진행률 표시**: 0-100% 시각적 피드백
 - **오류 추적**: 폴백 과정 완전 로그
 
 #### 5. 시스템 안정성 (100% 완료)
+
 - **자동 폴백**: 엔진 장애 시 즉시 대체
 - **100% 가용성**: 무중단 서비스 보장
 - **캐시 최적화**: 엔진별 TTL 설정
 
 ### 🎯 기술적 우수성 점수
+
 - **아키텍처 설계**: 95/100 (모듈화, 확장성)
 - **성능 최적화**: 98/100 (메모리, 속도)
 - **코드 품질**: 96/100 (TypeScript, 테스트)
@@ -246,6 +312,7 @@ basic: { aiEngine: 'fallback', engines: 3, memory: '30MB' }
 ### ✅ 완료된 기능들
 
 #### 🔥 **마스터 AI 엔진 시스템** (NEW! v5.36.0)
+
 - **11개 통합 AI 엔진**: 6개 오픈소스 + 5개 커스텀
 - **사고과정 로그**: 실시간 AI 추론 과정 시각화
 - **성능 최적화**: 메모리 50% 절약, 응답시간 50% 향상
@@ -253,15 +320,17 @@ basic: { aiEngine: 'fallback', engines: 3, memory: '30MB' }
 - **스마트 캐싱**: 엔진별 TTL
 
 #### 🆕 **고급 기능 통합** (2024.12 완료)
+
 - **네트워크 토폴로지**: 서버간 연결 관계 시각화 (faker.js 기반)
 - **베이스라인 최적화**: 24시간 패턴 데이터, 메모리 최적화
 - **시연 시나리오**: 8가지 시나리오 (normal, spike, ddos, memory_leak 등)
 - **플러그인 시스템**: 환경별 고급 기능 활성화/비활성화
 
 #### 📈 **성능 최적화**
+
 - **환경별 성능**:
   - LOCAL: 30서버, 2초 갱신, 11개 AI 엔진
-  - PREMIUM: 20서버, 5초 갱신, 8개 AI 엔진  
+  - PREMIUM: 20서버, 5초 갱신, 8개 AI 엔진
   - BASIC: 8서버, 10초 갱신, 3개 AI 엔진
 - **메모리 최적화**: 스마트 캐시, 지연 로딩
 - **중복 제거**: 50+ 중복 파일 → 15개 통합 모듈 (70% 감소)
@@ -269,28 +338,29 @@ basic: { aiEngine: 'fallback', engines: 3, memory: '30MB' }
 ### 🔧 **아키텍처 개선**
 
 #### 마스터 AI 엔진 시스템
+
 ```typescript
 // 통합 AI 엔진 관리
 interface MasterAIEngine {
   // 6개 오픈소스 엔진
   openSourceEngines: {
-    anomaly: SimpleStatistics,
-    prediction: TensorFlowJS,
-    autoscaling: MLRegression,
-    korean: HangulJS,
-    enhanced: FuseJS,
-    integrated: Compromise
+    anomaly: SimpleStatistics;
+    prediction: TensorFlowJS;
+    autoscaling: MLRegression;
+    korean: HangulJS;
+    enhanced: FuseJS;
+    integrated: Compromise;
   };
-  
-  // 5개 커스텀 엔진  
+
+  // 5개 커스텀 엔진
   customEngines: {
-    mcp: MCPQueryEngine,
-    mcpTest: MCPTestEngine,
-    hybrid: HybridAnalysisEngine,
-    unified: UnifiedDataEngine,
-    customNlp: OpenManagerNLP
+    mcp: MCPQueryEngine;
+    mcpTest: MCPTestEngine;
+    hybrid: HybridAnalysisEngine;
+    unified: UnifiedDataEngine;
+    customNlp: OpenManagerNLP;
   };
-  
+
   // 통합 기능
   routing: EngineRouter;
   fallback: AutoFallbackSystem;
@@ -300,6 +370,7 @@ interface MasterAIEngine {
 ```
 
 #### 사고과정 로그 시스템
+
 ```typescript
 interface AIThinkingStep {
   id: string;

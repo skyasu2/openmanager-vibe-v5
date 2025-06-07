@@ -1,25 +1,24 @@
 /**
  * 📄 자동 장애 보고서 조회 패널 컴포넌트 (사이드 패널용)
- * 
+ *
  * - 자동 생성된 보고서 조회
  * - 보고서 다운로드
  * - 실시간 상태 확인
  * - 보고서 관리는 관리 페이지에서만 가능
  */
 
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 'use client';
 
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  FileText, 
-  Download, 
-  AlertTriangle, 
+import {
+  FileText,
+  Download,
+  AlertTriangle,
   CheckCircle,
   Clock,
   TrendingUp,
-  Activity
+  Activity,
 } from 'lucide-react';
 import BasePanelLayout from './shared/BasePanelLayout';
 import { useDataLoader } from '@/hooks/useDataLoader';
@@ -68,8 +67,8 @@ const generateMockReports = (): ReportData[] => [
       avgResponseTime: 125,
       cpuUsage: 68,
       memoryUsage: 72,
-      diskUsage: 45
-    }
+      diskUsage: 45,
+    },
   },
   {
     id: 'report_2',
@@ -88,8 +87,8 @@ const generateMockReports = (): ReportData[] => [
       avgResponseTime: 148,
       cpuUsage: 78,
       memoryUsage: 65,
-      diskUsage: 52
-    }
+      diskUsage: 52,
+    },
   },
   {
     id: 'report_3',
@@ -108,8 +107,8 @@ const generateMockReports = (): ReportData[] => [
       avgResponseTime: 112,
       cpuUsage: 62,
       memoryUsage: 58,
-      diskUsage: 41
-    }
+      diskUsage: 41,
+    },
   },
   {
     id: 'report_4',
@@ -128,23 +127,33 @@ const generateMockReports = (): ReportData[] => [
       avgResponseTime: 0,
       cpuUsage: 0,
       memoryUsage: 0,
-      diskUsage: 0
-    }
-  }
+      diskUsage: 0,
+    },
+  },
 ];
 
-// @ts-nocheck - 임시 타입 체크 비활성화
-const AutoReportPanel: React.FC<AutoReportPanelProps> = ({ className = '' }) => {
+const AutoReportPanel: React.FC<AutoReportPanelProps> = ({
+  className = '',
+}) => {
   // 데이터 로딩 (30초마다 자동 새로고침)
-  // @ts-expect-error - 임시 타입 무시
-  const { data: reports, isLoading, reload } = useMockDataLoader(
-    generateMockReports,
-    1000, // 1초 로딩 지연
-    30000 // 30초마다 새로고침
+  // Mock 데이터 사용
+  const [reports, setReports] = React.useState<ReportData[]>(
+    generateMockReports()
   );
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  const reload = React.useCallback(() => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setReports(generateMockReports());
+      setIsLoading(false);
+    }, 1000);
+  }, []);
 
   // 필터 상태 관리
-  const [selectedFilter, setSelectedFilter] = React.useState<'all' | 'daily' | 'incident' | 'performance' | 'security'>('all');
+  const [selectedFilter, setSelectedFilter] = React.useState<
+    'all' | 'daily' | 'incident' | 'performance' | 'security'
+  >('all');
 
   // 필터 설정
   const reportTypes = [
@@ -152,15 +161,15 @@ const AutoReportPanel: React.FC<AutoReportPanelProps> = ({ className = '' }) => 
     { id: 'daily', label: '일일 보고서', icon: '📋' },
     { id: 'incident', label: '장애 분석', icon: '🚨' },
     { id: 'performance', label: '성능 분석', icon: '⚡' },
-    { id: 'security', label: '보안 상태', icon: '🔒' }
+    { id: 'security', label: '보안 상태', icon: '🔒' },
   ];
 
   // 필터링된 보고서들
   const filteredReports = useMemo(() => {
     if (!reports) return [];
-    return selectedFilter === 'all' 
-      ? reports 
-      : reports.filter((report: Report) => report.type === selectedFilter);
+    return selectedFilter === 'all'
+      ? reports
+      : reports.filter((report: ReportData) => report.type === selectedFilter);
   }, [reports, selectedFilter]);
 
   // 유틸리티 함수들
@@ -172,19 +181,22 @@ const AutoReportPanel: React.FC<AutoReportPanelProps> = ({ className = '' }) => 
   const getStatusIcon = (status: ReportData['status']) => {
     switch (status) {
       case 'generating':
-        return <Clock className="w-4 h-4 text-yellow-400 animate-pulse" />;
+        return <Clock className='w-4 h-4 text-yellow-400 animate-pulse' />;
       case 'completed':
-        return <CheckCircle className="w-4 h-4 text-green-400" />;
+        return <CheckCircle className='w-4 h-4 text-green-400' />;
       case 'error':
-        return <AlertTriangle className="w-4 h-4 text-red-400" />;
+        return <AlertTriangle className='w-4 h-4 text-red-400' />;
     }
   };
 
   const getStatusText = (status: ReportData['status']) => {
     switch (status) {
-      case 'generating': return '생성 중';
-      case 'completed': return '완료';
-      case 'error': return '오류';
+      case 'generating':
+        return '생성 중';
+      case 'completed':
+        return '완료';
+      case 'error':
+        return '오류';
     }
   };
 
@@ -193,111 +205,115 @@ const AutoReportPanel: React.FC<AutoReportPanelProps> = ({ className = '' }) => 
       daily: '📋',
       incident: '🚨',
       performance: '⚡',
-      security: '🔒'
+      security: '🔒',
     };
     return typeMap[type as keyof typeof typeMap] || '📊';
   };
 
   return (
     <BasePanelLayout
-      title="자동 보고서"
-      subtitle="AI가 자동 생성한 분석 보고서"
-      icon={<FileText className="w-4 h-4 text-white" />}
-      iconGradient="bg-gradient-to-br from-green-500 to-blue-600"
+      title='자동 보고서'
+      subtitle='AI가 자동 생성한 분석 보고서'
+      icon={<FileText className='w-4 h-4 text-white' />}
+      iconGradient='bg-gradient-to-br from-green-500 to-blue-600'
       onRefresh={reload}
       isLoading={isLoading}
-      adminPath="/admin/ai-agent/reports"
-      adminLabel="관리"
+      adminPath='/admin/ai-agent/reports'
+      adminLabel='관리'
       filters={reportTypes}
       selectedFilter={selectedFilter}
-      onFilterChange={(filterId) => setSelectedFilter(filterId as any)}
+      onFilterChange={filterId => setSelectedFilter(filterId as any)}
       bottomInfo={{
         primary: '🤖 보고서는 AI가 자동으로 분석하여 생성합니다',
-        secondary: '보고서 스케줄링 및 상세 관리는 관리자 페이지에서 가능합니다'
+        secondary:
+          '보고서 스케줄링 및 상세 관리는 관리자 페이지에서 가능합니다',
       }}
       className={className}
     >
       {/* 보고서 목록 */}
-      <div className="p-4">
-        <div className="space-y-3">
-          {filteredReports.map((report: Report) => (
+      <div className='p-4'>
+        <div className='space-y-3'>
+          {filteredReports.map((report: ReportData) => (
             <motion.div
               key={report.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-gray-800/50 border border-gray-600/30 rounded-lg p-4 hover:bg-gray-700/30 transition-colors"
+              className='bg-gray-800/50 border border-gray-600/30 rounded-lg p-4 hover:bg-gray-700/30 transition-colors'
             >
               {/* 보고서 헤더 */}
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-lg">{getTypeIcon(report.type)}</span>
-                    <h4 className="text-white font-medium text-sm">{report.title}</h4>
+              <div className='flex items-start justify-between mb-3'>
+                <div className='flex-1'>
+                  <div className='flex items-center gap-2 mb-1'>
+                    <span className='text-lg'>{getTypeIcon(report.type)}</span>
+                    <h4 className='text-white font-medium text-sm'>
+                      {report.title}
+                    </h4>
                     {getStatusIcon(report.status as ReportData['status'])}
-                    <span className="text-xs text-gray-400">
+                    <span className='text-xs text-gray-400'>
                       {getStatusText(report.status as ReportData['status'])}
                     </span>
                   </div>
-                  <p className="text-gray-400 text-xs">
+                  <p className='text-gray-400 text-xs'>
                     {report.generatedAt.toLocaleString()}
                   </p>
                 </div>
-                
+
                 {report.status === 'completed' && (
                   <motion.button
                     onClick={() => downloadReport(report.id)}
-                    className="p-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 
-                               rounded-lg text-green-300 transition-colors"
+                    className='p-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 
+                               rounded-lg text-green-300 transition-colors'
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <Download className="w-4 h-4" />
+                    <Download className='w-4 h-4' />
                   </motion.button>
                 )}
               </div>
 
               {/* 보고서 요약 */}
-              <p className="text-gray-200 text-sm mb-3">{report.summary}</p>
+              <p className='text-gray-200 text-sm mb-3'>{report.summary}</p>
 
               {/* 보고서 상세 통계 (완료된 보고서만) */}
               {report.status === 'completed' && (
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="bg-gray-700/30 rounded-lg p-2">
-                    <div className="flex items-center gap-1 mb-1">
-                      <Activity className="w-3 h-3 text-green-400" />
-                      <span className="text-gray-400">정상 서버</span>
+                <div className='grid grid-cols-2 gap-2 text-xs'>
+                  <div className='bg-gray-700/30 rounded-lg p-2'>
+                    <div className='flex items-center gap-1 mb-1'>
+                      <Activity className='w-3 h-3 text-green-400' />
+                      <span className='text-gray-400'>정상 서버</span>
                     </div>
-                    <span className="text-green-300 font-medium">
-                      {report.details.healthyServers}/{report.details.totalServers}
+                    <span className='text-green-300 font-medium'>
+                      {report.details.healthyServers}/
+                      {report.details.totalServers}
                     </span>
                   </div>
-                  
-                  <div className="bg-gray-700/30 rounded-lg p-2">
-                    <div className="flex items-center gap-1 mb-1">
-                      <AlertTriangle className="w-3 h-3 text-yellow-400" />
-                      <span className="text-gray-400">경고</span>
+
+                  <div className='bg-gray-700/30 rounded-lg p-2'>
+                    <div className='flex items-center gap-1 mb-1'>
+                      <AlertTriangle className='w-3 h-3 text-yellow-400' />
+                      <span className='text-gray-400'>경고</span>
                     </div>
-                    <span className="text-yellow-300 font-medium">
+                    <span className='text-yellow-300 font-medium'>
                       {report.details.warningServers}
                     </span>
                   </div>
-                  
-                  <div className="bg-gray-700/30 rounded-lg p-2">
-                    <div className="flex items-center gap-1 mb-1">
-                      <TrendingUp className="w-3 h-3 text-blue-400" />
-                      <span className="text-gray-400">CPU</span>
+
+                  <div className='bg-gray-700/30 rounded-lg p-2'>
+                    <div className='flex items-center gap-1 mb-1'>
+                      <TrendingUp className='w-3 h-3 text-blue-400' />
+                      <span className='text-gray-400'>CPU</span>
                     </div>
-                    <span className="text-blue-300 font-medium">
+                    <span className='text-blue-300 font-medium'>
                       {report.details.cpuUsage}%
                     </span>
                   </div>
-                  
-                  <div className="bg-gray-700/30 rounded-lg p-2">
-                    <div className="flex items-center gap-1 mb-1">
-                      <Clock className="w-3 h-3 text-purple-400" />
-                      <span className="text-gray-400">응답시간</span>
+
+                  <div className='bg-gray-700/30 rounded-lg p-2'>
+                    <div className='flex items-center gap-1 mb-1'>
+                      <Clock className='w-3 h-3 text-purple-400' />
+                      <span className='text-gray-400'>응답시간</span>
                     </div>
-                    <span className="text-purple-300 font-medium">
+                    <span className='text-purple-300 font-medium'>
                       {report.details.avgResponseTime}ms
                     </span>
                   </div>
@@ -307,15 +323,14 @@ const AutoReportPanel: React.FC<AutoReportPanelProps> = ({ className = '' }) => 
           ))}
 
           {filteredReports.length === 0 && (
-            <div className="text-center text-gray-500 mt-8">
-              <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p className="text-sm">
-                {selectedFilter === 'all' 
+            <div className='text-center text-gray-500 mt-8'>
+              <FileText className='w-12 h-12 mx-auto mb-4 opacity-50' />
+              <p className='text-sm'>
+                {selectedFilter === 'all'
                   ? '생성된 보고서가 없습니다'
-                  : `${reportTypes.find(t => t.id === selectedFilter)?.label} 보고서가 없습니다`
-                }
+                  : `${reportTypes.find(t => t.id === selectedFilter)?.label} 보고서가 없습니다`}
               </p>
-              <p className="text-xs text-gray-600 mt-1">
+              <p className='text-xs text-gray-600 mt-1'>
                 보고서는 자동으로 주기적으로 생성됩니다
               </p>
             </div>
@@ -326,4 +341,4 @@ const AutoReportPanel: React.FC<AutoReportPanelProps> = ({ className = '' }) => 
   );
 };
 
-export default AutoReportPanel; 
+export default AutoReportPanel;

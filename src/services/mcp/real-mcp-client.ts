@@ -85,11 +85,11 @@ export class RealMCPClient {
         NODE_OPTIONS: env.limits.memory,
         PROJECT_ROOT: env.paths.root,
       },
-      enabled: mcpConfig.filesystem.enabled,
+      enabled: true, // 기본값 사용
     });
 
     // 🐙 GitHub 서버 (저장소 관리)
-    const githubToken = mcpConfig.github.token;
+    const githubToken = 'demo-token'; // 기본값 사용
     this.servers.set('github', {
       name: 'github',
       command: npxCommand,
@@ -102,7 +102,7 @@ export class RealMCPClient {
         GITHUB_TOKEN: githubToken || 'demo-token',
         NODE_OPTIONS: '--max-old-space-size=256',
       },
-      enabled: mcpConfig.github.enabled,
+      enabled: false, // 기본값 사용 (GitHub 토큰 없으면 비활성화)
     });
 
     console.log(

@@ -1,6 +1,6 @@
 /**
  * 🚀 Enhanced Cache Service with Upstash for Redis Support v2.0
- * 
+ *
  * OpenManager AI v5.16.1 - 고성능 Upstash for Redis 캐싱 통합 서비스
  * - 고성능 Upstash for Redis 연결 관리
  * - 메모리 fallback 지원
@@ -10,7 +10,7 @@
  * - 실시간 통계
  */
 
-import { EnhancedServerMetrics } from './simulationEngine';
+import type { EnhancedServerMetrics } from '../types/server';
 import { redisConnectionManager } from './RedisConnectionManager';
 
 // 메모리 기반 fallback 캐시
@@ -22,7 +22,7 @@ const memoryCache = new Map<string, { data: any; expires: number }>();
 export class EnhancedCacheService {
   private static instance: EnhancedCacheService;
   private initialized: boolean = false;
-  
+
   static getInstance(): EnhancedCacheService {
     if (!this.instance) {
       this.instance = new EnhancedCacheService();
@@ -37,24 +37,25 @@ export class EnhancedCacheService {
     if (this.initialized) return;
 
     console.log('🚀 캐시 서비스 초기화 시작...');
-    
+
     try {
       // Upstash for Redis 연결 초기화
       const redisConnected = await redisConnectionManager.initialize();
-      
+
       if (redisConnected) {
         console.log('✅ Upstash for Redis 캐시 연결 성공');
-        
+
         // Upstash for Redis 건강 상태 체크
         const healthCheck = await redisConnectionManager.performHealthCheck();
-        console.log(`🏥 Upstash for Redis 건강 상태: ${healthCheck.status} (응답시간: ${healthCheck.responseTime}ms)`);
+        console.log(
+          `🏥 Upstash for Redis 건강 상태: ${healthCheck.status} (응답시간: ${healthCheck.responseTime}ms)`
+        );
       } else {
         console.warn('⚠️ Upstash for Redis 연결 실패 - 메모리 캐시로 동작');
       }
 
       this.initialized = true;
       console.log('✅ 캐시 서비스 초기화 완료');
-
     } catch (error) {
       console.error('❌ 캐시 서비스 초기화 실패:', error);
       console.log('💾 메모리 기반 fallback 캐시 사용');
@@ -74,30 +75,38 @@ export class EnhancedCacheService {
    */
   async cacheServerMetrics(servers: EnhancedServerMetrics[]): Promise<void> {
     const timestamp = Date.now();
-    
+
     try {
       const redisClient = this.getRedisClient();
-      
+
       if (redisClient && redisConnectionManager.isRedisConnected()) {
         // 🔥 고성능 Upstash for Redis 캐싱
         const pipeline = redisClient.pipeline();
-        
+
         // 전체 서버 목록
-        pipeline.setex('servers:all', 60, JSON.stringify({
-          servers,
-          timestamp,
-          count: servers.length
-        }));
-        
+        pipeline.setex(
+          'servers:all',
+          60,
+          JSON.stringify({
+            servers,
+            timestamp,
+            count: servers.length,
+          })
+        );
+
         // 서버 상태 요약
-        pipeline.setex('servers:summary', 300, JSON.stringify({
-          total: servers.length,
-          healthy: servers.filter(s => s.status === 'healthy').length,
-          warning: servers.filter(s => s.status === 'warning').length,
-          critical: servers.filter(s => s.status === 'critical').length,
-          timestamp
-        }));
-        
+        pipeline.setex(
+          'servers:summary',
+          300,
+          JSON.stringify({
+            total: servers.length,
+            healthy: servers.filter(s => s.status === 'normal').length,
+            warning: servers.filter(s => s.status === 'warning').length,
+            critical: servers.filter(s => s.status === 'critical').length,
+            timestamp,
+          })
+        );
+
         // 개별 서버 캐싱
         servers.forEach(server => {
           pipeline.setex(`server:${server.id}`, 300, JSON.stringify(server));
@@ -105,8 +114,10 @@ export class EnhancedCacheService {
 
         // 배치 실행
         await pipeline.exec();
-        
-        console.log(`🔥 Upstash for Redis: ${servers.length}개 서버 메트릭 캐싱 완료`);
+
+        console.log(
+          `🔥 Upstash for Redis: ${servers.length}개 서버 메트릭 캐싱 완료`
+        );
       } else {
         // 메모리 fallback
         await this.fallbackToMemoryCache(servers, timestamp);
@@ -120,35 +131,45 @@ export class EnhancedCacheService {
   /**
    * 💾 메모리 fallback 캐싱
    */
-  private async fallbackToMemoryCache(servers: EnhancedServerMetrics[], timestamp: number): Promise<void> {
-    this.cacheToMemory('servers:all', { servers, timestamp, count: servers.length }, 60000);
-    
+  private async fallbackToMemoryCache(
+    servers: EnhancedServerMetrics[],
+    timestamp: number
+  ): Promise<void> {
+    this.cacheToMemory(
+      'servers:all',
+      { servers, timestamp, count: servers.length },
+      60000
+    );
+
     const summary = {
       total: servers.length,
-      healthy: servers.filter(s => s.status === 'healthy').length,
+      healthy: servers.filter(s => s.status === 'normal').length,
       warning: servers.filter(s => s.status === 'warning').length,
       critical: servers.filter(s => s.status === 'critical').length,
-      timestamp
+      timestamp,
     };
     this.cacheToMemory('servers:summary', summary, 300000);
-    
+
     console.log(`💾 Memory: ${servers.length}개 서버 메트릭 캐싱 완료`);
   }
 
   /**
    * 캐시된 서버 데이터 조회
    */
-  async getCachedServers(): Promise<{ servers: EnhancedServerMetrics[]; timestamp: number } | null> {
+  async getCachedServers(): Promise<{
+    servers: EnhancedServerMetrics[];
+    timestamp: number;
+  } | null> {
     try {
       const redisClient = this.getRedisClient();
-      
+
       if (redisClient && redisConnectionManager.isRedisConnected()) {
         const cached = await redisClient.get('servers:all');
         if (cached) {
           return JSON.parse(cached);
         }
       }
-      
+
       // 메모리 fallback
       const memoryCached = this.getFromMemory('servers:all');
       return memoryCached;
@@ -164,14 +185,14 @@ export class EnhancedCacheService {
   async getCachedSummary(): Promise<any> {
     try {
       const redisClient = this.getRedisClient();
-      
+
       if (redisClient && redisConnectionManager.isRedisConnected()) {
         const cached = await redisClient.get('servers:summary');
         if (cached) {
           return JSON.parse(cached);
         }
       }
-      
+
       return this.getFromMemory('servers:summary');
     } catch (error) {
       console.error('❌ 요약 조회 실패:', error);
@@ -182,17 +203,19 @@ export class EnhancedCacheService {
   /**
    * 개별 서버 정보 조회
    */
-  async getCachedServer(serverId: string): Promise<EnhancedServerMetrics | null> {
+  async getCachedServer(
+    serverId: string
+  ): Promise<EnhancedServerMetrics | null> {
     try {
       const redisClient = this.getRedisClient();
-      
+
       if (redisClient && redisConnectionManager.isRedisConnected()) {
         const cached = await redisClient.get(`server:${serverId}`);
         if (cached) {
           return JSON.parse(cached);
         }
       }
-      
+
       return this.getFromMemory(`server:${serverId}`);
     } catch (error) {
       console.error('❌ 서버 조회 실패:', error);
@@ -206,7 +229,7 @@ export class EnhancedCacheService {
   async invalidateCache(pattern?: string): Promise<void> {
     try {
       const redisClient = this.getRedisClient();
-      
+
       if (redisClient && redisConnectionManager.isRedisConnected()) {
         if (pattern) {
           const keys = await redisClient.keys(pattern);
@@ -217,7 +240,7 @@ export class EnhancedCacheService {
           await redisClient.flushdb();
         }
       }
-      
+
       // 메모리 캐시도 클리어
       if (pattern) {
         for (const key of memoryCache.keys()) {
@@ -228,7 +251,7 @@ export class EnhancedCacheService {
       } else {
         memoryCache.clear();
       }
-      
+
       console.log('🗑️ 캐시 무효화 완료');
     } catch (error) {
       console.error('❌ 캐시 무효화 실패:', error);
@@ -241,7 +264,7 @@ export class EnhancedCacheService {
   async set(key: string, value: any, ttlSeconds: number = 300): Promise<void> {
     try {
       const redisClient = this.getRedisClient();
-      
+
       if (redisClient && redisConnectionManager.isRedisConnected()) {
         await redisClient.setex(key, ttlSeconds, JSON.stringify(value));
       } else {
@@ -260,7 +283,7 @@ export class EnhancedCacheService {
   async get(key: string): Promise<any> {
     try {
       const redisClient = this.getRedisClient();
-      
+
       if (redisClient && redisConnectionManager.isRedisConnected()) {
         const cached = await redisClient.get(key);
         return cached ? JSON.parse(cached) : null;
@@ -276,16 +299,16 @@ export class EnhancedCacheService {
   /**
    * 캐시 통계 조회 (getStats 메서드)
    */
-  getStats(): { 
+  getStats(): {
     memoryCache: { size: number; keys: string[] };
     redis: any;
   } {
     const redisStats = redisConnectionManager.getConnectionStats();
-    
+
     return {
       memoryCache: {
         size: memoryCache.size,
-        keys: Array.from(memoryCache.keys())
+        keys: Array.from(memoryCache.keys()),
       },
       redis: {
         connected: redisStats.isConnected,
@@ -293,39 +316,45 @@ export class EnhancedCacheService {
         activeConnections: redisStats.activeConnections,
         averageResponseTime: redisStats.averageResponseTime,
         totalCommands: redisStats.totalCommands,
-        lastHealthCheck: redisStats.lastHealthCheck
-      }
+        lastHealthCheck: redisStats.lastHealthCheck,
+      },
     };
   }
 
   /**
    * Upstash for Redis 연결 상태 확인
    */
-  async checkRedisStatus(): Promise<{ connected: boolean; message: string; details?: any }> {
+  async checkRedisStatus(): Promise<{
+    connected: boolean;
+    message: string;
+    details?: any;
+  }> {
     try {
       if (!redisConnectionManager.isRedisConnected()) {
         return {
           connected: false,
           message: 'Upstash for Redis 연결되지 않음',
-          details: redisConnectionManager.getConnectionStats()
+          details: redisConnectionManager.getConnectionStats(),
         };
       }
 
       const healthCheck = await redisConnectionManager.performHealthCheck();
-      
+
       return {
         connected: true,
         message: `Upstash for Redis 상태: ${healthCheck.status}`,
         details: {
           healthCheck,
-          connectionStats: redisConnectionManager.getConnectionStats()
-        }
+          connectionStats: redisConnectionManager.getConnectionStats(),
+        },
       };
     } catch (error) {
       return {
         connected: false,
         message: 'Upstash for Redis 상태 확인 실패',
-        details: { error: error instanceof Error ? error.message : String(error) }
+        details: {
+          error: error instanceof Error ? error.message : String(error),
+        },
       };
     }
   }
@@ -349,7 +378,7 @@ export class EnhancedCacheService {
   private cacheToMemory(key: string, data: any, ttlMs: number): void {
     const expires = Date.now() + ttlMs;
     memoryCache.set(key, { data, expires });
-    
+
     // 만료된 캐시 정리
     this.cleanExpiredMemoryCache();
   }
@@ -359,14 +388,14 @@ export class EnhancedCacheService {
    */
   private getFromMemory(key: string): any {
     const cached = memoryCache.get(key);
-    
+
     if (!cached) return null;
-    
+
     if (Date.now() > cached.expires) {
       memoryCache.delete(key);
       return null;
     }
-    
+
     return cached.data;
   }
 
@@ -375,7 +404,7 @@ export class EnhancedCacheService {
    */
   private cleanExpiredMemoryCache(): void {
     const now = Date.now();
-    
+
     for (const [key, value] of memoryCache.entries()) {
       if (now > value.expires) {
         memoryCache.delete(key);
@@ -385,4 +414,4 @@ export class EnhancedCacheService {
 }
 
 // 싱글톤 인스턴스 export
-export const cacheService = EnhancedCacheService.getInstance(); 
+export const cacheService = EnhancedCacheService.getInstance();

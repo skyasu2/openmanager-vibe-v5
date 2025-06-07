@@ -1,13 +1,13 @@
 /**
  * 🤖 AI 에이전트 스마트 쿼리 API
- * 
+ *
  * ✅ 추천 질문 생성
  * ✅ 컨텍스트 기반 질의 제안
  * ✅ 실시간 시스템 상태 기반 질문 자동 생성
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { SimulationEngine } from '../../../../services/simulationEngine';
+import { SimulationEngine } from '@/services/simulationEngine';
 
 const simulationEngine = new SimulationEngine();
 
@@ -48,19 +48,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         priority: 'critical',
         context: `${criticalServers}개 심각, ${warningServers}개 경고, 총 ${totalServers}개 서버`,
         expectedResponseTime: 3000,
-        isAIGenerated: true
+        isAIGenerated: true,
       });
     }
 
     if (warningServers > totalServers * 0.3) {
       smartQueries.push({
         id: 'warning-prediction-1',
-        question: `경고 상태 서버가 ${warningServers}개로 전체의 ${Math.round(warningServers/totalServers*100)}%입니다. 심각한 상태로 전환될 가능성이 있는 서버를 예측해주세요.`,
+        question: `경고 상태 서버가 ${warningServers}개로 전체의 ${Math.round((warningServers / totalServers) * 100)}%입니다. 심각한 상태로 전환될 가능성이 있는 서버를 예측해주세요.`,
         category: 'prediction',
         priority: 'high',
-        context: `경고율 ${Math.round(warningServers/totalServers*100)}%`,
+        context: `경고율 ${Math.round((warningServers / totalServers) * 100)}%`,
         expectedResponseTime: 2500,
-        isAIGenerated: true
+        isAIGenerated: true,
       });
     }
 
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         priority: 'medium',
         context: '전체 시스템 개요',
         expectedResponseTime: 2000,
-        isAIGenerated: false
+        isAIGenerated: false,
       },
       {
         id: 'security-check',
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         priority: 'medium',
         context: '보안 모니터링',
         expectedResponseTime: 3500,
-        isAIGenerated: false
+        isAIGenerated: false,
       },
       {
         id: 'prediction-1h',
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         priority: 'high',
         context: '단기 예측',
         expectedResponseTime: 4000,
-        isAIGenerated: false
+        isAIGenerated: false,
       },
       {
         id: 'optimization',
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         priority: 'low',
         context: '비용 최적화',
         expectedResponseTime: 5000,
-        isAIGenerated: false
+        isAIGenerated: false,
       },
       {
         id: 'cpu-analysis',
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         priority: 'medium',
         context: 'CPU 모니터링',
         expectedResponseTime: 2800,
-        isAIGenerated: false
+        isAIGenerated: false,
       },
       {
         id: 'memory-trend',
@@ -118,8 +118,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         priority: 'medium',
         context: '메모리 분석',
         expectedResponseTime: 3200,
-        isAIGenerated: false
-      }
+        isAIGenerated: false,
+      },
     ];
 
     // AI 생성 질문과 기본 질문 결합
@@ -136,7 +136,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // 우선순위별 정렬 및 제한
     const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
-    filteredQueries.sort((a, b) => priorityOrder[b.priority] - priorityOrder[a.priority]);
+    filteredQueries.sort(
+      (a, b) => priorityOrder[b.priority] - priorityOrder[a.priority]
+    );
     filteredQueries = filteredQueries.slice(0, limit);
 
     return NextResponse.json({
@@ -149,25 +151,27 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           criticalServers,
           warningServers,
           healthyServers: totalServers - criticalServers - warningServers,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         },
         metadata: {
           generatedQueries: smartQueries.length,
           defaultQueries: defaultQueries.length,
-          isRealTimeGenerated: true
-        }
+          isRealTimeGenerated: true,
+        },
       },
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
-
   } catch (error) {
     console.error('❌ [SmartQuery] 스마트 쿼리 생성 실패:', error);
-    return NextResponse.json({
-      success: false,
-      error: '스마트 쿼리 생성에 실패했습니다',
-      details: error instanceof Error ? error.message : String(error),
-      timestamp: Date.now()
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: '스마트 쿼리 생성에 실패했습니다',
+        details: error instanceof Error ? error.message : String(error),
+        timestamp: Date.now(),
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -188,8 +192,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         priority: 'medium',
         context: `사용자 ${userId} 맞춤형`,
         expectedResponseTime: 2500,
-        isAIGenerated: true
-      }
+        isAIGenerated: true,
+      },
     ];
 
     return NextResponse.json({
@@ -198,18 +202,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         queries: customQueries,
         userId,
         preferences,
-        generatedAt: Date.now()
+        generatedAt: Date.now(),
       },
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
-
   } catch (error) {
     console.error('❌ [SmartQuery] 맞춤형 쿼리 생성 실패:', error);
-    return NextResponse.json({
-      success: false,
-      error: '맞춤형 쿼리 생성에 실패했습니다',
-      details: error instanceof Error ? error.message : String(error),
-      timestamp: Date.now()
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: '맞춤형 쿼리 생성에 실패했습니다',
+        details: error instanceof Error ? error.message : String(error),
+        timestamp: Date.now(),
+      },
+      { status: 500 }
+    );
   }
-} 
+}

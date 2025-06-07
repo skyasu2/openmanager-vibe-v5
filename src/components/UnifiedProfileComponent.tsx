@@ -232,16 +232,28 @@ const UnifiedSettingsPanel = ({
       return;
     }
 
+    if (isAuthenticating) return; // 중복 클릭 방지
+
     setIsAuthenticating(true);
 
     try {
+      // 약간의 지연으로 UI 안정화
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       // 실제 인증 처리
-      const result = authenticateAIAgent(aiPassword);
+      const result = await authenticateAIAgent(aiPassword);
 
       if (result.success) {
-        success('🤖 AI 에이전트 모드가 활성화되었습니다!');
+        // 성공 시 순차적 상태 업데이트
         setAiPassword('');
-        setActiveTab('general');
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        success('🤖 AI 에이전트 모드가 활성화되었습니다!');
+
+        // 탭 전환을 지연시켜 안정화
+        setTimeout(() => {
+          setActiveTab('general');
+        }, 200);
       } else {
         error(result.message);
         if (isLocked) {
@@ -255,15 +267,27 @@ const UnifiedSettingsPanel = ({
       error('인증 처리 중 오류가 발생했습니다.');
       console.error('AI 인증 오류:', err);
     } finally {
-      setIsAuthenticating(false);
+      // 로딩 상태 해제를 지연시켜 버튼 깜빡임 방지
+      setTimeout(() => {
+        setIsAuthenticating(false);
+      }, 300);
     }
   };
 
   // AI 에이전트 비활성화
   const handleAIDisable = () => {
-    disableAIAgent();
-    success('AI 에이전트가 비활성화되었습니다.');
-    setActiveTab('general');
+    try {
+      disableAIAgent();
+      success('AI 에이전트가 비활성화되었습니다.');
+
+      // 탭 전환을 지연시켜 안정화
+      setTimeout(() => {
+        setActiveTab('general');
+      }, 200);
+    } catch (err: any) {
+      error('AI 에이전트 비활성화 중 오류가 발생했습니다.');
+      console.error('AI 비활성화 오류:', err);
+    }
   };
 
   // 서버 데이터 생성기 상태 확인
@@ -1077,16 +1101,14 @@ export default function UnifiedProfileComponent({
       }
     };
 
-    // 여러 이벤트 리스너로 강화
-    const events = ['mousedown', 'touchstart'];
-    events.forEach(eventType => {
-      document.addEventListener(eventType, handleClickOutside, true);
+    // 단일 이벤트 리스너로 수정 (중복 방지)
+    document.addEventListener('mousedown', handleClickOutside, {
+      passive: true,
+      capture: false,
     });
 
     return () => {
-      events.forEach(eventType => {
-        document.removeEventListener(eventType, handleClickOutside, true);
-      });
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen]);
 
@@ -1097,51 +1119,74 @@ export default function UnifiedProfileComponent({
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        e.stopPropagation();
         setIsOpen(false);
       }
     };
 
-    document.addEventListener('keydown', handleEscape, true);
-    return () => document.removeEventListener('keydown', handleEscape, true);
+    document.addEventListener('keydown', handleEscape, { passive: false });
+    return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen]);
 
-  // 스크롤 시 드롭다운 닫기
+  // 스크롤 시 드롭다운 닫기 (디바운스 적용)
   useEffect(() => {
     if (!isOpen) return;
 
-    const handleScroll = () => setIsOpen(false);
-    window.addEventListener('scroll', handleScroll, true);
-    return () => window.removeEventListener('scroll', handleScroll, true);
-  }, [isOpen]);
-
-  // 윈도우 리사이즈 시 위치 재계산
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleResize = () => {
-      calculateDropdownPosition();
+    let scrollTimeout: NodeJS.Timeout;
+    const handleScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => setIsOpen(false), 100);
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(scrollTimeout);
+    };
+  }, [isOpen]);
+
+  // 윈도우 리사이즈 시 위치 재계산 (디바운스 적용)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let resizeTimeout: NodeJS.Timeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        calculateDropdownPosition();
+      }, 150);
+    };
+
+    window.addEventListener('resize', handleResize, { passive: true });
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimeout);
+    };
   }, [isOpen]);
 
   // 설정 패널이 열릴 때 드롭다운 자동 닫기
   useEffect(() => {
-    if (showSettingsPanel) {
+    if (showSettingsPanel && isOpen) {
       setIsOpen(false);
     }
-  }, [showSettingsPanel]);
+  }, [showSettingsPanel, isOpen]);
 
-  // 드롭다운 열기/닫기 핸들러
+  // 드롭다운 열기/닫기 핸들러 (개선된 버전)
   const handleToggleDropdown = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
+    // 설정 패널이 열려있으면 먼저 닫기
+    if (showSettingsPanel) {
+      setShowSettingsPanel(false);
+      return;
+    }
+
     if (!isOpen) {
       calculateDropdownPosition();
-      setIsOpen(true);
+      // 약간의 지연으로 위치 계산 후 열기
+      requestAnimationFrame(() => {
+        setIsOpen(true);
+      });
     } else {
       setIsOpen(false);
     }
@@ -1209,7 +1254,8 @@ export default function UnifiedProfileComponent({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className='fixed inset-0 bg-black/20 backdrop-blur-sm z-[9998] sm:hidden'
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className='fixed inset-0 bg-black/20 backdrop-blur-sm z-[9990] sm:hidden'
               onClick={() => setIsOpen(false)}
             />
 
@@ -1219,13 +1265,18 @@ export default function UnifiedProfileComponent({
               initial={{ opacity: 0, scale: 0.95, y: -10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -10 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
+              transition={{
+                duration: 0.2,
+                ease: [0.4, 0.0, 0.2, 1], // cubic-bezier 이징
+                layout: { duration: 0.2 },
+              }}
               className='fixed bg-gray-900/95 backdrop-blur-lg border border-gray-700/50 rounded-xl shadow-2xl z-[9999] min-w-[280px] max-w-[320px]'
               style={{
                 top: `${dropdownPosition.top}px`,
                 right: `${dropdownPosition.right}px`,
                 maxHeight: 'calc(100vh - 100px)',
                 overflowY: 'auto',
+                willChange: 'transform, opacity', // GPU 가속
               }}
               role='menu'
               aria-orientation='vertical'

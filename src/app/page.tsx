@@ -74,7 +74,7 @@ const useToast = () => {
 };
 
 // 동적 렌더링 강제
-export const dynamicConfig = 'force-dynamic';
+// 동적 렌더링 설정 제거 (Next.js 15.3.3 호환성 개선)
 
 export default function Home() {
   const router = useRouter();
@@ -219,7 +219,8 @@ export default function Home() {
         websocket:
           healthData.websocket ||
           (websocketData.success && websocketData.websocket?.connected),
-        serverGeneration: healthData.serverGeneration || // 🎯 새로운 필드 추가
+        serverGeneration:
+          healthData.serverGeneration || // 🎯 새로운 필드 추가
           (serverGenData.success && serverGenData.data?.isHealthy),
         mcp: healthData.mcp || mcpStatus.success,
         timestamp: new Date().toISOString(),
@@ -229,10 +230,8 @@ export default function Home() {
 
       // 🔧 개선: 기본 서비스만 필수 조건으로 설정
       // 시뮬레이션은 대시보드에서 직접 시작할 수 있으므로 선택적으로 변경
-      const isSystemReady =
-        systemReadiness.health &&
-        systemReadiness.websocket;
-        // serverGeneration은 선택적 기능으로 변경
+      const isSystemReady = systemReadiness.health && systemReadiness.websocket;
+      // serverGeneration은 선택적 기능으로 변경
 
       // 🎯 시뮬레이션 상태 별도 확인
       const isSimulationRunning = systemReadiness.serverGeneration;
