@@ -455,3 +455,29 @@ interface AIThinkingStep {
   metadata: Record<string, any>;
 }
 ```
+
+## 📊 현재 버전: v5.37.3 (2025-06-08)
+
+### 🎯 최신 업데이트: 서버 모니터링 AI 엔진 카드 정확한 수정
+
+#### 🧠 MCP 기반 AI 엔진 → 서버 모니터링 AI 엔진
+
+- **명확한 시스템 구분**: 바이브 코딩 개발 도구와 완전 분리
+- **하이브리드 아키텍처**: MCP AI (Render) + RAG 백업 (Vercel) 이중 구조
+- **전용 AI 시스템**: 서버 모니터링에 특화된 컨텍스트 기반 패턴 대응
+
+#### 🏗️ 시스템 아키텍처
+
+```yaml
+🧠 MCP AI System (Render 배포):
+  역할: 컨텍스트 기반 패턴 대응 AI
+  기술: MCP Protocol + 서버 상태 분석
+
+🔄 RAG Backup Engine (Vercel 서버리스):
+  역할: MCP 실패 시 자동 폴백
+  기술: TensorFlow.js + 오픈소스 AI
+
+✨ 바이브 코딩 (개발도구) - 별개:
+  역할: 개발 과정 지원
+  기술: Cursor AI + MCP filesystem/search/thinking
+```

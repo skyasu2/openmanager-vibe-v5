@@ -40,3 +40,51 @@
 - **화면 공간 최적화**: 상단 여백 감소로 더 많은 서버 정보 한 번에 표시 가능
 
 ---
+
+# 📋 OpenManager Vibe v5 - 변경 로그
+
+## [v5.37.3] - 2025-06-08
+
+### 🧠 서버 모니터링 AI 엔진 카드 정확한 수정
+
+#### ✨ 주요 변경사항
+
+- **카드 제목**: `MCP 기반 AI 엔진` → `🧠 서버 모니터링 AI 엔진`
+- **명확한 구분**: 서버 모니터링 전용 AI 시스템으로 바이브 코딩 개발 도구와 완전 분리
+- **하이브리드 아키텍처**: Render 배포 + Vercel 서버리스 이중 구조
+
+#### 🏗️ 아키텍처 재구성
+
+```yaml
+🧠 MCP AI System (Render 배포):
+  - MCP AI Server: 컨텍스트 기반 패턴 대응 AI
+  - @modelcontextprotocol/sdk: Model Context Protocol 표준 구현
+
+🔄 RAG Backup Engine (Vercel 서버리스):
+  - @tensorflow/tfjs: RAG 백업 엔진 - ML 추론
+  - simple-statistics: RAG 백업 엔진 - 통계 분석
+  - natural: RAG 백업 엔진 - 자연어 처리
+  - fuse.js: RAG 백업 엔진 - 문서 검색
+```
+
+#### 🎯 핵심 기능
+
+- 🎯 MCP 컨텍스트 기반 서버 상태 패턴 분석
+- 🤖 자연어 질의응답 서버 모니터링 에이전트
+- 📋 자동 장애보고서 생성 시스템
+- 🔄 RAG 백업 엔진 (MCP 실패 시 자동 폴백)
+- 🌐 Render 배포 + Vercel 서버리스 하이브리드
+
+#### 🔧 기술적 개선
+
+- TechStackDisplay에 `critical`, `showcase` 중요도 스타일 추가
+- 기술 카테고리별 색상 및 아이콘 최적화
+- 중요도 표시 시각화 개선
+
+#### ⚠️ 시스템 구분
+
+- **서버 모니터링 AI**: 애플리케이션 내장 AI 시스템 (이 카드)
+- **바이브 코딩**: Cursor AI 개발환경 도구 (별개 카드)
+- **배포 전략**: 서버리스 한계 극복을 위한 하이브리드 구조
+
+---
