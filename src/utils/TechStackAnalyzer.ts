@@ -9,8 +9,9 @@ export interface TechItem {
   category: string;
   description: string;
   usage: string;
-  importance: 'high' | 'medium' | 'low';
+  importance: 'critical' | 'high' | 'medium' | 'low' | 'showcase';
   version?: string;
+  role?: string;
   isCore?: boolean;
   usageCount?: number;
   categories?: string[];
@@ -438,119 +439,58 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     importance: 'medium',
   },
 
-  // AI Development Tools - Vibe Coding Tech Stack
+  // AI Development Tools - Vibe Coding Tech Stack (순서 중요)
   'cursor-ai': {
     name: 'Cursor AI',
     version: 'latest',
+    role: '메인 AI IDE (80% 사용)',
     category: 'ai-development',
-    description: 'Claude 4 Sonnet 통합, 실시간 코드 생성, 200K+ 토큰 컨텍스트',
-    importance: 'high',
+    importance: 'critical',
+    description:
+      'Claude 4 Sonnet 모델 선택 사용, 실시간 코드 생성, 200K+ 토큰 컨텍스트',
     isCore: true,
   },
-  cursor: {
-    name: 'Cursor AI Editor',
+  'claude-sonnet': {
+    name: 'Claude 4 Sonnet',
+    version: '3.7/4.0',
+    role: 'Cursor AI 선택 모델 (기본 GPT 대신)',
     category: 'ai-development',
-    description: 'Claude 4 Sonnet 기반, 200K+ 토큰 컨텍스트, AI 자동완성',
-    importance: 'high',
+    importance: 'critical',
+    description: '복잡한 로직 리팩터링, 긴 문맥 처리, 구조적 코드 분석',
     isCore: true,
   },
-  'vibe-chatgpt': {
+  'mcp-tools': {
+    name: 'Cursor MCP Tools',
+    version: '2025.3.28',
+    role: 'Cursor 통합 도구 (filesystem, search, thinking)',
+    category: 'ai-development',
+    importance: 'high',
+    description: '파일시스템 분석, 웹 검색, 단계별 사고 - 3개 도구 통합',
+    isCore: true,
+  },
+  chatgpt: {
     name: 'ChatGPT',
-    version: 'GPT-4',
+    version: 'GPT-4 + Codex',
+    role: '별도 결제 - 브레인스토밍 & 프롬프트 작성 (15% 사용)',
     category: 'ai-development',
-    description: '창의적 문제 해결, 아키텍처 설계, 프롬프트 최적화',
     importance: 'high',
+    description: '아이디어 검증, 창의적 문제 해결, 고급 코드 생성 (Codex)',
   },
   'google-jules': {
     name: 'Google Jules',
     version: 'Gemini 1.5 Pro',
+    role: '전체 코딩 상태 점검 & 품질 관리 (5% 사용)',
     category: 'ai-development',
-    description: '대규모 문서 처리, 멀티모달 작업, 백그라운드 품질 관리',
     importance: 'medium',
-  },
-  claude: {
-    name: 'Claude 4 Sonnet',
-    category: 'ai-development',
-    description: '최대 컨텍스트 모델, 코드 이해 특화, 멀티턴 대화 지원',
-    importance: 'high',
-    isCore: true,
-  },
-  sonnet: {
-    name: 'Claude 4 Sonnet',
-    category: 'ai-development',
-    description: '최대 컨텍스트 모델, 코드 이해 특화, 멀티턴 대화 지원',
-    importance: 'high',
-    isCore: true,
-  },
-  'mcp-filesystem': {
-    name: 'MCP Filesystem',
-    category: 'ai-development',
-    description: 'Cursor용 파일 탐색 도구, 코드 구조 분석, 자동 의존성 추적',
-    importance: 'high',
-  },
-  'mcp-duckduckgo-search': {
-    name: 'MCP DuckDuckGo Search',
-    category: 'ai-development',
-    description: 'Cursor용 웹 검색 도구, 최신 기술 문서, 오류 해결 지원',
-    importance: 'medium',
-  },
-  'mcp-sequential-thinking': {
-    name: 'MCP Sequential Thinking',
-    category: 'ai-development',
-    description: 'Cursor용 사고 도구, 단계별 문제 해결, 논리 검증',
-    importance: 'medium',
-  },
-  chatgpt: {
-    name: 'ChatGPT-4',
-    category: 'ai-development',
-    description: '브레인스토밍, 아키텍처 설계, 창의적 솔루션 도출',
-    importance: 'high',
-  },
-  jules: {
-    name: 'Google Jules',
-    category: 'ai-development',
-    description: 'GitHub 연동, 클라우드 VM 자동화, 대규모 작업 처리',
-    importance: 'medium',
-  },
-  'cursor-mcp-filesystem': {
-    name: 'MCP Filesystem',
-    version: '2025.3.28',
-    category: 'ai-development',
-    description: '실시간 파일 분석, 코드 구조 파악 90% 단축, 에러 추적',
-    importance: 'high',
-  },
-  'cursor-mcp-search': {
-    name: 'MCP DuckDuckGo Search',
-    version: 'latest',
-    category: 'ai-development',
-    description: '개발 중 즉시 레퍼런스 검색, 검색 시간 80% 절약',
-    importance: 'medium',
-  },
-  'mcp-thinking': {
-    name: 'MCP Sequential Thinking',
-    version: 'latest',
-    category: 'ai-development',
-    description: '복잡한 로직 일관성 90% 향상, 다단계 추론',
-    importance: 'medium',
+    description: '프로젝트 전체 상태 분석, 코드 품질 검토, 백그라운드 최적화',
   },
   'vibe-coding-results': {
     name: 'Vibe Coding 성과',
-    version: 'v5.35.0',
+    version: 'v5.37.2',
+    role: '569줄 페이지 + 86개 문서 완성',
     category: 'ai-development',
-    description: '569줄 페이지 + 86개 문서, 개발 효율성 300% 향상',
-    importance: 'high',
-  },
-  'auto-doc-generator.js': {
-    name: 'Auto Doc Generator',
-    category: 'ai-development',
-    description: '자동 문서 생성 스크립트',
-    importance: 'low',
-  },
-  'testing-mcp-server.js': {
-    name: 'MCP Testing Server',
-    category: 'ai-development',
-    description: 'MCP 프로토콜 테스트 서버',
-    importance: 'low',
+    importance: 'showcase',
+    description: '개발 효율성 300% 향상, AI 협업으로 완성한 실제 결과물',
   },
 };
 
@@ -635,10 +575,11 @@ const CATEGORIES: Record<string, Omit<TechCategory, 'items'>> = {
   },
   'ai-development': {
     id: 'ai-development',
-    name: 'AI 개발도구',
-    icon: '✨',
+    name: '🎯 AI 개발 도구',
+    icon: '🤖',
     color: 'amber',
-    description: 'AI 기반 개발 워크플로우 및 도구',
+    description:
+      'Vibe Coding AI 워크플로우 - 메인 80% + 브레인스토밍 15% + 품질 관리 5%',
   },
   'data-generation': {
     id: 'data-generation',
@@ -767,26 +708,39 @@ function normalizeTechName(tech: string): string {
     socketio: 'socket.io',
     faker: '@faker-js/faker',
     playwright: '@playwright/test',
-    // Vibe Coding mappings
+    // Vibe Coding mappings (Updated - 정확한 매핑)
     cursor: 'cursor-ai',
     'cursor ai': 'cursor-ai',
-    claude: 'claude',
-    sonnet: 'sonnet',
-    'claude sonnet': 'claude',
-    'claude 4': 'claude',
+    'cursor ai editor': 'cursor-ai',
+    claude: 'claude-sonnet',
+    sonnet: 'claude-sonnet',
+    'claude sonnet': 'claude-sonnet',
+    'claude 4 sonnet': 'claude-sonnet',
+    'claude 4': 'claude-sonnet',
     chatgpt: 'chatgpt',
     'chatgpt-4': 'chatgpt',
+    'chat gpt': 'chatgpt',
     'gpt-4': 'chatgpt',
-    jules: 'jules',
-    'google jules': 'jules',
-    'mcp tools': 'mcp-filesystem',
-    'mcp integration': 'mcp-filesystem',
-    filesystem: 'mcp-filesystem',
-    'duckduckgo-search': 'mcp-duckduckgo-search',
-    duckduckgo: 'mcp-duckduckgo-search',
-    search: 'mcp-duckduckgo-search',
-    'sequential-thinking': 'mcp-sequential-thinking',
-    thinking: 'mcp-sequential-thinking',
+    codex: 'chatgpt',
+    jules: 'google-jules',
+    'google jules': 'google-jules',
+    gemini: 'google-jules',
+    'gemini 1.5 pro': 'google-jules',
+    'mcp tools': 'mcp-tools',
+    'mcp filesystem': 'mcp-tools',
+    'mcp search': 'mcp-tools',
+    'mcp thinking': 'mcp-tools',
+    'mcp integration': 'mcp-tools',
+    'cursor mcp': 'mcp-tools',
+    filesystem: 'mcp-tools',
+    'duckduckgo-search': 'mcp-tools',
+    duckduckgo: 'mcp-tools',
+    search: 'mcp-tools',
+    'sequential-thinking': 'mcp-tools',
+    thinking: 'mcp-tools',
+    'vibe coding': 'vibe-coding-results',
+    'vibe-coding': 'vibe-coding-results',
+    'coding results': 'vibe-coding-results',
     sequential: 'mcp-sequential-thinking',
     hybrid: 'vibe-coding-results',
     vibe: 'vibe-coding-results',
@@ -854,7 +808,13 @@ function mergeDuplicateTechs(techItems: TechItem[]): TechItem[] {
       }
 
       // 더 높은 중요도로 업데이트
-      const importanceOrder = { high: 3, medium: 2, low: 1 };
+      const importanceOrder = {
+        critical: 5,
+        high: 4,
+        showcase: 3,
+        medium: 2,
+        low: 1,
+      };
       if (
         importanceOrder[item.importance] > importanceOrder[existing.importance]
       ) {
@@ -936,7 +896,13 @@ export function analyzeTechStack(technologies: string[]): TechCategory[] {
     if (categoryInfo) {
       // 중요도 순으로 정렬
       const sortedItems = items.sort((a, b) => {
-        const importanceOrder = { high: 3, medium: 2, low: 1 };
+        const importanceOrder = {
+          critical: 5,
+          high: 4,
+          showcase: 3,
+          medium: 2,
+          low: 1,
+        };
         return importanceOrder[b.importance] - importanceOrder[a.importance];
       });
 
