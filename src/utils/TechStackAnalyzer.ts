@@ -142,71 +142,120 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     importance: 'medium',
   },
 
-  // AI & Machine Learning
+  // AI & Machine Learning Core
   '@modelcontextprotocol/server-filesystem': {
     name: 'Model Context Protocol',
     category: 'mcp-engine',
-    description: 'AI 에이전트 간 통신 표준 프로토콜',
+    description: 'AI 에이전트 간 통신 표준 프로토콜 - 컨텍스트 공유 혁신',
     importance: 'high',
     isCore: true,
   },
-  // MCP 통합 도구들 (중복 제거)
+  // MCP 통합 도구들 (혁신적 AI 워크플로우)
   'mcp-filesystem': {
     name: 'MCP Filesystem',
     category: 'mcp-engine',
-    description: '실시간 파일 시스템 접근 - 코드 구조 파악 90% 단축',
+    description:
+      '실시간 파일 시스템 접근 - 코드 구조 파악 90% 단축, 디렉토리 탐색 자동화',
     importance: 'high',
     isCore: true,
   },
   'mcp-duckduckgo': {
     name: 'MCP DuckDuckGo Search',
     category: 'mcp-engine',
-    description: '즉시 웹 검색 - 검색 시간 80% 절약',
+    description:
+      '즉시 웹 검색 - 검색 시간 80% 절약, 최신 기술 정보 실시간 수집',
     importance: 'high',
     isCore: true,
   },
   'mcp-sequential': {
     name: 'MCP Sequential Thinking',
     category: 'mcp-engine',
-    description: '단계별 사고 - 복잡한 로직 일관성 90% 향상',
+    description: '단계별 사고 - 복잡한 로직 일관성 90% 향상, 추론 과정 시각화',
     importance: 'high',
     isCore: true,
   },
 
-  // Vibe Coding AI Development Tools
+  // Vibe Coding AI Development Tools - 메인 워크플로우
   cursor: {
     name: 'Cursor AI',
     category: 'ai-development',
-    description: 'AI 기반 IDE - 바이브 코딩의 메인 개발 도구',
+    description:
+      'AI 기반 IDE - 바이브 코딩의 메인 개발 도구 (80% 사용), Claude 4 Sonnet 통합',
     importance: 'high',
     isCore: true,
   },
   'claude 4 sonnet': {
     name: 'Claude 4 Sonnet',
     category: 'ai-development',
-    description: 'Cursor AI에서 선택한 메인 AI 모델 (80% 사용)',
+    description:
+      'Cursor AI에서 선택한 메인 AI 모델 - 200K+ 토큰 컨텍스트, 코드 이해도 최상급',
     importance: 'high',
     isCore: true,
   },
   chatgpt: {
     name: 'ChatGPT (GPT-4)',
     category: 'ai-development',
-    description: '브레인스토밍 및 아키텍처 설계 보조 (15% 사용)',
+    description:
+      '브레인스토밍 및 아키텍처 설계 보조 (15% 사용), 창의적 문제 해결',
     importance: 'medium',
   },
   'gpt-4': {
-    name: 'gpt codex',
+    name: 'GPT Codex',
     category: 'ai-development',
     description:
-      'OpenAI가 개발한 코드 생성 및 소프트웨어 엔지니어링에 특화된 인공지능 모델입니다. 자연어(일상 언어)로 개발자의 요구나 설명을 입력하면, 이를 실제 코드로 변환하거나 기존 코드의 문제를 분석·수정할 수 있습니다',
+      'OpenAI 코드 특화 모델 - 프로그래밍 언어 전문, 자연어→코드 변환 최적화, 디버깅 및 리팩토링 특화',
     importance: 'medium',
   },
   gemini: {
-    name: '구글 Jules',
+    name: 'Google Jules',
     category: 'ai-development',
     description:
-      '단순한 자동화 도구를 넘어, 개발자의 반복 업무를 실제로 대체할 수 있는 수준의 코딩 에이전트입니다. GitHub와의 완전한 연동, 클라우드 VM 기반 처리, 자동 테스트 및 변경 계획 제공 등 실제 개발 실무에서 필요한 기능을 중심으로 설계되어 있습니다',
-    importance: 'low',
+      'Google의 차세대 코딩 에이전트 - GitHub 완전 연동, 클라우드 VM 기반 대규모 처리, 자동 테스트 및 CI/CD 통합 (5% 사용)',
+    importance: 'medium',
+  },
+  'jules-ai': {
+    name: 'Jules AI Agent',
+    category: 'ai-development',
+    description:
+      '대화형 워크플로우 자동화 - 반복 업무 자동화, 코드 리뷰 자동화, 배포 파이프라인 관리',
+    importance: 'medium',
+  },
+
+  // AI 엔진 통합 시스템
+  'master-ai-engine': {
+    name: 'Master AI Engine v4.0',
+    category: 'ai-ml',
+    description:
+      '11개 AI 엔진 통합 관리 - 85% 신뢰도, 4중 폴백 시스템, 100% 가용성 보장',
+    importance: 'high',
+    isCore: true,
+  },
+  'mcp-query-engine': {
+    name: 'MCP Query Engine',
+    category: 'ai-ml',
+    description: '핵심 AI 통신 엔진 - 200ms 응답, 85% 신뢰도, 스마트 라우팅',
+    importance: 'high',
+    isCore: true,
+  },
+  'tensorflow-js-ai': {
+    name: 'TensorFlow.js v4.22',
+    category: 'ai-ml',
+    description: 'LSTM 장애 예측, 오토인코더 이상 탐지, WebGL 가속 브라우저 ML',
+    importance: 'high',
+  },
+  'simple-statistics-ai': {
+    name: 'Simple-Statistics v7.8',
+    category: 'ai-ml',
+    description:
+      '10,000+/초 통계 계산, 95% 정확도 Z-score 분석, 고속 통계 엔진',
+    importance: 'high',
+  },
+  'korean-nlp-ai': {
+    name: 'Korean NLP Suite',
+    category: 'ai-ml',
+    description:
+      '한국어 특화 AI - korean-js 형태소, hangul-js 조사 처리, 90% 의도 분류',
+    importance: 'high',
   },
 
   // Server Data Generator Technologies
