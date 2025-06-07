@@ -37,7 +37,11 @@ const colorMap = {
 
 // 중요도별 스타일
 const importanceStyles = {
+  critical:
+    'ring-2 ring-red-400/50 bg-gradient-to-br from-red-500/20 to-pink-500/20 shadow-lg shadow-red-500/20',
   high: 'ring-2 ring-yellow-400/30 bg-gradient-to-br from-yellow-500/10 to-orange-500/10',
+  showcase:
+    'ring-2 ring-purple-400/40 bg-gradient-to-br from-purple-500/15 to-indigo-500/15',
   medium: 'ring-1 ring-blue-400/20',
   low: 'ring-1 ring-gray-400/10',
 };
@@ -197,11 +201,15 @@ const TechStackDisplay: React.FC<TechStackDisplayProps> = ({
                         className={`
                         w-2 h-2 rounded-full
                         ${
-                          tech.importance === 'high'
-                            ? 'bg-red-400'
-                            : tech.importance === 'medium'
+                          tech.importance === 'critical'
+                            ? 'bg-red-500 shadow-lg shadow-red-500/50'
+                            : tech.importance === 'high'
                               ? 'bg-yellow-400'
-                              : 'bg-green-400'
+                              : tech.importance === 'showcase'
+                                ? 'bg-purple-400'
+                                : tech.importance === 'medium'
+                                  ? 'bg-blue-400'
+                                  : 'bg-green-400'
                         }
                       `}
                         title={`중요도: ${tech.importance}`}
@@ -221,8 +229,11 @@ const TechStackDisplay: React.FC<TechStackDisplayProps> = ({
                 <span>
                   고중요도:{' '}
                   {
-                    category.items.filter(item => item.importance === 'high')
-                      .length
+                    category.items.filter(
+                      item =>
+                        item.importance === 'critical' ||
+                        item.importance === 'high'
+                    ).length
                   }
                   개
                 </span>
@@ -230,24 +241,32 @@ const TechStackDisplay: React.FC<TechStackDisplayProps> = ({
               <div className='flex items-center gap-1'>
                 <span>평균 중요도:</span>
                 <div className='flex gap-0.5'>
-                  {['high', 'medium', 'low'].map(level => {
-                    const count = category.items.filter(
-                      item => item.importance === level
-                    ).length;
-                    return count > 0 ? (
-                      <div
-                        key={level}
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          level === 'high'
-                            ? 'bg-red-400'
-                            : level === 'medium'
-                              ? 'bg-yellow-400'
-                              : 'bg-green-400'
-                        }`}
-                        style={{ opacity: count / category.items.length + 0.3 }}
-                      />
-                    ) : null;
-                  })}
+                  {['critical', 'high', 'showcase', 'medium', 'low'].map(
+                    level => {
+                      const count = category.items.filter(
+                        item => item.importance === level
+                      ).length;
+                      return count > 0 ? (
+                        <div
+                          key={level}
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            level === 'critical'
+                              ? 'bg-red-500'
+                              : level === 'high'
+                                ? 'bg-yellow-400'
+                                : level === 'showcase'
+                                  ? 'bg-purple-400'
+                                  : level === 'medium'
+                                    ? 'bg-blue-400'
+                                    : 'bg-green-400'
+                          }`}
+                          style={{
+                            opacity: count / category.items.length + 0.3,
+                          }}
+                        />
+                      ) : null;
+                    }
+                  )}
                 </div>
               </div>
             </div>

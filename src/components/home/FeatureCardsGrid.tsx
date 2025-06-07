@@ -49,6 +49,56 @@ interface FeatureCard {
 
 // 기술 카테고리별 데이터
 const techCategories = {
+  'mcp-ai-system': {
+    title: '🧠 MCP AI System (Render 배포)',
+    icon: Brain,
+    color: 'from-purple-500 to-indigo-500',
+    techs: [
+      {
+        name: 'MCP AI Server',
+        description: '컨텍스트 기반 패턴 대응 AI (Render 배포)',
+        icon: Brain,
+        color: 'bg-purple-600',
+      },
+      {
+        name: '@modelcontextprotocol/sdk',
+        description: 'Model Context Protocol 표준 구현',
+        icon: Network,
+        color: 'bg-indigo-600',
+      },
+    ],
+  },
+  'rag-backup-engine': {
+    title: '🔄 RAG Backup Engine (Vercel 서버리스)',
+    icon: Shield,
+    color: 'from-emerald-500 to-teal-500',
+    techs: [
+      {
+        name: '@tensorflow/tfjs',
+        description: 'RAG 백업 엔진 - ML 추론',
+        icon: Cpu,
+        color: 'bg-orange-600',
+      },
+      {
+        name: 'simple-statistics',
+        description: 'RAG 백업 엔진 - 통계 분석',
+        icon: BarChart3,
+        color: 'bg-emerald-600',
+      },
+      {
+        name: 'natural',
+        description: 'RAG 백업 엔진 - 자연어 처리',
+        icon: Globe,
+        color: 'bg-green-600',
+      },
+      {
+        name: 'fuse.js',
+        description: 'RAG 백업 엔진 - 문서 검색',
+        icon: Database,
+        color: 'bg-teal-600',
+      },
+    ],
+  },
   'mcp-integration': {
     title: '🔗 MCP 통합',
     icon: Network,
@@ -268,7 +318,7 @@ const techCategories = {
 
 // 카드별 기술 카테고리 매핑
 const cardTechMapping = {
-  'mcp-ai-engine': ['mcp-integration', 'ai-ml'],
+  'mcp-ai-engine': ['mcp-ai-system', 'rag-backup-engine'],
   'data-generator': ['data-storage', 'monitoring'],
   'tech-stack': ['frontend', 'visualization'],
   'vibe-coding': ['mcp-integration', 'ai-development', 'development'],
@@ -278,28 +328,30 @@ const cardTechMapping = {
 const cardData: FeatureCard[] = [
   {
     id: 'mcp-ai-engine',
-    title: 'MCP 기반 AI 엔진',
+    title: '🧠 서버 모니터링 AI 엔진',
     description:
-      '외부 LLM API 없이 독립 동작하는 11개 통합 엔진으로 100% 가용성 보장',
-    icon: Bot,
-    gradient: 'from-blue-500 via-pink-500 to-cyan-400',
+      'MCP 컨텍스트 기반 패턴 대응 AI + RAG 백업 엔진으로 구성된 서버 모니터링 전용 AI 시스템',
+    icon: Brain,
+    gradient: 'from-purple-500 via-indigo-500 to-cyan-400',
     detailedContent: {
       overview:
-        'MasterAIEngine v4.0으로 11개 AI 엔진을 통합 관리하는 완전 독립형 시스템입니다. AI 모델 간 컨텍스트 프로토콜(85% 신뢰도), TensorFlow.js 브라우저 ML, Simple-Statistics 고속 통계로 총 70MB 메모리, 4중 폴백 100% 가용성을 달성했습니다.',
+        '서버리스 환경의 한계로 MCP AI는 Render에 별도 배포하고, 안전성 확보를 위해 TensorFlow.js 기반 RAG 엔진을 Vercel에서 백업으로 운영하는 이중 구조입니다. 서버 모니터링에 특화된 AI 시스템으로 바이브 코딩 개발 도구와는 완전히 분리되어 있습니다.',
       features: [
-        '🧠 AI 모델 통합: 11개 엔진 마스터 관리, 85% 신뢰도, 200ms 응답 보장',
-        '📊 TensorFlow.js v4.22: LSTM 장애 예측, 오토인코더 이상 탐지, WebGL 가속',
-        '🗣️ 한국어 AI 특화: 조사 처리, 의도 분류 90%, 서버 모니터링 도메인 어휘',
+        '🎯 MCP 컨텍스트 기반 서버 상태 패턴 분석',
+        '🤖 자연어 질의응답 서버 모니터링 에이전트',
+        '📋 자동 장애보고서 생성 시스템',
+        '🔄 RAG 백업 엔진 (MCP 실패 시 자동 폴백)',
+        '🌐 Render 배포 + Vercel 서버리스 하이브리드',
       ],
       technologies: [
-        '🤖 Master AI Engine v4.0: 11개 엔진 통합, 85% 신뢰도, 70MB 메모리 최적화',
-        '🔗 MCP Protocol: AI 모델 간 컨텍스트 통신, 상태 동기화, 메모리 공유',
-        '⚡ TensorFlow.js v4.22: LSTM 시계열 예측, WebGL 가속, 브라우저 ML 실행',
-        '📊 Simple-Statistics v7.8: 10,000+/초 고속 계산, Z-score 이상탐지, 95% 정확도',
-        '🧠 NLP Suite: Natural.js, Compromise.js, Fuse.js 검색, ML-Matrix 행렬연산',
-        '🗣️ 한국어 전용: korean-js 형태소, hangul-js 조사, 도메인 템플릿 90% 정확도',
-        '🎯 AICache 시스템: 다중 레벨 캐싱, 85% 적중률, 지연 로딩 2초 단축',
-        '🔄 폴백 시스템: MCP→TensorFlow→Statistics→Hybrid 4단계, 100% 가용성',
+        '🧠 MCP AI Server: 컨텍스트 기반 패턴 대응 AI (Render 배포)',
+        '🔗 @modelcontextprotocol/sdk: Model Context Protocol 표준 구현',
+        '⚡ @tensorflow/tfjs: RAG 백업 엔진 - ML 추론',
+        '📊 simple-statistics: RAG 백업 엔진 - 통계 분석',
+        '🧠 natural: RAG 백업 엔진 - 자연어 처리',
+        '🔍 fuse.js: RAG 백업 엔진 - 문서 검색',
+        '🌐 하이브리드 아키텍처: MCP AI (Render) + RAG 백업 (Vercel)',
+        '⚠️ 바이브 코딩과 구분: 서버 모니터링 전용 AI (개발도구 아님)',
       ],
     },
     requiresAI: true,
