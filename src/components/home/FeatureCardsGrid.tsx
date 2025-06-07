@@ -285,20 +285,20 @@ const cardData: FeatureCard[] = [
     gradient: 'from-blue-500 via-pink-500 to-cyan-400',
     detailedContent: {
       overview:
-        'MasterAIEngine v4.0으로 11개 AI 엔진을 통합 관리하는 완전 독립형 시스템입니다. MCP Query 엔진(85% 신뢰도), TensorFlow.js 브라우저 ML, Simple-Statistics 고속 통계로 총 70MB 메모리, 4중 폴백 100% 가용성을 달성했습니다.',
+        'MasterAIEngine v4.0으로 11개 AI 엔진을 통합 관리하는 완전 독립형 시스템입니다. AI 모델 간 컨텍스트 프로토콜(85% 신뢰도), TensorFlow.js 브라우저 ML, Simple-Statistics 고속 통계로 총 70MB 메모리, 4중 폴백 100% 가용성을 달성했습니다.',
       features: [
-        '🧠 MCP Query 엔진: 85% 신뢰도, 200ms 응답으로 핵심 AI 통신 담당',
+        '🧠 AI 모델 통합: 11개 엔진 마스터 관리, 85% 신뢰도, 200ms 응답 보장',
         '📊 TensorFlow.js v4.22: LSTM 장애 예측, 오토인코더 이상 탐지, WebGL 가속',
         '🗣️ 한국어 AI 특화: 조사 처리, 의도 분류 90%, 서버 모니터링 도메인 어휘',
       ],
       technologies: [
         '🤖 Master AI Engine v4.0: 11개 엔진 통합, 85% 신뢰도, 70MB 메모리 최적화',
-        '🔗 MCP Query Engine: filesystem, duckduckgo-search, sequential-thinking 3종 통합',
+        '🔗 MCP Protocol: AI 모델 간 컨텍스트 통신, 상태 동기화, 메모리 공유',
         '⚡ TensorFlow.js v4.22: LSTM 시계열 예측, WebGL 가속, 브라우저 ML 실행',
         '📊 Simple-Statistics v7.8: 10,000+/초 고속 계산, Z-score 이상탐지, 95% 정확도',
         '🧠 NLP Suite: Natural.js, Compromise.js, Fuse.js 검색, ML-Matrix 행렬연산',
         '🗣️ 한국어 전용: korean-js 형태소, hangul-js 조사, 도메인 템플릿 90% 정확도',
-        '🎯 캐싱 최적화: AICache 다중 레벨, 85% 적중률, 지연 로딩 2초 단축',
+        '🎯 AICache 시스템: 다중 레벨 캐싱, 85% 적중률, 지연 로딩 2초 단축',
         '🔄 폴백 시스템: MCP→TensorFlow→Statistics→Hybrid 4단계, 100% 가용성',
       ],
     },
@@ -372,14 +372,14 @@ const cardData: FeatureCard[] = [
       features: [
         '🎯 메인 개발 80%: Cursor AI (Claude 4 Sonnet 모델) - 200K+ 토큰 문맥 이해',
         '🧠 브레인스토밍 15%: ChatGPT (gpt codex) - 아키텍처 설계 및 창의적 문제 해결',
-        '🔧 MCP Tools 통합: filesystem, duckduckgo-search, sequential-thinking',
+        '🔧 Cursor MCP Tools: filesystem, duckduckgo-search, sequential-thinking 개발 도구 통합',
       ],
       technologies: [
         '🎯 Cursor AI Editor: Claude 4 Sonnet 기반, 200K+ 토큰 컨텍스트, AI 자동완성',
         '🧠 Claude 4 Sonnet: 최대 컨텍스트 모델, 코드 이해 특화, 멀티턴 대화 지원',
-        '🔍 MCP filesystem: 실시간 파일 탐색, 코드 구조 분석, 자동 의존성 추적',
-        '🌐 MCP duckduckgo-search: 실시간 웹 검색, 최신 기술 문서, 오류 해결 지원',
-        '🧠 MCP sequential-thinking: 체계적 사고 과정, 단계별 문제 해결, 논리 검증',
+        '🔍 mcp-filesystem: Cursor용 파일 탐색 도구, 코드 구조 분석, 자동 의존성 추적',
+        '🌐 mcp-duckduckgo-search: Cursor용 웹 검색 도구, 최신 기술 문서, 오류 해결 지원',
+        '🧠 mcp-sequential-thinking: Cursor용 사고 도구, 단계별 문제 해결, 논리 검증',
         '💭 ChatGPT-4: 브레인스토밍, 아키텍처 설계, 창의적 솔루션 도출',
         '🤖 Google Jules: GitHub 연동, 클라우드 VM 자동화, 대규모 작업 처리',
         '🔄 하이브리드 전략: 상황별 AI 선택, 워크플로우 최적화, 효율성 극대화',
