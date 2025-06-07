@@ -98,23 +98,17 @@ const cardData: FeatureCard[] = [
   },
   {
     id: 'tech-stack',
-    title: '최신 프론트/백엔드 기술',
-    description:
-      '차세대 웹 기술 스택으로 구현되어 높은 성능과 확장성을 자랑합니다.',
+    title: '적용 기술',
+    description: '현대적 웹 기술로 타입 안전성 100%, 런타임 에러 95% 감소',
     icon: Code,
     gradient: 'from-purple-500 to-indigo-600',
     detailedContent: {
-      overview:
-        '최신 기술 스택으로 타입 안전성 100%, 런타임 에러 95% 감소를 달성한 현대적 아키텍처입니다.',
+      overview: '차세대 기술 스택으로 성능과 안정성을 극대화한 현대적 아키텍처',
       features: [
-        // Next.js 15.3.2, React 19.1.0 - 풀스택 React 프레임워크, 최신 React Concurrent Features
-        'Next.js와 React로 서버사이드 렌더링과 정적 사이트 생성',
-        // Zustand 5.0.5, TanStack Query 5.79.0 - 경량 상태 관리, 서버 상태 관리 및 캐싱
-        'Zustand와 TanStack Query로 상태 관리와 서버 캐싱',
-        // TailwindCSS 3.4.1, Framer Motion 12.15.0 - 유틸리티 우선 CSS, 고성능 애니메이션
-        'TailwindCSS와 Framer Motion으로 반응형 UI와 애니메이션',
-        // TypeScript 5+, Supabase 2.49.8, Upstash Redis 1.34.3 - 타입 안전성, 관계형 데이터베이스, 분산 메모리 캐시
-        'TypeScript, Supabase, Redis로 안정적인 백엔드 구성',
+        'Next.js & React 19 - SSR/SSG와 최신 동시성 기능',
+        'Zustand & TanStack Query - 경량 상태관리와 서버 캐싱',
+        'TailwindCSS & Framer Motion - 반응형 UI와 고성능 애니메이션',
+        'TypeScript & Supabase & Redis - 타입 안전성과 확장 가능한 백엔드',
       ],
       technologies: [
         'Next.js, React, TailwindCSS, TypeScript',
