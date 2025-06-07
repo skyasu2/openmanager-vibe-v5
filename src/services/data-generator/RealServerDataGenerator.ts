@@ -191,12 +191,12 @@ export class RealServerDataGenerator {
     this.dataGeneratorConfig = getDataGeneratorConfig();
 
     console.log(
-      `🎰 서버 데이터 생성기 모드: ${this.dataGeneratorConfig.mode.toUpperCase()}`
+      `🎰 서버 데이터 생성기 모드: ${(this.dataGeneratorConfig.mode || 'basic').toUpperCase()}`
     );
     console.log(`📊 최대 서버 수: ${this.dataGeneratorConfig.maxServers}`);
     console.log(`⏰ 갱신 주기: ${this.dataGeneratorConfig.refreshInterval}ms`);
     console.log(
-      `🚀 활성 기능: ${this.dataGeneratorConfig.features.join(', ')}`
+      `🚀 활성 기능: ${(this.dataGeneratorConfig.features || []).join(', ')}`
     );
 
     // 환경별 기본 설정
@@ -216,7 +216,8 @@ export class RealServerDataGenerator {
    * 🎯 환경별 특화 설정
    */
   private getEnvironmentSpecificConfig(): CustomEnvironmentConfig {
-    const { mode, features } = this.dataGeneratorConfig;
+    const mode = this.dataGeneratorConfig.mode || 'basic';
+    const features = this.dataGeneratorConfig.features || [];
 
     const baseConfig: CustomEnvironmentConfig = {
       serverArchitecture: 'load-balanced',
@@ -263,7 +264,7 @@ export class RealServerDataGenerator {
    * ⚡ 모드별 최적화 적용
    */
   private applyModeOptimizations(): void {
-    const { mode } = this.dataGeneratorConfig;
+    const mode = this.dataGeneratorConfig.mode || 'basic';
 
     switch (mode) {
       case 'local':
@@ -285,7 +286,7 @@ export class RealServerDataGenerator {
         break;
     }
 
-    console.log(`⚡ ${mode.toUpperCase()} 모드 최적화 적용 완료`);
+    console.log(`⚡ ${(mode || 'basic').toUpperCase()} 모드 최적화 적용 완료`);
   }
 
   /**
@@ -359,7 +360,7 @@ export class RealServerDataGenerator {
    * 🏗️ 초기 서버 구성 (모드별 맞춤 구성)
    */
   private initializeServers(): void {
-    const { maxServers } = this.dataGeneratorConfig;
+    const maxServers = this.dataGeneratorConfig.maxServers || 30;
 
     // 서버 수 제한 적용
     const adjustedArchitecture =
