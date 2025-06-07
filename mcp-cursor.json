@@ -2,30 +2,31 @@
   "mcpServers": {
     "openmanager-local": {
       "command": "node",
-      "args": ["mcp-server/server.js"],
-      "cwd": "D:/cursor/openmanager-vibe-v5",
+      "args": ["./mcp-server/server.js"],
+      "cwd": ".",
       "env": {
         "NODE_ENV": "development",
-        "MCP_ENV": "cursor"
+        "MCP_ENV": "cursor",
+        "PROJECT_ROOT": "."
       }
     },
     "filesystem": {
       "command": "npx",
-      "args": [
-        "@modelcontextprotocol/server-filesystem",
-        "D:/cursor/openmanager-vibe-v5"
-      ],
+      "args": ["@modelcontextprotocol/server-filesystem", "./src", "./docs"],
       "env": {
         "NODE_ENV": "development"
       }
     },
     "git": {
       "command": "npx",
-      "args": [
-        "@modelcontextprotocol/server-git",
-        "--repository",
-        "D:/cursor/openmanager-vibe-v5"
-      ]
+      "args": ["@modelcontextprotocol/server-git", "--repository", "."]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      }
     },
     "browser-tools": {
       "command": "npx",

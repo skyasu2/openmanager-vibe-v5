@@ -10,6 +10,7 @@ import {
   StopCircle,
   Loader2,
   Shield,
+  X,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
@@ -89,6 +90,12 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [systemTimeRemaining, setSystemTimeRemaining] = useState(0);
 
+  // 🚀 자동 대시보드 이동 카운트다운 상태
+  const [autoNavigateCountdown, setAutoNavigateCountdown] = useState(0);
+  const [countdownTimer, setCountdownTimer] = useState<NodeJS.Timeout | null>(
+    null
+  );
+
   // 🔧 상태 변화 디버깅
   useEffect(() => {
     console.log('🔍 Home - 시스템 상태 변화:', {
@@ -124,6 +131,15 @@ export default function Home() {
       setSystemTimeRemaining(0);
     }
   }, [isSystemStarted, getSystemRemainingTime]);
+
+  // 컴포넌트 언마운트 시 카운트다운 정리
+  useEffect(() => {
+    return () => {
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+      }
+    };
+  }, [countdownTimer]);
 
   // 시간 포맷 함수
   const formatTime = (ms: number) => {
@@ -162,17 +178,56 @@ export default function Home() {
     });
   };
 
+  // 🚀 카운트다운 시작 함수
+  const startCountdown = () => {
+    setAutoNavigateCountdown(5);
+
+    const countdown = setInterval(() => {
+      setAutoNavigateCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(countdown);
+          setCountdownTimer(null);
+          // 자동으로 대시보드로 이동
+          handleDashboardClick();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    setCountdownTimer(countdown);
+  };
+
+  // 🛑 카운트다운 중지 함수
+  const stopCountdown = () => {
+    if (countdownTimer) {
+      clearInterval(countdownTimer);
+      setCountdownTimer(null);
+      setAutoNavigateCountdown(0);
+      info('자동 이동이 취소되었습니다.');
+    }
+  };
+
   const handleSystemToggle = async () => {
     setIsLoading(true);
     try {
       if (isSystemStarted) {
+        // 시스템 중지 시 카운트다운도 중지
+        stopCountdown();
         stopSystem();
         success('시스템이 정지되었습니다. 모든 서비스가 비활성화됩니다.');
       } else {
         startSystem();
         success(
-          '시스템이 시작되었습니다. 30분간 운영되며 모든 서비스가 활성화됩니다.'
+          '시스템이 시작되었습니다. 5초 후 자동으로 대시보드로 이동합니다.'
         );
+        // 시스템 시작 성공 후 카운트다운 시작
+        setTimeout(() => {
+          if (isSystemStarted) {
+            // 시스템이 여전히 실행 중인지 확인
+            startCountdown();
+          }
+        }, 1000); // 1초 후 카운트다운 시작 (UI 안정화)
       }
     } catch (err) {
       console.error('시스템 제어 오류:', err);
@@ -294,31 +349,38 @@ export default function Home() {
 
   const handleAIAgentInfo = () => {
     if (aiAgent.isEnabled) {
+      const independentMode = aiAgent.isEnabled && !isSystemStarted;
       info(
-        'AI 엔진이 활성화되어 있습니다. 프로필에서 설정을 변경할 수 있습니다.'
+        `AI 엔진이 ${independentMode ? '독립 모드로' : ''} 활성화되어 있습니다. 프로필에서 설정을 변경할 수 있습니다.`
       );
     } else {
       info(
-        'AI 엔진을 활성화하려면 화면 우상단 프로필 → 통합 설정에서 활성화하세요.',
+        '🤖 AI 엔진은 시스템과 독립적으로 실행 가능합니다! 화면 우상단 프로필 → 통합 설정에서 언제든지 활성화하세요.',
         {
-          duration: 5000,
+          duration: 6000,
           action: {
-            label: '설정 확인',
-            onClick: () => info('화면 우상단의 프로필 버튼을 확인해주세요.'),
+            label: '지금 활성화',
+            onClick: () =>
+              info(
+                '화면 우상단의 프로필 버튼 → AI 에이전트 탭을 확인해주세요.'
+              ),
           },
         }
       );
     }
   };
 
-  // 배경 클래스 결정
+  // 배경 클래스 결정 - AI 독립 모드 지원
   const getBackgroundClass = () => {
-    if (!isSystemStarted) {
-      return 'enhanced-dark-background';
-    } else if (aiAgent.isEnabled) {
+    if (aiAgent.isEnabled) {
+      // AI 엔진이 활성화된 경우 (시스템 상태와 무관)
       return 'dark-gradient-ai';
-    } else {
+    } else if (isSystemStarted) {
+      // 시스템만 활성화된 경우
       return 'dark-gradient-active';
+    } else {
+      // 모든 것이 중지된 경우
+      return 'enhanced-dark-background';
     }
   };
 
@@ -370,11 +432,13 @@ export default function Home() {
           <div>
             <h1 className='text-xl font-bold text-white'>OpenManager</h1>
             <p className='text-xs text-white/70'>
-              {aiAgent.isEnabled
-                ? 'AI 엔진 모드'
-                : isSystemStarted
-                  ? '기본 모니터링'
-                  : '시스템 정지'}
+              {aiAgent.isEnabled && !isSystemStarted
+                ? 'AI 독립 모드'
+                : aiAgent.isEnabled && isSystemStarted
+                  ? 'AI + 시스템 통합 모드'
+                  : isSystemStarted
+                    ? '기본 모니터링'
+                    : '시스템 정지'}
             </p>
           </div>
         </div>
@@ -574,51 +638,134 @@ export default function Home() {
                 <div className='flex flex-col items-center'>
                   <motion.button
                     onClick={handleDashboardClick}
-                    className='w-52 h-14 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border border-blue-500/50 rounded-xl font-semibold transition-all duration-200'
+                    className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border ${
+                      autoNavigateCountdown > 0
+                        ? 'bg-orange-600 hover:bg-orange-700 text-white border-orange-500/50'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white border-blue-500/50'
+                    }`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    animate={
+                      autoNavigateCountdown > 0
+                        ? {
+                            scale: [1, 1.05, 1],
+                            boxShadow: [
+                              '0 0 0 0 rgba(255, 165, 0, 0.7)',
+                              '0 0 0 10px rgba(255, 165, 0, 0)',
+                              '0 0 0 0 rgba(255, 165, 0, 0)',
+                            ],
+                          }
+                        : {}
+                    }
+                    transition={{
+                      duration: 1,
+                      repeat: autoNavigateCountdown > 0 ? Infinity : 0,
+                      ease: 'easeInOut',
+                    }}
                   >
                     <BarChart3 className='w-5 h-5' />
-                    📊 대시보드 들어가기
+                    {autoNavigateCountdown > 0 ? (
+                      <>🚀 자동 이동 ({autoNavigateCountdown}초)</>
+                    ) : (
+                      <>📊 대시보드 들어가기</>
+                    )}
                   </motion.button>
 
-                  {/* 손가락 아이콘 + 클릭 문구 - 대시보드에만 표시, 위를 향하는 이모지로 변경 */}
+                  {/* 손가락 아이콘 + 클릭 문구 - 카운트다운 상태에 따라 변경 */}
                   <div className='mt-2 flex justify-center'>
-                    <span className='animate-wiggle text-yellow-400 text-xl'>
-                      👆
+                    <span
+                      className={`text-xl ${
+                        autoNavigateCountdown > 0
+                          ? 'animate-bounce text-orange-400'
+                          : 'animate-wiggle text-yellow-400'
+                      }`}
+                    >
+                      {autoNavigateCountdown > 0 ? '⏰' : '👆'}
                     </span>
                   </div>
                   <div className='mt-1 flex justify-center'>
-                    <span className='text-white text-xs opacity-70 animate-point-bounce'>
-                      클릭하세요
+                    <span
+                      className={`text-xs opacity-70 ${
+                        autoNavigateCountdown > 0
+                          ? 'text-orange-300 animate-pulse'
+                          : 'text-white animate-point-bounce'
+                      }`}
+                    >
+                      {autoNavigateCountdown > 0
+                        ? '자동 이동 중...'
+                        : '클릭하세요'}
                     </span>
                   </div>
                 </div>
 
-                {/* 시스템 중지 버튼 */}
+                {/* 시스템 중지 / 카운트다운 취소 버튼 */}
                 <div className='flex flex-col items-center'>
                   <motion.button
-                    onClick={handleSystemToggle}
+                    onClick={
+                      autoNavigateCountdown > 0
+                        ? stopCountdown
+                        : handleSystemToggle
+                    }
                     disabled={isLoading}
-                    className='w-52 h-14 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white border border-red-500/50 rounded-xl font-semibold transition-all duration-200 disabled:opacity-75'
+                    className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border disabled:opacity-75 ${
+                      autoNavigateCountdown > 0
+                        ? 'bg-yellow-600 hover:bg-yellow-700 text-white border-yellow-500/50'
+                        : 'bg-red-600 hover:bg-red-700 text-white border-red-500/50'
+                    }`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    animate={
+                      autoNavigateCountdown > 0
+                        ? {
+                            scale: [1, 1.02, 1],
+                          }
+                        : {}
+                    }
+                    transition={{
+                      duration: 0.5,
+                      repeat: autoNavigateCountdown > 0 ? Infinity : 0,
+                      ease: 'easeInOut',
+                    }}
                   >
                     {isLoading ? (
                       <Loader2 className='w-5 h-5 animate-spin' />
+                    ) : autoNavigateCountdown > 0 ? (
+                      <X className='w-5 h-5' />
                     ) : (
                       <StopCircle className='w-5 h-5' />
                     )}
-                    <span>{isLoading ? '중지 중...' : '⏹️ 시스템 중지'}</span>
+                    <span>
+                      {isLoading
+                        ? '중지 중...'
+                        : autoNavigateCountdown > 0
+                          ? '🛑 취소하기'
+                          : '⏹️ 시스템 중지'}
+                    </span>
                   </motion.button>
 
-                  {/* 시스템 중지 버튼에는 손가락 표시 제거 */}
+                  {/* 카운트다운 상태에 따른 안내 */}
                   <div className='mt-2 flex justify-center'>
-                    <span className='text-transparent text-xl'>👆</span>
+                    <span
+                      className={`text-xl ${
+                        autoNavigateCountdown > 0
+                          ? 'animate-bounce text-yellow-400'
+                          : 'text-transparent'
+                      }`}
+                    >
+                      {autoNavigateCountdown > 0 ? '✋' : '👆'}
+                    </span>
                   </div>
                   <div className='mt-1 flex justify-center'>
-                    <span className='text-transparent text-xs opacity-0'>
-                      클릭하세요
+                    <span
+                      className={`text-xs ${
+                        autoNavigateCountdown > 0
+                          ? 'text-yellow-300 opacity-70 animate-pulse'
+                          : 'text-transparent opacity-0'
+                      }`}
+                    >
+                      {autoNavigateCountdown > 0
+                        ? '자동 이동 취소'
+                        : '클릭하세요'}
                     </span>
                   </div>
                 </div>

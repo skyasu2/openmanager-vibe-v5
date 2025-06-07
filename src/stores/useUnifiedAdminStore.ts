@@ -108,27 +108,47 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
             clearTimeout(currentTimer);
           }
 
-          // 상태 완전 초기화
+          // 🔧 AI 에이전트 독립 실행 모드 지원
+          const currentState = get();
+          const keepAIAgent =
+            currentState?.aiAgent?.isEnabled &&
+            currentState?.aiAgent?.isAuthenticated;
+
+          // 상태 초기화 (AI 에이전트는 선택적 유지)
           set(state => ({
             ...state,
             isSystemStarted: false,
             systemStartTime: null,
             systemShutdownTimer: null,
-            // AI 기능 완전 초기화
-            aiAgent: {
-              isEnabled: false,
-              isAuthenticated: false,
-              state: 'disabled',
-            },
-            // 인증 상태도 초기화 (보안 강화)
-            attempts: 0,
-            isLocked: false,
-            lockoutEndTime: null,
+            // AI 기능 선택적 유지 (독립 모드)
+            aiAgent: keepAIAgent
+              ? {
+                  ...state.aiAgent,
+                  // 독립 모드로 상태만 변경
+                  state: 'enabled' as const,
+                }
+              : {
+                  isEnabled: false,
+                  isAuthenticated: false,
+                  state: 'disabled' as const,
+                },
+            // 인증 상태는 AI가 활성화된 경우 유지
+            attempts: keepAIAgent ? state.attempts : 0,
+            isLocked: keepAIAgent ? state.isLocked : false,
+            lockoutEndTime: keepAIAgent ? state.lockoutEndTime : null,
           }));
 
-          console.log('⏹️ [System] 시스템 정지됨 - 모든 기능 비활성화');
-          console.log('🤖 [AI] AI 에이전트 완전 초기화');
-          console.log('🔐 [Auth] 인증 상태 초기화');
+          if (keepAIAgent) {
+            console.log(
+              '⏹️ [System] 시스템 정지됨 - AI 에이전트는 독립 모드로 계속 실행'
+            );
+            console.log('🤖 [AI] AI 에이전트 독립 실행 모드 활성화');
+            console.log('🔐 [Auth] 인증 상태 유지 (AI 독립 모드)');
+          } else {
+            console.log('⏹️ [System] 시스템 정지됨 - 모든 기능 비활성화');
+            console.log('🤖 [AI] AI 에이전트 완전 초기화');
+            console.log('🔐 [Auth] 인증 상태 초기화');
+          }
 
           // AI 모드가 활성화되어 있었다면 종료
           try {
@@ -166,7 +186,8 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
               new CustomEvent('system:stopped', {
                 detail: {
                   timestamp: Date.now(),
-                  fullReset: true,
+                  fullReset: !keepAIAgent,
+                  aiIndependentMode: keepAIAgent,
                 },
               })
             );
@@ -266,15 +287,15 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
             };
           }
 
-          const { attempts, checkLockStatus, isSystemStarted } = state;
+          const { attempts, checkLockStatus } = state;
 
-          // 시스템이 실행 중인지 확인
-          if (!isSystemStarted) {
-            return {
-              success: false,
-              message: '시스템을 먼저 시작해주세요.',
-            };
-          }
+          // 🔧 시스템 시작 조건 제거 - AI 엔진 독립 실행 허용
+          // if (!isSystemStarted) {
+          //   return {
+          //     success: false,
+          //     message: '시스템을 먼저 시작해주세요.',
+          //   };
+          // }
 
           // 잠금 상태 확인
           if (!checkLockStatus()) {
@@ -320,7 +341,9 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
               };
             });
 
-            console.log('✅ [AI] AI 에이전트 모드 활성화 - 지능형 분석 시작');
+            console.log(
+              '✅ [AI] AI 에이전트 모드 활성화 - 지능형 분석 시작 (독립 실행)'
+            );
 
             // ModeTimerManager를 사용한 AI 모드 시작 (비동기 처리)
             setTimeout(() => {
@@ -331,7 +354,10 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
                 if (typeof window !== 'undefined') {
                   window.dispatchEvent(
                     new CustomEvent('ai:enabled', {
-                      detail: { timestamp: Date.now() },
+                      detail: {
+                        timestamp: Date.now(),
+                        independentMode: true, // 독립 실행 모드 표시
+                      },
                     })
                   );
                 }
@@ -346,7 +372,7 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
             return {
               success: true,
               message:
-                'AI 에이전트 모드가 활성화되었습니다. 지능형 분석을 시작합니다.',
+                'AI 에이전트가 독립 모드로 활성화되었습니다. 시스템과 독립적으로 지능형 분석을 시작합니다.',
             };
           } else {
             const newAttempts = attempts + 1;

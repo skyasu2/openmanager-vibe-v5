@@ -1,14 +1,18 @@
 /**
  * 🧠 통합 AI 엔진 v2.0
- * 
- * ⚡ 현재: LLM API 없는 완전 독립 동작 
+ *
+ * ⚡ 현재: LLM API 없는 완전 독립 동작
  * - TensorFlow.js 기반 실시간 추론
  * - 다중 AI 모델 관리
  * - 컨텍스트 인식 분석
  * 🚀 향후: 선택적 외부 LLM API 연동으로 성능 향상 계획
  */
 
-import { IAIAnalysisService, AIAnalysisRequest, AIAnalysisResult } from '@/interfaces/services';
+import {
+  IAIAnalysisService,
+  AIAnalysisRequest,
+  AIAnalysisResult,
+} from '@/interfaces/services';
 
 // AI 모델 타입 정의
 interface AIModel {
@@ -71,7 +75,7 @@ export class IntegratedAIEngine implements IAIAnalysisService {
     cacheSize: 50,
     enableGPUAcceleration: true,
     modelUpdateInterval: 300000, // 5분
-    confidenceThreshold: 0.7
+    confidenceThreshold: 0.7,
   };
 
   private constructor() {
@@ -90,7 +94,7 @@ export class IntegratedAIEngine implements IAIAnalysisService {
    */
   private async initializeModels(): Promise<void> {
     console.log('🧠 AI 엔진 초기화 시작...');
-    
+
     try {
       // 기본 AI 모델들 등록
       const models: AIModel[] = [
@@ -100,7 +104,7 @@ export class IntegratedAIEngine implements IAIAnalysisService {
           type: 'prediction',
           version: '2.1.0',
           isLoaded: false,
-          accuracy: 0.94
+          accuracy: 0.94,
         },
         {
           id: 'anomaly-detector',
@@ -108,7 +112,7 @@ export class IntegratedAIEngine implements IAIAnalysisService {
           type: 'anomaly',
           version: '1.8.0',
           isLoaded: false,
-          accuracy: 0.89
+          accuracy: 0.89,
         },
         {
           id: 'resource-optimizer',
@@ -116,7 +120,7 @@ export class IntegratedAIEngine implements IAIAnalysisService {
           type: 'optimization',
           version: '1.5.0',
           isLoaded: false,
-          accuracy: 0.87
+          accuracy: 0.87,
         },
         {
           id: 'workload-classifier',
@@ -124,8 +128,8 @@ export class IntegratedAIEngine implements IAIAnalysisService {
           type: 'classification',
           version: '2.0.0',
           isLoaded: false,
-          accuracy: 0.91
-        }
+          accuracy: 0.91,
+        },
       ];
 
       // 모델 등록
@@ -135,10 +139,9 @@ export class IntegratedAIEngine implements IAIAnalysisService {
 
       // Phase 2에서 실제 모델 로딩 구현 예정
       await this.loadModels();
-      
+
       this.isInitialized = true;
       console.log(`✅ AI 엔진 초기화 완료 - ${models.length}개 모델 준비`);
-      
     } catch (error) {
       console.error('❌ AI 엔진 초기화 실패:', error);
       throw error;
@@ -150,21 +153,20 @@ export class IntegratedAIEngine implements IAIAnalysisService {
    */
   private async loadModels(): Promise<void> {
     console.log('📦 AI 모델 로딩 중...');
-    
+
     // Phase 2 개발 중 - 실제 TensorFlow.js 모델 로딩
     for (const [modelId, model] of this.models) {
       try {
         // TODO: 실제 모델 파일 로딩 구현
         console.log(`🔄 ${model.name} 로딩 중...`);
-        
+
         // 시뮬레이션: 모델 로딩 완료
         await new Promise(resolve => setTimeout(resolve, 100));
-        
+
         model.isLoaded = true;
         model.lastUsed = new Date();
-        
+
         console.log(`✅ ${model.name} 로딩 완료 (정확도: ${model.accuracy})`);
-        
       } catch (error) {
         console.error(`❌ ${model.name} 로딩 실패:`, error);
         model.isLoaded = false;
@@ -178,8 +180,18 @@ export class IntegratedAIEngine implements IAIAnalysisService {
   async analyze(request: AIAnalysisRequest): Promise<AIAnalysisResult> {
     const startTime = Date.now();
     const analysisId = `analysis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     console.log(`🧠 AI 분석 시작: ${request.type} (ID: ${analysisId})`);
+
+    // 초기화 확인 및 자동 초기화
+    if (!this.isInitialized) {
+      console.log('🔧 AI 엔진 자동 초기화 시작...');
+      try {
+        await this.initializeModels();
+      } catch (initError) {
+        console.warn('⚠️ AI 엔진 초기화 실패, 기본 모드로 진행:', initError);
+      }
+    }
 
     // AbortController 생성
     const abortController = new AbortController();
@@ -191,12 +203,15 @@ export class IntegratedAIEngine implements IAIAnalysisService {
         id: analysisId,
         type: request.type,
         timestamp: new Date(),
-        status: 'pending'
+        status: 'pending',
       };
 
       // 분석 타입별 처리
-      const inferenceResult = await this.performInference(request, abortController.signal);
-      
+      const inferenceResult = await this.performInference(
+        request,
+        abortController.signal
+      );
+
       // 결과 완성
       result.status = 'success';
       result.result = inferenceResult;
@@ -204,10 +219,9 @@ export class IntegratedAIEngine implements IAIAnalysisService {
 
       // 히스토리에 추가
       this.addToHistory(result);
-      
+
       console.log(`✅ AI 분석 완료: ${request.type} (${result.duration}ms)`);
       return result;
-
     } catch (error) {
       const errorResult: AIAnalysisResult = {
         id: analysisId,
@@ -215,13 +229,12 @@ export class IntegratedAIEngine implements IAIAnalysisService {
         timestamp: new Date(),
         status: 'error',
         error: error instanceof Error ? error.message : String(error),
-        duration: Date.now() - startTime
+        duration: Date.now() - startTime,
       };
 
       this.addToHistory(errorResult);
       console.error(`❌ AI 분석 실패: ${request.type}`, error);
       return errorResult;
-
     } finally {
       this.activeAnalyses.delete(analysisId);
     }
@@ -231,18 +244,18 @@ export class IntegratedAIEngine implements IAIAnalysisService {
    * 🔬 AI 추론 실행
    */
   private async performInference(
-    request: AIAnalysisRequest, 
+    request: AIAnalysisRequest,
     signal: AbortSignal
   ): Promise<AIInferenceResult> {
-    
     const extendedRequest = request as ExtendedAIAnalysisRequest;
-    
+
     const context: AIInferenceContext = {
       serverId: extendedRequest.serverId || extendedRequest.data?.serverId,
       timeWindow: extendedRequest.data?.timeWindow || 3600,
       priority: extendedRequest.data?.priority || 'medium',
       modelHints: extendedRequest.data?.modelHints || [],
-      maxInferenceTime: extendedRequest.data?.maxInferenceTime || this.config.defaultTimeout
+      maxInferenceTime:
+        extendedRequest.data?.maxInferenceTime || this.config.defaultTimeout,
     };
 
     // 적절한 모델 선택
@@ -251,14 +264,21 @@ export class IntegratedAIEngine implements IAIAnalysisService {
       throw new Error(`적절한 AI 모델을 찾을 수 없음: ${request.type}`);
     }
 
-    console.log(`🎯 선택된 모델: ${selectedModel.name} (정확도: ${selectedModel.accuracy})`);
+    console.log(
+      `🎯 선택된 모델: ${selectedModel.name} (정확도: ${selectedModel.accuracy})`
+    );
 
     // 실제 추론 실행
-    const inferenceResult = await this.executeInference(selectedModel, request, context, signal);
-    
+    const inferenceResult = await this.executeInference(
+      selectedModel,
+      request,
+      context,
+      signal
+    );
+
     // 모델 사용 기록 업데이트
     selectedModel.lastUsed = new Date();
-    
+
     return inferenceResult;
   }
 
@@ -271,24 +291,42 @@ export class IntegratedAIEngine implements IAIAnalysisService {
     context: AIInferenceContext,
     signal: AbortSignal
   ): Promise<AIInferenceResult> {
-    
     const startTime = Date.now();
-    
+
     try {
       // 추론 타입별 처리
       switch (model.type) {
         case 'prediction':
-          return await this.executePredictionInference(model, request, context, signal);
+          return await this.executePredictionInference(
+            model,
+            request,
+            context,
+            signal
+          );
         case 'anomaly':
-          return await this.executeAnomalyInference(model, request, context, signal);
+          return await this.executeAnomalyInference(
+            model,
+            request,
+            context,
+            signal
+          );
         case 'optimization':
-          return await this.executeOptimizationInference(model, request, context, signal);
+          return await this.executeOptimizationInference(
+            model,
+            request,
+            context,
+            signal
+          );
         case 'classification':
-          return await this.executeClassificationInference(model, request, context, signal);
+          return await this.executeClassificationInference(
+            model,
+            request,
+            context,
+            signal
+          );
         default:
           throw new Error(`지원하지 않는 모델 타입: ${model.type}`);
       }
-      
     } catch (error) {
       if (signal.aborted) {
         throw new Error('AI 추론이 중단됨');
@@ -306,12 +344,11 @@ export class IntegratedAIEngine implements IAIAnalysisService {
     context: AIInferenceContext,
     signal: AbortSignal
   ): Promise<AIInferenceResult> {
-    
     console.log('📈 예측 분석 실행 중...');
-    
+
     // Phase 2 개발 중 - 실제 TensorFlow.js 추론
     await new Promise(resolve => setTimeout(resolve, 500)); // 추론 시뮬레이션
-    
+
     if (signal.aborted) throw new Error('추론 중단됨');
 
     // Mock 예측 결과 (실제 구현에서는 TensorFlow.js 추론 결과)
@@ -320,7 +357,7 @@ export class IntegratedAIEngine implements IAIAnalysisService {
       memory_usage_next_hour: Math.random() * 100,
       disk_io_next_hour: Math.random() * 1000,
       network_throughput_next_hour: Math.random() * 500,
-      system_load_trend: Math.random() * 10
+      system_load_trend: Math.random() * 10,
     };
 
     const confidence = 0.85 + Math.random() * 0.1; // 85-95% 신뢰도
@@ -328,7 +365,7 @@ export class IntegratedAIEngine implements IAIAnalysisService {
     const recommendations = [
       '다음 시간대에 CPU 사용률 상승 예상, 스케일링 준비 권장',
       '메모리 사용량이 임계치에 근접할 예정, 모니터링 강화 필요',
-      '네트워크 트래픽 증가 예상, 대역폭 확인 권장'
+      '네트워크 트래픽 증가 예상, 대역폭 확인 권장',
     ].slice(0, Math.floor(Math.random() * 3) + 1);
 
     return {
@@ -337,11 +374,16 @@ export class IntegratedAIEngine implements IAIAnalysisService {
       modelUsed: model.id,
       processingTime: Date.now() - Date.now(),
       recommendations,
-      alerts: confidence < this.config.confidenceThreshold ? [{
-        level: 'warning',
-        message: '예측 신뢰도가 낮습니다',
-        action: 'additional_data_required'
-      }] : undefined
+      alerts:
+        confidence < this.config.confidenceThreshold
+          ? [
+              {
+                level: 'warning',
+                message: '예측 신뢰도가 낮습니다',
+                action: 'additional_data_required',
+              },
+            ]
+          : undefined,
     };
   }
 
@@ -354,11 +396,10 @@ export class IntegratedAIEngine implements IAIAnalysisService {
     context: AIInferenceContext,
     signal: AbortSignal
   ): Promise<AIInferenceResult> {
-    
     console.log('🚨 이상 탐지 실행 중...');
-    
+
     await new Promise(resolve => setTimeout(resolve, 300));
-    
+
     if (signal.aborted) throw new Error('추론 중단됨');
 
     const anomalyScore = Math.random();
@@ -367,17 +408,16 @@ export class IntegratedAIEngine implements IAIAnalysisService {
     const predictions = {
       anomaly_score: anomalyScore,
       is_anomaly: isAnomaly ? 1 : 0,
-      severity: isAnomaly ? Math.random() * 10 : 0
+      severity: isAnomaly ? Math.random() * 10 : 0,
     };
 
-    const recommendations = isAnomaly ? [
-      '시스템 이상 패턴 감지됨',
-      '즉시 시스템 로그 확인 필요',
-      '관련 관리자에게 알림 전송 권장'
-    ] : [
-      '시스템 정상 작동 중',
-      '정기 모니터링 계속 진행'
-    ];
+    const recommendations = isAnomaly
+      ? [
+          '시스템 이상 패턴 감지됨',
+          '즉시 시스템 로그 확인 필요',
+          '관련 관리자에게 알림 전송 권장',
+        ]
+      : ['시스템 정상 작동 중', '정기 모니터링 계속 진행'];
 
     return {
       predictions,
@@ -385,11 +425,15 @@ export class IntegratedAIEngine implements IAIAnalysisService {
       modelUsed: model.id,
       processingTime: Date.now() - Date.now(),
       recommendations,
-      alerts: isAnomaly ? [{
-        level: 'error',
-        message: '시스템 이상 감지',
-        action: 'investigate_immediately'
-      }] : undefined
+      alerts: isAnomaly
+        ? [
+            {
+              level: 'error',
+              message: '시스템 이상 감지',
+              action: 'investigate_immediately',
+            },
+          ]
+        : undefined,
     };
   }
 
@@ -402,24 +446,23 @@ export class IntegratedAIEngine implements IAIAnalysisService {
     context: AIInferenceContext,
     signal: AbortSignal
   ): Promise<AIInferenceResult> {
-    
     console.log('⚡ 최적화 분석 실행 중...');
-    
+
     await new Promise(resolve => setTimeout(resolve, 400));
-    
+
     if (signal.aborted) throw new Error('추론 중단됨');
 
     const predictions = {
       cpu_optimization_potential: Math.random() * 30,
       memory_optimization_potential: Math.random() * 25,
       cost_reduction_potential: Math.random() * 40,
-      performance_improvement_potential: Math.random() * 35
+      performance_improvement_potential: Math.random() * 35,
     };
 
     const recommendations = [
       'CPU 리소스 재분배로 15% 성능 향상 가능',
       '메모리 사용 패턴 최적화로 20% 효율성 개선 예상',
-      '서버 통합을 통한 운영비 절감 가능'
+      '서버 통합을 통한 운영비 절감 가능',
     ];
 
     return {
@@ -427,7 +470,7 @@ export class IntegratedAIEngine implements IAIAnalysisService {
       confidence: 0.87,
       modelUsed: model.id,
       processingTime: Date.now() - Date.now(),
-      recommendations
+      recommendations,
     };
   }
 
@@ -440,27 +483,33 @@ export class IntegratedAIEngine implements IAIAnalysisService {
     context: AIInferenceContext,
     signal: AbortSignal
   ): Promise<AIInferenceResult> {
-    
     console.log('🏷️ 워크로드 분류 실행 중...');
-    
+
     await new Promise(resolve => setTimeout(resolve, 350));
-    
+
     if (signal.aborted) throw new Error('추론 중단됨');
 
-    const workloadTypes = ['web-server', 'database', 'api-server', 'batch-processing', 'ml-workload'];
-    const selectedType = workloadTypes[Math.floor(Math.random() * workloadTypes.length)];
+    const workloadTypes = [
+      'web-server',
+      'database',
+      'api-server',
+      'batch-processing',
+      'ml-workload',
+    ];
+    const selectedType =
+      workloadTypes[Math.floor(Math.random() * workloadTypes.length)];
 
     const predictions = {
       workload_type: selectedType,
       confidence_score: 0.85 + Math.random() * 0.1,
       resource_pattern: Math.random() * 100,
-      optimization_class: Math.floor(Math.random() * 5) + 1
+      optimization_class: Math.floor(Math.random() * 5) + 1,
     };
 
     const recommendations = [
       `워크로드 타입: ${selectedType}`,
       '해당 워크로드에 최적화된 설정 적용 권장',
-      '리소스 할당 패턴 조정 가능'
+      '리소스 할당 패턴 조정 가능',
     ];
 
     return {
@@ -468,16 +517,20 @@ export class IntegratedAIEngine implements IAIAnalysisService {
       confidence: predictions.confidence_score,
       modelUsed: model.id,
       processingTime: Date.now() - Date.now(),
-      recommendations
+      recommendations,
     };
   }
 
   /**
    * 🎯 최적 모델 선택
    */
-  private selectBestModel(analysisType: string, context: AIInferenceContext): AIModel | null {
+  private selectBestModel(
+    analysisType: string,
+    context: AIInferenceContext
+  ): AIModel | null {
     const availableModels = Array.from(this.models.values()).filter(
-      model => model.isLoaded && this.isModelSuitableForAnalysis(model, analysisType)
+      model =>
+        model.isLoaded && this.isModelSuitableForAnalysis(model, analysisType)
     );
 
     if (availableModels.length === 0) {
@@ -487,7 +540,8 @@ export class IntegratedAIEngine implements IAIAnalysisService {
     // 정확도와 최근 사용 빈도를 고려하여 선택
     return availableModels.reduce((best, current) => {
       const bestScore = (best.accuracy || 0) * 0.7 + (best.lastUsed ? 0.3 : 0);
-      const currentScore = (current.accuracy || 0) * 0.7 + (current.lastUsed ? 0.3 : 0);
+      const currentScore =
+        (current.accuracy || 0) * 0.7 + (current.lastUsed ? 0.3 : 0);
       return currentScore > bestScore ? current : best;
     });
   }
@@ -495,14 +549,17 @@ export class IntegratedAIEngine implements IAIAnalysisService {
   /**
    * 🔍 모델 적합성 확인
    */
-  private isModelSuitableForAnalysis(model: AIModel, analysisType: string): boolean {
+  private isModelSuitableForAnalysis(
+    model: AIModel,
+    analysisType: string
+  ): boolean {
     const typeMapping: Record<string, string[]> = {
-      'server': ['prediction', 'anomaly'],
-      'system': ['anomaly', 'optimization'],
-      'prediction': ['prediction'],
-      'anomaly': ['anomaly'],
+      server: ['prediction', 'anomaly'],
+      system: ['anomaly', 'optimization'],
+      prediction: ['prediction'],
+      anomaly: ['anomaly'],
       'performance-analysis': ['prediction', 'optimization'],
-      'workload-classification': ['classification']
+      'workload-classification': ['classification'],
     };
 
     const suitableTypes = typeMapping[analysisType] || [analysisType];
@@ -514,10 +571,13 @@ export class IntegratedAIEngine implements IAIAnalysisService {
    */
   private addToHistory(result: AIAnalysisResult): void {
     this.analysisHistory.unshift(result);
-    
+
     // 히스토리 크기 제한
     if (this.analysisHistory.length > this.config.cacheSize) {
-      this.analysisHistory = this.analysisHistory.slice(0, this.config.cacheSize);
+      this.analysisHistory = this.analysisHistory.slice(
+        0,
+        this.config.cacheSize
+      );
     }
   }
 
@@ -525,7 +585,9 @@ export class IntegratedAIEngine implements IAIAnalysisService {
    * 📋 분석 히스토리 조회
    */
   async getAnalysisHistory(limit?: number): Promise<AIAnalysisResult[]> {
-    const results = limit ? this.analysisHistory.slice(0, limit) : this.analysisHistory;
+    const results = limit
+      ? this.analysisHistory.slice(0, limit)
+      : this.analysisHistory;
     return results;
   }
 
@@ -559,26 +621,42 @@ export class IntegratedAIEngine implements IAIAnalysisService {
    * 📊 AI 엔진 상태 조회
    */
   getEngineStatus(): {
+    engineId: string;
     isInitialized: boolean;
     totalModels: number;
     loadedModels: number;
     activeAnalyses: number;
     queuedAnalyses: number;
     averageAnalysisTime: number;
+    lastInitialized?: Date;
+    config: {
+      defaultTimeout: number;
+      maxConcurrentAnalyses: number;
+      cacheSize: number;
+    };
   } {
-    const loadedModels = Array.from(this.models.values()).filter(m => m.isLoaded).length;
-    const completedAnalyses = this.analysisHistory.filter(a => a.status === 'success' && a.duration);
-    const averageTime = completedAnalyses.length > 0 
-      ? completedAnalyses.reduce((sum, a) => sum + (a.duration || 0), 0) / completedAnalyses.length
-      : 0;
+    const loadedModels = Array.from(this.models.values()).filter(
+      m => m.isLoaded
+    ).length;
+    const completedAnalyses = this.analysisHistory.filter(
+      a => a.status === 'success' && a.duration
+    );
+    const averageTime =
+      completedAnalyses.length > 0
+        ? completedAnalyses.reduce((sum, a) => sum + (a.duration || 0), 0) /
+          completedAnalyses.length
+        : 0;
 
     return {
+      engineId: 'integrated-ai-engine-v2',
       isInitialized: this.isInitialized,
       totalModels: this.models.size,
       loadedModels,
       activeAnalyses: this.activeAnalyses.size,
       queuedAnalyses: this.analysisQueue.length,
-      averageAnalysisTime: Math.round(averageTime)
+      averageAnalysisTime: Math.round(averageTime),
+      lastInitialized: this.isInitialized ? new Date() : undefined,
+      config: this.config,
     };
   }
 
@@ -592,18 +670,21 @@ export class IntegratedAIEngine implements IAIAnalysisService {
   /**
    * 🧠 스마트 분석 (자동 모델 선택)
    */
-  async smartAnalyze(data: any, options?: { priority?: string; timeout?: number }): Promise<AIInferenceResult> {
+  async smartAnalyze(
+    data: any,
+    options?: { priority?: string; timeout?: number }
+  ): Promise<AIInferenceResult> {
     const request: ExtendedAIAnalysisRequest = {
       type: 'prediction', // 기본값으로 prediction 사용
       data: {
         ...data,
-        priority: options?.priority as any || 'medium',
-        maxInferenceTime: options?.timeout || this.config.defaultTimeout
-      }
+        priority: (options?.priority as any) || 'medium',
+        maxInferenceTime: options?.timeout || this.config.defaultTimeout,
+      },
     };
 
     const result = await this.analyze(request);
-    
+
     if (result.status === 'error') {
       throw new Error(result.error || 'AI 분석 실패');
     }
@@ -614,11 +695,29 @@ export class IntegratedAIEngine implements IAIAnalysisService {
 
 // 🌍 전역 인스턴스 접근
 export const getAIEngine = (): IntegratedAIEngine => {
-  return IntegratedAIEngine.getInstance();
+  const engine = IntegratedAIEngine.getInstance();
+
+  // 자동 초기화 - 아직 초기화되지 않았으면 백그라운드에서 초기화
+  if (!engine.getEngineStatus().isInitialized) {
+    // 즉시 초기화 시작 (비동기)
+    engine
+      .analyze({ type: 'prediction' } as AIAnalysisRequest)
+      .then(() => console.log('🚀 AI 엔진 자동 초기화 완료'))
+      .catch(err => console.warn('⚠️ AI 엔진 자동 초기화 실패:', err));
+  }
+
+  return engine;
 };
 
 // 🚀 AI 엔진 초기화
 export const initializeAIEngine = async (): Promise<void> => {
   const engine = getAIEngine();
-  console.log('🚀 AI 엔진 시스템 초기화 완료');
-}; 
+
+  try {
+    // 더미 요청으로 초기화 트리거
+    await engine.analyze({ type: 'prediction' } as AIAnalysisRequest);
+    console.log('🚀 AI 엔진 시스템 초기화 완료');
+  } catch (error) {
+    console.warn('⚠️ AI 엔진 초기화 중 오류:', error);
+  }
+};
