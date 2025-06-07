@@ -1,5 +1,5 @@
 /**
- * 🎯 OpenManager Vibe v5 - 마스터 AI 엔진
+ * 🎯 OpenManager Vibe v5 - 마스터 AI 엔진 v4.0.0
  *
  * 모든 AI 엔진을 조합하여 사용하는 통합 인터페이스:
  * - 6개 오픈소스 엔진 (simple-statistics, tensorflow.js, 등)
@@ -7,6 +7,7 @@
  * - 엔진별 라우팅 및 폴백 로직
  * - 성능 최적화 및 지연 로딩
  * - 사고과정 로그 시스템 통합
+ * - 중앙 버전 관리 및 변경 로깅
  */
 
 import { OpenSourceEngines } from './engines/OpenSourceEngines';
@@ -16,6 +17,7 @@ import {
   AIResponseFormat,
   ThinkingProcessState,
 } from '../../types/ai-thinking';
+import { AI_ENGINE_VERSIONS, VersionManager } from '../../config/versions';
 
 export interface AIEngineRequest {
   engine:
@@ -607,10 +609,17 @@ export class MasterAIEngine {
 
     return {
       master_engine: {
+        version: AI_ENGINE_VERSIONS.master,
         initialized: this.initialized,
         total_engines: 11,
         opensource_engines: 6,
         custom_engines: 5,
+      },
+      versions: {
+        master: AI_ENGINE_VERSIONS.master,
+        opensource: AI_ENGINE_VERSIONS.opensource,
+        custom: AI_ENGINE_VERSIONS.custom,
+        support: AI_ENGINE_VERSIONS.support,
       },
       performance: {
         total_memory: '~70MB (with lazy loading)',
@@ -629,7 +638,10 @@ export class MasterAIEngine {
         'real_time_monitoring',
         'korean_optimization',
         'mcp_integration',
+        'version_management',
+        'change_logging',
       ],
+      version_manager: VersionManager.getCurrentVersions(),
     };
   }
 

@@ -1,5 +1,5 @@
 /**
- * 🚀 최적화된 서버 데이터 생성기 v2.0
+ * 🚀 최적화된 서버 데이터 생성기 v3.0.0
  *
  * 주요 최적화:
  * - 24시간 베이스라인 데이터 미리 생성
@@ -7,6 +7,7 @@
  * - 메모리 및 CPU 사용량 최소화
  * - 프로메테우스 메트릭 실시간 전달
  * - 레디스/DB 효율적 활용
+ * - 중앙 버전 관리 시스템 통합
  */
 
 import type { EnhancedServerMetrics } from '../types/server';
@@ -14,6 +15,7 @@ import { ServerEnvironment, ServerRole, ServerStatus } from '../types/server';
 import { timerManager } from '../utils/TimerManager';
 import { memoryOptimizer } from '../utils/MemoryOptimizer';
 import { SmartCache } from '../utils/smart-cache';
+import { DATA_GENERATOR_VERSIONS, VersionManager } from '../config/versions';
 
 interface BaselineDataPoint {
   timestamp: number;
@@ -722,22 +724,33 @@ export class OptimizedDataGenerator {
    * 📊 현재 상태 조회
    */
   getStatus(): {
+    version: string;
     isRunning: boolean;
     serversCount: number;
     updateCounter: number;
     memoryUsage: string;
     lastPatternUpdate: string;
     config: OptimizedGeneratorConfig;
+    version_info: any;
   } {
     const memoryStats = memoryOptimizer.getCurrentMemoryStats();
 
     return {
+      version: DATA_GENERATOR_VERSIONS.optimized,
       isRunning: this.isRunning,
       serversCount: this.baselineStorage.size,
       updateCounter: this.updateCounter,
       memoryUsage: `${memoryStats.usagePercent.toFixed(1)}%`,
       lastPatternUpdate: new Date(this.lastPatternUpdate).toLocaleTimeString(),
       config: { ...this.config },
+      version_info: {
+        optimized: DATA_GENERATOR_VERSIONS.optimized,
+        modules: DATA_GENERATOR_VERSIONS.modules,
+        compatibility: VersionManager.checkCompatibility(
+          'data_generator',
+          DATA_GENERATOR_VERSIONS.optimized
+        ),
+      },
     };
   }
 
