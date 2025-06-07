@@ -151,40 +151,7 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     importance: 'high',
     isCore: true,
   },
-  // MCP 통합 도구들 (혁신적 AI 워크플로우)
-  'mcp-filesystem': {
-    name: 'MCP Filesystem',
-    category: 'mcp-engine',
-    description:
-      '실시간 파일 시스템 접근 - 코드 구조 파악 90% 단축, 디렉토리 탐색 자동화',
-    importance: 'high',
-    isCore: true,
-  },
-  'mcp-duckduckgo': {
-    name: 'MCP DuckDuckGo Search',
-    category: 'mcp-engine',
-    description:
-      '즉시 웹 검색 - 검색 시간 80% 절약, 최신 기술 정보 실시간 수집',
-    importance: 'high',
-    isCore: true,
-  },
-  'mcp-sequential': {
-    name: 'MCP Sequential Thinking',
-    category: 'mcp-engine',
-    description: '단계별 사고 - 복잡한 로직 일관성 90% 향상, 추론 과정 시각화',
-    importance: 'high',
-    isCore: true,
-  },
 
-  // Vibe Coding AI Development Tools - 메인 워크플로우
-  cursor: {
-    name: 'Cursor AI',
-    category: 'ai-development',
-    description:
-      'AI 기반 IDE - 바이브 코딩의 메인 개발 도구 (80% 사용), Claude 4 Sonnet 통합',
-    importance: 'high',
-    isCore: true,
-  },
   'claude 4 sonnet': {
     name: 'Claude 4 Sonnet',
     category: 'ai-development',
@@ -192,34 +159,6 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
       'Cursor AI에서 선택한 메인 AI 모델 - 200K+ 토큰 컨텍스트, 코드 이해도 최상급',
     importance: 'high',
     isCore: true,
-  },
-  chatgpt: {
-    name: 'ChatGPT (GPT-4)',
-    category: 'ai-development',
-    description:
-      '브레인스토밍 및 아키텍처 설계 보조 (15% 사용), 창의적 문제 해결',
-    importance: 'medium',
-  },
-  'gpt-4': {
-    name: 'GPT Codex',
-    category: 'ai-development',
-    description:
-      'OpenAI 코드 특화 모델 - 프로그래밍 언어 전문, 자연어→코드 변환 최적화, 디버깅 및 리팩토링 특화',
-    importance: 'medium',
-  },
-  gemini: {
-    name: 'Google Jules',
-    category: 'ai-development',
-    description:
-      'Google의 차세대 코딩 에이전트 - GitHub 완전 연동, 클라우드 VM 기반 대규모 처리, 자동 테스트 및 CI/CD 통합 (5% 사용)',
-    importance: 'medium',
-  },
-  'jules-ai': {
-    name: 'Jules AI Agent',
-    category: 'ai-development',
-    description:
-      '대화형 워크플로우 자동화 - 반복 업무 자동화, 코드 리뷰 자동화, 배포 파이프라인 관리',
-    importance: 'medium',
   },
 
   // AI 엔진 통합 시스템
