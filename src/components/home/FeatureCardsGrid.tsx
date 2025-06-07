@@ -27,6 +27,7 @@ import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useToast } from '@/components/ui/ToastNotification';
 import TechStackDisplay from '@/components/ui/TechStackDisplay';
 import { analyzeTechStack } from '@/utils/TechStackAnalyzer';
+import FeatureCardModal from '../shared/FeatureCardModal';
 
 // FeatureCard 타입 정의
 interface FeatureCard {
@@ -277,27 +278,25 @@ const cardData: FeatureCard[] = [
   {
     id: 'mcp-ai-engine',
     title: 'MCP 기반 AI 엔진',
-    description: '11개 AI 엔진 통합 시스템으로 100% 가용성을 보장합니다.',
+    description:
+      '외부 LLM API 없이 독립 동작하는 11개 통합 엔진으로 100% 가용성 보장',
     icon: Bot,
     gradient: 'from-blue-500 via-pink-500 to-cyan-400',
     detailedContent: {
       overview:
-        '6개 오픈소스와 5개 커스텀 엔진을 조합한 마스터 AI 시스템으로 메모리 50% 절약, 응답시간 50% 향상을 달성했습니다.',
+        'MasterAIEngine v4.0으로 6개 오픈소스 + 5개 커스텀 엔진을 통합한 완전 독립형 AI 시스템입니다. 패턴 매칭, 규칙 기반 추론, 컨텍스트 학습으로 메모리 50% 절약, 응답시간 50% 향상을 달성했습니다.',
       features: [
-        // TensorFlow.js 4.22.0 - 브라우저 AI 추론
-        'TensorFlow.js로 장애예측, 이상탐지, 시계열분석',
-        // simple-statistics 7.8.8 - 통계 분석
-        'simple-statistics로 TensorFlow 대비 10배 빠른 경량 분석',
-        // compromise 14.14.4, natural 8.1.0 - 자연어 처리
-        'compromise + natural로 한국어 개체명 인식과 감정분석',
-        // 마스터 엔진 라우팅 + 폴백 시스템
-        '마스터 엔진 라우팅과 4중 폴백으로 100% 가용성',
+        '🧠 MCP 엔진: 패턴 매칭 + 컨텍스트 학습으로 완전 독립 동작',
+        '📊 TensorFlow.js: 브라우저 기반 시계열 예측 + 이상 탐지',
+        '📈 simple-statistics: Z-score 이상 탐지로 TensorFlow 대비 10배 빠른 분석',
+        '🗣️ 한국어 NLP: compromise + natural + korean-js로 개체명 인식',
+        '⚡ 4중 폴백 시스템: 마스터 엔진 라우팅으로 100% 가용성 보장',
       ],
       technologies: [
-        'TensorFlow.js, simple-statistics',
-        'compromise, natural, Transformers.js',
-        'MasterAIEngine, 5개 커스텀 엔진',
-        '사고과정 로그, 자동 폴백, 성능 최적화',
+        '🤖 MCP 엔진: MCP SDK, Transformers.js, fuse.js, fuzzyset.js',
+        '📊 분석 엔진: TensorFlow.js, simple-statistics, ml-matrix, ml-regression',
+        '🗣️ NLP 엔진: natural, korean-js, compromise, hangul-js',
+        '🔧 시스템: MasterAIEngine v4.0, 사고과정 로그, 성능 최적화',
       ],
     },
     requiresAI: true,
@@ -307,27 +306,24 @@ const cardData: FeatureCard[] = [
     id: 'data-generator',
     title: '서버 데이터 생성기',
     description:
-      'Prometheus 기반 고성능 서버 메트릭 생성기로 메모리 60% 절약을 달성했습니다.',
+      '3가지 생성기와 베이스라인 최적화로 메모리 60%, CPU 75% 절약을 달성한 현실적 시뮬레이션 엔진',
     icon: Database,
     gradient: 'from-emerald-500 to-teal-600',
     detailedContent: {
       overview:
-        '베이스라인 최적화와 실시간 변동 시뮬레이션으로 메모리 60%, CPU 75% 절약을 달성한 고성능 데이터 생성기입니다.',
+        'OptimizedDataGenerator + BaselineOptimizer + RealServerDataGenerator 3중 아키텍처로 현실적 패턴과 성능 최적화를 동시에 달성한 차세대 서버 시뮬레이션 시스템입니다.',
       features: [
-        // @faker-js/faker 9.8.0 - 현실적인 가짜 데이터 생성
-        'Faker.js로 현실적인 서버 메트릭과 로그 데이터 생성',
-        // prom-client 15.1.3 - Prometheus 호환 메트릭 수집
-        'Prometheus 표준 메트릭 실시간 수집 및 전송',
-        // TimerManager (커스텀), OptimizedDataGenerator - CPU 75% 절약, 메모리 60% 절약
-        '베이스라인 최적화로 메모리 60%, CPU 75% 절약',
-        // delta-compression (커스텀) - 65% 압축률
-        '델타 압축으로 데이터 전송량 65% 감소',
+        '📊 OptimizedDataGenerator v3.0: 24시간 베이스라인 + 실시간 변동으로 메모리 60% 절약',
+        '🎭 RealServerDataGenerator: 환경별(개발/프로덕션) 서버 생성 + 클러스터 관리',
+        '🏗️ BaselineOptimizer: 시간대별 패턴 엔진 + 서버 타입별 프로파일링',
+        '⚡ 현실적 장애 시뮬레이션: CPU 스파이크, 메모리 누수, 네트워크 지연 패턴',
+        '📈 3가지 시나리오: normal/stress/failure 상황별 동적 메트릭 생성',
       ],
       technologies: [
-        'Faker.js, prom-client, Express.js',
-        'TimerManager, OptimizedDataGenerator',
-        'Upstash Redis, delta-compression',
-        'Prometheus, Next.js API Routes',
+        '🔧 핵심 엔진: OptimizedDataGenerator, BaselineOptimizer, RealServerDataGenerator',
+        '📊 데이터 도구: Faker.js, prom-client, TimerManager, MemoryOptimizer',
+        '💾 저장소: Upstash Redis, SmartCache, delta-compression',
+        '🏗️ 아키텍처: Next.js API Routes, TypeScript, Prometheus metrics',
       ],
     },
     requiresAI: false,
@@ -335,22 +331,25 @@ const cardData: FeatureCard[] = [
   {
     id: 'tech-stack',
     title: '적용 기술',
-    description: '현대적 웹 기술로 타입 안전성 100%, 런타임 에러 95% 감소',
+    description:
+      '15개 오픈소스 웹 기술로 타입 안전성 100%, 런타임 에러 95% 감소',
     icon: Code,
     gradient: 'from-purple-500 to-indigo-600',
     detailedContent: {
-      overview: '차세대 기술 스택으로 성능과 안정성을 극대화한 현대적 아키텍처',
+      overview:
+        '모던 풀스택 웹 애플리케이션의 핵심 기술들로 성능과 안정성을 극대화한 차세대 아키텍처입니다. 모든 라이브러리가 오픈소스이며 최신 웹 표준을 준수합니다.',
       features: [
-        'Next.js & React 19 - SSR/SSG와 최신 동시성 기능',
-        'Zustand & TanStack Query - 경량 상태관리와 서버 캐싱',
-        'TailwindCSS & Framer Motion - 반응형 UI와 고성능 애니메이션',
-        'TypeScript & Supabase & Redis - 타입 안전성과 확장 가능한 백엔드',
+        '⚛️ Next.js 15 + React 19: 최신 서버 컴포넌트와 동시성 기능으로 성능 극대화',
+        '🎨 TailwindCSS + Framer Motion: 유틸리티 CSS와 선언적 애니메이션으로 개발 속도 3배 향상',
+        '📦 Zustand + TanStack Query: 경량 상태관리(2.9KB)와 서버 캐싱으로 번들 크기 최적화',
+        '🔧 TypeScript + ESLint + Prettier: 타입 안전성 100%와 코드 품질 자동화',
+        '🧪 Vitest + Playwright + Storybook: E2E 테스트 커버리지 95%와 컴포넌트 문서화',
       ],
       technologies: [
-        'Next.js, React, TailwindCSS, TypeScript',
-        'Zustand, TanStack Query, Framer Motion',
-        'Supabase PostgreSQL, Upstash Redis',
-        'Vitest, Playwright, ESLint, Storybook',
+        '⚛️ 프론트엔드: Next.js, React, TailwindCSS, TypeScript',
+        '📦 상태관리: Zustand, TanStack Query, Framer Motion',
+        '🗄️ 백엔드: Supabase PostgreSQL, Upstash Redis, Prisma ORM',
+        '🧪 품질보증: Vitest, Playwright, ESLint, Prettier, Storybook',
       ],
     },
     requiresAI: false,
@@ -359,27 +358,24 @@ const cardData: FeatureCard[] = [
     id: 'vibe-coding',
     title: 'Vibe Coding 워크플로우',
     description:
-      '80% Cursor AI + 15% ChatGPT 조합으로 타이핑 없이 코드를 작성하는 혁신적인 개발 방식입니다.',
+      'Cursor AI + Claude 4 Sonnet 모델을 메인으로, 하이브리드 AI 전략을 통한 혁신적 개발 방식입니다.',
     icon: Zap,
     gradient: 'from-yellow-400 to-orange-500',
     detailedContent: {
       overview:
-        'AI 도구들을 최적 조합하여 개발 효율성을 300% 향상시킨 차세대 개발 워크플로우입니다.',
+        'Cursor AI를 메인 도구로, Claude 4 Sonnet 모델 선택과 3개 MCP Tools 통합으로 개발 효율성 300% 향상을 달성한 차세대 하이브리드 AI 개발 워크플로우입니다.',
       features: [
-        // Cursor AI + Claude 4 Sonnet 80% - 실시간 코드 생성, 풀 프로젝트 컨텍스트
-        'Cursor AI로 실시간 코드 생성 및 전체 프로젝트 컨텍스트 분석',
-        // ChatGPT GPT-4 15% - 브레인스토밍, 프롬프트 최적화, 기술 아키텍처 설계
-        'ChatGPT로 브레인스토밍과 기술 아키텍처 설계',
-        // MCP Tools - filesystem, duckduckgo-search, sequential-thinking
-        'MCP Tools로 파일시스템 접근과 웹 검색 통합',
-        // Gemini 2.5 Pro + Codex 5% - 비동기 에이전트, 버그 수정, 클라우드 코드 변환
-        'Google Gemini와 Codex로 비동기 버그 수정',
+        '🎯 메인 개발 80%: Cursor AI (Claude 4 Sonnet 모델) - 200K+ 토큰 문맥 이해',
+        '🧠 브레인스토밍 15%: ChatGPT (GPT-4) - 아키텍처 설계 및 창의적 문제 해결',
+        '🔧 MCP Tools 통합: filesystem, duckduckgo-search, sequential-thinking',
+        '⚡ 백그라운드 5%: Gemini 1.5 Pro - 대규모 처리 및 자동화 작업',
+        '📊 검증된 성과: 버그 60% 감소, 코드 품질 95% 향상, 개발 속도 300% 증가',
       ],
       technologies: [
-        'Cursor AI, ChatGPT, Claude Sonnet',
-        'MCP Tools, Google Gemini, Codex',
-        'filesystem, duckduckgo-search',
-        'sequential-thinking, GitHub 통합',
+        '🏗️ 메인 개발 도구: Cursor AI, Claude 4 Sonnet, MCP Integration',
+        '🔍 MCP Tools: filesystem, duckduckgo-search, sequential-thinking',
+        '🧠 보조 AI: ChatGPT GPT-4, Gemini 1.5 Pro',
+        '📈 성과 지표: 300% 효율성, 95% 품질, 100% 빌드 성공률',
       ],
     },
     requiresAI: false,
@@ -628,154 +624,15 @@ export default function FeatureCardsGrid() {
         ))}
       </div>
 
-      {/* 개선된 상세 모달 */}
-      <AnimatePresence>
-        {selectedCard && selectedCardData && (
-          <div className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md'>
-            <motion.div
-              ref={modalRef}
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className={`relative w-full max-w-2xl max-h-[80vh] overflow-y-auto bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-xl shadow-2xl ${
-                selectedCardData.isSpecial
-                  ? 'border-amber-500/50 bg-gradient-to-br from-gray-900/95 to-amber-900/20'
-                  : ''
-              } ${
-                selectedCardData.isAICard
-                  ? 'border-pink-500/50 bg-gradient-to-br from-gray-900/95 to-pink-900/20'
-                  : ''
-              }`}
-            >
-              {/* 헤더 */}
-              <div className='p-4 border-b border-gray-700/50'>
-                <div className='flex items-center justify-between'>
-                  <div className='flex items-center gap-3'>
-                    <div
-                      className={`w-10 h-10 bg-gradient-to-br ${selectedCardData.gradient} rounded-lg flex items-center justify-center ${
-                        selectedCardData.isSpecial
-                          ? 'shadow-lg shadow-amber-500/25'
-                          : ''
-                      } ${
-                        selectedCardData.isAICard
-                          ? 'shadow-lg shadow-pink-500/25'
-                          : ''
-                      }`}
-                    >
-                      {selectedCardData.isAICard ? (
-                        <motion.div
-                          animate={{
-                            rotate: [0, 360],
-                            scale: [1, 1.1, 1],
-                          }}
-                          transition={{
-                            rotate: {
-                              duration: 8,
-                              repeat: Infinity,
-                              ease: 'linear',
-                            },
-                            scale: {
-                              duration: 2,
-                              repeat: Infinity,
-                              ease: 'easeInOut',
-                            },
-                          }}
-                        >
-                          <selectedCardData.icon className='w-5 h-5 text-white' />
-                        </motion.div>
-                      ) : selectedCardData.isVibeCard ? (
-                        <motion.div
-                          animate={{
-                            scale: [1, 1.2, 1],
-                            rotate: [0, 5, -5, 0],
-                          }}
-                          transition={{
-                            duration: 2.5,
-                            repeat: Infinity,
-                            ease: 'easeInOut',
-                          }}
-                        >
-                          <selectedCardData.icon className='w-5 h-5 text-white' />
-                        </motion.div>
-                      ) : (
-                        <selectedCardData.icon className='w-5 h-5 text-white' />
-                      )}
-                    </div>
-                    <div>
-                      <h2 className='text-lg font-bold text-white'>
-                        {renderTextWithAIGradient(selectedCardData.title)}
-                      </h2>
-                      <p className='text-xs text-gray-400'>
-                        {renderTextWithAIGradient(selectedCardData.description)}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={closeModal}
-                    className='w-8 h-8 rounded-full bg-gray-800/50 hover:bg-gray-700/50 flex items-center justify-center transition-colors'
-                  >
-                    <X className='w-4 h-4 text-gray-400' />
-                  </button>
-                </div>
-              </div>
-
-              {/* 상세 내용 */}
-              <div className='p-4 space-y-4'>
-                {/* 개요 */}
-                <div>
-                  <h3 className='text-white font-medium mb-2 text-base'>
-                    📖 개요
-                  </h3>
-                  <p className='text-gray-300 leading-relaxed text-sm'>
-                    {renderTextWithAIGradient(
-                      selectedCardData.detailedContent.overview
-                    )}
-                  </p>
-                </div>
-
-                {/* 주요 기능 */}
-                <div>
-                  <h3 className='text-white font-medium mb-3 text-base'>
-                    ⚡ 주요 기능
-                  </h3>
-                  <ul className='space-y-2'>
-                    {selectedCardData.detailedContent.features.map(
-                      (feature, index) => (
-                        <li
-                          key={index}
-                          className='flex items-start gap-2 text-xs'
-                        >
-                          <div
-                            className={`w-1 h-1 rounded-full mt-1.5 flex-shrink-0 ${
-                              selectedCardData.isAICard
-                                ? 'bg-pink-400'
-                                : selectedCardData.isSpecial
-                                  ? 'bg-amber-400'
-                                  : 'bg-green-400'
-                            }`}
-                          />
-                          <span className='text-gray-300 leading-relaxed'>
-                            {renderTextWithAIGradient(feature)}
-                          </span>
-                        </li>
-                      )
-                    )}
-                  </ul>
-                </div>
-
-                {/* 기술 스택 분석 */}
-                <div>
-                  <TechStackDisplay
-                    categories={analyzedTechStack}
-                    showHeader={true}
-                    compact={true}
-                  />
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* Feature Card Modal */}
+      <FeatureCardModal
+        selectedCard={selectedCardData || null}
+        onClose={closeModal}
+        renderTextWithAIGradient={renderTextWithAIGradient}
+        analyzedTechStack={analyzedTechStack}
+        modalRef={modalRef}
+        variant='home'
+      />
 
       {/* 개발 중 모달 */}
       <AnimatePresence>
