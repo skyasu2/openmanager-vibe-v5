@@ -197,13 +197,15 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
   'gpt-4': {
     name: 'gpt codex',
     category: 'ai-development',
-    description: '빠른 실험 및 아이디어 테스트용',
+    description:
+      'OpenAI가 개발한 코드 생성 및 소프트웨어 엔지니어링에 특화된 인공지능 모델입니다. 자연어(일상 언어)로 개발자의 요구나 설명을 입력하면, 이를 실제 코드로 변환하거나 기존 코드의 문제를 분석·수정할 수 있습니다',
     importance: 'medium',
   },
   gemini: {
     name: '구글 Jules',
     category: 'ai-development',
-    description: '대규모 문서 처리 및 백그라운드 자동화 (5% 사용)',
+    description:
+      '단순한 자동화 도구를 넘어, 개발자의 반복 업무를 실제로 대체할 수 있는 수준의 코딩 에이전트입니다. GitHub와의 완전한 연동, 클라우드 VM 기반 처리, 자동 테스트 및 변경 계획 제공 등 실제 개발 실무에서 필요한 기능을 중심으로 설계되어 있습니다',
     importance: 'low',
   },
 
