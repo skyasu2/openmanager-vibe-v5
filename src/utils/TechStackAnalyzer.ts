@@ -195,13 +195,13 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     importance: 'medium',
   },
   'gpt-4': {
-    name: 'GPT-4-turbo',
+    name: 'gpt codex',
     category: 'ai-development',
     description: '빠른 실험 및 아이디어 테스트용',
     importance: 'medium',
   },
   gemini: {
-    name: 'Gemini 1.5 Pro',
+    name: '구글 Jules',
     category: 'ai-development',
     description: '대규모 문서 처리 및 백그라운드 자동화 (5% 사용)',
     importance: 'low',
