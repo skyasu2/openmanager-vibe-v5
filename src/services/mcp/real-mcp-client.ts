@@ -15,7 +15,7 @@ import {
   detectEnvironment,
   checkPaths,
   getMCPConfig,
-} from '@/utils/environment';
+} from '@/config/environment';
 
 // MCP SDK는 아직 설치되지 않았을 수 있으므로 폴백 구현
 interface MCPClient {

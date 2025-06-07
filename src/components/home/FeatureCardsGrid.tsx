@@ -524,7 +524,7 @@ export default function FeatureCardsGrid() {
                 className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300`}
               />
 
-              {/* AI 카드 특별 이색 그라데이션 애니메이션 */}
+              {/* AI 카드 특별 이색 그라데이션 애니메이션 - landing 버전에서 재활용 */}
               {card.isAICard && (
                 <motion.div
                   className='absolute inset-0 bg-gradient-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30 rounded-2xl'
@@ -544,18 +544,17 @@ export default function FeatureCardsGrid() {
                 />
               )}
 
-              {/* 바이브 코딩 카드 골드 그라데이션 애니메이션 */}
+              {/* 바이브 코딩 카드 4색 그라데이션 애니메이션 개선 - landing + home 버전 통합 */}
               {card.isVibeCard && (
                 <motion.div
-                  className='absolute inset-0 rounded-2xl'
+                  className='absolute inset-0 bg-gradient-to-br from-yellow-400/20 via-orange-500/20 via-pink-500/20 to-purple-600/20 rounded-2xl'
                   animate={{
                     background: [
-                      'linear-gradient(135deg, rgba(251,191,36,0.3) 0%, rgba(249,115,22,0.3) 50%, rgba(234,179,8,0.3) 100%)',
-                      'linear-gradient(135deg, rgba(234,179,8,0.3) 0%, rgba(251,191,36,0.3) 50%, rgba(249,115,22,0.3) 100%)',
-                      'linear-gradient(135deg, rgba(249,115,22,0.3) 0%, rgba(234,179,8,0.3) 50%, rgba(251,191,36,0.3) 100%)',
-                      'linear-gradient(135deg, rgba(251,191,36,0.3) 0%, rgba(249,115,22,0.3) 50%, rgba(234,179,8,0.3) 100%)',
+                      'linear-gradient(135deg, rgba(251,191,36,0.2) 0%, rgba(249,115,22,0.2) 25%, rgba(236,72,153,0.2) 75%, rgba(147,51,234,0.2) 100%)',
+                      'linear-gradient(135deg, rgba(249,115,22,0.2) 0%, rgba(236,72,153,0.2) 25%, rgba(147,51,234,0.2) 75%, rgba(251,191,36,0.2) 100%)',
+                      'linear-gradient(135deg, rgba(236,72,153,0.2) 0%, rgba(147,51,234,0.2) 25%, rgba(251,191,36,0.2) 75%, rgba(249,115,22,0.2) 100%)',
+                      'linear-gradient(135deg, rgba(147,51,234,0.2) 0%, rgba(251,191,36,0.2) 25%, rgba(249,115,22,0.2) 75%, rgba(236,72,153,0.2) 100%)',
                     ],
-                    opacity: [0.3, 0.6, 0.3],
                   }}
                   transition={{
                     duration: 3,
@@ -565,11 +564,11 @@ export default function FeatureCardsGrid() {
                 />
               )}
 
-              {/* 아이콘 */}
+              {/* 아이콘 - landing 버전의 개선된 애니메이션 통합 */}
               <div
                 className={`w-12 h-12 bg-gradient-to-br ${card.gradient} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 relative z-10 ${
-                  card.isSpecial ? 'shadow-lg shadow-amber-500/25' : ''
-                } ${card.isAICard ? 'shadow-lg shadow-pink-500/25' : ''}`}
+                  card.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
+                } ${card.isVibeCard ? 'shadow-lg shadow-yellow-500/25' : ''}`}
               >
                 {card.isAICard ? (
                   <motion.div
@@ -586,7 +585,7 @@ export default function FeatureCardsGrid() {
                       },
                     }}
                   >
-                    <card.icon className='w-5 h-5 text-white' />
+                    <card.icon className='w-6 h-6 text-white' />
                   </motion.div>
                 ) : card.isVibeCard ? (
                   <motion.div
@@ -600,10 +599,10 @@ export default function FeatureCardsGrid() {
                       ease: 'easeInOut',
                     }}
                   >
-                    <card.icon className='w-5 h-5 text-white' />
+                    <card.icon className='w-6 h-6 text-white' />
                   </motion.div>
                 ) : (
-                  <card.icon className='w-5 h-5 text-white' />
+                  <card.icon className='w-6 h-6 text-white' />
                 )}
               </div>
 

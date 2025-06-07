@@ -11,25 +11,31 @@
 
 import { realPrometheusCollector } from '../collectors/RealPrometheusCollector';
 import { smartRedis } from '@/lib/redis';
-import { detectEnvironment, getDataGeneratorConfig, isPluginEnabled, getPluginConfig } from '@/utils/environment';
+import {
+  detectEnvironment,
+  env,
+  getDataGeneratorConfig,
+  isPluginEnabled,
+  getPluginConfig,
+} from '@/config/environment';
 
 // 🆕 고급 기능 모듈들 (플러그인 활성화시에만 사용)
-import { 
-  generateNetworkTopology, 
-  type NetworkNode, 
-  type NetworkConnection 
+import {
+  generateNetworkTopology,
+  type NetworkNode,
+  type NetworkConnection,
 } from '../../modules/advanced-features/network-topology';
-import { 
-  baselineOptimizer, 
+import {
+  baselineOptimizer,
   getCurrentBaseline,
-  type BaselineDataPoint 
+  type BaselineDataPoint,
 } from '../../modules/advanced-features/baseline-optimizer';
-import { 
+import {
   demoScenariosGenerator,
   generateScenarioMetrics,
   setDemoScenario,
   type DemoScenario,
-  type ScenarioMetrics 
+  type ScenarioMetrics,
 } from '../../modules/advanced-features/demo-scenarios';
 
 // 커스텀 환경 설정 인터페이스
@@ -157,7 +163,10 @@ export class RealServerDataGenerator {
   private applications: Map<string, ApplicationMetrics> = new Map();
 
   // 🆕 고급 기능 데이터
-  private networkTopology: { nodes: NetworkNode[], connections: NetworkConnection[] } | null = null;
+  private networkTopology: {
+    nodes: NetworkNode[];
+    connections: NetworkConnection[];
+  } | null = null;
   private currentDemoScenario: DemoScenario = 'normal';
   private baselineDataInitialized = false;
 
@@ -180,11 +189,15 @@ export class RealServerDataGenerator {
     // 공용 환경 감지 사용
     const env = detectEnvironment();
     this.dataGeneratorConfig = getDataGeneratorConfig();
-    
-    console.log(`🎰 서버 데이터 생성기 모드: ${this.dataGeneratorConfig.mode.toUpperCase()}`);
+
+    console.log(
+      `🎰 서버 데이터 생성기 모드: ${this.dataGeneratorConfig.mode.toUpperCase()}`
+    );
     console.log(`📊 최대 서버 수: ${this.dataGeneratorConfig.maxServers}`);
     console.log(`⏰ 갱신 주기: ${this.dataGeneratorConfig.refreshInterval}ms`);
-    console.log(`🚀 활성 기능: ${this.dataGeneratorConfig.features.join(', ')}`);
+    console.log(
+      `🚀 활성 기능: ${this.dataGeneratorConfig.features.join(', ')}`
+    );
 
     // 환경별 기본 설정
     this.environmentConfig = this.getEnvironmentSpecificConfig();
@@ -222,11 +235,13 @@ export class RealServerDataGenerator {
           serverArchitecture: 'microservices',
           databaseType: 'distributed',
           networkTopology: 'multi-cloud',
-          specialWorkload: features.includes('gpu-metrics') ? 'gpu' : 'container',
+          specialWorkload: features.includes('gpu-metrics')
+            ? 'gpu'
+            : 'container',
           scalingPolicy: 'predictive',
           securityLevel: 'enterprise',
         };
-      
+
       case 'premium':
         return {
           ...baseConfig,
@@ -237,7 +252,7 @@ export class RealServerDataGenerator {
           scalingPolicy: 'auto',
           securityLevel: 'enhanced',
         };
-      
+
       case 'basic':
       default:
         return baseConfig;
@@ -256,13 +271,13 @@ export class RealServerDataGenerator {
         this.simulationConfig.incidents.probability = 0.05; // 더 많은 시나리오
         this.simulationConfig.scaling.threshold = 0.7; // 더 민감한 스케일링
         break;
-      
+
       case 'premium':
         // 프리미엄 모드: 균형 잡힌 성능
         this.simulationConfig.incidents.probability = 0.03;
         this.simulationConfig.scaling.threshold = 0.75;
         break;
-      
+
       case 'basic':
         // 기본 모드: 리소스 절약
         this.simulationConfig.incidents.probability = 0.01; // 최소한의 시나리오
@@ -282,10 +297,10 @@ export class RealServerDataGenerator {
       this.redis = smartRedis;
 
       await realPrometheusCollector.initialize();
-      
+
       // 🆕 고급 기능 초기화
       await this.initializeAdvancedFeatures();
-      
+
       console.log('✅ 실제 서버 데이터 생성기 초기화 완료');
     } catch (error) {
       console.warn('⚠️ 서버 데이터 생성기 초기화 실패:', error);
@@ -307,10 +322,15 @@ export class RealServerDataGenerator {
     // Network Topology 플러그인
     if (isPluginEnabled('network-topology')) {
       const config = getPluginConfig('network-topology');
-      const nodeCount = Math.min(config.maxNodes || 20, this.dataGeneratorConfig.maxServers);
-      
+      const nodeCount = Math.min(
+        config.maxNodes || 20,
+        this.dataGeneratorConfig.maxServers
+      );
+
       this.networkTopology = generateNetworkTopology(nodeCount);
-      console.log(`🌐 네트워크 토폴로지 생성: ${this.networkTopology.nodes.length}개 노드, ${this.networkTopology.connections.length}개 연결`);
+      console.log(
+        `🌐 네트워크 토폴로지 생성: ${this.networkTopology.nodes.length}개 노드, ${this.networkTopology.connections.length}개 연결`
+      );
     }
 
     // Baseline Optimizer 플러그인
@@ -327,7 +347,7 @@ export class RealServerDataGenerator {
     if (isPluginEnabled('demo-scenarios')) {
       const config = getPluginConfig('demo-scenarios');
       this.currentDemoScenario = 'normal';
-      
+
       if (config.autoRotate) {
         console.log('🎭 자동 시나리오 순환 활성화');
       }
@@ -342,9 +362,12 @@ export class RealServerDataGenerator {
     const { maxServers } = this.dataGeneratorConfig;
 
     // 서버 수 제한 적용
-    const adjustedArchitecture = maxServers < 10 ? 'single' : 
-                                maxServers < 20 ? 'load-balanced' : 
-                                this.environmentConfig.serverArchitecture;
+    const adjustedArchitecture =
+      maxServers < 10
+        ? 'single'
+        : maxServers < 20
+          ? 'load-balanced'
+          : this.environmentConfig.serverArchitecture;
 
     switch (adjustedArchitecture) {
       case 'single':
@@ -375,9 +398,18 @@ export class RealServerDataGenerator {
    */
   private limitServerCount(maxCount: number): void {
     const serverArray = Array.from(this.servers.entries());
-    
+
     // 중요도 순으로 정렬 (database > api > web > cache > queue)
-    const priorityOrder = ['database', 'api', 'web', 'cache', 'queue', 'cdn', 'gpu', 'storage'];
+    const priorityOrder = [
+      'database',
+      'api',
+      'web',
+      'cache',
+      'queue',
+      'cdn',
+      'gpu',
+      'storage',
+    ];
     serverArray.sort(([, a], [, b]) => {
       const aPriority = priorityOrder.indexOf(a.type);
       const bPriority = priorityOrder.indexOf(b.type);
@@ -1370,7 +1402,10 @@ export class RealServerDataGenerator {
   /**
    * 🆕 고급 기능 - 네트워크 토폴로지 조회
    */
-  public getNetworkTopology(): { nodes: NetworkNode[], connections: NetworkConnection[] } | null {
+  public getNetworkTopology(): {
+    nodes: NetworkNode[];
+    connections: NetworkConnection[];
+  } | null {
     return this.networkTopology;
   }
 
@@ -1413,18 +1448,22 @@ export class RealServerDataGenerator {
       networkTopology: {
         enabled: isPluginEnabled('network-topology'),
         nodes: this.networkTopology?.nodes.length || 0,
-        connections: this.networkTopology?.connections.length || 0
+        connections: this.networkTopology?.connections.length || 0,
       },
       baselineOptimizer: {
         enabled: isPluginEnabled('baseline-optimizer'),
         initialized: this.baselineDataInitialized,
-        stats: this.baselineDataInitialized ? baselineOptimizer.getBaselineStats() : null
+        stats: this.baselineDataInitialized
+          ? baselineOptimizer.getBaselineStats()
+          : null,
       },
       demoScenarios: {
         enabled: isPluginEnabled('demo-scenarios'),
         currentScenario: this.currentDemoScenario,
-        scenarioInfo: isPluginEnabled('demo-scenarios') ? demoScenariosGenerator.getCurrentScenarioInfo() : null
-      }
+        scenarioInfo: isPluginEnabled('demo-scenarios')
+          ? demoScenariosGenerator.getCurrentScenarioInfo()
+          : null,
+      },
     };
   }
 }

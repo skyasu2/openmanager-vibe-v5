@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { IntentClassifier } from '@/services/ai/IntentClassifier';
+import { IntentClassifier } from '@/modules/ai-agent/processors/IntentClassifier';
 
 describe('🎯 통합 Intent Classification 시스템', () => {
   it('예측 관련 문구를 정확히 분류한다', async () => {
