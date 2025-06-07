@@ -6,11 +6,31 @@
  * - 공용 환경 감지 사용으로 중복 제거
  * - 실제 시스템 메트릭 기반 데이터 생성
  * - 현실적인 서버 부하 시뮬레이션
+ * - 🆕 고급 기능 플러그인 지원 (network-topology, baseline-optimizer, demo-scenarios)
  */
 
 import { realPrometheusCollector } from '../collectors/RealPrometheusCollector';
 import { smartRedis } from '@/lib/redis';
-import { detectEnvironment, getDataGeneratorConfig } from '@/utils/environment';
+import { detectEnvironment, getDataGeneratorConfig, isPluginEnabled, getPluginConfig } from '@/utils/environment';
+
+// 🆕 고급 기능 모듈들 (플러그인 활성화시에만 사용)
+import { 
+  generateNetworkTopology, 
+  type NetworkNode, 
+  type NetworkConnection 
+} from '../../modules/advanced-features/network-topology';
+import { 
+  baselineOptimizer, 
+  getCurrentBaseline,
+  type BaselineDataPoint 
+} from '../../modules/advanced-features/baseline-optimizer';
+import { 
+  demoScenariosGenerator,
+  generateScenarioMetrics,
+  setDemoScenario,
+  type DemoScenario,
+  type ScenarioMetrics 
+} from '../../modules/advanced-features/demo-scenarios';
 
 // 커스텀 환경 설정 인터페이스
 export interface CustomEnvironmentConfig {
@@ -136,6 +156,11 @@ export class RealServerDataGenerator {
   private clusters: Map<string, ServerCluster> = new Map();
   private applications: Map<string, ApplicationMetrics> = new Map();
 
+  // 🆕 고급 기능 데이터
+  private networkTopology: { nodes: NetworkNode[], connections: NetworkConnection[] } | null = null;
+  private currentDemoScenario: DemoScenario = 'normal';
+  private baselineDataInitialized = false;
+
   // 시뮬레이션 설정 (환경별 동적 조정)
   private simulationConfig = {
     baseLoad: 0.3, // 기본 부하 30%
@@ -257,6 +282,10 @@ export class RealServerDataGenerator {
       this.redis = smartRedis;
 
       await realPrometheusCollector.initialize();
+      
+      // 🆕 고급 기능 초기화
+      await this.initializeAdvancedFeatures();
+      
       console.log('✅ 실제 서버 데이터 생성기 초기화 완료');
     } catch (error) {
       console.warn('⚠️ 서버 데이터 생성기 초기화 실패:', error);
@@ -267,6 +296,43 @@ export class RealServerDataGenerator {
 
     // 실패 여부와 관계없이 자동 생성 루프 시작
     this.startAutoGeneration();
+  }
+
+  /**
+   * 🆕 고급 기능 초기화
+   */
+  private async initializeAdvancedFeatures(): Promise<void> {
+    console.log('🔌 고급 기능 플러그인 확인 중...');
+
+    // Network Topology 플러그인
+    if (isPluginEnabled('network-topology')) {
+      const config = getPluginConfig('network-topology');
+      const nodeCount = Math.min(config.maxNodes || 20, this.dataGeneratorConfig.maxServers);
+      
+      this.networkTopology = generateNetworkTopology(nodeCount);
+      console.log(`🌐 네트워크 토폴로지 생성: ${this.networkTopology.nodes.length}개 노드, ${this.networkTopology.connections.length}개 연결`);
+    }
+
+    // Baseline Optimizer 플러그인
+    if (isPluginEnabled('baseline-optimizer')) {
+      const servers = Array.from(this.servers.values());
+      if (servers.length > 0) {
+        await baselineOptimizer.generateBaselineData(servers);
+        this.baselineDataInitialized = true;
+        console.log('📊 베이스라인 최적화 시스템 활성화');
+      }
+    }
+
+    // Demo Scenarios 플러그인
+    if (isPluginEnabled('demo-scenarios')) {
+      const config = getPluginConfig('demo-scenarios');
+      this.currentDemoScenario = 'normal';
+      
+      if (config.autoRotate) {
+        console.log('🎭 자동 시나리오 순환 활성화');
+      }
+      console.log('🎭 시연 시나리오 시스템 활성화');
+    }
   }
 
   /**
@@ -1299,6 +1365,67 @@ export class RealServerDataGenerator {
    */
   public getEnvironmentConfig(): CustomEnvironmentConfig {
     return { ...this.environmentConfig };
+  }
+
+  /**
+   * 🆕 고급 기능 - 네트워크 토폴로지 조회
+   */
+  public getNetworkTopology(): { nodes: NetworkNode[], connections: NetworkConnection[] } | null {
+    return this.networkTopology;
+  }
+
+  /**
+   * 🆕 고급 기능 - 현재 시연 시나리오 설정
+   */
+  public setDemoScenario(scenario: DemoScenario): void {
+    if (isPluginEnabled('demo-scenarios')) {
+      this.currentDemoScenario = scenario;
+      setDemoScenario(scenario);
+      console.log(`🎭 시연 시나리오 변경: ${scenario}`);
+    } else {
+      console.warn('⚠️ demo-scenarios 플러그인이 비활성화됨');
+    }
+  }
+
+  /**
+   * 🆕 고급 기능 - 현재 시연 시나리오 조회
+   */
+  public getCurrentDemoScenario(): DemoScenario {
+    return this.currentDemoScenario;
+  }
+
+  /**
+   * 🆕 고급 기능 - 베이스라인 데이터 새로고침
+   */
+  public async refreshBaselineData(): Promise<void> {
+    if (isPluginEnabled('baseline-optimizer') && this.baselineDataInitialized) {
+      const servers = Array.from(this.servers.values());
+      await baselineOptimizer.generateBaselineData(servers);
+      console.log('📊 베이스라인 데이터 새로고침 완료');
+    }
+  }
+
+  /**
+   * 🆕 고급 기능 상태 조회
+   */
+  public getAdvancedFeaturesStatus() {
+    return {
+      networkTopology: {
+        enabled: isPluginEnabled('network-topology'),
+        nodes: this.networkTopology?.nodes.length || 0,
+        connections: this.networkTopology?.connections.length || 0
+      },
+      baselineOptimizer: {
+        enabled: isPluginEnabled('baseline-optimizer'),
+        initialized: this.baselineDataInitialized,
+        stats: this.baselineDataInitialized ? baselineOptimizer.getBaselineStats() : null
+      },
+      demoScenarios: {
+        enabled: isPluginEnabled('demo-scenarios'),
+        currentScenario: this.currentDemoScenario,
+        scenarioInfo: isPluginEnabled('demo-scenarios') ? demoScenariosGenerator.getCurrentScenarioInfo() : null
+      }
+    };
   }
 }
 

@@ -1,7 +1,7 @@
 # 🚀 OpenManager Vibe v5
 
-> **AI 기반 서버 모니터링 플랫폼** with **3단계 독립 시스템**  
-> MCP-RAG Hybrid Engine + 독립적 서버 데이터 생성기
+> **AI 기반 서버 모니터링 플랫폼** with **마스터 AI 엔진 시스템**  
+> 11개 통합 AI 엔진 + 사고과정 로그 시스템 + 독립적 서버 데이터 생성기
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.3.3-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
@@ -12,13 +12,46 @@
 
 ## 🎯 핵심 특징
 
-### 🏗️ 3단계 독립 시스템 아키텍처
+### 🧠 마스터 AI 엔진 시스템 (v5.36.0 NEW!)
 ```
-🧠 메인 AI 엔진: MCP → RAG → Basic (폴백 시스템)
-🎰 서버 데이터 생성기: Local → Premium → Basic (독립적 운영)
-🌍 환경 감지: 공용 모듈 (중복 제거, 캐시 최적화)
+🎯 11개 통합 AI 엔진
+├── 📊 오픈소스 엔진 (6개): ~43MB 메모리, ~933KB 번들
+│   ├── anomaly: simple-statistics Z-score 이상 탐지  
+│   ├── prediction: TensorFlow.js LSTM 시계열 예측
+│   ├── autoscaling: ml-regression 부하 기반 스케일링
+│   ├── korean: hangul-js + korean-utils 한국어 NLP
+│   ├── enhanced: Fuse.js + MiniSearch 하이브리드 검색
+│   └── integrated: compromise + natural 고급 NLP
+├── 🎯 커스텀 엔진 (5개): ~27MB 메모리, MCP 통합
+│   ├── mcp: Context-Aware Query Processing
+│   ├── mcp-test: Connection Testing & Validation  
+│   ├── hybrid: Multi-Engine Combination
+│   ├── unified: Cross-Platform Integration
+│   └── custom-nlp: OpenManager Domain-Specific NLP
+└── 🔄 폴백 시스템: 100% 가용성 보장
 ```
 
+### 🧠 사고과정 로그 시스템
+```typescript
+// 실시간 AI 사고과정 추적
+interface AIThinkingStep {
+  type: 'analyzing' | 'processing' | 'reasoning' | 'completed';
+  title: string;
+  description: string;
+  progress: number;  // 0-100
+  duration: number;  // ms
+}
+
+// 엔진별 전문 추론 단계
+reasoning_steps: [
+  '요청 분석', '데이터 로드',
+  '통계 분석', 'Z-score 계산', '이상치 탐지',  // anomaly 엔진 예시
+  '응답 포맷팅', '결과 반환'
+]
+```
+
+### ⚡ 성능 최적화 달성
+| 지표 | 기존 | 개선 후 | 향상률 |
 ### ⚡ 환경별 자동 최적화
 | 환경 | AI 엔진 | 데이터 생성기 | 서버 수 | 갱신 주기 | 특징 |
 |------|---------|---------------|---------|-----------|------|

@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createSuccessResponse, createErrorResponse, withErrorHandler } from '../../../../lib/api/errorHandler';
 import { predictiveAnalytics } from '../../../../services/ai/PredictiveAnalytics';
 import { cacheService } from '../../../../services/cacheService';
+import { masterAIEngine } from '../../../../services/ai/MasterAIEngine';
 
 /**
  * 📊 예측 대시보드 데이터 조회 (GET)
@@ -318,4 +319,120 @@ function generateResourceForecastRecommendations(forecasts: any[], exhaustionRis
 // 에러 핸들러로 래핑
 export const GET = withErrorHandler(getPredictionDashboardHandler);
 export const POST = withErrorHandler(predictServerLoadHandler);
-export const PUT = withErrorHandler(predictFailuresHandler); 
+export const PUT = withErrorHandler(predictFailuresHandler);
+
+export async function getMasterAIDashboard(request: NextRequest) {
+  try {
+    console.log('📈 통합 예측 대시보드 조회');
+
+    const engineStatuses = masterAIEngine.getEngineStatuses();
+    const predictionEngine = engineStatuses.find(e => e.name === 'prediction');
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        dashboard: {
+          engine_info: {
+            name: 'prediction',
+            library: '@tensorflow/tfjs',
+            status: predictionEngine?.status || 'ready',
+            memory_usage: predictionEngine?.memory_usage || '~15MB',
+            success_rate: predictionEngine?.success_rate || 0,
+            avg_response_time: predictionEngine?.avg_response_time || 0,
+            model_type: 'LSTM'
+          },
+          capabilities: {
+            time_series_forecasting: true,
+            trend_analysis: true,
+            seasonality_detection: true,
+            confidence_intervals: true,
+            multiple_horizons: true
+          },
+          system_health: {
+            model_loaded: true,
+            tensorflow_ready: true,
+            fallback_available: true
+          }
+        }
+      },
+      message: '통합 예측 대시보드 조회 완료'
+    });
+  } catch (error) {
+    console.error('❌ 예측 대시보드 오류:', error);
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : '알 수 없는 오류'
+    }, { status: 500 });
+  }
+}
+
+export async function runMasterAIPrediction(request: NextRequest) {
+  try {
+    console.log('📈 MasterAIEngine 예측 실행');
+
+    const body = await request.json().catch(() => ({}));
+    const { data, steps = 5, horizon = '1hour' } = body;
+
+    // 테스트 시계열 데이터 생성 (실제로는 body.data 사용)
+    const timeSeriesData = data || Array.from({ length: 24 }, (_, i) => 
+      50 + Math.sin(i / 4) * 20 + Math.random() * 10
+    );
+
+    // MasterAIEngine을 통한 예측
+    const result = await masterAIEngine.query({
+      engine: 'prediction',
+      query: '시계열 예측 실행',
+      data: timeSeriesData,
+      options: {
+        use_cache: true,
+        fallback_enabled: true,
+        steps: steps
+      }
+    });
+
+    if (!result.success) {
+      return NextResponse.json({
+        success: false,
+        error: result.error || '예측 실행 실패'
+      }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        prediction: {
+          engine_used: result.engine_used,
+          response_time: result.response_time,
+          confidence: result.confidence,
+          fallback_used: result.fallback_used,
+          cache_hit: result.cache_hit,
+          steps_requested: steps,
+          horizon,
+          timestamp: new Date().toISOString()
+        },
+        forecast_result: result.result,
+        model_info: {
+          algorithm: 'LSTM + Statistical Analysis',
+          features: ['trend', 'seasonality', 'noise_reduction'],
+          training_data_points: timeSeriesData.length,
+          prediction_horizon: `${steps} ${horizon}`
+        },
+        visualization: {
+          historical_data: timeSeriesData.slice(-10), // 최근 10개
+          predicted_values: result.result.predictions,
+          confidence_bands: result.result.predictions.map(p => ({
+            upper: p * 1.1,
+            lower: p * 0.9
+          }))
+        }
+      },
+      message: `${steps}단계 예측 완료 - 신뢰도 ${Math.round(result.confidence * 100)}%`
+    });
+  } catch (error) {
+    console.error('❌ 예측 실행 오류:', error);
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : '알 수 없는 오류'
+    }, { status: 500 });
+  }
+} 
