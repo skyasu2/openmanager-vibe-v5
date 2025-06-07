@@ -19,6 +19,7 @@
 ### 📊 1. 서버 데이터 생성 및 전달 구조
 
 #### 🔄 데이터 플로우 전체 구조
+
 ```mermaid
 graph TB
     A[OptimizedDataGenerator] --> B[UnifiedMetricsManager]
@@ -27,23 +28,25 @@ graph TB
     D --> E[API Endpoints]
     E --> F[Zustand Store]
     F --> G[React Components]
-    
+
     H[베이스라인 24시간 패턴] --> A
     I[실시간 변동값] --> A
     J[SmartCache] --> A
     K[MemoryOptimizer] --> A
-    
+
     E --> L[/api/unified-metrics]
     E --> M[/api/health]
     E --> N[/api/servers]
-    
+
     G --> O[ServerCard]
     G --> P[Dashboard]
     G --> Q[실시간 차트]
 ```
 
 #### 🏗️ 핵심 데이터 생성 로직 (OptimizedDataGenerator)
+
 **파일**: `src/services/OptimizedDataGenerator.ts` (507줄)
+
 - **베이스라인 패턴**: 24시간 × 60분 = 1440개 데이터 포인트 사전 생성
 - **실시간 델타**: 베이스라인 대비 5% 이하 변동만 저장 (65% 압축 효과)
 - **업데이트 주기**: 5초 간격 (TimerManager로 통합 관리)
@@ -56,6 +59,7 @@ graph TB
 ```
 
 #### 📡 데이터 전달 체인
+
 1. **OptimizedDataGenerator** → 서버 메트릭 생성 (507줄 엔진)
 2. **UnifiedMetricsManager** → 단일 데이터 소스 통합 (774줄)
 3. **TimerManager** → 4개 통합 스케줄러로 중복 제거
@@ -66,6 +70,7 @@ graph TB
 ### 🛠️ 2. 사용 기술 스택 분석
 
 #### 🔵 오픈소스 기술 (데이터 처리)
+
 - **Node.js 20+**: 메인 런타임
 - **IORedis**: Redis 클라이언트 (압축 저장용)
 - **PostgreSQL**: 메타데이터 관리
@@ -74,6 +79,7 @@ graph TB
 - **React Query**: 캐싱 (미사용 상태)
 
 #### 🟢 자체 개발 핵심 모듈
+
 - **OptimizedDataGenerator**: 507줄 데이터 생성 엔진
 - **UnifiedMetricsManager**: 774줄 통합 관리자
 - **TimerManager**: 23개→4개 타이머 통합
@@ -83,9 +89,10 @@ graph TB
 ### 🧪 3. 실제값 vs 더미데이터 현황
 
 #### ✅ 현재 상태 (2025.01.27 기준)
+
 ```yaml
 데이터 유형: 완전 시뮬레이션 (더미데이터)
-서버 개수: 30개 가상 서버 
+서버 개수: 30개 가상 서버
 업데이트: 5초 간격 실시간 변동
 패턴: 24시간 현실적 부하 패턴
 저장소: 메모리 캐시 (Redis/PostgreSQL 미연결)
@@ -93,6 +100,7 @@ AI 분석: 동일한 시뮬레이션 데이터 사용
 ```
 
 #### 🎯 데이터 일관성 보장
+
 - ✅ **단일 소스**: UnifiedMetricsManager가 모든 데이터 관리
 - ✅ **UI 동기화**: 서버 대시보드와 AI 에이전트가 동일 데이터 사용
 - ✅ **캐시 일관성**: SmartCache로 85% 적중률 달성
@@ -100,6 +108,7 @@ AI 분석: 동일한 시뮬레이션 데이터 사용
 ### 🔧 4. 503 에러 원인 분석
 
 #### 🚨 /api/health 503 Service Unavailable 발생
+
 **근본 원인**: `simulationEngine.isRunning()` 체크 실패
 
 ```typescript
@@ -112,6 +121,7 @@ if (!isRunning) {
 ```
 
 **해결 방안**:
+
 1. **Fallback 응답**: 에러 시 200 OK로 기본 상태 반환
 2. **타임아웃 설정**: 500ms 이하로 빠른 응답 보장
 3. **스마트 복구**: 시뮬레이션 엔진 자동 재시작
@@ -119,12 +129,15 @@ if (!isRunning) {
 ### 🗑️ 5. 중복/미사용 코드 현황
 
 #### ⚠️ 발견된 중복 기능
+
 1. **DataFlowManager** (src/services/ai/DataFlow.ts)
+
    - UnifiedMetricsManager와 기능 중복
    - 별도 setInterval 사용 (TimerManager 무시)
    - **제거 권장**: 통합 완료된 기능
 
 2. **SimulationEngine 레거시 모드**
+
    - `updateServerMetricsLegacy()` 함수 (544-563줄)
    - 단순 랜덤 방식 (최적화 전 로직)
    - **제거 권장**: OptimizedDataGenerator로 완전 대체
@@ -135,6 +148,7 @@ if (!isRunning) {
    - **정리 완료**: 이미 archive 처리됨
 
 #### ✅ 잘 정리된 부분
+
 - **TimerManager 통합**: 23개→4개 타이머로 중복 제거 완료
 - **API 라우트**: `/api/unified-metrics`로 통합 완료
 - **상태 관리**: Zustand 단일 스토어 사용
@@ -142,11 +156,12 @@ if (!isRunning) {
 ### 📈 6. 성능 최적화 현황
 
 #### 🎯 달성된 최적화
+
 ```typescript
 메트릭               최적화 전    최적화 후    개선율
 ─────────────────────────────────────────────────
 메모리 사용량        180MB       50MB        -72%
-CPU 사용률          85%         12%         -86%  
+CPU 사용률          85%         12%         -86%
 타이머 개수          23개        4개         -82%
 데이터 압축률        0%          65%         +65%
 캐시 적중률          60%         85%         +42%
@@ -154,6 +169,7 @@ API 응답시간        800ms       150ms       -81%
 ```
 
 #### 🔄 최적화 메커니즘
+
 1. **베이스라인 + 델타**: 95% 캐시 + 5% 실시간 계산
 2. **압축 알고리즘**: 5% 이하 변동 생략으로 65% 절약
 3. **메모리 관리**: 100회마다 자동 압축 및 정리
@@ -162,16 +178,19 @@ API 응답시간        800ms       150ms       -81%
 ### 🎯 7. 개선 권장사항
 
 #### 🔧 즉시 개선 (High Priority)
+
 1. **503 에러 해결**: health API fallback 응답 추가
 2. **DataFlowManager 제거**: 중복 기능 정리
 3. **레거시 코드 정리**: SimulationEngine 구버전 로직 제거
 
-#### 📈 중장기 개선 (Medium Priority)  
+#### 📈 중장기 개선 (Medium Priority)
+
 1. **실제 데이터 연동**: Redis/PostgreSQL 실제 연결
 2. **React Query 활용**: 현재 미사용 상태인 캐싱 계층 활성화
 3. **WebSocket 최적화**: 현재 HTTP 폴링을 WebSocket으로 전환
 
 #### 🚀 미래 확장 (Low Priority)
+
 1. **실제 서버 연동**: 시뮬레이션→실제 메트릭 수집
 2. **마이크로서비스**: 데이터 생성기 분리 배포
 3. **실시간 스트리밍**: Apache Kafka 도입 검토
@@ -192,7 +211,7 @@ API 응답시간        800ms       150ms       -81%
 
 ## 🚀 빠른 시작
 
-```bash
+````bash
 # 1. 의존성 설치
 npm install
 
@@ -313,7 +332,7 @@ npm run dev
 
 # 3. 브라우저에서 접속
 http://localhost:3001
-```
+````
 
 **🌐 라이브 데모**: https://openmanager-vibe-v5.vercel.app
 
@@ -322,6 +341,7 @@ http://localhost:3001
 ## ✅ **최신 품질 상태 (2025.06.19)**
 
 ### 🧩 **모달 UI 개선 + 기술 스택 자동 분석 (v5.16.0)**
+
 - ✅ **모달 외부 클릭 닫기**: 직관적 사용자 경험을 위한 백드롭 클릭 감지
 - ✅ **ESC 키 지원**: 키보드 네비게이션 및 접근성 개선
 - ✅ **기술 스택 자동 분석**: 각 기능 카드의 기술을 12개 분야로 자동 분류
@@ -332,6 +352,7 @@ http://localhost:3001
 - ✅ **핵심 기술 강조**: 중요도별 배지 및 색상 구분 시스템
 
 ### 🎨 **고급 UI 애니메이션 시스템 (v5.15.1)**
+
 - ✅ **손가락 포인터**: 시스템 시작 유도를 위한 생동감 있는 애니메이션
 - ✅ **AI 그라데이션 버튼**: 3색 그라데이션 + 빛나는 반사 효과
 - ✅ **시스템 상태 펄스**: 실시간 시스템 상태를 직관적으로 표현하는 펄스 효과
@@ -340,6 +361,7 @@ http://localhost:3001
 - 📱 **반응형 버튼 배치**: 모바일부터 데스크톱까지 최적화된 제어 버튼 레이아웃
 
 ### 🚀 **시스템 제어 개선**
+
 - ✅ **풍부한 제어 UI**: 이전 버전 패턴을 참고한 직관적 시스템
 - ✅ **시각적 상태 안내**: 시스템 종료/실행에 따른 명확한 메시지
 - ✅ **즉시 피드백**: 모든 액션에 로딩 스피너 + 텍스트 변경
@@ -348,6 +370,7 @@ http://localhost:3001
 - ✅ **AI 에이전트 토글**: 특별한 애니메이션으로 AI 상태 표시
 
 ### 🎯 **AI 에이전트 통합 시스템 (v5.15.0)**
+
 - ✅ **관리자 모드 → AI 에이전트 모드**: 완전 통합된 인증 시스템
 - ✅ **비밀번호 4231로 AI 기능 활성화**: 기본 상태는 오프
 - ✅ **MCP 기반 AI 에이전트**: Model Context Protocol 표준 구현
@@ -355,6 +378,7 @@ http://localhost:3001
 - ✅ **AI 단어 그라데이션**: 모든 "AI" 텍스트에 무지개 애니메이션
 
 ### 🎨 **1줄 카드 배치 + 컴팩트 UI**
+
 - ✅ **4개 카드 1줄 배치**: `grid-cols-1 sm:grid-cols-2 md:grid-cols-4`
 - ✅ **첫 화면 최적화**: 스크롤 없이 모든 카드 표시
 - ✅ **반응형 그리드**: `grid-cols-1 sm:grid-cols-2 md:grid-cols-4`
@@ -363,12 +387,14 @@ http://localhost:3001
 - ✅ **일관된 카드 크기**: 모든 카드 동일한 비율과 높이
 
 ### 🌈 **특별 카드 애니메이션**
+
 - 🤖 **MCP AI 카드**: 파란색-핑크색-청록색 이색 그라데이션 + 회전 아이콘
 - ✨ **Vibe Coding 카드**: 황금 그라데이션 + 흔들림 아이콘 + "✨ Vibe Coding" 표기
 - 📊 **데이터 생성기 카드**: 에메랄드 그라데이션 + 일반 애니메이션
 - 🚀 **기술 스택 카드**: 퍼플 그라데이션 + 일반 애니메이션
 
 ### 🔍 **코드베이스 통합 완료 (v5.14.0)**
+
 - ✅ **중복 제거**: 6개 중복 파일 완전 제거
 - ✅ **통합 시스템**: 3개 새로운 통합 컴포넌트
 - ✅ **TypeScript 컴파일**: 에러 0개, 경고 0개
@@ -376,14 +402,16 @@ http://localhost:3001
 - ✅ **성능 최적화**: 메모리 사용량 감소, 번들 크기 최적화
 
 ### 🏗️ **새로운 통합 아키텍처**
+
 - 🏪 **useUnifiedAdminStore**: 모든 관리자 기능 통합 (Zustand + localStorage)
 - 🔐 **UnifiedAuthModal**: 최고의 UI/UX + 보안 기능 결합
 - 👤 **UnifiedProfileComponent**: 완전한 드롭다운 + 상태 관리
 - 🍞 **기존 ToastNotification**: 완전한 시스템 활용 (프로그레스 지원)
 
 ### 🗑️ **제거된 중복 파일들**
+
 - ❌ `useAdminMode.ts` → `useUnifiedAdminStore` 통합
-- ❌ `useSystemStore.ts` → `useUnifiedAdminStore` 통합  
+- ❌ `useSystemStore.ts` → `useUnifiedAdminStore` 통합
 - ❌ `AdminPasswordModal.tsx` → `UnifiedAuthModal` 통합
 - ❌ `ProfileDropdown.tsx` → `UnifiedProfileComponent` 통합
 - ❌ `PinModal.tsx` → `UnifiedAuthModal` 통합
@@ -393,30 +421,31 @@ http://localhost:3001
 
 ## 🏆 주요 성과 지표
 
-| 메트릭 | 개선 전 | 개선 후 | 개선율 |
-|--------|---------|---------|--------|
-| **중복 파일 수** | 6개 | 0개 | **-100%** |
-| **통합 컴포넌트** | 0개 | 3개 | **신규** |
-| **메모리 사용량** | 150MB | 80MB | **-47%** |
-| **번들 크기** | 중복 포함 | 최적화됨 | **-15%** |
-| **코드 복잡성** | 높음 | 낮음 | **-60%** |
-| **API 응답시간** | 800ms | 150ms | **-81%** |
-| **타이머 통합률** | 23개 분산 | 4개 통합 | **-82%** |
-| **데이터 일관성** | 60% | 100% | **+67%** |
-| **AI 예측 정확도** | N/A | 78-85% | **신규** |
-| **이상 탐지 정확도** | N/A | 91% | **신규** |
-| **시스템 안정성** | 85% | 98% | **+13%** |
-| **CI/CD 속도** | 20분 | 12분 | **-40%** |
-| **TypeScript 에러** | 12개 | 0개 | **-100%** |
-| **코드 품질 점수** | B+ | A+ | **최상급** |
-| **UI 애니메이션** | 0개 | 8개 | **신규** |
-| **사용자 경험 점수** | 7.2/10 | 9.1/10 | **+26%** |
+| 메트릭               | 개선 전   | 개선 후  | 개선율     |
+| -------------------- | --------- | -------- | ---------- |
+| **중복 파일 수**     | 6개       | 0개      | **-100%**  |
+| **통합 컴포넌트**    | 0개       | 3개      | **신규**   |
+| **메모리 사용량**    | 150MB     | 80MB     | **-47%**   |
+| **번들 크기**        | 중복 포함 | 최적화됨 | **-15%**   |
+| **코드 복잡성**      | 높음      | 낮음     | **-60%**   |
+| **API 응답시간**     | 800ms     | 150ms    | **-81%**   |
+| **타이머 통합률**    | 23개 분산 | 4개 통합 | **-82%**   |
+| **데이터 일관성**    | 60%       | 100%     | **+67%**   |
+| **AI 예측 정확도**   | N/A       | 78-85%   | **신규**   |
+| **이상 탐지 정확도** | N/A       | 91%      | **신규**   |
+| **시스템 안정성**    | 85%       | 98%      | **+13%**   |
+| **CI/CD 속도**       | 20분      | 12분     | **-40%**   |
+| **TypeScript 에러**  | 12개      | 0개      | **-100%**  |
+| **코드 품질 점수**   | B+        | A+       | **최상급** |
+| **UI 애니메이션**    | 0개       | 8개      | **신규**   |
+| **사용자 경험 점수** | 7.2/10    | 9.1/10   | **+26%**   |
 
 ---
 
 ## ✨ 핵심 기능
 
 ### 🧩 **모달 UI 개선 + 기술 스택 자동 분석 (v5.16.0)**
+
 - ✅ **향상된 모달 경험**: 외부 클릭 닫기 + ESC 키 지원 + 애니메이션
 - ✅ **기술 스택 자동 분석**: 각 기능에 사용된 기술을 12개 분야로 분류
 - ✅ **12개 기술 분야**: AI/ML, 프론트엔드, 데이터베이스, UI/스타일링, 상태관리 등
@@ -427,6 +456,7 @@ http://localhost:3001
 - ✅ **TechStackDisplay**: 애니메이션과 색상 구분으로 시각적 표현
 
 ### 🎨 **고급 UI 애니메이션 시스템 (v5.15.1)**
+
 - ✅ **손가락 포인터**: 시스템 시작 유도를 위한 생동감 있는 애니메이션
 - ✅ **AI 그라데이션 버튼**: 3색 그라데이션 + 빛나는 반사 효과
 - ✅ **시스템 상태 펄스**: 실시간 시스템 상태를 직관적으로 표현하는 펄스 효과
@@ -435,6 +465,7 @@ http://localhost:3001
 - 📱 **반응형 버튼 배치**: 모바일부터 데스크톱까지 최적화된 제어 버튼 레이아웃
 
 ### 🚀 **시스템 제어 개선**
+
 - ✅ **풍부한 제어 UI**: 이전 버전 패턴을 참고한 직관적 시스템
 - ✅ **시각적 상태 안내**: 시스템 종료/실행에 따른 명확한 메시지
 - ✅ **즉시 피드백**: 모든 액션에 로딩 스피너 + 텍스트 변경
@@ -443,6 +474,7 @@ http://localhost:3001
 - ✅ **AI 에이전트 토글**: 특별한 애니메이션으로 AI 상태 표시
 
 ### 🎯 **AI 에이전트 통합 시스템 (v5.15.0)**
+
 - ✅ **MCP 표준 구현**: Model Context Protocol 기반 AI 추론
 - ✅ **관리자 모드 통합**: 비밀번호 4231로 AI 기능 활성화
 - ✅ **자연어 서버 질의**: AI를 통한 직관적인 시스템 관리
@@ -450,6 +482,7 @@ http://localhost:3001
 - ✅ **예측적 알림**: 장애 예방을 위한 사전 경고 시스템
 
 ### 🎨 **1줄 카드 배치 + 컴팩트 UI**
+
 - ✅ **4개 카드 1줄 배치**: 첫 화면에서 모든 기능 한눈에 표시
 - ✅ **반응형 그리드**: `grid-cols-1 sm:grid-cols-2 md:grid-cols-4`
 - ✅ **컴팩트 디자인**: 최적화된 여백과 텍스트 크기
@@ -457,12 +490,14 @@ http://localhost:3001
 - ✅ **일관된 카드 크기**: 모든 카드 동일한 비율과 높이
 
 ### 🌈 **특별 카드 애니메이션**
+
 - 🤖 **MCP AI 카드**: 파란색-핑크색-청록색 이색 그라데이션 + 회전 아이콘
 - ✨ **Vibe Coding 카드**: 황금 그라데이션 + 흔들림 아이콘 + "✨ Vibe Coding" 표기
 - 📊 **데이터 생성기 카드**: 에메랄드 그라데이션 + 일반 애니메이션
 - 🚀 **기술 스택 카드**: 퍼플 그라데이션 + 일반 애니메이션
 
 ### 🔍 **코드베이스 통합 완료 (v5.14.0)**
+
 - ✅ **중복 제거**: 6개 중복 파일 완전 제거
 - ✅ **통합 시스템**: 3개 새로운 통합 컴포넌트
 - ✅ **TypeScript 컴파일**: 에러 0개, 경고 0개
@@ -470,14 +505,16 @@ http://localhost:3001
 - ✅ **성능 최적화**: 메모리 사용량 감소, 번들 크기 최적화
 
 ### 🏗️ **새로운 통합 아키텍처**
+
 - 🏪 **useUnifiedAdminStore**: 모든 관리자 기능 통합 (Zustand + localStorage)
 - 🔐 **UnifiedAuthModal**: 최고의 UI/UX + 보안 기능 결합
 - 👤 **UnifiedProfileComponent**: 완전한 드롭다운 + 상태 관리
 - 🍞 **기존 ToastNotification**: 완전한 시스템 활용 (프로그레스 지원)
 
 ### 🗑️ **제거된 중복 파일들**
+
 - ❌ `useAdminMode.ts` → `useUnifiedAdminStore` 통합
-- ❌ `useSystemStore.ts` → `useUnifiedAdminStore` 통합  
+- ❌ `useSystemStore.ts` → `useUnifiedAdminStore` 통합
 - ❌ `AdminPasswordModal.tsx` → `UnifiedAuthModal` 통합
 - ❌ `ProfileDropdown.tsx` → `UnifiedProfileComponent` 통합
 - ❌ `PinModal.tsx` → `UnifiedAuthModal` 통합
@@ -487,36 +524,39 @@ http://localhost:3001
 
 ## 🏆 주요 성과 지표
 
-| 메트릭 | 개선 전 | 개선 후 | 개선율 |
-|--------|---------|---------|--------|
-| **메모리 사용량** | 150MB | 80MB | **-47%** |
-| **API 응답시간** | 800ms | 150ms | **-81%** |
-| **타이머 통합률** | 23개 분산 | 4개 통합 | **-82%** |
-| **데이터 일관성** | 60% | 100% | **+67%** |
-| **AI 예측 정확도** | N/A | 78-85% | **신규** |
-| **이상 탐지 정확도** | N/A | 91% | **신규** |
-| **시스템 안정성** | 85% | 98% | **+13%** |
-| **CI/CD 속도** | 20분 | 12분 | **-40%** |
-| **보안 감사 자동화** | 수동 | 주간 자동 | **신규** |
-| **TypeScript 에러** | 12개 | 0개 | **-100%** |
-| **코드 품질 점수** | B+ | A+ | **최상급** |
+| 메트릭               | 개선 전   | 개선 후   | 개선율     |
+| -------------------- | --------- | --------- | ---------- |
+| **메모리 사용량**    | 150MB     | 80MB      | **-47%**   |
+| **API 응답시간**     | 800ms     | 150ms     | **-81%**   |
+| **타이머 통합률**    | 23개 분산 | 4개 통합  | **-82%**   |
+| **데이터 일관성**    | 60%       | 100%      | **+67%**   |
+| **AI 예측 정확도**   | N/A       | 78-85%    | **신규**   |
+| **이상 탐지 정확도** | N/A       | 91%       | **신규**   |
+| **시스템 안정성**    | 85%       | 98%       | **+13%**   |
+| **CI/CD 속도**       | 20분      | 12분      | **-40%**   |
+| **보안 감사 자동화** | 수동      | 주간 자동 | **신규**   |
+| **TypeScript 에러**  | 12개      | 0개       | **-100%**  |
+| **코드 품질 점수**   | B+        | A+        | **최상급** |
 
 ---
 
 ## ✨ 핵심 기능
 
 ### 🏗️ Prometheus 기반 아키텍처
+
 - ✅ **업계 표준** Prometheus 메트릭 형식
 - ✅ **하이브리드 저장소** Redis + PostgreSQL
 - ✅ **호환성** DataDog, New Relic, Grafana
 
 ### 🤖 AI 하이브리드 분석
+
 - ✅ **Python AI 엔진** (우선순위)
 - ✅ **TypeScript 폴백** (안정성)
 - ✅ **실시간 예측** 및 권장사항
 - ✅ **머신러닝 이상 탐지** (91% 정확도)
 
 ### 📊 실시간 모니터링
+
 - ✅ **동적 페이지네이션** (최대 30개 서버)
 - ✅ **실시간 업데이트** (5초 간격)
 - ✅ **자동 스케일링** 시뮬레이션
@@ -527,6 +567,7 @@ http://localhost:3001
 ## 🔧 새로운 통합 시스템 사용법
 
 ### 🏪 통합 관리자 스토어
+
 ```typescript
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 
@@ -538,7 +579,7 @@ const {
   exitAdminMode,
   toggleAIAgent,
   checkLockStatus,
-  getRemainingLockTime
+  getRemainingLockTime,
 } = useUnifiedAdminStore();
 
 // 관리자 인증
@@ -554,6 +595,7 @@ if (isAdminMode && isSystemStarted) {
 ```
 
 ### 👤 통합 프로필 컴포넌트
+
 ```tsx
 import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
 
@@ -561,13 +603,14 @@ import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
 <UnifiedProfileComponent />
 
 // 커스텀 사용자 정보
-<UnifiedProfileComponent 
+<UnifiedProfileComponent
   userName="관리자"
   userAvatar="/avatar.jpg"
 />
 ```
 
 ### 🔐 통합 인증 모달
+
 ```tsx
 import { UnifiedAuthModal } from '@/components/UnifiedAuthModal';
 
@@ -578,10 +621,11 @@ import { UnifiedAuthModal } from '@/components/UnifiedAuthModal';
   isLocked={isLocked}
   attempts={attempts}
   lockoutEndTime={lockoutEndTime}
-/>
+/>;
 ```
 
 ### 🍞 토스트 시스템
+
 ```typescript
 import { useToast } from '@/components/ui/ToastNotification';
 
@@ -604,6 +648,7 @@ progressToast.complete('모든 작업 완료!');
 ## 📁 새로운 파일 구조
 
 ### 🏗️ 통합 시스템
+
 ```
 src/
 ├── stores/
@@ -616,6 +661,7 @@ src/
 ```
 
 ### 🗑️ 제거된 중복 파일들
+
 ```
 ❌ src/hooks/useAdminMode.ts
 ❌ src/stores/useSystemStore.ts
@@ -630,21 +676,25 @@ src/
 ## 🎯 통합 후 개선 효과
 
 ### 1. **코드 품질 향상**
+
 - 🏗️ **아키텍처**: 단일 진실 소스 (Single Source of Truth)
 - 🔧 **유지보수성**: 중복 제거로 버그 수정 및 기능 추가 용이
 - 🧹 **코드 복잡성**: 일관된 패턴과 명확한 책임 분리
 
 ### 2. **성능 최적화**
+
 - ⚡ **메모리 사용량**: 중복 컴포넌트 제거로 메모리 효율성 향상
 - 📦 **번들 크기**: 불필요한 코드 제거로 최적화
 - 🔄 **상태 동기화**: 단일 상태 관리로 충돌 방지
 
 ### 3. **사용자 경험 개선**
+
 - 🎨 **UI 일관성**: 통일된 디자인 시스템과 패턴
 - 🔔 **알림 시스템**: 완전한 토스트 시스템으로 풍부한 피드백
 - ⚙️ **기능 통합**: 모든 기능이 하나의 흐름으로 연결
 
 ### 4. **개발 효율성**
+
 - 🐛 **디버깅**: 단일 시스템으로 문제 추적 용이
 - 📝 **코드 작성**: 일관된 API와 패턴으로 개발 속도 향상
 - 🧪 **테스트**: 명확한 테스트 범위와 시나리오
@@ -654,6 +704,7 @@ src/
 ## 🔧 개발 & 배포 프로세스
 
 ### 📋 개발 시작 전 필수 점검
+
 - [ ] **의존성 설치**: `npm install` - 패키지 설치
 - [ ] **개발 환경 설정**: `npm run setup:dev` - Git hooks 설정 (로컬만)
 - [ ] **포트 정리**: `npm run clean:ports` - 기존 Node.js 프로세스 종료
@@ -663,6 +714,7 @@ src/
 ### 🚀 검증된 안정 배포 시스템
 
 #### 📊 간단하고 안정적인 워크플로 구조 (daa02c8 기준)
+
 ```
 🏗️ Build Test
 ├── 의존성 설치 및 캐시
@@ -681,29 +733,32 @@ src/
 ```
 
 #### ⚡ 배포 성능
-| 항목 | 시간 | 상태 |
-|------|------|------|
-| **빌드 테스트** | ~5분 | ✅ 안정 |
-| **Vercel 배포** | ~3분 | ✅ 안정 |
-| **헬스체크** | ~2분 | ✅ 안정 |
-| **전체 시간** | ~10분 | ✅ 최적화 |
+
+| 항목            | 시간  | 상태      |
+| --------------- | ----- | --------- |
+| **빌드 테스트** | ~5분  | ✅ 안정   |
+| **Vercel 배포** | ~3분  | ✅ 안정   |
+| **헬스체크**    | ~2분  | ✅ 안정   |
+| **전체 시간**   | ~10분 | ✅ 최적화 |
 
 ### 🎮 개발자 도구 & 디버깅
+
 ```javascript
 // 현재 로딩 상태 확인
-window.debugLoadingState
+window.debugLoadingState;
 
 // 즉시 강제 완료
-window.emergencyComplete()
+window.emergencyComplete();
 
 // 서버 대시보드로 바로 이동
-window.skipToServer()
+window.skipToServer();
 
 // URL 파라미터로 애니메이션 스킵
 // http://localhost:3001/dashboard?instant=true
 ```
 
 ### ⚡ 추천 개발 워크플로우
+
 1. **브랜치 생성**: `git checkout -b feature/your-feature`
 2. **개발**: `npm run dev:clean`
 3. **품질 검사**: `npm run test:quality` (lint + type-check + unit test)
@@ -714,48 +769,53 @@ window.skipToServer()
 
 ## 🏆 주요 성과 지표
 
-| 메트릭 | 개선 전 | 개선 후 | 개선율 |
-|--------|---------|---------|--------|
-| **메모리 사용량** | 150MB | 80MB | **-47%** |
-| **API 응답시간** | 800ms | 150ms | **-81%** |
-| **타이머 통합률** | 23개 분산 | 4개 통합 | **-82%** |
-| **데이터 일관성** | 60% | 100% | **+67%** |
-| **AI 예측 정확도** | N/A | 78-85% | **신규** |
-| **이상 탐지 정확도** | N/A | 91% | **신규** |
-| **시스템 안정성** | 85% | 98% | **+13%** |
-| **CI/CD 속도** | 20분 | 12분 | **-40%** |
-| **보안 감사 자동화** | 수동 | 주간 자동 | **신규** |
-| **TypeScript 에러** | 12개 | 0개 | **-100%** |
-| **코드 품질 점수** | B+ | A+ | **최상급** |
+| 메트릭               | 개선 전   | 개선 후   | 개선율     |
+| -------------------- | --------- | --------- | ---------- |
+| **메모리 사용량**    | 150MB     | 80MB      | **-47%**   |
+| **API 응답시간**     | 800ms     | 150ms     | **-81%**   |
+| **타이머 통합률**    | 23개 분산 | 4개 통합  | **-82%**   |
+| **데이터 일관성**    | 60%       | 100%      | **+67%**   |
+| **AI 예측 정확도**   | N/A       | 78-85%    | **신규**   |
+| **이상 탐지 정확도** | N/A       | 91%       | **신규**   |
+| **시스템 안정성**    | 85%       | 98%       | **+13%**   |
+| **CI/CD 속도**       | 20분      | 12분      | **-40%**   |
+| **보안 감사 자동화** | 수동      | 주간 자동 | **신규**   |
+| **TypeScript 에러**  | 12개      | 0개       | **-100%**  |
+| **코드 품질 점수**   | B+        | A+        | **최상급** |
 
 ---
 
 ## ✨ 핵심 기능
 
 ### 🏗️ Prometheus 기반 아키텍처
+
 - ✅ **업계 표준** Prometheus 메트릭 형식
 - ✅ **하이브리드 저장소** Redis + PostgreSQL
 - ✅ **호환성** DataDog, New Relic, Grafana
 
 ### 🎯 통합 메트릭 시스템
+
 - ✅ **중복 제거**: 23개 → 4개 타이머 (-82%)
 - ✅ **메모리 최적화**: 150MB → 80MB (-47%)
 - ✅ **API 성능**: 800ms → 150ms (-81%)
 - ✅ **단일 데이터 소스** 보장
 
 ### 🧹 코드 품질 최적화 (v5.13.2)
+
 - ✅ **CI/CD 최적화**: 병렬 실행 및 스마트 캐싱
 - ✅ **보안 강화**: 자동 취약점 스캔 및 CodeQL 분석
 - ✅ **품질 보증**: 매일 자동 테스트 커버리지 보고서
 - ✅ **배포 안정성**: 조건부 배포 및 자동 롤백
 
 ### 🤖 AI 하이브리드 분석
+
 - ✅ **Python AI 엔진** (우선순위)
 - ✅ **TypeScript 폴백** (안정성)
 - ✅ **실시간 예측** 및 권장사항
 - ✅ **머신러닝 이상 탐지** (91% 정확도)
 
 ### 📊 실시간 모니터링
+
 - ✅ **동적 페이지네이션** (최대 30개 서버)
 - ✅ **실시간 업데이트** (5초 간격)
 - ✅ **자동 스케일링** 시뮬레이션
@@ -763,6 +823,7 @@ window.skipToServer()
 - ✅ **통합 토스트 알림** (ToastNotification 시스템)
 
 ### 🏠 홈페이지 카드 기능
+
 - ✅ **4개 주요 기능 카드** 인터랙티브 소개
 - ✅ **Framer Motion 애니메이션** 부드러운 사용자 경험
 - ✅ **반응형 그리드 레이아웃** (Desktop 2x2, Mobile 1열)
@@ -770,6 +831,7 @@ window.skipToServer()
 - ✅ **황금카드 특수 효과** 바이브 코딩 경험 강조
 
 #### 🎯 카드 구성
+
 1. **🧠 지능형 AI 에이전트** - MCP 기반 실시간 자연어 처리
 2. **📊 Prometheus 데이터 생성기** - 65% 압축률의 고성능 시뮬레이터
 3. **🚀 최신 기술 스택** - Next.js 14 + Supabase + Redis 통합
@@ -780,6 +842,7 @@ window.skipToServer()
 ## 🔧 API 엔드포인트
 
 ### 통합 메트릭 API
+
 ```bash
 # 서버 목록 조회
 GET /api/unified-metrics?action=servers
@@ -792,6 +855,7 @@ GET /api/unified-metrics?action=prometheus&query=node_cpu_usage
 ```
 
 ### Prometheus 허브 API
+
 ```bash
 # 표준 Prometheus 쿼리
 GET /api/prometheus/hub?query=node_cpu_usage_percent
@@ -812,6 +876,7 @@ Content-Type: application/json
 ```
 
 ### AI 분석 API
+
 ```bash
 # AI 예측 분석
 GET /api/ai/prediction?servers=server-1,server-2
@@ -832,6 +897,7 @@ POST /api/ai/integrated
 ## 🎯 데모 시나리오
 
 ### 1. 웹 인터페이스 시연 (5분)
+
 1. `http://localhost:3001` 접속
 2. **실시간 서버 모니터링** 확인
 3. **동적 페이지네이션** 탐색
@@ -839,6 +905,7 @@ POST /api/ai/integrated
 5. **자동 스케일링** 이벤트 관찰
 
 ### 2. API 호환성 시연 (3분)
+
 ```bash
 # 시스템 헬스 체크
 curl "http://localhost:3001/api/unified-metrics?action=health"
@@ -851,6 +918,7 @@ curl "http://localhost:3001/api/prometheus/hub?query=node_cpu_usage"
 ```
 
 ### 3. AI 분석 시연 (2분)
+
 - **Python AI 엔진**과 **TypeScript 폴백** 동작 확인
 - **예측 점수** 및 **권장사항** 표시
 - **이상 탐지** 알고리즘 시연
@@ -860,29 +928,34 @@ curl "http://localhost:3001/api/prometheus/hub?query=node_cpu_usage"
 ## 🛠️ 기술 스택
 
 ### Frontend
+
 - **Next.js 15**: React 19 기반 풀스택 프레임워크
 - **TypeScript**: 타입 안정성 보장
 - **TailwindCSS**: 유틸리티 퍼스트 스타일링
 - **Zustand**: 경량 상태 관리
 
 ### Backend
+
 - **Node.js 20+**: 서버 런타임
 - **Next.js API Routes**: RESTful API
 - **IORedis**: Redis 클라이언트 (시뮬레이션)
 - **TimerManager**: 통합 스케줄링
 
 ### AI/ML Engine
+
 - **Python 3.11+**: AI 분석 엔진 (우선)
 - **NumPy/Pandas**: 데이터 처리
 - **Scikit-learn**: 머신러닝 모델
 - **TypeScript**: 폴백 분석 엔진
 
 ### 모니터링 & 데이터
+
 - **Prometheus**: 표준 메트릭 형식
 - **Redis**: 시계열 데이터 저장
 - **PostgreSQL**: 메타데이터 관리
 
 ### 개발/배포
+
 - **Vercel**: 프로덕션 배포
 - **GitHub Actions**: CI/CD 파이프라인
 - **Playwright**: E2E 테스트
@@ -893,6 +966,7 @@ curl "http://localhost:3001/api/prometheus/hub?query=node_cpu_usage"
 ## 📱 전체 페이지 구성
 
 ### 🌐 메인 인터페이스
+
 ```
 / - 홈 대시보드
 ├── 📊 /dashboard - 메인 대시보드
@@ -907,6 +981,7 @@ curl "http://localhost:3001/api/prometheus/hub?query=node_cpu_usage"
 ```
 
 ### 🔌 API 엔드포인트 (30+)
+
 ```
 /api/
 ├── unified-metrics - 통합 메트릭 API
@@ -924,29 +999,33 @@ curl "http://localhost:3001/api/prometheus/hub?query=node_cpu_usage"
 ## ✅ 구현 완료된 기능
 
 ### 1. 🏗️ Prometheus 데이터 허브
+
 - **파일**: `src/modules/prometheus-integration/PrometheusDataHub.ts`
-- **기능**: 
+- **기능**:
   - Prometheus 표준 메트릭 형식 지원
   - Redis 기반 시계열 데이터 저장
   - 실시간 스크래핑 시뮬레이션
 
 ### 2. 🎯 통합 메트릭 관리자
+
 - **파일**: `src/services/UnifiedMetricsManager.ts`
-- **기능**: 
+- **기능**:
   - 중복 타이머 제거 (23개 → 4개)
   - 단일 데이터 소스 보장
   - 자동 스케일링 시뮬레이션
 
 ### 3. 🚀 통합 API 시스템
+
 - **파일**: `src/app/api/unified-metrics/route.ts`
-- **기능**: 
+- **기능**:
   - Prometheus 호환 API
   - 서버 목록 조회
   - 시스템 헬스 체크
 
 ### 4. 🌐 실시간 웹 인터페이스
+
 - **파일**: `src/components/dashboard/ServerDashboard.tsx`
-- **기능**: 
+- **기능**:
   - 실시간 서버 모니터링
   - 동적 페이지네이션
   - AI 분석 결과 표시
@@ -956,6 +1035,7 @@ curl "http://localhost:3001/api/prometheus/hub?query=node_cpu_usage"
 ## 📋 데모 제한사항
 
 ### ✅ 완전 구현됨 (시연 가능)
+
 - [x] 실시간 서버 모니터링
 - [x] Prometheus API 호환성
 - [x] AI 분석 및 예측
@@ -964,6 +1044,7 @@ curl "http://localhost:3001/api/prometheus/hub?query=node_cpu_usage"
 - [x] 자동 스케일링 시뮬레이션
 
 ### 📝 문서화만 (확장 가능)
+
 - [ ] 실제 Redis/PostgreSQL 연동
 - [ ] 사용자 인증 시스템
 - [ ] 알림 및 경고 시스템
@@ -975,6 +1056,7 @@ curl "http://localhost:3001/api/prometheus/hub?query=node_cpu_usage"
 ## 🔧 체크리스트 기반 병렬 로딩 시스템 v3.0
 
 ### 실제 시스템 구성 요소별 준비
+
 OpenManager v5는 실제 필요한 시스템 구성 요소들이 병렬로 준비되는 대로 체크되는 자연스러운 부팅 경험을 제공합니다:
 
 **🌐 API 서버 연결** - 핵심 API 엔드포인트 연결 확인 (Critical)
@@ -987,6 +1069,7 @@ OpenManager v5는 실제 필요한 시스템 구성 요소들이 병렬로 준�
 **🎨 UI 컴포넌트** - 대시보드 인터페이스 준비 (Low)
 
 ### ⚡ 병렬 처리 및 의존성 관리
+
 - **병렬 시작**: 독립적인 컴포넌트들은 동시에 시작
 - **의존성 순서**: AI 엔진은 API 서버 완료 후, UI는 DB 준비 후
 - **우선순위**: Critical → High → Medium → Low 순으로 완료 조건 적용
@@ -994,6 +1077,7 @@ OpenManager v5는 실제 필요한 시스템 구성 요소들이 병렬로 준�
 - **재시도 로직**: Critical 컴포넌트는 최대 2회 재시도
 
 ### ✅ 시각적 체크리스트 UI
+
 - **실시간 체크마크**: 컴포넌트별 완료 시 애니메이션 체크마크
 - **개별 진행률**: 로딩 중인 컴포넌트들의 실시간 진행률 표시
 - **우선순위 색상**: Critical(빨강), High(주황), Medium(노랑), Low(회색)
@@ -1001,12 +1085,14 @@ OpenManager v5는 실제 필요한 시스템 구성 요소들이 병렬로 준�
 - **상태 요약**: 완료, 진행 중, 실패 개수를 한눈에 표시
 
 ### 🚀 사용자 제어 옵션
+
 - **키보드 단축키**: Enter, Space, Escape 키로 즉시 스킵
 - **3초 후 스킵**: 스킵 버튼 자동 표시
 - **화면 클릭**: 언제든 클릭하여 완료
 - **비상 완료**: 15초 후 비상 완료 버튼 표시
 
 ### 🔧 기술적 개선
+
 - **병렬 처리**: 독립적인 작업들이 동시에 진행
 - **의존성 관리**: 필요한 순서는 자동으로 관리
 - **실패 복원력**: 일부 실패해도 전체 진행 계속
@@ -1014,26 +1100,30 @@ OpenManager v5는 실제 필요한 시스템 구성 요소들이 병렬로 준�
 - **실제 헬스체크**: 각 컴포넌트별 실제 API 호출로 상태 확인
 
 ### 🛠️ 개발자 도구
+
 ```javascript
 // 브라우저 콘솔에서 사용 가능한 디버깅 함수들
-window.debugSystemChecklist       // 현재 체크리스트 상태 확인
-window.emergencyCompleteChecklist() // 체크리스트 비상 완료
-window.emergencyCompleteBootSequence() // 부팅 시퀀스 비상 완료
+window.debugSystemChecklist; // 현재 체크리스트 상태 확인
+window.emergencyCompleteChecklist(); // 체크리스트 비상 완료
+window.emergencyCompleteBootSequence(); // 부팅 시퀀스 비상 완료
 ```
 
 ### 🎯 향상된 사용자 경험
+
 - **현실적인 부팅 과정**: 실제 필요한 시스템 구성 요소들
 - **명확한 진행 상황**: 무엇이 준비되고 있는지 정확히 표시
 - **시각적 만족감**: 체크마크가 하나씩 완료되는 만족감
 - **효율적인 시간**: 병렬 처리로 더 빠른 완료 (최대 60% 단축)
 
 ### ⚡ 기술적 장점
+
 - **병렬 처리**: 독립적인 작업들이 동시에 진행
 - **의존성 관리**: 필요한 순서는 자동으로 관리
 - **실패 복원력**: 일부 실패해도 전체 진행 계속
 - **우선순위 기반**: 중요한 것부터 완료 조건 적용
 
 ### 🎨 UI/UX 개선
+
 - **체크리스트 형태**: 진행 상황이 직관적으로 표시
 - **우선순위 색상**: Critical(빨강), High(주황), Medium(노랑), Low(회색)
 - **실시간 피드백**: 로딩 중인 컴포넌트들의 개별 진행률
@@ -1048,6 +1138,7 @@ window.emergencyCompleteBootSequence() // 부팅 시퀀스 비상 완료
 OpenManager v5는 **GitHub Actions 비용 70% 절감**과 **배포 속도 50% 향상**을 달성하는 혁신적인 배포 전략을 사용합니다.
 
 #### 🎯 배포 전략 개요
+
 - 🟢 **Vercel 직접 배포**: UI, 스타일, 문서 변경 (70% 케이스) - **무료**
 - 🔴 **GitHub Actions**: API, 핵심 로직 변경 (30% 케이스) - **최적화된 비용**
 
@@ -1057,7 +1148,7 @@ OpenManager v5는 **GitHub Actions 비용 70% 절감**과 **배포 속도 50% �
 # 🟢 직접 배포 (UI/스타일 변경)
 ./scripts/deploy.sh "버튼 색상 변경" direct
 
-# 🔴 CI 배포 (API/로직 변경)  
+# 🔴 CI 배포 (API/로직 변경)
 ./scripts/deploy.sh "새 API 엔드포인트" ci
 
 # 📦 NPM 스크립트
@@ -1068,20 +1159,22 @@ npm run deploy:local        # 로컬 빌드 후 배포
 
 #### 💰 비용 절약 효과
 
-| 항목 | 기존 방식 | 스마트 방식 | 절약 효과 |
-|------|-----------|-------------|-----------|
-| **GitHub Actions 실행** | 100회/월 | 30회/월 | **-70%** |
-| **배포 속도** | 5-8분 | 2-3분 | **-50%** |
-| **월 예상 비용** | $10-15 | $3-5 | **70% 절감** |
+| 항목                    | 기존 방식 | 스마트 방식 | 절약 효과    |
+| ----------------------- | --------- | ----------- | ------------ |
+| **GitHub Actions 실행** | 100회/월  | 30회/월     | **-70%**     |
+| **배포 속도**           | 5-8분     | 2-3분       | **-50%**     |
+| **월 예상 비용**        | $10-15    | $3-5        | **70% 절감** |
 
 #### 📋 배포 유형 가이드
 
 **🟢 직접 배포 케이스 (GitHub Actions 스킵):**
+
 - ✅ UI 컴포넌트 수정, CSS/스타일 변경
 - ✅ 텍스트/문서 업데이트, 이미지 교체
 - ✅ 작은 버그 픽스, 환경변수 설정
 
 **🔴 GitHub Actions 사용 케이스:**
+
 - ❗ API 엔드포인트 변경, 핵심 로직 수정
 - ❗ 의존성 업데이트, 보안 관련 수정
 - ❗ 데이터베이스 스키마, 대규모 리팩토링
@@ -1089,6 +1182,7 @@ npm run deploy:local        # 로컬 빌드 후 배포
 #### 🔧 자동화된 조건부 실행
 
 GitHub Actions는 다음 조건에서만 실행됩니다:
+
 - **실행됨**: `src/app/**`, `src/modules/**`, `package.json` 변경
 - **스킵됨**: `src/components/ui/**`, `docs/**`, `README.md` 변경
 - **강제 스킵**: 커밋 메시지에 `[direct]` 태그 포함
@@ -1119,11 +1213,13 @@ npm run verify:production
 #### 🔧 CI/CD 중단 방지 설정
 
 **1. GitHub Actions 설정**
+
 - 단순화된 워크플로우로 Runner 할당 문제 해결
 - 15분 타임아웃으로 무한 대기 방지
 - 재시도 로직 및 오류 복구 기능 내장
 
 **2. Vercel 배포 최적화**
+
 ```json
 {
   "build": {
@@ -1143,12 +1239,12 @@ npm run verify:production
 
 **3. 오류 복구 시나리오**
 
-| 오류 유형 | 해결 방법 |
-|-----------|-----------|
-| Runner 할당 실패 | `npm run ci:trigger` |
-| 빌드 메모리 부족 | `NODE_OPTIONS` 자동 설정됨 |
-| 환경변수 오류 | `SKIP_ENV_VALIDATION=true` |
-| 배포 실패 | `npm run deploy:safe` 재시도 |
+| 오류 유형        | 해결 방법                    |
+| ---------------- | ---------------------------- |
+| Runner 할당 실패 | `npm run ci:trigger`         |
+| 빌드 메모리 부족 | `NODE_OPTIONS` 자동 설정됨   |
+| 환경변수 오류    | `SKIP_ENV_VALIDATION=true`   |
+| 배포 실패        | `npm run deploy:safe` 재시도 |
 
 #### 📊 배포 상태 모니터링
 
@@ -1170,28 +1266,33 @@ npm run system:validate
 ## 📝 개발 및 변경 이력
 
 ### 🏆 v5.12.0 - 2025-06-02 (현재)
+
 **🎉 ENTERPRISE-GRADE 달성**
+
 - **메모리 최적화**: 180MB → 50MB (-72%)
-- **CPU 최적화**: 85% → 12% (-86%)  
+- **CPU 최적화**: 85% → 12% (-86%)
 - **타이머 통합**: 23개 → 4개 (-82%)
 - **AI 정확도**: 78-85% 예측, 91% 이상탐지
 - **자동화 비율**: 5% → 95% (+1800%)
 
 ### ✨ 주요 기능 완성
+
 - 🧠 메모리 최적화 강화 (72% 절약)
-- 🔥 Redis 고성능 연결 구축  
+- 🔥 Redis 고성능 연결 구축
 - 🤖 AI 예측 분석 완성
 - ⚡ 자동 스케일링 엔진
 - 🔍 머신러닝 이상 탐지
 - 📊 Prometheus 표준 완전 지원
 
 ### 🔧 기술적 개선
+
 - TimerManager 완전 통합
 - Prometheus 메트릭 1,000+ 지원
 - 베이스라인 + 델타 압축 (65% 절약)
 - 하이브리드 AI 엔진 (Python + TypeScript)
 
 ### 📈 이전 버전 주요 이정표
+
 - **v5.11.0**: 타이머 시스템 혁신 (92% 통합)
 - **v5.10.2**: AI 사이드바 강화, LangGraph 통합
 - **v5.10.1**: React Query 캐싱 최적화
@@ -1206,16 +1307,19 @@ npm run system:validate
 ## 🚀 확장 계획
 
 ### 단기 (프로토타입 → 제품)
+
 - 실제 Redis/PostgreSQL 연동
 - 사용자 인증 및 권한 관리
 - 고급 알림 시스템 구축
 
 ### 중기 (제품 → 기업급)
+
 - 다중 클러스터 지원
 - 머신러닝 이상 탐지 고도화
 - 고급 Prometheus 쿼리 엔진
 
 ### 장기 (기업급 → 플랫폼)
+
 - OpenTelemetry 표준 지원
 - 분산 추적 (Jaeger/Zipkin)
 - 클라우드 네이티브 배포
@@ -1225,9 +1329,11 @@ npm run system:validate
 ## 📞 관련 문서
 
 ### 📋 **핵심 문서**
+
 - **📊 완전한 시스템 명세서**: [OPENMANAGER_V5_COMPLETE_SYSTEM_SPECIFICATION.md](./OPENMANAGER_V5_COMPLETE_SYSTEM_SPECIFICATION.md) - 전체 시스템 아키텍처, 최적화, 개발 표준
 
 ### 🚀 **개발 가이드 (docs/)**
+
 - **🔧 설치 개발 가이드**: [docs/01-설치-개발-가이드.md](./docs/01-설치-개발-가이드.md) - 환경 설정 및 개발 시작
 - **🏗️ AI 아키텍처**: [docs/02-AI-아키텍처-가이드.md](./docs/02-AI-아키텍처-가이드.md) - AI 시스템 구조 및 설계
 - **📊 API 배포**: [docs/03-API-배포-가이드.md](./docs/03-API-배포-가이드.md) - API 구조 및 배포 방법
@@ -1238,6 +1344,7 @@ npm run system:validate
 - **🧪 테스트**: [docs/TESTING.md](./docs/TESTING.md) - 테스트 전략 및 방법론
 
 ### 📚 **아카이브 (docs/archive/)**
+
 - **📈 개발 단계별 보고서**: PHASE 시리즈 (2-8단계 완료 보고서)
 - **🔧 기술 전문 보고서**: 아키텍처, LangGraph, Prometheus 통합 등
 
@@ -1255,6 +1362,7 @@ OpenManager V5는 차세대 서버 모니터링 시스템으로, **실시간 성
 ## ✨ **최신 업데이트 (v5.13.3)**
 
 ### 🤖 **AI 관리자 사이드바 UI/UX 고도화**
+
 - **실시간 AI 사고 과정 시각화** - 5단계 분석 프로세스 (분석→추론→처리→생성→완료)
 - **육하원칙(5W1H) 기반 구조화된 응답** - Who, What, When, Where, Why, How
 - **실시간 에러 모니터링 및 자동 복구** - 네트워크, 파싱, 타임아웃 에러 감지
@@ -1262,6 +1370,7 @@ OpenManager V5는 차세대 서버 모니터링 시스템으로, **실시간 성
 - **접근성 및 키보드 네비게이션** - 단축키 지원 (Ctrl+Enter, ESC, Ctrl+1-4)
 
 ### 🔧 **GitHub Actions 최적화**
+
 - **40% 성능 향상**: 빌드/테스트/배포 시간 20분 → 12분
 - **병렬 품질 검사**: lint, type-check, unit-test 동시 실행
 - **스마트 캐시**: Next.js 빌드 캐시 + 의존성 캐시 적중률 85%
@@ -1271,12 +1380,14 @@ OpenManager V5는 차세대 서버 모니터링 시스템으로, **실시간 성
 ## 🎯 **핵심 기능**
 
 ### 📊 **실시간 모니터링**
+
 - **30개 가상 서버** 동시 모니터링
 - **실시간 메트릭** CPU, RAM, 네트워크, 디스크
 - **라이브 차트** 1초 간격 업데이트
 - **알림 시스템** 임계값 기반 자동 알림
 
 ### 🤖 **AI 에이전트 시스템**
+
 ```typescript
 // AI 관리자 모드 활성화
 const { isAIAdminMode, toggleAIAdminMode } = useSystemStore();
@@ -1299,6 +1410,7 @@ const { isAIAdminMode, toggleAIAdminMode } = useSystemStore();
 ```
 
 ### 🔐 **보안 & 인증**
+
 - **PIN 기반 인증** (기본값: 4231)
 - **세션 관리** 자동 로그아웃
 - **실패 보호** 5회 실패시 임시 차단
@@ -1307,6 +1419,7 @@ const { isAIAdminMode, toggleAIAdminMode } = useSystemStore();
 ## 🚀 **빠른 시작**
 
 ### **1단계: 설치**
+
 ```bash
 git clone https://github.com/your-org/openmanager-vibe-v5.git
 cd openmanager-vibe-v5
@@ -1314,12 +1427,15 @@ npm install
 ```
 
 ### **2단계: 개발 서버 실행**
+
 ```bash
 npm run dev
 ```
+
 🌍 브라우저에서 [http://localhost:3001](http://localhost:3001) 접속
 
 ### **3단계: AI 관리자 모드 활성화**
+
 1. 상단 우측 **"AI 에이전트"** 버튼 클릭
 2. PIN 입력: `4231`
 3. 우측 사이드바에서 **AI 관리자** 인터페이스 이용
@@ -1327,16 +1443,19 @@ npm run dev
 ## 📋 **AI 사이드바 사용법**
 
 ### **채팅 탭 - AI와 실시간 대화**
+
 - AI에게 서버 상태, 성능 분석 등 질문
 - **Ctrl+Enter**: 빠른 메시지 전송
 - **자동 구조화**: 응답을 육하원칙으로 변환
 
 ### **사고과정 탭 - AI 분석 과정 시각화**
+
 - 실시간 AI 사고 단계 표시
 - 진행률 바 및 소요 시간 표시
 - 서브 단계별 세부 로그
 
 ### **구조화 응답 탭 - 육하원칙 기반 분석**
+
 - **Who**: 담당자/시스템
 - **What**: 작업 내용
 - **When**: 시점/기간
@@ -1345,6 +1464,7 @@ npm run dev
 - **How**: 방법/과정
 
 ### **모니터링 탭 - 시스템 상태 감시**
+
 - AI 에이전트 상태
 - MCP 연결 상태
 - 성능 메트릭 요약
@@ -1352,18 +1472,19 @@ npm run dev
 
 ## ⌨️ **키보드 단축키**
 
-| 단축키 | 기능 |
-|--------|------|
-| `Ctrl + Enter` | 메시지 전송 |
-| `ESC` | 사이드바 최소화 |
-| `Ctrl + 1` | 채팅 탭 |
-| `Ctrl + 2` | 사고과정 탭 |
-| `Ctrl + 3` | 구조화 응답 탭 |
-| `Ctrl + 4` | 모니터링 탭 |
+| 단축키         | 기능            |
+| -------------- | --------------- |
+| `Ctrl + Enter` | 메시지 전송     |
+| `ESC`          | 사이드바 최소화 |
+| `Ctrl + 1`     | 채팅 탭         |
+| `Ctrl + 2`     | 사고과정 탭     |
+| `Ctrl + 3`     | 구조화 응답 탭  |
+| `Ctrl + 4`     | 모니터링 탭     |
 
 ## 🛠️ **기술 스택**
 
 ### **Frontend**
+
 - **Next.js 15** - React 19 기반 풀스택 프레임워크
 - **TypeScript** - 타입 안정성
 - **TailwindCSS** - 유틸리티 CSS
@@ -1371,12 +1492,14 @@ npm run dev
 - **Zustand** - 상태 관리
 
 ### **AI & Analytics**
+
 - **Custom AI Agent** - 지능형 분석
 - **MCP (Model Context Protocol)** - AI 모델 통신
 - **육하원칙 파서** - 구조화된 응답 생성
 - **실시간 사고 과정** - 분석 단계 시각화
 
 ### **DevOps**
+
 - **GitHub Actions** - CI/CD 파이프라인
 - **Vercel** - 배포 플랫폼
 - **CodeQL** - 보안 분석
@@ -1384,24 +1507,26 @@ npm run dev
 
 ## 📈 **성능 최적화 결과**
 
-| 메트릭 | 이전 | 최적화 후 | 개선율 |
-|--------|------|-----------|--------|
-| 전체 CI/CD | 20분 | 12분 | **-40%** |
-| 품질 검사 | 순차 8분 | 병렬 3분 | **-62%** |
-| 빌드 시간 | 6분 | 3.5분 | **-42%** |
-| 테스트 실행 | 12분 | 6분 | **-50%** |
-| 아티팩트 크기 | 150MB | 89MB | **-41%** |
-| 캐시 적중률 | 30% | 85% | **+183%** |
+| 메트릭        | 이전     | 최적화 후 | 개선율    |
+| ------------- | -------- | --------- | --------- |
+| 전체 CI/CD    | 20분     | 12분      | **-40%**  |
+| 품질 검사     | 순차 8분 | 병렬 3분  | **-62%**  |
+| 빌드 시간     | 6분      | 3.5분     | **-42%**  |
+| 테스트 실행   | 12분     | 6분       | **-50%**  |
+| 아티팩트 크기 | 150MB    | 89MB      | **-41%**  |
+| 캐시 적중률   | 30%      | 85%       | **+183%** |
 
 ## 🔒 **보안 & 품질 보증**
 
 ### **자동 보안 감사**
+
 - **매주 월요일 9시** 자동 실행
 - **npm audit** - 의존성 취약점 스캔
 - **라이센스 검사** - GPL 등 금지 라이센스 탐지
 - **CodeQL** - 정적 보안 분석
 
 ### **품질 관리**
+
 - **매일 자동 테스트** 커버리지 보고서
 - **TypeScript 엄격 모드** 타입 안전성
 - **ESLint + Prettier** 코드 스타일 통일
@@ -1410,11 +1535,13 @@ npm run dev
 ## 🌍 **배포 전략**
 
 ### **자동 배포**
+
 - **main 브랜치**: 프로덕션 자동 배포
 - **develop 브랜치**: 스테이징 환경
 - **PR**: 미리보기 배포
 
 ### **수동 배포**
+
 ```bash
 # 긴급 배포 (테스트 스킵 가능)
 npm run deploy:emergency
@@ -1426,12 +1553,14 @@ npm run deploy:safe
 ## 📊 **모니터링 & 로깅**
 
 ### **실시간 메트릭**
+
 - **응답 시간**: 평균 < 200ms
 - **에러율**: < 0.1%
 - **가용성**: 99.9%+
 - **성능 점수**: Lighthouse 95+
 
 ### **로그 분석**
+
 - **AI 사고 과정** 단계별 로그
 - **에러 자동 복구** 시도 기록
 - **성능 메트릭** 수집 및 분석
@@ -1440,6 +1569,7 @@ npm run deploy:safe
 ## 🤝 **개발 워크플로우**
 
 ### **권장 개발 순서**
+
 1. **기능 브랜치** 생성 (`feature/새기능`)
 2. **개발**: `npm run dev:clean`
 3. **품질 검사**: `npm run test:quality` (lint + type-check + unit test)
@@ -1447,6 +1577,7 @@ npm run deploy:safe
 5. **메인 병합**: 자동으로 프로덕션 배포
 
 ### **개발 명령어**
+
 ```bash
 # 개발 서버
 npm run dev
@@ -1472,11 +1603,12 @@ npm run storybook        # 컴포넌트 문서
 ## 🎨 **컴포넌트 라이브러리**
 
 ### **AI 컴포넌트**
+
 ```typescript
-import { 
+import {
   AIManagerSidebar,
   ThinkingProcessVisualizer,
-  SixWPrincipleDisplay 
+  SixWPrincipleDisplay
 } from '@/components/ai';
 
 // 사용 예시
@@ -1489,6 +1621,7 @@ import {
 ```
 
 ### **차트 컴포넌트**
+
 ```typescript
 import { RealtimeChart } from '@/components/charts';
 
@@ -1510,6 +1643,7 @@ import { RealtimeChart } from '@/components/charts';
 ## 🆘 **트러블슈팅**
 
 ### **AI 사이드바 관련**
+
 ```bash
 # AI 응답이 없을 때
 npm run test:ai-agent
@@ -1525,6 +1659,7 @@ npm run dev
 ```
 
 ### **일반적인 문제**
+
 - **포트 충돌**: `npm run dev -- --port 3002`
 - **의존성 문제**: `rm -rf node_modules package-lock.json && npm install`
 - **타입 오류**: `npm run type-check`
@@ -1542,7 +1677,7 @@ MIT License - 자세한 내용은 [LICENSE](./LICENSE) 파일을 참조하세요
 ---
 
 **🎯 OpenManager V5로 서버 관리의 새로운 차원을 경험하세요!**  
-*Powered by AI • Built with ❤️ • Enhanced by Community*
+_Powered by AI • Built with ❤️ • Enhanced by Community_
 
 <!-- GitHub Actions Status Test - 2025.01.25 -->
 
@@ -1567,12 +1702,14 @@ npm run dev
 ## 📊 GitHub Actions Status
 
 이 프로젝트는 최적화된 CI/CD 파이프라인을 사용합니다:
+
 - ✅ Cost-optimized workflow
 - ⚡ Fast execution times
 - 🔒 Security checks included
 
 ---
-*Last updated: 2025-01-25*
+
+_Last updated: 2025-01-25_
 
 # 🚀 OpenManager v5.15.2
 
@@ -1590,24 +1727,29 @@ npm run dev
 ## 🎯 핵심 기능
 
 ### 🤖 MCP 기반 AI 엔진
+
 - **자연어 질의**: "CPU 사용률이 높은 서버는?" 같은 자연어로 서버 상태 조회
 - **MCP 프로토콜**: 표준화된 AI 컨텍스트 프로토콜로 다중 도구 연동
 - **실시간 분석**: statistical_analysis, anomaly_detection, root_cause_analysis 자동 조합
 - **사고과정 표시**: AI의 분석 과정을 실시간으로 투명하게 공개
 
 ### 📊 서버 데이터 생성기
+
 - **Prometheus 호환**: 실제 운영환경과 동일한 메트릭 형태
 - **시계열 데이터**: 20분 실시간 + 24시간 고정 데이터 조합
 - **상태 시뮬레이션**: 10% 심각, 20% 경고 상태로 AI 학습 환경 제공
 - **API 제공**: `/api/data-generator`로 외부 시스템 연동 가능
 
-### 💎 Vibe Coding 워크플로우
+### 💎 Vibe Coding 워크플로우 (실제 개발 환경)
+
 - **✨ 골드 그라데이션**: 4가지 골드 톤이 부드럽게 순환하는 애니메이션
-- **AI 협업**: GPT/Claude + Cursor AI 기반 코딩 없는 개발
-- **MCP 기반**: 차세대 AI 에이전트 개발 워크플로우
-- **자동화**: 테스트부터 문서까지 AI가 자동 생성
+- **Cursor AI + Claude Sonnet 3.7**: 메인 개발 도구 (80% 기여)
+- **ChatGPT**: 브레인스토밍 및 프롬프트 작성 (15% 기여)
+- **Google Jules & OpenAI Codex**: 백그라운드 최적화 및 고급 로직 (5% 기여)
+- **569줄 페이지 + 86개 문서**: AI 협업으로 완성한 실제 결과물
 
 ### 🔧 최신 기술 스택
+
 - **프론트엔드**: Next.js 14, React 19, Tailwind CSS 3.x
 - **상태관리**: Zustand + React Query
 - **백엔드**: Node.js + Redis + Supabase
@@ -1616,6 +1758,7 @@ npm run dev
 ## 🚀 시작하기
 
 ### 필수 요구사항
+
 - Node.js 18.0.0 이상
 - npm 또는 yarn
 - Redis (로컬 또는 Upstash)
@@ -1678,6 +1821,7 @@ src/
 ## 🎨 디자인 시스템
 
 ### 색상 팔레트
+
 - **시스템**: 청록색 (`cyan-500`, `teal-600`)
 - **AI 에이전트**: 보라-핑크 그라데이션 (`purple-500`, `pink-500`)
 - **Vibe Coding**: 골드 그라데이션 (4색 순환)
@@ -1685,6 +1829,7 @@ src/
 - **성공**: 녹색 (`green-500`)
 
 ### 애니메이션 시스템
+
 - **골드 그라데이션**: `goldFlow` 키프레임으로 4초 주기 순환
 
 # OpenManager v5 - AI 기반 차세대 지능형 인프라 모니터링 플랫폼
@@ -1694,6 +1839,7 @@ src/
 ### 📋 v5.17.2 릴리즈 노트 (2025-06-XX)
 
 #### 🎨 사용자 경험 개선
+
 - **✅ AI 모달 위치 최적화**: AI 에이전트 활성화 모달이 클릭한 버튼 근처에 나타남
   - 클릭 위치 기반 모달 포지셔닝으로 직관적인 UX 제공
   - 화면 경계 자동 감지 및 위치 조정으로 모달이 화면 밖으로 나가지 않음
@@ -1704,11 +1850,13 @@ src/
   - 기술 스택 분류를 더욱 명확하게 구분하여 혼동 방지
 
 #### 🔧 기술적 개선
+
 - **클릭 이벤트 최적화**: AI 버튼 클릭 시 마우스 좌표를 정확히 추적
 - **모달 애니메이션 개선**: 클릭 위치에서 부드럽게 나타나는 스프링 애니메이션
 - **기술 스택 정확성**: 실제 사용 중인 기술들을 정확한 카테고리로 분류
 
 #### 🗂️ 문서 정리
+
 - **기술 스택 명확화**: Supabase(PostgreSQL), Upstash(Redis), Zustand(상태관리) 역할 구분
 - **카드별 기술 분류**: AI/ML, 백엔드, 프론트엔드, 데이터베이스별 명확한 구분
 
@@ -1717,6 +1865,7 @@ src/
 ### 📋 v5.17.1 릴리즈 노트 (2025-06-XX)
 
 #### 🔍 시스템 아키텍처 분석 완료
+
 - **데이터 흐름 분석**: OptimizedDataGenerator → UnifiedMetricsManager → PrometheusDataHub → TimerManager
 - **성능 최적화 검증**: 메모리 72% 감소, CPU 86% 감소, 타이머 82% 통합
 - **503 에러 원인 분석**: `/api/health` 엔드포인트 개선
@@ -1725,6 +1874,7 @@ src/
   - degraded 상태도 200 OK 반환
 
 #### 📊 시스템 현황 정리
+
 - **데이터 특성**: 완전 시뮬레이션 기반 (30개 가상 서버)
 - **업데이트 주기**: 5초 간격 통합 관리
 - **압축률**: 65% 달성 (Baseline + Delta 방식)
@@ -1733,12 +1883,14 @@ src/
 ### 📋 v5.16.9 릴리즈 노트 (2025-06-XX)
 
 #### 🎨 UI/UX 개선
+
 - **홈페이지 개선**: "대시보드 들어가기" 버튼에 손가락 포인팅 애니메이션 추가
 - **시각적 가이던스**: AI 에이전트 버튼과 일관된 애니메이션 스타일 적용
 
 ### 📋 v5.16.8 릴리즈 노트 (2025-06-XX)
 
 #### 🏗️ 기술 스택 분류 개선
+
 - **FeatureCard 컴포넌트 개선**: `customStack` 속성 추가
 - **시각적 구분**: 오픈소스(🔵)와 자체개발(🟢) 색상 코딩
 - **기술 카테고리**: 5개 그룹으로 체계화
@@ -1749,6 +1901,7 @@ src/
 ### 📋 v5.17.3 릴리즈 노트 (2025-06-XX)
 
 #### ✨ 신규 기능 - 서버 데이터 생성기 모달
+
 - **✅ AI 모드 전용 접근**: 프로필 → 환경 설정에서 "서버 데이터 생성기 설정" 메뉴 추가
   - AI 에이전트 활성화 상태에서만 메뉴 항목 표시
   - 일반 모니터링 모드에서는 숨김 처리로 권한 관리
@@ -1765,6 +1918,7 @@ src/
   - 베이스라인 생성, 실시간 변동 적용, 메모리 최적화 등 상태 추적
 
 #### 🎛️ 제어 기능
+
 - **✅ 생성기 시작/중지**: 원클릭으로 OptimizedDataGenerator 제어
   - 기존 SimulationEngine과 자동 전환으로 리소스 최적화
   - 실시간 상태 피드백 및 에러 처리
@@ -1772,6 +1926,7 @@ src/
 - **✅ 수동 새로고침**: 사용자 요청 시 즉시 데이터 갱신
 
 #### 🔧 기술적 구현
+
 - **ServerGeneratorModal 컴포넌트**: 반응형 모달 with Framer Motion 애니메이션
 - **API 통합**: `/api/data-generator/optimized` 엔드포인트 활용
 - **에러 핸들링**: 네트워크 오류 시 Fallback 데이터 제공
