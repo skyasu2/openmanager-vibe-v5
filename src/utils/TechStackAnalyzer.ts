@@ -447,6 +447,13 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     importance: 'high',
     isCore: true,
   },
+  cursor: {
+    name: 'Cursor AI Editor',
+    category: 'ai-development',
+    description: 'Claude 4 Sonnet 기반, 200K+ 토큰 컨텍스트, AI 자동완성',
+    importance: 'high',
+    isCore: true,
+  },
   'vibe-chatgpt': {
     name: 'ChatGPT',
     version: 'GPT-4',
@@ -459,6 +466,50 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     version: 'Gemini 1.5 Pro',
     category: 'ai-development',
     description: '대규모 문서 처리, 멀티모달 작업, 백그라운드 품질 관리',
+    importance: 'medium',
+  },
+  claude: {
+    name: 'Claude 4 Sonnet',
+    category: 'ai-development',
+    description: '최대 컨텍스트 모델, 코드 이해 특화, 멀티턴 대화 지원',
+    importance: 'high',
+    isCore: true,
+  },
+  sonnet: {
+    name: 'Claude 4 Sonnet',
+    category: 'ai-development',
+    description: '최대 컨텍스트 모델, 코드 이해 특화, 멀티턴 대화 지원',
+    importance: 'high',
+    isCore: true,
+  },
+  'mcp-filesystem': {
+    name: 'MCP Filesystem',
+    category: 'ai-development',
+    description: 'Cursor용 파일 탐색 도구, 코드 구조 분석, 자동 의존성 추적',
+    importance: 'high',
+  },
+  'mcp-duckduckgo-search': {
+    name: 'MCP DuckDuckGo Search',
+    category: 'ai-development',
+    description: 'Cursor용 웹 검색 도구, 최신 기술 문서, 오류 해결 지원',
+    importance: 'medium',
+  },
+  'mcp-sequential-thinking': {
+    name: 'MCP Sequential Thinking',
+    category: 'ai-development',
+    description: 'Cursor용 사고 도구, 단계별 문제 해결, 논리 검증',
+    importance: 'medium',
+  },
+  chatgpt: {
+    name: 'ChatGPT-4',
+    category: 'ai-development',
+    description: '브레인스토밍, 아키텍처 설계, 창의적 솔루션 도출',
+    importance: 'high',
+  },
+  jules: {
+    name: 'Google Jules',
+    category: 'ai-development',
+    description: 'GitHub 연동, 클라우드 VM 자동화, 대규모 작업 처리',
     importance: 'medium',
   },
   'cursor-mcp-filesystem': {
@@ -658,11 +709,47 @@ const CATEGORIES: Record<string, Omit<TechCategory, 'items'>> = {
  * 기술 스택 문자열을 파싱하여 개별 기술들을 추출
  */
 function parseTechString(techString: string): string[] {
-  return techString
-    .split(/[,\s]+/)
-    .map(tech => tech.trim().toLowerCase())
-    .filter(tech => tech.length > 0)
-    .filter(tech => !['and', 'with', 'using', '+', '&'].includes(tech));
+  // 기술 스택 문자열에서 특정 패턴들을 추출
+  const patterns = [
+    // 이모지 뒤의 기술명 패턴
+    /[🎯🧠🔍🌐🤖🔄💭]\s*([^:,\-]+?)(?:[:,-]|$)/g,
+    // 버전 정보가 있는 패턴
+    /(\w+(?:\.\w+)*)\s*v?\d+\.\d+/g,
+    // 일반적인 기술명 패턴
+    /\b([A-Za-z][A-Za-z0-9\-._]*(?:\s+[A-Za-z][A-Za-z0-9\-._]*)*)\b/g,
+  ];
+
+  const techs = new Set<string>();
+
+  // 각 패턴으로 기술명 추출
+  patterns.forEach(pattern => {
+    let match;
+    while ((match = pattern.exec(techString)) !== null) {
+      const tech = match[1].trim().toLowerCase();
+      if (
+        tech.length > 2 &&
+        !['and', 'with', 'using', 'based', 'for'].includes(tech)
+      ) {
+        techs.add(tech);
+      }
+    }
+  });
+
+  // 기본 분할 방식도 추가
+  const basicSplit = techString
+    .split(/[,+&]/)
+    .map(tech =>
+      tech
+        .replace(/[🎯🧠🔍🌐🤖🔄💭]/g, '')
+        .trim()
+        .toLowerCase()
+    )
+    .filter(tech => tech.length > 2)
+    .filter(tech => !['and', 'with', 'using', 'based', 'for'].includes(tech));
+
+  basicSplit.forEach(tech => techs.add(tech));
+
+  return Array.from(techs);
 }
 
 /**
@@ -681,18 +768,30 @@ function normalizeTechName(tech: string): string {
     faker: '@faker-js/faker',
     playwright: '@playwright/test',
     // Vibe Coding mappings
-    'cursor ai': 'cursor',
-    'claude sonnet': 'claude 4 sonnet',
-    'mcp tools': '@modelcontextprotocol/server-filesystem',
-    'mcp integration': '@modelcontextprotocol/server-filesystem',
-    'google gemini': 'gemini',
-    'gemini 1.5 pro': 'gemini',
-    'github 통합': 'github-actions',
-    'chatgpt gpt-4': 'chatgpt',
-    'gpt-4-turbo': 'gpt-4',
+    cursor: 'cursor-ai',
+    'cursor ai': 'cursor-ai',
+    claude: 'claude',
+    sonnet: 'sonnet',
+    'claude sonnet': 'claude',
+    'claude 4': 'claude',
+    chatgpt: 'chatgpt',
+    'chatgpt-4': 'chatgpt',
+    'gpt-4': 'chatgpt',
+    jules: 'jules',
+    'google jules': 'jules',
+    'mcp tools': 'mcp-filesystem',
+    'mcp integration': 'mcp-filesystem',
     filesystem: 'mcp-filesystem',
-    'duckduckgo-search': 'mcp-duckduckgo',
-    'sequential-thinking': 'mcp-sequential',
+    'duckduckgo-search': 'mcp-duckduckgo-search',
+    duckduckgo: 'mcp-duckduckgo-search',
+    search: 'mcp-duckduckgo-search',
+    'sequential-thinking': 'mcp-sequential-thinking',
+    thinking: 'mcp-sequential-thinking',
+    sequential: 'mcp-sequential-thinking',
+    hybrid: 'vibe-coding-results',
+    vibe: 'vibe-coding-results',
+    coding: 'vibe-coding-results',
+    strategy: 'vibe-coding-results',
     // Server Data Generator mappings
     'optimized data generator': 'optimizeddatagenerator',
     'baseline optimizer': 'baselineoptimizer',
@@ -806,6 +905,9 @@ export function analyzeTechStack(technologies: string[]): TechCategory[] {
         };
 
         techItems.push(techItem);
+      } else {
+        // 디버깅: 인식되지 않은 기술 로그
+        console.log(`미인식 기술: ${tech} -> ${normalizedTech}`, techString);
       }
     });
   });
