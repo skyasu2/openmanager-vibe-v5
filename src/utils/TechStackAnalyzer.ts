@@ -10,6 +10,7 @@ export interface TechItem {
   description: string;
   usage: string;
   importance: 'high' | 'medium' | 'low';
+  version?: string;
   isCore?: boolean;
   usageCount?: number;
   categories?: string[];
@@ -318,8 +319,38 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
   },
   '@tensorflow/tfjs': {
     name: 'TensorFlow.js',
+    version: '4.22.0',
     category: 'ai-ml',
-    description: '브라우저 및 Node.js용 ML 라이브러리',
+    description: '장애 예측, 이상 탐지, LSTM 모델 (~25MB)',
+    importance: 'high',
+    isCore: true,
+  },
+  natural: {
+    name: 'Natural NLP',
+    version: '8.1.0',
+    category: 'ai-ml',
+    description: '한국어+영어 NLP, 의도 분류, 토크나이징',
+    importance: 'medium',
+  },
+  compromise: {
+    name: 'Compromise',
+    version: '14.14.4',
+    category: 'ai-ml',
+    description: '엔티티 추출, 개체명 인식, 1000+ 문장/초',
+    importance: 'medium',
+  },
+  'fuse.js': {
+    name: 'Fuse.js',
+    version: '7.1.0',
+    category: 'ai-ml',
+    description: '유사도 기반 하이브리드 검색, 1000+ 문서/초',
+    importance: 'medium',
+  },
+  'ml-matrix': {
+    name: 'ML Matrix',
+    version: '6.12.1',
+    category: 'ai-ml',
+    description: '매트릭스 연산, 선형 회귀, GPU 가속',
     importance: 'medium',
   },
   '@xenova/transformers': {
@@ -344,9 +375,10 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
   },
   'simple-statistics': {
     name: 'Simple Statistics',
-    category: 'monitoring-analytics',
-    description: '통계 계산을 위한 JavaScript 라이브러리',
-    importance: 'medium',
+    version: '7.8.8',
+    category: 'ai-ml',
+    description: 'Z-score 이상 탐지, 10,000+ 계산/초',
+    importance: 'high',
   },
 
   // Charts & Visualization
