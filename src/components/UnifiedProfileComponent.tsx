@@ -660,7 +660,7 @@ const UnifiedSettingsPanel = ({
 
                   <button
                     onClick={handleAIAuthentication}
-                    disabled={isLocked || isAuthenticating || !isSystemStarted}
+                    disabled={isLocked || isAuthenticating}
                     className='w-full p-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900'
                   >
                     {isAuthenticating ? (
@@ -673,11 +673,10 @@ const UnifiedSettingsPanel = ({
                     )}
                   </button>
 
-                  {!isSystemStarted && (
-                    <p className='text-yellow-400 text-sm text-center'>
-                      시스템을 먼저 시작해주세요.
-                    </p>
-                  )}
+                  {/* AI 독립 모드 지원 - 시스템 시작 불필요 */}
+                  <p className='text-blue-400 text-sm text-center'>
+                    💡 AI 에이전트는 시스템과 독립적으로 실행됩니다
+                  </p>
                 </div>
               ) : (
                 // AI 비활성화 버튼
