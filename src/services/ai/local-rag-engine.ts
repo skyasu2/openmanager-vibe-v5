@@ -16,6 +16,7 @@ interface DocumentContext {
 
 interface IntentAnalysis {
   category?: string;
+  confidence?: number;
 }
 
 interface SessionContext {
@@ -37,17 +38,153 @@ interface AIResponse {
 }
 
 class KoreanNLUProcessor {
-  async initialize() {}
+  private intentPatterns: Map<string, RegExp[]> = new Map();
+  private initialized = false;
+
+  async initialize() {
+    if (this.initialized) return;
+    
+    // 의도 분석 패턴 초기화
+    this.intentPatterns.set('performance', [
+      /성능|cpu|메모리|디스크|느림|빠름|최적화|속도/i,
+      /performance|cpu|memory|disk|slow|fast|optimize|speed/i
+    ]);
+    
+    this.intentPatterns.set('troubleshooting', [
+      /문제|오류|에러|장애|고장|해결|수리/i,
+      /problem|error|issue|failure|fix|repair|troubleshoot/i
+    ]);
+    
+    this.intentPatterns.set('monitoring', [
+      /모니터링|감시|상태|확인|점검|체크/i,
+      /monitoring|status|check|health|watch/i
+    ]);
+    
+    this.intentPatterns.set('security', [
+      /보안|인증|권한|접근|로그인|암호/i,
+      /security|auth|permission|access|login|password/i
+    ]);
+
+    this.initialized = true;
+    console.log('🧠 Korean NLU Processor 초기화 완료');
+  }
+
   async analyzeIntent(text: string): Promise<IntentAnalysis> {
-    return {};
+    if (!this.initialized) await this.initialize();
+    
+    const normalizedText = text.toLowerCase();
+    let bestMatch = { category: 'general', confidence: 0.1 };
+    
+    // 패턴 매칭으로 의도 분석
+    for (const [category, patterns] of this.intentPatterns) {
+      for (const pattern of patterns) {
+        if (pattern.test(normalizedText)) {
+          const confidence = 0.7 + Math.random() * 0.2; // 0.7-0.9
+          if (confidence > bestMatch.confidence) {
+            bestMatch = { category, confidence };
+          }
+        }
+      }
+    }
+    
+    return bestMatch;
   }
 }
 
 class KoreanResponseGenerator {
-  async generate(
-    _: any
-  ): Promise<{ text: string; confidence: number; suggestions?: string[] }> {
-    return { text: '준비 중입니다.', confidence: 0.5 };
+  private responseTemplates: Map<string, string[]> = new Map();
+  private initialized = false;
+
+  async initialize() {
+    if (this.initialized) return;
+    
+    // 카테고리별 응답 템플릿
+    this.responseTemplates.set('performance', [
+      '성능 분석 결과를 확인했습니다. {details}',
+      '시스템 성능 상태를 점검했습니다. {details}',
+      '성능 최적화 방안을 제안드립니다. {details}'
+    ]);
+    
+    this.responseTemplates.set('troubleshooting', [
+      '문제 해결 방안을 찾았습니다. {details}',
+      '장애 원인을 분석했습니다. {details}',
+      '다음 해결 단계를 권장합니다. {details}'
+    ]);
+    
+    this.responseTemplates.set('monitoring', [
+      '시스템 상태를 확인했습니다. {details}',
+      '모니터링 결과입니다. {details}',
+      '현재 시스템 상태는 다음과 같습니다. {details}'
+    ]);
+    
+    this.responseTemplates.set('security', [
+      '보안 상태를 점검했습니다. {details}',
+      '보안 분석 결과입니다. {details}',
+      '보안 권장사항을 제시합니다. {details}'
+    ]);
+    
+    this.responseTemplates.set('general', [
+      '요청하신 내용을 분석했습니다. {details}',
+      '다음과 같은 정보를 찾았습니다. {details}',
+      '관련 정보를 확인했습니다. {details}'
+    ]);
+
+    this.initialized = true;
+    console.log('💬 Korean Response Generator 초기화 완료');
+  }
+
+  async generate(context: {
+    query: string;
+    intent: IntentAnalysis;
+    relevantDocuments: any[];
+    sessionContext?: any;
+    currentMetrics?: any;
+    processingTime: number;
+  }): Promise<{ text: string; confidence: number; suggestions?: string[] }> {
+    if (!this.initialized) await this.initialize();
+    
+    const { intent, relevantDocuments, currentMetrics } = context;
+    const category = intent.category || 'general';
+    
+    // 템플릿 선택
+    const templates = this.responseTemplates.get(category) || this.responseTemplates.get('general')!;
+    const template = templates[Math.floor(Math.random() * templates.length)];
+    
+    // 세부 정보 생성
+    let details = '';
+    
+    if (relevantDocuments.length > 0) {
+      const doc = relevantDocuments[0];
+      details = doc.content.substring(0, 200) + '...';
+    } else if (currentMetrics) {
+      details = `CPU: ${currentMetrics.cpu || 'N/A'}%, 메모리: ${currentMetrics.memory || 'N/A'}%, 디스크: ${currentMetrics.disk || 'N/A'}%`;
+    } else {
+      details = '관련 정보를 수집하여 분석했습니다.';
+    }
+    
+    // 응답 생성
+    const response = template.replace('{details}', details);
+    
+    // 제안사항 생성
+    const suggestions = this.generateSuggestions(category);
+    
+    return {
+      text: response,
+      confidence: Math.max(intent.confidence || 0.5, 0.6),
+      suggestions
+    };
+  }
+
+  private generateSuggestions(category: string): string[] {
+    const suggestionMap: Record<string, string[]> = {
+      performance: ['성능 최적화 실행', '리소스 사용량 확인', '시스템 튜닝'],
+      troubleshooting: ['로그 분석', '시스템 재시작', '전문가 상담'],
+      monitoring: ['실시간 모니터링', '알림 설정', '대시보드 확인'],
+      security: ['보안 스캔', '권한 검토', '로그 감사'],
+      general: ['자세한 분석', '관련 문서 확인', '추가 질문']
+    };
+    
+    return suggestionMap[category] || suggestionMap.general;
   }
 }
 

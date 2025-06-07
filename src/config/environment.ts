@@ -66,9 +66,9 @@ export function getEnvironmentConfig(): EnvironmentConfig {
       return {
         ...baseConfig,
         database: {
-          useRealDB: false,
-          useMockData: true,
-          redisEnabled: false,
+          useRealDB: true, // 개발 환경에서도 실제 DB 사용
+          useMockData: false, // Mock 데이터 사용 비활성화
+          redisEnabled: true, // Redis 활성화
         },
         mcp: {
           enabledServers: ['filesystem', 'github'],
@@ -207,7 +207,25 @@ export function isVercel(): boolean {
 }
 
 export function shouldUseMockData(): boolean {
-  return env.database.useMockData;
+  // 환경변수로 명시적으로 Mock 모드를 활성화한 경우에만 Mock 사용
+  const forceMock = process.env.DATABASE_ENABLE_MOCK_MODE === 'true';
+  
+  // 실제 DB 환경변수가 설정되어 있으면 실제 DB 우선 사용
+  const hasSupabase = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const hasRedis = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  
+  if (forceMock) {
+    console.log('🔧 Mock 모드 강제 활성화됨 (DATABASE_ENABLE_MOCK_MODE=true)');
+    return true;
+  }
+  
+  if (hasSupabase && hasRedis) {
+    console.log('✅ 실제 DB 환경변수 감지됨, 실제 DB 사용');
+    return false;
+  }
+  
+  console.log('⚠️ DB 환경변수 부족하지만 실제 DB 시도');
+  return false; // 환경변수가 없어도 실제 DB 우선 시도
 }
 
 export function shouldEnableDebugLogging(): boolean {

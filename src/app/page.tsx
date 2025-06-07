@@ -215,37 +215,42 @@ export default function Home() {
 
       // 📊 점검 결과 로깅
       const systemReadiness = {
-        health: healthData.success && healthData.health, // 새로운 헬스체크 API 구조
+        health: healthData.success && healthData.health, // 🔧 새로운 헬스체크 구조 반영
         websocket:
           healthData.websocket ||
           (websocketData.success && websocketData.websocket?.connected),
-        serverGeneration:
-          serverGenData.success && serverGenData.data?.isHealthy,
+        serverGeneration: healthData.serverGeneration || // 🎯 새로운 필드 추가
+          (serverGenData.success && serverGenData.data?.isHealthy),
         mcp: healthData.mcp || mcpStatus.success,
         timestamp: new Date().toISOString(),
       };
 
       console.log('📊 [Dashboard] 시스템 준비 상태:', systemReadiness);
 
-      // 🚨 문제 발견 시 디버그 모드 활성화
+      // 🔧 개선: 기본 서비스만 필수 조건으로 설정
+      // 시뮬레이션은 대시보드에서 직접 시작할 수 있으므로 선택적으로 변경
       const isSystemReady =
         systemReadiness.health &&
-        systemReadiness.websocket &&
-        systemReadiness.serverGeneration;
+        systemReadiness.websocket;
+        // serverGeneration은 선택적 기능으로 변경
+
+      // 🎯 시뮬레이션 상태 별도 확인
+      const isSimulationRunning = systemReadiness.serverGeneration;
 
       if (!isSystemReady) {
         console.warn(
-          '🚨 [Dashboard] 시스템이 완전히 준비되지 않음 - 디버그 모드 활성화'
+          '🚨 [Dashboard] 기본 시스템 서비스가 준비되지 않음 - 디버그 모드 활성화'
         );
 
         // F12 디버그 안내 표시
         const userWantsDebug = confirm(
-          `⚠️ 시스템 준비가 완료되지 않았습니다.\n\n` +
+          `⚠️ 기본 시스템 서비스가 준비되지 않았습니다.\n\n` +
             `📊 시스템 상태:\n` +
             `• 헬스체크: ${systemReadiness.health ? '✅' : '❌'}\n` +
             `• 웹소켓: ${systemReadiness.websocket ? '✅' : '❌'}\n` +
-            `• 서버 생성기: ${systemReadiness.serverGeneration ? '✅' : '❌'}\n` +
-            `• MCP 서버: ${systemReadiness.mcp ? '✅' : '⚠️'}\n\n` +
+            `• 서버 생성기: ${systemReadiness.serverGeneration ? '✅ 실행중' : '⏸️ 대기중'}\n` +
+            `• MCP 서버: ${systemReadiness.mcp ? '✅' : '⚠️ 선택적'}\n\n` +
+            `💡 서버 생성기는 대시보드에서 시작할 수 있습니다.\n\n` +
             `🔧 F12를 눌러 개발자 도구에서 상세 로그를 확인하세요.\n\n` +
             `그래도 대시보드로 이동하시겠습니까?`
         );
@@ -257,6 +262,11 @@ export default function Home() {
 
         console.log(
           '📊 [Dashboard] 사용자가 준비 미완료 상태에서도 대시보드 이동 선택'
+        );
+      } else if (!isSimulationRunning) {
+        // ✅ 기본 서비스는 준비되었지만 시뮬레이션이 실행되지 않은 경우
+        console.log(
+          '🎯 [Dashboard] 기본 서비스 준비 완료 - 시뮬레이션은 대시보드에서 시작 가능'
         );
       }
 

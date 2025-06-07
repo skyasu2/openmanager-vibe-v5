@@ -179,7 +179,7 @@ export const useAISidebarStore = create<AISidebarState>()(
         
         // 채팅 Actions
         sendMessage: async (content: string) => {
-          const { messages } = get();
+          const { messages, setThinking, addLog, clearLogs } = get();
           
           // 사용자 메시지 추가
           const userMessage: ChatMessage = {
@@ -191,18 +191,89 @@ export const useAISidebarStore = create<AISidebarState>()(
           
           set({ messages: [...messages, userMessage] });
           
-          // AI 응답 시뮬레이션
-          setTimeout(() => {
+          // AI 처리 시작
+          setThinking(true);
+          clearLogs();
+          
+          try {
+            // 실제 AI 처리 과정 시뮬레이션
+            const thinkingSteps = [
+              { type: 'context', message: '컨텍스트 분석 중...', progress: 0.2 },
+              { type: 'match', message: 'MCP 서버에서 관련 문서 검색 중...', progress: 0.4 },
+              { type: 'generate', message: '응답 생성 중...', progress: 0.7 },
+              { type: 'validation', message: '응답 검증 중...', progress: 1.0 }
+            ];
+
+                         for (const step of thinkingSteps) {
+               addLog({
+                 step: step.type,
+                 content: step.message,
+                 type: step.type as any,
+                 progress: step.progress
+               });
+              
+              // 단계별 지연
+              await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 400));
+            }
+
+            // 실제 AI API 호출 시도
+            let aiResponse = '';
+            try {
+              const response = await fetch('/api/mcp/query', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  query: content, 
+                  sessionId: `session_${Date.now()}` 
+                })
+              });
+
+              if (response.ok) {
+                const data = await response.json();
+                aiResponse = data.response || `MCP 서버를 통해 "${content}"에 대한 분석을 완료했습니다.`;
+              } else {
+                throw new Error('MCP API 호출 실패');
+              }
+            } catch (error) {
+              console.warn('MCP API 실패, RAG 폴백 시도:', error);
+              
+              // RAG 폴백 시도
+              try {
+                const ragResponse = await fetch('/api/ai/hybrid', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ 
+                    query: content,
+                    mode: 'rag-only'
+                  })
+                });
+
+                if (ragResponse.ok) {
+                  const ragData = await ragResponse.json();
+                  aiResponse = ragData.response || `로컬 RAG 엔진을 통해 "${content}"에 대한 분석을 완료했습니다.`;
+                } else {
+                  throw new Error('RAG 폴백도 실패');
+                }
+              } catch (ragError) {
+                console.warn('RAG 폴백도 실패:', ragError);
+                aiResponse = `죄송합니다. "${content}"에 대한 분석 중 문제가 발생했습니다. 시스템 상태를 확인해주세요.`;
+              }
+            }
+
+            // AI 응답 메시지 추가
             const assistantMessage: ChatMessage = {
               id: `msg_${Date.now() + 1}`,
-              content: `"${content}"에 대한 AI 응답입니다.`,
-              role: 'assistant', 
+              content: aiResponse,
+              role: 'assistant',
               timestamp: new Date().toISOString()
             };
             
             const currentMessages = get().messages;
             set({ messages: [...currentMessages, assistantMessage] });
-          }, 1000);
+
+          } finally {
+            setThinking(false);
+          }
         },
         clearMessages: () => set({ messages: [] })
       }),

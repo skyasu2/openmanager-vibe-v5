@@ -22,7 +22,7 @@ import {
   Zap
 } from 'lucide-react';
 import BasePanelLayout from './shared/BasePanelLayout';
-import { useMockDataLoader } from '@/hooks/useDataLoader';
+import { useDataLoader } from '@/hooks/useDataLoader';
 
 interface PatternData {
   id: string;
@@ -95,11 +95,25 @@ const generateMockPatterns = (): PatternData[] => [
 
 const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({ className = '' }) => {
   // 데이터 로딩 (1분마다 자동 새로고침)
-  const { data: patterns, isLoading, reload } = useMockDataLoader(
-    generateMockPatterns,
-    1500, // 1.5초 로딩 지연
-    60000 // 1분마다 새로고침
-  );
+  const { data: patterns, isLoading, reload } = useDataLoader({
+    loadData: async () => {
+      // 실제 API 시도
+      try {
+        const response = await fetch('/api/ai/pattern-analysis');
+        if (response.ok) {
+          const data = await response.json();
+          return data.patterns || generateMockPatterns();
+        }
+      } catch (error) {
+        console.warn('패턴 분석 API 실패, Mock 데이터 사용:', error);
+      }
+      
+      // API 실패 시에만 Mock 사용
+      await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5초 로딩 지연
+      return generateMockPatterns();
+    },
+    refreshInterval: 60000 // 1분마다 새로고침
+  });
 
   // 필터 상태 관리
   const [selectedType, setSelectedType] = React.useState<'all' | 'failure' | 'performance' | 'security' | 'trend'>('all');
@@ -118,7 +132,7 @@ const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({ className =
     if (!patterns) return [];
     return selectedType === 'all' 
       ? patterns 
-      : patterns.filter(pattern => pattern.type === selectedType);
+      : patterns.filter((pattern: PatternData) => pattern.type === selectedType);
   }, [patterns, selectedType]);
 
   // 유틸리티 함수들
@@ -181,7 +195,7 @@ const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({ className =
       {/* 패턴 목록 */}
       <div className="p-4">
         <div className="space-y-3">
-          {filteredPatterns.map((pattern) => (
+          {filteredPatterns.map((pattern: PatternData) => (
             <motion.div
               key={pattern.id}
               initial={{ opacity: 0, y: 20 }}

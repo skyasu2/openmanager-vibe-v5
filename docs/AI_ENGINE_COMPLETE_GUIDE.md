@@ -11,14 +11,14 @@
 
 #### 📋 **주요 변경사항**
 
-- ✅ **버전 정보 제거**: 사용자 요청에 따라 모든 패키지 버전 번호 제거
+- ✅ **AI 엔진 구현 방식 명확화**: 외부 LLM API 없이 MCP + 로컬 추론 기반 독립 동작
 - ✅ **50개 오픈소스 완전 공개**: 사용된 모든 라이브러리의 이름, 용도, 기술 설명 추가
-- ✅ **MCP 상세 설명**: Model Context Protocol의 핵심 개념과 활용 방법 상세화
-- ✅ **다중 AI 모델 워크플로우**: Cursor AI + Claude Sonnet + ChatGPT + OpenAI Codex 통합 활용
+- ✅ **MCP 상세 설명**: Model Context Protocol의 패턴 매칭과 컨텍스트 기반 추론 방식 설명
+- ✅ **개발 워크플로우 구분**: Cursor AI + Claude는 개발 도구, 실제 AI 엔진은 MCP 기반
 
 #### 🔧 **1. MCP 기반 AI 엔진 (10개 오픈소스)**
 
-**MCP(Model Context Protocol)**는 AI 모델과 외부 데이터 소스 간의 표준화된 통신 프로토콜로, AI가 파일시스템, GitHub, 데이터베이스 등과 안전하게 상호작용하며 컨텍스트를 관리할 수 있게 합니다.
+**MCP(Model Context Protocol) 기반 AI 엔진**은 외부 LLM API 없이 **패턴 매칭, 규칙 기반 추론, 컨텍스트 학습**을 통해 서버 모니터링에 특화된 지능형 응답을 생성합니다. 문서 검색과 의도 분류를 통해 정확하고 일관된 답변을 제공합니다.
 
 **사용 오픈소스:**
 
@@ -35,7 +35,14 @@
 
 #### 💾 **2. 서버 데이터 생성기 (10개 오픈소스)**
 
-실제 서버 환경을 시뮬레이션하는 데이터 생성 시스템으로, 현실적인 메트릭과 로그를 생성합니다.
+**현실적 패턴 기반 서버 시뮬레이션 엔진**으로, 실제 서버 환경의 특성을 반영한 메트릭과 로그를 생성합니다. 시간대별 트래픽 패턴, 서버 타입별 특성, 장애 시나리오 등을 고려한 현실적인 데이터를 제공합니다.
+
+**핵심 구현 방식:**
+
+- **RealisticPatternEngine**: 시간대별, 서버 타입별 현실적 패턴 생성
+- **SimulationEngine**: 환경별 서버 구성 (개발/테스트/프로덕션)
+- **상관관계 모델링**: CPU-메모리-응답시간 간 실제 상관관계 반영
+- **장애 시나리오**: 확률적 장애 발생 및 자동 복구 시뮬레이션
 
 **사용 오픈소스:**
 
@@ -74,13 +81,15 @@
 
 #### ✨ **4. Vibe Coding 워크플로우 (15개 오픈소스)**
 
-**Cursor AI**는 AI 네이티브 코드 에디터로 MCP(Model Context Protocol)를 통해 프로젝트 전체 컨텍스트를 이해합니다.
+**Cursor AI**는 AI 네이티브 코드 에디터로 개발 과정에서 사용되는 도구입니다. 실제 애플리케이션의 AI 엔진과는 별개입니다.
 
-**AI 모델 활용:**
+**개발 도구로 활용된 AI 모델:**
 
-- **Cursor AI + Claude Sonnet 3.7/4.0**: 주력 코드 생성 및 AI 네이티브 개발
-- **ChatGPT**: 상세 프롬프트 작성, 기술 브레인스토밍, 아키텍처 설계
-- **OpenAI Codex**: 개발 후기 작성, 코드 리뷰, 문서화 (최근 출시)
+- **Cursor AI + Claude Sonnet 3.7/4.0**: 코드 생성 및 개발 지원 (개발 도구)
+- **ChatGPT**: 프롬프트 작성, 기술 브레인스토밍, 아키텍처 설계 (개발 도구)
+- **OpenAI Codex**: 개발 후기 작성, 코드 리뷰, 문서화 (개발 도구)
+
+**⚠️ 중요**: 위 AI 모델들은 **개발 과정에서 사용된 도구**이며, **실제 애플리케이션의 AI 엔진은 MCP 기반으로 독립 동작**합니다.
 
 **사용 오픈소스:**
 
@@ -112,42 +121,43 @@
 
 ## 🏗️ AI 엔진 아키텍처
 
-### Enhanced AI Engine v2.0
+### Enhanced AI Engine v2.0 - MCP 기반 독립형 AI
 
-OpenManager Vibe v5의 AI 엔진은 **완전 독립 동작**을 목표로 설계되었습니다.
+OpenManager Vibe v5의 AI 엔진은 **외부 LLM API 없이 완전 독립 동작**하는 MCP 기반 시스템입니다.
 
 #### 핵심 구성 요소
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                Enhanced AI Engine v2.0                     │
+│            MCP 기반 AI 엔진 - 독립 동작 모드                │
 ├─────────────────┬─────────────────┬─────────────────────────┤
-│ MCP Document    │ TensorFlow.js   │ Context Manager         │
-│ Search Engine   │ ML Models       │ Session Learning        │
+│ 의도 분류기      │ 패턴 매칭 엔진   │ 컨텍스트 매니저          │
+│ (Intent         │ (Pattern        │ (Context Manager)       │
+│ Classifier)     │ Matching)       │                         │
 ├─────────────────┼─────────────────┼─────────────────────────┤
-│ • 키워드 추출    │ • 장애 예측      │ • 사용자 컨텍스트        │
-│ • 의미 매칭      │ • 이상 탐지      │ • 실시간 학습           │
-│ • 실시간 검색    │ • 시계열 분석    │ • 세션 기반 응답         │
+│ • 키워드 추출    │ • 규칙 기반 분석 │ • 사용자 컨텍스트        │
+│ • 의도 분류      │ • 문서 검색      │ • 세션 학습             │
+│ • 엔티티 추출    │ • 템플릿 매칭    │ • 응답 생성             │
 └─────────────────┴─────────────────┴─────────────────────────┘
 ```
 
 #### 설계 원칙
 
-1. **Zero Dependency**: 외부 LLM API 완전 독립
-2. **Lightweight**: 50MB 이하 메모리 사용
-3. **Fast Response**: 100ms 이하 응답 시간
-4. **Vercel Optimized**: 서버리스 환경 완벽 대응
+1. **Zero LLM Dependency**: 외부 LLM API 완전 독립 (Claude, GPT 등 불필요)
+2. **Pattern-Based**: 패턴 매칭과 규칙 기반 추론
+3. **Fast Response**: 100ms 이하 즉시 응답
+4. **Vercel Optimized**: 서버리스 환경 최적화
 
-### MCP Protocol 활용
+### MCP Protocol 활용 방식
 
-Model Context Protocol을 통한 지능형 문서 관리:
+서버 모니터링에 특화된 컨텍스트 관리와 응답 생성:
 
 ```typescript
-interface MCPDocumentEngine {
-  extractKeywords(query: string): string[];
-  searchDocuments(keywords: string[]): DocumentResult[];
-  learnContext(sessionId: string, context: any): void;
-  generateResponse(query: string, context: any): AIResponse;
+interface MCPProcessor {
+  classifyIntent(query: string): MCPIntent;
+  extractEntities(query: string): Record<string, any>;
+  generateResponse(intent: MCPIntent, entities: any, context: any): MCPResponse;
+  updateContext(sessionId: string, interaction: any): void;
 }
 ```
 

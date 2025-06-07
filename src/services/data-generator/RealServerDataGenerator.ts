@@ -1,16 +1,16 @@
 /**
- * 🎰 실제 서버 데이터 생성기 v2
+ * 🎰 실제 서버 데이터 생성기 v3 - 독립적 3단계 모드
  *
  * 기능:
+ * - 환경별 3단계 모드: local(고성능) → premium(최적화) → basic(기본)
+ * - 공용 환경 감지 사용으로 중복 제거
  * - 실제 시스템 메트릭 기반 데이터 생성
  * - 현실적인 서버 부하 시뮬레이션
- * - 다양한 서버 시나리오 생성
- * - 시계열 데이터 패턴
- * - 커스텀 환경별 특화 구성
  */
 
 import { realPrometheusCollector } from '../collectors/RealPrometheusCollector';
 import { smartRedis } from '@/lib/redis';
+import { detectEnvironment, getDataGeneratorConfig } from '@/utils/environment';
 
 // 커스텀 환경 설정 인터페이스
 export interface CustomEnvironmentConfig {
@@ -127,22 +127,16 @@ export class RealServerDataGenerator {
   private isGenerating = false;
   private generationInterval: NodeJS.Timeout | null = null;
 
+  // 환경별 설정
+  private environmentConfig: CustomEnvironmentConfig;
+  private dataGeneratorConfig: ReturnType<typeof getDataGeneratorConfig>;
+
   // 서버 인스턴스들
   private servers: Map<string, ServerInstance> = new Map();
   private clusters: Map<string, ServerCluster> = new Map();
   private applications: Map<string, ApplicationMetrics> = new Map();
 
-  // 커스텀 환경 설정
-  private environmentConfig: CustomEnvironmentConfig = {
-    serverArchitecture: 'load-balanced',
-    databaseType: 'replica',
-    networkTopology: 'simple',
-    specialWorkload: 'standard',
-    scalingPolicy: 'auto',
-    securityLevel: 'enhanced',
-  };
-
-  // 시뮬레이션 설정
+  // 시뮬레이션 설정 (환경별 동적 조정)
   private simulationConfig = {
     baseLoad: 0.3, // 기본 부하 30%
     peakHours: [9, 10, 11, 14, 15, 16], // 피크 시간
@@ -158,6 +152,18 @@ export class RealServerDataGenerator {
   };
 
   private constructor() {
+    // 공용 환경 감지 사용
+    const env = detectEnvironment();
+    this.dataGeneratorConfig = getDataGeneratorConfig();
+    
+    console.log(`🎰 서버 데이터 생성기 모드: ${this.dataGeneratorConfig.mode.toUpperCase()}`);
+    console.log(`📊 최대 서버 수: ${this.dataGeneratorConfig.maxServers}`);
+    console.log(`⏰ 갱신 주기: ${this.dataGeneratorConfig.refreshInterval}ms`);
+    console.log(`🚀 활성 기능: ${this.dataGeneratorConfig.features.join(', ')}`);
+
+    // 환경별 기본 설정
+    this.environmentConfig = this.getEnvironmentSpecificConfig();
+    this.applyModeOptimizations();
     this.initializeServers();
   }
 
@@ -169,26 +175,77 @@ export class RealServerDataGenerator {
   }
 
   /**
-   * 🔧 환경 설정 변경
+   * 🎯 환경별 특화 설정
    */
-  public updateEnvironmentConfig(
-    config: Partial<CustomEnvironmentConfig>
-  ): void {
-    this.environmentConfig = { ...this.environmentConfig, ...config };
-    console.log('🔧 환경 설정 업데이트:', this.environmentConfig);
+  private getEnvironmentSpecificConfig(): CustomEnvironmentConfig {
+    const { mode, features } = this.dataGeneratorConfig;
 
-    // 기존 서버 정리 후 새로운 환경으로 재구성
-    this.servers.clear();
-    this.clusters.clear();
-    this.applications.clear();
-    this.initializeServers();
+    const baseConfig: CustomEnvironmentConfig = {
+      serverArchitecture: 'load-balanced',
+      databaseType: 'replica',
+      networkTopology: 'simple',
+      specialWorkload: 'standard',
+      scalingPolicy: 'auto',
+      securityLevel: 'enhanced',
+    };
+
+    // 모드별 최적화
+    switch (mode) {
+      case 'local':
+        return {
+          ...baseConfig,
+          serverArchitecture: 'microservices',
+          databaseType: 'distributed',
+          networkTopology: 'multi-cloud',
+          specialWorkload: features.includes('gpu-metrics') ? 'gpu' : 'container',
+          scalingPolicy: 'predictive',
+          securityLevel: 'enterprise',
+        };
+      
+      case 'premium':
+        return {
+          ...baseConfig,
+          serverArchitecture: 'load-balanced',
+          databaseType: 'sharded',
+          networkTopology: 'hybrid',
+          specialWorkload: 'container',
+          scalingPolicy: 'auto',
+          securityLevel: 'enhanced',
+        };
+      
+      case 'basic':
+      default:
+        return baseConfig;
+    }
   }
 
   /**
-   * 📋 현재 환경 설정 조회
+   * ⚡ 모드별 최적화 적용
    */
-  public getEnvironmentConfig(): CustomEnvironmentConfig {
-    return { ...this.environmentConfig };
+  private applyModeOptimizations(): void {
+    const { mode } = this.dataGeneratorConfig;
+
+    switch (mode) {
+      case 'local':
+        // 로컬 모드: 최고 성능
+        this.simulationConfig.incidents.probability = 0.05; // 더 많은 시나리오
+        this.simulationConfig.scaling.threshold = 0.7; // 더 민감한 스케일링
+        break;
+      
+      case 'premium':
+        // 프리미엄 모드: 균형 잡힌 성능
+        this.simulationConfig.incidents.probability = 0.03;
+        this.simulationConfig.scaling.threshold = 0.75;
+        break;
+      
+      case 'basic':
+        // 기본 모드: 리소스 절약
+        this.simulationConfig.incidents.probability = 0.01; // 최소한의 시나리오
+        this.simulationConfig.scaling.threshold = 0.85; // 보수적인 스케일링
+        break;
+    }
+
+    console.log(`⚡ ${mode.toUpperCase()} 모드 최적화 적용 완료`);
   }
 
   /**
@@ -213,10 +270,17 @@ export class RealServerDataGenerator {
   }
 
   /**
-   * 🏭 초기 서버 구성 (환경별 맞춤 구성)
+   * 🏗️ 초기 서버 구성 (모드별 맞춤 구성)
    */
   private initializeServers(): void {
-    switch (this.environmentConfig.serverArchitecture) {
+    const { maxServers } = this.dataGeneratorConfig;
+
+    // 서버 수 제한 적용
+    const adjustedArchitecture = maxServers < 10 ? 'single' : 
+                                maxServers < 20 ? 'load-balanced' : 
+                                this.environmentConfig.serverArchitecture;
+
+    switch (adjustedArchitecture) {
       case 'single':
         this.createSingleServerEnvironment();
         break;
@@ -232,6 +296,35 @@ export class RealServerDataGenerator {
       default:
         this.createLoadBalancedEnvironment();
     }
+
+    // 서버 수 제한 확인
+    if (this.servers.size > maxServers) {
+      console.log(`⚠️ 서버 수 제한 적용: ${this.servers.size} → ${maxServers}`);
+      this.limitServerCount(maxServers);
+    }
+  }
+
+  /**
+   * 🔒 서버 수 제한 적용
+   */
+  private limitServerCount(maxCount: number): void {
+    const serverArray = Array.from(this.servers.entries());
+    
+    // 중요도 순으로 정렬 (database > api > web > cache > queue)
+    const priorityOrder = ['database', 'api', 'web', 'cache', 'queue', 'cdn', 'gpu', 'storage'];
+    serverArray.sort(([, a], [, b]) => {
+      const aPriority = priorityOrder.indexOf(a.type);
+      const bPriority = priorityOrder.indexOf(b.type);
+      return aPriority - bPriority;
+    });
+
+    // 상위 maxCount 개만 유지
+    this.servers.clear();
+    serverArray.slice(0, maxCount).forEach(([id, server]) => {
+      this.servers.set(id, server);
+    });
+
+    console.log(`✅ 서버 수 제한 완료: ${this.servers.size}개 서버 유지`);
   }
 
   /**
@@ -797,12 +890,13 @@ export class RealServerDataGenerator {
   }
 
   /**
-   * 🔄 자동 데이터 생성 시작
+   * 🔄 자동 데이터 생성 시작 (모드별 주기 적용)
    */
   public startAutoGeneration(): void {
     if (this.isGenerating) return;
 
     this.isGenerating = true;
+    const { refreshInterval } = this.dataGeneratorConfig;
 
     const loop = async () => {
       if (!this.isGenerating) return;
@@ -812,25 +906,13 @@ export class RealServerDataGenerator {
         console.error('❌ 실시간 데이터 생성 실패:', error);
       } finally {
         if (this.isGenerating) {
-          this.generationInterval = setTimeout(loop, 5000);
+          this.generationInterval = setTimeout(loop, refreshInterval);
         }
       }
     };
 
     loop();
-    console.log('🔄 실시간 서버 데이터 생성 시작');
-  }
-
-  /**
-   * ⏹️ 자동 데이터 생성 중지
-   */
-  public stopAutoGeneration(): void {
-    this.isGenerating = false;
-    if (this.generationInterval) {
-      clearTimeout(this.generationInterval);
-      this.generationInterval = null;
-    }
-    console.log('⏹️ 실시간 서버 데이터 생성 중지');
+    console.log(`🔄 실시간 서버 데이터 생성 시작 (${refreshInterval}ms 주기)`);
   }
 
   /**
@@ -1182,6 +1264,41 @@ export class RealServerDataGenerator {
       totalApplications: this.applications.size,
       lastUpdate: new Date().toISOString(),
     };
+  }
+
+  /**
+   * ⏹️ 자동 데이터 생성 중지
+   */
+  public stopAutoGeneration(): void {
+    this.isGenerating = false;
+    if (this.generationInterval) {
+      clearTimeout(this.generationInterval);
+      this.generationInterval = null;
+    }
+    console.log('⏹️ 실시간 서버 데이터 생성 중지');
+  }
+
+  /**
+   * 🔧 환경 설정 변경 (하위 호환성)
+   */
+  public updateEnvironmentConfig(
+    config: Partial<CustomEnvironmentConfig>
+  ): void {
+    this.environmentConfig = { ...this.environmentConfig, ...config };
+    console.log('🔧 환경 설정 업데이트:', this.environmentConfig);
+
+    // 기존 서버 정리 후 새로운 환경으로 재구성
+    this.servers.clear();
+    this.clusters.clear();
+    this.applications.clear();
+    this.initializeServers();
+  }
+
+  /**
+   * 📋 현재 환경 설정 조회 (하위 호환성)
+   */
+  public getEnvironmentConfig(): CustomEnvironmentConfig {
+    return { ...this.environmentConfig };
   }
 }
 

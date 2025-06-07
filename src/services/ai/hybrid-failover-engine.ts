@@ -36,13 +36,37 @@ export interface HybridEngineStatus {
 }
 
 class MCPAIEngine {
+  private mcpServerUrl = 'https://openmanager-vibe-v5.onrender.com';
+
   async processQuery(query: string, sessionId: string): Promise<AIResponse> {
-    const res = await fetch('/api/mcp/query', {
-      method: 'POST',
-      body: JSON.stringify({ query, sessionId }),
+    // 실제 Render MCP 서버에 연결
+    const res = await fetch(`${this.mcpServerUrl}/mcp/status`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
-    if (!res.ok) throw new Error('MCP_ERROR');
-    const data = await res.json();
+    
+    if (!res.ok) {
+      throw new Error('MCP_SERVER_UNREACHABLE');
+    }
+
+    // MCP 서버가 살아있으면 실제 쿼리 처리
+    const queryRes = await fetch('/api/mcp/query', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        query, 
+        sessionId,
+        mcpServerUrl: this.mcpServerUrl 
+      }),
+    });
+    
+    if (!queryRes.ok) throw new Error('MCP_QUERY_ERROR');
+    
+    const data = await queryRes.json();
     return {
       response: data.response,
       confidence: data.confidence || 0.8,
@@ -50,6 +74,24 @@ class MCPAIEngine {
       processingTime: data.processingTime || 0,
       reliability: 'high',
     };
+  }
+
+  async checkHealth(): Promise<boolean> {
+    try {
+      // AbortController로 타임아웃 처리
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      const res = await fetch(`${this.mcpServerUrl}/health`, {
+        method: 'GET',
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+      return res.ok;
+    } catch {
+      return false;
+    }
   }
 }
 

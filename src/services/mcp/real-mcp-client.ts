@@ -15,7 +15,7 @@ import {
   detectEnvironment,
   checkPaths,
   getMCPConfig,
-} from '../../utils/environment';
+} from '@/utils/environment';
 
 // MCP SDK는 아직 설치되지 않았을 수 있으므로 폴백 구현
 interface MCPClient {
@@ -52,14 +52,15 @@ interface MCPSearchResult {
 export class RealMCPClient {
   private servers: Map<string, MCPServerConfig> = new Map();
   private clients: Map<string, MCPClient> = new Map();
-  private initialized = false;
+  private processes: Map<string, ChildProcess> = new Map();
+  private isInitialized = false;
 
   constructor() {
     this.initializeServers();
   }
 
   private initializeServers(): void {
-    // 환경 감지 유틸리티 사용
+    // 공용 환경 감지 사용
     const env = detectEnvironment();
     const mcpConfig = getMCPConfig();
 
@@ -115,7 +116,7 @@ export class RealMCPClient {
   }
 
   async initialize(): Promise<void> {
-    if (this.initialized) return;
+    if (this.isInitialized) return;
 
     console.log('🚀 실제 MCP 클라이언트 초기화 중...');
 
@@ -123,12 +124,12 @@ export class RealMCPClient {
       // 기본 서버들 연결 테스트
       await this.testConnections();
 
-      this.initialized = true;
+      this.isInitialized = true;
       console.log('✅ MCP 클라이언트 초기화 완료');
     } catch (error: any) {
       console.error('❌ MCP 클라이언트 초기화 실패:', error);
       // 실패해도 계속 진행 (폴백 모드)
-      this.initialized = true;
+      this.isInitialized = true;
     }
   }
 
@@ -707,13 +708,13 @@ export class RealMCPClient {
     }
 
     this.clients.clear();
-    this.initialized = false;
+    this.isInitialized = false;
     console.log('🔌 모든 MCP 연결 해제 완료');
   }
 
   getConnectionInfo(): any {
     return {
-      initialized: this.initialized,
+      initialized: this.isInitialized,
       servers: Object.fromEntries(
         Array.from(this.servers.entries()).map(([name, config]) => [
           name,

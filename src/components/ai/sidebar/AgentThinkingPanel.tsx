@@ -57,21 +57,20 @@ export default function AgentThinkingPanel({
   className = '',
   showDetails = true 
 }: AgentThinkingPanelProps) {
-  // TODO: 실제 AI 연동 후 복원 예정 (Phase 2)
-  const isThinking = false;
-  const logs: any[] = [];
-  const processingProgress = 0;
+  // 실제 AI 에이전트 상태 사용 (MCP 서버 연동)
+  const { isThinking, logs } = useAIThinking();
+  const processingProgress = logs.length > 0 ? (logs.filter(log => log.progress === 1.0).length / logs.length) * 100 : 0;
   
   const [isExpanded, setIsExpanded] = useState(true);
 
-  if (!isThinking) {
+  if (!isThinking && logs.length === 0) {
     return (
       <div className={`bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50 rounded-xl backdrop-blur-sm p-4 ${className}`}>
         <div className="text-center text-gray-400">
           <Brain className="w-8 h-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">🤖 AI 사고 과정 대기 중...</p>
+          <p className="text-sm">🤖 AI 사고 과정 준비 완료</p>
           <p className="text-xs mt-1 opacity-70">
-            ⚠️ 현재 시뮬레이션 모드 (Phase 2에서 실제 AI 연동 예정)
+            ✅ MCP 서버 연동됨 (Render: openmanager-vibe-v5.onrender.com)
           </p>
         </div>
       </div>

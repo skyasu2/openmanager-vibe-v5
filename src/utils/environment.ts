@@ -22,12 +22,26 @@ export interface Environment {
     timeout: number;
     fileSize: string;
   };
+  // 서버 데이터 생성기 모드
+  dataGenerator: {
+    mode: 'local' | 'premium' | 'basic';
+    maxServers: number;
+    refreshInterval: number;
+    features: string[];
+  };
 }
 
+// 환경 감지 싱글톤
+let cachedEnvironment: Environment | null = null;
+
 /**
- * 현재 환경 감지
+ * 현재 환경 감지 (캐시된 결과 반환)
  */
 export function detectEnvironment(): Environment {
+  if (cachedEnvironment) {
+    return cachedEnvironment;
+  }
+
   const isProduction = process.env.NODE_ENV === 'production';
   const isRender =
     process.env.RENDER === 'true' ||
@@ -78,7 +92,50 @@ export function detectEnvironment(): Environment {
     fileSize: isRender ? '10MB' : isVercel ? '5MB' : '50MB',
   };
 
-  return {
+  // 🎰 서버 데이터 생성기 모드 결정
+  let dataGeneratorMode: 'local' | 'premium' | 'basic' = 'basic';
+  let maxServers = 8;
+  let refreshInterval = 10000; // 10초
+  let features = ['basic-metrics'];
+
+  if (isLocal) {
+    // 로컬 개발 환경 - 최고 성능
+    dataGeneratorMode = 'local';
+    maxServers = 30;
+    refreshInterval = 2000; // 2초
+    features = [
+      'basic-metrics',
+      'advanced-patterns', 
+      'realtime-simulation',
+      'custom-scenarios',
+      'performance-profiling',
+      'gpu-metrics'
+    ];
+  } else if (isVercel && process.env.VERCEL_ENV === 'production') {
+    // Vercel 프로덕션 - 유료 기능
+    dataGeneratorMode = 'premium';
+    maxServers = 20;
+    refreshInterval = 5000; // 5초
+    features = [
+      'basic-metrics',
+      'advanced-patterns',
+      'realtime-simulation',
+      'custom-scenarios'
+    ];
+  } else if (isRender) {
+    // Render 환경 - 중간 성능
+    dataGeneratorMode = 'premium';
+    maxServers = 15;
+    refreshInterval = 5000; // 5초
+    features = [
+      'basic-metrics',
+      'advanced-patterns',
+      'realtime-simulation'
+    ];
+  }
+  // else: 기본 모드 (무료)
+
+  cachedEnvironment = {
     name: isRender ? 'render' : isVercel ? 'vercel' : 'local',
     isProduction,
     isRender,
@@ -87,7 +144,30 @@ export function detectEnvironment(): Environment {
     platform: process.platform,
     paths,
     limits,
+    dataGenerator: {
+      mode: dataGeneratorMode,
+      maxServers,
+      refreshInterval,
+      features,
+    },
   };
+
+  return cachedEnvironment;
+}
+
+/**
+ * 환경 캐시 초기화 (테스트용)
+ */
+export function resetEnvironmentCache(): void {
+  cachedEnvironment = null;
+}
+
+/**
+ * 서버 데이터 생성기 설정 조회
+ */
+export function getDataGeneratorConfig() {
+  const env = detectEnvironment();
+  return env.dataGenerator;
 }
 
 /**

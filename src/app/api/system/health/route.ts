@@ -123,15 +123,19 @@ export async function GET(request: NextRequest) {
     const systemStatus = systemStateManager.getSystemStatus();
     const isSystemRunning = systemStatus?.simulation?.isRunning || false;
 
-    // 전체 시스템 건강 상태 결정
-    const overallHealth = isMcpHealthy && isWebsocketHealthy && isSystemRunning;
+    // 🔧 개선: 기본 서비스 가용성 중심으로 헬스체크 변경
+    // 시뮬레이션은 선택적 기능이므로 필수 조건에서 제외
+    const overallHealth = isMcpHealthy && isWebsocketHealthy;
+    
+    // 🎯 시뮬레이션은 별도 상태로 추적
+    const serverGeneration = isSystemRunning;
 
     const healthResponse = {
       success: true,
-      health: overallHealth, // ✅ 명시적으로 health 값 설정
+      health: overallHealth, // ✅ 기본 서비스 가용성 기준
       websocket: isWebsocketHealthy,
       mcp: isMcpHealthy,
-      reverseGeneration: isSystemRunning,
+      serverGeneration: serverGeneration, // 🎯 시뮬레이션 상태는 별도 필드
 
       // 상세 정보
       details: {
@@ -140,6 +144,8 @@ export async function GET(request: NextRequest) {
         websocketConnection: isWebsocketHealthy,
         serverCount: systemStatus?.simulation?.serverCount || 0,
         dataCount: systemStatus?.simulation?.dataCount || 0,
+        systemReady: overallHealth, // 시스템 준비 상태
+        simulationOptional: serverGeneration, // 시뮬레이션은 선택적
       },
 
       // 메타데이터
@@ -153,7 +159,8 @@ export async function GET(request: NextRequest) {
       health: overallHealth,
       websocket: isWebsocketHealthy,
       mcp: isMcpHealthy,
-      systemRunning: isSystemRunning,
+      serverGeneration: serverGeneration,
+      systemReady: overallHealth,
     });
 
     return NextResponse.json(healthResponse, {
@@ -161,6 +168,7 @@ export async function GET(request: NextRequest) {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'X-Health-Status': overallHealth ? 'healthy' : 'degraded',
+        'X-Simulation-Status': serverGeneration ? 'running' : 'stopped',
         'X-Response-Time': `${Date.now() - startTime}ms`,
       },
     });
@@ -173,7 +181,7 @@ export async function GET(request: NextRequest) {
       health: false, // ✅ 오류 시에도 명시적으로 false 설정
       websocket: false,
       mcp: false,
-      reverseGeneration: false,
+      serverGeneration: false,
 
       error: {
         message: error instanceof Error ? error.message : '알 수 없는 오류',
