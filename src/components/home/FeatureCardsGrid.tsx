@@ -365,7 +365,7 @@ const cardData: FeatureCard[] = [
     description:
       'Cursor AI + Claude 4 Sonnet 모델을 메인으로, 하이브리드 AI 전략을 통한 혁신적 개발 방식입니다.',
     icon: Zap,
-    gradient: 'from-yellow-400 to-orange-500',
+    gradient: 'from-yellow-400 via-orange-500 via-pink-500 to-purple-600',
     detailedContent: {
       overview:
         'Cursor AI를 메인 도구로, Claude 4 Sonnet 모델 선택과 3개 MCP Tools 통합으로 개발 효율성 300% 향상을 달성한 차세대 하이브리드 AI 개발 워크플로우입니다.',
@@ -500,8 +500,16 @@ export default function FeatureCardsGrid() {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
-            whileHover={{ scale: 1.05, y: -5 }}
-            className='group cursor-pointer relative'
+            whileHover={{
+              scale: card.isVibeCard ? 1.08 : 1.05,
+              y: card.isVibeCard ? -8 : -5,
+              rotateY: card.isVibeCard ? 5 : 0,
+            }}
+            className={`group cursor-pointer relative ${
+              card.isVibeCard
+                ? 'hover:shadow-2xl hover:shadow-yellow-500/30 transform-gpu'
+                : ''
+            }`}
             onClick={() => handleCardClick(card.id)}
           >
             <div
