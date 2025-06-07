@@ -11,6 +11,8 @@ export interface TechItem {
   usage: string;
   importance: 'high' | 'medium' | 'low';
   isCore?: boolean;
+  usageCount?: number;
+  categories?: string[];
 }
 
 export interface TechCategory {
@@ -143,16 +145,32 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
   // AI & Machine Learning
   '@modelcontextprotocol/server-filesystem': {
     name: 'Model Context Protocol',
-    category: 'ai-ml',
+    category: 'mcp-engine',
     description: 'AI 에이전트 간 통신 표준 프로토콜',
     importance: 'high',
     isCore: true,
   },
-  'openmanager-mcp': {
-    name: 'OpenManager MCP',
-    category: 'ai-ml',
-    description: '커스텀 MCP 서버 구현체',
+  // MCP 통합 도구들 (중복 제거)
+  'mcp-filesystem': {
+    name: 'MCP Filesystem',
+    category: 'mcp-engine',
+    description: '실시간 파일 시스템 접근 - 코드 구조 파악 90% 단축',
     importance: 'high',
+    isCore: true,
+  },
+  'mcp-duckduckgo': {
+    name: 'MCP DuckDuckGo Search',
+    category: 'mcp-engine',
+    description: '즉시 웹 검색 - 검색 시간 80% 절약',
+    importance: 'high',
+    isCore: true,
+  },
+  'mcp-sequential': {
+    name: 'MCP Sequential Thinking',
+    category: 'mcp-engine',
+    description: '단계별 사고 - 복잡한 로직 일관성 90% 향상',
+    importance: 'high',
+    isCore: true,
   },
 
   // Vibe Coding AI Development Tools
@@ -163,17 +181,10 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     importance: 'high',
     isCore: true,
   },
-  'claude-cursor': {
-    name: 'Claude 4 Sonnet',
-    category: 'ai-development',
-    description: '200K+ 토큰 문맥 이해, 구조적 코드 분석 최적화',
-    importance: 'high',
-    isCore: true,
-  },
   'claude 4 sonnet': {
     name: 'Claude 4 Sonnet',
     category: 'ai-development',
-    description: 'Cursor AI에서 선택한 메인 AI 모델',
+    description: 'Cursor AI에서 선택한 메인 AI 모델 (80% 사용)',
     importance: 'high',
     isCore: true,
   },
@@ -194,33 +205,6 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     category: 'ai-development',
     description: '대규모 문서 처리 및 백그라운드 자동화 (5% 사용)',
     importance: 'low',
-  },
-  filesystem: {
-    name: 'MCP Filesystem',
-    category: 'ai-development',
-    description: '실시간 파일 시스템 접근 - 코드 구조 파악 90% 단축',
-    importance: 'high',
-    isCore: true,
-  },
-  'duckduckgo-search': {
-    name: 'MCP DuckDuckGo Search',
-    category: 'ai-development',
-    description: '즉시 웹 검색 - 검색 시간 80% 절약',
-    importance: 'high',
-    isCore: true,
-  },
-  'sequential-thinking': {
-    name: 'MCP Sequential Thinking',
-    category: 'ai-development',
-    description: '단계별 사고 - 복잡한 로직 일관성 90% 향상',
-    importance: 'high',
-    isCore: true,
-  },
-  'mcp integration': {
-    name: 'MCP Tools 통합',
-    category: 'ai-development',
-    description: 'Cursor AI의 MCP 도구 완전 통합',
-    importance: 'high',
   },
 
   // Server Data Generator Technologies
@@ -640,12 +624,16 @@ function normalizeTechName(tech: string): string {
     // Vibe Coding mappings
     'cursor ai': 'cursor',
     'claude sonnet': 'claude 4 sonnet',
-    'mcp tools': 'mcp integration',
+    'mcp tools': '@modelcontextprotocol/server-filesystem',
+    'mcp integration': '@modelcontextprotocol/server-filesystem',
     'google gemini': 'gemini',
     'gemini 1.5 pro': 'gemini',
     'github 통합': 'github-actions',
     'chatgpt gpt-4': 'chatgpt',
     'gpt-4-turbo': 'gpt-4',
+    filesystem: 'mcp-filesystem',
+    'duckduckgo-search': 'mcp-duckduckgo',
+    'sequential-thinking': 'mcp-sequential',
     // Server Data Generator mappings
     'optimized data generator': 'optimizeddatagenerator',
     'baseline optimizer': 'baselineoptimizer',
@@ -688,11 +676,61 @@ function normalizeTechName(tech: string): string {
 }
 
 /**
- * 특정 기능 카드의 기술 스택을 분석
+ * 중복된 기술 항목을 병합하는 함수
+ */
+function mergeDuplicateTechs(techItems: TechItem[]): TechItem[] {
+  const techMap = new Map<string, TechItem>();
+
+  techItems.forEach(item => {
+    const key = item.name.toLowerCase();
+
+    if (techMap.has(key)) {
+      const existing = techMap.get(key)!;
+      // 중복된 경우 병합
+      existing.usageCount = (existing.usageCount || 1) + 1;
+      existing.categories = existing.categories || [existing.category];
+
+      // 다른 카테고리에서 사용된 경우 추가
+      if (!existing.categories.includes(item.category)) {
+        existing.categories.push(item.category);
+      }
+
+      // 더 높은 중요도로 업데이트
+      const importanceOrder = { high: 3, medium: 2, low: 1 };
+      if (
+        importanceOrder[item.importance] > importanceOrder[existing.importance]
+      ) {
+        existing.importance = item.importance;
+      }
+
+      // 코어 기술인 경우 우선
+      if (item.isCore) {
+        existing.isCore = true;
+      }
+
+      // usage 정보 병합
+      if (!existing.usage.includes(item.usage)) {
+        existing.usage += `, ${item.usage}`;
+      }
+    } else {
+      // 새로운 기술
+      techMap.set(key, {
+        ...item,
+        usageCount: 1,
+        categories: [item.category],
+      });
+    }
+  });
+
+  return Array.from(techMap.values());
+}
+
+/**
+ * 특정 기능 카드의 기술 스택을 분석 (중복 제거 적용)
  */
 export function analyzeTechStack(technologies: string[]): TechCategory[] {
   const techItems: TechItem[] = [];
-  const categoryMap = new Map<string, TechItem[]>();
+  const techMap = new Map<string, TechItem>();
 
   // 각 기술 문자열을 파싱하고 분석
   technologies.forEach(techString => {
@@ -709,13 +747,24 @@ export function analyzeTechStack(technologies: string[]): TechCategory[] {
         };
 
         techItems.push(techItem);
-
-        if (!categoryMap.has(techInfo.category)) {
-          categoryMap.set(techInfo.category, []);
-        }
-        categoryMap.get(techInfo.category)!.push(techItem);
       }
     });
+  });
+
+  // 중복 제거 및 병합
+  const mergedTechs = mergeDuplicateTechs(techItems);
+
+  // 카테고리별로 분류
+  const categoryMap = new Map<string, TechItem[]>();
+
+  mergedTechs.forEach(techItem => {
+    // 메인 카테고리 사용
+    const mainCategory = techItem.category;
+
+    if (!categoryMap.has(mainCategory)) {
+      categoryMap.set(mainCategory, []);
+    }
+    categoryMap.get(mainCategory)!.push(techItem);
   });
 
   // 카테고리별로 정리하고 정렬
