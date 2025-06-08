@@ -337,15 +337,44 @@ const COMPONENT_VERSIONS = {
 // 버전 히스토리 추적 (올바른 프로젝트 타임라인)
 const VERSION_HISTORY = {
   'mcp-ai-engine': [
-    { version: '2.1.0', date: DateUtils.getVersionDate('2.1.0'), changes: 'MCP + RAG TensorFlow 백업 엔진 통합, Bot 아이콘 회전 애니메이션' },
-    { version: '2.0.0', date: DateUtils.getVersionDate('2.0.0'), changes: 'MCP 컨텍스트 기반 패턴 대응 AI + RAG 백업 엔진 이중 구조' },
-    { version: '1.0.0', date: DateUtils.getVersionDate('1.0.0'), changes: '초기 AI 엔진 구현' },
+    {
+      version: '2.1.0',
+      date: DateUtils.getVersionDate('2.1.0'),
+      changes:
+        'MCP + RAG TensorFlow 백업 엔진 통합, Bot 아이콘 회전 애니메이션',
+    },
+    {
+      version: '2.0.0',
+      date: DateUtils.getVersionDate('2.0.0'),
+      changes: 'MCP 컨텍스트 기반 패턴 대응 AI + RAG 백업 엔진 이중 구조',
+    },
+    {
+      version: '1.0.0',
+      date: DateUtils.getVersionDate('1.0.0'),
+      changes: '초기 AI 엔진 구현',
+    },
   ],
   'data-generator': [
-    { version: '3.0.1', date: DateUtils.getVersionDate('3.0.1'), changes: '코드베이스 분석 기반 문서 갱신, 5개 모듈 통합 구조 완성' },
-    { version: '3.0.0', date: DateUtils.getVersionDate('3.0.0'), changes: '5개 모듈 통합 아키텍처, 환경별 3단계 모드, 극한 성능 최적화' },
-    { version: '2.5.0', date: DateUtils.getVersionDate('2.5.0'), changes: '베이스라인 최적화 + 실시간 델타 시스템' },
-    { version: '2.0.0', date: DateUtils.getVersionDate('2.0.0'), changes: 'OptimizedDataGenerator 도입' },
+    {
+      version: '3.0.1',
+      date: DateUtils.getVersionDate('3.0.1'),
+      changes: '코드베이스 분석 기반 문서 갱신, 5개 모듈 통합 구조 완성',
+    },
+    {
+      version: '3.0.0',
+      date: DateUtils.getVersionDate('3.0.0'),
+      changes: '5개 모듈 통합 아키텍처, 환경별 3단계 모드, 극한 성능 최적화',
+    },
+    {
+      version: '2.5.0',
+      date: DateUtils.getVersionDate('2.5.0'),
+      changes: '베이스라인 최적화 + 실시간 델타 시스템',
+    },
+    {
+      version: '2.0.0',
+      date: DateUtils.getVersionDate('2.0.0'),
+      changes: 'OptimizedDataGenerator 도입',
+    },
   ],
 } as const;
 
@@ -359,25 +388,25 @@ const cardData: FeatureCard[] = [
     icon: Bot,
     gradient: 'from-purple-500 via-indigo-500 to-cyan-400',
     detailedContent: {
-      overview:
-        `v${COMPONENT_VERSIONS['mcp-ai-engine']} - 서버리스 환경의 한계로 MCP AI는 Render에 별도 배포하고, 안전성 확보를 위해 TensorFlow.js 기반 RAG 엔진을 Vercel에서 백업으로 운영하는 이중 구조입니다. 서버 모니터링에 특화된 AI 시스템으로 바이브 코딩 개발 도구와는 완전히 분리되어 있습니다.`,
+      overview: `v${COMPONENT_VERSIONS['mcp-ai-engine']} - MCP(Model Context Protocol) 기반 AI 엔진과 TensorFlow.js RAG 백업 시스템으로 구성된 서버 모니터링 전용 AI입니다. 서버 상태 패턴 분석, 자연어 문의응답, 자동 장애보고서 생성 등 서버 관리에 특화된 지능형 기능을 제공합니다.`,
       features: [
-        '🎯 MCP 컨텍스트 기반 서버 상태 패턴 분석',
-        '🤖 자연어 질의응답 서버 모니터링 에이전트',
-        '📋 자동 장애보고서 생성 시스템',
-        '🔄 RAG 백업 엔진 (MCP 실패 시 자동 폴백)',
-        '🌐 Render 배포 + Vercel 서버리스 하이브리드',
-        `📊 버전 ${COMPONENT_VERSIONS['mcp-ai-engine']} - Bot 아이콘 회전 애니메이션 + MCP/RAG 통합`,
+        '🎯 MCP 컨텍스트 추론: 서버 상태 패턴 학습 및 예측 분석',
+        '🤖 자연어 서버 질의: "CPU 사용률이 높은 서버는?" 같은 자연어 명령 처리',
+        '📋 자동 장애보고서: 시스템 이상 감지 시 상세 보고서 자동 생성',
+        '🔄 RAG 백업 엔진: MCP 실패 시 TensorFlow.js 기반 자동 폴백',
+        '🌐 하이브리드 배포: MCP는 Render, RAG는 Vercel 서버리스',
+        '🧠 벡터 DB 검색: Supabase pgvector + 로컬 메모리 이중 검색',
+        '📊 한국어 NLP: hangul-js + korean-utils로 한국어 서버 로그 분석',
       ],
       technologies: [
-        '🧠 MCP AI Server: Model Context Protocol 기반 컨텍스트 추론 엔진 (Render 배포)',
-        '🔄 RAG Backup Engine: TensorFlow.js + Natural + Fuse.js 기반 백업 시스템 (Vercel)',
-        '🎯 @modelcontextprotocol/sdk: AI 에이전트 간 통신 표준 프로토콜',
-        '🧮 @tensorflow/tfjs: 브라우저 기반 머신러닝 추론 엔진',
-        '🔍 natural + fuse.js: 자연어 처리 + 퍼지 문서 검색',
-        '📊 simple-statistics: 통계 분석 및 패턴 인식',
-        '🎭 Bot Icon Animation: Framer Motion 기반 회전 애니메이션',
-        '🔗 Hybrid Architecture: MCP 메인 + RAG 백업 이중 안전망',
+        '🧠 MCP AI Server: Model Context Protocol 기반 컨텍스트 추론 엔진',
+        '📚 RAG Backup Engine: TensorFlow.js + Natural + Fuse.js 백업 시스템',
+        '🔗 @modelcontextprotocol/sdk: AI 에이전트 간 표준 통신 프로토콜',
+        '🧮 @tensorflow/tfjs: 브라우저 머신러닝 추론 + 벡터 임베딩',
+        '🔍 @xenova/transformers: 사전훈련 BERT/DistilBERT 모델 활용',
+        '📊 PostgresVectorDB: Supabase pgvector 확장을 활용한 벡터 검색',
+        '💾 LocalVectorDB: 메모리 기반 빠른 벡터 검색 캐시',
+        '🇰🇷 hangul-js + korean-utils: 한국어 서버 로그 형태소 분석',
       ],
     },
     requiresAI: true,
@@ -391,26 +420,25 @@ const cardData: FeatureCard[] = [
     icon: Database,
     gradient: 'from-emerald-500 to-teal-600',
     detailedContent: {
-      overview:
-        `v${COMPONENT_VERSIONS['data-generator']} - 코드베이스 분석 기반 5개 핵심 모듈이 통합된 차세대 서버 시뮬레이션 시스템입니다. 환경별 3단계 모드(local/premium/basic)로 자동 최적화되며, 24시간 베이스라인 + 실시간 델타 방식으로 극한의 성능 최적화를 달성했습니다.`,
+      overview: `v${COMPONENT_VERSIONS['data-generator']} - 실제 서버 환경을 시뮬레이션하는 차세대 데이터 생성 시스템입니다. 환경별 자동 최적화, 24시간 베이스라인 + 실시간 델타 방식으로 극한의 성능 최적화를 달성했으며, 다양한 서버 아키텍처와 장애 시나리오를 지원합니다.`,
       features: [
         '🎯 환경별 자동 최적화: Local(50서버,5초) → Premium(20서버,10초) → Basic(6서버,15초)',
-        '📊 24시간 베이스라인 시스템: 1440개 데이터포인트 미리 생성, 실시간은 델타만 계산',
+        '📊 24시간 베이스라인: 1440개 데이터포인트 미리 생성, 실시간은 델타만 계산',
         '⚡ 극한 성능 최적화: 메모리 97%→75%, CPU 75% 절약, 응답시간 50% 단축',
-        '🏗️ 4가지 아키텍처 지원: Single/Master-Slave/Load-Balanced/Microservices',
-        '🎭 시연용 5가지 시나리오: Normal/HighLoad/Maintenance/Incident/Scaling',
-        `🔧 버전 ${COMPONENT_VERSIONS['data-generator']} - 코드베이스 분석 완료, 5개 모듈 통합 구조 문서화`,
+        '🏗️ 4가지 아키텍처: Single/Master-Slave/Load-Balanced/Microservices',
+        '🎭 5가지 시뮬레이션: Normal/HighLoad/Maintenance/Incident/Scaling',
+        '🌐 Prometheus 호환: 표준 메트릭 포맷으로 모니터링 도구 연동',
+        '💾 Redis 캐싱: Upstash 서버리스 Redis로 데이터 지속성 보장',
       ],
       technologies: [
-        '🎰 RealServerDataGenerator v3.0: 환경별 3단계 모드, 공용 환경 감지, 중복 제거',
-        '⚡ OptimizedDataGenerator v3.0.0: 24시간 베이스라인 + 실시간 델타 최적화',
+        '🎰 RealServerDataGenerator v3.0: 환경별 3단계 모드, 공용 환경 감지',
+        '⚡ OptimizedDataGenerator v3.0: 24시간 베이스라인 + 실시간 델타',
         '📊 BaselineOptimizer: 시간대별 패턴 + 서버 역할별 프로파일링',
         '🔧 TimerManager: 타이머 통합 관리, CPU 75% 절약, 충돌 방지',
-        '💾 MemoryOptimizer: 자동 GC, 캐시 정리, 메모리 97%→75% 최적화',
-        '⚡ SmartCache: 지능형 캐싱, 응답시간 50% 단축',
-        '🎭 RealisticDataGenerator: 시연용 5가지 실제 시나리오 지원',
-        '📈 Delta Compression: 데이터 전송량 65% 감소',
-        '🌐 Vercel 최적화: 서버리스 환경 특화, 6서버 제한 대응',
+        '💾 MemoryOptimizer: 자동 GC, 캐시 정리, 메모리 최적화',
+        '📈 Faker.js: 현실적인 서버 데이터 생성 (이름, 로그, 메트릭)',
+        '🌐 Prometheus Client: 메트릭 수집, 히스토그램/게이지/카운터',
+        '💾 Upstash Redis: 서버리스 Redis 캐싱, Vercel 완벽 호환',
       ],
     },
     requiresAI: false,
@@ -424,61 +452,61 @@ const cardData: FeatureCard[] = [
     gradient: 'from-purple-500 to-indigo-600',
     detailedContent: {
       overview:
-        '모던 풀스택 웹 애플리케이션의 핵심 기술들로 성능과 안정성을 극대화한 차세대 아키텍처입니다. 모든 라이브러리가 오픈소스이며 최신 웹 표준을 준수합니다.',
+        '모던 풀스택 웹 애플리케이션의 핵심 기술들로 성능과 안정성을 극대화한 차세대 프론트엔드 아키텍처입니다. 모든 라이브러리가 오픈소스이며 최신 웹 표준을 준수하여 개발 생산성과 사용자 경험을 동시에 향상시킵니다.',
       features: [
-        '⚛️ Next.js 15 + React 19: 최신 서버 컴포넌트와 동시성 기능으로 성능 극대화',
-        '🎨 TailwindCSS + Framer Motion: 유틸리티 CSS와 선언적 애니메이션으로 개발 속도 3배 향상',
-        '🔧 TypeScript + ESLint + Prettier: 타입 안전성 100%와 코드 품질 자동화',
-        '📊 Supabase + Upstash Redis: PostgreSQL + 서버리스 Redis로 안정적 데이터 관리',
-        '🎯 Prometheus 호환: 실시간 메트릭 수집 및 모니터링 시스템',
+        '⚛️ Next.js 15 + React 19: 최신 서버 컴포넌트와 스트리밍 SSR로 성능 극대화',
+        '🎨 TailwindCSS + Framer Motion: 유틸리티 CSS와 선언적 애니메이션',
+        '🔧 TypeScript + Zustand: 타입 안전성 100%와 경량 상태관리',
+        '📊 Supabase + Redis: PostgreSQL 실시간 DB + 서버리스 캐싱',
+        '🧪 Vitest + Playwright: 빠른 단위 테스트 + E2E 자동화',
+        '📈 Chart.js + Recharts: 반응형 데이터 시각화',
+        '✨ ESLint + Prettier: 코드 품질 자동화와 일관된 스타일',
       ],
       technologies: [
-        '⚛️ Next.js 15.3.3: App Router, 서버 컴포넌트, 스트리밍 SSR, 자동 번들 최적화',
-        '🔧 React 19: 동시성 렌더링, Suspense, useTransition, 자동 배칭 최적화',
-        '💎 TypeScript 5.6: 타입 안전성 100%, 고급 타입 추론, 컴파일 타임 최적화',
-        '🎨 TailwindCSS v4: JIT 컴파일, 커스텀 디자인 시스템, 99% CSS 압축율',
-        '🎬 Framer Motion: 선언적 애니메이션, 레이아웃 애니메이션, 제스처 인식',
-        '📦 Zustand (2.9KB): 경량 상태관리, TypeScript 네이티브, devtools 통합',
-        '⚡ TanStack Query v5: 서버 상태 캐싱, 백그라운드 업데이트, 오프라인 지원',
-        '🗄️ Supabase PostgreSQL: 실시간 데이터베이스, Row Level Security, 자동 백업',
-        '💾 Upstash Redis: 서버리스 Redis, 자동 스케일링, Vercel 완벽 호환',
-        '📊 Prometheus Client: 메트릭 수집, 레이블링, 히스토그램/게이지/카운터 지원',
-        '🧪 Vitest + Playwright: 빠른 단위 테스트 + 크로스 브라우저 E2E 테스트',
-        '✨ ESLint + Prettier: 코드 품질 자동화, 일관된 스타일 가이드',
+        '⚛️ Next.js 15.3.3: App Router, 서버 컴포넌트, Edge Runtime',
+        '🔧 React 19: 동시성 렌더링, Suspense, useTransition',
+        '💎 TypeScript 5.6: 타입 안전성, 고급 타입 추론, 컴파일 최적화',
+        '🎨 TailwindCSS v4: JIT 컴파일, 커스텀 디자인 시스템',
+        '🎬 Framer Motion: 선언적 애니메이션, 레이아웃 애니메이션',
+        '📦 Zustand (2.9KB): 경량 상태관리, TypeScript 네이티브',
+        '🗄️ Supabase: PostgreSQL + Row Level Security + 실시간 구독',
+        '💾 Upstash Redis: 서버리스 Redis, 자동 스케일링',
+        '📊 Chart.js + Recharts: 캔버스 차트 + React 네이티브 차트',
+        '🧪 Vitest + Playwright: 빠른 테스트 + 크로스브라우저 E2E',
       ],
     },
     requiresAI: false,
   },
   {
     id: 'vibe-coding',
-    title: '⚡ Vibe Coding 워크플로우',
+    title: '⚡ Vibe Coding 개발 워크플로우',
     description:
-      'Cursor AI + Claude 4 Sonnet 메인, GitHub 통합 개발, Vercel 배포까지 - 완전한 AI 개발 생태계',
+      'Cursor AI + Claude 4 Sonnet 메인, GitHub 협업, Vercel/Render 자동 배포까지 - 완전한 AI 개발 생태계',
     icon: Zap,
     gradient: 'from-yellow-400 via-orange-500 via-pink-500 to-purple-600',
     detailedContent: {
       overview:
-        'Cursor AI + Claude 4 Sonnet을 메인으로 하는 하이브리드 AI 개발부터 GitHub 협업, Vercel 배포까지 완전한 개발 생태계를 구축한 차세대 워크플로우입니다. 개발 효율성 300% 향상과 배포 자동화를 동시에 달성했습니다.',
+        'Cursor AI + Claude 4 Sonnet을 중심으로 한 차세대 AI 개발 워크플로우입니다. 3개 MCP 도구로 200K+ 토큰 컨텍스트를 활용한 AI 개발부터 GitHub 협업, Vercel/Render 자동 배포까지 완전한 개발 생태계를 구축했습니다.',
       features: [
-        '🎯 AI 개발 80%: Cursor AI (Claude 4 Sonnet) + 3개 MCP Tools로 200K+ 토큰 컨텍스트 활용',
-        '🧠 브레인스토밍 15%: ChatGPT + GPT Codex로 아키텍처 설계 및 창의적 문제 해결',
-        '📱 GitHub 통합: 590+ 커밋, PR 관리, 이슈 추적, 자동 배포 파이프라인',
-        '🚀 Vercel 배포: 15개 환경, 자동 스케일링, 글로벌 CDN, 무중단 배포',
-        '🔄 CI/CD 자동화: GitHub Actions, 타입 검사, 테스트, 자동 배포 완전 통합',
+        '🎯 AI 개발 80%: Cursor AI + Claude 4 Sonnet으로 200K+ 토큰 컨텍스트 활용',
+        '🔍 3개 MCP 도구: filesystem, web-search, sequential-thinking으로 개발 효율 극대화',
+        '📱 GitHub 완전 통합: 590+ 커밋, 자동 PR, 이슈 추적, 코드 리뷰',
+        '🚀 자동 배포: Vercel(웹앱) + Render(MCP 서버) 멀티 플랫폼',
+        '🔄 CI/CD 파이프라인: GitHub Actions로 테스트, 빌드, 배포 자동화',
+        '💡 브레인스토밍: ChatGPT + GPT Codex로 아키텍처 설계',
+        '🤖 대규모 자동화: Google Jules AI Agent로 VM 기반 작업',
       ],
       technologies: [
-        '🎯 Cursor AI Editor: Claude 4 Sonnet 기반, 200K+ 토큰 컨텍스트, AI 자동완성',
-        '🧠 Claude 4 Sonnet: 최대 컨텍스트 모델, 코드 이해 특화, 멀티턴 대화 지원',
-        '🔍 mcp-filesystem: Cursor용 파일 탐색, 코드 구조 분석, 자동 의존성 추적',
-        '🌐 mcp-duckduckgo-search: Cursor용 웹 검색, 최신 기술 문서, 오류 해결',
-        '🧠 mcp-sequential-thinking: Cursor용 사고 도구, 단계별 문제 해결, 논리 검증',
-        '💭 ChatGPT-4 + GPT Codex: 브레인스토밍, 아키텍처 설계, 고급 코드 생성',
-        '🤖 Google Jules: GitHub 연동, 클라우드 VM 자동화, 대규모 작업 처리',
-        '📱 GitHub: 590+ 커밋, 브랜치 전략, PR 리뷰, 이슈 관리, 협업 도구',
-        '🚀 Vercel: Next.js 최적화 배포, 15개 환경, Edge Functions, 글로벌 CDN',
-        '⚙️ GitHub Actions: CI/CD 파이프라인, 자동 테스트, 타입 검사, 배포 자동화',
-        '🌍 멀티 환경: 개발/스테이징/프로덕션 분리, 환경별 설정, 무중단 배포',
-        '🔄 하이브리드 전략: 상황별 AI 도구 선택, 워크플로우 최적화, 효율성 극대화',
+        '🎯 Cursor AI Editor: Claude 4 Sonnet 통합, 200K+ 토큰 컨텍스트',
+        '🧠 Claude 4 Sonnet: 최대 컨텍스트 AI 모델, 멀티턴 대화',
+        '🔍 mcp-filesystem: 파일 탐색, 코드 구조 분석, 의존성 추적',
+        '🌐 mcp-duckduckgo-search: 웹 검색, 최신 문서, 오류 해결',
+        '🧠 mcp-sequential-thinking: 단계별 문제 해결, 논리 검증',
+        '📱 GitHub: 590+ 커밋, 브랜치 전략, PR 자동화, 협업',
+        '🚀 Vercel: Next.js 최적화, 15개 환경, Edge Functions',
+        '☁️ Render: MCP 서버 배포, 자동 스케일링, 24/7 운영',
+        '⚙️ GitHub Actions: CI/CD 자동화, 테스트, 타입 검사',
+        '🔄 멀티 환경: dev/staging/production 분리, 무중단 배포',
       ],
     },
     requiresAI: false,
@@ -735,113 +763,123 @@ export default function FeatureCardsGrid() {
       </div>
 
       {/* Feature Card Modal */}
-        {/* 커스텀 모달 (버전 히스토리 포함) */}
-        <AnimatePresence>
-          {selectedCard && selectedCardData && (
-            <div className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md'>
-              <motion.div
-                ref={modalRef}
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className={`relative w-full max-w-2xl max-h-[80vh] overflow-y-auto bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-xl shadow-2xl ${
-                  selectedCardData.isSpecial
-                    ? 'border-amber-500/50 bg-gradient-to-br from-gray-900/95 to-amber-900/20'
-                    : ''
-                } ${
-                  selectedCardData.isAICard
-                    ? 'border-pink-500/50 bg-gradient-to-br from-gray-900/95 to-pink-900/20'
-                    : ''
-                }`}
-              >
-                {/* 헤더 */}
-                <div className='p-4 border-b border-gray-700/50'>
-                  <div className='flex items-start justify-between'>
-                    <div className='flex items-start gap-4'>
-                      <div
-                        className={`w-10 h-10 bg-gradient-to-br ${selectedCardData.gradient} rounded-lg flex items-center justify-center ${
-                          selectedCardData.isSpecial
-                            ? 'shadow-lg shadow-amber-500/25'
-                            : ''
-                        } ${
-                          selectedCardData.isAICard
-                            ? 'shadow-lg shadow-pink-500/25'
-                            : ''
-                        }`}
-                      >
-                        {selectedCardData.isAICard ? (
-                          <motion.div
-                            animate={{
-                              rotate: [0, 360],
-                              scale: [1, 1.1, 1],
-                            }}
-                            transition={{
-                              rotate: {
-                                duration: 8,
-                                repeat: Infinity,
-                                ease: 'linear',
-                              },
-                              scale: {
-                                duration: 2,
-                                repeat: Infinity,
-                                ease: 'easeInOut',
-                              },
-                            }}
-                          >
-                            <selectedCardData.icon className='w-5 h-5 text-white' />
-                          </motion.div>
-                        ) : selectedCardData.isVibeCard ? (
-                          <motion.div
-                            animate={{
-                              scale: [1, 1.2, 1],
-                              rotate: [0, 5, -5, 0],
-                            }}
-                            transition={{
-                              duration: 2.5,
+      {/* 커스텀 모달 (버전 히스토리 포함) */}
+      <AnimatePresence>
+        {selectedCard && selectedCardData && (
+          <div className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md'>
+            <motion.div
+              ref={modalRef}
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className={`relative w-full max-w-2xl max-h-[80vh] overflow-y-auto bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-xl shadow-2xl ${
+                selectedCardData.isSpecial
+                  ? 'border-amber-500/50 bg-gradient-to-br from-gray-900/95 to-amber-900/20'
+                  : ''
+              } ${
+                selectedCardData.isAICard
+                  ? 'border-pink-500/50 bg-gradient-to-br from-gray-900/95 to-pink-900/20'
+                  : ''
+              }`}
+            >
+              {/* 헤더 */}
+              <div className='p-4 border-b border-gray-700/50'>
+                <div className='flex items-start justify-between'>
+                  <div className='flex items-start gap-4'>
+                    <div
+                      className={`w-10 h-10 bg-gradient-to-br ${selectedCardData.gradient} rounded-lg flex items-center justify-center ${
+                        selectedCardData.isSpecial
+                          ? 'shadow-lg shadow-amber-500/25'
+                          : ''
+                      } ${
+                        selectedCardData.isAICard
+                          ? 'shadow-lg shadow-pink-500/25'
+                          : ''
+                      }`}
+                    >
+                      {selectedCardData.isAICard ? (
+                        <motion.div
+                          animate={{
+                            rotate: [0, 360],
+                            scale: [1, 1.1, 1],
+                          }}
+                          transition={{
+                            rotate: {
+                              duration: 8,
+                              repeat: Infinity,
+                              ease: 'linear',
+                            },
+                            scale: {
+                              duration: 2,
                               repeat: Infinity,
                               ease: 'easeInOut',
-                            }}
-                          >
-                            <selectedCardData.icon className='w-5 h-5 text-white' />
-                          </motion.div>
-                        ) : (
+                            },
+                          }}
+                        >
                           <selectedCardData.icon className='w-5 h-5 text-white' />
-                        )}
-                      </div>
-                      <div>
-                        <h2 className='text-lg font-bold text-white'>
-                          {renderTextWithAIGradient(selectedCardData.title)}
-                        </h2>
-                        <p className='text-xs text-gray-400'>
-                          {renderTextWithAIGradient(selectedCardData.description)}
-                        </p>
-                      </div>
+                        </motion.div>
+                      ) : selectedCardData.isVibeCard ? (
+                        <motion.div
+                          animate={{
+                            scale: [1, 1.2, 1],
+                            rotate: [0, 5, -5, 0],
+                          }}
+                          transition={{
+                            duration: 2.5,
+                            repeat: Infinity,
+                            ease: 'easeInOut',
+                          }}
+                        >
+                          <selectedCardData.icon className='w-5 h-5 text-white' />
+                        </motion.div>
+                      ) : (
+                        <selectedCardData.icon className='w-5 h-5 text-white' />
+                      )}
                     </div>
-                    <button
-                      onClick={closeModal}
-                      className='w-8 h-8 rounded-full bg-gray-800/50 hover:bg-gray-700/50 flex items-center justify-center transition-colors'
-                    >
-                      <X className='w-4 h-4 text-gray-400' />
-                    </button>
+                    <div>
+                      <h2 className='text-lg font-bold text-white'>
+                        {renderTextWithAIGradient(selectedCardData.title)}
+                      </h2>
+                      <p className='text-xs text-gray-400'>
+                        {renderTextWithAIGradient(selectedCardData.description)}
+                      </p>
+                    </div>
                   </div>
+                  <button
+                    onClick={closeModal}
+                    className='w-8 h-8 rounded-full bg-gray-800/50 hover:bg-gray-700/50 flex items-center justify-center transition-colors'
+                  >
+                    <X className='w-4 h-4 text-gray-400' />
+                  </button>
+                </div>
+              </div>
+
+              {/* 상세 내용 */}
+              <div className='p-4 space-y-4'>
+                {/* 개요 */}
+                <div>
+                  <h3 className='text-white font-medium mb-2 text-base'>
+                    📖 개요
+                  </h3>
+                  <p className='text-gray-300 leading-relaxed text-sm'>
+                    {renderTextWithAIGradient(
+                      selectedCardData.detailedContent.overview
+                    )}
+                  </p>
                 </div>
 
-                {/* 상세 내용 */}
-                <div className='p-4 space-y-4'>
-                  {/* 개요 */}
-                  <div>
-                    <h3 className='text-white font-medium mb-2 text-base'>📖 개요</h3>
-                    <p className='text-gray-300 leading-relaxed text-sm'>
-                      {renderTextWithAIGradient(selectedCardData.detailedContent.overview)}
-                    </p>
-                  </div>
-
-                  {/* 주요 기능 */}
-                  <div>
-                    <h3 className='text-white font-medium mb-3 text-base'>⚡ 주요 기능</h3>
-                    <ul className='space-y-2'>
-                      {selectedCardData.detailedContent.features.map((feature, index) => (
-                        <li key={index} className='flex items-start gap-2 text-xs'>
+                {/* 주요 기능 */}
+                <div>
+                  <h3 className='text-white font-medium mb-3 text-base'>
+                    ⚡ 주요 기능
+                  </h3>
+                  <ul className='space-y-2'>
+                    {selectedCardData.detailedContent.features.map(
+                      (feature, index) => (
+                        <li
+                          key={index}
+                          className='flex items-start gap-2 text-xs'
+                        >
                           <div
                             className={`w-1 h-1 rounded-full mt-1.5 flex-shrink-0 ${
                               selectedCardData.isAICard
@@ -855,67 +893,77 @@ export default function FeatureCardsGrid() {
                             {renderTextWithAIGradient(feature)}
                           </span>
                         </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* 기술 스택 분석 */}
-                  <div>
-                    <TechStackDisplay
-                      categories={analyzedTechStack}
-                      showHeader={true}
-                      compact={true}
-                    />
-                  </div>
-
-                  {/* 버전 히스토리 (AI 엔진과 데이터 생성기만) */}
-                  {(selectedCard === 'mcp-ai-engine' || selectedCard === 'data-generator') && (
-                    <div>
-                      <h3 className='text-white font-medium mb-3 text-base flex items-center gap-2'>
-                        <Clock className='w-4 h-4' />
-                        버전 히스토리
-                      </h3>
-                      <div className='space-y-3'>
-                        {VERSION_HISTORY[selectedCard as keyof typeof VERSION_HISTORY]?.map((version, index) => (
-                          <motion.div
-                            key={version.version}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            className={`bg-white/5 rounded-lg p-3 border border-white/10 ${
-                              index === 0 ? 'border-green-500/30 bg-green-500/5' : ''
-                            }`}
-                          >
-                            <div className='flex items-center justify-between mb-2'>
-                              <div className='flex items-center gap-2'>
-                                <span className={`text-sm font-bold ${
-                                  index === 0 ? 'text-green-400' : 'text-blue-400'
-                                }`}>
-                                  v{version.version}
-                                </span>
-                                {index === 0 && (
-                                  <span className='text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded-full'>
-                                    현재
-                                  </span>
-                                )}
-                              </div>
-                              <span className='text-xs text-gray-400'>
-                                {version.date}
-                              </span>
-                            </div>
-                            <p className='text-xs text-gray-300'>
-                              {version.changes}
-                            </p>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                      )
+                    )}
+                  </ul>
                 </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
+
+                {/* 기술 스택 분석 */}
+                <div>
+                  <TechStackDisplay
+                    categories={analyzedTechStack}
+                    showHeader={true}
+                    compact={true}
+                  />
+                </div>
+
+                {/* 버전 히스토리 (AI 엔진과 데이터 생성기만) */}
+                {(selectedCard === 'mcp-ai-engine' ||
+                  selectedCard === 'data-generator') && (
+                  <div>
+                    <h3 className='text-white font-medium mb-3 text-base flex items-center gap-2'>
+                      <Clock className='w-4 h-4' />
+                      버전 히스토리
+                    </h3>
+                    <div className='space-y-3'>
+                      {VERSION_HISTORY[
+                        selectedCard as keyof typeof VERSION_HISTORY
+                      ]?.map((version, index) => (
+                        <motion.div
+                          key={version.version}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className={`bg-white/5 rounded-lg p-3 border border-white/10 ${
+                            index === 0
+                              ? 'border-green-500/30 bg-green-500/5'
+                              : ''
+                          }`}
+                        >
+                          <div className='flex items-center justify-between mb-2'>
+                            <div className='flex items-center gap-2'>
+                              <span
+                                className={`text-sm font-bold ${
+                                  index === 0
+                                    ? 'text-green-400'
+                                    : 'text-blue-400'
+                                }`}
+                              >
+                                v{version.version}
+                              </span>
+                              {index === 0 && (
+                                <span className='text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded-full'>
+                                  현재
+                                </span>
+                              )}
+                            </div>
+                            <span className='text-xs text-gray-400'>
+                              {version.date}
+                            </span>
+                          </div>
+                          <p className='text-xs text-gray-300'>
+                            {version.changes}
+                          </p>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* 개발 중 모달 */}
       <AnimatePresence>
