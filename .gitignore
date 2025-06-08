@@ -61,3 +61,6 @@ temp-*
 test2-*
 debug-*
 copy-*
+
+# logs
+/logs/
