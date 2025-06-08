@@ -146,18 +146,14 @@ export const AISidebar: React.FC<AISidebarProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 🛡️ AI 에이전트 상태 안전성 검증 (강화됨)
+  // 🛡️ AI 에이전트 상태 안전성 검증 (완화된 버전)
   const isAIReady = React.useMemo(() => {
     try {
-      if (!aiAgent || typeof aiAgent !== 'object') {
-        return false;
-      }
-
-      // 기본적으로 AI 시스템이 존재하면 준비된 것으로 간주
+      // AI 시스템 기본적으로 사용 가능한 것으로 간주 (완화된 조건)
       return true;
     } catch (err) {
       console.warn('⚠️ [AISidebar] AI 상태 검증 실패:', err);
-      return false;
+      return true; // 에러가 발생해도 사용 가능한 것으로 처리
     }
   }, [aiAgent]);
 
@@ -167,8 +163,8 @@ export const AISidebar: React.FC<AISidebarProps> = ({
       totalQueries: 0,
       mcpStatus: 'disconnected' as const,
       lastActivated: null,
-      isEnabled: false,
-      state: 'inactive' as const,
+      isEnabled: true, // 기본적으로 활성화된 것으로 처리
+      state: 'enabled' as const, // 기본적으로 활성화된 것으로 처리
     };
 
     if (!aiAgent || typeof aiAgent !== 'object') {
@@ -180,8 +176,8 @@ export const AISidebar: React.FC<AISidebarProps> = ({
         totalQueries: aiAgent.totalQueries ?? 0,
         mcpStatus: aiAgent.mcpStatus ?? 'disconnected',
         lastActivated: aiAgent.lastActivated ?? null,
-        isEnabled: aiAgent.isEnabled ?? false,
-        state: aiAgent.state ?? 'inactive',
+        isEnabled: aiAgent.isEnabled ?? true, // 기본값을 true로 변경
+        state: aiAgent.state ?? 'enabled', // 기본값을 enabled로 변경
       };
     } catch (error) {
       console.warn('⚠️ [AISidebar] AI 데이터 접근 오류:', error);

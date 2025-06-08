@@ -2,9 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { rateLimiters, withRateLimit } from '@/lib/rate-limiter';
 
 /**
- * 🖥️ Sequential Server Generation API
+ * 🖥️ Sequential Server Generation API (DEMO VERSION - 더미 데이터)
+ * 
+ * ⚠️ 중요: 이 API는 데모용 더미 데이터를 생성합니다.
+ * 실제 서버 연결이나 모니터링 데이터가 아닙니다.
+ * 
  * GET: 다음 서버 정보 조회 (Rate Limited: 1분에 20회)
  * POST: 서버 생성 요청 (Rate Limited: 1분에 20회)
+ * 
+ * 실제 서버 데이터를 받으려면:
+ * 1. 실제 서버 모니터링 에이전트 설치
+ * 2. 데이터베이스 연결 설정
+ * 3. 실제 메트릭 수집 로직 구현
  */
 
 // 간단한 서버 상태 관리 (실제로는 데이터베이스 사용)
