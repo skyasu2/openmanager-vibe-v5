@@ -185,8 +185,9 @@ export async function POST(request: NextRequest) {
           }, { status: 403 });
         }
 
-        // TODO: 번들 업로드 로직 구현
-        const uploaded = true; // 임시로 true 반환
+        const uploaded = await ContextLoader
+          .getInstance()
+          .uploadContextBundle(bundleType, bundleData, clientId);
 
         if (uploaded) {
           return NextResponse.json({
@@ -218,7 +219,7 @@ export async function POST(request: NextRequest) {
 
       case 'invalidate-cache':
         // 컨텍스트 캐시 무효화
-        // TODO: 캐시 무효화 로직 구현
+        ContextLoader.getInstance().invalidateCache();
         
         return NextResponse.json({
           success: true,
@@ -253,14 +254,22 @@ export async function PUT(request: NextRequest) {
       case 'update-bundle-metadata':
         // 번들 메타데이터 업데이트
         const { bundleType, clientId, metadata } = params;
-        
-        // TODO: 번들 메타데이터 업데이트 로직 구현
-        
+
+        const metadataUpdated = await ContextLoader
+          .getInstance()
+          .updateBundleMetadata(bundleType, metadata, clientId);
+
+        if (metadataUpdated) {
+          return NextResponse.json({
+            success: true,
+            message: '번들 메타데이터가 업데이트되었습니다.',
+            data: { bundleType, clientId, metadata }
+          });
+        }
         return NextResponse.json({
-          success: true,
-          message: '번들 메타데이터가 업데이트되었습니다.',
-          data: { bundleType, clientId, metadata }
-        });
+          success: false,
+          error: '메타데이터 업데이트에 실패했습니다.'
+        }, { status: 500 });
 
       default:
         return NextResponse.json({
@@ -322,13 +331,21 @@ export async function DELETE(request: NextRequest) {
           }, { status: 403 });
         }
 
-        // TODO: 번들 삭제 로직 구현
-        
+        const deleted = await ContextLoader
+          .getInstance()
+          .deleteContextBundle(bundleType, clientId);
+
+        if (deleted) {
+          return NextResponse.json({
+            success: true,
+            message: `${bundleType} 번들이 삭제되었습니다.`,
+            data: { bundleType, clientId }
+          });
+        }
         return NextResponse.json({
-          success: true,
-          message: `${bundleType} 번들이 삭제되었습니다.`,
-          data: { bundleType, clientId }
-        });
+          success: false,
+          error: '번들 삭제에 실패했습니다.'
+        }, { status: 500 });
 
       default:
         return NextResponse.json({

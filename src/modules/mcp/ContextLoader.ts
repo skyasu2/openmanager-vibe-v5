@@ -293,6 +293,63 @@ export class ContextLoader {
   }
 
   /**
+   * 번들 메타데이터 업데이트 (관리자 전용)
+   */
+  async updateBundleMetadata(
+    bundleType: 'base' | 'advanced' | 'custom',
+    metadata: Record<string, any>,
+    clientId?: string
+  ): Promise<boolean> {
+    try {
+      const metaPath = clientId && bundleType === 'custom'
+        ? path.join(this.documentsPath, bundleType, clientId, 'metadata.json')
+        : path.join(this.documentsPath, bundleType, 'metadata.json');
+
+      if (!fs.existsSync(path.dirname(metaPath))) {
+        console.warn(`[ContextLoader] 메타데이터 경로가 존재하지 않습니다: ${metaPath}`);
+        return false;
+      }
+
+      fs.writeFileSync(metaPath, JSON.stringify(metadata, null, 2), 'utf-8');
+      this.invalidateCache();
+      console.log(`✅ [ContextLoader] 번들 메타데이터 업데이트 완료: ${bundleType}${clientId ? `-${clientId}` : ''}`);
+      return true;
+
+    } catch (error) {
+      console.error(`❌ [ContextLoader] 번들 메타데이터 업데이트 실패:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * 컨텍스트 번들 삭제 (관리자 전용)
+   */
+  async deleteContextBundle(
+    bundleType: 'base' | 'advanced' | 'custom',
+    clientId?: string
+  ): Promise<boolean> {
+    try {
+      const targetPath = clientId && bundleType === 'custom'
+        ? path.join(this.documentsPath, bundleType, clientId)
+        : path.join(this.documentsPath, bundleType);
+
+      if (!fs.existsSync(targetPath)) {
+        console.warn(`[ContextLoader] 삭제할 번들이 존재하지 않습니다: ${targetPath}`);
+        return false;
+      }
+
+      fs.rmSync(targetPath, { recursive: true, force: true });
+      this.invalidateCache();
+      console.log(`🗑️ [ContextLoader] 번들 삭제 완료: ${bundleType}${clientId ? `-${clientId}` : ''}`);
+      return true;
+
+    } catch (error) {
+      console.error(`❌ [ContextLoader] 번들 삭제 실패:`, error);
+      return false;
+    }
+  }
+
+  /**
    * 백업 생성
    */
   private async createBackup(sourcePath: string): Promise<void> {
