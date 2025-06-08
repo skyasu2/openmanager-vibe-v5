@@ -306,7 +306,7 @@ export default smartSupabase;
 
 /**
  * 🗄️ Vercel 최적화된 Supabase 클라이언트
- * 
+ *
  * - 연결 풀 최적화
  * - 자동 재연결
  * - 에러 핸들링
@@ -373,15 +373,15 @@ class VercelSupabaseClient {
     try {
       // 배치 크기 제한 (Vercel 메모리 최적화)
       const batchSize = this.config.IS_VERCEL ? 100 : 500;
-      
+
       for (let i = 0; i < metrics.length; i += batchSize) {
         const batch = metrics.slice(i, i + batchSize);
-        
+
         const { error } = await this.client
           .from('server_metrics')
-          .upsert(batch, { 
+          .upsert(batch, {
             onConflict: 'server_id,timestamp',
-            ignoreDuplicates: true 
+            ignoreDuplicates: true,
           });
 
         if (error) {
@@ -437,12 +437,10 @@ class VercelSupabaseClient {
     }
 
     try {
-      const { error } = await this.client
-        .from('ai_analysis')
-        .upsert(analysis, { 
-          onConflict: 'id',
-          ignoreDuplicates: false 
-        });
+      const { error } = await this.client.from('ai_analysis').upsert(analysis, {
+        onConflict: 'id',
+        ignoreDuplicates: false,
+      });
 
       if (error) {
         console.error('❌ AI 분석 저장 실패:', error);
@@ -547,11 +545,13 @@ export class VercelDatabase {
    */
   static async saveServerStatus(serverId: string, status: any): Promise<void> {
     try {
-      await vercelSupabase.saveServerMetrics([{
-        server_id: serverId,
-        timestamp: new Date().toISOString(),
-        ...status,
-      }]);
+      await vercelSupabase.saveServerMetrics([
+        {
+          server_id: serverId,
+          timestamp: new Date().toISOString(),
+          ...status,
+        },
+      ]);
     } catch (error) {
       console.error('❌ 서버 상태 저장 실패:', error);
     }
@@ -566,11 +566,11 @@ export class VercelDatabase {
     analysis: any[];
   }> {
     try {
-      const [servers, metrics, analysis] =      await Promise.all([
-       vercelSupabase.getServerMetrics(undefined, 50),
-       vercelSupabase.getServerMetrics(undefined, 200),
-       vercelSupabase.getAIAnalysis(undefined, 20),
-     ]);
+      const [servers, metrics, analysis] = await Promise.all([
+        vercelSupabase.getServerMetrics(undefined, 50),
+        vercelSupabase.getServerMetrics(undefined, 200),
+        vercelSupabase.getAIAnalysis(undefined, 20),
+      ]);
 
       return { servers, metrics, analysis };
     } catch (error) {
@@ -584,8 +584,12 @@ export class VercelDatabase {
    */
   static async keepAlive(): Promise<void> {
     try {
-      if (supabase.getClient()) {
-        await supabase.getClient()?.from('server_metrics').select('*').limit(1);
+      if (vercelSupabase.getClient()) {
+        await vercelSupabase
+          .getClient()
+          ?.from('server_metrics')
+          .select('*')
+          .limit(1);
       }
     } catch (error) {
       // 무시 - 연결 유지 시도

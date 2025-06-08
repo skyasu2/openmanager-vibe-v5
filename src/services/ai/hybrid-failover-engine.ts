@@ -5,7 +5,7 @@
  * ✅ 실시간 건강성 체크 및 모드 전환
  */
 
-import { LocalRAGEngine } from './local-rag-engine';
+import { LocalRAGEngine } from '../../utils/legacy/local-rag-engine';
 import { MCPHealthChecker } from './mcp-health-checker';
 
 interface AIResponse {
@@ -46,7 +46,7 @@ class MCPAIEngine {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!res.ok) {
       throw new Error('MCP_SERVER_UNREACHABLE');
     }
@@ -57,15 +57,15 @@ class MCPAIEngine {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
-        query, 
+      body: JSON.stringify({
+        query,
         sessionId,
-        mcpServerUrl: this.mcpServerUrl 
+        mcpServerUrl: this.mcpServerUrl,
       }),
     });
-    
+
     if (!queryRes.ok) throw new Error('MCP_QUERY_ERROR');
-    
+
     const data = await queryRes.json();
     return {
       response: data.response,
@@ -131,7 +131,10 @@ export class HybridFailoverEngine {
         result = await Promise.race([
           this.mcpEngine.processQuery(query, sessionId),
           new Promise<never>((_, r) =>
-            setTimeout(() => r(new Error('MCP_TIMEOUT')), this.config.mcpTimeout)
+            setTimeout(
+              () => r(new Error('MCP_TIMEOUT')),
+              this.config.mcpTimeout
+            )
           ),
         ]);
         this.successes++;
@@ -162,7 +165,8 @@ export class HybridFailoverEngine {
         source: 'rag',
         reliability: reason === 'primary' ? 'high' : 'medium',
         processingTime: Date.now() - start,
-        notice: reason !== 'primary' ? this.getFailoverNotice(reason) : undefined,
+        notice:
+          reason !== 'primary' ? this.getFailoverNotice(reason) : undefined,
       };
     } catch (error: any) {
       return {
@@ -179,7 +183,8 @@ export class HybridFailoverEngine {
   private getFailoverNotice(reason: string) {
     const notices: Record<string, string> = {
       'mcp-failed': '⚠️ 외부 서버 연결 문제로 로컬 엔진을 사용했습니다.',
-      'health-check-failed': '⚠️ 서버 상태 확인 실패로 로컬 엔진을 사용했습니다.',
+      'health-check-failed':
+        '⚠️ 서버 상태 확인 실패로 로컬 엔진을 사용했습니다.',
     };
     return notices[reason] || '⚠️ 로컬 엔진을 사용하여 응답했습니다.';
   }
@@ -231,4 +236,3 @@ export class HybridFailoverEngine {
 }
 
 export const hybridFailoverEngine = new HybridFailoverEngine();
-

@@ -19,7 +19,7 @@ import {
   getPluginConfig,
   getVercelOptimizedConfig,
 } from '@/config/environment';
-import { VercelCache } from '@/lib/cache/redis';
+// VercelCache import 제거 - 사용되지 않음
 
 // 🆕 고급 기능 모듈들 (플러그인 활성화시에만 사용)
 import {
@@ -151,7 +151,7 @@ export interface ApplicationMetrics {
 
 /**
  * 🚀 OpenManager 7.0 제품 수준 서버 데이터 생성기
- * 
+ *
  * Vercel 환경 최적화:
  * - 메모리 효율적 배치 처리
  * - Redis fallback 메커니즘
@@ -199,13 +199,13 @@ export class RealServerDataGenerator {
   private isRunning = false;
   private config = getVercelOptimizedConfig();
   private intervalId: NodeJS.Timeout | null = null;
-  
+
   // 24시간 베이스라인 데이터 (메모리 최적화)
   private serverBaselines = new Map<string, any>();
-  
+
   // 현재 서버 상태 (Vercel 메모리 제한 고려)
   private currentStates = new Map<string, any>();
-  
+
   // 변화 패턴 (경량화)
   private patterns = new Map<string, any>();
 
@@ -220,7 +220,14 @@ export class RealServerDataGenerator {
     console.log(`📊 최대 서버 수: ${this.dataGeneratorConfig.maxServers}`);
     console.log(`⏰ 갱신 주기: ${this.dataGeneratorConfig.refreshInterval}ms`);
     console.log(
-      `🚀 활성 기능: ${(this.dataGeneratorConfig.features || []).join(', ')}`
+      `🚀 활성 기능: ${Object.keys(this.dataGeneratorConfig.features || {})
+        .filter(
+          key =>
+            this.dataGeneratorConfig.features[
+              key as keyof typeof this.dataGeneratorConfig.features
+            ]
+        )
+        .join(', ')}`
     );
 
     // 환경별 기본 설정
@@ -265,9 +272,10 @@ export class RealServerDataGenerator {
           serverArchitecture: 'microservices',
           databaseType: 'distributed',
           networkTopology: 'multi-cloud',
-          specialWorkload: features.includes('gpu-metrics')
-            ? 'gpu'
-            : 'container',
+          specialWorkload:
+            features.networkTopology && features.maxNodes > 30
+              ? 'gpu'
+              : 'container',
           scalingPolicy: 'predictive',
           securityLevel: 'enterprise',
         };
@@ -1502,15 +1510,27 @@ export class RealServerDataGenerator {
    */
   private initializeBaselines() {
     const serverCount = this.config.IS_VERCEL ? 6 : 9; // Vercel에서 서버 수 제한
-    
+
     for (let i = 1; i <= serverCount; i++) {
       const serverId = `server-${i.toString().padStart(2, '0')}`;
-      
+
       // 24시간 베이스라인 생성 (경량화)
-      this.serverBaselines.set(serverId, this.generateBaselineProfile(serverId));
-      
+      this.serverBaselines.set(
+        serverId,
+        this.generateBaselineProfile(serverId)
+      );
+
       // 초기 상태 설정
-      this.currentStates.set(serverId, this.generateInitialState(serverId));
+      this.currentStates.set(serverId, {
+        cpu: Math.random() * 30 + 10, // 10-40%
+        memory: Math.random() * 40 + 20, // 20-60%
+        disk: Math.random() * 20 + 10, // 10-30%
+        network: {
+          in: Math.random() * 100,
+          out: Math.random() * 100,
+        },
+        lastUpdate: Date.now(),
+      });
     }
   }
 
@@ -1520,10 +1540,11 @@ export class RealServerDataGenerator {
   private generateBaselineProfile(serverId: string): any {
     const serverTypes = ['web', 'api', 'database', 'cache', 'queue', 'storage'];
     const architectures = ['x86_64', 'arm64', 'hybrid', 'kubernetes'];
-    
+
     const type = serverTypes[Math.floor(Math.random() * serverTypes.length)];
-    const arch = architectures[Math.floor(Math.random() * architectures.length)];
-    
+    const arch =
+      architectures[Math.floor(Math.random() * architectures.length)];
+
     return {
       serverId,
       type,
@@ -1539,8 +1560,11 @@ export class RealServerDataGenerator {
    */
   private getServerLocation(): string {
     const locations = [
-      'us-east-1', 'us-west-2', 'eu-west-1', 
-      'ap-northeast-1', 'ap-southeast-1'
+      'us-east-1',
+      'us-west-2',
+      'eu-west-1',
+      'ap-northeast-1',
+      'ap-southeast-1',
     ];
     return locations[Math.floor(Math.random() * locations.length)];
   }
@@ -1555,8 +1579,181 @@ export class RealServerDataGenerator {
       network: this.generateNetworkBaseline(serverType),
       disk: this.generateDiskBaseline(serverType),
     };
-    
+
     return baseline;
+  }
+
+  /**
+   * 🖥️ CPU 베이스라인 생성 (서버 타입별)
+   */
+  private generateCPUBaseline(serverType: string): any {
+    const baselineProfiles = {
+      web: { base: 30, peak: 80, variance: 15 },
+      api: { base: 40, peak: 85, variance: 20 },
+      database: { base: 50, peak: 75, variance: 10 },
+      cache: { base: 15, peak: 40, variance: 8 },
+      queue: { base: 25, peak: 60, variance: 12 },
+      cdn: { base: 10, peak: 35, variance: 5 },
+      gpu: { base: 60, peak: 95, variance: 25 },
+      storage: { base: 20, peak: 45, variance: 7 },
+    };
+
+    const profile =
+      baselineProfiles[serverType as keyof typeof baselineProfiles] ||
+      baselineProfiles.web;
+    const hourlyData = [];
+
+    for (let hour = 0; hour < 24; hour++) {
+      // 시간대별 부하 패턴 (오전 9시-오후 6시가 피크)
+      const timeMultiplier = this.getTimeMultiplier(hour);
+      const cpuValue =
+        profile.base + (profile.peak - profile.base) * timeMultiplier;
+      const variance = (Math.random() - 0.5) * profile.variance;
+
+      hourlyData.push({
+        hour,
+        cpu: Math.max(5, Math.min(100, cpuValue + variance)),
+        timestamp: Date.now() + hour * 3600000,
+      });
+    }
+
+    return hourlyData;
+  }
+
+  /**
+   * 💾 메모리 베이스라인 생성 (서버 타입별)
+   */
+  private generateMemoryBaseline(serverType: string): any {
+    const baselineProfiles = {
+      web: { base: 40, peak: 70, variance: 10 },
+      api: { base: 50, peak: 80, variance: 15 },
+      database: { base: 70, peak: 90, variance: 8 },
+      cache: { base: 80, peak: 95, variance: 5 },
+      queue: { base: 35, peak: 65, variance: 12 },
+      cdn: { base: 25, peak: 50, variance: 8 },
+      gpu: { base: 60, peak: 85, variance: 15 },
+      storage: { base: 30, peak: 55, variance: 10 },
+    };
+
+    const profile =
+      baselineProfiles[serverType as keyof typeof baselineProfiles] ||
+      baselineProfiles.web;
+    const hourlyData = [];
+
+    for (let hour = 0; hour < 24; hour++) {
+      const timeMultiplier = this.getTimeMultiplier(hour);
+      const memoryValue =
+        profile.base + (profile.peak - profile.base) * timeMultiplier;
+      const variance = (Math.random() - 0.5) * profile.variance;
+
+      hourlyData.push({
+        hour,
+        memory: Math.max(10, Math.min(100, memoryValue + variance)),
+        timestamp: Date.now() + hour * 3600000,
+      });
+    }
+
+    return hourlyData;
+  }
+
+  /**
+   * 🌐 네트워크 베이스라인 생성 (서버 타입별)
+   */
+  private generateNetworkBaseline(serverType: string): any {
+    const baselineProfiles = {
+      web: { inBase: 100, inPeak: 500, outBase: 200, outPeak: 800 },
+      api: { inBase: 150, inPeak: 600, outBase: 100, outPeak: 400 },
+      database: { inBase: 50, inPeak: 200, outBase: 80, outPeak: 300 },
+      cache: { inBase: 300, inPeak: 800, outBase: 250, outPeak: 700 },
+      queue: { inBase: 80, inPeak: 300, outBase: 60, outPeak: 250 },
+      cdn: { inBase: 50, inPeak: 150, outBase: 1000, outPeak: 3000 },
+      gpu: { inBase: 200, inPeak: 1000, outBase: 150, outPeak: 800 },
+      storage: { inBase: 300, inPeak: 1500, outBase: 400, outPeak: 2000 },
+    };
+
+    const profile =
+      baselineProfiles[serverType as keyof typeof baselineProfiles] ||
+      baselineProfiles.web;
+    const hourlyData = [];
+
+    for (let hour = 0; hour < 24; hour++) {
+      const timeMultiplier = this.getTimeMultiplier(hour);
+      const networkInValue =
+        profile.inBase + (profile.inPeak - profile.inBase) * timeMultiplier;
+      const networkOutValue =
+        profile.outBase + (profile.outPeak - profile.outBase) * timeMultiplier;
+
+      hourlyData.push({
+        hour,
+        networkIn: Math.max(0, networkInValue + (Math.random() - 0.5) * 50),
+        networkOut: Math.max(0, networkOutValue + (Math.random() - 0.5) * 80),
+        timestamp: Date.now() + hour * 3600000,
+      });
+    }
+
+    return hourlyData;
+  }
+
+  /**
+   * 💿 디스크 베이스라인 생성 (서버 타입별)
+   */
+  private generateDiskBaseline(serverType: string): any {
+    const baselineProfiles = {
+      web: { base: 30, peak: 60, variance: 8 },
+      api: { base: 25, peak: 55, variance: 10 },
+      database: { base: 60, peak: 85, variance: 12 },
+      cache: { base: 15, peak: 35, variance: 5 },
+      queue: { base: 40, peak: 70, variance: 15 },
+      cdn: { base: 20, peak: 45, variance: 8 },
+      gpu: { base: 35, peak: 65, variance: 12 },
+      storage: { base: 70, peak: 95, variance: 10 },
+    };
+
+    const profile =
+      baselineProfiles[serverType as keyof typeof baselineProfiles] ||
+      baselineProfiles.web;
+    const hourlyData = [];
+
+    for (let hour = 0; hour < 24; hour++) {
+      const timeMultiplier = this.getTimeMultiplier(hour);
+      const diskValue =
+        profile.base + (profile.peak - profile.base) * timeMultiplier;
+      const variance = (Math.random() - 0.5) * profile.variance;
+
+      hourlyData.push({
+        hour,
+        disk: Math.max(5, Math.min(100, diskValue + variance)),
+        timestamp: Date.now() + hour * 3600000,
+      });
+    }
+
+    return hourlyData;
+  }
+
+  /**
+   * ⏰ 시간대별 부하 패턴 계산
+   */
+  private getTimeMultiplier(hour: number): number {
+    // 업무 시간 (9-18시)에 높은 부하
+    if (hour >= 9 && hour <= 18) {
+      // 점심시간(12-13시)에는 약간 감소
+      if (hour >= 12 && hour <= 13) {
+        return 0.7;
+      }
+      // 오전/오후 피크 시간
+      if ((hour >= 10 && hour <= 11) || (hour >= 14 && hour <= 16)) {
+        return 1.0;
+      }
+      return 0.8;
+    }
+
+    // 야간 시간 (22-6시)에 낮은 부하
+    if (hour >= 22 || hour <= 6) {
+      return 0.2;
+    }
+
+    // 전환 시간
+    return 0.5;
   }
 
   /**
@@ -1564,13 +1761,13 @@ export class RealServerDataGenerator {
    */
   private generateServerStatus(): 'healthy' | 'warning' | 'critical' {
     const random = Math.random();
-    
+
     // 🚨 심각: 15% 확률
     if (random < 0.15) return 'critical';
-    
-    // ⚠️ 경고: 25% 확률 
+
+    // ⚠️ 경고: 25% 확률
     if (random < 0.4) return 'warning';
-    
+
     // ✅ 정상: 60% 확률
     return 'healthy';
   }
@@ -1585,7 +1782,7 @@ export class RealServerDataGenerator {
           disk: Math.random() * 35 + 75, // 75-100%
           uptime_hours: Math.random() * 24, // 0-24 시간 (최근 재시작)
         };
-      
+
       case 'warning':
         return {
           cpu: Math.random() * 25 + 65, // 65-90%
@@ -1593,7 +1790,7 @@ export class RealServerDataGenerator {
           disk: Math.random() * 30 + 50, // 50-80%
           uptime_hours: Math.random() * 168 + 24, // 1-7일
         };
-      
+
       default: // healthy
         return {
           cpu: Math.random() * 40 + 10, // 10-50%
@@ -1606,31 +1803,50 @@ export class RealServerDataGenerator {
 
   // 📊 서버 인스턴스 생성 (개선)
   private createServerInstance(baseServer: any): ServerInstance {
-    const status = this.generateServerStatus();
-    const metrics = this.generateStatusBasedMetrics(status);
-    
+    const healthStatus = this.generateServerStatus();
+    const metrics = this.generateStatusBasedMetrics(healthStatus);
+
+    // 상태 매핑: healthy -> running, critical -> error
+    const status: ServerInstance['status'] =
+      healthStatus === 'healthy'
+        ? 'running'
+        : healthStatus === 'critical'
+          ? 'error'
+          : 'warning';
+
     return {
       id: baseServer.id,
-      serverId: baseServer.id,
       name: baseServer.name,
-      hostname: baseServer.hostname || baseServer.name,
-      status,
-      environment: baseServer.environment,
+      type: baseServer.type,
+      role: baseServer.role || 'standalone',
       location: baseServer.location,
-      ip: baseServer.ip,
-      cpu_usage: Math.round(metrics.cpu),
-      memory_usage: Math.round(metrics.memory),
-      disk_usage: Math.round(metrics.disk),
-      uptime_hours: Math.round(metrics.uptime_hours),
-      // 🎯 업타임 문자열 생성
-      uptime: this.formatUptime(metrics.uptime_hours),
-      last_updated: new Date().toISOString(),
-      timestamp: new Date().toISOString(),
-      // 🚨 알림 개수 (상태별)
-      alerts: status === 'critical' ? Math.floor(Math.random() * 5) + 3 : 
-              status === 'warning' ? Math.floor(Math.random() * 3) + 1 : 0,
-      // 서비스 상태도 메인 상태와 연동
-      services: this.generateServicesForStatus(baseServer.type, status),
+      status,
+      environment: baseServer.environment || 'production',
+      specs: {
+        cpu: { cores: 4, model: 'Intel Xeon' },
+        memory: { total: 16, type: 'DDR4' },
+        disk: { total: 500, type: 'SSD' },
+        network: { bandwidth: 1000 },
+      },
+      metrics: {
+        cpu: Math.round(metrics.cpu),
+        memory: Math.round(metrics.memory),
+        disk: Math.round(metrics.disk),
+        network: { in: Math.random() * 100, out: Math.random() * 100 },
+        requests: Math.floor(Math.random() * 1000),
+        errors: Math.floor(Math.random() * 10),
+        uptime: Math.round(metrics.uptime_hours),
+      },
+      health: {
+        score:
+          healthStatus === 'healthy'
+            ? 95
+            : healthStatus === 'warning'
+              ? 70
+              : 30,
+        issues: [],
+        lastCheck: new Date().toISOString(),
+      },
     };
   }
 
@@ -1638,10 +1854,10 @@ export class RealServerDataGenerator {
   private formatUptime(hours: number): string {
     if (hours < 1) return '방금 전';
     if (hours < 24) return `${Math.floor(hours)}시간`;
-    
+
     const days = Math.floor(hours / 24);
     const remainingHours = Math.floor(hours % 24);
-    
+
     if (days > 0 && remainingHours > 0) {
       return `${days}일 ${remainingHours}시간`;
     }
@@ -1659,11 +1875,12 @@ export class RealServerDataGenerator {
       storage: ['minio', 'nginx'],
     };
 
-    const services = baseServices[serverType as keyof typeof baseServices] || baseServices.web;
-    
+    const services =
+      baseServices[serverType as keyof typeof baseServices] || baseServices.web;
+
     return services.map((serviceName, index) => {
       let serviceStatus = 'running';
-      
+
       // 상태에 따른 서비스 장애 확률
       if (status === 'critical') {
         // 심각 상태: 50% 확률로 서비스 정지
@@ -1672,7 +1889,7 @@ export class RealServerDataGenerator {
         // 경고 상태: 20% 확률로 서비스 정지
         serviceStatus = Math.random() < 0.2 ? 'stopped' : 'running';
       }
-      
+
       return {
         name: serviceName,
         status: serviceStatus,
@@ -1696,7 +1913,7 @@ export class RealServerDataGenerator {
       rabbitmq: 5672,
       minio: 9000,
     };
-    
+
     return portMap[serviceName] || 8080;
   }
 
@@ -1723,8 +1940,31 @@ export class RealServerDataGenerator {
     if (serverId) {
       return this.currentStates.get(serverId) || null;
     }
-    
+
     return Array.from(this.currentStates.values());
+  }
+
+  /**
+   * 🎯 초기 상태 생성
+   */
+  private generateInitialState() {
+    console.log('🎯 초기 상태 생성 중...');
+
+    // 각 서버의 초기 상태 설정
+    for (const [serverId, server] of this.servers) {
+      this.currentStates.set(serverId, {
+        cpu: Math.random() * 30 + 10, // 10-40%
+        memory: Math.random() * 40 + 20, // 20-60%
+        disk: Math.random() * 20 + 10, // 10-30%
+        network: {
+          in: Math.random() * 100,
+          out: Math.random() * 100,
+        },
+        lastUpdate: Date.now(),
+      });
+    }
+
+    console.log(`✅ ${this.servers.size}개 서버 초기 상태 생성 완료`);
   }
 }
 

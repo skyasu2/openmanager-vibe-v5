@@ -3,11 +3,11 @@ import { AnalysisRequest, normalizeMetricData } from '../../types/python-api';
 import {
   LightweightAnomalyDetector,
   createLightweightAnomalyDetector,
-  MetricData,
 } from './lightweight-anomaly-detector';
 import {
   enhancedDataGenerator,
   ScenarioType,
+  MetricData,
 } from '../../utils/enhanced-data-generator';
 
 export class TaskOrchestrator {

@@ -233,12 +233,12 @@ export class HybridAIEngine {
             );
             this.documentIndex.set(doc.path, docContext);
 
-            // 벡터 DB에도 추가
-            await this.vectorDB.addDocument(doc.path, doc.content, {
-              keywords: docContext.keywords,
-              relevanceScore: docContext.relevanceScore,
-              lastModified: docContext.lastModified,
-            });
+            // 벡터 DB에도 추가 (향후 구현 예정)
+            // await this.vectorDB.addDocument(doc.path, doc.content, {
+            //   keywords: docContext.keywords,
+            //   relevanceScore: docContext.relevanceScore,
+            //   lastModified: docContext.lastModified,
+            // });
 
             return true;
           } catch (error) {
@@ -400,6 +400,35 @@ export class HybridAIEngine {
   }
 
   /**
+   * 🔍 벡터 검색 수행 (텍스트 → 임베딩 → 검색)
+   */
+  private async performVectorSearch(
+    query: string
+  ): Promise<Array<{ id: string; similarity: number }>> {
+    try {
+      // 1. 텍스트를 벡터로 변환
+      const queryEmbedding =
+        await this.transformersEngine.generateEmbedding(query);
+
+      // 2. 벡터 DB에서 검색
+      const searchResult = await this.vectorDB.search(queryEmbedding, 10);
+
+      // 3. 결과 정규화
+      if (searchResult && searchResult.results) {
+        return searchResult.results.map((result: any) => ({
+          id: result.id,
+          similarity: result.similarity || 0,
+        }));
+      }
+
+      return [];
+    } catch (error: any) {
+      console.warn('⚠️ 벡터 검색 처리 실패:', error);
+      return [];
+    }
+  }
+
+  /**
    * 🔍 하이브리드 문서 검색 (키워드 + 벡터 + MCP)
    */
   private async hybridDocumentSearch(
@@ -413,8 +442,7 @@ export class HybridAIEngine {
       // 1. 벡터 검색 (의미적 유사성)
       if (smartQuery.useVectorSearch && this.engineStats.vector.initialized) {
         searchPromises.push(
-          this.vectorDB
-            .search(smartQuery.originalQuery, { topK: 10 })
+          this.performVectorSearch(smartQuery.originalQuery)
             .then(vectorResults => {
               console.log(`🔍 벡터 검색: ${vectorResults.length}개 결과`);
               vectorResults.forEach(result => {

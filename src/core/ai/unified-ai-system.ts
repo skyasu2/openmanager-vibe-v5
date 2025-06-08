@@ -130,7 +130,7 @@ export class UnifiedAISystem {
     this.keepAliveSystem = new KeepAliveSystem();
     this.basicContext = new BasicContextManager();
     this.advancedContext = new AdvancedContextManager();
-    this.customContext = new CustomContextManager();
+    this.customContext = CustomContextManager.getInstance();
   }
 
   /**
@@ -289,7 +289,12 @@ export class UnifiedAISystem {
   ): Promise<UnifiedResponse> {
     try {
       const aiQuery: AIQuery = {
+        id: `fastapi_${Date.now()}`,
         text: query.text,
+        userId: query.userId,
+        organizationId: query.organizationId,
+        sessionId: query.sessionId,
+        context: query.context,
         options: {
           includeEmbedding: true,
           includeEntities: true,

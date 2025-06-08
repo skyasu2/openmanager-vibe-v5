@@ -1,7 +1,7 @@
 /**
  * 🌍 환경별 설정 관리
- * 
- * Vercel 배포 환경과 로컬 개발 환경을 구분하여 
+ *
+ * Vercel 배포 환경과 로컬 개발 환경을 구분하여
  * Redis, Supabase 연결을 최적화합니다.
  */
 
@@ -9,7 +9,7 @@ export interface EnvironmentConfig {
   NODE_ENV: 'development' | 'production' | 'test';
   IS_VERCEL: boolean;
   IS_LOCAL: boolean;
-  
+
   // Database & Cache
   database: {
     supabase: {
@@ -23,14 +23,14 @@ export interface EnvironmentConfig {
       enabled: boolean;
     };
   };
-  
+
   // Performance Settings
   performance: {
     maxMemory: number;
     apiTimeout: number;
     cacheTimeout: number;
   };
-  
+
   // Feature Flags
   features: {
     enableAI: boolean;
@@ -46,32 +46,41 @@ export interface EnvironmentConfig {
 export function getEnvironmentConfig(): EnvironmentConfig {
   const isVercel = !!process.env.VERCEL;
   const isLocal = process.env.NODE_ENV === 'development';
-  const nodeEnv = (process.env.NODE_ENV || 'development') as 'development' | 'production' | 'test';
+  const nodeEnv = (process.env.NODE_ENV || 'development') as
+    | 'development'
+    | 'production'
+    | 'test';
 
   return {
     NODE_ENV: nodeEnv,
     IS_VERCEL: isVercel,
     IS_LOCAL: isLocal,
-    
+
     database: {
       supabase: {
         url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
         key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-        enabled: !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
+        enabled: !!(
+          process.env.NEXT_PUBLIC_SUPABASE_URL &&
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        ),
       },
       redis: {
         url: process.env.UPSTASH_REDIS_REST_URL || '',
         token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
-        enabled: !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN),
+        enabled: !!(
+          process.env.UPSTASH_REDIS_REST_URL &&
+          process.env.UPSTASH_REDIS_REST_TOKEN
+        ),
       },
     },
-    
+
     performance: {
       maxMemory: isVercel ? 1024 : 4096,
       apiTimeout: isVercel ? 30000 : 60000,
       cacheTimeout: isVercel ? 300000 : 600000, // 5분 vs 10분
     },
-    
+
     features: {
       enableAI: true,
       enableRealtimeData: true,
@@ -86,7 +95,7 @@ export function getEnvironmentConfig(): EnvironmentConfig {
  */
 export function getVercelOptimizedConfig() {
   const config = getEnvironmentConfig();
-  
+
   if (config.IS_VERCEL) {
     return {
       ...config,
@@ -103,7 +112,7 @@ export function getVercelOptimizedConfig() {
       },
     };
   }
-  
+
   return config;
 }
 
@@ -112,15 +121,23 @@ export function getVercelOptimizedConfig() {
  */
 export function logEnvironmentStatus() {
   const config = getEnvironmentConfig();
-  
+
   console.log('🌍 환경 설정 상태:');
   console.log(`📋 환경: ${config.NODE_ENV}`);
   console.log(`☁️ Vercel: ${config.IS_VERCEL ? '활성화' : '비활성화'}`);
   console.log(`🏠 로컬: ${config.IS_LOCAL ? '활성화' : '비활성화'}`);
-  console.log(`🗄️ Supabase: ${config.database.supabase.enabled ? '연결됨' : '비활성화'}`);
-  console.log(`⚡ Redis: ${config.database.redis.enabled ? '연결됨' : '비활성화'}`);
-  console.log(`🧠 AI 기능: ${config.features.enableAI ? '활성화' : '비활성화'}`);
-  console.log(`📊 실시간 데이터: ${config.features.enableRealtimeData ? '활성화' : '비활성화'}`);
+  console.log(
+    `🗄️ Supabase: ${config.database.supabase.enabled ? '연결됨' : '비활성화'}`
+  );
+  console.log(
+    `⚡ Redis: ${config.database.redis.enabled ? '연결됨' : '비활성화'}`
+  );
+  console.log(
+    `🧠 AI 기능: ${config.features.enableAI ? '활성화' : '비활성화'}`
+  );
+  console.log(
+    `📊 실시간 데이터: ${config.features.enableRealtimeData ? '활성화' : '비활성화'}`
+  );
 }
 
 // 🔧 추가 함수들 (빌드 오류 수정용)
@@ -153,7 +170,16 @@ export function getDataGeneratorConfig() {
     enabled: config.features.enableRealtimeData,
     maxServers: config.IS_VERCEL ? 50 : 100,
     updateInterval: config.IS_VERCEL ? 5000 : 3000,
+    refreshInterval: config.IS_VERCEL ? 10000 : 5000,
     memoryLimit: config.performance.maxMemory,
+    mode: config.IS_VERCEL ? 'production' : 'development',
+    features: {
+      networkTopology: config.features.enableAdvancedAnalytics,
+      demoScenarios: config.features.enableAdvancedAnalytics,
+      baselineOptimization: config.features.enableAdvancedAnalytics,
+      maxNodes: config.IS_VERCEL ? 20 : 50,
+      autoRotate: config.features.enableAdvancedAnalytics,
+    },
   };
 }
 
@@ -174,7 +200,7 @@ export function getMCPConfig() {
  */
 export function isPluginEnabled(pluginName: string): boolean {
   const config = getEnvironmentConfig();
-  
+
   switch (pluginName) {
     case 'ai':
       return config.features.enableAI;
@@ -194,11 +220,17 @@ export function isPluginEnabled(pluginName: string): boolean {
  */
 export function getPluginConfig(pluginName: string) {
   const config = getEnvironmentConfig();
-  
+
   const baseConfig = {
     enabled: isPluginEnabled(pluginName),
     timeout: config.performance.apiTimeout,
     memoryLimit: config.performance.maxMemory,
+    maxNodes: config.IS_VERCEL ? 20 : 50,
+    autoRotate: config.features.enableAdvancedAnalytics,
+    maxQueries: config.IS_VERCEL ? 100 : 500,
+    cacheEnabled: config.database.redis.enabled,
+    updateInterval: config.IS_VERCEL ? 10000 : 5000,
+    maxConnections: config.IS_VERCEL ? 5 : 20,
   };
 
   switch (pluginName) {
@@ -227,16 +259,39 @@ export function checkPaths(paths: string[]): { [key: string]: boolean } {
   if (typeof window !== 'undefined') {
     return paths.reduce((acc, path) => ({ ...acc, [path]: true }), {});
   }
-  
+
   // Node.js 환경에서는 실제 경로 확인
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const fs = require('fs');
-    return paths.reduce((acc, path) => ({
-      ...acc,
-      [path]: fs.existsSync(path)
-    }), {});
+    return paths.reduce(
+      (acc, path) => ({
+        ...acc,
+        [path]: fs.existsSync(path),
+      }),
+      {}
+    );
   } catch (error) {
     console.warn('⚠️ 경로 확인 실패:', error);
     return paths.reduce((acc, path) => ({ ...acc, [path]: false }), {});
   }
+}
+
+/**
+ * 환경별 로깅 함수
+ */
+export function envLog(message: string, data?: any): void {
+  if (shouldEnableDebugLogging()) {
+    console.log(`[ENV] ${message}`, data || '');
+  }
+}
+
+/**
+ * 디버그 로깅 활성화 여부 확인
+ */
+export function shouldEnableDebugLogging(): boolean {
+  const config = getEnvironmentConfig();
+  return (
+    config.NODE_ENV === 'development' || process.env.DEBUG_LOGGING === 'true'
+  );
 }

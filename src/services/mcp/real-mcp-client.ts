@@ -64,26 +64,22 @@ export class RealMCPClient {
     const env = detectEnvironment();
     const mcpConfig = getMCPConfig();
 
-    console.log(`🌍 환경: ${env.name.toUpperCase()} (${env.platform})`);
-    console.log(`📂 프로젝트 루트: ${env.paths.actual}`);
+    console.log(`🌍 환경: ${env.NODE_ENV.toUpperCase()}`);
+    console.log(`📂 Vercel 환경: ${env.IS_VERCEL ? '활성화' : '비활성화'}`);
 
     // 경로 존재 여부 확인
-    checkPaths();
+    const pathResults = checkPaths(['./src', './docs']);
 
-    const npxCommand = env.platform === 'win32' ? 'npx.cmd' : 'npx';
+    const npxCommand = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 
     // 🗂️ filesystem 서버 (파일 시스템 조작)
     this.servers.set('filesystem', {
       name: 'filesystem',
       command: npxCommand,
-      args: [
-        '@modelcontextprotocol/server-filesystem',
-        env.paths.src,
-        env.paths.docs,
-      ],
+      args: ['@modelcontextprotocol/server-filesystem', './src', './docs'],
       env: {
-        NODE_OPTIONS: env.limits.memory,
-        PROJECT_ROOT: env.paths.root,
+        NODE_OPTIONS: `--max-old-space-size=${env.performance.maxMemory}`,
+        PROJECT_ROOT: process.cwd(),
       },
       enabled: true, // 기본값 사용
     });
@@ -106,12 +102,12 @@ export class RealMCPClient {
     });
 
     console.log(
-      `🔧 MCP 서버 초기화 완료 (${env.name.toUpperCase()} - ${npxCommand})`
+      `🔧 MCP 서버 초기화 완료 (${env.NODE_ENV.toUpperCase()} - ${npxCommand})`
     );
     console.log('📋 사용 가능한 서버:', Array.from(this.servers.keys()));
 
-    if (env.isRender) {
-      console.log('🚀 Render 환경 감지 - 프로덕션 최적화 적용');
+    if (env.IS_VERCEL) {
+      console.log('🚀 Vercel 환경 감지 - 프로덕션 최적화 적용');
     }
   }
 

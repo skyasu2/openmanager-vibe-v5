@@ -327,7 +327,11 @@ export default function ServerDashboard({
   const [error, setError] = useState<string | null>(null);
 
   // ✅ API 기반 서버 데이터 스토어 사용
-  const { data: servers = [], isLoading: isGenerating } = useRealtimeServers();
+  const {
+    servers = [],
+    isLoading: isGenerating,
+    refreshAll,
+  } = useRealtimeServers();
 
   // 🚀 동적 페이지네이션: 오토스케일링에 맞춰 조정
   const SERVERS_PER_PAGE = useMemo(() => {
@@ -380,29 +384,78 @@ export default function ServerDashboard({
       baseServers = servers.map(server => {
         // 기존 매핑 로직 사용
         const serverData = server as any;
-        const mapStatus = (status: string): 'online' | 'offline' | 'warning' => {
+        const mapStatus = (
+          status: string
+        ): 'online' | 'offline' | 'warning' => {
           if (!status || typeof status !== 'string') return 'offline';
           const normalizedStatus = status.toLowerCase();
-          if (normalizedStatus.includes('healthy') || normalizedStatus.includes('online') || normalizedStatus.includes('running')) return 'online';
-          if (normalizedStatus.includes('warning') || normalizedStatus.includes('degraded')) return 'warning';
+          if (
+            normalizedStatus.includes('healthy') ||
+            normalizedStatus.includes('online') ||
+            normalizedStatus.includes('running')
+          )
+            return 'online';
+          if (
+            normalizedStatus.includes('warning') ||
+            normalizedStatus.includes('degraded')
+          )
+            return 'warning';
           return 'offline';
         };
 
         return {
-          id: serverData.id || serverData.hostname || `server-${Date.now()}-${Math.random()}`,
+          id:
+            serverData.id ||
+            serverData.hostname ||
+            `server-${Date.now()}-${Math.random()}`,
           name: serverData.name || serverData.hostname || 'Unknown Server',
           status: mapStatus(serverData.status || 'healthy'),
-          location: serverData.location || serverData.environment || 'Seoul DC1',
-          cpu: Math.round(serverData.cpu_usage || serverData.cpu || serverData.metrics?.cpu || Math.random() * 50 + 20),
-          memory: Math.round(serverData.memory_usage || serverData.memory || serverData.metrics?.memory || Math.random() * 60 + 30),
-          disk: Math.round(serverData.disk_usage || serverData.disk || serverData.metrics?.disk || Math.random() * 40 + 10),
-          uptime: typeof serverData.uptime === 'string' ? serverData.uptime : `${Math.floor(Math.random() * 30 + 1)}일 ${Math.floor(Math.random() * 24)}시간`,
-          lastUpdate: serverData.last_updated ? new Date(serverData.last_updated) : new Date(),
-          alerts: serverData.alerts?.length || (serverData.status === 'critical' ? 3 : serverData.status === 'warning' ? 1 : 0),
+          location:
+            serverData.location || serverData.environment || 'Seoul DC1',
+          cpu: Math.round(
+            serverData.cpu_usage ||
+              serverData.cpu ||
+              serverData.metrics?.cpu ||
+              Math.random() * 50 + 20
+          ),
+          memory: Math.round(
+            serverData.memory_usage ||
+              serverData.memory ||
+              serverData.metrics?.memory ||
+              Math.random() * 60 + 30
+          ),
+          disk: Math.round(
+            serverData.disk_usage ||
+              serverData.disk ||
+              serverData.metrics?.disk ||
+              Math.random() * 40 + 10
+          ),
+          uptime:
+            typeof serverData.uptime === 'string'
+              ? serverData.uptime
+              : `${Math.floor(Math.random() * 30 + 1)}일 ${Math.floor(Math.random() * 24)}시간`,
+          lastUpdate: serverData.last_updated
+            ? new Date(serverData.last_updated)
+            : new Date(),
+          alerts:
+            serverData.alerts?.length ||
+            (serverData.status === 'critical'
+              ? 3
+              : serverData.status === 'warning'
+                ? 1
+                : 0),
           services: serverData.services || [
-            { name: 'nginx', status: serverData.status === 'critical' ? 'stopped' : 'running', port: 80 },
+            {
+              name: 'nginx',
+              status: serverData.status === 'critical' ? 'stopped' : 'running',
+              port: 80,
+            },
             { name: 'nodejs', status: 'running', port: 3000 },
-            { name: 'gunicorn', status: serverData.status === 'critical' ? 'stopped' : 'running', port: 8000 },
+            {
+              name: 'gunicorn',
+              status: serverData.status === 'critical' ? 'stopped' : 'running',
+              port: 8000,
+            },
           ],
         } as Server;
       });
@@ -410,14 +463,14 @@ export default function ServerDashboard({
 
     // 🎯 심각 → 경고 → 정상 순으로 정렬
     const sortedServers = baseServers.sort((a, b) => {
-      const statusPriority = { 'offline': 0, 'warning': 1, 'online': 2 };
+      const statusPriority = { offline: 0, warning: 1, online: 2 };
       const priorityA = statusPriority[a.status] || 2;
       const priorityB = statusPriority[b.status] || 2;
-      
+
       if (priorityA !== priorityB) {
         return priorityA - priorityB; // 심각(offline=0) → 경고(warning=1) → 정상(online=2)
       }
-      
+
       // 같은 상태면 CPU 사용률 높은 순으로
       return b.cpu - a.cpu;
     });
@@ -465,31 +518,29 @@ export default function ServerDashboard({
       console.log('📊 서버 데이터 로드 완료:', data);
 
       // 🔄 기존 서버 데이터 스토어 새로고침
-      await refreshData();
-      
+      await refreshAll();
+
       console.log(`✅ 실제 서버 데이터 적용 완료`);
-      
     } catch (error) {
       console.error('❌ 실제 데이터 로드 실패:', error);
       setError(`실제 데이터 로드 실패: ${error}`);
-      
+
       // 실패해도 기존 데이터 사용
       console.log('⚠️ API 로드 실패, 기존 데이터 사용');
-      
     } finally {
       setIsLoading(false);
     }
-  }, [refreshData]);
+  }, [refreshAll]);
 
   // 🔄 데이터 로드 실행 (실제 데이터 우선)
   useEffect(() => {
     let mounted = true;
-    
+
     const initializeData = async () => {
       if (!mounted) return;
-      
+
       console.log('🚀 ServerDashboard 데이터 초기화 시작');
-      
+
       try {
         // 실제 데이터 로드 시도
         await loadRealData();
@@ -499,7 +550,7 @@ export default function ServerDashboard({
     };
 
     initializeData();
-    
+
     // 🔄 실시간 업데이트 (30초마다)
     const interval = setInterval(() => {
       if (mounted) {
@@ -517,14 +568,14 @@ export default function ServerDashboard({
   // ⭐ 서버 정렬 헬퍼 함수 (심각 → 경고 → 정상 순)
   const sortServersByPriority = (servers: Server[]): Server[] => {
     return servers.sort((a, b) => {
-      const statusPriority = { 'offline': 0, 'warning': 1, 'online': 2 };
+      const statusPriority = { offline: 0, warning: 1, online: 2 };
       const priorityA = statusPriority[a.status] || 2;
       const priorityB = statusPriority[b.status] || 2;
-      
+
       if (priorityA !== priorityB) {
         return priorityA - priorityB; // 심각(offline=0) → 경고(warning=1) → 정상(online=2)
       }
-      
+
       // 같은 상태면 CPU 사용률 높은 순으로
       return b.cpu - a.cpu;
     });
@@ -533,16 +584,17 @@ export default function ServerDashboard({
   // 🔄 검색 및 정렬된 서버 목록
   const filteredAndSortedServers = useMemo(() => {
     let filtered = currentServers;
-    
+
     // 검색 필터 적용
     if (searchTerm.trim()) {
-      filtered = filtered.filter((server) =>
-        server.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        server.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        server.status.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(
+        server =>
+          server.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          server.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          server.status.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
+
     // 🎯 심각 → 경고 → 정상 순으로 정렬
     return sortServersByPriority(filtered);
   }, [currentServers, searchTerm]);
@@ -730,7 +782,8 @@ export default function ServerDashboard({
             </span>
             개 서버 중
             <span className='font-semibold text-blue-600 mx-1'>
-              {startIndex + 1}-{Math.min(endIndex, filteredAndSortedServers.length)}
+              {startIndex + 1}-
+              {Math.min(endIndex, filteredAndSortedServers.length)}
             </span>
             개 표시
           </div>
@@ -762,7 +815,7 @@ export default function ServerDashboard({
                   environment: 'production',
                   provider: 'AWS',
                   status: 'critical' as any,
-                  specs: { cpu_cores: 8, memory_gb: 16, disk_gb: 500 }
+                  specs: { cpu_cores: 8, memory_gb: 16, disk_gb: 500 },
                 }}
                 index={index}
                 onClick={() => handleServerSelect(server)}
@@ -790,7 +843,7 @@ export default function ServerDashboard({
                   environment: 'production',
                   provider: 'AWS',
                   status: 'warning' as any,
-                  specs: { cpu_cores: 6, memory_gb: 12, disk_gb: 250 }
+                  specs: { cpu_cores: 6, memory_gb: 12, disk_gb: 250 },
                 }}
                 index={index}
                 onClick={() => handleServerSelect(server)}
@@ -818,7 +871,7 @@ export default function ServerDashboard({
                   environment: 'production',
                   provider: 'AWS',
                   status: 'healthy' as any,
-                  specs: { cpu_cores: 4, memory_gb: 8, disk_gb: 100 }
+                  specs: { cpu_cores: 4, memory_gb: 8, disk_gb: 100 },
                 }}
                 index={index}
                 onClick={() => handleServerSelect(server)}
@@ -885,16 +938,24 @@ export default function ServerDashboard({
 
       {/* 서버 상세 모달 */}
       <EnhancedServerModal
-        server={selectedServer ? {
-          ...selectedServer,
-          hostname: selectedServer.name,
-          type: 'api_server',
-          environment: 'production',
-          provider: 'AWS',
-          status: selectedServer.status === 'online' ? 'healthy' : 
-                  selectedServer.status === 'warning' ? 'warning' : 'critical',
-          specs: { cpu_cores: 8, memory_gb: 16, disk_gb: 500 }
-        } : null}
+        server={
+          selectedServer
+            ? {
+                ...selectedServer,
+                hostname: selectedServer.name,
+                type: 'api_server',
+                environment: 'production',
+                provider: 'AWS',
+                status:
+                  selectedServer.status === 'online'
+                    ? 'healthy'
+                    : selectedServer.status === 'warning'
+                      ? 'warning'
+                      : 'critical',
+                specs: { cpu_cores: 8, memory_gb: 16, disk_gb: 500 },
+              }
+            : null
+        }
         onClose={() => setSelectedServer(null)}
       />
     </div>

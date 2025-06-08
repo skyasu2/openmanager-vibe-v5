@@ -222,7 +222,7 @@ export const useServerDataStore = create<ServerDataState>()(
       // 서버 데이터 가져오기
       fetchServers: async () => {
         set({ isLoading: true, error: null });
-        
+
         try {
           // 통합 메트릭 관리자에서 데이터 가져오기 시도
           const response = await fetch('/api/unified-metrics');
@@ -236,14 +236,14 @@ export const useServerDataStore = create<ServerDataState>()(
                 ...get().performance,
                 totalRequests: get().performance.totalRequests + 1,
                 lastSyncTime: new Date(),
-              }
+              },
             });
           } else {
             throw new Error('통합 메트릭 API 호출 실패');
           }
         } catch (error) {
           console.warn('통합 메트릭 API 실패, 대체 API 사용:', error);
-          
+
           try {
             const servers = await fetchServersFromAPI();
             set({
@@ -297,7 +297,7 @@ export const useServerDataStore = create<ServerDataState>()(
           if (response.ok) {
             const status = await response.json();
             set({ unifiedManagerStatus: status });
-            
+
             // 시스템 시작 후 데이터 가져오기
             await get().fetchServers();
           }
@@ -310,7 +310,7 @@ export const useServerDataStore = create<ServerDataState>()(
       // 통합 시스템 중지
       stopUnifiedSystem: () => {
         get().stopRealTimeUpdates();
-        
+
         fetch('/api/system/stop', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -322,10 +322,10 @@ export const useServerDataStore = create<ServerDataState>()(
       // 시스템 상태 조회
       getSystemStatus: () => {
         const { servers, unifiedManagerStatus } = get();
-        
+
         return {
           totalServers: servers.length,
-          healthyServers: servers.filter(s => s.status === 'healthy').length,
+          healthyServers: servers.filter(s => s.status === 'normal').length,
           warningServers: servers.filter(s => s.status === 'warning').length,
           criticalServers: servers.filter(s => s.status === 'critical').length,
           unifiedManagerStatus,
@@ -345,11 +345,12 @@ export const useServerDataStore = create<ServerDataState>()(
 
       // 환경별 서버 조회
       getServersByEnvironment: (environment: string) => {
-        return get().servers.filter(server => 
-          server.environment?.toLowerCase() === environment.toLowerCase()
+        return get().servers.filter(
+          server =>
+            server.environment?.toLowerCase() === environment.toLowerCase()
         );
       },
     }),
     { name: 'server-data-store' }
   )
-); 
+);

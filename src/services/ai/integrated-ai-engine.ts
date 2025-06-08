@@ -1,6 +1,6 @@
 /**
  * 🤖 통합 AI 엔진 v3.0
- * 
+ *
  * ✅ 현재: MCP + TensorFlow.js + NLP 로컬 추론 (완전 독립 동작)
  * ✅ LLM API 없이도 동작하는 자연어 질의응답
  * ✅ 실시간 장애 예측
@@ -96,25 +96,31 @@ export class IntegratedAIEngine {
     console.log('🔄 Render 자동 관리 시작...');
 
     // 5분마다 ping 전송
-    this.renderPingInterval = setInterval(async () => {
-      try {
-        const response = await fetch(renderUrl + '/health', {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
-        });
+    this.renderPingInterval = setInterval(
+      async () => {
+        try {
+          const response = await fetch(renderUrl + '/health', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          });
 
-        if (response.ok) {
-          this.renderStatus = 'active';
-          console.log('✅ Render 서비스 정상 (ping 성공)');
-        } else {
-          this.renderStatus = 'sleeping';
-          console.log('⚠️ Render 서비스 응답 없음');
+          if (response.ok) {
+            this.renderStatus = 'active';
+            console.log('✅ Render 서비스 정상 (ping 성공)');
+          } else {
+            this.renderStatus = 'sleeping';
+            console.log('⚠️ Render 서비스 응답 없음');
+          }
+        } catch (error) {
+          this.renderStatus = 'error';
+          console.log(
+            '❌ Render ping 실패:',
+            error instanceof Error ? error.message : '알 수 없는 오류'
+          );
         }
-      } catch (error) {
-        this.renderStatus = 'error';
-        console.log('❌ Render ping 실패:', error instanceof Error ? error.message : '알 수 없는 오류');
-      }
-    }, 5 * 60 * 1000); // 5분
+      },
+      5 * 60 * 1000
+    ); // 5분
 
     // 프로세스 종료 시 정리
     process.on('beforeExit', () => {
@@ -136,38 +142,122 @@ export class IntegratedAIEngine {
     if (this.initialized) return;
 
     console.log('🤖 통합 AI 엔진 v3.0 초기화 중...');
-    
+
     try {
       // 모든 하위 컴포넌트 초기화
       await Promise.all([
         realMCPClient.initialize(),
         tensorFlowAIEngine.initialize(),
-        autoReportGenerator.initialize()
+        autoReportGenerator.initialize(),
       ]);
-      
+
       this.initialized = true;
       console.log('✅ 통합 AI 엔진 초기화 완료');
       console.log('🔧 활성화된 컴포넌트:');
       console.log('  - ✅ 실제 MCP 클라이언트');
       console.log('  - ✅ TensorFlow.js AI 엔진');
       console.log('  - ✅ 자동 보고서 생성기');
-      
     } catch (error: any) {
       console.error('❌ 통합 AI 엔진 초기화 실패:', error);
       this.initialized = true; // 폴백 모드로 계속 진행
     }
   }
 
+  /**
+   * 자연어 처리 분석
+   */
+  private async processNLP(query: string): Promise<any> {
+    try {
+      // 기본 NLP 분석
+      const keywords = this.extractQueryKeywords(query);
+      const intent = this.detectIntent(query);
+      const language = this.detectLanguage(query);
+
+      return {
+        intent,
+        confidence: 0.8,
+        entities: [],
+        keywords,
+        language,
+        sentiment: 'neutral',
+        query_type: this.classifyQueryType(query),
+      };
+    } catch (error: any) {
+      console.warn('⚠️ NLP 처리 실패:', error);
+      return {
+        intent: 'general',
+        confidence: 0.5,
+        entities: [],
+        keywords: query.split(' ').slice(0, 5),
+        language: 'ko',
+        sentiment: 'neutral',
+        query_type: 'general',
+      };
+    }
+  }
+
+  private detectIntent(query: string): string {
+    const lowerQuery = query.toLowerCase();
+
+    if (
+      lowerQuery.includes('오류') ||
+      lowerQuery.includes('에러') ||
+      lowerQuery.includes('문제')
+    ) {
+      return 'troubleshooting';
+    }
+    if (lowerQuery.includes('예측') || lowerQuery.includes('전망')) {
+      return 'prediction';
+    }
+    if (lowerQuery.includes('분석') || lowerQuery.includes('상태')) {
+      return 'analysis';
+    }
+    if (lowerQuery.includes('모니터링') || lowerQuery.includes('감시')) {
+      return 'monitoring';
+    }
+    if (lowerQuery.includes('보고서') || lowerQuery.includes('리포트')) {
+      return 'reporting';
+    }
+    if (lowerQuery.includes('성능') || lowerQuery.includes('최적화')) {
+      return 'performance';
+    }
+
+    return 'general';
+  }
+
+  private detectLanguage(query: string): string {
+    // 한글 문자가 포함되어 있으면 한국어
+    return /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(query) ? 'ko' : 'en';
+  }
+
+  private classifyQueryType(query: string): string {
+    if (
+      query.includes('?') ||
+      query.includes('무엇') ||
+      query.includes('어떻게')
+    ) {
+      return 'question';
+    }
+    if (
+      query.includes('실행') ||
+      query.includes('시작') ||
+      query.includes('중지')
+    ) {
+      return 'command';
+    }
+    return 'statement';
+  }
+
   async processQuery(request: AIQueryRequest): Promise<AIQueryResponse> {
     await this.initialize();
-    
+
     const startTime = Date.now();
     const queryId = this.generateQueryId();
     const sessionId = request.context?.session_id || queryId;
-    
+
     console.log(`🤖 AI 쿼리 처리 시작: ${queryId}`);
     console.log(`📝 질문: "${request.query}"`);
-    
+
     this.activeSessions.add(sessionId);
 
     const response: AIQueryResponse = {
@@ -177,20 +267,20 @@ export class IntegratedAIEngine {
       confidence: 0,
       answer: '',
       analysis_results: {
-        nlp_analysis: null
+        nlp_analysis: null,
       },
       recommendations: [],
       processing_stats: {
         total_time: 0,
         components_used: [],
         models_executed: [],
-        data_sources: []
+        data_sources: [],
       },
       metadata: {
         timestamp: new Date().toISOString(),
         language: request.context?.language || 'ko',
-        session_id: sessionId
-      }
+        session_id: sessionId,
+      },
     };
 
     try {
@@ -202,7 +292,9 @@ export class IntegratedAIEngine {
       response.confidence = nlpResult.confidence;
       response.processing_stats.components_used.push('nlp_processor');
 
-      console.log(`🎯 의도 분석 결과: ${nlpResult.intent} (신뢰도: ${(nlpResult.confidence * 100).toFixed(1)}%)`);
+      console.log(
+        `🎯 의도 분석 결과: ${nlpResult.intent} (신뢰도: ${(nlpResult.confidence * 100).toFixed(1)}%)`
+      );
 
       // 2단계: 의도별 처리 분기
       await this.processIntentSpecificActions(nlpResult, request, response);
@@ -220,22 +312,24 @@ export class IntegratedAIEngine {
 
       response.success = true;
       response.processing_stats.total_time = Date.now() - startTime;
-      
-      console.log(`✅ AI 쿼리 처리 완료: ${response.processing_stats.total_time}ms`);
-      console.log(`🎯 최종 응답: "${response.answer.substring(0, 100)}..."`);
 
+      console.log(
+        `✅ AI 쿼리 처리 완료: ${response.processing_stats.total_time}ms`
+      );
+      console.log(`🎯 최종 응답: "${response.answer.substring(0, 100)}..."`);
     } catch (error: any) {
       console.error('❌ AI 쿼리 처리 실패:', error);
       response.success = false;
-      response.answer = response.metadata.language === 'ko' ? 
-        '죄송합니다. 처리 중 오류가 발생했습니다. 다시 시도해 주세요.' :
-        'Sorry, an error occurred during processing. Please try again.';
+      response.answer =
+        response.metadata.language === 'ko'
+          ? '죄송합니다. 처리 중 오류가 발생했습니다. 다시 시도해 주세요.'
+          : 'Sorry, an error occurred during processing. Please try again.';
       response.processing_stats.total_time = Date.now() - startTime;
-      
+
       if (request.options?.include_debug) {
         response.metadata.debug_info = {
           error: error.message,
-          stack: error.stack
+          stack: error.stack,
         };
       }
     } finally {
@@ -246,189 +340,241 @@ export class IntegratedAIEngine {
   }
 
   private async processIntentSpecificActions(
-    nlpResult: any, 
-    request: AIQueryRequest, 
+    nlpResult: any,
+    request: AIQueryRequest,
     response: AIQueryResponse
   ): Promise<void> {
     const intent = nlpResult.intent;
-    
+
     switch (intent) {
       case 'troubleshooting':
       case 'emergency':
         await this.handleTroubleshootingIntent(nlpResult, request, response);
         break;
-        
+
       case 'prediction':
         await this.handlePredictionIntent(nlpResult, request, response);
         break;
-        
+
       case 'analysis':
         await this.handleAnalysisIntent(nlpResult, request, response);
         break;
-        
+
       case 'monitoring':
         await this.handleMonitoringIntent(nlpResult, request, response);
         break;
-        
+
       case 'reporting':
         await this.handleReportingIntent(nlpResult, request, response);
         break;
-        
+
       case 'performance':
         await this.handlePerformanceIntent(nlpResult, request, response);
         break;
-        
+
       default:
         await this.handleGeneralIntent(nlpResult, request, response);
     }
   }
 
   private async handleTroubleshootingIntent(
-    nlpResult: any, 
-    request: AIQueryRequest, 
+    nlpResult: any,
+    request: AIQueryRequest,
     response: AIQueryResponse
   ): Promise<void> {
     // 시스템 메트릭 수집
-    const systemMetrics = await this.collectSystemMetrics(request.context?.server_ids);
-    
+    const systemMetrics = await this.collectSystemMetrics(
+      request.context?.server_ids
+    );
+
     // MCP를 통한 문서 검색
     const mcpResults = await realMCPClient.searchDocuments(request.query);
     response.mcp_results = mcpResults;
     response.processing_stats.data_sources.push('mcp-docs');
 
     // AI 장애 분석 실행
-    if (systemMetrics.servers && Object.keys(systemMetrics.servers).length > 0) {
+    if (
+      systemMetrics.servers &&
+      Object.keys(systemMetrics.servers).length > 0
+    ) {
       // 🔧 타입 에러 수정: 중첩 구조를 플랫 구조로 변환
       const flattenedMetrics: Record<string, number[]> = {};
-      
-      for (const [serverId, serverMetrics] of Object.entries(systemMetrics.servers)) {
+
+      for (const [serverId, serverMetrics] of Object.entries(
+        systemMetrics.servers
+      )) {
         for (const [metricName, values] of Object.entries(serverMetrics)) {
           const key = `${serverId}_${metricName}`;
           flattenedMetrics[key] = values;
         }
       }
-      
-      const aiAnalysis = await tensorFlowAIEngine.analyzeMetricsWithAI(flattenedMetrics);
+
+      const aiAnalysis =
+        await tensorFlowAIEngine.analyzeMetricsWithAI(flattenedMetrics);
       response.analysis_results.ai_predictions = aiAnalysis.failure_predictions;
-      response.analysis_results.anomaly_detection = aiAnalysis.anomaly_detections;
-      response.processing_stats.models_executed.push(...aiAnalysis.processing_stats.models_used);
+      response.analysis_results.anomaly_detection =
+        aiAnalysis.anomaly_detections;
+      response.processing_stats.models_executed.push(
+        ...aiAnalysis.processing_stats.models_used
+      );
     }
 
-    response.processing_stats.components_used.push('mcp-client', 'tensorflow-engine');
+    response.processing_stats.components_used.push(
+      'mcp-client',
+      'tensorflow-engine'
+    );
   }
 
   private async handlePredictionIntent(
-    nlpResult: any, 
-    request: AIQueryRequest, 
+    nlpResult: any,
+    request: AIQueryRequest,
     response: AIQueryResponse
   ): Promise<void> {
     // 시스템 메트릭 수집
-    const systemMetrics = await this.collectSystemMetrics(request.context?.server_ids);
-    
-    if (systemMetrics.servers && Object.keys(systemMetrics.servers).length > 0) {
+    const systemMetrics = await this.collectSystemMetrics(
+      request.context?.server_ids
+    );
+
+    if (
+      systemMetrics.servers &&
+      Object.keys(systemMetrics.servers).length > 0
+    ) {
       // 🔧 타입 에러 수정: 중첩 구조를 플랫 구조로 변환
       const flattenedMetrics: Record<string, number[]> = {};
-      
-      for (const [serverId, serverMetrics] of Object.entries(systemMetrics.servers)) {
+
+      for (const [serverId, serverMetrics] of Object.entries(
+        systemMetrics.servers
+      )) {
         for (const [metricName, values] of Object.entries(serverMetrics)) {
           const key = `${serverId}_${metricName}`;
           flattenedMetrics[key] = values;
         }
       }
-      
-      const aiAnalysis = await tensorFlowAIEngine.analyzeMetricsWithAI(flattenedMetrics);
+
+      const aiAnalysis =
+        await tensorFlowAIEngine.analyzeMetricsWithAI(flattenedMetrics);
       response.analysis_results.ai_predictions = aiAnalysis.failure_predictions;
       response.analysis_results.trend_forecasts = aiAnalysis.trend_predictions;
-      response.processing_stats.models_executed.push(...aiAnalysis.processing_stats.models_used);
-      
+      response.processing_stats.models_executed.push(
+        ...aiAnalysis.processing_stats.models_used
+      );
+
       // 예측 신뢰도가 높은 결과에 대한 알림
-      for (const [metric, prediction] of Object.entries(aiAnalysis.failure_predictions)) {
+      for (const [metric, prediction] of Object.entries(
+        aiAnalysis.failure_predictions
+      )) {
         if (prediction.confidence > 0.8 && prediction.prediction[0] > 0.6) {
           systemMetrics.alerts.push({
             type: 'prediction',
             severity: 'high',
             metric: metric,
             message: `높은 확률의 장애 예측: ${(prediction.prediction[0] * 100).toFixed(1)}%`,
-            confidence: prediction.confidence
+            confidence: prediction.confidence,
           });
         }
       }
     }
 
     response.analysis_results.active_alerts = systemMetrics.alerts;
-    response.processing_stats.components_used.push('tensorflow-engine', 'prediction-model');
+    response.processing_stats.components_used.push(
+      'tensorflow-engine',
+      'prediction-model'
+    );
   }
 
   private async handleAnalysisIntent(
-    nlpResult: any, 
-    request: AIQueryRequest, 
+    nlpResult: any,
+    request: AIQueryRequest,
     response: AIQueryResponse
   ): Promise<void> {
-    const systemMetrics = await this.collectSystemMetrics(request.context?.server_ids);
-    
-    if (systemMetrics.servers && Object.keys(systemMetrics.servers).length > 0) {
+    const systemMetrics = await this.collectSystemMetrics(
+      request.context?.server_ids
+    );
+
+    if (
+      systemMetrics.servers &&
+      Object.keys(systemMetrics.servers).length > 0
+    ) {
       // 🔧 타입 에러 수정: 중첩 구조를 플랫 구조로 변환
       const flattenedMetrics: Record<string, number[]> = {};
-      
-      for (const [serverId, serverMetrics] of Object.entries(systemMetrics.servers)) {
+
+      for (const [serverId, serverMetrics] of Object.entries(
+        systemMetrics.servers
+      )) {
         for (const [metricName, values] of Object.entries(serverMetrics)) {
           const key = `${serverId}_${metricName}`;
           flattenedMetrics[key] = values;
         }
       }
-      
-      const aiAnalysis = await tensorFlowAIEngine.analyzeMetricsWithAI(flattenedMetrics);
+
+      const aiAnalysis =
+        await tensorFlowAIEngine.analyzeMetricsWithAI(flattenedMetrics);
       response.analysis_results.ai_predictions = aiAnalysis.failure_predictions;
-      response.analysis_results.anomaly_detection = aiAnalysis.anomaly_detections;
-      response.processing_stats.models_executed.push(...aiAnalysis.processing_stats.models_used);
+      response.analysis_results.anomaly_detection =
+        aiAnalysis.anomaly_detections;
+      response.processing_stats.models_executed.push(
+        ...aiAnalysis.processing_stats.models_used
+      );
     }
 
     // MCP를 통한 추가 컨텍스트 수집
     if (request.context?.session_id) {
-      const sessionContext = await realMCPClient.retrieveContext(request.context.session_id);
+      const sessionContext = await realMCPClient.retrieveContext(
+        request.context.session_id
+      );
       response.analysis_results.session_context = sessionContext;
     }
 
-    response.processing_stats.components_used.push('tensorflow-engine', 'mcp-client');
+    response.processing_stats.components_used.push(
+      'tensorflow-engine',
+      'mcp-client'
+    );
   }
 
   private async handleMonitoringIntent(
-    nlpResult: any, 
-    request: AIQueryRequest, 
+    nlpResult: any,
+    request: AIQueryRequest,
     response: AIQueryResponse
   ): Promise<void> {
     console.log('📊 모니터링 모드 실행');
-    
+
     try {
-      const systemMetrics = await this.collectSystemMetrics(request.context?.server_ids);
-      response.processing_stats.data_sources.push('system_metrics', 'real_time_monitoring');
+      const systemMetrics = await this.collectSystemMetrics(
+        request.context?.server_ids
+      );
+      response.processing_stats.data_sources.push(
+        'system_metrics',
+        'real_time_monitoring'
+      );
 
       // 실시간 상태 분석
       if (systemMetrics.alerts && systemMetrics.alerts.length > 0) {
         response.analysis_results.active_alerts = systemMetrics.alerts;
       }
-
     } catch (error: any) {
       console.error('모니터링 처리 실패:', error);
     }
   }
 
   private async handleReportingIntent(
-    nlpResult: any, 
-    request: AIQueryRequest, 
+    nlpResult: any,
+    request: AIQueryRequest,
     response: AIQueryResponse
   ): Promise<void> {
     console.log('📄 보고서 생성 모드 실행');
-    
+
     try {
       // 보고서용 데이터 수집
-      const systemMetrics = await this.collectSystemMetrics(request.context?.server_ids);
-      
+      const systemMetrics = await this.collectSystemMetrics(
+        request.context?.server_ids
+      );
+
       const reportData = {
         timestamp: new Date().toISOString(),
-        summary: response.metadata.language === 'ko' ? 
-          '시스템 상태 보고서입니다.' : 
-          'System status report.',
+        summary:
+          response.metadata.language === 'ko'
+            ? '시스템 상태 보고서입니다.'
+            : 'System status report.',
         failure_analysis: response.analysis_results.anomaly_detection || {},
         prediction_results: response.analysis_results.ai_predictions || {},
         ai_insights: ['AI 기반 분석 결과를 포함합니다.'],
@@ -439,8 +585,8 @@ export class IntegratedAIEngine {
         time_range: {
           start: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
           end: new Date().toISOString(),
-          duration: '24h'
-        }
+          duration: '24h',
+        },
       };
 
       const reportConfig = {
@@ -448,52 +594,65 @@ export class IntegratedAIEngine {
         include_charts: true,
         include_raw_data: false,
         template: 'technical' as const,
-        language: response.metadata.language as 'ko' | 'en'
+        language: response.metadata.language as 'ko' | 'en',
       };
 
-      const generatedReport = await autoReportGenerator.generateFailureReport(reportData, reportConfig);
+      const generatedReport = await autoReportGenerator.generateFailureReport(
+        reportData,
+        reportConfig
+      );
       response.generated_report = generatedReport;
       response.processing_stats.components_used.push('report_generator');
-
     } catch (error: any) {
       console.error('보고서 생성 처리 실패:', error);
     }
   }
 
   private async handlePerformanceIntent(
-    nlpResult: any, 
-    request: AIQueryRequest, 
+    nlpResult: any,
+    request: AIQueryRequest,
     response: AIQueryResponse
   ): Promise<void> {
-    const systemMetrics = await this.collectSystemMetrics(request.context?.server_ids);
-    
-    if (systemMetrics.servers && Object.keys(systemMetrics.servers).length > 0) {
+    const systemMetrics = await this.collectSystemMetrics(
+      request.context?.server_ids
+    );
+
+    if (
+      systemMetrics.servers &&
+      Object.keys(systemMetrics.servers).length > 0
+    ) {
       // 🔧 타입 에러 수정: 중첩 구조를 플랫 구조로 변환
       const flattenedMetrics: Record<string, number[]> = {};
-      
-      for (const [serverId, serverMetrics] of Object.entries(systemMetrics.servers)) {
+
+      for (const [serverId, serverMetrics] of Object.entries(
+        systemMetrics.servers
+      )) {
         for (const [metricName, values] of Object.entries(serverMetrics)) {
           const key = `${serverId}_${metricName}`;
           flattenedMetrics[key] = values;
         }
       }
-      
-      const aiAnalysis = await tensorFlowAIEngine.analyzeMetricsWithAI(flattenedMetrics);
+
+      const aiAnalysis =
+        await tensorFlowAIEngine.analyzeMetricsWithAI(flattenedMetrics);
       response.analysis_results.ai_predictions = aiAnalysis.failure_predictions;
-      response.analysis_results.anomaly_detection = aiAnalysis.anomaly_detections;
-      response.processing_stats.models_executed.push(...aiAnalysis.processing_stats.models_used);
+      response.analysis_results.anomaly_detection =
+        aiAnalysis.anomaly_detections;
+      response.processing_stats.models_executed.push(
+        ...aiAnalysis.processing_stats.models_used
+      );
     }
 
     response.processing_stats.components_used.push('tensorflow-engine');
   }
 
   private async handleGeneralIntent(
-    nlpResult: any, 
-    request: AIQueryRequest, 
+    nlpResult: any,
+    request: AIQueryRequest,
     response: AIQueryResponse
   ): Promise<void> {
     console.log('🤖 일반 질의 모드 실행 (Enhanced MCP 활용)');
-    
+
     try {
       // Enhanced MCP 문서 검색
       const searchResults = await realMCPClient.searchDocuments(request.query);
@@ -517,7 +676,6 @@ export class IntegratedAIEngine {
       if (response.mcp_results.results?.length > 0) {
         response.confidence = Math.min(0.9, response.confidence + 0.2);
       }
-
     } catch (error: any) {
       console.error('일반 질의 처리 실패:', error);
     }
@@ -528,7 +686,7 @@ export class IntegratedAIEngine {
    */
   private extractQueryKeywords(query: string): string[] {
     const keywords = new Set<string>();
-    
+
     // 한국어 키워드 (2글자 이상)
     const koreanWords = query.match(/[가-힣]{2,}/g) || [];
     koreanWords.forEach(word => {
@@ -553,17 +711,20 @@ export class IntegratedAIEngine {
    */
   private async searchDocumentsByKeywords(keywords: string[]): Promise<any[]> {
     const results: any[] = [];
-    
+
     try {
       // docs 폴더 검색
       const docsFiles = await realMCPClient.listDirectory('docs');
-      const relevantFiles = docsFiles.filter(file => 
-        file.endsWith('.md') && keywords.some(keyword => 
-          file.toLowerCase().includes(keyword.toLowerCase())
-        )
+      const relevantFiles = docsFiles.filter(
+        file =>
+          file.endsWith('.md') &&
+          keywords.some(keyword =>
+            file.toLowerCase().includes(keyword.toLowerCase())
+          )
       );
 
-      for (const file of relevantFiles.slice(0, 3)) { // 상위 3개만
+      for (const file of relevantFiles.slice(0, 3)) {
+        // 상위 3개만
         try {
           const content = await realMCPClient.readFile(file);
           if (content) {
@@ -571,7 +732,9 @@ export class IntegratedAIEngine {
               path: file,
               relevanceScore: this.calculateKeywordRelevance(content, keywords),
               summary: content.substring(0, 200) + '...',
-              keywords: keywords.filter(k => content.toLowerCase().includes(k.toLowerCase()))
+              keywords: keywords.filter(k =>
+                content.toLowerCase().includes(k.toLowerCase())
+              ),
             });
           }
         } catch (error) {
@@ -581,7 +744,6 @@ export class IntegratedAIEngine {
 
       // 관련도 순으로 정렬
       results.sort((a, b) => b.relevanceScore - a.relevanceScore);
-      
     } catch (error) {
       console.error('❌ 키워드 기반 문서 검색 실패:', error);
     }
@@ -592,14 +754,19 @@ export class IntegratedAIEngine {
   /**
    * ⭐ 키워드 관련도 계산
    */
-  private calculateKeywordRelevance(content: string, keywords: string[]): number {
+  private calculateKeywordRelevance(
+    content: string,
+    keywords: string[]
+  ): number {
     let score = 0;
     const contentLower = content.toLowerCase();
-    
+
     keywords.forEach(keyword => {
-      const count = (contentLower.match(new RegExp(keyword.toLowerCase(), 'g')) || []).length;
+      const count = (
+        contentLower.match(new RegExp(keyword.toLowerCase(), 'g')) || []
+      ).length;
       score += count * 1.5; // 키워드 빈도 점수
-      
+
       // 제목이나 헤딩에 있으면 가중치
       if (contentLower.includes(`# ${keyword.toLowerCase()}`)) score += 5;
       if (contentLower.includes(`## ${keyword.toLowerCase()}`)) score += 3;
@@ -613,14 +780,66 @@ export class IntegratedAIEngine {
    */
   private isCommonWord(word: string): boolean {
     const commonWords = new Set([
-      'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'her', 'was', 'one', 'our', 'had', 'words', 'from', 'they', 'this', 'been', 'have', 'with', 'that', 'will', 'what', 'your', 'how', 'said', 'each', 'she', 'which', 'their', 'time', 'would', 'there', 'way', 'could', 'than', 'now', 'find', 'these', 'more', 'long', 'make', 'many', 'over', 'did', 'just', 'very', 'where', 'come', 'made', 'may', 'part'
+      'the',
+      'and',
+      'for',
+      'are',
+      'but',
+      'not',
+      'you',
+      'all',
+      'can',
+      'her',
+      'was',
+      'one',
+      'our',
+      'had',
+      'words',
+      'from',
+      'they',
+      'this',
+      'been',
+      'have',
+      'with',
+      'that',
+      'will',
+      'what',
+      'your',
+      'how',
+      'said',
+      'each',
+      'she',
+      'which',
+      'their',
+      'time',
+      'would',
+      'there',
+      'way',
+      'could',
+      'than',
+      'now',
+      'find',
+      'these',
+      'more',
+      'long',
+      'make',
+      'many',
+      'over',
+      'did',
+      'just',
+      'very',
+      'where',
+      'come',
+      'made',
+      'may',
+      'part',
     ]);
     return commonWords.has(word.toLowerCase());
   }
 
   private async generateComprehensiveAnswer(
-    nlpResult: any, 
-    request: AIQueryRequest, 
+    nlpResult: any,
+    request: AIQueryRequest,
     response: AIQueryResponse
   ): Promise<void> {
     const lang = response.metadata.language;
@@ -654,45 +873,66 @@ export class IntegratedAIEngine {
     response.answer = answer;
   }
 
-  private generateTroubleshootingAnswer(response: AIQueryResponse, lang: string): string {
+  private generateTroubleshootingAnswer(
+    response: AIQueryResponse,
+    lang: string
+  ): string {
     const anomalies = response.analysis_results.anomaly_detection;
     const predictions = response.analysis_results.ai_predictions;
-    
-    let answer = lang === 'ko' ? '🚨 시스템 장애 분석 결과:\n\n' : '🚨 System Troubleshooting Analysis:\n\n';
+
+    let answer =
+      lang === 'ko'
+        ? '🚨 시스템 장애 분석 결과:\n\n'
+        : '🚨 System Troubleshooting Analysis:\n\n';
 
     if (anomalies && Object.keys(anomalies).length > 0) {
-      answer += lang === 'ko' ? '**이상 탐지 결과:**\n' : '**Anomaly Detection:**\n';
+      answer +=
+        lang === 'ko' ? '**이상 탐지 결과:**\n' : '**Anomaly Detection:**\n';
       Object.entries(anomalies).forEach(([metric, anomaly]: [string, any]) => {
-        const status = anomaly.is_anomaly ? 
-          (lang === 'ko' ? '이상 감지' : 'Anomaly Detected') :
-          (lang === 'ko' ? '정상' : 'Normal');
+        const status = anomaly.is_anomaly
+          ? lang === 'ko'
+            ? '이상 감지'
+            : 'Anomaly Detected'
+          : lang === 'ko'
+            ? '정상'
+            : 'Normal';
         answer += `- ${metric}: ${status}\n`;
       });
       answer += '\n';
     }
 
     if (predictions && Object.keys(predictions).length > 0) {
-      answer += lang === 'ko' ? '**장애 예측:**\n' : '**Failure Prediction:**\n';
-      Object.entries(predictions).forEach(([metric, prediction]: [string, any]) => {
-        const probability = (prediction.prediction[0] * 100).toFixed(1);
-        answer += `- ${metric}: ${probability}%\n`;
-      });
+      answer +=
+        lang === 'ko' ? '**장애 예측:**\n' : '**Failure Prediction:**\n';
+      Object.entries(predictions).forEach(
+        ([metric, prediction]: [string, any]) => {
+          const probability = (prediction.prediction[0] * 100).toFixed(1);
+          answer += `- ${metric}: ${probability}%\n`;
+        }
+      );
       answer += '\n';
     }
 
     if (!anomalies && !predictions) {
-      answer += lang === 'ko' ? 
-        '현재 분석할 수 있는 메트릭 데이터가 충분하지 않습니다.' :
-        'Insufficient metric data available for analysis.';
+      answer +=
+        lang === 'ko'
+          ? '현재 분석할 수 있는 메트릭 데이터가 충분하지 않습니다.'
+          : 'Insufficient metric data available for analysis.';
     }
 
     return answer;
   }
 
-  private generatePredictionAnswer(response: AIQueryResponse, lang: string): string {
+  private generatePredictionAnswer(
+    response: AIQueryResponse,
+    lang: string
+  ): string {
     const forecasts = response.analysis_results.trend_forecasts;
-    
-    let answer = lang === 'ko' ? '🔮 시계열 예측 결과:\n\n' : '🔮 Time Series Forecast:\n\n';
+
+    let answer =
+      lang === 'ko'
+        ? '🔮 시계열 예측 결과:\n\n'
+        : '🔮 Time Series Forecast:\n\n';
 
     if (forecasts && Object.keys(forecasts).length > 0) {
       Object.entries(forecasts).forEach(([server, metrics]: [string, any]) => {
@@ -703,58 +943,80 @@ export class IntegratedAIEngine {
         answer += '\n';
       });
     } else {
-      answer += lang === 'ko' ? 
-        '예측할 수 있는 충분한 과거 데이터가 없습니다.' :
-        'Insufficient historical data for prediction.';
+      answer +=
+        lang === 'ko'
+          ? '예측할 수 있는 충분한 과거 데이터가 없습니다.'
+          : 'Insufficient historical data for prediction.';
     }
 
     return answer;
   }
 
-  private generateAnalysisAnswer(response: AIQueryResponse, lang: string): string {
-    return lang === 'ko' ? 
-      '🔍 AI 기반 시스템 분석을 완료했습니다. 상세한 결과는 분석 데이터를 참조하세요.' :
-      '🔍 AI-powered system analysis completed. Please refer to analysis data for detailed results.';
+  private generateAnalysisAnswer(
+    response: AIQueryResponse,
+    lang: string
+  ): string {
+    return lang === 'ko'
+      ? '🔍 AI 기반 시스템 분석을 완료했습니다. 상세한 결과는 분석 데이터를 참조하세요.'
+      : '🔍 AI-powered system analysis completed. Please refer to analysis data for detailed results.';
   }
 
-  private generateMonitoringAnswer(response: AIQueryResponse, lang: string): string {
-    return lang === 'ko' ? 
-      '📊 실시간 모니터링 데이터를 분석했습니다.' :
-      '📊 Real-time monitoring data analyzed.';
+  private generateMonitoringAnswer(
+    response: AIQueryResponse,
+    lang: string
+  ): string {
+    return lang === 'ko'
+      ? '📊 실시간 모니터링 데이터를 분석했습니다.'
+      : '📊 Real-time monitoring data analyzed.';
   }
 
-  private generateReportingAnswer(response: AIQueryResponse, lang: string): string {
+  private generateReportingAnswer(
+    response: AIQueryResponse,
+    lang: string
+  ): string {
     if (response.generated_report) {
-      return lang === 'ko' ? 
-        '📄 자동 보고서를 생성했습니다. 아래에서 확인하세요.' :
-        '📄 Automated report generated. Please see below.';
+      return lang === 'ko'
+        ? '📄 자동 보고서를 생성했습니다. 아래에서 확인하세요.'
+        : '📄 Automated report generated. Please see below.';
     }
-    return lang === 'ko' ? 
-      '📄 보고서 생성 준비 중입니다.' :
-      '📄 Report generation in progress.';
+    return lang === 'ko'
+      ? '📄 보고서 생성 준비 중입니다.'
+      : '📄 Report generation in progress.';
   }
 
-  private generatePerformanceAnswer(response: AIQueryResponse, lang: string): string {
-    return lang === 'ko' ? 
-      '⚡ 성능 분석을 완료했습니다. AI 모델을 통해 시스템 성능을 평가했습니다.' :
-      '⚡ Performance analysis completed. System performance evaluated through AI models.';
+  private generatePerformanceAnswer(
+    response: AIQueryResponse,
+    lang: string
+  ): string {
+    return lang === 'ko'
+      ? '⚡ 성능 분석을 완료했습니다. AI 모델을 통해 시스템 성능을 평가했습니다.'
+      : '⚡ Performance analysis completed. System performance evaluated through AI models.';
   }
 
-  private generateGeneralAnswer(response: AIQueryResponse, lang: string): string {
-    if (response.mcp_results?.success && response.mcp_results.results.length > 0) {
-      return lang === 'ko' ? 
-        '📚 관련 문서를 찾았습니다. 추가 정보를 확인하세요.' :
-        '📚 Relevant documentation found. Please check additional information.';
+  private generateGeneralAnswer(
+    response: AIQueryResponse,
+    lang: string
+  ): string {
+    if (
+      response.mcp_results?.success &&
+      response.mcp_results.results.length > 0
+    ) {
+      return lang === 'ko'
+        ? '📚 관련 문서를 찾았습니다. 추가 정보를 확인하세요.'
+        : '📚 Relevant documentation found. Please check additional information.';
     }
-    return lang === 'ko' ? 
-      '🤖 질문을 이해했습니다. 더 구체적인 정보를 제공해 주시면 더 정확한 답변을 드릴 수 있습니다.' :
-      '🤖 I understand your question. Please provide more specific information for a more accurate response.';
+    return lang === 'ko'
+      ? '🤖 질문을 이해했습니다. 더 구체적인 정보를 제공해 주시면 더 정확한 답변을 드릴 수 있습니다.'
+      : '🤖 I understand your question. Please provide more specific information for a more accurate response.';
   }
 
-  private generateRecommendations(nlpResult: any, response: AIQueryResponse): void {
+  private generateRecommendations(
+    nlpResult: any,
+    response: AIQueryResponse
+  ): void {
     const lang = response.metadata.language;
     const intent = nlpResult.intent;
-    
+
     const recommendations = [];
 
     switch (intent) {
@@ -770,7 +1032,7 @@ export class IntegratedAIEngine {
           recommendations.push('Confirm backup system readiness');
         }
         break;
-        
+
       case 'prediction':
         if (lang === 'ko') {
           recommendations.push('예측 결과를 바탕으로 사전 조치를 계획하세요');
@@ -780,7 +1042,7 @@ export class IntegratedAIEngine {
           recommendations.push('Review resource scaling plans');
         }
         break;
-        
+
       case 'performance':
         if (lang === 'ko') {
           recommendations.push('성능 병목 지점을 식별하여 최적화하세요');
@@ -790,7 +1052,7 @@ export class IntegratedAIEngine {
           recommendations.push('Monitor memory usage closely');
         }
         break;
-        
+
       default:
         if (lang === 'ko') {
           recommendations.push('정기적인 시스템 모니터링을 유지하세요');
@@ -804,13 +1066,21 @@ export class IntegratedAIEngine {
     response.recommendations = recommendations;
   }
 
-  private shouldGenerateReport(nlpResult: any, request: AIQueryRequest): boolean {
-    return nlpResult.intent === 'reporting' || 
-           nlpResult.specialized_analysis?.urgency_level === 'critical' ||
-           request.context?.include_charts === true;
+  private shouldGenerateReport(
+    nlpResult: any,
+    request: AIQueryRequest
+  ): boolean {
+    return (
+      nlpResult.intent === 'reporting' ||
+      nlpResult.specialized_analysis?.urgency_level === 'critical' ||
+      request.context?.include_charts === true
+    );
   }
 
-  private async generateReport(response: AIQueryResponse, request: AIQueryRequest): Promise<void> {
+  private async generateReport(
+    response: AIQueryResponse,
+    request: AIQueryRequest
+  ): Promise<void> {
     try {
       if (!response.generated_report) {
         const reportData = {
@@ -826,8 +1096,8 @@ export class IntegratedAIEngine {
           time_range: {
             start: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
             end: new Date().toISOString(),
-            duration: '1h'
-          }
+            duration: '1h',
+          },
         };
 
         const reportConfig = {
@@ -835,10 +1105,14 @@ export class IntegratedAIEngine {
           include_charts: request.context?.include_charts || false,
           include_raw_data: false,
           template: 'technical' as const,
-          language: response.metadata.language as 'ko' | 'en'
+          language: response.metadata.language as 'ko' | 'en',
         };
 
-        response.generated_report = await autoReportGenerator.generateFailureReport(reportData, reportConfig);
+        response.generated_report =
+          await autoReportGenerator.generateFailureReport(
+            reportData,
+            reportConfig
+          );
         response.processing_stats.components_used.push('report_generator');
       }
     } catch (error: any) {
@@ -846,7 +1120,9 @@ export class IntegratedAIEngine {
     }
   }
 
-  private async collectSystemMetrics(serverIds?: string[]): Promise<SystemMetrics> {
+  private async collectSystemMetrics(
+    serverIds?: string[]
+  ): Promise<SystemMetrics> {
     // 실제 구현에서는 Prometheus나 메트릭 서비스에서 데이터를 가져옴
     // 현재는 데모용 데이터 반환
     return {
@@ -855,23 +1131,23 @@ export class IntegratedAIEngine {
           cpu: [45, 52, 48, 67, 73, 69, 71, 65, 58, 61],
           memory: [78, 82, 79, 85, 88, 84, 87, 83, 80, 85],
           disk: [45, 46, 47, 48, 49, 50, 51, 48, 47, 49],
-          network: [23, 28, 31, 35, 29, 26, 33, 37, 24, 30]
+          network: [23, 28, 31, 35, 29, 26, 33, 37, 24, 30],
         },
         'server-02': {
           cpu: [32, 38, 41, 45, 42, 39, 44, 47, 43, 40],
           memory: [65, 68, 71, 74, 69, 72, 75, 70, 67, 73],
           disk: [55, 57, 59, 58, 60, 62, 61, 59, 58, 60],
-          network: [18, 22, 25, 28, 24, 21, 26, 29, 23, 27]
-        }
+          network: [18, 22, 25, 28, 24, 21, 26, 29, 23, 27],
+        },
       },
       global_stats: {
         total_servers: 2,
         healthy_servers: 2,
         average_cpu: 55.5,
-        average_memory: 76.5
+        average_memory: 76.5,
       },
       alerts: [],
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -880,16 +1156,18 @@ export class IntegratedAIEngine {
   }
 
   // 스트리밍 응답 지원
-  async *processQueryStream(request: AIQueryRequest): AsyncGenerator<Partial<AIQueryResponse>, void, unknown> {
+  async *processQueryStream(
+    request: AIQueryRequest
+  ): AsyncGenerator<Partial<AIQueryResponse>, void, unknown> {
     const startTime = Date.now();
     const queryId = this.generateQueryId();
 
     yield {
       query_id: queryId,
-      metadata: { 
+      metadata: {
         timestamp: new Date().toISOString(),
-        language: request.context?.language || 'ko'
-      }
+        language: request.context?.language || 'ko',
+      },
     };
 
     try {
@@ -898,30 +1176,38 @@ export class IntegratedAIEngine {
       yield {
         intent: nlpResult.intent,
         confidence: nlpResult.confidence,
-        analysis_results: { nlp_analysis: nlpResult }
+        analysis_results: { nlp_analysis: nlpResult },
       };
 
       // 시스템 메트릭 수집
-      const systemMetrics = await this.collectSystemMetrics(request.context?.server_ids);
-      if (systemMetrics.servers && Object.keys(systemMetrics.servers).length > 0) {
+      const systemMetrics = await this.collectSystemMetrics(
+        request.context?.server_ids
+      );
+      if (
+        systemMetrics.servers &&
+        Object.keys(systemMetrics.servers).length > 0
+      ) {
         // 🔧 타입 에러 수정: 중첩 구조를 플랫 구조로 변환
         const flattenedMetrics: Record<string, number[]> = {};
-        
-        for (const [serverId, serverMetrics] of Object.entries(systemMetrics.servers)) {
+
+        for (const [serverId, serverMetrics] of Object.entries(
+          systemMetrics.servers
+        )) {
           for (const [metricName, values] of Object.entries(serverMetrics)) {
             const key = `${serverId}_${metricName}`;
             flattenedMetrics[key] = values;
           }
         }
-        
-        const aiAnalysis = await tensorFlowAIEngine.analyzeMetricsWithAI(flattenedMetrics);
+
+        const aiAnalysis =
+          await tensorFlowAIEngine.analyzeMetricsWithAI(flattenedMetrics);
         yield {
           analysis_results: {
             nlp_analysis: nlpResult,
             ai_predictions: aiAnalysis.failure_predictions,
             anomaly_detection: aiAnalysis.anomaly_detections,
-            trend_forecasts: aiAnalysis.trend_predictions
-          }
+            trend_forecasts: aiAnalysis.trend_predictions,
+          },
         };
       }
 
@@ -932,18 +1218,17 @@ export class IntegratedAIEngine {
           total_time: Date.now() - startTime,
           components_used: ['nlp-processor', 'tensorflow-engine'],
           models_executed: ['neural-network', 'autoencoder'],
-          data_sources: ['system-metrics']
-        }
+          data_sources: ['system-metrics'],
+        },
       };
-
     } catch (error: any) {
       yield {
         success: false,
         answer: `스트리밍 처리 중 오류가 발생했습니다: ${error.message}`,
-        metadata: { 
+        metadata: {
           timestamp: new Date().toISOString(),
-          language: request.context?.language || 'ko'
-        }
+          language: request.context?.language || 'ko',
+        },
       };
     }
   }
@@ -952,7 +1237,7 @@ export class IntegratedAIEngine {
     const componentStatuses = await Promise.all([
       realMCPClient.getConnectionInfo(),
       tensorFlowAIEngine.getModelInfo(),
-      autoReportGenerator.getGeneratorInfo()
+      autoReportGenerator.getGeneratorInfo(),
     ]);
 
     return {
@@ -962,7 +1247,7 @@ export class IntegratedAIEngine {
       components: {
         mcp_client: componentStatuses[0],
         tensorflow_engine: componentStatuses[1],
-        report_generator: componentStatuses[2]
+        report_generator: componentStatuses[2],
       },
       capabilities: [
         '자연어 질의응답',
@@ -972,30 +1257,35 @@ export class IntegratedAIEngine {
         '자동 보고서 생성',
         'MCP 프로토콜 지원',
         '다국어 지원 (한국어/영어)',
-        'Vercel Edge Runtime 호환'
+        'Vercel Edge Runtime 호환',
       ],
       supported_intents: [
-        'troubleshooting', 'prediction', 'analysis', 
-        'monitoring', 'reporting', 'performance', 'emergency'
+        'troubleshooting',
+        'prediction',
+        'analysis',
+        'monitoring',
+        'reporting',
+        'performance',
+        'emergency',
       ],
-      last_cache_update: new Date().toISOString()
+      last_cache_update: new Date().toISOString(),
     };
   }
 
   dispose(): void {
     console.log('🗑️ 통합 AI 엔진 정리 중...');
-    
+
     // Render 관리 정리
     if (this.renderPingInterval) {
       clearInterval(this.renderPingInterval);
     }
-    
+
     this.lastAnalysisCache.clear();
     this.activeSessions.clear();
-    
+
     // TensorFlow.js 메모리 정리
     tensorFlowAIEngine.dispose();
-    
+
     this.initialized = false;
     console.log('✅ 통합 AI 엔진 정리 완료');
   }
@@ -1007,4 +1297,4 @@ export const integratedAIEngine = new IntegratedAIEngine();
 // NLP 기능을 간단하게 인라인으로 구현
 function simpleTokenize(text: string): string[] {
   return text.toLowerCase().trim().split(/\s+/);
-} 
+}
