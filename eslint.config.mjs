@@ -19,8 +19,8 @@ const eslintConfig = [
       "@next/next": nextPlugin,
     },
     rules: {
-      // 🚫 모든 ESLint 규칙 비활성화 (Vercel 배포 우선)
-      "@typescript-eslint/no-unused-vars": "off",
+      // ⚠️ 최소한의 권장 규칙 활성화 (나머지는 비활성화)
+      "@typescript-eslint/no-unused-vars": "warn",
       "@typescript-eslint/no-explicit-any": "off", 
       "@typescript-eslint/prefer-const": "off",
       "@typescript-eslint/no-var-requires": "off",
@@ -29,8 +29,9 @@ const eslintConfig = [
       "@next/next/no-img-element": "off",
       "prefer-const": "off", // 기본 ESLint prefer-const 규칙도 비활성화
       "no-unused-vars": "off",
-      "no-console": "off",
+      "no-console": "warn",
       "no-debugger": "off",
+      "@typescript-eslint/no-require-imports": "off",
     },
   },
 ];
