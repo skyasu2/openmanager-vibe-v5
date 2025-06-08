@@ -22,6 +22,7 @@
 - **IntentClassifier**: 하이브리드 의도 분류 (AI모델 + 패턴매칭, 668줄)
 - **TaskOrchestrator**: 병렬 작업 처리 및 3단계 폴백 시스템
 - **ResponseMerger**: 지능적 응답 통합 및 신뢰도 점수 계산
+- **PostgresVectorDB**: 실제 벡터 DB (pgvector + 코사인 유사도) 🆕
 
 #### 🖥️ **모니터링 대시보드** - 실시간 UI/UX 완성
 - **EnhancedServerCard v3.0**: 실시간 미니 차트, 그라데이션 테마
@@ -79,6 +80,7 @@
 - **하이브리드 분류**: Transformers.js + 패턴 매칭 (정확도 89%)
 - **온디맨드 웜업**: Python 작업 시에만 서비스 활성화
 - **Redis 캐싱**: 반복 쿼리 응답 시간 90% 단축
+- **벡터 DB**: PostgreSQL + pgvector (실제 RAG 검색) 🆕
 
 ---
 

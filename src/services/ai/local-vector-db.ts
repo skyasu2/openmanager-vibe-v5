@@ -1,24 +1,48 @@
-// 임시 local-vector-db (삭제된 파일의 간단한 대체)
+/**
+ * 🗄️ Local Vector Database Service (레거시 호환성)
+ * 
+ * ⚠️ DEPRECATED: PostgresVectorDB 사용 권장
+ * 실제 PostgreSQL + pgvector 구현으로 대체됨
+ */
+
+import { postgresVectorDB } from './postgres-vector-db';
+
 export class LocalVectorDB {
   async initialize() {
-    console.log('Local Vector DB initialized');
+    console.log('⚠️ LocalVectorDB는 더 이상 사용되지 않습니다. PostgresVectorDB를 사용하세요.');
+    // PostgresVectorDB 초기화
+    await postgresVectorDB.initialize();
   }
   
-  async store(id: string, vector: number[]) {
-    return { success: true, id };
+  async store(id: string, vector: number[], metadata?: any) {
+    // PostgresVectorDB로 위임
+    return await postgresVectorDB.store(id, `Content for ${id}`, vector, metadata);
   }
   
   async search(query: number[], limit = 10) {
+    // PostgresVectorDB로 위임
+    const results = await postgresVectorDB.search(query, { topK: limit });
     return {
-      results: [],
-      count: 0
+      results: results.map(r => ({
+        id: r.id,
+        vector: [],
+        metadata: r.metadata,
+        similarity: r.similarity
+      })),
+      count: results.length
     };
   }
   
   async getStatus() {
+    const healthCheck = await postgresVectorDB.healthCheck();
+    const stats = await postgresVectorDB.getStats();
+    
     return {
-      status: 'active',
-      count: 0
+      status: healthCheck.status === 'healthy' ? 'active' : 'error',
+      count: stats.total_documents,
+      deprecated: true,
+      replacement: 'PostgresVectorDB',
+      details: healthCheck.details
     };
   }
 }
