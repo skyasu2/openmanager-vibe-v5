@@ -223,14 +223,23 @@ export class KoreanResponseGenerator {
 }
 
 // 한국어 AI 엔진 메인 클래스
+import {
+  RealServerDataGenerator,
+  type ServerInstance,
+  type ServerCluster,
+  type ApplicationMetrics,
+} from '@/services/data-generator/RealServerDataGenerator';
+
 export class KoreanAIEngine {
   private nlu: KoreanServerNLU;
   private responseGenerator: KoreanResponseGenerator;
   private initialized: boolean = false;
+  private dataGenerator: RealServerDataGenerator;
 
   constructor() {
     this.nlu = new KoreanServerNLU();
     this.responseGenerator = new KoreanResponseGenerator();
+    this.dataGenerator = RealServerDataGenerator.getInstance();
   }
 
   async initialize(): Promise<void> {
@@ -298,19 +307,44 @@ export class KoreanAIEngine {
     nluResult: any,
     serverData?: any
   ): Promise<any> {
-    // 실제 서버 데이터 우선 사용, 없으면 시스템 기반 추정
+    // RealServerDataGenerator에서 실제 데이터 가져오기
     let metrics;
+    let servers: ServerInstance[] = [];
+    let targetServerData: ServerInstance | null = null;
 
-    if (serverData && typeof serverData === 'object') {
+    if (serverData && serverData.servers) {
       // 전달받은 실제 서버 데이터 사용
-      metrics = {
-        CPU: serverData.cpu || this.estimateSystemLoad('cpu'),
-        메모리: serverData.memory || this.estimateSystemLoad('memory'),
-        디스크: serverData.disk || this.estimateSystemLoad('disk'),
-        네트워크: serverData.network || this.estimateSystemLoad('network'),
-      };
-    } else {
-      // 시스템 상태 기반 추정값 생성
+      servers = serverData.servers;
+
+      // 엔티티에서 특정 서버 찾기
+      if (nluResult.entities.서버타입) {
+        const serverType = nluResult.entities.서버타입[0];
+        targetServerData =
+          servers.find(
+            s =>
+              s.type === this.mapKoreanToServerType(serverType) ||
+              s.name.includes(serverType)
+          ) || servers[0];
+      } else {
+        // 기본적으로 첫 번째 서버 사용
+        targetServerData = servers[0];
+      }
+
+      if (targetServerData) {
+        metrics = {
+          CPU: targetServerData.metrics.cpu,
+          메모리: targetServerData.metrics.memory,
+          디스크: targetServerData.metrics.disk,
+          네트워크:
+            (targetServerData.metrics.network.in +
+              targetServerData.metrics.network.out) /
+            2,
+        };
+      }
+    }
+
+    if (!metrics) {
+      // 폴백: 시스템 상태 기반 추정값 생성
       const currentHour = new Date().getHours();
       const isBusinessHours = currentHour >= 9 && currentHour <= 18;
 
@@ -413,6 +447,26 @@ export class KoreanAIEngine {
     const estimatedValue = baseValue + baseValue * variation;
 
     return Math.max(0, Math.min(100, Math.round(estimatedValue)));
+  }
+
+  /**
+   * 한국어 서버 타입을 영어 서버 타입으로 매핑
+   */
+  private mapKoreanToServerType(koreanType: string): string {
+    const mapping: Record<string, string> = {
+      웹서버: 'web',
+      API서버: 'api',
+      데이터베이스: 'database',
+      DB서버: 'database',
+      캐시서버: 'cache',
+      앱서버: 'web',
+      큐서버: 'queue',
+      CDN서버: 'cdn',
+      GPU서버: 'gpu',
+      스토리지서버: 'storage',
+    };
+
+    return mapping[koreanType] || 'web';
   }
 
   // 상태 확인 메서드

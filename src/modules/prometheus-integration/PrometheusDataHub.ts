@@ -1,9 +1,9 @@
 /**
  * 🎯 Prometheus 데이터 허브 - 업계 표준 구현
- * 
- * Grafana Labs, DataDog, New Relic 방식을 참고한 
+ *
+ * Grafana Labs, DataDog, New Relic 방식을 참고한
  * 중앙화된 메트릭 수집 및 배포 시스템
- * 
+ *
  * 특징:
  * - Prometheus 형식 표준 준수
  * - 실시간 스크래핑 및 푸시 게이트웨이 지원
@@ -81,7 +81,7 @@ export class PrometheusDataHub {
   private db: DatabaseConnection | null = null;
   private scrapeTargets: Map<string, ScrapeTarget> = new Map();
   private isRunning: boolean = false;
-  
+
   // 업계 표준 설정
   private readonly config = {
     // Prometheus 호환 설정
@@ -90,18 +90,18 @@ export class PrometheusDataHub {
       evaluation_interval: '15s',
       external_labels: {
         cluster: 'openmanager-v5',
-        environment: process.env.NODE_ENV || 'development'
-      }
+        environment: process.env.NODE_ENV || 'development',
+      },
     },
-    
+
     // Redis 시계열 최적화
     retention: {
-      raw_data: '7d',        // 원본 데이터 7일
-      aggregated_1m: '30d',  // 1분 집계 30일  
-      aggregated_5m: '90d',  // 5분 집계 90일
-      aggregated_1h: '1y'    // 1시간 집계 1년
+      raw_data: '7d', // 원본 데이터 7일
+      aggregated_1m: '30d', // 1분 집계 30일
+      aggregated_5m: '90d', // 5분 집계 90일
+      aggregated_1h: '1y', // 1시간 집계 1년
     },
-    
+
     // 스크래핑 설정
     scrape_configs: [
       {
@@ -110,9 +110,9 @@ export class PrometheusDataHub {
         metrics_path: '/metrics',
         static_configs: [
           {
-            targets: ['localhost:3001', 'localhost:8000']
-          }
-        ]
+            targets: ['localhost:3001', 'localhost:8000'],
+          },
+        ],
       },
       {
         job_name: 'openmanager-services',
@@ -120,11 +120,11 @@ export class PrometheusDataHub {
         metrics_path: '/api/metrics',
         static_configs: [
           {
-            targets: ['localhost:3001']
-          }
-        ]
-      }
-    ]
+            targets: ['localhost:3001'],
+          },
+        ],
+      },
+    ],
   };
 
   private constructor() {
@@ -150,7 +150,7 @@ export class PrometheusDataHub {
           host: process.env.REDIS_HOST || 'localhost',
           port: parseInt(process.env.REDIS_PORT || '6379'),
           db: 2, // 메트릭 전용 DB
-          keyPrefix: 'prometheus:'
+          keyPrefix: 'prometheus:',
         });
       } else {
         // 클라이언트 사이드에서는 Redis 연결 건너뛰기
@@ -163,17 +163,16 @@ export class PrometheusDataHub {
           // 실제 구현에서는 pg 라이브러리 등을 사용
           console.log('DB Query:', sql, params);
           return { rows: [] };
-        }
+        },
       };
 
       // 메트릭 테이블 초기화
       await this.initializeMetricsTables();
-      
+
       // 기본 스크래핑 타겟 설정
       this.setupDefaultTargets();
 
       console.log('✅ Prometheus 데이터 허브 초기화 완료');
-      
     } catch (error) {
       console.error('❌ Prometheus 데이터 허브 초기화 실패:', error);
       throw error;
@@ -222,7 +221,7 @@ export class PrometheusDataHub {
         up BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
-      `
+      `,
     ];
 
     for (const query of queries) {
@@ -245,9 +244,9 @@ export class PrometheusDataHub {
         scheme: 'http',
         labels: {
           service: 'openmanager-ui',
-          environment: 'development'
+          environment: 'development',
         },
-        enabled: true
+        enabled: true,
       },
       {
         id: 'python-ai-engine',
@@ -259,10 +258,10 @@ export class PrometheusDataHub {
         scheme: 'http',
         labels: {
           service: 'ai-engine',
-          language: 'python'
+          language: 'python',
         },
-        enabled: true
-      }
+        enabled: true,
+      },
     ];
 
     defaultTargets.forEach(target => {
@@ -286,10 +285,10 @@ export class PrometheusDataHub {
 
     // 스크래핑 스케줄러 시작
     this.startScrapeScheduler();
-    
+
     // 데이터 집계 스케줄러 시작
     this.startAggregationScheduler();
-    
+
     // 정리 스케줄러 시작
     this.startCleanupScheduler();
 
@@ -305,7 +304,7 @@ export class PrometheusDataHub {
       callback: async () => {
         for (const [id, target] of this.scrapeTargets) {
           if (!target.enabled) continue;
-          
+
           try {
             await this.scrapeTarget(target);
           } catch (error) {
@@ -315,7 +314,7 @@ export class PrometheusDataHub {
       },
       interval: 15000, // 15초
       priority: 'high',
-      enabled: true
+      enabled: true,
     });
   }
 
@@ -324,18 +323,21 @@ export class PrometheusDataHub {
    */
   private async scrapeTarget(target: ScrapeTarget): Promise<void> {
     const startTime = Date.now();
-    
+
     try {
       const url = `${target.scheme}://${target.instance}${target.metrics_path}`;
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), target.scrape_timeout * 1000);
+      const timeoutId = setTimeout(
+        () => controller.abort(),
+        target.scrape_timeout * 1000
+      );
 
       const response = await fetch(url, {
         signal: controller.signal,
         headers: {
-          'Accept': 'text/plain; version=0.0.4',
-          'User-Agent': 'OpenManager-Prometheus/5.11.0'
-        }
+          Accept: 'text/plain; version=0.0.4',
+          'User-Agent': 'OpenManager-Prometheus/5.11.0',
+        },
       });
 
       clearTimeout(timeoutId);
@@ -346,20 +348,21 @@ export class PrometheusDataHub {
 
       const metricsText = await response.text();
       const metrics = this.parsePrometheusText(metricsText, target);
-      
+
       // Redis에 저장
       await this.storeMetrics(metrics);
-      
+
       // 메타데이터 업데이트
       await this.updateMetricsMetadata(metrics);
 
       const duration = Date.now() - startTime;
-      
+
       // 스크래핑 상태 업데이트
       await this.updateScrapeStatus(target.id, true, duration);
-      
-      console.log(`📊 스크래핑 완료 [${target.id}]: ${metrics.length}개 메트릭, ${duration}ms`);
-      
+
+      console.log(
+        `📊 스크래핑 완료 [${target.id}]: ${metrics.length}개 메트릭, ${duration}ms`
+      );
     } catch (error) {
       const duration = Date.now() - startTime;
       await this.updateScrapeStatus(target.id, false, duration);
@@ -370,11 +373,14 @@ export class PrometheusDataHub {
   /**
    * 📝 Prometheus 텍스트 파싱
    */
-  private parsePrometheusText(text: string, target: ScrapeTarget): PrometheusMetric[] {
+  private parsePrometheusText(
+    text: string,
+    target: ScrapeTarget
+  ): PrometheusMetric[] {
     const metrics: PrometheusMetric[] = [];
     const lines = text.split('\n');
     const currentMetric: Partial<PrometheusMetric> = {};
-    
+
     for (const line of lines) {
       if (line.startsWith('#')) {
         // 메타데이터 처리
@@ -393,28 +399,35 @@ export class PrometheusDataHub {
           metrics.push({
             ...currentMetric,
             ...parsed,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           } as PrometheusMetric);
         }
       }
     }
-    
+
     return metrics;
   }
 
   /**
    * 📏 메트릭 라인 파싱
    */
-  private parseMetricLine(line: string, target: ScrapeTarget): Partial<PrometheusMetric> | null {
-    const match = line.match(/^([a-zA-Z_:][a-zA-Z0-9_:]*)\{?([^}]*)\}?\s+([^\s]+)(?:\s+(\d+))?$/);
+  private parseMetricLine(
+    line: string,
+    target: ScrapeTarget
+  ): Partial<PrometheusMetric> | null {
+    const match = line.match(
+      /^([a-zA-Z_:][a-zA-Z0-9_:]*)\{?([^}]*)\}?\s+([^\s]+)(?:\s+(\d+))?$/
+    );
     if (!match) return null;
 
     const [, name, labelString, value, timestamp] = match;
     const labels: Record<string, string> = {};
-    
+
     // 라벨 파싱
     if (labelString) {
-      const labelPairs = labelString.match(/([a-zA-Z_][a-zA-Z0-9_]*)="([^"]*)"/g);
+      const labelPairs = labelString.match(
+        /([a-zA-Z_][a-zA-Z0-9_]*)="([^"]*)"/g
+      );
       if (labelPairs) {
         labelPairs.forEach(pair => {
           const [key, val] = pair.split('=');
@@ -426,37 +439,41 @@ export class PrometheusDataHub {
     // 타겟 라벨 추가
     Object.assign(labels, target.labels, {
       job: target.job,
-      instance: target.instance
+      instance: target.instance,
     });
 
     return {
       name,
       labels,
       value: parseFloat(value),
-      timestamp: timestamp ? parseInt(timestamp) * 1000 : Date.now()
+      timestamp: timestamp ? parseInt(timestamp) * 1000 : Date.now(),
     };
   }
 
   /**
-   * 💾 메트릭 저장 (Redis 시계열)
+   * 💾 메트릭 저장 (Redis 시계열) - Upstash 호환
    */
   private async storeMetrics(metrics: PrometheusMetric[]): Promise<void> {
     if (!this.redis) return;
 
-    const pipeline = this.redis.pipeline();
-    
+    // Upstash Redis는 pipeline을 지원하지 않으므로 배치 처리로 대체
+    const batchPromises: Promise<any>[] = [];
+
     for (const metric of metrics) {
       const key = this.generateMetricKey(metric);
       const member = `${metric.timestamp}:${metric.value}`;
-      
+
       // Sorted Set으로 시계열 데이터 저장
-      pipeline.zadd(key, metric.timestamp, member);
-      
+      const zaddPromise = this.redis.zadd(key, metric.timestamp, member);
+      batchPromises.push(zaddPromise);
+
       // TTL 설정 (7일)
-      pipeline.expire(key, 7 * 24 * 3600);
+      const expirePromise = this.redis.expire(key, 7 * 24 * 3600);
+      batchPromises.push(expirePromise);
     }
-    
-    await pipeline.exec();
+
+    // 모든 작업을 병렬로 실행하되, 실패해도 계속 진행
+    await Promise.allSettled(batchPromises);
   }
 
   /**
@@ -475,15 +492,15 @@ export class PrometheusDataHub {
       .sort()
       .map(key => `${key}=${labels[key]}`)
       .join(',');
-    
+
     // 간단한 해시 (실제로는 crypto.createHash 사용 권장)
     let hash = 0;
     for (let i = 0; i < sortedLabels.length; i++) {
       const char = sortedLabels.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // 32bit 정수로 변환
     }
-    
+
     return Math.abs(hash).toString(36);
   }
 
@@ -497,37 +514,37 @@ export class PrometheusDataHub {
     const metricName = query.query.split('{')[0];
     const timeRange = query.end ? query.end - query.start! : 3600000; // 1시간 기본
     const endTime = query.time || Date.now();
-    const startTime = query.start || (endTime - timeRange);
-    
+    const startTime = query.start || endTime - timeRange;
+
     // Redis에서 해당 메트릭의 모든 키 조회
     const pattern = `metrics:${metricName}:*`;
     const keys = await this.redis.keys(pattern);
-    
+
     const results: MetricsAggregation[] = [];
-    
+
     for (const key of keys) {
       const values = await this.redis.zrangebyscore(
-        key, 
-        startTime, 
-        endTime, 
+        key,
+        startTime,
+        endTime,
         'WITHSCORES'
       );
-      
+
       if (values.length === 0) continue;
-      
+
       const timeSeries: Array<{ timestamp: number; value: number }> = [];
-      
+
       for (let i = 0; i < values.length; i += 2) {
         const member = values[i];
         const score = parseInt(values[i + 1]);
         const value = parseFloat(member.split(':')[1]);
-        
+
         timeSeries.push({
           timestamp: score,
-          value
+          value,
         });
       }
-      
+
       // 집계 계산
       const valueList = timeSeries.map(ts => ts.value);
       const aggregations = {
@@ -536,17 +553,17 @@ export class PrometheusDataHub {
         max: Math.max(...valueList),
         p50: this.calculatePercentile(valueList, 0.5),
         p95: this.calculatePercentile(valueList, 0.95),
-        p99: this.calculatePercentile(valueList, 0.99)
+        p99: this.calculatePercentile(valueList, 0.99),
       };
-      
+
       results.push({
         metric_name: metricName,
         labels: this.extractLabelsFromKey(key),
         values: timeSeries,
-        aggregations
+        aggregations,
       });
     }
-    
+
     return results;
   }
 
@@ -578,7 +595,7 @@ export class PrometheusDataHub {
       },
       interval: 60000, // 1분
       priority: 'medium',
-      enabled: true
+      enabled: true,
     });
   }
 
@@ -590,7 +607,7 @@ export class PrometheusDataHub {
     const aggregationIntervals = [
       { interval: '1m', seconds: 60 },
       { interval: '5m', seconds: 300 },
-      { interval: '1h', seconds: 3600 }
+      { interval: '1h', seconds: 3600 },
     ];
 
     for (const { interval, seconds } of aggregationIntervals) {
@@ -601,12 +618,15 @@ export class PrometheusDataHub {
   /**
    * ⏱️ 인터벌별 집계
    */
-  private async aggregateForInterval(interval: string, seconds: number): Promise<void> {
+  private async aggregateForInterval(
+    interval: string,
+    seconds: number
+  ): Promise<void> {
     if (!this.redis) return;
 
     const pattern = 'metrics:*';
     const keys = await this.redis.keys(pattern);
-    
+
     for (const key of keys) {
       try {
         await this.aggregateMetricForInterval(key, interval, seconds);
@@ -620,25 +640,25 @@ export class PrometheusDataHub {
    * 📊 메트릭별 집계
    */
   private async aggregateMetricForInterval(
-    key: string, 
-    interval: string, 
+    key: string,
+    interval: string,
     seconds: number
   ): Promise<void> {
     if (!this.redis) return;
 
     const now = Date.now();
     const bucketStart = Math.floor(now / (seconds * 1000)) * (seconds * 1000);
-    const bucketEnd = bucketStart + (seconds * 1000);
-    
+    const bucketEnd = bucketStart + seconds * 1000;
+
     const values = await this.redis.zrangebyscore(
       key,
       bucketStart,
       bucketEnd,
       'WITHSCORES'
     );
-    
+
     if (values.length === 0) return;
-    
+
     // 값들 추출 및 집계
     const numericValues: number[] = [];
     for (let i = 0; i < values.length; i += 2) {
@@ -646,30 +666,33 @@ export class PrometheusDataHub {
       const value = parseFloat(member.split(':')[1]);
       numericValues.push(value);
     }
-    
+
     const aggregated = {
       count: numericValues.length,
       sum: numericValues.reduce((a, b) => a + b, 0),
       min: Math.min(...numericValues),
       max: Math.max(...numericValues),
-      avg: numericValues.reduce((a, b) => a + b, 0) / numericValues.length
+      avg: numericValues.reduce((a, b) => a + b, 0) / numericValues.length,
     };
-    
+
     // 집계 결과 저장
     const aggregatedKey = `${key}:agg:${interval}`;
     const aggregatedValue = JSON.stringify(aggregated);
-    
+
     await this.redis.zadd(
       aggregatedKey,
       bucketStart,
       `${bucketStart}:${aggregatedValue}`
     );
-    
+
     // TTL 설정
-    const ttl = interval === '1m' ? 30 * 24 * 3600 : // 30일
-                interval === '5m' ? 90 * 24 * 3600 : // 90일
-                365 * 24 * 3600; // 1년
-    
+    const ttl =
+      interval === '1m'
+        ? 30 * 24 * 3600 // 30일
+        : interval === '5m'
+          ? 90 * 24 * 3600 // 90일
+          : 365 * 24 * 3600; // 1년
+
     await this.redis.expire(aggregatedKey, ttl);
   }
 
@@ -684,7 +707,7 @@ export class PrometheusDataHub {
       },
       interval: 3600000, // 1시간
       priority: 'low',
-      enabled: true
+      enabled: true,
     });
   }
 
@@ -695,24 +718,24 @@ export class PrometheusDataHub {
     if (!this.redis) return;
 
     const now = Date.now();
-    const cutoffTime = now - (7 * 24 * 3600 * 1000); // 7일 전
-    
+    const cutoffTime = now - 7 * 24 * 3600 * 1000; // 7일 전
+
     const pattern = 'metrics:*';
     const keys = await this.redis.keys(pattern);
-    
+
     for (const key of keys) {
       if (key.includes(':agg:')) continue; // 집계 데이터는 별도 처리
-      
+
       // 오래된 데이터 제거
       await this.redis.zremrangebyscore(key, 0, cutoffTime);
-      
+
       // 빈 키 제거
       const count = await this.redis.zcard(key);
       if (count === 0) {
         await this.redis.del(key);
       }
     }
-    
+
     console.log('🧹 Prometheus 데이터 정리 완료');
   }
 
@@ -720,40 +743,48 @@ export class PrometheusDataHub {
    * 📈 스크래핑 상태 업데이트
    */
   private async updateScrapeStatus(
-    targetId: string, 
-    up: boolean, 
+    targetId: string,
+    up: boolean,
     duration: number
   ): Promise<void> {
     if (!this.db) return;
 
-    await this.db.query(`
+    await this.db.query(
+      `
       UPDATE prometheus_scrape_targets 
       SET last_scrape = CURRENT_TIMESTAMP,
           scrape_duration_ms = $1,
           up = $2
       WHERE id = $3
-    `, [duration, up, targetId]);
+    `,
+      [duration, up, targetId]
+    );
   }
 
   /**
    * 📊 메트릭 메타데이터 업데이트
    */
-  private async updateMetricsMetadata(metrics: PrometheusMetric[]): Promise<void> {
+  private async updateMetricsMetadata(
+    metrics: PrometheusMetric[]
+  ): Promise<void> {
     if (!this.db) return;
 
     for (const metric of metrics) {
-      await this.db.query(`
+      await this.db.query(
+        `
         INSERT INTO prometheus_metrics_metadata 
         (metric_name, metric_type, help_text, labels, last_seen)
         VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
         ON CONFLICT (metric_name, labels)
         DO UPDATE SET last_seen = CURRENT_TIMESTAMP
-      `, [
-        metric.name,
-        metric.type || 'gauge',
-        metric.help || '',
-        JSON.stringify(metric.labels)
-      ]);
+      `,
+        [
+          metric.name,
+          metric.type || 'gauge',
+          metric.help || '',
+          JSON.stringify(metric.labels),
+        ]
+      );
     }
   }
 
@@ -775,10 +806,10 @@ export class PrometheusDataHub {
     return {
       isRunning: this.isRunning,
       scrapeTargets: Array.from(this.scrapeTargets.values()),
-      config: this.config
+      config: this.config,
     };
   }
 }
 
 // 싱글톤 인스턴스
-export const prometheusDataHub = PrometheusDataHub.getInstance(); 
+export const prometheusDataHub = PrometheusDataHub.getInstance();

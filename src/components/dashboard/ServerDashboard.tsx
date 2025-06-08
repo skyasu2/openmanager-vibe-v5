@@ -7,6 +7,13 @@ import ServerDetailModal from './ServerDetailModal';
 import { Server } from '../../types/server';
 import { useServerDataStore } from '../../stores/serverDataStore';
 import { timerManager } from '../../utils/TimerManager';
+import {
+  RealServerDataGenerator,
+  type ServerInstance,
+  type ServerCluster,
+  type ApplicationMetrics,
+} from '@/services/data-generator/RealServerDataGenerator';
+import { koreanAIEngine } from '@/services/ai/korean-ai-engine';
 
 interface ServerDashboardProps {
   onStatsUpdate?: (stats: {
@@ -198,6 +205,12 @@ export default function ServerDashboard({
 }: ServerDashboardProps) {
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [realServerData, setRealServerData] = useState<{
+    servers: ServerInstance[];
+    clusters: ServerCluster[];
+    applications: ApplicationMetrics[];
+  }>({ servers: [], clusters: [], applications: [] });
+  const [aiQuery, setAiQuery] = useState('');
   const [isClient, setIsClient] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -392,37 +405,57 @@ export default function ServerDashboard({
     };
   }, [currentServers]);
 
-  // ✅ 컴포넌트 마운트 시 서버 데이터 로드 (클라이언트에서만)
+  // ✅ RealServerDataGenerator 초기화 및 데이터 로드
   useEffect(() => {
     if (!isClient) return;
 
-    // 🔒 컴포넌트 언마운트 상태 추적
     let isMounted = true;
+    const dataGenerator = RealServerDataGenerator.getInstance();
 
-    // 백그라운드에서 최신 데이터 가져오기 (이미 초기 데이터가 있으므로)
-    const loadData = async () => {
+    const loadRealData = async () => {
       try {
+        // 데이터 생성기 초기화
+        await dataGenerator.initialize();
+        dataGenerator.startAutoGeneration();
+
+        // 실제 서버 데이터 가져오기
+        const servers = dataGenerator.getAllServers();
+        const clusters = dataGenerator.getAllClusters();
+        const applications = dataGenerator.getAllApplications();
+
+        if (!isMounted) return;
+
+        setRealServerData({ servers, clusters, applications });
+
+        // 기존 서버 데이터도 갱신
         await refreshData();
 
-        // 🚨 컴포넌트가 언마운트되었다면 상태 업데이트 중단
-        if (!isMounted) {
-          console.warn(
-            '⚠️ [ServerDashboard] 컴포넌트 언마운트됨 - 데이터 로드 중단'
-          );
-          return;
-        }
-
-        console.log('✅ [ServerDashboard] 서버 데이터 갱신 완료');
+        console.log('✅ [ServerDashboard] 실제 서버 데이터 로드 완료:', {
+          servers: servers.length,
+          clusters: clusters.length,
+          applications: applications.length,
+        });
       } catch (error) {
-        console.error('❌ [ServerDashboard] 서버 데이터 로드 실패:', error);
+        console.error('❌ [ServerDashboard] 실제 데이터 로드 실패:', error);
       }
     };
 
-    loadData();
+    loadRealData();
 
-    // 정리 함수
+    // 30초마다 실제 데이터 새로고침
+    const interval = setInterval(() => {
+      if (isMounted) {
+        const servers = dataGenerator.getAllServers();
+        const clusters = dataGenerator.getAllClusters();
+        const applications = dataGenerator.getAllApplications();
+        setRealServerData({ servers, clusters, applications });
+      }
+    }, 30000);
+
     return () => {
       isMounted = false;
+      clearInterval(interval);
+      dataGenerator.stopAutoGeneration();
     };
   }, [isClient, refreshData]);
 
@@ -547,6 +580,66 @@ export default function ServerDashboard({
 
   return (
     <div className='space-y-6'>
+      {/* AI 쿼리 인터페이스 */}
+      {realServerData.servers.length > 0 && (
+        <div className='mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200'>
+          <h3 className='text-sm font-medium text-blue-900 mb-2'>
+            🤖 AI 시스템 분석
+          </h3>
+          <div className='flex gap-2'>
+            <input
+              type='text'
+              placeholder='예: CPU 사용률이 높은 서버를 찾아주세요'
+              value={aiQuery}
+              onChange={e => setAiQuery(e.target.value)}
+              className='flex-1 px-3 py-2 border border-blue-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+              onKeyPress={async e => {
+                if (e.key === 'Enter' && aiQuery.trim()) {
+                  try {
+                    const result = await koreanAIEngine.processQuery(
+                      aiQuery,
+                      realServerData
+                    );
+                    console.log('AI 분석 결과:', result);
+                    // 결과를 알림으로 표시하거나 별도 영역에 표시
+                    alert(
+                      `AI 분석: ${result.response?.message || '분석 완료'}`
+                    );
+                  } catch (error) {
+                    console.error('AI 쿼리 처리 오류:', error);
+                  }
+                }
+              }}
+            />
+            <button
+              onClick={async () => {
+                if (aiQuery.trim()) {
+                  try {
+                    const result = await koreanAIEngine.processQuery(
+                      aiQuery,
+                      realServerData
+                    );
+                    console.log('AI 분석 결과:', result);
+                    alert(
+                      `AI 분석: ${result.response?.message || '분석 완료'}`
+                    );
+                  } catch (error) {
+                    console.error('AI 쿼리 처리 오류:', error);
+                  }
+                }
+              }}
+              className='px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700'
+            >
+              분석
+            </button>
+          </div>
+          <div className='mt-2 text-xs text-blue-700'>
+            실제 서버 데이터: {realServerData.servers.length}대 서버,{' '}
+            {realServerData.clusters.length}개 클러스터
+          </div>
+        </div>
+      )}
+
       {/* 검색 및 필터 */}
       <div className='mb-6'>
         <div className='flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between'>
