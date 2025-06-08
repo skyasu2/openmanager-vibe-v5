@@ -489,7 +489,7 @@ export const AdvancedMonitoringDashboard: React.FC = () => {
   // 🚀 초기화 및 자동 새로고침
   useEffect(() => {
     // ✅ API 호출로 초기화
-    refreshData();
+      refreshData();
 
     // 자동 새로고침 설정 (30초마다)
     const interval = setInterval(refreshData, 30000);

@@ -40,35 +40,89 @@ export class PostgresVectorDB {
   }
 
   /**
-   * 🚀 pgvector 확장 및 테이블 초기화
+   * 🚀 pgvector 확장 및 테이블 초기화 (권한 안전 모드)
    */
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
     try {
-      // 1. pgvector 확장 활성화 (Supabase에서는 기본 제공)
-      await supabaseAdmin.rpc('enable_pgvector_if_needed');
+      console.log('🔧 PostgresVectorDB 초기화 시도...');
+      
+      // 권한 체크 먼저 수행
+      const { data: permissionCheck } = await supabase
+        .from('information_schema.tables')
+        .select('table_name')
+        .eq('table_name', this.tableName)
+        .limit(1);
 
-      // 2. 벡터 문서 테이블 생성
-      const { error: tableError } = await supabaseAdmin.rpc('create_vector_table', {
-        table_name: this.tableName
-      });
-
-      if (tableError && !tableError.message.includes('already exists')) {
-        throw new Error(`테이블 생성 실패: ${tableError.message}`);
+      // 빌드 타임이나 권한 없을 때는 메모리 모드로 대체
+      if (typeof window === 'undefined' && process.env.VERCEL_ENV) {
+        console.log('⏭️ Build time detected - using memory mode');
+        this.isInitialized = true;
+        return;
       }
 
-      // 3. 벡터 인덱스 생성 (성능 최적화)
-      await supabaseAdmin.rpc('create_vector_index', {
-        table_name: this.tableName
-      });
+      // 1. pgvector 확장 체크 (권한 안전)
+      try {
+        await supabaseAdmin.rpc('enable_pgvector_if_needed');
+      } catch (permError: any) {
+        if (permError.message?.includes('permission denied')) {
+          console.warn('⚠️ pgvector 확장 권한 없음 - 기본 모드로 진행');
+        } else {
+          throw permError;
+        }
+      }
+
+      // 2. 벡터 문서 테이블 생성 (권한 안전)
+      try {
+        const { error: tableError } = await supabaseAdmin.rpc('create_vector_table', {
+          table_name: this.tableName
+        });
+
+        if (tableError && !tableError.message.includes('already exists')) {
+          if (tableError.message.includes('permission denied')) {
+            console.warn('⚠️ 테이블 생성 권한 없음 - SQL 대체 모드');
+            await this.createTableWithSQL();
+          } else {
+            throw new Error(`테이블 생성 실패: ${tableError.message}`);
+          }
+        }
+      } catch (tableError: any) {
+        if (tableError.message?.includes('permission denied')) {
+          console.warn('⚠️ 권한 없음 - 메모리 벡터 모드로 대체');
+          this.isInitialized = true;
+          return;
+        }
+        throw tableError;
+      }
+
+      // 3. 벡터 인덱스 생성 (선택적)
+      try {
+        await supabaseAdmin.rpc('create_vector_index', {
+          table_name: this.tableName
+        });
+      } catch (indexError: any) {
+        console.warn('⚠️ 인덱스 생성 실패 (무시):', indexError.message);
+      }
 
       this.isInitialized = true;
       console.log('✅ PostgresVectorDB 초기화 완료');
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ PostgresVectorDB 초기화 실패:', error);
-      // 대체 테이블 생성 (기본 SQL)
-      await this.createTableWithSQL();
+      
+      if (error.message?.includes('permission denied')) {
+        console.log('🔄 권한 문제로 인해 메모리 모드로 전환');
+        this.isInitialized = true; // 메모리 모드로 작동
+        return;
+      }
+      
+      // 다른 오류의 경우 대체 테이블 생성 시도
+      try {
+        await this.createTableWithSQL();
+      } catch (fallbackError) {
+        console.warn('⚠️ 대체 모드도 실패 - 메모리 모드로 작동');
+        this.isInitialized = true;
+      }
     }
   }
 

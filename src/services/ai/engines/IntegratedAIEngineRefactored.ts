@@ -9,8 +9,8 @@
  * - Template Method Pattern: 쿼리 처리의 공통 플로우 정의
  */
 
-import { realMCPClient } from '../mcp/real-mcp-client';
-import { tensorFlowAIEngine } from './tensorflow-engine';
+import { realMCPClient } from '../../mcp/real-mcp-client';
+import { tensorFlowAIEngine } from '../tensorflow-engine';
 import { 
   AIQueryRequest, 
   AIQueryResponse, 

@@ -12,8 +12,8 @@ import {
   AIQueryRequest,
   AIQueryResponse 
 } from '../ai-types/AITypes';
-import { realMCPClient } from '../../mcp/real-mcp-client';
-import { tensorFlowAIEngine } from '../tensorflow-engine';
+import { realMCPClient } from '../../../mcp/real-mcp-client';
+import { tensorFlowAIEngine } from '../../tensorflow-engine';
 import { MetricsCollector } from '../metrics/MetricsCollector';
 
 export class TroubleshootingHandler implements IntentHandler {

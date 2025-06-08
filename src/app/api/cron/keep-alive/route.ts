@@ -1,17 +1,23 @@
 /**
- * 서버 기반 Keep-Alive Cron 작업
+ * 서버 기반 Keep-Alive Cron 작업 v2.0 - Next.js 15 호환
  * Vercel Cron Jobs 또는 외부 스케줄러 사용
+ * - 동적 라우트로 설정하여 SSG 문제 해결
+ * - Redis 호출 안전화
  */
 
 import { NextResponse } from 'next/server';
 import { smartSupabase } from '@/lib/supabase';
-import { smartRedis } from '@/lib/redis';
 import { usageMonitor } from '@/lib/usage-monitor';
+
+// 동적 라우트 강제 설정
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   // 빌드 타임 체크 - 빌드 시에는 더미 응답 반환
   if (
     process.env.npm_lifecycle_event === 'build' ||
+    process.env.VERCEL_ENV === 'preview' ||
     !process.env.NEXT_PUBLIC_SUPABASE_URL
   ) {
     return NextResponse.json({
@@ -66,17 +72,20 @@ export async function GET(request: Request) {
       results.supabase.error = 'Service disabled due to usage limits';
     }
 
-    // Redis Keep-Alive
+    // Redis Keep-Alive (안전한 동적 import)
     if (usageStatus.redis.enabled) {
       try {
         console.log('🔔 서버 Redis Keep-Alive 실행...');
 
-        // 직접 Redis ping 명령 사용 (더 안정적)
-        const redisClient = await import('@/lib/redis').then(m =>
-          m.getRedisClient()
-        );
-        const client = await redisClient;
-        const pingResult = await client.ping();
+        // 동적 import로 Redis 클라이언트 로드
+        const { getRedisClient } = await import('@/lib/redis');
+        const redisClient = await getRedisClient();
+        
+        if (!redisClient) {
+          throw new Error('Redis client not available during build');
+        }
+
+        const pingResult = await redisClient.ping();
 
         if (pingResult === 'PONG') {
           // 사용량 기록

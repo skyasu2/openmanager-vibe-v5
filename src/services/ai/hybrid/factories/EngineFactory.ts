@@ -6,10 +6,10 @@
  */
 
 import { RealMCPClient } from '@/services/mcp/real-mcp-client';
-import { TensorFlowAIEngine } from '../tensorflow-engine';
-import { KoreanAIEngine } from '../korean-ai-engine';
-import { TransformersEngine } from '../transformers-engine';
-import { LocalVectorDB } from '../local-vector-db';
+import { TensorFlowAIEngine } from '../../tensorflow-engine';
+import { KoreanAIEngine } from '../../korean-ai-engine';
+import { TransformersEngine } from '../../transformers-engine';
+import { LocalVectorDB } from '../../local-vector-db';
 import { EngineInstance, EngineConfiguration, EngineStats } from '../types/HybridTypes';
 
 export class EngineFactory {

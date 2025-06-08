@@ -10,6 +10,7 @@ import dynamic from 'next/dynamic';
 import { NotificationToast } from '@/components/system/NotificationToast';
 import { cn } from '@/lib/utils';
 import React from 'react';
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 
 // 🚨 React 내장 에러 바운더리
 class DashboardErrorBoundary extends React.Component<

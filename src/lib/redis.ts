@@ -1,14 +1,13 @@
 /**
- * 🔥 Redis 연결 관리자 v4.0
+ * 🔥 Redis 연결 관리자 v4.1 - Next.js 15 호환
  *
- * OpenManager Vibe v5.30.0 - 실제 Redis만 사용
- * - 더미 모드 완전 제거
- * - 환경변수 필수 요구
- * - 프로덕션 전용 설정
+ * OpenManager Vibe v5.30.0 - 동적 import로 SSG 문제 해결
+ * - 빌드 타임에 Redis 초기화 방지
+ * - 런타임에만 연결
+ * - 클라이언트/서버 분리
  */
 
 import { env } from './env';
-import { Redis } from '@upstash/redis';
 import { usageMonitor } from './usage-monitor';
 
 /**
@@ -28,13 +27,23 @@ interface RedisClientInterface {
   pipeline(): any;
 }
 
-// Redis 클라이언트 인스턴스
+// Redis 클라이언트 인스턴스 (지연 초기화)
 let redis: RedisClientInterface | null = null;
+let isInitializing = false;
 
 /**
- * 🔧 Redis 클라이언트 초기화
+ * 🔧 Redis 클라이언트 동적 초기화
  */
 async function initializeRedis(): Promise<RedisClientInterface> {
+  // 빌드 타임이나 SSG 중에는 Redis 초기화 건너뛰기
+  if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
+    // 개발 환경에서만 서버 사이드 초기화 허용
+  } else if (typeof window === 'undefined' && process.env.VERCEL_ENV) {
+    // Vercel 빌드 중에는 초기화 건너뛰기
+    console.log('⏭️ Skipping Redis initialization during build');
+    throw new Error('Redis not available during build');
+  }
+
   if (
     !process.env.UPSTASH_REDIS_REST_URL ||
     !process.env.UPSTASH_REDIS_REST_TOKEN
@@ -43,6 +52,9 @@ async function initializeRedis(): Promise<RedisClientInterface> {
   }
 
   try {
+    // 동적 import로 Redis 클라이언트 로드
+    const { Redis } = await import('@upstash/redis');
+    
     const redisClient = new Redis({
       url: process.env.UPSTASH_REDIS_REST_URL,
       token: process.env.UPSTASH_REDIS_REST_TOKEN,
@@ -61,12 +73,24 @@ async function initializeRedis(): Promise<RedisClientInterface> {
 }
 
 /**
- * 🔍 Redis 연결 상태 확인
+ * 🔍 Redis 연결 상태 확인 (안전한 방식)
  */
-export async function checkRedisConnection() {
+export async function checkRedisConnection(): Promise<boolean> {
+  // 빌드 타임에는 체크 건너뛰기
+  if (typeof window === 'undefined' && process.env.VERCEL_ENV) {
+    console.log('⏭️ Skipping Redis check during build');
+    return false;
+  }
+
   try {
-    if (!redis) {
+    if (!redis && !isInitializing) {
+      isInitializing = true;
       redis = await initializeRedis();
+      isInitializing = false;
+    }
+
+    if (!redis) {
+      return false;
     }
 
     const result = await redis.ping();
@@ -74,20 +98,31 @@ export async function checkRedisConnection() {
     return true;
   } catch (error) {
     console.warn('⚠️ Redis 연결 확인 실패:', error);
+    isInitializing = false;
     return false;
   }
 }
 
 /**
- * 🚀 Redis 클라이언트 가져오기 (자동 초기화)
+ * 🚀 Redis 클라이언트 가져오기 (안전한 자동 초기화)
  */
-export async function getRedisClient(): Promise<RedisClientInterface> {
-  if (!redis) {
-    redis = await initializeRedis();
+export async function getRedisClient(): Promise<RedisClientInterface | null> {
+  // 빌드 타임에는 null 반환
+  if (typeof window === 'undefined' && process.env.VERCEL_ENV) {
+    console.log('⏭️ Redis not available during build');
+    return null;
   }
 
-  if (!redis) {
-    throw new Error('Redis 클라이언트를 초기화할 수 없습니다');
+  if (!redis && !isInitializing) {
+    try {
+      isInitializing = true;
+      redis = await initializeRedis();
+      isInitializing = false;
+    } catch (error) {
+      console.warn('Redis initialization failed:', error);
+      isInitializing = false;
+      return null;
+    }
   }
 
   return redis;
@@ -101,6 +136,7 @@ export async function closeRedisConnection() {
     try {
       // Upstash Redis는 quit이 필요하지 않음
       redis = null;
+      isInitializing = false;
       console.log('✅ Redis 연결 종료됨');
     } catch (error) {
       console.error('❌ Redis 연결 종료 실패:', error);
@@ -123,6 +159,12 @@ class SmartRedisClient {
 
     try {
       const redisClient = await getRedisClient();
+      
+      // Redis가 사용 불가능하면 fallback 사용
+      if (!redisClient) {
+        return this.getFallback<T>(key);
+      }
+
       usageMonitor.recordRedisUsage(1);
       const result = await redisClient.get(key);
 
@@ -161,6 +203,13 @@ class SmartRedisClient {
 
     try {
       const redisClient = await getRedisClient();
+      
+      // Redis가 사용 불가능하면 fallback만 사용
+      if (!redisClient) {
+        console.warn('🔄 Redis not available, data saved to fallback only');
+        return 'OK';
+      }
+
       usageMonitor.recordRedisUsage(1);
       return await redisClient.set(key, value, options);
     } catch (error) {
@@ -179,6 +228,11 @@ class SmartRedisClient {
 
     try {
       const redisClient = await getRedisClient();
+      
+      if (!redisClient) {
+        return 1; // fallback에서만 삭제됨
+      }
+
       usageMonitor.recordRedisUsage(1);
       return await redisClient.del(key);
     } catch (error) {
@@ -205,6 +259,11 @@ class SmartRedisClient {
 
     try {
       const redisClient = await getRedisClient();
+      
+      if (!redisClient) {
+        return 0;
+      }
+
       usageMonitor.recordRedisUsage(1);
       return await redisClient.exists(key);
     } catch (error) {
@@ -227,6 +286,11 @@ class SmartRedisClient {
 
     try {
       const redisClient = await getRedisClient();
+      
+      if (!redisClient) {
+        return fallbackValue;
+      }
+
       usageMonitor.recordRedisUsage(1);
       return await redisClient.incr(key);
     } catch (error) {

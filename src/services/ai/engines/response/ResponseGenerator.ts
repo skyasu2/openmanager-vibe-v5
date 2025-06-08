@@ -11,7 +11,7 @@ import {
   AIQueryRequest,
   ResponseGeneratorConfig 
 } from '../ai-types/AITypes';
-import { autoReportGenerator } from '../report-generator';
+import { autoReportGenerator } from '../../report-generator';
 
 export class ResponseGenerator {
   private config: ResponseGeneratorConfig;
@@ -69,7 +69,7 @@ export class ResponseGenerator {
    */
   private generateTroubleshootingAnswer(response: AIQueryResponse, lang: string): string {
     const hasAnomalies = response.analysis_results?.anomaly_detection?.length > 0;
-    const hasAlerts = response.analysis_results?.active_alerts?.length > 0;
+    const hasAlerts = response.analysis_results?.active_alerts?.length && response.analysis_results.active_alerts.length > 0;
     const hasMCPResults = response.mcp_results && Object.keys(response.mcp_results).length > 0;
 
     if (lang === 'ko') {
@@ -80,7 +80,7 @@ export class ResponseGenerator {
       }
       
       if (hasAlerts) {
-        answer += `🚨 활성 알림: ${response.analysis_results.active_alerts.length}건\n`;
+        answer += `🚨 활성 알림: ${response.analysis_results.active_alerts?.length || 0}건\n`;
       }
       
       if (hasMCPResults) {
@@ -97,7 +97,7 @@ export class ResponseGenerator {
       }
       
       if (hasAlerts) {
-        answer += `🚨 Active alerts: ${response.analysis_results.active_alerts.length}\n`;
+        answer += `🚨 Active alerts: ${response.analysis_results.active_alerts?.length || 0}\n`;
       }
       
       if (hasMCPResults) {
@@ -257,7 +257,7 @@ export class ResponseGenerator {
       );
     }
 
-    if (response.analysis_results?.active_alerts?.length > 0) {
+    if (response.analysis_results?.active_alerts?.length && response.analysis_results.active_alerts.length > 0) {
       recommendations.push(
         lang === 'ko'
           ? '활성 알림을 확인하고 적절한 조치를 취하세요'
