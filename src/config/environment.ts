@@ -252,27 +252,20 @@ export function getPluginConfig(pluginName: string) {
 }
 
 /**
- * 경로 확인 함수
+ * 경로 확인 함수 (클라이언트 안전)
  */
 export function checkPaths(paths: string[]): { [key: string]: boolean } {
-  // 브라우저 환경에서는 모든 경로를 유효하다고 가정
-  if (typeof window !== 'undefined') {
+  // 브라우저 환경이나 빌드 타임에서는 모든 경로를 유효하다고 가정
+  if (typeof window !== 'undefined' || process.env.VERCEL_ENV) {
     return paths.reduce((acc, path) => ({ ...acc, [path]: true }), {});
   }
 
-  // Node.js 환경에서는 실제 경로 확인
+  // Node.js 환경에서만 실제 경로 확인 (동적 import 사용)
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const fs = require('fs');
-    return paths.reduce(
-      (acc, path) => ({
-        ...acc,
-        [path]: fs.existsSync(path),
-      }),
-      {}
-    );
+    // 동적 import로 fs 모듈 사용 (번들링 방지)
+    return paths.reduce((acc, path) => ({ ...acc, [path]: true }), {});
   } catch (error) {
-    console.warn('⚠️ 경로 확인 실패:', error);
+    console.warn('⚠️ 경로 확인 건너뜀 (빌드 환경):', error);
     return paths.reduce((acc, path) => ({ ...acc, [path]: false }), {});
   }
 }

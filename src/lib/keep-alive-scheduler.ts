@@ -196,8 +196,15 @@ class KeepAliveScheduler {
 
       console.log('🔔 Redis keep-alive 실행 중...');
 
-      // 직접 Redis 클라이언트의 ping 명령 사용 (더 안정적)
+      // 빌드 타임이나 Redis 사용 불가 시 체크
       const redisClient = await getRedisClient();
+      
+      if (!redisClient) {
+        console.log('⏭️ Redis not available during build');
+        return;
+      }
+
+      // 직접 Redis 클라이언트의 ping 명령 사용 (더 안정적)
       const pingResult = await redisClient.ping();
 
       if (pingResult === 'PONG') {
