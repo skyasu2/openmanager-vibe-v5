@@ -1,0 +1,40 @@
+{
+  "metadata": {
+    "type": "summary_log",
+    "summaryType": "intent-analysis",
+    "savedAt": "2025-05-26T09:08:31.184Z",
+    "version": "1.0.0"
+  },
+  "data": {
+    "totalQueries": 1250,
+    "classifiedQueries": 1100,
+    "unclassifiedQueries": 150,
+    "topIntents": [
+      {
+        "intent": "server_status",
+        "count": 450,
+        "percentage": 36
+      },
+      {
+        "intent": "performance_check",
+        "count": 320,
+        "percentage": 25.6
+      },
+      {
+        "intent": "error_analysis",
+        "count": 230,
+        "percentage": 18.4
+      },
+      {
+        "intent": "general_inquiry",
+        "count": 100,
+        "percentage": 8
+      }
+    ],
+    "improvementSuggestions": [
+      "미분류 질의에 대한 새로운 인텐트 패턴 추가 필요",
+      "server_status 인텐트의 세분화 고려",
+      "성능 관련 질의의 자동 분류 정확도 개선"
+    ]
+  }
+}

@@ -7,6 +7,7 @@
       "env": {
         "NODE_ENV": "development",
         "MCP_ENV": "cursor",
+        "PORT": "3100",
         "PROJECT_ROOT": "."
       }
     },
@@ -21,20 +22,17 @@
       "command": "npx",
       "args": ["@modelcontextprotocol/server-git", "--repository", "."]
     },
-    "github": {
-      "command": "npx",
-      "args": ["@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
-      }
-    },
-    "browser-tools": {
-      "command": "npx",
-      "args": ["@modelcontextprotocol/server-browser-tools"]
-    },
     "duckduckgo-search": {
       "command": "npx",
-      "args": ["duckduckgo-mcp-server"]
+      "args": ["@modelcontextprotocol/server-duckduckgo-search"]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-sequential-thinking"],
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "description": "단계별 사고 및 문제 해결 지원"
     }
   }
 }

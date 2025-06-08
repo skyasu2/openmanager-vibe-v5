@@ -11,319 +11,160 @@ import {
 import fs from 'fs';
 import path from 'path';
 import http from 'http';
+import { createServer } from 'http';
 
-class OpenManagerMCPServer {
-  constructor() {
-    // AI 엔진 모드 감지
-    this.isAIEngineMode = process.env.AI_ENGINE_MODE === 'true';
-    this.environment = process.env.NODE_ENV || 'development';
+const PORT = process.env.PORT || 3100;
 
-    this.server = new Server(
+// MCP 서버 인스턴스 생성
+const server = new Server(
+  {
+    name: 'openmanager-vibe-mcp-server',
+    version: '1.0.0',
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  }
+);
+
+// 도구 목록 제공
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  return {
+    tools: [
       {
-        name: this.isAIEngineMode
-          ? 'openmanager-ai-engine'
-          : 'openmanager-mcp-server',
-        version: '0.1.0',
+        name: 'health_check',
+        description: 'MCP 서버 헬스 체크',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
       },
       {
-        capabilities: {
-          tools: {},
+        name: 'server_status',
+        description: '서버 상태 확인',
+        inputSchema: {
+          type: 'object',
+          properties: {},
         },
-      }
-    );
+      },
+    ],
+  };
+});
 
-    this.setupToolHandlers();
-    this.setupErrorHandling();
+// 도구 호출 처리
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name } = request.params;
 
-    if (this.isAIEngineMode) {
-      console.error('🤖 AI Engine Mode: 서버 모니터링 분석 엔진 실행');
-    } else {
-      console.error('🛠️ Development Mode: 개발 도구 MCP 서버 실행');
-    }
-  }
-
-  setupToolHandlers() {
-    this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      return {
-        tools: [
-          {
-            name: 'read_project_file',
-            description: 'Read a file from the project directory',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                path: {
-                  type: 'string',
-                  description: 'Path to the file relative to project root',
-                },
-              },
-              required: ['path'],
-            },
-          },
-          {
-            name: 'list_project_directory',
-            description: 'List contents of a project directory',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                path: {
-                  type: 'string',
-                  description: 'Path to the directory relative to project root',
-                },
-              },
-              required: ['path'],
-            },
-          },
-        ],
-      };
-    });
-
-    this.server.setRequestHandler(CallToolRequestSchema, async request => {
-      const { name, arguments: args } = request.params;
-
-      try {
-        switch (name) {
-          case 'read_project_file':
-            return await this.readProjectFile(args.path);
-          case 'list_project_directory':
-            return await this.listProjectDirectory(args.path);
-          default:
-            throw new McpError(
-              ErrorCode.MethodNotFound,
-              `Unknown tool: ${name}`
-            );
-        }
-      } catch (error) {
-        throw new McpError(
-          ErrorCode.InternalError,
-          `Error executing tool ${name}: ${error.message}`
-        );
-      }
-    });
-  }
-
-  async readProjectFile(relativePath) {
-    const projectRoot = process.env.PROJECT_ROOT || '.';
-    const fullPath = path.resolve(projectRoot, relativePath);
-
-    // Security check to ensure path is within project
-    if (!fullPath.startsWith(path.resolve(projectRoot))) {
-      throw new Error('Access denied: Path outside project directory');
-    }
-
-    try {
-      const content = fs.readFileSync(fullPath, 'utf-8');
+  switch (name) {
+    case 'health_check':
       return {
         content: [
           {
             type: 'text',
-            text: content,
-          },
-        ],
-      };
-    } catch (error) {
-      throw new Error(`Failed to read file: ${error.message}`);
-    }
-  }
-
-  async listProjectDirectory(relativePath) {
-    const projectRoot = process.env.PROJECT_ROOT || '.';
-    const fullPath = path.resolve(projectRoot, relativePath);
-
-    // Security check
-    if (!fullPath.startsWith(path.resolve(projectRoot))) {
-      throw new Error('Access denied: Path outside project directory');
-    }
-
-    try {
-      const items = fs.readdirSync(fullPath, { withFileTypes: true });
-      const listing = items.map(item => ({
-        name: item.name,
-        type: item.isDirectory() ? 'directory' : 'file',
-      }));
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(listing, null, 2),
-          },
-        ],
-      };
-    } catch (error) {
-      throw new Error(`Failed to list directory: ${error.message}`);
-    }
-  }
-
-  setupErrorHandling() {
-    this.server.onerror = error => {
-      console.error('[MCP Server Error]', error);
-    };
-
-    process.on('SIGINT', async () => {
-      await this.server.close();
-      process.exit(0);
-    });
-  }
-
-  async run() {
-    // 🌍 Render 환경에서는 항상 HTTP 서버 실행 (포트 바인딩 필요)
-    const isRenderEnvironment =
-      process.env.RENDER || process.env.RENDER_SERVICE_NAME;
-
-    if (this.isAIEngineMode || isRenderEnvironment) {
-      console.error('🌐 Render/AI Engine 모드: HTTP 서버 시작');
-      this.startHealthCheckServer();
-    }
-
-    // 🔄 Render 환경에서는 stdio 서버 비활성화 (HTTP만 사용)
-    if (!isRenderEnvironment) {
-      const transport = new StdioServerTransport();
-      await this.server.connect(transport);
-      console.error('OpenManager MCP Server running on stdio');
-    } else {
-      console.error('🚀 Render 환경: HTTP 서버 전용 모드로 실행');
-      // 무한 루프로 서버 유지
-      await new Promise(() => {}); // 영원히 대기
-    }
-  }
-
-  startHealthCheckServer() {
-    // Render에서는 반드시 process.env.PORT 사용 (기본값 제거)
-    const PORT = process.env.PORT || 10000;
-
-    console.error(
-      `🔧 포트 설정 확인: PORT=${process.env.PORT}, 사용 포트=${PORT}`
-    );
-
-    const healthServer = http.createServer((req, res) => {
-      // CORS 헤더 설정
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-      res.setHeader('Content-Type', 'application/json');
-
-      if (req.method === 'OPTIONS') {
-        res.writeHead(200);
-        res.end();
-        return;
-      }
-
-      if (req.url === '/health' && req.method === 'GET') {
-        const healthStatus = {
-          status: 'healthy',
-          timestamp: new Date().toISOString(),
-          uptime: process.uptime(),
-          memory: process.memoryUsage(),
-          server: 'OpenManager MCP Server',
-          version: '0.1.0',
-          environment: process.env.NODE_ENV || 'development',
-          isRenderEnvironment: !!(
-            process.env.RENDER || process.env.RENDER_SERVICE_NAME
-          ),
-          mode: this.isAIEngineMode ? 'AI Engine' : 'Development',
-        };
-
-        res.writeHead(200);
-        res.end(JSON.stringify(healthStatus, null, 2));
-      } else if (req.url === '/ping' && req.method === 'GET') {
-        res.writeHead(200);
-        res.end(
-          JSON.stringify({
-            pong: true,
-            timestamp: new Date().toISOString(),
-            message: 'MCP Server is alive!',
-          })
-        );
-      } else if (req.url === '/mcp/tools' && req.method === 'GET') {
-        // 🔧 MCP 도구 목록 HTTP API
-        const tools = [
-          {
-            name: 'read_project_file',
-            description: 'Read a file from the project directory',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                path: {
-                  type: 'string',
-                  description: 'Path to the file relative to project root',
-                },
-              },
-              required: ['path'],
-            },
-          },
-          {
-            name: 'list_project_directory',
-            description: 'List contents of a project directory',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                path: {
-                  type: 'string',
-                  description: 'Path to the directory relative to project root',
-                },
-              },
-              required: ['path'],
-            },
-          },
-        ];
-
-        res.writeHead(200);
-        res.end(JSON.stringify({ tools, success: true }, null, 2));
-      } else if (req.url === '/mcp/status' && req.method === 'GET') {
-        // 🔧 MCP 상태 확인 API
-        res.writeHead(200);
-        res.end(
-          JSON.stringify(
-            {
-              success: true,
-              mcp: {
-                connected: true,
-                server: 'OpenManager MCP Server',
-                version: '0.1.0',
-                capabilities: ['tools'],
-                toolCount: 2,
-              },
+            text: JSON.stringify({
+              status: 'healthy',
               timestamp: new Date().toISOString(),
-            },
-            null,
-            2
-          )
-        );
-      } else {
-        res.writeHead(404);
-        res.end(
-          JSON.stringify({
-            error: 'Not Found',
-            message: 'MCP Server endpoint not found',
-            availableEndpoints: [
-              '/health',
-              '/ping',
-              '/mcp/tools',
-              '/mcp/status',
-            ],
-          })
-        );
-      }
-    });
+              port: PORT,
+              version: '1.0.0'
+            }, null, 2),
+          },
+        ],
+      };
 
-    healthServer.listen(PORT, '0.0.0.0', () => {
-      console.error(`🏥 MCP Health Check Server running on port ${PORT}`);
-      console.error(`📡 Health check: http://localhost:${PORT}/health`);
-      console.error(
-        `🌍 External URL: https://openmanager-mcp-server.onrender.com/health`
-      );
-    });
+    case 'server_status':
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              mcp_server: 'running',
+              port: PORT,
+              uptime: process.uptime(),
+              memory: process.memoryUsage(),
+              timestamp: new Date().toISOString()
+            }, null, 2),
+          },
+        ],
+      };
 
-    // 우아한 종료
-    process.on('SIGTERM', () => {
-      console.error('🛑 MCP 서버 종료 신호 받음');
-      healthServer.close(() => {
-        console.error('✅ Health Check 서버 종료 완료');
-      });
-    });
+    default:
+      throw new Error(`Unknown tool: ${name}`);
   }
+});
+
+// HTTP 서버 생성 (헬스체크용)
+const httpServer = createServer((req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  
+  if (req.url === '/health') {
+    res.writeHead(200);
+    res.end(JSON.stringify({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      port: PORT,
+      version: '1.0.0',
+      uptime: process.uptime()
+    }));
+  } else if (req.url === '/status') {
+    res.writeHead(200);
+    res.end(JSON.stringify({
+      mcp_server: 'running',
+      port: PORT,
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      timestamp: new Date().toISOString()
+    }));
+  } else {
+    res.writeHead(404);
+    res.end(JSON.stringify({ error: 'Not found' }));
+  }
+});
+
+// 서버 시작
+async function main() {
+  // HTTP 서버 시작
+  httpServer.listen(PORT, () => {
+    console.log(`🚀 MCP HTTP Server running on port ${PORT}`);
+    console.log(`📊 Health check: http://localhost:${PORT}/health`);
+    console.log(`📈 Status check: http://localhost:${PORT}/status`);
+  });
+
+  // MCP 서버 실행 (stdio 모드)
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.log('🔗 MCP Server connected via stdio');
 }
 
-const server = new OpenManagerMCPServer();
-server.run().catch(console.error);
+// 종료 처리
+process.on('SIGINT', () => {
+  console.log('\n🛑 MCP Server shutting down...');
+  httpServer.close(() => {
+    console.log('✅ MCP Server stopped');
+    process.exit(0);
+  });
+});
+
+process.on('SIGTERM', () => {
+  console.log('\n🛑 MCP Server shutting down...');
+  httpServer.close(() => {
+    console.log('✅ MCP Server stopped');
+    process.exit(0);
+  });
+});
+
+// 오류 처리
+process.on('uncaughtException', (err) => {
+  console.error('❌ Uncaught Exception:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (err) => {
+  console.error('❌ Unhandled Rejection:', err);
+  process.exit(1);
+});
+
+main().catch((error) => {
+  console.error('❌ Failed to start MCP server:', error);
+  process.exit(1);
+});

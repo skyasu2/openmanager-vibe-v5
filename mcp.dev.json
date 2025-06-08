@@ -6,26 +6,28 @@
       "cwd": ".",
       "env": {
         "NODE_ENV": "development",
+        "PORT": "3100",
         "PROJECT_ROOT": "."
       }
     },
     "filesystem": {
       "command": "npx",
-      "args": ["@modelcontextprotocol/server-filesystem", "./docs", "./src"],
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./docs", "./src"],
       "env": {
         "NODE_ENV": "development"
       }
     },
-    "github": {
-      "command": "npx",
-      "args": ["@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
-      }
-    },
     "duckduckgo-search": {
       "command": "npx",
-      "args": ["duckduckgo-mcp-server"]
+      "args": ["-y", "duckduckgo-mcp-server"]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "description": "단계별 사고 및 문제 해결 지원"
     }
   }
 }
