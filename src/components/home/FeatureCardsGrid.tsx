@@ -382,9 +382,9 @@ const VERSION_HISTORY = {
 const cardData: FeatureCard[] = [
   {
     id: 'mcp-ai-engine',
-    title: `🤖 서버 모니터링 AI 엔진 v${COMPONENT_VERSIONS['mcp-ai-engine']}`,
+    title: `🧠 통합 AI 시스템 v${COMPONENT_VERSIONS['mcp-ai-engine']}`,
     description:
-      'MCP 컨텍스트 기반 패턴 대응 AI + RAG 백업 엔진으로 구성된 서버 모니터링 전용 AI 시스템',
+      'UnifiedAIEngine 중앙 관리, MCP 프로토콜 기반 분석, 한국어 자연어 처리',
     icon: Bot,
     gradient: 'from-purple-500 via-indigo-500 to-cyan-400',
     detailedContent: {
@@ -414,9 +414,9 @@ const cardData: FeatureCard[] = [
   },
   {
     id: 'data-generator',
-    title: `📊 서버 데이터 생성기 v${COMPONENT_VERSIONS['data-generator']}`,
+    title: `📊 실시간 서버 데이터 생성기 v${COMPONENT_VERSIONS['data-generator']}`,
     description:
-      '5개 모듈 통합 아키텍처 - 환경별 3단계 모드 + 베이스라인 최적화로 메모리 97%→75%, CPU 75% 절약 달성',
+      '24시간 베이스라인 패턴 생성, 환경별 자동 모드 전환, 30개 서버 실시간 시뮬레이션',
     icon: Database,
     gradient: 'from-emerald-500 to-teal-600',
     detailedContent: {
@@ -445,9 +445,9 @@ const cardData: FeatureCard[] = [
   },
   {
     id: 'tech-stack',
-    title: '🛠️ 핵심 웹 기술',
+    title: '⚡ Next.js 15 + React 19',
     description:
-      '15개 오픈소스 웹 기술로 타입 안전성 100%, 런타임 에러 95% 감소한 모던 풀스택 아키텍처',
+      'TypeScript 완전 타입 지원, Vercel 서버리스 배포, 모듈화 아키텍처',
     icon: Code,
     gradient: 'from-purple-500 to-indigo-600',
     detailedContent: {
@@ -479,9 +479,9 @@ const cardData: FeatureCard[] = [
   },
   {
     id: 'vibe-coding',
-    title: '⚡ Vibe Coding 개발 워크플로우',
+    title: '🎯 AI 협업 개발 환경',
     description:
-      'Cursor AI + Claude 4 Sonnet 메인, GitHub 협업, Vercel/Render 자동 배포까지 - 완전한 AI 개발 생태계',
+      'Cursor AI + Claude 4 Sonnet, MCP Tools 실시간 연동, 자동화된 GitHub 워크플로우',
     icon: Zap,
     gradient: 'from-yellow-400 via-orange-500 via-pink-500 to-purple-600',
     detailedContent: {
