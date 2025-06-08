@@ -22,6 +22,7 @@ import {
   correlationEngine,
   CorrelationInsights,
 } from './engines/CorrelationEngine';
+import { PerformanceMonitor, perf } from '../../utils/performance-monitor';
 
 export interface AIEngineRequest {
   engine:
@@ -63,6 +64,11 @@ export interface AIEngineResponse {
   error?: string;
   thinking_process?: AIThinkingStep[];
   reasoning_steps?: string[];
+  performance?: {
+    memoryUsage?: any;
+    cacheHit?: boolean;
+    memoryDelta?: number;
+  };
 }
 
 export interface EngineStatus {
@@ -143,7 +149,7 @@ export class MasterAIEngine {
   }
 
   /**
-   * 🎯 메인 쿼리 처리 메서드 (사고과정 로그 통합)
+   * 🎯 메인 쿼리 처리 메서드 (사고과정 로그 + 성능 측정 통합)
    */
   async query(request: AIEngineRequest): Promise<AIEngineResponse> {
     const startTime = Date.now();
@@ -151,6 +157,9 @@ export class MasterAIEngine {
 
     // 사고과정 로그 활성화 여부
     const enableThinking = request.options?.enable_thinking_log !== false;
+
+    // 🔍 성능 측정 시작
+    const memoryBefore = PerformanceMonitor.getMemoryUsage();
 
     if (enableThinking) {
       thinkingSteps.push(
@@ -200,15 +209,24 @@ export class MasterAIEngine {
             );
           }
 
+          // 📊 캐시 성능 기록
+          const responseTime = Date.now() - startTime;
+          this.updateEngineStats(request.engine, responseTime, true);
+
           return {
             success: true,
             result: cached.result,
             engine_used: request.engine,
-            response_time: Date.now() - startTime,
+            response_time: responseTime,
             confidence: cached.result.confidence || 0.8,
             fallback_used: false,
             cache_hit: true,
             thinking_process: thinkingSteps,
+            performance: {
+              memoryUsage: PerformanceMonitor.getMemoryUsage(),
+              cacheHit: true,
+              memoryDelta: 0,
+            },
           };
         }
       }
@@ -254,6 +272,10 @@ export class MasterAIEngine {
         );
       }
 
+      // 📊 성능 측정 완료
+      const memoryAfter = PerformanceMonitor.getMemoryUsage();
+      const memoryDelta = memoryAfter.rss - memoryBefore.rss;
+
       return {
         success: true,
         result,
@@ -265,6 +287,11 @@ export class MasterAIEngine {
         reasoning_steps:
           result.reasoning_steps ||
           this.generateReasoningSteps(request.engine, request.query),
+        performance: {
+          memoryUsage: memoryAfter,
+          cacheHit: false,
+          memoryDelta,
+        },
       };
     } catch (error) {
       console.error(`❌ ${request.engine} 엔진 오류:`, error);

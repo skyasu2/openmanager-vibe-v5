@@ -16,6 +16,7 @@ import { timerManager } from '../utils/TimerManager';
 import { memoryOptimizer } from '../utils/MemoryOptimizer';
 import { SmartCache } from '../utils/smart-cache';
 import { DATA_GENERATOR_VERSIONS, VersionManager } from '../config/versions';
+import { DemoScenarioManager } from './DemoScenarioManager';
 
 interface BaselineDataPoint {
   timestamp: number;
@@ -156,11 +157,19 @@ export class OptimizedDataGenerator {
   private currentVariations = new Map<string, RealTimeVariation>();
   private lastPatternUpdate: number = 0;
 
-  // 성능 최적화
+  // 🎭 경연대회용 데모 시나리오 관리자
+  private demoManager = DemoScenarioManager.getInstance();
+
+  // 성능 최적화 및 경연대회 설정
   private cache = SmartCache.getInstance();
   private updateCounter: number = 0;
   private readonly CACHE_TTL = 30000; // 30초
-  private readonly UPDATE_INTERVAL = 5000; // 5초 (30초 → 5초, 하지만 베이스라인 활용으로 실제 부하 감소)
+  private readonly UPDATE_INTERVAL = 10000; // 10초 (Vercel 최적화)
+
+  // 🎯 경연대회용 20분 자동 종료
+  private readonly MAX_DURATION = 20 * 60 * 1000; // 20분
+  private startTime: Date | null = null;
+  private autoStopTimer: NodeJS.Timeout | null = null;
 
   static getInstance(): OptimizedDataGenerator {
     if (!OptimizedDataGenerator.instance) {
@@ -452,6 +461,9 @@ export class OptimizedDataGenerator {
       this.updateVariation(serverId, variation);
     }
 
+    // 🎭 경연대회용 데모 시나리오 적용
+    this.demoManager.applyToServers(servers);
+
     return servers;
   }
 
@@ -550,10 +562,19 @@ export class OptimizedDataGenerator {
 
     console.log('🚀 OptimizedDataGenerator 시작...');
 
+    // 🎯 경연대회용 시작 시간 기록
+    this.startTime = new Date();
+
     // 베이스라인 데이터 생성
     await this.generateBaselineData(initialServers);
 
     this.isRunning = true;
+
+    // 🎯 20분 후 자동 종료 설정
+    this.autoStopTimer = setTimeout(() => {
+      console.log('🏁 20분 시나리오 완료 - 자동 종료');
+      this.stop();
+    }, this.MAX_DURATION);
 
     // 실시간 업데이트 타이머 등록
     timerManager.register({
@@ -600,6 +621,12 @@ export class OptimizedDataGenerator {
 
     this.isRunning = false;
     timerManager.unregister('optimized-data-generator');
+
+    // 🎯 자동 종료 타이머 정리
+    if (this.autoStopTimer) {
+      clearTimeout(this.autoStopTimer);
+      this.autoStopTimer = null;
+    }
 
     console.log('🛑 OptimizedDataGenerator 정지');
   }
@@ -760,5 +787,26 @@ export class OptimizedDataGenerator {
   updateConfig(newConfig: Partial<OptimizedGeneratorConfig>): void {
     this.config = { ...this.config, ...newConfig };
     console.log('⚙️ OptimizedDataGenerator 설정 업데이트:', newConfig);
+  }
+
+  /**
+   * 🎭 데모 시나리오 상태 조회
+   */
+  getDemoStatus() {
+    return this.demoManager.getStatus();
+  }
+
+  /**
+   * 🔄 데모 시나리오 제어
+   */
+  toggleDemo(enabled: boolean): void {
+    this.demoManager.toggle(enabled);
+  }
+
+  /**
+   * 🔄 데모 시나리오 재시작
+   */
+  restartDemo(): void {
+    this.demoManager.restart();
   }
 }

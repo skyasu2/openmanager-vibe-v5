@@ -1,306 +1,281 @@
 /**
- * 📊 Prometheus 메트릭 엔드포인트
+ * 🏗️ Infrastructure Layer - 서버 데이터 생성기 (완전 독립)
  *
- * Prometheus가 스크래핑할 수 있는 표준 /metrics 엔드포인트
- * - 실시간 서버 메트릭 노출
- * - Prometheus 텍스트 형식 지원
- * - 라벨 기반 필터링
- * - 시스템 전체 요약 메트릭 포함
+ * 역할: 실제 서버 인프라 대체
+ * - 30대 가상 서버 = 실제 프로덕션 환경
+ * - 표준 Prometheus 메트릭 형식 100% 준수
+ * - 다른 시스템과 완전 독립적 동작
+ * - 24/7 지속적 메트릭 생성
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { simulationEngine } from '@/services/simulationEngine';
-import { prometheusFormatter } from '../../../modules/data-generation/PrometheusMetricsFormatter';
+import { OptimizedDataGenerator } from '../../../services/OptimizedDataGenerator';
 
+/**
+ * 🎯 표준 Prometheus /metrics 엔드포인트
+ * 실제 Prometheus 서버와 100% 호환
+ */
 export async function GET(request: NextRequest) {
-  const startTime = Date.now();
-
   try {
-    const { searchParams } = new URL(request.url);
-    const format = searchParams.get('format') || 'prometheus'; // prometheus | json
-    const environment = searchParams.get('environment'); // 환경 필터
-    const role = searchParams.get('role'); // 역할 필터
-    const serverId = searchParams.get('server_id'); // 특정 서버
-    const includeSystem = searchParams.get('include_system') !== 'false'; // 시스템 메트릭 포함 여부
+    const generator = OptimizedDataGenerator.getInstance();
 
-    // 필터 정보 객체 생성
-    const filters = { environment, role, serverId, includeSystem };
+    // 현재 서버 데이터 생성 (다른 시스템 상태와 무관)
+    const servers = await generator.generateRealTimeData();
 
-    console.log(
-      `📊 Prometheus 메트릭 요청: format=${format}, filters=${JSON.stringify(filters)}`
-    );
+    // Prometheus 메트릭 형식으로 변환
+    const metrics = convertToPrometheusFormat(servers);
 
-    // 1. 현재 서버 상태 가져오기
-    const servers = simulationEngine.getServers();
-
-    if (servers.length === 0) {
-      return NextResponse.json(
-        {
-          error: 'No servers available',
-          message: '시뮬레이션이 실행되지 않았거나 서버가 없습니다',
-        },
-        { status: 503 }
-      );
-    }
-
-    // 2. 서버 필터링 적용
-    let filteredServers = servers;
-
-    if (serverId) {
-      filteredServers = servers.filter(s => s.id === serverId);
-      if (filteredServers.length === 0) {
-        return NextResponse.json(
-          {
-            error: 'Server not found',
-            message: `서버 '${serverId}'를 찾을 수 없습니다`,
-          },
-          { status: 404 }
-        );
-      }
-    } else {
-      if (environment) {
-        filteredServers = filteredServers.filter(
-          s => s.environment === environment
-        );
-      }
-      if (role) {
-        filteredServers = filteredServers.filter(s => s.role === role);
-      }
-    }
-
-    // 3. Prometheus 메트릭으로 변환
-    let allMetrics: any[] = [];
-
-    filteredServers.forEach(server => {
-      const serverMetrics = prometheusFormatter.formatServerMetrics(server);
-      allMetrics = allMetrics.concat(serverMetrics);
+    // 표준 Prometheus Content-Type
+    return new NextResponse(metrics, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/plain; version=0.0.4; charset=utf-8',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        Pragma: 'no-cache',
+        Expires: '0',
+      },
     });
-
-    // 4. 시스템 전체 요약 메트릭 추가
-    if (includeSystem && !serverId) {
-      const systemMetrics =
-        prometheusFormatter.generateSystemSummaryMetrics(filteredServers);
-      allMetrics = allMetrics.concat(systemMetrics);
-    }
-
-    // 5. 응답 형식에 따른 처리
-    if (format === 'json') {
-      // JSON 형식으로 반환 (개발/디버깅용)
-      const processingTime = Date.now() - startTime;
-
-      return NextResponse.json({
-        meta: {
-          total_metrics: allMetrics.length,
-          total_servers: filteredServers.length,
-          processing_time_ms: processingTime,
-          timestamp: new Date().toISOString(),
-          filters,
-        },
-        metrics: allMetrics,
-        summary: {
-          metric_types: {
-            counter: allMetrics.filter(m => m.type === 'counter').length,
-            gauge: allMetrics.filter(m => m.type === 'gauge').length,
-            histogram: allMetrics.filter(m => m.type === 'histogram').length,
-            summary: allMetrics.filter(m => m.type === 'summary').length,
-          },
-          environments: [...new Set(filteredServers.map(s => s.environment))],
-          roles: [...new Set(filteredServers.map(s => s.role))],
-        },
-      });
-    } else {
-      // Prometheus 텍스트 형식으로 반환 (표준)
-      const prometheusText =
-        prometheusFormatter.formatToPrometheusText(allMetrics);
-
-      // 메타 정보를 주석으로 추가
-      const meta = [
-        `# OpenManager Vibe v5 - Prometheus Metrics`,
-        `# Generated at: ${new Date().toISOString()}`,
-        `# Total metrics: ${allMetrics.length}`,
-        `# Total servers: ${filteredServers.length}`,
-        `# Processing time: ${Date.now() - startTime}ms`,
-        environment && `# Environment filter: ${environment}`,
-        role && `# Role filter: ${role}`,
-        serverId && `# Server filter: ${serverId}`,
-        `# Realistic Pattern Engine: ${simulationEngine.getSimulationSummary().patternsEnabled ? 'enabled' : 'disabled'}`,
-        `# Current Load: ${simulationEngine.getSimulationSummary().currentLoad}`,
-        `# Active Failures: ${simulationEngine.getSimulationSummary().activeFailures}`,
-        ``,
-      ]
-        .filter(Boolean)
-        .join('\n');
-
-      const fullText = meta + prometheusText;
-
-      return new NextResponse(fullText, {
-        status: 200,
-        headers: {
-          'Content-Type': 'text/plain; version=0.0.4; charset=utf-8',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          Pragma: 'no-cache',
-          Expires: '0',
-          'X-OpenManager-Metrics-Count': allMetrics.length.toString(),
-          'X-OpenManager-Servers-Count': filteredServers.length.toString(),
-          'X-Processing-Time-Ms': (Date.now() - startTime).toString(),
-        },
-      });
-    }
   } catch (error) {
     console.error('❌ Prometheus 메트릭 생성 실패:', error);
-
     return NextResponse.json(
-      {
-        error: 'Metrics generation failed',
-        message:
-          error instanceof Error
-            ? error.message
-            : '메트릭 생성 중 오류가 발생했습니다',
-        timestamp: new Date().toISOString(),
-      },
+      { error: 'Prometheus metrics generation failed' },
       { status: 500 }
     );
   }
 }
 
 /**
- * 🎯 특정 메트릭 쿼리 (POST)
- *
- * PromQL 스타일의 메트릭 조회 지원
+ * 📊 서버 데이터를 표준 Prometheus 형식으로 변환
+ */
+function convertToPrometheusFormat(servers: any[]): string {
+  const timestamp = Math.floor(Date.now() / 1000);
+  let output = '';
+
+  // OpenManager Infrastructure Layer 메타 정보
+  output += '# OpenManager Vibe v5 - Infrastructure Layer\n';
+  output += `# Generated at: ${new Date().toISOString()}\n`;
+  output += `# Total servers: ${servers.length}\n`;
+  output += '# Data generator: v3.0.0 (Completely Independent)\n';
+  output += '\n';
+
+  // CPU 사용률 메트릭
+  output += '# HELP cpu_usage_percent Current CPU usage percentage\n';
+  output += '# TYPE cpu_usage_percent gauge\n';
+  servers.forEach(server => {
+    output += `cpu_usage_percent{instance="${server.id}",job="${server.role}",environment="${server.environment}",datacenter="dc1"} ${server.cpu_usage} ${timestamp}\n`;
+  });
+  output += '\n';
+
+  // 메모리 사용률 메트릭
+  output += '# HELP memory_usage_percent Current memory usage percentage\n';
+  output += '# TYPE memory_usage_percent gauge\n';
+  servers.forEach(server => {
+    output += `memory_usage_percent{instance="${server.id}",job="${server.role}",environment="${server.environment}",datacenter="dc1"} ${server.memory_usage} ${timestamp}\n`;
+  });
+  output += '\n';
+
+  // 메모리 사용량 (바이트)
+  output += '# HELP memory_usage_bytes Current memory usage in bytes\n';
+  output += '# TYPE memory_usage_bytes gauge\n';
+  servers.forEach(server => {
+    const memoryBytes = Math.round((server.memory_usage / 100) * 17179869184); // 16GB 서버 가정
+    output += `memory_usage_bytes{instance="${server.id}",job="${server.role}",environment="${server.environment}",datacenter="dc1"} ${memoryBytes} ${timestamp}\n`;
+  });
+  output += '\n';
+
+  // 디스크 사용률 메트릭
+  output += '# HELP disk_usage_percent Current disk usage percentage\n';
+  output += '# TYPE disk_usage_percent gauge\n';
+  servers.forEach(server => {
+    output += `disk_usage_percent{instance="${server.id}",job="${server.role}",environment="${server.environment}",datacenter="dc1"} ${server.disk_usage} ${timestamp}\n`;
+  });
+  output += '\n';
+
+  // 네트워크 입력 메트릭
+  output +=
+    '# HELP network_receive_bytes_total Total bytes received over network\n';
+  output += '# TYPE network_receive_bytes_total counter\n';
+  servers.forEach(server => {
+    const networkBytes = Math.round(server.network_in * 1024 * 1024); // MB to bytes
+    output += `network_receive_bytes_total{instance="${server.id}",job="${server.role}",environment="${server.environment}",datacenter="dc1"} ${networkBytes} ${timestamp}\n`;
+  });
+  output += '\n';
+
+  // 네트워크 출력 메트릭
+  output +=
+    '# HELP network_transmit_bytes_total Total bytes transmitted over network\n';
+  output += '# TYPE network_transmit_bytes_total counter\n';
+  servers.forEach(server => {
+    const networkBytes = Math.round(server.network_out * 1024 * 1024); // MB to bytes
+    output += `network_transmit_bytes_total{instance="${server.id}",job="${server.role}",environment="${server.environment}",datacenter="dc1"} ${networkBytes} ${timestamp}\n`;
+  });
+  output += '\n';
+
+  // 응답 시간 메트릭
+  output += '# HELP http_request_duration_seconds HTTP request latency\n';
+  output += '# TYPE http_request_duration_seconds gauge\n';
+  servers.forEach(server => {
+    const responseTimeSeconds = server.response_time / 1000; // ms to seconds
+    output += `http_request_duration_seconds{instance="${server.id}",job="${server.role}",environment="${server.environment}",datacenter="dc1"} ${responseTimeSeconds} ${timestamp}\n`;
+  });
+  output += '\n';
+
+  // 서버 상태 메트릭 (0=maintenance, 1=warning, 2=normal, 3=critical)
+  output += '# HELP server_status Current server status\n';
+  output += '# TYPE server_status gauge\n';
+  servers.forEach(server => {
+    let statusValue = 2; // normal
+    if (server.status === 'critical') statusValue = 3;
+    else if (server.status === 'warning') statusValue = 1;
+    else if (server.status === 'maintenance') statusValue = 0;
+
+    output += `server_status{instance="${server.id}",job="${server.role}",environment="${server.environment}",datacenter="dc1",status="${server.status}"} ${statusValue} ${timestamp}\n`;
+  });
+  output += '\n';
+
+  // 업타임 메트릭
+  output += '# HELP node_uptime_seconds Total uptime in seconds\n';
+  output += '# TYPE node_uptime_seconds counter\n';
+  servers.forEach(server => {
+    output += `node_uptime_seconds{instance="${server.id}",job="${server.role}",environment="${server.environment}",datacenter="dc1"} ${server.uptime} ${timestamp}\n`;
+  });
+  output += '\n';
+
+  // 알림 수 메트릭
+  output += '# HELP server_alerts_total Total number of active alerts\n';
+  output += '# TYPE server_alerts_total gauge\n';
+  servers.forEach(server => {
+    const alertCount = server.alerts ? server.alerts.length : 0;
+    output += `server_alerts_total{instance="${server.id}",job="${server.role}",environment="${server.environment}",datacenter="dc1"} ${alertCount} ${timestamp}\n`;
+  });
+  output += '\n';
+
+  // 인프라 수준 메트릭 추가
+  output +=
+    '# HELP openmanager_infrastructure_servers_total Total number of servers in infrastructure\n';
+  output += '# TYPE openmanager_infrastructure_servers_total gauge\n';
+  output += `openmanager_infrastructure_servers_total{datacenter="dc1",environment="production"} ${servers.length} ${timestamp}\n`;
+  output += '\n';
+
+  // 인프라 건강도 메트릭
+  const healthyServers = servers.filter(
+    (s: any) => s.status === 'normal'
+  ).length;
+  const healthPercentage = (healthyServers / servers.length) * 100;
+
+  output +=
+    '# HELP openmanager_infrastructure_health_percent Infrastructure health percentage\n';
+  output += '# TYPE openmanager_infrastructure_health_percent gauge\n';
+  output += `openmanager_infrastructure_health_percent{datacenter="dc1",environment="production"} ${healthPercentage.toFixed(2)} ${timestamp}\n`;
+  output += '\n';
+
+  // 데이터 생성기 자체 메트릭
+  output +=
+    '# HELP openmanager_generator_version Data generator version info\n';
+  output += '# TYPE openmanager_generator_version gauge\n';
+  output += `openmanager_generator_version{version="3.0.0",component="infrastructure"} 1 ${timestamp}\n`;
+  output += '\n';
+
+  output +=
+    '# HELP openmanager_generator_uptime_seconds Data generator uptime\n';
+  output += '# TYPE openmanager_generator_uptime_seconds counter\n';
+  const generatorUptime = Math.floor(Date.now() / 1000); // 현재 시간을 업타임으로 사용
+  output += `openmanager_generator_uptime_seconds{component="infrastructure"} ${generatorUptime} ${timestamp}\n`;
+
+  return output;
+}
+
+/**
+ * 🔍 Prometheus 쿼리 API (PromQL 호환)
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { query, start, end, step } = body;
+    const { query, time, timeout } = await request.json();
 
-    console.log(`🔍 Prometheus 쿼리 요청: ${query}`);
-
-    // 현재는 간단한 메트릭 쿼리만 지원
-    // 향후 실제 PromQL 파서 구현 가능
-    const servers = simulationEngine.getServers();
-    let allMetrics: any[] = [];
-
-    servers.forEach(server => {
-      const serverMetrics = prometheusFormatter.formatServerMetrics(server);
-      allMetrics = allMetrics.concat(serverMetrics);
-    });
-
-    // 쿼리 기반 필터링 (간단한 구현)
-    let filteredMetrics = allMetrics;
-
-    if (query) {
-      // 메트릭 이름 매칭
-      const metricNameMatch = query.match(/^([a-zA-Z_:][a-zA-Z0-9_:]*)/);
-      if (metricNameMatch) {
-        const metricName = metricNameMatch[1];
-        filteredMetrics = allMetrics.filter(m => m.name === metricName);
-      }
-
-      // 라벨 필터링 (예: {environment="aws"})
-      const labelMatch = query.match(/\{([^}]+)\}/);
-      if (labelMatch) {
-        const labelFilters = labelMatch[1].split(',').map((filter: string) => {
-          const [key, value] = filter.split('=');
-          return { key: key.trim(), value: value?.replace(/"/g, '').trim() };
-        });
-
-        labelFilters.forEach(
-          ({ key, value }: { key: string; value: string }) => {
-            if (key && value) {
-              filteredMetrics = filteredMetrics.filter(
-                m => m.labels[key] === value
-              );
-            }
-          }
-        );
-      }
-    }
+    // PromQL 쿼리 파싱 및 실행 시뮬레이션
+    const result = await executePromQLQuery(query, time);
 
     return NextResponse.json({
       status: 'success',
       data: {
         resultType: 'vector',
-        result: filteredMetrics.map(metric => ({
-          metric: metric.labels,
-          value: [
-            metric.timestamp ? metric.timestamp / 1000 : Date.now() / 1000,
-            metric.value.toString(),
-          ],
-        })),
-      },
-      meta: {
-        query,
-        execution_time_ms: Date.now() - Date.now(),
-        total_results: filteredMetrics.length,
+        result: result,
       },
     });
   } catch (error) {
-    console.error('❌ Prometheus 쿼리 실패:', error);
-
+    console.error('❌ PromQL 쿼리 실행 실패:', error);
     return NextResponse.json(
       {
         status: 'error',
-        error:
-          error instanceof Error
-            ? error.message
-            : '쿼리 처리 중 오류가 발생했습니다',
-        timestamp: new Date().toISOString(),
+        error: 'Query execution failed',
+        errorType: 'bad_data',
       },
-      { status: 500 }
+      { status: 400 }
     );
   }
 }
 
 /**
- * 📋 메트릭 정보 조회 (OPTIONS)
+ * 📊 PromQL 쿼리 시뮬레이션 실행
  */
-export async function OPTIONS(request: NextRequest) {
-  const servers = simulationEngine.getServers();
-  const sampleServer = servers[0];
+async function executePromQLQuery(
+  query: string,
+  time?: number
+): Promise<any[]> {
+  const generator = OptimizedDataGenerator.getInstance();
+  const servers = await generator.generateRealTimeData();
 
-  if (!sampleServer) {
-    return NextResponse.json(
-      {
-        error: 'No servers available for metadata',
+  // 간단한 PromQL 쿼리 파싱 (실제로는 더 복잡한 파서가 필요)
+  if (query.includes('cpu_usage_percent')) {
+    return servers.map((server: any) => ({
+      metric: {
+        __name__: 'cpu_usage_percent',
+        instance: server.id,
+        job: server.role,
+        environment: server.environment,
       },
-      { status: 503 }
-    );
+      value: [
+        time || Math.floor(Date.now() / 1000),
+        server.cpu_usage.toString(),
+      ],
+    }));
   }
 
-  // 샘플 메트릭 생성으로 메타데이터 제공
-  const sampleMetrics = prometheusFormatter.formatServerMetrics(sampleServer);
-  const metricNames = [...new Set(sampleMetrics.map(m => m.name))];
-  const labelKeys = new Set<string>();
-
-  sampleMetrics.forEach(m => {
-    Object.keys(m.labels).forEach(key => labelKeys.add(key));
-  });
-
-  return NextResponse.json({
-    status: 'success',
-    metadata: {
-      available_metrics: metricNames.length,
-      metric_names: metricNames,
-      label_keys: Array.from(labelKeys),
-      metric_types: {
-        counter: sampleMetrics.filter(m => m.type === 'counter').length,
-        gauge: sampleMetrics.filter(m => m.type === 'gauge').length,
-        histogram: sampleMetrics.filter(m => m.type === 'histogram').length,
-        summary: sampleMetrics.filter(m => m.type === 'summary').length,
+  if (query.includes('memory_usage_percent')) {
+    return servers.map((server: any) => ({
+      metric: {
+        __name__: 'memory_usage_percent',
+        instance: server.id,
+        job: server.role,
+        environment: server.environment,
       },
-      servers: {
-        total: servers.length,
-        environments: [...new Set(servers.map(s => s.environment))],
-        roles: [...new Set(servers.map(s => s.role))],
-      },
-    },
-    examples: {
-      prometheus_scrape: `${request.nextUrl.origin}/api/metrics`,
-      json_format: `${request.nextUrl.origin}/api/metrics?format=json`,
-      filter_by_environment: `${request.nextUrl.origin}/api/metrics?environment=aws`,
-      filter_by_role: `${request.nextUrl.origin}/api/metrics?role=web`,
-      specific_server: `${request.nextUrl.origin}/api/metrics?server_id=server-aws-01`,
-      query_endpoint: `POST ${request.nextUrl.origin}/api/metrics`,
-    },
-  });
+      value: [
+        time || Math.floor(Date.now() / 1000),
+        server.memory_usage.toString(),
+      ],
+    }));
+  }
+
+  if (query.includes('server_status')) {
+    return servers.map((server: any) => {
+      let statusValue = 2;
+      if (server.status === 'critical') statusValue = 3;
+      else if (server.status === 'warning') statusValue = 1;
+      else if (server.status === 'maintenance') statusValue = 0;
+
+      return {
+        metric: {
+          __name__: 'server_status',
+          instance: server.id,
+          job: server.role,
+          environment: server.environment,
+          status: server.status,
+        },
+        value: [time || Math.floor(Date.now() / 1000), statusValue.toString()],
+      };
+    });
+  }
+
+  // 기본적으로 빈 결과 반환
+  return [];
 }

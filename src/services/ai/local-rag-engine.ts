@@ -43,26 +43,26 @@ class KoreanNLUProcessor {
 
   async initialize() {
     if (this.initialized) return;
-    
+
     // 의도 분석 패턴 초기화
     this.intentPatterns.set('performance', [
       /성능|cpu|메모리|디스크|느림|빠름|최적화|속도/i,
-      /performance|cpu|memory|disk|slow|fast|optimize|speed/i
+      /performance|cpu|memory|disk|slow|fast|optimize|speed/i,
     ]);
-    
+
     this.intentPatterns.set('troubleshooting', [
       /문제|오류|에러|장애|고장|해결|수리/i,
-      /problem|error|issue|failure|fix|repair|troubleshoot/i
+      /problem|error|issue|failure|fix|repair|troubleshoot/i,
     ]);
-    
+
     this.intentPatterns.set('monitoring', [
       /모니터링|감시|상태|확인|점검|체크/i,
-      /monitoring|status|check|health|watch/i
+      /monitoring|status|check|health|watch/i,
     ]);
-    
+
     this.intentPatterns.set('security', [
       /보안|인증|권한|접근|로그인|암호/i,
-      /security|auth|permission|access|login|password/i
+      /security|auth|permission|access|login|password/i,
     ]);
 
     this.initialized = true;
@@ -71,23 +71,54 @@ class KoreanNLUProcessor {
 
   async analyzeIntent(text: string): Promise<IntentAnalysis> {
     if (!this.initialized) await this.initialize();
-    
+
     const normalizedText = text.toLowerCase();
     let bestMatch = { category: 'general', confidence: 0.1 };
-    
+
     // 패턴 매칭으로 의도 분석
     for (const [category, patterns] of this.intentPatterns) {
       for (const pattern of patterns) {
         if (pattern.test(normalizedText)) {
-          const confidence = 0.7 + Math.random() * 0.2; // 0.7-0.9
+          // 실제 매칭 점수 기반 신뢰도 계산
+          const matchLength = (normalizedText.match(pattern) || [''])[0].length;
+          const textLength = normalizedText.length;
+          const keywordDensity = matchLength / Math.max(textLength, 1);
+
+          // 카테고리별 가중치
+          const categoryWeight = this.getCategoryWeight(category);
+
+          // 실제 신뢰도: 매칭 밀도 + 카테고리 가중치 + 텍스트 길이 보정
+          const confidence = Math.min(
+            0.95,
+            Math.max(
+              0.1,
+              0.4 +
+                keywordDensity * 0.4 +
+                categoryWeight * 0.2 +
+                (textLength > 5 ? 0.1 : 0) // 긴 텍스트 보너스
+            )
+          );
+
           if (confidence > bestMatch.confidence) {
             bestMatch = { category, confidence };
           }
         }
       }
     }
-    
+
     return bestMatch;
+  }
+
+  private getCategoryWeight(category: string): number {
+    // 카테고리별 중요도 가중치
+    const weights: Record<string, number> = {
+      performance: 0.9, // 성능 관련 가장 중요
+      troubleshooting: 0.8, // 문제해결 중요
+      security: 0.8, // 보안 중요
+      monitoring: 0.7, // 모니터링 중요도 중간
+      general: 0.5, // 일반 질문 기본값
+    };
+    return weights[category] || 0.5;
   }
 }
 
@@ -97,36 +128,36 @@ class KoreanResponseGenerator {
 
   async initialize() {
     if (this.initialized) return;
-    
+
     // 카테고리별 응답 템플릿
     this.responseTemplates.set('performance', [
       '성능 분석 결과를 확인했습니다. {details}',
       '시스템 성능 상태를 점검했습니다. {details}',
-      '성능 최적화 방안을 제안드립니다. {details}'
+      '성능 최적화 방안을 제안드립니다. {details}',
     ]);
-    
+
     this.responseTemplates.set('troubleshooting', [
       '문제 해결 방안을 찾았습니다. {details}',
       '장애 원인을 분석했습니다. {details}',
-      '다음 해결 단계를 권장합니다. {details}'
+      '다음 해결 단계를 권장합니다. {details}',
     ]);
-    
+
     this.responseTemplates.set('monitoring', [
       '시스템 상태를 확인했습니다. {details}',
       '모니터링 결과입니다. {details}',
-      '현재 시스템 상태는 다음과 같습니다. {details}'
+      '현재 시스템 상태는 다음과 같습니다. {details}',
     ]);
-    
+
     this.responseTemplates.set('security', [
       '보안 상태를 점검했습니다. {details}',
       '보안 분석 결과입니다. {details}',
-      '보안 권장사항을 제시합니다. {details}'
+      '보안 권장사항을 제시합니다. {details}',
     ]);
-    
+
     this.responseTemplates.set('general', [
       '요청하신 내용을 분석했습니다. {details}',
       '다음과 같은 정보를 찾았습니다. {details}',
-      '관련 정보를 확인했습니다. {details}'
+      '관련 정보를 확인했습니다. {details}',
     ]);
 
     this.initialized = true;
@@ -142,17 +173,19 @@ class KoreanResponseGenerator {
     processingTime: number;
   }): Promise<{ text: string; confidence: number; suggestions?: string[] }> {
     if (!this.initialized) await this.initialize();
-    
+
     const { intent, relevantDocuments, currentMetrics } = context;
     const category = intent.category || 'general';
-    
-    // 템플릿 선택
-    const templates = this.responseTemplates.get(category) || this.responseTemplates.get('general')!;
-    const template = templates[Math.floor(Math.random() * templates.length)];
-    
+
+    // 템플릿 선택 (컨텍스트 기반)
+    const templates =
+      this.responseTemplates.get(category) ||
+      this.responseTemplates.get('general')!;
+    const template = this.selectBestTemplate(templates, context);
+
     // 세부 정보 생성
     let details = '';
-    
+
     if (relevantDocuments.length > 0) {
       const doc = relevantDocuments[0];
       details = doc.content.substring(0, 200) + '...';
@@ -161,18 +194,37 @@ class KoreanResponseGenerator {
     } else {
       details = '관련 정보를 수집하여 분석했습니다.';
     }
-    
+
     // 응답 생성
     const response = template.replace('{details}', details);
-    
+
     // 제안사항 생성
     const suggestions = this.generateSuggestions(category);
-    
+
     return {
       text: response,
       confidence: Math.max(intent.confidence || 0.5, 0.6),
-      suggestions
+      suggestions,
     };
+  }
+
+  private selectBestTemplate(templates: string[], context: any): string {
+    // 컨텍스트 기반 템플릿 선택
+    if (context.currentMetrics) {
+      // 메트릭 데이터가 있으면 구체적인 템플릿 선호
+      return templates.find(t => t.includes('{details}')) || templates[0];
+    }
+
+    if (context.relevantDocuments?.length > 0) {
+      // 문서가 있으면 분석 중심 템플릿
+      return (
+        templates.find(t => t.includes('분석') || t.includes('확인')) ||
+        templates[0]
+      );
+    }
+
+    // 기본값: 첫 번째 템플릿 (가장 일반적)
+    return templates[0];
   }
 
   private generateSuggestions(category: string): string[] {
@@ -181,9 +233,9 @@ class KoreanResponseGenerator {
       troubleshooting: ['로그 분석', '시스템 재시작', '전문가 상담'],
       monitoring: ['실시간 모니터링', '알림 설정', '대시보드 확인'],
       security: ['보안 스캔', '권한 검토', '로그 감사'],
-      general: ['자세한 분석', '관련 문서 확인', '추가 질문']
+      general: ['자세한 분석', '관련 문서 확인', '추가 질문'],
     };
-    
+
     return suggestionMap[category] || suggestionMap.general;
   }
 }

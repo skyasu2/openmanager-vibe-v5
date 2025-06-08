@@ -13,110 +13,50 @@ const optimizedGenerator = OptimizedDataGenerator.getInstance();
 const simulationEngine = new SimulationEngine();
 
 /**
- * 📊 최적화된 데이터 생성기 상태 조회
+ * 📊 최적화된 데이터 생성기 API + 경연대회용 데모 시나리오
+ *
+ * GET: 현재 상태 + 데모 시나리오 상태 조회
+ * POST: 데모 시나리오 제어 (시작/중지/재시작)
  */
-export async function GET(request: NextRequest) {
+
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const action = searchParams.get('action');
+    const generator = OptimizedDataGenerator.getInstance();
+    const status = generator.getStatus();
+    const demoStatus = generator.getDemoStatus();
 
-    switch (action) {
-      case 'status':
-        const status = optimizedGenerator.getStatus();
-        return NextResponse.json({
-          success: true,
-          data: {
-            optimizedGenerator: status,
-            originalSimulation: {
-              isRunning: simulationEngine.getIsRunning(),
-              serversCount: simulationEngine.getServers().length,
-            },
-            comparison: {
-              memoryReduction: '60%',
-              cpuReduction: '75%',
-              updateFrequency: '5초 (베이스라인 활용)',
-              dataEfficiency: '24시간 사전 생성 + 실시간 변동',
-            },
+    return NextResponse.json({
+      success: true,
+      timestamp: new Date().toISOString(),
+      dataGenerator: {
+        ...status,
+        isRunning: status.isRunning,
+        serversCount: status.serversCount,
+        updateCounter: status.updateCounter,
+        memoryUsage: status.memoryUsage,
+      },
+      demoScenario: demoStatus
+        ? {
+            ...demoStatus,
+            isActive: demoStatus.isActive,
+            currentPhase: demoStatus.currentPhase,
+            timeRange: demoStatus.timeRange,
+            koreanDescription: demoStatus.koreanDescription,
+            elapsedMinutes: demoStatus.elapsedMinutes,
+            nextPhaseIn: demoStatus.nextPhaseIn,
+            aiAnalysisPoints: demoStatus.aiAnalysisPoints,
+          }
+        : {
+            isActive: false,
+            message: '데모 시나리오가 비활성화되어 있습니다.',
           },
-        });
-
-      case 'servers':
-        if (!optimizedGenerator.getStatus().isRunning) {
-          return NextResponse.json(
-            {
-              success: false,
-              error: '최적화된 생성기가 실행 중이 아닙니다',
-            },
-            { status: 400 }
-          );
-        }
-
-        const servers = await optimizedGenerator.generateRealTimeData();
-        return NextResponse.json({
-          success: true,
-          data: {
-            servers,
-            count: servers.length,
-            timestamp: new Date().toISOString(),
-            source: 'optimized-baseline-generator',
-          },
-        });
-
-      case 'comparison':
-        // 기존 시뮬레이션과 최적화된 생성기 비교
-        const originalServers = simulationEngine.getServers();
-        const optimizedServers = optimizedGenerator.getStatus().isRunning
-          ? await optimizedGenerator.generateRealTimeData()
-          : [];
-
-        return NextResponse.json({
-          success: true,
-          data: {
-            original: {
-              count: originalServers.length,
-              isRunning: simulationEngine.getIsRunning(),
-              method: '실시간 계산',
-              memoryUsage: 'High',
-              cpuUsage: 'High',
-            },
-            optimized: {
-              count: optimizedServers.length,
-              isRunning: optimizedGenerator.getStatus().isRunning,
-              method: '베이스라인 + 변동',
-              memoryUsage: 'Low',
-              cpuUsage: 'Low',
-            },
-            benefits: [
-              '60% 메모리 사용량 감소',
-              '75% CPU 사용량 감소',
-              '90% 데이터 낭비 방지',
-              '현실적인 24시간 패턴',
-              '스마트 캐싱 활용',
-            ],
-          },
-        });
-
-      default:
-        return NextResponse.json({
-          success: true,
-          data: {
-            endpoints: [
-              'GET ?action=status - 생성기 상태 조회',
-              'GET ?action=servers - 현재 서버 데이터',
-              'GET ?action=comparison - 성능 비교',
-              'POST - 생성기 시작/중지',
-              'PUT - 설정 업데이트',
-            ],
-          },
-        });
-    }
+    });
   } catch (error) {
-    console.error('❌ 최적화된 데이터 생성기 조회 실패:', error);
+    console.error('❌ 데이터 생성기 상태 조회 실패:', error);
     return NextResponse.json(
       {
         success: false,
-        error: '서버 오류가 발생했습니다',
-        details: error instanceof Error ? error.message : String(error),
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       },
       { status: 500 }
     );
@@ -124,14 +64,32 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * 🚀 최적화된 데이터 생성기 시작/중지
+ * 🚀 최적화된 데이터 생성기 시작/중지 + 데모 시나리오 제어
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action, config } = body;
+    const { action, config, enabled } = body;
 
     switch (action) {
+      // 🎭 데모 시나리오 제어
+      case 'demo-toggle':
+        optimizedGenerator.toggleDemo(enabled);
+        return NextResponse.json({
+          success: true,
+          message: `데모 시나리오가 ${enabled ? '활성화' : '비활성화'}되었습니다.`,
+          demoStatus: optimizedGenerator.getDemoStatus(),
+        });
+
+      case 'demo-restart':
+        optimizedGenerator.restartDemo();
+        return NextResponse.json({
+          success: true,
+          message: '데모 시나리오가 재시작되었습니다.',
+          demoStatus: optimizedGenerator.getDemoStatus(),
+        });
+
+      // 🚀 기존 데이터 생성기 제어
       case 'start':
         if (optimizedGenerator.getStatus().isRunning) {
           return NextResponse.json(
@@ -143,17 +101,12 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        // 기존 시뮬레이션 엔진에서 초기 서버 가져오기
-        const initialServers = simulationEngine.getServers();
+        // 시뮬레이션 엔진에서 서버 확인 및 생성
+        let initialServers = simulationEngine.getServers();
         if (initialServers.length === 0) {
-          return NextResponse.json(
-            {
-              success: false,
-              error:
-                '초기 서버 데이터가 없습니다. 먼저 시뮬레이션을 시작하세요.',
-            },
-            { status: 400 }
-          );
+          // 시뮬레이션을 먼저 시작해서 서버 생성
+          simulationEngine.start();
+          initialServers = simulationEngine.getServers().slice(0, 30);
         }
 
         // 최적화된 생성기 시작
@@ -168,16 +121,38 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           data: {
-            message: '최적화된 데이터 생성기 시작됨',
+            message: '🎯 경연대회용 20분 시나리오 시작됨 (10초 간격)',
             status: optimizedGenerator.getStatus(),
             benefits: [
-              '24시간 베이스라인 데이터 미리 생성 완료',
-              '실시간 변동만 계산하여 리소스 최적화',
-              '메모리 사용량 60% 감소',
-              'CPU 사용량 75% 감소',
+              '🏗️ 24시간 베이스라인 데이터 미리 생성 완료',
+              '⚡ 실시간 변동만 계산하여 리소스 최적화',
+              '🚀 Vercel 환경 최적화 (10초 간격)',
+              '🎭 20분 후 자동 종료',
+              `📊 ${initialServers.length}대 서버 모니터링`,
             ],
           },
         });
+
+      case 'toggle':
+        // 🎭 경연대회용 온오프 토글
+        const currentStatus = optimizedGenerator.getStatus();
+
+        if (currentStatus.isRunning) {
+          optimizedGenerator.stop();
+          return NextResponse.json({
+            success: true,
+            action: 'stopped',
+            message: '데이터 생성기가 중지되었습니다.',
+            data: { status: optimizedGenerator.getStatus() },
+          });
+        } else {
+          return NextResponse.json({
+            success: false,
+            action: 'error',
+            message:
+              '토글 시작을 위해서는 POST {"action": "start"}를 사용하세요.',
+          });
+        }
 
       case 'stop':
         if (!optimizedGenerator.getStatus().isRunning) {
