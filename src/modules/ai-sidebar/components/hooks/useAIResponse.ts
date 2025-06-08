@@ -197,7 +197,7 @@ export const useAIResponse = (
           }, 1000);
         } else {
           // 실패 처리
-          logEngine.completeSession(sessionId, 'error', aiResponse.error || '처리 실패');
+          logEngine.completeSession(sessionId, 'failed', aiResponse.error || '처리 실패');
 
           setQAItems(prev =>
             prev.map(item =>
@@ -217,7 +217,7 @@ export const useAIResponse = (
       } catch (error: any) {
         console.error('❌ AI 기능 호출 중 오류:', error);
         
-        logEngine.completeSession(sessionId, 'error', error.message);
+        logEngine.completeSession(sessionId, 'failed', error.message);
 
         setQAItems(prev =>
           prev.map(item =>
@@ -256,7 +256,7 @@ export const useAIResponse = (
           currentWordIndex++;
           
           if (currentWordIndex < words.length) {
-            timerManager.setTimeout(typeNextWord, 100);
+            setTimeout(typeNextWord, 100);
           } else {
             setIsTyping(false);
           }

@@ -24,22 +24,62 @@ import React, { useState, useEffect, useCallback } from 'react';
 //   type QueryResponse,
 // } from '@/services/ai/EnhancedDataAnalyzer';
 
-// ✅ 타입만 정의 (실제 구현은 API 라우트에서 처리)
+// 🚨 Alert 아이템 타입 정의
+interface AlertItem {
+  level: 'critical' | 'warning' | 'info';
+  message: string;
+  timestamp?: string;
+  source?: string;
+}
+
+// 🚨 Recommendation 아이템 타입 정의  
+interface RecommendationItem {
+  priority: 'high' | 'medium' | 'low';
+  action: string;
+  impact: string;
+  effort: string;
+  description?: string;
+  category?: string;
+}
+
+// ✅ 완전한 타입 정의 (실제 구현은 API 라우트에서 처리)
 interface ServerInstance {
   id: string;
   name: string;
   type: string;
   role: string;
   status: string;
+  location?: string;
+  environment?: string;
   health: {
     score: number;
     issues: string[];
+    lastCheck?: string;
   };
   metrics: {
     cpu: number;
     memory: number;
+    disk?: number;
+    uptime?: number;
     requests: number;
     errors: number;
+  };
+  specs?: {
+    cpu: {
+      cores: number;
+      model: string;
+    };
+    memory: {
+      total: number;
+      type: string;
+    };
+    disk: {
+      total: number;
+      type: string;
+    };
+    network: {
+      bandwidth: number;
+    };
   };
 }
 
@@ -51,6 +91,11 @@ interface ServerCluster {
     algorithm: string;
     activeConnections: number;
   };
+  scaling?: {
+    current: number;
+    max: number;
+    policy: string;
+  };
 }
 
 interface ApplicationMetrics {
@@ -59,11 +104,31 @@ interface ApplicationMetrics {
   status: string;
   responseTime: number;
   throughput: number;
+  version?: string;
+  performance?: {
+    availability: number;
+    responseTime: number;
+    throughput: number;
+    errorRate: number;
+  };
+  resources?: {
+    cost: number;
+  };
+  deployments?: {
+    production: { servers: number };
+    staging: { servers: number };
+    development: { servers: number };
+  };
 }
 
 interface EnhancedAnalysisResult {
   summary: string;
-  insights: string[];
+  insights: {
+    summary?: string;
+    keyFindings?: string[];
+    alerts?: AlertItem[];  // ✅ AlertItem[] 타입으로 수정
+    recommendations?: RecommendationItem[];  // ✅ RecommendationItem[] 타입으로 수정
+  };
   recommendations: string[];
 }
 
@@ -71,9 +136,12 @@ interface QueryResponse {
   success: boolean;
   message: string;
   data?: any;
+  query?: string;
+  response?: string;
+  suggestions?: string[];
 }
 
-// 📊 메트릭 카드 컴포넌트
+// 🚨 메트릭 카드 컴포넌트
 interface MetricCardProps {
   title: string;
   value: string | number;
@@ -258,8 +326,8 @@ const ClusterCard: React.FC<ClusterCardProps> = ({ cluster }) => {
 
       <div className='mt-3 bg-gray-50 rounded p-2'>
         <p className='text-xs text-gray-600'>
-          스케일링: {cluster.scaling.current}/{cluster.scaling.max}(
-          {cluster.scaling.policy} 기반)
+          스케일링: {cluster.scaling?.current}/{cluster.scaling?.max}(
+          {cluster.scaling?.policy} 기반)
         </p>
       </div>
     </div>
@@ -347,11 +415,11 @@ const AIQueryInterface: React.FC<AIQueryInterfaceProps> = ({ onQuery }) => {
             <span className='text-sm text-gray-500'>답변:</span>
             <p className='text-sm'>{response.response}</p>
           </div>
-          {response.suggestions.length > 0 && (
+          {(response.suggestions?.length || 0) > 0 && (
             <div>
               <span className='text-sm text-gray-500'>추가 제안:</span>
               <ul className='text-sm text-blue-600'>
-                {response.suggestions.map((suggestion, index) => (
+                {(response.suggestions || []).map((suggestion: string, index: number) => (
                   <li
                     key={index}
                     className='cursor-pointer hover:underline'
@@ -385,36 +453,78 @@ export const AdvancedMonitoringDashboard: React.FC = () => {
   // 🔄 데이터 새로고침
   const refreshData = useCallback(async () => {
     try {
-      // 서버 데이터 가져오기
-      setServers(dataGenerator.getAllServers());
-      setClusters(dataGenerator.getAllClusters());
-      setApplications(dataGenerator.getAllApplications());
+      // ✅ API 호출로 변경
+      const [serversRes, clustersRes, appsRes] = await Promise.all([
+        fetch('/api/servers/realtime'),
+        fetch('/api/servers/realtime?type=clusters'),
+        fetch('/api/servers/realtime?type=applications')
+      ]);
+
+      const serversData = await serversRes.json();
+      const clustersData = await clustersRes.json();
+      const appsData = await appsRes.json();
+
+      setServers(serversData.data || []);
+      setClusters(clustersData.data || []);
+      setApplications(appsData.data || []);
 
       // AI 분석 실행
-      const analysisResult = await analyzer.analyzeSystem();
-      setAnalysis(analysisResult);
+      const analysisRes = await fetch('/api/ai/enhanced', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'analyze-system' })
+      });
+      const analysisResult = await analysisRes.json();
+      setAnalysis(analysisResult.data || { summary: '', insights: { recommendations: [] }, recommendations: [] });
     } catch (error) {
-      console.error('데이터 새로고침 오류:', error);
+      console.error('데이터 새로고침 실패:', error);
+      // 안전한 fallback
+      setServers([]);
+      setClusters([]);
+      setApplications([]);
+      setAnalysis({ summary: '데이터 로딩 실패', insights: { recommendations: [] }, recommendations: [] });
     }
-  }, [dataGenerator, analyzer]);
+  }, []);
 
   // 🚀 초기화 및 자동 새로고침
   useEffect(() => {
-    dataGenerator.initialize().then(() => {
-      dataGenerator.startAutoGeneration();
-      refreshData();
-    });
+    // ✅ API 호출로 초기화
+    refreshData();
 
-    const interval = setInterval(refreshData, 30000); // 30초마다 새로고침
+    // 자동 새로고침 설정 (30초마다)
+    const interval = setInterval(refreshData, 30000);
+
     return () => {
       clearInterval(interval);
-      dataGenerator.stopAutoGeneration();
     };
-  }, [dataGenerator, refreshData]);
+  }, [refreshData]);
 
   // 🤖 AI 쿼리 처리
   const handleAIQuery = async (query: string): Promise<QueryResponse> => {
-    return await analyzer.processNaturalLanguageQuery(query);
+    try {
+      const response = await fetch('/api/ai/enhanced', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, action: 'natural-language-query' })
+      });
+      const result = await response.json();
+      return {
+        success: result.success || true,
+        message: result.message || '처리 완료',
+        data: result.data,
+        query: query,
+        response: result.response || result.message,
+        suggestions: result.suggestions || []
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: '쿼리 처리 중 오류가 발생했습니다.',
+        query: query,
+        response: '오류가 발생했습니다.',
+        suggestions: []
+      };
+    }
   };
 
   // 📊 메트릭 계산
@@ -540,17 +650,17 @@ export const AdvancedMonitoringDashboard: React.FC = () => {
                         주요 발견사항
                       </h4>
                       <ul className='text-sm text-gray-600 space-y-1'>
-                        {analysis.insights.keyFindings.map((finding, index) => (
+                        {analysis.insights.keyFindings?.map((finding, index) => (
                           <li key={index}>• {finding}</li>
                         ))}
                       </ul>
                     </div>
 
-                    {analysis.insights.alerts.length > 0 && (
+                    {(analysis.insights.alerts?.length || 0) > 0 && (
                       <div>
                         <h4 className='font-medium text-gray-900'>알림</h4>
                         <div className='space-y-2'>
-                          {analysis.insights.alerts.map((alert, index) => (
+                          {(analysis.insights.alerts || []).map((alert: AlertItem, index: number) => (
                             <div
                               key={index}
                               className={`p-2 rounded text-sm ${
@@ -574,7 +684,7 @@ export const AdvancedMonitoringDashboard: React.FC = () => {
                 <div className='bg-white rounded-lg shadow p-6 border'>
                   <h3 className='text-lg font-medium mb-4'>💡 권장사항</h3>
                   <div className='space-y-3'>
-                    {analysis.insights.recommendations.map((rec, index) => (
+                    {(analysis.insights.recommendations || []).map((rec: RecommendationItem, index: number) => (
                       <div
                         key={index}
                         className='border-l-4 border-blue-400 pl-4'
@@ -682,7 +792,7 @@ export const AdvancedMonitoringDashboard: React.FC = () => {
                     </div>
                     <div className='text-right'>
                       <p className='text-sm font-medium'>
-                        {app.performance.availability.toFixed(1)}%
+                        {app.performance?.availability.toFixed(1)}%
                       </p>
                       <p className='text-xs text-gray-500'>가용성</p>
                     </div>
@@ -692,32 +802,32 @@ export const AdvancedMonitoringDashboard: React.FC = () => {
                     <div>
                       <p className='text-gray-500'>응답시간</p>
                       <p className='font-medium'>
-                        {app.performance.responseTime}ms
+                        {app.performance?.responseTime}ms
                       </p>
                     </div>
                     <div>
                       <p className='text-gray-500'>처리량</p>
                       <p className='font-medium'>
-                        {app.performance.throughput}
+                        {app.performance?.throughput}
                       </p>
                     </div>
                     <div>
                       <p className='text-gray-500'>오류율</p>
                       <p className='font-medium text-red-600'>
-                        {app.performance.errorRate.toFixed(2)}%
+                        {app.performance?.errorRate.toFixed(2)}%
                       </p>
                     </div>
                     <div>
                       <p className='text-gray-500'>비용</p>
-                      <p className='font-medium'>${app.resources.cost}</p>
+                      <p className='font-medium'>${app.resources?.cost}</p>
                     </div>
                   </div>
 
                   <div className='mt-3 bg-gray-50 rounded p-2'>
                     <p className='text-xs text-gray-600'>
-                      운영: {app.deployments.production.servers}대 • 스테이징:{' '}
-                      {app.deployments.staging.servers}대 • 개발:{' '}
-                      {app.deployments.development.servers}대
+                      운영: {app.deployments?.production.servers}대 • 스테이징:{' '}
+                      {app.deployments?.staging.servers}대 • 개발:{' '}
+                      {app.deployments?.development.servers}대
                     </p>
                   </div>
                 </div>
@@ -762,19 +872,19 @@ export const AdvancedMonitoringDashboard: React.FC = () => {
                     <div>
                       <h3 className='font-medium mb-2'>하드웨어 스펙</h3>
                       <p>
-                        CPU: {selectedServer.specs.cpu.cores}코어{' '}
-                        {selectedServer.specs.cpu.model}
+                        CPU: {selectedServer.specs?.cpu.cores}코어{' '}
+                        {selectedServer.specs?.cpu.model}
                       </p>
                       <p>
-                        메모리: {selectedServer.specs.memory.total}GB{' '}
-                        {selectedServer.specs.memory.type}
+                        메모리: {selectedServer.specs?.memory.total}GB{' '}
+                        {selectedServer.specs?.memory.type}
                       </p>
                       <p>
-                        디스크: {selectedServer.specs.disk.total}GB{' '}
-                        {selectedServer.specs.disk.type}
+                        디스크: {selectedServer.specs?.disk.total}GB{' '}
+                        {selectedServer.specs?.disk.type}
                       </p>
                       <p>
-                        네트워크: {selectedServer.specs.network.bandwidth}Mbps
+                        네트워크: {selectedServer.specs?.network.bandwidth}Mbps
                       </p>
                     </div>
                   </div>
@@ -797,13 +907,13 @@ export const AdvancedMonitoringDashboard: React.FC = () => {
                       <div className='bg-gray-50 p-3 rounded'>
                         <p className='text-sm text-gray-600'>디스크</p>
                         <p className='font-bold'>
-                          {selectedServer.metrics.disk.toFixed(1)}%
+                          {selectedServer.metrics.disk?.toFixed(1)}%
                         </p>
                       </div>
                       <div className='bg-gray-50 p-3 rounded'>
                         <p className='text-sm text-gray-600'>업타임</p>
                         <p className='font-bold'>
-                          {selectedServer.metrics.uptime}일
+                          {selectedServer.metrics.uptime?.toFixed(1)}일
                         </p>
                       </div>
                     </div>

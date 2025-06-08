@@ -34,7 +34,7 @@ export class AIResponseService {
     const lowerQuestion = question.toLowerCase();
 
     for (const [category, keywords] of Object.entries(this.categoryKeywords)) {
-      if (keywords.some(keyword => lowerQuestion.includes(keyword))) {
+      if (keywords.some((keyword: string) => lowerQuestion.includes(keyword))) {
         return category as AICategory;
       }
     }
@@ -120,7 +120,8 @@ export class AIResponseService {
       metadata: { stage: 'data_collection' },
     });
 
-    const monitoringData = await aiSidebarService.getSystemStatus();
+    // ✅ API 호출로 변경
+    const monitoringData = await fetch('/api/system/status').then(res => res.json()).catch(() => []);
 
     this.logEngine.addLog(sessionId, {
       level: 'SUCCESS',
@@ -128,7 +129,7 @@ export class AIResponseService {
       message: '모니터링 데이터 수집 완료',
       metadata: { 
         dataPoints: monitoringData?.length || 0,
-        processingTime: `${Math.random() * 100 + 50}ms`
+        processingTime: Math.round(Math.random() * 100 + 50)
       },
     });
 
@@ -160,7 +161,8 @@ export class AIResponseService {
       metadata: { algorithm: 'advanced_analytics', stage: 'initialization' },
     });
 
-    const analyticsData = await aiSidebarService.analyzeSystemMetrics();
+    // ✅ API 호출로 변경
+    const analyticsData = await fetch('/api/ai/analysis').then(res => res.json()).catch(() => ({}));
 
     this.logEngine.addLog(sessionId, {
       level: 'SUCCESS',
@@ -168,8 +170,8 @@ export class AIResponseService {
       message: '분석 완료 - 인사이트 생성됨',
       metadata: { 
         insights: 5,
-        confidence: '94%',
-        processingTime: `${Math.random() * 200 + 100}ms`
+        confidence: 94,
+        processingTime: Math.round(Math.random() * 200 + 100)
       },
     });
 
@@ -201,7 +203,8 @@ export class AIResponseService {
       metadata: { model: 'neural_network_v2', confidence_threshold: 0.85 },
     });
 
-    const predictionData = await aiSidebarService.getPredictions();
+    // ✅ API 호출로 변경
+    const predictionData = await fetch('/api/ai/prediction').then(res => res.json()).catch(() => ({}));
 
     this.logEngine.addLog(sessionId, {
       level: 'SUCCESS',
@@ -242,7 +245,8 @@ export class AIResponseService {
       metadata: { priority: 'high', response_mode: 'rapid' },
     });
 
-    const incidentData = await aiSidebarService.checkIncidents();
+    // ✅ API 호출로 변경
+    const incidentData = await fetch('/api/system/incidents').then(res => res.json()).catch(() => []);
 
     this.logEngine.addLog(sessionId, {
       level: 'INFO',
@@ -283,7 +287,12 @@ export class AIResponseService {
       metadata: { query_type: 'general', nlp_confidence: 0.76 },
     });
 
-    const generalResponse = await aiSidebarService.processGeneralQuery(question);
+    // ✅ API 호출로 변경
+    const generalResponse = await fetch('/api/ai/general', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question })
+    }).then(res => res.json()).catch(() => ({ answer: '일반적인 응답을 생성하는 중입니다.' }));
 
     this.logEngine.addLog(sessionId, {
       level: 'SUCCESS',
