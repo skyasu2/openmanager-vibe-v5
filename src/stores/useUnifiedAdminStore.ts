@@ -7,6 +7,10 @@ const MAX_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 10000; // 10초 (UI에서는 10분이라고 표시)
 const SYSTEM_AUTO_SHUTDOWN_TIME = 30 * 60 * 1000; // 30분
 
+// 🔓 개발 환경 비밀번호 우회 설정
+const DEVELOPMENT_MODE = process.env.NODE_ENV === 'development';
+const BYPASS_PASSWORD = DEVELOPMENT_MODE || process.env.NEXT_PUBLIC_BYPASS_AI_PASSWORD === 'true';
+
 interface UnifiedAdminState {
   // 시스템 상태
   isSystemStarted: boolean;
@@ -308,7 +312,8 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
             };
           }
 
-          if (password === ADMIN_PASSWORD) {
+          // 🔓 개발 환경 비밀번호 우회 또는 정상 비밀번호 검증
+          if (BYPASS_PASSWORD || password === ADMIN_PASSWORD) {
             // 🛡️ 안전한 상태 업데이트 - 단계별 처리
 
             // 1단계: 인증 상태 먼저 설정
@@ -341,8 +346,9 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
               };
             });
 
+            const authMode = BYPASS_PASSWORD ? '(개발 모드 - 비밀번호 우회)' : '(정상 인증)';
             console.log(
-              '✅ [AI] AI 에이전트 모드 활성화 - 지능형 분석 시작 (독립 실행)'
+              `✅ [AI] AI 에이전트 모드 활성화 - 지능형 분석 시작 ${authMode}`
             );
 
             // ModeTimerManager를 사용한 AI 모드 시작 (비동기 처리)
@@ -357,6 +363,7 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
                       detail: {
                         timestamp: Date.now(),
                         independentMode: true, // 독립 실행 모드 표시
+                        bypassMode: BYPASS_PASSWORD, // 우회 모드 여부
                       },
                     })
                   );
@@ -369,10 +376,13 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
               }
             }, 100);
 
+            const message = BYPASS_PASSWORD 
+              ? 'AI 에이전트가 개발 모드로 활성화되었습니다. (비밀번호 우회 적용)'
+              : 'AI 에이전트가 독립 모드로 활성화되었습니다. 시스템과 독립적으로 지능형 분석을 시작합니다.';
+
             return {
               success: true,
-              message:
-                'AI 에이전트가 독립 모드로 활성화되었습니다. 시스템과 독립적으로 지능형 분석을 시작합니다.',
+              message,
             };
           } else {
             const newAttempts = attempts + 1;

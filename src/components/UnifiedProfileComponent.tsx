@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import {
@@ -21,6 +21,7 @@ import {
   Shield,
   StopCircle,
   HardDrive,
+  Lock,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -31,6 +32,10 @@ interface UnifiedProfileComponentProps {
   userName?: string;
   userAvatar?: string;
 }
+
+// 🔓 개발 환경 설정
+const DEVELOPMENT_MODE = process.env.NODE_ENV === 'development';
+const BYPASS_PASSWORD = DEVELOPMENT_MODE || process.env.NEXT_PUBLIC_BYPASS_AI_PASSWORD === 'true';
 
 // 통합 설정 패널 컴포넌트
 const UnifiedSettingsPanel = ({
@@ -612,6 +617,33 @@ const UnifiedSettingsPanel = ({
               {!aiAgent.isEnabled ? (
                 // AI 활성화 폼
                 <div className='space-y-4'>
+                  {/* 개발 모드 빠른 활성화 */}
+                  {BYPASS_PASSWORD && (
+                    <div className='p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg'>
+                      <div className='flex items-center gap-2 mb-2'>
+                        <Shield className='w-4 h-4 text-yellow-400' />
+                        <span className='text-yellow-300 text-sm font-medium'>
+                          개발 모드 활성화됨
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleAIAuthentication()}
+                        disabled={isAuthenticating}
+                        className='w-full p-2 bg-yellow-500/30 border border-yellow-500/50 text-yellow-200 rounded hover:bg-yellow-500/40 transition-colors text-sm'
+                      >
+                        {isAuthenticating ? (
+                          <div className='flex items-center justify-center gap-2'>
+                            <Loader2 className='w-3 h-3 animate-spin' />
+                            <span>활성화 중...</span>
+                          </div>
+                        ) : (
+                          '🚀 즉시 활성화 (비밀번호 우회)'
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* 일반 비밀번호 입력 */}
                   <div className='relative'>
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -625,7 +657,7 @@ const UnifiedSettingsPanel = ({
                           handleAIAuthentication();
                         }
                       }}
-                      placeholder='AI 에이전트 인증 비밀번호'
+                      placeholder={BYPASS_PASSWORD ? 'AI 에이전트 인증 비밀번호 (선택사항)' : 'AI 에이전트 인증 비밀번호'}
                       disabled={isLocked || isAuthenticating}
                       className='w-full p-3 pr-12 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed'
                     />
@@ -676,6 +708,11 @@ const UnifiedSettingsPanel = ({
                   {/* AI 독립 모드 지원 - 시스템 시작 불필요 */}
                   <p className='text-blue-400 text-sm text-center'>
                     💡 AI 에이전트는 시스템과 독립적으로 실행됩니다
+                    {BYPASS_PASSWORD && (
+                      <span className='block text-yellow-400 mt-1'>
+                        🔧 개발 모드: 비밀번호 우회 가능
+                      </span>
+                    )}
                   </p>
                 </div>
               ) : (

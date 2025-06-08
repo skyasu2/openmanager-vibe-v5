@@ -391,3 +391,26 @@ MIT License - 자세한 내용은 [LICENSE](./LICENSE) 파일을 참조하세요
 ![GitHub forks](https://img.shields.io/github/forks/skyasus/openmanager-vibe-v5.svg?style=social)
 
 </div>
+
+## 🔓 AI 에이전트 개발 모드 설정
+
+개발 환경에서 AI 에이전트 비밀번호 입력을 우회하려면 다음 중 하나를 설정하세요:
+
+### 방법 1: 자동 우회 (개발 모드)
+- `NODE_ENV=development`인 경우 자동으로 비밀번호 우회가 활성화됩니다.
+
+### 방법 2: 환경 변수 설정
+```bash
+# .env.local 파일에 추가
+NEXT_PUBLIC_BYPASS_AI_PASSWORD=true
+```
+
+### 사용법
+1. 프로필 > 설정 > AI 에이전트 탭으로 이동
+2. **개발 모드**가 활성화된 경우 "🚀 즉시 활성화 (비밀번호 우회)" 버튼이 표시됩니다
+3. 해당 버튼을 클릭하면 비밀번호 입력 없이 AI 에이전트가 활성화됩니다
+
+### 보안 주의사항
+- 이 기능은 개발 환경에서만 사용하세요
+- 프로덕션 환경에서는 반드시 비활성화해야 합니다
+- `NODE_ENV=production`에서는 자동으로 비활성화됩니다

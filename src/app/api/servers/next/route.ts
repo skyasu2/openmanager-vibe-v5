@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { rateLimiters, withRateLimit } from '@/lib/rate-limiter';
+import { realServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 
 /**
- * 🖥️ Sequential Server Generation API (DEMO VERSION - 더미 데이터)
+ * 🖥️ Sequential Server Generation API (실제 서버데이터 생성기 연동)
  * 
- * ⚠️ 중요: 이 API는 데모용 더미 데이터를 생성합니다.
- * 실제 서버 연결이나 모니터링 데이터가 아닙니다.
+ * ✅ 개선: RealServerDataGenerator를 사용하여 정교한 서버 데이터 제공
+ * - 24시간 베이스라인 패턴 기반 데이터
+ * - 실제 서버 스펙 및 메트릭
+ * - 시간대별 부하 패턴 반영
+ * - 서버 타입별 특성화된 데이터
  * 
  * GET: 다음 서버 정보 조회 (Rate Limited: 1분에 20회)
  * POST: 서버 생성 요청 (Rate Limited: 1분에 20회)
@@ -15,6 +19,33 @@ import { rateLimiters, withRateLimit } from '@/lib/rate-limiter';
  * 2. 데이터베이스 연결 설정
  * 3. 실제 메트릭 수집 로직 구현
  */
+
+// 순차 생성을 위한 상태 관리
+let currentServerIndex = 0;
+let isGeneratorInitialized = false;
+
+// Uptime 포맷 유틸리티 함수
+function formatUptime(hours: number): string {
+  const days = Math.floor(hours / 24);
+  const remainingHours = Math.floor(hours % 24);
+  const minutes = Math.floor((hours % 1) * 60);
+  
+  return `${days}d ${remainingHours}h ${minutes}m`;
+}
+
+// 서버 데이터 생성기 초기화
+const initializeGenerator = async () => {
+  if (!isGeneratorInitialized) {
+    try {
+      await realServerDataGenerator.initialize();
+      await realServerDataGenerator.startAutoGeneration();
+      isGeneratorInitialized = true;
+      console.log('✅ RealServerDataGenerator 초기화 및 시작 완료');
+    } catch (error) {
+      console.error('❌ RealServerDataGenerator 초기화 실패:', error);
+    }
+  }
+};
 
 // 간단한 서버 상태 관리 (실제로는 데이터베이스 사용)
 let serverCount = 0;
@@ -191,251 +222,111 @@ async function handleGET(request: NextRequest) {
 
 /**
  * POST /api/servers/next
- * 서버 생성 요청
+ * 서버 생성 요청 (RealServerDataGenerator 연동)
  */
 async function handlePOST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
 
+    // 생성기 초기화 확인
+    await initializeGenerator();
+
     // 리셋 요청 처리
     if (body.reset === true) {
-      serverCount = 0;
-      lastGeneratedTime = Date.now();
-      generatedServers = []; // 🚀 생성된 서버 목록도 초기화
+      currentServerIndex = 0;
+      console.log('🔄 서버 인덱스 리셋');
 
       return NextResponse.json({
         success: true,
-        message: '서버 카운터가 리셋되었습니다.',
-        data: { serverCount: 0, resetTime: lastGeneratedTime, totalServers: 0 },
+        message: '서버 생성 순서가 리셋되었습니다.',
+        data: { 
+          currentIndex: 0, 
+          resetTime: Date.now(),
+          totalServers: realServerDataGenerator.getAllServers().length 
+        },
       });
     }
 
-    // 새 서버 생성
-    serverCount++;
-    lastGeneratedTime = Date.now();
+    // RealServerDataGenerator에서 서버 목록 가져오기
+    const allServers = realServerDataGenerator.getAllServers();
+    
+    if (allServers.length === 0) {
+      return NextResponse.json({
+        success: false,
+        error: '서버 데이터 생성기에서 서버를 찾을 수 없습니다.',
+        message: '서버 생성기가 아직 초기화되지 않았거나 서버가 생성되지 않았습니다.',
+      }, { status: 404 });
+    }
 
-    const totalServers = 20; // 고정된 총 서버 수
+    // 순차적으로 서버 반환
+    const currentServer = allServers[currentServerIndex % allServers.length];
+    currentServerIndex++;
 
-    // 🎯 다양한 서버 상태와 메트릭 생성 로직
-    const generateServerStatus = () => {
-      const random = Math.random();
-      if (random < 0.6) return 'online'; // 60% 정상
-      if (random < 0.85) return 'warning'; // 25% 경고
-      return 'offline'; // 15% 오프라인
-    };
-
-    const generateMetrics = (status: string) => {
-      switch (status) {
-        case 'online':
-          return {
-            cpu: Math.floor(Math.random() * 40) + 15, // 15-55% (정상 범위)
-            memory: Math.floor(Math.random() * 50) + 25, // 25-75% (정상 범위)
-            disk: Math.floor(Math.random() * 30) + 10, // 10-40% (정상 범위)
-            alerts: Math.floor(Math.random() * 2), // 0-1개 경고
-          };
-        case 'warning':
-          return {
-            cpu: Math.floor(Math.random() * 25) + 70, // 70-95% (높음)
-            memory: Math.floor(Math.random() * 20) + 75, // 75-95% (높음)
-            disk: Math.floor(Math.random() * 15) + 80, // 80-95% (높음)
-            alerts: Math.floor(Math.random() * 3) + 1, // 1-3개 경고
-          };
-        case 'offline':
-          return {
-            cpu: 0, // 0% (오프라인)
-            memory: 0, // 0% (오프라인)
-            disk: Math.floor(Math.random() * 100), // 임의 (측정 불가)
-            alerts: Math.floor(Math.random() * 5) + 3, // 3-7개 심각한 경고
-          };
-        default:
-          return { cpu: 50, memory: 50, disk: 50, alerts: 0 };
-      }
-    };
-
-    const generateServices = (status: string) => {
-      const baseServices = [
-        { name: 'nginx', port: 80 },
-        { name: 'node', port: 3000 },
-        { name: 'gunicorn', port: 8000 },
-        { name: 'uwsgi', port: 8080 },
-      ];
-
-      return baseServices.map(service => ({
-        ...service,
-        status:
-          status === 'offline' || (status === 'warning' && Math.random() < 0.3)
-            ? ('stopped' as const)
-            : ('running' as const),
-      }));
-    };
-
-    const serverStatus = generateServerStatus() as
-      | 'online'
-      | 'warning'
-      | 'offline';
-    const metrics = generateMetrics(serverStatus);
-    const services = generateServices(serverStatus);
-
-    // 🎯 서버 타입 다양화
-    const serverTypes = ['web', 'database', 'cache', 'worker', 'api'];
-    const serverType = serverTypes[serverCount % serverTypes.length];
-
-    // 🎯 서버 역할에 맞는 직관적인 호스트네임 생성
-    const generateHostname = (type: string, count: number) => {
-      const typeIndex = Math.floor((count - 1) / serverTypes.length) + 1;
-
-      switch (type) {
-        case 'web':
-          const webTypes = ['nginx', 'apache', 'web'];
-          const webType = webTypes[count % webTypes.length];
-          return `${webType}${String(typeIndex).padStart(2, '0')}`;
-
-        case 'database':
-          const dbTypes = ['mysql', 'postgres', 'mongo', 'db'];
-          const dbType = dbTypes[count % dbTypes.length];
-          return `${dbType}${String(typeIndex).padStart(2, '0')}`;
-
-        case 'cache':
-          const cacheTypes = ['redis', 'memcache', 'cache'];
-          const cacheType = cacheTypes[count % cacheTypes.length];
-          return `${cacheType}${String(typeIndex).padStart(2, '0')}`;
-
-        case 'worker':
-          const workerTypes = ['worker', 'queue', 'job', 'batch'];
-          const workerType = workerTypes[count % workerTypes.length];
-          return `${workerType}${String(typeIndex).padStart(2, '0')}`;
-
-        case 'api':
-          const apiTypes = ['api', 'rest', 'graphql', 'gateway'];
-          const apiType = apiTypes[count % apiTypes.length];
-          return `${apiType}${String(typeIndex).padStart(2, '0')}`;
-
-        default:
-          return `server${String(count).padStart(2, '0')}`;
-      }
-    };
-
-    // 🎯 서버 역할에 맞는 적절한 OS 배치
-    const generateOS = (type: string, count: number) => {
-      switch (type) {
-        case 'web':
-          const webOSList = [
-            'Ubuntu 22.04 LTS',
-            'CentOS 8',
-            'Alpine Linux 3.18',
-            'Ubuntu 20.04 LTS',
-          ];
-          return webOSList[count % webOSList.length];
-
-        case 'database':
-          const dbOSList = [
-            'Ubuntu 22.04 LTS',
-            'CentOS 8',
-            'RHEL 9',
-            'Ubuntu 20.04 LTS',
-            'Rocky Linux 9',
-          ];
-          return dbOSList[count % dbOSList.length];
-
-        case 'cache':
-          const cacheOSList = [
-            'Alpine Linux 3.18',
-            'Ubuntu 22.04 LTS',
-            'Debian 12',
-            'Alpine Linux 3.17',
-          ];
-          return cacheOSList[count % cacheOSList.length];
-
-        case 'worker':
-          const workerOSList = [
-            'Ubuntu 22.04 LTS',
-            'Debian 12',
-            'CentOS 8',
-            'Ubuntu 20.04 LTS',
-          ];
-          return workerOSList[count % workerOSList.length];
-
-        case 'api':
-          const apiOSList = [
-            'Ubuntu 22.04 LTS',
-            'Alpine Linux 3.18',
-            'CentOS 8',
-            'Debian 12',
-          ];
-          return apiOSList[count % apiOSList.length];
-
-        default:
-          return 'Ubuntu 22.04 LTS';
-      }
-    };
-
-    const hostname = generateHostname(serverType, serverCount);
-    const serverOS = generateOS(serverType, serverCount);
-
-    const newServer = {
-      id: hostname,
-      hostname: `${hostname}.prod.openmanager.local`,
-      name: hostname,
-      type: body.type || `${serverType}-server`,
-      environment: 'production',
-      location: ['Seoul DC1', 'Tokyo DC2', 'Singapore DC3', 'US-East DC4'][
-        serverCount % 4
-      ],
+    // ServerInstance를 API 응답 형식으로 변환
+    const serverResponse = {
+      id: currentServer.id,
+      hostname: `${currentServer.name.toLowerCase()}.${currentServer.environment}.openmanager.local`,
+      name: currentServer.name,
+      type: currentServer.type,
+      environment: currentServer.environment,
+      location: currentServer.location,
       provider: 'onpremise',
-      status: serverStatus,
-      cpu: metrics.cpu,
-      memory: metrics.memory,
-      disk: metrics.disk,
-      uptime:
-        serverStatus === 'offline'
-          ? '0d 0h 0m'
-          : `${Math.floor(Math.random() * 30)}d ${Math.floor(Math.random() * 24)}h ${Math.floor(Math.random() * 60)}m`,
+      status: currentServer.status === 'running' ? 'online' : 
+              currentServer.status === 'warning' ? 'warning' : 'offline',
+      cpu: Math.round(currentServer.metrics.cpu),
+      memory: Math.round(currentServer.metrics.memory),
+      disk: Math.round(currentServer.metrics.disk),
+      uptime: formatUptime(currentServer.metrics.uptime / (1000 * 60 * 60)), // milliseconds to hours
       lastUpdate: new Date(),
-      alerts: metrics.alerts,
-      services: services,
+      alerts: currentServer.health.issues.length,
+      services: [
+        { name: 'nginx', status: 'running' as const, port: 80 },
+        { name: 'node', status: 'running' as const, port: 3000 },
+        ...(currentServer.type === 'database' ? [
+          { name: 'mysql', status: 'running' as const, port: 3306 }
+        ] : []),
+        ...(currentServer.type === 'cache' ? [
+          { name: 'redis', status: 'running' as const, port: 6379 }
+        ] : [])
+      ],
       specs: {
-        cpu_cores: body.specs?.cpu || 2 + (serverCount % 4),
-        memory_gb: body.specs?.memory || 4 + (serverCount % 8),
-        disk_gb: body.specs?.storage || 50 + (serverCount % 100),
+        cpu_cores: currentServer.specs.cpu.cores,
+        memory_gb: Math.round(currentServer.specs.memory.total / (1024 * 1024 * 1024)),
+        disk_gb: Math.round(currentServer.specs.disk.total / (1024 * 1024 * 1024)),
       },
-      os: serverOS,
-      ip: `192.168.${1 + Math.floor(serverCount / 254)}.${100 + (serverCount % 154)}`,
+      os: currentServer.specs.cpu.architecture === 'arm64' ? 'Ubuntu 22.04 LTS (ARM64)' : 'Ubuntu 22.04 LTS',
+      ip: `192.168.1.${100 + (currentServerIndex % 150)}`,
     };
 
-    // 시뮬레이션: 생성 시간 지연
-    await new Promise(resolve =>
-      setTimeout(resolve, Math.random() * 1000 + 500)
-    );
+    // 완료 여부 확인
+    const isComplete = currentServerIndex >= allServers.length;
+    const progress = Math.round((currentServerIndex / allServers.length) * 100);
 
-    // 🚀 생성된 서버를 배열에 저장
-    generatedServers.push(newServer);
-
-    const isComplete = serverCount >= totalServers;
-    const progress = Math.round((serverCount / totalServers) * 100);
+    console.log(`📊 서버 ${currentServerIndex}/${allServers.length} 생성 - ${serverResponse.name} (${serverResponse.status})`);
 
     return NextResponse.json({
       success: true,
-      server: newServer, // 훅에서 기대하는 필드명
-      currentCount: serverCount,
-      progress: progress,
-      isComplete: isComplete,
-      nextServerType: isComplete ? null : 'Database Server',
-      message: isComplete
-        ? '🎉 모든 서버 배포 완료!'
-        : `서버 ${serverCount}/${totalServers} 배포 완료`,
-      metadata: {
-        totalServers: serverCount,
-        creationTime: Date.now() - lastGeneratedTime,
-        previousId: serverCount - 1,
-      },
+      server: serverResponse,
+      currentCount: currentServerIndex,
+      totalServers: allServers.length,
+      isComplete,
+      progress,
+      nextServerType: isComplete ? null : allServers[currentServerIndex % allServers.length]?.type || null,
+      message: isComplete 
+        ? '모든 서버 생성이 완료되었습니다.'
+        : `서버 생성 중... (${currentServerIndex}/${allServers.length})`,
     });
+
   } catch (error) {
-    console.error('POST /api/servers/next 오류:', error);
+    console.error('❌ 서버 생성 실패:', error);
+
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to create server',
-        message: '서버 생성 중 오류가 발생했습니다.',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        message: '서버 생성 중 오류가 발생했습니다',
+        currentCount: currentServerIndex,
+        isComplete: false,
       },
       { status: 500 }
     );

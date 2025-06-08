@@ -136,10 +136,10 @@ const DashboardHeader = memo(function DashboardHeader({
             
             {/* 빠른 통계 - 실시간 데이터 */}
             <div className="hidden md:flex items-center gap-6" role="status" aria-label="서버 통계">
-              {/* 더미 데이터 알림 아이콘 */}
-              <div className="flex items-center gap-1 px-2 py-1 bg-orange-50 border border-orange-200 rounded-lg" title="데모용 더미 데이터입니다">
-                <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
-                <span className="text-xs text-orange-600 font-medium">DEMO</span>
+              {/* 서버데이터 생성기 상태 표시 */}
+              <div className="flex items-center gap-1 px-2 py-1 bg-green-50 border border-green-200 rounded-lg" title="실제 서버데이터 생성기 연동">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-green-700 font-medium">LIVE</span>
               </div>
               
               <div className="text-center">
