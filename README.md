@@ -60,6 +60,7 @@
 ```
 
 ### **2. 로컬 개발**
+> **Node.js 20.x 버전 사용 권장**
 ```bash
 # 클론
 git clone https://github.com/skyasus/openmanager-vibe-v5.git
