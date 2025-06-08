@@ -382,7 +382,7 @@ const VERSION_HISTORY = {
 const cardData: FeatureCard[] = [
   {
     id: 'mcp-ai-engine',
-    title: `🧠 통합 AI 시스템 v${COMPONENT_VERSIONS['mcp-ai-engine']}`,
+    title: '🧠 통합 AI 시스템',
     description:
       'UnifiedAIEngine 중앙 관리, MCP 프로토콜 기반 분석, 한국어 자연어 처리',
     icon: Bot,
@@ -414,7 +414,7 @@ const cardData: FeatureCard[] = [
   },
   {
     id: 'data-generator',
-    title: `📊 실시간 서버 데이터 생성기 v${COMPONENT_VERSIONS['data-generator']}`,
+    title: '📊 실시간 서버 데이터 생성기',
     description:
       '24시간 베이스라인 패턴 생성, 환경별 자동 모드 전환, 30개 서버 실시간 시뮬레이션',
     icon: Database,
@@ -445,7 +445,7 @@ const cardData: FeatureCard[] = [
   },
   {
     id: 'tech-stack',
-    title: '⚡ Next.js 15 + React 19',
+    title: '⚡ 적용 기술',
     description:
       'TypeScript 완전 타입 지원, Vercel 서버리스 배포, 모듈화 아키텍처',
     icon: Code,
@@ -479,7 +479,7 @@ const cardData: FeatureCard[] = [
   },
   {
     id: 'vibe-coding',
-    title: '🎯 AI 협업 개발 환경',
+    title: '🎯 바이브 코딩',
     description:
       'Cursor AI + Claude 4 Sonnet, MCP Tools 실시간 연동, 자동화된 GitHub 워크플로우',
     icon: Zap,
