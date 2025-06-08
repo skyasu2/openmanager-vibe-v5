@@ -59,12 +59,15 @@ export class IntegratedAIEngineRefactored {
   }
 
   /**
-   * 🔄 Render 자동 관리 시작
+   * 🔄 Render 자동 관리 시작 (선택적)
    */
   private startRenderManagement(): void {
     const renderUrl = process.env.FASTAPI_URL;
     if (!renderUrl?.includes('onrender.com')) {
-      console.log('⚠️ Render URL이 아닙니다. 자동 관리 건너뛰기');
+      // 개발 환경에서만 로그 출력
+      if (process.env.NODE_ENV === 'development' && renderUrl) {
+        console.log('ℹ️ Render URL이 아님 - Render 자동 관리 비활성화');
+      }
       return;
     }
 
