@@ -1,0 +1,23 @@
+[2025-06-08T15:10:05.632Z] 🚀 MCP 시작 관리자 초기화
+[2025-06-08T15:10:05.636Z] ✅ 설정 파일 로드됨: 5개 서버
+[2025-06-08T15:10:05.636Z] 🔄 MCP 서버 전체 시작 프로세스 시작
+[2025-06-08T15:10:05.636Z] ✅ 설정 파일 로드됨: 5개 서버
+[2025-06-08T15:10:05.637Z] ✅ 유효한 Cursor 설정: cursor.mcp.json
+[2025-06-08T15:10:05.637Z] ✅ 유효한 Cursor 설정: .cursor/mcp.json
+[2025-06-08T15:10:05.638Z] 📦 NPX 서버 패키지 준비 중...
+[2025-06-08T15:10:05.638Z] 📦 NPX 패키지 설치 확인: @modelcontextprotocol/server-filesystem
+[2025-06-08T15:10:07.018Z] ⚠️ 패키지 준비 중: @modelcontextprotocol/server-filesystem
+[2025-06-08T15:10:07.019Z] 📦 NPX 패키지 설치 확인: duckduckgo-mcp-server
+[2025-06-08T15:10:17.031Z] ⚠️ 패키지 준비 중: duckduckgo-mcp-server
+[2025-06-08T15:10:17.031Z] 📦 NPX 패키지 설치 확인: @modelcontextprotocol/server-sequential-thinking
+[2025-06-08T15:10:27.049Z] ⚠️ 패키지 준비 중: @modelcontextprotocol/server-sequential-thinking
+[2025-06-08T15:10:27.049Z] 📦 NPX 패키지 설치 확인: @heilgar/shadcn-ui-mcp-server
+[2025-06-08T15:10:37.070Z] ⚠️ 패키지 준비 중: @heilgar/shadcn-ui-mcp-server
+[2025-06-08T15:10:37.070Z] ✅ 모든 NPX 패키지 준비 완료
+[2025-06-08T15:10:37.113Z] ✅ 로컬 MCP 서버가 이미 실행 중입니다 (포트: 3100)
+[2025-06-08T15:10:37.113Z] ✅ MCP 시작 프로세스 완료
+[2025-06-08T15:10:37.113Z] 📋 Cursor를 재시작하여 MCP 서버들을 인식시키세요
+[2025-06-08T15:11:29.074Z] 🚀 MCP 시작 관리자 초기화
+[2025-06-08T15:11:29.078Z] ✅ 설정 파일 로드됨: 5개 서버
+[2025-06-08T15:13:00.073Z] 🚀 MCP 시작 관리자 초기화
+[2025-06-08T15:13:00.076Z] ✅ 설정 파일 로드됨: 5개 서버

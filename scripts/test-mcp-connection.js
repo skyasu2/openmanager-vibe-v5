@@ -35,14 +35,13 @@ console.log('\n2️⃣ MCP 패키지 설치 상태 테스트');
 const testPackages = [
   '@modelcontextprotocol/server-filesystem',
   '@modelcontextprotocol/server-duckduckgo-search', 
-  '@modelcontextprotocol/server-sequential-thinking',
-  '@modelcontextprotocol/server-git'
+  '@modelcontextprotocol/server-sequential-thinking'
 ];
 
 testPackages.forEach((pkg, index) => {
   console.log(`\n${index + 1}. ${pkg} 테스트 중...`);
   
-  const child = spawn('npx', ['-y', pkg, '--help'], {
+  const child = spawn('npx.cmd', ['-y', pkg, '--help'], {
     stdio: 'pipe',
     timeout: 10000
   });

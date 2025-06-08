@@ -1,0 +1,17 @@
+# 🚨 Vercel에 추가로 설정해야 할 환경변수들 
+# (기존 설정에 추가로 설정하세요)
+
+# === ioredis용 개별 환경변수 ===
+REDIS_HOST=charming-condor-46598.upstash.io
+REDIS_PORT=6379
+REDIS_PASSWORD=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA
+REDIS_DB=0
+
+# === 전체 Redis URL (이미 설정했지만 확인) ===
+REDIS_URL=rediss://default:AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA@charming-condor-46598.upstash.io:6379
+
+# === 추가 애플리케이션 URL ===
+NEXT_PUBLIC_APP_URL=https://your-vercel-domain.vercel.app
+
+# === 선택적 설정 (알림용) ===
+# SLACK_WEBHOOK_URL=your-slack-webhook-url 

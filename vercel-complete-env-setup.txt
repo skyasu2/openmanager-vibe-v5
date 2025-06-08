@@ -1,0 +1,46 @@
+# 🚀 openmanager-vibe-v5 Vercel 환경변수 설정
+# https://vercel.com/skyasus-projects/openmanager-vibe-v5
+# Settings > Environment Variables에서 아래 모든 환경변수를 추가하세요
+
+# === Upstash Redis (주요) ===
+UPSTASH_REDIS_REST_URL=https://charming-condor-46598.upstash.io
+UPSTASH_REDIS_REST_TOKEN=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA
+
+# === Vercel KV 호환 ===
+KV_REST_API_URL=https://charming-condor-46598.upstash.io
+KV_REST_API_TOKEN=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA
+KV_REST_API_READ_ONLY_TOKEN=ArYGAAIgcDEJt2OXeBDen9ob7LlHXZiPD3cWjKXjdo0GT-jFZwW1lw
+
+# === ioredis 호환 (중요!) ===
+REDIS_HOST=charming-condor-46598.upstash.io
+REDIS_PORT=6379
+REDIS_PASSWORD=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA
+REDIS_DB=0
+REDIS_URL=rediss://default:AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA@charming-condor-46598.upstash.io:6379
+
+# === Supabase 설정 ===
+NEXT_PUBLIC_SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8
+
+# === PostgreSQL 설정 ===
+POSTGRES_URL=postgres://postgres.vnswjnltnhpsueosfhmw:2D3DWhSl8HBlgYIm@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x
+POSTGRES_PRISMA_URL=postgres://postgres.vnswjnltnhpsueosfhmw:2D3DWhSl8HBlgYIm@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x
+POSTGRES_URL_NON_POOLING=postgres://postgres.vnswjnltnhpsueosfhmw:2D3DWhSl8HBlgYIm@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require
+POSTGRES_USER=postgres
+POSTGRES_HOST=db.vnswjnltnhpsueosfhmw.supabase.co
+POSTGRES_PASSWORD=2D3DWhSl8HBlgYIm
+POSTGRES_DATABASE=postgres
+
+# === 애플리케이션 설정 ===
+NODE_ENV=production
+NEXT_PUBLIC_APP_URL=https://openmanager-vibe-v5.vercel.app
+
+# === JWT 시크릿 ===
+SUPABASE_JWT_SECRET=qNzA4/WgbksJU3xxkQJcfbCRkXhgBR7TVmI4y2XKRy59BwtRk6iuUSdkRNNQN1Yud3PGsGLTcZkdHSTZL0mhug==
+
+# === 선택적 설정 ===
+# SLACK_WEBHOOK_URL=your-slack-webhook-url-if-needed
+
+# 🔥 중요: Production, Preview, Development 환경 모두 체크하세요!
+# 🔄 설정 후 자동 재배포가 트리거됩니다. 
