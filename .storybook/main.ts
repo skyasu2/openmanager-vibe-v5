@@ -1,11 +1,8 @@
 import type { StorybookConfig } from '@storybook/nextjs';
 
 const config: StorybookConfig = {
-  stories: [
-    '../src/**/*.stories.@(js|jsx|ts|tsx|mdx)',
-    '../src/**/*.story.@(js|jsx|ts|tsx|mdx)',
-  ],
-  
+  stories: ['../src/**/*.stories.@(js|jsx|ts|tsx)'],
+
   addons: [
     '@storybook/addon-essentials',
     '@storybook/addon-interactions',
@@ -14,40 +11,42 @@ const config: StorybookConfig = {
     '@storybook/addon-controls',
     '@storybook/addon-viewport',
   ],
-  
+
   framework: {
     name: '@storybook/nextjs',
-    options: {},
+    options: {
+      nextConfigPath: '../next.config.ts',
+    },
   },
-  
+
   docs: {
     autodocs: 'tag',
   },
-  
+
   typescript: {
     check: false,
     reactDocgen: 'react-docgen-typescript',
     reactDocgenTypescriptOptions: {
       shouldExtractLiteralValuesFromEnum: true,
-      propFilter: (prop) => (prop.parent ? !/node_modules/.test(prop.parent.fileName) : true),
+      propFilter: prop =>
+        prop.parent ? !/node_modules/.test(prop.parent.fileName) : true,
     },
   },
-  
-  webpackFinal: async (config) => {
-    // CSS 모듈 및 Tailwind CSS 지원
-    if (config.module?.rules) {
-      config.module.rules.push({
-        test: /\.css$/,
-        use: [
-          'style-loader',
-          'css-loader',
-          'postcss-loader',
-        ],
-      });
-    }
-    
+
+  core: {
+    disableTelemetry: true,
+  },
+
+  webpackFinal: async config => {
+    // 절대 경로 import 지원
+    config.resolve = config.resolve || {};
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': '../src',
+    };
+
     return config;
   },
 };
 
-export default config; 
+export default config;

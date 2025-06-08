@@ -1,15 +1,19 @@
 import type { Preview } from '@storybook/react';
-import '../src/styles/globals.css'; // Tailwind CSS 및 글로벌 스타일 임포트
 
 const preview: Preview = {
   parameters: {
-    actions: { argTypesRegex: '^on[A-Z].*' },
     controls: {
       matchers: {
         color: /(background|color)$/i,
-        date: /Date$/,
+        date: /Date$/i,
       },
     },
+    docs: {
+      source: {
+        state: 'open',
+      },
+    },
+    layout: 'centered',
     backgrounds: {
       default: 'light',
       values: [
@@ -51,7 +55,7 @@ const preview: Preview = {
           },
         },
         large: {
-          name: 'Large Desktop',
+          name: 'Large',
           styles: {
             width: '1440px',
             height: '900px',
@@ -59,11 +63,8 @@ const preview: Preview = {
         },
       },
     },
-    docs: {
-      toc: true,
-    },
   },
-  
+
   globalTypes: {
     theme: {
       description: 'Global theme for components',
@@ -78,4 +79,4 @@ const preview: Preview = {
   },
 };
 
-export default preview; 
+export default preview;
