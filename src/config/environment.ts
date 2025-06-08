@@ -122,3 +122,121 @@ export function logEnvironmentStatus() {
   console.log(`🧠 AI 기능: ${config.features.enableAI ? '활성화' : '비활성화'}`);
   console.log(`📊 실시간 데이터: ${config.features.enableRealtimeData ? '활성화' : '비활성화'}`);
 }
+
+// 🔧 추가 함수들 (빌드 오류 수정용)
+
+/**
+ * 환경 감지 함수
+ */
+export function detectEnvironment() {
+  return getEnvironmentConfig();
+}
+
+/**
+ * 현재 환경 정보 반환
+ */
+export function getCurrentEnvironment() {
+  return getEnvironmentConfig();
+}
+
+/**
+ * 환경 변수 객체
+ */
+export const env = getEnvironmentConfig();
+
+/**
+ * 데이터 생성기 설정 반환
+ */
+export function getDataGeneratorConfig() {
+  const config = getEnvironmentConfig();
+  return {
+    enabled: config.features.enableRealtimeData,
+    maxServers: config.IS_VERCEL ? 50 : 100,
+    updateInterval: config.IS_VERCEL ? 5000 : 3000,
+    memoryLimit: config.performance.maxMemory,
+  };
+}
+
+/**
+ * MCP 설정 반환
+ */
+export function getMCPConfig() {
+  const config = getEnvironmentConfig();
+  return {
+    enabled: config.features.enableAI,
+    timeout: config.performance.apiTimeout,
+    maxConnections: config.IS_VERCEL ? 5 : 10,
+  };
+}
+
+/**
+ * 플러그인 활성화 여부 확인
+ */
+export function isPluginEnabled(pluginName: string): boolean {
+  const config = getEnvironmentConfig();
+  
+  switch (pluginName) {
+    case 'ai':
+      return config.features.enableAI;
+    case 'realtime':
+      return config.features.enableRealtimeData;
+    case 'analytics':
+      return config.features.enableAdvancedAnalytics;
+    case 'websocket':
+      return config.features.enableWebSocket;
+    default:
+      return false;
+  }
+}
+
+/**
+ * 플러그인 설정 반환
+ */
+export function getPluginConfig(pluginName: string) {
+  const config = getEnvironmentConfig();
+  
+  const baseConfig = {
+    enabled: isPluginEnabled(pluginName),
+    timeout: config.performance.apiTimeout,
+    memoryLimit: config.performance.maxMemory,
+  };
+
+  switch (pluginName) {
+    case 'ai':
+      return {
+        ...baseConfig,
+        maxQueries: config.IS_VERCEL ? 100 : 500,
+        cacheEnabled: true,
+      };
+    case 'realtime':
+      return {
+        ...baseConfig,
+        updateInterval: config.IS_VERCEL ? 5000 : 3000,
+        maxConnections: config.IS_VERCEL ? 10 : 50,
+      };
+    default:
+      return baseConfig;
+  }
+}
+
+/**
+ * 경로 확인 함수
+ */
+export function checkPaths(paths: string[]): { [key: string]: boolean } {
+  // 브라우저 환경에서는 모든 경로를 유효하다고 가정
+  if (typeof window !== 'undefined') {
+    return paths.reduce((acc, path) => ({ ...acc, [path]: true }), {});
+  }
+  
+  // Node.js 환경에서는 실제 경로 확인
+  try {
+    const fs = require('fs');
+    return paths.reduce((acc, path) => ({
+      ...acc,
+      [path]: fs.existsSync(path)
+    }), {});
+  } catch (error) {
+    console.warn('⚠️ 경로 확인 실패:', error);
+    return paths.reduce((acc, path) => ({ ...acc, [path]: false }), {});
+  }
+}

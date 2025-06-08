@@ -20,4 +20,9 @@ export class IntegratedAIEngine {
   }
 }
 
-export const integratedAIEngine = new IntegratedAIEngine(); 
+export const integratedAIEngine = new IntegratedAIEngine();
+
+// 빌드 오류 수정을 위한 export 함수 추가
+export function getAIEngine() {
+  return integratedAIEngine;
+} 
