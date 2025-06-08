@@ -6,7 +6,17 @@ import { localVectorDB } from '@/services/ai/local-vector-db';
  * 🧪 벡터 DB 및 RAG 시스템 테스트 API
  */
 export async function GET(request: NextRequest) {
-  const testResults = {
+  const testResults: {
+    timestamp: string;
+    tests: Array<{
+      name: string;
+      status: 'success' | 'warning' | 'error';
+      message?: string;
+      data?: any;
+      error?: string;
+      testDoc?: any;
+    }>;
+  } = {
     timestamp: new Date().toISOString(),
     tests: []
   };

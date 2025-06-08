@@ -158,8 +158,8 @@ export class AutoLearningScheduler {
     console.log(`📋 [AutoLearningScheduler] 제안서 생성 완료: ${highConfidencePatterns.length}개 고신뢰도 패턴 (관리자 검토 필요)`);
     console.log('🔒 [AutoLearningScheduler] 자동 승인 금지 - 모든 패턴은 관리자 승인 필요');
     
-    // TODO: 관리자 알림 시스템에 제안서 전송
-    // await this.notifyAdminForReview(suggestionReport);
+    // 관리자 알림 시스템에 제안서 전송
+    await this.notifyAdminForReview(suggestionReport);
   }
 
   private async startAutomaticTests(): Promise<void> {
@@ -273,5 +273,252 @@ export class AutoLearningScheduler {
       nextAnalysis: this.getNextAnalysisTime(),
       metrics
     };
+  }
+
+  /**
+   * 관리자 알림 시스템에 제안서 전송
+   */
+  private async notifyAdminForReview(suggestionReport: {
+    analysisId: string;
+    timestamp: Date;
+    totalPatterns: number;
+    highConfidencePatterns: number;
+    recommendedForReview: any[];
+  }): Promise<void> {
+    try {
+      console.log(`📢 [AutoLearningScheduler] 관리자 알림 전송 시작: ${suggestionReport.highConfidencePatterns}개 제안`);
+      
+      // 1. 데이터베이스에 알림 저장
+      await this.storeAdminNotification(suggestionReport);
+      
+      // 2. 브라우저 이벤트 발송 (실시간 알림)
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('admin-pattern-review-required', {
+          detail: {
+            type: 'pattern_suggestions',
+            data: suggestionReport,
+            priority: suggestionReport.highConfidencePatterns > 5 ? 'high' : 'medium',
+            timestamp: suggestionReport.timestamp
+          }
+        }));
+      }
+      
+      // 3. 슬랙 알림 (설정된 경우)
+      await this.sendSlackNotification(suggestionReport);
+      
+      // 4. 이메일 알림 (설정된 경우)
+      await this.sendEmailNotification(suggestionReport);
+      
+      // 5. 웹소켓을 통한 실시간 알림
+      await this.sendWebSocketNotification(suggestionReport);
+      
+      console.log(`✅ [AutoLearningScheduler] 관리자 알림 전송 완료`);
+      
+    } catch (error) {
+      console.error('❌ [AutoLearningScheduler] 관리자 알림 전송 실패:', error);
+    }
+  }
+
+  /**
+   * 알림을 데이터베이스에 저장
+   */
+  private async storeAdminNotification(suggestionReport: any): Promise<void> {
+    try {
+      const notification = {
+        id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        type: 'pattern_suggestions',
+        title: `${suggestionReport.highConfidencePatterns}개의 새로운 패턴 제안`,
+        message: `AI 에이전트가 ${suggestionReport.totalPatterns}개의 패턴을 분석하여 ${suggestionReport.highConfidencePatterns}개의 고신뢰도 제안을 생성했습니다.`,
+        priority: suggestionReport.highConfidencePatterns > 5 ? 'high' : 'medium',
+        status: 'unread',
+        data: suggestionReport,
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7일 후 만료
+      };
+
+      // Supabase에 저장 (가능한 경우)
+      if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        await fetch('/api/admin/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notification })
+        });
+      }
+
+      // 로컬 저장 (폴백)
+      if (typeof localStorage !== 'undefined') {
+        const stored = localStorage.getItem('admin-notifications') || '[]';
+        const notifications = JSON.parse(stored);
+        notifications.push(notification);
+        localStorage.setItem('admin-notifications', JSON.stringify(notifications));
+      }
+
+      console.log(`💾 알림 저장 완료: ${notification.id}`);
+    } catch (error) {
+      console.error('알림 저장 실패:', error);
+    }
+  }
+
+  /**
+   * 슬랙 알림 전송
+   */
+  private async sendSlackNotification(suggestionReport: any): Promise<void> {
+    try {
+      // 환경변수에서 슬랙 웹훅 URL 확인
+      const slackWebhook = process.env.SLACK_WEBHOOK_URL;
+      if (!slackWebhook) {
+        console.log('슬랙 웹훅이 설정되지 않음, 건너뜀');
+        return;
+      }
+
+      const slackMessage = {
+        text: `🤖 AI 패턴 분석 결과`,
+        blocks: [
+          {
+            type: 'header',
+            text: {
+              type: 'plain_text',
+              text: '🔍 AI 패턴 분석 완료 - 관리자 검토 필요'
+            }
+          },
+          {
+            type: 'section',
+            fields: [
+              {
+                type: 'mrkdwn',
+                text: `*전체 패턴:* ${suggestionReport.totalPatterns}개`
+              },
+              {
+                type: 'mrkdwn',
+                text: `*고신뢰도 제안:* ${suggestionReport.highConfidencePatterns}개`
+              },
+              {
+                type: 'mrkdwn',
+                text: `*분석 시간:* ${suggestionReport.timestamp.toLocaleString('ko-KR')}`
+              },
+              {
+                type: 'mrkdwn',
+                text: `*분석 ID:* ${suggestionReport.analysisId}`
+              }
+            ]
+          },
+          {
+            type: 'actions',
+            elements: [
+              {
+                type: 'button',
+                text: {
+                  type: 'plain_text',
+                  text: '제안 검토하기'
+                },
+                url: `${process.env.NEXT_PUBLIC_APP_URL}/admin/ai-agent/pattern-review`,
+                style: 'primary'
+              }
+            ]
+          }
+        ]
+      };
+
+      const response = await fetch(slackWebhook, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(slackMessage)
+      });
+
+      if (response.ok) {
+        console.log('✅ 슬랙 알림 전송 완료');
+      } else {
+        console.warn('⚠️ 슬랙 알림 전송 실패');
+      }
+    } catch (error) {
+      console.error('슬랙 알림 전송 에러:', error);
+    }
+  }
+
+  /**
+   * 이메일 알림 전송
+   */
+  private async sendEmailNotification(suggestionReport: any): Promise<void> {
+    try {
+      // 관리자 이메일 목록 확인
+      const adminEmails = process.env.ADMIN_EMAIL_LIST?.split(',') || [];
+      if (adminEmails.length === 0) {
+        console.log('관리자 이메일이 설정되지 않음, 건너뜀');
+        return;
+      }
+
+      const emailData = {
+        to: adminEmails,
+        subject: `[OpenManager] AI 패턴 분석 완료 - ${suggestionReport.highConfidencePatterns}개 제안 검토 필요`,
+        html: `
+          <h2>🤖 AI 패턴 분석 결과</h2>
+          <p>AI 에이전트가 새로운 패턴 분석을 완료했습니다.</p>
+          
+          <h3>📊 분석 결과</h3>
+          <ul>
+            <li><strong>전체 패턴:</strong> ${suggestionReport.totalPatterns}개</li>
+            <li><strong>고신뢰도 제안:</strong> ${suggestionReport.highConfidencePatterns}개</li>
+            <li><strong>분석 시간:</strong> ${suggestionReport.timestamp.toLocaleString('ko-KR')}</li>
+            <li><strong>분석 ID:</strong> ${suggestionReport.analysisId}</li>
+          </ul>
+          
+          <h3>🔍 권장 조치</h3>
+          <p>고신뢰도 패턴 제안들을 검토하고 승인 여부를 결정해주세요.</p>
+          
+          <a href="${process.env.NEXT_PUBLIC_APP_URL}/admin/ai-agent/pattern-review" 
+             style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+            제안 검토하기
+          </a>
+          
+          <hr>
+          <p><small>이 알림은 OpenManager AI 학습 시스템에서 자동 생성되었습니다.</small></p>
+        `
+      };
+
+      // 이메일 API 호출
+      await fetch('/api/notifications/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(emailData)
+      });
+
+      console.log('✅ 이메일 알림 전송 완료');
+    } catch (error) {
+      console.error('이메일 알림 전송 에러:', error);
+    }
+  }
+
+  /**
+   * 웹소켓을 통한 실시간 알림
+   */
+  private async sendWebSocketNotification(suggestionReport: any): Promise<void> {
+    try {
+      const wsMessage = {
+        type: 'admin_notification',
+        subtype: 'pattern_suggestions',
+        data: {
+          title: `${suggestionReport.highConfidencePatterns}개의 새로운 패턴 제안`,
+          message: `AI가 분석한 ${suggestionReport.totalPatterns}개 패턴 중 ${suggestionReport.highConfidencePatterns}개가 검토 대상입니다.`,
+          priority: suggestionReport.highConfidencePatterns > 5 ? 'high' : 'medium',
+          actionUrl: '/admin/ai-agent/pattern-review',
+          timestamp: suggestionReport.timestamp,
+          data: suggestionReport
+        }
+      };
+
+      // 웹소켓 API를 통해 브로드캐스트
+      await fetch('/api/websocket/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channel: 'admin_notifications',
+          message: wsMessage
+        })
+      });
+
+      console.log('✅ 웹소켓 실시간 알림 전송 완료');
+    } catch (error) {
+      console.error('웹소켓 알림 전송 에러:', error);
+    }
   }
 } 

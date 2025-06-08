@@ -150,8 +150,46 @@ export class PatternAnalysisService {
    */
   async approvePatternSuggestion(suggestionId: string): Promise<boolean> {
     try {
-      // TODO: 실제 패턴 저장소에 적용
-      console.log(`✅ [PatternAnalysisService] 패턴 제안 승인: ${suggestionId}`);
+      // 실제 패턴 저장소에 적용
+      console.log(`✅ [PatternAnalysisService] 패턴 제안 승인 처리: ${suggestionId}`);
+      
+      // 1. 제안 내용 조회
+      const suggestion = await this.findSuggestionById(suggestionId);
+      if (!suggestion) {
+        console.error(`패턴 제안을 찾을 수 없습니다: ${suggestionId}`);
+        return false;
+      }
+      
+      // 2. 패턴 저장소에 새 패턴 추가
+      const newPattern: RegexPattern = {
+        id: `pattern_${Date.now()}`,
+        pattern: suggestion.suggestedPattern,
+        description: suggestion.description,
+        category: 'approved_suggestion',
+        confidence: suggestion.confidenceScore,
+        testCases: [],
+        expectedMatches: suggestion.estimatedMatches || 0,
+        metadata: {
+          suggestionId: suggestionId,
+          approvedAt: new Date().toISOString(),
+          source: 'pattern_analysis_service'
+        }
+      };
+      
+      // 3. Supabase 또는 로컬 저장소에 저장
+      const stored = await this.storePattern(newPattern);
+      if (!stored) {
+        console.error(`패턴 저장 실패: ${suggestionId}`);
+        return false;
+      }
+      
+      // 4. 제안 상태 업데이트
+      await this.updateSuggestionStatus(suggestionId, 'approved');
+      
+      // 5. AI 엔진에 새 패턴 알림
+      await this.notifyAIEnginePatternUpdate(newPattern);
+      
+      console.log(`✅ [PatternAnalysisService] 패턴 제안 승인 완료: ${suggestionId} -> 패턴 ID: ${newPattern.id}`);
       return true;
     } catch (error) {
       console.error(`❌ [PatternAnalysisService] 패턴 승인 실패: ${suggestionId}`, error);
@@ -164,7 +202,17 @@ export class PatternAnalysisService {
    */
   async rejectPatternSuggestion(suggestionId: string, reason?: string): Promise<boolean> {
     try {
-      console.log(`❌ [PatternAnalysisService] 패턴 제안 거부: ${suggestionId}`, reason);
+      console.log(`❌ [PatternAnalysisService] 패턴 제안 거부 처리: ${suggestionId}`, reason);
+      
+      // 1. 제안 상태 업데이트
+      await this.updateSuggestionStatus(suggestionId, 'rejected', reason);
+      
+      // 2. 거부 이유를 학습 데이터로 활용
+      if (reason) {
+        await this.learnFromRejection(suggestionId, reason);
+      }
+      
+      console.log(`✅ [PatternAnalysisService] 패턴 제안 거부 완료: ${suggestionId}`);
       return true;
     } catch (error) {
       console.error(`❌ [PatternAnalysisService] 패턴 거부 실패: ${suggestionId}`, error);
@@ -215,30 +263,19 @@ export class PatternAnalysisService {
    */
   async comparePatterns(oldPatternId: string, newPatternId: string): Promise<Comparison | null> {
     try {
-      // TODO: 실제 패턴 저장소에서 패턴 조회
+      // 실제 패턴 저장소에서 패턴 조회
+      const [oldPattern, newPattern] = await Promise.all([
+        this.getPatternById(oldPatternId),
+        this.getPatternById(newPatternId)
+      ]);
+      
+      if (!oldPattern || !newPattern) {
+        console.error('패턴 조회 실패:', { oldPatternId, newPatternId });
+        return null;
+      }
+      
       const interactions = await this.interactionLogger.getInteractionHistory();
       
-      // 임시 패턴 객체 생성 (실제로는 저장소에서 조회)
-      const oldPattern: RegexPattern = {
-        id: oldPatternId,
-        pattern: '.*',
-        description: '기존 패턴',
-        category: 'existing',
-        confidence: 0.7,
-        testCases: [],
-        expectedMatches: 0
-      };
-
-      const newPattern: RegexPattern = {
-        id: newPatternId,
-        pattern: '.*',
-        description: '새 패턴',
-        category: 'new',
-        confidence: 0.8,
-        testCases: [],
-        expectedMatches: 0
-      };
-
       const comparison = await this.abTestManager.comparePatternPerformance(
         oldPattern, 
         newPattern, 
@@ -461,5 +498,202 @@ export class PatternAnalysisService {
    */
   getLatestAnalysisReport(): AnalysisReport | null {
     return this.getLatestReport();
+  }
+
+  /**
+   * 제안 ID로 제안 찾기
+   */
+  private async findSuggestionById(suggestionId: string): Promise<PatternSuggestion | null> {
+    try {
+      // 최근 분석 보고서에서 제안 찾기
+      for (const report of this.analysisHistory.reverse()) {
+        const suggestion = report.suggestions.find(s => s.id === suggestionId);
+        if (suggestion) {
+          return suggestion;
+        }
+      }
+      
+      // 저장소에서 직접 조회 (Supabase)
+      if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        const response = await fetch('/api/ai-agent/patterns/suggestions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get', suggestionId })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          return data.suggestion;
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('제안 조회 실패:', error);
+      return null;
+    }
+  }
+
+  /**
+   * 패턴 저장소에 저장
+   */
+  private async storePattern(pattern: RegexPattern): Promise<boolean> {
+    try {
+      // 1. 로컬 메모리 캐시에 저장
+      if (typeof globalThis !== 'undefined') {
+        (globalThis as any).__pattern_store = (globalThis as any).__pattern_store || new Map();
+        (globalThis as any).__pattern_store.set(pattern.id, pattern);
+      }
+      
+      // 2. Supabase에 저장 (가능한 경우)
+      if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        const response = await fetch('/api/ai-agent/patterns', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pattern })
+        });
+        
+        if (!response.ok) {
+          console.warn('Supabase 패턴 저장 실패, 로컬 저장만 유지');
+        }
+      }
+      
+      // 3. LocalStorage 백업 (브라우저 환경)
+      if (typeof localStorage !== 'undefined') {
+        const stored = localStorage.getItem('ai-patterns') || '[]';
+        const patterns = JSON.parse(stored);
+        patterns.push(pattern);
+        localStorage.setItem('ai-patterns', JSON.stringify(patterns));
+      }
+      
+      console.log(`💾 패턴 저장 완료: ${pattern.id}`);
+      return true;
+    } catch (error) {
+      console.error('패턴 저장 실패:', error);
+      return false;
+    }
+  }
+
+  /**
+   * 제안 상태 업데이트
+   */
+  private async updateSuggestionStatus(suggestionId: string, status: 'approved' | 'rejected', reason?: string): Promise<void> {
+    try {
+      // 로컬 메모리 업데이트
+      if (typeof globalThis !== 'undefined') {
+        (globalThis as any).__suggestion_status = (globalThis as any).__suggestion_status || new Map();
+        (globalThis as any).__suggestion_status.set(suggestionId, {
+          status,
+          reason,
+          updatedAt: new Date().toISOString()
+        });
+      }
+      
+      // Supabase 업데이트 (가능한 경우)
+      if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        await fetch('/api/ai-agent/patterns/suggestions', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ suggestionId, status, reason })
+        });
+      }
+      
+      console.log(`📝 제안 상태 업데이트: ${suggestionId} -> ${status}`);
+    } catch (error) {
+      console.error('제안 상태 업데이트 실패:', error);
+    }
+  }
+
+  /**
+   * AI 엔진에 패턴 업데이트 알림
+   */
+  private async notifyAIEnginePatternUpdate(pattern: RegexPattern): Promise<void> {
+    try {
+      // AI 엔진 API 호출
+      if (typeof window !== 'undefined') {
+        await fetch('/api/ai/enhanced', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'pattern_update',
+            pattern: pattern
+          })
+        });
+      }
+      
+      // 이벤트 발송 (브라우저 환경)
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('ai-pattern-updated', {
+          detail: { pattern }
+        }));
+      }
+      
+      console.log(`🔄 AI 엔진 패턴 업데이트 알림: ${pattern.id}`);
+    } catch (error) {
+      console.error('AI 엔진 알림 실패:', error);
+    }
+  }
+
+  /**
+   * 거부 사유 학습
+   */
+  private async learnFromRejection(suggestionId: string, reason: string): Promise<void> {
+    try {
+      const learningData = {
+        suggestionId,
+        reason,
+        timestamp: new Date().toISOString(),
+        type: 'rejection_feedback'
+      };
+      
+      // 학습 데이터 저장
+      if (typeof localStorage !== 'undefined') {
+        const stored = localStorage.getItem('rejection-learning') || '[]';
+        const learnings = JSON.parse(stored);
+        learnings.push(learningData);
+        localStorage.setItem('rejection-learning', JSON.stringify(learnings));
+      }
+      
+      // PatternSuggester에 피드백 제공
+      await this.patternSuggester.learnFromFeedback('rejection', reason);
+      
+      console.log(`🧠 거부 사유 학습: ${suggestionId} - ${reason}`);
+    } catch (error) {
+      console.error('거부 사유 학습 실패:', error);
+    }
+  }
+
+  /**
+   * 패턴 ID로 패턴 조회
+   */
+  private async getPatternById(patternId: string): Promise<RegexPattern | null> {
+    try {
+      // 1. 메모리 캐시 확인
+      if (typeof globalThis !== 'undefined' && (globalThis as any).__pattern_store) {
+        const pattern = (globalThis as any).__pattern_store.get(patternId);
+        if (pattern) return pattern;
+      }
+      
+      // 2. Supabase 조회
+      if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        const response = await fetch(`/api/ai-agent/patterns/${patternId}`);
+        if (response.ok) {
+          const data = await response.json();
+          return data.pattern;
+        }
+      }
+      
+      // 3. LocalStorage 폴백
+      if (typeof localStorage !== 'undefined') {
+        const stored = localStorage.getItem('ai-patterns') || '[]';
+        const patterns = JSON.parse(stored);
+        return patterns.find((p: RegexPattern) => p.id === patternId) || null;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('패턴 조회 실패:', error);
+      return null;
+    }
   }
 } 

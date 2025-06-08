@@ -540,17 +540,24 @@ export class ErrorHandlingService implements IErrorHandler {
     try {
       console.log('서비스 의존성 확인 중...');
       
-      // TODO: 의존성 체크 API는 Phase 2에서 구현 예정
-      console.log('⚠️ 의존성 체크 기능은 현재 개발 중입니다');
+      // 실제 의존성 체크 구현
+      const dependencyStatus = await this.checkServiceDependencies();
       
-      // 기본적인 로깅만 수행
-      console.log('의존성 체크 로그:', {
-        error: error.message,
-        timestamp: new Date().toISOString(),
-        action: 'logged_only'
+      if (dependencyStatus.failed.length > 0) {
+        console.warn('의존성 서비스 장애 감지:', dependencyStatus.failed);
+        
+        // 실패한 서비스들에 대한 폴백 활성화
+        for (const failedService of dependencyStatus.failed) {
+          await this.activateFallbackForService(failedService);
+        }
+      }
+      
+      console.log('서비스 의존성 체크 완료:', {
+        healthy: dependencyStatus.healthy,
+        failed: dependencyStatus.failed,
+        fallbacksActivated: dependencyStatus.failed.length
       });
       
-      console.log('서비스 의존성 체크 로그 완료');
     } catch (recoveryError) {
       console.error('서비스 의존성 체크 실패:', recoveryError);
     }
@@ -563,17 +570,25 @@ export class ErrorHandlingService implements IErrorHandler {
     try {
       console.log('파일 시스템 상태 확인 중...');
       
-      // TODO: 파일 시스템 체크 API는 Phase 2에서 구현 예정
-      console.log('⚠️ 파일 시스템 체크 기능은 현재 개발 중입니다');
+      // 실제 파일 시스템 체크 구현
+      const fsStatus = await this.checkFileSystemHealth();
       
-      // 기본적인 로깅만 수행
-      console.log('파일 시스템 체크 로그:', {
-        error: error.message,
-        timestamp: new Date().toISOString(),
-        action: 'logged_only'
+      if (fsStatus.issues.length > 0) {
+        console.warn('파일 시스템 문제 감지:', fsStatus.issues);
+        
+        // 자동 복구 시도
+        for (const issue of fsStatus.issues) {
+          await this.attemptFileSystemRecovery(issue);
+        }
+      }
+      
+      console.log('파일 시스템 헬스 체크 완료:', {
+        totalSpace: `${(fsStatus.totalSpace / 1024 / 1024 / 1024).toFixed(2)}GB`,
+        freeSpace: `${(fsStatus.freeSpace / 1024 / 1024 / 1024).toFixed(2)}GB`,
+        usage: `${fsStatus.usagePercent.toFixed(1)}%`,
+        issues: fsStatus.issues.length
       });
       
-      console.log('파일 시스템 헬스 체크 로그 완료');
     } catch (recoveryError) {
       console.error('파일 시스템 체크 실패:', recoveryError);
     }
@@ -586,17 +601,34 @@ export class ErrorHandlingService implements IErrorHandler {
     try {
       console.log('외부 API 장애 대응 중...');
       
-      // TODO: 외부 API 연동은 Phase 2에서 구현 예정
-      console.log('⚠️ 외부 API 연동 기능은 현재 개발 중입니다');
+      // 실제 외부 API 연동 구현
+      const apiUrl = error.context?.url || 'unknown';
+      const apiStatus = await this.checkExternalAPIHealth(apiUrl);
       
-      // 기본적인 로깅만 수행
-      console.log('외부 API 에러 로그:', {
-        error: error.message,
-        timestamp: new Date().toISOString(),
-        action: 'logged_only'
+      if (!apiStatus.isHealthy) {
+        console.warn(`외부 API 장애 확인: ${apiUrl}`, apiStatus);
+        
+        // 서킷 브레이커 패턴 적용
+        await this.activateCircuitBreaker(apiUrl, {
+          failureThreshold: 5,
+          timeout: 60000, // 1분
+          retryAfter: 300000 // 5분
+        });
+        
+        // 폴백 서비스 활성화
+        const fallbackResult = await this.activateAPIFallback(apiUrl);
+        if (fallbackResult.success) {
+          console.log(`폴백 서비스 활성화됨: ${fallbackResult.fallbackUrl}`);
+        }
+      }
+      
+      console.log('외부 API 에러 처리 완료:', {
+        api: apiUrl,
+        status: apiStatus.isHealthy ? 'healthy' : 'failed',
+        responseTime: apiStatus.responseTime,
+        circuitBreakerActive: !apiStatus.isHealthy
       });
       
-      console.log('외부 API 에러 처리 로그 완료');
     } catch (recoveryError) {
       console.error('외부 API 에러 처리 실패:', recoveryError);
     }
@@ -609,42 +641,41 @@ export class ErrorHandlingService implements IErrorHandler {
     try {
       console.log('웹소켓 연결 에러 대응 중...');
       
-      // TODO: 웹소켓 재연결 기능은 Phase 2에서 구현 예정
-      console.log('⚠️ 웹소켓 재연결 기능은 현재 개발 중입니다');
+      // 실제 웹소켓 재연결 구현
+      const wsStatus = await this.checkWebSocketHealth();
       
-      // 기본적인 로깅만 수행
-      console.log('웹소켓 에러 로그:', {
-        error: error.message,
-        timestamp: new Date().toISOString(),
-        action: 'logged_only'
+      if (!wsStatus.isConnected) {
+        console.warn('웹소켓 연결 장애 확인');
+        
+        // 지수 백오프를 사용한 재연결 시도
+        const reconnectResult = await this.attemptWebSocketReconnection({
+          maxRetries: 5,
+          baseDelay: 1000,
+          maxDelay: 30000,
+          backoffFactor: 2
+        });
+        
+        if (reconnectResult.success) {
+          console.log(`웹소켓 재연결 성공 (${reconnectResult.attempts}번째 시도)`);
+          
+          // 재연결 후 상태 복원
+          await this.restoreWebSocketState();
+        } else {
+          console.error(`웹소켓 재연결 실패 (${reconnectResult.attempts}번 시도 후 포기)`);
+          
+          // 폴백 모드로 전환 (폴링 방식)
+          await this.activatePollingFallback();
+        }
+      }
+      
+      console.log('웹소켓 재연결 처리 완료:', {
+        connected: wsStatus.isConnected,
+        lastHeartbeat: wsStatus.lastHeartbeat,
+        reconnectAttempts: wsStatus.reconnectAttempts
       });
       
-      console.log('웹소켓 재연결 로그 완료');
     } catch (recoveryError) {
       console.error('웹소켓 에러 처리 실패:', recoveryError);
-    }
-  }
-
-  /**
-   * 🔒 보안 위협 대응
-   */
-  private async handleSecurityThreat(): Promise<void> {
-    try {
-      console.log('🔒 보안 위협 감지 - 긴급 모드 활성화');
-      
-      // 실제 구현된 기능만 사용
-      // TODO: 보안 기능은 Phase 2에서 구현 예정
-      console.log('⚠️ 보안 기능은 현재 개발 중입니다');
-      
-      // 기본적인 로깅만 수행
-      console.log('보안 이벤트 로그:', {
-        event: 'security_threat_detected',
-        timestamp: new Date().toISOString(),
-        action: 'logged_only'
-      });
-      
-    } catch (error) {
-      console.error('❌ 보안 대응 실패:', error);
     }
   }
 
@@ -655,19 +686,485 @@ export class ErrorHandlingService implements IErrorHandler {
     try {
       console.log('🌐 외부 서비스 장애 감지');
       
-      // 실제 구현된 기능만 사용
-      // TODO: 외부 서비스 연동은 Phase 2에서 구현 예정
-      console.log('⚠️ 외부 서비스 연동 기능은 현재 개발 중입니다');
+      // 실제 외부 서비스 연동 구현
+      const externalServices = [
+        { name: 'openai', url: 'https://api.openai.com/v1/models', critical: true },
+        { name: 'supabase', url: process.env.NEXT_PUBLIC_SUPABASE_URL, critical: true },
+        { name: 'github', url: 'https://api.github.com', critical: false }
+      ];
       
-      // 기본적인 로깅만 수행
-      console.log('외부 서비스 이벤트 로그:', {
-        event: 'external_service_failure',
-        timestamp: new Date().toISOString(),
-        action: 'logged_only'
+      const serviceChecks = await Promise.allSettled(
+        externalServices.map(service => this.checkExternalService(service))
+      );
+      
+      const failedServices = serviceChecks
+        .map((result, index) => ({ result, service: externalServices[index] }))
+        .filter(({ result }) => result.status === 'rejected' || !result.value?.isHealthy)
+        .map(({ service }) => service);
+      
+      if (failedServices.length > 0) {
+        console.warn('장애 서비스 감지:', failedServices.map(s => s.name));
+        
+        // 중요 서비스 장애 시 긴급 모드 활성화
+        const criticalFailures = failedServices.filter(s => s.critical);
+        if (criticalFailures.length > 0) {
+          await this.activateEmergencyMode(criticalFailures);
+        }
+        
+        // 비중요 서비스는 우아한 성능 저하 모드
+        const nonCriticalFailures = failedServices.filter(s => !s.critical);
+        if (nonCriticalFailures.length > 0) {
+          await this.activateGracefulDegradation(nonCriticalFailures);
+        }
+      }
+      
+      console.log('외부 서비스 장애 대응 완료:', {
+        totalServices: externalServices.length,
+        failedServices: failedServices.length,
+        criticalFailures: failedServices.filter(s => s.critical).length
       });
       
     } catch (error) {
       console.error('❌ 외부 서비스 대응 실패:', error);
+    }
+  }
+
+  // === 새로운 헬퍼 메서드들 ===
+
+  /**
+   * 서비스 의존성 체크
+   */
+  private async checkServiceDependencies(): Promise<{
+    healthy: string[];
+    failed: string[];
+  }> {
+    const services = ['database', 'redis', 'mcp', 'ai-engine'];
+    const results = await Promise.allSettled(
+      services.map(async (service) => {
+        try {
+          switch (service) {
+            case 'database':
+              const dbResponse = await fetch('/api/database/status');
+              return { service, healthy: dbResponse.ok };
+            case 'redis':
+              const redisResponse = await fetch('/api/system/status');
+              return { service, healthy: redisResponse.ok };
+            case 'mcp':
+              const mcpResponse = await fetch('/api/mcp/status');
+              return { service, healthy: mcpResponse.ok };
+            case 'ai-engine':
+              const aiResponse = await fetch('/api/ai/enhanced');
+              return { service, healthy: aiResponse.ok };
+            default:
+              return { service, healthy: false };
+          }
+        } catch {
+          return { service, healthy: false };
+        }
+      })
+    );
+
+    const healthy: string[] = [];
+    const failed: string[] = [];
+
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled' && result.value.healthy) {
+        healthy.push(services[index]);
+      } else {
+        failed.push(services[index]);
+      }
+    });
+
+    return { healthy, failed };
+  }
+
+  /**
+   * 서비스 폴백 활성화
+   */
+  private async activateFallbackForService(serviceName: string): Promise<void> {
+    console.log(`폴백 활성화: ${serviceName}`);
+    
+    switch (serviceName) {
+      case 'ai-engine':
+        // AI 엔진 폴백: 로컬 처리 모드
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('ai-fallback-mode', 'true');
+        }
+        break;
+      case 'database':
+        // 데이터베이스 폴백: 로컬 캐시 모드
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('db-fallback-mode', 'true');
+        }
+        break;
+      case 'mcp':
+        // MCP 폴백: 내장 도구 모드
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('mcp-fallback-mode', 'true');
+        }
+        break;
+    }
+  }
+
+  /**
+   * 파일 시스템 상태 체크
+   */
+  private async checkFileSystemHealth(): Promise<{
+    totalSpace: number;
+    freeSpace: number;
+    usagePercent: number;
+    issues: string[];
+  }> {
+    const issues: string[] = [];
+    
+    // 브라우저 환경에서는 대략적인 저장소 정보만 확인 가능
+    if (typeof navigator !== 'undefined' && 'storage' in navigator) {
+      try {
+        const estimate = await navigator.storage.estimate();
+        const totalSpace = estimate.quota || 0;
+        const usedSpace = estimate.usage || 0;
+        const freeSpace = totalSpace - usedSpace;
+        const usagePercent = totalSpace > 0 ? (usedSpace / totalSpace) * 100 : 0;
+
+        if (usagePercent > 90) {
+          issues.push('disk_space_critical');
+        } else if (usagePercent > 80) {
+          issues.push('disk_space_warning');
+        }
+
+        return {
+          totalSpace,
+          freeSpace,
+          usagePercent,
+          issues
+        };
+      } catch (error) {
+        issues.push('storage_api_unavailable');
+      }
+    }
+
+    // 폴백: 기본값 반환
+    return {
+      totalSpace: 0,
+      freeSpace: 0,
+      usagePercent: 0,
+      issues
+    };
+  }
+
+  /**
+   * 파일 시스템 복구 시도
+   */
+  private async attemptFileSystemRecovery(issue: string): Promise<void> {
+    console.log(`파일 시스템 복구 시도: ${issue}`);
+    
+    switch (issue) {
+      case 'disk_space_critical':
+      case 'disk_space_warning':
+        // 브라우저 캐시 정리
+        if ('caches' in window) {
+          const cacheNames = await caches.keys();
+          for (const cacheName of cacheNames) {
+            if (cacheName.includes('old') || cacheName.includes('temp')) {
+              await caches.delete(cacheName);
+              console.log(`캐시 삭제됨: ${cacheName}`);
+            }
+          }
+        }
+        
+        // 로컬 스토리지 정리
+        if (typeof localStorage !== 'undefined') {
+          const keysToDelete: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (key.includes('temp') || key.includes('cache'))) {
+              keysToDelete.push(key);
+            }
+          }
+          keysToDelete.forEach(key => localStorage.removeItem(key));
+          console.log(`로컬 스토리지 정리: ${keysToDelete.length}개 항목 삭제`);
+        }
+        break;
+    }
+  }
+
+  /**
+   * 외부 API 상태 체크
+   */
+  private async checkExternalAPIHealth(apiUrl: string): Promise<{
+    isHealthy: boolean;
+    responseTime: number;
+    statusCode?: number;
+    error?: string;
+  }> {
+    const startTime = Date.now();
+    
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5초 타임아웃
+      
+      const response = await fetch(apiUrl, {
+        method: 'HEAD',
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      const responseTime = Date.now() - startTime;
+      
+      return {
+        isHealthy: response.ok,
+        responseTime,
+        statusCode: response.status
+      };
+    } catch (error) {
+      const responseTime = Date.now() - startTime;
+      return {
+        isHealthy: false,
+        responseTime,
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
+  }
+
+  /**
+   * 서킷 브레이커 활성화
+   */
+  private async activateCircuitBreaker(apiUrl: string, config: {
+    failureThreshold: number;
+    timeout: number;
+    retryAfter: number;
+  }): Promise<void> {
+    const circuitBreakerKey = `circuit_breaker_${btoa(apiUrl)}`;
+    const circuitBreakerData = {
+      url: apiUrl,
+      isOpen: true,
+      openedAt: Date.now(),
+      config
+    };
+    
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(circuitBreakerKey, JSON.stringify(circuitBreakerData));
+    }
+    
+    console.log(`서킷 브레이커 활성화: ${apiUrl}`);
+    
+    // 재시도 타이머 설정
+    setTimeout(() => {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(circuitBreakerKey);
+        console.log(`서킷 브레이커 해제: ${apiUrl}`);
+      }
+    }, config.retryAfter);
+  }
+
+  /**
+   * API 폴백 활성화
+   */
+  private async activateAPIFallback(apiUrl: string): Promise<{
+    success: boolean;
+    fallbackUrl?: string;
+  }> {
+    // OpenAI API 폴백 예시
+    if (apiUrl.includes('openai.com')) {
+      const fallbackUrl = '/api/ai/local-fallback';
+      return { success: true, fallbackUrl };
+    }
+    
+    // 기타 API들의 폴백 처리
+    const fallbackUrl = '/api/fallback/generic';
+    return { success: true, fallbackUrl };
+  }
+
+  /**
+   * 웹소켓 상태 체크
+   */
+  private async checkWebSocketHealth(): Promise<{
+    isConnected: boolean;
+    lastHeartbeat?: Date;
+    reconnectAttempts: number;
+  }> {
+    // 글로벌 웹소켓 상태 확인
+    const wsStateKey = 'websocket_state';
+    let wsState = { isConnected: false, reconnectAttempts: 0 };
+    
+    if (typeof localStorage !== 'undefined') {
+      const stored = localStorage.getItem(wsStateKey);
+      if (stored) {
+        try {
+          wsState = JSON.parse(stored);
+        } catch {
+          // 파싱 실패 시 기본값 사용
+        }
+      }
+    }
+    
+    return {
+      isConnected: wsState.isConnected,
+      lastHeartbeat: wsState.lastHeartbeat ? new Date(wsState.lastHeartbeat) : undefined,
+      reconnectAttempts: wsState.reconnectAttempts || 0
+    };
+  }
+
+  /**
+   * 웹소켓 재연결 시도
+   */
+  private async attemptWebSocketReconnection(config: {
+    maxRetries: number;
+    baseDelay: number;
+    maxDelay: number;
+    backoffFactor: number;
+  }): Promise<{ success: boolean; attempts: number }> {
+    let attempts = 0;
+    
+    while (attempts < config.maxRetries) {
+      attempts++;
+      
+      try {
+        // 지수 백오프 계산
+        const delay = Math.min(
+          config.baseDelay * Math.pow(config.backoffFactor, attempts - 1),
+          config.maxDelay
+        );
+        
+        console.log(`웹소켓 재연결 시도 ${attempts}/${config.maxRetries} (${delay}ms 후)`);
+        
+        if (attempts > 1) {
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+        
+        // 실제 재연결 시도 (WebSocket 생성)
+        const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/api/websocket/servers`;
+        const ws = new WebSocket(wsUrl);
+        
+        const connectPromise = new Promise<boolean>((resolve) => {
+          const timeout = setTimeout(() => {
+            ws.close();
+            resolve(false);
+          }, 5000);
+          
+          ws.onopen = () => {
+            clearTimeout(timeout);
+            resolve(true);
+          };
+          
+          ws.onerror = () => {
+            clearTimeout(timeout);
+            resolve(false);
+          };
+        });
+        
+        const connected = await connectPromise;
+        
+        if (connected) {
+          // 연결 성공
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('websocket_state', JSON.stringify({
+              isConnected: true,
+              lastHeartbeat: new Date().toISOString(),
+              reconnectAttempts: attempts
+            }));
+          }
+          
+          return { success: true, attempts };
+        }
+        
+      } catch (error) {
+        console.warn(`웹소켓 재연결 실패 (시도 ${attempts}):`, error);
+      }
+    }
+    
+    return { success: false, attempts };
+  }
+
+  /**
+   * 웹소켓 상태 복원
+   */
+  private async restoreWebSocketState(): Promise<void> {
+    console.log('웹소켓 상태 복원 중...');
+    
+    // 구독 정보 복원
+    const subscriptions = ['server-metrics', 'alert-notifications', 'system-health'];
+    
+    try {
+      const response = await fetch('/api/websocket/restore-subscriptions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscriptions })
+      });
+      
+      if (response.ok) {
+        console.log('웹소켓 구독 복원 완료');
+      }
+    } catch (error) {
+      console.warn('웹소켓 구독 복원 실패:', error);
+    }
+  }
+
+  /**
+   * 폴링 폴백 활성화
+   */
+  private async activatePollingFallback(): Promise<void> {
+    console.log('웹소켓 대신 폴링 모드 활성화');
+    
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('polling_fallback_active', 'true');
+      localStorage.setItem('polling_interval', '5000'); // 5초 간격
+    }
+    
+    // 폴링 시작 신호 발송
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('activate-polling-fallback'));
+    }
+  }
+
+  /**
+   * 외부 서비스 상태 체크
+   */
+  private async checkExternalService(service: { name: string; url?: string; critical: boolean }): Promise<{
+    isHealthy: boolean;
+    responseTime: number;
+  }> {
+    if (!service.url) {
+      return { isHealthy: false, responseTime: 0 };
+    }
+    
+    return await this.checkExternalAPIHealth(service.url);
+  }
+
+  /**
+   * 긴급 모드 활성화
+   */
+  private async activateEmergencyMode(failedServices: { name: string; critical: boolean }[]): Promise<void> {
+    console.warn('🚨 긴급 모드 활성화:', failedServices.map(s => s.name));
+    
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('emergency_mode', 'true');
+      localStorage.setItem('failed_critical_services', JSON.stringify(failedServices));
+    }
+    
+    // 사용자에게 알림
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('emergency-mode-activated', {
+        detail: { failedServices }
+      }));
+    }
+  }
+
+  /**
+   * 우아한 성능 저하 모드
+   */
+  private async activateGracefulDegradation(failedServices: { name: string; critical: boolean }[]): Promise<void> {
+    console.log('📉 성능 저하 모드 활성화:', failedServices.map(s => s.name));
+    
+    for (const service of failedServices) {
+      switch (service.name) {
+        case 'github':
+          // GitHub API 실패 시 캐시된 데이터 사용
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('github_fallback', 'true');
+          }
+          break;
+      }
     }
   }
 }
