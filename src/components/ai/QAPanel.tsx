@@ -28,11 +28,11 @@ import { useAIChat, useAIThinking, PRESET_QUESTIONS } from '@/stores/useAISideba
 // 패널용 프리셋 질문 (5개 선별)
 const PANEL_PRESET_QUESTIONS = [
   PRESET_QUESTIONS[0], // 성능 상태
-  PRESET_QUESTIONS[4], // CPU 분석
-  PRESET_QUESTIONS[8], // 메모리 트렌드 (AI 추천)
-  PRESET_QUESTIONS[14], // 보안 상태
-  PRESET_QUESTIONS[20], // 종합 분석 (AI 추천)
-];
+  PRESET_QUESTIONS[1], // CPU 분석
+  PRESET_QUESTIONS[2], // 메모리 트렌드 (AI 추천)
+  PRESET_QUESTIONS[4], // 보안 상태
+  PRESET_QUESTIONS[11], // 종합 분석 (AI 추천)
+].filter(Boolean); // undefined 항목 제거
 
 interface QAPanelProps {
   className?: string;

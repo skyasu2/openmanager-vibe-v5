@@ -284,13 +284,31 @@ export class ResponseGenerator {
     try {
       console.log('📄 AI 보고서 생성 중...');
       const reportData = {
-        analysis_results: response.analysis_results,
-        query: request.query,
         timestamp: response.metadata.timestamp,
-        language: response.metadata.language,
+        summary: response.answer || '분석 완료',
+        failure_analysis: response.analysis_results?.ai_predictions || {},
+        prediction_results: response.analysis_results?.trend_forecasts || {},
+        ai_insights: [],
+        recommendations: response.recommendations || [],
+        metrics_data: response.analysis_results || {},
+        charts: [],
+        system_status: response.analysis_results?.active_alerts || [],
+        time_range: {
+          start: new Date(Date.now() - 3600000).toISOString(), // 1시간 전
+          end: new Date().toISOString(),
+          duration: '1 hour'
+        }
       };
 
-      const report = await autoReportGenerator.generateReport(reportData);
+      const config = {
+        format: 'markdown' as const,
+        include_charts: true,
+        include_raw_data: false,
+        template: 'technical' as const,
+        language: (response.metadata.language || 'ko') as 'ko' | 'en'
+      };
+
+      const report = await autoReportGenerator.generateFailureReport(reportData, config);
       response.generated_report = report;
       response.processing_stats.components_used.push('report-generator');
       

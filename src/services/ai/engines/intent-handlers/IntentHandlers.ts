@@ -74,7 +74,7 @@ export class PredictionHandler implements IntentHandler {
       const aiAnalysis = await tensorFlowAIEngine.analyzeMetricsWithAI(flattenedMetrics);
       
       response.analysis_results.ai_predictions = aiAnalysis.failure_predictions;
-      response.analysis_results.trend_forecasts = aiAnalysis.trend_analysis;
+      response.analysis_results.trend_forecasts = aiAnalysis.trend_predictions;
       response.processing_stats.models_executed.push(...aiAnalysis.processing_stats.models_used);
     }
 
@@ -113,7 +113,7 @@ export class AnalysisHandler implements IntentHandler {
       const flattenedMetrics = this.flattenMetrics(systemMetrics.servers);
       const aiAnalysis = await tensorFlowAIEngine.analyzeMetricsWithAI(flattenedMetrics);
       
-      response.analysis_results.ai_predictions = aiAnalysis.trend_analysis;
+      response.analysis_results.ai_predictions = aiAnalysis.trend_predictions;
       response.analysis_results.anomaly_detection = aiAnalysis.anomaly_detections;
       response.processing_stats.models_executed.push(...aiAnalysis.processing_stats.models_used);
     }
@@ -177,7 +177,7 @@ export class ReportingHandler implements IntentHandler {
       const flattenedMetrics = this.flattenMetrics(systemMetrics.servers);
       const aiAnalysis = await tensorFlowAIEngine.analyzeMetricsWithAI(flattenedMetrics);
       
-      response.analysis_results.ai_predictions = aiAnalysis.trend_analysis;
+      response.analysis_results.ai_predictions = aiAnalysis.trend_predictions;
       response.analysis_results.anomaly_detection = aiAnalysis.anomaly_detections;
       response.processing_stats.models_executed.push(...aiAnalysis.processing_stats.models_used);
     }
@@ -219,8 +219,8 @@ export class PerformanceHandler implements IntentHandler {
       const flattenedMetrics = this.flattenMetrics(systemMetrics.servers);
       const aiAnalysis = await tensorFlowAIEngine.analyzeMetricsWithAI(flattenedMetrics);
       
-      response.analysis_results.ai_predictions = aiAnalysis.performance_insights;
-      response.analysis_results.trend_forecasts = aiAnalysis.trend_analysis;
+      response.analysis_results.ai_predictions = aiAnalysis.failure_predictions;
+      response.analysis_results.trend_forecasts = aiAnalysis.trend_predictions;
       response.processing_stats.models_executed.push(...aiAnalysis.processing_stats.models_used);
     }
 
