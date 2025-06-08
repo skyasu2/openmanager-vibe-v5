@@ -25,7 +25,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import { useSystemStore } from '@/stores/systemStore';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 
 // Dynamic imports for AI components
 const PatternAnalysisWidget = dynamic(
@@ -139,7 +139,7 @@ export const AISidebar: React.FC<AISidebarProps> = ({
   position = 'right',
   width = 400,
 }) => {
-  const { aiAgent } = useSystemStore();
+  const { aiAgent } = useUnifiedAdminStore();
   const [activeTab, setActiveTab] = useState<
     'overview' | 'patterns' | 'predictions' | 'chat'
   >('overview');
@@ -157,14 +157,14 @@ export const AISidebar: React.FC<AISidebarProps> = ({
     }
   }, [aiAgent]);
 
-  // 🛡️ 안전한 AI 데이터 접근 (방어적 프로그래밍)
+  // 🛡️ 안전한 AI 데이터 접근 (useUnifiedAdminStore와 연동)
   const safeAIData = React.useMemo(() => {
     const defaultData = {
       totalQueries: 0,
       mcpStatus: 'disconnected' as const,
       lastActivated: null,
-      isEnabled: true, // 기본적으로 활성화된 것으로 처리
-      state: 'enabled' as const, // 기본적으로 활성화된 것으로 처리
+      isEnabled: false, // 실제 상태를 반영
+      state: 'disabled' as const, // 실제 상태를 반영
     };
 
     if (!aiAgent || typeof aiAgent !== 'object') {
@@ -172,12 +172,13 @@ export const AISidebar: React.FC<AISidebarProps> = ({
     }
 
     try {
+      // useUnifiedAdminStore의 실제 AI 에이전트 상태 사용
       return {
-        totalQueries: aiAgent.totalQueries ?? 0,
-        mcpStatus: aiAgent.mcpStatus ?? 'disconnected',
-        lastActivated: aiAgent.lastActivated ?? null,
-        isEnabled: aiAgent.isEnabled ?? true, // 기본값을 true로 변경
-        state: aiAgent.state ?? 'enabled', // 기본값을 enabled로 변경
+        totalQueries: 0, // useUnifiedAdminStore에는 totalQueries가 없음
+        mcpStatus: 'disconnected' as const, // useUnifiedAdminStore에는 mcpStatus가 없음
+        lastActivated: null, // useUnifiedAdminStore에는 lastActivated가 없음
+        isEnabled: aiAgent.isEnabled && aiAgent.isAuthenticated, // 활성화 AND 인증된 상태
+        state: aiAgent.state ?? 'disabled',
       };
     } catch (error) {
       console.warn('⚠️ [AISidebar] AI 데이터 접근 오류:', error);
@@ -470,13 +471,7 @@ export const AISidebar: React.FC<AISidebarProps> = ({
                             </div>
                             <div className='flex justify-between'>
                               <span>MCP 상태</span>
-                              <span
-                                className={`font-medium ${
-                                  safeAIData.mcpStatus === 'connected'
-                                    ? 'text-green-600'
-                                    : 'text-red-600'
-                                }`}
-                              >
+                              <span className='font-medium text-red-600'>
                                 {safeAIData.mcpStatus}
                               </span>
                             </div>
