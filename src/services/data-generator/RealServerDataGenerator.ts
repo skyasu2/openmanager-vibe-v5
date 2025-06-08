@@ -17,7 +17,9 @@ import {
   getDataGeneratorConfig,
   isPluginEnabled,
   getPluginConfig,
+  getVercelOptimizedConfig,
 } from '@/config/environment';
+import { VercelCache } from '@/lib/cache/redis';
 
 // 🆕 고급 기능 모듈들 (플러그인 활성화시에만 사용)
 import {
@@ -147,6 +149,15 @@ export interface ApplicationMetrics {
   };
 }
 
+/**
+ * 🚀 OpenManager 7.0 제품 수준 서버 데이터 생성기
+ * 
+ * Vercel 환경 최적화:
+ * - 메모리 효율적 배치 처리
+ * - Redis fallback 메커니즘
+ * - 환경별 설정 분리
+ */
+
 export class RealServerDataGenerator {
   private static instance: RealServerDataGenerator | null = null;
   private redis: any;
@@ -185,6 +196,19 @@ export class RealServerDataGenerator {
     },
   };
 
+  private isRunning = false;
+  private config = getVercelOptimizedConfig();
+  private intervalId: NodeJS.Timeout | null = null;
+  
+  // 24시간 베이스라인 데이터 (메모리 최적화)
+  private serverBaselines = new Map<string, any>();
+  
+  // 현재 서버 상태 (Vercel 메모리 제한 고려)
+  private currentStates = new Map<string, any>();
+  
+  // 변화 패턴 (경량화)
+  private patterns = new Map<string, any>();
+
   private constructor() {
     // 공용 환경 감지 사용
     const env = detectEnvironment();
@@ -203,6 +227,11 @@ export class RealServerDataGenerator {
     this.environmentConfig = this.getEnvironmentSpecificConfig();
     this.applyModeOptimizations();
     this.initializeServers();
+
+    this.initializeBaselines();
+    console.log('🎯 RealServerDataGenerator 초기화 완료');
+    console.log(`🌍 환경: ${this.config.NODE_ENV}`);
+    console.log(`☁️ Vercel 모드: ${this.config.IS_VERCEL}`);
   }
 
   public static getInstance(): RealServerDataGenerator {
@@ -1466,6 +1495,236 @@ export class RealServerDataGenerator {
           : null,
       },
     };
+  }
+
+  /**
+   * 🔄 베이스라인 초기화 (메모리 효율성)
+   */
+  private initializeBaselines() {
+    const serverCount = this.config.IS_VERCEL ? 6 : 9; // Vercel에서 서버 수 제한
+    
+    for (let i = 1; i <= serverCount; i++) {
+      const serverId = `server-${i.toString().padStart(2, '0')}`;
+      
+      // 24시간 베이스라인 생성 (경량화)
+      this.serverBaselines.set(serverId, this.generateBaselineProfile(serverId));
+      
+      // 초기 상태 설정
+      this.currentStates.set(serverId, this.generateInitialState(serverId));
+    }
+  }
+
+  /**
+   * 📊 베이스라인 프로필 생성 (Vercel 최적화)
+   */
+  private generateBaselineProfile(serverId: string): any {
+    const serverTypes = ['web', 'api', 'database', 'cache', 'queue', 'storage'];
+    const architectures = ['x86_64', 'arm64', 'hybrid', 'kubernetes'];
+    
+    const type = serverTypes[Math.floor(Math.random() * serverTypes.length)];
+    const arch = architectures[Math.floor(Math.random() * architectures.length)];
+    
+    return {
+      serverId,
+      type,
+      architecture: arch,
+      location: this.getServerLocation(),
+      baseline: this.generate24HourBaseline(type),
+      createdAt: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * 🌍 서버 위치 선택 (Vercel 글로벌 최적화)
+   */
+  private getServerLocation(): string {
+    const locations = [
+      'us-east-1', 'us-west-2', 'eu-west-1', 
+      'ap-northeast-1', 'ap-southeast-1'
+    ];
+    return locations[Math.floor(Math.random() * locations.length)];
+  }
+
+  /**
+   * 📈 24시간 베이스라인 생성 (경량화)
+   */
+  private generate24HourBaseline(serverType: string): any {
+    const baseline = {
+      cpu: this.generateCPUBaseline(serverType),
+      memory: this.generateMemoryBaseline(serverType),
+      network: this.generateNetworkBaseline(serverType),
+      disk: this.generateDiskBaseline(serverType),
+    };
+    
+    return baseline;
+  }
+
+  /**
+   * 🎯 상태별 서버 생성 확률 조정
+   */
+  private generateServerStatus(): 'healthy' | 'warning' | 'critical' {
+    const random = Math.random();
+    
+    // 🚨 심각: 15% 확률
+    if (random < 0.15) return 'critical';
+    
+    // ⚠️ 경고: 25% 확률 
+    if (random < 0.4) return 'warning';
+    
+    // ✅ 정상: 60% 확률
+    return 'healthy';
+  }
+
+  // 🔄 상태에 맞는 메트릭 생성
+  private generateStatusBasedMetrics(status: string) {
+    switch (status) {
+      case 'critical':
+        return {
+          cpu: Math.random() * 30 + 85, // 85-100%
+          memory: Math.random() * 25 + 90, // 90-100%
+          disk: Math.random() * 35 + 75, // 75-100%
+          uptime_hours: Math.random() * 24, // 0-24 시간 (최근 재시작)
+        };
+      
+      case 'warning':
+        return {
+          cpu: Math.random() * 25 + 65, // 65-90%
+          memory: Math.random() * 25 + 70, // 70-95%
+          disk: Math.random() * 30 + 50, // 50-80%
+          uptime_hours: Math.random() * 168 + 24, // 1-7일
+        };
+      
+      default: // healthy
+        return {
+          cpu: Math.random() * 40 + 10, // 10-50%
+          memory: Math.random() * 45 + 20, // 20-65%
+          disk: Math.random() * 35 + 15, // 15-50%
+          uptime_hours: Math.random() * 720 + 168, // 7-30일
+        };
+    }
+  }
+
+  // 📊 서버 인스턴스 생성 (개선)
+  private createServerInstance(baseServer: any): ServerInstance {
+    const status = this.generateServerStatus();
+    const metrics = this.generateStatusBasedMetrics(status);
+    
+    return {
+      id: baseServer.id,
+      serverId: baseServer.id,
+      name: baseServer.name,
+      hostname: baseServer.hostname || baseServer.name,
+      status,
+      environment: baseServer.environment,
+      location: baseServer.location,
+      ip: baseServer.ip,
+      cpu_usage: Math.round(metrics.cpu),
+      memory_usage: Math.round(metrics.memory),
+      disk_usage: Math.round(metrics.disk),
+      uptime_hours: Math.round(metrics.uptime_hours),
+      // 🎯 업타임 문자열 생성
+      uptime: this.formatUptime(metrics.uptime_hours),
+      last_updated: new Date().toISOString(),
+      timestamp: new Date().toISOString(),
+      // 🚨 알림 개수 (상태별)
+      alerts: status === 'critical' ? Math.floor(Math.random() * 5) + 3 : 
+              status === 'warning' ? Math.floor(Math.random() * 3) + 1 : 0,
+      // 서비스 상태도 메인 상태와 연동
+      services: this.generateServicesForStatus(baseServer.type, status),
+    };
+  }
+
+  // ⏰ 업타임 포맷팅
+  private formatUptime(hours: number): string {
+    if (hours < 1) return '방금 전';
+    if (hours < 24) return `${Math.floor(hours)}시간`;
+    
+    const days = Math.floor(hours / 24);
+    const remainingHours = Math.floor(hours % 24);
+    
+    if (days > 0 && remainingHours > 0) {
+      return `${days}일 ${remainingHours}시간`;
+    }
+    return `${days}일`;
+  }
+
+  // 🔧 상태별 서비스 생성
+  private generateServicesForStatus(serverType: string, status: string) {
+    const baseServices = {
+      web: ['nginx', 'nodejs', 'pm2'],
+      api: ['gunicorn', 'python', 'nginx'],
+      database: ['postgresql', 'redis'],
+      cache: ['redis', 'memcached'],
+      queue: ['celery', 'rabbitmq'],
+      storage: ['minio', 'nginx'],
+    };
+
+    const services = baseServices[serverType as keyof typeof baseServices] || baseServices.web;
+    
+    return services.map((serviceName, index) => {
+      let serviceStatus = 'running';
+      
+      // 상태에 따른 서비스 장애 확률
+      if (status === 'critical') {
+        // 심각 상태: 50% 확률로 서비스 정지
+        serviceStatus = Math.random() < 0.5 ? 'stopped' : 'running';
+      } else if (status === 'warning') {
+        // 경고 상태: 20% 확률로 서비스 정지
+        serviceStatus = Math.random() < 0.2 ? 'stopped' : 'running';
+      }
+      
+      return {
+        name: serviceName,
+        status: serviceStatus,
+        port: this.getDefaultPort(serviceName),
+      };
+    });
+  }
+
+  // 🔌 기본 포트 번호
+  private getDefaultPort(serviceName: string): number {
+    const portMap: { [key: string]: number } = {
+      nginx: 80,
+      nodejs: 3000,
+      pm2: 0,
+      gunicorn: 8000,
+      python: 3000,
+      postgresql: 5432,
+      redis: 6379,
+      memcached: 11211,
+      celery: 0,
+      rabbitmq: 5672,
+      minio: 9000,
+    };
+    
+    return portMap[serviceName] || 8080;
+  }
+
+  /**
+   * 📊 현재 상태 조회
+   */
+  getCurrentState(): any {
+    return {
+      isRunning: this.isRunning,
+      serverCount: this.serverBaselines.size,
+      config: {
+        environment: this.config.NODE_ENV,
+        isVercel: this.config.IS_VERCEL,
+        cacheEnabled: this.config.database.redis.enabled,
+      },
+      lastUpdate: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * 📈 서버별 메트릭 조회
+   */
+  getServerMetrics(serverId?: string): any {
+    if (serverId) {
+      return this.currentStates.get(serverId) || null;
+    }
+    
+    return Array.from(this.currentStates.values());
   }
 }
 

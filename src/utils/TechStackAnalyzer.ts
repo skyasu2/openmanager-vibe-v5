@@ -152,6 +152,27 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     importance: 'high',
     isCore: true,
   },
+  '@modelcontextprotocol/sdk': {
+    name: 'MCP SDK',
+    category: 'mcp-engine',
+    description: 'Model Context Protocol 표준 구현 - AI 에이전트 통신',
+    importance: 'high',
+    isCore: true,
+  },
+  '@modelcontextprotocol/server-memory': {
+    name: 'MCP Memory Server',
+    category: 'mcp-engine',
+    description: '메모리 기반 상태 관리 MCP 서버',
+    importance: 'high',
+    isCore: true,
+  },
+  'mcp-ai-server': {
+    name: 'MCP AI Server',
+    category: 'mcp-engine',
+    description: 'Model Context Protocol 기반 컨텍스트 추론 엔진',
+    importance: 'high',
+    isCore: true,
+  },
 
   'claude 4 sonnet': {
     name: 'Claude 4 Sonnet',
@@ -160,6 +181,39 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
       'Cursor AI에서 선택한 메인 AI 모델 - 200K+ 토큰 컨텍스트, 코드 이해도 최상급',
     importance: 'high',
     isCore: true,
+  },
+
+  // TensorFlow.js RAG 백업 엔진
+  '@tensorflow/tfjs': {
+    name: 'TensorFlow.js',
+    version: '4.22.0',
+    category: 'ai-ml',
+    description: 'LSTM 예측, 오토인코더 이상 탐지, RAG 백업 엔진',
+    importance: 'high',
+    isCore: true,
+  },
+  '@tensorflow/tfjs-node': {
+    name: 'TensorFlow.js Node',
+    version: '4.22.0',
+    category: 'ai-ml',
+    description: 'Node.js TensorFlow 런타임 - 고성능 ML 연산',
+    importance: 'high',
+    isCore: true,
+  },
+  'ml-matrix': {
+    name: 'ML Matrix',
+    version: '6.12.1',
+    category: 'ai-ml',
+    description: '고속 매트릭스 연산 - 벡터 유사도, 차원 축소',
+    importance: 'high',
+    isCore: true,
+  },
+  compromise: {
+    name: 'Compromise',
+    version: '14.14.4',
+    category: 'ai-ml',
+    description: '개체명 인식 - 서버명, 로그 엔티티 추출',
+    importance: 'medium',
   },
 
   // AI 엔진 통합 시스템
@@ -257,46 +311,24 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     description: 'Facebook의 시계열 예측 라이브러리',
     importance: 'medium',
   },
-  '@tensorflow/tfjs': {
-    name: 'TensorFlow.js',
-    version: '4.22.0',
-    category: 'ai-ml',
-    description: '장애 예측, 이상 탐지, LSTM 모델 (~25MB)',
-    importance: 'high',
-    isCore: true,
-  },
   natural: {
     name: 'Natural NLP',
     version: '8.1.0',
     category: 'ai-ml',
-    description: '한국어+영어 NLP, 의도 분류, 토크나이징',
-    importance: 'medium',
-  },
-  compromise: {
-    name: 'Compromise',
-    version: '14.14.4',
-    category: 'ai-ml',
-    description: '엔티티 추출, 개체명 인식, 1000+ 문장/초',
+    description: 'RAG 백업 엔진 - 한국어 토크나이징, 의도 분류',
     importance: 'medium',
   },
   'fuse.js': {
     name: 'Fuse.js',
     version: '7.1.0',
     category: 'ai-ml',
-    description: '유사도 기반 하이브리드 검색, 1000+ 문서/초',
-    importance: 'medium',
-  },
-  'ml-matrix': {
-    name: 'ML Matrix',
-    version: '6.12.1',
-    category: 'ai-ml',
-    description: '매트릭스 연산, 선형 회귀, GPU 가속',
+    description: 'RAG 백업 엔진 - 퍼지 문서 검색, 임베딩 매칭',
     importance: 'medium',
   },
   '@xenova/transformers': {
     name: 'Transformers.js',
     category: 'ai-ml',
-    description: '브라우저용 Hugging Face 트랜스포머',
+    description: '브라우저용 Hugging Face 트랜스포머 모델',
     importance: 'medium',
   },
 

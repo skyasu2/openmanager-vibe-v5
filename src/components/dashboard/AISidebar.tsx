@@ -25,7 +25,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import { useSystemStore } from '@/stores/systemStore';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 
 // Dynamic imports for AI components
 const PatternAnalysisWidget = dynamic(
@@ -139,7 +139,7 @@ export const AISidebar: React.FC<AISidebarProps> = ({
   position = 'right',
   width = 400,
 }) => {
-  const { aiAgent } = useSystemStore();
+  const { aiAgent } = useUnifiedAdminStore();
   const [activeTab, setActiveTab] = useState<
     'overview' | 'patterns' | 'predictions' | 'chat'
   >('overview');

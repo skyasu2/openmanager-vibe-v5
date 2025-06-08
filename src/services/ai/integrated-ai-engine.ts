@@ -11,7 +11,7 @@
 
 import { realMCPClient } from '../mcp/real-mcp-client';
 import { tensorFlowAIEngine } from './tensorflow-engine';
-import { nlpProcessor } from './nlp-processor';
+// import { nlpProcessor } from './nlp-processor'; // 제거 - 정리된 파일
 import { autoReportGenerator } from './report-generator';
 
 interface AIQueryRequest {
@@ -142,7 +142,6 @@ export class IntegratedAIEngine {
       await Promise.all([
         realMCPClient.initialize(),
         tensorFlowAIEngine.initialize(),
-        nlpProcessor.initialize(),
         autoReportGenerator.initialize()
       ]);
       
@@ -151,7 +150,6 @@ export class IntegratedAIEngine {
       console.log('🔧 활성화된 컴포넌트:');
       console.log('  - ✅ 실제 MCP 클라이언트');
       console.log('  - ✅ TensorFlow.js AI 엔진');
-      console.log('  - ✅ NLP 프로세서');
       console.log('  - ✅ 자동 보고서 생성기');
       
     } catch (error: any) {
@@ -198,7 +196,7 @@ export class IntegratedAIEngine {
     try {
       // 1단계: 자연어 처리
       console.log('📝 1단계: NLP 분석 중...');
-      const nlpResult = await nlpProcessor.processFailurePredictionQuery(request.query);
+      const nlpResult = await this.processNLP(request.query);
       response.analysis_results.nlp_analysis = nlpResult;
       response.intent = nlpResult.intent;
       response.confidence = nlpResult.confidence;
@@ -896,7 +894,7 @@ export class IntegratedAIEngine {
 
     try {
       // NLP 분석
-      const nlpResult = await nlpProcessor.processQuery(request.query);
+      const nlpResult = await this.processNLP(request.query);
       yield {
         intent: nlpResult.intent,
         confidence: nlpResult.confidence,
@@ -954,7 +952,6 @@ export class IntegratedAIEngine {
     const componentStatuses = await Promise.all([
       realMCPClient.getConnectionInfo(),
       tensorFlowAIEngine.getModelInfo(),
-      nlpProcessor.getProcessorInfo(),
       autoReportGenerator.getGeneratorInfo()
     ]);
 
@@ -965,8 +962,7 @@ export class IntegratedAIEngine {
       components: {
         mcp_client: componentStatuses[0],
         tensorflow_engine: componentStatuses[1],
-        nlp_processor: componentStatuses[2],
-        report_generator: componentStatuses[3]
+        report_generator: componentStatuses[2]
       },
       capabilities: [
         '자연어 질의응답',
@@ -1006,4 +1002,9 @@ export class IntegratedAIEngine {
 }
 
 // 싱글톤 인스턴스
-export const integratedAIEngine = new IntegratedAIEngine(); 
+export const integratedAIEngine = new IntegratedAIEngine();
+
+// NLP 기능을 간단하게 인라인으로 구현
+function simpleTokenize(text: string): string[] {
+  return text.toLowerCase().trim().split(/\s+/);
+} 

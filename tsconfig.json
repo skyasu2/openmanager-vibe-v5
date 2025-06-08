@@ -26,10 +26,9 @@
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": [
-    "node_modules", 
-    "src/components/ai/AutoReportPanel.tsx",
-    "src/app/api/ai/enhanced/route.ts",
-    "src/app/api/servers/realtime/route.ts",
-    "tests/integration/**/*"
+    "node_modules",
+    ".next",
+    "out",
+    "archive/**/*"
   ]
 }

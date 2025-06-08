@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useSystemStore } from '../stores/systemStore';
-import { useUnifiedAdminStore } from '../stores/useUnifiedAdminStore';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { systemLogger } from '../lib/logger';
 import { createSafeError, safeErrorLog, safeErrorMessage } from '../lib/error-handler';
 

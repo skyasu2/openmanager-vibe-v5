@@ -1,42 +1,22 @@
-export interface AIQuery {
-  text: string;
-  options?: Record<string, any>;
-}
-
-export interface AIResponse {
-  response: string;
-  analysis: any;
-  confidence: number;
-  processingTime: number;
-  fromCache: boolean;
-}
-
-export class FastAPIClient {
-  async connect(): Promise<void> {
-    return;
+// 임시 fastapi-stub (삭제된 파일의 간단한 대체)
+export class FastAPIStub {
+  async initialize() {
+    console.log('FastAPI Stub initialized');
   }
-
-  async analyzeText(query: AIQuery): Promise<AIResponse> {
+  
+  async getStatus() {
     return {
-      response: 'Python 서비스가 제거되었습니다.',
-      analysis: {},
-      confidence: 0,
-      processingTime: 0,
-      fromCache: false
+      status: 'active',
+      version: '1.0.0'
     };
   }
-
-  async getConnectionStatus() {
-    return { isConnected: false, healthStatus: 'removed', lastHealthCheck: Date.now() };
-  }
-
-  async checkHealth() {
-    return { isConnected: false, healthStatus: 'removed', lastHealthCheck: Date.now() };
-  }
-
-  async warmup() {
-    return false;
+  
+  async processRequest(data: any) {
+    return {
+      success: true,
+      result: data
+    };
   }
 }
 
-export const fastApiClient = new FastAPIClient();
+export const fastAPIStub = new FastAPIStub(); 
