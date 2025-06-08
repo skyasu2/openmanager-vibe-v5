@@ -18,6 +18,10 @@ import {
   ThinkingProcessState,
 } from '../../types/ai-thinking';
 import { AI_ENGINE_VERSIONS, VersionManager } from '../../config/versions';
+import {
+  correlationEngine,
+  CorrelationInsights,
+} from './engines/CorrelationEngine';
 
 export interface AIEngineRequest {
   engine:
@@ -31,7 +35,8 @@ export interface AIEngineRequest {
     | 'mcp-test'
     | 'hybrid'
     | 'unified'
-    | 'custom-nlp';
+    | 'custom-nlp'
+    | 'correlation';
   query: string;
   data?: any;
   context?: any;
@@ -400,6 +405,26 @@ export class MasterAIEngine {
       case 'custom-nlp':
         return await this.customEngines.customNLP(request.query);
 
+      case 'correlation':
+        if (!Array.isArray(request.data)) {
+          throw new Error('상관관계 분석에는 서버 메트릭 배열이 필요합니다');
+        }
+        const correlationResult = await correlationEngine.analyzeCorrelations(
+          request.data
+        );
+        return {
+          answer: `서버 간 상관관계 분석이 완료되었습니다. ${correlationResult.topCorrelations.length}개의 주요 상관관계를 발견했습니다.`,
+          confidence: correlationResult.topCorrelations.length > 0 ? 0.9 : 0.6,
+          correlations: correlationResult,
+          reasoning_steps: [
+            '서버 메트릭 데이터 검증',
+            '배치별 상관관계 계산',
+            '통계적 유의성 분석',
+            '이상 징후 탐지',
+            '권장사항 생성',
+          ],
+        };
+
       default:
         throw new Error(`지원하지 않는 엔진: ${request.engine}`);
     }
@@ -535,6 +560,7 @@ export class MasterAIEngine {
       hybrid: 5 * 60 * 1000, // 5분
       unified: 3 * 60 * 1000, // 3분
       'custom-nlp': 10 * 60 * 1000, // 10분
+      correlation: 5 * 60 * 1000, // 5분 (상관관계는 자주 변함)
     };
 
     return ttls[engine] || 5 * 60 * 1000; // 기본 5분
