@@ -270,7 +270,10 @@ export class AdminLogger {
     return {
       totalInteractions: this.interactionLogs.length,
       totalErrors: this.errorLogs.length,
-      uptime: process.uptime ? process.uptime() * 1000 : 0,
+      uptime:
+        typeof process !== 'undefined' && typeof process.uptime === 'function'
+          ? process.uptime() * 1000
+          : 0,
       
       recent24h: {
         interactions: recent24hLogs.length,
@@ -302,7 +305,10 @@ export class AdminLogger {
         averageResponseTime: Math.round(avgResponseTime),
         p95ResponseTime: Math.round(p95ResponseTime),
         cacheHitRate: Math.round(cacheHitRate * 100) / 100,
-        memoryUsage: process.memoryUsage ? process.memoryUsage().heapUsed / 1024 / 1024 : 0
+        memoryUsage:
+          typeof process !== 'undefined' && typeof process.memoryUsage === 'function'
+            ? process.memoryUsage().heapUsed / 1024 / 1024
+            : 0
       }
     };
   }
@@ -519,7 +525,10 @@ export class AdminLogger {
       advancedModeRequests: advancedLogs.length,
       averageThinkingTime: Math.round(avgThinkingTime),
       cacheHitRate: Math.round(cacheHitRate * 100) / 100,
-      memoryUsage: process.memoryUsage ? process.memoryUsage().heapUsed / 1024 / 1024 : 0,
+      memoryUsage:
+        typeof process !== 'undefined' && typeof process.memoryUsage === 'function'
+          ? process.memoryUsage().heapUsed / 1024 / 1024
+          : 0,
       activeSessions: 0, // 실제 세션 수로 업데이트 필요
       powerModeDistribution: {} // 실제 전원 모드 분포로 업데이트 필요
     });

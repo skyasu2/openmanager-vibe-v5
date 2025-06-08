@@ -186,8 +186,14 @@ export async function GET(request: NextRequest) {
         ],
         healthCheck: {
           timestamp: new Date().toISOString(),
-          uptime: process.uptime(),
-          memory: process.memoryUsage()
+          uptime:
+            typeof process !== 'undefined' && typeof process.uptime === 'function'
+              ? process.uptime()
+              : 0,
+          memory:
+            typeof process !== 'undefined' && typeof process.memoryUsage === 'function'
+              ? process.memoryUsage()
+              : { rss: 0, heapTotal: 0, heapUsed: 0, external: 0, arrayBuffers: 0 }
         }
       }
     });

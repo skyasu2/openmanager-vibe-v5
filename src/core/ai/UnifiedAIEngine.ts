@@ -555,8 +555,11 @@ export class UnifiedAIEngine {
       // MCP 클라이언트 상태
       const mcpStatus = this.mcpClient ? this.mcpClient.getConnectionStatus() : {};
       
-      // 메모리 사용량
-      const memoryUsage = process.memoryUsage();
+      // 메모리 사용량 (Edge 환경 대비)
+      const memoryUsage =
+        typeof process !== 'undefined' && typeof process.memoryUsage === 'function'
+          ? process.memoryUsage()
+          : { heapUsed: 0, heapTotal: 0, external: 0, rss: 0, arrayBuffers: 0 };
       
       return {
         redis: redisStatus,
@@ -566,7 +569,10 @@ export class UnifiedAIEngine {
           heapTotal: Math.round(memoryUsage.heapTotal / 1024 / 1024),
           external: Math.round(memoryUsage.external / 1024 / 1024)
         },
-        uptime: Math.round(process.uptime()),
+        uptime:
+          typeof process !== 'undefined' && typeof process.uptime === 'function'
+            ? Math.round(process.uptime())
+            : 0,
         timestamp: new Date().toISOString(),
         status: 'healthy'
       };
