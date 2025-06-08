@@ -69,7 +69,6 @@ export interface MCPServerConfig {
 export interface MCPStandardConfig {
   servers: {
     filesystem: MCPServerConfig;
-    git: MCPServerConfig;
     postgres: MCPServerConfig;
     system?: MCPServerConfig;
   };
@@ -89,12 +88,7 @@ const DEFAULT_MCP_CONFIG: MCPStandardConfig = {
       args: ['-e', 'require("@modelcontextprotocol/server-filesystem").main()'],
       env: { NODE_ENV: 'production' }
     },
-    git: {
-      name: 'git',
-      command: 'node',
-      args: ['-e', 'require("@modelcontextprotocol/server-git").main()'],
-      env: { NODE_ENV: 'production' }
-    },
+
     postgres: {
       name: 'postgres',
       command: 'node',
@@ -199,7 +193,7 @@ export class OfficialMCPClient {
    * 🛠️ 내장 시뮬레이션 클라이언트 생성
    */
   private async createBuiltinClients(): Promise<void> {
-    const serverNames = ['filesystem', 'postgres', 'git', 'system'];
+    const serverNames = ['filesystem', 'postgres', 'system'];
     
     serverNames.forEach(serverName => {
       const builtinClient: MCPClient = {
@@ -400,9 +394,7 @@ export class OfficialMCPClient {
         case 'postgres':
           result = await this.executePostgresTool(name, args || {});
           break;
-        case 'git':
-          result = await this.executeGitTool(name, args || {});
-          break;
+
         case 'system':
           result = await this.executeSystemTool(name, args || {});
           break;
@@ -510,37 +502,7 @@ export class OfficialMCPClient {
     }
   }
 
-  /**
-   * 🔄 Git 도구 실행
-   */
-  private async executeGitTool(toolName: string, args: Record<string, any>): Promise<string> {
-    switch (toolName) {
-      case 'log':
-        const limit = args.limit || 5;
-        return `📜 Git 로그 (최근 ${limit}개):\n` +
-          `- feat: AI 엔진 실제 구현 완료 (2분 전)\n` +
-          `- fix: MCP 클라이언트 더미 제거 (5분 전)\n` +
-          `- refactor: Redis 연동 개선 (10분 전)`;
-        
-      case 'status':
-        return `📊 Git 상태:\n` +
-          `브랜치: main\n` +
-          `변경된 파일: 3개\n` +
-          `- src/core/mcp/official-mcp-client.ts (수정됨)\n` +
-          `- src/core/ai/UnifiedAIEngine.ts (수정됨)\n` +
-          `- src/app/api/ai/mcp/route.ts (수정됨)`;
-        
-      case 'diff':
-        const commit = args.commit || 'HEAD';
-        return `🔍 변경사항 (${commit}):\n` +
-          `+++ 실제 MCP 클라이언트 구현\n` +
-          `--- Mock 구현 제거\n` +
-          `+++ AI 엔진 실제 동작 로직 추가`;
-        
-      default:
-        return `❌ 알 수 없는 Git 도구: ${toolName}`;
-    }
-  }
+
 
   /**
    * 🖥️ 시스템 도구 실행

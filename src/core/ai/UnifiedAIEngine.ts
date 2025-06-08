@@ -392,23 +392,7 @@ export class UnifiedAIEngine {
         }
       }
 
-      // Git 상태 도구 사용 (시스템 변경사항 확인)
-      if (intent.category === 'analysis' || intent.category === 'troubleshooting') {
-        try {
-          const gitResult = await this.mcpClient.callTool('git', 'status', {});
-          
-          if (gitResult && !gitResult.isError) {
-            results.push({
-              type: 'git_status',
-              data: gitResult.content[0].text,
-              confidence: 0.7
-            });
-            confidence += 0.1;
-          }
-        } catch (error) {
-          console.warn('⚠️ Git 상태 조회 실패:', error);
-        }
-      }
+
 
       const processingTime = Date.now() - startTime;
 
@@ -418,7 +402,7 @@ export class UnifiedAIEngine {
         summary: this.generateMCPSummary(results, intent),
         confidence: Math.min(confidence, 1.0),
         processingTime,
-        enginesUsed: ['MCP-System', 'MCP-Git'],
+        enginesUsed: ['MCP-System'],
         recommendations: this.generateMCPRecommendations(results, intent),
         metadata: {
           tasksExecuted: results.length,

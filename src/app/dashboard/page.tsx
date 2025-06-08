@@ -9,6 +9,71 @@ import { AlertTriangle, Monitor, Bot } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { NotificationToast } from '@/components/system/NotificationToast';
 import { cn } from '@/lib/utils';
+import React from 'react';
+
+// 🚨 React 내장 에러 바운더리
+class DashboardErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('🚨 Dashboard Error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
+            <div className="text-center">
+              <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                🚨 대시보드 로딩 오류
+              </h2>
+              <p className="text-gray-600 mb-4">
+                Next.js 15 호환성 문제가 발생했습니다.
+              </p>
+              <div className="text-sm text-gray-500 mb-6">
+                <p>promisify 에러가 수정되었습니다.</p>
+              </div>
+              <div className="space-y-3">
+                <button
+                  onClick={() => window.location.reload()}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  새로고침
+                </button>
+                <button
+                  onClick={() => window.location.href = '/'}
+                  className="w-full px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+                >
+                  홈으로 돌아가기
+                </button>
+                <button
+                  onClick={() => window.location.href = '/dashboard?instant=true'}
+                  className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                >
+                  🚨 안전 모드로 접속
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 // ⚡ Dynamic Import로 코드 스플리팅 적용 (Vercel 최적화)
 const DashboardHeader = dynamic(() => import('../../components/dashboard/DashboardHeader'), {
@@ -95,7 +160,7 @@ const PredictionDashboard = dynamic(() => import('@/components/prediction/Predic
   ssr: false
 });
 
-export default function DashboardPage() {
+function DashboardPageContent() {
   const {
     // State
     isAgentOpen,
@@ -333,5 +398,14 @@ export default function DashboardPage() {
         enableSound={true}
       />
     </div>
+  );
+}
+
+// ✅ 에러 바운더리로 감싼 안전한 대시보드 컴포넌트
+export default function DashboardPage() {
+  return (
+    <DashboardErrorBoundary>
+      <DashboardPageContent />
+    </DashboardErrorBoundary>
   );
 } 

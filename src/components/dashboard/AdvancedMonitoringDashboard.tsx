@@ -11,17 +11,67 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  RealServerDataGenerator,
-  type ServerInstance,
-  type ServerCluster,
-  type ApplicationMetrics,
-} from '@/services/data-generator/RealServerDataGenerator';
-import {
-  EnhancedDataAnalyzer,
-  type EnhancedAnalysisResult,
-  type QueryResponse,
-} from '@/services/ai/EnhancedDataAnalyzer';
+// ❌ 제거: Node.js 전용 모듈을 클라이언트에서 import하면 안됨
+// import {
+//   RealServerDataGenerator,
+//   type ServerInstance,
+//   type ServerCluster,
+//   type ApplicationMetrics,
+// } from '@/services/data-generator/RealServerDataGenerator';
+// import {
+//   EnhancedDataAnalyzer,
+//   type EnhancedAnalysisResult,
+//   type QueryResponse,
+// } from '@/services/ai/EnhancedDataAnalyzer';
+
+// ✅ 타입만 정의 (실제 구현은 API 라우트에서 처리)
+interface ServerInstance {
+  id: string;
+  name: string;
+  type: string;
+  role: string;
+  status: string;
+  health: {
+    score: number;
+    issues: string[];
+  };
+  metrics: {
+    cpu: number;
+    memory: number;
+    requests: number;
+    errors: number;
+  };
+}
+
+interface ServerCluster {
+  id: string;
+  name: string;
+  servers: ServerInstance[];
+  loadBalancer: {
+    algorithm: string;
+    activeConnections: number;
+  };
+}
+
+interface ApplicationMetrics {
+  id: string;
+  name: string;
+  status: string;
+  responseTime: number;
+  throughput: number;
+}
+
+interface EnhancedAnalysisResult {
+  summary: string;
+  insights: string[];
+  recommendations: string[];
+}
+
+interface QueryResponse {
+  success: boolean;
+  message: string;
+  data?: any;
+}
 
 // 📊 메트릭 카드 컴포넌트
 interface MetricCardProps {
@@ -331,9 +381,6 @@ export const AdvancedMonitoringDashboard: React.FC = () => {
   const [currentView, setCurrentView] = useState<
     'overview' | 'servers' | 'clusters' | 'applications'
   >('overview');
-
-  const dataGenerator = RealServerDataGenerator.getInstance();
-  const analyzer = EnhancedDataAnalyzer.getInstance();
 
   // 🔄 데이터 새로고침
   const refreshData = useCallback(async () => {

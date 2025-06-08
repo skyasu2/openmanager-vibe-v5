@@ -9,13 +9,47 @@ import EnhancedServerModal from './EnhancedServerModal';
 import { Server } from '../../types/server';
 import { useRealtimeServers } from '@/hooks/api/useRealtimeServers';
 import { timerManager } from '../../utils/TimerManager';
-import {
-  RealServerDataGenerator,
-  type ServerInstance,
-  type ServerCluster,
-  type ApplicationMetrics,
-} from '@/services/data-generator/RealServerDataGenerator';
-import { koreanAIEngine } from '@/services/ai/korean-ai-engine';
+// ❌ 제거: Node.js 전용 모듈을 클라이언트에서 import하면 안됨
+// import {
+//   RealServerDataGenerator,
+//   type ServerInstance,
+//   type ServerCluster,
+//   type ApplicationMetrics,
+// } from '@/services/data-generator/RealServerDataGenerator';
+// import { koreanAIEngine } from '@/services/ai/korean-ai-engine';
+
+// ✅ 타입만 정의 (실제 구현은 API 라우트에서 처리)
+interface ServerInstance {
+  id: string;
+  name: string;
+  status: 'online' | 'offline' | 'warning';
+  location: string;
+  cpu: number;
+  memory: number;
+  disk: number;
+  uptime: string;
+  lastUpdate: Date;
+  alerts: number;
+  services: Array<{
+    name: string;
+    status: string;
+    port: number;
+  }>;
+}
+
+interface ServerCluster {
+  id: string;
+  name: string;
+  servers: ServerInstance[];
+}
+
+interface ApplicationMetrics {
+  id: string;
+  name: string;
+  status: string;
+  responseTime: number;
+  throughput: number;
+}
 
 interface ServerDashboardProps {
   onStatsUpdate?: (stats: {
@@ -693,17 +727,23 @@ export default function ServerDashboard({
               onKeyPress={async e => {
                 if (e.key === 'Enter' && aiQuery.trim()) {
                   try {
-                    const result = await koreanAIEngine.processQuery(
-                      aiQuery,
-                      realServerData
-                    );
+                    // ✅ API 호출로 변경
+                    const response = await fetch('/api/ai/korean', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        query: aiQuery,
+                        context: realServerData
+                      })
+                    });
+                    const result = await response.json();
                     console.log('AI 분석 결과:', result);
-                    // 결과를 알림으로 표시하거나 별도 영역에 표시
                     alert(
-                      `AI 분석: ${result.response?.message || '분석 완료'}`
+                      `AI 분석: ${result.message || '분석 완료'}`
                     );
                   } catch (error) {
                     console.error('AI 쿼리 처리 오류:', error);
+                    alert('AI 분석 중 오류가 발생했습니다.');
                   }
                 }
               }}
@@ -712,16 +752,23 @@ export default function ServerDashboard({
               onClick={async () => {
                 if (aiQuery.trim()) {
                   try {
-                    const result = await koreanAIEngine.processQuery(
-                      aiQuery,
-                      realServerData
-                    );
+                    // ✅ API 호출로 변경
+                    const response = await fetch('/api/ai/korean', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        query: aiQuery,
+                        context: realServerData
+                      })
+                    });
+                    const result = await response.json();
                     console.log('AI 분석 결과:', result);
                     alert(
-                      `AI 분석: ${result.response?.message || '분석 완료'}`
+                      `AI 분석: ${result.message || '분석 완료'}`
                     );
                   } catch (error) {
                     console.error('AI 쿼리 처리 오류:', error);
+                    alert('AI 분석 중 오류가 발생했습니다.');
                   }
                 }
               }}
