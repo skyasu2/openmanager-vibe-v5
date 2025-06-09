@@ -14,7 +14,7 @@ import {
     isPluginEnabled,
     getPluginConfig
 } from '@/config/environment';
-import { CustomEnvironmentConfig } from '../types/DataGeneratorTypes';
+import { CustomEnvironmentConfig, EnvironmentMode } from '../types/DataGeneratorTypes';
 
 export interface ConfigurationState {
     environment: string;
@@ -78,7 +78,7 @@ export class ConfigurationManager {
 
         // 환경별 기본 설정
         const baseConfig: CustomEnvironmentConfig = {
-            mode: this.dataGeneratorConfig.mode,
+            mode: this.dataGeneratorConfig.mode as EnvironmentMode,
             serverArchitecture: 'microservices',
             performanceProfile: 'balanced',
             features: ['real-metrics', 'monitoring'],

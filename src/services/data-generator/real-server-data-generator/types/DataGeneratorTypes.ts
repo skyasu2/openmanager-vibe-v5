@@ -330,8 +330,8 @@ export interface DataGenerationJob {
 export interface StateSnapshot {
     timestamp: number;
     servers: Record<string, ServerState>;
-    clusters: Record<string, ClusterState>;
-    applications: Record<string, ApplicationState>;
+    clusters: Record<string, ClusterStatus>;
+    applications: Record<string, ApplicationStatus>;
     globalMetrics: GlobalMetrics;
 }
 

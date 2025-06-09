@@ -295,61 +295,49 @@ export function UnifiedSettingsPanel({
             case 'ai':
                 return (
                     <div className='space-y-6'>
-                        {/* AI 에이전트 섹션 */}
+                        {/* AI 에이전트 상태 표시 */}
                         <div className='border border-white/10 rounded-lg p-4'>
                             <h3 className='text-lg font-semibold text-white mb-4 flex items-center gap-2'>
                                 <Bot className='w-5 h-5 text-purple-400' />
-                                AI 에이전트 제어
+                                AI 에이전트 상태
                             </h3>
 
-                            {/* 개발 모드 빠른 활성화 */}
-                            {canBypassPassword() && (
-                                <div className='mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg'>
-                                    <div className='flex items-center justify-between'>
-                                        <div>
-                                            <p className='text-sm text-green-300 font-medium'>
-                                                🚀 개발 모드 빠른 활성화
-                                            </p>
-                                            <p className='text-xs text-green-400/80'>
-                                                비밀번호 없이 즉시 활성화 (개발 환경만)
-                                            </p>
-                                        </div>
-                                        <motion.button
-                                            whileHover={{ scale: 1.05 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            onClick={handleQuickActivationClick}
-                                            disabled={authState.isAuthenticating}
-                                            className='px-4 py-2 bg-green-500/20 text-green-300 rounded-lg text-sm font-medium hover:bg-green-500/30 transition-colors disabled:opacity-50 flex items-center gap-2'
-                                        >
-                                            {authState.isAuthenticating ? (
-                                                <>
-                                                    <Loader2 className='w-3 h-3 animate-spin' />
-                                                    활성화 중...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Check className='w-3 h-3' />
-                                                    빠른 활성화
-                                                </>
-                                            )}
-                                        </motion.button>
+                            {/* AI 에이전트 기본 활성화 상태 표시 */}
+                            <div className='mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg'>
+                                <div className='flex items-center gap-3'>
+                                    <Check className='w-5 h-5 text-green-400' />
+                                    <div>
+                                        <p className='text-sm text-green-300 font-medium'>
+                                            ✅ AI 에이전트 활성화됨
+                                        </p>
+                                        <p className='text-xs text-green-400/80'>
+                                            누구나 AI 에이전트 기능을 사용할 수 있습니다
+                                        </p>
                                     </div>
                                 </div>
-                            )}
+                            </div>
+                        </div>
 
-                            {/* 일반 인증 */}
+                        {/* AI 관리자 로그인 섹션 */}
+                        <div className='border border-white/10 rounded-lg p-4'>
+                            <h3 className='text-lg font-semibold text-white mb-4 flex items-center gap-2'>
+                                <Lock className='w-5 h-5 text-orange-400' />
+                                AI 관리자 로그인
+                            </h3>
+
                             <div className='space-y-4'>
                                 <div>
                                     <label className='block text-sm font-medium text-gray-300 mb-2'>
-                                        AI 에이전트 비밀번호
+                                        관리자 PIN (4자리)
                                     </label>
                                     <div className='relative'>
                                         <input
                                             type={authState.showPassword ? 'text' : 'password'}
                                             value={aiPassword}
                                             onChange={(e) => setAiPassword(e.target.value)}
-                                            placeholder='비밀번호를 입력하세요'
-                                            className='w-full px-3 py-2 bg-gray-800 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500'
+                                            placeholder='관리자 PIN을 입력하세요'
+                                            maxLength={4}
+                                            className='w-full px-3 py-2 bg-gray-800 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500'
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter') {
                                                     handleAuthenticationSubmit();
@@ -370,46 +358,56 @@ export function UnifiedSettingsPanel({
                                     </div>
                                 </div>
 
-                                <div className='flex gap-3'>
-                                    <motion.button
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        onClick={() => handleAuthenticationSubmit()}
-                                        disabled={authState.isAuthenticating || !aiPassword.trim()}
-                                        className='flex-1 px-4 py-2 bg-purple-500/20 text-purple-300 rounded-lg font-medium hover:bg-purple-500/30 transition-colors disabled:opacity-50 flex items-center justify-center gap-2'
-                                    >
-                                        {authState.isAuthenticating ? (
-                                            <>
-                                                <Loader2 className='w-4 h-4 animate-spin' />
-                                                인증 중...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Lock className='w-4 h-4' />
-                                                인증
-                                            </>
-                                        )}
-                                    </motion.button>
-
-                                    <motion.button
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        onClick={handleDisableClick}
-                                        className='px-4 py-2 bg-red-500/20 text-red-300 rounded-lg font-medium hover:bg-red-500/30 transition-colors flex items-center gap-2'
-                                    >
-                                        <StopCircle className='w-4 h-4' />
-                                        비활성화
-                                    </motion.button>
-                                </div>
+                                {/* 시도 횟수 표시 */}
+                                {authState.attempts > 0 && !authState.isLocked && (
+                                    <div className='p-2 bg-orange-500/10 border border-orange-500/20 rounded'>
+                                        <p className='text-xs text-orange-300'>
+                                            ❌ 로그인 실패: {authState.attempts}/5 시도
+                                        </p>
+                                    </div>
+                                )}
 
                                 {/* 잠금 상태 표시 */}
                                 {authState.isLocked && (
                                     <div className='p-3 bg-red-500/10 border border-red-500/20 rounded-lg'>
                                         <p className='text-sm text-red-300'>
-                                            🔒 너무 많은 실패로 잠금됨
+                                            🔒 5번 실패로 잠금됨. 잠시 후 다시 시도하세요.
                                         </p>
                                     </div>
                                 )}
+
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => handleAuthenticationSubmit()}
+                                    disabled={authState.isAuthenticating || !aiPassword.trim() || authState.isLocked}
+                                    className='w-full px-4 py-2 bg-orange-500/20 text-orange-300 rounded-lg font-medium hover:bg-orange-500/30 transition-colors disabled:opacity-50 flex items-center justify-center gap-2'
+                                >
+                                    {authState.isAuthenticating ? (
+                                        <>
+                                            <Loader2 className='w-4 h-4 animate-spin' />
+                                            인증 중...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Lock className='w-4 h-4' />
+                                            관리자 로그인
+                                        </>
+                                    )}
+                                </motion.button>
+
+                                {/* 관리자 기능 설명 */}
+                                <div className='p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg'>
+                                    <p className='text-xs text-blue-300 font-medium mb-1'>
+                                        🔧 관리자 기능
+                                    </p>
+                                    <ul className='text-xs text-blue-400/80 space-y-1'>
+                                        <li>• AI 관리자 페이지 접근 (/admin/ai-agent)</li>
+                                        <li>• AI 에이전트 설정 변경</li>
+                                        <li>• 스마트 질의 추천 관리</li>
+                                        <li>• 패턴 분석 및 추가</li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -622,8 +620,8 @@ export function UnifiedSettingsPanel({
                                     whileHover={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
                                     onClick={() => setActiveTab(tab.id as SettingsTab)}
                                     className={`flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${activeTab === tab.id
-                                            ? 'text-purple-300 border-purple-400'
-                                            : 'text-gray-400 border-transparent hover:text-white'
+                                        ? 'text-purple-300 border-purple-400'
+                                        : 'text-gray-400 border-transparent hover:text-white'
                                         }`}
                                 >
                                     <div className='flex items-center justify-center gap-2'>

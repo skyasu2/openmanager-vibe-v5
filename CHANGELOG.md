@@ -1,5 +1,104 @@
 # OpenManager v5 변경 기록
 
+## [5.41.3] - 2025-01-09 - 🤖 AI 에이전트 접근 권한 구조 개선
+
+### ✅ **AI 에이전트 사용성 혁신**
+
+#### 🎯 **접근 권한 재설계**
+
+- **기본 활성화**: AI 에이전트가 누구나 즉시 사용 가능하도록 변경
+- **"AI 모드 활성화" 버튼 제거**: 복잡한 인증 절차 제거로 사용성 극대화
+- **관리자 기능 분리**: PIN 인증이 필요한 관리자 기능만 별도 관리
+- **우회 기능 완전 제거**: 보안 강화를 위한 `BYPASS_PASSWORD` 제거
+
+#### 🔐 **새로운 인증 아키텍처**
+
+```typescript
+// 변경 전: AI 에이전트 전체에 인증 필요
+aiAgent: {
+  isEnabled: false,        // 기본 비활성화
+  isAuthenticated: false,  // PIN 인증 필요
+}
+
+// 변경 후: 기본 기능 개방, 관리자 기능만 인증
+aiAgent: {
+  isEnabled: true,         // 기본 활성화
+  state: 'enabled'
+}
+adminMode: {
+  isAuthenticated: false,  // 관리자 기능만 인증
+  lastLoginTime: null
+}
+```
+
+### 🎭 **사용자 경험 개선**
+
+#### 📊 **접근 권한 매트릭스**
+
+| 기능 | 일반 사용자 | 관리자 (PIN 4231) |
+|------|-------------|-------------------|
+| AI 에이전트 기본 사용 | ✅ 즉시 가능 | ✅ 가능 |
+| AI 사이드바 질의응답 | ✅ 사용 가능 | ✅ 사용 가능 |
+| AI 분석 엔진 사용 | ✅ 사용 가능 | ✅ 사용 가능 |
+| AI 관리자 페이지 | ❌ 차단 | ✅ 접근 가능 |
+| AI 설정 변경 | ❌ 차단 | ✅ 가능 |
+| 패턴 분석 관리 | ❌ 차단 | ✅ 가능 |
+| 스마트 질의 추천 | ❌ 차단 | ✅ 가능 |
+
+#### 🔧 **핵심 변경사항**
+
+1. **UnifiedSettingsPanel.tsx**: "AI 모드 활성화" → "AI 관리자 로그인"으로 UI 변경
+2. **useUnifiedAdminStore.ts**: `adminMode` 상태 추가, 기본 AI 활성화
+3. **useAuthentication.ts**: 관리자 전용 인증 훅으로 개편
+4. **AI 관리자 페이지**: 접근 시 인증 확인 및 차단 화면 구현
+
+### 🛡️ **보안 강화**
+
+#### 🔒 **PIN 인증 시스템**
+
+- **PIN 코드**: 4231 (하드코딩, 4자리)
+- **최대 시도**: 5회 실패 시 10초간 계정 잠금
+- **상태 지속성**: 새로고침 후에도 관리자 상태 유지
+- **자동 로그아웃**: 브라우저 종료 시 관리자 세션 자동 종료
+
+#### 🛣️ **라우트 보호**
+
+```typescript
+// AI 관리자 페이지 접근 제한
+useEffect(() => {
+  if (!adminMode.isAuthenticated) {
+    router.push('/');
+    return;
+  }
+}, [adminMode.isAuthenticated, router]);
+```
+
+### 🚀 **개발자 친화적 개선**
+
+#### 📁 **변경된 파일 목록**
+
+- `src/stores/useUnifiedAdminStore.ts`: 상태 구조 개편
+- `src/components/unified-profile/UnifiedSettingsPanel.tsx`: UI 재설계
+- `src/components/unified-profile/hooks/useAuthentication.ts`: 인증 로직 개편
+- `src/app/page.tsx`: 관리자 모드 조건부 렌더링
+- `src/app/admin/ai-agent/page.tsx`: 라우트 보호 구현
+- `src/components/dashboard/AISidebar.tsx`: AI 기본 활성화 적용
+- `src/components/unified-profile/components/ProfileDropdown.tsx`: 로그아웃 옵션 분리
+- `src/app/api/ai-agent/power/route.ts`: 관리자 인증 체크
+
+#### 🎯 **TypeScript 타입 안전성**
+
+- 제거된 속성 참조 오류 해결
+- React Hook 조건부 호출 오류 수정
+- 인증 상태 타입 정의 강화
+
+### 🎊 **사용성 혁신 결과**
+
+1. **즉시 사용**: 방문자가 바로 AI 에이전트 기능 체험 가능
+2. **명확한 구분**: 일반 기능과 관리자 기능의 명확한 분리
+3. **보안 유지**: 중요한 관리자 기능은 여전히 PIN으로 보호
+4. **사용자 친화**: 복잡한 인증 절차 없이 핵심 기능 접근 가능
+
 ## [5.41.7] - 2025-01-02 - 🗄️ 실제 DB 연결 완료 및 Vercel 배포 준비
 
 ### ✅ **실제 데이터베이스 연결 성공**
@@ -338,47 +437,6 @@ return {
 - **컴포넌트 분리**: 500줄 이상의 복잡한 사이드바를 역할별로 분리
 - **타입 안전성**: TypeScript로 질문 카드 인터페이스 정의
 - **메뉴 확장성**: 6개 메뉴로 확장하면서도 컴팩트한 UI 유지
-
-## [5.41.3] - 2025-01-02 - 🎨 UI/UX 최적화 및 시스템 안정성 개선
-
-### ✅ **UI/UX 최적화**
-
-- **모달 블러 효과 제거**: 모든 모달에서 backdrop-blur 효과 제거로 성능 향상
-  - UnifiedProfileComponent, FeatureCardModal, EnhancedServerModal, ServerDetailModal 등
-  - CSS 파일들의 backdrop-filter blur 효과 주석 처리
-  - 더 빠른 모달 렌더링과 부드러운 UX 제공
-- **첫 페이지 간소화**: 메인 타이틀 하단 설명 문구 제거로 깔끔한 디자인
-
-### ✅ **대시보드 접근성 개선**
-
-- **즉시 이동 시스템**: 시스템 시작 후 대시보드 바로 이동 가능
-- **헬스체크 간소화**: 복잡한 다중 API 검증 → 단일 /api/health 체크로 개선
-- **타임아웃 최적화**: 2초 타임아웃으로 빠른 대시보드 접근
-- **로딩 중 상태 체크**: 사용자 제안에 따라 로딩 페이지에서 실제 시스템 체크 수행
-
-### ✅ **AI 에이전트 사이드바 통합**
-
-- **중복 제거**: 레거시 AISidebar와 새로운 AISidebarV5 중복 문제 해결
-- **통합 관리**: DashboardHeader의 AISidebarV5만 사용하도록 단순화
-- **깔끔한 UI**: 사이드바 2중 렌더링 문제 완전 해결
-- **레이아웃 개선**: 기능 버튼을 오른쪽으로 이동하여 더 직관적인 배치
-- **직접 조작 기능 제거**: SSH/터미널 등 직접 서버 조작 기능은 차후 개발 영역으로 분리
-
-### ✅ **AI 관리자 페이지 안정성**
-
-- **상태 관리 개선**: engines 상태가 사라지는 문제 해결
-  - useEffect 의존성 문제 수정
-  - 비동기 타이밍 이슈 해결
-  - 로딩/오류 상태 처리 추가
-- **refreshEngineStatus 최적화**: 빈 배열 상태 체크로 안정성 확보
-- **데이터 안전장치**: 엔진 데이터 부재 시 기본값 반환
-
-### 🔧 **기술적 개선사항**
-
-- **useEffect 분리**: 초기 데이터 로드와 주기적 업데이트 분리
-- **상태 함수형 업데이트**: setEngines에서 이전 상태 기반 업데이트 사용
-- **조건부 렌더링**: 로딩/오류 상태에 대한 적절한 UI 표시
-- **Git Bash 지원**: PowerShell 인코딩 문제 해결을 위한 Git Bash 사용
 
 ## [5.41.2] - 2025-01-02 - 🔓 AI 모드 간편화 및 환경별 서버 조절 시스템
 

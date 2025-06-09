@@ -11,6 +11,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,7 +31,10 @@ import {
   Clock,
   Users,
   BarChart3,
+  Lock,
+  ArrowLeft,
 } from 'lucide-react';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 
 interface MigrationStatus {
   success: boolean;
@@ -55,6 +59,8 @@ interface EngineStatus {
 }
 
 export default function IntegratedAIEngineDashboard() {
+  const router = useRouter();
+  const { adminMode } = useUnifiedAdminStore();
   const [migrationStatus, setMigrationStatus] =
     useState<MigrationStatus | null>(null);
   const [migrationProgress, setMigrationProgress] = useState(0);
@@ -64,10 +70,22 @@ export default function IntegratedAIEngineDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // 접근 권한 체크
+  useEffect(() => {
+    if (!adminMode.isAuthenticated) {
+      // 관리자 인증이 되지 않은 경우 홈페이지로 리다이렉트
+      router.push('/');
+      return;
+    }
+  }, [adminMode.isAuthenticated, router]);
+
   // 컴포넌트 마운트 시 초기 데이터 로드
   useEffect(() => {
-    loadInitialData();
-  }, []);
+    // 관리자 인증이 된 경우에만 데이터 로드
+    if (adminMode.isAuthenticated) {
+      initializeData();
+    }
+  }, [adminMode.isAuthenticated]);
 
   // 엔진 상태가 로드된 후 주기적 업데이트 설정
   useEffect(() => {
@@ -77,10 +95,34 @@ export default function IntegratedAIEngineDashboard() {
     return () => clearInterval(interval);
   }, [engines.length]); // engines 길이가 변경될 때만 interval 재설정
 
+  // 관리자 인증이 되지 않은 경우 접근 차단 화면 표시
+  if (!adminMode.isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center p-8 bg-gray-800 rounded-lg border border-gray-700 max-w-md mx-4">
+          <Lock className="w-16 h-16 text-orange-400 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-white mb-2">
+            관리자 인증 필요
+          </h2>
+          <p className="text-gray-300 mb-6">
+            AI 관리자 페이지에 접근하려면 관리자 로그인이 필요합니다.
+          </p>
+          <button
+            onClick={() => router.push('/')}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 text-blue-300 rounded-lg hover:bg-blue-500/30 transition-colors mx-auto"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            홈으로 돌아가기
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   /**
    * 🔄 초기 데이터 로드
    */
-  const loadInitialData = async () => {
+  const initializeData = async () => {
     setIsLoading(true);
     setError(null);
 
@@ -364,7 +406,7 @@ export default function IntegratedAIEngineDashboard() {
           <Button
             onClick={() => {
               setError(null);
-              loadInitialData();
+              initializeData();
             }}
             className='bg-purple-600 hover:bg-purple-700'
           >
@@ -667,13 +709,12 @@ export default function IntegratedAIEngineDashboard() {
                     <div className='flex items-center justify-between mb-4'>
                       <div className='flex items-center gap-3'>
                         <div
-                          className={`w-3 h-3 rounded-full ${
-                            engine.status === 'active'
-                              ? 'bg-green-400'
-                              : engine.status === 'error'
-                                ? 'bg-red-400'
-                                : 'bg-yellow-400'
-                          }`}
+                          className={`w-3 h-3 rounded-full ${engine.status === 'active'
+                            ? 'bg-green-400'
+                            : engine.status === 'error'
+                              ? 'bg-red-400'
+                              : 'bg-yellow-400'
+                            }`}
                         />
                         <h3 className='text-lg font-semibold text-white'>
                           {engine.name}
@@ -737,13 +778,12 @@ export default function IntegratedAIEngineDashboard() {
                           {engine.name}
                         </CardTitle>
                         <Badge
-                          className={`${
-                            engine.status === 'active'
-                              ? 'bg-green-500'
-                              : engine.status === 'error'
-                                ? 'bg-red-500'
-                                : 'bg-blue-500'
-                          } text-white`}
+                          className={`${engine.status === 'active'
+                            ? 'bg-green-500'
+                            : engine.status === 'error'
+                              ? 'bg-red-500'
+                              : 'bg-blue-500'
+                            } text-white`}
                         >
                           {engine.status}
                         </Badge>

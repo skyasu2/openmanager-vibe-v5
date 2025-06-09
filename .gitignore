@@ -56,6 +56,16 @@ cursor-mcp-config.json
 corrected-cursor-mcp.json
 *-mcp-config.json
 
+# AI Engine Context and Logs (not development artifacts)
+logs/ai-context/
+logs/ai-analysis/
+data/vector-cache/
+**/summary-intent-analysis.json
+**/ai-context-*.json
+**/vector-embeddings-*.json
+mcp-memory/
+.ai-cache/
+
 # backup and dev sandbox
 backup/dev-sandbox/
 backup/legacy-stores/

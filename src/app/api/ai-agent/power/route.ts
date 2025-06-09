@@ -16,11 +16,11 @@ class AIAgentPowerManager {
   private powerMode: 'active' | 'idle' | 'sleep' = 'sleep';
   private lastActivity: number = Date.now();
   private powerTimers: Map<string, NodeJS.Timeout> = new Map();
-  
+
   // 설정
   private readonly IDLE_TIMEOUT = 5 * 60 * 1000; // 5분
   private readonly SLEEP_TIMEOUT = 15 * 60 * 1000; // 15분
-  
+
   static getInstance(): AIAgentPowerManager {
     if (!AIAgentPowerManager.instance) {
       AIAgentPowerManager.instance = new AIAgentPowerManager();
@@ -35,15 +35,15 @@ class AIAgentPowerManager {
     this.isActive = true;
     this.powerMode = 'active';
     this.lastActivity = Date.now();
-    
+
     // 기존 타이머 정리
     this.clearAllTimers();
-    
+
     // 새로운 절전 타이머 시작
     this.startPowerTimers();
-    
+
     console.log('🤖 AI Agent activated - isActive:', this.isActive, 'powerMode:', this.powerMode);
-    
+
     return {
       success: true,
       message: 'AI 에이전트가 활성화되었습니다.',
@@ -57,12 +57,12 @@ class AIAgentPowerManager {
   deactivate(): { success: boolean; message: string; powerMode: string } {
     this.isActive = false;
     this.powerMode = 'sleep';
-    
+
     // 모든 타이머 정리
     this.clearAllTimers();
-    
+
     console.log('🤖 AI Agent deactivated');
-    
+
     return {
       success: true,
       message: 'AI 에이전트가 비활성화되었습니다.',
@@ -75,14 +75,14 @@ class AIAgentPowerManager {
    */
   recordActivity(): void {
     this.lastActivity = Date.now();
-    
+
     // 시스템이 비활성화되어 있으면 자동으로 활성화
     if (!this.isActive) {
       console.log('🔄 AI Agent auto-activating due to activity');
       this.isActive = true;
       this.powerMode = 'active';
     }
-    
+
     if (this.powerMode !== 'active' && this.isActive) {
       this.wakeUp();
     } else if (this.isActive) {
@@ -90,7 +90,7 @@ class AIAgentPowerManager {
       this.clearAllTimers();
       this.startPowerTimers();
     }
-    
+
     console.log('📝 AI Agent activity recorded - isActive:', this.isActive, 'powerMode:', this.powerMode);
   }
 
@@ -119,9 +119,9 @@ class AIAgentPowerManager {
 
     const previousMode = this.powerMode;
     this.powerMode = 'active';
-    
+
     console.log(`🌟 AI Agent waking up from ${previousMode} mode`);
-    
+
     // 타이머 정리 후 새로 시작
     this.clearAllTimers();
     this.startPowerTimers();
@@ -135,12 +135,12 @@ class AIAgentPowerManager {
 
     this.powerMode = 'idle';
     console.log('💤 AI Agent entering idle mode');
-    
+
     // 절전 모드 타이머 시작
     const sleepTimer = setTimeout(() => {
       this.enterSleepMode();
     }, this.SLEEP_TIMEOUT - this.IDLE_TIMEOUT);
-    
+
     this.powerTimers.set('sleep', sleepTimer);
   }
 
@@ -152,7 +152,7 @@ class AIAgentPowerManager {
 
     this.powerMode = 'sleep';
     console.log('😴 AI Agent entering sleep mode');
-    
+
     this.clearAllTimers();
   }
 
@@ -166,7 +166,7 @@ class AIAgentPowerManager {
     const idleTimer = setTimeout(() => {
       this.enterIdleMode();
     }, this.IDLE_TIMEOUT);
-    
+
     this.powerTimers.set('idle', idleTimer);
   }
 
@@ -202,14 +202,14 @@ export async function POST(request: NextRequest) {
         // useUnifiedAdminStore에서 인증 상태 확인
         const { useUnifiedAdminStore } = await import('../../../../stores/useUnifiedAdminStore');
         const adminStore = useUnifiedAdminStore.getState();
-        
-        // AI 에이전트가 인증되어 활성화된 상태인지 확인
-        if (!adminStore.aiAgent.isEnabled || !adminStore.aiAgent.isAuthenticated) {
-          console.warn('🚫 [Security] AI 에이전트 Power API 접근 차단 - 인증 필요');
+
+        // 관리자 인증 상태 확인
+        if (!adminStore.adminMode.isAuthenticated) {
+          console.warn('🚫 [Security] AI 에이전트 Power API 접근 차단 - 관리자 인증 필요');
           return NextResponse.json({
             success: false,
-            error: 'AI 에이전트 사용을 위해서는 관리자 인증이 필요합니다.',
-            code: 'AUTHENTICATION_REQUIRED'
+            error: 'AI 관리자 기능 사용을 위해서는 관리자 인증이 필요합니다.',
+            code: 'ADMIN_AUTHENTICATION_REQUIRED'
           }, { status: 401 });
         }
       } catch (error) {
@@ -260,7 +260,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ AI Agent power management failed:', error);
-    
+
     return NextResponse.json({
       success: false,
       error: 'AI 에이전트 전원 관리에 실패했습니다.',
@@ -272,7 +272,7 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     const status = aiPowerManager.getStatus();
-    
+
     return NextResponse.json({
       success: true,
       data: {
@@ -285,7 +285,7 @@ export async function GET() {
 
   } catch (error) {
     console.error('❌ AI Agent status check failed:', error);
-    
+
     return NextResponse.json({
       success: false,
       error: 'AI 에이전트 상태 확인에 실패했습니다.',

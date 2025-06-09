@@ -82,8 +82,10 @@ export default function Home() {
   const {
     isSystemStarted,
     aiAgent,
+    adminMode,
     startSystem,
     stopSystem,
+    logout,
     getSystemRemainingTime,
   } = useUnifiedAdminStore();
   const { success, error, info, warning } = useToast();
@@ -399,23 +401,23 @@ export default function Home() {
             animate={
               aiAgent.isEnabled
                 ? {
-                    background: [
-                      'linear-gradient(135deg, #a855f7, #ec4899)',
-                      'linear-gradient(135deg, #ec4899, #06b6d4)',
-                      'linear-gradient(135deg, #06b6d4, #a855f7)',
-                    ],
-                  }
+                  background: [
+                    'linear-gradient(135deg, #a855f7, #ec4899)',
+                    'linear-gradient(135deg, #ec4899, #06b6d4)',
+                    'linear-gradient(135deg, #06b6d4, #a855f7)',
+                  ],
+                }
                 : isSystemStarted
                   ? {
-                      background: [
-                        'linear-gradient(135deg, #10b981, #059669)',
-                        'linear-gradient(135deg, #059669, #047857)',
-                        'linear-gradient(135deg, #047857, #10b981)',
-                      ],
-                    }
+                    background: [
+                      'linear-gradient(135deg, #10b981, #059669)',
+                      'linear-gradient(135deg, #059669, #047857)',
+                      'linear-gradient(135deg, #047857, #10b981)',
+                    ],
+                  }
                   : {
-                      background: 'linear-gradient(135deg, #6b7280, #4b5563)',
-                    }
+                    background: 'linear-gradient(135deg, #6b7280, #4b5563)',
+                  }
             }
             transition={{
               duration: aiAgent.isEnabled ? 2 : 3,
@@ -446,8 +448,8 @@ export default function Home() {
 
         {/* 오른쪽 헤더 컨트롤 */}
         <div className='flex items-center gap-3'>
-          {/* AI 관리자 페이지 버튼 - AI 모드 활성화 시에만 표시 */}
-          {aiAgent.isEnabled && aiAgent.isAuthenticated && (
+          {/* AI 관리자 페이지 버튼 - 관리자 로그인 시에만 표시 */}
+          {adminMode.isAuthenticated && (
             <Link href='/admin/ai-agent'>
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -580,11 +582,10 @@ export default function Home() {
                 <div className='flex flex-col items-center'>
                   <motion.button
                     onClick={handleAIAgentInfo}
-                    className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border ${
-                      aiAgent.isEnabled
+                    className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border ${aiAgent.isEnabled
                         ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 text-purple-300 border-purple-500/50'
                         : 'bg-orange-600 hover:bg-orange-700 text-white border-orange-500/50'
-                    }`}
+                      }`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -592,9 +593,9 @@ export default function Home() {
                       animate={
                         aiAgent.isEnabled
                           ? {
-                              rotate: [0, 360],
-                              scale: [1, 1.1, 1],
-                            }
+                            rotate: [0, 360],
+                            scale: [1, 1.1, 1],
+                          }
                           : {}
                       }
                       transition={{
@@ -636,23 +637,22 @@ export default function Home() {
                 <div className='flex flex-col items-center'>
                   <motion.button
                     onClick={handleDashboardClick}
-                    className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border ${
-                      autoNavigateCountdown > 0
+                    className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border ${autoNavigateCountdown > 0
                         ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-orange-400/50 shadow-lg shadow-orange-500/50'
                         : 'bg-blue-600 hover:bg-blue-700 text-white border-blue-500/50'
-                    }`}
+                      }`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     animate={
                       autoNavigateCountdown > 0
                         ? {
-                            scale: [1, 1.08, 1],
-                            boxShadow: [
-                              '0 0 0 0 rgba(255, 165, 0, 0.8)',
-                              '0 0 0 15px rgba(255, 165, 0, 0)',
-                              '0 0 0 0 rgba(255, 165, 0, 0)',
-                            ],
-                          }
+                          scale: [1, 1.08, 1],
+                          boxShadow: [
+                            '0 0 0 0 rgba(255, 165, 0, 0.8)',
+                            '0 0 0 15px rgba(255, 165, 0, 0)',
+                            '0 0 0 0 rgba(255, 165, 0, 0)',
+                          ],
+                        }
                         : {}
                     }
                     transition={{
@@ -679,22 +679,20 @@ export default function Home() {
                   {/* 손가락 아이콘 + 클릭 문구 - 카운트다운 상태에 따라 변경 */}
                   <div className='mt-2 flex justify-center'>
                     <span
-                      className={`text-xl ${
-                        autoNavigateCountdown > 0
+                      className={`text-xl ${autoNavigateCountdown > 0
                           ? 'animate-bounce text-orange-400'
                           : 'animate-wiggle text-yellow-400'
-                      }`}
+                        }`}
                     >
                       {autoNavigateCountdown > 0 ? '⏰' : '👆'}
                     </span>
                   </div>
                   <div className='mt-1 flex justify-center'>
                     <span
-                      className={`text-xs opacity-70 ${
-                        autoNavigateCountdown > 0
+                      className={`text-xs opacity-70 ${autoNavigateCountdown > 0
                           ? 'text-orange-300 animate-pulse'
                           : 'text-white animate-point-bounce'
-                      }`}
+                        }`}
                     >
                       {autoNavigateCountdown > 0
                         ? '자동 이동 중...'
@@ -712,18 +710,17 @@ export default function Home() {
                         : handleSystemToggle
                     }
                     disabled={isLoading}
-                    className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border disabled:opacity-75 ${
-                      autoNavigateCountdown > 0
+                    className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border disabled:opacity-75 ${autoNavigateCountdown > 0
                         ? 'bg-yellow-600 hover:bg-yellow-700 text-white border-yellow-500/50'
                         : 'bg-red-600 hover:bg-red-700 text-white border-red-500/50'
-                    }`}
+                      }`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     animate={
                       autoNavigateCountdown > 0
                         ? {
-                            scale: [1, 1.02, 1],
-                          }
+                          scale: [1, 1.02, 1],
+                        }
                         : {}
                     }
                     transition={{
@@ -751,22 +748,20 @@ export default function Home() {
                   {/* 카운트다운 상태에 따른 안내 */}
                   <div className='mt-2 flex justify-center'>
                     <span
-                      className={`text-xl ${
-                        autoNavigateCountdown > 0
+                      className={`text-xl ${autoNavigateCountdown > 0
                           ? 'animate-bounce text-yellow-400'
                           : 'text-transparent'
-                      }`}
+                        }`}
                     >
                       {autoNavigateCountdown > 0 ? '✋' : '👆'}
                     </span>
                   </div>
                   <div className='mt-1 flex justify-center'>
                     <span
-                      className={`text-xs ${
-                        autoNavigateCountdown > 0
+                      className={`text-xs ${autoNavigateCountdown > 0
                           ? 'text-yellow-300 opacity-70 animate-pulse'
                           : 'text-transparent opacity-0'
-                      }`}
+                        }`}
                     >
                       {autoNavigateCountdown > 0
                         ? '자동 이동 취소'

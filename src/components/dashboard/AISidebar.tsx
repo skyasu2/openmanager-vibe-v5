@@ -76,15 +76,13 @@ const FloatingToggleButton: React.FC<{
     whileHover={{ scale: 1.05 }}
     whileTap={{ scale: 0.95 }}
     onClick={onClick}
-    className={`fixed top-1/2 -translate-y-1/2 z-50 p-3 rounded-full shadow-lg transition-all ${
-      position === 'right'
+    className={`fixed top-1/2 -translate-y-1/2 z-50 p-3 rounded-full shadow-lg transition-all ${position === 'right'
         ? `${isOpen ? 'right-[400px]' : 'right-4'}`
         : `${isOpen ? 'left-[400px]' : 'left-4'}`
-    } ${
-      aiEnabled
+      } ${aiEnabled
         ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
         : 'bg-gray-500 text-white'
-    }`}
+      }`}
     title={aiEnabled ? 'AI 사이드바 토글' : 'AI 기능이 비활성화됨'}
     disabled={!aiEnabled}
   >
@@ -146,25 +144,25 @@ export const AISidebar: React.FC<AISidebarProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 🛡️ AI 에이전트 상태 안전성 검증 (완화된 버전)
+  // 🛡️ AI 에이전트 상태 안전성 검증 (AI는 항상 사용 가능)
   const isAIReady = React.useMemo(() => {
     try {
-      // AI 시스템 기본적으로 사용 가능한 것으로 간주 (완화된 조건)
-      return true;
+      // AI 에이전트는 기본적으로 항상 사용 가능
+      return aiAgent?.isEnabled || true;
     } catch (err) {
       console.warn('⚠️ [AISidebar] AI 상태 검증 실패:', err);
       return true; // 에러가 발생해도 사용 가능한 것으로 처리
     }
   }, [aiAgent]);
 
-  // 🛡️ 안전한 AI 데이터 접근 (useUnifiedAdminStore와 연동)
+  // 🛡️ 안전한 AI 데이터 접근
   const safeAIData = React.useMemo(() => {
     const defaultData = {
       totalQueries: 0,
       mcpStatus: 'disconnected' as const,
       lastActivated: null,
-      isEnabled: false, // 실제 상태를 반영
-      state: 'disabled' as const, // 실제 상태를 반영
+      isEnabled: true, // AI 에이전트는 기본 활성화
+      state: 'enabled' as const,
     };
 
     if (!aiAgent || typeof aiAgent !== 'object') {
@@ -172,13 +170,12 @@ export const AISidebar: React.FC<AISidebarProps> = ({
     }
 
     try {
-      // useUnifiedAdminStore의 실제 AI 에이전트 상태 사용
       return {
-        totalQueries: 0, // useUnifiedAdminStore에는 totalQueries가 없음
-        mcpStatus: 'disconnected' as const, // useUnifiedAdminStore에는 mcpStatus가 없음
-        lastActivated: null, // useUnifiedAdminStore에는 lastActivated가 없음
-        isEnabled: aiAgent.isEnabled && aiAgent.isAuthenticated, // 활성화 AND 인증된 상태
-        state: aiAgent.state ?? 'disabled',
+        totalQueries: 0, // 추후 통계 API에서 가져올 예정
+        mcpStatus: 'connected' as const, // MCP는 별도 상태 관리
+        lastActivated: null, // 항상 활성화 상태이므로 불필요
+        isEnabled: aiAgent.isEnabled,
+        state: aiAgent.state ?? 'enabled',
       };
     } catch (error) {
       console.warn('⚠️ [AISidebar] AI 데이터 접근 오류:', error);
@@ -439,11 +436,10 @@ export const AISidebar: React.FC<AISidebarProps> = ({
                         <button
                           key={tab.id}
                           onClick={() => setActiveTab(tab.id as any)}
-                          className={`flex-1 p-3 text-xs font-medium transition-colors ${
-                            activeTab === tab.id
+                          className={`flex-1 p-3 text-xs font-medium transition-colors ${activeTab === tab.id
                               ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50'
                               : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                          }`}
+                            }`}
                         >
                           <tab.icon className='w-4 h-4 mx-auto mb-1' />
                           {tab.label}
@@ -480,19 +476,18 @@ export const AISidebar: React.FC<AISidebarProps> = ({
                               <span className='font-medium text-gray-500'>
                                 {safeAIData.lastActivated
                                   ? new Date(
-                                      safeAIData.lastActivated
-                                    ).toLocaleTimeString()
+                                    safeAIData.lastActivated
+                                  ).toLocaleTimeString()
                                   : '-'}
                               </span>
                             </div>
                             <div className='flex justify-between'>
                               <span>상태</span>
                               <span
-                                className={`font-medium ${
-                                  safeAIData.state === 'enabled'
+                                className={`font-medium ${safeAIData.state === 'enabled'
                                     ? 'text-green-600'
                                     : 'text-orange-600'
-                                }`}
+                                  }`}
                               >
                                 {safeAIData.state}
                               </span>
@@ -564,7 +559,7 @@ export const AISidebar: React.FC<AISidebarProps> = ({
                             </div>
                           }
                         >
-                          <AISidebarV5 isOpen={true} onClose={() => {}} />
+                          <AISidebarV5 isOpen={true} onClose={() => { }} />
                         </React.Suspense>
                       </AIFeatureCard>
                     )}
