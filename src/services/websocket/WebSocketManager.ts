@@ -430,7 +430,10 @@ export class WebSocketManager {
     return {
       totalConnections: this.clients.size,
       activeStreams: this.streams.size,
-      uptime: process.uptime(),
+      uptime:
+        typeof process !== 'undefined' && typeof process.uptime === 'function'
+          ? process.uptime()
+          : 0,
     };
   }
 

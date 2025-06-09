@@ -362,12 +362,21 @@ export class AIAgentEngine {
    * 엔진 상태 확인
    */
   getEngineStatus() {
+    const uptime =
+      typeof process !== 'undefined' && typeof process.uptime === 'function'
+        ? process.uptime()
+        : 0;
+    const memory =
+      typeof process !== 'undefined' && typeof process.memoryUsage === 'function'
+        ? process.memoryUsage()
+        : { rss: 0, heapTotal: 0, heapUsed: 0, external: 0, arrayBuffers: 0 };
+
     return {
       isInitialized: this.isInitialized,
       config: this.config,
       version: '1.0.0',
-      uptime: process.uptime(),
-      memory: process.memoryUsage()
+      uptime,
+      memory
     };
   }
 

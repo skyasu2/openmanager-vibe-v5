@@ -195,8 +195,14 @@ async function getSystemHealth() {
         realTimeMonitoring: true
       },
 
-      uptime: process.uptime(),
-      memoryUsage: process.memoryUsage()
+      uptime:
+        typeof process !== 'undefined' && typeof process.uptime === 'function'
+          ? process.uptime()
+          : 0,
+      memoryUsage:
+        typeof process !== 'undefined' && typeof process.memoryUsage === 'function'
+          ? process.memoryUsage()
+          : { rss: 0, heapTotal: 0, heapUsed: 0, external: 0, arrayBuffers: 0 }
     });
 
   } catch (error: any) {
@@ -236,12 +242,24 @@ async function getSystemStats() {
         },
         caching: cacheStats,
         memory: {
-          used: process.memoryUsage().heapUsed,
-          total: process.memoryUsage().heapTotal,
-          external: process.memoryUsage().external
+          used:
+            typeof process !== 'undefined' && typeof process.memoryUsage === 'function'
+              ? process.memoryUsage().heapUsed
+              : 0,
+          total:
+            typeof process !== 'undefined' && typeof process.memoryUsage === 'function'
+              ? process.memoryUsage().heapTotal
+              : 0,
+          external:
+            typeof process !== 'undefined' && typeof process.memoryUsage === 'function'
+              ? process.memoryUsage().external
+              : 0
         },
         system: {
-          uptime: process.uptime(),
+          uptime:
+            typeof process !== 'undefined' && typeof process.uptime === 'function'
+              ? process.uptime()
+              : 0,
           platform: process.platform,
           node_version: process.version
         }
