@@ -1,0 +1,39 @@
+{
+  "mcp.configPath": ".cursor/mcp.json",
+  "mcp.useProjectConfig": true,
+  "mcp.enabled": true,
+  "mcp.preferProjectConfig": true,
+  "mcp.projectConfigPath": "cursor.mcp.json",
+  "mcp.autoStart": true,
+  "mcp.logging.enabled": true,
+  "mcp.logging.level": "info",
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "files.associations": {
+    "*.json": "jsonc"
+  },
+  "json.schemas": [
+    {
+      "fileMatch": [
+        ".cursor/mcp.json"
+      ],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "mcpServers": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  ],
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/.git": true,
+    "**/.next": true,
+    "**/dist": true
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./"],
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=256"
+      },
+      "description": "파일 시스템 접근",
+      "enabled": true
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "env": {
+        "THINKING_MODE": "development"
+      },
+      "description": "순차적 사고 프로세스",
+      "enabled": true
+    },
+    "openmanager-local": {
+      "command": "node",
+      "args": ["./mcp-server/server.js"],
+      "env": {
+        "NODE_ENV": "development",
+        "PORT": "3100"
+      },
+      "description": "OpenManager 로컬 서버",
+      "enabled": false
+    }
+  },
+  "environment": "cursor-basic-dev",
+  "features": {
+    "fileAccess": true,
+    "thinking": true,
+    "basicDevelopment": true
+  }
+} 
