@@ -195,7 +195,7 @@ export class ErrorHandlingService implements IErrorHandler {
 
     // 보안 위반 에러
     this.register('SECURITY_BREACH', (error: ServiceError) => {
-      console.error('SECURITY BREACH DETECTED - Immediate action required');
+      console.error('SECURITY BREACH - 보안 위반 감지');
       this.handleSecurityBreachError(error);
     });
 
@@ -513,7 +513,7 @@ export class ErrorHandlingService implements IErrorHandler {
     try {
       console.error('SECURITY BREACH - 보안 위반 감지');
 
-      // TODO: 보안 기능은 Phase 2에서 구현 예정
+      // 현재는 기본적인 로깅만 수행 (향후 보안 모듈 확장 예정)
       console.log('⚠️ 긴급 보안 모드는 현재 개발 중입니다');
 
       // 기본적인 로깅만 수행

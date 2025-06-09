@@ -692,7 +692,7 @@ export class IntegratedAIEngine {
 
     // 한국어 키워드 (2글자 이상)
     const koreanWords = query.match(/[가-힣]{2,}/g) || [];
-    koreanWords.forEach(word => {
+    koreanWords.forEach((word: string) => {
       if (word.length >= 2) {
         keywords.add(word);
       }
@@ -700,7 +700,7 @@ export class IntegratedAIEngine {
 
     // 영어 키워드 (3글자 이상)
     const englishWords = query.match(/\b[a-zA-Z]{3,}\b/g) || [];
-    englishWords.forEach(word => {
+    englishWords.forEach((word: string) => {
       if (word.length >= 3 && !this.isCommonWord(word)) {
         keywords.add(word.toLowerCase());
       }

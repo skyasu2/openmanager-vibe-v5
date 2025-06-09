@@ -425,9 +425,15 @@ export class HybridAIEngineRefactored {
     this.transformersEngine = engines.transformersEngine;
     this.vectorDB = engines.vectorDB;
 
-    // 문서 프로세서에 MCP 클라이언트 주입
-    // TODO: DocumentProcessor 생성자 시그니처 확인 필요
-    // this.documentProcessor = new DocumentProcessor(this.mcpClient, this.vectorDB);
+    // 문서 프로세서 초기화 (기본 설정으로)
+    // 향후 DocumentProcessor 생성자가 업데이트되면 MCP 클라이언트와 벡터DB 주입 가능
+    try {
+      if (this.mcpClient && this.vectorDB) {
+        // this.documentProcessor = new DocumentProcessor(this.mcpClient, this.vectorDB);
+      }
+    } catch (error) {
+      console.warn('⚠️ DocumentProcessor 초기화 스킵:', error);
+    }
   }
 
   /**

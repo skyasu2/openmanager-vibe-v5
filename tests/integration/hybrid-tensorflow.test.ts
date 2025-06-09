@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { hybridAIEngine } from '@/services/ai/hybrid-ai-engine';
+import { HybridAIEngine } from '@/services/ai/hybrid-ai-engine';
 
 // 통합 테스트: HybridAIEngine의 TensorFlow 분석 결과 확인
 
 describe('HybridAIEngine TensorFlow integration', () => {
+  const hybridAIEngine = new HybridAIEngine();
+
   beforeAll(async () => {
     await hybridAIEngine.initialize();
     // TensorFlow 백그라운드 초기화 대기

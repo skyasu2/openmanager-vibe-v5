@@ -341,7 +341,7 @@ export class MCPOrchestrator {
     ]);
 
     return words
-      .filter(word => !stopWords.has(word) && word.length > 1)
+      .filter((word: string) => !stopWords.has(word) && word.length > 1)
       .slice(0, 10); // 최대 10개 키워드
   }
 
@@ -360,21 +360,21 @@ export class MCPOrchestrator {
 
     // 숫자 엔티티 (백분율, 메모리 등)
     const numberMatches = text.match(/\d+(?:\.\d+)?%?/g) || [];
-    numberMatches.forEach(match => {
+    numberMatches.forEach((match: string) => {
       entities.push({ type: 'number', value: match });
     });
 
     // 시간 엔티티
     const timeMatches =
       text.match(/\d+(?:시간?|분|초|hour|minute|second)/g) || [];
-    timeMatches.forEach(match => {
+    timeMatches.forEach((match: string) => {
       entities.push({ type: 'time', value: match });
     });
 
     // 시스템 컴포넌트
     const componentMatches =
       text.match(/(cpu|memory|disk|서버|메모리|디스크)/gi) || [];
-    componentMatches.forEach(match => {
+    componentMatches.forEach((match: string) => {
       entities.push({ type: 'component', value: match.toLowerCase() });
     });
 

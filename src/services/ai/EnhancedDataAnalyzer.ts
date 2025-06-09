@@ -9,11 +9,11 @@
  */
 
 import {
-  RealServerDataGenerator,
   type ServerInstance,
   type ServerCluster,
   type ApplicationMetrics,
-} from '@/services/data-generator/RealServerDataGenerator';
+} from '@/types/data-generator';
+import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { smartRedis } from '@/lib/redis';
 
 // 분석 결과 인터페이스

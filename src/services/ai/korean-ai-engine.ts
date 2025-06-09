@@ -1,6 +1,11 @@
 // import Korean from 'korean-js'; // 모듈 오류로 인해 주석 처리
 import * as natural from 'natural';
 import compromise from 'compromise';
+import {
+  type ServerInstance,
+  type ServerCluster,
+  type ApplicationMetrics,
+} from '@/types/data-generator';
 
 // 한국어 서버 모니터링 특화 NLU 엔진
 export class KoreanServerNLU {
@@ -223,12 +228,7 @@ export class KoreanResponseGenerator {
 }
 
 // 한국어 AI 엔진 메인 클래스
-import {
-  RealServerDataGenerator,
-  type ServerInstance,
-  type ServerCluster,
-  type ApplicationMetrics,
-} from '@/services/data-generator/RealServerDataGenerator';
+import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 
 export class KoreanAIEngine {
   private nlu: KoreanServerNLU;
