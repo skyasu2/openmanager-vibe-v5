@@ -10,6 +10,12 @@ export interface EnvironmentConfig {
   IS_VERCEL: boolean;
   IS_LOCAL: boolean;
 
+  // 추가된 속성들 (리팩토링으로 필요한 속성)
+  name?: string;
+  tier?: string;
+  maxServers?: number;
+  interval?: number;
+
   // Database & Cache
   database: {
     supabase: {
@@ -99,6 +105,7 @@ export function getVercelOptimizedConfig() {
   if (config.IS_VERCEL) {
     return {
       ...config,
+      maxServers: 8, // Vercel에서 서버 수 제한
       performance: {
         ...config.performance,
         maxMemory: 1024, // Vercel Free Plan 제한
@@ -113,7 +120,10 @@ export function getVercelOptimizedConfig() {
     };
   }
 
-  return config;
+  return {
+    ...config,
+    maxServers: 30 // 로컬에서는 30개 서버
+  };
 }
 
 /**
@@ -146,7 +156,19 @@ export function logEnvironmentStatus() {
  * 환경 감지 함수
  */
 export function detectEnvironment() {
-  return getEnvironmentConfig();
+  const config = getEnvironmentConfig();
+
+  // 환경 이름과 티어 정보 추가
+  const envName = config.IS_VERCEL ? 'vercel' : config.IS_LOCAL ? 'local' : 'cloud';
+  const envTier = config.IS_VERCEL ? 'free' : 'pro';
+
+  return {
+    ...config,
+    name: envName,
+    tier: envTier,
+    maxServers: config.IS_VERCEL ? 8 : 30,
+    interval: config.IS_VERCEL ? 5000 : 3000
+  };
 }
 
 /**

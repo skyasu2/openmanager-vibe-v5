@@ -189,7 +189,7 @@ export type DemoScenario = 'normal' | 'peak' | 'incident' | 'maintenance' | 'dis
 export interface NetworkNode {
     id: string;
     name: string;
-    type: 'server' | 'switch' | 'router' | 'firewall' | 'load-balancer';
+    type: 'server' | 'switch' | 'router' | 'firewall' | 'load-balancer' | 'database' | 'cache' | 'proxy' | 'loadbalancer';
     location: string;
     connections: string[];
 }

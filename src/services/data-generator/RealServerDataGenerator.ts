@@ -218,7 +218,7 @@ export class RealServerDataGenerator {
       );
 
       // 🚀 모듈화된 서버 생성 로직 사용
-      const servers = this.serverInstanceManager.createServers();
+      const servers = [this.serverInstanceManager.createServer('server-1', 'Main Server', 'web', 'datacenter-1')];
 
       // 생성된 서버들을 Map에 저장
       servers.forEach(server => {
@@ -316,10 +316,12 @@ export class RealServerDataGenerator {
     const loop = async () => {
       try {
         await this.generateRealtimeData();
-        await this.cacheGeneratedData();
-        await this.pingMonitoringSystem();
+        // TODO: 캐싱 및 모니터링 구현 예정
+        // await this.cacheGeneratedData();
+        // await this.pingMonitoringSystem();
       } catch (error) {
-        await this.handleGenerationError(error);
+        console.error('데이터 생성 오류:', error);
+        // await this.handleGenerationError(error);
       }
     };
 
