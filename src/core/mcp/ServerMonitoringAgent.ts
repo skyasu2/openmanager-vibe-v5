@@ -9,7 +9,7 @@
  * - 베르셀 무료 tier 최적화
  */
 
-import { realServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { unifiedDataBroker } from '@/services/data-collection/UnifiedDataBroker';
 import type {
   ServerInstance,
   ServerCluster,
@@ -219,11 +219,9 @@ export class ServerMonitoringAgent {
     try {
       console.log('🤖 MCP 서버 모니터링 에이전트 초기화 중...');
 
-      // 실시간 데이터 생성기 확인
-      const healthCheck = await realServerDataGenerator.healthCheck();
-      if (healthCheck.status !== 'healthy') {
-        throw new Error('서버 데이터 생성기가 준비되지 않았습니다');
-      }
+      // 통합 데이터 브로커 연결 확인
+      const brokerMetrics = unifiedDataBroker.getMetrics();
+      console.log('📊 데이터 브로커 연결 완료:', brokerMetrics);
 
       this.isRunning = true;
       console.log('✅ MCP 서버 모니터링 에이전트 초기화 완료');
@@ -359,25 +357,48 @@ export class ServerMonitoringAgent {
   }
 
   /**
-   * 📊 현재 데이터 수집
+   * 📊 현재 데이터 수집 (통합 브로커 사용)
    */
   private async gatherCurrentData(
     context?: QueryRequest['context']
   ): Promise<any> {
     await new Promise(resolve => setTimeout(resolve, 300));
 
-    const servers = realServerDataGenerator.getAllServers();
-    const clusters = realServerDataGenerator.getAllClusters();
-    const applications = realServerDataGenerator.getAllApplications();
-    const summary = realServerDataGenerator.getDashboardSummary();
+    return new Promise(resolve => {
+      // 통합 데이터 브로커를 통해 데이터 구독
+      const unsubscribe = unifiedDataBroker.subscribeToServers(
+        'monitoring-agent',
+        servers => {
+          // 추가 메트릭 데이터 구독
+          const unsubscribeMetrics = unifiedDataBroker.subscribeToMetrics(
+            'monitoring-agent',
+            metrics => {
+              unsubscribe();
+              unsubscribeMetrics();
 
-    return {
-      servers,
-      clusters,
-      applications,
-      summary,
-      context,
-    };
+              resolve({
+                servers,
+                clusters: [], // 브로커에서 클러스터 정보 제공 시 업데이트
+                applications: [], // 브로커에서 애플리케이션 정보 제공 시 업데이트
+                summary: metrics.summary || {},
+                context,
+                timestamp: new Date(),
+              });
+            },
+            {
+              interval: 1000,
+              priority: 'high',
+              cacheStrategy: 'cache-first',
+            }
+          );
+        },
+        {
+          interval: 1000,
+          priority: 'high',
+          cacheStrategy: 'cache-first',
+        }
+      );
+    });
   }
 
   /**
@@ -750,15 +771,29 @@ export class ServerMonitoringAgent {
   }
 
   /**
-   * 📊 자동 장애 보고서 생성
+   * 📊 자동 장애 보고서 생성 (통합 브로커 사용)
    */
   public async generateIncidentReport(
     serverId: string
   ): Promise<IncidentReport> {
-    const server = realServerDataGenerator.getServerById(serverId);
-    if (!server) {
+    // 통합 브로커를 통해 서버 정보 조회
+    const serverData = await new Promise<ServerInstance | null>(resolve => {
+      const unsubscribe = unifiedDataBroker.subscribeToServers(
+        'incident-report',
+        servers => {
+          unsubscribe();
+          const server = servers.find(s => s.id === serverId);
+          resolve(server || null);
+        },
+        { interval: 1000, priority: 'high', cacheStrategy: 'cache-first' }
+      );
+    });
+
+    if (!serverData) {
       throw new Error(`서버 ${serverId}를 찾을 수 없습니다`);
     }
+
+    const server = serverData;
 
     const now = new Date();
     const report: IncidentReport = {
