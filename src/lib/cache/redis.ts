@@ -7,7 +7,7 @@ let redis: Redis | null = null;
 const getRedisClient = (): Redis => {
   if (!redis) {
     const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-    
+
     redis = new Redis(redisUrl, {
       maxRetriesPerRequest: 3,
       lazyConnect: true,
@@ -17,7 +17,7 @@ const getRedisClient = (): Redis => {
       commandTimeout: 5000,
     });
 
-    redis.on('error', (err) => {
+    redis.on('error', err => {
       console.error('Redis connection error:', err);
     });
 
@@ -45,12 +45,15 @@ export const isRedisConnected = async (): Promise<boolean> => {
   }
 };
 
-// 메트릭 데이터 저장 (TTL: 20분)
-export const setMetrics = async (serverId: string, data: any): Promise<void> => {
+// 메트릭 데이터 저장 (TTL: 10분 - 경연대회 최적화)
+export const setMetrics = async (
+  serverId: string,
+  data: any
+): Promise<void> => {
   try {
     const client = getRedisClient();
     const key = `metrics:${serverId}:${Date.now()}`;
-    await client.setex(key, 1200, JSON.stringify(data)); // 20분 TTL
+    await client.setex(key, 600, JSON.stringify(data)); // 10분 TTL (무료 티어 최적화)
   } catch (error) {
     console.error('Error setting metrics:', error);
     throw error;
@@ -70,7 +73,11 @@ export const setLogs = async (serverId: string, data: any): Promise<void> => {
 };
 
 // 트레이스 데이터 저장 (TTL: 1시간)
-export const setTraces = async (serverId: string, traceId: string, data: any): Promise<void> => {
+export const setTraces = async (
+  serverId: string,
+  traceId: string,
+  data: any
+): Promise<void> => {
   try {
     const client = getRedisClient();
     const key = `traces:${serverId}:${traceId}`;
@@ -81,12 +88,15 @@ export const setTraces = async (serverId: string, traceId: string, data: any): P
   }
 };
 
-// 실시간 데이터 저장 (TTL: 5분)
-export const setRealtime = async (serverId: string, data: any): Promise<void> => {
+// 실시간 데이터 저장 (TTL: 2분 - 경연대회 최적화)
+export const setRealtime = async (
+  serverId: string,
+  data: any
+): Promise<void> => {
   try {
     const client = getRedisClient();
     const key = `realtime:${serverId}`;
-    await client.setex(key, 300, JSON.stringify(data)); // 5분 TTL
+    await client.setex(key, 120, JSON.stringify(data)); // 2분 TTL (무료 티어 최적화)
   } catch (error) {
     console.error('Error setting realtime data:', error);
     throw error;
@@ -94,28 +104,31 @@ export const setRealtime = async (serverId: string, data: any): Promise<void> =>
 };
 
 // 메트릭 데이터 조회
-export const getMetrics = async (serverId: string, fromTime?: number): Promise<any[]> => {
+export const getMetrics = async (
+  serverId: string,
+  fromTime?: number
+): Promise<any[]> => {
   try {
     const client = getRedisClient();
     const pattern = `metrics:${serverId}:*`;
     const keys = await client.keys(pattern);
-    
+
     if (fromTime) {
       const filteredKeys = keys.filter(key => {
         const timestamp = parseInt(key.split(':')[2]);
         return timestamp >= fromTime;
       });
-      
+
       if (filteredKeys.length === 0) return [];
-      
+
       const values = await client.mget(...filteredKeys);
       return values
         .filter(value => value !== null)
         .map(value => JSON.parse(value as string));
     }
-    
+
     if (keys.length === 0) return [];
-    
+
     const values = await client.mget(...keys);
     return values
       .filter(value => value !== null)
@@ -127,28 +140,31 @@ export const getMetrics = async (serverId: string, fromTime?: number): Promise<a
 };
 
 // 로그 데이터 조회
-export const getLogs = async (serverId: string, fromTime?: number): Promise<any[]> => {
+export const getLogs = async (
+  serverId: string,
+  fromTime?: number
+): Promise<any[]> => {
   try {
     const client = getRedisClient();
     const pattern = `logs:${serverId}:*`;
     const keys = await client.keys(pattern);
-    
+
     if (fromTime) {
       const filteredKeys = keys.filter(key => {
         const timestamp = parseInt(key.split(':')[2]);
         return timestamp >= fromTime;
       });
-      
+
       if (filteredKeys.length === 0) return [];
-      
+
       const values = await client.mget(...filteredKeys);
       return values
         .filter(value => value !== null)
         .map(value => JSON.parse(value as string));
     }
-    
+
     if (keys.length === 0) return [];
-    
+
     const values = await client.mget(...keys);
     return values
       .filter(value => value !== null)
@@ -177,12 +193,12 @@ export const getAllRealtime = async (): Promise<Record<string, any>> => {
   try {
     const client = getRedisClient();
     const keys = await client.keys('realtime:*');
-    
+
     if (keys.length === 0) return {};
-    
+
     const values = await client.mget(...keys);
     const result: Record<string, any> = {};
-    
+
     keys.forEach((key, index) => {
       const serverId = key.split(':')[1];
       const value = values[index];
@@ -190,7 +206,7 @@ export const getAllRealtime = async (): Promise<Record<string, any>> => {
         result[serverId] = JSON.parse(value);
       }
     });
-    
+
     return result;
   } catch (error) {
     console.error('Error getting all realtime data:', error);
@@ -206,9 +222,9 @@ export const deleteServerData = async (serverId: string): Promise<void> => {
       `metrics:${serverId}:*`,
       `logs:${serverId}:*`,
       `traces:${serverId}:*`,
-      `realtime:${serverId}`
+      `realtime:${serverId}`,
     ];
-    
+
     for (const pattern of patterns) {
       const keys = await client.keys(pattern);
       if (keys.length > 0) {
@@ -221,20 +237,28 @@ export const deleteServerData = async (serverId: string): Promise<void> => {
   }
 };
 
-// 배치 저장 (성능 최적화)
-export const setBatch = async (items: Array<{
-  key: string;
-  value: any;
-  ttl: number;
-}>): Promise<void> => {
+// 배치 저장 (경연대회 최적화 - Redis 명령어 그룹핑)
+export const setBatch = async (
+  items: Array<{
+    key: string;
+    value: any;
+    ttl: number;
+  }>
+): Promise<void> => {
   try {
     const client = getRedisClient();
     const pipeline = client.pipeline();
-    
-    items.forEach(({ key, value, ttl }) => {
-      pipeline.setex(key, ttl, JSON.stringify(value));
-    });
-    
+
+    // 무료 티어 최적화: 최대 10개씩 배치 처리
+    const BATCH_SIZE = 10;
+
+    for (let i = 0; i < items.length; i += BATCH_SIZE) {
+      const batch = items.slice(i, i + BATCH_SIZE);
+      batch.forEach(({ key, value, ttl }) => {
+        pipeline.setex(key, ttl, JSON.stringify(value));
+      });
+    }
+
     await pipeline.exec();
   } catch (error) {
     console.error('Error in batch set:', error);
@@ -251,23 +275,32 @@ export const getMemoryUsage = async (): Promise<{
   try {
     const client = getRedisClient();
     const memoryInfo = await client.info('memory');
-    
+
     const lines = memoryInfo.split('\r\n');
-    const usedMemory = lines.find(line => line.startsWith('used_memory_human:'))?.split(':')[1] || 'N/A';
-    const peakMemory = lines.find(line => line.startsWith('used_memory_peak_human:'))?.split(':')[1] || 'N/A';
-    const fragmentation = lines.find(line => line.startsWith('mem_fragmentation_ratio:'))?.split(':')[1] || 'N/A';
-    
+    const usedMemory =
+      lines
+        .find(line => line.startsWith('used_memory_human:'))
+        ?.split(':')[1] || 'N/A';
+    const peakMemory =
+      lines
+        .find(line => line.startsWith('used_memory_peak_human:'))
+        ?.split(':')[1] || 'N/A';
+    const fragmentation =
+      lines
+        .find(line => line.startsWith('mem_fragmentation_ratio:'))
+        ?.split(':')[1] || 'N/A';
+
     return {
       used: usedMemory,
       peak: peakMemory,
-      fragmentation: fragmentation
+      fragmentation: fragmentation,
     };
   } catch (error) {
     console.error('Error getting memory usage:', error);
     return {
       used: 'Error',
       peak: 'Error',
-      fragmentation: 'Error'
+      fragmentation: 'Error',
     };
   }
 };
@@ -282,28 +315,30 @@ export const getRedisStats = async (): Promise<{
   try {
     const client = getRedisClient();
     const connected = await isRedisConnected();
-    
+
     if (!connected) {
       return {
         connected: false,
         keyCount: 0,
         memoryUsage: null,
-        uptime: 'N/A'
+        uptime: 'N/A',
       };
     }
-    
+
     const keyCount = await client.dbsize();
     const memoryUsage = await getMemoryUsage();
     const info = await client.info('server');
-    const uptimeLine = info.split('\r\n').find(line => line.startsWith('uptime_in_seconds:'));
+    const uptimeLine = info
+      .split('\r\n')
+      .find(line => line.startsWith('uptime_in_seconds:'));
     const uptimeSeconds = uptimeLine ? parseInt(uptimeLine.split(':')[1]) : 0;
     const uptime = `${Math.floor(uptimeSeconds / 3600)}h ${Math.floor((uptimeSeconds % 3600) / 60)}m`;
-    
+
     return {
       connected: true,
       keyCount,
       memoryUsage,
-      uptime
+      uptime,
     };
   } catch (error) {
     console.error('Error getting Redis stats:', error);
@@ -311,7 +346,7 @@ export const getRedisStats = async (): Promise<{
       connected: false,
       keyCount: 0,
       memoryUsage: null,
-      uptime: 'Error'
+      uptime: 'Error',
     };
   }
 };
@@ -324,4 +359,4 @@ export const closeRedis = async (): Promise<void> => {
   }
 };
 
-export default getRedisClient; 
+export default getRedisClient;
