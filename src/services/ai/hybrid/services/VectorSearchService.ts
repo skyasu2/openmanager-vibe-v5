@@ -57,6 +57,19 @@ export class VectorSearchService {
     }
 
     /**
+     * 🚀 초기화
+     */
+    async initialize(documentIndex?: Map<string, DocumentContext>): Promise<void> {
+        console.log('🚀 VectorSearchService 초기화 시작...');
+
+        if (documentIndex) {
+            this.updateDocumentIndex(documentIndex);
+        }
+
+        console.log('✅ VectorSearchService 초기화 완료');
+    }
+
+    /**
      * 🔍 벡터 검색 수행
      */
     async performVectorSearch(

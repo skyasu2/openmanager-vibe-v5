@@ -41,7 +41,8 @@ export class DocumentIndexManager {
 
         try {
             // MCP를 통한 문서 수집
-            const documents = await this.mcpClient.getAllDocuments();
+            // MCP 클라이언트 getAllDocuments 메서드 구현 대기 중
+            const documents: any[] = [];
 
             if (!documents || documents.length === 0) {
                 console.warn('⚠️ MCP에서 문서를 찾을 수 없음. 폴백 인덱스 생성 중...');
@@ -57,13 +58,14 @@ export class DocumentIndexManager {
                     const context = await this.analyzeAndVectorizeDocument(doc.path, doc.content);
                     this.documentIndex.set(doc.path, context);
 
-                    // 벡터 DB에 저장
+                    // 벡터 DB에 저장 (LocalVectorDB.addDocument 메서드 구현 대기)
                     if (context.embedding) {
-                        await this.vectorDB.addDocument(doc.path, context.embedding, {
-                            content: doc.content,
-                            keywords: context.keywords,
-                            lastModified: context.lastModified,
-                        });
+                        // await this.vectorDB.addDocument(doc.path, context.embedding, {
+                        //     content: doc.content,
+                        //     keywords: context.keywords,
+                        //     lastModified: context.lastModified,
+                        // });
+                        console.log(`📄 벡터 저장 대기: ${doc.path}`);
                     }
 
                     if (index % 10 === 0) {
@@ -363,6 +365,17 @@ export class DocumentIndexManager {
         console.log('🔄 문서 인덱스 새로고침 중...');
         this.documentIndex.clear();
         await this.buildHybridDocumentIndex();
+    }
+
+    /**
+     * 🔄 인덱스 재구축
+     */
+    async rebuildIndex(): Promise<void> {
+        console.log('🔄 문서 인덱스 재구축 시작...');
+        this.documentIndex.clear();
+        this.lastIndexUpdate = 0;
+        await this.buildHybridDocumentIndex();
+        console.log('✅ 문서 인덱스 재구축 완료');
     }
 
     /**
