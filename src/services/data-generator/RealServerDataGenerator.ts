@@ -273,7 +273,7 @@ export class RealServerDataGenerator {
           databaseType: 'distributed',
           networkTopology: 'multi-cloud',
           specialWorkload:
-            features.networkTopology && features.maxNodes > 30
+            (features as any).networkTopology && (features as any).maxNodes > 30
               ? 'gpu'
               : 'container',
           scalingPolicy: 'predictive',

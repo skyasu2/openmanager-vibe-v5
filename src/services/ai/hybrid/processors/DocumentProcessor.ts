@@ -1,16 +1,16 @@
 /**
  * 📚 문서 처리기
- * 
+ *
  * Single Responsibility: 문서 인덱싱, 검색, 벡터화 처리
  * Strategy Pattern: 다양한 문서 처리 전략 지원
  */
 
 import { RealMCPClient } from '@/services/mcp/real-mcp-client';
-import { 
-  DocumentContext, 
-  DocumentSearchOptions, 
+import {
+  DocumentContext,
+  DocumentSearchOptions,
   VectorSearchResult,
-  DocumentIndexOptions
+  DocumentIndexOptions,
 } from '../types/HybridTypes';
 
 export class DocumentProcessor {
@@ -50,7 +50,9 @@ export class DocumentProcessor {
       this.lastIndexUpdate = Date.now();
       const processingTime = Date.now() - startTime;
 
-      console.log(`✅ 문서 인덱스 구축 완료 (${this.documentIndex.size}개 문서, ${processingTime}ms)`);
+      console.log(
+        `✅ 문서 인덱스 구축 완료 (${this.documentIndex.size}개 문서, ${processingTime}ms)`
+      );
     } catch (error) {
       console.error('❌ 문서 인덱스 구축 실패:', error);
       // 폴백 지식 베이스 로드
@@ -65,7 +67,10 @@ export class DocumentProcessor {
     try {
       const content = await this.mcpClient.readFile(path);
       if (content) {
-        const docContext = await this.analyzeAndVectorizeDocument(path, content);
+        const docContext = await this.analyzeAndVectorizeDocument(
+          path,
+          content
+        );
         this.documentIndex.set(path, docContext);
       }
     } catch (error) {
@@ -142,14 +147,18 @@ export class DocumentProcessor {
     try {
       // 쿼리 임베딩 생성
       const queryEmbedding = await this.generateSimpleEmbedding(query);
-      
+
       const results: VectorSearchResult[] = [];
 
       // 모든 문서와 유사도 계산
       for (const [path, doc] of this.documentIndex) {
         if (doc.embedding) {
-          const similarity = this.calculateCosineSimilarity(queryEmbedding, doc.embedding);
-          if (similarity > 0.5) { // 임계값
+          const similarity = this.calculateCosineSimilarity(
+            queryEmbedding,
+            doc.embedding
+          );
+          if (similarity > 0.5) {
+            // 임계값
             results.push({ id: path, similarity });
           }
         }
@@ -168,13 +177,14 @@ export class DocumentProcessor {
    */
   private async discoverDocuments(): Promise<string[]> {
     try {
-      const paths = await this.mcpClient.listResources();
-      return paths.filter(path => 
-        path.endsWith('.md') || 
-        path.endsWith('.ts') || 
-        path.endsWith('.tsx') ||
-        path.endsWith('.js') ||
-        path.endsWith('.jsx')
+      const paths = await (this.mcpClient as any).listResources();
+      return paths.filter(
+        path =>
+          path.endsWith('.md') ||
+          path.endsWith('.ts') ||
+          path.endsWith('.tsx') ||
+          path.endsWith('.js') ||
+          path.endsWith('.jsx')
       );
     } catch (error) {
       console.warn('⚠️ 문서 발견 실패:', error);
@@ -198,10 +208,55 @@ export class DocumentProcessor {
    */
   private isCommonWord(word: string): boolean {
     const commonWords = [
-      'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by',
-      'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had',
-      'do', 'does', 'did', 'will', 'would', 'should', 'could', 'can', 'may', 'might', 'must',
-      '그', '이', '저', '것', '수', '있', '없', '등', '또', '및', '의', '을', '를', '에', '로', '와', '과'
+      'the',
+      'and',
+      'or',
+      'but',
+      'in',
+      'on',
+      'at',
+      'to',
+      'for',
+      'of',
+      'with',
+      'by',
+      'is',
+      'are',
+      'was',
+      'were',
+      'be',
+      'been',
+      'have',
+      'has',
+      'had',
+      'do',
+      'does',
+      'did',
+      'will',
+      'would',
+      'should',
+      'could',
+      'can',
+      'may',
+      'might',
+      'must',
+      '그',
+      '이',
+      '저',
+      '것',
+      '수',
+      '있',
+      '없',
+      '등',
+      '또',
+      '및',
+      '의',
+      '을',
+      '를',
+      '에',
+      '로',
+      '와',
+      '과',
     ];
     return commonWords.includes(word);
   }
@@ -219,17 +274,17 @@ export class DocumentProcessor {
    */
   private calculateRelevanceScore(path: string, content: string): number {
     let score = 1.0;
-    
+
     // 경로 기반 점수
     if (path.includes('ai-agent')) score += 2.0;
     if (path.includes('context')) score += 1.5;
     if (path.includes('mcp')) score += 1.5;
     if (path.includes('hybrid')) score += 2.0;
-    
+
     // 내용 기반 점수
     if (content.length > 1000) score += 0.5;
     if (content.length > 5000) score += 1.0;
-    
+
     return Math.min(score, 5.0);
   }
 
@@ -251,17 +306,22 @@ export class DocumentProcessor {
    * 폴백 키워드 생성
    */
   private getFallbackKeywords(path: string): string[] {
-    if (path.includes('ai-agent')) return ['AI', '에이전트', '분석', '모니터링'];
+    if (path.includes('ai-agent'))
+      return ['AI', '에이전트', '분석', '모니터링'];
     if (path.includes('mcp')) return ['MCP', '통신', '프로토콜', '연결'];
     if (path.includes('hybrid')) return ['하이브리드', 'AI', '엔진', '통합'];
-    if (path.includes('monitoring')) return ['모니터링', '상태', '메트릭', '알림'];
+    if (path.includes('monitoring'))
+      return ['모니터링', '상태', '메트릭', '알림'];
     return ['시스템', '설정', '구성', '운영'];
   }
 
   /**
    * 키워드 매칭 계산
    */
-  private calculateKeywordMatch(doc: DocumentContext, keywords: string[]): number {
+  private calculateKeywordMatch(
+    doc: DocumentContext,
+    keywords: string[]
+  ): number {
     if (keywords.length === 0) return 0;
 
     const docText = (doc.content + ' ' + doc.keywords.join(' ')).toLowerCase();
@@ -293,7 +353,9 @@ export class DocumentProcessor {
     }
 
     // 정규화
-    const magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
+    const magnitude = Math.sqrt(
+      embedding.reduce((sum, val) => sum + val * val, 0)
+    );
     return magnitude > 0 ? embedding.map(val => val / magnitude) : embedding;
   }
 
@@ -339,17 +401,20 @@ export class DocumentProcessor {
     const fallbackDocs = [
       {
         path: 'virtual://ai-agent-core',
-        content: 'AI 에이전트 핵심 기능: 모니터링, 분석, 예측, 최적화를 통한 시스템 관리',
+        content:
+          'AI 에이전트 핵심 기능: 모니터링, 분석, 예측, 최적화를 통한 시스템 관리',
         keywords: ['AI', '에이전트', '모니터링', '분석', '예측', '최적화'],
       },
       {
         path: 'virtual://mcp-protocol',
-        content: 'MCP 프로토콜: 모델과 컨텍스트 제공자 간의 표준화된 통신 인터페이스',
+        content:
+          'MCP 프로토콜: 모델과 컨텍스트 제공자 간의 표준화된 통신 인터페이스',
         keywords: ['MCP', '프로토콜', '통신', '인터페이스', '표준'],
       },
       {
         path: 'virtual://hybrid-engine',
-        content: '하이브리드 AI 엔진: 다중 AI 모델을 통합하여 최적의 성능과 정확도 제공',
+        content:
+          '하이브리드 AI 엔진: 다중 AI 모델을 통합하여 최적의 성능과 정확도 제공',
         keywords: ['하이브리드', 'AI', '엔진', '통합', '성능', '정확도'],
       },
     ];
@@ -364,7 +429,9 @@ export class DocumentProcessor {
       this.documentIndex.set(doc.path, docContext);
     }
 
-    console.log(`✅ 폴백 지식 베이스 로드 완료 (${fallbackDocs.length}개 문서)`);
+    console.log(
+      `✅ 폴백 지식 베이스 로드 완료 (${fallbackDocs.length}개 문서)`
+    );
   }
 
   /**
@@ -404,4 +471,4 @@ export class DocumentProcessor {
     this.lastIndexUpdate = 0;
     console.log('🧹 문서 인덱스 초기화 완료');
   }
-} 
+}

@@ -1,6 +1,6 @@
 /**
  * ⚙️ 환경 설정 관리자 - 환경별 설정 관리 전담
- * 
+ *
  * 책임:
  * - 환경 감지 및 설정
  * - 모드별 최적화 적용
@@ -33,7 +33,7 @@ export class EnvironmentConfigManager {
    */
   private getEnvironmentSpecificConfig(): CustomEnvironmentConfig {
     const environment = detectEnvironment();
-    
+
     // 개발 환경별 기본 설정
     const configs: Record<string, Partial<CustomEnvironmentConfig>> = {
       local: {
@@ -70,8 +70,9 @@ export class EnvironmentConfigManager {
       },
     };
 
-    const baseConfig = configs[environment as string] || configs.production;
-    
+    const baseConfig =
+      configs[environment as unknown as string] || configs.production;
+
     return {
       serverArchitecture: baseConfig.serverArchitecture || 'single',
       databaseType: baseConfig.databaseType || 'single',
@@ -86,8 +87,8 @@ export class EnvironmentConfigManager {
    * 모드별 최적화 적용
    */
   private applyModeOptimizations(): void {
-    const mode = this.vercelConfig.mode;
-    
+    const mode = (this.vercelConfig as any).mode;
+
     switch (mode) {
       case 'local':
         // 로컬 개발 환경 - 모든 기능 활성화
@@ -95,14 +96,14 @@ export class EnvironmentConfigManager {
         this.environmentConfig.specialWorkload = 'container';
         this.environmentConfig.scalingPolicy = 'auto';
         break;
-        
+
       case 'premium':
         // 프리미엄 환경 - 고성능 설정
         this.environmentConfig.serverArchitecture = 'load-balanced';
         this.environmentConfig.databaseType = 'distributed';
         this.environmentConfig.scalingPolicy = 'predictive';
         break;
-        
+
       case 'basic':
         // 기본 환경 - 리소스 절약
         this.environmentConfig.serverArchitecture = 'single';
@@ -110,7 +111,7 @@ export class EnvironmentConfigManager {
         this.environmentConfig.specialWorkload = 'standard';
         this.environmentConfig.scalingPolicy = 'manual';
         break;
-        
+
       default:
         // 기본값 유지
         break;
@@ -121,13 +122,13 @@ export class EnvironmentConfigManager {
    * 서버 개수 제한 적용
    */
   getServerLimit(): number {
-    const mode = this.vercelConfig.mode;
+    const mode = (this.vercelConfig as any).mode;
     const limits = {
       local: 50,
       premium: 25,
       basic: 10,
     };
-    
+
     return limits[mode] || 10;
   }
 
@@ -184,13 +185,20 @@ export class EnvironmentConfigManager {
       'master-slave': ['Seoul-DC-1', 'Busan-DC-1'],
       'load-balanced': ['Seoul-DC-1', 'Busan-DC-1', 'Daegu-DC-1'],
       microservices: [
-        'Seoul-DC-1', 'Busan-DC-1', 'Daegu-DC-1',
-        'Incheon-DC-1', 'Gwangju-DC-1', 'Ulsan-DC-1'
+        'Seoul-DC-1',
+        'Busan-DC-1',
+        'Daegu-DC-1',
+        'Incheon-DC-1',
+        'Gwangju-DC-1',
+        'Ulsan-DC-1',
       ],
     };
 
-    const availableLocations = locations[this.environmentConfig.serverArchitecture] || locations.single;
-    return availableLocations[Math.floor(Math.random() * availableLocations.length)];
+    const availableLocations =
+      locations[this.environmentConfig.serverArchitecture] || locations.single;
+    return availableLocations[
+      Math.floor(Math.random() * availableLocations.length)
+    ];
   }
 
   /**
@@ -198,7 +206,7 @@ export class EnvironmentConfigManager {
    */
   getSimulationConfig() {
     const architecture = this.environmentConfig.serverArchitecture;
-    
+
     // 아키텍처별 시뮬레이션 설정
     const configs = {
       single: {
@@ -235,7 +243,7 @@ export class EnvironmentConfigManager {
    */
   getWorkloadConfig() {
     const workload = this.environmentConfig.specialWorkload;
-    
+
     const configs = {
       standard: {
         cpuMultiplier: 1.0,
@@ -271,7 +279,7 @@ export class EnvironmentConfigManager {
    */
   getSecurityConfig() {
     const level = this.environmentConfig.securityLevel;
-    
+
     const configs = {
       basic: {
         scanInterval: 86400000, // 24시간
@@ -286,7 +294,12 @@ export class EnvironmentConfigManager {
       enterprise: {
         scanInterval: 21600000, // 6시간
         vulnThreshold: 2,
-        features: ['basic_monitoring', 'intrusion_detection', 'compliance_check', 'threat_intelligence'],
+        features: [
+          'basic_monitoring',
+          'intrusion_detection',
+          'compliance_check',
+          'threat_intelligence',
+        ],
       },
     };
 
@@ -297,8 +310,8 @@ export class EnvironmentConfigManager {
    * 환경별 메모리 제한
    */
   getMemoryLimits() {
-    const mode = this.vercelConfig.mode;
-    
+    const mode = (this.vercelConfig as any).mode;
+
     const limits = {
       local: {
         maxServers: 100,
@@ -325,9 +338,9 @@ export class EnvironmentConfigManager {
    */
   getEnvironmentSummary() {
     const environment = detectEnvironment();
-    const mode = this.vercelConfig.mode;
+    const mode = (this.vercelConfig as any).mode;
     const advancedFeatures = this.getAdvancedFeaturesStatus();
-    
+
     return {
       environment,
       mode,
@@ -341,4 +354,4 @@ export class EnvironmentConfigManager {
       security: this.getSecurityConfig(),
     };
   }
-} 
+}

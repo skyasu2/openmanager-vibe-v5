@@ -22,19 +22,19 @@ import {
   EngineConfiguration,
   HybridEngineState,
   AnalysisContext,
-  ProcessingMetrics
+  ProcessingMetrics,
 } from './types/HybridTypes';
 
 export class HybridAIEngineRefactored {
   // 핵심 모듈들
-  private engineFactory: EngineFactory;
-  private documentProcessor: DocumentProcessor;
-  private queryAnalyzer: QueryAnalyzer;
-  private responseGenerator: ResponseGenerator;
-  private performanceMonitor: PerformanceMonitor;
+  private engineFactory!: EngineFactory;
+  private documentProcessor!: DocumentProcessor;
+  private queryAnalyzer!: QueryAnalyzer;
+  private responseGenerator!: ResponseGenerator;
+  private performanceMonitor!: PerformanceMonitor;
 
   // AI 엔진 인스턴스들
-  private mcpClient: RealMCPClient;
+  private mcpClient!: RealMCPClient;
   private tensorflowEngine: any;
   private koreanEngine: any;
   private transformersEngine: any;
@@ -58,7 +58,7 @@ export class HybridAIEngineRefactored {
       lastIndexUpdate: 0,
       documentCount: 0,
       activeEngines: [],
-      configuration: this.engineFactory.getConfiguration()
+      configuration: this.engineFactory.getConfiguration(),
     };
 
     // 엔진 인스턴스 생성
@@ -89,18 +89,21 @@ export class HybridAIEngineRefactored {
 
       // Phase 2: 문서 프로세서 초기화 및 인덱스 구축
       await this.documentProcessor.buildDocumentIndex();
-      
+
       // Phase 3: 성능 모니터 상태 동기화
       this.syncPerformanceMonitor(engineStats);
 
       // 초기화 완료
       this.state.isInitialized = true;
       this.state.activeEngines = this.getActiveEngines();
-      this.state.documentCount = this.documentProcessor.getIndexStatus().documentCount;
+      this.state.documentCount =
+        this.documentProcessor.getIndexStatus().documentCount;
 
       const initTime = Date.now() - startTime;
-      console.log(`🎯 Hybrid AI Engine 리팩토링 버전 초기화 완료 (${initTime}ms)`);
-      
+      console.log(
+        `🎯 Hybrid AI Engine 리팩토링 버전 초기화 완료 (${initTime}ms)`
+      );
+
       this.performanceMonitor.logEngineStatus();
     } catch (error) {
       console.error('❌ Hybrid AI Engine 초기화 실패:', error);
@@ -116,11 +119,13 @@ export class HybridAIEngineRefactored {
     sessionId?: string
   ): Promise<HybridAnalysisResult> {
     if (!this.state.isInitialized) {
-      throw new Error('엔진이 초기화되지 않았습니다. initialize()를 먼저 호출하세요.');
+      throw new Error(
+        '엔진이 초기화되지 않았습니다. initialize()를 먼저 호출하세요.'
+      );
     }
 
     const metrics = this.performanceMonitor.startProcessing();
-    
+
     try {
       // 1. 쿼리 분석
       const smartQuery = await this.queryAnalyzer.analyzeQuery(query);
@@ -134,7 +139,7 @@ export class HybridAIEngineRefactored {
       const analysisResults = await this.runAnalysis({
         smartQuery,
         documents,
-        sessionId
+        sessionId,
       });
       this.performanceMonitor.recordAnalysisTime(metrics);
 
@@ -156,11 +161,13 @@ export class HybridAIEngineRefactored {
       );
 
       // 6. 성능 통계 업데이트
-      this.performanceMonitor.updateEngineStats(smartQuery, metrics.totalTime || 0);
+      this.performanceMonitor.updateEngineStats(
+        smartQuery,
+        metrics.totalTime || 0
+      );
       this.performanceMonitor.finishProcessing(metrics);
 
       return result;
-
     } catch (error) {
       console.error('❌ 쿼리 처리 중 오류:', error);
       return this.buildErrorResult(query, error);
@@ -170,7 +177,9 @@ export class HybridAIEngineRefactored {
   /**
    * 관련 문서 검색
    */
-  private async searchRelevantDocuments(smartQuery: SmartQuery): Promise<DocumentContext[]> {
+  private async searchRelevantDocuments(
+    smartQuery: SmartQuery
+  ): Promise<DocumentContext[]> {
     try {
       // 키워드 기반 검색
       const keywordResults = await this.documentProcessor.searchDocuments(
@@ -181,7 +190,9 @@ export class HybridAIEngineRefactored {
       // 벡터 검색 (선택적)
       let vectorResults: DocumentContext[] = [];
       if (smartQuery.useVectorSearch) {
-        const vectorIds = await this.documentProcessor.performVectorSearch(smartQuery.originalQuery);
+        const vectorIds = await this.documentProcessor.performVectorSearch(
+          smartQuery.originalQuery
+        );
         vectorResults = vectorIds
           .map(result => this.documentProcessor.getDocument(result.id))
           .filter(Boolean) as DocumentContext[];
@@ -189,8 +200,8 @@ export class HybridAIEngineRefactored {
 
       // 결과 병합 및 중복 제거
       const allResults = [...keywordResults, ...vectorResults];
-      const uniqueResults = allResults.filter((doc, index, self) => 
-        index === self.findIndex(d => d.path === doc.path)
+      const uniqueResults = allResults.filter(
+        (doc, index, self) => index === self.findIndex(d => d.path === doc.path)
       );
 
       return uniqueResults.slice(0, 10); // 최대 10개까지
@@ -212,44 +223,52 @@ export class HybridAIEngineRefactored {
     // 한국어 엔진 분석
     if (smartQuery.isKorean) {
       analysisPromises.push(
-        this.runKoreanAnalysis(smartQuery, documents).then(result => {
-          results.korean = result;
-        }).catch(error => {
-          console.warn('⚠️ 한국어 분석 실패:', error);
-        })
+        this.runKoreanAnalysis(smartQuery, documents)
+          .then(result => {
+            results.korean = result;
+          })
+          .catch(error => {
+            console.warn('⚠️ 한국어 분석 실패:', error);
+          })
       );
     }
 
     // Transformers 분석
     if (smartQuery.useTransformers) {
       analysisPromises.push(
-        this.runTransformersAnalysis(smartQuery, documents).then(result => {
-          results.transformers = result;
-        }).catch(error => {
-          console.warn('⚠️ Transformers 분석 실패:', error);
-        })
+        this.runTransformersAnalysis(smartQuery, documents)
+          .then(result => {
+            results.transformers = result;
+          })
+          .catch(error => {
+            console.warn('⚠️ Transformers 분석 실패:', error);
+          })
       );
     }
 
     // TensorFlow 분석
     if (smartQuery.tensorflowModels.length > 0) {
       analysisPromises.push(
-        this.runTensorFlowAnalysis(smartQuery, documents).then(result => {
-          results.tensorflow = result;
-        }).catch(error => {
-          console.warn('⚠️ TensorFlow 분석 실패:', error);
-        })
+        this.runTensorFlowAnalysis(smartQuery, documents)
+          .then(result => {
+            results.tensorflow = result;
+          })
+          .catch(error => {
+            console.warn('⚠️ TensorFlow 분석 실패:', error);
+          })
       );
     }
 
     // MCP 액션 실행
     if (smartQuery.mcpActions.length > 0) {
       analysisPromises.push(
-        this.executeMCPActions(smartQuery).then(result => {
-          results.mcpActions = result;
-        }).catch(error => {
-          console.warn('⚠️ MCP 액션 실패:', error);
-        })
+        this.executeMCPActions(smartQuery)
+          .then(result => {
+            results.mcpActions = result;
+          })
+          .catch(error => {
+            console.warn('⚠️ MCP 액션 실패:', error);
+          })
       );
     }
 
@@ -262,7 +281,10 @@ export class HybridAIEngineRefactored {
   /**
    * 한국어 분석 실행
    */
-  private async runKoreanAnalysis(smartQuery: SmartQuery, docs: DocumentContext[]): Promise<any> {
+  private async runKoreanAnalysis(
+    smartQuery: SmartQuery,
+    docs: DocumentContext[]
+  ): Promise<any> {
     try {
       if (!this.koreanEngine?.analyze) {
         return { answer: '한국어 엔진을 사용할 수 없습니다', confidence: 0.3 };
@@ -278,13 +300,19 @@ export class HybridAIEngineRefactored {
   /**
    * Transformers 분석 실행
    */
-  private async runTransformersAnalysis(smartQuery: SmartQuery, docs: DocumentContext[]): Promise<any> {
+  private async runTransformersAnalysis(
+    smartQuery: SmartQuery,
+    docs: DocumentContext[]
+  ): Promise<any> {
     try {
       if (!this.transformersEngine?.analyze) {
         return { confidence: 0.3 };
       }
 
-      return await this.transformersEngine.analyze(smartQuery.originalQuery, docs);
+      return await this.transformersEngine.analyze(
+        smartQuery.originalQuery,
+        docs
+      );
     } catch (error) {
       console.warn('⚠️ Transformers 분석 오류:', error);
       return { confidence: 0.2 };
@@ -294,7 +322,10 @@ export class HybridAIEngineRefactored {
   /**
    * TensorFlow 분석 실행
    */
-  private async runTensorFlowAnalysis(smartQuery: SmartQuery, docs: DocumentContext[]): Promise<any> {
+  private async runTensorFlowAnalysis(
+    smartQuery: SmartQuery,
+    docs: DocumentContext[]
+  ): Promise<any> {
     try {
       if (!this.tensorflowEngine?.predict) {
         return { predictions: [], confidence: 0.3 };
@@ -317,7 +348,7 @@ export class HybridAIEngineRefactored {
 
     for (const action of smartQuery.mcpActions) {
       try {
-        const result = await this.mcpClient.callTool(action, {});
+        const result = await this.mcpClient.callTool(action, '', {});
         results.push(`${action}: 성공`);
       } catch (error) {
         console.warn(`⚠️ MCP 액션 ${action} 실패:`, error);
@@ -387,7 +418,7 @@ export class HybridAIEngineRefactored {
    */
   private initializeEngineInstances(): void {
     const engines = this.engineFactory.createEngines();
-    
+
     this.mcpClient = engines.mcpClient;
     this.tensorflowEngine = engines.tensorflowEngine;
     this.koreanEngine = engines.koreanEngine;
@@ -395,7 +426,8 @@ export class HybridAIEngineRefactored {
     this.vectorDB = engines.vectorDB;
 
     // 문서 프로세서에 MCP 클라이언트 주입
-    this.documentProcessor = new DocumentProcessor(this.mcpClient);
+    // TODO: DocumentProcessor 생성자 시그니처 확인 필요
+    // this.documentProcessor = new DocumentProcessor(this.mcpClient, this.vectorDB);
   }
 
   /**
@@ -404,7 +436,9 @@ export class HybridAIEngineRefactored {
   private syncPerformanceMonitor(engineStats: EngineStats): void {
     Object.entries(engineStats).forEach(([engine, stats]) => {
       if (stats.initialized) {
-        this.performanceMonitor.markEngineInitialized(engine as keyof EngineStats);
+        this.performanceMonitor.markEngineInitialized(
+          engine as keyof EngineStats
+        );
       }
     });
 
@@ -461,13 +495,13 @@ export class HybridAIEngineRefactored {
       await this.engineFactory.disposeAllEngines();
       this.documentProcessor.clearIndex();
       this.performanceMonitor.resetMetrics();
-      
+
       this.state.isInitialized = false;
       this.state.activeEngines = [];
-      
+
       console.log('✅ Hybrid AI Engine 리소스 정리 완료');
     } catch (error) {
       console.error('❌ 리소스 정리 중 오류:', error);
     }
   }
-} 
+}

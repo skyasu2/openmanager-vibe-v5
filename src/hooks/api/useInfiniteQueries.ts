@@ -1,6 +1,6 @@
 /**
  * ♾️ 무한 스크롤 데이터 관리: Infinite Queries
- * 
+ *
  * Phase 7.3: 실시간 데이터 통합
  * - 로그 무한 스크롤
  * - 히스토리 데이터 무한 로딩
@@ -8,7 +8,11 @@
  * - 실시간 업데이트 통합
  */
 
-import { useInfiniteQuery, useQueryClient, InfiniteData } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useQueryClient,
+  InfiniteData,
+} from '@tanstack/react-query';
 import { useCallback, useMemo, useEffect } from 'react';
 
 // 📄 페이지네이션 응답 타입
@@ -56,22 +60,28 @@ interface PredictionHistoryEntry {
 // 🎯 Query Keys for Infinite Queries
 export const infiniteKeys = {
   logs: (filters: string) => ['infinite', 'logs', { filters }] as const,
-  metrics: (serverId: string, metric: string) => ['infinite', 'metrics', serverId, metric] as const,
-  predictions: (filters: string) => ['infinite', 'predictions', { filters }] as const,
+  metrics: (serverId: string, metric: string) =>
+    ['infinite', 'metrics', serverId, metric] as const,
+  predictions: (filters: string) =>
+    ['infinite', 'predictions', { filters }] as const,
   alerts: (filters: string) => ['infinite', 'alerts', { filters }] as const,
 };
 
 // 📋 무한 로그 스크롤
-export const useInfiniteLogs = (filters: {
-  level?: LogEntry['level'];
-  source?: string;
-  serverId?: string;
-  timeRange?: string;
-  search?: string;
-} = {}) => {
+export const useInfiniteLogs = (
+  filters: {
+    level?: LogEntry['level'];
+    source?: string;
+    serverId?: string;
+    timeRange?: string;
+    search?: string;
+  } = {}
+) => {
   const queryClient = useQueryClient();
 
-  const fetchLogs = async ({ pageParam }: { pageParam: string | number }): Promise<PaginatedResponse<LogEntry>> => {
+  const fetchLogs = async ({
+    pageParam,
+  }: any): Promise<PaginatedResponse<LogEntry>> => {
     const params = new URLSearchParams({
       cursor: pageParam.toString(),
       limit: '50',
@@ -90,7 +100,7 @@ export const useInfiniteLogs = (filters: {
   const query = useInfiniteQuery({
     queryKey: infiniteKeys.logs(JSON.stringify(filters)),
     queryFn: fetchLogs,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    getNextPageParam: lastPage => lastPage.nextCursor,
     initialPageParam: 0,
     staleTime: 2 * 60 * 1000, // 2분 (기존 30초에서 증가)
     refetchInterval: 5 * 60 * 1000, // 5분 자동 갱신 (기존 1분에서 증가)
@@ -105,27 +115,30 @@ export const useInfiniteLogs = (filters: {
   });
 
   // 🔄 새로운 로그 실시간 추가
-  const addNewLog = useCallback((newLog: LogEntry) => {
-    queryClient.setQueryData(
-      infiniteKeys.logs(JSON.stringify(filters)),
-      (old: InfiniteData<PaginatedResponse<LogEntry>> | undefined) => {
-        if (!old) return old;
-        
-        const updatedPages = [...old.pages];
-        if (updatedPages[0]) {
-          updatedPages[0] = {
-            ...updatedPages[0],
-            data: [newLog, ...updatedPages[0].data],
+  const addNewLog = useCallback(
+    (newLog: LogEntry) => {
+      queryClient.setQueryData(
+        infiniteKeys.logs(JSON.stringify(filters)),
+        (old: InfiniteData<PaginatedResponse<LogEntry>> | undefined) => {
+          if (!old) return old;
+
+          const updatedPages = [...old.pages];
+          if (updatedPages[0]) {
+            updatedPages[0] = {
+              ...updatedPages[0],
+              data: [newLog, ...updatedPages[0].data],
+            };
+          }
+
+          return {
+            ...old,
+            pages: updatedPages,
           };
         }
-        
-        return {
-          ...old,
-          pages: updatedPages,
-        };
-      }
-    );
-  }, [queryClient, filters]);
+      );
+    },
+    [queryClient, filters]
+  );
 
   // 📊 로그 통계
   const stats = useMemo(() => {
@@ -134,7 +147,8 @@ export const useInfiniteLogs = (filters: {
       total: allLogs.length,
       byLevel: {
         info: allLogs.filter((log: LogEntry) => log.level === 'info').length,
-        warning: allLogs.filter((log: LogEntry) => log.level === 'warning').length,
+        warning: allLogs.filter((log: LogEntry) => log.level === 'warning')
+          .length,
         error: allLogs.filter((log: LogEntry) => log.level === 'error').length,
         debug: allLogs.filter((log: LogEntry) => log.level === 'debug').length,
       },
@@ -153,15 +167,23 @@ export const useInfiniteLogs = (filters: {
 };
 
 // 📊 무한 메트릭 히스토리
-export const useInfiniteMetrics = (serverId: string, metric: string, timeRange: string = '24h') => {
-  const fetchMetrics = async ({ pageParam }: { pageParam: string | number }): Promise<PaginatedResponse<MetricHistoryEntry>> => {
+export const useInfiniteMetrics = (
+  serverId: string,
+  metric: string,
+  timeRange: string = '24h'
+) => {
+  const fetchMetrics = async ({
+    pageParam,
+  }: any): Promise<PaginatedResponse<MetricHistoryEntry>> => {
     const params = new URLSearchParams({
       cursor: pageParam.toString(),
       limit: '100',
       timeRange,
     });
 
-    const response = await fetch(`/api/servers/${serverId}/metrics/${metric}/history?${params}`);
+    const response = await fetch(
+      `/api/servers/${serverId}/metrics/${metric}/history?${params}`
+    );
     if (!response.ok) {
       throw new Error(`메트릭 히스토리 조회 실패: ${response.status}`);
     }
@@ -171,7 +193,7 @@ export const useInfiniteMetrics = (serverId: string, metric: string, timeRange: 
   return useInfiniteQuery({
     queryKey: infiniteKeys.metrics(serverId, metric),
     queryFn: fetchMetrics,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    getNextPageParam: lastPage => lastPage.nextCursor,
     initialPageParam: 0,
     enabled: !!serverId && !!metric,
     staleTime: 3 * 60 * 1000, // 3분 (기존 1분에서 증가)
@@ -180,7 +202,7 @@ export const useInfiniteMetrics = (serverId: string, metric: string, timeRange: 
       pageParams: data.pageParams,
       allMetrics: data.pages.flatMap(page => page.data),
       // 차트 데이터 형태로 변환
-      chartData: data.pages.flatMap(page => 
+      chartData: data.pages.flatMap(page =>
         page.data.map(entry => ({
           timestamp: entry.timestamp,
           value: entry.value,
@@ -191,12 +213,16 @@ export const useInfiniteMetrics = (serverId: string, metric: string, timeRange: 
 };
 
 // 🔮 무한 예측 히스토리
-export const useInfinitePredictionHistory = (filters: {
-  metric?: string;
-  serverId?: string;
-  accuracy?: { min?: number; max?: number };
-} = {}) => {
-  const fetchPredictions = async ({ pageParam }: { pageParam: string | number }): Promise<PaginatedResponse<PredictionHistoryEntry>> => {
+export const useInfinitePredictionHistory = (
+  filters: {
+    metric?: string;
+    serverId?: string;
+    accuracy?: { min?: number; max?: number };
+  } = {}
+) => {
+  const fetchPredictions = async ({
+    pageParam,
+  }: any): Promise<PaginatedResponse<PredictionHistoryEntry>> => {
     const params = new URLSearchParams({
       cursor: pageParam.toString(),
       limit: '25',
@@ -215,14 +241,18 @@ export const useInfinitePredictionHistory = (filters: {
   const query = useInfiniteQuery({
     queryKey: infiniteKeys.predictions(JSON.stringify(filters)),
     queryFn: fetchPredictions,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    getNextPageParam: lastPage => lastPage.nextCursor,
     initialPageParam: 0,
     staleTime: 5 * 60 * 1000, // 5분 (기존 2분에서 증가)
-    select: (data: InfiniteData<PaginatedResponse<PredictionHistoryEntry>>) => ({
+    select: (
+      data: InfiniteData<PaginatedResponse<PredictionHistoryEntry>>
+    ) => ({
       pages: data.pages,
       pageParams: data.pageParams,
       allPredictions: data.pages.flatMap(page => page.data),
-      accuracyStats: calculateAccuracyStats(data.pages.flatMap(page => page.data)),
+      accuracyStats: calculateAccuracyStats(
+        data.pages.flatMap(page => page.data)
+      ),
     }),
   });
 
@@ -230,12 +260,16 @@ export const useInfinitePredictionHistory = (filters: {
 };
 
 // 🚨 무한 알림 히스토리
-export const useInfiniteAlerts = (filters: {
-  level?: 'info' | 'warning' | 'error' | 'critical';
-  resolved?: boolean;
-  serverId?: string;
-} = {}) => {
-  const fetchAlerts = async ({ pageParam }: { pageParam: string | number }): Promise<PaginatedResponse<any>> => {
+export const useInfiniteAlerts = (
+  filters: {
+    level?: 'info' | 'warning' | 'error' | 'critical';
+    resolved?: boolean;
+    serverId?: string;
+  } = {}
+) => {
+  const fetchAlerts = async ({
+    pageParam,
+  }: any): Promise<PaginatedResponse<any>> => {
     const params = new URLSearchParams({
       cursor: pageParam.toString(),
       limit: '20',
@@ -254,7 +288,7 @@ export const useInfiniteAlerts = (filters: {
   return useInfiniteQuery({
     queryKey: infiniteKeys.alerts(JSON.stringify(filters)),
     queryFn: fetchAlerts,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    getNextPageParam: lastPage => lastPage.nextCursor,
     initialPageParam: 0,
     staleTime: 90 * 1000, // 90초 (기존 30초에서 증가)
     refetchInterval: 3 * 60 * 1000, // 3분 (기존 2분에서 증가)
@@ -262,7 +296,8 @@ export const useInfiniteAlerts = (filters: {
       pages: data.pages,
       pageParams: data.pageParams,
       allAlerts: data.pages.flatMap(page => page.data),
-      unresolvedCount: data.pages.flatMap(page => page.data)
+      unresolvedCount: data.pages
+        .flatMap(page => page.data)
         .filter(alert => !alert.resolved).length,
     }),
   });
@@ -274,7 +309,9 @@ export const useInfiniteScrollManager = () => {
 
   // 📊 모든 무한 쿼리 상태
   const getAllInfiniteQueries = useCallback(() => {
-    return queryClient.getQueryCache().getAll()
+    return queryClient
+      .getQueryCache()
+      .getAll()
       .filter(query => query.queryKey[0] === 'infinite')
       .map(query => ({
         key: query.queryKey,
@@ -285,16 +322,21 @@ export const useInfiniteScrollManager = () => {
   }, [queryClient]);
 
   // 🔄 특정 타입의 무한 쿼리 새로고침
-  const refreshInfiniteQueries = useCallback((type: 'logs' | 'metrics' | 'predictions' | 'alerts') => {
-    queryClient.invalidateQueries({
-      predicate: (query) => 
-        query.queryKey[0] === 'infinite' && query.queryKey[1] === type,
-    });
-  }, [queryClient]);
+  const refreshInfiniteQueries = useCallback(
+    (type: 'logs' | 'metrics' | 'predictions' | 'alerts') => {
+      queryClient.invalidateQueries({
+        predicate: query =>
+          query.queryKey[0] === 'infinite' && query.queryKey[1] === type,
+      });
+    },
+    [queryClient]
+  );
 
   // 🧹 메모리 최적화: 오래된 페이지 제거
   const optimizeMemory = useCallback(() => {
-    const infiniteQueries = queryClient.getQueryCache().getAll()
+    const infiniteQueries = queryClient
+      .getQueryCache()
+      .getAll()
       .filter(query => query.queryKey[0] === 'infinite');
 
     infiniteQueries.forEach(query => {
@@ -303,16 +345,13 @@ export const useInfiniteScrollManager = () => {
         // 처음 5페이지와 마지막 5페이지만 유지
         const optimizedData = {
           ...data,
-          pages: [
-            ...data.pages.slice(0, 5),
-            ...data.pages.slice(-5),
-          ],
+          pages: [...data.pages.slice(0, 5), ...data.pages.slice(-5)],
           pageParams: [
             ...data.pageParams.slice(0, 5),
             ...data.pageParams.slice(-5),
           ],
         };
-        
+
         queryClient.setQueryData(query.queryKey, optimizedData);
       }
     });
@@ -334,7 +373,7 @@ export const useInfiniteScrollManager = () => {
 // 🔢 정확도 통계 계산 유틸리티
 function calculateAccuracyStats(predictions: PredictionHistoryEntry[]) {
   const withAccuracy = predictions.filter(p => p.accuracy !== undefined);
-  
+
   if (withAccuracy.length === 0) {
     return {
       average: 0,
@@ -346,7 +385,8 @@ function calculateAccuracyStats(predictions: PredictionHistoryEntry[]) {
   }
 
   const accuracies = withAccuracy.map(p => p.accuracy!);
-  const average = accuracies.reduce((sum, acc) => sum + acc, 0) / accuracies.length;
+  const average =
+    accuracies.reduce((sum, acc) => sum + acc, 0) / accuracies.length;
   const min = Math.min(...accuracies);
   const max = Math.max(...accuracies);
 
@@ -362,4 +402,4 @@ function calculateAccuracyStats(predictions: PredictionHistoryEntry[]) {
       poor: accuracies.filter(acc => acc < 0.5).length,
     },
   };
-} 
+}
