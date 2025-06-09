@@ -11,10 +11,7 @@
 
 import { smartRedis, checkRedisConnection } from '@/lib/redis';
 import os from 'os';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
+import si from 'systeminformation';
 
 export interface PrometheusMetrics {
   timestamp: string;
@@ -311,13 +308,9 @@ export class RealPrometheusCollector {
    * 🌡️ CPU 온도 (리눅스만 지원)
    */
   private async getCPUTemperature(): Promise<number | undefined> {
-    if (os.platform() !== 'linux') return undefined;
-
     try {
-      const { stdout } = await execAsync(
-        'cat /sys/class/thermal/thermal_zone0/temp'
-      );
-      return parseInt(stdout.trim()) / 1000; // milli-celsius to celsius
+      const temp = await si.cpuTemperature();
+      return typeof temp.main === 'number' ? temp.main : undefined;
     } catch {
       return undefined;
     }
@@ -328,17 +321,20 @@ export class RealPrometheusCollector {
    */
   private async getDiskInfo(): Promise<any> {
     try {
-      if (os.platform() === 'win32') {
-        // Windows
-        const { stdout } = await execAsync(
-          'wmic logicaldisk get size,freespace,caption'
-        );
-        return this.parseWindowsDiskInfo(stdout);
-      } else {
-        // Unix/Linux
-        const { stdout } = await execAsync('df -h /');
-        return this.parseUnixDiskInfo(stdout);
+      const disks = await si.fsSize();
+      if (disks && disks.length > 0) {
+        const root = disks[0];
+        const total = root.size;
+        const used = root.used;
+        const free = root.available;
+        return {
+          total,
+          free,
+          used,
+          usage: total > 0 ? (used / total) * 100 : 0,
+        };
       }
+      throw new Error('no disk info');
     } catch (error) {
       console.warn('⚠️ 디스크 정보 수집 실패:', error);
       return {
@@ -389,13 +385,14 @@ export class RealPrometheusCollector {
    */
   private async getProcessInfo(): Promise<any[]> {
     try {
-      if (os.platform() === 'win32') {
-        const { stdout } = await execAsync('tasklist /fo csv | head -n 11');
-        return this.parseWindowsProcesses(stdout);
-      } else {
-        const { stdout } = await execAsync('ps aux | head -n 11');
-        return this.parseUnixProcesses(stdout);
-      }
+      const data = await si.processes();
+      return data.list.slice(0, this.config.maxProcesses).map(proc => ({
+        pid: proc.pid,
+        name: proc.name,
+        cpu: proc.pcpu,
+        memory: proc.pmem,
+        status: proc.state === 'running' ? 'running' : 'stopped',
+      }));
     } catch (error) {
       console.warn('⚠️ 프로세스 정보 수집 실패:', error);
       return [];
@@ -496,163 +493,68 @@ export class RealPrometheusCollector {
   }
 
   private async getCachedMemory(): Promise<number | undefined> {
-    if (os.platform() !== 'linux') return undefined;
     try {
-      const { stdout } = await execAsync('cat /proc/meminfo | grep Cached');
-      const match = stdout.match(/(\d+)/);
-      return match ? parseInt(match[1]) * 1024 : undefined; // KB to bytes
+      const mem = await si.mem();
+      return mem.cached ?? undefined;
     } catch {
       return undefined;
     }
   }
 
   private async getBuffersMemory(): Promise<number | undefined> {
-    if (os.platform() !== 'linux') return undefined;
     try {
-      const { stdout } = await execAsync('cat /proc/meminfo | grep Buffers');
-      const match = stdout.match(/(\d+)/);
-      return match ? parseInt(match[1]) * 1024 : undefined; // KB to bytes
+      const mem = await si.mem();
+      return mem.buffers ?? undefined;
     } catch {
       return undefined;
     }
   }
 
-  private parseWindowsDiskInfo(stdout: string): any {
-    // Windows 디스크 정보 파싱
-    const lines = stdout.trim().split('\n').slice(1);
-    let totalSize = 0;
-    let totalFree = 0;
-
-    for (const line of lines) {
-      const parts = line.trim().split(/\s+/);
-      if (parts.length >= 3) {
-        const size = parseInt(parts[1]) || 0;
-        const free = parseInt(parts[0]) || 0;
-        totalSize += size;
-        totalFree += free;
-      }
-    }
-
-    const used = totalSize - totalFree;
-    return {
-      total: totalSize,
-      free: totalFree,
-      used,
-      usage: totalSize > 0 ? (used / totalSize) * 100 : 0,
-    };
-  }
-
-  private parseUnixDiskInfo(stdout: string): any {
-    // Unix/Linux 디스크 정보 파싱
-    const lines = stdout.trim().split('\n');
-    if (lines.length < 2) {
-      throw new Error('Invalid df output');
-    }
-
-    const parts = lines[1].split(/\s+/);
-    const total = parseInt(parts[1]) * 1024; // KB to bytes
-    const used = parseInt(parts[2]) * 1024;
-    const free = parseInt(parts[3]) * 1024;
-
-    return {
-      total,
-      free,
-      used,
-      usage: total > 0 ? (used / total) * 100 : 0,
-    };
-  }
 
   private async getNetworkStats(interfaceName: string): Promise<any> {
     try {
-      if (os.platform() === 'linux') {
-        const { stdout } = await execAsync(
-          `cat /proc/net/dev | grep ${interfaceName}`
-        );
-        const parts = stdout.trim().split(/\s+/);
-        if (parts.length >= 10) {
-          const rx = parseInt(parts[1]);
-          const tx = parseInt(parts[9]);
+      const [stats] = await si.networkStats(interfaceName);
+      if (stats) {
+        const rx = stats.rx_bytes;
+        const tx = stats.tx_bytes;
 
-          const lastStats = this.lastNetworkStats.get(interfaceName);
-          const now = Date.now();
+        const lastStats = this.lastNetworkStats.get(interfaceName);
+        const now = Date.now();
 
-          let rxRate = 0;
-          let txRate = 0;
+        let rxRate = 0;
+        let txRate = 0;
 
-          if (lastStats) {
-            const timeDiff = (now - lastStats.timestamp) / 1000; // seconds
-            rxRate = (rx - lastStats.rx) / timeDiff;
-            txRate = (tx - lastStats.tx) / timeDiff;
-          }
-
-          this.lastNetworkStats.set(interfaceName, { rx, tx, timestamp: now });
-
-          return { rx, tx, rxRate, txRate };
+        if (lastStats) {
+          const timeDiff = (now - lastStats.timestamp) / 1000;
+          rxRate = (rx - lastStats.rx) / timeDiff;
+          txRate = (tx - lastStats.tx) / timeDiff;
         }
+
+        this.lastNetworkStats.set(interfaceName, { rx, tx, timestamp: now });
+
+        return { rx, tx, rxRate, txRate };
       }
 
-      // Fallback for other platforms or errors
+      throw new Error('no network stats');
+    } catch {
       return {
         rx: Math.floor(Math.random() * 1000000000),
         tx: Math.floor(Math.random() * 1000000000),
         rxRate: Math.floor(Math.random() * 1000000),
         txRate: Math.floor(Math.random() * 1000000),
       };
-    } catch {
-      return null;
     }
   }
 
-  private parseWindowsProcesses(stdout: string): any[] {
-    // Windows tasklist 파싱
-    const lines = stdout.trim().split('\n').slice(1);
-    const processes = [];
-
-    for (const line of lines) {
-      const parts = line.split(',').map(p => p.replace(/"/g, ''));
-      if (parts.length >= 5) {
-        processes.push({
-          pid: parseInt(parts[1]) || 0,
-          name: parts[0],
-          cpu: Math.random() * 100,
-          memory: parseInt(parts[4]?.replace(/[^\d]/g, '')) || 0,
-          status: 'running',
-        });
-      }
-    }
-
-    return processes.slice(0, this.config.maxProcesses);
-  }
-
-  private parseUnixProcesses(stdout: string): any[] {
-    // Unix ps aux 파싱
-    const lines = stdout.trim().split('\n').slice(1);
-    const processes = [];
-
-    for (const line of lines) {
-      const parts = line.trim().split(/\s+/);
-      if (parts.length >= 11) {
-        processes.push({
-          pid: parseInt(parts[1]) || 0,
-          name: parts[10],
-          cpu: parseFloat(parts[2]) || 0,
-          memory: parseFloat(parts[3]) || 0,
-          status: 'running',
-        });
-      }
-    }
-
-    return processes.slice(0, this.config.maxProcesses);
-  }
 
   private async checkServiceStatus(
     serviceName: string,
     port: number
   ): Promise<'running' | 'stopped' | 'error'> {
     try {
-      // 포트 연결 테스트
-      const { stdout } = await execAsync(`netstat -an | grep :${port}`);
-      return stdout.includes(':' + port) ? 'running' : 'stopped';
+      const conns = await si.networkConnections();
+      const found = conns.some(c => c.localport === port);
+      return found ? 'running' : 'stopped';
     } catch {
       return 'stopped';
     }
