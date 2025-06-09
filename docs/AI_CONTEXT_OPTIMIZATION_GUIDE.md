@@ -2,7 +2,7 @@
 
 > **목적**: OpenManager Vibe v5 AI 엔진의 컨텍스트 학습 및 활용 방식 최적화
 > **대상**: AI 엔진 개발자, 시스템 아키텍트, DevOps 엔지니어
-> **버전**: v1.0 (2025-01-10)
+> **버전**: v1.1 (2025-01-10) - 멀티모달 AI 지원 추가
 
 ## 🎯 **현재 상황 분석**
 
@@ -13,6 +13,7 @@
 3. **컨텍스트 우선순위 부재**: 상황별 적절한 컨텍스트 매칭 시스템 부재
 4. **메타데이터 표준화 부족**: AI 엔진 활용을 위한 구조적 정보 부족
 5. **RAG 파이프라인 최적화 부족**: 검색 증강 생성 시스템 미최적화
+6. **🆕 멀티모달 컨텍스트 처리 부재**: 시각적 정보(차트, 스크린샷, 다이어그램) 활용 미지원
 
 ## 📁 **1. 최적화된 컨텍스트 파일 구조**
 
@@ -56,10 +57,23 @@ src/ai-context/
 │   ├── prometheus.md
 │   ├── slack-notifications.md
 │   └── mcp-protocols.md
+├── 🆕 multimodal/                  # 멀티모달 컨텍스트 (이미지+텍스트)
+│   ├── visual-contexts/            # 시각적 컨텍스트
+│   │   ├── dashboard-analysis.md   # 대시보드 이미지 해석
+│   │   ├── chart-interpretation.md # 차트/그래프 분석
+│   │   └── screenshot-diagnosis.md # 서버 스크린샷 진단
+│   ├── image-embeddings/           # 이미지 임베딩 저장소
+│   │   ├── metric-charts/
+│   │   ├── server-screenshots/
+│   │   └── infrastructure-diagrams/
+│   └── vision-models/              # 비전-언어 모델 설정
+│       ├── clip-config.json        # CLIP 모델 설정
+│       └── blip-config.json        # BLIP 모델 설정
 └── metadata/                       # 메타데이터 및 인덱스
     ├── context-index.json          # 컨텍스트 인덱스
     ├── priority-matrix.json        # 우선순위 매트릭스
-    └── keyword-mappings.json       # 키워드 매핑
+    ├── keyword-mappings.json       # 키워드 매핑
+    └── 🆕 visual-context-index.json # 시각적 컨텍스트 인덱스
 ```
 
 ### **컨텍스트 파일 표준 구조**
@@ -641,5 +655,202 @@ class ContextOptimizationTester {
 2. **빠른 응답 속도**: 캐싱과 지연 로딩으로 성능 최적화
 3. **효율적인 메모리 사용**: LRU 캐시와 우선순위 기반 로딩
 4. **높은 AI 응답 품질**: 구조화된 메타데이터와 JSON 기반 추론 지원
+5. **🆕 멀티모달 컨텍스트 활용**: 텍스트와 이미지를 통합한 종합적 분석
 
 단계별 구현을 통해 점진적으로 성능을 개선하면서 안정성도 확보할 수 있습니다.
+
+---
+
+## 🎨 **8. 멀티모달 AI 컨텍스트 확장**
+
+### **시각적 컨텍스트 처리**
+
+OpenManager v5는 이제 **텍스트와 이미지를 동시에 처리**하는 멀티모달 AI를 지원합니다.
+
+#### **멀티모달 컨텍스트 파일 구조**
+
+````markdown
+---
+# 멀티모달 메타데이터
+context_id: 'visual-server-monitoring'
+type: 'multimodal' # text, image, multimodal
+modalities: ['text', 'image']
+visual_elements:
+  - 'dashboard_screenshots'
+  - 'metric_charts'
+  - 'alert_panels'
+image_categories: ['monitoring', 'alerts', 'metrics']
+clip_embeddings_ready: true
+ocr_processed: true
+---
+
+# 📊 시각적 서버 모니터링 컨텍스트
+
+## 🖼️ **이미지 분석 매트릭스**
+
+### **대시보드 스크린샷 해석**
+
+```json
+{
+  "visual_patterns": {
+    "red_alerts": {
+      "interpretation": "즉시 조치 필요한 심각한 문제",
+      "confidence": 0.95,
+      "action": "emergency_response"
+    },
+    "yellow_warnings": {
+      "interpretation": "주의 깊은 모니터링 필요",
+      "confidence": 0.88,
+      "action": "monitor_closely"
+    },
+    "green_status": {
+      "interpretation": "정상 상태",
+      "confidence": 0.99,
+      "action": "continue_monitoring"
+    }
+  }
+}
+```
+````
+
+## 🔗 **멀티모달 컨텍스트 연계**
+
+- 시각적 알람 + 텍스트 쿼리 → 종합적 문제 진단
+- 차트 이미지 + 메트릭 데이터 → 정확한 트렌드 분석
+- 스크린샷 + 로그 텍스트 → 완전한 상황 파악
+
+````
+
+### **멀티모달 ContextManager 확장**
+
+```typescript
+// src/core/ai/MultimodalContextManager.ts
+interface MultimodalContext extends ContextEntry {
+  visualElements?: {
+    images: string[];
+    embeddings: number[][];
+    categories: string[];
+  };
+  ocrText?: string;
+  combinedEmbedding?: number[];
+}
+
+class MultimodalContextManager extends ContextManager {
+  /**
+   * 🎯 이미지와 텍스트를 함께 고려한 컨텍스트 검색
+   */
+  async findMultimodalContexts(
+    textQuery: string,
+    imageData?: string,
+    intent?: string
+  ): Promise<MultimodalContext[]> {
+
+    // 1. 텍스트 기반 검색
+    const textContexts = await this.findRelevantContexts(textQuery, intent, 'medium');
+
+    // 2. 이미지가 있는 경우 시각적 검색 추가
+    if (imageData) {
+      const visualContexts = await this.findVisuallyRelevantContexts(imageData);
+      return this.combineMultimodalContexts(textContexts, visualContexts);
+    }
+
+    return textContexts as MultimodalContext[];
+  }
+
+  /**
+   * 🖼️ 이미지 기반 컨텍스트 검색
+   */
+  private async findVisuallyRelevantContexts(imageData: string): Promise<MultimodalContext[]> {
+    // CLIP 임베딩 생성
+    const imageEmbedding = await this.clipModel.encode(imageData);
+
+    // 시각적 유사도 기반 검색
+    const candidates = await this.vectorDB.searchSimilar(imageEmbedding, {
+      limit: 10,
+      threshold: 0.7
+    });
+
+    return candidates.map(c => this.contextIndex.get(c.id)).filter(Boolean);
+  }
+}
+````
+
+### **UnifiedAIEngine 멀티모달 통합**
+
+```typescript
+// src/core/ai/UnifiedAIEngine.ts (멀티모달 확장)
+export class UnifiedAIEngine {
+  private multimodalContextManager: MultimodalContextManager;
+
+  async analyzeWithVisualContext(
+    request: AnalysisRequest & { imageData?: string }
+  ): Promise<EnhancedAnalysisResponse> {
+    // 🆕 멀티모달 컨텍스트 검색
+    const relevantContexts =
+      await this.multimodalContextManager.findMultimodalContexts(
+        request.query,
+        request.imageData,
+        intent.primary
+      );
+
+    // 시각적 + 텍스트 컨텍스트 통합 분석
+    const enhancedContext = {
+      ...request.context,
+      multimodalContexts: relevantContexts,
+      hasVisualData: !!request.imageData,
+    };
+
+    return this.performEnhancedAnalysis(request, enhancedContext);
+  }
+}
+```
+
+### **활용 시나리오**
+
+#### **📊 대시보드 스크린샷 분석**
+
+```typescript
+const analysisRequest = {
+  query: "서버 상태가 어떤가요?",
+  imageData: dashboard_screenshot_base64,
+  context: { urgency: 'medium' }
+};
+
+// AI 응답 예시
+{
+  "status": "WARNING",
+  "textAnalysis": "질의에서 서버 상태 확인 요청을 감지했습니다.",
+  "visualAnalysis": "대시보드에서 CPU 사용률 89%, 메모리 사용률 76% 확인. 노란색 경고 상태입니다.",
+  "combinedInsight": "현재 서버는 CPU 고부하 상태입니다. 프로세스 최적화나 스케일링을 고려하세요.",
+  "confidence": 0.92
+}
+```
+
+#### **📈 메트릭 차트 해석**
+
+```typescript
+const chartAnalysis = {
+  query: '이 차트에서 문제가 보이나요?',
+  imageData: prometheus_chart_image,
+  context: { domain: 'performance' },
+};
+
+// 멀티모달 컨텍스트가 차트 패턴과 성능 임계값을 함께 고려하여
+// 더 정확한 이상 패턴 감지 및 해석 제공
+```
+
+---
+
+> **💡 핵심**: 멀티모달 AI 컨텍스트는 단순히 이미지를 추가하는 것이 아니라, **시각적 정보와 텍스트 정보의 상호작용을 통해 더 풍부하고 정확한 컨텍스트**를 제공합니다.
+
+---
+
+## 📚 **관련 문서**
+
+- **[멀티모달 AI 통합 가이드](./MULTIMODAL_AI_INTEGRATION_GUIDE.md)**: 상세한 구현 가이드
+- **[시스템 아키텍처 가이드](./시스템_아키텍처_완전_가이드.md)**: 전체 시스템 구조
+- **[MCP 완전 가이드](./MCP_완전_가이드.md)**: MCP 프로토콜 통합
+
+---
+
+**📅 마지막 업데이트**: 2025-01-10 (v1.1 - 멀티모달 AI 지원 추가)
