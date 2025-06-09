@@ -268,6 +268,7 @@
     "framer-motion": "^12.15.0",
     "fuse.js": "^7.1.0",
     "fuzzyset.js": "^1.0.7",
+    "gray-matter": "^4.0.3",
     "ioredis": "^5.6.1",
     "jspdf": "^3.0.1",
     "korean-js": "^0.8.2",

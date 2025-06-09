@@ -15,6 +15,7 @@ export interface MCPContext {
   userQuery?: string;
   previousResults?: any[];
   sessionId?: string;
+  aiContexts?: any[]; // AI 컨텍스트 검색 결과
 }
 
 export interface MCPResponse {
@@ -30,6 +31,10 @@ export interface MCPResponse {
     successRate: number;
     fallbacksUsed: number;
     pythonWarmupTriggered: boolean;
+    contextId?: string;
+    relevanceScore?: number;
+    matchedKeywords?: string[];
+    processingTime?: number;
   };
 }
 
