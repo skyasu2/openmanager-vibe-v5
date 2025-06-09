@@ -245,6 +245,6 @@ npm run build-storybook -- --debug
 
 ---
 
-**마지막 업데이트**: 2024-12-19
+**마지막 업데이트**: 2025-06-09
 **Storybook 버전**: 7.x
 **지원 브라우저**: Chrome, Firefox, Safari, Edge

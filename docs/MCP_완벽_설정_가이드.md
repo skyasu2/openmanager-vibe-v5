@@ -1,9 +1,11 @@
 # 🚀 MCP 완벽 설정 가이드
+
 ## 다른 프로젝트에서도 동일하게 재사용 가능한 완전한 가이드
 
 ### 📋 검증된 성공 사례
+
 - **프로젝트**: OpenManager Vibe v5
-- **설정일**: 2024-12-19
+- **설정일**: 2025-06-09
 - **IDE**: Cursor IDE
 - **성공률**: 100% ✅
 
@@ -12,6 +14,7 @@
 ## 🎯 1단계: 프로젝트 준비
 
 ### 필수 요구사항 확인
+
 ```bash
 # Node.js 18+ 필수
 node --version
@@ -24,6 +27,7 @@ npm install
 ```
 
 ### 기본 프로젝트 구조
+
 ```
 프로젝트-루트/
 ├── .cursor/          # Cursor IDE 설정
@@ -36,6 +40,7 @@ npm install
 ## 🔧 2단계: 핵심 설정 파일 생성
 
 ### A. `.cursor/mcp.json` 생성
+
 ```json
 {
   "mcpServers": {
@@ -49,7 +54,7 @@ npm install
       "enabled": true
     },
     "memory": {
-      "command": "npx", 
+      "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
       "env": {
         "MEMORY_STORE_PATH": "./mcp-memory"
@@ -81,9 +86,11 @@ npm install
 ```
 
 ### B. `cursor.mcp.json` 생성 (프로젝트 루트)
+
 **중요**: 동일한 내용을 프로젝트 루트에도 복사해야 합니다!
 
 ### C. `.cursor/settings.json` 생성
+
 ```json
 {
   "mcp.enabled": true,
@@ -105,6 +112,7 @@ npm install
 ## 🚀 3단계: 자동 설정 스크립트
 
 ### Windows PowerShell용 (`setup-mcp.ps1`)
+
 ```powershell
 #!/usr/bin/env pwsh
 # MCP 완벽 설정 자동화 스크립트 (Windows)
@@ -132,7 +140,7 @@ $mcpConfig = @'
       "enabled": true
     },
     "memory": {
-      "command": "npx", 
+      "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
       "env": {
         "MEMORY_STORE_PATH": "./mcp-memory"
@@ -198,6 +206,7 @@ Write-Host "🔄 Cursor IDE를 재시작하세요." -ForegroundColor Cyan
 ```
 
 ### Linux/macOS용 (`setup-mcp.sh`)
+
 ```bash
 #!/bin/bash
 # MCP 완벽 설정 자동화 스크립트 (Linux/macOS)
@@ -224,7 +233,7 @@ cat > .cursor/mcp.json << 'EOF'
       "enabled": true
     },
     "memory": {
-      "command": "npx", 
+      "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
       "env": {
         "MEMORY_STORE_PATH": "./mcp-memory"
@@ -291,6 +300,7 @@ echo "🔄 Cursor IDE를 재시작하세요."
 ## 🔍 4단계: 설정 검증
 
 ### A. 파일 구조 확인
+
 ```
 프로젝트/
 ├── .cursor/
@@ -301,12 +311,14 @@ echo "🔄 Cursor IDE를 재시작하세요."
 ```
 
 ### B. Cursor IDE에서 확인
+
 1. **Cursor IDE 재시작**
 2. **Cmd/Ctrl + Shift + P** → "MCP" 검색
 3. **MCP Tools 패널** 확인
 4. **모든 서버 Active 상태** 확인
 
 ### C. 기능 테스트
+
 ```
 ✅ 파일 읽기/쓰기 (filesystem)
 ✅ 정보 저장/검색 (memory)
@@ -319,6 +331,7 @@ echo "🔄 Cursor IDE를 재시작하세요."
 ## 📊 5단계: 성능 최적화
 
 ### 메모리 사용량 설정
+
 ```json
 "env": {
   "NODE_OPTIONS": "--max-old-space-size=512"  // 512MB 제한
@@ -326,11 +339,13 @@ echo "🔄 Cursor IDE를 재시작하세요."
 ```
 
 ### 선택적 서버 활성화
+
 ```json
 "enabled": false  // 불필요한 서버는 비활성화
 ```
 
 ### 로컬 캐시 디렉토리
+
 ```bash
 mkdir -p mcp-memory  // 메모리 서버용 로컬 저장소
 ```
@@ -340,11 +355,14 @@ mkdir -p mcp-memory  // 메모리 서버용 로컬 저장소
 ## 🚨 트러블슈팅
 
 ### 흔한 문제들
+
 1. **서버가 인식되지 않음**
+
    - Cursor IDE 완전 재시작
    - `cursor.mcp.json` 파일 존재 확인
 
 2. **npx 실행 오류**
+
    - Node.js 18+ 버전 확인
    - npm 캐시 클리어: `npm cache clean --force`
 
@@ -353,6 +371,7 @@ mkdir -p mcp-memory  // 메모리 서버용 로컬 저장소
    - 불필요한 서버 비활성화
 
 ### 로그 확인 방법
+
 ```bash
 # Cursor 개발자 도구
 Cmd/Ctrl + Shift + I → Console 탭
@@ -363,6 +382,7 @@ Cmd/Ctrl + Shift + I → Console 탭
 ## 🎯 다른 프로젝트 적용 방법
 
 ### 1. 새 프로젝트에서
+
 ```bash
 # 1. 프로젝트 클론
 git clone <repository-url>
@@ -377,6 +397,7 @@ chmod +x setup-mcp.sh
 ```
 
 ### 2. 기존 프로젝트에서
+
 ```bash
 # 1. 설정 파일 복사
 cp path/to/success-project/.cursor/mcp.json .cursor/
@@ -390,12 +411,14 @@ cp path/to/success-project/cursor.mcp.json .
 ## 📝 체크리스트
 
 ### 설정 전
+
 - [ ] Node.js 18+ 설치됨
 - [ ] npm 정상 작동
 - [ ] Cursor IDE 설치됨
 - [ ] 프로젝트 준비됨
 
 ### 설정 중
+
 - [ ] `.cursor/` 디렉토리 생성
 - [ ] `mcp.json` 파일 생성
 - [ ] `cursor.mcp.json` 파일 생성 (루트)
@@ -403,6 +426,7 @@ cp path/to/success-project/cursor.mcp.json .
 - [ ] 권한 설정 확인
 
 ### 설정 후
+
 - [ ] Cursor IDE 재시작
 - [ ] MCP Tools 패널 확인
 - [ ] 모든 서버 Active 확인
@@ -414,6 +438,7 @@ cp path/to/success-project/cursor.mcp.json .
 ## 🎉 성공 확인
 
 모든 설정이 완료되면:
+
 - **4개 MCP 서버** 모두 활성화 ✅
 - **파일 시스템 접근** 가능 ✅
 - **웹 검색** 기능 작동 ✅
@@ -425,10 +450,11 @@ cp path/to/success-project/cursor.mcp.json .
 ---
 
 ## 🔗 관련 문서
+
 - [MCP 공식 문서](https://github.com/modelcontextprotocol)
 - [Cursor IDE 가이드](https://cursor.sh/docs)
 - [성공 사례 분석](./MCP_SETUP_SUCCESS.md)
 
-**생성일**: 2024-12-19  
+**생성일**: 2025-06-09  
 **버전**: 1.0.0  
-**상태**: ✅ 검증 완료 
+**상태**: ✅ 검증 완료

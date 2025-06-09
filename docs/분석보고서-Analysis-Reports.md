@@ -18,7 +18,7 @@ graph TD
     D -->|성공| F[RAG 응답 반환]
     D -->|실패| G[기본 키워드 검색]
     G --> H[폴백 응답 반환]
-    
+
     E --> I[🏆 고품질 응답]
     F --> J[✅ 의미적 검색 응답]
     H --> K[⚠️ 기본 응답]
@@ -26,11 +26,11 @@ graph TD
 
 ### 환경별 사용 패턴
 
-| 환경 | MCP 성공률 | RAG 성공률 | 주요 엔진 | 특징 |
-|------|------------|------------|-----------|------|
-| **개발환경** | 80% | 15% | MCP 우위 | Cursor IDE에서 완전한 MCP 지원 |
-| **Vercel 프로덕션** | 40% | 55% | RAG 우위 | 파일 시스템 제약으로 RAG 중심 |
-| **오프라인 데모** | 0% | 75% | RAG 전용 | MCP 불가능, 로컬 벡터 DB만 사용 |
+| 환경                | MCP 성공률 | RAG 성공률 | 주요 엔진 | 특징                            |
+| ------------------- | ---------- | ---------- | --------- | ------------------------------- |
+| **개발환경**        | 80%        | 15%        | MCP 우위  | Cursor IDE에서 완전한 MCP 지원  |
+| **Vercel 프로덕션** | 40%        | 55%        | RAG 우위  | 파일 시스템 제약으로 RAG 중심   |
+| **오프라인 데모**   | 0%         | 75%        | RAG 전용  | MCP 불가능, 로컬 벡터 DB만 사용 |
 
 ## 🔍 벡터 DB 전략적 도입 이유
 
@@ -38,18 +38,18 @@ graph TD
 
 ```typescript
 const mcpLimitations = {
-  fileSystemDependency: "파일 시스템 접근 실패 시 무력화",
-  keywordOnlySearch: "정확한 키워드만 매칭 (유의어 처리 안됨)",
-  contextLoss: "파일 간 연관성 파악 불가",
-  staticContent: "동적 컨텍스트 학습 불가능",
-  
+  fileSystemDependency: '파일 시스템 접근 실패 시 무력화',
+  keywordOnlySearch: '정확한 키워드만 매칭 (유의어 처리 안됨)',
+  contextLoss: '파일 간 연관성 파악 불가',
+  staticContent: '동적 컨텍스트 학습 불가능',
+
   // 실제 발생 가능한 실패 시나리오
   commonFailures: [
-    "MCP 서버 연결 실패",
-    "파일 권한 문제", 
-    "Cursor AI MCP 설정 오류",
-    "프로덕션 환경 파일 접근 제한"
-  ]
+    'MCP 서버 연결 실패',
+    '파일 권한 문제',
+    'Cursor AI MCP 설정 오류',
+    '프로덕션 환경 파일 접근 제한',
+  ],
 };
 ```
 
@@ -58,19 +58,19 @@ const mcpLimitations = {
 ```typescript
 const ragAdvantages = {
   robustness: {
-    offline: "파일 시스템 없어도 사전 임베딩된 지식 활용",
-    semantic: "의미적 검색으로 유의어/관련 개념 찾기",
-    crossDocument: "문서 간 연관성 벡터로 파악",
-    adaptive: "사용자 쿼리 패턴 학습 및 개선"
+    offline: '파일 시스템 없어도 사전 임베딩된 지식 활용',
+    semantic: '의미적 검색으로 유의어/관련 개념 찾기',
+    crossDocument: '문서 간 연관성 벡터로 파악',
+    adaptive: '사용자 쿼리 패턴 학습 및 개선',
   },
-  
+
   // 벡터 DB가 특히 강한 부분
   strongPoints: [
-    "애매한 질문도 관련 문서 찾기",
-    "한국어 ↔ 영어 교차 검색",
-    "개념적 연관성 파악",
-    "점진적 학습 개선"
-  ]
+    '애매한 질문도 관련 문서 찾기',
+    '한국어 ↔ 영어 교차 검색',
+    '개념적 연관성 파악',
+    '점진적 학습 개선',
+  ],
 };
 ```
 
@@ -78,14 +78,14 @@ const ragAdvantages = {
 
 ### 현재 설치 상태
 
-| 컴포넌트 | 상태 | 세부사항 | 활용도 |
-|----------|------|----------|---------|
-| **로컬 벡터 DB** | ✅ 완전 구현 | `LocalVectorDB` 클래스, 10K 문서 지원 | 100% |
-| **Redis 벡터 저장** | ✅ 연결 성공 | Upstash Redis, 벡터 캐싱 | 80% |
-| **Transformers.js** | ✅ 설치됨 | `@xenova/transformers`, 384차원 임베딩 | 90% |
-| **의미적 검색** | ✅ 동작 가능 | 코사인 유사도, 한국어 지원 | 85% |
-| **pgvector** | ⚠️ 확인 필요 | Supabase 확장, 선택사항 | 0% |
-| **외부 벡터 DB** | ❌ 미설치 | Pinecone, Weaviate 등 | 0% |
+| 컴포넌트            | 상태         | 세부사항                               | 활용도 |
+| ------------------- | ------------ | -------------------------------------- | ------ |
+| **로컬 벡터 DB**    | ✅ 완전 구현 | `LocalVectorDB` 클래스, 10K 문서 지원  | 100%   |
+| **Redis 벡터 저장** | ✅ 연결 성공 | Upstash Redis, 벡터 캐싱               | 80%    |
+| **Transformers.js** | ✅ 설치됨    | `@xenova/transformers`, 384차원 임베딩 | 90%    |
+| **의미적 검색**     | ✅ 동작 가능 | 코사인 유사도, 한국어 지원             | 85%    |
+| **pgvector**        | ⚠️ 확인 필요 | Supabase 확장, 선택사항                | 0%     |
+| **외부 벡터 DB**    | ❌ 미설치    | Pinecone, Weaviate 등                  | 0%     |
 
 ### 핵심 벡터 처리 엔진
 
@@ -95,19 +95,19 @@ const embedding = await transformersEngine.generateEmbedding(text);
 
 // 2. 벡터 저장: Redis + 로컬 메모리
 await vectorDB.addDocument(id, text, metadata);
-await redisClient.set(`vector:${id}`, JSON.stringify({embedding, metadata}));
+await redisClient.set(`vector:${id}`, JSON.stringify({ embedding, metadata }));
 
 // 3. 의미적 검색: 코사인 유사도
 const results = await vectorDB.search(query, {
   topK: 5,
   threshold: 0.3,
-  includeMetadata: true
+  includeMetadata: true,
 });
 ```
 
 ## 📊 실제 폴백 시스템 동작
 
-### 테스트 결과 (2024-12-22)
+### 테스트 결과 (2025-06-09)
 
 ```
 🧪 폴백 시스템 테스트 결과:
@@ -135,33 +135,33 @@ const results = await vectorDB.search(query, {
 
 ### Before vs After
 
-| 항목 | 도입 전 | 도입 후 | 개선율 |
-|------|---------|---------|--------|
-| **환경 지원** | Cursor만 | 모든 환경 | 300%↑ |
-| **검색 품질** | 키워드만 | 의미적 검색 | 200%↑ |
-| **장애 대응** | 단일 실패점 | 3단계 폴백 | 무한↑ |
-| **사용자 경험** | 불일치 | 일관성 유지 | 100%↑ |
-| **확장성** | 정적 | 학습 가능 | 150%↑ |
+| 항목            | 도입 전     | 도입 후     | 개선율 |
+| --------------- | ----------- | ----------- | ------ |
+| **환경 지원**   | Cursor만    | 모든 환경   | 300%↑  |
+| **검색 품질**   | 키워드만    | 의미적 검색 | 200%↑  |
+| **장애 대응**   | 단일 실패점 | 3단계 폴백  | 무한↑  |
+| **사용자 경험** | 불일치      | 일관성 유지 | 100%↑  |
+| **확장성**      | 정적        | 학습 가능   | 150%↑  |
 
 ### 실제 사용 시나리오
 
 ```typescript
 const realWorldScenarios = {
   scenario1: {
-    situation: "Cursor MCP 설정 오류",
-    userQuery: "서버 모니터링 최적화 방법",
-    mcpResult: "❌ 연결 실패",
-    ragResult: "✅ 사전 임베딩된 문서에서 관련 내용 검색",
-    userExperience: "사용자는 오류를 느끼지 못함"
+    situation: 'Cursor MCP 설정 오류',
+    userQuery: '서버 모니터링 최적화 방법',
+    mcpResult: '❌ 연결 실패',
+    ragResult: '✅ 사전 임베딩된 문서에서 관련 내용 검색',
+    userExperience: '사용자는 오류를 느끼지 못함',
   },
-  
+
   scenario2: {
-    situation: "Vercel 프로덕션 배포",
-    userQuery: "메모리 사용량 분석 도구",
-    mcpResult: "❌ 파일 시스템 접근 제한",
-    ragResult: "✅ 벡터 DB에서 의미적 검색",
-    userExperience: "오히려 더 포괄적인 답변 제공"
-  }
+    situation: 'Vercel 프로덕션 배포',
+    userQuery: '메모리 사용량 분석 도구',
+    mcpResult: '❌ 파일 시스템 접근 제한',
+    ragResult: '✅ 벡터 DB에서 의미적 검색',
+    userExperience: '오히려 더 포괄적인 답변 제공',
+  },
 };
 ```
 
@@ -175,22 +175,22 @@ const optimalConfig = {
     primaryEngine: 'MCP',
     fallbackEngine: 'RAG',
     vectorDB: 'LocalMemory',
-    caching: 'Redis'
+    caching: 'Redis',
   },
-  
+
   production: {
     primaryEngine: 'RAG',
     fallbackEngine: 'Basic',
     vectorDB: 'Redis + LocalMemory',
-    caching: 'Aggressive'
+    caching: 'Aggressive',
   },
-  
+
   offline: {
     primaryEngine: 'RAG',
     fallbackEngine: 'Basic',
     vectorDB: 'LocalMemory',
-    caching: 'None'
-  }
+    caching: 'None',
+  },
 };
 ```
 
@@ -217,6 +217,6 @@ const optimalConfig = {
 
 ---
 
-*보고서 생성일: 2024-12-22*  
-*시스템 버전: OpenManager Vibe v5.35.0*  
-*분석 범위: MCP + RAG 하이브리드 아키텍처 전체* 
+_보고서 생성일: 2025-06-09_  
+_시스템 버전: OpenManager Vibe v5.35.0_  
+_분석 범위: MCP + RAG 하이브리드 아키텍처 전체_

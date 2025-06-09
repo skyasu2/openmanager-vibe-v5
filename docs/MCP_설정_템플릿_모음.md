@@ -1,9 +1,11 @@
 # 🎯 MCP 설정 템플릿 모음
+
 ## 성공한 MCP 설정을 빠르게 복사해서 사용할 수 있는 템플릿 모음
 
 ### 📌 검증된 성공 사례
+
 - **프로젝트**: OpenManager Vibe v5
-- **성공일**: 2024-12-19
+- **성공일**: 2025-06-09
 - **상태**: ✅ 100% 작동 확인됨
 
 ---
@@ -23,7 +25,7 @@
       "enabled": true
     },
     "memory": {
-      "command": "npx", 
+      "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
       "env": {
         "MEMORY_STORE_PATH": "./mcp-memory"
@@ -73,7 +75,7 @@
       "enabled": true
     },
     "memory": {
-      "command": "npx", 
+      "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
       "env": {
         "MEMORY_STORE_PATH": "./mcp-memory"
@@ -265,18 +267,21 @@ node quick-mcp-setup.js
 설정 완료 후 반드시 확인해야 할 항목들:
 
 ### ✅ 파일 존재 확인
+
 - [ ] `.cursor/mcp.json` 파일 존재
-- [ ] `.cursor/settings.json` 파일 존재  
+- [ ] `.cursor/settings.json` 파일 존재
 - [ ] `cursor.mcp.json` 파일 존재 (프로젝트 루트)
 - [ ] `mcp-memory/` 디렉토리 존재
 
 ### ✅ Cursor IDE 확인
+
 - [ ] Cursor IDE 재시작 완료
 - [ ] Cmd/Ctrl + Shift + P → "MCP" 검색 시 옵션 나타남
 - [ ] MCP Tools 패널에서 4개 서버 모두 "Active" 상태
 - [ ] 에러 메시지 없음
 
 ### ✅ 기능 테스트
+
 - [ ] 파일 읽기/쓰기 기능 작동 (filesystem)
 - [ ] 정보 저장/검색 기능 작동 (memory)
 - [ ] 웹 검색 기능 작동 (duckduckgo-search)
@@ -330,6 +335,6 @@ node quick-mcp-setup.js
 - [MCP 성공 사례](./MCP_SETUP_SUCCESS.md) - 실제 성공 사례 분석
 - [MCP 공식 문서](https://github.com/modelcontextprotocol) - 공식 레퍼런스
 
-**생성일**: 2024-12-19  
-**최종 수정**: 2024-12-19  
-**상태**: ✅ 검증 완료 
+**생성일**: 2025-06-09  
+**최종 수정**: 2025-06-09  
+**상태**: ✅ 검증 완료

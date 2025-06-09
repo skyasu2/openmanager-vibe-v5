@@ -1,6 +1,6 @@
 #!/usr/bin/env pwsh
 # MCP 완벽 설정 자동화 스크립트 (Windows)
-# 검증된 성공 사례 기반 (2024-12-19)
+# 검증된 성공 사례 기반 (2025-06-09)
 
 Write-Host "🚀 MCP 완벽 설정을 시작합니다..." -ForegroundColor Green
 Write-Host "📌 검증된 성공 사례 기반으로 설정합니다." -ForegroundColor Yellow
