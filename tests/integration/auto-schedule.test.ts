@@ -26,9 +26,9 @@ describe('자동 실행 스케줄', () => {
 
     await vi.advanceTimersByTimeAsync(20000);
 
-    // 타이밍에 따라 2-3번 호출될 수 있음
+    // updateInterval이 3000ms로 변경되어 더 자주 호출됨 (20초 동안 5-7번 호출 가능)
     expect(spy.mock.calls.length).toBeGreaterThanOrEqual(2);
-    expect(spy.mock.calls.length).toBeLessThanOrEqual(3);
+    expect(spy.mock.calls.length).toBeLessThanOrEqual(7);
 
     generator.stopAutoGeneration();
   });
