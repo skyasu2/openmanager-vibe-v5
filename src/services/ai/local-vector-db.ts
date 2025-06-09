@@ -27,17 +27,28 @@ export class LocalVectorDB {
   }
 
   async search(query: number[], limit = 10) {
-    // PostgresVectorDB로 위임
-    const results = await postgresVectorDB.search(query, { topK: limit });
-    return {
-      results: results.map(r => ({
-        id: r.id,
-        vector: [],
-        metadata: r.metadata,
-        similarity: r.similarity,
-      })),
-      count: results.length,
-    };
+    try {
+      // PostgresVectorDB로 위임
+      const results = await postgresVectorDB.search(query, { topK: limit });
+      return {
+        status: 'success',
+        results: results.map(r => ({
+          id: r.id,
+          vector: [],
+          metadata: r.metadata,
+          similarity: r.similarity,
+        })),
+        count: results.length,
+      };
+    } catch (error) {
+      console.error('LocalVectorDB 검색 실패:', error);
+      return {
+        status: 'error',
+        results: [],
+        count: 0,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
   }
 
   async getStatus() {
