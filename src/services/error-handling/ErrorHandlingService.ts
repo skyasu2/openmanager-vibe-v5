@@ -15,11 +15,11 @@ import {
     ErrorStats,
     ErrorHandlingConfig,
     createServiceError as createServiceErrorUtil
-} from './error-handling/types/ErrorTypes';
-import { ErrorHandlingCore } from './error-handling/core/ErrorHandlingCore';
-import { DefaultErrorHandlers } from './error-handling/handlers/DefaultErrorHandlers';
-import { RecoveryService } from './error-handling/recovery/RecoveryService';
-import { ErrorMonitoringService } from './error-handling/monitoring/ErrorMonitoringService';
+} from './types/ErrorTypes';
+import { ErrorHandlingCore } from './core/ErrorHandlingCore';
+import { DefaultErrorHandlers } from './handlers/DefaultErrorHandlers';
+import { RecoveryService } from './recovery/RecoveryService';
+import { ErrorMonitoringService } from './monitoring/ErrorMonitoringService';
 
 export class ErrorHandlingService implements IErrorHandler {
     private core: ErrorHandlingCore;
@@ -244,4 +244,4 @@ export function getErrorHandlingService(logger?: ILogger): ErrorHandlingService 
 
 // 기존 코드와의 호환성을 위한 export
 export { ErrorHandlingService as default };
-export type { ServiceError, IErrorHandler, ErrorStats } from './error-handling/types/ErrorTypes'; 
+export type { ServiceError, IErrorHandler, ErrorStats } from './types/ErrorTypes'; 

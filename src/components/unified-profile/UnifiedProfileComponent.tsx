@@ -13,9 +13,9 @@
 
 import { useState, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { UnifiedProfileComponentProps } from './unified-profile/types/ProfileTypes';
-import { UnifiedProfileButton } from './unified-profile/UnifiedProfileButton';
-import { UnifiedSettingsPanel } from './unified-profile/UnifiedSettingsPanel';
+import { UnifiedProfileComponentProps } from './types/ProfileTypes';
+import { UnifiedProfileButton } from './UnifiedProfileButton';
+import { UnifiedSettingsPanel } from './UnifiedSettingsPanel';
 
 export default function UnifiedProfileComponent({
     userName = '사용자',

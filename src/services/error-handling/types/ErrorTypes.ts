@@ -1,22 +1,139 @@
 /**
- * 🔧 에러 처리 타입 정의
+ * 🎯 Error Handling Types
+ * 
+ * 에러 처리 시스템의 모든 타입 정의
+ * - ServiceError 인터페이스
+ * - 에러 핸들러 타입들
+ * - 복구 설정 타입들
+ * - 모니터링 타입들
  */
+
+import { ILogger } from '@/interfaces/services';
 
 export interface ServiceError extends Error {
   code: string;
   service: string;
-  timestamp: Date;
   context?: Record<string, any>;
   cause?: Error;
+  timestamp?: Date;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+  retry?: boolean;
+  recoverable?: boolean;
 }
 
-export interface ErrorHandler {
+export interface IErrorHandler {
   handle(error: ServiceError): void;
   register(errorType: string, handler: (error: ServiceError) => void): void;
   unregister(errorType: string): void;
   getErrorHistory(limit?: number): ServiceError[];
   clearErrorHistory(): void;
 }
+
+export interface ErrorStats {
+  total: number;
+  byService: Record<string, number>;
+  byCode: Record<string, number>;
+  recentCritical: ServiceError[];
+  errorRate: number;
+}
+
+export interface RecoveryConfig {
+  maxRetries: number;
+  baseDelay: number;
+  maxDelay: number;
+  backoffFactor: number;
+  timeout: number;
+}
+
+export interface CircuitBreakerConfig {
+  failureThreshold: number;
+  timeout: number;
+  retryAfter: number;
+}
+
+export interface ServiceHealthStatus {
+  isHealthy: boolean;
+  responseTime: number;
+  statusCode?: number;
+  error?: string;
+  lastChecked?: Date;
+}
+
+export interface ServiceDependencyStatus {
+  healthy: string[];
+  failed: string[];
+  lastChecked: Date;
+}
+
+export interface WebSocketHealthStatus {
+  isConnected: boolean;
+  lastHeartbeat?: Date;
+  reconnectAttempts: number;
+}
+
+export interface FileSystemHealth {
+  totalSpace: number;
+  freeSpace: number;
+  usagePercent: number;
+  issues: string[];
+}
+
+export interface ExternalService {
+  name: string;
+  url?: string;
+  critical: boolean;
+}
+
+export interface RecoveryResult {
+  success: boolean;
+  attempts: number;
+  fallbackUrl?: string;
+  error?: string;
+}
+
+export interface ErrorHandlerFunction {
+  (error: ServiceError): void | Promise<void>;
+}
+
+export interface MonitoringEvent {
+  type: 'error' | 'recovery' | 'fallback' | 'critical';
+  data: Record<string, any>;
+  timestamp: Date;
+}
+
+export interface EmergencyModeConfig {
+  disableNonCritical: boolean;
+  enableLogging: boolean;
+  notifyAdmins: boolean;
+  fallbackTimeout: number;
+}
+
+export interface GracefulDegradationConfig {
+  reduceQuality: boolean;
+  disableFeatures: string[];
+  enablePolling: boolean;
+  pollInterval: number;
+}
+
+export type ErrorType = 'NETWORK_ERROR' | 'DATABASE_ERROR' | 'AUTH_ERROR' | 'PERMISSION_ERROR' |
+  'VALIDATION_ERROR' | 'CONFIG_ERROR' | 'TIMEOUT_ERROR' | 'AI_AGENT_ERROR' |
+  'MEMORY_EXHAUSTED' | 'DISK_FULL' | 'REDIS_CONNECTION_ERROR' | 'PROMETHEUS_ERROR' |
+  'SYSTEM_OVERLOAD' | 'EXTERNAL_API_ERROR' | 'WEBSOCKET_ERROR' | 'FILESYSTEM_ERROR' |
+  'SECURITY_BREACH' | 'RATE_LIMIT_ERROR' | 'SERVICE_DEPENDENCY_ERROR';
+
+export interface ErrorHandlingConfig {
+  maxHistorySize: number;
+  enableLogging: boolean;
+  enableMonitoring: boolean;
+  enableRecovery: boolean;
+  criticalThreshold: number;
+  defaultTimeout: number;
+  logger?: ILogger;
+}
+
+/**
+ * 🔧 에러 처리 타입 정의
+ */
 
 export interface RecoveryStrategy {
   canRecover(error: ServiceError): boolean;
@@ -37,20 +154,6 @@ export interface NetworkHealthStatus {
   lastCheck: Date;
 }
 
-export interface WebSocketHealthStatus {
-  isConnected: boolean;
-  lastHeartbeat?: Date;
-  reconnectAttempts: number;
-  fallbackActive: boolean;
-}
-
-export interface FileSystemHealthStatus {
-  totalSpace: number;
-  freeSpace: number;
-  usagePercent: number;
-  issues: string[];
-}
-
 export interface ExternalAPIHealthStatus {
   isHealthy: boolean;
   responseTime: number;
@@ -64,20 +167,6 @@ export interface ErrorStatistics {
   byCode: Record<string, number>;
   recentCritical: ServiceError[];
   errorRate: number;
-}
-
-export interface RecoveryConfig {
-  maxRetries: number;
-  baseDelay: number;
-  maxDelay: number;
-  backoffFactor: number;
-  timeout: number;
-}
-
-export interface CircuitBreakerConfig {
-  failureThreshold: number;
-  timeout: number;
-  retryAfter: number;
 }
 
 export interface ServiceDependency {
@@ -198,11 +287,15 @@ export function createServiceError(
   cause?: Error
 ): ServiceError {
   const error = new Error(message) as ServiceError;
+  error.name = 'ServiceError';
   error.code = code;
   error.service = service;
   error.timestamp = new Date();
   error.context = context;
   error.cause = cause;
+  error.severity = 'medium';
+  error.retry = true;
+  error.recoverable = true;
   return error;
 }
 

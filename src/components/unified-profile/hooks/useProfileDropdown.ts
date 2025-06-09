@@ -1,77 +1,84 @@
 /**
- * 🔧 프로필 드롭다운 커스텀 훅
+ * 🎣 useProfileDropdown Hook
+ * 
+ * 프로필 드롭다운 위치 계산 및 이벤트 처리 훅
+ * 
+ * @created 2025-06-09
+ * @author AI Assistant
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { DropdownPosition } from '../types/ProfileTypes';
 
-export const useProfileDropdown = () => {
-  const [isOpen, setIsOpen] = useState(false);
+interface UseProfileDropdownProps {
+  isOpen: boolean;
+  onToggle: () => void;
+  buttonRef: React.RefObject<HTMLButtonElement>;
+}
+
+interface UseProfileDropdownReturn {
+  dropdownPosition: DropdownPosition;
+  dropdownRef: React.RefObject<HTMLDivElement>;
+  calculatePosition: () => void;
+}
+
+export function useProfileDropdown({
+  isOpen,
+  onToggle,
+  buttonRef,
+}: UseProfileDropdownProps): UseProfileDropdownReturn {
   const [dropdownPosition, setDropdownPosition] = useState<DropdownPosition>({
     top: 0,
-    right: 0,
+    left: 0,
+    transformOrigin: 'top right',
   });
-  
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const profileButtonRef = useRef<HTMLButtonElement>(null);
 
   /**
    * 드롭다운 위치 계산
    */
-  const calculateDropdownPosition = useCallback(() => {
-    if (!profileButtonRef.current) return;
+  const calculatePosition = useCallback(() => {
+    if (!buttonRef.current) return;
 
-    const buttonRect = profileButtonRef.current.getBoundingClientRect();
+    const buttonRect = buttonRef.current.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
     // 기본 위치: 버튼 아래, 오른쪽 정렬
     let top = buttonRect.bottom + 8;
-    let right = viewportWidth - buttonRect.right;
+    let left = buttonRect.right - 320; // 드롭다운 너비 320px 기준
 
     // 드롭다운이 화면 아래로 넘어가는 경우 위쪽에 표시
-    const dropdownHeight = 400; // 예상 드롭다운 높이
+    const dropdownHeight = 400;
     if (top + dropdownHeight > viewportHeight) {
       top = buttonRect.top - dropdownHeight - 8;
     }
 
+    // 드롭다운이 화면 왼쪽으로 넘어가는 경우
+    if (left < 16) {
+      left = 16;
+    }
+
     // 모바일에서는 중앙 정렬
     if (viewportWidth < 640) {
-      right = (viewportWidth - 320) / 2; // 드롭다운 너비 320px 기준
-      if (right < 16) right = 16; // 최소 여백
+      left = (viewportWidth - 320) / 2;
+      if (left < 16) left = 16;
     }
 
-    setDropdownPosition({ top, right });
-  }, []);
+    // transformOrigin 계산
+    let transformOrigin = 'top right';
+    if (left <= 16) {
+      transformOrigin = 'top left';
+    } else if (left === (viewportWidth - 320) / 2) {
+      transformOrigin = 'top center';
+    }
+
+    setDropdownPosition({ top, left, transformOrigin });
+  }, [buttonRef]);
 
   /**
-   * 드롭다운 열기/닫기
+   * 외부 클릭 감지
    */
-  const toggleDropdown = useCallback((e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-
-    if (!isOpen) {
-      calculateDropdownPosition();
-      // 약간의 지연으로 위치 계산 후 열기
-      requestAnimationFrame(() => {
-        setIsOpen(true);
-      });
-    } else {
-      setIsOpen(false);
-    }
-  }, [isOpen, calculateDropdownPosition]);
-
-  /**
-   * 드롭다운 닫기
-   */
-  const closeDropdown = useCallback(() => {
-    setIsOpen(false);
-  }, []);
-
-  // 외부 클릭 감지
   useEffect(() => {
     if (!isOpen) return;
 
@@ -79,13 +86,13 @@ export const useProfileDropdown = () => {
       const target = event.target as Node;
 
       // 프로필 버튼 클릭은 제외
-      if (profileButtonRef.current?.contains(target)) {
+      if (buttonRef.current?.contains(target)) {
         return;
       }
 
       // 드롭다운 외부 클릭 시 닫기
       if (dropdownRef.current && !dropdownRef.current.contains(target)) {
-        setIsOpen(false);
+        onToggle();
       }
     };
 
@@ -97,31 +104,35 @@ export const useProfileDropdown = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen]);
+  }, [isOpen, onToggle, buttonRef]);
 
-  // ESC 키로 드롭다운 닫기
+  /**
+   * ESC 키로 드롭다운 닫기
+   */
   useEffect(() => {
     if (!isOpen) return;
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        setIsOpen(false);
+        onToggle();
       }
     };
 
     document.addEventListener('keydown', handleEscape, { passive: false });
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen]);
+  }, [isOpen, onToggle]);
 
-  // 스크롤 시 드롭다운 닫기 (디바운스 적용)
+  /**
+   * 스크롤 시 드롭다운 닫기 (디바운스 적용)
+   */
   useEffect(() => {
     if (!isOpen) return;
 
     let scrollTimeout: NodeJS.Timeout;
     const handleScroll = () => {
       clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => setIsOpen(false), 100);
+      scrollTimeout = setTimeout(() => onToggle(), 100);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -129,9 +140,11 @@ export const useProfileDropdown = () => {
       window.removeEventListener('scroll', handleScroll);
       clearTimeout(scrollTimeout);
     };
-  }, [isOpen]);
+  }, [isOpen, onToggle]);
 
-  // 윈도우 리사이즈 시 위치 재계산 (디바운스 적용)
+  /**
+   * 윈도우 리사이즈 시 위치 재계산 (디바운스 적용)
+   */
   useEffect(() => {
     if (!isOpen) return;
 
@@ -139,7 +152,7 @@ export const useProfileDropdown = () => {
     const handleResize = () => {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
-        calculateDropdownPosition();
+        calculatePosition();
       }, 150);
     };
 
@@ -148,15 +161,23 @@ export const useProfileDropdown = () => {
       window.removeEventListener('resize', handleResize);
       clearTimeout(resizeTimeout);
     };
-  }, [isOpen, calculateDropdownPosition]);
+  }, [isOpen, calculatePosition]);
+
+  /**
+   * 드롭다운이 열릴 때 위치 계산
+   */
+  useEffect(() => {
+    if (isOpen) {
+      // 약간의 지연을 두어 DOM 렌더링 완료 후 계산
+      requestAnimationFrame(() => {
+        calculatePosition();
+      });
+    }
+  }, [isOpen, calculatePosition]);
 
   return {
-    isOpen,
     dropdownPosition,
     dropdownRef,
-    profileButtonRef,
-    toggleDropdown,
-    closeDropdown,
-    calculateDropdownPosition,
+    calculatePosition,
   };
-}; 
+} 
