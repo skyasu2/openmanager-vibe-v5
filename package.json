@@ -1,6 +1,6 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.40.3",
+  "version": "5.41.0",
   "description": "🚀 OpenManager AI v5.21.0 - AI 분석과 오토스케일링 완전 분리로 추론 안정성과 운영 시뮬 유연성을 동시에 확보한 차세대 서버 모니터링 시스템. 고정된 8개 AI 분석 타겟으로 일관된 추론을 보장하고, 8-30대 동적 서버 풀로 현실적인 스케일링 시뮬레이션을 제공합니다.",
   "private": true,
   "keywords": [
@@ -320,8 +320,8 @@
     "@storybook/nextjs": "^8.6.14",
     "@storybook/react": "^8.6.14",
     "@vitejs/plugin-react": "^4.5.1",
-    "@vitest/coverage-v8": "^3.2.1",
-    "@vitest/ui": "^3.2.1",
+    "@vitest/coverage-v8": "^3.2.2",
+    "@vitest/ui": "^3.2.2",
     "cross-env": "^7.0.3",
     "dotenv": "^16.5.0",
     "husky": "^9.1.7",
@@ -332,7 +332,7 @@
     "rimraf": "^6.0.1",
     "storybook": "^8.6.14",
     "tsx": "^4.19.2",
-    "vitest": "^3.2.1"
+    "vitest": "^3.2.2"
   },
   "optionalDependencies": {
     "webworker-threads": "^0.7.17"
