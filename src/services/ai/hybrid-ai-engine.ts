@@ -51,11 +51,11 @@ interface HybridAnalysisResult {
 interface SmartQuery {
   originalQuery: string;
   intent:
-    | 'analysis'
-    | 'search'
-    | 'prediction'
-    | 'optimization'
-    | 'troubleshooting';
+  | 'analysis'
+  | 'search'
+  | 'prediction'
+  | 'optimization'
+  | 'troubleshooting';
   keywords: string[];
   requiredDocs: string[];
   mcpActions: string[];
@@ -1053,6 +1053,6 @@ export class HybridAIEngine {
     console.log('🧹 Hybrid AI Engine 리소스 정리 완료');
   }
 }
-
 // 싱글톤 인스턴스
 export const hybridAIEngine = new HybridAIEngine();
+

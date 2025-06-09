@@ -1,12 +1,13 @@
 /**
- * 🎰 실제 서버 데이터 생성기 v3 - 독립적 3단계 모드
+ * 🎰 실제 서버 데이터 생성기 v4 - 모듈화된 아키텍처
  *
  * 기능:
+ * - 모듈화된 설계로 SRP 원칙 적용
+ * - 의존성 주입으로 테스트 용이성 증대
  * - 환경별 3단계 모드: local(고성능) → premium(최적화) → basic(기본)
- * - 공용 환경 감지 사용으로 중복 제거
  * - 실제 시스템 메트릭 기반 데이터 생성
  * - 현실적인 서버 부하 시뮬레이션
- * - 🆕 고급 기능 플러그인 지원 (network-topology, baseline-optimizer, demo-scenarios)
+ * - 🆕 고급 기능 플러그인 지원
  */
 
 import { realPrometheusCollector } from '../collectors/RealPrometheusCollector';
@@ -19,13 +20,24 @@ import {
   getPluginConfig,
   getVercelOptimizedConfig,
 } from '@/config/environment';
-// VercelCache import 제거 - 사용되지 않음
+
+// 🚀 분리된 모듈들 Import
+import {
+  CustomEnvironmentConfig,
+  ServerInstance,
+  ServerCluster,
+  ApplicationMetrics,
+  DemoScenario,
+  NetworkNode,
+  NetworkConnection
+} from '@/types/data-generator';
+import { ServerInstanceManager } from './managers/ServerInstanceManager';
+import { MetricsGenerator } from './MetricsGenerator';
+import { EnvironmentConfigManager } from './EnvironmentConfigManager';
 
 // 🆕 고급 기능 모듈들 (플러그인 활성화시에만 사용)
 import {
   generateNetworkTopology,
-  type NetworkNode,
-  type NetworkConnection,
 } from '../../modules/advanced-features/network-topology';
 import {
   baselineOptimizer,
@@ -36,118 +48,7 @@ import {
   demoScenariosGenerator,
   generateScenarioMetrics,
   setDemoScenario,
-  type DemoScenario,
-  type ScenarioMetrics,
 } from '../../modules/advanced-features/demo-scenarios';
-
-// 커스텀 환경 설정 인터페이스
-export interface CustomEnvironmentConfig {
-  serverArchitecture:
-    | 'single'
-    | 'master-slave'
-    | 'load-balanced'
-    | 'microservices';
-  databaseType: 'single' | 'replica' | 'sharded' | 'distributed';
-  networkTopology: 'simple' | 'dmz' | 'multi-cloud' | 'hybrid';
-  specialWorkload: 'standard' | 'gpu' | 'storage' | 'container';
-  scalingPolicy: 'manual' | 'auto' | 'predictive';
-  securityLevel: 'basic' | 'enhanced' | 'enterprise';
-}
-
-// 확장된 서버 인터페이스
-export interface ServerInstance {
-  id: string;
-  name: string;
-  type:
-    | 'web'
-    | 'api'
-    | 'database'
-    | 'cache'
-    | 'queue'
-    | 'cdn'
-    | 'gpu'
-    | 'storage';
-  role: 'master' | 'slave' | 'primary' | 'replica' | 'worker' | 'standalone';
-  location: string;
-  status: 'running' | 'stopped' | 'warning' | 'error' | 'maintenance';
-  environment: 'production' | 'staging' | 'development' | 'test';
-  specs: {
-    cpu: { cores: number; model: string; architecture?: string };
-    memory: { total: number; type: string; speed?: number };
-    disk: { total: number; type: string; iops?: number };
-    network: { bandwidth: number; latency?: number };
-    gpu?: { count: number; model: string; memory: number };
-  };
-  metrics: {
-    cpu: number;
-    memory: number;
-    disk: number;
-    network: { in: number; out: number };
-    requests: number;
-    errors: number;
-    uptime: number;
-    // 특화 메트릭
-    customMetrics?: {
-      replication_lag?: number;
-      connection_pool?: number;
-      cache_hit_ratio?: number;
-      gpu_utilization?: number;
-      storage_iops?: number;
-      container_count?: number;
-    };
-  };
-  health: {
-    score: number;
-    issues: string[];
-    lastCheck: string;
-  };
-  security?: {
-    level: 'basic' | 'enhanced' | 'enterprise';
-    lastSecurityScan: string;
-    vulnerabilities: number;
-    patchLevel: string;
-  };
-}
-
-export interface ServerCluster {
-  id: string;
-  name: string;
-  servers: ServerInstance[];
-  loadBalancer: {
-    algorithm: 'round-robin' | 'least-connections' | 'ip-hash';
-    activeConnections: number;
-    totalRequests: number;
-  };
-  scaling: {
-    current: number;
-    min: number;
-    max: number;
-    target: number;
-    policy: 'cpu' | 'memory' | 'requests';
-  };
-}
-
-export interface ApplicationMetrics {
-  name: string;
-  version: string;
-  deployments: {
-    production: { servers: number; health: number };
-    staging: { servers: number; health: number };
-    development: { servers: number; health: number };
-  };
-  performance: {
-    responseTime: number;
-    throughput: number;
-    errorRate: number;
-    availability: number;
-  };
-  resources: {
-    totalCpu: number;
-    totalMemory: number;
-    totalDisk: number;
-    cost: number;
-  };
-}
 
 /**
  * 🚀 OpenManager 7.0 제품 수준 서버 데이터 생성기
@@ -156,6 +57,7 @@ export interface ApplicationMetrics {
  * - 메모리 효율적 배치 처리
  * - Redis fallback 메커니즘
  * - 환경별 설정 분리
+ * - 모듈화된 아키텍처로 확장성 향상
  */
 
 export class RealServerDataGenerator {
@@ -163,6 +65,11 @@ export class RealServerDataGenerator {
   private redis: any;
   private isGenerating = false;
   private generationInterval: NodeJS.Timeout | null = null;
+
+  // 🚀 의존성 주입된 모듈들
+  private serverInstanceManager: ServerInstanceManager;
+  private metricsGenerator: MetricsGenerator;
+  private environmentConfigManager: EnvironmentConfigManager;
 
   // 환경별 설정
   private environmentConfig: CustomEnvironmentConfig;
@@ -198,47 +105,50 @@ export class RealServerDataGenerator {
 
   private isRunning = false;
   private config = getVercelOptimizedConfig();
-  private intervalId: NodeJS.Timeout | null = null;
 
-  // 24시간 베이스라인 데이터 (메모리 최적화)
+  // 서버별 기준선 데이터
   private serverBaselines = new Map<string, any>();
 
-  // 현재 서버 상태 (Vercel 메모리 제한 고려)
+  // 현재 상태 추적
   private currentStates = new Map<string, any>();
 
-  // 변화 패턴 (경량화)
+  // 패턴 분석용 데이터
   private patterns = new Map<string, any>();
 
   private constructor() {
-    // 공용 환경 감지 사용
-    const env = detectEnvironment();
-    this.dataGeneratorConfig = getDataGeneratorConfig();
+    try {
+      this.redis = smartRedis;
+      this.dataGeneratorConfig = getDataGeneratorConfig();
 
-    console.log(
-      `🎰 서버 데이터 생성기 모드: ${(this.dataGeneratorConfig.mode || 'basic').toUpperCase()}`
-    );
-    console.log(`📊 최대 서버 수: ${this.dataGeneratorConfig.maxServers}`);
-    console.log(`⏰ 갱신 주기: ${this.dataGeneratorConfig.refreshInterval}ms`);
-    console.log(
-      `🚀 활성 기능: ${Object.keys(this.dataGeneratorConfig.features || {})
-        .filter(
-          key =>
-            this.dataGeneratorConfig.features[
-              key as keyof typeof this.dataGeneratorConfig.features
-            ]
-        )
-        .join(', ')}`
-    );
+      // 🚀 의존성 주입으로 모듈들 초기화
+      this.environmentConfigManager = new EnvironmentConfigManager();
+      this.environmentConfig = this.environmentConfigManager.getConfig();
 
-    // 환경별 기본 설정
-    this.environmentConfig = this.getEnvironmentSpecificConfig();
-    this.applyModeOptimizations();
-    this.initializeServers();
+      this.serverInstanceManager = new ServerInstanceManager(
+        this.environmentConfig
+      );
 
-    this.initializeBaselines();
-    console.log('🎯 RealServerDataGenerator 초기화 완료');
-    console.log(`🌍 환경: ${this.config.NODE_ENV}`);
-    console.log(`☁️ Vercel 모드: ${this.config.IS_VERCEL}`);
+      this.metricsGenerator = new MetricsGenerator(
+        this.simulationConfig
+      );
+
+      console.log(
+        '🎰 RealServerDataGenerator v4 초기화 완료 (모듈화 아키텍처)',
+        {
+          environment: detectEnvironment(),
+          mode: this.dataGeneratorConfig.mode,
+          architecture: this.environmentConfig.serverArchitecture,
+          plugins: {
+            networkTopology: isPluginEnabled('network-topology'),
+            baselineOptimizer: isPluginEnabled('baseline-optimizer'),
+            demoScenarios: isPluginEnabled('demo-scenarios'),
+          },
+        }
+      );
+    } catch (error) {
+      console.error('❌ RealServerDataGenerator 초기화 실패:', error);
+      throw error;
+    }
   }
 
   public static getInstance(): RealServerDataGenerator {
@@ -248,1285 +158,211 @@ export class RealServerDataGenerator {
     return RealServerDataGenerator.instance;
   }
 
-  /**
-   * 🎯 환경별 특화 설정
-   */
-  private getEnvironmentSpecificConfig(): CustomEnvironmentConfig {
-    const mode = this.dataGeneratorConfig.mode || 'basic';
-    const features = this.dataGeneratorConfig.features || [];
-
-    const baseConfig: CustomEnvironmentConfig = {
-      serverArchitecture: 'load-balanced',
-      databaseType: 'replica',
-      networkTopology: 'simple',
-      specialWorkload: 'standard',
-      scalingPolicy: 'auto',
-      securityLevel: 'enhanced',
-    };
-
-    // 모드별 최적화
-    switch (mode) {
-      case 'local':
-        return {
-          ...baseConfig,
-          serverArchitecture: 'microservices',
-          databaseType: 'distributed',
-          networkTopology: 'multi-cloud',
-          specialWorkload:
-            (features as any).networkTopology && (features as any).maxNodes > 30
-              ? 'gpu'
-              : 'container',
-          scalingPolicy: 'predictive',
-          securityLevel: 'enterprise',
-        };
-
-      case 'premium':
-        return {
-          ...baseConfig,
-          serverArchitecture: 'load-balanced',
-          databaseType: 'sharded',
-          networkTopology: 'hybrid',
-          specialWorkload: 'container',
-          scalingPolicy: 'auto',
-          securityLevel: 'enhanced',
-        };
-
-      case 'basic':
-      default:
-        return baseConfig;
-    }
-  }
-
-  /**
-   * ⚡ 모드별 최적화 적용
-   */
-  private applyModeOptimizations(): void {
-    const mode = this.dataGeneratorConfig.mode || 'basic';
-
-    switch (mode) {
-      case 'local':
-        // 로컬 모드: 최고 성능
-        this.simulationConfig.incidents.probability = 0.05; // 더 많은 시나리오
-        this.simulationConfig.scaling.threshold = 0.7; // 더 민감한 스케일링
-        break;
-
-      case 'premium':
-        // 프리미엄 모드: 균형 잡힌 성능
-        this.simulationConfig.incidents.probability = 0.03;
-        this.simulationConfig.scaling.threshold = 0.75;
-        break;
-
-      case 'basic':
-        // 기본 모드: 리소스 절약
-        this.simulationConfig.incidents.probability = 0.01; // 최소한의 시나리오
-        this.simulationConfig.scaling.threshold = 0.85; // 보수적인 스케일링
-        break;
-    }
-
-    console.log(`⚡ ${(mode || 'basic').toUpperCase()} 모드 최적화 적용 완료`);
-  }
-
-  /**
-   * 🚀 초기화
-   */
   public async initialize(): Promise<void> {
     try {
-      // 스마트 Redis 사용 (실제 Redis가 없을 때 메모리 캐시 동작)
-      this.redis = smartRedis;
+      console.log('🔄 RealServerDataGenerator 초기화 시작...');
 
-      await realPrometheusCollector.initialize();
+      // 환경 설정 적용
+      this.environmentConfigManager.applyModeOptimizations();
 
-      // 🆕 서버 초기화 - 이 부분이 누락되어 있었음!
+      // 서버 인스턴스 초기화 (모듈화된 방식)
       this.initializeServers();
-      console.log(`📊 초기 서버 ${this.servers.size}개 생성 완료`);
 
-      // 🆕 고급 기능 초기화
+      // 고급 기능 초기화
       await this.initializeAdvancedFeatures();
 
-      console.log('✅ 실제 서버 데이터 생성기 초기화 완료');
+      // 베이스라인 데이터 초기화
+      this.initializeBaselines();
+
+      console.log('✅ RealServerDataGenerator 초기화 완료');
     } catch (error) {
-      console.warn('⚠️ 서버 데이터 생성기 초기화 실패:', error);
-
-      // 초기화 실패 시에도 스마트 Redis 적용
-      this.redis = smartRedis;
-
-      // 초기화 실패해도 최소한의 서버는 생성
-      if (this.servers.size === 0) {
-        this.initializeServers();
-        console.log(`📊 폴백: 초기 서버 ${this.servers.size}개 생성 완료`);
-      }
+      console.error('❌ RealServerDataGenerator 초기화 실패:', error);
+      throw error;
     }
-
-    // 실패 여부와 관계없이 자동 생성 루프 시작
-    this.startAutoGeneration();
   }
 
-  /**
-   * 🆕 고급 기능 초기화
-   */
   private async initializeAdvancedFeatures(): Promise<void> {
-    console.log('🔌 고급 기능 플러그인 확인 중...');
+    try {
+      // 네트워크 토폴로지 플러그인
+      if (isPluginEnabled('network-topology')) {
+        const config = getPluginConfig('network-topology');
+        this.networkTopology = generateNetworkTopology(
+          Array.from(this.servers.values()),
+          config
+        );
+        console.log('🌐 네트워크 토폴로지 플러그인 활성화');
+      }
 
-    // Network Topology 플러그인
-    if (isPluginEnabled('network-topology')) {
-      const config = getPluginConfig('network-topology');
-      const nodeCount = Math.min(
-        config.maxNodes || 20,
-        this.dataGeneratorConfig.maxServers
-      );
-
-      this.networkTopology = generateNetworkTopology(nodeCount);
-      console.log(
-        `🌐 네트워크 토폴로지 생성: ${this.networkTopology.nodes.length}개 노드, ${this.networkTopology.connections.length}개 연결`
-      );
-    }
-
-    // Baseline Optimizer 플러그인
-    if (isPluginEnabled('baseline-optimizer')) {
-      const servers = Array.from(this.servers.values());
-      if (servers.length > 0) {
-        await baselineOptimizer.generateBaselineData(servers);
+      // 베이스라인 최적화 플러그인
+      if (isPluginEnabled('baseline-optimizer')) {
+        await baselineOptimizer.initialize();
         this.baselineDataInitialized = true;
-        console.log('📊 베이스라인 최적화 시스템 활성화');
-      }
-    }
-
-    // Demo Scenarios 플러그인
-    if (isPluginEnabled('demo-scenarios')) {
-      const config = getPluginConfig('demo-scenarios');
-      this.currentDemoScenario = 'normal';
-
-      if (config.autoRotate) {
-        console.log('🎭 자동 시나리오 순환 활성화');
-      }
-      console.log('🎭 시연 시나리오 시스템 활성화');
-    }
-  }
-
-  /**
-   * 🏗️ 초기 서버 구성 (모드별 맞춤 구성)
-   */
-  private initializeServers(): void {
-    const maxServers = this.dataGeneratorConfig.maxServers || 30;
-    const defaultArchitecture =
-      (this.dataGeneratorConfig as any).defaultArchitecture || 'load-balanced';
-
-    // 🚀 환경별 서버 아키텍처 자동 선택
-    const selectedArchitecture = defaultArchitecture;
-
-    console.log(
-      `🏗️ 서버 환경 구성: ${selectedArchitecture} (최대 ${maxServers}개)`
-    );
-
-    switch (selectedArchitecture) {
-      case 'single':
-        this.createSingleServerEnvironment();
-        break;
-      case 'master-slave':
-        this.createMasterSlaveEnvironment();
-        break;
-      case 'load-balanced':
-        this.createLoadBalancedEnvironment();
-        break;
-      case 'microservices':
-        this.createMicroservicesEnvironment();
-        break;
-      default:
-        this.createLoadBalancedEnvironment();
-    }
-
-    // 서버 수 제한 확인 및 적용
-    if (this.servers.size > maxServers) {
-      console.log(`⚠️ 서버 수 제한 적용: ${this.servers.size} → ${maxServers}`);
-      this.limitServerCount(maxServers);
-    }
-
-    console.log(
-      `✅ 최종 서버 ${this.servers.size}개 생성 완료 (환경: ${env.IS_VERCEL ? 'Vercel' : '로컬'})`
-    );
-  }
-
-  /**
-   * 🔒 서버 수 제한 적용
-   */
-  private limitServerCount(maxCount: number): void {
-    const serverArray = Array.from(this.servers.entries());
-
-    // 중요도 순으로 정렬 (database > api > web > cache > queue)
-    const priorityOrder = [
-      'database',
-      'api',
-      'web',
-      'cache',
-      'queue',
-      'cdn',
-      'gpu',
-      'storage',
-    ];
-    serverArray.sort(([, a], [, b]) => {
-      const aPriority = priorityOrder.indexOf(a.type);
-      const bPriority = priorityOrder.indexOf(b.type);
-      return aPriority - bPriority;
-    });
-
-    // 상위 maxCount 개만 유지
-    this.servers.clear();
-    serverArray.slice(0, maxCount).forEach(([id, server]) => {
-      this.servers.set(id, server);
-    });
-
-    console.log(`✅ 서버 수 제한 완료: ${this.servers.size}개 서버 유지`);
-  }
-
-  /**
-   * 🔧 단일 서버 환경 구성
-   */
-  private createSingleServerEnvironment(): void {
-    this.createServer(
-      'single-01',
-      'All-in-One Server',
-      'web',
-      'Seoul-1A',
-      'standalone',
-      'production'
-    );
-    console.log('✅ 단일 서버 환경 구성 완료');
-  }
-
-  /**
-   * 🔧 마스터-슬레이브 환경 구성
-   */
-  private createMasterSlaveEnvironment(): void {
-    // 마스터 서버들
-    this.createServer(
-      'web-master',
-      'Web Master',
-      'web',
-      'Seoul-1A',
-      'master',
-      'production'
-    );
-    this.createServer(
-      'api-master',
-      'API Master',
-      'api',
-      'Seoul-1A',
-      'master',
-      'production'
-    );
-    this.createServer(
-      'db-master',
-      'DB Master',
-      'database',
-      'Seoul-1A',
-      'primary',
-      'production'
-    );
-
-    // 슬레이브 서버들
-    this.createServer(
-      'web-slave',
-      'Web Slave',
-      'web',
-      'Busan-2A',
-      'slave',
-      'production'
-    );
-    this.createServer(
-      'api-slave',
-      'API Slave',
-      'api',
-      'Busan-2A',
-      'slave',
-      'production'
-    );
-    this.createServer(
-      'db-slave',
-      'DB Replica',
-      'database',
-      'Busan-2A',
-      'replica',
-      'production'
-    );
-
-    console.log('✅ 마스터-슬레이브 환경 구성 완료');
-  }
-
-  /**
-   * 🔧 로드밸런싱 환경 구성
-   */
-  private createLoadBalancedEnvironment(): void {
-    // Web 서버들
-    this.createServer(
-      'web-01',
-      'Frontend Server 1',
-      'web',
-      'Seoul-1A',
-      'worker',
-      'production'
-    );
-    this.createServer(
-      'web-02',
-      'Frontend Server 2',
-      'web',
-      'Seoul-1B',
-      'worker',
-      'production'
-    );
-    this.createServer(
-      'web-03',
-      'Frontend Server 3',
-      'web',
-      'Busan-2A',
-      'worker',
-      'production'
-    );
-
-    // API 서버들
-    this.createServer(
-      'api-01',
-      'API Gateway 1',
-      'api',
-      'Seoul-1A',
-      'worker',
-      'production'
-    );
-    this.createServer(
-      'api-02',
-      'API Gateway 2',
-      'api',
-      'Seoul-1B',
-      'worker',
-      'production'
-    );
-    this.createServer(
-      'api-03',
-      'Microservice API',
-      'api',
-      'Seoul-1C',
-      'worker',
-      'production'
-    );
-
-    // 데이터베이스
-    this.createServer(
-      'db-01',
-      'PostgreSQL Primary',
-      'database',
-      'Seoul-1A',
-      'primary',
-      'production'
-    );
-    this.createServer(
-      'db-02',
-      'PostgreSQL Replica',
-      'database',
-      'Busan-2A',
-      'replica',
-      'production'
-    );
-    this.createServer(
-      'cache-01',
-      'Redis Cache',
-      'cache',
-      'Seoul-1B',
-      'standalone',
-      'production'
-    );
-
-    // 특수 워크로드 서버 추가
-    if (this.environmentConfig.specialWorkload === 'gpu') {
-      this.createServer(
-        'gpu-01',
-        'GPU Compute Node',
-        'gpu',
-        'Seoul-1A',
-        'worker',
-        'production'
-      );
-    }
-    if (this.environmentConfig.specialWorkload === 'storage') {
-      this.createServer(
-        'storage-01',
-        'High-Performance Storage',
-        'storage',
-        'Seoul-1A',
-        'standalone',
-        'production'
-      );
-    }
-
-    // 큐 서버
-    this.createServer(
-      'queue-01',
-      'Message Queue',
-      'queue',
-      'Seoul-1C',
-      'standalone',
-      'production'
-    );
-    this.createServer(
-      'cdn-01',
-      'CDN Edge',
-      'cdn',
-      'Global',
-      'standalone',
-      'production'
-    );
-
-    // 클러스터 구성
-    this.createCluster('web-cluster', '웹 서버 클러스터', [
-      'web-01',
-      'web-02',
-      'web-03',
-    ]);
-    this.createCluster('api-cluster', 'API 서버 클러스터', [
-      'api-01',
-      'api-02',
-      'api-03',
-    ]);
-
-    // 애플리케이션 메트릭
-    this.createApplication('openmanager-vibe', 'OpenManager Vibe v5');
-
-    console.log('✅ 로드밸런싱 환경 구성 완료');
-  }
-
-  /**
-   * 🔧 마이크로서비스 환경 구성
-   */
-  private createMicroservicesEnvironment(): void {
-    // 게이트웨이
-    this.createServer(
-      'gateway-01',
-      'API Gateway',
-      'api',
-      'Seoul-1A',
-      'master',
-      'production'
-    );
-
-    // 마이크로서비스들
-    this.createServer(
-      'user-service',
-      'User Service',
-      'api',
-      'Seoul-1A',
-      'worker',
-      'production'
-    );
-    this.createServer(
-      'auth-service',
-      'Auth Service',
-      'api',
-      'Seoul-1B',
-      'worker',
-      'production'
-    );
-    this.createServer(
-      'monitor-service',
-      'Monitor Service',
-      'api',
-      'Seoul-1C',
-      'worker',
-      'production'
-    );
-    this.createServer(
-      'notification-service',
-      'Notification Service',
-      'api',
-      'Busan-2A',
-      'worker',
-      'production'
-    );
-
-    // 전용 데이터베이스
-    this.createServer(
-      'user-db',
-      'User Database',
-      'database',
-      'Seoul-1A',
-      'standalone',
-      'production'
-    );
-    this.createServer(
-      'auth-db',
-      'Auth Database',
-      'database',
-      'Seoul-1B',
-      'standalone',
-      'production'
-    );
-    this.createServer(
-      'monitor-db',
-      'Monitor Database',
-      'database',
-      'Seoul-1C',
-      'standalone',
-      'production'
-    );
-
-    // 공유 캐시 및 큐
-    this.createServer(
-      'redis-shared',
-      'Shared Cache',
-      'cache',
-      'Seoul-1A',
-      'standalone',
-      'production'
-    );
-    this.createServer(
-      'message-queue',
-      'Message Queue',
-      'queue',
-      'Seoul-1B',
-      'standalone',
-      'production'
-    );
-
-    console.log('✅ 마이크로서비스 환경 구성 완료');
-  }
-
-  /**
-   * 🖥️ 서버 생성
-   */
-  private createServer(
-    id: string,
-    name: string,
-    type: ServerInstance['type'],
-    location: string,
-    role: ServerInstance['role'] = 'standalone',
-    environment: ServerInstance['environment'] = 'production'
-  ): void {
-    const specs = this.generateServerSpecs(type);
-
-    const server: ServerInstance = {
-      id,
-      name,
-      type,
-      role,
-      location,
-      environment,
-      status: 'running',
-      specs,
-      metrics: {
-        cpu: 20 + Math.random() * 30,
-        memory: 30 + Math.random() * 40,
-        disk: 40 + Math.random() * 30,
-        network: { in: Math.random() * 100, out: Math.random() * 80 },
-        requests: Math.floor(Math.random() * 1000),
-        errors: Math.floor(Math.random() * 10),
-        uptime: Math.random() * 2592000000, // 최대 30일
-        customMetrics: this.generateCustomMetrics(type, role),
-      },
-      health: {
-        score: 85 + Math.random() * 15,
-        issues: [],
-        lastCheck: new Date().toISOString(),
-      },
-      security: {
-        level: this.environmentConfig.securityLevel,
-        lastSecurityScan: new Date().toISOString(),
-        vulnerabilities: Math.floor(Math.random() * 5),
-        patchLevel: 'current',
-      },
-    };
-
-    this.servers.set(id, server);
-  }
-
-  /**
-   * 🔧 서버 스펙 생성
-   */
-  private generateServerSpecs(type: ServerInstance['type']) {
-    const specTemplates = {
-      web: {
-        cpu: {
-          cores: 4,
-          model: 'Intel Xeon E5-2686v4',
-          architecture: 'x86_64',
-        },
-        memory: { total: 8 * 1024 * 1024 * 1024, type: 'DDR4', speed: 2400 },
-        disk: { total: 100 * 1024 * 1024 * 1024, type: 'SSD', iops: 3000 },
-        network: { bandwidth: 1000, latency: 1 },
-      },
-      api: {
-        cpu: {
-          cores: 8,
-          model: 'Intel Xeon E5-2686v4',
-          architecture: 'x86_64',
-        },
-        memory: { total: 16 * 1024 * 1024 * 1024, type: 'DDR4', speed: 2400 },
-        disk: { total: 200 * 1024 * 1024 * 1024, type: 'SSD', iops: 3000 },
-        network: { bandwidth: 1000, latency: 1 },
-      },
-      database: {
-        cpu: {
-          cores: 16,
-          model: 'Intel Xeon Platinum 8175M',
-          architecture: 'x86_64',
-        },
-        memory: { total: 64 * 1024 * 1024 * 1024, type: 'DDR4', speed: 2666 },
-        disk: {
-          total: 1 * 1024 * 1024 * 1024 * 1024,
-          type: 'NVMe SSD',
-          iops: 50000,
-        },
-        network: { bandwidth: 10000, latency: 0.5 },
-      },
-      cache: {
-        cpu: {
-          cores: 8,
-          model: 'Intel Xeon E5-2686v4',
-          architecture: 'x86_64',
-        },
-        memory: { total: 32 * 1024 * 1024 * 1024, type: 'DDR4', speed: 2400 },
-        disk: { total: 100 * 1024 * 1024 * 1024, type: 'SSD', iops: 3000 },
-        network: { bandwidth: 1000, latency: 1 },
-      },
-      queue: {
-        cpu: {
-          cores: 4,
-          model: 'Intel Xeon E5-2686v4',
-          architecture: 'x86_64',
-        },
-        memory: { total: 8 * 1024 * 1024 * 1024, type: 'DDR4', speed: 2400 },
-        disk: { total: 200 * 1024 * 1024 * 1024, type: 'SSD', iops: 3000 },
-        network: { bandwidth: 1000, latency: 1 },
-      },
-      cdn: {
-        cpu: {
-          cores: 2,
-          model: 'Intel Xeon E5-2686v4',
-          architecture: 'x86_64',
-        },
-        memory: { total: 4 * 1024 * 1024 * 1024, type: 'DDR4', speed: 2400 },
-        disk: { total: 500 * 1024 * 1024 * 1024, type: 'SSD', iops: 5000 },
-        network: { bandwidth: 10000, latency: 0.5 },
-      },
-      gpu: {
-        cpu: {
-          cores: 32,
-          model: 'Intel Xeon Gold 6248',
-          architecture: 'x86_64',
-        },
-        memory: { total: 256 * 1024 * 1024 * 1024, type: 'DDR4', speed: 2933 },
-        disk: {
-          total: 2 * 1024 * 1024 * 1024 * 1024,
-          type: 'NVMe SSD',
-          iops: 100000,
-        },
-        network: { bandwidth: 25000, latency: 0.2 },
-        gpu: {
-          count: 8,
-          model: 'NVIDIA A100',
-          memory: 40 * 1024 * 1024 * 1024,
-        },
-      },
-      storage: {
-        cpu: {
-          cores: 16,
-          model: 'Intel Xeon Silver 4214',
-          architecture: 'x86_64',
-        },
-        memory: { total: 128 * 1024 * 1024 * 1024, type: 'DDR4', speed: 2400 },
-        disk: {
-          total: 100 * 1024 * 1024 * 1024 * 1024,
-          type: 'NVMe SSD',
-          iops: 500000,
-        },
-        network: { bandwidth: 100000, latency: 0.1 },
-      },
-    };
-
-    return specTemplates[type];
-  }
-
-  /**
-   * 🎯 커스텀 메트릭 생성
-   */
-  private generateCustomMetrics(
-    type: ServerInstance['type'],
-    role: ServerInstance['role']
-  ) {
-    const customMetrics: any = {};
-
-    switch (type) {
-      case 'database':
-        customMetrics.replication_lag =
-          role === 'replica' ? Math.random() * 5 : 0;
-        customMetrics.connection_pool = 50 + Math.floor(Math.random() * 50);
-        break;
-      case 'cache':
-        customMetrics.cache_hit_ratio = 85 + Math.random() * 15;
-        customMetrics.connection_pool = 100 + Math.floor(Math.random() * 100);
-        break;
-      case 'gpu':
-        customMetrics.gpu_utilization = Math.random() * 100;
-        break;
-      case 'storage':
-        customMetrics.storage_iops = 1000 + Math.floor(Math.random() * 50000);
-        break;
-      default:
-        break;
-    }
-
-    return customMetrics;
-  }
-
-  /**
-   * 🏗️ 클러스터 생성
-   */
-  private createCluster(id: string, name: string, serverIds: string[]): void {
-    const servers = serverIds.map(id => this.servers.get(id)!).filter(Boolean);
-
-    const cluster: ServerCluster = {
-      id,
-      name,
-      servers,
-      loadBalancer: {
-        algorithm: 'round-robin',
-        activeConnections: Math.floor(Math.random() * 1000),
-        totalRequests: Math.floor(Math.random() * 100000),
-      },
-      scaling: {
-        current: servers.length,
-        min: Math.max(1, servers.length - 2),
-        max: servers.length + 5,
-        target: servers.length,
-        policy: 'cpu',
-      },
-    };
-
-    this.clusters.set(id, cluster);
-  }
-
-  /**
-   * 📱 애플리케이션 생성
-   */
-  private createApplication(name: string, displayName: string): void {
-    const app: ApplicationMetrics = {
-      name: displayName,
-      version: '5.21.0',
-      deployments: {
-        production: { servers: 8, health: 95 + Math.random() * 5 },
-        staging: { servers: 3, health: 90 + Math.random() * 10 },
-        development: { servers: 2, health: 80 + Math.random() * 20 },
-      },
-      performance: {
-        responseTime: 150 + Math.random() * 100,
-        throughput: 1000 + Math.random() * 2000,
-        errorRate: Math.random() * 2,
-        availability: 99.8 + Math.random() * 0.2,
-      },
-      resources: {
-        totalCpu: 0,
-        totalMemory: 0,
-        totalDisk: 0,
-        cost: 0,
-      },
-    };
-
-    // 리소스 합계 계산
-    Array.from(this.servers.values()).forEach(server => {
-      app.resources.totalCpu += server.metrics.cpu;
-      app.resources.totalMemory += server.metrics.memory;
-      app.resources.totalDisk += server.metrics.disk;
-    });
-
-    app.resources.cost =
-      app.resources.totalCpu * 0.1 + app.resources.totalMemory * 0.05;
-
-    this.applications.set(name, app);
-  }
-
-  /**
-   * 🔄 자동 데이터 생성 시작 (모드별 주기 적용)
-   */
-  public startAutoGeneration(): void {
-    if (this.isGenerating) {
-      console.log('⚠️ 데이터 생성이 이미 실행 중입니다');
-      return;
-    }
-
-    this.isGenerating = true;
-    const { refreshInterval } = this.dataGeneratorConfig;
-
-    console.log(`🔄 실시간 서버 데이터 생성 시작 (${refreshInterval}ms 주기)`);
-
-    const loop = async () => {
-      if (!this.isGenerating) return;
-
-      try {
-        // 🚀 통신 상태 확인 및 데이터 생성
-        await this.generateRealtimeData();
-
-        // 🔗 모니터링 시스템과 통신 확인
-        await this.pingMonitoringSystem();
-      } catch (error) {
-        console.error('❌ 실시간 데이터 생성 실패:', error);
-        // 🛡️ 에러 발생 시 자동 복구 시도
-        await this.handleGenerationError(error);
-      } finally {
-        if (this.isGenerating) {
-          this.generationInterval = setTimeout(loop, refreshInterval);
-        }
-      }
-    };
-
-    // 즉시 시작
-    loop();
-  }
-
-  /**
-   * 🔗 모니터링 시스템과 통신 확인 (강화)
-   */
-  private async pingMonitoringSystem(): Promise<void> {
-    try {
-      // 간단한 ping을 통해 모니터링 시스템 응답 확인
-      const pingData = {
-        timestamp: Date.now(),
-        source: 'data-generator',
-        status: 'active',
-        serverCount: this.servers.size,
-        metrics: {
-          totalServers: this.servers.size,
-          runningServers: Array.from(this.servers.values()).filter(
-            s => s.status === 'running'
-          ).length,
-          totalClusters: this.clusters.size,
-          lastDataGeneration: Date.now(),
-        },
-      };
-
-      // 내부 통신 (실제 API 대신 로컬 상태 업데이트)
-      if (typeof global !== 'undefined') {
-        (global as any).dataGeneratorStatus = {
-          lastPing: Date.now(),
-          isHealthy: true,
-          generatedCount: this.servers.size,
-          communicationOk: true,
-          lastSuccessfulCommunication: Date.now(),
-          consecutiveFailures: 0,
-        };
+        console.log('📊 베이스라인 최적화 플러그인 활성화');
       }
 
-      // 📊 실시간 메트릭 브로드캐스트 시뮬레이션
-      await this.broadcastMetrics(pingData);
-
-      console.log('📡 모니터링 시스템 통신 확인 완료');
+      // 데모 시나리오 플러그인
+      if (isPluginEnabled('demo-scenarios')) {
+        demoScenariosGenerator.initialize();
+        setDemoScenario(this.currentDemoScenario);
+        console.log('🎬 데모 시나리오 플러그인 활성화');
+      }
     } catch (error) {
-      console.warn('⚠️ 모니터링 시스템 통신 실패:', error);
-
-      // 통신 실패 횟수 추적
-      if (typeof global !== 'undefined') {
-        const currentStatus = (global as any).dataGeneratorStatus || {};
-        (global as any).dataGeneratorStatus = {
-          ...currentStatus,
-          lastPing: Date.now(),
-          isHealthy: false,
-          communicationOk: false,
-          lastFailure: Date.now(),
-          consecutiveFailures: (currentStatus.consecutiveFailures || 0) + 1,
-        };
-
-        // 3회 연속 실패 시 자동 복구 시도
-        if (currentStatus.consecutiveFailures >= 2) {
-          console.log('🔄 모니터링 시스템 통신 3회 연속 실패 - 자동 복구 시도');
-          await this.attemptCommunicationRecovery();
-        }
-      }
+      console.warn('⚠️ 고급 기능 초기화 중 일부 오류:', error);
     }
   }
 
-  /**
-   * 📊 실시간 메트릭 브로드캐스트
-   */
-  private async broadcastMetrics(pingData: any): Promise<void> {
+  private initializeServers(): void {
     try {
-      // 시뮬레이션된 메트릭 브로드캐스트
-      if (typeof global !== 'undefined') {
-        (global as any).realtimeMetrics = {
-          timestamp: Date.now(),
-          servers: Array.from(this.servers.values()).map(server => ({
-            id: server.id,
-            name: server.name,
-            status: server.status,
-            cpu: server.metrics.cpu,
-            memory: server.metrics.memory,
-            network: server.metrics.network,
-          })),
-          summary: {
-            totalServers: this.servers.size,
-            healthyServers: Array.from(this.servers.values()).filter(
-              s => s.status === 'running'
-            ).length,
-            averageCpu:
-              Array.from(this.servers.values()).reduce(
-                (sum, s) => sum + s.metrics.cpu,
-                0
-              ) / this.servers.size,
-            averageMemory:
-              Array.from(this.servers.values()).reduce(
-                (sum, s) => sum + s.metrics.memory,
-                0
-              ) / this.servers.size,
+      console.log(
+        `🏗️ 서버 환경 구성: ${this.environmentConfig.serverArchitecture}`
+      );
+
+      // 🚀 모듈화된 서버 생성 로직 사용
+      const servers = this.serverInstanceManager.createServers();
+
+      // 생성된 서버들을 Map에 저장
+      servers.forEach(server => {
+        this.servers.set(server.id, server);
+      });
+
+      // 클러스터 생성
+      this.createClusters(servers);
+
+      // 애플리케이션 메트릭 생성
+      this.createApplications();
+
+      console.log(`✅ ${this.servers.size}개 서버 초기화 완료`);
+    } catch (error) {
+      console.error('❌ 서버 초기화 실패:', error);
+      throw error;
+    }
+  }
+
+  private createClusters(servers: ServerInstance[]): void {
+    // 서버 타입별로 그룹화하여 클러스터 생성
+    const serversByType = new Map<string, ServerInstance[]>();
+
+    servers.forEach(server => {
+      if (!serversByType.has(server.type)) {
+        serversByType.set(server.type, []);
+      }
+      serversByType.get(server.type)!.push(server);
+    });
+
+    // 각 타입별로 클러스터 생성
+    serversByType.forEach((servers, type) => {
+      if (servers.length > 1) {
+        const cluster: ServerCluster = {
+          id: `cluster-${type}`,
+          name: `${type.toUpperCase()} Cluster`,
+          servers: servers,
+          loadBalancer: {
+            algorithm: 'round-robin',
+            activeConnections: Math.floor(Math.random() * 100),
+            totalRequests: Math.floor(Math.random() * 10000),
+          },
+          scaling: {
+            current: servers.length,
+            min: Math.max(1, Math.floor(servers.length / 2)),
+            max: servers.length * 2,
+            target: servers.length,
+            policy: 'cpu',
           },
         };
+        this.clusters.set(cluster.id, cluster);
       }
-
-      console.log('📊 실시간 메트릭 브로드캐스트 완료');
-    } catch (error) {
-      console.warn('⚠️ 메트릭 브로드캐스트 실패:', error);
-    }
+    });
   }
 
-  /**
-   * 🔄 통신 자동 복구
-   */
-  private async attemptCommunicationRecovery(): Promise<void> {
-    try {
-      console.log('🔧 데이터 생성기-모니터링 시스템 통신 복구 시작');
+  private createApplications(): void {
+    const applications = [
+      { name: 'openmanager-web', displayName: 'OpenManager Web' },
+      { name: 'openmanager-api', displayName: 'OpenManager API' },
+      { name: 'openmanager-admin', displayName: 'OpenManager Admin' },
+    ];
 
-      // 1. 내부 상태 재초기화
-      if (this.servers.size === 0) {
-        console.log('🔄 서버 데이터 재초기화');
-        this.initializeServers();
-      }
-
-      // 2. 통신 상태 재설정
-      if (typeof global !== 'undefined') {
-        (global as any).dataGeneratorStatus = {
-          lastPing: Date.now(),
-          isHealthy: true,
-          generatedCount: this.servers.size,
-          communicationOk: true,
-          recoveryAttempt: Date.now(),
-          consecutiveFailures: 0,
-        };
-      }
-
-      // 3. 테스트 데이터 생성
-      await this.generateRealtimeData();
-
-      console.log('✅ 통신 복구 완료');
-    } catch (error) {
-      console.error('❌ 통신 복구 실패:', error);
-    }
-  }
-
-  /**
-   * 🛡️ 생성 에러 처리 및 자동 복구
-   */
-  private async handleGenerationError(error: any): Promise<void> {
-    console.error('🛡️ 데이터 생성 에러 처리 시작:', error);
-
-    try {
-      // 1. 서버 상태 재초기화
-      if (this.servers.size === 0) {
-        console.log('🔧 서버 데이터가 없어서 재초기화 시도');
-        await this.initialize();
-      }
-
-      // 2. 메모리 정리
-      if (typeof global !== 'undefined') {
-        (global as any).lastDataGeneratorError = {
-          timestamp: Date.now(),
-          error: error.message || 'Unknown error',
-          recovered: true,
-        };
-      }
-
-      console.log('✅ 데이터 생성 에러 복구 완료');
-    } catch (recoveryError) {
-      console.error('❌ 에러 복구 실패:', recoveryError);
-    }
-  }
-
-  /**
-   * 📊 실시간 데이터 생성
-   */
-  private async generateRealtimeData(): Promise<void> {
-    const currentHour = new Date().getHours();
-    const isPeakHour = this.simulationConfig.peakHours.includes(currentHour);
-    const loadMultiplier = isPeakHour ? 1.8 : 1.0;
-
-    // 실제 시스템 메트릭 수집
-    const realMetrics = await realPrometheusCollector.collectMetrics();
-
-    // 각 서버 메트릭 업데이트
-    for (const [id, server] of this.servers.entries()) {
-      this.updateServerMetrics(server, loadMultiplier, realMetrics);
-
-      // 장애 시뮬레이션
-      this.simulateIncidents(server);
-
-      // 건강도 계산
-      this.calculateServerHealth(server);
-    }
-
-    // 클러스터 상태 업데이트
-    for (const cluster of this.clusters.values()) {
-      this.updateClusterMetrics(cluster);
-
-      // 자동 스케일링 시뮬레이션
-      if (this.simulationConfig.scaling.enabled) {
-        this.simulateAutoScaling(cluster);
-      }
-    }
-
-    // 애플리케이션 메트릭 업데이트
-    for (const app of this.applications.values()) {
-      this.updateApplicationMetrics(app);
-    }
-
-    // Redis에 캐시
-    await this.cacheGeneratedData();
-  }
-
-  /**
-   * 📈 서버 메트릭 업데이트
-   */
-  private updateServerMetrics(
-    server: ServerInstance,
-    loadMultiplier: number,
-    realMetrics: any
-  ): void {
-    // 실제 시스템 메트릭을 기반으로 하되, 서버별 특성 적용
-    const baseLoad = this.simulationConfig.baseLoad * loadMultiplier;
-
-    // CPU: 실제 + 시뮬레이션
-    const realCpuBase = realMetrics.cpu?.usage || 20;
-    server.metrics.cpu = Math.min(
-      95,
-      realCpuBase + baseLoad * 50 + (Math.random() - 0.5) * 20
-    );
-
-    // Memory: 서버 타입별 패턴
-    const memoryPattern =
-      server.type === 'database' ? 0.7 : server.type === 'cache' ? 0.8 : 0.4;
-    server.metrics.memory = Math.min(
-      95,
-      memoryPattern * 100 + (Math.random() - 0.5) * 30
-    );
-
-    // Disk: 점진적 증가 패턴
-    server.metrics.disk = Math.min(
-      95,
-      server.metrics.disk + (Math.random() - 0.3) * 0.1
-    );
-
-    // Network
-    server.metrics.network.in = baseLoad * 100 + Math.random() * 50;
-    server.metrics.network.out = baseLoad * 80 + Math.random() * 40;
-
-    // Requests (API/Web 서버만)
-    if (server.type === 'api' || server.type === 'web') {
-      server.metrics.requests = Math.floor(
-        baseLoad * 1000 + Math.random() * 500
-      );
-      server.metrics.errors = Math.floor(
-        server.metrics.requests * 0.01 * Math.random()
-      );
-    }
-
-    // Uptime 증가
-    server.metrics.uptime += 5000; // 5초 추가
-  }
-
-  /**
-   * ⚠️ 장애 시뮬레이션
-   */
-  private simulateIncidents(server: ServerInstance): void {
-    if (Math.random() < this.simulationConfig.incidents.probability) {
-      const incidents = [
-        'High CPU usage detected',
-        'Memory leak suspected',
-        'Disk space running low',
-        'Network latency spike',
-        'Database connection timeout',
-        'Cache miss rate increased',
-      ];
-
-      const incident = incidents[Math.floor(Math.random() * incidents.length)];
-      server.health.issues.push(incident);
-
-      // 상태 변경
-      if (server.health.issues.length > 2) {
-        server.status = 'error';
-      } else if (server.health.issues.length > 0) {
-        server.status = 'warning';
-      }
-
-      // 일정 시간 후 복구
-      setTimeout(() => {
-        server.health.issues = server.health.issues.filter(i => i !== incident);
-        if (server.health.issues.length === 0) {
-          server.status = 'running';
-        }
-      }, this.simulationConfig.incidents.duration);
-    }
-  }
-
-  /**
-   * 💊 서버 건강도 계산
-   */
-  private calculateServerHealth(server: ServerInstance): void {
-    let score = 100;
-
-    // CPU 기반 감점
-    if (server.metrics.cpu > 80) score -= 20;
-    else if (server.metrics.cpu > 60) score -= 10;
-
-    // Memory 기반 감점
-    if (server.metrics.memory > 85) score -= 20;
-    else if (server.metrics.memory > 70) score -= 10;
-
-    // Disk 기반 감점
-    if (server.metrics.disk > 90) score -= 15;
-    else if (server.metrics.disk > 80) score -= 5;
-
-    // 에러율 기반 감점
-    if (server.metrics.errors > 0) {
-      const errorRate =
-        server.metrics.errors / Math.max(1, server.metrics.requests);
-      score -= errorRate * 1000; // 1% 에러율 = 10점 감점
-    }
-
-    // 이슈 기반 감점
-    score -= server.health.issues.length * 10;
-
-    server.health.score = Math.max(0, Math.min(100, score));
-    server.health.lastCheck = new Date().toISOString();
-  }
-
-  /**
-   * 🏗️ 클러스터 메트릭 업데이트
-   */
-  private updateClusterMetrics(cluster: ServerCluster): void {
-    cluster.loadBalancer.activeConnections =
-      cluster.servers.reduce(
-        (sum, server) => sum + server.metrics.requests,
-        0
-      ) / cluster.servers.length;
-
-    cluster.loadBalancer.totalRequests +=
-      cluster.loadBalancer.activeConnections;
-  }
-
-  /**
-   * ⚖️ 자동 스케일링 시뮬레이션
-   */
-  private simulateAutoScaling(cluster: ServerCluster): void {
-    try {
-      const avgCpu =
-        cluster.servers.reduce((sum, server) => sum + server.metrics.cpu, 0) /
-        cluster.servers.length;
-      const avgMemory =
-        cluster.servers.reduce(
-          (sum, server) => sum + server.metrics.memory,
-          0
-        ) / cluster.servers.length;
-
-      // 스케일링 결정
-      if (
-        avgCpu > this.simulationConfig.scaling.threshold * 100 ||
-        avgMemory > this.simulationConfig.scaling.threshold * 100
-      ) {
-        // 스케일 업 조건
-        if (cluster.scaling.current < cluster.scaling.max) {
-          console.log(
-            `📈 클러스터 ${cluster.name} 스케일 업 - CPU: ${avgCpu.toFixed(1)}%, Memory: ${avgMemory.toFixed(1)}%`
-          );
-          cluster.scaling.target = Math.min(
-            cluster.scaling.current + 1,
-            cluster.scaling.max
-          );
-        }
-      } else if (
-        avgCpu < this.simulationConfig.scaling.threshold * 0.5 * 100 &&
-        avgMemory < this.simulationConfig.scaling.threshold * 0.5 * 100
-      ) {
-        // 스케일 다운 조건
-        if (cluster.scaling.current > cluster.scaling.min) {
-          console.log(
-            `📉 클러스터 ${cluster.name} 스케일 다운 - CPU: ${avgCpu.toFixed(1)}%, Memory: ${avgMemory.toFixed(1)}%`
-          );
-          cluster.scaling.target = Math.max(
-            cluster.scaling.current - 1,
-            cluster.scaling.min
-          );
-        }
-      }
-    } catch (error) {
-      console.warn(`⚠️ 클러스터 ${cluster.name} 자동 스케일링 오류:`, error);
-    }
-  }
-
-  /**
-   * 📱 애플리케이션 메트릭 업데이트
-   */
-  private updateApplicationMetrics(app: ApplicationMetrics): void {
-    const allServers = Array.from(this.servers.values());
-
-    // 성능 메트릭 계산
-    app.performance.responseTime = 100 + Math.random() * 200;
-    app.performance.throughput = allServers.reduce(
-      (sum, s) => sum + s.metrics.requests,
-      0
-    );
-    app.performance.errorRate =
-      (allServers.reduce((sum, s) => sum + s.metrics.errors, 0) /
-        Math.max(1, app.performance.throughput)) *
-      100;
-
-    // 가용성 계산
-    const healthyServers = allServers.filter(
-      s => s.status === 'running'
-    ).length;
-    app.performance.availability = (healthyServers / allServers.length) * 100;
-
-    // 리소스 재계산
-    app.resources.totalCpu = allServers.reduce(
-      (sum, s) => sum + s.metrics.cpu,
-      0
-    );
-    app.resources.totalMemory = allServers.reduce(
-      (sum, s) => sum + s.metrics.memory,
-      0
-    );
-    app.resources.cost =
-      app.resources.totalCpu * 0.1 + app.resources.totalMemory * 0.05;
-  }
-
-  /**
-   * 💾 생성된 데이터 캐시
-   */
-  private async cacheGeneratedData(): Promise<void> {
-    try {
-      // Redis 인스턴스가 없더라도 스마트 Redis 사용
-      if (!this.redis) {
-        this.redis = smartRedis;
-      }
-
-      const data = {
-        servers: Array.from(this.servers.values()),
-        clusters: Array.from(this.clusters.values()),
-        applications: Array.from(this.applications.values()),
-        timestamp: new Date().toISOString(),
+    applications.forEach(({ name, displayName }) => {
+      const app: ApplicationMetrics = {
+        name: displayName,
+        version: '7.0.0',
+        deployments: {
+          production: { servers: 3, health: 95 + Math.random() * 5 },
+          staging: { servers: 2, health: 90 + Math.random() * 10 },
+          development: { servers: 1, health: 85 + Math.random() * 15 },
+        },
+        performance: {
+          responseTime: 100 + Math.random() * 50,
+          throughput: 1000 + Math.random() * 500,
+          errorRate: Math.random() * 2,
+          availability: 99 + Math.random() * 1,
+        },
+        resources: {
+          totalCpu: 0,
+          totalMemory: 0,
+          totalDisk: 0,
+          cost: 0,
+        },
       };
+      this.applications.set(name, app);
+    });
+  }
 
-      await this.redis.set('server:generated:data', JSON.stringify(data), {
-        ex: 60,
-      });
-    } catch (error) {
-      console.warn('⚠️ 생성된 데이터 캐시 실패:', error);
+  public startAutoGeneration(): void {
+    if (this.isRunning) return;
+
+    this.isRunning = true;
+    console.log('🚀 실시간 데이터 생성 시작');
+
+    const loop = async () => {
+      try {
+        await this.generateRealtimeData();
+        await this.cacheGeneratedData();
+        await this.pingMonitoringSystem();
+      } catch (error) {
+        await this.handleGenerationError(error);
+      }
+    };
+
+    // 즉시 실행 후 주기적 실행
+    loop();
+    this.generationInterval = setInterval(loop, this.config.interval);
+  }
+
+  private async generateRealtimeData(): Promise<void> {
+    if (this.isGenerating) return;
+
+    this.isGenerating = true;
+
+    try {
+      // 현재 시간에 따른 부하 계산
+      const hour = new Date().getHours();
+      const loadMultiplier = this.getTimeMultiplier(hour);
+
+      // 실제 시스템 메트릭 수집
+      const realMetrics = await realPrometheusCollector.getMetrics();
+
+      // 🚀 모듈화된 메트릭 업데이트 사용
+      this.metricsGenerator.updateAllServerMetrics(
+        Array.from(this.servers.values()),
+        loadMultiplier,
+        realMetrics
+      );
+
+      // 클러스터 메트릭 업데이트
+      this.metricsGenerator.updateClusterMetrics(Array.from(this.clusters.values()));
+
+      // 애플리케이션 메트릭 업데이트
+      this.metricsGenerator.updateApplicationMetrics(Array.from(this.applications.values()));
+
+      console.log(`📊 메트릭 업데이트 완료 (부하: ${(loadMultiplier * 100).toFixed(1)}%)`);
+    } finally {
+      this.isGenerating = false;
     }
   }
 
-  /**
-   * 📊 공개 API 메서드들
-   */
+  // ... existing code ...
+
+  // 📊 공개 API 메서드들
   public getAllServers(): ServerInstance[] {
     return Array.from(this.servers.values());
   }
@@ -1578,7 +414,7 @@ export class RealServerDataGenerator {
         ),
         availability: apps.length
           ? apps.reduce((sum, a) => sum + a.performance.availability, 0) /
-            apps.length
+          apps.length
           : 0,
       },
       performance: {
@@ -1587,7 +423,7 @@ export class RealServerDataGenerator {
           : 0,
         avgMemory: servers.length
           ? servers.reduce((sum, s) => sum + s.metrics.memory, 0) /
-            servers.length
+          servers.length
           : 0,
         avgDisk: servers.length
           ? servers.reduce((sum, s) => sum + s.metrics.disk, 0) / servers.length
