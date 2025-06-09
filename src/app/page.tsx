@@ -180,13 +180,16 @@ export default function Home() {
 
   // 🚀 카운트다운 시작 함수
   const startCountdown = () => {
+    console.log('🚀 5초 카운트다운 시작 - 대시보드 자동 이동');
     setAutoNavigateCountdown(5);
 
     const countdown = setInterval(() => {
       setAutoNavigateCountdown(prev => {
+        console.log(`⏰ 카운트다운: ${prev}초 남음`);
         if (prev <= 1) {
           clearInterval(countdown);
           setCountdownTimer(null);
+          console.log('🎯 카운트다운 완료! 대시보드로 자동 이동');
           // 자동으로 대시보드로 이동
           handleDashboardClick();
           return 0;
@@ -196,6 +199,9 @@ export default function Home() {
     }, 1000);
 
     setCountdownTimer(countdown);
+    info(
+      '⏰ 5초 후 대시보드로 자동 이동합니다. 중지하려면 "🛑 취소하기" 버튼을 클릭하세요.'
+    );
   };
 
   // 🛑 카운트다운 중지 함수
@@ -204,7 +210,7 @@ export default function Home() {
       clearInterval(countdownTimer);
       setCountdownTimer(null);
       setAutoNavigateCountdown(0);
-      info('자동 이동이 취소되었습니다.');
+      info('⏹️ 자동 이동이 취소되었습니다.');
     }
   };
 
@@ -219,15 +225,10 @@ export default function Home() {
       } else {
         startSystem();
         success(
-          '시스템이 시작되었습니다. 5초 후 자동으로 대시보드로 이동합니다.'
+          '🚀 시스템이 시작되었습니다! 5초 후 자동으로 대시보드로 이동합니다.'
         );
-        // 시스템 시작 성공 후 카운트다운 시작
-        setTimeout(() => {
-          if (isSystemStarted) {
-            // 시스템이 여전히 실행 중인지 확인
-            startCountdown();
-          }
-        }, 1000); // 1초 후 카운트다운 시작 (UI 안정화)
+        // 시스템 시작 즉시 카운트다운 시작
+        startCountdown();
       }
     } catch (err) {
       console.error('시스템 제어 오류:', err);
@@ -243,107 +244,40 @@ export default function Home() {
       return;
     }
 
-    // 🔍 실제 시스템 상태 점검
-    console.log('🔍 [Dashboard] 대시보드 이동 전 시스템 상태 점검 시작...');
+    console.log('🚀 [Dashboard] 대시보드로 이동 중...');
 
+    // 🎯 간소화된 접근: 시스템이 시작되었으면 바로 이동
+    // 상세한 상태 점검은 대시보드에서 수행하도록 변경
     try {
-      // 1. 시스템 헬스체크
-      const healthResponse = await fetch('/api/system/health');
-      const healthData = await healthResponse.json();
+      // 간단한 기본 헬스체크만 수행 (빠른 이동을 위해)
+      const quickHealthCheck = await Promise.race([
+        fetch('/api/health', {
+          method: 'GET',
+          cache: 'no-cache',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }).then(res => res.ok),
+        new Promise(resolve => setTimeout(() => resolve(false), 2000)), // 2초 타임아웃
+      ]);
 
-      // 2. 웹소켓 상태 확인
-      const websocketResponse = await fetch('/api/websocket/status');
-      const websocketData = await websocketResponse.json();
-
-      // 3. 서버 생성기 상태 확인
-      const serverGenResponse = await fetch('/api/servers/next?action=health');
-      const serverGenData = await serverGenResponse.json();
-
-      // 4. MCP 상태 확인 (선택적)
-      let mcpStatus = { success: false, ready: false };
-      try {
-        const mcpResponse = await fetch('/api/mcp/status');
-        mcpStatus = await mcpResponse.json();
-      } catch (mcpError) {
-        console.warn('⚠️ MCP 상태 확인 실패 (선택적 기능):', mcpError);
-      }
-
-      // 📊 점검 결과 로깅
-      const systemReadiness = {
-        health: healthData.success && healthData.health, // 🔧 새로운 헬스체크 구조 반영
-        websocket:
-          healthData.websocket ||
-          (websocketData.success && websocketData.websocket?.connected),
-        serverGeneration:
-          healthData.serverGeneration || // 🎯 새로운 필드 추가
-          (serverGenData.success && serverGenData.data?.isHealthy),
-        mcp: healthData.mcp || mcpStatus.success,
-        timestamp: new Date().toISOString(),
-      };
-
-      console.log('📊 [Dashboard] 시스템 준비 상태:', systemReadiness);
-
-      // 🔧 개선: 기본 서비스만 필수 조건으로 설정
-      // 시뮬레이션은 대시보드에서 직접 시작할 수 있으므로 선택적으로 변경
-      const isSystemReady = systemReadiness.health && systemReadiness.websocket;
-      // serverGeneration은 선택적 기능으로 변경
-
-      // 🎯 시뮬레이션 상태 별도 확인
-      const isSimulationRunning = systemReadiness.serverGeneration;
-
-      if (!isSystemReady) {
-        console.warn(
-          '🚨 [Dashboard] 기본 시스템 서비스가 준비되지 않음 - 디버그 모드 활성화'
-        );
-
-        // F12 디버그 안내 표시
-        const userWantsDebug = confirm(
-          `⚠️ 기본 시스템 서비스가 준비되지 않았습니다.\n\n` +
-            `📊 시스템 상태:\n` +
-            `• 헬스체크: ${systemReadiness.health ? '✅' : '❌'}\n` +
-            `• 웹소켓: ${systemReadiness.websocket ? '✅' : '❌'}\n` +
-            `• 서버 생성기: ${systemReadiness.serverGeneration ? '✅ 실행중' : '⏸️ 대기중'}\n` +
-            `• MCP 서버: ${systemReadiness.mcp ? '✅' : '⚠️ 선택적'}\n\n` +
-            `💡 서버 생성기는 대시보드에서 시작할 수 있습니다.\n\n` +
-            `🔧 F12를 눌러 개발자 도구에서 상세 로그를 확인하세요.\n\n` +
-            `그래도 대시보드로 이동하시겠습니까?`
-        );
-
-        if (!userWantsDebug) {
-          console.log('📊 [Dashboard] 사용자가 대시보드 이동을 취소함');
-          return;
-        }
-
+      if (quickHealthCheck) {
+        console.log('✅ [Dashboard] 기본 헬스체크 통과 - 대시보드로 이동');
+      } else {
         console.log(
-          '📊 [Dashboard] 사용자가 준비 미완료 상태에서도 대시보드 이동 선택'
-        );
-      } else if (!isSimulationRunning) {
-        // ✅ 기본 서비스는 준비되었지만 시뮬레이션이 실행되지 않은 경우
-        console.log(
-          '🎯 [Dashboard] 기본 서비스 준비 완료 - 시뮬레이션은 대시보드에서 시작 가능'
+          '⚠️ [Dashboard] 기본 헬스체크 실패했지만 대시보드로 이동 (상세 점검은 대시보드에서)'
         );
       }
 
-      // ✅ 대시보드로 이동
-      console.log('✅ [Dashboard] 시스템 상태 점검 완료 - 대시보드로 이동');
+      // ✅ 바로 대시보드로 이동
       router.push('/dashboard');
     } catch (error) {
-      console.error('❌ [Dashboard] 시스템 상태 점검 중 오류:', error);
-
-      // 오류 발생 시에도 디버그 모드 제공
-      const userWantsForceEntry = confirm(
-        `❌ 시스템 상태 점검 중 오류가 발생했습니다.\n\n` +
-          `🔧 F12를 눌러 개발자 도구에서 오류 내용을 확인하세요.\n\n` +
-          `오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}\n\n` +
-          `그래도 대시보드로 이동하시겠습니까?`
+      console.warn(
+        '⚠️ [Dashboard] 헬스체크 오류 무시하고 대시보드로 이동:',
+        error
       );
-
-      if (userWantsForceEntry) {
-        console.log(
-          '📊 [Dashboard] 사용자가 오류 상태에서도 대시보드 이동 선택'
-        );
-        router.push('/dashboard');
-      }
+      // 오류가 발생해도 대시보드로 이동 (대시보드에서 상태 확인)
+      router.push('/dashboard');
     }
   };
 
@@ -481,9 +415,6 @@ export default function Home() {
             <span className='text-white'>서버 모니터링</span>
           </h1>
           <p className='text-lg md:text-xl text-white/80 max-w-3xl mx-auto leading-relaxed'>
-            차세대 {renderTextWithAIGradient('AI 엔진')}과 함께하는 지능형 서버
-            관리 솔루션
-            <br />
             <span className='text-sm text-white/60'>
               완전 독립 동작 AI 엔진 | 향후 개발: 선택적 LLM API 연동 확장
             </span>
@@ -640,7 +571,7 @@ export default function Home() {
                     onClick={handleDashboardClick}
                     className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border ${
                       autoNavigateCountdown > 0
-                        ? 'bg-orange-600 hover:bg-orange-700 text-white border-orange-500/50'
+                        ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-orange-400/50 shadow-lg shadow-orange-500/50'
                         : 'bg-blue-600 hover:bg-blue-700 text-white border-blue-500/50'
                     }`}
                     whileHover={{ scale: 1.05 }}
@@ -648,10 +579,10 @@ export default function Home() {
                     animate={
                       autoNavigateCountdown > 0
                         ? {
-                            scale: [1, 1.05, 1],
+                            scale: [1, 1.08, 1],
                             boxShadow: [
-                              '0 0 0 0 rgba(255, 165, 0, 0.7)',
-                              '0 0 0 10px rgba(255, 165, 0, 0)',
+                              '0 0 0 0 rgba(255, 165, 0, 0.8)',
+                              '0 0 0 15px rgba(255, 165, 0, 0)',
                               '0 0 0 0 rgba(255, 165, 0, 0)',
                             ],
                           }
@@ -665,7 +596,14 @@ export default function Home() {
                   >
                     <BarChart3 className='w-5 h-5' />
                     {autoNavigateCountdown > 0 ? (
-                      <>🚀 자동 이동 ({autoNavigateCountdown}초)</>
+                      <div className='flex items-center gap-2'>
+                        <span>🚀 자동 이동</span>
+                        <div className='bg-white/20 rounded-full w-8 h-8 flex items-center justify-center'>
+                          <span className='text-lg font-bold text-yellow-300'>
+                            {autoNavigateCountdown}
+                          </span>
+                        </div>
+                      </div>
                     ) : (
                       <>📊 대시보드 들어가기</>
                     )}

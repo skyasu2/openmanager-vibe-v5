@@ -23,7 +23,10 @@ import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useToast } from '@/components/ui/ToastNotification';
 
 const ProfileDropdown = forwardRef<HTMLDivElement, ProfileDropdownProps>(
-  ({ isOpen, onClose, position, userName, userAvatar, onSettingsClick }, ref) => {
+  (
+    { isOpen, onClose, position, userName, userAvatar, onSettingsClick },
+    ref
+  ) => {
     const {
       isSystemStarted,
       aiAgent,
@@ -82,7 +85,7 @@ const ProfileDropdown = forwardRef<HTMLDivElement, ProfileDropdownProps>(
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             transition={{ duration: 0.2 }}
-            className='fixed bg-gray-900/95 backdrop-blur-lg border border-gray-700/50 rounded-xl shadow-2xl z-[9999] min-w-[280px] max-w-[320px]'
+            className='fixed bg-gray-900/95 border border-gray-700/50 rounded-xl shadow-2xl z-[9999] min-w-[280px] max-w-[320px]'
             style={{
               top: `${position.top}px`,
               right: `${position.right}px`,

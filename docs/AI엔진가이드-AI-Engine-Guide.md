@@ -2,6 +2,87 @@
 
 > **OpenManager Vibe v5 AI 시스템 완전 가이드**  
 > UnifiedAIEngine 중심의 하이브리드 아키텍처와 3단계 폴백 시스템
+> **🆕 v5.41.4: 7개 메뉴 AI 사이드바 & 동적 질문 시스템**
+
+## 🎯 **최신 업데이트 (v5.41.4)**
+
+### 🆕 **7개 메뉴 AI 사이드바 시스템**
+
+새로운 AI 사이드바는 사용자 경험을 극대화하는 7개 전문 메뉴로 구성됩니다:
+
+#### 📊 **메뉴 구성 및 기능**
+
+| 메뉴              | 아이콘 | 색상   | 주요 기능                                   | 구현 위치                     |
+| ----------------- | ------ | ------ | ------------------------------------------- | ----------------------------- |
+| **자연어 질의**   | 💬     | 파란색 | 동적 질문 카드 + AI 채팅                    | `useServerStatusQuestions.ts` |
+| **장애 보고서**   | 📋     | 빨간색 | 자동 생성 장애 보고서                       | 구현 예정                     |
+| **이상감지/예측** | 🔍     | 주황색 | AI 기반 시스템 모니터링                     | 구현 예정                     |
+| **로그 검색**     | 📝     | 초록색 | 시스템 로그 검색 및 분석                    | 구현 예정                     |
+| **슬랙 알림**     | 💬     | 보라색 | 자동화된 알림 및 팀 협업                    | 구현 예정                     |
+| **관리자/학습**   | ⚙️     | 회색   | AI 학습 데이터 및 시스템 관리               | 구현 예정                     |
+| **AI 설정**       | 🤖     | 남색   | AI 모델 및 API 설정 (Google AI Studio 베타) | 구현 완료                     |
+
+### 🎯 **동적 질문 카드 시스템**
+
+서버 상태를 실시간으로 분석하여 사용자에게 맞춤형 질문을 제공합니다:
+
+```typescript
+// 동적 질문 생성 로직
+interface ServerStatusQuestion {
+  id: string;
+  text: string;
+  category: 'status' | 'performance' | 'alert' | 'optimization';
+  priority: 'high' | 'medium' | 'low';
+  color: string;
+  icon: React.ReactNode;
+}
+
+// 우선순위 기반 질문 정렬
+const prioritizeQuestions = (questions: ServerStatusQuestion[]) => {
+  const priorityOrder = { high: 3, medium: 2, low: 1 };
+  return questions.sort(
+    (a, b) => priorityOrder[b.priority] - priorityOrder[a.priority]
+  );
+};
+```
+
+#### 🔄 **실시간 업데이트 시스템**
+
+- **갱신 주기**: 30초마다 자동 업데이트
+- **우선순위 로직**: CPU 사용률 > 메모리 사용률 > 알림 수 > 서버 상태
+- **색상 코딩**:
+  - 🔴 **긴급 (high)**: CPU 90%+, 메모리 85%+, 심각한 알림
+  - 🔵 **보통 (medium)**: CPU 70%+, 메모리 70%+, 일반 알림
+  - 🟢 **낮음 (low)**: 정상 범위, 최적화 제안
+
+### 🤖 **Google AI Studio API 베타 지원**
+
+새로운 AI 설정 메뉴에서 Google AI Studio API를 베타 기능으로 지원합니다:
+
+```typescript
+// AI 설정 인터페이스
+interface AIModelConfig {
+  openai: {
+    apiKey: string;
+    model: 'gpt-4' | 'gpt-3.5-turbo';
+    enabled: boolean;
+  };
+  anthropic: {
+    apiKey: string;
+    model: 'claude-3-opus' | 'claude-3-sonnet';
+    enabled: boolean;
+  };
+  googleAI: {
+    // 🆕 베타 기능
+    apiKey: string;
+    model: 'gemini-pro' | 'gemini-pro-vision';
+    enabled: boolean;
+    isBeta: true;
+  };
+}
+```
+
+---
 
 ## 🏗️ 실제 AI 아키텍처 - Real AI Architecture
 
@@ -10,6 +91,7 @@
 OpenManager Vibe v5는 **UnifiedAIEngine**을 중심으로 한 **단일 통합 AI 시스템**으로 설계되어, 모든 AI 기능을 일관되고 효율적으로 제공합니다.
 
 **핵심 설계 원칙:**
+
 - **단일 진입점**: UnifiedAIEngine이 모든 AI 요청을 처리
 - **싱글톤 패턴**: 메모리 효율성과 상태 일관성 보장
 - **하이브리드 라우팅**: MCP와 로컬 분석의 지능적 선택
@@ -18,35 +100,35 @@ OpenManager Vibe v5는 **UnifiedAIEngine**을 중심으로 한 **단일 통합 A
 ```mermaid
 graph TB
     User["👤 사용자 쿼리"] --> UnifiedAI["🧠 UnifiedAIEngine<br/>(싱글톤)"]
-    
+
     UnifiedAI --> MCPRouter["🔀 MCPAIRouter<br/>(라우팅 엔진)"]
-    
+
     MCPRouter --> IntentClass["🎯 IntentClassifier<br/>(하이브리드 분류)"]
     IntentClass --> AIModel["🤖 AI Model<br/>(Transformers.js)"]
     IntentClass --> PatternMatch["🔍 Pattern Matching<br/>(도메인 특화)"]
-    
+
     MCPRouter --> TaskOrch["⚙️ TaskOrchestrator<br/>(병렬 처리)"]
-    
+
     TaskOrch --> MCPAnalysis["🌐 MCP Analysis<br/>(1순위)"]
     TaskOrch --> DirectAnalysis["📊 Direct Analysis<br/>(2순위)"]
     TaskOrch --> BasicFallback["🔧 Basic Fallback<br/>(3순위)"]
-    
+
     ResponseMerger["🔄 ResponseMerger<br/>(결과 통합)"]
     MCPAnalysis --> ResponseMerger
     DirectAnalysis --> ResponseMerger
     BasicFallback --> ResponseMerger
-    
+
     ResponseMerger --> SessionManager["🗂️ SessionManager<br/>(Redis 캐시)"]
     SessionManager --> FinalResponse["✨ 통합 응답"]
 ```
 
 ### 📊 환경별 AI 엔진 성능
 
-| 환경 | MCP 성공률 | Direct 성공률 | Fallback 사용률 | 주요 특징 |
-|------|------------|------------|----------------|-----------|
-| **개발환경 (Cursor)** | 85% | 12% | 3% | MCP 클라이언트 완전 연동 |
-| **Vercel 프로덕션** | 65% | 30% | 5% | 제한된 MCP 기능 |
-| **오프라인 환경** | 0% | 80% | 20% | Direct Analysis 위주 |
+| 환경                  | MCP 성공률 | Direct 성공률 | Fallback 사용률 | 주요 특징                |
+| --------------------- | ---------- | ------------- | --------------- | ------------------------ |
+| **개발환경 (Cursor)** | 85%        | 12%           | 3%              | MCP 클라이언트 완전 연동 |
+| **Vercel 프로덕션**   | 65%        | 30%           | 5%              | 제한된 MCP 기능          |
+| **오프라인 환경**     | 0%         | 80%           | 20%             | Direct Analysis 위주     |
 
 ---
 
@@ -55,6 +137,7 @@ graph TB
 ### 🧠 1. UnifiedAIEngine (핵심 통합 엔진)
 
 #### 🏆 **UnifiedAIEngine** (Single Entry Point)
+
 - **역할**: 모든 AI 기능의 단일 진입점 (싱글톤 패턴)
 - **구현**: `src/core/ai/UnifiedAIEngine.ts` (28KB, 894줄)
 - **특징**: Intent 분류 → MCP 라우팅 → 결과 통합 → 캐시 관리
@@ -66,21 +149,22 @@ const aiEngine = UnifiedAIEngine.getInstance();
 await aiEngine.initialize();
 
 const response = await aiEngine.processQuery({
-  query: "서버 성능 상태를 확인해주세요",
+  query: '서버 성능 상태를 확인해주세요',
   context: {
     serverMetrics: currentMetrics,
-    urgency: 'medium'
+    urgency: 'medium',
   },
   options: {
     enableMCP: true,
-    maxResponseTime: 5000
-  }
+    maxResponseTime: 5000,
+  },
 });
 ```
 
 ### 🔀 2. MCPAIRouter (지능형 라우팅)
 
 #### 🚀 **MCPAIRouter** (Smart Routing Engine)
+
 - **역할**: MCP 프로토콜 기반 지능형 작업 라우팅
 - **구현**: `src/services/ai/MCPAIRouter.ts` (577줄)
 - **특징**: 온디맨드 웜업, 병렬 처리, 작업 우선순위 관리
@@ -101,6 +185,7 @@ const response = await router.processQuery(query, context);
 ### 🎯 3. IntentClassifier (하이브리드 의도 분류)
 
 #### 🧠 **IntentClassifier** (Hybrid Classification)
+
 - **역할**: AI 모델 + 패턴 매칭의 하이브리드 의도 분류
 - **구현**: `src/modules/ai-agent/processors/IntentClassifier.ts` (668줄)
 - **특징**: Transformers.js 모델 + 서버 모니터링 특화 패턴
@@ -129,6 +214,7 @@ const intent = await classifier.classify(
 ### ⚙️ 4. TaskOrchestrator (작업 오케스트레이션)
 
 #### 🔧 **TaskOrchestrator** (Parallel Task Management)
+
 - **역할**: 복수 AI 작업의 병렬 처리 및 관리
 - **구현**: `src/modules/ai-agent/processors/TaskOrchestrator.ts`
 - **특징**: 작업 우선순위, 타임아웃 관리, 리소스 최적화
@@ -137,6 +223,7 @@ const intent = await classifier.classify(
 ### 🔄 5. ResponseMerger (응답 통합)
 
 #### 🌐 **ResponseMerger** (Intelligent Response Merger)
+
 - **역할**: 여러 AI 엔진 결과의 지능적 통합
 - **구현**: `src/modules/ai-agent/processors/ResponseMerger.ts`
 - **특징**: 신뢰도 점수, 중복 제거, 컨텍스트 보강
@@ -154,6 +241,7 @@ const mcpResult = await this.performMCPAnalysis(intent, context);
 ```
 
 **특징:**
+
 - **MCP 클라이언트**: official-mcp-client 사용
 - **실시간 데이터**: 파일 시스템, Git, 브라우저 도구 연동
 - **정확도**: 95%+ (MCP 서버 연결 시)
@@ -167,6 +255,7 @@ const directResult = await this.performDirectSystemAnalysis(intent, context);
 ```
 
 **특징:**
+
 - **로컬 분석**: 서버 메트릭, 로그 파일 직접 분석
 - **독립성**: 외부 서비스 의존성 없음
 - **실시간성**: 현재 시스템 상태 즉시 반영
@@ -180,6 +269,7 @@ const basicResult = await this.performBasicAnalysis(intent, context);
 ```
 
 **특징:**
+
 - **안정성**: 항상 응답 보장
 - **빠른 응답**: 1초 이내 응답
 - **기본 기능**: 키워드 기반 단순 분석
@@ -219,17 +309,17 @@ console.log(response.recommendations);
 ```typescript
 // 고급 쿼리 설정
 const advancedResponse = await aiEngine.processQuery({
-  query: "CPU 사용률 이상 서버 분석",
+  query: 'CPU 사용률 이상 서버 분석',
   context: {
     serverMetrics: metrics,
-    urgency: 'high'  // 높은 우선순위
+    urgency: 'high', // 높은 우선순위
   },
   options: {
-    enableMCP: true,           // MCP 사용 활성화
-    enableAnalysis: true,      // Direct Analysis 활성화
-    maxResponseTime: 10000,    // 최대 응답 시간 (ms)
-    confidenceThreshold: 0.7   // 신뢰도 임계값
-  }
+    enableMCP: true, // MCP 사용 활성화
+    enableAnalysis: true, // Direct Analysis 활성화
+    maxResponseTime: 10000, // 최대 응답 시간 (ms)
+    confidenceThreshold: 0.7, // 신뢰도 임계값
+  },
 });
 ```
 
@@ -239,14 +329,14 @@ const advancedResponse = await aiEngine.processQuery({
 
 ```typescript
 const performanceAnalysis = await aiEngine.processQuery({
-  query: "지난 24시간 성능 트렌드 분석",
+  query: '지난 24시간 성능 트렌드 분석',
   context: {
     serverMetrics: last24HoursMetrics,
-    timeRange: { 
-      start: new Date(Date.now() - 24*60*60*1000), 
-      end: new Date() 
-    }
-  }
+    timeRange: {
+      start: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      end: new Date(),
+    },
+  },
 });
 ```
 
@@ -254,14 +344,14 @@ const performanceAnalysis = await aiEngine.processQuery({
 
 ```typescript
 const anomalyDetection = await aiEngine.processQuery({
-  query: "시스템 이상 징후 탐지",
+  query: '시스템 이상 징후 탐지',
   context: {
     serverMetrics: realtimeMetrics,
-    urgency: 'critical'
+    urgency: 'critical',
   },
   options: {
-    maxResponseTime: 3000  // 빠른 응답 필요
-  }
+    maxResponseTime: 3000, // 빠른 응답 필요
+  },
 });
 ```
 
@@ -271,21 +361,21 @@ const anomalyDetection = await aiEngine.processQuery({
 
 ### 🎯 실제 성능 지표
 
-| 메트릭 | UnifiedAIEngine | 기존 시스템 | 개선율 |
-|--------|-----------------|-------------|--------|
-| **응답 시간** | 2.1초 평균 | 5.8초 평균 | **64% 단축** |
-| **메모리 사용량** | 45MB 평균 | 125MB 평균 | **64% 절약** |
-| **성공률** | 99.9% | 87% | **15% 향상** |
-| **동시 처리** | 50개 요청 | 15개 요청 | **233% 향상** |
+| 메트릭            | UnifiedAIEngine | 기존 시스템 | 개선율        |
+| ----------------- | --------------- | ----------- | ------------- |
+| **응답 시간**     | 2.1초 평균      | 5.8초 평균  | **64% 단축**  |
+| **메모리 사용량** | 45MB 평균       | 125MB 평균  | **64% 절약**  |
+| **성공률**        | 99.9%           | 87%         | **15% 향상**  |
+| **동시 처리**     | 50개 요청       | 15개 요청   | **233% 향상** |
 
 ### 🗄️ **벡터 DB 성능 (NEW)**
 
-| 기능 | PostgresVectorDB | LocalVectorDB (더미) | 개선율 |
-|------|------------------|---------------------|--------|
-| **검색 정확도** | 85-90% | 0% (더미) | **신규 기능** |
-| **저장 용량** | 무제한 (Supabase) | 메모리 제한 | **무제한** |
-| **검색 속도** | 100ms 평균 | N/A | **실제 검색** |
-| **유사도 계산** | 코사인 유사도 | 없음 | **실제 구현** |
+| 기능            | PostgresVectorDB  | LocalVectorDB (더미) | 개선율        |
+| --------------- | ----------------- | -------------------- | ------------- |
+| **검색 정확도** | 85-90%            | 0% (더미)            | **신규 기능** |
+| **저장 용량**   | 무제한 (Supabase) | 메모리 제한          | **무제한**    |
+| **검색 속도**   | 100ms 평균        | N/A                  | **실제 검색** |
+| **유사도 계산** | 코사인 유사도     | 없음                 | **실제 구현** |
 
 ### ⚡ 최적화 기능
 
@@ -299,18 +389,21 @@ const anomalyDetection = await aiEngine.processQuery({
 ## 🔮 향후 계획 - Future Roadmap
 
 ### 🚀 Phase 1: 성능 최적화 (완료)
+
 - ✅ UnifiedAIEngine 통합
 - ✅ 3단계 폴백 시스템
 - ✅ 하이브리드 의도 분류
 - ✅ 온디맨드 웜업 시스템
 
 ### 🧠 Phase 2: AI 고도화 (진행 중)
+
 - 🔄 GPT-4 통합 검토
 - 🔄 Claude API 연동 고려
 - 🔄 한국어 모델 특화
 - 🔄 학습형 의도 분류
 
 ### 🌐 Phase 3: 확장성 (계획)
+
 - 📅 분산 처리 시스템
 - 📅 실시간 모델 업데이트
 - 📅 엣지 컴퓨팅 지원

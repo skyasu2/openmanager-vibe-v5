@@ -87,23 +87,7 @@ const DashboardHeader = dynamic(
   }
 );
 
-const AISidebar = dynamic(
-  () =>
-    import('../../components/dashboard/AISidebar').then(mod => ({
-      default: mod.AISidebar,
-    })),
-  {
-    ssr: false,
-    loading: () => (
-      <div className='fixed right-0 top-0 h-full w-[400px] bg-white shadow-lg border-l border-gray-200 z-50 flex items-center justify-center'>
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-2' />
-          <p className='text-sm text-gray-600'>AI 사이드바 로딩 중...</p>
-        </div>
-      </div>
-    ),
-  }
-);
+// AISidebar 제거: DashboardHeader의 AISidebarV5로 통합됨
 
 const DashboardContent = dynamic(
   () => import('../../components/dashboard/DashboardContent'),
@@ -425,14 +409,8 @@ function DashboardPageContent() {
         </Suspense>
       </div>
 
-      {/* AI 에이전트 사이드바 */}
-      <Suspense fallback={<LoadingSpinner />}>
-        <AISidebar
-          isOpen={isAgentOpen}
-          onToggle={toggleAgent}
-          onClose={closeAgent}
-        />
-      </Suspense>
+      {/* AI 에이전트 사이드바 - DashboardHeader에서 관리하므로 제거 */}
+      {/* 레거시 AISidebar 제거: 새로운 AISidebarV5가 DashboardHeader에서 관리됨 */}
 
       {/* 플로팅 시스템 제어판 - 시스템 비활성 시에만 표시 */}
       {!(systemControl as any)?.isSystemActive && (

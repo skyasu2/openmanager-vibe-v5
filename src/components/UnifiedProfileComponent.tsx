@@ -1486,7 +1486,7 @@ export default function UnifiedProfileComponent({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className='fixed inset-0 bg-black/20 backdrop-blur-sm z-[9990] sm:hidden'
+              className='fixed inset-0 bg-black/20 z-[9990] sm:hidden'
               onClick={() => setIsOpen(false)}
             />
 
@@ -1501,7 +1501,7 @@ export default function UnifiedProfileComponent({
                 ease: [0.4, 0.0, 0.2, 1], // cubic-bezier 이징
                 layout: { duration: 0.2 },
               }}
-              className='fixed bg-gray-900/95 backdrop-blur-lg border border-gray-700/50 rounded-xl shadow-2xl z-[9999] min-w-[280px] max-w-[320px]'
+              className='fixed bg-gray-900/95 border border-gray-700/50 rounded-xl shadow-2xl z-[9999] min-w-[280px] max-w-[320px]'
               style={{
                 top: `${dropdownPosition.top}px`,
                 right: `${dropdownPosition.right}px`,

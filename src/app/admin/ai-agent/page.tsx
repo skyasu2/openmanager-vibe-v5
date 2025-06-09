@@ -61,30 +61,57 @@ export default function IntegratedAIEngineDashboard() {
   const [isMigrating, setIsMigrating] = useState(false);
   const [engines, setEngines] = useState<EngineStatus[]>([]);
   const [activeTab, setActiveTab] = useState('overview');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // 컴포넌트 마운트 시 초기 데이터 로드
   useEffect(() => {
     loadInitialData();
+  }, []);
+
+  // 엔진 상태가 로드된 후 주기적 업데이트 설정
+  useEffect(() => {
+    if (engines.length === 0) return; // 엔진이 로드되지 않았으면 업데이트 하지 않음
+
     const interval = setInterval(refreshEngineStatus, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [engines.length]); // engines 길이가 변경될 때만 interval 재설정
 
   /**
    * 🔄 초기 데이터 로드
    */
   const loadInitialData = async () => {
+    setIsLoading(true);
+    setError(null);
+
     try {
+      console.log('🚀 AI 엔진 대시보드 초기화 시작...');
+
       // 마이그레이션 상태 확인
-      const migrationResponse = await fetch('/api/ai/migration?action=status');
-      if (migrationResponse.ok) {
-        const migrationData = await migrationResponse.json();
-        console.log('마이그레이션 상태:', migrationData);
+      try {
+        const migrationResponse = await fetch(
+          '/api/ai/migration?action=status'
+        );
+        if (migrationResponse.ok) {
+          const migrationData = await migrationResponse.json();
+          console.log('✅ 마이그레이션 상태:', migrationData);
+        }
+      } catch (migrationError) {
+        console.warn(
+          '⚠️ 마이그레이션 상태 확인 실패 (무시됨):',
+          migrationError
+        );
       }
 
       // 엔진 상태 초기화
+      console.log('🔧 AI 엔진 상태 초기화...');
       initializeEngineStatus();
+      console.log('✅ AI 엔진 대시보드 초기화 완료');
     } catch (error) {
-      console.error('초기 데이터 로드 실패:', error);
+      console.error('❌ 초기 데이터 로드 실패:', error);
+      setError('데이터 로드에 실패했습니다. 페이지를 새로고침해보세요.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -205,14 +232,24 @@ export default function IntegratedAIEngineDashboard() {
    */
   const refreshEngineStatus = async () => {
     try {
+      // engines가 비어있으면 새로고침하지 않음
+      if (engines.length === 0) {
+        console.log('엔진이 아직 로드되지 않아 새로고침을 건너뜁니다.');
+        return;
+      }
+
       // 실제 구현에서는 마스터 AI 엔진에서 상태를 가져옴
-      const updatedEngines = engines.map(engine => ({
-        ...engine,
-        requests: engine.requests + Math.floor(Math.random() * 5),
-        responseTime: engine.responseTime + Math.floor(Math.random() * 10 - 5),
-        lastUsed: Math.random() > 0.7 ? '방금 전' : engine.lastUsed,
-      }));
-      setEngines(updatedEngines);
+      setEngines(prevEngines =>
+        prevEngines.map(engine => ({
+          ...engine,
+          requests: engine.requests + Math.floor(Math.random() * 5),
+          responseTime: Math.max(
+            10,
+            engine.responseTime + Math.floor(Math.random() * 10 - 5)
+          ),
+          lastUsed: Math.random() > 0.7 ? '방금 전' : engine.lastUsed,
+        }))
+      );
     } catch (error) {
       console.error('엔진 상태 새로고침 실패:', error);
     }
@@ -265,6 +302,17 @@ export default function IntegratedAIEngineDashboard() {
    * 📊 통계 계산
    */
   const getOverallStats = () => {
+    // 엔진 데이터가 없을 때 기본값 반환
+    if (!engines || engines.length === 0) {
+      return {
+        totalRequests: 0,
+        avgAccuracy: 0,
+        avgResponseTime: 0,
+        activeEngines: 0,
+        totalEngines: 0,
+      };
+    }
+
     const totalRequests = engines.reduce(
       (sum, engine) => sum + engine.requests,
       0
@@ -289,6 +337,44 @@ export default function IntegratedAIEngineDashboard() {
   };
 
   const stats = getOverallStats();
+
+  // 로딩 상태 표시
+  if (isLoading) {
+    return (
+      <div className='min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-6 flex items-center justify-center'>
+        <div className='text-center space-y-4'>
+          <div className='w-16 h-16 border-4 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto'></div>
+          <h2 className='text-2xl font-bold'>AI 엔진 대시보드 로딩 중...</h2>
+          <p className='text-slate-300'>
+            11개 AI 엔진 상태를 확인하고 있습니다.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // 오류 상태 표시
+  if (error) {
+    return (
+      <div className='min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-6 flex items-center justify-center'>
+        <div className='text-center space-y-4 max-w-md'>
+          <AlertTriangle className='w-16 h-16 text-red-400 mx-auto' />
+          <h2 className='text-2xl font-bold text-red-400'>오류 발생</h2>
+          <p className='text-slate-300'>{error}</p>
+          <Button
+            onClick={() => {
+              setError(null);
+              loadInitialData();
+            }}
+            className='bg-purple-600 hover:bg-purple-700'
+          >
+            <RefreshCw className='w-4 h-4 mr-2' />
+            다시 시도
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-6'>

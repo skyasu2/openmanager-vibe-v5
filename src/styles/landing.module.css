@@ -22,7 +22,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: 
+  background-image:
     radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
     radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
     radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
@@ -84,7 +84,7 @@
 
 .featureCard {
   background: var(--glass-bg);
-  backdrop-filter: blur(10px);
+  /* backdrop-filter: blur(10px); */
   border: 1px solid var(--glass-border);
   border-radius: 16px;
   padding: 2rem;
@@ -196,7 +196,7 @@
 
 .statCard {
   background: var(--glass-bg);
-  backdrop-filter: blur(10px);
+  /* backdrop-filter: blur(10px); */
   border: 1px solid var(--glass-border);
   border-radius: 12px;
   padding: 1.5rem;
@@ -296,10 +296,21 @@
   animation: fadeIn 0.8s ease-out;
 }
 
-.fadeInUp:nth-child(1) { animation-delay: 0.1s; }
-.fadeInUp:nth-child(2) { animation-delay: 0.2s; }
-.fadeInUp:nth-child(3) { animation-delay: 0.3s; }
-.fadeInUp:nth-child(4) { animation-delay: 0.4s; }
+.fadeInUp:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.fadeInUp:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.fadeInUp:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.fadeInUp:nth-child(4) {
+  animation-delay: 0.4s;
+}
 
 /* 로딩 애니메이션 */
 .loadingSpinner {
@@ -313,6 +324,11 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-} 
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}

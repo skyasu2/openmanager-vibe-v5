@@ -39,7 +39,7 @@ const getModalCardData = (cardId: string) => {
         tag: { label: '자체개발', color: 'bg-blue-600' },
         description: '모든 AI 기능의 통합 관리',
         bgColor: 'from-purple-50 to-purple-100',
-        borderColor: 'border-purple-200'
+        borderColor: 'border-purple-200',
       },
       {
         icon: '🤖',
@@ -47,7 +47,7 @@ const getModalCardData = (cardId: string) => {
         tag: { label: '오픈소스', color: 'bg-green-600' },
         description: 'ML 추론 및 패턴 분석',
         bgColor: 'from-orange-50 to-orange-100',
-        borderColor: 'border-orange-200'
+        borderColor: 'border-orange-200',
       },
       {
         icon: '🇰🇷',
@@ -55,7 +55,7 @@ const getModalCardData = (cardId: string) => {
         tag: { label: '오픈소스', color: 'bg-green-600' },
         description: '한국어 자연어 처리',
         bgColor: 'from-emerald-50 to-emerald-100',
-        borderColor: 'border-emerald-200'
+        borderColor: 'border-emerald-200',
       },
       {
         icon: '⚡',
@@ -63,8 +63,8 @@ const getModalCardData = (cardId: string) => {
         tag: { label: '자체개발', color: 'bg-blue-600' },
         description: '지능형 작업 라우팅',
         bgColor: 'from-indigo-50 to-indigo-100',
-        borderColor: 'border-indigo-200'
-      }
+        borderColor: 'border-indigo-200',
+      },
     ],
     'data-generator': [
       {
@@ -73,7 +73,7 @@ const getModalCardData = (cardId: string) => {
         tag: { label: '자체개발', color: 'bg-blue-600' },
         description: '24시간 베이스라인 + 실시간 변동',
         bgColor: 'from-emerald-50 to-emerald-100',
-        borderColor: 'border-emerald-200'
+        borderColor: 'border-emerald-200',
       },
       {
         icon: '⏱️',
@@ -81,7 +81,7 @@ const getModalCardData = (cardId: string) => {
         tag: { label: '자체개발', color: 'bg-blue-600' },
         description: '통합 타이머 관리',
         bgColor: 'from-blue-50 to-blue-100',
-        borderColor: 'border-blue-200'
+        borderColor: 'border-blue-200',
       },
       {
         icon: '📈',
@@ -89,7 +89,7 @@ const getModalCardData = (cardId: string) => {
         tag: { label: '자체개발', color: 'bg-blue-600' },
         description: '시간대별 패턴 분석',
         bgColor: 'from-cyan-50 to-cyan-100',
-        borderColor: 'border-cyan-200'
+        borderColor: 'border-cyan-200',
       },
       {
         icon: '🧹',
@@ -97,8 +97,8 @@ const getModalCardData = (cardId: string) => {
         tag: { label: '자체개발', color: 'bg-blue-600' },
         description: '메모리 최적화 + 가비지 컬렉션',
         bgColor: 'from-teal-50 to-teal-100',
-        borderColor: 'border-teal-200'
-      }
+        borderColor: 'border-teal-200',
+      },
     ],
     'tech-stack': [
       {
@@ -107,7 +107,7 @@ const getModalCardData = (cardId: string) => {
         tag: { label: '오픈소스', color: 'bg-green-600' },
         description: 'App Router + 서버리스 최적화',
         bgColor: 'from-slate-50 to-slate-100',
-        borderColor: 'border-slate-200'
+        borderColor: 'border-slate-200',
       },
       {
         icon: '🔧',
@@ -115,7 +115,7 @@ const getModalCardData = (cardId: string) => {
         tag: { label: '오픈소스', color: 'bg-green-600' },
         description: '완전한 타입 안전성',
         bgColor: 'from-blue-50 to-blue-100',
-        borderColor: 'border-blue-200'
+        borderColor: 'border-blue-200',
       },
       {
         icon: '🎨',
@@ -123,7 +123,7 @@ const getModalCardData = (cardId: string) => {
         tag: { label: '오픈소스', color: 'bg-green-600' },
         description: '유틸리티 우선 스타일링',
         bgColor: 'from-cyan-50 to-cyan-100',
-        borderColor: 'border-cyan-200'
+        borderColor: 'border-cyan-200',
       },
       {
         icon: '🏗️',
@@ -131,8 +131,8 @@ const getModalCardData = (cardId: string) => {
         tag: { label: '자체개발', color: 'bg-blue-600' },
         description: '4개 독립 모듈 설계',
         bgColor: 'from-purple-50 to-purple-100',
-        borderColor: 'border-purple-200'
-      }
+        borderColor: 'border-purple-200',
+      },
     ],
     'vibe-coding': [
       {
@@ -141,7 +141,7 @@ const getModalCardData = (cardId: string) => {
         tag: { label: '외부도구', color: 'bg-yellow-600' },
         description: 'AI 기반 코드 생성 IDE',
         bgColor: 'from-purple-50 to-purple-100',
-        borderColor: 'border-purple-200'
+        borderColor: 'border-purple-200',
       },
       {
         icon: '🧠',
@@ -149,7 +149,7 @@ const getModalCardData = (cardId: string) => {
         tag: { label: '외부도구', color: 'bg-yellow-600' },
         description: '200K 컨텍스트 AI 모델',
         bgColor: 'from-indigo-50 to-indigo-100',
-        borderColor: 'border-indigo-200'
+        borderColor: 'border-indigo-200',
       },
       {
         icon: '🔗',
@@ -157,7 +157,7 @@ const getModalCardData = (cardId: string) => {
         tag: { label: '오픈소스', color: 'bg-green-600' },
         description: '파일시스템 + Git 자동화',
         bgColor: 'from-emerald-50 to-emerald-100',
-        borderColor: 'border-emerald-200'
+        borderColor: 'border-emerald-200',
       },
       {
         icon: '🚀',
@@ -165,9 +165,9 @@ const getModalCardData = (cardId: string) => {
         tag: { label: '오픈소스', color: 'bg-green-600' },
         description: '자동 배포 + CI/CD',
         bgColor: 'from-green-50 to-green-100',
-        borderColor: 'border-green-200'
-      }
-    ]
+        borderColor: 'border-green-200',
+      },
+    ],
   };
 
   return cardDataMap[cardId as keyof typeof cardDataMap] || [];
@@ -187,13 +187,13 @@ export default function FeatureCardModal({
 
   return (
     <AnimatePresence>
-      <div className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md'>
+      <div className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60'>
         <motion.div
           ref={modalRef}
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className={`relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-xl shadow-2xl ${
+          className={`relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-900/95 border border-gray-700/50 rounded-xl shadow-2xl ${
             isHomeVariant && selectedCard.isSpecial
               ? 'border-amber-500/50 bg-gradient-to-br from-gray-900/95 to-amber-900/20'
               : ''
@@ -289,14 +289,18 @@ export default function FeatureCardModal({
                   className={`bg-gradient-to-br ${card.bgColor} rounded-xl p-6 border ${card.borderColor} hover:shadow-lg transition-all duration-300`}
                 >
                   <div className='flex items-center gap-3 mb-4'>
-                    <div className={`w-12 h-12 ${card.tag.color} rounded-lg flex items-center justify-center text-2xl`}>
+                    <div
+                      className={`w-12 h-12 ${card.tag.color} rounded-lg flex items-center justify-center text-2xl`}
+                    >
                       {card.icon}
                     </div>
                     <div className='flex-1'>
                       <h3 className='text-lg font-bold text-gray-800 mb-1'>
                         {card.title}
                       </h3>
-                      <span className={`px-2 py-1 ${card.tag.color} text-white text-xs rounded font-medium`}>
+                      <span
+                        className={`px-2 py-1 ${card.tag.color} text-white text-xs rounded font-medium`}
+                      >
                         {card.tag.label}
                       </span>
                     </div>
@@ -314,7 +318,9 @@ export default function FeatureCardModal({
                 📖 개요
               </h3>
               <p className='text-gray-300 leading-relaxed text-base'>
-                {renderTextWithAIGradient(selectedCard.detailedContent.overview)}
+                {renderTextWithAIGradient(
+                  selectedCard.detailedContent.overview
+                )}
               </p>
             </div>
           </div>

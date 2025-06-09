@@ -16,20 +16,20 @@
   --secondary: #34a853;
   --accent: #ea4335;
   --warning: #fbbc04;
-  
+
   /* 배경 그라데이션 */
   --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --bg-gradient-alt: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  
+
   /* 텍스트 */
   --text-primary: #1f2937;
   --text-secondary: #6b7280;
   --text-white: #ffffff;
-  
+
   /* 카드 스타일 */
   --glass-bg: rgba(255, 255, 255, 0.1);
   --glass-border: rgba(255, 255, 255, 0.2);
-  
+
   /* 그림자 */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -50,7 +50,8 @@ body {
   font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
   line-height: 1.6;
   color: var(--text-primary);
-  background: #1e293b; /* 다크 배경 기본 설정 */
+  background: #1e293b;
+  /* 다크 배경 기본 설정 */
 }
 
 a {
@@ -82,6 +83,7 @@ a {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -93,6 +95,7 @@ a {
     opacity: 0;
     transform: translateX(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -100,9 +103,12 @@ a {
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-10px);
   }
@@ -112,9 +118,11 @@ a {
   0% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
+
   100% {
     background-position: 0% 50%;
   }
@@ -124,18 +132,23 @@ a {
   0% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
+
   100% {
     background-position: 0% 50%;
   }
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.5;
   }
@@ -156,8 +169,8 @@ a {
 /* Glassmorphism 카드 스타일 */
 .glass-card {
   background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  /* backdrop-filter: blur(10px); */
+  /* -webkit-backdrop-filter: blur(10px); */
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 16px;
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
@@ -172,8 +185,8 @@ a {
 /* 서버 카드 스타일 */
 .server-card {
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  /* backdrop-filter: blur(8px); */
+  /* -webkit-backdrop-filter: blur(8px); */
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
@@ -187,8 +200,8 @@ a {
 /* AI 패널 스타일 */
 .ai-panel {
   background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  /* backdrop-filter: blur(12px); */
+  /* -webkit-backdrop-filter: blur(12px); */
 }
 
 /* 그라데이션 배경 */
@@ -202,14 +215,16 @@ a {
 
 /* 모바일 첫 번째 (Mobile First) */
 .responsive-container {
-  padding: 0.75rem; /* 12px */
+  padding: 0.75rem;
+  /* 12px */
   margin: 0 auto;
   max-width: 100%;
 }
 
 /* 사이드바 반응형 개선 */
 .sidebar-responsive {
-  width: 100vw; /* 모바일: 전체 화면 */
+  width: 100vw;
+  /* 모바일: 전체 화면 */
   height: 100vh;
   overflow-y: auto;
 }
@@ -217,20 +232,22 @@ a {
 /* 작은 화면 (Small screens - 태블릿) */
 @media (min-width: 768px) {
   .responsive-container {
-    padding: 1.5rem; /* 24px */
+    padding: 1.5rem;
+    /* 24px */
     max-width: 100%;
   }
-  
+
   .sidebar-responsive {
-    width: 420px; /* 태블릿: 중간 크기 */
+    width: 420px;
+    /* 태블릿: 중간 크기 */
   }
-  
+
   /* 네비게이션 개선 */
   .nav-responsive {
     flex-direction: row;
     justify-content: space-between;
   }
-  
+
   /* 카드 그리드 개선 */
   .card-grid-responsive {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -241,27 +258,30 @@ a {
 /* 중간 화면 (Medium screens - 노트북 14-15인치) */
 @media (min-width: 1024px) {
   .responsive-container {
-    padding: 2rem; /* 32px */
+    padding: 2rem;
+    /* 32px */
     max-width: 1200px;
   }
-  
+
   .sidebar-responsive {
-    width: 500px; /* 노트북: 더 큰 크기 */
+    width: 500px;
+    /* 노트북: 더 큰 크기 */
   }
-  
+
   /* 대시보드 레이아웃 개선 */
   .dashboard-layout-responsive {
     display: grid;
-    grid-template-columns: 1fr 500px; /* 메인 콘텐츠 + 사이드바 */
+    grid-template-columns: 1fr 500px;
+    /* 메인 콘텐츠 + 사이드바 */
     gap: 2rem;
   }
-  
+
   /* 카드 그리드 개선 */
   .card-grid-responsive {
     grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
   }
-  
+
   /* 차트 컨테이너 개선 */
   .chart-container-responsive {
     height: 350px;
@@ -271,26 +291,28 @@ a {
 /* 큰 화면 (Large screens - 데스크탑) */
 @media (min-width: 1280px) {
   .responsive-container {
-    padding: 3rem; /* 48px */
+    padding: 3rem;
+    /* 48px */
     max-width: 1400px;
   }
-  
+
   .sidebar-responsive {
-    width: 600px; /* 데스크탑: 가장 큰 크기 */
+    width: 600px;
+    /* 데스크탑: 가장 큰 크기 */
   }
-  
+
   /* 대시보드 레이아웃 개선 */
   .dashboard-layout-responsive {
     grid-template-columns: 1fr 600px;
     gap: 3rem;
   }
-  
+
   /* 카드 그리드 개선 */
   .card-grid-responsive {
     grid-template-columns: repeat(4, 1fr);
     gap: 2.5rem;
   }
-  
+
   /* 차트 컨테이너 개선 */
   .chart-container-responsive {
     height: 400px;
@@ -301,13 +323,15 @@ a {
 @media (min-width: 1536px) {
   .responsive-container {
     max-width: 1600px;
-    padding: 4rem; /* 64px */
+    padding: 4rem;
+    /* 64px */
   }
-  
+
   .sidebar-responsive {
-    width: 700px; /* 대형 모니터: 최대 크기 */
+    width: 700px;
+    /* 대형 모니터: 최대 크기 */
   }
-  
+
   /* 대시보드 레이아웃 개선 */
   .dashboard-layout-responsive {
     grid-template-columns: 1fr 700px;
@@ -320,40 +344,48 @@ a {
 /* 버튼 반응형 */
 .btn-responsive {
   padding: 0.5rem 1rem;
-  font-size: 0.875rem; /* 14px */
+  font-size: 0.875rem;
+  /* 14px */
 }
 
 @media (min-width: 768px) {
   .btn-responsive {
     padding: 0.75rem 1.5rem;
-    font-size: 1rem; /* 16px */
+    font-size: 1rem;
+    /* 16px */
   }
 }
 
 /* 텍스트 반응형 */
 .text-responsive-sm {
-  font-size: 0.75rem; /* 12px */
+  font-size: 0.75rem;
+  /* 12px */
 }
 
 .text-responsive-base {
-  font-size: 0.875rem; /* 14px */
+  font-size: 0.875rem;
+  /* 14px */
 }
 
 .text-responsive-lg {
-  font-size: 1rem; /* 16px */
+  font-size: 1rem;
+  /* 16px */
 }
 
 @media (min-width: 768px) {
   .text-responsive-sm {
-    font-size: 0.875rem; /* 14px */
+    font-size: 0.875rem;
+    /* 14px */
   }
-  
+
   .text-responsive-base {
-    font-size: 1rem; /* 16px */
+    font-size: 1rem;
+    /* 16px */
   }
-  
+
   .text-responsive-lg {
-    font-size: 1.125rem; /* 18px */
+    font-size: 1.125rem;
+    /* 18px */
   }
 }
 
@@ -373,7 +405,7 @@ a {
     margin: 1rem;
     padding: 1rem;
   }
-  
+
   .spacing-responsive-md {
     margin: 1.5rem;
     padding: 1.5rem;
@@ -385,7 +417,7 @@ a {
     margin: 1.5rem;
     padding: 1.5rem;
   }
-  
+
   .spacing-responsive-md {
     margin: 2rem;
     padding: 2rem;
@@ -428,7 +460,7 @@ a {
     --text-primary: #f8fafc;
     --text-secondary: #cbd5e1;
   }
-  
+
   body {
     background: #0f172a;
     color: var(--text-primary);

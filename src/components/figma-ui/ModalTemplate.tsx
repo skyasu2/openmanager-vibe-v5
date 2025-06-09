@@ -2,15 +2,15 @@
 
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, 
-  AlertTriangle, 
-  CheckCircle, 
-  Info, 
+import {
+  X,
+  AlertTriangle,
+  CheckCircle,
+  Info,
   AlertCircle,
   Loader2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -47,53 +47,53 @@ const modalSizes = {
   md: 'max-w-lg',
   lg: 'max-w-2xl',
   xl: 'max-w-4xl',
-  full: 'max-w-full mx-4'
+  full: 'max-w-full mx-4',
 };
 
 const variantConfig = {
   default: {
     icon: Info,
     iconColor: 'text-blue-500',
-    iconBg: 'bg-blue-100'
+    iconBg: 'bg-blue-100',
   },
   success: {
     icon: CheckCircle,
     iconColor: 'text-green-500',
-    iconBg: 'bg-green-100'
+    iconBg: 'bg-green-100',
   },
   warning: {
     icon: AlertTriangle,
     iconColor: 'text-yellow-500',
-    iconBg: 'bg-yellow-100'
+    iconBg: 'bg-yellow-100',
   },
   error: {
     icon: AlertCircle,
     iconColor: 'text-red-500',
-    iconBg: 'bg-red-100'
+    iconBg: 'bg-red-100',
   },
   info: {
     icon: Info,
     iconColor: 'text-blue-500',
-    iconBg: 'bg-blue-100'
-  }
+    iconBg: 'bg-blue-100',
+  },
 };
 
 const animationVariants = {
   scale: {
     initial: { opacity: 0, scale: 0.8 },
     animate: { opacity: 1, scale: 1 },
-    exit: { opacity: 0, scale: 0.8 }
+    exit: { opacity: 0, scale: 0.8 },
   },
   slide: {
     initial: { opacity: 0, y: 50 },
     animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: 50 }
+    exit: { opacity: 0, y: 50 },
   },
   fade: {
     initial: { opacity: 0 },
     animate: { opacity: 1 },
-    exit: { opacity: 0 }
-  }
+    exit: { opacity: 0 },
+  },
 };
 
 export default function ModalTemplate({
@@ -113,9 +113,8 @@ export default function ModalTemplate({
   loading = false,
   centered = true,
   scrollable = true,
-  animation = 'scale'
+  animation = 'scale',
 }: ModalTemplateProps) {
-
   // ESC 키로 모달 닫기
   useEffect(() => {
     if (!closeOnEscape || !isOpen) return;
@@ -169,26 +168,28 @@ export default function ModalTemplate({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className='fixed inset-0 z-50 flex items-center justify-center'>
           {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className='absolute inset-0 bg-black/50'
             onClick={handleOverlayClick}
           />
 
           {/* Modal Container */}
-          <div className={`relative w-full ${modalSizes[size]} mx-4 ${centered ? 'my-auto' : 'mt-16'}`}>
+          <div
+            className={`relative w-full ${modalSizes[size]} mx-4 ${centered ? 'my-auto' : 'mt-16'}`}
+          >
             <motion.div
               {...selectedAnimation}
-              transition={{ 
-                type: "spring", 
-                damping: 20, 
+              transition={{
+                type: 'spring',
+                damping: 20,
                 stiffness: 300,
-                duration: 0.3 
+                duration: 0.3,
               }}
               className={`
                 relative bg-white rounded-2xl shadow-2xl border border-gray-200
@@ -202,11 +203,11 @@ export default function ModalTemplate({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-2xl"
+                    className='absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-2xl'
                   >
-                    <div className="flex items-center gap-3 text-gray-600">
-                      <Loader2 className="w-6 h-6 animate-spin" />
-                      <span className="font-medium">처리 중...</span>
+                    <div className='flex items-center gap-3 text-gray-600'>
+                      <Loader2 className='w-6 h-6 animate-spin' />
+                      <span className='font-medium'>처리 중...</span>
                     </div>
                   </motion.div>
                 )}
@@ -214,24 +215,28 @@ export default function ModalTemplate({
 
               {/* Header */}
               {(title || description || headerContent || showCloseButton) && (
-                <div className="flex items-start justify-between p-6 border-b border-gray-200">
-                  <div className="flex items-start gap-4 flex-1">
+                <div className='flex items-start justify-between p-6 border-b border-gray-200'>
+                  <div className='flex items-start gap-4 flex-1'>
                     {/* Variant Icon */}
                     {(title || description) && variant !== 'default' && (
-                      <div className={`flex-shrink-0 w-10 h-10 ${config.iconBg} rounded-full flex items-center justify-center`}>
-                        <IconComponent className={`w-5 h-5 ${config.iconColor}`} />
+                      <div
+                        className={`flex-shrink-0 w-10 h-10 ${config.iconBg} rounded-full flex items-center justify-center`}
+                      >
+                        <IconComponent
+                          className={`w-5 h-5 ${config.iconColor}`}
+                        />
                       </div>
                     )}
 
                     {/* Title & Description */}
-                    <div className="flex-1 min-w-0">
+                    <div className='flex-1 min-w-0'>
                       {title && (
-                        <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                        <h2 className='text-xl font-semibold text-gray-900 mb-2'>
                           {title}
                         </h2>
                       )}
                       {description && (
-                        <p className="text-gray-600 leading-relaxed">
+                        <p className='text-gray-600 leading-relaxed'>
                           {description}
                         </p>
                       )}
@@ -245,9 +250,9 @@ export default function ModalTemplate({
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={onClose}
-                      className="flex-shrink-0 w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors ml-4"
+                      className='flex-shrink-0 w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors ml-4'
                     >
-                      <X className="w-4 h-4 text-gray-500" />
+                      <X className='w-4 h-4 text-gray-500' />
                     </motion.button>
                   )}
                 </div>
@@ -255,33 +260,37 @@ export default function ModalTemplate({
 
               {/* Content */}
               {children && (
-                <div className={`p-6 ${scrollable ? 'overflow-y-auto flex-1' : ''}`}>
+                <div
+                  className={`p-6 ${scrollable ? 'overflow-y-auto flex-1' : ''}`}
+                >
                   {children}
                 </div>
               )}
 
               {/* Footer */}
               {(actions.length > 0 || footerContent) && (
-                <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50/50">
+                <div className='flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50/50'>
                   {/* Footer Content */}
-                  <div className="flex-1">
-                    {footerContent}
-                  </div>
+                  <div className='flex-1'>{footerContent}</div>
 
                   {/* Actions */}
                   {actions.length > 0 && (
-                    <div className="flex items-center gap-3 ml-4">
+                    <div className='flex items-center gap-3 ml-4'>
                       {actions.map((action, index) => (
                         <Button
                           key={index}
-                          variant={getButtonVariant(action.variant || 'secondary') as any}
-                          size="sm"
+                          variant={
+                            getButtonVariant(
+                              action.variant || 'secondary'
+                            ) as any
+                          }
+                          size='sm'
                           onClick={action.onClick}
                           disabled={action.disabled || loading}
-                          className="min-w-[80px]"
+                          className='min-w-[80px]'
                         >
                           {action.loading ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <Loader2 className='w-4 h-4 animate-spin' />
                           ) : (
                             action.label
                           )}
@@ -304,12 +313,12 @@ export function ConfirmModal({
   isOpen,
   onClose,
   onConfirm,
-  title = "확인",
-  description = "이 작업을 계속하시겠습니까?",
-  confirmLabel = "확인",
-  cancelLabel = "취소",
-  variant = "warning",
-  loading = false
+  title = '확인',
+  description = '이 작업을 계속하시겠습니까?',
+  confirmLabel = '확인',
+  cancelLabel = '취소',
+  variant = 'warning',
+  loading = false,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -328,20 +337,20 @@ export function ConfirmModal({
       title={title}
       description={description}
       variant={variant}
-      size="sm"
+      size='sm'
       actions={[
         {
           label: cancelLabel,
           onClick: onClose,
           variant: 'ghost',
-          disabled: loading
+          disabled: loading,
         },
         {
           label: confirmLabel,
           onClick: onConfirm,
           variant: variant === 'error' ? 'danger' : 'primary',
-          loading
-        }
+          loading,
+        },
       ]}
     />
   );
@@ -353,7 +362,7 @@ export function InfoModal({
   title,
   description,
   children,
-  okLabel = "확인"
+  okLabel = '확인',
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -368,14 +377,14 @@ export function InfoModal({
       onClose={onClose}
       title={title}
       description={description}
-      variant="info"
-      size="md"
+      variant='info'
+      size='md'
       actions={[
         {
           label: okLabel,
           onClick: onClose,
-          variant: 'primary'
-        }
+          variant: 'primary',
+        },
       ]}
     >
       {children}
@@ -389,10 +398,10 @@ export function FormModal({
   title,
   children,
   onSubmit,
-  submitLabel = "저장",
-  cancelLabel = "취소",
+  submitLabel = '저장',
+  cancelLabel = '취소',
   loading = false,
-  size = "lg"
+  size = 'lg',
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -416,17 +425,17 @@ export function FormModal({
           label: cancelLabel,
           onClick: onClose,
           variant: 'ghost',
-          disabled: loading
+          disabled: loading,
         },
         {
           label: submitLabel,
           onClick: onSubmit,
           variant: 'primary',
-          loading
-        }
+          loading,
+        },
       ]}
     >
       {children}
     </ModalTemplate>
   );
-} 
+}
