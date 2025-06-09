@@ -159,7 +159,7 @@ export class EnvironmentConfigManager {
      */
     getServerCountLimit(): number {
         const config = getVercelOptimizedConfig();
-        return config.maxServers;
+        return config.maxServers || 20;
     }
 
     /**

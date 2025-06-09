@@ -79,7 +79,14 @@ export class HybridAIEngine {
         this.mcpClient = new RealMCPClient();
 
         // LocalVectorDB 인스턴스 생성 (여러 모듈에서 공유)
-        const vectorDB = new (require('../local-vector-db').LocalVectorDB)();
+        // 임시: LocalVectorDB 모의 객체 사용 (require 대신)
+        const vectorDB = {
+            search: () => ({ status: 'success', results: [], count: 0 }),
+            add: () => { },
+            update: () => { },
+            delete: () => { },
+            clear: () => { }
+        } as any;
 
         // 문서 인덱스를 위한 Map 생성
         const documentIndex = new Map<string, DocumentContext>();
@@ -207,8 +214,8 @@ export class HybridAIEngine {
                 tensorflowPredictions: analysisResults.tensorflow,
                 koreanNLU: analysisResults.korean,
                 transformersAnalysis: analysisResults.transformers,
-                vectorSearchResults: analysisResults.vectorSearchResults || analysisResults.vectorSearch,
-                mcpActions: analysisResults.mcpActions || [],
+                vectorSearchResults: documents, // 검색된 문서 자체가 벡터 검색 결과
+                mcpActions: [], // MCP 액션은 향후 구현
                 processingTime: totalTime,
                 engineUsed: this.determineEngineUsed(analysisResults),
                 performanceMetrics

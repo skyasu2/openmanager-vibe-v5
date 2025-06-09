@@ -91,7 +91,9 @@ export class VectorSearchService {
             // 결과 변환 및 필터링
             const results: VectorSearchResult[] = [];
 
-            for (const result of similarDocuments) {
+            // similarDocuments.results 배열을 반복
+            const resultsArray = similarDocuments.status === 'success' ? similarDocuments.results : [];
+            for (const result of resultsArray) {
                 if (result.similarity < (options.minSimilarity || 0.1)) {
                     continue;
                 }
