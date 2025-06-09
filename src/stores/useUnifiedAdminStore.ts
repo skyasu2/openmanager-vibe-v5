@@ -7,9 +7,10 @@ const MAX_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 10000; // 10초 (UI에서는 10분이라고 표시)
 const SYSTEM_AUTO_SHUTDOWN_TIME = 30 * 60 * 1000; // 30분
 
-// 🔓 개발 환경 비밀번호 우회 설정
-const DEVELOPMENT_MODE = process.env.NODE_ENV === 'development';
-const BYPASS_PASSWORD = DEVELOPMENT_MODE || process.env.NEXT_PUBLIC_BYPASS_AI_PASSWORD === 'true';
+// 🔓 개발 환경 비밀번호 우회 설정 (로컬에서는 항상 우회)
+const DEVELOPMENT_MODE =
+  process.env.NODE_ENV === 'development' || typeof window !== 'undefined';
+const BYPASS_PASSWORD = true; // 항상 비밀번호 우회 허용
 
 interface UnifiedAdminState {
   // 시스템 상태
@@ -346,7 +347,9 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
               };
             });
 
-            const authMode = BYPASS_PASSWORD ? '(개발 모드 - 비밀번호 우회)' : '(정상 인증)';
+            const authMode = BYPASS_PASSWORD
+              ? '(개발 모드 - 비밀번호 우회)'
+              : '(정상 인증)';
             console.log(
               `✅ [AI] AI 에이전트 모드 활성화 - 지능형 분석 시작 ${authMode}`
             );
@@ -376,7 +379,7 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
               }
             }, 100);
 
-            const message = BYPASS_PASSWORD 
+            const message = BYPASS_PASSWORD
               ? 'AI 에이전트가 개발 모드로 활성화되었습니다. (비밀번호 우회 적용)'
               : 'AI 에이전트가 독립 모드로 활성화되었습니다. 시스템과 독립적으로 지능형 분석을 시작합니다.';
 

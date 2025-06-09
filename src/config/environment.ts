@@ -166,9 +166,34 @@ export const env = getEnvironmentConfig();
  */
 export function getDataGeneratorConfig() {
   const config = getEnvironmentConfig();
+
+  // 🚀 환경별 서버 수 조절: Vercel Free(8개) / Vercel Pro(16개) / 로컬(30개)
+  let maxServers = 30; // 기본값 (로컬)
+  let serverArchitecture:
+    | 'single'
+    | 'master-slave'
+    | 'load-balanced'
+    | 'microservices' = 'load-balanced';
+
+  if (config.IS_VERCEL) {
+    // Vercel 환경 감지
+    const isVercelPro =
+      process.env.VERCEL_ENV === 'production' &&
+      process.env.VERCEL_TIER === 'pro';
+
+    if (isVercelPro) {
+      maxServers = 16; // Vercel Pro: 16개 서버
+      serverArchitecture = 'load-balanced';
+    } else {
+      maxServers = 8; // Vercel Free: 8개 서버
+      serverArchitecture = 'master-slave';
+    }
+  }
+
   return {
     enabled: config.features.enableRealtimeData,
-    maxServers: config.IS_VERCEL ? 50 : 100,
+    maxServers,
+    defaultArchitecture: serverArchitecture,
     updateInterval: config.IS_VERCEL ? 5000 : 3000,
     refreshInterval: config.IS_VERCEL ? 10000 : 5000,
     memoryLimit: config.performance.maxMemory,

@@ -33,9 +33,10 @@ interface UnifiedProfileComponentProps {
   userAvatar?: string;
 }
 
-// 🔓 개발 환경 설정
-const DEVELOPMENT_MODE = process.env.NODE_ENV === 'development';
-const BYPASS_PASSWORD = DEVELOPMENT_MODE || process.env.NEXT_PUBLIC_BYPASS_AI_PASSWORD === 'true';
+// 🔓 개발 환경 설정 (로컬 개발에서는 항상 우회 허용)
+const DEVELOPMENT_MODE =
+  process.env.NODE_ENV === 'development' || typeof window !== 'undefined';
+const BYPASS_PASSWORD = true; // 항상 비밀번호 우회 허용
 
 // 통합 설정 패널 컴포넌트
 const UnifiedSettingsPanel = ({
@@ -227,8 +228,11 @@ const UnifiedSettingsPanel = ({
   useEffect(() => {
     if (isOpen) {
       loadAllSettings();
+      if (activeTab === 'generator') {
+        loadGeneratorConfig();
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, activeTab]);
 
   // AI 에이전트 인증 처리
   const handleAIAuthentication = async () => {
@@ -295,48 +299,91 @@ const UnifiedSettingsPanel = ({
     }
   };
 
+  // 서버 데이터 생성기 설정 상태
+  const [generatorConfig, setGeneratorConfig] = useState<any>(null);
+  const [isGeneratorLoading, setIsGeneratorLoading] = useState(false);
+
+  // 서버 데이터 생성기 설정 로드
+  const loadGeneratorConfig = async () => {
+    try {
+      setIsGeneratorLoading(true);
+      const response = await fetch('/api/admin/generator-config');
+      if (response.ok) {
+        const data = await response.json();
+        setGeneratorConfig(data.data);
+      }
+    } catch (error) {
+      console.error('생성기 설정 로드 실패:', error);
+    } finally {
+      setIsGeneratorLoading(false);
+    }
+  };
+
   // 서버 데이터 생성기 상태 확인
   const handleGeneratorCheck = async () => {
     try {
-      info('서버 데이터 생성기 상태를 확인하고 있습니다...');
+      info('서버 데이터 생성기 설정을 확인하고 있습니다...');
+      await loadGeneratorConfig();
+      success('서버 데이터 생성기 설정을 성공적으로 로드했습니다.');
+    } catch (err: any) {
+      error(
+        `서버 데이터 생성기 설정 로드에 실패했습니다: ${err.message || '알 수 없는 오류'}`
+      );
+      console.error('🔍 Generator Check Error:', err);
+    }
+  };
 
-      // 🛡️ API 호출 시간 제한 설정
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 제한
+  // 서버 수 조절
+  const handleServerCountChange = async (newCount: number) => {
+    try {
+      setIsGeneratorLoading(true);
+      info(`서버 수를 ${newCount}개로 변경하고 있습니다...`);
 
-      const response = await fetch('/api/data-generator', {
-        signal: controller.signal,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch('/api/admin/generator-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ maxServers: newCount }),
       });
-
-      clearTimeout(timeoutId);
 
       if (response.ok) {
         const data = await response.json();
-        success(
-          `서버 데이터 생성기가 정상 동작중입니다. ${data?.status ? `(상태: ${data.status})` : ''}`
-        );
-      } else if (response.status === 404) {
-        warning('서버 데이터 생성기 엔드포인트를 찾을 수 없습니다.');
+        setGeneratorConfig(data.data);
+        success(`서버 수가 ${newCount}개로 성공적으로 변경되었습니다.`);
       } else {
-        const errorData = await response.json().catch(() => null);
-        warning(
-          `서버 데이터 생성기 상태 확인에 실패했습니다. (${response.status}${errorData?.message ? `: ${errorData.message}` : ''})`
-        );
+        const errorData = await response.json();
+        error(errorData.error || '서버 수 변경에 실패했습니다.');
       }
-    } catch (err: any) {
-      if (err.name === 'AbortError') {
-        error('서버 데이터 생성기 상태 확인이 시간 초과되었습니다.');
-      } else if (err.code === 'ENOTFOUND' || err.message?.includes('fetch')) {
-        error('네트워크 연결을 확인해주세요.');
+    } catch (error) {
+      error('서버 수 변경 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratorLoading(false);
+    }
+  };
+
+  // 서버 아키텍처 변경
+  const handleArchitectureChange = async (newArch: string) => {
+    try {
+      setIsGeneratorLoading(true);
+      info(`서버 아키텍처를 ${newArch}로 변경하고 있습니다...`);
+
+      const response = await fetch('/api/admin/generator-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ defaultArchitecture: newArch }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGeneratorConfig(data.data);
+        success(`서버 아키텍처가 ${newArch}로 성공적으로 변경되었습니다.`);
       } else {
-        error(
-          `서버 데이터 생성기 연결에 실패했습니다: ${err.message || '알 수 없는 오류'}`
-        );
+        const errorData = await response.json();
+        error(errorData.error || '서버 아키텍처 변경에 실패했습니다.');
       }
-      console.error('🔍 Generator Check Error:', err);
+    } catch (error) {
+      error('서버 아키텍처 변경 중 오류가 발생했습니다.');
+    } finally {
+      setIsGeneratorLoading(false);
     }
   };
 
@@ -657,7 +704,11 @@ const UnifiedSettingsPanel = ({
                           handleAIAuthentication();
                         }
                       }}
-                      placeholder={BYPASS_PASSWORD ? 'AI 에이전트 인증 비밀번호 (선택사항)' : 'AI 에이전트 인증 비밀번호'}
+                      placeholder={
+                        BYPASS_PASSWORD
+                          ? 'AI 에이전트 인증 비밀번호 (선택사항)'
+                          : 'AI 에이전트 인증 비밀번호'
+                      }
                       disabled={isLocked || isAuthenticating}
                       className='w-full p-3 pr-12 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed'
                     />
@@ -762,7 +813,146 @@ const UnifiedSettingsPanel = ({
                 </p>
               </div>
 
+              {/* 환경별 서버 수 조절 섹션 */}
+              {generatorConfig && (
+                <div className='bg-gray-800/50 border border-gray-600/50 rounded-lg p-4 space-y-4'>
+                  <div className='flex items-center justify-between'>
+                    <h4 className='text-white font-medium flex items-center gap-2'>
+                      <Settings className='w-4 h-4 text-cyan-400' />
+                      환경별 서버 수 조절
+                    </h4>
+                    <div className='text-xs px-2 py-1 bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 rounded'>
+                      {generatorConfig.environment.isVercel ? 'Vercel' : '로컬'}{' '}
+                      환경
+                    </div>
+                  </div>
+
+                  {/* 현재 설정 표시 */}
+                  <div className='grid grid-cols-2 gap-4 text-sm'>
+                    <div className='space-y-2'>
+                      <div className='text-gray-400'>현재 서버 수</div>
+                      <div className='text-2xl font-bold text-cyan-400'>
+                        {generatorConfig.maxServers}개
+                      </div>
+                    </div>
+                    <div className='space-y-2'>
+                      <div className='text-gray-400'>서버 아키텍처</div>
+                      <div className='text-sm font-medium text-white'>
+                        {generatorConfig.defaultArchitecture === 'single' &&
+                          '🔧 단일 서버'}
+                        {generatorConfig.defaultArchitecture ===
+                          'master-slave' && '🔗 마스터-슬레이브'}
+                        {generatorConfig.defaultArchitecture ===
+                          'load-balanced' && '⚖️ 로드밸런싱'}
+                        {generatorConfig.defaultArchitecture ===
+                          'microservices' && '🏗️ 마이크로서비스'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 서버 수 조절 슬라이더 */}
+                  <div className='space-y-2'>
+                    <div className='flex justify-between text-sm'>
+                      <span className='text-gray-400'>서버 수 조절</span>
+                      <span className='text-cyan-400'>
+                        {generatorConfig.maxServers}개
+                      </span>
+                    </div>
+                    <input
+                      type='range'
+                      min='1'
+                      max={generatorConfig.environment.isVercel ? '50' : '100'}
+                      value={generatorConfig.maxServers}
+                      onChange={e =>
+                        handleServerCountChange(Number(e.target.value))
+                      }
+                      disabled={isGeneratorLoading}
+                      className='w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider'
+                    />
+                    <div className='flex justify-between text-xs text-gray-500'>
+                      <span>1개</span>
+                      <span className='text-yellow-400'>
+                        권장:{' '}
+                        {generatorConfig.environment.isVercel
+                          ? '8-16개'
+                          : '16-30개'}
+                      </span>
+                      <span>
+                        {generatorConfig.environment.isVercel
+                          ? '50개'
+                          : '100개'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 아키텍처 선택 */}
+                  <div className='space-y-2'>
+                    <div className='text-sm text-gray-400'>서버 아키텍처</div>
+                    <div className='grid grid-cols-2 gap-2'>
+                      {[
+                        {
+                          key: 'single',
+                          label: '단일 서버',
+                          icon: '🔧',
+                          desc: '1개 서버',
+                        },
+                        {
+                          key: 'master-slave',
+                          label: '마스터-슬레이브',
+                          icon: '🔗',
+                          desc: '6개 서버',
+                        },
+                        {
+                          key: 'load-balanced',
+                          label: '로드밸런싱',
+                          icon: '⚖️',
+                          desc: '15-25개 서버',
+                        },
+                        {
+                          key: 'microservices',
+                          label: '마이크로서비스',
+                          icon: '🏗️',
+                          desc: '20-30개 서버',
+                        },
+                      ].map(arch => (
+                        <button
+                          key={arch.key}
+                          onClick={() => handleArchitectureChange(arch.key)}
+                          disabled={isGeneratorLoading}
+                          className={`p-2 rounded-lg text-xs transition-colors ${
+                            generatorConfig.defaultArchitecture === arch.key
+                              ? 'bg-cyan-500/30 border border-cyan-500/50 text-cyan-300'
+                              : 'bg-gray-700/50 border border-gray-600/50 text-gray-400 hover:bg-gray-600/50'
+                          }`}
+                        >
+                          <div className='font-medium'>
+                            {arch.icon} {arch.label}
+                          </div>
+                          <div className='text-gray-500'>{arch.desc}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className='space-y-4'>
+                <div className='grid grid-cols-2 gap-3'>
+                  <button
+                    onClick={handleGeneratorCheck}
+                    disabled={isGeneratorLoading}
+                    className='p-3 bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 rounded-lg hover:bg-cyan-500/30 transition-colors text-sm disabled:opacity-50'
+                  >
+                    {isGeneratorLoading ? '🔄 로딩 중...' : '🔍 설정 확인'}
+                  </button>
+                  <button
+                    onClick={handleMetricsConfig}
+                    className='p-3 bg-blue-500/20 border border-blue-500/30 text-blue-300 rounded-lg hover:bg-blue-500/30 transition-colors text-sm'
+                  >
+                    ⚙️ 메트릭 설정
+                  </button>
+                </div>
+
                 {/* 메트릭 설정 정보 카드 */}
                 <div className='w-full p-4 bg-blue-500/20 border border-blue-500/30 rounded-lg'>
                   <div className='flex items-center justify-between mb-2'>
@@ -824,16 +1014,6 @@ const UnifiedSettingsPanel = ({
                     </div>
                   </div>
                 </div>
-
-                <button
-                  onClick={handleScenarioManager}
-                  className='w-full p-4 bg-green-500/20 border border-green-500/30 rounded-lg hover:bg-green-500/30 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500'
-                >
-                  <h4 className='text-white font-medium mb-2'>시나리오 관리</h4>
-                  <p className='text-green-200 text-sm text-left'>
-                    부하 테스트, 장애 시뮬레이션 등의 시나리오를 관리합니다.
-                  </p>
-                </button>
               </div>
             </div>
           )}

@@ -408,16 +408,17 @@ export class RealServerDataGenerator {
    */
   private initializeServers(): void {
     const maxServers = this.dataGeneratorConfig.maxServers || 30;
+    const defaultArchitecture =
+      (this.dataGeneratorConfig as any).defaultArchitecture || 'load-balanced';
 
-    // 서버 수 제한 적용
-    const adjustedArchitecture =
-      maxServers < 10
-        ? 'single'
-        : maxServers < 20
-          ? 'load-balanced'
-          : this.environmentConfig.serverArchitecture;
+    // 🚀 환경별 서버 아키텍처 자동 선택
+    const selectedArchitecture = defaultArchitecture;
 
-    switch (adjustedArchitecture) {
+    console.log(
+      `🏗️ 서버 환경 구성: ${selectedArchitecture} (최대 ${maxServers}개)`
+    );
+
+    switch (selectedArchitecture) {
       case 'single':
         this.createSingleServerEnvironment();
         break;
@@ -434,11 +435,15 @@ export class RealServerDataGenerator {
         this.createLoadBalancedEnvironment();
     }
 
-    // 서버 수 제한 확인
+    // 서버 수 제한 확인 및 적용
     if (this.servers.size > maxServers) {
       console.log(`⚠️ 서버 수 제한 적용: ${this.servers.size} → ${maxServers}`);
       this.limitServerCount(maxServers);
     }
+
+    console.log(
+      `✅ 최종 서버 ${this.servers.size}개 생성 완료 (환경: ${env.IS_VERCEL ? 'Vercel' : '로컬'})`
+    );
   }
 
   /**
