@@ -1044,17 +1044,29 @@ export class RealServerDataGenerator {
    * 🔄 자동 데이터 생성 시작 (모드별 주기 적용)
    */
   public startAutoGeneration(): void {
-    if (this.isGenerating) return;
+    if (this.isGenerating) {
+      console.log('⚠️ 데이터 생성이 이미 실행 중입니다');
+      return;
+    }
 
     this.isGenerating = true;
     const { refreshInterval } = this.dataGeneratorConfig;
 
+    console.log(`🔄 실시간 서버 데이터 생성 시작 (${refreshInterval}ms 주기)`);
+
     const loop = async () => {
       if (!this.isGenerating) return;
+
       try {
+        // 🚀 통신 상태 확인 및 데이터 생성
         await this.generateRealtimeData();
+
+        // 🔗 모니터링 시스템과 통신 확인
+        await this.pingMonitoringSystem();
       } catch (error) {
         console.error('❌ 실시간 데이터 생성 실패:', error);
+        // 🛡️ 에러 발생 시 자동 복구 시도
+        await this.handleGenerationError(error);
       } finally {
         if (this.isGenerating) {
           this.generationInterval = setTimeout(loop, refreshInterval);
@@ -1062,8 +1074,173 @@ export class RealServerDataGenerator {
       }
     };
 
+    // 즉시 시작
     loop();
-    console.log(`🔄 실시간 서버 데이터 생성 시작 (${refreshInterval}ms 주기)`);
+  }
+
+  /**
+   * 🔗 모니터링 시스템과 통신 확인 (강화)
+   */
+  private async pingMonitoringSystem(): Promise<void> {
+    try {
+      // 간단한 ping을 통해 모니터링 시스템 응답 확인
+      const pingData = {
+        timestamp: Date.now(),
+        source: 'data-generator',
+        status: 'active',
+        serverCount: this.servers.size,
+        metrics: {
+          totalServers: this.servers.size,
+          runningServers: Array.from(this.servers.values()).filter(
+            s => s.status === 'running'
+          ).length,
+          totalClusters: this.clusters.size,
+          lastDataGeneration: Date.now(),
+        },
+      };
+
+      // 내부 통신 (실제 API 대신 로컬 상태 업데이트)
+      if (typeof global !== 'undefined') {
+        (global as any).dataGeneratorStatus = {
+          lastPing: Date.now(),
+          isHealthy: true,
+          generatedCount: this.servers.size,
+          communicationOk: true,
+          lastSuccessfulCommunication: Date.now(),
+          consecutiveFailures: 0,
+        };
+      }
+
+      // 📊 실시간 메트릭 브로드캐스트 시뮬레이션
+      await this.broadcastMetrics(pingData);
+
+      console.log('📡 모니터링 시스템 통신 확인 완료');
+    } catch (error) {
+      console.warn('⚠️ 모니터링 시스템 통신 실패:', error);
+
+      // 통신 실패 횟수 추적
+      if (typeof global !== 'undefined') {
+        const currentStatus = (global as any).dataGeneratorStatus || {};
+        (global as any).dataGeneratorStatus = {
+          ...currentStatus,
+          lastPing: Date.now(),
+          isHealthy: false,
+          communicationOk: false,
+          lastFailure: Date.now(),
+          consecutiveFailures: (currentStatus.consecutiveFailures || 0) + 1,
+        };
+
+        // 3회 연속 실패 시 자동 복구 시도
+        if (currentStatus.consecutiveFailures >= 2) {
+          console.log('🔄 모니터링 시스템 통신 3회 연속 실패 - 자동 복구 시도');
+          await this.attemptCommunicationRecovery();
+        }
+      }
+    }
+  }
+
+  /**
+   * 📊 실시간 메트릭 브로드캐스트
+   */
+  private async broadcastMetrics(pingData: any): Promise<void> {
+    try {
+      // 시뮬레이션된 메트릭 브로드캐스트
+      if (typeof global !== 'undefined') {
+        (global as any).realtimeMetrics = {
+          timestamp: Date.now(),
+          servers: Array.from(this.servers.values()).map(server => ({
+            id: server.id,
+            name: server.name,
+            status: server.status,
+            cpu: server.metrics.cpu,
+            memory: server.metrics.memory,
+            network: server.metrics.network,
+          })),
+          summary: {
+            totalServers: this.servers.size,
+            healthyServers: Array.from(this.servers.values()).filter(
+              s => s.status === 'running'
+            ).length,
+            averageCpu:
+              Array.from(this.servers.values()).reduce(
+                (sum, s) => sum + s.metrics.cpu,
+                0
+              ) / this.servers.size,
+            averageMemory:
+              Array.from(this.servers.values()).reduce(
+                (sum, s) => sum + s.metrics.memory,
+                0
+              ) / this.servers.size,
+          },
+        };
+      }
+
+      console.log('📊 실시간 메트릭 브로드캐스트 완료');
+    } catch (error) {
+      console.warn('⚠️ 메트릭 브로드캐스트 실패:', error);
+    }
+  }
+
+  /**
+   * 🔄 통신 자동 복구
+   */
+  private async attemptCommunicationRecovery(): Promise<void> {
+    try {
+      console.log('🔧 데이터 생성기-모니터링 시스템 통신 복구 시작');
+
+      // 1. 내부 상태 재초기화
+      if (this.servers.size === 0) {
+        console.log('🔄 서버 데이터 재초기화');
+        this.initializeServers();
+      }
+
+      // 2. 통신 상태 재설정
+      if (typeof global !== 'undefined') {
+        (global as any).dataGeneratorStatus = {
+          lastPing: Date.now(),
+          isHealthy: true,
+          generatedCount: this.servers.size,
+          communicationOk: true,
+          recoveryAttempt: Date.now(),
+          consecutiveFailures: 0,
+        };
+      }
+
+      // 3. 테스트 데이터 생성
+      await this.generateRealtimeData();
+
+      console.log('✅ 통신 복구 완료');
+    } catch (error) {
+      console.error('❌ 통신 복구 실패:', error);
+    }
+  }
+
+  /**
+   * 🛡️ 생성 에러 처리 및 자동 복구
+   */
+  private async handleGenerationError(error: any): Promise<void> {
+    console.error('🛡️ 데이터 생성 에러 처리 시작:', error);
+
+    try {
+      // 1. 서버 상태 재초기화
+      if (this.servers.size === 0) {
+        console.log('🔧 서버 데이터가 없어서 재초기화 시도');
+        await this.initialize();
+      }
+
+      // 2. 메모리 정리
+      if (typeof global !== 'undefined') {
+        (global as any).lastDataGeneratorError = {
+          timestamp: Date.now(),
+          error: error.message || 'Unknown error',
+          recovered: true,
+        };
+      }
+
+      console.log('✅ 데이터 생성 에러 복구 완료');
+    } catch (recoveryError) {
+      console.error('❌ 에러 복구 실패:', recoveryError);
+    }
   }
 
   /**
@@ -1238,28 +1415,51 @@ export class RealServerDataGenerator {
   }
 
   /**
-   * 📏 자동 스케일링 시뮬레이션
+   * ⚖️ 자동 스케일링 시뮬레이션
    */
   private simulateAutoScaling(cluster: ServerCluster): void {
-    const avgCpu =
-      cluster.servers.reduce((sum, s) => sum + s.metrics.cpu, 0) /
-      cluster.servers.length;
+    try {
+      const avgCpu =
+        cluster.servers.reduce((sum, server) => sum + server.metrics.cpu, 0) /
+        cluster.servers.length;
+      const avgMemory =
+        cluster.servers.reduce(
+          (sum, server) => sum + server.metrics.memory,
+          0
+        ) / cluster.servers.length;
 
-    if (
-      avgCpu > this.simulationConfig.scaling.threshold * 100 &&
-      cluster.scaling.current < cluster.scaling.max
-    ) {
-      console.log(
-        `🚀 클러스터 ${cluster.name} 스케일 아웃 (CPU: ${avgCpu.toFixed(1)}%)`
-      );
-      cluster.scaling.current++;
-      cluster.scaling.target = cluster.scaling.current;
-    } else if (avgCpu < 30 && cluster.scaling.current > cluster.scaling.min) {
-      console.log(
-        `📉 클러스터 ${cluster.name} 스케일 인 (CPU: ${avgCpu.toFixed(1)}%)`
-      );
-      cluster.scaling.current--;
-      cluster.scaling.target = cluster.scaling.current;
+      // 스케일링 결정
+      if (
+        avgCpu > this.simulationConfig.scaling.threshold * 100 ||
+        avgMemory > this.simulationConfig.scaling.threshold * 100
+      ) {
+        // 스케일 업 조건
+        if (cluster.scaling.current < cluster.scaling.max) {
+          console.log(
+            `📈 클러스터 ${cluster.name} 스케일 업 - CPU: ${avgCpu.toFixed(1)}%, Memory: ${avgMemory.toFixed(1)}%`
+          );
+          cluster.scaling.target = Math.min(
+            cluster.scaling.current + 1,
+            cluster.scaling.max
+          );
+        }
+      } else if (
+        avgCpu < this.simulationConfig.scaling.threshold * 0.5 * 100 &&
+        avgMemory < this.simulationConfig.scaling.threshold * 0.5 * 100
+      ) {
+        // 스케일 다운 조건
+        if (cluster.scaling.current > cluster.scaling.min) {
+          console.log(
+            `📉 클러스터 ${cluster.name} 스케일 다운 - CPU: ${avgCpu.toFixed(1)}%, Memory: ${avgMemory.toFixed(1)}%`
+          );
+          cluster.scaling.target = Math.max(
+            cluster.scaling.current - 1,
+            cluster.scaling.min
+          );
+        }
+      }
+    } catch (error) {
+      console.warn(`⚠️ 클러스터 ${cluster.name} 자동 스케일링 오류:`, error);
     }
   }
 

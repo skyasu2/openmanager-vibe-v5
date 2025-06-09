@@ -180,8 +180,8 @@ export default function Home() {
 
   // 🚀 카운트다운 시작 함수
   const startCountdown = () => {
-    console.log('🚀 5초 카운트다운 시작 - 대시보드 자동 이동');
-    setAutoNavigateCountdown(5);
+    console.log('🚀 3초 카운트다운 시작 - 대시보드 자동 이동');
+    setAutoNavigateCountdown(3); // 5초에서 3초로 단축
 
     const countdown = setInterval(() => {
       setAutoNavigateCountdown(prev => {
@@ -200,7 +200,7 @@ export default function Home() {
 
     setCountdownTimer(countdown);
     info(
-      '⏰ 5초 후 대시보드로 자동 이동합니다. 중지하려면 "🛑 취소하기" 버튼을 클릭하세요.'
+      '⏰ 3초 후 대시보드로 자동 이동합니다. 중지하려면 "🛑 취소하기" 버튼을 클릭하세요.'
     );
   };
 
@@ -225,7 +225,7 @@ export default function Home() {
       } else {
         startSystem();
         success(
-          '🚀 시스템이 시작되었습니다! 5초 후 자동으로 대시보드로 이동합니다.'
+          '🚀 시스템이 시작되었습니다! 3초 후 자동으로 대시보드로 이동합니다.'
         );
         // 시스템 시작 즉시 카운트다운 시작
         startCountdown();
@@ -245,37 +245,104 @@ export default function Home() {
     }
 
     console.log('🚀 [Dashboard] 대시보드로 이동 중...');
+    info('📡 시스템 상태를 확인하고 대시보드로 이동합니다...');
 
-    // 🎯 간소화된 접근: 시스템이 시작되었으면 바로 이동
-    // 상세한 상태 점검은 대시보드에서 수행하도록 변경
+    // 🎯 더 안정적인 진입: 백그라운드 헬스체크와 즉시 진입 옵션
     try {
-      // 간단한 기본 헬스체크만 수행 (빠른 이동을 위해)
-      const quickHealthCheck = await Promise.race([
-        fetch('/api/health', {
-          method: 'GET',
-          cache: 'no-cache',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }).then(res => res.ok),
-        new Promise(resolve => setTimeout(() => resolve(false), 2000)), // 2초 타임아웃
-      ]);
+      // 빠른 진입을 위한 비동기 헬스체크
+      const healthCheckPromise = (async () => {
+        let healthCheckPassed = false;
+        let attemptCount = 0;
+        const maxAttempts = 2; // 시도 횟수 줄임
 
-      if (quickHealthCheck) {
-        console.log('✅ [Dashboard] 기본 헬스체크 통과 - 대시보드로 이동');
-      } else {
-        console.log(
-          '⚠️ [Dashboard] 기본 헬스체크 실패했지만 대시보드로 이동 (상세 점검은 대시보드에서)'
-        );
-      }
+        while (!healthCheckPassed && attemptCount < maxAttempts) {
+          attemptCount++;
+          console.log(
+            `🔍 [Dashboard] 헬스체크 시도 ${attemptCount}/${maxAttempts}`
+          );
 
-      // ✅ 바로 대시보드로 이동
-      router.push('/dashboard');
-    } catch (error) {
-      console.warn(
-        '⚠️ [Dashboard] 헬스체크 오류 무시하고 대시보드로 이동:',
-        error
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000); // 3초로 단축
+
+            const response = await fetch('/api/health', {
+              method: 'GET',
+              cache: 'no-cache',
+              signal: controller.signal,
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            });
+
+            clearTimeout(timeoutId);
+
+            if (response.ok) {
+              const healthData = await response.json();
+              healthCheckPassed = true;
+              console.log(
+                `✅ [Dashboard] 헬스체크 통과 (시도 ${attemptCount}):`,
+                healthData.status
+              );
+
+              // 데이터 생성기와 모니터링 시스템 상태 확인
+              if (healthData.diagnostics?.communicationOk) {
+                console.log(
+                  '📡 [Dashboard] 데이터 생성기-모니터링 시스템 통신 정상'
+                );
+                success('✅ 모든 시스템이 정상 작동 중입니다.');
+              }
+            } else {
+              console.log(
+                `⚠️ [Dashboard] 헬스체크 응답 비정상 (시도 ${attemptCount}): ${response.status}`
+              );
+            }
+          } catch (error) {
+            console.warn(
+              `❌ [Dashboard] 헬스체크 오류 (시도 ${attemptCount}):`,
+              error
+            );
+            if (attemptCount >= maxAttempts) {
+              console.log(
+                '⚠️ [Dashboard] 최대 시도 횟수 도달 - 백그라운드에서 계속 점검'
+              );
+            }
+          }
+
+          if (!healthCheckPassed && attemptCount < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 500)); // 대기 시간 단축
+          }
+        }
+
+        return healthCheckPassed;
+      })();
+
+      // 즉시 대시보드로 이동 (백그라운드에서 헬스체크 계속)
+      console.log('🚀 [Dashboard] 즉시 이동 - 백그라운드에서 시스템 점검 계속');
+      info(
+        '🚀 대시보드로 이동합니다. 시스템 상태는 백그라운드에서 점검됩니다.'
       );
+
+      router.push('/dashboard');
+
+      // 백그라운드 헬스체크 결과 처리
+      healthCheckPromise
+        .then(healthPassed => {
+          if (healthPassed) {
+            console.log(
+              '✅ [Dashboard] 백그라운드 헬스체크 완료 - 모든 시스템 정상'
+            );
+          } else {
+            console.log(
+              '⚠️ [Dashboard] 백그라운드 헬스체크 실패 - 대시보드에서 상태 확인 필요'
+            );
+          }
+        })
+        .catch(error => {
+          console.warn('⚠️ [Dashboard] 백그라운드 헬스체크 예외:', error);
+        });
+    } catch (error) {
+      console.warn('⚠️ [Dashboard] 예외 발생, 대시보드로 강제 이동:', error);
+      warning('⚠️ 일부 시스템 점검에 실패했지만 대시보드로 이동합니다.');
       // 오류가 발생해도 대시보드로 이동 (대시보드에서 상태 확인)
       router.push('/dashboard');
     }
