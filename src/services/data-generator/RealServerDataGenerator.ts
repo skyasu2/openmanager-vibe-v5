@@ -336,6 +336,10 @@ export class RealServerDataGenerator {
 
       await realPrometheusCollector.initialize();
 
+      // 🆕 서버 초기화 - 이 부분이 누락되어 있었음!
+      this.initializeServers();
+      console.log(`📊 초기 서버 ${this.servers.size}개 생성 완료`);
+
       // 🆕 고급 기능 초기화
       await this.initializeAdvancedFeatures();
 
@@ -345,6 +349,12 @@ export class RealServerDataGenerator {
 
       // 초기화 실패 시에도 스마트 Redis 적용
       this.redis = smartRedis;
+
+      // 초기화 실패해도 최소한의 서버는 생성
+      if (this.servers.size === 0) {
+        this.initializeServers();
+        console.log(`📊 폴백: 초기 서버 ${this.servers.size}개 생성 완료`);
+      }
     }
 
     // 실패 여부와 관계없이 자동 생성 루프 시작
