@@ -60,12 +60,8 @@ export function UnifiedSettingsPanel({
         aiPassword,
         setAiPassword,
         setShowPassword,
-        handleQuickActivation,
         handleAIAuthentication,
-        handleAIDisable,
         validatePassword,
-        canBypassPassword,
-        isDevelopmentMode,
     } = useAuthentication();
 
     const { success, error, info, warning } = useToast();
@@ -134,21 +130,7 @@ export function UnifiedSettingsPanel({
         }
     }, [isOpen, activeTab, loadGeneratorConfig]);
 
-    // 인증 핸들러들
-    const handleQuickActivationClick = async () => {
-        if (authState.isAuthenticating) return;
-
-        try {
-            const result = await handleQuickActivation();
-            if (result.success) {
-                success(result.message || '🚀 AI 에이전트 빠른 활성화 완료!');
-            } else {
-                error(result.error || '빠른 활성화 실패');
-            }
-        } catch (err) {
-            error('빠른 활성화 중 오류 발생');
-        }
-    };
+    // 인증 핸들러들 - handleQuickActivation 제거됨
 
     const handleAuthenticationSubmit = async (quickPassword?: string) => {
         if (authState.isAuthenticating) return;
@@ -165,18 +147,7 @@ export function UnifiedSettingsPanel({
         }
     };
 
-    const handleDisableClick = async () => {
-        try {
-            const result = await handleAIDisable();
-            if (result.success) {
-                success(result.message || '🛑 AI 에이전트 비활성화 완료');
-            } else {
-                error(result.error || '비활성화 실패');
-            }
-        } catch (err) {
-            error('비활성화 중 오류 발생');
-        }
-    };
+    // handleAIDisable 함수는 제거됨 - AI 에이전트는 기본 활성화
 
     // 제너레이터 핸들러들
     const handleGeneratorCheck = async () => {
