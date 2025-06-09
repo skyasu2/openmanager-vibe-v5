@@ -8,7 +8,7 @@
  * - 언어 감지 및 처리
  */
 
-interface SmartQuery {
+export interface SmartQuery {
     originalQuery: string;
     intent: 'analysis' | 'search' | 'prediction' | 'optimization' | 'troubleshooting';
     keywords: string[];

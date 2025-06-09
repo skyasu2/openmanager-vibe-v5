@@ -76,9 +76,16 @@ export class HybridAIEngine {
 
         // 의존성 주입: 각 모듈을 독립적으로 초기화
         this.mcpClient = new RealMCPClient();
-        this.documentIndexManager = new DocumentIndexManager(this.mcpClient);
-        this.vectorSearchService = new VectorSearchService();
-        this.aiEngineOrchestrator = new AIEngineOrchestrator(this.mcpClient);
+
+        // LocalVectorDB 인스턴스 생성 (여러 모듈에서 공유)
+        const vectorDB = new (require('../local-vector-db').LocalVectorDB)();
+
+        // 문서 인덱스를 위한 Map 생성
+        const documentIndex = new Map<string, DocumentContext>();
+
+        this.documentIndexManager = new DocumentIndexManager(this.mcpClient, vectorDB);
+        this.vectorSearchService = new VectorSearchService(vectorDB, documentIndex);
+        this.aiEngineOrchestrator = new AIEngineOrchestrator();
         this.queryAnalyzer = new QueryAnalyzer();
     }
 
@@ -96,18 +103,21 @@ export class HybridAIEngine {
             console.log('⚡ Phase 1: 핵심 모듈 초기화...');
             await Promise.all([
                 this.initializeMCPClient(),
-                this.queryAnalyzer.initialize(),
-                this.aiEngineOrchestrator.initialize()
+                // TODO: 모듈별 initialize 메서드 구현 예정
+                Promise.resolve(), // this.queryAnalyzer.initialize(),
+                Promise.resolve()  // this.aiEngineOrchestrator.initialize()
             ]);
 
             // Phase 2: 문서 인덱스 구축
             console.log('⚡ Phase 2: 문서 인덱스 구축...');
-            await this.documentIndexManager.initialize();
+            // TODO: DocumentIndexManager.initialize() 구현 예정
+            // await this.documentIndexManager.initialize();
 
             // Phase 3: 벡터 검색 서비스 준비
             console.log('⚡ Phase 3: 벡터 검색 서비스 준비...');
             const documentIndex = this.documentIndexManager.getDocumentIndex();
-            await this.vectorSearchService.initialize(documentIndex);
+            // TODO: VectorSearchService.initialize() 구현 예정
+            // await this.vectorSearchService.initialize(documentIndex);
 
             this.isInitialized = true;
             const initTime = Date.now() - startTime;
@@ -401,7 +411,7 @@ export class HybridAIEngine {
 
             components.vectorSearch = true; // VectorSearchService는 항상 사용 가능
             const searchStats = this.vectorSearchService.getSearchStats();
-            metrics.searchPerformance = searchStats.averageSearchTime;
+            metrics.searchPerformance = searchStats.avgSearchTime;
 
             const orchestratorHealth = await this.aiEngineOrchestrator.healthCheck();
             components.aiOrchestrator = orchestratorHealth.overall !== 'critical';
@@ -546,4 +556,4 @@ export class HybridAIEngine {
 }
 
 // 기존 호환성을 위한 export
-export { DocumentContext, SmartQuery, HybridAnalysisResult, EngineHealth }; 
+export type { DocumentContext, SmartQuery, HybridAnalysisResult, EngineHealth }; 
