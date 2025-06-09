@@ -13,9 +13,14 @@ describe('getDashboardSummary', () => {
 
     const summary = realServerDataGenerator.getDashboardSummary();
 
-    expect(Number.isNaN(summary.health.averageScore)).toBe(false);
-    expect(Number.isNaN(summary.performance.avgCpu)).toBe(false);
-    expect(summary.health.averageScore).toBe(0);
-    expect(summary.performance.avgCpu).toBe(0);
+    // servers 객체 검증 - NaN 체크
+    expect(Number.isNaN(summary.servers.avgCpu)).toBe(false);
+    expect(Number.isNaN(summary.servers.avgMemory)).toBe(false);
+    expect(summary.servers.avgCpu).toBe(0);
+    expect(summary.servers.avgMemory).toBe(0);
+
+    // applications 객체 검증 - NaN 체크
+    expect(Number.isNaN(summary.applications.avgResponseTime)).toBe(false);
+    expect(summary.applications.avgResponseTime).toBe(0);
   });
 });

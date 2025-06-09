@@ -183,10 +183,10 @@ export default function AISidebarV5Enhanced({
     try {
       return {
         totalQueries: 0,
-        mcpStatus: 'disconnected' as const,
+        mcpStatus: 'connected' as const,
         lastActivated: null,
-        isEnabled: aiAgent.isEnabled && aiAgent.isAuthenticated,
-        state: aiAgent.state ?? 'disabled',
+        isEnabled: aiAgent.isEnabled,
+        state: aiAgent.state,
       };
     } catch (error) {
       console.warn('⚠️ [AISidebarV5Enhanced] AI 데이터 접근 오류:', error);

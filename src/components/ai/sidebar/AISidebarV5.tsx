@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { useServerStatusQuestions } from './hooks/useServerStatusQuestions';
 import QuickQuestionCards from './components/QuickQuestionCards';
+import { IntegratedNotificationSettings } from '@/components/notifications/IntegratedNotificationSettings';
 
 interface ThinkingStep {
   id: string;
@@ -422,6 +423,14 @@ export default function AISidebarV5({
       );
     }
 
+    if (activeTab === 'notification') {
+      return (
+        <div className='flex-1 overflow-y-auto'>
+          <IntegratedNotificationSettings />
+        </div>
+      );
+    }
+
     // 각 탭별 전용 콘텐츠
     const currentTab = FUNCTION_MENU.find(item => item.id === activeTab);
     const TabIcon = currentTab?.icon || Settings;
@@ -462,18 +471,6 @@ export default function AISidebarV5({
               '패턴 매칭',
               '시간대별 필터링',
               '로그 상관관계 분석',
-            ],
-          };
-        case 'notification':
-          return {
-            title: '슬랙 자동 알림',
-            description:
-              '중요한 시스템 이벤트를 슬랙으로 자동 알림하고 팀 협업을 지원합니다.',
-            features: [
-              '실시간 슬랙 알림',
-              '사용자 정의 채널',
-              '알림 규칙 설정',
-              '에스컬레이션',
             ],
           };
         case 'admin':

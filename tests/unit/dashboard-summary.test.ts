@@ -14,10 +14,17 @@ describe('RealServerDataGenerator.getDashboardSummary', () => {
 
     const summary = generator.getDashboardSummary();
 
-    expect(summary.health.averageScore).toBe(0);
-    expect(summary.health.availability).toBe(0);
-    expect(summary.performance.avgCpu).toBe(0);
-    expect(summary.performance.avgMemory).toBe(0);
-    expect(summary.performance.avgDisk).toBe(0);
+    // servers 객체 검증
+    expect(summary.servers.avgCpu).toBe(0);
+    expect(summary.servers.avgMemory).toBe(0);
+    expect(summary.servers.total).toBe(0);
+    expect(summary.servers.running).toBe(0);
+
+    // applications 객체 검증
+    expect(summary.applications.avgResponseTime).toBe(0);
+    expect(summary.applications.total).toBe(0);
+
+    // clusters 객체 검증
+    expect(summary.clusters.total).toBe(0);
   });
 });

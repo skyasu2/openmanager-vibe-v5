@@ -1,149 +1,44 @@
 /**
- * 🎰 실제 서버 데이터 생성기 v5 - 완전 모듈화 아키텍처
+ * 🚀 Real Server Data Generator - Complete Implementation
  *
- * 🎯 Phase 5 완료: 1,028줄 모놀리식 → 5개 독립 모듈
- * - BaselineManager: 베이스라인 데이터 관리
- * - RealtimeDataProcessor: 실시간 데이터 처리
- * - StateManager: 상태 추적 및 패턴 분석
- * - ConfigurationManager: 환경 설정 관리
- * - RealServerDataGenerator: 메인 오케스트레이터 (현재 파일)
- *
- * 🏆 달성 성과:
- * - SOLID 원칙 완전 적용
- * - 의존성 주입 패턴 구현
- * - 단일 책임 원칙 준수
- * - 확장 가능한 아키텍처 구축
+ * 완전한 기능을 갖춘 서버 데이터 생성기
  */
 
-import { smartRedis } from '@/lib/redis';
 import {
-  detectEnvironment,
-  env,
-  getDataGeneratorConfig,
-  isPluginEnabled,
-  getPluginConfig,
-  getVercelOptimizedConfig,
-} from '@/config/environment';
-
-// 🚀 분리된 모듈들 Import
-import {
-  CustomEnvironmentConfig,
   ServerInstance,
   ServerCluster,
   ApplicationMetrics,
-  DemoScenario,
-  NetworkNode,
-  NetworkConnection
 } from '@/types/data-generator';
-import { ServerInstanceManager } from './managers/ServerInstanceManager';
-import { MetricsGenerator } from './MetricsGenerator';
-import { EnvironmentConfigManager } from './EnvironmentConfigManager';
 
-// 🆕 Phase 5 새로운 모듈들
-import { BaselineManager } from './real-server-data-generator/baseline/BaselineManager';
-import { RealtimeDataProcessor } from './real-server-data-generator/realtime/RealtimeDataProcessor';
-import { StateManager } from './real-server-data-generator/state/StateManager';
-import { ConfigurationManager } from './real-server-data-generator/config/ConfigurationManager';
+export interface GeneratorConfig {
+  maxServers?: number;
+  updateInterval?: number;
+  enableRealtime?: boolean;
+  serverArchitecture?:
+    | 'single'
+    | 'master-slave'
+    | 'load-balanced'
+    | 'microservices';
+}
 
-// 🆕 고급 기능 모듈들 (플러그인 활성화시에만 사용)
-import {
-  generateNetworkTopology,
-} from '../../modules/advanced-features/network-topology';
-import {
-  baselineOptimizer,
-  getCurrentBaseline,
-  type BaselineDataPoint,
-} from '../../modules/advanced-features/baseline-optimizer';
-import {
-  demoScenariosGenerator,
-  generateScenarioMetrics,
-  setDemoScenario,
-} from '../../modules/advanced-features/demo-scenarios';
-
-/**
- * 🚀 OpenManager 7.0 제품 수준 서버 데이터 생성기
- * 
- * 🎯 Phase 5 완료: 완전 모듈화 아키텍처
- * - 메인 클래스: 200줄 (오케스트레이터만 담당)
- * - 각 모듈: 독립적 책임과 기능
- * - 확장성: 새 모듈 추가 용이
- * - 테스트 용이성: 모듈별 단위 테스트 가능
- */
 export class RealServerDataGenerator {
   private static instance: RealServerDataGenerator | null = null;
-  private redis: any;
-
-  // 🚀 Phase 5: 모듈화된 의존성들
-  private baselineManager: BaselineManager;
-  private realtimeProcessor: RealtimeDataProcessor;
-  private stateManager: StateManager;
-  private configurationManager: ConfigurationManager;
-
-  // 🚀 기존 의존성 주입된 모듈들 (Phase 1-4)
-  private serverInstanceManager: ServerInstanceManager;
-  private metricsGenerator: MetricsGenerator;
-  private environmentConfigManager: EnvironmentConfigManager;
-
-  // 환경별 설정
-  private environmentConfig: CustomEnvironmentConfig;
-  private dataGeneratorConfig: ReturnType<typeof getDataGeneratorConfig>;
-
-  // 서버 인스턴스들
   private servers: Map<string, ServerInstance> = new Map();
   private clusters: Map<string, ServerCluster> = new Map();
   private applications: Map<string, ApplicationMetrics> = new Map();
+  private config: GeneratorConfig;
+  private intervalId?: NodeJS.Timeout;
+  private isInitialized = false;
+  private isGenerating = false;
 
-  // 🆕 고급 기능 데이터
-  private networkTopology: {
-    nodes: NetworkNode[];
-    connections: NetworkConnection[];
-  } | null = null;
-  private currentDemoScenario: DemoScenario = 'normal';
-  private baselineDataInitialized = false;
-
-  // 기본 설정
-  private config = getVercelOptimizedConfig();
-
-  private constructor() {
-    try {
-      this.redis = smartRedis;
-      this.dataGeneratorConfig = getDataGeneratorConfig();
-
-      // 🚀 Phase 5: 새로운 모듈들 초기화
-      this.configurationManager = new ConfigurationManager();
-      this.baselineManager = new BaselineManager();
-      this.stateManager = new StateManager();
-      this.realtimeProcessor = new RealtimeDataProcessor(
-        this.configurationManager.getSimulationSettings()
-      );
-
-      // 🚀 Phase 1-4: 기존 모듈들 초기화 (의존성 주입)
-      this.environmentConfigManager = new EnvironmentConfigManager();
-      this.environmentConfig = this.environmentConfigManager.getConfig();
-
-      this.serverInstanceManager = new ServerInstanceManager();
-      this.metricsGenerator = new MetricsGenerator(
-        this.configurationManager.getSimulationSettings()
-      );
-
-      console.log(
-        '🎰 RealServerDataGenerator v5 초기화 완료 (완전 모듈화 아키텍처)',
-        {
-          environment: detectEnvironment(),
-          mode: this.dataGeneratorConfig.mode,
-          architecture: 'fully-modularized',
-          modules: ['BaselineManager', 'RealtimeDataProcessor', 'StateManager', 'ConfigurationManager'],
-          plugins: {
-            networkTopology: isPluginEnabled('network-topology'),
-            baselineOptimizer: isPluginEnabled('baseline-optimizer'),
-            demoScenarios: isPluginEnabled('demo-scenarios'),
-          },
-        }
-      );
-    } catch (error) {
-      console.error('❌ RealServerDataGenerator 초기화 실패:', error);
-      throw error;
-    }
+  constructor(config: GeneratorConfig = {}) {
+    this.config = {
+      maxServers: 30,
+      updateInterval: 3000,
+      enableRealtime: true,
+      serverArchitecture: 'load-balanced',
+      ...config,
+    };
   }
 
   public static getInstance(): RealServerDataGenerator {
@@ -154,102 +49,122 @@ export class RealServerDataGenerator {
   }
 
   public async initialize(): Promise<void> {
-    try {
-      console.log('🔄 RealServerDataGenerator v5 초기화 시작...');
+    if (this.isInitialized) return;
 
-      // 🚀 Phase 5: 모듈별 초기화
-      this.configurationManager.applyModeOptimizations();
+    console.log('🚀 RealServerDataGenerator 초기화 시작...');
 
-      // 서버 인스턴스 초기화 (모듈화된 방식)
-      this.initializeServers();
+    this.initializeServers();
+    this.createClusters();
+    this.createApplications();
 
-      // 베이스라인 데이터 초기화
-      this.baselineManager.initializeBaselines();
-
-      // 상태 관리 초기화
-      const serverIds = Array.from(this.servers.keys());
-      this.stateManager.generateInitialState(serverIds);
-
-      // 고급 기능 초기화
-      await this.initializeAdvancedFeatures();
-
-      console.log('✅ RealServerDataGenerator v5 초기화 완료 (완전 모듈화)');
-    } catch (error) {
-      console.error('❌ RealServerDataGenerator 초기화 실패:', error);
-      throw error;
-    }
-  }
-
-  private async initializeAdvancedFeatures(): Promise<void> {
-    try {
-      // 네트워크 토폴로지 플러그인
-      if (isPluginEnabled('network-topology')) {
-        const config = getPluginConfig('network-topology');
-        console.log('🌐 네트워크 토폴로지 플러그인 활성화');
-      }
-
-      // 베이스라인 최적화 플러그인
-      if (isPluginEnabled('baseline-optimizer')) {
-        this.baselineDataInitialized = true;
-        console.log('📊 베이스라인 최적화 플러그인 활성화');
-      }
-
-      // 데모 시나리오 플러그인
-      if (isPluginEnabled('demo-scenarios')) {
-        console.log('🎬 데모 시나리오 플러그인 활성화');
-      }
-    } catch (error) {
-      console.warn('⚠️ 고급 기능 초기화 중 일부 오류:', error);
-    }
+    this.isInitialized = true;
+    console.log('✅ RealServerDataGenerator 초기화 완료');
   }
 
   private initializeServers(): void {
-    try {
-      console.log('🏗️ 서버 환경 구성: 완전 모듈화 아키텍처');
+    this.servers.clear();
 
-      // 🚀 모듈화된 서버 생성 로직 사용
-      const servers = [
-        this.serverInstanceManager.createServer('server-01', 'Main Server', 'web', 'datacenter-1'),
-        this.serverInstanceManager.createServer('server-02', 'API Server', 'api', 'datacenter-1'),
-        this.serverInstanceManager.createServer('server-03', 'Database Server', 'database', 'datacenter-2'),
-      ];
+    const serverTypes: (
+      | 'web'
+      | 'api'
+      | 'database'
+      | 'cache'
+      | 'queue'
+      | 'cdn'
+      | 'gpu'
+      | 'storage'
+    )[] = ['web', 'api', 'database', 'cache', 'queue'];
+    const roles: (
+      | 'master'
+      | 'slave'
+      | 'primary'
+      | 'replica'
+      | 'worker'
+      | 'standalone'
+    )[] = ['primary', 'replica', 'worker', 'standalone'];
+    const environments: ('production' | 'staging' | 'development' | 'test')[] =
+      ['production', 'staging', 'development'];
+    const locations = ['us-east-1', 'us-west-2', 'eu-west-1', 'ap-southeast-1'];
 
-      // 생성된 서버들을 Map에 저장
-      servers.forEach(server => {
-        this.servers.set(server.id, server);
-      });
+    for (let i = 1; i <= (this.config.maxServers || 30); i++) {
+      const serverType =
+        serverTypes[Math.floor(Math.random() * serverTypes.length)];
+      const role = roles[Math.floor(Math.random() * roles.length)];
+      const environment =
+        environments[Math.floor(Math.random() * environments.length)];
+      const location = locations[Math.floor(Math.random() * locations.length)];
 
-      // 클러스터 생성
-      this.createClusters(servers);
+      const server: ServerInstance = {
+        id: `server-${i}`,
+        name: `${serverType}-${i}`,
+        type: serverType,
+        role,
+        environment,
+        location,
+        status:
+          Math.random() > 0.1
+            ? 'running'
+            : Math.random() > 0.5
+              ? 'warning'
+              : 'error',
+        specs: {
+          cpu: {
+            cores: Math.floor(Math.random() * 16) + 4,
+            model: 'Intel Xeon',
+            architecture: Math.random() > 0.7 ? 'arm64' : 'x86_64',
+          },
+          memory: {
+            total: Math.pow(2, Math.floor(Math.random() * 4) + 3) * 1024,
+            type: 'DDR4',
+            speed: 3200,
+          },
+          disk: {
+            total: Math.pow(2, Math.floor(Math.random() * 3) + 8) * 1024,
+            type: 'SSD',
+            iops: 3000,
+          },
+          network: {
+            bandwidth: 1000,
+            latency: Math.random() * 10 + 1,
+          },
+        },
+        metrics: {
+          cpu: Math.random() * 80 + 10,
+          memory: Math.random() * 70 + 20,
+          disk: Math.random() * 60 + 30,
+          network: { in: Math.random() * 100, out: Math.random() * 100 },
+          requests: Math.random() * 1000 + 100,
+          errors: Math.random() * 10,
+          uptime: Math.random() * 8760 * 3600, // 최대 1년
+          customMetrics: {},
+        },
+        health: {
+          score: Math.random() * 40 + 60, // 60-100점
+          lastCheck: new Date().toISOString(),
+          issues: [],
+        },
+      };
 
-      // 애플리케이션 메트릭 생성
-      this.createApplications();
+      // 건강 상태에 따른 이슈 생성
+      if (server.health.score < 80) {
+        server.health.issues = ['High CPU usage', 'Memory leak detected'];
+      }
 
-      console.log(`✅ ${this.servers.size}개 서버 초기화 완료 (모듈화 방식)`);
-    } catch (error) {
-      console.error('❌ 서버 초기화 실패:', error);
-      throw error;
+      this.servers.set(server.id, server);
     }
   }
 
-  private createClusters(servers: ServerInstance[]): void {
-    // 서버 타입별로 그룹화하여 클러스터 생성
-    const serversByType = new Map<string, ServerInstance[]>();
+  private createClusters(): void {
+    this.clusters.clear();
 
-    servers.forEach(server => {
-      if (!serversByType.has(server.type)) {
-        serversByType.set(server.type, []);
-      }
-      serversByType.get(server.type)!.push(server);
-    });
+    const serverGroups = this.groupServersByType();
 
-    // 각 타입별로 클러스터 생성
-    serversByType.forEach((servers, type) => {
+    Object.entries(serverGroups).forEach(([type, servers], index) => {
       if (servers.length > 1) {
         const cluster: ServerCluster = {
-          id: `cluster-${type}`,
-          name: `${type.toUpperCase()} Cluster`,
-          servers: servers,
+          id: `cluster-${type}-${index + 1}`,
+          name: `${type.charAt(0).toUpperCase() + type.slice(1)} Cluster`,
+          servers: servers, // ServerInstance[] 배열을 직접 사용
           loadBalancer: {
             algorithm: 'round-robin',
             activeConnections: Math.floor(Math.random() * 100),
@@ -257,65 +172,139 @@ export class RealServerDataGenerator {
           },
           scaling: {
             current: servers.length,
-            min: Math.max(1, Math.floor(servers.length / 2)),
+            min: 1,
             max: servers.length * 2,
             target: servers.length,
             policy: 'cpu',
           },
         };
+
         this.clusters.set(cluster.id, cluster);
       }
     });
   }
 
   private createApplications(): void {
-    const applications = [
-      { name: 'openmanager-web', displayName: 'OpenManager Web' },
-      { name: 'openmanager-api', displayName: 'OpenManager API' },
-      { name: 'openmanager-admin', displayName: 'OpenManager Admin' },
+    this.applications.clear();
+
+    const apps = [
+      { name: 'Frontend App', type: 'web' },
+      { name: 'API Gateway', type: 'api' },
+      { name: 'User Service', type: 'api' },
+      { name: 'Database Service', type: 'database' },
+      { name: 'Cache Service', type: 'cache' },
     ];
 
-    applications.forEach(({ name, displayName }) => {
-      const app: ApplicationMetrics = {
-        name: displayName,
-        version: '7.0.0',
+    apps.forEach((app, index) => {
+      const relatedServers = Array.from(this.servers.values())
+        .filter(s => s.type === app.type)
+        .slice(0, 3);
+
+      const application: ApplicationMetrics = {
+        name: app.name,
+        version: `v${Math.floor(Math.random() * 5) + 1}.${Math.floor(Math.random() * 10)}.0`,
         deployments: {
-          production: { servers: 3, health: 95 + Math.random() * 5 },
-          staging: { servers: 2, health: 90 + Math.random() * 10 },
-          development: { servers: 1, health: 85 + Math.random() * 15 },
+          production: { servers: relatedServers.length, health: 90 },
+          staging: {
+            servers: Math.floor(relatedServers.length / 2),
+            health: 85,
+          },
+          development: { servers: 1, health: 80 },
         },
         performance: {
-          responseTime: 100 + Math.random() * 50,
-          throughput: 1000 + Math.random() * 500,
-          errorRate: Math.random() * 2,
-          availability: 99 + Math.random() * 1,
+          responseTime: Math.random() * 200 + 50,
+          throughput: Math.random() * 1000 + 100,
+          errorRate: Math.random() * 5,
+          availability: Math.random() * 10 + 90,
         },
         resources: {
-          totalCpu: 0,
-          totalMemory: 0,
-          totalDisk: 0,
-          cost: 0,
+          totalCpu: relatedServers.reduce(
+            (sum, s) => sum + s.specs.cpu.cores,
+            0
+          ),
+          totalMemory: relatedServers.reduce(
+            (sum, s) => sum + s.specs.memory.total,
+            0
+          ),
+          totalDisk: relatedServers.reduce(
+            (sum, s) => sum + s.specs.disk.total,
+            0
+          ),
+          cost: Math.random() * 5000 + 1000,
         },
       };
-      this.applications.set(name, app);
+
+      this.applications.set(`app-${index + 1}`, application);
     });
   }
 
-  /**
-   * 🚀 실시간 데이터 생성 시작 (모듈 위임)
-   */
   public startAutoGeneration(): void {
-    this.realtimeProcessor.startAutoGeneration();
+    if (this.isGenerating) return;
+
+    this.isGenerating = true;
+    this.intervalId = setInterval(() => {
+      this.generateRealtimeData();
+    }, this.config.updateInterval);
+
+    console.log('🔄 실시간 데이터 생성 시작');
   }
 
-  /**
-   * ⏹️ 실시간 데이터 생성 중지 (모듈 위임)
-   */
   public stopAutoGeneration(): void {
-    this.realtimeProcessor.stopAutoGeneration();
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = undefined;
+    }
+    this.isGenerating = false;
+    console.log('⏹️ 실시간 데이터 생성 중지');
   }
 
-  // 📊 공개 API 메서드들
+  private generateRealtimeData(): void {
+    this.servers.forEach(server => {
+      // 메트릭 업데이트
+      server.metrics.cpu = Math.max(
+        0,
+        Math.min(100, server.metrics.cpu + (Math.random() - 0.5) * 10)
+      );
+      server.metrics.memory = Math.max(
+        0,
+        Math.min(100, server.metrics.memory + (Math.random() - 0.5) * 8)
+      );
+      server.metrics.disk = Math.max(
+        0,
+        Math.min(100, server.metrics.disk + (Math.random() - 0.5) * 5)
+      );
+      server.metrics.network.in = Math.random() * 100;
+      server.metrics.network.out = Math.random() * 100;
+      server.metrics.requests = Math.random() * 1000 + 100;
+      server.metrics.errors = Math.random() * 10;
+      server.metrics.uptime = Math.random() * 8760 * 3600;
+      server.health.score = Math.max(
+        0,
+        Math.min(100, server.health.score + (Math.random() - 0.5) * 10)
+      );
+      server.health.lastCheck = new Date().toISOString();
+
+      // 가끔 상태 변경
+      if (Math.random() < 0.02) {
+        const statuses: ('running' | 'warning' | 'error')[] = [
+          'running',
+          'warning',
+          'error',
+        ];
+        server.status = statuses[Math.floor(Math.random() * statuses.length)];
+      }
+    });
+
+    // 클러스터 메트릭 업데이트 (필요시)
+    // this.updateClusterMetrics();
+  }
+
+  private updateClusterMetrics(): void {
+    // ServerCluster 타입에는 metrics가 없으므로 제거하거나 다른 방식으로 처리
+    // 현재는 주석 처리
+  }
+
+  // 필수 메서드들
   public getAllServers(): ServerInstance[] {
     return Array.from(this.servers.values());
   }
@@ -337,233 +326,171 @@ export class RealServerDataGenerator {
   }
 
   public getApplicationByName(name: string): ApplicationMetrics | undefined {
-    return this.applications.get(name);
+    return Array.from(this.applications.values()).find(
+      app => app.name === name
+    );
   }
 
-  /**
-   * 📈 대시보드용 요약 데이터 (모듈 조합)
-   */
   public getDashboardSummary() {
     const servers = this.getAllServers();
     const clusters = this.getAllClusters();
-    const apps = this.getAllApplications();
-    const stateInfo = this.stateManager.getCurrentState();
+    const applications = this.getAllApplications();
 
     return {
-      overview: {
-        totalServers: servers.length,
-        runningServers: servers.filter(s => s.status === 'running').length,
-        totalClusters: clusters.length,
-        totalApplications: apps.length,
+      servers: {
+        total: servers.length,
+        running: servers.filter(s => s.status === 'running').length,
+        warning: servers.filter(s => s.status === 'warning').length,
+        error: servers.filter(s => s.status === 'error').length,
+        avgCpu:
+          servers.length > 0
+            ? servers.reduce((sum, s) => sum + s.metrics.cpu, 0) /
+              servers.length
+            : 0,
+        avgMemory:
+          servers.length > 0
+            ? servers.reduce((sum, s) => sum + s.metrics.memory, 0) /
+              servers.length
+            : 0,
       },
-      health: {
-        averageScore: servers.length
-          ? servers.reduce((sum, s) => sum + s.health.score, 0) / servers.length
-          : 0,
-        criticalIssues: servers.reduce(
-          (sum, s) => sum + s.health.issues.length,
-          0
-        ),
-        availability: apps.length
-          ? apps.reduce((sum, a) => sum + a.performance.availability, 0) /
-          apps.length
-          : 0,
+      clusters: {
+        total: clusters.length,
+        healthy: clusters.filter(
+          c =>
+            c.servers.filter(s => s.status === 'running').length >=
+            c.servers.length * 0.8
+        ).length,
+        warning: clusters.filter(c => {
+          const healthyRatio =
+            c.servers.filter(s => s.status === 'running').length /
+            c.servers.length;
+          return healthyRatio >= 0.5 && healthyRatio < 0.8;
+        }).length,
+        critical: clusters.filter(
+          c =>
+            c.servers.filter(s => s.status === 'running').length <
+            c.servers.length * 0.5
+        ).length,
       },
-      performance: stateInfo.globalMetrics,
-      cost: {
-        total: apps.reduce((sum, a) => sum + a.resources.cost, 0),
-        monthly: apps.reduce((sum, a) => sum + a.resources.cost, 0) * 24 * 30,
+      applications: {
+        total: applications.length,
+        healthy: applications.filter(a => a.performance.availability >= 95)
+          .length,
+        warning: applications.filter(
+          a =>
+            a.performance.availability >= 90 && a.performance.availability < 95
+        ).length,
+        critical: applications.filter(a => a.performance.availability < 90)
+          .length,
+        avgResponseTime:
+          applications.length > 0
+            ? applications.reduce(
+                (sum, a) => sum + a.performance.responseTime,
+                0
+              ) / applications.length
+            : 0,
       },
-      moduleStatus: {
-        baseline: this.baselineManager.getBaselineStats(),
-        realtime: this.realtimeProcessor.getCurrentStatus(),
-        state: this.stateManager.getCurrentState(),
-        configuration: this.configurationManager.getConfigurationSummary(),
-      },
-      timestamp: new Date().toISOString(),
+      timestamp: Date.now(),
     };
   }
 
-  /**
-   * 🏥 헬스체크 (모듈별 상태 확인)
-   */
-  public async healthCheck() {
-    const moduleHealths = await Promise.all([
-      this.baselineManager.getBaselineStats(),
-      this.realtimeProcessor.healthCheck(),
-      this.stateManager.healthCheck(),
-      this.configurationManager.healthCheck(),
-    ]);
-
+  public getEnvironmentConfig() {
     return {
-      status: 'healthy',
-      architecture: 'fully-modularized',
-      totalServers: this.servers.size,
-      totalClusters: this.clusters.size,
-      totalApplications: this.applications.size,
-      modules: {
-        baseline: moduleHealths[0],
-        realtime: moduleHealths[1],
-        state: moduleHealths[2],
-        configuration: moduleHealths[3],
-      },
-      lastUpdate: new Date().toISOString(),
+      serverArchitecture: this.config.serverArchitecture,
+      maxServers: this.config.maxServers,
+      updateInterval: this.config.updateInterval,
+      enableRealtime: this.config.enableRealtime,
     };
   }
 
-  /**
-   * 🔧 환경 설정 변경 (ConfigurationManager에 위임)
-   */
-  public updateEnvironmentConfig(config: Partial<CustomEnvironmentConfig>): void {
-    this.configurationManager.updateEnvironmentConfig(config);
-
-    // 변경된 설정을 다른 모듈들에 반영
-    this.realtimeProcessor.updateSimulationConfig(
-      this.configurationManager.getSimulationSettings()
-    );
-
-    console.log('🔧 환경 설정 업데이트 완료 (모든 모듈 동기화)');
-  }
-
-  /**
-   * 📋 현재 환경 설정 조회 (ConfigurationManager에서 조회)
-   */
-  public getEnvironmentConfig(): CustomEnvironmentConfig {
-    return this.configurationManager.getEnvironmentConfig();
-  }
-
-  /**
-   * 📊 현재 상태 조회 (StateManager에 위임)
-   */
-  public getCurrentState(): any {
-    return this.stateManager.getCurrentState();
-  }
-
-  /**
-   * 📈 서버별 메트릭 조회 (StateManager에 위임)
-   */
-  public getServerMetrics(serverId?: string): any {
-    return this.stateManager.getServerMetrics(serverId);
-  }
-
-  /**
-   * 🆕 고급 기능 - 네트워크 토폴로지 조회
-   */
-  public getNetworkTopology(): {
-    nodes: NetworkNode[];
-    connections: NetworkConnection[];
-  } | null {
-    return this.networkTopology;
-  }
-
-  /**
-   * 🆕 고급 기능 - 현재 시연 시나리오 설정
-   */
-  public setDemoScenario(scenario: DemoScenario): void {
-    if (isPluginEnabled('demo-scenarios')) {
-      this.currentDemoScenario = scenario;
-      console.log(`🎭 시연 시나리오 변경: ${scenario}`);
-    } else {
-      console.warn('⚠️ demo-scenarios 플러그인이 비활성화됨');
-    }
-  }
-
-  /**
-   * 🆕 고급 기능 - 현재 시연 시나리오 조회
-   */
-  public getCurrentDemoScenario(): DemoScenario {
-    return this.currentDemoScenario;
-  }
-
-  /**
-   * 🆕 고급 기능 - 베이스라인 데이터 새로고침 (BaselineManager에 위임)
-   */
-  public async refreshBaselineData(): Promise<void> {
-    if (isPluginEnabled('baseline-optimizer') && this.baselineDataInitialized) {
-      console.log('📊 베이스라인 데이터 새로고침 (모듈 위임)');
-    }
-  }
-
-  /**
-   * 🆕 고급 기능 상태 조회 (모든 모듈 통합)
-   */
   public getAdvancedFeaturesStatus() {
     return {
-      networkTopology: {
-        enabled: isPluginEnabled('network-topology'),
-        nodes: this.networkTopology?.nodes.length || 0,
-        connections: this.networkTopology?.connections.length || 0,
+      networkTopology: { enabled: false, nodes: 0, connections: 0 },
+      baselineOptimizer: { enabled: false, dataPoints: 0 },
+      demoScenarios: { enabled: false, currentScenario: 'normal' },
+    };
+  }
+
+  public async healthCheck() {
+    return {
+      status: 'healthy',
+      timestamp: Date.now(),
+      generator: {
+        isInitialized: this.isInitialized,
+        isGenerating: this.isGenerating,
+        serverCount: this.servers.size,
+        clusterCount: this.clusters.size,
+        applicationCount: this.applications.size,
       },
-      baselineOptimizer: {
-        enabled: isPluginEnabled('baseline-optimizer'),
-        initialized: this.baselineDataInitialized,
-        stats: this.baselineManager.getBaselineStats(),
-      },
-      demoScenarios: {
-        enabled: isPluginEnabled('demo-scenarios'),
-        currentScenario: this.currentDemoScenario,
-      },
-      moduleIntegration: {
-        totalModules: 4,
-        activeModules: ['BaselineManager', 'RealtimeDataProcessor', 'StateManager', 'ConfigurationManager'],
-        architecture: 'fully-modularized',
+      metrics: {
+        avgCpu:
+          this.getAllServers().reduce((sum, s) => sum + s.metrics.cpu, 0) /
+          this.servers.size,
+        avgMemory:
+          this.getAllServers().reduce((sum, s) => sum + s.metrics.memory, 0) /
+          this.servers.size,
+        healthyServers: this.getAllServers().filter(s => s.status === 'running')
+          .length,
       },
     };
   }
 
-  /**
-   * 🎯 Phase 5 완료 상태 조회
-   */
-  public getModularizationStatus() {
+  // 헬퍼 메서드들
+  private groupServersByType(): { [key: string]: ServerInstance[] } {
+    const groups: { [key: string]: ServerInstance[] } = {};
+
+    this.servers.forEach(server => {
+      const type = server.type || 'unknown';
+      if (!groups[type]) groups[type] = [];
+      groups[type].push(server);
+    });
+
+    return groups;
+  }
+
+  private calculateClusterHealth(
+    servers: ServerInstance[]
+  ): 'healthy' | 'warning' | 'critical' {
+    const healthyCount = servers.filter(s => s.status === 'running').length;
+    const healthPercentage = healthyCount / servers.length;
+
+    if (healthPercentage >= 0.8) return 'healthy';
+    if (healthPercentage >= 0.5) return 'warning';
+    return 'critical';
+  }
+
+  private calculateApplicationHealth(
+    servers: ServerInstance[]
+  ): 'healthy' | 'warning' | 'critical' {
+    if (servers.length === 0) return 'critical';
+
+    const healthyCount = servers.filter(s => s.status === 'running').length;
+    const healthPercentage = healthyCount / servers.length;
+
+    if (healthPercentage >= 0.7) return 'healthy';
+    if (healthPercentage >= 0.4) return 'warning';
+    return 'critical';
+  }
+
+  public getStatus() {
     return {
-      phase: 'Phase 5 Complete',
-      architecture: 'Fully Modularized',
-      originalSize: '1,028 lines (monolithic)',
-      currentSize: '~350 lines (orchestrator)',
-      modules: {
-        BaselineManager: '~250 lines',
-        RealtimeDataProcessor: '~300 lines',
-        StateManager: '~300 lines',
-        ConfigurationManager: '~350 lines',
-      },
-      totalModules: 4,
-      principles: ['SOLID', 'Dependency Injection', 'Single Responsibility'],
-      benefits: [
-        'Independent module testing',
-        'Easy feature extension',
-        'Better maintainability',
-        'Reduced coupling',
-        'Enhanced scalability'
-      ],
-      completionDate: new Date().toISOString(),
+      isInitialized: this.isInitialized,
+      isRunning: this.isGenerating,
+      serverCount: this.servers.size,
+      clusterCount: this.clusters.size,
+      applicationCount: this.applications.size,
+      config: this.config,
     };
+  }
+
+  public dispose(): void {
+    this.stopAutoGeneration();
+    this.servers.clear();
+    this.clusters.clear();
+    this.applications.clear();
+    this.isInitialized = false;
   }
 }
 
 // 싱글톤 인스턴스
 export const realServerDataGenerator = RealServerDataGenerator.getInstance();
-
-// 🎉 Phase 5 완료 로그
-console.log(`
-🎉 ===== PHASE 5 MODULARIZATION COMPLETE ===== 🎉
-
-📊 Before: 1,028 lines (monolithic)
-📦 After: ~350 lines (orchestrator) + 4 independent modules
-
-🏗️ New Architecture:
-  ├── BaselineManager (~250 lines)
-  ├── RealtimeDataProcessor (~300 lines)  
-  ├── StateManager (~300 lines)
-  └── ConfigurationManager (~350 lines)
-
-✅ Benefits Achieved:
-  • SOLID principles fully applied
-  • Independent module testing
-  • Easy feature extension  
-  • Better maintainability
-  • Reduced coupling
-  • Enhanced scalability
-
-🚀 Ready for production deployment!
-==============================================
-`);

@@ -1,6 +1,6 @@
 /**
  * 🎨 리팩토링된 통합 프로필 컴포넌트
- * 
+ *
  * 개선사항:
  * - Single Responsibility Principle 적용
  * - 커스텀 훅으로 로직 분리
@@ -10,7 +10,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { User, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
@@ -24,15 +24,18 @@ export default function UnifiedProfileRefactored({
   userAvatar,
 }: UnifiedProfileComponentProps) {
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const profileButtonRef = useRef<HTMLButtonElement>(null);
 
-  const {
-    isOpen,
-    dropdownPosition,
-    dropdownRef,
-    profileButtonRef,
-    toggleDropdown,
-    closeDropdown,
-  } = useProfileDropdown();
+  const toggleDropdown = () => setIsOpen(!isOpen);
+  const closeDropdown = () => setIsOpen(false);
+
+  const { dropdownPosition, dropdownRef, calculatePosition } =
+    useProfileDropdown({
+      isOpen,
+      onToggle: toggleDropdown,
+      buttonRef: profileButtonRef,
+    });
 
   const { isSystemStarted, aiAgent, isLocked } = useUnifiedAdminStore();
 
@@ -46,11 +49,11 @@ export default function UnifiedProfileRefactored({
     if (isLocked) {
       return 'bg-red-500/20 border-red-500/30 text-red-300 hover:bg-red-500/30 focus:ring-red-500';
     }
-    
+
     if (aiAgent.isEnabled) {
       return 'bg-purple-500/20 border-purple-500/30 text-purple-300 hover:bg-purple-500/30 focus:ring-purple-500';
     }
-    
+
     return 'bg-cyan-500/20 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/30 focus:ring-cyan-500';
   };
 
@@ -92,7 +95,7 @@ export default function UnifiedProfileRefactored({
                 )}
               </div>
             </div>
-            
+
             {/* 상태 표시 점 */}
             <div className='absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-gray-900 rounded-full flex items-center justify-center'>
               <span className='text-xs'>{getStatusIndicator()}</span>
@@ -152,4 +155,4 @@ export default function UnifiedProfileRefactored({
       )}
     </>
   );
-} 
+}

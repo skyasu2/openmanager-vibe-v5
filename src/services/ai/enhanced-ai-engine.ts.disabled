@@ -11,7 +11,6 @@
 import { RealMCPClient } from '@/services/mcp/real-mcp-client';
 
 // 모듈화된 컴포넌트들
-import { EnhancedAITypes } from './enhanced-ai-engine/types/EnhancedAITypes';
 import { InitializationManager } from './enhanced-ai-engine/initialization/InitializationManager';
 import { DocumentIndexManager } from './enhanced-ai-engine/document/DocumentIndexManager';
 import { QueryProcessor } from './enhanced-ai-engine/query/QueryProcessor';

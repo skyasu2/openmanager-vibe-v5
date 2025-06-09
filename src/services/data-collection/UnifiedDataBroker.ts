@@ -341,8 +341,8 @@ export class UnifiedDataBroker {
               disk: s.metrics.disk,
               status: s.status,
             })),
-            summary: summary.performance,
-            health: summary.health,
+            summary: summary.servers,
+            health: summary.clusters,
           },
           timestamp: new Date(),
         };
