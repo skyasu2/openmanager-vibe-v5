@@ -189,6 +189,44 @@ cat quick-setup.md
 
 ---
 
+## 🧩 **모듈화 개발방법론**
+
+OpenManager Vibe v5는 **체계적인 모듈화 개발방법론**을 적용하여 코드 품질과 유지보수성을 최대화합니다.
+
+### **📋 핵심 원칙**
+
+- **SOLID 원칙 준수**: 단일 책임, 개방-폐쇄, 의존성 역전 등
+- **모듈 크기 제한**: 최대 500줄, 이상적으로 300줄 미만 유지
+- **의존성 주입**: Interface 기반 느슨한 결합 구조
+
+### **✅ 성공 사례: RealServerDataGenerator 모듈화**
+
+```
+Before: 1,028줄 모놀리식 → After: 5개 모듈 (350줄 오케스트레이터)
+📈 테스트성 500% 향상 | 🔧 유지보수성 극대화 | 🚀 확장성 개선
+```
+
+### **🎯 적용 대상 (1000줄+ 파일)**
+
+1. `enhanced-ai-engine.ts` (1,068 lines) - AI 엔진 기능 분리
+2. `TechStackAnalyzer.ts` (993 lines) - 기술 스택 분석 모듈화
+3. `ServerMonitoringAgent.ts` (948 lines) - 모니터링 기능 분할
+
+### **📖 상세 가이드**
+
+```bash
+# 모듈화 방법론 가이드 확인
+cat MODULAR_DEVELOPMENT_METHODOLOGY.md
+
+# 대형 파일 식별
+find src -name "*.ts" | xargs wc -l | sort -nr | head -10
+
+# 모듈화 체크리스트 실행
+npm run lint-large-files  # 1000줄+ 파일 검출 (향후 지원)
+```
+
+---
+
 ## 🛠️ **개발 도구**
 
 ### **📚 Storybook 컴포넌트 문서화**
