@@ -235,8 +235,23 @@ const UnifiedSettingsPanel = ({
   }, [isOpen, activeTab]);
 
   // AI 에이전트 인증 처리
-  const handleAIAuthentication = async () => {
-    if (!aiPassword.trim()) {
+  // 즉시 활성화 (자동 비밀번호 입력)
+  const handleQuickActivation = async () => {
+    if (isAuthenticating) return; // 중복 클릭 방지
+
+    // 자동으로 비밀번호 4231 입력
+    setAiPassword('4231');
+
+    // 잠시 후 인증 진행
+    setTimeout(() => {
+      handleAIAuthentication('4231');
+    }, 100);
+  };
+
+  const handleAIAuthentication = async (quickPassword?: string) => {
+    const passwordToUse = quickPassword || aiPassword.trim();
+
+    if (!passwordToUse) {
       warning('비밀번호를 입력해주세요.');
       return;
     }
@@ -250,7 +265,7 @@ const UnifiedSettingsPanel = ({
       await new Promise(resolve => setTimeout(resolve, 100));
 
       // 실제 인증 처리
-      const result = await authenticateAIAgent(aiPassword);
+      const result = await authenticateAIAgent(passwordToUse);
 
       if (result.success) {
         // 성공 시 순차적 상태 업데이트
@@ -674,7 +689,7 @@ const UnifiedSettingsPanel = ({
                         </span>
                       </div>
                       <button
-                        onClick={() => handleAIAuthentication()}
+                        onClick={handleQuickActivation}
                         disabled={isAuthenticating}
                         className='w-full p-2 bg-yellow-500/30 border border-yellow-500/50 text-yellow-200 rounded hover:bg-yellow-500/40 transition-colors text-sm'
                       >
@@ -684,7 +699,7 @@ const UnifiedSettingsPanel = ({
                             <span>활성화 중...</span>
                           </div>
                         ) : (
-                          '🚀 즉시 활성화 (비밀번호 우회)'
+                          '🚀 즉시 활성화 (비밀번호 자동입력)'
                         )}
                       </button>
                     </div>
@@ -742,7 +757,7 @@ const UnifiedSettingsPanel = ({
                   )}
 
                   <button
-                    onClick={handleAIAuthentication}
+                    onClick={() => handleAIAuthentication()}
                     disabled={isLocked || isAuthenticating}
                     className='w-full p-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900'
                   >
