@@ -170,8 +170,10 @@ npm run dev
 # 빌드
 npm run build
 
-# Storybook
-npm run storybook
+# Storybook (개발 도구)
+npm run storybook        # 컴포넌트 개발 도구
+npm run storybook:dev    # 브라우저 자동 열기 없이
+npm run storybook:docs   # 문서 모드
 # → http://localhost:6006
 ```
 
@@ -187,6 +189,53 @@ cat quick-setup.md
 
 ---
 
+## 🛠️ **개발 도구**
+
+### **📚 Storybook 컴포넌트 문서화**
+
+OpenManager Vibe v5는 **개발자 전용 Storybook**을 제공합니다 (외부 배포 없음):
+
+```bash
+# Storybook 개발 서버 실행
+npm run storybook        # 기본 모드 (자동 브라우저 열기)
+npm run storybook:dev    # 조용한 모드 (브라우저 열기 없음)
+npm run storybook:docs   # 문서 중심 모드
+
+# → http://localhost:6006
+```
+
+#### **📖 포함된 Stories (총 7개 컴포넌트)**
+
+- **🎛️ SystemControlPanel** - 시스템 제어 패널 (10가지 시나리오)
+- **📊 RealtimeChart** - 실시간 메트릭 차트 (12가지 모니터링)
+- **🔄 RealtimeStatus** - WebSocket 연결 상태 (15가지 상태)
+- **🛡️ ErrorBoundary** - 에러 경계 처리 (다양한 에러 시나리오)
+- **📈 AdminDashboardCharts** - 관리자 차트 (API 시뮬레이션)
+- **🤖 AISidebar** - AI 사이드바 (위치/너비 조정)
+- **📢 EnhancedToastSystem** - 알림 시스템 (서버 모니터링)
+
+#### **💡 개발 활용법**
+
+```typescript
+// 컴포넌트 개발 → 스토리 작성 → 실시간 확인
+// Example: SystemControlPanel.stories.tsx
+export const HealthySystem: Story = {
+  args: {
+    isRunning: true,
+    health: 'healthy',
+  },
+};
+```
+
+- **🎯 실시간 개발**: 코드 변경 시 즉시 반영
+- **🎨 UI 테스트**: 다양한 상태와 props 조합 확인
+- **📱 반응형 확인**: 모바일/태블릿/데스크톱 뷰 테스트
+- **♿ 접근성 검증**: ARIA 레이블 및 키보드 네비게이션
+
+> 📝 **자세한 가이드**: [STORYBOOK_DEV_GUIDE.md](./STORYBOOK_DEV_GUIDE.md)
+
+---
+
 ## 🏗️ **아키텍처**
 
 ### **기술 스택**
@@ -199,6 +248,7 @@ Cache:       Redis (Upstash)
 AI:          MCP + RAG Hybrid Engine
 Monitoring:  Prometheus + Custom Analytics
 UI:          shadcn/ui + React Hook Form
+DevTools:    Storybook + Vitest + Playwright
 ```
 
 ### **시스템 구조**
@@ -603,7 +653,7 @@ NEXT_PUBLIC_BYPASS_AI_PASSWORD=true
    - `Ctrl+Shift+I` (개발자 도구)
    - Console 탭에서 MCP 관련 로그 확인
 
-### 현재 설정된 MCP 서버들:
+### 현재 설정된 MCP 서버들
 
 - **openmanager-local**: 로컬 AI 에이전트 서버 (포트 3100)
 - **filesystem**: 파일시스템 접근
@@ -611,7 +661,7 @@ NEXT_PUBLIC_BYPASS_AI_PASSWORD=true
 - **memory**: 메모리 저장소
 - **sequential-thinking**: 순차적 사고 처리
 
-### 문제 해결:
+### 문제 해결
 
 ```bash
 # MCP 서버 상태 확인
@@ -624,7 +674,7 @@ npm run mcp:cursor:validate
 curl http://localhost:3100/health
 ```
 
-## 🎉 MCP 완벽 설정 성공!
+## 🎉 MCP 완벽 설정 성공
 
 ### ✅ 성공적으로 구축된 MCP 환경
 
