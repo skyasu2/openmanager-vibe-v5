@@ -667,15 +667,15 @@ export default function FeatureCardsGrid() {
             <div
               className={`relative p-4 ${
                 isDarkMode
-                  ? 'bg-white/10 hover:bg-white/20 border-white/20'
+                  ? 'bg-white/10 hover:bg-white/20 border-white/25'
                   : 'bg-gray-900/90 hover:bg-gray-900/95 border-gray-200/50'
-              } backdrop-blur-sm border rounded-2xl transition-all duration-300 h-full ${
+              } backdrop-blur-sm border rounded-2xl transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) h-full ${
                 card.isSpecial
                   ? isDarkMode
                     ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/30'
                     : 'bg-gradient-to-br from-amber-100/90 to-orange-100/90 border-amber-300/50'
                   : ''
-              }`}
+              } group-hover:transform group-hover:scale-[1.02] group-hover:shadow-2xl`}
             >
               {/* 그라데이션 배경 */}
               <div
@@ -771,11 +771,16 @@ export default function FeatureCardsGrid() {
               {/* 컨텐츠 */}
               <div className='relative z-10'>
                 <h3
-                  className={`text-lg font-bold mb-2 transition-colors ${
+                  className={`text-lg font-bold mb-2 transition-colors leading-tight ${
                     isDarkMode
                       ? 'text-white group-hover:text-white'
                       : 'text-white group-hover:text-gray-100'
                   }`}
+                  style={{
+                    color: 'rgba(255, 255, 255, 0.95)',
+                    fontWeight: 600,
+                    lineHeight: 1.4,
+                  }}
                 >
                   {renderTextWithAIGradient(card.title)}
                 </h3>
@@ -785,6 +790,11 @@ export default function FeatureCardsGrid() {
                       ? 'text-white/70 group-hover:text-white/90'
                       : 'text-white/90 group-hover:text-white'
                   }`}
+                  style={{
+                    color: 'rgba(255, 255, 255, 0.80)',
+                    lineHeight: 1.5,
+                    fontWeight: 500,
+                  }}
                 >
                   {renderTextWithAIGradient(card.description)}
                 </p>

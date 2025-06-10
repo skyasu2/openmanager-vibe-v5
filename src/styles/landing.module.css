@@ -84,13 +84,15 @@
 
 .featureCard {
   background: var(--glass-bg);
-  /* backdrop-filter: blur(10px); */
+  backdrop-filter: blur(10px);
   border: 1px solid var(--glass-border);
   border-radius: 16px;
   padding: 2rem;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  /* 🆕 개선된 스타일 */
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .featureCard::before {
@@ -106,9 +108,13 @@
 }
 
 .featureCard:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-xl);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   border-color: rgba(255, 255, 255, 0.4);
+  /* 🔥 배경 그라데이션 강화 */
+  background: linear-gradient(135deg,
+      rgba(139, 92, 246, 0.9) 0%,
+      rgba(79, 70, 229, 0.9) 100%);
 }
 
 .featureCard:hover::before {
@@ -120,6 +126,11 @@
   color: var(--text-white);
   margin-bottom: 1rem;
   text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+  transition: transform 0.3s ease;
+}
+
+.featureCard:hover .featureIcon {
+  transform: rotate(10deg) scale(1.1);
 }
 
 .featureTitle {
@@ -127,12 +138,20 @@
   font-weight: 600;
   color: var(--text-white);
   margin-bottom: 0.5rem;
+  /* 🆕 가독성 개선 */
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.5;
+  font-weight: 500;
 }
 
 .featureDescription {
   font-size: 1rem;
   color: rgba(255, 255, 255, 0.8);
   line-height: 1.5;
+  /* 🆕 가독성 개선 */
+  color: rgba(255, 255, 255, 0.80);
+  line-height: 1.5;
+  font-weight: 500;
 }
 
 /* CTA 버튼 */
@@ -170,18 +189,13 @@
   transition: left 0.5s ease;
 }
 
-.btnPrimary:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-xl);
-  background: linear-gradient(45deg, var(--primary-dark), var(--secondary));
-}
-
 .btnPrimary:hover::before {
   left: 100%;
 }
 
-.btnPrimary:active {
-  transform: translateY(0);
+.btnPrimary:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: var(--shadow-2xl);
 }
 
 /* 통계 섹션 */
@@ -246,6 +260,7 @@
   }
 
   .featureCard {
+    min-height: 180px;
     padding: 1.5rem;
   }
 
@@ -266,6 +281,14 @@
 
   .statNumber {
     font-size: 2rem;
+  }
+
+  .featureTitle {
+    font-size: 1.1rem;
+  }
+
+  .featureDescription {
+    font-size: 0.9rem;
   }
 }
 
