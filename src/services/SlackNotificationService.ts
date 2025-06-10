@@ -558,7 +558,7 @@ export class SlackNotificationService {
       const response = await fetch(this.webhookUrl, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
         },
         body: JSON.stringify({
           channel: this.defaultChannel,

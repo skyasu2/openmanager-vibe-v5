@@ -8,7 +8,7 @@
  * - 로그 레벨 관리
  */
 
-import { config } from '@/lib/config';
+import config from '@/lib/config';
 
 // 로그 레벨 정의
 enum LogLevel {

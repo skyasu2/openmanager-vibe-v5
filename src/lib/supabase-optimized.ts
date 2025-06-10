@@ -9,7 +9,7 @@
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { config, validateEnvironment } from './config';
+import config, { validateEnvironment } from './config';
 
 // 최적화된 클라이언트 인터페이스
 interface OptimizedSupabaseClient extends SupabaseClient {
