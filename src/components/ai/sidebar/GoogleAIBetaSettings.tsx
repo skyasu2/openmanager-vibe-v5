@@ -25,7 +25,10 @@ import {
   Brain,
   Gauge,
   Info,
+  Shield,
 } from 'lucide-react';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { requireAdminAuth } from '@/lib/auth';
 
 interface GoogleAIBetaSettingsProps {
   className?: string;
@@ -57,10 +60,13 @@ interface GoogleAIStatus {
 export default function GoogleAIBetaSettings({
   className = '',
 }: GoogleAIBetaSettingsProps) {
+  // 🔐 관리자 인증 확인
+  const { adminMode } = useUnifiedAdminStore();
+
   // 🎛️ 설정 상태
   const [config, setConfig] = useState<GoogleAIConfig>({
     enabled: false,
-    apiKey: '',
+    apiKey: '', // 항상 빈 문자열로 시작 (보안)
     model: 'gemini-1.5-flash',
     showApiKey: false,
   });
@@ -92,12 +98,18 @@ export default function GoogleAIBetaSettings({
   const loadConfig = async () => {
     try {
       const response = await fetch('/api/ai/google-ai/config');
-      if (response.ok) {
-        const data = await response.json();
-        setConfig(prev => ({ ...prev, ...data }));
-      }
+      const data = await response.json();
+
+      setConfig(prev => ({
+        ...prev,
+        enabled: data.enabled || false,
+        model: data.model || 'gemini-1.5-flash',
+        // API 키는 보안상 로드하지 않음
+        apiKey: '', // 항상 빈 값
+        showApiKey: false,
+      }));
     } catch (error) {
-      console.error('설정 로드 실패:', error);
+      console.error('Google AI 설정 로드 실패:', error);
     }
   };
 
@@ -115,35 +127,47 @@ export default function GoogleAIBetaSettings({
   };
 
   // 💾 설정 저장
-  const saveConfig = async (newConfig: Partial<GoogleAIConfig>) => {
-    try {
-      const updatedConfig = { ...config, ...newConfig };
-      setConfig(updatedConfig);
+  const saveConfig = async (updatedConfig: Partial<GoogleAIConfig>) => {
+    // 🔐 관리자 권한 확인
+    if (!adminMode.isAuthenticated) {
+      alert('⚠️ 관리자 권한이 필요합니다. 관리자 로그인을 먼저 해주세요.');
+      return;
+    }
 
+    const newConfig = { ...config, ...updatedConfig };
+    setConfig(newConfig);
+
+    try {
       const response = await fetch('/api/ai/google-ai/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedConfig),
+        body: JSON.stringify({
+          ...newConfig,
+          // API 키가 비어있으면 전송하지 않음 (기존 키 유지)
+          ...(newConfig.apiKey.trim() && { apiKey: newConfig.apiKey.trim() }),
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error('설정 저장 실패');
-      }
-
-      // 상태 새로고침
-      if (updatedConfig.enabled) {
-        await loadStatus();
+      if (response.ok) {
+        // 저장 후 API 키 필드 초기화 (보안)
+        setConfig(prev => ({ ...prev, apiKey: '', showApiKey: false }));
+        console.log('✅ Google AI 설정 저장됨');
       }
     } catch (error) {
-      console.error('설정 저장 실패:', error);
-      alert('설정 저장에 실패했습니다.');
+      console.error('Google AI 설정 저장 실패:', error);
     }
   };
 
   // 🧪 연결 테스트
   const testConnection = async () => {
-    if (!config.apiKey) {
-      setTestResult({ success: false, message: 'API 키를 입력해주세요.' });
+    // 🔐 관리자 권한 확인
+    if (!adminMode.isAuthenticated) {
+      alert('⚠️ 관리자 권한이 필요합니다. 관리자 로그인을 먼저 해주세요.');
+      return;
+    }
+
+    if (!config.apiKey.trim()) {
+      alert('⚠️ API 키를 먼저 입력해주세요.');
       return;
     }
 
@@ -155,7 +179,7 @@ export default function GoogleAIBetaSettings({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          apiKey: config.apiKey,
+          apiKey: config.apiKey.trim(),
           model: config.model,
         }),
       });
@@ -163,10 +187,11 @@ export default function GoogleAIBetaSettings({
       const result = await response.json();
       setTestResult(result);
 
+      // 연결 테스트 성공 시 설정도 자동 저장
       if (result.success) {
-        await loadStatus();
+        await saveConfig(config);
       }
-    } catch (error) {
+    } catch (error: any) {
       setTestResult({
         success: false,
         message: `연결 오류: ${error.message}`,
@@ -216,6 +241,29 @@ export default function GoogleAIBetaSettings({
       </div>
     );
   };
+
+  // 🔐 관리자 권한이 없으면 접근 차단
+  if (!adminMode.isAuthenticated) {
+    return (
+      <div
+        className={`${className} p-4 bg-red-50 border border-red-200 rounded-lg`}
+      >
+        <div className='flex items-center gap-3 mb-2'>
+          <Shield className='w-5 h-5 text-red-600' />
+          <h3 className='font-semibold text-red-800'>관리자 권한 필요</h3>
+        </div>
+        <p className='text-sm text-red-700 mb-3'>
+          Google AI 베타 설정을 변경하려면 관리자 로그인이 필요합니다.
+        </p>
+        <button
+          onClick={() => (window.location.href = '/')}
+          className='text-sm text-red-600 underline hover:text-red-800'
+        >
+          관리자 로그인하러 가기
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -301,36 +349,38 @@ export default function GoogleAIBetaSettings({
             exit={{ opacity: 0, y: -10 }}
             className='space-y-4'
           >
-            {/* API 키 입력 */}
+            {/* API 키 입력 - 보안 강화 */}
             <div>
               <label className='block text-sm font-medium text-gray-700 mb-2'>
                 Google AI Studio API 키
               </label>
               <div className='relative'>
                 <input
-                  type={config.showApiKey ? 'text' : 'password'}
+                  type='password'
                   value={config.apiKey}
                   onChange={e =>
                     setConfig(prev => ({ ...prev, apiKey: e.target.value }))
                   }
-                  placeholder='AIza...'
+                  placeholder='새 API 키를 입력하세요...'
                   className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
                 />
-                <button
-                  onClick={() =>
-                    setConfig(prev => ({
-                      ...prev,
-                      showApiKey: !prev.showApiKey,
-                    }))
-                  }
-                  className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600'
-                >
-                  {config.showApiKey ? (
-                    <EyeOff className='w-4 h-4' />
-                  ) : (
-                    <Eye className='w-4 h-4' />
-                  )}
-                </button>
+                <div className='absolute right-3 top-1/2 transform -translate-y-1/2'>
+                  <Shield className='w-4 h-4 text-gray-400' />
+                </div>
+              </div>
+
+              {/* 보안 안내 */}
+              <div className='flex items-start gap-2 mt-2 p-3 bg-amber-50 rounded-lg border border-amber-200'>
+                <Info className='w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0' />
+                <div className='text-sm text-amber-800'>
+                  <p className='font-medium'>🔐 보안 정책:</p>
+                  <ul className='mt-1 text-xs space-y-1'>
+                    <li>• 기존 API 키는 표시되지 않습니다</li>
+                    <li>• 새로운 키만 입력 가능합니다</li>
+                    <li>• 저장 후 입력 필드는 자동 초기화됩니다</li>
+                    <li>• 관리자 권한이 필요합니다</li>
+                  </ul>
+                </div>
               </div>
 
               {/* API 키 안내 */}

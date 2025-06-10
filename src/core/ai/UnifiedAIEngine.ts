@@ -19,6 +19,7 @@ import { getRedisClient } from '@/lib/redis';
 import { getMCPClient } from '@/core/mcp/official-mcp-client';
 import { ContextManager, ContextSearchResult } from '@/core/ai/ContextManager';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
+import { LocalRAGEngine } from '../../utils/legacy/local-rag-engine';
 
 export interface UnifiedAnalysisRequest {
   query: string;
@@ -92,6 +93,7 @@ export class UnifiedAIEngine {
   private redis: any;
   private contextManager: ContextManager;
   private googleAI?: GoogleAIService;
+  private ragEngine: LocalRAGEngine;
   private betaModeEnabled: boolean = false;
   private initialized: boolean = false;
   private analysisCache: Map<string, any> = new Map();
@@ -99,6 +101,7 @@ export class UnifiedAIEngine {
   private constructor() {
     // 싱글톤 패턴
     this.contextManager = ContextManager.getInstance();
+    this.ragEngine = new LocalRAGEngine();
     this.betaModeEnabled = process.env.GOOGLE_AI_BETA_MODE === 'true';
   }
 
@@ -443,7 +446,20 @@ export class UnifiedAIEngine {
         }
       }
 
-      // 2차: 직접 시스템 분석
+      // 🆕 2차: RAG 엔진 시도
+      if (this.ragEngine.isReady()) {
+        try {
+          const ragResult = await this.performRAGAnalysis(intent, context);
+          if (ragResult.success && ragResult.confidence > 0.6) {
+            console.log('📚 RAG 엔진으로 분석 완료');
+            return ragResult;
+          }
+        } catch (error) {
+          console.warn('⚠️ RAG 엔진 분석 실패, 직접 분석으로 폴백:', error);
+        }
+      }
+
+      // 3차: 직접 시스템 분석
       return await this.performDirectSystemAnalysis(intent, context);
     } catch (error) {
       console.warn('⚠️ 실제 분석 실패, 기본 분석으로 대체:', error);
@@ -1628,6 +1644,57 @@ export class UnifiedAIEngine {
    */
   public async refreshContexts(): Promise<void> {
     await this.contextManager.refresh();
+  }
+
+  /**
+   * 📚 RAG 엔진 분석
+   */
+  private async performRAGAnalysis(
+    intent: any,
+    context: MCPContext
+  ): Promise<MCPResponse> {
+    const startTime = Date.now();
+
+    try {
+      // RAG 엔진으로 쿼리 처리
+      const ragResponse = await this.ragEngine.processQuery(
+        context.userQuery,
+        context.sessionId
+      );
+
+      return {
+        success: true,
+        results: [
+          {
+            taskId: `rag-${Date.now()}`,
+            type: 'rag_analysis',
+            success: true,
+            result: ragResponse.response,
+            executionTime: ragResponse.processingTime,
+            engine: 'LocalRAG',
+            confidence: ragResponse.confidence,
+          },
+        ],
+        summary: `📚 RAG 분석: ${ragResponse.response.slice(0, 200)}...`,
+        confidence: ragResponse.confidence,
+        processingTime: Date.now() - startTime,
+        enginesUsed: ['LocalRAG'],
+        recommendations: ragResponse.suggestions || [],
+        metadata: {
+          tasksExecuted: 1,
+          successRate: 1.0,
+          fallbacksUsed: 0,
+          pythonWarmupTriggered: false,
+          contextId: `rag-${Date.now()}`,
+          relevanceScore: ragResponse.confidence,
+          matchedKeywords: ['rag', 'vector-db', 'local-analysis'],
+          processingTime: Date.now() - startTime,
+        },
+      };
+    } catch (error) {
+      console.error('❌ RAG 엔진 분석 실패:', error);
+      throw error;
+    }
   }
 }
 

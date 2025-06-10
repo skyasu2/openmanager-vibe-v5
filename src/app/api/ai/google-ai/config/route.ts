@@ -6,6 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { authManager } from '@/lib/auth';
 
 // 임시 설정 저장소 (실제로는 데이터베이스 사용)
 let googleAIConfig = {
@@ -14,21 +15,49 @@ let googleAIConfig = {
   model: 'gemini-1.5-flash' as 'gemini-1.5-flash' | 'gemini-1.5-pro',
 };
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    // 보안상 API 키는 마스킹해서 반환
+    // 🔐 관리자 권한 확인
+    const sessionId =
+      request.headers.get('x-session-id') ||
+      request.cookies.get('admin-session')?.value;
+
+    if (!sessionId || !authManager.hasPermission(sessionId, 'system:admin')) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: '관리자 권한이 필요합니다.',
+        },
+        { status: 403 }
+      );
+    }
+
+    const googleAIConfig = {
+      enabled: process.env.GOOGLE_AI_BETA_MODE === 'true',
+      model: process.env.GOOGLE_AI_MODEL || 'gemini-1.5-flash',
+      apiKey: process.env.GOOGLE_AI_API_KEY || '',
+    };
+
+    // 🔐 보안: API 키는 마스킹 처리하여 반환 (존재 여부만 표시)
     const safeConfig = {
       ...googleAIConfig,
       apiKey: googleAIConfig.apiKey
         ? '••••••••' + googleAIConfig.apiKey.slice(-4)
         : '',
+      hasApiKey: !!googleAIConfig.apiKey, // API 키 존재 여부만 표시
     };
 
-    return NextResponse.json(safeConfig);
+    return NextResponse.json({
+      success: true,
+      ...safeConfig,
+    });
   } catch (error) {
     console.error('Google AI 설정 조회 실패:', error);
     return NextResponse.json(
-      { error: '설정 조회에 실패했습니다.' },
+      {
+        success: false,
+        error: '설정 조회 중 오류가 발생했습니다.',
+      },
       { status: 500 }
     );
   }
@@ -36,68 +65,75 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { enabled, apiKey, model } = body;
+    // 🔐 관리자 권한 확인
+    const sessionId =
+      request.headers.get('x-session-id') ||
+      request.cookies.get('admin-session')?.value;
 
-    // 설정 검증
-    if (typeof enabled !== 'boolean') {
+    if (!sessionId || !authManager.hasPermission(sessionId, 'system:admin')) {
       return NextResponse.json(
-        { error: 'enabled는 boolean 타입이어야 합니다.' },
-        { status: 400 }
+        {
+          success: false,
+          error: '관리자 권한이 필요합니다.',
+        },
+        { status: 403 }
       );
     }
 
-    if (enabled && (!apiKey || !apiKey.startsWith('AIza'))) {
-      return NextResponse.json(
-        { error: '유효한 Google AI Studio API 키를 입력해주세요.' },
-        { status: 400 }
-      );
+    const { enabled, model, apiKey } = await request.json();
+
+    // 환경 변수 업데이트 (런타임)
+    if (typeof enabled === 'boolean') {
+      process.env.GOOGLE_AI_BETA_MODE = enabled.toString();
     }
 
-    if (model && !['gemini-1.5-flash', 'gemini-1.5-pro'].includes(model)) {
-      return NextResponse.json(
-        { error: '지원하지 않는 모델입니다.' },
-        { status: 400 }
-      );
-    }
-
-    // 설정 업데이트
-    googleAIConfig = {
-      enabled,
-      apiKey: apiKey || googleAIConfig.apiKey,
-      model: model || googleAIConfig.model,
-    };
-
-    // 환경변수 업데이트 (런타임)
-    if (enabled && apiKey) {
-      process.env.GOOGLE_AI_API_KEY = apiKey;
+    if (model) {
       process.env.GOOGLE_AI_MODEL = model;
-      process.env.GOOGLE_AI_ENABLED = 'true';
-      process.env.GOOGLE_AI_BETA_MODE = 'true';
-    } else {
-      process.env.GOOGLE_AI_ENABLED = 'false';
-      process.env.GOOGLE_AI_BETA_MODE = 'false';
     }
 
-    console.log('🤖 Google AI 설정 업데이트:', {
+    // 🔐 보안: API 키가 제공된 경우에만 업데이트
+    if (apiKey && apiKey.trim() && !apiKey.includes('••••••••')) {
+      process.env.GOOGLE_AI_API_KEY = apiKey.trim();
+      console.log(
+        '🔐 Google AI API 키가 업데이트되었습니다 (마지막 4자리: ****' +
+          apiKey.slice(-4) +
+          ')'
+      );
+    }
+
+    console.log('📝 Google AI 설정 업데이트:', {
       enabled,
       model,
       apiKeyLength: apiKey?.length || 0,
+      apiKeyUpdated: !!(
+        apiKey &&
+        apiKey.trim() &&
+        !apiKey.includes('••••••••')
+      ),
     });
 
     return NextResponse.json({
       success: true,
-      message: '설정이 성공적으로 저장되었습니다.',
+      message: 'Google AI 설정이 저장되었습니다.',
       config: {
         enabled,
         model,
-        apiKey: apiKey ? '••••••••' + apiKey.slice(-4) : '',
+        apiKey:
+          apiKey && apiKey.trim() && !apiKey.includes('••••••••')
+            ? '••••••••' + apiKey.slice(-4)
+            : process.env.GOOGLE_AI_API_KEY
+              ? '••••••••' + process.env.GOOGLE_AI_API_KEY.slice(-4)
+              : '',
+        hasApiKey: !!process.env.GOOGLE_AI_API_KEY,
       },
     });
   } catch (error) {
     console.error('Google AI 설정 저장 실패:', error);
     return NextResponse.json(
-      { error: '설정 저장에 실패했습니다.' },
+      {
+        success: false,
+        error: '설정 저장 중 오류가 발생했습니다.',
+      },
       { status: 500 }
     );
   }
