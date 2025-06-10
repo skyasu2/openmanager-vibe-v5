@@ -24,7 +24,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     switch (responseType) {
       case 'ai-only':
         // AI 분석 대상 서버만 (고정)
-        const analysisTargets = advancedSimulationEngine.getAnalysisTargets();
+        const analysisTargets =
+          await advancedSimulationEngine.getAnalysisTargets();
         return NextResponse.json({
           success: true,
           data: {
@@ -97,7 +98,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       case 'integrated':
         // AI 완전 통합 메트릭 (AI용 최적화)
         const integratedMetrics =
-          advancedSimulationEngine.getIntegratedAIMetrics();
+          await advancedSimulationEngine.getIntegratedAIMetrics();
 
         return NextResponse.json({
           success: true,
@@ -116,7 +117,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
       case 'comparison':
         // 분리 전후 비교 분석
-        const aiTargets = advancedSimulationEngine.getAnalysisTargets();
+        const aiTargets = await advancedSimulationEngine.getAnalysisTargets();
         const opServers = scalingSimulationEngine.getOperationalServers();
 
         return NextResponse.json({
@@ -153,7 +154,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
       default:
         // 전체 상태 (기본)
-        const fullMetrics = advancedSimulationEngine.getIntegratedAIMetrics();
+        const fullMetrics =
+          await advancedSimulationEngine.getIntegratedAIMetrics();
         const fullOperational = scalingSimulationEngine.getAIMetrics();
 
         return NextResponse.json({
@@ -162,13 +164,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             type: 'full_separation_status',
             aiAnalysis: {
               engine: 'AdvancedSimulationEngine',
-              targets: fullMetrics.analysisTargets.length,
-              status: fullMetrics.aiAnalysisMetrics,
+              targets: fullMetrics.totalServers || 0,
+              status: fullMetrics,
               isRunning: advancedSimulationEngine.getIsRunning(),
             },
             operationalScaling: {
               engine: 'ScalingSimulationEngine',
-              servers: fullOperational.operationalSummary.totalServers,
+              servers: fullOperational.operationalSummary?.totalServers || 0,
               summary: fullOperational.operationalSummary,
               recentEvents: fullOperational.recentScalingEvents,
             },
@@ -221,8 +223,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               : '스케일링 조건 불충족 또는 쿨다운 중',
             operationalServers:
               scalingSimulationEngine.getOperationalServers().length,
-            aiTargetsUnchanged:
-              advancedSimulationEngine.getAnalysisTargets().length,
+            aiTargetsUnchanged: (
+              await advancedSimulationEngine.getAnalysisTargets()
+            ).length,
           },
         });
 
@@ -248,7 +251,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           success: true,
           data: {
             message: 'AI 분석 시뮬레이션 시작',
-            targets: advancedSimulationEngine.getAnalysisTargets().length,
+            targets: (await advancedSimulationEngine.getAnalysisTargets())
+              .length,
             isRunning: advancedSimulationEngine.getIsRunning(),
           },
         });
@@ -335,8 +339,9 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
             iterations: 10,
             scalingEvents: results.length,
             results,
-            aiTargetsStable:
-              advancedSimulationEngine.getAnalysisTargets().length,
+            aiTargetsStable: (
+              await advancedSimulationEngine.getAnalysisTargets()
+            ).length,
             operationalServersAfter:
               scalingSimulationEngine.getOperationalServers().length,
             conclusion: 'AI 분석 대상은 고정 유지, 운영 서버만 동적 변경 확인',
@@ -345,13 +350,13 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
 
       case 'ai_consistency_test':
         // AI 분석 일관성 테스트
-        const snapshot1 = advancedSimulationEngine.getAnalysisTargets();
+        const snapshot1 = await advancedSimulationEngine.getAnalysisTargets();
 
         // 스케일링 시뮬레이션 실행
         scalingSimulationEngine.simulateScaling([{ cpu: 70, memory: 60 }]);
         scalingSimulationEngine.simulateScaling([{ cpu: 80, memory: 70 }]);
 
-        const snapshot2 = advancedSimulationEngine.getAnalysisTargets();
+        const snapshot2 = await advancedSimulationEngine.getAnalysisTargets();
 
         // AI 분석 대상 서버 ID 비교
         const ids1 = snapshot1.map(s => s.id).sort();

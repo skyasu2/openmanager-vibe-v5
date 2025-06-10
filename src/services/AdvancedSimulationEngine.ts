@@ -4,137 +4,386 @@
  * AI 기반 고급 서버 시뮬레이션 및 시나리오 생성
  */
 
-export interface AdvancedScenario {
-  type: 'load_spike' | 'memory_leak' | 'network_latency' | 'disk_failure';
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  duration: number;
-  affectedServers: string[];
-  description: string;
-}
+import { VercelDatabase } from '@/lib/supabase';
 
-export interface SimulationMetrics {
+export interface ServerMetrics {
   cpu: number;
   memory: number;
   disk: number;
   network: number;
   timestamp: string;
+  server_id?: string;
+}
+
+export interface SimulationMetrics extends ServerMetrics {
   scenario?: AdvancedScenario;
+  confidence: number;
+  data_source: 'real_database' | 'pattern_analysis' | 'fallback';
+}
+
+export interface AdvancedScenario {
+  id: string;
+  type:
+    | 'load_spike'
+    | 'memory_leak'
+    | 'network_latency'
+    | 'disk_failure'
+    | 'normal';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  affectedServers: string[];
+  startTime: Date;
+  duration: number; // minutes
+  description: string;
+  probability: number; // 0.0 - 1.0
 }
 
 export class AdvancedSimulationEngine {
   private scenarios: AdvancedScenario[] = [];
-  private isRunning: boolean = false;
+  private realMetricsCache: Map<string, ServerMetrics[]> = new Map();
+  private lastCacheUpdate = 0;
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5분
+  private isRunning = false;
 
   constructor() {
-    this.initializeScenarios();
+    console.log('🎭 고급 시뮬레이션 엔진 초기화 (실제 데이터 기반)');
+    this.initializeRealDataScenarios();
   }
 
   /**
-   * 🎮 시나리오 초기화
+   * 🔍 실제 데이터 기반 시나리오 초기화 (하드코딩 제거)
    */
-  private initializeScenarios(): void {
-    this.scenarios = [
-      {
-        type: 'load_spike',
-        severity: 'high',
-        duration: 300000, // 5분
-        affectedServers: ['server-1', 'server-2'],
-        description: '트래픽 급증으로 인한 부하 스파이크',
-      },
-      {
-        type: 'memory_leak',
-        severity: 'medium',
-        duration: 600000, // 10분
-        affectedServers: ['server-3'],
-        description: '애플리케이션 메모리 누수 발생',
-      },
-    ];
+  private initializeRealDataScenarios(): void {
+    // 더 이상 하드코딩된 시나리오 사용하지 않음
+    // 실제 데이터 패턴에서 시나리오 추출
+    console.log('📊 실제 데이터 패턴 기반 시나리오 분석 준비 완료');
   }
 
   /**
-   * 📊 고급 메트릭 생성
+   * 🔄 실제 서버 메트릭 조회 및 캐싱
    */
-  generateAdvancedMetrics(serverCount: number = 30): SimulationMetrics[] {
-    const metrics: SimulationMetrics[] = [];
+  private async getRealServerMetrics(): Promise<ServerMetrics[]> {
+    const now = Date.now();
 
-    for (let i = 0; i < serverCount; i++) {
-      const serverId = `server-${i + 1}`;
-      const activeScenario = this.getActiveScenario(serverId);
-
-      let cpu = Math.random() * 50 + 10;
-      let memory = Math.random() * 40 + 20;
-      let disk = Math.random() * 60 + 10;
-      let network = Math.random() * 50 + 5;
-
-      // 시나리오 적용
-      if (activeScenario) {
-        const multiplier = this.getSeverityMultiplier(activeScenario.severity);
-
-        switch (activeScenario.type) {
-          case 'load_spike':
-            cpu *= multiplier;
-            network *= multiplier;
-            break;
-          case 'memory_leak':
-            memory *= multiplier;
-            break;
-          case 'network_latency':
-            network *= multiplier;
-            break;
-          case 'disk_failure':
-            disk *= multiplier;
-            break;
-        }
-      }
-
-      metrics.push({
-        cpu: Math.min(cpu, 100),
-        memory: Math.min(memory, 100),
-        disk: Math.min(disk, 100),
-        network: Math.min(network, 200),
-        timestamp: new Date().toISOString(),
-        scenario: activeScenario,
-      });
+    // 캐시 확인
+    if (
+      now - this.lastCacheUpdate < this.CACHE_TTL &&
+      this.realMetricsCache.size > 0
+    ) {
+      const cachedMetrics: ServerMetrics[] = [];
+      this.realMetricsCache.forEach(metrics => cachedMetrics.push(...metrics));
+      return cachedMetrics;
     }
 
-    return metrics;
+    try {
+      // 실제 데이터베이스에서 메트릭 조회
+      const dashboardData = await VercelDatabase.getDashboardData();
+      const realMetrics = dashboardData.metrics;
+
+      // 서버별로 캐싱
+      this.realMetricsCache.clear();
+      const serverMetricsMap = new Map<string, ServerMetrics[]>();
+
+      realMetrics.forEach(metric => {
+        const serverId = metric.server_id || 'unknown';
+        if (!serverMetricsMap.has(serverId)) {
+          serverMetricsMap.set(serverId, []);
+        }
+        serverMetricsMap.get(serverId)!.push(metric);
+      });
+
+      this.realMetricsCache = serverMetricsMap;
+      this.lastCacheUpdate = now;
+
+      console.log(
+        `📊 실제 메트릭 데이터 조회: ${realMetrics.length}개 레코드, ${serverMetricsMap.size}개 서버`
+      );
+      return realMetrics;
+    } catch (error) {
+      console.warn('⚠️ 실제 데이터 조회 실패, fallback 사용:', error);
+      return this.generateFallbackMetrics(5); // 최소한의 fallback
+    }
   }
 
   /**
-   * 🎯 활성 시나리오 확인
+   * 📊 실제 데이터 기반 고급 메트릭 생성
    */
-  private getActiveScenario(serverId: string): AdvancedScenario | undefined {
-    return this.scenarios.find(
-      scenario =>
-        scenario.affectedServers.includes(serverId) && Math.random() < 0.1
+  async generateAdvancedMetrics(
+    serverCount: number = 8
+  ): Promise<SimulationMetrics[]> {
+    const startTime = Date.now();
+
+    try {
+      // 실제 서버 메트릭 조회
+      const realMetrics = await this.getRealServerMetrics();
+
+      if (realMetrics.length === 0) {
+        console.warn('⚠️ 실제 메트릭 데이터가 없습니다. Fallback 사용');
+        return this.generateFallbackSimulationMetrics(serverCount);
+      }
+
+      // 실제 데이터 기반 시뮬레이션 메트릭 생성
+      const simulationMetrics: SimulationMetrics[] = [];
+      const availableServers = [
+        ...new Set(realMetrics.map(m => m.server_id).filter(Boolean)),
+      ];
+
+      for (
+        let i = 0;
+        i < Math.min(serverCount, availableServers.length || 8);
+        i++
+      ) {
+        const serverId = availableServers[i] || `server-${i + 1}`;
+        const serverMetrics = realMetrics.filter(m => m.server_id === serverId);
+
+        let metrics: SimulationMetrics;
+
+        if (serverMetrics.length > 0) {
+          // 실제 데이터에서 최신 메트릭 사용 + 패턴 분석
+          const latestMetric = serverMetrics[serverMetrics.length - 1];
+          const pattern = this.analyzeMetricPattern(serverMetrics);
+
+          metrics = {
+            ...latestMetric,
+            server_id: serverId,
+            scenario: pattern.detectedScenario,
+            confidence: pattern.confidence,
+            data_source: 'real_database',
+            timestamp: new Date().toISOString(),
+          };
+        } else {
+          // 패턴 기반 추정
+          metrics = this.generatePatternBasedMetrics(serverId, realMetrics);
+        }
+
+        simulationMetrics.push(metrics);
+      }
+
+      const processingTime = Date.now() - startTime;
+      console.log(
+        `🎯 실제 데이터 기반 메트릭 생성 완료: ${simulationMetrics.length}개 서버, ${processingTime}ms`
+      );
+
+      return simulationMetrics;
+    } catch (error) {
+      console.error('❌ 고급 메트릭 생성 실패:', error);
+      return this.generateFallbackSimulationMetrics(serverCount);
+    }
+  }
+
+  /**
+   * 📈 메트릭 패턴 분석 (시나리오 추출)
+   */
+  private analyzeMetricPattern(serverMetrics: ServerMetrics[]): {
+    detectedScenario: AdvancedScenario | undefined;
+    confidence: number;
+  } {
+    if (serverMetrics.length < 2) {
+      return { detectedScenario: undefined, confidence: 0.1 };
+    }
+
+    const recent = serverMetrics.slice(-5); // 최근 5개 샘플
+    const avg = this.calculateAverage(recent);
+
+    // 패턴 감지 로직
+    let scenarioType: AdvancedScenario['type'] = 'normal';
+    let severity: AdvancedScenario['severity'] = 'low';
+    let confidence = 0.5;
+
+    // CPU 스파이크 감지
+    if (avg.cpu > 80) {
+      scenarioType = 'load_spike';
+      severity = avg.cpu > 95 ? 'critical' : avg.cpu > 90 ? 'high' : 'medium';
+      confidence = Math.min((avg.cpu - 70) / 30, 1.0);
+    }
+
+    // 메모리 누수 패턴 감지
+    else if (
+      avg.memory > 85 &&
+      this.detectIncreasingTrend(recent.map(m => m.memory))
+    ) {
+      scenarioType = 'memory_leak';
+      severity = avg.memory > 95 ? 'critical' : 'high';
+      confidence = Math.min((avg.memory - 80) / 20, 1.0);
+    }
+
+    // 디스크 문제 감지
+    else if (avg.disk > 90) {
+      scenarioType = 'disk_failure';
+      severity = avg.disk > 98 ? 'critical' : 'high';
+      confidence = Math.min((avg.disk - 85) / 15, 1.0);
+    }
+
+    // 네트워크 지연 감지
+    else if (avg.network > 150) {
+      scenarioType = 'network_latency';
+      severity = avg.network > 200 ? 'high' : 'medium';
+      confidence = Math.min((avg.network - 100) / 100, 1.0);
+    }
+
+    if (scenarioType === 'normal') {
+      return { detectedScenario: undefined, confidence: 0.9 };
+    }
+
+    const detectedScenario: AdvancedScenario = {
+      id: `pattern-${Date.now()}`,
+      type: scenarioType,
+      severity,
+      affectedServers: [recent[0].server_id || 'unknown'],
+      startTime: new Date(),
+      duration: 15, // 15분 추정
+      description: `실제 데이터에서 감지된 ${scenarioType} 패턴`,
+      probability: confidence,
+    };
+
+    return { detectedScenario, confidence };
+  }
+
+  /**
+   * 📊 평균 계산
+   */
+  private calculateAverage(metrics: ServerMetrics[]): ServerMetrics {
+    const sum = metrics.reduce(
+      (acc, m) => ({
+        cpu: acc.cpu + m.cpu,
+        memory: acc.memory + m.memory,
+        disk: acc.disk + m.disk,
+        network: acc.network + m.network,
+        timestamp: acc.timestamp,
+      }),
+      { cpu: 0, memory: 0, disk: 0, network: 0, timestamp: '' }
+    );
+
+    return {
+      cpu: sum.cpu / metrics.length,
+      memory: sum.memory / metrics.length,
+      disk: sum.disk / metrics.length,
+      network: sum.network / metrics.length,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * 📈 증가 트렌드 감지
+   */
+  private detectIncreasingTrend(values: number[]): boolean {
+    if (values.length < 3) return false;
+
+    let increasingCount = 0;
+    for (let i = 1; i < values.length; i++) {
+      if (values[i] > values[i - 1]) increasingCount++;
+    }
+
+    return increasingCount / (values.length - 1) > 0.6; // 60% 이상 증가
+  }
+
+  /**
+   * 🎯 패턴 기반 메트릭 생성
+   */
+  private generatePatternBasedMetrics(
+    serverId: string,
+    allMetrics: ServerMetrics[]
+  ): SimulationMetrics {
+    if (allMetrics.length === 0) {
+      return this.generateFallbackMetric(serverId);
+    }
+
+    // 전체 시스템 평균 기반 추정
+    const systemAvg = this.calculateAverage(allMetrics);
+    const variance = 0.1; // 10% 변동
+
+    return {
+      server_id: serverId,
+      cpu: Math.max(0, systemAvg.cpu + (Math.random() - 0.5) * variance * 100),
+      memory: Math.max(
+        0,
+        systemAvg.memory + (Math.random() - 0.5) * variance * 100
+      ),
+      disk: Math.max(
+        0,
+        systemAvg.disk + (Math.random() - 0.5) * variance * 100
+      ),
+      network: Math.max(
+        0,
+        systemAvg.network + (Math.random() - 0.5) * variance * 100
+      ),
+      timestamp: new Date().toISOString(),
+      scenario: undefined,
+      confidence: 0.6,
+      data_source: 'pattern_analysis',
+    };
+  }
+
+  /**
+   * 🔄 Fallback 메트릭 생성 (최소한의 더미 데이터)
+   */
+  private generateFallbackSimulationMetrics(
+    serverCount: number
+  ): SimulationMetrics[] {
+    console.log('⚠️ Fallback 메트릭 생성 사용');
+
+    return Array.from({ length: serverCount }, (_, i) =>
+      this.generateFallbackMetric(`server-${i + 1}`)
     );
   }
 
-  /**
-   * 📈 심각도 배수 계산
-   */
-  private getSeverityMultiplier(
-    severity: AdvancedScenario['severity']
-  ): number {
-    switch (severity) {
-      case 'low':
-        return 1.2;
-      case 'medium':
-        return 1.5;
-      case 'high':
-        return 2.0;
-      case 'critical':
-        return 3.0;
-      default:
-        return 1.0;
-    }
+  private generateFallbackMetric(serverId: string): SimulationMetrics {
+    return {
+      server_id: serverId,
+      cpu: 20 + Math.random() * 30, // 20-50% 범위
+      memory: 30 + Math.random() * 30, // 30-60% 범위
+      disk: 15 + Math.random() * 25, // 15-40% 범위
+      network: 5 + Math.random() * 15, // 5-20% 범위
+      timestamp: new Date().toISOString(),
+      scenario: undefined,
+      confidence: 0.3,
+      data_source: 'fallback',
+    };
+  }
+
+  private generateFallbackMetrics(count: number): ServerMetrics[] {
+    return Array.from({ length: count }, (_, i) => ({
+      server_id: `server-${i + 1}`,
+      cpu: 20 + Math.random() * 30,
+      memory: 30 + Math.random() * 30,
+      disk: 15 + Math.random() * 25,
+      network: 5 + Math.random() * 15,
+      timestamp: new Date().toISOString(),
+    }));
   }
 
   /**
-   * ⚙️ 시나리오 추가
+   * 📊 실제 데이터 기반 활성 시나리오 반환
    */
-  addScenario(scenario: AdvancedScenario): void {
-    this.scenarios.push(scenario);
+  async getActiveScenarios(): Promise<AdvancedScenario[]> {
+    try {
+      const realMetrics = await this.getRealServerMetrics();
+      const detectedScenarios: AdvancedScenario[] = [];
+
+      // 서버별로 패턴 분석
+      const serverGroups = new Map<string, ServerMetrics[]>();
+      realMetrics.forEach(metric => {
+        const serverId = metric.server_id || 'unknown';
+        if (!serverGroups.has(serverId)) {
+          serverGroups.set(serverId, []);
+        }
+        serverGroups.get(serverId)!.push(metric);
+      });
+
+      serverGroups.forEach((metrics, serverId) => {
+        const pattern = this.analyzeMetricPattern(metrics);
+        if (pattern.detectedScenario && pattern.confidence > 0.7) {
+          detectedScenarios.push(pattern.detectedScenario);
+        }
+      });
+
+      console.log(
+        `🔍 실제 데이터에서 ${detectedScenarios.length}개 시나리오 감지`
+      );
+      return detectedScenarios;
+    } catch (error) {
+      console.warn('⚠️ 활성 시나리오 감지 실패:', error);
+      return [];
+    }
   }
 
   /**
@@ -145,14 +394,20 @@ export class AdvancedSimulationEngine {
       isRunning: this.isRunning,
       activeScenarios: this.scenarios.length,
       timestamp: new Date().toISOString(),
+      cacheStatus: {
+        lastUpdate: this.lastCacheUpdate,
+        serverCount: this.realMetricsCache.size,
+        ttl: this.CACHE_TTL,
+      },
+      dataSource: 'real_database_integrated',
     };
   }
 
   /**
    * 🎯 분석 대상 서버 목록 반환
    */
-  getAnalysisTargets(): any[] {
-    const metrics = this.generateAdvancedMetrics();
+  async getAnalysisTargets(): Promise<any[]> {
+    const metrics = await this.generateAdvancedMetrics();
     return metrics.map((metric, index) => ({
       id: `server-${index + 1}`,
       name: `Server-${String(index + 1).padStart(2, '0')}`,
@@ -171,8 +426,8 @@ export class AdvancedSimulationEngine {
   /**
    * 🤖 통합 AI 메트릭 반환
    */
-  getIntegratedAIMetrics(): any {
-    const targets = this.getAnalysisTargets();
+  async getIntegratedAIMetrics(): Promise<any> {
+    const targets = await this.getAnalysisTargets();
     const totalServers = targets.length;
     const criticalServers = targets.filter(s => s.status === 'critical').length;
     const warningServers = targets.filter(s => s.status === 'warning').length;
@@ -191,13 +446,6 @@ export class AdvancedSimulationEngine {
       activeScenarios: this.scenarios.length,
       timestamp: new Date().toISOString(),
     };
-  }
-
-  /**
-   * 🎭 활성 시나리오 목록 반환
-   */
-  getActiveScenarios(): AdvancedScenario[] {
-    return this.scenarios.filter(scenario => Math.random() < 0.3); // 30% 확률로 활성
   }
 
   /**

@@ -11,120 +11,59 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { advancedSimulationEngine } from '@/services/AdvancedSimulationEngine';
+import {
+  createSuccessResponse,
+  createErrorResponse,
+} from '@/lib/api/errorHandler';
 
 /**
  * 📊 고도화된 시뮬레이션 상태 조회
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const { searchParams } = new URL(request.url);
-    const format = searchParams.get('format') || 'full'; // full | summary | health
-    const serverType = searchParams.get('serverType'); // 특정 서버 유형만 조회
-    const includeScenarios = searchParams.get('includeScenarios') !== 'false';
+    console.log('🎭 고급 시뮬레이션 API 호출');
 
-    // 서버 데이터 조회
-    let servers = advancedSimulationEngine.getAnalysisTargets();
+    const { searchParams } = new URL(request.url);
+    const serverType = searchParams.get('type');
+    const limit = parseInt(searchParams.get('limit') || '30');
+
+    // 실제 데이터 기반 분석 대상 조회
+    let servers = await advancedSimulationEngine.getAnalysisTargets();
 
     // 서버 유형 필터링
     if (serverType) {
       servers = servers.filter(server => server.role === serverType);
     }
 
-    const summary = advancedSimulationEngine.getIntegratedAIMetrics();
-    const activeScenarios = includeScenarios
-      ? advancedSimulationEngine.getActiveScenarios()
-      : [];
+    // 서버 수 제한
+    servers = servers.slice(0, limit);
 
-    // 응답 형식별 처리
-    let responseData;
-
-    switch (format) {
-      case 'summary':
-        responseData = {
-          ...summary.aiAnalysisMetrics,
-          metadata: summary.metadata,
-        };
-        break;
-
-      case 'health':
-        responseData = {
-          summary,
-          healthDetails: {
-            serversByType: servers.reduce((acc: any, server) => {
-              const type = server.role;
-              if (!acc[type]) acc[type] = [];
-              acc[type].push({
-                id: server.id,
-                health_score: server.health_score,
-                predicted_status: server.predicted_status,
-                cascade_risk: server.cascade_risk,
-                active_scenarios: server.active_scenarios,
-              });
-              return acc;
-            }, {}),
-            riskAnalysis: {
-              highRiskServers: servers
-                .filter(s => s.cascade_risk > 60)
-                .map(s => ({
-                  id: s.id,
-                  role: s.role,
-                  cascade_risk: s.cascade_risk,
-                  reason:
-                    s.active_scenarios.length > 0
-                      ? '활성 장애 시나리오'
-                      : '구조적 위험',
-                })),
-              dependencyIssues: servers
-                .filter(s => s.dependency_health < 70)
-                .map(s => ({
-                  id: s.id,
-                  role: s.role,
-                  dependency_health: s.dependency_health,
-                  dependencies: s.serverType.dependencies,
-                })),
-            },
-          },
-          activeScenarios,
-        };
-        break;
-
-      case 'full':
-      default:
-        responseData = {
-          servers: servers.map(server => ({
-            ...server,
-            // 민감 정보 제외하고 전송
-            serverType: {
-              type: server.serverType.type,
-              tags: server.serverType.tags,
-              characteristics: server.serverType.characteristics,
-            },
-          })),
-          summary,
-          activeScenarios,
-          metadata: {
-            totalMetrics: servers.length * 10, // 대략적인 메트릭 수
-            lastUpdated: new Date().toISOString(),
-            engineVersion: '3.0',
-            isRunning: advancedSimulationEngine.getIsRunning(),
-          },
-        };
-        break;
-    }
+    const summary = await advancedSimulationEngine.getIntegratedAIMetrics();
+    const activeScenarios = await advancedSimulationEngine.getActiveScenarios();
+    const status = advancedSimulationEngine.getStatus();
 
     return NextResponse.json({
       success: true,
-      data: responseData,
-      timestamp: Date.now(),
+      data: {
+        servers,
+        summary,
+        scenarios: activeScenarios,
+        status,
+        metadata: {
+          serverCount: servers.length,
+          dataSource: 'real_database_integrated',
+          timestamp: new Date().toISOString(),
+        },
+      },
     });
   } catch (error) {
-    console.error('❌ [AdvancedSimulation] 조회 실패:', error);
+    console.error('❌ 고급 시뮬레이션 실패:', error);
     return NextResponse.json(
       {
         success: false,
-        error: '고도화된 시뮬레이션 데이터 조회에 실패했습니다',
-        details: error instanceof Error ? error.message : String(error),
-        timestamp: Date.now(),
+        error: '고급 시뮬레이션 처리 중 오류가 발생했습니다',
+        code: 'SIMULATION_ERROR',
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );
@@ -173,8 +112,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         break;
 
       case 'status':
-        const summary = advancedSimulationEngine.getIntegratedAIMetrics();
-        const activeScenarios = advancedSimulationEngine.getActiveScenarios();
+        const summary = await advancedSimulationEngine.getIntegratedAIMetrics();
+        const activeScenarios =
+          await advancedSimulationEngine.getActiveScenarios();
 
         result = {
           isRunning: advancedSimulationEngine.getIsRunning(),
