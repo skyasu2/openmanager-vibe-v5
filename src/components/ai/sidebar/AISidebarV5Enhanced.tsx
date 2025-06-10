@@ -611,6 +611,7 @@ export default function AISidebarV5Enhanced({
                           <div className='border-t border-gray-200 p-4'>
                             <div className='flex gap-2'>
                               <input
+                                aria-label='입력'
                                 type='text'
                                 value={currentInput}
                                 onChange={e => setCurrentInput(e.target.value)}

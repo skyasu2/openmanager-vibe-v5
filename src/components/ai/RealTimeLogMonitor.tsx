@@ -1,6 +1,6 @@
 /**
  * 🔍 실시간 AI 로그 모니터 컴포넌트
- * 
+ *
  * AI 관리 페이지에서 실시간 로그를 모니터링하고 관리
  * - SSE를 통한 실시간 로그 스트리밍
  * - 로그 필터링 및 검색
@@ -12,13 +12,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Search, 
-  Filter, 
-  Play, 
-  Pause, 
-  Trash2, 
-  Download, 
+import {
+  Search,
+  Filter,
+  Play,
+  Pause,
+  Trash2,
+  Download,
   Settings,
   Activity,
   AlertCircle,
@@ -26,13 +26,20 @@ import {
   XCircle,
   Clock,
   Eye,
-  EyeOff
+  EyeOff,
 } from 'lucide-react';
 
 interface LogEntry {
   id: string;
   timestamp: string;
-  level: 'INFO' | 'DEBUG' | 'PROCESSING' | 'SUCCESS' | 'ERROR' | 'WARNING' | 'ANALYSIS';
+  level:
+    | 'INFO'
+    | 'DEBUG'
+    | 'PROCESSING'
+    | 'SUCCESS'
+    | 'ERROR'
+    | 'WARNING'
+    | 'ANALYSIS';
   module: string;
   message: string;
   details?: string;
@@ -66,7 +73,7 @@ interface RealTimeLogMonitorProps {
 export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
   className = '',
   autoStart = true,
-  maxLogs = 1000
+  maxLogs = 1000,
 }) => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
@@ -75,11 +82,13 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
     level: '',
     module: '',
     sessionId: '',
-    search: ''
+    search: '',
   });
   const [selectedSession, setSelectedSession] = useState<string>('');
-  const [showDetails, setShowDetails] = useState<{ [key: string]: boolean }>({});
-  
+  const [showDetails, setShowDetails] = useState<{ [key: string]: boolean }>(
+    {}
+  );
+
   const eventSourceRef = useRef<EventSource | null>(null);
   const logsEndRef = useRef<HTMLDivElement>(null);
 
@@ -109,7 +118,7 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
       stopStreaming();
     }
 
-    const url = selectedSession 
+    const url = selectedSession
       ? `/api/ai-agent/admin/logs/realtime?action=stream&sessionId=${selectedSession}`
       : '/api/ai-agent/admin/logs/realtime?action=stream';
 
@@ -121,10 +130,10 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
       console.log('🔗 실시간 로그 스트림 연결됨');
     };
 
-    eventSource.onmessage = (event) => {
+    eventSource.onmessage = event => {
       try {
         const data = JSON.parse(event.data);
-        
+
         if (data.type === 'connected') {
           console.log('✅ 로그 스트림 연결 확인:', data.message);
           return;
@@ -132,7 +141,7 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
 
         if (data.type === 'log' && data.data) {
           const newLog: LogEntry = data.data;
-          
+
           setLogs(prev => {
             const updated = [...prev, newLog];
             // 최대 로그 수 제한
@@ -147,13 +156,16 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
       }
     };
 
-    eventSource.onerror = (error) => {
+    eventSource.onerror = error => {
       console.error('실시간 로그 스트림 오류:', error);
       setIsStreaming(false);
-      
+
       // 3초 후 재연결 시도
       setTimeout(() => {
-        if (!eventSource.readyState || eventSource.readyState === EventSource.CLOSED) {
+        if (
+          !eventSource.readyState ||
+          eventSource.readyState === EventSource.CLOSED
+        ) {
           startStreaming();
         }
       }, 3000);
@@ -177,16 +189,18 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
   const updateSessionInfo = (log: LogEntry) => {
     setSessions(prev => {
       const existingIndex = prev.findIndex(s => s.sessionId === log.sessionId);
-      
+
       if (existingIndex !== -1) {
         // 기존 세션 업데이트
         const updated = [...prev];
         updated[existingIndex] = {
           ...updated[existingIndex],
           logCount: updated[existingIndex].logCount + 1,
-          status: log.metadata.sessionEnd ? 
-            (log.level === 'SUCCESS' ? 'completed' : 'failed') : 
-            'active'
+          status: log.metadata.sessionEnd
+            ? log.level === 'SUCCESS'
+              ? 'completed'
+              : 'failed'
+            : 'active',
         };
         return updated;
       } else {
@@ -197,7 +211,7 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
           question: log.metadata.question || log.message,
           startTime: Date.now(),
           status: 'active',
-          logCount: 1
+          logCount: 1,
         };
         return [...prev, newSession];
       }
@@ -213,7 +227,7 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
     if (filter.sessionId && log.sessionId !== filter.sessionId) return false;
     if (filter.search) {
       const searchLower = filter.search.toLowerCase();
-      const matchesSearch = 
+      const matchesSearch =
         log.message.toLowerCase().includes(searchLower) ||
         log.details?.toLowerCase().includes(searchLower) ||
         log.module.toLowerCase().includes(searchLower);
@@ -252,15 +266,15 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
   const getLogLevelIcon = (level: string) => {
     switch (level) {
       case 'SUCCESS':
-        return <CheckCircle className="w-4 h-4" />;
+        return <CheckCircle className='w-4 h-4' />;
       case 'ERROR':
-        return <XCircle className="w-4 h-4" />;
+        return <XCircle className='w-4 h-4' />;
       case 'WARNING':
-        return <AlertCircle className="w-4 h-4" />;
+        return <AlertCircle className='w-4 h-4' />;
       case 'PROCESSING':
-        return <Activity className="w-4 h-4" />;
+        return <Activity className='w-4 h-4' />;
       default:
-        return <Clock className="w-4 h-4" />;
+        return <Clock className='w-4 h-4' />;
     }
   };
 
@@ -272,13 +286,13 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
       exportTime: new Date().toISOString(),
       totalLogs: filteredLogs.length,
       sessions: sessions,
-      logs: filteredLogs
+      logs: filteredLogs,
     };
 
     const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-      type: 'application/json'
+      type: 'application/json',
     });
-    
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -295,97 +309,116 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
   const toggleDetails = (logId: string) => {
     setShowDetails(prev => ({
       ...prev,
-      [logId]: !prev[logId]
+      [logId]: !prev[logId],
     }));
   };
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 shadow-sm ${className}`}>
+    <div
+      className={`bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 shadow-sm ${className}`}
+    >
       {/* 헤더 */}
-      <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-2">
-            <Activity className="w-5 h-5 text-blue-500" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+      <div className='flex items-center justify-between p-4 border-b dark:border-gray-700'>
+        <div className='flex items-center space-x-3'>
+          <div className='flex items-center space-x-2'>
+            <Activity className='w-5 h-5 text-blue-500' />
+            <h3 className='text-lg font-semibold text-gray-900 dark:text-white'>
               실시간 AI 로그 모니터
             </h3>
           </div>
-          <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs ${
-            isStreaming ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-          }`}>
-            <div className={`w-2 h-2 rounded-full ${isStreaming ? 'bg-green-500' : 'bg-gray-500'}`} />
+          <div
+            className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs ${
+              isStreaming
+                ? 'bg-green-100 text-green-800'
+                : 'bg-gray-100 text-gray-800'
+            }`}
+          >
+            <div
+              className={`w-2 h-2 rounded-full ${isStreaming ? 'bg-green-500' : 'bg-gray-500'}`}
+            />
             <span>{isStreaming ? '실시간 연결됨' : '연결 끊김'}</span>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className='flex items-center space-x-2'>
           <button
             onClick={isStreaming ? stopStreaming : startStreaming}
             className={`px-3 py-1.5 rounded-lg flex items-center space-x-1 text-sm transition-colors ${
-              isStreaming 
-                ? 'bg-red-100 text-red-700 hover:bg-red-200' 
+              isStreaming
+                ? 'bg-red-100 text-red-700 hover:bg-red-200'
                 : 'bg-green-100 text-green-700 hover:bg-green-200'
             }`}
           >
-            {isStreaming ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            {isStreaming ? (
+              <Pause className='w-4 h-4' />
+            ) : (
+              <Play className='w-4 h-4' />
+            )}
             <span>{isStreaming ? '중지' : '시작'}</span>
           </button>
 
           <button
             onClick={() => setLogs([])}
-            className="px-3 py-1.5 rounded-lg flex items-center space-x-1 text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+            className='px-3 py-1.5 rounded-lg flex items-center space-x-1 text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors'
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className='w-4 h-4' />
             <span>지우기</span>
           </button>
 
           <button
             onClick={exportLogs}
-            className="px-3 py-1.5 rounded-lg flex items-center space-x-1 text-sm bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
+            className='px-3 py-1.5 rounded-lg flex items-center space-x-1 text-sm bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors'
           >
-            <Download className="w-4 h-4" />
+            <Download className='w-4 h-4' />
             <span>내보내기</span>
           </button>
         </div>
       </div>
 
       {/* 필터 및 통계 */}
-      <div className="p-4 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-        <div className="flex flex-wrap items-center gap-4 mb-4">
+      <div className='p-4 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-700'>
+        <div className='flex flex-wrap items-center gap-4 mb-4'>
           {/* 검색 */}
-          <div className="relative flex-1 min-w-64">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <div className='relative flex-1 min-w-64'>
+            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400' />
             <input
-              type="text"
-              placeholder="로그 검색..."
+              aria-label='입력 필드'
+              type='text'
+              placeholder='로그 검색...'
               value={filter.search}
-              onChange={(e) => setFilter(prev => ({ ...prev, search: e.target.value }))}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onChange={e =>
+                setFilter(prev => ({ ...prev, search: e.target.value }))
+              }
+              className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
             />
           </div>
 
           {/* 필터 */}
           <select
             value={filter.level}
-            onChange={(e) => setFilter(prev => ({ ...prev, level: e.target.value }))}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            onChange={e =>
+              setFilter(prev => ({ ...prev, level: e.target.value }))
+            }
+            className='px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
           >
-            <option value="">모든 레벨</option>
-            <option value="INFO">INFO</option>
-            <option value="DEBUG">DEBUG</option>
-            <option value="PROCESSING">PROCESSING</option>
-            <option value="SUCCESS">SUCCESS</option>
-            <option value="ANALYSIS">ANALYSIS</option>
-            <option value="WARNING">WARNING</option>
-            <option value="ERROR">ERROR</option>
+            <option value=''>모든 레벨</option>
+            <option value='INFO'>INFO</option>
+            <option value='DEBUG'>DEBUG</option>
+            <option value='PROCESSING'>PROCESSING</option>
+            <option value='SUCCESS'>SUCCESS</option>
+            <option value='ANALYSIS'>ANALYSIS</option>
+            <option value='WARNING'>WARNING</option>
+            <option value='ERROR'>ERROR</option>
           </select>
 
           <select
             value={filter.sessionId}
-            onChange={(e) => setFilter(prev => ({ ...prev, sessionId: e.target.value }))}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            onChange={e =>
+              setFilter(prev => ({ ...prev, sessionId: e.target.value }))
+            }
+            className='px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
           >
-            <option value="">모든 세션</option>
+            <option value=''>모든 세션</option>
             {sessions.map(session => (
               <option key={session.sessionId} value={session.sessionId}>
                 {session.sessionId.slice(0, 8)}... ({session.logCount}개)
@@ -395,16 +428,22 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
         </div>
 
         {/* 통계 */}
-        <div className="flex items-center space-x-6 text-sm text-gray-600 dark:text-gray-400">
+        <div className='flex items-center space-x-6 text-sm text-gray-600 dark:text-gray-400'>
           <span>총 로그: {filteredLogs.length}</span>
-          <span>활성 세션: {sessions.filter(s => s.status === 'active').length}</span>
-          <span>완료된 세션: {sessions.filter(s => s.status === 'completed').length}</span>
-          <span>실패한 세션: {sessions.filter(s => s.status === 'failed').length}</span>
+          <span>
+            활성 세션: {sessions.filter(s => s.status === 'active').length}
+          </span>
+          <span>
+            완료된 세션: {sessions.filter(s => s.status === 'completed').length}
+          </span>
+          <span>
+            실패한 세션: {sessions.filter(s => s.status === 'failed').length}
+          </span>
         </div>
       </div>
 
       {/* 로그 목록 */}
-      <div className="h-96 overflow-y-auto p-4 space-y-2">
+      <div className='h-96 overflow-y-auto p-4 space-y-2'>
         <AnimatePresence>
           {filteredLogs.map((log, index) => (
             <motion.div
@@ -413,36 +452,38 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ delay: index * 0.02 }}
-              className="border dark:border-gray-600 rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className='border dark:border-gray-600 rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'
             >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start space-x-3 flex-1">
+              <div className='flex items-start justify-between'>
+                <div className='flex items-start space-x-3 flex-1'>
                   {/* 레벨 배지 */}
-                  <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium border ${getLogLevelStyle(log.level)}`}>
+                  <div
+                    className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium border ${getLogLevelStyle(log.level)}`}
+                  >
                     {getLogLevelIcon(log.level)}
                     <span>{log.level}</span>
                   </div>
 
                   {/* 로그 내용 */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <span className="font-mono text-sm font-semibold text-blue-600 dark:text-blue-400">
+                  <div className='flex-1 min-w-0'>
+                    <div className='flex items-center space-x-2 mb-1'>
+                      <span className='font-mono text-sm font-semibold text-blue-600 dark:text-blue-400'>
                         [{log.module}]
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className='text-xs text-gray-500'>
                         {new Date(log.timestamp).toLocaleTimeString('ko-KR')}
                       </span>
-                      <span className="text-xs text-gray-400">
+                      <span className='text-xs text-gray-400'>
                         세션: {log.sessionId.slice(0, 8)}...
                       </span>
                     </div>
-                    
-                    <p className="text-sm text-gray-900 dark:text-gray-100 mb-1">
+
+                    <p className='text-sm text-gray-900 dark:text-gray-100 mb-1'>
                       {log.message}
                     </p>
-                    
+
                     {log.details && (
-                      <p className="text-xs text-gray-600 dark:text-gray-400 font-mono">
+                      <p className='text-xs text-gray-600 dark:text-gray-400 font-mono'>
                         {log.details}
                       </p>
                     )}
@@ -452,14 +493,20 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
                       <motion.div
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
-                        className="mt-2 p-2 bg-gray-100 dark:bg-gray-600 rounded text-xs font-mono overflow-hidden"
+                        className='mt-2 p-2 bg-gray-100 dark:bg-gray-600 rounded text-xs font-mono overflow-hidden'
                       >
-                        <div className="text-gray-700 dark:text-gray-300">
+                        <div className='text-gray-700 dark:text-gray-300'>
                           <strong>메타데이터:</strong>
                         </div>
                         {Object.entries(log.metadata).map(([key, value]) => (
-                          <div key={key} className="text-gray-600 dark:text-gray-400">
-                            <span className="text-blue-600 dark:text-blue-400">{key}:</span> {JSON.stringify(value)}
+                          <div
+                            key={key}
+                            className='text-gray-600 dark:text-gray-400'
+                          >
+                            <span className='text-blue-600 dark:text-blue-400'>
+                              {key}:
+                            </span>{' '}
+                            {JSON.stringify(value)}
                           </div>
                         ))}
                       </motion.div>
@@ -470,26 +517,32 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
                 {/* 상세 보기 토글 */}
                 <button
                   onClick={() => toggleDetails(log.id)}
-                  className="ml-2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                  title="상세 정보 보기"
+                  className='ml-2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors'
+                  title='상세 정보 보기'
                 >
-                  {showDetails[log.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showDetails[log.id] ? (
+                    <EyeOff className='w-4 h-4' />
+                  ) : (
+                    <Eye className='w-4 h-4' />
+                  )}
                 </button>
               </div>
             </motion.div>
           ))}
         </AnimatePresence>
-        
+
         {filteredLogs.length === 0 && (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-            {isStreaming ? '로그를 기다리는 중...' : '스트리밍을 시작하여 로그를 확인하세요.'}
+          <div className='text-center py-8 text-gray-500 dark:text-gray-400'>
+            {isStreaming
+              ? '로그를 기다리는 중...'
+              : '스트리밍을 시작하여 로그를 확인하세요.'}
           </div>
         )}
-        
+
         <div ref={logsEndRef} />
       </div>
     </div>
   );
 };
 
-export default RealTimeLogMonitor; 
+export default RealTimeLogMonitor;

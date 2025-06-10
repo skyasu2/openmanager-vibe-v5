@@ -32,7 +32,7 @@ interface AlertItem {
   source?: string;
 }
 
-// 🚨 Recommendation 아이템 타입 정의  
+// 🚨 Recommendation 아이템 타입 정의
 interface RecommendationItem {
   priority: 'high' | 'medium' | 'low';
   action: string;
@@ -126,8 +126,8 @@ interface EnhancedAnalysisResult {
   insights: {
     summary?: string;
     keyFindings?: string[];
-    alerts?: AlertItem[];  // ✅ AlertItem[] 타입으로 수정
-    recommendations?: RecommendationItem[];  // ✅ RecommendationItem[] 타입으로 수정
+    alerts?: AlertItem[]; // ✅ AlertItem[] 타입으로 수정
+    recommendations?: RecommendationItem[]; // ✅ RecommendationItem[] 타입으로 수정
   };
   recommendations: string[];
 }
@@ -373,6 +373,7 @@ const AIQueryInterface: React.FC<AIQueryInterfaceProps> = ({ onQuery }) => {
       <form onSubmit={handleSubmit} className='mb-4'>
         <div className='flex space-x-2'>
           <input
+            aria-label='입력'
             type='text'
             value={query}
             onChange={e => setQuery(e.target.value)}
@@ -419,15 +420,17 @@ const AIQueryInterface: React.FC<AIQueryInterfaceProps> = ({ onQuery }) => {
             <div>
               <span className='text-sm text-gray-500'>추가 제안:</span>
               <ul className='text-sm text-blue-600'>
-                {(response.suggestions || []).map((suggestion: string, index: number) => (
-                  <li
-                    key={index}
-                    className='cursor-pointer hover:underline'
-                    onClick={() => setQuery(suggestion)}
-                  >
-                    • {suggestion}
-                  </li>
-                ))}
+                {(response.suggestions || []).map(
+                  (suggestion: string, index: number) => (
+                    <li
+                      key={index}
+                      className='cursor-pointer hover:underline'
+                      onClick={() => setQuery(suggestion)}
+                    >
+                      • {suggestion}
+                    </li>
+                  )
+                )}
               </ul>
             </div>
           )}
@@ -457,7 +460,7 @@ export const AdvancedMonitoringDashboard: React.FC = () => {
       const [serversRes, clustersRes, appsRes] = await Promise.all([
         fetch('/api/servers/realtime'),
         fetch('/api/servers/realtime?type=clusters'),
-        fetch('/api/servers/realtime?type=applications')
+        fetch('/api/servers/realtime?type=applications'),
       ]);
 
       const serversData = await serversRes.json();
@@ -472,24 +475,34 @@ export const AdvancedMonitoringDashboard: React.FC = () => {
       const analysisRes = await fetch('/api/ai/enhanced', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'analyze-system' })
+        body: JSON.stringify({ action: 'analyze-system' }),
       });
       const analysisResult = await analysisRes.json();
-      setAnalysis(analysisResult.data || { summary: '', insights: { recommendations: [] }, recommendations: [] });
+      setAnalysis(
+        analysisResult.data || {
+          summary: '',
+          insights: { recommendations: [] },
+          recommendations: [],
+        }
+      );
     } catch (error) {
       console.error('데이터 새로고침 실패:', error);
       // 안전한 fallback
       setServers([]);
       setClusters([]);
       setApplications([]);
-      setAnalysis({ summary: '데이터 로딩 실패', insights: { recommendations: [] }, recommendations: [] });
+      setAnalysis({
+        summary: '데이터 로딩 실패',
+        insights: { recommendations: [] },
+        recommendations: [],
+      });
     }
   }, []);
 
   // 🚀 초기화 및 자동 새로고침
   useEffect(() => {
     // ✅ API 호출로 초기화
-      refreshData();
+    refreshData();
 
     // 자동 새로고침 설정 (30초마다)
     const interval = setInterval(refreshData, 30000);
@@ -505,7 +518,7 @@ export const AdvancedMonitoringDashboard: React.FC = () => {
       const response = await fetch('/api/ai/enhanced', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, action: 'natural-language-query' })
+        body: JSON.stringify({ query, action: 'natural-language-query' }),
       });
       const result = await response.json();
       return {
@@ -514,7 +527,7 @@ export const AdvancedMonitoringDashboard: React.FC = () => {
         data: result.data,
         query: query,
         response: result.response || result.message,
-        suggestions: result.suggestions || []
+        suggestions: result.suggestions || [],
       };
     } catch (error) {
       return {
@@ -522,7 +535,7 @@ export const AdvancedMonitoringDashboard: React.FC = () => {
         message: '쿼리 처리 중 오류가 발생했습니다.',
         query: query,
         response: '오류가 발생했습니다.',
-        suggestions: []
+        suggestions: [],
       };
     }
   };
@@ -650,9 +663,9 @@ export const AdvancedMonitoringDashboard: React.FC = () => {
                         주요 발견사항
                       </h4>
                       <ul className='text-sm text-gray-600 space-y-1'>
-                        {analysis.insights.keyFindings?.map((finding, index) => (
-                          <li key={index}>• {finding}</li>
-                        ))}
+                        {analysis.insights.keyFindings?.map(
+                          (finding, index) => <li key={index}>• {finding}</li>
+                        )}
                       </ul>
                     </div>
 
@@ -660,20 +673,22 @@ export const AdvancedMonitoringDashboard: React.FC = () => {
                       <div>
                         <h4 className='font-medium text-gray-900'>알림</h4>
                         <div className='space-y-2'>
-                          {(analysis.insights.alerts || []).map((alert: AlertItem, index: number) => (
-                            <div
-                              key={index}
-                              className={`p-2 rounded text-sm ${
-                                alert.level === 'critical'
-                                  ? 'bg-red-50 text-red-700'
-                                  : alert.level === 'warning'
-                                    ? 'bg-yellow-50 text-yellow-700'
-                                    : 'bg-blue-50 text-blue-700'
-                              }`}
-                            >
-                              {alert.message}
-                            </div>
-                          ))}
+                          {(analysis.insights.alerts || []).map(
+                            (alert: AlertItem, index: number) => (
+                              <div
+                                key={index}
+                                className={`p-2 rounded text-sm ${
+                                  alert.level === 'critical'
+                                    ? 'bg-red-50 text-red-700'
+                                    : alert.level === 'warning'
+                                      ? 'bg-yellow-50 text-yellow-700'
+                                      : 'bg-blue-50 text-blue-700'
+                                }`}
+                              >
+                                {alert.message}
+                              </div>
+                            )
+                          )}
                         </div>
                       </div>
                     )}
@@ -684,37 +699,39 @@ export const AdvancedMonitoringDashboard: React.FC = () => {
                 <div className='bg-white rounded-lg shadow p-6 border'>
                   <h3 className='text-lg font-medium mb-4'>💡 권장사항</h3>
                   <div className='space-y-3'>
-                    {(analysis.insights.recommendations || []).map((rec: RecommendationItem, index: number) => (
-                      <div
-                        key={index}
-                        className='border-l-4 border-blue-400 pl-4'
-                      >
-                        <div className='flex items-center space-x-2 mb-1'>
-                          <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${
-                              rec.priority === 'high'
-                                ? 'bg-red-100 text-red-800'
+                    {(analysis.insights.recommendations || []).map(
+                      (rec: RecommendationItem, index: number) => (
+                        <div
+                          key={index}
+                          className='border-l-4 border-blue-400 pl-4'
+                        >
+                          <div className='flex items-center space-x-2 mb-1'>
+                            <span
+                              className={`px-2 py-1 rounded text-xs font-medium ${
+                                rec.priority === 'high'
+                                  ? 'bg-red-100 text-red-800'
+                                  : rec.priority === 'medium'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-green-100 text-green-800'
+                              }`}
+                            >
+                              {rec.priority === 'high'
+                                ? '높음'
                                 : rec.priority === 'medium'
-                                  ? 'bg-yellow-100 text-yellow-800'
-                                  : 'bg-green-100 text-green-800'
-                            }`}
-                          >
-                            {rec.priority === 'high'
-                              ? '높음'
-                              : rec.priority === 'medium'
-                                ? '중간'
-                                : '낮음'}
-                          </span>
+                                  ? '중간'
+                                  : '낮음'}
+                            </span>
+                          </div>
+                          <p className='font-medium text-sm'>{rec.action}</p>
+                          <p className='text-xs text-gray-600'>
+                            영향: {rec.impact}
+                          </p>
+                          <p className='text-xs text-gray-600'>
+                            소요: {rec.effort}
+                          </p>
                         </div>
-                        <p className='font-medium text-sm'>{rec.action}</p>
-                        <p className='text-xs text-gray-600'>
-                          영향: {rec.impact}
-                        </p>
-                        <p className='text-xs text-gray-600'>
-                          소요: {rec.effort}
-                        </p>
-                      </div>
-                    ))}
+                      )
+                    )}
                   </div>
                 </div>
               </div>

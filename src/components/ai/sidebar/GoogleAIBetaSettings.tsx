@@ -356,6 +356,7 @@ export default function GoogleAIBetaSettings({
               </label>
               <div className='relative'>
                 <input
+                  aria-label='입력'
                   type='password'
                   value={config.apiKey}
                   onChange={e =>

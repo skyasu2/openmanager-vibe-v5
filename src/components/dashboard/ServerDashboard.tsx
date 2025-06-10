@@ -719,6 +719,7 @@ export default function ServerDashboard({
           </h3>
           <div className='flex gap-2'>
             <input
+              aria-label='입력'
               type='text'
               placeholder='예: CPU 사용률이 높은 서버를 찾아주세요'
               value={aiQuery}
@@ -733,14 +734,12 @@ export default function ServerDashboard({
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
                         query: aiQuery,
-                        context: realServerData
-                      })
+                        context: realServerData,
+                      }),
                     });
                     const result = await response.json();
                     console.log('AI 분석 결과:', result);
-                    alert(
-                      `AI 분석: ${result.message || '분석 완료'}`
-                    );
+                    alert(`AI 분석: ${result.message || '분석 완료'}`);
                   } catch (error) {
                     console.error('AI 쿼리 처리 오류:', error);
                     alert('AI 분석 중 오류가 발생했습니다.');
@@ -758,14 +757,12 @@ export default function ServerDashboard({
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
                         query: aiQuery,
-                        context: realServerData
-                      })
+                        context: realServerData,
+                      }),
                     });
                     const result = await response.json();
                     console.log('AI 분석 결과:', result);
-                    alert(
-                      `AI 분석: ${result.message || '분석 완료'}`
-                    );
+                    alert(`AI 분석: ${result.message || '분석 완료'}`);
                   } catch (error) {
                     console.error('AI 쿼리 처리 오류:', error);
                     alert('AI 분석 중 오류가 발생했습니다.');
@@ -791,6 +788,7 @@ export default function ServerDashboard({
           <div className='flex gap-3 items-center'>
             <div className='relative'>
               <input
+                aria-label='입력'
                 type='text'
                 placeholder='서버 이름 또는 위치 검색...'
                 value={searchTerm}

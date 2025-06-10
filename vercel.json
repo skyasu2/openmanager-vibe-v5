@@ -9,17 +9,14 @@
       "memory": 1024
     },
     "src/app/api/ai/**/*.ts": {
-      "runtime": "nodejs20.x",
       "maxDuration": 120,
       "memory": 1024
     },
     "src/app/api/ai-agent/**/*.ts": {
-      "runtime": "nodejs20.x",
       "maxDuration": 90,
       "memory": 1024
     },
     "src/app/api/prediction/**/*.ts": {
-      "runtime": "nodejs20.x",
       "maxDuration": 90,
       "memory": 1024
     },

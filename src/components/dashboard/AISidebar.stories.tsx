@@ -208,13 +208,13 @@ const InteractiveDemo = () => {
           </p>
           <div className='grid grid-cols-2 gap-4 text-sm'>
             <div className='bg-white p-4 rounded-lg shadow'>
-              <h4 className='font-semibold mb-2'>현재 상태</h4>
+              <h3 className='font-semibold mb-2'>현재 상태</h3>
               <p>열림: {isOpen ? '예' : '아니오'}</p>
               <p>위치: {position === 'right' ? '우측' : '좌측'}</p>
               <p>너비: {width}px</p>
             </div>
             <div className='bg-white p-4 rounded-lg shadow'>
-              <h4 className='font-semibold mb-2'>기능</h4>
+              <h3 className='font-semibold mb-2'>기능</h3>
               <ul className='text-left space-y-1'>
                 <li>• 패턴 분석</li>
                 <li>• AI 예측</li>

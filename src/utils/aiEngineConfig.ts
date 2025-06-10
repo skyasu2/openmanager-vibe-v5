@@ -37,7 +37,7 @@ export class AIEngineConfigManager {
       timeout: parseInt(process.env.AI_ENGINE_TIMEOUT || '30000'),
       retryCount: parseInt(process.env.AI_ENGINE_RETRY_COUNT || '3'),
       internalEngineEnabled: process.env.INTERNAL_AI_ENGINE_ENABLED !== 'false',
-      fallbackEnabled: process.env.INTERNAL_AI_ENGINE_FALLBACK !== 'false'
+      fallbackEnabled: process.env.INTERNAL_AI_ENGINE_FALLBACK !== 'false',
     };
   }
 
@@ -60,9 +60,9 @@ export class AIEngineConfigManager {
    */
   public getAIEngineUrl(preferInternal: boolean = true): string {
     if (preferInternal && this.config.internalEngineEnabled) {
-      return '/api/v3/ai';
+      return '/api/ai/unified';
     }
-    return '/api/v3/ai';
+    return '/api/ai/unified';
   }
 
   /**
@@ -73,10 +73,10 @@ export class AIEngineConfigManager {
       method: body ? 'POST' : 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'OpenManager-AI-Client'
+        'User-Agent': 'OpenManager-AI-Client',
       },
       body: body ? JSON.stringify(body) : undefined,
-      signal: AbortSignal.timeout(this.config.timeout)
+      signal: AbortSignal.timeout(this.config.timeout),
     };
   }
 
@@ -84,31 +84,31 @@ export class AIEngineConfigManager {
    * 재시도 로직이 포함된 AI 요청
    */
   public async makeAIRequest(
-    endpoint: string, 
-    body?: any, 
+    endpoint: string,
+    body?: any,
     useInternal: boolean = true
   ): Promise<any> {
     let lastError: Error | null = null;
-    
+
     // 내부 엔진 시도
     if (useInternal && this.config.internalEngineEnabled) {
       try {
-        console.log(`🤖 내부 AI 엔진 호출 시도: /api/v3/ai${endpoint}`);
-        
+        console.log(`🤖 내부 AI 엔진 호출 시도: /api/ai/unified${endpoint}`);
+
         // 서버 환경에서는 직접 함수 호출, 클라이언트에서는 fetch 사용
         if (typeof window === 'undefined') {
           // 서버 환경: 동적 import로 내부 AI 엔진 함수 직접 호출
           try {
-            const { POST } = await import('@/app/api/v3/ai/route');
+            const { POST } = await import('@/app/api/ai/unified/route');
             const mockRequest = {
               json: () => Promise.resolve(body || {}),
-              url: `/api/v3/ai${endpoint}`,
-              method: 'POST'
+              url: `/api/ai/unified${endpoint}`,
+              method: 'POST',
             } as any;
-            
+
             const response = await POST(mockRequest);
             const result = await response.json();
-            
+
             console.log(`✅ 내부 AI 엔진 직접 호출 성공`);
             return result;
           } catch (importError) {
@@ -117,27 +117,26 @@ export class AIEngineConfigManager {
           }
         } else {
           // 클라이언트 환경: fetch 사용
-          const url = `${window.location.origin}/api/v3/ai${endpoint}`;
+          const url = `${window.location.origin}/api/ai/unified${endpoint}`;
           const options = this.createRequestOptions(body);
-          
+
           const response = await fetch(url, options);
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
-          
+
           const result = await response.json();
           console.log(`✅ 내부 AI 엔진 fetch 성공`);
           return result;
         }
-        
       } catch (error) {
         lastError = error instanceof Error ? error : new Error('Unknown error');
         console.warn(`⚠️ 내부 AI 엔진 호출 실패:`, lastError.message);
       }
     }
-    
+
     // 외부 엔진은 더 이상 사용하지 않음
-    
+
     throw lastError || new Error('모든 AI 엔진 호출 실패');
   }
 
@@ -146,20 +145,18 @@ export class AIEngineConfigManager {
    */
   public validateConfig(): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
-    
-    
+
     if (this.config.timeout < 1000) {
       errors.push('AI_ENGINE_TIMEOUT은 최소 1000ms 이상이어야 합니다');
     }
-    
+
     if (this.config.retryCount < 1 || this.config.retryCount > 10) {
       errors.push('AI_ENGINE_RETRY_COUNT는 1-10 사이여야 합니다');
     }
-    
-    
+
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
@@ -178,7 +175,17 @@ export class AIEngineConfigManager {
 }
 
 // 편의 함수들
-export const getAIConfig = () => AIEngineConfigManager.getInstance().getConfig();
-export const makeAIRequest = (endpoint: string, body?: any, useInternal?: boolean) => 
-  AIEngineConfigManager.getInstance().makeAIRequest(endpoint, body, useInternal);
-export const validateAIConfig = () => AIEngineConfigManager.getInstance().validateConfig(); 
+export const getAIConfig = () =>
+  AIEngineConfigManager.getInstance().getConfig();
+export const makeAIRequest = (
+  endpoint: string,
+  body?: any,
+  useInternal?: boolean
+) =>
+  AIEngineConfigManager.getInstance().makeAIRequest(
+    endpoint,
+    body,
+    useInternal
+  );
+export const validateAIConfig = () =>
+  AIEngineConfigManager.getInstance().validateConfig();

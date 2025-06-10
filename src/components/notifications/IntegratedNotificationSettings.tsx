@@ -345,6 +345,7 @@ export const IntegratedNotificationSettings: React.FC = () => {
               <Upload className='h-4 w-4 mr-2' />
               가져오기
               <input
+                aria-label='입력'
                 id='import-settings'
                 type='file'
                 accept='.json'
@@ -959,6 +960,7 @@ export const IntegratedNotificationSettings: React.FC = () => {
                       웹훅 이름 *
                     </label>
                     <input
+                      aria-label='입력'
                       type='text'
                       value={newWebhookForm.name}
                       onChange={e =>
@@ -977,6 +979,7 @@ export const IntegratedNotificationSettings: React.FC = () => {
                       채널명 *
                     </label>
                     <input
+                      aria-label='입력'
                       type='text'
                       value={newWebhookForm.channel}
                       onChange={e =>
@@ -995,6 +998,7 @@ export const IntegratedNotificationSettings: React.FC = () => {
                       웹훅 URL *
                     </label>
                     <input
+                      aria-label='입력'
                       type='url'
                       value={newWebhookForm.url}
                       onChange={e =>

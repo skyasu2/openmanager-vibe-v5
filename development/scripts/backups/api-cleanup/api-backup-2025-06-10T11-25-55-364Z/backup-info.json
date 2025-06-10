@@ -1,0 +1,384 @@
+{
+  "timestamp": "2025-06-10T11-25-55-364Z",
+  "originalSize": 564843,
+  "toRemove": [
+    {
+      "endpoint": "/ai-agent/thinking-process/route.ts",
+      "path": "ai-agent\\thinking-process\\route.ts",
+      "size": 19093,
+      "reasons": ["테스트/데모 API", "개발용 API"]
+    },
+    {
+      "endpoint": "/v1/demo/ai-training/route.ts",
+      "path": "v1\\demo\\ai-training\\route.ts",
+      "size": 17544,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/unified-metrics/route.ts",
+      "path": "unified-metrics\\route.ts",
+      "size": 17422,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/notifications/unified/route.ts",
+      "path": "notifications\\unified\\route.ts",
+      "size": 15374,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/ai-agent/context/route.ts",
+      "path": "ai-agent\\context\\route.ts",
+      "size": 15292,
+      "reasons": ["테스트/데모 API", "개발용 API"]
+    },
+    {
+      "endpoint": "/simulate/ai-separation/route.ts",
+      "path": "simulate\\ai-separation\\route.ts",
+      "size": 14268,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/metrics/timeseries/route.ts",
+      "path": "metrics\\timeseries\\route.ts",
+      "size": 13914,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/admin/scenarios/route.ts",
+      "path": "admin\\scenarios\\route.ts",
+      "size": 13113,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/system/phase1-test/route.ts",
+      "path": "system\\phase1-test\\route.ts",
+      "size": 12311,
+      "reasons": ["테스트/데모 API", "개발용 API"]
+    },
+    {
+      "endpoint": "/prediction/analyze/route.ts",
+      "path": "prediction\\analyze\\route.ts",
+      "size": 12044,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/v1/ai/metrics/route.ts",
+      "path": "v1\\ai\\metrics\\route.ts",
+      "size": 11997,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/prometheus/hub/route.ts",
+      "path": "prometheus\\hub\\route.ts",
+      "size": 11338,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/admin/context-manager/route.ts",
+      "path": "admin\\context-manager\\route.ts",
+      "size": 10999,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/ai-agent/learning/analysis/route.ts",
+      "path": "ai-agent\\learning\\analysis\\route.ts",
+      "size": 10534,
+      "reasons": ["테스트/데모 API", "개발용 API"]
+    },
+    {
+      "endpoint": "/ai-agent/thinking/route.ts",
+      "path": "ai-agent\\thinking\\route.ts",
+      "size": 10361,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/v1/demo/stream/route.ts",
+      "path": "v1\\demo\\stream\\route.ts",
+      "size": 10267,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/v1/route.ts",
+      "path": "v1\\route.ts",
+      "size": 10029,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/ai/enhanced/route.ts",
+      "path": "ai\\enhanced\\route.ts",
+      "size": 9876,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/metrics/pattern-check/route.ts",
+      "path": "metrics\\pattern-check\\route.ts",
+      "size": 9782,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/ai-agent/admin/demo-data/route.ts",
+      "path": "ai-agent\\admin\\demo-data\\route.ts",
+      "size": 9571,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/prometheus/query/route.ts",
+      "path": "prometheus\\query\\route.ts",
+      "size": 9288,
+      "reasons": ["개발용 API"]
+    },
+    {
+      "endpoint": "/v1/demo/scenarios/route.ts",
+      "path": "v1\\demo\\scenarios\\route.ts",
+      "size": 9239,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/ai-agent/learning/continuous/route.ts",
+      "path": "ai-agent\\learning\\continuous\\route.ts",
+      "size": 9133,
+      "reasons": ["개발용 API"]
+    },
+    {
+      "endpoint": "/ai-agent/route.ts",
+      "path": "ai-agent\\route.ts",
+      "size": 8928,
+      "reasons": ["개발용 API"]
+    },
+    {
+      "endpoint": "/ai/performance/route.ts",
+      "path": "ai\\performance\\route.ts",
+      "size": 8714,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/ai-agent/monitoring/route.ts",
+      "path": "ai-agent\\monitoring\\route.ts",
+      "size": 8714,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/admin/thresholds/route.ts",
+      "path": "admin\\thresholds\\route.ts",
+      "size": 8503,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/system/performance/route.ts",
+      "path": "system\\performance\\route.ts",
+      "size": 8453,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/ai/migration/route.ts",
+      "path": "ai\\migration\\route.ts",
+      "size": 8421,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/database/status/route.ts",
+      "path": "database\\status\\route.ts",
+      "size": 8395,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/cron/cleanup/route.ts",
+      "path": "cron\\cleanup\\route.ts",
+      "size": 7886,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/admin/ai-analysis/route.ts",
+      "path": "admin\\ai-analysis\\route.ts",
+      "size": 7775,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/ai/mcp/test/route.ts",
+      "path": "ai\\mcp\\test\\route.ts",
+      "size": 7636,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/websocket/servers/route.ts",
+      "path": "websocket\\servers\\route.ts",
+      "size": 7381,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/ai/master-status/route.ts",
+      "path": "ai\\master-status\\route.ts",
+      "size": 7348,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/simulate/advanced/route.ts",
+      "path": "simulate\\advanced\\route.ts",
+      "size": 7170,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/system/health/route.ts",
+      "path": "system\\health\\route.ts",
+      "size": 7104,
+      "reasons": ["개발용 API"]
+    },
+    {
+      "endpoint": "/admin/generator-config/route.ts",
+      "path": "admin\\generator-config\\route.ts",
+      "size": 6458,
+      "reasons": ["테스트/데모 API", "개발용 API"]
+    },
+    {
+      "endpoint": "/metrics/daily/route.ts",
+      "path": "metrics\\daily\\route.ts",
+      "size": 6212,
+      "reasons": ["테스트/데모 API", "개발용 API"]
+    },
+    {
+      "endpoint": "/documents/index/route.ts",
+      "path": "documents\\index\\route.ts",
+      "size": 6150,
+      "reasons": ["개발용 API"]
+    },
+    {
+      "endpoint": "/ai-agent/learning/logs/route.ts",
+      "path": "ai-agent\\learning\\logs\\route.ts",
+      "size": 6130,
+      "reasons": ["개발용 API"]
+    },
+    {
+      "endpoint": "/metrics/timeseries-redis/route.ts",
+      "path": "metrics\\timeseries-redis\\route.ts",
+      "size": 6039,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/ai/integrated/route.ts",
+      "path": "ai\\integrated\\route.ts",
+      "size": 5946,
+      "reasons": ["개발용 API"]
+    },
+    {
+      "endpoint": "/notifications/slack/route.ts",
+      "path": "notifications\\slack\\route.ts",
+      "size": 5843,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/test-vector-db/route.ts",
+      "path": "test-vector-db\\route.ts",
+      "size": 5805,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/admin/metrics-config/route.ts",
+      "path": "admin\\metrics-config\\route.ts",
+      "size": 5791,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/enterprise/seed/route.ts",
+      "path": "enterprise\\seed\\route.ts",
+      "size": 5473,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/v3/ai/route.ts",
+      "path": "v3\\ai\\route.ts",
+      "size": 5089,
+      "reasons": ["개발용 API"]
+    },
+    {
+      "endpoint": "/system/start/route.ts",
+      "path": "system\\start\\route.ts",
+      "size": 4441,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/test-real-db/route.ts",
+      "path": "test-real-db\\route.ts",
+      "size": 4396,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/admin/notification-config/route.ts",
+      "path": "admin\\notification-config\\route.ts",
+      "size": 4373,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/cron/keep-alive/route.ts",
+      "path": "cron\\keep-alive\\route.ts",
+      "size": 4198,
+      "reasons": ["개발용 API"]
+    },
+    {
+      "endpoint": "/ai/anomaly/route.ts",
+      "path": "ai\\anomaly\\route.ts",
+      "size": 3928,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/system/status/route.ts",
+      "path": "system\\status\\route.ts",
+      "size": 3576,
+      "reasons": ["개발용 API"]
+    },
+    {
+      "endpoint": "/websocket/status/route.ts",
+      "path": "websocket\\status\\route.ts",
+      "size": 2904,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/edge/health/route.ts",
+      "path": "edge\\health\\route.ts",
+      "size": 2860,
+      "reasons": ["개발용 API"]
+    },
+    {
+      "endpoint": "/ai/google-ai/test/route.ts",
+      "path": "ai\\google-ai\\test\\route.ts",
+      "size": 2411,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/metrics/prometheus/route.ts",
+      "path": "metrics\\prometheus\\route.ts",
+      "size": 2265,
+      "reasons": ["개발용 API"]
+    },
+    {
+      "endpoint": "/mcp/status/route.ts",
+      "path": "mcp\\status\\route.ts",
+      "size": 2216,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/mcp/test/route.ts",
+      "path": "mcp\\test\\route.ts",
+      "size": 1941,
+      "reasons": ["테스트/데모 API", "개발용 API"]
+    },
+    {
+      "endpoint": "/ai/korean/route.ts",
+      "path": "ai\\korean\\route.ts",
+      "size": 1915,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/ai-agent/admin/stats/route.ts",
+      "path": "ai-agent\\admin\\stats\\route.ts",
+      "size": 1652,
+      "reasons": ["테스트/데모 API"]
+    },
+    {
+      "endpoint": "/notifications/test/route.ts",
+      "path": "notifications\\test\\route.ts",
+      "size": 1614,
+      "reasons": ["테스트/데모 API"]
+    }
+  ]
+}

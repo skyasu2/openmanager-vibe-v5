@@ -330,6 +330,7 @@ export function UnifiedSettingsPanel({
                     </div>
                     <div className='flex gap-3'>
                       <input
+                        aria-label='입력'
                         type='password'
                         placeholder='관리자 PIN (4자리)'
                         value={aiPassword}
