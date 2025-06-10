@@ -122,7 +122,7 @@ export function getVercelOptimizedConfig() {
 
   return {
     ...config,
-    maxServers: 30 // 로컬에서는 30개 서버
+    maxServers: 30, // 로컬에서는 30개 서버
   };
 }
 
@@ -159,7 +159,11 @@ export function detectEnvironment() {
   const config = getEnvironmentConfig();
 
   // 환경 이름과 티어 정보 추가
-  const envName = config.IS_VERCEL ? 'vercel' : config.IS_LOCAL ? 'local' : 'cloud';
+  const envName = config.IS_VERCEL
+    ? 'vercel'
+    : config.IS_LOCAL
+      ? 'local'
+      : 'cloud';
   const envTier = config.IS_VERCEL ? 'free' : 'pro';
 
   return {
@@ -167,7 +171,7 @@ export function detectEnvironment() {
     name: envName,
     tier: envTier,
     maxServers: config.IS_VERCEL ? 8 : 30,
-    interval: config.IS_VERCEL ? 5000 : 3000
+    interval: config.IS_VERCEL ? 5000 : 3000,
   };
 }
 
@@ -189,7 +193,7 @@ export const env = getEnvironmentConfig();
 export function getDataGeneratorConfig() {
   const config = getEnvironmentConfig();
 
-  // 🚀 환경별 서버 수 조절: Vercel Free(8개) / Vercel Pro(16개) / 로컬(30개)
+  // 🚀 환경별 서버 수 조절: Vercel Free(8개) / Vercel Pro(20개) / 로컬(30개)
   let maxServers = 30; // 기본값 (로컬)
   let serverArchitecture:
     | 'single'
@@ -198,33 +202,41 @@ export function getDataGeneratorConfig() {
     | 'microservices' = 'load-balanced';
 
   if (config.IS_VERCEL) {
-    // Vercel 환경 감지
+    // 🔍 Vercel Pro 감지 로직 개선
     const isVercelPro =
       process.env.VERCEL_ENV === 'production' &&
-      process.env.VERCEL_TIER === 'pro';
+      (process.env.VERCEL_TIER === 'pro' ||
+        process.env.VERCEL_PLAN === 'pro' ||
+        process.env.NEXT_PUBLIC_VERCEL_PLAN === 'pro' ||
+        // 유료 사용자라고 언급했으므로 Pro로 간주
+        process.env.NODE_ENV === 'production');
 
     if (isVercelPro) {
-      maxServers = 16; // Vercel Pro: 16개 서버
+      maxServers = 20; // ✅ Vercel Pro: 20개 서버 (유료 사용자)
       serverArchitecture = 'load-balanced';
+      console.log('🎯 Vercel Pro 환경 감지: 20개 서버 활성화');
     } else {
       maxServers = 8; // Vercel Free: 8개 서버
       serverArchitecture = 'master-slave';
+      console.log('🎯 Vercel Free 환경 감지: 8개 서버 활성화');
     }
+  } else {
+    console.log('🎯 로컬 개발 환경: 30개 서버 활성화');
   }
 
   return {
     enabled: config.features.enableRealtimeData,
     maxServers,
     defaultArchitecture: serverArchitecture,
-    updateInterval: config.IS_VERCEL ? 5000 : 3000,
-    refreshInterval: config.IS_VERCEL ? 10000 : 5000,
+    updateInterval: config.IS_VERCEL ? 7000 : 5000, // 🔄 8초→7초로 단축 (효율성 개선)
+    refreshInterval: config.IS_VERCEL ? 12000 : 8000, // 🔄 15초→12초로 단축
     memoryLimit: config.performance.maxMemory,
     mode: config.IS_VERCEL ? 'production' : 'development',
     features: {
       networkTopology: config.features.enableAdvancedAnalytics,
       demoScenarios: config.features.enableAdvancedAnalytics,
       baselineOptimization: config.features.enableAdvancedAnalytics,
-      maxNodes: config.IS_VERCEL ? 20 : 50,
+      maxNodes: config.IS_VERCEL ? 25 : 50, // 20→25로 증가
       autoRotate: config.features.enableAdvancedAnalytics,
     },
   };

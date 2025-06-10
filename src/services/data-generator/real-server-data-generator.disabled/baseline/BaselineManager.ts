@@ -31,7 +31,7 @@ export class BaselineManager {
    * 🔄 베이스라인 초기화 (메모리 효율성)
    */
   public initializeBaselines(): void {
-    const serverCount = this.config.IS_VERCEL ? 6 : 9; // Vercel에서 서버 수 제한
+    const serverCount = this.config.IS_VERCEL ? 8 : 12; // Vercel에서 8개, 로컬에서 12개 서버로 증가
 
     for (let i = 1; i <= serverCount; i++) {
       const serverId = `server-${i.toString().padStart(2, '0')}`;
@@ -43,7 +43,9 @@ export class BaselineManager {
       );
     }
 
-    console.log(`✅ ${serverCount}개 서버 베이스라인 초기화 완료`);
+    console.log(
+      `✅ ${serverCount}개 서버 베이스라인 초기화 완료 (환경: ${this.config.IS_VERCEL ? 'Vercel' : 'Local'})`
+    );
   }
 
   /**
@@ -281,7 +283,7 @@ export class BaselineManager {
   }
 
   /**
-   * 🔄 베이스라인 새로고침
+   * �� 베이스라인 새로고침
    */
   public refreshBaseline(serverId: string): void {
     const newBaseline = this.generateBaselineProfile(serverId);

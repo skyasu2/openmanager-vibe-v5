@@ -14,8 +14,16 @@
  */
 
 import { timerManager } from '../utils/TimerManager';
+import { memoryOptimizer } from '../utils/MemoryOptimizer';
 import { prometheusDataHub } from '../modules/prometheus-integration/PrometheusDataHub';
+import { SmartCache } from '../utils/smart-cache';
+import { getDataGeneratorConfig } from '../config/environment';
 import type { EnhancedServerMetrics } from '../types/server';
+
+// 전역 접근을 위한 설정
+if (typeof globalThis !== 'undefined') {
+  (globalThis as any).getDataGeneratorConfig = getDataGeneratorConfig;
+}
 
 // 통합된 서버 메트릭 인터페이스
 export interface UnifiedServerMetrics {
@@ -281,19 +289,111 @@ export class UnifiedMetricsManager {
    * 📊 초기 서버 데이터 생성
    */
   private initializeServers(): void {
-    const serverConfigs = [
-      { environment: 'production', role: 'web', count: 3 },
-      { environment: 'production', role: 'api', count: 5 },
-      { environment: 'production', role: 'database', count: 2 },
-      { environment: 'production', role: 'cache', count: 2 },
-      { environment: 'staging', role: 'web', count: 2 },
-      { environment: 'staging', role: 'api', count: 2 },
-    ];
+    // 🔍 환경별 서버 수 동적 결정
+    const dataGeneratorConfig = (
+      globalThis as any
+    ).getDataGeneratorConfig?.() || {
+      maxServers: 16,
+      defaultArchitecture: 'load-balanced',
+    };
 
+    const maxServers = dataGeneratorConfig.maxServers;
+    const architecture = dataGeneratorConfig.defaultArchitecture;
+
+    console.log(`🎯 ${maxServers}개 서버 생성 시작 (${architecture} 아키텍처)`);
+
+    // 🏗️ 아키텍처별 서버 구성
+    let serverConfigs: Array<{
+      environment: string;
+      role: string;
+      count: number;
+    }> = [];
+
+    if (architecture === 'microservices' && maxServers >= 20) {
+      // 마이크로서비스 아키텍처 (20개 이상)
+      serverConfigs = [
+        {
+          environment: 'production',
+          role: 'web',
+          count: Math.floor(maxServers * 0.25),
+        }, // 25%
+        {
+          environment: 'production',
+          role: 'api',
+          count: Math.floor(maxServers * 0.35),
+        }, // 35%
+        {
+          environment: 'production',
+          role: 'database',
+          count: Math.floor(maxServers * 0.15),
+        }, // 15%
+        {
+          environment: 'production',
+          role: 'cache',
+          count: Math.floor(maxServers * 0.1),
+        }, // 10%
+        {
+          environment: 'staging',
+          role: 'web',
+          count: Math.floor(maxServers * 0.08),
+        }, // 8%
+        {
+          environment: 'staging',
+          role: 'api',
+          count: Math.floor(maxServers * 0.07),
+        }, // 7%
+      ];
+    } else if (architecture === 'load-balanced' && maxServers >= 12) {
+      // 로드밸런스 아키텍처 (12개 이상)
+      serverConfigs = [
+        {
+          environment: 'production',
+          role: 'web',
+          count: Math.floor(maxServers * 0.3),
+        }, // 30%
+        {
+          environment: 'production',
+          role: 'api',
+          count: Math.floor(maxServers * 0.35),
+        }, // 35%
+        {
+          environment: 'production',
+          role: 'database',
+          count: Math.floor(maxServers * 0.15),
+        }, // 15%
+        {
+          environment: 'production',
+          role: 'cache',
+          count: Math.floor(maxServers * 0.1),
+        }, // 10%
+        {
+          environment: 'staging',
+          role: 'web',
+          count: Math.floor(maxServers * 0.05),
+        }, // 5%
+        {
+          environment: 'staging',
+          role: 'api',
+          count: Math.floor(maxServers * 0.05),
+        }, // 5%
+      ];
+    } else {
+      // 마스터-슬레이브 아키텍처 (8개 이하) 또는 기본 구성
+      const baseCount = Math.max(1, Math.floor(maxServers / 8));
+      serverConfigs = [
+        { environment: 'production', role: 'web', count: baseCount * 3 },
+        { environment: 'production', role: 'api', count: baseCount * 2 },
+        { environment: 'production', role: 'database', count: baseCount * 2 },
+        { environment: 'production', role: 'cache', count: baseCount * 1 },
+      ];
+    }
+
+    // 📊 실제 서버 생성
     let serverIndex = 1;
+    let totalGenerated = 0;
 
     serverConfigs.forEach(({ environment, role, count }) => {
-      for (let i = 0; i < count; i++) {
+      for (let i = 0; i < count && totalGenerated < maxServers; i++) {
         const server = this.createServer(
           `server-${environment.slice(0, 4)}-${role}-${String(serverIndex).padStart(2, '0')}`,
           environment as any,
@@ -301,10 +401,25 @@ export class UnifiedMetricsManager {
         );
         this.servers.set(server.id, server);
         serverIndex++;
+        totalGenerated++;
       }
     });
 
+    // 🔄 부족한 서버 수 채우기 (기본 web 서버로)
+    while (totalGenerated < maxServers) {
+      const server = this.createServer(
+        `server-auto-web-${String(serverIndex).padStart(2, '0')}`,
+        'production' as any,
+        'web' as any
+      );
+      this.servers.set(server.id, server);
+      serverIndex++;
+      totalGenerated++;
+    }
+
     console.log(`📊 초기 서버 ${this.servers.size}개 생성 완료`);
+    console.log(`🏗️ 아키텍처: ${architecture}`);
+    console.log(`🎯 목표: ${maxServers}개, 실제 생성: ${totalGenerated}개`);
   }
 
   /**
