@@ -254,19 +254,30 @@ export class LocalRAGEngine {
 
   private async initializeDocuments(): Promise<void> {
     try {
-      const response = await fetch('/api/documents/index');
-      const documents = await response.json();
-      this.documentIndex = new Map();
-      Object.entries(documents).forEach(([id, doc]: [string, any]) => {
-        this.documentIndex.set(id, {
-          id,
-          content: doc.content,
-          keywords: doc.keywords || [],
-          category: doc.category || 'general',
-          priority: doc.priority || 1,
-          lastUpdated: new Date(doc.lastUpdated || Date.now()),
+      // 브라우저 환경에서만 API 호출
+      if (typeof window !== 'undefined' && typeof fetch !== 'undefined') {
+        const response = await fetch('/api/documents/index');
+        const documents = await response.json();
+        this.documentIndex = new Map();
+        Object.entries(documents).forEach(([id, doc]: [string, any]) => {
+          this.documentIndex.set(id, {
+            id,
+            content: doc.content,
+            keywords: doc.keywords || [],
+            category: doc.category || 'general',
+            priority: doc.priority || 1,
+            lastUpdated: new Date(doc.lastUpdated || Date.now()),
+          });
         });
-      });
+        console.log(
+          `✅ RAG 엔진 API 문서 로드 완료 (${this.documentIndex.size}개 문서)`
+        );
+      } else {
+        // SSR 환경에서는 기본 지식베이스 사용
+        console.log('🔄 SSR 환경: 기본 지식베이스 사용');
+        this.loadMinimalKnowledgeBase();
+      }
+
       await this.koreanNLU.initialize();
       this.ready = true;
       this.lastInitialized = Date.now();
@@ -274,8 +285,9 @@ export class LocalRAGEngine {
         `✅ RAG 엔진 초기화 완료 (${this.documentIndex.size}개 문서)`
       );
     } catch (error) {
-      console.error('❌ RAG 엔진 초기화 실패:', error);
+      console.warn('⚠️ RAG 엔진 API 로드 실패, 기본 지식베이스로 대체:', error);
       this.loadMinimalKnowledgeBase();
+      await this.koreanNLU.initialize();
       this.ready = true;
     }
   }
@@ -368,14 +380,25 @@ export class LocalRAGEngine {
 
   private async getCurrentServerMetrics(): Promise<any> {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 1000);
-      const response = await fetch('/api/metrics/current', {
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-      return response.ok ? await response.json() : null;
-    } catch {
+      // 브라우저 환경에서만 API 호출
+      if (
+        typeof window !== 'undefined' &&
+        typeof fetch !== 'undefined' &&
+        typeof AbortController !== 'undefined'
+      ) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1000);
+        const response = await fetch('/api/metrics/current', {
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        return response.ok ? await response.json() : null;
+      } else {
+        // SSR 환경에서는 null 반환
+        return null;
+      }
+    } catch (error) {
+      console.warn('⚠️ 서버 메트릭 조회 실패:', error);
       return null;
     }
   }

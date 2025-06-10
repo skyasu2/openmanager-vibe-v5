@@ -9,7 +9,18 @@
       "memory": 1024
     },
     "src/app/api/ai/**/*.ts": {
-      "maxDuration": 60,
+      "runtime": "fluid",
+      "maxDuration": 120,
+      "memory": 1024
+    },
+    "src/app/api/ai-agent/**/*.ts": {
+      "runtime": "fluid",
+      "maxDuration": 90,
+      "memory": 1024
+    },
+    "src/app/api/prediction/**/*.ts": {
+      "runtime": "fluid",
+      "maxDuration": 90,
       "memory": 1024
     },
     "src/app/api/data-generator/**/*.ts": {
@@ -41,7 +52,8 @@
     }
   ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "VERCEL_COMPUTE_MODE": "fluid"
   },
   "build": {
     "env": {

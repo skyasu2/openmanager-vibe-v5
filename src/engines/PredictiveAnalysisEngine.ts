@@ -547,9 +547,12 @@ export class PredictiveAnalysisEngine {
 
     this.predictionHistory.push(historyEntry);
 
-    // 최근 1000개 이력만 유지
-    if (this.predictionHistory.length > 1000) {
-      this.predictionHistory = this.predictionHistory.slice(-1000);
+    // 메모리 최적화: 최근 200개 이력만 유지 (1000→200으로 감소)
+    const MAX_PREDICTION_HISTORY = 200;
+    if (this.predictionHistory.length > MAX_PREDICTION_HISTORY) {
+      this.predictionHistory = this.predictionHistory.slice(
+        -MAX_PREDICTION_HISTORY
+      );
     }
   }
 
