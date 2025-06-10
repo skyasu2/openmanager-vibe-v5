@@ -18,6 +18,7 @@ import {
 import { getRedisClient } from '@/lib/redis';
 import { getMCPClient } from '@/core/mcp/official-mcp-client';
 import { ContextManager, ContextSearchResult } from '@/core/ai/ContextManager';
+import { GoogleAIService } from '@/services/ai/GoogleAIService';
 
 export interface UnifiedAnalysisRequest {
   query: string;
@@ -90,12 +91,15 @@ export class UnifiedAIEngine {
   private mcpClient: any;
   private redis: any;
   private contextManager: ContextManager;
+  private googleAI?: GoogleAIService;
+  private betaModeEnabled: boolean = false;
   private initialized: boolean = false;
   private analysisCache: Map<string, any> = new Map();
 
   private constructor() {
     // 싱글톤 패턴
     this.contextManager = ContextManager.getInstance();
+    this.betaModeEnabled = process.env.GOOGLE_AI_BETA_MODE === 'true';
   }
 
   /**
@@ -126,6 +130,25 @@ export class UnifiedAIEngine {
 
       // 🆕 ContextManager 초기화
       await this.contextManager.initialize();
+
+      // 🆕 Google AI 베타 모드 초기화
+      if (this.betaModeEnabled) {
+        try {
+          this.googleAI = new GoogleAIService();
+          const initialized = await this.googleAI.initialize();
+          if (initialized) {
+            console.log('🤖 Google AI 베타 모드 활성화됨');
+          } else {
+            console.log(
+              '⚠️ Google AI 베타 모드 초기화 실패 - 기존 모드로 동작'
+            );
+            this.googleAI = undefined;
+          }
+        } catch (error) {
+          console.warn('⚠️ Google AI 베타 모드 오류:', error);
+          this.googleAI = undefined;
+        }
+      }
 
       // 캐시 정리 스케줄러 시작
       this.startCacheCleanup();
@@ -388,7 +411,7 @@ export class UnifiedAIEngine {
   }
 
   /**
-   * 🔧 실제 분석 수행
+   * 🔧 실제 분석 수행 (Google AI 베타 모드 포함)
    */
   private async performRealAnalysis(
     intent: any,
@@ -396,6 +419,22 @@ export class UnifiedAIEngine {
     options?: any
   ): Promise<MCPResponse> {
     try {
+      // 🆕 0차: Google AI 베타 모드 시도 (활성화된 경우)
+      if (this.googleAI && this.googleAI.isAvailable()) {
+        try {
+          const googleResult = await this.performGoogleAIAnalysis(
+            intent,
+            context
+          );
+          if (googleResult.success && googleResult.confidence > 0.8) {
+            console.log('🤖 Google AI 베타 모드로 분석 완료');
+            return googleResult;
+          }
+        } catch (error) {
+          console.warn('⚠️ Google AI 베타 분석 실패, MCP로 폴백:', error);
+        }
+      }
+
       // 1차: MCP 도구를 사용한 실제 분석
       if (options?.enableMCP !== false && this.mcpClient) {
         const mcpResult = await this.performMCPAnalysis(intent, context);
@@ -410,6 +449,221 @@ export class UnifiedAIEngine {
       console.warn('⚠️ 실제 분석 실패, 기본 분석으로 대체:', error);
       return await this.performBasicAnalysis(intent, context);
     }
+  }
+
+  /**
+   * 🤖 Google AI 베타 모드 분석
+   */
+  private async performGoogleAIAnalysis(
+    intent: any,
+    context: MCPContext
+  ): Promise<MCPResponse> {
+    if (!this.googleAI) {
+      throw new Error('Google AI 서비스가 초기화되지 않았습니다.');
+    }
+
+    const startTime = Date.now();
+
+    try {
+      // 서버 메트릭이 있는 경우 전문적인 분석 수행
+      if (context.serverMetrics && context.serverMetrics.length > 0) {
+        // GoogleAI의 ServerMetrics 타입에 맞게 변환
+        const googleMetrics = context.serverMetrics.map(metric => ({
+          name: `Server-${metric.timestamp}`,
+          cpu_usage: metric.cpu,
+          memory_usage: metric.memory,
+          disk_usage: metric.disk,
+          response_time: metric.responseTime || 0,
+          status: 'running',
+          timestamp: metric.timestamp,
+        }));
+
+        const analysisResult =
+          await this.googleAI.analyzeServerMetrics(googleMetrics);
+
+        return {
+          success: true,
+          results: [
+            {
+              taskId: `google-ai-${Date.now()}`,
+              type: 'google_ai_analysis',
+              success: true,
+              result: analysisResult,
+              executionTime: Date.now() - startTime,
+              engine: 'Google AI Studio (Gemini)',
+              confidence: 0.95,
+            },
+          ],
+          summary: `🤖 Google AI 베타 분석: ${analysisResult.slice(0, 200)}...`,
+          confidence: 0.95,
+          processingTime: Date.now() - startTime,
+          enginesUsed: ['Google AI Studio (Beta)'],
+          recommendations:
+            this.extractRecommendationsFromGoogleAI(analysisResult),
+          metadata: {
+            tasksExecuted: 1,
+            successRate: 1.0,
+            fallbacksUsed: 0,
+            pythonWarmupTriggered: false,
+            contextId: `google-ai-${Date.now()}`,
+            relevanceScore: 0.95,
+            matchedKeywords: ['google-ai', 'beta-mode', 'gemini'],
+            processingTime: Date.now() - startTime,
+          },
+        };
+      }
+
+      // 일반적인 쿼리 처리
+      const generalAnalysis = await this.googleAI.generateContent(
+        this.buildGoogleAIPrompt(intent, context)
+      );
+
+      if (generalAnalysis.success) {
+        return {
+          success: true,
+          results: [
+            {
+              taskId: `google-ai-general-${Date.now()}`,
+              type: 'google_ai_general',
+              success: true,
+              result: generalAnalysis.content,
+              executionTime: generalAnalysis.processingTime,
+              engine: 'Google AI Studio (Gemini)',
+              confidence: generalAnalysis.confidence,
+            },
+          ],
+          summary: `🤖 Google AI 베타 분석: ${generalAnalysis.content.slice(0, 200)}...`,
+          confidence: generalAnalysis.confidence,
+          processingTime: generalAnalysis.processingTime,
+          enginesUsed: ['Google AI Studio (Beta)'],
+          recommendations: this.extractRecommendationsFromGoogleAI(
+            generalAnalysis.content
+          ),
+          metadata: {
+            tasksExecuted: 1,
+            successRate: 1.0,
+            fallbacksUsed: 0,
+            pythonWarmupTriggered: false,
+            contextId: `google-ai-${Date.now()}`,
+            relevanceScore: generalAnalysis.confidence,
+            matchedKeywords: ['google-ai', 'beta-mode', 'gemini'],
+            processingTime: generalAnalysis.processingTime,
+          },
+        };
+      }
+
+      throw new Error('Google AI 응답 생성 실패');
+    } catch (error) {
+      console.error('❌ Google AI 베타 분석 실패:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 🛠️ Google AI용 프롬프트 구성
+   */
+  private buildGoogleAIPrompt(intent: any, context: MCPContext): string {
+    let prompt = `당신은 OpenManager 서버 모니터링 전문 AI입니다.
+
+사용자 질의: ${context.userQuery}
+분석 의도: ${intent.primary} (${intent.category})
+긴급도: ${intent.urgency}
+
+`;
+
+    // 서버 메트릭 추가
+    if (context.serverMetrics && context.serverMetrics.length > 0) {
+      prompt += `\n📊 서버 메트릭 데이터:\n`;
+      context.serverMetrics.forEach((metric, index) => {
+        prompt += `${index + 1}. CPU: ${metric.cpu}%, 메모리: ${metric.memory}%, 디스크: ${metric.disk}%\n`;
+      });
+    }
+
+    // 로그 엔트리 추가
+    if (context.logEntries && context.logEntries.length > 0) {
+      prompt += `\n📝 최근 로그 엔트리:\n`;
+      context.logEntries.slice(-5).forEach((log, index) => {
+        prompt += `${index + 1}. [${log.level}] ${log.message}\n`;
+      });
+    }
+
+    // AI 컨텍스트 추가
+    if (context.aiContexts && context.aiContexts.length > 0) {
+      prompt += `\n🧠 관련 AI 컨텍스트:\n`;
+      context.aiContexts.forEach((ctx, index) => {
+        prompt += `${index + 1}. ${ctx.context.content.slice(0, 100)}...\n`;
+      });
+    }
+
+    prompt += `\n다음 형식으로 분석해주세요:
+1. 🎯 **핵심 요약** (2-3줄)
+2. 📊 **상세 분석**
+3. ⚠️ **주의사항** (있는 경우)
+4. 💡 **권장 조치사항** (구체적이고 실행 가능한)
+5. 🔮 **예측 및 트렌드** (해당하는 경우)
+
+전문적이고 실용적인 분석을 제공해주세요.`;
+
+    return prompt;
+  }
+
+  /**
+   * 🎯 Google AI 응답에서 권장사항 추출
+   */
+  private extractRecommendationsFromGoogleAI(content: string): string[] {
+    const recommendations: string[] = [];
+
+    // "권장" 또는 "조치" 관련 문장들을 찾아서 추출
+    const lines = content.split('\n');
+    let inRecommendationSection = false;
+
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+
+      // 권장사항 섹션 시작 감지
+      if (
+        trimmedLine.includes('💡') ||
+        trimmedLine.includes('권장') ||
+        trimmedLine.includes('조치')
+      ) {
+        inRecommendationSection = true;
+        continue;
+      }
+
+      // 다른 섹션 시작시 종료
+      if (
+        trimmedLine.startsWith('🔮') ||
+        trimmedLine.startsWith('##') ||
+        trimmedLine.startsWith('#')
+      ) {
+        inRecommendationSection = false;
+      }
+
+      // 권장사항 섹션 내의 항목들 추출
+      if (
+        inRecommendationSection &&
+        trimmedLine &&
+        !trimmedLine.startsWith('💡')
+      ) {
+        const cleanLine = trimmedLine
+          .replace(/^[-*•]\s*/, '')
+          .replace(/^\d+\.\s*/, '');
+        if (cleanLine.length > 10) {
+          recommendations.push(cleanLine);
+        }
+      }
+    }
+
+    // 기본 권장사항이 없으면 일반적인 것들 추가
+    if (recommendations.length === 0) {
+      recommendations.push(
+        '시스템 리소스 모니터링을 지속적으로 수행하세요',
+        '정기적인 성능 최적화를 실시하세요',
+        '로그 분석을 통해 잠재적 문제를 조기 발견하세요'
+      );
+    }
+
+    return recommendations.slice(0, 5); // 최대 5개까지
   }
 
   /**
