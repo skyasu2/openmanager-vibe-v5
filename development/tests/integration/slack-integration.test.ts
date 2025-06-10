@@ -35,10 +35,18 @@ describe('Slack Integration', () => {
     }
   });
 
-  if (hasSlackWebhook) {
+  if (process.env.SLACK_WEBHOOK_URL) {
     it('Slack 시스템 알림이 정상적으로 전송된다', async () => {
+      const slackService = SlackNotificationService.getInstance();
+
+      // 새로운 웹훅 URL로 업데이트
+      slackService.updateConfig(
+        'https://hooks.slack.com/services/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',
+        '#server-alerts'
+      );
+
       const result = await slackService.sendSystemNotification(
-        '🧪 OpenManager Vibe v5 테스트 메시지입니다.',
+        '🚀 시스템 테스트 알림입니다.',
         'info'
       );
 
@@ -46,13 +54,21 @@ describe('Slack Integration', () => {
     }, 10000); // 10초 타임아웃
 
     it('Slack 서버 알림이 정상적으로 전송된다', async () => {
+      const slackService = SlackNotificationService.getInstance();
+
+      // 새로운 웹훅 URL로 업데이트
+      slackService.updateConfig(
+        'https://hooks.slack.com/services/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',
+        '#server-alerts'
+      );
+
       const serverAlert = {
-        serverId: 'test-server-1',
-        hostname: 'test.example.com',
-        metric: 'cpu',
-        value: 95,
+        serverId: 'test-server-001',
+        hostname: '테스트서버',
+        metric: 'cpu_usage',
+        value: 85.5,
         threshold: 80,
-        severity: 'critical' as const,
+        severity: 'warning' as const,
         timestamp: new Date().toISOString(),
       };
 
