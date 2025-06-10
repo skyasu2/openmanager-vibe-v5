@@ -51,7 +51,7 @@ describe('Manual Integration Test', () => {
     console.log('📊 슬랙 서비스 상태:', status);
   });
 
-  it('SlackNotificationService 실제 알림 전송을 테스트한다', async () => {
+  it.skip('SlackNotificationService 실제 알림 전송을 테스트한다', async () => {
     const slackService = SlackNotificationService.getInstance();
 
     const result = await slackService.sendSystemNotification(
@@ -77,7 +77,7 @@ describe('Manual Integration Test', () => {
     console.log('🤖 구글 AI API 키 검증 완료');
   });
 
-  it('서버 알림 전송을 테스트한다', async () => {
+  it.skip('서버 알림 전송을 테스트한다', async () => {
     const slackService = SlackNotificationService.getInstance();
 
     const serverAlert = {
@@ -96,7 +96,7 @@ describe('Manual Integration Test', () => {
     console.log('📊 서버 알림 전송 성공!');
   }, 15000);
 
-  it('메모리 알림 전송을 테스트한다', async () => {
+  it.skip('메모리 알림 전송을 테스트한다', async () => {
     const slackService = SlackNotificationService.getInstance();
 
     const memoryAlert = {
