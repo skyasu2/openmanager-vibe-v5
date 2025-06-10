@@ -6,7 +6,10 @@
  * ✅ 베타 모드 전용 고급 기능
  * ✅ 무료 할당량 최적화
  * ✅ 폴백 시스템 내장
+ * ✅ 보안 강화된 API 키 관리
  */
+
+import { getGoogleAIKey, isGoogleAIAvailable } from '@/lib/google-ai-manager';
 
 interface GoogleAIConfig {
   apiKey: string;
@@ -61,10 +64,14 @@ export class GoogleAIService {
   private isInitialized = false;
 
   constructor() {
+    // 🔐 보안 강화된 API 키 관리 사용
+    const apiKey = getGoogleAIKey();
+
     this.config = {
-      apiKey: process.env.GOOGLE_AI_API_KEY || '',
+      apiKey: apiKey || '',
       model: (process.env.GOOGLE_AI_MODEL as any) || 'gemini-1.5-flash',
-      enabled: process.env.GOOGLE_AI_ENABLED === 'true',
+      enabled:
+        process.env.GOOGLE_AI_ENABLED === 'true' && isGoogleAIAvailable(),
       rateLimits: {
         rpm: this.getRateLimit('rpm'),
         daily: this.getRateLimit('daily'),
@@ -174,6 +181,14 @@ export class GoogleAIService {
       throw new Error('Google AI 서비스를 사용할 수 없습니다.');
     }
 
+    // 🔐 실시간으로 API 키 가져오기
+    const currentApiKey = getGoogleAIKey();
+    if (!currentApiKey) {
+      throw new Error(
+        'Google AI API 키를 사용할 수 없습니다. 설정을 확인해주세요.'
+      );
+    }
+
     // 할당량 확인
     if (!this.checkRateLimit()) {
       throw new Error(
@@ -191,7 +206,7 @@ export class GoogleAIService {
       );
 
       const response = await fetch(
-        `${this.baseUrl}/models/${this.config.model}:generateContent?key=${this.config.apiKey}`,
+        `${this.baseUrl}/models/${this.config.model}:generateContent?key=${currentApiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -519,7 +534,14 @@ ${index + 1}. 서버: ${server.name}
    * 🔍 상태 체크
    */
   isAvailable(): boolean {
-    return this.config.enabled && this.config.apiKey && this.isInitialized;
+    // 🔐 실시간으로 API 키 가용성 확인
+    const currentApiKey = getGoogleAIKey();
+    return (
+      this.config.enabled &&
+      currentApiKey &&
+      this.isInitialized &&
+      isGoogleAIAvailable()
+    );
   }
 
   getStatus(): any {

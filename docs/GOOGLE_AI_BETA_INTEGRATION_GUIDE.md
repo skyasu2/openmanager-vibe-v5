@@ -5,11 +5,12 @@
 1. [개요](#개요)
 2. [아키텍처](#아키텍처)
 3. [폴백 시스템](#폴백-시스템)
-4. [설정 가이드](#설정-가이드)
-5. [API 사용법](#api-사용법)
-6. [보안 정책](#보안-정책)
-7. [성능 최적화](#성능-최적화)
-8. [문제 해결](#문제-해결)
+4. [🆕 Gemini 학습 엔진](#gemini-학습-엔진)
+5. [설정 가이드](#설정-가이드)
+6. [API 사용법](#api-사용법)
+7. [보안 정책](#보안-정책)
+8. [성능 최적화](#성능-최적화)
+9. [문제 해결](#문제-해결)
 
 ## 🎯 개요
 
@@ -18,9 +19,9 @@
 ### 핵심 특징
 
 - **🔄 스마트 폴백 시스템**: Google AI → MCP → RAG → 직접분석 → 기본분석
+- **🧠 자기 학습 시스템**: 실패 로그 → Gemini 분석 → 컨텍스트 개선 제안
 - **🔐 보안 강화**: 관리자 권한 필수, API 키 보안 처리
 - **⚡ 무료 할당량 최적화**: 캐싱 및 스마트 관리
-- **🧠 고급 분석**: 서버 모니터링 특화 AI 엔진
 
 ## 🏗️ 아키텍처
 
@@ -49,6 +50,21 @@ graph TD
     I --> M
     K --> M
     L --> M
+
+    F --> N[응답 로깅]
+    G --> N
+    I --> N
+    K --> N
+    L --> N
+
+    N --> O{실패/저품질?}
+    O -->|YES| P[🧠 Gemini 학습 엔진]
+    O -->|NO| Q[성공 로그 저장]
+
+    P --> R[실패 분석]
+    R --> S[컨텍스트 개선 제안]
+    S --> T[관리자 승인 대기]
+    T --> U[승인 시 적용]
 ```
 
 ## 🔄 폴백 시스템 (업데이트됨)
@@ -65,90 +81,297 @@ graph TD
 
 ```typescript
 // RAG 엔진이 MCP 다음으로 시도됨
-if (this.ragEngine.isReady()) {
+private async performRAGAnalysis(intent: any, context: MCPContext): Promise<MCPResponse> {
   try {
-    const ragResult = await this.performRAGAnalysis(intent, context);
-    if (ragResult.success && ragResult.confidence > 0.6) {
-      console.log('📚 RAG 엔진으로 분석 완료');
-      return ragResult;
+    console.log('📚 [RAG] 로컬 벡터 DB 기반 분석 시도...');
+
+    const ragEngine = new LocalRAGEngine();
+    const ragResult = await ragEngine.processQuery(intent.action, {
+      maxResults: 5,
+      confidenceThreshold: 0.7,
+      includeMetadata: true
+    });
+
+    if (ragResult.confidence > 0.6) {
+      return {
+        success: true,
+        results: [{
+          taskId: `rag-${Date.now()}`,
+          type: 'rag_analysis',
+          success: true,
+          result: ragResult.response,
+          executionTime: ragResult.processingTime,
+          engine: 'Local RAG Engine',
+          confidence: ragResult.confidence,
+        }],
+        summary: `📚 RAG 분석: ${ragResult.response.slice(0, 200)}...`,
+        confidence: ragResult.confidence,
+        // ... existing code ...
+      };
     }
+
+    throw new Error('RAG 신뢰도 부족');
   } catch (error) {
-    console.warn('⚠️ RAG 엔진 분석 실패, 직접 분석으로 폴백:', error);
+    console.error('❌ RAG 분석 실패:', error);
+    throw error;
   }
 }
 ```
 
-## ⚙️ 설정 가이드
+## 🧠 Gemini 학습 엔진
 
-### 1. 환경 변수 설정
+### 개요
 
-```bash
-# Google AI Studio (Gemini) Configuration
-GOOGLE_AI_API_KEY=AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM
-GOOGLE_AI_MODEL=gemini-1.5-flash
-GOOGLE_AI_BETA_MODE=true
-GOOGLE_AI_ENABLED=true
+**자기 강화형 AI 시스템**으로 실패한 응답을 Gemini API로 분석하여 컨텍스트 개선 제안을 자동 생성합니다.
+
+### 🔄 학습 사이클
+
+```mermaid
+graph LR
+    A[실패 응답 발생] --> B[로그 수집]
+    B --> C[Gemini 분석 요청]
+    C --> D[개선 제안 생성]
+    D --> E[관리자 승인 대기]
+    E --> F[승인 시 적용]
+    F --> G[성능 개선]
+    G --> H[더 나은 응답]
 ```
 
-### 2. 🔐 관리자 권한 설정
+### 🎯 핵심 기능
 
-**⚠️ 중요**: Google AI 베타 설정은 **관리자 권한이 필수**입니다.
+#### 1. 실패 로그 자동 감지
 
 ```typescript
-// 관리자 로그인 없이는 접근 불가
-if (!adminMode.isAuthenticated) {
-  return (
-    <div className="access-denied">
-      <Shield className="w-5 h-5" />
-      <p>관리자 권한이 필요합니다.</p>
-    </div>
-  );
+// 실패로 간주되는 조건
+const isFailure = (log: UserInteractionLog) =>
+  log.confidence < 0.6 ||
+  log.userFeedback === 'not_helpful' ||
+  log.userFeedback === 'incorrect' ||
+  log.intent === 'unknown';
+```
+
+#### 2. 배치 분석 처리
+
+- **배치 크기**: 5개 로그/배치
+- **요청 간격**: 10초
+- **일일 한도**: 100회 (무료 티어 고려)
+
+#### 3. 컨텍스트 제안 생성
+
+```json
+{
+  "title": "Kubernetes 리소스 부족 감지 문서",
+  "content": "노드별 메모리/CPU 임계치 기준 및 Pod OOMKilled 분석 가이드",
+  "type": "knowledge",
+  "confidence": 0.85,
+  "priority": "high",
+  "estimatedImprovement": 0.75
 }
 ```
 
-### 3. API 키 획득 방법
+### 📊 관리자 대시보드
 
-1. [Google AI Studio](https://aistudio.google.com) 접속
-2. 구글 계정으로 로그인
-3. "Get API Key" 클릭
-4. 새 프로젝트 생성 또는 기존 프로젝트 선택
-5. API 키 생성 (AIza로 시작)
+#### 상태 모니터링
 
-## 🔐 보안 정책 (강화됨)
+- **엔진 활성화 상태**
+- **일일 할당량 사용률**
+- **대기 중인 제안 수**
+- **마지막 분석 시간**
 
-### API 키 보안 강화
+#### 개선 제안 관리
 
-- **🚫 기존 키 표시 금지**: 프론트엔드에서 기존 API 키 값 확인 불가
-- **🔄 새 값만 입력**: 수정 시 완전히 새로운 API 키만 입력 가능
-- **🔒 자동 마스킹**: 저장된 키는 마지막 4자리만 표시 (`••••••••Fhv`)
-- **🗑️ 입력 필드 초기화**: 저장 후 입력 필드 자동 클리어
+- **제안 목록 조회**
+- **우선순위별 정렬**
+- **승인/거부 처리**
+- **적용 이력 추적**
+
+### 🔧 설정
+
+#### 환경 변수
+
+```bash
+# Gemini 학습 엔진 활성화
+GEMINI_LEARNING_ENABLED=true
+
+# 크론 시크릿 (Vercel Cron Jobs용)
+CRON_SECRET=your-secure-cron-secret
+```
+
+#### Vercel Cron 설정
+
+```json
+{
+  "crons": [
+    {
+      "path": "/api/cron/gemini-learning",
+      "schedule": "0 */2 * * *"
+    }
+  ]
+}
+```
+
+### 📈 성능 최적화
+
+#### 할당량 관리
+
+- **무료 티어 한도**: 20,000 requests/day
+- **실제 사용량**: ~50-100 requests/day
+- **안전 마진**: 80% 이하 사용
+
+#### 캐싱 전략
+
+- **유사 실패 패턴**: 24시간 캐시
+- **제안 재사용**: 동일 패턴 재발 시
+
+### 🔍 모니터링
+
+#### 주요 메트릭
+
+- **성공률**: 제안 생성 성공 비율
+- **적용률**: 관리자 승인 비율
+- **개선 효과**: 재발 방지 효율성
+
+#### 로그 분석
+
+```typescript
+// 실시간 로그 모니터링
+const status = learningEngine.getStatus();
+console.log({
+  enabled: status.enabled,
+  dailyRequestCount: status.dailyRequestCount,
+  remainingRequests: status.remainingRequests,
+  pendingSuggestions: status.pendingSuggestions,
+});
+```
+
+## 🔄 폴백 시스템
+
+### Google AI → MCP → RAG → 직접분석 → 기본분석
+
+각 단계에서 실패 시 다음 단계로 자동 전환되며, 모든 응답이 로깅되어 학습에 활용됩니다.
+
+## 📊 설정 가이드
+
+### 1. Google AI Studio API 키 발급
+
+1. [Google AI Studio](https://makersuite.google.com/app/apikey) 접속
+2. **Create API Key** 클릭
+3. 프로젝트 선택 또는 새 프로젝트 생성
+4. API 키 복사
+
+### 2. 환경 변수 설정
+
+```bash
+# Google AI 설정
+GOOGLE_AI_API_KEY=your-api-key-here
+GOOGLE_AI_MODEL=gemini-1.5-flash
+GOOGLE_AI_BETA_MODE=true
+GOOGLE_AI_ENABLED=true
+
+# 학습 엔진 설정
+GEMINI_LEARNING_ENABLED=true
+CRON_SECRET=your-secure-cron-secret
+```
+
+### 3. 베타 모드 활성화
+
+관리자 로그인 후 AI 설정에서 베타 모드를 활성화하세요.
+
+## 🔗 API 사용법
+
+### 기본 질의
+
+```typescript
+// 일반 질의 (베타 모드 활성화 시 자동으로 Google AI 우선 시도)
+const response = await fetch('/api/ai/query', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    query: '서버 CPU 사용률이 높은 원인을 분석해줘',
+    context: { servers: ['server-1', 'server-2'] },
+  }),
+});
+```
+
+### 고급 질의 (복합 조건)
+
+```typescript
+// 고급 분석 요청
+const advancedResponse = await fetch('/api/ai/enhanced', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-session-id': adminSessionId,
+  },
+  body: JSON.stringify({
+    query: '오늘 장애 발생 비율이 높은 서버는 어디야? 그 원인이 뭘까?',
+    analysisType: 'comprehensive',
+    priority: 'high',
+    includeRecommendations: true
+  })
+});
+
+// 응답 예시
+{
+  "success": true,
+  "result": "분석 결과: 서버 A, B, C에서 메모리 부족으로 인한 장애 발생...",
+  "engine_used": "Google AI Studio (Gemini)",
+  "confidence": 0.92,
+  "recommendations": [
+    "메모리 임계값 조정",
+    "로드 밸런싱 재구성",
+    "모니터링 강화"
+  ],
+  "thinking_process": [
+    { "step": 1, "content": "서버 메트릭 분석" },
+    { "step": 2, "content": "장애 패턴 식별" },
+    { "step": 3, "content": "근본 원인 도출" }
+  ]
+}
+```
+
+### 학습 엔진 API
+
+```typescript
+// 상태 조회
+const status = await fetch('/api/ai-agent/learning/gemini-status');
+
+// 수동 실행
+const learning = await fetch('/api/cron/gemini-learning', {
+  method: 'POST',
+  headers: { 'x-session-id': adminSessionId },
+});
+
+// 제안 조회
+const suggestions = await fetch('/api/ai-agent/learning/suggestions');
+```
+
+## 🔐 보안 정책
+
+### 관리자 권한 필수
+
+모든 Google AI 관련 설정과 학습 엔진은 **관리자 인증**이 필요합니다.
 
 ```typescript
 // 보안 처리 예시
 const saveConfig = async config => {
   // 🔐 관리자 권한 확인
   if (!adminMode.isAuthenticated) {
-    alert('⚠️ 관리자 권한이 필요합니다.');
-    return;
+    throw new Error('관리자 권한이 필요합니다.');
   }
 
-  // API 키가 제공된 경우에만 업데이트
-  if (apiKey && !apiKey.includes('••••••••')) {
-    // 새로운 키만 처리
-    process.env.GOOGLE_AI_API_KEY = apiKey.trim();
+  // API 키 마스킹 처리
+  if (config.apiKey && !config.apiKey.includes('••••••••')) {
+    // 새로운 키만 저장
+    await updateGoogleAIConfig(config);
   }
-
-  // 저장 후 입력 필드 초기화
-  setConfig(prev => ({ ...prev, apiKey: '' }));
 };
 ```
 
-### 관리자 권한 체크
-
-모든 Google AI 관련 API는 관리자 권한을 요구합니다:
+### API 엔드포인트 보안
 
 ```typescript
-// API 엔드포인트에서 권한 체크
+// 모든 Google AI API는 관리자 권한 확인
 const sessionId = request.headers.get('x-session-id');
 if (!sessionId || !authManager.hasPermission(sessionId, 'system:admin')) {
   return NextResponse.json(
@@ -161,55 +384,90 @@ if (!sessionId || !authManager.hasPermission(sessionId, 'system:admin')) {
 }
 ```
 
-## 📡 API 사용법
+### API 키 보안
 
-### 설정 API
+- **표시 방지**: 기존 키는 `••••••••****` 형태로만 표시
+- **입력 전용**: 새로운 키만 입력 가능
+- **자동 클리어**: 저장 후 입력 필드 자동 초기화
+
+## ⚡ 성능 최적화
+
+### 무료 할당량 관리
+
+**Google AI Studio 무료 티어 (2024년 기준)**
+
+- **모델**: Gemini 1.5 Flash
+- **한도**: 15 requests/minute, 1,500 requests/day
+- **토큰**: 128K context
+
+### 스마트 캐싱
 
 ```typescript
-// GET /api/ai/google-ai/config - 설정 조회 (관리자 전용)
-// 🔐 x-session-id 헤더 필수
+// 응답 캐싱으로 할당량 절약
+const cacheKey = this.generateCacheKey(prompt);
+const cached = this.requestCache.get(cacheKey);
+
+if (cached && Date.now() - cached.timestamp < 300000) {
+  // 5분 캐시
+  return {
+    content: cached.response,
+    cached: true,
+    confidence: 0.95,
+  };
+}
+```
+
+### 요청 최적화
+
+- **배치 처리**: 여러 요청을 하나로 묶어 처리
+- **우선순위**: 중요도에 따른 처리 순서
+- **지연 처리**: 급하지 않은 요청은 저사용 시간대에 처리
+
+## 🛠 사용 시나리오
+
+### 1. 고급 질의 응답
+
+```typescript
+// 복합 조건 질의
 const response = await fetch('/api/ai/google-ai/config', {
   headers: {
     'x-session-id': adminSessionId,
   },
 });
 
-// POST /api/ai/google-ai/config - 설정 저장 (관리자 전용)
-await fetch('/api/ai/google-ai/config', {
+const testResponse = await fetch('/api/ai/google-ai/test', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
     'x-session-id': adminSessionId,
   },
   body: JSON.stringify({
-    enabled: true,
-    apiKey: 'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM',
-    model: 'gemini-1.5-flash',
+    query: '현재 시스템에서 가장 취약한 부분은?',
+    includeRecommendations: true,
   }),
 });
 ```
 
-### 연결 테스트 API
+### 2. 시스템 상태 분석
 
 ```typescript
-// POST /api/ai/google-ai/test - 연결 테스트 (관리자 전용)
-const testResult = await fetch('/api/ai/google-ai/test', {
+const analysisResponse = await fetch('/api/ai/enhanced', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
     'x-session-id': adminSessionId,
   },
   body: JSON.stringify({
-    apiKey: 'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM',
-    model: 'gemini-1.5-flash',
+    query: 'CPU 사용률이 90% 이상인 서버들의 공통점을 찾아줘',
+    analysisType: 'pattern_analysis',
+    includeVisualization: true,
   }),
 });
 ```
 
-### 상태 조회 API
+### 3. 실시간 모니터링
 
 ```typescript
-// GET /api/ai/google-ai/status - 상태 및 사용량 조회 (관리자 전용)
 const status = await fetch('/api/ai/google-ai/status', {
   headers: {
     'x-session-id': adminSessionId,
@@ -217,142 +475,100 @@ const status = await fetch('/api/ai/google-ai/status', {
 });
 ```
 
-## 🎯 사용 시나리오
-
-### 1. 서버 모니터링 분석
-
-```typescript
-// 자동으로 Google AI가 우선 처리됨 (베타 모드 활성화 시)
-const query = '현재 서버 상태를 분석해주세요';
-
-// Google AI 응답 예시:
-// 🎯 **핵심 요약**
-// 현재 3대 서버 모두 정상 운영 중이며, CPU 사용률은 평균 45%로 안정적입니다.
-//
-// 📊 **상세 분석**
-// - Server-1: CPU 42%, 메모리 68%, 응답시간 120ms
-// - Server-2: CPU 48%, 메모리 73%, 응답시간 95ms
-// - Server-3: CPU 45%, 메모리 65%, 응답시간 110ms
-//
-// 💡 **권장 조치사항**
-// 1. Server-2 메모리 사용률 모니터링 강화 (73% → 80% 임계점 근접)
-// 2. 전체적으로 안정적이나 주간 트렌드 분석 권장
-```
-
-### 2. 예측 분석
-
-```typescript
-const query = '향후 리소스 사용량을 예측해주세요';
-
-// Google AI 베타 기능:
-// - 트렌드 패턴 분석
-// - 머신러닝 기반 예측
-// - 실용적인 권장사항 제공
-```
-
-### 3. 문제 해결 지원
-
-```typescript
-const query = '서버 응답시간이 느린 원인을 분석해주세요';
-
-// 자동 폴백 시나리오:
-// 1. Google AI로 고급 분석 시도
-// 2. 실패 시 MCP로 로그 분석
-// 3. 실패 시 RAG로 문서 검색
-// 4. 실패 시 직접 메트릭 분석
-// 5. 최종적으로 기본 분석 제공
-```
-
-## ⚡ 성능 최적화
-
-### 할당량 관리
-
-- **Gemini 1.5 Flash**: 15 RPM, 1,500/일 (무료)
-- **Gemini 1.5 Pro**: 2 RPM, 50/일 (무료)
-- **스마트 캐싱**: 5분간 동일 쿼리 캐시
-- **자동 폴백**: 할당량 초과 시 즉시 MCP로 전환
-
-### 캐싱 전략
-
-```typescript
-// 고급 분석은 5분 캐시
-const cached = this.getCachedResponse(cacheKey, 300000);
-if (cached) {
-  return {
-    success: true,
-    content: cached,
-    cached: true,
-    confidence: 0.95,
-  };
-}
-```
-
-## 🐛 문제 해결
+## 🔧 문제 해결
 
 ### 일반적인 문제
 
-1. **API 키 오류**
-
-   ```
-   해결: API 키가 AIza로 시작하는지 확인, Google AI Studio에서 재생성
-   ```
-
-2. **할당량 초과**
-
-   ```
-   해결: 자동으로 MCP/RAG로 폴백됨, 15분 후 자동 복구
-   ```
-
-3. **관리자 권한 오류**
-
-   ```
-   해결: 홈페이지에서 관리자 로그인 (PIN: 4231) 후 재시도
-   ```
-
-4. **RAG 엔진 초기화 실패**
-
-   ```
-   해결: 문서 인덱스 확인, /api/documents/index 엔드포인트 점검
-   ```
-
-### 디버그 명령어
+#### 1. API 키 인식 안됨
 
 ```bash
-# Google AI 상태 확인
-curl -H "x-session-id: YOUR_SESSION" http://localhost:3000/api/ai/google-ai/status
+# 환경 변수 확인
+echo $GOOGLE_AI_API_KEY
 
-# 연결 테스트
-curl -X POST -H "Content-Type: application/json" \
-  -H "x-session-id: YOUR_SESSION" \
-  -d '{"apiKey":"AIza...","model":"gemini-1.5-flash"}' \
-  http://localhost:3000/api/ai/google-ai/test
-
-# 설정 확인
-curl -H "x-session-id: YOUR_SESSION" http://localhost:3000/api/ai/google-ai/config
+# Vercel 환경 변수 재설정
+vercel env add GOOGLE_AI_API_KEY
 ```
 
-### 로그 확인
+#### 2. 할당량 초과
+
+```json
+{
+  "error": "Quota exceeded",
+  "solution": "내일 리셋까지 대기 또는 유료 플랜 업그레이드"
+}
+```
+
+#### 3. 응답 품질 낮음
+
+- **프롬프트 개선**: 더 구체적인 질문
+- **컨텍스트 추가**: 시스템 상태 정보 포함
+- **모델 변경**: gemini-1.5-pro 시도
+
+### 학습 엔진 문제
+
+#### 1. 제안 생성 안됨
+
+```typescript
+// 디버그 정보 확인
+const status = learningEngine.getStatus();
+console.log('Daily requests:', status.dailyRequestCount);
+console.log('Remaining:', status.remainingRequests);
+```
+
+#### 2. 크론 작업 실패
 
 ```bash
-# Google AI 관련 로그
-grep "Google AI" logs/ai-analysis/*.log
-
-# 폴백 시스템 로그
-grep "폴백\|fallback" logs/ai-analysis/*.log
-
-# RAG 엔진 로그
-grep "RAG\|Vector" logs/ai-analysis/*.log
+# Vercel 크론 로그 확인
+vercel logs --function api/cron/gemini-learning
 ```
 
-## 🎉 성공적인 통합 완료
+### 로그 분석
 
-OpenManager Vibe v5에 Google AI Studio (Gemini)가 성공적으로 통합되어, 사용자는 이제 다음과 같은 고급 기능을 활용할 수 있습니다:
+```typescript
+// 상세 로그 활성화
+console.log('🤖 [Google AI] 요청 시작:', {
+  model: this.config.model,
+  promptLength: prompt.length,
+  requestCount: this.requestCount,
+});
+```
 
-- ✅ **베타 모드 온/오프** - 기존 시스템과 완벽한 호환성
-- ✅ **5단계 폴백 시스템** - Google AI → MCP → RAG → 직접분석 → 기본분석
-- ✅ **관리자 보안 체계** - 권한 기반 접근 제어
-- ✅ **API 키 보안 강화** - 마스킹 및 입력 제한
-- ✅ **무료 할당량 최적화** - 캐싱 및 스마트 관리
-- ✅ **실시간 사용량 모니터링** - 게이지 및 통계 제공
+### 성능 모니터링
 
-**🚀 지금 AI 관리자 페이지에서 Google AI 베타 모드를 활성화해보세요!**
+```typescript
+// 응답 시간 추적
+const startTime = Date.now();
+const response = await this.generateContent(prompt);
+const responseTime = Date.now() - startTime;
+
+console.log(`⚡ [Google AI] 응답 시간: ${responseTime}ms`);
+```
+
+## 📈 향후 계획
+
+### Phase 1 (완료) ✅
+
+- Google AI Studio 기본 통합
+- 베타 모드 토글
+- 폴백 시스템
+- 보안 강화
+- RAG 엔진 통합
+- Gemini 학습 엔진 기본 구현
+
+### Phase 2 (진행 중) 🚧
+
+- 고급 프롬프트 엔지니어링
+- 성능 분석 대시보드
+- A/B 테스트 도구
+- 자동 튜닝 시스템
+
+### Phase 3 (계획) 📋
+
+- 멀티모델 지원 (Claude, GPT-4)
+- 실시간 피드백 학습
+- 예측적 분석
+- 자동 스케일링
+
+---
+
+**🎯 결론**: Google AI Studio (Gemini) 베타 통합과 자기 학습 시스템으로 OpenManager Vibe v5는 이제 **진정한 자기 강화형 AI 운영 에이전트**로 진화했습니다.

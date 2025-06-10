@@ -65,6 +65,20 @@
       "destination": "/api/health"
     }
   ],
+  "crons": [
+    {
+      "path": "/api/health",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/keep-alive",
+      "schedule": "0 */4 * * *"
+    },
+    {
+      "path": "/api/cron/gemini-learning",
+      "schedule": "0 */2 * * *"
+    }
+  ],
   "cleanUrls": true,
   "trailingSlash": false
 }
