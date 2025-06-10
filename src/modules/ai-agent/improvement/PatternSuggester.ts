@@ -1,7 +1,7 @@
-import { 
-  UserInteractionLog, 
+import {
+  UserInteractionLog,
   PatternSuggestion,
-  QuestionType 
+  QuestionType,
 } from '@/types/ai-learning';
 import { QuestionGroup } from '../analytics/FailureAnalyzer';
 
@@ -40,7 +40,7 @@ export class PatternSuggester {
       maxSuggestions: 20,
       confidenceThreshold: 0.7,
       similarityThreshold: 0.6,
-      ...config
+      ...config,
     };
   }
 
@@ -55,11 +55,11 @@ export class PatternSuggester {
       if (processed.has(question)) continue;
 
       const similarQuestions = this.findSimilarQuestions(question, questions);
-      
+
       if (similarQuestions.length >= this.config.minGroupSize) {
         const group = this.createQuestionGroup(similarQuestions);
         groups.push(group);
-        
+
         // 처리된 질문들 마킹
         similarQuestions.forEach(q => processed.add(q));
       }
@@ -71,7 +71,12 @@ export class PatternSuggester {
     console.log(`🔗 [PatternSuggester] 질문 그룹핑 완료:`, {
       totalQuestions: questions.length,
       groupsCreated: groups.length,
-      averageGroupSize: groups.length > 0 ? Math.round(groups.reduce((sum, g) => sum + g.frequency, 0) / groups.length) : 0
+      averageGroupSize:
+        groups.length > 0
+          ? Math.round(
+              groups.reduce((sum, g) => sum + g.frequency, 0) / groups.length
+            )
+          : 0,
     });
 
     return groups.slice(0, this.config.maxSuggestions);
@@ -80,7 +85,9 @@ export class PatternSuggester {
   /**
    * 새로운 정규식 패턴 생성
    */
-  async generateRegexPatterns(questionGroup: QuestionGroup): Promise<RegexPattern[]> {
+  async generateRegexPatterns(
+    questionGroup: QuestionGroup
+  ): Promise<RegexPattern[]> {
     const patterns: RegexPattern[] = [];
 
     // 1. 키워드 기반 패턴
@@ -102,13 +109,15 @@ export class PatternSuggester {
     }
 
     // 신뢰도 기준으로 필터링
-    const validPatterns = patterns.filter(p => p.confidence >= this.config.confidenceThreshold);
+    const validPatterns = patterns.filter(
+      p => p.confidence >= this.config.confidenceThreshold
+    );
 
     console.log(`🎯 [PatternSuggester] 정규식 패턴 생성 완료:`, {
       groupId: questionGroup.id,
       patternsGenerated: patterns.length,
       validPatterns: validPatterns.length,
-      category: questionGroup.suggestedCategory
+      category: questionGroup.suggestedCategory,
     });
 
     return validPatterns;
@@ -117,7 +126,10 @@ export class PatternSuggester {
   /**
    * 응답 템플릿 제안
    */
-  async suggestResponseTemplates(questionGroup: QuestionGroup, contextData?: any): Promise<ResponseTemplate[]> {
+  async suggestResponseTemplates(
+    questionGroup: QuestionGroup,
+    contextData?: any
+  ): Promise<ResponseTemplate[]> {
     const templates: ResponseTemplate[] = [];
     const category = questionGroup.suggestedCategory;
 
@@ -144,7 +156,10 @@ export class PatternSuggester {
 
     // 컨텍스트 기반 추가 템플릿
     if (contextData) {
-      const contextTemplate = this.createContextAwareTemplate(questionGroup, contextData);
+      const contextTemplate = this.createContextAwareTemplate(
+        questionGroup,
+        contextData
+      );
       if (contextTemplate) {
         templates.push(contextTemplate);
       }
@@ -153,7 +168,7 @@ export class PatternSuggester {
     console.log(`📝 [PatternSuggester] 응답 템플릿 제안 완료:`, {
       category,
       templatesCreated: templates.length,
-      groupSize: questionGroup.frequency
+      groupSize: questionGroup.frequency,
     });
 
     return templates;
@@ -163,14 +178,14 @@ export class PatternSuggester {
    * 패턴 제안 생성
    */
   async generatePatternSuggestions(
-    interactions: UserInteractionLog[], 
+    interactions: UserInteractionLog[],
     questionGroups: QuestionGroup[]
   ): Promise<PatternSuggestion[]> {
     const suggestions: PatternSuggestion[] = [];
 
     for (const group of questionGroups) {
       // 해당 그룹의 상호작용들 찾기
-      const groupInteractions = interactions.filter(i => 
+      const groupInteractions = interactions.filter(i =>
         group.questions.includes(i.query)
       );
 
@@ -178,16 +193,17 @@ export class PatternSuggester {
 
       // 정규식 패턴 생성
       const regexPatterns = await this.generateRegexPatterns(group);
-      
+
       for (const regexPattern of regexPatterns) {
         const suggestion: PatternSuggestion = {
           id: this.generateSuggestionId(),
           suggestedPattern: regexPattern.pattern,
           basedOnInteractions: groupInteractions.map(i => i.id),
           confidenceScore: regexPattern.confidence,
-          estimatedImprovement: this.calculateEstimatedImprovement(groupInteractions),
+          estimatedImprovement:
+            this.calculateEstimatedImprovement(groupInteractions),
           status: 'pending',
-          createdAt: new Date()
+          createdAt: new Date(),
         };
 
         suggestions.push(suggestion);
@@ -199,9 +215,16 @@ export class PatternSuggester {
 
     console.log(`💡 [PatternSuggester] 패턴 제안 생성 완료:`, {
       totalSuggestions: suggestions.length,
-      highConfidenceSuggestions: suggestions.filter(s => s.confidenceScore > 0.8).length,
-      averageImprovement: suggestions.length > 0 ? 
-        Math.round(suggestions.reduce((sum, s) => sum + s.estimatedImprovement, 0) / suggestions.length) : 0
+      highConfidenceSuggestions: suggestions.filter(
+        s => s.confidenceScore > 0.8
+      ).length,
+      averageImprovement:
+        suggestions.length > 0
+          ? Math.round(
+              suggestions.reduce((sum, s) => sum + s.estimatedImprovement, 0) /
+                suggestions.length
+            )
+          : 0,
     });
 
     return suggestions.slice(0, this.config.maxSuggestions);
@@ -210,7 +233,10 @@ export class PatternSuggester {
   /**
    * 유사 질문 찾기
    */
-  private findSimilarQuestions(targetQuestion: string, allQuestions: string[]): string[] {
+  private findSimilarQuestions(
+    targetQuestion: string,
+    allQuestions: string[]
+  ): string[] {
     const similar = [targetQuestion];
     const targetKeywords = this.extractKeywords(targetQuestion);
     const targetStructure = this.analyzeQuestionStructure(targetQuestion);
@@ -219,9 +245,9 @@ export class PatternSuggester {
       if (question === targetQuestion) continue;
 
       const similarity = this.calculateSimilarity(
-        targetQuestion, 
-        question, 
-        targetKeywords, 
+        targetQuestion,
+        question,
+        targetKeywords,
         targetStructure
       );
 
@@ -254,7 +280,7 @@ export class PatternSuggester {
       frequency: questions.length,
       averageConfidence: 0, // 나중에 계산
       commonKeywords,
-      suggestedCategory: category
+      suggestedCategory: category,
     };
   }
 
@@ -262,15 +288,35 @@ export class PatternSuggester {
    * 키워드 추출
    */
   private extractKeywords(text: string): string[] {
-    const normalized = text.toLowerCase()
+    const normalized = text
+      .toLowerCase()
       .replace(/[^\w\s가-힣]/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
 
     const words = normalized.split(' ').filter(word => word.length > 1);
-    
+
     // 불용어 제거
-    const stopWords = ['은', '는', '이', '가', '을', '를', '에', '의', '와', '과', '도', '만', '부터', '까지', '어떻게', '무엇', '언제', '어디서'];
+    const stopWords = [
+      '은',
+      '는',
+      '이',
+      '가',
+      '을',
+      '를',
+      '에',
+      '의',
+      '와',
+      '과',
+      '도',
+      '만',
+      '부터',
+      '까지',
+      '어떻게',
+      '무엇',
+      '언제',
+      '어디서',
+    ];
     return words.filter(word => !stopWords.includes(word));
   }
 
@@ -283,7 +329,7 @@ export class PatternSuggester {
       hasCommand: /해주세요|확인|조회|분석|해결/.test(question),
       hasNumbers: /\d+/.test(question),
       length: question.length,
-      wordCount: question.split(/\s+/).length
+      wordCount: question.split(/\s+/).length,
     };
   }
 
@@ -291,9 +337,9 @@ export class PatternSuggester {
    * 유사도 계산
    */
   private calculateSimilarity(
-    q1: string, 
-    q2: string, 
-    keywords1: string[], 
+    q1: string,
+    q2: string,
+    keywords1: string[],
     structure1: any
   ): number {
     const keywords2 = this.extractKeywords(q2);
@@ -301,25 +347,38 @@ export class PatternSuggester {
 
     // 키워드 유사도 (50%)
     const commonKeywords = keywords1.filter(k => keywords2.includes(k));
-    const keywordSimilarity = commonKeywords.length / Math.max(keywords1.length, keywords2.length, 1);
+    const keywordSimilarity =
+      commonKeywords.length / Math.max(keywords1.length, keywords2.length, 1);
 
     // 구조 유사도 (30%)
     let structureSimilarity = 0;
-    if (structure1.hasQuestion === structure2.hasQuestion) structureSimilarity += 0.3;
-    if (structure1.hasCommand === structure2.hasCommand) structureSimilarity += 0.3;
-    if (Math.abs(structure1.wordCount - structure2.wordCount) <= 2) structureSimilarity += 0.4;
+    if (structure1.hasQuestion === structure2.hasQuestion)
+      structureSimilarity += 0.3;
+    if (structure1.hasCommand === structure2.hasCommand)
+      structureSimilarity += 0.3;
+    if (Math.abs(structure1.wordCount - structure2.wordCount) <= 2)
+      structureSimilarity += 0.4;
 
     // 길이 유사도 (20%)
     const lengthDiff = Math.abs(structure1.length - structure2.length);
-    const lengthSimilarity = Math.max(0, 1 - lengthDiff / Math.max(structure1.length, structure2.length));
+    const lengthSimilarity = Math.max(
+      0,
+      1 - lengthDiff / Math.max(structure1.length, structure2.length)
+    );
 
-    return keywordSimilarity * 0.5 + structureSimilarity * 0.3 + lengthSimilarity * 0.2;
+    return (
+      keywordSimilarity * 0.5 +
+      structureSimilarity * 0.3 +
+      lengthSimilarity * 0.2
+    );
   }
 
   /**
    * 키워드 빈도 계산
    */
-  private calculateKeywordFrequency(keywords: string[]): Record<string, number> {
+  private calculateKeywordFrequency(
+    keywords: string[]
+  ): Record<string, number> {
     const freq: Record<string, number> = {};
     keywords.forEach(keyword => {
       freq[keyword] = (freq[keyword] || 0) + 1;
@@ -332,7 +391,7 @@ export class PatternSuggester {
    */
   private generateGroupPattern(commonKeywords: string[]): string {
     if (commonKeywords.length === 0) return 'general_query';
-    
+
     const primaryKeywords = commonKeywords.slice(0, 3);
     return primaryKeywords.join('_');
   }
@@ -342,15 +401,26 @@ export class PatternSuggester {
    */
   private categorizeQuestions(questions: string[], keywords: string[]): string {
     const keywordStr = keywords.join(' ').toLowerCase();
-    
-    if (keywordStr.includes('cpu') || keywordStr.includes('프로세서')) return 'CPU 모니터링';
-    if (keywordStr.includes('메모리') || keywordStr.includes('ram')) return '메모리 관리';
-    if (keywordStr.includes('네트워크') || keywordStr.includes('통신')) return '네트워크 모니터링';
-    if (keywordStr.includes('디스크') || keywordStr.includes('저장')) return '스토리지 관리';
-    if (keywordStr.includes('로그') || keywordStr.includes('기록')) return '로그 분석';
-    if (keywordStr.includes('에러') || keywordStr.includes('장애') || keywordStr.includes('오류')) return '장애 대응';
-    if (keywordStr.includes('서버') || keywordStr.includes('시스템')) return '서버 관리';
-    
+
+    if (keywordStr.includes('cpu') || keywordStr.includes('프로세서'))
+      return 'CPU 모니터링';
+    if (keywordStr.includes('메모리') || keywordStr.includes('ram'))
+      return '메모리 관리';
+    if (keywordStr.includes('네트워크') || keywordStr.includes('통신'))
+      return '네트워크 모니터링';
+    if (keywordStr.includes('디스크') || keywordStr.includes('저장'))
+      return '스토리지 관리';
+    if (keywordStr.includes('로그') || keywordStr.includes('기록'))
+      return '로그 분석';
+    if (
+      keywordStr.includes('에러') ||
+      keywordStr.includes('장애') ||
+      keywordStr.includes('오류')
+    )
+      return '장애 대응';
+    if (keywordStr.includes('서버') || keywordStr.includes('시스템'))
+      return '서버 관리';
+
     return '일반 질의';
   }
 
@@ -362,15 +432,15 @@ export class PatternSuggester {
 
     const keywords = group.commonKeywords.slice(0, 3);
     const pattern = `(${keywords.join('|')}).*`;
-    
+
     return {
       id: this.generatePatternId(),
       pattern,
       description: `${keywords.join(', ')} 키워드를 포함하는 질문 패턴`,
       category: group.suggestedCategory,
-      confidence: Math.min(0.9, 0.6 + (keywords.length * 0.1)),
+      confidence: Math.min(0.9, 0.6 + keywords.length * 0.1),
       testCases: group.questions.slice(0, 5),
-      expectedMatches: group.frequency
+      expectedMatches: group.frequency,
     };
   }
 
@@ -378,9 +448,13 @@ export class PatternSuggester {
    * 구조 기반 패턴 생성
    */
   private generateStructurePattern(group: QuestionGroup): RegexPattern | null {
-    const structures = group.questions.map(q => this.analyzeQuestionStructure(q));
-    const hasQuestionMark = structures.filter(s => s.hasQuestion).length > structures.length * 0.7;
-    const hasCommand = structures.filter(s => s.hasCommand).length > structures.length * 0.7;
+    const structures = group.questions.map(q =>
+      this.analyzeQuestionStructure(q)
+    );
+    const hasQuestionMark =
+      structures.filter(s => s.hasQuestion).length > structures.length * 0.7;
+    const hasCommand =
+      structures.filter(s => s.hasCommand).length > structures.length * 0.7;
 
     if (!hasQuestionMark && !hasCommand) return null;
 
@@ -398,7 +472,7 @@ export class PatternSuggester {
       category: group.suggestedCategory,
       confidence: 0.75,
       testCases: group.questions.slice(0, 5),
-      expectedMatches: group.frequency
+      expectedMatches: group.frequency,
     };
   }
 
@@ -433,7 +507,7 @@ export class PatternSuggester {
       category,
       confidence: 0.8,
       testCases: group.questions.slice(0, 5),
-      expectedMatches: group.frequency
+      expectedMatches: group.frequency,
     };
   }
 
@@ -458,13 +532,23 @@ export class PatternSuggester {
 
 **상세 분석**:
 {{detailed_analysis}}`,
-      variables: ['cpu_usage', 'load_average', 'process_count', 'high_cpu', 'top_processes', 'recommendations', 'detailed_analysis'],
+      variables: [
+        'cpu_usage',
+        'load_average',
+        'process_count',
+        'high_cpu',
+        'top_processes',
+        'recommendations',
+        'detailed_analysis',
+      ],
       examples: group.questions.slice(0, 3),
-      applicablePatterns: [group.pattern]
+      applicablePatterns: [group.pattern],
     };
   }
 
-  private createMemoryManagementTemplate(group: QuestionGroup): ResponseTemplate {
+  private createMemoryManagementTemplate(
+    group: QuestionGroup
+  ): ResponseTemplate {
     return {
       id: this.generateTemplateId(),
       category: '메모리 관리',
@@ -482,13 +566,23 @@ export class PatternSuggester {
 
 **메모리 사용 상위 프로세스**:
 {{top_memory_processes}}`,
-      variables: ['total_memory', 'used_memory', 'memory_percentage', 'available_memory', 'memory_warning', 'memory_recommendations', 'top_memory_processes'],
+      variables: [
+        'total_memory',
+        'used_memory',
+        'memory_percentage',
+        'available_memory',
+        'memory_warning',
+        'memory_recommendations',
+        'top_memory_processes',
+      ],
       examples: group.questions.slice(0, 3),
-      applicablePatterns: [group.pattern]
+      applicablePatterns: [group.pattern],
     };
   }
 
-  private createNetworkMonitoringTemplate(group: QuestionGroup): ResponseTemplate {
+  private createNetworkMonitoringTemplate(
+    group: QuestionGroup
+  ): ResponseTemplate {
     return {
       id: this.generateTemplateId(),
       category: '네트워크 모니터링',
@@ -507,13 +601,24 @@ export class PatternSuggester {
 
 **상세 정보**:
 {{network_details}}`,
-      variables: ['connection_status', 'latency', 'bandwidth_usage', 'network_issues', 'issue_type', 'affected_services', 'network_recommendations', 'network_details'],
+      variables: [
+        'connection_status',
+        'latency',
+        'bandwidth_usage',
+        'network_issues',
+        'issue_type',
+        'affected_services',
+        'network_recommendations',
+        'network_details',
+      ],
       examples: group.questions.slice(0, 3),
-      applicablePatterns: [group.pattern]
+      applicablePatterns: [group.pattern],
     };
   }
 
-  private createIncidentResponseTemplate(group: QuestionGroup): ResponseTemplate {
+  private createIncidentResponseTemplate(
+    group: QuestionGroup
+  ): ResponseTemplate {
     return {
       id: this.generateTemplateId(),
       category: '장애 대응',
@@ -531,13 +636,22 @@ export class PatternSuggester {
 
 **추가 모니터링 항목**:
 {{monitoring_items}}`,
-      variables: ['incident_type', 'severity_level', 'impact_scope', 'immediate_actions', 'step_by_step_solution', 'monitoring_items'],
+      variables: [
+        'incident_type',
+        'severity_level',
+        'impact_scope',
+        'immediate_actions',
+        'step_by_step_solution',
+        'monitoring_items',
+      ],
       examples: group.questions.slice(0, 3),
-      applicablePatterns: [group.pattern]
+      applicablePatterns: [group.pattern],
     };
   }
 
-  private createServerManagementTemplate(group: QuestionGroup): ResponseTemplate {
+  private createServerManagementTemplate(
+    group: QuestionGroup
+  ): ResponseTemplate {
     return {
       id: this.generateTemplateId(),
       category: '서버 관리',
@@ -555,9 +669,18 @@ export class PatternSuggester {
 
 **권장 작업**:
 {{recommended_actions}}`,
-      variables: ['server_status', 'uptime', 'system_load', 'cpu_status', 'memory_status', 'disk_status', 'network_status', 'recommended_actions'],
+      variables: [
+        'server_status',
+        'uptime',
+        'system_load',
+        'cpu_status',
+        'memory_status',
+        'disk_status',
+        'network_status',
+        'recommended_actions',
+      ],
       examples: group.questions.slice(0, 3),
-      applicablePatterns: [group.pattern]
+      applicablePatterns: [group.pattern],
     };
   }
 
@@ -575,29 +698,139 @@ export class PatternSuggester {
 
 **추가 도움말**:
 {{additional_help}}`,
-      variables: ['user_query', 'analysis_result', 'detailed_information', 'additional_help'],
+      variables: [
+        'user_query',
+        'analysis_result',
+        'detailed_information',
+        'additional_help',
+      ],
       examples: group.questions.slice(0, 3),
-      applicablePatterns: [group.pattern]
+      applicablePatterns: [group.pattern],
     };
   }
 
-  private createContextAwareTemplate(group: QuestionGroup, contextData: any): ResponseTemplate | null {
+  private createContextAwareTemplate(
+    group: QuestionGroup,
+    contextData: any
+  ): ResponseTemplate | null {
+    if (!contextData || typeof contextData !== 'object') {
+      return null;
+    }
+
+    // 컨텍스트 데이터 분석
+    const hasServerMetrics =
+      contextData.servers && Array.isArray(contextData.servers);
+    const hasTimeRange = contextData.timeRange && contextData.timeRange.start;
+    const hasUserPreferences =
+      contextData.userPreferences && contextData.userPreferences.language;
+    const hasErrorLogs =
+      contextData.errorLogs && Array.isArray(contextData.errorLogs);
+
     // 컨텍스트 기반 동적 템플릿 생성
-    // TODO: 구현
-    return null;
+    let template = `🎯 **컨텍스트 기반 분석 결과**\n\n`;
+    let variables: string[] = ['user_query', 'context_summary'];
+    let category = '컨텍스트 인식';
+
+    // 서버 메트릭 컨텍스트
+    if (hasServerMetrics) {
+      template += `**서버 현황**:\n`;
+      template += `- 총 서버 수: {{server_count}}개\n`;
+      template += `- 온라인 서버: {{online_servers}}개\n`;
+      template += `- 평균 CPU 사용률: {{avg_cpu}}%\n`;
+      template += `- 평균 메모리 사용률: {{avg_memory}}%\n\n`;
+
+      variables.push('server_count', 'online_servers', 'avg_cpu', 'avg_memory');
+      category = '실시간 서버 분석';
+    }
+
+    // 시간 범위 컨텍스트
+    if (hasTimeRange) {
+      template += `**분석 기간**: {{start_time}} ~ {{end_time}}\n\n`;
+      variables.push('start_time', 'end_time');
+    }
+
+    // 에러 로그 컨텍스트
+    if (hasErrorLogs) {
+      template += `**최근 오류 현황**:\n`;
+      template += `{{#if has_errors}}\n`;
+      template += `- 총 오류 수: {{error_count}}건\n`;
+      template += `- 주요 오류 유형: {{error_types}}\n`;
+      template += `- 영향받은 서버: {{affected_servers}}\n`;
+      template += `{{else}}\n`;
+      template += `- ✅ 최근 심각한 오류 없음\n`;
+      template += `{{/if}}\n\n`;
+
+      variables.push(
+        'has_errors',
+        'error_count',
+        'error_types',
+        'affected_servers'
+      );
+      category = '오류 분석 및 해결';
+    }
+
+    // 사용자 선호도 컨텍스트
+    if (hasUserPreferences) {
+      const lang = contextData.userPreferences.language;
+      if (lang === 'ko') {
+        template += `**상세 분석**:\n{{detailed_analysis_ko}}\n\n`;
+        variables.push('detailed_analysis_ko');
+      } else {
+        template += `**Detailed Analysis**:\n{{detailed_analysis_en}}\n\n`;
+        variables.push('detailed_analysis_en');
+      }
+    }
+
+    // 질문 그룹 기반 맞춤 섹션
+    if (group.suggestedCategory) {
+      switch (group.suggestedCategory) {
+        case 'CPU 모니터링':
+          template += `**CPU 최적화 제안**:\n{{cpu_optimization}}\n\n`;
+          variables.push('cpu_optimization');
+          break;
+        case '메모리 관리':
+          template += `**메모리 최적화 제안**:\n{{memory_optimization}}\n\n`;
+          variables.push('memory_optimization');
+          break;
+        case '네트워크 모니터링':
+          template += `**네트워크 최적화 제안**:\n{{network_optimization}}\n\n`;
+          variables.push('network_optimization');
+          break;
+      }
+    }
+
+    // 액션 가이드
+    template += `**권장 조치사항**:\n{{recommended_actions}}\n\n`;
+    template += `**추가 모니터링**:\n{{additional_monitoring}}`;
+
+    variables.push('recommended_actions', 'additional_monitoring');
+
+    return {
+      id: this.generateTemplateId(),
+      category,
+      template,
+      variables,
+      examples: group.questions.slice(0, 2),
+      applicablePatterns: [group.pattern],
+    };
   }
 
   /**
    * 예상 개선 효과 계산
    */
-  private calculateEstimatedImprovement(interactions: UserInteractionLog[]): number {
+  private calculateEstimatedImprovement(
+    interactions: UserInteractionLog[]
+  ): number {
     const totalInteractions = interactions.length;
-    const lowConfidenceCount = interactions.filter(i => i.confidence < 0.6).length;
-    const negativeCount = interactions.filter(i => 
-      i.userFeedback === 'not_helpful' || i.userFeedback === 'incorrect'
+    const lowConfidenceCount = interactions.filter(
+      i => i.confidence < 0.6
+    ).length;
+    const negativeCount = interactions.filter(
+      i => i.userFeedback === 'not_helpful' || i.userFeedback === 'incorrect'
     ).length;
 
-    const improvementPotential = (lowConfidenceCount + negativeCount) / totalInteractions;
+    const improvementPotential =
+      (lowConfidenceCount + negativeCount) / totalInteractions;
     return Math.round(improvementPotential * 100);
   }
 
@@ -619,4 +852,4 @@ export class PatternSuggester {
   private generateTemplateId(): string {
     return `template_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
-} 
+}

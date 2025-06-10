@@ -15,6 +15,42 @@ import {
   formatErrorMessage,
 } from '../utils';
 
+// 🔧 실시간 데이터 수집 함수들
+async function fetchCurrentServerMetrics() {
+  try {
+    const response = await fetch('/api/servers');
+    if (response.ok) {
+      return await response.json();
+    }
+  } catch (error) {
+    console.warn('⚠️ 서버 메트릭 수집 실패:', error);
+  }
+  return [];
+}
+
+async function fetchRecentLogEntries() {
+  try {
+    // 로컬 스토리지에서 최근 알림 로그 가져오기
+    const logs = JSON.parse(localStorage.getItem('notification_logs') || '[]');
+
+    // API에서도 시도
+    try {
+      const response = await fetch('/api/logs/recent?limit=50');
+      if (response.ok) {
+        const apiLogs = await response.json();
+        return apiLogs.length > 0 ? apiLogs : logs.slice(0, 50);
+      }
+    } catch (apiError) {
+      console.warn('⚠️ API 로그 수집 실패, 로컬 데이터 사용:', apiError);
+    }
+
+    return logs.slice(0, 50); // 최근 50개
+  } catch (error) {
+    console.warn('⚠️ 로그 데이터 수집 실패:', error);
+    return [];
+  }
+}
+
 export const useAIChat = (options: ChatHookOptions) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,8 +92,8 @@ export const useAIChat = (options: ChatHookOptions) => {
             query: content,
             context: {
               sessionId,
-              serverMetrics: [], // TODO: 실제 서버 메트릭 데이터로 교체
-              logEntries: [], // TODO: 실제 로그 데이터로 교체
+              serverMetrics: await fetchCurrentServerMetrics(),
+              logEntries: await fetchRecentLogEntries(),
               timeRange: {
                 start: new Date(Date.now() - 24 * 60 * 60 * 1000),
                 end: new Date(),
