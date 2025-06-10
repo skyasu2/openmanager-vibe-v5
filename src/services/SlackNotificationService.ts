@@ -544,9 +544,17 @@ export class SlackNotificationService {
    * 📤 Slack 메시지 전송
    */
   private async sendSlackMessage(message: SlackMessage): Promise<boolean> {
-    if (!this.webhookUrl) return false;
+    if (!this.webhookUrl) {
+      console.warn('⚠️ Slack 웹훅 URL이 설정되지 않았습니다.');
+      return false;
+    }
 
     try {
+      console.log('📤 Slack 메시지 전송 시도:', {
+        webhookUrl: this.webhookUrl.substring(0, 50) + '...',
+        channel: this.defaultChannel,
+      });
+
       const response = await fetch(this.webhookUrl, {
         method: 'POST',
         headers: {
@@ -560,14 +568,23 @@ export class SlackNotificationService {
         }),
       });
 
+      if (!response) {
+        console.error('❌ Slack API 응답이 없습니다.');
+        return false;
+      }
+
       if (response.ok) {
         console.log('📱 Slack 알림 전송 성공');
         return true;
       } else {
+        const responseText = await response
+          .text()
+          .catch(() => 'Unable to read response');
         console.error(
           '❌ Slack 알림 전송 실패:',
           response.status,
-          response.statusText
+          response.statusText,
+          responseText
         );
         return false;
       }

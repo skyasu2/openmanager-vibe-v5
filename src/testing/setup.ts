@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import { expect, beforeAll, afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import { QueryClient } from '@tanstack/react-query';
+import fetch from 'node-fetch';
 
 // DOM 정리
 afterEach(() => {
@@ -21,17 +22,15 @@ global.process.env = {
   UPSTASH_REDIS_REST_TOKEN: 'test-redis-token',
 };
 
-// 기본 fetch mock
-global.fetch = vi.fn();
+// 실제 fetch를 사용하도록 설정 (Slack 테스트를 위해)
+if (!globalThis.fetch) {
+  globalThis.fetch = fetch as any;
+}
 
-// console 메서드 mock (테스트 출력 정리)
+// console 출력 허용 (디버깅을 위해)
 global.console = {
   ...console,
-  log: vi.fn(),
-  error: console.error, // 에러는 실제 출력
-  warn: vi.fn(),
-  info: vi.fn(),
-  debug: vi.fn(),
+  // log, error, warn 등을 실제로 출력하도록 허용
 };
 
 // 테스트용 타이머 mock

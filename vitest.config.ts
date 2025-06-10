@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   test: {
     globals: true,
-    environment: 'jsdom',
+    environment: 'node',
     setupFiles: ['./src/testing/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}', 'development/tests/**/*.test.{ts,tsx}'],
     exclude: ['node_modules', '.next', 'dist', 'build', 'storybook-static'],
@@ -17,6 +17,13 @@ export default defineConfig({
     env: {
       NODE_ENV: 'test',
       JSDOM_CANVAS: 'mock',
+    },
+    // Node.js globals 및 폴리필 설정
+    pool: 'forks',
+    poolOptions: {
+      forks: {
+        singleFork: true,
+      },
     },
   },
   resolve: {
