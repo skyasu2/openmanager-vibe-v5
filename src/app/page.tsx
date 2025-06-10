@@ -1,26 +1,42 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import {
-  Bot,
   Power,
+  Bot,
   BarChart3,
-  StopCircle,
-  Loader2,
   Shield,
+  Loader2,
+  StopCircle,
   X,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
+import { InlineFeedbackContainer } from '@/components/ui/InlineFeedbackSystem';
+import { SlackToastContainer } from '@/components/ui/SlackOnlyToastSystem';
 
-// �� Dynamic Import로 성능 최적화
+// 🔔 Dynamic Import로 성능 최적화
 const ToastContainer = dynamic(
   () =>
     import('@/components/ui/ToastNotification').then(mod => ({
       default: mod.ToastContainer,
+    })),
+  {
+    ssr: false,
+  }
+);
+
+// 고급 알림 시스템 추가
+const AdvancedNotificationContainer = dynamic(
+  () =>
+    import('@/components/ui/AdvancedNotificationSystem').then(mod => ({
+      default: mod.AdvancedNotificationContainer,
     })),
   {
     ssr: false,
@@ -34,22 +50,9 @@ const FeatureCardsGrid = dynamic(
     loading: () => (
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12'>
         {[...Array(6)].map((_, i) => (
-          <div
-            key={i}
-            className='h-32 bg-white/10 backdrop-blur-sm rounded-lg animate-pulse'
-          />
+          <div key={i} className='h-32 bg-white/10 rounded-lg animate-pulse' />
         ))}
       </div>
-    ),
-  }
-);
-
-const UnifiedProfileComponent = dynamic(
-  () => import('@/components/UnifiedProfileComponent'),
-  {
-    ssr: false,
-    loading: () => (
-      <div className='w-10 h-10 bg-white/20 rounded-full animate-pulse' />
     ),
   }
 );
@@ -74,9 +77,6 @@ const useToast = () => {
   );
 };
 
-// 동적 렌더링 강제
-// 동적 렌더링 설정 제거 (Next.js 15.3.3 호환성 개선)
-
 export default function Home() {
   const router = useRouter();
   const {
@@ -97,6 +97,9 @@ export default function Home() {
   const [countdownTimer, setCountdownTimer] = useState<NodeJS.Timeout | null>(
     null
   );
+
+  // 🌙 다크모드 상태 (기본값: true - 다크모드)
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   // 🔧 상태 변화 디버깅
   useEffect(() => {
@@ -182,209 +185,116 @@ export default function Home() {
 
   // 🚀 카운트다운 시작 함수
   const startCountdown = () => {
-    console.log('🚀 3초 카운트다운 시작 - 대시보드 자동 이동');
-    setAutoNavigateCountdown(3); // 5초에서 3초로 단축
+    console.log('🚀 자동 대시보드 이동 카운트다운 시작');
+    success('🚀 5초 후 대시보드로 자동 이동합니다!');
 
-    const countdown = setInterval(() => {
+    setAutoNavigateCountdown(5);
+
+    const timer = setInterval(() => {
       setAutoNavigateCountdown(prev => {
-        console.log(`⏰ 카운트다운: ${prev}초 남음`);
         if (prev <= 1) {
-          clearInterval(countdown);
-          setCountdownTimer(null);
-          console.log('🎯 카운트다운 완료! 대시보드로 자동 이동');
-          // 자동으로 대시보드로 이동
-          handleDashboardClick();
+          clearInterval(timer);
+          router.push('/dashboard');
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
 
-    setCountdownTimer(countdown);
-    info(
-      '⏰ 3초 후 대시보드로 자동 이동합니다. 중지하려면 "🛑 취소하기" 버튼을 클릭하세요.'
-    );
+    setCountdownTimer(timer);
   };
 
   // 🛑 카운트다운 중지 함수
   const stopCountdown = () => {
+    console.log('🛑 자동 대시보드 이동 카운트다운 취소');
     if (countdownTimer) {
       clearInterval(countdownTimer);
-      setCountdownTimer(null);
-      setAutoNavigateCountdown(0);
-      info('⏹️ 자동 이동이 취소되었습니다.');
     }
+    setAutoNavigateCountdown(0);
+    setCountdownTimer(null);
+    info('⏹️ 자동 이동이 취소되었습니다.');
   };
 
   const handleSystemToggle = async () => {
+    if (isLoading) return;
+
     setIsLoading(true);
     try {
       if (isSystemStarted) {
-        // 시스템 중지 시 카운트다운도 중지
-        stopCountdown();
-        stopSystem();
-        success('시스템이 정지되었습니다. 모든 서비스가 비활성화됩니다.');
+        console.log('🛑 시스템 중지 시작');
+        stopCountdown(); // 카운트다운 중지
+        await stopSystem();
+        success('⏹️ 시스템이 안전하게 중지되었습니다.');
       } else {
-        startSystem();
-        success(
-          '🚀 시스템이 시작되었습니다! 3초 후 자동으로 대시보드로 이동합니다.'
-        );
-        // 시스템 시작 즉시 카운트다운 시작
-        startCountdown();
+        console.log('🚀 시스템 시작');
+        await startSystem();
+        success('🚀 시스템이 성공적으로 시작되었습니다! (30분 동안 활성)');
+
+        // 시스템이 시작되면 5초 후 자동으로 대시보드로 이동
+        setTimeout(() => {
+          if (isSystemStarted) {
+            startCountdown();
+          }
+        }, 1000);
       }
-    } catch (err) {
-      console.error('시스템 제어 오류:', err);
-      error('시스템 제어 중 오류가 발생했습니다.');
+    } catch (error) {
+      console.error('시스템 토글 중 오류:', error);
+      error('시스템 조작 중 오류가 발생했습니다.');
     } finally {
-      setTimeout(() => setIsLoading(false), 1000);
+      setIsLoading(false);
     }
   };
 
   const handleDashboardClick = async () => {
     if (!isSystemStarted) {
-      warning('시스템을 먼저 시작해주세요.');
+      warning('🚨 시스템을 먼저 시작해야 합니다!');
       return;
     }
 
-    console.log('🚀 [Dashboard] 대시보드로 이동 중...');
-    info('📡 시스템 상태를 확인하고 대시보드로 이동합니다...');
-
-    // 🎯 더 안정적인 진입: 백그라운드 헬스체크와 즉시 진입 옵션
     try {
-      // 빠른 진입을 위한 비동기 헬스체크
-      const healthCheckPromise = (async () => {
-        let healthCheckPassed = false;
-        let attemptCount = 0;
-        const maxAttempts = 2; // 시도 횟수 줄임
+      // 대시보드 상태 체크
+      const response = await fetch('/api/dashboard', { method: 'HEAD' });
+      if (!response.ok) {
+        throw new Error('대시보드를 사용할 수 없습니다');
+      }
 
-        while (!healthCheckPassed && attemptCount < maxAttempts) {
-          attemptCount++;
-          console.log(
-            `🔍 [Dashboard] 헬스체크 시도 ${attemptCount}/${maxAttempts}`
-          );
-
-          try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 3000); // 3초로 단축
-
-            const response = await fetch('/api/health', {
-              method: 'GET',
-              cache: 'no-cache',
-              signal: controller.signal,
-              headers: {
-                'Content-Type': 'application/json',
-              },
-            });
-
-            clearTimeout(timeoutId);
-
-            if (response.ok) {
-              const healthData = await response.json();
-              healthCheckPassed = true;
-              console.log(
-                `✅ [Dashboard] 헬스체크 통과 (시도 ${attemptCount}):`,
-                healthData.status
-              );
-
-              // 데이터 생성기와 모니터링 시스템 상태 확인
-              if (healthData.diagnostics?.communicationOk) {
-                console.log(
-                  '📡 [Dashboard] 데이터 생성기-모니터링 시스템 통신 정상'
-                );
-                success('✅ 모든 시스템이 정상 작동 중입니다.');
-              }
-            } else {
-              console.log(
-                `⚠️ [Dashboard] 헬스체크 응답 비정상 (시도 ${attemptCount}): ${response.status}`
-              );
-            }
-          } catch (error) {
-            console.warn(
-              `❌ [Dashboard] 헬스체크 오류 (시도 ${attemptCount}):`,
-              error
-            );
-            if (attemptCount >= maxAttempts) {
-              console.log(
-                '⚠️ [Dashboard] 최대 시도 횟수 도달 - 백그라운드에서 계속 점검'
-              );
-            }
-          }
-
-          if (!healthCheckPassed && attemptCount < maxAttempts) {
-            await new Promise(resolve => setTimeout(resolve, 500)); // 대기 시간 단축
-          }
-        }
-
-        return healthCheckPassed;
-      })();
-
-      // 즉시 대시보드로 이동 (백그라운드에서 헬스체크 계속)
-      console.log('🚀 [Dashboard] 즉시 이동 - 백그라운드에서 시스템 점검 계속');
-      info(
-        '🚀 대시보드로 이동합니다. 시스템 상태는 백그라운드에서 점검됩니다.'
-      );
-
+      console.log('📊 대시보드로 이동');
       router.push('/dashboard');
-
-      // 백그라운드 헬스체크 결과 처리
-      healthCheckPromise
-        .then(healthPassed => {
-          if (healthPassed) {
-            console.log(
-              '✅ [Dashboard] 백그라운드 헬스체크 완료 - 모든 시스템 정상'
-            );
-          } else {
-            console.log(
-              '⚠️ [Dashboard] 백그라운드 헬스체크 실패 - 대시보드에서 상태 확인 필요'
-            );
-          }
-        })
-        .catch(error => {
-          console.warn('⚠️ [Dashboard] 백그라운드 헬스체크 예외:', error);
-        });
     } catch (error) {
-      console.warn('⚠️ [Dashboard] 예외 발생, 대시보드로 강제 이동:', error);
-      warning('⚠️ 일부 시스템 점검에 실패했지만 대시보드로 이동합니다.');
-      // 오류가 발생해도 대시보드로 이동 (대시보드에서 상태 확인)
-      router.push('/dashboard');
+      console.error('대시보드 접근 중 오류:', error);
+      error('대시보드에 접근할 수 없습니다. 잠시 후 다시 시도해주세요.');
     }
   };
 
   const handleAIAgentInfo = () => {
-    if (aiAgent.isEnabled) {
-      const independentMode = aiAgent.isEnabled && !isSystemStarted;
-      info(
-        `AI 엔진이 ${independentMode ? '독립 모드로' : ''} 활성화되어 있습니다. 프로필에서 설정을 변경할 수 있습니다.`
-      );
-    } else {
-      info(
-        '🤖 AI 엔진은 시스템과 독립적으로 실행 가능합니다! 화면 우상단 프로필 → 통합 설정에서 언제든지 활성화하세요.',
-        {
-          duration: 6000,
-          action: {
-            label: '지금 활성화',
-            onClick: () =>
-              info(
-                '화면 우상단의 프로필 버튼 → AI 에이전트 탭을 확인해주세요.'
-              ),
-          },
-        }
-      );
-    }
+    info(
+      `🧠 AI 에이전트 상태: ${aiAgent.isEnabled ? '활성' : '비활성'}\n` +
+        `상태: ${aiAgent.state}\n` +
+        `시스템 연동: ${isSystemStarted ? '연결됨' : '대기 중'}`
+    );
   };
 
-  // 배경 클래스 결정 - AI 독립 모드 지원
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
+  // 다크모드에 따른 배경 스타일
   const getBackgroundClass = () => {
-    if (aiAgent.isEnabled) {
-      // AI 엔진이 활성화된 경우 (시스템 상태와 무관)
-      return 'dark-gradient-ai';
-    } else if (isSystemStarted) {
-      // 시스템만 활성화된 경우
-      return 'dark-gradient-active';
-    } else {
-      // 모든 것이 중지된 경우
-      return 'enhanced-dark-background';
-    }
+    return isDarkMode
+      ? 'bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'
+      : 'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50';
+  };
+
+  // 다크모드에 따른 텍스트 스타일
+  const getTextClass = () => {
+    return isDarkMode ? 'text-white' : 'text-gray-900';
+  };
+
+  // 다크모드에 따른 카드 스타일
+  const getCardClass = () => {
+    return isDarkMode
+      ? 'bg-white/10 border border-white/20'
+      : 'bg-white/80 border border-gray-200';
   };
 
   return (
@@ -401,23 +311,23 @@ export default function Home() {
             animate={
               aiAgent.isEnabled
                 ? {
-                  background: [
-                    'linear-gradient(135deg, #a855f7, #ec4899)',
-                    'linear-gradient(135deg, #ec4899, #06b6d4)',
-                    'linear-gradient(135deg, #06b6d4, #a855f7)',
-                  ],
-                }
-                : isSystemStarted
-                  ? {
                     background: [
-                      'linear-gradient(135deg, #10b981, #059669)',
-                      'linear-gradient(135deg, #059669, #047857)',
-                      'linear-gradient(135deg, #047857, #10b981)',
+                      'linear-gradient(135deg, #a855f7, #ec4899)',
+                      'linear-gradient(135deg, #ec4899, #06b6d4)',
+                      'linear-gradient(135deg, #06b6d4, #a855f7)',
                     ],
                   }
+                : isSystemStarted
+                  ? {
+                      background: [
+                        'linear-gradient(135deg, #10b981, #059669)',
+                        'linear-gradient(135deg, #059669, #047857)',
+                        'linear-gradient(135deg, #047857, #10b981)',
+                      ],
+                    }
                   : {
-                    background: 'linear-gradient(135deg, #6b7280, #4b5563)',
-                  }
+                      background: 'linear-gradient(135deg, #6b7280, #4b5563)',
+                    }
             }
             transition={{
               duration: aiAgent.isEnabled ? 2 : 3,
@@ -433,8 +343,12 @@ export default function Home() {
 
           {/* 브랜드 텍스트 */}
           <div>
-            <h1 className='text-xl font-bold text-white'>OpenManager</h1>
-            <p className='text-xs text-white/70'>
+            <h1 className={`text-xl font-bold ${getTextClass()}`}>
+              OpenManager
+            </h1>
+            <p
+              className={`text-xs ${isDarkMode ? 'text-white/70' : 'text-gray-600'}`}
+            >
               {aiAgent.isEnabled && !isSystemStarted
                 ? 'AI 독립 모드'
                 : aiAgent.isEnabled && isSystemStarted
@@ -448,13 +362,36 @@ export default function Home() {
 
         {/* 오른쪽 헤더 컨트롤 */}
         <div className='flex items-center gap-3'>
+          {/* 다크모드 토글 버튼 */}
+          <motion.button
+            onClick={toggleDarkMode}
+            className={`p-2 rounded-lg transition-all duration-200 ${
+              isDarkMode
+                ? 'text-white/80 hover:text-white hover:bg-white/5'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            title={`${isDarkMode ? '라이트' : '다크'} 모드로 전환`}
+          >
+            {isDarkMode ? (
+              <Sun className='w-5 h-5' />
+            ) : (
+              <Moon className='w-5 h-5' />
+            )}
+          </motion.button>
+
           {/* AI 관리자 페이지 버튼 - 관리자 로그인 시에만 표시 */}
           {adminMode.isAuthenticated && (
             <Link href='/admin/ai-agent'>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className='hidden sm:flex items-center gap-2 px-4 py-2 bg-purple-500/20 border border-purple-500/50 rounded-lg text-purple-300 hover:bg-purple-500/30 transition-all duration-200'
+                className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+                  isDarkMode
+                    ? 'bg-purple-500/20 border border-purple-500/50 text-purple-300 hover:bg-purple-500/30'
+                    : 'bg-purple-100 border border-purple-300 text-purple-700 hover:bg-purple-200'
+                }`}
               >
                 <Shield className='w-4 h-4' />
                 <span className='text-sm font-medium'>🧠 AI 엔진 관리</span>
@@ -480,11 +417,17 @@ export default function Home() {
             <span className='bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent'>
               {renderTextWithAIGradient('AI')}
             </span>{' '}
-            <span className='text-white font-semibold'>기반</span>{' '}
-            <span className='text-white'>서버 모니터링</span>
+            <span className={`font-semibold ${getTextClass()}`}>기반</span>{' '}
+            <span className={getTextClass()}>서버 모니터링</span>
           </h1>
-          <p className='text-lg md:text-xl text-white/80 max-w-3xl mx-auto leading-relaxed'>
-            <span className='text-sm text-white/60'>
+          <p
+            className={`text-lg md:text-xl max-w-3xl mx-auto leading-relaxed ${
+              isDarkMode ? 'text-white/80' : 'text-gray-700'
+            }`}
+          >
+            <span
+              className={`text-sm ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}
+            >
               완전 독립 동작 AI 엔진 | 향후 개발: 선택적 LLM API 연동 확장
             </span>
           </p>
@@ -501,14 +444,28 @@ export default function Home() {
             /* 시스템 중지 상태 */
             <div className='max-w-md mx-auto text-center'>
               {/* 시스템 종료 상태 안내 */}
-              <div className='mb-6 p-4 bg-red-500/20 border border-red-400/30 rounded-xl backdrop-blur-sm'>
+              <div
+                className={`mb-6 p-4 rounded-xl border ${
+                  isDarkMode
+                    ? 'bg-red-500/20 border-red-400/30'
+                    : 'bg-red-100 border-red-300'
+                }`}
+              >
                 <div className='flex items-center justify-center gap-2 mb-2'>
                   <div className='w-3 h-3 bg-red-500 rounded-full animate-pulse'></div>
-                  <span className='text-red-200 font-semibold'>
+                  <span
+                    className={`font-semibold ${
+                      isDarkMode ? 'text-red-200' : 'text-red-800'
+                    }`}
+                  >
                     시스템 종료됨
                   </span>
                 </div>
-                <p className='text-red-100 text-sm'>
+                <p
+                  className={`text-sm ${
+                    isDarkMode ? 'text-red-100' : 'text-red-700'
+                  }`}
+                >
                   모든 서비스가 중지되었습니다.
                   <br />
                   <strong>아래 버튼을 눌러 시스템을 다시 시작하세요.</strong>
@@ -541,74 +498,97 @@ export default function Home() {
                   </span>
                 </div>
                 <div className='mt-1 flex justify-center'>
-                  <span className='text-white text-xs opacity-70 animate-point-bounce'>
+                  <span
+                    className={`text-xs opacity-70 animate-point-bounce ${getTextClass()}`}
+                  >
                     클릭하세요
                   </span>
                 </div>
               </div>
 
-              <p className='text-white/80 text-sm'>
+              <p
+                className={`text-sm ${isDarkMode ? 'text-white/80' : 'text-gray-700'}`}
+              >
                 <strong>통합 시스템 시작:</strong> 서버 시딩 → 시뮬레이션 →
                 데이터 생성
                 <br />
-                30분간 모든 서비스가 자동으로 순차 시작됩니다
+                <strong>AI 에이전트:</strong> 독립 모드 가능 (시스템 연동
+                선택사항)
               </p>
             </div>
           ) : (
             /* 시스템 활성 상태 */
-            <div className='max-w-2xl mx-auto'>
+            <motion.div
+              className='max-w-4xl mx-auto text-center'
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+            >
               {/* 시스템 활성 상태 안내 */}
-              <div className='mb-6 p-4 bg-green-500/20 border border-green-400/30 rounded-xl backdrop-blur-sm'>
+              <div
+                className={`mb-6 p-4 rounded-xl border ${
+                  isDarkMode
+                    ? 'bg-green-500/20 border-green-400/30'
+                    : 'bg-green-100 border-green-300'
+                }`}
+              >
                 <div className='flex items-center justify-center gap-2 mb-2'>
                   <div className='w-3 h-3 bg-green-500 rounded-full animate-pulse'></div>
-                  <span className='text-green-200 font-semibold'>
-                    시스템 실행 중
-                  </span>
-                  <div className='w-1 h-4 bg-green-300/30'></div>
-                  <span className='text-green-300 text-sm'>
-                    {formatTime(systemTimeRemaining)} 남음
+                  <span
+                    className={`font-semibold ${
+                      isDarkMode ? 'text-green-200' : 'text-green-800'
+                    }`}
+                  >
+                    시스템 활성 - 남은 시간: {formatTime(systemTimeRemaining)}
                   </span>
                 </div>
-                <p className='text-green-100 text-sm text-center'>
-                  {aiAgent.isEnabled
-                    ? 'AI 엔진이 활성화되어 지능형 분석이 가능합니다. (독립 동작 엔진, 향후 개발에서 고급 기능 확장 예정)'
-                    : '기본 서버 모니터링이 실행되고 있습니다.'}
+                <p
+                  className={`text-sm ${
+                    isDarkMode ? 'text-green-100' : 'text-green-700'
+                  }`}
+                >
+                  모든 서비스가 정상 동작 중입니다. 대시보드에서 상세 정보를
+                  확인하세요.
                 </p>
               </div>
 
-              {/* 제어 버튼들 */}
-              <div className='flex flex-col sm:flex-row gap-4 justify-center'>
+              {/* 제어 버튼들 - 3개를 가로로 배치 */}
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-6'>
                 {/* AI 에이전트 버튼 */}
                 <div className='flex flex-col items-center'>
                   <motion.button
                     onClick={handleAIAgentInfo}
-                    className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border ${aiAgent.isEnabled
-                        ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 text-purple-300 border-purple-500/50'
-                        : 'bg-orange-600 hover:bg-orange-700 text-white border-orange-500/50'
-                      }`}
+                    className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border ${
+                      aiAgent.isEnabled
+                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-purple-400/50 shadow-lg shadow-purple-500/50'
+                        : 'bg-gray-600 hover:bg-gray-700 text-white border-gray-500/50'
+                    }`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    animate={
+                      aiAgent.isEnabled
+                        ? {
+                            scale: [1, 1.05, 1],
+                            boxShadow: [
+                              '0 0 0 0 rgba(168, 85, 247, 0.8)',
+                              '0 0 0 10px rgba(168, 85, 247, 0)',
+                              '0 0 0 0 rgba(168, 85, 247, 0)',
+                            ],
+                          }
+                        : {}
+                    }
+                    transition={{
+                      duration: 2,
+                      repeat: aiAgent.isEnabled ? Infinity : 0,
+                      ease: 'easeInOut',
+                    }}
                   >
                     <motion.div
-                      animate={
-                        aiAgent.isEnabled
-                          ? {
-                            rotate: [0, 360],
-                            scale: [1, 1.1, 1],
-                          }
-                          : {}
-                      }
+                      animate={aiAgent.isEnabled ? { rotate: 360 } : {}}
                       transition={{
-                        rotate: {
-                          duration: 3,
-                          repeat: Infinity,
-                          ease: 'linear',
-                        },
-                        scale: {
-                          duration: 2,
-                          repeat: Infinity,
-                          ease: 'easeInOut',
-                        },
+                        duration: 3,
+                        repeat: aiAgent.isEnabled ? Infinity : 0,
+                        ease: 'linear',
                       }}
                     >
                       <Bot className='w-5 h-5' />
@@ -637,22 +617,23 @@ export default function Home() {
                 <div className='flex flex-col items-center'>
                   <motion.button
                     onClick={handleDashboardClick}
-                    className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border ${autoNavigateCountdown > 0
+                    className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border ${
+                      autoNavigateCountdown > 0
                         ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-orange-400/50 shadow-lg shadow-orange-500/50'
                         : 'bg-blue-600 hover:bg-blue-700 text-white border-blue-500/50'
-                      }`}
+                    }`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     animate={
                       autoNavigateCountdown > 0
                         ? {
-                          scale: [1, 1.08, 1],
-                          boxShadow: [
-                            '0 0 0 0 rgba(255, 165, 0, 0.8)',
-                            '0 0 0 15px rgba(255, 165, 0, 0)',
-                            '0 0 0 0 rgba(255, 165, 0, 0)',
-                          ],
-                        }
+                            scale: [1, 1.08, 1],
+                            boxShadow: [
+                              '0 0 0 0 rgba(255, 165, 0, 0.8)',
+                              '0 0 0 15px rgba(255, 165, 0, 0)',
+                              '0 0 0 0 rgba(255, 165, 0, 0)',
+                            ],
+                          }
                         : {}
                     }
                     transition={{
@@ -679,20 +660,22 @@ export default function Home() {
                   {/* 손가락 아이콘 + 클릭 문구 - 카운트다운 상태에 따라 변경 */}
                   <div className='mt-2 flex justify-center'>
                     <span
-                      className={`text-xl ${autoNavigateCountdown > 0
+                      className={`text-xl ${
+                        autoNavigateCountdown > 0
                           ? 'animate-bounce text-orange-400'
                           : 'animate-wiggle text-yellow-400'
-                        }`}
+                      }`}
                     >
                       {autoNavigateCountdown > 0 ? '⏰' : '👆'}
                     </span>
                   </div>
                   <div className='mt-1 flex justify-center'>
                     <span
-                      className={`text-xs opacity-70 ${autoNavigateCountdown > 0
+                      className={`text-xs opacity-70 ${
+                        autoNavigateCountdown > 0
                           ? 'text-orange-300 animate-pulse'
                           : 'text-white animate-point-bounce'
-                        }`}
+                      }`}
                     >
                       {autoNavigateCountdown > 0
                         ? '자동 이동 중...'
@@ -710,17 +693,18 @@ export default function Home() {
                         : handleSystemToggle
                     }
                     disabled={isLoading}
-                    className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border disabled:opacity-75 ${autoNavigateCountdown > 0
+                    className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border disabled:opacity-75 ${
+                      autoNavigateCountdown > 0
                         ? 'bg-yellow-600 hover:bg-yellow-700 text-white border-yellow-500/50'
                         : 'bg-red-600 hover:bg-red-700 text-white border-red-500/50'
-                      }`}
+                    }`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     animate={
                       autoNavigateCountdown > 0
                         ? {
-                          scale: [1, 1.02, 1],
-                        }
+                            scale: [1, 1.02, 1],
+                          }
                         : {}
                     }
                     transition={{
@@ -748,20 +732,22 @@ export default function Home() {
                   {/* 카운트다운 상태에 따른 안내 */}
                   <div className='mt-2 flex justify-center'>
                     <span
-                      className={`text-xl ${autoNavigateCountdown > 0
+                      className={`text-xl ${
+                        autoNavigateCountdown > 0
                           ? 'animate-bounce text-yellow-400'
                           : 'text-transparent'
-                        }`}
+                      }`}
                     >
                       {autoNavigateCountdown > 0 ? '✋' : '👆'}
                     </span>
                   </div>
                   <div className='mt-1 flex justify-center'>
                     <span
-                      className={`text-xs ${autoNavigateCountdown > 0
+                      className={`text-xs ${
+                        autoNavigateCountdown > 0
                           ? 'text-yellow-300 opacity-70 animate-pulse'
                           : 'text-transparent opacity-0'
-                        }`}
+                      }`}
                     >
                       {autoNavigateCountdown > 0
                         ? '자동 이동 취소'
@@ -775,7 +761,7 @@ export default function Home() {
                 시스템이 활성화되어 있습니다. 대시보드에서 상세 모니터링을
                 확인하세요.
               </p>
-            </div>
+            </motion.div>
           )}
         </motion.div>
 
@@ -785,15 +771,35 @@ export default function Home() {
         </div>
 
         {/* 푸터 */}
-        <div className='mt-8 pt-6 border-t border-white/20 text-center'>
-          <p className='text-white/70'>
+        <div
+          className={`mt-8 pt-6 border-t text-center ${
+            isDarkMode ? 'border-white/20' : 'border-gray-300'
+          }`}
+        >
+          <p className={isDarkMode ? 'text-white/70' : 'text-gray-600'}>
             Copyright(c) OpenManager. All rights reserved.
           </p>
         </div>
       </div>
 
+      {/* 인라인 피드백 컨테이너들 */}
+      <InlineFeedbackContainer
+        area='system-control'
+        className='fixed bottom-4 left-4 z-50'
+      />
+      <InlineFeedbackContainer
+        area='ai-agent'
+        className='fixed bottom-4 center-4 z-50'
+      />
+
+      {/* Slack 전용 토스트 컨테이너 */}
+      <SlackToastContainer />
+
       {/* 토스트 알림 컨테이너 */}
       <ToastContainer />
+
+      {/* 고급 알림 시스템 컨테이너 */}
+      <AdvancedNotificationContainer />
     </div>
   );
 }
