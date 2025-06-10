@@ -49,31 +49,6 @@ interface FeatureCard {
   isVibeCard?: boolean;
 }
 
-// 🎨 통합 카드 디자인 시스템
-const cardDesignSystem = {
-  // 공통 기본 스타일
-  baseClasses:
-    'p-4 rounded-2xl shadow-lg min-h-[200px] text-white relative overflow-hidden hover:scale-[1.02] transition-transform duration-300 ease-in-out cursor-pointer',
-
-  // 카드별 특화 그라데이션
-  gradients: {
-    ai: 'bg-gradient-to-br from-[#a18cd1] to-[#fbc2eb]', // 보라 → 핑크 (AI 시스템)
-    aiAgent: 'bg-gradient-to-br from-blue-500 to-indigo-600', // 푸른색 계열 (AI 에이전트)
-    realtime: 'bg-gradient-to-br from-cyan-500 to-emerald-600', // 청록 → 초록 (실시간 데이터)
-    tech: 'bg-gradient-to-br from-indigo-700 to-violet-600', // 남색 → 보라 (기술 스택)
-    vibe: 'bg-gradient-to-br from-orange-500 to-yellow-400', // 황금색 계열 (바이브 코딩)
-    monitoring: 'bg-gradient-to-br from-emerald-600 to-teal-500', // 초록 계열 (모니터링)
-    security: 'bg-gradient-to-br from-red-500 to-pink-500', // 빨강 계열 (보안)
-  },
-
-  // 아이콘 스타일
-  iconContainer: 'absolute top-4 left-4 text-3xl mb-2 opacity-90',
-
-  // 텍스트 스타일
-  title: 'font-bold text-lg mb-2 pl-12', // 아이콘 공간 확보
-  description: 'text-sm text-white/90 leading-relaxed pl-12',
-};
-
 // 기술 카테고리별 데이터
 const techCategories = {
   'mcp-ai-system': {
@@ -403,179 +378,172 @@ const VERSION_HISTORY = {
   ],
 } as const;
 
-// 🎨 리팩토링된 카드 데이터
-const featureCards: FeatureCard[] = [
+// 카드 데이터
+const cardData: FeatureCard[] = [
   {
-    id: 'ai-unified-system',
+    id: 'mcp-ai-engine',
     title: '🧠 통합 AI 시스템',
     description:
-      '서버 상태를 한국어로 질문하세요! "CPU 높은 서버는?" → 즉시 분석 결과 제공. 장애 시 자동 보고서 생성',
-    icon: Brain,
-    gradient: cardDesignSystem.gradients.ai,
-    detailedContent: {
-      overview:
-        '완전 독립 동작하는 AI 엔진으로, 별도 API 키 없이도 서버 모니터링과 분석이 가능합니다.',
-      features: [
-        '🔍 한국어 자연어 처리 (형태소 분석)',
-        '📊 실시간 서버 상태 분석',
-        '🚨 자동 장애 감지 및 보고서 생성',
-        '💡 AI 기반 최적화 제안',
-        '🎯 컨텍스트 기반 패턴 인식',
-      ],
-      technologies: ['MCP SDK', 'TensorFlow.js', 'Natural NLP', 'Korean AI'],
-    },
-    requiresAI: false,
-    isAICard: true,
-  },
-  {
-    id: 'ai-agent',
-    title: '🤖 AI 에이전트',
-    description:
-      '독립 모드로 동작하는 AI 에이전트. 서버 상태 질문, 장애 분석, 최적화 제안을 자동으로 수행합니다.',
+      '📊 서버 상태를 한국어로 질문하세요! "CPU 높은 서버는?" → 즉시 분석 결과 제공. 장애 시 자동 보고서 생성',
     icon: Bot,
-    gradient: cardDesignSystem.gradients.aiAgent,
+    gradient: 'from-purple-500 via-indigo-500 to-cyan-400',
     detailedContent: {
-      overview:
-        'AI 에이전트는 독립적으로 동작하며 서버 시스템과 연동하여 지능적인 분석을 제공합니다.',
+      overview: `v${COMPONENT_VERSIONS['mcp-ai-engine']} - MCP(Model Context Protocol) 기반 AI 엔진과 TensorFlow.js RAG 백업 시스템으로 구성된 서버 모니터링 전용 AI입니다. 서버 상태 패턴 분석, 자연어 문의응답, 자동 장애보고서 생성 등 서버 관리에 특화된 지능형 기능을 제공합니다.`,
       features: [
-        '🧠 독립 모드 AI 추론',
-        '🔄 실시간 상태 모니터링',
-        '📈 예측적 분석',
-        '🎯 자동 최적화 제안',
-        '🚨 프로액티브 알림',
+        '🎯 MCP 컨텍스트 추론: 서버 상태 패턴 학습 및 예측 분석',
+        '🤖 자연어 서버 질의: "CPU 사용률이 높은 서버는?" 같은 자연어 명령 처리',
+        '📋 자동 장애보고서: 시스템 이상 감지 시 상세 보고서 자동 생성',
+        '🔄 RAG 백업 엔진: MCP 실패 시 TensorFlow.js 기반 자동 폴백',
+        '🌐 하이브리드 배포: MCP는 Render, RAG는 Vercel 서버리스',
+        '🧠 벡터 DB 검색: Supabase pgvector + 로컬 메모리 이중 검색',
+        '📊 한국어 NLP: hangul-js + korean-utils로 한국어 서버 로그 분석',
       ],
-      technologies: ['MCP Protocol', 'Machine Learning', 'Pattern Recognition'],
+      technologies: [
+        '🧠 MCP AI Server: Model Context Protocol 기반 컨텍스트 추론 엔진',
+        '📚 RAG Backup Engine: TensorFlow.js + Natural + Fuse.js 백업 시스템',
+        '🔗 @modelcontextprotocol/sdk: AI 에이전트 간 표준 통신 프로토콜',
+        '🧮 @tensorflow/tfjs: 브라우저 머신러닝 추론 + 벡터 임베딩',
+        '🔍 @xenova/transformers: 사전훈련 BERT/DistilBERT 모델 활용',
+        '📊 PostgresVectorDB: Supabase pgvector 확장을 활용한 벡터 검색',
+        '💾 LocalVectorDB: 메모리 기반 빠른 벡터 검색 캐시',
+        '🇰🇷 hangul-js + korean-utils: 한국어 서버 로그 형태소 분석',
+      ],
     },
     requiresAI: true,
     isAICard: true,
   },
   {
-    id: 'realtime-data',
+    id: 'data-generator',
     title: '📊 실시간 서버 데이터 생성기',
     description:
-      '실제 서버처럼 동작하는 데이터를 자동 생성. 업무 시간↑/야간↓ 패턴, 장애 시뮬레이션, 환경별 최적화',
-    icon: Activity,
-    gradient: cardDesignSystem.gradients.realtime,
+      '🔄 실제 서버처럼 동작하는 데이터를 자동 생성. 업무시간↑/야간↓ 패턴, 장애 시뮬레이션, 환경별 최적화',
+    icon: Database,
+    gradient: 'from-emerald-500 to-teal-600',
     detailedContent: {
-      overview:
-        '실제 운영 환경을 시뮬레이션하는 지능적 데이터 생성 시스템입니다.',
+      overview: `v${COMPONENT_VERSIONS['data-generator']} - 실제 서버 환경을 시뮬레이션하는 차세대 데이터 생성 시스템입니다. 환경별 자동 최적화, 24시간 베이스라인 + 실시간 델타 방식으로 극한의 성능 최적화를 달성했으며, 다양한 서버 아키텍처와 장애 시나리오를 지원합니다.`,
       features: [
-        '⏰ 시간대별 트래픽 패턴',
-        '🔥 장애 상황 시뮬레이션',
-        '📈 부하 테스트 데이터',
-        '🌍 지역별 서버 특성',
-        '🎯 실시간 메트릭 생성',
+        '🎯 환경별 자동 최적화: 환경에 따라 서버 수와 업데이트 주기를 자동 조정',
+        '📊 24시간 베이스라인: 시간대별 패턴을 미리 생성하여 실시간 처리 최적화',
+        '⚡ 극한 성능 최적화: 메모리 사용량 대폭 절약, CPU 부하 최소화, 응답시간 단축',
+        '🏗️ 4가지 아키텍처: Single/Master-Slave/Load-Balanced/Microservices',
+        '🎭 5가지 시뮬레이션: Normal/HighLoad/Maintenance/Incident/Scaling',
+        '🌐 Prometheus 호환: 표준 메트릭 포맷으로 모니터링 도구 연동',
+        '💾 Redis 캐싱: Upstash 서버리스 Redis로 데이터 지속성 보장',
       ],
-      technologies: ['Faker.js', 'Statistics Engine', 'Time Series'],
+      technologies: [
+        '🎰 RealServerDataGenerator v3.0: 환경별 3단계 모드, 공용 환경 감지',
+        '⚡ OptimizedDataGenerator v3.0: 24시간 베이스라인 + 실시간 델타',
+        '📊 BaselineOptimizer: 시간대별 패턴 + 서버 역할별 프로파일링',
+        '🔧 TimerManager: 타이머 통합 관리, CPU 75% 절약, 충돌 방지',
+        '💾 MemoryOptimizer: 자동 GC, 캐시 정리, 메모리 최적화',
+        '📈 Faker.js: 현실적인 서버 데이터 생성 (이름, 로그, 메트릭)',
+        '🌐 Prometheus Client: 메트릭 수집, 히스토그램/게이지/카운터',
+        '💾 Upstash Redis: 서버리스 Redis 캐싱, Vercel 완벽 호환',
+      ],
     },
     requiresAI: false,
   },
   {
     id: 'tech-stack',
-    title: '💻 적용 기술',
+    title: '⚡ 적용 기술',
     description:
-      'Next.js 15 + TypeScript로 안정성 확보. Vercel 배포, TailwindCSS 디자인, 모든 코드 타입 안전성 100%',
+      '💻 Next.js 15 + TypeScript로 안정성 확보. Vercel 배포, TailwindCSS 디자인, 모든 코드 타입 안전성 100%',
     icon: Code,
-    gradient: cardDesignSystem.gradients.tech,
+    gradient: 'from-purple-500 to-indigo-600',
     detailedContent: {
       overview:
-        '최신 웹 기술 스택으로 구축된 안정적이고 확장 가능한 아키텍처입니다.',
+        '모던 풀스택 웹 애플리케이션의 핵심 기술들로 성능과 안정성을 극대화한 차세대 프론트엔드 아키텍처입니다. 모든 라이브러리가 오픈소스이며 최신 웹 표준을 준수하여 개발 생산성과 사용자 경험을 동시에 향상시킵니다.',
       features: [
-        '⚡ Next.js 15 App Router',
-        '🔒 TypeScript 100% 적용',
-        '🎨 TailwindCSS + Framer Motion',
-        '☁️ Vercel 서버리스 배포',
-        '🗄️ Supabase + Redis 데이터베이스',
+        '⚛️ Next.js 15 + React 19: 최신 서버 컴포넌트와 스트리밍 SSR로 성능 극대화',
+        '🎨 TailwindCSS + Framer Motion: 유틸리티 CSS와 선언적 애니메이션',
+        '🔧 TypeScript + Zustand: 타입 안전성 100%와 경량 상태관리',
+        '📊 Supabase + Redis: PostgreSQL 실시간 DB + 서버리스 캐싱',
+        '🧪 Vitest + Playwright: 빠른 단위 테스트 + E2E 자동화',
+        '📈 Chart.js + Recharts: 반응형 데이터 시각화',
+        '✨ ESLint + Prettier: 코드 품질 자동화와 일관된 스타일',
       ],
       technologies: [
-        'Next.js',
-        'TypeScript',
-        'TailwindCSS',
-        'Vercel',
-        'Supabase',
+        '⚛️ Next.js 15.3.3: React 19 기반 풀스택 프레임워크',
+        '🎨 Tailwind CSS 3.4: 유틸리티 퍼스트 CSS 프레임워크',
+        '🔧 TypeScript 5.6: 정적 타입 검사 및 IDE 지원',
+        '🌊 Framer Motion 11: 선언적 React 애니메이션 라이브러리',
+        '🗄️ Zustand 4.5: 경량 React 상태 관리 라이브러리',
+        '📊 Supabase: PostgreSQL 기반 실시간 데이터베이스',
+        '⚡ Upstash Redis: 서버리스 Redis 캐싱 서비스',
+        '🧪 Vitest: 빠른 단위 테스트 프레임워크',
       ],
     },
     requiresAI: false,
   },
   {
     id: 'vibe-coding',
-    title: '✨ 바이브 코딩',
+    title: '🔥 바이브 코딩',
     description:
-      'AI와 함께하는 직관적 개발 경험. 실시간 코드 분석, 자동 최적화 제안, 그리고 개발자 친화적 인터페이스',
-    icon: Sparkles,
-    gradient: cardDesignSystem.gradients.vibe,
-    detailedContent: {
-      overview: 'AI가 개발 과정을 돕는 혁신적인 코딩 경험을 제공합니다.',
-      features: [
-        '🎯 실시간 코드 분석',
-        '💡 AI 기반 최적화 제안',
-        '🔄 자동 리팩토링',
-        '📝 스마트 문서화',
-        '🚀 성능 최적화 가이드',
-      ],
-      technologies: [
-        'AI Code Analysis',
-        'Pattern Recognition',
-        'Auto Optimization',
-      ],
-    },
-    requiresAI: true,
-    isVibeCard: true,
-  },
-  {
-    id: 'monitoring',
-    title: '📈 고급 모니터링',
-    description:
-      '실시간 서버 상태 추적, 성능 메트릭 분석, 예측적 알림 시스템으로 안정적인 서비스 운영을 보장합니다.',
-    icon: BarChart3,
-    gradient: cardDesignSystem.gradients.monitoring,
+      '🎯 AI 주도 코딩으로 개발자 워크플로우를 혁신. Cursor + Claude로 자연어 명령만으로 고품질 코드 생성, 자동 배포까지',
+    icon: Zap,
+    gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {
       overview:
-        '종합적인 서버 모니터링과 성능 분석을 통해 서비스 안정성을 확보합니다.',
+        'Cursor AI + Claude Sonnet을 중심으로 한 차세대 AI 개발 워크플로우입니다. MCP 도구들과 함께 자연어 명령으로 코드를 생성하고, GitHub 협업부터 자동 배포까지 완전한 개발 생태계를 구축합니다.',
       features: [
-        '📊 실시간 메트릭 대시보드',
-        '🔔 지능형 알림 시스템',
-        '📈 성능 트렌드 분석',
-        '🎯 예측적 장애 감지',
-        '📋 자동 보고서 생성',
+        '🎯 AI 주도 개발: Cursor AI + Claude Sonnet으로 자연어 기반 코딩',
+        '🔍 MCP 도구 활용: filesystem, web-search, sequential-thinking으로 개발 효율 극대화',
+        '📱 GitHub 완전 통합: 자동 커밋, PR 생성, 이슈 추적, 코드 리뷰',
+        '🚀 자동 배포: Vercel(웹앱) + Render(백엔드) 멀티 플랫폼 배포',
+        '🔄 CI/CD 파이프라인: GitHub Actions로 테스트, 빌드, 배포 자동화',
+        '💡 AI 브레인스토밍: 아키텍처 설계와 문제 해결 지원',
+        '🤖 워크플로우 자동화: 반복 작업의 지능적 처리',
       ],
       technologies: [
-        'Prometheus',
-        'Grafana',
-        'Alert Manager',
-        'Time Series DB',
+        '🎯 Cursor AI Editor: Claude Sonnet 통합 AI 코딩 환경',
+        '🧠 Claude Sonnet: 고성능 대규모 컨텍스트 AI 모델',
+        '🔧 MCP Protocol: 개발 워크플로우 최적화 도구',
+        '📱 GitHub: 소스 코드 관리 및 협업 플랫폼',
+        '🚀 Vercel: Next.js 앱 자동 배포 서비스',
+        '🌐 Render: 백엔드 서비스 및 MCP 서버 배포',
+        '⚙️ GitHub Actions: CI/CD 파이프라인 자동화',
+        '💡 AI Tools: 설계 및 브레인스토밍 지원',
       ],
     },
     requiresAI: false,
+    isVibeCard: true,
+    isSpecial: true,
   },
 ];
 
 export default function FeatureCardsGrid() {
-  const [selectedCard, setSelectedCard] = useState<FeatureCard | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(true);
-  const [, setTechStack] = useState(analyzeTechStack([]));
+  const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const [showDevModal, setShowDevModal] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
-  const { aiAgent } = useUnifiedAdminStore();
-  const { info } = useToast();
 
-  // 다크모드 감지
+  const { aiAgent } = useUnifiedAdminStore();
+  const { warning } = useToast();
+
+  // 다크모드 상태를 페이지에서 가져오기 (page.tsx에서 사용하는 것과 동일한 로직)
+  const [isDarkMode, setIsDarkMode] = useState(true);
+
   useEffect(() => {
+    // 페이지의 다크모드 상태와 동기화
     const checkDarkMode = () => {
-      const htmlElement = document.documentElement;
+      const body = document.body;
       const isDark =
-        htmlElement.classList.contains('dark') ||
-        htmlElement.style.background?.includes('rgb(15, 23, 42)') ||
-        document.body.style.background?.includes('rgb(15, 23, 42)');
+        body.classList.contains('dark') ||
+        document.documentElement.style.background?.includes(
+          'rgb(15, 23, 42)'
+        ) ||
+        window.getComputedStyle(body).background?.includes('rgb(15, 23, 42)');
       setIsDarkMode(isDark);
     };
 
     checkDarkMode();
+
+    // 다크모드 변경 감지를 위한 MutationObserver
     const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, {
+    observer.observe(document.body, {
       attributes: true,
       attributeFilter: ['class', 'style'],
     });
-    observer.observe(document.body, {
+    observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['style'],
     });
@@ -583,20 +551,20 @@ export default function FeatureCardsGrid() {
     return () => observer.disconnect();
   }, []);
 
-  // 모달 외부 클릭 처리
+  // 모달 외부 클릭 시 닫기 처리
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         modalRef.current &&
         !modalRef.current.contains(event.target as Node)
       ) {
-        closeModal();
+        setSelectedCard(null);
       }
     };
 
     const handleEscapeKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        closeModal();
+        setSelectedCard(null);
       }
     };
 
@@ -614,28 +582,38 @@ export default function FeatureCardsGrid() {
   }, [selectedCard]);
 
   const handleCardClick = (cardId: string) => {
-    const card = featureCards.find(c => c.id === cardId);
-    if (!card) return;
+    const card = cardData.find(c => c.id === cardId);
 
-    // AI 관련 카드이지만 AI가 비활성화된 경우
-    if (card.requiresAI && !aiAgent.isEnabled) {
-      info('🤖 이 기능을 사용하려면 먼저 AI 에이전트를 활성화해주세요!');
+    if (card?.requiresAI && !aiAgent.isEnabled) {
+      // AI 엔진이 필요한 기능에 일반 사용자가 접근할 때
+      warning(
+        '🚧 이 기능은 AI 엔진 모드에서만 사용 가능합니다. 홈 화면에서 AI 모드를 활성화해주세요.',
+        {
+          duration: 5000,
+          action: {
+            label: '활성화하기',
+            onClick: () => (window.location.href = '/'),
+          },
+        }
+      );
       return;
     }
 
-    setSelectedCard(card);
-
-    // 기술스택 업데이트
-    setTimeout(() => {
-      setTechStack(analyzeTechStack([]));
-    }, 100);
+    setSelectedCard(cardId);
   };
 
   const closeModal = () => {
     setSelectedCard(null);
   };
 
-  // AI 그라데이션 텍스트 렌더링
+  const selectedCardData = cardData.find(card => card.id === selectedCard);
+
+  // 선택된 카드의 기술 스택 분석
+  const analyzedTechStack = selectedCardData
+    ? analyzeTechStack(selectedCardData.detailedContent.technologies)
+    : [];
+
+  // AI 단어에 그라데이션 애니메이션 적용하는 함수
   const renderTextWithAIGradient = (text: string) => {
     if (!text.includes('AI')) return text;
 
@@ -667,118 +645,240 @@ export default function FeatureCardsGrid() {
 
   return (
     <>
-      {/* 🎨 리팩토링된 카드 그리드 */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12'>
-        {featureCards.map((card, index) => (
+      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-7xl mx-auto'>
+        {cardData.map((card, index) => (
           <motion.div
             key={card.id}
-            className={`${cardDesignSystem.baseClasses} ${card.gradient}`}
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: index * 0.1 }}
-            onClick={() => handleCardClick(card.id)}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
             whileHover={{
-              scale: 1.02,
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              scale: card.isVibeCard ? 1.08 : 1.05,
+              y: card.isVibeCard ? -8 : -5,
+              rotateY: card.isVibeCard ? 5 : 0,
             }}
-            whileTap={{ scale: 0.98 }}
+            className={`group cursor-pointer relative ${
+              card.isVibeCard
+                ? 'hover:shadow-2xl hover:shadow-yellow-500/30 transform-gpu'
+                : ''
+            }`}
+            onClick={() => handleCardClick(card.id)}
           >
-            {/* 아이콘 */}
-            <div className={cardDesignSystem.iconContainer}>
-              {typeof card.icon === 'string' ? (
-                <span>{card.icon}</span>
-              ) : (
-                <card.icon className='w-8 h-8' />
-              )}
-            </div>
-
-            {/* 제목 */}
-            <h3 className={cardDesignSystem.title}>
-              {card.isAICard
-                ? renderTextWithAIGradient(card.title)
-                : card.title}
-            </h3>
-
-            {/* 설명 */}
-            <p className={cardDesignSystem.description}>{card.description}</p>
-
-            {/* AI 요구사항 배지 */}
-            {card.requiresAI && (
-              <div className='absolute top-4 right-4'>
-                <motion.div
-                  className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                    aiAgent.isEnabled
-                      ? 'bg-green-500/20 text-green-200 border border-green-400/30'
-                      : 'bg-yellow-500/20 text-yellow-200 border border-yellow-400/30'
-                  }`}
-                  animate={
-                    !aiAgent.isEnabled
-                      ? {
-                          scale: [1, 1.05, 1],
-                          opacity: [0.7, 1, 0.7],
-                        }
-                      : {}
-                  }
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                >
-                  {aiAgent.isEnabled ? '✅ AI' : '🤖 AI 필요'}
-                </motion.div>
-              </div>
-            )}
-
-            {/* 특별 배지 */}
-            {card.isSpecial && (
-              <div className='absolute bottom-4 right-4'>
-                <motion.div
-                  className='text-yellow-400'
-                  animate={{
-                    rotate: [0, 10, -10, 0],
-                    scale: [1, 1.1, 1],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                >
-                  ⭐
-                </motion.div>
-              </div>
-            )}
-
-            {/* Vibe 카드 특별 효과 */}
-            {card.isVibeCard && (
-              <motion.div
-                className='absolute inset-0 pointer-events-none'
-                animate={{
-                  background: [
-                    'radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1) 0%, transparent 50%)',
-                    'radial-gradient(circle at 80% 80%, rgba(255,255,255,0.1) 0%, transparent 50%)',
-                    'radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1) 0%, transparent 50%)',
-                  ],
-                }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+            <div
+              className={`relative p-4 ${
+                isDarkMode
+                  ? 'bg-white/10 hover:bg-white/20 border-white/25'
+                  : 'bg-gray-900/90 hover:bg-gray-900/95 border-gray-200/50'
+              } backdrop-blur-sm border rounded-2xl transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) h-full ${
+                card.isSpecial
+                  ? isDarkMode
+                    ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/30'
+                    : 'bg-gradient-to-br from-amber-100/90 to-orange-100/90 border-amber-300/50'
+                  : ''
+              } group-hover:transform group-hover:scale-[1.02] group-hover:shadow-2xl`}
+            >
+              {/* 그라데이션 배경 */}
+              <div
+                className={`absolute inset-0 bg-gradient-to-br ${card.gradient} ${
+                  isDarkMode
+                    ? 'opacity-0 group-hover:opacity-10'
+                    : 'opacity-0 group-hover:opacity-15'
+                } rounded-2xl transition-opacity duration-300`}
               />
-            )}
+
+              {/* AI 카드 특별 이색 그라데이션 애니메이션 - landing 버전에서 재활용 */}
+              {card.isAICard && (
+                <motion.div
+                  className='absolute inset-0 bg-gradient-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30 rounded-2xl'
+                  animate={{
+                    background: [
+                      'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(236,72,153,0.3) 50%, rgba(34,197,94,0.3) 100%)',
+                      'linear-gradient(135deg, rgba(236,72,153,0.3) 0%, rgba(34,197,94,0.3) 50%, rgba(59,130,246,0.3) 100%)',
+                      'linear-gradient(135deg, rgba(34,197,94,0.3) 0%, rgba(59,130,246,0.3) 50%, rgba(236,72,153,0.3) 100%)',
+                      'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(236,72,153,0.3) 50%, rgba(34,197,94,0.3) 100%)',
+                    ],
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                />
+              )}
+
+              {/* 바이브 코딩 카드 황금 컨셉 디자인 */}
+              {card.isVibeCard && (
+                <>
+                  {/* 황금 장식 요소 */}
+                  <div className='absolute top-2 right-2 w-6 h-6 bg-yellow-400/30 rounded-full'></div>
+                  <div className='absolute bottom-2 left-2 w-4 h-4 bg-yellow-400/20 rounded-full'></div>
+
+                  {/* 황금 배경 그라데이션 */}
+                  <div className='absolute inset-0 bg-gradient-to-br from-amber-600 via-orange-600 to-amber-700 rounded-2xl'></div>
+
+                  {/* 아이콘 박스 */}
+                  <div className='relative z-20 w-12 h-12 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-xl flex items-center justify-center mb-4 shadow-lg'>
+                    <motion.span
+                      className='text-amber-900 text-xl font-bold'
+                      animate={{
+                        scale: [1, 1.2, 1],
+                        rotate: [0, 5, -5, 0],
+                      }}
+                      transition={{
+                        duration: 2.5,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                      }}
+                    >
+                      ⚡
+                    </motion.span>
+                  </div>
+
+                  {/* 제목 */}
+                  <h3 className='relative z-20 text-white text-xl font-bold mb-4 drop-shadow-lg'>
+                    🔥 바이브 코딩
+                  </h3>
+
+                  {/* 설명 박스 - 반투명 어두운 배경 */}
+                  <div className='relative z-20 bg-black/25 backdrop-blur-sm rounded-lg p-3 border border-yellow-400/30'>
+                    <p className='text-white text-sm leading-relaxed font-medium'>
+                      🎯{' '}
+                      <span className='text-yellow-200 font-bold'>
+                        AI 주도 코딩
+                      </span>{' '}
+                      Cursor + Claude
+                      <br />⚡ 개발자의 생산성을{' '}
+                      <span className='text-yellow-300 font-bold'>
+                        혁신적으로 향상
+                      </span>
+                      <br />
+                      🚀 GitHub 자동 커밋부터{' '}
+                      <span className='text-yellow-200'>
+                        배포까지 완전 자동화
+                      </span>
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {/* 일반 카드들의 아이콘 */}
+              {!card.isVibeCard && (
+                <div
+                  className={`w-12 h-12 bg-gradient-to-br ${card.gradient} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 relative z-10 ${
+                    card.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
+                  }`}
+                >
+                  {card.isAICard ? (
+                    <motion.div
+                      animate={{
+                        rotate: [0, 360],
+                        scale: [1, 1.1, 1],
+                      }}
+                      transition={{
+                        rotate: {
+                          duration: 8,
+                          repeat: Infinity,
+                          ease: 'linear',
+                        },
+                        scale: {
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: 'easeInOut',
+                        },
+                      }}
+                    >
+                      <card.icon className='w-6 h-6 text-white' />
+                    </motion.div>
+                  ) : (
+                    <card.icon className='w-6 h-6 text-white' />
+                  )}
+                </div>
+              )}
+
+              {/* 일반 카드들의 컨텐츠 */}
+              {!card.isVibeCard && (
+                <div className='relative z-10'>
+                  <h3
+                    className={`text-lg font-bold mb-2 transition-colors leading-tight ${
+                      isDarkMode
+                        ? 'text-white group-hover:text-white'
+                        : 'text-white group-hover:text-gray-100'
+                    }`}
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.95)',
+                      fontWeight: 600,
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {renderTextWithAIGradient(card.title)}
+                  </h3>
+                  <p
+                    className={`text-xs leading-relaxed transition-colors ${
+                      isDarkMode
+                        ? 'text-white/70 group-hover:text-white/90'
+                        : 'text-white/90 group-hover:text-white'
+                    }`}
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.80)',
+                      lineHeight: 1.5,
+                      fontWeight: 500,
+                    }}
+                  >
+                    {renderTextWithAIGradient(card.description)}
+                  </p>
+
+                  {/* AI 에이전트 필요 표시 */}
+                  {card.requiresAI && !aiAgent.isEnabled && (
+                    <div className='mt-2 px-2 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full text-orange-300 text-xs text-center'>
+                      AI 에이전트 모드 필요
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 호버 효과 */}
+              <div
+                className={`absolute inset-0 ring-2 ring-transparent transition-all duration-300 rounded-2xl ${
+                  card.isAICard
+                    ? 'group-hover:ring-pink-400/50 group-hover:shadow-lg group-hover:shadow-pink-500/25'
+                    : card.isVibeCard
+                      ? 'group-hover:ring-yellow-400/50 group-hover:shadow-lg group-hover:shadow-yellow-500/25'
+                      : card.isSpecial
+                        ? 'group-hover:ring-amber-400/50 group-hover:shadow-lg group-hover:shadow-amber-500/25'
+                        : 'group-hover:ring-white/30'
+                }`}
+              />
+            </div>
           </motion.div>
         ))}
       </div>
 
-      {/* 기존 모달 코드 유지 */}
+      {/* Feature Card Modal */}
+      <FeatureCardModal
+        selectedCard={selectedCardData}
+        onClose={closeModal}
+        renderTextWithAIGradient={renderTextWithAIGradient}
+        modalRef={modalRef}
+        variant='home'
+        isDarkMode={isDarkMode}
+      />
+
+      {/* 개발 중 모달 */}
       <AnimatePresence>
-        {selectedCard && (
-          <FeatureCardModal
-            selectedCard={selectedCard}
-            modalRef={modalRef}
-            isDarkMode={isDarkMode}
-            onClose={closeModal}
-            renderTextWithAIGradient={renderTextWithAIGradient}
-            variant='home'
-          />
+        {showDevModal && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 10 }}
+            className='fixed top-20 left-1/2 transform -translate-x-1/2 z-50 p-4 bg-orange-500/90 text-white rounded-lg shadow-lg'
+          >
+            <div className='flex items-center gap-2 text-sm font-medium'>
+              <Bot className='w-4 h-4' />
+              <span>
+                {renderTextWithAIGradient('AI 에이전트 모드를 활성화해주세요')}
+              </span>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </>
