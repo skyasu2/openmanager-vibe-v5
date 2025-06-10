@@ -158,21 +158,28 @@ const fetchServersFromAPI = async (): Promise<Server[]> => {
     const data = await response.json();
     if (process.env.NODE_ENV === 'development') {
       console.log('API Response structure:', {
-        hasData: !!data.data,
-        hasServers: !!data.data?.servers,
-        serversLength: data.data?.servers?.length,
-        serversType: typeof data.data?.servers,
+        hasData: !!data,
+        hasServers: !!data.servers,
+        serversLength: data.servers?.length,
+        serversType: typeof data.servers,
+        hasStats: !!data.stats, // 🔧 통계 데이터 확인
       });
     }
 
     // 🚀 안전한 배열 처리: 배열이 아닌 경우 빈 배열로 처리
-    const rawServers = data.data?.servers;
+    const rawServers = data.servers;
     if (!Array.isArray(rawServers)) {
       console.warn(
         '⚠️ API에서 반환된 servers 데이터가 배열이 아닙니다:',
         typeof rawServers
       );
       return [];
+    }
+
+    // 🔧 API 통계 데이터 글로벌 저장 (다른 컴포넌트에서 사용 가능)
+    if (data.stats && typeof window !== 'undefined') {
+      (window as any).__serverStats = data.stats;
+      console.log('📊 글로벌 서버 통계 업데이트:', data.stats);
     }
 
     // API 응답을 Client Server 타입으로 변환

@@ -3,11 +3,18 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSystemControl } from './useSystemControl';
 import { useSequentialServerGeneration } from './useSequentialServerGeneration';
-import { useMinimumLoadingTime, useDataLoadingPromise } from './useMinimumLoadingTime';
+import {
+  useMinimumLoadingTime,
+  useDataLoadingPromise,
+} from './useMinimumLoadingTime';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import type { Server } from '../types/server';
-import { setupGlobalErrorHandler, safeErrorLog, isLoadingRelatedError } from '../lib/error-handler';
+import {
+  setupGlobalErrorHandler,
+  safeErrorLog,
+  isLoadingRelatedError,
+} from '../lib/error-handler';
 
 interface DashboardStats {
   total: number;
@@ -19,7 +26,11 @@ interface DashboardStats {
 interface DashboardLogicState {
   isBootSequenceComplete: boolean;
   showBootSequence: boolean;
-  loadingPhase: 'system-starting' | 'data-loading' | 'python-warmup' | 'completed';
+  loadingPhase:
+    | 'system-starting'
+    | 'data-loading'
+    | 'python-warmup'
+    | 'completed';
   progress: number;
   skipAnimation: boolean;
   errorCount: number;
@@ -38,7 +49,7 @@ const DEFAULT_SERVER: Server = {
   location: 'Unknown',
   alerts: 0,
   lastUpdate: new Date(),
-  services: []
+  services: [],
 };
 
 // 🛡️ 기본 서버 통계 (null-safe fallback)
@@ -46,12 +57,12 @@ const DEFAULT_STATS: DashboardStats = {
   total: 0,
   online: 0,
   warning: 0,
-  offline: 0
+  offline: 0,
 };
 
 /**
  * 🎯 useDashboardLogic Hook v2.1 - Null-Safe Edition
- * 
+ *
  * 대시보드 전체 로직 관리
  * - 새로운 자연스러운 전환 시스템 통합
  * - 기존 기능 100% 호환성 유지
@@ -60,15 +71,17 @@ const DEFAULT_STATS: DashboardStats = {
  */
 export function useDashboardLogic() {
   const router = useRouter();
-  const [searchParams, setSearchParams] = useState<URLSearchParams | null>(null);
-  
+  const [searchParams, setSearchParams] = useState<URLSearchParams | null>(
+    null
+  );
+
   // 클라이언트 사이드에서만 searchParams 설정
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setSearchParams(new URLSearchParams(window.location.search));
     }
   }, []);
-  
+
   const [state, setState] = useState<DashboardLogicState>({
     isBootSequenceComplete: false,
     showBootSequence: true,
@@ -76,61 +89,66 @@ export function useDashboardLogic() {
     progress: 0,
     skipAnimation: false,
     errorCount: 0,
-    emergencyModeActive: false
+    emergencyModeActive: false,
   });
 
   // 🛡️ 전역 에러 핸들러 설정 및 에러 추적
   useEffect(() => {
     // 전역 에러 핸들러 설정
-    if (typeof window !== 'undefined' && !(window as any).__openManagerErrorHandlerSetup) {
+    if (
+      typeof window !== 'undefined' &&
+      !(window as any).__openManagerErrorHandlerSetup
+    ) {
       setupGlobalErrorHandler();
     }
 
     // 로딩 관련 에러 감지 리스너
     const handleLoadingError = (event: ErrorEvent | PromiseRejectionEvent) => {
       console.error('❌ 로딩 에러 감지:', event);
-      setState(prev => ({ 
-        ...prev, 
+      setState(prev => ({
+        ...prev,
         errorCount: prev.errorCount + 1,
-        emergencyModeActive: prev.errorCount >= 2
+        emergencyModeActive: prev.errorCount >= 2,
       }));
     };
 
     window.addEventListener('error', handleLoadingError as EventListener);
-    window.addEventListener('unhandledrejection', handleLoadingError as EventListener);
+    window.addEventListener(
+      'unhandledrejection',
+      handleLoadingError as EventListener
+    );
 
     return () => {
       window.removeEventListener('error', handleLoadingError as EventListener);
-      window.removeEventListener('unhandledrejection', handleLoadingError as EventListener);
+      window.removeEventListener(
+        'unhandledrejection',
+        handleLoadingError as EventListener
+      );
     };
   }, []);
 
   // URL 파라미터 기반 스킵 조건 확인
   const shouldSkipAnimation = useMemo(() => {
-    const urlParams = [
-      'instant',
-      'fast', 
-      'skip',
-      'debug',
-      'dev'
-    ];
-    
-    return urlParams.some(param => searchParams?.get(param) === 'true') || 
-           state.skipAnimation ||
-           state.emergencyModeActive;
+    const urlParams = ['instant', 'fast', 'skip', 'debug', 'dev'];
+
+    return (
+      urlParams.some(param => searchParams?.get(param) === 'true') ||
+      state.skipAnimation ||
+      state.emergencyModeActive
+    );
   }, [searchParams, state.skipAnimation, state.emergencyModeActive]);
 
   // 🎯 부팅 완료 핸들러 (안전한 버전)
   const handleBootComplete = useCallback(() => {
     try {
       console.log('🎉 Dashboard 부팅 완료 처리');
-      
+
       setState(prev => ({
         ...prev,
         isBootSequenceComplete: true,
         showBootSequence: false,
         loadingPhase: 'completed',
-        progress: 100
+        progress: 100,
       }));
 
       // URL 파라미터 정리
@@ -140,7 +158,7 @@ export function useDashboardLogic() {
         url.searchParams.delete('fast');
         url.searchParams.delete('skip');
         url.searchParams.delete('debug');
-        
+
         // 파라미터가 변경된 경우에만 라우터 업데이트
         if (url.search !== window.location.search) {
           router.replace(url.pathname + url.search, { scroll: false });
@@ -155,22 +173,17 @@ export function useDashboardLogic() {
         ...prev,
         isBootSequenceComplete: true,
         showBootSequence: false,
-        emergencyModeActive: true
+        emergencyModeActive: true,
       }));
     }
   }, [shouldSkipAnimation, router]);
 
   // 자연스러운 로딩 시간 훅 사용
-  const {
-    isLoading,
-    progress,
-    phase,
-    estimatedTimeRemaining,
-    elapsedTime
-  } = useMinimumLoadingTime({
-    skipCondition: shouldSkipAnimation,
-    onComplete: handleBootComplete
-  });
+  const { isLoading, progress, phase, estimatedTimeRemaining, elapsedTime } =
+    useMinimumLoadingTime({
+      skipCondition: shouldSkipAnimation,
+      onComplete: handleBootComplete,
+    });
 
   // 부팅 완료 시 handleBootComplete 실행
   useEffect(() => {
@@ -185,7 +198,7 @@ export function useDashboardLogic() {
     setState(prev => ({
       ...prev,
       skipAnimation: true,
-      emergencyModeActive: true
+      emergencyModeActive: true,
     }));
     handleBootComplete();
   }, [handleBootComplete]);
@@ -218,7 +231,7 @@ export function useDashboardLogic() {
     setState(prev => ({
       ...prev,
       loadingPhase: phase,
-      progress: progress
+      progress: progress,
     }));
   }, [phase, progress]);
 
@@ -240,26 +253,29 @@ export function useDashboardLogic() {
   const [serverStats, setServerStats] = useState<DashboardStats>(DEFAULT_STATS);
 
   // ✨ 새로운 전환 시스템 상태
-  const [showSequentialGeneration, setShowSequentialGeneration] = useState(false);
+  const [showSequentialGeneration, setShowSequentialGeneration] =
+    useState(false);
 
   // System control and server generation
   const systemControl = useSystemControl();
   const serverGeneration = useSequentialServerGeneration({
     autoStart: showSequentialGeneration,
     intervalMs: 1000,
-    onServerAdded: (server) => {
+    onServerAdded: server => {
       console.log('🚀 새 서버 추가:', server?.hostname || 'Unknown');
       // 🛡️ 안전한 서버 리스트 접근
-      const allServers = Array.isArray(serverGeneration.servers) ? serverGeneration.servers.concat(server) : [server];
+      const allServers = Array.isArray(serverGeneration.servers)
+        ? serverGeneration.servers.concat(server)
+        : [server];
       const stats = {
         total: allServers.length,
         online: allServers.filter(s => s?.status === 'online').length,
         warning: allServers.filter(s => s?.status === 'warning').length,
-        offline: allServers.filter(s => s?.status === 'offline').length
+        offline: allServers.filter(s => s?.status === 'offline').length,
       };
       updateServerStats(stats);
     },
-    onComplete: (allServers) => {
+    onComplete: allServers => {
       console.log('🎉 모든 서버 생성 완료:', allServers?.length || 0);
       setShowSequentialGeneration(false);
       // 🛡️ 안전한 서버 리스트 접근
@@ -268,15 +284,15 @@ export function useDashboardLogic() {
         total: safeServers.length,
         online: safeServers.filter(s => s?.status === 'online').length,
         warning: safeServers.filter(s => s?.status === 'warning').length,
-        offline: safeServers.filter(s => s?.status === 'offline').length
+        offline: safeServers.filter(s => s?.status === 'offline').length,
       };
       updateServerStats(stats);
     },
-    onError: (error) => {
+    onError: error => {
       console.error('❌ 서버 생성 오류:', error);
       // 🛡️ 에러 발생 시 기본값으로 복구
       updateServerStats(DEFAULT_STATS);
-    }
+    },
   });
 
   /**
@@ -287,12 +303,29 @@ export function useDashboardLogic() {
     try {
       // 🛡️ stats가 유효한지 검증
       if (stats && typeof stats === 'object') {
-        setServerStats({
+        const validatedStats = {
           total: Number(stats.total) || 0,
           online: Number(stats.online) || 0,
           warning: Number(stats.warning) || 0,
-          offline: Number(stats.offline) || 0
-        });
+          offline: Number(stats.offline) || 0,
+        };
+
+        // 🔧 추가 검증: 총합이 맞는지 확인
+        const calculatedTotal =
+          validatedStats.online +
+          validatedStats.warning +
+          validatedStats.offline;
+        if (validatedStats.total !== calculatedTotal && calculatedTotal > 0) {
+          console.warn('⚠️ 서버 통계 불일치 감지 - 자동 수정:', {
+            reported: validatedStats.total,
+            calculated: calculatedTotal,
+            breakdown: validatedStats,
+          });
+          validatedStats.total = calculatedTotal;
+        }
+
+        setServerStats(validatedStats);
+        console.log('📊 서버 통계 업데이트:', validatedStats);
       } else {
         console.warn('⚠️ 잘못된 서버 통계 데이터:', stats);
         setServerStats(DEFAULT_STATS);
@@ -393,19 +426,24 @@ export function useDashboardLogic() {
   }, [systemControl]);
 
   // ✨ 서버 스폰 핸들러 (새로운 전환 시스템용)
-  const handleServerSpawned = useCallback((server: Server | null | undefined, index: number) => {
-    try {
-      if (server && typeof server === 'object') {
-        console.log(`🌐 Server spawned in background: ${server.name || server.id} (${index + 1})`);
-        setState(prev => ({
-          ...prev,
-          progress: Math.min(prev.progress + 5, 95)
-        }));
+  const handleServerSpawned = useCallback(
+    (server: Server | null | undefined, index: number) => {
+      try {
+        if (server && typeof server === 'object') {
+          console.log(
+            `🌐 Server spawned in background: ${server.name || server.id} (${index + 1})`
+          );
+          setState(prev => ({
+            ...prev,
+            progress: Math.min(prev.progress + 5, 95),
+          }));
+        }
+      } catch (error) {
+        console.error('❌ 서버 스폰 핸들러 오류:', error);
       }
-    } catch (error) {
-      console.error('❌ 서버 스폰 핸들러 오류:', error);
-    }
-  }, []);
+    },
+    []
+  );
 
   // Client-side initialization
   useEffect(() => {
@@ -414,7 +452,7 @@ export function useDashboardLogic() {
       console.log('🔧 강제 클라이언트 활성화');
       setIsClient(true);
     }
-    
+
     // 추가 안전장치: 100ms 후 다시 체크
     const timer = setTimeout(() => {
       if (typeof window !== 'undefined' && !isClient) {
@@ -422,7 +460,7 @@ export function useDashboardLogic() {
         setIsClient(true);
       }
     }, 100);
-    
+
     return () => clearTimeout(timer);
   }, [isClient]);
 
@@ -441,14 +479,14 @@ export function useDashboardLogic() {
       const width = window.innerWidth;
       const mobile = width < 768;
       const tablet = width >= 768 && width < 1024;
-      
+
       setIsMobile(mobile);
       setIsTablet(tablet);
     };
 
     handleResize();
     window.addEventListener('resize', handleResize);
-    
+
     return () => {
       window.removeEventListener('resize', handleResize);
     };
@@ -467,10 +505,11 @@ export function useDashboardLogic() {
 
   // User activity tracking with debounce optimization
   useEffect(() => {
-    if (!isClient || !systemControl?.isSystemActive || state.showBootSequence) return;
+    if (!isClient || !systemControl?.isSystemActive || state.showBootSequence)
+      return;
 
     let debounceTimer: NodeJS.Timeout;
-    
+
     /**
      * 디바운스된 사용자 활동 핸들러
      * 1초 내에 여러 번 호출되면 마지막 호출만 실행
@@ -484,8 +523,15 @@ export function useDashboardLogic() {
       }, 1000);
     };
 
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-    
+    const events = [
+      'mousedown',
+      'mousemove',
+      'keypress',
+      'scroll',
+      'touchstart',
+      'click',
+    ];
+
     events.forEach(event => {
       document.addEventListener(event, handleUserActivity, { passive: true });
     });
@@ -507,7 +553,7 @@ export function useDashboardLogic() {
     hidden: {
       opacity: 0,
       y: 20,
-      scale: 0.98
+      scale: 0.98,
     },
     visible: {
       opacity: 1,
@@ -516,8 +562,8 @@ export function useDashboardLogic() {
       transition: {
         duration: 0.6,
         ease: [0.25, 0.46, 0.45, 0.94],
-        staggerChildren: 0.1
-      }
+        staggerChildren: 0.1,
+      },
     },
     exit: {
       opacity: 0,
@@ -525,9 +571,9 @@ export function useDashboardLogic() {
       scale: 1.02,
       transition: {
         duration: 0.3,
-        ease: 'easeInOut'
-      }
-    }
+        ease: 'easeInOut',
+      },
+    },
   };
 
   // 🚨 긴급 디버깅 로그 (null-safe)
@@ -535,30 +581,92 @@ export function useDashboardLogic() {
     console.log('🔍 useDashboardLogic 상태:', {
       isClient,
       showBootSequence: state.showBootSequence,
-      serversCount: Array.isArray(serverGeneration.servers) ? serverGeneration.servers.length : 0,
+      serversCount: Array.isArray(serverGeneration.servers)
+        ? serverGeneration.servers.length
+        : 0,
       systemActive: systemControl?.isSystemActive || false,
       loadingProgress: progress,
       loadingPhase: phase,
       estimatedTimeRemaining: estimatedTimeRemaining,
-      selectedServer: selectedServer ? { id: selectedServer.id, name: selectedServer.name } : null,
-      serverStats
+      selectedServer: selectedServer
+        ? { id: selectedServer.id, name: selectedServer.name }
+        : null,
+      serverStats,
     });
   }, [
-    isClient, 
-    state.showBootSequence, 
-    serverGeneration.servers, 
+    isClient,
+    state.showBootSequence,
+    serverGeneration.servers,
     systemControl?.isSystemActive,
     progress,
     phase,
     estimatedTimeRemaining,
     selectedServer,
-    serverStats
+    serverStats,
   ]);
 
   // 🛡️ 안전한 서버 리스트 반환
   const safeServerList = useMemo(() => {
-    return Array.isArray(serverGeneration.servers) ? serverGeneration.servers : [];
+    return Array.isArray(serverGeneration.servers)
+      ? serverGeneration.servers
+      : [];
   }, [serverGeneration.servers]);
+
+  // 🛡️ 서버 데이터 및 통계 업데이트 (개선된 버전)
+  useEffect(() => {
+    if (!isClient || state.showBootSequence) return;
+
+    const updateServerData = async () => {
+      try {
+        // 🔧 API에서 서버 데이터와 통계를 함께 가져오기
+        const response = await fetch('/api/servers');
+        if (response.ok) {
+          const data = await response.json();
+
+          if (data.success && data.stats) {
+            // 🔧 API에서 제공하는 정확한 통계 사용
+            const apiStats = {
+              total: data.stats.total || 0,
+              online: data.stats.online || 0,
+              warning: data.stats.warning || 0,
+              offline: data.stats.offline || 0,
+            };
+
+            console.log('📊 API 통계 데이터 사용:', apiStats);
+            updateServerStats(apiStats);
+          } else {
+            // 🔧 폴백: 서버 배열에서 직접 계산
+            const servers = data.servers || [];
+            const calculatedStats = {
+              total: servers.length,
+              online: servers.filter((s: any) => s.status === 'healthy').length,
+              warning: servers.filter((s: any) => s.status === 'warning')
+                .length,
+              offline: servers.filter((s: any) => s.status === 'critical')
+                .length,
+            };
+
+            console.log('📊 계산된 통계 데이터 사용:', calculatedStats);
+            updateServerStats(calculatedStats);
+          }
+        } else {
+          console.warn('⚠️ 서버 데이터 가져오기 실패, 기본값 사용');
+          updateServerStats(DEFAULT_STATS);
+        }
+      } catch (error) {
+        console.error('❌ 서버 데이터 업데이트 오류:', error);
+        updateServerStats(DEFAULT_STATS);
+      }
+    };
+
+    // 🔧 초기 로드
+    updateServerData();
+
+    // 🔧 주기적 업데이트 (5초마다)
+    const interval = setInterval(updateServerData, 5000);
+
+    return () => clearInterval(interval);
+  }, [isClient, state.showBootSequence, updateServerStats]);
 
   return {
     // State (null-safe)
@@ -568,24 +676,24 @@ export function useDashboardLogic() {
     isTablet,
     selectedServer: selectedServer || null,
     serverStats: serverStats || DEFAULT_STATS,
-    
+
     // ✨ 새로운 전환 시스템 상태 (개선됨)
     showBootSequence: state.showBootSequence,
     bootProgress: progress,
     isTransitioning: false,
     showSequentialGeneration,
-    
+
     // ✨ 추가된 로딩 상태 정보
     loadingPhase: phase,
     estimatedTimeRemaining,
     elapsedTime,
     isDataReady: !isLoading && safeServerList.length > 0,
-    
+
     // Actions
     setSelectedServer,
     setShowSequentialGeneration,
     updateServerStats,
-    
+
     // Handlers (null-safe)
     handleServerClick,
     toggleAgent,
@@ -594,32 +702,34 @@ export function useDashboardLogic() {
     handleSystemStop,
     handleSystemPause,
     handleSystemResume,
-    
+
     // ✨ 새로운 전환 시스템 핸들러
     handleBootComplete,
     handleServerSpawned: (server: any, index: number) => {
-      console.log(`🚀 서버 생성됨: ${server?.name || server?.id || 'Unknown'} (${index + 1}/${safeServerList.length})`);
+      console.log(
+        `🚀 서버 생성됨: ${server?.name || server?.id || 'Unknown'} (${index + 1}/${safeServerList.length})`
+      );
     },
     handleBootSequenceComplete: handleBootComplete,
-    
+
     // Animation
     mainContentVariants,
-    
+
     // System control (null-safe)
     systemControl: systemControl || {},
-    
+
     // Server generation (null-safe)
     serverGeneration: {
       ...serverGeneration,
-      servers: safeServerList
+      servers: safeServerList,
     },
-    
+
     // 계산된 상태
     shouldSkipAnimation,
-    
+
     // 액션
     forceComplete,
-    
+
     // 디버깅 정보
     debugInfo: {
       searchParams: searchParams?.toString() || '',
@@ -628,7 +738,7 @@ export function useDashboardLogic() {
       phase,
       progress,
       timestamp: new Date().toISOString(),
-      safeServerCount: safeServerList.length
-    }
+      safeServerCount: safeServerList.length,
+    },
   };
-} 
+}

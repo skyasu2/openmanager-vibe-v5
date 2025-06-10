@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function GET(request: NextRequest) {
   try {
     console.log('🔍 API /servers 요청 처리 시작');
-    
+
     // 🎯 심각 → 경고 → 정상 순으로 명확하게 배열된 서버 데이터
     const sortedServers = [
       // 🚨 심각 상태 (critical) - CPU 높은 순
@@ -21,7 +21,14 @@ export async function GET(request: NextRequest) {
         uptime_hours: 0.5,
         uptime: '방금 전',
         last_updated: new Date().toISOString(),
-        alerts: [{ type: 'cpu_critical', severity: 'critical', message: 'CPU 사용률 위험: 95%', timestamp: new Date().toISOString() }],
+        alerts: [
+          {
+            type: 'cpu_critical',
+            severity: 'critical',
+            message: 'CPU 사용률 위험: 95%',
+            timestamp: new Date().toISOString(),
+          },
+        ],
         services: [
           { name: 'nginx', status: 'stopped', port: 80 },
           { name: 'nodejs', status: 'stopped', port: 3000 },
@@ -42,7 +49,14 @@ export async function GET(request: NextRequest) {
         uptime_hours: 0.2,
         uptime: '방금 전',
         last_updated: new Date().toISOString(),
-        alerts: [{ type: 'memory_critical', severity: 'critical', message: '메모리 사용률 위험: 92%', timestamp: new Date().toISOString() }],
+        alerts: [
+          {
+            type: 'memory_critical',
+            severity: 'critical',
+            message: '메모리 사용률 위험: 92%',
+            timestamp: new Date().toISOString(),
+          },
+        ],
         services: [
           { name: 'nodejs', status: 'stopped', port: 3000 },
           { name: 'nginx', status: 'stopped', port: 80 },
@@ -64,7 +78,14 @@ export async function GET(request: NextRequest) {
         uptime_hours: 200,
         uptime: '8일 8시간',
         last_updated: new Date().toISOString(),
-        alerts: [{ type: 'cpu_warning', severity: 'warning', message: 'CPU 사용률 높음: 78%', timestamp: new Date().toISOString() }],
+        alerts: [
+          {
+            type: 'cpu_warning',
+            severity: 'warning',
+            message: 'CPU 사용률 높음: 78%',
+            timestamp: new Date().toISOString(),
+          },
+        ],
         services: [
           { name: 'nodejs', status: 'stopped', port: 3000 },
           { name: 'nginx', status: 'running', port: 80 },
@@ -85,7 +106,14 @@ export async function GET(request: NextRequest) {
         uptime_hours: 198,
         uptime: '8일 6시간',
         last_updated: new Date().toISOString(),
-        alerts: [{ type: 'memory_warning', severity: 'warning', message: '메모리 사용률 높음: 79%', timestamp: new Date().toISOString() }],
+        alerts: [
+          {
+            type: 'memory_warning',
+            severity: 'warning',
+            message: '메모리 사용률 높음: 79%',
+            timestamp: new Date().toISOString(),
+          },
+        ],
         services: [
           { name: 'gunicorn', status: 'stopped', port: 8000 },
           { name: 'python', status: 'stopped', port: 3000 },
@@ -106,7 +134,14 @@ export async function GET(request: NextRequest) {
         uptime_hours: 1100,
         uptime: '45일 20시간',
         last_updated: new Date().toISOString(),
-        alerts: [{ type: 'cpu_warning', severity: 'warning', message: 'CPU 사용률 높음: 68%', timestamp: new Date().toISOString() }],
+        alerts: [
+          {
+            type: 'cpu_warning',
+            severity: 'warning',
+            message: 'CPU 사용률 높음: 68%',
+            timestamp: new Date().toISOString(),
+          },
+        ],
         services: [
           { name: 'uwsgi', status: 'stopped', port: 8080 },
           { name: 'gunicorn', status: 'running', port: 8000 },
@@ -180,30 +215,44 @@ export async function GET(request: NextRequest) {
         ],
       },
     ];
-    
+
     // 제한 개수 처리
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '10');
     const limitedServers = sortedServers.slice(0, limit);
-    
+
     console.log(`✅ 정렬된 서버 데이터 반환: ${limitedServers.length}개`);
-    console.log('📊 상태별 분포:', {
+
+    // 🔧 정확한 상태별 분포 계산
+    const statusDistribution = {
       critical: limitedServers.filter(s => s.status === 'critical').length,
       warning: limitedServers.filter(s => s.status === 'warning').length,
       healthy: limitedServers.filter(s => s.status === 'healthy').length,
-    });
-    
+    };
+
+    console.log('📊 상태별 분포:', statusDistribution);
+
+    // 🔧 UI 호환 통계 데이터 추가
+    const serverStats = {
+      total: limitedServers.length,
+      online: statusDistribution.healthy, // healthy = online
+      warning: statusDistribution.warning,
+      offline: statusDistribution.critical, // critical = offline (UI 표시용)
+    };
+
+    console.log('📊 UI 호환 통계:', serverStats);
+
     return NextResponse.json({
       success: true,
       servers: limitedServers,
       total: limitedServers.length,
+      stats: serverStats, // 🔧 UI에서 사용할 통계 데이터 추가
+      distribution: statusDistribution, // 🔧 상세 분포 데이터
       timestamp: new Date().toISOString(),
-      sorted: '심각→경고→정상 순',
     });
-
   } catch (error) {
     console.error('❌ API /servers 오류:', error);
-    
+
     return NextResponse.json(
       {
         success: false,
@@ -215,4 +264,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}

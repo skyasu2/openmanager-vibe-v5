@@ -9,17 +9,17 @@
       "memory": 1024
     },
     "src/app/api/ai/**/*.ts": {
-      "runtime": "fluid",
+      "runtime": "nodejs20.x",
       "maxDuration": 120,
       "memory": 1024
     },
     "src/app/api/ai-agent/**/*.ts": {
-      "runtime": "fluid",
+      "runtime": "nodejs20.x",
       "maxDuration": 90,
       "memory": 1024
     },
     "src/app/api/prediction/**/*.ts": {
-      "runtime": "fluid",
+      "runtime": "nodejs20.x",
       "maxDuration": 90,
       "memory": 1024
     },
@@ -52,8 +52,7 @@
     }
   ],
   "env": {
-    "NODE_ENV": "production",
-    "VERCEL_COMPUTE_MODE": "fluid"
+    "NODE_ENV": "production"
   },
   "build": {
     "env": {

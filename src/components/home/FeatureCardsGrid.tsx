@@ -138,7 +138,7 @@ const techCategories = {
         color: 'bg-green-500',
       },
       {
-        name: 'korean-js',
+        name: 'custom-korean-ai',
         description: '한국어 형태소',
         icon: Globe,
         color: 'bg-blue-500',

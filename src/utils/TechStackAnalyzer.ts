@@ -249,7 +249,7 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     name: 'Korean NLP Suite',
     category: 'ai-ml',
     description:
-      '한국어 특화 AI - korean-js 형태소, hangul-js 조사 처리, 90% 의도 분류',
+      '한국어 특화 AI - 자체 개발 형태소 분석, 조사 처리, 90% 의도 분류',
     importance: 'high',
   },
 
@@ -794,7 +794,7 @@ function normalizeTechName(tech: string): string {
     'ml-matrix': 'ml-matrix',
     'ml-regression': 'ml-regression',
     natural: 'natural',
-    'korean-js': 'korean-js',
+    'custom-korean-ai': 'Custom Korean AI',
     compromise: 'compromise',
     'hangul-js': 'hangul-js',
     'fuse.js': 'fuse.js',

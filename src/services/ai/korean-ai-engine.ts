@@ -1,4 +1,4 @@
-// import Korean from 'korean-js'; // 모듈 오류로 인해 주석 처리
+// 자체 개발 한국어 처리 엔진 사용 (korean-js 대체)
 import * as natural from 'natural';
 import compromise from 'compromise';
 import {
