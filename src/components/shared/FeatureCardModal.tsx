@@ -51,6 +51,7 @@ interface FeatureCardModalProps {
   renderTextWithAIGradient: (text: string) => React.ReactNode;
   modalRef: React.RefObject<HTMLDivElement | null>;
   variant?: 'home' | 'landing';
+  isDarkMode?: boolean;
 }
 
 interface DetailCardProps {
@@ -63,7 +64,7 @@ interface DetailCardProps {
   accentColor: string;
 }
 
-// 개선된 카드 컴포넌트 - 수치 제거, 실용적 정보 강화
+// 개선된 카드 컴포넌트 - 다크모드 지원 및 글씨 크기 개선
 const DetailCard = React.memo(
   ({
     title,
@@ -73,9 +74,10 @@ const DetailCard = React.memo(
     highlights,
     codeExample,
     accentColor,
-  }: DetailCardProps) => {
+    isDarkMode = false,
+  }: DetailCardProps & { isDarkMode?: boolean }) => {
     const getTagStyle = (tagName: string) => {
-      const styles: { [key: string]: string } = {
+      const lightStyles: { [key: string]: string } = {
         프레임워크: 'bg-blue-100 text-blue-700 border-blue-200',
         언어: 'bg-indigo-100 text-indigo-700 border-indigo-200',
         스타일링: 'bg-cyan-100 text-cyan-700 border-cyan-200',
@@ -93,33 +95,87 @@ const DetailCard = React.memo(
         캐싱: 'bg-amber-100 text-amber-700 border-amber-200',
         시뮬레이션: 'bg-rose-100 text-rose-700 border-rose-200',
       };
-      return styles[tagName] || 'bg-gray-100 text-gray-700 border-gray-200';
+
+      const darkStyles: { [key: string]: string } = {
+        프레임워크: 'bg-blue-900/30 text-blue-300 border-blue-700/50',
+        언어: 'bg-indigo-900/30 text-indigo-300 border-indigo-700/50',
+        스타일링: 'bg-cyan-900/30 text-cyan-300 border-cyan-700/50',
+        데이터베이스:
+          'bg-emerald-900/30 text-emerald-300 border-emerald-700/50',
+        개발도구: 'bg-purple-900/30 text-purple-300 border-purple-700/50',
+        'AI 모델': 'bg-pink-900/30 text-pink-300 border-pink-700/50',
+        자동화: 'bg-violet-900/30 text-violet-300 border-violet-700/50',
+        배포: 'bg-fuchsia-900/30 text-fuchsia-300 border-fuchsia-700/50',
+        'AI 엔진': 'bg-green-900/30 text-green-300 border-green-700/50',
+        프로토콜: 'bg-teal-900/30 text-teal-300 border-teal-700/50',
+        백업: 'bg-lime-900/30 text-lime-300 border-lime-700/50',
+        언어처리: 'bg-yellow-900/30 text-yellow-300 border-yellow-700/50',
+        최적화: 'bg-orange-900/30 text-orange-300 border-orange-700/50',
+        관리: 'bg-red-900/30 text-red-300 border-red-700/50',
+        캐싱: 'bg-amber-900/30 text-amber-300 border-amber-700/50',
+        시뮬레이션: 'bg-rose-900/30 text-rose-300 border-rose-700/50',
+      };
+
+      const styles = isDarkMode ? darkStyles : lightStyles;
+      return (
+        styles[tagName] ||
+        (isDarkMode
+          ? 'bg-gray-800/50 text-gray-300 border-gray-600/50'
+          : 'bg-gray-100 text-gray-700 border-gray-200')
+      );
     };
 
     const getAccentColorClass = (color: string) => {
-      const colors: { [key: string]: string } = {
+      const lightColors: { [key: string]: string } = {
         blue: 'text-blue-600',
         purple: 'text-purple-600',
         green: 'text-green-600',
         orange: 'text-orange-600',
       };
-      return colors[color] || 'text-gray-600';
+
+      const darkColors: { [key: string]: string } = {
+        blue: 'text-blue-400',
+        purple: 'text-purple-400',
+        green: 'text-green-400',
+        orange: 'text-orange-400',
+      };
+
+      const colors = isDarkMode ? darkColors : lightColors;
+      return colors[color] || (isDarkMode ? 'text-gray-300' : 'text-gray-600');
     };
 
     const getIconBgClass = (color: string) => {
-      const colors: { [key: string]: string } = {
+      const lightColors: { [key: string]: string } = {
         blue: 'bg-blue-50 border-blue-200',
         purple: 'bg-purple-50 border-purple-200',
         green: 'bg-green-50 border-green-200',
         orange: 'bg-orange-50 border-orange-200',
       };
-      return colors[color] || 'bg-gray-50 border-gray-200';
+
+      const darkColors: { [key: string]: string } = {
+        blue: 'bg-blue-900/20 border-blue-700/30',
+        purple: 'bg-purple-900/20 border-purple-700/30',
+        green: 'bg-green-900/20 border-green-700/30',
+        orange: 'bg-orange-900/20 border-orange-700/30',
+      };
+
+      const colors = isDarkMode ? darkColors : lightColors;
+      return (
+        colors[color] ||
+        (isDarkMode
+          ? 'bg-gray-800/50 border-gray-600/30'
+          : 'bg-gray-50 border-gray-200')
+      );
     };
 
     return (
       <motion.div
         whileHover={{ y: -2, scale: 1.02 }}
-        className='bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden'
+        className={`rounded-xl border shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden ${
+          isDarkMode
+            ? 'bg-gray-800/50 border-gray-700/50 hover:bg-gray-800/70'
+            : 'bg-white border-gray-200'
+        }`}
       >
         <div className='p-6'>
           {/* 헤더 */}
@@ -130,42 +186,70 @@ const DetailCard = React.memo(
               {icon}
             </div>
             <span
-              className={`px-3 py-1 text-xs font-medium rounded-full border ${getTagStyle(tag)}`}
+              className={`px-3 py-1 text-sm font-semibold rounded-full border ${getTagStyle(tag)}`}
             >
               {tag}
             </span>
           </div>
 
-          {/* 제목과 설명 */}
+          {/* 제목과 설명 - 글씨 크기 증가 */}
           <h3
-            className={`text-lg font-bold mb-2 ${getAccentColorClass(accentColor)}`}
+            className={`text-xl font-bold mb-3 ${getAccentColorClass(accentColor)}`}
           >
             {title}
           </h3>
-          <p className='text-gray-600 text-sm leading-relaxed mb-4'>
+          <p
+            className={`leading-relaxed mb-5 text-base ${
+              isDarkMode ? 'text-gray-300' : 'text-gray-600'
+            }`}
+          >
             {description}
           </p>
 
-          {/* 주요 특징 */}
-          <div className='space-y-2 mb-4'>
+          {/* 주요 특징 - 글씨 크기 증가 */}
+          <div className='space-y-3 mb-5'>
             {highlights.map((highlight, index) => (
-              <div key={index} className='flex items-start gap-2'>
-                <CheckCircle className='h-4 w-4 text-green-500 mt-0.5 flex-shrink-0' />
-                <span className='text-sm text-gray-700'>{highlight}</span>
+              <div key={index} className='flex items-start gap-3'>
+                <CheckCircle className='h-5 w-5 text-green-500 mt-0.5 flex-shrink-0' />
+                <span
+                  className={`text-base font-medium ${
+                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                  }`}
+                >
+                  {highlight}
+                </span>
               </div>
             ))}
           </div>
 
           {/* 코드 예시 (있는 경우) */}
           {codeExample && (
-            <div className='bg-gray-50 rounded-lg p-3 border'>
-              <div className='flex items-center gap-2 mb-2'>
-                <Code className='h-4 w-4 text-gray-500' />
-                <span className='text-xs font-medium text-gray-600'>
+            <div
+              className={`rounded-lg p-4 border ${
+                isDarkMode
+                  ? 'bg-gray-900/50 border-gray-600/30'
+                  : 'bg-gray-50 border-gray-200'
+              }`}
+            >
+              <div className='flex items-center gap-2 mb-3'>
+                <Code
+                  className={`h-5 w-5 ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                  }`}
+                />
+                <span
+                  className={`text-sm font-semibold ${
+                    isDarkMode ? 'text-gray-300' : 'text-gray-600'
+                  }`}
+                >
                   사용 예시
                 </span>
               </div>
-              <pre className='text-xs text-gray-700 font-mono leading-relaxed overflow-x-auto'>
+              <pre
+                className={`text-sm font-mono leading-relaxed overflow-x-auto ${
+                  isDarkMode ? 'text-gray-200' : 'text-gray-700'
+                }`}
+              >
                 {codeExample}
               </pre>
             </div>
@@ -647,6 +731,7 @@ export default function FeatureCardModal({
   renderTextWithAIGradient,
   modalRef,
   variant = 'home',
+  isDarkMode = false,
 }: FeatureCardModalProps) {
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
@@ -714,7 +799,9 @@ export default function FeatureCardModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50'
+        className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${
+          isDarkMode ? 'bg-black/70' : 'bg-black/50'
+        }`}
         onClick={onClose}
       >
         <motion.div
@@ -724,10 +811,20 @@ export default function FeatureCardModal({
           animate='visible'
           exit='exit'
           onClick={e => e.stopPropagation()}
-          className='relative w-full max-w-7xl max-h-[85vh] bg-white rounded-2xl shadow-2xl overflow-hidden'
+          className={`relative w-full max-w-7xl max-h-[85vh] rounded-2xl shadow-2xl overflow-hidden ${
+            isDarkMode
+              ? 'bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 border border-gray-700/30'
+              : 'bg-white'
+          }`}
         >
           {/* 헤더 */}
-          <div className='flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white'>
+          <div
+            className={`flex items-center justify-between p-6 border-b ${
+              isDarkMode
+                ? 'border-gray-700/50 bg-gradient-to-r from-gray-800/40 to-gray-900/40'
+                : 'border-gray-200 bg-gradient-to-r from-gray-50 to-white'
+            }`}
+          >
             <div className='flex items-center gap-4'>
               <div
                 className={`p-3 bg-gradient-to-br ${selectedCard.gradient} rounded-xl`}
@@ -735,21 +832,35 @@ export default function FeatureCardModal({
                 <selectedCard.icon className='w-8 h-8 text-white' />
               </div>
               <div>
-                <h2 className='text-2xl font-bold text-gray-900 mb-1'>
+                <h2
+                  className={`text-3xl font-bold mb-2 ${
+                    isDarkMode ? 'text-white' : 'text-gray-900'
+                  }`}
+                >
                   {currentConfig.title}
                 </h2>
-                <p className='text-gray-600'>{currentConfig.description}</p>
+                <p
+                  className={`text-xl ${
+                    isDarkMode ? 'text-gray-300' : 'text-gray-600'
+                  }`}
+                >
+                  {currentConfig.description}
+                </p>
               </div>
             </div>
 
             <motion.button
               onClick={onClose}
-              className='w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors'
+              className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
+                isDarkMode
+                  ? 'bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 hover:text-white'
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+              }`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               aria-label='모달 닫기'
             >
-              <X className='w-5 h-5 text-gray-600' />
+              <X className='w-6 h-6' />
             </motion.button>
           </div>
 
@@ -758,7 +869,9 @@ export default function FeatureCardModal({
             variants={containerVariants}
             initial='hidden'
             animate='visible'
-            className='p-6 overflow-y-auto max-h-[calc(85vh-120px)]'
+            className={`p-6 overflow-y-auto max-h-[calc(85vh-120px)] ${
+              isDarkMode ? 'bg-gray-900/50' : ''
+            }`}
           >
             <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
               {currentConfig.data.map((item, index) => (
@@ -770,7 +883,7 @@ export default function FeatureCardModal({
                   onHoverStart={() => setHoveredCard(index)}
                   onHoverEnd={() => setHoveredCard(null)}
                 >
-                  <DetailCard {...item} />
+                  <DetailCard {...item} isDarkMode={isDarkMode} />
                 </motion.div>
               ))}
             </div>

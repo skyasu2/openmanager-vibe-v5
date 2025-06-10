@@ -305,9 +305,9 @@ export default function Home() {
       {/* 헤더 */}
       <header className='relative z-10 flex justify-between items-center p-6'>
         <div className='flex items-center space-x-3'>
-          {/* AI 컨셉 아이콘 */}
+          {/* AI 컨셉 아이콘 - 통합 AI 카드 스타일 애니메이션 적용 */}
           <motion.div
-            className='w-10 h-10 rounded-lg flex items-center justify-center relative'
+            className='w-10 h-10 rounded-lg flex items-center justify-center relative shadow-lg'
             animate={
               aiAgent.isEnabled
                 ? {
@@ -315,6 +315,14 @@ export default function Home() {
                       'linear-gradient(135deg, #a855f7, #ec4899)',
                       'linear-gradient(135deg, #ec4899, #06b6d4)',
                       'linear-gradient(135deg, #06b6d4, #a855f7)',
+                    ],
+                    scale: [1, 1.1, 1],
+                    rotate: [0, 360],
+                    boxShadow: [
+                      '0 4px 15px rgba(168, 85, 247, 0.3)',
+                      '0 6px 20px rgba(236, 72, 153, 0.4)',
+                      '0 4px 15px rgba(6, 182, 212, 0.3)',
+                      '0 6px 20px rgba(168, 85, 247, 0.4)',
                     ],
                   }
                 : isSystemStarted
@@ -324,9 +332,17 @@ export default function Home() {
                         'linear-gradient(135deg, #059669, #047857)',
                         'linear-gradient(135deg, #047857, #10b981)',
                       ],
+                      scale: [1, 1.05, 1],
+                      boxShadow: [
+                        '0 4px 15px rgba(16, 185, 129, 0.3)',
+                        '0 6px 20px rgba(5, 150, 105, 0.4)',
+                        '0 4px 15px rgba(16, 185, 129, 0.3)',
+                      ],
                     }
                   : {
                       background: 'linear-gradient(135deg, #6b7280, #4b5563)',
+                      scale: 1,
+                      rotate: 0,
                     }
             }
             transition={{
@@ -334,11 +350,35 @@ export default function Home() {
               repeat: Infinity,
               ease: 'easeInOut',
             }}
+            whileHover={{
+              scale: 1.15,
+              transition: { duration: 0.3 },
+            }}
           >
-            <i
-              className='fas fa-server text-white text-lg'
-              aria-hidden='true'
-            ></i>
+            {/* AI 활성화 시 회전 아이콘 */}
+            {aiAgent.isEnabled ? (
+              <motion.i
+                className='fas fa-server text-white text-lg'
+                animate={{
+                  rotate: [0, 360],
+                  scale: [1, 1.1, 1],
+                }}
+                transition={{
+                  rotate: { duration: 8, repeat: Infinity, ease: 'linear' },
+                  scale: {
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  },
+                }}
+                aria-hidden='true'
+              />
+            ) : (
+              <i
+                className='fas fa-server text-white text-lg'
+                aria-hidden='true'
+              />
+            )}
           </motion.div>
 
           {/* 브랜드 텍스트 */}

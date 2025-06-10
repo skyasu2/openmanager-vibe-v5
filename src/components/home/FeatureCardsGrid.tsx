@@ -384,7 +384,7 @@ const cardData: FeatureCard[] = [
     id: 'mcp-ai-engine',
     title: '🧠 통합 AI 시스템',
     description:
-      'UnifiedAIEngine 중앙 관리, MCP 프로토콜 기반 분석, 한국어 자연어 처리',
+      '📊 서버 상태를 한국어로 질문하세요! "CPU 높은 서버는?" → 즉시 분석 결과 제공. 장애 시 자동 보고서 생성',
     icon: Bot,
     gradient: 'from-purple-500 via-indigo-500 to-cyan-400',
     detailedContent: {
@@ -416,7 +416,7 @@ const cardData: FeatureCard[] = [
     id: 'data-generator',
     title: '📊 실시간 서버 데이터 생성기',
     description:
-      '24시간 베이스라인 패턴 생성, 환경별 자동 모드 전환, 30개 서버 실시간 시뮬레이션',
+      '🔄 실제 서버처럼 동작하는 데이터를 자동 생성. 업무시간↑/야간↓ 패턴, 장애 시뮬레이션, 환경별 최적화',
     icon: Database,
     gradient: 'from-emerald-500 to-teal-600',
     detailedContent: {
@@ -447,7 +447,7 @@ const cardData: FeatureCard[] = [
     id: 'tech-stack',
     title: '⚡ 적용 기술',
     description:
-      'TypeScript 완전 타입 지원, Vercel 서버리스 배포, 모듈화 아키텍처',
+      '💻 Next.js 15 + TypeScript로 안정성 확보. Vercel 배포, TailwindCSS 디자인, 모든 코드 타입 안전성 100%',
     icon: Code,
     gradient: 'from-purple-500 to-indigo-600',
     detailedContent: {
@@ -463,16 +463,14 @@ const cardData: FeatureCard[] = [
         '✨ ESLint + Prettier: 코드 품질 자동화와 일관된 스타일',
       ],
       technologies: [
-        '⚛️ Next.js 15.3.3: App Router, 서버 컴포넌트, Edge Runtime',
-        '🔧 React 19: 동시성 렌더링, Suspense, useTransition',
-        '💎 TypeScript 5.6: 타입 안전성, 고급 타입 추론, 컴파일 최적화',
-        '🎨 TailwindCSS v4: JIT 컴파일, 커스텀 디자인 시스템',
-        '🎬 Framer Motion: 선언적 애니메이션, 레이아웃 애니메이션',
-        '📦 Zustand (2.9KB): 경량 상태관리, TypeScript 네이티브',
-        '🗄️ Supabase: PostgreSQL + Row Level Security + 실시간 구독',
-        '💾 Upstash Redis: 서버리스 Redis, 자동 스케일링',
-        '📊 Chart.js + Recharts: 캔버스 차트 + React 네이티브 차트',
-        '🧪 Vitest + Playwright: 빠른 테스트 + 크로스브라우저 E2E',
+        '⚛️ Next.js 15.3.3: React 19 기반 풀스택 프레임워크',
+        '🎨 Tailwind CSS 3.4: 유틸리티 퍼스트 CSS 프레임워크',
+        '🔧 TypeScript 5.6: 정적 타입 검사 및 IDE 지원',
+        '🌊 Framer Motion 11: 선언적 React 애니메이션 라이브러리',
+        '🗄️ Zustand 4.5: 경량 React 상태 관리 라이브러리',
+        '📊 Supabase: PostgreSQL 기반 실시간 데이터베이스',
+        '⚡ Upstash Redis: 서버리스 Redis 캐싱 서비스',
+        '🧪 Vitest: 빠른 단위 테스트 프레임워크',
       ],
     },
     requiresAI: false,
@@ -481,7 +479,7 @@ const cardData: FeatureCard[] = [
     id: 'vibe-coding',
     title: '🎯 바이브 코딩',
     description:
-      'Cursor AI + Claude 4 Sonnet, MCP Tools 실시간 연동, 자동화된 GitHub 워크플로우',
+      '🤖 AI가 80% 코딩! Cursor + Claude 4로 자연어 명령만으로 코드 생성. GitHub 590+ 커밋, 자동 배포까지',
     icon: Zap,
     gradient: 'from-yellow-400 via-orange-500 via-pink-500 to-purple-600',
     detailedContent: {
@@ -497,21 +495,19 @@ const cardData: FeatureCard[] = [
         '🤖 대규모 자동화: Google Jules AI Agent로 VM 기반 작업',
       ],
       technologies: [
-        '🎯 Cursor AI Editor: Claude 4 Sonnet 통합, 200K+ 토큰 컨텍스트',
-        '🧠 Claude 4 Sonnet: 최대 컨텍스트 AI 모델, 멀티턴 대화',
-        '🔍 mcp-filesystem: 파일 탐색, 코드 구조 분석, 의존성 추적',
-        '🌐 mcp-duckduckgo-search: 웹 검색, 최신 문서, 오류 해결',
-        '🧠 mcp-sequential-thinking: 단계별 문제 해결, 논리 검증',
-        '📱 GitHub: 590+ 커밋, 브랜치 전략, PR 자동화, 협업',
-        '🚀 Vercel: Next.js 최적화, 15개 환경, Edge Functions',
-        '☁️ Render: MCP 서버 배포, 자동 스케일링, 24/7 운영',
-        '⚙️ GitHub Actions: CI/CD 자동화, 테스트, 타입 검사',
-        '🔄 멀티 환경: dev/staging/production 분리, 무중단 배포',
+        '🎯 Cursor AI Editor: Claude 4 Sonnet 통합 AI 코딩 환경',
+        '🧠 Claude 4 Sonnet: 200K 토큰 컨텍스트 지원 고성능 AI',
+        '🔧 MCP Protocol: 3개 도구로 개발 워크플로우 최적화',
+        '📱 GitHub: 590+ 커밋, 이슈 관리, 자동 PR',
+        '🚀 Vercel: Next.js 앱 자동 배포 및 Edge Functions',
+        '🌐 Render: MCP 서버 및 백엔드 서비스 배포',
+        '⚙️ GitHub Actions: CI/CD 파이프라인 자동화',
+        '💡 ChatGPT: 아키텍처 설계 및 브레인스토밍',
       ],
     },
     requiresAI: false,
-    isSpecial: true,
     isVibeCard: true,
+    isSpecial: true,
   },
 ];
 
@@ -522,6 +518,38 @@ export default function FeatureCardsGrid() {
 
   const { aiAgent } = useUnifiedAdminStore();
   const { warning } = useToast();
+
+  // 다크모드 상태를 페이지에서 가져오기 (page.tsx에서 사용하는 것과 동일한 로직)
+  const [isDarkMode, setIsDarkMode] = useState(true);
+
+  useEffect(() => {
+    // 페이지의 다크모드 상태와 동기화
+    const checkDarkMode = () => {
+      const body = document.body;
+      const isDark =
+        body.classList.contains('dark') ||
+        document.documentElement.style.background?.includes(
+          'rgb(15, 23, 42)'
+        ) ||
+        window.getComputedStyle(body).background?.includes('rgb(15, 23, 42)');
+      setIsDarkMode(isDark);
+    };
+
+    checkDarkMode();
+
+    // 다크모드 변경 감지를 위한 MutationObserver
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class', 'style'],
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   // 모달 외부 클릭 시 닫기 처리
   useEffect(() => {
@@ -637,15 +665,25 @@ export default function FeatureCardsGrid() {
             onClick={() => handleCardClick(card.id)}
           >
             <div
-              className={`relative p-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl hover:bg-white/20 transition-all duration-300 h-full ${
+              className={`relative p-4 ${
+                isDarkMode
+                  ? 'bg-white/10 hover:bg-white/20 border-white/20'
+                  : 'bg-gray-900/90 hover:bg-gray-900/95 border-gray-200/50'
+              } backdrop-blur-sm border rounded-2xl transition-all duration-300 h-full ${
                 card.isSpecial
-                  ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/30'
+                  ? isDarkMode
+                    ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/30'
+                    : 'bg-gradient-to-br from-amber-100/90 to-orange-100/90 border-amber-300/50'
                   : ''
               }`}
             >
               {/* 그라데이션 배경 */}
               <div
-                className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300`}
+                className={`absolute inset-0 bg-gradient-to-br ${card.gradient} ${
+                  isDarkMode
+                    ? 'opacity-0 group-hover:opacity-10'
+                    : 'opacity-0 group-hover:opacity-15'
+                } rounded-2xl transition-opacity duration-300`}
               />
 
               {/* AI 카드 특별 이색 그라데이션 애니메이션 - landing 버전에서 재활용 */}
@@ -732,10 +770,22 @@ export default function FeatureCardsGrid() {
 
               {/* 컨텐츠 */}
               <div className='relative z-10'>
-                <h3 className='text-lg font-bold text-white mb-2 group-hover:text-white transition-colors'>
+                <h3
+                  className={`text-lg font-bold mb-2 transition-colors ${
+                    isDarkMode
+                      ? 'text-white group-hover:text-white'
+                      : 'text-white group-hover:text-gray-100'
+                  }`}
+                >
                   {renderTextWithAIGradient(card.title)}
                 </h3>
-                <p className='text-white/70 text-xs leading-relaxed group-hover:text-white/90 transition-colors'>
+                <p
+                  className={`text-xs leading-relaxed transition-colors ${
+                    isDarkMode
+                      ? 'text-white/70 group-hover:text-white/90'
+                      : 'text-white/90 group-hover:text-white'
+                  }`}
+                >
                   {renderTextWithAIGradient(card.description)}
                 </p>
 
@@ -768,7 +818,8 @@ export default function FeatureCardsGrid() {
         onClose={closeModal}
         renderTextWithAIGradient={renderTextWithAIGradient}
         modalRef={modalRef}
-        variant="home"
+        variant='home'
+        isDarkMode={isDarkMode}
       />
 
       {/* 개발 중 모달 */}

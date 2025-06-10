@@ -36,9 +36,13 @@ import {
   RefreshCw,
   Server,
   Cpu,
-  Network
+  Network,
 } from 'lucide-react';
-import { useInlineFeedback, InlineFeedbackContainer, ButtonWithFeedback } from '@/components/ui/InlineFeedbackSystem';
+import {
+  useInlineFeedback,
+  InlineFeedbackContainer,
+  ButtonWithFeedback,
+} from '@/components/ui/InlineFeedbackSystem';
 import { UnifiedSettingsPanelProps, SettingsTab } from './types/ProfileTypes';
 import { useSettingsData } from './hooks/useSettingsData';
 import { useAuthentication } from './hooks/useAuthentication';
@@ -150,7 +154,10 @@ export function UnifiedSettingsPanel({
     try {
       const result = await handleAIAuthentication(quickPassword);
       if (result.success) {
-        success('auth-section', '✅ AI 에이전트 관리자 권한이 활성화되었습니다!');
+        success(
+          'auth-section',
+          '✅ AI 에이전트 관리자 권한이 활성화되었습니다!'
+        );
       } else {
         error('auth-section', result.error || '잘못된 관리자 PIN입니다.');
       }
@@ -166,35 +173,62 @@ export function UnifiedSettingsPanel({
       await loadGeneratorConfig();
       success('generator-section', '데이터 생성기가 정상적으로 작동 중입니다.');
     } catch (err) {
-      error('generator-section', '데이터 생성기 상태 확인 중 오류가 발생했습니다.');
+      error(
+        'generator-section',
+        '데이터 생성기 상태 확인 중 오류가 발생했습니다.'
+      );
     }
   };
 
   const handleServerCountChange = async (newCount: number) => {
     try {
-      loading('generator-section', `서버 개수를 ${newCount}개로 변경하고 있습니다...`);
+      loading(
+        'generator-section',
+        `서버 개수를 ${newCount}개로 변경하고 있습니다...`
+      );
       const result = await updateServerCount(newCount);
       if (result.success) {
-        success('generator-section', `서버 개수가 ${newCount}개로 성공적으로 변경되었습니다.`);
+        success(
+          'generator-section',
+          `서버 개수가 ${newCount}개로 성공적으로 변경되었습니다.`
+        );
       } else {
-        error('generator-section', result.error || '서버 개수 변경에 실패했습니다.');
+        error(
+          'generator-section',
+          result.error || '서버 개수 변경에 실패했습니다.'
+        );
       }
     } catch (err) {
-      error('generator-section', '서버 개수 변경 중 시스템 오류가 발생했습니다.');
+      error(
+        'generator-section',
+        '서버 개수 변경 중 시스템 오류가 발생했습니다.'
+      );
     }
   };
 
   const handleArchitectureChange = async (newArch: string) => {
     try {
-      loading('generator-section', `시스템 아키텍처를 ${newArch}로 변경하고 있습니다...`);
+      loading(
+        'generator-section',
+        `시스템 아키텍처를 ${newArch}로 변경하고 있습니다...`
+      );
       const result = await updateArchitecture(newArch);
       if (result.success) {
-        success('generator-section', `시스템이 ${newArch} 아키텍처로 성공적으로 전환되었습니다.`);
+        success(
+          'generator-section',
+          `시스템이 ${newArch} 아키텍처로 성공적으로 전환되었습니다.`
+        );
       } else {
-        error('generator-section', result.error || '아키텍처 변경에 실패했습니다.');
+        error(
+          'generator-section',
+          result.error || '아키텍처 변경에 실패했습니다.'
+        );
       }
     } catch (err) {
-      error('generator-section', '아키텍처 변경 중 시스템 오류가 발생했습니다.');
+      error(
+        'generator-section',
+        '아키텍처 변경 중 시스템 오류가 발생했습니다.'
+      );
     }
   };
 
@@ -203,7 +237,10 @@ export function UnifiedSettingsPanel({
     try {
       info('시스템 진단', '전체 시스템 상태를 확인하고 있습니다...');
       await checkSystemHealth();
-      success('시스템 진단 완료', '모든 시스템 구성요소가 정상적으로 작동 중입니다.');
+      success(
+        '시스템 진단 완료',
+        '모든 시스템 구성요소가 정상적으로 작동 중입니다.'
+      );
     } catch (err) {
       error('시스템 진단 실패', '시스템 상태 확인 중 오류가 발생했습니다.');
     }
@@ -218,8 +255,8 @@ export function UnifiedSettingsPanel({
         priority: 'high',
         action: {
           label: '성능 보고서 보기',
-          onClick: () => info('성능 보고서', 'AI 성능이 15% 향상되었습니다.')
-        }
+          onClick: () => info('성능 보고서', 'AI 성능이 15% 향상되었습니다.'),
+        },
       });
     } catch (err) {
       error('최적화 실패', 'AI 시스템 최적화 중 오류가 발생했습니다.');
@@ -233,8 +270,9 @@ export function UnifiedSettingsPanel({
       success('진단 완료', '🔍 시스템이 최적 상태로 운영되고 있습니다!', {
         action: {
           label: '세부 보고서',
-          onClick: () => info('진단 결과', 'CPU: 정상, 메모리: 최적, 네트워크: 안정')
-        }
+          onClick: () =>
+            info('진단 결과', 'CPU: 정상, 메모리: 최적, 네트워크: 안정'),
+        },
       });
     } catch (err) {
       error('진단 실패', '시스템 진단 중 오류가 발생했습니다.');
@@ -265,8 +303,9 @@ export function UnifiedSettingsPanel({
                   </div>
                   <div className='p-3 bg-gray-800/50 rounded-lg text-center'>
                     <div
-                      className={`w-3 h-3 rounded-full mx-auto mb-2 ${adminMode ? 'bg-green-400' : 'bg-yellow-400'
-                        }`}
+                      className={`w-3 h-3 rounded-full mx-auto mb-2 ${
+                        adminMode ? 'bg-green-400' : 'bg-yellow-400'
+                      }`}
                     />
                     <p className='text-xs text-gray-400 mb-1'>관리자 인증</p>
                     <p className='text-sm font-medium text-white'>
@@ -334,23 +373,34 @@ export function UnifiedSettingsPanel({
                         관리자 권한 활성화
                       </span>
                     </div>
-                    <div className='grid grid-cols-2 gap-3'>
+                    <div className='grid grid-cols-1 gap-3'>
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={handleAIOptimization}
-                        className='px-4 py-2 bg-purple-500/20 text-purple-300 rounded-lg font-medium hover:bg-purple-500/30 transition-colors text-sm'
+                        className='px-4 py-3 bg-purple-500/20 text-purple-300 rounded-lg font-medium hover:bg-purple-500/30 transition-colors text-sm border border-purple-500/30'
                       >
-                        AI 최적화
+                        <div className='flex flex-col items-center gap-1'>
+                          <span className='font-semibold'>🤖 AI 최적화</span>
+                          <span className='text-xs text-purple-200'>
+                            AI 엔진 성능을 분석하고 메모리/CPU 사용량을
+                            최적화합니다
+                          </span>
+                        </div>
                       </motion.button>
 
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={handleSystemDiagnosis}
-                        className='px-4 py-2 bg-blue-500/20 text-blue-300 rounded-lg font-medium hover:bg-blue-500/30 transition-colors text-sm'
+                        className='px-4 py-3 bg-blue-500/20 text-blue-300 rounded-lg font-medium hover:bg-blue-500/30 transition-colors text-sm border border-blue-500/30'
                       >
-                        상태 진단
+                        <div className='flex flex-col items-center gap-1'>
+                          <span className='font-semibold'>🔍 상태 진단</span>
+                          <span className='text-xs text-blue-200'>
+                            전체 시스템의 상태를 점검하고 이상 여부를 진단합니다
+                          </span>
+                        </div>
                       </motion.button>
                     </div>
                   </div>
@@ -394,7 +444,7 @@ export function UnifiedSettingsPanel({
                 </div>
 
                 {/* 빠른 액션 버튼들 */}
-                <div className='grid grid-cols-3 gap-3'>
+                <div className='grid grid-cols-1 gap-3'>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -407,9 +457,14 @@ export function UnifiedSettingsPanel({
                         error('서버 모드 변경 실패');
                       }
                     }}
-                    className='px-3 py-2 bg-green-500/20 text-green-300 rounded-lg font-medium hover:bg-green-500/30 transition-colors text-xs'
+                    className='px-3 py-3 bg-green-500/20 text-green-300 rounded-lg font-medium hover:bg-green-500/30 transition-colors text-sm border border-green-500/30'
                   >
-                    6서버
+                    <div className='flex flex-col items-center gap-1'>
+                      <span className='font-semibold'>💻 6서버 모드</span>
+                      <span className='text-xs text-green-200'>
+                        기본 환경용 - 6개 서버로 가벼운 테스트 및 개발에 적합
+                      </span>
+                    </div>
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -423,17 +478,27 @@ export function UnifiedSettingsPanel({
                         error('서버 모드 변경 실패');
                       }
                     }}
-                    className='px-3 py-2 bg-blue-500/20 text-blue-300 rounded-lg font-medium hover:bg-blue-500/30 transition-colors text-xs'
+                    className='px-3 py-3 bg-blue-500/20 text-blue-300 rounded-lg font-medium hover:bg-blue-500/30 transition-colors text-sm border border-blue-500/30'
                   >
-                    20서버
+                    <div className='flex flex-col items-center gap-1'>
+                      <span className='font-semibold'>🚀 20서버 모드</span>
+                      <span className='text-xs text-blue-200'>
+                        프리미엄 환경용 - 20개 서버로 실전 운영 환경 시뮬레이션
+                      </span>
+                    </div>
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={handleGeneratorCheck}
-                    className='px-3 py-2 bg-purple-500/20 text-purple-300 rounded-lg font-medium hover:bg-purple-500/30 transition-colors text-xs'
+                    className='px-3 py-3 bg-purple-500/20 text-purple-300 rounded-lg font-medium hover:bg-purple-500/30 transition-colors text-sm border border-purple-500/30'
                   >
-                    상태 확인
+                    <div className='flex flex-col items-center gap-1'>
+                      <span className='font-semibold'>📊 상태 확인</span>
+                      <span className='text-xs text-purple-200'>
+                        데이터 생성기의 현재 상태와 성능 지표를 확인합니다
+                      </span>
+                    </div>
                   </motion.button>
                 </div>
               </div>
@@ -474,14 +539,19 @@ export function UnifiedSettingsPanel({
                   </div>
                 </div>
 
-                <div className='grid grid-cols-2 gap-3'>
+                <div className='grid grid-cols-1 gap-3'>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={handleMonitorCheck}
-                    className='px-4 py-2 bg-cyan-500/20 text-cyan-300 rounded-lg font-medium hover:bg-cyan-500/30 transition-colors text-sm'
+                    className='px-4 py-3 bg-cyan-500/20 text-cyan-300 rounded-lg font-medium hover:bg-cyan-500/30 transition-colors text-sm border border-cyan-500/30'
                   >
-                    모니터링 최적화
+                    <div className='flex flex-col items-center gap-1'>
+                      <span className='font-semibold'>📈 모니터링 최적화</span>
+                      <span className='text-xs text-cyan-200'>
+                        메트릭 수집 간격과 알림 임계값을 자동으로 최적화합니다
+                      </span>
+                    </div>
                   </motion.button>
                 </div>
               </div>
@@ -521,7 +591,7 @@ export function UnifiedSettingsPanel({
                   </div>
                 </div>
 
-                <div className='grid grid-cols-2 gap-3'>
+                <div className='grid grid-cols-1 gap-3'>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -534,9 +604,14 @@ export function UnifiedSettingsPanel({
                         error('테마 변경 실패');
                       }
                     }}
-                    className='px-4 py-2 bg-gray-500/20 text-gray-300 rounded-lg font-medium hover:bg-gray-500/30 transition-colors text-sm'
+                    className='px-4 py-3 bg-gray-500/20 text-gray-300 rounded-lg font-medium hover:bg-gray-500/30 transition-colors text-sm border border-gray-500/30'
                   >
-                    테마 전환
+                    <div className='flex flex-col items-center gap-1'>
+                      <span className='font-semibold'>🎨 테마 전환</span>
+                      <span className='text-xs text-gray-200'>
+                        다크/라이트 모드를 전환하고 UI 색상 테마를 변경합니다
+                      </span>
+                    </div>
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -550,9 +625,14 @@ export function UnifiedSettingsPanel({
                         error('백업 생성 실패');
                       }
                     }}
-                    className='px-4 py-2 bg-gray-500/20 text-gray-300 rounded-lg font-medium hover:bg-gray-500/30 transition-colors text-sm'
+                    className='px-4 py-3 bg-gray-500/20 text-gray-300 rounded-lg font-medium hover:bg-gray-500/30 transition-colors text-sm border border-gray-500/30'
                   >
-                    백업 생성
+                    <div className='flex flex-col items-center gap-1'>
+                      <span className='font-semibold'>💾 백업 생성</span>
+                      <span className='text-xs text-gray-200'>
+                        현재 설정과 데이터를 안전하게 백업 파일로 저장합니다
+                      </span>
+                    </div>
                   </motion.button>
                 </div>
               </div>
@@ -608,10 +688,11 @@ export function UnifiedSettingsPanel({
                   key={tab.id}
                   whileHover={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
                   onClick={() => setActiveTab(tab.id as SettingsTab)}
-                  className={`flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${activeTab === tab.id
-                    ? 'text-purple-300 border-purple-400'
-                    : 'text-gray-400 border-transparent hover:text-white'
-                    }`}
+                  className={`flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
+                    activeTab === tab.id
+                      ? 'text-purple-300 border-purple-400'
+                      : 'text-gray-400 border-transparent hover:text-white'
+                  }`}
                 >
                   <div className='flex items-center justify-center gap-2'>
                     <tab.icon className='w-4 h-4' />
@@ -626,11 +707,11 @@ export function UnifiedSettingsPanel({
               {renderTabContent()}
 
               {/* 인라인 피드백 컨테이너들 */}
-              <div className="space-y-2 mt-4">
-                <InlineFeedbackContainer area="auth-section" />
-                <InlineFeedbackContainer area="generator-section" />
-                <InlineFeedbackContainer area="monitor-section" />
-                <InlineFeedbackContainer area="general-section" />
+              <div className='space-y-2 mt-4'>
+                <InlineFeedbackContainer area='auth-section' />
+                <InlineFeedbackContainer area='generator-section' />
+                <InlineFeedbackContainer area='monitor-section' />
+                <InlineFeedbackContainer area='general-section' />
               </div>
             </div>
           </motion.div>
