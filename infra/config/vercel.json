@@ -1,0 +1,84 @@
+{
+  "version": 2,
+  "name": "openmanager-vibe-v5",
+  "alias": ["openmanager-vibe"],
+  "regions": ["icn1"],
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    },
+    "src/app/api/ai/**/*.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "src/app/api/data-generator/**/*.ts": {
+      "maxDuration": 45,
+      "memory": 512
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "s-maxage=60, stale-while-revalidate=300"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "query",
+          "key": "dashboard"
+        }
+      ],
+      "destination": "/dashboard"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "NODE_ENV": "production",
+      "SKIP_ENV_VALIDATION": "true",
+      "NODE_OPTIONS": "--max-old-space-size=4096",
+      "NEXT_TELEMETRY_DISABLED": "1",
+      "CI": "true",
+      "ESLINT_NO_DEV_ERRORS": "true",
+      "DISABLE_ESLINT_PLUGIN": "true"
+    }
+  },
+  "github": {
+    "autoAlias": false,
+    "silent": true,
+    "enabled": true
+  },
+  "rewrites": [
+    {
+      "source": "/health",
+      "destination": "/api/health"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/health",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/keep-alive",
+      "schedule": "0 */4 * * *"
+    },
+    {
+      "path": "/api/cron/gemini-learning",
+      "schedule": "0 */2 * * *"
+    }
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false
+}
