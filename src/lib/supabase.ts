@@ -597,4 +597,4 @@ export class VercelDatabase {
   }
 }
 
-// 기본 내보내기는 기존 smartSupabase로 유지
+// 기존 내보내기는 기존 smartSupabase로 유지

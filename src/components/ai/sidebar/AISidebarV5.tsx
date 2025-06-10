@@ -34,6 +34,7 @@ import {
 import { useServerStatusQuestions } from './hooks/useServerStatusQuestions';
 import QuickQuestionCards from './components/QuickQuestionCards';
 import { IntegratedNotificationSettings } from '@/components/notifications/IntegratedNotificationSettings';
+import { SlackNotificationPanel } from '@/components/notifications/SlackNotificationPanel';
 
 interface ThinkingStep {
   id: string;
@@ -426,7 +427,7 @@ export default function AISidebarV5({
     if (activeTab === 'notification') {
       return (
         <div className='flex-1 overflow-y-auto'>
-          <IntegratedNotificationSettings />
+          <SlackNotificationPanel />
         </div>
       );
     }
@@ -437,6 +438,8 @@ export default function AISidebarV5({
 
     const getTabContent = () => {
       switch (activeTab) {
+        case 'notification':
+          return 'slack-panel'; // 슬랙 알림 전용 패널 표시
         case 'report':
           return {
             title: '자동 장애 보고서',
@@ -510,6 +513,16 @@ export default function AISidebarV5({
 
     const content = getTabContent();
 
+    // 슬랙 전용 패널 렌더링
+    if (content === 'slack-panel') {
+      return (
+        <div className='flex-1 flex flex-col overflow-hidden p-4'>
+          <SlackNotificationPanel />
+        </div>
+      );
+    }
+
+    // 기존 탭 콘텐츠 렌더링
     return (
       <div className='flex-1 flex items-center justify-center p-8'>
         <div className='text-center max-w-md'>
@@ -527,7 +540,7 @@ export default function AISidebarV5({
             {content.description}
           </p>
 
-          {content.features.length > 0 && (
+          {content.features && content.features.length > 0 && (
             <div className='bg-gray-50 rounded-lg p-4 mb-4'>
               <h4 className='text-sm font-medium text-gray-700 mb-2'>
                 주요 기능

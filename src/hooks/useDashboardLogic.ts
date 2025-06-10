@@ -15,6 +15,7 @@ import {
   safeErrorLog,
   isLoadingRelatedError,
 } from '../lib/error-handler';
+import { logger, logObject, logPerformance } from '@/utils/enhanced-logging';
 
 interface DashboardStats {
   total: number;
@@ -61,13 +62,17 @@ const DEFAULT_STATS: DashboardStats = {
 };
 
 /**
- * 🎯 useDashboardLogic Hook v2.1 - Null-Safe Edition
+ * 🎯 useDashboardLogic Hook v2.2 - Enhanced Logging Edition
  *
  * 대시보드 전체 로직 관리
  * - 새로운 자연스러운 전환 시스템 통합
  * - 기존 기능 100% 호환성 유지
  * - SystemBootSequence 기반 로딩
  * - 🛡️ Null-safe 체크 및 안전한 오류 처리 추가
+ * - 향상된 로깅 시스템 적용
+ * - 객체 직렬화 안전화
+ * - "[object Object]" 에러 방지
+ * - 성능 측정 추가
  */
 export function useDashboardLogic() {
   const router = useRouter();
@@ -576,9 +581,9 @@ export function useDashboardLogic() {
     },
   };
 
-  // 🚨 긴급 디버깅 로그 (null-safe)
+  // 🚨 향상된 디버깅 로그 (안전한 객체 직렬화)
   useEffect(() => {
-    console.log('🔍 useDashboardLogic 상태:', {
+    const debugData = {
       isClient,
       showBootSequence: state.showBootSequence,
       serversCount: Array.isArray(serverGeneration.servers)
@@ -592,7 +597,10 @@ export function useDashboardLogic() {
         ? { id: selectedServer.id, name: selectedServer.name }
         : null,
       serverStats,
-    });
+    };
+
+    // 안전한 객체 로깅 사용
+    logObject('useDashboardLogic 상태', debugData);
   }, [
     isClient,
     state.showBootSequence,
@@ -612,11 +620,13 @@ export function useDashboardLogic() {
       : [];
   }, [serverGeneration.servers]);
 
-  // 🛡️ 서버 데이터 및 통계 업데이트 (개선된 버전)
+  // 🛡️ 서버 데이터 및 통계 업데이트 (향상된 로깅)
   useEffect(() => {
     if (!isClient || state.showBootSequence) return;
 
     const updateServerData = async () => {
+      const startTime = Date.now();
+
       try {
         // 🔧 API에서 서버 데이터와 통계를 함께 가져오기
         const response = await fetch('/api/servers');
@@ -632,7 +642,8 @@ export function useDashboardLogic() {
               offline: data.stats.offline || 0,
             };
 
-            console.log('📊 API 통계 데이터 사용:', apiStats);
+            logger.info('📊 API 통계 데이터 사용');
+            logObject('API Stats', apiStats);
             updateServerStats(apiStats);
           } else {
             // 🔧 폴백: 서버 배열에서 직접 계산
@@ -646,16 +657,33 @@ export function useDashboardLogic() {
                 .length,
             };
 
-            console.log('📊 계산된 통계 데이터 사용:', calculatedStats);
+            logger.info('📊 계산된 통계 데이터 사용');
+            logObject('Calculated Stats', calculatedStats);
             updateServerStats(calculatedStats);
           }
+
+          // 성능 측정 로깅
+          logPerformance('서버 데이터 업데이트', startTime, {
+            success: true,
+            statsSource: data.success && data.stats ? 'API' : 'calculated',
+          });
         } else {
-          console.warn('⚠️ 서버 데이터 가져오기 실패, 기본값 사용');
+          logger.warn('⚠️ 서버 데이터 가져오기 실패, 기본값 사용');
           updateServerStats(DEFAULT_STATS);
+
+          logPerformance('서버 데이터 업데이트', startTime, {
+            success: false,
+            reason: 'API response not ok',
+          });
         }
       } catch (error) {
-        console.error('❌ 서버 데이터 업데이트 오류:', error);
+        logger.errorDetail('서버 데이터 업데이트 오류', error);
         updateServerStats(DEFAULT_STATS);
+
+        logPerformance('서버 데이터 업데이트', startTime, {
+          success: false,
+          reason: 'API call failed',
+        });
       }
     };
 
@@ -706,8 +734,14 @@ export function useDashboardLogic() {
     // ✨ 새로운 전환 시스템 핸들러
     handleBootComplete,
     handleServerSpawned: (server: any, index: number) => {
-      console.log(
-        `🚀 서버 생성됨: ${server?.name || server?.id || 'Unknown'} (${index + 1}/${safeServerList.length})`
+      const serverInfo = {
+        name: server?.name || server?.id || 'Unknown',
+        index: index + 1,
+        total: safeServerList.length,
+      };
+
+      logger.info(
+        `🚀 서버 생성됨: ${serverInfo.name} (${serverInfo.index}/${serverInfo.total})`
       );
     },
     handleBootSequenceComplete: handleBootComplete,
@@ -730,7 +764,7 @@ export function useDashboardLogic() {
     // 액션
     forceComplete,
 
-    // 디버깅 정보
+    // 디버깅 정보 (향상된 로깅)
     debugInfo: {
       searchParams: searchParams?.toString() || '',
       errorCount: state.errorCount,

@@ -422,9 +422,9 @@ const cardData: FeatureCard[] = [
     detailedContent: {
       overview: `v${COMPONENT_VERSIONS['data-generator']} - 실제 서버 환경을 시뮬레이션하는 차세대 데이터 생성 시스템입니다. 환경별 자동 최적화, 24시간 베이스라인 + 실시간 델타 방식으로 극한의 성능 최적화를 달성했으며, 다양한 서버 아키텍처와 장애 시나리오를 지원합니다.`,
       features: [
-        '🎯 환경별 자동 최적화: Local(50서버,5초) → Premium(20서버,10초) → Basic(6서버,15초)',
-        '📊 24시간 베이스라인: 1440개 데이터포인트 미리 생성, 실시간은 델타만 계산',
-        '⚡ 극한 성능 최적화: 메모리 97%→75%, CPU 75% 절약, 응답시간 50% 단축',
+        '🎯 환경별 자동 최적화: 환경에 따라 서버 수와 업데이트 주기를 자동 조정',
+        '📊 24시간 베이스라인: 시간대별 패턴을 미리 생성하여 실시간 처리 최적화',
+        '⚡ 극한 성능 최적화: 메모리 사용량 대폭 절약, CPU 부하 최소화, 응답시간 단축',
         '🏗️ 4가지 아키텍처: Single/Master-Slave/Load-Balanced/Microservices',
         '🎭 5가지 시뮬레이션: Normal/HighLoad/Maintenance/Incident/Scaling',
         '🌐 Prometheus 호환: 표준 메트릭 포맷으로 모니터링 도구 연동',
@@ -477,32 +477,32 @@ const cardData: FeatureCard[] = [
   },
   {
     id: 'vibe-coding',
-    title: '🎯 바이브 코딩',
+    title: '🔥 바이브 코딩',
     description:
-      '🤖 AI가 80% 코딩! Cursor + Claude 4로 자연어 명령만으로 코드 생성. GitHub 590+ 커밋, 자동 배포까지',
+      '🎯 AI 주도 코딩으로 개발자 워크플로우를 혁신. Cursor + Claude로 자연어 명령만으로 고품질 코드 생성, 자동 배포까지',
     icon: Zap,
-    gradient: 'from-yellow-400 via-orange-500 via-pink-500 to-purple-600',
+    gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {
       overview:
-        'Cursor AI + Claude 4 Sonnet을 중심으로 한 차세대 AI 개발 워크플로우입니다. 3개 MCP 도구로 200K+ 토큰 컨텍스트를 활용한 AI 개발부터 GitHub 협업, Vercel/Render 자동 배포까지 완전한 개발 생태계를 구축했습니다.',
+        'Cursor AI + Claude Sonnet을 중심으로 한 차세대 AI 개발 워크플로우입니다. MCP 도구들과 함께 자연어 명령으로 코드를 생성하고, GitHub 협업부터 자동 배포까지 완전한 개발 생태계를 구축합니다.',
       features: [
-        '🎯 AI 개발 80%: Cursor AI + Claude 4 Sonnet으로 200K+ 토큰 컨텍스트 활용',
-        '🔍 3개 MCP 도구: filesystem, web-search, sequential-thinking으로 개발 효율 극대화',
-        '📱 GitHub 완전 통합: 590+ 커밋, 자동 PR, 이슈 추적, 코드 리뷰',
-        '🚀 자동 배포: Vercel(웹앱) + Render(MCP 서버) 멀티 플랫폼',
+        '🎯 AI 주도 개발: Cursor AI + Claude Sonnet으로 자연어 기반 코딩',
+        '🔍 MCP 도구 활용: filesystem, web-search, sequential-thinking으로 개발 효율 극대화',
+        '📱 GitHub 완전 통합: 자동 커밋, PR 생성, 이슈 추적, 코드 리뷰',
+        '🚀 자동 배포: Vercel(웹앱) + Render(백엔드) 멀티 플랫폼 배포',
         '🔄 CI/CD 파이프라인: GitHub Actions로 테스트, 빌드, 배포 자동화',
-        '💡 브레인스토밍: ChatGPT + GPT Codex로 아키텍처 설계',
-        '🤖 대규모 자동화: Google Jules AI Agent로 VM 기반 작업',
+        '💡 AI 브레인스토밍: 아키텍처 설계와 문제 해결 지원',
+        '🤖 워크플로우 자동화: 반복 작업의 지능적 처리',
       ],
       technologies: [
-        '🎯 Cursor AI Editor: Claude 4 Sonnet 통합 AI 코딩 환경',
-        '🧠 Claude 4 Sonnet: 200K 토큰 컨텍스트 지원 고성능 AI',
-        '🔧 MCP Protocol: 3개 도구로 개발 워크플로우 최적화',
-        '📱 GitHub: 590+ 커밋, 이슈 관리, 자동 PR',
-        '🚀 Vercel: Next.js 앱 자동 배포 및 Edge Functions',
-        '🌐 Render: MCP 서버 및 백엔드 서비스 배포',
+        '🎯 Cursor AI Editor: Claude Sonnet 통합 AI 코딩 환경',
+        '🧠 Claude Sonnet: 고성능 대규모 컨텍스트 AI 모델',
+        '🔧 MCP Protocol: 개발 워크플로우 최적화 도구',
+        '📱 GitHub: 소스 코드 관리 및 협업 플랫폼',
+        '🚀 Vercel: Next.js 앱 자동 배포 서비스',
+        '🌐 Render: 백엔드 서비스 및 MCP 서버 배포',
         '⚙️ GitHub Actions: CI/CD 파이프라인 자동화',
-        '💡 ChatGPT: 아키텍처 설계 및 브레인스토밍',
+        '💡 AI Tools: 설계 및 브레인스토밍 지원',
       ],
     },
     requiresAI: false,
@@ -706,115 +706,146 @@ export default function FeatureCardsGrid() {
                 />
               )}
 
-              {/* 바이브 코딩 카드 4색 그라데이션 애니메이션 개선 - landing + home 버전 통합 */}
+              {/* 바이브 코딩 카드 황금 컨셉 디자인 */}
               {card.isVibeCard && (
-                <motion.div
-                  className='absolute inset-0 bg-gradient-to-br from-yellow-400/20 via-orange-500/20 via-pink-500/20 to-purple-600/20 rounded-2xl'
-                  animate={{
-                    background: [
-                      'linear-gradient(135deg, rgba(251,191,36,0.2) 0%, rgba(249,115,22,0.2) 25%, rgba(236,72,153,0.2) 75%, rgba(147,51,234,0.2) 100%)',
-                      'linear-gradient(135deg, rgba(249,115,22,0.2) 0%, rgba(236,72,153,0.2) 25%, rgba(147,51,234,0.2) 75%, rgba(251,191,36,0.2) 100%)',
-                      'linear-gradient(135deg, rgba(236,72,153,0.2) 0%, rgba(147,51,234,0.2) 25%, rgba(251,191,36,0.2) 75%, rgba(249,115,22,0.2) 100%)',
-                      'linear-gradient(135deg, rgba(147,51,234,0.2) 0%, rgba(251,191,36,0.2) 25%, rgba(249,115,22,0.2) 75%, rgba(236,72,153,0.2) 100%)',
-                    ],
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                />
-              )}
+                <>
+                  {/* 황금 장식 요소 */}
+                  <div className='absolute top-2 right-2 w-6 h-6 bg-yellow-400/30 rounded-full'></div>
+                  <div className='absolute bottom-2 left-2 w-4 h-4 bg-yellow-400/20 rounded-full'></div>
 
-              {/* 아이콘 - landing 버전의 개선된 애니메이션 통합 */}
-              <div
-                className={`w-12 h-12 bg-gradient-to-br ${card.gradient} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 relative z-10 ${
-                  card.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
-                } ${card.isVibeCard ? 'shadow-lg shadow-yellow-500/25' : ''}`}
-              >
-                {card.isAICard ? (
-                  <motion.div
-                    animate={{
-                      rotate: [0, 360],
-                      scale: [1, 1.1, 1],
-                    }}
-                    transition={{
-                      rotate: { duration: 8, repeat: Infinity, ease: 'linear' },
-                      scale: {
-                        duration: 2,
+                  {/* 황금 배경 그라데이션 */}
+                  <div className='absolute inset-0 bg-gradient-to-br from-amber-600 via-orange-600 to-amber-700 rounded-2xl'></div>
+
+                  {/* 아이콘 박스 */}
+                  <div className='relative z-20 w-12 h-12 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-xl flex items-center justify-center mb-4 shadow-lg'>
+                    <motion.span
+                      className='text-amber-900 text-xl font-bold'
+                      animate={{
+                        scale: [1, 1.2, 1],
+                        rotate: [0, 5, -5, 0],
+                      }}
+                      transition={{
+                        duration: 2.5,
                         repeat: Infinity,
                         ease: 'easeInOut',
-                      },
-                    }}
-                  >
-                    <card.icon className='w-6 h-6 text-white' />
-                  </motion.div>
-                ) : card.isVibeCard ? (
-                  <motion.div
-                    animate={{
-                      scale: [1, 1.2, 1],
-                      rotate: [0, 5, -5, 0],
-                    }}
-                    transition={{
-                      duration: 2.5,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                    }}
-                  >
-                    <card.icon className='w-6 h-6 text-white' />
-                  </motion.div>
-                ) : (
-                  <card.icon className='w-6 h-6 text-white' />
-                )}
-              </div>
-
-              {/* 컨텐츠 */}
-              <div className='relative z-10'>
-                <h3
-                  className={`text-lg font-bold mb-2 transition-colors leading-tight ${
-                    isDarkMode
-                      ? 'text-white group-hover:text-white'
-                      : 'text-white group-hover:text-gray-100'
-                  }`}
-                  style={{
-                    color: 'rgba(255, 255, 255, 0.95)',
-                    fontWeight: 600,
-                    lineHeight: 1.4,
-                  }}
-                >
-                  {renderTextWithAIGradient(card.title)}
-                </h3>
-                <p
-                  className={`text-xs leading-relaxed transition-colors ${
-                    isDarkMode
-                      ? 'text-white/70 group-hover:text-white/90'
-                      : 'text-white/90 group-hover:text-white'
-                  }`}
-                  style={{
-                    color: 'rgba(255, 255, 255, 0.80)',
-                    lineHeight: 1.5,
-                    fontWeight: 500,
-                  }}
-                >
-                  {renderTextWithAIGradient(card.description)}
-                </p>
-
-                {/* AI 에이전트 필요 표시 */}
-                {card.requiresAI && !aiAgent.isEnabled && (
-                  <div className='mt-2 px-2 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full text-orange-300 text-xs text-center'>
-                    AI 에이전트 모드 필요
+                      }}
+                    >
+                      ⚡
+                    </motion.span>
                   </div>
-                )}
-              </div>
+
+                  {/* 제목 */}
+                  <h3 className='relative z-20 text-white text-xl font-bold mb-4 drop-shadow-lg'>
+                    🔥 바이브 코딩
+                  </h3>
+
+                  {/* 설명 박스 - 반투명 어두운 배경 */}
+                  <div className='relative z-20 bg-black/25 backdrop-blur-sm rounded-lg p-3 border border-yellow-400/30'>
+                    <p className='text-white text-sm leading-relaxed font-medium'>
+                      🎯{' '}
+                      <span className='text-yellow-200 font-bold'>
+                        AI 주도 코딩
+                      </span>{' '}
+                      Cursor + Claude
+                      <br />⚡ 개발자의 생산성을{' '}
+                      <span className='text-yellow-300 font-bold'>
+                        혁신적으로 향상
+                      </span>
+                      <br />
+                      🚀 GitHub 자동 커밋부터{' '}
+                      <span className='text-yellow-200'>
+                        배포까지 완전 자동화
+                      </span>
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {/* 일반 카드들의 아이콘 */}
+              {!card.isVibeCard && (
+                <div
+                  className={`w-12 h-12 bg-gradient-to-br ${card.gradient} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 relative z-10 ${
+                    card.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
+                  }`}
+                >
+                  {card.isAICard ? (
+                    <motion.div
+                      animate={{
+                        rotate: [0, 360],
+                        scale: [1, 1.1, 1],
+                      }}
+                      transition={{
+                        rotate: {
+                          duration: 8,
+                          repeat: Infinity,
+                          ease: 'linear',
+                        },
+                        scale: {
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: 'easeInOut',
+                        },
+                      }}
+                    >
+                      <card.icon className='w-6 h-6 text-white' />
+                    </motion.div>
+                  ) : (
+                    <card.icon className='w-6 h-6 text-white' />
+                  )}
+                </div>
+              )}
+
+              {/* 일반 카드들의 컨텐츠 */}
+              {!card.isVibeCard && (
+                <div className='relative z-10'>
+                  <h3
+                    className={`text-lg font-bold mb-2 transition-colors leading-tight ${
+                      isDarkMode
+                        ? 'text-white group-hover:text-white'
+                        : 'text-white group-hover:text-gray-100'
+                    }`}
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.95)',
+                      fontWeight: 600,
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {renderTextWithAIGradient(card.title)}
+                  </h3>
+                  <p
+                    className={`text-xs leading-relaxed transition-colors ${
+                      isDarkMode
+                        ? 'text-white/70 group-hover:text-white/90'
+                        : 'text-white/90 group-hover:text-white'
+                    }`}
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.80)',
+                      lineHeight: 1.5,
+                      fontWeight: 500,
+                    }}
+                  >
+                    {renderTextWithAIGradient(card.description)}
+                  </p>
+
+                  {/* AI 에이전트 필요 표시 */}
+                  {card.requiresAI && !aiAgent.isEnabled && (
+                    <div className='mt-2 px-2 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full text-orange-300 text-xs text-center'>
+                      AI 에이전트 모드 필요
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* 호버 효과 */}
               <div
                 className={`absolute inset-0 ring-2 ring-transparent transition-all duration-300 rounded-2xl ${
                   card.isAICard
                     ? 'group-hover:ring-pink-400/50 group-hover:shadow-lg group-hover:shadow-pink-500/25'
-                    : card.isSpecial
-                      ? 'group-hover:ring-amber-400/50 group-hover:shadow-lg group-hover:shadow-amber-500/25'
-                      : 'group-hover:ring-white/30'
+                    : card.isVibeCard
+                      ? 'group-hover:ring-yellow-400/50 group-hover:shadow-lg group-hover:shadow-yellow-500/25'
+                      : card.isSpecial
+                        ? 'group-hover:ring-amber-400/50 group-hover:shadow-lg group-hover:shadow-amber-500/25'
+                        : 'group-hover:ring-white/30'
                 }`}
               />
             </div>
