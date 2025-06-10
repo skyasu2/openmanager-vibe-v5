@@ -2,11 +2,12 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-5.41.4-blue.svg)
+![Version](https://img.shields.io/badge/version-5.42.0-blue.svg)
 ![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen.svg)
 ![Next.js](https://img.shields.io/badge/Next.js-15.3.3-black.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-Latest-blue.svg)
 ![AI](https://img.shields.io/badge/AI-100%25%20Active-purple.svg)
+![Smart Fallback](https://img.shields.io/badge/Smart%20Fallback-Active-orange.svg)
 ![Vibe Coding](https://img.shields.io/badge/Vibe%20Coding-300%25%20Productivity-gold.svg)
 
 **🌐 [Live Demo](https://openmanager-vibe-v5.vercel.app)** | **📊 [Dashboard](https://openmanager-vibe-v5.vercel.app/dashboard)** | **🧠 [AI Admin](https://openmanager-vibe-v5.vercel.app/admin)**
@@ -33,7 +34,7 @@
 - ✅ **문제 해결 속도**: 70% 단축 (AI 즉시 분석)
 - ✅ **코드 리뷰 시간**: 80% 단축 (AI 실시간 검토)
 - ✅ **문서화 자동화**: 90% 자동화 (AI 생성)
-- ✅ **최신 기술 적용**: Google AI, MCP, RAG 완전 구현
+- ✅ **최신 기술 적용**: Google AI, MCP, RAG, **Smart Fallback** 완전 구현
 
 ---
 
@@ -56,14 +57,22 @@
 
 - **Google AI Studio (Gemini) 베타 버전**: 실제 연동 완료
 - **RAG 엔진**: 로컬 벡터 DB 기반 백업 시스템
-- **폴백 시스템**: Google AI → MCP → RAG → 직접분석 → 기본분석
+- **🆕 Smart Fallback Engine**: 지능형 3단계 폴백 시스템
 
-#### **2. MCP 시스템 구분**
+#### **2. Smart Fallback 아키텍처 (신규 추가)**
+
+- **🔧 1차: MCP 시스템** - 로컬 서버 데이터 (200ms 응답)
+- **📚 2차: RAG 엔진** - 벡터 DB 검색 (800ms 응답)
+- **🤖 3차: Google AI** - Gemini API 호출 (3초 응답)
+- **📊 할당량 관리**: 하루 300회 제한 (실제 1,500회 중 20% 사용)
+- **🎛️ 관리자 대시보드**: `/admin/smart-fallback` 실시간 모니터링
+
+#### **3. MCP 시스템 구분**
 
 - **개발용 MCP**: Cursor IDE 환경에서 바이브 코딩용 (6개 서버)
 - **서비스용 MCP**: UnifiedAIEngine 내부의 AI 추론용 MCP 시스템
 
-#### **3. 동적 질문 시스템**
+#### **4. 동적 질문 시스템**
 
 - 실시간 메트릭 분석으로 중요도별 질문 자동 생성
 - 컴팩트 UI로 7개 메뉴 최적화 (p-2.5, gap-0.5)
@@ -75,6 +84,7 @@
 - **Vector Database**: 고급 데이터 분석 및 검색
 - **패턴 분석**: 이상 징후 자동 탐지
 - **예측 분석**: 미래 리소스 수요 예측
+- **🆕 Smart Fallback 모니터링**: 엔진별 성공률 및 할당량 추적
 
 ### 🔧 **Enterprise Features**
 
@@ -82,6 +92,51 @@
 - **자동화**: 스케일링 및 복구 자동화
 - **보안**: 엔터프라이즈급 보안 기능 (취약점 0개)
 - **통합**: Prometheus, Redis, Supabase 통합
+- **🆕 지능형 폴백**: MCP → RAG → Google AI 자동 전환
+
+---
+
+## 🧠 **Smart Fallback Engine - 핵심 신기능**
+
+### ⚡ **빠른 시작**
+
+```typescript
+// AI 채팅에서 자동으로 Smart Fallback 사용
+const { sendMessage } = useAIChat();
+await sendMessage('서버 상태 확인해줘'); // 자동으로 MCP → RAG → Google AI 시도
+```
+
+### 🔄 **폴백 흐름**
+
+```
+사용자 질문
+    ↓
+🔧 MCP 시스템 (로컬, 200ms)
+    ↓ (실패시)
+📚 RAG 엔진 (벡터 DB, 800ms)
+    ↓ (실패시)
+🤖 Google AI (Gemini, 3초) ← 하루 300회 제한
+```
+
+### 📊 **관리자 기능**
+
+```bash
+# 관리자 대시보드 접근
+https://your-domain.com/admin/smart-fallback
+
+# 주요 기능:
+✅ 실시간 엔진별 성공률 모니터링
+✅ Google AI 할당량 사용량 추적 (300/300)
+✅ 시간대별 실패 패턴 분석
+✅ 할당량 수동 리셋
+✅ 개별 엔진 테스트
+```
+
+### 💰 **비용 효율성**
+
+- **Google AI 사용률**: 20% (300/1500회)
+- **월 예상 비용**: $0 (완전 무료)
+- **폴백 절약률**: 80% (MCP/RAG 우선 사용)
 
 ---
 
@@ -101,7 +156,7 @@
 ### 🛠️ **기술 스택 & 도구**
 
 - **Frontend**: Next.js 15.3.3, TypeScript, Tailwind CSS
-- **AI 엔진**: Google AI Studio (Gemini), RAG, MCP
+- **AI 엔진**: Google AI Studio (Gemini), RAG, MCP, **Smart Fallback**
 - **백엔드**: Supabase, Redis, Prometheus
 - **개발 도구**: Cursor IDE, MCP 서버 6개, npm 스크립트 158개
 - **테스트**: Vitest, Playwright, 92% 커버리지
@@ -183,6 +238,7 @@ npm run deploy:safe
 💬 "AI야, 이 컴포넌트의 성능을 최적화해줘"
 💬 "테스트 코드를 작성해줘"
 💬 "이 에러를 분석하고 해결해줘"
+💬 "Smart Fallback Engine 테스트해줘"
 ```
 
 #### **3단계: 품질 검증**

@@ -1,32 +1,33 @@
 /**
  * AI Sidebar Types
- * 
- * 🎨 AI 사이드바 모듈의 타입 정의
+ *
+ * �� AI 사이드바 모듈의 타입 정의
+ * 🧠 Smart Fallback Engine 호환성 추가
  */
 
 export interface AISidebarConfig {
   // API 설정
   apiEndpoint: string;
   apiKey?: string;
-  
+
   // UI 설정
   theme: SidebarTheme;
   position: 'left' | 'right';
   width: number;
   height: string;
-  
+
   // 기능 설정
   enableVoice: boolean;
   enableFileUpload: boolean;
   enableHistory: boolean;
   maxHistoryLength: number;
-  
+
   // 커스터마이징
   title: string;
   placeholder: string;
   welcomeMessage?: string;
   customActions?: ActionButton[];
-  
+
   // 이벤트 핸들러
   onMessage?: (message: ChatMessage) => void;
   onResponse?: (response: AIResponse) => void;
@@ -34,8 +35,6 @@ export interface AISidebarConfig {
   onOpen?: () => void;
   onClose?: () => void;
 }
-
-
 
 export type SidebarTheme = 'light' | 'dark' | 'auto';
 
@@ -51,20 +50,30 @@ export interface ChatMessage {
 
 export interface AIResponse {
   success: boolean;
-  response: string;
-  intent: {
+  response?: string;
+  content?: string; // Smart Fallback 호환성
+  intent?: {
     name: string;
     confidence: number;
     entities: Record<string, any>;
   };
-  actions: string[];
-  context: Record<string, any>;
-  metadata: {
-    processingTime: number;
-    timestamp: string;
-    engineVersion: string;
-    sessionId: string;
+  actions?: string[];
+  context?: Record<string, any>;
+  metadata?: {
+    processingTime?: number;
+    timestamp?: string;
+    engineVersion?: string;
+    sessionId?: string;
+    confidence?: number;
+    stage?: string;
+    fallbackPath?: string[];
+    quota?: any;
+    engine?: string;
+    responseTime?: number;
+    [key: string]: any;
   };
+  confidence?: number;
+  timestamp?: string;
   error?: string;
 }
 
@@ -108,4 +117,4 @@ export interface SidebarHookOptions {
   width?: number;
   onOpen?: () => void;
   onClose?: () => void;
-} 
+}
