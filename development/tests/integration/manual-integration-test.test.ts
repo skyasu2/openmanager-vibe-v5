@@ -60,8 +60,14 @@ describe('Manual Integration Test', () => {
     expect(status.webhook).toBe(true);
   });
 
-  it.skip('SlackNotificationService 실제 알림 전송을 테스트한다', async () => {
+  it('SlackNotificationService 실제 알림 전송을 테스트한다', async () => {
     const slackService = SlackNotificationService.getInstance();
+
+    // 새로운 웹훅 URL로 업데이트
+    slackService.updateConfig(
+      'https://hooks.slack.com/services/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',
+      '#server-alerts'
+    );
 
     const result = await slackService.sendSystemNotification(
       '🚀 OpenManager Vibe v5 - 한글 및 이모지 인코딩 테스트\n\n✅ 성공: 구글 AI API 연동 완료\n🔗 연결: 슬랙 웹훅 정상 작동\n📊 상태: 시스템 모든 기능 정상\n🎯 목표: UTF-8 인코딩 검증 완료\n\n한글 문자: 가나다라마바사아자차카타파하\n특수문자: !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~\n이모지: 🌟⭐💫⚡🔥💎🎉🎊🎈',
@@ -80,18 +86,23 @@ describe('Manual Integration Test', () => {
     expect(apiKey.length).toBeGreaterThan(10);
   });
 
-  it.skip('서버 알림 전송을 테스트한다', async () => {
+  it('서버 알림 전송을 테스트한다', async () => {
     const slackService = SlackNotificationService.getInstance();
+
+    // 새로운 웹훅 URL로 업데이트
+    slackService.updateConfig(
+      'https://hooks.slack.com/services/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',
+      '#server-alerts'
+    );
 
     const serverAlert = {
       serverId: 'server-001',
-      serverName: '프로덕션 웹서버',
-      alertType: 'high_cpu' as const,
-      cpuUsage: 95.5,
-      memoryUsage: 78.2,
-      message: '🚨 CPU 사용률이 95%를 초과했습니다.',
-      timestamp: new Date().toISOString(),
+      hostname: '프로덕션 웹서버',
+      metric: 'cpu_usage',
+      value: 95.5,
+      threshold: 90,
       severity: 'critical' as const,
+      timestamp: new Date().toISOString(),
     };
 
     const result = await slackService.sendServerAlert(serverAlert);
@@ -99,15 +110,20 @@ describe('Manual Integration Test', () => {
     expect(result).toBe(true);
   }, 30000);
 
-  it.skip('메모리 알림 전송을 테스트한다', async () => {
+  it('메모리 알림 전송을 테스트한다', async () => {
     const slackService = SlackNotificationService.getInstance();
 
+    // 새로운 웹훅 URL로 업데이트
+    slackService.updateConfig(
+      'https://hooks.slack.com/services/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',
+      '#server-alerts'
+    );
+
     const memoryAlert = {
-      serverId: 'server-002',
-      serverName: '데이터베이스 서버',
-      memoryUsage: 88.7,
-      availableMemory: '1.2GB',
-      message: '⚠️ 메모리 사용률이 높습니다.',
+      usagePercent: 88.7,
+      heapUsed: 67108864, // 64MB
+      heapTotal: 134217728, // 128MB
+      severity: 'warning' as const,
       timestamp: new Date().toISOString(),
     };
 
