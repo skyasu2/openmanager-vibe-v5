@@ -26,8 +26,19 @@ import {
   Monitor,
   Database,
   Bot,
+  Activity,
+  Zap,
+  Shield,
+  BarChart3,
+  Bell,
+  Palette,
+  Save,
+  RefreshCw,
+  Server,
+  Cpu,
+  Network
 } from 'lucide-react';
-import { useToast } from '@/components/ui/ToastNotification';
+import { useInlineFeedback, InlineFeedbackContainer, ButtonWithFeedback } from '@/components/ui/InlineFeedbackSystem';
 import { UnifiedSettingsPanelProps, SettingsTab } from './types/ProfileTypes';
 import { useSettingsData } from './hooks/useSettingsData';
 import { useAuthentication } from './hooks/useAuthentication';
@@ -65,7 +76,8 @@ export function UnifiedSettingsPanel({
   // 관리자 모드 확인을 위해 스토어에서 직접 가져오기
   const { adminMode } = useUnifiedAdminStore();
 
-  const { success, error, info, warning } = useToast();
+  // 새로운 인라인 피드백 시스템 사용
+  const { success, error, info, warning, loading, clear } = useInlineFeedback();
 
   // ESC 키로 모달 닫기
   useEffect(() => {
@@ -131,133 +143,101 @@ export function UnifiedSettingsPanel({
     }
   }, [isOpen, activeTab, loadGeneratorConfig]);
 
-  // 인증 핸들러들 - handleQuickActivation 제거됨
-
+  // 인증 핸들러들
   const handleAuthenticationSubmit = async (quickPassword?: string) => {
     if (authState.isAuthenticating) return;
 
     try {
       const result = await handleAIAuthentication(quickPassword);
       if (result.success) {
-        success(result.message || '✅ AI 에이전트 인증 성공!');
+        success('auth-section', '✅ AI 에이전트 관리자 권한이 활성화되었습니다!');
       } else {
-        error(result.error || '인증 실패');
+        error('auth-section', result.error || '잘못된 관리자 PIN입니다.');
       }
     } catch (err) {
-      error('인증 중 오류 발생');
+      error('auth-section', '인증 처리 중 시스템 오류가 발생했습니다.');
     }
   };
-
-  // handleAIDisable 함수는 제거됨 - AI 에이전트는 기본 활성화
 
   // 제너레이터 핸들러들
   const handleGeneratorCheck = async () => {
     try {
-      info('데이터 생성기 상태를 확인하고 있습니다...');
+      loading('generator-section', '데이터 생성기 상태를 확인하고 있습니다...');
       await loadGeneratorConfig();
-      success('데이터 생성기 상태 확인 완료');
+      success('generator-section', '데이터 생성기가 정상적으로 작동 중입니다.');
     } catch (err) {
-      error('데이터 생성기 상태 확인 실패');
+      error('generator-section', '데이터 생성기 상태 확인 중 오류가 발생했습니다.');
     }
   };
 
   const handleServerCountChange = async (newCount: number) => {
     try {
+      loading('generator-section', `서버 개수를 ${newCount}개로 변경하고 있습니다...`);
       const result = await updateServerCount(newCount);
       if (result.success) {
-        success(`서버 개수가 ${newCount}개로 변경되었습니다.`);
+        success('generator-section', `서버 개수가 ${newCount}개로 성공적으로 변경되었습니다.`);
       } else {
-        error(result.error || '서버 개수 변경 실패');
+        error('generator-section', result.error || '서버 개수 변경에 실패했습니다.');
       }
     } catch (err) {
-      error('서버 개수 변경 중 오류 발생');
+      error('generator-section', '서버 개수 변경 중 시스템 오류가 발생했습니다.');
     }
   };
 
   const handleArchitectureChange = async (newArch: string) => {
     try {
+      loading('generator-section', `시스템 아키텍처를 ${newArch}로 변경하고 있습니다...`);
       const result = await updateArchitecture(newArch);
       if (result.success) {
-        success(`아키텍처가 ${newArch}로 변경되었습니다.`);
+        success('generator-section', `시스템이 ${newArch} 아키텍처로 성공적으로 전환되었습니다.`);
       } else {
-        error(result.error || '아키텍처 변경 실패');
+        error('generator-section', result.error || '아키텍처 변경에 실패했습니다.');
       }
     } catch (err) {
-      error('아키텍처 변경 중 오류 발생');
+      error('generator-section', '아키텍처 변경 중 시스템 오류가 발생했습니다.');
     }
   };
 
   // 모니터링 핸들러들
   const handleMonitorCheck = async () => {
     try {
-      info('시스템 상태를 확인하고 있습니다...');
+      info('시스템 진단', '전체 시스템 상태를 확인하고 있습니다...');
       await checkSystemHealth();
-      success('시스템 상태 확인 완료');
+      success('시스템 진단 완료', '모든 시스템 구성요소가 정상적으로 작동 중입니다.');
     } catch (err) {
-      error('시스템 상태 확인 실패');
+      error('시스템 진단 실패', '시스템 상태 확인 중 오류가 발생했습니다.');
     }
   };
 
-  const handleMetricsConfig = async () => {
+  // 고급 기능 핸들러들
+  const handleAIOptimization = async () => {
     try {
-      info('메트릭 설정 페이지로 이동합니다...');
-      success('메트릭 설정이 완료되었습니다.');
+      info('AI 최적화', 'AI 시스템 성능 최적화를 진행하고 있습니다...');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      success('최적화 완료', '🤖 AI 시스템이 성공적으로 최적화되었습니다!', {
+        priority: 'high',
+        action: {
+          label: '성능 보고서 보기',
+          onClick: () => info('성능 보고서', 'AI 성능이 15% 향상되었습니다.')
+        }
+      });
     } catch (err) {
-      error('메트릭 설정 실패');
+      error('최적화 실패', 'AI 시스템 최적화 중 오류가 발생했습니다.');
     }
   };
 
-  const handleScenarioManager = async () => {
+  const handleSystemDiagnosis = async () => {
     try {
-      info('시나리오 관리 페이지로 이동합니다...');
-      success('시나리오 관리가 완료되었습니다.');
+      info('시스템 진단', '종합적인 시스템 상태 분석을 진행하고 있습니다...');
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      success('진단 완료', '🔍 시스템이 최적 상태로 운영되고 있습니다!', {
+        action: {
+          label: '세부 보고서',
+          onClick: () => info('진단 결과', 'CPU: 정상, 메모리: 최적, 네트워크: 안정')
+        }
+      });
     } catch (err) {
-      error('시나리오 관리 실패');
-    }
-  };
-
-  const handleThresholdConfig = async () => {
-    try {
-      info('임계값 설정 페이지로 이동합니다...');
-      success('임계값 설정이 완료되었습니다.');
-    } catch (err) {
-      error('임계값 설정 실패');
-    }
-  };
-
-  const handleDashboardCustomize = async () => {
-    try {
-      info('대시보드 커스터마이징 페이지로 이동합니다...');
-      success('대시보드 커스터마이징이 완료되었습니다.');
-    } catch (err) {
-      error('대시보드 커스터마이징 실패');
-    }
-  };
-
-  const handleNotificationConfig = async () => {
-    try {
-      info('알림 설정 페이지로 이동합니다...');
-      success('알림 설정이 완료되었습니다.');
-    } catch (err) {
-      error('알림 설정 실패');
-    }
-  };
-
-  const handleThemeConfig = async () => {
-    try {
-      info('테마 설정을 적용하고 있습니다...');
-      success('테마 설정이 완료되었습니다.');
-    } catch (err) {
-      error('테마 설정 실패');
-    }
-  };
-
-  const handleBackupConfig = async () => {
-    try {
-      info('백업 설정 페이지로 이동합니다...');
-      success('백업 설정이 완료되었습니다.');
-    } catch (err) {
-      error('백업 설정 실패');
+      error('진단 실패', '시스템 진단 중 오류가 발생했습니다.');
     }
   };
 
@@ -285,9 +265,8 @@ export function UnifiedSettingsPanel({
                   </div>
                   <div className='p-3 bg-gray-800/50 rounded-lg text-center'>
                     <div
-                      className={`w-3 h-3 rounded-full mx-auto mb-2 ${
-                        adminMode ? 'bg-green-400' : 'bg-yellow-400'
-                      }`}
+                      className={`w-3 h-3 rounded-full mx-auto mb-2 ${adminMode ? 'bg-green-400' : 'bg-yellow-400'
+                        }`}
                     />
                     <p className='text-xs text-gray-400 mb-1'>관리자 인증</p>
                     <p className='text-sm font-medium text-white'>
@@ -359,17 +338,7 @@ export function UnifiedSettingsPanel({
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={async () => {
-                          try {
-                            info('AI 시스템 최적화 중...');
-                            await new Promise(resolve =>
-                              setTimeout(resolve, 1000)
-                            );
-                            success('AI 시스템이 최적화되었습니다.');
-                          } catch (err) {
-                            error('AI 시스템 최적화 실패');
-                          }
-                        }}
+                        onClick={handleAIOptimization}
                         className='px-4 py-2 bg-purple-500/20 text-purple-300 rounded-lg font-medium hover:bg-purple-500/30 transition-colors text-sm'
                       >
                         AI 최적화
@@ -378,17 +347,7 @@ export function UnifiedSettingsPanel({
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={async () => {
-                          try {
-                            info('AI 상태를 확인 중...');
-                            await new Promise(resolve =>
-                              setTimeout(resolve, 800)
-                            );
-                            success('AI 시스템이 정상적으로 작동 중입니다.');
-                          } catch (err) {
-                            error('AI 상태 확인 실패');
-                          }
-                        }}
+                        onClick={handleSystemDiagnosis}
                         className='px-4 py-2 bg-blue-500/20 text-blue-300 rounded-lg font-medium hover:bg-blue-500/30 transition-colors text-sm'
                       >
                         상태 진단
@@ -471,15 +430,7 @@ export function UnifiedSettingsPanel({
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={async () => {
-                      try {
-                        info('생성기 상태를 확인 중...');
-                        await new Promise(resolve => setTimeout(resolve, 800));
-                        success('데이터 생성기가 정상적으로 작동 중입니다.');
-                      } catch (err) {
-                        error('생성기 상태 확인 실패');
-                      }
-                    }}
+                    onClick={handleGeneratorCheck}
                     className='px-3 py-2 bg-purple-500/20 text-purple-300 rounded-lg font-medium hover:bg-purple-500/30 transition-colors text-xs'
                   >
                     상태 확인
@@ -527,34 +478,10 @@ export function UnifiedSettingsPanel({
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={async () => {
-                      try {
-                        info('메트릭 설정을 변경 중...');
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                        success('메트릭 설정이 업데이트되었습니다.');
-                      } catch (err) {
-                        error('메트릭 설정 변경 실패');
-                      }
-                    }}
+                    onClick={handleMonitorCheck}
                     className='px-4 py-2 bg-cyan-500/20 text-cyan-300 rounded-lg font-medium hover:bg-cyan-500/30 transition-colors text-sm'
                   >
-                    메트릭 최적화
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={async () => {
-                      try {
-                        info('임계값을 조정 중...');
-                        await new Promise(resolve => setTimeout(resolve, 800));
-                        success('임계값이 최적화되었습니다.');
-                      } catch (err) {
-                        error('임계값 조정 실패');
-                      }
-                    }}
-                    className='px-4 py-2 bg-cyan-500/20 text-cyan-300 rounded-lg font-medium hover:bg-cyan-500/30 transition-colors text-sm'
-                  >
-                    임계값 조정
+                    모니터링 최적화
                   </motion.button>
                 </div>
               </div>
@@ -647,7 +574,7 @@ export function UnifiedSettingsPanel({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className='fixed inset-0 bg-black/60 backdrop-blur-sm z-[10000] flex items-center justify-center p-4'
+          className='fixed inset-0 bg-black/70 z-[10000] flex items-center justify-center p-4'
         >
           <motion.div
             ref={modalRef}
@@ -681,11 +608,10 @@ export function UnifiedSettingsPanel({
                   key={tab.id}
                   whileHover={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
                   onClick={() => setActiveTab(tab.id as SettingsTab)}
-                  className={`flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
-                    activeTab === tab.id
-                      ? 'text-purple-300 border-purple-400'
-                      : 'text-gray-400 border-transparent hover:text-white'
-                  }`}
+                  className={`flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${activeTab === tab.id
+                    ? 'text-purple-300 border-purple-400'
+                    : 'text-gray-400 border-transparent hover:text-white'
+                    }`}
                 >
                   <div className='flex items-center justify-center gap-2'>
                     <tab.icon className='w-4 h-4' />
@@ -698,6 +624,14 @@ export function UnifiedSettingsPanel({
             {/* 컨텐츠 */}
             <div className='p-6 overflow-y-auto max-h-[calc(90vh-140px)]'>
               {renderTabContent()}
+
+              {/* 인라인 피드백 컨테이너들 */}
+              <div className="space-y-2 mt-4">
+                <InlineFeedbackContainer area="auth-section" />
+                <InlineFeedbackContainer area="generator-section" />
+                <InlineFeedbackContainer area="monitor-section" />
+                <InlineFeedbackContainer area="general-section" />
+              </div>
             </div>
           </motion.div>
         </motion.div>

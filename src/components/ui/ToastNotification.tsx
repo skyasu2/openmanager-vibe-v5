@@ -213,7 +213,7 @@ export function ToastContainer() {
   const portalContainer = document.getElementById('toast-portal') || document.body;
 
   return createPortal(
-    <div className="fixed top-[70px] sm:top-[80px] right-2 sm:right-4 z-[60] space-y-2 w-[calc(100%-1rem)] sm:w-80 md:w-96 pointer-events-none">
+    <div className="fixed top-[70px] sm:top-[80px] right-2 sm:right-4 z-[99999] space-y-2 w-[calc(100%-1rem)] sm:w-80 md:w-96 pointer-events-none">
       {toasts.map((toast) => (
         <ToastItem
           key={toast.id}
@@ -241,24 +241,24 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
   }, [toast.id, onDismiss]);
 
   const getTypeStyles = () => {
-    const baseStyles = "relative p-3 sm:p-4 rounded-lg shadow-lg border-l-4 backdrop-blur-sm pointer-events-auto";
-    
+    const baseStyles = "relative p-3 sm:p-4 rounded-lg shadow-2xl border-l-4 pointer-events-auto border backdrop-blur-md";
+
     switch (toast.type) {
       case 'success':
-        return `${baseStyles} bg-green-50/95 border-green-500 text-green-800`;
+        return `${baseStyles} bg-green-50/98 border-green-500 text-green-800 shadow-green-200/50`;
       case 'error':
-        return `${baseStyles} bg-red-50/95 border-red-500 text-red-800`;
+        return `${baseStyles} bg-red-50/98 border-red-500 text-red-800 shadow-red-200/50`;
       case 'warning':
-        return `${baseStyles} bg-yellow-50/95 border-yellow-500 text-yellow-800`;
+        return `${baseStyles} bg-yellow-50/98 border-yellow-500 text-yellow-800 shadow-yellow-200/50`;
       case 'info':
       default:
-        return `${baseStyles} bg-blue-50/95 border-blue-500 text-blue-800`;
+        return `${baseStyles} bg-blue-50/98 border-blue-500 text-blue-800 shadow-blue-200/50`;
     }
   };
 
   const getIcon = () => {
     const iconClass = "w-4 h-4 sm:w-5 sm:h-5";
-    
+
     switch (toast.type) {
       case 'success':
         return (
@@ -301,7 +301,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
       {/* 프로그레스 바 (있는 경우) */}
       {typeof toast.progress === 'number' && (
         <div className="absolute top-0 left-0 h-1 bg-white/30 rounded-t-lg overflow-hidden">
-          <div 
+          <div
             className="h-full bg-current transition-all duration-300"
             style={{ width: `${toast.progress}%` }}
           />
@@ -319,7 +319,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
           <p className="text-xs sm:text-sm font-medium leading-5 break-words">
             {toast.message}
           </p>
-          
+
           {/* 액션 버튼 */}
           {toast.action && (
             <button

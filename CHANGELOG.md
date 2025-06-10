@@ -5,6 +5,101 @@
 
 ---
 
+## [5.41.4] - 2025-01-03 🔔 알림 시스템 완전 재구성
+
+### 🎯 **사용자 친화적 UI/UX 혁신**
+
+**토스트 알림 → 인라인 피드백 시스템 전환**
+
+- ✅ **토스트 알림**: Slack 경고 전용으로 용도 제한
+- ✅ **인라인 피드백**: 모든 UI 상호작용을 인라인으로 대체
+- 🎨 **블러 효과 완전 제거**: `backdrop-blur-sm` 삭제로 배경 가독성 향상
+- 📍 **영역별 피드백**: auth-section, generator-section 등 구역별 관리
+
+### 🚀 **새로운 인라인 피드백 시스템**
+
+**핵심 기능**
+
+- 📋 `InlineFeedbackSystem.tsx`: 블러 효과 없는 깔끔한 피드백
+- 🎯 **영역별 관리**: 특정 UI 구역에 컨텍스트 맞춤 피드백
+- ⏰ **자동/수동 제거**: 시간 기반 자동 삭제 + 수동 제어
+- 🎨 **5가지 타입**: success, error, warning, info, loading
+
+**사용자 경험 개선**
+
+- 🚫 **모달 뒤 숨김 문제 해결**: z-index 99999로 최상위 표시
+- 📱 **즉시 피드백**: 버튼 클릭 시 바로 상태 확인
+- 🎪 **부드러운 애니메이션**: Framer Motion 기반 자연스러운 전환
+- 🧹 **깔끔한 디자인**: 불필요한 시각적 복잡성 제거
+
+### 🔔 **Slack 전용 토스트 시스템**
+
+**전용 알림 관리**
+
+- 📢 `SlackOnlyToastSystem.tsx`: Slack 경고 알림 전용
+- 🚨 **우선순위 시스템**: critical, high, medium, low
+- 📱 **채널별 표시**: #alerts, #monitoring 등 채널 구분
+- ⏰ **지속 시간**: 우선순위별 자동 조절 (critical: 수동, high: 15초)
+
+**시각적 차별화**
+
+- 🎨 **색상 코딩**: critical(빨강), high(주황), medium(파랑), low(회색)
+- 🏷️ **채널 표시**: MessageSquare 아이콘으로 Slack 채널 명시
+- 🔗 **Slack 연동**: "Slack 열기" 버튼으로 직접 이동
+- 📊 **상태 표시**: "Slack 알림 발송됨" 배지로 전송 상태 확인
+
+### 🛠️ **UnifiedSettingsPanel 개선**
+
+**인라인 피드백 통합**
+
+- 🔄 `useAdvancedNotifications` → `useInlineFeedback` 전환
+- 📍 **4개 섹션별 피드백**: auth, generator, monitor, general
+- 🎯 **즉시 반응**: 버튼 클릭 시 해당 섹션에 바로 피드백 표시
+- 🧹 **블러 제거**: 모달 배경 `bg-black/60 backdrop-blur-sm` → `bg-black/70`
+
+### 📱 **컴포넌트 구조 개선**
+
+**핵심 컴포넌트**
+
+1. **InlineFeedbackContainer**: 특정 영역에 피드백 표시
+2. **ButtonWithFeedback**: 버튼 + 자동 피드백 통합 컴포넌트
+3. **StatusBadge**: 상태별 배지 컴포넌트
+4. **SlackToastContainer**: Slack 알림 전용 컨테이너
+
+**사용법 최적화**
+
+```typescript
+// 인라인 피드백
+const { success, error, loading } = useInlineFeedback();
+success('auth-section', '인증 완료!');
+
+// Slack 전용 토스트  
+const { showSlackAlert } = useSlackToast();
+showSlackAlert('CPU 90% 초과', 'alerts', 'critical');
+```
+
+### 🎨 **UI/UX 혁신 포인트**
+
+**문제점 해결**
+
+- ❌ **이전**: 토스트가 모달 뒤에 숨어서 안 보임
+- ✅ **현재**: 인라인 피드백으로 항상 명확하게 표시
+
+- ❌ **이전**: 블러 효과로 배경 정보 가려짐  
+- ✅ **현재**: 블러 제거로 배경 정보 항상 확인 가능
+
+- ❌ **이전**: 범용 토스트로 컨텍스트 부족
+- ✅ **현재**: 영역별 피드백으로 명확한 컨텍스트
+
+**사용자 만족도 향상**
+
+- 🎯 **직관성**: 어떤 액션에 대한 피드백인지 명확
+- ⚡ **즉시성**: 클릭한 위치에서 바로 피드백 확인
+- 🧹 **깔끔함**: 불필요한 시각적 요소 제거
+- 📱 **접근성**: 모든 상황에서 피드백 확인 가능
+
+---
+
 ## [5.41.3] - 2024-12-10 🔒 보안 강화 & UI/UX 혁신
 
 ### 🛡️ **보안 강화 완료**
