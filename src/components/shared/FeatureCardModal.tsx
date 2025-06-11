@@ -1,728 +1,237 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
-  Star,
   CheckCircle,
+  Star,
   Zap,
-  TrendingUp,
-  Code,
-  Users,
-  Globe,
   Shield,
-  Rocket,
-  Brain,
+  TrendingUp,
   Database,
+  Code,
+  Cpu,
+  Network,
+  Globe,
   Settings,
   Monitor,
-  Cpu,
-  Activity,
-  GitBranch,
   Cloud,
-  Lock,
-  Search,
-  BarChart3,
-  Network,
-  Clock,
+  Brain,
+  ArrowRight,
+  ExternalLink,
+  Rocket,
+  Award,
+  Target,
+  Layers,
 } from 'lucide-react';
 
-interface FeatureCard {
-  id: string;
-  title: string;
-  description: string;
-  icon: any;
-  gradient: string;
-  detailedContent: {
-    overview: string;
-    features: string[];
-    technologies: string[];
-  };
-  requiresAI: boolean;
-  isAICard?: boolean;
-  isSpecial?: boolean;
-  isVibeCard?: boolean;
-}
-
 interface FeatureCardModalProps {
-  selectedCard: FeatureCard | null | undefined;
+  selectedCard: any;
   onClose: () => void;
   renderTextWithAIGradient: (text: string) => React.ReactNode;
-  modalRef: React.RefObject<HTMLDivElement | null>;
+  modalRef: React.RefObject<HTMLDivElement>;
   variant?: 'home' | 'landing';
   isDarkMode?: boolean;
 }
 
-interface DetailCardProps {
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  tag: string;
-  highlights: string[];
-  codeExample?: string;
-  accentColor: string;
-}
-
-// 개선된 카드 컴포넌트 - 다크모드 지원 및 글씨 크기 개선
-const DetailCard = React.memo(
-  ({
-    title,
-    description,
-    icon,
-    tag,
-    highlights,
-    codeExample,
-    accentColor,
-    isDarkMode = false,
-  }: DetailCardProps & { isDarkMode?: boolean }) => {
-    const getTagStyle = (tagName: string) => {
-      const lightStyles: { [key: string]: string } = {
-        프레임워크: 'bg-blue-100 text-blue-700 border-blue-200',
-        언어: 'bg-indigo-100 text-indigo-700 border-indigo-200',
-        스타일링: 'bg-cyan-100 text-cyan-700 border-cyan-200',
-        데이터베이스: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-        개발도구: 'bg-purple-100 text-purple-700 border-purple-200',
-        'AI 모델': 'bg-pink-100 text-pink-700 border-pink-200',
-        자동화: 'bg-violet-100 text-violet-700 border-violet-200',
-        배포: 'bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200',
-        'AI 엔진': 'bg-green-100 text-green-700 border-green-200',
-        프로토콜: 'bg-teal-100 text-teal-700 border-teal-200',
-        백업: 'bg-lime-100 text-lime-700 border-lime-200',
-        언어처리: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-        최적화: 'bg-orange-100 text-orange-700 border-orange-200',
-        관리: 'bg-red-100 text-red-700 border-red-200',
-        캐싱: 'bg-amber-100 text-amber-700 border-amber-200',
-        시뮬레이션: 'bg-rose-100 text-rose-700 border-rose-200',
-      };
-
-      const darkStyles: { [key: string]: string } = {
-        프레임워크: 'bg-blue-900/30 text-blue-300 border-blue-700/50',
-        언어: 'bg-indigo-900/30 text-indigo-300 border-indigo-700/50',
-        스타일링: 'bg-cyan-900/30 text-cyan-300 border-cyan-700/50',
-        데이터베이스:
-          'bg-emerald-900/30 text-emerald-300 border-emerald-700/50',
-        개발도구: 'bg-purple-900/30 text-purple-300 border-purple-700/50',
-        'AI 모델': 'bg-pink-900/30 text-pink-300 border-pink-700/50',
-        자동화: 'bg-violet-900/30 text-violet-300 border-violet-700/50',
-        배포: 'bg-fuchsia-900/30 text-fuchsia-300 border-fuchsia-700/50',
-        'AI 엔진': 'bg-green-900/30 text-green-300 border-green-700/50',
-        프로토콜: 'bg-teal-900/30 text-teal-300 border-teal-700/50',
-        백업: 'bg-lime-900/30 text-lime-300 border-lime-700/50',
-        언어처리: 'bg-yellow-900/30 text-yellow-300 border-yellow-700/50',
-        최적화: 'bg-orange-900/30 text-orange-300 border-orange-700/50',
-        관리: 'bg-red-900/30 text-red-300 border-red-700/50',
-        캐싱: 'bg-amber-900/30 text-amber-300 border-amber-700/50',
-        시뮬레이션: 'bg-rose-900/30 text-rose-300 border-rose-700/50',
-      };
-
-      const styles = isDarkMode ? darkStyles : lightStyles;
-      return (
-        styles[tagName] ||
-        (isDarkMode
-          ? 'bg-gray-800/50 text-gray-300 border-gray-600/50'
-          : 'bg-gray-100 text-gray-700 border-gray-200')
-      );
-    };
-
-    const getAccentColorClass = (color: string) => {
-      const lightColors: { [key: string]: string } = {
-        blue: 'text-blue-600',
-        purple: 'text-purple-600',
-        green: 'text-green-600',
-        orange: 'text-orange-600',
-      };
-
-      const darkColors: { [key: string]: string } = {
-        blue: 'text-blue-400',
-        purple: 'text-purple-400',
-        green: 'text-green-400',
-        orange: 'text-orange-400',
-      };
-
-      const colors = isDarkMode ? darkColors : lightColors;
-      return colors[color] || (isDarkMode ? 'text-gray-300' : 'text-gray-600');
-    };
-
-    const getIconBgClass = (color: string) => {
-      const lightColors: { [key: string]: string } = {
-        blue: 'bg-blue-50 border-blue-200',
-        purple: 'bg-purple-50 border-purple-200',
-        green: 'bg-green-50 border-green-200',
-        orange: 'bg-orange-50 border-orange-200',
-      };
-
-      const darkColors: { [key: string]: string } = {
-        blue: 'bg-blue-900/20 border-blue-700/30',
-        purple: 'bg-purple-900/20 border-purple-700/30',
-        green: 'bg-green-900/20 border-green-700/30',
-        orange: 'bg-orange-900/20 border-orange-700/30',
-      };
-
-      const colors = isDarkMode ? darkColors : lightColors;
-      return (
-        colors[color] ||
-        (isDarkMode
-          ? 'bg-gray-800/50 border-gray-600/30'
-          : 'bg-gray-50 border-gray-200')
-      );
-    };
-
-    return (
-      <motion.div
-        whileHover={{ y: -2, scale: 1.02 }}
-        className={`rounded-xl border shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden ${
-          isDarkMode
-            ? 'bg-gray-800/50 border-gray-700/50 hover:bg-gray-800/70'
-            : 'bg-white border-gray-200'
-        }`}
-      >
-        <div className='p-6'>
-          {/* 헤더 */}
-          <div className='flex items-start justify-between mb-4'>
-            <div
-              className={`p-3 rounded-lg border ${getIconBgClass(accentColor)}`}
-            >
-              {icon}
-            </div>
-            <span
-              className={`px-3 py-1 text-sm font-semibold rounded-full border ${getTagStyle(tag)}`}
-            >
-              {tag}
-            </span>
-          </div>
-
-          {/* 제목과 설명 - 글씨 크기 증가 */}
-          <h3
-            className={`text-xl font-bold mb-3 ${getAccentColorClass(accentColor)}`}
-          >
-            {title}
-          </h3>
-          <p
-            className={`leading-relaxed mb-5 text-base ${
-              isDarkMode ? 'text-gray-300' : 'text-gray-600'
-            }`}
-          >
-            {description}
-          </p>
-
-          {/* 주요 특징 - 글씨 크기 증가 */}
-          <div className='space-y-3 mb-5'>
-            {highlights.map((highlight, index) => (
-              <div key={index} className='flex items-start gap-3'>
-                <CheckCircle className='h-5 w-5 text-green-500 mt-0.5 flex-shrink-0' />
-                <span
-                  className={`text-base font-medium ${
-                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                  }`}
-                >
-                  {highlight}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* 코드 예시 (있는 경우) */}
-          {codeExample && (
-            <div
-              className={`rounded-lg p-4 border ${
-                isDarkMode
-                  ? 'bg-gray-900/50 border-gray-600/30'
-                  : 'bg-gray-50 border-gray-200'
-              }`}
-            >
-              <div className='flex items-center gap-2 mb-3'>
-                <Code
-                  className={`h-5 w-5 ${
-                    isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                  }`}
-                />
-                <span
-                  className={`text-sm font-semibold ${
-                    isDarkMode ? 'text-gray-300' : 'text-gray-600'
-                  }`}
-                >
-                  사용 예시
-                </span>
-              </div>
-              <pre
-                className={`text-sm font-mono leading-relaxed overflow-x-auto ${
-                  isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                }`}
-              >
-                {codeExample}
-              </pre>
-            </div>
-          )}
-        </div>
-      </motion.div>
-    );
-  }
-);
-
-DetailCard.displayName = 'DetailCard';
-
-// 대폭 강화된 카드 데이터 - 수치 제거, 실용적 정보 추가
-const cardConfigs = {
-  'tech-stack': {
-    title: '🛠️ 핵심 웹 기술',
-    description:
-      '현대적이고 안정적인 웹 기술 스택으로 최고의 개발자 경험과 성능을 제공',
-    data: [
-      {
-        title: 'Next.js 15',
-        description:
-          'React 기반 풀스택 프레임워크로 서버 사이드 렌더링, 정적 생성, Edge Functions을 완벽 지원합니다.',
-        icon: <Zap className='w-5 h-5 text-blue-600' />,
-        tag: '프레임워크',
-        highlights: [
-          'App Router로 최신 React 기능 완벽 활용',
-          '자동 코드 분할로 번들 크기 최적화',
-          'Streaming SSR로 빠른 초기 로딩',
-          'Vercel과 완벽 통합된 배포 환경',
-        ],
-        codeExample: `// app/layout.tsx - App Router 구조
-export default function RootLayout({
-  children,
+// 기술 태그 컴포넌트
+const TechTag = ({
+  name,
+  category,
+  isDark = false,
 }: {
-  children: React.ReactNode
-}) {
-  return (
-    <html lang="ko">
-      <body>{children}</body>
-    </html>
-  )
-}`,
-        accentColor: 'blue',
-      },
-      {
-        title: 'TypeScript',
-        description:
-          '완전한 타입 안전성을 제공하는 JavaScript 상위집합으로 개발 생산성과 코드 품질을 동시에 향상시킵니다.',
-        icon: <Shield className='w-5 h-5 text-blue-600' />,
-        tag: '언어',
-        highlights: [
-          '컴파일 타임 오류 검출로 런타임 버그 방지',
-          'IntelliSense 자동완성으로 개발 속도 향상',
-          '엄격한 타입 설정으로 코드 품질 보장',
-          '모든 컴포넌트와 API에 타입 정의 적용',
-        ],
-        codeExample: `// 타입 안전한 API 응답 처리
-interface ServerMetrics {
-  id: string;
   name: string;
-  cpuUsage: number;
-  memoryUsage: number;
-}
+  category: string;
+  isDark?: boolean;
+}) => {
+  const getCategoryIcon = (category: string) => {
+    const iconMap: { [key: string]: any } = {
+      AI: Brain,
+      Framework: Code,
+      Database: Database,
+      Cloud: Cloud,
+      Tool: Settings,
+      Frontend: Monitor,
+      Backend: Network,
+      Language: Globe,
+      Testing: CheckCircle,
+      Deployment: Rocket,
+      Animation: Star,
+      State: Layers,
+    };
+    return iconMap[category] || Settings;
+  };
 
-const fetchServers = async (): Promise<ServerMetrics[]> => {
-  const response = await fetch('/api/servers');
-  return response.json();
-};`,
-        accentColor: 'blue',
-      },
-      {
-        title: 'TailwindCSS',
-        description:
-          '유틸리티 퍼스트 CSS 프레임워크로 일관된 디자인 시스템과 빠른 개발 속도를 제공합니다.',
-        icon: <Star className='w-5 h-5 text-cyan-600' />,
-        tag: '스타일링',
-        highlights: [
-          '모바일 퍼스트 반응형 디자인',
-          '다크모드 완벽 지원',
-          '커스텀 디자인 토큰과 컴포넌트 시스템',
-          'PurgeCSS로 프로덕션 번들 최적화',
-        ],
-        codeExample: `<!-- 반응형 카드 컴포넌트 -->
-<div class="bg-white dark:bg-gray-800 
-           rounded-xl shadow-lg p-6
-           hover:scale-105 transition-transform
-           md:max-w-sm lg:max-w-md">
-  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-    서버 상태
-  </h3>
-</div>`,
-        accentColor: 'blue',
-      },
-      {
-        title: 'Supabase',
-        description:
-          'PostgreSQL 기반 오픈소스 Firebase 대안으로 실시간 데이터베이스, 인증, 스토리지를 모두 제공합니다.',
-        icon: <Database className='w-5 h-5 text-emerald-600' />,
-        tag: '데이터베이스',
-        highlights: [
-          '실시간 구독으로 라이브 데이터 업데이트',
-          'Row Level Security로 데이터 보안 강화',
-          '자동 백업과 Point-in-time Recovery',
-          'pgvector 확장으로 AI 벡터 검색 지원',
-        ],
-        codeExample: `// 실시간 서버 상태 구독
-const { data, error } = await supabase
-  .from('servers')
-  .select('*')
-  .eq('status', 'active')
+  const getCategoryColor = (category: string) => {
+    const colorMap: { [key: string]: string } = {
+      AI: isDark
+        ? 'from-pink-500 to-purple-500'
+        : 'from-pink-400 to-purple-400',
+      Framework: isDark
+        ? 'from-blue-500 to-cyan-500'
+        : 'from-blue-400 to-cyan-400',
+      Database: isDark
+        ? 'from-green-500 to-emerald-500'
+        : 'from-green-400 to-emerald-400',
+      Cloud: isDark
+        ? 'from-indigo-500 to-purple-500'
+        : 'from-indigo-400 to-purple-400',
+      Tool: isDark
+        ? 'from-gray-500 to-slate-500'
+        : 'from-gray-400 to-slate-400',
+      Frontend: isDark
+        ? 'from-teal-500 to-cyan-500'
+        : 'from-teal-400 to-cyan-400',
+      Backend: isDark
+        ? 'from-orange-500 to-red-500'
+        : 'from-orange-400 to-red-400',
+      Language: isDark
+        ? 'from-violet-500 to-purple-500'
+        : 'from-violet-400 to-purple-400',
+      Testing: isDark
+        ? 'from-lime-500 to-green-500'
+        : 'from-lime-400 to-green-400',
+      Deployment: isDark
+        ? 'from-amber-500 to-orange-500'
+        : 'from-amber-400 to-orange-400',
+      Animation: isDark
+        ? 'from-rose-500 to-pink-500'
+        : 'from-rose-400 to-pink-400',
+      State: isDark
+        ? 'from-emerald-500 to-teal-500'
+        : 'from-emerald-400 to-teal-400',
+    };
+    return (
+      colorMap[category] ||
+      (isDark ? 'from-gray-500 to-slate-500' : 'from-gray-400 to-slate-400')
+    );
+  };
 
-// 실시간 변경사항 감지
-supabase
-  .channel('servers')
-  .on('postgres_changes', { 
-    event: '*', 
-    schema: 'public', 
-    table: 'servers' 
-  }, (payload) => {
-    console.log('서버 상태 변경:', payload)
-  })
-  .subscribe()`,
-        accentColor: 'blue',
-      },
-    ],
-  },
+  const IconComponent = getCategoryIcon(category);
 
-  'vibe-coding': {
-    title: '⚡ Vibe Coding 워크플로우',
-    description:
-      'AI 기반 차세대 개발 환경으로 개발 생산성을 혁신적으로 향상시키는 통합 워크플로우',
-    data: [
-      {
-        title: 'Cursor AI Editor',
-        description:
-          'Claude 4 Sonnet이 통합된 차세대 AI 코딩 환경으로 자연어로 코드를 생성하고 편집할 수 있습니다.',
-        icon: <Brain className='w-5 h-5 text-purple-600' />,
-        tag: '개발도구',
-        highlights: [
-          '200K 토큰 컨텍스트로 대규모 코드베이스 이해',
-          '자연어 명령으로 즉시 코드 생성 및 리팩토링',
-          '실시간 코드 리뷰와 최적화 제안',
-          'Git과 완벽 통합된 AI 기반 커밋 메시지',
-        ],
-        codeExample: `// AI가 생성한 서버 모니터링 컴포넌트
-"서버 CPU 사용률을 보여주는 차트 컴포넌트를 만들어줘"
-
-→ AI가 자동으로 생성:
-export function CPUChart({ data }: { data: ServerMetrics[] }) {
   return (
-    <Chart>
-      <Line dataKey="cpuUsage" stroke="#8884d8" />
-    </Chart>
+    <motion.div
+      whileHover={{ scale: 1.05, y: -2 }}
+      className={`group relative flex items-center gap-3 p-4 rounded-xl border transition-all duration-300 ${
+        isDark
+          ? 'bg-gray-800/50 border-gray-700/50 hover:bg-gray-800/70'
+          : 'bg-white border-gray-200 hover:shadow-md'
+      }`}
+    >
+      {/* 아이콘 */}
+      <div
+        className={`w-12 h-12 rounded-lg bg-gradient-to-r ${getCategoryColor(category)} flex items-center justify-center`}
+      >
+        <IconComponent className='w-6 h-6 text-white' />
+      </div>
+
+      {/* 텍스트 */}
+      <div className='flex-1'>
+        <h4
+          className={`font-semibold text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}
+        >
+          {name}
+        </h4>
+        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+          {category}
+        </p>
+      </div>
+
+      {/* 호버 효과 */}
+      <div className='opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
+        <ArrowRight
+          className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}
+        />
+      </div>
+    </motion.div>
   );
-}`,
-        accentColor: 'purple',
-      },
-      {
-        title: 'Claude 4 Sonnet',
-        description:
-          '최대 컨텍스트 AI 모델로 복잡한 아키텍처 설계부터 디버깅까지 모든 개발 과정을 지원합니다.',
-        icon: <Cpu className='w-5 h-5 text-purple-600' />,
-        tag: 'AI 모델',
-        highlights: [
-          '전체 프로젝트 구조를 한번에 이해',
-          '복잡한 로직의 단계별 설명과 구현',
-          '버그 패턴 분석과 자동 수정 제안',
-          '코드 리뷰와 성능 최적화 조언',
-        ],
-        codeExample: `// Claude와의 개발 대화 예시
-Q: "이 API의 응답 시간을 개선하고 싶어"
+};
 
-Claude: "현재 코드를 분석해보니 3가지 개선점이 있습니다:
-1. 데이터베이스 쿼리 최적화 (인덱스 추가)
-2. Redis 캐싱 레이어 도입
-3. 병렬 처리로 외부 API 호출 최적화
+// 특징 카드 컴포넌트
+const FeatureCard = ({
+  feature,
+  index,
+  isDark = false,
+}: {
+  feature: string;
+  index: number;
+  isDark?: boolean;
+}) => {
+  // 이모지와 텍스트 분리
+  const emojiMatch = feature.match(
+    /^([\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}])/u
+  );
+  const emoji = emojiMatch ? emojiMatch[0] : '✨';
+  const text = feature.replace(
+    /^([\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}])\s*/u,
+    ''
+  );
 
-각각의 구현 방법을 알려드릴까요?"`,
-        accentColor: 'purple',
-      },
-      {
-        title: 'MCP Tools',
-        description:
-          'Model Context Protocol 도구들로 파일시스템, 웹 검색, 순차적 사고를 AI와 완벽 통합합니다.',
-        icon: <Settings className='w-5 h-5 text-purple-600' />,
-        tag: '자동화',
-        highlights: [
-          '파일시스템 자동 탐색과 구조 분석',
-          '실시간 웹 검색으로 최신 문서 참조',
-          '단계별 문제 해결과 검증',
-          'Git 연동으로 자동 커밋과 브랜치 관리',
-        ],
-        codeExample: `// MCP 도구 사용 예시
-<filesystem_tool>
-  src/components/를 분석해서 사용하지 않는 컴포넌트 찾아줘
-</filesystem_tool>
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.1 }}
+      className={`flex items-start gap-4 p-4 rounded-lg transition-colors duration-300 ${
+        isDark ? 'hover:bg-gray-800/30' : 'hover:bg-gray-50'
+      }`}
+    >
+      <div className='text-2xl'>{emoji}</div>
+      <div className='flex-1'>
+        <p
+          className={`text-base leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+        >
+          {text}
+        </p>
+      </div>
+    </motion.div>
+  );
+};
 
-<web_search>
-  Next.js 15 App Router 최신 베스트 프랙티스
-</web_search>
+// 카드별 기술 매핑
+const getTechMapping = (cardId: string) => {
+  const mappings: { [key: string]: Array<{ name: string; category: string }> } =
+    {
+      'mcp-ai-engine': [
+        { name: 'MCP AI Server', category: 'AI' },
+        { name: 'RAG Backup Engine', category: 'AI' },
+        { name: 'TensorFlow.js', category: 'AI' },
+        { name: 'Google AI Studio', category: 'AI' },
+        { name: 'Vector Database', category: 'Database' },
+        { name: 'Korean NLP', category: 'Language' },
+        { name: 'Hybrid Deployment', category: 'Deployment' },
+      ],
+      'fullstack-ecosystem': [
+        { name: 'Next.js 15', category: 'Framework' },
+        { name: 'React 19', category: 'Frontend' },
+        { name: 'TypeScript', category: 'Language' },
+        { name: 'Serverless APIs', category: 'Backend' },
+        { name: 'Vercel Deployment', category: 'Cloud' },
+        { name: 'Render Hosting', category: 'Cloud' },
+        { name: 'CI/CD Pipeline', category: 'Deployment' },
+      ],
+      'tech-stack': [
+        { name: 'Next.js 15', category: 'Framework' },
+        { name: 'TypeScript', category: 'Language' },
+        { name: 'TailwindCSS', category: 'Frontend' },
+        { name: 'Framer Motion', category: 'Animation' },
+        { name: 'Supabase', category: 'Database' },
+        { name: 'Redis', category: 'Database' },
+        { name: 'Testing Suite', category: 'Testing' },
+      ],
+      'vibe-coding': [
+        { name: 'Cursor AI', category: 'AI' },
+        { name: 'Claude Sonnet', category: 'AI' },
+        { name: 'MCP Protocol', category: 'Tool' },
+        { name: 'GitHub Integration', category: 'Tool' },
+        { name: 'Auto Deployment', category: 'Deployment' },
+        { name: 'CI/CD Pipeline', category: 'Deployment' },
+        { name: 'AI Workflow', category: 'AI' },
+      ],
+    };
 
-<sequential_thinking>
-  1. 문제 분석: API 응답 시간 느림
-  2. 원인 조사: DB 쿼리 N+1 문제
-  3. 해결책: include 최적화
-  4. 검증: 성능 테스트
-</sequential_thinking>`,
-        accentColor: 'purple',
-      },
-      {
-        title: 'GitHub Actions',
-        description:
-          '완전 자동화된 CI/CD 파이프라인으로 코드 품질 검사부터 배포까지 모든 과정을 자동화합니다.',
-        icon: <GitBranch className='w-5 h-5 text-purple-600' />,
-        tag: '배포',
-        highlights: [
-          'TypeScript 타입 체크와 ESLint 자동 실행',
-          'Vitest 단위 테스트와 E2E 테스트 자동화',
-          'Vercel과 Render에 동시 배포',
-          '실패 시 자동 롤백과 알림',
-        ],
-        codeExample: `# .github/workflows/deploy.yml
-name: 🚀 Deploy
-on:
-  push:
-    branches: [main]
-
-jobs:
-  test-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: 📝 Type Check
-        run: npm run type-check
-      - name: 🧪 Run Tests  
-        run: npm run test
-      - name: 🚀 Deploy to Vercel
-        uses: vercel/action@v1`,
-        accentColor: 'purple',
-      },
-    ],
-  },
-
-  'mcp-ai-engine': {
-    title: '🧠 서버 모니터링 AI 엔진',
-    description:
-      '지능형 서버 분석과 실시간 모니터링을 위한 완전 자동화된 AI 시스템',
-    data: [
-      {
-        title: 'UnifiedAIEngine',
-        description:
-          '모든 AI 기능을 통합 관리하는 중앙 엔진으로 폴백 시스템과 성능 최적화를 제공합니다.',
-        icon: <Brain className='w-5 h-5 text-green-600' />,
-        tag: 'AI 엔진',
-        highlights: [
-          'Google AI → MCP → RAG → Direct Analysis 순차 폴백',
-          '실시간 성능 모니터링과 자동 최적화',
-          '한국어 자연어 처리로 국내 환경 최적화',
-          '스마트 캐싱으로 응답 속도 대폭 향상',
-        ],
-        codeExample: `// AI 엔진 사용 예시
-const aiEngine = new UnifiedAIEngine();
-
-// 자연어로 서버 상태 질의
-const response = await aiEngine.query(
-  "CPU 사용률이 80% 이상인 서버들의 상태를 분석해줘"
-);
-
-// 자동 폴백 시스템
-// Google AI 실패 → MCP 시도 → RAG 백업 → 기본 분석`,
-        accentColor: 'green',
-      },
-      {
-        title: 'MCP Protocol',
-        description:
-          'Model Context Protocol로 AI 서비스 간 표준화된 통신과 컨텍스트 공유를 담당합니다.',
-        icon: <Network className='w-5 h-5 text-teal-600' />,
-        tag: '프로토콜',
-        highlights: [
-          'Render 클라우드에서 24/7 안정적 운영',
-          '실시간 서버 데이터 스트리밍',
-          '표준 프로토콜로 확장성 보장',
-          '장애 시 자동 복구와 상태 보고',
-        ],
-        codeExample: `// MCP 서버 연동
-const mcpClient = new MCPClient({
-  serverUrl: 'https://mcp-server.render.com',
-  tools: ['filesystem', 'github', 'monitoring']
-});
-
-// 서버 분석 요청
-const analysis = await mcpClient.analyzeServers({
-  query: "최근 1시간 내 이상 패턴 분석",
-  includeRecommendations: true
-});`,
-        accentColor: 'green',
-      },
-      {
-        title: 'RAG Engine',
-        description:
-          '벡터 데이터베이스 기반 검색 증강 생성으로 정확하고 맥락적인 AI 응답을 제공합니다.',
-        icon: <Search className='w-5 h-5 text-lime-600' />,
-        tag: '백업',
-        highlights: [
-          'Supabase pgvector로 고속 벡터 검색',
-          'TensorFlow.js 기반 브라우저 임베딩',
-          '문서 인덱싱과 실시간 업데이트',
-          '컨텍스트 기반 정확한 답변 생성',
-        ],
-        codeExample: `// RAG 검색 시스템
-const ragEngine = new LocalRAGEngine();
-
-// 문서 인덱싱
-await ragEngine.addDocument({
-  id: 'server-guide',
-  content: '서버 모니터링 가이드...',
-  metadata: { type: 'guide', category: 'monitoring' }
-});
-
-// 벡터 검색 기반 답변
-const answer = await ragEngine.query(
-  "CPU 과부하 시 대응 방법"
-);`,
-        accentColor: 'green',
-      },
-      {
-        title: 'Korean NLP',
-        description:
-          '한국어 자연어 처리 엔진으로 국내 서버 환경에 특화된 로그 분석과 명령 처리를 수행합니다.',
-        icon: <Globe className='w-5 h-5 text-yellow-600' />,
-        tag: '언어처리',
-        highlights: [
-          'hangul-js로 한글 형태소 분석',
-          'korean-utils로 한국어 패턴 인식',
-          '국내 서버 운영 용어와 로그 패턴 학습',
-          '자연어 명령의 정확한 의도 파악',
-        ],
-        codeExample: `// 한국어 NLP 처리
-import { korean } from '@/utils/korean-nlp';
-
-// 한국어 명령 분석
-const intent = korean.parseIntent(
-  "웹서버 CPU 사용률이 높아서 걱정이에요"
-);
-// → { type: 'monitoring', target: 'cpu', emotion: 'worry' }
-
-// 서버 로그 분석
-const logAnalysis = korean.analyzeLog(
-  "2024-01-10 14:30:15 [ERROR] 데이터베이스 연결 실패"
-);`,
-        accentColor: 'green',
-      },
-    ],
-  },
-
-  'data-generator': {
-    title: '📊 실시간 데이터 생성기',
-    description:
-      '지능형 서버 데이터 시뮬레이션과 최적화된 성능 관리를 위한 차세대 생성 시스템',
-    data: [
-      {
-        title: 'OptimizedGenerator',
-        description:
-          '24시간 베이스라인 패턴과 실시간 델타 방식으로 현실적인 서버 데이터를 생성하고 최적화합니다.',
-        icon: <TrendingUp className='w-5 h-5 text-orange-600' />,
-        tag: '최적화',
-        highlights: [
-          '환경별 자동 모드: Local(50서버) → Premium(20서버) → Basic(6서버)',
-          '24시간 베이스라인 미리 생성으로 CPU 75% 절약',
-          '실시간은 델타만 계산하여 메모리 97%→75% 최적화',
-          '현실적 패턴: 업무시간 높음, 야간/주말 낮음',
-        ],
-        codeExample: `// 최적화된 데이터 생성
-const generator = new OptimizedDataGenerator({
-  environment: 'auto', // 자동 환경 감지
-  serverCount: 'adaptive', // 환경별 자동 조정
-  updateInterval: 'smart' // 스마트 간격 조정
-});
-
-// 베이스라인 + 델타 방식
-const metrics = generator.generateMetrics({
-  baseline: precomputedBaseline, // 미리 계산된 24시간 데이터
-  deltaOnly: true, // 변화량만 계산
-  timestamp: Date.now()
-});`,
-        accentColor: 'orange',
-      },
-      {
-        title: 'TimerManager',
-        description:
-          '모든 시스템 타이머를 통합 관리하여 타이머 충돌을 방지하고 CPU 사용량을 최적화합니다.',
-        icon: <Clock className='w-5 h-5 text-red-600' />,
-        tag: '관리',
-        highlights: [
-          '통합 타이머 풀로 중복 타이머 방지',
-          '우선순위 기반 스케줄링',
-          '자동 리소스 정리와 메모리 누수 방지',
-          '브라우저 탭 비활성화 시 자동 최적화',
-        ],
-        codeExample: `// 타이머 통합 관리
-const timerManager = TimerManager.getInstance();
-
-// 기존: 여러 setInterval로 충돌
-// setInterval(updateServers, 5000);
-// setInterval(updateMetrics, 3000);
-
-// 개선: 통합 관리
-timerManager.register('servers', updateServers, {
-  interval: 5000,
-  priority: 'high',
-  autoCleanup: true
-});`,
-        accentColor: 'orange',
-      },
-      {
-        title: 'SmartCache',
-        description:
-          '지능형 캐싱 시스템으로 자주 사용되는 데이터를 예측하고 사전 로딩하여 성능을 극대화합니다.',
-        icon: <Database className='w-5 h-5 text-amber-600' />,
-        tag: '캐싱',
-        highlights: [
-          'LRU + TTL 하이브리드 캐시 전략',
-          '패턴 학습으로 사전 로딩 최적화',
-          'Redis 연동으로 지속성 보장',
-          '자동 압축과 메모리 관리',
-        ],
-        codeExample: `// 스마트 캐싱 시스템
-const cache = new SmartCache({
-  strategy: 'hybrid', // LRU + TTL
-  predictiveLoading: true,
-  compression: true,
-  redis: redisClient
-});
-
-// 패턴 기반 사전 로딩
-cache.preload('dashboard-metrics', {
-  pattern: 'workday-morning', // 업무일 아침 패턴
-  prefetchCount: 10,
-  ttl: 300000 // 5분
-});`,
-        accentColor: 'orange',
-      },
-      {
-        title: 'RealisticData',
-        description:
-          '실제 서버 환경과 동일한 패턴과 시나리오를 시뮬레이션하여 현실적인 테스트 데이터를 제공합니다.',
-        icon: <Activity className='w-5 h-5 text-rose-600' />,
-        tag: '시뮬레이션',
-        highlights: [
-          '5가지 시나리오: Normal, HighLoad, Maintenance, Incident, Scaling',
-          '4가지 아키텍처: Single, Master-Slave, Load-Balanced, Microservices',
-          '시간대별 현실적 패턴 (출근시간 스파이크, 점심시간 감소)',
-          '무작위 장애 시나리오와 복구 패턴',
-        ],
-        codeExample: `// 현실적 시나리오 생성
-const scenario = new RealisticDataScenario({
-  type: 'incident', // 장애 시나리오
-  architecture: 'microservices',
-  duration: '2hours',
-  severity: 'moderate'
-});
-
-// 시간대별 패턴
-const pattern = scenario.generateTimePattern({
-  workdayMultiplier: 1.5, // 업무일 1.5배 높음
-  lunchTimeReduction: 0.7, // 점심시간 30% 감소
-  weekendReduction: 0.3 // 주말 70% 감소
-});`,
-        accentColor: 'orange',
-      },
-    ],
-  },
+  return mappings[cardId] || [];
 };
 
 export default function FeatureCardModal({
@@ -733,7 +242,9 @@ export default function FeatureCardModal({
   variant = 'home',
   isDarkMode = false,
 }: FeatureCardModalProps) {
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<'overview' | 'features' | 'tech'>(
+    'overview'
+  );
 
   // 키보드 네비게이션
   useEffect(() => {
@@ -751,17 +262,11 @@ export default function FeatureCardModal({
 
   if (!selectedCard) return null;
 
-  const currentConfig =
-    cardConfigs[selectedCard.id as keyof typeof cardConfigs];
-  if (!currentConfig) return null;
+  const techStack = getTechMapping(selectedCard.id);
 
   // 모달 애니메이션
   const modalVariants = {
-    hidden: {
-      opacity: 0,
-      scale: 0.95,
-      y: 20,
-    },
+    hidden: { opacity: 0, scale: 0.95, y: 20 },
     visible: {
       opacity: 1,
       scale: 1,
@@ -781,20 +286,9 @@ export default function FeatureCardModal({
     },
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.1,
-      },
-    },
-  };
-
   return (
     <AnimatePresence mode='wait'>
-      {/* 깔끔한 오버레이 - 블러 효과 제거 */}
+      {/* 오버레이 */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -811,83 +305,198 @@ export default function FeatureCardModal({
           animate='visible'
           exit='exit'
           onClick={e => e.stopPropagation()}
-          className={`relative w-full max-w-7xl max-h-[85vh] rounded-2xl shadow-2xl overflow-hidden ${
+          className={`relative w-full max-w-6xl max-h-[85vh] rounded-2xl shadow-2xl overflow-hidden ${
             isDarkMode
-              ? 'bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 border border-gray-700/30'
+              ? 'bg-gradient-to-br from-gray-900 via-blue-900/20 to-purple-900/20 border border-gray-700/30'
               : 'bg-white'
           }`}
         >
           {/* 헤더 */}
           <div
-            className={`flex items-center justify-between p-6 border-b ${
+            className={`relative p-8 border-b ${
               isDarkMode
                 ? 'border-gray-700/50 bg-gradient-to-r from-gray-800/40 to-gray-900/40'
                 : 'border-gray-200 bg-gradient-to-r from-gray-50 to-white'
             }`}
           >
-            <div className='flex items-center gap-4'>
-              <div
-                className={`p-3 bg-gradient-to-br ${selectedCard.gradient} rounded-xl`}
+            {/* 배경 그라데이션 */}
+            <div
+              className={`absolute inset-0 bg-gradient-to-br ${selectedCard.gradient} opacity-5`}
+            />
+
+            <div className='relative flex items-center justify-between'>
+              <div className='flex items-center gap-6'>
+                <div
+                  className={`p-4 bg-gradient-to-br ${selectedCard.gradient} rounded-2xl shadow-lg`}
+                >
+                  <selectedCard.icon className='w-10 h-10 text-white' />
+                </div>
+                <div>
+                  <h2
+                    className={`text-4xl font-bold mb-2 ${
+                      isDarkMode ? 'text-white' : 'text-gray-900'
+                    }`}
+                  >
+                    {selectedCard.title}
+                  </h2>
+                  <p
+                    className={`text-xl leading-relaxed ${
+                      isDarkMode ? 'text-gray-300' : 'text-gray-600'
+                    }`}
+                  >
+                    {selectedCard.description}
+                  </p>
+                </div>
+              </div>
+
+              <motion.button
+                onClick={onClose}
+                className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
+                  isDarkMode
+                    ? 'bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 hover:text-white'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                aria-label='모달 닫기'
               >
-                <selectedCard.icon className='w-8 h-8 text-white' />
-              </div>
-              <div>
-                <h2
-                  className={`text-3xl font-bold mb-2 ${
-                    isDarkMode ? 'text-white' : 'text-gray-900'
-                  }`}
-                >
-                  {currentConfig.title}
-                </h2>
-                <p
-                  className={`text-xl ${
-                    isDarkMode ? 'text-gray-300' : 'text-gray-600'
-                  }`}
-                >
-                  {currentConfig.description}
-                </p>
-              </div>
+                <X className='w-6 h-6' />
+              </motion.button>
             </div>
 
-            <motion.button
-              onClick={onClose}
-              className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
-                isDarkMode
-                  ? 'bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 hover:text-white'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
-              }`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              aria-label='모달 닫기'
-            >
-              <X className='w-6 h-6' />
-            </motion.button>
+            {/* 탭 네비게이션 */}
+            <div className='flex gap-2 mt-6'>
+              {[
+                { id: 'overview', label: '개요', icon: Target },
+                { id: 'features', label: '주요 기능', icon: Award },
+                { id: 'tech', label: '기술 스택', icon: Layers },
+              ].map(tab => {
+                const IconComponent = tab.icon;
+                return (
+                  <motion.button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                      activeTab === tab.id
+                        ? isDarkMode
+                          ? 'bg-white/10 text-white'
+                          : 'bg-gray-900 text-white'
+                        : isDarkMode
+                          ? 'text-gray-400 hover:text-white hover:bg-white/5'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <IconComponent className='w-4 h-4' />
+                    {tab.label}
+                  </motion.button>
+                );
+              })}
+            </div>
           </div>
 
-          {/* 콘텐츠 영역 - 2x2 그리드 */}
-          <motion.div
-            variants={containerVariants}
-            initial='hidden'
-            animate='visible'
-            className={`p-6 overflow-y-auto max-h-[calc(85vh-120px)] ${
-              isDarkMode ? 'bg-gray-900/50' : ''
-            }`}
-          >
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-              {currentConfig.data.map((item, index) => (
+          {/* 콘텐츠 영역 */}
+          <div className='p-8 overflow-y-auto max-h-[calc(85vh-240px)]'>
+            <AnimatePresence mode='wait'>
+              {activeTab === 'overview' && (
                 <motion.div
-                  key={index}
+                  key='overview'
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  onHoverStart={() => setHoveredCard(index)}
-                  onHoverEnd={() => setHoveredCard(null)}
+                  exit={{ opacity: 0, y: -20 }}
+                  className='space-y-6'
                 >
-                  <DetailCard {...item} isDarkMode={isDarkMode} />
+                  <div
+                    className={`p-6 rounded-xl border ${
+                      isDarkMode
+                        ? 'bg-gray-800/30 border-gray-700/50'
+                        : 'bg-gray-50 border-gray-200'
+                    }`}
+                  >
+                    <h3
+                      className={`text-2xl font-bold mb-4 ${
+                        isDarkMode ? 'text-white' : 'text-gray-900'
+                      }`}
+                    >
+                      시스템 개요
+                    </h3>
+                    <p
+                      className={`text-lg leading-relaxed ${
+                        isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                      }`}
+                    >
+                      {selectedCard.detailedContent.overview}
+                    </p>
+                  </div>
                 </motion.div>
-              ))}
-            </div>
-          </motion.div>
+              )}
+
+              {activeTab === 'features' && (
+                <motion.div
+                  key='features'
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className='space-y-4'
+                >
+                  <h3
+                    className={`text-2xl font-bold mb-6 ${
+                      isDarkMode ? 'text-white' : 'text-gray-900'
+                    }`}
+                  >
+                    주요 기능
+                  </h3>
+                  <div className='space-y-2'>
+                    {selectedCard.detailedContent.features.map(
+                      (feature: string, index: number) => (
+                        <FeatureCard
+                          key={index}
+                          feature={feature}
+                          index={index}
+                          isDark={isDarkMode}
+                        />
+                      )
+                    )}
+                  </div>
+                </motion.div>
+              )}
+
+              {activeTab === 'tech' && (
+                <motion.div
+                  key='tech'
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className='space-y-6'
+                >
+                  <h3
+                    className={`text-2xl font-bold mb-6 ${
+                      isDarkMode ? 'text-white' : 'text-gray-900'
+                    }`}
+                  >
+                    적용 기술 스택
+                  </h3>
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                    {techStack.map((tech, index) => (
+                      <motion.div
+                        key={tech.name}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <TechTag
+                          name={tech.name}
+                          category={tech.category}
+                          isDark={isDarkMode}
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>

@@ -3,6 +3,13 @@
 
 echo "🔍 Pre-commit 검증 시작..."
 
+# 비밀 키 스캔
+echo "🔐 비밀 키 유출 검사..."
+node scripts/precommit-check-secrets.js
+if [ $? -ne 0 ]; then
+  exit 1
+fi
+
 # 타입 체크
 echo "📝 TypeScript 타입 체크..."
 npm run type-check

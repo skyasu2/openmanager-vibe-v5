@@ -1,6 +1,6 @@
 /**
  * 🚀 API v1 - 통합 AI 쿼리 엔드포인트
- * 
+ *
  * MCP 오케스트레이터 우선 사용:
  * - MCPOrchestrator를 기본으로 사용
  * - 실패시 UnifiedAIEngine 폴백
@@ -8,8 +8,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { UnifiedAIEngine, UnifiedAnalysisRequest } from '@/core/ai/UnifiedAIEngine';
-import { MCPOrchestrator, MCPRequest, MCPQuery } from '@/core/mcp/mcp-orchestrator';
+import {
+  UnifiedAIEngine,
+  UnifiedAnalysisRequest,
+} from '@/core/ai/UnifiedAIEngine';
+import {
+  MCPOrchestrator,
+  MCPRequest,
+  MCPQuery,
+} from '@/services/mcp/mcp-orchestrator';
 
 // 🧠 MCP 오케스트레이터 인스턴스
 let mcpOrchestrator: MCPOrchestrator | null = null;
@@ -23,11 +30,14 @@ function getMCPOrchestrator(): MCPOrchestrator {
 }
 
 // 🧠 메모리 캐시 구현 (Redis 대신 임시 사용)
-const queryCache = new Map<string, { result: any; timestamp: number; ttl: number }>();
+const queryCache = new Map<
+  string,
+  { result: any; timestamp: number; ttl: number }
+>();
 const CACHE_TTL = {
-  common: 5 * 60 * 1000,      // 일반 쿼리: 5분
-  metrics: 1 * 60 * 1000,     // 메트릭: 1분
-  predictions: 5 * 60 * 1000  // 예측: 5분
+  common: 5 * 60 * 1000, // 일반 쿼리: 5분
+  metrics: 1 * 60 * 1000, // 메트릭: 1분
+  predictions: 5 * 60 * 1000, // 예측: 5분
 };
 
 /**
@@ -41,11 +51,14 @@ export async function POST(request: NextRequest) {
 
     // 기본 검증
     if (!body.query || typeof body.query !== 'string') {
-      return NextResponse.json({
-        success: false,
-        error: 'Query parameter is required',
-        code: 'INVALID_QUERY'
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Query parameter is required',
+          code: 'INVALID_QUERY',
+        },
+        { status: 400 }
+      );
     }
 
     // 캐시 키 생성
@@ -59,8 +72,8 @@ export async function POST(request: NextRequest) {
         meta: {
           ...cached.meta,
           cached: true,
-          totalTime: Date.now() - startTime
-        }
+          totalTime: Date.now() - startTime,
+        },
       });
     }
 
@@ -70,29 +83,31 @@ export async function POST(request: NextRequest) {
       context: {
         serverMetrics: body.context?.serverMetrics || body.serverData || [],
         logEntries: body.context?.logEntries || [],
-        timeRange: body.context?.timeRange ? {
-          start: new Date(body.context.timeRange.start),
-          end: new Date(body.context.timeRange.end)
-        } : {
-          start: new Date(Date.now() - 24 * 60 * 60 * 1000),
-          end: new Date()
-        },
+        timeRange: body.context?.timeRange
+          ? {
+              start: new Date(body.context.timeRange.start),
+              end: new Date(body.context.timeRange.end),
+            }
+          : {
+              start: new Date(Date.now() - 24 * 60 * 60 * 1000),
+              end: new Date(),
+            },
         sessionId: body.context?.sessionId || body.sessionId,
-        urgency: body.context?.urgency || 'medium'
+        urgency: body.context?.urgency || 'medium',
       },
       options: {
         enableMCP: body.options?.enableMCP !== false,
         enableAnalysis: body.options?.enableAnalysis !== false,
         maxResponseTime: body.options?.maxResponseTime || 30000,
-        confidenceThreshold: body.options?.confidenceThreshold || 0.3
-      }
+        confidenceThreshold: body.options?.confidenceThreshold || 0.3,
+      },
     };
 
     console.log('🔥 V1 AI Query:', {
       query: body.query.substring(0, 50) + '...',
       hasMetrics: analysisRequest.context?.serverMetrics?.length || 0,
       hasLogs: analysisRequest.context?.logEntries?.length || 0,
-      sessionId: analysisRequest.context?.sessionId
+      sessionId: analysisRequest.context?.sessionId,
     });
 
     // 🧠 MCP 오케스트레이터 우선 시도
@@ -109,10 +124,10 @@ export async function POST(request: NextRequest) {
           userPreferences: {
             metrics: analysisRequest.context?.serverMetrics,
             logs: analysisRequest.context?.logEntries,
-            urgency: analysisRequest.context?.urgency || 'medium'
-          }
+            urgency: analysisRequest.context?.urgency || 'medium',
+          },
         },
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       const orchestrator = getMCPOrchestrator();
@@ -121,7 +136,7 @@ export async function POST(request: NextRequest) {
       console.log('✅ MCP 분석 성공:', {
         sources: mcpResult.sources.length,
         confidence: mcpResult.confidence,
-        processingTime: mcpResult.processingTime
+        processingTime: mcpResult.processingTime,
       });
 
       // MCP 결과를 V1 API 형식으로 변환
@@ -135,9 +150,9 @@ export async function POST(request: NextRequest) {
             summary: mcpResult.answer || 'MCP 기반 분석이 완료되었습니다',
             confidence: mcpResult.confidence,
             detailed_results: mcpResult.sources,
-            recommendations: mcpResult.recommendations
+            recommendations: mcpResult.recommendations,
           },
-          recommendations: mcpResult.recommendations || []
+          recommendations: mcpResult.recommendations || [],
         },
 
         // 🔧 메타데이터
@@ -146,7 +161,7 @@ export async function POST(request: NextRequest) {
           processingTime: Date.now() - startTime,
           engines: {
             used: ['MCP-Orchestrator'],
-            details: mcpResult.sources.map(s => s.type)
+            details: mcpResult.sources.map(s => s.type),
           },
           apiVersion: 'v1.0.0',
           engine: 'MCPOrchestrator',
@@ -155,9 +170,9 @@ export async function POST(request: NextRequest) {
           mcp: {
             context_id: mcpResult.id,
             tools_used: mcpResult.sources.map(s => s.type),
-            processing_time: mcpResult.processingTime
-          }
-        }
+            processing_time: mcpResult.processingTime,
+          },
+        },
       };
 
       // 결과 캐싱 (성공한 경우만)
@@ -170,17 +185,17 @@ export async function POST(request: NextRequest) {
         intent: 'mcp_analysis',
         confidence: mcpResult.confidence,
         enginesUsed: mcpResult.sources.length,
-        totalTime: Date.now() - startTime
+        totalTime: Date.now() - startTime,
       });
 
       return NextResponse.json(response);
-
     } catch (mcpError: any) {
       console.warn('🔄 MCP 실패, 직접 분석 수행:', mcpError.message);
     }
 
     // UnifiedAIEngine으로 분석 수행 (MCP 폴백)
-    const result = await UnifiedAIEngine.getInstance().processQuery(analysisRequest);
+    const result =
+      await UnifiedAIEngine.getInstance().processQuery(analysisRequest);
 
     // 응답 구성
     const response = {
@@ -190,7 +205,7 @@ export async function POST(request: NextRequest) {
       data: {
         intent: result.intent,
         analysis: result.analysis,
-        recommendations: result.recommendations
+        recommendations: result.recommendations,
       },
 
       // 🔧 메타데이터
@@ -201,8 +216,8 @@ export async function POST(request: NextRequest) {
         apiVersion: 'v1.0.0',
         engine: 'UnifiedAIEngine',
         timestamp: new Date().toISOString(),
-        cached: false
-      }
+        cached: false,
+      },
     };
 
     // 결과 캐싱 (성공한 경우만)
@@ -215,25 +230,27 @@ export async function POST(request: NextRequest) {
       intent: result.intent?.primary,
       confidence: result.analysis?.confidence,
       enginesUsed: result.engines?.used?.length || 0,
-      totalTime: Date.now() - startTime
+      totalTime: Date.now() - startTime,
     });
 
     return NextResponse.json(response);
-
   } catch (error: any) {
     console.error('❌ V1 AI API 오류:', error);
 
-    return NextResponse.json({
-      success: false,
-      error: 'AI 분석 중 오류가 발생했습니다',
-      code: 'ANALYSIS_ERROR',
-      message: error.message,
-      meta: {
-        processingTime: Date.now() - startTime,
-        apiVersion: 'v1.0.0',
-        timestamp: new Date().toISOString()
-      }
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'AI 분석 중 오류가 발생했습니다',
+        code: 'ANALYSIS_ERROR',
+        message: error.message,
+        meta: {
+          processingTime: Date.now() - startTime,
+          apiVersion: 'v1.0.0',
+          timestamp: new Date().toISOString(),
+        },
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -254,9 +271,9 @@ export async function GET(request: NextRequest) {
           details: status,
           cache: {
             size: queryCache.size,
-            hitRate: calculateCacheHitRate()
+            hitRate: calculateCacheHitRate(),
           },
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
       case 'cache-stats':
@@ -264,9 +281,9 @@ export async function GET(request: NextRequest) {
           cache: {
             size: queryCache.size,
             hitRate: calculateCacheHitRate(),
-            memoryUsage: `${process.memoryUsage().heapUsed / 1024 / 1024}MB`
+            memoryUsage: `${process.memoryUsage().heapUsed / 1024 / 1024}MB`,
           },
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
       default:
@@ -279,23 +296,25 @@ export async function GET(request: NextRequest) {
             '⚡ 인메모리 캐싱',
             '🔧 다중 AI 엔진 지원',
             '📊 실시간 메트릭 분석',
-            '🎯 Intent 분류 및 최적화'
+            '🎯 Intent 분류 및 최적화',
           ],
           endpoints: {
             'POST /api/v1/ai/query': '통합 AI 분석',
             'GET /api/v1/ai/query?action=health': '시스템 상태',
-            'GET /api/v1/ai/query?action=cache-stats': '캐시 통계'
+            'GET /api/v1/ai/query?action=cache-stats': '캐시 통계',
           },
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
     }
-
   } catch (error: any) {
-    return NextResponse.json({
-      status: 'error',
-      message: error.message,
-      timestamp: new Date().toISOString()
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        status: 'error',
+        message: error.message,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -304,7 +323,7 @@ function generateCacheKey(body: any): string {
   const keyData = {
     query: (body.query || '').toLowerCase().trim(),
     hasMetrics: !!body.context?.serverMetrics?.length,
-    urgency: body.context?.urgency || 'medium'
+    urgency: body.context?.urgency || 'medium',
   };
   return `query_${Buffer.from(JSON.stringify(keyData)).toString('base64').slice(0, 20)}`;
 }
@@ -333,7 +352,7 @@ function setCachedResult(key: string, result: any, ttl: number): void {
   queryCache.set(key, {
     result,
     timestamp: Date.now(),
-    ttl
+    ttl,
   });
 }
 
@@ -353,4 +372,4 @@ function getCacheTTL(query: string): number {
 function calculateCacheHitRate(): number {
   // 간단한 히트율 계산 (실제 구현에서는 별도 카운터 사용)
   return queryCache.size > 0 ? 0.75 : 0;
-} 
+}

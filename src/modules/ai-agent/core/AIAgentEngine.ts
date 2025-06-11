@@ -8,7 +8,7 @@
  * 🚀 향후: 선택적 LLM API 연동으로 고급 추론 기능 확장 계획
  */
 
-import { MCPProcessor } from '../../mcp';
+import { MCPProcessor } from '@/services/mcp';
 import { IntentClassifier } from '../processors/IntentClassifier';
 import { ResponseGenerator } from '../processors/ResponseGenerator';
 import { ContextManager } from '../processors/ContextManager';

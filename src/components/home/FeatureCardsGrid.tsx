@@ -321,7 +321,7 @@ const techCategories = {
 // 카드별 기술 카테고리 매핑
 const cardTechMapping = {
   'mcp-ai-engine': ['mcp-ai-system', 'rag-backup-engine'],
-  'data-generator': ['data-storage', 'monitoring'],
+  'fullstack-ecosystem': ['frontend', 'data-storage', 'monitoring'],
   'tech-stack': ['frontend', 'visualization'],
   'vibe-coding': ['mcp-integration', 'ai-development', 'development'],
 };
@@ -329,7 +329,7 @@ const cardTechMapping = {
 // 버전 관리 시스템
 const COMPONENT_VERSIONS = {
   'mcp-ai-engine': '2.1.0', // MCP + RAG 백업 엔진 통합
-  'data-generator': '3.0.1', // 5개 모듈 통합 + 성능 최적화
+  'fullstack-ecosystem': '1.0.0', // 풀스택 개발 생태계
   'tech-stack': '1.5.0',
   'vibe-coding': '2.0.0', // GitHub + Vercel 배포 통합
 } as const;
@@ -354,26 +354,12 @@ const VERSION_HISTORY = {
       changes: '초기 AI 엔진 구현',
     },
   ],
-  'data-generator': [
+  'fullstack-ecosystem': [
     {
-      version: '3.0.1',
-      date: DateUtils.getVersionDate('3.0.1'),
-      changes: '코드베이스 분석 기반 문서 갱신, 5개 모듈 통합 구조 완성',
-    },
-    {
-      version: '3.0.0',
-      date: DateUtils.getVersionDate('3.0.0'),
-      changes: '5개 모듈 통합 아키텍처, 환경별 3단계 모드, 극한 성능 최적화',
-    },
-    {
-      version: '2.5.0',
-      date: DateUtils.getVersionDate('2.5.0'),
-      changes: '베이스라인 최적화 + 실시간 델타 시스템',
-    },
-    {
-      version: '2.0.0',
-      date: DateUtils.getVersionDate('2.0.0'),
-      changes: 'OptimizedDataGenerator 도입',
+      version: '1.0.0',
+      date: DateUtils.getVersionDate('1.0.0'),
+      changes:
+        '풀스택 개발 생태계 구축 - 프론트엔드, 백엔드, AI 엔진, 배포 인프라 통합',
     },
   ],
 } as const;
@@ -388,7 +374,7 @@ const cardData: FeatureCard[] = [
     icon: Bot,
     gradient: 'from-purple-500 via-indigo-500 to-cyan-400',
     detailedContent: {
-      overview: `v${COMPONENT_VERSIONS['mcp-ai-engine']} - MCP(Model Context Protocol) 기반 AI 엔진과 TensorFlow.js RAG 백업 시스템으로 구성된 서버 모니터링 전용 AI입니다. 서버 상태 패턴 분석, 자연어 문의응답, 자동 장애보고서 생성 등 서버 관리에 특화된 지능형 기능을 제공합니다.`,
+      overview: `v${COMPONENT_VERSIONS['mcp-ai-engine']} - MCP(Model Context Protocol) 기반 AI 엔진과 TensorFlow.js RAG 백업 시스템으로 구성된 서버 모니터링 전용 AI입니다.`,
       features: [
         '🎯 MCP 컨텍스트 추론: 서버 상태 패턴 학습 및 예측 분석',
         '🤖 자연어 서버 질의: "CPU 사용률이 높은 서버는?" 같은 자연어 명령 처리',
@@ -399,46 +385,44 @@ const cardData: FeatureCard[] = [
         '📊 한국어 NLP: hangul-js + korean-utils로 한국어 서버 로그 분석',
       ],
       technologies: [
-        '🧠 MCP AI Server: Model Context Protocol 기반 컨텍스트 추론 엔진',
-        '📚 RAG Backup Engine: TensorFlow.js + Natural + Fuse.js 백업 시스템',
-        '🔗 @modelcontextprotocol/sdk: AI 에이전트 간 표준 통신 프로토콜',
-        '🧮 @tensorflow/tfjs: 브라우저 머신러닝 추론 + 벡터 임베딩',
-        '🔍 @xenova/transformers: 사전훈련 BERT/DistilBERT 모델 활용',
-        '📊 PostgresVectorDB: Supabase pgvector 확장을 활용한 벡터 검색',
-        '💾 LocalVectorDB: 메모리 기반 빠른 벡터 검색 캐시',
-        '🇰🇷 hangul-js + korean-utils: 한국어 서버 로그 형태소 분석',
+        'MCP AI Server',
+        'RAG Backup Engine',
+        'TensorFlow.js',
+        'Google AI Studio',
+        'Vector Database',
+        'Korean NLP',
+        'Hybrid Deployment',
       ],
     },
     requiresAI: true,
     isAICard: true,
   },
   {
-    id: 'data-generator',
-    title: '📊 실시간 서버 데이터 생성기',
+    id: 'fullstack-ecosystem',
+    title: '🚀 풀스택 개발 생태계',
     description:
-      '🔄 실제 서버처럼 동작하는 데이터를 자동 생성. 업무시간↑/야간↓ 패턴, 장애 시뮬레이션, 환경별 최적화',
+      '프론트엔드, 백엔드, AI 엔진, 배포 인프라까지. 실시간 데이터 생성과 시연을 위한 완전한 개발 환경 구축',
     icon: Database,
     gradient: 'from-emerald-500 to-teal-600',
     detailedContent: {
-      overview: `v${COMPONENT_VERSIONS['data-generator']} - 실제 서버 환경을 시뮬레이션하는 차세대 데이터 생성 시스템입니다. 환경별 자동 최적화, 24시간 베이스라인 + 실시간 델타 방식으로 극한의 성능 최적화를 달성했으며, 다양한 서버 아키텍처와 장애 시나리오를 지원합니다.`,
+      overview: `완전한 풀스택 개발 생태계로 프론트엔드부터 배포 인프라까지 모든 레이어를 통합한 현대적 개발 환경입니다.`,
       features: [
-        '🎯 환경별 자동 최적화: 환경에 따라 서버 수와 업데이트 주기를 자동 조정',
-        '📊 24시간 베이스라인: 시간대별 패턴을 미리 생성하여 실시간 처리 최적화',
-        '⚡ 극한 성능 최적화: 메모리 사용량 대폭 절약, CPU 부하 최소화, 응답시간 단축',
-        '🏗️ 4가지 아키텍처: Single/Master-Slave/Load-Balanced/Microservices',
-        '🎭 5가지 시뮬레이션: Normal/HighLoad/Maintenance/Incident/Scaling',
-        '🌐 Prometheus 호환: 표준 메트릭 포맷으로 모니터링 도구 연동',
-        '💾 Redis 캐싱: Upstash 서버리스 Redis로 데이터 지속성 보장',
+        '🎨 프론트엔드: Next.js 15 + React 19 + TypeScript로 현대적 UI/UX',
+        '⚡ 백엔드: Serverless API + Edge Functions로 확장 가능한 아키텍처',
+        '🤖 AI 엔진: 멀티 AI 통합으로 지능형 서비스 제공',
+        '🌐 배포 인프라: Vercel + Render 멀티 클라우드 전략',
+        '📊 실시간 데이터: 현실적인 서버 메트릭과 시뮬레이션',
+        '🔒 보안: 환경변수 암호화, API 키 관리, 접근 제어',
+        '🧪 테스트: 단위 테스트 + 통합 테스트 + E2E 자동화',
       ],
       technologies: [
-        '🎰 RealServerDataGenerator v3.0: 환경별 3단계 모드, 공용 환경 감지',
-        '⚡ OptimizedDataGenerator v3.0: 24시간 베이스라인 + 실시간 델타',
-        '📊 BaselineOptimizer: 시간대별 패턴 + 서버 역할별 프로파일링',
-        '🔧 TimerManager: 타이머 통합 관리, CPU 75% 절약, 충돌 방지',
-        '💾 MemoryOptimizer: 자동 GC, 캐시 정리, 메모리 최적화',
-        '📈 Faker.js: 현실적인 서버 데이터 생성 (이름, 로그, 메트릭)',
-        '🌐 Prometheus Client: 메트릭 수집, 히스토그램/게이지/카운터',
-        '💾 Upstash Redis: 서버리스 Redis 캐싱, Vercel 완벽 호환',
+        'Next.js 15',
+        'React 19',
+        'TypeScript',
+        'Serverless APIs',
+        'Vercel Deployment',
+        'Render Hosting',
+        'CI/CD Pipeline',
       ],
     },
     requiresAI: false,
@@ -452,7 +436,7 @@ const cardData: FeatureCard[] = [
     gradient: 'from-purple-500 to-indigo-600',
     detailedContent: {
       overview:
-        '모던 풀스택 웹 애플리케이션의 핵심 기술들로 성능과 안정성을 극대화한 차세대 프론트엔드 아키텍처입니다. 모든 라이브러리가 오픈소스이며 최신 웹 표준을 준수하여 개발 생산성과 사용자 경험을 동시에 향상시킵니다.',
+        '모던 풀스택 웹 애플리케이션의 핵심 기술들로 성능과 안정성을 극대화한 차세대 프론트엔드 아키텍처입니다.',
       features: [
         '⚛️ Next.js 15 + React 19: 최신 서버 컴포넌트와 스트리밍 SSR로 성능 극대화',
         '🎨 TailwindCSS + Framer Motion: 유틸리티 CSS와 선언적 애니메이션',
@@ -463,14 +447,13 @@ const cardData: FeatureCard[] = [
         '✨ ESLint + Prettier: 코드 품질 자동화와 일관된 스타일',
       ],
       technologies: [
-        '⚛️ Next.js 15.3.3: React 19 기반 풀스택 프레임워크',
-        '🎨 Tailwind CSS 3.4: 유틸리티 퍼스트 CSS 프레임워크',
-        '🔧 TypeScript 5.6: 정적 타입 검사 및 IDE 지원',
-        '🌊 Framer Motion 11: 선언적 React 애니메이션 라이브러리',
-        '🗄️ Zustand 4.5: 경량 React 상태 관리 라이브러리',
-        '📊 Supabase: PostgreSQL 기반 실시간 데이터베이스',
-        '⚡ Upstash Redis: 서버리스 Redis 캐싱 서비스',
-        '🧪 Vitest: 빠른 단위 테스트 프레임워크',
+        'Next.js 15',
+        'TypeScript',
+        'TailwindCSS',
+        'Framer Motion',
+        'Supabase',
+        'Redis',
+        'Testing Suite',
       ],
     },
     requiresAI: false,
@@ -495,14 +478,13 @@ const cardData: FeatureCard[] = [
         '🤖 워크플로우 자동화: 반복 작업의 지능적 처리',
       ],
       technologies: [
-        '🎯 Cursor AI Editor: Claude Sonnet 통합 AI 코딩 환경',
-        '🧠 Claude Sonnet: 고성능 대규모 컨텍스트 AI 모델',
-        '🔧 MCP Protocol: 개발 워크플로우 최적화 도구',
-        '📱 GitHub: 소스 코드 관리 및 협업 플랫폼',
-        '🚀 Vercel: Next.js 앱 자동 배포 서비스',
-        '🌐 Render: 백엔드 서비스 및 MCP 서버 배포',
-        '⚙️ GitHub Actions: CI/CD 파이프라인 자동화',
-        '💡 AI Tools: 설계 및 브레인스토밍 지원',
+        'Cursor AI',
+        'Claude Sonnet',
+        'MCP Protocol',
+        'GitHub Integration',
+        'Auto Deployment',
+        'CI/CD Pipeline',
+        'AI Workflow',
       ],
     },
     requiresAI: false,

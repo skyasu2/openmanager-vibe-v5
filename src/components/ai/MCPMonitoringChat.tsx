@@ -37,7 +37,7 @@ import {
 import type {
   ThinkingStep,
   MonitoringInsight,
-} from '@/core/mcp/ServerMonitoringAgent';
+} from '@/services/mcp/ServerMonitoringAgent';
 
 interface ChatMessage {
   id: string;

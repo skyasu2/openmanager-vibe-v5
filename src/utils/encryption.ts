@@ -18,7 +18,7 @@ export function encryptText(text: string): string {
     const iv = crypto.randomBytes(16);
 
     // 암호화 수행
-    const cipher = crypto.createCipher(ALGORITHM, key);
+    const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
     cipher.setAAD(Buffer.from('openmanager-auth', 'utf8'));
 
     let encrypted = cipher.update(text, 'utf8', 'hex');
@@ -56,7 +56,7 @@ export function decryptText(encryptedText: string): string {
     const authTag = Buffer.from(authTagHex, 'hex');
 
     // 복호화 수행
-    const decipher = crypto.createDecipher(ALGORITHM, key);
+    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
     decipher.setAAD(Buffer.from('openmanager-auth', 'utf8'));
     decipher.setAuthTag(authTag);
 
@@ -75,7 +75,7 @@ export function decryptText(encryptedText: string): string {
  */
 export function testEncryption(): boolean {
   try {
-    const testData = 'https://hooks.slack.com/services/TEST/TEST/TEST';
+    const testData = 'test-data-for-encryption-validation';
     const encrypted = encryptText(testData);
     const decrypted = decryptText(encrypted);
 

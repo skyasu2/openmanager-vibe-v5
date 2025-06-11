@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
 import { postgresVectorDB } from '@/services/ai/postgres-vector-db';
-import { getTensorFlowStatus, isTensorFlowAvailable } from '@/utils/loadTf';
 
 /**
  * 📡 AI Health Endpoint
  * GET /api/ai/health
  * -------------------------
- * MCP Remote / RAG / TensorFlow / Google AI 상태를 종합 반환
+ * MCP Remote / RAG / Google AI 상태를 종합 반환 (TensorFlow 지원 중단)
  */
 
 async function getMcpHealth() {
@@ -25,21 +24,12 @@ async function getMcpHealth() {
 }
 
 async function getTensorFlowHealth() {
-  const tfStatus = getTensorFlowStatus();
-
-  if (!tfStatus.available) {
-    return {
-      status: 'disabled',
-      reason: tfStatus.reason,
-      message: tfStatus.message,
-    };
-  }
-
-  // 실제 로드 테스트는 하지 않고 환경만 체크
+  // TensorFlow.js 지원이 v5.43.0에서 중단됨
   return {
-    status: 'available',
-    backend: 'cpu',
-    message: 'TensorFlow 동적 로드 준비됨',
+    status: 'deprecated',
+    reason: 'removed_in_v5.43.0',
+    message:
+      'TensorFlow.js 지원이 중단되었습니다. lightweight-ml-engine을 사용하세요.',
   };
 }
 

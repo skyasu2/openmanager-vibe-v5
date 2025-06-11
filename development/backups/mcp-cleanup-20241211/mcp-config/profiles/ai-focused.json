@@ -1,0 +1,99 @@
+{
+  "mcpServers": {
+    "openmanager-ai": {
+      "command": "node",
+      "args": ["./mcp-server/server.js"],
+      "env": {
+        "NODE_ENV": "development",
+        "PORT": "3100",
+        "AI_ENGINE_MODE": "enhanced",
+        "AI_ANALYSIS_ENHANCED": "true",
+        "DEBUG_AI": "true"
+      },
+      "description": "AI 엔진 개발 서버",
+      "enabled": true
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./"],
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=1024",
+        "AI_FILE_ANALYSIS": "true"
+      },
+      "description": "AI 강화 파일 시스템",
+      "enabled": true
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "env": {
+        "THINKING_MODE": "ai-development",
+        "MAX_DEPTH": "15",
+        "CREATIVE_MODE": "true"
+      },
+      "description": "창의적 AI 추론",
+      "enabled": true
+    },
+    "web-search": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-duckduckgo-search"],
+      "env": {
+        "AI_SEARCH_MODE": "true",
+        "CONTEXT_AWARE": "true"
+      },
+      "description": "AI 컨텍스트 웹 검색",
+      "enabled": true
+    },
+    "vector-db": {
+      "command": "node",
+      "args": ["./mcp-server/vector-db-server.js"],
+      "env": {
+        "VECTOR_DB_URL": "http://localhost:5432",
+        "EMBEDDING_MODEL": "text-embedding-3-large",
+        "AI_VECTOR_MODE": "development",
+        "SIMILARITY_THRESHOLD": "0.8"
+      },
+      "description": "AI 벡터 데이터베이스",
+      "enabled": false
+    },
+    "ml-toolkit": {
+      "command": "node",
+      "args": ["./mcp-server/ml-server.js"],
+      "env": {
+        "ML_FRAMEWORK": "tensorflow",
+        "MODEL_PATH": "./models",
+        "TRAINING_MODE": "development"
+      },
+      "description": "머신러닝 툴킷",
+      "enabled": false
+    },
+    "prometheus-monitor": {
+      "command": "node",
+      "args": ["./mcp-server/prometheus-server.js"],
+      "env": {
+        "PROMETHEUS_URL": "http://localhost:9090",
+        "METRICS_AI_MODE": "true"
+      },
+      "description": "AI 메트릭 모니터링",
+      "enabled": false
+    }
+  },
+  "environment": "ai-focused-development",
+  "purpose": "AI 개발 및 분석 중심",
+  "features": {
+    "aiAnalysis": true,
+    "vectorSearch": true,
+    "advancedReasoning": true,
+    "contextualSearch": true,
+    "machineLearning": true,
+    "metricsMonitoring": true,
+    "creativeThinking": true
+  },
+  "performance": {
+    "memoryLimit": "2GB",
+    "timeout": 45000,
+    "maxConcurrentRequests": 6,
+    "aiOptimized": true,
+    "gpuAcceleration": false
+  }
+}
