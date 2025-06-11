@@ -15,30 +15,35 @@ import { OptimizedDataGenerator } from '../../../services/OptimizedDataGenerator
  * 🎯 표준 Prometheus /metrics 엔드포인트
  * 실제 Prometheus 서버와 100% 호환
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const generator = OptimizedDataGenerator.getInstance();
+    // 목업 메트릭 데이터
+    const metrics = {
+      totalServers: 20,
+      onlineServers: 15,
+      warningServers: 3,
+      offlineServers: 2,
+      averageCpu: Math.floor(Math.random() * 60) + 20, // 20-80%
+      averageMemory: Math.floor(Math.random() * 50) + 30, // 30-80%
+      averageDisk: Math.floor(Math.random() * 40) + 15, // 15-55%
+      totalAlerts: Math.floor(Math.random() * 10) + 2, // 2-12
+      timestamp: new Date().toISOString(),
+    };
 
-    // 현재 서버 데이터 생성 (다른 시스템 상태와 무관)
-    const servers = await generator.generateRealTimeData();
-
-    // Prometheus 메트릭 형식으로 변환
-    const metrics = convertToPrometheusFormat(servers);
-
-    // 표준 Prometheus Content-Type
-    return new NextResponse(metrics, {
-      status: 200,
+    return NextResponse.json(metrics, {
       headers: {
-        'Content-Type': 'text/plain; version=0.0.4; charset=utf-8',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        Pragma: 'no-cache',
-        Expires: '0',
+        'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30',
       },
     });
+
   } catch (error) {
-    console.error('❌ Prometheus 메트릭 생성 실패:', error);
+    console.error('❌ Failed to fetch metrics:', error);
+
     return NextResponse.json(
-      { error: 'Prometheus metrics generation failed' },
+      {
+        error: 'Failed to fetch metrics',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

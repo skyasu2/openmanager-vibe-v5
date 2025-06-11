@@ -213,12 +213,13 @@ export function ToastContainer() {
   const portalContainer = document.getElementById('toast-portal') || document.body;
 
   return createPortal(
-    <div className="fixed top-[70px] sm:top-[80px] right-2 sm:right-4 z-[99999] space-y-2 w-[calc(100%-1rem)] sm:w-80 md:w-96 pointer-events-none">
-      {toasts.map((toast) => (
+    <div className="fixed top-[70px] sm:top-[80px] right-2 sm:right-4 z-[99999] space-y-3 w-[calc(100%-1rem)] sm:w-80 md:w-96 pointer-events-none">
+      {toasts.map((toast, index) => (
         <ToastItem
           key={toast.id}
           toast={toast}
           onDismiss={handleDismiss}
+          stackIndex={index}
         />
       ))}
     </div>,
@@ -230,9 +231,10 @@ export function ToastContainer() {
 interface ToastItemProps {
   toast: ToastNotification;
   onDismiss: (id: string) => void;
+  stackIndex?: number;
 }
 
-function ToastItem({ toast, onDismiss }: ToastItemProps) {
+function ToastItem({ toast, onDismiss, stackIndex = 0 }: ToastItemProps) {
   const [isExiting, setIsExiting] = useState(false);
 
   const handleDismiss = useCallback(() => {
@@ -241,47 +243,47 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
   }, [toast.id, onDismiss]);
 
   const getTypeStyles = () => {
-    const baseStyles = "relative p-3 sm:p-4 rounded-lg shadow-2xl border-l-4 pointer-events-auto border backdrop-blur-md";
+    const baseStyles = "relative p-4 sm:p-5 rounded-xl shadow-lg border pointer-events-auto backdrop-blur-sm transition-all duration-300 hover:shadow-xl";
 
     switch (toast.type) {
       case 'success':
-        return `${baseStyles} bg-green-50/98 border-green-500 text-green-800 shadow-green-200/50`;
+        return `${baseStyles} bg-white dark:bg-slate-800 border-green-500/30 text-green-800 dark:text-green-200 shadow-green-200/50 dark:shadow-green-900/30 ring-1 ring-green-500/20`;
       case 'error':
-        return `${baseStyles} bg-red-50/98 border-red-500 text-red-800 shadow-red-200/50`;
+        return `${baseStyles} bg-white dark:bg-slate-800 border-red-500/30 text-red-800 dark:text-red-200 shadow-red-200/50 dark:shadow-red-900/30 ring-1 ring-red-500/20`;
       case 'warning':
-        return `${baseStyles} bg-yellow-50/98 border-yellow-500 text-yellow-800 shadow-yellow-200/50`;
+        return `${baseStyles} bg-white dark:bg-slate-800 border-yellow-500/30 text-yellow-800 dark:text-yellow-200 shadow-yellow-200/50 dark:shadow-yellow-900/30 ring-1 ring-yellow-500/20`;
       case 'info':
       default:
-        return `${baseStyles} bg-blue-50/98 border-blue-500 text-blue-800 shadow-blue-200/50`;
+        return `${baseStyles} bg-white dark:bg-slate-800 border-blue-500/30 text-blue-800 dark:text-blue-200 shadow-blue-200/50 dark:shadow-blue-900/30 ring-1 ring-blue-500/20`;
     }
   };
 
   const getIcon = () => {
-    const iconClass = "w-4 h-4 sm:w-5 sm:h-5";
+    const iconClass = "w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0";
 
     switch (toast.type) {
       case 'success':
         return (
-          <svg className={`${iconClass} text-green-500`} fill="currentColor" viewBox="0 0 20 20">
+          <svg className={`${iconClass} text-green-500 dark:text-green-400`} fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
           </svg>
         );
       case 'error':
         return (
-          <svg className={`${iconClass} text-red-500`} fill="currentColor" viewBox="0 0 20 20">
+          <svg className={`${iconClass} text-red-500 dark:text-red-400`} fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
           </svg>
         );
       case 'warning':
         return (
-          <svg className={`${iconClass} text-yellow-500`} fill="currentColor" viewBox="0 0 20 20">
+          <svg className={`${iconClass} text-yellow-500 dark:text-yellow-400`} fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
           </svg>
         );
       case 'info':
       default:
         return (
-          <svg className={`${iconClass} text-blue-500`} fill="currentColor" viewBox="0 0 20 20">
+          <svg className={`${iconClass} text-blue-500 dark:text-blue-400`} fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
           </svg>
         );
@@ -293,30 +295,35 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
       className={`
         ${getTypeStyles()}
         transform transition-all duration-300 ease-in-out
-        ${isExiting ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'}
-        hover:scale-[1.02] cursor-pointer w-full
+        ${isExiting ? 'translate-x-full opacity-0 scale-95' : 'translate-x-0 opacity-100 scale-100'}
+        hover:scale-[1.02] hover:shadow-2xl cursor-pointer w-full
+        ${stackIndex > 0 ? 'mt-3' : ''}
       `}
+      style={{
+        marginBottom: stackIndex > 0 ? '4px' : '0px',
+        zIndex: 99999 - stackIndex
+      }}
       onClick={toast.dismissible ? handleDismiss : undefined}
     >
       {/* 프로그레스 바 (있는 경우) */}
       {typeof toast.progress === 'number' && (
-        <div className="absolute top-0 left-0 h-1 bg-white/30 rounded-t-lg overflow-hidden">
+        <div className="absolute top-0 left-0 h-1.5 bg-black/10 dark:bg-white/10 rounded-t-xl overflow-hidden">
           <div
-            className="h-full bg-current transition-all duration-300"
+            className="h-full bg-current transition-all duration-300 rounded-t-xl"
             style={{ width: `${toast.progress}%` }}
           />
         </div>
       )}
 
-      <div className="flex items-start space-x-3">
+      <div className="flex items-start space-x-4">
         {/* 아이콘 */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 mt-0.5">
           {getIcon()}
         </div>
 
         {/* 메시지 */}
         <div className="flex-1 min-w-0">
-          <p className="text-xs sm:text-sm font-medium leading-5 break-words">
+          <p className="text-sm sm:text-base font-medium leading-6 break-words text-black dark:text-white">
             {toast.message}
           </p>
 
@@ -327,7 +334,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
                 e.stopPropagation();
                 toast.action!.onClick();
               }}
-              className="mt-2 text-xs font-semibold underline hover:no-underline focus:outline-none"
+              className="mt-3 text-sm font-semibold underline hover:no-underline focus:outline-none transition-colors"
             >
               {toast.action.label}
             </button>
@@ -341,9 +348,10 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
               e.stopPropagation();
               handleDismiss();
             }}
-            className="flex-shrink-0 text-current opacity-60 hover:opacity-100 transition-opacity p-1"
+            className="flex-shrink-0 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full p-1.5 transition-all duration-200"
+            title="알림 닫기"
           >
-            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
             </svg>
           </button>

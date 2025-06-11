@@ -2,10 +2,12 @@
 
 import { Suspense, lazy, useState, useEffect } from 'react';
 import { useDashboardLogic } from '../../hooks/useDashboardLogic';
+import { useDashboardData } from './hooks/useDashboardData';
+import { ProgressIndicator } from './components/LoadingStates/ProgressIndicator';
 import { SystemBootSequence } from '../../components/dashboard/transition';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
-import { AlertTriangle, Monitor, Bot } from 'lucide-react';
+import { AlertTriangle, Monitor, Bot, RefreshCw } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { NotificationToast } from '@/components/system/NotificationToast';
 import { cn } from '@/lib/utils';
@@ -186,8 +188,34 @@ const PredictionDashboard = dynamic(
 );
 
 function DashboardPageContent() {
+  const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+  const skipCondition = searchParams.get('instant') === 'true' || searchParams.get('safe') === 'true';
+
+  // 새로운 데이터 페칭 훅 사용
   const {
-    // State
+    data: dashboardData,
+    error: dataError,
+    isLoading: dataLoading,
+    progress: dataProgress,
+    currentStep,
+    steps: loadingSteps,
+    estimatedTimeRemaining: dataTimeRemaining,
+    elapsedTime: dataElapsedTime,
+    isCompleted: dataCompleted,
+    hasError: dataHasError,
+    refreshData,
+  } = useDashboardData({
+    skipCondition,
+    onDataLoaded: (data) => {
+      console.log('✅ Dashboard data loaded:', data);
+    },
+    onError: (error) => {
+      console.error('❌ Dashboard data error:', error);
+    },
+  });
+
+  const {
+    // Legacy state for compatibility
     isAgentOpen,
     isClient,
     selectedServer,
@@ -195,11 +223,11 @@ function DashboardPageContent() {
     showBootSequence,
     showSequentialGeneration,
 
-    // ✨ 새로운 로딩 상태 정보
+    // Legacy loading state
     bootProgress,
     loadingPhase,
-    estimatedTimeRemaining,
-    elapsedTime,
+    estimatedTimeRemaining: legacyTimeRemaining,
+    elapsedTime: legacyElapsedTime,
     isDataReady,
 
     // Actions
@@ -333,9 +361,9 @@ function DashboardPageContent() {
                 <li>• 클라이언트: {isClient ? '준비됨' : '로딩중'}</li>
                 <li>• 로딩 진행률: {Math.round(bootProgress)}%</li>
                 <li>• 로딩 단계: {loadingPhase}</li>
-                {estimatedTimeRemaining > 0 && (
+                {dataTimeRemaining > 0 && (
                   <li>
-                    • 예상 남은 시간: {Math.ceil(estimatedTimeRemaining / 1000)}
+                    • 예상 남은 시간: {Math.ceil(dataTimeRemaining / 1000)}
                     초
                   </li>
                 )}
@@ -356,9 +384,42 @@ function DashboardPageContent() {
         // ✨ 새로운 로딩 상태 정보 전달
         loadingProgress={bootProgress}
         loadingPhase={loadingPhase}
-        estimatedTimeRemaining={estimatedTimeRemaining}
-        elapsedTime={elapsedTime}
+        estimatedTimeRemaining={dataTimeRemaining}
+        elapsedTime={dataElapsedTime}
       />
+    );
+  }
+
+  // 로딩 중이거나 에러가 있을 때의 UI
+  if (dataLoading || dataHasError) {
+    return (
+      <div className='min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800'>
+        <div className='container mx-auto px-6 py-8'>
+          <ProgressIndicator
+            progress={dataProgress}
+            currentStep={currentStep}
+            steps={loadingSteps}
+            estimatedTimeRemaining={dataTimeRemaining}
+            elapsedTime={dataElapsedTime}
+            isCompleted={dataCompleted}
+            hasError={dataHasError}
+            error={dataError || undefined}
+            className='max-w-2xl mx-auto'
+          />
+
+          {dataHasError && (
+            <div className='text-center mt-8'>
+              <button
+                onClick={refreshData}
+                className='inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
+              >
+                <RefreshCw className='w-4 h-4 mr-2' />
+                다시 시도
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     );
   }
 

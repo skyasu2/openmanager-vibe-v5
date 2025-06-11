@@ -1,75 +1,97 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 interface ErrorReport {
-  message: string;
+  error: string;
+  digest?: string;
   stack?: string;
-  componentStack?: string;
   timestamp: string;
-  url: string;
-  userAgent: string;
+  page: string;
+  userAgent?: string;
+  url?: string;
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const errorData: ErrorReport = await request.json();
-    
-    // 로그 형식 정리
-    const logEntry = {
-      level: 'error',
-      timestamp: errorData.timestamp,
-      message: errorData.message,
-      stack: errorData.stack,
-      componentStack: errorData.componentStack,
-      context: {
-        url: errorData.url,
-        userAgent: errorData.userAgent,
-        environment: process.env.NODE_ENV
-      }
-    };
+    const body: ErrorReport = await request.json();
 
-    // 콘솔에 에러 로깅
-    console.error('[Error Report]', JSON.stringify(logEntry, null, 2));
-
-    // 프로덕션 환경에서는 실제 모니터링 서비스로 전송
-    if (process.env.NODE_ENV === 'production') {
-      // 예: Sentry, LogRocket, 또는 다른 모니터링 서비스
-      // await sendToMonitoringService(logEntry);
+    // 기본 validation
+    if (!body.error || !body.timestamp || !body.page) {
+      return NextResponse.json(
+        { success: false, error: 'Required fields missing' },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json(
-      { 
-        success: true, 
-        message: 'Error report received',
-        reportId: `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      },
-      { 
-        status: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST',
-          'Access-Control-Allow-Headers': 'Content-Type'
-        }
-      }
-    );
+    // 추가 메타데이터 수집
+    const errorReport = {
+      ...body,
+      userAgent: request.headers.get('user-agent'),
+      url: request.url,
+      ip: request.headers.get('x-forwarded-for'),
+      referer: request.headers.get('referer'),
+    };
+
+    // 에러 로그 출력
+    console.error('🚨 Client Error Report:', {
+      page: errorReport.page,
+      error: errorReport.error,
+      timestamp: errorReport.timestamp,
+      userAgent: errorReport.userAgent,
+    });
+
+    // 스택 트레이스가 있으면 별도 로그
+    if (errorReport.stack) {
+      console.error('📋 Stack Trace:', errorReport.stack);
+    }
+
+    // TODO: 실제 서비스에서는 다음과 같은 처리를 추가할 수 있습니다:
+    // - 데이터베이스에 저장
+    // - 외부 에러 추적 서비스 (Sentry, Bugsnag 등)로 전송
+    // - 슬랙/이메일 알림
+    // - 에러 패턴 분석
+
+    // 개발 환경에서는 더 자세한 정보 출력
+    if (process.env.NODE_ENV === 'development') {
+      console.table({
+        Page: errorReport.page,
+        Error: errorReport.error.slice(0, 100),
+        Time: errorReport.timestamp,
+        Browser: errorReport.userAgent?.slice(0, 50),
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Error report received',
+      reportId: `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    });
 
   } catch (error) {
-    console.error('Failed to process error report:', error);
-    
+    console.error('❌ Error processing error report:', error);
+
     return NextResponse.json(
-      { 
-        success: false, 
-        message: 'Failed to process error report' 
+      {
+        success: false,
+        error: 'Failed to process error report',
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
-      { 
-        status: 500,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST',
-          'Access-Control-Allow-Headers': 'Content-Type'
-        }
-      }
+      { status: 500 }
     );
   }
+}
+
+// GET 요청 시 에러 리포팅 상태 확인
+export async function GET() {
+  return NextResponse.json({
+    service: 'Error Reporting API',
+    status: 'active',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      POST: 'Submit error report',
+      GET: 'Check service status',
+    },
+  });
 }
 
 // OPTIONS 요청 처리 (CORS preflight)
@@ -83,4 +105,4 @@ export async function OPTIONS() {
       'Access-Control-Max-Age': '86400'
     }
   });
-} 
+}
