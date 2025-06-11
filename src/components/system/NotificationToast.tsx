@@ -255,10 +255,20 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
   );
 
   /**
-   * 📝 알림 추가
+   * 📝 알림 추가 (필터링 적용)
    */
   const addNotification = useCallback(
     (event: SystemEvent) => {
+      // 시스템 초기화 관련 일반 info 알림은 조용하게 처리
+      if (
+        event.severity === 'info' &&
+        event.type === 'connection_change' &&
+        (event.message.includes('초기화') || event.message.includes('시작'))
+      ) {
+        console.log('🔕 시스템 초기화 알림 무음 처리:', event.message);
+        return; // Toast 알림 생략
+      }
+
       const displayNotification: DisplayNotification = {
         ...event,
         isVisible: true,
@@ -289,7 +299,7 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
         return newNotifications;
       });
 
-      // 사운드 재생
+      // 사운드 재생 (필터링된 알림은 사운드 없음)
       playNotificationSound(event.severity);
     },
     [maxNotifications, autoHideDuration, playNotificationSound]

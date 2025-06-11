@@ -87,16 +87,7 @@ export class BrowserNotificationService {
 
       if (this.permission === 'granted') {
         console.log('✅ 브라우저 알림 권한 허용됨');
-
-        // 권한 허용 감사 알림
-        await this.sendNotification({
-          title: '🔔 알림 설정 완료',
-          body: 'OpenManager의 브라우저 알림이 활성화되었습니다.',
-          icon: '/icons/check-icon.png',
-          tag: 'permission-granted',
-          silent: true,
-        });
-
+        // 권한 허용 감사 알림 제거 (시스템 시작 시 알림 차단)
         return true;
       } else {
         console.warn('❌ 브라우저 알림 권한 거부됨');

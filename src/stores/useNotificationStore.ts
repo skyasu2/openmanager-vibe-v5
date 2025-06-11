@@ -110,9 +110,9 @@ const defaultPreferences: NotificationPreferences = {
     database: true,
   },
   severityFilter: {
-    browser: 'warning',
+    browser: 'critical', // 브라우저 알림을 critical만으로 제한
     slack: 'critical',
-    toast: 'all',
+    toast: 'warning', // Toast는 warning 이상만
   },
   quietHours: {
     enabled: true,
