@@ -259,7 +259,7 @@ const DashboardHeader = memo(function DashboardHeader({
                         animate={{ opacity: [1, 0.7, 1] }}
                         transition={{ duration: 2, repeat: Infinity }}
                       >
-                        AI 활성
+                        AI 에이전트
                       </motion.span>
                     ) : (
                       'AI 에이전트'

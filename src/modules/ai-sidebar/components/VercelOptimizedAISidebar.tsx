@@ -11,9 +11,90 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  X,
+  MessageCircle,
+  FileText,
+  TrendingUp,
+  Search,
+  Slack,
+  Brain,
+  Database,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 // import ReactMarkdown from 'react-markdown'; // 임시 제거
 import { CompactQuestionTemplates } from './ui/CompactQuestionTemplates';
 import { QuestionInput } from './ui/QuestionInput';
+
+// 🎨 기능 메뉴 아이템 정의 (AISidebarV5에서 복원)
+interface FunctionMenuItem {
+  id: string;
+  icon: React.ElementType;
+  label: string;
+  description: string;
+  color: string;
+  bgGradient: string;
+}
+
+const FUNCTION_MENU: FunctionMenuItem[] = [
+  {
+    id: 'query',
+    icon: MessageCircle,
+    label: '자연어 질의',
+    description: 'AI와 자연어로 시스템 질의',
+    color: 'text-blue-600',
+    bgGradient: 'from-blue-50 to-cyan-50',
+  },
+  {
+    id: 'report',
+    icon: FileText,
+    label: '장애 보고서',
+    description: '자동 리포트 및 대응 가이드',
+    color: 'text-orange-600',
+    bgGradient: 'from-orange-50 to-red-50',
+  },
+  {
+    id: 'prediction',
+    icon: TrendingUp,
+    label: '이상감지/예측',
+    description: '시스템 이상 탐지 및 예측',
+    color: 'text-purple-600',
+    bgGradient: 'from-purple-50 to-pink-50',
+  },
+  {
+    id: 'logs',
+    icon: Search,
+    label: '로그 검색',
+    description: '시스템 로그 검색 및 분석',
+    color: 'text-yellow-600',
+    bgGradient: 'from-yellow-50 to-amber-50',
+  },
+  {
+    id: 'notification',
+    icon: Slack,
+    label: '슬랙 알림',
+    description: '자동 알림 및 슬랙 연동',
+    color: 'text-green-600',
+    bgGradient: 'from-green-50 to-emerald-50',
+  },
+  {
+    id: 'admin',
+    icon: Brain,
+    label: '관리자/학습',
+    description: '관리자 페이지 및 AI 학습',
+    color: 'text-indigo-600',
+    bgGradient: 'from-indigo-50 to-blue-50',
+  },
+  {
+    id: 'ai-settings',
+    icon: Database,
+    label: 'AI 설정',
+    description: 'AI 모델 및 API 설정 관리',
+    color: 'text-rose-600',
+    bgGradient: 'from-rose-50 to-pink-50',
+  },
+];
 
 interface StreamEvent {
   type: 'thinking' | 'response_start' | 'response_chunk' | 'complete' | 'error';
@@ -45,6 +126,9 @@ export const VercelOptimizedAISidebar: React.FC<
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // 🎛️ 기능 탭 상태 (복원된 기능)
+  const [activeTab, setActiveTab] = useState('query');
 
   // 현재 스트리밍 상태
   const [currentThinkingSteps, setCurrentThinkingSteps] = useState<string[]>(
@@ -259,45 +343,37 @@ export const VercelOptimizedAISidebar: React.FC<
   }
 
   return (
-    <div
-      className={`fixed right-0 top-0 h-full w-96 bg-white dark:bg-gray-900 shadow-xl border-l border-gray-200 dark:border-gray-700 z-40 ${className}`}
+    <motion.div
+      initial={{ x: '100%' }}
+      animate={{ x: 0 }}
+      exit={{ x: '100%' }}
+      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+      className={`fixed top-0 right-0 h-full bg-white shadow-2xl z-50 flex overflow-hidden w-[480px] ${className}`}
     >
-      <div className='flex flex-col h-full'>
+      {/* 메인 컨텐츠 영역 (왼쪽) */}
+      <div className='flex-1 flex flex-col'>
         {/* 헤더 */}
-        <div className='flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20'>
-          <div className='flex items-center space-x-2'>
-            <div className='w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center'>
+        <div className='flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-pink-50'>
+          <div className='flex items-center gap-3'>
+            <div className='p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg'>
               <span className='text-white text-sm font-bold'>AI</span>
             </div>
             <div>
-              <h2 className='text-lg font-bold text-gray-900 dark:text-white'>
-                AI Assistant
+              <h2 className='text-lg font-semibold text-gray-900'>
+                AI 어시스턴트
               </h2>
-              <p className='text-xs text-gray-600 dark:text-gray-400'>
-                Vercel Optimized
+              <p className='text-sm text-gray-600'>
+                {FUNCTION_MENU.find(item => item.id === activeTab)
+                  ?.description || 'AI와 자연어로 시스템 질의'}
               </p>
             </div>
           </div>
-          <motion.button
+          <button
             onClick={onClose}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className='p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors'
+            className='p-2 text-gray-400 hover:text-gray-600 transition-colors'
           >
-            <svg
-              className='w-5 h-5 text-gray-500'
-              fill='none'
-              stroke='currentColor'
-              viewBox='0 0 24 24'
-            >
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth={2}
-                d='M6 18L18 6M6 6l12 12'
-              />
-            </svg>
-          </motion.button>
+            <X className='w-5 h-5' />
+          </button>
         </div>
 
         {/* 메인 콘텐츠 */}
@@ -556,14 +632,46 @@ export const VercelOptimizedAISidebar: React.FC<
           )}
 
           {/* 푸터 */}
-          <div className='p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50'>
-            <div className='flex items-center justify-between text-xs text-gray-500 dark:text-gray-400'>
-              <span>Powered by OpenManager AI (Vercel)</span>
+          <div className='p-3 border-t border-gray-200 bg-gray-50'>
+            <div className='flex items-center justify-between text-xs text-gray-500'>
+              <span>Powered by OpenManager AI</span>
               <span>{conversations.length}개 대화</span>
             </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* 기능 메뉴 (오른쪽) - AISidebarV5에서 복원 */}
+      <div className='w-16 bg-gradient-to-b from-purple-500 to-pink-500 flex flex-col items-center py-2 gap-0.5'>
+        {FUNCTION_MENU.map(item => {
+          const Icon = item.icon;
+          const isActive = activeTab === item.id;
+
+          return (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`relative group p-2.5 rounded-lg transition-all duration-300 ${
+                isActive
+                  ? 'bg-white shadow-lg transform scale-110'
+                  : 'hover:bg-white/20 hover:scale-105'
+              }`}
+              title={item.label}
+            >
+              <Icon
+                className={`w-4 h-4 transition-colors ${
+                  isActive ? item.color : 'text-white'
+                }`}
+              />
+
+              {/* 툴팁 (왼쪽에 표시) */}
+              <div className='absolute right-full mr-2 top-1/2 transform -translate-y-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10'>
+                {item.label}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </motion.div>
   );
 };
