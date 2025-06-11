@@ -322,7 +322,7 @@ const TechCard = ({ tech, index }: { tech: TechItem; index: number }) => {
     >
       <div className='flex items-start justify-between mb-3'>
         <div className='flex items-center gap-3'>
-          <span className='text-2xl'>{tech.icon}</span>
+          <span className='text-2xl'>{renderIcon(tech.icon)}</span>
           <div>
             <h4 className='font-semibold text-white text-sm'>{tech.name}</h4>
             {tech.version && (
@@ -360,6 +360,22 @@ const TechCard = ({ tech, index }: { tech: TechItem; index: number }) => {
       </div>
     </motion.div>
   );
+};
+
+// icon 안전 렌더링 헬퍼
+const renderIcon = (icon: any) => {
+  if (!icon) return null;
+  // 문자열(이모지) 그대로 출력
+  if (typeof icon === 'string') return icon;
+  // 이미 ReactElement 이면 그대로
+  if (React.isValidElement(icon)) return icon;
+  // 함수형 컴포넌트(예: Lucide 아이콘)면 JSX로 렌더
+  if (typeof icon === 'function') {
+    const IconComp = icon;
+    return <IconComp className='w-5 h-5' />;
+  }
+  // 기타 객체는 문자열화
+  return JSON.stringify(icon);
 };
 
 export default function FeatureCardModal({
@@ -417,7 +433,9 @@ export default function FeatureCardModal({
           <div className='flex items-center justify-between p-6 border-b border-gray-700'>
             <div className='flex items-center gap-4'>
               <div className='w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center'>
-                <span className='text-2xl'>{selectedCard.icon}</span>
+                <span className='text-2xl'>
+                  {renderIcon(selectedCard.icon)}
+                </span>
               </div>
               <div>
                 <h2 className='text-xl font-bold text-white'>
