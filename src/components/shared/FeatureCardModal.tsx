@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -39,7 +39,7 @@ interface FeatureCardModalProps {
   isDarkMode?: boolean;
 }
 
-// 기술 분류 및 중요도 등급 시스템
+// 기술 카테고리 타입
 type TechCategory =
   | 'framework'
   | 'language'
@@ -49,6 +49,8 @@ type TechCategory =
   | 'custom'
   | 'deployment'
   | 'ui';
+
+// 중요도 레벨 타입
 type ImportanceLevel = 'critical' | 'high' | 'medium' | 'low';
 
 interface TechItem {
@@ -113,101 +115,96 @@ const getCurrentTechStack = (cardId: string): TechItem[] => {
         tags: ['언어', '오픈소스', 'NLP'],
       },
     ],
-    'fullstack-ecosystem': [
+    'data-generator': [
       {
-        name: 'Next.js',
+        name: 'Next.js 15',
         category: 'framework',
         importance: 'critical',
         description: 'React 기반 풀스택 프레임워크',
-        version: '15.3.3',
+        version: '15.0',
         status: 'active',
-        icon: '⚛️',
-        tags: ['프레임워크', '오픈소스', 'React'],
+        icon: '⚡',
+        tags: ['프레임워크', 'React', 'SSR'],
       },
       {
         name: 'TypeScript',
         category: 'language',
         importance: 'critical',
-        description: '타입 안전성을 보장하는 JavaScript 확장',
-        version: '5.0+',
+        description: '타입 안전성을 제공하는 JavaScript 확장',
+        version: '5.0',
         status: 'active',
-        icon: '🔷',
-        tags: ['언어', '오픈소스', '타입안전'],
+        icon: '📘',
+        tags: ['언어', '타입안전성', '개발도구'],
       },
       {
-        name: 'Supabase',
-        category: 'database',
-        importance: 'critical',
-        description: 'PostgreSQL 기반 백엔드 서비스',
-        status: 'active',
-        icon: '🗄️',
-        tags: ['데이터베이스', '외부서비스', 'PostgreSQL'],
-      },
-      {
-        name: 'Upstash Redis',
-        category: 'database',
-        importance: 'high',
-        description: '서버리스 Redis 캐싱 시스템',
-        status: 'active',
-        icon: '⚡',
-        tags: ['캐시', '외부서비스', 'Redis'],
-      },
-      {
-        name: 'Vercel',
-        category: 'deployment',
-        importance: 'high',
-        description: '자동 배포 및 호스팅 플랫폼',
-        status: 'active',
-        icon: '🚀',
-        tags: ['배포', '외부서비스', 'CI/CD'],
-      },
-    ],
-    'tech-stack': [
-      {
-        name: 'TailwindCSS',
+        name: 'Tailwind CSS',
         category: 'ui',
         importance: 'high',
-        description: 'Utility-first CSS 프레임워크',
-        version: '3.4+',
+        description: '유틸리티 우선 CSS 프레임워크',
+        version: '3.4',
         status: 'active',
         icon: '🎨',
-        tags: ['UI', '오픈소스', 'CSS'],
+        tags: ['CSS', '디자인', '반응형'],
       },
       {
         name: 'Framer Motion',
         category: 'ui',
-        importance: 'medium',
-        description: 'React 애니메이션 라이브러리',
+        importance: 'high',
+        description: 'React용 애니메이션 라이브러리',
+        version: '11.0',
         status: 'active',
         icon: '🎬',
-        tags: ['애니메이션', '오픈소스', 'React'],
-      },
-      {
-        name: 'Lucide React',
-        category: 'ui',
-        importance: 'medium',
-        description: '아이콘 라이브러리',
-        status: 'active',
-        icon: '🎯',
-        tags: ['아이콘', '오픈소스', 'UI'],
+        tags: ['애니메이션', 'UI', '인터랙션'],
       },
       {
         name: 'Zustand',
         category: 'framework',
         importance: 'medium',
-        description: '상태 관리 라이브러리',
+        description: '경량 상태 관리 라이브러리',
+        version: '4.5',
         status: 'active',
-        icon: '🔄',
-        tags: ['상태관리', '오픈소스', 'React'],
+        icon: '🐻',
+        tags: ['상태관리', '경량', 'React'],
+      },
+    ],
+    'tech-stack': [
+      {
+        name: 'Supabase',
+        category: 'database',
+        importance: 'critical',
+        description: 'PostgreSQL 기반 BaaS 플랫폼',
+        version: '2.0',
+        status: 'active',
+        icon: '🗄️',
+        tags: ['데이터베이스', 'BaaS', 'PostgreSQL'],
       },
       {
-        name: 'ESLint + Prettier',
-        category: 'custom',
-        importance: 'medium',
-        description: '코드 품질 및 포맷팅 도구',
+        name: 'Redis',
+        category: 'database',
+        importance: 'high',
+        description: '인메모리 데이터 구조 저장소',
+        version: '7.0',
         status: 'active',
-        icon: '🔧',
-        tags: ['개발도구', '오픈소스', '품질관리'],
+        icon: '🔴',
+        tags: ['캐시', '인메모리', '성능'],
+      },
+      {
+        name: 'Vercel',
+        category: 'deployment',
+        importance: 'critical',
+        description: 'Next.js 최적화 배포 플랫폼',
+        status: 'active',
+        icon: '▲',
+        tags: ['배포', '서버리스', 'CDN'],
+      },
+      {
+        name: 'Render',
+        category: 'deployment',
+        importance: 'medium',
+        description: 'MCP 서버 호스팅 플랫폼',
+        status: 'active',
+        icon: '🚀',
+        tags: ['호스팅', 'MCP', '백엔드'],
       },
     ],
     'vibe-coding': [
@@ -215,46 +212,40 @@ const getCurrentTechStack = (cardId: string): TechItem[] => {
         name: 'Cursor IDE',
         category: 'custom',
         importance: 'critical',
-        description: 'AI 페어 프로그래밍 IDE',
+        description: 'AI 기반 코드 에디터',
+        version: '0.42',
         status: 'active',
-        icon: '💻',
-        tags: ['IDE', '외부도구', 'AI'],
+        icon: '🎯',
+        tags: ['IDE', 'AI', '개발도구'],
       },
       {
-        name: 'Git + GitHub',
-        category: 'custom',
-        importance: 'critical',
-        description: '버전 관리 및 협업 플랫폼',
-        status: 'active',
-        icon: '📝',
-        tags: ['버전관리', '외부서비스', '협업'],
-      },
-      {
-        name: 'Husky + Lint-staged',
-        category: 'custom',
+        name: 'GitHub Copilot',
+        category: 'ai',
         importance: 'high',
-        description: 'Git 훅 기반 자동화 도구',
+        description: 'AI 코드 자동완성 도구',
         status: 'active',
-        icon: '🐕',
-        tags: ['자동화', '오픈소스', 'Git'],
+        icon: '🤝',
+        tags: ['AI', '자동완성', '개발'],
       },
       {
-        name: 'Custom MCP Server',
-        category: 'custom',
-        importance: 'high',
-        description: '자체 개발 MCP 서버 구현',
+        name: 'Storybook',
+        category: 'ui',
+        importance: 'medium',
+        description: 'UI 컴포넌트 개발 도구',
+        version: '8.0',
         status: 'active',
-        icon: '🛠️',
-        tags: ['자체개발', 'MCP', '서버'],
+        icon: '📖',
+        tags: ['UI', '컴포넌트', '테스트'],
       },
       {
-        name: 'OpenManager Engine',
-        category: 'custom',
-        importance: 'high',
-        description: '서버 모니터링 자체 엔진',
+        name: 'Vitest',
+        category: 'framework',
+        importance: 'medium',
+        description: '빠른 단위 테스트 프레임워크',
+        version: '2.0',
         status: 'active',
-        icon: '📊',
-        tags: ['자체개발', '모니터링', '엔진'],
+        icon: '🧪',
+        tags: ['테스트', '단위테스트', 'Vite'],
       },
     ],
   };
@@ -262,48 +253,44 @@ const getCurrentTechStack = (cardId: string): TechItem[] => {
   return techStacks[cardId] || [];
 };
 
-// 중요도별 색상 및 스타일
+// 중요도별 스타일 정의
 const getImportanceStyle = (importance: ImportanceLevel) => {
   const styles = {
     critical: {
-      bg: 'bg-red-500/20 border-red-500/40',
-      text: 'text-red-300',
-      badge: 'bg-red-500/30 text-red-200',
+      bg: 'border-red-500/30 bg-red-500/5',
+      badge: 'bg-red-500/20 text-red-300 border border-red-500/30',
       label: '필수',
     },
     high: {
-      bg: 'bg-orange-500/20 border-orange-500/40',
-      text: 'text-orange-300',
-      badge: 'bg-orange-500/30 text-orange-200',
+      bg: 'border-orange-500/30 bg-orange-500/5',
+      badge: 'bg-orange-500/20 text-orange-300 border border-orange-500/30',
       label: '중요',
     },
     medium: {
-      bg: 'bg-blue-500/20 border-blue-500/40',
-      text: 'text-blue-300',
-      badge: 'bg-blue-500/30 text-blue-200',
+      bg: 'border-blue-500/30 bg-blue-500/5',
+      badge: 'bg-blue-500/20 text-blue-300 border border-blue-500/30',
       label: '보통',
     },
     low: {
-      bg: 'bg-gray-500/20 border-gray-500/40',
-      text: 'text-gray-300',
-      badge: 'bg-gray-500/30 text-gray-200',
-      label: '낮음',
+      bg: 'border-gray-500/30 bg-gray-500/5',
+      badge: 'bg-gray-500/20 text-gray-300 border border-gray-500/30',
+      label: '기타',
     },
   };
   return styles[importance];
 };
 
-// 카테고리별 색상
+// 카테고리별 스타일 정의
 const getCategoryStyle = (category: TechCategory) => {
   const styles = {
-    framework: { color: 'text-purple-400', bg: 'bg-purple-500/10' },
-    language: { color: 'text-green-400', bg: 'bg-green-500/10' },
-    database: { color: 'text-blue-400', bg: 'bg-blue-500/10' },
-    ai: { color: 'text-pink-400', bg: 'bg-pink-500/10' },
-    opensource: { color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
-    custom: { color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
-    deployment: { color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
-    ui: { color: 'text-teal-400', bg: 'bg-teal-500/10' },
+    framework: { bg: 'bg-purple-500/20', color: 'text-purple-300' },
+    language: { bg: 'bg-blue-500/20', color: 'text-blue-300' },
+    database: { bg: 'bg-green-500/20', color: 'text-green-300' },
+    ai: { bg: 'bg-pink-500/20', color: 'text-pink-300' },
+    opensource: { bg: 'bg-yellow-500/20', color: 'text-yellow-300' },
+    custom: { bg: 'bg-indigo-500/20', color: 'text-indigo-300' },
+    deployment: { bg: 'bg-orange-500/20', color: 'text-orange-300' },
+    ui: { bg: 'bg-cyan-500/20', color: 'text-cyan-300' },
   };
   return styles[category];
 };
@@ -426,7 +413,6 @@ export default function FeatureCardModal({
   variant = 'home',
   isDarkMode = true,
 }: FeatureCardModalProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'tech'>('overview');
   const techStack = getCurrentTechStack(selectedCard?.id || '');
 
   useEffect(() => {
@@ -467,7 +453,7 @@ export default function FeatureCardModal({
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 20 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className='relative w-full max-w-5xl max-h-[95vh] bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 rounded-3xl border border-gray-600/50 shadow-2xl overflow-hidden'
+          className='relative w-full max-w-6xl max-h-[95vh] bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 rounded-3xl border border-gray-600/50 shadow-2xl overflow-hidden'
           onClick={e => e.stopPropagation()}
         >
           {/* 개선된 헤더 */}
@@ -512,244 +498,150 @@ export default function FeatureCardModal({
             </motion.button>
           </div>
 
-          {/* 개선된 탭 네비게이션 */}
-          <div className='flex border-b border-gray-700/50 bg-gray-800/30'>
-            <motion.button
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              onClick={() => setActiveTab('overview')}
-              className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 font-medium transition-all duration-300 relative ${
-                activeTab === 'overview'
-                  ? 'text-blue-400 bg-blue-500/10'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700/30'
-              }`}
-            >
-              개요
-              {activeTab === 'overview' && (
-                <motion.div
-                  layoutId='activeTab'
-                  className='absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-500'
-                />
-              )}
-            </motion.button>
-            <motion.button
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              onClick={() => setActiveTab('tech')}
-              className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 font-medium transition-all duration-300 relative ${
-                activeTab === 'tech'
-                  ? 'text-blue-400 bg-blue-500/10'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700/30'
-              }`}
-            >
-              기술 스택 ({techStack.length})
-              {activeTab === 'tech' && (
-                <motion.div
-                  layoutId='activeTab'
-                  className='absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-500'
-                />
-              )}
-            </motion.button>
-          </div>
-
-          {/* 개선된 컨텐츠 - 스크롤 최적화 */}
+          {/* 통합된 스크롤 컨텐츠 */}
           <div
             className='overflow-y-auto'
-            style={{ maxHeight: 'calc(95vh - 200px)' }}
+            style={{ maxHeight: 'calc(95vh - 140px)' }}
           >
-            <div className='p-4 sm:p-6 lg:p-8'>
-              <AnimatePresence mode='wait'>
-                {activeTab === 'overview' && (
-                  <motion.div
-                    key='overview'
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    transition={{ duration: 0.3 }}
-                    className='space-y-6 sm:space-y-8'
-                  >
-                    {/* 상세 정보 섹션 */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 }}
-                      className='bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-gray-700/30'
-                    >
-                      <h3 className='text-lg sm:text-xl font-semibold text-white mb-4 flex items-center gap-2'>
-                        <Monitor className='w-5 h-5 text-blue-400' />
-                        {selectedCard.title} 상세 정보
-                      </h3>
-                      <p className='text-gray-300 leading-relaxed text-sm sm:text-base'>
-                        {selectedCard.longDescription ||
-                          selectedCard.description}
-                      </p>
-                    </motion.div>
+            <div className='p-4 sm:p-6 lg:p-8 space-y-8'>
+              {/* 개요 섹션 */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className='space-y-6'
+              >
+                {/* 상세 정보 섹션 */}
+                <div className='bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-gray-700/30'>
+                  <h3 className='text-lg sm:text-xl font-semibold text-white mb-4 flex items-center gap-2'>
+                    <Monitor className='w-5 h-5 text-blue-400' />
+                    {selectedCard.title} 개요
+                  </h3>
+                  <p className='text-gray-300 leading-relaxed text-sm sm:text-base'>
+                    {selectedCard.longDescription || selectedCard.description}
+                  </p>
+                </div>
 
-                    {/* 주요 특징 섹션 */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                      className='bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-gray-700/30'
-                    >
-                      <h4 className='text-lg font-semibold text-white mb-4 flex items-center gap-2'>
-                        <CheckCircle className='w-5 h-5 text-green-400' />
-                        주요 특징
-                      </h4>
-                      <div className='grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4'>
-                        {selectedCard.features &&
-                        selectedCard.features.length > 0 ? (
-                          selectedCard.features.map(
-                            (feature: string, index: number) => (
-                              <motion.div
-                                key={index}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.3 + index * 0.1 }}
-                                className='flex items-start gap-3 p-3 rounded-xl bg-gray-700/30 hover:bg-gray-700/50 transition-colors'
-                              >
-                                <CheckCircle className='w-4 h-4 text-green-400 flex-shrink-0 mt-0.5' />
-                                <span className='text-gray-300 text-sm leading-relaxed'>
-                                  {feature}
-                                </span>
-                              </motion.div>
-                            )
-                          )
-                        ) : (
+                {/* 주요 특징 섹션 */}
+                <div className='bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-gray-700/30'>
+                  <h4 className='text-lg font-semibold text-white mb-4 flex items-center gap-2'>
+                    <CheckCircle className='w-5 h-5 text-green-400' />
+                    주요 특징
+                  </h4>
+                  <div className='grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4'>
+                    {selectedCard.features &&
+                    selectedCard.features.length > 0 ? (
+                      selectedCard.features.map(
+                        (feature: string, index: number) => (
                           <motion.div
+                            key={index}
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.3 }}
-                            className='flex items-center gap-3 p-3 rounded-xl bg-gray-700/30'
+                            transition={{ delay: 0.3 + index * 0.1 }}
+                            className='flex items-start gap-3 p-3 rounded-xl bg-gray-700/30 hover:bg-gray-700/50 transition-colors'
                           >
-                            <CheckCircle className='w-4 h-4 text-green-400' />
-                            <span className='text-gray-300 text-sm'>
-                              실제 구현된 기능 기반
+                            <CheckCircle className='w-4 h-4 text-green-400 flex-shrink-0 mt-0.5' />
+                            <span className='text-gray-300 text-sm leading-relaxed'>
+                              {feature}
                             </span>
                           </motion.div>
-                        )}
-                      </div>
-                    </motion.div>
-                  </motion.div>
-                )}
-
-                {activeTab === 'tech' && (
-                  <motion.div
-                    key='tech'
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.3 }}
-                    className='space-y-6 sm:space-y-8'
-                  >
-                    {/* 필수 기술 */}
-                    {criticalTech.length > 0 && (
+                        )
+                      )
+                    ) : (
                       <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                      >
-                        <h3 className='text-lg sm:text-xl font-semibold text-red-300 mb-4 sm:mb-6 flex items-center gap-2'>
-                          <Star className='w-5 h-5' />
-                          필수 기술 ({criticalTech.length})
-                        </h3>
-                        <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6'>
-                          {criticalTech.map((tech, index) => (
-                            <motion.div
-                              key={tech.name}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.2 + index * 0.1 }}
-                            >
-                              <TechCard tech={tech} index={index} />
-                            </motion.div>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {/* 중요 기술 */}
-                    {highTech.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.3 }}
+                        className='flex items-center gap-3 p-3 rounded-xl bg-gray-700/30'
                       >
-                        <h3 className='text-lg sm:text-xl font-semibold text-orange-300 mb-4 sm:mb-6 flex items-center gap-2'>
-                          <Zap className='w-5 h-5' />
-                          중요 기술 ({highTech.length})
-                        </h3>
-                        <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6'>
-                          {highTech.map((tech, index) => (
-                            <motion.div
-                              key={tech.name}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.4 + index * 0.1 }}
-                            >
-                              <TechCard tech={tech} index={index} />
-                            </motion.div>
-                          ))}
-                        </div>
+                        <CheckCircle className='w-4 h-4 text-green-400' />
+                        <span className='text-gray-300 text-sm'>
+                          실제 구현된 기능 기반
+                        </span>
                       </motion.div>
                     )}
+                  </div>
+                </div>
+              </motion.div>
 
-                    {/* 보통 기술 */}
-                    {mediumTech.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 }}
-                      >
-                        <h3 className='text-lg sm:text-xl font-semibold text-blue-300 mb-4 sm:mb-6 flex items-center gap-2'>
-                          <Package className='w-5 h-5' />
-                          보통 기술 ({mediumTech.length})
-                        </h3>
-                        <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6'>
-                          {mediumTech.map((tech, index) => (
-                            <motion.div
-                              key={tech.name}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.6 + index * 0.1 }}
-                            >
-                              <TechCard tech={tech} index={index} />
-                            </motion.div>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
+              {/* 기술 스택 섹션 */}
+              {techStack.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className='space-y-8'
+                >
+                  <div className='flex items-center gap-3 mb-6'>
+                    <div className='w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center'>
+                      <Code className='w-4 h-4 text-white' />
+                    </div>
+                    <h3 className='text-xl sm:text-2xl font-bold text-white'>
+                      기술 스택 ({techStack.length})
+                    </h3>
+                  </div>
 
-                    {/* 낮은 우선순위 기술 */}
-                    {lowTech.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.7 }}
-                      >
-                        <h3 className='text-lg sm:text-xl font-semibold text-gray-300 mb-4 sm:mb-6 flex items-center gap-2'>
-                          <Layers className='w-5 h-5' />
-                          기타 기술 ({lowTech.length})
-                        </h3>
-                        <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6'>
-                          {lowTech.map((tech, index) => (
-                            <motion.div
-                              key={tech.name}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.8 + index * 0.1 }}
-                            >
-                              <TechCard tech={tech} index={index} />
-                            </motion.div>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  {/* 필수 기술 */}
+                  {criticalTech.length > 0 && (
+                    <div>
+                      <h4 className='text-lg sm:text-xl font-semibold text-red-300 mb-4 sm:mb-6 flex items-center gap-2'>
+                        <Star className='w-5 h-5' />
+                        필수 기술 ({criticalTech.length})
+                      </h4>
+                      <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6'>
+                        {criticalTech.map((tech, index) => (
+                          <TechCard key={tech.name} tech={tech} index={index} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 중요 기술 */}
+                  {highTech.length > 0 && (
+                    <div>
+                      <h4 className='text-lg sm:text-xl font-semibold text-orange-300 mb-4 sm:mb-6 flex items-center gap-2'>
+                        <Zap className='w-5 h-5' />
+                        중요 기술 ({highTech.length})
+                      </h4>
+                      <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6'>
+                        {highTech.map((tech, index) => (
+                          <TechCard key={tech.name} tech={tech} index={index} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 보통 기술 */}
+                  {mediumTech.length > 0 && (
+                    <div>
+                      <h4 className='text-lg sm:text-xl font-semibold text-blue-300 mb-4 sm:mb-6 flex items-center gap-2'>
+                        <Package className='w-5 h-5' />
+                        보통 기술 ({mediumTech.length})
+                      </h4>
+                      <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6'>
+                        {mediumTech.map((tech, index) => (
+                          <TechCard key={tech.name} tech={tech} index={index} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 낮은 우선순위 기술 */}
+                  {lowTech.length > 0 && (
+                    <div>
+                      <h4 className='text-lg sm:text-xl font-semibold text-gray-300 mb-4 sm:mb-6 flex items-center gap-2'>
+                        <Layers className='w-5 h-5' />
+                        기타 기술 ({lowTech.length})
+                      </h4>
+                      <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6'>
+                        {lowTech.map((tech, index) => (
+                          <TechCard key={tech.name} tech={tech} index={index} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              )}
             </div>
           </div>
         </motion.div>
