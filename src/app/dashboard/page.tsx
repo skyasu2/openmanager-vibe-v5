@@ -2,9 +2,6 @@
 
 import { Suspense, lazy, useState, useEffect } from 'react';
 import { useDashboardLogic } from '../../hooks/useDashboardLogic';
-import { useDashboardData } from './hooks/useDashboardData';
-import { ProgressIndicator } from './components/LoadingStates/ProgressIndicator';
-import { SystemBootSequence } from '../../components/dashboard/transition';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
 import { AlertTriangle, Monitor, Bot, RefreshCw } from 'lucide-react';
@@ -13,6 +10,7 @@ import { NotificationToast } from '@/components/system/NotificationToast';
 import { cn } from '@/lib/utils';
 import React from 'react';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
+import Link from 'next/link';
 
 // 🚨 React 내장 에러 바운더리
 class DashboardErrorBoundary extends React.Component<
@@ -61,14 +59,12 @@ class DashboardErrorBoundary extends React.Component<
                 >
                   홈으로 돌아가기
                 </button>
-                <button
-                  onClick={() =>
-                    (window.location.href = '/dashboard?instant=true')
-                  }
-                  className='w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700'
+                <Link
+                  href='/system-boot'
+                  className='w-full inline-flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700'
                 >
-                  🚨 안전 모드로 접속
-                </button>
+                  부팅 애니메이션 보기
+                </Link>
               </div>
             </div>
           </div>
@@ -88,8 +84,6 @@ const DashboardHeader = dynamic(
     loading: () => <HeaderLoadingSkeleton />,
   }
 );
-
-// AISidebar 제거: DashboardHeader의 AISidebarV5로 통합됨
 
 const DashboardContent = dynamic(
   () => import('../../components/dashboard/DashboardContent'),
@@ -188,52 +182,14 @@ const PredictionDashboard = dynamic(
 );
 
 function DashboardPageContent() {
-  const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
-  const skipCondition = searchParams.get('instant') === 'true' || searchParams.get('safe') === 'true';
-
-  // 새로운 데이터 페칭 훅 사용
   const {
-    data: dashboardData,
-    error: dataError,
-    isLoading: dataLoading,
-    progress: dataProgress,
-    currentStep,
-    steps: loadingSteps,
-    estimatedTimeRemaining: dataTimeRemaining,
-    elapsedTime: dataElapsedTime,
-    isCompleted: dataCompleted,
-    hasError: dataHasError,
-    refreshData,
-  } = useDashboardData({
-    skipCondition,
-    onDataLoaded: (data) => {
-      console.log('✅ Dashboard data loaded:', data);
-    },
-    onError: (error) => {
-      console.error('❌ Dashboard data error:', error);
-    },
-  });
-
-  const {
-    // Legacy state for compatibility
     isAgentOpen,
     isClient,
     selectedServer,
-    serverStats,
-    showBootSequence,
-    showSequentialGeneration,
-
-    // Legacy loading state
-    bootProgress,
-    loadingPhase,
-    estimatedTimeRemaining: legacyTimeRemaining,
-    elapsedTime: legacyElapsedTime,
-    isDataReady,
 
     // Actions
     setSelectedServer,
     setShowSequentialGeneration,
-    updateServerStats,
 
     // Handlers
     handleServerClick,
@@ -243,10 +199,6 @@ function DashboardPageContent() {
     handleSystemStop,
     handleSystemPause,
     handleSystemResume,
-
-    // ✨ 새로운 전환 시스템 핸들러
-    handleBootSequenceComplete,
-    handleServerSpawned,
 
     // Animation
     mainContentVariants,
@@ -297,217 +249,106 @@ function DashboardPageContent() {
     );
   }
 
-  // ✨ 새로운 부팅 시퀀스 표시
-  if (showBootSequence) {
-    // 🚨 긴급 우회 - URL 파라미터로 강제 스킵 가능
-    const urlParams =
-      typeof window !== 'undefined'
-        ? new URLSearchParams(window.location.search)
-        : null;
-    const forceSkip = urlParams?.get('force-skip') === 'true';
-    const instantLoad = urlParams?.get('instant') === 'true'; // 🚨 새로운 즉시 로딩 옵션
-
-    // 🚨 추가 안전장치: 서버 데이터가 없으면 자동 스킵
-    if (forceSkip || instantLoad) {
-      console.log('🚨 Emergency skip activated:', {
-        forceSkip,
-        instantLoad,
-        serversCount: serverGeneration.servers.length,
-      });
-
-      // 즉시 대시보드 표시
-      return (
-        <div className='min-h-screen bg-gray-50'>
-          <div className='p-8 text-center'>
-            <div className='mb-6'>
-              <div className='inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium'>
-                ✅ 긴급 모드 활성화 - 즉시 로딩 완료
-              </div>
-            </div>
-
-            <h1 className='text-2xl font-bold mb-4'>
-              🎯 OpenManager v5 대시보드
-            </h1>
-            <p className='text-gray-600 mb-6'>
-              정상 전환 시스템을 우회하여 즉시 로딩되었습니다.
-            </p>
-
-            <div className='space-x-4'>
-              <button
-                onClick={() => (window.location.href = '/dashboard')}
-                className='px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors'
-              >
-                정상 모드로 재시도
-              </button>
-
-              <button
-                onClick={() =>
-                  (window.location.href = '/dashboard?skip-animation=true')
-                }
-                className='px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors'
-              >
-                애니메이션 비활성화 모드
-              </button>
-            </div>
-
-            <div className='mt-8 p-4 bg-blue-50 rounded-lg text-left max-w-md mx-auto'>
-              <h3 className='font-medium text-blue-900 mb-2'>🔧 개발자 정보</h3>
-              <ul className='text-sm text-blue-700 space-y-1'>
-                <li>• 서버 수: {serverGeneration.servers.length}</li>
-                <li>
-                  • 시스템 상태:{' '}
-                  {(systemControl as any)?.isSystemActive ? '활성' : '비활성'}
-                </li>
-                <li>• 클라이언트: {isClient ? '준비됨' : '로딩중'}</li>
-                <li>• 로딩 진행률: {Math.round(bootProgress)}%</li>
-                <li>• 로딩 단계: {loadingPhase}</li>
-                {dataTimeRemaining > 0 && (
-                  <li>
-                    • 예상 남은 시간: {Math.ceil(dataTimeRemaining / 1000)}
-                    초
-                  </li>
-                )}
-              </ul>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <SystemBootSequence
-        servers={serverGeneration.servers}
-        onBootComplete={handleBootSequenceComplete}
-        onServerSpawned={handleServerSpawned}
-        skipAnimation={false}
-        autoStart={true}
-        // ✨ 새로운 로딩 상태 정보 전달
-        loadingProgress={bootProgress}
-        loadingPhase={loadingPhase}
-        estimatedTimeRemaining={dataTimeRemaining}
-        elapsedTime={dataElapsedTime}
-      />
-    );
-  }
-
-  // 로딩 중이거나 에러가 있을 때의 UI
-  if (dataLoading || dataHasError) {
-    return (
-      <div className='min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800'>
-        <div className='container mx-auto px-6 py-8'>
-          <ProgressIndicator
-            progress={dataProgress}
-            currentStep={currentStep}
-            steps={loadingSteps}
-            estimatedTimeRemaining={dataTimeRemaining}
-            elapsedTime={dataElapsedTime}
-            isCompleted={dataCompleted}
-            hasError={dataHasError}
-            error={dataError || undefined}
-            className='max-w-2xl mx-auto'
-          />
-
-          {dataHasError && (
-            <div className='text-center mt-8'>
-              <button
-                onClick={refreshData}
-                className='inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
-              >
-                <RefreshCw className='w-4 h-4 mr-2' />
-                다시 시도
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className='min-h-screen bg-gray-50'>
-      {/* 기존 대시보드 헤더 (적절한 크기) */}
-      <Suspense fallback={<HeaderLoadingSkeleton />}>
-        <DashboardHeader
-          serverStats={serverStats}
-          onNavigateHome={handleNavigateHome}
-          onToggleAgent={toggleAgent}
-          isAgentOpen={isAgentOpen}
-          systemStatusDisplay={
-            <Suspense fallback={<LoadingSpinner />}>
-              <SystemStatusDisplay
-                isSystemActive={(systemControl as any)?.isSystemActive || false}
-                isSystemPaused={(systemControl as any)?.isSystemPaused || false}
-                isUserSession={(systemControl as any)?.isUserSession || false}
-                formattedTime={
-                  (systemControl as any)?.formattedTime || '00:00:00'
-                }
-                pauseReason={(systemControl as any)?.pauseReason || ''}
-                onSystemStop={handleSystemStop}
-                onSystemPause={handleSystemPause}
-                onSystemResume={handleSystemResume}
-              />
-            </Suspense>
-          }
-        />
-      </Suspense>
-
-      {/* 메인 콘텐츠 - 전체 영역 */}
-      <div className='flex-1'>
-        <Suspense fallback={<ContentLoadingSkeleton />}>
-          <DashboardContent
-            showSequentialGeneration={showSequentialGeneration}
-            servers={serverGeneration.servers}
-            status={serverGeneration.status}
-            actions={serverGeneration.actions}
-            selectedServer={selectedServer}
-            onServerClick={handleServerClick}
-            onServerModalClose={() => setSelectedServer(null)}
-            onStatsUpdate={updateServerStats}
-            onShowSequentialChange={setShowSequentialGeneration}
-            mainContentVariants={mainContentVariants}
-            isAgentOpen={isAgentOpen}
-          />
-        </Suspense>
+    <div className='min-h-screen bg-gradient-to-br from-slate-50 to-blue-50'>
+      {/* 시스템 부팅 애니메이션 링크 */}
+      <div className='fixed top-4 right-4 z-50'>
+        <Link
+          href='/system-boot'
+          className='inline-flex items-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors shadow-lg'
+        >
+          <Monitor className='w-4 h-4' />
+          부팅 애니메이션
+        </Link>
       </div>
 
-      {/* AI 에이전트 사이드바 - DashboardHeader에서 관리하므로 제거 */}
-      {/* 레거시 AISidebar 제거: 새로운 AISidebarV5가 DashboardHeader에서 관리됨 */}
-
-      {/* 플로팅 시스템 제어판 - 시스템 비활성 시에만 표시 */}
-      {!(systemControl as any)?.isSystemActive && (
-        <Suspense fallback={null}>
-          <div className='fixed bottom-6 right-6 z-30'>
-            <FloatingSystemControl
-              systemState={systemControl || {}}
-              aiAgentState={{ state: 'active' }}
-              isSystemActive={(systemControl as any)?.isSystemActive || false}
-              isSystemPaused={(systemControl as any)?.isSystemPaused || false}
-              onStartSystem={async () => {
-                window.location.href = '/';
-              }}
-              onStopSystem={handleSystemStop}
-              onResumeSystem={handleSystemResume}
-            />
-          </div>
+      {/* 🎯 대시보드 메인 레이아웃 */}
+      <motion.div
+        variants={mainContentVariants}
+        initial='hidden'
+        animate='visible'
+        className='flex flex-col h-screen'
+      >
+        {/* 헤더 */}
+        <Suspense fallback={<HeaderLoadingSkeleton />}>
+          <DashboardHeader
+            serverStats={{
+              total: serverGeneration.servers.length,
+              online: serverGeneration.servers.filter(
+                s => (s as any).status === 'healthy'
+              ).length,
+              warning: serverGeneration.servers.filter(
+                s => (s as any).status === 'warning'
+              ).length,
+              offline: serverGeneration.servers.filter(
+                s => (s as any).status === 'critical'
+              ).length,
+            }}
+            onNavigateHome={handleNavigateHome}
+            onToggleAgent={toggleAgent}
+            isAgentOpen={isAgentOpen}
+            systemStatusDisplay={
+              <Suspense fallback={<LoadingSpinner />}>
+                <SystemStatusDisplay
+                  isSystemActive={true}
+                  isSystemPaused={false}
+                  isUserSession={true}
+                  formattedTime='00:00:00'
+                  pauseReason=''
+                  onSystemStop={handleSystemStop}
+                  onSystemPause={handleSystemPause}
+                  onSystemResume={handleSystemResume}
+                />
+              </Suspense>
+            }
+          />
         </Suspense>
-      )}
 
-      {/* 🔔 실시간 알림 토스트 */}
-      <NotificationToast
-        position='top-right'
-        maxNotifications={5}
-        autoHideDuration={5000}
-        enableSound={true}
-      />
+        {/* 메인 컨텐츠 */}
+        <main className='flex-1 overflow-hidden'>
+          <Suspense fallback={<ContentLoadingSkeleton />}>
+            <DashboardContent
+              showSequentialGeneration={false}
+              servers={serverGeneration.servers}
+              status={serverGeneration.status}
+              actions={serverGeneration.actions}
+              selectedServer={selectedServer}
+              onServerClick={handleServerClick}
+              onServerModalClose={() => setSelectedServer(null)}
+              onStatsUpdate={() => {}}
+              onShowSequentialChange={setShowSequentialGeneration}
+              mainContentVariants={mainContentVariants}
+              isAgentOpen={isAgentOpen}
+            />
+          </Suspense>
+        </main>
+
+        {/* 플로팅 시스템 컨트롤 */}
+        <Suspense fallback={null}>
+          <FloatingSystemControl
+            systemState={systemControl || {}}
+            aiAgentState={{ state: 'active' }}
+            isSystemActive={true}
+            isSystemPaused={false}
+            onStartSystem={async () => {}}
+            onStopSystem={handleSystemStop}
+            onResumeSystem={handleSystemResume}
+          />
+        </Suspense>
+
+        {/* 알림 토스트 */}
+        <NotificationToast />
+      </motion.div>
     </div>
   );
 }
 
-// ✅ 에러 바운더리로 감싼 안전한 대시보드 컴포넌트
 export default function DashboardPage() {
   return (
     <DashboardErrorBoundary>
-      <DashboardPageContent />
+      <ErrorBoundary>
+        <DashboardPageContent />
+      </ErrorBoundary>
     </DashboardErrorBoundary>
   );
 }

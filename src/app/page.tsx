@@ -185,8 +185,8 @@ export default function Home() {
 
   // 🚀 카운트다운 시작 함수
   const startCountdown = () => {
-    console.log('🚀 자동 대시보드 이동 카운트다운 시작');
-    success('🚀 5초 후 대시보드로 자동 이동합니다!');
+    console.log('🚀 자동 시스템 부팅 페이지 이동 카운트다운 시작');
+    success('🚀 5초 후 시스템 부팅 페이지로 자동 이동합니다!');
 
     setAutoNavigateCountdown(5);
 
@@ -194,7 +194,7 @@ export default function Home() {
       setAutoNavigateCountdown(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          router.push('/dashboard');
+          router.push('/system-boot');
           return 0;
         }
         return prev - 1;
@@ -251,17 +251,13 @@ export default function Home() {
     }
 
     try {
-      // 대시보드 상태 체크
-      const response = await fetch('/api/dashboard', { method: 'HEAD' });
-      if (!response.ok) {
-        throw new Error('대시보드를 사용할 수 없습니다');
-      }
-
-      console.log('📊 대시보드로 이동');
-      router.push('/dashboard');
+      console.log('🚀 시스템 부팅 애니메이션 페이지로 이동');
+      router.push('/system-boot');
     } catch (error) {
-      console.error('대시보드 접근 중 오류:', error);
-      error('대시보드에 접근할 수 없습니다. 잠시 후 다시 시도해주세요.');
+      console.error('시스템 부팅 페이지 접근 중 오류:', error);
+      error(
+        '시스템 부팅 페이지에 접근할 수 없습니다. 잠시 후 다시 시도해주세요.'
+      );
     }
   };
 
