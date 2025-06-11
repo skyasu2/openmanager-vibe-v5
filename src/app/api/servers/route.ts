@@ -218,36 +218,48 @@ export async function GET(request: NextRequest) {
 
     // 제한 개수 처리
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '10');
+    const limit = parseInt(searchParams.get('limit') || '30'); // 🔧 기본값을 30으로 변경
     const limitedServers = sortedServers.slice(0, limit);
 
-    console.log(`✅ 정렬된 서버 데이터 반환: ${limitedServers.length}개`);
+    console.log(
+      `✅ 정렬된 서버 데이터 반환: ${limitedServers.length}개 (전체: ${sortedServers.length}개)`
+    );
 
-    // 🔧 정확한 상태별 분포 계산
-    const statusDistribution = {
+    // 🔧 **전체 서버 기준** 상태별 분포 계산 (헤더 표시용)
+    const fullStatusDistribution = {
+      critical: sortedServers.filter(s => s.status === 'critical').length,
+      warning: sortedServers.filter(s => s.status === 'warning').length,
+      healthy: sortedServers.filter(s => s.status === 'healthy').length,
+    };
+
+    // 🔧 **표시용 서버 기준** 상태별 분포 계산 (리스트 표시용)
+    const displayStatusDistribution = {
       critical: limitedServers.filter(s => s.status === 'critical').length,
       warning: limitedServers.filter(s => s.status === 'warning').length,
       healthy: limitedServers.filter(s => s.status === 'healthy').length,
     };
 
-    console.log('📊 상태별 분포:', statusDistribution);
+    console.log('📊 전체 서버 분포:', fullStatusDistribution);
+    console.log('📊 표시용 서버 분포:', displayStatusDistribution);
 
-    // 🔧 UI 호환 통계 데이터 추가
+    // 🔧 **UI 호환 통계 데이터 - 전체 서버 기준으로 수정**
     const serverStats = {
-      total: limitedServers.length,
-      online: statusDistribution.healthy, // healthy = online
-      warning: statusDistribution.warning,
-      offline: statusDistribution.critical, // critical = offline (UI 표시용)
+      total: sortedServers.length, // 🎯 전체 서버 개수 (30개)
+      online: fullStatusDistribution.healthy, // healthy = online
+      warning: fullStatusDistribution.warning,
+      offline: fullStatusDistribution.critical, // critical = offline (UI 표시용)
     };
 
-    console.log('📊 UI 호환 통계:', serverStats);
+    console.log('📊 UI 호환 통계 (전체 기준):', serverStats);
 
     return NextResponse.json({
       success: true,
       servers: limitedServers,
-      total: limitedServers.length,
-      stats: serverStats, // 🔧 UI에서 사용할 통계 데이터 추가
-      distribution: statusDistribution, // 🔧 상세 분포 데이터
+      total: sortedServers.length, // 🎯 전체 서버 개수
+      displayed: limitedServers.length, // 🔧 실제 표시되는 서버 개수
+      stats: serverStats, // 🔧 UI에서 사용할 통계 데이터 (전체 기준)
+      distribution: fullStatusDistribution, // 🔧 전체 서버 분포
+      displayDistribution: displayStatusDistribution, // 🔧 표시용 서버 분포
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

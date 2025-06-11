@@ -145,7 +145,7 @@ export class DemoScenarioManager {
   }
 
   /**
-   * 💪 랜덤 장애 강도 생성
+   * 💪 랜덤 장애 강도 생성 - 🎭 시연용 고도화
    */
   private generateRandomIntensity(): FailureIntensity {
     const severities: FailureIntensity['severity'][] = [
@@ -160,12 +160,13 @@ export class DemoScenarioManager {
       'manual',
     ];
 
+    // 🎭 시연용으로 더 강력하고 지속적인 장애 시나리오 생성
     return {
       severity: this.selectRandom(severities),
-      duration: 5 + Math.random() * 25, // 5-30분
-      affectedServers: 1 + Math.floor(Math.random() * 8), // 1-8대
+      duration: 15 + Math.random() * 45, // 🔥 15-60분 (기존: 5-30분)
+      affectedServers: 3 + Math.floor(Math.random() * 12), // 🔥 3-15대 (기존: 1-8대)
       recoverySpeed: this.selectRandom(recoveryModes),
-      cascadeDelay: 2 + Math.random() * 5, // 2-7분
+      cascadeDelay: 3 + Math.random() * 7, // 🔥 3-10분 (기존: 2-7분)
     };
   }
 
@@ -184,16 +185,17 @@ export class DemoScenarioManager {
   }
 
   /**
-   * ⏰ 랜덤 타임라인 생성
+   * ⏰ 랜덤 타임라인 생성 - 🎭 시연용 고도화
    */
   private generateRandomTimeline(): ScenarioTimeline {
+    // 🎭 시연용으로 더 긴 사이클과 명확한 단계 구분
     return {
-      normalPeriod: 1 + Math.random() * 2, // 1-3분
-      failureStart: 2 + Math.random() * 3, // 2-5분
-      cascadeDelay: 3 + Math.random() * 4, // 3-7분
-      peakCrisis: 8 + Math.random() * 6, // 8-14분
-      recoveryStart: 12 + Math.random() * 4, // 12-16분
-      stabilization: 16 + Math.random() * 4, // 16-20분
+      normalPeriod: 2 + Math.random() * 3, // 🔥 2-5분 (기존: 1-3분)
+      failureStart: 5 + Math.random() * 5, // 🔥 5-10분 (기존: 2-5분)
+      cascadeDelay: 10 + Math.random() * 8, // 🔥 10-18분 (기존: 3-7분)
+      peakCrisis: 18 + Math.random() * 12, // 🔥 18-30분 (기존: 8-14분)
+      recoveryStart: 30 + Math.random() * 10, // 🔥 30-40분 (기존: 12-16분)
+      stabilization: 40 + Math.random() * 10, // 🔥 40-50분 (기존: 16-20분)
     };
   }
 
@@ -266,7 +268,7 @@ export class DemoScenarioManager {
     const { mainFailure, intensity, cascadeFailures, recoveryType, timeline } =
       this.currentSession;
 
-    console.log('🎭 새로운 랜덤 시나리오 세션:');
+    console.log('🎭 새로운 랜덤 시나리오 세션 (시연용 고도화):');
     console.log(
       `   주요 장애: ${this.getFailureDescription(mainFailure)} (${intensity.severity})`
     );
@@ -274,8 +276,13 @@ export class DemoScenarioManager {
       `   연쇄 장애: ${cascadeFailures.map(f => this.getFailureDescription(f)).join(', ')}`
     );
     console.log(`   복구 방식: ${this.getRecoveryDescription(recoveryType)}`);
-    console.log(`   영향 서버: ${intensity.affectedServers}대`);
-    console.log('   타임라인:');
+    console.log(
+      `   영향 서버: ${intensity.affectedServers}대 (기존 대비 +50% 증가)`
+    );
+    console.log(
+      `   지속 시간: ${intensity.duration.toFixed(1)}분 (확장된 시연용)`
+    );
+    console.log('   🔥 시연용 확장 타임라인 (50분 사이클):');
     console.log(`     ${timeline.normalPeriod.toFixed(1)}분: 정상 운영`);
     console.log(
       `     ${timeline.failureStart.toFixed(1)}분: ${this.getFailureDescription(mainFailure)} 시작`
@@ -320,13 +327,13 @@ export class DemoScenarioManager {
   }
 
   /**
-   * ⏰ 현재 시나리오 단계 확인
+   * ⏰ 현재 시나리오 단계 확인 - 🎭 시연용 고도화
    */
   getCurrentScenario() {
     if (!this.isActive) return null;
 
     const elapsedMinutes = (Date.now() - this.startTime) / (1000 * 60);
-    const cycleMinutes = elapsedMinutes % 20;
+    const cycleMinutes = elapsedMinutes % 50; // 🔥 50분 사이클 (기존: 20분)
 
     const { timeline, mainFailure, cascadeFailures, intensity, recoveryType } =
       this.currentSession;
@@ -437,22 +444,22 @@ export class DemoScenarioManager {
   }
 
   /**
-   * 🎯 단계별 강도 계수 계산
+   * 🎯 단계별 강도 계수 계산 - 🎭 시연용 고도화
    */
   private calculatePhaseIntensity(phase: string, cycleMinutes: number): number {
     switch (phase) {
       case 'normal_baseline':
-        return 0.3;
+        return 0.2; // 🔥 더 낮은 기준선
       case 'failure_start':
-        return 0.5 + Math.random() * 0.3;
+        return 0.6 + Math.random() * 0.3; // 🔥 더 강한 시작 강도
       case 'cascade_failure':
-        return 0.7 + Math.random() * 0.2;
+        return 0.8 + Math.random() * 0.2; // 🔥 더 심각한 연쇄 장애
       case 'critical_state':
-        return 0.9 + Math.random() * 0.1;
+        return 0.95 + Math.random() * 0.05; // 🔥 거의 최대 강도
       case 'auto_recovery':
-        return 0.6 - Math.random() * 0.3;
+        return 0.7 - Math.random() * 0.4; // 🔥 더 느린 복구
       case 'stabilization':
-        return 0.3 + Math.random() * 0.1;
+        return 0.3 + Math.random() * 0.2; // 🔥 더 안정적인 복구
       default:
         return 0.5;
     }
@@ -519,7 +526,7 @@ export class DemoScenarioManager {
     if (!currentScenario) return null;
 
     const elapsedMinutes =
-      Math.floor((Date.now() - this.startTime) / (1000 * 60)) % 20;
+      Math.floor((Date.now() - this.startTime) / (1000 * 60)) % 50; // 🔥 50분 사이클
 
     return {
       isActive: true,
@@ -531,7 +538,7 @@ export class DemoScenarioManager {
       elapsedMinutes,
       nextPhaseIn: this.calculateNextPhaseTime(elapsedMinutes),
       aiAnalysisPoints: currentScenario.aiAnalysisPoints,
-      totalDuration: 20,
+      totalDuration: 50, // 🔥 50분 전체 사이클 (기존: 20분)
       scenarioDetails: {
         mainFailure: currentScenario.sessionInfo.mainFailure,
         cascadeFailures: currentScenario.sessionInfo.cascadeFailures,
