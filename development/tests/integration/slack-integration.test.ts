@@ -39,11 +39,10 @@ describe('Slack Integration', () => {
     it('Slack 시스템 알림이 정상적으로 전송된다', async () => {
       const slackService = SlackNotificationService.getInstance();
 
-      // 새로운 웹훅 URL로 업데이트
-      slackService.updateConfig(
-        'https://hooks.slack.com/services/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',
-        '#server-alerts'
-      );
+      // 환경변수에서 웹훅 URL 사용
+      const webhookUrl = process.env.SLACK_WEBHOOK_URL;
+      if (!webhookUrl) return;
+      slackService.updateConfig(webhookUrl, '#server-alerts');
 
       const result = await slackService.sendSystemNotification(
         '🚀 시스템 테스트 알림입니다.',
@@ -56,11 +55,10 @@ describe('Slack Integration', () => {
     it('Slack 서버 알림이 정상적으로 전송된다', async () => {
       const slackService = SlackNotificationService.getInstance();
 
-      // 새로운 웹훅 URL로 업데이트
-      slackService.updateConfig(
-        'https://hooks.slack.com/services/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',
-        '#server-alerts'
-      );
+      // 환경변수에서 웹훅 URL 사용
+      const webhookUrl = process.env.SLACK_WEBHOOK_URL;
+      if (!webhookUrl) return;
+      slackService.updateConfig(webhookUrl, '#server-alerts');
 
       const serverAlert = {
         serverId: 'test-server-001',

@@ -20,9 +20,7 @@ describe('Manual Integration Test', () => {
     process.env.GOOGLE_AI_ENABLED = 'true';
     process.env.GOOGLE_AI_MODEL = 'gemini-1.5-flash';
     process.env.GOOGLE_AI_BETA_MODE = 'true';
-    process.env.SLACK_WEBHOOK_URL =
-      process.env.SLACK_WEBHOOK_URL ||
-      'https://hooks.slack.com/services/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';
+    process.env.SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL || '';
     process.env.SLACK_DEFAULT_CHANNEL = '#server-alerts';
     process.env.GEMINI_LEARNING_ENABLED = 'true';
 
@@ -63,11 +61,13 @@ describe('Manual Integration Test', () => {
   it('SlackNotificationService 실제 알림 전송을 테스트한다', async () => {
     const slackService = SlackNotificationService.getInstance();
 
-    // 새로운 웹훅 URL로 업데이트
-    slackService.updateConfig(
-      'https://hooks.slack.com/services/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',
-      '#server-alerts'
-    );
+    // 환경변수에서 웹훅 URL 사용
+    const webhookUrl = process.env.SLACK_WEBHOOK_URL;
+    if (!webhookUrl) {
+      console.warn('⚠️ SLACK_WEBHOOK_URL 환경변수가 설정되지 않음');
+      return;
+    }
+    slackService.updateConfig(webhookUrl, '#server-alerts');
 
     const result = await slackService.sendSystemNotification(
       '🚀 OpenManager Vibe v5 - 한글 및 이모지 인코딩 테스트\n\n✅ 성공: 구글 AI API 연동 완료\n🔗 연결: 슬랙 웹훅 정상 작동\n📊 상태: 시스템 모든 기능 정상\n🎯 목표: UTF-8 인코딩 검증 완료\n\n한글 문자: 가나다라마바사아자차카타파하\n특수문자: !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~\n이모지: 🌟⭐💫⚡🔥💎🎉🎊🎈',
@@ -89,11 +89,13 @@ describe('Manual Integration Test', () => {
   it('서버 알림 전송을 테스트한다', async () => {
     const slackService = SlackNotificationService.getInstance();
 
-    // 새로운 웹훅 URL로 업데이트
-    slackService.updateConfig(
-      'https://hooks.slack.com/services/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',
-      '#server-alerts'
-    );
+    // 환경변수에서 웹훅 URL 사용
+    const webhookUrl = process.env.SLACK_WEBHOOK_URL;
+    if (!webhookUrl) {
+      console.warn('⚠️ SLACK_WEBHOOK_URL 환경변수가 설정되지 않음');
+      return;
+    }
+    slackService.updateConfig(webhookUrl, '#server-alerts');
 
     const serverAlert = {
       serverId: 'server-001',
@@ -113,11 +115,13 @@ describe('Manual Integration Test', () => {
   it('메모리 알림 전송을 테스트한다', async () => {
     const slackService = SlackNotificationService.getInstance();
 
-    // 새로운 웹훅 URL로 업데이트
-    slackService.updateConfig(
-      'https://hooks.slack.com/services/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',
-      '#server-alerts'
-    );
+    // 환경변수에서 웹훅 URL 사용
+    const webhookUrl = process.env.SLACK_WEBHOOK_URL;
+    if (!webhookUrl) {
+      console.warn('⚠️ SLACK_WEBHOOK_URL 환경변수가 설정되지 않음');
+      return;
+    }
+    slackService.updateConfig(webhookUrl, '#server-alerts');
 
     const memoryAlert = {
       usagePercent: 88.7,

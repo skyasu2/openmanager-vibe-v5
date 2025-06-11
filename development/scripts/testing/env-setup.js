@@ -17,7 +17,7 @@ GOOGLE_AI_BETA_MODE=true
 GEMINI_LEARNING_ENABLED=true
 
 # 📢 Slack 알림 설정
-SLACK_WEBHOOK_URL=https://hooks.slack.com/services/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
+SLACK_WEBHOOK_URL=
 SLACK_DEFAULT_CHANNEL=#server-alerts
 SLACK_ENABLED=true
 

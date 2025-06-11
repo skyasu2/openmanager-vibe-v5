@@ -39,6 +39,11 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# Slack webhooks and sensitive URLs
+slack-webhook-url.txt
+webhook-urls.txt
+*.webhook
+*.slack
 
 # vercel
 .vercel

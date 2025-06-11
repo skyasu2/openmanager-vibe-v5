@@ -128,19 +128,8 @@ const defaultPreferences: NotificationPreferences = {
 };
 
 // 기본 슬랙 웹훅 (사용자가 제공한 URL)
-const defaultSlackWebhooks: SlackWebhook[] = [
-  {
-    id: 'webhook-001',
-    name: 'Server Alerts',
-    url: 'https://hooks.slack.com/services/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',
-    channel: '#server-alerts',
-    description: 'OpenManager 서버 알림 전용 채널',
-    isActive: true,
-    createdAt: new Date('2025-01-09T10:00:00Z'),
-    lastUsed: new Date('2025-01-09T15:30:00Z'),
-    totalSent: 47,
-  },
-];
+// Slack Webhook URL은 환경변수에서 로드됩니다
+const defaultSlackWebhooks: SlackWebhook[] = [];
 
 const defaultStats = {
   totalSent: 0,
