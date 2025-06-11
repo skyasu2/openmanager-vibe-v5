@@ -5,18 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { SystemBootSequence } from '@/components/dashboard/transition';
 import { useServerDataStore } from '@/stores/serverDataStore';
-import { useRouter } from 'next/navigation';
 import {
   Monitor,
-  Play,
-  Pause,
-  RotateCcw,
-  Home,
   ArrowRight,
   CheckCircle,
   Server as ServerIcon,
-  Cpu,
   Database,
+  RotateCcw,
 } from 'lucide-react';
 import type { Server } from '@/types/server';
 
@@ -40,20 +35,14 @@ export default function SystemBootPage() {
     location: server.environment,
     alerts: server.alerts?.length || 0,
     lastUpdate: new Date(server.last_updated),
-    services: [], // 빈 배열로 초기화
+    services: [],
   }));
-  const router = useRouter();
+
   const [bootState, setBootState] = useState<'running' | 'completed'>(
     'running'
   );
 
-  // 페이지 로드 시 바로 애니메이션 시작
-  useEffect(() => {
-    // 컴포넌트 마운트 시 바로 running 상태로 설정
-    setBootState('running');
-  }, []);
-
-  // 부팅 완료 핸들러 - 애니메이션 멈춤
+  // 부팅 완료 핸들러
   const handleBootComplete = () => {
     setBootState('completed');
   };
