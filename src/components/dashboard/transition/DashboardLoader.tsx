@@ -101,10 +101,10 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(
       return Math.max(progress, externalProgress);
     }, [progress, externalProgress]);
 
-    // ✨ 완료 처리 통합 함수
+    // ✨ 완료 처리 통합 함수 - 사용자 확인 후에만 실행
     const handleComplete = useCallback(() => {
-      if (!isCompleted) {
-        console.log('🎉 DashboardLoader 완료 처리 실행');
+      if (!isCompleted && allowClose) {
+        console.log('🎉 DashboardLoader 완료 처리 실행 (사용자 확인됨)');
         setIsCompleted(true);
         setIsAnimating(false);
         setTimeout(() => {
@@ -116,17 +116,7 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(
           }
         }, 300);
       }
-    }, [isCompleted, onBootComplete]);
-
-    // 🚨 강제 완료 안전장치 (10초)
-    useEffect(() => {
-      const forceCompleteTimer = setTimeout(() => {
-        console.log('🚨 10초 후 DashboardLoader 강제 완료');
-        handleComplete();
-      }, 10000);
-
-      return () => clearTimeout(forceCompleteTimer);
-    }, [handleComplete]);
+    }, [isCompleted, allowClose, onBootComplete]);
 
     // 외부에서 전달받은 단계에 따른 인덱스 업데이트
     useEffect(() => {
@@ -161,15 +151,16 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(
       return () => clearInterval(interval);
     }, [externalProgress, isCompleted]);
 
-    // 진행률이 100%에 도달하면 완료 처리
+    // 진행률이 100%에 도달하면 사용자 확인 대기 상태로 전환
     useEffect(() => {
       if (
         displayProgress >= 100 &&
         loadingPhase === 'completed' &&
         !allowClose
       ) {
-        console.log('📊 진행률 100% 도달 - 사용자 확인 대기');
+        console.log('📊 진행률 100% 도달 - 사용자 확인 대기 상태로 전환');
         setAllowClose(true);
+        // 자동 완료 처리 제거 - 사용자가 버튼을 클릭해야만 완료
       }
     }, [displayProgress, loadingPhase, allowClose]);
 
@@ -205,11 +196,9 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(
               justifyContent: 'center',
             }}
             onClick={() => {
-              // 백그라운드 클릭으로도 닫고 싶다면 allowClose 검사
-              if (allowClose && !isCompleted) {
-                console.log('🖱️ DashboardLoader 클릭으로 완료');
-                handleComplete();
-              }
+              // 백그라운드 클릭으로는 완료되지 않도록 제거
+              // 오직 "다음" 버튼을 통해서만 완료 가능
+              console.log('🖱️ 백그라운드 클릭 - 완료 처리 안함');
             }}
             onAnimationStart={() =>
               console.log('🎬 DashboardLoader 애니메이션 시작!')
@@ -359,17 +348,30 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(
                   <div className='flex items-center text-emerald-400 mb-4'>
                     <CheckCircle className='w-8 h-8 mr-2' />
                     <span className='text-2xl font-bold text-white'>
-                      시스템 준비 완료!
+                      ✅ 시스템 준비 완료!
                     </span>
                   </div>
                   <p className='text-blue-200 mb-6'>
-                    OpenManager를 시작합니다...
+                    모든 시스템이 정상적으로 초기화되었습니다.
                   </p>
                   <button
                     onClick={handleComplete}
-                    className='absolute bottom-8 right-8 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg shadow-lg transition-colors duration-300'
+                    className='absolute bottom-8 right-8 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg shadow-lg transition-colors duration-300 flex items-center space-x-2'
                   >
-                    다음
+                    <span>대시보드로 이동</span>
+                    <svg
+                      className='w-4 h-4'
+                      fill='none'
+                      stroke='currentColor'
+                      viewBox='0 0 24 24'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M9 5l7 7-7 7'
+                      />
+                    </svg>
                   </button>
                 </div>
               )}
