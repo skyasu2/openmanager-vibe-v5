@@ -34,6 +34,9 @@ import {
   BarChart3,
   Database,
   Cog,
+  RefreshCw,
+  Activity,
+  TrendingUp,
 } from 'lucide-react';
 
 interface AISidebarV6Props {
@@ -58,18 +61,26 @@ const PRESET_CARDS = [
     id: 1,
     keyword: '서버 상태',
     question: '현재 서버들의 전체 상태는 어떤가요?',
+    icon: Activity,
   },
   {
     id: 2,
     keyword: '성능 분석',
     question: '성능에 문제가 있는 서버를 찾아주세요',
+    icon: BarChart3,
   },
   {
     id: 3,
     keyword: '예측 분석',
     question: '향후 리소스 사용량을 예측해주세요',
+    icon: TrendingUp,
   },
-  { id: 4, keyword: '최적화', question: '시스템 최적화 방안을 제안해주세요' },
+  {
+    id: 4,
+    keyword: '최적화',
+    question: '시스템 최적화 방안을 제안해주세요',
+    icon: Zap,
+  },
 ];
 
 // 💭 생각 과정 단계
@@ -339,62 +350,7 @@ export default function AISidebarV6Enhanced({
               {/* 💬 채팅 영역 */}
               {activeFunction === 'chat' && (
                 <div className='flex-1 flex flex-col overflow-hidden'>
-                  {/* 상단 고정 영역 - 프리셋 질문과 입력창 */}
-                  <div className='border-b border-gray-200 bg-white'>
-                    {/* 프리셋 질문 영역 - 상단 고정 */}
-                    {messages.length === 0 && (
-                      <div className='p-4 border-b border-gray-100'>
-                        <h3 className='text-sm font-medium text-gray-700 mb-3 flex items-center gap-2'>
-                          <Lightbulb className='w-4 h-4 text-yellow-500' />
-                          빠른 질문
-                        </h3>
-                        <div className='grid grid-cols-2 gap-2'>
-                          {PRESET_CARDS.map(card => (
-                            <button
-                              key={card.id}
-                              onClick={() => handlePresetClick(card.question)}
-                              disabled={isThinking}
-                              className='p-3 bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-100 rounded-lg text-left hover:shadow-md hover:border-blue-200 transition-all group disabled:opacity-50 disabled:cursor-not-allowed'
-                            >
-                              <div className='text-xs font-medium text-blue-700 mb-1'>
-                                {card.keyword}
-                              </div>
-                              <div className='text-xs text-gray-600 group-hover:text-gray-700'>
-                                클릭해서 질문하기
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* 입력 영역 - 상단 고정 */}
-                    <div className='p-4'>
-                      <div className='flex gap-2'>
-                        <input
-                          aria-label='입력 필드'
-                          type='text'
-                          value={currentInput}
-                          onChange={e => setCurrentInput(e.target.value)}
-                          onKeyPress={e =>
-                            e.key === 'Enter' && handleSendMessage()
-                          }
-                          placeholder='서버 관리에 대해 질문하세요...'
-                          className='flex-1 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all'
-                          disabled={isThinking}
-                        />
-                        <button
-                          onClick={handleSendMessage}
-                          disabled={!currentInput.trim() || isThinking}
-                          className='p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all'
-                        >
-                          <Send className='w-5 h-5' />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 메시지 컨테이너 - 하단 스크롤 영역 */}
+                  {/* 메시지 컨테이너 - 상단 스크롤 영역 */}
                   <div
                     ref={chatContainerRef}
                     className='flex-1 overflow-y-auto p-4 space-y-4 min-h-0'
@@ -406,32 +362,35 @@ export default function AISidebarV6Enhanced({
                         <p className='text-gray-500 mb-2'>
                           AI와 대화를 시작해보세요!
                         </p>
-                        <p className='text-sm text-gray-400'>
-                          위의 프리셋 질문을 클릭하거나 직접 질문을 입력하세요
+                        <p className='text-xs text-gray-400'>
+                          아래 빠른 질문을 클릭하거나 직접 입력하세요
                         </p>
                       </div>
                     )}
 
-                    {messages.map(message => (
-                      <div key={message.id} className='space-y-3'>
-                        {/* 사용자 메시지 */}
-                        {message.type === 'user' && (
+                    {/* 메시지 목록 */}
+                    <AnimatePresence>
+                      {messages.map((message, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          className='space-y-3'
+                        >
+                          {/* 사용자 메시지 */}
                           <div className='flex justify-end'>
-                            <div className='max-w-[80%] p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl rounded-tr-md shadow-sm'>
-                              <div className='whitespace-pre-wrap'>
-                                {message.content}
-                              </div>
-                              <div className='text-xs opacity-75 mt-1'>
+                            <div className='bg-blue-600 text-white rounded-2xl rounded-br-md px-4 py-2 max-w-[80%] shadow-sm'>
+                              <p className='text-sm'>{message.content}</p>
+                              <p className='text-xs text-blue-100 mt-1'>
                                 {message.timestamp.toLocaleTimeString()}
-                              </div>
+                              </p>
                             </div>
                           </div>
-                        )}
 
-                        {/* AI 응답 */}
-                        {message.type === 'ai' && (
+                          {/* AI 응답 */}
                           <div className='flex justify-start'>
-                            <div className='max-w-[85%] space-y-3'>
+                            <div className='bg-gray-100 text-gray-800 rounded-2xl rounded-bl-md px-4 py-3 max-w-[85%] shadow-sm'>
                               {/* 사고과정 - 진행 중일 때는 펼치고, 완료되면 접기 */}
                               {message.thinking && (
                                 <div className='space-y-2'>
@@ -444,82 +403,59 @@ export default function AISidebarV6Enhanced({
                                           생각 중...
                                         </span>
                                       </div>
-
                                       <div className='space-y-3'>
-                                        {currentThinking.map((step, index) => (
-                                          <div
-                                            key={step.id}
-                                            className='space-y-2'
-                                          >
-                                            <div className='flex items-center justify-between'>
-                                              <div className='flex items-center gap-2'>
-                                                <span className='text-xs font-medium text-blue-700 bg-blue-100 px-2 py-1 rounded-full'>
-                                                  {index + 1}
+                                        {message.thinking.map(
+                                          (step, stepIndex) => (
+                                            <div
+                                              key={step.id}
+                                              className='space-y-2'
+                                            >
+                                              <div className='flex items-center justify-between'>
+                                                <span className='text-xs font-medium text-blue-700'>
+                                                  {stepIndex + 1}. {step.title}
                                                 </span>
-                                                <span className='text-sm font-medium text-gray-700'>
-                                                  {step.title}
+                                                <span className='text-xs text-blue-600'>
+                                                  {step.progress}%
                                                 </span>
                                               </div>
-                                              {step.completed && (
-                                                <div className='w-2 h-2 bg-green-500 rounded-full' />
-                                              )}
+                                              <div className='w-full bg-blue-100 rounded-full h-1.5'>
+                                                <div
+                                                  className='bg-blue-600 h-1.5 rounded-full transition-all duration-300'
+                                                  style={{
+                                                    width: `${step.progress}%`,
+                                                  }}
+                                                />
+                                              </div>
+                                              <p className='text-xs text-blue-600'>
+                                                {step.content}
+                                              </p>
                                             </div>
-
-                                            {/* 진행률 바 */}
-                                            <div className='w-full bg-gray-200 rounded-full h-1.5'>
-                                              <motion.div
-                                                className='bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full'
-                                                initial={{ width: 0 }}
-                                                animate={{
-                                                  width: `${step.progress}%`,
-                                                }}
-                                                transition={{ duration: 0.3 }}
-                                              />
-                                            </div>
-
-                                            <p className='text-xs text-gray-600 pl-6'>
-                                              {step.content}
-                                            </p>
-                                          </div>
-                                        ))}
+                                          )
+                                        )}
                                       </div>
                                     </div>
                                   )}
 
                                   {/* 완료된 사고과정 - 접힌 상태로 표시 */}
                                   {!isThinking && (
-                                    <div className='space-y-2'>
-                                      {/* 접힌 생각 과정 버튼 */}
+                                    <div className='mb-3'>
                                       <button
                                         onClick={() =>
                                           setThinkingCollapsed(
                                             !thinkingCollapsed
                                           )
                                         }
-                                        className='w-full bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between hover:shadow-md transition-all group'
+                                        className='flex items-center gap-2 text-xs text-gray-500 hover:text-gray-700 transition-colors'
                                       >
-                                        <div className='flex items-center gap-2'>
-                                          <Brain className='w-4 h-4 text-blue-600' />
-                                          <span className='text-sm font-medium text-blue-800'>
-                                            {thinkingCollapsed
-                                              ? '사고과정 보기'
-                                              : '사고과정 숨기기'}
-                                          </span>
-                                          <span className='text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full'>
-                                            {message.thinking.length}단계
-                                          </span>
-                                        </div>
-                                        <motion.div
-                                          animate={{
-                                            rotate: thinkingCollapsed ? 0 : 180,
-                                          }}
-                                          transition={{ duration: 0.2 }}
-                                        >
-                                          <ChevronDown className='w-4 h-4 text-blue-600 group-hover:text-blue-700' />
-                                        </motion.div>
+                                        {thinkingCollapsed ? (
+                                          <ChevronRight className='w-3 h-3' />
+                                        ) : (
+                                          <ChevronDown className='w-3 h-3' />
+                                        )}
+                                        <Brain className='w-3 h-3' />
+                                        사고과정 ({message.thinking.length}단계)
                                       </button>
 
-                                      {/* 펼쳐진 완료된 생각 과정 */}
                                       <AnimatePresence>
                                         {!thinkingCollapsed && (
                                           <motion.div
@@ -529,40 +465,24 @@ export default function AISidebarV6Enhanced({
                                               opacity: 1,
                                             }}
                                             exit={{ height: 0, opacity: 0 }}
-                                            transition={{ duration: 0.3 }}
-                                            className='overflow-hidden'
+                                            className='mt-2 space-y-2 bg-gray-50 rounded-lg p-3'
                                           >
-                                            <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 space-y-3'>
-                                              {message.thinking.map(
-                                                (step, index) => (
-                                                  <div
-                                                    key={step.id}
-                                                    className='space-y-2'
-                                                  >
-                                                    <div className='flex items-center justify-between'>
-                                                      <div className='flex items-center gap-2'>
-                                                        <span className='text-xs font-medium text-blue-700 bg-blue-100 px-2 py-1 rounded-full'>
-                                                          {index + 1}
-                                                        </span>
-                                                        <span className='text-sm font-medium text-gray-700'>
-                                                          {step.title}
-                                                        </span>
-                                                      </div>
-                                                      <div className='w-2 h-2 bg-green-500 rounded-full' />
-                                                    </div>
-
-                                                    {/* 완료된 진행률 바 */}
-                                                    <div className='w-full bg-gray-200 rounded-full h-1.5'>
-                                                      <div className='bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full w-full' />
-                                                    </div>
-
-                                                    <p className='text-xs text-gray-600 pl-6'>
-                                                      {step.content}
-                                                    </p>
+                                            {message.thinking.map(
+                                              (step, stepIndex) => (
+                                                <div
+                                                  key={step.id}
+                                                  className='text-xs'
+                                                >
+                                                  <div className='font-medium text-gray-700'>
+                                                    {stepIndex + 1}.{' '}
+                                                    {step.title}
                                                   </div>
-                                                )
-                                              )}
-                                            </div>
+                                                  <div className='text-gray-600 mt-1'>
+                                                    {step.content}
+                                                  </div>
+                                                </div>
+                                              )
+                                            )}
                                           </motion.div>
                                         )}
                                       </AnimatePresence>
@@ -571,102 +491,102 @@ export default function AISidebarV6Enhanced({
                                 </div>
                               )}
 
-                              {/* AI 응답 (페이지네이션) - 항상 표시 */}
-                              {message.pages && (
-                                <div className='space-y-3'>
-                                  <div className='bg-gray-50 border border-gray-200 rounded-2xl rounded-tl-md p-4 shadow-sm'>
-                                    <div className='text-gray-800 leading-relaxed'>
-                                      {message.pages[currentPage]}
-                                    </div>
+                              {/* AI 응답 내용 */}
+                              <div className='text-sm leading-relaxed'>
+                                {message.pages && message.pages[currentPage]}
+                              </div>
 
-                                    {/* 페이지네이션 컨트롤 */}
-                                    {totalPages > 1 && (
-                                      <div className='flex items-center justify-between mt-4 pt-3 border-t border-gray-200'>
-                                        <button
-                                          onClick={() =>
-                                            setCurrentPage(
-                                              Math.max(0, currentPage - 1)
-                                            )
-                                          }
-                                          disabled={currentPage === 0}
-                                          className='p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-                                        >
-                                          <ChevronLeft className='w-4 h-4' />
-                                        </button>
-
-                                        <div className='flex items-center gap-1'>
-                                          {Array.from(
-                                            { length: totalPages },
-                                            (_, i) => (
-                                              <button
-                                                key={i}
-                                                onClick={() =>
-                                                  setCurrentPage(i)
-                                                }
-                                                className={`w-2 h-2 rounded-full transition-colors ${
-                                                  i === currentPage
-                                                    ? 'bg-purple-500'
-                                                    : 'bg-gray-300 hover:bg-gray-400'
-                                                }`}
-                                              />
-                                            )
-                                          )}
-                                        </div>
-
-                                        <button
-                                          onClick={() =>
-                                            setCurrentPage(
-                                              Math.min(
-                                                totalPages - 1,
-                                                currentPage + 1
-                                              )
-                                            )
-                                          }
-                                          disabled={
-                                            currentPage === totalPages - 1
-                                          }
-                                          className='p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-                                        >
-                                          <ChevronRight className='w-4 h-4' />
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  {/* 페이지 인디케이터 */}
-                                  {totalPages > 1 && (
-                                    <div className='text-center'>
-                                      <span className='text-xs text-gray-500'>
-                                        {currentPage + 1} / {totalPages}
-                                      </span>
-                                    </div>
-                                  )}
-
-                                  {/* 타임스탬프 */}
-                                  <div className='text-xs text-gray-400 text-right'>
-                                    {message.timestamp.toLocaleTimeString()}
-                                  </div>
-                                </div>
-                              )}
+                              <p className='text-xs text-gray-500 mt-2'>
+                                {message.timestamp.toLocaleTimeString()}
+                              </p>
                             </div>
                           </div>
-                        )}
-                      </div>
-                    ))}
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
 
                     {/* 로딩 상태 */}
                     {isThinking && (
-                      <div className='flex justify-start'>
-                        <div className='bg-gray-50 border border-gray-200 rounded-2xl rounded-tl-md p-4 max-w-[85%]'>
-                          <div className='flex items-center gap-2 text-gray-500'>
-                            <Loader2 className='w-4 h-4 animate-spin' />
-                            <span className='text-sm'>
-                              AI가 답변을 준비하고 있습니다...
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className='flex justify-start'
+                      >
+                        <div className='bg-gray-100 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm'>
+                          <div className='flex items-center gap-2'>
+                            <div className='w-2 h-2 bg-blue-600 rounded-full animate-bounce' />
+                            <div className='w-2 h-2 bg-blue-600 rounded-full animate-bounce delay-100' />
+                            <div className='w-2 h-2 bg-blue-600 rounded-full animate-bounce delay-200' />
+                            <span className='text-sm text-gray-600 ml-2'>
+                              AI가 답변을 생성하고 있습니다...
                             </span>
                           </div>
                         </div>
+                      </motion.div>
+                    )}
+                  </div>
+
+                  {/* 하단 고정 영역 - 프리셋 질문과 입력창 */}
+                  <div className='border-t border-gray-200 bg-white'>
+                    {/* 프리셋 질문 영역 - 하단 고정 */}
+                    {messages.length === 0 && (
+                      <div className='p-4 border-b border-gray-100'>
+                        <h3 className='text-sm font-medium text-gray-700 mb-3 flex items-center gap-2'>
+                          <Lightbulb className='w-4 h-4 text-yellow-500' />
+                          빠른 질문
+                        </h3>
+                        <div className='grid grid-cols-2 gap-2'>
+                          {PRESET_CARDS.map(card => (
+                            <button
+                              key={card.id}
+                              onClick={() => handlePresetClick(card.question)}
+                              disabled={isThinking}
+                              className='p-3 text-left bg-gray-50 hover:bg-gray-100 disabled:bg-gray-50 disabled:opacity-50 rounded-lg border border-gray-200 transition-colors group'
+                            >
+                              <div className='flex items-start gap-2'>
+                                <card.icon className='w-4 h-4 text-blue-600 mt-0.5 group-hover:text-blue-700' />
+                                <div>
+                                  <div className='text-xs font-medium text-gray-800 mb-1'>
+                                    {card.keyword}
+                                  </div>
+                                  <div className='text-xs text-gray-600 leading-relaxed'>
+                                    {card.question}
+                                  </div>
+                                </div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     )}
+
+                    {/* 입력 영역 - 하단 고정 */}
+                    <div className='p-4'>
+                      <div className='flex gap-2'>
+                        <input
+                          type='text'
+                          value={currentInput}
+                          onChange={e => setCurrentInput(e.target.value)}
+                          onKeyPress={e =>
+                            e.key === 'Enter' && handleSendMessage()
+                          }
+                          placeholder='AI에게 질문하세요...'
+                          disabled={isThinking}
+                          className='flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:opacity-50 text-sm'
+                        />
+                        <button
+                          onClick={handleSendMessage}
+                          disabled={isThinking || !currentInput.trim()}
+                          className='px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors flex items-center gap-2'
+                        >
+                          {isThinking ? (
+                            <RefreshCw className='w-4 h-4 animate-spin' />
+                          ) : (
+                            <Send className='w-4 h-4' />
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

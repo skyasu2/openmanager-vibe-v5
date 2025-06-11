@@ -151,35 +151,35 @@ const ContentLoadingSkeleton = () => (
 );
 
 // Dynamic imports for better performance
-const SystemStatusWidget = dynamic(
-  () => import('./components/SystemStatusWidget'),
-  {
-    loading: () => (
-      <div className='animate-pulse bg-gray-800 rounded-lg h-32' />
-    ),
-    ssr: false,
-  }
-);
+// const SystemStatusWidget = dynamic(
+//   () => import('./components/SystemStatusWidget'),
+//   {
+//     loading: () => (
+//       <div className='animate-pulse bg-gray-800 rounded-lg h-32' />
+//     ),
+//     ssr: false,
+//   }
+// );
 
-const PatternAnalysisWidget = dynamic(
-  () => import('@/components/ai/PatternAnalysisWidget'),
-  {
-    loading: () => (
-      <div className='animate-pulse bg-gray-800 rounded-lg h-64' />
-    ),
-    ssr: false,
-  }
-);
+// const PatternAnalysisWidget = dynamic(
+//   () => import('@/components/ai/PatternAnalysisWidget'),
+//   {
+//     loading: () => (
+//       <div className='animate-pulse bg-gray-800 rounded-lg h-64' />
+//     ),
+//     ssr: false,
+//   }
+// );
 
-const PredictionDashboard = dynamic(
-  () => import('@/components/prediction/PredictionDashboard'),
-  {
-    loading: () => (
-      <div className='animate-pulse bg-gray-800 rounded-lg h-80' />
-    ),
-    ssr: false,
-  }
-);
+// const PredictionDashboard = dynamic(
+//   () => import('@/components/prediction/PredictionDashboard'),
+//   {
+//     loading: () => (
+//       <div className='animate-pulse bg-gray-800 rounded-lg h-80' />
+//     ),
+//     ssr: false,
+//   }
+// );
 
 function DashboardPageContent() {
   const {
