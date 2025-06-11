@@ -10,7 +10,7 @@
  */
 
 import { realMCPClient } from '../../mcp/real-mcp-client';
-import { TensorFlowAIEngine } from '../tensorflow-engine';
+// TensorFlow 엔진 제거됨
 import {
   AIQueryRequest,
   AIQueryResponse,
@@ -119,7 +119,7 @@ export class IntegratedAIEngineRefactored {
     try {
       await Promise.all([
         realMCPClient.initialize(),
-        new TensorFlowAIEngine().initialize(),
+        // TensorFlow 제거됨
       ]);
 
       this.initialized = true;

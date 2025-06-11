@@ -9,7 +9,6 @@
  */
 
 import { RealMCPClient } from '@/services/mcp/real-mcp-client';
-import { TensorFlowAIEngine } from '../../tensorflow-engine';
 import { KoreanAIEngine } from '../../korean-ai-engine';
 import { TransformersEngine } from '../../transformers-engine';
 import { DocumentContext } from '../managers/DocumentIndexManager';
@@ -17,15 +16,14 @@ import { DocumentContext } from '../managers/DocumentIndexManager';
 interface SmartQuery {
   originalQuery: string;
   intent:
-    | 'analysis'
-    | 'search'
-    | 'prediction'
-    | 'optimization'
-    | 'troubleshooting';
+  | 'analysis'
+  | 'search'
+  | 'prediction'
+  | 'optimization'
+  | 'troubleshooting';
   keywords: string[];
   requiredDocs: string[];
   mcpActions: string[];
-  tensorflowModels: string[];
   isKorean: boolean;
   useTransformers: boolean;
   useVectorSearch: boolean;
@@ -38,12 +36,7 @@ interface EngineStats {
     avgTime: number;
     errorCount: number;
   };
-  tensorflow: {
-    initialized: boolean;
-    successCount: number;
-    avgTime: number;
-    errorCount: number;
-  };
+
   transformers: {
     initialized: boolean;
     successCount: number;
@@ -60,18 +53,16 @@ interface EngineStats {
 
 interface HybridAnalysisResult {
   korean?: any;
-  tensorflow?: any;
   transformers?: any;
   mcp?: any;
   confidence: number;
-  engineUsed: 'korean' | 'tensorflow' | 'transformers' | 'mcp' | 'hybrid';
+  engineUsed: 'korean' | 'transformers' | 'mcp' | 'hybrid';
   processingTime: number;
   success: boolean;
 }
 
 export class AIEngineOrchestrator {
   private mcpClient: RealMCPClient;
-  private tensorflowEngine: TensorFlowAIEngine;
   private koreanEngine: KoreanAIEngine;
   private transformersEngine: TransformersEngine;
 
@@ -82,12 +73,6 @@ export class AIEngineOrchestrator {
   // 성능 추적
   private engineStats: EngineStats = {
     korean: { initialized: false, successCount: 0, avgTime: 0, errorCount: 0 },
-    tensorflow: {
-      initialized: false,
-      successCount: 0,
-      avgTime: 0,
-      errorCount: 0,
-    },
     transformers: {
       initialized: false,
       successCount: 0,
@@ -99,11 +84,10 @@ export class AIEngineOrchestrator {
 
   constructor() {
     this.mcpClient = new RealMCPClient();
-    this.tensorflowEngine = new TensorFlowAIEngine();
     this.koreanEngine = new KoreanAIEngine();
     this.transformersEngine = new TransformersEngine();
 
-    console.log('🎭 AI Engine Orchestrator 인스턴스 생성');
+    console.log('🎭 AI Engine Orchestrator 인스턴스 생성 (TensorFlow 제거됨)');
   }
 
   /**
@@ -127,10 +111,6 @@ export class AIEngineOrchestrator {
 
       await Promise.allSettled(corePromises);
       console.log('✅ 핵심 엔진 초기화 완료 (한국어 + Transformers + MCP)');
-
-      // Phase 2: TensorFlow.js 백그라운드 초기화 (옵션)
-      this.initializeTensorFlowInBackground();
-      console.log('⏳ TensorFlow.js 백그라운드 초기화 시작');
 
       this.isInitialized = true;
       this.logEngineStatus();
@@ -208,24 +188,7 @@ export class AIEngineOrchestrator {
     }
   }
 
-  /**
-   * 🔧 TensorFlow.js 백그라운드 초기화
-   */
-  private async initializeTensorFlowInBackground(): Promise<void> {
-    setTimeout(async () => {
-      const startTime = Date.now();
 
-      try {
-        await this.tensorflowEngine.initialize();
-        this.engineStats.tensorflow.initialized = true;
-        this.updateEngineStats('tensorflow', Date.now() - startTime, true);
-        console.log('✅ TensorFlow.js 엔진 백그라운드 초기화 완료');
-      } catch (error) {
-        this.updateEngineStats('tensorflow', Date.now() - startTime, false);
-        console.warn('⚠️ TensorFlow.js 엔진 초기화 실패:', error);
-      }
-    }, 2000); // 2초 후 초기화
-  }
 
   /**
    * 🔄 하이브리드 분석 실행
@@ -262,17 +225,7 @@ export class AIEngineOrchestrator {
         );
       }
 
-      // 3. TensorFlow 분석 (예측 작업인 경우)
-      if (
-        smartQuery.intent === 'prediction' &&
-        this.engineStats.tensorflow.initialized
-      ) {
-        analysisPromises.push(
-          this.runTensorFlowAnalysis(smartQuery, documents)
-        );
-      }
-
-      // 4. MCP 액션 실행
+      // 3. MCP 액션 실행
       if (
         smartQuery.mcpActions.length > 0 &&
         this.engineStats.mcp.initialized
@@ -297,9 +250,6 @@ export class AIEngineOrchestrator {
           } else if (index === 1 || (index === 0 && !smartQuery.isKorean)) {
             results.transformers = result.value;
             totalConfidence += result.value.confidence || 0.8;
-          } else if (smartQuery.intent === 'prediction') {
-            results.tensorflow = result.value;
-            totalConfidence += result.value.confidence || 0.6;
           } else {
             results.mcp = result.value;
             totalConfidence += 0.5; // MCP 액션은 고정 신뢰도
@@ -389,55 +339,7 @@ export class AIEngineOrchestrator {
     }
   }
 
-  /**
-   * 🧠 TensorFlow 분석 실행
-   */
-  private async runTensorFlowAnalysis(
-    smartQuery: SmartQuery,
-    documents: DocumentContext[]
-  ): Promise<any> {
-    const startTime = Date.now();
 
-    try {
-      // 실제 TensorFlow 엔진 사용
-      if (this.tensorflowEngine?.predictFailureFromRealData) {
-        // 실제 데이터 기반 예측
-        const realPrediction =
-          await this.tensorflowEngine.predictFailureFromRealData();
-        this.updateEngineStats('tensorflow', Date.now() - startTime, true);
-
-        console.log(
-          `🎯 실제 데이터 기반 TensorFlow 분석 완료: ${realPrediction.data_source}, ${realPrediction.sample_size}개 샘플`
-        );
-
-        return {
-          predictions: realPrediction.prediction,
-          confidence: realPrediction.confidence,
-          modelUsed: realPrediction.model_info,
-          dataSource: realPrediction.data_source,
-          sampleSize: realPrediction.sample_size,
-          processingTime: realPrediction.processing_time,
-        };
-      }
-
-      // Fallback: 기존 더미 방식
-      console.warn('⚠️ TensorFlow 실제 데이터 분석 불가, fallback 사용');
-      const mockPrediction = {
-        predictions: [0.3, 0.2, 0.4], // 낮은 더미값
-        confidence: 0.3,
-        modelUsed: 'fallback-model',
-        dataSource: 'mock',
-        sampleSize: 0,
-      };
-
-      this.updateEngineStats('tensorflow', Date.now() - startTime, true);
-      return mockPrediction;
-    } catch (error) {
-      this.updateEngineStats('tensorflow', Date.now() - startTime, false);
-      console.warn('⚠️ TensorFlow 분석 실패:', error);
-      throw error;
-    }
-  }
 
   /**
    * 📚 MCP 액션 실행
@@ -477,8 +379,6 @@ export class AIEngineOrchestrator {
   ): HybridAnalysisResult['engineUsed'] {
     if (results.korean && smartQuery.isKorean) return 'korean';
     if (results.transformers) return 'transformers';
-    if (results.tensorflow && smartQuery.intent === 'prediction')
-      return 'tensorflow';
     if (results.mcp) return 'mcp';
     return 'hybrid';
   }
@@ -514,9 +414,9 @@ export class AIEngineOrchestrator {
       const successRate =
         stats.successCount + stats.errorCount > 0
           ? Math.round(
-              (stats.successCount / (stats.successCount + stats.errorCount)) *
-                100
-            )
+            (stats.successCount / (stats.successCount + stats.errorCount)) *
+            100
+          )
           : 0;
 
       console.log(
@@ -538,9 +438,6 @@ export class AIEngineOrchestrator {
           break;
         case 'transformers':
           await this.initializeTransformersEngine();
-          break;
-        case 'tensorflow':
-          await this.initializeTensorFlowInBackground();
           break;
         case 'mcp':
           await this.initializeMCPClient();
@@ -572,9 +469,6 @@ export class AIEngineOrchestrator {
       transformers: this.engineStats.transformers.initialized
         ? 'healthy'
         : 'unhealthy',
-      tensorflow: this.engineStats.tensorflow.initialized
-        ? 'healthy'
-        : 'unhealthy',
       mcp: this.engineStats.mcp.initialized ? 'healthy' : 'unhealthy',
     };
 
@@ -590,8 +484,8 @@ export class AIEngineOrchestrator {
     if (!engines.mcp) recommendations.push('MCP 클라이언트 재연결 필요');
 
     let overall: 'healthy' | 'degraded' | 'unhealthy';
-    if (healthyCount >= 3) overall = 'healthy';
-    else if (healthyCount >= 2) overall = 'degraded';
+    if (healthyCount >= 2) overall = 'healthy';
+    else if (healthyCount >= 1) overall = 'degraded';
     else overall = 'unhealthy';
 
     return { overall, engines, recommendations };

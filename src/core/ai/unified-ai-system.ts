@@ -12,11 +12,30 @@ import {
   MCPQuery,
   MCPResponse,
 } from '../mcp/mcp-orchestrator';
-import {
-  FastAPIClient,
-  AIQuery,
-  AIResponse,
-} from '../../services/fastapi-stub';
+// FastAPI 스텁 제거됨 - 로컬 인터페이스 사용
+interface AIQuery {
+  text: string;
+}
+interface AIResponse {
+  answer: string;
+}
+class FastAPIClient {
+  async connect() { console.log('FastAPI 제거됨'); }
+  async disconnect() { }
+  isConnected() { return false; }
+  async query(query: AIQuery): Promise<AIResponse> {
+    return { answer: 'FastAPI 제거됨' };
+  }
+  async analyzeText() {
+    return {
+      response: 'FastAPI 제거됨',
+      confidence: 0,
+      analysis: { sentiment: {}, intent: {}, entities: {}, keywords: [] }
+    };
+  }
+  getConnectionStatus() { return { status: 'disabled' }; }
+}
+
 import { KeepAliveSystem } from '../../services/ai/keep-alive-system';
 import { BasicContextManager } from '../../context/basic-context-manager';
 import { AdvancedContextManager } from '../../context/advanced-context-manager';
@@ -552,12 +571,12 @@ export class UnifiedAISystem {
         fastapi: {
           status:
             fastApiStatus.status === 'fulfilled' &&
-            fastApiStatus.value.isConnected
+              fastApiStatus.value.isConnected
               ? 'healthy'
               : 'unhealthy',
           latency:
             fastApiStatus.status === 'fulfilled' &&
-            fastApiStatus.value.healthStatus
+              fastApiStatus.value.healthStatus
               ? 0
               : -1,
         },
@@ -568,7 +587,7 @@ export class UnifiedAISystem {
         keepAlive: {
           status:
             keepAliveStatus.status === 'fulfilled' &&
-            keepAliveStatus.value.isActive
+              keepAliveStatus.value.isActive
               ? 'healthy'
               : 'inactive',
           uptime:
@@ -582,7 +601,7 @@ export class UnifiedAISystem {
               basicContextStatus.status === 'fulfilled' ? 'healthy' : 'error',
             lastUpdate:
               basicContextStatus.status === 'fulfilled' &&
-              basicContextStatus.value
+                basicContextStatus.value
                 ? basicContextStatus.value.lastUpdate
                 : 0,
           },
@@ -626,7 +645,7 @@ export class UnifiedAISystem {
   private getAverageResponseTime(): number {
     return this.responseTimes.length > 0
       ? this.responseTimes.reduce((sum, time) => sum + time, 0) /
-          this.responseTimes.length
+      this.responseTimes.length
       : 0;
   }
 

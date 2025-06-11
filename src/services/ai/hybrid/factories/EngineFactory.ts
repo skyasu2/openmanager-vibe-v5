@@ -6,7 +6,7 @@
  */
 
 import { RealMCPClient } from '@/services/mcp/real-mcp-client';
-import { TensorFlowAIEngine } from '../../tensorflow-engine';
+// TensorFlow 엔진 제거됨
 import { KoreanAIEngine } from '../../korean-ai-engine';
 import { TransformersEngine } from '../../transformers-engine';
 import { LocalVectorDB } from '../../local-vector-db';
@@ -36,7 +36,6 @@ export class EngineFactory {
    */
   public createEngines(): {
     mcpClient: RealMCPClient;
-    tensorflowEngine: TensorFlowAIEngine;
     koreanEngine: KoreanAIEngine;
     transformersEngine: TransformersEngine;
     vectorDB: LocalVectorDB;
@@ -44,21 +43,18 @@ export class EngineFactory {
     console.log('🏭 AI 엔진 팩토리에서 엔진 인스턴스 생성');
 
     const mcpClient = new RealMCPClient();
-    const tensorflowEngine = new TensorFlowAIEngine();
     const koreanEngine = new KoreanAIEngine();
     const transformersEngine = new TransformersEngine();
     const vectorDB = new LocalVectorDB();
 
     // 엔진 등록
     this.registerEngine('mcp', mcpClient);
-    this.registerEngine('tensorflow', tensorflowEngine);
     this.registerEngine('korean', koreanEngine);
     this.registerEngine('transformers', transformersEngine);
     this.registerEngine('vector', vectorDB);
 
     return {
       mcpClient,
-      tensorflowEngine,
       koreanEngine,
       transformersEngine,
       vectorDB,
@@ -86,15 +82,15 @@ export class EngineFactory {
 
     // Phase 1: 고우선순위 엔진들 병렬 초기화
     const corePromises = [];
-    
+
     if (this.configuration.korean.enabled) {
       corePromises.push(this.initializeKoreanEngine(engines.koreanEngine, stats));
     }
-    
+
     if (this.configuration.transformers.enabled) {
       corePromises.push(this.initializeTransformersEngine(engines.transformersEngine, stats));
     }
-    
+
     if (this.configuration.mcp.enabled) {
       corePromises.push(this.initializeMCPClient(engines.mcpClient));
     }
@@ -123,7 +119,7 @@ export class EngineFactory {
    * 한국어 엔진 초기화
    */
   private async initializeKoreanEngine(
-    engine: KoreanAIEngine, 
+    engine: KoreanAIEngine,
     stats: EngineStats
   ): Promise<void> {
     try {
@@ -267,7 +263,7 @@ export class EngineFactory {
    */
   public async disposeAllEngines(): Promise<void> {
     console.log('🧹 모든 엔진 정리 시작');
-    
+
     for (const [name, engine] of this.engines) {
       try {
         if (engine.dispose) {
@@ -288,7 +284,7 @@ export class EngineFactory {
    */
   public getEngineStatus(): Map<string, boolean> {
     const status = new Map<string, boolean>();
-    
+
     for (const [name, engine] of this.engines) {
       status.set(name, engine.initialized);
     }

@@ -27,14 +27,14 @@ interface HybridAnalysisResult {
   confidence: number;
   sources: DocumentContext[];
   reasoning: string[];
-  tensorflowPredictions?: any;
+
   koreanNLU?: any;
   transformersAnalysis?: any;
   vectorSearch?: any;
   vectorSearchResults?: any;
   mcpActions: string[];
   processingTime: number;
-  engineUsed: 'korean' | 'tensorflow' | 'transformers' | 'vector' | 'hybrid';
+  engineUsed: 'korean' | 'transformers' | 'vector' | 'hybrid';
   performanceMetrics: {
     initTime: number;
     searchTime: number;
@@ -91,10 +91,10 @@ export class HybridAIEngine {
     // 임시: LocalVectorDB 모의 객체 사용 (require 대신)
     const vectorDB = {
       search: () => ({ status: 'success', results: [], count: 0 }),
-      add: () => {},
-      update: () => {},
-      delete: () => {},
-      clear: () => {},
+      add: () => { },
+      update: () => { },
+      delete: () => { },
+      clear: () => { },
     } as any;
 
     // 문서 인덱스를 위한 Map 생성
@@ -256,7 +256,7 @@ export class HybridAIEngine {
         confidence: response.confidence,
         sources: documents,
         reasoning: response.reasoning,
-        tensorflowPredictions: analysisResults.tensorflow,
+        // tensorflowPredictions 제거됨
         koreanNLU: analysisResults.korean,
         transformersAnalysis: analysisResults.transformers,
         vectorSearchResults: documents, // 검색된 문서 자체가 벡터 검색 결과
@@ -600,8 +600,7 @@ export class HybridAIEngine {
       return 'korean';
     } else if (analysisResults.transformers?.success) {
       return 'transformers';
-    } else if (analysisResults.tensorflow?.predictions?.length > 0) {
-      return 'tensorflow';
+      // TensorFlow 제거됨
     } else {
       return 'vector';
     }

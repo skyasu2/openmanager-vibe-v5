@@ -41,7 +41,7 @@ export class SmartRoutingEngine {
       timeoutMs: 5000,
       retryAttempts: 2
     };
-    
+
     this.pythonEndpoint = process.env.PYTHON_AI_ENDPOINT || 'https://openmanager-vibe-v5.onrender.com';
   }
 
@@ -50,9 +50,9 @@ export class SmartRoutingEngine {
    */
   async routeRequest(request: AnalysisRequest): Promise<any> {
     const complexity = this.calculateComplexity(request);
-    
+
     console.log(`🧠 AI 라우팅: ${complexity.recommendation} (복잡도: ${complexity.totalScore})`);
-    
+
     if (complexity.recommendation === 'tensorflow') {
       return await this.processWithTensorFlow(request, complexity);
     } else {
@@ -65,14 +65,14 @@ export class SmartRoutingEngine {
    */
   private calculateComplexity(request: AnalysisRequest): ComplexityScore {
     const { query, metrics, requestType, urgency } = request;
-    
+
     // 1. 데이터 크기 점수 (0-100)
     const totalDataPoints = Object.values(metrics).reduce((sum, arr) => sum + arr.length, 0);
     const dataSize = Math.min(100, (totalDataPoints / 1000) * 100);
-    
+
     // 2. 연산 복잡도 점수 (0-100)
     let computeIntensity = 0;
-    
+
     // 키워드 기반 복잡도 분석
     const complexKeywords = [
       'deep learning', '딥러닝', 'neural network', '신경망',
@@ -80,14 +80,14 @@ export class SmartRoutingEngine {
       'regression', '회귀', 'classification', '분류',
       'anomaly detection', '이상 탐지', 'prediction', '예측'
     ];
-    
+
     const queryLower = query.toLowerCase();
-    const keywordMatches = complexKeywords.filter(keyword => 
+    const keywordMatches = complexKeywords.filter(keyword =>
       queryLower.includes(keyword.toLowerCase())
     ).length;
-    
+
     computeIntensity += keywordMatches * 15; // 키워드당 15점
-    
+
     // 요청 타입별 복잡도
     const typeComplexity = {
       'realtime': 0,      // 실시간은 단순해야 함
@@ -95,15 +95,15 @@ export class SmartRoutingEngine {
       'prediction': 40,   // 예측은 높은 복잡도
       'analysis': 50      // 분석은 최고 복잡도
     };
-    
+
     computeIntensity += typeComplexity[requestType];
-    
+
     // 메트릭 종류에 따른 복잡도
     const metricCount = Object.keys(metrics).length;
     computeIntensity += Math.min(30, metricCount * 5);
-    
+
     computeIntensity = Math.min(100, computeIntensity);
-    
+
     // 3. 실시간 요구사항 (높을수록 TensorFlow.js 선호)
     const urgencyScore = {
       'critical': 100,    // 크리티컬은 TensorFlow.js 강제
@@ -111,15 +111,15 @@ export class SmartRoutingEngine {
       'medium': 50,
       'low': 20
     };
-    
+
     const realTimeRequirement = urgencyScore[urgency];
-    
+
     // 4. 총 복잡도 계산 (실시간 요구사항은 복잡도를 낮춤)
     const totalScore = (dataSize * 0.3 + computeIntensity * 0.5) * (1 - realTimeRequirement * 0.003);
-    
+
     // 5. 라우팅 결정
     const recommendation = totalScore <= this.config.tensorflowThreshold ? 'tensorflow' : 'python';
-    
+
     return {
       dataSize,
       computeIntensity,
@@ -134,16 +134,16 @@ export class SmartRoutingEngine {
    */
   private async processWithTensorFlow(request: AnalysisRequest, complexity: ComplexityScore): Promise<any> {
     try {
-      // TensorFlow.js 엔진 동적 임포트
+      // TensorFlow.js 엔진 제거됨 - 경량 ML 엔진 사용
       if (!this.tensorflowEngine) {
-        const { TensorFlowAIEngine } = await import('@/services/ai/tensorflow-engine');
-        this.tensorflowEngine = new TensorFlowAIEngine();
+        console.warn('TensorFlow 제거됨 - lightweight ML 엔진 사용');
+        this.tensorflowEngine = null; // 더 이상 사용하지 않음
       }
-      
+
       const startTime = Date.now();
       const result = await this.tensorflowEngine.analyzeMetricsWithAI(request.metrics);
       const processingTime = Date.now() - startTime;
-      
+
       return {
         ...result,
         routing_info: {
@@ -153,16 +153,16 @@ export class SmartRoutingEngine {
           location: 'vercel_edge'
         }
       };
-      
+
     } catch (error: any) {
       console.error('❌ TensorFlow.js 처리 실패:', error);
-      
+
       // Python으로 폴백
       if (this.config.pythonFallback) {
         console.log('🔄 Python 엔진으로 폴백 중...');
         return await this.processWithPython(request, complexity);
       }
-      
+
       throw error;
     }
   }
@@ -174,9 +174,9 @@ export class SmartRoutingEngine {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.config.timeoutMs);
-      
+
       const startTime = Date.now();
-      
+
       const response = await fetch(`${this.pythonEndpoint}/analyze`, {
         method: 'POST',
         headers: {
@@ -192,16 +192,16 @@ export class SmartRoutingEngine {
         }),
         signal: controller.signal
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (!response.ok) {
         throw new Error(`Python API 오류: ${response.status}`);
       }
-      
+
       const result = await response.json();
       const processingTime = Date.now() - startTime;
-      
+
       return {
         ...result,
         routing_info: {
@@ -211,16 +211,16 @@ export class SmartRoutingEngine {
           location: 'render_cloud'
         }
       };
-      
+
     } catch (error: any) {
       console.error('❌ Python 엔진 처리 실패:', error);
-      
+
       // TensorFlow.js로 폴백 (제한된 기능)
       if (complexity.totalScore <= 80) { // 80점 이하만 폴백
         console.log('🔄 TensorFlow.js로 제한적 폴백 중...');
         return await this.processWithTensorFlow(request, complexity);
       }
-      
+
       throw error;
     }
   }
@@ -231,19 +231,19 @@ export class SmartRoutingEngine {
   private convertMetricsForPython(metrics: Record<string, number[]>): any[] {
     const converted = [];
     const maxLength = Math.max(...Object.values(metrics).map(arr => arr.length));
-    
+
     for (let i = 0; i < maxLength; i++) {
       const dataPoint: any = {
         timestamp: new Date(Date.now() - (maxLength - i) * 60000).toISOString(),
       };
-      
+
       Object.entries(metrics).forEach(([key, values]) => {
         dataPoint[key] = values[i] || 0;
       });
-      
+
       converted.push(dataPoint);
     }
-    
+
     return converted;
   }
 

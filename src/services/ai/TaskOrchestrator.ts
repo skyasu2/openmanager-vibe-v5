@@ -1,5 +1,16 @@
 import { MCPTask, MCPTaskResult } from './MCPAIRouter';
-import { AnalysisRequest, normalizeMetricData } from '../../types/python-api';
+// Python API 타입 제거됨 - 로컬 인터페이스 사용
+interface AnalysisRequest {
+  query: string;
+  data?: any;
+  analysis_type?: string;
+  metrics?: any[];
+}
+
+// normalizeMetricData 함수 대체
+function normalizeMetricData(metric: any) {
+  return metric;
+}
 import {
   LightweightAnomalyDetector,
   createLightweightAnomalyDetector,
