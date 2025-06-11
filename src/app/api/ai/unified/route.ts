@@ -83,6 +83,13 @@ interface FluidComputeMetrics {
   costSavings: number;
 }
 
+// SystemHealth 인터페이스 확장
+interface SystemHealthExtended {
+  status: 'healthy' | 'warning' | 'critical';
+  components?: Record<string, any>;
+  [key: string]: any;
+}
+
 /**
  * 🏃‍♂️ Fluid Compute용 고속 시스템 초기화
  */
@@ -169,19 +176,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
     const initTime = Date.now() - initStartTime;
 
-    // 질의 객체 생성
-    const query: UnifiedQuery = {
+    // 질의 객체 생성 수정
+    const queryRequest: UnifiedQuery = {
       id: `query_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      query: queryBody.question.trim(),
       text: queryBody.question.trim(),
       userId: queryBody.userId,
       organizationId: queryBody.organizationId,
       sessionId: queryBody.sessionId || `session_${Date.now()}`,
-      context: queryBody.context || {},
-      options: queryBody.options || {},
+      context: queryBody.context || {}
     };
 
     console.log(
-      `🧠 [Fluid API] 새로운 질의: "${query.text.substring(0, 50)}..."`
+      `🧠 [Fluid API] 새로운 질의: "${queryRequest.text.substring(0, 50)}..."`
     );
 
     // 🔍 고도화된 로깅: 질의 시작
@@ -193,12 +200,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       level: LogLevel.INFO,
       category: LogCategory.AI_ENGINE,
       engine: 'unified_ai',
-      message: `새로운 질의 처리 시작: ${query.text.substring(0, 100)}...`,
+      message: `새로운 질의 처리 시작: ${queryRequest.text.substring(0, 100)}...`,
       metadata: {
-        requestId: query.id,
-        userId: query.userId,
-        sessionId: query.sessionId,
-        query: query.text,
+        requestId: queryRequest.id,
+        userId: queryRequest.userId,
+        sessionId: queryRequest.sessionId,
+        query: queryRequest.text,
         preferFastAPI: queryBody.options?.preferFastAPI,
         includeThinking: includeThinking,
       },
@@ -215,7 +222,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       thinkingLogs.push({
         id: 'thinking_1',
         step: '질의 분석',
-        content: `사용자 질문을 분석하고 있습니다: "${query.text.substring(0, 100)}..."`,
+        content: `사용자 질문을 분석하고 있습니다: "${queryRequest.text.substring(0, 100)}..."`,
         type: 'analysis',
         timestamp: new Date().toISOString(),
         progress: 20,
@@ -224,7 +231,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // AI 시스템 질의 처리
     const queryStartTime = Date.now();
-    const response: UnifiedResponse = await unifiedAISystem.processQuery(query);
+    const response: UnifiedResponse = await unifiedAISystem.processQuery(queryRequest);
     const queryTime = Date.now() - queryStartTime;
 
     // 🔍 AI 사고 과정 로깅 (Thinking Steps)
@@ -232,7 +239,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       await aiLogger.logThinking(
         'unified_ai',
         LogCategory.AI_ENGINE,
-        query.text,
+        queryRequest.text,
         thinkingLogs.map((log, index) => ({
           step: index + 1,
           type: log.type as any,
@@ -242,7 +249,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         })),
         `통합 AI 시스템을 통한 질의 처리: ${response.answer ? '성공' : '실패'}`,
         [
-          `질의 분석 완료: ${query.text.length}자`,
+          `질의 분석 완료: ${queryRequest.text.length}자`,
           `응답 생성 시간: ${queryTime}ms`,
           `시스템 상태: ${response.answer ? '정상' : '오류'}`,
         ]
@@ -283,8 +290,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       actions: response.actions || [],
       thinking_logs: includeThinking ? thinkingLogs : undefined,
       metadata: {
-        query_id: query.id,
-        session_id: query.sessionId,
+        query_id: queryRequest.id,
+        session_id: queryRequest.sessionId,
         processing_time: totalTime,
         init_time: initTime,
         query_time: queryTime,
@@ -334,12 +341,12 @@ async function handleBatchQuery(
     const batchPromises = queries.map(async (queryReq, index) => {
       const query: UnifiedQuery = {
         id: `batch_${Date.now()}_${index}`,
+        query: queryReq.question.trim(),
         text: queryReq.question.trim(),
         userId: queryReq.userId,
         organizationId: queryReq.organizationId,
         sessionId: queryReq.sessionId || `batch_session_${Date.now()}_${index}`,
         context: queryReq.context || {},
-        options: queryReq.options || {},
       };
 
       try {
@@ -535,7 +542,7 @@ export async function GET_OLD(request: NextRequest): Promise<NextResponse> {
           success: true,
           data: {
             status: basicHealth.overall,
-            components: Object.keys(basicHealth.components).length,
+            components: Object.keys(((basicHealth as unknown) as SystemHealthExtended).components || {}).length,
             uptime: Date.now(), // 임시 업타임
           },
           message: 'MCP 기반 통합 AI 시스템이 실행 중입니다',
@@ -575,7 +582,9 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
         });
 
       case 'shutdown':
-        await unifiedAISystem.shutdown();
+        if ('shutdown' in unifiedAISystem && typeof unifiedAISystem.shutdown === 'function') {
+          await unifiedAISystem.shutdown();
+        }
         return NextResponse.json({
           success: true,
           message: '시스템이 종료되었습니다',

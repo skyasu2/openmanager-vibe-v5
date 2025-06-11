@@ -7,7 +7,7 @@
  * - 모든 엔진 실패시 명확한 오류 처리
  */
 
-import { MCPOrchestrator } from '../mcp/mcp-orchestrator';
+import { MCPOrchestrator, MCPQuery, MCPResponse } from '@/core/mcp/mcp-orchestrator';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
 import { aiLogger, LogLevel, LogCategory } from '@/services/ai/logging/AILogger';
 
@@ -36,6 +36,10 @@ export interface AIEngine {
     isAvailable(): Promise<boolean>;
     process(query: AIQuery): Promise<AIResponse | null>;
 }
+
+// MCPQuery는 import에서 가져온 것을 사용
+
+// MCPResponse는 이미 정의되어 있음 (import에서 가져옴)
 
 /**
  * 🧠 MCP 엔진 (우선순위 1)
@@ -71,22 +75,27 @@ class MCPEngine implements AIEngine {
                 metadata: { queryId: query.id }
             });
 
-            const result = await this.orchestrator.processQuery({
-                query: query.text,
-                context: query.context || {},
-                userId: query.userId
-            });
+            // MCP 엔진 실행 부분 수정
+            const mcpQuery: MCPQuery = {
+                id: `mcp_${Date.now()}`,
+                question: query.text,
+                userId: query.userId,
+                timestamp: Date.now(),
+                context: query.context
+            };
 
-            if (result && result.success) {
+            const mcpResult = await this.orchestrator.processQuery(mcpQuery);
+
+            if (mcpResult && mcpResult.id) {
                 const response: AIResponse = {
                     id: `mcp_${Date.now()}`,
                     queryId: query.id,
-                    answer: result.answer,
-                    confidence: result.confidence || 0.9,
+                    answer: mcpResult.answer,
+                    confidence: mcpResult.confidence || 0.9,
                     engine: 'mcp',
                     processingTime: Date.now() - startTime,
-                    sources: result.sources || [],
-                    metadata: result.metadata,
+                    sources: mcpResult.sources?.map(s => s.title) || [],
+                    metadata: { mcpId: mcpResult.id },
                     timestamp: Date.now()
                 };
 
@@ -185,13 +194,18 @@ class GoogleAIEngineWrapper implements AIEngine {
     private googleAI: GoogleAIService;
 
     constructor() {
-        this.googleAI = GoogleAIService.getInstance();
+        this.googleAI = new GoogleAIService();
     }
 
     async isAvailable(): Promise<boolean> {
         try {
-            const status = await this.googleAI.getServiceStatus();
-            return status.status === 'healthy';
+            if (this.googleAI.isAvailable()) {
+                console.log('✅ Google AI 서비스 사용 가능');
+                return true;
+            } else {
+                console.log('⚠️ Google AI 서비스 비활성화');
+                return false;
+            }
         } catch (error) {
             await aiLogger.logError('GoogleAIEngine', LogCategory.GOOGLE_AI, error as Error);
             return false;
@@ -210,8 +224,10 @@ class GoogleAIEngineWrapper implements AIEngine {
                 metadata: { queryId: query.id }
             });
 
-            const result = await this.googleAI.generateResponse(query.text, {
-                userId: query.userId,
+            const result = await this.googleAI.analyzeAdvanced({
+                query: query.text,
+                analysisType: 'monitoring',
+                priority: 'medium',
                 context: query.context
             });
 
@@ -219,12 +235,12 @@ class GoogleAIEngineWrapper implements AIEngine {
                 const response: AIResponse = {
                     id: `google_${Date.now()}`,
                     queryId: query.id,
-                    answer: result.response,
-                    confidence: result.confidence || 0.8,
+                    answer: result.content,
+                    confidence: result.confidence,
                     engine: 'google-ai',
                     processingTime: Date.now() - startTime,
                     sources: [],
-                    metadata: { model: 'gemini', ...result.metadata },
+                    metadata: { model: 'gemini', processingTime: result.processingTime },
                     timestamp: Date.now()
                 };
 
@@ -389,6 +405,7 @@ export class AIEngineChain {
     async getSystemHealth(): Promise<{
         overall: 'healthy' | 'degraded' | 'unhealthy';
         engines: Record<string, boolean>;
+        components?: Record<string, boolean>;
         timestamp: number;
     }> {
         const engineStatuses = await Promise.allSettled(
@@ -410,6 +427,14 @@ export class AIEngineChain {
             }
         });
 
+        // components는 engines와 동일하게 설정
+        const components: Record<string, boolean> = {
+            mcp: engines['MCP'] || false,
+            rag: engines['RAG'] || false,
+            google_ai: engines['Google AI'] || false,
+            fastapi: false // 제거된 FastAPI는 false로 설정
+        };
+
         let overall: 'healthy' | 'degraded' | 'unhealthy';
         if (availableCount >= 2) overall = 'healthy';
         else if (availableCount >= 1) overall = 'degraded';
@@ -418,6 +443,7 @@ export class AIEngineChain {
         return {
             overall,
             engines,
+            components,
             timestamp: Date.now()
         };
     }

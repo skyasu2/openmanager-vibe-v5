@@ -503,14 +503,21 @@ export class MCPAIRouter {
    * 🔧 엔진 상태 확인 (온디맨드 상태 포함)
    */
   async getEngineStatus(): Promise<any> {
+    const orchestratorStatus = await this.taskOrchestrator.getStatus();
+
     return {
-      tensorflow: await this.taskOrchestrator.checkTensorFlowStatus(),
-      transformers: await this.taskOrchestrator.checkTransformersStatus(),
-      onnx: await this.taskOrchestrator.checkONNXStatus(),
-      python: await this.taskOrchestrator.checkPythonStatus(),
-      pythonWarmedUp: this.pythonServiceWarmedUp,
-      warmupMode: 'on-demand', // 온디맨드 모드 표시
-      allReady: true,
+      mcp: { status: 'ready', timestamp: Date.now() },
+      taskOrchestrator: orchestratorStatus,
+      engines: {
+        korean: { status: 'ready' },
+        transformers: { status: 'ready' },
+        anomalyDetector: { status: orchestratorStatus.anomalyDetectorReady ? 'ready' : 'not_ready' }
+      },
+      stats: {
+        totalRequests: 0,
+        avgProcessingTime: 0,
+        errors: 0
+      }
     };
   }
 

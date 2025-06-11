@@ -426,6 +426,37 @@ export class AILogger {
     });
   }
 
+  // 단축 메서드들 추가
+  public async info(category: LogCategory, message: string, data?: any): Promise<void> {
+    await this.logAI({
+      level: LogLevel.INFO,
+      category,
+      engine: 'System',
+      message,
+      data,
+    });
+  }
+
+  public async debug(category: LogCategory, message: string, data?: any): Promise<void> {
+    await this.logAI({
+      level: LogLevel.DEBUG,
+      category,
+      engine: 'System',
+      message,
+      data,
+    });
+  }
+
+  public async warn(category: LogCategory, message: string, data?: any): Promise<void> {
+    await this.logAI({
+      level: LogLevel.WARN,
+      category,
+      engine: 'System',
+      message,
+      data,
+    });
+  }
+
   /**
    * 📊 AI 분석 결과 로깅
    */

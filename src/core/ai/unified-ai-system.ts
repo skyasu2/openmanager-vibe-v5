@@ -18,26 +18,37 @@ export interface UnifiedAIConfig {
 
 export interface UnifiedQuery {
     id: string;
+    query: string;
     text: string;
     userId?: string;
-    context?: Record<string, any>;
+    context?: any;
+    analysisType?: string;
+    priority?: 'low' | 'medium' | 'high' | 'critical';
+    organizationId?: string;
+    sessionId?: string;
 }
 
 export interface UnifiedResponse {
     id: string;
     queryId: string;
+    success: boolean;
+    content: string;
     answer: string;
     confidence: number;
-    engine: 'mcp' | 'rag' | 'google-ai';
     processingTime: number;
-    sources?: any[];
-    metadata?: Record<string, any>;
+    sources: string[];
+    engine: string;
+    metadata?: any;
     timestamp: number;
+    analysis?: any;
+    recommendations?: string[];
+    actions?: any[];
 }
 
 export interface SystemHealth {
     overall: 'healthy' | 'degraded' | 'unhealthy';
     engines: Record<string, boolean>;
+    components?: Record<string, boolean>;
     stats: {
         totalQueries: number;
         avgResponseTime: number;
@@ -132,7 +143,7 @@ export class UnifiedAISystem {
                     level: LogLevel.INFO,
                     category: LogCategory.AI_ENGINE,
                     engine: 'UnifiedAISystem',
-                    message: `🧠 질의 처리 시작: "${query.text}"`,
+                    message: `🧠 질의 처리 시작: "${query.query}"`,
                     metadata: { queryId: query.id, userId: query.userId }
                 });
             }
@@ -140,7 +151,7 @@ export class UnifiedAISystem {
             // AI 엔진 체인으로 처리
             const aiQuery: AIQuery = {
                 id: query.id,
-                text: query.text,
+                text: query.query,
                 context: query.context,
                 userId: query.userId
             };
@@ -150,14 +161,16 @@ export class UnifiedAISystem {
             // 통합 응답 생성
             const response: UnifiedResponse = {
                 id: aiResponse.id,
-                queryId: aiResponse.queryId,
+                queryId: query.id,
+                success: true,
+                content: aiResponse.answer,
                 answer: aiResponse.answer,
                 confidence: aiResponse.confidence,
                 engine: aiResponse.engine,
-                processingTime: Date.now() - startTime,
-                sources: aiResponse.sources,
-                metadata: aiResponse.metadata,
-                timestamp: Date.now()
+                processingTime: aiResponse.processingTime,
+                sources: aiResponse.sources || [],
+                metadata: { ...aiResponse.metadata },
+                timestamp: aiResponse.timestamp,
             };
 
             // 캐시 저장
@@ -198,10 +211,13 @@ export class UnifiedAISystem {
             return {
                 id: `error_${Date.now()}`,
                 queryId: query.id,
+                success: false,
+                content: `죄송합니다. 요청을 처리할 수 없습니다: ${(error as Error).message}`,
                 answer: `죄송합니다. 요청을 처리할 수 없습니다: ${(error as Error).message}`,
                 confidence: 0,
-                engine: 'mcp', // 기본값
+                engine: 'error',
                 processingTime: Date.now() - startTime,
+                sources: [],
                 metadata: { error: true, errorMessage: (error as Error).message },
                 timestamp: Date.now()
             };
@@ -217,6 +233,7 @@ export class UnifiedAISystem {
         return {
             overall: engineHealth.overall,
             engines: engineHealth.engines,
+            components: engineHealth.components,
             stats: {
                 totalQueries: this.stats.totalQueries,
                 avgResponseTime: this.stats.totalQueries > 0
@@ -234,7 +251,7 @@ export class UnifiedAISystem {
      * 🛠️ 캐시 키 생성
      */
     private generateCacheKey(query: UnifiedQuery): string {
-        return `${query.text}_${JSON.stringify(query.context || {})}_${query.userId || 'anonymous'}`;
+        return `${query.query}_${JSON.stringify(query.context || {})}_${query.userId || 'anonymous'}`;
     }
 
     /**
@@ -294,4 +311,7 @@ export function getUnifiedAISystem(): UnifiedAISystem {
         unifiedAIInstance = new UnifiedAISystem();
     }
     return unifiedAIInstance;
-} 
+}
+
+// 편의를 위한 인스턴스 export
+export const unifiedAISystem = getUnifiedAISystem(); 

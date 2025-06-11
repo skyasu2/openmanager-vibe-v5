@@ -29,6 +29,7 @@ import {
   Clock,
 } from 'lucide-react';
 import RealTimeLogMonitor from './RealTimeLogMonitor';
+import LogAnalyticsDashboard from '../admin/LogAnalyticsDashboard';
 
 interface ResponseLogData {
   id: string;
@@ -456,9 +457,9 @@ export default function AIAgentAdminDashboard() {
             prev.map(p =>
               p.id === id
                 ? {
-                    ...p,
-                    status: action === 'approve' ? 'approved' : 'rejected',
-                  }
+                  ...p,
+                  status: action === 'approve' ? 'approved' : 'rejected',
+                }
                 : p
             )
           );
@@ -572,7 +573,7 @@ export default function AIAgentAdminDashboard() {
               총{' '}
               {Math.round(
                 contextDocuments.reduce((sum, doc) => sum + doc.wordCount, 0) /
-                  1000
+                1000
               )}
               K 단어
             </p>
@@ -603,8 +604,9 @@ export default function AIAgentAdminDashboard() {
         onValueChange={setSelectedTab}
         className='w-full'
       >
-        <TabsList className='grid w-full grid-cols-4'>
+        <TabsList className='grid w-full grid-cols-5'>
           <TabsTrigger value='logs'>🤖 AI 로그</TabsTrigger>
+          <TabsTrigger value='analytics'>📊 로그 분석</TabsTrigger>
           <TabsTrigger value='contexts'>📚 컨텍스트 관리</TabsTrigger>
           <TabsTrigger value='ab-test'>🧪 A/B 테스트</TabsTrigger>
           <TabsTrigger value='feedback'>👍 품질 피드백</TabsTrigger>
@@ -715,7 +717,12 @@ export default function AIAgentAdminDashboard() {
           </div>
         </TabsContent>
 
-        {/* 탭 2: 컨텍스트 버전 관리자 */}
+        {/* 탭 2: 로그 분석 대시보드 */}
+        <TabsContent value='analytics' className='space-y-6'>
+          <LogAnalyticsDashboard />
+        </TabsContent>
+
+        {/* 탭 3: 컨텍스트 버전 관리자 */}
         <TabsContent value='contexts' className='space-y-6'>
           <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
             {/* 현재 활성 컨텍스트 */}

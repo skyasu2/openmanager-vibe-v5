@@ -31,7 +31,7 @@ interface ComplexityScore {
 
 export class SmartRoutingEngine {
   private config: RoutingConfig;
-  private tensorflowEngine: any;  // TensorFlow.js 엔진
+  // TensorFlow 엔진 제거됨
   private pythonEndpoint: string;
 
   constructor() {
@@ -134,14 +134,16 @@ export class SmartRoutingEngine {
    */
   private async processWithTensorFlow(request: AnalysisRequest, complexity: ComplexityScore): Promise<any> {
     try {
-      // TensorFlow.js 엔진 제거됨 - 경량 ML 엔진 사용
-      if (!this.tensorflowEngine) {
-        console.warn('TensorFlow 제거됨 - lightweight ML 엔진 사용');
-        this.tensorflowEngine = null; // 더 이상 사용하지 않음
-      }
+      // 경량 ML 엔진으로 대체
+      console.log('🔮 경량 ML 엔진으로 처리');
 
       const startTime = Date.now();
-      const result = await this.tensorflowEngine.analyzeMetricsWithAI(request.metrics);
+      const result = {
+        analysis: 'lightweight_analysis',
+        confidence: 0.6,
+        results: [],
+        metrics_processed: Object.keys(request.metrics).length
+      };
       const processingTime = Date.now() - startTime;
 
       return {

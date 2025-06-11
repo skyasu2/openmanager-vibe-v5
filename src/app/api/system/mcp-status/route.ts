@@ -32,7 +32,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       case 'overview':
         // 전체 시스템 개요
         const systemHealth = await unifiedAISystem.getSystemHealth();
-        
+
         return NextResponse.json({
           success: true,
           data: {
@@ -40,26 +40,25 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
               overall: systemHealth.overall,
               totalComponents: Object.keys(systemHealth.components).length,
               healthyComponents: [
-                systemHealth.components.fastapi,
-                systemHealth.components.mcp,
-                systemHealth.components.keepAlive
-              ].filter(comp => comp.status === 'healthy').length
+                systemHealth.components?.fastapi,
+                systemHealth.components?.mcp,
+                systemHealth.components?.google_ai
+              ].filter(comp => comp === true).length
             },
             version: '5.17.10-MCP',
             architecture: 'MCP + FastAPI Hybrid',
             components: {
               totalComponents: Object.keys(systemHealth.components).length,
               healthyComponents: [
-                systemHealth.components.fastapi,
-                systemHealth.components.mcp,
-                systemHealth.components.keepAlive
-              ].filter(comp => comp.status === 'healthy').length
+                systemHealth.components?.fastapi,
+                systemHealth.components?.mcp,
+                systemHealth.components?.google_ai
+              ].filter(comp => comp === true).length
             },
             performance: {
               totalQueries: systemHealth.stats.totalQueries,
               avgResponseTime: Math.round(systemHealth.stats.avgResponseTime),
-              successRate: Math.round(systemHealth.stats.successRate * 100),
-              cacheHitRate: Math.round(systemHealth.stats.cacheHitRate * 100)
+              successRate: Math.round(systemHealth.stats.successRate * 100)
             },
             lastUpdate: Date.now()
           },
@@ -82,8 +81,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           success: true,
           data: {
             unifiedAI: {
-              status: systemHealthDetail.status === 'fulfilled' 
-                ? systemHealthDetail.value.overall 
+              status: systemHealthDetail.status === 'fulfilled'
+                ? systemHealthDetail.value.overall
                 : 'error',
               components: systemHealthDetail.status === 'fulfilled'
                 ? systemHealthDetail.value.components
@@ -94,16 +93,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             },
             keepAlive: {
               status: keepAliveStatus.status === 'fulfilled' && keepAliveStatus.value.isActive
-                ? 'healthy' 
+                ? 'healthy'
                 : 'inactive',
               details: keepAliveStatus.status === 'fulfilled'
                 ? {
-                    totalPings: keepAliveStatus.value.totalPings,
-                    consecutiveSuccesses: keepAliveStatus.value.consecutiveSuccesses,
-                    uptime: Math.round(keepAliveStatus.value.uptimeHours * 100) / 100,
-                    lastPing: keepAliveStatus.value.lastPing,
-                    averageResponseTime: Math.round(keepAliveStatus.value.averageResponseTime)
-                  }
+                  totalPings: keepAliveStatus.value.totalPings,
+                  consecutiveSuccesses: keepAliveStatus.value.consecutiveSuccesses,
+                  uptime: Math.round(keepAliveStatus.value.uptimeHours * 100) / 100,
+                  lastPing: keepAliveStatus.value.lastPing,
+                  averageResponseTime: Math.round(keepAliveStatus.value.averageResponseTime)
+                }
                 : null
             },
             fastAPI: {
@@ -112,9 +111,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
                 : 'disconnected',
               details: fastApiStatus.status === 'fulfilled'
                 ? {
-                    lastHealthCheck: fastApiStatus.value.lastHealthCheck,
-                    healthStatus: fastApiStatus.value.healthStatus
-                  }
+                  lastHealthCheck: fastApiStatus.value.lastHealthCheck,
+                  healthStatus: fastApiStatus.value.healthStatus
+                }
                 : null
             }
           },
@@ -124,46 +123,31 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       case 'performance':
         // 성능 메트릭
         const perfData = await unifiedAISystem.getSystemHealth();
-        
+
         return NextResponse.json({
           success: true,
           data: {
             queries: {
               total: perfData.stats.totalQueries,
               successRate: Math.round(perfData.stats.successRate * 100),
-              avgResponseTime: Math.round(perfData.stats.avgResponseTime),
-              cacheHitRate: Math.round(perfData.stats.cacheHitRate * 100)
+              avgResponseTime: Math.round(perfData.stats.avgResponseTime)
             },
             system: {
               overview: {
                 overall: perfData.overall,
                 totalComponents: Object.keys(perfData.components).length,
                 healthyComponents: [
-                  perfData.components.fastapi,
-                  perfData.components.mcp,
-                  perfData.components.keepAlive
-                ].filter(comp => comp.status === 'healthy').length
+                  perfData.components?.fastapi,
+                  perfData.components?.mcp,
+                  perfData.components?.google_ai
+                ].filter(comp => comp === true).length
               },
               componentsHealthy: [
-                perfData.components.fastapi,
-                perfData.components.mcp,
-                perfData.components.keepAlive
-              ].filter(comp => comp.status === 'healthy').length,
+                perfData.components?.fastapi,
+                perfData.components?.mcp,
+                perfData.components?.google_ai
+              ].filter(comp => comp === true).length,
               totalComponents: Object.keys(perfData.components).length
-            },
-            contexts: {
-              basic: {
-                status: perfData.components.contexts.basic.status,
-                lastUpdate: perfData.components.contexts.basic.lastUpdate
-              },
-              advanced: {
-                status: perfData.components.contexts.advanced.status,
-                documentsCount: perfData.components.contexts.advanced.documentsCount
-              },
-              custom: {
-                status: perfData.components.contexts.custom.status,
-                rulesCount: perfData.components.contexts.custom.rulesCount
-              }
             }
           },
           timestamp: Date.now()
@@ -173,7 +157,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         // 진단 정보
         const keepAliveData = await keepAliveSystem.getStatus();
         const fastApiData = await fastApiClient.getConnectionStatus();
-        
+
         const diagnostics = {
           mcp: {
             status: 'enabled',
@@ -259,7 +243,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   } catch (error) {
     console.error('❌ [API] MCP 상태 조회 실패:', error);
-    
+
     return NextResponse.json({
       error: 'MCP 상태 조회 실패',
       code: 'MCP_STATUS_FAILED',
@@ -281,7 +265,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       case 'ping':
         // Keep-Alive 수동 트리거
         const pingResult = await keepAliveSystem.triggerManualPing();
-        
+
         return NextResponse.json({
           success: true,
           data: {
@@ -296,7 +280,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       case 'health':
         // FastAPI 헬스체크 강제 실행
         const health = await fastApiClient.checkHealth();
-        
+
         return NextResponse.json({
           success: true,
           data: health,
@@ -307,7 +291,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       case 'warmup':
         // FastAPI 웜업 실행
         const warmupResult = await fastApiClient.warmup();
-        
+
         return NextResponse.json({
           success: true,
           data: {
@@ -321,7 +305,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       case 'reset_stats':
         // Keep-Alive 통계 리셋
         keepAliveSystem.resetStatistics();
-        
+
         return NextResponse.json({
           success: true,
           data: { reset: true },
@@ -340,7 +324,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   } catch (error) {
     console.error('❌ [API] MCP 액션 실행 실패:', error);
-    
+
     return NextResponse.json({
       error: 'MCP 액션 실행 실패',
       code: 'MCP_ACTION_FAILED',

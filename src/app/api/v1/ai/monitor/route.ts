@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { unifiedAIEngine, UnifiedAnalysisRequest } from '@/core/ai/UnifiedAIEngine';
+import { UnifiedAIEngine, UnifiedAnalysisRequest } from '@/core/ai/UnifiedAIEngine';
 
 interface MonitoringRequest {
   serverName?: string;
@@ -43,10 +43,10 @@ const MONITOR_CACHE_TTL = 30 * 1000; // 30초
  */
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
-  
+
   try {
     const body: MonitoringRequest = await request.json();
-    
+
     // 현재 상태 검증
     if (!body.currentStatus || typeof body.currentStatus !== 'object') {
       return NextResponse.json({
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     // 캐시 키 생성
     const cacheKey = generateMonitorCacheKey(body);
     const cached = getCachedMonitor(cacheKey);
-    
+
     if (cached) {
       console.log('🚀 모니터링 캐시 히트:', cacheKey);
       return NextResponse.json({
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
 
     // 상태 평가
     const statusAssessment = assessServerStatus(body.currentStatus, thresholds);
-    
+
     // 분석 타입에 따른 쿼리 생성
     const query = generateMonitoringQuery(body.checkType || 'health', body.currentStatus, statusAssessment);
 
@@ -109,12 +109,12 @@ export async function POST(request: NextRequest) {
     });
 
     // UnifiedAIEngine으로 분석 수행
-    const result = await unifiedAIEngine.processQuery(analysisRequest);
+    const result = await UnifiedAIEngine.getInstance().processQuery(analysisRequest);
 
     // 모니터링 특화 응답 구성
     const response = {
       success: result.success,
-      
+
       // 🧠 모니터링 결과
       data: {
         serverStatus: {
@@ -127,11 +127,11 @@ export async function POST(request: NextRequest) {
         analysis: result.analysis,
         recommendations: result.recommendations,
         actions: generateActionItems(statusAssessment.issues, body.currentStatus),
-        alerts: statusAssessment.issues.filter((issue: { level: string }) => 
+        alerts: statusAssessment.issues.filter((issue: { level: string }) =>
           issue.level === 'warning' || issue.level === 'critical'
         )
       },
-      
+
       // 🔧 메타데이터
       meta: {
         sessionId: result.metadata.sessionId,
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('❌ V1 모니터링 API 오류:', error);
-    
+
     return NextResponse.json({
       success: false,
       error: '서버 모니터링 중 오류가 발생했습니다',
@@ -259,12 +259,12 @@ function generateMonitorCacheKey(body: MonitoringRequest): string {
 function getCachedMonitor(key: string): any {
   const cached = monitorCache.get(key);
   if (!cached) return null;
-  
+
   if (Date.now() - cached.timestamp > MONITOR_CACHE_TTL) {
     monitorCache.delete(key);
     return null;
   }
-  
+
   return cached.result;
 }
 
@@ -276,7 +276,7 @@ function setCachedMonitor(key: string, result: any): void {
       monitorCache.delete(firstKey);
     }
   }
-  
+
   monitorCache.set(key, {
     result,
     timestamp: Date.now()
@@ -299,7 +299,7 @@ function convertToServerMetrics(status: any): any {
 function assessServerStatus(status: any, thresholds: any): any {
   const issues = [];
   let score = 100;
-  
+
   // CPU 확인
   if (status.cpu >= thresholds.cpu.critical) {
     issues.push({
@@ -316,7 +316,7 @@ function assessServerStatus(status: any, thresholds: any): any {
     });
     score -= 15;
   }
-  
+
   // Memory 확인
   if (status.memory >= thresholds.memory.critical) {
     issues.push({
@@ -333,7 +333,7 @@ function assessServerStatus(status: any, thresholds: any): any {
     });
     score -= 15;
   }
-  
+
   // Disk 확인
   if (status.disk >= thresholds.disk.critical) {
     issues.push({
@@ -354,7 +354,7 @@ function assessServerStatus(status: any, thresholds: any): any {
   // 전체 상태 레벨 결정
   const criticalIssues = issues.filter(i => i.level === 'critical').length;
   const warningIssues = issues.filter(i => i.level === 'warning').length;
-  
+
   let overallLevel = 'healthy';
   if (criticalIssues > 0) overallLevel = 'critical';
   else if (warningIssues > 0) overallLevel = 'warning';
@@ -369,7 +369,7 @@ function assessServerStatus(status: any, thresholds: any): any {
 
 function generateMonitoringQuery(type: string, status: any, assessment: any): string {
   const baseInfo = `현재 서버 상태: CPU ${status.cpu}%, 메모리 ${status.memory}%, 디스크 ${status.disk}%`;
-  
+
   switch (type) {
     case 'health':
       return `${baseInfo}. 전체 상태: ${assessment.overallLevel}. 건강 상태를 종합적으로 분석해주세요.`;
@@ -384,7 +384,7 @@ function generateMonitoringQuery(type: string, status: any, assessment: any): st
 
 function generateActionItems(issues: any[], status: any): Array<{ priority: string; action: string; category: string }> {
   const actions = [];
-  
+
   for (const issue of issues) {
     switch (issue.type) {
       case 'cpu':
@@ -407,7 +407,7 @@ function generateActionItems(issues: any[], status: any): Array<{ priority: stri
           });
         }
         break;
-        
+
       case 'memory':
         if (issue.level === 'critical') {
           actions.push({
@@ -428,7 +428,7 @@ function generateActionItems(issues: any[], status: any): Array<{ priority: stri
           });
         }
         break;
-        
+
       case 'disk':
         if (issue.level === 'critical') {
           actions.push({
@@ -451,7 +451,7 @@ function generateActionItems(issues: any[], status: any): Array<{ priority: stri
         break;
     }
   }
-  
+
   // 기본 액션 (이슈가 없는 경우)
   if (actions.length === 0) {
     actions.push({
@@ -460,20 +460,20 @@ function generateActionItems(issues: any[], status: any): Array<{ priority: stri
       category: 'monitoring'
     });
   }
-  
+
   return actions;
 }
 
 function getNextCheckTime(level: string): string {
   const now = new Date();
   let minutes = 5; // 기본값
-  
+
   switch (level) {
     case 'critical': minutes = 1; break;
     case 'warning': minutes = 2; break;
     case 'caution': minutes = 3; break;
     default: minutes = 5; break;
   }
-  
+
   return new Date(now.getTime() + minutes * 60 * 1000).toISOString();
 } 

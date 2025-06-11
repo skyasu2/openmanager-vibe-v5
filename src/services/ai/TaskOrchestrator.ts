@@ -7,7 +7,7 @@
  * - 단순하고 명확한 구조
  */
 
-import { MCPTask, MCPTaskResult } from './MCPAIRouter';
+import { MCPTaskResult } from './MCPAIRouter';
 import {
     LightweightAnomalyDetector,
     createLightweightAnomalyDetector,
@@ -17,6 +17,44 @@ import {
     ScenarioType,
     MetricData,
 } from '../../utils/enhanced-data-generator';
+
+// 로컬 MCPTask 인터페이스 정의 (input 속성 포함)
+interface MCPTask {
+    id: string;
+    type: 'timeseries' | 'nlp' | 'anomaly' | 'complex_ml';
+    priority: 'high' | 'medium' | 'low';
+    data: any;
+    input?: any; // 추가: 입력 데이터 속성
+    context: {
+        serverMetrics?: any[];
+        logEntries?: any[];
+        timeRange?: { start: Date; end: Date };
+        userQuery?: string;
+        previousResults?: any[];
+        sessionId?: string;
+        aiContexts?: any[];
+    };
+    timeout?: number;
+}
+
+// normalizeMetricData 함수를 올바른 위치에 정의
+function normalizeMetricData(data: any): any {
+    if (!data) return null;
+
+    // 기본 정규화 로직
+    if (Array.isArray(data)) {
+        return data.map(item => ({
+            timestamp: item.timestamp || new Date().toISOString(),
+            cpu: item.cpu || 0,
+            memory: item.memory || 0,
+            disk: item.disk || 0,
+            networkIn: item.networkIn || 0,
+            networkOut: item.networkOut || 0,
+        }));
+    }
+
+    return data;
+}
 
 export class TaskOrchestrator {
     private anomalyDetector: LightweightAnomalyDetector;
@@ -134,13 +172,14 @@ export class TaskOrchestrator {
 
             // 기본 데이터 생성 또는 입력 데이터 사용
             const timeSeriesData = task.input?.data ||
-                await enhancedDataGenerator.generateTimeSeries('normal', 100);
+                Array.from({ length: 100 }, (_, i) => Math.random() * 100 + i);
 
             // 간단한 통계 분석
+            const detectionResult = await this.anomalyDetector.detectAnomalies(timeSeriesData);
             const analysis = {
                 trend: this.calculateTrend(timeSeriesData),
                 variance: this.calculateVariance(timeSeriesData),
-                anomalies: this.anomalyDetector.detectAnomalies(timeSeriesData).anomalies,
+                anomalies: detectionResult.anomalies || [],
                 predictions: this.generateSimplePredictions(timeSeriesData),
                 confidence: 0.7
             };

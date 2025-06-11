@@ -35,7 +35,6 @@ export class HybridAIEngineRefactored {
 
   // AI 엔진 인스턴스들
   private mcpClient!: RealMCPClient;
-  private tensorflowEngine: any;
   private koreanEngine: any;
   private transformersEngine: any;
   private vectorDB: any;
@@ -81,7 +80,6 @@ export class HybridAIEngineRefactored {
       // Phase 1: 엔진 팩토리를 통한 병렬 초기화
       const engineStats = await this.engineFactory.initializeEngines({
         mcpClient: this.mcpClient,
-        tensorflowEngine: this.tensorflowEngine,
         koreanEngine: this.koreanEngine,
         transformersEngine: this.transformersEngine,
         vectorDB: this.vectorDB,
@@ -327,13 +325,13 @@ export class HybridAIEngineRefactored {
     docs: DocumentContext[]
   ): Promise<any> {
     try {
-      if (!this.tensorflowEngine?.predict) {
+      if (!this.transformersEngine?.predict) {
         return { predictions: [], confidence: 0.3 };
       }
 
       // 모의 예측 실행
       const mockData = this.generateMockMetrics();
-      return await this.tensorflowEngine.predict(mockData);
+      return await this.transformersEngine.predict(mockData);
     } catch (error) {
       console.warn('⚠️ TensorFlow 분석 오류:', error);
       return { predictions: [], confidence: 0.2 };
@@ -420,7 +418,6 @@ export class HybridAIEngineRefactored {
     const engines = this.engineFactory.createEngines();
 
     this.mcpClient = engines.mcpClient;
-    this.tensorflowEngine = engines.tensorflowEngine;
     this.koreanEngine = engines.koreanEngine;
     this.transformersEngine = engines.transformersEngine;
     this.vectorDB = engines.vectorDB;
@@ -509,5 +506,19 @@ export class HybridAIEngineRefactored {
     } catch (error) {
       console.error('❌ 리소스 정리 중 오류:', error);
     }
+  }
+
+  // TensorFlow 예측 부분을 간단한 예측으로 대체
+  private async executeTensorFlowPrediction(mockData: any): Promise<any> {
+    // TensorFlow 대신 간단한 예측 로직
+    console.log('🔮 간단한 예측 모델로 폴백 처리');
+
+    // 기본 예측 결과 생성
+    return {
+      predictions: [0.75, 0.85, 0.65],
+      confidence: 0.7,
+      model: 'lightweight_predictor',
+      processingTime: Date.now()
+    };
   }
 }

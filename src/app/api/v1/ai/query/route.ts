@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { unifiedAIEngine, UnifiedAnalysisRequest } from '@/core/ai/UnifiedAIEngine';
+import { UnifiedAIEngine, UnifiedAnalysisRequest } from '@/core/ai/UnifiedAIEngine';
 import { MCPOrchestrator, MCPRequest, MCPQuery } from '@/core/mcp/mcp-orchestrator';
 
 // 🧠 MCP 오케스트레이터 인스턴스
@@ -35,10 +35,10 @@ const CACHE_TTL = {
  */
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
-  
+
   try {
     const body = await request.json();
-    
+
     // 기본 검증
     if (!body.query || typeof body.query !== 'string') {
       return NextResponse.json({
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     // 캐시 키 생성
     const cacheKey = generateCacheKey(body);
     const cached = getCachedResult(cacheKey);
-    
+
     if (cached) {
       console.log('🚀 캐시 히트:', cacheKey);
       return NextResponse.json({
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
       // MCP 결과를 V1 API 형식으로 변환
       const response = {
         success: true,
-        
+
         // 🧠 AI 분석 결과
         data: {
           intent: { primary: 'mcp_analysis', confidence: mcpResult.confidence },
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
           },
           recommendations: mcpResult.recommendations || []
         },
-        
+
         // 🔧 메타데이터
         meta: {
           sessionId: analysisRequest.context?.sessionId,
@@ -180,19 +180,19 @@ export async function POST(request: NextRequest) {
     }
 
     // UnifiedAIEngine으로 분석 수행 (MCP 폴백)
-    const result = await unifiedAIEngine.processQuery(analysisRequest);
+    const result = await UnifiedAIEngine.getInstance().processQuery(analysisRequest);
 
     // 응답 구성
     const response = {
       success: result.success,
-      
+
       // 🧠 AI 분석 결과
       data: {
         intent: result.intent,
         analysis: result.analysis,
         recommendations: result.recommendations
       },
-      
+
       // 🔧 메타데이터
       meta: {
         sessionId: result.metadata.sessionId,
@@ -222,7 +222,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('❌ V1 AI API 오류:', error);
-    
+
     return NextResponse.json({
       success: false,
       error: 'AI 분석 중 오류가 발생했습니다',
@@ -247,7 +247,7 @@ export async function GET(request: NextRequest) {
 
     switch (action) {
       case 'health':
-        const status = await unifiedAIEngine.getSystemStatus();
+        const status = await UnifiedAIEngine.getInstance().getSystemStatus();
         return NextResponse.json({
           status: 'healthy',
           version: 'v1.0.0',
@@ -312,12 +312,12 @@ function generateCacheKey(body: any): string {
 function getCachedResult(key: string): any {
   const cached = queryCache.get(key);
   if (!cached) return null;
-  
+
   if (Date.now() - cached.timestamp > cached.ttl) {
     queryCache.delete(key);
     return null;
   }
-  
+
   return cached.result;
 }
 
@@ -329,7 +329,7 @@ function setCachedResult(key: string, result: any, ttl: number): void {
       queryCache.delete(firstKey);
     }
   }
-  
+
   queryCache.set(key, {
     result,
     timestamp: Date.now(),
@@ -339,14 +339,14 @@ function setCachedResult(key: string, result: any, ttl: number): void {
 
 function getCacheTTL(query: string): number {
   const queryLower = query?.toLowerCase() || '';
-  
+
   if (queryLower.includes('예측') || queryLower.includes('predict')) {
     return CACHE_TTL.predictions;
   }
   if (queryLower.includes('메트릭') || queryLower.includes('metric')) {
     return CACHE_TTL.metrics;
   }
-  
+
   return CACHE_TTL.common;
 }
 

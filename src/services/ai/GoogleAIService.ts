@@ -47,10 +47,10 @@ interface AdvancedAnalysisRequest {
   serverMetrics?: ServerMetrics[];
   context?: any;
   analysisType:
-    | 'monitoring'
-    | 'prediction'
-    | 'troubleshooting'
-    | 'optimization';
+  | 'monitoring'
+  | 'prediction'
+  | 'troubleshooting'
+  | 'optimization';
   priority: 'low' | 'medium' | 'high' | 'critical';
 }
 
@@ -68,16 +68,20 @@ export class GoogleAIService {
     // 🔐 보안 강화된 API 키 관리 사용
     const apiKey = getGoogleAIKey();
 
+    // 기본 설정 먼저 초기화
     this.config = {
       apiKey: apiKey || '',
       model: (process.env.GOOGLE_AI_MODEL as any) || 'gemini-1.5-flash',
-      enabled:
-        process.env.GOOGLE_AI_ENABLED === 'true' && isGoogleAIAvailable(),
+      enabled: process.env.GOOGLE_AI_ENABLED === 'true' && isGoogleAIAvailable(),
       rateLimits: {
-        rpm: this.getRateLimit('rpm'),
-        daily: this.getRateLimit('daily'),
+        rpm: 15, // 기본값 먼저 설정
+        daily: 1500, // 기본값 먼저 설정
       },
     };
+
+    // 이후 실제 레이트 리밋 설정
+    this.config.rateLimits.rpm = this.getRateLimit('rpm');
+    this.config.rateLimits.daily = this.getRateLimit('daily');
   }
 
   /**
@@ -309,8 +313,8 @@ export class GoogleAIService {
 서버 모니터링 데이터를 분석해주세요:
 
 ${metrics
-  .map(
-    server => `
+        .map(
+          server => `
 서버: ${server.name}
 CPU: ${server.cpu_usage}%
 메모리: ${server.memory_usage}%
@@ -318,8 +322,8 @@ CPU: ${server.cpu_usage}%
 응답시간: ${server.response_time}ms
 상태: ${server.status}
 `
-  )
-  .join('\n')}
+        )
+        .join('\n')}
 
 다음 관점에서 분석해주세요:
 1. 현재 시스템 상태 요약
@@ -332,6 +336,13 @@ CPU: ${server.cpu_usage}%
 
     const response = await this.generateContent(prompt);
     return response.content;
+  }
+
+  /**
+   * 🎯 응답 생성 (UnifiedAIEngine 호환)
+   */
+  async generateResponse(prompt: string): Promise<GoogleAIResponse> {
+    return await this.generateContent(prompt);
   }
 
   /**

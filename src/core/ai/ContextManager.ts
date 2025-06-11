@@ -521,4 +521,121 @@ export class ContextManager {
 
     await this.initialize();
   }
+
+  /**
+   * 🎯 의도 분석 및 컨텍스트 검색
+   */
+  public async analyzeIntent(intent: string, context?: any): Promise<any> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+
+    try {
+      // 1. 의도 분류
+      const classification = this.classifyIntent(intent);
+
+      // 2. 관련 컨텍스트 검색
+      const relevantContexts = await this.findRelevantContexts(
+        intent,
+        classification.category,
+        classification.urgency
+      );
+
+      // 3. 결과 구성
+      return {
+        success: true,
+        intent: {
+          query: intent,
+          category: classification.category,
+          urgency: classification.urgency,
+          confidence: classification.confidence
+        },
+        contexts: relevantContexts,
+        metadata: {
+          totalContexts: this.contextIndex.size,
+          matchedContexts: relevantContexts.length,
+          processingTime: Date.now(),
+          timestamp: new Date().toISOString()
+        }
+      };
+    } catch (error) {
+      console.error('❌ 의도 분석 실패:', error);
+      return {
+        success: false,
+        intent: {
+          query: intent,
+          category: 'unknown',
+          urgency: 'medium',
+          confidence: 0
+        },
+        contexts: [],
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
+  }
+
+  /**
+   * 🔍 의도 분류
+   */
+  private classifyIntent(intent: string): {
+    category: string;
+    urgency: string;
+    confidence: number;
+  } {
+    const lowerIntent = intent.toLowerCase();
+
+    // 긴급도 키워드
+    if (lowerIntent.includes('urgent') || lowerIntent.includes('critical') ||
+      lowerIntent.includes('error') || lowerIntent.includes('down')) {
+      return {
+        category: 'troubleshooting',
+        urgency: 'critical',
+        confidence: 0.9
+      };
+    }
+
+    // 모니터링 관련
+    if (lowerIntent.includes('monitor') || lowerIntent.includes('status') ||
+      lowerIntent.includes('check') || lowerIntent.includes('health')) {
+      return {
+        category: 'monitoring',
+        urgency: 'medium',
+        confidence: 0.8
+      };
+    }
+
+    // 예측 관련
+    if (lowerIntent.includes('predict') || lowerIntent.includes('forecast') ||
+      lowerIntent.includes('trend') || lowerIntent.includes('analyze')) {
+      return {
+        category: 'prediction',
+        urgency: 'low',
+        confidence: 0.7
+      };
+    }
+
+    // 기본값
+    return {
+      category: 'general',
+      urgency: 'medium',
+      confidence: 0.5
+    };
+  }
+
+  // 공개 생성자 추가 (UnifiedAIEngine에서 직접 사용할 수 있도록)
+  public static createInstance(): ContextManager {
+    const instance = Object.create(ContextManager.prototype);
+    instance.contextIndex = new Map();
+    instance.keywordIndex = new Map();
+    instance.scenarioIndex = new Map();
+    instance.priorityQueues = new Map();
+    instance.contextPath = path.join(process.cwd(), 'src', 'ai-context');
+    instance.indexPath = path.join(
+      instance.contextPath,
+      'metadata',
+      'context-index.json'
+    );
+    instance.initialized = false;
+    return instance;
+  }
 }

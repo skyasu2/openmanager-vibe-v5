@@ -64,8 +64,14 @@ export class RealMCPClient {
     const env = detectEnvironment();
     const mcpConfig = getMCPConfig();
 
+    // Render MCP 서버 정보
+    const renderMcpUrl = 'https://openmanager-vibe-v5.onrender.com';
+    const renderIPs = ['13.228.225.19', '18.142.128.26', '54.254.162.138'];
+
     console.log(`🌍 환경: ${env.NODE_ENV.toUpperCase()}`);
     console.log(`📂 Vercel 환경: ${env.IS_VERCEL ? '활성화' : '비활성화'}`);
+    console.log(`🌐 Render MCP 서버: ${renderMcpUrl}`);
+    console.log(`📍 MCP 서버 IPs: ${renderIPs.join(', ')}`);
 
     // 경로 존재 여부 확인
     const pathResults = checkPaths(['./src', './docs']);
@@ -80,6 +86,8 @@ export class RealMCPClient {
       env: {
         NODE_OPTIONS: `--max-old-space-size=${env.performance.maxMemory}`,
         PROJECT_ROOT: process.cwd(),
+        MCP_SERVER_URL: renderMcpUrl,
+        MCP_SERVER_IPS: renderIPs.join(','),
       },
       enabled: true, // 기본값 사용
     });
@@ -97,8 +105,25 @@ export class RealMCPClient {
       env: {
         GITHUB_TOKEN: githubToken || 'demo-token',
         NODE_OPTIONS: '--max-old-space-size=256',
+        MCP_SERVER_URL: renderMcpUrl,
+        MCP_SERVER_IPS: renderIPs.join(','),
       },
       enabled: false, // 기본값 사용 (GitHub 토큰 없으면 비활성화)
+    });
+
+    // 📊 OpenManager 전용 서버 (문서 관리)
+    this.servers.set('openmanager-docs', {
+      name: 'openmanager-docs',
+      command: npxCommand,
+      args: ['@modelcontextprotocol/server-filesystem', './docs', './src/ai-context'],
+      env: {
+        NODE_OPTIONS: '--max-old-space-size=256',
+        PROJECT_ROOT: process.cwd(),
+        MCP_SERVER_URL: renderMcpUrl,
+        MCP_SERVER_IPS: renderIPs.join(','),
+        MCP_SERVER_TYPE: 'openmanager-docs',
+      },
+      enabled: true,
     });
 
     console.log(
@@ -326,49 +351,203 @@ export class RealMCPClient {
   }
 
   /**
-   * 🔄 Mock 클라이언트 생성 (폴백용)
+   * 🔄 실제 폴백 클라이언트 생성 (Mock 아님)
    */
   private createMockClient(serverName: string): MCPClient {
-    console.log(`🔄 ${serverName} Mock 클라이언트 생성`);
+    console.log(`🔄 ${serverName} 실제 폴백 클라이언트 생성`);
 
     return {
       async connect(): Promise<void> {
-        console.log(`✅ Mock ${serverName} 연결됨`);
+        console.log(`✅ ${serverName} 폴백 클라이언트 연결됨`);
       },
 
       async request(request: any): Promise<any> {
-        console.log(`🔧 Mock ${serverName} 요청: ${request.method}`);
+        console.log(`🔧 ${serverName} 실제 요청 처리: ${request.method}`);
 
-        // Mock 응답 생성
+        // 실제 응답 생성 (Mock 아님)
         switch (request.method) {
           case 'tools/list':
-            return { tools: [] };
+            return await this.getAvailableTools();
           case 'tools/call':
-            if (request.params?.name === 'search_files') {
-              return {
-                success: true,
-                results: [
-                  {
-                    path: 'docs/README.md',
-                    content: 'Mock documentation content',
-                  },
-                  {
-                    path: 'src/components/README.md',
-                    content: 'Mock component docs',
-                  },
-                ],
-              };
-            }
-            return { success: true, result: 'Mock response' };
+            return await this.handleToolCall(request.params);
           default:
-            return { success: false, error: 'Mock method not implemented' };
+            return { success: false, error: `${request.method} 메서드는 지원되지 않습니다.` };
         }
       },
 
       async close(): Promise<void> {
-        console.log(`🔌 Mock ${serverName} 연결 종료`);
+        console.log(`🔌 ${serverName} 폴백 클라이언트 연결 종료`);
       },
     };
+  }
+
+  /**
+   * 🛠️ 실제 사용 가능한 도구 목록 반환
+   */
+  private async getAvailableTools(): Promise<{ tools: any[] }> {
+    return {
+      tools: [
+        {
+          name: 'search_files',
+          description: '실제 파일 시스템에서 파일 검색',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              pattern: { type: 'string', description: '검색할 파일 패턴' },
+              content: { type: 'string', description: '검색할 내용' }
+            }
+          }
+        },
+        {
+          name: 'read_file',
+          description: '실제 파일 내용 읽기',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              path: { type: 'string', description: '읽을 파일 경로' }
+            }
+          }
+        },
+        {
+          name: 'list_directory',
+          description: '실제 디렉토리 목록 조회',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              path: { type: 'string', description: '조회할 디렉토리 경로' }
+            }
+          }
+        }
+      ]
+    };
+  }
+
+  /**
+   * 🔧 실제 도구 호출 처리
+   */
+  private async handleToolCall(params: any): Promise<any> {
+    try {
+      switch (params?.name) {
+        case 'search_files':
+          return await this.realSearchFiles(params.arguments);
+        case 'read_file':
+          return await this.realReadFile(params.arguments?.path);
+        case 'list_directory':
+          return await this.realListDirectory(params.arguments?.path);
+        default:
+          return { success: false, error: `도구 ${params?.name}은 지원되지 않습니다.` };
+      }
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * 📁 실제 파일 검색 (fs 모듈 사용)
+   */
+  private async realSearchFiles(args: { pattern?: string; content?: string }): Promise<any> {
+    const fs = await import('fs').then(m => m.promises);
+    const path = await import('path');
+    const { glob } = await import('glob');
+
+    try {
+      const searchPattern = args.pattern || '**/*.{md,txt,json,ts,tsx,js,jsx}';
+      const searchContent = args.content || '';
+
+      // 실제 파일 검색
+      const files = await glob(searchPattern, {
+        cwd: process.cwd(),
+        ignore: ['node_modules/**', '.git/**', 'dist/**', 'build/**']
+      });
+
+      const results = [];
+
+      for (const file of files.slice(0, 10)) { // 최대 10개 파일만
+        try {
+          const fullPath = path.join(process.cwd(), file);
+          const content = await fs.readFile(fullPath, 'utf-8');
+
+          if (!searchContent || content.toLowerCase().includes(searchContent.toLowerCase())) {
+            results.push({
+              path: file,
+              content: content.length > 500 ? content.substring(0, 500) + '...' : content,
+              size: content.length,
+              lastModified: (await fs.stat(fullPath)).mtime.toISOString()
+            });
+          }
+        } catch (error) {
+          // 파일 읽기 실패 시 스킵
+          continue;
+        }
+      }
+
+      return {
+        success: true,
+        results,
+        totalFound: results.length
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: `파일 검색 실패: ${error.message}`
+      };
+    }
+  }
+
+  /**
+   * 📄 실제 파일 읽기
+   */
+  private async realReadFile(filePath: string): Promise<any> {
+    const fs = await import('fs').then(m => m.promises);
+    const path = await import('path');
+
+    try {
+      const fullPath = path.resolve(process.cwd(), filePath);
+      const content = await fs.readFile(fullPath, 'utf-8');
+      const stats = await fs.stat(fullPath);
+
+      return {
+        success: true,
+        content,
+        size: stats.size,
+        lastModified: stats.mtime.toISOString()
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: `파일 읽기 실패: ${error.message}`
+      };
+    }
+  }
+
+  /**
+   * 📂 실제 디렉토리 목록 조회
+   */
+  private async realListDirectory(dirPath: string): Promise<any> {
+    const fs = await import('fs').then(m => m.promises);
+    const path = await import('path');
+
+    try {
+      const fullPath = path.resolve(process.cwd(), dirPath || '.');
+      const items = await fs.readdir(fullPath, { withFileTypes: true });
+
+      const results = items.map(item => ({
+        name: item.name,
+        type: item.isDirectory() ? 'directory' : 'file',
+        path: path.join(dirPath || '.', item.name)
+      }));
+
+      return {
+        success: true,
+        items: results,
+        totalItems: results.length
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: `디렉토리 조회 실패: ${error.message}`
+      };
+    }
   }
 
   async listTools(serverName: string): Promise<any[]> {
