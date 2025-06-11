@@ -13,6 +13,10 @@ import {
   RotateCcw,
   Home,
   ArrowRight,
+  CheckCircle,
+  Server as ServerIcon,
+  Cpu,
+  Database,
 } from 'lucide-react';
 import type { Server } from '@/types/server';
 
@@ -49,10 +53,9 @@ export default function SystemBootPage() {
     setBootState('running');
   }, []);
 
-  // 부팅 완료 핸들러 - 자동 이동 제거
+  // 부팅 완료 핸들러 - 애니메이션 멈춤
   const handleBootComplete = () => {
     setBootState('completed');
-    // 자동 이동 기능 제거됨
   };
 
   // 부팅 다시 시작
@@ -69,37 +72,6 @@ export default function SystemBootPage() {
         <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-3xl' />
       </div>
 
-      {/* 헤더 - 부팅 완료 시에만 표시 */}
-      {bootState === 'completed' && (
-        <motion.header
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className='relative z-10 p-6'
-        >
-          <div className='flex items-center justify-between'>
-            <div className='flex items-center gap-4'>
-              <div className='w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center'>
-                <Monitor className='w-6 h-6 text-white' />
-              </div>
-              <div>
-                <h1 className='text-2xl font-bold text-white'>
-                  OpenManager Vibe v5
-                </h1>
-                <p className='text-blue-200'>시스템 부팅 완료</p>
-              </div>
-            </div>
-
-            <Link
-              href='/'
-              className='flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors'
-            >
-              <Home className='w-4 h-4' />
-              홈으로
-            </Link>
-          </div>
-        </motion.header>
-      )}
-
       {/* 메인 컨텐츠 */}
       <div className='relative z-10 flex items-center justify-center min-h-screen'>
         <AnimatePresence mode='wait'>
@@ -113,84 +85,115 @@ export default function SystemBootPage() {
             />
           )}
 
-          {/* 부팅 완료 */}
+          {/* 부팅 완료 - 정적 완료 화면 */}
           {bootState === 'completed' && (
             <motion.div
               key='completed'
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className='text-center space-y-8 max-w-md mx-auto px-6'
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className='w-full h-full flex items-center justify-center'
             >
-              <div className='space-y-4'>
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-                  className='w-20 h-20 mx-auto bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center'
-                >
+              <div className='text-center space-y-8 max-w-4xl mx-auto px-6'>
+                {/* 시스템 상태 표시 */}
+                <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
                   <motion.div
-                    initial={{ rotate: 0 }}
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 0.6, delay: 0.4 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className='p-6 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm'
                   >
-                    ✓
+                    <div className='flex items-center gap-3 mb-3'>
+                      <CheckCircle className='w-6 h-6 text-green-400' />
+                      <h3 className='text-lg font-semibold text-white'>
+                        시스템 초기화
+                      </h3>
+                    </div>
+                    <p className='text-green-300 text-sm'>
+                      모든 시스템 구성 요소가 성공적으로 로드되었습니다
+                    </p>
                   </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className='p-6 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm'
+                  >
+                    <div className='flex items-center gap-3 mb-3'>
+                      <ServerIcon className='w-6 h-6 text-blue-400' />
+                      <h3 className='text-lg font-semibold text-white'>
+                        서버 연결
+                      </h3>
+                    </div>
+                    <p className='text-blue-300 text-sm'>
+                      {servers.length}개 서버가 온라인 상태입니다
+                    </p>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className='p-6 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm'
+                  >
+                    <div className='flex items-center gap-3 mb-3'>
+                      <Database className='w-6 h-6 text-purple-400' />
+                      <h3 className='text-lg font-semibold text-white'>
+                        데이터베이스
+                      </h3>
+                    </div>
+                    <p className='text-purple-300 text-sm'>
+                      모든 데이터 연결이 활성화되었습니다
+                    </p>
+                  </motion.div>
+                </div>
+
+                {/* 시스템 로고 */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className='text-center'
+                >
+                  <div className='w-24 h-24 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center'>
+                    <Monitor className='w-12 h-12 text-white' />
+                  </div>
+                  <h1 className='text-3xl font-bold text-white mb-2'>
+                    OpenManager Vibe v5
+                  </h1>
+                  <p className='text-blue-200'>시스템이 준비되었습니다</p>
                 </motion.div>
-                <motion.h2
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className='text-3xl font-bold text-white'
-                >
-                  시스템 부팅 완료!
-                </motion.h2>
-                <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                  className='text-green-200 text-lg'
-                >
-                  모든 서버가 성공적으로 초기화되었습니다
-                </motion.p>
               </div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
-                className='grid grid-cols-1 gap-4'
-              >
-                <Link
-                  href='/dashboard'
-                  className='flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-xl text-white font-semibold text-lg transition-all duration-200 hover:scale-105'
-                >
-                  <ArrowRight className='w-5 h-5' />
-                  대시보드로 이동
-                </Link>
-
-                <button
-                  onClick={restartBoot}
-                  className='flex items-center justify-center gap-3 px-6 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors'
-                >
-                  <RotateCcw className='w-4 h-4' />
-                  부팅 애니메이션 다시 보기
-                </button>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.8 }}
-                className='text-xs text-blue-300 space-y-1'
-              >
-                <p>✓ {servers.length}개 서버 부팅 완료</p>
-                <p>✓ 모든 시스템 서비스 정상 동작</p>
-                <p>✓ 대시보드 접근 준비 완료</p>
-              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
+
+      {/* 우측 하단 버튼 - 부팅 완료 시에만 표시 */}
+      {bootState === 'completed' && (
+        <motion.div
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5 }}
+          className='fixed bottom-8 right-8 flex flex-col gap-3'
+        >
+          <Link
+            href='/dashboard'
+            className='flex items-center gap-3 px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105'
+          >
+            <ArrowRight className='w-5 h-5' />
+            대시보드로 이동
+          </Link>
+
+          <button
+            onClick={restartBoot}
+            className='flex items-center gap-3 px-4 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors backdrop-blur-sm'
+          >
+            <RotateCcw className='w-4 h-4' />
+            다시 보기
+          </button>
+        </motion.div>
+      )}
     </div>
   );
 }
