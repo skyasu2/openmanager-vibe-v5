@@ -477,9 +477,9 @@ const cardData: FeatureCard[] = [
   },
   {
     id: 'vibe-coding',
-    title: '🔥 바이브 코딩',
+    title: '🔥 Vibe Coding',
     description:
-      '🎯 AI 주도 코딩으로 개발자 워크플로우를 혁신. Cursor + Claude로 자연어 명령만으로 고품질 코드 생성, 자동 배포까지',
+      '🎯 AI-driven coding workflow that revolutionizes developer experience. Generate high-quality code with natural language commands using Cursor + Claude, from development to automated deployment',
     icon: Zap,
     gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {
@@ -706,18 +706,37 @@ export default function FeatureCardsGrid() {
                 />
               )}
 
-              {/* 바이브 코딩 카드 황금 컨셉 디자인 */}
+              {/* Vibe Coding 카드 특별 디자인 */}
               {card.isVibeCard && (
                 <>
-                  {/* 황금 장식 요소 */}
+                  {/* 장식 요소 */}
                   <div className='absolute top-2 right-2 w-6 h-6 bg-yellow-400/30 rounded-full animate-pulse'></div>
                   <div className='absolute bottom-2 left-2 w-4 h-4 bg-yellow-400/20 rounded-full animate-pulse'></div>
 
-                  {/* 황금 배경 그라데이션 - 더 강렬하게 */}
-                  <div className='absolute inset-0 bg-gradient-to-br from-amber-600 via-orange-600 to-amber-700 rounded-2xl opacity-95'></div>
+                  {/* 개선된 배경 그라데이션 - 더 부드럽고 현대적 */}
+                  <motion.div
+                    className='absolute inset-0 rounded-2xl opacity-90'
+                    style={{
+                      background:
+                        'linear-gradient(135deg, #f59e0b 0%, #f97316 25%, #ea580c 50%, #dc2626 75%, #b91c1c 100%)',
+                    }}
+                    animate={{
+                      background: [
+                        'linear-gradient(135deg, #f59e0b 0%, #f97316 25%, #ea580c 50%, #dc2626 75%, #b91c1c 100%)',
+                        'linear-gradient(135deg, #f97316 0%, #ea580c 25%, #dc2626 50%, #b91c1c 75%, #f59e0b 100%)',
+                        'linear-gradient(135deg, #ea580c 0%, #dc2626 25%, #b91c1c 50%, #f59e0b 75%, #f97316 100%)',
+                        'linear-gradient(135deg, #f59e0b 0%, #f97316 25%, #ea580c 50%, #dc2626 75%, #b91c1c 100%)',
+                      ],
+                    }}
+                    transition={{
+                      duration: 6,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    }}
+                  />
 
                   {/* 텍스트 가독성을 위한 오버레이 */}
-                  <div className='absolute inset-0 bg-black/20 rounded-2xl'></div>
+                  <div className='absolute inset-0 bg-black/15 rounded-2xl'></div>
                 </>
               )}
 
@@ -725,7 +744,7 @@ export default function FeatureCardsGrid() {
               <div
                 className={`w-12 h-12 ${
                   card.isVibeCard
-                    ? 'bg-gradient-to-br from-yellow-400 to-amber-500 shadow-lg shadow-amber-500/50'
+                    ? 'bg-gradient-to-br from-yellow-400 to-amber-500'
                     : `bg-gradient-to-br ${card.gradient}`
                 } rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 relative z-10 ${
                   card.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
@@ -830,7 +849,7 @@ export default function FeatureCardsGrid() {
                   card.isAICard
                     ? 'group-hover:ring-pink-400/50 group-hover:shadow-lg group-hover:shadow-pink-500/25'
                     : card.isVibeCard
-                      ? 'group-hover:ring-yellow-400/50 group-hover:shadow-lg group-hover:shadow-yellow-500/25'
+                      ? 'group-hover:ring-yellow-400/50'
                       : card.isSpecial
                         ? 'group-hover:ring-amber-400/50 group-hover:shadow-lg group-hover:shadow-amber-500/25'
                         : 'group-hover:ring-white/30'
