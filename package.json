@@ -91,6 +91,7 @@
     "test:google-ai": "cross-env NODE_ENV=testing dotenv -e development/scripts/testing/env-template.env -- vitest development/tests/integration/google-ai-integration.test.ts",
     "test:external": "cross-env NODE_ENV=testing dotenv -e development/scripts/testing/env-template.env -- vitest development/tests/integration/manual-integration-test.test.ts development/tests/integration/google-ai-integration.test.ts development/tests/integration/slack-integration.test.ts",
     "test:ai-logging": "node scripts/quick-ai-logging-test.mjs",
+    "test:ai-chain": "node development/scripts/testing/test-ai-chain.mjs",
     "test:smart-fallback": "tsx development/scripts/testing/smart-fallback-test.ts",
     "test:smart-fallback:quick": "tsx development/scripts/testing/smart-fallback-test.ts --quick",
     "test:smart-fallback:engines": "tsx development/scripts/testing/smart-fallback-test.ts --engines-only",

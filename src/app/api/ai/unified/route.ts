@@ -11,7 +11,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import {
-  unifiedAISystem,
+  getUnifiedAISystem,
   UnifiedQuery,
   UnifiedResponse,
 } from '../../../../core/ai/unified-ai-system';
@@ -25,6 +25,9 @@ import {
 let isSystemInitialized = false;
 let lastInitTime = 0;
 const INIT_CACHE_TTL = 5 * 60 * 1000; // 5분
+
+// 통합 AI 시스템 인스턴스
+const unifiedAISystem = getUnifiedAISystem();
 
 interface QueryRequest {
   question: string;
@@ -55,11 +58,11 @@ interface ThinkingLog {
   step: string;
   content: string;
   type:
-    | 'analysis'
-    | 'reasoning'
-    | 'data_processing'
-    | 'pattern_matching'
-    | 'response_generation';
+  | 'analysis'
+  | 'reasoning'
+  | 'data_processing'
+  | 'pattern_matching'
+  | 'response_generation';
   timestamp: string;
   duration?: number;
   progress?: number;

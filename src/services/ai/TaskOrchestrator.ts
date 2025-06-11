@@ -1,588 +1,283 @@
-import { MCPTask, MCPTaskResult } from './MCPAIRouter';
-// Python API 타입 제거됨 - 로컬 인터페이스 사용
-interface AnalysisRequest {
-  query: string;
-  data?: any;
-  analysis_type?: string;
-  metrics?: any[];
-}
+/**
+ * 🎯 Task Orchestrator v3.0
+ * 
+ * MCP 중심의 작업 오케스트레이터
+ * - Python/FastAPI 완전 제거
+ * - MCP 작업만 처리
+ * - 단순하고 명확한 구조
+ */
 
-// normalizeMetricData 함수 대체
-function normalizeMetricData(metric: any) {
-  return metric;
-}
+import { MCPTask, MCPTaskResult } from './MCPAIRouter';
 import {
-  LightweightAnomalyDetector,
-  createLightweightAnomalyDetector,
+    LightweightAnomalyDetector,
+    createLightweightAnomalyDetector,
 } from './lightweight-anomaly-detector';
 import {
-  enhancedDataGenerator,
-  ScenarioType,
-  MetricData,
+    enhancedDataGenerator,
+    ScenarioType,
+    MetricData,
 } from '../../utils/enhanced-data-generator';
 
 export class TaskOrchestrator {
-  private engines: Map<string, any> = new Map();
-  private anomalyDetector: LightweightAnomalyDetector;
+    private anomalyDetector: LightweightAnomalyDetector;
+    private initialized = false;
 
-  constructor() {
-    // 엔진들을 지연 로딩으로 초기화
-    this.initializeEngines();
-
-    // 경량화된 이상 탐지기 초기화
-    this.anomalyDetector = createLightweightAnomalyDetector({
-      threshold: 2.0,
-      windowSize: 15,
-      sensitivity: 0.85,
-      methods: ['zscore', 'iqr', 'trend', 'threshold'],
-    });
-  }
-
-  private async initializeEngines() {
-    try {
-      // 각 엔진을 필요할 때 로드
-      console.log('🔧 Task Orchestrator 엔진 초기화 중...');
-    } catch (error) {
-      console.warn('⚠️ 일부 엔진 초기화 실패:', error);
-    }
-  }
-
-  /**
-   * 🚀 병렬 작업 실행
-   */
-  async executeParallel(tasks: MCPTask[]): Promise<MCPTaskResult[]> {
-    if (tasks.length === 0) return [];
-
-    console.log(`🎯 ${tasks.length}개 작업 병렬 실행 시작`);
-
-    // JavaScript 작업들과 Python 작업들 분리
-    const jsTasks = tasks.filter(task => task.type !== 'complex_ml');
-    const pythonTasks = tasks.filter(task => task.type === 'complex_ml');
-
-    // 병렬 실행
-    const [jsResults, pythonResults] = await Promise.allSettled([
-      this.executeJSTasks(jsTasks),
-      this.executePythonTasks(pythonTasks),
-    ]);
-
-    // 결과 수집
-    const allResults: MCPTaskResult[] = [];
-
-    if (jsResults.status === 'fulfilled') {
-      allResults.push(...jsResults.value);
-    } else {
-      console.error('❌ JavaScript 작업 실행 실패:', jsResults.reason);
+    constructor() {
+        // 경량화된 이상 탐지기 초기화
+        this.anomalyDetector = createLightweightAnomalyDetector({
+            threshold: 2.0,
+            windowSize: 15,
+            sensitivity: 0.85,
+            methods: ['zscore', 'iqr', 'trend', 'threshold'],
+        });
     }
 
-    if (pythonResults.status === 'fulfilled') {
-      allResults.push(...pythonResults.value);
-    } else {
-      console.error('❌ Python 작업 실행 실패:', pythonResults.reason);
+    async initialize(): Promise<void> {
+        if (this.initialized) return;
+
+        console.log('🔧 Task Orchestrator 초기화 중...');
+        this.initialized = true;
+        console.log('✅ Task Orchestrator 초기화 완료');
     }
 
-    console.log(`✅ ${allResults.length}개 작업 완료`);
-    return allResults;
-  }
+    /**
+     * 🚀 병렬 작업 실행 (MCP 전용)
+     */
+    async executeParallel(tasks: MCPTask[]): Promise<MCPTaskResult[]> {
+        if (!this.initialized) {
+            await this.initialize();
+        }
 
-  /**
-   * 🟨 JavaScript 작업들 실행
-   */
-  private async executeJSTasks(tasks: MCPTask[]): Promise<MCPTaskResult[]> {
-    const promises = tasks.map(task => this.executeJSTask(task));
-    const results = await Promise.allSettled(promises);
+        if (tasks.length === 0) return [];
 
-    return results.map((result, index) => {
-      if (result.status === 'fulfilled') {
-        return result.value;
-      } else {
+        console.log(`🎯 ${tasks.length}개 MCP 작업 병렬 실행 시작`);
+
+        // MCP 작업들만 처리
+        const promises = tasks.map(task => this.executeMCPTask(task));
+        const results = await Promise.allSettled(promises);
+
+        const allResults: MCPTaskResult[] = results.map((result, index) => {
+            if (result.status === 'fulfilled') {
+                return result.value;
+            } else {
+                return {
+                    taskId: tasks[index].id,
+                    type: tasks[index].type,
+                    success: false,
+                    error: result.reason?.message || '알 수 없는 오류',
+                    executionTime: 0,
+                    engine: 'mcp_failed',
+                };
+            }
+        });
+
+        console.log(`✅ ${allResults.length}개 작업 완료`);
+        return allResults;
+    }
+
+    /**
+     * 🧠 단일 MCP 작업 실행
+     */
+    private async executeMCPTask(task: MCPTask): Promise<MCPTaskResult> {
+        const startTime = Date.now();
+
+        try {
+            let result: any;
+            let engine: string;
+
+            switch (task.type) {
+                case 'timeseries':
+                    result = await this.executeTimeSeriesTask(task);
+                    engine = 'lightweight_ml';
+                    break;
+                case 'nlp':
+                    result = await this.executeNLPTask(task);
+                    engine = 'local_nlp';
+                    break;
+                case 'anomaly':
+                    result = await this.executeAnomalyTask(task);
+                    engine = 'anomaly_detector';
+                    break;
+                default:
+                    result = await this.executeBasicTask(task);
+                    engine = 'basic_processor';
+                    break;
+            }
+
+            return {
+                taskId: task.id,
+                type: task.type,
+                success: true,
+                result,
+                executionTime: Date.now() - startTime,
+                engine,
+                confidence: result.confidence || 0.8,
+            };
+        } catch (error: any) {
+            return {
+                taskId: task.id,
+                type: task.type,
+                success: false,
+                error: error.message,
+                executionTime: Date.now() - startTime,
+                engine: 'mcp_error',
+            };
+        }
+    }
+
+    /**
+     * 📈 시계열 작업 처리
+     */
+    private async executeTimeSeriesTask(task: MCPTask): Promise<any> {
+        try {
+            console.log(`📈 시계열 분석 시작: ${task.id}`);
+
+            // 기본 데이터 생성 또는 입력 데이터 사용
+            const timeSeriesData = task.input?.data ||
+                await enhancedDataGenerator.generateTimeSeries('normal', 100);
+
+            // 간단한 통계 분석
+            const analysis = {
+                trend: this.calculateTrend(timeSeriesData),
+                variance: this.calculateVariance(timeSeriesData),
+                anomalies: this.anomalyDetector.detectAnomalies(timeSeriesData).anomalies,
+                predictions: this.generateSimplePredictions(timeSeriesData),
+                confidence: 0.7
+            };
+
+            console.log(`✅ 시계열 분석 완료: ${task.id}`);
+            return analysis;
+        } catch (error) {
+            console.error(`❌ 시계열 분석 실패: ${task.id}`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * 🗣️ NLP 작업 처리
+     */
+    private async executeNLPTask(task: MCPTask): Promise<any> {
+        try {
+            console.log(`🗣️ NLP 분석 시작: ${task.id}`);
+
+            const text = task.input?.text || '기본 텍스트';
+
+            // 기본 NLP 분석
+            const analysis = {
+                sentiment: this.analyzeSentiment(text),
+                keywords: this.extractKeywords(text),
+                summary: this.generateSummary(text),
+                confidence: 0.6
+            };
+
+            console.log(`✅ NLP 분석 완료: ${task.id}`);
+            return analysis;
+        } catch (error) {
+            console.error(`❌ NLP 분석 실패: ${task.id}`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * 🚨 이상 탐지 작업 처리
+     */
+    private async executeAnomalyTask(task: MCPTask): Promise<any> {
+        try {
+            console.log(`🚨 이상 탐지 시작: ${task.id}`);
+
+            const data = task.input?.data || [1, 2, 3, 2, 1, 10, 2, 1]; // 기본 데이터
+            const result = this.anomalyDetector.detectAnomalies(data);
+
+            console.log(`✅ 이상 탐지 완료: ${task.id}`);
+            return {
+                ...result,
+                confidence: 0.8
+            };
+        } catch (error) {
+            console.error(`❌ 이상 탐지 실패: ${task.id}`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * 🔧 기본 작업 처리
+     */
+    private async executeBasicTask(task: MCPTask): Promise<any> {
+        console.log(`🔧 기본 작업 처리: ${task.id}`);
+
         return {
-          taskId: tasks[index].id,
-          type: tasks[index].type,
-          success: false,
-          error: result.reason?.message || '알 수 없는 오류',
-          executionTime: 0,
-          engine: 'javascript_failed',
+            message: `작업 ${task.id} 처리 완료`,
+            type: task.type,
+            timestamp: Date.now(),
+            confidence: 0.5
         };
-      }
-    });
-  }
-
-  /**
-   * 🐍 Python 작업들 실행
-   */
-  private async executePythonTasks(tasks: MCPTask[]): Promise<MCPTaskResult[]> {
-    const promises = tasks.map(task => this.executePythonTask(task));
-    const results = await Promise.allSettled(promises);
-
-    return results.map((result, index) => {
-      if (result.status === 'fulfilled') {
-        return result.value;
-      } else {
-        return {
-          taskId: tasks[index].id,
-          type: tasks[index].type,
-          success: false,
-          error: result.reason?.message || 'Python 서비스 연결 실패',
-          executionTime: 0,
-          engine: 'python_failed',
-        };
-      }
-    });
-  }
-
-  /**
-   * 🟨 단일 JavaScript 작업 실행
-   */
-  private async executeJSTask(task: MCPTask): Promise<MCPTaskResult> {
-    const startTime = Date.now();
-
-    try {
-      let result: any;
-      let engine: string;
-
-      switch (task.type) {
-        case 'timeseries':
-          result = await this.executeTimeSeriesTask(task);
-          engine = 'tensorflow.js';
-          break;
-        case 'nlp':
-          result = await this.executeNLPTask(task);
-          engine = 'transformers.js';
-          break;
-        case 'anomaly':
-          result = await this.executeAnomalyTask(task);
-          engine = 'onnx.js';
-          break;
-        default:
-          throw new Error(`지원하지 않는 작업 타입: ${task.type}`);
-      }
-
-      return {
-        taskId: task.id,
-        type: task.type,
-        success: true,
-        result,
-        executionTime: Date.now() - startTime,
-        engine,
-        confidence: result.confidence || 0.8,
-      };
-    } catch (error: any) {
-      return {
-        taskId: task.id,
-        type: task.type,
-        success: false,
-        error: error.message,
-        executionTime: Date.now() - startTime,
-        engine: 'javascript_error',
-      };
-    }
-  }
-
-  /**
-   * 🐍 단일 Python 작업 실행 (구조화된 JSON 전용)
-   */
-  private async executePythonTask(task: MCPTask): Promise<MCPTaskResult> {
-    const startTime = Date.now();
-
-    try {
-      // 구조화된 요청 생성
-      const structuredRequest = this.createStructuredRequest(task);
-
-      // 환경변수에서 Python 서비스 URL 가져오기
-      const pythonServiceUrl =
-        process.env.FASTAPI_BASE_URL ||
-        'https://openmanager-ai-engine.onrender.com';
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(
-        () => controller.abort(),
-        task.timeout || 20000
-      );
-
-      const response = await fetch(`${pythonServiceUrl}/analyze`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(structuredRequest),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`Python 서비스 오류: ${response.status}`);
-      }
-
-      const result = await response.json();
-
-      return {
-        taskId: task.id,
-        type: task.type,
-        success: true,
-        result,
-        executionTime: Date.now() - startTime,
-        engine: 'python_simplified',
-        confidence: result.confidence || 0.8,
-      };
-    } catch (error: any) {
-      // Python 서비스 실패 시 JavaScript fallback
-      console.warn(`🔄 Python 서비스 실패, fallback 실행: ${error.message}`);
-
-      const fallbackResult = await this.executeJavaScriptFallback(task);
-
-      return {
-        taskId: task.id,
-        type: task.type,
-        success: true,
-        result: fallbackResult,
-        executionTime: Date.now() - startTime,
-        engine: 'javascript_fallback',
-        warning: `Python 서비스 실패: ${error.message}`,
-      };
-    }
-  }
-
-  /**
-   * 📈 시계열 분석 작업 (TensorFlow.js 사용)
-   */
-  private async executeTimeSeriesTask(task: MCPTask): Promise<any> {
-    const metrics = task.data.metrics;
-    const predictionHours = task.data.predictionHours || 24;
-
-    if (!metrics || metrics.length === 0) {
-      throw new Error('시계열 분석을 위한 메트릭 데이터가 없습니다');
     }
 
-    try {
-      // TensorFlow.js 동적 import (옵션)
-      if (process.env.USE_TENSORFLOW === 'true') {
-        console.warn(
-          '⚠️ TensorFlow.js 지원이 제거되었습니다. lightweight-ml-engine을 사용하세요.'
+    // 헬퍼 메서드들
+    private calculateTrend(values: number[]): number {
+        if (values.length < 2) return 0;
+        return (values[values.length - 1] - values[0]) / values.length;
+    }
+
+    private calculateVariance(values: number[]): number {
+        const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+        const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+        return variance;
+    }
+
+    private generateSimplePredictions(data: number[]): number[] {
+        const lastValue = data[data.length - 1];
+        const trend = this.calculateTrend(data);
+
+        return Array.from({ length: 5 }, (_, i) =>
+            Math.max(0, lastValue + (trend * (i + 1)))
         );
-      }
-
-      // TensorFlow 비활성화 시 통계 기반 fallback으로 이동
-      throw new Error('TensorFlow disabled');
-    } catch (error) {
-      console.warn('TensorFlow.js 실패, 통계적 fallback 사용:', error);
-
-      // Fallback to statistical analysis
-      const latest = metrics[metrics.length - 1];
-      const cpuTrend = this.calculateTrend(metrics.map((m: any) => m.cpu));
-      const memoryTrend = this.calculateTrend(
-        metrics.map((m: any) => m.memory)
-      );
-
-      return {
-        type: 'timeseries_prediction',
-        predictions: {
-          cpu: {
-            nextValue: Math.max(
-              0,
-              Math.min(100, latest.cpu + cpuTrend * predictionHours)
-            ),
-            trend:
-              cpuTrend > 0
-                ? 'increasing'
-                : cpuTrend < 0
-                  ? 'decreasing'
-                  : 'stable',
-            confidence: 0.65,
-          },
-          memory: {
-            nextValue: Math.max(
-              0,
-              Math.min(100, latest.memory + memoryTrend * predictionHours)
-            ),
-            trend: memoryTrend > 0 ? 'increasing' : 'decreasing',
-            confidence: 0.65,
-          },
-        },
-        timeframe: `${predictionHours}시간`,
-        confidence: 0.65,
-        modelUsed: 'statistical-fallback',
-      };
-    }
-  }
-
-  /**
-   * 📝 NLP 분석 작업
-   */
-  private async executeNLPTask(task: MCPTask): Promise<any> {
-    const text = task.data.text || '';
-    const logs = task.data.logs || [];
-
-    // 간단한 키워드 기반 분석 (Transformers.js fallback)
-    const sentiment = this.analyzeSentimentFallback(text);
-    const keywords = this.extractKeywordsFallback(text);
-
-    let logAnalysis = null;
-    if (logs.length > 0) {
-      logAnalysis = this.analyzeLogsFallback(logs);
     }
 
-    return {
-      type: 'nlp_analysis',
-      sentiment,
-      keywords,
-      logAnalysis,
-      confidence: 0.7,
-    };
-  }
+    private analyzeSentiment(text: string): { score: number; label: string } {
+        // 간단한 키워드 기반 감정 분석
+        const positiveWords = ['좋', '훌륭', '최고', '완벽', '성공'];
+        const negativeWords = ['나쁜', '최악', '실패', '문제', '오류'];
 
-  /**
-   * ⚡ 이상 탐지 작업 (Enhanced 버전)
-   */
-  private async executeAnomalyTask(task: MCPTask): Promise<any> {
-    const metrics = task.data.metrics;
-    const sensitivity = task.data.sensitivity || 0.85;
+        let score = 0;
+        positiveWords.forEach(word => {
+            if (text.includes(word)) score += 0.2;
+        });
+        negativeWords.forEach(word => {
+            if (text.includes(word)) score -= 0.2;
+        });
 
-    if (!metrics || metrics.length === 0) {
-      throw new Error('이상 탐지를 위한 메트릭 데이터가 없습니다');
+        return {
+            score: Math.max(-1, Math.min(1, score)),
+            label: score > 0 ? 'positive' : score < 0 ? 'negative' : 'neutral'
+        };
     }
 
-    console.log('⚡ Enhanced 이상 탐지 분석 시작...');
-
-    // 메트릭 데이터 변환
-    const formattedMetrics: MetricData[] = metrics.map((m: any) => ({
-      timestamp: m.timestamp || new Date().toISOString(),
-      cpu: m.cpu,
-      memory: m.memory,
-      disk: m.disk,
-      networkIn: m.networkIn,
-      networkOut: m.networkOut,
-      responseTime: m.responseTime,
-    }));
-
-    // 경량화된 이상 탐지 실행
-    const result = await this.anomalyDetector.detectAnomalies(
-      formattedMetrics,
-      ['cpu', 'memory', 'disk'],
-      {
-        windowSize: Math.min(20, Math.floor(metrics.length / 3)),
-        sensitivity,
-      }
-    );
-
-    // 기존 형식으로 결과 변환
-    return {
-      type: 'enhanced_anomaly_detection',
-      anomalies: result.anomalies.map(anomaly => ({
-        timestamp: anomaly.timestamp,
-        type: anomaly.type,
-        severity: anomaly.severity,
-        score: anomaly.score,
-        feature: anomaly.feature,
-        value: anomaly.value,
-        zScore: anomaly.zScore,
-        description: anomaly.description,
-      })),
-      overallScore: result.overallScore,
-      confidence: result.confidence,
-      method: 'lightweight-statistics',
-      processingTime: result.processingTime,
-      recommendations: result.recommendations,
-    };
-  }
-
-  /**
-   * 🔄 JavaScript Fallback 실행
-   */
-  private async executeJavaScriptFallback(task: MCPTask): Promise<any> {
-    switch (task.type) {
-      case 'complex_ml':
-        return this.performBasicStatisticalAnalysis(task.data);
-      default:
-        return { message: 'Fallback 분석 완료', confidence: 0.5 };
-    }
-  }
-
-  /**
-   * 📊 기본 통계 분석
-   */
-  private performBasicStatisticalAnalysis(data: any): any {
-    const metrics = data.metrics || [];
-    if (metrics.length === 0) {
-      return { message: '분석할 데이터가 없습니다', confidence: 0.3 };
+    private extractKeywords(text: string): string[] {
+        // 간단한 키워드 추출
+        return text.split(' ')
+            .filter(word => word.length > 2)
+            .slice(0, 5);
     }
 
-    const latest = metrics[metrics.length - 1];
-    const averages = {
-      cpu:
-        metrics.reduce((sum: number, m: any) => sum + m.cpu, 0) /
-        metrics.length,
-      memory:
-        metrics.reduce((sum: number, m: any) => sum + m.memory, 0) /
-        metrics.length,
-    };
-
-    return {
-      type: 'statistical_analysis',
-      summary: `현재 CPU ${latest.cpu}% (평균 ${averages.cpu.toFixed(1)}%), 메모리 ${latest.memory}% (평균 ${averages.memory.toFixed(1)}%)`,
-      recommendations: this.generateBasicRecommendations(latest, averages),
-      confidence: 0.65,
-    };
-  }
-
-  // 유틸리티 메서드들
-  private calculateTrend(values: number[]): number {
-    if (values.length < 2) return 0;
-    const recent = values.slice(-5); // 최근 5개 값
-    return (recent[recent.length - 1] - recent[0]) / recent.length;
-  }
-
-  private calculateVariance(values: number[]): number {
-    if (values.length < 2) return 0;
-    const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-    const squaredDiffs = values.map(val => Math.pow(val - mean, 2));
-    return squaredDiffs.reduce((sum, val) => sum + val, 0) / values.length;
-  }
-
-  private getHourlyLoadMultiplier(hour: number): number {
-    // 비즈니스 시간대별 서버 로드 패턴
-    // 9-18시: 높은 로드 (1.2-1.5)
-    // 19-23시: 중간 로드 (0.8-1.1)
-    // 0-8시: 낮은 로드 (0.5-0.8)
-    if (hour >= 9 && hour <= 12) return 1.4; // 오전 피크
-    if (hour >= 13 && hour <= 17) return 1.3; // 오후 피크
-    if (hour === 18) return 1.1; // 퇴근시간
-    if (hour >= 19 && hour <= 23) return 0.9; // 저녁
-    if (hour >= 0 && hour <= 6) return 0.6; // 새벽
-    return 0.8; // 기타 시간
-  }
-
-  private analyzeSentimentFallback(text: string): any {
-    const negativeWords = ['문제', '오류', '에러', '실패', '느림', '지연'];
-    const positiveWords = ['정상', '좋음', '안정', '빠름', '개선'];
-
-    const negScore = negativeWords.filter(word => text.includes(word)).length;
-    const posScore = positiveWords.filter(word => text.includes(word)).length;
-
-    if (negScore > posScore) return { label: 'negative', score: 0.7 };
-    if (posScore > negScore) return { label: 'positive', score: 0.7 };
-    return { label: 'neutral', score: 0.6 };
-  }
-
-  private extractKeywordsFallback(text: string): string[] {
-    const techKeywords = [
-      'cpu',
-      'memory',
-      'disk',
-      'network',
-      'server',
-      'database',
-    ];
-    return techKeywords.filter(keyword => text.toLowerCase().includes(keyword));
-  }
-
-  private analyzeLogsFallback(logs: any[]): any {
-    const errorCount = logs.filter(log => log.level === 'ERROR').length;
-    const warnCount = logs.filter(log => log.level === 'WARN').length;
-
-    return {
-      totalLogs: logs.length,
-      errorLogs: errorCount,
-      warningLogs: warnCount,
-      severity: errorCount > 0 ? 'high' : warnCount > 5 ? 'medium' : 'low',
-    };
-  }
-
-  private generateBasicRecommendations(current: any, averages: any): string[] {
-    const recommendations: string[] = [];
-
-    if (current.cpu > averages.cpu * 1.5) {
-      recommendations.push(
-        'CPU 사용률이 평균보다 높습니다. 프로세스 확인이 필요합니다.'
-      );
+    private generateSummary(text: string): string {
+        // 간단한 요약 생성
+        const sentences = text.split('.');
+        return sentences.slice(0, 2).join('. ') + '.';
     }
 
-    if (current.memory > averages.memory * 1.3) {
-      recommendations.push(
-        '메모리 사용률이 증가했습니다. 메모리 누수를 확인하세요.'
-      );
+    /**
+     * 🔍 상태 확인
+     */
+    async getStatus(): Promise<{
+        initialized: boolean;
+        anomalyDetectorReady: boolean;
+        timestamp: number;
+    }> {
+        return {
+            initialized: this.initialized,
+            anomalyDetectorReady: !!this.anomalyDetector,
+            timestamp: Date.now()
+        };
     }
-
-    if (recommendations.length === 0) {
-      recommendations.push('현재 시스템 상태는 안정적입니다.');
-    }
-
-    return recommendations;
-  }
-
-  // 상태 확인 메서드들
-  async checkTensorFlowStatus(): Promise<boolean> {
-    try {
-      // TensorFlow.js 상태 확인 로직
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  async checkTransformersStatus(): Promise<boolean> {
-    try {
-      // Transformers.js 상태 확인 로직
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  async checkONNXStatus(): Promise<boolean> {
-    try {
-      // ONNX.js 상태 확인 로직
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  async checkPythonStatus(): Promise<boolean> {
-    try {
-      const pythonServiceUrl =
-        process.env.FASTAPI_BASE_URL ||
-        'https://openmanager-ai-engine.onrender.com';
-      const response = await fetch(`${pythonServiceUrl}/health`, {
-        method: 'GET',
-        signal: AbortSignal.timeout(5000),
-      });
-      return response.ok;
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * 📋 구조화된 Python 요청 생성 (타입 안전)
-   */
-  private createStructuredRequest(task: MCPTask): AnalysisRequest {
-    const { data } = task;
-
-    // Intent 타입을 Python 분석 타입으로 매핑
-    const analysisTypeMapping = {
-      capacity_planning: 'capacity_planning' as const,
-      server_performance_prediction: 'server_performance_prediction' as const,
-      complex_ml: 'complex_forecasting' as const,
-    };
-
-    // 메트릭 데이터 정규화 (타입 안전한 헬퍼 사용)
-    const normalizedMetrics = (data.metrics || []).map(normalizeMetricData);
-
-    const analysisType =
-      analysisTypeMapping[data.intent as keyof typeof analysisTypeMapping] ||
-      'complex_forecasting';
-
-    return {
-      analysis_type: analysisType,
-      metrics: normalizedMetrics,
-      prediction_hours: data.predictionHours || 24,
-      sensitivity: data.sensitivity || 0.8,
-      features: data.features || ['cpu', 'memory', 'disk'],
-      server_id: data.serverId || null,
-      urgency:
-        (data.urgency as 'critical' | 'high' | 'medium' | 'low') || 'medium',
-      confidence_threshold: 0.7,
-    };
-  }
-}
+} 

@@ -66,7 +66,6 @@ export class EngineFactory {
    */
   public async initializeEngines(engines: {
     mcpClient: RealMCPClient;
-    tensorflowEngine: TensorFlowAIEngine;
     koreanEngine: KoreanAIEngine;
     transformersEngine: TransformersEngine;
     vectorDB: LocalVectorDB;
@@ -103,14 +102,7 @@ export class EngineFactory {
       await this.initializeVectorDB(engines.vectorDB, stats);
     }
 
-    // Phase 3: TensorFlow 백그라운드 초기화
-    if (this.configuration.tensorflow.enabled) {
-      if (this.configuration.tensorflow.backgroundInit) {
-        this.initializeTensorFlowInBackground(engines.tensorflowEngine, stats);
-      } else {
-        await this.initializeTensorFlowEngine(engines.tensorflowEngine, stats);
-      }
-    }
+    // TensorFlow 제거됨
 
     return stats;
   }
@@ -179,43 +171,7 @@ export class EngineFactory {
     }
   }
 
-  /**
-   * TensorFlow 엔진 초기화
-   */
-  private async initializeTensorFlowEngine(
-    engine: TensorFlowAIEngine,
-    stats: EngineStats
-  ): Promise<void> {
-    try {
-      const startTime = Date.now();
-      await engine.initialize();
-      stats.tensorflow.initialized = true;
-      stats.tensorflow.avgTime = Date.now() - startTime;
-      console.log('✅ TensorFlow.js 엔진 초기화 완료');
-    } catch (error) {
-      console.warn('⚠️ TensorFlow.js 엔진 초기화 실패:', error);
-    }
-  }
-
-  /**
-   * TensorFlow 백그라운드 초기화
-   */
-  private initializeTensorFlowInBackground(
-    engine: TensorFlowAIEngine,
-    stats: EngineStats
-  ): void {
-    setTimeout(async () => {
-      try {
-        const startTime = Date.now();
-        await engine.initialize();
-        stats.tensorflow.initialized = true;
-        stats.tensorflow.avgTime = Date.now() - startTime;
-        console.log('✅ TensorFlow.js 백그라운드 초기화 완료');
-      } catch (error) {
-        console.warn('⚠️ TensorFlow.js 백그라운드 초기화 실패:', error);
-      }
-    }, 1000);
-  }
+  // TensorFlow 관련 메서드들 제거됨
 
   /**
    * 엔진 등록
