@@ -339,7 +339,62 @@ export default function AISidebarV6Enhanced({
               {/* 💬 채팅 영역 */}
               {activeFunction === 'chat' && (
                 <div className='flex-1 flex flex-col overflow-hidden'>
-                  {/* 메시지 컨테이너 - 상단 고정 */}
+                  {/* 상단 고정 영역 - 프리셋 질문과 입력창 */}
+                  <div className='border-b border-gray-200 bg-white'>
+                    {/* 프리셋 질문 영역 - 상단 고정 */}
+                    {messages.length === 0 && (
+                      <div className='p-4 border-b border-gray-100'>
+                        <h3 className='text-sm font-medium text-gray-700 mb-3 flex items-center gap-2'>
+                          <Lightbulb className='w-4 h-4 text-yellow-500' />
+                          빠른 질문
+                        </h3>
+                        <div className='grid grid-cols-2 gap-2'>
+                          {PRESET_CARDS.map(card => (
+                            <button
+                              key={card.id}
+                              onClick={() => handlePresetClick(card.question)}
+                              disabled={isThinking}
+                              className='p-3 bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-100 rounded-lg text-left hover:shadow-md hover:border-blue-200 transition-all group disabled:opacity-50 disabled:cursor-not-allowed'
+                            >
+                              <div className='text-xs font-medium text-blue-700 mb-1'>
+                                {card.keyword}
+                              </div>
+                              <div className='text-xs text-gray-600 group-hover:text-gray-700'>
+                                클릭해서 질문하기
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 입력 영역 - 상단 고정 */}
+                    <div className='p-4'>
+                      <div className='flex gap-2'>
+                        <input
+                          aria-label='입력 필드'
+                          type='text'
+                          value={currentInput}
+                          onChange={e => setCurrentInput(e.target.value)}
+                          onKeyPress={e =>
+                            e.key === 'Enter' && handleSendMessage()
+                          }
+                          placeholder='서버 관리에 대해 질문하세요...'
+                          className='flex-1 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all'
+                          disabled={isThinking}
+                        />
+                        <button
+                          onClick={handleSendMessage}
+                          disabled={!currentInput.trim() || isThinking}
+                          className='p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all'
+                        >
+                          <Send className='w-5 h-5' />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 메시지 컨테이너 - 하단 스크롤 영역 */}
                   <div
                     ref={chatContainerRef}
                     className='flex-1 overflow-y-auto p-4 space-y-4 min-h-0'
@@ -352,7 +407,7 @@ export default function AISidebarV6Enhanced({
                           AI와 대화를 시작해보세요!
                         </p>
                         <p className='text-sm text-gray-400'>
-                          아래 프리셋 질문을 클릭하거나 직접 질문을 입력하세요
+                          위의 프리셋 질문을 클릭하거나 직접 질문을 입력하세요
                         </p>
                       </div>
                     )}
@@ -612,61 +667,6 @@ export default function AISidebarV6Enhanced({
                         </div>
                       </div>
                     )}
-                  </div>
-
-                  {/* 하단 고정 영역 */}
-                  <div className='border-t border-gray-200 bg-white'>
-                    {/* 프리셋 질문 영역 - 하단 고정 */}
-                    {messages.length === 0 && (
-                      <div className='p-4 border-b border-gray-100'>
-                        <h3 className='text-sm font-medium text-gray-700 mb-3 flex items-center gap-2'>
-                          <Lightbulb className='w-4 h-4 text-yellow-500' />
-                          빠른 질문
-                        </h3>
-                        <div className='grid grid-cols-2 gap-2'>
-                          {PRESET_CARDS.map(card => (
-                            <button
-                              key={card.id}
-                              onClick={() => handlePresetClick(card.question)}
-                              disabled={isThinking}
-                              className='p-3 bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-100 rounded-lg text-left hover:shadow-md hover:border-blue-200 transition-all group disabled:opacity-50 disabled:cursor-not-allowed'
-                            >
-                              <div className='text-xs font-medium text-blue-700 mb-1'>
-                                {card.keyword}
-                              </div>
-                              <div className='text-xs text-gray-600 group-hover:text-gray-700'>
-                                클릭해서 질문하기
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* 입력 영역 - 하단 고정 */}
-                    <div className='p-4'>
-                      <div className='flex gap-2'>
-                        <input
-                          aria-label='입력 필드'
-                          type='text'
-                          value={currentInput}
-                          onChange={e => setCurrentInput(e.target.value)}
-                          onKeyPress={e =>
-                            e.key === 'Enter' && handleSendMessage()
-                          }
-                          placeholder='서버 관리에 대해 질문하세요...'
-                          className='flex-1 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all'
-                          disabled={isThinking}
-                        />
-                        <button
-                          onClick={handleSendMessage}
-                          disabled={!currentInput.trim() || isThinking}
-                          className='p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all'
-                        >
-                          <Send className='w-5 h-5' />
-                        </button>
-                      </div>
-                    </div>
                   </div>
                 </div>
               )}
