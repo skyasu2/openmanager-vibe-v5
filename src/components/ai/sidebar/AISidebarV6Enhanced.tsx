@@ -105,18 +105,26 @@ export default function AISidebarV6Enhanced({
   // 📄 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(0);
   const [isThinking, setIsThinking] = useState(false);
-  const [thinkingCollapsed, setThinkingCollapsed] = useState(false);
+  const [thinkingCollapsed, setThinkingCollapsed] = useState(true);
   const [currentThinking, setCurrentThinking] = useState<ThinkingStep[]>([]);
 
   // 📜 스크롤 참조
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const thinkingRef = useRef<HTMLDivElement>(null);
 
+  // 🔄 메시지 추가 시 자동 스크롤
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
+    }
+  }, [messages.length]); // 메시지 개수가 변경될 때만 스크롤
+
   // 🔄 생각 과정 시뮬레이션
   const simulateThinking = useCallback(
     async (question: string) => {
       setIsThinking(true);
-      setThinkingCollapsed(false);
+      setThinkingCollapsed(false); // 사고과정 시작 시 펼치기
 
       const steps: ThinkingStep[] = [
         {
@@ -180,7 +188,11 @@ export default function AISidebarV6Enhanced({
       }
 
       setIsThinking(false);
-      setThinkingCollapsed(true);
+
+      // 답변 완료 후 잠시 기다린 다음 사고과정 접기
+      setTimeout(() => {
+        setThinkingCollapsed(true);
+      }, 1000); // 1초 후 자동으로 접기
 
       // 답변 생성 (페이지별로)
       const responsePages = [
@@ -324,224 +336,336 @@ export default function AISidebarV6Enhanced({
                 </div>
               </div>
 
-              {/* 🎯 프리셋 질문 카드 */}
-              {activeFunction === 'chat' && messages.length === 0 && (
-                <div className='p-4 border-b border-gray-100'>
-                  <h3 className='text-sm font-medium text-gray-700 mb-3'>
-                    빠른 질문
-                  </h3>
-                  <div className='grid grid-cols-2 gap-2'>
-                    {PRESET_CARDS.map(card => (
-                      <button
-                        key={card.id}
-                        onClick={() => handlePresetClick(card.question)}
-                        className='p-3 bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-100 rounded-lg text-left hover:shadow-md hover:border-blue-200 transition-all group'
-                      >
-                        <div className='text-xs font-medium text-blue-700 mb-1'>
-                          {card.keyword}
-                        </div>
-                        <div className='text-xs text-gray-600 group-hover:text-gray-700'>
-                          클릭해서 질문하기
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {/* 💬 채팅 영역 */}
               {activeFunction === 'chat' && (
                 <div className='flex-1 flex flex-col overflow-hidden'>
-                  {/* 메시지 컨테이너 */}
+                  {/* 메시지 컨테이너 - 상단 고정 */}
                   <div
                     ref={chatContainerRef}
-                    className='flex-1 overflow-y-auto p-4 space-y-4'
+                    className='flex-1 overflow-y-auto p-4 space-y-4 min-h-0'
                   >
+                    {/* 빈 채팅 상태 메시지 */}
+                    {messages.length === 0 && (
+                      <div className='flex flex-col items-center justify-center h-full text-center'>
+                        <MessageSquare className='w-12 h-12 text-gray-300 mb-4' />
+                        <p className='text-gray-500 mb-2'>
+                          AI와 대화를 시작해보세요!
+                        </p>
+                        <p className='text-sm text-gray-400'>
+                          아래 프리셋 질문을 클릭하거나 직접 질문을 입력하세요
+                        </p>
+                      </div>
+                    )}
+
                     {messages.map(message => (
                       <div key={message.id} className='space-y-3'>
                         {/* 사용자 메시지 */}
                         {message.type === 'user' && (
                           <div className='flex justify-end'>
-                            <div className='max-w-[80%] p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl rounded-tr-md'>
-                              {message.content}
+                            <div className='max-w-[80%] p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl rounded-tr-md shadow-sm'>
+                              <div className='whitespace-pre-wrap'>
+                                {message.content}
+                              </div>
+                              <div className='text-xs opacity-75 mt-1'>
+                                {message.timestamp.toLocaleTimeString()}
+                              </div>
                             </div>
                           </div>
                         )}
 
-                        {/* AI 생각 과정 */}
-                        {message.type === 'ai' && message.thinking && (
-                          <div className='space-y-2'>
-                            {isThinking && !thinkingCollapsed && (
-                              <div
-                                ref={thinkingRef}
-                                className='bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4'
-                              >
-                                <div className='flex items-center gap-2 mb-3'>
-                                  <Brain className='w-4 h-4 text-blue-600 animate-pulse' />
-                                  <span className='text-sm font-medium text-blue-800'>
-                                    생각 중...
-                                  </span>
-                                </div>
-
-                                <div className='space-y-3'>
-                                  {currentThinking.map(step => (
-                                    <div key={step.id} className='space-y-2'>
-                                      <div className='flex items-center justify-between'>
-                                        <span className='text-xs font-medium text-gray-700'>
-                                          {step.title}
+                        {/* AI 응답 */}
+                        {message.type === 'ai' && (
+                          <div className='flex justify-start'>
+                            <div className='max-w-[85%] space-y-3'>
+                              {/* 사고과정 - 진행 중일 때는 펼치고, 완료되면 접기 */}
+                              {message.thinking && (
+                                <div className='space-y-2'>
+                                  {/* 현재 진행 중인 사고과정 - 항상 펼쳐서 표시 */}
+                                  {isThinking && (
+                                    <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4'>
+                                      <div className='flex items-center gap-2 mb-3'>
+                                        <Brain className='w-4 h-4 text-blue-600 animate-pulse' />
+                                        <span className='text-sm font-medium text-blue-800'>
+                                          생각 중...
                                         </span>
-                                        {step.completed && (
-                                          <div className='w-2 h-2 bg-green-500 rounded-full' />
-                                        )}
                                       </div>
 
-                                      {/* 진행률 바 */}
-                                      <div className='w-full bg-gray-200 rounded-full h-1.5'>
-                                        <motion.div
-                                          className='bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full'
-                                          initial={{ width: 0 }}
-                                          animate={{
-                                            width: `${step.progress}%`,
-                                          }}
-                                          transition={{ duration: 0.3 }}
-                                        />
+                                      <div className='space-y-3'>
+                                        {currentThinking.map((step, index) => (
+                                          <div
+                                            key={step.id}
+                                            className='space-y-2'
+                                          >
+                                            <div className='flex items-center justify-between'>
+                                              <div className='flex items-center gap-2'>
+                                                <span className='text-xs font-medium text-blue-700 bg-blue-100 px-2 py-1 rounded-full'>
+                                                  {index + 1}
+                                                </span>
+                                                <span className='text-sm font-medium text-gray-700'>
+                                                  {step.title}
+                                                </span>
+                                              </div>
+                                              {step.completed && (
+                                                <div className='w-2 h-2 bg-green-500 rounded-full' />
+                                              )}
+                                            </div>
+
+                                            {/* 진행률 바 */}
+                                            <div className='w-full bg-gray-200 rounded-full h-1.5'>
+                                              <motion.div
+                                                className='bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full'
+                                                initial={{ width: 0 }}
+                                                animate={{
+                                                  width: `${step.progress}%`,
+                                                }}
+                                                transition={{ duration: 0.3 }}
+                                              />
+                                            </div>
+
+                                            <p className='text-xs text-gray-600 pl-6'>
+                                              {step.content}
+                                            </p>
+                                          </div>
+                                        ))}
                                       </div>
-
-                                      <p className='text-xs text-gray-600'>
-                                        {step.content}
-                                      </p>
                                     </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
+                                  )}
 
-                            {/* 접힌 생각 과정 */}
-                            {thinkingCollapsed && (
-                              <button
-                                onClick={() => setThinkingCollapsed(false)}
-                                className='w-full bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between hover:shadow-md transition-all'
-                              >
-                                <div className='flex items-center gap-2'>
-                                  <Brain className='w-4 h-4 text-blue-600' />
-                                  <span className='text-sm font-medium text-blue-800'>
-                                    생각 과정 보기
-                                  </span>
-                                </div>
-                                <ChevronDown className='w-4 h-4 text-blue-600' />
-                              </button>
-                            )}
-                          </div>
-                        )}
-
-                        {/* AI 응답 (페이지네이션) */}
-                        {message.type === 'ai' &&
-                          message.pages &&
-                          !isThinking && (
-                            <div className='space-y-3'>
-                              <div className='bg-gray-50 border border-gray-200 rounded-2xl rounded-tl-md p-4'>
-                                <div className='text-gray-800'>
-                                  {message.pages[currentPage]}
-                                </div>
-
-                                {/* 페이지네이션 컨트롤 */}
-                                {totalPages > 1 && (
-                                  <div className='flex items-center justify-between mt-4 pt-3 border-t border-gray-200'>
-                                    <button
-                                      onClick={() =>
-                                        setCurrentPage(
-                                          Math.max(0, currentPage - 1)
-                                        )
-                                      }
-                                      disabled={currentPage === 0}
-                                      className='p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed'
-                                    >
-                                      <ChevronLeft className='w-4 h-4' />
-                                    </button>
-
-                                    <div className='flex items-center gap-1'>
-                                      {Array.from(
-                                        { length: totalPages },
-                                        (_, i) => (
-                                          <button
-                                            key={i}
-                                            onClick={() => setCurrentPage(i)}
-                                            className={`w-2 h-2 rounded-full transition-colors ${
-                                              i === currentPage
-                                                ? 'bg-purple-500'
-                                                : 'bg-gray-300'
-                                            }`}
-                                          />
-                                        )
-                                      )}
-                                    </div>
-
-                                    <button
-                                      onClick={() =>
-                                        setCurrentPage(
-                                          Math.min(
-                                            totalPages - 1,
-                                            currentPage + 1
+                                  {/* 완료된 사고과정 - 접힌 상태로 표시 */}
+                                  {!isThinking && (
+                                    <div className='space-y-2'>
+                                      {/* 접힌 생각 과정 버튼 */}
+                                      <button
+                                        onClick={() =>
+                                          setThinkingCollapsed(
+                                            !thinkingCollapsed
                                           )
-                                        )
-                                      }
-                                      disabled={currentPage === totalPages - 1}
-                                      className='p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed'
-                                    >
-                                      <ChevronRight className='w-4 h-4' />
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
+                                        }
+                                        className='w-full bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between hover:shadow-md transition-all group'
+                                      >
+                                        <div className='flex items-center gap-2'>
+                                          <Brain className='w-4 h-4 text-blue-600' />
+                                          <span className='text-sm font-medium text-blue-800'>
+                                            {thinkingCollapsed
+                                              ? '사고과정 보기'
+                                              : '사고과정 숨기기'}
+                                          </span>
+                                          <span className='text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full'>
+                                            {message.thinking.length}단계
+                                          </span>
+                                        </div>
+                                        <motion.div
+                                          animate={{
+                                            rotate: thinkingCollapsed ? 0 : 180,
+                                          }}
+                                          transition={{ duration: 0.2 }}
+                                        >
+                                          <ChevronDown className='w-4 h-4 text-blue-600 group-hover:text-blue-700' />
+                                        </motion.div>
+                                      </button>
 
-                              {/* 페이지 인디케이터 */}
-                              {totalPages > 1 && (
-                                <div className='text-center'>
-                                  <span className='text-xs text-gray-500'>
-                                    {currentPage + 1} / {totalPages}
-                                  </span>
+                                      {/* 펼쳐진 완료된 생각 과정 */}
+                                      <AnimatePresence>
+                                        {!thinkingCollapsed && (
+                                          <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{
+                                              height: 'auto',
+                                              opacity: 1,
+                                            }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.3 }}
+                                            className='overflow-hidden'
+                                          >
+                                            <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 space-y-3'>
+                                              {message.thinking.map(
+                                                (step, index) => (
+                                                  <div
+                                                    key={step.id}
+                                                    className='space-y-2'
+                                                  >
+                                                    <div className='flex items-center justify-between'>
+                                                      <div className='flex items-center gap-2'>
+                                                        <span className='text-xs font-medium text-blue-700 bg-blue-100 px-2 py-1 rounded-full'>
+                                                          {index + 1}
+                                                        </span>
+                                                        <span className='text-sm font-medium text-gray-700'>
+                                                          {step.title}
+                                                        </span>
+                                                      </div>
+                                                      <div className='w-2 h-2 bg-green-500 rounded-full' />
+                                                    </div>
+
+                                                    {/* 완료된 진행률 바 */}
+                                                    <div className='w-full bg-gray-200 rounded-full h-1.5'>
+                                                      <div className='bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full w-full' />
+                                                    </div>
+
+                                                    <p className='text-xs text-gray-600 pl-6'>
+                                                      {step.content}
+                                                    </p>
+                                                  </div>
+                                                )
+                                              )}
+                                            </div>
+                                          </motion.div>
+                                        )}
+                                      </AnimatePresence>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* AI 응답 (페이지네이션) - 항상 표시 */}
+                              {message.pages && (
+                                <div className='space-y-3'>
+                                  <div className='bg-gray-50 border border-gray-200 rounded-2xl rounded-tl-md p-4 shadow-sm'>
+                                    <div className='text-gray-800 leading-relaxed'>
+                                      {message.pages[currentPage]}
+                                    </div>
+
+                                    {/* 페이지네이션 컨트롤 */}
+                                    {totalPages > 1 && (
+                                      <div className='flex items-center justify-between mt-4 pt-3 border-t border-gray-200'>
+                                        <button
+                                          onClick={() =>
+                                            setCurrentPage(
+                                              Math.max(0, currentPage - 1)
+                                            )
+                                          }
+                                          disabled={currentPage === 0}
+                                          className='p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+                                        >
+                                          <ChevronLeft className='w-4 h-4' />
+                                        </button>
+
+                                        <div className='flex items-center gap-1'>
+                                          {Array.from(
+                                            { length: totalPages },
+                                            (_, i) => (
+                                              <button
+                                                key={i}
+                                                onClick={() =>
+                                                  setCurrentPage(i)
+                                                }
+                                                className={`w-2 h-2 rounded-full transition-colors ${
+                                                  i === currentPage
+                                                    ? 'bg-purple-500'
+                                                    : 'bg-gray-300 hover:bg-gray-400'
+                                                }`}
+                                              />
+                                            )
+                                          )}
+                                        </div>
+
+                                        <button
+                                          onClick={() =>
+                                            setCurrentPage(
+                                              Math.min(
+                                                totalPages - 1,
+                                                currentPage + 1
+                                              )
+                                            )
+                                          }
+                                          disabled={
+                                            currentPage === totalPages - 1
+                                          }
+                                          className='p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+                                        >
+                                          <ChevronRight className='w-4 h-4' />
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* 페이지 인디케이터 */}
+                                  {totalPages > 1 && (
+                                    <div className='text-center'>
+                                      <span className='text-xs text-gray-500'>
+                                        {currentPage + 1} / {totalPages}
+                                      </span>
+                                    </div>
+                                  )}
+
+                                  {/* 타임스탬프 */}
+                                  <div className='text-xs text-gray-400 text-right'>
+                                    {message.timestamp.toLocaleTimeString()}
+                                  </div>
                                 </div>
                               )}
                             </div>
-                          )}
+                          </div>
+                        )}
                       </div>
                     ))}
 
                     {/* 로딩 상태 */}
                     {isThinking && (
-                      <div className='flex justify-center'>
-                        <div className='flex items-center gap-2 text-gray-500'>
-                          <Loader2 className='w-4 h-4 animate-spin' />
-                          <span className='text-sm'>
-                            AI가 답변을 준비하고 있습니다...
-                          </span>
+                      <div className='flex justify-start'>
+                        <div className='bg-gray-50 border border-gray-200 rounded-2xl rounded-tl-md p-4 max-w-[85%]'>
+                          <div className='flex items-center gap-2 text-gray-500'>
+                            <Loader2 className='w-4 h-4 animate-spin' />
+                            <span className='text-sm'>
+                              AI가 답변을 준비하고 있습니다...
+                            </span>
+                          </div>
                         </div>
                       </div>
                     )}
                   </div>
 
-                  {/* 입력 영역 */}
-                  <div className='p-4 border-t border-gray-200 bg-white'>
-                    <div className='flex gap-2'>
-                      <input
-                        aria-label='입력 필드'
-                        type='text'
-                        value={currentInput}
-                        onChange={e => setCurrentInput(e.target.value)}
-                        onKeyPress={e =>
-                          e.key === 'Enter' && handleSendMessage()
-                        }
-                        placeholder='서버 관리에 대해 질문하세요...'
-                        className='flex-1 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent'
-                        disabled={isThinking}
-                      />
-                      <button
-                        onClick={handleSendMessage}
-                        disabled={!currentInput.trim() || isThinking}
-                        className='p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all'
-                      >
-                        <Send className='w-5 h-5' />
-                      </button>
+                  {/* 하단 고정 영역 */}
+                  <div className='border-t border-gray-200 bg-white'>
+                    {/* 프리셋 질문 영역 - 하단 고정 */}
+                    {messages.length === 0 && (
+                      <div className='p-4 border-b border-gray-100'>
+                        <h3 className='text-sm font-medium text-gray-700 mb-3 flex items-center gap-2'>
+                          <Lightbulb className='w-4 h-4 text-yellow-500' />
+                          빠른 질문
+                        </h3>
+                        <div className='grid grid-cols-2 gap-2'>
+                          {PRESET_CARDS.map(card => (
+                            <button
+                              key={card.id}
+                              onClick={() => handlePresetClick(card.question)}
+                              disabled={isThinking}
+                              className='p-3 bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-100 rounded-lg text-left hover:shadow-md hover:border-blue-200 transition-all group disabled:opacity-50 disabled:cursor-not-allowed'
+                            >
+                              <div className='text-xs font-medium text-blue-700 mb-1'>
+                                {card.keyword}
+                              </div>
+                              <div className='text-xs text-gray-600 group-hover:text-gray-700'>
+                                클릭해서 질문하기
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 입력 영역 - 하단 고정 */}
+                    <div className='p-4'>
+                      <div className='flex gap-2'>
+                        <input
+                          aria-label='입력 필드'
+                          type='text'
+                          value={currentInput}
+                          onChange={e => setCurrentInput(e.target.value)}
+                          onKeyPress={e =>
+                            e.key === 'Enter' && handleSendMessage()
+                          }
+                          placeholder='서버 관리에 대해 질문하세요...'
+                          className='flex-1 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all'
+                          disabled={isThinking}
+                        />
+                        <button
+                          onClick={handleSendMessage}
+                          disabled={!currentInput.trim() || isThinking}
+                          className='p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all'
+                        >
+                          <Send className='w-5 h-5' />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
