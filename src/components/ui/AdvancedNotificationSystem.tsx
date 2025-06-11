@@ -241,34 +241,39 @@ function NotificationItem({
     switch (notification.type) {
       case 'success':
         return {
-          container: `${baseStyles} bg-gradient-to-r from-green-100 to-emerald-100 border-l-4 border-green-600`,
-          icon: <CheckCircle className='w-5 h-5 text-green-700' />,
-          accent: 'bg-green-600',
+          container: `${baseStyles} bg-green-600/90 border border-green-500/50`,
+          icon: <CheckCircle className='w-5 h-5 text-white' />,
+          accent: 'bg-green-500',
+          textColor: 'text-white',
         };
       case 'error':
         return {
-          container: `${baseStyles} bg-gradient-to-r from-red-100 to-rose-100 border-l-4 border-red-600`,
-          icon: <XCircle className='w-5 h-5 text-red-700' />,
-          accent: 'bg-red-600',
+          container: `${baseStyles} bg-red-600/90 border border-red-500/50`,
+          icon: <XCircle className='w-5 h-5 text-white' />,
+          accent: 'bg-red-500',
+          textColor: 'text-white',
         };
       case 'warning':
         return {
-          container: `${baseStyles} bg-gradient-to-r from-yellow-100 to-amber-100 border-l-4 border-yellow-600`,
-          icon: <AlertTriangle className='w-5 h-5 text-yellow-700' />,
-          accent: 'bg-yellow-600',
+          container: `${baseStyles} bg-yellow-600/90 border border-yellow-500/50`,
+          icon: <AlertTriangle className='w-5 h-5 text-white' />,
+          accent: 'bg-yellow-500',
+          textColor: 'text-white',
         };
       case 'system':
         return {
-          container: `${baseStyles} bg-gradient-to-r from-purple-100 to-violet-100 border-l-4 border-purple-600`,
-          icon: <Activity className='w-5 h-5 text-purple-700' />,
-          accent: 'bg-purple-600',
+          container: `${baseStyles} bg-purple-600/90 border border-purple-500/50`,
+          icon: <Activity className='w-5 h-5 text-white' />,
+          accent: 'bg-purple-500',
+          textColor: 'text-white',
         };
       case 'info':
       default:
         return {
-          container: `${baseStyles} bg-gradient-to-r from-blue-100 to-cyan-100 border-l-4 border-blue-600`,
-          icon: <Info className='w-5 h-5 text-blue-700' />,
-          accent: 'bg-blue-600',
+          container: `${baseStyles} bg-blue-600/90 border border-blue-500/50`,
+          icon: <Info className='w-5 h-5 text-white' />,
+          accent: 'bg-blue-500',
+          textColor: 'text-white',
         };
     }
   };
@@ -308,16 +313,14 @@ function NotificationItem({
       layout
       className={`
         ${styles.container}
-        min-w-80 max-w-96 rounded-xl shadow-2xl backdrop-blur-xl
+        min-w-80 max-w-96 rounded-xl shadow-md
         transform transition-all duration-300 hover:scale-[1.02]
         ${notification.dismissible ? 'cursor-pointer' : ''}
-        pointer-events-auto mb-3
+        pointer-events-auto mb-4
       `}
       style={{
         zIndex: 99990 - index,
-        backdropFilter: 'blur(16px)',
-        boxShadow:
-          '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.1)',
+        boxShadow: '0 8px 25px -5px rgba(0, 0, 0, 0.2)',
       }}
       onClick={notification.dismissible ? handleDismiss : undefined}
     >
@@ -326,19 +329,19 @@ function NotificationItem({
 
       <div className='p-4'>
         {/* 헤더 */}
-        <div className='flex items-start justify-between mb-3'>
+        <div className='flex items-center justify-between mb-3'>
           <div className='flex items-center space-x-3'>
-            <div className='flex-shrink-0 p-2 rounded-lg bg-white/50'>
-              {styles.icon}
-            </div>
+            <div className='flex-shrink-0'>{styles.icon}</div>
             <div className='flex-1 min-w-0'>
               <div className='flex items-center space-x-2'>
-                <h3 className='text-sm font-semibold text-gray-900 truncate'>
+                <h3
+                  className={`text-sm font-semibold ${styles.textColor} truncate`}
+                >
                   {notification.title}
                 </h3>
                 {getPriorityIndicator()}
               </div>
-              <p className='text-xs text-gray-600 mt-1'>
+              <p className={`text-xs ${styles.textColor} opacity-90 mt-1`}>
                 {notification.message}
               </p>
             </div>
@@ -352,7 +355,7 @@ function NotificationItem({
               }}
               className='flex-shrink-0 p-1 rounded-full hover:bg-white/20 transition-colors ml-2'
             >
-              <X className='w-4 h-4 text-gray-500' />
+              <X className='w-4 h-4 text-white opacity-70 hover:opacity-100' />
             </button>
           )}
         </div>
@@ -366,7 +369,7 @@ function NotificationItem({
                 notification.action!.onClick();
                 handleDismiss();
               }}
-              className='px-3 py-1.5 text-xs font-medium rounded-lg bg-white/20 hover:bg-white/30 transition-colors'
+              className='px-3 py-1.5 text-xs font-medium text-white rounded-lg bg-white/20 hover:bg-white/30 transition-colors'
             >
               {notification.action.label}
             </button>
@@ -374,7 +377,9 @@ function NotificationItem({
         )}
 
         {/* 시간 표시 */}
-        <div className='flex items-center justify-between mt-3 text-xs text-gray-500'>
+        <div
+          className={`flex items-center justify-between mt-3 text-xs ${styles.textColor} opacity-75`}
+        >
           <div className='flex items-center space-x-1'>
             <Clock className='w-3 h-3' />
             <span>
@@ -457,7 +462,7 @@ export function AdvancedNotificationContainer() {
       )}
 
       {/* 알림 목록 */}
-      <div className='pointer-events-auto'>
+      <div className='pointer-events-auto space-y-2'>
         <AnimatePresence mode='popLayout'>
           {notifications.map((notification, index) => (
             <NotificationItem

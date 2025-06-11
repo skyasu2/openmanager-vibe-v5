@@ -49,28 +49,28 @@ const getSeverityStyles = (severity: SystemEvent['severity']) => {
   switch (severity) {
     case 'critical':
       return {
-        bgColor: 'bg-red-600/95',
-        borderColor: 'border-red-600',
+        bgColor: 'bg-red-600/90',
+        borderColor: 'border-red-500',
         textColor: 'text-white',
         icon: AlertTriangle,
-        iconColor: 'text-red-100',
+        iconColor: 'text-white',
       };
     case 'warning':
       return {
-        bgColor: 'bg-yellow-600/95',
-        borderColor: 'border-yellow-600',
+        bgColor: 'bg-yellow-600/90',
+        borderColor: 'border-yellow-500',
         textColor: 'text-white',
         icon: AlertTriangle,
-        iconColor: 'text-yellow-100',
+        iconColor: 'text-white',
       };
     case 'info':
     default:
       return {
-        bgColor: 'bg-blue-600/95',
-        borderColor: 'border-blue-600',
+        bgColor: 'bg-blue-600/90',
+        borderColor: 'border-blue-500',
         textColor: 'text-white',
         icon: CheckCircle,
-        iconColor: 'text-blue-100',
+        iconColor: 'text-white',
       };
   }
 };
@@ -123,22 +123,24 @@ const ToastNotification: React.FC<{
       }}
       className={`
         ${styles.bgColor} ${styles.textColor}
-        relative min-w-80 max-w-96 p-4 rounded-lg shadow-lg 
+        relative min-w-80 max-w-96 p-4 rounded-lg shadow-md 
         border-l-4 ${styles.borderColor}
-        mb-2 cursor-pointer
+        mb-3 cursor-pointer
         transform transition-all duration-200 hover:scale-105
       `}
       style={{ zIndex: 8999 - index }}
       onClick={() => onDismiss(notification.id)}
     >
       {/* 헤더 */}
-      <div className='flex items-start justify-between mb-2'>
+      <div className='flex items-center justify-between mb-2'>
         <div className='flex items-center space-x-2'>
           <div className='flex items-center space-x-1'>
             <EventTypeIcon className={`w-4 h-4 ${styles.iconColor}`} />
             <SeverityIcon className={`w-4 h-4 ${styles.iconColor}`} />
           </div>
-          <span className='text-xs font-semibold uppercase tracking-wider opacity-90'>
+          <span
+            className={`text-xs font-semibold uppercase tracking-wider ${styles.textColor} opacity-90`}
+          >
             {notification.type.replace('_', ' ')}
           </span>
         </div>
@@ -148,18 +150,22 @@ const ToastNotification: React.FC<{
             e.stopPropagation();
             onDismiss(notification.id);
           }}
-          className={`${styles.iconColor} hover:bg-white hover:bg-opacity-20 rounded-full p-1 transition-colors`}
+          className='text-white opacity-70 hover:opacity-100 hover:bg-white hover:bg-opacity-20 rounded-full p-1 transition-colors'
         >
           <X className='w-3 h-3' />
         </button>
       </div>
 
       {/* 메시지 */}
-      <div className='text-sm font-medium mb-2'>{notification.message}</div>
+      <div className={`text-sm font-medium mb-2 ${styles.textColor}`}>
+        {notification.message}
+      </div>
 
       {/* 메타데이터 (있는 경우) */}
       {notification.metadata && (
-        <div className='text-xs opacity-75 bg-black bg-opacity-20 rounded px-2 py-1 mb-2'>
+        <div
+          className={`text-xs opacity-75 bg-black bg-opacity-20 rounded px-2 py-1 mb-2 ${styles.textColor}`}
+        >
           {typeof notification.metadata === 'string'
             ? notification.metadata
             : JSON.stringify(notification.metadata, null, 2)}
@@ -167,7 +173,9 @@ const ToastNotification: React.FC<{
       )}
 
       {/* 시간 */}
-      <div className='text-xs opacity-60 flex items-center justify-between'>
+      <div
+        className={`text-xs opacity-75 flex items-center justify-between ${styles.textColor}`}
+      >
         <span>
           {notification.timestamp.toLocaleTimeString('ko-KR', {
             hour: '2-digit',
@@ -381,7 +389,7 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
       )}
 
       {/* 알림 목록 */}
-      <div className='pointer-events-auto'>
+      <div className='pointer-events-auto space-y-2'>
         <AnimatePresence mode='popLayout'>
           {notifications.map((notification, index) => (
             <ToastNotification
