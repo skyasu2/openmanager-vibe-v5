@@ -440,21 +440,13 @@ export default function FeatureCardModal({
           <div className='flex border-b border-gray-700'>
             <button
               onClick={() => setActiveTab('overview')}
-              className={`px-6 py-3 font-medium transition-colors ${
-                activeTab === 'overview'
-                  ? 'text-blue-400 border-b-2 border-blue-400'
-                  : 'text-gray-400 hover:text-white'
-              }`}
+              className={`px-6 py-3 font-medium transition-colors ${activeTab === 'overview' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-gray-400 hover:text-white'}`}
             >
               개요
             </button>
             <button
               onClick={() => setActiveTab('tech')}
-              className={`px-6 py-3 font-medium transition-colors ${
-                activeTab === 'tech'
-                  ? 'text-blue-400 border-b-2 border-blue-400'
-                  : 'text-gray-400 hover:text-white'
-              }`}
+              className={`px-6 py-3 font-medium transition-colors ${activeTab === 'tech' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-gray-400 hover:text-white'}`}
             >
               기술 스택 ({techStack.length})
             </button>
@@ -478,16 +470,19 @@ export default function FeatureCardModal({
                     주요 특징
                   </h4>
                   <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-                    {selectedCard.features?.map(
-                      (feature: string, index: number) => (
-                        <div key={index} className='flex items-center gap-2'>
-                          <CheckCircle className='w-4 h-4 text-green-400 flex-shrink-0' />
-                          <span className='text-gray-300 text-sm'>
-                            {feature}
-                          </span>
-                        </div>
+                    {selectedCard.features &&
+                    selectedCard.features.length > 0 ? (
+                      selectedCard.features.map(
+                        (feature: string, index: number) => (
+                          <div key={index} className='flex items-center gap-2'>
+                            <CheckCircle className='w-4 h-4 text-green-400 flex-shrink-0' />
+                            <span className='text-gray-300 text-sm'>
+                              {feature}
+                            </span>
+                          </div>
+                        )
                       )
-                    ) || (
+                    ) : (
                       <div className='flex items-center gap-2'>
                         <CheckCircle className='w-4 h-4 text-green-400' />
                         <span className='text-gray-300 text-sm'>
