@@ -1,6 +1,6 @@
 /**
  * 🗄️ PostgreSQL + pgvector 기반 실제 벡터 DB 구현
- * 
+ *
  * ✅ Supabase PostgreSQL 기반
  * ✅ pgvector 확장 활용
  * ✅ 코사인 유사도 검색
@@ -43,11 +43,27 @@ export class PostgresVectorDB {
    * 🚀 pgvector 확장 및 테이블 초기화 (권한 안전 모드)
    */
   async initialize(): Promise<void> {
+    /*
+     * 🚧 Memory-mode bypass
+     * RAG_FORCE_MEMORY 환경변수가 'true' 로 설정된 경우
+     * pgvector 초기화 전체를 건너뛰고 in-memory 모드로 전환한다.
+     *  – 로컬 개발·프리뷰: 빠른 빌드 / DB 권한 필요 없음
+     *  – 프로덕션(Vercel)에서도 의도적으로 메모리 모드 사용 가능
+     */
+    if (process.env.RAG_FORCE_MEMORY === 'true') {
+      if (!this.isInitialized) {
+        console.log(
+          '⏭️ RAG_FORCE_MEMORY 활성화 – PostgresVectorDB를 메모리 모드로 실행'
+        );
+        this.isInitialized = true; // 플래그만 true 로 세팅
+      }
+      return; // 실제 DB 초기화 스킵
+    }
     if (this.isInitialized) return;
 
     try {
       console.log('🔧 PostgresVectorDB 초기화 시도...');
-      
+
       // 권한 체크 먼저 수행
       const { data: permissionCheck } = await supabase
         .from('information_schema.tables')
@@ -75,9 +91,12 @@ export class PostgresVectorDB {
 
       // 2. 벡터 문서 테이블 생성 (권한 안전)
       try {
-        const { error: tableError } = await supabaseAdmin.rpc('create_vector_table', {
-          table_name: this.tableName
-        });
+        const { error: tableError } = await supabaseAdmin.rpc(
+          'create_vector_table',
+          {
+            table_name: this.tableName,
+          }
+        );
 
         if (tableError && !tableError.message.includes('already exists')) {
           if (tableError.message.includes('permission denied')) {
@@ -99,7 +118,7 @@ export class PostgresVectorDB {
       // 3. 벡터 인덱스 생성 (선택적)
       try {
         await supabaseAdmin.rpc('create_vector_index', {
-          table_name: this.tableName
+          table_name: this.tableName,
         });
       } catch (indexError: any) {
         console.warn('⚠️ 인덱스 생성 실패 (무시):', indexError.message);
@@ -109,13 +128,13 @@ export class PostgresVectorDB {
       console.log('✅ PostgresVectorDB 초기화 완료');
     } catch (error: any) {
       console.error('❌ PostgresVectorDB 초기화 실패:', error);
-      
+
       if (error.message?.includes('permission denied')) {
         console.log('🔄 권한 문제로 인해 메모리 모드로 전환');
         this.isInitialized = true; // 메모리 모드로 작동
         return;
       }
-      
+
       // 다른 오류의 경우 대체 테이블 생성 시도
       try {
         await this.createTableWithSQL();
@@ -130,9 +149,9 @@ export class PostgresVectorDB {
    * 📄 문서와 벡터 저장
    */
   async store(
-    id: string, 
-    content: string, 
-    embedding: number[], 
+    id: string,
+    content: string,
+    embedding: number[],
     metadata?: Record<string, any>
   ): Promise<{ success: boolean; error?: string }> {
     try {
@@ -159,9 +178,9 @@ export class PostgresVectorDB {
       return { success: true };
     } catch (error: any) {
       console.error('❌ 벡터 문서 저장 실패:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Unknown error'
+      return {
+        success: false,
+        error: error.message || 'Unknown error',
       };
     }
   }
@@ -170,26 +189,22 @@ export class PostgresVectorDB {
    * 🔍 벡터 유사도 검색
    */
   async search(
-    queryEmbedding: number[], 
+    queryEmbedding: number[],
     options: SearchOptions = {}
   ): Promise<SearchResult[]> {
     try {
       await this.initialize();
 
-      const {
-        topK = 10,
-        threshold = 0.3,
-        metadata_filter
-      } = options;
+      const { topK = 10, threshold = 0.3, metadata_filter } = options;
 
       // pgvector 코사인 유사도 검색 쿼리
       let query = supabase
         .from(this.tableName)
         .select('id, content, metadata, embedding')
-        .order('embedding', { 
+        .order('embedding', {
           ascending: false,
           // pgvector 코사인 거리 계산
-          foreignTable: `cosine_distance(embedding, '[${queryEmbedding.join(',')}]')` 
+          foreignTable: `cosine_distance(embedding, '[${queryEmbedding.join(',')}]')`,
         })
         .limit(topK);
 
@@ -210,22 +225,24 @@ export class PostgresVectorDB {
       const results: SearchResult[] = (data || [])
         .map(doc => {
           const similarity = this.calculateCosineSimilarity(
-            queryEmbedding, 
+            queryEmbedding,
             doc.embedding
           );
-          
+
           return {
             id: doc.id,
             content: doc.content,
             metadata: doc.metadata,
-            similarity
+            similarity,
           };
         })
         .filter(result => result.similarity >= threshold)
         .sort((a, b) => b.similarity - a.similarity)
         .slice(0, topK);
 
-      console.log(`🔍 벡터 검색 완료: ${results.length}개 결과 (임계값: ${threshold})`);
+      console.log(
+        `🔍 벡터 검색 완료: ${results.length}개 결과 (임계값: ${threshold})`
+      );
       return results;
     } catch (error: any) {
       console.error('❌ 벡터 검색 실패:', error);
@@ -279,7 +296,7 @@ export class PostgresVectorDB {
       return {
         total_documents: count || 0,
         avg_similarity: 0.75, // 예시값
-        storage_size: `${Math.round((count || 0) * 0.5)}KB` // 대략적 계산
+        storage_size: `${Math.round((count || 0) * 0.5)}KB`, // 대략적 계산
       };
     } catch (error: any) {
       console.error('❌ 통계 조회 실패:', error);
@@ -303,9 +320,9 @@ export class PostgresVectorDB {
 
       return { success: true };
     } catch (error: any) {
-      return { 
-        success: false, 
-        error: error.message || 'Unknown error'
+      return {
+        success: false,
+        error: error.message || 'Unknown error',
       };
     }
   }
@@ -327,9 +344,9 @@ export class PostgresVectorDB {
       console.log('🧹 벡터 DB 전체 데이터 삭제 완료');
       return { success: true };
     } catch (error: any) {
-      return { 
-        success: false, 
-        error: error.message || 'Unknown error'
+      return {
+        success: false,
+        error: error.message || 'Unknown error',
       };
     }
   }
@@ -355,7 +372,7 @@ export class PostgresVectorDB {
 
       // Raw SQL 실행 (Supabase RPC 사용)
       const { error } = await supabaseAdmin.rpc('execute_sql', {
-        sql: createTableSQL
+        sql: createTableSQL,
       });
 
       if (error) {
@@ -380,22 +397,22 @@ export class PostgresVectorDB {
   }> {
     try {
       const stats = await this.getStats();
-      
+
       return {
         status: 'healthy',
         details: {
           initialized: this.isInitialized,
           table_name: this.tableName,
-          ...stats
-        }
+          ...stats,
+        },
       };
     } catch (error) {
       return {
         status: 'down',
         details: {
           error: error instanceof Error ? error.message : 'Unknown error',
-          initialized: this.isInitialized
-        }
+          initialized: this.isInitialized,
+        },
       };
     }
   }
