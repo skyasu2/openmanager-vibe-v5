@@ -248,6 +248,126 @@ const getCurrentTechStack = (cardId: string): TechItem[] => {
         tags: ['테스트', '단위테스트', 'Vite'],
       },
     ],
+    'fullstack-ecosystem': [
+      {
+        name: 'Next.js 15',
+        category: 'framework',
+        importance: 'critical',
+        description: 'React 기반 풀스택 프레임워크',
+        version: '15.0',
+        status: 'active',
+        icon: '⚡',
+        tags: ['프레임워크', 'React', 'SSR'],
+      },
+      {
+        name: 'React 19',
+        category: 'framework',
+        importance: 'critical',
+        description: '최신 React 라이브러리',
+        version: '19.0',
+        status: 'active',
+        icon: '⚛️',
+        tags: ['UI', '컴포넌트', '상태관리'],
+      },
+      {
+        name: 'TypeScript',
+        category: 'language',
+        importance: 'critical',
+        description: '타입 안전성을 제공하는 JavaScript 확장',
+        version: '5.0',
+        status: 'active',
+        icon: '📘',
+        tags: ['언어', '타입안전성', '개발도구'],
+      },
+      {
+        name: 'Tailwind CSS',
+        category: 'ui',
+        importance: 'high',
+        description: '유틸리티 우선 CSS 프레임워크',
+        version: '3.4',
+        status: 'active',
+        icon: '🎨',
+        tags: ['CSS', '디자인', '반응형'],
+      },
+      {
+        name: 'Framer Motion',
+        category: 'ui',
+        importance: 'high',
+        description: 'React용 애니메이션 라이브러리',
+        version: '11.0',
+        status: 'active',
+        icon: '🎬',
+        tags: ['애니메이션', 'UI', '인터랙션'],
+      },
+      {
+        name: 'Supabase',
+        category: 'database',
+        importance: 'critical',
+        description: 'PostgreSQL 기반 BaaS 플랫폼',
+        version: '2.0',
+        status: 'active',
+        icon: '🗄️',
+        tags: ['데이터베이스', 'BaaS', 'PostgreSQL'],
+      },
+      {
+        name: 'Redis',
+        category: 'database',
+        importance: 'high',
+        description: '인메모리 데이터 구조 저장소',
+        version: '7.0',
+        status: 'active',
+        icon: '🔴',
+        tags: ['캐시', '인메모리', '성능'],
+      },
+      {
+        name: 'Vercel',
+        category: 'deployment',
+        importance: 'critical',
+        description: 'Next.js 최적화 배포 플랫폼',
+        status: 'active',
+        icon: '▲',
+        tags: ['배포', '서버리스', 'CDN'],
+      },
+      {
+        name: 'Render',
+        category: 'deployment',
+        importance: 'medium',
+        description: 'MCP 서버 호스팅 플랫폼',
+        status: 'active',
+        icon: '🚀',
+        tags: ['호스팅', 'MCP', '백엔드'],
+      },
+      {
+        name: 'Zustand',
+        category: 'framework',
+        importance: 'medium',
+        description: '경량 상태 관리 라이브러리',
+        version: '4.5',
+        status: 'active',
+        icon: '🐻',
+        tags: ['상태관리', '경량', 'React'],
+      },
+      {
+        name: 'Vitest',
+        category: 'framework',
+        importance: 'medium',
+        description: '빠른 단위 테스트 프레임워크',
+        version: '2.0',
+        status: 'active',
+        icon: '🧪',
+        tags: ['테스트', '단위테스트', 'Vite'],
+      },
+      {
+        name: 'Playwright',
+        category: 'framework',
+        importance: 'medium',
+        description: 'E2E 테스트 자동화 도구',
+        version: '1.40',
+        status: 'active',
+        icon: '🎭',
+        tags: ['테스트', 'E2E', '자동화'],
+      },
+    ],
   };
 
   return techStacks[cardId] || [];
@@ -442,6 +562,7 @@ export default function FeatureCardModal({
         exit={{ opacity: 0 }}
         className='fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4'
         onClick={onClose}
+        data-modal-version='v2.0-unified-scroll'
       >
         {/* 개선된 배경 블러 효과 */}
         <div className='absolute inset-0 bg-black/85 backdrop-blur-sm' />
@@ -455,6 +576,7 @@ export default function FeatureCardModal({
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           className='relative w-full max-w-6xl max-h-[95vh] bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 rounded-3xl border border-gray-600/50 shadow-2xl overflow-hidden'
           onClick={e => e.stopPropagation()}
+          data-modal-content='unified-scroll-v2'
         >
           {/* 개선된 헤더 */}
           <div className='relative flex items-center justify-between p-6 sm:p-8 border-b border-gray-700/50 bg-gradient-to-r from-gray-800/50 to-gray-900/50'>
