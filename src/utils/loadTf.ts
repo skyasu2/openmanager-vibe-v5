@@ -1,9 +1,9 @@
 /**
  * 🧠 Dynamic TensorFlow Loader
  * ---------------------------------------------------
- * • 서버(로컬/Render) : @tensorflow/tfjs-node (native C++ addon)
- * • Vercel/Serverless  : @tensorflow/tfjs-node (WASM backend auto)
- *   - Vercel 파일 시스템 제약으로 native addon 불가 → WASM fallback
+ * • 서버(로컬/Render) : @tensorflow/tfjs-node (dynamic import)
+ * • Vercel/Serverless  : TensorFlow 완전 비활성화
+ *   - Vercel 환경에서는 TensorFlow 패키지 자체를 설치하지 않음
  *
  * 사용 예시:
  * ```ts
@@ -16,39 +16,57 @@
 
 export async function loadTf() {
   try {
-    // 개발/빌드 환경에서 TensorFlow 패키지가 없을 수 있음
-    // Module resolution 에러를 graceful하게 처리
-    let tf;
-
-    // Vercel 환경 감지 (process.env.VERCEL === '1')
+    // Vercel 환경에서는 TensorFlow 완전 비활성화
     if (process.env.VERCEL) {
-      try {
-        // 서버리스에서 native addon 로드 시도 ➜ 실패할 수 있으므로 WASM 백엔드 사용
-        tf = await import('@tensorflow/tfjs-node');
-        if (tf.setBackend) {
-          await tf.setBackend('cpu');
-        }
-        console.log('✅ TensorFlow (tfjs-node-wasm) 로드 완료 - CPU backend');
-        return tf;
-      } catch (moduleError) {
-        // 모듈 로드 실패 시 null 반환
-        console.warn('⚠️ TensorFlow 모듈 로드 실패 (Vercel) - 기능 비활성');
-        return null;
-      }
+      console.log('🚫 Vercel 환경: TensorFlow 비활성화 (서버리스 제약)');
+      return null;
     }
 
+    // 로컬/Render 환경에서만 TensorFlow 로드 시도
     try {
-      // 일반 Node 환경 – native addon 선호
-      tf = await import('@tensorflow/tfjs-node');
-      console.log('✅ TensorFlow (tfjs-node native) 로드 완료');
+      console.log('🔍 TensorFlow 패키지 동적 로드 시도...');
+
+      // 동적 import로 TensorFlow 로드 (패키지가 없어도 에러 안남)
+      const tf = await import('@tensorflow/tfjs-node');
+
+      if (tf.setBackend) {
+        await tf.setBackend('cpu');
+      }
+
+      console.log('✅ TensorFlow (tfjs-node) 로드 완료 - CPU backend');
       return tf;
-    } catch (moduleError) {
-      // 모듈이 설치되지 않은 경우도 graceful 처리
-      console.warn('⚠️ TensorFlow 모듈 로드 실패 (개발 환경) - 기능 비활성');
+    } catch (importError) {
+      console.log('📦 TensorFlow 패키지 없음 - 선택적 기능으로 건너뜀');
       return null;
     }
   } catch (error) {
-    console.warn('⚠️ TensorFlow 로드 실패 – 기능 비활성', error);
-    return null; // 호출 측에서 Null 체크 후 graceful skip
+    console.warn('⚠️ TensorFlow 로드 실패:', error.message);
+    return null;
   }
+}
+
+/**
+ * TensorFlow 사용 가능 여부 체크
+ */
+export function isTensorFlowAvailable(): boolean {
+  return !process.env.VERCEL; // Vercel이 아닌 환경에서만 사용 가능
+}
+
+/**
+ * TensorFlow 상태 정보 반환
+ */
+export function getTensorFlowStatus() {
+  if (process.env.VERCEL) {
+    return {
+      available: false,
+      reason: 'serverless_environment',
+      message: 'TensorFlow는 Vercel 서버리스 환경에서 지원되지 않습니다',
+    };
+  }
+
+  return {
+    available: true,
+    reason: 'supported_environment',
+    message: 'TensorFlow 동적 로드 지원 환경',
+  };
 }
