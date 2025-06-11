@@ -226,8 +226,7 @@
     "docs:validate": "node scripts/docs-management.mjs validate",
     "docs:cleanup": "node scripts/docs-management.mjs cleanup",
     "docs:backup": "node scripts/docs-management.mjs backup",
-    "docs:index": "node scripts/docs-management.mjs index",
-    "test:ai-logging": "node scripts/test-ai-logging.mjs"
+    "docs:index": "node scripts/docs-management.mjs index"
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",

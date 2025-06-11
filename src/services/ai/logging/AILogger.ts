@@ -166,6 +166,29 @@ export class AILogger {
     });
   }
 
+  private mapToWinstonLevel(level: LogLevel): string {
+    switch (level) {
+      case LogLevel.ERROR:
+        return 'error';
+      case LogLevel.WARN:
+        return 'warn';
+      case LogLevel.INFO:
+        return 'info';
+      case LogLevel.DEBUG:
+        return 'debug';
+      case LogLevel.VERBOSE:
+        return 'verbose';
+      case LogLevel.AI_THINKING:
+        return 'debug';
+      case LogLevel.AI_ANALYSIS:
+        return 'info';
+      case LogLevel.AI_PERFORMANCE:
+        return 'debug';
+      default:
+        return 'info';
+    }
+  }
+
   private initializePino(): void {
     const pinoConfig: any = {
       level: this.isProduction ? 'info' : 'debug',
@@ -239,11 +262,9 @@ export class AILogger {
     // 버퍼에 추가
     this.addToBuffer(logEntry);
 
-    // Winston 로깅
-    this.winstonLogger[logEntry.level as keyof winston.Logger](
-      logEntry.message,
-      logEntry
-    );
+    // Winston 로깅 (레벨 매핑)
+    const winstonLevel = this.mapToWinstonLevel(logEntry.level);
+    this.winstonLogger[winstonLevel](logEntry.message, logEntry);
 
     // Pino 로깅 (더 빠른 성능)
     this.pinoLogger[logEntry.level](logEntry);
