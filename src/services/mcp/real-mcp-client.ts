@@ -115,7 +115,11 @@ export class RealMCPClient {
     this.servers.set('openmanager-docs', {
       name: 'openmanager-docs',
       command: npxCommand,
-      args: ['@modelcontextprotocol/server-filesystem', './docs', './src/ai-context'],
+      args: [
+        '@modelcontextprotocol/server-filesystem',
+        './docs',
+        './src/ai-context',
+      ],
       env: {
         NODE_OPTIONS: '--max-old-space-size=256',
         PROJECT_ROOT: process.cwd(),
@@ -367,11 +371,19 @@ export class RealMCPClient {
         // 실제 응답 생성 (Mock 아님)
         switch (request.method) {
           case 'tools/list':
-            return await this.getAvailableTools();
+            try {
+              return await this.getAvailableTools();
+            } catch (error) {
+              console.error('도구 목록 조회 실패:', error);
+              return { tools: [] };
+            }
           case 'tools/call':
             return await this.handleToolCall(request.params);
           default:
-            return { success: false, error: `${request.method} 메서드는 지원되지 않습니다.` };
+            return {
+              success: false,
+              error: `${request.method} 메서드는 지원되지 않습니다.`,
+            };
         }
       },
 
@@ -394,9 +406,9 @@ export class RealMCPClient {
             type: 'object',
             properties: {
               pattern: { type: 'string', description: '검색할 파일 패턴' },
-              content: { type: 'string', description: '검색할 내용' }
-            }
-          }
+              content: { type: 'string', description: '검색할 내용' },
+            },
+          },
         },
         {
           name: 'read_file',
@@ -404,9 +416,9 @@ export class RealMCPClient {
           inputSchema: {
             type: 'object',
             properties: {
-              path: { type: 'string', description: '읽을 파일 경로' }
-            }
-          }
+              path: { type: 'string', description: '읽을 파일 경로' },
+            },
+          },
         },
         {
           name: 'list_directory',
@@ -414,11 +426,11 @@ export class RealMCPClient {
           inputSchema: {
             type: 'object',
             properties: {
-              path: { type: 'string', description: '조회할 디렉토리 경로' }
-            }
-          }
-        }
-      ]
+              path: { type: 'string', description: '조회할 디렉토리 경로' },
+            },
+          },
+        },
+      ],
     };
   }
 
@@ -435,7 +447,10 @@ export class RealMCPClient {
         case 'list_directory':
           return await this.realListDirectory(params.arguments?.path);
         default:
-          return { success: false, error: `도구 ${params?.name}은 지원되지 않습니다.` };
+          return {
+            success: false,
+            error: `도구 ${params?.name}은 지원되지 않습니다.`,
+          };
       }
     } catch (error: any) {
       return { success: false, error: error.message };
@@ -445,7 +460,10 @@ export class RealMCPClient {
   /**
    * 📁 실제 파일 검색 (fs 모듈 사용)
    */
-  private async realSearchFiles(args: { pattern?: string; content?: string }): Promise<any> {
+  private async realSearchFiles(args: {
+    pattern?: string;
+    content?: string;
+  }): Promise<any> {
     const fs = await import('fs').then(m => m.promises);
     const path = await import('path');
     const { glob } = await import('glob');
@@ -457,22 +475,29 @@ export class RealMCPClient {
       // 실제 파일 검색
       const files = await glob(searchPattern, {
         cwd: process.cwd(),
-        ignore: ['node_modules/**', '.git/**', 'dist/**', 'build/**']
+        ignore: ['node_modules/**', '.git/**', 'dist/**', 'build/**'],
       });
 
       const results = [];
 
-      for (const file of files.slice(0, 10)) { // 최대 10개 파일만
+      for (const file of files.slice(0, 10)) {
+        // 최대 10개 파일만
         try {
           const fullPath = path.join(process.cwd(), file);
           const content = await fs.readFile(fullPath, 'utf-8');
 
-          if (!searchContent || content.toLowerCase().includes(searchContent.toLowerCase())) {
+          if (
+            !searchContent ||
+            content.toLowerCase().includes(searchContent.toLowerCase())
+          ) {
             results.push({
               path: file,
-              content: content.length > 500 ? content.substring(0, 500) + '...' : content,
+              content:
+                content.length > 500
+                  ? content.substring(0, 500) + '...'
+                  : content,
               size: content.length,
-              lastModified: (await fs.stat(fullPath)).mtime.toISOString()
+              lastModified: (await fs.stat(fullPath)).mtime.toISOString(),
             });
           }
         } catch (error) {
@@ -484,12 +509,12 @@ export class RealMCPClient {
       return {
         success: true,
         results,
-        totalFound: results.length
+        totalFound: results.length,
       };
     } catch (error: any) {
       return {
         success: false,
-        error: `파일 검색 실패: ${error.message}`
+        error: `파일 검색 실패: ${error.message}`,
       };
     }
   }
@@ -510,12 +535,12 @@ export class RealMCPClient {
         success: true,
         content,
         size: stats.size,
-        lastModified: stats.mtime.toISOString()
+        lastModified: stats.mtime.toISOString(),
       };
     } catch (error: any) {
       return {
         success: false,
-        error: `파일 읽기 실패: ${error.message}`
+        error: `파일 읽기 실패: ${error.message}`,
       };
     }
   }
@@ -534,18 +559,18 @@ export class RealMCPClient {
       const results = items.map(item => ({
         name: item.name,
         type: item.isDirectory() ? 'directory' : 'file',
-        path: path.join(dirPath || '.', item.name)
+        path: path.join(dirPath || '.', item.name),
       }));
 
       return {
         success: true,
         items: results,
-        totalItems: results.length
+        totalItems: results.length,
       };
     } catch (error: any) {
       return {
         success: false,
-        error: `디렉토리 조회 실패: ${error.message}`
+        error: `디렉토리 조회 실패: ${error.message}`,
       };
     }
   }

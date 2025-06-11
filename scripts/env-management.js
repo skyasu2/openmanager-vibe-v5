@@ -46,25 +46,27 @@ class EnvSecurityManager {
         required: true,
         public: true,
         value: 'https://vnswjnltnhpsueosfhmw.supabase.co',
-        encrypt: true
+        encrypt: true,
       },
       NEXT_PUBLIC_SUPABASE_ANON_KEY: {
         required: true,
         public: true,
-        value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU',
-        encrypt: true
+        value:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU',
+        encrypt: true,
       },
       SUPABASE_SERVICE_ROLE_KEY: {
         required: false,
         public: false,
-        value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8',
-        encrypt: true
+        value:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8',
+        encrypt: true,
       },
       SUPABASE_DB_PASSWORD: {
         required: false,
         public: false,
         value: '2D3DWhSl8HBlgYIm',
-        encrypt: true
+        encrypt: true,
       },
 
       // 📡 Render MCP 서버 (메모리 저장소 확인됨)
@@ -72,13 +74,13 @@ class EnvSecurityManager {
         required: true,
         public: false,
         value: 'https://openmanager-vibe-v5.onrender.com',
-        encrypt: true
+        encrypt: true,
       },
       RENDER_MCP_SERVER_IPS: {
         required: true,
         public: false,
         value: '13.228.225.19,18.142.128.26,54.254.162.138',
-        encrypt: true
+        encrypt: true,
       },
 
       // 🔴 Redis (메모리 저장소 확인됨)
@@ -86,14 +88,14 @@ class EnvSecurityManager {
         required: true,
         public: false,
         value: 'https://charming-condor-46598.upstash.io',
-        encrypt: true
+        encrypt: true,
       },
       UPSTASH_REDIS_REST_TOKEN: {
         required: true,
         public: false,
         value: 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
         rotate: 'quarterly',
-        encrypt: true
+        encrypt: true,
       },
 
       // 🤖 Google AI (기존 시스템)
@@ -101,7 +103,7 @@ class EnvSecurityManager {
         required: true,
         public: false,
         rotate: 'monthly',
-        encrypt: true
+        encrypt: true,
       },
       GOOGLE_AI_MODEL: {
         required: false,
@@ -111,7 +113,7 @@ class EnvSecurityManager {
       GOOGLE_AI_BETA_MODE: {
         required: false,
         public: false,
-        default: 'true'
+        default: 'true',
       },
 
       // 📢 Slack
@@ -119,7 +121,7 @@ class EnvSecurityManager {
         required: true,
         public: false,
         rotate: 'on-demand',
-        encrypt: true
+        encrypt: true,
       },
 
       // ⏰ Cron 보안
@@ -127,7 +129,7 @@ class EnvSecurityManager {
         required: false,
         public: false,
         rotate: 'monthly',
-        encrypt: true
+        encrypt: true,
       },
 
       // 🔐 보안 토큰
@@ -135,12 +137,12 @@ class EnvSecurityManager {
         required: false,
         public: false,
         rotate: 'quarterly',
-        encrypt: true
+        encrypt: true,
       },
       NEXTAUTH_URL: {
         required: false,
         public: false,
-        default: 'http://localhost:3000'
+        default: 'http://localhost:3000',
       },
     };
   }
@@ -163,7 +165,7 @@ class EnvSecurityManager {
             ...encrypted,
             originalName: varName,
             isPublic: config.public,
-            rotateSchedule: config.rotate || 'manual'
+            rotateSchedule: config.rotate || 'manual',
           };
 
           console.log(`✅ ${varName}: 암호화 완료`);
@@ -176,7 +178,9 @@ class EnvSecurityManager {
     // 암호화된 설정 파일 생성
     await this.generateEncryptedConfigFile(encryptedVars, teamPassword);
 
-    console.log(`🎉 총 ${Object.keys(encryptedVars).length}개 환경변수 암호화 완료!`);
+    console.log(
+      `🎉 총 ${Object.keys(encryptedVars).length}개 환경변수 암호화 완료!`
+    );
     return encryptedVars;
   }
 
@@ -226,7 +230,9 @@ class EnvSecurityManager {
 
       return decrypted.toString(CryptoJS.enc.Utf8);
     } catch (error) {
-      throw new Error('복호화 실패: 비밀번호가 올바르지 않거나 데이터가 손상되었습니다.');
+      throw new Error(
+        '복호화 실패: 비밀번호가 올바르지 않거나 데이터가 손상되었습니다.'
+      );
     }
   }
 
@@ -319,7 +325,7 @@ export const DEPLOYMENT_CONFIG = {
       region: 'singapore',
       connection_timeout: 30000,
       retry_attempts: 3,
-      healthcheck_interval: 60000
+      healthcheck_interval: 60000,
     };
 
     console.log('📊 Render MCP 서버 정보:');
@@ -346,14 +352,16 @@ export const DEPLOYMENT_CONFIG = {
       direct_port: 5432,
       ssl_mode: 'require',
       connection_pooling: true,
-      max_connections: 100
+      max_connections: 100,
     };
 
     console.log('📊 Supabase 설정 정보:');
     console.log(`   프로젝트: ${supabaseConfig.project_id}`);
     console.log(`   지역: ${supabaseConfig.region}`);
     console.log(`   DB 호스트: ${supabaseConfig.database_host}`);
-    console.log(`   연결 풀링: ${supabaseConfig.connection_pooling ? '활성화' : '비활성화'}`);
+    console.log(
+      `   연결 풀링: ${supabaseConfig.connection_pooling ? '활성화' : '비활성화'}`
+    );
 
     return supabaseConfig;
   }
@@ -402,12 +410,19 @@ export const DEPLOYMENT_CONFIG = {
    */
   validateSecurity(envVars, issues) {
     // API 키 형식 검증
-    if (envVars.GOOGLE_AI_API_KEY && !envVars.GOOGLE_AI_API_KEY.startsWith('AIza')) {
+    if (
+      envVars.GOOGLE_AI_API_KEY &&
+      !envVars.GOOGLE_AI_API_KEY.startsWith('AIza')
+    ) {
       issues.push('⚠️ Google AI API 키 형식이 올바르지 않습니다.');
     }
 
     // URL 형식 검증
-    const urlVars = ['NEXT_PUBLIC_SUPABASE_URL', 'RENDER_MCP_SERVER_URL', 'UPSTASH_REDIS_REST_URL'];
+    const urlVars = [
+      'NEXT_PUBLIC_SUPABASE_URL',
+      'RENDER_MCP_SERVER_URL',
+      'UPSTASH_REDIS_REST_URL',
+    ];
     urlVars.forEach(varName => {
       if (envVars[varName] && !this.isValidURL(envVars[varName])) {
         issues.push(`⚠️ ${varName}의 URL 형식이 올바르지 않습니다.`);
@@ -415,7 +430,10 @@ export const DEPLOYMENT_CONFIG = {
     });
 
     // 토큰 길이 검증
-    const tokenVars = ['NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY'];
+    const tokenVars = [
+      'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+      'SUPABASE_SERVICE_ROLE_KEY',
+    ];
     tokenVars.forEach(varName => {
       if (envVars[varName] && envVars[varName].length < 100) {
         issues.push(`⚠️ ${varName}의 토큰이 너무 짧습니다.`);
@@ -556,7 +574,8 @@ NEXTAUTH_URL=http://localhost:3000
       if (config.value || process.env[varName]) {
         const value = config.value || process.env[varName];
         const scope = config.public ? '(Public)' : '(Server)';
-        const displayValue = value.length > 20 ? value.substring(0, 20) + '...' : value;
+        const displayValue =
+          value.length > 20 ? value.substring(0, 20) + '...' : value;
         console.log(`   📝 ${varName}=${displayValue} ${scope}`);
       }
     }
@@ -646,13 +665,14 @@ async function main() {
       break;
 
     case 'encrypt-all':
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const readline = require('readline');
       const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout,
       });
 
-      rl.question('팀 비밀번호를 입력하세요: ', async (password) => {
+      rl.question('팀 비밀번호를 입력하세요: ', async password => {
         if (password.length < 4) {
           console.log('❌ 비밀번호는 4자 이상이어야 합니다.');
           rl.close();
@@ -703,7 +723,9 @@ async function main() {
   }
 }
 
-if (require.main === module) {
+// Entry point check for direct execution
+
+if (typeof require !== 'undefined' && require.main === module) {
   main().catch(console.error);
 }
 
