@@ -244,151 +244,15 @@ export class TaskOrchestrator {
     }
 
     try {
-      // TensorFlow.js 동적 import
-      const tf = await import('@tensorflow/tfjs');
-
-      console.log('🔥 TensorFlow.js 시계열 분석 시작...');
-
-      // 특성 데이터 추출 및 정규화
-      const cpuData = metrics.map((m: any) => m.cpu / 100);
-      const memoryData = metrics.map((m: any) => m.memory / 100);
-      const diskData = metrics.map((m: any) => m.disk / 100);
-
-      // 시계열 시퀀스 생성
-      const sequenceLength = Math.min(cpuData.length, 10);
-      const inputSequence = cpuData.slice(-sequenceLength);
-
-      // 간단한 LSTM 스타일 모델
-      const model = tf.sequential({
-        layers: [
-          tf.layers.dense({
-            inputShape: [sequenceLength],
-            units: 32,
-            activation: 'relu',
-          }),
-          tf.layers.dropout({ rate: 0.3 }),
-          tf.layers.dense({ units: 16, activation: 'relu' }),
-          tf.layers.dense({ units: 1, activation: 'linear' }),
-        ],
-      });
-
-      model.compile({
-        optimizer: tf.train.adam(0.01),
-        loss: 'meanSquaredError',
-        metrics: ['mae'],
-      });
-
-      // 예측 실행
-      const inputTensor = tf.tensor2d([inputSequence], [1, sequenceLength]);
-      const prediction = model.predict(inputTensor) as any;
-      const predictionValue = await prediction.data();
-
-      // 트렌드 분석
-      const cpuTrend = this.calculateTrend(cpuData.slice(-5));
-      const memoryTrend = this.calculateTrend(memoryData.slice(-5));
-      const diskTrend = this.calculateTrend(diskData.slice(-5));
-
-      // 다음 값들 예측 (이동평균 + 계절성 반영)
-      const latest = metrics[metrics.length - 1];
-      const predictions = [];
-
-      // 과거 패턴 분석
-      const cpuVariance = this.calculateVariance(
-        metrics.map((m: any) => m.cpu)
-      );
-      const memoryVariance = this.calculateVariance(
-        metrics.map((m: any) => m.memory)
-      );
-      const diskVariance = this.calculateVariance(
-        metrics.map((m: any) => m.disk)
-      );
-
-      // 계절성 패턴 (24시간 주기)
-      const currentHour = new Date().getHours();
-
-      for (let i = 1; i <= predictionHours; i++) {
-        const futureHour = (currentHour + i) % 24;
-
-        // 시간대별 로드 패턴 (비즈니스 시간대 반영)
-        const hourlyMultiplier = this.getHourlyLoadMultiplier(futureHour);
-
-        // 이동평균 기반 예측 + 계절성
-        const cpuPrediction = Math.max(
-          0,
-          Math.min(
-            100,
-            latest.cpu +
-              cpuTrend * i +
-              (hourlyMultiplier - 1) * 10 +
-              Math.sqrt(cpuVariance) * 0.1
-          )
+      // TensorFlow.js 동적 import (옵션)
+      if (process.env.USE_TENSORFLOW === 'true') {
+        console.warn(
+          '⚠️ TensorFlow.js 지원이 제거되었습니다. lightweight-ml-engine을 사용하세요.'
         );
-        const memoryPrediction = Math.max(
-          0,
-          Math.min(
-            100,
-            latest.memory +
-              memoryTrend * i +
-              (hourlyMultiplier - 1) * 5 +
-              Math.sqrt(memoryVariance) * 0.05
-          )
-        );
-        const diskPrediction = Math.max(
-          0,
-          Math.min(
-            100,
-            latest.disk + diskTrend * i + Math.sqrt(diskVariance) * 0.02
-          )
-        );
-
-        predictions.push({
-          timestamp: new Date(Date.now() + i * 60 * 60 * 1000).toISOString(),
-          cpu: Math.round(cpuPrediction * 100) / 100,
-          memory: Math.round(memoryPrediction * 100) / 100,
-          disk: Math.round(diskPrediction * 100) / 100,
-          confidence: Math.max(0.5, 0.95 - i * 0.05),
-          seasonalFactor: hourlyMultiplier,
-        });
       }
 
-      // 메모리 정리
-      inputTensor.dispose();
-      prediction.dispose();
-      model.dispose();
-
-      const confidence = Math.max(
-        0.7,
-        Math.min(0.95, 1 - Math.abs(cpuTrend) / 10)
-      );
-
-      return {
-        type: 'timeseries_prediction',
-        predictions,
-        trends: {
-          cpu:
-            cpuTrend > 1
-              ? 'increasing'
-              : cpuTrend < -1
-                ? 'decreasing'
-                : 'stable',
-          memory:
-            memoryTrend > 1
-              ? 'increasing'
-              : memoryTrend < -1
-                ? 'decreasing'
-                : 'stable',
-          disk:
-            diskTrend > 1
-              ? 'increasing'
-              : diskTrend < -1
-                ? 'decreasing'
-                : 'stable',
-        },
-        timeframe: `${predictionHours}시간`,
-        confidence,
-        modelUsed: 'tensorflow-js-dense',
-        dataPoints: metrics.length,
-      };
+      // TensorFlow 비활성화 시 통계 기반 fallback으로 이동
+      throw new Error('TensorFlow disabled');
     } catch (error) {
       console.warn('TensorFlow.js 실패, 통계적 fallback 사용:', error);
 

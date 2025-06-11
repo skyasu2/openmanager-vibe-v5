@@ -291,7 +291,7 @@ export class AutoScalingEngine {
         servers.slice(0, 5).map(
           (
             server // 상위 5개 서버만 예측
-          ) => predictiveAnalytics.predictServerLoad(server.id, 30)
+          ) => predictiveAnalytics.predictServerLoadLegacy(server.id, 30)
         )
       );
 

@@ -160,40 +160,63 @@ export default function IntegratedAIEngineDashboard() {
   };
 
   /**
-   * ⚙️ 엔진 상태 초기화
+   * ⚙️ 엔진 상태 초기화 - API에서 동적 로딩
    */
-  const initializeEngineStatus = () => {
-    const initialEngines: EngineStatus[] = [
-      // 오픈소스 엔진들 (6개)
+  const initializeEngineStatus = async () => {
+    try {
+      console.log('🔄 AI 엔진 상태 API 호출 중...');
+
+      const response = await fetch('/api/ai/engines/status');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data.engines) {
+          console.log(
+            '✅ AI 엔진 상태 로드 성공:',
+            data.data.engines.length,
+            '개 엔진'
+          );
+          setEngines(data.data.engines);
+          return;
+        }
+      }
+
+      console.warn('⚠️ AI 엔진 상태 API 실패, fallback 데이터 사용');
+    } catch (error) {
+      console.error('❌ AI 엔진 상태 로드 실패:', error);
+    }
+
+    // Fallback: 하드코딩된 초기 데이터
+    const fallbackEngines: EngineStatus[] = [
+      // 경량 ML 엔진들 (v5.43.0) - 6개
       {
-        name: 'TensorFlow.js',
+        name: 'AnomalyDetection',
         type: 'opensource',
         status: 'active',
         requests: 245,
         accuracy: 92,
-        responseTime: 45,
+        responseTime: 25,
         lastUsed: '방금 전',
       },
       {
-        name: 'Simple Statistics',
+        name: 'PredictiveAnalytics',
         type: 'opensource',
         status: 'active',
         requests: 180,
         accuracy: 88,
-        responseTime: 25,
+        responseTime: 15,
         lastUsed: '2분 전',
       },
       {
-        name: 'ML-Regression',
+        name: 'AutoScalingEngine',
         type: 'opensource',
         status: 'active',
         requests: 156,
         accuracy: 85,
-        responseTime: 35,
+        responseTime: 20,
         lastUsed: '1분 전',
       },
       {
-        name: 'Fuse.js',
+        name: 'KoreanNLP',
         type: 'opensource',
         status: 'active',
         requests: 234,
@@ -268,7 +291,7 @@ export default function IntegratedAIEngineDashboard() {
       },
     ];
 
-    setEngines(initialEngines);
+    setEngines(fallbackEngines);
   };
 
   /**

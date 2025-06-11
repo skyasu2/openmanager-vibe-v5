@@ -1,6 +1,6 @@
 /**
  * 🤖 머신러닝 이상 탐지 시스템 v1.0
- * 
+ *
  * OpenManager AI v5.12.0 - 지능형 이상 탐지
  * - 통계적 이상 탐지 (Z-Score, IQR)
  * - 패턴 기반 이상 탐지
@@ -54,7 +54,12 @@ interface AnomalyPattern {
 
 interface DetectionModel {
   metric: string;
-  algorithm: 'zscore' | 'iqr' | 'isolation_forest' | 'lstm' | 'pattern_matching';
+  algorithm:
+    | 'zscore'
+    | 'iqr'
+    | 'isolation_forest'
+    | 'lstm'
+    | 'pattern_matching';
   parameters: Record<string, number>;
   accuracy: number;
   lastTrained: number;
@@ -102,7 +107,7 @@ export class AnomalyDetection {
         threshold: 0.85,
         enabled: true,
         accuracy: 0.92,
-        falsePositiveRate: 0.05
+        falsePositiveRate: 0.05,
       },
       {
         id: 'memory_leak',
@@ -112,38 +117,39 @@ export class AnomalyDetection {
         threshold: 0.75,
         enabled: true,
         accuracy: 0.89,
-        falsePositiveRate: 0.08
+        falsePositiveRate: 0.08,
       },
       {
         id: 'disk_anomaly',
         name: '디스크 이상 패턴',
         description: '디스크 사용률 또는 I/O 이상',
         detectionLogic: 'disk > threshold OR io_wait > threshold',
-        threshold: 0.90,
+        threshold: 0.9,
         enabled: true,
         accuracy: 0.94,
-        falsePositiveRate: 0.03
+        falsePositiveRate: 0.03,
       },
       {
         id: 'network_anomaly',
         name: '네트워크 이상 패턴',
         description: '네트워크 트래픽 또는 응답시간 이상',
-        detectionLogic: 'network_usage > threshold OR response_time > threshold',
-        threshold: 0.80,
+        detectionLogic:
+          'network_usage > threshold OR response_time > threshold',
+        threshold: 0.8,
         enabled: true,
         accuracy: 0.87,
-        falsePositiveRate: 0.12
+        falsePositiveRate: 0.12,
       },
       {
         id: 'composite_anomaly',
         name: '복합 이상 패턴',
         description: '여러 메트릭에서 동시에 이상 징후',
         detectionLogic: 'count(anomalous_metrics) >= 2',
-        threshold: 0.70,
+        threshold: 0.7,
         enabled: true,
         accuracy: 0.91,
-        falsePositiveRate: 0.06
-      }
+        falsePositiveRate: 0.06,
+      },
     ];
 
     console.log(`🎯 ${this.patterns.length}개 이상 탐지 패턴 초기화 완료`);
@@ -158,6 +164,41 @@ export class AnomalyDetection {
     try {
       console.log(`🔍 ${servers.length}개 서버 이상 탐지 시작`);
 
+      // 새로운 lightweight-ml-engine 사용 시도
+      try {
+        const { detectAnomalies: detectAnomaliesML } = await import(
+          '@/lib/ml/lightweight-ml-engine'
+        );
+
+        // 서버 데이터를 MetricPoint 형식으로 변환
+        const history = servers.map(server => ({
+          timestamp: server.timestamp,
+          cpu: server.cpu_usage,
+          memory: server.memory_usage,
+          disk: server.disk_usage,
+        }));
+
+        if (history.length > 0) {
+          const mlAnomalies = detectAnomaliesML(history, 2.5);
+
+          // ML 결과를 기존 AnomalyAlert 형식으로 변환
+          const convertedAnomalies = this.convertMLAnomalies(
+            mlAnomalies,
+            servers
+          );
+          detectedAnomalies.push(...convertedAnomalies);
+
+          console.log(
+            `🤖 ML 엔진으로 ${convertedAnomalies.length}개 이상 탐지`
+          );
+        }
+      } catch (mlError) {
+        console.warn(
+          '⚠️ ML 엔진 이상 탐지 실패, 기존 방식으로 fallback:',
+          mlError
+        );
+      }
+
       // 각 서버에 대해 이상 탐지 실행
       for (const server of servers) {
         const serverAnomalies = await this.detectServerAnomalies(server);
@@ -170,16 +211,17 @@ export class AnomalyDetection {
 
       // 새로운 알람만 필터링 및 저장
       const newAnomalies = this.filterNewAnomalies(detectedAnomalies);
-      
+
       // 알람 저장 및 알림 발송
       for (const anomaly of newAnomalies) {
         this.alerts.set(anomaly.id, anomaly);
         await this.sendAnomalyNotification(anomaly);
       }
 
-      console.log(`✅ 이상 탐지 완료: ${detectedAnomalies.length}개 발견, ${newAnomalies.length}개 신규`);
+      console.log(
+        `✅ 이상 탐지 완료: ${detectedAnomalies.length}개 발견, ${newAnomalies.length}개 신규`
+      );
       return detectedAnomalies;
-
     } catch (error) {
       console.error('❌ 이상 탐지 실행 실패:', error);
       throw error;
@@ -189,16 +231,22 @@ export class AnomalyDetection {
   /**
    * 🖥️ 개별 서버 이상 탐지
    */
-  private async detectServerAnomalies(server: ServerMetrics): Promise<AnomalyAlert[]> {
+  private async detectServerAnomalies(
+    server: ServerMetrics
+  ): Promise<AnomalyAlert[]> {
     const anomalies: AnomalyAlert[] = [];
 
     try {
       // 메트릭별 이상 탐지
       const metrics = [
         { key: 'cpu_usage', value: server.cpu_usage, name: 'CPU 사용률' },
-        { key: 'memory_usage', value: server.memory_usage, name: '메모리 사용률' },
+        {
+          key: 'memory_usage',
+          value: server.memory_usage,
+          name: '메모리 사용률',
+        },
         { key: 'disk_usage', value: server.disk_usage, name: '디스크 사용률' },
-        { key: 'response_time', value: server.response_time, name: '응답시간' }
+        { key: 'response_time', value: server.response_time, name: '응답시간' },
       ];
 
       for (const metric of metrics) {
@@ -214,12 +262,14 @@ export class AnomalyDetection {
         if (iqrAnomaly) anomalies.push(iqrAnomaly);
 
         // 패턴 기반 이상 탐지
-        const patternAnomalies = await this.detectPatternAnomalies(server, metric);
+        const patternAnomalies = await this.detectPatternAnomalies(
+          server,
+          metric
+        );
         anomalies.push(...patternAnomalies);
       }
 
       return anomalies;
-
     } catch (error) {
       console.error(`❌ 서버 ${server.id} 이상 탐지 실패:`, error);
       return [];
@@ -230,7 +280,7 @@ export class AnomalyDetection {
    * 📊 Z-Score 기반 이상 탐지
    */
   private async detectZScoreAnomaly(
-    server: ServerMetrics, 
+    server: ServerMetrics,
     metric: { key: string; value: number; name: string }
   ): Promise<AnomalyAlert | null> {
     const historyKey = `${server.id}_${metric.key}`;
@@ -241,14 +291,16 @@ export class AnomalyDetection {
     }
 
     const mean = history.reduce((sum, val) => sum + val, 0) / history.length;
-    const variance = history.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / history.length;
+    const variance =
+      history.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
+      history.length;
     const stdDev = Math.sqrt(variance);
     const zScore = Math.abs((metric.value - mean) / stdDev);
 
     // Z-Score > 3 이면 이상으로 판단
     if (zScore > 3) {
       const severity = this.calculateSeverity(zScore, 3, 5);
-      
+
       return {
         id: `zscore_${server.id}_${metric.key}_${Date.now()}`,
         timestamp: Date.now(),
@@ -263,8 +315,8 @@ export class AnomalyDetection {
         historicalContext: {
           average: mean,
           standardDeviation: stdDev,
-          recentTrend: this.calculateTrend(history)
-        }
+          recentTrend: this.calculateTrend(history),
+        },
       };
     }
 
@@ -275,7 +327,7 @@ export class AnomalyDetection {
    * 📈 IQR 기반 이상 탐지
    */
   private async detectIQRAnomaly(
-    server: ServerMetrics, 
+    server: ServerMetrics,
     metric: { key: string; value: number; name: string }
   ): Promise<AnomalyAlert | null> {
     const historyKey = `${server.id}_${metric.key}`;
@@ -309,14 +361,14 @@ export class AnomalyDetection {
         currentValue: metric.value,
         expectedValue: (q1 + q3) / 2,
         severity,
-        confidence: Math.min(0.90, distance / (iqr * 2)),
+        confidence: Math.min(0.9, distance / (iqr * 2)),
         description: `${metric.name}가 IQR 기반 정상 범위를 벗어남 (범위: ${lowerBound.toFixed(2)}-${upperBound.toFixed(2)})`,
         recommendations: this.generateRecommendations(metric.key, severity),
         historicalContext: {
           average: (q1 + q3) / 2,
           standardDeviation: iqr / 1.35, // IQR to stddev 근사치
-          recentTrend: this.calculateTrend(history)
-        }
+          recentTrend: this.calculateTrend(history),
+        },
       };
     }
 
@@ -327,14 +379,14 @@ export class AnomalyDetection {
    * 🎯 패턴 기반 이상 탐지
    */
   private async detectPatternAnomalies(
-    server: ServerMetrics, 
+    server: ServerMetrics,
     metric: { key: string; value: number; name: string }
   ): Promise<AnomalyAlert[]> {
     const anomalies: AnomalyAlert[] = [];
 
     for (const pattern of this.patterns.filter(p => p.enabled)) {
       const isAnomaly = await this.evaluatePattern(server, metric, pattern);
-      
+
       if (isAnomaly) {
         anomalies.push({
           id: `pattern_${pattern.id}_${server.id}_${metric.key}_${Date.now()}`,
@@ -350,8 +402,8 @@ export class AnomalyDetection {
           historicalContext: {
             average: 0, // 패턴 기반에서는 평균값 의미 없음
             standardDeviation: 0,
-            recentTrend: 'stable'
-          }
+            recentTrend: 'stable',
+          },
         });
       }
     }
@@ -362,7 +414,9 @@ export class AnomalyDetection {
   /**
    * 🔍 복합 이상 패턴 탐지
    */
-  private async detectCompositeAnomalies(servers: ServerMetrics[]): Promise<AnomalyAlert[]> {
+  private async detectCompositeAnomalies(
+    servers: ServerMetrics[]
+  ): Promise<AnomalyAlert[]> {
     const compositeAnomalies: AnomalyAlert[] = [];
 
     // 시스템 전체의 이상 패턴 탐지
@@ -384,13 +438,13 @@ export class AnomalyDetection {
           '🚨 시스템 전체 점검 필요',
           '⚡ 인프라 스케일링 고려',
           '🔧 로드 밸런싱 재구성 검토',
-          '📊 트래픽 패턴 분석 필요'
+          '📊 트래픽 패턴 분석 필요',
         ],
         historicalContext: {
           average: servers.length * 0.05,
           standardDeviation: servers.length * 0.02,
-          recentTrend: 'increasing'
-        }
+          recentTrend: 'increasing',
+        },
       });
     }
 
@@ -412,7 +466,11 @@ export class AnomalyDetection {
     let totalDisk = 0;
 
     for (const server of servers) {
-      if (server.cpu_usage > 80 || server.memory_usage > 85 || server.disk_usage > 90) {
+      if (
+        server.cpu_usage > 80 ||
+        server.memory_usage > 85 ||
+        server.disk_usage > 90
+      ) {
         anomalousCount++;
       }
       totalCpu += server.cpu_usage;
@@ -424,7 +482,7 @@ export class AnomalyDetection {
       anomalousServers: anomalousCount,
       avgCpu: totalCpu / servers.length,
       avgMemory: totalMemory / servers.length,
-      avgDisk: totalDisk / servers.length
+      avgDisk: totalDisk / servers.length,
     };
   }
 
@@ -448,7 +506,9 @@ export class AnomalyDetection {
   /**
    * 📈 트렌드 계산
    */
-  private calculateTrend(data: number[]): 'increasing' | 'decreasing' | 'stable' {
+  private calculateTrend(
+    data: number[]
+  ): 'increasing' | 'decreasing' | 'stable' {
     if (data.length < 10) return 'stable';
 
     const recent = data.slice(-10);
@@ -469,7 +529,11 @@ export class AnomalyDetection {
   /**
    * ⚠️ 심각도 계산
    */
-  private calculateSeverity(value: number, lowThreshold: number, highThreshold: number): 'low' | 'medium' | 'high' | 'critical' {
+  private calculateSeverity(
+    value: number,
+    lowThreshold: number,
+    highThreshold: number
+  ): 'low' | 'medium' | 'high' | 'critical' {
     if (value >= highThreshold) return 'critical';
     if (value >= lowThreshold * 1.5) return 'high';
     if (value >= lowThreshold) return 'medium';
@@ -524,28 +588,28 @@ export class AnomalyDetection {
       cpu_spike: [
         '🔧 CPU 스파이크 원인 분석 필요',
         '⚡ 로드 밸런싱 재구성 검토',
-        '📊 프로세스 우선순위 조정'
+        '📊 프로세스 우선순위 조정',
       ],
       memory_leak: [
         '🧠 메모리 누수 프로세스 식별',
         '🔄 애플리케이션 재시작 고려',
-        '🔍 코드 레벨 메모리 관리 점검'
+        '🔍 코드 레벨 메모리 관리 점검',
       ],
       disk_anomaly: [
         '💾 디스크 I/O 패턴 분석',
         '🗂️ 파일 시스템 최적화',
-        '📈 스토리지 용량 계획 검토'
+        '📈 스토리지 용량 계획 검토',
       ],
       network_anomaly: [
         '🌐 네트워크 트래픽 분석',
         '🔧 방화벽 설정 확인',
-        '⚡ CDN 설정 최적화'
+        '⚡ CDN 설정 최적화',
       ],
       composite_anomaly: [
         '🚨 시스템 전체 점검 필요',
         '📊 인프라 모니터링 강화',
-        '🔄 장애 복구 계획 실행'
-      ]
+        '🔄 장애 복구 계획 실행',
+      ],
     };
 
     return recommendations[patternId] || ['🔍 시스템 점검 권장'];
@@ -554,13 +618,17 @@ export class AnomalyDetection {
   /**
    * 🎯 패턴별 심각도 매핑
    */
-  private patternSeverityMapping(patternId: string): 'low' | 'medium' | 'high' | 'critical' {
-    const severityMap: { [key: string]: 'low' | 'medium' | 'high' | 'critical' } = {
+  private patternSeverityMapping(
+    patternId: string
+  ): 'low' | 'medium' | 'high' | 'critical' {
+    const severityMap: {
+      [key: string]: 'low' | 'medium' | 'high' | 'critical';
+    } = {
       cpu_spike: 'high',
       memory_leak: 'critical',
       disk_anomaly: 'medium',
       network_anomaly: 'medium',
-      composite_anomaly: 'critical'
+      composite_anomaly: 'critical',
     };
 
     return severityMap[patternId] || 'medium';
@@ -572,10 +640,11 @@ export class AnomalyDetection {
   private filterNewAnomalies(anomalies: AnomalyAlert[]): AnomalyAlert[] {
     return anomalies.filter(anomaly => {
       // 동일한 서버-메트릭 조합에서 최근 10분 내 알람이 있었는지 확인
-      const recentAlarms = Array.from(this.alerts.values()).filter(alert => 
-        alert.serverId === anomaly.serverId &&
-        alert.metric === anomaly.metric &&
-        Date.now() - alert.timestamp < 10 * 60 * 1000 // 10분
+      const recentAlarms = Array.from(this.alerts.values()).filter(
+        alert =>
+          alert.serverId === anomaly.serverId &&
+          alert.metric === anomaly.metric &&
+          Date.now() - alert.timestamp < 10 * 60 * 1000 // 10분
       );
 
       return recentAlarms.length === 0;
@@ -597,7 +666,7 @@ export class AnomalyDetection {
           confidence: anomaly.confidence,
           description: anomaly.description,
           recommendations: anomaly.recommendations,
-          timestamp: new Date(anomaly.timestamp).toISOString()
+          timestamp: new Date(anomaly.timestamp).toISOString(),
         });
       }
     } catch (error) {
@@ -609,30 +678,39 @@ export class AnomalyDetection {
    * 🎯 패턴 평가
    */
   private async evaluatePattern(
-    server: ServerMetrics, 
+    server: ServerMetrics,
     metric: { key: string; value: number; name: string },
     pattern: AnomalyPattern
   ): Promise<boolean> {
     // 간단한 패턴 매칭 로직 (실제로는 더 복잡한 ML 모델 사용 가능)
     switch (pattern.id) {
       case 'cpu_spike':
-        return metric.key === 'cpu_usage' && metric.value > pattern.threshold * 100;
-      
+        return (
+          metric.key === 'cpu_usage' && metric.value > pattern.threshold * 100
+        );
+
       case 'memory_leak':
         if (metric.key === 'memory_usage') {
           const historyKey = `${server.id}_${metric.key}`;
           const history = this.historicalData.get(historyKey) || [];
           const trend = this.calculateTrend(history);
-          return trend === 'increasing' && metric.value > pattern.threshold * 100;
+          return (
+            trend === 'increasing' && metric.value > pattern.threshold * 100
+          );
         }
         return false;
-      
+
       case 'disk_anomaly':
-        return metric.key === 'disk_usage' && metric.value > pattern.threshold * 100;
-      
+        return (
+          metric.key === 'disk_usage' && metric.value > pattern.threshold * 100
+        );
+
       case 'network_anomaly':
-        return metric.key === 'response_time' && metric.value > pattern.threshold * 1000;
-      
+        return (
+          metric.key === 'response_time' &&
+          metric.value > pattern.threshold * 1000
+        );
+
       default:
         return false;
     }
@@ -643,18 +721,19 @@ export class AnomalyDetection {
    */
   getAnomalyStatistics(): AnomalyStatistics {
     const allAlerts = Array.from(this.alerts.values());
-    const recentAlerts = allAlerts.filter(alert => 
-      Date.now() - alert.timestamp < 24 * 60 * 60 * 1000 // 최근 24시간
+    const recentAlerts = allAlerts.filter(
+      alert => Date.now() - alert.timestamp < 24 * 60 * 60 * 1000 // 최근 24시간
     );
 
     return {
       totalAnomalies: allAlerts.length,
-      criticalAnomalies: allAlerts.filter(a => a.severity === 'critical').length,
+      criticalAnomalies: allAlerts.filter(a => a.severity === 'critical')
+        .length,
       falsePositives: 0, // 실제 운영에서는 피드백 기반으로 계산
       accuracy: 0.91, // 전체 모델 정확도
       detectionRate: recentAlerts.length / 24, // 시간당 탐지율
       averageResponseTime: 150, // ms
-      recentAnomalies: recentAlerts.slice(-10)
+      recentAnomalies: recentAlerts.slice(-10),
     };
   }
 
@@ -663,7 +742,7 @@ export class AnomalyDetection {
    */
   cleanupOldAlerts(): void {
     const cutoffTime = Date.now() - 7 * 24 * 60 * 60 * 1000; // 7일 전
-    
+
     for (const [id, alert] of this.alerts) {
       if (alert.timestamp < cutoffTime) {
         this.alerts.delete(id);
@@ -686,10 +765,89 @@ export class AnomalyDetection {
     const pattern = this.patterns.find(p => p.id === patternId);
     if (pattern) {
       pattern.enabled = enabled;
-      console.log(`🎯 패턴 '${pattern.name}': ${enabled ? '활성화' : '비활성화'}`);
+      console.log(
+        `🎯 패턴 '${pattern.name}': ${enabled ? '활성화' : '비활성화'}`
+      );
     }
+  }
+
+  /**
+   * 🔄 ML 엔진 이상 탐지 결과를 기존 AnomalyAlert 형식으로 변환
+   */
+  private convertMLAnomalies(
+    mlAnomalies: Array<{
+      timestamp: string;
+      cpu: number;
+      memory: number;
+      disk?: number;
+    }>,
+    originalServers: ServerMetrics[]
+  ): AnomalyAlert[] {
+    const alerts: AnomalyAlert[] = [];
+
+    for (const anomaly of mlAnomalies) {
+      // 타임스탬프를 기반으로 해당 서버 찾기
+      const server = originalServers.find(
+        s => s.timestamp === anomaly.timestamp
+      );
+      if (!server) continue;
+
+      // CPU 이상
+      if (Math.abs(anomaly.cpu - server.cpu_usage) > 20) {
+        alerts.push({
+          id: `ml_cpu_${server.id}_${Date.now()}`,
+          timestamp: Date.now(),
+          serverId: server.id,
+          metric: 'cpu_usage',
+          currentValue: anomaly.cpu,
+          expectedValue: server.cpu_usage,
+          severity:
+            anomaly.cpu > 90
+              ? 'critical'
+              : anomaly.cpu > 80
+                ? 'high'
+                : 'medium',
+          confidence: 0.85, // ML 엔진 기본 신뢰도
+          description: `ML 엔진에서 CPU 사용률 이상 탐지 (${anomaly.cpu.toFixed(1)}%)`,
+          recommendations: this.generateRecommendations('cpu_usage', 'high'),
+          historicalContext: {
+            average: server.cpu_usage,
+            standardDeviation: 0,
+            recentTrend: 'stable' as const,
+          },
+        });
+      }
+
+      // Memory 이상
+      if (Math.abs(anomaly.memory - server.memory_usage) > 20) {
+        alerts.push({
+          id: `ml_memory_${server.id}_${Date.now()}`,
+          timestamp: Date.now(),
+          serverId: server.id,
+          metric: 'memory_usage',
+          currentValue: anomaly.memory,
+          expectedValue: server.memory_usage,
+          severity:
+            anomaly.memory > 95
+              ? 'critical'
+              : anomaly.memory > 85
+                ? 'high'
+                : 'medium',
+          confidence: 0.85,
+          description: `ML 엔진에서 메모리 사용률 이상 탐지 (${anomaly.memory.toFixed(1)}%)`,
+          recommendations: this.generateRecommendations('memory_usage', 'high'),
+          historicalContext: {
+            average: server.memory_usage,
+            standardDeviation: 0,
+            recentTrend: 'stable' as const,
+          },
+        });
+      }
+    }
+
+    return alerts;
   }
 }
 
 // 싱글톤 인스턴스 export
-export const anomalyDetection = AnomalyDetection.getInstance(); 
+export const anomalyDetection = AnomalyDetection.getInstance();

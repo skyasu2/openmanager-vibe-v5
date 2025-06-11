@@ -386,9 +386,11 @@ if (typeof window !== 'undefined') {
   PerformanceMonitor.initWebVitals();
 }
 
-export default {
+const performanceUtils = {
   PerformanceMonitor,
   ResourcePreloader,
   RenderingProfiler,
   bundleOptimization,
 };
+
+export default performanceUtils;

@@ -43,7 +43,30 @@ const config: StorybookConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': '../src',
+      '@tensorflow/tfjs-node': false,
+      '@tensorflow/tfjs-node-gpu': false,
+      '@tensorflow/tfjs': false,
     };
+
+    // TensorFlow 관련 모듈 완전 무시
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      '@tensorflow/tfjs-node': false,
+      '@tensorflow/tfjs-node-gpu': false,
+      '@tensorflow/tfjs': false,
+      fs: false,
+      path: false,
+      os: false,
+    };
+
+    // IgnorePlugin으로 TensorFlow 모듈 완전 차단
+    const webpack = await import('webpack');
+    config.plugins = config.plugins || [];
+    config.plugins.push(
+      new webpack.default.IgnorePlugin({
+        resourceRegExp: /@tensorflow/,
+      })
+    );
 
     return config;
   },
