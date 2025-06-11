@@ -92,6 +92,8 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(
     const [progress, setProgress] = useState(0);
     const [isAnimating, setIsAnimating] = useState(true);
     const [isCompleted, setIsCompleted] = useState(false);
+    // 완료되었으나 사용자 확인을 기다리는 상태
+    const [allowClose, setAllowClose] = useState(false);
 
     // 외부 진행률과 내부 애니메이션 진행률 조합
     const displayProgress = useMemo(() => {
@@ -164,12 +166,12 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(
       if (
         displayProgress >= 100 &&
         loadingPhase === 'completed' &&
-        !isCompleted
+        !allowClose
       ) {
-        console.log('📊 진행률 100% 도달 - 완료 처리');
-        setTimeout(() => handleComplete(), 500);
+        console.log('📊 진행률 100% 도달 - 사용자 확인 대기');
+        setAllowClose(true);
       }
-    }, [displayProgress, loadingPhase, isCompleted, handleComplete]);
+    }, [displayProgress, loadingPhase, allowClose]);
 
     const currentPhase = bootPhases[currentPhaseIndex];
 
@@ -203,7 +205,8 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(
               justifyContent: 'center',
             }}
             onClick={() => {
-              if (!isCompleted) {
+              // 백그라운드 클릭으로도 닫고 싶다면 allowClose 검사
+              if (allowClose && !isCompleted) {
                 console.log('🖱️ DashboardLoader 클릭으로 완료');
                 handleComplete();
               }
@@ -349,6 +352,27 @@ const DashboardLoader: React.FC<DashboardLoaderProps> = memo(
                   {loadingPhase === 'completed' && '✅ 모든 시스템 준비 완료!'}
                 </div>
               </div>
+
+              {/* 완료 후 안내 및 버튼 */}
+              {allowClose && (
+                <div className='flex flex-col items-center mt-8'>
+                  <div className='flex items-center text-emerald-400 mb-4'>
+                    <CheckCircle className='w-8 h-8 mr-2' />
+                    <span className='text-2xl font-bold text-white'>
+                      시스템 준비 완료!
+                    </span>
+                  </div>
+                  <p className='text-blue-200 mb-6'>
+                    OpenManager를 시작합니다...
+                  </p>
+                  <button
+                    onClick={handleComplete}
+                    className='absolute bottom-8 right-8 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg shadow-lg transition-colors duration-300'
+                  >
+                    다음
+                  </button>
+                </div>
+              )}
             </div>
           </motion.div>
         )}
