@@ -42,6 +42,15 @@ function getSupabaseAnonKey() {
 
 function getSupabaseServiceKey() {
   const key = env.SUPABASE_SERVICE_ROLE_KEY;
+
+  // 개발 환경에서는 임시 키 사용 허용
+  if (!key && process.env.NODE_ENV === 'development') {
+    console.warn(
+      '⚠️ SUPABASE_SERVICE_ROLE_KEY 없음 - 개발 환경에서 임시 키 사용'
+    );
+    return 'temp-service-key-for-development';
+  }
+
   if (
     !key &&
     (process.env.NODE_ENV === undefined ||

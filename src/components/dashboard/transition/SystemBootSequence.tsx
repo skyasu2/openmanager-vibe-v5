@@ -12,6 +12,7 @@
 
 import React, { useState, useCallback, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import SystemChecklist from './SystemChecklist';
 import ServerCardSpawner from './ServerCardSpawner';
 import { Server } from '../../../types/server';
@@ -56,6 +57,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
     const [errorCount, setErrorCount] = useState(0);
     const [waitingForUserConfirmation, setWaitingForUserConfirmation] =
       useState(false);
+    const router = useRouter();
 
     // 🛡️ 전역 에러 핸들러 및 절대 안전장치 설정
     useEffect(() => {
@@ -124,6 +126,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
           setShowSpawning(false);
           setWaitingForUserConfirmation(false);
           onBootComplete();
+          router.push('/dashboard');
         } catch (error) {
           safeErrorLog('❌ onBootComplete 콜백 에러', error);
           // 에러가 발생해도 완료 처리
@@ -133,7 +136,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
           setWaitingForUserConfirmation(false);
         }
       }
-    }, [isComplete, waitingForUserConfirmation, onBootComplete]);
+    }, [isComplete, waitingForUserConfirmation, onBootComplete, router]);
 
     // 스킵 조건 체크
     useEffect(() => {
