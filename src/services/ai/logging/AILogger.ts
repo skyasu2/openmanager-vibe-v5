@@ -189,6 +189,29 @@ export class AILogger {
     }
   }
 
+  private mapToPinoLevel(level: LogLevel): string {
+    switch (level) {
+      case LogLevel.ERROR:
+        return 'error';
+      case LogLevel.WARN:
+        return 'warn';
+      case LogLevel.INFO:
+        return 'info';
+      case LogLevel.DEBUG:
+        return 'debug';
+      case LogLevel.VERBOSE:
+        return 'trace';
+      case LogLevel.AI_THINKING:
+        return 'debug';
+      case LogLevel.AI_ANALYSIS:
+        return 'info';
+      case LogLevel.AI_PERFORMANCE:
+        return 'debug';
+      default:
+        return 'info';
+    }
+  }
+
   private initializePino(): void {
     const pinoConfig: any = {
       level: this.isProduction ? 'info' : 'debug',
@@ -267,7 +290,8 @@ export class AILogger {
     this.winstonLogger[winstonLevel](logEntry.message, logEntry);
 
     // Pino 로깅 (더 빠른 성능)
-    this.pinoLogger[logEntry.level](logEntry);
+    const pinoLevel = this.mapToPinoLevel(logEntry.level);
+    this.pinoLogger[pinoLevel](logEntry);
 
     // 실시간 구독자들에게 알림
     this.notifySubscribers(logEntry);
