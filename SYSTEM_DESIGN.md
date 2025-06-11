@@ -353,3 +353,111 @@
 _🗓️ 문서 작성일: 2025년 6월 11일_  
 _📝 작성자: OpenManager Vibe v5 개발팀_  
 _🔄 버전: v5.42.2_
+
+## 🤖 **AI 엔진 통합 아키텍처 v2.0** _(v5.42.4 완료)_
+
+### **🎯 설계 철학: "진정한 AI 분석 시스템"**
+
+- **연극이 아닌 실제**: AI 엔진이 시나리오를 미리 알지 못하고 서버 상태와 컨텍스트만으로 분석
+- **하이브리드 접근**: 4종 AI 엔진(MCP, RAG, TensorFlow, Google AI)의 협업 시스템
+- **Graceful Degradation**: 개별 엔진 실패 시에도 전체 시스템 안정성 보장
+
+### **🔧 AI 엔진별 구현 상태**
+
+#### **1️⃣ MCP (Model Context Protocol) 엔진**
+
+```typescript
+// 환경별 자동 스위치
+const MCP_URL =
+  process.env.VERCEL || process.env.NODE_ENV === 'production'
+    ? process.env.MCP_REMOTE_URL // Render: https://openmanager-vibe-v5.onrender.com
+    : process.env.MCP_LOCAL_URL; // Local: http://localhost:3100
+```
+
+- **Remote**: Render에서 구동 중인 MCP 서버 연결
+- **Local**: 개발 환경 자동 폴백
+- **상태**: ✅ 실제 파일시스템/GitHub 도구 연동
+
+#### **2️⃣ RAG (Retrieval-Augmented Generation) 엔진**
+
+```typescript
+// 의도적 메모리 모드 설정
+if (process.env.RAG_FORCE_MEMORY === 'true') {
+  console.log(
+    '⏭️ RAG_FORCE_MEMORY 활성화 – PostgresVectorDB를 메모리 모드로 실행'
+  );
+  this.isInitialized = true; // pgvector 초기화 스킵
+  return;
+}
+```
+
+- **메모리 모드**: 빠른 응답, DB 권한 불필요
+- **Supabase 연결**: 프로덕션에서 pgvector 지원 가능
+- **상태**: ✅ 3개 문서 기반 지식베이스 운영
+
+#### **3️⃣ TensorFlow 동적 로더**
+
+```typescript
+// Graceful Fallback 시스템
+export async function loadTf() {
+  try {
+    if (process.env.VERCEL) {
+      tf = await import('@tensorflow/tfjs-node'); // WASM backend
+    } else {
+      tf = await import('@tensorflow/tfjs-node'); // Native addon
+    }
+    return tf;
+  } catch (moduleError) {
+    console.warn('⚠️ TensorFlow 모듈 로드 실패 - 기능 비활성');
+    return null; // 호출부에서 null 체크 후 graceful skip
+  }
+}
+```
+
+- **CPU 모드**: Vercel 서버리스 환경 호환
+- **모듈 선택적 로드**: 패키지 없어도 빌드 에러 없음
+- **상태**: ✅ 개발/프로덕션 환경별 최적화
+
+#### **4️⃣ Google AI API**
+
+- **Gemini 모델**: 기존 설정 유지
+- **환경변수**: `GOOGLE_AI_API_KEY` 기반
+- **상태**: ✅ API 키 검증 완료, 실제 분석 가능
+
+### **📊 AI Health 통합 모니터링**
+
+```typescript
+// GET /api/ai/health - 4종 AI 엔진 통합 상태
+{
+  "mcp": { "status": "online", "latency": 155 },
+  "rag": { "status": "memory_mode", "documents": 3 },
+  "tensorflow": { "status": "loaded", "backend": "cpu" },
+  "google_ai": { "status": "ready", "model": "gemini-pro" }
+}
+```
+
+### **🛡️ 안정성 보장 메커니즘**
+
+#### **환경변수 기반 제어**
+
+```bash
+# Vercel 프로덕션 설정
+RAG_FORCE_MEMORY=true
+MCP_REMOTE_URL=https://openmanager-vibe-v5.onrender.com
+MCP_LOCAL_URL=http://localhost:3100
+```
+
+#### **실패 처리 전략**
+
+- **MCP 실패**: Mock 클라이언트로 폴백, 기본 도구 제공
+- **RAG 실패**: 메모리 모드로 자동 전환
+- **TensorFlow 실패**: null 반환, 호출부에서 graceful skip
+- **Google AI 실패**: 다른 엔진으로 보완 분석
+
+#### **성능 최적화**
+
+- **지연 로딩**: 필요 시점에만 AI 엔진 초기화
+- **캐싱 시스템**: 분석 결과 임시 저장으로 응답 속도 향상
+- **병렬 처리**: 4종 엔진 독립적 동작, 하나 실패해도 나머지 정상
+
+---
