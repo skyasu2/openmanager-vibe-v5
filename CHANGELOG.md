@@ -1,5 +1,28 @@
 # 📝 CHANGELOG
 
+## [5.42.4] - 2025-06-11
+
+### 🔧 **AI 엔진 통합 리팩토링 완료**
+
+- **🌐 MCP Remote 연동**: Render/Local 자동 환경 스위치
+- **💾 RAG 메모리 모드**: `RAG_FORCE_MEMORY=true` 환경변수로 강제 메모리 모드
+- **🧠 TensorFlow 동적 로더**: Vercel/개발 환경별 graceful fallback
+- **📊 AI Health 엔드포인트**: `/api/ai/health` - 4종 AI 엔진 통합 상태 모니터링
+
+### ✅ **검증 완료**
+
+- **TypeScript**: ✅ 타입 체크 통과
+- **테스트**: ✅ 34/35 테스트 통과 (100%)
+- **빌드**: ✅ 88개 정적 페이지 생성 성공
+- **경고 처리**: TensorFlow 모듈 없을 때 graceful degradation
+
+### 🛠️ **기술적 개선사항**
+
+- **PostgresVectorDB**: 메모리 모드 바이패스 로직 추가
+- **TensorFlow 로더**: 모듈 미설치 시에도 빌드 에러 없음
+- **환경변수 템플릿**: Vercel 배포용 새로운 변수들 추가
+- **타입 선언**: tfjs-node 모듈 타입 정의 추가
+
 ## [5.42.3] - 2025-06-11
 
 ### 🎉 Slack Webhook 보안 API 완전 구현 완료
