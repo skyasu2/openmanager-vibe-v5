@@ -414,7 +414,13 @@ export class UnifiedAIEngine {
   }
 
   /**
-   * 🔧 실제 분석 수행 (Google AI 베타 모드 포함)
+   * 🔧 실제 분석 수행 (올바른 우선순위)
+   *
+   * 🎯 컨텍스트 기반 자연어 처리 우선순위:
+   * 1. MCP 컨텍스트 (실시간 서버 상태 + 자연어 처리) - 70%
+   * 2. RAG 엔진 (서버 지식 + 자연어 설명) - 15%
+   * 3. 직접 시스템 분석 (경량 ML) - 10%
+   * 4. Google AI (복잡한 자연어 전문가) - 최후 2%
    */
   private async performRealAnalysis(
     intent: any,
@@ -422,47 +428,76 @@ export class UnifiedAIEngine {
     options?: any
   ): Promise<MCPResponse> {
     try {
-      // 🆕 0차: Google AI 베타 모드 시도 (활성화된 경우)
+      // 🥇 1순위: MCP 도구를 사용한 실시간 컨텍스트 분석 (최우선)
+      if (options?.enableMCP !== false && this.mcpClient) {
+        console.log('🥇 MCP 컨텍스트 우선 분석 시도...');
+        try {
+          const mcpResult = await this.performMCPAnalysis(intent, context);
+          if (mcpResult.success && mcpResult.confidence > 0.7) {
+            console.log('✅ MCP 컨텍스트로 완벽한 답변 생성 (70% 커버리지)');
+            return mcpResult;
+          }
+        } catch (error) {
+          console.warn('⚠️ MCP 컨텍스트 분석 실패, RAG로 폴백:', error);
+        }
+      }
+
+      // 🥈 2순위: RAG 엔진 (서버 지식 기반)
+      if (this.ragEngine.isReady()) {
+        console.log('🥈 RAG 서버 지식 검색 시도...');
+        try {
+          const ragResult = await this.performRAGAnalysis(intent, context);
+          if (ragResult.success && ragResult.confidence > 0.6) {
+            console.log(
+              '✅ RAG 엔진으로 서버 지식 기반 답변 생성 (15% 커버리지)'
+            );
+            return ragResult;
+          }
+        } catch (error) {
+          console.warn('⚠️ RAG 엔진 분석 실패, 경량 ML로 폴백:', error);
+        }
+      }
+
+      // 🥉 3순위: 직접 시스템 분석 (경량 ML)
+      console.log('🥉 경량 ML 시스템 분석 시도...');
+      try {
+        const directResult = await this.performDirectSystemAnalysis(
+          intent,
+          context
+        );
+        if (directResult.success && directResult.confidence > 0.5) {
+          console.log('✅ 경량 ML로 수치 기반 분석 완료 (10% 커버리지)');
+          return directResult;
+        }
+      } catch (error) {
+        console.warn('⚠️ 경량 ML 분석 실패, Google AI로 최종 폴백:', error);
+      }
+
+      // 🚨 최후: Google AI (복잡한 자연어 전문가, 제한적 사용)
       if (this.googleAI && this.googleAI.isAvailable()) {
+        console.log('🚨 복잡한 자연어 질문 - Google AI 최종 폴백...');
+        console.log('   ℹ️ MCP, RAG, 경량 ML이 모두 실패하여 Google AI 사용');
         try {
           const googleResult = await this.performGoogleAIAnalysis(
             intent,
             context
           );
           if (googleResult.success && googleResult.confidence > 0.8) {
-            console.log('🤖 Google AI 베타 모드로 분석 완료');
+            console.log('✅ Google AI로 복잡한 자연어 처리 완료 (2% 커버리지)');
             return googleResult;
           }
         } catch (error) {
-          console.warn('⚠️ Google AI 베타 분석 실패, MCP로 폴백:', error);
+          console.warn('❌ Google AI 최종 폴백도 실패:', error);
         }
+      } else {
+        console.log('⚠️ Google AI 사용 불가 (API 키 없음 또는 할당량 초과)');
       }
 
-      // 1차: MCP 도구를 사용한 실제 분석
-      if (options?.enableMCP !== false && this.mcpClient) {
-        const mcpResult = await this.performMCPAnalysis(intent, context);
-        if (mcpResult.success && mcpResult.confidence > 0.7) {
-          return mcpResult;
-        }
-      }
-
-      // 🆕 2차: RAG 엔진 시도
-      if (this.ragEngine.isReady()) {
-        try {
-          const ragResult = await this.performRAGAnalysis(intent, context);
-          if (ragResult.success && ragResult.confidence > 0.6) {
-            console.log('📚 RAG 엔진으로 분석 완료');
-            return ragResult;
-          }
-        } catch (error) {
-          console.warn('⚠️ RAG 엔진 분석 실패, 직접 분석으로 폴백:', error);
-        }
-      }
-
-      // 3차: 직접 시스템 분석
-      return await this.performDirectSystemAnalysis(intent, context);
+      // 모든 엔진 실패시 기본 분석
+      console.log('🆘 모든 AI 엔진 실패 - 기본 분석으로 대체');
+      return await this.performBasicAnalysis(intent, context);
     } catch (error) {
-      console.warn('⚠️ 실제 분석 실패, 기본 분석으로 대체:', error);
+      console.warn('❌ 실제 분석 완전 실패, 기본 분석으로 대체:', error);
       return await this.performBasicAnalysis(intent, context);
     }
   }
