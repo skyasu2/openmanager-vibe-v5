@@ -479,7 +479,7 @@ const cardData: FeatureCard[] = [
     id: 'vibe-coding',
     title: '🔥 Vibe Coding',
     description:
-      '🎯 AI-driven coding workflow that revolutionizes developer experience. Generate high-quality code with natural language commands using Cursor + Claude, from development to automated deployment',
+      '🎯 AI 주도 코딩으로 개발자 워크플로우를 혁신. Cursor + Claude로 자연어 명령만으로 고품질 코드 생성, 자동 배포까지',
     icon: Zap,
     gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {

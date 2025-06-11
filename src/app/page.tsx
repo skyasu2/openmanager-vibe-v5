@@ -594,61 +594,48 @@ export default function Home() {
 
               {/* 제어 버튼들 - 3개를 가로로 배치 */}
               <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-6'>
-                {/* AI 에이전트 버튼 */}
+                {/* AI 엔진 상태 표시 */}
                 <div className='flex flex-col items-center'>
-                  <motion.button
-                    onClick={handleAIAgentInfo}
-                    className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border ${
-                      aiAgent.isEnabled
-                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-purple-400/50 shadow-lg shadow-purple-500/50'
-                        : 'bg-gray-600 hover:bg-gray-700 text-white border-gray-500/50'
-                    }`}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    animate={
-                      aiAgent.isEnabled
-                        ? {
-                            scale: [1, 1.05, 1],
-                            boxShadow: [
-                              '0 0 0 0 rgba(168, 85, 247, 0.8)',
-                              '0 0 0 10px rgba(168, 85, 247, 0)',
-                              '0 0 0 0 rgba(168, 85, 247, 0)',
-                            ],
-                          }
-                        : {}
-                    }
+                  <motion.div
+                    className='w-52 h-14 flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-semibold border border-green-400/50 shadow-lg shadow-green-500/30'
+                    animate={{
+                      scale: [1, 1.02, 1],
+                      boxShadow: [
+                        '0 0 0 0 rgba(34, 197, 94, 0.6)',
+                        '0 0 0 8px rgba(34, 197, 94, 0)',
+                        '0 0 0 0 rgba(34, 197, 94, 0)',
+                      ],
+                    }}
                     transition={{
                       duration: 2,
-                      repeat: aiAgent.isEnabled ? Infinity : 0,
+                      repeat: Infinity,
                       ease: 'easeInOut',
                     }}
                   >
                     <motion.div
-                      animate={aiAgent.isEnabled ? { rotate: 360 } : {}}
+                      animate={{ rotate: 360 }}
                       transition={{
                         duration: 3,
-                        repeat: aiAgent.isEnabled ? Infinity : 0,
+                        repeat: Infinity,
                         ease: 'linear',
                       }}
                     >
                       <Bot className='w-5 h-5' />
                     </motion.div>
-                    {aiAgent.isEnabled ? (
-                      <span className='bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent font-bold'>
-                        🧠 AI 엔진 활성
-                      </span>
-                    ) : (
-                      '🧠 AI 엔진 설정'
-                    )}
-                  </motion.button>
+                    <span className='text-white font-bold drop-shadow-lg'>
+                      🧠 AI 엔진 활성
+                    </span>
+                  </motion.div>
 
-                  {/* AI 에이전트 버튼에는 손가락 표시 제거 */}
+                  {/* 상태 표시 */}
                   <div className='mt-2 flex justify-center'>
-                    <span className='text-transparent text-xl'>👆</span>
+                    <span className='text-green-400 text-xl animate-pulse'>
+                      ✅
+                    </span>
                   </div>
                   <div className='mt-1 flex justify-center'>
-                    <span className='text-transparent text-xs opacity-0'>
-                      클릭하세요
+                    <span className='text-green-300 text-xs opacity-70'>
+                      시스템 준비 완료
                     </span>
                   </div>
                 </div>
