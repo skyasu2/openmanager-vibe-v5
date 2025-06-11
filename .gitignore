@@ -45,6 +45,12 @@ webhook-urls.txt
 *.webhook
 *.slack
 
+# 🔐 Production environment variables (contains sensitive data)
+docs/environment-variables-production.md
+**/environment-variables-production.md
+production-env.md
+sensitive-env.md
+
 # vercel
 .vercel
 
