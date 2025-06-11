@@ -39,34 +39,25 @@ export default function SystemBootPage() {
     services: [], // 빈 배열로 초기화
   }));
   const router = useRouter();
-  const [bootState, setBootState] = useState<'ready' | 'running' | 'completed'>(
-    'ready'
+  const [bootState, setBootState] = useState<'running' | 'completed'>(
+    'running'
   );
-  const [showControls, setShowControls] = useState(true);
-  const [autoRedirect, setAutoRedirect] = useState(false);
 
-  // 부팅 완료 핸들러
+  // 페이지 로드 시 바로 애니메이션 시작
+  useEffect(() => {
+    // 컴포넌트 마운트 시 바로 running 상태로 설정
+    setBootState('running');
+  }, []);
+
+  // 부팅 완료 핸들러 - 자동 이동 제거
   const handleBootComplete = () => {
     setBootState('completed');
-    setShowControls(true);
-
-    if (autoRedirect) {
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 2000);
-    }
+    // 자동 이동 기능 제거됨
   };
 
-  // 부팅 시작
-  const startBoot = () => {
+  // 부팅 다시 시작
+  const restartBoot = () => {
     setBootState('running');
-    setShowControls(false);
-  };
-
-  // 부팅 리셋
-  const resetBoot = () => {
-    setBootState('ready');
-    setShowControls(true);
   };
 
   return (
@@ -78,104 +69,40 @@ export default function SystemBootPage() {
         <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-3xl' />
       </div>
 
-      {/* 헤더 */}
-      <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className='relative z-10 p-6'
-      >
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center gap-4'>
-            <div className='w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center'>
-              <Monitor className='w-6 h-6 text-white' />
+      {/* 헤더 - 부팅 완료 시에만 표시 */}
+      {bootState === 'completed' && (
+        <motion.header
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className='relative z-10 p-6'
+        >
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-4'>
+              <div className='w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center'>
+                <Monitor className='w-6 h-6 text-white' />
+              </div>
+              <div>
+                <h1 className='text-2xl font-bold text-white'>
+                  OpenManager Vibe v5
+                </h1>
+                <p className='text-blue-200'>시스템 부팅 완료</p>
+              </div>
             </div>
-            <div>
-              <h1 className='text-2xl font-bold text-white'>
-                OpenManager Vibe v5
-              </h1>
-              <p className='text-blue-200'>시스템 부팅 애니메이션</p>
-            </div>
-          </div>
 
-          <Link
-            href='/'
-            className='flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors'
-          >
-            <Home className='w-4 h-4' />
-            홈으로
-          </Link>
-        </div>
-      </motion.header>
+            <Link
+              href='/'
+              className='flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors'
+            >
+              <Home className='w-4 h-4' />
+              홈으로
+            </Link>
+          </div>
+        </motion.header>
+      )}
 
       {/* 메인 컨텐츠 */}
-      <div className='relative z-10 flex items-center justify-center min-h-[calc(100vh-120px)]'>
+      <div className='relative z-10 flex items-center justify-center min-h-screen'>
         <AnimatePresence mode='wait'>
-          {/* 준비 상태 */}
-          {bootState === 'ready' && (
-            <motion.div
-              key='ready'
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className='text-center space-y-8 max-w-md mx-auto px-6'
-            >
-              <div className='space-y-4'>
-                <div className='w-20 h-20 mx-auto bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center'>
-                  <Monitor className='w-10 h-10 text-white' />
-                </div>
-                <h2 className='text-3xl font-bold text-white'>
-                  시스템 부팅 애니메이션
-                </h2>
-                <p className='text-blue-200 text-lg'>
-                  OpenManager Vibe v5 시스템의 부팅 과정을 시각화합니다
-                </p>
-              </div>
-
-              <div className='space-y-4'>
-                <button
-                  onClick={startBoot}
-                  className='w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-xl text-white font-semibold text-lg transition-all duration-200 hover:scale-105'
-                >
-                  <Play className='w-5 h-5' />
-                  부팅 애니메이션 시작
-                </button>
-
-                <div className='flex items-center justify-center space-x-2'>
-                  <input
-                    type='checkbox'
-                    id='autoRedirect'
-                    checked={autoRedirect}
-                    onChange={e => setAutoRedirect(e.target.checked)}
-                    className='w-4 h-4 text-blue-500 bg-white/10 border-white/20 rounded focus:ring-blue-500'
-                  />
-                  <label
-                    htmlFor='autoRedirect'
-                    className='text-blue-200 text-sm'
-                  >
-                    완료 후 자동으로 대시보드로 이동
-                  </label>
-                </div>
-              </div>
-
-              <div className='grid grid-cols-1 gap-3 text-sm'>
-                <Link
-                  href='/dashboard'
-                  className='flex items-center justify-center gap-2 px-4 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors'
-                >
-                  <ArrowRight className='w-4 h-4' />
-                  애니메이션 건너뛰고 대시보드로
-                </Link>
-              </div>
-
-              <div className='text-xs text-blue-300 space-y-1'>
-                <p>• 서버 {servers.length}개가 부팅 애니메이션에 참여합니다</p>
-                <p>
-                  • 언제든지 화면을 클릭하면 애니메이션을 건너뛸 수 있습니다
-                </p>
-              </div>
-            </motion.div>
-          )}
-
           {/* 부팅 실행 중 */}
           {bootState === 'running' && (
             <SystemBootSequence
@@ -198,94 +125,72 @@ export default function SystemBootPage() {
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  transition={{ type: 'spring', delay: 0.2 }}
+                  transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
                   className='w-20 h-20 mx-auto bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center'
                 >
-                  <Monitor className='w-10 h-10 text-white' />
+                  <motion.div
+                    initial={{ rotate: 0 }}
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 0.6, delay: 0.4 }}
+                  >
+                    ✓
+                  </motion.div>
                 </motion.div>
-                <h2 className='text-3xl font-bold text-white'>부팅 완료!</h2>
-                <p className='text-green-200 text-lg'>
-                  시스템이 성공적으로 부팅되었습니다
-                </p>
+                <motion.h2
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className='text-3xl font-bold text-white'
+                >
+                  시스템 부팅 완료!
+                </motion.h2>
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className='text-green-200 text-lg'
+                >
+                  모든 서버가 성공적으로 초기화되었습니다
+                </motion.p>
               </div>
 
-              <div className='space-y-4'>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
+                className='grid grid-cols-1 gap-4'
+              >
                 <Link
                   href='/dashboard'
-                  className='w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-xl text-white font-semibold text-lg transition-all duration-200 hover:scale-105'
+                  className='flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-xl text-white font-semibold text-lg transition-all duration-200 hover:scale-105'
                 >
                   <ArrowRight className='w-5 h-5' />
                   대시보드로 이동
                 </Link>
 
                 <button
-                  onClick={resetBoot}
-                  className='w-full flex items-center justify-center gap-3 px-6 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors'
+                  onClick={restartBoot}
+                  className='flex items-center justify-center gap-3 px-6 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors'
                 >
                   <RotateCcw className='w-4 h-4' />
-                  다시 보기
+                  부팅 애니메이션 다시 보기
                 </button>
-              </div>
+              </motion.div>
 
-              {autoRedirect && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className='text-sm text-green-300'
-                >
-                  2초 후 자동으로 대시보드로 이동합니다...
-                </motion.div>
-              )}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+                className='text-xs text-blue-300 space-y-1'
+              >
+                <p>✓ {servers.length}개 서버 부팅 완료</p>
+                <p>✓ 모든 시스템 서비스 정상 동작</p>
+                <p>✓ 대시보드 접근 준비 완료</p>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
-
-      {/* 플로팅 컨트롤 */}
-      <AnimatePresence>
-        {showControls && bootState === 'running' && (
-          <motion.div
-            initial={{ opacity: 0, y: 100 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 100 }}
-            className='fixed bottom-6 right-6 space-y-3'
-          >
-            <button
-              onClick={() => setShowControls(!showControls)}
-              className='w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-colors'
-            >
-              <Pause className='w-5 h-5' />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* 하단 네비게이션 */}
-      <motion.footer
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className='absolute bottom-0 left-0 right-0 p-6'
-      >
-        <div className='flex items-center justify-center space-x-4 text-sm text-blue-300'>
-          <Link href='/' className='hover:text-white transition-colors'>
-            홈
-          </Link>
-          <span>•</span>
-          <Link
-            href='/dashboard'
-            className='hover:text-white transition-colors'
-          >
-            대시보드
-          </Link>
-          <span>•</span>
-          <Link
-            href='/vibe-coding'
-            className='hover:text-white transition-colors'
-          >
-            바이브 코딩
-          </Link>
-        </div>
-      </motion.footer>
     </div>
   );
 }
