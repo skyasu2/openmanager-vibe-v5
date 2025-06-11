@@ -25,6 +25,10 @@ const FAILURE_SCENARIOS = [
   'cpu_thermal', // CPU 과열
   'cache_invalidation', // 캐시 무효화
   'connection_pool', // 커넥션 풀 고갈
+  'ssl_certificate_expiry', // SSL 인증서 만료
+  'dns_resolution_failure', // DNS 해석 실패
+  'load_balancer_failure', // 로드밸런서 장애
+  'storage_corruption', // 스토리지 손상
 ] as const;
 
 type FailureType = (typeof FAILURE_SCENARIOS)[number];
@@ -38,16 +42,36 @@ interface FailureIntensity {
   cascadeDelay: number; // 연쇄 장애 지연시간 (분)
 }
 
-// 🔗 연쇄 장애 패턴 맵핑
+// 🔗 연쇄 장애 패턴 맵핑 (확장된 패턴)
 const CASCADE_PATTERNS: Record<FailureType, FailureType[]> = {
-  traffic_spike: ['database_deadlock', 'cache_invalidation'],
-  memory_leak: ['cpu_thermal', 'disk_full'],
-  database_deadlock: ['connection_pool', 'network_partition'],
-  network_partition: ['cache_invalidation', 'connection_pool'],
-  disk_full: ['memory_leak', 'cpu_thermal'],
-  cpu_thermal: ['memory_leak', 'network_partition'],
-  cache_invalidation: ['database_deadlock', 'traffic_spike'],
-  connection_pool: ['database_deadlock', 'traffic_spike'],
+  traffic_spike: ['database_deadlock', 'cache_invalidation', 'connection_pool'],
+  memory_leak: ['cpu_thermal', 'disk_full', 'storage_corruption'],
+  database_deadlock: ['connection_pool', 'network_partition', 'memory_leak'],
+  network_partition: [
+    'cache_invalidation',
+    'connection_pool',
+    'dns_resolution_failure',
+  ],
+  disk_full: ['memory_leak', 'cpu_thermal', 'storage_corruption'],
+  cpu_thermal: ['memory_leak', 'network_partition', 'storage_corruption'],
+  cache_invalidation: ['database_deadlock', 'traffic_spike', 'connection_pool'],
+  connection_pool: ['database_deadlock', 'traffic_spike', 'memory_leak'],
+  ssl_certificate_expiry: [
+    'dns_resolution_failure',
+    'load_balancer_failure',
+    'network_partition',
+  ],
+  dns_resolution_failure: [
+    'ssl_certificate_expiry',
+    'network_partition',
+    'load_balancer_failure',
+  ],
+  load_balancer_failure: [
+    'traffic_spike',
+    'connection_pool',
+    'dns_resolution_failure',
+  ],
+  storage_corruption: ['disk_full', 'memory_leak', 'cpu_thermal'],
 };
 
 // 🏥 복구 패턴 유형
@@ -61,14 +85,16 @@ const RECOVERY_TYPES = [
 
 type RecoveryType = (typeof RECOVERY_TYPES)[number];
 
-// 📊 시나리오 세션 정의
+// 📊 시나리오 세션 정의 (24시간 사전 데이터 연결)
 interface ScenarioSession {
   sessionId: string;
+  preScenarioPattern: PreScenarioPattern; // 🧩 24시간 사전 패턴
   mainFailure: FailureType;
   intensity: FailureIntensity;
   cascadeFailures: FailureType[];
   recoveryType: RecoveryType;
   timeline: ScenarioTimeline;
+  unpredictablePattern: UnpredictablePattern; // 🎭 AI 혼란 패턴
   affectedInfrastructure: {
     primaryTargets: ServerRole[];
     secondaryTargets: ServerRole[];
@@ -80,6 +106,11 @@ interface ScenarioSession {
     responseTimeRange: [number, number];
     networkRange: [number, number];
   };
+  preDataConnection: {
+    trendStart: number; // 24시간 전부터 시작된 트렌드 강도
+    warningSignals: number; // 사전 경고 신호 수
+    patternConsistency: number; // 패턴 일관성 (0-1)
+  };
 }
 
 // ⏰ 타임라인 정의 (랜덤 요소 포함)
@@ -90,6 +121,57 @@ interface ScenarioTimeline {
   peakCrisis: number; // 8-14분 최고 위기
   recoveryStart: number; // 12-16분 복구 시작
   stabilization: number; // 16-20분 안정화
+}
+
+// 🧩 24시간 사전 시나리오 패턴 (AI 학습용 다양성)
+const PRE_SCENARIO_PATTERNS = [
+  'gradual_degradation', // 점진적 성능 저하 (24시간 전부터 조짐)
+  'periodic_spikes', // 주기적 부하 증가 (3-6시간 간격)
+  'cascading_warnings', // 연쇄 경고 (12시간 전부터 경고 신호)
+  'resource_exhaustion', // 리소스 고갈 (18시간 점진적 증가)
+  'intermittent_failures', // 간헐적 장애 (6-12시간 무작위 발생)
+  'thermal_buildup', // 열적 누적 (10시간 온도 상승)
+  'network_congestion', // 네트워크 혼잡 (8시간 점진적 증가)
+  'security_probes', // 보안 탐지 (24시간 분산 공격 시도)
+] as const;
+
+type PreScenarioPattern = (typeof PRE_SCENARIO_PATTERNS)[number];
+
+// 🔗 사전 패턴과 실시간 장애의 연관성 매핑
+const PATTERN_TO_FAILURE_MAP: Record<PreScenarioPattern, FailureType[]> = {
+  gradual_degradation: ['memory_leak', 'disk_full', 'cpu_thermal'],
+  periodic_spikes: ['traffic_spike', 'database_deadlock', 'connection_pool'],
+  cascading_warnings: [
+    'network_partition',
+    'load_balancer_failure',
+    'dns_resolution_failure',
+  ],
+  resource_exhaustion: ['memory_leak', 'disk_full', 'storage_corruption'],
+  intermittent_failures: [
+    'cache_invalidation',
+    'ssl_certificate_expiry',
+    'dns_resolution_failure',
+  ],
+  thermal_buildup: ['cpu_thermal', 'storage_corruption', 'network_partition'],
+  network_congestion: [
+    'traffic_spike',
+    'load_balancer_failure',
+    'connection_pool',
+  ],
+  security_probes: [
+    'dns_resolution_failure',
+    'ssl_certificate_expiry',
+    'network_partition',
+  ],
+};
+
+// 🎭 AI 혼란 유발 패턴 (예측 불가능성 증대)
+interface UnpredictablePattern {
+  triggerDelay: number; // 예상과 다른 지연시간
+  intensityVariation: number; // 예상과 다른 강도
+  affectedSystemsShift: number; // 예상과 다른 영향 범위
+  recoveryPattern: 'false_positive' | 'double_dip' | 'plateau' | 'oscillation';
+  noiseInjection: number; // 0-1, 노이즈 레벨
 }
 
 export class DemoScenarioManager {
@@ -113,11 +195,18 @@ export class DemoScenarioManager {
   }
 
   /**
-   * 🎲 새로운 랜덤 시나리오 세션 생성
+   * 🎲 새로운 랜덤 시나리오 세션 생성 (24시간 연결 패턴)
    */
   private generateNewSession(): ScenarioSession {
     const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const mainFailure = this.selectRandom(FAILURE_SCENARIOS);
+
+    // 🧩 24시간 사전 패턴 선택
+    const preScenarioPattern = this.selectRandom(PRE_SCENARIO_PATTERNS);
+
+    // 🎯 사전 패턴에 기반한 메인 장애 선택 (AI 혼란 요소)
+    const possibleFailures = PATTERN_TO_FAILURE_MAP[preScenarioPattern];
+    const mainFailure = this.selectRandom(possibleFailures);
+
     const intensity = this.generateRandomIntensity();
     const cascadeFailures = this.selectRandomCascadeFailures(mainFailure);
     const recoveryType = this.selectRandom(RECOVERY_TYPES);
@@ -125,15 +214,25 @@ export class DemoScenarioManager {
     const infrastructure = this.selectRandomInfrastructure();
     const metricsVariation = this.generateMetricsVariation();
 
+    // 🎭 AI 혼란 패턴 생성
+    const unpredictablePattern = this.generateUnpredictablePattern();
+
+    // 🔗 24시간 사전 데이터 연결 정보
+    const preDataConnection =
+      this.generatePreDataConnection(preScenarioPattern);
+
     return {
       sessionId,
+      preScenarioPattern,
       mainFailure,
       intensity,
       cascadeFailures,
       recoveryType,
       timeline,
+      unpredictablePattern,
       affectedInfrastructure: infrastructure,
       metricsVariation,
+      preDataConnection,
     };
   }
 
@@ -142,6 +241,52 @@ export class DemoScenarioManager {
    */
   private selectRandom<T>(array: readonly T[]): T {
     return array[Math.floor(Math.random() * array.length)];
+  }
+
+  /**
+   * 🎭 AI 혼란 패턴 생성 (예측 불가능성 증대)
+   */
+  private generateUnpredictablePattern(): UnpredictablePattern {
+    const recoveryPatterns: UnpredictablePattern['recoveryPattern'][] = [
+      'false_positive',
+      'double_dip',
+      'plateau',
+      'oscillation',
+    ];
+
+    return {
+      triggerDelay: 0.5 + Math.random() * 2, // 0.5-2.5배 지연
+      intensityVariation: 0.7 + Math.random() * 0.6, // 0.7-1.3배 강도 변화
+      affectedSystemsShift: Math.random() * 0.4, // 0-40% 영향 범위 변화
+      recoveryPattern: this.selectRandom(recoveryPatterns),
+      noiseInjection: Math.random() * 0.3, // 0-30% 노이즈
+    };
+  }
+
+  /**
+   * 🔗 24시간 사전 데이터 연결 정보 생성
+   */
+  private generatePreDataConnection(pattern: PreScenarioPattern): {
+    trendStart: number;
+    warningSignals: number;
+    patternConsistency: number;
+  } {
+    const patternIntensity = {
+      gradual_degradation: 0.8,
+      periodic_spikes: 0.6,
+      cascading_warnings: 0.9,
+      resource_exhaustion: 0.85,
+      intermittent_failures: 0.4,
+      thermal_buildup: 0.7,
+      network_congestion: 0.75,
+      security_probes: 0.5,
+    };
+
+    return {
+      trendStart: patternIntensity[pattern] + Math.random() * 0.2 - 0.1,
+      warningSignals: Math.floor(3 + Math.random() * 8), // 3-10개 경고
+      patternConsistency: 0.6 + Math.random() * 0.3, // 60-90% 일관성
+    };
   }
 
   /**
@@ -185,17 +330,17 @@ export class DemoScenarioManager {
   }
 
   /**
-   * ⏰ 랜덤 타임라인 생성 - 🎭 시연용 고도화
+   * ⏰ 30분 연속 장애 타임라인 생성 - 🎭 실시간 데이터 전용
    */
   private generateRandomTimeline(): ScenarioTimeline {
-    // 🎭 시연용으로 더 긴 사이클과 명확한 단계 구분
+    // 🔥 30분 실시간 데이터 기간 동안 계속 장애 유지
     return {
-      normalPeriod: 2 + Math.random() * 3, // 🔥 2-5분 (기존: 1-3분)
-      failureStart: 5 + Math.random() * 5, // 🔥 5-10분 (기존: 2-5분)
-      cascadeDelay: 10 + Math.random() * 8, // 🔥 10-18분 (기존: 3-7분)
-      peakCrisis: 18 + Math.random() * 12, // 🔥 18-30분 (기존: 8-14분)
-      recoveryStart: 30 + Math.random() * 10, // 🔥 30-40분 (기존: 12-16분)
-      stabilization: 40 + Math.random() * 10, // 🔥 40-50분 (기존: 16-20분)
+      normalPeriod: 0, // 🔥 정상 기간 없음 - 즉시 장애 시작
+      failureStart: 0, // 🔥 시작 즉시 장애 발생
+      cascadeDelay: 3 + Math.random() * 5, // 🔥 3-8분 연쇄 장애
+      peakCrisis: 8 + Math.random() * 12, // 🔥 8-20분 최고 위기
+      recoveryStart: 25, // 🔥 25분부터 약간의 회복 조짐 (하지만 완전 복구 안됨)
+      stabilization: 35, // 🔥 30분 넘어서 안정화 (실제로는 도달 안함)
     };
   }
 
@@ -268,31 +413,34 @@ export class DemoScenarioManager {
     const { mainFailure, intensity, cascadeFailures, recoveryType, timeline } =
       this.currentSession;
 
-    console.log('🎭 새로운 랜덤 시나리오 세션 (시연용 고도화):');
+    console.log('🎭 24시간 연결 시나리오 세션 (30분 연속 장애):');
     console.log(
-      `   주요 장애: ${this.getFailureDescription(mainFailure)} (${intensity.severity})`
+      `   🧩 사전 패턴: ${this.getPrePatternDescription(this.currentSession.preScenarioPattern)}`
     );
     console.log(
-      `   연쇄 장애: ${cascadeFailures.map(f => this.getFailureDescription(f)).join(', ')}`
-    );
-    console.log(`   복구 방식: ${this.getRecoveryDescription(recoveryType)}`);
-    console.log(
-      `   영향 서버: ${intensity.affectedServers}대 (기존 대비 +50% 증가)`
+      `   🎯 주요 장애: ${this.getFailureDescription(mainFailure)} (${intensity.severity})`
     );
     console.log(
-      `   지속 시간: ${intensity.duration.toFixed(1)}분 (확장된 시연용)`
+      `   🔗 연쇄 장애: ${cascadeFailures.map(f => this.getFailureDescription(f)).join(', ')}`
     );
-    console.log('   🔥 시연용 확장 타임라인 (50분 사이클):');
-    console.log(`     ${timeline.normalPeriod.toFixed(1)}분: 정상 운영`);
     console.log(
-      `     ${timeline.failureStart.toFixed(1)}분: ${this.getFailureDescription(mainFailure)} 시작`
+      `   🏥 복구 방식: ${this.getRecoveryDescription(recoveryType)}`
     );
+    console.log(`   📊 영향 서버: ${intensity.affectedServers}대 (30분 지속)`);
+    console.log(
+      `   ⏱️ 지속 시간: ${intensity.duration.toFixed(1)}분 (연속 장애)`
+    );
+    console.log(
+      `   📈 사전 트렌드: ${this.currentSession.preDataConnection.trendStart.toFixed(2)} (24시간 누적)`
+    );
+    console.log('   🔥 30분 연속 장애 타임라인:');
+    console.log(`     0분: 즉시 장애 시작 (사전 징후 실현)`);
     console.log(`     ${timeline.cascadeDelay.toFixed(1)}분: 연쇄 장애 확산`);
     console.log(`     ${timeline.peakCrisis.toFixed(1)}분: 최고 위기 상황`);
     console.log(
-      `     ${timeline.recoveryStart.toFixed(1)}분: ${this.getRecoveryDescription(recoveryType)} 시작`
+      `     ${timeline.recoveryStart.toFixed(1)}분: 약간의 회복 조짐 (불완전)`
     );
-    console.log(`     ${timeline.stabilization.toFixed(1)}분: 완전 안정화`);
+    console.log(`     30분: 자동 종료 (장애 지속 상태)`);
   }
 
   /**
@@ -308,6 +456,10 @@ export class DemoScenarioManager {
       cpu_thermal: 'CPU 과열',
       cache_invalidation: '캐시 무효화',
       connection_pool: '커넥션 풀 고갈',
+      ssl_certificate_expiry: 'SSL 인증서 만료',
+      dns_resolution_failure: 'DNS 해석 실패',
+      load_balancer_failure: '로드밸런서 장애',
+      storage_corruption: '스토리지 손상',
     };
     return descriptions[failure];
   }
@@ -327,13 +479,30 @@ export class DemoScenarioManager {
   }
 
   /**
-   * ⏰ 현재 시나리오 단계 확인 - 🎭 시연용 고도화
+   * 🧩 사전 패턴 설명 반환
+   */
+  private getPrePatternDescription(pattern: PreScenarioPattern): string {
+    const descriptions: Record<PreScenarioPattern, string> = {
+      gradual_degradation: '점진적 성능 저하 (24시간 누적)',
+      periodic_spikes: '주기적 부하 증가 (3-6시간 간격)',
+      cascading_warnings: '연쇄 경고 (12시간 전조)',
+      resource_exhaustion: '리소스 고갈 (18시간 점진)',
+      intermittent_failures: '간헐적 장애 (6-12시간 무작위)',
+      thermal_buildup: '열적 누적 (10시간 온도 상승)',
+      network_congestion: '네트워크 혼잡 (8시간 점진)',
+      security_probes: '보안 탐지 (24시간 분산 공격)',
+    };
+    return descriptions[pattern];
+  }
+
+  /**
+   * ⏰ 현재 시나리오 단계 확인 - 🔥 30분 연속 장애 모드
    */
   getCurrentScenario() {
     if (!this.isActive) return null;
 
     const elapsedMinutes = (Date.now() - this.startTime) / (1000 * 60);
-    const cycleMinutes = elapsedMinutes % 50; // 🔥 50분 사이클 (기존: 20분)
+    const cycleMinutes = elapsedMinutes % 30; // 🔥 30분 사이클 고정
 
     const { timeline, mainFailure, cascadeFailures, intensity, recoveryType } =
       this.currentSession;
@@ -526,7 +695,7 @@ export class DemoScenarioManager {
     if (!currentScenario) return null;
 
     const elapsedMinutes =
-      Math.floor((Date.now() - this.startTime) / (1000 * 60)) % 50; // 🔥 50분 사이클
+      Math.floor((Date.now() - this.startTime) / (1000 * 60)) % 30; // 🔥 30분 사이클 고정
 
     return {
       isActive: true,
@@ -538,7 +707,7 @@ export class DemoScenarioManager {
       elapsedMinutes,
       nextPhaseIn: this.calculateNextPhaseTime(elapsedMinutes),
       aiAnalysisPoints: currentScenario.aiAnalysisPoints,
-      totalDuration: 50, // 🔥 50분 전체 사이클 (기존: 20분)
+      totalDuration: 30, // 🔥 30분 전체 사이클
       scenarioDetails: {
         mainFailure: currentScenario.sessionInfo.mainFailure,
         cascadeFailures: currentScenario.sessionInfo.cascadeFailures,

@@ -166,8 +166,8 @@ export class OptimizedDataGenerator {
   private readonly CACHE_TTL = 30000; // 30초
   private readonly UPDATE_INTERVAL = 10000; // 10초 (Vercel 최적화)
 
-  // 🎯 경연대회용 20분 자동 종료
-  private readonly MAX_DURATION = 20 * 60 * 1000; // 20분
+  // 🎯 실시간 데이터 30분 자동 종료
+  private readonly MAX_DURATION = 30 * 60 * 1000; // 🔥 30분 고정
   private startTime: Date | null = null;
   private autoStopTimer: NodeJS.Timeout | null = null;
 
