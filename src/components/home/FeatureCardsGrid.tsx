@@ -795,7 +795,7 @@ export default function FeatureCardsGrid() {
                 <h3
                   className={`text-lg font-bold mb-2 transition-colors leading-tight ${
                     card.isVibeCard
-                      ? 'text-white drop-shadow-lg group-hover:text-yellow-100'
+                      ? 'text-white group-hover:text-yellow-100'
                       : isDarkMode
                         ? 'text-white group-hover:text-white'
                         : 'text-white group-hover:text-gray-100'
@@ -806,9 +806,6 @@ export default function FeatureCardsGrid() {
                       : 'rgba(255, 255, 255, 0.95)',
                     fontWeight: 600,
                     lineHeight: 1.4,
-                    textShadow: card.isVibeCard
-                      ? '2px 2px 4px rgba(0, 0, 0, 0.8)'
-                      : 'none',
                   }}
                 >
                   {renderTextWithAIGradient(card.title)}
@@ -816,7 +813,7 @@ export default function FeatureCardsGrid() {
                 <p
                   className={`text-xs leading-relaxed transition-colors ${
                     card.isVibeCard
-                      ? 'text-white/90 group-hover:text-yellow-50 drop-shadow-md'
+                      ? 'text-white/90 group-hover:text-yellow-50'
                       : isDarkMode
                         ? 'text-white/70 group-hover:text-white/90'
                         : 'text-white/90 group-hover:text-white'
@@ -827,9 +824,6 @@ export default function FeatureCardsGrid() {
                       : 'rgba(255, 255, 255, 0.80)',
                     lineHeight: 1.5,
                     fontWeight: card.isVibeCard ? 700 : 500,
-                    textShadow: card.isVibeCard
-                      ? '1px 1px 3px rgba(0, 0, 0, 0.7)'
-                      : 'none',
                   }}
                 >
                   {renderTextWithAIGradient(card.description)}
