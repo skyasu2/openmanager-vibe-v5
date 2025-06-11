@@ -11,6 +11,7 @@
 **이유:** 사용횟수: 56회, TypeScript 타입 정의, Props 타입 정의, 주석 포함, React Hooks 사용, 성능 최적화 (memo), 적절한 코드 길이
 
 **보관된 파일:**
+
 - `src/components/ai/AISidebar.tsx` → `archive/duplicates/`
 
 ### 2. MessageBubble
@@ -20,6 +21,7 @@
 **이유:** 사용횟수: 15회, TypeScript 타입 정의, Props 타입 정의, 주석 포함, React Hooks 사용, 적절한 코드 길이, Default export
 
 **보관된 파일:**
+
 - `src/modules/ai-sidebar/components/MessageBubble.tsx` → `archive/duplicates/`
 
 ### 3. ServerCard
@@ -29,6 +31,7 @@
 **이유:** 사용횟수: 58회, TypeScript 타입 정의, Props 타입 정의, 주석 포함, React Hooks 사용, 성능 최적화 (memo), 적절한 코드 길이, Default export
 
 **보관된 파일:**
+
 - `src/components/dashboard/ServerCard.tsx` → `archive/duplicates/`
 
 ### 4. ActionButtons
@@ -38,6 +41,7 @@
 **이유:** 사용횟수: 28회, TypeScript 타입 정의, Props 타입 정의, 주석 포함, React Hooks 사용, 구조화된 함수: 3개, 적절한 코드 길이, Default export
 
 **보관된 파일:**
+
 - `src/modules/ai-sidebar/components/ActionButtons.tsx` → `archive/duplicates/`
 
 ### 5. ContextManager
@@ -47,6 +51,7 @@
 **이유:** 사용횟수: 45회, TypeScript 타입 정의, 주석 포함, 적절한 코드 길이
 
 **보관된 파일:**
+
 - `src/services/ai-agent/ContextManager.ts` → `archive/duplicates/`
 
 ## 🧹 미사용 파일 정리
@@ -97,4 +102,3 @@
 2. 통합이 필요한 경우 추가 리팩토링 권장
 3. 테스트 코드가 있는 파일들은 추가 검토 필요
 4. import 경로 업데이트 필요할 수 있음
-

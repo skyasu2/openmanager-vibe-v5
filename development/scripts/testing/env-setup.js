@@ -10,7 +10,7 @@ function createEnvFile() {
 # 로컬 개발 및 테스트 환경용 설정
 
 # 🤖 Google AI Studio (Gemini) 설정
-GOOGLE_AI_API_KEY=AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM
+GOOGLE_AI_API_KEY=your_google_ai_api_key_here
 GOOGLE_AI_ENABLED=true
 GOOGLE_AI_MODEL=gemini-1.5-flash
 GOOGLE_AI_BETA_MODE=true

@@ -15,8 +15,7 @@ describe('Manual Integration Test', () => {
 
     // 환경변수 직접 설정 (백업)
     process.env.GOOGLE_AI_API_KEY =
-      process.env.GOOGLE_AI_API_KEY ||
-      'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM';
+      process.env.GOOGLE_AI_API_KEY || 'test_api_key_placeholder';
     process.env.GOOGLE_AI_ENABLED = 'true';
     process.env.GOOGLE_AI_MODEL = 'gemini-1.5-flash';
     process.env.GOOGLE_AI_BETA_MODE = 'true';
@@ -40,9 +39,7 @@ describe('Manual Integration Test', () => {
 
   it('환경변수가 올바르게 설정되었는지 확인한다', () => {
     expect(process.env.GOOGLE_AI_API_KEY).toBeDefined();
-    expect(process.env.GOOGLE_AI_API_KEY).toBe(
-      'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM'
-    );
+    expect(process.env.GOOGLE_AI_API_KEY).toBe('test_api_key_placeholder');
     // SLACK_WEBHOOK_URL은 보안상 하드코딩하지 않으므로 선택적 검증
     if (process.env.SLACK_WEBHOOK_URL) {
       expect(process.env.SLACK_WEBHOOK_URL).toContain('hooks.slack.com');

@@ -10,7 +10,7 @@ graph TB
         APP_API[API Routes]
         APP_ADMIN[Admin Pages]
     end
-    
+
     subgraph "🧩 Feature Modules"
         AI_SIDEBAR[🤖 ai-sidebar/]
         AI_AGENT[🧠 ai-agent/]
@@ -18,32 +18,32 @@ graph TB
         MCP[📡 mcp/]
         DATA_GEN[📊 data-generation/]
     end
-    
+
     subgraph "🎨 UI Components"
         COMP_AI[🤖 components/ai/]
         COMP_DASH[📊 components/dashboard/]
         COMP_UI[🎯 components/ui/]
         COMP_LAYOUT[🏠 components/layout/]
     end
-    
+
     subgraph "🔧 Business Logic"
         SERVICES[⚙️ services/]
         HOOKS[🪝 hooks/]
         STORES[🗃️ stores/]
         LIB[📚 lib/]
     end
-    
+
     %% Application Dependencies
     APP --> COMP_UI
     APP --> COMP_LAYOUT
     APP --> STORES
     APP --> COMP_AI
-    
+
     %% Module Dependencies
     AI_SIDEBAR --> SHARED
     AI_AGENT --> SHARED
     AI_SIDEBAR -.-> STORES
-    
+
     %% Component Dependencies
     COMP_AI --> STORES
     COMP_AI --> SERVICES
@@ -51,17 +51,17 @@ graph TB
     COMP_DASH --> STORES
     COMP_LAYOUT --> STORES
     COMP_UI --> LIB
-    
+
     %% Service Dependencies
     SERVICES --> AI_AGENT
     HOOKS --> SERVICES
-    
+
     %% Style Classes
     classDef appLayer fill:#e1f5fe
     classDef moduleLayer fill:#f3e5f5
     classDef componentLayer fill:#e8f5e8
     classDef businessLayer fill:#fff3e0
-    
+
     class APP,APP_PAGES,APP_API,APP_ADMIN appLayer
     class AI_SIDEBAR,AI_AGENT,SHARED,MCP,DATA_GEN moduleLayer
     class COMP_AI,COMP_DASH,COMP_UI,COMP_LAYOUT componentLayer
@@ -71,6 +71,7 @@ graph TB
 ## 🔗 모듈 연결 매트릭스
 
 ### 의존성 강도 범례
+
 - 🔴 **강한 의존성** (직접 import 다수)
 - 🟡 **중간 의존성** (일부 import)
 - 🟢 **약한 의존성** (최소 import)
@@ -100,25 +101,26 @@ graph LR
         AIS_HOOKS[useAIChat.ts]
         AIS_TYPES[types/index.ts]
     end
-    
+
     subgraph "External Dependencies"
         STORES_POWER[stores/powerStore]
         SERVICES_AI[services/aiAgent]
     end
-    
+
     AIS_MAIN --> AIS_CHAT
     AIS_CHAT --> AIS_HOOKS
     AIS_CHAT -.-> STORES_POWER
     AIS_CHAT -.-> SERVICES_AI
-    
+
     classDef internal fill:#e8f5e8
     classDef external fill:#ffe0e0
-    
+
     class AIS_MAIN,AIS_CHAT,AIS_HOOKS,AIS_TYPES internal
     class STORES_POWER,SERVICES_AI external
 ```
 
 **특징:**
+
 - ✅ 모듈 내부 의존성 최소화
 - ✅ 인라인 컴포넌트로 외부 의존성 제거
 - ✅ 순환 참조 해결
@@ -134,23 +136,23 @@ graph TB
         AGENT_PROC[processors/]
         AGENT_LEARN[learning/]
     end
-    
+
     subgraph "Export Interface"
         EXPORT_FACTORY[AdapterFactory]
         EXPORT_PLUGIN[PluginManager]
         EXPORT_CONTEXT[ContextManager]
         EXPORT_LEARNING[ContinuousLearningService]
     end
-    
+
     AGENT_CORE --> EXPORT_FACTORY
     AGENT_ADAPT --> EXPORT_FACTORY
     AGENT_PLUGIN --> EXPORT_PLUGIN
     AGENT_PROC --> EXPORT_CONTEXT
     AGENT_LEARN --> EXPORT_LEARNING
-    
+
     classDef internal fill:#f3e5f5
     classDef exported fill:#e1f5fe
-    
+
     class AGENT_CORE,AGENT_ADAPT,AGENT_PLUGIN,AGENT_PROC,AGENT_LEARN internal
     class EXPORT_FACTORY,EXPORT_PLUGIN,EXPORT_CONTEXT,EXPORT_LEARNING exported
 ```
@@ -165,25 +167,25 @@ graph TB
         UI_DASH[📊 dashboard/ - Dashboard Specific]
         UI_AI[🤖 ai/ - AI Components]
     end
-    
+
     subgraph "Dependencies"
         LIB_UTILS[lib/utils]
         STORES_SYS[stores/useSystemStore]
         SERVICES_AI[services/ai-agent/]
         HOOKS_API[hooks/api/]
     end
-    
+
     UI_BASE --> LIB_UTILS
     UI_LAYOUT --> STORES_SYS
     UI_DASH --> STORES_SYS
     UI_AI --> STORES_SYS
     UI_AI --> SERVICES_AI
     UI_AI --> HOOKS_API
-    
+
     classDef clean fill:#e8f5e8
     classDef coupled fill:#ffe0e0
     classDef dependency fill:#f0f0f0
-    
+
     class UI_BASE clean
     class UI_LAYOUT,UI_DASH coupled
     class UI_AI coupled
@@ -193,21 +195,24 @@ graph TB
 ## 🔄 순환 의존성 분석
 
 ### 현재 상태: ✅ 양호
+
 리팩토링을 통해 대부분의 순환 의존성이 해결되었습니다.
 
 ### 주의 영역:
+
 ```mermaid
 graph LR
     AI_COMP[components/ai/] -.-> SERVICES[services/ai-agent/]
     SERVICES -.-> HOOKS[hooks/]
     HOOKS -.-> AI_COMP
-    
+
     style AI_COMP fill:#ffe0e0
     style SERVICES fill:#ffe0e0
     style HOOKS fill:#ffe0e0
 ```
 
 **해결 방안:**
+
 - Interface 분리 원칙 적용
 - Dependency Injection 패턴 도입
 
@@ -274,17 +279,17 @@ graph TB
         MODULE_PLUGIN[🔌 플러그인 시스템]
         MODULE_API[🌐 API 통합]
     end
-    
+
     subgraph "현재 안정된 기반"
         CORE_SHARED[📦 shared/]
         CORE_UI[🎨 ui/]
         CORE_STORES[🗃️ stores/]
     end
-    
+
     MODULE_NEW --> CORE_SHARED
     MODULE_PLUGIN --> CORE_SHARED
     MODULE_API --> CORE_SHARED
-    
+
     MODULE_NEW -.-> CORE_UI
     MODULE_PLUGIN -.-> CORE_UI
     MODULE_API -.-> CORE_STORES
@@ -307,4 +312,4 @@ graph TB
 - **순환 의존성**: **해결됨**
 - **확장성**: **확보됨**
 
-리팩토링을 통해 **견고하고 확장 가능한 아키텍처**를 구축했습니다! 🚀 
+리팩토링을 통해 **견고하고 확장 가능한 아키텍처**를 구축했습니다! 🚀

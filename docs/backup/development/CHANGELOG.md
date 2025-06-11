@@ -73,7 +73,7 @@
 const { success, error, loading } = useInlineFeedback();
 success('auth-section', '인증 완료!');
 
-// Slack 전용 토스트  
+// Slack 전용 토스트
 const { showSlackAlert } = useSlackToast();
 showSlackAlert('CPU 90% 초과', 'alerts', 'critical');
 ```
@@ -85,7 +85,7 @@ showSlackAlert('CPU 90% 초과', 'alerts', 'critical');
 - ❌ **이전**: 토스트가 모달 뒤에 숨어서 안 보임
 - ✅ **현재**: 인라인 피드백으로 항상 명확하게 표시
 
-- ❌ **이전**: 블러 효과로 배경 정보 가려짐  
+- ❌ **이전**: 블러 효과로 배경 정보 가려짐
 - ✅ **현재**: 블러 제거로 배경 정보 항상 확인 가능
 
 - ❌ **이전**: 범용 토스트로 컨텍스트 부족

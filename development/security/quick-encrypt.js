@@ -11,7 +11,7 @@ const CryptoJS = require('crypto-js');
 const readline = require('readline');
 
 // 제공된 API 키
-const apiKey = 'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM';
+const apiKey = process.env.GOOGLE_AI_API_KEY || 'your_google_ai_api_key_here';
 
 // ⚠️ 보안 개선: 비밀번호를 환경변수 또는 사용자 입력으로 받기
 const password = process.env.GOOGLE_AI_TEAM_PASSWORD || '4231'; // 임시 기본값

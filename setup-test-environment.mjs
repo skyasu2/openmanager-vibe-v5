@@ -64,7 +64,7 @@ REDIS_DB=0
 # ==============================================
 # 🤖 Google AI Studio (실제 키 - 메모리 기반)
 # ==============================================
-GOOGLE_AI_API_KEY=AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM
+GOOGLE_AI_API_KEY=your_google_ai_api_key_here
 GOOGLE_AI_ENABLED=true
 GOOGLE_AI_MODEL=gemini-1.5-flash
 GOOGLE_AI_BETA_MODE=true

@@ -15,6 +15,11 @@ import {
   UnifiedQuery,
   UnifiedResponse,
 } from '../../../../core/ai/unified-ai-system';
+import {
+  aiLogger,
+  LogLevel,
+  LogCategory,
+} from '@/services/ai/logging/AILogger';
 
 // Fluid Compute 최적화: 연결 재사용을 위한 전역 인스턴스
 let isSystemInitialized = false;
@@ -176,9 +181,32 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       `🧠 [Fluid API] 새로운 질의: "${query.text.substring(0, 50)}..."`
     );
 
+    // 🔍 고도화된 로깅: 질의 시작
     // 🧠 Thinking logs 생성 (옵션이 활성화된 경우)
     const thinkingLogs: ThinkingLog[] = [];
     const includeThinking = queryBody.options?.includeThinkingLogs ?? false;
+
+    await aiLogger.logAI({
+      level: LogLevel.INFO,
+      category: LogCategory.AI_ENGINE,
+      engine: 'unified_ai',
+      message: `새로운 질의 처리 시작: ${query.text.substring(0, 100)}...`,
+      metadata: {
+        requestId: query.id,
+        userId: query.userId,
+        sessionId: query.sessionId,
+        query: query.text,
+        preferFastAPI: queryBody.options?.preferFastAPI,
+        includeThinking: includeThinking,
+      },
+      context: {
+        fluidCompute: fluidMetrics,
+        systemState: {
+          initialized: isSystemInitialized,
+          lastInitTime: new Date(lastInitTime).toISOString(),
+        },
+      },
+    });
 
     if (includeThinking) {
       thinkingLogs.push({
@@ -195,6 +223,28 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const queryStartTime = Date.now();
     const response: UnifiedResponse = await unifiedAISystem.processQuery(query);
     const queryTime = Date.now() - queryStartTime;
+
+    // 🔍 AI 사고 과정 로깅 (Thinking Steps)
+    if (includeThinking && thinkingLogs.length > 0) {
+      await aiLogger.logThinking(
+        'unified_ai',
+        LogCategory.AI_ENGINE,
+        query.text,
+        thinkingLogs.map((log, index) => ({
+          step: index + 1,
+          type: log.type as any,
+          content: log.content,
+          duration: log.duration || queryTime / thinkingLogs.length,
+          confidence: 0.9 - index * 0.1,
+        })),
+        `통합 AI 시스템을 통한 질의 처리: ${response.answer ? '성공' : '실패'}`,
+        [
+          `질의 분석 완료: ${query.text.length}자`,
+          `응답 생성 시간: ${queryTime}ms`,
+          `시스템 상태: ${response.answer ? '정상' : '오류'}`,
+        ]
+      );
+    }
 
     if (includeThinking) {
       thinkingLogs.push({

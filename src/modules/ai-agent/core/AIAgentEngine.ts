@@ -1,6 +1,6 @@
 /**
  * OpenManager AI Agent Engine
- * 
+ *
  * �� 지능형 경량 AI 추론 엔진
  * ⚡ 현재: LLM API 없는 완전 독립 실시간 AI 추론
  * - MCP(Model Context Protocol) 기반 의도 분류
@@ -13,7 +13,11 @@ import { IntentClassifier } from '../processors/IntentClassifier';
 import { ResponseGenerator } from '../processors/ResponseGenerator';
 import { ContextManager } from '../processors/ContextManager';
 import { ActionExecutor } from '../processors/ActionExecutor';
-import { ModeManager, createDefaultModeConfig, AIAgentMode } from './ModeManager';
+import {
+  ModeManager,
+  createDefaultModeConfig,
+  AIAgentMode,
+} from './ModeManager';
 import { ThinkingProcessor } from './ThinkingProcessor';
 import { AdminLogger } from './AdminLogger';
 import { thinkingLogger } from './ThinkingLogger';
@@ -97,7 +101,7 @@ export class AIAgentEngine {
         debugMode: process.env.NODE_ENV === 'development',
         mode: 'basic',
         enableThinking: true,
-        enableAdminLogging: true
+        enableAdminLogging: true,
       };
       AIAgentEngine.instance = new AIAgentEngine(config || defaultConfig);
     }
@@ -112,7 +116,7 @@ export class AIAgentEngine {
 
     try {
       console.log('🚀 OpenManager AI Agent Engine 초기화 중...');
-      
+
       // MCP 프로세서 초기화
       if (this.config.enableMCP) {
         await this.mcpProcessor.initialize?.();
@@ -137,7 +141,6 @@ export class AIAgentEngine {
 
       this.isInitialized = true;
       console.log('🎉 AI Agent Engine 초기화 완료!');
-
     } catch (error) {
       console.error('❌ AI Agent Engine 초기화 실패:', error);
       throw error;
@@ -161,8 +164,18 @@ export class AIAgentEngine {
       thinkingLogger.startSession(thinkingSessionId, request.query);
 
       // 1. 컨텍스트 로드 및 업데이트
-      thinkingLogger.startStep(thinkingSessionId, '컨텍스트 로드', 'data_processing');
-      const context = await this.contextManager.loadContext(sessionId, request.context);
+      thinkingLogger.startStep(
+        thinkingSessionId,
+        '컨텍스트 로드',
+        'data_processing'
+      );
+      const context = (await this.contextManager.loadContext(sessionId)) || {
+        conversationId: sessionId,
+        userIntent: '',
+        previousActions: [],
+        currentState: request.context || {},
+        metadata: {},
+      };
       thinkingLogger.logStep(
         thinkingSessionId,
         `세션 컨텍스트 로드 완료:
@@ -173,12 +186,19 @@ export class AIAgentEngine {
 ⏱️ 기존 세션: ${context.lastQuery ? '재개' : '새로운 세션'}
 🔄 컨텍스트 상태: 정상`,
         'data_processing',
-        { contextKeys: Object.keys(context).length, sessionType: context.lastQuery ? 'resumed' : 'new' }
+        {
+          contextKeys: Object.keys(context).length,
+          sessionType: context.lastQuery ? 'resumed' : 'new',
+        }
       );
-      
+
       // 2. 의도 분류 (AI 추론)
-      thinkingLogger.startStep(thinkingSessionId, '의도 분류 (AI 추론)', 'analysis');
-      const intent = await this.intentClassifier.classify(request.query, context);
+      thinkingLogger.startStep(
+        thinkingSessionId,
+        '의도 분류 (AI 추론)',
+        'analysis'
+      );
+      const intent = await this.intentClassifier.classify(request.query);
       thinkingLogger.logStep(
         thinkingSessionId,
         `AI 의도 분류 완료:
@@ -190,14 +210,25 @@ export class AIAgentEngine {
 🔍 분류 알고리즘: 자연어 처리 + 기계학습
 ✨ 분류 성공: ${intent.confidence > 0.7 ? '높은 신뢰도' : '추가 분석 필요'}`,
         'analysis',
-        { intent: intent.name, confidence: intent.confidence, entityCount: Object.keys(intent.entities).length }
+        {
+          intent: intent.name,
+          confidence: intent.confidence,
+          entityCount: Object.keys(intent.entities).length,
+        }
       );
-      
+
       // 3. MCP 프로세서를 통한 추가 분석
       let mcpResponse;
       if (this.config.enableMCP) {
-        thinkingLogger.startStep(thinkingSessionId, 'MCP 서버 분석', 'data_processing');
-        mcpResponse = await this.mcpProcessor.processQuery(request.query, request.serverData);
+        thinkingLogger.startStep(
+          thinkingSessionId,
+          'MCP 서버 분석',
+          'data_processing'
+        );
+        mcpResponse = await this.mcpProcessor.processQuery(
+          request.query,
+          request.serverData
+        );
         thinkingLogger.logStep(
           thinkingSessionId,
           `MCP 서버 분석 완료:
@@ -209,18 +240,27 @@ export class AIAgentEngine {
 ⚡ 처리 상태: 성공
 💡 권장사항: ${mcpResponse?.actions?.join(', ') || '없음'}`,
           'data_processing',
-          { serverCount: Array.isArray(request.serverData) ? request.serverData.length : 0, mcpIntent: mcpResponse?.intent?.intent }
+          {
+            serverCount: Array.isArray(request.serverData)
+              ? request.serverData.length
+              : 0,
+            mcpIntent: mcpResponse?.intent?.intent,
+          }
         );
       }
 
       // 4. 응답 생성
-      thinkingLogger.startStep(thinkingSessionId, 'AI 응답 생성', 'response_generation');
+      thinkingLogger.startStep(
+        thinkingSessionId,
+        'AI 응답 생성',
+        'response_generation'
+      );
       const response = await this.responseGenerator.generate({
         query: request.query,
         intent,
         context,
         serverData: request.serverData,
-        mcpResponse
+        mcpResponse,
       });
       thinkingLogger.logStep(
         thinkingSessionId,
@@ -233,12 +273,23 @@ export class AIAgentEngine {
 💬 톤: ${response.tone || '전문적'}
 🎯 타겟 사용자: ${response.audience || '일반 사용자'}`,
         'response_generation',
-        { responseLength: response.text.length, confidence: response.confidence, format: response.format }
+        {
+          responseLength: response.text.length,
+          confidence: response.confidence,
+          format: response.format,
+        }
       );
 
       // 5. 액션 추출 및 실행 준비
-      thinkingLogger.startStep(thinkingSessionId, '액션 추출', 'pattern_matching');
-      const actions = await this.actionExecutor.extractActions(intent, response);
+      thinkingLogger.startStep(
+        thinkingSessionId,
+        '액션 추출',
+        'pattern_matching'
+      );
+      const actions = await this.actionExecutor.extractActions(
+        intent,
+        response
+      );
       thinkingLogger.logStep(
         thinkingSessionId,
         `액션 추출 완료:
@@ -253,11 +304,15 @@ export class AIAgentEngine {
       );
 
       // 6. 컨텍스트 업데이트
-      thinkingLogger.startStep(thinkingSessionId, '컨텍스트 업데이트', 'data_processing');
+      thinkingLogger.startStep(
+        thinkingSessionId,
+        '컨텍스트 업데이트',
+        'data_processing'
+      );
       await this.contextManager.updateContext(sessionId, {
         lastQuery: request.query,
         lastIntent: intent.name,
-        lastResponse: response.text
+        lastResponse: response.text,
       });
       thinkingLogger.logStep(
         thinkingSessionId,
@@ -283,7 +338,7 @@ export class AIAgentEngine {
         intent: {
           name: intent.name,
           confidence: intent.confidence,
-          entities: intent.entities
+          entities: intent.entities,
         },
         actions,
         context: context,
@@ -292,25 +347,27 @@ export class AIAgentEngine {
           timestamp: new Date().toISOString(),
           engineVersion: '1.0.0',
           sessionId,
-          thinkingSessionId
-        }
+          thinkingSessionId,
+        },
       };
-
     } catch (error) {
       const processingTime = Date.now() - startTime;
-      
+
       // 🧠 사고 과정 에러 로깅
-      thinkingLogger.errorSession(thinkingSessionId, error instanceof Error ? error.message : '알 수 없는 오류');
-      
+      thinkingLogger.errorSession(
+        thinkingSessionId,
+        error instanceof Error ? error.message : '알 수 없는 오류'
+      );
+
       console.error('❌ AI Agent 질의 처리 실패:', error);
-      
+
       return {
         success: false,
         response: '죄송합니다. 요청을 처리하는 중 오류가 발생했습니다.',
         intent: {
           name: 'error',
           confidence: 0,
-          entities: {}
+          entities: {},
         },
         actions: [],
         context: {},
@@ -320,9 +377,9 @@ export class AIAgentEngine {
           engineVersion: '1.0.0',
           sessionId,
           thinkingSessionId,
-          error: error instanceof Error ? error.message : '알 수 없는 오류'
+          error: error instanceof Error ? error.message : '알 수 없는 오류',
         },
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       };
     }
   }
@@ -332,7 +389,7 @@ export class AIAgentEngine {
    */
   async getQuickStatus(): Promise<AIAgentResponse> {
     return this.processQuery({
-      query: '전체 시스템 상태를 간단히 알려주세요'
+      query: '전체 시스템 상태를 간단히 알려주세요',
     });
   }
 
@@ -340,10 +397,10 @@ export class AIAgentEngine {
    * 성능 분석
    */
   async analyzePerformance(serverId?: string): Promise<AIAgentResponse> {
-    const query = serverId 
+    const query = serverId
       ? `${serverId} 서버의 성능을 분석해주세요`
       : '전체 시스템 성능을 분석해주세요';
-      
+
     return this.processQuery({ query, serverData: { serverId } });
   }
 
@@ -354,7 +411,7 @@ export class AIAgentEngine {
     const query = serverId
       ? `${serverId} 서버의 로그를 분석해주세요`
       : '전체 시스템 로그를 분석해주세요';
-      
+
     return this.processQuery({ query, serverData: { serverId } });
   }
 
@@ -367,7 +424,8 @@ export class AIAgentEngine {
         ? process.uptime()
         : 0;
     const memory =
-      typeof process !== 'undefined' && typeof process.memoryUsage === 'function'
+      typeof process !== 'undefined' &&
+      typeof process.memoryUsage === 'function'
         ? process.memoryUsage()
         : { rss: 0, heapTotal: 0, heapUsed: 0, external: 0, arrayBuffers: 0 };
 
@@ -376,7 +434,7 @@ export class AIAgentEngine {
       config: this.config,
       version: '1.0.0',
       uptime,
-      memory
+      memory,
     };
   }
 
@@ -392,14 +450,14 @@ export class AIAgentEngine {
    */
   async shutdown(): Promise<void> {
     console.log('🔄 AI Agent Engine 종료 중...');
-    
+
     await this.contextManager.cleanup?.();
     await this.actionExecutor.cleanup?.();
-    
+
     this.isInitialized = false;
     console.log('✅ AI Agent Engine 종료 완료');
   }
 }
 
 // 기본 인스턴스 export
-export const aiAgentEngine = AIAgentEngine.getInstance(); 
+export const aiAgentEngine = AIAgentEngine.getInstance();

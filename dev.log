@@ -1,0 +1,393 @@
+
+> openmanager-vibe-v5@5.43.4 dev
+> next dev
+
+   ▲ Next.js 15.3.3
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.104:3000
+   - Environments: .env.local
+   - Experiments (use with caution):
+     ✓ optimizeCss
+
+ ✓ Starting...
+ ✓ Ready in 2.3s
+ ○ Compiling /api/health ...
+ ✓ Compiled /api/health in 1869ms (409 modules)
+ GET /api/health 200 in 2289ms
+ ○ Compiling /api/ai/logging ...
+ ✓ Compiled /api/ai/logging in 1229ms (607 modules)
+2025-06-11T11:51:55.440Z [32minfo[39m: 🧪 테스트 로그 메시지 🧪 테스트 로그 메시지 {
+  "id": "ai-log-1-1749642715440",
+  "category": "ai_engine",
+  "engine": "test_engine",
+  "data": {
+    "test": true
+  },
+  "metadata": {
+    "source": "api",
+    "userAgent": "node",
+    "ip": "::1",
+    "memoryUsage": {
+      "rss": 478330880,
+      "heapTotal": 248414208,
+      "heapUsed": 208089640,
+      "external": 300552841,
+      "arrayBuffers": 300699578
+    },
+    "cpuUsage": {
+      "user": 9250000,
+      "system": 2015000
+    }
+  },
+  "tags": []
+}
+ POST /api/ai/logging 200 in 1392ms
+[Error: Cannot find module 'D:\cursor\openmanager-vibe-v5\.next\server\vendor-chunks\lib\worker.js'] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+ ⨯ uncaughtException: [Error: Cannot find module 'D:\cursor\openmanager-vibe-v5\.next\server\vendor-chunks\lib\worker.js'] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+ ⨯ uncaughtException:  [Error: Cannot find module 'D:\cursor\openmanager-vibe-v5\.next\server\vendor-chunks\lib\worker.js'] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+[Error: the worker thread exited]
+ ⨯ uncaughtException: [Error: the worker thread exited]
+ ⨯ uncaughtException:  [Error: the worker thread exited]
+ GET /api/ai/logging?type=recent&limit=5 200 in 14ms
+ ○ Compiling /api/ai/unified ...
+ ✓ Compiled /api/ai/unified in 623ms (708 modules)
+[Upstash Redis] The 'url' property is missing or undefined in your Redis config.
+[Upstash Redis] The 'token' property is missing or undefined in your Redis config.
+[Upstash Redis] The 'url' property is missing or undefined in your Redis config.
+[Upstash Redis] The 'token' property is missing or undefined in your Redis config.
+[Upstash Redis] The 'url' property is missing or undefined in your Redis config.
+[Upstash Redis] The 'token' property is missing or undefined in your Redis config.
+[Upstash Redis] The 'url' property is missing or undefined in your Redis config.
+[Upstash Redis] The 'token' property is missing or undefined in your Redis config.
+🚀 [UnifiedAI] 통합 AI 시스템 초기화 시작...
+🎭 [MCPOrchestrator] 초기화 시작...
+🔄 [BasicContext] 기본 컨텍스트 수집 시작
+FastAPI Client connecting...
+Keep Alive System started
+⚠️ [BasicContext] 시스템 API 호출 실패, 기본값 사용: TypeError: Failed to parse URL from /api/system/metrics
+    at BasicContextManager.enrichWithSystemInfo (src\context\basic-context-manager.ts:180:29)
+    at BasicContextManager.collectSystemMetrics (src\context\basic-context-manager.ts:169:15)
+    at BasicContextManager.updateBasicContext (src\context\basic-context-manager.ts:213:36)
+    at BasicContextManager.startCollection (src\context\basic-context-manager.ts:94:15)
+    at MCPOrchestrator.initialize (src\core\mcp\mcp-orchestrator.ts:124:30)
+    at UnifiedAISystem.initialize (src\core\ai\unified-ai-system.ts:154:31)
+    at ensureSystemReady (src\app\api\ai\unified\route.ts:91:26)
+    at POST (src\app\api\ai\unified\route.ts:149:12)
+  178 |     try {
+  179 |       // 실제 시스템 API 호출로 메트릭 수집
+> 180 |       const response = await fetch('/api/system/metrics', {
+      |                             ^
+  181 |         method: 'GET',
+  182 |         headers: { 'Content-Type': 'application/json' }
+  183 |       }); {
+  [cause]: TypeError: Invalid URL
+      at BasicContextManager.enrichWithSystemInfo (src\context\basic-context-manager.ts:180:29)
+      at BasicContextManager.collectSystemMetrics (src\context\basic-context-manager.ts:169:15)
+      at BasicContextManager.updateBasicContext (src\context\basic-context-manager.ts:213:36)
+      at BasicContextManager.startCollection (src\context\basic-context-manager.ts:94:15)
+      at MCPOrchestrator.initialize (src\core\mcp\mcp-orchestrator.ts:124:30)
+      at UnifiedAISystem.initialize (src\core\ai\unified-ai-system.ts:154:31)
+      at ensureSystemReady (src\app\api\ai\unified\route.ts:91:26)
+      at POST (src\app\api\ai\unified\route.ts:149:12)
+    178 |     try {
+    179 |       // 실제 시스템 API 호출로 메트릭 수집
+  > 180 |       const response = await fetch('/api/system/metrics', {
+        |                             ^
+    181 |         method: 'GET',
+    182 |         headers: { 'Content-Type': 'application/json' }
+    183 |       }); {
+    code: 'ERR_INVALID_URL',
+    input: '/api/system/metrics'
+  }
+}
+[Upstash Redis] Redis client was initialized without url or token. Failed to execute command.
+[Error: Cannot find module 'D:\cursor\openmanager-vibe-v5\.next\server\vendor-chunks\lib\worker.js'] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+ ⨯ uncaughtException: [Error: Cannot find module 'D:\cursor\openmanager-vibe-v5\.next\server\vendor-chunks\lib\worker.js'] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+ ⨯ uncaughtException:  [Error: Cannot find module 'D:\cursor\openmanager-vibe-v5\.next\server\vendor-chunks\lib\worker.js'] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+[Error: the worker thread exited]
+ ⨯ uncaughtException: [Error: the worker thread exited]
+ ⨯ uncaughtException:  [Error: the worker thread exited]
+✅ [CustomContext] Supabase 연결 성공
+❌ [BasicContext] 업데이트 실패: TypeError: Failed to parse URL from /pipeline
+    at async BasicContextManager.updateBasicContext (src\context\basic-context-manager.ts:216:25)
+    at async BasicContextManager.startCollection (src\context\basic-context-manager.ts:94:4)
+    at async MCPOrchestrator.initialize (src\core\mcp\mcp-orchestrator.ts:124:6)
+    at async UnifiedAISystem.initialize (src\core\ai\unified-ai-system.ts:176:6)
+    at async ensureSystemReady (src\app\api\ai\unified\route.ts:91:4)
+    at async POST (src\app\api\ai\unified\route.ts:149:6)
+  214 |       
+  215 |       // 기존 캐시 조회
+> 216 |       const cachedData = await this.redis.get<BasicContextCache>(this.CACHE_KEY);
+      |                         ^
+  217 |       
+  218 |       let contextCache: BasicContextCache;
+  219 |        {
+  [cause]: TypeError: Invalid URL
+      at async BasicContextManager.updateBasicContext (src\context\basic-context-manager.ts:216:25)
+      at async BasicContextManager.startCollection (src\context\basic-context-manager.ts:94:4)
+      at async MCPOrchestrator.initialize (src\core\mcp\mcp-orchestrator.ts:124:6)
+      at async UnifiedAISystem.initialize (src\core\ai\unified-ai-system.ts:176:6)
+      at async ensureSystemReady (src\app\api\ai\unified\route.ts:91:4)
+      at async POST (src\app\api\ai\unified\route.ts:149:6)
+    214 |       
+    215 |       // 기존 캐시 조회
+  > 216 |       const cachedData = await this.redis.get<BasicContextCache>(this.CACHE_KEY);
+        |                         ^
+    217 |       
+    218 |       let contextCache: BasicContextCache;
+    219 |        {
+    code: 'ERR_INVALID_URL',
+    input: '/pipeline'
+  }
+}
+❌ [MCPOrchestrator] 초기화 실패: TypeError: Failed to parse URL from /pipeline
+    at async BasicContextManager.updateBasicContext (src\context\basic-context-manager.ts:216:25)
+    at async BasicContextManager.startCollection (src\context\basic-context-manager.ts:94:4)
+    at async MCPOrchestrator.initialize (src\core\mcp\mcp-orchestrator.ts:124:6)
+    at async UnifiedAISystem.initialize (src\core\ai\unified-ai-system.ts:176:6)
+    at async ensureSystemReady (src\app\api\ai\unified\route.ts:91:4)
+    at async POST (src\app\api\ai\unified\route.ts:149:6)
+  214 |       
+  215 |       // 기존 캐시 조회
+> 216 |       const cachedData = await this.redis.get<BasicContextCache>(this.CACHE_KEY);
+      |                         ^
+  217 |       
+  218 |       let contextCache: BasicContextCache;
+  219 |        {
+  [cause]: TypeError: Invalid URL
+      at async BasicContextManager.updateBasicContext (src\context\basic-context-manager.ts:216:25)
+      at async BasicContextManager.startCollection (src\context\basic-context-manager.ts:94:4)
+      at async MCPOrchestrator.initialize (src\core\mcp\mcp-orchestrator.ts:124:6)
+      at async UnifiedAISystem.initialize (src\core\ai\unified-ai-system.ts:176:6)
+      at async ensureSystemReady (src\app\api\ai\unified\route.ts:91:4)
+      at async POST (src\app\api\ai\unified\route.ts:149:6)
+    214 |       
+    215 |       // 기존 캐시 조회
+  > 216 |       const cachedData = await this.redis.get<BasicContextCache>(this.CACHE_KEY);
+        |                         ^
+    217 |       
+    218 |       let contextCache: BasicContextCache;
+    219 |        {
+    code: 'ERR_INVALID_URL',
+    input: '/pipeline'
+  }
+}
+❌ [UnifiedAI] MCP 초기화 실패: TypeError: Failed to parse URL from /pipeline
+    at async BasicContextManager.updateBasicContext (src\context\basic-context-manager.ts:216:25)
+    at async BasicContextManager.startCollection (src\context\basic-context-manager.ts:94:4)
+    at async MCPOrchestrator.initialize (src\core\mcp\mcp-orchestrator.ts:124:6)
+    at async UnifiedAISystem.initialize (src\core\ai\unified-ai-system.ts:176:6)
+    at async ensureSystemReady (src\app\api\ai\unified\route.ts:91:4)
+    at async POST (src\app\api\ai\unified\route.ts:149:6)
+  214 |       
+  215 |       // 기존 캐시 조회
+> 216 |       const cachedData = await this.redis.get<BasicContextCache>(this.CACHE_KEY);
+      |                         ^
+  217 |       
+  218 |       let contextCache: BasicContextCache;
+  219 |        {
+  [cause]: TypeError: Invalid URL
+      at async BasicContextManager.updateBasicContext (src\context\basic-context-manager.ts:216:25)
+      at async BasicContextManager.startCollection (src\context\basic-context-manager.ts:94:4)
+      at async MCPOrchestrator.initialize (src\core\mcp\mcp-orchestrator.ts:124:6)
+      at async UnifiedAISystem.initialize (src\core\ai\unified-ai-system.ts:176:6)
+      at async ensureSystemReady (src\app\api\ai\unified\route.ts:91:4)
+      at async POST (src\app\api\ai\unified\route.ts:149:6)
+    214 |       
+    215 |       // 기존 캐시 조회
+  > 216 |       const cachedData = await this.redis.get<BasicContextCache>(this.CACHE_KEY);
+        |                         ^
+    217 |       
+    218 |       let contextCache: BasicContextCache;
+    219 |        {
+    code: 'ERR_INVALID_URL',
+    input: '/pipeline'
+  }
+}
+✅ [UnifiedAI] 통합 AI 시스템 초기화 완료
+[Upstash Redis] Redis client was initialized without url or token. Failed to execute command.
+[Upstash Redis] Redis client was initialized without url or token. Failed to execute command.
+📊 [CustomContext] 통계 조회 완료: {
+  totalOrganizations: 0,
+  totalUsers: 0,
+  totalRules: 0,
+  activeRules: 0,
+  avgSuccessRate: 0
+}
+❌ [BasicContext] 조회 실패: TypeError: Failed to parse URL from /pipeline
+    at async BasicContextManager.getCurrentContext (src\context\basic-context-manager.ts:282:21)
+    at async UnifiedAISystem.getSystemHealth (src\core\ai\unified-ai-system.ts:532:8)
+    at async UnifiedAISystem.initialize (src\core\ai\unified-ai-system.ts:187:21)
+    at async ensureSystemReady (src\app\api\ai\unified\route.ts:91:4)
+    at async POST (src\app\api\ai\unified\route.ts:149:6)
+  280 |   async getCurrentContext(): Promise<BasicContextCache | null> {
+  281 |     try {
+> 282 |       const cached = await this.redis.get<BasicContextCache>(this.CACHE_KEY);
+      |                     ^
+  283 |       return cached || null;
+  284 |     } catch (error) {
+  285 |       console.error('❌ [BasicContext] 조회 실패:', error); {
+  [cause]: TypeError: Invalid URL
+      at async BasicContextManager.getCurrentContext (src\context\basic-context-manager.ts:282:21)
+      at async UnifiedAISystem.getSystemHealth (src\core\ai\unified-ai-system.ts:532:8)
+      at async UnifiedAISystem.initialize (src\core\ai\unified-ai-system.ts:187:21)
+      at async ensureSystemReady (src\app\api\ai\unified\route.ts:91:4)
+      at async POST (src\app\api\ai\unified\route.ts:149:6)
+    280 |   async getCurrentContext(): Promise<BasicContextCache | null> {
+    281 |     try {
+  > 282 |       const cached = await this.redis.get<BasicContextCache>(this.CACHE_KEY);
+        |                     ^
+    283 |       return cached || null;
+    284 |     } catch (error) {
+    285 |       console.error('❌ [BasicContext] 조회 실패:', error); {
+    code: 'ERR_INVALID_URL',
+    input: '/pipeline'
+  }
+}
+❌ [AdvancedContext] 캐시 로드 실패: TypeError: Failed to parse URL from /pipeline
+    at async AdvancedContextManager.loadContextCache (src\context\advanced-context-manager.ts:632:21)
+    at async AdvancedContextManager.getStatistics (src\context\advanced-context-manager.ts:690:25)
+    at async UnifiedAISystem.getSystemHealth (src\core\ai\unified-ai-system.ts:532:8)
+    at async UnifiedAISystem.initialize (src\core\ai\unified-ai-system.ts:187:21)
+    at async ensureSystemReady (src\app\api\ai\unified\route.ts:91:4)
+    at async POST (src\app\api\ai\unified\route.ts:149:6)
+  630 |   private async loadContextCache(): Promise<AdvancedContextCache> {
+  631 |     try {
+> 632 |       const cached = await this.redis.get<any>(this.CACHE_KEY);
+      |                     ^
+  633 |       if (cached) {
+  634 |         return {
+  635 |           documents: new Map(cached.documents || []), {
+  [cause]: TypeError: Invalid URL
+      at async AdvancedContextManager.loadContextCache (src\context\advanced-context-manager.ts:632:21)
+      at async AdvancedContextManager.getStatistics (src\context\advanced-context-manager.ts:690:25)
+      at async UnifiedAISystem.getSystemHealth (src\core\ai\unified-ai-system.ts:532:8)
+      at async UnifiedAISystem.initialize (src\core\ai\unified-ai-system.ts:187:21)
+      at async ensureSystemReady (src\app\api\ai\unified\route.ts:91:4)
+      at async POST (src\app\api\ai\unified\route.ts:149:6)
+    630 |   private async loadContextCache(): Promise<AdvancedContextCache> {
+    631 |     try {
+  > 632 |       const cached = await this.redis.get<any>(this.CACHE_KEY);
+        |                     ^
+    633 |       if (cached) {
+    634 |         return {
+    635 |           documents: new Map(cached.documents || []), {
+    code: 'ERR_INVALID_URL',
+    input: '/pipeline'
+  }
+}
+📊 [UnifiedAI] 시스템 상태: degraded
+⚡ Fluid Compute: 시스템 초기화 완료 (연결 재사용)
+🧠 [Fluid API] 새로운 질의: "시스템 상태를 확인해주세요..."
+2025-06-11T11:52:06.359Z [32minfo[39m: 새로운 질의 처리 시작: 시스템 상태를 확인해주세요... 새로운 질의 처리 시작: 시스템 상태를 확인해주세요... {
+  "id": "ai-log-1-1749642726359",
+  "category": "ai_engine",
+  "engine": "unified_ai",
+  "metadata": {
+    "requestId": "query_1749642726358_cdokq735a",
+    "sessionId": "session_1749642726358",
+    "query": "시스템 상태를 확인해주세요",
+    "preferFastAPI": false,
+    "includeThinking": true,
+    "memoryUsage": {
+      "rss": 512757760,
+      "heapTotal": 295456768,
+      "heapUsed": 243683168,
+      "external": 186380559,
+      "arrayBuffers": 190701362
+    },
+    "cpuUsage": {
+      "user": 12828000,
+      "system": 2234000
+    }
+  },
+  "context": {
+    "fluidCompute": {
+      "coldStartEliminated": false,
+      "connectionReused": true,
+      "resourceEfficiency": 0,
+      "costSavings": 0
+    },
+    "systemState": {
+      "initialized": true,
+      "lastInitTime": "2025-06-11T11:51:57.241Z"
+    }
+  },
+  "tags": []
+}
+🧠 [UnifiedAI] 질의 처리 시작: "시스템 상태를 확인해주세요"
+🎯 [UnifiedAI] 선택된 엔진: fastapi
+❌ [UnifiedAI] 질의 처리 실패: TypeError: Cannot read properties of undefined (reading 'keywords')
+    at UnifiedAISystem.processFastAPIQuery (src\core\ai\unified-ai-system.ts:327:47)
+    at async UnifiedAISystem.processQuery (src\core\ai\unified-ai-system.ts:217:21)
+    at async POST (src\app\api\ai\unified\route.ts:220:38)
+  325 |           intent: aiResponse.analysis.intent,
+  326 |           entities: aiResponse.analysis.entities,
+> 327 |           keywords: aiResponse.analysis.intent.keywords,
+      |                                               ^
+  328 |         },
+  329 |         recommendations: this.generateRecommendations(aiResponse.analysis),
+  330 |         actions: [],
+❌ [Fluid API] 질의 처리 중 오류: TypeError: this.winstonLogger[logEntry.level] is not a function
+    at AILogger.logAI (src\services\ai\logging\AILogger.ts:241:67)
+    at AILogger.logThinking (src\services\ai\logging\AILogger.ts:266:19)
+    at POST (src\app\api\ai\unified\route.ts:225:21)
+  239 |
+  240 |         // Winston 로깅
+> 241 |         this.winstonLogger[logEntry.level as keyof winston.Logger](logEntry.message, logEntry);
+      |                                                                   ^
+  242 |
+  243 |         // Pino 로깅 (더 빠른 성능)
+  244 |         this.pinoLogger[logEntry.level](logEntry);
+ POST /api/ai/unified 500 in 9941ms
+Error: the worker has exited
+    at AILogger.logAI (src\services\ai\logging\AILogger.ts:244:40)
+    at POST (src\app\api\ai\unified\route.ts:185:19)
+  242 |
+  243 |         // Pino 로깅 (더 빠른 성능)
+> 244 |         this.pinoLogger[logEntry.level](logEntry);
+      |                                        ^
+  245 |
+  246 |         // 실시간 구독자들에게 알림
+  247 |         this.notifySubscribers(logEntry);
+ ⨯ uncaughtException: Error: the worker has exited
+    at AILogger.logAI (src\services\ai\logging\AILogger.ts:244:40)
+    at POST (src\app\api\ai\unified\route.ts:185:19)
+  242 |
+  243 |         // Pino 로깅 (더 빠른 성능)
+> 244 |         this.pinoLogger[logEntry.level](logEntry);
+      |                                        ^
+  245 |
+  246 |         // 실시간 구독자들에게 알림
+  247 |         this.notifySubscribers(logEntry);
+ ⨯ uncaughtException:  Error: the worker has exited
+    at AILogger.logAI (src\services\ai\logging\AILogger.ts:244:40)
+    at POST (src\app\api\ai\unified\route.ts:185:19)
+  242 |
+  243 |         // Pino 로깅 (더 빠른 성능)
+> 244 |         this.pinoLogger[logEntry.level](logEntry);
+      |                                        ^
+  245 |
+  246 |         // 실시간 구독자들에게 알림
+  247 |         this.notifySubscribers(logEntry);
+ GET /api/ai/logging?type=thinking&limit=3 200 in 18ms
+ GET /api/ai/logging?type=metrics 200 in 11ms
+ ✓ Compiled in 21.3s (278 modules)

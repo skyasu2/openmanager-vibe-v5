@@ -1,23 +1,24 @@
 /**
  * 🏗️ Service Registry
- * 
+ *
  * 서비스 등록 및 초기화 시스템
  * - 모든 서비스를 DI 컨테이너에 등록
  * - 서비스 간 의존성 관리
  * - 애플리케이션 라이프사이클 관리
  */
 
-import { container, SERVICE_TOKENS, registerService, registerFactory } from './di-container';
+import {
+  container,
+  SERVICE_TOKENS,
+  registerService,
+  registerFactory,
+} from './di-container';
 import { LoggingService } from '@/services/LoggingService';
-import { ErrorHandlingService } from '@/services/ErrorHandlingService';
+import { ErrorHandlingService } from '@/services/error-handling/ErrorHandlingService';
 import { SmartCacheService } from '@/services/SmartCacheService';
 import { TestFramework } from '@/testing/TestFramework';
 import { ConfigLoader } from '@/config';
-import { 
-  ILogger, 
-  IErrorHandler, 
-  IConfigLoader 
-} from '@/interfaces/services';
+import { ILogger, IErrorHandler, IConfigLoader } from '@/interfaces/services';
 
 export class ServiceRegistry {
   private static instance: ServiceRegistry;
@@ -71,7 +72,6 @@ export class ServiceRegistry {
 
       this.isInitialized = true;
       console.log('✅ All services registered successfully');
-
     } catch (error) {
       console.error('❌ Service registration failed:', error);
       throw error;
@@ -94,11 +94,7 @@ export class ServiceRegistry {
    * 로깅 서비스 등록
    */
   private registerLoggingService(): void {
-    registerService(
-      SERVICE_TOKENS.LOGGER,
-      LoggingService,
-      'singleton'
-    );
+    registerService(SERVICE_TOKENS.LOGGER, LoggingService, 'singleton');
   }
 
   /**
@@ -139,7 +135,7 @@ export class ServiceRegistry {
           enableCompression: true,
           compressionThreshold: 1024,
           enableStats: true,
-          cleanupInterval: 60000 // 1분
+          cleanupInterval: 60000, // 1분
         });
       },
       'singleton',
@@ -173,7 +169,7 @@ export class ServiceRegistry {
           },
           size: async () => {
             return Object.keys(localStorage).length;
-          }
+          },
         };
       },
       'singleton'
@@ -184,14 +180,14 @@ export class ServiceRegistry {
       SERVICE_TOKENS.HEALTH_CHECK_SERVICE,
       () => {
         const checks = new Map<string, () => Promise<any>>();
-        
+
         return {
           check: async () => ({
             status: 'healthy' as const,
             checks: {},
             timestamp: new Date(),
             uptime: Date.now(),
-            version: '1.0.0'
+            version: '1.0.0',
           }),
           addCheck: (name: string, checkFn: () => Promise<any>) => {
             checks.set(name, checkFn);
@@ -202,7 +198,7 @@ export class ServiceRegistry {
           getChecks: () => Array.from(checks.keys()),
           isHealthy: async () => true,
           startPeriodicCheck: () => {},
-          stopPeriodicCheck: () => {}
+          stopPeriodicCheck: () => {},
         };
       },
       'singleton'
@@ -213,12 +209,14 @@ export class ServiceRegistry {
       SERVICE_TOKENS.TEST_FRAMEWORK,
       () => {
         const logger = container.resolve<ILogger>(SERVICE_TOKENS.LOGGER);
-        const errorHandler = container.resolve<IErrorHandler>(SERVICE_TOKENS.ERROR_HANDLER);
+        const errorHandler = container.resolve<IErrorHandler>(
+          SERVICE_TOKENS.ERROR_HANDLER
+        );
         const testFramework = new TestFramework(logger, errorHandler);
-        
+
         // 서비스 테스트 스위트 자동 생성
         testFramework.createServiceTestSuites();
-        
+
         return testFramework;
       },
       'singleton',
@@ -241,12 +239,12 @@ export class ServiceRegistry {
             response_time: 0,
             active_connections: 0,
             status: 'healthy' as const,
-            alerts: []
+            alerts: [],
           }),
           collectBatch: async () => [],
           startCollection: () => {},
           stopCollection: () => {},
-          isCollecting: () => false
+          isCollecting: () => false,
         };
       },
       'singleton'
@@ -261,7 +259,7 @@ export class ServiceRegistry {
           getMetrics: async () => [],
           isConnected: () => false,
           connect: async () => {},
-          disconnect: () => {}
+          disconnect: () => {},
         };
       },
       'singleton'
@@ -280,14 +278,15 @@ export class ServiceRegistry {
       logger.info('Logging service initialized');
 
       // 2. 에러 처리 서비스 초기화
-      const errorHandler = container.resolve<IErrorHandler>(SERVICE_TOKENS.ERROR_HANDLER);
+      const errorHandler = container.resolve<IErrorHandler>(
+        SERVICE_TOKENS.ERROR_HANDLER
+      );
       logger.info('Error handling service initialized');
 
       // 3. 추가 서비스들 초기화
       logger.info('Additional services initialized');
 
       console.log('✅ All services initialized successfully');
-
     } catch (error) {
       console.error('❌ Service initialization failed:', error);
       throw error;
@@ -308,7 +307,6 @@ export class ServiceRegistry {
       }
 
       console.log('✅ Services cleanup completed');
-
     } catch (error) {
       console.error('❌ Service cleanup failed:', error);
     }
@@ -325,7 +323,8 @@ export class ServiceRegistry {
     return {
       registered: container.getRegisteredServices().map(token => String(token)),
       initialized: this.isInitialized,
-      healthy: this.isInitialized && container.getRegisteredServices().length > 0
+      healthy:
+        this.isInitialized && container.getRegisteredServices().length > 0,
     };
   }
 
@@ -361,6 +360,9 @@ export function getService<T>(token: string | symbol): T {
 }
 
 // 타입 안전한 서비스 접근자들
-export const getLogger = (): ILogger => getService<ILogger>(SERVICE_TOKENS.LOGGER);
-export const getErrorHandler = (): IErrorHandler => getService<IErrorHandler>(SERVICE_TOKENS.ERROR_HANDLER);
-export const getConfigLoader = (): IConfigLoader => getService<IConfigLoader>(SERVICE_TOKENS.CONFIG_LOADER); 
+export const getLogger = (): ILogger =>
+  getService<ILogger>(SERVICE_TOKENS.LOGGER);
+export const getErrorHandler = (): IErrorHandler =>
+  getService<IErrorHandler>(SERVICE_TOKENS.ERROR_HANDLER);
+export const getConfigLoader = (): IConfigLoader =>
+  getService<IConfigLoader>(SERVICE_TOKENS.CONFIG_LOADER);

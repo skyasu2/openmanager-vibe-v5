@@ -171,7 +171,7 @@ git push
 - **Q**: 개발 서버가 시작되지 않아요
 - **A**: [환경 설정 가이드](setup/개발_환경_설정.md) 확인
 
-- **Q**: AI 분석이 작동하지 않아요  
+- **Q**: AI 분석이 작동하지 않아요
 - **A**: Google AI API 키 설정 확인 ([보안 가이드](../security/))
 
 - **Q**: 테스트가 실패해요
@@ -180,7 +180,7 @@ git push
 ### 연락처
 
 - 🐛 **버그 리포트**: GitHub Issues
-- 💬 **질문 및 토론**: 팀 Slack #dev-support  
+- 💬 **질문 및 토론**: 팀 Slack #dev-support
 - 📖 **문서 개선**: Pull Request 환영
 - 🚀 **기능 제안**: GitHub Discussions
 

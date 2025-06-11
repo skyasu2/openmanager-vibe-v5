@@ -23,6 +23,7 @@ import { GoogleAIService } from './GoogleAIService';
 import { LocalRAGEngine } from '@/utils/legacy/local-rag-engine';
 import { MCPAIRouter, MCPContext } from './MCPAIRouter';
 import { getRedisClient } from '@/lib/redis';
+import { aiLogger, LogLevel, LogCategory } from './logging/AILogger';
 
 interface FallbackAttempt {
   timestamp: Date;
@@ -94,7 +95,12 @@ export class SmartFallbackEngine {
     if (this.initialized) return;
 
     try {
-      console.log('🧠 SmartFallbackEngine 초기화 시작...');
+      await aiLogger.logAI({
+        level: LogLevel.INFO,
+        category: LogCategory.FALLBACK,
+        engine: 'SmartFallbackEngine',
+        message: '🧠 SmartFallbackEngine 초기화 시작...',
+      });
 
       // Redis 연결
       this.redis = await getRedisClient();
@@ -108,7 +114,12 @@ export class SmartFallbackEngine {
         typeof this.ragEngine.isReady === 'function'
       ) {
         if (!this.ragEngine.isReady()) {
-          console.log('📚 RAG 엔진 초기화 중...');
+          await aiLogger.logAI({
+            level: LogLevel.INFO,
+            category: LogCategory.RAG,
+            engine: 'SmartFallbackEngine',
+            message: '📚 RAG 엔진 초기화 중...',
+          });
         }
       }
 
@@ -119,9 +130,19 @@ export class SmartFallbackEngine {
       this.startCleanupScheduler();
 
       this.initialized = true;
-      console.log('✅ SmartFallbackEngine 초기화 완료!');
+      await aiLogger.logAI({
+        level: LogLevel.INFO,
+        category: LogCategory.FALLBACK,
+        engine: 'SmartFallbackEngine',
+        message: '✅ SmartFallbackEngine 초기화 완료!',
+      });
     } catch (error) {
-      console.error('❌ SmartFallbackEngine 초기화 실패:', error);
+      await aiLogger.logError(
+        'SmartFallbackEngine',
+        LogCategory.FALLBACK,
+        error as Error,
+        { stage: 'initialization' }
+      );
       this.initialized = true; // 기본 모드로 동작
     }
   }
@@ -208,7 +229,12 @@ export class SmartFallbackEngine {
           this.updateSuccessRate('mcp', false);
           fallbackPath.push('MCP 실패');
         } catch (error) {
-          console.warn('⚠️ MCP 엔진 오류:', error);
+          await aiLogger.logWarning(
+            'MCP',
+            LogCategory.MCP,
+            '⚠️ MCP 엔진 오류',
+            { error, query, responseTime: Date.now() - startTime }
+          );
           fallbackPath.push('MCP 오류');
         }
       }
@@ -255,7 +281,12 @@ export class SmartFallbackEngine {
           this.updateSuccessRate('rag', false);
           fallbackPath.push('RAG 실패');
         } catch (error) {
-          console.warn('⚠️ RAG 엔진 오류:', error);
+          await aiLogger.logWarning(
+            'RAG',
+            LogCategory.RAG,
+            '⚠️ RAG 엔진 오류',
+            { error, query, responseTime: Date.now() - startTime }
+          );
           fallbackPath.push('RAG 오류');
         }
       }
@@ -306,7 +337,12 @@ export class SmartFallbackEngine {
           this.updateSuccessRate('google_ai', false);
           fallbackPath.push('Google AI 실패');
         } catch (error) {
-          console.warn('⚠️ Google AI 오류:', error);
+          await aiLogger.logWarning(
+            'GoogleAI',
+            LogCategory.GOOGLE_AI,
+            '⚠️ Google AI 오류',
+            { error, query, responseTime: Date.now() - startTime }
+          );
           fallbackPath.push('Google AI 오류');
         }
       } else if (defaultOptions.enableGoogleAI) {
@@ -316,7 +352,17 @@ export class SmartFallbackEngine {
       // 모든 엔진 실패시
       throw new Error('모든 AI 엔진이 실패했습니다.');
     } catch (error) {
-      console.error('❌ SmartFallbackEngine 전체 실패:', error);
+      await aiLogger.logError(
+        'SmartFallbackEngine',
+        LogCategory.FALLBACK,
+        error as Error,
+        {
+          query,
+          fallbackPath,
+          totalResponseTime: Date.now() - startTime,
+          quotaStatus: this.getQuotaStatus(),
+        }
+      );
 
       return {
         success: false,

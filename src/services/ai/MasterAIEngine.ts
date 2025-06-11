@@ -23,6 +23,7 @@ import {
   CorrelationInsights,
 } from './engines/CorrelationEngine';
 import { PerformanceMonitor, perf } from '../../utils/performance-monitor';
+import { aiLogger, LogLevel, LogCategory } from './logging/AILogger';
 
 export interface AIEngineRequest {
   engine:
@@ -100,8 +101,15 @@ export class MasterAIEngine {
   }
 
   private async initializeEngines() {
+    const startTime = Date.now();
+
     try {
-      console.log('🚀 MasterAIEngine 초기화 시작...');
+      await aiLogger.logAI({
+        level: LogLevel.INFO,
+        category: LogCategory.AI_ENGINE,
+        engine: 'MasterAIEngine',
+        message: '🚀 MasterAIEngine 초기화 시작...',
+      });
 
       // 오픈소스 엔진 초기화
       this.openSourceEngines = new OpenSourceEngines();
@@ -113,12 +121,39 @@ export class MasterAIEngine {
       this.initializeEngineStats();
 
       this.initialized = true;
-      console.log('✅ MasterAIEngine 초기화 완료');
+
+      const initTime = Date.now() - startTime;
+      await aiLogger.logPerformance(
+        'MasterAIEngine',
+        LogCategory.AI_ENGINE,
+        'initialization',
+        initTime,
+        {
+          openSourceEnginesLoaded: true,
+          customEnginesLoaded: true,
+          statsInitialized: true,
+        }
+      );
+
+      await aiLogger.logAI({
+        level: LogLevel.INFO,
+        category: LogCategory.AI_ENGINE,
+        engine: 'MasterAIEngine',
+        message: `✅ MasterAIEngine 초기화 완료 (${initTime}ms)`,
+      });
 
       // 성능 정보 로깅
       this.logPerformanceInfo();
     } catch (error) {
-      console.error('❌ MasterAIEngine 초기화 실패:', error);
+      await aiLogger.logError(
+        'MasterAIEngine',
+        LogCategory.AI_ENGINE,
+        error as Error,
+        {
+          stage: 'initialization',
+          components: ['OpenSourceEngines', 'CustomEngines'],
+        }
+      );
       this.initialized = false;
     }
   }
@@ -294,7 +329,17 @@ export class MasterAIEngine {
         },
       };
     } catch (error) {
-      console.error(`❌ ${request.engine} 엔진 오류:`, error);
+      await aiLogger.logError(
+        request.engine,
+        this.getLogCategory(request.engine),
+        error as Error,
+        {
+          query: request.query,
+          data: request.data,
+          context: request.context,
+          responseTime: Date.now() - startTime,
+        }
+      );
 
       if (enableThinking) {
         thinkingSteps.push(
@@ -522,7 +567,12 @@ export class MasterAIEngine {
           };
       }
     } catch (fallbackError) {
-      console.error('폴백 처리도 실패:', fallbackError);
+      await aiLogger.logError(
+        `${request.engine}_fallback`,
+        this.getLogCategory(request.engine),
+        fallbackError as Error,
+        { originalError: originalError, query: request.query }
+      );
       return null;
     }
   }
@@ -782,7 +832,34 @@ export class MasterAIEngine {
   cleanup() {
     this.responseCache.clear();
     this.engineStats.clear();
-    console.log('🧹 MasterAIEngine 정리 완료');
+    aiLogger.logAI({
+      level: LogLevel.INFO,
+      category: LogCategory.AI_ENGINE,
+      engine: 'MasterAIEngine',
+      message: '🧹 MasterAIEngine 정리 완료',
+    });
+  }
+
+  /**
+   * 엔진별 로그 카테고리 매핑
+   */
+  private getLogCategory(engine: string): LogCategory {
+    const categoryMap: Record<string, LogCategory> = {
+      anomaly: LogCategory.ANOMALY,
+      prediction: LogCategory.PREDICTION,
+      autoscaling: LogCategory.PERFORMANCE,
+      korean: LogCategory.AI_ENGINE,
+      enhanced: LogCategory.AI_ENGINE,
+      integrated: LogCategory.AI_ENGINE,
+      mcp: LogCategory.MCP,
+      'mcp-test': LogCategory.MCP,
+      hybrid: LogCategory.HYBRID,
+      unified: LogCategory.AI_ENGINE,
+      'custom-nlp': LogCategory.AI_ENGINE,
+      correlation: LogCategory.AI_ENGINE,
+    };
+
+    return categoryMap[engine] || LogCategory.AI_ENGINE;
   }
 }
 

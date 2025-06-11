@@ -15,6 +15,7 @@ import {
 } from '@/lib/ml/lightweight-ml-engine';
 import type { EnhancedServerMetrics } from '../../types/server';
 import { cacheService } from '../cacheService';
+import { aiLogger, LogLevel, LogCategory } from './logging/AILogger';
 
 // 🔧 ML 엔진 타입 정의
 interface ServerMetricPoint {
@@ -102,16 +103,23 @@ export class PredictiveAnalytics {
     timeframeMinutes: number
   ): Promise<PredictionAnalysisResult> {
     try {
-      console.log(
-        `🔮 서버 ${serverId} 로드 예측 시작 (${timeframeMinutes}분 전망)`
-      );
+      await aiLogger.logAI({
+        level: LogLevel.INFO,
+        category: LogCategory.PREDICTION,
+        engine: 'PredictiveAnalytics',
+        message: `🔮 서버 ${serverId} 로드 예측 시작 (${timeframeMinutes}분 전망)`,
+        metadata: { serverId, timeframeMinutes },
+      });
 
       // 1. 서버 메트릭 히스토리 수집
       const history = await this.collectServerHistory(serverId);
 
       if (history.length === 0) {
-        console.warn(
-          `서버 ${serverId}의 히스토리 데이터가 없어 샘플 데이터로 예측`
+        await aiLogger.logWarning(
+          'PredictiveAnalytics',
+          LogCategory.PREDICTION,
+          `서버 ${serverId}의 히스토리 데이터가 없어 샘플 데이터로 예측`,
+          { serverId, timeframeMinutes }
         );
         return this.createBasicPrediction(serverId, timeframeMinutes);
       }
@@ -150,7 +158,12 @@ export class PredictiveAnalytics {
         },
       };
     } catch (error) {
-      console.error('❌ 서버 로드 예측 실패:', error);
+      await aiLogger.logError(
+        'PredictiveAnalytics',
+        LogCategory.PREDICTION,
+        error as Error,
+        { serverId, timeframeMinutes, stage: 'prediction' }
+      );
 
       // 📊 기본 통계 기반 예측 (fallback)
       return this.createBasicPrediction(serverId, timeframeMinutes);

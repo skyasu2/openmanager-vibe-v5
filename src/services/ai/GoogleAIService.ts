@@ -10,6 +10,7 @@
  */
 
 import { getGoogleAIKey, isGoogleAIAvailable } from '@/lib/google-ai-manager';
+import { aiLogger, LogLevel, LogCategory } from './logging/AILogger';
 
 interface GoogleAIConfig {
   apiKey: string;
@@ -87,7 +88,12 @@ export class GoogleAIService {
 
     try {
       if (!this.config.enabled || !this.config.apiKey) {
-        console.log('🤖 Google AI 베타 모드: 비활성화됨');
+        await aiLogger.logAI({
+          level: LogLevel.INFO,
+          category: LogCategory.GOOGLE_AI,
+          engine: 'GoogleAIService',
+          message: '🤖 Google AI 베타 모드: 비활성화됨',
+        });
         return false;
       }
 
@@ -102,17 +108,28 @@ export class GoogleAIService {
 
       if (testResponse.success) {
         this.isInitialized = true;
-        console.log('✅ Google AI Studio 베타 모드 초기화 완료');
-        console.log(`🎯 모델: ${this.config.model}`);
-        console.log(
-          `⚡ 할당량: ${this.config.rateLimits.rpm}RPM, ${this.config.rateLimits.daily}/일`
-        );
+        await aiLogger.logAI({
+          level: LogLevel.INFO,
+          category: LogCategory.GOOGLE_AI,
+          engine: 'GoogleAIService',
+          message: '✅ Google AI Studio 베타 모드 초기화 완료',
+          metadata: {
+            model: this.config.model,
+            rpmLimit: this.config.rateLimits.rpm,
+            dailyLimit: this.config.rateLimits.daily,
+          },
+        });
         return true;
       }
 
       throw new Error('연결 테스트 실패');
     } catch (error) {
-      console.warn('⚠️ Google AI 초기화 실패:', error);
+      await aiLogger.logError(
+        'GoogleAIService',
+        LogCategory.GOOGLE_AI,
+        error as Error,
+        { stage: 'initialization', config: this.config }
+      );
       this.config.enabled = false;
       return false;
     }

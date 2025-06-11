@@ -19,6 +19,7 @@ import { VectorSearchService } from './hybrid/services/VectorSearchService';
 import { AIEngineOrchestrator } from './hybrid/orchestrators/AIEngineOrchestrator';
 import { QueryAnalyzer, SmartQuery } from './hybrid/analyzers/QueryAnalyzer';
 import { RealMCPClient } from '@/services/mcp/real-mcp-client';
+import { aiLogger, LogLevel, LogCategory } from './logging/AILogger';
 
 interface HybridAnalysisResult {
   success: boolean;
@@ -76,7 +77,12 @@ export class HybridAIEngine {
   private sessionStats = new Map<string, any>();
 
   constructor() {
-    console.log('🚀 Hybrid AI Engine v6.0.0 인스턴스 생성 (모듈화 아키텍처)');
+    aiLogger.logAI({
+      level: LogLevel.INFO,
+      category: LogCategory.HYBRID,
+      engine: 'HybridAIEngine',
+      message: '🚀 Hybrid AI Engine v6.0.0 인스턴스 생성 (모듈화 아키텍처)',
+    });
 
     // 의존성 주입: 각 모듈을 독립적으로 초기화
     this.mcpClient = new RealMCPClient();
@@ -109,29 +115,64 @@ export class HybridAIEngine {
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
-    console.log('🚀 Hybrid AI Engine v6.0.0 초기화 시작...');
+    await aiLogger.logAI({
+      level: LogLevel.INFO,
+      category: LogCategory.HYBRID,
+      engine: 'HybridAIEngine',
+      message: '🚀 Hybrid AI Engine v6.0.0 초기화 시작...',
+    });
     const startTime = Date.now();
 
     try {
       // Phase 1: 핵심 모듈 병렬 초기화
-      console.log('⚡ Phase 1: 핵심 모듈 초기화...');
+      await aiLogger.logAI({
+        level: LogLevel.DEBUG,
+        category: LogCategory.HYBRID,
+        engine: 'HybridAIEngine',
+        message: '⚡ Phase 1: 핵심 모듈 초기화...',
+      });
       await Promise.all([
         this.initializeMCPClient(),
         this.documentIndexManager.buildHybridDocumentIndex(),
       ]);
 
       // Phase 2: 벡터 검색 서비스 준비
-      console.log('⚡ Phase 2: 벡터 검색 서비스 준비...');
+      await aiLogger.logAI({
+        level: LogLevel.DEBUG,
+        category: LogCategory.HYBRID,
+        engine: 'HybridAIEngine',
+        message: '⚡ Phase 2: 벡터 검색 서비스 준비...',
+      });
       const documentIndex = this.documentIndexManager.getDocumentIndex();
       await this.vectorSearchService.initialize(documentIndex);
 
       this.isInitialized = true;
       const initTime = Date.now() - startTime;
 
-      console.log(`🎯 Hybrid AI Engine v6.0.0 초기화 완료 (${initTime}ms)`);
+      await aiLogger.logPerformance(
+        'HybridAIEngine',
+        LogCategory.HYBRID,
+        'initialization',
+        initTime,
+        {
+          phases: 2,
+          mcpInitialized: true,
+          vectorSearchReady: true,
+          documentIndexReady: true,
+        }
+      );
+
       this.logInitializationStatus();
     } catch (error) {
-      console.error('❌ Hybrid AI Engine v6.0.0 초기화 실패:', error);
+      await aiLogger.logError(
+        'HybridAIEngine',
+        LogCategory.HYBRID,
+        error as Error,
+        {
+          stage: 'initialization',
+          initTime: Date.now() - startTime,
+        }
+      );
       throw error;
     }
   }
