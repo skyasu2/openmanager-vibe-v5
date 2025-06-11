@@ -7,10 +7,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { OptimizedDataGenerator } from '../../../../services/OptimizedDataGenerator';
-import { SimulationEngine } from '@/services/simulationEngine';
+// import { SimulationEngine } from '@/services/simulationEngine'; // 🗑️ UnifiedMetricsManager로 대체
+import { unifiedMetricsManager } from '@/services/UnifiedMetricsManager';
 
 const optimizedGenerator = OptimizedDataGenerator.getInstance();
-const simulationEngine = new SimulationEngine();
+// const simulationEngine = new SimulationEngine(); // 🗑️ 제거
+// const simulationEngine = unifiedMetricsManager; // UnifiedMetricsManager 사용
 
 /**
  * 📊 최적화된 데이터 생성기 API + 경연대회용 데모 시나리오
@@ -102,19 +104,19 @@ export async function POST(request: NextRequest) {
         }
 
         // 시뮬레이션 엔진에서 서버 확인 및 생성
-        let initialServers = simulationEngine.getServers();
+        let initialServers = unifiedMetricsManager.getServers();
         if (initialServers.length === 0) {
           // 시뮬레이션을 먼저 시작해서 서버 생성
-          simulationEngine.start();
-          initialServers = simulationEngine.getServers().slice(0, 30);
+          unifiedMetricsManager.start();
+          initialServers = unifiedMetricsManager.getServers().slice(0, 30);
         }
 
         // 최적화된 생성기 시작
         await optimizedGenerator.start(initialServers);
 
         // 기존 시뮬레이션은 중지 (리소스 절약)
-        if (simulationEngine.getIsRunning()) {
-          simulationEngine.stop();
+        if (unifiedMetricsManager.getStatus().isRunning) {
+          unifiedMetricsManager.stop();
           console.log('🔄 기존 시뮬레이션 중지 후 최적화된 생성기로 전환');
         }
 
@@ -181,7 +183,7 @@ export async function POST(request: NextRequest) {
           optimizedGenerator.stop();
         }
 
-        const servers = simulationEngine.getServers();
+        const servers = unifiedMetricsManager.getServers();
         if (servers.length === 0) {
           return NextResponse.json(
             {
@@ -208,8 +210,8 @@ export async function POST(request: NextRequest) {
           optimizedGenerator.stop();
         }
 
-        if (!simulationEngine.getIsRunning()) {
-          simulationEngine.start();
+        if (!unifiedMetricsManager.getStatus().isRunning()) {
+          unifiedMetricsManager.start();
         }
 
         return NextResponse.json({

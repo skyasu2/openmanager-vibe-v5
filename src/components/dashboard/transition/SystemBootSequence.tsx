@@ -377,12 +377,13 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
                   <button
                     onClick={e => {
                       e.stopPropagation();
-                      console.log('🚀 다음 버튼 클릭 - 대시보드로 이동');
+                      console.log('🚀 다음 버튼 클릭 - 대시보드로 이동 준비');
+                      // 사용자 확인 후 완료 처리
                       handleFinalComplete();
                     }}
                     className='group px-6 py-3 bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center space-x-2'
                   >
-                    <span>다음</span>
+                    <span>대시보드로 이동</span>
                     <motion.div
                       animate={{ x: [0, 4, 0] }}
                       transition={{ repeat: Infinity, duration: 1.5 }}

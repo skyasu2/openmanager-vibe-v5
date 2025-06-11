@@ -7,9 +7,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { SimulationEngine } from '@/services/simulationEngine';
+// import { SimulationEngine } from '@/services/simulationEngine'; // 🗑️ UnifiedMetricsManager로 대체
+import { unifiedMetricsManager } from '@/services/UnifiedMetricsManager';
 
-const simulationEngine = new SimulationEngine();
+// const simulationEngine = new SimulationEngine(); // 🗑️ 제거
 
 interface SmartQuery {
   id: string;
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const limit = parseInt(searchParams.get('limit') || '10');
 
     // 현재 시스템 상태 기반으로 추천 질문 생성
-    const servers = simulationEngine.getServers();
+    const servers = unifiedMetricsManager.getServers();
     const criticalServers = servers.filter(s => s.status === 'critical').length;
     const warningServers = servers.filter(s => s.status === 'warning').length;
     const totalServers = servers.length;
