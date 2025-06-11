@@ -464,6 +464,9 @@ export class OptimizedDataGenerator {
     // 🎭 경연대회용 데모 시나리오 적용
     this.demoManager.applyToServers(servers);
 
+    // 🎚️ 상태 분포 밸런싱 (critical≈10%, warning≈20%)
+    this.balanceStatusDistribution(servers);
+
     return servers;
   }
 
@@ -808,5 +811,67 @@ export class OptimizedDataGenerator {
    */
   restartDemo(): void {
     this.demoManager.restart();
+  }
+
+  /**
+   * 🎚️ 서버 상태 분포 밸런싱
+   * - 목표: critical 10% ±2, warning 20% ±3 (자연스러운 오차 허용)
+   * - 가장 부하가 높거나 낮은 서버를 선택해 승급/강등하여 조정
+   */
+  private balanceStatusDistribution(servers: EnhancedServerMetrics[]): void {
+    const total = servers.length;
+    const targetCritical = Math.round(total * 0.1);
+    const targetWarning = Math.round(total * 0.2);
+
+    const critical = servers.filter(s => s.status === 'critical');
+    const warning = servers.filter(s => s.status === 'warning');
+    const normal = servers.filter(s => s.status === 'normal');
+
+    const sortByLoadDesc = (
+      a: EnhancedServerMetrics,
+      b: EnhancedServerMetrics
+    ) => {
+      const loadA = (a.cpu_usage + a.memory_usage) / 2;
+      const loadB = (b.cpu_usage + b.memory_usage) / 2;
+      return loadB - loadA;
+    };
+
+    // 👆 critical 부족 시 높은 부하 서버 승급
+    if (critical.length < targetCritical) {
+      const need = targetCritical - critical.length;
+      const candidates = [...warning, ...normal]
+        .sort(sortByLoadDesc)
+        .slice(0, need);
+      for (const s of candidates) s.status = 'critical';
+    }
+
+    // 👇 critical 과잉 시 낮은 부하 서버 강등
+    if (critical.length > targetCritical + 2) {
+      const reduce = critical.length - targetCritical;
+      const candidates = [...critical]
+        .sort(sortByLoadDesc)
+        .reverse()
+        .slice(0, reduce);
+      for (const s of candidates) s.status = 'warning';
+    }
+
+    // ⚖️ warning 재조정
+    const updatedWarning = servers.filter(s => s.status === 'warning');
+    if (updatedWarning.length < targetWarning) {
+      const need = targetWarning - updatedWarning.length;
+      const candidates = servers
+        .filter(s => s.status === 'normal')
+        .sort(sortByLoadDesc)
+        .slice(0, need);
+      for (const s of candidates) s.status = 'warning';
+    }
+    if (updatedWarning.length > targetWarning + 3) {
+      const reduce = updatedWarning.length - targetWarning;
+      const candidates = updatedWarning
+        .sort(sortByLoadDesc)
+        .reverse()
+        .slice(0, reduce);
+      for (const s of candidates) s.status = 'normal';
+    }
   }
 }
