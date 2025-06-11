@@ -15,7 +15,7 @@
 
 import { timerManager } from '../utils/TimerManager';
 import { memoryOptimizer } from '../utils/MemoryOptimizer';
-import { prometheusDataHub } from '../modules/prometheus-integration/PrometheusDataHub';
+// import { prometheusDataHub } from '../modules/prometheus-integration/PrometheusDataHub'; // 🗑️ 프로메테우스 제거
 import { SmartCache } from '../utils/smart-cache';
 import { getDataGeneratorConfig } from '../config/environment';
 import type { EnhancedServerMetrics } from '../types/server';
@@ -69,13 +69,13 @@ interface UnifiedMetricsConfig {
     failure_scenarios: boolean;
   };
 
-  // Prometheus 통합
-  prometheus: {
-    enabled: boolean;
-    scraping_enabled: boolean;
-    push_gateway_enabled: boolean;
-    retention_days: number;
-  };
+  // 🗑️ Prometheus 통합 제거됨
+  // prometheus: {
+  //   enabled: false,
+  //   scraping_enabled: false,
+  //   push_gateway_enabled: false,
+  //   retention_days: 7,
+  // },
 
   // AI 분석
   ai_analysis: {
@@ -112,20 +112,14 @@ export class UnifiedMetricsManager {
   private config: UnifiedMetricsConfig = {
     generation: {
       enabled: true,
-      interval_seconds: 15, // Prometheus 표준
+      interval_seconds: 15,
       realistic_patterns: true,
       failure_scenarios: true,
-    },
-    prometheus: {
-      enabled: true,
-      scraping_enabled: true,
-      push_gateway_enabled: true,
-      retention_days: 7,
     },
     ai_analysis: {
       enabled: true,
       interval_seconds: 30,
-      python_engine_preferred: true,
+      python_engine_preferred: false,
       fallback_to_typescript: true,
     },
     autoscaling: {
@@ -186,9 +180,9 @@ export class UnifiedMetricsManager {
       await this.cleanupDuplicateTimers();
 
       // 2. Prometheus 데이터 허브 시작
-      if (this.config.prometheus.enabled) {
-        await prometheusDataHub.start();
-      }
+      // if (this.config.prometheus.enabled) {
+      //   // await prometheusDataHub.start();
+      // }
 
       // 3. 통합 스케줄러 시작
       this.startUnifiedSchedulers();
@@ -518,9 +512,9 @@ export class UnifiedMetricsManager {
       }
 
       // Prometheus 허브로 전송
-      if (this.config.prometheus.enabled) {
-        await this.sendToPrometheusHub(updatedServers);
-      }
+      // if (this.config.prometheus.enabled) {
+      //   // await this.sendToPrometheusHub(updatedServers);
+      // }
 
       // 성능 메트릭 업데이트
       this.updatePerformanceMetrics(startTime);
@@ -773,33 +767,31 @@ export class UnifiedMetricsManager {
   /**
    * 📊 Prometheus 허브로 메트릭 전송
    */
-  private async sendToPrometheusHub(
-    servers: UnifiedServerMetrics[]
-  ): Promise<void> {
-    try {
-      const prometheusMetrics = servers.map(server => ({
-        name: 'node_cpu_usage_percent',
-        type: 'gauge',
-        help: 'CPU usage percentage',
-        labels: {
-          instance: server.hostname,
-          job: 'openmanager',
-          ...server.labels,
-        },
-        value: server.node_cpu_usage_percent,
-        timestamp: server.timestamp,
-      }));
+  // private async sendToPrometheusHub(
+  //   servers: UnifiedServerMetrics[]
+  // ): Promise<void> {
+  //   try {
+  //     const prometheusMetrics = servers.map(server => ({
+  //       name: 'openmanager_server_metrics',
+  //       type: 'gauge' as const,
+  //       help: 'OpenManager server metrics',
+  //       labels: {
+  //         ...server.labels,
+  //         server_id: server.id,
+  //         hostname: server.hostname,
+  //       },
+  //       value: server.node_cpu_usage_percent,
+  //       timestamp: server.timestamp,
+  //     }));
 
-      // Push Gateway 스타일로 전송
-      await fetch('/api/prometheus/hub', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ metrics: prometheusMetrics }),
-      });
-    } catch (error) {
-      console.error('❌ Prometheus 허브 전송 실패:', error);
-    }
-  }
+  //     // Prometheus 허브로 전송 (비활성화됨)
+  //     // await prometheusDataHub.storeMetrics(prometheusMetrics);
+  //     console.log(`📊 ${prometheusMetrics.length}개 메트릭 Prometheus 전송 완료`);
+  //   } catch (error) {
+  //     console.error('❌ Prometheus 허브 전송 실패:', error);
+  //     this.metrics.errors_count++;
+  //   }
+  // }
 
   /**
    * 📈 성능 모니터링
@@ -847,7 +839,7 @@ export class UnifiedMetricsManager {
     timerManager.unregister('unified-performance-monitor');
 
     // Prometheus 허브 중지
-    prometheusDataHub.stop();
+    // await prometheusDataHub.stop();
 
     this.isRunning = false;
     console.log('🛑 통합 메트릭 관리자 중지 완료');

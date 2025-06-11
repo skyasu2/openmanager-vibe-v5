@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { simulationEngine } from '../../../../services/simulationEngine';
-import { prometheusFormatter } from '../../../../modules/data-generation/PrometheusMetricsFormatter';
+// import { prometheusFormatter } from '../../../../modules/data-generation/PrometheusMetricsFormatter'; // 🗑️ 프로메테우스 제거
 import type { EnhancedServerMetrics } from '../../../../types/server';
+import { unifiedMetricsManager } from '../../../../services/UnifiedMetricsManager';
 
 /**
  * 📊 개별 서버 정보 조회 API - Enhanced & Prometheus Compatible
@@ -66,21 +67,15 @@ export async function GET(
 
     // 3. 응답 형식에 따른 처리
     if (format === 'prometheus') {
-      // Prometheus 메트릭 형식
-      const serverMetrics = prometheusFormatter.formatServerMetrics(server);
-      const prometheusText =
-        prometheusFormatter.formatToPrometheusText(serverMetrics);
-
-      return new NextResponse(prometheusText, {
-        status: 200,
-        headers: {
-          'Content-Type': 'text/plain; version=0.0.4; charset=utf-8',
-          'X-Server-Id': server.id,
-          'X-Hostname': server.hostname,
-          'X-Total-Metrics': serverMetrics.length.toString(),
-          'X-Processing-Time-Ms': (Date.now() - startTime).toString(),
+      // 🗑️ Prometheus 형식은 더 이상 지원하지 않음
+      return NextResponse.json(
+        {
+          error: 'Prometheus format is no longer supported',
+          message: 'Please use JSON format instead',
+          server_id: server.id,
         },
-      });
+        { status: 410 } // Gone
+      );
     } else if (format === 'legacy') {
       // 레거시 형식
       const legacyServer = {
@@ -181,12 +176,6 @@ export async function GET(
         (enhancedResponse as any).pattern_info = server.pattern_info;
         (enhancedResponse as any).correlation_metrics =
           server.correlation_metrics;
-      }
-
-      // Prometheus 메트릭 포함 (요청시)
-      if (includeMetrics) {
-        (enhancedResponse as any).prometheus_metrics =
-          prometheusFormatter.formatServerMetrics(server);
       }
 
       // 히스토리 데이터 (요청시)

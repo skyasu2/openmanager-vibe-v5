@@ -3,7 +3,6 @@
  *
  * 모든 AI 서비스들을 통합한 단일 엔드포인트
  * - Real AI Processor
- * - Prometheus Collector
  * - Python Backend Integration
  * - MCP Tools
  * - Redis Caching
@@ -11,9 +10,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { realAIProcessor } from '@/services/ai/RealAIProcessor';
-import { realPrometheusCollector } from '@/services/collectors/RealPrometheusCollector';
+// import { realPrometheusCollector } from '@/services/collectors/RealPrometheusCollector'; // 🗑️ 프로메테우스 제거
 import { getMCPClient } from '@/services/mcp/official-mcp-client';
 import { getRedisClient } from '@/lib/redis';
+import { unifiedMetricsManager } from '@/services/UnifiedMetricsManager';
 
 interface UnifiedRequest {
   query: string;
@@ -159,10 +159,13 @@ export async function POST(request: NextRequest) {
     if (body.options?.includeMetrics !== false || body.options?.realTime) {
       const metricsStart = Date.now();
       try {
-        await realPrometheusCollector.initialize();
-        metrics = await realPrometheusCollector.collectMetrics();
-        systemStatus = await realPrometheusCollector.getMetricsSummary();
-        sources.prometheus = true;
+        // 통합 메트릭 관리자 시작 및 데이터 수집
+        if (!unifiedMetricsManager.getStatus().isRunning) {
+          await unifiedMetricsManager.start();
+        }
+        metrics = unifiedMetricsManager.getServers();
+        systemStatus = unifiedMetricsManager.getStatus();
+        sources.prometheus = true; // 호환성을 위해 유지
         performance.dataCollectionTime += Date.now() - metricsStart;
         console.log(`📊 메트릭 수집 완료 [${sessionId}]`);
       } catch (error) {
@@ -371,7 +374,6 @@ export async function GET(request: NextRequest) {
       case 'health':
         const healthData = await Promise.allSettled([
           realAIProcessor.healthCheck(),
-          realPrometheusCollector.healthCheck(),
           checkPythonService(),
           getMCPStatus(),
           checkRedisStatus(),
@@ -379,34 +381,28 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          health: {
+          timestamp: new Date().toISOString(),
+          services: {
             ai:
               healthData[0].status === 'fulfilled'
                 ? healthData[0].value
                 : { status: 'error' },
-            prometheus:
+            python:
               healthData[1].status === 'fulfilled'
                 ? healthData[1].value
                 : { status: 'error' },
-            python:
+            mcp:
               healthData[2].status === 'fulfilled'
                 ? healthData[2].value
                 : { status: 'error' },
-            mcp:
+            redis:
               healthData[3].status === 'fulfilled'
                 ? healthData[3].value
                 : { status: 'error' },
-            redis:
-              healthData[4].status === 'fulfilled'
-                ? healthData[4].value
-                : { status: 'error' },
           },
-          overall:
-            healthData.filter(h => h.status === 'fulfilled').length >= 3
-              ? 'healthy'
-              : 'degraded',
-          timestamp: new Date().toISOString(),
-          processingTime: Date.now() - startTime,
+          overall: healthData.every(h => h.status === 'fulfilled')
+            ? 'healthy'
+            : 'degraded',
         });
 
       case 'capabilities':

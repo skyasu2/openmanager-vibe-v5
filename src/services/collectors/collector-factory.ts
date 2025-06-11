@@ -1,22 +1,22 @@
-import { PrometheusCollector } from './prometheus-collector';
+// import { PrometheusCollector } from './prometheus-collector'; // 🗑️ 프로메테우스 제거
 import { CloudWatchCollector } from './cloudwatch-collector';
 import { CustomAPICollector } from './custom-api-collector';
 import { MetricCollector, CollectorConfig } from '@/types/collector';
 
 /**
- * 실제 컬렉터 팩토리 (더미 모드 제거)
+ * 실제 컬렉터 팩토리 (프로메테우스 제거됨)
  */
 export function createCollector(config: CollectorConfig): MetricCollector {
   switch (config.type) {
-    case 'prometheus':
-      return new PrometheusCollector(config);
-    
+    // case 'prometheus': // 🗑️ 프로메테우스 제거
+    //   return new PrometheusCollector(config);
+
     case 'cloudwatch':
       return new CloudWatchCollector(config);
-    
+
     case 'custom':
       return new CustomAPICollector(config);
-    
+
     default:
       throw new Error(`지원하지 않는 컬렉터 타입: ${config.type}`);
   }
@@ -67,14 +67,16 @@ export class CollectorManager {
     }
 
     console.log(`🚀 ${this.collectors.size}개 컬렉터 시작...`);
-    
-    const startPromises = Array.from(this.collectors.values()).map(async (collector) => {
-      try {
-        await collector.start();
-      } catch (error) {
-        console.error(`❌ 컬렉터 시작 실패:`, error);
+
+    const startPromises = Array.from(this.collectors.values()).map(
+      async collector => {
+        try {
+          await collector.start();
+        } catch (error) {
+          console.error(`❌ 컬렉터 시작 실패:`, error);
+        }
       }
-    });
+    );
 
     await Promise.all(startPromises);
     this.isRunning = true;
@@ -86,7 +88,7 @@ export class CollectorManager {
    */
   stopAll(): void {
     console.log(`🛑 ${this.collectors.size}개 컬렉터 중지...`);
-    
+
     this.collectors.forEach(collector => {
       try {
         collector.stop();
@@ -103,18 +105,20 @@ export class CollectorManager {
    * 컬렉터 상태 조회
    */
   getStatus() {
-    const collectors = Array.from(this.collectors.entries()).map(([id, collector]) => ({
-      id,
-      isRunning: collector.isRunning,
-      lastCollection: collector.lastCollection,
-      errorCount: collector.errorCount
-    }));
+    const collectors = Array.from(this.collectors.entries()).map(
+      ([id, collector]) => ({
+        id,
+        isRunning: collector.isRunning,
+        lastCollection: collector.lastCollection,
+        errorCount: collector.errorCount,
+      })
+    );
 
     return {
       total: this.collectors.size,
       running: collectors.filter(c => c.isRunning).length,
       collectors,
-      managerRunning: this.isRunning
+      managerRunning: this.isRunning,
     };
   }
 }
@@ -123,31 +127,32 @@ export class CollectorManager {
 export const collectionManager = new CollectorManager();
 
 // 초기화
-if (typeof window === 'undefined') { // 서버 환경에서만
-  console.log('🔧 실제 컬렉터 관리자 초기화');
-  
+if (typeof window === 'undefined') {
+  // 서버 환경에서만
+  console.log('🔧 실제 컬렉터 관리자 초기화 (프로메테우스 제거됨)');
+
   // 프로덕션 환경에서만 실제 컬렉터 추가
   if (process.env.NODE_ENV === 'production') {
-    // Prometheus 컬렉터
-    if (process.env.PROMETHEUS_ENDPOINT) {
-      collectionManager.addCollector('prometheus', {
-        id: 'prometheus',
-        type: 'prometheus',
-        name: 'Prometheus Collector',
-        endpoint: process.env.PROMETHEUS_ENDPOINT,
-        interval: 30000,
-        timeout: 10000,
-        retryAttempts: 3,
-        enabled: true,
-        tags: ['production', 'prometheus'],
-        authentication: {
-          type: 'bearer',
-          token: process.env.PROMETHEUS_TOKEN
-        }
-      });
-    }
+    // 🗑️ Prometheus 컬렉터 제거됨
+    // if (process.env.PROMETHEUS_ENDPOINT) {
+    //   collectionManager.addCollector('prometheus', {
+    //     id: 'prometheus',
+    //     type: 'prometheus',
+    //     name: 'Prometheus Collector',
+    //     endpoint: process.env.PROMETHEUS_ENDPOINT,
+    //     interval: 30000,
+    //     timeout: 10000,
+    //     retryAttempts: 3,
+    //     enabled: true,
+    //     tags: ['production', 'prometheus'],
+    //     authentication: {
+    //       type: 'bearer',
+    //       token: process.env.PROMETHEUS_TOKEN
+    //     }
+    //   });
+    // }
 
-    // CloudWatch 컬렉터  
+    // CloudWatch 컬렉터
     if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
       collectionManager.addCollector('cloudwatch', {
         id: 'cloudwatch',
@@ -163,9 +168,9 @@ if (typeof window === 'undefined') { // 서버 환경에서만
           type: 'aws',
           accessKeyId: process.env.AWS_ACCESS_KEY_ID,
           secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-          region: process.env.AWS_REGION || 'us-east-1'
-        }
+          region: process.env.AWS_REGION || 'us-east-1',
+        },
       });
     }
   }
-} 
+}
