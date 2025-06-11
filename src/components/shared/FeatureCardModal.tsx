@@ -317,46 +317,86 @@ const TechCard = ({ tech, index }: { tech: TechItem; index: number }) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      className={`p-4 rounded-lg border ${importanceStyle.bg} hover:scale-105 transition-all duration-300`}
+      transition={{ delay: index * 0.05, type: 'spring', stiffness: 300 }}
+      className={`group relative p-5 rounded-2xl border ${importanceStyle.bg} hover:scale-[1.02] transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 cursor-pointer overflow-hidden`}
     >
-      <div className='flex items-start justify-between mb-3'>
-        <div className='flex items-center gap-3'>
-          <span className='text-2xl'>{renderIcon(tech.icon)}</span>
-          <div>
-            <h4 className='font-semibold text-white text-sm'>{tech.name}</h4>
+      {/* 배경 그라데이션 효과 */}
+      <div className='absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+
+      {/* 헤더 섹션 */}
+      <div className='relative flex items-start justify-between mb-4'>
+        <div className='flex items-center gap-3 flex-1 min-w-0'>
+          {/* 개선된 아이콘 컨테이너 */}
+          <div className='w-10 h-10 bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300'>
+            {renderIcon(tech.icon)}
+          </div>
+          <div className='flex-1 min-w-0'>
+            <h4 className='font-semibold text-white text-sm sm:text-base truncate group-hover:text-blue-300 transition-colors'>
+              {tech.name}
+            </h4>
             {tech.version && (
-              <span className='text-xs text-gray-400'>v{tech.version}</span>
+              <span className='text-xs text-gray-400 font-mono'>
+                v{tech.version}
+              </span>
             )}
           </div>
         </div>
-        <div className='flex flex-col gap-1'>
+
+        {/* 배지 섹션 */}
+        <div className='flex flex-col gap-1.5 items-end flex-shrink-0'>
           <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${importanceStyle.badge}`}
+            className={`px-2.5 py-1 rounded-full text-xs font-medium ${importanceStyle.badge} shadow-sm`}
           >
             {importanceStyle.label}
           </span>
           <span
-            className={`px-2 py-1 rounded-full text-xs ${categoryStyle.bg} ${categoryStyle.color}`}
+            className={`px-2.5 py-1 rounded-full text-xs font-medium ${categoryStyle.bg} ${categoryStyle.color} shadow-sm`}
           >
             {tech.category}
           </span>
         </div>
       </div>
 
-      <p className='text-gray-300 text-xs mb-3 leading-relaxed'>
-        {tech.description}
-      </p>
+      {/* 설명 섹션 */}
+      <div className='relative mb-4'>
+        <p className='text-gray-300 text-xs sm:text-sm leading-relaxed line-clamp-2 group-hover:text-gray-200 transition-colors'>
+          {tech.description}
+        </p>
+      </div>
 
-      <div className='flex flex-wrap gap-1'>
-        {tech.tags.map((tag, tagIndex) => (
+      {/* 상태 표시 */}
+      <div className='relative flex items-center justify-between mb-3'>
+        <div className='flex items-center gap-2'>
+          <div
+            className={`w-2 h-2 rounded-full ${
+              tech.status === 'active'
+                ? 'bg-green-400'
+                : tech.status === 'ready'
+                  ? 'bg-yellow-400'
+                  : 'bg-gray-400'
+            }`}
+          />
+          <span className='text-xs text-gray-400 capitalize'>
+            {tech.status}
+          </span>
+        </div>
+      </div>
+
+      {/* 태그 섹션 */}
+      <div className='relative flex flex-wrap gap-1.5'>
+        {tech.tags.slice(0, 3).map((tag, tagIndex) => (
           <span
             key={tagIndex}
-            className='px-2 py-1 bg-gray-700/50 text-gray-300 rounded text-xs'
+            className='px-2 py-1 bg-gray-700/50 text-gray-300 rounded-lg text-xs font-medium hover:bg-gray-600/50 transition-colors'
           >
             {tag}
           </span>
         ))}
+        {tech.tags.length > 3 && (
+          <span className='px-2 py-1 bg-gray-700/30 text-gray-400 rounded-lg text-xs'>
+            +{tech.tags.length - 3}
+          </span>
+        )}
       </div>
     </motion.div>
   );
@@ -364,18 +404,18 @@ const TechCard = ({ tech, index }: { tech: TechItem; index: number }) => {
 
 // icon 안전 렌더링 헬퍼
 const renderIcon = (icon: any) => {
-  if (!icon) return null;
+  if (!icon) return <Package className='w-6 h-6 text-gray-400' />;
   // 문자열(이모지) 그대로 출력
-  if (typeof icon === 'string') return icon;
+  if (typeof icon === 'string') return <span className='text-xl'>{icon}</span>;
   // 이미 ReactElement 이면 그대로
   if (React.isValidElement(icon)) return icon;
   // 함수형 컴포넌트(예: Lucide 아이콘)면 JSX로 렌더
   if (typeof icon === 'function') {
     const IconComp = icon;
-    return <IconComp className='w-5 h-5' />;
+    return <IconComp className='w-6 h-6 text-white' />;
   }
-  // 기타 객체는 문자열화
-  return JSON.stringify(icon);
+  // 기타 객체는 기본 아이콘으로 대체
+  return <Package className='w-6 h-6 text-gray-400' />;
 };
 
 export default function FeatureCardModal({
@@ -414,168 +454,303 @@ export default function FeatureCardModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className='fixed inset-0 z-50 flex items-center justify-center p-4'
+        className='fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4'
         onClick={onClose}
       >
-        {/* 불투명한 배경 */}
-        <div className='absolute inset-0 bg-black/80' />
+        {/* 개선된 배경 블러 효과 */}
+        <div className='absolute inset-0 bg-black/85 backdrop-blur-sm' />
 
-        {/* 모달 컨텐츠 */}
+        {/* 개선된 모달 컨텐츠 */}
         <motion.div
           ref={modalRef}
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          className='relative w-full max-w-4xl max-h-[90vh] bg-gray-900 rounded-2xl border border-gray-700 overflow-hidden'
+          initial={{ scale: 0.95, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.95, opacity: 0, y: 20 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          className='relative w-full max-w-5xl max-h-[95vh] bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 rounded-3xl border border-gray-600/50 shadow-2xl overflow-hidden'
           onClick={e => e.stopPropagation()}
         >
-          {/* 헤더 */}
-          <div className='flex items-center justify-between p-6 border-b border-gray-700'>
-            <div className='flex items-center gap-4'>
-              <div className='w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center'>
-                <span className='text-2xl'>
-                  {renderIcon(selectedCard.icon)}
-                </span>
-              </div>
-              <div>
-                <h2 className='text-xl font-bold text-white'>
+          {/* 개선된 헤더 */}
+          <div className='relative flex items-center justify-between p-6 sm:p-8 border-b border-gray-700/50 bg-gradient-to-r from-gray-800/50 to-gray-900/50'>
+            <div className='flex items-center gap-4 sm:gap-6'>
+              {/* 개선된 아이콘 컨테이너 */}
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.1, type: 'spring', stiffness: 300 }}
+                className='w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg ring-2 ring-blue-400/20'
+              >
+                {renderIcon(selectedCard.icon)}
+              </motion.div>
+              <div className='flex-1 min-w-0'>
+                <motion.h2
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className='text-xl sm:text-2xl font-bold text-white mb-1 truncate'
+                >
                   {renderTextWithAIGradient(selectedCard.title)}
-                </h2>
-                <p className='text-gray-400 text-sm'>
+                </motion.h2>
+                <motion.p
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className='text-gray-300 text-sm sm:text-base line-clamp-2'
+                >
                   {selectedCard.description}
-                </p>
+                </motion.p>
               </div>
             </div>
-            <button
+            <motion.button
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.4 }}
               onClick={onClose}
-              className='p-2 hover:bg-gray-800 rounded-lg transition-colors'
+              className='p-2 sm:p-3 hover:bg-gray-700/50 rounded-xl transition-all duration-200 hover:scale-105 group'
             >
-              <X className='w-5 h-5 text-gray-400' />
-            </button>
+              <X className='w-5 h-5 sm:w-6 sm:h-6 text-gray-400 group-hover:text-white transition-colors' />
+            </motion.button>
           </div>
 
-          {/* 탭 네비게이션 */}
-          <div className='flex border-b border-gray-700'>
-            <button
+          {/* 개선된 탭 네비게이션 */}
+          <div className='flex border-b border-gray-700/50 bg-gray-800/30'>
+            <motion.button
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
               onClick={() => setActiveTab('overview')}
-              className={`px-6 py-3 font-medium transition-colors ${activeTab === 'overview' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-gray-400 hover:text-white'}`}
+              className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 font-medium transition-all duration-300 relative ${
+                activeTab === 'overview'
+                  ? 'text-blue-400 bg-blue-500/10'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700/30'
+              }`}
             >
               개요
-            </button>
-            <button
+              {activeTab === 'overview' && (
+                <motion.div
+                  layoutId='activeTab'
+                  className='absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-500'
+                />
+              )}
+            </motion.button>
+            <motion.button
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
               onClick={() => setActiveTab('tech')}
-              className={`px-6 py-3 font-medium transition-colors ${activeTab === 'tech' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-gray-400 hover:text-white'}`}
+              className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 font-medium transition-all duration-300 relative ${
+                activeTab === 'tech'
+                  ? 'text-blue-400 bg-blue-500/10'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-700/30'
+              }`}
             >
               기술 스택 ({techStack.length})
-            </button>
+              {activeTab === 'tech' && (
+                <motion.div
+                  layoutId='activeTab'
+                  className='absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-500'
+                />
+              )}
+            </motion.button>
           </div>
 
-          {/* 컨텐츠 */}
-          <div className='p-6 overflow-y-auto max-h-[60vh]'>
-            {activeTab === 'overview' && (
-              <div className='space-y-6'>
-                <div>
-                  <h3 className='text-lg font-semibold text-white mb-3'>
-                    {selectedCard.title} 상세 정보
-                  </h3>
-                  <p className='text-gray-300 leading-relaxed'>
-                    {selectedCard.longDescription || selectedCard.description}
-                  </p>
-                </div>
+          {/* 개선된 컨텐츠 - 스크롤 최적화 */}
+          <div
+            className='overflow-y-auto'
+            style={{ maxHeight: 'calc(95vh - 200px)' }}
+          >
+            <div className='p-4 sm:p-6 lg:p-8'>
+              <AnimatePresence mode='wait'>
+                {activeTab === 'overview' && (
+                  <motion.div
+                    key='overview'
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
+                    className='space-y-6 sm:space-y-8'
+                  >
+                    {/* 상세 정보 섹션 */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                      className='bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-gray-700/30'
+                    >
+                      <h3 className='text-lg sm:text-xl font-semibold text-white mb-4 flex items-center gap-2'>
+                        <Monitor className='w-5 h-5 text-blue-400' />
+                        {selectedCard.title} 상세 정보
+                      </h3>
+                      <p className='text-gray-300 leading-relaxed text-sm sm:text-base'>
+                        {selectedCard.longDescription ||
+                          selectedCard.description}
+                      </p>
+                    </motion.div>
 
-                <div>
-                  <h4 className='text-md font-semibold text-white mb-3'>
-                    주요 특징
-                  </h4>
-                  <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-                    {selectedCard.features &&
-                    selectedCard.features.length > 0 ? (
-                      selectedCard.features.map(
-                        (feature: string, index: number) => (
-                          <div key={index} className='flex items-center gap-2'>
-                            <CheckCircle className='w-4 h-4 text-green-400 flex-shrink-0' />
+                    {/* 주요 특징 섹션 */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className='bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-gray-700/30'
+                    >
+                      <h4 className='text-lg font-semibold text-white mb-4 flex items-center gap-2'>
+                        <CheckCircle className='w-5 h-5 text-green-400' />
+                        주요 특징
+                      </h4>
+                      <div className='grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4'>
+                        {selectedCard.features &&
+                        selectedCard.features.length > 0 ? (
+                          selectedCard.features.map(
+                            (feature: string, index: number) => (
+                              <motion.div
+                                key={index}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.3 + index * 0.1 }}
+                                className='flex items-start gap-3 p-3 rounded-xl bg-gray-700/30 hover:bg-gray-700/50 transition-colors'
+                              >
+                                <CheckCircle className='w-4 h-4 text-green-400 flex-shrink-0 mt-0.5' />
+                                <span className='text-gray-300 text-sm leading-relaxed'>
+                                  {feature}
+                                </span>
+                              </motion.div>
+                            )
+                          )
+                        ) : (
+                          <motion.div
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className='flex items-center gap-3 p-3 rounded-xl bg-gray-700/30'
+                          >
+                            <CheckCircle className='w-4 h-4 text-green-400' />
                             <span className='text-gray-300 text-sm'>
-                              {feature}
+                              실제 구현된 기능 기반
                             </span>
-                          </div>
-                        )
-                      )
-                    ) : (
-                      <div className='flex items-center gap-2'>
-                        <CheckCircle className='w-4 h-4 text-green-400' />
-                        <span className='text-gray-300 text-sm'>
-                          실제 구현된 기능 기반
-                        </span>
+                          </motion.div>
+                        )}
                       </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+
+                {activeTab === 'tech' && (
+                  <motion.div
+                    key='tech'
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3 }}
+                    className='space-y-6 sm:space-y-8'
+                  >
+                    {/* 필수 기술 */}
+                    {criticalTech.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                      >
+                        <h3 className='text-lg sm:text-xl font-semibold text-red-300 mb-4 sm:mb-6 flex items-center gap-2'>
+                          <Star className='w-5 h-5' />
+                          필수 기술 ({criticalTech.length})
+                        </h3>
+                        <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6'>
+                          {criticalTech.map((tech, index) => (
+                            <motion.div
+                              key={tech.name}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.2 + index * 0.1 }}
+                            >
+                              <TechCard tech={tech} index={index} />
+                            </motion.div>
+                          ))}
+                        </div>
+                      </motion.div>
                     )}
-                  </div>
-                </div>
-              </div>
-            )}
 
-            {activeTab === 'tech' && (
-              <div className='space-y-6'>
-                {/* 필수 기술 */}
-                {criticalTech.length > 0 && (
-                  <div>
-                    <h3 className='text-lg font-semibold text-red-300 mb-4 flex items-center gap-2'>
-                      <Star className='w-5 h-5' />
-                      필수 기술 ({criticalTech.length})
-                    </h3>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                      {criticalTech.map((tech, index) => (
-                        <TechCard key={tech.name} tech={tech} index={index} />
-                      ))}
-                    </div>
-                  </div>
-                )}
+                    {/* 중요 기술 */}
+                    {highTech.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        <h3 className='text-lg sm:text-xl font-semibold text-orange-300 mb-4 sm:mb-6 flex items-center gap-2'>
+                          <Zap className='w-5 h-5' />
+                          중요 기술 ({highTech.length})
+                        </h3>
+                        <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6'>
+                          {highTech.map((tech, index) => (
+                            <motion.div
+                              key={tech.name}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.4 + index * 0.1 }}
+                            >
+                              <TechCard tech={tech} index={index} />
+                            </motion.div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
 
-                {/* 중요 기술 */}
-                {highTech.length > 0 && (
-                  <div>
-                    <h3 className='text-lg font-semibold text-orange-300 mb-4 flex items-center gap-2'>
-                      <Zap className='w-5 h-5' />
-                      중요 기술 ({highTech.length})
-                    </h3>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                      {highTech.map((tech, index) => (
-                        <TechCard key={tech.name} tech={tech} index={index} />
-                      ))}
-                    </div>
-                  </div>
-                )}
+                    {/* 보통 기술 */}
+                    {mediumTech.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                      >
+                        <h3 className='text-lg sm:text-xl font-semibold text-blue-300 mb-4 sm:mb-6 flex items-center gap-2'>
+                          <Package className='w-5 h-5' />
+                          보통 기술 ({mediumTech.length})
+                        </h3>
+                        <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6'>
+                          {mediumTech.map((tech, index) => (
+                            <motion.div
+                              key={tech.name}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.6 + index * 0.1 }}
+                            >
+                              <TechCard tech={tech} index={index} />
+                            </motion.div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
 
-                {/* 보통 기술 */}
-                {mediumTech.length > 0 && (
-                  <div>
-                    <h3 className='text-lg font-semibold text-blue-300 mb-4 flex items-center gap-2'>
-                      <Package className='w-5 h-5' />
-                      보통 기술 ({mediumTech.length})
-                    </h3>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                      {mediumTech.map((tech, index) => (
-                        <TechCard key={tech.name} tech={tech} index={index} />
-                      ))}
-                    </div>
-                  </div>
+                    {/* 낮은 우선순위 기술 */}
+                    {lowTech.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.7 }}
+                      >
+                        <h3 className='text-lg sm:text-xl font-semibold text-gray-300 mb-4 sm:mb-6 flex items-center gap-2'>
+                          <Layers className='w-5 h-5' />
+                          기타 기술 ({lowTech.length})
+                        </h3>
+                        <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6'>
+                          {lowTech.map((tech, index) => (
+                            <motion.div
+                              key={tech.name}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.8 + index * 0.1 }}
+                            >
+                              <TechCard tech={tech} index={index} />
+                            </motion.div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </motion.div>
                 )}
-
-                {/* 낮은 우선순위 기술 */}
-                {lowTech.length > 0 && (
-                  <div>
-                    <h3 className='text-lg font-semibold text-gray-300 mb-4 flex items-center gap-2'>
-                      <Layers className='w-5 h-5' />
-                      기타 기술 ({lowTech.length})
-                    </h3>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                      {lowTech.map((tech, index) => (
-                        <TechCard key={tech.name} tech={tech} index={index} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+              </AnimatePresence>
+            </div>
           </div>
         </motion.div>
       </motion.div>
