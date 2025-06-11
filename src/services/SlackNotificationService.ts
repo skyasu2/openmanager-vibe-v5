@@ -112,19 +112,29 @@ export class SlackNotificationService {
    * 🔧 서비스 초기화
    */
   private initialize(): void {
-    // 환경변수에서 Slack 웹훅 URL 가져오기
-    this.webhookUrl = process.env.SLACK_WEBHOOK_URL || null;
+    // 암호화된 Slack 웹훅 URL 가져오기
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { getSecureSlackWebhook } = require('@/utils/encryption');
+      this.webhookUrl = getSecureSlackWebhook();
+    } catch (error) {
+      console.warn('⚠️ 암호화 모듈 로드 실패, 기본 환경변수 사용:', error);
+      this.webhookUrl = process.env.SLACK_WEBHOOK_URL || null;
+    }
+
     this.defaultChannel =
       process.env.SLACK_DEFAULT_CHANNEL || '#openmanager-alerts';
     this.isEnabled = !!this.webhookUrl;
 
     if (this.isEnabled) {
-      console.log('📱 Slack 알림 서비스 활성화됨');
-      // 서비스 시작 알림
-      this.sendSystemNotification(
-        '🚀 OpenManager 알림 시스템이 시작되었습니다',
-        'info'
-      );
+      console.log('🔐 Slack 알림 서비스 활성화됨 (보안 웹훅 사용)');
+      // 서비스 시작 알림 (개발 환경에서만)
+      if (process.env.NODE_ENV === 'development') {
+        this.sendSystemNotification(
+          '🚀 OpenManager 알림 시스템이 시작되었습니다',
+          'info'
+        );
+      }
     } else {
       console.warn('⚠️ Slack 웹훅 URL이 설정되지 않음 - 알림 비활성화');
     }
