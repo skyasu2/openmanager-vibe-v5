@@ -49,7 +49,7 @@ const getSeverityStyles = (severity: SystemEvent['severity']) => {
   switch (severity) {
     case 'critical':
       return {
-        bgColor: 'bg-red-600/90',
+        bgColor: 'bg-red-600 backdrop-blur-sm',
         borderColor: 'border-red-500',
         textColor: 'text-white',
         icon: AlertTriangle,
@@ -57,16 +57,16 @@ const getSeverityStyles = (severity: SystemEvent['severity']) => {
       };
     case 'warning':
       return {
-        bgColor: 'bg-yellow-600/90',
+        bgColor: 'bg-yellow-600 backdrop-blur-sm',
         borderColor: 'border-yellow-500',
-        textColor: 'text-white',
+        textColor: 'text-yellow-50',
         icon: AlertTriangle,
-        iconColor: 'text-white',
+        iconColor: 'text-yellow-50',
       };
     case 'info':
     default:
       return {
-        bgColor: 'bg-blue-600/90',
+        bgColor: 'bg-blue-600 backdrop-blur-sm',
         borderColor: 'border-blue-500',
         textColor: 'text-white',
         icon: CheckCircle,
@@ -123,10 +123,11 @@ const ToastNotification: React.FC<{
       }}
       className={`
         ${styles.bgColor} ${styles.textColor}
-        relative min-w-80 max-w-96 p-4 rounded-lg shadow-md 
-        border-l-4 ${styles.borderColor}
+        relative min-w-80 max-w-96 p-4 rounded-lg shadow-xl border 
+        border-l-4 ${styles.borderColor} border-opacity-50
         mb-3 cursor-pointer
         transform transition-all duration-200 hover:scale-105
+        ring-1 ring-white ring-opacity-25
       `}
       style={{ zIndex: 8999 - index }}
       onClick={() => onDismiss(notification.id)}
