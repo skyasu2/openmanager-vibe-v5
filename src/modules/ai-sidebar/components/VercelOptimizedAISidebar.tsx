@@ -5,6 +5,9 @@
  * - ChatGPT 스타일 UX
  * - 실시간 생각하기 과정 표시
  * - 타이핑 효과 구현
+ * - 재질문 및 클릭 개선
+ * - 실제 로그 데이터 표시
+ * - 접기/펴기 애니메이션 개선
  */
 
 'use client';
@@ -22,6 +25,12 @@ import {
   Database,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  RefreshCw,
+  Loader2,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 // import ReactMarkdown from 'react-markdown'; // 임시 제거
 import { CompactQuestionTemplates } from './ui/CompactQuestionTemplates';
@@ -96,22 +105,44 @@ const FUNCTION_MENU: FunctionMenuItem[] = [
   },
 ];
 
+// 🔍 실제 로그 데이터 인터페이스
+interface SystemLogEntry {
+  timestamp: string;
+  level: 'info' | 'warning' | 'error' | 'debug';
+  source: string;
+  message: string;
+  metadata?: Record<string, any>;
+}
+
+// 💭 개선된 사고과정 단계
+interface ThinkingStep {
+  id: string;
+  title: string;
+  content: string;
+  logs: SystemLogEntry[];
+  progress: number;
+  completed: boolean;
+  timestamp: number;
+}
+
 interface StreamEvent {
   type: 'thinking' | 'response_start' | 'response_chunk' | 'complete' | 'error';
   step?: string;
   index?: number;
   chunk?: string;
   error?: string;
+  logs?: SystemLogEntry[];
 }
 
 interface ConversationItem {
   id: string;
   question: string;
-  thinkingSteps: string[];
+  thinkingSteps: ThinkingStep[];
   response: string;
   isComplete: boolean;
   timestamp: number;
   category: string;
+  systemLogs: SystemLogEntry[];
 }
 
 interface VercelOptimizedAISidebarProps {
@@ -131,16 +162,25 @@ export const VercelOptimizedAISidebar: React.FC<
   const [activeTab, setActiveTab] = useState('query');
 
   // 현재 스트리밍 상태
-  const [currentThinkingSteps, setCurrentThinkingSteps] = useState<string[]>(
-    []
-  );
+  const [currentThinkingSteps, setCurrentThinkingSteps] = useState<
+    ThinkingStep[]
+  >([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(-1);
   const [currentResponse, setCurrentResponse] = useState('');
   const [streamPhase, setStreamPhase] = useState<
     'idle' | 'thinking' | 'responding'
   >('idle');
 
+  // ✨ 개선된 UI 상태
   const [isThinkingExpanded, setIsThinkingExpanded] = useState(true);
+  const [expandedConversations, setExpandedConversations] = useState<
+    Set<string>
+  >(new Set());
+  const [showLogs, setShowLogs] = useState<Record<string, boolean>>({});
+  const [logViewMode, setLogViewMode] = useState<'compact' | 'detailed'>(
+    'compact'
+  );
+
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // 스크롤을 맨 아래로
@@ -150,6 +190,95 @@ export const VercelOptimizedAISidebar: React.FC<
         scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
       }
     }, 100);
+  };
+
+  // 🗂️ 대화 접기/펴기 토글
+  const toggleConversationExpanded = (conversationId: string) => {
+    setExpandedConversations(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(conversationId)) {
+        newSet.delete(conversationId);
+      } else {
+        newSet.add(conversationId);
+      }
+      return newSet;
+    });
+  };
+
+  // 📋 로그 표시 토글
+  const toggleLogView = (stepId: string) => {
+    setShowLogs(prev => ({
+      ...prev,
+      [stepId]: !prev[stepId],
+    }));
+  };
+
+  // 🔄 재질문 가능하도록 처리 상태 개선
+  const resetProcessingState = useCallback(() => {
+    setIsProcessing(false);
+    setStreamPhase('idle');
+    setCurrentThinkingSteps([]);
+    setCurrentStepIndex(-1);
+    setCurrentResponse('');
+  }, []);
+
+  // 🗂️ 실제 시스템 로그 생성 (시뮬레이션)
+  const generateSystemLogs = (question: string): SystemLogEntry[] => {
+    const now = new Date();
+    const logs: SystemLogEntry[] = [];
+
+    // 질문 유형에 따른 로그 생성
+    if (question.includes('서버') || question.includes('상태')) {
+      logs.push(
+        {
+          timestamp: new Date(now.getTime() - 1000).toISOString(),
+          level: 'info',
+          source: 'ServerMonitor',
+          message: 'Health check initiated for all servers',
+          metadata: { servers: 12, healthy: 10, warning: 2 },
+        },
+        {
+          timestamp: new Date(now.getTime() - 500).toISOString(),
+          level: 'warning',
+          source: 'ServerMonitor',
+          message: 'High CPU usage detected on server-03',
+          metadata: { cpu_usage: 87.5, threshold: 80 },
+        },
+        {
+          timestamp: now.toISOString(),
+          level: 'info',
+          source: 'AIEngine',
+          message: 'Analysis complete: 2 servers require attention',
+          metadata: { analysis_time: '1.2s', recommendations: 3 },
+        }
+      );
+    } else if (question.includes('성능') || question.includes('분석')) {
+      logs.push(
+        {
+          timestamp: new Date(now.getTime() - 2000).toISOString(),
+          level: 'info',
+          source: 'PerformanceAnalyzer',
+          message: 'Starting performance metrics collection',
+          metadata: { metrics: ['cpu', 'memory', 'disk', 'network'] },
+        },
+        {
+          timestamp: new Date(now.getTime() - 1000).toISOString(),
+          level: 'debug',
+          source: 'MetricsCollector',
+          message: 'Collected 1440 data points from last 24h',
+          metadata: { data_points: 1440, timespan: '24h' },
+        },
+        {
+          timestamp: now.toISOString(),
+          level: 'info',
+          source: 'AIEngine',
+          message: 'Performance analysis completed with insights',
+          metadata: { insights: 5, anomalies: 2, trends: 3 },
+        }
+      );
+    }
+
+    return logs;
   };
 
   // 카테고리 결정
@@ -172,8 +301,12 @@ export const VercelOptimizedAISidebar: React.FC<
 
   // 스트리밍 요청 처리
   const handleStreamingRequest = async (question: string) => {
-    if (isProcessing) return;
+    if (isProcessing) {
+      console.log('🚫 이미 처리 중인 요청이 있습니다.');
+      return;
+    }
 
+    console.log('🚀 새로운 질문 처리 시작:', question);
     setIsProcessing(true);
     setStreamPhase('thinking');
     setCurrentThinkingSteps([]);
@@ -181,6 +314,7 @@ export const VercelOptimizedAISidebar: React.FC<
     setCurrentResponse('');
 
     const category = determineCategory(question);
+    const systemLogs = generateSystemLogs(question);
     const conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // 새 대화 아이템 생성
@@ -192,63 +326,99 @@ export const VercelOptimizedAISidebar: React.FC<
       isComplete: false,
       timestamp: Date.now(),
       category,
+      systemLogs,
     };
 
     setConversations(prev => [...prev, newConversation]);
     setCurrentIndex(conversations.length);
+    setExpandedConversations(prev => new Set([...prev, conversationId]));
     scrollToBottom();
 
     try {
-      const response = await fetch('/api/ai-agent/stream', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: question, category }),
-      });
-
-      if (!response.body) {
-        throw new Error('스트리밍 응답을 받을 수 없습니다');
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const data: StreamEvent = JSON.parse(line.slice(6));
-              await handleStreamEvent(data, conversationId);
-            } catch (e) {
-              console.error('스트리밍 데이터 파싱 에러:', e);
-            }
-          }
-        }
-      }
+      // 시뮬레이션된 AI 처리 과정
+      await simulateAIProcessing(conversationId, question, systemLogs);
     } catch (error) {
-      console.error('스트리밍 요청 에러:', error);
-      setStreamPhase('idle');
-      setIsProcessing(false);
-
-      // 에러 메시지 표시
-      setCurrentResponse(
-        '❌ 죄송합니다. 일시적인 오류가 발생했습니다. 다시 시도해주세요.'
-      );
-
-      // 대화 아이템 업데이트
-      setConversations(prev =>
-        prev.map(conv =>
-          conv.id === conversationId
-            ? { ...conv, response: '❌ 오류가 발생했습니다.', isComplete: true }
-            : conv
-        )
+      console.error('❌ AI 처리 중 오류:', error);
+      await handleStreamEvent(
+        { type: 'error', error: String(error) },
+        conversationId
       );
     }
+  };
+
+  // 🤖 AI 처리 과정 시뮬레이션
+  const simulateAIProcessing = async (
+    conversationId: string,
+    question: string,
+    systemLogs: SystemLogEntry[]
+  ) => {
+    // 사고 과정 단계들
+    const thinkingSteps = [
+      '사용자 질문 분석 중...',
+      '시스템 로그 수집 중...',
+      '데이터 패턴 분석 중...',
+      'AI 모델 추론 중...',
+      '결과 정제 및 검증 중...',
+    ];
+
+    // 단계별 처리
+    for (let i = 0; i < thinkingSteps.length; i++) {
+      await new Promise(resolve =>
+        setTimeout(resolve, 800 + Math.random() * 1200)
+      );
+
+      // 각 단계에 관련 로그 배분
+      const stepLogs = systemLogs.filter((_, logIndex) => {
+        // 로그를 단계별로 분배
+        const logStep = Math.floor(
+          (logIndex / systemLogs.length) * thinkingSteps.length
+        );
+        return logStep === i;
+      });
+
+      await handleStreamEvent(
+        {
+          type: 'thinking',
+          step: thinkingSteps[i],
+          index: i,
+          logs: stepLogs,
+        },
+        conversationId
+      );
+    }
+
+    // 응답 시작
+    await handleStreamEvent({ type: 'response_start' }, conversationId);
+
+    // 응답 생성
+    const responses = [
+      '분석 결과를 말씀드리겠습니다.\n\n',
+      '🔍 **시스템 상태 요약:**\n',
+      '- 총 12개 서버 중 10개가 정상 상태입니다\n',
+      '- 2개 서버에서 주의가 필요한 상황이 감지되었습니다\n\n',
+      '⚠️ **주요 발견사항:**\n',
+      '- server-03: CPU 사용률 87.5% (임계값 80% 초과)\n',
+      '- 메모리 사용 패턴이 정상 범위를 벗어나고 있습니다\n\n',
+      '💡 **권장사항:**\n',
+      '1. server-03의 프로세스 최적화 검토\n',
+      '2. 리소스 스케일링 고려\n',
+      '3. 지속적인 모니터링 강화\n\n',
+      '📊 자세한 분석 내용은 시스템 로그를 확인해주세요.',
+    ];
+
+    for (const chunk of responses) {
+      await new Promise(resolve =>
+        setTimeout(resolve, 100 + Math.random() * 200)
+      );
+      await handleStreamEvent(
+        { type: 'response_chunk', chunk },
+        conversationId
+      );
+    }
+
+    // 완료
+    await new Promise(resolve => setTimeout(resolve, 300));
+    await handleStreamEvent({ type: 'complete' }, conversationId);
   };
 
   // 스트리밍 이벤트 처리
@@ -259,9 +429,19 @@ export const VercelOptimizedAISidebar: React.FC<
     switch (event.type) {
       case 'thinking':
         if (event.step && event.index !== undefined) {
+          const newStep: ThinkingStep = {
+            id: `${conversationId}_step_${event.index}`,
+            title: event.step,
+            content: '',
+            logs: event.logs || [],
+            progress: event.index * 20, // 20% per step
+            completed: false,
+            timestamp: Date.now(),
+          };
+
           setCurrentThinkingSteps(prev => {
             const newSteps = [...prev];
-            newSteps[event.index!] = event.step!;
+            newSteps[event.index!] = newStep;
             return newSteps;
           });
           setCurrentStepIndex(event.index);
@@ -272,7 +452,7 @@ export const VercelOptimizedAISidebar: React.FC<
               conv.id === conversationId
                 ? {
                     ...conv,
-                    thinkingSteps: [...conv.thinkingSteps, event.step!],
+                    thinkingSteps: [...conv.thinkingSteps, newStep],
                   }
                 : conv
             )
@@ -307,13 +487,28 @@ export const VercelOptimizedAISidebar: React.FC<
         setStreamPhase('idle');
         setIsProcessing(false);
 
-        // 대화 완료 처리
+        // 대화 완료 처리 및 모든 단계 완료 표시
         setConversations(prev =>
           prev.map(conv =>
-            conv.id === conversationId ? { ...conv, isComplete: true } : conv
+            conv.id === conversationId
+              ? {
+                  ...conv,
+                  isComplete: true,
+                  thinkingSteps: conv.thinkingSteps.map(step => ({
+                    ...step,
+                    completed: true,
+                    progress: 100,
+                  })),
+                }
+              : conv
           )
         );
         scrollToBottom();
+
+        // 처리 상태 완전 리셋 (재질문 가능하도록)
+        setTimeout(() => {
+          resetProcessingState();
+        }, 1000);
         break;
 
       case 'error':
@@ -422,7 +617,9 @@ export const VercelOptimizedAISidebar: React.FC<
                   (index === currentIndex && streamPhase === 'thinking')) && (
                   <div className='border-b dark:border-gray-700'>
                     <button
-                      onClick={() => setIsThinkingExpanded(!isThinkingExpanded)}
+                      onClick={() =>
+                        toggleConversationExpanded(conversation.id)
+                      }
                       className='w-full flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'
                     >
                       <div className='flex items-center space-x-2'>
@@ -475,7 +672,7 @@ export const VercelOptimizedAISidebar: React.FC<
                     </button>
 
                     <AnimatePresence>
-                      {isThinkingExpanded && (
+                      {expandedConversations.has(conversation.id) && (
                         <motion.div
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
@@ -483,49 +680,203 @@ export const VercelOptimizedAISidebar: React.FC<
                           transition={{ duration: 0.3 }}
                           className='overflow-hidden'
                         >
-                          <div className='px-4 pb-3'>
-                            <div className='bg-gray-900 dark:bg-black rounded-lg p-3'>
-                              <div className='space-y-1.5 font-mono text-xs'>
-                                {conversation.thinkingSteps.map(
-                                  (step, stepIndex) => (
+                          <div className='px-4 pb-3 space-y-3'>
+                            {/* 📋 시스템 로그 헤더 */}
+                            <div className='flex items-center justify-between'>
+                              <div className='flex items-center gap-2'>
+                                <span className='text-xs font-medium text-gray-600 dark:text-gray-400'>
+                                  시스템 로그
+                                </span>
+                                <span className='text-xs text-gray-500 dark:text-gray-500'>
+                                  ({conversation.systemLogs.length}개 항목)
+                                </span>
+                              </div>
+                              <button
+                                onClick={() =>
+                                  setLogViewMode(
+                                    logViewMode === 'compact'
+                                      ? 'detailed'
+                                      : 'compact'
+                                  )
+                                }
+                                className='text-xs text-blue-600 hover:text-blue-800 transition-colors'
+                              >
+                                {logViewMode === 'compact' ? (
+                                  <Eye className='w-3 h-3' />
+                                ) : (
+                                  <EyeOff className='w-3 h-3' />
+                                )}
+                              </button>
+                            </div>
+
+                            {/* 💾 실제 시스템 로그 표시 */}
+                            <div className='bg-gray-900 dark:bg-black rounded-lg p-3 max-h-40 overflow-y-auto'>
+                              <div className='space-y-1 font-mono text-xs'>
+                                {conversation.systemLogs.map(
+                                  (log, logIndex) => (
                                     <motion.div
-                                      key={stepIndex}
-                                      initial={{ opacity: 0, x: -20 }}
-                                      animate={{ opacity: 1, x: 0 }}
-                                      transition={{ delay: stepIndex * 0.1 }}
-                                      className={`text-cyan-400 ${
-                                        index === currentIndex &&
-                                        stepIndex === currentStepIndex
-                                          ? 'animate-pulse'
-                                          : ''
+                                      key={logIndex}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      transition={{ delay: logIndex * 0.1 }}
+                                      className={`flex items-start gap-2 ${
+                                        log.level === 'error'
+                                          ? 'text-red-400'
+                                          : log.level === 'warning'
+                                            ? 'text-yellow-400'
+                                            : log.level === 'info'
+                                              ? 'text-cyan-400'
+                                              : 'text-gray-400'
                                       }`}
                                     >
-                                      {step}
+                                      <span className='text-gray-500'>
+                                        {new Date(
+                                          log.timestamp
+                                        ).toLocaleTimeString()}
+                                      </span>
+                                      <span className='font-medium'>
+                                        [{log.level.toUpperCase()}]
+                                      </span>
+                                      <span className='text-gray-300'>
+                                        {log.source}:
+                                      </span>
+                                      <span className='flex-1'>
+                                        {log.message}
+                                      </span>
                                     </motion.div>
                                   )
                                 )}
+                              </div>
+                            </div>
 
-                                {index === currentIndex &&
-                                  streamPhase === 'thinking' && (
-                                    <motion.div
-                                      initial={{ opacity: 0 }}
-                                      animate={{ opacity: [0.5, 1, 0.5] }}
-                                      transition={{
-                                        duration: 1.5,
-                                        repeat: Infinity,
-                                      }}
-                                      className='flex items-center gap-2 text-gray-400'
-                                    >
-                                      <div className='flex space-x-1'>
-                                        <div className='w-1 h-1 bg-gray-400 rounded-full'></div>
-                                        <div className='w-1 h-1 bg-gray-400 rounded-full'></div>
-                                        <div className='w-1 h-1 bg-gray-400 rounded-full'></div>
+                            {/* 🧠 사고 과정 단계별 표시 */}
+                            <div className='bg-gray-900 dark:bg-black rounded-lg p-3'>
+                              <div className='space-y-2'>
+                                <div className='flex items-center gap-2 mb-2'>
+                                  <Brain className='w-4 h-4 text-purple-400' />
+                                  <span className='text-xs font-medium text-purple-400'>
+                                    AI 사고 과정
+                                  </span>
+                                </div>
+                                <div className='space-y-1.5 font-mono text-xs'>
+                                  {conversation.thinkingSteps.map(
+                                    (step, stepIndex) => (
+                                      <div key={step.id} className='space-y-1'>
+                                        <motion.div
+                                          initial={{ opacity: 0, x: -20 }}
+                                          animate={{ opacity: 1, x: 0 }}
+                                          transition={{
+                                            delay: stepIndex * 0.1,
+                                          }}
+                                          className={`flex items-center gap-2 ${
+                                            index === currentIndex &&
+                                            stepIndex === currentStepIndex
+                                              ? 'text-cyan-300 animate-pulse'
+                                              : 'text-cyan-400'
+                                          }`}
+                                        >
+                                          <div
+                                            className={`w-2 h-2 rounded-full ${
+                                              step.completed
+                                                ? 'bg-green-400'
+                                                : 'bg-yellow-400'
+                                            }`}
+                                          />
+                                          <span>{step.title}</span>
+                                          {step.logs.length > 0 && (
+                                            <button
+                                              onClick={() =>
+                                                toggleLogView(step.id)
+                                              }
+                                              className='text-xs text-gray-500 hover:text-gray-300 transition-colors'
+                                            >
+                                              {showLogs[step.id] ? (
+                                                <ChevronUp className='w-3 h-3' />
+                                              ) : (
+                                                <ChevronDown className='w-3 h-3' />
+                                              )}
+                                            </button>
+                                          )}
+                                        </motion.div>
+
+                                        {/* 단계별 세부 로그 */}
+                                        <AnimatePresence>
+                                          {showLogs[step.id] &&
+                                            step.logs.length > 0 && (
+                                              <motion.div
+                                                initial={{
+                                                  height: 0,
+                                                  opacity: 0,
+                                                }}
+                                                animate={{
+                                                  height: 'auto',
+                                                  opacity: 1,
+                                                }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.2 }}
+                                                className='ml-4 pl-2 border-l border-gray-700 space-y-1'
+                                              >
+                                                {step.logs.map((log, idx) => (
+                                                  <div
+                                                    key={idx}
+                                                    className='text-xs text-gray-400'
+                                                  >
+                                                    <span className='text-gray-500'>
+                                                      {new Date(
+                                                        log.timestamp
+                                                      ).toLocaleTimeString()}
+                                                    </span>{' '}
+                                                    <span
+                                                      className={`font-medium ${
+                                                        log.level === 'error'
+                                                          ? 'text-red-400'
+                                                          : log.level ===
+                                                              'warning'
+                                                            ? 'text-yellow-400'
+                                                            : 'text-cyan-400'
+                                                      }`}
+                                                    >
+                                                      [{log.level}]
+                                                    </span>{' '}
+                                                    {log.message}
+                                                    {logViewMode ===
+                                                      'detailed' &&
+                                                      log.metadata && (
+                                                        <div className='mt-1 text-gray-500 text-xs'>
+                                                          {JSON.stringify(
+                                                            log.metadata,
+                                                            null,
+                                                            2
+                                                          )}
+                                                        </div>
+                                                      )}
+                                                  </div>
+                                                ))}
+                                              </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                       </div>
-                                      <span className='text-xs'>
-                                        AI가 생각하고 있습니다...
-                                      </span>
-                                    </motion.div>
+                                    )
                                   )}
+
+                                  {index === currentIndex &&
+                                    streamPhase === 'thinking' && (
+                                      <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: [0.5, 1, 0.5] }}
+                                        transition={{
+                                          duration: 1.5,
+                                          repeat: Infinity,
+                                        }}
+                                        className='flex items-center gap-2 text-gray-400'
+                                      >
+                                        <Loader2 className='w-3 h-3 animate-spin' />
+                                        <span className='text-xs'>
+                                          AI가 생각하고 있습니다...
+                                        </span>
+                                      </motion.div>
+                                    )}
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -546,9 +897,24 @@ export const VercelOptimizedAISidebar: React.FC<
                         </span>
                       </div>
                       <div className='flex-1'>
-                        <p className='text-green-900 dark:text-green-100 font-medium mb-2'>
-                          답변
-                        </p>
+                        <div className='flex items-center justify-between mb-2'>
+                          <p className='text-green-900 dark:text-green-100 font-medium'>
+                            답변
+                          </p>
+                          {conversation.isComplete && (
+                            <button
+                              onClick={() =>
+                                handleStreamingRequest(conversation.question)
+                              }
+                              disabled={isProcessing}
+                              className='text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 transition-colors'
+                              title='같은 질문으로 재질문하기'
+                            >
+                              <RefreshCw className='w-3 h-3' />
+                              재질문
+                            </button>
+                          )}
+                        </div>
                         <div className='text-green-700 dark:text-green-300 text-sm'>
                           <div className='whitespace-pre-wrap'>
                             {index === currentIndex

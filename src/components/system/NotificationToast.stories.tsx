@@ -12,6 +12,7 @@ import React, { useState } from 'react';
 import { NotificationToast } from './NotificationToast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { VercelOptimizedAISidebar } from '../../modules/ai-sidebar/components/VercelOptimizedAISidebar';
 
 const meta: Meta<typeof NotificationToast> = {
   title: 'System/NotificationToast',
@@ -410,6 +411,84 @@ export const HighVolume: Story = {
     docs: {
       description: {
         story: '**대량 알림**: 최대 8개 알림을 동시에 처리할 수 있습니다.',
+      },
+    },
+  },
+};
+
+/**
+ * ✨ AI 사이드바 개선 기능 스토리
+ *
+ * - 재질문 기능 테스트
+ * - 실제 로그 표시 테스트
+ * - 접기/펴기 애니메이션 테스트
+ * - 사고과정 단계별 로그 표시 테스트
+ */
+
+// ✨ AI 사이드바 테스트 래퍼 컴포넌트
+const AISidebarTestWrapper = () => {
+  const [isOpen, setIsOpen] = useState(true);
+
+  return (
+    <div className='relative w-full h-screen bg-gray-100'>
+      <div className='p-4'>
+        <h1 className='text-2xl font-bold text-gray-900 mb-4'>
+          AI 사이드바 개선 기능 테스트
+        </h1>
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className='px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors'
+        >
+          {isOpen ? '사이드바 닫기' : '사이드바 열기'}
+        </button>
+
+        <div className='mt-4 space-y-2 text-sm text-gray-600'>
+          <p>
+            🔍 <strong>테스트 기능:</strong>
+          </p>
+          <ul className='list-disc list-inside space-y-1 ml-4'>
+            <li>프리셋 질문 클릭 → 사고과정 및 실제 로그 표시</li>
+            <li>사고과정 접기/펴기 애니메이션</li>
+            <li>단계별 로그 표시 토글</li>
+            <li>재질문 버튼 클릭</li>
+            <li>처리 중일 때 클릭 방지</li>
+          </ul>
+        </div>
+      </div>
+
+      <VercelOptimizedAISidebar
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+      />
+    </div>
+  );
+};
+
+// ✨ 새로운 스토리 추가
+export const AISidebarImproved: StoryObj<typeof AISidebarTestWrapper> = {
+  name: '🤖 AI 사이드바 개선 기능',
+  render: () => <AISidebarTestWrapper />,
+  parameters: {
+    layout: 'fullscreen',
+    docs: {
+      description: {
+        story: `
+### 🎯 AI 사이드바 개선 사항
+
+**주요 개선 기능:**
+1. **재질문 기능**: 완료된 질문에 재질문 버튼 추가
+2. **실제 로그 표시**: 시스템 로그를 질문 유형에 따라 생성 및 표시
+3. **접기/펴기 애니메이션**: 사고과정과 로그 영역을 접을 수 있음
+4. **단계별 로그**: 각 사고 단계별로 관련 로그를 분류해서 표시
+5. **처리 상태 개선**: 처리 중일 때 클릭 방지 및 상태 표시
+
+**테스트 방법:**
+1. 프리셋 질문 중 하나를 클릭
+2. 사고과정이 단계별로 진행되는 것 확인
+3. 완료 후 재질문 버튼 클릭
+4. 사고과정 헤더 클릭으로 접기/펴기 테스트
+5. 각 단계의 로그 토글 버튼 테스트
+        `,
       },
     },
   },

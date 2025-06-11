@@ -153,9 +153,13 @@ export const CompactQuestionTemplates: React.FC<
   }, [isProcessing]);
 
   const handleQuestionClick = (template: QuestionTemplate) => {
-    if (isProcessing) return;
+    if (isProcessing) {
+      console.log('🚫 AI 처리 중이므로 클릭 무시:', template.question);
+      return;
+    }
 
     console.log('🎯 컴팩트 질문 선택:', template.question);
+    setHoveredTemplate(null); // 호버 상태 리셋
     onQuestionSelect(template.question);
   };
 
