@@ -348,23 +348,15 @@ export default function ServerDashboard({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ API 기반 서버 데이터 스토어 사용
+  // ✅ 실시간 훅: 10초(10,000ms) 주기로 새로고침
   const {
     servers = [],
     isLoading: isGenerating,
     refreshAll,
-  } = useRealtimeServers();
+  } = useRealtimeServers({ refreshInterval: 10000 });
 
-  // 🚀 동적 페이지네이션: 오토스케일링에 맞춰 조정
-  const SERVERS_PER_PAGE = useMemo(() => {
-    const serverCount = servers?.length || 0;
-
-    // 서버 수에 따른 동적 페이지 크기 결정
-    if (serverCount <= 12) return serverCount; // 12개 이하면 모두 표시
-    if (serverCount <= 20) return 10; // 20개 이하면 10개씩
-    if (serverCount <= 30) return 15; // 30개 이하면 15개씩
-    return 20; // 30개 초과시 20개씩
-  }, [servers?.length]);
+  // 🎯 페이지당 8개 카드 고정
+  const SERVERS_PER_PAGE = 8;
 
   // 🚀 디버깅 로그 추가
   console.log('📊 ServerDashboard 렌더링:', {
