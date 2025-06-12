@@ -6,7 +6,7 @@
 
 **❌ 이전 상태:**
 
-- `vercel.env.template`: `AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM` 하드코딩
+- `vercel.env.template`: `your_google_ai_api_key_here` 플레이스홀더로 수정
 - `setup-test-environment.mjs`: 실제 API 키 노출
 - `development/security/quick-encrypt.js`: 평문 API 키 저장
 - 테스트 파일들에 실제 키 하드코딩
@@ -15,7 +15,7 @@
 
 ```javascript
 // 이전:
-const apiKey = 'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM';
+const apiKey = 'your_google_ai_api_key_here';
 
 // 수정:
 const apiKey = process.env.GOOGLE_AI_API_KEY || 'your_google_ai_api_key_here';

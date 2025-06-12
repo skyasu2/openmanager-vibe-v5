@@ -14,6 +14,8 @@ import {
   generateSessionId,
   formatErrorMessage,
 } from '../utils';
+import { ThinkingLogger } from '../../ai-agent/core/ThinkingLogger';
+import { LangGraphThinkingProcessor } from '../../ai-agent/core/LangGraphThinkingProcessor';
 
 // 🔧 실시간 데이터 수집 함수들
 async function fetchCurrentServerMetrics() {
@@ -82,6 +84,21 @@ export const useAIChat = (options: ChatHookOptions) => {
         // 사용자 메시지 콜백
         options.onMessage?.(userMessage);
 
+        // 🧠 LangGraph 사고 과정 시작
+        const langGraphProcessor = LangGraphThinkingProcessor.getInstance();
+        const thinkingLogger = ThinkingLogger.getInstance();
+        const queryId = langGraphProcessor.startThinking(
+          sessionId,
+          content,
+          'advanced'
+        );
+
+        // 사고 과정 로깅 시작
+        langGraphProcessor.thought(`사용자 질문을 분석합니다: "${content}"`);
+        langGraphProcessor.observation(
+          'Smart Fallback Engine을 통해 처리를 시작합니다'
+        );
+
         // 🧠 Smart Fallback Engine 사용 (MCP → RAG → Google AI)
         const response = await fetch('/api/ai/smart-fallback', {
           method: 'POST',
@@ -121,8 +138,25 @@ export const useAIChat = (options: ChatHookOptions) => {
         const smartFallbackResponse = await response.json();
 
         if (!smartFallbackResponse.success) {
+          // 사고 과정 에러 로깅
+          langGraphProcessor.errorThinking(
+            smartFallbackResponse.error || 'AI 응답 처리 실패'
+          );
           throw new Error(smartFallbackResponse.error || 'AI 응답 처리 실패');
         }
+
+        // 🧠 사고 과정 완료 로깅
+        langGraphProcessor.action(
+          `${smartFallbackResponse.metadata.stage} 엔진에서 응답 생성 완료`
+        );
+        langGraphProcessor.answer(
+          `응답이 성공적으로 생성되었습니다 (신뢰도: ${smartFallbackResponse.metadata.confidence}%)`
+        );
+        langGraphProcessor.completeThinking({
+          response: smartFallbackResponse.response,
+          engine: smartFallbackResponse.metadata.stage,
+          confidence: smartFallbackResponse.metadata.confidence,
+        });
 
         // Smart Fallback 응답을 기존 AIResponse 형식으로 변환
         const aiResponse: AIResponse = {
@@ -135,6 +169,7 @@ export const useAIChat = (options: ChatHookOptions) => {
             engine: smartFallbackResponse.metadata.stage,
             fallbackPath: smartFallbackResponse.metadata.fallbackPath,
             quota: smartFallbackResponse.metadata.quota,
+            thinkingSession: thinkingLogger.getLiveSession(sessionId), // 실시간 사고 과정 데이터 추가
           },
         };
 
@@ -172,6 +207,10 @@ export const useAIChat = (options: ChatHookOptions) => {
         if (err.name === 'AbortError') {
           return; // 요청이 취소된 경우 무시
         }
+
+        // 🧠 사고 과정 에러 로깅
+        const langGraphProcessor = LangGraphThinkingProcessor.getInstance();
+        langGraphProcessor.errorThinking(`처리 중 오류 발생: ${err.message}`);
 
         const errorMessage = formatErrorMessage(err);
         setError(errorMessage);

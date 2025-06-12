@@ -26,6 +26,8 @@ interface RealTimeLogEntry {
   module: string;
   message: string;
   details?: string;
+  progress?: number; // 0-100 진행률 추가
+  reactType?: 'thought' | 'observation' | 'action' | 'answer' | 'reflection'; // ReAct 단계 타입 추가
   metadata?: Record<string, any>;
 }
 
@@ -45,6 +47,44 @@ export const ThinkingProcess: React.FC<ThinkingProcessProps> = ({
   className = '',
 }) => {
   const [showLibraries, setShowLibraries] = useState(false);
+
+  // ReAct 단계별 아이콘 매핑
+  const getReActIcon = (reactType?: string) => {
+    switch (reactType) {
+      case 'thought':
+        return (
+          <span className='w-3 h-3 text-yellow-400' title='생각'>
+            💭
+          </span>
+        );
+      case 'observation':
+        return (
+          <span className='w-3 h-3 text-green-400' title='관찰'>
+            👀
+          </span>
+        );
+      case 'action':
+        return (
+          <span className='w-3 h-3 text-blue-400' title='행동'>
+            ⚡
+          </span>
+        );
+      case 'answer':
+        return (
+          <span className='w-3 h-3 text-purple-400' title='답변'>
+            ✅
+          </span>
+        );
+      case 'reflection':
+        return (
+          <span className='w-3 h-3 text-orange-400' title='반성'>
+            🔄
+          </span>
+        );
+      default:
+        return <span className='w-3 h-3 text-gray-400'>🔍</span>;
+    }
+  };
 
   const getLogLevelStyle = (level: string) => {
     switch (level) {
@@ -216,6 +256,14 @@ export const ThinkingProcess: React.FC<ThinkingProcessProps> = ({
                             second: '2-digit',
                           })}
                         </span>
+
+                        {/* ReAct 단계 아이콘 */}
+                        {log.reactType && (
+                          <span className='flex-shrink-0 flex items-center'>
+                            {getReActIcon(log.reactType)}
+                          </span>
+                        )}
+
                         <span
                           className={`px-1.5 py-0.5 rounded text-xs font-bold flex-shrink-0 ${getLogLevelStyle(log.level)}`}
                         >
@@ -227,6 +275,23 @@ export const ThinkingProcess: React.FC<ThinkingProcessProps> = ({
                         <span className='text-gray-300 flex-1'>
                           {log.message}
                         </span>
+
+                        {/* 진행률 표시 */}
+                        {typeof log.progress === 'number' && (
+                          <div className='flex-shrink-0 flex items-center gap-1'>
+                            <div className='w-12 h-1.5 bg-gray-700 rounded-full overflow-hidden'>
+                              <motion.div
+                                className='h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full'
+                                initial={{ width: 0 }}
+                                animate={{ width: `${log.progress}%` }}
+                                transition={{ duration: 0.5 }}
+                              />
+                            </div>
+                            <span className='text-xs text-gray-400 min-w-[2rem]'>
+                              {log.progress}%
+                            </span>
+                          </div>
+                        )}
                       </div>
                       {log.details && (
                         <div className='ml-16 text-gray-400 text-xs mt-0.5'>

@@ -2,8 +2,15 @@ export interface ThinkingStep {
   timestamp: string;
   step: string;
   content: string;
-  type: 'analysis' | 'reasoning' | 'data_processing' | 'pattern_matching' | 'response_generation';
+  type:
+    | 'analysis'
+    | 'reasoning'
+    | 'data_processing'
+    | 'pattern_matching'
+    | 'response_generation';
   duration?: number;
+  progress?: number; // 0-100 진행률 추가
+  reactType?: 'thought' | 'observation' | 'action' | 'answer' | 'reflection'; // ReAct 단계 타입 추가
   metadata?: Record<string, any>;
 }
 
@@ -20,7 +27,8 @@ export interface ThinkingSession {
 export class ThinkingLogger {
   private static instance: ThinkingLogger;
   private sessions: Map<string, ThinkingSession> = new Map();
-  private currentStep: Map<string, { step: string; startTime: number }> = new Map();
+  private currentStep: Map<string, { step: string; startTime: number }> =
+    new Map();
 
   private constructor() {}
 
@@ -40,11 +48,13 @@ export class ThinkingLogger {
       query,
       startTime: Date.now(),
       steps: [],
-      status: 'active'
+      status: 'active',
     };
 
     this.sessions.set(sessionId, session);
-    console.log(`🧠 [${sessionId}] Thinking session started for query: "${query}"`);
+    console.log(
+      `🧠 [${sessionId}] Thinking session started for query: "${query}"`
+    );
   }
 
   /**
@@ -53,7 +63,7 @@ export class ThinkingLogger {
   startStep(sessionId: string, step: string, type: ThinkingStep['type']): void {
     this.currentStep.set(sessionId, {
       step,
-      startTime: Date.now()
+      startTime: Date.now(),
     });
 
     const session = this.sessions.get(sessionId);
@@ -65,30 +75,41 @@ export class ThinkingLogger {
   /**
    * 처리 단계 완료 및 로그 기록
    */
-  logStep(sessionId: string, content: string, type: ThinkingStep['type'], metadata?: Record<string, any>): void {
+  logStep(
+    sessionId: string,
+    content: string,
+    type: ThinkingStep['type'],
+    metadata?: Record<string, any>,
+    progress?: number,
+    reactType?: ThinkingStep['reactType']
+  ): void {
     const session = this.sessions.get(sessionId);
     const currentStep = this.currentStep.get(sessionId);
-    
+
     if (!session || !currentStep) {
       console.warn(`⚠️ [${sessionId}] Session or current step not found`);
       return;
     }
 
     const duration = Date.now() - currentStep.startTime;
-    
+
     const thinkingStep: ThinkingStep = {
       timestamp: new Date().toISOString(),
       step: currentStep.step,
       content,
       type,
       duration,
-      metadata
+      progress,
+      reactType,
+      metadata,
     };
 
     session.steps.push(thinkingStep);
     this.currentStep.delete(sessionId);
 
-    console.log(`✅ [${sessionId}] Step completed: ${currentStep.step} (${duration}ms)`);
+    console.log(
+      `✅ [${sessionId}] Step completed: ${currentStep.step} (${duration}ms, progress: ${progress || 'N/A'}%)`
+    );
   }
 
   /**
@@ -105,7 +126,9 @@ export class ThinkingLogger {
     session.totalDuration = session.endTime - session.startTime;
     session.status = 'completed';
 
-    console.log(`🎉 [${sessionId}] Thinking session completed in ${session.totalDuration}ms`);
+    console.log(
+      `🎉 [${sessionId}] Thinking session completed in ${session.totalDuration}ms`
+    );
   }
 
   /**
@@ -129,7 +152,7 @@ export class ThinkingLogger {
       content: `오류가 발생했습니다: ${error}`,
       type: 'analysis',
       duration: 0,
-      metadata: { error: true }
+      metadata: { error: true },
     };
 
     session.steps.push(errorStep);
@@ -164,7 +187,7 @@ export class ThinkingLogger {
    * 오래된 세션들 정리 (1시간 이상)
    */
   cleanup(): void {
-    const oneHourAgo = Date.now() - (60 * 60 * 1000);
+    const oneHourAgo = Date.now() - 60 * 60 * 1000;
     const sessionsToDelete: string[] = [];
 
     for (const [sessionId, session] of this.sessions) {
@@ -178,7 +201,9 @@ export class ThinkingLogger {
     });
 
     if (sessionsToDelete.length > 0) {
-      console.log(`🧹 Cleaned up ${sessionsToDelete.length} old thinking sessions`);
+      console.log(
+        `🧹 Cleaned up ${sessionsToDelete.length} old thinking sessions`
+      );
     }
   }
 
@@ -190,7 +215,7 @@ export class ThinkingLogger {
     if (!session) return null;
 
     const liveSession = { ...session };
-    
+
     // 현재 진행중인 단계가 있으면 추가
     const currentStep = this.currentStep.get(sessionId);
     if (currentStep && session.status === 'active') {
@@ -200,9 +225,9 @@ export class ThinkingLogger {
         content: '처리 중...',
         type: 'analysis',
         duration: Date.now() - currentStep.startTime,
-        metadata: { inProgress: true }
+        metadata: { inProgress: true },
       };
-      
+
       liveSession.steps = [...session.steps, inProgressStep];
     }
 
@@ -210,4 +235,4 @@ export class ThinkingLogger {
   }
 }
 
-export const thinkingLogger = ThinkingLogger.getInstance(); 
+export const thinkingLogger = ThinkingLogger.getInstance();

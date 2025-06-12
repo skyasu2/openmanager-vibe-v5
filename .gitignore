@@ -16,6 +16,10 @@ mcp-server/node_modules
 /coverage
 /test-results/
 /playwright-report/
+# test results in any directory
+**/test-results/
+**/playwright-report/
+**/unit-test-results/
 
 # next.js
 /.next/
@@ -36,6 +40,16 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+# log files
+*.log
+**/logs/
+dev.log
+combined.log
+ai-combined.log
+# temporary files
+*~
+*.tmp
+*.temp
 
 # env files (can opt-in for committing if needed)
 .env*

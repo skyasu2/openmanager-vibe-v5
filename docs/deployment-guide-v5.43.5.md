@@ -28,24 +28,24 @@ graph TB
         A[Vercel Edge Network]
         B[Global CDN Cache]
     end
-    
+
     subgraph "애플리케이션 레이어"
         C[Next.js 15 App]
         D[AI 엔진 시스템]
         E[API Routes 94개]
     end
-    
+
     subgraph "데이터베이스"
         F[Supabase PostgreSQL]
         G[Upstash Redis]
     end
-    
+
     subgraph "외부 서비스"
         H[Google AI Studio]
         I[Slack 웹훅]
         J[Render MCP 서버]
     end
-    
+
     A --> C
     C --> D
     C --> E
@@ -67,7 +67,7 @@ graph TB
 ```bash
 # 필수 배포 파일들
 ├── package.json          ✅ 의존성 정의
-├── next.config.ts        ✅ Next.js 설정  
+├── next.config.ts        ✅ Next.js 설정
 ├── vercel.json          ✅ Vercel 배포 설정
 ├── tsconfig.json        ✅ TypeScript 설정
 ├── .env.local.template  ✅ 환경 변수 템플릿
@@ -94,25 +94,25 @@ npm run build
 
 ```bash
 # 🔐 AI 서비스 키
-GOOGLE_AI_API_KEY=AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM
+GOOGLE_AI_API_KEY=your_google_ai_api_key_here
 GOOGLE_AI_ENABLED=true
 GOOGLE_AI_MODEL=gemini-1.5-flash
 
 # 🗄️ 데이터베이스 연결
-SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
 # ⚡ Redis 캐시
-UPSTASH_REDIS_REST_URL=https://charming-condor-46598.upstash.io
-UPSTASH_REDIS_REST_TOKEN=...
-UPSTASH_REDIS_PASSWORD=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA
+UPSTASH_REDIS_REST_URL=your_upstash_redis_url
+UPSTASH_REDIS_REST_TOKEN=your_upstash_redis_token
+UPSTASH_REDIS_PASSWORD=your_upstash_redis_password
 
 # 🔔 알림 서비스
-SLACK_WEBHOOK_URL=https://hooks.slack.com/services/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
+SLACK_WEBHOOK_URL=your_slack_webhook_url
 
 # 🌐 MCP 서버
-MCP_SERVER_URL=https://openmanager-vibe-v5.onrender.com
+MCP_SERVER_URL=your_mcp_server_url
 MCP_FALLBACK_MODE=local
 
 # 🔧 시스템 설정
@@ -196,7 +196,7 @@ CREATE TABLE IF NOT EXISTS servers (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 메트릭 데이터 테이블  
+-- 메트릭 데이터 테이블
 CREATE TABLE IF NOT EXISTS server_metrics (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   server_id UUID REFERENCES servers(id),
@@ -221,9 +221,9 @@ CREATE TABLE IF NOT EXISTS ai_logs (
 );
 
 -- 인덱스 생성
-CREATE INDEX IF NOT EXISTS idx_server_metrics_timestamp 
+CREATE INDEX IF NOT EXISTS idx_server_metrics_timestamp
   ON server_metrics(timestamp DESC);
-CREATE INDEX IF NOT EXISTS idx_ai_logs_level_category 
+CREATE INDEX IF NOT EXISTS idx_ai_logs_level_category
   ON ai_logs(level, category);
 ```
 
@@ -287,7 +287,7 @@ curl -X POST \
 
 ```bash
 # Slack 웹훅 테스트
-curl -X POST https://hooks.slack.com/services/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 \
+curl -X POST YOUR_SLACK_WEBHOOK_URL \
   -H 'Content-Type: application/json' \
   -d '{"text": "OpenManager Vibe v5.43.5 배포 테스트"}'
 ```
@@ -297,10 +297,10 @@ curl -X POST https://hooks.slack.com/services/T090J1TTD34/B090F9Q20NB/np1xRPWOcf
 ```typescript
 // 프로덕션 알림 설정
 const NOTIFICATION_LEVELS = {
-  critical: ['slack', 'email'],    // 즉시 전송
-  warning: ['slack'],              // 5분 배치
-  info: ['slack'],                 // 1시간 배치
-  debug: []                        // 전송 안함
+  critical: ['slack', 'email'], // 즉시 전송
+  warning: ['slack'], // 5분 배치
+  info: ['slack'], // 1시간 배치
+  debug: [], // 전송 안함
 };
 ```
 
@@ -325,7 +325,7 @@ const MCP_CONFIG = {
   fallbackMode: 'local-simulation',
   autoFallback: true,
   fallbackTimeout: 5000,
-  retryCount: 3
+  retryCount: 3,
 };
 ```
 
@@ -341,14 +341,14 @@ const MCP_CONFIG = {
 // next.config.ts
 const nextConfig: NextConfig = {
   experimental: {
-    optimizeCss: true,                 // CSS 최적화
-    serverComponentsExternalPackages: ['@tremor/react']
+    optimizeCss: true, // CSS 최적화
+    serverComponentsExternalPackages: ['@tremor/react'],
   },
-  
+
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production'
+    removeConsole: process.env.NODE_ENV === 'production',
   },
-  
+
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -357,15 +357,15 @@ const nextConfig: NextConfig = {
         tls: false,
       };
     }
-    
+
     // 번들 분석
     if (process.env.ANALYZE === 'true') {
       const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
       config.plugins.push(new BundleAnalyzerPlugin());
     }
-    
+
     return config;
-  }
+  },
 };
 ```
 
@@ -380,21 +380,21 @@ const CACHE_STRATEGY = {
   memory: {
     ttl: 300,
     max: 100,
-    items: ['ai-responses', 'metrics-summary']
+    items: ['ai-responses', 'metrics-summary'],
   },
-  
+
   // L2: Redis 캐시 (1시간)
   redis: {
     ttl: 3600,
     max: 1000,
-    items: ['query-results', 'user-sessions']
+    items: ['query-results', 'user-sessions'],
   },
-  
+
   // L3: CDN 캐시 (24시간)
   cdn: {
     ttl: 86400,
-    items: ['static-assets', 'api-responses']
-  }
+    items: ['static-assets', 'api-responses'],
+  },
 };
 ```
 
@@ -411,20 +411,20 @@ const CACHE_STRATEGY = {
 const METRICS_CONFIG = {
   frontend: {
     vitals: ['LCP', 'FID', 'CLS', 'TTFB'],
-    custom: ['ai-response-time', 'user-interaction']
+    custom: ['ai-response-time', 'user-interaction'],
   },
-  
+
   backend: {
     apis: ['response-time', 'throughput', 'error-rate'],
     ai: ['inference-time', 'accuracy', 'fallback-rate'],
-    infrastructure: ['cpu', 'memory', 'disk']
+    infrastructure: ['cpu', 'memory', 'disk'],
   },
-  
+
   alerts: {
     responseTime: '>1000ms',
     errorRate: '>5%',
-    aiFailure: '>10%'
-  }
+    aiFailure: '>10%',
+  },
 };
 ```
 
@@ -436,9 +436,9 @@ const METRICS_CONFIG = {
 // 헬스 체크 엔드포인트
 const HEALTH_CHECKS = {
   '/api/health': 'overall-system-health',
-  '/api/ai/health': 'ai-engines-health', 
+  '/api/ai/health': 'ai-engines-health',
   '/api/status': 'detailed-status',
-  '/api/ping': 'basic-connectivity'
+  '/api/ping': 'basic-connectivity',
 };
 ```
 
@@ -454,24 +454,24 @@ const HEALTH_CHECKS = {
 const securityHeaders = [
   {
     key: 'X-DNS-Prefetch-Control',
-    value: 'on'
+    value: 'on',
   },
   {
     key: 'Strict-Transport-Security',
-    value: 'max-age=63072000; includeSubDomains; preload'
+    value: 'max-age=63072000; includeSubDomains; preload',
   },
   {
     key: 'X-Frame-Options',
-    value: 'DENY'
+    value: 'DENY',
   },
   {
     key: 'X-Content-Type-Options',
-    value: 'nosniff'
+    value: 'nosniff',
   },
   {
     key: 'Referrer-Policy',
-    value: 'origin-when-cross-origin'
-  }
+    value: 'origin-when-cross-origin',
+  },
 ];
 
 module.exports = {
@@ -625,14 +625,14 @@ const PERFORMANCE_TARGETS = {
   apiResponse: '<100ms',
   pageLoad: '<2s',
   aiInference: '<3s',
-  
+
   // 가용성
   uptime: '>99.9%',
   errorRate: '<1%',
-  
+
   // 처리량
   requestsPerSecond: '>100',
-  concurrentUsers: '>50'
+  concurrentUsers: '>50',
 };
 ```
 
@@ -654,7 +654,7 @@ const PERFORMANCE_TARGETS = {
 # 시스템 상태 확인
 curl https://your-domain.com/api/health
 
-# AI 엔진 상태 확인  
+# AI 엔진 상태 확인
 curl https://your-domain.com/api/ai/engines/status
 
 # 성능 메트릭 확인

@@ -22,6 +22,28 @@ interface ChatInterfaceProps {
 const SimpleMessageBubble = ({ message }: { message: any }) => {
   const isUser = message.type === 'user';
 
+  // AI 엔진 이름을 사람이 읽기 쉬운 이름으로 매핑
+  const getEngineDisplayName = (engine?: string) => {
+    switch (engine) {
+      case 'claude-sonnet':
+      case 'claude':
+        return 'Claude Sonnet';
+      case 'gpt-4':
+      case 'gpt-4-turbo':
+        return 'GPT-4';
+      case 'gemini-pro':
+        return 'Gemini Pro';
+      case 'local-llm':
+        return 'Local LLM';
+      case 'smart-agent':
+        return 'Smart Agent';
+      default:
+        return engine
+          ? engine.charAt(0).toUpperCase() + engine.slice(1)
+          : undefined;
+    }
+  };
+
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div
@@ -32,9 +54,18 @@ const SimpleMessageBubble = ({ message }: { message: any }) => {
         }`}
       >
         <div className='text-sm whitespace-pre-wrap'>{message.content}</div>
-        <div className='text-xs opacity-70 mt-1'>
-          {message.timestamp?.toLocaleTimeString() ||
-            new Date().toLocaleTimeString()}
+        <div className='text-xs opacity-70 mt-1 flex items-center justify-between'>
+          <span>
+            {message.timestamp?.toLocaleTimeString() ||
+              new Date().toLocaleTimeString()}
+          </span>
+
+          {/* AI 엔진 정보 표시 (AI 메시지에만) */}
+          {!isUser && message.metadata?.engine && (
+            <span className='ml-2 px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded text-xs'>
+              {getEngineDisplayName(message.metadata.engine)}
+            </span>
+          )}
         </div>
       </div>
     </div>

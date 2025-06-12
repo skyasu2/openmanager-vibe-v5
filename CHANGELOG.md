@@ -1,6 +1,6 @@
 # 📋 OpenManager Vibe v5 - 변경 로그
 
-## [v5.45.1] - 2025-06-12 - 스크롤 카드 모달 완전 개선 🔄
+## [v5.43.5] - 2025-06-10 - AI 사고 과정 시각화 및 엔진 정보 표시 🧠
 
 ### 🎯 **모달 → 스크롤 카드 변환 완료**
 
@@ -119,9 +119,9 @@ const stackIndex = toasts.length - index - 1;
 const marginBottom = stackIndex > 0 ? stackIndex * 4 : 0;
 
 // 시각적 계층
-style={{ 
+style={{
   marginBottom: `${marginBottom}px`,
-  zIndex: 1000 + index 
+  zIndex: 1000 + index
 }}
 ```
 
@@ -141,12 +141,12 @@ style={{
 bg-yellow-50 dark:bg-yellow-900/20
 border-l-4 border-yellow-500
 
-// 중지 상태  
+// 중지 상태
 bg-red-50 dark:bg-red-900/20
 border-l-4 border-red-500
 
 // 활성 상태
-bg-green-50 dark:bg-green-900/20  
+bg-green-50 dark:bg-green-900/20
 border-l-4 border-green-500
 ```
 
@@ -220,7 +220,7 @@ interface UnifiedResponse {
 ```typescript
 // MCP 전용 작업 처리
 - ✅ 시계열 분석: lightweight_ml
-- ✅ NLP 처리: local_nlp  
+- ✅ NLP 처리: local_nlp
 - ✅ 이상 탐지: anomaly_detector
 - ✅ 기본 작업: basic_processor
 ```
@@ -241,7 +241,7 @@ npm run test:ai-chain
 **4가지 테스트 시나리오**:
 
 1. 🧠 **MCP 엔진 기본 질문**: 서버 상태 문의
-2. 📚 **RAG 엔진 문서 검색**: AI 구조 설명 요청  
+2. 📚 **RAG 엔진 문서 검색**: AI 구조 설명 요청
 3. 🤖 **Google AI 복잡한 추론**: 서버 모니터링 예측 분석
 4. 🔍 **시스템 상태 확인**: 전체 AI 체인 건강성 검사
 
@@ -258,7 +258,7 @@ npm run test:ai-chain
 
 1. **🔗 명확한 폴백 체인**: MCP → RAG → Google AI 순서로 단순화
 2. **❌ 완전한 실패 처리**: "모든 AI 엔진이 실패했습니다" 명확한 메시지
-3. **🚫 단순 패턴 대응 제거**: 의미없는 fallback 로직 완전 제거  
+3. **🚫 단순 패턴 대응 제거**: 의미없는 fallback 로직 완전 제거
 4. **⚡ 초기화 최적화**: 각 엔진별 독립적 가용성 확인
 5. **📝 구조화된 로깅**: AI 엔진 체인 처리 과정 상세 로깅
 6. **🧪 종합 테스트**: 실제 API 호출을 통한 전체 체인 검증
@@ -268,7 +268,7 @@ npm run test:ai-chain
 **테스트 통과 현황**:
 
 - ✅ MCP 엔진 기본 질문 처리
-- ✅ RAG 엔진 문서 검색 기능  
+- ✅ RAG 엔진 문서 검색 기능
 - ✅ Google AI 복잡한 추론 능력
 - ✅ 시스템 상태 정상 확인
 - 📈 성공률: 95%+ (3개 엔진 폴백)
