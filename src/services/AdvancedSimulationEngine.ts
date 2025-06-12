@@ -412,7 +412,7 @@ export class AdvancedSimulationEngine {
       id: `server-${index + 1}`,
       name: `Server-${String(index + 1).padStart(2, '0')}`,
       status:
-        metric.cpu > 80 ? 'critical' : metric.cpu > 60 ? 'warning' : 'normal',
+        metric.cpu > 80 ? 'critical' : metric.cpu > 60 ? 'warning' : 'healthy',
       cpu_usage: metric.cpu,
       memory_usage: metric.memory,
       disk_usage: metric.disk,

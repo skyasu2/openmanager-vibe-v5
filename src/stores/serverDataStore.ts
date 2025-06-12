@@ -12,21 +12,24 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import type { EnhancedServerMetrics } from '../types/server';
 
-// ✅ 클라이언트 전용 타입 정의
-interface ServerMetrics {
+// 🔄 중복 제거: common.ts의 타입들 사용
+import type { ServerStatus } from '../types/common';
+
+// ✅ 클라이언트 전용 타입 정의 (UI 표시용)
+interface ClientServerMetrics {
   cpu: number;
   memory: number;
   disk: number;
   network: number;
 }
 
-interface Server {
+interface ClientServer {
   id: string;
   name: string;
-  status: 'healthy' | 'warning' | 'critical';
+  status: ServerStatus;
   location: string;
   type: string;
-  metrics: ServerMetrics;
+  metrics: ClientServerMetrics;
   uptime: number;
   lastUpdate: Date;
 }
@@ -86,7 +89,7 @@ interface ServerDataState {
 }
 
 // ✅ 안전한 초기 서버 데이터 생성 (hydration 에러 방지)
-const getInitialServers = (): Server[] => {
+const getInitialServers = (): ClientServer[] => {
   // 서버 사이드에서는 빈 배열 반환
   if (typeof window === 'undefined') {
     return [];
@@ -148,7 +151,7 @@ const getInitialServers = (): Server[] => {
 };
 
 // ✅ API 기반 서버 데이터 가져오기
-const fetchServersFromAPI = async (): Promise<Server[]> => {
+const fetchServersFromAPI = async (): Promise<ClientServer[]> => {
   try {
     const response = await fetch('/api/servers');
     if (!response.ok) {
@@ -332,7 +335,7 @@ export const useServerDataStore = create<ServerDataState>()(
 
         return {
           totalServers: servers.length,
-          healthyServers: servers.filter(s => s.status === 'normal').length,
+          healthyServers: servers.filter(s => s.status === 'healthy').length,
           warningServers: servers.filter(s => s.status === 'warning').length,
           criticalServers: servers.filter(s => s.status === 'critical').length,
           unifiedManagerStatus,

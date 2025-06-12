@@ -504,7 +504,7 @@ export class OptimizedDataGenerator {
     if (avgLoad > 60 || variationImpact > 0.2) {
       return 'warning';
     }
-    return 'normal';
+    return 'healthy';
   }
 
   /**
@@ -825,7 +825,7 @@ export class OptimizedDataGenerator {
 
     const critical = servers.filter(s => s.status === 'critical');
     const warning = servers.filter(s => s.status === 'warning');
-    const normal = servers.filter(s => s.status === 'normal');
+    const normal = servers.filter(s => s.status === 'healthy');
 
     const sortByLoadDesc = (
       a: EnhancedServerMetrics,
@@ -860,7 +860,7 @@ export class OptimizedDataGenerator {
     if (updatedWarning.length < targetWarning) {
       const need = targetWarning - updatedWarning.length;
       const candidates = servers
-        .filter(s => s.status === 'normal')
+        .filter(s => s.status === 'healthy')
         .sort(sortByLoadDesc)
         .slice(0, need);
       for (const s of candidates) s.status = 'warning';
@@ -871,7 +871,7 @@ export class OptimizedDataGenerator {
         .sort(sortByLoadDesc)
         .reverse()
         .slice(0, reduce);
-      for (const s of candidates) s.status = 'normal';
+      for (const s of candidates) s.status = 'healthy';
     }
   }
 }

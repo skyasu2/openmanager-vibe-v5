@@ -107,9 +107,7 @@ export const POST = withErrorHandler(analyzeCurrentResourceUsageHandler);
  * 🔍 현재 상태 분석
  */
 function analyzeCurrentState(servers: any[]) {
-  const healthyCount = servers.filter(
-    s => s.status === 'normal' || s.status === 'healthy'
-  ).length;
+  const healthyCount = servers.filter(s => s.status === 'healthy').length;
   const warningCount = servers.filter(s => s.status === 'warning').length;
   const errorCount = servers.filter(
     s => s.status === 'error' || s.status === 'critical'
@@ -174,7 +172,7 @@ function analyzeCurrentResources(servers: any[]) {
     const minUsage = Math.min(...values);
 
     // 현재 상태 평가
-    let status = 'normal';
+    let status = 'healthy';
     if (currentAvg > 90) status = 'critical';
     else if (currentAvg > 80) status = 'warning';
     else if (currentAvg > 70) status = 'caution';

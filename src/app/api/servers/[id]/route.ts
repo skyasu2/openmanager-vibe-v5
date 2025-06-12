@@ -87,7 +87,7 @@ export async function GET(
         location: getLocationByEnvironment(server.environment),
         provider: getProviderByEnvironment(server.environment),
         status:
-          server.status === 'normal'
+          server.status === 'healthy'
             ? 'online'
             : server.status === 'warning'
               ? 'warning'
