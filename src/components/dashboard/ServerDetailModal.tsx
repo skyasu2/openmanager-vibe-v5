@@ -7,36 +7,13 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import {
-  Server,
-  Database,
-  Cloud,
-  Globe,
-  HelpCircle,
-  Settings,
-  RefreshCw,
-  Terminal,
-  Cpu,
-  HardDrive,
-  MemoryStick,
-  Network,
-} from 'lucide-react';
-import { Server as ServerType } from '../../types/server';
+import { Server } from '../../types/server';
 import { timerManager } from '../../utils/TimerManager';
 import { safeFormatUptime } from '../../utils/safeFormat';
 
-// ServerType 확장을 통해 히스토리 데이터 타입 추가
-interface ServerDetailType extends ServerType {
-  cpuHistory?: number[];
-  memoryHistory?: number[];
-  diskHistory?: number[];
-  networkHistory?: number[];
-}
-
 interface ServerDetailModalProps {
-  server: ServerDetailType | null;
+  server: Server | null;
   onClose: () => void;
-  onUpdate: (updatedServer: Partial<ServerType>) => void;
 }
 
 interface MetricsHistory {
@@ -65,7 +42,6 @@ interface RealTimeMetrics {
 export default function ServerDetailModal({
   server,
   onClose,
-  onUpdate,
 }: ServerDetailModalProps) {
   const [metricsHistory, setMetricsHistory] = useState<MetricsHistory[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
@@ -75,7 +51,6 @@ export default function ServerDetailModal({
   const [realTimeMetrics, setRealTimeMetrics] =
     useState<RealTimeMetrics | null>(null);
   const [timeRange, setTimeRange] = useState<'1h' | '6h' | '24h' | '7d'>('24h');
-  const [isSettingsOpen, setSettingsOpen] = useState(false);
 
   const loadMetricsHistory = useCallback(
     async (serverId: string, range: string = '24h') => {
@@ -262,27 +237,22 @@ export default function ServerDetailModal({
 
   const statusInfo = getStatusInfo(server.status);
 
-  // 차트 데이터 포인트 생성 (최종 수정 버전)
-  const generateChartPoints = (data: number[] = []) => {
-    const validData = data
-      .filter(v => typeof v === 'number' && isFinite(v))
-      .map(v => Math.max(0, v));
-    if (validData.length < 2) {
-      return '0,100 100,100'; // 데이터가 2개 미만이면 평평한 선 반환
-    }
-    const max = Math.max(...validData, 0);
-    const min = Math.min(...validData, 0);
-    const range = max - min || 1;
-    return validData
-      .map((v, i) => {
-        const x = (i / (validData.length - 1)) * 100;
-        const y = 100 - ((v - min) / range) * 100;
-        return `${x.toFixed(2)},${y.toFixed(2)}`;
+  // 차트 데이터 포인트 생성 (개선된 버전)
+  const generateChartPoints = (data: number[], maxHeight: number = 140) => {
+    if (data.length === 0) return '';
+
+    const maxValue = Math.max(...data);
+    const minValue = Math.min(...data);
+    const range = maxValue - minValue || 1;
+
+    return data
+      .map((value, index) => {
+        const x = (index / Math.max(data.length - 1, 1)) * 100; // 퍼센트로 변경
+        const y = 100 - ((value - minValue) / range) * 100; // 퍼센트로 변경
+        return `${x},${y}`;
       })
       .join(' ');
   };
-
-  const cpuPoints = generateChartPoints(server.cpuHistory || []);
 
   // 실시간 게이지 컴포넌트
   const CircularGauge = ({
@@ -374,22 +344,6 @@ export default function ServerDetailModal({
                   </div>
                 </div>
               </div>
-            </div>
-            <div className='flex items-center gap-2'>
-              <button
-                onClick={() => loadMetricsHistory(server.id, timeRange)}
-                aria-label='Refresh metrics'
-                className='p-2 text-gray-500 rounded-full hover:bg-gray-200'
-              >
-                <RefreshCw size={18} />
-              </button>
-              <button
-                onClick={() => setSettingsOpen(!isSettingsOpen)}
-                aria-label='Open settings'
-                className='p-2 text-gray-500 rounded-full hover:bg-gray-200'
-              >
-                <Settings size={18} />
-              </button>
             </div>
             <button
               onClick={onClose}
@@ -579,25 +533,6 @@ export default function ServerDetailModal({
                     ))}
                   </div>
                 </div>
-
-                <div className='grid grid-cols-2 gap-4 mt-4'>
-                  <button
-                    onClick={() => console.log('Action: Reboot')}
-                    aria-label='Reboot Server'
-                    className='flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700'
-                  >
-                    <RefreshCw size={16} />
-                    재부팅
-                  </button>
-                  <button
-                    onClick={() => console.log('Action: Open Console')}
-                    aria-label='Open Console'
-                    className='flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-gray-900 bg-gray-100 rounded-md hover:bg-gray-200'
-                  >
-                    <Terminal size={16} />
-                    콘솔 열기
-                  </button>
-                </div>
               </div>
             )}
 
@@ -746,7 +681,9 @@ export default function ServerDetailModal({
                             fill='none'
                             stroke='#ef4444'
                             strokeWidth='0.5'
-                            points={cpuPoints}
+                            points={generateChartPoints(
+                              metricsHistory.map(m => m.cpu)
+                            )}
                             vectorEffect='non-scaling-stroke'
                           />
                           {/* 메모리 라인 */}

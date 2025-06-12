@@ -331,37 +331,13 @@ export default function EnhancedServerModal({
     label: string;
     height?: number;
   }) => {
-    // 🛡️ 데이터 검증 및 정제 (NaN 오류 해결의 핵심)
-    const validData = data
-      .filter(
-        value => typeof value === 'number' && !isNaN(value) && isFinite(value)
-      )
-      .map(value => Math.max(0, Math.min(100, value))); // 0-100 범위로 제한
-
-    // 최소 2개 포인트 보장
-    if (validData.length < 2) {
-      while (validData.length < 10) validData.push(validData[0] ?? 0); // 10개로 채움
-    }
-
-    const points = validData
+    const points = data
       .map((value, index) => {
-        const x = (index / (validData.length - 1)) * 100;
-        const y = 100 - value;
-        return `${x.toFixed(2)},${y.toFixed(2)}`;
+        const x = (index / Math.max(data.length - 1, 1)) * 100;
+        const y = 100 - Math.max(0, Math.min(100, value));
+        return `${x},${y}`;
       })
       .join(' ');
-
-    const areaPoints = `0,100 ${points} 100,100`;
-    const gradientId = `realtime-chart-gradient-${label.toLowerCase()}`;
-
-    const currentValue = validData[validData.length - 1] || 0;
-    const lastPointX =
-      validData.length > 1
-        ? ((validData.length - 1) / (validData.length - 1)) * 100
-        : 50;
-    const lastPointY = 100 - currentValue;
-    const safeLastPointX = isFinite(lastPointX) ? lastPointX : 50;
-    const safeLastPointY = isFinite(lastPointY) ? lastPointY : 50;
 
     return (
       <div className='bg-white rounded-lg p-4 shadow-sm border'>
@@ -373,7 +349,13 @@ export default function EnhancedServerModal({
             preserveAspectRatio='none'
           >
             <defs>
-              <linearGradient id={gradientId} x1='0%' y1='0%' x2='0%' y2='100%'>
+              <linearGradient
+                id={`area-gradient-${label}`}
+                x1='0%'
+                y1='0%'
+                x2='0%'
+                y2='100%'
+              >
                 <stop offset='0%' stopColor={color} stopOpacity='0.3' />
                 <stop offset='100%' stopColor={color} stopOpacity='0.05' />
               </linearGradient>
@@ -391,7 +373,10 @@ export default function EnhancedServerModal({
               />
             ))}
             {/* 영역 */}
-            <polygon fill={`url(#${gradientId})`} points={areaPoints} />
+            <polygon
+              fill={`url(#area-gradient-${label})`}
+              points={`0,100 ${points} 100,100`}
+            />
             {/* 라인 */}
             <polyline
               fill='none'
@@ -402,10 +387,10 @@ export default function EnhancedServerModal({
               className='drop-shadow-sm'
             />
             {/* 최신 값 포인트 */}
-            {validData.length > 0 && (
+            {data.length > 0 && (
               <circle
-                cx={safeLastPointX}
-                cy={safeLastPointY}
+                cx={((data.length - 1) / Math.max(data.length - 1, 1)) * 100}
+                cy={100 - Math.max(0, Math.min(100, data[data.length - 1]))}
                 r='2'
                 fill={color}
                 className='drop-shadow-sm'
@@ -421,7 +406,7 @@ export default function EnhancedServerModal({
         </div>
         <div className='text-right mt-1'>
           <span className='text-sm font-bold' style={{ color }}>
-            {isFinite(currentValue) ? currentValue.toFixed(1) : '0'}%
+            {data[data.length - 1]?.toFixed(1) || '0'}%
           </span>
         </div>
       </div>
@@ -631,7 +616,6 @@ export default function EnhancedServerModal({
                         성능 메트릭
                       </h3>
                       <select
-                        aria-label='Select time range for metrics'
                         value={timeRange}
                         onChange={e => setTimeRange(e.target.value as any)}
                         className='px-3 py-2 border border-gray-300 rounded-lg'

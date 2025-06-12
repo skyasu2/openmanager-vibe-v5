@@ -158,8 +158,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
 
     // 서버 타입별 아이콘
     const getServerIcon = () => {
-      // 방어 로직: type이 없거나 문자열이 아닌 경우 기본값 사용
-      const type = (server.type || 'unknown').toLowerCase();
+      const type = server.type.toLowerCase();
 
       if (type.includes('web')) return <Server className='w-5 h-5' />;
       if (type.includes('database')) return <Database className='w-5 h-5' />;
@@ -241,35 +240,17 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       label: string;
       icon: React.ReactNode;
     }) => {
-      // 🛡️ 데이터 검증 및 정제 (NaN 오류 해결의 핵심)
-      const validData = data
-        .filter(
-          value => typeof value === 'number' && !isNaN(value) && isFinite(value)
-        )
-        .map(value => Math.max(0, Math.min(100, value))); // 0-100 범위로 제한
-
-      // 최소 2개 포인트 보장
-      if (validData.length < 2) {
-        while (validData.length < 2) validData.push(validData[0] ?? 0);
-      }
-
-      const points = validData
+      const points = data
         .map((value, index) => {
-          const x = (index / (validData.length - 1)) * 100;
-          const y = 100 - value; // 정제된 데이터를 사용
-          return `${x.toFixed(2)},${y.toFixed(2)}`;
+          const x = (index / (data.length - 1)) * 100;
+          const y = 100 - Math.max(0, Math.min(100, value));
+          return `${x},${y}`;
         })
         .join(' ');
 
-      const areaPoints = `0,100 ${points} 100,100`;
-
-      const currentValue = validData[validData.length - 1] || 0;
+      const currentValue = data[data.length - 1] || 0;
       const gradientId = `gradient-${server.id}-${label}-${Math.random()}`;
       const glowId = `glow-${server.id}-${label}-${Math.random()}`;
-
-      // 현재 값의 Y 좌표 계산 (안전하게)
-      const currentY = 100 - Math.max(0, Math.min(100, currentValue));
-      const safeCurrentY = isFinite(currentY) ? currentY : 50;
 
       return (
         <div className='flex flex-col items-center group'>
@@ -337,7 +318,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               {/* 영역 채우기 */}
               <polygon
                 fill={`url(#${gradientId})`}
-                points={areaPoints}
+                points={`0,100 ${points} 100,100`}
                 className='transition-all duration-300'
               />
 
@@ -355,7 +336,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               {/* 현재 값 포인트 */}
               <circle
                 cx='100'
-                cy={safeCurrentY}
+                cy={100 - Math.max(0, Math.min(100, currentValue))}
                 r='2.5'
                 fill={color}
                 stroke='white'
@@ -368,7 +349,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             className='text-sm font-bold mt-1 px-2 py-1 rounded-full bg-white/80'
             style={{ color }}
           >
-            {isFinite(currentValue) ? currentValue.toFixed(0) : '0'}%
+            {currentValue.toFixed(0)}%
           </div>
         </div>
       );
