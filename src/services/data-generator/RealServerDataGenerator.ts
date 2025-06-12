@@ -75,15 +75,33 @@ export class RealServerDataGenerator {
     }
 
     try {
-      // Upstash Redis 연결 설정
-      this.redis = new Redis({
-        host: 'charming-condor-46598.upstash.io',
-        port: 6379,
-        password: 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
-        tls: {},
-        maxRetriesPerRequest: 3,
-        lazyConnect: true,
-      });
+      // 환경변수에서 Redis 설정 가져오기 (다중 소스 지원)
+      const redisUrl = process.env.REDIS_URL || process.env.KV_URL;
+      const redisHost =
+        process.env.REDIS_HOST || 'charming-condor-46598.upstash.io';
+      const redisPort = parseInt(process.env.REDIS_PORT || '6379');
+      const redisPassword =
+        process.env.REDIS_PASSWORD ||
+        process.env.KV_REST_API_TOKEN ||
+        'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA';
+
+      // Redis URL이 있으면 우선 사용
+      if (redisUrl) {
+        this.redis = new Redis(redisUrl, {
+          maxRetriesPerRequest: 3,
+          lazyConnect: true,
+        });
+      } else {
+        // 개별 설정으로 연결
+        this.redis = new Redis({
+          host: redisHost,
+          port: redisPort,
+          password: redisPassword,
+          tls: {},
+          maxRetriesPerRequest: 3,
+          lazyConnect: true,
+        });
+      }
 
       // 연결 테스트
       await this.redis.ping();

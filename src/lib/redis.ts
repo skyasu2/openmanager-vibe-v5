@@ -122,11 +122,16 @@ async function initializeRedis(): Promise<RedisClientInterface> {
     return new MockRedis();
   }
 
-  // 2단계: 실제 Redis 사용 시 필수 환경 변수 검증
-  if (
-    !process.env.UPSTASH_REDIS_REST_URL ||
-    !process.env.UPSTASH_REDIS_REST_TOKEN
-  ) {
+  // 2단계: 실제 Redis 사용 시 필수 환경 변수 검증 (다중 소스 지원)
+  const redisUrl =
+    process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+  const redisToken =
+    process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (!redisUrl || !redisToken) {
+    console.error('❌ Redis 환경변수 누락:');
+    console.error('- KV_REST_API_URL 또는 UPSTASH_REDIS_REST_URL 필요');
+    console.error('- KV_REST_API_TOKEN 또는 UPSTASH_REDIS_REST_TOKEN 필요');
     throw new Error('Redis 환경변수가 설정되지 않았습니다');
   }
 
@@ -135,14 +140,14 @@ async function initializeRedis(): Promise<RedisClientInterface> {
     const { Redis } = await import('@upstash/redis');
 
     const redisClient = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      url: redisUrl,
+      token: redisToken,
     });
 
     // 연결 테스트
     await redisClient.ping();
 
-    console.log('✅ Redis 연결 성공:', process.env.UPSTASH_REDIS_REST_URL);
+    console.log('✅ Redis 연결 성공:', redisUrl);
 
     return redisClient as RedisClientInterface;
   } catch (error) {
