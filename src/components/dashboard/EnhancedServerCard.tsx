@@ -158,7 +158,8 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
 
     // 서버 타입별 아이콘
     const getServerIcon = () => {
-      const type = server.type.toLowerCase();
+      // 방어 로직: type이 없거나 문자열이 아닌 경우 기본값 사용
+      const type = (server.type || 'unknown').toLowerCase();
 
       if (type.includes('web')) return <Server className='w-5 h-5' />;
       if (type.includes('database')) return <Database className='w-5 h-5' />;
