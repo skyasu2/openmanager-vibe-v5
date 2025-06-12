@@ -11,6 +11,7 @@ import { AISidebarConfig } from '../types';
 import { useAIChat } from '../hooks/useAIChat';
 import { usePowerStore } from '../../../stores/powerStore';
 import { smartAIAgent } from '../../../services/aiAgent';
+import { useChatHistory } from '../hooks/useChatHistory';
 
 interface ChatInterfaceProps {
   config: AISidebarConfig;
@@ -103,12 +104,62 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const { mode, updateActivity } = usePowerStore();
   const isSystemActive = mode === 'active' || mode === 'monitoring';
 
+  // ✨ 채팅 히스토리 관리
+  const {
+    currentSessionId,
+    createSession,
+    addMessageToSession,
+    updateSessionMessages,
+  } = useChatHistory();
+
+  // 사용자·AI 메시지 발생 시 개별 추가 핸들러
+  const handleUserMessage = useCallback(
+    (msg: any) => {
+      if (currentSessionId) {
+        addMessageToSession(currentSessionId, msg);
+      }
+      config.onMessage?.(msg);
+    },
+    [currentSessionId, addMessageToSession, config]
+  );
+
+  const handleAIResponse = useCallback(
+    (res: any) => {
+      if (currentSessionId) {
+        addMessageToSession(currentSessionId, {
+          id: res.id || Date.now().toString(),
+          type: 'ai',
+          content: res.content,
+          timestamp: new Date().toISOString(),
+          metadata: res.metadata || {},
+        });
+      }
+      config.onResponse?.(res);
+    },
+    [currentSessionId, addMessageToSession, config]
+  );
+
+  // useAIChat 훅 호출 – messages 정의 후 사용 가능
   const { messages, isLoading, error, sendMessage, clearChat } = useAIChat({
     apiEndpoint: config.apiEndpoint,
-    onMessage: config.onMessage,
-    onResponse: config.onResponse,
+    onMessage: handleUserMessage,
+    onResponse: handleAIResponse,
     onError: config.onError,
   });
+
+  // 세션이 없으면 새로 생성
+  useEffect(() => {
+    if (!currentSessionId) {
+      createSession();
+    }
+  }, [currentSessionId, createSession]);
+
+  // 메시지 변경 시 세션에 반영 (자동 저장)
+  useEffect(() => {
+    if (currentSessionId) {
+      updateSessionMessages(currentSessionId, messages);
+    }
+  }, [messages, currentSessionId, updateSessionMessages]);
 
   // 메시지 스크롤
   useEffect(() => {
