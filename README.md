@@ -1,26 +1,27 @@
-# 🚀 OpenManager Vibe v5.43.5 - Enterprise AI 서버 모니터링 솔루션
+# 🚀 OpenManager Vibe v5.50.0 - Enterprise AI 서버 모니터링 솔루션
 
-**최신 버전: v5.43.5** | **상태: 프로덕션 준비 완료** | **품질: 경쟁 수준**
+**최신 버전: v5.50.0** | **상태: 프로덕션 안정 버전** | **품질: 경쟁 수준**
 
-## 🎯 최신 개발 성과 (2025년 6월) - v5.44.0 Enhanced Loading System
+## 🎯 최신 개발 성과 (2025년 6월) - v5.50.0 AI-Powered Admin & Analytics
 
-### ✨ **새로운 기능 (v5.44.0)**
+### ✨ **새로운 기능 (v5.50.0)**
 
-- **🔄 Enhanced Loading System**: 단계별 로딩 상태와 진행률 표시로 사용자 경험 대폭 개선
-- **🛡️ Advanced Error Boundary**: 타입별 에러 분류 및 자동 복구 기능
-- **📊 Smart Progress Indicator**: 실시간 시간 추정 및 시각적 피드백
-- **🚀 Safe Mode Loading**: 에러 발생 시 안전 모드로 자동 전환
-- **📱 Responsive Loading UI**: 모든 디바이스에서 완벽한 로딩 경험
+- **🧠 AI 관리자 대시보드 리팩토링**: 탭 기반 UI를 제거하고, 핵심 기능을 한눈에 파악할 수 있는 그리드 기반의 모던 대시보드로 전면 개편했습니다.
+- **⚡ 실시간 이상 징후 피드**: AI가 탐지한 시스템의 이상 징후(메트릭, 로그 기반)를 실시간으로 대시보드에서 확인할 수 있습니다.
+- **📝 자동 장애 보고서 생성**: 버튼 클릭 한 번으로 최근 장애 상황에 대한 상세한 AI 분석 보고서(육하원칙 기반)를 생성합니다.
+- **🤖 '생각하기' 과정 시각화**: AI 사이드바에서 질문 시, AI의 사고 과정을 단계별로 시각화하여 투명성과 신뢰도를 대폭 향상시켰습니다.
+- **💬 채팅 기록 영속성**: AI 사이드바의 대화 내용이 로컬에 자동 저장되어, 페이지를 새로고침해도 대화가 사라지지 않습니다.
 
 ### ✅ **완료된 핵심 기능**
 
 - **TypeScript 컴파일**: 100% 성공 (0개 오류)
-- **Next.js 빌드**: 95개 페이지 성공적 빌드 (1개 추가)
-- **AI 엔진 시스템**: 11개 엔진 완전 통합
+- **Next.js 빌드**: 103개 페이지 성공적 빌드
+- **AI 엔진 시스템**: 11개 엔진 완전 통합 및 신규 분석 서비스 추가
 - **실시간 모니터링**: 30개 서버 동시 시뮬레이션
 - **데이터베이스 연결**: Supabase + Redis 완전 연동
-- **알림 시스템**: Slack 웹훅 실제 연동 완료
-- **에러 처리**: 완전한 에러 바운더리 및 복구 시스템
+- **알림 시스템**: **브라우저 기반 실시간 알림 시스템** (Slack 완전 제거)
+- **자동 장애 보고서 생성**: AI 기반 자동 리포팅 기능 구현
+- **실시간 이상 징후 탐지**: 통계 및 AI 기반 이상 감지 API 구현
 
 ### 🧠 **Multi-AI 엔진 아키텍처**
 
@@ -38,7 +39,7 @@
 - **MCP 서버**: Render 배포 완료 (<https://openmanager-vibe-v5.onrender.com>)
 - **데이터베이스**: Supabase PostgreSQL (싱가포르 리전)
 - **캐시**: Upstash Redis (TLS 암호화)
-- **알림**: Slack 웹훅 실시간 연동
+- **알림**: **브라우저 알림 및 등급별 필터링**
 - **AI API**: Google AI Studio 베타 연동
 
 ## 🚀 빠른 시작
@@ -88,7 +89,7 @@ npm run dev
 
 - **Next.js 15**: 프론트엔드 및 API 서버
 - **WebSocket**: 실시간 데이터 스트리밍
-- **Slack Integration**: 실시간 알림 및 모니터링
+- **Browser Notifications**: 실시간 알림 및 모니터링 (Slack 대체)
 
 ## 📱 주요 기능
 
@@ -96,18 +97,18 @@ npm run dev
 
 - 30개 서버 동시 모니터링
 - 실시간 메트릭 시각화
-- AI 기반 이상 감지 및 예측
+- **실시간 이상 징후 분석 및 리포팅**
 
 ### 🤖 **Multi-AI 분석**
 
 - 11개 AI 엔진 협업 시스템
-- 실시간 사고 과정 시각화
+- **실시간 사고 과정 시각화**
+- **AI 기반 자동 장애 보고서 생성**
 - 한국어 최적화된 분석 리포트
 
 ### 🔔 **스마트 알림**
 
-- Slack 실시간 웹훅 연동
-- 중요도별 알림 필터링
+- **브라우저 알림 및 등급별 필터링**
 - AI 기반 이상 징후 사전 경고
 
 ### 📈 **예측 분석**
@@ -147,9 +148,6 @@ UPSTASH_REDIS_REST_URL=<redis_url>
 # AI 서비스
 GOOGLE_AI_API_KEY=<google_ai_key>
 GOOGLE_AI_ENABLED=true
-
-# 알림
-SLACK_WEBHOOK_URL=<slack_webhook>
 
 # MCP
 MCP_SERVER_URL=https://openmanager-vibe-v5.onrender.com
@@ -200,16 +198,16 @@ MCP_SERVER_URL=https://openmanager-vibe-v5.onrender.com
 ## 🆘 지원
 
 - **이슈 리포트**: GitHub Issues
-- **실시간 알림**: Slack 채널 연동
+- **실시간 알림**: **브라우저 알림 및 등급별 필터링**
 - **문서**: `/docs` 디렉토리
 - **API 문서**: <http://localhost:3000/api-docs> (개발 모드)
 
 ---
 
-> 🎉 **OpenManager Vibe v5.43.5** - Enterprise급 AI 서버 모니터링의 새로운 기준  
-> 만든 이: AI 개발팀 | 마지막 업데이트: 2025.06.11
+> 🎉 **OpenManager Vibe v5.50.0** - Enterprise급 AI 서버 모니터링의 새로운 기준  
+> 만든 이: AI 개발팀 | 마지막 업데이트: 2025.06.13
 
-## 📋 **최신 업데이트**
+## 📋 **과거 업데이트 로그**
 
 ### **v5.45.1** (2025-06-12) - 스크롤 카드 모달 완전 개선
 
@@ -274,4 +272,4 @@ MCP_SERVER_URL=https://openmanager-vibe-v5.onrender.com
 - **모바일 최적화**: `grid-cols-2 md:grid-cols-4`, 완전 반응형
 - **호버 효과**: `scale-1.02`, `scale-1.05` 인터랙티브 애니메이션
 
-<!-- Vercel Cache Invalidation: 2025-06-13 02:28 AM -->
+<!-- Vercel Cache Invalidation: 2025-06-13 03:30 AM -->

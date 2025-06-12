@@ -2,7 +2,7 @@ import { TimeSeriesMetrics, LogEntry } from '@/types/ai-agent-input-schema';
 import { GoogleAIService } from './GoogleAIService';
 import { createSafeError } from '@/lib/error-handler';
 
-interface Anomaly {
+export interface Anomaly {
   timestamp: Date;
   metric: string;
   value: number;

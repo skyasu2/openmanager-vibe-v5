@@ -187,6 +187,17 @@ export const useAIChat = (options: ChatHookOptions) => {
           },
         };
 
+        // 🐞 AI 응답 내용 검증 로직 추가
+        if (!aiResponse.content || aiResponse.content.trim() === '') {
+          const errorMessage = createSystemMessage(
+            '❌ AI가 비어있는 응답을 반환했습니다. 잠시 후 다시 시도해주세요.'
+          );
+          setMessages(prev => [...prev, errorMessage]);
+          // 에러 콜백도 호출
+          options.onError?.(new Error('AI returned an empty response.'));
+          return; // 빈 응답이므로 여기서 처리 중단
+        }
+
         const aiMessage = formatAIResponse(aiResponse);
 
         // Smart Fallback 메타데이터 추가
