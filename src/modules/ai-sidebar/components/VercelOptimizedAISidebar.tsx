@@ -859,9 +859,8 @@ export const VercelOptimizedAISidebar: React.FC<
                       </div>
                       <div className='text-green-700 dark:text-green-300 text-sm'>
                         <div className='whitespace-pre-wrap'>
-                          {index === currentIndex
-                            ? currentResponse
-                            : conversation.response}
+                          {conversation.response ||
+                            (index === currentIndex ? currentResponse : '')}
                         </div>
                         {index === currentIndex &&
                           streamPhase === 'responding' && (

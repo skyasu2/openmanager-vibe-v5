@@ -123,6 +123,7 @@ export async function POST(request: NextRequest) {
     // 응답 구성
     const response = {
       success: result.success,
+      response: result.answer, // 클라이언트 호환성을 위해 추가
       data: {
         answer: result.answer,
         confidence: result.confidence,
