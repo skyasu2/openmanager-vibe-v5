@@ -493,6 +493,7 @@ export const VercelOptimizedAISidebar: React.FC<
             conv.id === conversationId
               ? {
                   ...conv,
+                  response: currentResponse, // 🔥 핵심 수정: currentResponse를 conversation.response에 저장
                   isComplete: true,
                   thinkingSteps: conv.thinkingSteps.map(step => ({
                     ...step,
@@ -886,7 +887,7 @@ export const VercelOptimizedAISidebar: React.FC<
                       <div className='flex-1'>
                         <div className='flex items-center justify-between mb-2'>
                           <p className='text-green-900 dark:text-green-100 font-medium'>
-                            답변
+                            AI 응답
                           </p>
                           {conversation.isComplete && (
                             <button
