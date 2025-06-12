@@ -534,6 +534,608 @@ export const VercelOptimizedAISidebar: React.FC<
   const currentConversation =
     currentIndex >= 0 ? conversations[currentIndex] : null;
 
+  // 🎯 탭별 콘텐츠 렌더링 함수 추가
+  const renderTabContent = () => {
+    if (activeTab === 'query') {
+      // 기존 대화 히스토리 렌더링
+      return (
+        <>
+          {conversations.map((conversation, index) => (
+            <motion.div
+              key={conversation.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`space-y-3 ${index === currentIndex ? 'ring-2 ring-blue-200 dark:ring-blue-800 rounded-lg p-2' : ''}`}
+            >
+              {/* 질문 */}
+              <div className='bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg'>
+                <div className='flex items-start gap-3'>
+                  <div className='w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0'>
+                    <span className='text-white text-sm font-medium'>Q</span>
+                  </div>
+                  <div className='flex-1'>
+                    <p className='text-blue-900 dark:text-blue-100 font-medium mb-1'>
+                      질문
+                    </p>
+                    <p className='text-blue-700 dark:text-blue-300 text-sm'>
+                      {conversation.question}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 생각하기 과정 */}
+              {(conversation.thinkingSteps.length > 0 ||
+                (index === currentIndex && streamPhase === 'thinking')) && (
+                <div className='border-b dark:border-gray-700'>
+                  <button
+                    onClick={() => toggleConversationExpanded(conversation.id)}
+                    className='w-full flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'
+                  >
+                    <div className='flex items-center space-x-2'>
+                      <motion.div
+                        animate={
+                          index === currentIndex && streamPhase === 'thinking'
+                            ? { rotate: [0, 360], scale: [1, 1.1, 1] }
+                            : {}
+                        }
+                        transition={{
+                          duration: 2,
+                          repeat:
+                            index === currentIndex && streamPhase === 'thinking'
+                              ? Infinity
+                              : 0,
+                        }}
+                        className='w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs'
+                      >
+                        🧠
+                      </motion.div>
+                      <span className='text-sm font-medium text-purple-700 dark:text-purple-300'>
+                        사고 과정{' '}
+                        {index === currentIndex && streamPhase === 'thinking'
+                          ? '(진행 중)'
+                          : '(완료)'}
+                      </span>
+                      <span className='text-xs text-gray-500 dark:text-gray-400'>
+                        ({conversation.thinkingSteps.length}개 단계)
+                      </span>
+                    </div>
+                    <motion.div
+                      animate={{ rotate: isThinkingExpanded ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <svg
+                        className='w-4 h-4 text-gray-400'
+                        fill='none'
+                        stroke='currentColor'
+                        viewBox='0 0 24 24'
+                      >
+                        <path
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          strokeWidth={2}
+                          d='M19 9l-7 7-7-7'
+                        />
+                      </svg>
+                    </motion.div>
+                  </button>
+
+                  <AnimatePresence>
+                    {expandedConversations.has(conversation.id) && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className='overflow-hidden'
+                      >
+                        <div className='px-4 pb-3 space-y-3'>
+                          {/* 📋 시스템 로그 헤더 */}
+                          <div className='flex items-center justify-between'>
+                            <div className='flex items-center gap-2'>
+                              <span className='text-xs font-medium text-gray-600 dark:text-gray-400'>
+                                시스템 로그
+                              </span>
+                              <span className='text-xs text-gray-500 dark:text-gray-500'>
+                                ({conversation.systemLogs.length}개 항목)
+                              </span>
+                            </div>
+                            <button
+                              onClick={() =>
+                                setLogViewMode(
+                                  logViewMode === 'compact'
+                                    ? 'detailed'
+                                    : 'compact'
+                                )
+                              }
+                              className='text-xs text-blue-600 hover:text-blue-800 transition-colors'
+                            >
+                              {logViewMode === 'compact' ? (
+                                <Eye className='w-3 h-3' />
+                              ) : (
+                                <EyeOff className='w-3 h-3' />
+                              )}
+                            </button>
+                          </div>
+
+                          {/* 💾 실제 시스템 로그 표시 */}
+                          <div className='bg-gray-900 dark:bg-black rounded-lg p-3 max-h-40 overflow-y-auto'>
+                            <div className='space-y-1 font-mono text-xs'>
+                              {conversation.systemLogs.map((log, logIndex) => (
+                                <motion.div
+                                  key={logIndex}
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: logIndex * 0.1 }}
+                                  className={`flex items-start gap-2 ${
+                                    log.level === 'error'
+                                      ? 'text-red-400'
+                                      : log.level === 'warning'
+                                        ? 'text-yellow-400'
+                                        : log.level === 'info'
+                                          ? 'text-cyan-400'
+                                          : 'text-gray-400'
+                                  }`}
+                                >
+                                  <span className='text-gray-500'>
+                                    {new Date(
+                                      log.timestamp
+                                    ).toLocaleTimeString()}
+                                  </span>
+                                  <span className='font-medium'>
+                                    [{log.level.toUpperCase()}]
+                                  </span>
+                                  <span className='text-gray-300'>
+                                    {log.source}:
+                                  </span>
+                                  <span className='flex-1'>{log.message}</span>
+                                </motion.div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* 🧠 사고 과정 단계별 표시 */}
+                          <div className='bg-gray-900 dark:bg-black rounded-lg p-3'>
+                            <div className='space-y-2'>
+                              <div className='flex items-center gap-2 mb-2'>
+                                <Brain className='w-4 h-4 text-purple-400' />
+                                <span className='text-xs font-medium text-purple-400'>
+                                  AI 사고 과정
+                                </span>
+                              </div>
+                              <div className='space-y-1.5 font-mono text-xs'>
+                                {conversation.thinkingSteps.map(
+                                  (step, stepIndex) => (
+                                    <div key={step.id} className='space-y-1'>
+                                      <motion.div
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{
+                                          delay: stepIndex * 0.1,
+                                        }}
+                                        className={`flex items-center gap-2 ${
+                                          index === currentIndex &&
+                                          stepIndex === currentStepIndex
+                                            ? 'text-cyan-300 animate-pulse'
+                                            : 'text-cyan-400'
+                                        }`}
+                                      >
+                                        <div
+                                          className={`w-2 h-2 rounded-full ${
+                                            step.completed
+                                              ? 'bg-green-400'
+                                              : 'bg-yellow-400'
+                                          }`}
+                                        />
+                                        <span>{step.title}</span>
+                                        {step.logs.length > 0 && (
+                                          <button
+                                            onClick={() =>
+                                              toggleLogView(step.id)
+                                            }
+                                            className='text-xs text-gray-500 hover:text-gray-300 transition-colors'
+                                          >
+                                            {showLogs[step.id] ? (
+                                              <ChevronUp className='w-3 h-3' />
+                                            ) : (
+                                              <ChevronDown className='w-3 h-3' />
+                                            )}
+                                          </button>
+                                        )}
+                                      </motion.div>
+
+                                      {/* 단계별 세부 로그 */}
+                                      <AnimatePresence>
+                                        {showLogs[step.id] &&
+                                          step.logs.length > 0 && (
+                                            <motion.div
+                                              initial={{
+                                                height: 0,
+                                                opacity: 0,
+                                              }}
+                                              animate={{
+                                                height: 'auto',
+                                                opacity: 1,
+                                              }}
+                                              exit={{ height: 0, opacity: 0 }}
+                                              transition={{ duration: 0.2 }}
+                                              className='ml-4 pl-2 border-l border-gray-700 space-y-1'
+                                            >
+                                              {step.logs.map((log, idx) => (
+                                                <div
+                                                  key={idx}
+                                                  className='text-xs text-gray-400'
+                                                >
+                                                  <span className='text-gray-500'>
+                                                    {new Date(
+                                                      log.timestamp
+                                                    ).toLocaleTimeString()}
+                                                  </span>{' '}
+                                                  <span
+                                                    className={`font-medium ${
+                                                      log.level === 'error'
+                                                        ? 'text-red-400'
+                                                        : log.level ===
+                                                            'warning'
+                                                          ? 'text-yellow-400'
+                                                          : 'text-cyan-400'
+                                                    }`}
+                                                  >
+                                                    [{log.level}]
+                                                  </span>{' '}
+                                                  {log.message}
+                                                  {logViewMode === 'detailed' &&
+                                                    log.metadata && (
+                                                      <div className='mt-1 text-gray-500 text-xs'>
+                                                        {JSON.stringify(
+                                                          log.metadata,
+                                                          null,
+                                                          2
+                                                        )}
+                                                      </div>
+                                                    )}
+                                                </div>
+                                              ))}
+                                            </motion.div>
+                                          )}
+                                      </AnimatePresence>
+                                    </div>
+                                  )
+                                )}
+
+                                {index === currentIndex &&
+                                  streamPhase === 'thinking' && (
+                                    <motion.div
+                                      initial={{ opacity: 0 }}
+                                      animate={{ opacity: [0.5, 1, 0.5] }}
+                                      transition={{
+                                        duration: 1.5,
+                                        repeat: Infinity,
+                                      }}
+                                      className='flex items-center gap-2 text-gray-400'
+                                    >
+                                      <Loader2 className='w-3 h-3 animate-spin' />
+                                      <span className='text-xs'>
+                                        AI가 생각하고 있습니다...
+                                      </span>
+                                    </motion.div>
+                                  )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+
+              {/* AI 응답 */}
+              {(conversation.response ||
+                (index === currentIndex && streamPhase === 'responding')) && (
+                <div className='bg-green-50 dark:bg-green-900/20 p-4 rounded-lg'>
+                  <div className='flex items-start gap-3'>
+                    <div className='w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0'>
+                      <span className='text-white text-sm font-medium'>AI</span>
+                    </div>
+                    <div className='flex-1'>
+                      <div className='flex items-center justify-between mb-2'>
+                        <p className='text-green-900 dark:text-green-100 font-medium'>
+                          AI 응답
+                        </p>
+                        {conversation.isComplete && (
+                          <button
+                            onClick={() =>
+                              handleStreamingRequest(conversation.question)
+                            }
+                            disabled={isProcessing}
+                            className='text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 transition-colors'
+                            title='같은 질문으로 재질문하기'
+                          >
+                            <RefreshCw className='w-3 h-3' />
+                            재질문
+                          </button>
+                        )}
+                      </div>
+                      <div className='text-green-700 dark:text-green-300 text-sm'>
+                        <div className='whitespace-pre-wrap'>
+                          {index === currentIndex
+                            ? currentResponse
+                            : conversation.response}
+                        </div>
+                        {index === currentIndex &&
+                          streamPhase === 'responding' && (
+                            <motion.span
+                              animate={{ opacity: [1, 0] }}
+                              transition={{ duration: 0.8, repeat: Infinity }}
+                              className='ml-1'
+                            >
+                              ▋
+                            </motion.span>
+                          )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          ))}
+        </>
+      );
+    }
+
+    // 🔮 이상 감지 예측 탭
+    if (activeTab === 'analysis') {
+      return (
+        <div className='flex-1 flex items-center justify-center p-8'>
+          <div className='text-center max-w-md'>
+            <div className='w-16 h-16 bg-gradient-to-br from-purple-50 to-pink-50 rounded-full flex items-center justify-center mx-auto mb-4'>
+              <TrendingUp className='w-8 h-8 text-purple-600' />
+            </div>
+            <h3 className='text-lg font-semibold text-gray-900 mb-2'>
+              이상감지 및 예측
+            </h3>
+            <p className='text-gray-600 text-sm mb-4 leading-relaxed'>
+              AI 모델을 통해 시스템 이상을 사전에 감지하고 미래 문제를
+              예측합니다.
+            </p>
+            <div className='bg-gray-50 rounded-lg p-4 mb-4'>
+              <h4 className='text-sm font-medium text-gray-700 mb-2'>
+                주요 기능
+              </h4>
+              <div className='space-y-1'>
+                {[
+                  '예측 알고리즘',
+                  '패턴 분석',
+                  '임계값 모니터링',
+                  '트렌드 분석',
+                ].map((feature, index) => (
+                  <div
+                    key={index}
+                    className='flex items-center text-xs text-gray-600'
+                  >
+                    <div className='w-1 h-1 bg-gray-400 rounded-full mr-2'></div>
+                    {feature}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <button
+              onClick={() =>
+                handleStreamingRequest('서버 이상 감지 분석을 수행해주세요')
+              }
+              disabled={isProcessing}
+              className='bg-purple-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-600 disabled:opacity-50 transition-colors'
+            >
+              이상 감지 시작
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // 🔍 로그 검색 탭
+    if (activeTab === 'logs') {
+      return (
+        <div className='flex-1 flex items-center justify-center p-8'>
+          <div className='text-center max-w-md'>
+            <div className='w-16 h-16 bg-gradient-to-br from-yellow-50 to-amber-50 rounded-full flex items-center justify-center mx-auto mb-4'>
+              <Search className='w-8 h-8 text-yellow-600' />
+            </div>
+            <h3 className='text-lg font-semibold text-gray-900 mb-2'>
+              로그 검색 및 분석
+            </h3>
+            <p className='text-gray-600 text-sm mb-4 leading-relaxed'>
+              시스템 로그를 빠르게 검색하고 패턴을 분석하여 문제를 신속하게
+              파악합니다.
+            </p>
+            <div className='bg-gray-50 rounded-lg p-4 mb-4'>
+              <h4 className='text-sm font-medium text-gray-700 mb-2'>
+                주요 기능
+              </h4>
+              <div className='space-y-1'>
+                {[
+                  '전문 로그 검색',
+                  '패턴 매칭',
+                  '시간대별 필터링',
+                  '로그 상관관계 분석',
+                ].map((feature, index) => (
+                  <div
+                    key={index}
+                    className='flex items-center text-xs text-gray-600'
+                  >
+                    <div className='w-1 h-1 bg-gray-400 rounded-full mr-2'></div>
+                    {feature}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <button
+              onClick={() =>
+                handleStreamingRequest(
+                  '최근 로그를 분석하고 문제점을 찾아주세요'
+                )
+              }
+              disabled={isProcessing}
+              className='bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-yellow-600 disabled:opacity-50 transition-colors'
+            >
+              로그 분석 시작
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // 📢 슬랙 알림 탭
+    if (activeTab === 'notification') {
+      return (
+        <div className='flex-1 flex items-center justify-center p-8'>
+          <div className='text-center max-w-md'>
+            <div className='w-16 h-16 bg-gradient-to-br from-green-50 to-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4'>
+              <Slack className='w-8 h-8 text-green-600' />
+            </div>
+            <h3 className='text-lg font-semibold text-gray-900 mb-2'>
+              슬랙 알림 관리
+            </h3>
+            <p className='text-gray-600 text-sm mb-4 leading-relaxed'>
+              시스템 상태를 실시간으로 모니터링하고 중요한 이벤트를 슬랙으로
+              알림받습니다.
+            </p>
+            <div className='bg-gray-50 rounded-lg p-4 mb-4'>
+              <h4 className='text-sm font-medium text-gray-700 mb-2'>
+                알림 설정
+              </h4>
+              <div className='space-y-2 text-xs text-gray-600'>
+                <div className='flex justify-between'>
+                  <span>장애 알림</span>
+                  <span className='text-green-600'>활성화</span>
+                </div>
+                <div className='flex justify-between'>
+                  <span>성능 경고</span>
+                  <span className='text-green-600'>활성화</span>
+                </div>
+                <div className='flex justify-between'>
+                  <span>AI 분석 결과</span>
+                  <span className='text-yellow-600'>대기</span>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() =>
+                handleStreamingRequest('슬랙 알림 테스트를 실행해주세요')
+              }
+              disabled={isProcessing}
+              className='bg-green-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-600 disabled:opacity-50 transition-colors'
+            >
+              알림 테스트
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // 🧠 관리자/학습 탭
+    if (activeTab === 'admin') {
+      return (
+        <div className='flex-1 flex items-center justify-center p-8'>
+          <div className='text-center max-w-md'>
+            <div className='w-16 h-16 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-full flex items-center justify-center mx-auto mb-4'>
+              <Brain className='w-8 h-8 text-indigo-600' />
+            </div>
+            <h3 className='text-lg font-semibold text-gray-900 mb-2'>
+              관리자 페이지 및 AI 학습
+            </h3>
+            <p className='text-gray-600 text-sm mb-4 leading-relaxed'>
+              AI 에이전트의 학습 데이터를 관리하고 시스템 전체를 제어합니다.
+            </p>
+            <div className='bg-gray-50 rounded-lg p-4 mb-4'>
+              <h4 className='text-sm font-medium text-gray-700 mb-2'>
+                주요 기능
+              </h4>
+              <div className='space-y-1'>
+                {[
+                  '학습 데이터 관리',
+                  '모델 성능 모니터링',
+                  '사용자 권한 관리',
+                  'AI 튜닝',
+                ].map((feature, index) => (
+                  <div
+                    key={index}
+                    className='flex items-center text-xs text-gray-600'
+                  >
+                    <div className='w-1 h-1 bg-gray-400 rounded-full mr-2'></div>
+                    {feature}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <button
+              onClick={() => window.open('/admin', '_blank')}
+              className='bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-600 transition-colors'
+            >
+              관리자 페이지 열기
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ⚙️ AI 설정 탭
+    if (activeTab === 'ai-settings') {
+      return (
+        <div className='flex-1 flex items-center justify-center p-8'>
+          <div className='text-center max-w-md'>
+            <div className='w-16 h-16 bg-gradient-to-br from-rose-50 to-pink-50 rounded-full flex items-center justify-center mx-auto mb-4'>
+              <Database className='w-8 h-8 text-rose-600' />
+            </div>
+            <h3 className='text-lg font-semibold text-gray-900 mb-2'>
+              AI 모델 및 API 설정
+            </h3>
+            <p className='text-gray-600 text-sm mb-4 leading-relaxed'>
+              AI 에이전트가 사용할 다양한 AI 모델과 API를 설정하고 관리합니다.
+            </p>
+            <div className='bg-gray-50 rounded-lg p-4 mb-4'>
+              <h4 className='text-sm font-medium text-gray-700 mb-2'>
+                지원 모델
+              </h4>
+              <div className='space-y-1'>
+                {[
+                  'OpenAI API 설정',
+                  'Anthropic Claude 설정',
+                  '🧪 Google AI Studio (베타)',
+                  'MCP 프로토콜 설정',
+                  '모델 성능 비교',
+                  'API 사용량 모니터링',
+                ].map((feature, index) => (
+                  <div
+                    key={index}
+                    className='flex items-center text-xs text-gray-600'
+                  >
+                    <div className='w-1 h-1 bg-gray-400 rounded-full mr-2'></div>
+                    {feature}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <button
+              onClick={() =>
+                handleStreamingRequest(
+                  'AI 엔진 상태를 확인하고 설정을 검토해주세요'
+                )
+              }
+              disabled={isProcessing}
+              className='bg-rose-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-rose-600 disabled:opacity-50 transition-colors'
+            >
+              AI 설정 확인
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   if (!isOpen) {
     return null;
   }
@@ -575,381 +1177,33 @@ export const VercelOptimizedAISidebar: React.FC<
         {/* 메인 콘텐츠 */}
         <div className='flex-1 overflow-hidden flex flex-col'>
           <div ref={scrollRef} className='flex-1 overflow-y-auto p-4 space-y-4'>
-            {/* 대화 히스토리 - 상단으로 이동 */}
-            {conversations.map((conversation, index) => (
-              <motion.div
-                key={conversation.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`space-y-3 ${index === currentIndex ? 'ring-2 ring-blue-200 dark:ring-blue-800 rounded-lg p-2' : ''}`}
-              >
-                {/* 질문 */}
-                <div className='bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg'>
-                  <div className='flex items-start gap-3'>
-                    <div className='w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0'>
-                      <span className='text-white text-sm font-medium'>Q</span>
-                    </div>
-                    <div className='flex-1'>
-                      <p className='text-blue-900 dark:text-blue-100 font-medium mb-1'>
-                        질문
-                      </p>
-                      <p className='text-blue-700 dark:text-blue-300 text-sm'>
-                        {conversation.question}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 생각하기 과정 */}
-                {(conversation.thinkingSteps.length > 0 ||
-                  (index === currentIndex && streamPhase === 'thinking')) && (
-                  <div className='border-b dark:border-gray-700'>
-                    <button
-                      onClick={() =>
-                        toggleConversationExpanded(conversation.id)
-                      }
-                      className='w-full flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'
-                    >
-                      <div className='flex items-center space-x-2'>
-                        <motion.div
-                          animate={
-                            index === currentIndex && streamPhase === 'thinking'
-                              ? { rotate: [0, 360], scale: [1, 1.1, 1] }
-                              : {}
-                          }
-                          transition={{
-                            duration: 2,
-                            repeat:
-                              index === currentIndex &&
-                              streamPhase === 'thinking'
-                                ? Infinity
-                                : 0,
-                          }}
-                          className='w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs'
-                        >
-                          🧠
-                        </motion.div>
-                        <span className='text-sm font-medium text-purple-700 dark:text-purple-300'>
-                          사고 과정{' '}
-                          {index === currentIndex && streamPhase === 'thinking'
-                            ? '(진행 중)'
-                            : '(완료)'}
-                        </span>
-                        <span className='text-xs text-gray-500 dark:text-gray-400'>
-                          ({conversation.thinkingSteps.length}개 단계)
-                        </span>
-                      </div>
-                      <motion.div
-                        animate={{ rotate: isThinkingExpanded ? 180 : 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <svg
-                          className='w-4 h-4 text-gray-400'
-                          fill='none'
-                          stroke='currentColor'
-                          viewBox='0 0 24 24'
-                        >
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M19 9l-7 7-7-7'
-                          />
-                        </svg>
-                      </motion.div>
-                    </button>
-
-                    <AnimatePresence>
-                      {expandedConversations.has(conversation.id) && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className='overflow-hidden'
-                        >
-                          <div className='px-4 pb-3 space-y-3'>
-                            {/* 📋 시스템 로그 헤더 */}
-                            <div className='flex items-center justify-between'>
-                              <div className='flex items-center gap-2'>
-                                <span className='text-xs font-medium text-gray-600 dark:text-gray-400'>
-                                  시스템 로그
-                                </span>
-                                <span className='text-xs text-gray-500 dark:text-gray-500'>
-                                  ({conversation.systemLogs.length}개 항목)
-                                </span>
-                              </div>
-                              <button
-                                onClick={() =>
-                                  setLogViewMode(
-                                    logViewMode === 'compact'
-                                      ? 'detailed'
-                                      : 'compact'
-                                  )
-                                }
-                                className='text-xs text-blue-600 hover:text-blue-800 transition-colors'
-                              >
-                                {logViewMode === 'compact' ? (
-                                  <Eye className='w-3 h-3' />
-                                ) : (
-                                  <EyeOff className='w-3 h-3' />
-                                )}
-                              </button>
-                            </div>
-
-                            {/* 💾 실제 시스템 로그 표시 */}
-                            <div className='bg-gray-900 dark:bg-black rounded-lg p-3 max-h-40 overflow-y-auto'>
-                              <div className='space-y-1 font-mono text-xs'>
-                                {conversation.systemLogs.map(
-                                  (log, logIndex) => (
-                                    <motion.div
-                                      key={logIndex}
-                                      initial={{ opacity: 0, y: 10 }}
-                                      animate={{ opacity: 1, y: 0 }}
-                                      transition={{ delay: logIndex * 0.1 }}
-                                      className={`flex items-start gap-2 ${
-                                        log.level === 'error'
-                                          ? 'text-red-400'
-                                          : log.level === 'warning'
-                                            ? 'text-yellow-400'
-                                            : log.level === 'info'
-                                              ? 'text-cyan-400'
-                                              : 'text-gray-400'
-                                      }`}
-                                    >
-                                      <span className='text-gray-500'>
-                                        {new Date(
-                                          log.timestamp
-                                        ).toLocaleTimeString()}
-                                      </span>
-                                      <span className='font-medium'>
-                                        [{log.level.toUpperCase()}]
-                                      </span>
-                                      <span className='text-gray-300'>
-                                        {log.source}:
-                                      </span>
-                                      <span className='flex-1'>
-                                        {log.message}
-                                      </span>
-                                    </motion.div>
-                                  )
-                                )}
-                              </div>
-                            </div>
-
-                            {/* 🧠 사고 과정 단계별 표시 */}
-                            <div className='bg-gray-900 dark:bg-black rounded-lg p-3'>
-                              <div className='space-y-2'>
-                                <div className='flex items-center gap-2 mb-2'>
-                                  <Brain className='w-4 h-4 text-purple-400' />
-                                  <span className='text-xs font-medium text-purple-400'>
-                                    AI 사고 과정
-                                  </span>
-                                </div>
-                                <div className='space-y-1.5 font-mono text-xs'>
-                                  {conversation.thinkingSteps.map(
-                                    (step, stepIndex) => (
-                                      <div key={step.id} className='space-y-1'>
-                                        <motion.div
-                                          initial={{ opacity: 0, x: -20 }}
-                                          animate={{ opacity: 1, x: 0 }}
-                                          transition={{
-                                            delay: stepIndex * 0.1,
-                                          }}
-                                          className={`flex items-center gap-2 ${
-                                            index === currentIndex &&
-                                            stepIndex === currentStepIndex
-                                              ? 'text-cyan-300 animate-pulse'
-                                              : 'text-cyan-400'
-                                          }`}
-                                        >
-                                          <div
-                                            className={`w-2 h-2 rounded-full ${
-                                              step.completed
-                                                ? 'bg-green-400'
-                                                : 'bg-yellow-400'
-                                            }`}
-                                          />
-                                          <span>{step.title}</span>
-                                          {step.logs.length > 0 && (
-                                            <button
-                                              onClick={() =>
-                                                toggleLogView(step.id)
-                                              }
-                                              className='text-xs text-gray-500 hover:text-gray-300 transition-colors'
-                                            >
-                                              {showLogs[step.id] ? (
-                                                <ChevronUp className='w-3 h-3' />
-                                              ) : (
-                                                <ChevronDown className='w-3 h-3' />
-                                              )}
-                                            </button>
-                                          )}
-                                        </motion.div>
-
-                                        {/* 단계별 세부 로그 */}
-                                        <AnimatePresence>
-                                          {showLogs[step.id] &&
-                                            step.logs.length > 0 && (
-                                              <motion.div
-                                                initial={{
-                                                  height: 0,
-                                                  opacity: 0,
-                                                }}
-                                                animate={{
-                                                  height: 'auto',
-                                                  opacity: 1,
-                                                }}
-                                                exit={{ height: 0, opacity: 0 }}
-                                                transition={{ duration: 0.2 }}
-                                                className='ml-4 pl-2 border-l border-gray-700 space-y-1'
-                                              >
-                                                {step.logs.map((log, idx) => (
-                                                  <div
-                                                    key={idx}
-                                                    className='text-xs text-gray-400'
-                                                  >
-                                                    <span className='text-gray-500'>
-                                                      {new Date(
-                                                        log.timestamp
-                                                      ).toLocaleTimeString()}
-                                                    </span>{' '}
-                                                    <span
-                                                      className={`font-medium ${
-                                                        log.level === 'error'
-                                                          ? 'text-red-400'
-                                                          : log.level ===
-                                                              'warning'
-                                                            ? 'text-yellow-400'
-                                                            : 'text-cyan-400'
-                                                      }`}
-                                                    >
-                                                      [{log.level}]
-                                                    </span>{' '}
-                                                    {log.message}
-                                                    {logViewMode ===
-                                                      'detailed' &&
-                                                      log.metadata && (
-                                                        <div className='mt-1 text-gray-500 text-xs'>
-                                                          {JSON.stringify(
-                                                            log.metadata,
-                                                            null,
-                                                            2
-                                                          )}
-                                                        </div>
-                                                      )}
-                                                  </div>
-                                                ))}
-                                              </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                      </div>
-                                    )
-                                  )}
-
-                                  {index === currentIndex &&
-                                    streamPhase === 'thinking' && (
-                                      <motion.div
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: [0.5, 1, 0.5] }}
-                                        transition={{
-                                          duration: 1.5,
-                                          repeat: Infinity,
-                                        }}
-                                        className='flex items-center gap-2 text-gray-400'
-                                      >
-                                        <Loader2 className='w-3 h-3 animate-spin' />
-                                        <span className='text-xs'>
-                                          AI가 생각하고 있습니다...
-                                        </span>
-                                      </motion.div>
-                                    )}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                )}
-
-                {/* AI 응답 */}
-                {(conversation.response ||
-                  (index === currentIndex && streamPhase === 'responding')) && (
-                  <div className='bg-green-50 dark:bg-green-900/20 p-4 rounded-lg'>
-                    <div className='flex items-start gap-3'>
-                      <div className='w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0'>
-                        <span className='text-white text-sm font-medium'>
-                          AI
-                        </span>
-                      </div>
-                      <div className='flex-1'>
-                        <div className='flex items-center justify-between mb-2'>
-                          <p className='text-green-900 dark:text-green-100 font-medium'>
-                            AI 응답
-                          </p>
-                          {conversation.isComplete && (
-                            <button
-                              onClick={() =>
-                                handleStreamingRequest(conversation.question)
-                              }
-                              disabled={isProcessing}
-                              className='text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 transition-colors'
-                              title='같은 질문으로 재질문하기'
-                            >
-                              <RefreshCw className='w-3 h-3' />
-                              재질문
-                            </button>
-                          )}
-                        </div>
-                        <div className='text-green-700 dark:text-green-300 text-sm'>
-                          <div className='whitespace-pre-wrap'>
-                            {index === currentIndex
-                              ? currentResponse
-                              : conversation.response}
-                          </div>
-                          {index === currentIndex &&
-                            streamPhase === 'responding' && (
-                              <motion.span
-                                animate={{ opacity: [1, 0] }}
-                                transition={{ duration: 0.8, repeat: Infinity }}
-                                className='ml-1'
-                              >
-                                ▋
-                              </motion.span>
-                            )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-            ))}
+            {renderTabContent()}
           </div>
 
-          {/* 하단 고정 영역 - 프리셋 질문과 입력창 */}
-          <div className='border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'>
-            {/* 컴팩트 질문 프리셋 - 하단으로 이동 */}
-            <div className='p-4 border-b border-gray-100 dark:border-gray-800'>
-              <CompactQuestionTemplates
-                onQuestionSelect={handleStreamingRequest}
-                isProcessing={isProcessing}
-              />
-            </div>
+          {/* 하단 고정 영역 - 질문 탭에서만 표시 */}
+          {activeTab === 'query' && (
+            <div className='border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'>
+              {/* 컴팩트 질문 프리셋 */}
+              <div className='p-4 border-b border-gray-100 dark:border-gray-800'>
+                <CompactQuestionTemplates
+                  onQuestionSelect={handleStreamingRequest}
+                  isProcessing={isProcessing}
+                />
+              </div>
 
-            {/* 질문 입력창 - 최하단으로 이동 */}
-            <div className='p-4'>
-              <QuestionInput
-                onSubmit={handleStreamingRequest}
-                isProcessing={isProcessing}
-                placeholder='AI에게 서버 관리에 대해 질문해보세요...'
-              />
+              {/* 질문 입력창 */}
+              <div className='p-4'>
+                <QuestionInput
+                  onSubmit={handleStreamingRequest}
+                  isProcessing={isProcessing}
+                  placeholder='AI에게 서버 관리에 대해 질문해보세요...'
+                />
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* 히스토리 네비게이션 */}
-          {conversations.length > 1 && (
+          {/* 히스토리 네비게이션 - 질문 탭에서만 표시 */}
+          {activeTab === 'query' && conversations.length > 1 && (
             <div className='p-3 border-b border-gray-100 dark:border-gray-800'>
               <div className='flex items-center justify-between'>
                 <button
@@ -1015,7 +1269,7 @@ export const VercelOptimizedAISidebar: React.FC<
         </div>
       </div>
 
-      {/* 기능 메뉴 (오른쪽) - AISidebarV5에서 복원 */}
+      {/* 기능 메뉴 (오른쪽) */}
       <div className='w-16 bg-gradient-to-b from-purple-500 to-pink-500 flex flex-col items-center py-2 gap-0.5'>
         {FUNCTION_MENU.map(item => {
           const Icon = item.icon;
