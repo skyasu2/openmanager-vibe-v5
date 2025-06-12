@@ -1168,7 +1168,15 @@ export const VercelOptimizedAISidebar: React.FC<
           </div>
           <button
             onClick={onClose}
-            className='p-2 text-gray-400 hover:text-gray-600 transition-colors'
+            className='p-1 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-100'
+            style={{
+              width: '32px',
+              height: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            title='사이드바 닫기'
           >
             <X className='w-5 h-5' />
           </button>
@@ -1209,7 +1217,15 @@ export const VercelOptimizedAISidebar: React.FC<
                 <button
                   onClick={() => handleNavigate(Math.max(0, currentIndex - 1))}
                   disabled={currentIndex <= 0 || isProcessing}
-                  className='p-2 rounded-lg bg-gray-100 dark:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors'
+                  className='p-1 rounded-lg bg-gray-100 dark:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors'
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  title='이전 대화'
                 >
                   <svg
                     className='w-4 h-4'
@@ -1239,7 +1255,15 @@ export const VercelOptimizedAISidebar: React.FC<
                   disabled={
                     currentIndex >= conversations.length - 1 || isProcessing
                   }
-                  className='p-2 rounded-lg bg-gray-100 dark:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors'
+                  className='p-1 rounded-lg bg-gray-100 dark:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors'
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  title='다음 대화'
                 >
                   <svg
                     className='w-4 h-4'
@@ -1279,12 +1303,19 @@ export const VercelOptimizedAISidebar: React.FC<
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`relative group p-2.5 rounded-lg transition-all duration-300 ${
+              className={`relative group p-1 rounded-lg transition-all duration-300 ${
                 isActive
                   ? 'bg-white shadow-lg transform scale-110'
                   : 'hover:bg-white/20 hover:scale-105'
               }`}
               title={item.label}
+              style={{
+                width: '28px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
               <Icon
                 className={`w-4 h-4 transition-colors ${
