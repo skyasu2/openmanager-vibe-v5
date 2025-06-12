@@ -54,6 +54,7 @@ export function UnifiedSettingsPanel({
   buttonRef,
 }: UnifiedSettingsPanelProps) {
   const [activeTab, setActiveTab] = useState<SettingsTab>('ai');
+  const [isClient, setIsClient] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
   // 커스텀 훅 사용
@@ -82,6 +83,10 @@ export function UnifiedSettingsPanel({
 
   // 새로운 인라인 피드백 시스템 사용
   const { success, error, info, warning, loading, clear } = useInlineFeedback();
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // ESC 키로 모달 닫기
   useEffect(() => {
@@ -649,77 +654,122 @@ export function UnifiedSettingsPanel({
     }
   };
 
-  if (typeof window === 'undefined') return null;
+  if (!isClient) {
+    return null;
+  }
+
+  if (!isOpen) return null;
 
   return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className='fixed inset-0 bg-black/70 z-[10000] flex items-center justify-center p-4'
-        >
+        <>
+          {/* 오버레이 */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className='fixed inset-0 bg-black/70 z-[999]'
+            onClick={onClose}
+          />
+
+          {/* 설정 패널 */}
           <motion.div
             ref={modalRef}
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            className='w-full max-w-4xl max-h-[90vh] bg-gray-900/95 border border-white/10 rounded-xl shadow-2xl overflow-hidden'
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 220 }}
+            className='fixed top-0 right-0 h-full w-[clamp(300px,90%,520px)] bg-gray-900/90 backdrop-blur-lg border-l border-white/10 shadow-2xl z-[1000] flex flex-col'
+            role='dialog'
+            aria-modal='true'
+            aria-labelledby='settings-panel-title'
           >
             {/* 헤더 */}
-            <div className='flex items-center justify-between p-6 border-b border-white/10'>
-              <h2 className='text-xl font-bold text-white'>통합 설정 제어판</h2>
+            <header className='flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0'>
+              <h2
+                id='settings-panel-title'
+                className='text-xl font-bold text-white flex items-center gap-2'
+              >
+                <Settings className='w-6 h-6' />
+                통합 설정 제어판
+              </h2>
               <motion.button
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={onClose}
-                className='p-2 hover:bg-white/10 rounded-lg transition-colors'
+                className='p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10'
+                aria-label='Close settings panel'
               >
-                <X className='w-5 h-5 text-white' />
+                <X className='w-5 h-5' />
               </motion.button>
-            </div>
+            </header>
 
             {/* 탭 네비게이션 */}
-            <div className='flex border-b border-white/10'>
-              {[
-                { id: 'ai', label: 'AI 에이전트', icon: Bot },
-                { id: 'generator', label: '데이터 생성기', icon: Database },
-                { id: 'monitor', label: '모니터링', icon: Monitor },
-                { id: 'general', label: '일반 설정', icon: Settings },
-              ].map(tab => (
-                <motion.button
-                  key={tab.id}
-                  whileHover={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
-                  onClick={() => setActiveTab(tab.id as SettingsTab)}
-                  className={`flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
-                    activeTab === tab.id
-                      ? 'text-purple-300 border-purple-400'
-                      : 'text-gray-400 border-transparent hover:text-white'
-                  }`}
-                >
-                  <div className='flex items-center justify-center gap-2'>
-                    <tab.icon className='w-4 h-4' />
-                    {tab.label}
-                  </div>
-                </motion.button>
-              ))}
-            </div>
-
-            {/* 컨텐츠 */}
-            <div className='p-6 overflow-y-auto max-h-[calc(90vh-140px)]'>
-              {renderTabContent()}
-
-              {/* 인라인 피드백 컨테이너들 */}
-              <div className='space-y-2 mt-4'>
-                <InlineFeedbackContainer area='auth-section' />
-                <InlineFeedbackContainer area='generator-section' />
-                <InlineFeedbackContainer area='monitor-section' />
-                <InlineFeedbackContainer area='general-section' />
+            <nav className='flex-shrink-0 p-2 border-b border-white/10'>
+              <div className='flex items-center justify-around bg-gray-800/50 p-1 rounded-lg'>
+                {(
+                  [
+                    ['ai', 'AI 에이전트', Bot],
+                    ['generator', '데이터 생성기', Database],
+                    ['monitor', '모니터링', Monitor],
+                    ['general', '일반 설정', Settings],
+                  ] as const
+                ).map(([tabKey, tabName, Icon]) => (
+                  <button
+                    key={tabKey}
+                    onClick={() => setActiveTab(tabKey)}
+                    className={`relative w-full px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                      activeTab === tabKey
+                        ? 'text-white'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    {activeTab === tabKey && (
+                      <motion.div
+                        layoutId='active-tab-indicator'
+                        className='absolute inset-0 bg-purple-500/30 rounded-md z-0'
+                        transition={{
+                          type: 'spring',
+                          damping: 20,
+                          stiffness: 200,
+                        }}
+                      />
+                    )}
+                    <div className='relative z-10 flex items-center justify-center gap-2'>
+                      <Icon className='w-4 h-4' />
+                      <span>{tabName}</span>
+                    </div>
+                  </button>
+                ))}
               </div>
-            </div>
+            </nav>
+
+            {/* 탭 콘텐츠 */}
+            <main className='flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800'>
+              <AnimatePresence mode='wait'>
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {renderTabContent()}
+                </motion.div>
+              </AnimatePresence>
+            </main>
+
+            {/* 피드백 컨테이너 */}
+            <footer className='p-4 border-t border-white/10 flex-shrink-0'>
+              <InlineFeedbackContainer area='auth-section' />
+              <InlineFeedbackContainer area='generator-section' />
+              <InlineFeedbackContainer area='monitor-section' />
+              <InlineFeedbackContainer area='general-section' />
+            </footer>
           </motion.div>
-        </motion.div>
+        </>
       )}
     </AnimatePresence>,
     document.body
