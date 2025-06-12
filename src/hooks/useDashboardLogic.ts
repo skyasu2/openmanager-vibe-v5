@@ -87,14 +87,21 @@ export function useDashboardLogic() {
     }
   }, []);
 
-  const [state, setState] = useState<DashboardLogicState>({
-    isBootSequenceComplete: false,
-    showBootSequence: true,
-    loadingPhase: 'system-starting',
-    progress: 0,
-    skipAnimation: false,
-    errorCount: 0,
-    emergencyModeActive: false,
+  const [state, setState] = useState<DashboardLogicState>(() => {
+    // skip 파라미터가 있으면 초기부터 부팅 시퀀스를 건너뛰도록 설정
+    const hasSkipParam =
+      typeof window !== 'undefined' &&
+      new URLSearchParams(window.location.search).get('skip') === 'true';
+
+    return {
+      isBootSequenceComplete: hasSkipParam,
+      showBootSequence: !hasSkipParam,
+      loadingPhase: hasSkipParam ? 'completed' : 'system-starting',
+      progress: hasSkipParam ? 100 : 0,
+      skipAnimation: hasSkipParam,
+      errorCount: 0,
+      emergencyModeActive: false,
+    };
   });
 
   // 🛡️ 전역 에러 핸들러 설정 및 에러 추적
@@ -186,7 +193,7 @@ export function useDashboardLogic() {
   // 자연스러운 로딩 시간 훅 사용
   const { isLoading, progress, phase, estimatedTimeRemaining, elapsedTime } =
     useMinimumLoadingTime({
-      skipCondition: shouldSkipAnimation,
+      skipCondition: shouldSkipAnimation || state.skipAnimation,
       onComplete: handleBootComplete,
     });
 

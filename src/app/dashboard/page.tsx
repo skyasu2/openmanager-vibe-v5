@@ -235,8 +235,22 @@ function DashboardPageContent() {
     };
   }, []);
 
-  // Server-side rendering fallback
+  // Server-side rendering fallback - skip 파라미터가 있으면 로딩 화면 숨김
   if (!isClient) {
+    // URL에서 skip 파라미터 확인
+    const hasSkipParam =
+      typeof window !== 'undefined' &&
+      new URLSearchParams(window.location.search).get('skip') === 'true';
+
+    if (hasSkipParam) {
+      // skip 파라미터가 있으면 로딩 화면 없이 바로 빈 배경만 표시
+      return (
+        <div className='min-h-screen bg-gradient-to-br from-slate-50 to-blue-50'>
+          {/* 로딩 화면 없이 빈 배경 */}
+        </div>
+      );
+    }
+
     return (
       <div className='min-h-screen bg-gradient-to-br from-slate-50 to-blue-50'>
         <div className='flex items-center justify-center h-screen'>

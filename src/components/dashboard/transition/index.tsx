@@ -14,7 +14,8 @@
 export { default as SystemBootSequence } from './SystemBootSequence';
 export { default as SystemChecklist } from './SystemChecklist';
 export { default as ServerCardSpawner } from './ServerCardSpawner';
-export { default as SequentialLoader } from './SequentialLoader';
+// 🗑️ SequentialLoader 제거됨 - 백업으로 이동
+// export { default as SequentialLoader } from './SequentialLoader';
 export { default as SmoothTransition } from './SmoothTransition';
 
 // 🔧 시스템 체크리스트 관련 hooks

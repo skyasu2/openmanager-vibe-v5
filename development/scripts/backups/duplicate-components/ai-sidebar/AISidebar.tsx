@@ -76,13 +76,15 @@ const FloatingToggleButton: React.FC<{
     whileHover={{ scale: 1.05 }}
     whileTap={{ scale: 0.95 }}
     onClick={onClick}
-    className={`fixed top-1/2 -translate-y-1/2 z-50 p-3 rounded-full shadow-lg transition-all ${position === 'right'
+    className={`fixed top-1/2 -translate-y-1/2 z-50 p-3 rounded-full shadow-lg transition-all ${
+      position === 'right'
         ? `${isOpen ? 'right-[400px]' : 'right-4'}`
         : `${isOpen ? 'left-[400px]' : 'left-4'}`
-      } ${aiEnabled
+    } ${
+      aiEnabled
         ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
         : 'bg-gray-500 text-white'
-      }`}
+    }`}
     title={aiEnabled ? 'AI 사이드바 토글' : 'AI 기능이 비활성화됨'}
     disabled={!aiEnabled}
   >
@@ -436,10 +438,11 @@ export const AISidebar: React.FC<AISidebarProps> = ({
                         <button
                           key={tab.id}
                           onClick={() => setActiveTab(tab.id as any)}
-                          className={`flex-1 p-3 text-xs font-medium transition-colors ${activeTab === tab.id
+                          className={`flex-1 p-3 text-xs font-medium transition-colors ${
+                            activeTab === tab.id
                               ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50'
                               : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                            }`}
+                          }`}
                         >
                           <tab.icon className='w-4 h-4 mx-auto mb-1' />
                           {tab.label}
@@ -476,18 +479,19 @@ export const AISidebar: React.FC<AISidebarProps> = ({
                               <span className='font-medium text-gray-500'>
                                 {safeAIData.lastActivated
                                   ? new Date(
-                                    safeAIData.lastActivated
-                                  ).toLocaleTimeString()
+                                      safeAIData.lastActivated
+                                    ).toLocaleTimeString()
                                   : '-'}
                               </span>
                             </div>
                             <div className='flex justify-between'>
                               <span>상태</span>
                               <span
-                                className={`font-medium ${safeAIData.state === 'enabled'
+                                className={`font-medium ${
+                                  safeAIData.state === 'enabled'
                                     ? 'text-green-600'
                                     : 'text-orange-600'
-                                  }`}
+                                }`}
                               >
                                 {safeAIData.state}
                               </span>
@@ -559,7 +563,7 @@ export const AISidebar: React.FC<AISidebarProps> = ({
                             </div>
                           }
                         >
-                          <AISidebarV5 isOpen={true} onClose={() => { }} />
+                          <AISidebarV5 isOpen={true} onClose={() => {}} />
                         </React.Suspense>
                       </AIFeatureCard>
                     )}

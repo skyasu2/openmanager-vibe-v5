@@ -574,20 +574,7 @@ export const VercelOptimizedAISidebar: React.FC<
         {/* 메인 콘텐츠 */}
         <div className='flex-1 overflow-hidden flex flex-col'>
           <div ref={scrollRef} className='flex-1 overflow-y-auto p-4 space-y-4'>
-            {/* 컴팩트 질문 프리셋 */}
-            <CompactQuestionTemplates
-              onQuestionSelect={handleStreamingRequest}
-              isProcessing={isProcessing}
-            />
-
-            {/* 질문 입력창 */}
-            <QuestionInput
-              onSubmit={handleStreamingRequest}
-              isProcessing={isProcessing}
-              placeholder='AI에게 서버 관리에 대해 질문해보세요...'
-            />
-
-            {/* 대화 히스토리 */}
+            {/* 대화 히스토리 - 상단으로 이동 */}
             {conversations.map((conversation, index) => (
               <motion.div
                 key={conversation.id}
@@ -940,9 +927,29 @@ export const VercelOptimizedAISidebar: React.FC<
             ))}
           </div>
 
+          {/* 하단 고정 영역 - 프리셋 질문과 입력창 */}
+          <div className='border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'>
+            {/* 컴팩트 질문 프리셋 - 하단으로 이동 */}
+            <div className='p-4 border-b border-gray-100 dark:border-gray-800'>
+              <CompactQuestionTemplates
+                onQuestionSelect={handleStreamingRequest}
+                isProcessing={isProcessing}
+              />
+            </div>
+
+            {/* 질문 입력창 - 최하단으로 이동 */}
+            <div className='p-4'>
+              <QuestionInput
+                onSubmit={handleStreamingRequest}
+                isProcessing={isProcessing}
+                placeholder='AI에게 서버 관리에 대해 질문해보세요...'
+              />
+            </div>
+          </div>
+
           {/* 히스토리 네비게이션 */}
           {conversations.length > 1 && (
-            <div className='p-4 border-t border-gray-200 dark:border-gray-700'>
+            <div className='p-3 border-b border-gray-100 dark:border-gray-800'>
               <div className='flex items-center justify-between'>
                 <button
                   onClick={() => handleNavigate(Math.max(0, currentIndex - 1))}
@@ -998,8 +1005,8 @@ export const VercelOptimizedAISidebar: React.FC<
           )}
 
           {/* 푸터 */}
-          <div className='p-3 border-t border-gray-200 bg-gray-50'>
-            <div className='flex items-center justify-between text-xs text-gray-500'>
+          <div className='p-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800'>
+            <div className='flex items-center justify-between text-xs text-gray-500 dark:text-gray-400'>
               <span>Powered by OpenManager AI</span>
               <span>{conversations.length}개 대화</span>
             </div>

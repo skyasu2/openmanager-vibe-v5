@@ -13,6 +13,7 @@ import {
   X,
   Sun,
   Moon,
+  Zap,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
@@ -230,11 +231,11 @@ export default function Home() {
         await startSystem();
         success('🚀 시스템이 성공적으로 시작되었습니다! (30분 동안 활성)');
 
-        // 시스템이 시작되면 1초 후 자동으로 카운트다운 시작
+        // 시스템이 시작되면 즉시 로딩 페이지로 이동
         setTimeout(() => {
-          console.log('🚀 시스템 시작 완료 - 카운트다운 시작');
-          startCountdown();
-        }, 1000);
+          console.log('🚀 시스템 시작 완료 - 로딩 페이지로 즉시 이동');
+          router.push('/system-boot');
+        }, 500);
       }
     } catch (error) {
       console.error('시스템 토글 중 오류:', error);
@@ -245,6 +246,21 @@ export default function Home() {
   };
 
   const handleDashboardClick = async () => {
+    if (!isSystemStarted) {
+      warning('🚨 시스템을 먼저 시작해야 합니다!');
+      return;
+    }
+
+    try {
+      console.log('🚀 대시보드로 직접 이동 (부팅 애니메이션 스킵)');
+      router.push('/dashboard?skip=true');
+    } catch (error) {
+      console.error('대시보드 페이지 접근 중 오류:', error);
+      error('대시보드 페이지에 접근할 수 없습니다. 잠시 후 다시 시도해주세요.');
+    }
+  };
+
+  const handleBootAnimationClick = async () => {
     if (!isSystemStarted) {
       warning('🚨 시스템을 먼저 시작해야 합니다!');
       return;
@@ -637,47 +653,59 @@ export default function Home() {
 
                 {/* 대시보드 버튼 */}
                 <div className='flex flex-col items-center'>
-                  <motion.button
-                    onClick={handleDashboardClick}
-                    className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border ${
-                      autoNavigateCountdown > 0
-                        ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-orange-400/50 shadow-lg shadow-orange-500/50'
-                        : 'bg-blue-600 hover:bg-blue-700 text-white border-blue-500/50'
-                    }`}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    animate={
-                      autoNavigateCountdown > 0
-                        ? {
-                            scale: [1, 1.08, 1],
-                            boxShadow: [
-                              '0 0 0 0 rgba(255, 165, 0, 0.8)',
-                              '0 0 0 15px rgba(255, 165, 0, 0)',
-                              '0 0 0 0 rgba(255, 165, 0, 0)',
-                            ],
-                          }
-                        : {}
-                    }
-                    transition={{
-                      duration: 1,
-                      repeat: autoNavigateCountdown > 0 ? Infinity : 0,
-                      ease: 'easeInOut',
-                    }}
-                  >
-                    <BarChart3 className='w-5 h-5' />
-                    {autoNavigateCountdown > 0 ? (
-                      <div className='flex items-center gap-2'>
-                        <span>🚀 자동 이동</span>
-                        <div className='bg-white/20 rounded-full w-8 h-8 flex items-center justify-center'>
-                          <span className='text-lg font-bold text-yellow-300'>
-                            {autoNavigateCountdown}
-                          </span>
+                  <div className='space-y-2'>
+                    <motion.button
+                      onClick={handleDashboardClick}
+                      className={`w-52 h-12 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border ${
+                        autoNavigateCountdown > 0
+                          ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-orange-400/50 shadow-lg shadow-orange-500/50'
+                          : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500/50'
+                      }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      animate={
+                        autoNavigateCountdown > 0
+                          ? {
+                              scale: [1, 1.08, 1],
+                              boxShadow: [
+                                '0 0 0 0 rgba(255, 165, 0, 0.8)',
+                                '0 0 0 15px rgba(255, 165, 0, 0)',
+                                '0 0 0 0 rgba(255, 165, 0, 0)',
+                              ],
+                            }
+                          : {}
+                      }
+                      transition={{
+                        duration: 1,
+                        repeat: autoNavigateCountdown > 0 ? Infinity : 0,
+                        ease: 'easeInOut',
+                      }}
+                    >
+                      <BarChart3 className='w-5 h-5' />
+                      {autoNavigateCountdown > 0 ? (
+                        <div className='flex items-center gap-2'>
+                          <span>🚀 자동 이동</span>
+                          <div className='bg-white/20 rounded-full w-6 h-6 flex items-center justify-center'>
+                            <span className='text-sm font-bold text-yellow-300'>
+                              {autoNavigateCountdown}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <>📊 대시보드 들어가기</>
-                    )}
-                  </motion.button>
+                      ) : (
+                        <>📊 대시보드 바로 열기</>
+                      )}
+                    </motion.button>
+
+                    <motion.button
+                      onClick={handleBootAnimationClick}
+                      className='w-52 h-10 flex items-center justify-center gap-2 rounded-lg font-medium text-sm bg-blue-600 hover:bg-blue-700 text-white border border-blue-500/50 transition-all duration-200'
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Shield className='w-4 h-4' />
+                      부팅 애니메이션 보기
+                    </motion.button>
+                  </div>
 
                   {/* 손가락 아이콘 + 클릭 문구 - 카운트다운 상태에 따라 변경 */}
                   <div className='mt-2 flex justify-center'>

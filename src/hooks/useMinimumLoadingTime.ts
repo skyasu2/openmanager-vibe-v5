@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { safeConsoleError, safeErrorMessage } from '../lib/utils-functions';
 
@@ -18,13 +17,13 @@ interface LoadingState {
 
 /**
  * 🎬 useNaturalLoadingTime Hook v2.0
- * 
+ *
  * 실제 시스템 가동 시간을 자연스럽게 반영하는 로딩 훅
  * - 시스템 초기화 (파이썬 엔진 가동)
  * - 데이터 로딩 (서버 목록, 메트릭)
  * - 최종 준비 완료
  * - 🔥 다중 안전장치로 확실한 완료 보장
- * 
+ *
  * @param actualLoadingPromise - 실제 데이터 로딩 Promise
  * @param skipCondition - 스킵 조건 (URL 파라미터 등)
  * @param onComplete - 완료 시 호출될 콜백 함수
@@ -32,7 +31,7 @@ interface LoadingState {
 export const useNaturalLoadingTime = ({
   actualLoadingPromise = null,
   skipCondition = false,
-  onComplete
+  onComplete,
 }: UseNaturalLoadingTimeProps): LoadingState => {
   const [isLoading, setIsLoading] = useState(true);
   const [progress, setProgress] = useState(0);
@@ -44,14 +43,14 @@ export const useNaturalLoadingTime = ({
   // 예상 남은 시간 계산 (자연스러운 추정)
   const estimatedTimeRemaining = useMemo(() => {
     if (phase === 'completed') return 0;
-    
+
     // 각 단계별 예상 시간
     const phaseEstimates = {
       'system-starting': 2000, // 시스템 초기화 ~2초
-      'data-loading': 1500,    // 데이터 로딩 ~1.5초  
-      'python-warmup': 1000    // 파이썬 웜업 ~1초
+      'data-loading': 1500, // 데이터 로딩 ~1.5초
+      'python-warmup': 1000, // 파이썬 웜업 ~1초
     };
-    
+
     const currentPhaseEstimate = phaseEstimates[phase] || 1000;
     return Math.max(500, currentPhaseEstimate - (elapsedTime % 2000));
   }, [phase, elapsedTime]);
@@ -64,7 +63,7 @@ export const useNaturalLoadingTime = ({
       setIsLoading(false);
       setPhase('completed');
       setProgress(100);
-      
+
       // 콜백 호출 (약간의 지연으로 안정성 확보)
       setTimeout(() => {
         try {
@@ -78,24 +77,41 @@ export const useNaturalLoadingTime = ({
     }
   }, [isCompleted, onComplete]);
 
-  // 스킵 조건 체크
+  // 스킵 조건 체크 (즉시 실행)
   useEffect(() => {
-    if (skipCondition) {
+    if (skipCondition && !isCompleted) {
       console.log('⚡ 로딩 애니메이션 스킵 - 즉시 완료');
-      handleComplete();
+      // 즉시 상태 업데이트
+      setIsCompleted(true);
+      setIsLoading(false);
+      setPhase('completed');
+      setProgress(100);
+
+      // 콜백도 즉시 실행
+      setTimeout(() => {
+        try {
+          console.log('🎉 onComplete 콜백 즉시 호출');
+          onComplete?.();
+        } catch (error) {
+          safeConsoleError('❌ onComplete 콜백 실행 중 에러', error);
+        }
+      }, 10); // 매우 짧은 지연으로 즉시 실행
       return;
     }
-  }, [skipCondition, handleComplete]);
+  }, [skipCondition, isCompleted, onComplete]);
 
   // 🔥 키보드 단축키로 즉시 완료
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') && !isCompleted) {
+      if (
+        (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') &&
+        !isCompleted
+      ) {
         console.log(`🚀 ${e.key} 키로 즉시 완료`);
         handleComplete();
       }
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleComplete, isCompleted]);
@@ -108,14 +124,14 @@ export const useNaturalLoadingTime = ({
       progress,
       isCompleted,
       elapsedTime,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
-    
+
     (window as any).emergencyComplete = () => {
       console.log('🚨 비상 완료 실행!');
       handleComplete();
     };
-    
+
     (window as any).skipToServer = () => {
       console.log('🚀 서버 대시보드로 바로 이동');
       window.location.href = '/dashboard?instant=true';
@@ -127,7 +143,7 @@ export const useNaturalLoadingTime = ({
     if (skipCondition || isCompleted) return;
 
     console.log('🎬 자연스러운 시스템 로딩 시작');
-    
+
     let intervalId: NodeJS.Timeout | undefined;
     let phaseTimer: NodeJS.Timeout | undefined;
     let cleanupTimer: NodeJS.Timeout | undefined;
@@ -136,7 +152,7 @@ export const useNaturalLoadingTime = ({
     const cleanup = () => {
       if (isCleanedUp) return;
       isCleanedUp = true;
-      
+
       if (intervalId) clearInterval(intervalId);
       if (phaseTimer) clearTimeout(phaseTimer);
       if (cleanupTimer) clearTimeout(cleanupTimer);
@@ -146,10 +162,10 @@ export const useNaturalLoadingTime = ({
     intervalId = setInterval(() => {
       const elapsed = Date.now() - startTime;
       setElapsedTime(elapsed);
-      
+
       // 자연스러운 진행률 계산 (시간 기반이 아닌 단계 기반)
       let naturalProgress = 0;
-      
+
       if (phase === 'system-starting') {
         naturalProgress = Math.min((elapsed / 2000) * 30, 30); // 0-30%
       } else if (phase === 'data-loading') {
@@ -157,10 +173,10 @@ export const useNaturalLoadingTime = ({
       } else if (phase === 'python-warmup') {
         naturalProgress = 70 + Math.min(((elapsed - 3500) / 1000) * 30, 30); // 70-100%
       }
-      
+
       setProgress(naturalProgress);
     }, 100);
-    
+
     // 단계별 전환 로직
     const startPhaseTransitions = () => {
       // 2초 후: 데이터 로딩 단계
@@ -171,7 +187,7 @@ export const useNaturalLoadingTime = ({
         }
       }, 2000);
 
-      // 3.5초 후: 파이썬 웜업 단계  
+      // 3.5초 후: 파이썬 웜업 단계
       setTimeout(() => {
         if (!isCleanedUp && !isCompleted) {
           console.log('🐍 파이썬 시스템 웜업 단계 시작');
@@ -194,7 +210,7 @@ export const useNaturalLoadingTime = ({
         // 최소 4.5초는 기다림 (자연스러운 시스템 로딩 시간)
         const elapsed = Date.now() - startTime;
         const remainingTime = Math.max(0, 4500 - elapsed);
-        
+
         if (remainingTime > 0) {
           console.log('⏱️ 시스템 안정화 대기:', remainingTime, 'ms');
           await new Promise(resolve => setTimeout(resolve, remainingTime));
@@ -206,10 +222,10 @@ export const useNaturalLoadingTime = ({
         }
       } catch (error) {
         if (isCleanedUp || isCompleted) return;
-        
+
         // 🔥 안전한 에러 처리
         safeConsoleError('❌ 시스템 로딩 에러', error);
-        
+
         // 에러가 발생해도 자연스럽게 처리
         setTimeout(() => {
           if (!isCleanedUp && !isCompleted) {
@@ -256,25 +272,32 @@ export const useNaturalLoadingTime = ({
       clearTimeout(emergencyComplete2);
       clearTimeout(enableClickComplete);
     };
-  }, [actualLoadingPromise, skipCondition, phase, handleComplete, isCompleted, startTime]);
+  }, [
+    actualLoadingPromise,
+    skipCondition,
+    phase,
+    handleComplete,
+    isCompleted,
+    startTime,
+  ]);
 
   return {
     isLoading,
     progress,
     estimatedTimeRemaining,
     phase,
-    elapsedTime
+    elapsedTime,
   };
 };
 
 /**
  * 🎯 useDataLoadingPromise Hook
- * 
+ *
  * 서버 데이터 로딩 상태를 Promise로 변환하는 헬퍼 훅
  */
 export const useDataLoadingPromise = (
-  data: any[], 
-  isLoading: boolean, 
+  data: any[],
+  isLoading: boolean,
   error: any
 ): Promise<any[]> => {
   return useMemo(() => {
@@ -291,11 +314,11 @@ export const useDataLoadingPromise = (
           setTimeout(checkDataReady, 100);
         }
       };
-      
+
       checkDataReady();
     });
   }, [data, isLoading, error]);
 };
 
 // 🔄 기존 훅과의 호환성을 위한 별칭
-export const useMinimumLoadingTime = useNaturalLoadingTime; 
+export const useMinimumLoadingTime = useNaturalLoadingTime;

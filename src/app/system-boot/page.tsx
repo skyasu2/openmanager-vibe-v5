@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { SystemBootSequence } from '@/components/dashboard/transition';
 import { useServerDataStore } from '@/stores/serverDataStore';
 import {
@@ -17,6 +18,7 @@ import type { Server } from '@/types/server';
 
 export default function SystemBootPage() {
   const { servers: serverMetrics } = useServerDataStore();
+  const router = useRouter();
 
   // EnhancedServerMetrics를 Server 타입으로 변환
   const servers: Server[] = serverMetrics.map(server => ({
@@ -41,19 +43,76 @@ export default function SystemBootPage() {
   const [bootState, setBootState] = useState<'running' | 'completed'>(
     'running'
   );
+  const [autoRedirectCountdown, setAutoRedirectCountdown] = useState(0);
+  const [countdownTimer, setCountdownTimer] = useState<NodeJS.Timeout | null>(
+    null
+  );
 
-  // 부팅 완료 핸들러 - 자동 이동 방지
+  // 부팅 완료 핸들러 - 3초 카운트다운 시작
   const handleBootComplete = () => {
-    console.log('🎉 부팅 시퀀스 완료 - 사용자 확인 대기 상태로 전환');
+    console.log('🎉 부팅 시퀀스 완료 - 3초 후 자동 이동 시작');
     setBootState('completed');
-    // 🚫 자동 라우팅 제거 - 사용자가 명시적으로 버튼을 클릭해야 함
-    // router.push('/dashboard'); // 이런 코드는 없지만 명시적으로 주석 처리
+
+    // 3초 카운트다운 시작
+    setAutoRedirectCountdown(3);
+    const timer = setInterval(() => {
+      setAutoRedirectCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          console.log('🚀 자동 대시보드 이동');
+          router.push('/dashboard');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    setCountdownTimer(timer);
+  };
+
+  // 카운트다운 중지
+  const stopCountdown = () => {
+    if (countdownTimer) {
+      clearInterval(countdownTimer);
+      setCountdownTimer(null);
+    }
+    setAutoRedirectCountdown(0);
+    console.log('⏹️ 자동 이동 카운트다운 중지');
   };
 
   // 부팅 다시 시작
   const restartBoot = () => {
+    stopCountdown();
     setBootState('running');
   };
+
+  // ESC 키와 배경 클릭으로 카운트다운 중지
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && autoRedirectCountdown > 0) {
+        stopCountdown();
+      }
+    };
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        autoRedirectCountdown > 0 &&
+        (e.target as HTMLElement).classList.contains('bg-gradient-to-br')
+      ) {
+        stopCountdown();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('click', handleClickOutside);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('click', handleClickOutside);
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+      }
+    };
+  }, [autoRedirectCountdown, countdownTimer]);
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 relative overflow-hidden'>
@@ -171,10 +230,26 @@ export default function SystemBootPage() {
         >
           <Link
             href='/dashboard'
-            className='flex items-center gap-3 px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105'
+            onClick={() => stopCountdown()}
+            className={`flex items-center gap-3 px-6 py-4 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 ${
+              autoRedirectCountdown > 0
+                ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600'
+                : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600'
+            }`}
           >
             <ArrowRight className='w-5 h-5' />
-            대시보드로 이동
+            {autoRedirectCountdown > 0 ? (
+              <div className='flex items-center gap-2'>
+                <span>자동 이동</span>
+                <div className='bg-white/20 rounded-full w-6 h-6 flex items-center justify-center'>
+                  <span className='text-sm font-bold'>
+                    {autoRedirectCountdown}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              '대시보드로 이동'
+            )}
           </Link>
 
           <button
@@ -184,6 +259,20 @@ export default function SystemBootPage() {
             <RotateCcw className='w-4 h-4' />
             다시 보기
           </button>
+
+          {/* 카운트다운 중단 안내 */}
+          {autoRedirectCountdown > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className='text-center text-gray-300 text-xs bg-black/20 rounded-lg px-3 py-2 backdrop-blur-sm'
+            >
+              <div className='flex items-center justify-center gap-1 text-center'>
+                <span>ESC 키 또는 배경 클릭으로 중단</span>
+              </div>
+            </motion.div>
+          )}
         </motion.div>
       )}
     </div>
