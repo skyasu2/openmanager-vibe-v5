@@ -165,7 +165,13 @@
     "docs:validate": "node scripts/docs-management.mjs validate",
     "docs:cleanup": "node scripts/docs-management.mjs cleanup",
     "docs:backup": "node scripts/docs-management.mjs backup",
-    "docs:index": "node scripts/docs-management.mjs index"
+    "docs:index": "node scripts/docs-management.mjs index",
+    "workflow:dev": "node scripts/dev-workflow.mjs dev",
+    "workflow:test": "node scripts/dev-workflow.mjs test:local",
+    "deploy:render": "node scripts/dev-workflow.mjs deploy:render",
+    "deploy:vercel": "node scripts/dev-workflow.mjs deploy:vercel",
+    "test:production": "node scripts/dev-workflow.mjs test:production",
+    "dev:full": "node scripts/dev-workflow.mjs development"
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",
