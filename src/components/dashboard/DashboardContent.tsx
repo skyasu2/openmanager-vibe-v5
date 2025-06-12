@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import ServerDashboard from './ServerDashboard';
+import { AnomalyFeed } from './AnomalyFeed';
 import { Server } from '../../types/server';
 import { safeConsoleError, safeErrorMessage } from '../../lib/utils-functions';
 
@@ -137,7 +138,14 @@ export default function DashboardContent({
               </div>
             )}
 
-            <ServerDashboard onStatsUpdate={onStatsUpdate} />
+            <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+              <div className='lg:col-span-2'>
+                <ServerDashboard onStatsUpdate={onStatsUpdate} />
+              </div>
+              <div className='lg:col-span-1'>
+                <AnomalyFeed />
+              </div>
+            </div>
           </div>
         </div>
       </div>
