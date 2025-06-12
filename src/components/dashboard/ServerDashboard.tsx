@@ -1,7 +1,21 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Filter, LayoutGrid, List, ChevronDown } from 'lucide-react';
+import {
+  Search,
+  Filter,
+  LayoutGrid,
+  List,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  MoreHorizontal,
+  Monitor,
+  AlertTriangle,
+  CheckCircle,
+  Zap,
+  Activity,
+} from 'lucide-react';
 import ServerCard from './ServerCard';
 import ServerDetailModal from './ServerDetailModal';
 import EnhancedServerCard from './EnhancedServerCard';
@@ -9,6 +23,7 @@ import EnhancedServerModal from './EnhancedServerModal';
 import { Server } from '../../types/server';
 import { useRealtimeServers } from '@/hooks/api/useRealtimeServers';
 import { timerManager } from '../../utils/TimerManager';
+import { motion, AnimatePresence } from 'framer-motion';
 // ❌ 제거: Node.js 전용 모듈을 클라이언트에서 import하면 안됨
 // import {
 //   RealServerDataGenerator,
@@ -842,114 +857,225 @@ export default function ServerDashboard({
         </div>
       )}
 
-      {/* 서버 상태별 섹션 */}
+      {/* 🚀 서버 카드 섹션 - 스와이퍼 형태로 개선 */}
       {groupedServers.critical.length > 0 && (
-        <div className='space-y-3'>
-          <h3 className='text-lg font-semibold text-red-600 flex items-center gap-2'>
-            <span className='w-3 h-3 bg-red-500 rounded-full'></span>
-            위험 상태 ({groupedServers.critical.length})
-          </h3>
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
-            {groupedServers.critical.map((server, index) => (
-              <EnhancedServerCard
-                key={server.id}
-                server={{
-                  ...server,
-                  hostname: server.name,
-                  type: 'api_server',
-                  environment: 'production',
-                  provider: 'AWS',
-                  status: 'critical' as any,
-                  network: Math.floor(Math.random() * 40) + 60, // 네트워크 사용률 60-100%
-                  networkStatus: Math.random() > 0.7 ? 'poor' : 'offline',
-                  specs: {
-                    cpu_cores: 8,
-                    memory_gb: 16,
-                    disk_gb: 500,
-                    network_speed: '1Gbps',
-                  },
-                  ip: `192.168.1.${Math.floor(Math.random() * 254) + 1}`,
-                  os: 'Ubuntu 22.04 LTS',
-                }}
-                index={index}
-                onClick={() => handleServerSelect(server)}
-                showMiniCharts={true}
-              />
-            ))}
+        <div className='space-y-4'>
+          <div className='flex items-center justify-between'>
+            <h3 className='text-lg font-semibold text-red-600 flex items-center gap-2'>
+              <span className='w-3 h-3 bg-red-500 rounded-full'></span>
+              위험 상태 ({groupedServers.critical.length})
+            </h3>
+            {groupedServers.critical.length > 8 && (
+              <div className='flex items-center gap-2 text-sm text-gray-500'>
+                <span>8개씩 보기</span>
+                <div className='flex gap-1'>
+                  <button
+                    className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
+                    title='이전 위험 서버들 보기'
+                    aria-label='이전 위험 서버들 보기'
+                  >
+                    <ChevronLeft className='w-3 h-3' />
+                  </button>
+                  <button
+                    className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
+                    title='다음 위험 서버들 보기'
+                    aria-label='다음 위험 서버들 보기'
+                  >
+                    <ChevronRight className='w-3 h-3' />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 스와이퍼 컨테이너 */}
+          <div className='relative overflow-hidden'>
+            <div className='flex transition-transform duration-300 ease-in-out'>
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4 min-w-full'>
+                {groupedServers.critical.slice(0, 8).map((server, index) => (
+                  <div key={server.id} className='min-w-0'>
+                    <EnhancedServerCard
+                      server={{
+                        ...server,
+                        hostname: server.name,
+                        type: 'api_server',
+                        environment: 'production',
+                        provider: 'AWS',
+                        status: 'critical' as any,
+                        network: Math.floor(Math.random() * 40) + 60,
+                        networkStatus: Math.random() > 0.7 ? 'poor' : 'offline',
+                        specs: {
+                          cpu_cores: 8,
+                          memory_gb: 16,
+                          disk_gb: 500,
+                          network_speed: '1Gbps',
+                        },
+                        ip: `192.168.1.${Math.floor(Math.random() * 254) + 1}`,
+                        os: 'Ubuntu 22.04 LTS',
+                      }}
+                      index={index}
+                      onClick={() => handleServerSelect(server)}
+                      showMiniCharts={true}
+                      variant='compact'
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 더 많은 서버가 있는 경우 알림 */}
+            {groupedServers.critical.length > 8 && (
+              <div className='absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full'>
+                +{groupedServers.critical.length - 8}
+              </div>
+            )}
           </div>
         </div>
       )}
 
       {groupedServers.warning.length > 0 && (
-        <div className='space-y-3'>
-          <h3 className='text-lg font-semibold text-yellow-600 flex items-center gap-2'>
-            <span className='w-3 h-3 bg-yellow-500 rounded-full'></span>
-            주의 상태 ({groupedServers.warning.length})
-          </h3>
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
-            {groupedServers.warning.map((server, index) => (
-              <EnhancedServerCard
-                key={server.id}
-                server={{
-                  ...server,
-                  hostname: server.name,
-                  type: 'web_server',
-                  environment: 'production',
-                  provider: 'AWS',
-                  status: 'warning' as any,
-                  network: Math.floor(Math.random() * 30) + 40, // 네트워크 사용률 40-70%
-                  networkStatus: Math.random() > 0.5 ? 'good' : 'poor',
-                  specs: {
-                    cpu_cores: 6,
-                    memory_gb: 12,
-                    disk_gb: 250,
-                    network_speed: '500Mbps',
-                  },
-                  ip: `10.0.1.${Math.floor(Math.random() * 254) + 1}`,
-                  os: 'CentOS 8',
-                }}
-                index={index}
-                onClick={() => handleServerSelect(server)}
-                showMiniCharts={true}
-              />
-            ))}
+        <div className='space-y-4'>
+          <div className='flex items-center justify-between'>
+            <h3 className='text-lg font-semibold text-yellow-600 flex items-center gap-2'>
+              <span className='w-3 h-3 bg-yellow-500 rounded-full'></span>
+              주의 상태 ({groupedServers.warning.length})
+            </h3>
+            {groupedServers.warning.length > 8 && (
+              <div className='flex items-center gap-2 text-sm text-gray-500'>
+                <span>8개씩 보기</span>
+                <div className='flex gap-1'>
+                  <button
+                    className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
+                    title='이전 경고 서버들 보기'
+                    aria-label='이전 경고 서버들 보기'
+                  >
+                    <ChevronLeft className='w-3 h-3' />
+                  </button>
+                  <button
+                    className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
+                    title='다음 경고 서버들 보기'
+                    aria-label='다음 경고 서버들 보기'
+                  >
+                    <ChevronRight className='w-3 h-3' />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className='relative overflow-hidden'>
+            <div className='flex transition-transform duration-300 ease-in-out'>
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4 min-w-full'>
+                {groupedServers.warning.slice(0, 8).map((server, index) => (
+                  <div key={server.id} className='min-w-0'>
+                    <EnhancedServerCard
+                      server={{
+                        ...server,
+                        hostname: server.name,
+                        type: 'web_server',
+                        environment: 'production',
+                        provider: 'AWS',
+                        status: 'warning' as any,
+                        network: Math.floor(Math.random() * 30) + 40,
+                        networkStatus: Math.random() > 0.5 ? 'good' : 'poor',
+                        specs: {
+                          cpu_cores: 6,
+                          memory_gb: 12,
+                          disk_gb: 250,
+                          network_speed: '500Mbps',
+                        },
+                        ip: `10.0.1.${Math.floor(Math.random() * 254) + 1}`,
+                        os: 'CentOS 8',
+                      }}
+                      index={index}
+                      onClick={() => handleServerSelect(server)}
+                      showMiniCharts={true}
+                      variant='compact'
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {groupedServers.warning.length > 8 && (
+              <div className='absolute top-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full'>
+                +{groupedServers.warning.length - 8}
+              </div>
+            )}
           </div>
         </div>
       )}
 
       {groupedServers.healthy.length > 0 && (
-        <div className='space-y-3'>
-          <h3 className='text-lg font-semibold text-green-600 flex items-center gap-2'>
-            <span className='w-3 h-3 bg-green-500 rounded-full'></span>
-            정상 상태 ({groupedServers.healthy.length})
-          </h3>
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
-            {groupedServers.healthy.map((server, index) => (
-              <EnhancedServerCard
-                key={server.id}
-                server={{
-                  ...server,
-                  hostname: server.name,
-                  type: 'database_server',
-                  environment: 'production',
-                  provider: 'AWS',
-                  status: 'healthy' as any,
-                  network: Math.floor(Math.random() * 25) + 15, // 네트워크 사용률 15-40%
-                  networkStatus: Math.random() > 0.3 ? 'excellent' : 'good',
-                  specs: {
-                    cpu_cores: 4,
-                    memory_gb: 8,
-                    disk_gb: 100,
-                    network_speed: '10Gbps',
-                  },
-                  ip: `172.16.0.${Math.floor(Math.random() * 254) + 1}`,
-                  os: 'RHEL 9',
-                }}
-                index={index}
-                onClick={() => handleServerSelect(server)}
-                showMiniCharts={true}
-              />
-            ))}
+        <div className='space-y-4'>
+          <div className='flex items-center justify-between'>
+            <h3 className='text-lg font-semibold text-green-600 flex items-center gap-2'>
+              <span className='w-3 h-3 bg-green-500 rounded-full'></span>
+              정상 상태 ({groupedServers.healthy.length})
+            </h3>
+            {groupedServers.healthy.length > 8 && (
+              <div className='flex items-center gap-2 text-sm text-gray-500'>
+                <span>8개씩 보기</span>
+                <div className='flex gap-1'>
+                  <button
+                    className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
+                    title='이전 정상 서버들 보기'
+                    aria-label='이전 정상 서버들 보기'
+                  >
+                    <ChevronLeft className='w-3 h-3' />
+                  </button>
+                  <button
+                    className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
+                    title='다음 정상 서버들 보기'
+                    aria-label='다음 정상 서버들 보기'
+                  >
+                    <ChevronRight className='w-3 h-3' />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className='relative overflow-hidden'>
+            <div className='flex transition-transform duration-300 ease-in-out'>
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4 min-w-full'>
+                {groupedServers.healthy.slice(0, 8).map((server, index) => (
+                  <div key={server.id} className='min-w-0'>
+                    <EnhancedServerCard
+                      server={{
+                        ...server,
+                        hostname: server.name,
+                        type: 'database_server',
+                        environment: 'production',
+                        provider: 'AWS',
+                        status: 'healthy' as any,
+                        network: Math.floor(Math.random() * 25) + 15,
+                        networkStatus:
+                          Math.random() > 0.3 ? 'excellent' : 'good',
+                        specs: {
+                          cpu_cores: 4,
+                          memory_gb: 8,
+                          disk_gb: 100,
+                          network_speed: '10Gbps',
+                        },
+                        ip: `172.16.0.${Math.floor(Math.random() * 254) + 1}`,
+                        os: 'RHEL 9',
+                      }}
+                      index={index}
+                      onClick={() => handleServerSelect(server)}
+                      showMiniCharts={true}
+                      variant='compact'
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {groupedServers.healthy.length > 8 && (
+              <div className='absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full'>
+                +{groupedServers.healthy.length - 8}
+              </div>
+            )}
           </div>
         </div>
       )}

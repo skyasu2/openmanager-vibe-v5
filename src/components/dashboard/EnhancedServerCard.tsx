@@ -260,7 +260,9 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             </div>
             <span className='text-xs font-medium text-gray-700'>{label}</span>
           </div>
-          <div className='w-20 h-12 relative bg-white/60 rounded-lg p-1 shadow-sm'>
+          <div
+            className={`${variantStyles.chartSize} relative bg-white/80 rounded-lg p-1 shadow-sm`}
+          >
             <svg
               className='w-full h-full'
               viewBox='0 0 100 100'
@@ -301,8 +303,8 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                   <path
                     d='M 10 0 L 0 0 0 10'
                     fill='none'
-                    stroke='#f1f5f9'
-                    strokeWidth='0.5'
+                    stroke='#e2e8f0'
+                    strokeWidth='0.3'
                   />
                 </pattern>
               </defs>
@@ -387,6 +389,44 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       }
     }, [onClick, server]);
 
+    // 변형별 스타일 설정
+    const getVariantStyles = () => {
+      switch (variant) {
+        case 'compact':
+          return {
+            padding: 'p-3',
+            cardHeight: 'min-h-[180px]',
+            titleSize: 'text-sm',
+            subtitleSize: 'text-xs',
+            chartContainer: 'grid-cols-2 gap-2',
+            chartSize: 'w-16 h-8',
+            showFullDetails: false,
+          };
+        case 'detailed':
+          return {
+            padding: 'p-8',
+            cardHeight: 'min-h-[300px]',
+            titleSize: 'text-xl',
+            subtitleSize: 'text-sm',
+            chartContainer: 'grid-cols-4 gap-4',
+            chartSize: 'w-24 h-16',
+            showFullDetails: true,
+          };
+        default:
+          return {
+            padding: 'p-6',
+            cardHeight: 'min-h-[240px]',
+            titleSize: 'text-lg',
+            subtitleSize: 'text-sm',
+            chartContainer: 'grid-cols-4 gap-3',
+            chartSize: 'w-20 h-12',
+            showFullDetails: false,
+          };
+      }
+    };
+
+    const variantStyles = getVariantStyles();
+
     return (
       <motion.div
         layout
@@ -401,11 +441,11 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
           damping: 30,
         }}
         whileHover={{
-          scale: 1.02,
+          scale: variant === 'compact' ? 1.01 : 1.02,
           transition: { duration: 0.2 },
         }}
         className={`
-        relative p-6 rounded-xl cursor-pointer
+        relative ${variantStyles.padding} ${variantStyles.cardHeight} rounded-xl cursor-pointer
         bg-gradient-to-br ${theme.gradient}
         border-2 ${theme.border} ${theme.hoverBorder}
         shadow-lg ${theme.glow} hover:shadow-xl
@@ -446,7 +486,9 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               {getServerIcon()}
             </motion.div>
             <div>
-              <h3 className='font-bold text-gray-900 text-lg group-hover:text-gray-700 transition-colors'>
+              <h3
+                className={`font-bold text-gray-900 ${variantStyles.titleSize} group-hover:text-gray-700 transition-colors`}
+              >
                 {server.name}
               </h3>
               <p className='text-sm text-gray-600'>
@@ -475,7 +517,9 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
         {/* 메트릭 및 미니 차트 */}
         <div className='space-y-4'>
           {showMiniCharts && (
-            <div className='grid grid-cols-2 gap-3 bg-white/50 rounded-lg p-4 backdrop-blur-sm'>
+            <div
+              className={`grid ${variantStyles.chartContainer} bg-white/70 rounded-lg ${variant === 'compact' ? 'p-2' : 'p-4'} backdrop-blur-sm`}
+            >
               <MiniChart
                 data={realtimeData.cpu}
                 color='#ef4444'
@@ -543,35 +587,39 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             </div>
           </div>
 
-          {/* 서비스 상태 */}
-          <div className='flex gap-2 flex-wrap'>
-            {server.services.slice(0, 3).map((service, idx) => (
-              <motion.div
-                key={idx}
-                className={`px-2 py-1 rounded text-xs flex items-center gap-1 ${
-                  service.status === 'running'
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-red-100 text-red-700'
-                }`}
-                whileHover={{ scale: 1.05 }}
-              >
-                <div
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    service.status === 'running' ? 'bg-green-500' : 'bg-red-500'
+          {/* 서비스 상태 - compact에서는 간소화 */}
+          {variant !== 'compact' && (
+            <div className='flex gap-2 flex-wrap'>
+              {server.services.slice(0, 3).map((service, idx) => (
+                <motion.div
+                  key={idx}
+                  className={`px-2 py-1 rounded text-xs flex items-center gap-1 ${
+                    service.status === 'running'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-red-100 text-red-700'
                   }`}
-                />
-                {service.name}
-              </motion.div>
-            ))}
-            {server.services.length > 3 && (
-              <div className='px-2 py-1 text-xs text-gray-500 bg-gray-100 rounded'>
-                +{server.services.length - 3}개 더
-              </div>
-            )}
-          </div>
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      service.status === 'running'
+                        ? 'bg-green-500'
+                        : 'bg-red-500'
+                    }`}
+                  />
+                  {service.name}
+                </motion.div>
+              ))}
+              {server.services.length > 3 && (
+                <div className='px-2 py-1 text-xs text-gray-500 bg-gray-100 rounded'>
+                  +{server.services.length - 3}개 더
+                </div>
+              )}
+            </div>
+          )}
 
-          {/* 네트워크 상태 표시 */}
-          {server.networkStatus && (
+          {/* 네트워크 상태 표시 - compact에서는 숨김 */}
+          {variant !== 'compact' && server.networkStatus && (
             <div className='flex items-center justify-between p-2 bg-white/60 rounded-lg'>
               <div className='flex items-center gap-2'>
                 {getNetworkStatusIcon()}
@@ -612,9 +660,9 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             </motion.div>
           )}
 
-          {/* 추가 정보 (호버 시 표시) */}
+          {/* 추가 정보 (호버 시 표시) - compact에서는 숨김 */}
           <AnimatePresence>
-            {isHovered && (
+            {isHovered && variant !== 'compact' && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}

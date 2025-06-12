@@ -48,13 +48,13 @@ export default function SystemBootPage() {
     null
   );
 
-  // 부팅 완료 핸들러 - 3초 카운트다운 시작
+  // 부팅 완료 핸들러 - 5초 카운트다운 시작
   const handleBootComplete = () => {
-    console.log('🎉 부팅 시퀀스 완료 - 3초 후 자동 이동 시작');
+    console.log('🎉 부팅 시퀀스 완료 - 5초 후 자동 대시보드 이동 시작');
     setBootState('completed');
 
-    // 3초 카운트다운 시작
-    setAutoRedirectCountdown(3);
+    // 5초 카운트다운 시작 (사용자가 부팅 완료 상태를 확인할 시간 제공)
+    setAutoRedirectCountdown(5);
     const timer = setInterval(() => {
       setAutoRedirectCountdown(prev => {
         if (prev <= 1) {
@@ -199,20 +199,67 @@ export default function SystemBootPage() {
                   </motion.div>
                 </div>
 
-                {/* 시스템 로고 */}
+                {/* 부팅 완료 메시지 */}
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.4 }}
-                  className='text-center'
+                  className='text-center mb-8'
                 >
-                  <div className='w-24 h-24 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center'>
-                    <Monitor className='w-12 h-12 text-white' />
-                  </div>
-                  <h1 className='text-3xl font-bold text-white mb-2'>
-                    OpenManager Vibe v5
-                  </h1>
-                  <p className='text-blue-200'>시스템이 준비되었습니다</p>
+                  <motion.div
+                    className='w-24 h-24 mx-auto mb-6 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg'
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      boxShadow: [
+                        '0 10px 25px rgba(16, 185, 129, 0.3)',
+                        '0 15px 35px rgba(16, 185, 129, 0.5)',
+                        '0 10px 25px rgba(16, 185, 129, 0.3)',
+                      ],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    }}
+                  >
+                    <CheckCircle className='w-12 h-12 text-white' />
+                  </motion.div>
+                  <motion.h1
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className='text-4xl font-bold text-white mb-3'
+                  >
+                    🎉 부팅 완료!
+                  </motion.h1>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 }}
+                    className='text-center'
+                  >
+                    <h2 className='text-2xl font-semibold text-white mb-2'>
+                      OpenManager Vibe v5
+                    </h2>
+                    <p className='text-green-200 text-lg'>
+                      모든 시스템이 성공적으로 초기화되었습니다
+                    </p>
+                    <motion.p
+                      className='text-blue-200 text-sm mt-3'
+                      animate={{
+                        opacity: [0.7, 1, 0.7],
+                      }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                      }}
+                    >
+                      {autoRedirectCountdown > 0
+                        ? `${autoRedirectCountdown}초 후 대시보드로 자동 이동...`
+                        : '대시보드로 이동할 준비가 완료되었습니다'}
+                    </motion.p>
+                  </motion.div>
                 </motion.div>
               </div>
             </motion.div>

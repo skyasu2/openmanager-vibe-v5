@@ -211,11 +211,12 @@ export default function Home() {
         await stopSystem();
         success('⏹️ 시스템이 안전하게 중지되었습니다.');
       } else {
-        console.log('🚀 시스템 시작 - 대시보드로 직접 이동');
+        console.log('🚀 시스템 시작 - 부팅 페이지로 이동');
+        // 시스템 시작 전에 부팅 페이지로 이동
+        info('🔄 시스템 부팅을 시작합니다...');
+        router.push('/system-boot');
+        // 백그라운드에서 시스템 시작
         await startSystem();
-        success('🚀 시스템이 시작되었습니다. 대시보드로 이동합니다.');
-        // 즉시 대시보드로 이동
-        router.push('/dashboard');
       }
     } catch (error) {
       console.error('시스템 토글 중 오류:', error);
@@ -227,15 +228,19 @@ export default function Home() {
 
   const handleDashboardClick = async () => {
     try {
-      console.log('🚀 대시보드로 직접 이동');
-      // 시스템이 시작되지 않았다면 시작하고 대시보드로 이동
+      // 시스템이 시작되지 않았다면 부팅 페이지를 거쳐서 이동
       if (!isSystemStarted) {
+        console.log('🚀 시스템 부팅 후 대시보드 이동');
         setIsLoading(true);
+        info('🔄 시스템 부팅을 시작합니다...');
+        router.push('/system-boot');
+        // 백그라운드에서 시스템 시작
         await startSystem();
-        success('🚀 시스템이 시작되었습니다.');
         setIsLoading(false);
+      } else {
+        console.log('🚀 대시보드로 직접 이동');
+        router.push('/dashboard');
       }
-      router.push('/dashboard');
     } catch (error) {
       console.error('대시보드 접근 중 오류:', error);
       error('대시보드에 접근할 수 없습니다. 잠시 후 다시 시도해주세요.');
