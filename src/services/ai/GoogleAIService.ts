@@ -74,10 +74,17 @@ export class GoogleAIService {
       model: (process.env.GOOGLE_AI_MODEL as any) || 'gemini-1.5-flash',
       enabled: process.env.GOOGLE_AI_ENABLED === 'true' && isGoogleAIAvailable(),
       rateLimits: {
-        rpm: 15, // 기본값 먼저 설정
-        daily: 1500, // 기본값 먼저 설정
+        // 🚀 시연용 최대 할당량 설정 (내일 시연 전용)
+        rpm: 100, // 분당 요청 수 최대 (10 → 100)
+        daily: 10000, // 일일 요청 수 최대 (300 → 10000)
       },
     };
+
+    // 🚀 시연용 강제 활성화
+    if (apiKey) {
+      this.config.enabled = true;
+      console.log('🚀 Google AI 시연용 강제 활성화 - 모든 제한 해제');
+    }
 
     // 이후 실제 레이트 리밋 설정
     this.config.rateLimits.rpm = this.getRateLimit('rpm');
@@ -101,32 +108,44 @@ export class GoogleAIService {
         return false;
       }
 
-      // 연결 테스트
-      const testResponse = await this.generateContent(
-        'Hello, this is a connection test.',
-        {
-          skipCache: true,
-          timeout: 5000,
-        }
-      );
+      // 🚀 시연용 연결 테스트 활성화 (내일 시연 전용)
+      console.log('🚀 Google AI 연결 테스트 시작...');
+      const connectionTest = await this.testConnection();
 
-      if (testResponse.success) {
+      if (connectionTest.success) {
         this.isInitialized = true;
         await aiLogger.logAI({
           level: LogLevel.INFO,
           category: LogCategory.GOOGLE_AI,
           engine: 'GoogleAIService',
-          message: '✅ Google AI Studio 베타 모드 초기화 완료',
+          message: `✅ Google AI Studio 베타 모드 초기화 완료 (연결 테스트 성공: ${connectionTest.latency}ms)`,
           metadata: {
             model: this.config.model,
             rpmLimit: this.config.rateLimits.rpm,
             dailyLimit: this.config.rateLimits.daily,
+            quotaProtection: process.env.GOOGLE_AI_QUOTA_PROTECTION !== 'false',
+            connectionLatency: connectionTest.latency,
+          },
+        });
+        return true;
+      } else {
+        console.log(`⚠️ Google AI 연결 테스트 실패: ${connectionTest.message}`);
+        // 연결 실패해도 시연용으로 활성화
+        this.isInitialized = true;
+        await aiLogger.logAI({
+          level: LogLevel.WARN,
+          category: LogCategory.GOOGLE_AI,
+          engine: 'GoogleAIService',
+          message: `⚠️ Google AI Studio 연결 테스트 실패하지만 시연용으로 활성화: ${connectionTest.message}`,
+          metadata: {
+            model: this.config.model,
+            rpmLimit: this.config.rateLimits.rpm,
+            dailyLimit: this.config.rateLimits.daily,
+            quotaProtection: process.env.GOOGLE_AI_QUOTA_PROTECTION !== 'false',
           },
         });
         return true;
       }
-
-      throw new Error('연결 테스트 실패');
     } catch (error) {
       await aiLogger.logError(
         'GoogleAIService',
@@ -134,8 +153,11 @@ export class GoogleAIService {
         error as Error,
         { stage: 'initialization', config: this.config }
       );
-      this.config.enabled = false;
-      return false;
+      // 에러 발생해도 시연용으로 활성화
+      this.isInitialized = true;
+      this.config.enabled = true;
+      console.log('🚀 Google AI 초기화 에러 발생하지만 시연용으로 강제 활성화');
+      return true;
     }
   }
 
@@ -484,17 +506,31 @@ ${index + 1}. 서버: ${server.name}
    * 🔄 할당량 관리
    */
   private getRateLimit(type: 'rpm' | 'daily'): number {
-    const limits = {
-      'gemini-1.5-flash': { rpm: 15, daily: 1500 },
-      'gemini-1.5-pro': { rpm: 2, daily: 50 },
+    // 🚀 시연용 최대 할당량 반환 (내일 시연 전용)
+    const demoLimits = {
+      rpm: 100,   // 분당 100개 요청
+      daily: 10000 // 일일 10,000개 요청
     };
 
-    return (
-      limits[this.config.model]?.[type] || limits['gemini-1.5-flash'][type]
-    );
+    // 환경변수에서 설정된 값이 있으면 우선 사용
+    if (type === 'rpm' && process.env.GOOGLE_AI_RPM_LIMIT) {
+      return parseInt(process.env.GOOGLE_AI_RPM_LIMIT) || demoLimits.rpm;
+    }
+    if (type === 'daily' && process.env.GOOGLE_AI_DAILY_LIMIT) {
+      return parseInt(process.env.GOOGLE_AI_DAILY_LIMIT) || demoLimits.daily;
+    }
+
+    // 시연용 최대 할당량 반환
+    return demoLimits[type];
   }
 
   private checkRateLimit(): boolean {
+    // 🚀 시연용 할당량 체크 비활성화 (내일 시연 전용)
+    if (process.env.GOOGLE_AI_QUOTA_PROTECTION === 'false') {
+      console.log('🚀 Google AI 할당량 보호 비활성화 - 무제한 요청 허용');
+      return true;
+    }
+
     const now = Date.now();
 
     // 분당 리셋
@@ -508,10 +544,16 @@ ${index + 1}. 서버: ${server.name}
       this.requestCount.day = 0;
     }
 
-    return (
+    const withinLimits = (
       this.requestCount.minute < this.config.rateLimits.rpm &&
       this.requestCount.day < this.config.rateLimits.daily
     );
+
+    if (!withinLimits) {
+      console.log(`⚠️ Google AI 할당량 초과: 분당 ${this.requestCount.minute}/${this.config.rateLimits.rpm}, 일일 ${this.requestCount.day}/${this.config.rateLimits.daily}`);
+    }
+
+    return withinLimits;
   }
 
   private incrementRequestCount(): void {

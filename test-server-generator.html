@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>서버 데이터 생성기 검증 테스트</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background-color: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .output {
+            background-color: #000;
+            border: 1px solid #333;
+            padding: 20px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-size: 14px;
+            height: 600px;
+            overflow-y: auto;
+        }
+
+        .button {
+            background-color: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .button:hover {
+            background-color: #005a9e;
+        }
+
+        .success {
+            color: #00ff00;
+        }
+
+        .error {
+            color: #ff4444;
+        }
+
+        .warning {
+            color: #ffaa00;
+        }
+
+        .info {
+            color: #00aaff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🧪 서버 데이터 생성기 설계 검증 테스트</h1>
+        <p>RealServerDataGenerator가 설계 명세에 맞게 동작하는지 확인합니다.</p>
+
+        <button class="button" onclick="runTest()">🚀 테스트 시작</button>
+        <button class="button" onclick="clearOutput()">🗑️ 출력 지우기</button>
+
+        <div id="output" class="output">테스트를 시작하려면 위의 버튼을 클릭하세요...</div>
+    </div>
+
+    <script>
+        let outputElement = document.getElementById('output');
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const colorClass = type === 'success' ? 'success' :
+                type === 'error' ? 'error' :
+                    type === 'warning' ? 'warning' : 'info';
+
+            outputElement.innerHTML += `<span class="${colorClass}">[${timestamp}] ${message}</span>\n`;
+            outputElement.scrollTop = outputElement.scrollHeight;
+        }
+
+        function clearOutput() {
+            outputElement.innerHTML = '';
+        }
+
+        async function runTest() {
+            clearOutput();
+            log('🧪 서버 데이터 생성기 설계 검증 시작...', 'info');
+            log('', 'info');
+
+            try {
+                // API 호출로 서버 데이터 가져오기
+                log('📡 API 호출 중...', 'info');
+                const response = await fetch('http://localhost:3000/api/servers/realtime?type=servers');
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(`API 호출 실패: ${result.error}`);
+                }
+
+                const servers = result.data;
+                log(`✅ 총 ${servers.length}개 서버 데이터 수신`, 'success');
+                log('', 'info');
+
+                // 설계 명세 검증
+                const validationResults = {
+                    serverCount: servers.length === 30,
+                    serverTypes: [],
+                    serverNames: [],
+                    roles: [],
+                    environments: [],
+                    locations: [],
+                    statuses: [],
+                    cpuCores: [],
+                    memoryRanges: [],
+                    healthScores: [],
+                };
+
+                // 각 서버 데이터 검증
+                servers.forEach((server, index) => {
+                    // 서버 타입 검증
+                    const validTypes = ['web', 'api', 'database', 'cache', 'queue'];
+                    validationResults.serverTypes.push(validTypes.includes(server.type));
+
+                    // 서버 이름 형식 검증 (타입-숫자)
+                    const namePattern = new RegExp(`^${server.type}-\\d+$`);
+                    validationResults.serverNames.push(namePattern.test(server.name));
+
+                    // 역할 검증
+                    const validRoles = ['primary', 'replica', 'worker', 'standalone'];
+                    validationResults.roles.push(validRoles.includes(server.role));
+
+                    // 환경 검증
+                    const validEnvironments = ['production', 'staging', 'development'];
+                    validationResults.environments.push(validEnvironments.includes(server.environment));
+
+                    // 위치 검증
+                    const validLocations = ['us-east-1', 'us-west-2', 'eu-west-1', 'ap-southeast-1'];
+                    validationResults.locations.push(validLocations.includes(server.location));
+
+                    // 상태 검증
+                    const validStatuses = ['running', 'warning', 'error'];
+                    validationResults.statuses.push(validStatuses.includes(server.status));
+
+                    // CPU 코어 수 검증 (4-19개)
+                    const cpuCores = server.specs?.cpu?.cores || 0;
+                    validationResults.cpuCores.push(cpuCores >= 4 && cpuCores <= 19);
+
+                    // 메모리 범위 검증 (8GB-64GB)
+                    const memoryGB = (server.specs?.memory?.total || 0) / 1024;
+                    validationResults.memoryRanges.push(memoryGB >= 8 && memoryGB <= 64);
+
+                    // 건강도 검증 (60-100점)
+                    const healthScore = server.health?.score || 0;
+                    validationResults.healthScores.push(healthScore >= 60 && healthScore <= 100);
+
+                    // 첫 5개 서버 상세 정보 출력
+                    if (index < 5) {
+                        log(`📊 서버 ${index + 1}: ${server.name}`, 'info');
+                        log(`   타입: ${server.type}, 역할: ${server.role}`, 'info');
+                        log(`   환경: ${server.environment}, 위치: ${server.location}`, 'info');
+                        log(`   상태: ${server.status}, 건강도: ${Math.round(healthScore)}%`, 'info');
+                        log(`   CPU: ${cpuCores}코어, 메모리: ${Math.round(memoryGB)}GB`, 'info');
+                        log('', 'info');
+                    }
+                });
+
+                // 검증 결과 출력
+                log('🔍 설계 명세 검증 결과:', 'info');
+                log(`   서버 개수 (30개): ${validationResults.serverCount ? '✅' : '❌'}`, validationResults.serverCount ? 'success' : 'error');
+                log(`   서버 타입: ${validationResults.serverTypes.every(v => v) ? '✅' : '❌'}`, validationResults.serverTypes.every(v => v) ? 'success' : 'error');
+                log(`   서버 이름 형식: ${validationResults.serverNames.every(v => v) ? '✅' : '❌'}`, validationResults.serverNames.every(v => v) ? 'success' : 'error');
+                log(`   역할: ${validationResults.roles.every(v => v) ? '✅' : '❌'}`, validationResults.roles.every(v => v) ? 'success' : 'error');
+                log(`   환경: ${validationResults.environments.every(v => v) ? '✅' : '❌'}`, validationResults.environments.every(v => v) ? 'success' : 'error');
+                log(`   위치: ${validationResults.locations.every(v => v) ? '✅' : '❌'}`, validationResults.locations.every(v => v) ? 'success' : 'error');
+                log(`   상태: ${validationResults.statuses.every(v => v) ? '✅' : '❌'}`, validationResults.statuses.every(v => v) ? 'success' : 'error');
+                log(`   CPU 코어 수: ${validationResults.cpuCores.every(v => v) ? '✅' : '❌'}`, validationResults.cpuCores.every(v => v) ? 'success' : 'error');
+                log(`   메모리 범위: ${validationResults.memoryRanges.every(v => v) ? '✅' : '❌'}`, validationResults.memoryRanges.every(v => v) ? 'success' : 'error');
+                log(`   건강도 범위: ${validationResults.healthScores.every(v => v) ? '✅' : '❌'}`, validationResults.healthScores.every(v => v) ? 'success' : 'error');
+
+                // 통계 정보
+                const statusCounts = servers.reduce((acc, server) => {
+                    acc[server.status] = (acc[server.status] || 0) + 1;
+                    return acc;
+                }, {});
+
+                const typeCounts = servers.reduce((acc, server) => {
+                    acc[server.type] = (acc[server.type] || 0) + 1;
+                    return acc;
+                }, {});
+
+                log('', 'info');
+                log('📈 통계 정보:', 'info');
+                log(`   상태별 분포: ${JSON.stringify(statusCounts)}`, 'info');
+                log(`   타입별 분포: ${JSON.stringify(typeCounts)}`, 'info');
+
+                // 실시간 업데이트 테스트
+                log('', 'info');
+                log('🔄 실시간 업데이트 테스트 (5초 후 재확인)...', 'warning');
+
+                setTimeout(async () => {
+                    try {
+                        const response2 = await fetch('http://localhost:3000/api/servers/realtime?type=servers');
+                        const result2 = await response2.json();
+
+                        if (result2.success) {
+                            const servers2 = result2.data;
+
+                            // 첫 번째 서버의 메트릭 변화 확인
+                            const server1_before = servers[0];
+                            const server1_after = servers2[0];
+
+                            const cpuChanged = Math.abs(server1_before.metrics.cpu - server1_after.metrics.cpu) > 0.1;
+                            const memoryChanged = Math.abs(server1_before.metrics.memory - server1_after.metrics.memory) > 0.1;
+
+                            log(`   실시간 업데이트: ${cpuChanged || memoryChanged ? '✅' : '❌'}`, cpuChanged || memoryChanged ? 'success' : 'error');
+                            log(`   CPU 변화: ${server1_before.metrics.cpu.toFixed(1)}% → ${server1_after.metrics.cpu.toFixed(1)}%`, 'info');
+                            log(`   메모리 변화: ${server1_before.metrics.memory.toFixed(1)}% → ${server1_after.metrics.memory.toFixed(1)}%`, 'info');
+                        }
+                    } catch (error) {
+                        log(`   실시간 업데이트 테스트 실패: ${error.message}`, 'error');
+                    }
+
+                    log('', 'info');
+                    log('🎉 서버 데이터 생성기 검증 완료!', 'success');
+                }, 5000);
+
+            } catch (error) {
+                log(`❌ 테스트 실패: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+
+</html>

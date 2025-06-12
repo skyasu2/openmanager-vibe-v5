@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
+import { metricsCollector } from '../../../../../services/ai/RealTimeMetricsCollector';
 
 /**
  * 🚀 AI 엔진 상태 API v5.43.0
  *
  * 현재 활성 상태인 11개 AI 엔진의 실시간 상태를 반환합니다.
- * - 6개 오픈소스 엔진 (경량 ML 기반)
- * - 5개 커스텀 엔진
+ * - 실제 메트릭 기반 상태 제공
+ * - API 호출 통계 반영
  */
 
 interface EngineStatus {
@@ -75,118 +76,95 @@ export async function GET() {
 }
 
 /**
- * 🔄 실시간 엔진 상태 수집
+ * 🔄 실시간 엔진 상태 수집 (실제 메트릭 기반)
  */
 async function collectEngineStatus(): Promise<EngineStatus[]> {
+  // 실제 메트릭 데이터 가져오기
+  const realMetrics = metricsCollector.getEngineMetrics();
   const engines: EngineStatus[] = [];
 
-  // 6개 오픈소스 엔진 상태
-  const openSourceEngines = [
+  // 기본 엔진 정의 (실제 존재하는 것들만)
+  const engineDefinitions = [
     {
-      name: 'AnomalyDetection',
-      description: 'Z-Score 기반 이상 탐지',
-      library: 'simple-statistics',
-      endpoint: '/api/ai/anomaly',
-    },
-    {
-      name: 'PredictiveAnalytics',
-      description: '선형/다항 회귀 기반 예측',
-      library: 'ml-regression',
-      endpoint: '/api/ai/predict',
-    },
-    {
-      name: 'AutoScalingEngine',
-      description: '회귀 분석 기반 자동 스케일링',
-      library: 'ml-regression',
-      endpoint: '/api/ai/autoscaling',
-    },
-    {
-      name: 'KoreanNLP',
-      description: '한국어 자연어 처리',
-      library: 'hangul-js + korean-utils',
-      endpoint: null,
-    },
-    {
-      name: 'EnhancedAI',
-      description: '하이브리드 검색 엔진',
-      library: 'Fuse.js + MiniSearch',
-      endpoint: null,
-    },
-    {
-      name: 'IntegratedAI',
-      description: '통합 NLP 처리',
-      library: 'compromise + natural',
-      endpoint: null,
-    },
-  ];
-
-  // 5개 커스텀 엔진 상태
-  const customEngines = [
-    {
-      name: 'MCPEngine',
-      description: 'Context-Aware Query Processing',
-      library: 'Custom MCP',
-      endpoint: '/api/ai/mcp/query',
-    },
-    {
-      name: 'HybridEngine',
-      description: 'Multi-Engine Combination',
-      library: 'Custom Hybrid',
-      endpoint: '/api/ai/hybrid',
-    },
-    {
-      name: 'UnifiedEngine',
-      description: 'Cross-Platform Integration',
-      library: 'Custom Unified',
-      endpoint: '/api/ai/unified',
-    },
-    {
-      name: 'CustomNLP',
-      description: 'Domain-Specific NLP',
-      library: 'Custom NLP',
-      endpoint: null,
+      name: 'SmartQuery',
+      type: 'custom' as const,
+      description: '스마트 질의 처리 엔진',
+      endpoint: '/api/ai/smart-query',
     },
     {
       name: 'GoogleAI',
+      type: 'custom' as const,
       description: 'Gemini 베타 연동',
-      library: 'Google AI Studio',
-      endpoint: '/api/ai/google-ai',
+      endpoint: '/api/ai/google-ai/status',
+    },
+    {
+      name: 'EngineManager',
+      type: 'opensource' as const,
+      description: 'AI 엔진 관리 시스템',
+      endpoint: '/api/ai/engines/status',
+    },
+    {
+      name: 'TestEngine',
+      type: 'opensource' as const,
+      description: '테스트 및 검증 엔진',
+      endpoint: '/api/test/smart-query',
+    },
+    {
+      name: 'MCPEngine',
+      type: 'custom' as const,
+      description: 'MCP 통합 처리',
+      endpoint: '/api/mcp/query',
     },
   ];
 
-  // 오픈소스 엔진 상태 수집
-  for (const engine of openSourceEngines) {
-    const status = await checkEngineHealth(engine.endpoint);
-    engines.push({
-      name: engine.name,
-      type: 'opensource',
-      status: status.isHealthy ? 'active' : 'inactive',
-      requests: Math.floor(Math.random() * 300) + 100, // 실제 메트릭으로 교체 예정
-      accuracy: Math.floor(Math.random() * 15) + 85, // 85-100%
-      responseTime: Math.floor(Math.random() * 30) + 15, // 15-45ms
-      lastUsed: getRandomLastUsed(),
-      version: 'v5.43.0',
-      description: engine.description,
-    });
-  }
+  // 실제 메트릭이 있는 엔진들 처리
+  for (const definition of engineDefinitions) {
+    const realMetric = realMetrics.find(m => m.name === definition.name);
 
-  // 커스텀 엔진 상태 수집
-  for (const engine of customEngines) {
-    const status = await checkEngineHealth(engine.endpoint);
-    engines.push({
-      name: engine.name,
-      type: 'custom',
-      status: status.isHealthy ? 'active' : 'inactive',
-      requests: Math.floor(Math.random() * 200) + 50,
-      accuracy: Math.floor(Math.random() * 20) + 80, // 80-100%
-      responseTime: Math.floor(Math.random() * 50) + 20, // 20-70ms
-      lastUsed: getRandomLastUsed(),
-      version: 'v5.43.0',
-      description: engine.description,
-    });
+    if (realMetric) {
+      // 실제 데이터 사용
+      engines.push({
+        name: definition.name,
+        type: definition.type,
+        status: realMetric.status,
+        requests: realMetric.totalCalls,
+        accuracy: Math.round((realMetric.successfulCalls / realMetric.totalCalls) * 100),
+        responseTime: realMetric.avgResponseTime,
+        lastUsed: formatLastUsed(realMetric.lastUsed),
+        version: 'v5.43.0',
+        description: definition.description,
+      });
+    } else {
+      // 헬스체크로 상태 확인
+      const health = await checkEngineHealth(definition.endpoint);
+      engines.push({
+        name: definition.name,
+        type: definition.type,
+        status: health.isHealthy ? 'active' : 'inactive',
+        requests: 0,
+        accuracy: 0,
+        responseTime: health.responseTime || 0,
+        lastUsed: '사용 기록 없음',
+        version: 'v5.43.0',
+        description: definition.description,
+      });
+    }
   }
 
   return engines;
+}
+
+/**
+ * 마지막 사용 시간 포맷팅
+ */
+function formatLastUsed(timestamp: number): string {
+  const now = Date.now();
+  const diff = now - timestamp;
+
+  if (diff < 60 * 1000) return '방금 전';
+  if (diff < 60 * 60 * 1000) return `${Math.floor(diff / (60 * 1000))}분 전`;
+  if (diff < 24 * 60 * 60 * 1000) return `${Math.floor(diff / (60 * 60 * 1000))}시간 전`;
+  return `${Math.floor(diff / (24 * 60 * 60 * 1000))}일 전`;
 }
 
 /**

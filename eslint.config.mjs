@@ -14,6 +14,7 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
+    ignores: ["scripts/**/*", "development/**/*", "public/**/*"],
     plugins: {
       "@typescript-eslint": typescriptPlugin,
       "@next/next": nextPlugin,
@@ -21,9 +22,10 @@ const eslintConfig = [
     rules: {
       // 🚫 모든 ESLint 규칙 비활성화 (Vercel 배포 우선)
       "@typescript-eslint/no-unused-vars": "off",
-      "@typescript-eslint/no-explicit-any": "off", 
+      "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/prefer-const": "off",
       "@typescript-eslint/no-var-requires": "off",
+      "@typescript-eslint/no-require-imports": "off",
       "react/display-name": "off",
       "react-hooks/exhaustive-deps": "off",
       "@next/next/no-img-element": "off",

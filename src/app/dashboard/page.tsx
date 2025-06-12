@@ -187,6 +187,7 @@ function DashboardPageContent() {
     isAgentOpen,
     isClient,
     selectedServer,
+    serverStats, // 실제 API 통계 데이터 사용
 
     // Actions
     setSelectedServer,
@@ -280,24 +281,7 @@ function DashboardPageContent() {
         {/* 헤더 */}
         <Suspense fallback={<HeaderLoadingSkeleton />}>
           <DashboardHeader
-            serverStats={{
-              total: serverGeneration.servers.length,
-              online: serverGeneration.servers.filter(
-                s =>
-                  (s as any).status === 'healthy' ||
-                  (s as any).status === 'online' ||
-                  (s as any).status === 'running'
-              ).length,
-              warning: serverGeneration.servers.filter(
-                s => (s as any).status === 'warning'
-              ).length,
-              offline: serverGeneration.servers.filter(
-                s =>
-                  (s as any).status === 'critical' ||
-                  (s as any).status === 'offline' ||
-                  (s as any).status === 'error'
-              ).length,
-            }}
+            serverStats={serverStats} // 실제 API에서 가져온 통계 데이터 사용
             onNavigateHome={handleNavigateHome}
             onToggleAgent={toggleAgent}
             isAgentOpen={isAgentOpen}
@@ -329,7 +313,7 @@ function DashboardPageContent() {
               selectedServer={selectedServer}
               onServerClick={handleServerClick}
               onServerModalClose={() => setSelectedServer(null)}
-              onStatsUpdate={() => {}}
+              onStatsUpdate={() => { }}
               onShowSequentialChange={setShowSequentialGeneration}
               mainContentVariants={mainContentVariants}
               isAgentOpen={isAgentOpen}
@@ -344,7 +328,7 @@ function DashboardPageContent() {
             aiAgentState={{ state: 'active' }}
             isSystemActive={true}
             isSystemPaused={false}
-            onStartSystem={async () => {}}
+            onStartSystem={async () => { }}
             onStopSystem={handleSystemStop}
             onResumeSystem={handleSystemResume}
           />

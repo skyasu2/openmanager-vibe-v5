@@ -28,10 +28,10 @@ interface DashboardLogicState {
   isBootSequenceComplete: boolean;
   showBootSequence: boolean;
   loadingPhase:
-    | 'system-starting'
-    | 'data-loading'
-    | 'python-warmup'
-    | 'completed';
+  | 'system-starting'
+  | 'data-loading'
+  | 'python-warmup'
+  | 'completed';
   progress: number;
   skipAnimation: boolean;
   errorCount: number;
@@ -635,61 +635,106 @@ export function useDashboardLogic() {
       const startTime = Date.now();
 
       try {
-        // 🔧 API에서 서버 데이터와 통계를 함께 가져오기
-        const response = await fetch('/api/servers');
+        // 🔧 실시간 서버 데이터 API에서 요약 정보 가져오기
+        const response = await fetch('/api/servers/realtime?type=summary');
         if (response.ok) {
           const data = await response.json();
 
-          if (data.success && data.stats) {
-            // 🔧 API에서 제공하는 정확한 통계 사용
+          if (data.success && data.data && data.data.servers) {
+            // 🔧 실시간 API에서 제공하는 정확한 통계 사용
+            const realtimeStats = data.data.servers;
             const apiStats = {
-              total: data.stats.total || 0,
-              online: data.stats.online || 0,
-              warning: data.stats.warning || 0,
-              offline: data.stats.offline || 0,
+              total: realtimeStats.total || 0,
+              online: realtimeStats.online || 0,
+              warning: realtimeStats.warning || 0,
+              offline: realtimeStats.offline || 0,
             };
 
-            logger.info('📊 API 통계 데이터 사용');
-            logObject('API Stats', apiStats);
+            logger.info('📊 실시간 API 통계 데이터 사용');
+            logObject('Realtime API Stats', apiStats);
             updateServerStats(apiStats);
+
+            // 성능 측정 로깅
+            logPerformance('실시간 서버 데이터 업데이트', startTime, {
+              success: true,
+              statsSource: 'realtime-api',
+              avgCpu: realtimeStats.avgCpu,
+              avgMemory: realtimeStats.avgMemory,
+            });
           } else {
-            // 🔧 폴백: 서버 배열에서 직접 계산
-            const servers = data.servers || [];
-            const calculatedStats = {
-              total: servers.length,
-              online: servers.filter((s: any) => s.status === 'healthy').length,
-              warning: servers.filter((s: any) => s.status === 'warning')
-                .length,
-              offline: servers.filter((s: any) => s.status === 'critical')
-                .length,
-            };
-
-            logger.info('📊 계산된 통계 데이터 사용');
-            logObject('Calculated Stats', calculatedStats);
-            updateServerStats(calculatedStats);
+            throw new Error('실시간 API 응답 구조 오류');
           }
-
-          // 성능 측정 로깅
-          logPerformance('서버 데이터 업데이트', startTime, {
-            success: true,
-            statsSource: data.success && data.stats ? 'API' : 'calculated',
-          });
         } else {
-          logger.warn('⚠️ 서버 데이터 가져오기 실패, 기본값 사용');
-          updateServerStats(DEFAULT_STATS);
+          // 🔧 폴백: 일반 서버 API 시도
+          try {
+            const fallbackResponse = await fetch('/api/servers');
+            if (fallbackResponse.ok) {
+              const fallbackData = await fallbackResponse.json();
+              const servers = fallbackData.servers || [];
+              const calculatedStats = {
+                total: servers.length,
+                online: servers.filter((s: any) =>
+                  s.status === 'healthy' || s.status === 'running'
+                ).length,
+                warning: servers.filter((s: any) => s.status === 'warning').length,
+                offline: servers.filter((s: any) =>
+                  s.status === 'critical' || s.status === 'error'
+                ).length,
+              };
 
-          logPerformance('서버 데이터 업데이트', startTime, {
-            success: false,
-            reason: 'API response not ok',
-          });
+              logger.info('📊 폴백 API 통계 데이터 사용');
+              logObject('Fallback Stats', calculatedStats);
+              updateServerStats(calculatedStats);
+
+              logPerformance('폴백 서버 데이터 업데이트', startTime, {
+                success: true,
+                statsSource: 'fallback-api',
+              });
+            } else {
+              throw new Error('폴백 API도 실패');
+            }
+          } catch (fallbackError) {
+            logger.warn('⚠️ 폴백 API도 실패, 기본값 사용');
+            updateServerStats(DEFAULT_STATS);
+
+            logPerformance('서버 데이터 업데이트', startTime, {
+              success: false,
+              reason: 'Both APIs failed',
+            });
+          }
         }
       } catch (error) {
-        logger.errorDetail('서버 데이터 업데이트 오류', error);
-        updateServerStats(DEFAULT_STATS);
+        logger.errorDetail('실시간 서버 데이터 업데이트 오류', error);
+
+        // 🔧 에러 발생 시에도 폴백 시도
+        try {
+          const fallbackResponse = await fetch('/api/servers');
+          if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json();
+            const servers = fallbackData.servers || [];
+            const calculatedStats = {
+              total: servers.length,
+              online: servers.filter((s: any) =>
+                s.status === 'healthy' || s.status === 'running'
+              ).length,
+              warning: servers.filter((s: any) => s.status === 'warning').length,
+              offline: servers.filter((s: any) =>
+                s.status === 'critical' || s.status === 'error'
+              ).length,
+            };
+
+            logger.info('📊 에러 복구 - 폴백 API 사용');
+            updateServerStats(calculatedStats);
+          } else {
+            updateServerStats(DEFAULT_STATS);
+          }
+        } catch (fallbackError) {
+          updateServerStats(DEFAULT_STATS);
+        }
 
         logPerformance('서버 데이터 업데이트', startTime, {
           success: false,
-          reason: 'API call failed',
+          reason: 'Exception occurred',
         });
       }
     };

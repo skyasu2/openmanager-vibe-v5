@@ -10,14 +10,18 @@ import {
  * 우선순위:
  * 1. 개인 환경변수 (GOOGLE_AI_API_KEY)
  * 2. 팀 설정 (비밀번호로 복호화)
- * 3. 에러 (키 없음)
+ * 3. 시연용 하드코딩 키 (임시)
+ * 4. 에러 (키 없음)
  */
 class GoogleAIManager {
   private static instance: GoogleAIManager;
   private decryptedTeamKey: string | null = null;
   private isTeamKeyUnlocked = false;
 
-  private constructor() {}
+  // 🚀 시연용 임시 API 키 (내일 시연 후 제거 예정)
+  private readonly DEMO_API_KEY = 'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM';
+
+  private constructor() { }
 
   static getInstance(): GoogleAIManager {
     if (!GoogleAIManager.instance) {
@@ -34,15 +38,23 @@ class GoogleAIManager {
     // 1순위: 개인 환경변수
     const envKey = process.env.GOOGLE_AI_API_KEY;
     if (envKey && envKey.trim() !== '') {
+      console.log('🔑 Google AI API 키 소스: 환경변수');
       return envKey.trim();
     }
 
     // 2순위: 팀 설정 (복호화된 키)
     if (this.isTeamKeyUnlocked && this.decryptedTeamKey) {
+      console.log('🔑 Google AI API 키 소스: 팀 설정');
       return this.decryptedTeamKey;
     }
 
-    // 3순위: null (키 없음)
+    // 🚀 3순위: 시연용 하드코딩 키 (임시)
+    if (this.DEMO_API_KEY) {
+      console.log('🚀 Google AI API 키 소스: 시연용 임시 키 (내일 시연 전용)');
+      return this.DEMO_API_KEY;
+    }
+
+    // 4순위: null (키 없음)
     return null;
   }
 
@@ -57,7 +69,7 @@ class GoogleAIManager {
    * API 키 상태 정보
    */
   getKeyStatus(): {
-    source: 'env' | 'team' | 'none';
+    source: 'env' | 'team' | 'demo' | 'none';
     isAvailable: boolean;
     needsUnlock: boolean;
   } {
@@ -74,6 +86,15 @@ class GoogleAIManager {
     if (this.isTeamKeyUnlocked && this.decryptedTeamKey) {
       return {
         source: 'team',
+        isAvailable: true,
+        needsUnlock: false,
+      };
+    }
+
+    // 🚀 시연용 키 사용 가능
+    if (this.DEMO_API_KEY) {
+      return {
+        source: 'demo',
         isAvailable: true,
         needsUnlock: false,
       };

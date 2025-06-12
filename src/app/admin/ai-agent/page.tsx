@@ -180,118 +180,13 @@ export default function IntegratedAIEngineDashboard() {
         }
       }
 
-      console.warn('⚠️ AI 엔진 상태 API 실패, fallback 데이터 사용');
+      console.warn('⚠️ AI 엔진 상태 API 실패');
     } catch (error) {
       console.error('❌ AI 엔진 상태 로드 실패:', error);
     }
 
-    // Fallback: 하드코딩된 초기 데이터
-    const fallbackEngines: EngineStatus[] = [
-      // 경량 ML 엔진들 (v5.43.0) - 6개
-      {
-        name: 'AnomalyDetection',
-        type: 'opensource',
-        status: 'active',
-        requests: 245,
-        accuracy: 92,
-        responseTime: 25,
-        lastUsed: '방금 전',
-      },
-      {
-        name: 'PredictiveAnalytics',
-        type: 'opensource',
-        status: 'active',
-        requests: 180,
-        accuracy: 88,
-        responseTime: 15,
-        lastUsed: '2분 전',
-      },
-      {
-        name: 'AutoScalingEngine',
-        type: 'opensource',
-        status: 'active',
-        requests: 156,
-        accuracy: 85,
-        responseTime: 20,
-        lastUsed: '1분 전',
-      },
-      {
-        name: 'KoreanNLP',
-        type: 'opensource',
-        status: 'active',
-        requests: 234,
-        accuracy: 95,
-        responseTime: 15,
-        lastUsed: '방금 전',
-      },
-      {
-        name: 'Natural',
-        type: 'opensource',
-        status: 'active',
-        requests: 198,
-        accuracy: 89,
-        responseTime: 55,
-        lastUsed: '3분 전',
-      },
-      {
-        name: 'Compromise',
-        type: 'opensource',
-        status: 'active',
-        requests: 167,
-        accuracy: 87,
-        responseTime: 40,
-        lastUsed: '2분 전',
-      },
-
-      // 커스텀 엔진들 (5개)
-      {
-        name: 'Anomaly Detection',
-        type: 'custom',
-        status: 'active',
-        requests: 123,
-        accuracy: 94,
-        responseTime: 80,
-        lastUsed: '1분 전',
-      },
-      {
-        name: 'Prediction Engine',
-        type: 'custom',
-        status: 'active',
-        requests: 145,
-        accuracy: 91,
-        responseTime: 120,
-        lastUsed: '방금 전',
-      },
-      {
-        name: 'Enhanced AI',
-        type: 'custom',
-        status: 'active',
-        requests: 178,
-        accuracy: 93,
-        responseTime: 95,
-        lastUsed: '방금 전',
-      },
-      {
-        name: 'Korean NLP',
-        type: 'custom',
-        status: 'active',
-        requests: 203,
-        accuracy: 96,
-        responseTime: 65,
-        lastUsed: '방금 전',
-      },
-      {
-        name: 'Hybrid Engine',
-        type: 'custom',
-        status: 'active',
-        requests: 134,
-        accuracy: 90,
-        responseTime: 110,
-        lastUsed: '2분 전',
-      },
-    ];
-
-    setEngines(fallbackEngines);
+    // 빈 배열로 초기화 (실제 메트릭이 없으면 표시하지 않음)
+    setEngines([]);
   };
 
   /**
@@ -734,13 +629,12 @@ export default function IntegratedAIEngineDashboard() {
                     <div className='flex items-center justify-between mb-4'>
                       <div className='flex items-center gap-3'>
                         <div
-                          className={`w-3 h-3 rounded-full ${
-                            engine.status === 'active'
-                              ? 'bg-green-400'
-                              : engine.status === 'error'
-                                ? 'bg-red-400'
-                                : 'bg-yellow-400'
-                          }`}
+                          className={`w-3 h-3 rounded-full ${engine.status === 'active'
+                            ? 'bg-green-400'
+                            : engine.status === 'error'
+                              ? 'bg-red-400'
+                              : 'bg-yellow-400'
+                            }`}
                         />
                         <h3 className='text-lg font-semibold text-white'>
                           {engine.name}
@@ -804,13 +698,12 @@ export default function IntegratedAIEngineDashboard() {
                           {engine.name}
                         </CardTitle>
                         <Badge
-                          className={`${
-                            engine.status === 'active'
-                              ? 'bg-green-500'
-                              : engine.status === 'error'
-                                ? 'bg-red-500'
-                                : 'bg-blue-500'
-                          } text-white`}
+                          className={`${engine.status === 'active'
+                            ? 'bg-green-500'
+                            : engine.status === 'error'
+                              ? 'bg-red-500'
+                              : 'bg-blue-500'
+                            } text-white`}
                         >
                           {engine.status}
                         </Badge>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Google AI 시연용 테스트 페이지</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .test-button {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .test-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 5px;
+        }
+
+        .status.success {
+            background: #4CAF50;
+        }
+
+        .status.error {
+            background: #F44336;
+        }
+
+        .status.warning {
+            background: #FF9800;
+        }
+
+        .status.info {
+            background: #2196F3;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, .3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .demo-query {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        .demo-query::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🚀 Google AI 시연용 테스트 페이지</h1>
+        <p style="text-align: center; font-size: 1.2em; margin-bottom: 30px;">
+            내일 시연을 위한 Google AI Studio (Gemini) 연결 테스트
+        </p>
+
+        <!-- 1. API 키 상태 확인 -->
+        <div class="test-section">
+            <h3>🔑 1. API 키 상태 확인</h3>
+            <button class="test-button" onclick="checkAPIKeyStatus()">API 키 상태 확인</button>
+            <div id="apiKeyResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 2. Google AI 서비스 상태 -->
+        <div class="test-section">
+            <h3>🏥 2. Google AI 서비스 상태</h3>
+            <button class="test-button" onclick="checkGoogleAIStatus()">서비스 상태 확인</button>
+            <div id="serviceResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 3. 연결 테스트 -->
+        <div class="test-section">
+            <h3>🧪 3. 연결 테스트</h3>
+            <button class="test-button" onclick="testConnection()">연결 테스트 실행</button>
+            <div id="connectionResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 4. 실제 AI 질의 테스트 -->
+        <div class="test-section">
+            <h3>🤖 4. 실제 AI 질의 테스트</h3>
+            <input type="text" class="demo-query" id="demoQuery" placeholder="테스트할 질문을 입력하세요 (예: 서버 모니터링에 대해 설명해주세요)"
+                value="OpenManager Vibe v5 시연을 위한 서버 모니터링 AI 분석을 보여주세요.">
+            <br>
+            <button class="test-button" onclick="testAIQuery()">AI 질의 테스트</button>
+            <div id="queryResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 5. AI 엔진 상태 -->
+        <div class="test-section">
+            <h3>⚙️ 5. AI 엔진 전체 상태</h3>
+            <button class="test-button" onclick="checkAllEngines()">모든 AI 엔진 상태 확인</button>
+            <div id="enginesResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- 실시간 상태 표시 -->
+        <div class="test-section">
+            <h3>📊 실시간 상태</h3>
+            <div id="realTimeStatus">
+                <span class="status info">대기 중...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 실시간 상태 업데이트
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('realTimeStatus');
+            statusDiv.innerHTML = `<span class="status ${type}">${message}</span>`;
+        }
+
+        // 로딩 표시
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.innerHTML = '<div class="loading"></div> 테스트 진행 중...';
+        }
+
+        // 결과 표시
+        function showResult(elementId, result, isSuccess = true) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.innerHTML = `
+                <span class="status ${isSuccess ? 'success' : 'error'}">
+                    ${isSuccess ? '✅ 성공' : '❌ 실패'}
+                </span>
+                <br><br>
+                ${typeof result === 'object' ? JSON.stringify(result, null, 2) : result}
+            `;
+        }
+
+        // 1. API 키 상태 확인
+        async function checkAPIKeyStatus() {
+            showLoading('apiKeyResult');
+            updateStatus('API 키 상태 확인 중...', 'info');
+
+            try {
+                const response = await fetch('/api/ai/google-ai/status');
+                const data = await response.json();
+
+                showResult('apiKeyResult', data, response.ok);
+                updateStatus(response.ok ? 'API 키 상태 확인 완료' : 'API 키 상태 확인 실패',
+                    response.ok ? 'success' : 'error');
+            } catch (error) {
+                showResult('apiKeyResult', `오류: ${error.message}`, false);
+                updateStatus('API 키 상태 확인 오류', 'error');
+            }
+        }
+
+        // 2. Google AI 서비스 상태
+        async function checkGoogleAIStatus() {
+            showLoading('serviceResult');
+            updateStatus('Google AI 서비스 상태 확인 중...', 'info');
+
+            try {
+                const response = await fetch('/api/ai/google-ai/status');
+                const data = await response.json();
+
+                showResult('serviceResult', data, response.ok);
+                updateStatus(response.ok ? 'Google AI 서비스 정상' : 'Google AI 서비스 문제',
+                    response.ok ? 'success' : 'warning');
+            } catch (error) {
+                showResult('serviceResult', `오류: ${error.message}`, false);
+                updateStatus('Google AI 서비스 오류', 'error');
+            }
+        }
+
+        // 3. 연결 테스트
+        async function testConnection() {
+            showLoading('connectionResult');
+            updateStatus('Google AI 연결 테스트 중...', 'info');
+
+            try {
+                const response = await fetch('/api/ai/unified', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'test',
+                        query: 'Google AI 연결 테스트'
+                    })
+                });
+                const data = await response.json();
+
+                showResult('connectionResult', data, response.ok);
+                updateStatus(response.ok ? 'Google AI 연결 성공' : 'Google AI 연결 실패',
+                    response.ok ? 'success' : 'error');
+            } catch (error) {
+                showResult('connectionResult', `오류: ${error.message}`, false);
+                updateStatus('Google AI 연결 오류', 'error');
+            }
+        }
+
+        // 4. 실제 AI 질의 테스트
+        async function testAIQuery() {
+            const query = document.getElementById('demoQuery').value;
+            if (!query.trim()) {
+                alert('질문을 입력해주세요.');
+                return;
+            }
+
+            showLoading('queryResult');
+            updateStatus('AI 질의 처리 중...', 'info');
+
+            try {
+                const response = await fetch('/api/ai/unified', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'analyze',
+                        query: query,
+                        context: {
+                            demo: true,
+                            presentation: true,
+                            timestamp: new Date().toISOString()
+                        }
+                    })
+                });
+                const data = await response.json();
+
+                showResult('queryResult', data, response.ok);
+                updateStatus(response.ok ? 'AI 질의 처리 완료' : 'AI 질의 처리 실패',
+                    response.ok ? 'success' : 'error');
+            } catch (error) {
+                showResult('queryResult', `오류: ${error.message}`, false);
+                updateStatus('AI 질의 처리 오류', 'error');
+            }
+        }
+
+        // 5. 모든 AI 엔진 상태 확인
+        async function checkAllEngines() {
+            showLoading('enginesResult');
+            updateStatus('모든 AI 엔진 상태 확인 중...', 'info');
+
+            try {
+                const response = await fetch('/api/ai/engines/status');
+                const data = await response.json();
+
+                showResult('enginesResult', data, response.ok);
+
+                if (response.ok && data.data) {
+                    const googleAI = data.data.engines.find(e => e.name === 'GoogleAI');
+                    if (googleAI) {
+                        updateStatus(`Google AI: ${googleAI.status} (${googleAI.requests}개 요청 처리)`,
+                            googleAI.status === 'active' ? 'success' : 'warning');
+                    } else {
+                        updateStatus('Google AI 엔진 정보 없음', 'warning');
+                    }
+                } else {
+                    updateStatus('AI 엔진 상태 확인 실패', 'error');
+                }
+            } catch (error) {
+                showResult('enginesResult', `오류: ${error.message}`, false);
+                updateStatus('AI 엔진 상태 확인 오류', 'error');
+            }
+        }
+
+        // 페이지 로드 시 자동 상태 확인
+        window.addEventListener('load', function () {
+            updateStatus('🚀 Google AI 시연용 테스트 페이지 준비 완료', 'success');
+
+            // 3초 후 자동으로 API 키 상태 확인
+            setTimeout(() => {
+                checkAPIKeyStatus();
+            }, 3000);
+        });
+
+        // 5초마다 실시간 상태 업데이트
+        setInterval(() => {
+            const now = new Date().toLocaleTimeString('ko-KR');
+            updateStatus(`마지막 업데이트: ${now}`, 'info');
+        }, 5000);
+    </script>
+</body>
+
+</html>
