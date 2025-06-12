@@ -3,6 +3,7 @@
 import { Suspense, lazy, useState, useEffect } from 'react';
 import { useDashboardLogic } from '../../hooks/useDashboardLogic';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { motion } from 'framer-motion';
 import { AlertTriangle, Monitor, Bot, RefreshCw } from 'lucide-react';
 import dynamic from 'next/dynamic';
@@ -211,6 +212,7 @@ function DashboardPageContent() {
   } = useDashboardLogic();
 
   const { isSystemStarted, getSystemRemainingTime } = useUnifiedAdminStore();
+  const { isOpen: isAISidebarOpen } = useAISidebarStore();
 
   // 🛡️ 대시보드 진입 시 시스템 상태 검증
   useEffect(() => {
@@ -270,7 +272,10 @@ function DashboardPageContent() {
         variants={mainContentVariants}
         initial='hidden'
         animate='visible'
-        className='flex flex-col h-screen'
+        className='flex flex-col h-screen transition-all duration-300 ease-in-out'
+        style={{
+          marginRight: isAISidebarOpen ? '480px' : '0px',
+        }}
       >
         {/* 헤더 */}
         <Suspense fallback={<HeaderLoadingSkeleton />}>
