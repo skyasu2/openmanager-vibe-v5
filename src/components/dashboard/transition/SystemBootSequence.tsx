@@ -55,8 +55,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
     const [isComplete, setIsComplete] = useState(false);
     const [showEmergencyButton, setShowEmergencyButton] = useState(false);
     const [errorCount, setErrorCount] = useState(0);
-    const [waitingForUserConfirmation, setWaitingForUserConfirmation] =
-      useState(false);
+
     const router = useRouter();
 
     // 🛡️ 전역 에러 핸들러 및 절대 안전장치 설정
@@ -116,15 +115,16 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
       };
     }, [errorCount]);
 
-    // 🎯 최종 완료 처리 함수 (사용자 확인 후에만 실행)
+    // 🎯 최종 완료 처리 함수 (즉시 실행)
     const handleFinalComplete = useCallback(() => {
-      if (!isComplete && waitingForUserConfirmation) {
+      if (!isComplete) {
         try {
-          console.log('🎉 SystemBootSequence 최종 완료 처리 (사용자 확인됨)');
+          console.log(
+            '🎉 SystemBootSequence 최종 완료 처리 (즉시 대시보드 이동)'
+          );
           setIsComplete(true);
           setShowSystemChecklist(false);
           setShowSpawning(false);
-          setWaitingForUserConfirmation(false);
           onBootComplete();
           router.push('/dashboard');
         } catch (error) {
@@ -133,10 +133,10 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
           setIsComplete(true);
           setShowSystemChecklist(false);
           setShowSpawning(false);
-          setWaitingForUserConfirmation(false);
+          router.push('/dashboard');
         }
       }
-    }, [isComplete, waitingForUserConfirmation, onBootComplete, router]);
+    }, [isComplete, onBootComplete, router]);
 
     // 스킵 조건 체크
     useEffect(() => {
@@ -148,76 +148,27 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
 
     // 🔧 시스템 체크리스트 완료 핸들러
     const handleSystemChecklistComplete = useCallback(() => {
-      console.log('✅ 시스템 체크리스트 완료 - 서버 스포닝 시작');
+      console.log('✅ 시스템 체크리스트 완료 - 즉시 완료 처리');
       setShowSystemChecklist(false);
 
-      // 서버가 있으면 서버 스포닝 단계로, 없으면 사용자 확인 대기
+      // 서버가 있으면 서버 스포닝 단계로, 없으면 즉시 완료
       if (servers && servers.length > 0) {
         setShowSpawning(true);
       } else {
-        // 서버가 없으면 사용자 확인 대기 상태로 전환
-        console.log('📋 서버 없음 - 사용자 확인 대기');
-        setWaitingForUserConfirmation(true);
+        // 서버가 없으면 즉시 완료 처리
+        console.log('📋 서버 없음 - 즉시 완료');
+        handleFinalComplete();
       }
-    }, [servers]);
+    }, [servers, handleFinalComplete]);
 
-    // 🆕 자동 이동 관련 상태 추가
-    const [autoRedirectCountdown, setAutoRedirectCountdown] = useState(0);
-    const [autoRedirectTimer, setAutoRedirectTimer] =
-      useState<NodeJS.Timeout | null>(null);
-
-    // 서버 스포닝 완료 핸들러 - 사용자 확인 대기 상태로 전환
+    // 서버 스포닝 완료 핸들러 - 즉시 완료 처리
     const handleSpawnerComplete = useCallback(() => {
-      console.log('🎉 서버 스포닝 완료 - 사용자 확인 대기');
+      console.log('🎉 서버 스포닝 완료 - 즉시 완료 처리');
       setShowSpawning(false);
-      setWaitingForUserConfirmation(true);
-    }, []);
 
-    // 🆕 자동 이동 타이머 시작 함수
-    const startAutoRedirect = useCallback(() => {
-      console.log('⏰ 3초 후 자동 대시보드 이동 시작');
-      setAutoRedirectCountdown(3);
-
-      const timer = setInterval(() => {
-        setAutoRedirectCountdown(prev => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            console.log('🚀 자동 대시보드 이동 실행');
-            handleFinalComplete();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      setAutoRedirectTimer(timer);
+      // 즉시 완료 처리
+      handleFinalComplete();
     }, [handleFinalComplete]);
-
-    // 🆕 자동 이동 타이머 중지 함수
-    const stopAutoRedirect = useCallback(() => {
-      if (autoRedirectTimer) {
-        clearInterval(autoRedirectTimer);
-        setAutoRedirectTimer(null);
-      }
-      setAutoRedirectCountdown(0);
-      console.log('⏹️ 자동 이동 타이머 중지');
-    }, [autoRedirectTimer]);
-
-    // 🆕 사용자 확인 대기 상태가 되면 자동 이동 타이머 시작
-    useEffect(() => {
-      if (waitingForUserConfirmation && !autoRedirectTimer) {
-        // 1초 후에 카운트다운 시작 (화면 전환 완료 후)
-        setTimeout(() => {
-          startAutoRedirect();
-        }, 1000);
-      }
-
-      return () => {
-        if (autoRedirectTimer) {
-          clearInterval(autoRedirectTimer);
-        }
-      };
-    }, [waitingForUserConfirmation, autoRedirectTimer, startAutoRedirect]);
 
     // 🛠️ 개발자 도구 등록
     useEffect(() => {
@@ -261,12 +212,8 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
       <div
         className='fixed inset-0 z-50 bg-black cursor-pointer'
         onClick={() => {
-          if (waitingForUserConfirmation) {
-            console.log('🖱️ 화면 클릭으로 완료 (사용자 확인 대기 중)');
-            handleFinalComplete();
-          } else {
-            console.log('🖱️ 화면 클릭 - 아직 완료 준비 안됨');
-          }
+          console.log('🖱️ 화면 클릭 - 즉시 완료 처리');
+          handleFinalComplete();
         }}
       >
         <AnimatePresence mode='wait'>
@@ -306,185 +253,6 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
               />
             </motion.div>
           )}
-
-          {/* ✅ 사용자 확인 대기 화면 */}
-          {waitingForUserConfirmation && (
-            <motion.div
-              key='waiting-confirmation'
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5 }}
-              className='absolute inset-0 flex items-center justify-center'
-              onClick={() => {
-                console.log('🖱️ 화면 클릭으로 즉시 이동');
-                stopAutoRedirect();
-                handleFinalComplete();
-              }}
-            >
-              <div className='text-center space-y-8 max-w-4xl mx-auto px-6'>
-                {/* 완료 상태 표시 */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className='text-center'
-                >
-                  <div className='w-24 h-24 mx-auto mb-6 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center'>
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{
-                        delay: 0.4,
-                        type: 'spring',
-                        stiffness: 200,
-                      }}
-                    >
-                      ✅
-                    </motion.div>
-                  </div>
-                  <h1 className='text-4xl font-bold text-white mb-4'>
-                    시스템 준비 완료!
-                  </h1>
-                  <p className='text-blue-200 text-lg'>
-                    모든 시스템이 정상적으로 초기화되었습니다.
-                  </p>
-
-                  {/* 🆕 자동 이동 카운트다운 표시 */}
-                  {autoRedirectCountdown > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className='mt-4 p-3 bg-orange-500/20 rounded-lg border border-orange-400/30'
-                    >
-                      <p className='text-orange-200 text-sm'>
-                        🚀 {autoRedirectCountdown}초 후 자동으로 대시보드로
-                        이동합니다
-                      </p>
-                      <p className='text-orange-300/70 text-xs mt-1'>
-                        화면을 클릭하면 즉시 이동합니다
-                      </p>
-                    </motion.div>
-                  )}
-                </motion.div>
-
-                {/* 시스템 상태 카드들 */}
-                <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
-                    className='p-6 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm'
-                  >
-                    <div className='flex items-center gap-3 mb-3'>
-                      <div className='w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center'>
-                        ✓
-                      </div>
-                      <h3 className='text-lg font-semibold text-white'>
-                        시스템 초기화
-                      </h3>
-                    </div>
-                    <p className='text-green-300 text-sm'>
-                      모든 구성 요소가 성공적으로 로드됨
-                    </p>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.7 }}
-                    className='p-6 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm'
-                  >
-                    <div className='flex items-center gap-3 mb-3'>
-                      <div className='w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center'>
-                        🖥️
-                      </div>
-                      <h3 className='text-lg font-semibold text-white'>
-                        서버 연결
-                      </h3>
-                    </div>
-                    <p className='text-blue-300 text-sm'>
-                      {servers.length}개 서버가 온라인 상태
-                    </p>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.8 }}
-                    className='p-6 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm'
-                  >
-                    <div className='flex items-center gap-3 mb-3'>
-                      <div className='w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center'>
-                        💾
-                      </div>
-                      <h3 className='text-lg font-semibold text-white'>
-                        데이터베이스
-                      </h3>
-                    </div>
-                    <p className='text-purple-300 text-sm'>
-                      모든 데이터 연결이 활성화됨
-                    </p>
-                  </motion.div>
-                </div>
-
-                {/* 완료 안내 메시지 */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.0 }}
-                  className='text-center'
-                >
-                  {autoRedirectCountdown > 0 ? (
-                    <p className='text-cyan-300 text-lg mb-2'>
-                      🖱️ 화면을 클릭하면 즉시 대시보드로 이동합니다
-                    </p>
-                  ) : (
-                    <p className='text-cyan-300 text-lg mb-2'>
-                      🖱️ 화면을 클릭하여 대시보드로 이동하세요
-                    </p>
-                  )}
-                  <p className='text-gray-400 text-sm'>
-                    또는 아래 버튼을 클릭하세요
-                  </p>
-                </motion.div>
-
-                {/* 오른쪽 아래 다음 버튼 */}
-                <motion.div
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 1.2 }}
-                  className='fixed bottom-8 right-8 z-50'
-                >
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      console.log('🚀 다음 버튼 클릭 - 대시보드로 이동 준비');
-                      stopAutoRedirect();
-                      handleFinalComplete();
-                    }}
-                    className={`group px-6 py-3 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center space-x-2 ${
-                      autoRedirectCountdown > 0
-                        ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600'
-                        : 'bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600'
-                    }`}
-                  >
-                    <span>
-                      {autoRedirectCountdown > 0
-                        ? `자동 이동 (${autoRedirectCountdown}초)`
-                        : '대시보드로 이동'}
-                    </span>
-                    <motion.div
-                      animate={{ x: [0, 4, 0] }}
-                      transition={{ repeat: Infinity, duration: 1.5 }}
-                    >
-                      →
-                    </motion.div>
-                  </button>
-                </motion.div>
-              </div>
-            </motion.div>
-          )}
         </AnimatePresence>
 
         {/* 🚨 에러 발생 또는 장시간 로딩 시 비상 완료 버튼 */}
@@ -509,20 +277,8 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
                   <button
                     onClick={e => {
                       e.stopPropagation();
-                      if (waitingForUserConfirmation) {
-                        console.log(
-                          '🚀 비상 완료 버튼 클릭 (사용자 확인 대기 중)'
-                        );
-                        handleFinalComplete();
-                      } else {
-                        console.log(
-                          '🚀 비상 완료 버튼 클릭 - 아직 완료 준비 안됨'
-                        );
-                        // 강제로 사용자 확인 대기 상태로 전환
-                        setShowSystemChecklist(false);
-                        setShowSpawning(false);
-                        setWaitingForUserConfirmation(true);
-                      }
+                      console.log('🚀 비상 완료 버튼 클릭 - 즉시 완료 처리');
+                      handleFinalComplete();
                     }}
                     className='w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105 active:scale-95'
                   >

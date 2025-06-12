@@ -2,17 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
+
 import { useRouter } from 'next/navigation';
 import { SystemBootSequence } from '@/components/dashboard/transition';
 import { useServerDataStore } from '@/stores/serverDataStore';
 import {
   Monitor,
-  ArrowRight,
   CheckCircle,
   Server as ServerIcon,
   Database,
-  RotateCcw,
 } from 'lucide-react';
 import type { Server } from '@/types/server';
 
@@ -43,76 +41,16 @@ export default function SystemBootPage() {
   const [bootState, setBootState] = useState<'running' | 'completed'>(
     'running'
   );
-  const [autoRedirectCountdown, setAutoRedirectCountdown] = useState(0);
-  const [countdownTimer, setCountdownTimer] = useState<NodeJS.Timeout | null>(
-    null
-  );
 
-  // 부팅 완료 핸들러 - 5초 카운트다운 시작
+  // 부팅 완료 핸들러 - 즉시 대시보드로 이동
   const handleBootComplete = () => {
-    console.log('🎉 부팅 시퀀스 완료 - 5초 후 자동 대시보드 이동 시작');
+    console.log('🎉 부팅 시퀀스 완료 - 즉시 대시보드로 이동');
     setBootState('completed');
 
-    // 5초 카운트다운 시작 (사용자가 부팅 완료 상태를 확인할 시간 제공)
-    setAutoRedirectCountdown(5);
-    const timer = setInterval(() => {
-      setAutoRedirectCountdown(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          console.log('🚀 자동 대시보드 이동');
-          router.push('/dashboard');
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    setCountdownTimer(timer);
+    // 시스템 준비완료 화면 없이 바로 대시보드로 이동
+    console.log('🚀 즉시 대시보드 이동');
+    router.push('/dashboard');
   };
-
-  // 카운트다운 중지
-  const stopCountdown = () => {
-    if (countdownTimer) {
-      clearInterval(countdownTimer);
-      setCountdownTimer(null);
-    }
-    setAutoRedirectCountdown(0);
-    console.log('⏹️ 자동 이동 카운트다운 중지');
-  };
-
-  // 부팅 다시 시작
-  const restartBoot = () => {
-    stopCountdown();
-    setBootState('running');
-  };
-
-  // ESC 키와 배경 클릭으로 카운트다운 중지
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && autoRedirectCountdown > 0) {
-        stopCountdown();
-      }
-    };
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        autoRedirectCountdown > 0 &&
-        (e.target as HTMLElement).classList.contains('bg-gradient-to-br')
-      ) {
-        stopCountdown();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('click', handleClickOutside);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('click', handleClickOutside);
-      if (countdownTimer) {
-        clearInterval(countdownTimer);
-      }
-    };
-  }, [autoRedirectCountdown, countdownTimer]);
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 relative overflow-hidden'>
@@ -135,193 +73,8 @@ export default function SystemBootPage() {
               autoStart={true}
             />
           )}
-
-          {/* 부팅 완료 - 정적 완료 화면 */}
-          {bootState === 'completed' && (
-            <motion.div
-              key='completed'
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className='w-full h-full flex items-center justify-center'
-            >
-              <div className='text-center space-y-8 max-w-4xl mx-auto px-6'>
-                {/* 시스템 상태 표시 */}
-                <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className='p-6 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm'
-                  >
-                    <div className='flex items-center gap-3 mb-3'>
-                      <CheckCircle className='w-6 h-6 text-green-400' />
-                      <h3 className='text-lg font-semibold text-white'>
-                        시스템 초기화
-                      </h3>
-                    </div>
-                    <p className='text-green-300 text-sm'>
-                      모든 시스템 구성 요소가 성공적으로 로드되었습니다
-                    </p>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className='p-6 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm'
-                  >
-                    <div className='flex items-center gap-3 mb-3'>
-                      <ServerIcon className='w-6 h-6 text-blue-400' />
-                      <h3 className='text-lg font-semibold text-white'>
-                        서버 연결
-                      </h3>
-                    </div>
-                    <p className='text-blue-300 text-sm'>
-                      {servers.length}개 서버가 온라인 상태입니다
-                    </p>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className='p-6 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm'
-                  >
-                    <div className='flex items-center gap-3 mb-3'>
-                      <Database className='w-6 h-6 text-purple-400' />
-                      <h3 className='text-lg font-semibold text-white'>
-                        데이터베이스
-                      </h3>
-                    </div>
-                    <p className='text-purple-300 text-sm'>
-                      모든 데이터 연결이 활성화되었습니다
-                    </p>
-                  </motion.div>
-                </div>
-
-                {/* 부팅 완료 메시지 */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.4 }}
-                  className='text-center mb-8'
-                >
-                  <motion.div
-                    className='w-24 h-24 mx-auto mb-6 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg'
-                    animate={{
-                      scale: [1, 1.1, 1],
-                      boxShadow: [
-                        '0 10px 25px rgba(16, 185, 129, 0.3)',
-                        '0 15px 35px rgba(16, 185, 129, 0.5)',
-                        '0 10px 25px rgba(16, 185, 129, 0.3)',
-                      ],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                    }}
-                  >
-                    <CheckCircle className='w-12 h-12 text-white' />
-                  </motion.div>
-                  <motion.h1
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className='text-4xl font-bold text-white mb-3'
-                  >
-                    🎉 부팅 완료!
-                  </motion.h1>
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
-                    className='text-center'
-                  >
-                    <h2 className='text-2xl font-semibold text-white mb-2'>
-                      OpenManager Vibe v5
-                    </h2>
-                    <p className='text-green-200 text-lg'>
-                      모든 시스템이 성공적으로 초기화되었습니다
-                    </p>
-                    <motion.p
-                      className='text-blue-200 text-sm mt-3'
-                      animate={{
-                        opacity: [0.7, 1, 0.7],
-                      }}
-                      transition={{
-                        duration: 1.5,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
-                      }}
-                    >
-                      {autoRedirectCountdown > 0
-                        ? `${autoRedirectCountdown}초 후 대시보드로 자동 이동...`
-                        : '대시보드로 이동할 준비가 완료되었습니다'}
-                    </motion.p>
-                  </motion.div>
-                </motion.div>
-              </div>
-            </motion.div>
-          )}
         </AnimatePresence>
       </div>
-
-      {/* 우측 하단 버튼 - 부팅 완료 시에만 표시 */}
-      {bootState === 'completed' && (
-        <motion.div
-          initial={{ opacity: 0, x: 100 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.5 }}
-          className='fixed bottom-8 right-8 flex flex-col gap-3'
-        >
-          <Link
-            href='/dashboard'
-            onClick={() => stopCountdown()}
-            className={`flex items-center gap-3 px-6 py-4 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 ${
-              autoRedirectCountdown > 0
-                ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600'
-                : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600'
-            }`}
-          >
-            <ArrowRight className='w-5 h-5' />
-            {autoRedirectCountdown > 0 ? (
-              <div className='flex items-center gap-2'>
-                <span>자동 이동</span>
-                <div className='bg-white/20 rounded-full w-6 h-6 flex items-center justify-center'>
-                  <span className='text-sm font-bold'>
-                    {autoRedirectCountdown}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              '대시보드로 이동'
-            )}
-          </Link>
-
-          <button
-            onClick={restartBoot}
-            className='flex items-center gap-3 px-4 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors backdrop-blur-sm'
-          >
-            <RotateCcw className='w-4 h-4' />
-            다시 보기
-          </button>
-
-          {/* 카운트다운 중단 안내 */}
-          {autoRedirectCountdown > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className='text-center text-gray-300 text-xs bg-black/20 rounded-lg px-3 py-2 backdrop-blur-sm'
-            >
-              <div className='flex items-center justify-center gap-1 text-center'>
-                <span>ESC 키 또는 배경 클릭으로 중단</span>
-              </div>
-            </motion.div>
-          )}
-        </motion.div>
-      )}
     </div>
   );
 }

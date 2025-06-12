@@ -15,11 +15,18 @@ import {
   CheckCircle,
   Zap,
   Activity,
+  Network,
+  Globe,
+  Wifi,
+  Server as ServerIcon,
+  Database,
+  BarChart3,
 } from 'lucide-react';
 import ServerCard from './ServerCard';
 import ServerDetailModal from './ServerDetailModal';
 import EnhancedServerCard from './EnhancedServerCard';
 import EnhancedServerModal from './EnhancedServerModal';
+import NetworkMonitoringCard from './NetworkMonitoringCard';
 import { Server } from '../../types/server';
 import { useRealtimeServers } from '@/hooks/api/useRealtimeServers';
 import { timerManager } from '../../utils/TimerManager';
@@ -75,6 +82,9 @@ interface ServerDashboardProps {
   }) => void;
 }
 
+// 🎯 탭 타입 정의
+type DashboardTab = 'servers' | 'network' | 'clusters' | 'applications';
+
 // 🎯 심각→경고→정상 순으로 정렬된 목업 서버 데이터
 const fallbackServers: Server[] = [
   // 🚨 심각 상태 (offline) 서버들
@@ -86,6 +96,8 @@ const fallbackServers: Server[] = [
     cpu: 95,
     memory: 98,
     disk: 85,
+    network: 85,
+    networkStatus: 'offline',
     uptime: '0분',
     lastUpdate: new Date(),
     alerts: 5,
@@ -104,6 +116,8 @@ const fallbackServers: Server[] = [
     cpu: 88,
     memory: 92,
     disk: 78,
+    network: 78,
+    networkStatus: 'offline',
     uptime: '0분',
     lastUpdate: new Date(),
     alerts: 4,
@@ -122,6 +136,8 @@ const fallbackServers: Server[] = [
     cpu: 78,
     memory: 85,
     disk: 68,
+    network: 65,
+    networkStatus: 'poor',
     uptime: '8일 12시간',
     lastUpdate: new Date(),
     alerts: 2,
@@ -139,6 +155,8 @@ const fallbackServers: Server[] = [
     cpu: 72,
     memory: 79,
     disk: 58,
+    network: 55,
+    networkStatus: 'poor',
     uptime: '8일 6시간',
     lastUpdate: new Date(),
     alerts: 1,
@@ -156,6 +174,8 @@ const fallbackServers: Server[] = [
     cpu: 68,
     memory: 75,
     disk: 45,
+    network: 48,
+    networkStatus: 'good',
     uptime: '45일 18시간',
     lastUpdate: new Date(),
     alerts: 1,
@@ -174,6 +194,8 @@ const fallbackServers: Server[] = [
     cpu: 59,
     memory: 48,
     disk: 30,
+    network: 35,
+    networkStatus: 'excellent',
     uptime: '22일 5시간',
     lastUpdate: new Date(),
     alerts: 0,
@@ -192,6 +214,8 @@ const fallbackServers: Server[] = [
     cpu: 35,
     memory: 36,
     disk: 25,
+    network: 28,
+    networkStatus: 'excellent',
     uptime: '15일 3시간',
     lastUpdate: new Date(),
     alerts: 0,
@@ -203,164 +227,113 @@ const fallbackServers: Server[] = [
     ],
   },
   {
-    id: 'api-eu-045',
-    name: 'api-eu-045',
-    status: 'warning',
-    location: 'EU West',
-    cpu: 48,
-    memory: 29.2,
-    disk: 15.6,
-    uptime: '8일 12시간',
-    lastUpdate: new Date(),
-    alerts: 0,
-    services: [
-      { name: 'nodejs', status: 'stopped', port: 3000 },
-      { name: 'nginx', status: 'running', port: 80 },
-      { name: 'gunicorn', status: 'running', port: 8000 },
-    ],
-  },
-  {
-    id: 'api-jp-040',
-    name: 'api-jp-040',
-    status: 'offline',
-    location: 'Asia Pacific',
-    cpu: 19,
-    memory: 53.2,
-    disk: 29.6,
-    uptime: '3일 4시간',
-    lastUpdate: new Date(),
-    alerts: 3,
-    services: [
-      { name: 'nginx', status: 'stopped', port: 80 },
-      { name: 'nodejs', status: 'running', port: 3000 },
-      { name: 'gunicorn', status: 'running', port: 8000 },
-      { name: 'uwsgi', status: 'stopped', port: 8080 },
-    ],
-  },
-  {
-    id: 'api-sg-042',
-    name: 'api-sg-042',
-    status: 'warning',
-    location: 'Singapore',
-    cpu: 37,
-    memory: 41.2,
-    disk: 19.6,
-    uptime: '8일 6시간',
-    lastUpdate: new Date(),
-    alerts: 0,
-    services: [
-      { name: 'gunicorn', status: 'stopped', port: 8000 },
-      { name: 'python', status: 'stopped', port: 3000 },
-      { name: 'uwsgi', status: 'running', port: 8080 },
-    ],
-  },
-  {
-    id: 'api-sg-044',
-    name: 'api-sg-044',
-    status: 'offline',
-    location: 'Singapore',
-    cpu: 35,
-    memory: 30.2,
-    disk: 26.6,
-    uptime: '0분',
-    lastUpdate: new Date(),
-    alerts: 3,
-    services: [
-      { name: 'nodejs', status: 'stopped', port: 3000 },
-      { name: 'nginx', status: 'running', port: 80 },
-    ],
-  },
-  {
-    id: 'api-us-039',
-    name: 'api-us-039',
-    status: 'warning',
-    location: 'US East',
-    cpu: 30,
-    memory: 35.2,
-    disk: 5.6,
-    uptime: '45일 18시간',
-    lastUpdate: new Date(),
-    alerts: 0,
-    services: [
-      { name: 'uwsgi', status: 'stopped', port: 8080 },
-      { name: 'gunicorn', status: 'running', port: 8000 },
-    ],
-  },
-  {
-    id: 'api-us-041',
-    name: 'api-us-041',
+    id: 'database-1',
+    name: 'database-1',
     status: 'online',
-    location: 'US East',
-    cpu: 59,
-    memory: 48.2,
-    disk: 30.6,
-    uptime: '22일 5시간',
+    location: 'US West',
+    cpu: 42,
+    memory: 55,
+    disk: 38,
+    network: 32,
+    networkStatus: 'good',
+    uptime: '30일 8시간',
     lastUpdate: new Date(),
     alerts: 0,
     services: [
-      { name: 'uwsgi', status: 'running', port: 8080 },
-      { name: 'gunicorn', status: 'running', port: 8000 },
-      { name: 'python', status: 'running', port: 3000 },
-      { name: 'nodejs', status: 'running', port: 3001 },
+      { name: 'postgresql', status: 'running', port: 5432 },
+      { name: 'redis', status: 'running', port: 6379 },
     ],
   },
+];
+
+// 🌐 네트워크 메트릭 목업 데이터
+const networkMetrics = [
   {
-    id: 'app-eu-025',
-    name: 'app-eu-025',
-    status: 'warning',
-    location: 'EU West',
-    cpu: 14.4,
-    memory: 44.5,
-    disk: 27.8,
-    uptime: '18일 12시간',
-    lastUpdate: new Date(),
-    alerts: 0,
-    services: [
-      { name: 'tomcat', status: 'stopped', port: 8080 },
-      { name: 'nodejs', status: 'running', port: 3000 },
-    ],
+    serverName: 'api-us-041',
+    metrics: {
+      bandwidth: 75,
+      latency: 45,
+      packetLoss: 0.1,
+      uptime: 99.9,
+      downloadSpeed: 850,
+      uploadSpeed: 420,
+      connections: 156,
+      status: 'excellent' as const,
+    },
   },
   {
-    id: 'app-jp-020',
-    name: 'app-jp-020',
-    status: 'warning',
-    location: 'Asia Pacific',
-    cpu: 55.4,
-    memory: 22.5,
-    disk: 28.8,
-    uptime: '9일 6시간',
-    lastUpdate: new Date(),
-    alerts: 0,
-    services: [
-      { name: 'supervisor', status: 'running', port: 9001 },
-      { name: 'tomcat', status: 'running', port: 8080 },
-      { name: 'nodejs', status: 'running', port: 3000 },
-      { name: 'pm2', status: 'stopped', port: 0 },
-    ],
+    serverName: 'api-eu-043',
+    metrics: {
+      bandwidth: 68,
+      latency: 52,
+      packetLoss: 0.2,
+      uptime: 99.8,
+      downloadSpeed: 720,
+      uploadSpeed: 380,
+      connections: 134,
+      status: 'good' as const,
+    },
   },
   {
-    id: 'app-jp-022',
-    name: 'app-jp-022',
-    status: 'online',
-    location: 'Asia Pacific',
-    cpu: 17.4,
-    memory: 58.5,
-    disk: 25.8,
-    uptime: '31일 2시간',
-    lastUpdate: new Date(),
-    alerts: 0,
-    services: [
-      { name: 'docker', status: 'running', port: 2375 },
-      { name: 'pm2', status: 'running', port: 0 },
-      { name: 'supervisor', status: 'running', port: 9001 },
-      { name: 'nodejs', status: 'running', port: 3000 },
-    ],
+    serverName: 'database-1',
+    metrics: {
+      bandwidth: 82,
+      latency: 38,
+      packetLoss: 0.05,
+      uptime: 99.95,
+      downloadSpeed: 950,
+      uploadSpeed: 480,
+      connections: 89,
+      status: 'excellent' as const,
+    },
+  },
+  {
+    serverName: 'api-eu-045',
+    metrics: {
+      bandwidth: 45,
+      latency: 125,
+      packetLoss: 2.1,
+      uptime: 97.2,
+      downloadSpeed: 320,
+      uploadSpeed: 180,
+      connections: 67,
+      status: 'poor' as const,
+    },
+  },
+  {
+    serverName: 'api-sg-042',
+    metrics: {
+      bandwidth: 38,
+      latency: 180,
+      packetLoss: 3.5,
+      uptime: 95.8,
+      downloadSpeed: 280,
+      uploadSpeed: 150,
+      connections: 45,
+      status: 'poor' as const,
+    },
+  },
+  {
+    serverName: 'api-jp-040',
+    metrics: {
+      bandwidth: 0,
+      latency: 0,
+      packetLoss: 100,
+      uptime: 0,
+      downloadSpeed: 0,
+      uploadSpeed: 0,
+      connections: 0,
+      status: 'offline' as const,
+    },
   },
 ];
 
 export default function ServerDashboard({
   onStatsUpdate,
 }: ServerDashboardProps) {
+  // 🎯 탭 상태 추가
+  const [activeTab, setActiveTab] = useState<DashboardTab>('servers');
+
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [realServerData, setRealServerData] = useState<{
@@ -690,22 +663,212 @@ export default function ServerDashboard({
     return groups;
   }, [paginatedServers]);
 
-  // 서버 사이드 렌더링 시 기본 UI 반환
-  if (!isClient) {
-    return (
-      <div className='flex items-center justify-center h-64'>
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4'></div>
-          <h3 className='text-lg font-medium text-gray-900 mb-2'>
-            서버 연결 중
-          </h3>
-          <p className='text-gray-600'>
-            모니터링 시스템을 초기화하고 있습니다...
-          </p>
+  // 🎯 탭 렌더링 함수들
+  const renderTabNavigation = () => (
+    <div className='mb-6'>
+      <div className='border-b border-gray-200'>
+        <nav className='-mb-px flex space-x-8'>
+          {[
+            {
+              id: 'servers',
+              label: '서버',
+              icon: ServerIcon,
+              count: currentServers.length,
+            },
+            {
+              id: 'network',
+              label: '네트워크',
+              icon: Network,
+              count: networkMetrics.length,
+            },
+            { id: 'clusters', label: '클러스터', icon: Database, count: 3 },
+            {
+              id: 'applications',
+              label: '애플리케이션',
+              icon: BarChart3,
+              count: 5,
+            },
+          ].map(tab => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as DashboardTab)}
+                className={`
+                  group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm
+                  ${
+                    isActive
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }
+                `}
+              >
+                <tab.icon
+                  className={`
+                    -ml-0.5 mr-2 h-5 w-5
+                    ${isActive ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'}
+                  `}
+                />
+                {tab.label}
+                <span
+                  className={`
+                  ml-2 py-0.5 px-2 rounded-full text-xs
+                  ${
+                    isActive
+                      ? 'bg-blue-100 text-blue-600'
+                      : 'bg-gray-100 text-gray-500'
+                  }
+                `}
+                >
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+    </div>
+  );
+
+  const renderNetworkTab = () => (
+    <div className='space-y-6'>
+      {/* 네트워크 개요 */}
+      <div className='grid grid-cols-1 md:grid-cols-4 gap-4 mb-6'>
+        <div className='bg-white rounded-lg shadow p-6'>
+          <div className='flex items-center'>
+            <div className='flex-shrink-0'>
+              <Globe className='h-8 w-8 text-blue-500' />
+            </div>
+            <div className='ml-5 w-0 flex-1'>
+              <dl>
+                <dt className='text-sm font-medium text-gray-500 truncate'>
+                  평균 대역폭
+                </dt>
+                <dd className='text-lg font-medium text-gray-900'>
+                  {Math.round(
+                    networkMetrics.reduce(
+                      (sum, n) => sum + n.metrics.bandwidth,
+                      0
+                    ) / networkMetrics.length
+                  )}
+                  %
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+
+        <div className='bg-white rounded-lg shadow p-6'>
+          <div className='flex items-center'>
+            <div className='flex-shrink-0'>
+              <Activity className='h-8 w-8 text-green-500' />
+            </div>
+            <div className='ml-5 w-0 flex-1'>
+              <dl>
+                <dt className='text-sm font-medium text-gray-500 truncate'>
+                  평균 지연시간
+                </dt>
+                <dd className='text-lg font-medium text-gray-900'>
+                  {Math.round(
+                    networkMetrics.reduce(
+                      (sum, n) => sum + n.metrics.latency,
+                      0
+                    ) / networkMetrics.length
+                  )}
+                  ms
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+
+        <div className='bg-white rounded-lg shadow p-6'>
+          <div className='flex items-center'>
+            <div className='flex-shrink-0'>
+              <Wifi className='h-8 w-8 text-purple-500' />
+            </div>
+            <div className='ml-5 w-0 flex-1'>
+              <dl>
+                <dt className='text-sm font-medium text-gray-500 truncate'>
+                  활성 연결
+                </dt>
+                <dd className='text-lg font-medium text-gray-900'>
+                  {networkMetrics.reduce(
+                    (sum, n) => sum + n.metrics.connections,
+                    0
+                  )}
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+
+        <div className='bg-white rounded-lg shadow p-6'>
+          <div className='flex items-center'>
+            <div className='flex-shrink-0'>
+              <CheckCircle className='h-8 w-8 text-emerald-500' />
+            </div>
+            <div className='ml-5 w-0 flex-1'>
+              <dl>
+                <dt className='text-sm font-medium text-gray-500 truncate'>
+                  평균 가동률
+                </dt>
+                <dd className='text-lg font-medium text-gray-900'>
+                  {(
+                    networkMetrics.reduce(
+                      (sum, n) => sum + n.metrics.uptime,
+                      0
+                    ) / networkMetrics.length
+                  ).toFixed(1)}
+                  %
+                </dd>
+              </dl>
+            </div>
+          </div>
         </div>
       </div>
-    );
-  }
+
+      {/* 네트워크 모니터링 카드들 */}
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+        {networkMetrics.map((network, index) => (
+          <NetworkMonitoringCard
+            key={network.serverName}
+            serverName={network.serverName}
+            metrics={network.metrics}
+            className='h-full'
+          />
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderClustersTab = () => (
+    <div className='space-y-6'>
+      <div className='text-center py-12'>
+        <Database className='mx-auto h-12 w-12 text-gray-400' />
+        <h3 className='mt-2 text-sm font-medium text-gray-900'>
+          클러스터 관리
+        </h3>
+        <p className='mt-1 text-sm text-gray-500'>
+          서버 클러스터 모니터링 기능이 곧 추가됩니다.
+        </p>
+      </div>
+    </div>
+  );
+
+  const renderApplicationsTab = () => (
+    <div className='space-y-6'>
+      <div className='text-center py-12'>
+        <BarChart3 className='mx-auto h-12 w-12 text-gray-400' />
+        <h3 className='mt-2 text-sm font-medium text-gray-900'>
+          애플리케이션 모니터링
+        </h3>
+        <p className='mt-1 text-sm text-gray-500'>
+          애플리케이션 성능 모니터링 기능이 곧 추가됩니다.
+        </p>
+      </div>
+    </div>
+  );
 
   // 서버가 없는 경우만 로딩 표시 (초기 데이터는 항상 있음)
   if (currentServers.length === 0) {
@@ -726,450 +889,714 @@ export default function ServerDashboard({
 
   return (
     <div className='space-y-6'>
-      {/* AI 쿼리 인터페이스 */}
-      {realServerData.servers.length > 0 && (
-        <div className='mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200'>
-          <h3 className='text-sm font-medium text-blue-900 mb-2'>
-            🤖 AI 시스템 분석
-          </h3>
-          <div className='flex gap-2'>
-            <input
-              aria-label='입력'
-              type='text'
-              placeholder='예: CPU 사용률이 높은 서버를 찾아주세요'
-              value={aiQuery}
-              onChange={e => setAiQuery(e.target.value)}
-              className='flex-1 px-3 py-2 border border-blue-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-              onKeyPress={async e => {
-                if (e.key === 'Enter' && aiQuery.trim()) {
-                  try {
-                    // ✅ API 호출로 변경
-                    const response = await fetch('/api/ai/korean', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        query: aiQuery,
-                        context: realServerData,
-                      }),
-                    });
-                    const result = await response.json();
-                    console.log('AI 분석 결과:', result);
-                    alert(`AI 분석: ${result.message || '분석 완료'}`);
-                  } catch (error) {
-                    console.error('AI 쿼리 처리 오류:', error);
-                    alert('AI 분석 중 오류가 발생했습니다.');
-                  }
-                }
-              }}
-            />
-            <button
-              onClick={async () => {
-                if (aiQuery.trim()) {
-                  try {
-                    // ✅ API 호출로 변경
-                    const response = await fetch('/api/ai/korean', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        query: aiQuery,
-                        context: realServerData,
-                      }),
-                    });
-                    const result = await response.json();
-                    console.log('AI 분석 결과:', result);
-                    alert(`AI 분석: ${result.message || '분석 완료'}`);
-                  } catch (error) {
-                    console.error('AI 쿼리 처리 오류:', error);
-                    alert('AI 분석 중 오류가 발생했습니다.');
-                  }
-                }
-              }}
-              className='px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700'
-            >
-              분석
-            </button>
-          </div>
-          <div className='mt-2 text-xs text-blue-700'>
-            실제 서버 데이터: {realServerData.servers.length}대 서버,{' '}
-            {realServerData.clusters.length}개 클러스터
-          </div>
-        </div>
-      )}
+      {/* 탭 네비게이션 */}
+      {renderTabNavigation()}
 
-      {/* 검색 및 필터 */}
-      <div className='mb-6'>
-        <div className='flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between'>
-          {/* 검색 및 뷰 모드 컨트롤 */}
-          <div className='flex gap-3 items-center'>
-            <div className='relative'>
-              <input
-                aria-label='입력'
-                type='text'
-                placeholder='서버 이름 또는 위치 검색...'
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className='w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-              />
-              <Search className='absolute left-3 top-2.5 h-4 w-4 text-gray-400' />
-            </div>
+      {/* 탭 콘텐츠 */}
+      <AnimatePresence mode='wait'>
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.2 }}
+        >
+          {activeTab === 'servers' && (
+            <div>
+              {/* 서버 사이드 렌더링 시 기본 UI 반환 */}
+              {!isClient && (
+                <div className='flex items-center justify-center h-64'>
+                  <div className='text-center'>
+                    <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4'></div>
+                    <h3 className='text-lg font-medium text-gray-900 mb-2'>
+                      서버 연결 중
+                    </h3>
+                    <p className='text-gray-600'>
+                      모니터링 시스템을 초기화하고 있습니다...
+                    </p>
+                  </div>
+                </div>
+              )}
 
-            {/* 뷰 모드 토글 */}
-            <div className='flex items-center gap-2 bg-gray-100 rounded-lg p-1'>
-              <button
-                onClick={() =>
-                  setViewMode(prev => (prev === 'grid' ? 'list' : 'grid'))
-                }
-                className='px-4 py-2 bg-gray-200 text-gray-500 rounded-lg hover:bg-gray-300'
-              >
-                {viewMode === 'grid' ? (
-                  <LayoutGrid className='h-4 w-4' />
-                ) : (
-                  <List className='h-4 w-4' />
+              {/* 서버가 없는 경우만 로딩 표시 (초기 데이터는 항상 있음) */}
+              {isClient && currentServers.length === 0 && (
+                <div className='flex items-center justify-center h-64'>
+                  <div className='text-center'>
+                    <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4'></div>
+                    <h3 className='text-lg font-medium text-gray-900 mb-2'>
+                      서버 연결 중
+                    </h3>
+                    <p className='text-gray-600'>
+                      모니터링 시스템을 초기화하고 있습니다...
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* AI 쿼리 인터페이스 */}
+              {isClient && currentServers.length > 0 && (
+                <div className='mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200'>
+                  <h3 className='text-sm font-medium text-blue-900 mb-2'>
+                    🤖 AI 시스템 분석
+                  </h3>
+                  <div className='flex gap-2'>
+                    <input
+                      aria-label='입력'
+                      type='text'
+                      placeholder='예: CPU 사용률이 높은 서버를 찾아주세요'
+                      value={aiQuery}
+                      onChange={e => setAiQuery(e.target.value)}
+                      className='flex-1 px-3 py-2 border border-blue-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+                      onKeyPress={async e => {
+                        if (e.key === 'Enter' && aiQuery.trim()) {
+                          try {
+                            // ✅ API 호출로 변경
+                            const response = await fetch('/api/ai/korean', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                query: aiQuery,
+                                context: { servers: currentServers },
+                              }),
+                            });
+                            const result = await response.json();
+                            console.log('AI 분석 결과:', result);
+                            alert(`AI 분석: ${result.message || '분석 완료'}`);
+                          } catch (error) {
+                            console.error('AI 쿼리 처리 오류:', error);
+                            alert('AI 분석 중 오류가 발생했습니다.');
+                          }
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={async () => {
+                        if (aiQuery.trim()) {
+                          try {
+                            // ✅ API 호출로 변경
+                            const response = await fetch('/api/ai/korean', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                query: aiQuery,
+                                context: { servers: currentServers },
+                              }),
+                            });
+                            const result = await response.json();
+                            console.log('AI 분석 결과:', result);
+                            alert(`AI 분석: ${result.message || '분석 완료'}`);
+                          } catch (error) {
+                            console.error('AI 쿼리 처리 오류:', error);
+                            alert('AI 분석 중 오류가 발생했습니다.');
+                          }
+                        }
+                      }}
+                      className='px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700'
+                    >
+                      분석
+                    </button>
+                  </div>
+                  <div className='mt-2 text-xs text-blue-700'>
+                    실제 서버 데이터: {currentServers.length}대 서버
+                  </div>
+                </div>
+              )}
+
+              {/* 검색 및 필터 */}
+              {isClient && currentServers.length > 0 && (
+                <div className='mb-6'>
+                  <div className='flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between'>
+                    {/* 검색 및 뷰 모드 컨트롤 */}
+                    <div className='flex gap-3 items-center'>
+                      <div className='relative'>
+                        <input
+                          aria-label='입력'
+                          type='text'
+                          placeholder='서버 이름 또는 위치 검색...'
+                          value={searchTerm}
+                          onChange={e => setSearchTerm(e.target.value)}
+                          className='w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                        />
+                        <Search className='absolute left-3 top-2.5 h-4 w-4 text-gray-400' />
+                      </div>
+
+                      {/* 뷰 모드 토글 */}
+                      <div className='flex items-center gap-2 bg-gray-100 rounded-lg p-1'>
+                        <button
+                          onClick={() =>
+                            setViewMode(prev =>
+                              prev === 'grid' ? 'list' : 'grid'
+                            )
+                          }
+                          className='px-4 py-2 bg-gray-200 text-gray-500 rounded-lg hover:bg-gray-300'
+                        >
+                          {viewMode === 'grid' ? (
+                            <LayoutGrid className='h-4 w-4' />
+                          ) : (
+                            <List className='h-4 w-4' />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 서버 카드 그리드 */}
+              {isClient && currentServers.length > 0 && (
+                <div className='space-y-6'>
+                  {/* 위험 상태 서버들 */}
+                  {currentServers.filter(s => s.status === 'offline').length >
+                    0 && (
+                    <div className='space-y-4'>
+                      <div className='flex items-center justify-between'>
+                        <h3 className='text-lg font-semibold text-red-600 flex items-center gap-2'>
+                          <span className='w-3 h-3 bg-red-500 rounded-full'></span>
+                          위험 상태 (
+                          {
+                            currentServers.filter(s => s.status === 'offline')
+                              .length
+                          }
+                          )
+                        </h3>
+                      </div>
+
+                      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
+                        {currentServers
+                          .filter(s => s.status === 'offline')
+                          .map((server, index) => (
+                            <EnhancedServerCard
+                              key={server.id}
+                              server={{
+                                ...server,
+                                hostname: server.name,
+                                type: 'api_server',
+                                environment: 'production',
+                                provider: 'AWS',
+                                status: 'critical' as any,
+                                network:
+                                  server.network ||
+                                  Math.floor(Math.random() * 40) + 60,
+                                networkStatus:
+                                  server.networkStatus || 'offline',
+                                specs: {
+                                  cpu_cores: 8,
+                                  memory_gb: 16,
+                                  disk_gb: 500,
+                                  network_speed: '1Gbps',
+                                },
+                                ip: `192.168.1.${Math.floor(Math.random() * 254) + 1}`,
+                                os: 'Ubuntu 22.04 LTS',
+                              }}
+                              index={index}
+                              onClick={() => handleServerSelect(server)}
+                              showMiniCharts={true}
+                              variant='compact'
+                            />
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 경고 상태 서버들 */}
+                  {currentServers.filter(s => s.status === 'warning').length >
+                    0 && (
+                    <div className='space-y-4'>
+                      <div className='flex items-center justify-between'>
+                        <h3 className='text-lg font-semibold text-yellow-600 flex items-center gap-2'>
+                          <span className='w-3 h-3 bg-yellow-500 rounded-full'></span>
+                          주의 상태 (
+                          {
+                            currentServers.filter(s => s.status === 'warning')
+                              .length
+                          }
+                          )
+                        </h3>
+                      </div>
+
+                      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
+                        {currentServers
+                          .filter(s => s.status === 'warning')
+                          .map((server, index) => (
+                            <EnhancedServerCard
+                              key={server.id}
+                              server={{
+                                ...server,
+                                hostname: server.name,
+                                type: 'web_server',
+                                environment: 'production',
+                                provider: 'AWS',
+                                status: 'warning' as any,
+                                network:
+                                  server.network ||
+                                  Math.floor(Math.random() * 30) + 40,
+                                networkStatus: server.networkStatus || 'poor',
+                                specs: {
+                                  cpu_cores: 6,
+                                  memory_gb: 12,
+                                  disk_gb: 250,
+                                  network_speed: '500Mbps',
+                                },
+                                ip: `10.0.1.${Math.floor(Math.random() * 254) + 1}`,
+                                os: 'CentOS 8',
+                              }}
+                              index={index}
+                              onClick={() => handleServerSelect(server)}
+                              showMiniCharts={true}
+                              variant='compact'
+                            />
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 정상 상태 서버들 */}
+                  {currentServers.filter(s => s.status === 'online').length >
+                    0 && (
+                    <div className='space-y-4'>
+                      <div className='flex items-center justify-between'>
+                        <h3 className='text-lg font-semibold text-green-600 flex items-center gap-2'>
+                          <span className='w-3 h-3 bg-green-500 rounded-full'></span>
+                          정상 상태 (
+                          {
+                            currentServers.filter(s => s.status === 'online')
+                              .length
+                          }
+                          )
+                        </h3>
+                      </div>
+
+                      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
+                        {currentServers
+                          .filter(s => s.status === 'online')
+                          .map((server, index) => (
+                            <EnhancedServerCard
+                              key={server.id}
+                              server={{
+                                ...server,
+                                hostname: server.name,
+                                type: 'database_server',
+                                environment: 'production',
+                                provider: 'AWS',
+                                status: 'healthy' as any,
+                                network:
+                                  server.network ||
+                                  Math.floor(Math.random() * 20) + 20,
+                                networkStatus:
+                                  server.networkStatus || 'excellent',
+                                specs: {
+                                  cpu_cores: 4,
+                                  memory_gb: 8,
+                                  disk_gb: 100,
+                                  network_speed: '100Mbps',
+                                },
+                                ip: `172.16.0.${Math.floor(Math.random() * 254) + 1}`,
+                                os: 'Ubuntu 20.04 LTS',
+                              }}
+                              index={index}
+                              onClick={() => handleServerSelect(server)}
+                              showMiniCharts={true}
+                              variant='compact'
+                            />
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 검색 및 필터 */}
+              <div className='mb-6'>
+                <div className='flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between'>
+                  {/* 검색 및 뷰 모드 컨트롤 */}
+                  <div className='flex gap-3 items-center'>
+                    <div className='relative'>
+                      <input
+                        aria-label='입력'
+                        type='text'
+                        placeholder='서버 이름 또는 위치 검색...'
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                        className='w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                      />
+                      <Search className='absolute left-3 top-2.5 h-4 w-4 text-gray-400' />
+                    </div>
+
+                    {/* 뷰 모드 토글 */}
+                    <div className='flex items-center gap-2 bg-gray-100 rounded-lg p-1'>
+                      <button
+                        onClick={() =>
+                          setViewMode(prev =>
+                            prev === 'grid' ? 'list' : 'grid'
+                          )
+                        }
+                        className='px-4 py-2 bg-gray-200 text-gray-500 rounded-lg hover:bg-gray-300'
+                      >
+                        {viewMode === 'grid' ? (
+                          <LayoutGrid className='h-4 w-4' />
+                        ) : (
+                          <List className='h-4 w-4' />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 페이지네이션 정보 및 컨트롤 */}
+              {filteredAndSortedServers.length > 0 && (
+                <div className='flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg'>
+                  <div className='text-sm text-gray-600'>
+                    전체{' '}
+                    <span className='font-semibold text-gray-900'>
+                      {filteredAndSortedServers.length}
+                    </span>
+                    개 서버 중
+                    <span className='font-semibold text-blue-600 mx-1'>
+                      {startIndex + 1}-
+                      {Math.min(endIndex, filteredAndSortedServers.length)}
+                    </span>
+                    개 표시
+                  </div>
+                  <div className='flex items-center gap-2 text-xs'>
+                    <div className='w-2 h-2 bg-blue-500 rounded-full'></div>
+                    <span className='text-gray-500'>
+                      동적 페이지네이션: {SERVERS_PER_PAGE}개씩 표시
+                      {filteredAndSortedServers.length <= 12
+                        ? '(전체 표시)'
+                        : ''}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* 🚀 서버 카드 섹션 - 스와이퍼 형태로 개선 */}
+              {groupedServers.critical.length > 0 && (
+                <div className='space-y-4'>
+                  <div className='flex items-center justify-between'>
+                    <h3 className='text-lg font-semibold text-red-600 flex items-center gap-2'>
+                      <span className='w-3 h-3 bg-red-500 rounded-full'></span>
+                      위험 상태 ({groupedServers.critical.length})
+                    </h3>
+                    {groupedServers.critical.length > 8 && (
+                      <div className='flex items-center gap-2 text-sm text-gray-500'>
+                        <span>8개씩 보기</span>
+                        <div className='flex gap-1'>
+                          <button
+                            className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
+                            title='이전 위험 서버들 보기'
+                            aria-label='이전 위험 서버들 보기'
+                          >
+                            <ChevronLeft className='w-3 h-3' />
+                          </button>
+                          <button
+                            className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
+                            title='다음 위험 서버들 보기'
+                            aria-label='다음 위험 서버들 보기'
+                          >
+                            <ChevronRight className='w-3 h-3' />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 스와이퍼 컨테이너 */}
+                  <div className='relative overflow-hidden'>
+                    <div className='flex transition-transform duration-300 ease-in-out'>
+                      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4 min-w-full'>
+                        {groupedServers.critical
+                          .slice(0, 8)
+                          .map((server, index) => (
+                            <div key={server.id} className='min-w-0'>
+                              <EnhancedServerCard
+                                server={{
+                                  ...server,
+                                  hostname: server.name,
+                                  type: 'api_server',
+                                  environment: 'production',
+                                  provider: 'AWS',
+                                  status: 'critical' as any,
+                                  network: Math.floor(Math.random() * 40) + 60,
+                                  networkStatus:
+                                    Math.random() > 0.7 ? 'poor' : 'offline',
+                                  specs: {
+                                    cpu_cores: 8,
+                                    memory_gb: 16,
+                                    disk_gb: 500,
+                                    network_speed: '1Gbps',
+                                  },
+                                  ip: `192.168.1.${Math.floor(Math.random() * 254) + 1}`,
+                                  os: 'Ubuntu 22.04 LTS',
+                                }}
+                                index={index}
+                                onClick={() => handleServerSelect(server)}
+                                showMiniCharts={true}
+                                variant='compact'
+                              />
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+
+                    {/* 더 많은 서버가 있는 경우 알림 */}
+                    {groupedServers.critical.length > 8 && (
+                      <div className='absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full'>
+                        +{groupedServers.critical.length - 8}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {groupedServers.warning.length > 0 && (
+                <div className='space-y-4'>
+                  <div className='flex items-center justify-between'>
+                    <h3 className='text-lg font-semibold text-yellow-600 flex items-center gap-2'>
+                      <span className='w-3 h-3 bg-yellow-500 rounded-full'></span>
+                      주의 상태 ({groupedServers.warning.length})
+                    </h3>
+                    {groupedServers.warning.length > 8 && (
+                      <div className='flex items-center gap-2 text-sm text-gray-500'>
+                        <span>8개씩 보기</span>
+                        <div className='flex gap-1'>
+                          <button
+                            className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
+                            title='이전 경고 서버들 보기'
+                            aria-label='이전 경고 서버들 보기'
+                          >
+                            <ChevronLeft className='w-3 h-3' />
+                          </button>
+                          <button
+                            className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
+                            title='다음 경고 서버들 보기'
+                            aria-label='다음 경고 서버들 보기'
+                          >
+                            <ChevronRight className='w-3 h-3' />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className='relative overflow-hidden'>
+                    <div className='flex transition-transform duration-300 ease-in-out'>
+                      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4 min-w-full'>
+                        {groupedServers.warning
+                          .slice(0, 8)
+                          .map((server, index) => (
+                            <div key={server.id} className='min-w-0'>
+                              <EnhancedServerCard
+                                server={{
+                                  ...server,
+                                  hostname: server.name,
+                                  type: 'web_server',
+                                  environment: 'production',
+                                  provider: 'AWS',
+                                  status: 'warning' as any,
+                                  network: Math.floor(Math.random() * 30) + 40,
+                                  networkStatus:
+                                    Math.random() > 0.5 ? 'good' : 'poor',
+                                  specs: {
+                                    cpu_cores: 6,
+                                    memory_gb: 12,
+                                    disk_gb: 250,
+                                    network_speed: '500Mbps',
+                                  },
+                                  ip: `10.0.1.${Math.floor(Math.random() * 254) + 1}`,
+                                  os: 'CentOS 8',
+                                }}
+                                index={index}
+                                onClick={() => handleServerSelect(server)}
+                                showMiniCharts={true}
+                                variant='compact'
+                              />
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+
+                    {groupedServers.warning.length > 8 && (
+                      <div className='absolute top-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full'>
+                        +{groupedServers.warning.length - 8}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {groupedServers.healthy.length > 0 && (
+                <div className='space-y-4'>
+                  <div className='flex items-center justify-between'>
+                    <h3 className='text-lg font-semibold text-green-600 flex items-center gap-2'>
+                      <span className='w-3 h-3 bg-green-500 rounded-full'></span>
+                      정상 상태 ({groupedServers.healthy.length})
+                    </h3>
+                    {groupedServers.healthy.length > 8 && (
+                      <div className='flex items-center gap-2 text-sm text-gray-500'>
+                        <span>8개씩 보기</span>
+                        <div className='flex gap-1'>
+                          <button
+                            className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
+                            title='이전 정상 서버들 보기'
+                            aria-label='이전 정상 서버들 보기'
+                          >
+                            <ChevronLeft className='w-3 h-3' />
+                          </button>
+                          <button
+                            className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
+                            title='다음 정상 서버들 보기'
+                            aria-label='다음 정상 서버들 보기'
+                          >
+                            <ChevronRight className='w-3 h-3' />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className='relative overflow-hidden'>
+                    <div className='flex transition-transform duration-300 ease-in-out'>
+                      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4 min-w-full'>
+                        {groupedServers.healthy
+                          .slice(0, 8)
+                          .map((server, index) => (
+                            <div key={server.id} className='min-w-0'>
+                              <EnhancedServerCard
+                                server={{
+                                  ...server,
+                                  hostname: server.name,
+                                  type: 'database_server',
+                                  environment: 'production',
+                                  provider: 'AWS',
+                                  status: 'healthy' as any,
+                                  network: Math.floor(Math.random() * 25) + 15,
+                                  networkStatus:
+                                    Math.random() > 0.3 ? 'excellent' : 'good',
+                                  specs: {
+                                    cpu_cores: 4,
+                                    memory_gb: 8,
+                                    disk_gb: 100,
+                                    network_speed: '10Gbps',
+                                  },
+                                  ip: `172.16.0.${Math.floor(Math.random() * 254) + 1}`,
+                                  os: 'RHEL 9',
+                                }}
+                                index={index}
+                                onClick={() => handleServerSelect(server)}
+                                showMiniCharts={true}
+                                variant='compact'
+                              />
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+
+                    {groupedServers.healthy.length > 8 && (
+                      <div className='absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full'>
+                        +{groupedServers.healthy.length - 8}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 서버가 없는 경우 */}
+              {filteredAndSortedServers.length === 0 && !isLoading && (
+                <div className='text-center py-12'>
+                  <div className='mx-auto h-12 w-12 text-gray-400'>
+                    <svg fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'
+                      />
+                    </svg>
+                  </div>
+                  <h3 className='mt-2 text-sm font-medium text-gray-900'>
+                    서버가 없습니다
+                  </h3>
+                  <p className='mt-1 text-sm text-gray-500'>
+                    {searchTerm
+                      ? '검색 조건에 맞는 서버가 없습니다.'
+                      : '등록된 서버가 없습니다.'}
+                  </p>
+                </div>
+              )}
+
+              {/* 현재 페이지에 서버가 없는 경우 (전체 서버는 있지만 현재 페이지가 비어있음) */}
+              {filteredAndSortedServers.length > 0 &&
+                paginatedServers.length === 0 &&
+                !isLoading && (
+                  <div className='text-center py-12'>
+                    <div className='mx-auto h-12 w-12 text-gray-400'>
+                      <svg
+                        fill='none'
+                        stroke='currentColor'
+                        viewBox='0 0 24 24'
+                      >
+                        <path
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          strokeWidth={2}
+                          d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
+                        />
+                      </svg>
+                    </div>
+                    <h3 className='mt-2 text-sm font-medium text-gray-900'>
+                      이 페이지에는 서버가 없습니다
+                    </h3>
+                    <p className='mt-1 text-sm text-gray-500'>
+                      다른 페이지를 확인하거나 첫 페이지로 이동해보세요.
+                    </p>
+                    <button
+                      onClick={() => setCurrentPage(1)}
+                      className='mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors'
+                    >
+                      첫 페이지로 이동
+                    </button>
+                  </div>
                 )}
-              </button>
             </div>
-          </div>
-        </div>
-      </div>
+          )}
 
-      {/* 페이지네이션 정보 및 컨트롤 */}
-      {filteredAndSortedServers.length > 0 && (
-        <div className='flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg'>
-          <div className='text-sm text-gray-600'>
-            전체{' '}
-            <span className='font-semibold text-gray-900'>
-              {filteredAndSortedServers.length}
-            </span>
-            개 서버 중
-            <span className='font-semibold text-blue-600 mx-1'>
-              {startIndex + 1}-
-              {Math.min(endIndex, filteredAndSortedServers.length)}
-            </span>
-            개 표시
-          </div>
-          <div className='flex items-center gap-2 text-xs'>
-            <div className='w-2 h-2 bg-blue-500 rounded-full'></div>
-            <span className='text-gray-500'>
-              동적 페이지네이션: {SERVERS_PER_PAGE}개씩 표시
-              {filteredAndSortedServers.length <= 12 ? '(전체 표시)' : ''}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* 🚀 서버 카드 섹션 - 스와이퍼 형태로 개선 */}
-      {groupedServers.critical.length > 0 && (
-        <div className='space-y-4'>
-          <div className='flex items-center justify-between'>
-            <h3 className='text-lg font-semibold text-red-600 flex items-center gap-2'>
-              <span className='w-3 h-3 bg-red-500 rounded-full'></span>
-              위험 상태 ({groupedServers.critical.length})
-            </h3>
-            {groupedServers.critical.length > 8 && (
-              <div className='flex items-center gap-2 text-sm text-gray-500'>
-                <span>8개씩 보기</span>
-                <div className='flex gap-1'>
-                  <button
-                    className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
-                    title='이전 위험 서버들 보기'
-                    aria-label='이전 위험 서버들 보기'
-                  >
-                    <ChevronLeft className='w-3 h-3' />
-                  </button>
-                  <button
-                    className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
-                    title='다음 위험 서버들 보기'
-                    aria-label='다음 위험 서버들 보기'
-                  >
-                    <ChevronRight className='w-3 h-3' />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* 스와이퍼 컨테이너 */}
-          <div className='relative overflow-hidden'>
-            <div className='flex transition-transform duration-300 ease-in-out'>
-              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4 min-w-full'>
-                {groupedServers.critical.slice(0, 8).map((server, index) => (
-                  <div key={server.id} className='min-w-0'>
-                    <EnhancedServerCard
-                      server={{
-                        ...server,
-                        hostname: server.name,
-                        type: 'api_server',
-                        environment: 'production',
-                        provider: 'AWS',
-                        status: 'critical' as any,
-                        network: Math.floor(Math.random() * 40) + 60,
-                        networkStatus: Math.random() > 0.7 ? 'poor' : 'offline',
-                        specs: {
-                          cpu_cores: 8,
-                          memory_gb: 16,
-                          disk_gb: 500,
-                          network_speed: '1Gbps',
-                        },
-                        ip: `192.168.1.${Math.floor(Math.random() * 254) + 1}`,
-                        os: 'Ubuntu 22.04 LTS',
-                      }}
-                      index={index}
-                      onClick={() => handleServerSelect(server)}
-                      showMiniCharts={true}
-                      variant='compact'
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* 더 많은 서버가 있는 경우 알림 */}
-            {groupedServers.critical.length > 8 && (
-              <div className='absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full'>
-                +{groupedServers.critical.length - 8}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {groupedServers.warning.length > 0 && (
-        <div className='space-y-4'>
-          <div className='flex items-center justify-between'>
-            <h3 className='text-lg font-semibold text-yellow-600 flex items-center gap-2'>
-              <span className='w-3 h-3 bg-yellow-500 rounded-full'></span>
-              주의 상태 ({groupedServers.warning.length})
-            </h3>
-            {groupedServers.warning.length > 8 && (
-              <div className='flex items-center gap-2 text-sm text-gray-500'>
-                <span>8개씩 보기</span>
-                <div className='flex gap-1'>
-                  <button
-                    className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
-                    title='이전 경고 서버들 보기'
-                    aria-label='이전 경고 서버들 보기'
-                  >
-                    <ChevronLeft className='w-3 h-3' />
-                  </button>
-                  <button
-                    className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
-                    title='다음 경고 서버들 보기'
-                    aria-label='다음 경고 서버들 보기'
-                  >
-                    <ChevronRight className='w-3 h-3' />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className='relative overflow-hidden'>
-            <div className='flex transition-transform duration-300 ease-in-out'>
-              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4 min-w-full'>
-                {groupedServers.warning.slice(0, 8).map((server, index) => (
-                  <div key={server.id} className='min-w-0'>
-                    <EnhancedServerCard
-                      server={{
-                        ...server,
-                        hostname: server.name,
-                        type: 'web_server',
-                        environment: 'production',
-                        provider: 'AWS',
-                        status: 'warning' as any,
-                        network: Math.floor(Math.random() * 30) + 40,
-                        networkStatus: Math.random() > 0.5 ? 'good' : 'poor',
-                        specs: {
-                          cpu_cores: 6,
-                          memory_gb: 12,
-                          disk_gb: 250,
-                          network_speed: '500Mbps',
-                        },
-                        ip: `10.0.1.${Math.floor(Math.random() * 254) + 1}`,
-                        os: 'CentOS 8',
-                      }}
-                      index={index}
-                      onClick={() => handleServerSelect(server)}
-                      showMiniCharts={true}
-                      variant='compact'
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {groupedServers.warning.length > 8 && (
-              <div className='absolute top-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full'>
-                +{groupedServers.warning.length - 8}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {groupedServers.healthy.length > 0 && (
-        <div className='space-y-4'>
-          <div className='flex items-center justify-between'>
-            <h3 className='text-lg font-semibold text-green-600 flex items-center gap-2'>
-              <span className='w-3 h-3 bg-green-500 rounded-full'></span>
-              정상 상태 ({groupedServers.healthy.length})
-            </h3>
-            {groupedServers.healthy.length > 8 && (
-              <div className='flex items-center gap-2 text-sm text-gray-500'>
-                <span>8개씩 보기</span>
-                <div className='flex gap-1'>
-                  <button
-                    className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
-                    title='이전 정상 서버들 보기'
-                    aria-label='이전 정상 서버들 보기'
-                  >
-                    <ChevronLeft className='w-3 h-3' />
-                  </button>
-                  <button
-                    className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
-                    title='다음 정상 서버들 보기'
-                    aria-label='다음 정상 서버들 보기'
-                  >
-                    <ChevronRight className='w-3 h-3' />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className='relative overflow-hidden'>
-            <div className='flex transition-transform duration-300 ease-in-out'>
-              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4 min-w-full'>
-                {groupedServers.healthy.slice(0, 8).map((server, index) => (
-                  <div key={server.id} className='min-w-0'>
-                    <EnhancedServerCard
-                      server={{
-                        ...server,
-                        hostname: server.name,
-                        type: 'database_server',
-                        environment: 'production',
-                        provider: 'AWS',
-                        status: 'healthy' as any,
-                        network: Math.floor(Math.random() * 25) + 15,
-                        networkStatus:
-                          Math.random() > 0.3 ? 'excellent' : 'good',
-                        specs: {
-                          cpu_cores: 4,
-                          memory_gb: 8,
-                          disk_gb: 100,
-                          network_speed: '10Gbps',
-                        },
-                        ip: `172.16.0.${Math.floor(Math.random() * 254) + 1}`,
-                        os: 'RHEL 9',
-                      }}
-                      index={index}
-                      onClick={() => handleServerSelect(server)}
-                      showMiniCharts={true}
-                      variant='compact'
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {groupedServers.healthy.length > 8 && (
-              <div className='absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full'>
-                +{groupedServers.healthy.length - 8}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 서버가 없는 경우 */}
-      {filteredAndSortedServers.length === 0 && !isLoading && (
-        <div className='text-center py-12'>
-          <div className='mx-auto h-12 w-12 text-gray-400'>
-            <svg fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth={2}
-                d='M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'
-              />
-            </svg>
-          </div>
-          <h3 className='mt-2 text-sm font-medium text-gray-900'>
-            서버가 없습니다
-          </h3>
-          <p className='mt-1 text-sm text-gray-500'>
-            {searchTerm
-              ? '검색 조건에 맞는 서버가 없습니다.'
-              : '등록된 서버가 없습니다.'}
-          </p>
-        </div>
-      )}
-
-      {/* 현재 페이지에 서버가 없는 경우 (전체 서버는 있지만 현재 페이지가 비어있음) */}
-      {filteredAndSortedServers.length > 0 &&
-        paginatedServers.length === 0 &&
-        !isLoading && (
-          <div className='text-center py-12'>
-            <div className='mx-auto h-12 w-12 text-gray-400'>
-              <svg fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
-                />
-              </svg>
-            </div>
-            <h3 className='mt-2 text-sm font-medium text-gray-900'>
-              이 페이지에는 서버가 없습니다
-            </h3>
-            <p className='mt-1 text-sm text-gray-500'>
-              다른 페이지를 확인하거나 첫 페이지로 이동해보세요.
-            </p>
-            <button
-              onClick={() => setCurrentPage(1)}
-              className='mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors'
-            >
-              첫 페이지로 이동
-            </button>
-          </div>
-        )}
+          {activeTab === 'network' && renderNetworkTab()}
+          {activeTab === 'clusters' && renderClustersTab()}
+          {activeTab === 'applications' && renderApplicationsTab()}
+        </motion.div>
+      </AnimatePresence>
 
       {/* 서버 상세 모달 */}
-      <EnhancedServerModal
-        server={
-          selectedServer
-            ? {
-                ...selectedServer,
-                hostname: selectedServer.name,
-                type: 'api_server',
-                environment: 'production',
-                provider: 'AWS',
-                status:
-                  selectedServer.status === 'online'
-                    ? 'healthy'
-                    : selectedServer.status === 'warning'
-                      ? 'warning'
-                      : 'critical',
-                network: Math.floor(Math.random() * 50) + 25,
-                networkStatus:
-                  selectedServer.status === 'online'
-                    ? ('excellent' as const)
-                    : selectedServer.status === 'warning'
-                      ? ('good' as const)
-                      : ('poor' as const),
-                specs: {
-                  cpu_cores: 8,
-                  memory_gb: 16,
-                  disk_gb: 500,
-                  network_speed: '1Gbps',
-                },
-                ip: `192.168.100.${Math.floor(Math.random() * 254) + 1}`,
-                os: 'Ubuntu 22.04 LTS',
-              }
-            : null
-        }
-        onClose={() => setSelectedServer(null)}
-      />
+      {selectedServer && (
+        <EnhancedServerModal
+          server={{
+            ...selectedServer,
+            hostname: selectedServer.name,
+            type: 'api_server',
+            environment: 'production',
+            provider: 'AWS',
+            status:
+              selectedServer.status === 'online'
+                ? 'healthy'
+                : selectedServer.status === 'warning'
+                  ? 'warning'
+                  : 'critical',
+            network:
+              selectedServer.network || Math.floor(Math.random() * 40) + 30,
+            networkStatus: selectedServer.networkStatus || 'good',
+            specs: {
+              cpu_cores: 8,
+              memory_gb: 16,
+              disk_gb: 500,
+              network_speed: '1Gbps',
+            },
+            ip: `192.168.1.${Math.floor(Math.random() * 254) + 1}`,
+            os: 'Ubuntu 22.04 LTS',
+          }}
+          onClose={() => setSelectedServer(null)}
+        />
+      )}
     </div>
   );
 }
