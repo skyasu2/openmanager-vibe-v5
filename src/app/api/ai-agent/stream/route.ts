@@ -21,50 +21,83 @@ interface StreamEvent {
 
 export async function POST(request: NextRequest) {
   try {
-    const { query, category } = await request.json();
+    const { query, category = 'general' } = await request.json();
 
     const encoder = new TextEncoder();
+    let isCompleted = false;
+    let isClosed = false;
+    const timeouts: NodeJS.Timeout[] = []; // 🆕 타이머 추적
 
     const stream = new ReadableStream({
       start(controller) {
-        let isCompleted = false;
+        // 🆕 안전한 이벤트 전송 함수
+        const sendEvent = (event: StreamEvent) => {
+          if (!isCompleted && !isClosed) {
+            try {
+              controller.enqueue(
+                encoder.encode(`data: ${JSON.stringify(event)}\n\n`)
+              );
+            } catch (error) {
+              console.warn('스트림 전송 실패:', error);
+              isClosed = true;
+            }
+          }
+        };
 
-        // 타임아웃 제어
-        const timeout = setTimeout(() => {
-          if (!isCompleted) {
-            controller.enqueue(
-              encoder.encode(
-                `data: ${JSON.stringify({
-                  type: 'error',
-                  error: 'Request timeout',
-                })}\n\n`
-              )
-            );
-            controller.close();
+        // 🆕 안전한 완료 함수
+        const complete = () => {
+          if (!isCompleted && !isClosed) {
+            isCompleted = true;
+
+            // 모든 타이머 정리
+            timeouts.forEach(timeout => clearTimeout(timeout));
+            timeouts.length = 0;
+
+            sendEvent({ type: 'complete' });
+
+            try {
+              controller.close();
+              isClosed = true;
+            } catch (error) {
+              console.warn('스트림 종료 실패:', error);
+              isClosed = true;
+            }
+          }
+        };
+
+        // 🆕 안전한 타이머 생성 함수
+        const safeSetTimeout = (
+          callback: () => void,
+          delay: number
+        ): NodeJS.Timeout => {
+          const timeout = setTimeout(() => {
+            if (!isCompleted && !isClosed) {
+              callback();
+            }
+          }, delay);
+          timeouts.push(timeout);
+          return timeout;
+        };
+
+        // Vercel 타임아웃 설정 (25초)
+        const VERCEL_TIMEOUT = 25000;
+        const mainTimeout = safeSetTimeout(() => {
+          if (!isCompleted && !isClosed) {
+            sendEvent({
+              type: 'error',
+              error: 'Request timeout - 응답 시간이 초과되었습니다.',
+            });
+            complete();
           }
         }, VERCEL_TIMEOUT);
 
-        const sendEvent = (event: StreamEvent) => {
-          if (!isCompleted) {
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify(event)}\n\n`)
-            );
-          }
-        };
-
-        const complete = () => {
-          isCompleted = true;
-          clearTimeout(timeout);
-          sendEvent({ type: 'complete' });
-          controller.close();
-        };
-
         // 🧠 1단계: 생각하기 과정 스트리밍
         const thinkingSteps = getThinkingSteps(category);
-
         let currentStepIndex = 0;
 
         const processThinking = () => {
+          if (isCompleted || isClosed) return;
+
           if (currentStepIndex < thinkingSteps.length) {
             sendEvent({
               type: 'thinking',
@@ -73,15 +106,17 @@ export async function POST(request: NextRequest) {
             });
 
             currentStepIndex++;
-            setTimeout(processThinking, 600); // 0.6초 간격
+            safeSetTimeout(processThinking, 600); // 0.6초 간격
           } else {
             // 생각하기 완료 후 응답 시작
-            setTimeout(processResponse, 300);
+            safeSetTimeout(processResponse, 300);
           }
         };
 
         // 💬 2단계: AI 응답 생성 및 스트리밍
         const processResponse = async () => {
+          if (isCompleted || isClosed) return;
+
           try {
             sendEvent({ type: 'response_start' });
 
@@ -93,6 +128,8 @@ export async function POST(request: NextRequest) {
             let currentWordIndex = 0;
 
             const streamWords = () => {
+              if (isCompleted || isClosed) return;
+
               if (currentWordIndex < words.length) {
                 sendEvent({
                   type: 'response_chunk',
@@ -100,7 +137,7 @@ export async function POST(request: NextRequest) {
                 });
 
                 currentWordIndex++;
-                setTimeout(streamWords, 50); // 50ms 간격으로 단어별 전송
+                safeSetTimeout(streamWords, 50); // 50ms 간격으로 단어별 전송
               } else {
                 complete();
               }
@@ -109,17 +146,27 @@ export async function POST(request: NextRequest) {
             streamWords();
           } catch (error) {
             console.error('AI 응답 생성 에러:', error);
-            sendEvent({
-              type: 'error',
-              error:
-                error instanceof Error ? error.message : 'AI 응답 생성 실패',
-            });
-            complete();
+            if (!isCompleted && !isClosed) {
+              sendEvent({
+                type: 'error',
+                error:
+                  error instanceof Error ? error.message : 'AI 응답 생성 실패',
+              });
+              complete();
+            }
           }
         };
 
         // 생각하기 과정 시작
-        setTimeout(processThinking, 100);
+        safeSetTimeout(processThinking, 100);
+      },
+
+      // 🆕 스트림 취소 시 정리
+      cancel() {
+        isCompleted = true;
+        isClosed = true;
+        timeouts.forEach(timeout => clearTimeout(timeout));
+        timeouts.length = 0;
       },
     });
 

@@ -161,12 +161,63 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
       }
     }, [servers]);
 
+    // 🆕 자동 이동 관련 상태 추가
+    const [autoRedirectCountdown, setAutoRedirectCountdown] = useState(0);
+    const [autoRedirectTimer, setAutoRedirectTimer] =
+      useState<NodeJS.Timeout | null>(null);
+
     // 서버 스포닝 완료 핸들러 - 사용자 확인 대기 상태로 전환
     const handleSpawnerComplete = useCallback(() => {
       console.log('🎉 서버 스포닝 완료 - 사용자 확인 대기');
       setShowSpawning(false);
       setWaitingForUserConfirmation(true);
     }, []);
+
+    // 🆕 자동 이동 타이머 시작 함수
+    const startAutoRedirect = useCallback(() => {
+      console.log('⏰ 3초 후 자동 대시보드 이동 시작');
+      setAutoRedirectCountdown(3);
+
+      const timer = setInterval(() => {
+        setAutoRedirectCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            console.log('🚀 자동 대시보드 이동 실행');
+            handleFinalComplete();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      setAutoRedirectTimer(timer);
+    }, [handleFinalComplete]);
+
+    // 🆕 자동 이동 타이머 중지 함수
+    const stopAutoRedirect = useCallback(() => {
+      if (autoRedirectTimer) {
+        clearInterval(autoRedirectTimer);
+        setAutoRedirectTimer(null);
+      }
+      setAutoRedirectCountdown(0);
+      console.log('⏹️ 자동 이동 타이머 중지');
+    }, [autoRedirectTimer]);
+
+    // 🆕 사용자 확인 대기 상태가 되면 자동 이동 타이머 시작
+    useEffect(() => {
+      if (waitingForUserConfirmation && !autoRedirectTimer) {
+        // 1초 후에 카운트다운 시작 (화면 전환 완료 후)
+        setTimeout(() => {
+          startAutoRedirect();
+        }, 1000);
+      }
+
+      return () => {
+        if (autoRedirectTimer) {
+          clearInterval(autoRedirectTimer);
+        }
+      };
+    }, [waitingForUserConfirmation, autoRedirectTimer, startAutoRedirect]);
 
     // 🛠️ 개발자 도구 등록
     useEffect(() => {
@@ -265,6 +316,11 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
               exit={{ opacity: 0 }}
               transition={{ duration: 0.5 }}
               className='absolute inset-0 flex items-center justify-center'
+              onClick={() => {
+                console.log('🖱️ 화면 클릭으로 즉시 이동');
+                stopAutoRedirect();
+                handleFinalComplete();
+              }}
             >
               <div className='text-center space-y-8 max-w-4xl mx-auto px-6'>
                 {/* 완료 상태 표시 */}
@@ -293,6 +349,23 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
                   <p className='text-blue-200 text-lg'>
                     모든 시스템이 정상적으로 초기화되었습니다.
                   </p>
+
+                  {/* 🆕 자동 이동 카운트다운 표시 */}
+                  {autoRedirectCountdown > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className='mt-4 p-3 bg-orange-500/20 rounded-lg border border-orange-400/30'
+                    >
+                      <p className='text-orange-200 text-sm'>
+                        🚀 {autoRedirectCountdown}초 후 자동으로 대시보드로
+                        이동합니다
+                      </p>
+                      <p className='text-orange-300/70 text-xs mt-1'>
+                        화면을 클릭하면 즉시 이동합니다
+                      </p>
+                    </motion.div>
+                  )}
                 </motion.div>
 
                 {/* 시스템 상태 카드들 */}
@@ -362,9 +435,15 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
                   transition={{ delay: 1.0 }}
                   className='text-center'
                 >
-                  <p className='text-cyan-300 text-lg mb-2'>
-                    🖱️ 화면을 클릭하여 대시보드로 이동하세요
-                  </p>
+                  {autoRedirectCountdown > 0 ? (
+                    <p className='text-cyan-300 text-lg mb-2'>
+                      🖱️ 화면을 클릭하면 즉시 대시보드로 이동합니다
+                    </p>
+                  ) : (
+                    <p className='text-cyan-300 text-lg mb-2'>
+                      🖱️ 화면을 클릭하여 대시보드로 이동하세요
+                    </p>
+                  )}
                   <p className='text-gray-400 text-sm'>
                     또는 아래 버튼을 클릭하세요
                   </p>
@@ -381,12 +460,20 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
                     onClick={e => {
                       e.stopPropagation();
                       console.log('🚀 다음 버튼 클릭 - 대시보드로 이동 준비');
-                      // 사용자 확인 후 완료 처리
+                      stopAutoRedirect();
                       handleFinalComplete();
                     }}
-                    className='group px-6 py-3 bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center space-x-2'
+                    className={`group px-6 py-3 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center space-x-2 ${
+                      autoRedirectCountdown > 0
+                        ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600'
+                        : 'bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600'
+                    }`}
                   >
-                    <span>대시보드로 이동</span>
+                    <span>
+                      {autoRedirectCountdown > 0
+                        ? `자동 이동 (${autoRedirectCountdown}초)`
+                        : '대시보드로 이동'}
+                    </span>
                     <motion.div
                       animate={{ x: [0, 4, 0] }}
                       transition={{ repeat: Infinity, duration: 1.5 }}
