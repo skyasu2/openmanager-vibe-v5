@@ -39,7 +39,11 @@ describe('Manual Integration Test', () => {
 
   it('환경변수가 올바르게 설정되었는지 확인한다', () => {
     expect(process.env.GOOGLE_AI_API_KEY).toBeDefined();
-    expect(process.env.GOOGLE_AI_API_KEY).toBe('test_api_key_placeholder');
+
+    // 실제 API 키 또는 테스트 플레이스홀더 둘 다 허용
+    const apiKey = process.env.GOOGLE_AI_API_KEY;
+    expect(apiKey).toMatch(/^(AIza|test_api_key_placeholder)/);
+
     // SLACK_WEBHOOK_URL은 보안상 하드코딩하지 않으므로 선택적 검증
     if (process.env.SLACK_WEBHOOK_URL) {
       expect(process.env.SLACK_WEBHOOK_URL).toContain('hooks.slack.com');
