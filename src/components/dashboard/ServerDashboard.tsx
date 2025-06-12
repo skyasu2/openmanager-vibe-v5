@@ -331,22 +331,17 @@ const networkMetrics = [
 export default function ServerDashboard({
   onStatsUpdate,
 }: ServerDashboardProps) {
-  // 🎯 탭 상태 추가
+  const [selectedServer, setSelectedServer] = useState<Server | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isClient, setIsClient] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<DashboardTab>('servers');
 
-  const [selectedServer, setSelectedServer] = useState<Server | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [realServerData, setRealServerData] = useState<{
-    servers: ServerInstance[];
-    clusters: ServerCluster[];
-    applications: ApplicationMetrics[];
-  }>({ servers: [], clusters: [], applications: [] });
-  const [aiQuery, setAiQuery] = useState('');
-  const [isClient, setIsClient] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const SERVERS_PER_PAGE = 8;
 
   // ✅ 실시간 훅: 10초(10,000ms) 주기로 새로고침
   const {
@@ -354,9 +349,6 @@ export default function ServerDashboard({
     isLoading: isGenerating,
     refreshAll,
   } = useRealtimeServers({ refreshInterval: 10000 });
-
-  // 🎯 페이지당 8개 카드 고정
-  const SERVERS_PER_PAGE = 8;
 
   // 🚀 디버깅 로그 추가
   console.log('📊 ServerDashboard 렌더링:', {
@@ -925,75 +917,6 @@ export default function ServerDashboard({
                 </div>
               )}
 
-              {/* AI 쿼리 인터페이스 */}
-              {isClient && currentServers.length > 0 && (
-                <div className='mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200'>
-                  <h3 className='text-sm font-medium text-blue-900 mb-2'>
-                    🤖 AI 시스템 분석
-                  </h3>
-                  <div className='flex gap-2'>
-                    <input
-                      aria-label='입력'
-                      type='text'
-                      placeholder='예: CPU 사용률이 높은 서버를 찾아주세요'
-                      value={aiQuery}
-                      onChange={e => setAiQuery(e.target.value)}
-                      className='flex-1 px-3 py-2 border border-blue-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-                      onKeyPress={async e => {
-                        if (e.key === 'Enter' && aiQuery.trim()) {
-                          try {
-                            // ✅ API 호출로 변경
-                            const response = await fetch('/api/ai/korean', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                query: aiQuery,
-                                context: { servers: currentServers },
-                              }),
-                            });
-                            const result = await response.json();
-                            console.log('AI 분석 결과:', result);
-                            alert(`AI 분석: ${result.message || '분석 완료'}`);
-                          } catch (error) {
-                            console.error('AI 쿼리 처리 오류:', error);
-                            alert('AI 분석 중 오류가 발생했습니다.');
-                          }
-                        }
-                      }}
-                    />
-                    <button
-                      onClick={async () => {
-                        if (aiQuery.trim()) {
-                          try {
-                            // ✅ API 호출로 변경
-                            const response = await fetch('/api/ai/korean', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                query: aiQuery,
-                                context: { servers: currentServers },
-                              }),
-                            });
-                            const result = await response.json();
-                            console.log('AI 분석 결과:', result);
-                            alert(`AI 분석: ${result.message || '분석 완료'}`);
-                          } catch (error) {
-                            console.error('AI 쿼리 처리 오류:', error);
-                            alert('AI 분석 중 오류가 발생했습니다.');
-                          }
-                        }
-                      }}
-                      className='px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700'
-                    >
-                      분석
-                    </button>
-                  </div>
-                  <div className='mt-2 text-xs text-blue-700'>
-                    실제 서버 데이터: {currentServers.length}대 서버
-                  </div>
-                </div>
-              )}
-
               {/* 검색 및 필터 */}
               {isClient && currentServers.length > 0 && (
                 <div className='mb-6'>
@@ -1183,7 +1106,7 @@ export default function ServerDashboard({
                                   network_speed: '100Mbps',
                                 },
                                 ip: `172.16.0.${Math.floor(Math.random() * 254) + 1}`,
-                                os: 'Ubuntu 20.04 LTS',
+                                os: 'RHEL 9',
                               }}
                               index={index}
                               onClick={() => handleServerSelect(server)}

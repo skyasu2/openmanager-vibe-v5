@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import ServerDashboard from './ServerDashboard';
-import { AnomalyFeed } from './AnomalyFeed';
 import { Server } from '../../types/server';
 import { safeConsoleError, safeErrorMessage } from '../../lib/utils-functions';
 
@@ -110,7 +109,7 @@ export default function DashboardContent({
       );
     }
 
-    // 일반 대시보드 모드
+    // 일반 대시보드 모드 - 단일 컬럼 레이아웃으로 변경
     console.log('📊 일반 대시보드 모드 렌더링');
     return (
       <div
@@ -138,14 +137,8 @@ export default function DashboardContent({
               </div>
             )}
 
-            <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
-              <div className='lg:col-span-2'>
-                <ServerDashboard onStatsUpdate={onStatsUpdate} />
-              </div>
-              <div className='lg:col-span-1'>
-                <AnomalyFeed />
-              </div>
-            </div>
+            {/* 단일 컬럼 레이아웃으로 변경 - AnomalyFeed 제거 */}
+            <ServerDashboard onStatsUpdate={onStatsUpdate} />
           </div>
         </div>
       </div>
