@@ -9,6 +9,8 @@
 
 import { env } from './env';
 import { usageMonitor } from './usage-monitor';
+import { Redis } from '@upstash/redis';
+import { logger } from './logger';
 
 /**
  * 🚀 스마트 Redis 클라이언트
@@ -31,6 +33,74 @@ interface RedisClientInterface {
 let redis: RedisClientInterface | null = null;
 let isInitializing = false;
 
+// Memory-only mock Redis 구현
+class MockRedis implements RedisClientInterface {
+  private store = new Map<string, any>();
+
+  async set(key: string, value: any): Promise<any> {
+    this.store.set(key, value);
+    return 'OK';
+  }
+
+  async get(key: string): Promise<any> {
+    return this.store.get(key);
+  }
+
+  async del(key: string): Promise<number> {
+    const hadKey = this.store.has(key);
+    this.store.delete(key);
+    return hadKey ? 1 : 0;
+  }
+
+  async hset(key: string, field: string, value: any): Promise<number> {
+    let hash = this.store.get(key) || {};
+    if (typeof hash !== 'object') hash = {};
+    hash[field] = value;
+    this.store.set(key, hash);
+    return 1;
+  }
+
+  async hget(key: string, field: string): Promise<any> {
+    const hash = this.store.get(key) || {};
+    return hash[field];
+  }
+
+  async hgetall(key: string): Promise<any> {
+    return this.store.get(key) || {};
+  }
+
+  async publish(channel: string, message: string): Promise<number> {
+    return 0; // 구독자 없음
+  }
+
+  // RedisClientInterface 필수 메서드 구현
+  async setex(key: string, seconds: number, value: any): Promise<any> {
+    this.store.set(key, value);
+    return 'OK';
+  }
+
+  async exists(key: string): Promise<number> {
+    return this.store.has(key) ? 1 : 0;
+  }
+
+  async incr(key: string): Promise<number> {
+    const value = (this.store.get(key) || 0) + 1;
+    this.store.set(key, value);
+    return value;
+  }
+
+  async ping(): Promise<'PONG'> {
+    return 'PONG';
+  }
+
+  pipeline(): any {
+    return {
+      setex: () => this,
+      exec: async () => [],
+    };
+  }
+}
+
 /**
  * 🔧 Redis 클라이언트 동적 초기화
  */
@@ -52,9 +122,17 @@ async function initializeRedis(): Promise<RedisClientInterface> {
   }
 
   try {
+    // USE_MOCK_REDIS 플래그가 설정되어 있으면 메모리 내 모의 구현 사용
+    if (process.env.USE_MOCK_REDIS === 'true') {
+      console.log(
+        '✅ 모의 Redis 클라이언트 사용 (메모리 전용 - 서버 재시작 시 데이터 손실)'
+      );
+      return new MockRedis();
+    }
+
     // 동적 import로 Redis 클라이언트 로드
     const { Redis } = await import('@upstash/redis');
-    
+
     const redisClient = new Redis({
       url: process.env.UPSTASH_REDIS_REST_URL,
       token: process.env.UPSTASH_REDIS_REST_TOKEN,
@@ -159,7 +237,7 @@ class SmartRedisClient {
 
     try {
       const redisClient = await getRedisClient();
-      
+
       // Redis가 사용 불가능하면 fallback 사용
       if (!redisClient) {
         return this.getFallback<T>(key);
@@ -203,7 +281,7 @@ class SmartRedisClient {
 
     try {
       const redisClient = await getRedisClient();
-      
+
       // Redis가 사용 불가능하면 fallback만 사용
       if (!redisClient) {
         console.warn('🔄 Redis not available, data saved to fallback only');
@@ -228,7 +306,7 @@ class SmartRedisClient {
 
     try {
       const redisClient = await getRedisClient();
-      
+
       if (!redisClient) {
         return 1; // fallback에서만 삭제됨
       }
@@ -259,7 +337,7 @@ class SmartRedisClient {
 
     try {
       const redisClient = await getRedisClient();
-      
+
       if (!redisClient) {
         return 0;
       }
@@ -286,7 +364,7 @@ class SmartRedisClient {
 
     try {
       const redisClient = await getRedisClient();
-      
+
       if (!redisClient) {
         return fallbackValue;
       }
