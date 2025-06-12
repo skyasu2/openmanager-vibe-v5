@@ -1,11 +1,12 @@
 /**
- * 🏥 Health Check API v1.0
+ * 🏥 Health Check API v2.0
  *
- * OpenManager v5.21.0 - 시스템 헬스 체크
- * GET: 전체 시스템 상태 확인
+ * OpenManager v5.44.1 - 시스템 헬스 체크 + 환경변수 백업/복구
+ * GET: 전체 시스템 상태 확인 + 자동 환경변수 복구
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import EnvBackupManager from '@/lib/env-backup-manager';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -30,14 +31,44 @@ export async function GET(request: NextRequest) {
 
     const startTime = Date.now();
 
+    // 🔧 환경변수 백업 관리자 초기화
+    const envBackupManager = EnvBackupManager.getInstance();
+
+    // 🔍 환경변수 유효성 검증 및 자동 복구
+    const envValidation = envBackupManager.validateEnvironment();
+    let envRecoveryResult = null;
+
+    // Critical 또는 Important 환경변수 문제 시 자동 복구 시도
+    if (
+      !envValidation.isValid &&
+      ['critical', 'important'].includes(envValidation.priority)
+    ) {
+      console.log(
+        `🚨 환경변수 문제 감지 (${envValidation.priority}): 자동 복구 시도`
+      );
+      const restorePriority =
+        envValidation.priority === 'critical' ? 'critical' : 'important';
+      envRecoveryResult =
+        await envBackupManager.emergencyRestore(restorePriority);
+
+      // 복구 후 재검증
+      if (envRecoveryResult.success) {
+        const revalidation = envBackupManager.validateEnvironment();
+        envValidation.isValid = revalidation.isValid;
+        envValidation.missing = revalidation.missing;
+        envValidation.invalid = revalidation.invalid;
+        envValidation.priority = revalidation.priority;
+      }
+    }
+
     // 🚀 빠른 기본 응답을 위한 최적화
     const systemInfo = {
       status: 'healthy',
       timestamp: Date.now(),
       uptime: process.uptime ? Math.floor(process.uptime()) : null,
       environment: process.env.NODE_ENV || 'development',
-      version: '5.21.0',
-      phase: 'Phase 1 - 무설정 배포',
+      version: '5.44.1',
+      phase: 'Phase 2 - 환경변수 자동 복구',
     };
 
     // 메모리 사용량 확인 (빠른 처리)
@@ -141,6 +172,19 @@ export async function GET(request: NextRequest) {
               ? '모니터링 시스템 정상 통신'
               : '모니터링 시스템 통신 문제',
         },
+        {
+          name: 'Environment Variables',
+          status: envValidation.isValid
+            ? 'passing'
+            : envValidation.priority === 'critical'
+              ? 'critical'
+              : envValidation.priority === 'important'
+                ? 'warning'
+                : 'info',
+          message: envValidation.isValid
+            ? '환경변수 모두 정상'
+            : `환경변수 문제 (${envValidation.priority}): 누락 ${envValidation.missing.length}개, 잘못된 값 ${envValidation.invalid.length}개`,
+        },
       ],
       // 🚀 추가 진단 정보
       diagnostics: {
@@ -163,6 +207,14 @@ export async function GET(request: NextRequest) {
           lastSuccessfulCommunication:
             (global as any)?.dataGeneratorStatus?.lastSuccessfulCommunication ||
             null,
+        },
+        // 🔧 환경변수 백업/복구 시스템 상태
+        environmentBackup: {
+          validation: envValidation,
+          backupStatus: envBackupManager.getBackupStatus(),
+          recovery: envRecoveryResult,
+          autoRecoveryEnabled: true,
+          lastCheck: new Date().toISOString(),
         },
       },
     };
