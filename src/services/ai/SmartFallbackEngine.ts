@@ -20,7 +20,7 @@
 
 import { UnifiedAIEngine } from '@/core/ai/UnifiedAIEngine';
 import { GoogleAIService } from './GoogleAIService';
-import { LocalRAGEngine } from '@/utils/legacy/local-rag-engine';
+import { LocalRAGEngine } from '@/lib/ml/rag-engine';
 import { MCPAIRouter, MCPContext } from './MCPAIRouter';
 import { getRedisClient } from '@/lib/redis';
 import { aiLogger, LogLevel, LogCategory } from './logging/AILogger';

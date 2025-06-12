@@ -548,15 +548,15 @@ export class ContextManager {
           query: intent,
           category: classification.category,
           urgency: classification.urgency,
-          confidence: classification.confidence
+          confidence: classification.confidence,
         },
         contexts: relevantContexts,
         metadata: {
           totalContexts: this.contextIndex.size,
           matchedContexts: relevantContexts.length,
           processingTime: Date.now(),
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       };
     } catch (error) {
       console.error('❌ 의도 분석 실패:', error);
@@ -566,10 +566,10 @@ export class ContextManager {
           query: intent,
           category: 'unknown',
           urgency: 'medium',
-          confidence: 0
+          confidence: 0,
         },
         contexts: [],
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }
@@ -585,32 +585,44 @@ export class ContextManager {
     const lowerIntent = intent.toLowerCase();
 
     // 긴급도 키워드
-    if (lowerIntent.includes('urgent') || lowerIntent.includes('critical') ||
-      lowerIntent.includes('error') || lowerIntent.includes('down')) {
+    if (
+      lowerIntent.includes('urgent') ||
+      lowerIntent.includes('critical') ||
+      lowerIntent.includes('error') ||
+      lowerIntent.includes('down')
+    ) {
       return {
         category: 'troubleshooting',
         urgency: 'critical',
-        confidence: 0.9
+        confidence: 0.9,
       };
     }
 
     // 모니터링 관련
-    if (lowerIntent.includes('monitor') || lowerIntent.includes('status') ||
-      lowerIntent.includes('check') || lowerIntent.includes('health')) {
+    if (
+      lowerIntent.includes('monitor') ||
+      lowerIntent.includes('status') ||
+      lowerIntent.includes('check') ||
+      lowerIntent.includes('health')
+    ) {
       return {
         category: 'monitoring',
         urgency: 'medium',
-        confidence: 0.8
+        confidence: 0.8,
       };
     }
 
     // 예측 관련
-    if (lowerIntent.includes('predict') || lowerIntent.includes('forecast') ||
-      lowerIntent.includes('trend') || lowerIntent.includes('analyze')) {
+    if (
+      lowerIntent.includes('predict') ||
+      lowerIntent.includes('forecast') ||
+      lowerIntent.includes('trend') ||
+      lowerIntent.includes('analyze')
+    ) {
       return {
         category: 'prediction',
         urgency: 'low',
-        confidence: 0.7
+        confidence: 0.7,
       };
     }
 
@@ -618,7 +630,7 @@ export class ContextManager {
     return {
       category: 'general',
       urgency: 'medium',
-      confidence: 0.5
+      confidence: 0.5,
     };
   }
 
@@ -637,5 +649,69 @@ export class ContextManager {
     );
     instance.initialized = false;
     return instance;
+  }
+
+  /**
+   * 🔄 레거시 호환성 메서드들 (AIAgentEngine 지원)
+   */
+  public async getContext(sessionId: string): Promise<any> {
+    try {
+      const contexts = await this.findRelevantContexts(
+        `session:${sessionId}`,
+        'general',
+        'medium',
+        5
+      );
+
+      if (contexts.length > 0) {
+        return {
+          conversationId: sessionId,
+          userIntent: contexts[0].context.metadata.scenarios[0] || '',
+          previousActions: [],
+          currentState: {},
+          metadata: contexts[0].context.metadata,
+          lastQuery: null,
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error('❌ getContext 실패:', error);
+      return null;
+    }
+  }
+
+  public async updateContext(
+    sessionId: string,
+    contextData: any
+  ): Promise<void> {
+    try {
+      // 세션 컨텍스트 업데이트 로직
+      console.log(`🔄 컨텍스트 업데이트: ${sessionId}`, contextData);
+
+      // 실제 구현에서는 컨텍스트 저장소에 업데이트
+      // 현재는 로깅만 수행
+    } catch (error) {
+      console.error('❌ updateContext 실패:', error);
+    }
+  }
+
+  public async cleanup(): Promise<void> {
+    try {
+      // 컨텍스트 정리 로직
+      console.log('🧹 ContextManager 정리 중...');
+
+      // 오래된 컨텍스트 정리
+      const cutoffTime = Date.now() - 24 * 60 * 60 * 1000; // 24시간
+      for (const [contextId, context] of this.contextIndex) {
+        if (context.lastAccessed.getTime() < cutoffTime) {
+          this.contextIndex.delete(contextId);
+        }
+      }
+
+      console.log('✅ ContextManager 정리 완료');
+    } catch (error) {
+      console.error('❌ cleanup 실패:', error);
+    }
   }
 }

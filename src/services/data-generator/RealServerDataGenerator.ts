@@ -44,7 +44,7 @@ export class RealServerDataGenerator {
   constructor(config: GeneratorConfig = {}) {
     this.config = {
       maxServers: 30,
-      updateInterval: 3000,
+      updateInterval: 15000, // 15초로 조정 (기존 3초에서)
       enableRealtime: true,
       serverArchitecture: 'load-balanced',
       enableRedis: true,

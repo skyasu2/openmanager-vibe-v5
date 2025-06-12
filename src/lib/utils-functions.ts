@@ -4,16 +4,20 @@
  * Common helper functions used throughout the application
  */
 
-import { type ClassValue, clsx } from 'clsx'
-import { twMerge } from 'tailwind-merge'
-import { createSafeError, safeErrorLog as coreErrorLog, safeErrorMessage as coreErrorMessage } from './error-handler'
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+import {
+  createSafeError,
+  safeErrorLog as coreErrorLog,
+  safeErrorMessage as coreErrorMessage,
+} from './error-handler';
 
 /**
  * Combines class names with tailwind-merge to handle conflicts
  * Essential for shadcn/ui components
  */
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 /**
@@ -23,7 +27,10 @@ export function parseError(error: unknown): string {
   return coreErrorMessage(error, 'An unknown error occurred');
 }
 
-export function safeErrorMessage(error: unknown, fallback = 'Unknown error'): string {
+export function safeErrorMessage(
+  error: unknown,
+  fallback = 'Unknown error'
+): string {
   return coreErrorMessage(error, fallback);
 }
 
@@ -32,21 +39,69 @@ export function safeConsoleError(prefix: string, error: unknown): void {
 }
 
 /**
- * Format bytes to human readable string
- * @param bytes - Number of bytes
- * @param decimals - Number of decimal places
- * @returns Formatted string (e.g., "1.5 GB")
+ * 🆔 세션 ID 생성 (표준 구현)
+ * 모든 generateSessionId 함수들을 이것으로 대체
+ */
+export function generateSessionId(prefix?: string): string {
+  const timestamp = Date.now().toString(36);
+  const randomPart = Math.random().toString(36).substring(2, 15);
+  const sessionId = `${timestamp}-${randomPart}`;
+
+  return prefix ? `${prefix}_${sessionId}` : sessionId;
+}
+
+/**
+ * 📏 바이트 포맷팅 (표준 구현)
+ * 모든 formatBytes 함수들을 이것으로 대체
  */
 export function formatBytes(bytes: number, decimals = 2): string {
-  if (bytes === 0) return '0 Bytes'
+  if (bytes === 0) return '0 Bytes';
 
-  const k = 1024
-  const dm = decimals < 0 ? 0 : decimals
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB']
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+/**
+ * ⏱️ 타임스탬프 생성 (표준 구현)
+ */
+export function generateTimestamp(): string {
+  return new Date().toISOString();
+}
+
+/**
+ * 🔒 안전한 JSON 파싱
+ */
+export function safeJsonParse<T = any>(jsonString: string, fallback: T): T {
+  try {
+    return JSON.parse(jsonString);
+  } catch {
+    return fallback;
+  }
+}
+
+/**
+ * 🎯 딥 클론 (안전한 객체 복사)
+ */
+export function deepClone<T>(obj: T): T {
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (obj instanceof Date) return new Date(obj.getTime()) as unknown as T;
+  if (obj instanceof Array)
+    return obj.map(item => deepClone(item)) as unknown as T;
+  if (typeof obj === 'object') {
+    const clonedObj = {} as T;
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        clonedObj[key] = deepClone(obj[key]);
+      }
+    }
+    return clonedObj;
+  }
+  return obj;
 }
 
 /**
@@ -56,7 +111,7 @@ export function formatBytes(bytes: number, decimals = 2): string {
  * @returns Formatted percentage string
  */
 export function formatPercentage(value: number, decimals = 1): string {
-  return `${value.toFixed(decimals)}%`
+  return `${value.toFixed(decimals)}%`;
 }
 
 /**
@@ -65,9 +120,9 @@ export function formatPercentage(value: number, decimals = 1): string {
  * @returns Relative time string
  */
 export function formatRelativeTime(date: string | Date): string {
-  const now = new Date()
-  const past = new Date(date)
-  const diffInSeconds = Math.floor((now.getTime() - past.getTime()) / 1000)
+  const now = new Date();
+  const past = new Date(date);
+  const diffInSeconds = Math.floor((now.getTime() - past.getTime()) / 1000);
 
   const intervals = [
     { label: 'year', seconds: 31536000 },
@@ -75,17 +130,17 @@ export function formatRelativeTime(date: string | Date): string {
     { label: 'day', seconds: 86400 },
     { label: 'hour', seconds: 3600 },
     { label: 'minute', seconds: 60 },
-    { label: 'second', seconds: 1 }
-  ]
+    { label: 'second', seconds: 1 },
+  ];
 
   for (const interval of intervals) {
-    const count = Math.floor(diffInSeconds / interval.seconds)
+    const count = Math.floor(diffInSeconds / interval.seconds);
     if (count >= 1) {
-      return `${count} ${interval.label}${count > 1 ? 's' : ''} ago`
+      return `${count} ${interval.label}${count > 1 ? 's' : ''} ago`;
     }
   }
 
-  return 'just now'
+  return 'just now';
 }
 
 /**
@@ -94,18 +149,18 @@ export function formatRelativeTime(date: string | Date): string {
  * @returns Formatted duration (e.g., "2h 30m 15s")
  */
 export function formatDuration(ms: number): string {
-  const seconds = Math.floor(ms / 1000)
-  const minutes = Math.floor(seconds / 60)
-  const hours = Math.floor(minutes / 60)
-  const days = Math.floor(hours / 24)
+  const seconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
 
-  const parts = []
-  if (days > 0) parts.push(`${days}d`)
-  if (hours % 24 > 0) parts.push(`${hours % 24}h`)
-  if (minutes % 60 > 0) parts.push(`${minutes % 60}m`)
-  if (seconds % 60 > 0 || parts.length === 0) parts.push(`${seconds % 60}s`)
+  const parts = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours % 24 > 0) parts.push(`${hours % 24}h`);
+  if (minutes % 60 > 0) parts.push(`${minutes % 60}m`);
+  if (seconds % 60 > 0 || parts.length === 0) parts.push(`${seconds % 60}s`);
 
-  return parts.join(' ')
+  return parts.join(' ');
 }
 
 /**
@@ -118,17 +173,17 @@ export function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout | null = null
+  let timeout: NodeJS.Timeout | null = null;
 
   return function executedFunction(...args: Parameters<T>) {
     const later = () => {
-      timeout = null
-      func(...args)
-    }
+      timeout = null;
+      func(...args);
+    };
 
-    if (timeout) clearTimeout(timeout)
-    timeout = setTimeout(later, wait)
-  }
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
 }
 
 /**
@@ -141,15 +196,15 @@ export function throttle<T extends (...args: any[]) => any>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {
-  let inThrottle: boolean = false
+  let inThrottle: boolean = false;
 
   return function executedFunction(...args: Parameters<T>) {
     if (!inThrottle) {
-      func(...args)
-      inThrottle = true
-      setTimeout(() => (inThrottle = false), limit)
+      func(...args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
     }
-  }
+  };
 }
 
 /**
@@ -158,7 +213,7 @@ export function throttle<T extends (...args: any[]) => any>(
  * @returns Promise that resolves after sleep
  */
 export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms))
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**
@@ -174,11 +229,11 @@ export async function retry<T>(
   delay = 1000
 ): Promise<T> {
   try {
-    return await fn()
+    return await fn();
   } catch (error) {
-    if (retries === 0) throw error
-    await sleep(delay)
-    return retry(fn, retries - 1, delay * 2)
+    if (retries === 0) throw error;
+    await sleep(delay);
+    return retry(fn, retries - 1, delay * 2);
   }
 }
 
@@ -188,11 +243,11 @@ export async function retry<T>(
  * @returns Hash string
  */
 export async function hashString(str: string): Promise<string> {
-  const msgUint8 = new TextEncoder().encode(str)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-  return hashHex
+  const msgUint8 = new TextEncoder().encode(str);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex;
 }
 
 /**
@@ -200,7 +255,7 @@ export async function hashString(str: string): Promise<string> {
  * @returns Boolean indicating server environment
  */
 export function isServer(): boolean {
-  return typeof window === 'undefined'
+  return typeof window === 'undefined';
 }
 
 /**
@@ -208,7 +263,7 @@ export function isServer(): boolean {
  * @returns Boolean indicating development mode
  */
 export function isDevelopment(): boolean {
-  return process.env.NODE_ENV === 'development'
+  return process.env.NODE_ENV === 'development';
 }
 
 /**
@@ -218,12 +273,15 @@ export function isDevelopment(): boolean {
  * @returns Grouped object
  */
 export function groupBy<T>(array: T[], key: keyof T): Record<string, T[]> {
-  return array.reduce((result, item) => {
-    const group = String(item[key])
-    if (!result[group]) result[group] = []
-    result[group].push(item)
-    return result
-  }, {} as Record<string, T[]>)
+  return array.reduce(
+    (result, item) => {
+      const group = String(item[key]);
+      if (!result[group]) result[group] = [];
+      result[group].push(item);
+      return result;
+    },
+    {} as Record<string, T[]>
+  );
 }
 
 /**
@@ -236,13 +294,13 @@ export function pick<T extends object, K extends keyof T>(
   obj: T,
   keys: K[]
 ): Pick<T, K> {
-  const result = {} as Pick<T, K>
+  const result = {} as Pick<T, K>;
   keys.forEach(key => {
     if (key in obj) {
-      result[key] = obj[key]
+      result[key] = obj[key];
     }
-  })
-  return result
+  });
+  return result;
 }
 
 /**
@@ -255,11 +313,11 @@ export function omit<T extends object, K extends keyof T>(
   obj: T,
   keys: K[]
 ): Omit<T, K> {
-  const result = { ...obj }
+  const result = { ...obj };
   keys.forEach(key => {
-    delete result[key]
-  })
-  return result as Omit<T, K>
+    delete result[key];
+  });
+  return result as Omit<T, K>;
 }
 
 /**
@@ -270,7 +328,7 @@ export function omit<T extends object, K extends keyof T>(
  * @returns Clamped number
  */
 export function clamp(num: number, min: number, max: number): number {
-  return Math.min(Math.max(num, min), max)
+  return Math.min(Math.max(num, min), max);
 }
 
 /**
@@ -279,12 +337,13 @@ export function clamp(num: number, min: number, max: number): number {
  * @returns Random ID string
  */
 export function generateId(length = 8): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-  let result = ''
+  const chars =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
   for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  return result
+  return result;
 }
 
 /**
@@ -293,8 +352,8 @@ export function generateId(length = 8): string {
  * @returns Boolean indicating valid email
  */
 export function isValidEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return emailRegex.test(email)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 }
 
 /**
@@ -304,8 +363,8 @@ export function isValidEmail(email: string): boolean {
  * @returns Truncated string
  */
 export function truncate(str: string, length: number): string {
-  if (str.length <= length) return str
-  return str.slice(0, length - 3) + '...'
+  if (str.length <= length) return str;
+  return str.slice(0, length - 3) + '...';
 }
 
 /**
@@ -315,8 +374,8 @@ export function truncate(str: string, length: number): string {
  * @returns Percentage (0-100)
  */
 export function calculatePercentage(value: number, total: number): number {
-  if (total === 0) return 0
-  return Math.round((value / total) * 100)
+  if (total === 0) return 0;
+  return Math.round((value / total) * 100);
 }
 
 /**
@@ -332,13 +391,13 @@ export function sortBy<T>(
   order: 'asc' | 'desc' = 'asc'
 ): T[] {
   return [...array].sort((a, b) => {
-    const aVal = a[key]
-    const bVal = b[key]
-    
-    if (aVal < bVal) return order === 'asc' ? -1 : 1
-    if (aVal > bVal) return order === 'asc' ? 1 : -1
-    return 0
-  })
+    const aVal = a[key];
+    const bVal = b[key];
+
+    if (aVal < bVal) return order === 'asc' ? -1 : 1;
+    if (aVal > bVal) return order === 'asc' ? 1 : -1;
+    return 0;
+  });
 }
 
 /**
@@ -355,9 +414,9 @@ export function getStatusColor(status: string): string {
     maintenance: 'text-blue-500',
     active: 'text-green-500',
     resolved: 'text-gray-500',
-    acknowledged: 'text-yellow-500'
-  }
-  return colors[status.toLowerCase()] || 'text-gray-500'
+    acknowledged: 'text-yellow-500',
+  };
+  return colors[status.toLowerCase()] || 'text-gray-500';
 }
 
 /**
@@ -370,9 +429,9 @@ export function getSeverityIcon(severity: string): string {
     info: 'info',
     warning: 'alert-triangle',
     critical: 'alert-circle',
-    error: 'x-circle'
-  }
-  return icons[severity.toLowerCase()] || 'info'
+    error: 'x-circle',
+  };
+  return icons[severity.toLowerCase()] || 'info';
 }
 
 /**
@@ -381,7 +440,7 @@ export function getSeverityIcon(severity: string): string {
  * @returns Formatted number string
  */
 export function formatNumber(num: number): string {
-  return num.toLocaleString()
+  return num.toLocaleString();
 }
 
 /**
@@ -390,30 +449,9 @@ export function formatNumber(num: number): string {
  * @returns Boolean indicating empty value
  */
 export function isEmpty(value: any): boolean {
-  if (value == null) return true
-  if (typeof value === 'string') return value.trim().length === 0
-  if (Array.isArray(value)) return value.length === 0
-  if (typeof value === 'object') return Object.keys(value).length === 0
-  return false
-}
-
-/**
- * Deep clone object
- * @param obj - Object to clone
- * @returns Cloned object
- */
-export function deepClone<T>(obj: T): T {
-  if (obj === null || typeof obj !== 'object') return obj
-  if (obj instanceof Date) return new Date(obj.getTime()) as any
-  if (obj instanceof Array) return obj.map(item => deepClone(item)) as any
-  if (obj instanceof Object) {
-    const clonedObj = {} as T
-    for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        clonedObj[key] = deepClone(obj[key])
-      }
-    }
-    return clonedObj
-  }
-  return obj
+  if (value == null) return true;
+  if (typeof value === 'string') return value.trim().length === 0;
+  if (Array.isArray(value)) return value.length === 0;
+  if (typeof value === 'object') return Object.keys(value).length === 0;
+  return false;
 }

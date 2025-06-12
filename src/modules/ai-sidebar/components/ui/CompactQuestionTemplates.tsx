@@ -92,15 +92,6 @@ const questionTemplates: QuestionTemplate[] = [
     enabled: true,
     description: '네트워크 응답시간과 연결 상태를 실시간으로 모니터링합니다',
   },
-  {
-    id: 'ai_insights',
-    question: 'AI가 발견한 패턴이나 이상징후가 있나요?',
-    icon: '🧠',
-    category: 'prediction',
-    priority: 'high',
-    enabled: true,
-    description: 'AI 패턴 분석을 통해 발견된 이상징후나 트렌드를 알려드립니다',
-  },
 ];
 
 export const CompactQuestionTemplates: React.FC<
@@ -292,6 +283,7 @@ export const CompactQuestionTemplates: React.FC<
                   ? 'bg-blue-500 w-4'
                   : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400'
               }`}
+              title={`페이지 ${i + 1}로 이동`}
             />
           )
         )}

@@ -1,51 +1,44 @@
 /**
  * 🔧 Common Types
- * 
+ *
  * 프로젝트 전체에서 공통으로 사용되는 타입 정의
  * - 중복 제거를 위한 기본 타입들
  * - 확장 가능한 인터페이스 구조
  */
 
 // 기본 서비스 상태 타입
-export type ServiceStatus = 
-  | 'running' 
-  | 'stopped' 
-  | 'failed' 
-  | 'starting' 
-  | 'stopping' 
-  | 'error' 
+export type ServiceStatus =
+  | 'running'
+  | 'stopped'
+  | 'failed'
+  | 'starting'
+  | 'stopping'
+  | 'error'
   | 'unknown';
 
 // 서버 상태 타입
-export type ServerStatus = 
-  | 'healthy' 
-  | 'warning' 
-  | 'critical' 
-  | 'offline' 
+export type ServerStatus =
+  | 'healthy'
+  | 'warning'
+  | 'critical'
+  | 'offline'
   | 'maintenance';
 
 // 알림 심각도 타입
-export type AlertSeverity = 
-  | 'info' 
-  | 'warning' 
-  | 'critical';
+export type AlertSeverity = 'info' | 'warning' | 'critical';
 
 // 환경 타입
-export type Environment = 
-  | 'production' 
-  | 'staging' 
-  | 'development' 
-  | 'test';
+export type Environment = 'production' | 'staging' | 'development' | 'test';
 
 // 서버 타입
-export type ServerType = 
-  | 'web' 
-  | 'database' 
-  | 'api' 
-  | 'cache' 
-  | 'storage' 
-  | 'gateway' 
-  | 'worker' 
+export type ServerType =
+  | 'web'
+  | 'database'
+  | 'api'
+  | 'cache'
+  | 'storage'
+  | 'gateway'
+  | 'worker'
   | 'monitoring'
   | 'mail'
   | 'proxy'
@@ -55,11 +48,11 @@ export type ServerType =
   | 'security';
 
 // 클라우드 제공자 타입
-export type CloudProvider = 
-  | 'aws' 
-  | 'gcp' 
-  | 'azure' 
-  | 'onpremise' 
+export type CloudProvider =
+  | 'aws'
+  | 'gcp'
+  | 'azure'
+  | 'onpremise'
   | 'kubernetes';
 
 // 기본 서비스 인터페이스
@@ -273,4 +266,86 @@ export type IdGenerator = () => string;
 export type EventHandler<T = any> = (data: T) => void | Promise<void>;
 
 // 비동기 함수 타입
-export type AsyncFunction<T = any, R = any> = (data: T) => Promise<R>; 
+export type AsyncFunction<T = any, R = any> = (data: T) => Promise<R>;
+
+/**
+ * 🤖 AI 관련 통합 타입 정의
+ */
+export interface StandardAIResponse {
+  success: boolean;
+  response: string;
+  confidence: number;
+  sources?: string[];
+  suggestions?: string[];
+  processingTime: number;
+  sessionLearning?: boolean;
+  notice?: string;
+  reliability?: 'high' | 'medium' | 'low';
+  source?: string;
+  error?: string;
+  intent?: {
+    category: string;
+    confidence: number;
+    keywords?: string[];
+  };
+  metadata?: {
+    sessionId: string;
+    timestamp: string;
+    version?: string;
+    engineUsed?: string;
+  };
+}
+
+/**
+ * 🔗 MCP 관련 통합 타입 정의
+ */
+export interface StandardMCPResponse {
+  success: boolean;
+  content: string;
+  confidence: number;
+  sources: string[];
+  metadata?: {
+    sessionId?: string;
+    timestamp?: string;
+    processingTime?: number;
+    engineUsed?: string;
+  };
+  error?: string;
+}
+
+/**
+ * 🔄 세션 관리 통합 타입
+ */
+export interface SessionContext {
+  sessionId: string;
+  conversationId?: string;
+  userIntent?: string;
+  previousActions?: string[];
+  currentState?: Record<string, any>;
+  metadata?: Record<string, any>;
+  lastQuery?: string;
+  createdAt: Date;
+  lastUpdated: Date;
+}
+
+/**
+ * 📊 분석 응답 통합 타입
+ */
+export interface StandardAnalysisResponse {
+  success: boolean;
+  query: string;
+  analysis: {
+    summary: string;
+    details: any[];
+    confidence: number;
+    processingTime: number;
+  };
+  recommendations: string[];
+  metadata: {
+    sessionId: string;
+    timestamp: string;
+    version: string;
+    engineUsed: string;
+  };
+  error?: string;
+}
