@@ -273,3 +273,5 @@ MCP_SERVER_URL=https://openmanager-vibe-v5.onrender.com
 - **카드 디자인**: `backdrop-blur-sm`, 반투명 효과, 그라데이션 강조
 - **모바일 최적화**: `grid-cols-2 md:grid-cols-4`, 완전 반응형
 - **호버 효과**: `scale-1.02`, `scale-1.05` 인터랙티브 애니메이션
+
+<!-- Vercel Cache Invalidation: 2025-06-13 02:28 AM -->
