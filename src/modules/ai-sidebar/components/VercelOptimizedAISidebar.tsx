@@ -954,6 +954,7 @@ export const VercelOptimizedAISidebar: React.FC<
               onClick={() => loadTabData('report')}
               disabled={isLoadingTab}
               className='p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50'
+              title='보고서 새로고침'
             >
               <RefreshCw
                 className={`w-4 h-4 ${isLoadingTab ? 'animate-spin' : ''}`}
@@ -1047,6 +1048,7 @@ export const VercelOptimizedAISidebar: React.FC<
               onClick={() => loadTabData('prediction')}
               disabled={isLoadingTab}
               className='p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50'
+              title='예측 데이터 새로고침'
             >
               <RefreshCw
                 className={`w-4 h-4 ${isLoadingTab ? 'animate-spin' : ''}`}
@@ -1154,6 +1156,7 @@ export const VercelOptimizedAISidebar: React.FC<
               onClick={() => loadTabData('logs')}
               disabled={isLoadingTab}
               className='p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50'
+              title='로그 데이터 새로고침'
             >
               <RefreshCw
                 className={`w-4 h-4 ${isLoadingTab ? 'animate-spin' : ''}`}
@@ -1265,6 +1268,7 @@ export const VercelOptimizedAISidebar: React.FC<
               onClick={() => loadTabData('notification')}
               disabled={isLoadingTab}
               className='p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50'
+              title='알림 상태 새로고침'
             >
               <RefreshCw
                 className={`w-4 h-4 ${isLoadingTab ? 'animate-spin' : ''}`}
@@ -1494,6 +1498,7 @@ export const VercelOptimizedAISidebar: React.FC<
               onClick={() => loadTabData('ai-settings')}
               disabled={isLoadingTab}
               className='p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50'
+              title='AI 엔진 상태 새로고침'
             >
               <RefreshCw
                 className={`w-4 h-4 ${isLoadingTab ? 'animate-spin' : ''}`}
@@ -1594,6 +1599,11 @@ export const VercelOptimizedAISidebar: React.FC<
           >
             AI 엔진 최적화 분석 요청
           </button>
+
+          {/* AI 엔진 헬스 체크 상태 */}
+          <div className='border-t border-gray-200 pt-4'>
+            <AIHealthStatus />
+          </div>
         </div>
       );
     }
@@ -1671,11 +1681,6 @@ export const VercelOptimizedAISidebar: React.FC<
                   isProcessing={isProcessing}
                   placeholder='AI에게 서버 관리에 대해 질문해보세요...'
                 />
-              </div>
-
-              {/* AI 엔진 헬스 체크 상태 */}
-              <div className='px-4 pb-4'>
-                <AIHealthStatus />
               </div>
             </div>
           )}
