@@ -114,7 +114,6 @@ export class SlackNotificationService {
   private initialize(): void {
     // 암호화된 Slack 웹훅 URL 가져오기
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { getSecureSlackWebhook } = require('@/utils/encryption');
       this.webhookUrl = getSecureSlackWebhook();
     } catch (error) {

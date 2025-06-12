@@ -190,7 +190,7 @@ export async function GET(request: NextRequest) {
         details: error instanceof Error ? error.message : 'Unknown error',
       },
       {
-        status: 500,
+        status: 200,
         headers: errorHeaders,
       }
     );

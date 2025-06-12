@@ -18,10 +18,10 @@ export interface GeneratorConfig {
   updateInterval?: number;
   enableRealtime?: boolean;
   serverArchitecture?:
-  | 'single'
-  | 'master-slave'
-  | 'load-balanced'
-  | 'microservices';
+    | 'single'
+    | 'master-slave'
+    | 'load-balanced'
+    | 'microservices';
   enableRedis?: boolean;
 }
 
@@ -50,6 +50,9 @@ export class RealServerDataGenerator {
       enableRedis: true,
       ...config,
     };
+
+    // 초기 상태 설정
+    this.isGenerating = false;
 
     // Redis 초기화
     this.initializeRedis();
@@ -194,7 +197,7 @@ export class RealServerDataGenerator {
     console.log('✅ RealServerDataGenerator 초기화 완료');
 
     // 실시간 업데이트 자동 시작 (설정이 활성화된 경우)
-    if (this.config.enableRealtime) {
+    if (this.config.enableRealtime && !this.isGenerating) {
       this.startAutoGeneration();
       console.log('🔄 실시간 데이터 업데이트 자동 시작됨');
     }
@@ -478,18 +481,20 @@ export class RealServerDataGenerator {
     return {
       servers: {
         total: servers.length,
-        online: servers.filter(s => s.status === 'running').length,  // running → online 매핑
+        online: servers.filter(s => s.status === 'running').length, // running → online 매핑
+        running: servers.filter(s => s.status === 'running').length, // 테스트 호환성을 위해 추가
         warning: servers.filter(s => s.status === 'warning').length,
-        offline: servers.filter(s => s.status === 'error').length,   // error → offline 매핑
+        offline: servers.filter(s => s.status === 'error').length, // error → offline 매핑
+        error: servers.filter(s => s.status === 'error').length, // 테스트 호환성을 위해 추가
         avgCpu:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.cpu, 0) /
-            servers.length
+              servers.length
             : 0,
         avgMemory:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.memory, 0) /
-            servers.length
+              servers.length
             : 0,
       },
       clusters: {
@@ -524,9 +529,9 @@ export class RealServerDataGenerator {
         avgResponseTime:
           applications.length > 0
             ? applications.reduce(
-              (sum, a) => sum + a.performance.responseTime,
-              0
-            ) / applications.length
+                (sum, a) => sum + a.performance.responseTime,
+                0
+              ) / applications.length
             : 0,
       },
       timestamp: Date.now(),

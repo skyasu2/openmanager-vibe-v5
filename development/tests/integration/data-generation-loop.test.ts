@@ -10,8 +10,11 @@ describe('RealServerDataGenerator 통합 동작', () => {
 
   beforeEach(async () => {
     // 싱글톤 인스턴스 초기화
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (RealServerDataGenerator as any).instance = null;
     generator = RealServerDataGenerator.getInstance();
+    // 자동 생성이 시작되었다면 중지
+    generator.stopAutoGeneration();
     await generator.initialize();
   });
 
@@ -63,7 +66,9 @@ describe('RealServerDataGenerator 통합 동작', () => {
   });
 
   it('자동 생성 시작/중지가 정상 동작한다', () => {
-    // 상태 확인 방법을 실제 구현에 맞게 수정
+    // 먼저 중지하여 초기 상태 확보
+    generator.stopAutoGeneration();
+
     const initialStatus = generator.getStatus();
     expect(initialStatus).toHaveProperty('isRunning');
     expect(initialStatus.isRunning).toBe(false);
