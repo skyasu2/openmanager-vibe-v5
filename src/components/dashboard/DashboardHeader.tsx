@@ -11,12 +11,14 @@ import dynamic from 'next/dynamic';
 import UnifiedProfileComponent from '../UnifiedProfileComponent';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 
-// ⚡ Dynamic Import로 간단한 AI 사이드바 - 성능 최적화
-const SimpleAISidebar = dynamic(
+// ⚡ Dynamic Import로 Vercel 최적화 AI 사이드바 - 이전 버전 복원
+const VercelOptimizedAISidebar = dynamic(
   () =>
-    import('../../modules/ai-sidebar/components/SimpleAISidebar').then(mod => ({
-      default: mod.SimpleAISidebar,
-    })),
+    import('../../modules/ai-sidebar/components/VercelOptimizedAISidebar').then(
+      mod => ({
+        default: mod.VercelOptimizedAISidebar,
+      })
+    ),
   {
     ssr: false, // AI 컴포넌트는 클라이언트 전용
     loading: () => (
@@ -306,8 +308,8 @@ const DashboardHeader = memo(function DashboardHeader({
         </div>
       </header>
 
-      {/* SimpleAISidebar */}
-      <SimpleAISidebar
+      {/* VercelOptimizedAISidebar */}
+      <VercelOptimizedAISidebar
         isOpen={isSidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
