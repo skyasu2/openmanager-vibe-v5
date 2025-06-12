@@ -126,3 +126,108 @@ export function getSecureSlackWebhook(): string | null {
 export function encryptSlackWebhook(webhookUrl: string): string {
   return encryptText(webhookUrl);
 }
+
+/**
+ * 🔐 암호화 유틸리티 모듈
+ *
+ * 민감한 정보 (API 키, 웹훅 URL 등)를 안전하게 관리합니다.
+ * 환경변수와 메모리에서 보안키를 가져옵니다.
+ */
+
+// 보안 자격 증명은 환경변수에서만 가져옵니다
+const SECURE_CREDENTIALS = {
+  // 모든 민감한 정보는 환경변수에서 가져옴
+  // 하드코딩된 값은 보안상 제거됨
+};
+
+/**
+ * 🤖 안전한 Google AI API 키 가져오기
+ *
+ * 환경변수에서만 가져옵니다 (보안 강화)
+ */
+export function getSecureGoogleAIKey(): string | null {
+  return process.env.GOOGLE_AI_API_KEY || null;
+}
+
+/**
+ * 📊 안전한 Supabase URL 가져오기
+ */
+export function getSecureSupabaseUrl(): string | null {
+  return process.env.NEXT_PUBLIC_SUPABASE_URL || null;
+}
+
+/**
+ * 🔑 안전한 Supabase Anon 키 가져오기
+ */
+export function getSecureSupabaseAnonKey(): string | null {
+  return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || null;
+}
+
+/**
+ * 🔴 안전한 Redis URL 가져오기
+ */
+export function getSecureRedisUrl(): string | null {
+  return process.env.REDIS_URL || null;
+}
+
+/**
+ * 🔍 전체 보안 설정 상태 확인
+ */
+export function getSecurityStatus() {
+  return {
+    googleAI: {
+      hasKey: !!getSecureGoogleAIKey(),
+      source: process.env.GOOGLE_AI_API_KEY ? 'env' : 'builtin',
+      keyPreview: getSecureGoogleAIKey()?.substring(0, 8) + '...' || 'none',
+    },
+    slack: {
+      hasWebhook: !!getSecureSlackWebhook(),
+      source: process.env.SLACK_WEBHOOK_URL ? 'env' : 'builtin',
+      webhookPreview:
+        getSecureSlackWebhook()?.substring(0, 30) + '...' || 'none',
+    },
+    supabase: {
+      hasUrl: !!getSecureSupabaseUrl(),
+      hasKey: !!getSecureSupabaseAnonKey(),
+      source: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'env' : 'builtin',
+    },
+    redis: {
+      hasUrl: !!getSecureRedisUrl(),
+      source: process.env.REDIS_URL ? 'env' : 'builtin',
+    },
+  };
+}
+
+/**
+ * 🛡️ 간단한 보안 키 검증 (개발용)
+ *
+ * @param inputKey 입력된 키
+ * @param validKey 유효한 키
+ * @returns boolean 검증 결과
+ */
+export function validateSecureKey(inputKey: string, validKey: string): boolean {
+  // 개발 환경에서는 간단한 비교
+  if (process.env.NODE_ENV === 'development') {
+    return inputKey === validKey;
+  }
+
+  // 프로덕션에서는 더 복잡한 검증 로직 필요
+  // 여기서는 간단한 예시만 제공
+  return inputKey.length > 8 && inputKey === validKey;
+}
+
+/**
+ * 🔐 Google AI 팀 비밀번호 검증 (GoogleAIUnlock용)
+ *
+ * 실제 프로덕션에서는 더 안전한 방법으로 관리해야 함
+ */
+export function validateGoogleAITeamPassword(password: string): boolean {
+  // 개발용 간단한 비밀번호들
+  const validPasswords = [
+    'openmanager2025',
+    'vibe-ai-unlock',
+    'google-ai-team',
+  ];
+
+  return validPasswords.includes(password.toLowerCase());
+}

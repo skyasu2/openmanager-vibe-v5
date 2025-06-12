@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 /**
  * Playwright E2E 테스트 설정
- * 
+ *
  * @description
  * OpenManager Vibe v5.11.0 E2E 테스트 환경 설정
  * Vercel 배포와 독립적으로 실행되는 테스트 환경
@@ -10,33 +10,33 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   // 테스트 디렉토리
   testDir: './e2e',
-  
+
   // 테스트 파일 패턴
   testMatch: '**/*.e2e.{ts,js}',
-  
+
   // 전역 설정
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  
+
   // 리포터 설정
   reporter: [
     ['html', { open: 'never' }],
     ['json', { outputFile: 'e2e-results.json' }],
     ['list'],
   ],
-  
+
   // 전역 설정
   use: {
     // 기본 URL (로컬 개발 서버)
-    baseURL: 'http://localhost:3004',
-    
+    baseURL: 'http://localhost:3002',
+
     // 브라우저 설정
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    
+
     // 타임아웃
     actionTimeout: 30000,
     navigationTimeout: 30000,
@@ -70,8 +70,8 @@ export default defineConfig({
   // 개발 서버 설정 (테스트 시 자동 시작)
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:3004',
+    url: 'http://localhost:3002',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
   },
-}); 
+});

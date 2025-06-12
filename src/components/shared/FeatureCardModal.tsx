@@ -145,16 +145,7 @@ const getCurrentTechStack = (cardId: string): TechItem[] => {
         icon: '💛',
         tags: ['언어', '표준', '모던'],
       },
-      {
-        name: 'Python',
-        category: 'language',
-        importance: 'high',
-        description: 'AI/ML 백엔드 처리용 언어',
-        version: '3.12',
-        status: 'active',
-        icon: '🐍',
-        tags: ['언어', 'AI', '백엔드'],
-      },
+
       {
         name: 'SQL',
         category: 'language',
@@ -264,7 +255,7 @@ const getCurrentTechStack = (cardId: string): TechItem[] => {
         tags: ['상태관리', '경량', 'React'],
       },
     ],
-    'vibe-coding': [
+    'cursor-ai': [
       {
         name: 'Cursor IDE',
         category: 'custom',
@@ -296,13 +287,13 @@ const getCurrentTechStack = (cardId: string): TechItem[] => {
         tags: ['MCP', '개발도구', '프로토콜'],
       },
       {
-        name: 'GitHub Copilot',
-        category: 'ai',
+        name: 'GitHub Actions',
+        category: 'deployment',
         importance: 'high',
-        description: 'AI 코드 자동완성 도구',
+        description: 'CI/CD 자동화 및 배포 파이프라인',
         status: 'active',
-        icon: '🤝',
-        tags: ['AI', '자동완성', '개발'],
+        icon: '⚙️',
+        tags: ['CI/CD', '자동화', '배포'],
       },
       {
         name: 'Storybook',

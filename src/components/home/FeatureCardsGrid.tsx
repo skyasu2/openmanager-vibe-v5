@@ -323,7 +323,7 @@ const cardTechMapping = {
   'mcp-ai-engine': ['mcp-ai-system', 'rag-backup-engine'],
   'fullstack-ecosystem': ['frontend', 'data-storage', 'monitoring'],
   'tech-stack': ['frontend', 'visualization'],
-  'vibe-coding': ['mcp-integration', 'ai-development', 'development'],
+  'cursor-ai': ['mcp-integration', 'ai-development', 'development'],
 };
 
 // 버전 관리 시스템
@@ -331,7 +331,7 @@ const COMPONENT_VERSIONS = {
   'mcp-ai-engine': '2.1.0', // MCP + RAG 백업 엔진 통합
   'fullstack-ecosystem': '1.0.0', // 풀스택 개발 생태계
   'tech-stack': '1.5.0',
-  'vibe-coding': '2.0.0', // GitHub + Vercel 배포 통합
+  'cursor-ai': '2.0.0', // GitHub + Vercel 배포 통합
 } as const;
 
 // 버전 히스토리 추적 (올바른 프로젝트 타임라인)
@@ -459,7 +459,7 @@ const cardData: FeatureCard[] = [
     requiresAI: false,
   },
   {
-    id: 'vibe-coding',
+    id: 'cursor-ai',
     title: '🔥 Vibe Coding',
     description:
       '🎯 AI 주도 코딩으로 개발자 워크플로우를 혁신. Cursor + Claude로 자연어 명령만으로 고품질 코드 생성, 자동 배포까지',

@@ -1,7 +1,7 @@
 /**
- * 🚀 Real Server Data Generator - Complete Implementation
+ * 🚀 Real Server Data Generator - Complete Implementation with Redis
  *
- * 완전한 기능을 갖춘 서버 데이터 생성기
+ * 완전한 기능을 갖춘 서버 데이터 생성기 (Redis 연동)
  */
 
 import {
@@ -9,6 +9,9 @@ import {
   ServerCluster,
   ApplicationMetrics,
 } from '@/types/data-generator';
+
+// Redis 클라이언트 import
+import Redis from 'ioredis';
 
 export interface GeneratorConfig {
   maxServers?: number;
@@ -19,6 +22,7 @@ export interface GeneratorConfig {
     | 'master-slave'
     | 'load-balanced'
     | 'microservices';
+  enableRedis?: boolean;
 }
 
 export class RealServerDataGenerator {
@@ -31,14 +35,24 @@ export class RealServerDataGenerator {
   private isInitialized = false;
   private isGenerating = false;
 
+  // 🔴 Redis 연결
+  private redis: Redis | null = null;
+  private readonly REDIS_PREFIX = 'openmanager:servers:';
+  private readonly REDIS_CLUSTERS_PREFIX = 'openmanager:clusters:';
+  private readonly REDIS_APPS_PREFIX = 'openmanager:apps:';
+
   constructor(config: GeneratorConfig = {}) {
     this.config = {
       maxServers: 30,
       updateInterval: 3000,
       enableRealtime: true,
       serverArchitecture: 'load-balanced',
+      enableRedis: true,
       ...config,
     };
+
+    // Redis 초기화
+    this.initializeRedis();
   }
 
   public static getInstance(): RealServerDataGenerator {
@@ -46,6 +60,125 @@ export class RealServerDataGenerator {
       RealServerDataGenerator.instance = new RealServerDataGenerator();
     }
     return RealServerDataGenerator.instance;
+  }
+
+  /**
+   * 🔴 Redis 연결 초기화
+   */
+  private async initializeRedis(): Promise<void> {
+    if (!this.config.enableRedis) {
+      console.log('📊 Redis 비활성화 - 메모리 모드로 실행');
+      return;
+    }
+
+    try {
+      // Upstash Redis 연결 설정
+      this.redis = new Redis({
+        host: 'charming-condor-46598.upstash.io',
+        port: 6379,
+        password: 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
+        tls: {},
+        maxRetriesPerRequest: 3,
+        lazyConnect: true,
+      });
+
+      // 연결 테스트
+      await this.redis.ping();
+      console.log('✅ Redis 연결 성공 - 서버 데이터 저장 활성화');
+    } catch (error) {
+      console.warn('⚠️ Redis 연결 실패, 메모리 모드로 폴백:', error);
+      this.redis = null;
+      this.config.enableRedis = false;
+    }
+  }
+
+  /**
+   * 🔴 Redis에 서버 데이터 저장
+   */
+  private async saveServerToRedis(server: ServerInstance): Promise<void> {
+    if (!this.redis) return;
+
+    try {
+      const key = `${this.REDIS_PREFIX}${server.id}`;
+      const data = JSON.stringify({
+        ...server,
+        lastUpdated: new Date().toISOString(),
+      });
+
+      await this.redis.setex(key, 3600, data); // 1시간 TTL
+
+      // 서버 목록에도 추가
+      await this.redis.sadd(`${this.REDIS_PREFIX}list`, server.id);
+    } catch (error) {
+      console.warn(`⚠️ Redis 서버 저장 실패 (${server.id}):`, error);
+    }
+  }
+
+  /**
+   * 🔴 Redis에서 서버 데이터 조회
+   */
+  private async loadServerFromRedis(
+    serverId: string
+  ): Promise<ServerInstance | null> {
+    if (!this.redis) return null;
+
+    try {
+      const key = `${this.REDIS_PREFIX}${serverId}`;
+      const data = await this.redis.get(key);
+
+      if (data) {
+        return JSON.parse(data) as ServerInstance;
+      }
+    } catch (error) {
+      console.warn(`⚠️ Redis 서버 조회 실패 (${serverId}):`, error);
+    }
+
+    return null;
+  }
+
+  /**
+   * 🔴 Redis에서 모든 서버 데이터 조회
+   */
+  private async loadAllServersFromRedis(): Promise<ServerInstance[]> {
+    if (!this.redis) return [];
+
+    try {
+      const serverIds = await this.redis.smembers(`${this.REDIS_PREFIX}list`);
+      const servers: ServerInstance[] = [];
+
+      for (const serverId of serverIds) {
+        const server = await this.loadServerFromRedis(serverId);
+        if (server) {
+          servers.push(server);
+        }
+      }
+
+      console.log(`📊 Redis에서 ${servers.length}개 서버 데이터 로드됨`);
+      return servers;
+    } catch (error) {
+      console.warn('⚠️ Redis 전체 서버 조회 실패:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 🔴 Redis에 클러스터 데이터 저장
+   */
+  private async saveClusterToRedis(cluster: ServerCluster): Promise<void> {
+    if (!this.redis) return;
+
+    try {
+      const key = `${this.REDIS_CLUSTERS_PREFIX}${cluster.id}`;
+      const data = JSON.stringify({
+        ...cluster,
+        lastUpdated: new Date().toISOString(),
+      });
+
+      await this.redis.setex(key, 3600, data);
+      await this.redis.sadd(`${this.REDIS_CLUSTERS_PREFIX}list`, cluster.id);
+    } catch (error) {
+      console.warn(`⚠️ Redis 클러스터 저장 실패 (${cluster.id}):`, error);
+    }
   }
 
   public async initialize(): Promise<void> {

@@ -449,42 +449,45 @@ export function UnifiedSettingsPanel({
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={async () => {
-                      try {
-                        info('6서버 모드로 전환 중...');
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                        success('6서버 모드로 설정되었습니다.');
-                      } catch (err) {
-                        error('서버 모드 변경 실패');
-                      }
-                    }}
+                    onClick={() => handleServerCountChange(8)}
                     className='px-3 py-3 bg-green-500/20 text-green-300 rounded-lg font-medium hover:bg-green-500/30 transition-colors text-sm border border-green-500/30'
                   >
                     <div className='flex flex-col items-center gap-1'>
-                      <span className='font-semibold'>💻 6서버 모드</span>
+                      <span className='font-semibold'>
+                        💻 기본 모드 (8서버)
+                      </span>
                       <span className='text-xs text-green-200'>
-                        기본 환경용 - 6개 서버로 가벼운 테스트 및 개발에 적합
+                        Vercel Free 환경 - 8개 서버로 가벼운 테스트 및 개발
                       </span>
                     </div>
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={async () => {
-                      try {
-                        info('20서버 모드로 전환 중...');
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                        success('20서버 모드로 설정되었습니다.');
-                      } catch (err) {
-                        error('서버 모드 변경 실패');
-                      }
-                    }}
+                    onClick={() => handleServerCountChange(20)}
                     className='px-3 py-3 bg-blue-500/20 text-blue-300 rounded-lg font-medium hover:bg-blue-500/30 transition-colors text-sm border border-blue-500/30'
                   >
                     <div className='flex flex-col items-center gap-1'>
-                      <span className='font-semibold'>🚀 20서버 모드</span>
+                      <span className='font-semibold'>
+                        🚀 프로 모드 (20서버)
+                      </span>
                       <span className='text-xs text-blue-200'>
-                        프리미엄 환경용 - 20개 서버로 실전 운영 환경 시뮬레이션
+                        Vercel Pro 환경 - 20개 서버로 실전 운영 환경 시뮬레이션
+                      </span>
+                    </div>
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handleServerCountChange(30)}
+                    className='px-3 py-3 bg-purple-500/20 text-purple-300 rounded-lg font-medium hover:bg-purple-500/30 transition-colors text-sm border border-purple-500/30'
+                  >
+                    <div className='flex flex-col items-center gap-1'>
+                      <span className='font-semibold'>
+                        ⚡ 로컬 모드 (30서버)
+                      </span>
+                      <span className='text-xs text-purple-200'>
+                        로컬 개발 환경 - 30개 서버로 최대 성능 테스트
                       </span>
                     </div>
                   </motion.button>

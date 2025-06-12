@@ -131,7 +131,7 @@ git push
 ### 권장 AI 도구
 
 - **Cursor IDE**: 메인 개발 환경
-- **GitHub Copilot**: 코드 자동 완성
+- **GitHub Actions**: CI/CD 파이프라인 자동화
 - **Google AI**: 분석 및 추론
 - **MCP 시스템**: 컨텍스트 관리
 

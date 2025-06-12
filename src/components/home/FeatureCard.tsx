@@ -35,7 +35,7 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
       'mcp-ai-engine': 95,
       'data-generator': 88,
       'tech-stack': 92,
-      'vibe-coding': 85,
+      'cursor-ai': 85,
       default: 80,
     };
     return completionRates[cardId] || completionRates.default;

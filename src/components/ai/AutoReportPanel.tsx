@@ -48,107 +48,60 @@ interface AutoReportPanelProps {
   className?: string;
 }
 
-// Mock 데이터 생성 함수
-const generateMockReports = (): ReportData[] => [
-  {
-    id: 'report_1',
-    title: '일일 시스템 상태 보고서',
-    generatedAt: new Date(Date.now() - 1800000), // 30분 전
-    status: 'completed',
-    type: 'daily',
-    summary: '전체적으로 안정적인 상태이나 일부 서버에서 주의가 필요합니다.',
-    details: {
-      totalServers: 16,
-      healthyServers: 14,
-      warningServers: 2,
-      criticalServers: 0,
-      totalIncidents: 3,
-      resolvedIncidents: 3,
-      avgResponseTime: 125,
-      cpuUsage: 68,
-      memoryUsage: 72,
-      diskUsage: 45,
-    },
-  },
-  {
-    id: 'report_2',
-    title: '성능 분석 보고서',
-    generatedAt: new Date(Date.now() - 3600000), // 1시간 전
-    status: 'completed',
-    type: 'performance',
-    summary: 'CPU 사용률이 점진적으로 증가하는 추세입니다.',
-    details: {
-      totalServers: 16,
-      healthyServers: 13,
-      warningServers: 3,
-      criticalServers: 0,
-      totalIncidents: 1,
-      resolvedIncidents: 1,
-      avgResponseTime: 148,
-      cpuUsage: 78,
-      memoryUsage: 65,
-      diskUsage: 52,
-    },
-  },
-  {
-    id: 'report_3',
-    title: '장애 분석 보고서',
-    generatedAt: new Date(Date.now() - 7200000), // 2시간 전
-    status: 'completed',
-    type: 'incident',
-    summary: '어제 발생한 3건의 장애를 분석한 결과입니다.',
-    details: {
-      totalServers: 16,
-      healthyServers: 16,
-      warningServers: 0,
-      criticalServers: 0,
-      totalIncidents: 3,
-      resolvedIncidents: 3,
-      avgResponseTime: 112,
-      cpuUsage: 62,
-      memoryUsage: 58,
-      diskUsage: 41,
-    },
-  },
-  {
-    id: 'report_4',
-    title: '자동 생성 중...',
-    generatedAt: new Date(),
-    status: 'generating',
-    type: 'security',
-    summary: '보안 상태 보고서를 생성하고 있습니다...',
-    details: {
-      totalServers: 16,
-      healthyServers: 0,
-      warningServers: 0,
-      criticalServers: 0,
-      totalIncidents: 0,
-      resolvedIncidents: 0,
-      avgResponseTime: 0,
-      cpuUsage: 0,
-      memoryUsage: 0,
-      diskUsage: 0,
-    },
-  },
-];
-
 const AutoReportPanel: React.FC<AutoReportPanelProps> = ({
   className = '',
 }) => {
   // 데이터 로딩 (30초마다 자동 새로고침)
-  // Mock 데이터 사용
-  const [reports, setReports] = React.useState<ReportData[]>(
-    generateMockReports()
-  );
+  const [reports, setReports] = React.useState<ReportData[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const reload = React.useCallback(() => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setReports(generateMockReports());
+  // 실제 API에서 데이터 로드
+  const loadReports = React.useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/ai/auto-report');
+
+      if (!response.ok) {
+        throw new Error(`API 호출 실패: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        // API 응답 데이터를 컴포넌트 형식에 맞게 변환
+        const transformedReports = data.data.map((report: any) => ({
+          ...report,
+          generatedAt: new Date(report.generatedAt),
+        }));
+        setReports(transformedReports);
+      } else {
+        console.error('보고서 데이터 로드 실패:', data.error);
+        // 실패 시 빈 배열로 설정
+        setReports([]);
+      }
+    } catch (error) {
+      console.error('보고서 API 호출 실패:', error);
+      // 에러 시 빈 배열로 설정
+      setReports([]);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   }, []);
+
+  // 컴포넌트 마운트 시 데이터 로드
+  React.useEffect(() => {
+    loadReports();
+  }, [loadReports]);
+
+  // 30초마다 자동 새로고침
+  React.useEffect(() => {
+    const interval = setInterval(loadReports, 30000);
+    return () => clearInterval(interval);
+  }, [loadReports]);
+
+  const reload = React.useCallback(() => {
+    loadReports();
+  }, [loadReports]);
 
   // 필터 상태 관리
   const [selectedFilter, setSelectedFilter] = React.useState<

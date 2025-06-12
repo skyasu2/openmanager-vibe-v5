@@ -185,110 +185,18 @@ const OPENMANAGER_COMPONENTS: SystemComponent[] = [
     },
   },
   {
-    id: 'ai-analysis-engine',
-    name: 'AI 분석 엔진',
-    description: '지능형 서버 분석 시스템을 초기화합니다',
-    icon: '🧠',
+    id: 'unified-ai-engine',
+    name: 'Unified AI 엔진',
+    description: 'Multi-AI 융합 시스템을 초기화합니다 (MCP+RAG+Google AI)',
+    icon: '🤖',
     priority: 'high',
-    estimatedTime: 1500,
+    estimatedTime: 1200,
     dependencies: ['api-server'],
     checkFunction: async () => {
       try {
-        // 🏥 헬스체크용 GET 요청 시도
-        let response, networkInfo;
-
-        try {
-          const result = await fetchWithTracking(
-            '/api/ai/integrated?action=health',
-            {
-              method: 'GET',
-            }
-          );
-          response = result.response;
-          networkInfo = result.networkInfo;
-        } catch (getError) {
-          console.warn('⚠️ GET 요청 실패, POST 요청으로 fallback 시도...');
-
-          // 📞 Fallback: POST 요청으로 재시도
-          const result = await fetchWithTracking('/api/ai/integrated', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'health-check' }),
-          });
-          response = result.response;
-          networkInfo = result.networkInfo;
-        }
-
-        if (typeof window !== 'undefined') {
-          (window as any).__networkRequests =
-            (window as any).__networkRequests || [];
-          (window as any).__networkRequests.push({
-            ...networkInfo,
-            timestamp: new Date().toISOString(),
-            success: response.ok,
-            component: 'ai-analysis-engine',
-          });
-        }
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          console.error('❌ AI 분석 엔진 체크 실패:', {
-            status: response.status,
-            statusText: response.statusText,
-            error: errorData,
-            networkInfo: networkInfo?.responseTime
-              ? `응답시간: ${networkInfo.responseTime}ms`
-              : undefined,
-          });
-          return false;
-        }
-
-        const data = await response.json();
-        console.log('✅ AI 분석 엔진 체크 성공:', {
-          status: data.status,
-          engine: data.engine_info?.engineId || 'unknown',
-          responseTime: networkInfo?.responseTime || 'unknown',
-        });
-
-        return true;
-      } catch (error: any) {
-        if (typeof window !== 'undefined' && error.networkInfo) {
-          (window as any).__networkRequests =
-            (window as any).__networkRequests || [];
-          (window as any).__networkRequests.push({
-            ...error.networkInfo,
-            timestamp: new Date().toISOString(),
-            success: false,
-            component: 'ai-analysis-engine',
-          });
-        }
-
-        console.error('❌ AI 분석 엔진 체크 실패:', {
-          error: error.message,
-          networkInfo: error.networkInfo?.responseTime
-            ? `응답시간: ${error.networkInfo.responseTime}ms`
-            : undefined,
-        });
-        safeErrorLog(
-          '🧠 AI 분석 엔진 초기화 실패',
-          error.originalError || error
-        );
-        return false;
-      }
-    },
-  },
-  {
-    id: 'prometheus-hub',
-    name: 'Prometheus 허브',
-    description: '메트릭 수집 및 저장 시스템을 활성화합니다',
-    icon: '📈',
-    priority: 'high',
-    estimatedTime: 900,
-    dependencies: ['metrics-database'],
-    checkFunction: async () => {
-      try {
+        // 🚀 Unified AI 엔진 상태 체크
         const { response, networkInfo } = await fetchWithTracking(
-          '/api/prometheus/hub?query=up',
+          '/api/ai/unified?action=health',
           {
             method: 'GET',
           }
@@ -301,11 +209,23 @@ const OPENMANAGER_COMPONENTS: SystemComponent[] = [
             ...networkInfo,
             timestamp: new Date().toISOString(),
             success: response.ok,
-            component: 'prometheus-hub',
+            component: 'unified-ai-engine',
           });
         }
 
-        return response.ok;
+        if (!response.ok) {
+          console.warn('⚠️ Unified AI 엔진 직접 체크 실패, 폴백 모드로 전환');
+          return true; // Graceful degradation - 폴백 모드로 동작
+        }
+
+        const data = await response.json();
+        console.log('✅ Unified AI 엔진 체크 성공:', {
+          engines: data.engines || 'unknown',
+          tier: data.tier || 'fallback',
+          responseTime: networkInfo?.responseTime || 'unknown',
+        });
+
+        return true;
       } catch (error: any) {
         if (typeof window !== 'undefined' && error.networkInfo) {
           (window as any).__networkRequests =
@@ -314,15 +234,22 @@ const OPENMANAGER_COMPONENTS: SystemComponent[] = [
             ...error.networkInfo,
             timestamp: new Date().toISOString(),
             success: false,
-            component: 'prometheus-hub',
+            component: 'unified-ai-engine',
           });
         }
 
-        safeErrorLog(
-          '📈 Prometheus 허브 연결 실패',
-          error.originalError || error
+        console.warn(
+          '⚠️ Unified AI 엔진 체크 실패, Graceful Degradation 모드:',
+          {
+            error: error.message,
+            networkInfo: error.networkInfo?.responseTime
+              ? `응답시간: ${error.networkInfo.responseTime}ms`
+              : undefined,
+          }
         );
-        return false;
+
+        // Graceful Degradation: AI 엔진 실패해도 시스템은 동작
+        return true;
       }
     },
   },

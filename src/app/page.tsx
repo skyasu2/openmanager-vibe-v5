@@ -58,25 +58,8 @@ const FeatureCardsGrid = dynamic(
   }
 );
 
-// 🎨 Toast Hook은 조건부 import
-const useToast = () => {
-  const [toast, setToast] = useState<any>(null);
-
-  useEffect(() => {
-    import('@/components/ui/ToastNotification').then(({ useToast }) => {
-      setToast(useToast);
-    });
-  }, []);
-
-  return (
-    toast || {
-      success: (msg: string) => console.log('Success:', msg),
-      error: (msg: string) => console.log('Error:', msg),
-      info: (msg: string) => console.log('Info:', msg),
-      warning: (msg: string) => console.log('Warning:', msg),
-    }
-  );
-};
+// 🎨 Toast Hook 직접 import
+import { useToast } from '@/components/ui/ToastNotification';
 
 export default function Home() {
   const router = useRouter();
@@ -230,12 +213,6 @@ export default function Home() {
         console.log('🚀 시스템 시작');
         await startSystem();
         success('🚀 시스템이 성공적으로 시작되었습니다! (30분 동안 활성)');
-
-        // 시스템이 시작되면 즉시 로딩 페이지로 이동
-        setTimeout(() => {
-          console.log('🚀 시스템 시작 완료 - 로딩 페이지로 즉시 이동');
-          router.push('/system-boot');
-        }, 500);
       }
     } catch (error) {
       console.error('시스템 토글 중 오류:', error);
@@ -656,7 +633,7 @@ export default function Home() {
                   <div className='space-y-2'>
                     <motion.button
                       onClick={handleDashboardClick}
-                      className={`w-52 h-12 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border ${
+                      className={`w-48 h-10 flex items-center justify-center gap-2 rounded-lg font-medium text-sm transition-all duration-200 border ${
                         autoNavigateCountdown > 0
                           ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-orange-400/50 shadow-lg shadow-orange-500/50'
                           : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500/50'
