@@ -114,8 +114,11 @@ export class SlackNotificationService {
   async sendMemoryAlert(): Promise<boolean> {
     return false;
   }
-  async sendAnomalyAlert(): Promise<boolean> {
-    return false;
+  async sendAnomalyAlert(alert?: Partial<AnomalyAlert>): Promise<boolean> {
+    if (!alert) return false;
+    const title = `이상 탐지: ${alert.metric ?? '알 수 없음'}`;
+    const message = `${alert.description ?? '이상 징후가 감지되었습니다.'} (현재값: ${alert.currentValue ?? 'N/A'})`;
+    return browser.sendSystemAlert(title, message, 'warning');
   }
   async sendWeeklyReport(): Promise<boolean> {
     return false;
