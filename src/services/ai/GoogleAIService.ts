@@ -47,10 +47,10 @@ interface AdvancedAnalysisRequest {
   serverMetrics?: ServerMetrics[];
   context?: any;
   analysisType:
-  | 'monitoring'
-  | 'prediction'
-  | 'troubleshooting'
-  | 'optimization';
+    | 'monitoring'
+    | 'prediction'
+    | 'troubleshooting'
+    | 'optimization';
   priority: 'low' | 'medium' | 'high' | 'critical';
 }
 
@@ -61,7 +61,13 @@ export class GoogleAIService {
     string,
     { response: string; timestamp: number }
   >();
-  private requestCount = { minute: 0, day: 0, lastReset: Date.now() };
+  private requestCount = {
+    minute: 0,
+    hour: 0,
+    day: 0,
+    lastReset: Date.now(),
+    lastHourReset: Date.now(),
+  };
   private isInitialized = false;
 
   constructor() {
@@ -72,7 +78,8 @@ export class GoogleAIService {
     this.config = {
       apiKey: apiKey || '',
       model: (process.env.GOOGLE_AI_MODEL as any) || 'gemini-1.5-flash',
-      enabled: process.env.GOOGLE_AI_ENABLED === 'true' && isGoogleAIAvailable(),
+      enabled:
+        process.env.GOOGLE_AI_ENABLED === 'true' && isGoogleAIAvailable(),
       rateLimits: {
         // 🚀 시연용 최대 할당량 설정 (내일 시연 전용)
         rpm: 100, // 분당 요청 수 최대 (10 → 100)
@@ -218,8 +225,50 @@ export class GoogleAIService {
    */
   async generateContent(
     prompt: string,
-    options: { skipCache?: boolean; timeout?: number } = {}
+    options: {
+      skipCache?: boolean;
+      timeout?: number;
+      isNaturalLanguage?: boolean;
+      isLearning?: boolean;
+    } = {}
   ): Promise<GoogleAIResponse> {
+    // 🔒 질문 대응 전용 모드 체크
+    const questionResponseOnly =
+      process.env.GOOGLE_AI_QUESTION_RESPONSE_ONLY === 'true';
+    if (questionResponseOnly && options.isLearning) {
+      throw new Error(
+        'Google AI는 현재 질문 대응 전용 모드입니다. 학습은 시스템 시작/종료 시에만 허용됩니다.'
+      );
+    }
+
+    // 🔒 자연어 전용 모드 체크
+    const naturalLanguageOnly =
+      process.env.GOOGLE_AI_NATURAL_LANGUAGE_ONLY === 'true';
+    if (
+      naturalLanguageOnly &&
+      !options.isNaturalLanguage &&
+      !options.isLearning
+    ) {
+      throw new Error(
+        'Google AI는 현재 자연어 질의 전용 모드입니다. 시스템 분석은 다른 AI 엔진을 사용합니다.'
+      );
+    }
+
+    // 🎓 학습 모드 제한 체크
+    const learningMode =
+      process.env.GOOGLE_AI_LEARNING_MODE || 'startup_shutdown_only';
+    if (options.isLearning && learningMode === 'startup_shutdown_only') {
+      // 시스템 시작/종료 시에만 학습 허용
+      const isSystemStartup = this.isSystemStartupPhase();
+      const isSystemShutdown = this.isSystemShutdownPhase();
+
+      if (!isSystemStartup && !isSystemShutdown) {
+        throw new Error(
+          '학습은 시스템 시작/종료 시에만 허용됩니다. 현재는 질문 대응 전용 모드입니다.'
+        );
+      }
+    }
+
     if (!this.isAvailable()) {
       throw new Error('Google AI 서비스를 사용할 수 없습니다.');
     }
@@ -335,8 +384,8 @@ export class GoogleAIService {
 서버 모니터링 데이터를 분석해주세요:
 
 ${metrics
-        .map(
-          server => `
+  .map(
+    server => `
 서버: ${server.name}
 CPU: ${server.cpu_usage}%
 메모리: ${server.memory_usage}%
@@ -344,8 +393,8 @@ CPU: ${server.cpu_usage}%
 응답시간: ${server.response_time}ms
 상태: ${server.status}
 `
-        )
-        .join('\n')}
+  )
+  .join('\n')}
 
 다음 관점에서 분석해주세요:
 1. 현재 시스템 상태 요약
@@ -364,7 +413,52 @@ CPU: ${server.cpu_usage}%
    * 🎯 응답 생성 (UnifiedAIEngine 호환)
    */
   async generateResponse(prompt: string): Promise<GoogleAIResponse> {
-    return await this.generateContent(prompt);
+    // 자연어 질의인지 판단
+    const isNaturalLanguage = this.isNaturalLanguageQuery(prompt);
+    return await this.generateContent(prompt, { isNaturalLanguage });
+  }
+
+  /**
+   * 🔍 자연어 질의 판단
+   */
+  private isNaturalLanguageQuery(prompt: string): boolean {
+    // 자연어 질의 패턴 감지
+    const naturalLanguagePatterns = [
+      /^(어떻게|왜|언제|어디서|무엇을|누가|어떤)/i,
+      /\?$/,
+      /설명해|알려줘|도와줘|분석해|추천해/i,
+      /문제가|이상해|오류가|장애가/i,
+      /성능이|속도가|느려|빨라/i,
+      /서버.*상태|시스템.*상태/i,
+      /어떻게.*해야|무엇을.*해야/i,
+    ];
+
+    // 시스템 명령어 패턴 (자연어가 아님)
+    const systemCommandPatterns = [
+      /^(GET|POST|PUT|DELETE|PATCH)/i,
+      /^(SELECT|INSERT|UPDATE|DELETE)/i,
+      /^\{.*\}$/,
+      /^\[.*\]$/,
+      /^[a-zA-Z_][a-zA-Z0-9_]*\(/,
+      /^\/api\//i,
+    ];
+
+    // 시스템 명령어면 자연어가 아님
+    if (systemCommandPatterns.some(pattern => pattern.test(prompt.trim()))) {
+      return false;
+    }
+
+    // 자연어 패턴이 있으면 자연어
+    if (naturalLanguagePatterns.some(pattern => pattern.test(prompt.trim()))) {
+      return true;
+    }
+
+    // 한글이 50% 이상이면 자연어로 판단
+    const koreanChars = prompt.match(/[가-힣]/g) || [];
+    const totalChars = prompt.replace(/\s/g, '').length;
+    const koreanRatio = totalChars > 0 ? koreanChars.length / totalChars : 0;
+
+    return koreanRatio > 0.3; // 한글 비율이 30% 이상이면 자연어
   }
 
   /**
@@ -508,8 +602,8 @@ ${index + 1}. 서버: ${server.name}
   private getRateLimit(type: 'rpm' | 'daily'): number {
     // 🚀 시연용 최대 할당량 반환 (내일 시연 전용)
     const demoLimits = {
-      rpm: 100,   // 분당 100개 요청
-      daily: 10000 // 일일 10,000개 요청
+      rpm: 100, // 분당 100개 요청
+      daily: 10000, // 일일 10,000개 요청
     };
 
     // 환경변수에서 설정된 값이 있으면 우선 사용
@@ -524,41 +618,69 @@ ${index + 1}. 서버: ${server.name}
     return demoLimits[type];
   }
 
+  /**
+   * 🔒 할당량 체크 (분당/시간당/일일)
+   */
   private checkRateLimit(): boolean {
-    // 🚀 시연용 할당량 체크 비활성화 (내일 시연 전용)
-    if (process.env.GOOGLE_AI_QUOTA_PROTECTION === 'false') {
-      console.log('🚀 Google AI 할당량 보호 비활성화 - 무제한 요청 허용');
-      return true;
-    }
-
     const now = Date.now();
 
-    // 분당 리셋
+    // 시간당 리셋 (3600초)
+    if (now - this.requestCount.lastHourReset > 3600000) {
+      this.requestCount.hour = 0;
+      this.requestCount.lastHourReset = now;
+    }
+
+    // 분당 리셋 (60초)
     if (now - this.requestCount.lastReset > 60000) {
       this.requestCount.minute = 0;
       this.requestCount.lastReset = now;
     }
 
-    // 일일 리셋
+    // 일일 리셋 (24시간)
     if (now - this.requestCount.lastReset > 86400000) {
       this.requestCount.day = 0;
     }
 
-    const withinLimits = (
-      this.requestCount.minute < this.config.rateLimits.rpm &&
-      this.requestCount.day < this.config.rateLimits.daily
-    );
+    // 할당량 체크
+    const hourlyLimit = parseInt(process.env.GOOGLE_AI_HOURLY_LIMIT || '500');
+    const minuteLimit = this.config.rateLimits.rpm;
+    const dailyLimit = this.config.rateLimits.daily;
 
-    if (!withinLimits) {
-      console.log(`⚠️ Google AI 할당량 초과: 분당 ${this.requestCount.minute}/${this.config.rateLimits.rpm}, 일일 ${this.requestCount.day}/${this.config.rateLimits.daily}`);
+    if (this.requestCount.hour >= hourlyLimit) {
+      console.warn(
+        `⚠️ Google AI 시간당 할당량 초과: ${this.requestCount.hour}/${hourlyLimit}`
+      );
+      return false;
     }
 
-    return withinLimits;
+    if (this.requestCount.minute >= minuteLimit) {
+      console.warn(
+        `⚠️ Google AI 분당 할당량 초과: ${this.requestCount.minute}/${minuteLimit}`
+      );
+      return false;
+    }
+
+    if (this.requestCount.day >= dailyLimit) {
+      console.warn(
+        `⚠️ Google AI 일일 할당량 초과: ${this.requestCount.day}/${dailyLimit}`
+      );
+      return false;
+    }
+
+    return true;
   }
 
+  /**
+   * 📊 요청 카운트 증가
+   */
   private incrementRequestCount(): void {
     this.requestCount.minute++;
+    this.requestCount.hour++;
     this.requestCount.day++;
+
+    console.log(
+      `📊 Google AI 사용량: 분당 ${this.requestCount.minute}, 시간당 ${this.requestCount.hour}, 일일 ${this.requestCount.day}`
+    );
   }
 
   /**
@@ -615,14 +737,43 @@ ${index + 1}. 서버: ${server.name}
   }
 
   getStatus(): any {
+    const hourlyLimit = parseInt(process.env.GOOGLE_AI_HOURLY_LIMIT || '500');
+    const questionResponseOnly =
+      process.env.GOOGLE_AI_QUESTION_RESPONSE_ONLY === 'true';
+    const learningMode =
+      process.env.GOOGLE_AI_LEARNING_MODE || 'startup_shutdown_only';
+
     return {
       enabled: this.config.enabled,
       initialized: this.isInitialized,
       model: this.config.model,
-      rateLimits: this.config.rateLimits,
+      rateLimits: {
+        ...this.config.rateLimits,
+        hourly: hourlyLimit,
+      },
       currentUsage: {
         minute: this.requestCount.minute,
+        hour: this.requestCount.hour,
         day: this.requestCount.day,
+      },
+      usagePercentage: {
+        minute: Math.round(
+          (this.requestCount.minute / this.config.rateLimits.rpm) * 100
+        ),
+        hour: Math.round((this.requestCount.hour / hourlyLimit) * 100),
+        day: Math.round(
+          (this.requestCount.day / this.config.rateLimits.daily) * 100
+        ),
+      },
+      restrictions: {
+        questionResponseOnly,
+        learningMode,
+        naturalLanguageOnly:
+          process.env.GOOGLE_AI_NATURAL_LANGUAGE_ONLY === 'true',
+      },
+      systemPhase: {
+        isStartup: this.isSystemStartupPhase(),
+        isShutdown: this.isSystemShutdownPhase(),
       },
       cacheSize: this.requestCache.size,
     };
@@ -663,5 +814,23 @@ ${index + 1}. 서버: ${server.name}
         message: `연결 오류: ${error.message}`,
       };
     }
+  }
+
+  /**
+   * 🔍 시스템 시작 단계 감지
+   */
+  private isSystemStartupPhase(): boolean {
+    // 시스템 시작 후 5분 이내면 시작 단계로 간주
+    const startupWindow = 5 * 60 * 1000; // 5분
+    const systemStartTime = globalThis.systemStartTime || Date.now();
+    return Date.now() - systemStartTime < startupWindow;
+  }
+
+  /**
+   * 🔍 시스템 종료 단계 감지
+   */
+  private isSystemShutdownPhase(): boolean {
+    // 종료 신호가 있거나 프로세스 종료 중이면 종료 단계로 간주
+    return globalThis.isSystemShuttingDown || false;
   }
 }
