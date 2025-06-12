@@ -85,17 +85,18 @@ export const validateSidebarConfig = (config: AISidebarConfig): boolean => {
  * AI 응답 포맷팅
  */
 export const formatAIResponse = (response: AIResponse): ChatMessage => {
+  const content = (response as any).content || (response as any).response;
   return {
     id: generateMessageId(),
     type: 'ai',
-    content: response.response,
+    content,
     timestamp: new Date().toISOString(),
     metadata: {
-      intent: response.intent,
-      processingTime: response.metadata.processingTime,
-      confidence: response.intent.confidence,
+      ...(response.intent ? { intent: response.intent } : {}),
+      processingTime: response.metadata?.processingTime,
+      confidence: response.intent?.confidence,
     },
-    actions: response.actions,
+    actions: (response as any).actions || [],
   };
 };
 
