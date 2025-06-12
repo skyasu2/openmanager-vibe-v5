@@ -83,71 +83,147 @@ export default function DashboardContent({
     initializeData();
   }, [refreshAll]);
 
-  // 🎯 서버 상태 매핑 함수
+  // 🎯 서버 상태 매핑 함수 (방어 로직 강화)
   const mapServerStatus = (
-    status: string
+    status: string | undefined | null
   ): 'online' | 'offline' | 'warning' => {
-    if (!status) return 'offline';
-    const normalizedStatus = status.toLowerCase();
-    if (
-      normalizedStatus.includes('running') ||
-      normalizedStatus.includes('healthy')
-    )
-      return 'online';
-    if (
-      normalizedStatus.includes('warning') ||
-      normalizedStatus.includes('maintenance')
-    )
-      return 'warning';
-    return 'offline';
+    // 방어 로직: status가 없거나 문자열이 아닌 경우
+    if (!status || typeof status !== 'string') return 'offline';
+
+    try {
+      const normalizedStatus = status.toLowerCase();
+      if (
+        normalizedStatus.includes('running') ||
+        normalizedStatus.includes('healthy')
+      )
+        return 'online';
+      if (
+        normalizedStatus.includes('warning') ||
+        normalizedStatus.includes('maintenance')
+      )
+        return 'warning';
+      return 'offline';
+    } catch (error) {
+      console.warn('서버 상태 매핑 중 오류:', error, 'status:', status);
+      return 'offline';
+    }
   };
 
-  // 🎯 서버 데이터 변환 및 필터링
+  // 🎯 서버 데이터 변환 및 필터링 (방어 로직 강화)
   const filteredAndSortedServers = useMemo(() => {
-    if (!Array.isArray(currentServers)) return [];
+    if (!Array.isArray(currentServers)) {
+      console.warn('currentServers가 배열이 아닙니다:', currentServers);
+      return [];
+    }
 
-    // 서버 데이터를 ServerType으로 변환
-    const convertedServers: ServerType[] = currentServers.map(
-      (server: any) => ({
-        id: server.id || `server-${Math.random()}`,
-        name: server.name || server.hostname || `Server-${server.id}`,
-        status: mapServerStatus(server.status),
-        location: server.location || server.region || 'Unknown',
-        cpu: server.cpu || server.metrics?.cpu || Math.random() * 100,
-        memory: server.memory || server.metrics?.memory || Math.random() * 100,
-        disk: server.disk || server.metrics?.disk || Math.random() * 100,
-        network:
-          server.network || server.metrics?.network || Math.random() * 100,
-        uptime: server.uptime || '99.9%',
-        lastUpdate:
-          server.lastUpdated || server.lastUpdate || new Date().toISOString(),
-        environment: server.environment || 'production',
-        role: server.role || 'web-server',
-        version: server.version || '1.0.0',
-        tags: server.tags || [],
-        alerts: server.alerts || [],
-        metrics: server.metrics || {},
-        services: server.services || [],
-        networkStatus: server.networkStatus || {
-          bandwidth: Math.random() * 1000,
-          latency: Math.random() * 50,
-          connections: Math.floor(Math.random() * 1000),
-          uptime: Math.random() * 100,
-        },
-      })
-    );
+    try {
+      // 서버 데이터를 ServerType으로 변환
+      const convertedServers: ServerType[] = currentServers.map(
+        (server: any, index: number) => {
+          try {
+            return {
+              id: server?.id || `server-${index}-${Date.now()}`,
+              name: server?.name || server?.hostname || `Server-${index + 1}`,
+              status: mapServerStatus(server?.status),
+              location: server?.location || server?.region || 'Unknown',
+              cpu: server?.cpu || server?.metrics?.cpu || Math.random() * 100,
+              memory:
+                server?.memory ||
+                server?.metrics?.memory ||
+                Math.random() * 100,
+              disk:
+                server?.disk || server?.metrics?.disk || Math.random() * 100,
+              network:
+                server?.network ||
+                server?.metrics?.network ||
+                Math.random() * 100,
+              uptime: server?.uptime || '99.9%',
+              lastUpdate:
+                server?.lastUpdated ||
+                server?.lastUpdate ||
+                new Date().toISOString(),
+              environment: server?.environment || 'production',
+              role: server?.role || 'web-server',
+              version: server?.version || '1.0.0',
+              tags: server?.tags || [],
+              alerts: server?.alerts || [],
+              metrics: server?.metrics || {},
+              services: server?.services || [],
+              networkStatus: server?.networkStatus || {
+                bandwidth: Math.random() * 1000,
+                latency: Math.random() * 50,
+                connections: Math.floor(Math.random() * 1000),
+                uptime: Math.random() * 100,
+              },
+            };
+          } catch (error) {
+            console.warn(
+              `서버 데이터 변환 중 오류 (인덱스: ${index}):`,
+              error,
+              'server:',
+              server
+            );
+            // 기본 서버 객체 반환
+            return {
+              id: `error-server-${index}`,
+              name: `오류 서버 ${index + 1}`,
+              status: 'offline' as const,
+              location: 'Unknown',
+              cpu: 0,
+              memory: 0,
+              disk: 0,
+              network: 0,
+              uptime: '0%',
+              lastUpdate: new Date().toISOString(),
+              environment: 'unknown',
+              role: 'unknown',
+              version: '0.0.0',
+              tags: [],
+              alerts: [],
+              metrics: {},
+              services: [],
+              networkStatus: {
+                bandwidth: 0,
+                latency: 0,
+                connections: 0,
+                uptime: 0,
+              },
+            };
+          }
+        }
+      );
 
-    const filtered = convertedServers.filter(
-      server =>
-        server.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        server.location?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+      // 필터링 로직 (방어 로직 추가)
+      const filtered = convertedServers.filter(server => {
+        try {
+          const serverName = server?.name || '';
+          const serverLocation = server?.location || '';
+          const searchTermLower = (searchTerm || '').toLowerCase();
 
-    // 🎯 심각 → 경고 → 정상 순으로 정렬
-    return filtered.sort((a, b) => {
-      const statusPriority = { offline: 0, warning: 1, online: 2 };
-      return statusPriority[a.status] - statusPriority[b.status];
-    });
+          return (
+            serverName.toLowerCase().includes(searchTermLower) ||
+            serverLocation.toLowerCase().includes(searchTermLower)
+          );
+        } catch (error) {
+          console.warn('서버 필터링 중 오류:', error, 'server:', server);
+          return true; // 오류 발생 시 서버를 포함시킴
+        }
+      });
+
+      // 🎯 심각 → 경고 → 정상 순으로 정렬
+      return filtered.sort((a, b) => {
+        try {
+          const statusPriority = { offline: 0, warning: 1, online: 2 };
+          return statusPriority[a.status] - statusPriority[b.status];
+        } catch (error) {
+          console.warn('서버 정렬 중 오류:', error);
+          return 0;
+        }
+      });
+    } catch (error) {
+      console.error('서버 데이터 처리 중 전체 오류:', error);
+      return [];
+    }
   }, [currentServers, searchTerm]);
 
   // 🎯 통계 업데이트
@@ -383,25 +459,74 @@ export default function DashboardContent({
           </div>
 
           {/* 🎯 서버 카드 그리드 (8개 제한) */}
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8'>
-            <AnimatePresence mode='wait'>
-              {currentPageServers.map((server, index) => (
-                <motion.div
-                  key={server.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <EnhancedServerCard
-                    server={server as any}
-                    onClick={() => handleServerSelect(server)}
-                    index={index}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
+          {filteredAndSortedServers.length === 0 ? (
+            // 빈 상태 UI
+            <div className='col-span-full'>
+              <div className='bg-white rounded-lg shadow-sm p-12 text-center'>
+                <div className='mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6'>
+                  <Server className='w-12 h-12 text-gray-400' />
+                </div>
+                <h3 className='text-xl font-semibold text-gray-900 mb-2'>
+                  {searchTerm
+                    ? '검색 결과가 없습니다'
+                    : '서버 데이터가 없습니다'}
+                </h3>
+                <p className='text-gray-600 mb-6 max-w-md mx-auto'>
+                  {searchTerm
+                    ? `"${searchTerm}"에 대한 검색 결과를 찾을 수 없습니다. 다른 검색어를 시도해보세요.`
+                    : '현재 모니터링할 수 있는 서버가 없습니다. 서버를 추가하거나 데이터를 새로고침해보세요.'}
+                </p>
+                <div className='flex flex-col sm:flex-row gap-3 justify-center'>
+                  {searchTerm ? (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className='px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors'
+                    >
+                      검색 초기화
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleRefresh}
+                      disabled={isLoading}
+                      className='flex items-center gap-2 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors'
+                    >
+                      <RefreshCw
+                        className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`}
+                      />
+                      데이터 새로고침
+                    </button>
+                  )}
+                  <button
+                    onClick={() => window.location.reload()}
+                    className='px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors'
+                  >
+                    페이지 새로고침
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            // 기존 서버 카드 그리드
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8'>
+              <AnimatePresence mode='wait'>
+                {currentPageServers.map((server, index) => (
+                  <motion.div
+                    key={server.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <EnhancedServerCard
+                      server={server as any}
+                      onClick={() => handleServerSelect(server)}
+                      index={index}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
 
           {/* 🎯 페이지네이션 */}
           {totalPages > 1 && (
