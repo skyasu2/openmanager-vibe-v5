@@ -1,15 +1,16 @@
 /**
  * 💬 AI 답변 표시 컴포넌트
  *
- * - 타이핑 효과
+ * - CSS 기반 타이핑 효과 (안전함)
  * - 답변 포맷팅
  * - 상태 표시
  */
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { motion } from 'framer-motion';
+import CSSTypingEffect from '../../../../components/ui/CSSTypingEffect';
 
 interface ResponseDisplayProps {
   answer: string;
@@ -26,34 +27,6 @@ export const ResponseDisplay: React.FC<ResponseDisplayProps> = ({
   onTypingComplete,
   className = '',
 }) => {
-  const [displayedText, setDisplayedText] = useState('');
-  const [typingIndex, setTypingIndex] = useState(0);
-
-  // 타이핑 효과
-  useEffect(() => {
-    if (!isTyping || !answer) {
-      setDisplayedText(answer);
-      return;
-    }
-
-    if (typingIndex < answer.length) {
-      const timeout = setTimeout(() => {
-        setDisplayedText(answer.slice(0, typingIndex + 1));
-        setTypingIndex(prev => prev + 1);
-      }, 30); // 30ms 간격으로 타이핑
-
-      return () => clearTimeout(timeout);
-    } else if (onTypingComplete) {
-      onTypingComplete();
-    }
-  }, [answer, isTyping, typingIndex, onTypingComplete]);
-
-  // answer가 변경되면 타이핑 리셋
-  useEffect(() => {
-    setTypingIndex(0);
-    setDisplayedText('');
-  }, [answer]);
-
   if (isProcessing && !answer) {
     return (
       <div
@@ -106,25 +79,28 @@ export const ResponseDisplay: React.FC<ResponseDisplayProps> = ({
             AI 답변
           </p>
           <div className='text-green-700 dark:text-green-300 text-sm space-y-2'>
-            {displayedText.split('\n').map((line, index) => (
-              <motion.p
-                key={index}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: index * 0.1 }}
+            {isTyping ? (
+              // 🎨 CSS 기반 타이핑 효과 사용
+              <CSSTypingEffect
+                text={answer}
+                speed={30}
+                showCursor={true}
+                onComplete={onTypingComplete}
                 className='leading-relaxed'
-              >
-                {line}
-              </motion.p>
-            ))}
-
-            {/* 타이핑 커서 */}
-            {isTyping && typingIndex < answer.length && (
-              <motion.span
-                animate={{ opacity: [0, 1, 0] }}
-                transition={{ duration: 0.8, repeat: Infinity }}
-                className='inline-block w-0.5 h-4 bg-green-600 dark:bg-green-400 ml-1'
               />
+            ) : (
+              // 타이핑 완료 후 전체 텍스트 표시
+              answer.split('\n').map((line, index) => (
+                <motion.p
+                  key={index}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: index * 0.1 }}
+                  className='leading-relaxed'
+                >
+                  {line}
+                </motion.p>
+              ))
             )}
           </div>
 

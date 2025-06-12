@@ -40,6 +40,8 @@ import {
 import { CompactQuestionTemplates } from './ui/CompactQuestionTemplates';
 import { QuestionInput } from './ui/QuestionInput';
 import AIHealthStatus from '../../../components/ai/shared/AIHealthStatus';
+// import { IncidentReportTab } from './IncidentReportTab';
+// import { IntegratedAIResponse } from './IntegratedAIResponse';
 
 // 🎨 기능 메뉴 아이템 정의 (탭 ID 수정)
 interface FunctionMenuItem {
@@ -53,60 +55,60 @@ interface FunctionMenuItem {
 
 const FUNCTION_MENU: FunctionMenuItem[] = [
   {
-    id: 'query',
+    id: 'chat',
     icon: MessageCircle,
-    label: '자연어 질의',
+    label: 'AI 질의응답',
     description: 'AI와 자연어로 시스템 질의',
-    color: 'text-blue-600',
-    bgGradient: 'from-blue-50 to-cyan-50',
+    color: 'text-blue-500',
+    bgGradient: 'from-blue-500 to-cyan-500',
   },
   {
-    id: 'report',
+    id: 'incident-report',
     icon: FileText,
-    label: '장애 보고서',
-    description: '자동 리포트 및 대응 가이드',
-    color: 'text-orange-600',
-    bgGradient: 'from-orange-50 to-red-50',
+    label: '자동 장애보고서',
+    description: '육하원칙 기반 장애보고서 생성',
+    color: 'text-red-500',
+    bgGradient: 'from-red-500 to-pink-500',
   },
   {
     id: 'prediction',
     icon: TrendingUp,
-    label: '이상감지/예측',
-    description: '시스템 이상 탐지 및 예측',
-    color: 'text-purple-600',
-    bgGradient: 'from-purple-50 to-pink-50',
+    label: 'AI 예측 분석',
+    description: '서버 성능 및 장애 예측',
+    color: 'text-green-500',
+    bgGradient: 'from-green-500 to-emerald-500',
   },
   {
-    id: 'anomaly',
-    icon: AlertTriangle,
-    label: '실시간 이상징후',
-    description: '실시간 이상 징후 모니터링',
-    color: 'text-red-600',
-    bgGradient: 'from-red-50 to-orange-50',
-  },
-  {
-    id: 'logs',
+    id: 'search',
     icon: Search,
-    label: '로그 검색',
-    description: '시스템 로그 검색 및 분석',
-    color: 'text-yellow-600',
-    bgGradient: 'from-yellow-50 to-amber-50',
+    label: '통합 검색',
+    description: '로그 및 메트릭 검색',
+    color: 'text-purple-500',
+    bgGradient: 'from-purple-500 to-indigo-500',
   },
   {
-    id: 'notification',
-    icon: Bell,
-    label: '브라우저 알림',
-    description: '브라우저 알림 설정 및 관리',
-    color: 'text-green-600',
-    bgGradient: 'from-green-50 to-emerald-50',
+    id: 'database',
+    icon: Database,
+    label: '데이터 분석',
+    description: '실시간 데이터 분석',
+    color: 'text-orange-500',
+    bgGradient: 'from-orange-500 to-red-500',
+  },
+  {
+    id: 'brain',
+    icon: Brain,
+    label: 'AI 학습',
+    description: 'AI 모델 학습 및 개선',
+    color: 'text-pink-500',
+    bgGradient: 'from-pink-500 to-rose-500',
   },
   {
     id: 'settings',
     icon: Settings,
-    label: 'AI 설정',
-    description: 'AI 엔진 설정 및 관리',
-    color: 'text-gray-600',
-    bgGradient: 'from-gray-50 to-slate-50',
+    label: '설정',
+    description: 'AI 시스템 설정',
+    color: 'text-gray-500',
+    bgGradient: 'from-gray-500 to-slate-500',
   },
 ];
 
@@ -164,7 +166,7 @@ export const VercelOptimizedAISidebar: React.FC<
   const [isProcessing, setIsProcessing] = useState(false);
 
   // 🎛️ 기능 탭 상태 (복원된 기능)
-  const [activeTab, setActiveTab] = useState('query');
+  const [activeTab, setActiveTab] = useState('chat');
 
   // 현재 스트리밍 상태
   const [currentThinkingSteps, setCurrentThinkingSteps] = useState<
@@ -552,7 +554,7 @@ export const VercelOptimizedAISidebar: React.FC<
     setIsLoadingTab(true);
     try {
       switch (tabId) {
-        case 'report':
+        case 'chat':
           try {
             const reportResponse = await fetch('/api/ai/auto-report');
             if (reportResponse.ok) {
@@ -590,6 +592,52 @@ export const VercelOptimizedAISidebar: React.FC<
                 title: '연결 오류',
                 message:
                   '자동 보고서 서비스에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.',
+              },
+            });
+          }
+          break;
+
+        case 'incident-report':
+          try {
+            const anomalyResponse = await fetch('/api/ai/anomaly');
+            if (anomalyResponse.ok) {
+              const anomaly = await anomalyResponse.json();
+              setNotificationStatus(anomaly);
+            } else {
+              // 폴백 데이터 제공
+              setNotificationStatus({
+                success: true,
+                status: 'anomaly',
+                channels: {
+                  browser: { enabled: true, status: 'connected' },
+                  email: { enabled: false, status: 'disabled' },
+                  slack: { enabled: false, status: 'disabled' },
+                },
+                recentNotifications: [
+                  {
+                    id: 'notif_1',
+                    type: 'anomaly',
+                    message: '실시간 이상 징후 감지되었습니다',
+                    timestamp: new Date().toISOString(),
+                  },
+                ],
+                settings: {
+                  criticalOnly: false,
+                  quietHours: { enabled: false },
+                },
+              });
+            }
+          } catch (error) {
+            console.warn(
+              '⚠️ 이상 징후 모니터링 API 호출 실패, 폴백 데이터 사용:',
+              error
+            );
+            setNotificationStatus({
+              success: false,
+              error: 'API 연결 실패',
+              fallback: {
+                message:
+                  '이상 징후 모니터링 서비스에 연결할 수 없습니다. 시스템 상태는 정상으로 보입니다.',
               },
             });
           }
@@ -640,53 +688,7 @@ export const VercelOptimizedAISidebar: React.FC<
           }
           break;
 
-        case 'anomaly':
-          try {
-            const anomalyResponse = await fetch('/api/ai/anomaly');
-            if (anomalyResponse.ok) {
-              const anomaly = await anomalyResponse.json();
-              setNotificationStatus(anomaly);
-            } else {
-              // 폴백 데이터 제공
-              setNotificationStatus({
-                success: true,
-                status: 'anomaly',
-                channels: {
-                  browser: { enabled: true, status: 'connected' },
-                  email: { enabled: false, status: 'disabled' },
-                  slack: { enabled: false, status: 'disabled' },
-                },
-                recentNotifications: [
-                  {
-                    id: 'notif_1',
-                    type: 'anomaly',
-                    message: '실시간 이상 징후 감지되었습니다',
-                    timestamp: new Date().toISOString(),
-                  },
-                ],
-                settings: {
-                  criticalOnly: false,
-                  quietHours: { enabled: false },
-                },
-              });
-            }
-          } catch (error) {
-            console.warn(
-              '⚠️ 이상 징후 모니터링 API 호출 실패, 폴백 데이터 사용:',
-              error
-            );
-            setNotificationStatus({
-              success: false,
-              error: 'API 연결 실패',
-              fallback: {
-                message:
-                  '이상 징후 모니터링 서비스에 연결할 수 없습니다. 시스템 상태는 정상으로 보입니다.',
-              },
-            });
-          }
-          break;
-
-        case 'logs':
+        case 'search':
           try {
             const logsResponse = await fetch('/api/logs?limit=50');
             if (logsResponse.ok) {
