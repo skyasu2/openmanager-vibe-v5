@@ -1254,11 +1254,63 @@ export default function ServerDashboard({
                     <div className='w-2 h-2 bg-blue-500 rounded-full'></div>
                     <span className='text-gray-500'>
                       동적 페이지네이션: {SERVERS_PER_PAGE}개씩 표시
-                      {filteredAndSortedServers.length <= 12
+                      {filteredAndSortedServers.length <= SERVERS_PER_PAGE * 1.5
                         ? '(전체 표시)'
                         : ''}
                     </span>
                   </div>
+                  {/* 🔄 실제 페이지 이동 버튼 */}
+                  {totalPages > 1 && (
+                    <div className='flex items-center gap-1'>
+                      <button
+                        aria-label='이전 페이지'
+                        disabled={currentPage === 1}
+                        onClick={() =>
+                          setCurrentPage(prev => Math.max(1, prev - 1))
+                        }
+                        className={`px-2 py-1 rounded-md border text-sm transition-colors ${
+                          currentPage === 1
+                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            : 'bg-white hover:bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        이전
+                      </button>
+                      {Array.from({ length: totalPages }).map((_, idx) => {
+                        const page = idx + 1;
+                        return (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`w-8 h-8 rounded-md text-sm border transition-colors ${
+                              page === currentPage
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-white text-gray-700 hover:bg-gray-100'
+                            }`}
+                            aria-current={
+                              page === currentPage ? 'page' : undefined
+                            }
+                          >
+                            {page}
+                          </button>
+                        );
+                      })}
+                      <button
+                        aria-label='다음 페이지'
+                        disabled={currentPage === totalPages}
+                        onClick={() =>
+                          setCurrentPage(prev => Math.min(totalPages, prev + 1))
+                        }
+                        className={`px-2 py-1 rounded-md border text-sm transition-colors ${
+                          currentPage === totalPages
+                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            : 'bg-white hover:bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        다음
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
