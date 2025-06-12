@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import EnvBackupManager from '@/lib/env-backup-manager';
+// import EnvBackupManager from '../../../lib/env-backup-manager';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -31,34 +31,29 @@ export async function GET(request: NextRequest) {
 
     const startTime = Date.now();
 
-    // 🔧 환경변수 백업 관리자 초기화
-    const envBackupManager = EnvBackupManager.getInstance();
+    // 🔧 환경변수 백업 관리자 초기화 (임시 간소화)
+    // const envBackupManager = EnvBackupManager.getInstance();
 
-    // 🔍 환경변수 유효성 검증 및 자동 복구
-    const envValidation = envBackupManager.validateEnvironment();
+    // 🔍 환경변수 유효성 검증 (간소화 버전)
+    const criticalEnvs = [
+      'NEXT_PUBLIC_SUPABASE_URL',
+      'SUPABASE_URL',
+      'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+    ];
+    const missing = criticalEnvs.filter(key => !process.env[key]);
+    const envValidation = {
+      isValid: missing.length === 0,
+      missing,
+      invalid: [],
+      priority: missing.length > 0 ? 'critical' : 'ok',
+    };
     let envRecoveryResult = null;
 
-    // Critical 또는 Important 환경변수 문제 시 자동 복구 시도
-    if (
-      !envValidation.isValid &&
-      ['critical', 'important'].includes(envValidation.priority)
-    ) {
+    // 환경변수 문제 감지 시 로그
+    if (!envValidation.isValid) {
       console.log(
-        `🚨 환경변수 문제 감지 (${envValidation.priority}): 자동 복구 시도`
+        `🚨 환경변수 문제 감지: ${missing.join(', ')} - 수동 설정 필요`
       );
-      const restorePriority =
-        envValidation.priority === 'critical' ? 'critical' : 'important';
-      envRecoveryResult =
-        await envBackupManager.emergencyRestore(restorePriority);
-
-      // 복구 후 재검증
-      if (envRecoveryResult.success) {
-        const revalidation = envBackupManager.validateEnvironment();
-        envValidation.isValid = revalidation.isValid;
-        envValidation.missing = revalidation.missing;
-        envValidation.invalid = revalidation.invalid;
-        envValidation.priority = revalidation.priority;
-      }
     }
 
     // 🚀 빠른 기본 응답을 위한 최적화
@@ -208,12 +203,12 @@ export async function GET(request: NextRequest) {
             (global as any)?.dataGeneratorStatus?.lastSuccessfulCommunication ||
             null,
         },
-        // 🔧 환경변수 백업/복구 시스템 상태
+        // 🔧 환경변수 백업/복구 시스템 상태 (간소화)
         environmentBackup: {
           validation: envValidation,
-          backupStatus: envBackupManager.getBackupStatus(),
+          backupStatus: { exists: false, message: '백업 시스템 준비 중' },
           recovery: envRecoveryResult,
-          autoRecoveryEnabled: true,
+          autoRecoveryEnabled: false,
           lastCheck: new Date().toISOString(),
         },
       },
