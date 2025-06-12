@@ -101,7 +101,7 @@ async function collectEngineStatus(): Promise<EngineStatus[]> {
       name: 'EngineManager',
       type: 'opensource' as const,
       description: 'AI 엔진 관리 시스템',
-      endpoint: '/api/ai/engines/status',
+      endpoint: null, // 순환 참조 방지
     },
     {
       name: 'TestEngine',
@@ -128,7 +128,9 @@ async function collectEngineStatus(): Promise<EngineStatus[]> {
         type: definition.type,
         status: realMetric.status,
         requests: realMetric.totalCalls,
-        accuracy: Math.round((realMetric.successfulCalls / realMetric.totalCalls) * 100),
+        accuracy: Math.round(
+          (realMetric.successfulCalls / realMetric.totalCalls) * 100
+        ),
         responseTime: realMetric.avgResponseTime,
         lastUsed: formatLastUsed(realMetric.lastUsed),
         version: 'v5.43.0',
@@ -163,7 +165,8 @@ function formatLastUsed(timestamp: number): string {
 
   if (diff < 60 * 1000) return '방금 전';
   if (diff < 60 * 60 * 1000) return `${Math.floor(diff / (60 * 1000))}분 전`;
-  if (diff < 24 * 60 * 60 * 1000) return `${Math.floor(diff / (60 * 60 * 1000))}시간 전`;
+  if (diff < 24 * 60 * 60 * 1000)
+    return `${Math.floor(diff / (60 * 60 * 1000))}시간 전`;
   return `${Math.floor(diff / (24 * 60 * 60 * 1000))}일 전`;
 }
 
