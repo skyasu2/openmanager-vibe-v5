@@ -12,6 +12,7 @@ const BYPASS_SECRET = 'ee2aGggamAVy7ti2iycFOXamwgjIhuhr';
 // 테스트할 URL들
 const TEST_URLS = [
   'https://openmanager-vibe-v5.vercel.app/api/health',
+  'https://openmanager-vibe-v5-pp6nfeg3z-skyasus-projects.vercel.app/api/health',
   'https://openmanager-vibe-v5-1ydwc6pr6-skyasus-projects.vercel.app/api/health',
   'https://openmanager-vibe-v5-p6x15zlp7-skyasus-projects.vercel.app/api/health',
 ];
@@ -45,10 +46,15 @@ async function testBypass(url) {
       const data = await bypassResponse.json();
       console.log('  📊 응답 데이터:', {
         status: data.status,
-        version: data.version,
-        environment: data.environment,
-        uptime: `${Math.round(data.uptime)}초`,
-        memory: `${data.memory?.used}MB / ${data.memory?.total}MB`,
+        version: data.system?.version,
+        environment: data.system?.environment,
+        uptime: data.system?.uptime ? `${data.system.uptime}초` : 'N/A',
+        memory: data.memory
+          ? `${data.memory.heapUsed}MB / ${data.memory.heapTotal}MB`
+          : 'N/A',
+        responseTime: data.performance?.responseTime
+          ? `${data.performance.responseTime}ms`
+          : 'N/A',
       });
       return true;
     }

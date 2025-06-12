@@ -34,9 +34,12 @@ export async function POST(request: NextRequest) {
         const sendEvent = (event: StreamEvent) => {
           if (!isCompleted && !isClosed) {
             try {
-              controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify(event)}\n\n`)
-              );
+              // 컨트롤러 상태 추가 체크
+              if (controller.desiredSize !== null) {
+                controller.enqueue(
+                  encoder.encode(`data: ${JSON.stringify(event)}\n\n`)
+                );
+              }
             } catch (error) {
               console.warn('스트림 전송 실패:', error);
               isClosed = true;
@@ -53,15 +56,21 @@ export async function POST(request: NextRequest) {
             timeouts.forEach(timeout => clearTimeout(timeout));
             timeouts.length = 0;
 
+            // complete 이벤트를 먼저 전송
             sendEvent({ type: 'complete' });
 
-            try {
-              controller.close();
-              isClosed = true;
-            } catch (error) {
-              console.warn('스트림 종료 실패:', error);
-              isClosed = true;
-            }
+            // 약간의 지연 후 스트림 종료
+            setTimeout(() => {
+              try {
+                if (controller.desiredSize !== null) {
+                  controller.close();
+                }
+                isClosed = true;
+              } catch (error) {
+                console.warn('스트림 종료 실패:', error);
+                isClosed = true;
+              }
+            }, 100); // 100ms 지연
           }
         };
 
@@ -124,26 +133,47 @@ export async function POST(request: NextRequest) {
             const aiResponse = await generateAIResponse(query, category);
 
             // 응답을 단어 단위로 스트리밍
-            const words = aiResponse.split(' ');
+            const words = aiResponse.split(' ').filter(word => word.trim());
             let currentWordIndex = 0;
 
-            const streamWords = () => {
-              if (isCompleted || isClosed) return;
+            // 모든 단어를 한 번에 처리하는 방식으로 변경
+            let wordIndex = 0;
 
-              if (currentWordIndex < words.length) {
+            const processAllWords = () => {
+              const batchSize = 3; // 한 번에 3개 단어씩 처리
+
+              for (let i = 0; i < batchSize && wordIndex < words.length; i++) {
+                if (isCompleted || isClosed) return;
+
                 sendEvent({
                   type: 'response_chunk',
-                  chunk: words[currentWordIndex] + ' ',
+                  chunk: words[wordIndex] + ' ',
                 });
 
-                currentWordIndex++;
-                safeSetTimeout(streamWords, 50); // 50ms 간격으로 단어별 전송
+                wordIndex++;
+              }
+
+              if (wordIndex >= words.length) {
+                // 모든 단어 전송 완료 - 동기적으로 완료 처리
+                if (!isCompleted && !isClosed) {
+                  // complete 이벤트 동기적 전송
+                  sendEvent({ type: 'complete' });
+
+                  // 완료 처리
+                  complete();
+                }
               } else {
-                complete();
+                // 다음 배치 처리
+                safeSetTimeout(processAllWords, 100);
               }
             };
 
-            streamWords();
+            // 스트리밍 시작
+            if (words.length > 0 && !isCompleted && !isClosed) {
+              processAllWords();
+            } else {
+              complete();
+            }
           } catch (error) {
             console.error('AI 응답 생성 에러:', error);
             if (!isCompleted && !isClosed) {
