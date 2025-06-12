@@ -11,7 +11,7 @@ import dynamic from 'next/dynamic';
 import UnifiedProfileComponent from '../UnifiedProfileComponent';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 
-// ⚡ Dynamic Import로 Vercel 최적화 AI 사이드바
+// ⚡ Dynamic Import로 Vercel 최적화 AI 사이드바 - 성능 최적화
 const VercelOptimizedAISidebar = dynamic(
   () =>
     import('../../modules/ai-sidebar/components/VercelOptimizedAISidebar').then(
@@ -20,20 +20,13 @@ const VercelOptimizedAISidebar = dynamic(
   {
     ssr: false, // AI 컴포넌트는 클라이언트 전용
     loading: () => (
-      <div className='fixed right-0 top-0 h-full w-96 bg-white shadow-lg border-l border-gray-200 z-50 flex items-center justify-center'>
-        <div className='flex items-center space-x-2'>
-          <motion.div
-            className='w-4 h-4 bg-purple-500 rounded-full'
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.5, 1, 0.5],
-            }}
-            transition={{
-              duration: 1,
-              repeat: Infinity,
-            }}
-          />
-          <span className='text-sm text-gray-600'>AI 로딩 중... (Vercel)</span>
+      <div className='fixed right-0 top-0 h-full w-96 bg-white/95 backdrop-blur-sm shadow-lg border-l border-gray-200 z-50 flex items-center justify-center'>
+        <div className='flex flex-col items-center space-y-3'>
+          <div className='w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin'></div>
+          <span className='text-sm text-gray-600 font-medium'>
+            AI 시스템 로딩 중...
+          </span>
+          <div className='text-xs text-gray-400'>최초 로딩 시 3-5초 소요</div>
         </div>
       </div>
     ),

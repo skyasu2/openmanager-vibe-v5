@@ -262,42 +262,48 @@ export class AILogger {
    * 🤖 AI 엔진 로그 기록 (메인 메서드)
    */
   public async logAI(entry: Partial<AILogEntry>): Promise<void> {
-    const logEntry: AILogEntry = {
-      id: `ai-log-${++this.logCounter}-${Date.now()}`,
-      timestamp: new Date().toISOString(),
-      level: entry.level || LogLevel.INFO,
-      category: entry.category || LogCategory.AI_ENGINE,
-      engine: entry.engine || 'unknown',
-      message: entry.message || '',
-      data: entry.data,
-      metadata: {
-        ...entry.metadata,
-        memoryUsage: process.memoryUsage(),
-        cpuUsage: process.cpuUsage(),
-      },
-      thinking: entry.thinking,
-      performance: entry.performance,
-      context: entry.context,
-      tags: entry.tags || [],
-      correlationId: entry.correlationId,
-    };
+    try {
+      const logEntry: AILogEntry = {
+        id: `ai-log-${++this.logCounter}-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        level: entry.level || LogLevel.INFO,
+        category: entry.category || LogCategory.AI_ENGINE,
+        engine: entry.engine || 'unknown',
+        message: entry.message || '',
+        data: entry.data,
+        metadata: {
+          ...entry.metadata,
+          memoryUsage: process.memoryUsage(),
+          cpuUsage: process.cpuUsage(),
+        },
+        thinking: entry.thinking,
+        performance: entry.performance,
+        context: entry.context,
+        tags: entry.tags || [],
+        correlationId: entry.correlationId,
+      };
 
-    // 버퍼에 추가
-    this.addToBuffer(logEntry);
+      // 버퍼에 추가
+      this.addToBuffer(logEntry);
 
-    // Winston 로깅 (레벨 매핑)
-    const winstonLevel = this.mapToWinstonLevel(logEntry.level);
-    this.winstonLogger[winstonLevel](logEntry.message, logEntry);
+      // Winston 로깅 (레벨 매핑)
+      const winstonLevel = this.mapToWinstonLevel(logEntry.level);
+      this.winstonLogger[winstonLevel](logEntry.message, logEntry);
 
-    // Pino 로깅 (더 빠른 성능)
-    const pinoLevel = this.mapToPinoLevel(logEntry.level);
-    this.pinoLogger[pinoLevel](logEntry);
+      // Pino 로깅 (더 빠른 성능)
+      const pinoLevel = this.mapToPinoLevel(logEntry.level);
+      this.pinoLogger[pinoLevel](logEntry);
 
-    // 실시간 구독자들에게 알림
-    this.notifySubscribers(logEntry);
+      // 실시간 구독자들에게 알림
+      this.notifySubscribers(logEntry);
 
-    // 성능 메트릭 업데이트
-    this.updatePerformanceMetrics(logEntry);
+      // 성능 메트릭 업데이트
+      this.updatePerformanceMetrics(logEntry);
+    } catch (error) {
+      // 로깅 실패 시 콘솔에만 출력하고 시스템 중단 방지
+      console.error('🚨 AILogger.logAI 실패:', error);
+      console.error('📝 로깅 시도한 엔트리:', entry);
+    }
   }
 
   /**
@@ -427,7 +433,11 @@ export class AILogger {
   }
 
   // 단축 메서드들 추가
-  public async info(category: LogCategory, message: string, data?: any): Promise<void> {
+  public async info(
+    category: LogCategory,
+    message: string,
+    data?: any
+  ): Promise<void> {
     await this.logAI({
       level: LogLevel.INFO,
       category,
@@ -437,7 +447,11 @@ export class AILogger {
     });
   }
 
-  public async debug(category: LogCategory, message: string, data?: any): Promise<void> {
+  public async debug(
+    category: LogCategory,
+    message: string,
+    data?: any
+  ): Promise<void> {
     await this.logAI({
       level: LogLevel.DEBUG,
       category,
@@ -447,7 +461,11 @@ export class AILogger {
     });
   }
 
-  public async warn(category: LogCategory, message: string, data?: any): Promise<void> {
+  public async warn(
+    category: LogCategory,
+    message: string,
+    data?: any
+  ): Promise<void> {
     await this.logAI({
       level: LogLevel.WARN,
       category,
