@@ -25,6 +25,11 @@ interface UnifiedAdminState {
     lastLoginTime: number | null;
   };
 
+  // UI 상태
+  ui: {
+    isSettingsPanelOpen: boolean; // 설정 패널 열림 상태
+  };
+
   // 인증 및 보안 (관리자 모드용)
   attempts: number;
   isLocked: boolean;
@@ -41,6 +46,7 @@ interface UnifiedAdminState {
   getRemainingLockTime: () => number;
   getSystemRemainingTime: () => number;
   logout: () => void;
+  setSettingsPanelOpen: (isOpen: boolean) => void;
 }
 
 export const useUnifiedAdminStore = create<UnifiedAdminState>()(
@@ -61,6 +67,11 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
       adminMode: {
         isAuthenticated: true, // 기본값을 true로 변경 - 인증 없이 모든 기능 사용 가능
         lastLoginTime: Date.now(),
+      },
+
+      // UI 상태
+      ui: {
+        isSettingsPanelOpen: false,
       },
 
       // 인증 상태 (관리자 모드용)
@@ -291,6 +302,17 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
         } catch (error) {
           console.error('❌ [System] 전체 로그아웃 실패:', error);
         }
+      },
+
+      // 설정 패널 상태 관리
+      setSettingsPanelOpen: (isOpen: boolean) => {
+        set(state => ({
+          ...state,
+          ui: {
+            ...state.ui,
+            isSettingsPanelOpen: isOpen,
+          },
+        }));
       },
     }),
     {

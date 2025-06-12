@@ -373,12 +373,12 @@ export function UnifiedProfileButton({
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={onClick}
-        className={`flex items-center gap-3 p-2 rounded-xl backdrop-blur-sm border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent ${
+        className={`flex items-center gap-3 p-2 rounded-xl backdrop-blur-md border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent ${
           isLocked
-            ? 'bg-red-500/20 border-red-500/50 shadow-red-500/20 shadow-lg focus:ring-red-500'
+            ? 'bg-red-500/30 border-red-500/60 shadow-red-500/30 shadow-lg focus:ring-red-500'
             : aiAgent.isEnabled
-              ? 'bg-purple-500/20 border-purple-500/50 shadow-purple-500/20 shadow-lg focus:ring-purple-500'
-              : 'bg-white/10 border-white/20 hover:bg-white/20 focus:ring-white/50'
+              ? 'bg-purple-500/30 border-purple-500/60 shadow-purple-500/30 shadow-lg focus:ring-purple-500'
+              : 'bg-gray-900/80 border-gray-700/60 hover:bg-gray-900/90 focus:ring-gray-500 shadow-lg'
         }`}
         aria-label='프로필 메뉴 열기'
         aria-expanded={isOpen}

@@ -88,7 +88,7 @@ const DashboardHeader = memo(function DashboardHeader({
   isAgentOpen = false, // 기존 호환성을 위해 유지
   systemStatusDisplay,
 }: DashboardHeaderProps) {
-  const { aiAgent } = useUnifiedAdminStore();
+  const { aiAgent, ui } = useUnifiedAdminStore();
   const { warning } = useToast();
 
   // 새로운 AI 사이드바 상태
@@ -273,10 +273,23 @@ const DashboardHeader = memo(function DashboardHeader({
                 )}
               </motion.button>
 
-              {/* 손가락 아이콘 - AI 비활성화 시에만 표시, 버튼 아래에서 위로 가리키도록 수정 */}
-              {!aiAgent.isEnabled && !isSidebarOpen && (
-                <div className='finger-pointer-ai'>👆</div>
-              )}
+              {/* 손가락 아이콘 - AI 비활성화 시에만 표시, 모달이나 사이드바 열릴 때 숨김 */}
+              {!aiAgent.isEnabled &&
+                !isSidebarOpen &&
+                !ui.isSettingsPanelOpen && (
+                  <motion.div
+                    className='finger-pointer-ai'
+                    style={{
+                      zIndex: isSidebarOpen || ui.isSettingsPanelOpen ? 10 : 45, // 사이드바나 설정 패널 열릴 때 z-index 낮춤
+                    }}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    👆
+                  </motion.div>
+                )}
             </div>
 
             {/* 프로필 컴포넌트 - 가장 오른쪽에 배치 */}

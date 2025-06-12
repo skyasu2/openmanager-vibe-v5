@@ -148,6 +148,12 @@
   will-change: transform;
 }
 
+/* 모달이나 사이드바가 열릴 때 손가락 애니메이션 숨김 */
+.finger-pointer-ai.hidden-by-modal {
+  z-index: 10;
+  opacity: 0.3;
+}
+
 /* 좌우 흔들림 애니메이션들 */
 @keyframes fingerWiggle {
 
