@@ -114,6 +114,15 @@ async function initializeRedis(): Promise<RedisClientInterface> {
     throw new Error('Redis not available during build');
   }
 
+  // ➡️ 1단계: MOCK 모드 우선 처리 (환경 변수 검증 이전)
+  if (process.env.USE_MOCK_REDIS === 'true') {
+    console.log(
+      '✅ 모의 Redis 클라이언트 사용 (메모리 전용 - 서버 재시작 시 데이터 손실)'
+    );
+    return new MockRedis();
+  }
+
+  // 2단계: 실제 Redis 사용 시 필수 환경 변수 검증
   if (
     !process.env.UPSTASH_REDIS_REST_URL ||
     !process.env.UPSTASH_REDIS_REST_TOKEN
@@ -122,14 +131,6 @@ async function initializeRedis(): Promise<RedisClientInterface> {
   }
 
   try {
-    // USE_MOCK_REDIS 플래그가 설정되어 있으면 메모리 내 모의 구현 사용
-    if (process.env.USE_MOCK_REDIS === 'true') {
-      console.log(
-        '✅ 모의 Redis 클라이언트 사용 (메모리 전용 - 서버 재시작 시 데이터 손실)'
-      );
-      return new MockRedis();
-    }
-
     // 동적 import로 Redis 클라이언트 로드
     const { Redis } = await import('@upstash/redis');
 
