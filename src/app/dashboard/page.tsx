@@ -265,17 +265,6 @@ function DashboardPageContent() {
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-slate-50 to-blue-50'>
-      {/* 시스템 부팅 애니메이션 링크 */}
-      <div className='fixed top-4 right-4 z-50'>
-        <Link
-          href='/system-boot'
-          className='inline-flex items-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors shadow-lg'
-        >
-          <Monitor className='w-4 h-4' />
-          부팅 애니메이션
-        </Link>
-      </div>
-
       {/* 🎯 대시보드 메인 레이아웃 */}
       <motion.div
         variants={mainContentVariants}

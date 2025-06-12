@@ -36,7 +36,7 @@ export default function AICollaborationPage() {
     },
     {
       id: 'implementation',
-      title: '⚡ Cursor IDE + 3대 MCP 서버 협업',
+      title: '⚡ Cursor AI + 3대 MCP 서버 협업',
       description: '환경별 자동 감지 MCP 시스템으로 개발 생산성 극대화',
       details:
         '🔧 Local Filesystem, 📁 GitHub Integration, 🌐 Browser Tools 동시 활용',
@@ -173,8 +173,7 @@ export default function AICollaborationPage() {
               ⚡ AI 협업 개발 과정
             </motion.h1>
             <p className='text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto'>
-              Cursor IDE의 MCP 개발도구와 AI 모델들을 활용한 1주일 집중 개발
-              과정
+              Cursor AI의 MCP 개발도구와 AI 모델들을 활용한 1주일 집중 개발 과정
             </p>
 
             {/* 실제 성과 배지 */}
