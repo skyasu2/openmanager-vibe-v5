@@ -231,3 +231,219 @@ export function validateGoogleAITeamPassword(password: string): boolean {
 
   return validPasswords.includes(password.toLowerCase());
 }
+
+/**
+ * 🔐 암호화 유틸리티
+ *
+ * Google AI API 키와 같은 민감한 정보를 안전하게 저장하고 사용하기 위한 암호화 시스템
+ */
+
+// 암호화 설정
+const ENCRYPTION_ALGORITHM = 'aes-256-gcm';
+const KEY_LENGTH = 32; // 256 bits
+const IV_LENGTH = 16; // 128 bits
+const TAG_LENGTH = 16; // 128 bits
+
+// 환경변수에서 마스터 키 가져오기 (없으면 기본값 생성)
+function getMasterKey(): Buffer {
+  const masterKeyHex = process.env.ENCRYPTION_MASTER_KEY;
+
+  if (masterKeyHex) {
+    return Buffer.from(masterKeyHex, 'hex');
+  }
+
+  // 개발 환경용 기본 키 (프로덕션에서는 반드시 환경변수 설정 필요)
+  console.warn(
+    '⚠️ ENCRYPTION_MASTER_KEY 환경변수가 설정되지 않았습니다. 기본 키를 사용합니다.'
+  );
+  const defaultKey = 'openmanager-vibe-v5-default-encryption-key-2025';
+  return crypto.scryptSync(defaultKey, 'salt', KEY_LENGTH);
+}
+
+/**
+ * 문자열을 암호화합니다
+ */
+export function encryptString(plaintext: string): string {
+  try {
+    const masterKey = getMasterKey();
+    const iv = crypto.randomBytes(IV_LENGTH);
+
+    const cipher = crypto.createCipher('aes-256-gcm', masterKey);
+    cipher.setAAD(Buffer.from('openmanager-vibe-v5', 'utf8'));
+
+    let encrypted = cipher.update(plaintext, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+
+    const tag = cipher.getAuthTag();
+
+    // IV + Tag + 암호화된 데이터를 결합
+    const result = iv.toString('hex') + tag.toString('hex') + encrypted;
+
+    return result;
+  } catch (error) {
+    console.error('암호화 실패:', error);
+    throw new Error('데이터 암호화 중 오류가 발생했습니다');
+  }
+}
+
+/**
+ * 암호화된 문자열을 복호화합니다
+ */
+export function decryptString(encryptedData: string): string {
+  try {
+    const masterKey = getMasterKey();
+
+    // IV, Tag, 암호화된 데이터 분리
+    const iv = Buffer.from(encryptedData.slice(0, IV_LENGTH * 2), 'hex');
+    const tag = Buffer.from(
+      encryptedData.slice(IV_LENGTH * 2, (IV_LENGTH + TAG_LENGTH) * 2),
+      'hex'
+    );
+    const encrypted = encryptedData.slice((IV_LENGTH + TAG_LENGTH) * 2);
+
+    const decipher = crypto.createDecipher('aes-256-gcm', masterKey);
+    decipher.setAAD(Buffer.from('openmanager-vibe-v5', 'utf8'));
+    decipher.setAuthTag(tag);
+
+    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+
+    return decrypted;
+  } catch (error) {
+    console.error('복호화 실패:', error);
+    throw new Error('데이터 복호화 중 오류가 발생했습니다');
+  }
+}
+
+/**
+ * Google AI API 키를 암호화하여 저장합니다
+ */
+export function encryptGoogleAIKey(apiKey: string): string {
+  if (!apiKey || !apiKey.startsWith('AIza') || apiKey.length !== 39) {
+    throw new Error(
+      '유효하지 않은 Google AI API 키 형식입니다 (AIza로 시작하는 39자여야 함)'
+    );
+  }
+
+  return encryptString(apiKey);
+}
+
+/**
+ * 암호화된 Google AI API 키를 복호화합니다
+ */
+export function decryptGoogleAIKey(encryptedKey: string): string {
+  const decryptedKey = decryptString(encryptedKey);
+
+  // 복호화된 키 유효성 검증
+  if (
+    !decryptedKey ||
+    !decryptedKey.startsWith('AIza') ||
+    decryptedKey.length !== 39
+  ) {
+    throw new Error('복호화된 API 키가 유효하지 않습니다');
+  }
+
+  return decryptedKey;
+}
+
+/**
+ * 마스터 키를 생성합니다 (초기 설정용)
+ */
+export function generateMasterKey(): string {
+  const key = crypto.randomBytes(KEY_LENGTH);
+  return key.toString('hex');
+}
+
+/**
+ * API 키 유효성을 검증합니다
+ */
+export function validateGoogleAIKey(apiKey: string): boolean {
+  return (
+    apiKey &&
+    typeof apiKey === 'string' &&
+    apiKey.startsWith('AIza') &&
+    apiKey.length === 39 &&
+    /^AIza[A-Za-z0-9_-]{35}$/.test(apiKey)
+  );
+}
+
+/**
+ * 암호화된 환경변수 관리
+ */
+export class EncryptedEnvManager {
+  private static instance: EncryptedEnvManager;
+  private encryptedVars: Map<string, string> = new Map();
+
+  static getInstance(): EncryptedEnvManager {
+    if (!EncryptedEnvManager.instance) {
+      EncryptedEnvManager.instance = new EncryptedEnvManager();
+    }
+    return EncryptedEnvManager.instance;
+  }
+
+  /**
+   * 암호화된 환경변수 설정
+   */
+  setEncrypted(key: string, value: string): void {
+    const encrypted = encryptString(value);
+    this.encryptedVars.set(key, encrypted);
+    console.log(`🔐 환경변수 '${key}' 암호화 저장 완료`);
+  }
+
+  /**
+   * 암호화된 환경변수 가져오기
+   */
+  getDecrypted(key: string): string | null {
+    const encrypted = this.encryptedVars.get(key);
+    if (!encrypted) {
+      return null;
+    }
+
+    try {
+      return decryptString(encrypted);
+    } catch (error) {
+      console.error(`환경변수 '${key}' 복호화 실패:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Google AI API 키 설정
+   */
+  setGoogleAIKey(apiKey: string): void {
+    if (!validateGoogleAIKey(apiKey)) {
+      throw new Error('유효하지 않은 Google AI API 키입니다');
+    }
+
+    this.setEncrypted('GOOGLE_AI_API_KEY', apiKey);
+  }
+
+  /**
+   * Google AI API 키 가져오기
+   */
+  getGoogleAIKey(): string | null {
+    return this.getDecrypted('GOOGLE_AI_API_KEY');
+  }
+
+  /**
+   * 저장된 키 목록 확인
+   */
+  listKeys(): string[] {
+    return Array.from(this.encryptedVars.keys());
+  }
+
+  /**
+   * 특정 키 삭제
+   */
+  deleteKey(key: string): boolean {
+    return this.encryptedVars.delete(key);
+  }
+
+  /**
+   * 모든 키 삭제
+   */
+  clearAll(): void {
+    this.encryptedVars.clear();
+    console.log('🗑️ 모든 암호화된 환경변수가 삭제되었습니다');
+  }
+}

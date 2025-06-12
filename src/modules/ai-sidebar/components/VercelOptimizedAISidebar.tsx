@@ -35,6 +35,7 @@ import {
 // import ReactMarkdown from 'react-markdown'; // 임시 제거
 import { CompactQuestionTemplates } from './ui/CompactQuestionTemplates';
 import { QuestionInput } from './ui/QuestionInput';
+import AIHealthStatus from '../../../components/ai/shared/AIHealthStatus';
 
 // 🎨 기능 메뉴 아이템 정의 (AISidebarV5에서 복원)
 interface FunctionMenuItem {
@@ -1205,6 +1206,11 @@ export const VercelOptimizedAISidebar: React.FC<
                   isProcessing={isProcessing}
                   placeholder='AI에게 서버 관리에 대해 질문해보세요...'
                 />
+              </div>
+
+              {/* AI 엔진 헬스 체크 상태 */}
+              <div className='px-4 pb-4'>
+                <AIHealthStatus />
               </div>
             </div>
           )}

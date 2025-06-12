@@ -67,6 +67,7 @@ interface EnhancedServerModalProps {
     cpu: number;
     memory: number;
     disk: number;
+    network?: number; // 네트워크 사용률 추가
     uptime: string;
     lastUpdate: Date;
     alerts: number;
@@ -79,9 +80,11 @@ interface EnhancedServerModalProps {
       cpu_cores: number;
       memory_gb: number;
       disk_gb: number;
+      network_speed?: string; // 네트워크 속도 추가
     };
     os?: string;
     ip?: string;
+    networkStatus?: 'excellent' | 'good' | 'poor' | 'offline'; // 네트워크 상태 추가
   } | null;
   onClose: () => void;
 }

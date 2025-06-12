@@ -860,7 +860,16 @@ export default function ServerDashboard({
                   environment: 'production',
                   provider: 'AWS',
                   status: 'critical' as any,
-                  specs: { cpu_cores: 8, memory_gb: 16, disk_gb: 500 },
+                  network: Math.floor(Math.random() * 40) + 60, // 네트워크 사용률 60-100%
+                  networkStatus: Math.random() > 0.7 ? 'poor' : 'offline',
+                  specs: {
+                    cpu_cores: 8,
+                    memory_gb: 16,
+                    disk_gb: 500,
+                    network_speed: '1Gbps',
+                  },
+                  ip: `192.168.1.${Math.floor(Math.random() * 254) + 1}`,
+                  os: 'Ubuntu 22.04 LTS',
                 }}
                 index={index}
                 onClick={() => handleServerSelect(server)}
@@ -888,7 +897,16 @@ export default function ServerDashboard({
                   environment: 'production',
                   provider: 'AWS',
                   status: 'warning' as any,
-                  specs: { cpu_cores: 6, memory_gb: 12, disk_gb: 250 },
+                  network: Math.floor(Math.random() * 30) + 40, // 네트워크 사용률 40-70%
+                  networkStatus: Math.random() > 0.5 ? 'good' : 'poor',
+                  specs: {
+                    cpu_cores: 6,
+                    memory_gb: 12,
+                    disk_gb: 250,
+                    network_speed: '500Mbps',
+                  },
+                  ip: `10.0.1.${Math.floor(Math.random() * 254) + 1}`,
+                  os: 'CentOS 8',
                 }}
                 index={index}
                 onClick={() => handleServerSelect(server)}
@@ -916,7 +934,16 @@ export default function ServerDashboard({
                   environment: 'production',
                   provider: 'AWS',
                   status: 'healthy' as any,
-                  specs: { cpu_cores: 4, memory_gb: 8, disk_gb: 100 },
+                  network: Math.floor(Math.random() * 25) + 15, // 네트워크 사용률 15-40%
+                  networkStatus: Math.random() > 0.3 ? 'excellent' : 'good',
+                  specs: {
+                    cpu_cores: 4,
+                    memory_gb: 8,
+                    disk_gb: 100,
+                    network_speed: '10Gbps',
+                  },
+                  ip: `172.16.0.${Math.floor(Math.random() * 254) + 1}`,
+                  os: 'RHEL 9',
                 }}
                 index={index}
                 onClick={() => handleServerSelect(server)}
@@ -997,7 +1024,21 @@ export default function ServerDashboard({
                     : selectedServer.status === 'warning'
                       ? 'warning'
                       : 'critical',
-                specs: { cpu_cores: 8, memory_gb: 16, disk_gb: 500 },
+                network: Math.floor(Math.random() * 50) + 25,
+                networkStatus:
+                  selectedServer.status === 'online'
+                    ? ('excellent' as const)
+                    : selectedServer.status === 'warning'
+                      ? ('good' as const)
+                      : ('poor' as const),
+                specs: {
+                  cpu_cores: 8,
+                  memory_gb: 16,
+                  disk_gb: 500,
+                  network_speed: '1Gbps',
+                },
+                ip: `192.168.100.${Math.floor(Math.random() * 254) + 1}`,
+                os: 'Ubuntu 22.04 LTS',
               }
             : null
         }

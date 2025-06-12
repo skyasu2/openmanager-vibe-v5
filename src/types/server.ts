@@ -5,6 +5,7 @@ export interface Server {
   cpu: number;
   memory: number;
   disk: number;
+  network?: number; // 네트워크 사용률 추가
   uptime: string;
   location: string;
   alerts: number;
@@ -14,6 +15,7 @@ export interface Server {
   services: Service[];
   logs?: LogEntry[];
   networkInfo?: NetworkInfo;
+  networkStatus?: 'excellent' | 'good' | 'poor' | 'offline'; // 네트워크 상태 추가
   systemInfo?: SystemInfo;
 }
 
