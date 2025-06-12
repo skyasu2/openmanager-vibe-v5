@@ -278,13 +278,19 @@ function DashboardPageContent() {
             serverStats={{
               total: serverGeneration.servers.length,
               online: serverGeneration.servers.filter(
-                s => (s as any).status === 'healthy'
+                s =>
+                  (s as any).status === 'healthy' ||
+                  (s as any).status === 'online' ||
+                  (s as any).status === 'running'
               ).length,
               warning: serverGeneration.servers.filter(
                 s => (s as any).status === 'warning'
               ).length,
               offline: serverGeneration.servers.filter(
-                s => (s as any).status === 'critical'
+                s =>
+                  (s as any).status === 'critical' ||
+                  (s as any).status === 'offline' ||
+                  (s as any).status === 'error'
               ).length,
             }}
             onNavigateHome={handleNavigateHome}
