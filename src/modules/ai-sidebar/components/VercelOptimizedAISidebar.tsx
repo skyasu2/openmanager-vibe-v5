@@ -37,7 +37,7 @@ import { CompactQuestionTemplates } from './ui/CompactQuestionTemplates';
 import { QuestionInput } from './ui/QuestionInput';
 import AIHealthStatus from '../../../components/ai/shared/AIHealthStatus';
 
-// 🎨 기능 메뉴 아이템 정의 (AISidebarV5에서 복원)
+// 🎨 기능 메뉴 아이템 정의 (탭 ID 수정)
 interface FunctionMenuItem {
   id: string;
   icon: React.ElementType;
@@ -183,6 +183,14 @@ export const VercelOptimizedAISidebar: React.FC<
   );
 
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // 🚀 각 탭별 실제 데이터 상태 추가
+  const [reportData, setReportData] = useState<any>(null);
+  const [predictionData, setPredictionData] = useState<any>(null);
+  const [logSearchResults, setLogSearchResults] = useState<any[]>([]);
+  const [notificationStatus, setNotificationStatus] = useState<any>(null);
+  const [aiEngineStatus, setAiEngineStatus] = useState<any>(null);
+  const [isLoadingTab, setIsLoadingTab] = useState(false);
 
   // 스크롤을 맨 아래로
   const scrollToBottom = () => {
@@ -535,10 +543,60 @@ export const VercelOptimizedAISidebar: React.FC<
   const currentConversation =
     currentIndex >= 0 ? conversations[currentIndex] : null;
 
-  // 🎯 탭별 콘텐츠 렌더링 함수 추가
+  // 🔄 각 탭별 데이터 로드 함수
+  const loadTabData = async (tabId: string) => {
+    setIsLoadingTab(true);
+    try {
+      switch (tabId) {
+        case 'report':
+          const reportResponse = await fetch('/api/ai/auto-report');
+          const report = await reportResponse.json();
+          setReportData(report);
+          break;
+
+        case 'prediction':
+          const predictionResponse = await fetch('/api/ai/prediction');
+          const prediction = await predictionResponse.json();
+          setPredictionData(prediction);
+          break;
+
+        case 'logs':
+          const logsResponse = await fetch('/api/logs?limit=50');
+          const logs = await logsResponse.json();
+          setLogSearchResults(logs.data || []);
+          break;
+
+        case 'notification':
+          const notificationResponse = await fetch('/api/notifications/status');
+          const status = await notificationResponse.json();
+          setNotificationStatus(status);
+          break;
+
+        case 'ai-settings':
+          const aiResponse = await fetch('/api/ai/engines/status');
+          const aiStatus = await aiResponse.json();
+          setAiEngineStatus(aiStatus);
+          break;
+      }
+    } catch (error) {
+      console.error(`Failed to load ${tabId} data:`, error);
+    } finally {
+      setIsLoadingTab(false);
+    }
+  };
+
+  // 탭 변경 시 데이터 로드
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+    if (tabId !== 'query') {
+      loadTabData(tabId);
+    }
+  };
+
+  // 🎯 탭별 콘텐츠 렌더링 함수 개선
   const renderTabContent = () => {
+    // 질문 탭 - 기존 대화 히스토리
     if (activeTab === 'query') {
-      // 기존 대화 히스토리 렌더링
       return (
         <>
           {conversations.map((conversation, index) => (
@@ -884,52 +942,204 @@ export const VercelOptimizedAISidebar: React.FC<
       );
     }
 
-    // 🔮 이상 감지 예측 탭
-    if (activeTab === 'analysis') {
+    // 📊 장애 보고서 탭
+    if (activeTab === 'report') {
       return (
-        <div className='flex-1 flex items-center justify-center p-8'>
-          <div className='text-center max-w-md'>
-            <div className='w-16 h-16 bg-gradient-to-br from-purple-50 to-pink-50 rounded-full flex items-center justify-center mx-auto mb-4'>
-              <TrendingUp className='w-8 h-8 text-purple-600' />
-            </div>
-            <h3 className='text-lg font-semibold text-gray-900 mb-2'>
-              이상감지 및 예측
+        <div className='space-y-4'>
+          <div className='flex items-center justify-between'>
+            <h3 className='text-lg font-semibold text-gray-900'>
+              자동 장애 보고서
             </h3>
-            <p className='text-gray-600 text-sm mb-4 leading-relaxed'>
-              AI 모델을 통해 시스템 이상을 사전에 감지하고 미래 문제를
-              예측합니다.
-            </p>
-            <div className='bg-gray-50 rounded-lg p-4 mb-4'>
-              <h4 className='text-sm font-medium text-gray-700 mb-2'>
-                주요 기능
-              </h4>
-              <div className='space-y-1'>
-                {[
-                  '예측 알고리즘',
-                  '패턴 분석',
-                  '임계값 모니터링',
-                  '트렌드 분석',
-                ].map((feature, index) => (
-                  <div
-                    key={index}
-                    className='flex items-center text-xs text-gray-600'
-                  >
-                    <div className='w-1 h-1 bg-gray-400 rounded-full mr-2'></div>
-                    {feature}
-                  </div>
-                ))}
-              </div>
-            </div>
             <button
-              onClick={() =>
-                handleStreamingRequest('서버 이상 감지 분석을 수행해주세요')
-              }
-              disabled={isProcessing}
-              className='bg-purple-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-600 disabled:opacity-50 transition-colors'
+              onClick={() => loadTabData('report')}
+              disabled={isLoadingTab}
+              className='p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50'
             >
-              이상 감지 시작
+              <RefreshCw
+                className={`w-4 h-4 ${isLoadingTab ? 'animate-spin' : ''}`}
+              />
             </button>
           </div>
+
+          {isLoadingTab ? (
+            <div className='flex items-center justify-center p-8'>
+              <Loader2 className='w-6 h-6 animate-spin text-orange-500' />
+              <span className='ml-2 text-gray-600'>보고서 생성 중...</span>
+            </div>
+          ) : reportData ? (
+            <div className='space-y-4'>
+              <div className='bg-orange-50 border border-orange-200 rounded-lg p-4'>
+                <div className='flex items-center gap-2 mb-2'>
+                  <FileText className='w-5 h-5 text-orange-600' />
+                  <span className='font-medium text-orange-900'>
+                    시스템 상태 요약
+                  </span>
+                </div>
+                <div className='text-sm text-orange-800 space-y-2'>
+                  <p>• 총 서버 수: {reportData.totalServers || 'N/A'}</p>
+                  <p>• 정상 서버: {reportData.healthyServers || 'N/A'}</p>
+                  <p>• 경고 상태: {reportData.warningServers || 'N/A'}</p>
+                  <p>• 오류 상태: {reportData.errorServers || 'N/A'}</p>
+                </div>
+              </div>
+
+              {reportData.recentIssues &&
+                reportData.recentIssues.length > 0 && (
+                  <div className='bg-red-50 border border-red-200 rounded-lg p-4'>
+                    <h4 className='font-medium text-red-900 mb-2'>최근 이슈</h4>
+                    <div className='space-y-2'>
+                      {reportData.recentIssues.map(
+                        (issue: any, idx: number) => (
+                          <div
+                            key={idx}
+                            className='text-sm text-red-800 border-l-2 border-red-300 pl-3'
+                          >
+                            <p className='font-medium'>{issue.title}</p>
+                            <p className='text-red-600'>{issue.description}</p>
+                            <p className='text-xs text-red-500'>
+                              {new Date(issue.timestamp).toLocaleString()}
+                            </p>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
+
+              <button
+                onClick={() =>
+                  handleStreamingRequest(
+                    '현재 시스템 상태에 대한 상세한 분석 보고서를 작성해주세요'
+                  )
+                }
+                className='w-full bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors'
+              >
+                상세 분석 요청
+              </button>
+            </div>
+          ) : (
+            <div className='text-center p-8'>
+              <FileText className='w-12 h-12 text-gray-400 mx-auto mb-4' />
+              <p className='text-gray-600 mb-4'>
+                보고서 데이터를 불러오지 못했습니다.
+              </p>
+              <button
+                onClick={() => loadTabData('report')}
+                className='bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors'
+              >
+                다시 시도
+              </button>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // 🔮 이상감지/예측 탭
+    if (activeTab === 'prediction') {
+      return (
+        <div className='space-y-4'>
+          <div className='flex items-center justify-between'>
+            <h3 className='text-lg font-semibold text-gray-900'>
+              이상감지 및 예측
+            </h3>
+            <button
+              onClick={() => loadTabData('prediction')}
+              disabled={isLoadingTab}
+              className='p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50'
+            >
+              <RefreshCw
+                className={`w-4 h-4 ${isLoadingTab ? 'animate-spin' : ''}`}
+              />
+            </button>
+          </div>
+
+          {isLoadingTab ? (
+            <div className='flex items-center justify-center p-8'>
+              <Loader2 className='w-6 h-6 animate-spin text-purple-500' />
+              <span className='ml-2 text-gray-600'>예측 분석 중...</span>
+            </div>
+          ) : predictionData ? (
+            <div className='space-y-4'>
+              <div className='bg-purple-50 border border-purple-200 rounded-lg p-4'>
+                <div className='flex items-center gap-2 mb-2'>
+                  <TrendingUp className='w-5 h-5 text-purple-600' />
+                  <span className='font-medium text-purple-900'>예측 결과</span>
+                </div>
+                <div className='text-sm text-purple-800 space-y-2'>
+                  <p>
+                    • 이상 탐지 확률:{' '}
+                    {predictionData.anomalyProbability || 'N/A'}%
+                  </p>
+                  <p>• 예측 정확도: {predictionData.accuracy || 'N/A'}%</p>
+                  <p>• 위험 수준: {predictionData.riskLevel || 'N/A'}</p>
+                  <p>
+                    • 다음 점검 권장:{' '}
+                    {predictionData.nextCheckRecommendation || 'N/A'}
+                  </p>
+                </div>
+              </div>
+
+              {predictionData.predictions &&
+                predictionData.predictions.length > 0 && (
+                  <div className='space-y-2'>
+                    <h4 className='font-medium text-gray-900'>상세 예측</h4>
+                    {predictionData.predictions.map(
+                      (pred: any, idx: number) => (
+                        <div
+                          key={idx}
+                          className='bg-gray-50 border rounded-lg p-3'
+                        >
+                          <div className='flex items-center justify-between mb-1'>
+                            <span className='font-medium text-sm'>
+                              {pred.metric}
+                            </span>
+                            <span
+                              className={`text-xs px-2 py-1 rounded ${
+                                pred.confidence > 80
+                                  ? 'bg-green-100 text-green-800'
+                                  : pred.confidence > 60
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-red-100 text-red-800'
+                              }`}
+                            >
+                              {pred.confidence}% 신뢰도
+                            </span>
+                          </div>
+                          <p className='text-sm text-gray-600'>
+                            {pred.prediction}
+                          </p>
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
+
+              <button
+                onClick={() =>
+                  handleStreamingRequest(
+                    '현재 시스템의 이상 징후를 분석하고 향후 예측을 해주세요'
+                  )
+                }
+                className='w-full bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-600 transition-colors'
+              >
+                상세 예측 분석 요청
+              </button>
+            </div>
+          ) : (
+            <div className='text-center p-8'>
+              <TrendingUp className='w-12 h-12 text-gray-400 mx-auto mb-4' />
+              <p className='text-gray-600 mb-4'>
+                예측 데이터를 불러오지 못했습니다.
+              </p>
+              <button
+                onClick={() => loadTabData('prediction')}
+                className='bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors'
+              >
+                다시 시도
+              </button>
+            </div>
+          )}
         </div>
       );
     }
@@ -937,51 +1147,108 @@ export const VercelOptimizedAISidebar: React.FC<
     // 🔍 로그 검색 탭
     if (activeTab === 'logs') {
       return (
-        <div className='flex-1 flex items-center justify-center p-8'>
-          <div className='text-center max-w-md'>
-            <div className='w-16 h-16 bg-gradient-to-br from-yellow-50 to-amber-50 rounded-full flex items-center justify-center mx-auto mb-4'>
-              <Search className='w-8 h-8 text-yellow-600' />
-            </div>
-            <h3 className='text-lg font-semibold text-gray-900 mb-2'>
-              로그 검색 및 분석
-            </h3>
-            <p className='text-gray-600 text-sm mb-4 leading-relaxed'>
-              시스템 로그를 빠르게 검색하고 패턴을 분석하여 문제를 신속하게
-              파악합니다.
-            </p>
-            <div className='bg-gray-50 rounded-lg p-4 mb-4'>
-              <h4 className='text-sm font-medium text-gray-700 mb-2'>
-                주요 기능
-              </h4>
-              <div className='space-y-1'>
-                {[
-                  '전문 로그 검색',
-                  '패턴 매칭',
-                  '시간대별 필터링',
-                  '로그 상관관계 분석',
-                ].map((feature, index) => (
-                  <div
-                    key={index}
-                    className='flex items-center text-xs text-gray-600'
-                  >
-                    <div className='w-1 h-1 bg-gray-400 rounded-full mr-2'></div>
-                    {feature}
-                  </div>
-                ))}
-              </div>
-            </div>
+        <div className='space-y-4'>
+          <div className='flex items-center justify-between'>
+            <h3 className='text-lg font-semibold text-gray-900'>로그 검색</h3>
             <button
-              onClick={() =>
-                handleStreamingRequest(
-                  '최근 로그를 분석하고 문제점을 찾아주세요'
-                )
-              }
-              disabled={isProcessing}
-              className='bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-yellow-600 disabled:opacity-50 transition-colors'
+              onClick={() => loadTabData('logs')}
+              disabled={isLoadingTab}
+              className='p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50'
             >
-              로그 분석 시작
+              <RefreshCw
+                className={`w-4 h-4 ${isLoadingTab ? 'animate-spin' : ''}`}
+              />
             </button>
           </div>
+
+          <div className='bg-yellow-50 border border-yellow-200 rounded-lg p-4'>
+            <div className='flex items-center gap-2 mb-2'>
+              <Search className='w-5 h-5 text-yellow-600' />
+              <span className='font-medium text-yellow-900'>
+                실시간 로그 스트림
+              </span>
+            </div>
+            <input
+              type='text'
+              placeholder='로그 검색어를 입력하세요...'
+              className='w-full px-3 py-2 border border-yellow-300 rounded-lg text-sm'
+              onKeyPress={e => {
+                if (e.key === 'Enter') {
+                  const query = (e.target as HTMLInputElement).value;
+                  handleStreamingRequest(
+                    `로그에서 "${query}"를 검색하고 분석해주세요`
+                  );
+                }
+              }}
+            />
+          </div>
+
+          {isLoadingTab ? (
+            <div className='flex items-center justify-center p-8'>
+              <Loader2 className='w-6 h-6 animate-spin text-yellow-500' />
+              <span className='ml-2 text-gray-600'>로그 검색 중...</span>
+            </div>
+          ) : logSearchResults.length > 0 ? (
+            <div className='space-y-2 max-h-96 overflow-y-auto'>
+              <h4 className='font-medium text-gray-900'>
+                최근 로그 ({logSearchResults.length}개)
+              </h4>
+              {logSearchResults.map((log: any, idx: number) => (
+                <div
+                  key={idx}
+                  className='bg-gray-900 text-gray-100 p-3 rounded-lg font-mono text-xs'
+                >
+                  <div className='flex items-start gap-2'>
+                    <span className='text-gray-500 flex-shrink-0'>
+                      {new Date(
+                        log.timestamp || Date.now()
+                      ).toLocaleTimeString()}
+                    </span>
+                    <span
+                      className={`font-medium flex-shrink-0 ${
+                        log.level === 'error'
+                          ? 'text-red-400'
+                          : log.level === 'warning'
+                            ? 'text-yellow-400'
+                            : log.level === 'info'
+                              ? 'text-cyan-400'
+                              : 'text-gray-400'
+                      }`}
+                    >
+                      [{(log.level || 'info').toUpperCase()}]
+                    </span>
+                    <span className='flex-1 break-all'>
+                      {log.message || log.content || 'No message'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className='text-center p-8'>
+              <Search className='w-12 h-12 text-gray-400 mx-auto mb-4' />
+              <p className='text-gray-600 mb-4'>
+                로그 데이터를 불러오지 못했습니다.
+              </p>
+              <button
+                onClick={() => loadTabData('logs')}
+                className='bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors'
+              >
+                다시 시도
+              </button>
+            </div>
+          )}
+
+          <button
+            onClick={() =>
+              handleStreamingRequest(
+                '최근 로그를 분석하고 중요한 패턴이나 이슈를 찾아주세요'
+              )
+            }
+            className='w-full bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors'
+          >
+            로그 패턴 분석 요청
+          </button>
         </div>
       );
     }
@@ -989,47 +1256,130 @@ export const VercelOptimizedAISidebar: React.FC<
     // 📢 슬랙 알림 탭
     if (activeTab === 'notification') {
       return (
-        <div className='flex-1 flex items-center justify-center p-8'>
-          <div className='text-center max-w-md'>
-            <div className='w-16 h-16 bg-gradient-to-br from-green-50 to-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4'>
-              <Slack className='w-8 h-8 text-green-600' />
-            </div>
-            <h3 className='text-lg font-semibold text-gray-900 mb-2'>
+        <div className='space-y-4'>
+          <div className='flex items-center justify-between'>
+            <h3 className='text-lg font-semibold text-gray-900'>
               슬랙 알림 관리
             </h3>
-            <p className='text-gray-600 text-sm mb-4 leading-relaxed'>
-              시스템 상태를 실시간으로 모니터링하고 중요한 이벤트를 슬랙으로
-              알림받습니다.
-            </p>
-            <div className='bg-gray-50 rounded-lg p-4 mb-4'>
-              <h4 className='text-sm font-medium text-gray-700 mb-2'>
-                알림 설정
-              </h4>
-              <div className='space-y-2 text-xs text-gray-600'>
-                <div className='flex justify-between'>
-                  <span>장애 알림</span>
-                  <span className='text-green-600'>활성화</span>
-                </div>
-                <div className='flex justify-between'>
-                  <span>성능 경고</span>
-                  <span className='text-green-600'>활성화</span>
-                </div>
-                <div className='flex justify-between'>
-                  <span>AI 분석 결과</span>
-                  <span className='text-yellow-600'>대기</span>
-                </div>
-              </div>
-            </div>
             <button
-              onClick={() =>
-                handleStreamingRequest('슬랙 알림 테스트를 실행해주세요')
-              }
-              disabled={isProcessing}
-              className='bg-green-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-600 disabled:opacity-50 transition-colors'
+              onClick={() => loadTabData('notification')}
+              disabled={isLoadingTab}
+              className='p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50'
             >
-              알림 테스트
+              <RefreshCw
+                className={`w-4 h-4 ${isLoadingTab ? 'animate-spin' : ''}`}
+              />
             </button>
           </div>
+
+          {isLoadingTab ? (
+            <div className='flex items-center justify-center p-8'>
+              <Loader2 className='w-6 h-6 animate-spin text-green-500' />
+              <span className='ml-2 text-gray-600'>알림 상태 확인 중...</span>
+            </div>
+          ) : notificationStatus ? (
+            <div className='space-y-4'>
+              <div className='bg-green-50 border border-green-200 rounded-lg p-4'>
+                <div className='flex items-center gap-2 mb-2'>
+                  <Slack className='w-5 h-5 text-green-600' />
+                  <span className='font-medium text-green-900'>알림 상태</span>
+                </div>
+                <div className='space-y-2 text-sm'>
+                  <div className='flex justify-between'>
+                    <span>Slack 연결 상태:</span>
+                    <span
+                      className={`font-medium ${notificationStatus.slackConnected ? 'text-green-600' : 'text-red-600'}`}
+                    >
+                      {notificationStatus.slackConnected
+                        ? '연결됨'
+                        : '연결 안됨'}
+                    </span>
+                  </div>
+                  <div className='flex justify-between'>
+                    <span>총 전송 알림:</span>
+                    <span className='font-medium'>
+                      {notificationStatus.totalSent || 0}개
+                    </span>
+                  </div>
+                  <div className='flex justify-between'>
+                    <span>오늘 알림:</span>
+                    <span className='font-medium'>
+                      {notificationStatus.todaySent || 0}개
+                    </span>
+                  </div>
+                  <div className='flex justify-between'>
+                    <span>마지막 알림:</span>
+                    <span className='font-medium text-xs'>
+                      {notificationStatus.lastSent
+                        ? new Date(notificationStatus.lastSent).toLocaleString()
+                        : '없음'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className='grid grid-cols-2 gap-2'>
+                <button
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/slack/send', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          message:
+                            '🧪 OpenManager AI 사이드바에서 전송된 테스트 메시지입니다.',
+                          channel: '#general',
+                        }),
+                      });
+                      if (response.ok) {
+                        alert('테스트 알림이 전송되었습니다!');
+                        loadTabData('notification');
+                      } else {
+                        alert('알림 전송에 실패했습니다.');
+                      }
+                    } catch (error) {
+                      console.error('Slack notification error:', error);
+                      alert('알림 전송 중 오류가 발생했습니다.');
+                    }
+                  }}
+                  className='bg-green-500 text-white py-2 px-3 rounded-lg text-sm hover:bg-green-600 transition-colors'
+                >
+                  테스트 알림
+                </button>
+                <button
+                  onClick={() => window.open('/admin/notifications', '_blank')}
+                  className='bg-blue-500 text-white py-2 px-3 rounded-lg text-sm hover:bg-blue-600 transition-colors'
+                  title='알림 설정 관리 페이지 열기'
+                >
+                  설정 관리
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className='text-center p-8'>
+              <Slack className='w-12 h-12 text-gray-400 mx-auto mb-4' />
+              <p className='text-gray-600 mb-4'>
+                알림 상태를 불러오지 못했습니다.
+              </p>
+              <button
+                onClick={() => loadTabData('notification')}
+                className='bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors'
+              >
+                다시 시도
+              </button>
+            </div>
+          )}
+
+          <button
+            onClick={() =>
+              handleStreamingRequest(
+                '현재 시스템 알림 설정을 확인하고 개선 방안을 제안해주세요'
+              )
+            }
+            className='w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors'
+          >
+            알림 설정 분석 요청
+          </button>
         </div>
       );
     }
@@ -1037,45 +1387,97 @@ export const VercelOptimizedAISidebar: React.FC<
     // 🧠 관리자/학습 탭
     if (activeTab === 'admin') {
       return (
-        <div className='flex-1 flex items-center justify-center p-8'>
-          <div className='text-center max-w-md'>
-            <div className='w-16 h-16 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-full flex items-center justify-center mx-auto mb-4'>
-              <Brain className='w-8 h-8 text-indigo-600' />
-            </div>
-            <h3 className='text-lg font-semibold text-gray-900 mb-2'>
-              관리자 페이지 및 AI 학습
+        <div className='space-y-4'>
+          <div className='flex items-center justify-between'>
+            <h3 className='text-lg font-semibold text-gray-900'>
+              관리자 및 AI 학습
             </h3>
-            <p className='text-gray-600 text-sm mb-4 leading-relaxed'>
-              AI 에이전트의 학습 데이터를 관리하고 시스템 전체를 제어합니다.
-            </p>
-            <div className='bg-gray-50 rounded-lg p-4 mb-4'>
-              <h4 className='text-sm font-medium text-gray-700 mb-2'>
-                주요 기능
-              </h4>
-              <div className='space-y-1'>
-                {[
-                  '학습 데이터 관리',
-                  '모델 성능 모니터링',
-                  '사용자 권한 관리',
-                  'AI 튜닝',
-                ].map((feature, index) => (
-                  <div
-                    key={index}
-                    className='flex items-center text-xs text-gray-600'
-                  >
-                    <div className='w-1 h-1 bg-gray-400 rounded-full mr-2'></div>
-                    {feature}
-                  </div>
-                ))}
-              </div>
-            </div>
             <button
               onClick={() => window.open('/admin', '_blank')}
-              className='bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-600 transition-colors'
+              className='text-indigo-600 hover:text-indigo-800 text-sm flex items-center gap-1'
             >
-              관리자 페이지 열기
+              <span>새 창에서 열기</span>
+              <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 20 20'>
+                <path
+                  fillRule='evenodd'
+                  d='M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z'
+                  clipRule='evenodd'
+                />
+              </svg>
             </button>
           </div>
+
+          <div className='grid grid-cols-1 gap-4'>
+            <div className='bg-indigo-50 border border-indigo-200 rounded-lg p-4'>
+              <div className='flex items-center gap-2 mb-3'>
+                <Brain className='w-5 h-5 text-indigo-600' />
+                <span className='font-medium text-indigo-900'>
+                  빠른 관리 메뉴
+                </span>
+              </div>
+              <div className='grid grid-cols-2 gap-2'>
+                <button
+                  onClick={() => window.open('/admin/ai-agent', '_blank')}
+                  className='bg-indigo-100 text-indigo-800 py-2 px-3 rounded text-sm hover:bg-indigo-200 transition-colors'
+                  title='AI 에이전트 관리 페이지 열기'
+                >
+                  AI 에이전트
+                </button>
+                <button
+                  onClick={() =>
+                    window.open('/admin/virtual-servers', '_blank')
+                  }
+                  className='bg-indigo-100 text-indigo-800 py-2 px-3 rounded text-sm hover:bg-indigo-200 transition-colors'
+                  title='가상 서버 관리 페이지 열기'
+                >
+                  가상 서버
+                </button>
+                <button
+                  onClick={() => window.open('/admin/smart-fallback', '_blank')}
+                  className='bg-indigo-100 text-indigo-800 py-2 px-3 rounded text-sm hover:bg-indigo-200 transition-colors'
+                  title='스마트 폴백 설정 페이지 열기'
+                >
+                  스마트 폴백
+                </button>
+                <button
+                  onClick={() => window.open('/admin/mcp-monitoring', '_blank')}
+                  className='bg-indigo-100 text-indigo-800 py-2 px-3 rounded text-sm hover:bg-indigo-200 transition-colors'
+                  title='MCP 모니터링 페이지 열기'
+                >
+                  MCP 모니터링
+                </button>
+              </div>
+            </div>
+
+            <div className='bg-gray-50 border border-gray-200 rounded-lg p-4'>
+              <h4 className='font-medium text-gray-900 mb-2'>시스템 통계</h4>
+              <div className='space-y-1 text-sm text-gray-600'>
+                <div className='flex justify-between'>
+                  <span>활성 AI 에이전트:</span>
+                  <span className='text-green-600 font-medium'>3개</span>
+                </div>
+                <div className='flex justify-between'>
+                  <span>학습된 패턴:</span>
+                  <span className='text-blue-600 font-medium'>127개</span>
+                </div>
+                <div className='flex justify-between'>
+                  <span>처리된 쿼리:</span>
+                  <span className='text-purple-600 font-medium'>1,234개</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() =>
+              handleStreamingRequest(
+                '관리자 페이지의 현재 상태를 요약하고 주요 관리 포인트를 알려주세요'
+              )
+            }
+            className='w-full bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors'
+          >
+            관리 상태 분석 요청
+          </button>
         </div>
       );
     }
@@ -1083,52 +1485,115 @@ export const VercelOptimizedAISidebar: React.FC<
     // ⚙️ AI 설정 탭
     if (activeTab === 'ai-settings') {
       return (
-        <div className='flex-1 flex items-center justify-center p-8'>
-          <div className='text-center max-w-md'>
-            <div className='w-16 h-16 bg-gradient-to-br from-rose-50 to-pink-50 rounded-full flex items-center justify-center mx-auto mb-4'>
-              <Database className='w-8 h-8 text-rose-600' />
-            </div>
-            <h3 className='text-lg font-semibold text-gray-900 mb-2'>
-              AI 모델 및 API 설정
+        <div className='space-y-4'>
+          <div className='flex items-center justify-between'>
+            <h3 className='text-lg font-semibold text-gray-900'>
+              AI 엔진 설정
             </h3>
-            <p className='text-gray-600 text-sm mb-4 leading-relaxed'>
-              AI 에이전트가 사용할 다양한 AI 모델과 API를 설정하고 관리합니다.
-            </p>
-            <div className='bg-gray-50 rounded-lg p-4 mb-4'>
-              <h4 className='text-sm font-medium text-gray-700 mb-2'>
-                지원 모델
-              </h4>
-              <div className='space-y-1'>
-                {[
-                  'OpenAI API 설정',
-                  'Anthropic Claude 설정',
-                  '🧪 Google AI Studio (베타)',
-                  'MCP 프로토콜 설정',
-                  '모델 성능 비교',
-                  'API 사용량 모니터링',
-                ].map((feature, index) => (
-                  <div
-                    key={index}
-                    className='flex items-center text-xs text-gray-600'
-                  >
-                    <div className='w-1 h-1 bg-gray-400 rounded-full mr-2'></div>
-                    {feature}
-                  </div>
-                ))}
-              </div>
-            </div>
             <button
-              onClick={() =>
-                handleStreamingRequest(
-                  'AI 엔진 상태를 확인하고 설정을 검토해주세요'
-                )
-              }
-              disabled={isProcessing}
-              className='bg-rose-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-rose-600 disabled:opacity-50 transition-colors'
+              onClick={() => loadTabData('ai-settings')}
+              disabled={isLoadingTab}
+              className='p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50'
             >
-              AI 설정 확인
+              <RefreshCw
+                className={`w-4 h-4 ${isLoadingTab ? 'animate-spin' : ''}`}
+              />
             </button>
           </div>
+
+          {isLoadingTab ? (
+            <div className='flex items-center justify-center p-8'>
+              <Loader2 className='w-6 h-6 animate-spin text-rose-500' />
+              <span className='ml-2 text-gray-600'>
+                AI 엔진 상태 확인 중...
+              </span>
+            </div>
+          ) : aiEngineStatus ? (
+            <div className='space-y-4'>
+              <div className='bg-rose-50 border border-rose-200 rounded-lg p-4'>
+                <div className='flex items-center gap-2 mb-3'>
+                  <Database className='w-5 h-5 text-rose-600' />
+                  <span className='font-medium text-rose-900'>
+                    AI 엔진 상태
+                  </span>
+                </div>
+                <div className='space-y-2'>
+                  {Object.entries(aiEngineStatus.engines || {}).map(
+                    ([engine, status]: [string, any]) => (
+                      <div
+                        key={engine}
+                        className='flex items-center justify-between text-sm'
+                      >
+                        <span className='capitalize'>{engine}:</span>
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            status.status === 'healthy'
+                              ? 'bg-green-100 text-green-800'
+                              : status.status === 'warning'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-red-100 text-red-800'
+                          }`}
+                        >
+                          {status.status || 'unknown'}
+                        </span>
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+
+              <div className='grid grid-cols-2 gap-2'>
+                <button
+                  onClick={() => window.open('/admin/ai-analysis', '_blank')}
+                  className='bg-rose-100 text-rose-800 py-2 px-3 rounded text-sm hover:bg-rose-200 transition-colors'
+                  title='AI 분석 설정 페이지 열기'
+                >
+                  AI 분석 설정
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/ai/engines/status');
+                      const status = await response.json();
+                      console.log('AI Engine Status:', status);
+                      alert('AI 엔진 상태가 콘솔에 출력되었습니다.');
+                    } catch (error) {
+                      console.error('AI engine check error:', error);
+                      alert('AI 엔진 상태 확인 중 오류가 발생했습니다.');
+                    }
+                  }}
+                  className='bg-rose-100 text-rose-800 py-2 px-3 rounded text-sm hover:bg-rose-200 transition-colors'
+                  title='AI 엔진 상태 확인하기'
+                >
+                  상태 확인
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className='text-center p-8'>
+              <Database className='w-12 h-12 text-gray-400 mx-auto mb-4' />
+              <p className='text-gray-600 mb-4'>
+                AI 엔진 상태를 불러오지 못했습니다.
+              </p>
+              <button
+                onClick={() => loadTabData('ai-settings')}
+                className='bg-rose-500 text-white px-4 py-2 rounded-lg hover:bg-rose-600 transition-colors'
+              >
+                다시 시도
+              </button>
+            </div>
+          )}
+
+          <button
+            onClick={() =>
+              handleStreamingRequest(
+                '현재 AI 엔진들의 상태를 점검하고 최적화 방안을 제안해주세요'
+              )
+            }
+            className='w-full bg-rose-500 text-white py-2 px-4 rounded-lg hover:bg-rose-600 transition-colors'
+          >
+            AI 엔진 최적화 분석 요청
+          </button>
         </div>
       );
     }
@@ -1307,7 +1772,7 @@ export const VercelOptimizedAISidebar: React.FC<
           return (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => handleTabChange(item.id)}
               className={`relative group p-1 rounded-lg transition-all duration-300 ${
                 isActive
                   ? 'bg-white shadow-lg transform scale-110'
