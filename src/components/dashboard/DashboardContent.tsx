@@ -13,7 +13,12 @@ interface DashboardContentProps {
   selectedServer: Server | null;
   onServerClick: (server: any) => void;
   onServerModalClose: () => void;
-  onStatsUpdate: (stats: { total: number; online: number; warning: number; offline: number }) => void;
+  onStatsUpdate: (stats: {
+    total: number;
+    online: number;
+    warning: number;
+    offline: number;
+  }) => void;
   onShowSequentialChange: (show: boolean) => void;
   mainContentVariants: any;
   isAgentOpen: boolean;
@@ -30,7 +35,7 @@ export default function DashboardContent({
   onStatsUpdate,
   onShowSequentialChange,
   mainContentVariants,
-  isAgentOpen
+  isAgentOpen,
 }: DashboardContentProps) {
   // 🚀 디버깅을 위한 콘솔 로그 추가
   console.log('🔍 DashboardContent 렌더링:', {
@@ -39,7 +44,7 @@ export default function DashboardContent({
     selectedServer: selectedServer?.name,
     isAgentOpen,
     status: status?.type,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 
   // 🚀 에러 상태 추가
@@ -58,15 +63,17 @@ export default function DashboardContent({
   // 🚀 렌더링 에러 처리
   if (renderError) {
     return (
-      <div className="min-h-screen bg-red-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
-          <div className="text-center">
-            <div className="text-red-500 text-4xl mb-4">⚠️</div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">렌더링 오류</h2>
-            <p className="text-gray-600 mb-4">{renderError}</p>
+      <div className='min-h-screen bg-red-50 flex items-center justify-center p-4'>
+        <div className='bg-white rounded-lg shadow-lg p-6 max-w-md w-full'>
+          <div className='text-center'>
+            <div className='text-red-500 text-4xl mb-4'>⚠️</div>
+            <h2 className='text-xl font-semibold text-gray-900 mb-2'>
+              렌더링 오류
+            </h2>
+            <p className='text-gray-600 mb-4'>{renderError}</p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              className='px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600'
             >
               새로고침
             </button>
@@ -81,14 +88,18 @@ export default function DashboardContent({
     if (showSequentialGeneration) {
       console.log('🔄 시퀀셜 생성 모드 렌더링');
       return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">🔄 서버 생성 중...</h2>
-              <p className="text-gray-600">시퀀셜 서버 생성 모드가 활성화되었습니다.</p>
+        <div className='min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-6'>
+          <div className='max-w-7xl mx-auto'>
+            <div className='bg-white rounded-lg shadow-lg p-6'>
+              <h2 className='text-2xl font-bold text-gray-900 mb-4'>
+                🔄 서버 생성 중...
+              </h2>
+              <p className='text-gray-600'>
+                시퀀셜 서버 생성 모드가 활성화되었습니다.
+              </p>
               <button
                 onClick={() => onShowSequentialChange(false)}
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                className='mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600'
               >
                 일반 모드로 전환
               </button>
@@ -101,20 +112,24 @@ export default function DashboardContent({
     // 일반 대시보드 모드
     console.log('📊 일반 대시보드 모드 렌더링');
     return (
-      <main 
-        className="flex-1 bg-gray-50"
+      <div
+        className='min-h-full bg-gray-50'
         style={{
-          transform: isAgentOpen ? mainContentVariants?.pushed?.transform : mainContentVariants?.normal?.transform,
-          transition: 'transform 0.3s ease-in-out'
+          transform: isAgentOpen
+            ? mainContentVariants?.pushed?.transform
+            : mainContentVariants?.normal?.transform,
+          transition: 'transform 0.3s ease-in-out',
         }}
       >
-        <div className="p-6">
-          <div className="max-w-7xl mx-auto">
+        <div className='p-6'>
+          <div className='max-w-7xl mx-auto'>
             {/* 🚀 디버깅 정보 표시 (개발 모드에서만) */}
             {process.env.NODE_ENV === 'development' && (
-              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
-                <div className="font-medium text-blue-800 mb-1">🔧 디버깅 정보</div>
-                <div className="text-blue-600 space-y-1">
+              <div className='mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm'>
+                <div className='font-medium text-blue-800 mb-1'>
+                  🔧 디버깅 정보
+                </div>
+                <div className='text-blue-600 space-y-1'>
                   <div>• 서버 수: {servers?.length || 0}</div>
                   <div>• AI 에이전트: {isAgentOpen ? '열림' : '닫힘'}</div>
                   <div>• 렌더링 시간: {new Date().toLocaleTimeString()}</div>
@@ -122,30 +137,30 @@ export default function DashboardContent({
               </div>
             )}
 
-            <ServerDashboard 
-              onStatsUpdate={onStatsUpdate}
-            />
+            <ServerDashboard onStatsUpdate={onStatsUpdate} />
           </div>
         </div>
-      </main>
+      </div>
     );
   } catch (error) {
     safeConsoleError('❌ DashboardContent 렌더링 에러', error);
     return (
-      <div className="min-h-screen bg-red-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
-          <div className="text-center">
-            <div className="text-red-500 text-4xl mb-4">💥</div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">컴포넌트 오류</h2>
-            <p className="text-gray-600 mb-4">
+      <div className='min-h-screen bg-red-50 flex items-center justify-center p-4'>
+        <div className='bg-white rounded-lg shadow-lg p-6 max-w-md w-full'>
+          <div className='text-center'>
+            <div className='text-red-500 text-4xl mb-4'>💥</div>
+            <h2 className='text-xl font-semibold text-gray-900 mb-2'>
+              컴포넌트 오류
+            </h2>
+            <p className='text-gray-600 mb-4'>
               대시보드를 렌더링하는 중 오류가 발생했습니다.
             </p>
-            <p className="text-gray-500 text-sm mb-4">
+            <p className='text-gray-500 text-sm mb-4'>
               {safeErrorMessage(error, '상세 정보 없음')}
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              className='px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600'
             >
               페이지 새로고침
             </button>
@@ -154,4 +169,4 @@ export default function DashboardContent({
       </div>
     );
   }
-} 
+}

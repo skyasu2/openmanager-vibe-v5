@@ -57,10 +57,10 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
         state: 'enabled',
       },
 
-      // 관리자 모드 (PIN 인증 필요)
+      // 관리자 모드 (인증 제한 해제 - 항상 활성화)
       adminMode: {
-        isAuthenticated: false,
-        lastLoginTime: null,
+        isAuthenticated: true, // 기본값을 true로 변경 - 인증 없이 모든 기능 사용 가능
+        lastLoginTime: Date.now(),
       },
 
       // 인증 상태 (관리자 모드용)
@@ -99,7 +99,10 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
           try {
             modeTimerManager.switchMode('monitoring');
           } catch (timerError) {
-            console.warn('⚠️ [Timer] ModeTimerManager 전환 중 오류:', timerError);
+            console.warn(
+              '⚠️ [Timer] ModeTimerManager 전환 중 오류:',
+              timerError
+            );
           }
         } catch (error) {
           console.error('❌ [System] 시스템 시작 실패:', error);
@@ -124,7 +127,9 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
             // 관리자 모드는 선택적으로 유지
           }));
 
-          console.log('⏹️ [System] 시스템 정지됨 - AI 에이전트는 계속 활성화 상태');
+          console.log(
+            '⏹️ [System] 시스템 정지됨 - AI 에이전트는 계속 활성화 상태'
+          );
         } catch (error) {
           console.error('❌ [System] 시스템 정지 실패:', error);
         }
@@ -210,12 +215,15 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
 
             return {
               success: true,
-              message: 'AI 관리자 모드가 활성화되었습니다. 이제 AI 관리자 페이지에 접근할 수 있습니다.',
+              message:
+                'AI 관리자 모드가 활성화되었습니다. 이제 AI 관리자 페이지에 접근할 수 있습니다.',
             };
           } else {
             // 인증 실패
             const newAttempts = attempts + 1;
-            console.warn(`❌ [Auth] 관리자 인증 실패 (${newAttempts}/${MAX_ATTEMPTS})`);
+            console.warn(
+              `❌ [Auth] 관리자 인증 실패 (${newAttempts}/${MAX_ATTEMPTS})`
+            );
 
             if (newAttempts >= MAX_ATTEMPTS) {
               // 계정 잠금
@@ -287,7 +295,7 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
     }),
     {
       name: 'unified-admin-storage',
-      partialize: (state) => ({
+      partialize: state => ({
         // AI 에이전트는 항상 활성화 상태이므로 저장하지 않음
         adminMode: state.adminMode, // 관리자 모드 상태만 저장
         attempts: state.attempts,

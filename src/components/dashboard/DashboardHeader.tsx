@@ -95,15 +95,10 @@ const DashboardHeader = memo(function DashboardHeader({
   const { isOpen: isSidebarOpen, setOpen: setSidebarOpen } =
     useAISidebarStore();
 
-  // AI 에이전트 토글 핸들러 (새로운 사이드바 연동)
+  // AI 에이전트 토글 핸들러 (새로운 사이드바 연동) - 인증 제한 제거
   const handleAIAgentToggle = () => {
-    if (!aiAgent.isEnabled && !isSidebarOpen) {
-      // AI 에이전트가 비활성화된 상태에서 열려고 할 때
-      warning(
-        '🚧 AI 에이전트를 사용하려면 홈 화면에서 AI 모드를 먼저 활성화해주세요.'
-      );
-      return;
-    }
+    // 인증 체크 제거 - 누구나 AI 에이전트 사용 가능
+    console.log('🤖 AI 에이전트 토글 - 인증 제한 없음');
 
     // 새로운 사이드바 토글
     setSidebarOpen(!isSidebarOpen);

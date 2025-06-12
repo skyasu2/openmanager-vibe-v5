@@ -325,8 +325,8 @@ export function UnifiedSettingsPanel({
                   </div>
                 </div>
 
-                {/* 관리자 인증이 필요한 경우에만 인라인으로 표시 */}
-                {!isAdminAuthenticated && (
+                {/* 인증 제한 해제 - 항상 관리자 기능 표시 */}
+                {false && (
                   <div className='bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4'>
                     <div className='flex items-center gap-3 mb-3'>
                       <Lock className='w-4 h-4 text-yellow-400' />
@@ -371,8 +371,8 @@ export function UnifiedSettingsPanel({
                   </div>
                 )}
 
-                {/* AI 관리 기능 - 인증된 경우만 */}
-                {isAdminAuthenticated && (
+                {/* AI 관리 기능 - 인증 제한 해제, 항상 표시 */}
+                {true && (
                   <div className='bg-green-500/10 border border-green-500/30 rounded-lg p-4'>
                     <div className='flex items-center gap-3 mb-3'>
                       <Check className='w-4 h-4 text-green-400' />

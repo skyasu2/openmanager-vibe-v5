@@ -314,7 +314,7 @@ function DashboardPageContent() {
         </Suspense>
 
         {/* 메인 컨텐츠 */}
-        <main className='flex-1 overflow-hidden'>
+        <main className='flex-1 overflow-y-auto'>
           <Suspense fallback={<ContentLoadingSkeleton />}>
             <DashboardContent
               showSequentialGeneration={false}
