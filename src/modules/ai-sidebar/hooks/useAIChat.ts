@@ -15,7 +15,10 @@ import {
   formatErrorMessage,
 } from '../utils';
 import { ThinkingLogger } from '../../ai-agent/core/ThinkingLogger';
-import { LangGraphThinkingProcessor } from '../../ai-agent/core/LangGraphThinkingProcessor';
+import {
+  ThinkingFlow,
+  LangGraphThinkingProcessor,
+} from '../../ai-agent/core/LangGraphThinkingProcessor';
 
 // 🔧 실시간 데이터 수집 함수들
 async function fetchCurrentServerMetrics() {
@@ -58,8 +61,10 @@ export const useAIChat = (options: ChatHookOptions) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sessionId] = useState(() => options.sessionId || generateSessionId());
+  const [thinkingState, setThinkingState] = useState<ThinkingFlow | null>(null); // 🧠 실시간 사고 과정 상태
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  const unsubscribeThinkingRef = useRef<(() => void) | null>(null); // 🧠 콜백 구독 해제 함수
 
   /**
    * 메시지 전송 (Smart Fallback Engine 통합)
@@ -72,10 +77,14 @@ export const useAIChat = (options: ChatHookOptions) => {
       setMessages(prev => [...prev, userMessage]);
       setIsLoading(true);
       setError(null);
+      setThinkingState(null); // 이전 상태 초기화
 
       // 이전 요청 취소
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
+      }
+      if (unsubscribeThinkingRef.current) {
+        unsubscribeThinkingRef.current(); // 이전 콜백 구독 해제
       }
 
       abortControllerRef.current = new AbortController();
@@ -84,16 +93,21 @@ export const useAIChat = (options: ChatHookOptions) => {
         // 사용자 메시지 콜백
         options.onMessage?.(userMessage);
 
-        // 🧠 LangGraph 사고 과정 시작
+        // 🧠 LangGraph 사고 과정 시작 및 실시간 구독
         const langGraphProcessor = LangGraphThinkingProcessor.getInstance();
         const thinkingLogger = ThinkingLogger.getInstance();
+        unsubscribeThinkingRef.current = langGraphProcessor.onThinking(
+          (flow, step) => {
+            setThinkingState({ ...flow });
+          }
+        );
+
         const queryId = langGraphProcessor.startThinking(
           sessionId,
           content,
           'advanced'
         );
 
-        // 사고 과정 로깅 시작
         langGraphProcessor.thought(`사용자 질문을 분석합니다: "${content}"`);
         langGraphProcessor.observation(
           'Smart Fallback Engine을 통해 처리를 시작합니다'
@@ -208,24 +222,25 @@ export const useAIChat = (options: ChatHookOptions) => {
           return; // 요청이 취소된 경우 무시
         }
 
-        // 🧠 사고 과정 에러 로깅
         const langGraphProcessor = LangGraphThinkingProcessor.getInstance();
         langGraphProcessor.errorThinking(`처리 중 오류 발생: ${err.message}`);
 
         const errorMessage = formatErrorMessage(err);
         setError(errorMessage);
 
-        // 에러 메시지 추가
         const systemMessage = createSystemMessage(
           `❌ AI 시스템 오류: ${errorMessage}\n\n잠시 후 다시 시도해주세요.`
         );
         setMessages(prev => [...prev, systemMessage]);
 
-        // 에러 콜백
         options.onError?.(err);
       } finally {
         setIsLoading(false);
         abortControllerRef.current = null;
+        if (unsubscribeThinkingRef.current) {
+          unsubscribeThinkingRef.current(); // 콜백 구독 해제
+          unsubscribeThinkingRef.current = null;
+        }
       }
     },
     [options, sessionId, isLoading]
@@ -295,6 +310,7 @@ export const useAIChat = (options: ChatHookOptions) => {
     isLoading,
     error,
     sessionId,
+    thinkingState, // 🧠 실시간 사고 과정 노출
 
     // 액션
     sendMessage,

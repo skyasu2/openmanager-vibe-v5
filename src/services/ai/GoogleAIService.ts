@@ -22,7 +22,7 @@ interface GoogleAIConfig {
   };
 }
 
-interface GoogleAIResponse {
+export interface GoogleAIResponse {
   success: boolean;
   content: string;
   model: string;
