@@ -15,6 +15,19 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(request: NextRequest) {
   try {
+    // 🔓 Vercel Protection Bypass 헤더 설정
+    const headers = new Headers({
+      'Content-Type': 'application/json',
+      'x-vercel-protection-bypass':
+        process.env.VERCEL_AUTOMATION_BYPASS_SECRET ||
+        'ee2aGggamAVy7ti2iycFOXamwgjIhuhr',
+      'x-vercel-set-bypass-cookie': 'true',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers':
+        'Content-Type, x-vercel-protection-bypass',
+    });
+
     const startTime = Date.now();
 
     // 🚀 빠른 기본 응답을 위한 최적화
@@ -156,14 +169,18 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(healthData, {
       status: 200,
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        Pragma: 'no-cache',
-        Expires: '0',
-      },
+      headers,
     });
   } catch (error) {
     console.error('⚠️ 헬스 체크 오류 - 서버는 정상 동작 중입니다:', error);
+
+    const errorHeaders = new Headers({
+      'Content-Type': 'application/json',
+      'x-vercel-protection-bypass':
+        process.env.VERCEL_AUTOMATION_BYPASS_SECRET ||
+        'ee2aGggamAVy7ti2iycFOXamwgjIhuhr',
+      'x-vercel-set-bypass-cookie': 'true',
+    });
 
     return NextResponse.json(
       {
@@ -173,12 +190,8 @@ export async function GET(request: NextRequest) {
         details: error instanceof Error ? error.message : 'Unknown error',
       },
       {
-        status: 200,
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          Pragma: 'no-cache',
-          Expires: '0',
-        },
+        status: 500,
+        headers: errorHeaders,
       }
     );
   }
@@ -187,13 +200,17 @@ export async function GET(request: NextRequest) {
 /**
  * OPTIONS - CORS 지원
  */
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers':
+        'Content-Type, x-vercel-protection-bypass, x-vercel-set-bypass-cookie',
+      'x-vercel-protection-bypass':
+        process.env.VERCEL_AUTOMATION_BYPASS_SECRET ||
+        'ee2aGggamAVy7ti2iycFOXamwgjIhuhr',
     },
   });
 }
