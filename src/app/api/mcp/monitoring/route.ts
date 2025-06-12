@@ -14,6 +14,7 @@ import type {
   QueryRequest,
   IncidentReport,
 } from '@/services/mcp/ServerMonitoringAgent';
+import { getMCPClient } from '@/services/mcp/official-mcp-client';
 
 // 에이전트 초기화 (한 번만)
 let isInitialized = false;
@@ -26,79 +27,80 @@ const initializeAgent = async () => {
 
 export async function GET(request: NextRequest) {
   try {
-    await initializeAgent();
+    console.log('🔍 MCP 모니터링 API 호출');
 
-    const { searchParams } = new URL(request.url);
-    const action = searchParams.get('action') || 'health';
-    const serverId = searchParams.get('serverId');
+    const mcpClient = getMCPClient();
 
-    switch (action) {
-      case 'health':
-        // 에이전트 상태 확인
-        const healthStatus = await serverMonitoringAgent.healthCheck();
-        return NextResponse.json({
-          success: true,
-          data: healthStatus,
-          timestamp: new Date().toISOString(),
-        });
+    // MCP 서버들 헬스체크 (Render 서버 포함)
+    const healthStatus = await mcpClient.healthCheck();
+    const connectionStatus = mcpClient.getConnectionStatus();
+    const stats = mcpClient.getStats();
 
-      case 'capabilities':
-        // 에이전트 능력 조회
-        return NextResponse.json({
-          success: true,
-          data: {
-            features: [
-              'intelligent-query-answering',
-              'thinking-process-animation',
-              'incident-analysis',
-              'auto-report-generation',
-              'performance-insights',
-              'cost-optimization',
-              'predictive-analysis',
-            ],
-            supportedQueries: [
-              '서버 상태는?',
-              '장애가 있나요?',
-              '성능 분석해주세요',
-              '비용 최적화 방안은?',
-              '미래 예측은?',
-              '개선 방안 추천해주세요',
-            ],
-            languages: ['Korean', 'English'],
-          },
-          timestamp: new Date().toISOString(),
-        });
+    // Render MCP 서버 상세 정보
+    const renderMCPInfo = healthStatus['render-mcp'];
 
-      case 'incident-report':
-        // 자동 장애보고서 생성
-        if (!serverId) {
-          return NextResponse.json(
-            { success: false, error: 'serverId 파라미터가 필요합니다' },
-            { status: 400 }
-          );
-        }
+    const response = {
+      timestamp: new Date().toISOString(),
+      status: 'success',
+      mcp: {
+        health: healthStatus,
+        connections: connectionStatus,
+        stats,
+        renderServer: {
+          url: 'https://openmanager-vibe-v5.onrender.com',
+          ips: ['13.228.225.19', '18.142.128.26', '54.254.162.138'],
+          port: 10000,
+          status: renderMCPInfo?.status || 'unknown',
+          latency: renderMCPInfo?.latency,
+          details: renderMCPInfo?.details,
+        },
+      },
+      summary: {
+        totalServers: Object.keys(healthStatus).length,
+        healthyServers: Object.values(healthStatus).filter(
+          h => h.status === 'healthy'
+        ).length,
+        averageLatency:
+          Object.values(healthStatus)
+            .filter(h => h.latency)
+            .reduce((sum, h) => sum + (h.latency || 0), 0) /
+            Object.values(healthStatus).filter(h => h.latency).length || 0,
+        renderServerHealthy: renderMCPInfo?.status === 'healthy',
+      },
+    };
 
-        const report =
-          await serverMonitoringAgent.generateIncidentReport(serverId);
-        return NextResponse.json({
-          success: true,
-          data: report,
-          timestamp: new Date().toISOString(),
-        });
+    console.log('✅ MCP 모니터링 완료:', {
+      totalServers: response.summary.totalServers,
+      healthyServers: response.summary.healthyServers,
+      renderStatus: response.mcp.renderServer.status,
+    });
 
-      default:
-        return NextResponse.json(
-          { success: false, error: '지원하지 않는 액션입니다' },
-          { status: 400 }
-        );
-    }
+    return NextResponse.json(response);
   } catch (error) {
-    console.error('❌ MCP 모니터링 GET API 오류:', error);
+    console.error('❌ MCP 모니터링 오류:', error);
+
     return NextResponse.json(
       {
-        success: false,
-        error: 'API 요청 처리에 실패했습니다',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+        status: 'error',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        mcp: {
+          health: {},
+          connections: {},
+          stats: {
+            totalServers: 0,
+            connectedServers: 0,
+            totalTools: 0,
+            isConnected: false,
+          },
+          renderServer: {
+            url: 'https://openmanager-vibe-v5.onrender.com',
+            ips: ['13.228.225.19', '18.142.128.26', '54.254.162.138'],
+            port: 10000,
+            status: 'error',
+            error: 'Failed to check health',
+          },
+        },
       },
       { status: 500 }
     );

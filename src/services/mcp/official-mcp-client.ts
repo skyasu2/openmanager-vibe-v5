@@ -70,6 +70,7 @@ export interface MCPStandardConfig {
   servers: {
     filesystem: MCPServerConfig;
     postgres: MCPServerConfig;
+    'openmanager-docs': MCPServerConfig;
     system?: MCPServerConfig;
   };
   options: {
@@ -84,25 +85,29 @@ const DEFAULT_MCP_CONFIG: MCPStandardConfig = {
   servers: {
     filesystem: {
       name: 'filesystem',
-      command: 'node',
-      args: ['-e', 'require("@modelcontextprotocol/server-filesystem").main()'],
+      command: 'npx',
+      args: ['@modelcontextprotocol/server-filesystem', './src', './docs'],
       env: { NODE_ENV: 'production' },
     },
 
     postgres: {
       name: 'postgres',
-      command: 'node',
-      args: ['-e', 'require("@modelcontextprotocol/server-postgres").main()'],
+      command: 'npx',
+      args: ['@modelcontextprotocol/server-postgres'],
       env: {
         NODE_ENV: 'production',
         DATABASE_URL:
           process.env.DATABASE_URL || 'postgresql://localhost:5432/openmanager',
       },
     },
-    system: {
-      name: 'system',
-      command: 'node',
-      args: ['-e', 'console.log("System MCP Server")'],
+    'openmanager-docs': {
+      name: 'openmanager-docs',
+      command: 'npx',
+      args: [
+        '@modelcontextprotocol/server-filesystem',
+        './docs',
+        './src/ai-context',
+      ],
       env: { NODE_ENV: 'production' },
     },
   },
@@ -113,9 +118,19 @@ const DEFAULT_MCP_CONFIG: MCPStandardConfig = {
   },
 };
 
+// 🌐 Render MCP 서버 정보
+const RENDER_MCP_CONFIG = {
+  url: 'https://openmanager-vibe-v5.onrender.com',
+  healthEndpoint: '/health',
+  statusEndpoint: '/status',
+  ips: ['13.228.225.19', '18.142.128.26', '54.254.162.138'],
+  port: 10000,
+};
+
 interface MCPClientConfig {
   serverUrl?: string;
   timeout?: number;
+  renderConfig?: typeof RENDER_MCP_CONFIG;
 }
 
 export class OfficialMCPClient {
@@ -665,16 +680,20 @@ export class OfficialMCPClient {
   }
 
   /**
-   * 🏥 상태 확인
+   * 🏥 상태 확인 (Render 서버 포함)
    */
   async healthCheck(): Promise<
-    Record<string, { status: 'healthy' | 'error'; latency?: number }>
+    Record<
+      string,
+      { status: 'healthy' | 'error'; latency?: number; details?: any }
+    >
   > {
     const health: Record<
       string,
-      { status: 'healthy' | 'error'; latency?: number }
+      { status: 'healthy' | 'error'; latency?: number; details?: any }
     > = {};
 
+    // 로컬 MCP 클라이언트 상태 확인
     for (const [serverName, client] of this.clients) {
       const startTime = Date.now();
 
@@ -687,11 +706,92 @@ export class OfficialMCPClient {
       } catch (error) {
         health[serverName] = {
           status: 'error',
+          latency: Date.now() - startTime,
         };
       }
     }
 
+    // Render MCP 서버 상태 확인
+    await this.checkRenderMCPHealth(health);
+
     return health;
+  }
+
+  /**
+   * 🌐 Render MCP 서버 헬스체크
+   */
+  private async checkRenderMCPHealth(
+    health: Record<
+      string,
+      { status: 'healthy' | 'error'; latency?: number; details?: any }
+    >
+  ): Promise<void> {
+    const startTime = Date.now();
+
+    try {
+      // Render 서버 헬스체크
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      const response = await fetch(
+        `${RENDER_MCP_CONFIG.url}${RENDER_MCP_CONFIG.healthEndpoint}`,
+        {
+          signal: controller.signal,
+          headers: {
+            'User-Agent': 'OpenManager-Vibe-v5/1.0',
+          },
+        }
+      );
+
+      clearTimeout(timeoutId);
+      const latency = Date.now() - startTime;
+
+      if (response.ok) {
+        const healthData = await response.json();
+        health['render-mcp'] = {
+          status: 'healthy',
+          latency,
+          details: {
+            url: RENDER_MCP_CONFIG.url,
+            port: RENDER_MCP_CONFIG.port,
+            ips: RENDER_MCP_CONFIG.ips,
+            uptime: healthData.uptime,
+            version: healthData.version,
+          },
+        };
+
+        console.log(
+          `✅ Render MCP 서버 정상: ${RENDER_MCP_CONFIG.url} (${latency}ms)`
+        );
+      } else {
+        health['render-mcp'] = {
+          status: 'error',
+          latency,
+          details: {
+            url: RENDER_MCP_CONFIG.url,
+            statusCode: response.status,
+            statusText: response.statusText,
+          },
+        };
+
+        console.warn(
+          `⚠️ Render MCP 서버 응답 오류: ${response.status} ${response.statusText}`
+        );
+      }
+    } catch (error) {
+      const latency = Date.now() - startTime;
+      health['render-mcp'] = {
+        status: 'error',
+        latency,
+        details: {
+          url: RENDER_MCP_CONFIG.url,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          ips: RENDER_MCP_CONFIG.ips,
+        },
+      };
+
+      console.error(`❌ Render MCP 서버 연결 실패:`, error);
+    }
   }
 
   /**
