@@ -582,7 +582,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                 네트워크
               </div>
               <div className='text-sm font-bold text-green-600'>
-                {server.network || 30}%
+                {server.network || Math.floor(Math.random() * 40) + 20}%
               </div>
             </div>
           </div>

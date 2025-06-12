@@ -341,7 +341,7 @@ export default function ServerDashboard({
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<DashboardTab>('servers');
 
-  const SERVERS_PER_PAGE = 8;
+  const SERVERS_PER_PAGE = 4;
 
   // ✅ 실시간 훅: 10초(10,000ms) 주기로 새로고침
   const {
@@ -366,6 +366,11 @@ export default function ServerDashboard({
     console.log('✅ ServerDashboard 클라이언트 설정');
     setIsClient(true);
   }, []);
+
+  // 페이지네이션 상태 추가
+  const [criticalPage, setCriticalPage] = useState(1);
+  const [warningPage, setWarningPage] = useState(1);
+  const [healthyPage, setHealthyPage] = useState(1);
 
   // 서버 데이터를 Server 타입으로 변환 및 정렬 (클라이언트에서만)
   const currentServers: Server[] = useMemo(() => {
@@ -1298,7 +1303,10 @@ export default function ServerDashboard({
                     <div className='flex transition-transform duration-300 ease-in-out'>
                       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4 min-w-full'>
                         {groupedServers.critical
-                          .slice(0, 8)
+                          .slice(
+                            (criticalPage - 1) * SERVERS_PER_PAGE,
+                            criticalPage * SERVERS_PER_PAGE
+                          )
                           .map((server, index) => (
                             <div key={server.id} className='min-w-0'>
                               <EnhancedServerCard
@@ -1331,10 +1339,46 @@ export default function ServerDashboard({
                       </div>
                     </div>
 
-                    {/* 더 많은 서버가 있는 경우 알림 */}
-                    {groupedServers.critical.length > 8 && (
-                      <div className='absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full'>
-                        +{groupedServers.critical.length - 8}
+                    {/* 페이지네이션 컨트롤 */}
+                    {groupedServers.critical.length > SERVERS_PER_PAGE && (
+                      <div className='absolute top-2 right-2 flex items-center gap-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full'>
+                        <button
+                          onClick={() =>
+                            setCriticalPage(prev => Math.max(1, prev - 1))
+                          }
+                          disabled={criticalPage === 1}
+                          className='hover:bg-red-600 px-1 rounded disabled:opacity-50'
+                        >
+                          ←
+                        </button>
+                        <span>
+                          {criticalPage}/
+                          {Math.ceil(
+                            groupedServers.critical.length / SERVERS_PER_PAGE
+                          )}
+                        </span>
+                        <button
+                          onClick={() =>
+                            setCriticalPage(prev =>
+                              Math.min(
+                                Math.ceil(
+                                  groupedServers.critical.length /
+                                    SERVERS_PER_PAGE
+                                ),
+                                prev + 1
+                              )
+                            )
+                          }
+                          disabled={
+                            criticalPage ===
+                            Math.ceil(
+                              groupedServers.critical.length / SERVERS_PER_PAGE
+                            )
+                          }
+                          className='hover:bg-red-600 px-1 rounded disabled:opacity-50'
+                        >
+                          →
+                        </button>
                       </div>
                     )}
                   </div>
@@ -1348,19 +1392,46 @@ export default function ServerDashboard({
                       <span className='w-3 h-3 bg-yellow-500 rounded-full'></span>
                       주의 상태 ({groupedServers.warning.length})
                     </h3>
-                    {groupedServers.warning.length > 8 && (
+                    {groupedServers.warning.length > SERVERS_PER_PAGE && (
                       <div className='flex items-center gap-2 text-sm text-gray-500'>
-                        <span>8개씩 보기</span>
+                        <span>{SERVERS_PER_PAGE}개씩 보기</span>
                         <div className='flex gap-1'>
                           <button
-                            className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
+                            onClick={() =>
+                              setWarningPage(prev => Math.max(1, prev - 1))
+                            }
+                            disabled={warningPage === 1}
+                            className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center disabled:opacity-50'
                             title='이전 경고 서버들 보기'
                             aria-label='이전 경고 서버들 보기'
                           >
                             <ChevronLeft className='w-3 h-3' />
                           </button>
+                          <span className='text-xs px-2'>
+                            {warningPage}/
+                            {Math.ceil(
+                              groupedServers.warning.length / SERVERS_PER_PAGE
+                            )}
+                          </span>
                           <button
-                            className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
+                            onClick={() =>
+                              setWarningPage(prev =>
+                                Math.min(
+                                  Math.ceil(
+                                    groupedServers.warning.length /
+                                      SERVERS_PER_PAGE
+                                  ),
+                                  prev + 1
+                                )
+                              )
+                            }
+                            disabled={
+                              warningPage ===
+                              Math.ceil(
+                                groupedServers.warning.length / SERVERS_PER_PAGE
+                              )
+                            }
+                            className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center disabled:opacity-50'
                             title='다음 경고 서버들 보기'
                             aria-label='다음 경고 서버들 보기'
                           >
@@ -1375,7 +1446,10 @@ export default function ServerDashboard({
                     <div className='flex transition-transform duration-300 ease-in-out'>
                       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4 min-w-full'>
                         {groupedServers.warning
-                          .slice(0, 8)
+                          .slice(
+                            (warningPage - 1) * SERVERS_PER_PAGE,
+                            warningPage * SERVERS_PER_PAGE
+                          )
                           .map((server, index) => (
                             <div key={server.id} className='min-w-0'>
                               <EnhancedServerCard
@@ -1408,9 +1482,45 @@ export default function ServerDashboard({
                       </div>
                     </div>
 
-                    {groupedServers.warning.length > 8 && (
-                      <div className='absolute top-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full'>
-                        +{groupedServers.warning.length - 8}
+                    {groupedServers.warning.length > SERVERS_PER_PAGE && (
+                      <div className='absolute top-2 right-2 flex items-center gap-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full'>
+                        <button
+                          onClick={() =>
+                            setWarningPage(prev => Math.max(1, prev - 1))
+                          }
+                          disabled={warningPage === 1}
+                          className='hover:bg-yellow-600 px-1 rounded disabled:opacity-50'
+                        >
+                          ←
+                        </button>
+                        <span>
+                          {warningPage}/
+                          {Math.ceil(
+                            groupedServers.warning.length / SERVERS_PER_PAGE
+                          )}
+                        </span>
+                        <button
+                          onClick={() =>
+                            setWarningPage(prev =>
+                              Math.min(
+                                Math.ceil(
+                                  groupedServers.warning.length /
+                                    SERVERS_PER_PAGE
+                                ),
+                                prev + 1
+                              )
+                            )
+                          }
+                          disabled={
+                            warningPage ===
+                            Math.ceil(
+                              groupedServers.warning.length / SERVERS_PER_PAGE
+                            )
+                          }
+                          className='hover:bg-yellow-600 px-1 rounded disabled:opacity-50'
+                        >
+                          →
+                        </button>
                       </div>
                     )}
                   </div>
@@ -1424,19 +1534,46 @@ export default function ServerDashboard({
                       <span className='w-3 h-3 bg-green-500 rounded-full'></span>
                       정상 상태 ({groupedServers.healthy.length})
                     </h3>
-                    {groupedServers.healthy.length > 8 && (
+                    {groupedServers.healthy.length > SERVERS_PER_PAGE && (
                       <div className='flex items-center gap-2 text-sm text-gray-500'>
-                        <span>8개씩 보기</span>
+                        <span>{SERVERS_PER_PAGE}개씩 보기</span>
                         <div className='flex gap-1'>
                           <button
-                            className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
+                            onClick={() =>
+                              setHealthyPage(prev => Math.max(1, prev - 1))
+                            }
+                            disabled={healthyPage === 1}
+                            className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center disabled:opacity-50'
                             title='이전 정상 서버들 보기'
                             aria-label='이전 정상 서버들 보기'
                           >
                             <ChevronLeft className='w-3 h-3' />
                           </button>
+                          <span className='text-xs px-2'>
+                            {healthyPage}/
+                            {Math.ceil(
+                              groupedServers.healthy.length / SERVERS_PER_PAGE
+                            )}
+                          </span>
                           <button
-                            className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
+                            onClick={() =>
+                              setHealthyPage(prev =>
+                                Math.min(
+                                  Math.ceil(
+                                    groupedServers.healthy.length /
+                                      SERVERS_PER_PAGE
+                                  ),
+                                  prev + 1
+                                )
+                              )
+                            }
+                            disabled={
+                              healthyPage ===
+                              Math.ceil(
+                                groupedServers.healthy.length / SERVERS_PER_PAGE
+                              )
+                            }
+                            className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center disabled:opacity-50'
                             title='다음 정상 서버들 보기'
                             aria-label='다음 정상 서버들 보기'
                           >
@@ -1451,7 +1588,10 @@ export default function ServerDashboard({
                     <div className='flex transition-transform duration-300 ease-in-out'>
                       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4 min-w-full'>
                         {groupedServers.healthy
-                          .slice(0, 8)
+                          .slice(
+                            (healthyPage - 1) * SERVERS_PER_PAGE,
+                            healthyPage * SERVERS_PER_PAGE
+                          )
                           .map((server, index) => (
                             <div key={server.id} className='min-w-0'>
                               <EnhancedServerCard
@@ -1484,9 +1624,45 @@ export default function ServerDashboard({
                       </div>
                     </div>
 
-                    {groupedServers.healthy.length > 8 && (
-                      <div className='absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full'>
-                        +{groupedServers.healthy.length - 8}
+                    {groupedServers.healthy.length > SERVERS_PER_PAGE && (
+                      <div className='absolute top-2 right-2 flex items-center gap-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full'>
+                        <button
+                          onClick={() =>
+                            setHealthyPage(prev => Math.max(1, prev - 1))
+                          }
+                          disabled={healthyPage === 1}
+                          className='hover:bg-green-600 px-1 rounded disabled:opacity-50'
+                        >
+                          ←
+                        </button>
+                        <span>
+                          {healthyPage}/
+                          {Math.ceil(
+                            groupedServers.healthy.length / SERVERS_PER_PAGE
+                          )}
+                        </span>
+                        <button
+                          onClick={() =>
+                            setHealthyPage(prev =>
+                              Math.min(
+                                Math.ceil(
+                                  groupedServers.healthy.length /
+                                    SERVERS_PER_PAGE
+                                ),
+                                prev + 1
+                              )
+                            )
+                          }
+                          disabled={
+                            healthyPage ===
+                            Math.ceil(
+                              groupedServers.healthy.length / SERVERS_PER_PAGE
+                            )
+                          }
+                          className='hover:bg-green-600 px-1 rounded disabled:opacity-50'
+                        >
+                          →
+                        </button>
                       </div>
                     )}
                   </div>

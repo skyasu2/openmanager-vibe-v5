@@ -292,7 +292,10 @@ export class RealServerDataGenerator {
           cpu: Math.random() * 80 + 10,
           memory: Math.random() * 70 + 20,
           disk: Math.random() * 60 + 30,
-          network: { in: Math.random() * 100, out: Math.random() * 100 },
+          network: {
+            in: Math.random() * 100,
+            out: Math.random() * 100,
+          },
           requests: Math.random() * 1000 + 100,
           errors: Math.random() * 10,
           uptime: Math.random() * 8760 * 3600, // 최대 1년

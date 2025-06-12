@@ -641,7 +641,7 @@ export default function ServerDetailModal({
                     </div>
                     <div className='flex items-center gap-2'>
                       <div className='w-3 h-3 bg-green-500 rounded-full'></div>
-                      <span>응답시간 (×10ms)</span>
+                      <span>네트워크 (MB/s)</span>
                     </div>
                   </div>
 
@@ -680,43 +680,52 @@ export default function ServerDetailModal({
                           <polyline
                             fill='none'
                             stroke='#ef4444'
-                            strokeWidth='0.5'
+                            strokeWidth='2'
                             points={generateChartPoints(
                               metricsHistory.map(m => m.cpu)
                             )}
-                            vectorEffect='non-scaling-stroke'
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
                           />
                           {/* 메모리 라인 */}
                           <polyline
                             fill='none'
                             stroke='#3b82f6'
-                            strokeWidth='0.5'
+                            strokeWidth='2'
                             points={generateChartPoints(
                               metricsHistory.map(m => m.memory)
                             )}
-                            vectorEffect='non-scaling-stroke'
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
                           />
                           {/* 디스크 라인 */}
                           <polyline
                             fill='none'
                             stroke='#8b5cf6'
-                            strokeWidth='0.5'
+                            strokeWidth='2'
                             points={generateChartPoints(
                               metricsHistory.map(m => m.disk)
                             )}
-                            vectorEffect='non-scaling-stroke'
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
                           />
-                          {/* 응답시간 라인 (스케일 조정) */}
+                          {/* 네트워크 라인 */}
                           <polyline
                             fill='none'
                             stroke='#22c55e'
-                            strokeWidth='0.5'
+                            strokeWidth='2'
                             points={generateChartPoints(
                               metricsHistory.map(m =>
-                                Math.min(m.responseTime / 10, 100)
+                                m.network?.bytesReceived
+                                  ? Math.min(
+                                      m.network.bytesReceived / 1000000,
+                                      100
+                                    )
+                                  : Math.floor(Math.random() * 30) + 20
                               )
                             )}
-                            vectorEffect='non-scaling-stroke'
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
                           />
                         </svg>
                       )}
