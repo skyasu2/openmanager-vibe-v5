@@ -335,13 +335,53 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
   }, []);
 
   /**
-   * 🔄 자동 새로고침 시작/중지
+   * 🔄 자동 새로고침 시작/중지 (재연결 로직 포함)
    */
   const startAutoRefresh = useCallback(() => {
     if (intervalRef.current) return;
 
-    intervalRef.current = setInterval(refreshAll, refreshInterval);
-    console.log(`🔄 자동 새로고침 시작 (${refreshInterval}ms 간격)`);
+    let retryCount = 0;
+    const maxRetries = 3;
+    let retryTimeout: NodeJS.Timeout;
+
+    const attemptRefresh = async () => {
+      try {
+        await refreshAll();
+        retryCount = 0; // 성공 시 재시도 카운터 리셋
+        setIsConnected(true);
+      } catch (error) {
+        console.warn(
+          `⚠️ 실시간 데이터 갱신 실패 (${retryCount + 1}/${maxRetries}):`,
+          error
+        );
+        setIsConnected(false);
+
+        if (retryCount < maxRetries) {
+          retryCount++;
+          const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000); // 지수 백오프
+          console.log(`🔄 ${retryDelay}ms 후 재시도...`);
+
+          retryTimeout = setTimeout(() => {
+            attemptRefresh();
+          }, retryDelay);
+        } else {
+          console.error('❌ 최대 재시도 횟수 초과. 30초 후 재시도합니다.');
+          setError('연결이 불안정합니다. 자동으로 재연결을 시도합니다.');
+
+          // 30초 후 재시도 카운터 리셋
+          retryTimeout = setTimeout(() => {
+            retryCount = 0;
+            setError(null);
+            console.log('🔄 자동 갱신 재시작');
+          }, 30000);
+        }
+      }
+    };
+
+    intervalRef.current = setInterval(attemptRefresh, refreshInterval);
+    console.log(
+      `🔄 자동 새로고침 시작 (${refreshInterval}ms 간격, 자동 재연결 포함)`
+    );
   }, [refreshAll, refreshInterval]);
 
   const stopAutoRefresh = useCallback(() => {
