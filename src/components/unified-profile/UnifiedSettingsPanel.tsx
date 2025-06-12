@@ -80,6 +80,7 @@ export function UnifiedSettingsPanel({
 
   // 관리자 모드 확인을 위해 스토어에서 직접 가져오기
   const { adminMode } = useUnifiedAdminStore();
+  const isAdminAuthenticated = adminMode.isAuthenticated;
 
   // 새로운 인라인 피드백 시스템 사용
   const { success, error, info, warning, loading, clear } = useInlineFeedback();
@@ -309,12 +310,12 @@ export function UnifiedSettingsPanel({
                   <div className='p-3 bg-gray-800/50 rounded-lg text-center'>
                     <div
                       className={`w-3 h-3 rounded-full mx-auto mb-2 ${
-                        adminMode ? 'bg-green-400' : 'bg-yellow-400'
+                        isAdminAuthenticated ? 'bg-green-400' : 'bg-yellow-400'
                       }`}
                     />
                     <p className='text-xs text-gray-400 mb-1'>관리자 인증</p>
                     <p className='text-sm font-medium text-white'>
-                      {adminMode ? '인증됨' : '인증 필요'}
+                      {isAdminAuthenticated ? '인증됨' : '인증 필요'}
                     </p>
                   </div>
                   <div className='p-3 bg-gray-800/50 rounded-lg text-center'>
@@ -325,7 +326,7 @@ export function UnifiedSettingsPanel({
                 </div>
 
                 {/* 관리자 인증이 필요한 경우에만 인라인으로 표시 */}
-                {!adminMode && (
+                {!isAdminAuthenticated && (
                   <div className='bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4'>
                     <div className='flex items-center gap-3 mb-3'>
                       <Lock className='w-4 h-4 text-yellow-400' />
@@ -371,7 +372,7 @@ export function UnifiedSettingsPanel({
                 )}
 
                 {/* AI 관리 기능 - 인증된 경우만 */}
-                {adminMode && (
+                {isAdminAuthenticated && (
                   <div className='bg-green-500/10 border border-green-500/30 rounded-lg p-4'>
                     <div className='flex items-center gap-3 mb-3'>
                       <Check className='w-4 h-4 text-green-400' />
