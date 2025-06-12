@@ -110,16 +110,20 @@ export class SlackNotificationService {
     return browser.sendSystemAlert('시스템 알림', message, severity);
   }
 
-  // 以下 메서드는 더 이상 사용되지 않지만, 타입 호환을 위해 no-op 으로 남겨둡니다.
-  async sendMemoryAlert(): Promise<boolean> {
-    return false;
+  async sendMemoryAlert(alert?: Partial<MemoryAlert>): Promise<boolean> {
+    if (!alert) return false;
+    const title = `메모리 경고 (${alert.severity ?? 'info'})`;
+    const message = `메모리 사용률 ${alert.usagePercent ?? 0}% (Heap: ${(alert.heapUsed ?? 0) / 1024 / 1024}/${(alert.heapTotal ?? 0) / 1024 / 1024} MB)`;
+    return browser.sendSystemAlert(title, message, 'warning');
   }
+
   async sendAnomalyAlert(alert?: Partial<AnomalyAlert>): Promise<boolean> {
     if (!alert) return false;
     const title = `이상 탐지: ${alert.metric ?? '알 수 없음'}`;
     const message = `${alert.description ?? '이상 징후가 감지되었습니다.'} (현재값: ${alert.currentValue ?? 'N/A'})`;
     return browser.sendSystemAlert(title, message, 'warning');
   }
+
   async sendWeeklyReport(): Promise<boolean> {
     return false;
   }
