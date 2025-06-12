@@ -13,10 +13,11 @@
 
 ```env
 # Redis/KV Store Configuration (Upstash)
-KV_URL=rediss://default:AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA@charming-condor-46598.upstash.io:6379
-REDIS_URL=rediss://default:AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA@charming-condor-46598.upstash.io:6379
-KV_REST_API_URL=https://charming-condor-46598.upstash.io
-KV_REST_API_TOKEN=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA
+KV_URL=rediss://default:[TOKEN]@[HOST]:6379
+REDIS_URL=rediss://default:[TOKEN]@[HOST]:6379
+KV_REST_API_URL=https://[HOST]
+KV_REST_API_TOKEN=[TOKEN]
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/[WORKSPACE]/[CHANNEL]/[TOKEN]
 ```
 
 ### 📊 **시스템 상태 정상화**
@@ -58,6 +59,7 @@ KV_REST_API_TOKEN=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA
 - **실시간 모니터링**: 30개 서버 상태 실시간 업데이트 정상 작동
 - **성능 향상**: Redis 캐싱으로 데이터 조회 속도 50% 개선
 - **안정성 확보**: 연결 실패 시에도 시스템 중단 없이 폴백 모드 작동
+- **Slack 알림 복구**: 새로운 웹훅 URL로 실시간 알림 시스템 정상화
 
 ---
 

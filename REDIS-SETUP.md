@@ -17,6 +17,9 @@ REDIS_URL=rediss://default:AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM
 # Additional Redis Configuration
 UPSTASH_REDIS_REST_URL=https://charming-condor-46598.upstash.io
 UPSTASH_REDIS_REST_TOKEN=AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA
+
+# Slack Webhook Configuration (예시 - 실제 값은 .env.local에 설정)
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR_WORKSPACE/YOUR_CHANNEL/YOUR_TOKEN
 ```
 
 ### 🚀 설정 방법
@@ -83,8 +86,10 @@ Redis 연결이 정상적으로 설정되면:
 ### 🔒 보안 주의사항
 
 - `.env.local` 파일은 절대 Git에 커밋하지 마세요
+- **Slack 웹훅 URL이 GitHub에 노출되면 자동으로 삭제됩니다**
 - 프로덕션 환경에서는 별도의 환경변수 관리 시스템 사용
 - API 키와 토큰은 정기적으로 갱신
+- 문서나 코드에 실제 토큰 값을 하드코딩하지 마세요
 
 ---
 
