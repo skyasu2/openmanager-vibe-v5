@@ -20,7 +20,6 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
 import { InlineFeedbackContainer } from '@/components/ui/InlineFeedbackSystem';
-import { SlackToastContainer } from '@/components/ui/SlackOnlyToastSystem';
 
 // 🔔 Dynamic Import로 성능 최적화
 const ToastContainer = dynamic(
@@ -821,7 +820,6 @@ export default function Home() {
       />
 
       {/* Slack 전용 토스트 컨테이너 */}
-      <SlackToastContainer />
 
       {/* 토스트 알림 컨테이너 */}
       <ToastContainer />

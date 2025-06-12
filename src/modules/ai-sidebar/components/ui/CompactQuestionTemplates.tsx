@@ -98,7 +98,7 @@ export const CompactQuestionTemplates: React.FC<
   CompactQuestionTemplatesProps
 > = ({ onQuestionSelect, isProcessing = false, className = '' }) => {
   const [currentTemplateIndex, setCurrentTemplateIndex] = useState(0);
-  const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
+
   const [isRotating, setIsRotating] = useState(true);
 
   // 현재 표시할 4개 템플릿 선택
@@ -150,7 +150,6 @@ export const CompactQuestionTemplates: React.FC<
     }
 
     console.log('🎯 컴팩트 질문 선택:', template.question);
-    setHoveredTemplate(null); // 호버 상태 리셋
     onQuestionSelect(template.question);
   };
 
@@ -217,8 +216,6 @@ export const CompactQuestionTemplates: React.FC<
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.2, delay: index * 0.05 }}
               onClick={() => handleQuestionClick(template)}
-              onMouseEnter={() => setHoveredTemplate(template.id)}
-              onMouseLeave={() => setHoveredTemplate(null)}
               disabled={isProcessing}
               className={`
                 relative p-2 rounded-lg border-2 transition-all duration-200
@@ -241,29 +238,6 @@ export const CompactQuestionTemplates: React.FC<
                 {template.question.split(' ').slice(0, 2).join(' ')}
                 {template.question.split(' ').length > 2 && '...'}
               </div>
-
-              {/* 호버 시 풀 툴팁 */}
-              <AnimatePresence>
-                {hoveredTemplate === template.id && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className='absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 z-50'
-                  >
-                    <div className='bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs rounded-lg px-3 py-2 shadow-lg max-w-48 text-center'>
-                      <div className='font-medium mb-1'>
-                        {template.question}
-                      </div>
-                      <div className='text-gray-300 dark:text-gray-600 text-xs'>
-                        {template.description}
-                      </div>
-                      {/* 화살표 */}
-                      <div className='absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-100'></div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </motion.button>
           ))}
         </AnimatePresence>

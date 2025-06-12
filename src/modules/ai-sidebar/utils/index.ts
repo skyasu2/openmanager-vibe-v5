@@ -85,7 +85,30 @@ export const validateSidebarConfig = (config: AISidebarConfig): boolean => {
  * AI 응답 포맷팅
  */
 export const formatAIResponse = (response: AIResponse): ChatMessage => {
-  const content = (response as any).content || (response as any).response;
+  // Smart Fallback API 응답 구조에 맞게 content 추출
+  let content = '';
+
+  // 1순위: response.content (기존 구조)
+  if ((response as any).content) {
+    content = (response as any).content;
+  }
+  // 2순위: response.response (Smart Fallback API 구조)
+  else if ((response as any).response) {
+    content = (response as any).response;
+  }
+  // 3순위: response 자체가 문자열인 경우
+  else if (typeof response === 'string') {
+    content = response;
+  }
+  // 4순위: 기본 메시지
+  else {
+    content = 'AI 응답을 처리하는 중 오류가 발생했습니다.';
+    console.warn(
+      '⚠️ formatAIResponse: 응답 내용을 찾을 수 없습니다:',
+      response
+    );
+  }
+
   return {
     id: generateMessageId(),
     type: 'ai',
@@ -94,7 +117,8 @@ export const formatAIResponse = (response: AIResponse): ChatMessage => {
     metadata: {
       ...(response.intent ? { intent: response.intent } : {}),
       processingTime: response.metadata?.processingTime,
-      confidence: response.intent?.confidence,
+      confidence: response.intent?.confidence || response.confidence,
+      engine: response.metadata?.engine || response.metadata?.stage,
     },
     actions: (response as any).actions || [],
   };

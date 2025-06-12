@@ -173,6 +173,14 @@ const DashboardHeader = memo(function DashboardHeader({
                 </div>
                 <div className='text-xs text-gray-500'>오프라인</div>
               </div>
+
+              {/* 실시간 업데이트 표시 */}
+              <div className='text-center'>
+                <div className='text-xs text-gray-500'>마지막 업데이트</div>
+                <div className='text-xs text-gray-400'>
+                  {new Date().toLocaleTimeString()}
+                </div>
+              </div>
             </div>
 
             {/* AI 에이전트 토글 버튼 - 프로필 바로 왼쪽에 배치 */}

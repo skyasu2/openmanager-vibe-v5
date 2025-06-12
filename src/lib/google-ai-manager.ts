@@ -19,9 +19,9 @@ class GoogleAIManager {
   private isTeamKeyUnlocked = false;
 
   // 🚀 시연용 임시 API 키 (내일 시연 후 제거 예정)
-  private readonly DEMO_API_KEY = 'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM';
+  private readonly DEMO_API_KEY = 'AIzaSyABFUHbGGtjs6S_y756H4SYJmFNuNoo3fY';
 
-  private constructor() { }
+  private constructor() {}
 
   static getInstance(): GoogleAIManager {
     if (!GoogleAIManager.instance) {

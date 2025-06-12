@@ -5,7 +5,7 @@
  * 🧠 Smart Fallback Engine 통합 (MCP → RAG → Google AI)
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { ChatMessage, AIResponse, ChatHookOptions } from '../types';
 import {
   createUserMessage,
@@ -65,6 +65,37 @@ export const useAIChat = (options: ChatHookOptions) => {
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const unsubscribeThinkingRef = useRef<(() => void) | null>(null); // 🧠 콜백 구독 해제 함수
+
+  // 🔄 localStorage에서 메시지 로드 (초기화 시)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && sessionId) {
+      try {
+        const stored = localStorage.getItem(`ai-chat-${sessionId}`);
+        if (stored) {
+          const parsedMessages = JSON.parse(stored);
+          setMessages(parsedMessages);
+          console.log(
+            '💾 저장된 채팅 히스토리 로드:',
+            parsedMessages.length + '개 메시지'
+          );
+        }
+      } catch (error) {
+        console.warn('⚠️ 채팅 히스토리 로드 실패:', error);
+      }
+    }
+  }, [sessionId]);
+
+  // 🔄 메시지 변경 시 localStorage에 저장
+  useEffect(() => {
+    if (typeof window !== 'undefined' && sessionId && messages.length > 0) {
+      try {
+        localStorage.setItem(`ai-chat-${sessionId}`, JSON.stringify(messages));
+        console.log('💾 채팅 히스토리 저장:', messages.length + '개 메시지');
+      } catch (error) {
+        console.warn('⚠️ 채팅 히스토리 저장 실패:', error);
+      }
+    }
+  }, [messages, sessionId]);
 
   /**
    * 메시지 전송 (Smart Fallback Engine 통합)
@@ -187,12 +218,23 @@ export const useAIChat = (options: ChatHookOptions) => {
           },
         };
 
-        // 🐞 AI 응답 내용 검증 로직 추가
+        // 🐞 AI 응답 내용 검증 로직 강화
         if (!aiResponse.content || aiResponse.content.trim() === '') {
+          console.error('❌ AI 응답이 비어있습니다:', aiResponse);
           const errorMessage = createSystemMessage(
             '❌ AI가 비어있는 응답을 반환했습니다. 잠시 후 다시 시도해주세요.'
           );
-          setMessages(prev => [...prev, errorMessage]);
+          setMessages(prev => {
+            const updated = [...prev, errorMessage];
+            // localStorage에 즉시 저장
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(
+                `ai-chat-${sessionId}`,
+                JSON.stringify(updated)
+              );
+            }
+            return updated;
+          });
           // 에러 콜백도 호출
           options.onError?.(new Error('AI returned an empty response.'));
           return; // 빈 응답이므로 여기서 처리 중단
@@ -208,14 +250,43 @@ export const useAIChat = (options: ChatHookOptions) => {
           aiMessage.metadata.quota = smartFallbackResponse.metadata.quota;
         }
 
-        setMessages(prev => [...prev, aiMessage]);
+        // 🔄 메시지 추가 및 즉시 localStorage 저장
+        setMessages(prev => {
+          const updated = [...prev, aiMessage];
+          // localStorage에 즉시 저장
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.setItem(
+                `ai-chat-${sessionId}`,
+                JSON.stringify(updated)
+              );
+              console.log(
+                '💾 AI 응답 저장 완료:',
+                aiMessage.content.slice(0, 50) + '...'
+              );
+            } catch (error) {
+              console.warn('⚠️ AI 응답 저장 실패:', error);
+            }
+          }
+          return updated;
+        });
 
         // 할당량 경고 표시
         if (smartFallbackResponse.metadata.quota?.isNearLimit) {
           const warningMessage = createSystemMessage(
             '⚠️ Google AI 일일 할당량이 80%를 초과했습니다. 남은 사용량을 확인해주세요.'
           );
-          setMessages(prev => [...prev, warningMessage]);
+          setMessages(prev => {
+            const updated = [...prev, warningMessage];
+            // localStorage에 즉시 저장
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(
+                `ai-chat-${sessionId}`,
+                JSON.stringify(updated)
+              );
+            }
+            return updated;
+          });
         }
 
         // 응답 콜백 (기존 호환성 유지)
@@ -242,7 +313,17 @@ export const useAIChat = (options: ChatHookOptions) => {
         const systemMessage = createSystemMessage(
           `❌ AI 시스템 오류: ${errorMessage}\n\n잠시 후 다시 시도해주세요.`
         );
-        setMessages(prev => [...prev, systemMessage]);
+        setMessages(prev => {
+          const updated = [...prev, systemMessage];
+          // localStorage에 즉시 저장
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(
+              `ai-chat-${sessionId}`,
+              JSON.stringify(updated)
+            );
+          }
+          return updated;
+        });
 
         options.onError?.(err);
       } finally {
@@ -264,11 +345,16 @@ export const useAIChat = (options: ChatHookOptions) => {
     setMessages([]);
     setError(null);
 
+    // localStorage에서도 삭제
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(`ai-chat-${sessionId}`);
+    }
+
     // 진행 중인 요청 취소
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-  }, []);
+  }, [sessionId]);
 
   /**
    * 메시지 삭제

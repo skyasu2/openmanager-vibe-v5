@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
+import { motion } from 'framer-motion';
 import ServerDashboard from './ServerDashboard';
+
 import { Server } from '../../types/server';
 import { safeConsoleError, safeErrorMessage } from '../../lib/utils-functions';
 
@@ -112,36 +114,25 @@ export default function DashboardContent({
     // 일반 대시보드 모드 - 단일 컬럼 레이아웃으로 변경
     console.log('📊 일반 대시보드 모드 렌더링');
     return (
-      <div
-        className='min-h-full bg-gray-50'
-        style={{
-          transform: isAgentOpen
-            ? mainContentVariants?.pushed?.transform
-            : mainContentVariants?.normal?.transform,
-          transition: 'transform 0.3s ease-in-out',
-        }}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className='flex-1 p-6 overflow-auto'
       >
-        <div className='p-6'>
-          <div className='max-w-7xl mx-auto'>
-            {/* 🚀 디버깅 정보 표시 (개발 모드에서만) */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className='mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm'>
-                <div className='font-medium text-blue-800 mb-1'>
-                  🔧 디버깅 정보
-                </div>
-                <div className='text-blue-600 space-y-1'>
-                  <div>• 서버 수: {servers?.length || 0}</div>
-                  <div>• AI 에이전트: {isAgentOpen ? '열림' : '닫힘'}</div>
-                  <div>• 렌더링 시간: {new Date().toLocaleTimeString()}</div>
-                </div>
+        {/* 서버 대시보드 - 전체 너비 사용 */}
+        <div className='w-full'>
+          <Suspense
+            fallback={
+              <div className='flex items-center justify-center p-8'>
+                <div className='w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin'></div>
               </div>
-            )}
-
-            {/* 단일 컬럼 레이아웃으로 변경 - AnomalyFeed 제거 */}
+            }
+          >
             <ServerDashboard onStatsUpdate={onStatsUpdate} />
-          </div>
+          </Suspense>
         </div>
-      </div>
+      </motion.div>
     );
   } catch (error) {
     safeConsoleError('❌ DashboardContent 렌더링 에러', error);

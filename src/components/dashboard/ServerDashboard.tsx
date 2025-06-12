@@ -632,6 +632,31 @@ export default function ServerDashboard({
     setCurrentPage(1);
   }, [searchTerm]);
 
+  // 🔧 서버 데이터 변경 시 현재 페이지가 유효하지 않으면 첫 페이지로 이동
+  useEffect(() => {
+    const totalPages = Math.ceil(
+      (filteredAndSortedServers?.length || 0) / SERVERS_PER_PAGE
+    );
+    if (currentPage > totalPages && totalPages > 0) {
+      console.log('📄 페이지 범위 초과, 첫 페이지로 이동:', {
+        currentPage,
+        totalPages,
+      });
+      setCurrentPage(1);
+    }
+  }, [filteredAndSortedServers, currentPage]);
+
+  // 🔧 서버 데이터가 새로 로드될 때 첫 페이지로 리셋
+  useEffect(() => {
+    if (servers.length > 0 && currentPage > 1) {
+      const newTotalPages = Math.ceil(servers.length / SERVERS_PER_PAGE);
+      if (currentPage > newTotalPages) {
+        console.log('📄 서버 데이터 새로고침으로 인한 페이지 리셋');
+        setCurrentPage(1);
+      }
+    }
+  }, [servers.length]);
+
   // 서버 상태별 그룹핑 (페이지네이션 적용)
   const groupedServers = useMemo(() => {
     // 🚀 안전한 배열 처리: paginatedServers가 배열인지 확인
