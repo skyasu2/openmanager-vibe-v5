@@ -170,7 +170,7 @@ export default function Home() {
   // 🚀 카운트다운 시작 함수
   const startCountdown = () => {
     console.log('🚀 자동 시스템 부팅 페이지 이동 카운트다운 시작');
-    success('🚀 5초 후 시스템 부팅 페이지로 자동 이동합니다!');
+    success('🚀 5초 후 다음 단계로 자동 이동합니다!');
 
     setAutoNavigateCountdown(5);
 
@@ -178,7 +178,8 @@ export default function Home() {
       setAutoNavigateCountdown(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          router.push('/system-boot');
+          const target = isSystemStarted ? '/dashboard' : '/system-boot';
+          router.push(target);
           return 0;
         }
         return prev - 1;
@@ -211,7 +212,9 @@ export default function Home() {
         success('⏹️ 시스템이 안전하게 중지되었습니다.');
       } else {
         console.log('🚀 시스템 시작 - 로딩 페이지로 이동');
-        router.push('/system-boot');
+        const target = isSystemStarted ? '/dashboard' : '/system-boot';
+        console.log(`🚀 ${target} 페이지로 이동`);
+        router.push(target);
       }
     } catch (error) {
       console.error('시스템 토글 중 오류:', error);
@@ -224,7 +227,9 @@ export default function Home() {
   const handleDashboardClick = async () => {
     try {
       console.log('🚀 로딩 페이지로 이동');
-      router.push('/system-boot');
+      const target = isSystemStarted ? '/dashboard' : '/system-boot';
+      console.log(`🚀 ${target} 페이지로 이동`);
+      router.push(target);
     } catch (error) {
       console.error('로딩 페이지 접근 중 오류:', error);
       error('로딩 페이지에 접근할 수 없습니다. 잠시 후 다시 시도해주세요.');
