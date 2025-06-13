@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -9,474 +9,57 @@ import {
   Activity,
   AlertTriangle,
   RefreshCw,
-  Download,
   Brain,
   CheckCircle,
-  Database,
-  MessageSquare,
-  Lightbulb,
-  FileText,
-  Settings,
   Target,
   Search,
-  ChevronRight,
-  Trash2,
-  Plus,
+  Clock,
   Eye,
   Edit,
   Zap,
   BarChart3,
-  Clock,
+  MessageSquare,
 } from 'lucide-react';
+
+// 분리된 컴포넌트들 import
+import { useAIAgentData } from '../../hooks/useAIAgentData';
+import AIAgentStatsCards from './admin/AIAgentStatsCards';
 import RealTimeLogMonitor from './RealTimeLogMonitor';
 import LogAnalyticsDashboard from '../admin/LogAnalyticsDashboard';
-
-interface ResponseLogData {
-  id: string;
-  timestamp: string;
-  question: string;
-  response: string;
-  status: 'success' | 'fallback' | 'failed';
-  confidence: number;
-  responseTime: number;
-  fallbackStage?: string;
-  patternMatched?: string;
-  serverContext?: any;
-}
-
-interface PatternSuggestion {
-  id: string;
-  originalQuery: string;
-  suggestedPattern: string;
-  confidence: number;
-  category: string;
-  status: 'pending' | 'approved' | 'rejected';
-  createdAt: string;
-  examples: string[];
-}
-
-interface ContextDocument {
-  id: string;
-  filename: string;
-  category: 'basic' | 'advanced' | 'custom';
-  size: number;
-  lastModified: string;
-  wordCount: number;
-  keywords: string[];
-  content?: string;
-}
-
-interface SystemHealth {
-  aiAgent: {
-    status: 'online' | 'offline' | 'degraded';
-    responseTime: number;
-    uptime: number;
-    version: string;
-  };
-  mcp: {
-    status: 'connected' | 'disconnected' | 'error';
-    documentsLoaded: number;
-    lastSync: string;
-  };
-  fallbackRate: number;
-  learningCycle: {
-    lastRun: string;
-    nextRun: string;
-    status: 'idle' | 'running' | 'error';
-  };
-}
+import type { ResponseLogData, ContextDocument } from '../../types/ai-agent';
 
 export default function AIAgentAdminDashboard() {
-  // 데이터 상태
-  const [responseLogs, setResponseLogs] = useState<ResponseLogData[]>([]);
-  const [patternSuggestions, setPatternSuggestions] = useState<
-    PatternSuggestion[]
-  >([]);
-  const [contextDocuments, setContextDocuments] = useState<ContextDocument[]>(
-    []
-  );
-  const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
+  const {
+    // 데이터
+    responseLogs,
+    patternSuggestions,
+    contextDocuments,
+    systemHealth,
+
+    // 상태
+    loading,
+    error,
+
+    // 필터링된 데이터
+    filteredLogs,
+    stats,
+
+    // 액션
+    loadAllData,
+    handlePatternAction,
+
+    // 필터
+    filters,
+    setFilters,
+    searchTerm,
+    setSearchTerm,
+  } = useAIAgentData();
 
   // UI 상태
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState('logs');
-  const [searchTerm, setSearchTerm] = useState('');
-
-  // 필터 상태
-  const [filters, setFilters] = useState({
-    dateRange: '24h',
-    status: 'all',
-    confidence: 'all',
-  });
-
-  // 선택된 항목 상태
   const [selectedLog, setSelectedLog] = useState<ResponseLogData | null>(null);
-  const [selectedPattern, setSelectedPattern] =
-    useState<PatternSuggestion | null>(null);
   const [selectedDocument, setSelectedDocument] =
     useState<ContextDocument | null>(null);
-
-  // 데이터 로드
-  useEffect(() => {
-    loadAllData();
-  }, []);
-
-  const loadAllData = async () => {
-    setLoading(true);
-    try {
-      await Promise.all([
-        loadResponseLogs(),
-        loadPatternSuggestions(),
-        loadContextDocuments(),
-        loadSystemHealth(),
-      ]);
-    } catch (error) {
-      console.error('데이터 로드 실패:', error);
-      setError('데이터를 불러오는데 실패했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadResponseLogs = async () => {
-    try {
-      const response = await fetch(
-        '/api/ai-agent/admin/logs?action=interactions&limit=100'
-      );
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data?.interactions) {
-          // API 응답을 우리 인터페이스에 맞게 변환
-          const convertedLogs = data.data.interactions.map((log: any) => ({
-            id: log.id || `log-${Date.now()}-${Math.random()}`,
-            timestamp: log.timestamp || new Date().toISOString(),
-            question: log.query || log.question || '질문 정보 없음',
-            response: log.response || log.answer || '응답 정보 없음',
-            status: log.success
-              ? 'success'
-              : log.fallbackUsed
-                ? 'fallback'
-                : 'failed',
-            confidence: log.confidence || 0.5,
-            responseTime: log.responseTime || 1000,
-            fallbackStage: log.fallbackUsed ? 'stage-1' : undefined,
-            patternMatched: log.patternMatched || undefined,
-            serverContext: log.serverContext || {},
-          }));
-          setResponseLogs(convertedLogs);
-        } else {
-          setResponseLogs(generateMockResponseLogs());
-        }
-      } else {
-        setResponseLogs(generateMockResponseLogs());
-      }
-    } catch (error) {
-      console.warn('응답 로그 로드 실패, 폴백 데이터 사용:', error);
-      setResponseLogs(generateMockResponseLogs());
-    }
-  };
-
-  const loadPatternSuggestions = async () => {
-    try {
-      const response = await fetch(
-        '/api/ai-agent/learning/analysis?action=latest-report'
-      );
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data?.suggestions) {
-          // API 응답을 우리 인터페이스에 맞게 변환
-          const convertedSuggestions = data.data.suggestions.map(
-            (suggestion: any) => ({
-              id: suggestion.id || `suggestion-${Date.now()}-${Math.random()}`,
-              originalQuery:
-                suggestion.originalQuery ||
-                suggestion.query ||
-                '원본 질문 없음',
-              suggestedPattern:
-                suggestion.suggestedPattern ||
-                suggestion.pattern ||
-                '제안 패턴 없음',
-              confidence:
-                suggestion.confidenceScore || suggestion.confidence || 0.7,
-              category: suggestion.category || 'general',
-              status: suggestion.status || 'pending',
-              createdAt:
-                suggestion.createdAt ||
-                suggestion.timestamp ||
-                new Date().toISOString(),
-              examples: suggestion.examples || [
-                `${suggestion.originalQuery || '예시'} 관련 질문들`,
-              ],
-            })
-          );
-          setPatternSuggestions(convertedSuggestions);
-        } else {
-          setPatternSuggestions(generateMockPatternSuggestions());
-        }
-      } else {
-        setPatternSuggestions(generateMockPatternSuggestions());
-      }
-    } catch (error) {
-      console.warn('패턴 제안 로드 실패, 폴백 데이터 사용:', error);
-      setPatternSuggestions(generateMockPatternSuggestions());
-    }
-  };
-
-  const loadContextDocuments = async () => {
-    try {
-      const response = await fetch('/api/system/status');
-      if (response.ok) {
-        const data = await response.json();
-        setContextDocuments(data.documents || []);
-      } else {
-        setContextDocuments(generateMockContextDocuments());
-      }
-    } catch (error) {
-      console.warn('컨텍스트 문서 로드 실패, 폴백 데이터 사용:', error);
-      setContextDocuments(generateMockContextDocuments());
-    }
-  };
-
-  const loadSystemHealth = async () => {
-    try {
-      const response = await fetch('/api/system/status');
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          // API 응답을 우리 인터페이스에 맞게 변환
-          const healthData: SystemHealth = {
-            aiAgent: {
-              status: data.status === 'healthy' ? 'online' : 'offline',
-              responseTime:
-                data.metrics?.averageResponseTime ||
-                Math.floor(Math.random() * 1000 + 200),
-              uptime:
-                data.uptime || Math.floor(Math.random() * 1000000 + 500000),
-              version: data.version || 'v1.5.3',
-            },
-            mcp: {
-              status:
-                data.mcpStatus === 'connected' ? 'connected' : 'disconnected',
-              documentsLoaded:
-                data.documentsLoaded || Math.floor(Math.random() * 50 + 20),
-              lastSync:
-                data.lastSync ||
-                new Date(
-                  Date.now() - Math.random() * 60 * 60 * 1000
-                ).toISOString(),
-            },
-            fallbackRate: data.fallbackRate || Math.random() * 0.15 + 0.02,
-            learningCycle: {
-              lastRun:
-                data.learningCycle?.lastRun ||
-                new Date(
-                  Date.now() - Math.random() * 24 * 60 * 60 * 1000
-                ).toISOString(),
-              nextRun:
-                data.learningCycle?.nextRun ||
-                new Date(
-                  Date.now() + Math.random() * 24 * 60 * 60 * 1000
-                ).toISOString(),
-              status: data.learningCycle?.status || 'idle',
-            },
-          };
-          setSystemHealth(healthData);
-        } else {
-          setSystemHealth(generateMockSystemHealth());
-        }
-      } else {
-        setSystemHealth(generateMockSystemHealth());
-      }
-    } catch (error) {
-      console.warn('시스템 상태 로드 실패, 폴백 데이터 사용:', error);
-      setSystemHealth(generateMockSystemHealth());
-    }
-  };
-
-  // Mock 데이터 생성 함수들
-  const generateMockResponseLogs = (): ResponseLogData[] => {
-    const statuses: ('success' | 'fallback' | 'failed')[] = [
-      'success',
-      'fallback',
-      'failed',
-    ];
-    const questions = [
-      'CPU 사용률이 높은 서버는?',
-      '메모리 부족 서버 확인해줘',
-      '서버 상태 요약해줘',
-      '성능 분석 결과는?',
-      '네트워크 트래픽 확인',
-      '데이터베이스 연결 상태는?',
-    ];
-
-    return Array.from({ length: 50 }, (_, i) => ({
-      id: `log-${i}`,
-      timestamp: new Date(
-        Date.now() - Math.random() * 24 * 60 * 60 * 1000
-      ).toISOString(),
-      question: questions[Math.floor(Math.random() * questions.length)],
-      response: '분석 결과를 제공했습니다.',
-      status: statuses[Math.floor(Math.random() * statuses.length)],
-      confidence: Math.random() * 0.4 + 0.6,
-      responseTime: Math.floor(Math.random() * 3000 + 500),
-      fallbackStage: Math.random() > 0.7 ? 'stage-2' : undefined,
-      patternMatched: Math.random() > 0.5 ? 'server-analysis' : undefined,
-    }));
-  };
-
-  const generateMockPatternSuggestions = (): PatternSuggestion[] => {
-    const suggestions = [
-      {
-        originalQuery: '서버들 상태가 어때?',
-        suggestedPattern: '서버 상태 확인',
-        category: 'server-monitoring',
-      },
-      {
-        originalQuery: 'cpu 많이 쓰는거 어디야?',
-        suggestedPattern: 'CPU 사용률 분석',
-        category: 'performance',
-      },
-      {
-        originalQuery: '메모리 부족한 서버 있나?',
-        suggestedPattern: '메모리 사용량 체크',
-        category: 'resource-monitoring',
-      },
-    ];
-
-    return suggestions.map((s, i) => ({
-      id: `suggestion-${i}`,
-      originalQuery: s.originalQuery,
-      suggestedPattern: s.suggestedPattern,
-      confidence: Math.random() * 0.3 + 0.7,
-      category: s.category,
-      status: 'pending' as const,
-      createdAt: new Date(
-        Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000
-      ).toISOString(),
-      examples: [`${s.originalQuery}의 예시1`, `${s.originalQuery}의 예시2`],
-    }));
-  };
-
-  const generateMockContextDocuments = (): ContextDocument[] => {
-    const categories: ('basic' | 'advanced' | 'custom')[] = [
-      'basic',
-      'advanced',
-      'custom',
-    ];
-    const filenames = [
-      'server-monitoring-guide.md',
-      'troubleshooting-handbook.md',
-      'performance-analysis.md',
-      'network-diagnostics.md',
-      'database-health-check.md',
-    ];
-
-    return filenames.map((filename, i) => ({
-      id: `doc-${i}`,
-      filename,
-      category: categories[Math.floor(Math.random() * categories.length)],
-      size: Math.floor(Math.random() * 50000 + 5000),
-      lastModified: new Date(
-        Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000
-      ).toISOString(),
-      wordCount: Math.floor(Math.random() * 2000 + 500),
-      keywords: ['서버', '모니터링', '분석', '진단'].slice(
-        0,
-        Math.floor(Math.random() * 3 + 2)
-      ),
-    }));
-  };
-
-  const generateMockSystemHealth = (): SystemHealth => ({
-    aiAgent: {
-      status: 'online',
-      responseTime: Math.floor(Math.random() * 1000 + 200),
-      uptime: Math.floor(Math.random() * 1000000 + 500000),
-      version: 'v1.5.3',
-    },
-    mcp: {
-      status: 'connected',
-      documentsLoaded: Math.floor(Math.random() * 50 + 20),
-      lastSync: new Date(
-        Date.now() - Math.random() * 60 * 60 * 1000
-      ).toISOString(),
-    },
-    fallbackRate: Math.random() * 0.15 + 0.02,
-    learningCycle: {
-      lastRun: new Date(
-        Date.now() - Math.random() * 24 * 60 * 60 * 1000
-      ).toISOString(),
-      nextRun: new Date(
-        Date.now() + Math.random() * 24 * 60 * 60 * 1000
-      ).toISOString(),
-      status: 'idle',
-    },
-  });
-
-  // 필터링된 로그
-  const filteredLogs = responseLogs.filter(log => {
-    if (filters.status !== 'all' && log.status !== filters.status) return false;
-    if (filters.confidence !== 'all') {
-      const confThreshold = filters.confidence === 'high' ? 0.8 : 0.5;
-      if (log.confidence < confThreshold) return false;
-    }
-    if (
-      searchTerm &&
-      !log.question.toLowerCase().includes(searchTerm.toLowerCase())
-    ) {
-      return false;
-    }
-    return true;
-  });
-
-  // 패턴 승인/거부 처리
-  const handlePatternAction = async (
-    id: string,
-    action: 'approve' | 'reject'
-  ) => {
-    try {
-      const apiAction =
-        action === 'approve' ? 'approve-suggestion' : 'reject-suggestion';
-      const response = await fetch('/api/ai-agent/learning/analysis', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: apiAction,
-          data: {
-            suggestionId: id,
-            reason: action === 'reject' ? '관리자가 거부함' : undefined,
-          },
-        }),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          setPatternSuggestions(prev =>
-            prev.map(p =>
-              p.id === id
-                ? {
-                  ...p,
-                  status: action === 'approve' ? 'approved' : 'rejected',
-                }
-                : p
-            )
-          );
-          console.log(
-            `패턴 ${action === 'approve' ? '승인' : '거부'} 완료:`,
-            result.message
-          );
-        } else {
-          console.error('패턴 처리 실패:', result.error);
-        }
-      } else {
-        console.error('API 요청 실패:', response.status);
-      }
-    } catch (error) {
-      console.error('패턴 처리 실패:', error);
-    }
-  };
 
   if (loading) {
     return (
@@ -512,91 +95,7 @@ export default function AIAgentAdminDashboard() {
   return (
     <div className='p-6 space-y-6 bg-gray-50 min-h-screen'>
       {/* 상단 통계 카드 */}
-      <div className='grid grid-cols-1 md:grid-cols-4 gap-6'>
-        <Card>
-          <CardContent className='p-6'>
-            <div className='flex items-center justify-between'>
-              <div>
-                <p className='text-sm font-medium text-gray-600'>
-                  총 응답 로그
-                </p>
-                <p className='text-2xl font-bold text-blue-600'>
-                  {responseLogs.length}
-                </p>
-              </div>
-              <MessageSquare className='w-8 h-8 text-blue-500' />
-            </div>
-            <p className='text-xs text-gray-500 mt-2'>
-              성공률:{' '}
-              {(
-                (responseLogs.filter(l => l.status === 'success').length /
-                  responseLogs.length) *
-                100
-              ).toFixed(1)}
-              %
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className='p-6'>
-            <div className='flex items-center justify-between'>
-              <div>
-                <p className='text-sm font-medium text-gray-600'>패턴 제안</p>
-                <p className='text-2xl font-bold text-orange-600'>
-                  {patternSuggestions.length}
-                </p>
-              </div>
-              <Lightbulb className='w-8 h-8 text-orange-500' />
-            </div>
-            <p className='text-xs text-gray-500 mt-2'>
-              대기중:{' '}
-              {patternSuggestions.filter(p => p.status === 'pending').length}개
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className='p-6'>
-            <div className='flex items-center justify-between'>
-              <div>
-                <p className='text-sm font-medium text-gray-600'>
-                  컨텍스트 문서
-                </p>
-                <p className='text-2xl font-bold text-green-600'>
-                  {contextDocuments.length}
-                </p>
-              </div>
-              <FileText className='w-8 h-8 text-green-500' />
-            </div>
-            <p className='text-xs text-gray-500 mt-2'>
-              총{' '}
-              {Math.round(
-                contextDocuments.reduce((sum, doc) => sum + doc.wordCount, 0) /
-                1000
-              )}
-              K 단어
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className='p-6'>
-            <div className='flex items-center justify-between'>
-              <div>
-                <p className='text-sm font-medium text-gray-600'>시스템 상태</p>
-                <p className='text-2xl font-bold text-purple-600'>
-                  {systemHealth?.aiAgent.status === 'online' ? '정상' : '오류'}
-                </p>
-              </div>
-              <Activity className='w-8 h-8 text-purple-500' />
-            </div>
-            <p className='text-xs text-gray-500 mt-2'>
-              Fallback: {((systemHealth?.fallbackRate || 0) * 100).toFixed(1)}%
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <AIAgentStatsCards stats={stats} />
 
       {/* 탭 네비게이션 */}
       <Tabs
@@ -640,7 +139,7 @@ export default function AIAgentAdminDashboard() {
                     <div className='relative'>
                       <Search className='w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400' />
                       <input
-                        aria-label='입력 필드'
+                        aria-label='질문 검색'
                         type='text'
                         placeholder='질문 검색...'
                         value={searchTerm}
@@ -649,6 +148,7 @@ export default function AIAgentAdminDashboard() {
                       />
                     </div>
                     <select
+                      aria-label='상태 필터'
                       value={filters.status}
                       onChange={e =>
                         setFilters(prev => ({
@@ -726,7 +226,7 @@ export default function AIAgentAdminDashboard() {
         <TabsContent value='contexts' className='space-y-6'>
           <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
             {/* 현재 활성 컨텍스트 */}
-            <Card className='lg:col-span-1'>
+            <Card>
               <CardHeader>
                 <CardTitle className='flex items-center gap-2'>
                   <Target className='w-5 h-5' />
@@ -751,7 +251,7 @@ export default function AIAgentAdminDashboard() {
                     </div>
                   </div>
 
-                  <div className='space-y-2'>
+                  <div>
                     <h4 className='font-medium text-gray-900'>빠른 전환</h4>
                     <div className='space-y-2'>
                       <button className='w-full p-2 text-left text-sm bg-gray-50 hover:bg-gray-100 rounded border'>
@@ -773,7 +273,7 @@ export default function AIAgentAdminDashboard() {
             <Card className='lg:col-span-2'>
               <CardHeader>
                 <CardTitle className='flex items-center gap-2'>
-                  <FileText className='w-5 h-5' />
+                  <Brain className='w-5 h-5' />
                   컨텍스트 문서 관리
                 </CardTitle>
               </CardHeader>
@@ -807,40 +307,41 @@ export default function AIAgentAdminDashboard() {
                               {doc.filename}
                             </span>
                           </div>
-                          <div className='flex items-center gap-4 text-xs text-gray-500'>
-                            <span>{(doc.size / 1024).toFixed(1)}KB</span>
-                            <span>{doc.wordCount.toLocaleString()}단어</span>
-                            <span>
-                              {new Date(doc.lastModified).toLocaleDateString(
-                                'ko-KR'
-                              )}
-                            </span>
-                          </div>
-                          <div className='mt-2'>
-                            <div className='flex flex-wrap gap-1'>
-                              {doc.keywords.slice(0, 3).map((keyword, idx) => (
-                                <span
-                                  key={idx}
-                                  className='inline-block px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded'
-                                >
-                                  {keyword}
-                                </span>
-                              ))}
-                              {doc.keywords.length > 3 && (
-                                <span className='inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded'>
-                                  +{doc.keywords.length - 3}
-                                </span>
-                              )}
-                            </div>
+                          <p className='text-xs text-gray-600 mb-2'>
+                            {doc.wordCount.toLocaleString()} 단어 •{' '}
+                            {(doc.size / 1024).toFixed(1)}KB
+                          </p>
+                          <div className='flex flex-wrap gap-1'>
+                            {doc.keywords.slice(0, 3).map(keyword => (
+                              <span
+                                key={keyword}
+                                className='px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded'
+                              >
+                                {keyword}
+                              </span>
+                            ))}
+                            {doc.keywords.length > 3 && (
+                              <span className='text-xs text-gray-500'>
+                                +{doc.keywords.length - 3}개
+                              </span>
+                            )}
                           </div>
                         </div>
                         <div className='flex items-center gap-2'>
-                          <Button size='sm' variant='outline'>
-                            <Eye className='w-4 h-4' />
-                          </Button>
-                          <Button size='sm' variant='outline'>
-                            <Edit className='w-4 h-4' />
-                          </Button>
+                          <button
+                            className='p-1 hover:bg-gray-200 rounded'
+                            aria-label='문서 보기'
+                            title='문서 보기'
+                          >
+                            <Eye className='w-4 h-4 text-gray-500' />
+                          </button>
+                          <button
+                            className='p-1 hover:bg-gray-200 rounded'
+                            aria-label='문서 편집'
+                            title='문서 편집'
+                          >
+                            <Edit className='w-4 h-4 text-gray-500' />
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -851,7 +352,7 @@ export default function AIAgentAdminDashboard() {
           </div>
         </TabsContent>
 
-        {/* 탭 3: A/B 테스트 현황 */}
+        {/* 탭 4: A/B 테스트 현황 */}
         <TabsContent value='ab-test' className='space-y-6'>
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
             {/* 실험 그룹 분포 */}
@@ -885,43 +386,33 @@ export default function AIAgentAdminDashboard() {
                     </div>
                   </div>
 
-                  <div className='p-4 bg-purple-50 border border-purple-200 rounded-lg'>
-                    <h4 className='font-medium text-purple-800 mb-2'>
-                      실험 B: AI 강화 응답
+                  <div className='p-4 bg-green-50 border border-green-200 rounded-lg'>
+                    <h4 className='font-medium text-green-800 mb-2'>
+                      실험 B: 향상된 응답 전략
                     </h4>
                     <div className='flex items-center justify-between mb-2'>
-                      <span className='text-sm text-purple-700'>
+                      <span className='text-sm text-green-700'>
                         참여자 비율
                       </span>
-                      <span className='font-medium text-purple-800'>
-                        50% (243명)
+                      <span className='font-medium text-green-800'>
+                        50% (255명)
                       </span>
                     </div>
-                    <div className='w-full bg-purple-200 rounded-full h-2'>
+                    <div className='w-full bg-green-200 rounded-full h-2'>
                       <div
-                        className='bg-purple-600 h-2 rounded-full'
+                        className='bg-green-600 h-2 rounded-full'
                         style={{ width: '50%' }}
                       ></div>
                     </div>
-                    <div className='mt-2 text-xs text-purple-600'>
+                    <div className='mt-2 text-xs text-green-600'>
                       평균 응답시간: 1.8초 | 만족도: 8.7/10
                     </div>
-                  </div>
-
-                  <div className='mt-4 p-3 bg-green-50 border border-green-200 rounded-lg'>
-                    <h5 className='font-medium text-green-800 mb-1'>
-                      현재 상태
-                    </h5>
-                    <p className='text-sm text-green-700'>
-                      실험 B가 응답 품질에서 우수한 성과를 보이고 있습니다.
-                      통계적 유의성 달성까지 <strong>47시간</strong> 남았습니다.
-                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* 전략별 응답 비교 */}
+            {/* 전략별 성능 비교 */}
             <Card>
               <CardHeader>
                 <CardTitle className='flex items-center gap-2'>
@@ -941,7 +432,7 @@ export default function AIAgentAdminDashboard() {
                           <th className='text-center py-2'>개선율</th>
                         </tr>
                       </thead>
-                      <tbody className='text-gray-600'>
+                      <tbody>
                         <tr className='border-b'>
                           <td className='py-2'>평균 응답시간</td>
                           <td className='text-center'>1.2초</td>
@@ -969,26 +460,16 @@ export default function AIAgentAdminDashboard() {
                       </tbody>
                     </table>
                   </div>
-
-                  <div className='mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg'>
-                    <h5 className='font-medium text-yellow-800 mb-1'>
-                      권장사항
-                    </h5>
-                    <p className='text-sm text-yellow-700'>
-                      실험 B의 품질 개선이 응답시간 증가를 상쇄하고 있습니다.
-                      통계적 검증 완료 후 실험 B로 전환을 권장합니다.
-                    </p>
-                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
         </TabsContent>
 
-        {/* 탭 4: 품질 피드백 로그 */}
+        {/* 탭 5: 품질 피드백 */}
         <TabsContent value='feedback' className='space-y-6'>
           <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
-            {/* 피드백 통계 */}
+            {/* 품질 통계 */}
             <Card>
               <CardHeader>
                 <CardTitle className='flex items-center gap-2'>
@@ -1008,7 +489,7 @@ export default function AIAgentAdminDashboard() {
                     </div>
                   </div>
 
-                  <div className='space-y-3'>
+                  <div className='space-y-2'>
                     <div className='flex items-center justify-between'>
                       <span className='text-sm text-gray-600'>매우 좋음</span>
                       <div className='flex items-center gap-2'>
@@ -1058,22 +539,11 @@ export default function AIAgentAdminDashboard() {
                       </div>
                     </div>
                   </div>
-
-                  <div className='mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg'>
-                    <h5 className='font-medium text-blue-800 mb-1'>
-                      개선 포인트
-                    </h5>
-                    <ul className='text-sm text-blue-700 space-y-1'>
-                      <li>• 응답 속도 개선 필요</li>
-                      <li>• 기술적 질문 정확도 향상</li>
-                      <li>• 컨텍스트 이해도 개선</li>
-                    </ul>
-                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* 최근 피드백 */}
+            {/* 최근 피드백 로그 */}
             <Card className='lg:col-span-2'>
               <CardHeader>
                 <CardTitle className='flex items-center gap-2'>
@@ -1128,13 +598,17 @@ export default function AIAgentAdminDashboard() {
                               ? '👍 긍정'
                               : '👎 부정'}
                           </Badge>
-                          <div className='flex items-center gap-1'>
+                          <div className='flex items-center'>
                             {[...Array(5)].map((_, i) => (
                               <span
                                 key={i}
-                                className={`text-sm ${i < feedback.rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                                className={`text-sm ${
+                                  i < feedback.rating
+                                    ? 'text-yellow-400'
+                                    : 'text-gray-300'
+                                }`}
                               >
-                                ⭐
+                                ★
                               </span>
                             ))}
                           </div>
@@ -1146,7 +620,7 @@ export default function AIAgentAdminDashboard() {
                       <p className='text-sm font-medium text-gray-900 mb-1'>
                         {feedback.question}
                       </p>
-                      <p className='text-sm text-gray-600'>
+                      <p className='text-xs text-gray-600'>
                         {feedback.comment}
                       </p>
                     </div>
