@@ -11,11 +11,13 @@ import dynamic from 'next/dynamic';
 import UnifiedProfileComponent from '../UnifiedProfileComponent';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 
-// ⚡ Dynamic Import로 Vercel 최적화 AI 사이드바 - 성능 최적화
+// ⚡ Dynamic Import로 Vercel 최적화 AI 사이드바 - 이전 버전 복원
 const VercelOptimizedAISidebar = dynamic(
   () =>
     import('../../modules/ai-sidebar/components/VercelOptimizedAISidebar').then(
-      mod => ({ default: mod.VercelOptimizedAISidebar })
+      mod => ({
+        default: mod.VercelOptimizedAISidebar,
+      })
     ),
   {
     ssr: false, // AI 컴포넌트는 클라이언트 전용
@@ -173,6 +175,14 @@ const DashboardHeader = memo(function DashboardHeader({
                 </div>
                 <div className='text-xs text-gray-500'>오프라인</div>
               </div>
+
+              {/* 실시간 업데이트 표시 */}
+              <div className='text-center'>
+                <div className='text-xs text-gray-500'>마지막 업데이트</div>
+                <div className='text-xs text-gray-400'>
+                  {new Date().toLocaleTimeString()}
+                </div>
+              </div>
             </div>
 
             {/* AI 에이전트 토글 버튼 - 프로필 바로 왼쪽에 배치 */}
@@ -298,7 +308,7 @@ const DashboardHeader = memo(function DashboardHeader({
         </div>
       </header>
 
-      {/* Vercel 최적화 AI 사이드바 */}
+      {/* VercelOptimizedAISidebar */}
       <VercelOptimizedAISidebar
         isOpen={isSidebarOpen}
         onClose={() => setSidebarOpen(false)}

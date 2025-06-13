@@ -11,6 +11,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { realServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { supabase } from '@/lib/supabase';
+import { autoReportService } from '@/services/ai/AutoReportService';
+import { AIAnalysisDataset } from '@/types/ai-agent-input-schema';
+import { createSafeError } from '@/lib/error-handler';
+import { z } from 'zod';
 
 interface ReportData {
   id: string;
@@ -442,44 +446,50 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// Zod 스키마로 요청 본문 유효성 검사
+// (AIAnalysisDataset의 모든 필드를 검증하기엔 복잡하므로 핵심적인 부분만 체크)
+const AutoReportRequestSchema = z.object({
+  metadata: z.object({
+    generationTime: z.string().datetime(),
+  }),
+  patterns: z.object({
+    anomalies: z.array(z.any()).min(1, {
+      message: '분석할 이상 징후(anomalies)가 최소 1개 이상 필요합니다.',
+    }),
+  }),
+  logs: z.array(z.any()).optional(),
+  metrics: z.array(z.any()).optional(),
+});
+
 // POST: 새 보고서 생성
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { type, title } = body;
 
-    if (
-      !type ||
-      !['daily', 'incident', 'performance', 'security'].includes(type)
-    ) {
+    // 요청 본문 유효성 검사
+    const validationResult = AutoReportRequestSchema.safeParse(body);
+    if (!validationResult.success) {
       return NextResponse.json(
-        { success: false, error: '유효하지 않은 보고서 타입입니다' },
+        {
+          success: false,
+          error: '잘못된 요청 형식입니다.',
+          details: validationResult.error.flatten().fieldErrors,
+        },
         { status: 400 }
       );
     }
 
-    // 데이터 생성기 초기화
-    if (!realServerDataGenerator.getAllServers().length) {
-      await realServerDataGenerator.initialize();
-    }
+    const context: AIAnalysisDataset = body;
 
-    // 보고서 생성
-    const report = await generateReport(type);
+    const report = await autoReportService.generateReport(context);
 
-    if (title) {
-      report.title = title;
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: report,
-      message: '보고서가 성공적으로 생성되었습니다',
-      timestamp: Date.now(),
-    });
+    return NextResponse.json({ success: true, report });
   } catch (error) {
-    console.error('❌ 보고서 생성 실패:', error);
+    const safeError = createSafeError(error);
+    console.error('API Error in /api/ai/auto-report:', safeError);
+
     return NextResponse.json(
-      { success: false, error: '보고서 생성에 실패했습니다' },
+      { success: false, error: safeError.message },
       { status: 500 }
     );
   }

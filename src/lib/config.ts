@@ -126,10 +126,15 @@ const parseSupabaseConfig = () => {
   };
 };
 
-// Redis 설정 검증
+// Redis 설정 검증 (다중 소스 지원)
 const parseRedisConfig = () => {
-  const redisUrl = validateEnvVar('UPSTASH_REDIS_REST_URL', false);
-  const redisToken = validateEnvVar('UPSTASH_REDIS_REST_TOKEN', false);
+  // 다중 환경변수 소스 지원
+  const redisUrl =
+    validateEnvVar('KV_REST_API_URL', false) ||
+    validateEnvVar('UPSTASH_REDIS_REST_URL', false);
+  const redisToken =
+    validateEnvVar('KV_REST_API_TOKEN', false) ||
+    validateEnvVar('UPSTASH_REDIS_REST_TOKEN', false);
 
   return {
     url: redisUrl,
@@ -262,13 +267,21 @@ export const validateEnvironment = (): {
       }
     }
 
-    // 선택적 환경변수 체크 (경고만)
-    const optionalVars = [
-      'SUPABASE_SERVICE_ROLE_KEY',
-      'UPSTASH_REDIS_REST_URL',
-      'UPSTASH_REDIS_REST_TOKEN',
-      'SLACK_WEBHOOK_URL',
-    ];
+    // 선택적 환경변수 체크 (경고만) - Redis 다중 소스 지원
+    const optionalVars = ['SUPABASE_SERVICE_ROLE_KEY', 'SLACK_WEBHOOK_URL'];
+
+    // Redis 환경변수 체크 (다중 소스)
+    const hasRedisConfig = !!(
+      (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) ||
+      (process.env.UPSTASH_REDIS_REST_URL &&
+        process.env.UPSTASH_REDIS_REST_TOKEN)
+    );
+
+    if (!hasRedisConfig) {
+      warnings.push(
+        '⚠️ Redis 환경변수 누락: KV_REST_API_URL/TOKEN 또는 UPSTASH_REDIS_REST_URL/TOKEN 필요 (캐싱 기능 제한됨)'
+      );
+    }
 
     for (const varName of optionalVars) {
       if (!process.env[varName]) {

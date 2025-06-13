@@ -5,7 +5,7 @@
  * ✅ 실시간 건강성 체크 및 모드 전환
  */
 
-import { LocalRAGEngine } from '../../utils/legacy/local-rag-engine';
+import { LocalRAGEngine } from '@/lib/ml/rag-engine';
 import { MCPHealthChecker } from './mcp-health-checker';
 
 interface AIResponse {

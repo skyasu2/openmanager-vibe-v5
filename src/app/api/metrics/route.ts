@@ -35,14 +35,13 @@ export async function GET() {
         'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30',
       },
     });
-
   } catch (error) {
     console.error('❌ Failed to fetch metrics:', error);
 
     return NextResponse.json(
       {
         error: 'Failed to fetch metrics',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -164,7 +163,7 @@ function convertToPrometheusFormat(servers: any[]): string {
 
   // 인프라 건강도 메트릭
   const healthyServers = servers.filter(
-    (s: any) => s.status === 'normal'
+    (s: any) => s.status === 'healthy'
   ).length;
   const healthPercentage = (healthyServers / servers.length) * 100;
 

@@ -361,14 +361,22 @@ export class RealMCPClient {
     console.log(`🔄 ${serverName} 실제 폴백 클라이언트 생성`);
 
     return {
-      async connect(): Promise<void> {
+      /**
+       * 폴백 클라이언트는 실제로 외부 프로세스 연결이 없으므로 connect/close 는 로그만 남깁니다.
+       */
+      connect: async (): Promise<void> => {
         console.log(`✅ ${serverName} 폴백 클라이언트 연결됨`);
       },
 
-      async request(request: any): Promise<any> {
+      /**
+       * tools/list, tools/call 요청만 처리하고 그 외에는 오류 반환
+       *
+       * NOTE: 화살표 함수(=>)를 사용하지 않으면 this 가 MCPClient 객체로 바인딩되어
+       *       self.getAvailableTools 가 undefined 가 되는 문제가 발생했습니다.
+       */
+      request: async (request: any): Promise<any> => {
         console.log(`🔧 ${serverName} 실제 요청 처리: ${request.method}`);
 
-        // 실제 응답 생성 (Mock 아님)
         switch (request.method) {
           case 'tools/list':
             try {

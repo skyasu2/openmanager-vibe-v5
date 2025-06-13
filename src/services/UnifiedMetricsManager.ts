@@ -118,7 +118,7 @@ export class UnifiedMetricsManager {
     },
     ai_analysis: {
       enabled: true,
-      interval_seconds: 30,
+      interval_seconds: 300,
       python_engine_preferred: false,
       fallback_to_typescript: true,
     },
@@ -239,7 +239,7 @@ export class UnifiedMetricsManager {
       });
     }
 
-    // 2. AI 분석 스케줄러 (30초)
+    // 2. AI 분석 스케줄러 (5분) - Google AI 할당량 절약
     if (this.config.ai_analysis.enabled) {
       timerManager.register({
         id: 'unified-ai-analysis',

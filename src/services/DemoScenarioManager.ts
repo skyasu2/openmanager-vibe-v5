@@ -679,7 +679,7 @@ export class DemoScenarioManager {
    * 🚨 랜덤 서버 상태 생성
    */
   private generateRandomStatus(intensity: number): ServerStatus {
-    if (intensity < 0.4) return 'normal';
+    if (intensity < 0.4) return 'healthy';
     if (intensity < 0.7) return 'warning';
     if (intensity < 0.9) return 'critical';
     return 'critical';
@@ -867,7 +867,7 @@ export class DemoScenarioManager {
 
     if (avgLoad > 85) server.status = 'critical';
     else if (avgLoad > 70) server.status = 'warning';
-    else server.status = 'normal';
+    else server.status = 'healthy';
   }
 
   /**

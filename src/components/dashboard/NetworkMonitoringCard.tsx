@@ -9,6 +9,8 @@
  * - 네트워크 상태 시각화
  */
 
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -23,7 +25,10 @@ import {
   Download,
   Upload,
   Signal,
+  Users,
+  XCircle,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface NetworkMetrics {
   bandwidth: number; // Mbps
@@ -41,6 +46,51 @@ interface NetworkMonitoringCardProps {
   metrics: NetworkMetrics;
   className?: string;
 }
+
+const getStatusColor = (status: NetworkMetrics['status']) => {
+  switch (status) {
+    case 'excellent':
+      return 'text-green-600 bg-green-100';
+    case 'good':
+      return 'text-blue-600 bg-blue-100';
+    case 'poor':
+      return 'text-yellow-600 bg-yellow-100';
+    case 'offline':
+      return 'text-red-600 bg-red-100';
+    default:
+      return 'text-gray-600 bg-gray-100';
+  }
+};
+
+const getStatusIcon = (status: NetworkMetrics['status']) => {
+  switch (status) {
+    case 'excellent':
+      return <CheckCircle className='h-4 w-4' />;
+    case 'good':
+      return <CheckCircle className='h-4 w-4' />;
+    case 'poor':
+      return <AlertTriangle className='h-4 w-4' />;
+    case 'offline':
+      return <XCircle className='h-4 w-4' />;
+    default:
+      return <AlertTriangle className='h-4 w-4' />;
+  }
+};
+
+const getStatusText = (status: NetworkMetrics['status']) => {
+  switch (status) {
+    case 'excellent':
+      return '우수';
+    case 'good':
+      return '양호';
+    case 'poor':
+      return '불량';
+    case 'offline':
+      return '오프라인';
+    default:
+      return '알 수 없음';
+  }
+};
 
 const NetworkMonitoringCard: React.FC<NetworkMonitoringCardProps> = ({
   serverName,
@@ -109,49 +159,9 @@ const NetworkMonitoringCard: React.FC<NetworkMonitoringCardProps> = ({
     return () => clearInterval(interval);
   }, [metrics]);
 
-  // 네트워크 상태별 색상 테마
-  const getStatusTheme = () => {
-    switch (metrics.status) {
-      case 'excellent':
-        return {
-          gradient: 'from-green-50 via-emerald-50 to-teal-50',
-          border: 'border-green-200',
-          statusColor: 'text-green-600',
-          statusBg: 'bg-green-100',
-          icon: <CheckCircle className='w-5 h-5 text-green-500' />,
-          label: '우수',
-        };
-      case 'good':
-        return {
-          gradient: 'from-blue-50 via-cyan-50 to-sky-50',
-          border: 'border-blue-200',
-          statusColor: 'text-blue-600',
-          statusBg: 'bg-blue-100',
-          icon: <Wifi className='w-5 h-5 text-blue-500' />,
-          label: '양호',
-        };
-      case 'poor':
-        return {
-          gradient: 'from-yellow-50 via-amber-50 to-orange-50',
-          border: 'border-yellow-200',
-          statusColor: 'text-yellow-600',
-          statusBg: 'bg-yellow-100',
-          icon: <AlertTriangle className='w-5 h-5 text-yellow-500' />,
-          label: '불량',
-        };
-      default:
-        return {
-          gradient: 'from-red-50 via-rose-50 to-pink-50',
-          border: 'border-red-200',
-          statusColor: 'text-red-600',
-          statusBg: 'bg-red-100',
-          icon: <AlertTriangle className='w-5 h-5 text-red-500' />,
-          label: '오프라인',
-        };
-    }
-  };
-
-  const theme = getStatusTheme();
+  const statusColorClass = getStatusColor(metrics.status);
+  const statusIcon = getStatusIcon(metrics.status);
+  const statusText = getStatusText(metrics.status);
 
   // 미니 차트 생성
   const NetworkChart = ({
@@ -253,8 +263,8 @@ const NetworkMonitoringCard: React.FC<NetworkMonitoringCardProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className={`
-        bg-gradient-to-br ${theme.gradient}
-        border-2 ${theme.border}
+        bg-gradient-to-br ${getStatusColor(metrics.status)}
+        border-2 ${getStatusColor(metrics.status)}
         rounded-xl p-6 shadow-lg
         ${className}
       `}
@@ -262,7 +272,7 @@ const NetworkMonitoringCard: React.FC<NetworkMonitoringCardProps> = ({
       {/* 헤더 */}
       <div className='flex items-center justify-between mb-4'>
         <div className='flex items-center gap-3'>
-          <div className={`p-2 rounded-lg ${theme.statusBg}`}>
+          <div className={`p-2 rounded-lg ${getStatusColor(metrics.status)}`}>
             <Globe className='w-5 h-5 text-gray-600' />
           </div>
           <div>
@@ -272,11 +282,13 @@ const NetworkMonitoringCard: React.FC<NetworkMonitoringCardProps> = ({
         </div>
 
         <div
-          className={`px-3 py-1 rounded-full ${theme.statusBg} flex items-center gap-2`}
+          className={`px-3 py-1 rounded-full ${getStatusColor(metrics.status)} flex items-center gap-2`}
         >
-          {theme.icon}
-          <span className={`text-xs font-semibold ${theme.statusColor}`}>
-            {theme.label}
+          {statusIcon}
+          <span
+            className={`text-xs font-semibold ${getStatusColor(metrics.status)}`}
+          >
+            {statusText}
           </span>
         </div>
       </div>
@@ -362,6 +374,38 @@ const NetworkMonitoringCard: React.FC<NetworkMonitoringCardProps> = ({
         <div className='flex justify-between text-xs text-gray-600'>
           <span>활성 연결:</span>
           <span className='font-medium'>{metrics.connections}개</span>
+        </div>
+      </div>
+
+      {/* 상태 표시줄 */}
+      <div className='mt-4 pt-4 border-t border-gray-200'>
+        <div className='flex items-center justify-between text-xs text-gray-500'>
+          <span>네트워크 상태</span>
+          <span className='font-medium'>실시간 모니터링</span>
+        </div>
+        <div className='mt-2 w-full bg-gray-200 rounded-full h-1'>
+          <div
+            className={cn(
+              'h-1 rounded-full transition-all duration-500',
+              metrics.status === 'excellent'
+                ? 'bg-green-500'
+                : metrics.status === 'good'
+                  ? 'bg-blue-500'
+                  : metrics.status === 'poor'
+                    ? 'bg-yellow-500'
+                    : 'bg-red-500'
+            )}
+            style={{
+              width:
+                metrics.status === 'offline'
+                  ? '0%'
+                  : metrics.status === 'poor'
+                    ? '40%'
+                    : metrics.status === 'good'
+                      ? '70%'
+                      : '100%',
+            }}
+          />
         </div>
       </div>
     </motion.div>

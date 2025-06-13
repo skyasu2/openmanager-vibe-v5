@@ -1,16 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-
-export interface MCPServerConfig {
-  command: string;
-  args: string[];
-  cwd?: string;
-  env?: Record<string, string>;
-}
-
-export interface MCPConfig {
-  mcpServers: Record<string, MCPServerConfig>;
-}
+import type { MCPServerConfig, MCPConfig } from '../../types/mcp';
 
 export class MCPConfigManager {
   private static instance: MCPConfigManager;

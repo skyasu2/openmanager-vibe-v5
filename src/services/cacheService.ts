@@ -100,7 +100,7 @@ export class EnhancedCacheService {
           300,
           JSON.stringify({
             total: servers.length,
-            healthy: servers.filter(s => s.status === 'normal').length,
+            healthy: servers.filter(s => s.status === 'healthy').length,
             warning: servers.filter(s => s.status === 'warning').length,
             critical: servers.filter(s => s.status === 'critical').length,
             timestamp,
@@ -143,7 +143,7 @@ export class EnhancedCacheService {
 
     const summary = {
       total: servers.length,
-      healthy: servers.filter(s => s.status === 'normal').length,
+      healthy: servers.filter(s => s.status === 'healthy').length,
       warning: servers.filter(s => s.status === 'warning').length,
       critical: servers.filter(s => s.status === 'critical').length,
       timestamp,

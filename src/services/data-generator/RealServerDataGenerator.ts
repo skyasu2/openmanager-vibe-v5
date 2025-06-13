@@ -18,10 +18,10 @@ export interface GeneratorConfig {
   updateInterval?: number;
   enableRealtime?: boolean;
   serverArchitecture?:
-  | 'single'
-  | 'master-slave'
-  | 'load-balanced'
-  | 'microservices';
+    | 'single'
+    | 'master-slave'
+    | 'load-balanced'
+    | 'microservices';
   enableRedis?: boolean;
 }
 
@@ -44,12 +44,15 @@ export class RealServerDataGenerator {
   constructor(config: GeneratorConfig = {}) {
     this.config = {
       maxServers: 30,
-      updateInterval: 3000,
+      updateInterval: 15000, // 15초로 조정 (기존 3초에서)
       enableRealtime: true,
       serverArchitecture: 'load-balanced',
       enableRedis: true,
       ...config,
     };
+
+    // 초기 상태 설정
+    this.isGenerating = false;
 
     // Redis 초기화
     this.initializeRedis();
@@ -72,15 +75,33 @@ export class RealServerDataGenerator {
     }
 
     try {
-      // Upstash Redis 연결 설정
-      this.redis = new Redis({
-        host: 'charming-condor-46598.upstash.io',
-        port: 6379,
-        password: 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
-        tls: {},
-        maxRetriesPerRequest: 3,
-        lazyConnect: true,
-      });
+      // 환경변수에서 Redis 설정 가져오기 (다중 소스 지원)
+      const redisUrl = process.env.REDIS_URL || process.env.KV_URL;
+      const redisHost =
+        process.env.REDIS_HOST || 'charming-condor-46598.upstash.io';
+      const redisPort = parseInt(process.env.REDIS_PORT || '6379');
+      const redisPassword =
+        process.env.REDIS_PASSWORD ||
+        process.env.KV_REST_API_TOKEN ||
+        'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA';
+
+      // Redis URL이 있으면 우선 사용
+      if (redisUrl) {
+        this.redis = new Redis(redisUrl, {
+          maxRetriesPerRequest: 3,
+          lazyConnect: true,
+        });
+      } else {
+        // 개별 설정으로 연결
+        this.redis = new Redis({
+          host: redisHost,
+          port: redisPort,
+          password: redisPassword,
+          tls: {},
+          maxRetriesPerRequest: 3,
+          lazyConnect: true,
+        });
+      }
 
       // 연결 테스트
       await this.redis.ping();
@@ -194,7 +215,7 @@ export class RealServerDataGenerator {
     console.log('✅ RealServerDataGenerator 초기화 완료');
 
     // 실시간 업데이트 자동 시작 (설정이 활성화된 경우)
-    if (this.config.enableRealtime) {
+    if (this.config.enableRealtime && !this.isGenerating) {
       this.startAutoGeneration();
       console.log('🔄 실시간 데이터 업데이트 자동 시작됨');
     }
@@ -271,7 +292,10 @@ export class RealServerDataGenerator {
           cpu: Math.random() * 80 + 10,
           memory: Math.random() * 70 + 20,
           disk: Math.random() * 60 + 30,
-          network: { in: Math.random() * 100, out: Math.random() * 100 },
+          network: {
+            in: Math.random() * 100,
+            out: Math.random() * 100,
+          },
           requests: Math.random() * 1000 + 100,
           errors: Math.random() * 10,
           uptime: Math.random() * 8760 * 3600, // 최대 1년
@@ -478,18 +502,20 @@ export class RealServerDataGenerator {
     return {
       servers: {
         total: servers.length,
-        online: servers.filter(s => s.status === 'running').length,  // running → online 매핑
+        online: servers.filter(s => s.status === 'running').length, // running → online 매핑
+        running: servers.filter(s => s.status === 'running').length, // 테스트 호환성을 위해 추가
         warning: servers.filter(s => s.status === 'warning').length,
-        offline: servers.filter(s => s.status === 'error').length,   // error → offline 매핑
+        offline: servers.filter(s => s.status === 'error').length, // error → offline 매핑
+        error: servers.filter(s => s.status === 'error').length, // 테스트 호환성을 위해 추가
         avgCpu:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.cpu, 0) /
-            servers.length
+              servers.length
             : 0,
         avgMemory:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.memory, 0) /
-            servers.length
+              servers.length
             : 0,
       },
       clusters: {
@@ -524,9 +550,9 @@ export class RealServerDataGenerator {
         avgResponseTime:
           applications.length > 0
             ? applications.reduce(
-              (sum, a) => sum + a.performance.responseTime,
-              0
-            ) / applications.length
+                (sum, a) => sum + a.performance.responseTime,
+                0
+              ) / applications.length
             : 0,
       },
       timestamp: Date.now(),

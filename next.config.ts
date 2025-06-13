@@ -4,7 +4,6 @@ import path from 'path';
 // 번들 분석기 import - ESLint 규칙 준수
 let withBundleAnalyzer: any;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   withBundleAnalyzer = require('@next/bundle-analyzer')({
     enabled: process.env.ANALYZE === 'true',
   });
@@ -143,16 +142,20 @@ const nextConfig: NextConfig = {
 
     // Storybook 및 테스트 파일 제외 (프로덕션 환경)
     if (!dev) {
-      config.module.rules.push({
-        test: /\.(stories|spec|test)\.(ts|tsx|js|jsx)$/,
-        use: 'null-loader',
-      });
+      // webpack.IgnorePlugin 사용 (null-loader 대신)
+      const webpack = require('webpack');
 
-      // backup 디렉토리 제외
-      config.module.rules.push({
-        test: /backup\/.*\.(ts|tsx|js|jsx)$/,
-        use: 'null-loader',
-      });
+      config.plugins.push(
+        new webpack.IgnorePlugin({
+          resourceRegExp: /\.(stories|spec|test)\.(ts|tsx|js|jsx)$/,
+        })
+      );
+
+      config.plugins.push(
+        new webpack.IgnorePlugin({
+          resourceRegExp: /backup\/.*\.(ts|tsx|js|jsx)$/,
+        })
+      );
 
       // Tree-shaking 최적화
       config.optimization.usedExports = true;

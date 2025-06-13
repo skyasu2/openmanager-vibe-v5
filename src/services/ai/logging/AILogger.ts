@@ -213,6 +213,26 @@ export class AILogger {
   }
 
   private initializePino(): void {
+    // Next.js 환경 감지 (워커 스레드 문제 방지)
+    const isNextJS = process.env.NEXT_RUNTIME || typeof window !== 'undefined';
+
+    // Next.js 환경에서는 Pino 완전 비활성화 (워커 스레드 오류 방지)
+    if (isNextJS) {
+      // Mock Pino logger - 모든 로깅 메서드를 빈 함수로 처리
+      this.pinoLogger = {
+        error: () => {},
+        warn: () => {},
+        info: () => {},
+        debug: () => {},
+        trace: () => {},
+        fatal: () => {},
+        child: () => this.pinoLogger,
+        level: 'info',
+      };
+      return;
+    }
+
+    // 일반 환경에서만 실제 Pino 사용
     const pinoConfig: any = {
       level: this.isProduction ? 'info' : 'debug',
       timestamp: pino.stdTimeFunctions.isoTime,
@@ -290,9 +310,18 @@ export class AILogger {
       const winstonLevel = this.mapToWinstonLevel(logEntry.level);
       this.winstonLogger[winstonLevel](logEntry.message, logEntry);
 
-      // Pino 로깅 (더 빠른 성능)
-      const pinoLevel = this.mapToPinoLevel(logEntry.level);
-      this.pinoLogger[pinoLevel](logEntry);
+      // Pino 로깅 (더 빠른 성능) - 안전장치 추가
+      try {
+        const pinoLevel = this.mapToPinoLevel(logEntry.level);
+        this.pinoLogger[pinoLevel](logEntry);
+      } catch (pinoError) {
+        // Pino 로깅 실패 시 Winston으로 fallback (워커 스레드 오류 방지)
+        console.warn(
+          '⚠️ Pino 로깅 실패, Winston으로 fallback:',
+          pinoError.message
+        );
+        // Winston은 이미 위에서 성공했으므로 추가 처리 불필요
+      }
 
       // 실시간 구독자들에게 알림
       this.notifySubscribers(logEntry);

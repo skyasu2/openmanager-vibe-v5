@@ -35,6 +35,8 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { EngineStatusOverview } from '../components/EngineStatusOverview';
+import { ReportGenerator } from '../components/ReportGenerator';
 
 interface MigrationStatus {
   success: boolean;
@@ -70,6 +72,14 @@ export default function IntegratedAIEngineDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // 🔄 실시간 서버 통계
+  const [serverStats, setServerStats] = useState({
+    total: 0,
+    online: 0,
+    warning: 0,
+    offline: 0,
+  });
+
   // 접근 권한 체크
   useEffect(() => {
     if (!adminMode.isAuthenticated) {
@@ -87,6 +97,31 @@ export default function IntegratedAIEngineDashboard() {
     }
   }, [adminMode.isAuthenticated]);
 
+  /**
+   * 🔄 실시간 서버 통계 가져오기
+   */
+  const fetchServerStats = async () => {
+    try {
+      const response = await fetch('/api/servers?limit=50');
+      if (response.ok) {
+        const data = await response.json();
+        const servers = data.servers || [];
+
+        const stats = {
+          total: servers.length,
+          online: servers.filter((s: any) => s.status === 'healthy').length,
+          warning: servers.filter((s: any) => s.status === 'warning').length,
+          offline: servers.filter((s: any) => s.status === 'critical').length,
+        };
+
+        setServerStats(stats);
+        console.log('📊 서버 통계 업데이트:', stats);
+      }
+    } catch (error) {
+      console.error('❌ 서버 통계 로드 실패:', error);
+    }
+  };
+
   // 엔진 상태가 로드된 후 주기적 업데이트 설정
   useEffect(() => {
     if (engines.length === 0) return; // 엔진이 로드되지 않았으면 업데이트 하지 않음
@@ -94,6 +129,15 @@ export default function IntegratedAIEngineDashboard() {
     const interval = setInterval(refreshEngineStatus, 5000);
     return () => clearInterval(interval);
   }, [engines.length]); // engines 길이가 변경될 때만 interval 재설정
+
+  // 서버 통계 주기적 업데이트
+  useEffect(() => {
+    if (adminMode.isAuthenticated) {
+      fetchServerStats();
+      const interval = setInterval(fetchServerStats, 10000); // 10초마다 업데이트
+      return () => clearInterval(interval);
+    }
+  }, [adminMode.isAuthenticated]);
 
   // 관리자 인증이 되지 않은 경우 접근 차단 화면 표시
   if (!adminMode.isAuthenticated) {
@@ -261,17 +305,15 @@ export default function IntegratedAIEngineDashboard() {
   };
 
   /**
-   * 📊 통계 계산
+   * 📊 전체 통계 계산 - 실제 데이터 기반
    */
   const getOverallStats = () => {
-    // 엔진 데이터가 없을 때 기본값 반환
-    if (!engines || engines.length === 0) {
+    if (engines.length === 0) {
       return {
         totalRequests: 0,
-        avgAccuracy: 0,
         avgResponseTime: 0,
         activeEngines: 0,
-        totalEngines: 0,
+        avgAccuracy: 0,
       };
     }
 
@@ -279,22 +321,22 @@ export default function IntegratedAIEngineDashboard() {
       (sum, engine) => sum + engine.requests,
       0
     );
-    const avgAccuracy =
-      engines.reduce((sum, engine) => sum + engine.accuracy, 0) /
-      engines.length;
-    const avgResponseTime =
+    const avgResponseTime = Math.round(
       engines.reduce((sum, engine) => sum + engine.responseTime, 0) /
-      engines.length;
+        engines.length
+    );
     const activeEngines = engines.filter(
       engine => engine.status === 'active'
     ).length;
+    const avgAccuracy = Math.round(
+      engines.reduce((sum, engine) => sum + engine.accuracy, 0) / engines.length
+    );
 
     return {
       totalRequests,
-      avgAccuracy: Math.round(avgAccuracy * 10) / 10,
-      avgResponseTime: Math.round(avgResponseTime),
+      avgResponseTime,
       activeEngines,
-      totalEngines: engines.length,
+      avgAccuracy,
     };
   };
 
@@ -401,7 +443,7 @@ export default function IntegratedAIEngineDashboard() {
                 <div>
                   <p className='text-orange-100 text-sm'>활성 엔진</p>
                   <p className='text-3xl font-bold text-white'>
-                    {stats.activeEngines}/{stats.totalEngines}
+                    {stats.activeEngines}/{serverStats.total}
                   </p>
                 </div>
                 <Brain className='w-12 h-12 text-orange-200' />
@@ -620,64 +662,73 @@ export default function IntegratedAIEngineDashboard() {
           {/* 엔진 상태 탭 */}
           <TabsContent value='engines' className='space-y-6'>
             <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-              {engines.map(engine => (
-                <Card
-                  key={engine.name}
-                  className='bg-slate-800 border-slate-700'
-                >
-                  <CardContent className='p-6'>
-                    <div className='flex items-center justify-between mb-4'>
-                      <div className='flex items-center gap-3'>
-                        <div
-                          className={`w-3 h-3 rounded-full ${engine.status === 'active'
-                            ? 'bg-green-400'
-                            : engine.status === 'error'
-                              ? 'bg-red-400'
-                              : 'bg-yellow-400'
-                            }`}
-                        />
-                        <h3 className='text-lg font-semibold text-white'>
-                          {engine.name}
-                        </h3>
-                      </div>
-                      <Badge
-                        variant={
-                          engine.type === 'opensource' ? 'secondary' : 'default'
-                        }
-                      >
-                        {engine.type === 'opensource' ? '오픈소스' : '커스텀'}
-                      </Badge>
-                    </div>
+              <div className='space-y-6'>
+                <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+                  {engines.map(engine => (
+                    <Card
+                      key={engine.name}
+                      className='bg-slate-800 border-slate-700'
+                    >
+                      <CardContent className='p-6'>
+                        <div className='flex items-center justify-between mb-4'>
+                          <div className='flex items-center gap-3'>
+                            <div
+                              className={`w-3 h-3 rounded-full ${
+                                engine.status === 'active'
+                                  ? 'bg-green-400'
+                                  : engine.status === 'error'
+                                    ? 'bg-red-400'
+                                    : 'bg-yellow-400'
+                              }`}
+                            />
+                            <h3 className='text-lg font-semibold text-white'>
+                              {engine.name}
+                            </h3>
+                          </div>
+                          <Badge
+                            variant={
+                              engine.type === 'opensource'
+                                ? 'secondary'
+                                : 'default'
+                            }
+                          >
+                            {engine.type === 'opensource'
+                              ? '오픈소스'
+                              : '커스텀'}
+                          </Badge>
+                        </div>
 
-                    <div className='grid grid-cols-2 gap-4 text-sm'>
-                      <div>
-                        <p className='text-slate-400'>요청 수</p>
-                        <p className='text-xl font-bold text-blue-400'>
-                          {engine.requests}
-                        </p>
-                      </div>
-                      <div>
-                        <p className='text-slate-400'>정확도</p>
-                        <p className='text-xl font-bold text-green-400'>
-                          {engine.accuracy}%
-                        </p>
-                      </div>
-                      <div>
-                        <p className='text-slate-400'>응답시간</p>
-                        <p className='text-xl font-bold text-purple-400'>
-                          {engine.responseTime}ms
-                        </p>
-                      </div>
-                      <div>
-                        <p className='text-slate-400'>마지막 사용</p>
-                        <p className='text-xl font-bold text-orange-400'>
-                          {engine.lastUsed}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                        <div className='grid grid-cols-2 gap-4 text-sm'>
+                          <div>
+                            <p className='text-slate-400'>요청 수</p>
+                            <p className='text-xl font-bold text-blue-400'>
+                              {engine.requests}
+                            </p>
+                          </div>
+                          <div>
+                            <p className='text-slate-400'>정확도</p>
+                            <p className='text-xl font-bold text-green-400'>
+                              {engine.accuracy}%
+                            </p>
+                          </div>
+                          <div>
+                            <p className='text-slate-400'>응답시간</p>
+                            <p className='text-xl font-bold text-purple-400'>
+                              {engine.responseTime}ms
+                            </p>
+                          </div>
+                          <div>
+                            <p className='text-slate-400'>마지막 사용</p>
+                            <p className='text-xl font-bold text-orange-400'>
+                              {engine.lastUsed}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             </div>
           </TabsContent>
 
@@ -698,12 +749,13 @@ export default function IntegratedAIEngineDashboard() {
                           {engine.name}
                         </CardTitle>
                         <Badge
-                          className={`${engine.status === 'active'
-                            ? 'bg-green-500'
-                            : engine.status === 'error'
-                              ? 'bg-red-500'
-                              : 'bg-blue-500'
-                            } text-white`}
+                          className={`${
+                            engine.status === 'active'
+                              ? 'bg-green-500'
+                              : engine.status === 'error'
+                                ? 'bg-red-500'
+                                : 'bg-blue-500'
+                          } text-white`}
                         >
                           {engine.status}
                         </Badge>

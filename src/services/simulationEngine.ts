@@ -85,7 +85,7 @@ export class SimulationEngine {
         index % 4
       ] as ServerRole;
       const status: ServerStatus =
-        metric.cpu > 80 ? 'critical' : metric.cpu > 60 ? 'warning' : 'normal';
+        metric.cpu > 80 ? 'critical' : metric.cpu > 60 ? 'warning' : 'healthy';
 
       return {
         id: `server-${serverNumber}`,

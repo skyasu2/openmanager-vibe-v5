@@ -13,6 +13,8 @@ describe('RealServerDataGenerator 통합 동작', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (RealServerDataGenerator as any).instance = null;
     generator = RealServerDataGenerator.getInstance();
+    // 자동 생성이 시작되었다면 중지
+    generator.stopAutoGeneration();
     await generator.initialize();
   });
 
@@ -64,20 +66,22 @@ describe('RealServerDataGenerator 통합 동작', () => {
   });
 
   it('자동 생성 시작/중지가 정상 동작한다', () => {
-    // initialize() 후에는 자동으로 시작되므로 초기 상태는 true
+    // 먼저 중지하여 초기 상태 확보
+    generator.stopAutoGeneration();
+
     const initialStatus = generator.getStatus();
     expect(initialStatus).toHaveProperty('isRunning');
-    expect(initialStatus.isRunning).toBe(true); // initialize()에서 자동 시작됨
+    expect(initialStatus.isRunning).toBe(false); // 중지 후 상태
+
+    // 자동 생성 시작
+    generator.startAutoGeneration();
+    const runningStatus = generator.getStatus();
+    expect(runningStatus.isRunning).toBe(true);
 
     // 자동 생성 중지
     generator.stopAutoGeneration();
     const stoppedStatus = generator.getStatus();
     expect(stoppedStatus.isRunning).toBe(false);
-
-    // 자동 생성 재시작
-    generator.startAutoGeneration();
-    const runningStatus = generator.getStatus();
-    expect(runningStatus.isRunning).toBe(true);
   });
 
   it('싱글톤 패턴이 올바르게 구현되어 있다', () => {

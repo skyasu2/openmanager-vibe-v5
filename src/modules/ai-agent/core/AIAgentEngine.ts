@@ -11,7 +11,7 @@
 import { MCPProcessor } from '@/services/mcp';
 import { IntentClassifier } from '../processors/IntentClassifier';
 import { ResponseGenerator } from '../processors/ResponseGenerator';
-import { ContextManager } from '../processors/ContextManager';
+import { ContextManager } from '@/core/ai/ContextManager';
 import { ActionExecutor } from '../processors/ActionExecutor';
 import {
   ModeManager,
@@ -81,7 +81,7 @@ export class AIAgentEngine {
     this.mcpProcessor = MCPProcessor.getInstance();
     this.intentClassifier = new IntentClassifier();
     this.responseGenerator = new ResponseGenerator();
-    this.contextManager = new ContextManager();
+    this.contextManager = ContextManager.getInstance();
     this.actionExecutor = new ActionExecutor();
     this.modeManager = new ModeManager(createDefaultModeConfig());
     this.thinkingProcessor = new ThinkingProcessor();
@@ -169,7 +169,7 @@ export class AIAgentEngine {
         '컨텍스트 로드',
         'data_processing'
       );
-      const context = (await this.contextManager.loadContext(sessionId)) || {
+      const context = (await this.contextManager.getContext(sessionId)) || {
         conversationId: sessionId,
         userIntent: '',
         previousActions: [],

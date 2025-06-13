@@ -1,199 +1,239 @@
 /**
- * 환경별 로깅 시스템
- *
- * 🔧 개발/프로덕션 환경에 맞는 로깅 제공
- * - 개발: 상세한 디버그 정보
- * - 프로덕션: 필요한 정보만 간결하게
+ * 🔍 개발용 로거 시스템
+ * 테스트용 console.log를 대체하는 구조화된 로깅
  */
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
-
-interface LoggerConfig {
-  enableConsole: boolean;
-  enableFile: boolean;
-  minLevel: LogLevel;
-  prefix: string;
+export enum LogLevel {
+  DEBUG = 0,
+  INFO = 1,
+  WARN = 2,
+  ERROR = 3,
+  NONE = 4,
 }
 
-class Logger {
-  private config: LoggerConfig;
-  private isDevelopment: boolean;
-
-  constructor(config: Partial<LoggerConfig> = {}) {
-    this.isDevelopment = process.env.NODE_ENV === 'development';
-
-    this.config = {
-      enableConsole: true,
-      enableFile: false,
-      minLevel: this.isDevelopment ? 'debug' : 'info',
-      prefix: '[OpenManager]',
-      ...config,
-    };
-  }
-
-  private shouldLog(level: LogLevel): boolean {
-    const levels: Record<LogLevel, number> = {
-      debug: 0,
-      info: 1,
-      warn: 2,
-      error: 3,
-    };
-
-    return levels[level] >= levels[this.config.minLevel];
-  }
-
-  private formatMessage(level: LogLevel, message: string, data?: any): string {
-    const timestamp = new Date().toISOString();
-    const emoji = {
-      debug: '🔍',
-      info: 'ℹ️',
-      warn: '⚠️',
-      error: '❌',
-    }[level];
-
-    if (this.isDevelopment) {
-      return `${emoji} ${this.config.prefix} [${level.toUpperCase()}] ${message}`;
-    } else {
-      return `${timestamp} ${this.config.prefix} ${level}: ${message}`;
-    }
-  }
-
-  debug(message: string, data?: any): void {
-    if (!this.shouldLog('debug') || !this.config.enableConsole) return;
-
-    const formattedMessage = this.formatMessage('debug', message, data);
-
-    if (this.isDevelopment && data !== undefined) {
-      console.debug(formattedMessage, data);
-    } else {
-      console.debug(formattedMessage);
-    }
-  }
-
-  info(message: string, data?: any): void {
-    if (!this.shouldLog('info') || !this.config.enableConsole) return;
-
-    const formattedMessage = this.formatMessage('info', message, data);
-
-    if (this.isDevelopment && data !== undefined) {
-      console.info(formattedMessage, data);
-    } else {
-      console.info(formattedMessage);
-    }
-  }
-
-  warn(message: string, data?: any): void {
-    if (!this.shouldLog('warn') || !this.config.enableConsole) return;
-
-    const formattedMessage = this.formatMessage('warn', message, data);
-
-    if (this.isDevelopment && data !== undefined) {
-      console.warn(formattedMessage, data);
-    } else {
-      console.warn(formattedMessage);
-    }
-  }
-
-  error(message: string, error?: Error | any): void {
-    if (!this.shouldLog('error') || !this.config.enableConsole) return;
-
-    const formattedMessage = this.formatMessage('error', message, error);
-
-    if (this.isDevelopment && error !== undefined) {
-      console.error(formattedMessage, error);
-    } else {
-      console.error(formattedMessage);
-    }
-  }
-
-  // 특수 로깅 메서드들
-  system(message: string, data?: any): void {
-    if (this.isDevelopment) {
-      console.log(`🚀 ${this.config.prefix} SYSTEM: ${message}`, data || '');
-    }
-  }
-
-  api(message: string, data?: any): void {
-    if (this.isDevelopment) {
-      console.log(`📡 ${this.config.prefix} API: ${message}`, data || '');
-    }
-  }
-
-  ai(message: string, data?: any): void {
-    if (this.isDevelopment) {
-      console.log(`🤖 ${this.config.prefix} AI: ${message}`, data || '');
-    }
-  }
-
-  performance(message: string, duration?: number): void {
-    if (this.isDevelopment) {
-      const durationText = duration ? ` (${duration}ms)` : '';
-      console.log(`⚡ ${this.config.prefix} PERF: ${message}${durationText}`);
-    }
-  }
+export interface LogEntry {
+  timestamp: string;
+  level: LogLevel;
+  category: string;
+  message: string;
+  data?: any;
+  source?: string;
 }
 
-// 기본 로거 인스턴스들
-export const logger = new Logger();
+class DevLogger {
+  private static instance: DevLogger;
+  private logLevel: LogLevel;
+  private enabledCategories: Set<string>;
 
-export const apiLogger = new Logger({
-  prefix: '[API]',
-  minLevel: process.env.NODE_ENV === 'development' ? 'debug' : 'warn',
-});
+  private constructor() {
+    this.logLevel =
+      process.env.NODE_ENV === 'development' ? LogLevel.DEBUG : LogLevel.ERROR;
+    this.enabledCategories = new Set([
+      'test',
+      'ai',
+      'api',
+      'performance',
+      'error',
+    ]);
+  }
 
-export const aiLogger = new Logger({
-  prefix: '[AI-Agent]',
-  minLevel: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
-});
-
-export const systemLogger = new Logger({
-  prefix: '[System]',
-  minLevel: 'info',
-});
-
-// 🚀 Production-Safe 로깅 함수들
-export const safeConsole = {
-  log: (message: string, ...args: any[]) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(message, ...args);
+  static getInstance(): DevLogger {
+    if (!DevLogger.instance) {
+      DevLogger.instance = new DevLogger();
     }
-  },
-  warn: (message: string, ...args: any[]) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn(message, ...args);
-    }
-  },
-  error: (message: string, ...args: any[]) => {
-    // 에러는 프로덕션에서도 기록 (중요)
-    console.error(message, ...args);
-  },
-  info: (message: string, ...args: any[]) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.info(message, ...args);
-    }
-  },
-};
+    return DevLogger.instance;
+  }
 
-// 기존 devLog 함수 개선
-export const devLog = (message: string, data?: any) => {
-  if (process.env.NODE_ENV === 'development') {
+  private shouldLog(level: LogLevel, category: string): boolean {
+    return level >= this.logLevel && this.enabledCategories.has(category);
+  }
+
+  private formatMessage(
+    level: LogLevel,
+    category: string,
+    message: string,
+    data?: any
+  ): string {
     const timestamp = new Date().toISOString();
+    const levelIcon = this.getLevelIcon(level);
+    const categoryIcon = this.getCategoryIcon(category);
+
+    let formatted = `${levelIcon} [${category.toUpperCase()}] ${message}`;
+
     if (data) {
-      console.log(`[DEV ${timestamp}] ${message}`, data);
-    } else {
-      console.log(`[DEV ${timestamp}] ${message}`);
+      formatted += `\n${JSON.stringify(data, null, 2)}`;
+    }
+
+    return formatted;
+  }
+
+  private getLevelIcon(level: LogLevel): string {
+    switch (level) {
+      case LogLevel.DEBUG:
+        return '🔍';
+      case LogLevel.INFO:
+        return 'ℹ️';
+      case LogLevel.WARN:
+        return '⚠️';
+      case LogLevel.ERROR:
+        return '❌';
+      default:
+        return '📝';
     }
   }
-};
 
-// 시스템 로그 (항상 기록)
-export const systemLog = (message: string, data?: any) => {
-  const timestamp = new Date().toISOString();
-  if (data) {
-    console.log(`[SYSTEM ${timestamp}] ${message}`, data);
-  } else {
-    console.log(`[SYSTEM ${timestamp}] ${message}`);
+  private getCategoryIcon(category: string): string {
+    const icons: Record<string, string> = {
+      test: '🧪',
+      ai: '🤖',
+      api: '🔗',
+      performance: '⚡',
+      error: '🚨',
+      database: '💾',
+      auth: '🔐',
+      cache: '📦',
+    };
+    return icons[category] || '📝';
   }
+
+  debug(category: string, message: string, data?: any): void {
+    if (this.shouldLog(LogLevel.DEBUG, category)) {
+      console.debug(
+        this.formatMessage(LogLevel.DEBUG, category, message, data)
+      );
+    }
+  }
+
+  info(category: string, message: string, data?: any): void {
+    if (this.shouldLog(LogLevel.INFO, category)) {
+      console.info(this.formatMessage(LogLevel.INFO, category, message, data));
+    }
+  }
+
+  warn(category: string, message: string, data?: any): void {
+    if (this.shouldLog(LogLevel.WARN, category)) {
+      console.warn(this.formatMessage(LogLevel.WARN, category, message, data));
+    }
+  }
+
+  error(category: string, message: string, data?: any): void {
+    if (this.shouldLog(LogLevel.ERROR, category)) {
+      console.error(
+        this.formatMessage(LogLevel.ERROR, category, message, data)
+      );
+    }
+  }
+
+  // 테스트 전용 메서드들
+  testStart(testName: string, description?: string): void {
+    this.info('test', `테스트 시작: ${testName}`, { description });
+  }
+
+  testEnd(testName: string, success: boolean, duration?: number): void {
+    const level = success ? LogLevel.INFO : LogLevel.ERROR;
+    const message = `테스트 ${success ? '성공' : '실패'}: ${testName}`;
+    const data = duration ? { duration: `${duration}ms` } : undefined;
+
+    if (level === LogLevel.ERROR) {
+      this.error('test', message, data);
+    } else {
+      this.info('test', message, data);
+    }
+  }
+
+  testResult(testName: string, expected: any, actual: any): void {
+    const success = JSON.stringify(expected) === JSON.stringify(actual);
+    this.testEnd(testName, success);
+
+    if (!success) {
+      this.error('test', `테스트 실패 상세`, {
+        testName,
+        expected,
+        actual,
+      });
+    }
+  }
+
+  // 성능 측정
+  performance(operation: string, duration: number, metadata?: any): void {
+    this.info('performance', `${operation}: ${duration}ms`, metadata);
+  }
+
+  // AI 관련 로깅
+  aiQuery(query: string, engine: string, confidence?: number): void {
+    this.info('ai', `AI 쿼리 처리`, {
+      query: query.substring(0, 100),
+      engine,
+      confidence,
+    });
+  }
+
+  aiResponse(response: string, processingTime: number): void {
+    this.info('ai', `AI 응답 생성`, {
+      responseLength: response.length,
+      processingTime: `${processingTime}ms`,
+    });
+  }
+}
+
+// 싱글톤 인스턴스 export
+export const devLogger = DevLogger.getInstance();
+
+// 편의 함수들
+export const logTest = (name: string, description?: string) =>
+  devLogger.testStart(name, description);
+export const logTestResult = (
+  name: string,
+  success: boolean,
+  duration?: number
+) => devLogger.testEnd(name, success, duration);
+export const logPerformance = (
+  operation: string,
+  duration: number,
+  metadata?: any
+) => devLogger.performance(operation, duration, metadata);
+export const logAI = (query: string, engine: string, confidence?: number) =>
+  devLogger.aiQuery(query, engine, confidence);
+
+// 🔄 기존 코드 호환성을 위한 레거시 export
+export const systemLogger = {
+  info: (message: string, data?: any) =>
+    devLogger.info('system', message, data),
+  warn: (message: string, data?: any) =>
+    devLogger.warn('system', message, data),
+  error: (message: string, data?: any) =>
+    devLogger.error('system', message, data),
+  debug: (message: string, data?: any) =>
+    devLogger.debug('system', message, data),
+  system: (message: string, data?: any) =>
+    devLogger.info('system', message, data),
+  ai: (message: string, data?: any) => devLogger.info('ai', message, data),
 };
 
-export default logger;
+export const logger = {
+  info: (message: string, data?: any) =>
+    devLogger.info('general', message, data),
+  warn: (message: string, data?: any) =>
+    devLogger.warn('general', message, data),
+  error: (message: string, data?: any) =>
+    devLogger.error('general', message, data),
+  debug: (message: string, data?: any) =>
+    devLogger.debug('general', message, data),
+};
+
+export const apiLogger = {
+  info: (message: string, data?: any) => devLogger.info('api', message, data),
+  warn: (message: string, data?: any) => devLogger.warn('api', message, data),
+  error: (message: string, data?: any) => devLogger.error('api', message, data),
+  debug: (message: string, data?: any) => devLogger.debug('api', message, data),
+};
+
+export const aiLogger = {
+  info: (message: string, data?: any) => devLogger.info('ai', message, data),
+  warn: (message: string, data?: any) => devLogger.warn('ai', message, data),
+  error: (message: string, data?: any) => devLogger.error('ai', message, data),
+  debug: (message: string, data?: any) => devLogger.debug('ai', message, data),
+};
+
+// 기본 export
+export default devLogger;

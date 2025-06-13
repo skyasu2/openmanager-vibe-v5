@@ -14,69 +14,62 @@ import {
   generateRecommendations,
 } from '@/lib/ml/lightweight-ml-engine';
 import type { MetricPoint } from '@/lib/ml/lightweight-ml-engine';
+import { AnomalyDetectionService } from '@/services/ai/AnomalyDetectionService';
+import { createSafeError } from '@/lib/error-handler';
+import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: NextRequest) {
+// Zod 스키마로 요청 본문 유효성 검사
+const AnomalyDetectionRequestSchema = z.object({
+  metrics: z.array(z.any()), // 간소화된 검증
+  logs: z.array(z.any()), // 간소화된 검증
+  config: z
+    .object({
+      statisticalSensitivity: z.number().min(1).max(5).optional(),
+      logKeywords: z
+        .object({
+          warning: z.array(z.string()).optional(),
+          critical: z.array(z.string()).optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+});
+
+export async function POST(request: Request) {
   try {
-    console.log('🚨 AI 이상 탐지 API 호출 시작');
-
     const body = await request.json();
-    const { history, threshold = 2.5, serverId } = body;
 
-    if (!Array.isArray(history) || history.length === 0) {
+    // 요청 본문 유효성 검사
+    const validationResult = AnomalyDetectionRequestSchema.safeParse(body);
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: '히스토리 데이터가 필요합니다.' },
+        {
+          success: false,
+          error: '잘못된 요청 형식입니다.',
+          details: validationResult.error.flatten().fieldErrors,
+        },
         { status: 400 }
       );
     }
 
-    // 이상 탐지 실행
-    const anomalies = detectAnomalies(history as MetricPoint[], threshold);
+    const { metrics, logs, config } = validationResult.data;
 
-    // 추천사항 생성
-    const recommendations = generateRecommendations(history as MetricPoint[]);
+    const anomalyDetectionService = new AnomalyDetectionService();
+    const anomalies = await anomalyDetectionService.detect(
+      metrics,
+      logs,
+      config
+    );
 
-    // 이상 탐지 결과 분석
-    const analysis = {
-      anomaly_count: anomalies.length,
-      anomaly_rate: (anomalies.length / history.length) * 100,
-      severity:
-        anomalies.length > history.length * 0.1
-          ? 'high'
-          : anomalies.length > history.length * 0.05
-            ? 'medium'
-            : 'low',
-      latest_anomaly:
-        anomalies.length > 0 ? anomalies[anomalies.length - 1] : null,
-    };
-
-    console.log(`✅ 이상 탐지 완료: ${anomalies.length}개 발견`);
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        anomalies,
-        analysis,
-        recommendations,
-        threshold_used: threshold,
-      },
-      meta: {
-        serverId: serverId || 'unknown',
-        total_points: history.length,
-        anomaly_count: anomalies.length,
-        generatedAt: new Date().toISOString(),
-        engine: 'lightweight-ml-v5.43.0',
-      },
-    });
+    return NextResponse.json({ success: true, anomalies });
   } catch (error) {
-    console.error('❌ AI 이상 탐지 API 오류:', error);
+    const safeError = createSafeError(error);
+    console.error('API Error in /api/ai/anomaly-detection:', safeError);
 
     return NextResponse.json(
-      {
-        error: '이상 탐지 처리 중 오류가 발생했습니다.',
-        details: error instanceof Error ? error.message : '알 수 없는 오류',
-      },
+      { success: false, error: safeError.message },
       { status: 500 }
     );
   }

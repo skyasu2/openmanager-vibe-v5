@@ -164,7 +164,7 @@ export class OptimizedDataGenerator {
   private cache = SmartCache.getInstance();
   private updateCounter: number = 0;
   private readonly CACHE_TTL = 30000; // 30초
-  private readonly UPDATE_INTERVAL = 10000; // 10초 (Vercel 최적화)
+  private readonly UPDATE_INTERVAL = 30000; // 30초 (속도 조정)
 
   // 🎯 실시간 데이터 30분 자동 종료
   private readonly MAX_DURATION = 30 * 60 * 1000; // 🔥 30분 고정
@@ -504,7 +504,7 @@ export class OptimizedDataGenerator {
     if (avgLoad > 60 || variationImpact > 0.2) {
       return 'warning';
     }
-    return 'normal';
+    return 'healthy';
   }
 
   /**
@@ -825,7 +825,7 @@ export class OptimizedDataGenerator {
 
     const critical = servers.filter(s => s.status === 'critical');
     const warning = servers.filter(s => s.status === 'warning');
-    const normal = servers.filter(s => s.status === 'normal');
+    const normal = servers.filter(s => s.status === 'healthy');
 
     const sortByLoadDesc = (
       a: EnhancedServerMetrics,
@@ -860,7 +860,7 @@ export class OptimizedDataGenerator {
     if (updatedWarning.length < targetWarning) {
       const need = targetWarning - updatedWarning.length;
       const candidates = servers
-        .filter(s => s.status === 'normal')
+        .filter(s => s.status === 'healthy')
         .sort(sortByLoadDesc)
         .slice(0, need);
       for (const s of candidates) s.status = 'warning';
@@ -871,7 +871,7 @@ export class OptimizedDataGenerator {
         .sort(sortByLoadDesc)
         .reverse()
         .slice(0, reduce);
-      for (const s of candidates) s.status = 'normal';
+      for (const s of candidates) s.status = 'healthy';
     }
   }
 }

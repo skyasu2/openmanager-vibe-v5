@@ -1,6 +1,6 @@
 /**
  * 📊 MCP 기반 시스템 상태 모니터링 API
- * 
+ *
  * ✅ 통합 AI 시스템 헬스체크
  * ✅ Keep-Alive 시스템 상태
  * ✅ 3단계 컨텍스트 시스템 모니터링
@@ -10,246 +10,124 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { unifiedAISystem } from '../../../../core/ai/unified-ai-system';
 import { keepAliveSystem } from '../../../../services/ai/keep-alive-system';
+import { getMCPClient } from '@/services/mcp/official-mcp-client';
 
 const fastApiClient = {
   async getConnectionStatus() {
-    return { isConnected: false, healthStatus: 'removed', lastHealthCheck: Date.now() };
+    return {
+      isConnected: false,
+      healthStatus: 'removed',
+      lastHealthCheck: Date.now(),
+    };
   },
   async checkHealth() {
-    return { isConnected: false, healthStatus: 'removed', lastHealthCheck: Date.now() };
+    return {
+      isConnected: false,
+      healthStatus: 'removed',
+      lastHealthCheck: Date.now(),
+    };
   },
   async warmup() {
     return false;
-  }
+  },
 };
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const url = new URL(request.url);
-    const section = url.searchParams.get('section') || 'overview';
+    console.log('🔍 시스템 MCP 상태 확인 시작');
 
-    switch (section) {
-      case 'overview':
-        // 전체 시스템 개요
-        const systemHealth = await unifiedAISystem.getSystemHealth();
+    const mcpClient = getMCPClient();
 
-        return NextResponse.json({
-          success: true,
-          data: {
-            overview: {
-              overall: systemHealth.overall,
-              totalComponents: Object.keys(systemHealth.components).length,
-              healthyComponents: [
-                systemHealth.components?.fastapi,
-                systemHealth.components?.mcp,
-                systemHealth.components?.google_ai
-              ].filter(comp => comp === true).length
-            },
-            version: '5.17.10-MCP',
-            architecture: 'MCP + FastAPI Hybrid',
-            components: {
-              totalComponents: Object.keys(systemHealth.components).length,
-              healthyComponents: [
-                systemHealth.components?.fastapi,
-                systemHealth.components?.mcp,
-                systemHealth.components?.google_ai
-              ].filter(comp => comp === true).length
-            },
-            performance: {
-              totalQueries: systemHealth.stats.totalQueries,
-              avgResponseTime: Math.round(systemHealth.stats.avgResponseTime),
-              successRate: Math.round(systemHealth.stats.successRate * 100)
-            },
-            lastUpdate: Date.now()
+    // 전체 헬스체크 (Render 서버 포함)
+    const healthStatus = await mcpClient.healthCheck();
+    const connectionStatus = mcpClient.getConnectionStatus();
+    const stats = mcpClient.getStats();
+
+    // Render MCP 서버 정보 추출
+    const renderMCPInfo = healthStatus['render-mcp'];
+
+    const systemStatus = {
+      timestamp: new Date().toISOString(),
+      status: 'operational',
+      mcp: {
+        enabled: true,
+        servers: {
+          local: {
+            filesystem: connectionStatus.filesystem || false,
+            postgres: connectionStatus.postgres || false,
+            'openmanager-docs': connectionStatus['openmanager-docs'] || false,
           },
-          timestamp: Date.now()
-        });
-
-      case 'components':
-        // 개별 컴포넌트 상세 상태
-        const [
-          systemHealthDetail,
-          keepAliveStatus,
-          fastApiStatus
-        ] = await Promise.allSettled([
-          unifiedAISystem.getSystemHealth(),
-          keepAliveSystem.getStatus(),
-          fastApiClient.getConnectionStatus()
-        ]);
-
-        return NextResponse.json({
-          success: true,
-          data: {
-            unifiedAI: {
-              status: systemHealthDetail.status === 'fulfilled'
-                ? systemHealthDetail.value.overall
-                : 'error',
-              components: systemHealthDetail.status === 'fulfilled'
-                ? systemHealthDetail.value.components
-                : {},
-              uptime: systemHealthDetail.status === 'fulfilled'
-                ? systemHealthDetail.value.stats.totalQueries
-                : 0
-            },
-            keepAlive: {
-              status: keepAliveStatus.status === 'fulfilled' && keepAliveStatus.value.isActive
-                ? 'healthy'
-                : 'inactive',
-              details: keepAliveStatus.status === 'fulfilled'
-                ? {
-                  totalPings: keepAliveStatus.value.totalPings,
-                  consecutiveSuccesses: keepAliveStatus.value.consecutiveSuccesses,
-                  uptime: Math.round(keepAliveStatus.value.uptimeHours * 100) / 100,
-                  lastPing: keepAliveStatus.value.lastPing,
-                  averageResponseTime: Math.round(keepAliveStatus.value.averageResponseTime)
-                }
-                : null
-            },
-            fastAPI: {
-              status: fastApiStatus.status === 'fulfilled' && fastApiStatus.value.isConnected
-                ? 'connected'
-                : 'disconnected',
-              details: fastApiStatus.status === 'fulfilled'
-                ? {
-                  lastHealthCheck: fastApiStatus.value.lastHealthCheck,
-                  healthStatus: fastApiStatus.value.healthStatus
-                }
-                : null
-            }
+          render: {
+            url: 'https://openmanager-vibe-v5.onrender.com',
+            ips: ['13.228.225.19', '18.142.128.26', '54.254.162.138'],
+            port: 10000,
+            healthy: renderMCPInfo?.status === 'healthy',
+            latency: renderMCPInfo?.latency,
+            uptime: renderMCPInfo?.details?.uptime,
+            version: renderMCPInfo?.details?.version,
+            lastCheck: new Date().toISOString(),
           },
-          timestamp: Date.now()
-        });
+        },
+        health: healthStatus,
+        stats: {
+          totalServers: stats.totalServers,
+          connectedServers: stats.connectedServers,
+          totalTools: stats.totalTools,
+          isConnected: stats.isConnected,
+          renderServerIncluded: true,
+        },
+      },
+      performance: {
+        averageLatency:
+          Object.values(healthStatus)
+            .filter(h => h.latency)
+            .reduce((sum, h) => sum + (h.latency || 0), 0) /
+            Object.values(healthStatus).filter(h => h.latency).length || 0,
+        healthyServers: Object.values(healthStatus).filter(
+          h => h.status === 'healthy'
+        ).length,
+        totalChecked: Object.keys(healthStatus).length,
+      },
+    };
 
-      case 'performance':
-        // 성능 메트릭
-        const perfData = await unifiedAISystem.getSystemHealth();
+    console.log('✅ 시스템 MCP 상태 확인 완료:', {
+      localServers: Object.keys(systemStatus.mcp.servers.local).length,
+      renderServerHealthy: systemStatus.mcp.servers.render.healthy,
+      totalHealthy: systemStatus.performance.healthyServers,
+    });
 
-        return NextResponse.json({
-          success: true,
-          data: {
-            queries: {
-              total: perfData.stats.totalQueries,
-              successRate: Math.round(perfData.stats.successRate * 100),
-              avgResponseTime: Math.round(perfData.stats.avgResponseTime)
-            },
-            system: {
-              overview: {
-                overall: perfData.overall,
-                totalComponents: Object.keys(perfData.components).length,
-                healthyComponents: [
-                  perfData.components?.fastapi,
-                  perfData.components?.mcp,
-                  perfData.components?.google_ai
-                ].filter(comp => comp === true).length
-              },
-              componentsHealthy: [
-                perfData.components?.fastapi,
-                perfData.components?.mcp,
-                perfData.components?.google_ai
-              ].filter(comp => comp === true).length,
-              totalComponents: Object.keys(perfData.components).length
-            }
-          },
-          timestamp: Date.now()
-        });
-
-      case 'diagnostic':
-        // 진단 정보
-        const keepAliveData = await keepAliveSystem.getStatus();
-        const fastApiData = await fastApiClient.getConnectionStatus();
-
-        const diagnostics = {
-          mcp: {
-            status: 'enabled',
-            issues: [] as string[],
-            recommendations: [] as string[]
-          },
-          fastapi: {
-            status: fastApiData.isConnected ? 'connected' : 'disconnected',
-            issues: [] as string[],
-            recommendations: [] as string[]
-          },
-          keepAlive: {
-            status: keepAliveData.isActive ? 'active' : 'inactive',
-            issues: [] as string[],
-            recommendations: [] as string[]
-          }
-        };
-
-        // FastAPI 진단
-        if (!fastApiData.isConnected) {
-          diagnostics.fastapi.issues.push('AI 엔진 연결 실패');
-          diagnostics.fastapi.recommendations.push('FastAPI 서버 상태를 확인하세요');
-        }
-
-        // Keep-Alive 진단
-        if (!keepAliveData.isActive) {
-          diagnostics.keepAlive.issues.push('Keep-Alive 시스템 비활성화');
-          diagnostics.keepAlive.recommendations.push('Keep-Alive 시스템을 시작하세요');
-        } else if (keepAliveData.consecutiveFailures > 3) {
-          diagnostics.keepAlive.issues.push('연속 핑 실패 감지');
-          diagnostics.keepAlive.recommendations.push('네트워크 연결을 확인하세요');
-        }
-
-        return NextResponse.json({
-          success: true,
-          data: diagnostics,
-          timestamp: Date.now()
-        });
-
-      case 'actions':
-        // 사용 가능한 액션 목록
-        return NextResponse.json({
-          success: true,
-          data: {
-            available: [
-              {
-                name: 'restart_system',
-                description: '통합 AI 시스템 재시작',
-                endpoint: 'PUT /api/ai/unified',
-                payload: { action: 'restart' }
-              },
-              {
-                name: 'trigger_keepalive',
-                description: 'Keep-Alive 수동 트리거',
-                endpoint: 'POST /api/system/mcp-status?action=ping',
-                payload: {}
-              },
-              {
-                name: 'clear_cache',
-                description: '시스템 캐시 정리',
-                endpoint: 'DELETE /api/ai/unified?target=cache',
-                payload: {}
-              },
-              {
-                name: 'health_check',
-                description: 'FastAPI 헬스체크',
-                endpoint: 'POST /api/system/mcp-status?action=health',
-                payload: {}
-              }
-            ]
-          },
-          timestamp: Date.now()
-        });
-
-      default:
-        return NextResponse.json({
-          error: '알 수 없는 섹션',
-          code: 'UNKNOWN_SECTION',
-          available: ['overview', 'components', 'performance', 'diagnostic', 'actions'],
-          timestamp: Date.now()
-        }, { status: 400 });
-    }
-
+    return NextResponse.json(systemStatus);
   } catch (error) {
-    console.error('❌ [API] MCP 상태 조회 실패:', error);
+    console.error('❌ 시스템 MCP 상태 확인 오류:', error);
 
-    return NextResponse.json({
-      error: 'MCP 상태 조회 실패',
-      code: 'MCP_STATUS_FAILED',
-      details: error instanceof Error ? error.message : String(error),
-      timestamp: Date.now()
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        timestamp: new Date().toISOString(),
+        status: 'error',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        mcp: {
+          enabled: false,
+          servers: {
+            local: {},
+            render: {
+              url: 'https://openmanager-vibe-v5.onrender.com',
+              ips: ['13.228.225.19', '18.142.128.26', '54.254.162.138'],
+              port: 10000,
+              healthy: false,
+              error: 'Health check failed',
+            },
+          },
+          health: {},
+          stats: {
+            totalServers: 0,
+            connectedServers: 0,
+            totalTools: 0,
+            isConnected: false,
+          },
+        },
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -271,10 +149,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           data: {
             triggered: true,
             result: pingResult ? 'success' : 'failed',
-            timestamp: Date.now()
+            timestamp: Date.now(),
           },
           message: pingResult ? 'Keep-Alive 핑 성공' : 'Keep-Alive 핑 실패',
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
 
       case 'health':
@@ -285,7 +163,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           success: true,
           data: health,
           message: 'FastAPI 헬스체크 완료',
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
 
       case 'warmup':
@@ -296,10 +174,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           success: true,
           data: {
             triggered: true,
-            result: warmupResult ? 'success' : 'failed'
+            result: warmupResult ? 'success' : 'failed',
           },
           message: warmupResult ? 'AI 엔진 웜업 성공' : 'AI 엔진 웜업 실패',
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
 
       case 'reset_stats':
@@ -310,26 +188,31 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           success: true,
           data: { reset: true },
           message: 'Keep-Alive 통계가 리셋되었습니다',
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
 
       default:
-        return NextResponse.json({
-          error: '알 수 없는 액션',
-          code: 'UNKNOWN_ACTION',
-          available: ['ping', 'health', 'warmup', 'reset_stats'],
-          timestamp: Date.now()
-        }, { status: 400 });
+        return NextResponse.json(
+          {
+            error: '알 수 없는 액션',
+            code: 'UNKNOWN_ACTION',
+            available: ['ping', 'health', 'warmup', 'reset_stats'],
+            timestamp: Date.now(),
+          },
+          { status: 400 }
+        );
     }
-
   } catch (error) {
     console.error('❌ [API] MCP 액션 실행 실패:', error);
 
-    return NextResponse.json({
-      error: 'MCP 액션 실행 실패',
-      code: 'MCP_ACTION_FAILED',
-      details: error instanceof Error ? error.message : String(error),
-      timestamp: Date.now()
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'MCP 액션 실행 실패',
+        code: 'MCP_ACTION_FAILED',
+        details: error instanceof Error ? error.message : String(error),
+        timestamp: Date.now(),
+      },
+      { status: 500 }
+    );
   }
-} 
+}

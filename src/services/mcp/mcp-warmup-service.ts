@@ -3,7 +3,8 @@
  * Render 무료 티어 MCP 서버들을 사전에 깨워놓는 서비스
  */
 
-export interface MCPServerConfig {
+// 🔄 중복 제거: 웜업 전용 설정 인터페이스 (기본 MCPServerConfig와 다름)
+export interface MCPWarmupServerConfig {
   name: string;
   url: string;
   healthEndpoint?: string;
@@ -23,7 +24,7 @@ export class MCPWarmupService {
   private static instance: MCPWarmupService | null = null;
 
   // Render에 배포된 MCP 서버들
-  private readonly MCP_SERVERS: MCPServerConfig[] = [
+  private readonly MCP_SERVERS: MCPWarmupServerConfig[] = [
     {
       name: 'openmanager-render-ai',
       url: 'https://openmanager-render-ai.onrender.com',
@@ -83,7 +84,7 @@ export class MCPWarmupService {
   /**
    * 🔥 개별 서버 웜업
    */
-  async warmupServer(config: MCPServerConfig): Promise<WarmupResult> {
+  async warmupServer(config: MCPWarmupServerConfig): Promise<WarmupResult> {
     const startTime = Date.now();
     const serverHistory = this.warmupHistory.get(config.name);
 
@@ -191,11 +192,13 @@ export class MCPWarmupService {
     console.log('🧪 테스트 환경용 MCP 서버 웜업 시작...');
 
     // 테스트용으로는 더 많은 재시도와 긴 타임아웃
-    const testConfigs: MCPServerConfig[] = this.MCP_SERVERS.map(server => ({
-      ...server,
-      timeout: 45000, // 45초
-      retries: 5, // 5번 재시도
-    }));
+    const testConfigs: MCPWarmupServerConfig[] = this.MCP_SERVERS.map(
+      server => ({
+        ...server,
+        timeout: 45000, // 45초
+        retries: 5, // 5번 재시도
+      })
+    );
 
     const results = await Promise.all(
       testConfigs.map(server => this.warmupServer(server))

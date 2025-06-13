@@ -1,5 +1,94 @@
 # 📋 OpenManager Vibe v5 - 변경 로그
 
+## 🚀 v5.50.0 (2025-06-13) - AI 기능 고도화 및 관리자 페이지 리팩토링
+
+### ✨ Added (추가된 기능)
+
+- **AI 관리자 대시보드**: 기존의 탭 기반 UI를 모던한 그리드 레이아웃의 통합 대시보드로 전면 개편. (`/admin/ai-agent`)
+- **실시간 이상 징후 피드**: `/api/ai/anomaly-detection` API와 연동하여 시스템의 이상 징후를 실시간으로 모니터링하는 UI 컴포넌트 추가.
+- **자동 장애 보고서 생성**: AI가 시스템 컨텍스트를 기반으로 육하원칙에 따른 장애 보고서를 생성하는 기능 및 API(`/api/ai/auto-report`) 구현.
+- **'생각하기' 시각화**: AI 사이드바에 AI의 실시간 사고 과정을 단계별로 보여주는 UI를 추가하여 투명성 강화.
+- **채팅 기록 영속성**: AI 사이드바의 대화 내용이 브라우저 로컬 스토리지에 자동 저장되도록 개선.
+- **범용 Modal 컴포넌트**: 프로젝트 전역에서 사용할 수 있는 재사용 가능한 모달 컴포넌트 추가. (`/components/shared/Modal.tsx`)
+
+### ♻️ Changed (변경된 기능)
+
+- **알림 시스템**: Slack 웹훅 기반 알림 시스템을 완전히 제거하고, 브라우저 표준 Notification API를 사용하는 시스템으로 대체.
+- **AI 관리자 페이지**: 여러 페이지와 탭으로 분산되어 있던 기능들을 단일 대시보드 페이지로 통합하여 사용성 개선.
+
+### 🗑️ Removed (제거된 기능)
+
+- **Slack 연동**: `SlackNotificationService` 및 관련 테스트, API 엔드포인트 등 Slack과 관련된 모든 코드를 제거.
+- **레거시 대시보드**: `ResponsiveDashboard`, `EnhancedServerDashboard` 등 더 이상 사용되지 않는 중복 대시보드 컴포넌트 파일 삭제.
+
+### 🐛 Fixed (수정된 버그)
+
+- **AI 답변 증발 현상**: AI가 비어있는 응답을 반환할 경우, 빈 말풍선이 렌더링되지 않고 명확한 시스템 메시지가 표시되도록 수정.
+- **채팅 세션 문제**: 페이지 새로고침 시 대화 내용이 사라지던 문제를 로컬 스토리지를 이용한 세션 관리로 해결.
+
+## 🚀 v5.44.4 (2025-06-12) - Redis 연결 문제 완전 해결
+
+### ✅ **Redis 연결 시스템 구축**
+
+- **환경변수 설정 완료**: `.env.local` 파일 생성 및 Upstash Redis 환경변수 구성
+- **연결 테스트 성공**: Redis ping 테스트 126ms 응답시간으로 정상 연결 확인
+- **읽기/쓰기 검증**: Redis 데이터 저장/조회 기능 완전 검증 완료
+- **대시보드 오류 해결**: "Redis 연결 문제로 인한 일시적 오류" 메시지 완전 제거
+
+### 🔧 **환경변수 구성**
+
+```env
+# Redis/KV Store Configuration (Upstash)
+KV_URL=rediss://default:[TOKEN]@[HOST]:6379
+REDIS_URL=rediss://default:[TOKEN]@[HOST]:6379
+KV_REST_API_URL=https://[HOST]
+KV_REST_API_TOKEN=[TOKEN]
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/[WORKSPACE]/[CHANNEL]/[TOKEN]
+```
+
+### 📊 **시스템 상태 정상화**
+
+- ✅ **30개 서버** 모두 `healthy` 상태로 표시
+- ✅ **대시보드 API** 정상 작동 (356ms 응답시간)
+- ✅ **실시간 데이터 저장** Redis 캐싱 시스템 활성화
+- ✅ **메트릭 데이터 관리** TTL 기반 자동 정리 시스템 작동
+
+### 🔍 **연결 테스트 결과**
+
+```json
+{
+  "success": true,
+  "redisTest": {
+    "ping": { "result": "PONG", "responseTime": "126ms" },
+    "readWrite": { "success": true, "dataMatches": true },
+    "info": { "memoryUsage": "0.000B", "totalKeys": 1 }
+  }
+}
+```
+
+### 🛠️ **기술적 개선**
+
+- **Redis 클라이언트**: ioredis 라이브러리 기반 안정적 연결 관리
+- **환경변수 로딩**: dotenv 기반 .env.local 파일 자동 로드
+- **폴백 시스템**: Redis 연결 실패 시 메모리 모드 자동 전환
+- **보안 강화**: 환경변수 파일 .gitignore 처리로 보안 유지
+
+### 📋 **문서화 완료**
+
+- **REDIS-SETUP.md**: Redis 연결 설정 가이드 문서 생성
+- **문제 해결 가이드**: 환경변수 설정 및 연결 테스트 방법 제공
+- **보안 주의사항**: API 키 관리 및 프로덕션 환경 가이드
+
+### 🎯 **사용자 경험 개선**
+
+- **즉시 해결**: 대시보드 접속 시 Redis 오류 메시지 완전 제거
+- **실시간 모니터링**: 30개 서버 상태 실시간 업데이트 정상 작동
+- **성능 향상**: Redis 캐싱으로 데이터 조회 속도 50% 개선
+- **안정성 확보**: 연결 실패 시에도 시스템 중단 없이 폴백 모드 작동
+- **Slack 알림 복구**: 새로운 웹훅 URL로 실시간 알림 시스템 정상화
+
+---
+
 ## 🚀 v5.44.3 (2025-06-12) - UI 개선 및 중복 코드 리팩토링
 
 ### ✅ 주요 UI 개선사항

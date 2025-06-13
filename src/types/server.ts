@@ -48,7 +48,12 @@ export interface SystemInfo {
   lastUpdate: string;
 }
 
-export type ServerStatus = 'normal' | 'warning' | 'critical' | 'maintenance';
+// 🔄 중복 제거: common.ts의 타입들 재사용
+import type { ServerStatus, AlertSeverity } from './common';
+
+// 다른 파일에서 사용할 수 있도록 재export
+export type { ServerStatus } from './common';
+
 export type ServerEnvironment =
   | 'production'
   | 'staging'
@@ -102,7 +107,7 @@ export interface ServerAlert {
   server_id: string;
   type: 'cpu' | 'memory' | 'disk' | 'network' | 'response_time' | 'custom';
   message: string;
-  severity: 'info' | 'warning' | 'critical';
+  severity: AlertSeverity;
   timestamp: string;
   resolved: boolean;
   relatedServers?: string[];
@@ -311,7 +316,7 @@ export interface RealisticFailureScenario {
       multiplier: number;
     };
     alertMessage: string;
-    severity: 'info' | 'warning' | 'critical';
+    severity: AlertSeverity;
   }[];
   recoveryTimeMs: number;
   probability: number;

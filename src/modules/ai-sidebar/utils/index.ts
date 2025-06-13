@@ -11,7 +11,10 @@ import {
   SidebarTheme,
 } from '../types';
 import { createSafeError } from '@/lib/error-handler';
-import { generateId } from '@/lib/utils-functions';
+import {
+  generateSessionId as generateId,
+  generateTimestamp,
+} from '@/lib/utils-functions';
 
 /**
  * 기본 사이드바 설정 반환
@@ -156,7 +159,7 @@ export const generateMessageId = (): string => {
  * 세션 ID 생성
  */
 export const generateSessionId = (): string => {
-  return generateId(8);
+  return generateId('ai-sidebar');
 };
 
 /**

@@ -228,8 +228,8 @@ export function getDataGeneratorConfig() {
     enabled: config.features.enableRealtimeData,
     maxServers,
     defaultArchitecture: serverArchitecture,
-    updateInterval: config.IS_VERCEL ? 7000 : 5000, // 🔄 8초→7초로 단축 (효율성 개선)
-    refreshInterval: config.IS_VERCEL ? 12000 : 8000, // 🔄 15초→12초로 단축
+    updateInterval: config.IS_VERCEL ? 20000 : 15000, // 🔄 업데이트 간격 조정 (20초/15초)
+    refreshInterval: config.IS_VERCEL ? 30000 : 25000, // 🔄 새로고침 간격 조정 (30초/25초)
     memoryLimit: config.performance.maxMemory,
     mode: config.IS_VERCEL ? 'production' : 'development',
     features: {
