@@ -20,7 +20,7 @@ export class PerformanceMonitor {
   constructor() {
     this.engineStats = {
       korean: { initialized: false, successCount: 0, avgTime: 0 },
-      tensorflow: { initialized: false, successCount: 0, avgTime: 0 },
+      lightweightML: { initialized: false, successCount: 0, avgTime: 0 },
       transformers: { initialized: false, successCount: 0, avgTime: 0 },
       vector: { initialized: false, documentCount: 0, searchCount: 0 },
     };
@@ -102,9 +102,9 @@ export class PerformanceMonitor {
       this.updateVectorStats();
     }
 
-    // TensorFlow는 별도 조건으로 판단
+    // LightweightML은 별도 조건으로 판단
     if (smartQuery.tensorflowModels.length > 0) {
-      this.updateTensorFlowStats(processingTime);
+      this.updateLightweightMLStats(processingTime);
     }
   }
 
@@ -131,10 +131,10 @@ export class PerformanceMonitor {
   }
 
   /**
-   * TensorFlow 엔진 통계 업데이트
+   * LightweightML 엔진 통계 업데이트
    */
-  private updateTensorFlowStats(processingTime: number): void {
-    const stats = this.engineStats.tensorflow;
+  private updateLightweightMLStats(processingTime: number): void {
+    const stats = this.engineStats.lightweightML;
     stats.successCount++;
     stats.avgTime =
       (stats.avgTime * (stats.successCount - 1) + processingTime) /
@@ -153,11 +153,12 @@ export class PerformanceMonitor {
    */
   determineEngineUsed(
     analysisResults: any
-  ): 'korean' | 'tensorflow' | 'transformers' | 'vector' | 'hybrid' {
+  ): 'korean' | 'lightweightML' | 'transformers' | 'vector' | 'hybrid' {
     const usedEngines: string[] = [];
 
     if (analysisResults.korean) usedEngines.push('korean');
-    if (analysisResults.tensorflow) usedEngines.push('tensorflow');
+    if (analysisResults.tensorflow || analysisResults.lightweightML)
+      usedEngines.push('lightweightML');
     if (analysisResults.transformers) usedEngines.push('transformers');
     if (analysisResults.vectorSearchResults) usedEngines.push('vector');
 
@@ -279,7 +280,7 @@ export class PerformanceMonitor {
       );
     }
 
-    if (this.engineStats.tensorflow.avgTime > 8000) {
+    if (this.engineStats.lightweightML.avgTime > 8000) {
       recommendations.push(
         '🤖 TensorFlow 엔진의 초기화 시간이 깁니다. 백그라운드 로딩을 활용하세요.'
       );
@@ -335,9 +336,9 @@ export class PerformanceMonitor {
         평균시간: `${Math.round(this.engineStats.korean.avgTime)}ms`,
       },
       TensorFlow: {
-        초기화: this.engineStats.tensorflow.initialized ? '✅' : '❌',
-        성공횟수: this.engineStats.tensorflow.successCount,
-        평균시간: `${Math.round(this.engineStats.tensorflow.avgTime)}ms`,
+        초기화: this.engineStats.lightweightML.initialized ? '✅' : '❌',
+        성공횟수: this.engineStats.lightweightML.successCount,
+        평균시간: `${Math.round(this.engineStats.lightweightML.avgTime)}ms`,
       },
       Transformers: {
         초기화: this.engineStats.transformers.initialized ? '✅' : '❌',
@@ -358,7 +359,7 @@ export class PerformanceMonitor {
   resetMetrics(): void {
     this.engineStats = {
       korean: { initialized: false, successCount: 0, avgTime: 0 },
-      tensorflow: { initialized: false, successCount: 0, avgTime: 0 },
+      lightweightML: { initialized: false, successCount: 0, avgTime: 0 },
       transformers: { initialized: false, successCount: 0, avgTime: 0 },
       vector: { initialized: false, documentCount: 0, searchCount: 0 },
     };
