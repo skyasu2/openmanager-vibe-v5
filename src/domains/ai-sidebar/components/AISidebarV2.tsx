@@ -10,20 +10,17 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X,
     Brain,
-    AlertTriangle,
     Server,
     BarChart3,
     Search,
     Target,
     Send,
-    Loader2,
-    Clock,
-    MessageSquare
+    Loader2
 } from 'lucide-react';
 import BasicTyping from '@/components/ui/BasicTyping';
 import {
@@ -31,7 +28,6 @@ import {
     useAISidebarUI,
     useAIThinking,
     useAIChat,
-    useAIAlerts,
     selectQuickQuestions
 } from '../stores/useAISidebarStore';
 import { QuickQuestion } from '../types';
@@ -69,16 +65,13 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         addMessage,
         addResponse
     } = useAIChat();
-    const {
-        alerts,
-        addAlert,
-        removeAlert
-    } = useAIAlerts();
 
     // UI 상태
     const [inputValue, setInputValue] = useState('');
-    const [showWarning, setShowWarning] = useState(true);
     const [currentSessionId, setCurrentSessionId] = useState<string>('');
+
+    // 스크롤 참조
+    const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // 실시간 AI 로그 훅
     const {
@@ -93,6 +86,13 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         mode: 'sidebar',
         maxLogs: 30
     });
+
+    // 메시지가 추가될 때마다 스크롤을 맨 아래로 이동
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [messages]);
 
     // 빠른 질문 가져오기 (실제 서비스에서)
     const quickQuestions = aiService.getQuickQuestions();
@@ -163,24 +163,6 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         handleQuestionSubmit(question.question);
     };
 
-    /**
-     * 경고 닫기 처리
-     */
-    const handleCloseWarning = () => {
-        setShowWarning(false);
-    };
-
-    // 컴포넌트 마운트 시 시스템 알림 생성
-    useEffect(() => {
-        if (isOpen && showWarning) {
-            aiService.createSystemAlert().then(alert => {
-                addAlert(alert);
-            }).catch(error => {
-                console.error('시스템 알림 생성 오류:', error);
-            });
-        }
-    }, [isOpen, showWarning, addAlert]);
-
     return (
         <AnimatePresence>
             {isOpen && (
@@ -218,68 +200,6 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                         </button>
                     </div>
 
-                    {/* 시스템 알림 */}
-                    <div className='mx-4 mt-4 space-y-2'>
-                        {alerts.map((alert) => (
-                            <motion.div
-                                key={alert.id}
-                                initial={{ opacity: 0, y: -20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                className={`p-3 rounded-lg border ${alert.type === 'warning' ? 'bg-yellow-50 border-yellow-200' :
-                                    alert.type === 'error' ? 'bg-red-50 border-red-200' :
-                                        alert.type === 'success' ? 'bg-green-50 border-green-200' :
-                                            'bg-blue-50 border-blue-200'
-                                    }`}
-                            >
-                                <div className='flex items-start gap-3'>
-                                    <AlertTriangle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${alert.type === 'warning' ? 'text-yellow-600' :
-                                        alert.type === 'error' ? 'text-red-600' :
-                                            alert.type === 'success' ? 'text-green-600' :
-                                                'text-blue-600'
-                                        }`} />
-                                    <div className='flex-1'>
-                                        <div className={`text-sm font-medium ${alert.type === 'warning' ? 'text-yellow-800' :
-                                            alert.type === 'error' ? 'text-red-800' :
-                                                alert.type === 'success' ? 'text-green-800' :
-                                                    'text-blue-800'
-                                            }`}>
-                                            {alert.title}
-                                        </div>
-                                        <div className={`text-sm mt-1 ${alert.type === 'warning' ? 'text-yellow-700' :
-                                            alert.type === 'error' ? 'text-red-700' :
-                                                alert.type === 'success' ? 'text-green-700' :
-                                                    'text-blue-700'
-                                            }`}>
-                                            {alert.message}
-                                        </div>
-                                        <div className={`text-xs mt-1 ${alert.type === 'warning' ? 'text-yellow-600' :
-                                            alert.type === 'error' ? 'text-red-600' :
-                                                alert.type === 'success' ? 'text-green-600' :
-                                                    'text-blue-600'
-                                            }`}>
-                                            {alert.timestamp.toLocaleTimeString('ko-KR')}
-                                        </div>
-                                    </div>
-                                    {alert.isClosable && (
-                                        <button
-                                            onClick={() => removeAlert(alert.id)}
-                                            className={`${alert.type === 'warning' ? 'text-yellow-600 hover:text-yellow-800' :
-                                                alert.type === 'error' ? 'text-red-600 hover:text-red-800' :
-                                                    alert.type === 'success' ? 'text-green-600 hover:text-green-800' :
-                                                        'text-blue-600 hover:text-blue-800'
-                                                }`}
-                                            title='알림 닫기'
-                                            aria-label='알림 닫기'
-                                        >
-                                            <X className='w-4 h-4' />
-                                        </button>
-                                    )}
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-
                     {/* 실시간 AI 사고 과정 */}
                     <div className='mx-4 mt-4'>
                         <RealTimeThinkingViewer
@@ -289,55 +209,44 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                             mode="sidebar"
                             className="w-full"
                         />
-
-                        {/* 연결 상태 표시 */}
-                        {connectionStatus !== 'connected' && (
-                            <div className='mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg'>
-                                <div className='flex items-center gap-2 text-yellow-700 text-xs'>
-                                    <AlertTriangle className='w-3 h-3' />
-                                    <span>
-                                        실시간 로그 연결 상태: {
-                                            connectionStatus === 'connecting' ? '연결 중...' :
-                                                connectionStatus === 'error' ? '연결 오류' :
-                                                    '연결 끊김'
-                                        }
-                                    </span>
-                                </div>
-                            </div>
-                        )}
                     </div>
 
-                    {/* 채팅 메시지 */}
-                    <div className='mx-4 mt-4 flex-1 overflow-y-auto'>
-                        <div className='space-y-3'>
-                            {messages.slice(-10).map((message) => (
-                                <motion.div
-                                    key={message.id}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                                >
-                                    <div className={`max-w-[80%] p-3 rounded-lg ${message.role === 'user' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-800'
-                                        }`}>
-                                        {message.isTyping ? (
-                                            <BasicTyping
-                                                text={message.content}
-                                                speed={message.typingSpeed || 'normal'}
-                                                showCursor={true}
-                                                cursorColor={message.role === 'user' ? '#ffffff' : '#3b82f6'}
-                                            />
-                                        ) : (
-                                            <div className='text-sm whitespace-pre-wrap'>
-                                                {message.content}
-                                            </div>
-                                        )}
-                                        <div className={`text-xs mt-1 ${message.role === 'user' ? 'text-purple-200' : 'text-gray-500'
+                    {/* 채팅 메시지 - 아래에서 위로 스크롤 */}
+                    <div className='flex-1 flex flex-col mx-4 mt-4 min-h-0'>
+                        <div className='flex-1 overflow-y-auto'>
+                            <div className='space-y-3 flex flex-col'>
+                                {messages.slice(-10).map((message, index) => (
+                                    <motion.div
+                                        key={message.id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.05 }}
+                                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                    >
+                                        <div className={`max-w-[80%] p-3 rounded-lg ${message.role === 'user' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-800'
                                             }`}>
-                                            {message.timestamp.toLocaleTimeString('ko-KR')}
+                                            {message.isTyping ? (
+                                                <BasicTyping
+                                                    text={message.content}
+                                                    speed={message.typingSpeed || 'normal'}
+                                                    showCursor={true}
+                                                    cursorColor={message.role === 'user' ? '#ffffff' : '#3b82f6'}
+                                                />
+                                            ) : (
+                                                <div className='text-sm whitespace-pre-wrap'>
+                                                    {message.content}
+                                                </div>
+                                            )}
+                                            <div className={`text-xs mt-1 ${message.role === 'user' ? 'text-purple-200' : 'text-gray-500'
+                                                }`}>
+                                                {message.timestamp.toLocaleTimeString('ko-KR')}
+                                            </div>
                                         </div>
-                                    </div>
-                                </motion.div>
-                            ))}
+                                    </motion.div>
+                                ))}
+                                {/* 스크롤 참조 포인트 */}
+                                <div ref={messagesEndRef} />
+                            </div>
                         </div>
                     </div>
 
