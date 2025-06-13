@@ -11,6 +11,8 @@ import { AISidebarConfig } from '../types';
 import { useAIChat } from '../hooks/useAIChat';
 import { usePowerStore } from '../../../stores/powerStore';
 import { smartAIAgent } from '../../../services/aiAgent';
+import { useChatHistory } from '../hooks/useChatHistory';
+import { ThinkingProcessViewer } from './ThinkingProcessViewer';
 
 interface ChatInterfaceProps {
   config: AISidebarConfig;
@@ -103,12 +105,30 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const { mode, updateActivity } = usePowerStore();
   const isSystemActive = mode === 'active' || mode === 'monitoring';
 
-  const { messages, isLoading, error, sendMessage, clearChat } = useAIChat({
-    apiEndpoint: config.apiEndpoint,
-    onMessage: config.onMessage,
-    onResponse: config.onResponse,
-    onError: config.onError,
-  });
+  // ✨ 채팅 히스토리 관리
+  const { currentSessionId, createSession, updateSessionMessages } =
+    useChatHistory();
+
+  // 세션이 없다면 즉시 생성 (최초 렌더에 대응)
+  const ensuredSessionId = React.useMemo(() => {
+    if (currentSessionId) return currentSessionId;
+    return createSession();
+  }, [currentSessionId, createSession]);
+
+  // useAIChat 훅 호출
+  const { messages, isLoading, error, sendMessage, clearChat, thinkingState } =
+    useAIChat({
+      apiEndpoint: config.apiEndpoint,
+      onMessage: config.onMessage,
+      onResponse: config.onResponse,
+      onError: config.onError,
+      sessionId: ensuredSessionId,
+    });
+
+  // 메시지 변경 시 세션에 저장
+  useEffect(() => {
+    updateSessionMessages(ensuredSessionId, messages);
+  }, [messages, ensuredSessionId, updateSessionMessages]);
 
   // 메시지 스크롤
   useEffect(() => {
@@ -200,19 +220,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         {/* 로딩 표시 */}
         {isLoading && (
           <div className='flex justify-start'>
-            <div className='bg-gray-100 dark:bg-gray-800 rounded-lg p-3 max-w-xs'>
-              <div className='flex space-x-1'>
-                <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce' />
-                <div
-                  className='w-2 h-2 bg-gray-400 rounded-full animate-bounce'
-                  style={{ animationDelay: '0.1s' }}
-                />
-                <div
-                  className='w-2 h-2 bg-gray-400 rounded-full animate-bounce'
-                  style={{ animationDelay: '0.2s' }}
-                />
-              </div>
-            </div>
+            <ThinkingProcessViewer thinkingFlow={thinkingState} />
           </div>
         )}
 
