@@ -5,7 +5,7 @@
  * Template Method Pattern: 응답 생성 단계별 처리
  */
 
-import { SmartQuery, DocumentContext, ResponseContext, QueryIntent } from '../types/HybridTypes';
+import { SmartQuery, DocumentContext, ResponseContext } from '../types/HybridTypes';
 
 export class ResponseGenerator {
   private readonly actionTemplates = {
@@ -204,8 +204,8 @@ export class ResponseGenerator {
    * 문서 요약 생성
    */
   private generateDocumentSummary(doc: DocumentContext, keywords: string[]): string {
-    const relevantKeywords = doc.keywords.filter(keyword => 
-      keywords.some(queryKeyword => 
+    const relevantKeywords = doc.keywords.filter(keyword =>
+      keywords.some(queryKeyword =>
         keyword.toLowerCase().includes(queryKeyword.toLowerCase()) ||
         queryKeyword.toLowerCase().includes(keyword.toLowerCase())
       )
@@ -218,7 +218,7 @@ export class ResponseGenerator {
     }
 
     // 문서 내용 요약 (첫 200자)
-    const contentSummary = doc.content.length > 200 
+    const contentSummary = doc.content.length > 200
       ? doc.content.substring(0, 200) + '...'
       : doc.content;
 
@@ -237,9 +237,9 @@ export class ResponseGenerator {
   private generateFallbackResponse(smartQuery: SmartQuery): ResponseContext {
     const intent = smartQuery.intent;
     const template = this.actionTemplates[intent];
-    
+
     let text = `${template.prefix}\n\n`;
-    
+
     if (smartQuery.isKorean) {
       text += `"${smartQuery.originalQuery}"에 대한 정보를 찾고 있습니다.\n\n`;
       text += '💡 다음 사항을 확인해보세요:\n';
@@ -263,7 +263,7 @@ export class ResponseGenerator {
   /**
    * 액션 제안 생성
    */
-  private generateActionAdvice(intent: QueryIntent, analysisResults: any): string {
+  private generateActionAdvice(intent: string, analysisResults: any): string {
     let advice = '';
 
     switch (intent) {
@@ -279,7 +279,7 @@ export class ResponseGenerator {
         advice += '• 로그 파일 확인\n';
         advice += '• 시스템 리소스 상태 점검\n';
         advice += '• 필요시 서비스 재시작';
-        
+
         if (analysisResults.tensorflow?.anomalies?.length > 0) {
           advice += '\n• ⚠️ AI가 감지한 이상 징후를 우선 확인하세요';
         }
@@ -312,7 +312,7 @@ export class ResponseGenerator {
   private mergeResponses(existing: string, newResponse: string): string {
     if (!existing) return newResponse;
     if (!newResponse) return existing;
-    
+
     return `${existing}\n\n${newResponse}`;
   }
 
@@ -326,9 +326,9 @@ export class ResponseGenerator {
   /**
    * 응답 포맷팅
    */
-  private formatResponse(text: string, intent: QueryIntent): string {
+  private formatResponse(text: string, intent: string): string {
     const template = this.actionTemplates[intent];
-    
+
     // 템플릿 prefix가 없으면 추가
     if (!text.startsWith(template.prefix)) {
       text = `${template.prefix}\n\n${text}`;
@@ -346,8 +346,8 @@ export class ResponseGenerator {
    * 신뢰도 조정
    */
   private adjustConfidence(
-    baseConfidence: number, 
-    smartQuery: SmartQuery, 
+    baseConfidence: number,
+    smartQuery: SmartQuery,
     documentCount: number
   ): number {
     let adjusted = baseConfidence;
@@ -406,7 +406,7 @@ export class ResponseGenerator {
     // 키워드 포함 검증
     const queryKeywords = smartQuery.keywords;
     const responseText = response.text.toLowerCase();
-    const keywordMatches = queryKeywords.filter(keyword => 
+    const keywordMatches = queryKeywords.filter(keyword =>
       responseText.includes(keyword.toLowerCase())
     ).length;
 

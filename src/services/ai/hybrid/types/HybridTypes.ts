@@ -34,6 +34,7 @@ export interface SmartQuery {
   keywords: string[];
   intent: string;
   confidence: number;
+  isKorean?: boolean;
   lightweightMLModels: string[];
   transformersModels: string[];
   vectorSearchTerms: string[];
