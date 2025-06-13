@@ -47,10 +47,10 @@ interface AdvancedAnalysisRequest {
   serverMetrics?: ServerMetrics[];
   context?: any;
   analysisType:
-    | 'monitoring'
-    | 'prediction'
-    | 'troubleshooting'
-    | 'optimization';
+  | 'monitoring'
+  | 'prediction'
+  | 'troubleshooting'
+  | 'optimization';
   priority: 'low' | 'medium' | 'high' | 'critical';
 }
 
@@ -68,34 +68,59 @@ export class GoogleAIService {
     lastReset: Date.now(),
     lastHourReset: Date.now(),
   };
+  private learningCount = {
+    daily: 0,
+    lastLearningDate: '',
+  };
+  private lastConnectionTest = 0; // 마지막 연결 테스트 시간
   private isInitialized = false;
 
   constructor() {
-    // 🔐 보안 강화된 API 키 관리 사용
-    const apiKey = getGoogleAIKey();
+    try {
+      // 🔐 보안 강화된 API 키 관리 사용
+      const apiKey = getGoogleAIKey();
 
-    // 기본 설정 먼저 초기화
-    this.config = {
-      apiKey: apiKey || '',
-      model: (process.env.GOOGLE_AI_MODEL as any) || 'gemini-1.5-flash',
-      enabled:
-        process.env.GOOGLE_AI_ENABLED === 'true' && isGoogleAIAvailable(),
-      rateLimits: {
-        // 🚀 시연용 최대 할당량 설정 (내일 시연 전용)
-        rpm: 100, // 분당 요청 수 최대 (10 → 100)
-        daily: 10000, // 일일 요청 수 최대 (300 → 10000)
-      },
-    };
+      // 🚨 Vercel 500 에러 방지: API 키 검증 강화
+      if (!apiKey || apiKey.trim() === '') {
+        console.warn('⚠️ Google AI API 키가 없습니다. 서비스가 비활성화됩니다.');
+      }
 
-    // 🚀 시연용 강제 활성화
-    if (apiKey) {
-      this.config.enabled = true;
-      console.log('🚀 Google AI 시연용 강제 활성화 - 모든 제한 해제');
+      // 기본 설정 먼저 초기화
+      this.config = {
+        apiKey: apiKey || '',
+        model: (process.env.GOOGLE_AI_MODEL as any) || 'gemini-1.5-flash',
+        enabled: false, // 기본값을 false로 설정
+        rateLimits: {
+          // 🚀 시연용 최대 할당량 설정 (내일 시연 전용)
+          rpm: 100, // 분당 요청 수 최대 (10 → 100)
+          daily: 10000, // 일일 요청 수 최대 (300 → 10000)
+        },
+      };
+
+      // 🚀 대화용 Google AI 활성화 (학습은 하루 1회 제한)
+      const isKeyAvailable = isGoogleAIAvailable();
+
+      if (apiKey && apiKey.trim() !== '' && isKeyAvailable) {
+        this.config.enabled = true;
+        console.log('🚀 Google AI 대화용 활성화 - 학습은 하루 1회 제한');
+      } else {
+        console.log(`⚠️ Google AI 비활성화: apiKey=${!!apiKey}, keyAvailable=${isKeyAvailable}`);
+      }
+
+      // 이후 실제 레이트 리밋 설정
+      this.config.rateLimits.rpm = this.getRateLimit('rpm');
+      this.config.rateLimits.daily = this.getRateLimit('daily');
+
+    } catch (error) {
+      console.error('❌ GoogleAIService 생성자 오류:', error);
+      // 🚨 생성자에서 예외 발생 시 안전한 기본값 설정
+      this.config = {
+        apiKey: '',
+        model: 'gemini-1.5-flash',
+        enabled: false,
+        rateLimits: { rpm: 100, daily: 10000 },
+      };
     }
-
-    // 이후 실제 레이트 리밋 설정
-    this.config.rateLimits.rpm = this.getRateLimit('rpm');
-    this.config.rateLimits.daily = this.getRateLimit('daily');
   }
 
   /**
@@ -115,9 +140,22 @@ export class GoogleAIService {
         return false;
       }
 
-      // 🚀 시연용 연결 테스트 활성화 (내일 시연 전용)
-      console.log('🚀 Google AI 연결 테스트 시작...');
-      const connectionTest = await this.testConnection();
+      // 🚀 연결 테스트 (30분마다 1회만 실행)
+      const now = Date.now();
+      const thirtyMinutes = 30 * 60 * 1000; // 30분
+      const shouldTestConnection = (now - this.lastConnectionTest) > thirtyMinutes;
+
+      let connectionTest: { success: boolean; message: string; latency?: number } = {
+        success: true,
+        message: '연결 테스트 스킵됨 (30분 이내 테스트 완료)',
+        latency: 0
+      };
+
+      if (shouldTestConnection) {
+        console.log('🚀 Google AI 연결 테스트 시작...');
+        connectionTest = await this.testConnection();
+        this.lastConnectionTest = now;
+      }
 
       if (connectionTest.success) {
         this.isInitialized = true;
@@ -254,17 +292,20 @@ export class GoogleAIService {
       );
     }
 
-    // 🎓 학습 모드 제한 체크
-    const learningMode =
-      process.env.GOOGLE_AI_LEARNING_MODE || 'startup_shutdown_only';
-    if (options.isLearning && learningMode === 'startup_shutdown_only') {
-      // 시스템 시작/종료 시에만 학습 허용
-      const isSystemStartup = this.isSystemStartupPhase();
-      const isSystemShutdown = this.isSystemShutdownPhase();
+    // 🎓 학습 모드 제한 체크 (하루 1회)
+    if (options.isLearning) {
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD 형식
 
-      if (!isSystemStartup && !isSystemShutdown) {
+      // 날짜가 바뀌면 학습 카운트 리셋
+      if (this.learningCount.lastLearningDate !== today) {
+        this.learningCount.daily = 0;
+        this.learningCount.lastLearningDate = today;
+      }
+
+      // 하루 1회 학습 제한
+      if (this.learningCount.daily >= 1) {
         throw new Error(
-          '학습은 시스템 시작/종료 시에만 허용됩니다. 현재는 질문 대응 전용 모드입니다.'
+          '학습은 하루에 1회만 허용됩니다. 내일 다시 시도해주세요.'
         );
       }
     }
@@ -349,6 +390,12 @@ export class GoogleAIService {
       // 요청 카운트 증가
       this.incrementRequestCount();
 
+      // 학습 카운트 증가 (학습 모드인 경우)
+      if (options.isLearning) {
+        this.learningCount.daily++;
+        console.log(`📚 Google AI 학습 완료 (오늘 ${this.learningCount.daily}/1회)`);
+      }
+
       return {
         success: true,
         content,
@@ -384,8 +431,8 @@ export class GoogleAIService {
 서버 모니터링 데이터를 분석해주세요:
 
 ${metrics
-  .map(
-    server => `
+        .map(
+          server => `
 서버: ${server.name}
 CPU: ${server.cpu_usage}%
 메모리: ${server.memory_usage}%
@@ -393,8 +440,8 @@ CPU: ${server.cpu_usage}%
 응답시간: ${server.response_time}ms
 상태: ${server.status}
 `
-  )
-  .join('\n')}
+        )
+        .join('\n')}
 
 다음 관점에서 분석해주세요:
 1. 현재 시스템 상태 요약

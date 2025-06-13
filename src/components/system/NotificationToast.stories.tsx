@@ -12,7 +12,7 @@ import React, { useState } from 'react';
 import { NotificationToast } from './NotificationToast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { VercelOptimizedAISidebar } from '../../modules/ai-sidebar/components/VercelOptimizedAISidebar';
+import { AISidebar } from '../../presentation/ai-sidebar';
 
 const meta: Meta<typeof NotificationToast> = {
   title: 'System/NotificationToast',
@@ -456,7 +456,7 @@ const AISidebarTestWrapper = () => {
         </div>
       </div>
 
-      <VercelOptimizedAISidebar
+      <AISidebar
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
       />

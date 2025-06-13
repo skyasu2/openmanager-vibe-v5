@@ -20,43 +20,29 @@ export interface HybridAnalysisResult {
   confidence: number;
   sources: DocumentContext[];
   reasoning: string[];
-  tensorflowPredictions?: any;
-  koreanNLU?: any;
-  transformersAnalysis?: any;
+  lightweightMLPredictions?: any;
+  transformersResults?: any;
   vectorSearchResults?: any;
-  mcpActions: string[];
+  mcpResults?: any;
+  engineUsed: 'korean' | 'lightweight-ml' | 'transformers' | 'vector' | 'hybrid';
   processingTime: number;
-  engineUsed: 'korean' | 'tensorflow' | 'transformers' | 'vector' | 'hybrid';
-  performanceMetrics: {
-    initTime: number;
-    searchTime: number;
-    analysisTime: number;
-    responseTime: number;
-  };
 }
 
 export interface SmartQuery {
   originalQuery: string;
-  intent: QueryIntent;
+  cleanedQuery: string;
   keywords: string[];
-  requiredDocs: string[];
-  mcpActions: string[];
-  tensorflowModels: string[];
-  isKorean: boolean;
-  useTransformers: boolean;
-  useVectorSearch: boolean;
+  intent: string;
+  confidence: number;
+  lightweightMLModels: string[];
+  transformersModels: string[];
+  vectorSearchTerms: string[];
+  mcpQueries: string[];
 }
-
-export type QueryIntent = 
-  | 'analysis'
-  | 'search'
-  | 'prediction'
-  | 'optimization'
-  | 'troubleshooting';
 
 export interface EngineStats {
   korean: { initialized: boolean; successCount: number; avgTime: number };
-  tensorflow: { initialized: boolean; successCount: number; avgTime: number };
+  lightweightML: { initialized: boolean; successCount: number; avgTime: number };
   transformers: { initialized: boolean; successCount: number; avgTime: number };
   vector: { initialized: boolean; documentCount: number; searchCount: number };
 }
@@ -92,27 +78,11 @@ export interface ResponseContext {
 }
 
 export interface EngineConfiguration {
-  korean: {
-    enabled: boolean;
-    priority: number;
-  };
-  tensorflow: {
-    enabled: boolean;
-    priority: number;
-    backgroundInit: boolean;
-  };
-  transformers: {
-    enabled: boolean;
-    priority: number;
-  };
-  vector: {
-    enabled: boolean;
-    maxDocuments: number;
-  };
-  mcp: {
-    enabled: boolean;
-    timeout: number;
-  };
+  korean: { enabled: boolean; priority: number };
+  lightweightML: { enabled: boolean; priority: number; models: string[] };
+  transformers: { enabled: boolean; priority: number; models: string[] };
+  vector: { enabled: boolean; priority: number; threshold: number };
+  mcp: { enabled: boolean; priority: number };
 }
 
 export interface ProcessingMetrics {
@@ -137,4 +107,41 @@ export interface DocumentIndexOptions {
   maxConcurrency?: number;
   includePatterns?: string[];
   excludePatterns?: string[];
+}
+
+export interface EngineCapabilities {
+  korean: string[];
+  lightweightMLModels: string[];
+  transformersModels: string[];
+  vectorDatabases: string[];
+  mcpServers: string[];
+}
+
+export interface HybridEngineConfig {
+  korean: {
+    enabled: boolean;
+    nlpModels: string[];
+    responseTemplates: string[];
+  };
+  lightweightML: {
+    enabled: boolean;
+    models: string[];
+    algorithms: string[];
+    maxComplexity: number;
+  };
+  transformers: {
+    enabled: boolean;
+    models: string[];
+    maxTokens: number;
+  };
+  vector: {
+    enabled: boolean;
+    dimensions: number;
+    similarity: number;
+  };
+  mcp: {
+    enabled: boolean;
+    servers: string[];
+    timeout: number;
+  };
 } 

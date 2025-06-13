@@ -13,7 +13,7 @@ export { ChatInterface } from './components/ChatInterface';
 export { StatusIndicator } from './components/StatusIndicator';
 export { RealtimeServerStatus } from './components/RealtimeServerStatus';
 export { DynamicQuestionTemplates } from './components/DynamicQuestionTemplates';
-export { IntegratedAIResponse } from './components/IntegratedAIResponse';
+
 
 // 훅 exports
 export { useAIChat } from './hooks/useAIChat';

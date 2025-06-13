@@ -11,27 +11,57 @@ export async function GET() {
   try {
     const startTime = Date.now();
 
-    // 1. API 키 상태 확인
-    const apiKey = getGoogleAIKey();
-    const isAvailable = isGoogleAIAvailable();
-    const keyStatus = getGoogleAIStatus();
+    // 🚨 Vercel 500 에러 방지: 환경변수 먼저 검증
+    console.log('🔍 환경변수 상태 확인:', {
+      GOOGLE_AI_API_KEY: !!process.env.GOOGLE_AI_API_KEY,
+      GOOGLE_AI_ENABLED: process.env.GOOGLE_AI_ENABLED,
+      NODE_ENV: process.env.NODE_ENV,
+    });
 
-    // 2. Google AI 서비스 초기화 및 상태 확인
-    const googleAI = new GoogleAIService();
-    const initResult = await googleAI.initialize();
-    const serviceStatus = googleAI.getStatus();
+    // 1. API 키 상태 확인 (안전한 방식)
+    let apiKey: string | null = null;
+    let isAvailable = false;
+    let keyStatus: any = { source: 'none', isAvailable: false, needsUnlock: false };
 
-    // 3. 연결 테스트 (시연용으로 활성화)
+    try {
+      apiKey = getGoogleAIKey();
+      isAvailable = isGoogleAIAvailable();
+      keyStatus = getGoogleAIStatus();
+    } catch (keyError) {
+      console.error('❌ API 키 확인 중 오류:', keyError);
+    }
+
+    // 2. Google AI 서비스 초기화 및 상태 확인 (안전한 방식)
+    let googleAI: GoogleAIService | null = null;
+    let initResult = false;
+    let serviceStatus: any = { error: 'Service not initialized' };
+
+    try {
+      googleAI = new GoogleAIService();
+      initResult = await googleAI.initialize();
+      serviceStatus = googleAI.getStatus();
+    } catch (serviceError) {
+      console.error('❌ Google AI 서비스 초기화 중 오류:', serviceError);
+      serviceStatus = { error: serviceError.message };
+    }
+
+    // 3. 연결 테스트 (안전한 방식)
     let connectionTest = null;
-    if (initResult && apiKey) {
+    if (initResult && apiKey && googleAI) {
       try {
         connectionTest = await googleAI.testConnection();
       } catch (error) {
+        console.error('❌ 연결 테스트 중 오류:', error);
         connectionTest = {
           success: false,
           message: `연결 테스트 실패: ${error.message}`,
         };
       }
+    } else {
+      connectionTest = {
+        success: false,
+        message: '연결 테스트 조건 미충족 (초기화 실패 또는 API 키 없음)',
+      };
     }
 
     // 4. 환경변수 상태 확인

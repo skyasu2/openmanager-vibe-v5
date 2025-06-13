@@ -22,7 +22,6 @@ import {
   Database,
   BarChart3,
 } from 'lucide-react';
-import ServerCard from './ServerCard';
 import ServerDetailModal from './ServerDetailModal';
 import EnhancedServerCard from './EnhancedServerCard';
 import EnhancedServerModal from './EnhancedServerModal';
@@ -425,21 +424,21 @@ export default function ServerDashboard({
             serverData.location || serverData.environment || 'Seoul DC1',
           cpu: Math.round(
             serverData.cpu_usage ||
-              serverData.cpu ||
-              serverData.metrics?.cpu ||
-              Math.random() * 50 + 20
+            serverData.cpu ||
+            serverData.metrics?.cpu ||
+            Math.random() * 50 + 20
           ),
           memory: Math.round(
             serverData.memory_usage ||
-              serverData.memory ||
-              serverData.metrics?.memory ||
-              Math.random() * 60 + 30
+            serverData.memory ||
+            serverData.metrics?.memory ||
+            Math.random() * 60 + 30
           ),
           disk: Math.round(
             serverData.disk_usage ||
-              serverData.disk ||
-              serverData.metrics?.disk ||
-              Math.random() * 40 + 10
+            serverData.disk ||
+            serverData.metrics?.disk ||
+            Math.random() * 40 + 10
           ),
           uptime:
             typeof serverData.uptime === 'string'
@@ -710,10 +709,9 @@ export default function ServerDashboard({
                 onClick={() => setActiveTab(tab.id as DashboardTab)}
                 className={`
                   group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm
-                  ${
-                    isActive
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ${isActive
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }
                 `}
               >
@@ -727,11 +725,10 @@ export default function ServerDashboard({
                 <span
                   className={`
                   ml-2 py-0.5 px-2 rounded-full text-xs
-                  ${
-                    isActive
+                  ${isActive
                       ? 'bg-blue-100 text-blue-600'
                       : 'bg-gray-100 text-gray-500'
-                  }
+                    }
                 `}
                 >
                   {tab.count}
@@ -993,160 +990,160 @@ export default function ServerDashboard({
                   {/* 위험 상태 서버들 */}
                   {currentServers.filter(s => s.status === 'offline').length >
                     0 && (
-                    <div className='space-y-4'>
-                      <div className='flex items-center justify-between'>
-                        <h3 className='text-lg font-semibold text-red-600 flex items-center gap-2'>
-                          <span className='w-3 h-3 bg-red-500 rounded-full'></span>
-                          위험 상태 (
-                          {
-                            currentServers.filter(s => s.status === 'offline')
-                              .length
-                          }
-                          )
-                        </h3>
-                      </div>
+                      <div className='space-y-4'>
+                        <div className='flex items-center justify-between'>
+                          <h3 className='text-lg font-semibold text-red-600 flex items-center gap-2'>
+                            <span className='w-3 h-3 bg-red-500 rounded-full'></span>
+                            위험 상태 (
+                            {
+                              currentServers.filter(s => s.status === 'offline')
+                                .length
+                            }
+                            )
+                          </h3>
+                        </div>
 
-                      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
-                        {currentServers
-                          .filter(s => s.status === 'offline')
-                          .map((server, index) => (
-                            <EnhancedServerCard
-                              key={server.id}
-                              server={{
-                                ...server,
-                                hostname: server.name,
-                                type: 'api_server',
-                                environment: 'production',
-                                provider: 'AWS',
-                                status: 'critical' as any,
-                                network:
-                                  server.network ||
-                                  Math.floor(Math.random() * 40) + 60,
-                                networkStatus:
-                                  server.networkStatus || 'offline',
-                                specs: {
-                                  cpu_cores: 8,
-                                  memory_gb: 16,
-                                  disk_gb: 500,
-                                  network_speed: '1Gbps',
-                                },
-                                ip: `192.168.1.${Math.floor(Math.random() * 254) + 1}`,
-                                os: 'Ubuntu 22.04 LTS',
-                              }}
-                              index={index}
-                              onClick={() => handleServerSelect(server)}
-                              showMiniCharts={true}
-                              variant='compact'
-                            />
-                          ))}
+                        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
+                          {currentServers
+                            .filter(s => s.status === 'offline')
+                            .map((server, index) => (
+                              <EnhancedServerCard
+                                key={server.id}
+                                server={{
+                                  ...server,
+                                  hostname: server.name,
+                                  type: 'api_server',
+                                  environment: 'production',
+                                  provider: 'AWS',
+                                  status: 'critical' as any,
+                                  network:
+                                    server.network ||
+                                    Math.floor(Math.random() * 40) + 60,
+                                  networkStatus:
+                                    server.networkStatus || 'offline',
+                                  specs: {
+                                    cpu_cores: 8,
+                                    memory_gb: 16,
+                                    disk_gb: 500,
+                                    network_speed: '1Gbps',
+                                  },
+                                  ip: `192.168.1.${Math.floor(Math.random() * 254) + 1}`,
+                                  os: 'Ubuntu 22.04 LTS',
+                                }}
+                                index={index}
+                                onClick={() => handleServerSelect(server)}
+                                showMiniCharts={true}
+                                variant='compact'
+                              />
+                            ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* 경고 상태 서버들 */}
                   {currentServers.filter(s => s.status === 'warning').length >
                     0 && (
-                    <div className='space-y-4'>
-                      <div className='flex items-center justify-between'>
-                        <h3 className='text-lg font-semibold text-yellow-600 flex items-center gap-2'>
-                          <span className='w-3 h-3 bg-yellow-500 rounded-full'></span>
-                          주의 상태 (
-                          {
-                            currentServers.filter(s => s.status === 'warning')
-                              .length
-                          }
-                          )
-                        </h3>
-                      </div>
+                      <div className='space-y-4'>
+                        <div className='flex items-center justify-between'>
+                          <h3 className='text-lg font-semibold text-yellow-600 flex items-center gap-2'>
+                            <span className='w-3 h-3 bg-yellow-500 rounded-full'></span>
+                            주의 상태 (
+                            {
+                              currentServers.filter(s => s.status === 'warning')
+                                .length
+                            }
+                            )
+                          </h3>
+                        </div>
 
-                      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
-                        {currentServers
-                          .filter(s => s.status === 'warning')
-                          .map((server, index) => (
-                            <EnhancedServerCard
-                              key={server.id}
-                              server={{
-                                ...server,
-                                hostname: server.name,
-                                type: 'web_server',
-                                environment: 'production',
-                                provider: 'AWS',
-                                status: 'warning' as any,
-                                network:
-                                  server.network ||
-                                  Math.floor(Math.random() * 30) + 40,
-                                networkStatus: server.networkStatus || 'poor',
-                                specs: {
-                                  cpu_cores: 6,
-                                  memory_gb: 12,
-                                  disk_gb: 250,
-                                  network_speed: '500Mbps',
-                                },
-                                ip: `10.0.1.${Math.floor(Math.random() * 254) + 1}`,
-                                os: 'CentOS 8',
-                              }}
-                              index={index}
-                              onClick={() => handleServerSelect(server)}
-                              showMiniCharts={true}
-                              variant='compact'
-                            />
-                          ))}
+                        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
+                          {currentServers
+                            .filter(s => s.status === 'warning')
+                            .map((server, index) => (
+                              <EnhancedServerCard
+                                key={server.id}
+                                server={{
+                                  ...server,
+                                  hostname: server.name,
+                                  type: 'web_server',
+                                  environment: 'production',
+                                  provider: 'AWS',
+                                  status: 'warning' as any,
+                                  network:
+                                    server.network ||
+                                    Math.floor(Math.random() * 30) + 40,
+                                  networkStatus: server.networkStatus || 'poor',
+                                  specs: {
+                                    cpu_cores: 6,
+                                    memory_gb: 12,
+                                    disk_gb: 250,
+                                    network_speed: '500Mbps',
+                                  },
+                                  ip: `10.0.1.${Math.floor(Math.random() * 254) + 1}`,
+                                  os: 'CentOS 8',
+                                }}
+                                index={index}
+                                onClick={() => handleServerSelect(server)}
+                                showMiniCharts={true}
+                                variant='compact'
+                              />
+                            ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* 정상 상태 서버들 */}
                   {currentServers.filter(s => s.status === 'online').length >
                     0 && (
-                    <div className='space-y-4'>
-                      <div className='flex items-center justify-between'>
-                        <h3 className='text-lg font-semibold text-green-600 flex items-center gap-2'>
-                          <span className='w-3 h-3 bg-green-500 rounded-full'></span>
-                          정상 상태 (
-                          {
-                            currentServers.filter(s => s.status === 'online')
-                              .length
-                          }
-                          )
-                        </h3>
-                      </div>
+                      <div className='space-y-4'>
+                        <div className='flex items-center justify-between'>
+                          <h3 className='text-lg font-semibold text-green-600 flex items-center gap-2'>
+                            <span className='w-3 h-3 bg-green-500 rounded-full'></span>
+                            정상 상태 (
+                            {
+                              currentServers.filter(s => s.status === 'online')
+                                .length
+                            }
+                            )
+                          </h3>
+                        </div>
 
-                      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
-                        {currentServers
-                          .filter(s => s.status === 'online')
-                          .map((server, index) => (
-                            <EnhancedServerCard
-                              key={server.id}
-                              server={{
-                                ...server,
-                                hostname: server.name,
-                                type: 'database_server',
-                                environment: 'production',
-                                provider: 'AWS',
-                                status: 'healthy' as any,
-                                network:
-                                  server.network ||
-                                  Math.floor(Math.random() * 20) + 20,
-                                networkStatus:
-                                  server.networkStatus || 'excellent',
-                                specs: {
-                                  cpu_cores: 4,
-                                  memory_gb: 8,
-                                  disk_gb: 100,
-                                  network_speed: '100Mbps',
-                                },
-                                ip: `172.16.0.${Math.floor(Math.random() * 254) + 1}`,
-                                os: 'RHEL 9',
-                              }}
-                              index={index}
-                              onClick={() => handleServerSelect(server)}
-                              showMiniCharts={true}
-                              variant='compact'
-                            />
-                          ))}
+                        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
+                          {currentServers
+                            .filter(s => s.status === 'online')
+                            .map((server, index) => (
+                              <EnhancedServerCard
+                                key={server.id}
+                                server={{
+                                  ...server,
+                                  hostname: server.name,
+                                  type: 'database_server',
+                                  environment: 'production',
+                                  provider: 'AWS',
+                                  status: 'healthy' as any,
+                                  network:
+                                    server.network ||
+                                    Math.floor(Math.random() * 20) + 20,
+                                  networkStatus:
+                                    server.networkStatus || 'excellent',
+                                  specs: {
+                                    cpu_cores: 4,
+                                    memory_gb: 8,
+                                    disk_gb: 100,
+                                    network_speed: '100Mbps',
+                                  },
+                                  ip: `172.16.0.${Math.floor(Math.random() * 254) + 1}`,
+                                  os: 'RHEL 9',
+                                }}
+                                index={index}
+                                onClick={() => handleServerSelect(server)}
+                                showMiniCharts={true}
+                                variant='compact'
+                              />
+                            ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
                 </div>
               )}
 
@@ -1221,11 +1218,10 @@ export default function ServerDashboard({
                         onClick={() =>
                           setCurrentPage(prev => Math.max(1, prev - 1))
                         }
-                        className={`px-2 py-1 rounded-md border text-sm transition-colors ${
-                          currentPage === 1
-                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                            : 'bg-white hover:bg-gray-100 text-gray-700'
-                        }`}
+                        className={`px-2 py-1 rounded-md border text-sm transition-colors ${currentPage === 1
+                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                          : 'bg-white hover:bg-gray-100 text-gray-700'
+                          }`}
                       >
                         이전
                       </button>
@@ -1235,11 +1231,10 @@ export default function ServerDashboard({
                           <button
                             key={page}
                             onClick={() => setCurrentPage(page)}
-                            className={`w-8 h-8 rounded-md text-sm border transition-colors ${
-                              page === currentPage
-                                ? 'bg-blue-600 text-white border-blue-600'
-                                : 'bg-white text-gray-700 hover:bg-gray-100'
-                            }`}
+                            className={`w-8 h-8 rounded-md text-sm border transition-colors ${page === currentPage
+                              ? 'bg-blue-600 text-white border-blue-600'
+                              : 'bg-white text-gray-700 hover:bg-gray-100'
+                              }`}
                             aria-current={
                               page === currentPage ? 'page' : undefined
                             }
@@ -1254,11 +1249,10 @@ export default function ServerDashboard({
                         onClick={() =>
                           setCurrentPage(prev => Math.min(totalPages, prev + 1))
                         }
-                        className={`px-2 py-1 rounded-md border text-sm transition-colors ${
-                          currentPage === totalPages
-                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                            : 'bg-white hover:bg-gray-100 text-gray-700'
-                        }`}
+                        className={`px-2 py-1 rounded-md border text-sm transition-colors ${currentPage === totalPages
+                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                          : 'bg-white hover:bg-gray-100 text-gray-700'
+                          }`}
                       >
                         다음
                       </button>
@@ -1363,7 +1357,7 @@ export default function ServerDashboard({
                               Math.min(
                                 Math.ceil(
                                   groupedServers.critical.length /
-                                    SERVERS_PER_PAGE
+                                  SERVERS_PER_PAGE
                                 ),
                                 prev + 1
                               )
@@ -1419,7 +1413,7 @@ export default function ServerDashboard({
                                 Math.min(
                                   Math.ceil(
                                     groupedServers.warning.length /
-                                      SERVERS_PER_PAGE
+                                    SERVERS_PER_PAGE
                                   ),
                                   prev + 1
                                 )
@@ -1505,7 +1499,7 @@ export default function ServerDashboard({
                               Math.min(
                                 Math.ceil(
                                   groupedServers.warning.length /
-                                    SERVERS_PER_PAGE
+                                  SERVERS_PER_PAGE
                                 ),
                                 prev + 1
                               )
@@ -1561,7 +1555,7 @@ export default function ServerDashboard({
                                 Math.min(
                                   Math.ceil(
                                     groupedServers.healthy.length /
-                                      SERVERS_PER_PAGE
+                                    SERVERS_PER_PAGE
                                   ),
                                   prev + 1
                                 )
@@ -1647,7 +1641,7 @@ export default function ServerDashboard({
                               Math.min(
                                 Math.ceil(
                                   groupedServers.healthy.length /
-                                    SERVERS_PER_PAGE
+                                  SERVERS_PER_PAGE
                                 ),
                                 prev + 1
                               )

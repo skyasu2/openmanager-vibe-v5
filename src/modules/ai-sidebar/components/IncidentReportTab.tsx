@@ -29,7 +29,7 @@ import {
   type ServerStateComparison,
 } from '../../../services/ai/IncidentReportService';
 import type { ServerMetrics } from '../../../types/common';
-import SafeCSSTypingEffect from '../../../components/ui/SafeCSSTypingEffect';
+import BasicTyping from '../../../components/ui/BasicTyping';
 
 interface IncidentReportTabProps {
   className?: string;
@@ -354,9 +354,9 @@ export const IncidentReportTab: React.FC<IncidentReportTabProps> = ({
                     </div>
                     <div className='text-gray-600 leading-relaxed'>
                       {isTyping && index === 0 ? (
-                        <SafeCSSTypingEffect
+                        <BasicTyping
                           text={item.content}
-                          speed={2}
+                          speed="fast"
                           showCursor={true}
                           className='text-gray-600'
                         />
@@ -398,13 +398,12 @@ export const IncidentReportTab: React.FC<IncidentReportTabProps> = ({
                     className='flex items-start space-x-3 text-sm'
                   >
                     <div
-                      className={`w-2 h-2 rounded-full mt-2 ${
-                        event.severity === 'critical'
-                          ? 'bg-red-500'
-                          : event.severity === 'warning'
-                            ? 'bg-yellow-500'
-                            : 'bg-blue-500'
-                      }`}
+                      className={`w-2 h-2 rounded-full mt-2 ${event.severity === 'critical'
+                        ? 'bg-red-500'
+                        : event.severity === 'warning'
+                          ? 'bg-yellow-500'
+                          : 'bg-blue-500'
+                        }`}
                     />
                     <div className='flex-1'>
                       <div className='flex items-center space-x-2'>

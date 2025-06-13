@@ -6,10 +6,11 @@
  */
 
 import { RealMCPClient } from '@/services/mcp/real-mcp-client';
-// TensorFlow 엔진 제거됨
+// TensorFlow 엔진 제거됨 → 경량 ML 엔진으로 대체
 import { KoreanAIEngine } from '../../korean-ai-engine';
 import { TransformersEngine } from '../../transformers-engine';
 import { LocalVectorDB } from '../../local-vector-db';
+import { LightweightMLEngine } from '../../lightweight-ml-engine'; // ✅ 새로운 경량 ML 엔진
 import { EngineInstance, EngineConfiguration, EngineStats } from '../types/HybridTypes';
 
 export class EngineFactory {
@@ -38,6 +39,7 @@ export class EngineFactory {
     mcpClient: RealMCPClient;
     koreanEngine: KoreanAIEngine;
     transformersEngine: TransformersEngine;
+    lightweightMLEngine: LightweightMLEngine; // ✅ 경량 ML 엔진 추가
     vectorDB: LocalVectorDB;
   } {
     console.log('🏭 AI 엔진 팩토리에서 엔진 인스턴스 생성');
@@ -45,18 +47,21 @@ export class EngineFactory {
     const mcpClient = new RealMCPClient();
     const koreanEngine = new KoreanAIEngine();
     const transformersEngine = new TransformersEngine();
+    const lightweightMLEngine = new LightweightMLEngine(); // ✅ 경량 ML 엔진 생성
     const vectorDB = new LocalVectorDB();
 
     // 엔진 등록
     this.registerEngine('mcp', mcpClient);
     this.registerEngine('korean', koreanEngine);
     this.registerEngine('transformers', transformersEngine);
+    this.registerEngine('lightweightML', lightweightMLEngine); // ✅ 경량 ML 엔진 등록
     this.registerEngine('vector', vectorDB);
 
     return {
       mcpClient,
       koreanEngine,
       transformersEngine,
+      lightweightMLEngine, // ✅ 경량 ML 엔진 반환
       vectorDB,
     };
   }
@@ -68,13 +73,14 @@ export class EngineFactory {
     mcpClient: RealMCPClient;
     koreanEngine: KoreanAIEngine;
     transformersEngine: TransformersEngine;
+    lightweightMLEngine: LightweightMLEngine; // ✅ 경량 ML 엔진 추가
     vectorDB: LocalVectorDB;
   }): Promise<EngineStats> {
     console.log('🚀 우선순위 기반 엔진 초기화 시작');
 
     const stats: EngineStats = {
       korean: { initialized: false, successCount: 0, avgTime: 0 },
-      tensorflow: { initialized: false, successCount: 0, avgTime: 0 },
+      lightweightML: { initialized: false, successCount: 0, avgTime: 0 }, // ✅ 경량 ML 통계
       transformers: { initialized: false, successCount: 0, avgTime: 0 },
       vector: { initialized: false, documentCount: 0, searchCount: 0 },
     };
@@ -84,6 +90,10 @@ export class EngineFactory {
 
     if (this.configuration.korean.enabled) {
       corePromises.push(this.initializeKoreanEngine(engines.koreanEngine, stats));
+    }
+
+    if (this.configuration.lightweightML.enabled) { // ✅ 경량 ML 초기화
+      corePromises.push(this.initializeLightweightMLEngine(engines.lightweightMLEngine, stats));
     }
 
     if (this.configuration.transformers.enabled) {
@@ -101,8 +111,6 @@ export class EngineFactory {
     if (this.configuration.vector.enabled) {
       await this.initializeVectorDB(engines.vectorDB, stats);
     }
-
-    // TensorFlow 제거됨
 
     return stats;
   }
@@ -126,6 +134,24 @@ export class EngineFactory {
   }
 
   /**
+   * 경량 ML 엔진 초기화 (TensorFlow 대체)
+   */
+  private async initializeLightweightMLEngine(
+    engine: LightweightMLEngine,
+    stats: EngineStats
+  ): Promise<void> {
+    try {
+      const startTime = Date.now();
+      await engine.initialize();
+      stats.lightweightML.initialized = true;
+      stats.lightweightML.avgTime = Date.now() - startTime;
+      console.log('✅ 경량 ML 엔진 초기화 완료 (TensorFlow 대체)');
+    } catch (error) {
+      console.warn('⚠️ 경량 ML 엔진 초기화 실패:', error);
+    }
+  }
+
+  /**
    * Transformers 엔진 초기화
    */
   private async initializeTransformersEngine(
@@ -137,9 +163,9 @@ export class EngineFactory {
       await engine.initialize();
       stats.transformers.initialized = true;
       stats.transformers.avgTime = Date.now() - startTime;
-      console.log('✅ Transformers.js 엔진 초기화 완료');
+      console.log('✅ Transformers 엔진 초기화 완료');
     } catch (error) {
-      console.warn('⚠️ Transformers.js 엔진 초기화 실패:', error);
+      console.warn('⚠️ Transformers 엔진 초기화 실패:', error);
     }
   }
 
@@ -163,15 +189,14 @@ export class EngineFactory {
     stats: EngineStats
   ): Promise<void> {
     try {
-      // 벡터 DB는 별도 초기화가 필요하지 않음
+      await vectorDB.initialize();
       stats.vector.initialized = true;
-      console.log('✅ 로컬 벡터 DB 초기화 완료');
+      stats.vector.documentCount = 0; // 기본값
+      console.log('✅ 벡터 DB 초기화 완료');
     } catch (error) {
       console.warn('⚠️ 벡터 DB 초기화 실패:', error);
     }
   }
-
-  // TensorFlow 관련 메서드들 제거됨
 
   /**
    * 엔진 등록
@@ -194,72 +219,49 @@ export class EngineFactory {
         enabled: true,
         priority: 1,
       },
-      tensorflow: {
+      lightweightML: { // ✅ 경량 ML 기본 설정
         enabled: true,
-        priority: 3,
-        backgroundInit: true,
+        priority: 2,
+        models: ['linear-regression', 'simple-statistics', 'ml-regression'],
       },
       transformers: {
         enabled: true,
-        priority: 2,
+        priority: 3,
+        models: ['xenova/transformers'],
       },
       vector: {
         enabled: true,
-        maxDocuments: 1000,
+        priority: 4,
+        threshold: 0.7,
       },
       mcp: {
         enabled: true,
-        timeout: 5000,
+        priority: 5,
       },
     };
   }
 
   /**
-   * 모든 엔진 정리
-   */
-  public async disposeAllEngines(): Promise<void> {
-    console.log('🧹 모든 엔진 정리 시작');
-
-    for (const [name, engine] of this.engines) {
-      try {
-        if (engine.dispose) {
-          await engine.dispose();
-          console.log(`✅ ${name} 엔진 정리 완료`);
-        }
-      } catch (error) {
-        console.warn(`⚠️ ${name} 엔진 정리 실패:`, error);
-      }
-    }
-
-    this.engines.clear();
-    console.log('🧹 모든 엔진 정리 완료');
-  }
-
-  /**
    * 엔진 상태 조회
    */
-  public getEngineStatus(): Map<string, boolean> {
-    const status = new Map<string, boolean>();
-
-    for (const [name, engine] of this.engines) {
-      status.set(name, engine.initialized);
-    }
-
+  public getEngineStatus(): Record<string, boolean> {
+    const status: Record<string, boolean> = {};
+    this.engines.forEach((engine, name) => {
+      status[name] = engine.initialized;
+    });
     return status;
   }
 
   /**
-   * 설정 업데이트
+   * 정리
    */
-  public updateConfiguration(newConfig: Partial<EngineConfiguration>): void {
-    this.configuration = { ...this.configuration, ...newConfig };
-    console.log('🔧 엔진 설정 업데이트 완료');
-  }
-
-  /**
-   * 현재 설정 반환
-   */
-  public getConfiguration(): EngineConfiguration {
-    return { ...this.configuration };
+  public dispose(): void {
+    this.engines.forEach(engine => {
+      if (engine.dispose) {
+        engine.dispose();
+      }
+    });
+    this.engines.clear();
+    console.log('🧹 엔진 팩토리 정리 완료');
   }
 } 
