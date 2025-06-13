@@ -5,35 +5,12 @@ import { motion } from 'framer-motion';
 import { Bot } from 'lucide-react';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useToast } from '../ui/ToastNotification';
-import dynamic from 'next/dynamic';
 
 // 추가된 임포트
 import UnifiedProfileComponent from '../UnifiedProfileComponent';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 
-// ⚡ Dynamic Import로 Vercel 최적화 AI 사이드바 - 이전 버전 복원
-const VercelOptimizedAISidebar = dynamic(
-  () =>
-    import('../../modules/ai-sidebar/components/VercelOptimizedAISidebar').then(
-      mod => ({
-        default: mod.VercelOptimizedAISidebar,
-      })
-    ),
-  {
-    ssr: false, // AI 컴포넌트는 클라이언트 전용
-    loading: () => (
-      <div className='fixed right-0 top-0 h-full w-96 bg-white/95 backdrop-blur-sm shadow-lg border-l border-gray-200 z-50 flex items-center justify-center'>
-        <div className='flex flex-col items-center space-y-3'>
-          <div className='w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin'></div>
-          <span className='text-sm text-gray-600 font-medium'>
-            AI 시스템 로딩 중...
-          </span>
-          <div className='text-xs text-gray-400'>최초 로딩 시 3-5초 소요</div>
-        </div>
-      </div>
-    ),
-  }
-);
+// 기존 VercelOptimizedAISidebar 제거 - 새로운 도메인 분리 아키텍처로 대체됨
 
 /**
  * 서버 통계 인터페이스
@@ -308,11 +285,7 @@ const DashboardHeader = memo(function DashboardHeader({
         </div>
       </header>
 
-      {/* VercelOptimizedAISidebar */}
-      <VercelOptimizedAISidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
+      {/* 기존 VercelOptimizedAISidebar 제거 - 새로운 도메인 분리 아키텍처의 AISidebar가 dashboard/page.tsx에서 렌더링됨 */}
     </>
   );
 });
