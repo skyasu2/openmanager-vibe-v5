@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
 
     // 제한 개수 처리
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '30'); // 🔧 기본값을 30으로 변경
+    const limit = parseInt(searchParams.get('limit') || '8'); // 🎯 기본값을 8개로 변경
     const limitedServers = servers.slice(0, limit);
 
     console.log(

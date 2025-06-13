@@ -122,7 +122,7 @@ export function getVercelOptimizedConfig() {
 
   return {
     ...config,
-    maxServers: 30, // 로컬에서는 30개 서버
+    maxServers: 8, // 🎯 모든 환경에서 8개로 통일
   };
 }
 
@@ -170,7 +170,7 @@ export function detectEnvironment() {
     ...config,
     name: envName,
     tier: envTier,
-    maxServers: config.IS_VERCEL ? 8 : 30,
+    maxServers: 8, // 🎯 모든 환경에서 8개로 통일
     interval: config.IS_VERCEL ? 5000 : 3000,
   };
 }
@@ -193,13 +193,13 @@ export const env = getEnvironmentConfig();
 export function getDataGeneratorConfig() {
   const config = getEnvironmentConfig();
 
-  // 🚀 환경별 서버 수 조절: Vercel Free(8개) / Vercel Pro(20개) / 로컬(30개)
-  let maxServers = 30; // 기본값 (로컬)
+  // 🚀 환경별 서버 수 조절: 모든 환경에서 8개로 통일
+  let maxServers = 8; // 🎯 사용자 요청에 따라 8개로 통일
   let serverArchitecture:
     | 'single'
     | 'master-slave'
     | 'load-balanced'
-    | 'microservices' = 'load-balanced';
+    | 'microservices' = 'master-slave'; // 8개 서버에 적합한 아키텍처
 
   if (config.IS_VERCEL) {
     // 🔍 Vercel Pro 감지 로직 개선
@@ -212,16 +212,16 @@ export function getDataGeneratorConfig() {
         process.env.NODE_ENV === 'production');
 
     if (isVercelPro) {
-      maxServers = 20; // ✅ Vercel Pro: 20개 서버 (유료 사용자)
-      serverArchitecture = 'load-balanced';
-      console.log('🎯 Vercel Pro 환경 감지: 20개 서버 활성화');
+      maxServers = 8; // ✅ Vercel Pro: 8개 서버 (통일)
+      serverArchitecture = 'master-slave';
+      console.log('🎯 Vercel Pro 환경 감지: 8개 서버 활성화');
     } else {
       maxServers = 8; // Vercel Free: 8개 서버
       serverArchitecture = 'master-slave';
       console.log('🎯 Vercel Free 환경 감지: 8개 서버 활성화');
     }
   } else {
-    console.log('🎯 로컬 개발 환경: 30개 서버 활성화');
+    console.log('🎯 로컬 개발 환경: 8개 서버 활성화 (사용자 요청)');
   }
 
   return {
