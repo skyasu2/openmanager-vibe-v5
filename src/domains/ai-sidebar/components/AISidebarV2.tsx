@@ -35,6 +35,7 @@ import {
     selectQuickQuestions
 } from '../stores/useAISidebarStore';
 import { QuickQuestion } from '../types';
+import { RealAISidebarService } from '../services/RealAISidebarService';
 
 interface AISidebarV2Props {
     isOpen: boolean;
@@ -47,17 +48,24 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     onClose,
     className = '',
 }) => {
+    // 실제 AI 서비스 인스턴스
+    const aiService = new RealAISidebarService();
+
     // 도메인 훅들 사용
     const { setOpen } = useAISidebarUI();
     const {
         isThinking,
         currentQuestion,
         thinkingSteps,
-        clearThinkingSteps
+        clearThinkingSteps,
+        addThinkingStep,
+        setThinking
     } = useAIThinking();
     const {
         messages,
-        sendMessage
+        sendMessage,
+        addMessage,
+        addResponse
     } = useAIChat();
     const {
         alerts,
@@ -69,8 +77,8 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     const [inputValue, setInputValue] = useState('');
     const [showWarning, setShowWarning] = useState(true);
 
-    // 빠른 질문 가져오기
-    const quickQuestions = selectQuickQuestions();
+    // 빠른 질문 가져오기 (실제 서비스에서)
+    const quickQuestions = aiService.getQuickQuestions();
 
     // 아이콘 매핑
     const getIcon = (iconName: string) => {
@@ -84,13 +92,46 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     };
 
     /**
-     * 질의 처리
+     * 질의 처리 (실제 백엔드 연동)
      */
     const handleQuestionSubmit = async (question: string) => {
         if (!question.trim() || isThinking) return;
 
         setInputValue('');
-        await sendMessage(question);
+        setThinking(true);
+        clearThinkingSteps();
+
+        try {
+            // 사용자 메시지 추가
+            const userMessage = aiService.createChatMessage(question, 'user');
+            addMessage(userMessage);
+
+            // AI 사고 과정 스트리밍
+            const thinkingGenerator = aiService.streamThinkingProcess(question);
+            for await (const step of thinkingGenerator) {
+                addThinkingStep(step);
+            }
+
+            // AI 응답 생성
+            const response = await aiService.processQuery(question);
+            addResponse(response);
+
+            // AI 응답 메시지 추가
+            const aiMessage = aiService.createChatMessage(response.response, 'assistant', true);
+            addMessage(aiMessage);
+
+        } catch (error) {
+            console.error('질의 처리 오류:', error);
+
+            // 오류 메시지 추가
+            const errorMessage = aiService.createChatMessage(
+                '죄송합니다. 현재 AI 시스템에 문제가 있습니다. 잠시 후 다시 시도해주세요.',
+                'assistant'
+            );
+            addMessage(errorMessage);
+        } finally {
+            setThinking(false);
+        }
     };
 
     /**
@@ -111,12 +152,10 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     // 컴포넌트 마운트 시 시스템 알림 생성
     useEffect(() => {
         if (isOpen && showWarning) {
-            addAlert({
-                type: 'warning',
-                title: '[WARNING] ServerMonitor',
-                message: 'High CPU usage detected on Server-07 (85%)',
-                isClosable: true,
-                autoClose: 0 // 수동으로만 닫기
+            aiService.createSystemAlert().then(alert => {
+                addAlert(alert);
+            }).catch(error => {
+                console.error('시스템 알림 생성 오류:', error);
             });
         }
     }, [isOpen, showWarning, addAlert]);
