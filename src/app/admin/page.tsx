@@ -35,11 +35,39 @@ export default function AdminPage() {
           <h1 className="text-3xl font-bold text-gray-900">관리자 대시보드</h1>
           <p className="text-gray-600 mt-2">시스템 전반을 모니터링하고 관리합니다.</p>
         </div>
-        
+
         <Suspense fallback={<AdminDashboardSkeleton />}>
           <AdminDashboardCharts />
         </Suspense>
-        
+
+        {/* 🤖 AI 시스템 상태 모니터링 */}
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">AI 시스템 상태</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Google AI 상태 카드 */}
+            <Suspense fallback={<div className="h-64 bg-gray-100 animate-pulse rounded-lg" />}>
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">🤖 Google AI 상태</h3>
+                <p className="text-gray-600">Gemini API 연결 상태 및 성능 지표</p>
+                <div className="mt-4 text-sm text-blue-600">
+                  실시간 모니터링 준비 중...
+                </div>
+              </div>
+            </Suspense>
+
+            {/* MCP 시스템 상태 */}
+            <Suspense fallback={<div className="h-64 bg-gray-100 animate-pulse rounded-lg" />}>
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">🔮 MCP 시스템</h3>
+                <p className="text-gray-600">Model Context Protocol 상태 및 쿼리 성능</p>
+                <div className="mt-4 text-sm text-blue-600">
+                  실시간 모니터링 준비 중...
+                </div>
+              </div>
+            </Suspense>
+          </div>
+        </div>
+
         <div className="mt-8">
           <h2 className="text-xl font-semibold mb-4">AI 에이전트 관리</h2>
           <Suspense fallback={<div className="h-64 bg-gray-100 animate-pulse rounded-lg" />}>
