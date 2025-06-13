@@ -21,6 +21,14 @@ import type {
   SystemChecklistState,
 } from '../types/system-checklist';
 
+// 타입들을 re-export
+export type {
+  SystemComponent,
+  ComponentStatus,
+  UseSystemChecklistProps,
+  SystemChecklistState,
+} from '../types/system-checklist';
+
 export const useSystemChecklist = ({
   onComplete,
   skipCondition = false,
