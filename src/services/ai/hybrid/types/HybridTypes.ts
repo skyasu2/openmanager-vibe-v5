@@ -1,6 +1,6 @@
 /**
  * 🚀 Hybrid AI Engine 타입 정의
- * 
+ *
  * Single Responsibility: 모든 Hybrid AI 관련 인터페이스와 타입을 통합 관리
  */
 
@@ -24,26 +24,39 @@ export interface HybridAnalysisResult {
   transformersResults?: any;
   vectorSearchResults?: any;
   mcpResults?: any;
-  engineUsed: 'korean' | 'lightweight-ml' | 'transformers' | 'vector' | 'hybrid';
+  engineUsed:
+    | 'korean'
+    | 'lightweight-ml'
+    | 'transformers'
+    | 'vector'
+    | 'hybrid';
   processingTime: number;
 }
 
 export interface SmartQuery {
   originalQuery: string;
-  cleanedQuery: string;
+  intent:
+    | 'analysis'
+    | 'search'
+    | 'prediction'
+    | 'optimization'
+    | 'troubleshooting';
   keywords: string[];
-  intent: string;
-  confidence: number;
-  isKorean?: boolean;
-  lightweightMLModels: string[];
-  transformersModels: string[];
-  vectorSearchTerms: string[];
-  mcpQueries: string[];
+  requiredDocs: string[];
+  mcpActions: string[];
+  tensorflowModels: string[];
+  isKorean: boolean;
+  useTransformers: boolean;
+  useVectorSearch: boolean;
 }
 
 export interface EngineStats {
   korean: { initialized: boolean; successCount: number; avgTime: number };
-  lightweightML: { initialized: boolean; successCount: number; avgTime: number };
+  lightweightML: {
+    initialized: boolean;
+    successCount: number;
+    avgTime: number;
+  };
   transformers: { initialized: boolean; successCount: number; avgTime: number };
   vector: { initialized: boolean; documentCount: number; searchCount: number };
 }
@@ -145,4 +158,4 @@ export interface HybridEngineConfig {
     servers: string[];
     timeout: number;
   };
-} 
+}
