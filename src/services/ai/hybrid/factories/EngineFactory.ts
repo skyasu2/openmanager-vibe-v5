@@ -242,6 +242,13 @@ export class EngineFactory {
   }
 
   /**
+   * 설정 조회
+   */
+  public getConfiguration(): EngineConfiguration {
+    return this.configuration;
+  }
+
+  /**
    * 엔진 상태 조회
    */
   public getEngineStatus(): Record<string, boolean> {
