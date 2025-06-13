@@ -28,7 +28,7 @@ export class RealAISidebarService {
     /**
      * 🤖 AI 질의 처리 (MCP 시스템 연동)
      */
-    async processQuery(question: string): Promise<AIResponse> {
+    async processQuery(question: string, sessionId?: string): Promise<AIResponse> {
         try {
             // 사고 과정 시뮬레이션
             const thinkingSteps: AIThinkingStep[] = [
@@ -197,7 +197,7 @@ export class RealAISidebarService {
     /**
      * 🧠 AI 사고 과정 스트리밍
      */
-    async *streamThinkingProcess(question: string): AsyncGenerator<AIThinkingStep> {
+    async *streamThinkingProcess(question: string, sessionId?: string): AsyncGenerator<AIThinkingStep> {
         const steps = [
             {
                 step: '질의 이해',

@@ -36,6 +36,8 @@ import {
 } from '../stores/useAISidebarStore';
 import { QuickQuestion } from '../types';
 import { RealAISidebarService } from '../services/RealAISidebarService';
+import { RealTimeThinkingViewer } from '@/components/ai/RealTimeThinkingViewer';
+import { useRealTimeAILogs } from '@/hooks/useRealTimeAILogs';
 
 interface AISidebarV2Props {
     isOpen: boolean;
@@ -76,6 +78,21 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     // UI 상태
     const [inputValue, setInputValue] = useState('');
     const [showWarning, setShowWarning] = useState(true);
+    const [currentSessionId, setCurrentSessionId] = useState<string>('');
+
+    // 실시간 AI 로그 훅
+    const {
+        logs: realTimeLogs,
+        isConnected: isLogConnected,
+        isProcessing: isRealTimeProcessing,
+        currentEngine,
+        techStack,
+        connectionStatus
+    } = useRealTimeAILogs({
+        sessionId: currentSessionId,
+        mode: 'sidebar',
+        maxLogs: 30
+    });
 
     // 빠른 질문 가져오기 (실제 서비스에서)
     const quickQuestions = aiService.getQuickQuestions();
@@ -101,19 +118,23 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         setThinking(true);
         clearThinkingSteps();
 
+        // 새로운 세션 ID 생성
+        const sessionId = `ai-session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        setCurrentSessionId(sessionId);
+
         try {
             // 사용자 메시지 추가
             const userMessage = aiService.createChatMessage(question, 'user');
             addMessage(userMessage);
 
-            // AI 사고 과정 스트리밍
-            const thinkingGenerator = aiService.streamThinkingProcess(question);
+            // AI 사고 과정 스트리밍 (실시간 로그와 연동)
+            const thinkingGenerator = aiService.streamThinkingProcess(question, sessionId);
             for await (const step of thinkingGenerator) {
                 addThinkingStep(step);
             }
 
             // AI 응답 생성
-            const response = await aiService.processQuery(question);
+            const response = await aiService.processQuery(question, sessionId);
             addResponse(response);
 
             // AI 응답 메시지 추가
@@ -259,75 +280,31 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                         ))}
                     </div>
 
-                    {/* AI 사고 과정 */}
+                    {/* 실시간 AI 사고 과정 */}
                     <div className='mx-4 mt-4'>
-                        <div className='bg-gray-900 rounded-lg overflow-hidden'>
-                            {/* 헤더 */}
-                            <div className='bg-gray-800 px-4 py-3 border-b border-gray-700'>
-                                <div className='flex items-center gap-2'>
-                                    <Brain className='w-4 h-4 text-purple-400' />
-                                    <span className='text-white text-sm font-medium'>AI 사고 과정</span>
-                                    {isThinking && (
-                                        <Loader2 className='w-4 h-4 text-purple-400 animate-spin' />
-                                    )}
+                        <RealTimeThinkingViewer
+                            sessionId={currentSessionId}
+                            isExpanded={true}
+                            showTechStack={true}
+                            mode="sidebar"
+                            className="w-full"
+                        />
+
+                        {/* 연결 상태 표시 */}
+                        {connectionStatus !== 'connected' && (
+                            <div className='mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg'>
+                                <div className='flex items-center gap-2 text-yellow-700 text-xs'>
+                                    <AlertTriangle className='w-3 h-3' />
+                                    <span>
+                                        실시간 로그 연결 상태: {
+                                            connectionStatus === 'connecting' ? '연결 중...' :
+                                                connectionStatus === 'error' ? '연결 오류' :
+                                                    '연결 끊김'
+                                        }
+                                    </span>
                                 </div>
                             </div>
-
-                            {/* 사고 과정 로그 */}
-                            <div className='p-4 max-h-64 overflow-y-auto'>
-                                {thinkingSteps.length > 0 ? (
-                                    <div className='space-y-2'>
-                                        {thinkingSteps.map((step, index) => (
-                                            <motion.div
-                                                key={step.id}
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: index * 0.1 }}
-                                                className='text-sm'
-                                            >
-                                                <div className='flex items-center gap-2 text-gray-400'>
-                                                    <Clock className='w-3 h-3' />
-                                                    <span className='text-xs'>
-                                                        {step.timestamp.toLocaleTimeString('ko-KR', {
-                                                            hour12: false,
-                                                            hour: '2-digit',
-                                                            minute: '2-digit',
-                                                            second: '2-digit',
-                                                        })}
-                                                    </span>
-                                                    <span className='text-yellow-400'>●</span>
-                                                </div>
-                                                <div className='text-gray-300 mt-1 ml-5'>
-                                                    <BasicTyping
-                                                        text={step.content}
-                                                        speed="fast"
-                                                        showCursor={false}
-                                                        delay={index * 0.5}
-                                                    />
-                                                </div>
-                                                {step.progress && (
-                                                    <div className='ml-5 mt-1'>
-                                                        <div className='w-full bg-gray-700 rounded-full h-1'>
-                                                            <motion.div
-                                                                className='bg-purple-500 h-1 rounded-full'
-                                                                initial={{ width: 0 }}
-                                                                animate={{ width: `${step.progress * 100}%` }}
-                                                                transition={{ duration: 0.5, delay: index * 0.1 }}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </motion.div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className='text-center text-gray-500 py-8'>
-                                        <Brain className='w-8 h-8 mx-auto mb-2 opacity-50' />
-                                        <p className='text-sm'>AI가 대기 중입니다...</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                        )}
                     </div>
 
                     {/* 채팅 메시지 */}

@@ -1,184 +1,162 @@
 /**
- * 🌊 AI 로그 실시간 스트리밍 API
- * GET /api/ai/logging/stream - Server-Sent Events로 실시간 로그 스트리밍
+ * 🔄 실시간 AI 로그 스트리밍 API
+ * 
+ * Server-Sent Events를 통한 실시간 AI 로그 스트리밍
+ * - RealTimeAILogCollector와 연동
+ * - 세션별 필터링 지원
+ * - 관리자 페이지와 사이드바 공용
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import {
-  aiLogger,
-  LogLevel,
-  LogCategory,
-} from '@/services/ai/logging/AILogger';
+import { NextRequest } from 'next/server';
+import { RealTimeAILogCollector } from '@/services/ai/logging/RealTimeAILogCollector';
 
-export const runtime = 'nodejs';
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const sessionId = searchParams.get('sessionId');
+  const mode = searchParams.get('mode') || 'sidebar'; // 'sidebar' | 'admin'
 
-interface StreamFilter {
-  engines?: string[];
-  categories?: LogCategory[];
-  levels?: LogLevel[];
-  minConfidence?: number;
+  // Server-Sent Events 헤더 설정
+  const headers = new Headers({
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  });
+
+  const logCollector = RealTimeAILogCollector.getInstance();
+
+  // ReadableStream 생성
+  const stream = new ReadableStream({
+    start(controller) {
+      // 초기 연결 메시지
+      const initMessage = `data: ${JSON.stringify({
+        type: 'connection',
+        message: 'AI 로그 스트림 연결됨',
+        timestamp: new Date().toISOString(),
+        sessionId: sessionId || 'all',
+        mode
+      })}\n\n`;
+
+      controller.enqueue(new TextEncoder().encode(initMessage));
+
+      // 로그 이벤트 리스너
+      const logHandler = (log: any) => {
+        // 세션 필터링
+        if (sessionId && log.sessionId !== sessionId) {
+          return;
+        }
+
+        // 관리자 모드에서는 모든 로그, 사이드바 모드에서는 중요한 로그만
+        if (mode === 'sidebar') {
+          // 사이드바에서는 ERROR, WARNING, SUCCESS, PROCESSING만 표시
+          if (!['ERROR', 'WARNING', 'SUCCESS', 'PROCESSING'].includes(log.level)) {
+            return;
+          }
+        }
+
+        const message = `data: ${JSON.stringify(log)}\n\n`;
+
+        try {
+          controller.enqueue(new TextEncoder().encode(message));
+        } catch (error) {
+          console.error('스트림 전송 오류:', error);
+        }
+      };
+
+      // 이벤트 리스너 등록
+      logCollector.on('log_added', logHandler);
+
+      // 기존 로그 전송 (최근 10개)
+      if (sessionId) {
+        const existingLogs = logCollector.getSessionLogs(sessionId).slice(-10);
+        existingLogs.forEach(log => {
+          const message = `data: ${JSON.stringify(log)}\n\n`;
+          controller.enqueue(new TextEncoder().encode(message));
+        });
+      }
+
+      // Keep-alive 핑 (30초마다)
+      const pingInterval = setInterval(() => {
+        try {
+          const pingMessage = `data: ${JSON.stringify({
+            type: 'ping',
+            timestamp: new Date().toISOString()
+          })}\n\n`;
+
+          controller.enqueue(new TextEncoder().encode(pingMessage));
+        } catch (error) {
+          console.error('핑 전송 오류:', error);
+          clearInterval(pingInterval);
+        }
+      }, 30000);
+
+      // 정리 함수
+      const cleanup = () => {
+        logCollector.off('log_added', logHandler);
+        clearInterval(pingInterval);
+      };
+
+      // 연결 종료 시 정리
+      request.signal.addEventListener('abort', cleanup);
+
+      // 스트림 종료 시 정리
+      return cleanup;
+    },
+
+    cancel() {
+      console.log('AI 로그 스트림 연결 종료');
+    }
+  });
+
+  return new Response(stream, { headers });
 }
 
-/**
- * 🌊 실시간 로그 스트리밍 (Server-Sent Events)
- */
-export async function GET(request: NextRequest) {
+// POST 요청으로 수동 로그 추가 (테스트용)
+export async function POST(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const body = await request.json();
+    const { sessionId, engine, message, level = 'INFO', metadata } = body;
 
-    // 스트리밍 필터 파싱
-    const filters: StreamFilter = {
-      engines: searchParams.get('engines')?.split(','),
-      categories: searchParams.get('categories')?.split(',') as LogCategory[],
-      levels: searchParams.get('levels')?.split(',') as LogLevel[],
-      minConfidence: searchParams.get('minConfidence')
-        ? parseFloat(searchParams.get('minConfidence')!)
-        : undefined,
+    if (!sessionId || !engine || !message) {
+      return Response.json(
+        { error: '필수 필드가 누락되었습니다: sessionId, engine, message' },
+        { status: 400 }
+      );
+    }
+
+    const logCollector = RealTimeAILogCollector.getInstance();
+
+    // 수동 로그 추가
+    const log = {
+      id: `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: new Date().toISOString(),
+      level: level as any,
+      engine,
+      module: 'manual',
+      message,
+      sessionId,
+      metadata: {
+        manual: true,
+        ...metadata
+      }
     };
 
-    // SSE 헤더 설정
-    const stream = new ReadableStream({
-      start(controller) {
-        const encoder = new TextEncoder();
+    // 로그 추가 (내부 메서드 호출)
+    (logCollector as any).addLog(log);
 
-        // 연결 확인 메시지
-        const welcomeMessage = {
-          type: 'connection',
-          message: 'AI 로그 스트리밍이 시작되었습니다',
-          timestamp: new Date().toISOString(),
-          filters,
-        };
-
-        controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify(welcomeMessage)}\n\n`)
-        );
-
-        // 기존 로그 전송 (최근 10개)
-        const recentLogs = aiLogger.getRecentLogs(10);
-        recentLogs.forEach(log => {
-          if (shouldIncludeLog(log, filters)) {
-            const message = {
-              type: 'log',
-              data: log,
-              timestamp: new Date().toISOString(),
-            };
-
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify(message)}\n\n`)
-            );
-          }
-        });
-
-        // 실시간 로그 감시 (폴링 방식)
-        const pollInterval = setInterval(() => {
-          try {
-            const newLogs = aiLogger.getRecentLogs(5);
-
-            newLogs.forEach(log => {
-              if (shouldIncludeLog(log, filters)) {
-                const message = {
-                  type: 'log',
-                  data: log,
-                  timestamp: new Date().toISOString(),
-                };
-
-                controller.enqueue(
-                  encoder.encode(`data: ${JSON.stringify(message)}\n\n`)
-                );
-              }
-            });
-
-            // 하트비트 메시지 (30초마다)
-            if (Date.now() % 30000 < 1000) {
-              const heartbeat = {
-                type: 'heartbeat',
-                timestamp: new Date().toISOString(),
-                activeStreams: 1,
-              };
-
-              controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify(heartbeat)}\n\n`)
-              );
-            }
-          } catch (error) {
-            console.error('❌ 스트리밍 오류:', error);
-            controller.error(error);
-          }
-        }, 1000); // 1초마다 폴링
-
-        // 정리 함수
-        const cleanup = () => {
-          clearInterval(pollInterval);
-          try {
-            controller.close();
-          } catch (e) {
-            // Already closed
-          }
-        };
-
-        // 연결 종료 감지
-        request.signal.addEventListener('abort', cleanup);
-
-        // 타임아웃 설정 (5분)
-        setTimeout(cleanup, 5 * 60 * 1000);
-      },
+    return Response.json({
+      success: true,
+      message: '로그가 추가되었습니다',
+      log
     });
 
-    return new NextResponse(stream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        Connection: 'keep-alive',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      },
-    });
   } catch (error) {
-    console.error('❌ 로그 스트리밍 초기화 오류:', error);
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : '스트리밍 초기화 실패',
-        timestamp: new Date().toISOString(),
-      },
+    console.error('수동 로그 추가 오류:', error);
+    return Response.json(
+      { error: '로그 추가 중 오류가 발생했습니다' },
       { status: 500 }
     );
   }
-}
-
-/**
- * 📝 로그 필터링 함수
- */
-function shouldIncludeLog(log: any, filters: StreamFilter): boolean {
-  // 엔진 필터
-  if (filters.engines && filters.engines.length > 0) {
-    if (!filters.engines.includes(log.engine)) {
-      return false;
-    }
-  }
-
-  // 카테고리 필터
-  if (filters.categories && filters.categories.length > 0) {
-    if (!filters.categories.includes(log.category)) {
-      return false;
-    }
-  }
-
-  // 레벨 필터
-  if (filters.levels && filters.levels.length > 0) {
-    if (!filters.levels.includes(log.level)) {
-      return false;
-    }
-  }
-
-  // 신뢰도 필터
-  if (filters.minConfidence && log.metadata?.confidence) {
-    if (log.metadata.confidence < filters.minConfidence) {
-      return false;
-    }
-  }
-
-  return true;
 }
