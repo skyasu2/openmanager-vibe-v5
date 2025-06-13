@@ -1,8 +1,8 @@
 'use client';
 
-import { memo, Suspense } from 'react';
+import { memo, Suspense, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Bot } from 'lucide-react';
+import { Bot, Clock, Settings, Server } from 'lucide-react';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useToast } from '../ui/ToastNotification';
 
@@ -27,6 +27,16 @@ interface ServerStats {
 }
 
 /**
+ * 프로필 설정 인터페이스
+ */
+interface ProfileSettings {
+  serverCount: number;
+  architecture: string;
+  environment: string;
+  theme: string;
+}
+
+/**
  * 대시보드 헤더 컴포넌트 Props
  */
 interface DashboardHeaderProps {
@@ -43,6 +53,174 @@ interface DashboardHeaderProps {
 }
 
 /**
+ * 실시간 시간 표시 컴포넌트
+ */
+const RealTimeDisplay = memo(function RealTimeDisplay() {
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [showTime, setShowTime] = useState(true);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    const updateTimer = setInterval(() => {
+      setLastUpdate(new Date());
+    }, 30000); // 30초마다 업데이트 시간 갱신
+
+    // 로컬 스토리지에서 시간 표시 설정 로드
+    const savedShowTime = localStorage.getItem('dashboard-show-time');
+    if (savedShowTime !== null) {
+      setShowTime(JSON.parse(savedShowTime));
+    }
+
+    return () => {
+      clearInterval(timer);
+      clearInterval(updateTimer);
+    };
+  }, []);
+
+  const toggleTime = () => {
+    const newShowTime = !showTime;
+    setShowTime(newShowTime);
+    localStorage.setItem('dashboard-show-time', JSON.stringify(newShowTime));
+  };
+
+  if (!showTime) {
+    return (
+      <button
+        onClick={toggleTime}
+        className='text-center px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs text-gray-500'
+        title='시간 표시'
+      >
+        <Clock className='w-3 h-3 mx-auto' />
+      </button>
+    );
+  }
+
+  return (
+    <div className='text-center relative group'>
+      <div className='flex items-center gap-1 text-sm font-medium text-gray-900'>
+        <Clock className='w-3 h-3 text-blue-500' />
+        {currentTime.toLocaleTimeString('ko-KR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        })}
+      </div>
+      <div className='text-xs text-gray-500'>
+        {currentTime.toLocaleDateString('ko-KR', {
+          month: 'short',
+          day: 'numeric',
+          weekday: 'short',
+        })}
+      </div>
+      <button
+        onClick={toggleTime}
+        className='absolute -top-1 -right-1 w-4 h-4 bg-gray-200 hover:bg-gray-300 rounded-full text-xs text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity'
+        title='시간 숨기기'
+      >
+        ×
+      </button>
+    </div>
+  );
+});
+
+/**
+ * 프로필 설정 표시 컴포넌트
+ */
+const ProfileSettingsDisplay = memo(function ProfileSettingsDisplay() {
+  const [profileSettings, setProfileSettings] = useState<ProfileSettings>({
+    serverCount: 8,
+    architecture: 'Microservices',
+    environment: 'Vercel Free',
+    theme: 'Dark',
+  });
+  const [showDetails, setShowDetails] = useState(true);
+
+  useEffect(() => {
+    // 프로필 설정 로드
+    const loadProfileSettings = async () => {
+      try {
+        const response = await fetch('/api/admin/generator-config');
+        if (response.ok) {
+          const data = await response.json();
+          setProfileSettings({
+            serverCount: data.serverCount || 8,
+            architecture: data.architecture || 'Microservices',
+            environment:
+              data.serverCount <= 8
+                ? 'Vercel Free'
+                : data.serverCount <= 20
+                  ? 'Vercel Pro'
+                  : 'Local Dev',
+            theme: 'Dark',
+          });
+        }
+      } catch (error) {
+        console.log('프로필 설정 로드 실패:', error);
+      }
+    };
+
+    loadProfileSettings();
+
+    // 로컬 스토리지에서 표시 설정 로드
+    const savedShowDetails = localStorage.getItem('dashboard-show-details');
+    if (savedShowDetails !== null) {
+      setShowDetails(JSON.parse(savedShowDetails));
+    }
+  }, []);
+
+  const toggleDetails = () => {
+    const newShowDetails = !showDetails;
+    setShowDetails(newShowDetails);
+    localStorage.setItem(
+      'dashboard-show-details',
+      JSON.stringify(newShowDetails)
+    );
+  };
+
+  if (!showDetails) {
+    return (
+      <button
+        onClick={toggleDetails}
+        className='hidden lg:flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg border text-xs text-gray-500'
+        title='설정 정보 표시'
+      >
+        <Settings className='w-3 h-3' />
+        설정
+      </button>
+    );
+  }
+
+  return (
+    <div className='hidden lg:flex items-center gap-3 px-3 py-2 bg-gray-50 rounded-lg border'>
+      <div className='flex items-center gap-1'>
+        <Server className='w-3 h-3 text-green-600' />
+        <span className='text-xs text-gray-600'>
+          {profileSettings.serverCount}개 서버
+        </span>
+      </div>
+      <div className='w-px h-4 bg-gray-300'></div>
+      <div className='flex items-center gap-1'>
+        <Settings className='w-3 h-3 text-blue-600' />
+        <span className='text-xs text-gray-600'>
+          {profileSettings.environment}
+        </span>
+      </div>
+      <button
+        onClick={toggleDetails}
+        className='ml-1 text-gray-400 hover:text-gray-600'
+        title='설정 정보 숨기기'
+      >
+        ×
+      </button>
+    </div>
+  );
+});
+
+/**
  * 대시보드 메인 헤더 컴포넌트
  *
  * @description
@@ -50,6 +228,8 @@ interface DashboardHeaderProps {
  * - 실시간 서버 통계 표시
  * - AI 에이전트 토글 버튼 (새로운 사이드바 연동)
  * - 시스템 상태 표시
+ * - 실시간 시간 표시
+ * - 프로필 설정값 표시
  *
  * @example
  * ```tsx
@@ -113,7 +293,31 @@ const DashboardHeader = memo(function DashboardHeader({
             {/* 시스템 상태 표시 */}
             {systemStatusDisplay}
 
-            {/* 빠른 통계 - 실시간 데이터 */}
+            {/* 실시간 시간 표시 */}
+            <RealTimeDisplay />
+
+            {/* 프로필 설정 표시 */}
+            <ProfileSettingsDisplay />
+
+            {/* 모바일용 간단한 통계 */}
+            <div className='md:hidden flex items-center gap-2'>
+              <div className='flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-lg'>
+                <div className='w-2 h-2 bg-green-500 rounded-full'></div>
+                <span className='text-xs text-gray-600'>
+                  {serverStats.total}대
+                </span>
+              </div>
+              {(serverStats.warning > 0 || serverStats.offline > 0) && (
+                <div className='flex items-center gap-1 px-2 py-1 bg-red-50 rounded-lg'>
+                  <div className='w-2 h-2 bg-red-500 rounded-full'></div>
+                  <span className='text-xs text-red-600'>
+                    {serverStats.warning + serverStats.offline}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* 빠른 통계 - 실시간 데이터 (데스크톱) */}
             <div
               className='hidden md:flex items-center gap-6'
               role='status'
@@ -140,24 +344,34 @@ const DashboardHeader = memo(function DashboardHeader({
                 </div>
                 <div className='text-xs text-gray-500'>온라인</div>
               </div>
-              <div className='text-center'>
-                <div className='text-sm font-medium text-orange-600'>
-                  {serverStats.warning}대
+              {serverStats.warning > 0 && (
+                <div className='text-center'>
+                  <div className='text-sm font-medium text-orange-600'>
+                    {serverStats.warning}대
+                  </div>
+                  <div className='text-xs text-gray-500'>경고</div>
                 </div>
-                <div className='text-xs text-gray-500'>경고</div>
-              </div>
-              <div className='text-center'>
-                <div className='text-sm font-medium text-red-600'>
-                  {serverStats.offline}대
+              )}
+              {serverStats.offline > 0 && (
+                <div className='text-center'>
+                  <div className='text-sm font-medium text-red-600'>
+                    {serverStats.offline}대
+                  </div>
+                  <div className='text-xs text-gray-500'>오프라인</div>
                 </div>
-                <div className='text-xs text-gray-500'>오프라인</div>
-              </div>
+              )}
 
-              {/* 실시간 업데이트 표시 */}
+              {/* 서버 상태 요약 */}
               <div className='text-center'>
-                <div className='text-xs text-gray-500'>마지막 업데이트</div>
-                <div className='text-xs text-gray-400'>
-                  {new Date().toLocaleTimeString()}
+                <div className='text-xs text-gray-500'>상태</div>
+                <div className='text-xs font-medium'>
+                  {serverStats.offline > 0 ? (
+                    <span className='text-red-600'>위험</span>
+                  ) : serverStats.warning > 0 ? (
+                    <span className='text-orange-600'>주의</span>
+                  ) : (
+                    <span className='text-green-600'>정상</span>
+                  )}
                 </div>
               </div>
             </div>
