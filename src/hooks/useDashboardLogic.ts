@@ -16,6 +16,7 @@ import {
   isLoadingRelatedError,
 } from '../lib/error-handler';
 import { logger, logObject, logPerformance } from '@/utils/enhanced-logging';
+import { useAISidebarStore } from '@/stores/useAISidebarStore';
 
 interface DashboardStats {
   total: number;
@@ -28,10 +29,10 @@ interface DashboardLogicState {
   isBootSequenceComplete: boolean;
   showBootSequence: boolean;
   loadingPhase:
-  | 'system-starting'
-  | 'data-loading'
-  | 'python-warmup'
-  | 'completed';
+    | 'system-starting'
+    | 'data-loading'
+    | 'python-warmup'
+    | 'completed';
   progress: number;
   skipAnimation: boolean;
   errorCount: number;
@@ -79,6 +80,10 @@ export function useDashboardLogic() {
   const [searchParams, setSearchParams] = useState<URLSearchParams | null>(
     null
   );
+
+  // AI 사이드바 스토어 연결
+  const { isOpen: isAISidebarOpen, setOpen: setAISidebarOpen } =
+    useAISidebarStore();
 
   // 클라이언트 사이드에서만 searchParams 설정
   useEffect(() => {
@@ -256,7 +261,7 @@ export function useDashboardLogic() {
     }
     return false;
   });
-  const [isAgentOpen, setIsAgentOpen] = useState(false);
+  // isAgentOpen은 이제 AI 사이드바 스토어에서 관리됨
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
   // 🛡️ selectedServer를 안전하게 초기화
@@ -369,23 +374,22 @@ export function useDashboardLogic() {
   }, []);
 
   /**
-   * AI 에이전트 닫기 핸들러
+   * AI 에이전트 닫기 핸들러 - 새로운 AI 사이드바와 연결
    */
   const closeAgent = useCallback(() => {
-    setIsAgentOpen(false);
-    console.log('🤖 AI 에이전트 닫힘');
-  }, []);
+    setAISidebarOpen(false);
+    console.log('🤖 AI 사이드바 닫힘');
+  }, [setAISidebarOpen]);
 
   /**
-   * AI 에이전트 토글 핸들러
+   * AI 에이전트 토글 핸들러 - 새로운 AI 사이드바와 연결
    */
   const toggleAgent = useCallback(() => {
-    setIsAgentOpen(prev => {
-      const newState = !prev;
-      console.log(newState ? '🤖 AI 에이전트 열림' : '🤖 AI 에이전트 닫힘');
-      return newState;
-    });
-  }, []);
+    setAISidebarOpen(!isAISidebarOpen);
+    console.log(
+      isAISidebarOpen ? '🤖 AI 사이드바 닫힘' : '🤖 AI 사이드바 열림'
+    );
+  }, [isAISidebarOpen, setAISidebarOpen]);
 
   /**
    * 홈 페이지로 네비게이션 핸들러
@@ -673,12 +677,13 @@ export function useDashboardLogic() {
               const servers = fallbackData.servers || [];
               const calculatedStats = {
                 total: servers.length,
-                online: servers.filter((s: any) =>
-                  s.status === 'healthy' || s.status === 'running'
+                online: servers.filter(
+                  (s: any) => s.status === 'healthy' || s.status === 'running'
                 ).length,
-                warning: servers.filter((s: any) => s.status === 'warning').length,
-                offline: servers.filter((s: any) =>
-                  s.status === 'critical' || s.status === 'error'
+                warning: servers.filter((s: any) => s.status === 'warning')
+                  .length,
+                offline: servers.filter(
+                  (s: any) => s.status === 'critical' || s.status === 'error'
                 ).length,
               };
 
@@ -714,12 +719,13 @@ export function useDashboardLogic() {
             const servers = fallbackData.servers || [];
             const calculatedStats = {
               total: servers.length,
-              online: servers.filter((s: any) =>
-                s.status === 'healthy' || s.status === 'running'
+              online: servers.filter(
+                (s: any) => s.status === 'healthy' || s.status === 'running'
               ).length,
-              warning: servers.filter((s: any) => s.status === 'warning').length,
-              offline: servers.filter((s: any) =>
-                s.status === 'critical' || s.status === 'error'
+              warning: servers.filter((s: any) => s.status === 'warning')
+                .length,
+              offline: servers.filter(
+                (s: any) => s.status === 'critical' || s.status === 'error'
               ).length,
             };
 
@@ -749,8 +755,8 @@ export function useDashboardLogic() {
   }, [isClient, state.showBootSequence, updateServerStats]);
 
   return {
-    // State (null-safe)
-    isAgentOpen,
+    // State (null-safe) - AI 사이드바 스토어에서 관리
+    isAgentOpen: isAISidebarOpen,
     isClient,
     isMobile,
     isTablet,

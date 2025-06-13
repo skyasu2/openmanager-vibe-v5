@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import React from 'react';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import Link from 'next/link';
+import { AISidebar } from '@/presentation/ai-sidebar';
 
 // 🚨 React 내장 에러 바운더리
 class DashboardErrorBoundary extends React.Component<
@@ -213,7 +214,8 @@ function DashboardPageContent() {
   } = useDashboardLogic();
 
   const { isSystemStarted, getSystemRemainingTime } = useUnifiedAdminStore();
-  const { isOpen: isAISidebarOpen } = useAISidebarStore();
+  const { isOpen: isAISidebarOpen, setOpen: setAISidebarOpen } =
+    useAISidebarStore();
 
   // 🛡️ 대시보드 진입 시 시스템 상태 검증
   useEffect(() => {
@@ -313,7 +315,7 @@ function DashboardPageContent() {
               selectedServer={selectedServer}
               onServerClick={handleServerClick}
               onServerModalClose={() => setSelectedServer(null)}
-              onStatsUpdate={() => { }}
+              onStatsUpdate={() => {}}
               onShowSequentialChange={setShowSequentialGeneration}
               mainContentVariants={mainContentVariants}
               isAgentOpen={isAgentOpen}
@@ -328,7 +330,7 @@ function DashboardPageContent() {
             aiAgentState={{ state: 'active' }}
             isSystemActive={true}
             isSystemPaused={false}
-            onStartSystem={async () => { }}
+            onStartSystem={async () => {}}
             onStopSystem={handleSystemStop}
             onResumeSystem={handleSystemResume}
           />
@@ -337,6 +339,12 @@ function DashboardPageContent() {
         {/* 알림 토스트 */}
         <NotificationToast />
       </motion.div>
+
+      {/* 🤖 AI 사이드바 - 새로운 도메인 분리 아키텍처 */}
+      <AISidebar
+        isOpen={isAISidebarOpen}
+        onClose={() => setAISidebarOpen(false)}
+      />
     </div>
   );
 }
