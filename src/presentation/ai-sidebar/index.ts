@@ -7,7 +7,7 @@
  */
 
 // 메인 컴포넌트
-export { AISidebar } from './components/AISidebar';
+export { default as AISidebar } from './components/AISidebar';
 
 // 커스텀 훅
 export { useAIController } from './hooks/useAIController';
