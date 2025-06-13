@@ -38,6 +38,7 @@ import {
   Globe,
 } from 'lucide-react';
 import { Server as ServerType } from '../../types/server';
+import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
 
 interface EnhancedServerCardProps {
   server: {
@@ -80,6 +81,13 @@ interface EnhancedServerCardProps {
 const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
   ({ server, index, onClick, showMiniCharts = true, variant = 'default' }) => {
     const [isHovered, setIsHovered] = useState(false);
+
+    // 🎯 가시성 기반 최적화
+    const { elementRef, isVisible } = useIntersectionObserver({
+      threshold: 0.1,
+      rootMargin: '100px', // 100px 여유를 두고 미리 로드
+    });
+
     const [realtimeData, setRealtimeData] = useState<{
       cpu: number[];
       memory: number[];
@@ -106,8 +114,11 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       trend: 'stable',
     });
 
-    // 실시간 데이터 업데이트
+    // 🎯 실시간 데이터 업데이트 - 가시성 기반 최적화
     useEffect(() => {
+      // 화면에 보이지 않으면 업데이트하지 않음
+      if (!isVisible) return;
+
       const interval = setInterval(
         () => {
           setRealtimeData(prev => ({
@@ -154,7 +165,14 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       ); // 카드별로 약간씩 다른 업데이트 주기
 
       return () => clearInterval(interval);
-    }, [server.cpu, server.memory, server.disk, server.network, index]);
+    }, [
+      server.cpu,
+      server.memory,
+      server.disk,
+      server.network,
+      index,
+      isVisible,
+    ]);
 
     // 서버 타입별 아이콘
     const getServerIcon = () => {
@@ -429,6 +447,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
 
     return (
       <motion.div
+        ref={elementRef}
         layout
         initial={{ opacity: 0, y: 20, scale: 0.9 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -452,6 +471,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
         transition-all duration-300 ease-out
         backdrop-blur-sm
         group
+        ${!isVisible ? 'opacity-75' : ''}
       `}
         onClick={handleCardClick}
         onMouseEnter={() => setIsHovered(true)}
@@ -516,7 +536,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
 
         {/* 메트릭 및 미니 차트 */}
         <div className='space-y-4'>
-          {showMiniCharts && (
+          {showMiniCharts && isVisible && (
             <div
               className={`grid ${variantStyles.chartContainer} bg-white/70 rounded-lg ${variant === 'compact' ? 'p-2' : 'p-4'} backdrop-blur-sm`}
             >
@@ -544,6 +564,26 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                 label='네트워크'
                 icon={<Network className='w-3 h-3' />}
               />
+            </div>
+          )}
+
+          {/* 🎯 화면에 보이지 않을 때 간단한 플레이스홀더 */}
+          {showMiniCharts && !isVisible && (
+            <div
+              className={`grid ${variantStyles.chartContainer} bg-gray-100/50 rounded-lg ${variant === 'compact' ? 'p-2' : 'p-4'} backdrop-blur-sm`}
+            >
+              <div className='flex items-center justify-center h-12 text-gray-400 text-xs'>
+                📊 차트 대기중
+              </div>
+              <div className='flex items-center justify-center h-12 text-gray-400 text-xs'>
+                📊 차트 대기중
+              </div>
+              <div className='flex items-center justify-center h-12 text-gray-400 text-xs'>
+                📊 차트 대기중
+              </div>
+              <div className='flex items-center justify-center h-12 text-gray-400 text-xs'>
+                📊 차트 대기중
+              </div>
             </div>
           )}
 

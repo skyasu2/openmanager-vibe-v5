@@ -341,7 +341,7 @@ export default function ServerDashboard({
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<DashboardTab>('servers');
 
-  const SERVERS_PER_PAGE = 4;
+  const SERVERS_PER_PAGE = 8;
 
   // ✅ 실시간 훅: 10초(10,000ms) 주기로 새로고침
   const {
