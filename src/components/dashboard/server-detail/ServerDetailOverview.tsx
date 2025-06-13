@@ -15,9 +15,15 @@ interface ServerDetailOverviewProps {
       out: number;
     };
   } | null;
+  statusInfo: {
+    color: string;
+    bgColor: string;
+    icon: string;
+    text: string;
+  };
 }
 
-export default function ServerDetailOverview({
+export function ServerDetailOverview({
   server,
   realTimeMetrics,
 }: ServerDetailOverviewProps) {
