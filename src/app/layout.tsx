@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import { ClientProviders } from '@/components/providers/ClientProviders';
 
 // Keep-alive 스케줄러 초기화
 import '@/lib/keep-alive-scheduler';
@@ -21,7 +22,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang='ko'>
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <ClientProviders>{children}</ClientProviders>
+      </body>
     </html>
   );
 }
