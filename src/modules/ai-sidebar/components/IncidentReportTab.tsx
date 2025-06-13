@@ -29,7 +29,7 @@ import {
   type ServerStateComparison,
 } from '../../../services/ai/IncidentReportService';
 import type { ServerMetrics } from '../../../types/common';
-import CSSTypingEffect from '../../../components/ui/CSSTypingEffect';
+import SafeCSSTypingEffect from '../../../components/ui/SafeCSSTypingEffect';
 
 interface IncidentReportTabProps {
   className?: string;
@@ -354,9 +354,9 @@ export const IncidentReportTab: React.FC<IncidentReportTabProps> = ({
                     </div>
                     <div className='text-gray-600 leading-relaxed'>
                       {isTyping && index === 0 ? (
-                        <CSSTypingEffect
+                        <SafeCSSTypingEffect
                           text={item.content}
-                          speed={20}
+                          speed={2}
                           showCursor={true}
                           className='text-gray-600'
                         />

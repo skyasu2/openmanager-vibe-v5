@@ -1,19 +1,22 @@
 /**
  * 🤖 AI 응답 커스텀 훅
- * 
+ *
  * Custom Hooks Pattern: 상태 로직을 컴포넌트에서 분리
  * Single Responsibility: AI 응답 관련 상태와 로직만 관리
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { timerManager } from '../../../../utils/TimerManager';
-import { RealTimeLogEngine, RealTimeLogEntry } from '../../../ai-agent/core/RealTimeLogEngine';
+import {
+  RealTimeLogEngine,
+  RealTimeLogEntry,
+} from '../../../ai-agent/core/RealTimeLogEngine';
 import { AIResponseService } from '../services/AIResponseService';
-import { 
-  QAItem, 
-  NavigationState, 
-  TypingState, 
-  AIResponseHookReturn 
+import {
+  QAItem,
+  NavigationState,
+  TypingState,
+  AIResponseHookReturn,
 } from '../types/AIResponseTypes';
 
 export const useAIResponse = (
@@ -52,17 +55,23 @@ export const useAIResponse = (
   }, [question]);
 
   // 네비게이션 상태 계산
-  const navigation: NavigationState = useMemo(() => ({
-    currentIndex,
-    canGoPrev: currentIndex > 0,
-    canGoNext: currentIndex < qaItems.length - 1
-  }), [currentIndex, qaItems.length]);
+  const navigation: NavigationState = useMemo(
+    () => ({
+      currentIndex,
+      canGoPrev: currentIndex > 0,
+      canGoNext: currentIndex < qaItems.length - 1,
+    }),
+    [currentIndex, qaItems.length]
+  );
 
   // 타이핑 상태
-  const typing: TypingState = useMemo(() => ({
-    text: typingText,
-    isTyping
-  }), [typingText, isTyping]);
+  const typing: TypingState = useMemo(
+    () => ({
+      text: typingText,
+      isTyping,
+    }),
+    [typingText, isTyping]
+  );
 
   // 현재 아이템
   const currentItem = qaItems[currentIndex];
@@ -197,7 +206,11 @@ export const useAIResponse = (
           }, 1000);
         } else {
           // 실패 처리
-          logEngine.completeSession(sessionId, 'failed', aiResponse.error || '처리 실패');
+          logEngine.completeSession(
+            sessionId,
+            'failed',
+            aiResponse.error || '처리 실패'
+          );
 
           setQAItems(prev =>
             prev.map(item =>
@@ -211,12 +224,14 @@ export const useAIResponse = (
             )
           );
 
-          startTypingAnimation(aiResponse.answer || '처리 중 오류가 발생했습니다.');
+          startTypingAnimation(
+            aiResponse.answer || '처리 중 오류가 발생했습니다.'
+          );
           onComplete();
         }
       } catch (error: any) {
         console.error('❌ AI 기능 호출 중 오류:', error);
-        
+
         logEngine.completeSession(sessionId, 'failed', error.message);
 
         setQAItems(prev =>
@@ -239,34 +254,17 @@ export const useAIResponse = (
     processQuestion();
   }, [isProcessing, safeQuestion, logEngine, aiService, onComplete]);
 
-  // 타이핑 애니메이션
+  // CSS 기반 타이핑 애니메이션으로 대체
   const startTypingAnimation = useCallback((text: string) => {
     if (!text) return;
 
     setIsTyping(true);
-    setTypingText('');
+    setTypingText(text);
 
-    const words = text.split(' ');
-    let currentWordIndex = 0;
-
-    const typeNextWord = () => {
-      if (currentWordIndex < words.length) {
-        setTypingText(prev => {
-          const newText = prev + (prev ? ' ' : '') + words[currentWordIndex];
-          currentWordIndex++;
-          
-          if (currentWordIndex < words.length) {
-            setTimeout(typeNextWord, 100);
-          } else {
-            setIsTyping(false);
-          }
-          
-          return newText;
-        });
-      }
-    };
-
-    typeNextWord();
+    // 3초 후 타이핑 완료
+    setTimeout(() => {
+      setIsTyping(false);
+    }, 3000);
   }, []);
 
   // 이전 질문으로 이동
@@ -286,7 +284,13 @@ export const useAIResponse = (
         startTypingAnimation(item.answer);
       }
     }
-  }, [navigation.canGoPrev, isTyping, currentIndex, qaItems, startTypingAnimation]);
+  }, [
+    navigation.canGoPrev,
+    isTyping,
+    currentIndex,
+    qaItems,
+    startTypingAnimation,
+  ]);
 
   // 다음 질문으로 이동
   const goToNext = useCallback(() => {
@@ -305,19 +309,28 @@ export const useAIResponse = (
         startTypingAnimation(item.answer);
       }
     }
-  }, [navigation.canGoNext, isTyping, currentIndex, qaItems, startTypingAnimation]);
+  }, [
+    navigation.canGoNext,
+    isTyping,
+    currentIndex,
+    qaItems,
+    startTypingAnimation,
+  ]);
 
   // 로그 검증
-  const handleVerifyLog = useCallback(async (log: RealTimeLogEntry) => {
-    try {
-      const verificationResult = await aiService.verifyLog(log);
-      alert(`🔍 실제 로그 시스템 검증 결과:\n\n${verificationResult}`);
-    } catch (error) {
-      alert(
-        `🔍 실제 로그 시스템 검증:\n\n로그 ID: ${log.id}\n모듈: ${log.module}\n레벨: ${log.level}\n\n이 로그는 실제 RealTimeLogEngine에서 생성되었습니다.\nAPI 호출 중 일부 오류가 발생했지만, 이것 자체가 실제 시스템과 상호작용하고 있다는 증거입니다.`
-      );
-    }
-  }, [aiService]);
+  const handleVerifyLog = useCallback(
+    async (log: RealTimeLogEntry) => {
+      try {
+        const verificationResult = await aiService.verifyLog(log);
+        alert(`🔍 실제 로그 시스템 검증 결과:\n\n${verificationResult}`);
+      } catch (error) {
+        alert(
+          `🔍 실제 로그 시스템 검증:\n\n로그 ID: ${log.id}\n모듈: ${log.module}\n레벨: ${log.level}\n\n이 로그는 실제 RealTimeLogEngine에서 생성되었습니다.\nAPI 호출 중 일부 오류가 발생했지만, 이것 자체가 실제 시스템과 상호작용하고 있다는 증거입니다.`
+        );
+      }
+    },
+    [aiService]
+  );
 
   return {
     qaItems,
@@ -331,4 +344,4 @@ export const useAIResponse = (
     goToNext,
     handleVerifyLog,
   };
-}; 
+};

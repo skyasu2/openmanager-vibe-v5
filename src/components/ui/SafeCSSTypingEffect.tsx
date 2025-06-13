@@ -1,61 +1,50 @@
 /**
- * 🎨 CSS 기반 타이핑 효과 컴포넌트
+ * 🎨 안전한 CSS 기반 타이핑 효과 컴포넌트
  *
- * - 순수 CSS 애니메이션으로 안전한 타이핑 효과
- * - 답변 지워짐 방지
- * - 서버사이드 렌더링 호환
+ * - 순수 CSS 애니메이션으로 최대한 안전
+ * - JavaScript 의존성 최소화
+ * - 서버사이드 렌더링 완전 호환
  * - 성능 최적화
  */
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
-interface CSSTypingEffectProps {
+interface SafeCSSTypingEffectProps {
   text: string;
   className?: string;
-  speed?: number; // 타이핑 속도 (ms)
+  speed?: number; // 타이핑 속도 (초 단위)
   showCursor?: boolean;
   onComplete?: () => void;
 }
 
-const CSSTypingEffect: React.FC<CSSTypingEffectProps> = ({
+const SafeCSSTypingEffect: React.FC<SafeCSSTypingEffectProps> = ({
   text,
   className = '',
-  speed = 50,
+  speed = 3,
   showCursor = true,
   onComplete,
 }) => {
-  const [mounted, setMounted] = useState(false);
-  const [isTyping, setIsTyping] = useState(true);
+  const [isComplete, setIsComplete] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-
-    // 타이핑 완료 타이머
-    const duration = text.length * speed;
+    // 타이핑 완료 콜백
     const timer = setTimeout(() => {
-      setIsTyping(false);
+      setIsComplete(true);
       onComplete?.();
-    }, duration);
+    }, speed * 1000);
 
     return () => clearTimeout(timer);
-  }, [text, speed, onComplete]);
-
-  // SSR 호환성을 위한 fallback
-  if (!mounted) {
-    return <div className={className}>{text}</div>;
-  }
-
-  const typingDuration = (text.length * speed) / 1000; // 초 단위
+  }, [speed, onComplete]);
 
   return (
-    <div className={`typing-container ${className}`}>
+    <div className={`safe-typing-container ${className}`}>
       <span
-        className='typing-text'
+        className='safe-typing-text'
         style={
           {
-            '--typing-duration': `${typingDuration}s`,
+            '--typing-speed': `${speed}s`,
             '--text-length': text.length,
           } as React.CSSProperties
         }
@@ -65,29 +54,27 @@ const CSSTypingEffect: React.FC<CSSTypingEffectProps> = ({
 
       {showCursor && (
         <span
-          className={`typing-cursor ${!isTyping ? 'typing-complete' : ''}`}
+          className={`safe-typing-cursor ${isComplete ? 'complete' : ''}`}
         />
       )}
 
       <style jsx>{`
-        .typing-container {
+        .safe-typing-container {
+          display: inline-block;
           position: relative;
-          display: inline-block;
-          overflow: hidden;
         }
 
-        .typing-text {
-          display: inline-block;
+        .safe-typing-text {
           overflow: hidden;
+          border-right: 2px solid;
           white-space: nowrap;
-          border-right: 2px solid transparent;
-          animation: typing var(--typing-duration)
-            steps(var(--text-length), end);
-          max-width: 0;
+          animation: typing var(--typing-speed) steps(var(--text-length), end);
+          width: 0;
           animation-fill-mode: forwards;
+          display: inline-block;
         }
 
-        .typing-cursor {
+        .safe-typing-cursor {
           display: inline-block;
           width: 2px;
           height: 1.2em;
@@ -97,16 +84,16 @@ const CSSTypingEffect: React.FC<CSSTypingEffectProps> = ({
           vertical-align: text-bottom;
         }
 
-        .typing-cursor.typing-complete {
+        .safe-typing-cursor.complete {
           animation: blink 1s infinite;
         }
 
         @keyframes typing {
           from {
-            max-width: 0;
+            width: 0;
           }
           to {
-            max-width: 100%;
+            width: 100%;
           }
         }
 
@@ -123,21 +110,28 @@ const CSSTypingEffect: React.FC<CSSTypingEffectProps> = ({
 
         /* 다크모드 지원 */
         @media (prefers-color-scheme: dark) {
-          .typing-cursor {
+          .safe-typing-cursor {
             background-color: #10b981;
           }
         }
 
         /* 접근성: 애니메이션 비활성화 설정 시 */
         @media (prefers-reduced-motion: reduce) {
-          .typing-text {
+          .safe-typing-text {
             animation: none;
-            max-width: 100%;
+            width: 100%;
           }
 
-          .typing-cursor {
+          .safe-typing-cursor {
             animation: none;
             opacity: 1;
+          }
+        }
+
+        /* 반응형 지원 */
+        @media (max-width: 768px) {
+          .safe-typing-text {
+            font-size: 0.9em;
           }
         }
       `}</style>
@@ -145,4 +139,4 @@ const CSSTypingEffect: React.FC<CSSTypingEffectProps> = ({
   );
 };
 
-export default CSSTypingEffect;
+export default SafeCSSTypingEffect;

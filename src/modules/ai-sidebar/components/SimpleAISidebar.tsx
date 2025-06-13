@@ -26,7 +26,7 @@ import {
   Server,
   Clock,
 } from 'lucide-react';
-import CSSTypingEffect from '../../../components/ui/CSSTypingEffect';
+import SafeCSSTypingEffect from '../../../components/ui/SafeCSSTypingEffect';
 import { IncidentReportTab } from './IncidentReportTab';
 
 interface SimpleAISidebarProps {
@@ -476,9 +476,9 @@ export const SimpleAISidebar: React.FC<SimpleAISidebarProps> = ({
                       }`}
                     >
                       {message.type === 'ai' && message.isTyping ? (
-                        <CSSTypingEffect
+                        <SafeCSSTypingEffect
                           text={message.content}
-                          speed={20}
+                          speed={2}
                           showCursor={true}
                           onComplete={() => handleTypingComplete(message.id)}
                           className='text-sm whitespace-pre-wrap'

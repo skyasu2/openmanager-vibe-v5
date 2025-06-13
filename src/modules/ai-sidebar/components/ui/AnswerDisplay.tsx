@@ -1,6 +1,6 @@
 /**
  * 💬 답변 표시 컴포넌트
- * 
+ *
  * Component Composition: 답변 표시 기능을 독립적인 컴포넌트로 분리
  * Single Responsibility: 답변 렌더링과 타이핑 효과만 담당
  */
@@ -18,16 +18,19 @@ export const AnswerDisplay: React.FC<AnswerDisplayProps> = ({
 }) => {
   const formatAnswer = (text: string) => {
     if (!text) return '';
-    
+
     return text.split('\n').map((line, index) => {
       if (line.startsWith('**') && line.endsWith('**')) {
         return (
-          <p key={index} className='font-semibold text-gray-900 dark:text-white mb-2'>
+          <p
+            key={index}
+            className='font-semibold text-gray-900 dark:text-white mb-2'
+          >
             {line.replace(/\*\*/g, '')}
           </p>
         );
       }
-      
+
       if (line.match(/^\d+\./)) {
         return (
           <p key={index} className='text-gray-700 dark:text-gray-300 mb-1 ml-4'>
@@ -35,7 +38,7 @@ export const AnswerDisplay: React.FC<AnswerDisplayProps> = ({
           </p>
         );
       }
-      
+
       return (
         <p key={index} className='text-gray-700 dark:text-gray-300 mb-2'>
           {line}
@@ -52,7 +55,9 @@ export const AnswerDisplay: React.FC<AnswerDisplayProps> = ({
         </div>
         <div className='flex-1'>
           <div className='flex items-center gap-2 mb-2'>
-            <p className='text-green-900 dark:text-green-100 font-medium'>AI 응답</p>
+            <p className='text-green-900 dark:text-green-100 font-medium'>
+              AI 응답
+            </p>
             {isProcessing && (
               <motion.div
                 animate={{ rotate: 360 }}
@@ -61,7 +66,7 @@ export const AnswerDisplay: React.FC<AnswerDisplayProps> = ({
               />
             )}
           </div>
-          
+
           <div className='bg-green-50 dark:bg-green-900/20 rounded-lg p-4'>
             {isProcessing ? (
               <div className='flex items-center space-x-2'>
@@ -86,12 +91,20 @@ export const AnswerDisplay: React.FC<AnswerDisplayProps> = ({
               </div>
             ) : typingText ? (
               <div className='text-green-800 dark:text-green-200 text-sm whitespace-pre-wrap'>
-                {formatAnswer(typingText)}
-                <motion.span
-                  animate={{ opacity: [1, 0] }}
-                  transition={{ duration: 0.8, repeat: Infinity }}
-                  className='inline-block w-2 h-4 bg-green-600 ml-1'
-                />
+                <div className='css-typing-container'>
+                  <span
+                    className='css-typing-text'
+                    style={
+                      {
+                        '--typing-duration': '3s',
+                        '--text-length': typingText.length,
+                      } as React.CSSProperties
+                    }
+                  >
+                    {formatAnswer(typingText)}
+                  </span>
+                  <span className='css-typing-cursor' />
+                </div>
               </div>
             ) : answer ? (
               <div className='text-green-800 dark:text-green-200 text-sm whitespace-pre-wrap'>
@@ -105,6 +118,67 @@ export const AnswerDisplay: React.FC<AnswerDisplayProps> = ({
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .css-typing-container {
+          display: inline-block;
+          position: relative;
+        }
+
+        .css-typing-text {
+          overflow: hidden;
+          border-right: 2px solid;
+          white-space: nowrap;
+          animation: typing var(--typing-duration)
+            steps(var(--text-length), end);
+          width: 0;
+          animation-fill-mode: forwards;
+          display: inline-block;
+        }
+
+        .css-typing-cursor {
+          display: inline-block;
+          width: 2px;
+          height: 1.2em;
+          background-color: #059669;
+          margin-left: 2px;
+          animation: blink 1s infinite;
+          vertical-align: text-bottom;
+        }
+
+        @keyframes typing {
+          from {
+            width: 0;
+          }
+          to {
+            width: 100%;
+          }
+        }
+
+        @keyframes blink {
+          0%,
+          50% {
+            opacity: 1;
+          }
+          51%,
+          100% {
+            opacity: 0;
+          }
+        }
+
+        /* 접근성: 애니메이션 비활성화 설정 시 */
+        @media (prefers-reduced-motion: reduce) {
+          .css-typing-text {
+            animation: none;
+            width: 100%;
+          }
+
+          .css-typing-cursor {
+            animation: none;
+            opacity: 1;
+          }
+        }
+      `}</style>
     </div>
   );
-}; 
+};

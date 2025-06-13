@@ -10,7 +10,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import CSSTypingEffect from '../../../../components/ui/CSSTypingEffect';
+import SafeCSSTypingEffect from '../../../../components/ui/SafeCSSTypingEffect';
 
 interface ResponseDisplayProps {
   answer: string;
@@ -80,10 +80,10 @@ export const ResponseDisplay: React.FC<ResponseDisplayProps> = ({
           </p>
           <div className='text-green-700 dark:text-green-300 text-sm space-y-2'>
             {isTyping ? (
-              // 🎨 CSS 기반 타이핑 효과 사용
-              <CSSTypingEffect
+              // 🎨 안전한 CSS 기반 타이핑 효과 사용
+              <SafeCSSTypingEffect
                 text={answer}
-                speed={30}
+                speed={3}
                 showCursor={true}
                 onComplete={onTypingComplete}
                 className='leading-relaxed'

@@ -574,21 +574,15 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
     }
   };
 
-  // 타이핑 애니메이션
+  // CSS 기반 타이핑 애니메이션으로 대체
   const startTypingAnimation = (text: string) => {
     setIsTyping(true);
-    setTypingText('');
+    setTypingText(text);
 
-    let index = 0;
-    const typeInterval = setInterval(() => {
-      if (index < text.length) {
-        setTypingText(prev => prev + text[index]);
-        index++;
-      } else {
-        setIsTyping(false);
-        clearInterval(typeInterval);
-      }
-    }, 30); // 30ms마다 한 글자씩
+    // 3초 후 타이핑 완료
+    setTimeout(() => {
+      setIsTyping(false);
+    }, 3000);
   };
 
   // 좌우 네비게이션
@@ -1058,13 +1052,23 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
                     </div>
                   ) : (
                     <div>
-                      {typingText}
-                      {isTyping && (
-                        <motion.span
-                          animate={{ opacity: [1, 0] }}
-                          transition={{ duration: 0.5, repeat: Infinity }}
-                          className='inline-block w-0.5 h-4 bg-green-500 ml-0.5'
-                        />
+                      {isTyping ? (
+                        <div className='css-typing-container'>
+                          <span
+                            className='css-typing-text'
+                            style={
+                              {
+                                '--typing-duration': '3s',
+                                '--text-length': typingText.length,
+                              } as React.CSSProperties
+                            }
+                          >
+                            {typingText}
+                          </span>
+                          <span className='css-typing-cursor' />
+                        </div>
+                      ) : (
+                        typingText
                       )}
                     </div>
                   )}
@@ -1140,6 +1144,67 @@ export const IntegratedAIResponse: React.FC<IntegratedAIResponseProps> = ({
           </p>
         </div>
       )}
+
+      <style jsx>{`
+        .css-typing-container {
+          display: inline-block;
+          position: relative;
+        }
+
+        .css-typing-text {
+          overflow: hidden;
+          border-right: 2px solid;
+          white-space: nowrap;
+          animation: typing var(--typing-duration)
+            steps(var(--text-length), end);
+          width: 0;
+          animation-fill-mode: forwards;
+          display: inline-block;
+        }
+
+        .css-typing-cursor {
+          display: inline-block;
+          width: 2px;
+          height: 1.2em;
+          background-color: #10b981;
+          margin-left: 2px;
+          animation: blink 1s infinite;
+          vertical-align: text-bottom;
+        }
+
+        @keyframes typing {
+          from {
+            width: 0;
+          }
+          to {
+            width: 100%;
+          }
+        }
+
+        @keyframes blink {
+          0%,
+          50% {
+            opacity: 1;
+          }
+          51%,
+          100% {
+            opacity: 0;
+          }
+        }
+
+        /* 접근성: 애니메이션 비활성화 설정 시 */
+        @media (prefers-reduced-motion: reduce) {
+          .css-typing-text {
+            animation: none;
+            width: 100%;
+          }
+
+          .css-typing-cursor {
+            animation: none;
+            opacity: 1;
+          }
+        }
+      `}</style>
     </div>
   );
 };
