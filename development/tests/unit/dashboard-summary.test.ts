@@ -18,7 +18,7 @@ describe('RealServerDataGenerator.getDashboardSummary', () => {
     expect(summary.servers.avgCpu).toBe(0);
     expect(summary.servers.avgMemory).toBe(0);
     expect(summary.servers.total).toBe(0);
-    expect(summary.servers.running).toBe(0);
+    expect(summary.servers.online).toBe(0);
 
     // applications 객체 검증
     expect(summary.applications.avgResponseTime).toBe(0);
