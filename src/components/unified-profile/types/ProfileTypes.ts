@@ -1,8 +1,8 @@
 /**
  * 🎯 Unified Profile Component Types
- * 
+ *
  * 통합 프로필 컴포넌트의 모든 타입 정의
- * 
+ *
  * @created 2025-06-09
  * @author AI Assistant
  */
@@ -73,6 +73,7 @@ export interface UnifiedSettingsPanelProps {
 export interface AuthenticationState {
   attempts: number;
   isLocked: boolean;
+  isAuthenticated: boolean;
   isAuthenticating: boolean;
   showPassword: boolean;
 }
@@ -112,7 +113,7 @@ export interface ProfileButtonProps {
   buttonRef: React.RefObject<HTMLButtonElement>;
 }
 
-// 드롭다운 메뉴 Props  
+// 드롭다운 메뉴 Props
 export interface DropdownMenuProps {
   isOpen: boolean;
   position: DropdownPosition;
@@ -182,4 +183,4 @@ export interface MenuItemProps {
   onClick: () => void;
   variant?: 'default' | 'warning' | 'danger';
   disabled?: boolean;
-} 
+}

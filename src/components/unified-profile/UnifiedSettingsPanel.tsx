@@ -47,6 +47,10 @@ import { UnifiedSettingsPanelProps, SettingsTab } from './types/ProfileTypes';
 import { useSettingsData } from './hooks/useSettingsData';
 import { useAuthentication } from './hooks/useAuthentication';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { AISettingsTab } from './components/AISettingsTab';
+import { GeneratorSettingsTab } from './components/GeneratorSettingsTab';
+import { MonitorSettingsTab } from './components/MonitorSettingsTab';
+import { GeneralSettingsTab } from './components/GeneralSettingsTab';
 
 export function UnifiedSettingsPanel({
   isOpen,
@@ -290,365 +294,37 @@ export function UnifiedSettingsPanel({
     switch (activeTab) {
       case 'ai':
         return (
-          <div className='space-y-6'>
-            <div className='border border-white/10 rounded-lg p-4'>
-              <h3 className='text-lg font-semibold text-white mb-4 flex items-center gap-2'>
-                <Bot className='w-5 h-5 text-purple-400' />
-                AI 에이전트 상태
-              </h3>
-
-              {/* 실시간 상태 표시 - 클릭 없이 바로 확인 */}
-              <div className='space-y-4'>
-                <div className='grid grid-cols-3 gap-4'>
-                  <div className='p-3 bg-gray-800/50 rounded-lg text-center'>
-                    <div
-                      className={`w-3 h-3 rounded-full mx-auto mb-2 bg-green-400`}
-                    />
-                    <p className='text-xs text-gray-400 mb-1'>AI 상태</p>
-                    <p className='text-sm font-medium text-white'>활성화</p>
-                  </div>
-                  <div className='p-3 bg-gray-800/50 rounded-lg text-center'>
-                    <div
-                      className={`w-3 h-3 rounded-full mx-auto mb-2 ${
-                        isAdminAuthenticated ? 'bg-green-400' : 'bg-yellow-400'
-                      }`}
-                    />
-                    <p className='text-xs text-gray-400 mb-1'>관리자 인증</p>
-                    <p className='text-sm font-medium text-white'>
-                      {isAdminAuthenticated ? '인증됨' : '인증 필요'}
-                    </p>
-                  </div>
-                  <div className='p-3 bg-gray-800/50 rounded-lg text-center'>
-                    <div className='w-3 h-3 rounded-full mx-auto mb-2 bg-blue-400' />
-                    <p className='text-xs text-gray-400 mb-1'>시스템 상태</p>
-                    <p className='text-sm font-medium text-white'>정상</p>
-                  </div>
-                </div>
-
-                {/* 인증 제한 해제 - 항상 관리자 기능 표시 */}
-                {false && (
-                  <div className='bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4'>
-                    <div className='flex items-center gap-3 mb-3'>
-                      <Lock className='w-4 h-4 text-yellow-400' />
-                      <span className='text-sm font-medium text-yellow-300'>
-                        관리자 인증 필요
-                      </span>
-                    </div>
-                    <div className='flex gap-3'>
-                      <input
-                        aria-label='입력'
-                        type='password'
-                        placeholder='관리자 PIN (4자리)'
-                        value={aiPassword}
-                        onChange={e => setAiPassword(e.target.value)}
-                        maxLength={4}
-                        className='flex-1 px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:border-purple-400'
-                        onKeyPress={e =>
-                          e.key === 'Enter' && handleAuthenticationSubmit()
-                        }
-                      />
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleAuthenticationSubmit()}
-                        disabled={
-                          authState.isAuthenticating || !aiPassword.trim()
-                        }
-                        className='px-4 py-2 bg-purple-500/20 text-purple-300 rounded-lg font-medium hover:bg-purple-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm'
-                      >
-                        {authState.isAuthenticating ? (
-                          <Loader2 className='w-4 h-4 animate-spin' />
-                        ) : (
-                          '인증'
-                        )}
-                      </motion.button>
-                    </div>
-                    {authState.attempts > 0 && (
-                      <p className='mt-2 text-xs text-red-400'>
-                        실패 횟수: {authState.attempts}/5
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* AI 관리 기능 - 인증 제한 해제, 항상 표시 */}
-                {true && (
-                  <div className='bg-green-500/10 border border-green-500/30 rounded-lg p-4'>
-                    <div className='flex items-center gap-3 mb-3'>
-                      <Check className='w-4 h-4 text-green-400' />
-                      <span className='text-sm font-medium text-green-300'>
-                        관리자 권한 활성화
-                      </span>
-                    </div>
-                    <div className='grid grid-cols-1 gap-3'>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={handleAIOptimization}
-                        className='px-4 py-3 bg-purple-500/20 text-purple-300 rounded-lg font-medium hover:bg-purple-500/30 transition-colors text-sm border border-purple-500/30'
-                      >
-                        <div className='flex flex-col items-center gap-1'>
-                          <span className='font-semibold'>🤖 AI 최적화</span>
-                          <span className='text-xs text-purple-200'>
-                            AI 엔진 성능을 분석하고 메모리/CPU 사용량을
-                            최적화합니다
-                          </span>
-                        </div>
-                      </motion.button>
-
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={handleSystemDiagnosis}
-                        className='px-4 py-3 bg-blue-500/20 text-blue-300 rounded-lg font-medium hover:bg-blue-500/30 transition-colors text-sm border border-blue-500/30'
-                      >
-                        <div className='flex flex-col items-center gap-1'>
-                          <span className='font-semibold'>🔍 상태 진단</span>
-                          <span className='text-xs text-blue-200'>
-                            전체 시스템의 상태를 점검하고 이상 여부를 진단합니다
-                          </span>
-                        </div>
-                      </motion.button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          <AISettingsTab
+            authState={authState}
+            aiPassword={aiPassword}
+            setAiPassword={setAiPassword}
+            onAuthentication={handleAuthenticationSubmit}
+            onAIOptimization={handleAIOptimization}
+            onSystemDiagnosis={handleSystemDiagnosis}
+          />
         );
 
       case 'generator':
         return (
-          <div className='space-y-6'>
-            <div className='border border-white/10 rounded-lg p-4'>
-              <h3 className='text-lg font-semibold text-white mb-4 flex items-center gap-2'>
-                <Database className='w-5 h-5 text-blue-400' />
-                데이터 생성기 상태
-              </h3>
-
-              {/* 실시간 상태 표시 */}
-              <div className='space-y-4'>
-                <div className='grid grid-cols-3 gap-4'>
-                  <div className='p-3 bg-gray-800/50 rounded-lg text-center'>
-                    <div className='w-3 h-3 rounded-full mx-auto mb-2 bg-green-400' />
-                    <p className='text-xs text-gray-400 mb-1'>서버 개수</p>
-                    <p className='text-lg font-medium text-white'>
-                      {generatorConfig?.serverCount || 6}개
-                    </p>
-                  </div>
-                  <div className='p-3 bg-gray-800/50 rounded-lg text-center'>
-                    <div className='w-3 h-3 rounded-full mx-auto mb-2 bg-blue-400' />
-                    <p className='text-xs text-gray-400 mb-1'>아키텍처</p>
-                    <p className='text-sm font-medium text-white'>
-                      {generatorConfig?.architecture || 'Microservices'}
-                    </p>
-                  </div>
-                  <div className='p-3 bg-gray-800/50 rounded-lg text-center'>
-                    <div className='w-3 h-3 rounded-full mx-auto mb-2 bg-purple-400' />
-                    <p className='text-xs text-gray-400 mb-1'>생성 모드</p>
-                    <p className='text-sm font-medium text-white'>실시간</p>
-                  </div>
-                </div>
-
-                {/* 빠른 액션 버튼들 */}
-                <div className='grid grid-cols-1 gap-3'>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handleServerCountChange(8)}
-                    className='px-3 py-3 bg-green-500/20 text-green-300 rounded-lg font-medium hover:bg-green-500/30 transition-colors text-sm border border-green-500/30'
-                  >
-                    <div className='flex flex-col items-center gap-1'>
-                      <span className='font-semibold'>
-                        💻 기본 모드 (8서버)
-                      </span>
-                      <span className='text-xs text-green-200'>
-                        Vercel Free 환경 - 8개 서버로 가벼운 테스트 및 개발
-                      </span>
-                    </div>
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handleServerCountChange(20)}
-                    className='px-3 py-3 bg-blue-500/20 text-blue-300 rounded-lg font-medium hover:bg-blue-500/30 transition-colors text-sm border border-blue-500/30'
-                  >
-                    <div className='flex flex-col items-center gap-1'>
-                      <span className='font-semibold'>
-                        🚀 프로 모드 (20서버)
-                      </span>
-                      <span className='text-xs text-blue-200'>
-                        Vercel Pro 환경 - 20개 서버로 실전 운영 환경 시뮬레이션
-                      </span>
-                    </div>
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handleServerCountChange(30)}
-                    className='px-3 py-3 bg-purple-500/20 text-purple-300 rounded-lg font-medium hover:bg-purple-500/30 transition-colors text-sm border border-purple-500/30'
-                  >
-                    <div className='flex flex-col items-center gap-1'>
-                      <span className='font-semibold'>
-                        ⚡ 로컬 모드 (30서버)
-                      </span>
-                      <span className='text-xs text-purple-200'>
-                        로컬 개발 환경 - 30개 서버로 최대 성능 테스트
-                      </span>
-                    </div>
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleGeneratorCheck}
-                    className='px-3 py-3 bg-purple-500/20 text-purple-300 rounded-lg font-medium hover:bg-purple-500/30 transition-colors text-sm border border-purple-500/30'
-                  >
-                    <div className='flex flex-col items-center gap-1'>
-                      <span className='font-semibold'>📊 상태 확인</span>
-                      <span className='text-xs text-purple-200'>
-                        데이터 생성기의 현재 상태와 성능 지표를 확인합니다
-                      </span>
-                    </div>
-                  </motion.button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <GeneratorSettingsTab
+            generatorConfig={generatorConfig}
+            isGeneratorLoading={isGeneratorLoading}
+            onGeneratorCheck={handleGeneratorCheck}
+            onServerCountChange={handleServerCountChange}
+            onArchitectureChange={handleArchitectureChange}
+          />
         );
 
       case 'monitor':
         return (
-          <div className='space-y-6'>
-            <div className='border border-white/10 rounded-lg p-4'>
-              <h3 className='text-lg font-semibold text-white mb-4 flex items-center gap-2'>
-                <Monitor className='w-5 h-5 text-cyan-400' />
-                모니터링 상태
-              </h3>
-
-              <div className='space-y-4'>
-                <div className='grid grid-cols-3 gap-4'>
-                  <div className='p-3 bg-gray-800/50 rounded-lg text-center'>
-                    <div className='w-3 h-3 rounded-full mx-auto mb-2 bg-green-400' />
-                    <p className='text-xs text-gray-400 mb-1'>메트릭 간격</p>
-                    <p className='text-lg font-medium text-white'>
-                      {settingsData.metrics.interval}초
-                    </p>
-                  </div>
-                  <div className='p-3 bg-gray-800/50 rounded-lg text-center'>
-                    <div className='w-3 h-3 rounded-full mx-auto mb-2 bg-cyan-400' />
-                    <p className='text-xs text-gray-400 mb-1'>활성 시나리오</p>
-                    <p className='text-lg font-medium text-white'>
-                      {settingsData.scenarios.active}/
-                      {settingsData.scenarios.total}
-                    </p>
-                  </div>
-                  <div className='p-3 bg-gray-800/50 rounded-lg text-center'>
-                    <div className='w-3 h-3 rounded-full mx-auto mb-2 bg-yellow-400' />
-                    <p className='text-xs text-gray-400 mb-1'>알림 상태</p>
-                    <p className='text-sm font-medium text-white'>활성화</p>
-                  </div>
-                </div>
-
-                <div className='grid grid-cols-1 gap-3'>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleMonitorCheck}
-                    className='px-4 py-3 bg-cyan-500/20 text-cyan-300 rounded-lg font-medium hover:bg-cyan-500/30 transition-colors text-sm border border-cyan-500/30'
-                  >
-                    <div className='flex flex-col items-center gap-1'>
-                      <span className='font-semibold'>📈 모니터링 최적화</span>
-                      <span className='text-xs text-cyan-200'>
-                        메트릭 수집 간격과 알림 임계값을 자동으로 최적화합니다
-                      </span>
-                    </div>
-                  </motion.button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <MonitorSettingsTab
+            settingsData={settingsData}
+            onMonitorCheck={handleMonitorCheck}
+          />
         );
 
       case 'general':
-        return (
-          <div className='space-y-6'>
-            <div className='border border-white/10 rounded-lg p-4'>
-              <h3 className='text-lg font-semibold text-white mb-4 flex items-center gap-2'>
-                <Settings className='w-5 h-5 text-gray-400' />
-                일반 설정
-              </h3>
-
-              <div className='space-y-4'>
-                <div className='grid grid-cols-3 gap-4'>
-                  <div className='p-3 bg-gray-800/50 rounded-lg text-center'>
-                    <div className='w-3 h-3 rounded-full mx-auto mb-2 bg-purple-400' />
-                    <p className='text-xs text-gray-400 mb-1'>현재 테마</p>
-                    <p className='text-sm font-medium text-white'>
-                      {settingsData.theme}
-                    </p>
-                  </div>
-                  <div className='p-3 bg-gray-800/50 rounded-lg text-center'>
-                    <div className='w-3 h-3 rounded-full mx-auto mb-2 bg-green-400' />
-                    <p className='text-xs text-gray-400 mb-1'>마지막 백업</p>
-                    <p className='text-sm font-medium text-white'>
-                      {settingsData.backup.lastBackup}
-                    </p>
-                  </div>
-                  <div className='p-3 bg-gray-800/50 rounded-lg text-center'>
-                    <div className='w-3 h-3 rounded-full mx-auto mb-2 bg-blue-400' />
-                    <p className='text-xs text-gray-400 mb-1'>언어</p>
-                    <p className='text-sm font-medium text-white'>한국어</p>
-                  </div>
-                </div>
-
-                <div className='grid grid-cols-1 gap-3'>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={async () => {
-                      try {
-                        info('테마를 변경 중...');
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                        success('테마가 변경되었습니다.');
-                      } catch (err) {
-                        error('테마 변경 실패');
-                      }
-                    }}
-                    className='px-4 py-3 bg-gray-500/20 text-gray-300 rounded-lg font-medium hover:bg-gray-500/30 transition-colors text-sm border border-gray-500/30'
-                  >
-                    <div className='flex flex-col items-center gap-1'>
-                      <span className='font-semibold'>🎨 테마 전환</span>
-                      <span className='text-xs text-gray-200'>
-                        다크/라이트 모드를 전환하고 UI 색상 테마를 변경합니다
-                      </span>
-                    </div>
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={async () => {
-                      try {
-                        info('백업을 생성 중...');
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                        success('백업이 성공적으로 생성되었습니다.');
-                      } catch (err) {
-                        error('백업 생성 실패');
-                      }
-                    }}
-                    className='px-4 py-3 bg-gray-500/20 text-gray-300 rounded-lg font-medium hover:bg-gray-500/30 transition-colors text-sm border border-gray-500/30'
-                  >
-                    <div className='flex flex-col items-center gap-1'>
-                      <span className='font-semibold'>💾 백업 생성</span>
-                      <span className='text-xs text-gray-200'>
-                        현재 설정과 데이터를 안전하게 백업 파일로 저장합니다
-                      </span>
-                    </div>
-                  </motion.button>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        return <GeneralSettingsTab settingsData={settingsData} />;
 
       default:
         return null;
