@@ -82,6 +82,7 @@ export class HybridAIEngineRefactored {
         mcpClient: this.mcpClient,
         koreanEngine: this.koreanEngine,
         transformersEngine: this.transformersEngine,
+        lightweightMLEngine: this.transformersEngine, // 임시로 같은 엔진 사용
         vectorDB: this.vectorDB,
       });
 
