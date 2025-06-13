@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useMemo, Suspense } from 'react';
 import { motion } from 'framer-motion';
+import dynamic from 'next/dynamic';
 import ServerDashboard from './ServerDashboard';
+import GoogleAIStatusCard from './GoogleAIStatusCard';
+import AIInsightsCard from './AIInsightsCard';
 
 import { Server } from '../../types/server';
 import { safeConsoleError, safeErrorMessage } from '../../lib/utils-functions';
@@ -25,6 +28,15 @@ interface DashboardContentProps {
   mainContentVariants: any;
   isAgentOpen: boolean;
 }
+
+// 동적 임포트로 성능 최적화
+const ServerDashboardDynamic = dynamic(() => import('./ServerDashboard'), {
+  loading: () => (
+    <div className='flex items-center justify-center p-8'>
+      <div className='w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin'></div>
+    </div>
+  ),
+});
 
 export default function DashboardContent({
   showSequentialGeneration,
@@ -137,14 +149,7 @@ export default function DashboardContent({
                 </div>
               }
             >
-              {/* AI 인사이트 카드는 나중에 추가 */}
-              <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
-                <h3 className='text-lg font-semibold text-gray-800 mb-4'>🔮 AI 인사이트</h3>
-                <p className='text-gray-600'>실시간 AI 분석 결과가 여기에 표시됩니다.</p>
-                <div className='mt-4 text-sm text-blue-600'>
-                  곧 활성화될 예정입니다...
-                </div>
-              </div>
+              <AIInsightsCard />
             </Suspense>
 
             {/* Google AI 상태 카드 */}
@@ -161,14 +166,7 @@ export default function DashboardContent({
                 </div>
               }
             >
-              {/* Google AI 상태 카드는 나중에 추가 */}
-              <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
-                <h3 className='text-lg font-semibold text-gray-800 mb-4'>🤖 Google AI 상태</h3>
-                <p className='text-gray-600'>Gemini API 연결 상태가 여기에 표시됩니다.</p>
-                <div className='mt-4 text-sm text-blue-600'>
-                  곧 활성화될 예정입니다...
-                </div>
-              </div>
+              <GoogleAIStatusCard showDetails={true} />
             </Suspense>
           </div>
 
@@ -181,7 +179,7 @@ export default function DashboardContent({
                 </div>
               }
             >
-              <ServerDashboard onStatsUpdate={onStatsUpdate} />
+              <ServerDashboardDynamic onStatsUpdate={onStatsUpdate} />
             </Suspense>
           </div>
         </div>

@@ -567,22 +567,26 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             </div>
           )}
 
-          {/* 🎯 화면에 보이지 않을 때 간단한 플레이스홀더 */}
+          {/* 🎯 화면에 보이지 않을 때 스켈레톤 로더 */}
           {showMiniCharts && !isVisible && (
             <div
               className={`grid ${variantStyles.chartContainer} bg-gray-100/50 rounded-lg ${variant === 'compact' ? 'p-2' : 'p-4'} backdrop-blur-sm`}
             >
-              <div className='flex items-center justify-center h-12 text-gray-400 text-xs'>
-                📊 차트 대기중
+              <div className='flex flex-col items-center justify-center h-12 space-y-1'>
+                <div className='w-8 h-2 bg-gray-300 rounded animate-pulse'></div>
+                <div className='w-6 h-1 bg-gray-200 rounded animate-pulse'></div>
               </div>
-              <div className='flex items-center justify-center h-12 text-gray-400 text-xs'>
-                📊 차트 대기중
+              <div className='flex flex-col items-center justify-center h-12 space-y-1'>
+                <div className='w-8 h-2 bg-gray-300 rounded animate-pulse'></div>
+                <div className='w-6 h-1 bg-gray-200 rounded animate-pulse'></div>
               </div>
-              <div className='flex items-center justify-center h-12 text-gray-400 text-xs'>
-                📊 차트 대기중
+              <div className='flex flex-col items-center justify-center h-12 space-y-1'>
+                <div className='w-8 h-2 bg-gray-300 rounded animate-pulse'></div>
+                <div className='w-6 h-1 bg-gray-200 rounded animate-pulse'></div>
               </div>
-              <div className='flex items-center justify-center h-12 text-gray-400 text-xs'>
-                📊 차트 대기중
+              <div className='flex flex-col items-center justify-center h-12 space-y-1'>
+                <div className='w-8 h-2 bg-gray-300 rounded animate-pulse'></div>
+                <div className='w-6 h-1 bg-gray-200 rounded animate-pulse'></div>
               </div>
             </div>
           )}
@@ -633,19 +637,17 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               {server.services.slice(0, 3).map((service, idx) => (
                 <motion.div
                   key={idx}
-                  className={`px-2 py-1 rounded text-xs flex items-center gap-1 ${
-                    service.status === 'running'
+                  className={`px-2 py-1 rounded text-xs flex items-center gap-1 ${service.status === 'running'
                       ? 'bg-green-100 text-green-700'
                       : 'bg-red-100 text-red-700'
-                  }`}
+                    }`}
                   whileHover={{ scale: 1.05 }}
                 >
                   <div
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      service.status === 'running'
+                    className={`w-1.5 h-1.5 rounded-full ${service.status === 'running'
                         ? 'bg-green-500'
                         : 'bg-red-500'
-                    }`}
+                      }`}
                   />
                   {service.name}
                 </motion.div>
@@ -668,15 +670,14 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                 </span>
               </div>
               <span
-                className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                  server.networkStatus === 'excellent'
+                className={`text-xs font-semibold px-2 py-1 rounded-full ${server.networkStatus === 'excellent'
                     ? 'bg-green-100 text-green-700'
                     : server.networkStatus === 'good'
                       ? 'bg-blue-100 text-blue-700'
                       : server.networkStatus === 'poor'
                         ? 'bg-yellow-100 text-yellow-700'
                         : 'bg-red-100 text-red-700'
-                }`}
+                  }`}
               >
                 {server.networkStatus === 'excellent'
                   ? '우수'
