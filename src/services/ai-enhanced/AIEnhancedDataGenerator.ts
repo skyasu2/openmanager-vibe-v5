@@ -15,6 +15,7 @@ import {
   ServerStatus,
 } from '../../types/server';
 import { OptimizedDataGenerator } from '../OptimizedDataGenerator';
+import { getDataGeneratorConfig } from '../../config/environment';
 
 // 🧠 AI 모듈 인터페이스
 interface AnomalyDetectionResult {
@@ -100,7 +101,9 @@ export class AIEnhancedDataGenerator {
   private activeScenarios: AdaptiveScenario[] = [];
   private optimizations: PerformanceOptimization[] = [];
 
-  // 설정
+  // 환경별 설정 가져오기
+  private envConfig = getDataGeneratorConfig();
+
   private config: AIEnhancedConfig = {
     anomalyDetection: {
       enabled: true,
@@ -120,12 +123,12 @@ export class AIEnhancedDataGenerator {
     },
     autoScaling: {
       enabled: true,
-      minServers: 8,
-      maxServers: process.env.VERCEL ? 15 : 30,
+      minServers: this.envConfig.minServers || 8,
+      maxServers: this.envConfig.maxServers || 30,
       scaleUpThreshold: 80,
       scaleDownThreshold: 30,
       vercelFree:
-        !process.env.VERCEL_ENV || process.env.VERCEL_ENV === 'development',
+        this.envConfig.mode === 'production' && this.envConfig.maxServers <= 15,
     },
   };
 

@@ -395,79 +395,170 @@ export class OptimizedDataGenerator {
    * 🔄 실시간 데이터 생성 (베이스라인 + 변동)
    */
   async generateRealTimeData(): Promise<EnhancedServerMetrics[]> {
-    const currentTime = Date.now();
-    const servers: EnhancedServerMetrics[] = [];
+    if (!this.isRunning) {
+      console.warn('⚠️ OptimizedDataGenerator가 실행 중이 아님');
+      return [];
+    }
 
-    // 캐시에서 베이스라인 데이터 확인
-    const cachedBaseline = await this.cache.query(
-      'baseline-data',
-      () => Promise.resolve(this.getBaselineDataFromStorage()),
-      { staleTime: this.CACHE_TTL }
-    );
+    // 베이스라인 데이터가 없으면 빈 배열 반환
+    if (this.baselineStorage.size === 0) {
+      console.warn('⚠️ 베이스라인 데이터가 없음, 빈 배열 반환');
+      return [];
+    }
+
+    const servers: EnhancedServerMetrics[] = [];
+    const currentTime = Date.now();
 
     for (const [serverId, baseline] of this.baselineStorage) {
-      const currentMinute =
-        Math.floor((currentTime - baseline.last_generated) / 60000) % 1440;
-      const baselinePoint = baseline.daily_pattern[currentMinute];
+      try {
+        // 베이스라인 데이터 유효성 검사
+        if (
+          !baseline ||
+          !baseline.daily_pattern ||
+          baseline.daily_pattern.length === 0
+        ) {
+          console.warn(
+            `⚠️ 서버 ${serverId}의 베이스라인 데이터가 유효하지 않음`
+          );
+          continue;
+        }
 
-      // 베이스라인 포인트 유효성 검사
-      if (!baselinePoint) {
-        console.warn(
-          `⚠️ 서버 ${serverId}의 베이스라인 포인트가 없음 (분: ${currentMinute}), 건너뜀`
+        const currentMinute =
+          Math.floor((currentTime - baseline.last_generated) / 60000) % 1440;
+
+        // 인덱스 범위 검사
+        if (
+          currentMinute < 0 ||
+          currentMinute >= baseline.daily_pattern.length
+        ) {
+          console.warn(
+            `⚠️ 서버 ${serverId}의 시간 인덱스가 범위를 벗어남: ${currentMinute}`
+          );
+          continue;
+        }
+
+        const baselinePoint = baseline.daily_pattern[currentMinute];
+
+        // 베이스라인 포인트 유효성 검사 강화
+        if (
+          !baselinePoint ||
+          typeof baselinePoint.cpu_baseline !== 'number' ||
+          typeof baselinePoint.memory_baseline !== 'number' ||
+          isNaN(baselinePoint.cpu_baseline) ||
+          isNaN(baselinePoint.memory_baseline)
+        ) {
+          console.warn(
+            `⚠️ 서버 ${serverId}의 베이스라인 포인트가 유효하지 않음 (분: ${currentMinute}):`,
+            baselinePoint
+          );
+          continue;
+        }
+
+        const variation =
+          this.currentVariations.get(serverId) ||
+          this.generateInitialVariation();
+
+        // 변동 데이터 유효성 검사
+        if (!variation) {
+          console.warn(`⚠️ 서버 ${serverId}의 변동 데이터 생성 실패`);
+          continue;
+        }
+
+        // 실제 메트릭 계산
+        const cpu_usage = Math.max(
+          0,
+          Math.min(
+            100,
+            this.applyVariation(
+              baselinePoint.cpu_baseline,
+              variation.cpu_variation,
+              variation.anomaly_factor
+            )
+          )
         );
-        continue;
+
+        const memory_usage = Math.max(
+          0,
+          Math.min(
+            100,
+            this.applyVariation(
+              baselinePoint.memory_baseline,
+              variation.memory_variation,
+              variation.anomaly_factor
+            )
+          )
+        );
+
+        const disk_usage = Math.max(
+          0,
+          Math.min(
+            100,
+            this.applyVariation(
+              baselinePoint.disk_baseline,
+              variation.disk_variation,
+              variation.anomaly_factor
+            )
+          )
+        );
+
+        const network_in = Math.max(
+          0,
+          this.applyVariation(
+            baselinePoint.network_in_baseline,
+            variation.network_variation,
+            variation.anomaly_factor
+          )
+        );
+
+        const network_out = Math.max(
+          0,
+          this.applyVariation(
+            baselinePoint.network_out_baseline,
+            variation.network_variation,
+            variation.anomaly_factor
+          )
+        );
+
+        const response_time = Math.max(
+          1,
+          this.applyVariation(
+            baselinePoint.response_time_baseline,
+            variation.response_variation,
+            variation.anomaly_factor
+          )
+        );
+
+        // 상태 계산 (안전한 방식으로)
+        const status = this.calculateCurrentStatus(baselinePoint, variation);
+        const uptime = this.calculateUptime(status);
+
+        // 서버 메트릭 생성
+        const server: EnhancedServerMetrics = {
+          id: serverId,
+          name: baseline.hostname,
+          hostname: baseline.hostname,
+          environment: baseline.environment,
+          role: baseline.role,
+          status,
+          cpu_usage,
+          memory_usage,
+          disk_usage,
+          network_in,
+          network_out,
+          response_time,
+          uptime,
+          last_updated: new Date().toISOString(),
+          alerts: [],
+        };
+
+        servers.push(server);
+
+        // 변동 업데이트
+        this.updateVariation(serverId, variation);
+      } catch (error) {
+        console.error(`❌ 서버 ${serverId} 데이터 생성 중 오류:`, error);
+        continue; // 오류가 발생한 서버는 건너뛰고 계속 진행
       }
-
-      const variation =
-        this.currentVariations.get(serverId) || this.generateInitialVariation();
-
-      // 베이스라인 + 실시간 변동 적용
-      const server: EnhancedServerMetrics = {
-        id: serverId,
-        name: baseline.hostname, // name 속성 추가
-        hostname: baseline.hostname,
-        environment: baseline.environment,
-        role: baseline.role,
-        status: this.calculateCurrentStatus(baselinePoint, variation),
-        cpu_usage: this.applyVariation(
-          baselinePoint.cpu_baseline,
-          variation.cpu_variation,
-          variation.anomaly_factor
-        ),
-        memory_usage: this.applyVariation(
-          baselinePoint.memory_baseline,
-          variation.memory_variation,
-          variation.anomaly_factor
-        ),
-        disk_usage: this.applyVariation(
-          baselinePoint.disk_baseline,
-          variation.disk_variation,
-          0
-        ), // 디스크는 이상치 없음
-        network_in: this.applyVariation(
-          baselinePoint.network_in_baseline,
-          variation.network_variation,
-          variation.anomaly_factor
-        ),
-        network_out: this.applyVariation(
-          baselinePoint.network_out_baseline,
-          variation.network_variation,
-          variation.anomaly_factor
-        ),
-        response_time: this.applyVariation(
-          baselinePoint.response_time_baseline,
-          variation.response_variation,
-          variation.anomaly_factor
-        ),
-        uptime: this.calculateUptime(baseline.baseline_status),
-        last_updated: new Date(currentTime).toISOString(),
-        alerts: [],
-      };
-
-      servers.push(server);
-
-      // 변동값 조금씩 업데이트 (자연스러운 변화)
-      this.updateVariation(serverId, variation);
     }
 
     // 🎭 경연대회용 데모 시나리오 적용
@@ -499,13 +590,26 @@ export class OptimizedDataGenerator {
     baseline: BaselineDataPoint,
     variation: RealTimeVariation
   ): ServerStatus {
-    // 베이스라인 데이터 유효성 검사
+    // 베이스라인 데이터 유효성 검사 강화
     if (
       !baseline ||
-      typeof baseline.cpu_baseline === 'undefined' ||
-      typeof baseline.memory_baseline === 'undefined'
+      typeof baseline.cpu_baseline !== 'number' ||
+      typeof baseline.memory_baseline !== 'number' ||
+      isNaN(baseline.cpu_baseline) ||
+      isNaN(baseline.memory_baseline)
     ) {
-      console.warn('⚠️ 베이스라인 데이터가 유효하지 않음, 기본값 사용');
+      console.warn('⚠️ 베이스라인 데이터가 유효하지 않음:', baseline);
+      return 'healthy'; // 기본값으로 healthy 반환
+    }
+
+    // variation 데이터 유효성 검사
+    if (
+      !variation ||
+      typeof variation.cpu_variation !== 'number' ||
+      typeof variation.memory_variation !== 'number' ||
+      typeof variation.anomaly_factor !== 'number'
+    ) {
+      console.warn('⚠️ 변동 데이터가 유효하지 않음:', variation);
       return 'healthy';
     }
 
@@ -760,13 +864,6 @@ export class OptimizedDataGenerator {
     }
 
     console.log('📊 베이스라인 데이터 압축 완료 (1440분 → 24시간)');
-  }
-
-  /**
-   * 📈 스토리지에서 베이스라인 데이터 조회
-   */
-  private getBaselineDataFromStorage(): ServerBaselineData[] {
-    return Array.from(this.baselineStorage.values());
   }
 
   /**
