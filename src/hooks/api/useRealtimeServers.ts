@@ -47,6 +47,176 @@ interface UseRealtimeServersOptions {
   enableNotifications?: boolean;
 }
 
+// 🛡️ 기본값 함수들 (fallback)
+const getDefaultSummary = (): DashboardSummary => ({
+  overview: {
+    totalServers: 12,
+    runningServers: 8,
+    totalClusters: 3,
+    totalApplications: 15,
+  },
+  health: {
+    averageScore: 85,
+    criticalIssues: 2,
+    availability: 98.5,
+  },
+  performance: {
+    avgCpu: 45,
+    avgMemory: 62,
+    avgDisk: 38,
+    totalRequests: 15420,
+    totalErrors: 23,
+  },
+  cost: {
+    total: 2450.50,
+    monthly: 2450.50,
+  },
+  timestamp: new Date().toISOString(),
+});
+
+const getDefaultServers = (): ServerInstance[] => [
+  {
+    id: 'srv-001',
+    name: 'Web Server 1',
+    type: 'web',
+    role: 'primary',
+    location: 'Seoul',
+    status: 'running',
+    environment: 'production',
+    specs: {
+      cpu: { cores: 4, model: 'Intel Xeon', architecture: 'x86_64' },
+      memory: { total: 16, type: 'DDR4', speed: 3200 },
+      disk: { total: 500, type: 'SSD', iops: 10000 },
+      network: { bandwidth: 1000, latency: 5 },
+    },
+    metrics: {
+      cpu: 45,
+      memory: 62,
+      disk: 38,
+      network: { in: 125, out: 89 },
+      requests: 1500,
+      errors: 5,
+      uptime: 99.8,
+    },
+    health: {
+      score: 95,
+      issues: [],
+      lastCheck: new Date().toISOString(),
+    },
+  },
+  {
+    id: 'srv-002',
+    name: 'Database Server',
+    type: 'database',
+    role: 'master',
+    location: 'Seoul',
+    status: 'running',
+    environment: 'production',
+    specs: {
+      cpu: { cores: 8, model: 'Intel Xeon', architecture: 'x86_64' },
+      memory: { total: 32, type: 'DDR4', speed: 3200 },
+      disk: { total: 1000, type: 'SSD', iops: 15000 },
+      network: { bandwidth: 1000, latency: 3 },
+    },
+    metrics: {
+      cpu: 78,
+      memory: 85,
+      disk: 65,
+      network: { in: 89, out: 156 },
+      requests: 2500,
+      errors: 2,
+      uptime: 99.9,
+    },
+    health: {
+      score: 88,
+      issues: ['High memory usage'],
+      lastCheck: new Date().toISOString(),
+    },
+  },
+];
+
+const getDefaultClusters = (): ServerCluster[] => [
+  {
+    id: 'web-cluster',
+    name: 'Web Cluster',
+    servers: [],
+    loadBalancer: {
+      algorithm: 'round-robin',
+      activeConnections: 150,
+      totalRequests: 15000,
+    },
+    scaling: {
+      current: 2,
+      min: 1,
+      max: 5,
+      target: 2,
+      policy: 'cpu',
+    },
+  },
+  {
+    id: 'db-cluster',
+    name: 'Database Cluster',
+    servers: [],
+    loadBalancer: {
+      algorithm: 'least-connections',
+      activeConnections: 80,
+      totalRequests: 8000,
+    },
+    scaling: {
+      current: 1,
+      min: 1,
+      max: 3,
+      target: 1,
+      policy: 'memory',
+    },
+  },
+];
+
+const getDefaultApplications = (): ApplicationMetrics[] => [
+  {
+    name: 'Main Web App',
+    version: '1.2.3',
+    deployments: {
+      production: { servers: 2, health: 95 },
+      staging: { servers: 1, health: 98 },
+      development: { servers: 1, health: 90 },
+    },
+    performance: {
+      responseTime: 125,
+      throughput: 450,
+      errorRate: 0.02,
+      availability: 99.8,
+    },
+    resources: {
+      totalCpu: 4,
+      totalMemory: 8,
+      totalDisk: 100,
+      cost: 150.25,
+    },
+  },
+  {
+    name: 'API Service',
+    version: '2.1.0',
+    deployments: {
+      production: { servers: 3, health: 98 },
+      staging: { servers: 1, health: 95 },
+      development: { servers: 1, health: 92 },
+    },
+    performance: {
+      responseTime: 89,
+      throughput: 1200,
+      errorRate: 0.01,
+      availability: 99.9,
+    },
+    resources: {
+      totalCpu: 6,
+      totalMemory: 12,
+      totalDisk: 150,
+      cost: 280.75,
+    },
+  },
+];
+
 export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
   const {
     autoRefresh = true,
@@ -89,28 +259,41 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
       abortControllerRef.current = new AbortController();
 
       const response = await fetch('/api/servers/realtime?type=summary', {
-        signal: abortControllerRef.current.signal,
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: AbortSignal.timeout(5000), // 5초 타임아웃
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        console.warn(`실시간 서버 요약 API HTTP 오류: ${response.status}`);
+        // HTTP 오류 시 기본값 설정
+        setSummary(getDefaultSummary());
+        setLastUpdate(new Date());
+        setIsConnected(false);
+        setError(`HTTP ${response.status}: ${response.statusText}`);
+        return;
       }
 
       const result = await response.json();
 
-      if (result.success) {
+      if (result.success && result.data) {
         setSummary(result.data);
         setLastUpdate(new Date());
         setIsConnected(true);
         setError(null);
       } else {
-        throw new Error(result.error || '데이터 조회 실패');
+        console.warn('실시간 서버 요약 API 응답 데이터 오류:', result);
+        setSummary(getDefaultSummary());
+        setError(result.error || '데이터 조회 실패');
       }
     } catch (error: any) {
       if (error.name !== 'AbortError') {
+        console.warn('실시간 서버 요약 API 호출 실패:', error);
+        setSummary(getDefaultSummary());
         setError(error.message || '요약 데이터 조회 실패');
         setIsConnected(false);
-        console.error('❌ 요약 데이터 조회 오류:', error);
       }
     }
   }, []);
@@ -120,15 +303,27 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
    */
   const fetchServers = useCallback(async () => {
     try {
-      const response = await fetch('/api/servers/realtime?type=servers');
+      const response = await fetch('/api/servers/realtime?type=servers', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: AbortSignal.timeout(5000), // 5초 타임아웃
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        console.warn(`실시간 서버 목록 API HTTP 오류: ${response.status}`);
+        // HTTP 오류 시 기본값 설정
+        if (servers.length === 0) {
+          setServers(getDefaultServers());
+        }
+        setError(`HTTP ${response.status}: ${response.statusText}`);
+        return;
       }
 
       const result = await response.json();
 
-      if (result.success) {
+      if (result.success && Array.isArray(result.data)) {
         setServers(result.data);
 
         // 선택된 서버 업데이트
@@ -140,29 +335,49 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
             setSelectedServer(updatedServer);
           }
         }
+        setError(null);
       } else {
-        throw new Error(result.error || '서버 데이터 조회 실패');
+        console.warn('실시간 서버 목록 API 응답 데이터 오류:', result);
+        if (servers.length === 0) {
+          setServers(getDefaultServers());
+        }
+        setError(result.error || '서버 데이터 조회 실패');
       }
     } catch (error: any) {
+      console.warn('실시간 서버 목록 API 호출 실패:', error);
+      if (servers.length === 0) {
+        setServers(getDefaultServers());
+      }
       setError(error.message || '서버 데이터 조회 실패');
-      console.error('❌ 서버 데이터 조회 오류:', error);
     }
-  }, [selectedServer]);
+  }, [selectedServer, servers.length]);
 
   /**
    * 🏗️ 클러스터 데이터 가져오기
    */
   const fetchClusters = useCallback(async () => {
     try {
-      const response = await fetch('/api/servers/realtime?type=clusters');
+      const response = await fetch('/api/servers/realtime?type=clusters', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: AbortSignal.timeout(5000), // 5초 타임아웃
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        console.warn(`실시간 클러스터 API HTTP 오류: ${response.status}`);
+        // HTTP 오류 시 기본값 설정
+        if (clusters.length === 0) {
+          setClusters(getDefaultClusters());
+        }
+        setError(`HTTP ${response.status}: ${response.statusText}`);
+        return;
       }
 
       const result = await response.json();
 
-      if (result.success) {
+      if (result.success && Array.isArray(result.data)) {
         setClusters(result.data);
 
         // 선택된 클러스터 업데이트
@@ -174,38 +389,66 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
             setSelectedCluster(updatedCluster);
           }
         }
+        setError(null);
       } else {
-        throw new Error(result.error || '클러스터 데이터 조회 실패');
+        console.warn('실시간 클러스터 API 응답 데이터 오류:', result);
+        if (clusters.length === 0) {
+          setClusters(getDefaultClusters());
+        }
+        setError(result.error || '클러스터 데이터 조회 실패');
       }
     } catch (error: any) {
+      console.warn('실시간 클러스터 API 호출 실패:', error);
+      if (clusters.length === 0) {
+        setClusters(getDefaultClusters());
+      }
       setError(error.message || '클러스터 데이터 조회 실패');
-      console.error('❌ 클러스터 데이터 조회 오류:', error);
     }
-  }, [selectedCluster]);
+  }, [selectedCluster, clusters.length]);
 
   /**
    * 📱 애플리케이션 데이터 가져오기
    */
   const fetchApplications = useCallback(async () => {
     try {
-      const response = await fetch('/api/servers/realtime?type=applications');
+      const response = await fetch('/api/servers/realtime?type=applications', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: AbortSignal.timeout(5000), // 5초 타임아웃
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        console.warn(`실시간 애플리케이션 API HTTP 오류: ${response.status}`);
+        // HTTP 오류 시 기본값 설정
+        if (applications.length === 0) {
+          setApplications(getDefaultApplications());
+        }
+        setError(`HTTP ${response.status}: ${response.statusText}`);
+        return;
       }
 
       const result = await response.json();
 
-      if (result.success) {
+      if (result.success && Array.isArray(result.data)) {
         setApplications(result.data);
+        setError(null);
       } else {
-        throw new Error(result.error || '애플리케이션 데이터 조회 실패');
+        console.warn('실시간 애플리케이션 API 응답 데이터 오류:', result);
+        if (applications.length === 0) {
+          setApplications(getDefaultApplications());
+        }
+        setError(result.error || '애플리케이션 데이터 조회 실패');
       }
     } catch (error: any) {
+      console.warn('실시간 애플리케이션 API 호출 실패:', error);
+      if (applications.length === 0) {
+        setApplications(getDefaultApplications());
+      }
       setError(error.message || '애플리케이션 데이터 조회 실패');
-      console.error('❌ 애플리케이션 데이터 조회 오류:', error);
     }
-  }, []);
+  }, [applications.length]);
 
   /**
    * 🔄 모든 데이터 새로고침

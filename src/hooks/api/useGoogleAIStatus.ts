@@ -34,12 +34,69 @@ export interface GoogleAIStatus {
 
 // 🔧 API 함수
 const fetchGoogleAIStatus = async (): Promise<GoogleAIStatus> => {
-    const response = await fetch('/api/ai/google-ai/status');
-    if (!response.ok) {
-        throw new Error(`Google AI 상태 조회 실패: ${response.status}`);
+    try {
+        const response = await fetch('/api/ai/google-ai/status', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            // 타임아웃 설정 (5초)
+            signal: AbortSignal.timeout(5000),
+        });
+
+        if (!response.ok) {
+            // HTTP 오류 시 기본값 반환
+            console.warn(`Google AI 상태 API HTTP 오류: ${response.status}`);
+            return getDefaultGoogleAIStatus();
+        }
+
+        const data = await response.json();
+
+        // 응답 데이터 검증
+        if (!data || typeof data !== 'object') {
+            console.warn('Google AI 상태 API 응답 데이터 형식 오류');
+            return getDefaultGoogleAIStatus();
+        }
+
+        return data;
+    } catch (error) {
+        console.warn('Google AI 상태 API 호출 실패:', error);
+        // 네트워크 오류나 타임아웃 시 기본값 반환
+        return getDefaultGoogleAIStatus();
     }
-    return response.json();
 };
+
+// 🛡️ 기본 Google AI 상태 (fallback)
+const getDefaultGoogleAIStatus = (): GoogleAIStatus => ({
+    isEnabled: false,
+    isConnected: false,
+    apiKeyStatus: 'missing',
+    quotaStatus: {
+        daily: {
+            used: 0,
+            limit: 1000,
+            remaining: 1000,
+        },
+        perMinute: {
+            used: 0,
+            limit: 60,
+            remaining: 60,
+        },
+    },
+    lastHealthCheck: new Date().toISOString(),
+    healthCheckStatus: 'unhealthy',
+    model: 'gemini-1.5-flash',
+    features: {
+        chat: false,
+        embedding: false,
+        vision: false,
+    },
+    performance: {
+        averageResponseTime: 0,
+        successRate: 0,
+        errorRate: 0,
+    },
+});
 
 // 🎣 React Query 훅
 export const useGoogleAIStatus = () => {
@@ -48,8 +105,13 @@ export const useGoogleAIStatus = () => {
         queryFn: fetchGoogleAIStatus,
         refetchInterval: 60000, // 1분마다 자동 갱신
         staleTime: 30000, // 30초간 데이터 신선도 유지
-        retry: 2,
-        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+        retry: 1, // 재시도 횟수 줄임 (빠른 fallback)
+        retryDelay: 1000, // 1초 후 재시도
+        // 백그라운드에서 자동 갱신 비활성화 (안정성 향상)
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+        // 초기 데이터로 기본값 설정
+        initialData: getDefaultGoogleAIStatus,
     });
 };
 
