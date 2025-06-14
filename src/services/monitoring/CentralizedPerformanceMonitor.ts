@@ -1198,10 +1198,10 @@ export class CentralizedPerformanceMonitor {
     return {
       enabled: true,
       intervals: {
-        systemMetrics: 30000, // 30초
-        applicationMetrics: 60000, // 1분
-        aiMetrics: 60000, // 1분
-        optimization: 300000, // 5분
+        systemMetrics: 300000, // 5분 (30초 → 5분으로 변경하여 과금 절약)
+        applicationMetrics: 600000, // 10분 (1분 → 10분으로 변경)
+        aiMetrics: 600000, // 10분 (1분 → 10분으로 변경)
+        optimization: 1800000, // 30분 (5분 → 30분으로 변경)
       },
       retention: {
         raw: 7, // 7일

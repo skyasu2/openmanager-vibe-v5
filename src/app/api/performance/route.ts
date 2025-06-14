@@ -117,12 +117,63 @@ export async function POST(request: NextRequest) {
           timestamp: new Date().toISOString(),
         });
 
+      case 'disable':
+        await performanceMonitor.stopMonitoring();
+        return NextResponse.json({
+          success: true,
+          message: '성능 모니터링이 비활성화되었습니다 (과금 절약 모드)',
+          timestamp: new Date().toISOString(),
+        });
+
+      case 'enable':
+        await performanceMonitor.startMonitoring();
+        return NextResponse.json({
+          success: true,
+          message: '성능 모니터링이 활성화되었습니다',
+          timestamp: new Date().toISOString(),
+        });
+
+      case 'cost-saving':
+        // 과금 절약 모드: 간격을 크게 늘림
+        performanceMonitor.updateConfig({
+          intervals: {
+            systemMetrics: 600000, // 10분
+            applicationMetrics: 1200000, // 20분
+            aiMetrics: 1200000, // 20분
+            optimization: 3600000, // 1시간
+          },
+          alerts: {
+            enabled: false, // 알림 비활성화
+            thresholds: {
+              cpu: 80,
+              memory: 85,
+              disk: 90,
+              responseTime: 2000,
+              errorRate: 0.05,
+              aiAccuracy: 0.7,
+            },
+          },
+        });
+        return NextResponse.json({
+          success: true,
+          message: '과금 절약 모드가 활성화되었습니다',
+          config: performanceMonitor.getStats().config,
+          timestamp: new Date().toISOString(),
+        });
+
       default:
         return NextResponse.json(
           {
             success: false,
             error: '지원하지 않는 액션입니다.',
-            supportedActions: ['start', 'stop', 'restart'],
+            supportedActions: [
+              'start',
+              'stop',
+              'restart',
+              'disable',
+              'enable',
+              'cost-saving',
+            ],
             timestamp: new Date().toISOString(),
           },
           { status: 400 }
