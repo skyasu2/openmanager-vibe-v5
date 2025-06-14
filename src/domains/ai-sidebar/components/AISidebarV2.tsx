@@ -226,7 +226,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className={`fixed top-0 right-0 h-full w-[500px] bg-white shadow-2xl z-50 flex ${className}`}
+          className={`fixed top-0 right-0 h-full w-[500px] bg-white shadow-2xl z-30 flex ${className}`}
         >
           {/* 메인 콘텐츠 영역 */}
           <div className='flex-1 flex flex-col'>

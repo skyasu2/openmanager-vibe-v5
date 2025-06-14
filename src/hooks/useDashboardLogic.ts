@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useNaturalLoadingTime } from './useMinimumLoadingTime';
 import { useSequentialLoadingTime } from './useSequentialLoadingTime';
 
@@ -23,7 +23,6 @@ interface DashboardState {
  */
 export const useDashboardLogic = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   // 기본 상태
   const [dashboardState, setDashboardState] = useState<DashboardState>({
@@ -34,11 +33,29 @@ export const useDashboardLogic = () => {
     isReady: false,
   });
 
+  // 대시보드 관련 상태들
+  const [isClient, setIsClient] = useState(false);
+  const [isAgentOpen, setIsAgentOpen] = useState(false);
+  const [selectedServer, setSelectedServer] = useState<any>(null);
+  const [serverStats, setServerStats] = useState({
+    total: 0,
+    online: 0,
+    offline: 0,
+    warning: 0,
+  });
+
+  // 클라이언트 사이드 확인
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   // URL 파라미터 확인
   const skipLoading = useMemo(() => {
-    return searchParams?.get('instant') === 'true' ||
-      searchParams?.get('skip') === 'true';
-  }, [searchParams]);
+    if (typeof window === 'undefined') return false;
+
+    const searchParams = new URLSearchParams(window.location.search);
+    return searchParams.get('instant') === 'true' || searchParams.get('skip') === 'true';
+  }, [isClient]);
 
   // 완료 처리 함수
   const handleLoadingComplete = useCallback(() => {
@@ -98,13 +115,53 @@ export const useDashboardLogic = () => {
     }));
   }, []);
 
+  // 핸들러 함수들
+  const handleServerClick = useCallback((server: any) => {
+    setSelectedServer(server);
+  }, []);
+
+  const toggleAgent = useCallback(() => {
+    setIsAgentOpen(prev => !prev);
+  }, []);
+
+  const closeAgent = useCallback(() => {
+    setIsAgentOpen(false);
+  }, []);
+
+  const handleNavigateHome = useCallback(() => {
+    router.push('/');
+  }, [router]);
+
+  const handleSystemStop = useCallback(() => {
+    console.log('시스템 중지');
+  }, []);
+
+  const handleSystemPause = useCallback(() => {
+    console.log('시스템 일시정지');
+  }, []);
+
+  const handleSystemResume = useCallback(() => {
+    console.log('시스템 재개');
+  }, []);
+
+  // 애니메이션 variants
+  const mainContentVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+  };
+
   // 대시보드 준비 완료 시 추가 초기화
   useEffect(() => {
     if (dashboardState.isReady && !dashboardState.error) {
       console.log('✅ 대시보드 준비 완료 - 추가 초기화 시작');
 
-      // 여기에 대시보드 관련 추가 초기화 로직 추가 가능
-      // 예: 실시간 데이터 구독, 웹소켓 연결 등
+      // 서버 통계 초기화
+      setServerStats({
+        total: 12,
+        online: 8,
+        offline: 2,
+        warning: 2,
+      });
 
       try {
         // 전역 상태 설정
@@ -138,6 +195,38 @@ export const useDashboardLogic = () => {
     phase: dashboardState.phase,
     error: dashboardState.error,
     isReady: dashboardState.isReady,
+
+    // 대시보드 상태
+    isClient,
+    isAgentOpen,
+    selectedServer,
+    serverStats,
+
+    // Actions
+    setSelectedServer,
+    setShowSequentialGeneration: () => { },
+
+    // Handlers
+    handleServerClick,
+    toggleAgent,
+    closeAgent,
+    handleNavigateHome,
+    handleSystemStop,
+    handleSystemPause,
+    handleSystemResume,
+
+    // Animation
+    mainContentVariants,
+
+    // System control
+    systemControl: {},
+
+    // Server generation
+    serverGeneration: {
+      servers: [],
+      status: 'idle',
+      actions: {},
+    },
 
     // 상세 로딩 정보
     estimatedTimeRemaining: loadingState.estimatedTimeRemaining,

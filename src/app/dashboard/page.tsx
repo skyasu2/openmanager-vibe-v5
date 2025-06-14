@@ -269,7 +269,7 @@ function DashboardPageContent() {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-slate-50 to-blue-50'>
+    <div className='min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 relative'>
       {/* 🎯 대시보드 메인 레이아웃 */}
       <motion.div
         variants={mainContentVariants}
@@ -277,7 +277,7 @@ function DashboardPageContent() {
         animate='visible'
         className='flex flex-col h-screen transition-all duration-300 ease-in-out'
         style={{
-          marginRight: isAISidebarOpen ? '480px' : '0px',
+          marginRight: isAISidebarOpen ? '500px' : '0px',
         }}
       >
         {/* 헤더 */}
@@ -315,7 +315,7 @@ function DashboardPageContent() {
               selectedServer={selectedServer}
               onServerClick={handleServerClick}
               onServerModalClose={() => setSelectedServer(null)}
-              onStatsUpdate={() => {}}
+              onStatsUpdate={() => { }}
               onShowSequentialChange={setShowSequentialGeneration}
               mainContentVariants={mainContentVariants}
               isAgentOpen={isAgentOpen}
@@ -330,7 +330,7 @@ function DashboardPageContent() {
             aiAgentState={{ state: 'active' }}
             isSystemActive={true}
             isSystemPaused={false}
-            onStartSystem={async () => {}}
+            onStartSystem={async () => { }}
             onStopSystem={handleSystemStop}
             onResumeSystem={handleSystemResume}
           />
@@ -341,10 +341,14 @@ function DashboardPageContent() {
       </motion.div>
 
       {/* 🤖 AI 사이드바 - 새로운 도메인 분리 아키텍처 */}
-      <AISidebar
-        isOpen={isAISidebarOpen}
-        onClose={() => setAISidebarOpen(false)}
-      />
+      {isAISidebarOpen && (
+        <div className="fixed top-0 right-0 h-full w-[500px] z-30">
+          <AISidebar
+            isOpen={isAISidebarOpen}
+            onClose={() => setAISidebarOpen(false)}
+          />
+        </div>
+      )}
     </div>
   );
 }
