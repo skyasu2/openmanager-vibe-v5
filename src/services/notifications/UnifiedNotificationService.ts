@@ -489,6 +489,25 @@ export class UnifiedNotificationService {
     result: NotificationResult
   ): Promise<void> {
     try {
+      // 클라이언트 사이드에서만 실행
+      if (typeof window === 'undefined') {
+        console.log('🔕 Toast 알림 건너뜀: 서버 사이드 환경');
+        return;
+      }
+
+      // EnhancedToastSystem이 사용 가능한지 확인
+      if (
+        !EnhancedToastSystem ||
+        typeof EnhancedToastSystem.showServerAlert !== 'function'
+      ) {
+        console.warn(
+          '⚠️ EnhancedToastSystem.showServerAlert 메서드를 찾을 수 없습니다'
+        );
+        result.channels.toast.error = 'showServerAlert 메서드 없음';
+        this.stats.channelStats.toast.failed++;
+        return;
+      }
+
       // 서버 알림용 특별 처리
       if (
         notification.type === 'server' &&
@@ -506,19 +525,43 @@ export class UnifiedNotificationService {
           actionRequired: notification.actionRequired,
         });
       } else {
-        // 일반 알림
+        // 일반 알림 - 기본 toast 메서드 사용
         const toastSeverity =
           notification.severity === 'success' ? 'info' : notification.severity;
-        EnhancedToastSystem.showServerAlert({
-          id: notification.id,
-          serverId: notification.serverId || 'system',
-          serverName: notification.serverId || 'System',
-          type: 'custom',
-          severity: toastSeverity,
-          message: `${notification.title}: ${notification.message}`,
-          timestamp: notification.timestamp || new Date(),
-          actionRequired: notification.actionRequired,
-        });
+
+        switch (toastSeverity) {
+          case 'critical':
+            if (typeof EnhancedToastSystem.showError === 'function') {
+              EnhancedToastSystem.showError(
+                notification.title,
+                notification.message
+              );
+            }
+            break;
+          case 'warning':
+            if (typeof EnhancedToastSystem.showWarning === 'function') {
+              EnhancedToastSystem.showWarning(
+                notification.title,
+                notification.message
+              );
+            }
+            break;
+          case 'info':
+            if (typeof EnhancedToastSystem.showInfo === 'function') {
+              EnhancedToastSystem.showInfo(
+                notification.title,
+                notification.message
+              );
+            }
+            break;
+          default:
+            if (typeof EnhancedToastSystem.showInfo === 'function') {
+              EnhancedToastSystem.showInfo(
+                notification.title,
+                notification.message
+              );
+            }
+        }
       }
 
       result.channels.toast.sent = true;

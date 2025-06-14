@@ -827,10 +827,11 @@ export class CentralizedPerformanceMonitor {
       });
     }
 
-    // AI 정확도 알림
+    // AI 정확도 알림 (0% 정확도는 초기화 상태이므로 무시)
     if (
+      metrics.ai.overall.overallAccuracy > 0 &&
       metrics.ai.overall.overallAccuracy <
-      this.config.alerts.thresholds.aiAccuracy
+        this.config.alerts.thresholds.aiAccuracy
     ) {
       alerts.push({
         id: `ai-accuracy-${Date.now()}`,
@@ -858,7 +859,7 @@ export class CentralizedPerformanceMonitor {
         message: alert.message,
         data: { metrics: alert.metrics, threshold: alert.threshold },
         deduplicationKey: `performance-${alert.type}-${alert.severity}`,
-        cooldownMs: 300000, // 5분
+        cooldownMs: 600000, // 10분으로 연장
       });
     }
   }
