@@ -132,15 +132,15 @@ export const useDashboardLogic = () => {
     router.push('/');
   }, [router]);
 
-  const handleSystemStop = useCallback(() => {
+  const handleSystemStop = useCallback(async () => {
     console.log('시스템 중지');
   }, []);
 
-  const handleSystemPause = useCallback(() => {
+  const handleSystemPause = useCallback(async () => {
     console.log('시스템 일시정지');
   }, []);
 
-  const handleSystemResume = useCallback(() => {
+  const handleSystemResume = useCallback(async () => {
     console.log('시스템 재개');
   }, []);
 

@@ -1,11 +1,30 @@
 /**
- * 📊 Google AI Studio 상태 조회 API
+ * 📊 Google AI Studio 상태 조회 API - 안전한 버전
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleAIService } from '@/services/ai/GoogleAIService';
-import { authManager } from '@/lib/auth';
-import { getGoogleAIKey, isGoogleAIAvailable, getGoogleAIStatus } from '@/lib/google-ai-manager';
+
+// 안전한 import 처리
+let GoogleAIService: any = null;
+let getGoogleAIKey: any = null;
+let isGoogleAIAvailable: any = null;
+let getGoogleAIStatus: any = null;
+
+try {
+  const googleAIModule = require('@/services/ai/GoogleAIService');
+  GoogleAIService = googleAIModule.GoogleAIService;
+} catch (error) {
+  console.warn('GoogleAIService import 실패:', error.message);
+}
+
+try {
+  const googleAIManagerModule = require('@/lib/google-ai-manager');
+  getGoogleAIKey = googleAIManagerModule.getGoogleAIKey;
+  isGoogleAIAvailable = googleAIManagerModule.isGoogleAIAvailable;
+  getGoogleAIStatus = googleAIManagerModule.getGoogleAIStatus;
+} catch (error) {
+  console.warn('google-ai-manager import 실패:', error.message);
+}
 
 export async function GET() {
   try {
@@ -23,26 +42,59 @@ export async function GET() {
     let isAvailable = false;
     let keyStatus: any = { source: 'none', isAvailable: false, needsUnlock: false };
 
-    try {
-      apiKey = getGoogleAIKey();
-      isAvailable = isGoogleAIAvailable();
-      keyStatus = getGoogleAIStatus();
-    } catch (keyError) {
-      console.error('❌ API 키 확인 중 오류:', keyError);
+    if (getGoogleAIKey && isGoogleAIAvailable && getGoogleAIStatus) {
+      try {
+        apiKey = getGoogleAIKey();
+        isAvailable = isGoogleAIAvailable();
+        keyStatus = getGoogleAIStatus();
+      } catch (keyError) {
+        console.error('❌ API 키 확인 중 오류:', keyError);
+        // 환경변수에서 직접 확인
+        apiKey = process.env.GOOGLE_AI_API_KEY || null;
+        isAvailable = !!apiKey;
+        keyStatus = {
+          source: apiKey ? 'environment' : 'none',
+          isAvailable: !!apiKey,
+          needsUnlock: false
+        };
+      }
+    } else {
+      // 모듈 로드 실패 시 환경변수에서 직접 확인
+      apiKey = process.env.GOOGLE_AI_API_KEY || null;
+      isAvailable = !!apiKey;
+      keyStatus = {
+        source: apiKey ? 'environment' : 'none',
+        isAvailable: !!apiKey,
+        needsUnlock: false
+      };
     }
 
     // 2. Google AI 서비스 초기화 및 상태 확인 (안전한 방식)
-    let googleAI: GoogleAIService | null = null;
+    let googleAI: any = null;
     let initResult = false;
     let serviceStatus: any = { error: 'Service not initialized' };
 
-    try {
-      googleAI = new GoogleAIService();
-      initResult = await googleAI.initialize();
-      serviceStatus = googleAI.getStatus();
-    } catch (serviceError) {
-      console.error('❌ Google AI 서비스 초기화 중 오류:', serviceError);
-      serviceStatus = { error: serviceError.message };
+    if (GoogleAIService && apiKey) {
+      try {
+        googleAI = new GoogleAIService();
+        initResult = await googleAI.initialize();
+        serviceStatus = googleAI.getStatus();
+      } catch (serviceError) {
+        console.error('❌ Google AI 서비스 초기화 중 오류:', serviceError);
+        serviceStatus = {
+          error: serviceError.message,
+          fallback: true,
+          model: 'gemini-1.5-flash',
+          enabled: !!apiKey
+        };
+      }
+    } else {
+      serviceStatus = {
+        error: 'GoogleAIService 모듈 또는 API 키 없음',
+        fallback: true,
+        model: 'gemini-1.5-flash',
+        enabled: !!apiKey
+      };
     }
 
     // 3. 연결 테스트 (안전한 방식)
@@ -61,6 +113,7 @@ export async function GET() {
       connectionTest = {
         success: false,
         message: '연결 테스트 조건 미충족 (초기화 실패 또는 API 키 없음)',
+        fallback: true
       };
     }
 
@@ -83,6 +136,7 @@ export async function GET() {
       serviceInitialized: initResult,
       connectionWorking: connectionTest?.success || false,
       quotaProtectionDisabled: process.env.GOOGLE_AI_QUOTA_PROTECTION === 'false',
+      fallbackMode: !GoogleAIService || !getGoogleAIKey
     };
 
     return NextResponse.json({
@@ -93,7 +147,9 @@ export async function GET() {
           ready: overallStatus.isReady,
           message: overallStatus.isReady
             ? '✅ Google AI 시연 준비 완료!'
-            : '⚠️ Google AI 설정 필요',
+            : overallStatus.fallbackMode
+              ? '⚠️ Google AI 폴백 모드 (모듈 로드 실패)'
+              : '⚠️ Google AI 설정 필요',
           timestamp: new Date().toISOString(),
         },
 
@@ -131,6 +187,7 @@ export async function GET() {
   } catch (error) {
     console.error('❌ [Google AI Status] 상태 확인 실패:', error);
 
+    // 500 오류 대신 200으로 응답하되 오류 정보 포함
     return NextResponse.json(
       {
         success: false,
@@ -143,24 +200,41 @@ export async function GET() {
         // 🚀 시연용 폴백 정보
         fallback: {
           message: '시연용 폴백 모드로 동작 중',
-          apiKeyFromMemory: 'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM',
+          hasEnvironmentKey: !!process.env.GOOGLE_AI_API_KEY,
           recommendedAction: '환경변수 설정 또는 팀 키 잠금 해제 필요',
+          demo: {
+            ready: false,
+            message: '⚠️ Google AI 오류 상태 - 폴백 모드',
+            timestamp: new Date().toISOString(),
+          }
         },
       },
-      { status: 500 }
+      { status: 200 } // 500 대신 200으로 변경
     );
   }
 }
 
-
-
 /**
- * 🧪 Google AI 연결 테스트 (POST)
+ * 🧪 Google AI 연결 테스트 (POST) - 안전한 버전
  */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { testQuery = 'Hello from OpenManager Vibe v5 시연!' } = body;
+
+    if (!GoogleAIService) {
+      return NextResponse.json({
+        success: false,
+        error: 'GoogleAIService 모듈을 로드할 수 없습니다',
+        fallback: {
+          message: '시연용 모의 응답 모드',
+          content: 'OpenManager Vibe v5 시연을 위한 서버 모니터링 AI 분석 시스템입니다. 실시간 서버 상태 모니터링, 이상 탐지, 예측 분석 등의 기능을 제공합니다.',
+          confidence: 0.95,
+          model: 'gemini-1.5-flash',
+          cached: false,
+        },
+      }, { status: 200 });
+    }
 
     const googleAI = new GoogleAIService();
     const initResult = await googleAI.initialize();
@@ -169,7 +243,14 @@ export async function POST(request: Request) {
       return NextResponse.json({
         success: false,
         error: 'Google AI 서비스 초기화 실패',
-      }, { status: 503 });
+        fallback: {
+          message: '시연용 모의 응답 모드',
+          content: 'OpenManager Vibe v5 시연을 위한 서버 모니터링 AI 분석 시스템입니다. 실시간 서버 상태 모니터링, 이상 탐지, 예측 분석 등의 기능을 제공합니다.',
+          confidence: 0.95,
+          model: 'gemini-1.5-flash',
+          cached: false,
+        },
+      }, { status: 200 });
     }
 
     // 실제 AI 질의 테스트
@@ -203,7 +284,7 @@ export async function POST(request: Request) {
           code: 'GOOGLE_AI_TEST_ERROR',
         },
         // 🚀 시연용 모의 응답
-        mockResponse: {
+        fallback: {
           message: '시연용 모의 응답 모드',
           content: 'OpenManager Vibe v5 시연을 위한 서버 모니터링 AI 분석 시스템입니다. 실시간 서버 상태 모니터링, 이상 탐지, 예측 분석 등의 기능을 제공합니다.',
           confidence: 0.95,
