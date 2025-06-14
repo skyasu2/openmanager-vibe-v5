@@ -1,8 +1,5 @@
 {
-  "version": 2,
-  "name": "openmanager-vibe-v5",
-  "alias": ["openmanager-vibe"],
-  "regions": ["icn1"],
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "src/app/api/**/*.ts": {
       "maxDuration": 30,
@@ -65,36 +62,14 @@
       "destination": "/dashboard"
     }
   ],
-  "env": {
-    "NODE_ENV": "production",
-    "PERFORMANCE_MONITORING_ENABLED": "false",
-    "VERCEL_CRON_DISABLED": "true"
-  },
-  "build": {
-    "env": {
-      "NODE_ENV": "production",
-      "SKIP_ENV_VALIDATION": "true",
-      "NODE_OPTIONS": "--max-old-space-size=4096",
-      "NEXT_TELEMETRY_DISABLED": "1",
-      "CI": "true",
-      "ESLINT_NO_DEV_ERRORS": "true",
-      "DISABLE_ESLINT_PLUGIN": "true",
-      "PERFORMANCE_MONITORING_ENABLED": "false"
-    }
-  },
-  "github": {
-    "autoAlias": false,
-    "silent": true,
-    "enabled": true
-  },
   "rewrites": [
     {
       "source": "/health",
       "destination": "/api/health"
     }
   ],
-  "_comment_crons_disabled": "과금 방지를 위해 모든 cron 작업 비활성화. 필요시 수동으로 /api/health 접근",
-  "_comment_performance_disabled": "성능 모니터링 완전 비활성화로 Edge Middleware 호출 최소화",
+  "regions": ["icn1"],
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "crons": []
 }
