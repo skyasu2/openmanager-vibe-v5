@@ -1195,13 +1195,47 @@ export class CentralizedPerformanceMonitor {
   }
 
   private loadDefaultConfig(): MonitoringConfig {
+    // 🌐 Vercel 환경 감지 및 자동 최적화
+    const isVercel = process.env.VERCEL === '1';
+    const isProduction = process.env.NODE_ENV === 'production';
+    const vercelEnv = process.env.VERCEL_ENV; // production, preview, development
+
+    // Vercel 환경에서는 과금 절약을 위해 기본적으로 비활성화 또는 최소화
+    const shouldOptimizeForVercel =
+      isVercel && (vercelEnv === 'production' || vercelEnv === 'preview');
+    const costSavingMode =
+      process.env.PERFORMANCE_MONITORING_COST_SAVING === 'true' ||
+      shouldOptimizeForVercel;
+
+    console.log(
+      `🌐 환경 감지: Vercel=${isVercel}, Env=${vercelEnv}, 최적화=${shouldOptimizeForVercel}`
+    );
+
     return {
-      enabled: true,
+      enabled: shouldOptimizeForVercel
+        ? false
+        : process.env.PERFORMANCE_MONITORING_ENABLED !== 'false',
       intervals: {
-        systemMetrics: 300000, // 5분 (30초 → 5분으로 변경하여 과금 절약)
-        applicationMetrics: 600000, // 10분 (1분 → 10분으로 변경)
-        aiMetrics: 600000, // 10분 (1분 → 10분으로 변경)
-        optimization: 1800000, // 30분 (5분 → 30분으로 변경)
+        systemMetrics: shouldOptimizeForVercel
+          ? 3600000
+          : costSavingMode
+            ? 600000
+            : 30000, // Vercel: 1시간, 프로덕션: 10분, 개발: 30초
+        applicationMetrics: shouldOptimizeForVercel
+          ? 7200000
+          : costSavingMode
+            ? 1200000
+            : 60000, // Vercel: 2시간, 프로덕션: 20분, 개발: 1분
+        aiMetrics: shouldOptimizeForVercel
+          ? 7200000
+          : costSavingMode
+            ? 1200000
+            : 60000, // Vercel: 2시간, 프로덕션: 20분, 개발: 1분
+        optimization: shouldOptimizeForVercel
+          ? 86400000
+          : costSavingMode
+            ? 3600000
+            : 300000, // Vercel: 24시간, 프로덕션: 1시간, 개발: 5분
       },
       retention: {
         raw: 7, // 7일
@@ -1209,7 +1243,7 @@ export class CentralizedPerformanceMonitor {
         reports: 90, // 90일
       },
       alerts: {
-        enabled: true,
+        enabled: process.env.PERFORMANCE_ALERTS_ENABLED !== 'false',
         thresholds: {
           cpu: 80, // 80%
           memory: 85, // 85%
