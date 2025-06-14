@@ -140,7 +140,12 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
               strokeDasharray={`${2 * Math.PI * 10}`}
               strokeDashoffset={`${2 * Math.PI * 10 * (1 - progress / 100)}`}
               strokeLinecap='round'
-              className='transition-all duration-300'
+              className='transition-all duration-500 ease-out'
+              style={{
+                // 90% 이후 빠른 진행을 위한 가속 애니메이션
+                transitionDuration: progress >= 90 ? '200ms' : '500ms',
+                transitionTimingFunction: progress >= 90 ? 'ease-in' : 'ease-out'
+              }}
             />
           </svg>
         )}
@@ -156,7 +161,13 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         <div className='font-medium'>{displayMessage}</div>
         {progress !== undefined && (
           <div className='text-xs opacity-70 mt-1'>
-            {Math.round(progress)}% 완료
+            {/* 90% 일관성을 위한 정규화된 진행률 표시 */}
+            {Math.round(progress * 10) / 10}% 완료
+            {progress >= 90 && (
+              <span className='ml-1 text-green-400 animate-pulse'>
+                거의 완료!
+              </span>
+            )}
           </div>
         )}
       </motion.div>

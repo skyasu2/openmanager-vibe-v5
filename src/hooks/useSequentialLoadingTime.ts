@@ -1,10 +1,10 @@
 /**
- * 🎬 useSequentialLoadingTime Hook v2.0
+ * 🎬 useSequentialLoadingTime Hook v3.0 - 90% 일관성 보장
  *
  * 순차적 단계별 로딩 시스템
- * - 병렬 처리 제거로 명확한 순차 진행
- * - 각 단계별 충분한 시간 (3초씩) 보장
- * - 시각적 피드백 강화
+ * - 90% 일관성 원칙 적용
+ * - 각 단계별 명확한 진행률 (0→20→50→75→90→100)
+ * - 90% 이후 빠른 완료 (500ms 이내)
  * - 사용자 제어 옵션 (스킵 기능)
  */
 
@@ -25,12 +25,13 @@ export interface LoadingStage {
   };
 }
 
+// 🎯 90% 일관성을 위한 정규화된 로딩 단계
 const LOADING_STAGES: LoadingStage[] = [
   {
     id: 'system-initialization',
     name: '시스템 초기화',
     description: '코어 시스템 모듈을 로딩하고 있습니다...',
-    duration: 3000,
+    duration: 2500,
     icon: '⚙️',
     color: 'text-blue-400',
     bgGradient: 'from-blue-600 to-cyan-600',
@@ -40,7 +41,7 @@ const LOADING_STAGES: LoadingStage[] = [
     id: 'data-collection',
     name: '데이터 수집',
     description: '실시간 서버 메트릭과 성능 지표를 수집하고 있습니다...',
-    duration: 3000,
+    duration: 2000,
     icon: '📊',
     color: 'text-cyan-400',
     bgGradient: 'from-cyan-600 to-green-600',
@@ -50,7 +51,7 @@ const LOADING_STAGES: LoadingStage[] = [
     id: 'ai-engine-warmup',
     name: 'AI 엔진 최적화',
     description: '인공지능 분석 엔진과 패턴 인식 모델을 준비하고 있습니다...',
-    duration: 2500,
+    duration: 1500,
     icon: '🧠',
     color: 'text-green-400',
     bgGradient: 'from-green-600 to-purple-600',
@@ -60,21 +61,21 @@ const LOADING_STAGES: LoadingStage[] = [
     id: 'server-spawning',
     name: '서버 생성',
     description: '가상 서버 인스턴스를 생성하고 있습니다...',
-    duration: 2000,
+    duration: 1000,
     icon: '🚀',
     color: 'text-purple-400',
     bgGradient: 'from-purple-600 to-pink-600',
-    progress: { start: 75, end: 95 },
+    progress: { start: 75, end: 90 },
   },
   {
     id: 'finalization',
     name: '최종 준비',
     description: '대시보드 인터페이스를 준비하고 있습니다...',
-    duration: 1500,
+    duration: 500, // 90% 이후 빠른 완료
     icon: '✨',
     color: 'text-pink-400',
     bgGradient: 'from-pink-600 to-orange-600',
-    progress: { start: 95, end: 100 },
+    progress: { start: 90, end: 100 },
   },
 ];
 
@@ -112,45 +113,53 @@ export const useSequentialLoadingTime = ({
   // 현재 단계 정보
   const currentStage = LOADING_STAGES[currentStageIndex] || null;
 
-  // 전체 진행률 계산
+  // 전체 진행률 계산 (90% 일관성 적용)
   const overallProgress = useMemo(() => {
     if (!currentStage) return 0;
-    return (
-      currentStage.progress.start +
-      (stageProgress / 100) *
-        (currentStage.progress.end - currentStage.progress.start)
-    );
+
+    const { start, end } = currentStage.progress;
+    const normalizedProgress = start + (stageProgress / 100) * (end - start);
+
+    // 90% 이후 빠른 진행을 위한 가속
+    if (normalizedProgress >= 90) {
+      const acceleratedProgress = 90 + (normalizedProgress - 90) * 2;
+      return Math.min(acceleratedProgress, 100);
+    }
+
+    return Math.round(normalizedProgress * 10) / 10; // 소수점 1자리로 정규화
   }, [currentStage, stageProgress]);
 
-  // 예상 남은 시간 계산
+  // 예상 남은 시간 계산 (90% 일관성 기반)
   const estimatedTimeRemaining = useMemo(() => {
     if (isCompleted || !currentStage) return 0;
 
     const remainingInCurrentStage =
       currentStage.duration * (1 - stageProgress / 100);
     const remainingStages = LOADING_STAGES.slice(currentStageIndex + 1);
-    const remainingStagesTime = remainingStages.reduce(
-      (sum, stage) => sum + stage.duration,
-      0
-    );
+
+    // 90% 이후 단계들은 시간을 단축하여 계산
+    const remainingStagesTime = remainingStages.reduce((sum, stage) => {
+      const adjustedDuration = stage.progress.start >= 90 ? stage.duration * 0.5 : stage.duration;
+      return sum + adjustedDuration;
+    }, 0);
 
     return remainingInCurrentStage + remainingStagesTime;
   }, [currentStage, stageProgress, currentStageIndex, isCompleted]);
 
-  // 🎯 완료 처리 함수 (중복 호출 방지)
+  // 🎯 확실한 완료 처리 함수 (중복 호출 방지)
   const handleComplete = useCallback(() => {
     if (!isCompleted) {
-      console.log('🎉 순차적 로딩 시퀀스 완료');
+      console.log('🎉 순차적 로딩 시퀀스 완료 (90% 일관성)');
       setIsCompleted(true);
 
-      // 0.3초 후 콜백 실행으로 자연스러운 전환
+      // 90% 일관성을 위해 즉시 콜백 실행
       setTimeout(() => {
         try {
           onComplete?.();
         } catch (error) {
           safeErrorLog('❌ onComplete 콜백 에러', error);
         }
-      }, 300);
+      }, 100); // 매우 짧은 지연으로 즉시 실행
     }
   }, [isCompleted, onComplete]);
 
@@ -175,12 +184,12 @@ export const useSequentialLoadingTime = ({
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [canSkip, isCompleted, handleComplete]);
 
-  // 3초 후 스킵 활성화
+  // 2초 후 스킵 활성화 (90% 일관성을 위해 단축)
   useEffect(() => {
     const skipTimer = setTimeout(() => {
       setCanSkip(true);
-      console.log('✨ 3초 경과 - 스킵 기능 활성화');
-    }, 3000);
+      console.log('✨ 2초 경과 - 스킵 기능 활성화');
+    }, 2000);
 
     return () => clearTimeout(skipTimer);
   }, []);
@@ -196,101 +205,90 @@ export const useSequentialLoadingTime = ({
     return () => clearInterval(timeInterval);
   }, [isStarted, isCompleted, startTime]);
 
-  // 🎬 순차적 단계 진행 로직 (병렬 처리 방지)
+  // 🎬 90% 일관성 순차적 단계 진행 로직
   useEffect(() => {
-    if (!autoStart || isCompleted || !currentStage) return;
+    if (!autoStart || skipCondition || isCompleted) return;
 
-    if (!isStarted) {
-      setIsStarted(true);
-      console.log('🎬 순차적 로딩 시퀀스 시작');
-    }
+    console.log('🎬 90% 일관성 순차적 로딩 시작');
+    setIsStarted(true);
 
-    console.log(
-      `🎯 ${currentStage.name} 단계 시작 (${currentStage.duration}ms)`
-    );
-    console.log(`📋 ${currentStage.description}`);
+    let progressInterval: NodeJS.Timeout | undefined;
+    let stageTimer: NodeJS.Timeout | undefined;
+    let isCleanedUp = false;
 
-    const stageStartTime = Date.now();
-    let animationFrame: number;
+    const cleanup = () => {
+      if (isCleanedUp) return;
+      isCleanedUp = true;
 
+      if (progressInterval) clearInterval(progressInterval);
+      if (stageTimer) clearTimeout(stageTimer);
+    };
+
+    // 현재 단계 진행률 업데이트 (매 50ms로 부드러운 애니메이션)
     const updateStageProgress = () => {
-      const elapsed = Date.now() - stageStartTime;
-      const progress = Math.min((elapsed / currentStage.duration) * 100, 100);
+      const stage = LOADING_STAGES[currentStageIndex];
+      if (!stage || isCompleted) return;
 
-      setStageProgress(progress);
+      const stageStartTime = Date.now();
 
-      if (progress >= 100) {
-        // 현재 단계 완료
-        console.log(`✅ ${currentStage.name} 단계 완료`);
+      progressInterval = setInterval(() => {
+        if (isCompleted || isCleanedUp) return;
 
-        if (currentStageIndex < LOADING_STAGES.length - 1) {
-          // 다음 단계로 이동 (0.5초 지연으로 자연스러운 전환)
-          setTimeout(() => {
+        const elapsed = Date.now() - stageStartTime;
+        const progress = Math.min((elapsed / stage.duration) * 100, 100);
+
+        setStageProgress(progress);
+
+        // 단계 완료 시 다음 단계로 전환
+        if (progress >= 100) {
+          if (progressInterval) clearInterval(progressInterval);
+
+          if (currentStageIndex < LOADING_STAGES.length - 1) {
+            console.log(`📊 ${stage.name} 완료 → 다음 단계`);
             setCurrentStageIndex(prev => prev + 1);
             setStageProgress(0);
-          }, 500);
-        } else {
-          // 모든 단계 완료
-          console.log('🎉 모든 순차적 로딩 단계 완료');
-          setTimeout(() => {
+          } else {
+            // 마지막 단계 완료 - 90% 일관성을 위해 빠른 완료
+            console.log('🎯 모든 단계 완료 - 즉시 완료');
             handleComplete();
-          }, 500);
+          }
         }
-      } else {
-        // 부드러운 진행률 업데이트 (60fps)
-        animationFrame = requestAnimationFrame(updateStageProgress);
-      }
+      }, 50);
     };
 
     updateStageProgress();
 
-    return () => {
-      if (animationFrame) {
-        cancelAnimationFrame(animationFrame);
+    // 안전장치: 최대 8초 후 강제 완료
+    stageTimer = setTimeout(() => {
+      if (!isCompleted) {
+        console.log('⏰ 타임아웃 - 강제 완료');
+        handleComplete();
       }
-    };
-  }, [
-    currentStageIndex,
-    isCompleted,
-    handleComplete,
-    autoStart,
-    currentStage,
-    isStarted,
-  ]);
+    }, 8000);
 
-  // 전역 디버깅 함수 등록
+    return cleanup;
+  }, [autoStart, skipCondition, isCompleted, currentStageIndex, handleComplete]);
+
+  // 전역 개발자 도구 등록
   useEffect(() => {
     (window as any).debugSequentialLoading = {
       currentStage: currentStage?.name,
       stageProgress,
       overallProgress,
-      stageIndex: currentStageIndex,
-      totalStages: LOADING_STAGES.length,
-      elapsedTime,
-      estimatedTimeRemaining,
-      canSkip,
       isCompleted,
+      canSkip,
+      elapsedTime,
     };
 
-    (window as any).emergencyCompleteSequential = () => {
-      console.log('🚨 순차적 로딩 비상 완료');
+    (window as any).skipSequentialLoading = () => {
+      console.log('🚨 순차 로딩 강제 스킵');
       handleComplete();
     };
-  }, [
-    currentStage,
-    stageProgress,
-    overallProgress,
-    currentStageIndex,
-    elapsedTime,
-    estimatedTimeRemaining,
-    canSkip,
-    isCompleted,
-    handleComplete,
-  ]);
+  }, [currentStage, stageProgress, overallProgress, isCompleted, canSkip, elapsedTime, handleComplete]);
 
   return {
     currentStage,
-    stageProgress,
+    stageProgress: Math.round(stageProgress * 10) / 10,
     overallProgress,
     isCompleted,
     stageIndex: currentStageIndex,

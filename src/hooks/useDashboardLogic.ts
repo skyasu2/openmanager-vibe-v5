@@ -198,9 +198,30 @@ export function useDashboardLogic() {
   // 자연스러운 로딩 시간 훅 사용
   const { isLoading, progress, phase, estimatedTimeRemaining, elapsedTime } =
     useMinimumLoadingTime({
-      skipCondition: shouldSkipAnimation || state.skipAnimation,
+      actualLoadingPromise: null,
+      skipCondition: shouldSkipAnimation,
       onComplete: handleBootComplete,
     });
+
+  // 🎯 90% 일관성을 위한 진행률 정규화
+  const normalizedProgress = useMemo(() => {
+    // 90% 이후 빠른 완료를 위한 가속
+    if (progress >= 90) {
+      const acceleratedProgress = 90 + (progress - 90) * 2;
+      return Math.min(acceleratedProgress, 100);
+    }
+    return Math.round(progress * 10) / 10; // 소수점 1자리로 정규화
+  }, [progress]);
+
+  // 🎯 로딩 상태 통합 관리
+  const loadingState = useMemo(() => ({
+    isLoading: isLoading && state.showBootSequence,
+    progress: normalizedProgress,
+    phase,
+    estimatedTimeRemaining,
+    elapsedTime,
+    canSkip: elapsedTime > 2000, // 2초 후 스킵 가능
+  }), [isLoading, state.showBootSequence, normalizedProgress, phase, estimatedTimeRemaining, elapsedTime]);
 
   // 부팅 완료 시 handleBootComplete 실행
   useEffect(() => {
@@ -806,17 +827,18 @@ export function useDashboardLogic() {
     selectedServer: selectedServer || null,
     serverStats: serverStats || DEFAULT_STATS,
 
-    // ✨ 새로운 전환 시스템 상태 (개선됨)
-    showBootSequence: state.showBootSequence,
-    bootProgress: progress,
+    // ✨ 90% 일관성 로딩 시스템 상태
+    showBootSequence: loadingState.isLoading,
+    bootProgress: loadingState.progress,
     isTransitioning: false,
     showSequentialGeneration,
 
-    // ✨ 추가된 로딩 상태 정보
-    loadingPhase: phase,
-    estimatedTimeRemaining,
-    elapsedTime,
-    isDataReady: !isLoading && safeServerList.length > 0,
+    // ✨ 통합된 로딩 상태 정보 (90% 일관성)
+    loadingPhase: loadingState.phase,
+    estimatedTimeRemaining: loadingState.estimatedTimeRemaining,
+    elapsedTime: loadingState.elapsedTime,
+    canSkip: loadingState.canSkip,
+    isDataReady: !loadingState.isLoading && safeServerList.length > 0,
 
     // Actions
     setSelectedServer,
@@ -865,15 +887,17 @@ export function useDashboardLogic() {
     // 액션
     forceComplete,
 
-    // 디버깅 정보 (향상된 로깅)
+    // 디버깅 정보 (90% 일관성 로깅)
     debugInfo: {
       searchParams: searchParams?.toString() || '',
       errorCount: state.errorCount,
       emergencyMode: state.emergencyModeActive,
-      phase,
-      progress,
+      phase: loadingState.phase,
+      progress: loadingState.progress,
+      normalizedProgress: normalizedProgress,
       timestamp: new Date().toISOString(),
       safeServerCount: safeServerList.length,
+      loadingConsistency: '90%',
     },
   };
 }
