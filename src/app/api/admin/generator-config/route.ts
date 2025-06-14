@@ -2,10 +2,12 @@
  * 🔧 데이터 생성기 설정 API
  *
  * 프로필 통합설정에서 사용하는 제너레이터 관리 API
+ * 🤖 AI 강화 데이터 생성기 지원 추가
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { realServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { AIEnhancedDataGenerator } from '@/services/ai-enhanced/AIEnhancedDataGenerator';
 import { getDataGeneratorConfig } from '@/config/environment';
 
 interface GeneratorConfigResponse {
@@ -18,6 +20,22 @@ interface GeneratorConfigResponse {
   enableRealtime: boolean;
   memoryUsage: number;
   status: 'running' | 'stopped' | 'error';
+  // 🤖 AI 강화 기능 추가
+  aiEnhanced?: {
+    enabled: boolean;
+    version: string;
+    modules: {
+      anomalyDetection: boolean;
+      adaptiveScenarios: boolean;
+      performanceOptimization: boolean;
+      autoScaling: boolean;
+    };
+    statistics: {
+      detectedAnomalies: number;
+      activeScenarios: number;
+      optimizations: number;
+    };
+  };
 }
 
 /**
@@ -33,16 +51,36 @@ export async function GET(request: NextRequest) {
     const servers = generator.getAllServers();
     const isRunning = servers.length > 0;
 
+    // 🤖 AI 강화 생성기 상태 확인
+    const aiGenerator = AIEnhancedDataGenerator.getInstance();
+    const aiStatus = aiGenerator.getStatus();
+
     const config: GeneratorConfigResponse = {
       serverCount: servers.length,
       architecture: envConfig.defaultArchitecture,
-      isActive: isRunning,
+      isActive: isRunning || aiStatus.isRunning,
       lastUpdate: new Date().toISOString(),
       maxServers: envConfig.maxServers,
       updateInterval: envConfig.updateInterval,
       enableRealtime: envConfig.enabled,
       memoryUsage: process.memoryUsage().heapUsed / 1024 / 1024, // MB
-      status: isRunning ? 'running' : 'stopped',
+      status: isRunning || aiStatus.isRunning ? 'running' : 'stopped',
+      // 🤖 AI 강화 정보 추가
+      aiEnhanced: {
+        enabled: aiStatus.isRunning,
+        version: aiStatus.version || '1.0.0',
+        modules: aiStatus.aiModules || {
+          anomalyDetection: false,
+          adaptiveScenarios: false,
+          performanceOptimization: false,
+          autoScaling: false,
+        },
+        statistics: aiStatus.statistics || {
+          detectedAnomalies: 0,
+          activeScenarios: 0,
+          optimizations: 0,
+        },
+      },
     };
 
     return NextResponse.json({
