@@ -172,8 +172,13 @@ export class AIEnhancedDataGenerator {
     // 오토스케일링 적용
     const scaledServers = await this.applyAutoScaling(initialServers);
 
-    // 기본 생성기 시작
+    // 🔄 베이스 생성기 시작 및 베이스라인 데이터 생성 대기
+    console.log('📊 베이스 데이터 생성기 초기화 중...');
     await this.baseGenerator.start(scaledServers);
+
+    // 베이스라인 데이터가 생성될 때까지 잠시 대기
+    console.log('⏳ 베이스라인 데이터 생성 완료 대기 중...');
+    await new Promise(resolve => setTimeout(resolve, 2000)); // 2초 대기
 
     this.isRunning = true;
 
@@ -195,6 +200,12 @@ export class AIEnhancedDataGenerator {
     try {
       // 1. 기본 데이터 생성
       const baseData = await this.baseGenerator.generateRealTimeData();
+
+      // 베이스 데이터가 비어있으면 건너뛰기
+      if (!baseData || baseData.length === 0) {
+        console.warn('⚠️ 베이스 데이터가 없음, AI 업데이트 건너뛰기');
+        return;
+      }
 
       // 2. 메트릭 히스토리 업데이트
       this.updateMetricsHistory(baseData);

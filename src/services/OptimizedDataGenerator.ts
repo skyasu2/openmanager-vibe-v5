@@ -409,6 +409,15 @@ export class OptimizedDataGenerator {
       const currentMinute =
         Math.floor((currentTime - baseline.last_generated) / 60000) % 1440;
       const baselinePoint = baseline.daily_pattern[currentMinute];
+
+      // 베이스라인 포인트 유효성 검사
+      if (!baselinePoint) {
+        console.warn(
+          `⚠️ 서버 ${serverId}의 베이스라인 포인트가 없음 (분: ${currentMinute}), 건너뜀`
+        );
+        continue;
+      }
+
       const variation =
         this.currentVariations.get(serverId) || this.generateInitialVariation();
 
@@ -490,6 +499,16 @@ export class OptimizedDataGenerator {
     baseline: BaselineDataPoint,
     variation: RealTimeVariation
   ): ServerStatus {
+    // 베이스라인 데이터 유효성 검사
+    if (
+      !baseline ||
+      typeof baseline.cpu_baseline === 'undefined' ||
+      typeof baseline.memory_baseline === 'undefined'
+    ) {
+      console.warn('⚠️ 베이스라인 데이터가 유효하지 않음, 기본값 사용');
+      return 'healthy';
+    }
+
     const avgLoad = (baseline.cpu_baseline + baseline.memory_baseline) / 2;
     const variationImpact =
       Math.abs(variation.cpu_variation) + Math.abs(variation.memory_variation);

@@ -6,26 +6,38 @@ let redis: Redis | null = null;
 // Redis 연결 설정
 const getRedisClient = (): Redis => {
   if (!redis) {
-    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    // 제공받은 Upstash Redis 정보 사용
+    const redisUrl =
+      process.env.REDIS_URL ||
+      'rediss://default:AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA@charming-condor-46598.upstash.io:6379';
+
+    console.log('🔄 Redis 연결 시도:', redisUrl.replace(/:[^:@]*@/, ':***@'));
 
     redis = new Redis(redisUrl, {
-      maxRetriesPerRequest: 10, // 재시도 횟수 증가
+      maxRetriesPerRequest: 3, // 재시도 횟수 감소 (Upstash 최적화)
       lazyConnect: true,
       keepAlive: 30000,
       family: 4,
-      connectTimeout: 10000, // 연결 타임아웃 증가
-      commandTimeout: 8000,   // 명령 타임아웃 증가
+      connectTimeout: 15000, // 연결 타임아웃 증가 (클라우드 환경)
+      commandTimeout: 10000, // 명령 타임아웃 증가
       enableReadyCheck: false,
-      reconnectOnError: (err) => {
+      tls: {
+        // Upstash Redis TLS 설정
+        rejectUnauthorized: false,
+      },
+      reconnectOnError: err => {
         const targetError = 'READONLY';
         return err.message.includes(targetError);
       },
     });
 
     redis.on('error', err => {
-      console.error('Redis connection error:', err);
+      console.error('❌ Redis 연결 오류:', err.message);
       // 에러 발생 시 재연결 시도
-      if (err.message.includes('ECONNRESET') || err.message.includes('MaxRetriesPerRequestError')) {
+      if (
+        err.message.includes('ECONNRESET') ||
+        err.message.includes('MaxRetriesPerRequestError')
+      ) {
         console.log('🔄 Redis 재연결 시도 중...');
         setTimeout(() => {
           redis?.disconnect();
@@ -35,7 +47,9 @@ const getRedisClient = (): Redis => {
     });
 
     redis.on('connect', () => {
-      console.log('✅ Redis 연결 성공');
+      console.log(
+        '✅ Redis 연결 성공: https://charming-condor-46598.upstash.io'
+      );
     });
 
     redis.on('ready', () => {

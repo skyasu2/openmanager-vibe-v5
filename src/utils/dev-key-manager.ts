@@ -1,13 +1,13 @@
 /**
  * 🛠️ DevKeyManager - 개발용 통합 키 관리자
- * 
+ *
  * 기능:
  * - 모든 API 키 중앙 관리
  * - 개발/프로덕션 모드 자동 감지
  * - 중복된 암호화 기능 통합
  * - 환경변수 자동 생성/복원
  * - 키 유효성 검증
- * 
+ *
  * 개발 철학:
  * - 개발 환경: 효율성 우선 (Base64 인코딩)
  * - 프로덕션: 보안 우선 (AES-256-GCM)
@@ -45,62 +45,64 @@ export class DevKeyManager {
       name: 'Supabase URL',
       envKey: 'NEXT_PUBLIC_SUPABASE_URL',
       required: true,
-      validator: (value) => value.includes('supabase.co')
+      validator: value => value.includes('supabase.co'),
     },
     {
       name: 'Supabase Anon Key',
       envKey: 'NEXT_PUBLIC_SUPABASE_ANON_KEY',
       required: true,
-      validator: (value) => value.startsWith('eyJ') && value.length > 100
+      validator: value => value.startsWith('eyJ') && value.length > 100,
     },
     {
       name: 'Supabase Service Role Key',
       envKey: 'SUPABASE_SERVICE_ROLE_KEY',
       required: true,
-      validator: (value) => value.startsWith('eyJ') && value.length > 100
+      validator: value => value.startsWith('eyJ') && value.length > 100,
     },
     {
       name: 'Redis URL',
       envKey: 'REDIS_URL',
       required: true,
-      validator: (value) => value.startsWith('redis://')
+      validator: value =>
+        value.startsWith('redis://') || value.startsWith('rediss://'),
     },
     {
       name: 'Upstash Redis REST URL',
       envKey: 'UPSTASH_REDIS_REST_URL',
       required: true,
-      validator: (value) => value.startsWith('https://') && value.includes('upstash.io')
+      validator: value =>
+        value.startsWith('https://') && value.includes('upstash.io'),
     },
     {
       name: 'Upstash Redis Token',
       envKey: 'UPSTASH_REDIS_REST_TOKEN',
       required: true,
-      validator: (value) => value.length > 50
+      validator: value => value.length > 50,
     },
     {
       name: 'Google AI API Key',
       envKey: 'GOOGLE_AI_API_KEY',
       required: true,
-      validator: (value) => value.startsWith('AIza') && value.length === 39
+      validator: value => value.startsWith('AIza') && value.length === 39,
     },
     {
       name: 'Slack Webhook URL',
       envKey: 'SLACK_WEBHOOK_URL',
       required: false,
-      validator: (value) => value.startsWith('https://hooks.slack.com/')
+      validator: value => value.startsWith('https://hooks.slack.com/'),
     },
     {
       name: 'MCP Remote URL',
       envKey: 'MCP_REMOTE_URL',
       required: true,
-      validator: (value) => value.startsWith('https://')
+      validator: value => value.startsWith('https://'),
     },
     {
       name: 'Vercel Bypass Secret',
       envKey: 'VERCEL_AUTOMATION_BYPASS_SECRET',
       required: false,
-      validator: (value) => value.length > 20
-    }
+      validator: value => value.length > 20,
+    },
   ];
 
   private constructor() {
@@ -162,7 +164,11 @@ export class DevKeyManager {
   getAllKeyStatus(): KeyStatus[] {
     return this.services.map(service => {
       const value = this.getKey(service.envKey);
-      const isValid = value ? (service.validator ? service.validator(value) : true) : false;
+      const isValid = value
+        ? service.validator
+          ? service.validator(value)
+          : true
+        : false;
 
       let status: 'active' | 'missing' | 'invalid' = 'missing';
       let source: 'env' | 'default' | 'encrypted' = 'env';
@@ -184,7 +190,7 @@ export class DevKeyManager {
         status,
         source,
         preview: value ? this.createPreview(value) : 'none',
-        lastChecked: new Date()
+        lastChecked: new Date(),
       };
     });
   }
@@ -210,7 +216,11 @@ export class DevKeyManager {
   /**
    * 📝 .env.local 파일 자동 생성
    */
-  async generateEnvFile(): Promise<{ success: boolean; path: string; message: string }> {
+  async generateEnvFile(): Promise<{
+    success: boolean;
+    path: string;
+    message: string;
+  }> {
     try {
       const envPath = path.join(process.cwd(), '.env.local');
       const envContent = this.generateEnvContent();
@@ -227,13 +237,13 @@ export class DevKeyManager {
       return {
         success: true,
         path: envPath,
-        message: `✅ .env.local 파일이 생성되었습니다. (${this.services.length}개 서비스)`
+        message: `✅ .env.local 파일이 생성되었습니다. (${this.services.length}개 서비스)`,
       };
     } catch (error) {
       return {
         success: false,
         path: '',
-        message: `❌ .env.local 생성 실패: ${error}`
+        message: `❌ .env.local 생성 실패: ${error}`,
       };
     }
   }
@@ -258,24 +268,32 @@ SKIP_ENV_VALIDATION=true
     const categories = [
       {
         title: '🗄️ Supabase 데이터베이스',
-        keys: ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY']
+        keys: [
+          'NEXT_PUBLIC_SUPABASE_URL',
+          'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+          'SUPABASE_SERVICE_ROLE_KEY',
+        ],
       },
       {
         title: '⚡ Redis 캐시',
-        keys: ['REDIS_URL', 'UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN']
+        keys: [
+          'REDIS_URL',
+          'UPSTASH_REDIS_REST_URL',
+          'UPSTASH_REDIS_REST_TOKEN',
+        ],
       },
       {
         title: '🤖 AI 서비스',
-        keys: ['GOOGLE_AI_API_KEY']
+        keys: ['GOOGLE_AI_API_KEY'],
       },
       {
         title: '📧 알림 서비스',
-        keys: ['SLACK_WEBHOOK_URL']
+        keys: ['SLACK_WEBHOOK_URL'],
       },
       {
         title: '🔄 외부 서비스',
-        keys: ['MCP_REMOTE_URL', 'VERCEL_AUTOMATION_BYPASS_SECRET']
-      }
+        keys: ['MCP_REMOTE_URL', 'VERCEL_AUTOMATION_BYPASS_SECRET'],
+      },
     ];
 
     categories.forEach(category => {
@@ -317,14 +335,19 @@ CRON_GEMINI_LEARNING=true
   /**
    * 🧪 모든 키 유효성 검증
    */
-  validateAllKeys(): { valid: number; invalid: number; missing: number; details: KeyStatus[] } {
+  validateAllKeys(): {
+    valid: number;
+    invalid: number;
+    missing: number;
+    details: KeyStatus[];
+  } {
     const statuses = this.getAllKeyStatus();
 
     return {
       valid: statuses.filter(s => s.status === 'active').length,
       invalid: statuses.filter(s => s.status === 'invalid').length,
       missing: statuses.filter(s => s.status === 'missing').length,
-      details: statuses
+      details: statuses,
     };
   }
 
@@ -341,7 +364,9 @@ CRON_GEMINI_LEARNING=true
    */
   getStatusReport(): string {
     const validation = this.validateAllKeys();
-    const successRate = Math.round((validation.valid / this.services.length) * 100);
+    const successRate = Math.round(
+      (validation.valid / this.services.length) * 100
+    );
 
     let report = `
 🛠️ DevKeyManager 상태 리포트
@@ -354,10 +379,18 @@ ${'='.repeat(50)}
 `;
 
     validation.details.forEach(status => {
-      const icon = status.status === 'active' ? '✅' :
-        status.status === 'invalid' ? '⚠️' : '❌';
-      const sourceIcon = status.source === 'default' ? '🔧' :
-        status.source === 'encrypted' ? '🔐' : '📝';
+      const icon =
+        status.status === 'active'
+          ? '✅'
+          : status.status === 'invalid'
+            ? '⚠️'
+            : '❌';
+      const sourceIcon =
+        status.source === 'default'
+          ? '🔧'
+          : status.source === 'encrypted'
+            ? '🔐'
+            : '📝';
 
       report += `${icon} ${status.service.padEnd(25)} ${sourceIcon} ${status.preview}\n`;
     });
@@ -391,26 +424,43 @@ ${'='.repeat(50)}
       const validation = this.validateAllKeys();
 
       return {
-        success: validation.valid >= this.services.filter(s => s.required).length,
-        message: `🚀 빠른 설정 완료! ${validation.valid}/${this.services.length} 서비스 활성화`
+        success:
+          validation.valid >= this.services.filter(s => s.required).length,
+        message: `🚀 빠른 설정 완료! ${validation.valid}/${this.services.length} 서비스 활성화`,
       };
     } catch (error) {
       return {
         success: false,
-        message: `❌ 빠른 설정 실패: ${error}`
+        message: `❌ 빠른 설정 실패: ${error}`,
       };
     }
   }
 
   // 🔧 편의 메서드들 (기존 코드 호환성)
-  getSupabaseUrl(): string | null { return this.getKey('NEXT_PUBLIC_SUPABASE_URL'); }
-  getSupabaseAnonKey(): string | null { return this.getKey('NEXT_PUBLIC_SUPABASE_ANON_KEY'); }
-  getSupabaseServiceKey(): string | null { return this.getKey('SUPABASE_SERVICE_ROLE_KEY'); }
-  getRedisUrl(): string | null { return this.getKey('REDIS_URL'); }
-  getGoogleAIKey(): string | null { return this.getKey('GOOGLE_AI_API_KEY'); }
-  getSlackWebhook(): string | null { return this.getKey('SLACK_WEBHOOK_URL'); }
-  getMCPUrl(): string | null { return this.getKey('MCP_REMOTE_URL'); }
-  getVercelBypass(): string | null { return this.getKey('VERCEL_AUTOMATION_BYPASS_SECRET'); }
+  getSupabaseUrl(): string | null {
+    return this.getKey('NEXT_PUBLIC_SUPABASE_URL');
+  }
+  getSupabaseAnonKey(): string | null {
+    return this.getKey('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  }
+  getSupabaseServiceKey(): string | null {
+    return this.getKey('SUPABASE_SERVICE_ROLE_KEY');
+  }
+  getRedisUrl(): string | null {
+    return this.getKey('REDIS_URL');
+  }
+  getGoogleAIKey(): string | null {
+    return this.getKey('GOOGLE_AI_API_KEY');
+  }
+  getSlackWebhook(): string | null {
+    return this.getKey('SLACK_WEBHOOK_URL');
+  }
+  getMCPUrl(): string | null {
+    return this.getKey('MCP_REMOTE_URL');
+  }
+  getVercelBypass(): string | null {
+    return this.getKey('VERCEL_AUTOMATION_BYPASS_SECRET');
+  }
 }
 
 // 🌟 전역 인스턴스 (싱글톤)
@@ -418,7 +468,8 @@ export const devKeyManager = DevKeyManager.getInstance();
 
 // 🔧 편의 함수들 (기존 코드 호환성)
 export const getSecureSupabaseUrl = () => devKeyManager.getSupabaseUrl();
-export const getSecureSupabaseAnonKey = () => devKeyManager.getSupabaseAnonKey();
+export const getSecureSupabaseAnonKey = () =>
+  devKeyManager.getSupabaseAnonKey();
 export const getSecureRedisUrl = () => devKeyManager.getRedisUrl();
 export const getSecureGoogleAIKey = () => devKeyManager.getGoogleAIKey();
 export const getSecureSlackWebhook = () => devKeyManager.getSlackWebhook();
