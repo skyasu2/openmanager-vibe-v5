@@ -43,10 +43,10 @@ class DashboardErrorBoundary extends React.Component<
                 🚨 대시보드 로딩 오류
               </h2>
               <p className='text-gray-600 mb-4'>
-                대시보드 로딩 중 문제가 발생했습니다.
+                Next.js 15 호환성 문제가 발생했습니다.
               </p>
               <div className='text-sm text-gray-500 mb-6'>
-                <p>Supabase 연결 또는 컴포넌트 로딩 오류일 수 있습니다.</p>
+                <p>promisify 에러가 수정되었습니다.</p>
               </div>
               <div className='space-y-3'>
                 <button
@@ -61,12 +61,6 @@ class DashboardErrorBoundary extends React.Component<
                 >
                   홈으로 돌아가기
                 </button>
-                <Link
-                  href='/test-supabase'
-                  className='w-full inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700'
-                >
-                  Supabase 연결 테스트
-                </Link>
                 <Link
                   href='/system-boot'
                   className='w-full inline-flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700'
@@ -158,12 +152,43 @@ const ContentLoadingSkeleton = () => (
   </div>
 );
 
+// Dynamic imports for better performance
+// const SystemStatusWidget = dynamic(
+//   () => import('./components/SystemStatusWidget'),
+//   {
+//     loading: () => (
+//       <div className='animate-pulse bg-gray-800 rounded-lg h-32' />
+//     ),
+//     ssr: false,
+//   }
+// );
+
+// const PatternAnalysisWidget = dynamic(
+//   () => import('@/components/ai/PatternAnalysisWidget'),
+//   {
+//     loading: () => (
+//       <div className='animate-pulse bg-gray-800 rounded-lg h-64' />
+//     ),
+//     ssr: false,
+//   }
+// );
+
+// const PredictionDashboard = dynamic(
+//   () => import('@/components/prediction/PredictionDashboard'),
+//   {
+//     loading: () => (
+//       <div className='animate-pulse bg-gray-800 rounded-lg h-80' />
+//     ),
+//     ssr: false,
+//   }
+// );
+
 function DashboardPageContent() {
   const {
     isAgentOpen,
     isClient,
     selectedServer,
-    serverStats,
+    serverStats, // 실제 API 통계 데이터 사용
 
     // Actions
     setSelectedServer,
@@ -189,31 +214,54 @@ function DashboardPageContent() {
   } = useDashboardLogic();
 
   const { isSystemStarted, getSystemRemainingTime } = useUnifiedAdminStore();
-  const {
-    isOpen: isAISidebarOpen,
-    isMinimized: isAISidebarMinimized,
-    setOpen: setAISidebarOpen,
-  } = useAISidebarStore();
+  const { isOpen: isAISidebarOpen, setOpen: setAISidebarOpen } =
+    useAISidebarStore();
 
-  // 사이드바 상태 초기화 (페이지 진입 시 항상 닫힘)
+  // 🛡️ 대시보드 진입 시 시스템 상태 검증
   useEffect(() => {
-    setAISidebarOpen(false);
-  }, [setAISidebarOpen]);
+    if (isClient) {
+      console.log('📊 [Dashboard] 페이지 진입 - 시스템 상태 검증');
 
-  // 사이드바 너비 동적 계산
-  const sidebarWidth = isAISidebarOpen ? (isAISidebarMinimized ? 80 : 500) : 0;
+      if (!isSystemStarted) {
+        console.warn('⚠️ [Dashboard] 시스템이 비활성 상태에서 대시보드 접근');
+      } else {
+        const remainingTime = getSystemRemainingTime();
+        console.log(
+          `✅ [Dashboard] 시스템 활성 확인 - 남은 시간: ${Math.floor(remainingTime / 1000)}초`
+        );
+      }
+    }
+  }, [isClient, isSystemStarted, getSystemRemainingTime]);
 
-  // 🔄 클라이언트 사이드 렌더링 확인
+  // 🧹 컴포넌트 언마운트 시 정리
+  useEffect(() => {
+    return () => {
+      console.log('🧹 [Dashboard] 페이지 언마운트 - 리소스 정리');
+    };
+  }, []);
+
+  // Server-side rendering fallback - skip 파라미터가 있으면 로딩 화면 숨김
   if (!isClient) {
+    // URL에서 skip 파라미터 확인
+    const hasSkipParam =
+      typeof window !== 'undefined' &&
+      new URLSearchParams(window.location.search).get('skip') === 'true';
+
+    if (hasSkipParam) {
+      // skip 파라미터가 있으면 로딩 화면 없이 바로 빈 배경만 표시
+      return (
+        <div className='min-h-screen bg-gradient-to-br from-slate-50 to-blue-50'>
+          {/* 로딩 화면 없이 빈 배경 */}
+        </div>
+      );
+    }
+
     return (
       <div className='min-h-screen bg-gradient-to-br from-slate-50 to-blue-50'>
         <div className='flex items-center justify-center h-screen'>
           <div className='text-center'>
             <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4'></div>
             <p className='text-gray-600'>대시보드를 로드하고 있습니다...</p>
-            <p className='text-sm text-gray-500 mt-2'>
-              Supabase 연결 및 컴포넌트 초기화 중
-            </p>
           </div>
         </div>
       </div>
@@ -221,7 +269,7 @@ function DashboardPageContent() {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 relative'>
+    <div className='min-h-screen bg-gradient-to-br from-slate-50 to-blue-50'>
       {/* 🎯 대시보드 메인 레이아웃 */}
       <motion.div
         variants={mainContentVariants}
@@ -229,13 +277,13 @@ function DashboardPageContent() {
         animate='visible'
         className='flex flex-col h-screen transition-all duration-300 ease-in-out'
         style={{
-          marginRight: `${sidebarWidth}px`,
+          marginRight: isAISidebarOpen ? '480px' : '0px',
         }}
       >
         {/* 헤더 */}
         <Suspense fallback={<HeaderLoadingSkeleton />}>
           <DashboardHeader
-            serverStats={serverStats}
+            serverStats={serverStats} // 실제 API에서 가져온 통계 데이터 사용
             onNavigateHome={handleNavigateHome}
             onToggleAgent={toggleAgent}
             isAgentOpen={isAgentOpen}
@@ -283,8 +331,8 @@ function DashboardPageContent() {
             isSystemActive={true}
             isSystemPaused={false}
             onStartSystem={async () => {}}
-            onStopSystem={async () => await handleSystemStop()}
-            onResumeSystem={async () => await handleSystemResume()}
+            onStopSystem={handleSystemStop}
+            onResumeSystem={handleSystemResume}
           />
         </Suspense>
 
@@ -292,18 +340,11 @@ function DashboardPageContent() {
         <NotificationToast />
       </motion.div>
 
-      {/* 🤖 AI 사이드바 - 간소화 버전 */}
-      {isAISidebarOpen && (
-        <div
-          className='fixed top-0 right-0 h-full z-20 shadow-2xl bg-white border-l border-gray-200 transition-all duration-300'
-          style={{ width: `${sidebarWidth}px` }}
-        >
-          <AISidebar
-            isOpen={isAISidebarOpen}
-            onClose={() => setAISidebarOpen(false)}
-          />
-        </div>
-      )}
+      {/* 🤖 AI 사이드바 - 새로운 도메인 분리 아키텍처 */}
+      <AISidebar
+        isOpen={isAISidebarOpen}
+        onClose={() => setAISidebarOpen(false)}
+      />
     </div>
   );
 }

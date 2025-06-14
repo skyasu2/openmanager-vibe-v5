@@ -1,15 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, Suspense } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, Maximize2, Minimize2 } from 'lucide-react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
+import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import ServerDashboard from './ServerDashboard';
 import GoogleAIStatusCard from './GoogleAIStatusCard';
 import AIInsightsCard from './AIInsightsCard';
-import InfrastructureOverview from './monitoring/InfrastructureOverview';
-import LiveSystemAlerts from './monitoring/LiveSystemAlerts';
-import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
 
 import { Server } from '../../types/server';
 import { safeConsoleError, safeErrorMessage } from '../../lib/utils-functions';
@@ -55,7 +51,6 @@ export default function DashboardContent({
   mainContentVariants,
   isAgentOpen,
 }: DashboardContentProps) {
-  const { expandAll, collapseAll } = useDashboardToggleStore();
   // 🚀 디버깅을 위한 콘솔 로그 추가
   console.log('🔍 DashboardContent 렌더링:', {
     showSequentialGeneration,
@@ -68,17 +63,6 @@ export default function DashboardContent({
 
   // 🚀 에러 상태 추가
   const [renderError, setRenderError] = useState<string | null>(null);
-  const [expandedSections, setExpandedSections] = useState<string[]>([
-    'critical',
-    'warning',
-    'normal',
-  ]);
-  const [stats, setStats] = useState({
-    total: 0,
-    online: 0,
-    warning: 0,
-    offline: 0,
-  });
 
   useEffect(() => {
     try {
@@ -89,16 +73,6 @@ export default function DashboardContent({
       setRenderError(safeErrorMessage(error, '알 수 없는 마운트 에러'));
     }
   }, []);
-
-  const handleStatsUpdate = (newStats: {
-    total: number;
-    online: number;
-    warning: number;
-    offline: number;
-  }) => {
-    setStats(newStats);
-    onStatsUpdate(newStats);
-  };
 
   // 🚀 렌더링 에러 처리
   if (renderError) {
@@ -149,88 +123,67 @@ export default function DashboardContent({
       );
     }
 
-    // 일반 대시보드 모드 - 메인 사이드바와 통합
+    // 일반 대시보드 모드 - 그리드 레이아웃으로 개선
     console.log('📊 일반 대시보드 모드 렌더링');
     return (
-      <div className='min-h-screen bg-gray-50 flex relative'>
-        {/* 메인 대시보드 영역 - AI 사이드바는 dashboard/page.tsx에서 관리 */}
-        <div className='flex-1'>
-          {/* 상단 모니터링 도구 영역 제거 (요청에 따라 숨김) */}
-          <div className='hidden'>
-            <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 h-full'>
-              {/* 좌측: Infrastructure Overview */}
-              <div className='bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100'>
-                <InfrastructureOverview stats={stats} />
-              </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className='flex-1 p-6 overflow-auto'
+      >
+        <div className='max-w-7xl mx-auto space-y-6'>
+          {/* 🎯 AI 인사이트 및 상태 모니터링 섹션 */}
+          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+            {/* AI 인사이트 카드 */}
+            <Suspense
+              fallback={
+                <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
+                  <div className='animate-pulse'>
+                    <div className='h-6 bg-gray-200 rounded w-1/3 mb-4'></div>
+                    <div className='space-y-3'>
+                      <div className='h-4 bg-gray-200 rounded'></div>
+                      <div className='h-4 bg-gray-200 rounded w-5/6'></div>
+                    </div>
+                  </div>
+                </div>
+              }
+            >
+              <AIInsightsCard />
+            </Suspense>
 
-              {/* 우측: Live System Alerts */}
-              <div className='bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-6 border border-red-100'>
-                <LiveSystemAlerts />
-              </div>
-            </div>
+            {/* Google AI 상태 카드 */}
+            <Suspense
+              fallback={
+                <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
+                  <div className='animate-pulse'>
+                    <div className='h-6 bg-gray-200 rounded w-1/3 mb-4'></div>
+                    <div className='space-y-3'>
+                      <div className='h-4 bg-gray-200 rounded'></div>
+                      <div className='h-4 bg-gray-200 rounded w-5/6'></div>
+                    </div>
+                  </div>
+                </div>
+              }
+            >
+              <GoogleAIStatusCard showDetails={true} />
+            </Suspense>
           </div>
 
-          {/* 중간: 서버 분류 필터 영역 */}
-          <div className='px-6 py-4 bg-gray-50 border-b border-gray-200'>
-            <div className='flex items-center justify-between'>
-              <div className='flex items-center space-x-4'>
-                <h3 className='text-lg font-semibold text-gray-900'>
-                  서버 현황
-                </h3>
-                <div className='flex items-center space-x-2'>
-                  <div className='flex items-center space-x-1'>
-                    <div className='w-3 h-3 bg-red-500 rounded-full'></div>
-                    <span className='text-sm text-gray-600'>
-                      심각 ({stats.offline})
-                    </span>
-                  </div>
-                  <div className='flex items-center space-x-1'>
-                    <div className='w-3 h-3 bg-yellow-500 rounded-full'></div>
-                    <span className='text-sm text-gray-600'>
-                      경고 ({stats.warning})
-                    </span>
-                  </div>
-                  <div className='flex items-center space-x-1'>
-                    <div className='w-3 h-3 bg-green-500 rounded-full'></div>
-                    <span className='text-sm text-gray-600'>
-                      정상 ({stats.online})
-                    </span>
-                  </div>
+          {/* 🖥️ 서버 대시보드 - 메인 섹션 */}
+          <div className='w-full'>
+            <Suspense
+              fallback={
+                <div className='flex items-center justify-center p-8'>
+                  <div className='w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin'></div>
                 </div>
-              </div>
-              <div className='flex items-center space-x-4'>
-                <div className='text-sm text-gray-500'>
-                  총 {stats.total}개 서버 • 심각→경고→정상 순 정렬
-                </div>
-                {/* 전체 접기/펼치기 컨트롤 */}
-                <div className='flex items-center space-x-2'>
-                  <button
-                    onClick={expandAll}
-                    className='flex items-center space-x-1 px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors'
-                    title='모든 섹션 펼치기'
-                  >
-                    <Maximize2 className='w-3 h-3' />
-                    <span>전체 펼치기</span>
-                  </button>
-                  <button
-                    onClick={collapseAll}
-                    className='flex items-center space-x-1 px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors'
-                    title='모든 섹션 접기'
-                  >
-                    <Minimize2 className='w-3 h-3' />
-                    <span>전체 접기</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 서버 대시보드 영역 (60%) */}
-          <div className='h-[60vh] overflow-auto'>
-            <ServerDashboard onStatsUpdate={handleStatsUpdate} />
+              }
+            >
+              <ServerDashboardDynamic onStatsUpdate={onStatsUpdate} />
+            </Suspense>
           </div>
         </div>
-      </div>
+      </motion.div>
     );
   } catch (error) {
     safeConsoleError('❌ DashboardContent 렌더링 에러', error);
@@ -240,16 +193,19 @@ export default function DashboardContent({
           <div className='text-center'>
             <div className='text-red-500 text-4xl mb-4'>💥</div>
             <h2 className='text-xl font-semibold text-gray-900 mb-2'>
-              렌더링 실패
+              컴포넌트 오류
             </h2>
             <p className='text-gray-600 mb-4'>
-              {safeErrorMessage(error, '알 수 없는 렌더링 오류')}
+              대시보드를 렌더링하는 중 오류가 발생했습니다.
+            </p>
+            <p className='text-gray-500 text-sm mb-4'>
+              {safeErrorMessage(error, '상세 정보 없음')}
             </p>
             <button
               onClick={() => window.location.reload()}
               className='px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600'
             >
-              새로고침
+              페이지 새로고침
             </button>
           </div>
         </div>
