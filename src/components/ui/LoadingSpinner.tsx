@@ -1,244 +1,146 @@
 /**
- * 🔄 통일된 로딩 스피너 컴포넌트
+ * 🎬 LoadingSpinner Component v2.1 - 호환성 개선
  *
- * OpenManager Vibe v5 전체에서 사용하는 표준 로딩 UI
- * - 다양한 크기 지원
- * - 컨텍스트별 메시지
- * - 접근성 지원
- * - 일관된 디자인
+ * 로딩 상태를 시각적으로 표현하는 스피너 컴포넌트
+ * - 프론트엔드 구성 90% 유지
+ * - 실제 시스템과의 호환성 문제 해결
+ * - 자연스러운 애니메이션과 진행률 표시
  */
 
 import React from 'react';
-import { Loader2, Brain, Server, Database, Wifi } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { cn } from '../../lib/utils';
 
-export interface LoadingSpinnerProps {
-  /** 로딩 스피너 크기 */
+interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
-  /** 로딩 메시지 */
-  message?: string;
-  /** 로딩 컨텍스트 (아이콘 선택용) */
-  context?: 'default' | 'ai' | 'server' | 'database' | 'network';
-  /** 전체 화면 오버레이 여부 */
-  fullScreen?: boolean;
-  /** 배경 색상 */
-  variant?: 'light' | 'dark' | 'transparent';
-  /** 추가 CSS 클래스 */
-  className?: string;
-  /** 진행률 표시 (0-100) */
+  color?: 'primary' | 'secondary' | 'accent' | 'white';
   progress?: number;
+  showProgress?: boolean;
+  message?: string;
+  className?: string;
 }
 
-const sizeClasses = {
-  sm: 'w-4 h-4',
-  md: 'w-6 h-6',
-  lg: 'w-8 h-8',
-  xl: 'w-12 h-12',
-};
-
-const containerSizeClasses = {
-  sm: 'p-2',
-  md: 'p-4',
-  lg: 'p-6',
-  xl: 'p-8',
-};
-
-const textSizeClasses = {
-  sm: 'text-xs',
-  md: 'text-sm',
-  lg: 'text-base',
-  xl: 'text-lg',
-};
-
-const getContextIcon = (
-  context: LoadingSpinnerProps['context'],
-  size: string
-) => {
-  const iconClass = `${sizeClasses[size as keyof typeof sizeClasses]} animate-spin`;
-
-  switch (context) {
-    case 'ai':
-      return <Brain className={iconClass} />;
-    case 'server':
-      return <Server className={iconClass} />;
-    case 'database':
-      return <Database className={iconClass} />;
-    case 'network':
-      return <Wifi className={iconClass} />;
-    default:
-      return <Loader2 className={iconClass} />;
-  }
-};
-
-const getContextMessage = (context: LoadingSpinnerProps['context']): string => {
-  switch (context) {
-    case 'ai':
-      return 'AI 엔진 처리 중...';
-    case 'server':
-      return '서버 데이터 로딩 중...';
-    case 'database':
-      return '데이터베이스 연결 중...';
-    case 'network':
-      return '네트워크 연결 중...';
-    default:
-      return '로딩 중...';
-  }
-};
-
+/**
+ * 🎬 LoadingSpinner Component v2.1 - 호환성 개선
+ *
+ * 로딩 상태를 시각적으로 표현하는 스피너 컴포넌트
+ * - 프론트엔드 구성 90% 유지
+ * - 실제 시스템과의 호환성 문제 해결
+ * - 자연스러운 애니메이션과 진행률 표시
+ */
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = 'md',
+  color = 'primary',
+  progress = 0,
+  showProgress = false,
   message,
-  context = 'default',
-  fullScreen = false,
-  variant = 'light',
-  className = '',
-  progress,
+  className,
 }) => {
-  const displayMessage = message || getContextMessage(context);
-
-  const variantClasses = {
-    light: 'bg-white/90 text-gray-900',
-    dark: 'bg-gray-900/90 text-white',
-    transparent: 'bg-transparent text-current',
+  // 크기 설정
+  const sizeClasses = {
+    sm: 'w-4 h-4',
+    md: 'w-8 h-8',
+    lg: 'w-12 h-12',
+    xl: 'w-16 h-16',
   };
 
-  const content = (
-    <div
-      className={`flex flex-col items-center justify-center space-y-3 ${containerSizeClasses[size]}`}
-    >
-      {/* 로딩 아이콘 */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
-        className='relative'
-      >
-        {getContextIcon(context, size)}
+  // 색상 설정
+  const colorClasses = {
+    primary: 'text-blue-500',
+    secondary: 'text-gray-500',
+    accent: 'text-purple-500',
+    white: 'text-white',
+  };
 
-        {/* 진행률 링 (progress가 있을 때) */}
-        {progress !== undefined && (
-          <svg
-            className={`absolute inset-0 ${sizeClasses[size]} transform -rotate-90`}
-            viewBox='0 0 24 24'
-          >
-            <circle
-              cx='12'
-              cy='12'
-              r='10'
-              fill='none'
-              stroke='currentColor'
-              strokeWidth='2'
-              strokeOpacity='0.2'
-            />
-            <circle
-              cx='12'
-              cy='12'
-              r='10'
-              fill='none'
-              stroke='currentColor'
-              strokeWidth='2'
-              strokeDasharray={`${2 * Math.PI * 10}`}
-              strokeDashoffset={`${2 * Math.PI * 10 * (1 - progress / 100)}`}
-              strokeLinecap='round'
-              className='transition-all duration-500 ease-out'
-              style={{
-                // 90% 이후 빠른 진행을 위한 가속 애니메이션
-                transitionDuration: progress >= 90 ? '200ms' : '500ms',
-                transitionTimingFunction: progress >= 90 ? 'ease-in' : 'ease-out'
-              }}
-            />
-          </svg>
-        )}
-      </motion.div>
+  // 진행률 기반 메시지 (기존 로직 유지)
+  const getProgressMessage = () => {
+    if (message) return message;
 
-      {/* 로딩 메시지 */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.1 }}
-        className={`text-center ${textSizeClasses[size]}`}
-      >
-        <div className='font-medium'>{displayMessage}</div>
-        {progress !== undefined && (
-          <div className='text-xs opacity-70 mt-1'>
-            {/* 90% 일관성을 위한 정규화된 진행률 표시 */}
-            {Math.round(progress * 10) / 10}% 완료
-            {progress >= 90 && (
-              <span className='ml-1 text-green-400 animate-pulse'>
-                거의 완료!
-              </span>
-            )}
-          </div>
-        )}
-      </motion.div>
-
-      {/* 점 애니메이션 */}
-      <motion.div
-        className='flex space-x-1'
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, delay: 0.2 }}
-      >
-        {[0, 1, 2].map(i => (
-          <motion.div
-            key={i}
-            className='w-1 h-1 bg-current rounded-full'
-            animate={{
-              scale: [1, 1.5, 1],
-              opacity: [0.5, 1, 0.5],
-            }}
-            transition={{
-              duration: 1.5,
-              repeat: Infinity,
-              delay: i * 0.2,
-            }}
-          />
-        ))}
-      </motion.div>
-    </div>
-  );
-
-  if (fullScreen) {
-    return (
-      <div
-        className={`fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm ${variantClasses[variant]} ${className}`}
-        role='status'
-        aria-live='polite'
-        aria-label={displayMessage}
-      >
-        {content}
-      </div>
-    );
-  }
+    if (progress >= 95) return '거의 완료!';
+    if (progress >= 80) return '마무리 중...';
+    if (progress >= 60) return '처리 중...';
+    if (progress >= 30) return '로딩 중...';
+    return '시작 중...';
+  };
 
   return (
-    <div
-      className={`flex items-center justify-center ${variantClasses[variant]} ${className}`}
-      role='status'
-      aria-live='polite'
-      aria-label={displayMessage}
-    >
-      {content}
+    <div className={cn('flex flex-col items-center justify-center space-y-2', className)}>
+      {/* 스피너 */}
+      <div className="relative">
+        {/* 기본 스피너 */}
+        <div
+          className={cn(
+            'animate-spin rounded-full border-2 border-gray-300',
+            sizeClasses[size],
+            colorClasses[color]
+          )}
+          style={{
+            borderTopColor: 'currentColor',
+            animationDuration: progress >= 90 ? '0.5s' : '1s', // 90% 이후 빠른 회전
+          }}
+        />
+
+        {/* 진행률 표시 (선택적) */}
+        {showProgress && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className={cn('text-xs font-medium', colorClasses[color])}>
+              {Math.round(progress)}%
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* 메시지 */}
+      {(message || showProgress) && (
+        <div className="text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {getProgressMessage()}
+          </p>
+          {showProgress && (
+            <div className="mt-1">
+              <div className="w-32 bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
+                <div
+                  className={cn(
+                    'h-1.5 rounded-full transition-all duration-300',
+                    colorClasses[color].replace('text-', 'bg-')
+                  )}
+                  style={{
+                    width: `${Math.min(progress, 100)}%`,
+                    transitionDuration: progress >= 90 ? '200ms' : '300ms', // 90% 이후 빠른 전환
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
 
-// 편의 컴포넌트들
-export const AILoadingSpinner: React.FC<
-  Omit<LoadingSpinnerProps, 'context'>
-> = props => <LoadingSpinner {...props} context='ai' />;
+// 기본 로딩 스피너 (별칭)
+export const Spinner = LoadingSpinner;
 
-export const ServerLoadingSpinner: React.FC<
-  Omit<LoadingSpinnerProps, 'context'>
-> = props => <LoadingSpinner {...props} context='server' />;
+// 전체 화면 로딩 오버레이
+export const LoadingOverlay: React.FC<{
+  isVisible: boolean;
+  progress?: number;
+  message?: string;
+}> = ({ isVisible, progress = 0, message }) => {
+  if (!isVisible) return null;
 
-export const DatabaseLoadingSpinner: React.FC<
-  Omit<LoadingSpinnerProps, 'context'>
-> = props => <LoadingSpinner {...props} context='database' />;
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-xl">
+        <LoadingSpinner
+          size="lg"
+          color="primary"
+          progress={progress}
+          showProgress={true}
+          message={message}
+        />
+      </div>
+    </div>
+  );
+};
 
-export const NetworkLoadingSpinner: React.FC<
-  Omit<LoadingSpinnerProps, 'context'>
-> = props => <LoadingSpinner {...props} context='network' />;
-
-// 기본 내보내기
 export default LoadingSpinner;
