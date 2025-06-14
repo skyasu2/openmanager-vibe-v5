@@ -9,24 +9,41 @@ const getRedisClient = (): Redis => {
     const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 
     redis = new Redis(redisUrl, {
-      maxRetriesPerRequest: 3,
+      maxRetriesPerRequest: 10, // 재시도 횟수 증가
       lazyConnect: true,
       keepAlive: 30000,
       family: 4,
-      connectTimeout: 5000,
-      commandTimeout: 5000,
+      connectTimeout: 10000, // 연결 타임아웃 증가
+      commandTimeout: 8000,   // 명령 타임아웃 증가
+      enableReadyCheck: false,
+      reconnectOnError: (err) => {
+        const targetError = 'READONLY';
+        return err.message.includes(targetError);
+      },
     });
 
     redis.on('error', err => {
       console.error('Redis connection error:', err);
+      // 에러 발생 시 재연결 시도
+      if (err.message.includes('ECONNRESET') || err.message.includes('MaxRetriesPerRequestError')) {
+        console.log('🔄 Redis 재연결 시도 중...');
+        setTimeout(() => {
+          redis?.disconnect();
+          redis = null;
+        }, 5000);
+      }
     });
 
     redis.on('connect', () => {
-      console.log('Redis connected successfully');
+      console.log('✅ Redis 연결 성공');
     });
 
     redis.on('ready', () => {
-      console.log('Redis ready for commands');
+      console.log('✅ Redis 명령 준비 완료');
+    });
+
+    redis.on('close', () => {
+      console.log('⚠️ Redis 연결 종료');
     });
   }
 

@@ -305,7 +305,7 @@ export class ContextManager {
     if (historical.length >= 3) {
       const recent = historical.slice(-3);
       const cpuTrend = this.calculateTrend(recent.map((m: any) => m.cpu || 0));
-      
+
       this.currentContext.system.historical_trends = {
         timeRange: '10minutes',
         direction: cpuTrend.direction,
@@ -332,7 +332,7 @@ export class ContextManager {
     const sumXX = x.reduce((sum, xi) => sum + xi * xi, 0);
 
     const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
-    
+
     let direction: 'increasing' | 'decreasing' | 'stable';
     if (Math.abs(slope) < 0.5) {
       direction = 'stable';
@@ -432,7 +432,7 @@ export class ContextManager {
    * 📋 적용 가능한 규칙 찾기
    */
   private findApplicableRules(query: string): BusinessRule[] {
-    return this.currentContext.domain.rules.filter(rule => 
+    return this.currentContext.domain.rules.filter(rule =>
       rule.active && query.toLowerCase().includes(rule.name.toLowerCase())
     );
   }
@@ -483,23 +483,24 @@ export class ContextManager {
   }
 
   /**
-   * 🗃️ 패턴 저장소 제한
+   * 🗃️ 패턴 저장소 제한 (무료 티어 최적화)
    */
   private limitPatternStorage(): void {
-    const maxPatterns = 20;
+    // 무료 티어 최적화: 실용성과 효율성 균형 (15개)
+    const maxPatterns = 15;
 
     if (this.currentContext.patterns.daily_patterns.length > maxPatterns) {
-      this.currentContext.patterns.daily_patterns = 
+      this.currentContext.patterns.daily_patterns =
         this.currentContext.patterns.daily_patterns.slice(-maxPatterns);
     }
 
     if (this.currentContext.patterns.weekly_patterns.length > maxPatterns) {
-      this.currentContext.patterns.weekly_patterns = 
+      this.currentContext.patterns.weekly_patterns =
         this.currentContext.patterns.weekly_patterns.slice(-maxPatterns);
     }
 
     if (this.currentContext.patterns.anomaly_patterns.length > maxPatterns) {
-      this.currentContext.patterns.anomaly_patterns = 
+      this.currentContext.patterns.anomaly_patterns =
         this.currentContext.patterns.anomaly_patterns.slice(-maxPatterns);
     }
   }
@@ -521,12 +522,12 @@ export class ContextManager {
       this.sessionContext.results.push(analysisResult);
       this.currentContext.session.analysis_results.push(analysisResult);
 
-      // 최대 결과 수 제한
-      if (this.sessionContext.results.length > 50) {
+      // 무료 티어 최적화: 실용성 고려하여 35개로 설정
+      if (this.sessionContext.results.length > 35) {
         this.sessionContext.results.shift();
       }
 
-      if (this.currentContext.session.analysis_results.length > 50) {
+      if (this.currentContext.session.analysis_results.length > 35) {
         this.currentContext.session.analysis_results.shift();
       }
 
@@ -567,12 +568,12 @@ export class ContextManager {
     this.sessionContext.queries.push(queryObj);
     this.currentContext.session.query_history.push(queryObj);
 
-    // 최대 쿼리 수 제한
-    if (this.sessionContext.queries.length > 20) {
+    // 무료 티어 최적화: 쿼리 히스토리 18개로 설정
+    if (this.sessionContext.queries.length > 18) {
       this.sessionContext.queries.shift();
     }
 
-    if (this.currentContext.session.query_history.length > 20) {
+    if (this.currentContext.session.query_history.length > 18) {
       this.currentContext.session.query_history.shift();
     }
   }
@@ -598,18 +599,18 @@ export class ContextManager {
   }
 
   /**
-   * 🧹 메모리 정리
+   * 🧹 메모리 정리 (무료 티어 최적화)
    */
   cleanup(): void {
-    // 오래된 단기 메모리 정리
-    const oneHourAgo = Date.now() - 3600000;
-    
+    // 무료 티어 최적화: 45분으로 설정 (실용성과 효율성 균형)
+    const fortyFiveMinutesAgo = Date.now() - 2700000; // 45분
+
     for (const [key, value] of this.shortTermMemory.entries()) {
-      if (value.timestamp && new Date(value.timestamp).getTime() < oneHourAgo) {
+      if (value.timestamp && new Date(value.timestamp).getTime() < fortyFiveMinutesAgo) {
         this.shortTermMemory.delete(key);
       }
     }
 
-    console.log(`🧹 컨텍스트 메모리 정리 완료: ${this.shortTermMemory.size}개 항목 유지`);
+    console.log(`🧹 컨텍스트 메모리 정리 완료 (무료 티어 최적화): ${this.shortTermMemory.size}개 항목 유지`);
   }
 } 

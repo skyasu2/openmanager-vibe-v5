@@ -171,7 +171,7 @@ export class ContextUpdateEngine {
 
     update.status = 'admin_rejected';
     update.adminNotes = reason;
-    
+
     this.pendingUpdates.delete(updateId);
     console.log(`❌ [ContextUpdateEngine] 관리자 거부: ${updateId}`, reason);
     return true;
@@ -214,7 +214,7 @@ export class ContextUpdateEngine {
     // 승인된 업데이트를 번들에 포함
     for (const update of approvedUpdates) {
       const content = JSON.parse(update.content);
-      
+
       switch (update.type) {
         case 'pattern_addition':
           bundle.patterns.push(content);
@@ -240,10 +240,10 @@ export class ContextUpdateEngine {
    */
   private async createPatternSuggestions(analysisReport: any): Promise<ContextUpdate[]> {
     const suggestions: ContextUpdate[] = [];
-    
+
     // 분석 보고서에서 패턴 제안 추출
     const patternSuggestions = analysisReport.suggestions || [];
-    
+
     for (const suggestion of patternSuggestions) {
       suggestions.push({
         id: this.generateUpdateId(),
@@ -276,10 +276,10 @@ export class ContextUpdateEngine {
    */
   private async generateTemplateSuggestions(analysisReport: any): Promise<ContextUpdate[]> {
     const suggestions: ContextUpdate[] = [];
-    
+
     // 자주 실패하는 질문 유형에 대한 새로운 템플릿 제안
     const failurePatterns = analysisReport.analysisResult?.patterns || [];
-    
+
     for (const pattern of failurePatterns) {
       if (pattern.frequency > 5) { // 5회 이상 실패한 패턴
         suggestions.push({
@@ -311,19 +311,19 @@ export class ContextUpdateEngine {
    */
   private async generateKnowledgeSuggestions(): Promise<ContextUpdate[]> {
     const suggestions: ContextUpdate[] = [];
-    
+
     // 최근 성공적인 상호작용에서 지식 패턴 추출
     const recentInteractions = await this.interactionLogger.getInteractions({
       startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 최근 7일
     });
 
-    const successfulInteractions = recentInteractions.filter((i: any) => 
+    const successfulInteractions = recentInteractions.filter((i: any) =>
       i.userFeedback === 'helpful' && i.confidence > 0.8
     );
 
     // 성공적인 응답에서 지식 패턴 추출
     const knowledgePatterns = this.extractKnowledgePatterns(successfulInteractions);
-    
+
     for (const pattern of knowledgePatterns) {
       suggestions.push({
         id: this.generateUpdateId(),
@@ -353,13 +353,13 @@ export class ContextUpdateEngine {
    */
   private async generateIntentSuggestions(): Promise<ContextUpdate[]> {
     const suggestions: ContextUpdate[] = [];
-    
+
     // 분류되지 않은 질문들에 대한 새로운 인텐트 매핑 제안
     const unclassifiedQueries = await this.getUnclassifiedQueries();
-    
+
     for (const query of unclassifiedQueries) {
       const suggestedIntent = this.suggestIntent(query);
-      
+
       if (suggestedIntent.confidence > 0.6) {
         suggestions.push({
           id: this.generateUpdateId(),
@@ -401,9 +401,9 @@ export class ContextUpdateEngine {
     };
 
     this.contextSnapshots.push(snapshot);
-    
-    // 최대 10개의 스냅샷만 유지
-    if (this.contextSnapshots.length > 10) {
+
+    // 무료 티어 최적화: 최대 8개의 스냅샷 유지 (실용성 고려)
+    if (this.contextSnapshots.length > 8) {
       this.contextSnapshots.shift();
     }
 

@@ -21,6 +21,15 @@ import {
   ChevronDown,
   AlertTriangle,
   Shield,
+  Play,
+  Square,
+  Lock,
+  Unlock,
+  Activity,
+  Server,
+  Zap,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -45,6 +54,9 @@ export function UnifiedProfileButton({
     left: 0,
     transformOrigin: 'top right',
   });
+  const [showPasswordInput, setShowPasswordInput] = useState(false);
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -55,9 +67,11 @@ export function UnifiedProfileButton({
     stopSystem,
     logout,
     adminMode,
+    authenticateAdmin,
+    logoutAdmin,
   } = useUnifiedAdminStore();
 
-  const { success, info } = useToast();
+  const { success, info, error } = useToast();
 
   // 드롭다운 위치 계산
   const calculateDropdownPosition = () => {
@@ -69,10 +83,10 @@ export function UnifiedProfileButton({
 
     // 기본 위치: 버튼 아래, 오른쪽 정렬
     let top = buttonRect.bottom + 8;
-    let left = buttonRect.right - 320; // 드롭다운 너비 320px 기준
+    let left = buttonRect.right - 380; // 드롭다운 너비 380px로 확장
 
     // 드롭다운이 화면 아래로 넘어가는 경우 위쪽에 표시
-    const dropdownHeight = 400;
+    const dropdownHeight = 500; // 높이 증가
     if (top + dropdownHeight > viewportHeight) {
       top = buttonRect.top - dropdownHeight - 8;
     }
@@ -84,7 +98,7 @@ export function UnifiedProfileButton({
 
     // 모바일에서는 중앙 정렬
     if (viewportWidth < 640) {
-      left = (viewportWidth - 320) / 2;
+      left = (viewportWidth - 380) / 2;
       if (left < 16) left = 16;
     }
 
@@ -147,10 +161,11 @@ export function UnifiedProfileButton({
 
     if (isSystemStarted) {
       stopSystem();
+      success('시스템이 중단되었습니다.');
     } else {
       startSystem();
+      success('시스템이 시작되었습니다.');
     }
-    onClick(e); // 드롭다운 닫기
   };
 
   const handleSettingsClick = (e: React.MouseEvent) => {
@@ -168,17 +183,95 @@ export function UnifiedProfileButton({
     onClick(e); // 드롭다운 닫기
   };
 
+  const handleAdminModeToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (adminMode.isAuthenticated) {
+      // 관리자 모드 해제
+      logoutAdmin();
+      success('관리자 모드가 해제되었습니다.');
+    } else {
+      // 비밀번호 입력 모드 활성화
+      setShowPasswordInput(true);
+      setPassword('');
+      setPasswordError('');
+    }
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      const result = await authenticateAdmin(password);
+
+      if (result.success) {
+        setShowPasswordInput(false);
+        setPassword('');
+        setPasswordError('');
+        success(result.message);
+      } else {
+        setPasswordError(result.message);
+        setPassword('');
+        if (result.remainingTime) {
+          error(`인증 실패: ${result.message}`);
+        }
+      }
+    } catch (err) {
+      setPasswordError('인증 처리 중 오류가 발생했습니다.');
+      setPassword('');
+      error('인증 처리 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handlePasswordCancel = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowPasswordInput(false);
+    setPassword('');
+    setPasswordError('');
+  };
+
   const getModeDisplayText = () => {
+    if (adminMode.isAuthenticated) {
+      return 'AI 관리자 모드';
+    }
     return aiAgent.isEnabled ? 'AI 에이전트 모드' : '기본 모니터링 모드';
   };
 
   const getModeStatusColor = () => {
+    if (adminMode.isAuthenticated) {
+      return 'text-orange-400';
+    }
     return aiAgent.isEnabled ? 'text-purple-400' : 'text-cyan-400';
+  };
+
+  const getSystemStatus = () => {
+    if (isSystemStarted) {
+      return {
+        text: '시스템 동작 중',
+        color: 'text-green-400',
+        bgColor: 'bg-green-500/20',
+        icon: Activity,
+        details: '모든 서비스가 정상 동작 중입니다.',
+      };
+    } else {
+      return {
+        text: '시스템 대기 중',
+        color: 'text-gray-400',
+        bgColor: 'bg-gray-500/20',
+        icon: Server,
+        details: '시스템이 대기 상태입니다.',
+      };
+    }
   };
 
   // 드롭다운 메뉴 (Portal로 렌더링)
   const DropdownPortal = () => {
     if (typeof window === 'undefined') return null;
+
+    const systemStatus = getSystemStatus();
 
     return createPortal(
       <AnimatePresence>
@@ -210,7 +303,7 @@ export function UnifiedProfileButton({
                 left: dropdownPosition.left,
                 transformOrigin: dropdownPosition.transformOrigin,
               }}
-              className='w-80 bg-gray-900/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl z-[9999]'
+              className='w-96 bg-gray-900/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl z-[9999]'
               role='menu'
               aria-orientation='vertical'
             >
@@ -218,13 +311,14 @@ export function UnifiedProfileButton({
               <div className='p-4 border-b border-white/10'>
                 <div className='flex items-center gap-3 mb-3'>
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      isLocked
-                        ? 'bg-gradient-to-br from-red-500 to-orange-600'
+                    className={`w-10 h-10 rounded-full flex items-center justify-center ${isLocked
+                      ? 'bg-gradient-to-br from-red-500 to-orange-600'
+                      : adminMode.isAuthenticated
+                        ? 'bg-gradient-to-br from-orange-500 to-red-600'
                         : aiAgent.isEnabled
                           ? 'bg-gradient-to-br from-purple-500 to-pink-600'
                           : 'bg-gradient-to-br from-cyan-500 to-blue-600'
-                    }`}
+                      }`}
                   >
                     {userAvatar ? (
                       <Image
@@ -246,73 +340,156 @@ export function UnifiedProfileButton({
                   </div>
                 </div>
 
-                {/* AI 에이전트 상태 */}
-                <div className='flex items-center justify-between p-3 rounded-lg bg-white/5'>
+                {/* 시스템 상태 */}
+                <div className='flex items-center justify-between p-3 rounded-lg bg-white/5 mb-3'>
                   <div className='flex items-center gap-3'>
-                    <div
-                      className={`p-2 rounded-lg ${
-                        aiAgent.isEnabled
-                          ? 'bg-purple-500/20'
-                          : 'bg-gray-500/20'
-                      }`}
-                    >
-                      <Bot
-                        className={`w-4 h-4 ${
-                          aiAgent.isEnabled
-                            ? 'text-purple-400'
-                            : 'text-gray-400'
-                        }`}
-                      />
+                    <div className={`p-2 rounded-lg ${systemStatus.bgColor}`}>
+                      <systemStatus.icon className={`w-4 h-4 ${systemStatus.color}`} />
                     </div>
                     <div>
                       <div className='text-white text-sm font-medium'>
-                        AI 에이전트
+                        {systemStatus.text}
                       </div>
-                      <div
-                        className={`text-xs ${
-                          aiAgent.isEnabled
-                            ? 'text-purple-400'
-                            : 'text-gray-400'
-                        }`}
-                      >
-                        {aiAgent.isEnabled ? '활성화됨' : '비활성화됨'}
+                      <div className={`text-xs ${systemStatus.color}`}>
+                        {systemStatus.details}
                       </div>
                     </div>
                   </div>
-                  {aiAgent.isEnabled && (
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={handleLogout}
-                      className='px-3 py-1 rounded-md text-xs font-medium bg-red-500/20 text-red-300 hover:bg-red-500/30 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500'
-                    >
-                      비활성화
-                    </motion.button>
-                  )}
                 </div>
               </div>
 
               {/* 메뉴 아이템들 */}
               <div className='p-2'>
-                {/* AI 엔진 관리 페이지 버튼 */}
-                {aiAgent.isEnabled && adminMode.isAuthenticated && (
-                  <Link href='/admin/ai-agent'>
+                {/* 관리자 모드 토글 */}
+                {!showPasswordInput ? (
+                  <motion.button
+                    whileHover={{ backgroundColor: 'rgba(255,165,0,0.1)' }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleAdminModeToggle}
+                    className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 mb-2'
+                    role='menuitem'
+                  >
+                    <div className={`p-2 rounded-lg ${adminMode.isAuthenticated ? 'bg-orange-500/20' : 'bg-gray-500/20'}`}>
+                      {adminMode.isAuthenticated ? (
+                        <Unlock className='w-4 h-4 text-orange-400' />
+                      ) : (
+                        <Lock className='w-4 h-4 text-gray-400' />
+                      )}
+                    </div>
+                    <div className='flex-1'>
+                      <div className='text-white font-medium'>
+                        {adminMode.isAuthenticated ? '관리자 모드 해제' : '관리자 모드 활성화'}
+                      </div>
+                      <div className='text-gray-400 text-xs'>
+                        {adminMode.isAuthenticated ? 'AI 관리 권한을 해제합니다' : 'AI 관리 권한을 활성화합니다'}
+                      </div>
+                    </div>
+                    {adminMode.isAuthenticated && (
+                      <div className='w-2 h-2 bg-orange-400 rounded-full animate-pulse' />
+                    )}
+                  </motion.button>
+                ) : (
+                  /* 비밀번호 입력 폼 */
+                  <div className='p-3 rounded-lg bg-white/5 mb-2'>
+                    <div className='text-white text-sm font-medium mb-2'>관리자 비밀번호 입력</div>
+                    <form onSubmit={handlePasswordSubmit} className='space-y-2'>
+                      <input
+                        type='password'
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder='4자리 비밀번호'
+                        maxLength={4}
+                        className='w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-center text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-orange-500'
+                        autoFocus
+                      />
+                      {passwordError && (
+                        <div className='text-red-400 text-xs text-center'>{passwordError}</div>
+                      )}
+                      <div className='flex gap-2'>
+                        <button
+                          type='submit'
+                          className='flex-1 px-3 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors'
+                        >
+                          확인
+                        </button>
+                        <button
+                          type='button'
+                          onClick={handlePasswordCancel}
+                          className='flex-1 px-3 py-2 bg-gray-600 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors'
+                        >
+                          취소
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {/* 시스템 시작/중단 버튼 */}
+                <motion.button
+                  whileHover={{ backgroundColor: isSystemStarted ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)' }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleSystemToggle}
+                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 mb-2'
+                  role='menuitem'
+                >
+                  <div className={`p-2 rounded-lg ${isSystemStarted ? 'bg-red-500/20' : 'bg-green-500/20'}`}>
+                    {isSystemStarted ? (
+                      <Square className='w-4 h-4 text-red-400' />
+                    ) : (
+                      <Play className='w-4 h-4 text-green-400' />
+                    )}
+                  </div>
+                  <div className='flex-1'>
+                    <div className='text-white font-medium'>
+                      {isSystemStarted ? '시스템 중단' : '시스템 시작'}
+                    </div>
+                    <div className='text-gray-400 text-xs'>
+                      {isSystemStarted ? '모니터링을 중단합니다' : '모니터링을 시작합니다'}
+                    </div>
+                  </div>
+                  {isSystemStarted && (
+                    <div className='w-2 h-2 bg-green-400 rounded-full animate-pulse' />
+                  )}
+                </motion.button>
+
+                {/* 대시보드 이동 버튼 (시스템 동작 중일 때만) */}
+                {isSystemStarted && (
+                  <Link href='/dashboard'>
                     <motion.button
-                      whileHover={{
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                      }}
+                      whileHover={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => onClick({} as React.MouseEvent)}
-                      className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500'
+                      className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2'
+                      role='menuitem'
+                    >
+                      <div className='p-2 rounded-lg bg-blue-500/20'>
+                        <Activity className='w-4 h-4 text-blue-400' />
+                      </div>
+                      <div>
+                        <div className='text-white font-medium'>대시보드 이동</div>
+                        <div className='text-gray-400 text-xs'>
+                          실시간 모니터링 대시보드로 이동
+                        </div>
+                      </div>
+                    </motion.button>
+                  </Link>
+                )}
+
+                {/* AI 엔진 관리 페이지 버튼 (관리자 모드일 때만) */}
+                {adminMode.isAuthenticated && (
+                  <Link href='/admin/ai-agent'>
+                    <motion.button
+                      whileHover={{ backgroundColor: 'rgba(139, 92, 246, 0.1)' }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => onClick({} as React.MouseEvent)}
+                      className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 mb-2'
                       role='menuitem'
                     >
                       <div className='p-2 rounded-lg bg-purple-500/20'>
                         <Shield className='w-4 h-4 text-purple-400' />
                       </div>
                       <div>
-                        <div className='text-white font-medium'>
-                          🧠 AI 엔진 관리 페이지
-                        </div>
+                        <div className='text-white font-medium'>🧠 AI 엔진 관리</div>
                         <div className='text-gray-400 text-xs'>
                           AI 로그, 컨텍스트, A/B 테스트 관리
                         </div>
@@ -321,26 +498,51 @@ export function UnifiedProfileButton({
                   </Link>
                 )}
 
-                <motion.button
-                  whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleSettingsClick}
-                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500'
-                  role='menuitem'
-                >
-                  <div className='p-2 rounded-lg bg-purple-500/20'>
-                    <Settings className='w-4 h-4 text-purple-400' />
-                  </div>
-                  <div>
-                    <div className='text-white font-medium'>통합 설정</div>
-                    <div className='text-gray-400 text-xs'>
-                      AI 모드, 데이터 생성기, 모니터링 제어
+                {/* 고급 설정 버튼 (관리자 모드일 때만) */}
+                {adminMode.isAuthenticated && (
+                  <motion.button
+                    whileHover={{ backgroundColor: 'rgba(168, 85, 247, 0.1)' }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleSettingsClick}
+                    className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 mb-2'
+                    role='menuitem'
+                  >
+                    <div className='p-2 rounded-lg bg-violet-500/20'>
+                      <Zap className='w-4 h-4 text-violet-400' />
                     </div>
-                  </div>
-                </motion.button>
+                    <div>
+                      <div className='text-white font-medium'>고급 설정</div>
+                      <div className='text-gray-400 text-xs'>
+                        시스템 고급 설정 및 관리자 도구
+                      </div>
+                    </div>
+                  </motion.button>
+                )}
 
+                {/* 일반 설정 버튼 */}
+                {!adminMode.isAuthenticated && (
+                  <motion.button
+                    whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleSettingsClick}
+                    className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 mb-2'
+                    role='menuitem'
+                  >
+                    <div className='p-2 rounded-lg bg-purple-500/20'>
+                      <Settings className='w-4 h-4 text-purple-400' />
+                    </div>
+                    <div>
+                      <div className='text-white font-medium'>설정</div>
+                      <div className='text-gray-400 text-xs'>
+                        AI 모드, 데이터 생성기, 모니터링 제어
+                      </div>
+                    </div>
+                  </motion.button>
+                )}
+
+                {/* 로그아웃 버튼 */}
                 <motion.button
-                  whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                  whileHover={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleLogout}
                   className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-red-500'
@@ -373,26 +575,28 @@ export function UnifiedProfileButton({
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={onClick}
-        className={`flex items-center gap-3 p-2 rounded-xl backdrop-blur-md border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent ${
-          isLocked
-            ? 'bg-red-500/30 border-red-500/60 shadow-red-500/30 shadow-lg focus:ring-red-500'
+        className={`flex items-center gap-3 p-2 rounded-xl backdrop-blur-md border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent ${isLocked
+          ? 'bg-red-500/30 border-red-500/60 shadow-red-500/30 shadow-lg focus:ring-red-500'
+          : adminMode.isAuthenticated
+            ? 'bg-orange-500/30 border-orange-500/60 shadow-orange-500/30 shadow-lg focus:ring-orange-500'
             : aiAgent.isEnabled
               ? 'bg-purple-500/30 border-purple-500/60 shadow-purple-500/30 shadow-lg focus:ring-purple-500'
               : 'bg-gray-900/80 border-gray-700/60 hover:bg-gray-900/90 focus:ring-gray-500 shadow-lg'
-        }`}
+          }`}
         aria-label='프로필 메뉴 열기'
         aria-expanded={isOpen}
         aria-haspopup='true'
       >
         {/* 아바타 */}
         <div
-          className={`w-8 h-8 rounded-full flex items-center justify-center ${
-            isLocked
-              ? 'bg-gradient-to-br from-red-500 to-orange-600'
+          className={`w-8 h-8 rounded-full flex items-center justify-center ${isLocked
+            ? 'bg-gradient-to-br from-red-500 to-orange-600'
+            : adminMode.isAuthenticated
+              ? 'bg-gradient-to-br from-orange-500 to-red-600'
               : aiAgent.isEnabled
                 ? 'bg-gradient-to-br from-purple-500 to-pink-600'
                 : 'bg-gradient-to-br from-cyan-500 to-blue-600'
-          }`}
+            }`}
         >
           {userAvatar ? (
             <Image
@@ -417,9 +621,19 @@ export function UnifiedProfileButton({
 
         {/* 상태 인디케이터 */}
         <div className='flex items-center gap-1'>
+          {/* 시스템 상태 */}
+          {isSystemStarted && (
+            <div className='w-2 h-2 bg-green-400 rounded-full animate-pulse' />
+          )}
+
+          {/* 관리자 모드 상태 */}
+          {adminMode.isAuthenticated && (
+            <div className='w-2 h-2 bg-orange-400 rounded-full animate-pulse' />
+          )}
+
           {/* AI 에이전트 상태 */}
           {aiAgent.isEnabled && aiAgent.state === 'processing' && (
-            <div className='w-2 h-2 bg-green-400 rounded-full animate-pulse' />
+            <div className='w-2 h-2 bg-purple-400 rounded-full animate-pulse' />
           )}
 
           {/* 잠금 상태 */}
@@ -427,9 +641,8 @@ export function UnifiedProfileButton({
 
           {/* 드롭다운 아이콘 */}
           <ChevronDown
-            className={`w-3 h-3 text-white/70 transition-transform duration-200 ${
-              isOpen ? 'rotate-180' : ''
-            }`}
+            className={`w-3 h-3 text-white/70 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''
+              }`}
           />
         </div>
       </motion.button>

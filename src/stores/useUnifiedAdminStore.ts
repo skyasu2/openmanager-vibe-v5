@@ -63,10 +63,10 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
         state: 'enabled',
       },
 
-      // 관리자 모드 (인증 제한 해제 - 항상 활성화)
+      // 관리자 모드 (인증 필요)
       adminMode: {
-        isAuthenticated: true, // 기본값을 true로 변경 - 인증 없이 모든 기능 사용 가능
-        lastLoginTime: Date.now(),
+        isAuthenticated: false, // 기본값을 false로 복구 - 관리자 인증 필요
+        lastLoginTime: null,
       },
 
       // UI 상태

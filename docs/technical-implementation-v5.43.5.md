@@ -784,7 +784,7 @@ export class EnvCryptoManager {
 
   static getSlackWebhookUrl(): string {
     // 메모리에 저장된 보안 URL
-    return 'https://hooks.slack.com/services/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';
+    return 'https://hooks.slack.com/services/EXAMPLE/EXAMPLE/EXAMPLE';
   }
 }
 ```

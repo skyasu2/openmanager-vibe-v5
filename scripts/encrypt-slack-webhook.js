@@ -100,7 +100,7 @@ function runTest() {
   console.log('🧪 암호화/복호화 테스트 시작...\n');
 
   const testData =
-    'https://hooks.slack.com/services/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';
+    'https://hooks.slack.com/services/EXAMPLE/EXAMPLE/EXAMPLE';
 
   try {
     console.log('📝 원본 데이터:');

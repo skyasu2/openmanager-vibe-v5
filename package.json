@@ -171,7 +171,16 @@
     "deploy:render": "node scripts/dev-workflow.mjs deploy:render",
     "deploy:vercel": "node scripts/dev-workflow.mjs deploy:vercel",
     "test:production": "node scripts/dev-workflow.mjs test:production",
-    "dev:full": "node scripts/dev-workflow.mjs development"
+    "dev:full": "node scripts/dev-workflow.mjs development",
+    "check-services": "node scripts/check-services.js",
+    "dev:monitor": "npm run check-services && npm run dev",
+    "services:status": "node scripts/check-services.js",
+    "dev:keys": "node scripts/dev-key-manager.js",
+    "dev:keys:status": "node scripts/dev-key-manager.js status",
+    "dev:keys:setup": "node scripts/dev-key-manager.js setup",
+    "dev:keys:generate": "node scripts/dev-key-manager.js generate",
+    "dev:keys:report": "node scripts/dev-key-manager.js report",
+    "dev:setup-keys": "npm run dev:keys:setup && npm run check-services"
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",

@@ -89,10 +89,10 @@ export class BasicContextManager {
    */
   async startCollection(intervalMs: number = 30000): Promise<void> {
     console.log('🔄 [BasicContext] 기본 컨텍스트 수집 시작');
-    
+
     // 초기 수집
     await this.updateBasicContext();
-    
+
     // 정기 업데이트 설정
     this.updateInterval = setInterval(async () => {
       try {
@@ -119,11 +119,11 @@ export class BasicContextManager {
    */
   private async collectSystemMetrics(): Promise<BasicSystemMetrics> {
     const timestamp = Date.now();
-    
+
     // Node.js 프로세스 정보 기반 메트릭 수집
     const memUsage = process.memoryUsage();
     const cpuUsage = process.cpuUsage();
-    
+
     // 기본 메트릭 구성 (실제 시스템 모니터링 도구와 연동 필요)
     const metrics: BasicSystemMetrics = {
       cpu: {
@@ -184,7 +184,7 @@ export class BasicContextManager {
 
       if (response.ok) {
         const systemData = await response.json();
-        
+
         // 수집된 시스템 데이터로 메트릭 업데이트
         if (systemData.cpu) {
           metrics.cpu = { ...metrics.cpu, ...systemData.cpu };
@@ -211,12 +211,12 @@ export class BasicContextManager {
   private async updateBasicContext(): Promise<void> {
     try {
       const newMetrics = await this.collectSystemMetrics();
-      
+
       // 기존 캐시 조회
       const cachedData = await this.redis.get<BasicContextCache>(this.CACHE_KEY);
-      
+
       let contextCache: BasicContextCache;
-      
+
       if (cachedData) {
         // 기존 데이터 업데이트
         contextCache = {
@@ -241,7 +241,7 @@ export class BasicContextManager {
 
       // Redis에 저장
       await this.redis.setex(this.CACHE_KEY, this.TTL, contextCache);
-      
+
       console.log('✅ [BasicContext] 기본 컨텍스트 업데이트 완료');
     } catch (error) {
       console.error('❌ [BasicContext] 업데이트 실패:', error);
@@ -253,11 +253,11 @@ export class BasicContextManager {
    * 📈 트렌드 데이터 업데이트
    */
   private updateTrends(
-    currentTrends: BasicContextCache['trends'], 
+    currentTrends: BasicContextCache['trends'],
     newMetrics: BasicSystemMetrics
   ): BasicContextCache['trends'] {
-    const maxTrendPoints = 50; // 최대 50개 포인트 유지
-    
+    const maxTrendPoints = 35; // 무료 티어 최적화: 실용성과 효율성 균형
+
     return {
       cpu: [...currentTrends.cpu, newMetrics.cpu.usage].slice(-maxTrendPoints),
       memory: [...currentTrends.memory, newMetrics.memory.percentage].slice(-maxTrendPoints),
@@ -302,7 +302,7 @@ export class BasicContextManager {
       if (contextCache) {
         contextCache.current.alerts.recent.unshift(newAlert);
         contextCache.current.alerts.recent = contextCache.current.alerts.recent.slice(0, 20); // 최대 20개 유지
-        
+
         // 알림 카운트 업데이트
         contextCache.current.alerts.active++;
         if (alert.level === 'critical') {
@@ -313,7 +313,7 @@ export class BasicContextManager {
 
         await this.redis.setex(this.CACHE_KEY, this.TTL, contextCache);
       }
-      
+
       console.log(`🚨 [BasicContext] ${alert.level} 알림 추가: ${alert.message}`);
     } catch (error) {
       console.error('❌ [BasicContext] 알림 추가 실패:', error);
@@ -330,7 +330,7 @@ export class BasicContextManager {
     recommendations: string[];
   }> {
     const context = await this.getCurrentContext();
-    
+
     if (!context) {
       return {
         status: 'critical',
