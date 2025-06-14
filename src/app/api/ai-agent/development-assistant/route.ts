@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
     } catch (error) {
         console.error('❌ AI 개발 어시스턴트 GET 오류:', error);
 
-        await aiLogger.logError('DevelopmentAssistantAPI', LogCategory.API, error as Error, {
+        await aiLogger.logError('DevelopmentAssistantAPI', LogCategory.SYSTEM, error as Error, {
             action: 'GET',
             endpoint: '/api/ai-agent/development-assistant'
         });
@@ -277,7 +277,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         console.error('❌ AI 개발 어시스턴트 POST 오류:', error);
 
-        await aiLogger.logError('DevelopmentAssistantAPI', LogCategory.API, error as Error, {
+        await aiLogger.logError('DevelopmentAssistantAPI', LogCategory.SYSTEM, error as Error, {
             action: 'POST',
             endpoint: '/api/ai-agent/development-assistant'
         });

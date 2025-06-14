@@ -35,6 +35,7 @@ export enum LogCategory {
   FALLBACK = 'fallback',
   PERFORMANCE = 'performance',
   SYSTEM = 'system',
+  API = 'api',
 }
 
 export interface AILogEntry {
@@ -220,12 +221,12 @@ export class AILogger {
     if (isNextJS) {
       // Mock Pino logger - 모든 로깅 메서드를 빈 함수로 처리
       this.pinoLogger = {
-        error: () => {},
-        warn: () => {},
-        info: () => {},
-        debug: () => {},
-        trace: () => {},
-        fatal: () => {},
+        error: () => { },
+        warn: () => { },
+        info: () => { },
+        debug: () => { },
+        trace: () => { },
+        fatal: () => { },
         child: () => this.pinoLogger,
         level: 'info',
       };
