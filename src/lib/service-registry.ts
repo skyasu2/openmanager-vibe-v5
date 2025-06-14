@@ -15,7 +15,7 @@ import {
 } from './di-container';
 import { LoggingService } from '@/services/LoggingService';
 import { ErrorHandlingService } from '@/services/error-handling/ErrorHandlingService';
-import { SmartCacheService } from '@/services/SmartCacheService';
+import { EnhancedCacheService } from '@/services/cacheService';
 import { TestFramework } from '@/testing/TestFramework';
 import { ConfigLoader } from '@/config';
 import { ILogger, IErrorHandler, IConfigLoader } from '@/interfaces/services';
@@ -123,23 +123,14 @@ export class ServiceRegistry {
    * 추가 서비스 등록
    */
   private registerAdditionalServices(): void {
-    // Smart Cache Service
+    // Enhanced Cache Service (기존 운영 중인 캐시 서비스 사용)
     registerFactory(
       SERVICE_TOKENS.CACHE_SERVICE,
       () => {
-        const logger = container.resolve<ILogger>(SERVICE_TOKENS.LOGGER);
-        return new SmartCacheService(logger, {
-          maxSize: 2000,
-          defaultTtl: 300000, // 5분
-          evictionStrategy: 'lru',
-          enableCompression: true,
-          compressionThreshold: 1024,
-          enableStats: true,
-          cleanupInterval: 60000, // 1분
-        });
+        // EnhancedCacheService는 싱글톤이므로 인스턴스 반환
+        return EnhancedCacheService.getInstance();
       },
-      'singleton',
-      [SERVICE_TOKENS.LOGGER]
+      'singleton'
     );
 
     // Storage Service (향후 구현)
@@ -197,8 +188,8 @@ export class ServiceRegistry {
           },
           getChecks: () => Array.from(checks.keys()),
           isHealthy: async () => true,
-          startPeriodicCheck: () => {},
-          stopPeriodicCheck: () => {},
+          startPeriodicCheck: () => { },
+          stopPeriodicCheck: () => { },
         };
       },
       'singleton'
@@ -242,8 +233,8 @@ export class ServiceRegistry {
             alerts: [],
           }),
           collectBatch: async () => [],
-          startCollection: () => {},
-          stopCollection: () => {},
+          startCollection: () => { },
+          stopCollection: () => { },
           isCollecting: () => false,
         };
       },
@@ -255,11 +246,11 @@ export class ServiceRegistry {
       SERVICE_TOKENS.METRICS_BRIDGE,
       () => {
         return {
-          sendMetrics: async () => {},
+          sendMetrics: async () => { },
           getMetrics: async () => [],
           isConnected: () => false,
-          connect: async () => {},
-          disconnect: () => {},
+          connect: async () => { },
+          disconnect: () => { },
         };
       },
       'singleton'

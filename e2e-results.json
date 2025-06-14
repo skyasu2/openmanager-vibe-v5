@@ -3,9 +3,9 @@
     "configFile": "D:\\cursor\\openmanager-vibe-v5\\playwright.config.ts",
     "rootDir": "D:/cursor/openmanager-vibe-v5/e2e",
     "forbidOnly": false,
-    "fullyParallel": true,
-    "globalSetup": null,
-    "globalTeardown": null,
+    "fullyParallel": false,
+    "globalSetup": "D:\\cursor\\openmanager-vibe-v5\\e2e\\global-setup.ts",
+    "globalTeardown": "D:\\cursor\\openmanager-vibe-v5\\e2e\\global-teardown.ts",
     "globalTimeout": 0,
     "grep": {},
     "grepInvert": null,
@@ -16,7 +16,8 @@
       [
         "html",
         {
-          "open": "never"
+          "open": "never",
+          "outputFolder": "test-results/e2e-report"
         }
       ],
       [
@@ -25,7 +26,16 @@
           "outputFile": "e2e-results.json"
         }
       ],
-      ["list", null]
+      [
+        "list",
+        null
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "test-results/e2e-results.xml"
+        }
+      ]
     ],
     "reportSlowTests": {
       "max": 5,
@@ -36,86 +46,87 @@
       {
         "outputDir": "D:/cursor/openmanager-vibe-v5/test-results",
         "repeatEach": 1,
-        "retries": 0,
+        "retries": 1,
         "metadata": {},
-        "id": "chromium",
-        "name": "chromium",
+        "id": "chromium-stable",
+        "name": "chromium-stable",
         "testDir": "D:/cursor/openmanager-vibe-v5/e2e",
         "testIgnore": [],
-        "testMatch": ["**/*.e2e.{ts,js}"],
-        "timeout": 30000
+        "testMatch": [
+          "**/*.e2e.{ts,js}"
+        ],
+        "timeout": 60000
       },
       {
         "outputDir": "D:/cursor/openmanager-vibe-v5/test-results",
         "repeatEach": 1,
-        "retries": 0,
+        "retries": 1,
         "metadata": {},
         "id": "firefox",
         "name": "firefox",
         "testDir": "D:/cursor/openmanager-vibe-v5/e2e",
         "testIgnore": [],
-        "testMatch": ["**/*.e2e.{ts,js}"],
-        "timeout": 30000
+        "testMatch": [
+          "**/*.e2e.{ts,js}"
+        ],
+        "timeout": 60000
       },
       {
         "outputDir": "D:/cursor/openmanager-vibe-v5/test-results",
         "repeatEach": 1,
-        "retries": 0,
+        "retries": 1,
         "metadata": {},
         "id": "webkit",
         "name": "webkit",
         "testDir": "D:/cursor/openmanager-vibe-v5/e2e",
         "testIgnore": [],
-        "testMatch": ["**/*.e2e.{ts,js}"],
-        "timeout": 30000
+        "testMatch": [
+          "**/*.e2e.{ts,js}"
+        ],
+        "timeout": 60000
       },
       {
         "outputDir": "D:/cursor/openmanager-vibe-v5/test-results",
         "repeatEach": 1,
-        "retries": 0,
+        "retries": 1,
         "metadata": {},
         "id": "Mobile Chrome",
         "name": "Mobile Chrome",
         "testDir": "D:/cursor/openmanager-vibe-v5/e2e",
         "testIgnore": [],
-        "testMatch": ["**/*.e2e.{ts,js}"],
-        "timeout": 30000
-      },
-      {
-        "outputDir": "D:/cursor/openmanager-vibe-v5/test-results",
-        "repeatEach": 1,
-        "retries": 0,
-        "metadata": {},
-        "id": "Mobile Safari",
-        "name": "Mobile Safari",
-        "testDir": "D:/cursor/openmanager-vibe-v5/e2e",
-        "testIgnore": [],
-        "testMatch": ["**/*.e2e.{ts,js}"],
-        "timeout": 30000
+        "testMatch": [
+          "**/*.e2e.{ts,js}"
+        ],
+        "timeout": 60000
       }
     ],
     "shard": null,
     "updateSnapshots": "missing",
     "updateSourceMethod": "patch",
     "version": "1.52.0",
-    "workers": 4,
+    "workers": 2,
     "webServer": {
       "command": "npm run dev",
       "url": "http://localhost:3002",
       "reuseExistingServer": true,
-      "timeout": 120000
+      "timeout": 180000,
+      "env": {
+        "NODE_ENV": "test",
+        "PORT": "3002",
+        "SKIP_ENV_VALIDATION": "true"
+      }
     }
   },
   "suites": [],
   "errors": [
     {
-      "message": "Error: Timed out waiting 120000ms from config.webServer.",
-      "stack": "Error: Timed out waiting 120000ms from config.webServer."
+      "message": "Error: Timed out waiting 180000ms from config.webServer.",
+      "stack": "Error: Timed out waiting 180000ms from config.webServer."
     }
   ],
   "stats": {
-    "startTime": "2025-06-13T00:46:03.530Z",
-    "duration": 120968.72,
+    "startTime": "2025-06-14T09:05:54.428Z",
+    "duration": 180497.301,
     "expected": 0,
     "skipped": 0,
     "unexpected": 0,

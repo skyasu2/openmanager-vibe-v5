@@ -1,0 +1,151 @@
+{
+    "name": "OpenManager Vibe v5 DevContainer",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "app",
+    "workspaceFolder": "/workspace",
+    // VS Code 설정
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                // TypeScript & JavaScript
+                "ms-vscode.vscode-typescript-next",
+                "bradlc.vscode-tailwindcss",
+                "esbenp.prettier-vscode",
+                "dbaeumer.vscode-eslint",
+                // React & Next.js
+                "ms-vscode.vscode-json",
+                "formulahendry.auto-rename-tag",
+                "ms-vscode.vscode-react-javascript-snippets",
+                // AI & MCP
+                "ms-python.python",
+                "ms-vscode.vscode-ai",
+                // Git & GitHub
+                "eamodio.gitlens",
+                "github.vscode-pull-request-github",
+                // 개발 도구
+                "ms-vscode.vscode-thunder-client",
+                "rangav.vscode-thunder-client",
+                "ms-vscode-remote.remote-containers",
+                "ms-vscode.remote-explorer",
+                // 데이터베이스
+                "ms-mssql.mssql",
+                "bradlc.vscode-tailwindcss",
+                // 테스팅
+                "ms-playwright.playwright",
+                "vitest.explorer",
+                // 유틸리티
+                "aaron-bond.better-comments",
+                "gruntfuggly.todo-tree",
+                "ms-vscode.vscode-json",
+                "redhat.vscode-yaml",
+                "ms-vscode.hexeditor"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "bash",
+                "typescript.preferences.quoteStyle": "double",
+                "javascript.preferences.quoteStyle": "double",
+                "editor.formatOnSave": true,
+                "editor.codeActionsOnSave": {
+                    "source.fixAll.eslint": true
+                },
+                "tailwindCSS.includeLanguages": {
+                    "typescript": "typescript",
+                    "typescriptreact": "typescriptreact"
+                },
+                "files.associations": {
+                    "*.css": "tailwindcss"
+                },
+                "emmet.includeLanguages": {
+                    "typescript": "html",
+                    "typescriptreact": "html"
+                }
+            }
+        }
+    },
+    // 포트 포워딩 설정
+    "forwardPorts": [
+        3000, // Next.js 개발 서버
+        3001, // 통합 개발 서버
+        3100, // MCP 서버
+        3200, // 추가 포트
+        3201, // 추가 포트
+        5432, // PostgreSQL
+        6379, // Redis
+        6006, // Storybook
+        9229 // Node.js 디버거
+    ],
+    // 포트 속성 설정
+    "portsAttributes": {
+        "3000": {
+            "label": "Next.js Dev Server",
+            "onAutoForward": "notify"
+        },
+        "3001": {
+            "label": "Integrated Dev Server",
+            "onAutoForward": "silent"
+        },
+        "3100": {
+            "label": "MCP Server",
+            "onAutoForward": "silent"
+        },
+        "5432": {
+            "label": "PostgreSQL",
+            "onAutoForward": "silent"
+        },
+        "6379": {
+            "label": "Redis",
+            "onAutoForward": "silent"
+        },
+        "6006": {
+            "label": "Storybook",
+            "onAutoForward": "notify"
+        }
+    },
+    // 환경 변수
+    "containerEnv": {
+        "NODE_ENV": "development",
+        "TZ": "Asia/Seoul",
+        "LANG": "ko_KR.UTF-8",
+        "POSTGRES_HOST": "postgres",
+        "POSTGRES_PORT": "5432",
+        "POSTGRES_DB": "openmanager_dev",
+        "POSTGRES_USER": "postgres",
+        "POSTGRES_PASSWORD": "postgres",
+        "REDIS_HOST": "redis",
+        "REDIS_PORT": "6379",
+        "REDIS_PASSWORD": "",
+        "DATABASE_URL": "postgresql://postgres:postgres@postgres:5432/openmanager_dev?schema=public",
+        "REDIS_URL": "redis://redis:6379"
+    },
+    // 컨테이너 생성 후 실행할 명령어
+    "postCreateCommand": "bash .devcontainer/post-create.sh",
+    // 컨테이너 시작 후 실행할 명령어
+    "postStartCommand": "bash .devcontainer/post-start.sh",
+    // 개발 사용자 설정
+    "remoteUser": "vscode",
+    "updateRemoteUserUID": true,
+    // 마운트 설정
+    "mounts": [
+        "source=${localWorkspaceFolder}/node_modules,target=/workspace/node_modules,type=bind,consistency=cached",
+        "source=${localWorkspaceFolder}/.next,target=/workspace/.next,type=bind,consistency=delegated"
+    ],
+    // 컨테이너 기능
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "username": "vscode",
+            "userUid": "1000",
+            "userGid": "1000"
+        },
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "20",
+            "nodeGypDependencies": true,
+            "installYarnUsingApt": true
+        },
+        "ghcr.io/devcontainers/features/git:1": {
+            "version": "latest"
+        },
+        "ghcr.io/devcontainers/features/github-cli:1": {
+            "version": "latest"
+        }
+    }
+}

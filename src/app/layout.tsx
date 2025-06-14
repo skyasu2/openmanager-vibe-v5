@@ -3,6 +3,8 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { ClientProviders } from '@/components/providers/ClientProviders';
 
+// 개발 환경 초기화 (Docker/로컬 감지)
+import '@/utils/init-dev-env';
 // Keep-alive 스케줄러 초기화
 import '@/lib/keep-alive-scheduler';
 // 성능 모니터링 초기화

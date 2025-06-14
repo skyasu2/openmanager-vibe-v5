@@ -13,7 +13,8 @@ import { env, shouldEnableDebugLogging } from '@/config/environment';
 import { RealMCPClient } from '@/services/mcp/real-mcp-client';
 import { ContextManager } from './ContextManager';
 import { LocalRAGEngine } from '@/lib/ml/rag-engine';
-import { GoogleAIService, isGoogleAIAvailable } from '@/services/ai/google-ai-service';
+import { GoogleAIService } from '@/services/ai/GoogleAIService';
+import { isGoogleAIAvailable } from '@/lib/google-ai-manager';
 
 export interface UnifiedAnalysisRequest {
     query: string;

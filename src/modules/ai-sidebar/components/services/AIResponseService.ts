@@ -5,8 +5,7 @@
  * Service Layer Pattern: 비즈니스 로직을 컴포넌트에서 분리
  */
 
-import { AISidebarService } from '@/domains/ai-sidebar/services/AISidebarService';
-import { RealTimeLogEngine } from '../../../ai-agent/core/RealTimeLogEngine';
+import { RealTimeLogEngine } from '@/modules/ai-agent/core/RealTimeLogEngine';
 import {
   AICategory,
   AIFunctionResponse,
@@ -64,9 +63,6 @@ export class AIResponseService {
   constructor() {
     this.logEngine = RealTimeLogEngine.getInstance();
   }
-
-  // aiSidebarService 인스턴스를 AISidebarService.getInstance()로 변경
-  private aiSidebarService = AISidebarService.getInstance();
 
   /**
    * 질문 카테고리 결정

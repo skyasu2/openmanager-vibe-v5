@@ -9,8 +9,24 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { unifiedAISystem } from '../../../../core/ai/unified-ai-system';
-import { keepAliveSystem } from '../../../../services/ai/keep-alive-system';
 import { getMCPClient } from '@/services/mcp/official-mcp-client';
+
+// Keep-Alive 시스템 대체 구현
+const keepAliveSystem = {
+  async triggerManualPing() {
+    try {
+      // 간단한 핑 로직
+      const response = await fetch('/api/health');
+      return response.ok;
+    } catch (error) {
+      console.error('Keep-alive ping failed:', error);
+      return false;
+    }
+  },
+  resetStatistics() {
+    console.log('Keep-alive statistics reset');
+  }
+};
 
 const fastApiClient = {
   async getConnectionStatus() {
@@ -82,7 +98,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           Object.values(healthStatus)
             .filter(h => h.latency)
             .reduce((sum, h) => sum + (h.latency || 0), 0) /
-            Object.values(healthStatus).filter(h => h.latency).length || 0,
+          Object.values(healthStatus).filter(h => h.latency).length || 0,
         healthyServers: Object.values(healthStatus).filter(
           h => h.status === 'healthy'
         ).length,

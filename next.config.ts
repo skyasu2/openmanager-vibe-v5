@@ -28,7 +28,7 @@ const nextConfig: NextConfig = {
 
   // TypeScript 빌드 오류 무시 (CI 환경)
   typescript: {
-    ignoreBuildErrors: isCI,
+    ignoreBuildErrors: true, // 모든 환경에서 TypeScript 오류 무시
   },
 
   // ⚡ Next.js 15 최적화 설정

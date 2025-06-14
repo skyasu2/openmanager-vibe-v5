@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useAIAgent } from '@/modules/ai-agent/infrastructure/AIAgentProvider';
-import { HybridEngineStatus } from '@/services/ai/hybrid-failover-engine';
+
+// 타입 정의를 인라인으로 이동
+interface HybridEngineStatus {
+  currentMode: 'mcp' | 'rag' | 'auto';
+  mcpHealth?: {
+    healthy: boolean;
+  };
+  lastProcessingTime?: number;
+  successRate?: number;
+  totalQueries?: number;
+}
 
 export function AIEngineControl() {
   const { setEngineMode, getEngineStatus } = useAIAgent();
@@ -20,25 +30,22 @@ export function AIEngineControl() {
       <div className='grid grid-cols-3 gap-4 mb-6'>
         <div className='text-center'>
           <div
-            className={`w-3 h-3 rounded-full mx-auto mb-2 ${
-              status?.currentMode === 'mcp' ? 'bg-blue-500' : 'bg-gray-300'
-            }`}
+            className={`w-3 h-3 rounded-full mx-auto mb-2 ${status?.currentMode === 'mcp' ? 'bg-blue-500' : 'bg-gray-300'
+              }`}
           />
           <span className='text-sm'>MCP 모드</span>
         </div>
         <div className='text-center'>
           <div
-            className={`w-3 h-3 rounded-full mx-auto mb-2 ${
-              status?.currentMode === 'rag' ? 'bg-green-500' : 'bg-gray-300'
-            }`}
+            className={`w-3 h-3 rounded-full mx-auto mb-2 ${status?.currentMode === 'rag' ? 'bg-green-500' : 'bg-gray-300'
+              }`}
           />
           <span className='text-sm'>RAG 모드</span>
         </div>
         <div className='text-center'>
           <div
-            className={`w-3 h-3 rounded-full mx-auto mb-2 ${
-              status?.mcpHealth?.healthy ? 'bg-green-500' : 'bg-red-500'
-            }`}
+            className={`w-3 h-3 rounded-full mx-auto mb-2 ${status?.mcpHealth?.healthy ? 'bg-green-500' : 'bg-red-500'
+              }`}
           />
           <span className='text-sm'>MCP 건강성</span>
         </div>

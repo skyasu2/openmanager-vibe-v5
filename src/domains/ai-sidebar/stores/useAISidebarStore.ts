@@ -1,342 +1,179 @@
 /**
- * 🏪 AI 사이드바 도메인 스토어 - 분리된 아키텍처
+ * 🔄 AI 사이드바 도메인 스토어 - 통합 버전 래퍼
  * 
- * 도메인 주도 설계(DDD) 적용
- * - 비즈니스 로직과 UI 로직 완전 분리
- * - 타입 안전성 보장
- * - 테스트 용이성 향상
- * - 재사용성 극대화
+ * 통합된 메인 스토어를 사용하도록 리다이렉트
+ * - 하위 호환성 보장
+ * - 도메인 아키텍처 유지
+ * - 중복 코드 제거
  */
 
 'use client';
 
-import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
+// 통합된 메인 스토어에서 모든 기능 가져오기
+export {
+    // 타입들
+    type AgentLog,
+    type AIThinkingStep,
+    type ChatMessage,
+    type AIResponse,
+    type SystemAlert,
+    type PresetQuestion,
+    type AISidebarSettings,
+
+    // 상수들
+    PRESET_QUESTIONS,
+
+    // 메인 스토어
+    useAISidebarStore,
+
+    // 선택자 함수들
+    selectIsAIActive,
+    selectLatestMessage,
+    selectLatestResponse,
+    selectRecentLogs,
+    selectRecentThinkingSteps,
+    selectActiveAlerts,
+    selectQuickQuestions,
+
+    // 커스텀 훅들
+    useAISidebarUI,
+    useAIThinking,
+    useAIChat,
+    useAIAlerts,
+    useAISettings,
+    useAIContext,
+} from '../../../stores/useAISidebarStore';
+
+// 내부 사용을 위한 임포트
 import {
-    AISidebarStore,
-    AIThinkingStep,
+    PRESET_QUESTIONS,
+    selectQuickQuestions
+} from '../../../stores/useAISidebarStore';
+
+// 도메인별 타입 별칭 (하위 호환성)
+import type {
+    AgentLog as AIThinkingStep_Legacy,
+    SystemAlert,
     ChatMessage,
-    AIResponse,
-    SystemAlert
-} from '../types';
-import { AISidebarService } from '../services/AISidebarService';
+    AIResponse
+} from '../../../stores/useAISidebarStore';
 
-// 서비스 인스턴스
-const aiSidebarService = AISidebarService.getInstance();
-
-// 초기 상태
-const initialState = {
+export interface AISidebarStore {
     // UI 상태
-    isOpen: false,
-    isMinimized: false,
-    activeTab: 'chat' as const,
+    isOpen: boolean;
+    isMinimized: boolean;
+    activeTab: 'chat' | 'presets' | 'thinking' | 'settings' | 'functions';
 
     // AI 상태
-    isThinking: false,
-    currentQuestion: null,
-    thinkingSteps: [],
+    isThinking: boolean;
+    currentQuestion: string | null;
+    thinkingSteps: AIThinkingStep_Legacy[];
 
     // 채팅 상태
-    messages: [],
-    responses: [],
+    messages: ChatMessage[];
+    responses: AIResponse[];
 
     // 알림 상태
-    alerts: [],
+    alerts: SystemAlert[];
 
     // 설정
     settings: {
-        typingSpeed: 'normal' as const,
-        showThinkingProcess: true,
-        autoCloseAlerts: true,
-        soundEnabled: false,
-    }
-};
+        typingSpeed: 'slow' | 'normal' | 'fast';
+        showThinkingProcess: boolean;
+        autoCloseAlerts: boolean;
+        soundEnabled: boolean;
+    };
 
-export const useAISidebarStore = create<AISidebarStore>()(
-    devtools(
-        persist(
-            (set, get) => ({
-                ...initialState,
+    // 액션들 (통합 스토어와 동일)
+    setOpen: (open: boolean) => void;
+    setMinimized: (minimized: boolean) => void;
+    setActiveTab: (tab: 'chat' | 'presets' | 'thinking' | 'settings' | 'functions') => void;
+    setThinking: (thinking: boolean) => void;
+    setCurrentQuestion: (question: string | null) => void;
+    addThinkingStep: (step: Omit<AIThinkingStep_Legacy, 'id' | 'timestamp'>) => void;
+    clearThinkingSteps: () => void;
+    sendMessage: (content: string) => Promise<void>;
+    addMessage: (message: Omit<ChatMessage, 'id'>) => void;
+    addResponse: (response: Omit<AIResponse, 'id' | 'timestamp'>) => void;
+    clearMessages: () => void;
+    addAlert: (alert: Omit<SystemAlert, 'id' | 'timestamp'>) => void;
+    removeAlert: (id: string) => void;
+    clearAlerts: () => void;
+    updateSettings: (settings: Partial<AISidebarStore['settings']>) => void;
+    reset: () => void;
+}
 
-                // UI 액션들
-                setOpen: (open: boolean) => {
-                    set((state) => ({
-                        isOpen: open,
-                        isMinimized: open ? false : state.isMinimized
-                    }), false, 'setOpen');
-                },
+/**
+ * 🏗️ 도메인 서비스 호환성 레이어
+ * 
+ * 기존 도메인 서비스 패턴을 유지하면서
+ * 통합 스토어의 기능을 활용
+ */
+export class AISidebarService {
+    private static instance: AISidebarService;
 
-                setMinimized: (minimized: boolean) => {
-                    set({ isMinimized: minimized }, false, 'setMinimized');
-                },
-
-                setActiveTab: (tab) => {
-                    set({ activeTab: tab }, false, 'setActiveTab');
-                },
-
-                // AI 액션들
-                setThinking: (thinking: boolean) => {
-                    set({ isThinking: thinking }, false, 'setThinking');
-                },
-
-                setCurrentQuestion: (question: string | null) => {
-                    set({ currentQuestion: question }, false, 'setCurrentQuestion');
-                },
-
-                addThinkingStep: (stepData) => {
-                    set((state) => ({
-                        thinkingSteps: [...state.thinkingSteps.slice(-19), {
-                            ...stepData,
-                            id: `thinking_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                            timestamp: new Date()
-                        }]
-                    }), false, 'addThinkingStep');
-                },
-
-                clearThinkingSteps: () => {
-                    set({ thinkingSteps: [] }, false, 'clearThinkingSteps');
-                },
-
-                // 채팅 액션들
-                sendMessage: async (content: string) => {
-                    const {
-                        setThinking,
-                        setCurrentQuestion,
-                        addMessage,
-                        addResponse,
-                        clearThinkingSteps,
-                        settings
-                    } = get();
-
-                    try {
-                        // 사용자 메시지 추가
-                        const userMessage = aiSidebarService.createMessage(content, 'user');
-                        addMessage(userMessage);
-
-                        // AI 처리 시작
-                        setThinking(true);
-                        setCurrentQuestion(content);
-                        clearThinkingSteps();
-
-                        // 질문 분석
-                        const analysis = aiSidebarService.analyzeQuestion(content);
-
-                        // 사고 과정 시뮬레이션
-                        const thinkingSteps = await aiSidebarService.simulateThinkingProcess(content);
-
-                        // 각 단계를 실시간으로 추가
-                        for (const step of thinkingSteps) {
-                            get().addThinkingStep(step);
-                            await new Promise(resolve => setTimeout(resolve, 100));
-                        }
-
-                        // AI 응답 생성
-                        const aiResponse = await aiSidebarService.generateResponse(content, thinkingSteps);
-                        addResponse(aiResponse);
-
-                        // AI 메시지 추가 (타이핑 효과 포함)
-                        const assistantMessage = aiSidebarService.createMessage(
-                            aiResponse.response,
-                            'assistant',
-                            {
-                                isTyping: true,
-                                typingSpeed: settings.typingSpeed
-                            }
-                        );
-                        addMessage(assistantMessage);
-
-                    } catch (error) {
-                        console.error('AI 메시지 처리 오류:', error);
-
-                        // 에러 알림 추가
-                        get().addAlert({
-                            type: 'error',
-                            title: 'AI 처리 오류',
-                            message: 'AI 응답 생성 중 오류가 발생했습니다. 다시 시도해주세요.',
-                            isClosable: true,
-                            autoClose: 5
-                        });
-                    } finally {
-                        setThinking(false);
-                        setCurrentQuestion(null);
-                    }
-                },
-
-                addMessage: (messageData) => {
-                    set((state) => ({
-                        messages: [...state.messages.slice(-49), {
-                            ...messageData,
-                            id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                            timestamp: new Date()
-                        }]
-                    }), false, 'addMessage');
-                },
-
-                addResponse: (responseData) => {
-                    set((state) => ({
-                        responses: [...state.responses.slice(-19), {
-                            ...responseData,
-                            id: `response_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                            timestamp: new Date()
-                        }]
-                    }), false, 'addResponse');
-                },
-
-                clearMessages: () => {
-                    set({ messages: [] }, false, 'clearMessages');
-                },
-
-                // 알림 액션들
-                addAlert: (alertData) => {
-                    const alert = aiSidebarService.createSystemAlert(
-                        alertData.type,
-                        alertData.title,
-                        alertData.message,
-                        {
-                            autoClose: alertData.autoClose,
-                            isClosable: alertData.isClosable
-                        }
-                    );
-
-                    set((state) => ({
-                        alerts: [...state.alerts.slice(-9), alert]
-                    }), false, 'addAlert');
-
-                    // 자동 닫기 설정
-                    if (alert.autoClose && get().settings.autoCloseAlerts) {
-                        setTimeout(() => {
-                            get().removeAlert(alert.id);
-                        }, alert.autoClose * 1000);
-                    }
-                },
-
-                removeAlert: (id: string) => {
-                    set((state) => ({
-                        alerts: state.alerts.filter(alert => alert.id !== id)
-                    }), false, 'removeAlert');
-                },
-
-                clearAlerts: () => {
-                    set({ alerts: [] }, false, 'clearAlerts');
-                },
-
-                // 설정 액션들
-                updateSettings: (newSettings) => {
-                    set((state) => ({
-                        settings: { ...state.settings, ...newSettings }
-                    }), false, 'updateSettings');
-                },
-
-                // 전체 리셋
-                reset: () => {
-                    set(initialState, false, 'reset');
-                }
-            }),
-            {
-                name: 'ai-sidebar-store',
-                partialize: (state) => ({
-                    // 지속성이 필요한 상태만 저장
-                    settings: state.settings,
-                    messages: state.messages.slice(-20), // 최근 20개만 저장
-                    responses: state.responses.slice(-10), // 최근 10개만 저장
-                }),
-                version: 1,
-                migrate: (persistedState: any, version: number) => {
-                    // 버전 마이그레이션 로직
-                    if (version === 0) {
-                        // v0에서 v1로 마이그레이션
-                        return {
-                            ...initialState,
-                            ...persistedState,
-                            settings: {
-                                ...initialState.settings,
-                                ...persistedState.settings
-                            }
-                        };
-                    }
-                    return persistedState;
-                }
-            }
-        ),
-        {
-            name: 'ai-sidebar-store',
-            enabled: process.env.NODE_ENV === 'development'
+    static getInstance(): AISidebarService {
+        if (!AISidebarService.instance) {
+            AISidebarService.instance = new AISidebarService();
         }
-    )
-);
+        return AISidebarService.instance;
+    }
 
-// 🎯 선택자 함수들 (성능 최적화)
-export const selectIsAIActive = (state: AISidebarStore) =>
-    state.isOpen && state.isThinking;
+    createMessage(content: string, role: 'user' | 'assistant', options?: any): Omit<ChatMessage, 'id'> {
+        return {
+            content,
+            role,
+            timestamp: new Date().toISOString(),
+            ...options
+        };
+    }
 
-export const selectLatestMessage = (state: AISidebarStore) =>
-    state.messages[state.messages.length - 1];
+    analyzeQuestion(content: string) {
+        // 질문 분석 로직 (통합 스토어에서 처리)
+        return {
+            category: content.includes('성능') ? 'performance' : 'general',
+            complexity: 'medium',
+            requiresThinking: true
+        };
+    }
 
-export const selectLatestResponse = (state: AISidebarStore) =>
-    state.responses[state.responses.length - 1];
+    async simulateThinkingProcess(content: string) {
+        // 통합 스토어의 시뮬레이션 로직 사용
+        return [
+            { step: '질문 분석', content: `"${content}" 분석 중...`, type: 'analysis' as const, progress: 25 },
+            { step: '데이터 수집', content: '관련 데이터 수집 중...', type: 'data_processing' as const, progress: 50 },
+            { step: '패턴 매칭', content: '패턴 분석 중...', type: 'pattern_matching' as const, progress: 75 },
+            { step: '응답 생성', content: '응답 생성 중...', type: 'response_generation' as const, progress: 100 }
+        ];
+    }
 
-export const selectRecentThinkingSteps = (state: AISidebarStore) =>
-    state.thinkingSteps.slice(-10);
+    async generateResponse(content: string, steps: any[]): Promise<Omit<AIResponse, 'id' | 'timestamp'>> {
+        return {
+            query: content,
+            response: `"${content}"에 대한 분석이 완료되었습니다.`,
+            confidence: 0.85,
+            context: `${steps.length}단계 분석 완료`
+        };
+    }
 
-export const selectActiveAlerts = (state: AISidebarStore) =>
-    state.alerts.filter(alert => !alert.autoClose ||
-        (Date.now() - alert.timestamp.getTime()) < (alert.autoClose * 1000));
+    createSystemAlert(
+        type: SystemAlert['type'],
+        title: string,
+        message: string,
+        options?: any
+    ): Omit<SystemAlert, 'id' | 'timestamp'> {
+        return {
+            type,
+            title,
+            message,
+            isClosable: true,
+            autoClose: type === 'error' ? undefined : 5,
+            ...options
+        };
+    }
 
-export const selectQuickQuestions = () =>
-    aiSidebarService.getQuickQuestions();
-
-// 🔧 유틸리티 훅들
-export const useAISidebarUI = () => {
-    const store = useAISidebarStore();
-    return {
-        isOpen: store.isOpen,
-        isMinimized: store.isMinimized,
-        activeTab: store.activeTab,
-        setOpen: store.setOpen,
-        setMinimized: store.setMinimized,
-        setActiveTab: store.setActiveTab
-    };
-};
-
-export const useAIThinking = () => {
-    const store = useAISidebarStore();
-    return {
-        isThinking: store.isThinking,
-        currentQuestion: store.currentQuestion,
-        thinkingSteps: store.thinkingSteps,
-        setThinking: store.setThinking,
-        setCurrentQuestion: store.setCurrentQuestion,
-        addThinkingStep: store.addThinkingStep,
-        clearThinkingSteps: store.clearThinkingSteps
-    };
-};
-
-export const useAIChat = () => {
-    const store = useAISidebarStore();
-    return {
-        messages: store.messages,
-        responses: store.responses,
-        sendMessage: store.sendMessage,
-        addMessage: store.addMessage,
-        addResponse: store.addResponse,
-        clearMessages: store.clearMessages
-    };
-};
-
-export const useAIAlerts = () => {
-    const store = useAISidebarStore();
-    return {
-        alerts: store.alerts,
-        addAlert: store.addAlert,
-        removeAlert: store.removeAlert,
-        clearAlerts: store.clearAlerts
-    };
-};
-
-export const useAISettings = () => {
-    const store = useAISidebarStore();
-    return {
-        settings: store.settings,
-        updateSettings: store.updateSettings
-    };
-}; 
+    getQuickQuestions() {
+        // 통합 스토어에서 프리셋 질문들을 가져옴
+        return selectQuickQuestions();
+    }
+} 

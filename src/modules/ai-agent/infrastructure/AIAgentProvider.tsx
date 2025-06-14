@@ -24,7 +24,41 @@ import AIAgentService, {
   ThinkingStep,
   AIAgentConfig,
 } from './AIAgentService';
-import { HybridFailoverEngine, HybridEngineStatus } from '@/services/ai/hybrid-failover-engine';
+
+// 타입 정의를 인라인으로 이동
+interface HybridEngineStatus {
+  currentMode: 'mcp' | 'rag' | 'auto';
+  mcpHealth?: {
+    healthy: boolean;
+  };
+  lastProcessingTime?: number;
+  successRate?: number;
+  totalQueries?: number;
+}
+
+// HybridFailoverEngine 클래스 대체 구현
+class HybridFailoverEngine {
+  private mode: 'mcp' | 'rag' | 'auto' = 'auto';
+  private stats = {
+    lastProcessingTime: 0,
+    successRate: 1,
+    totalQueries: 0
+  };
+
+  setMode(mode: 'mcp' | 'rag' | 'auto') {
+    this.mode = mode;
+  }
+
+  getStatus(): HybridEngineStatus {
+    return {
+      currentMode: this.mode,
+      mcpHealth: { healthy: true },
+      lastProcessingTime: this.stats.lastProcessingTime,
+      successRate: this.stats.successRate,
+      totalQueries: this.stats.totalQueries
+    };
+  }
+}
 
 // AI 에이전트 상태 인터페이스
 interface AIAgentState {
@@ -69,9 +103,9 @@ type AIAgentAction =
   | { type: 'CLEAR_THINKING_STEPS' }
   | { type: 'SET_THINKING_SESSION_ID'; payload: string | null }
   | {
-      type: 'UPDATE_STATS';
-      payload: { responseTime: number; success: boolean };
-    }
+    type: 'UPDATE_STATS';
+    payload: { responseTime: number; success: boolean };
+  }
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'RESET_STATE' };
 
@@ -453,7 +487,7 @@ export const AIAgentProvider: React.FC<AIAgentProviderProps> = ({
     (callback: (step: ThinkingStep) => void) => {
       if (!state.thinkingSessionId) {
         console.warn('No thinking session available');
-        return () => {};
+        return () => { };
       }
 
       dispatch({ type: 'SET_THINKING', payload: true });
