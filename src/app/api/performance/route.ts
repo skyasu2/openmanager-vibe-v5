@@ -9,7 +9,28 @@ import { CentralizedPerformanceMonitor } from '@/services/monitoring/Centralized
 
 const performanceMonitor = CentralizedPerformanceMonitor.getInstance();
 
+// 🚨 개발 환경에서 성능 모니터링 차단 (Vercel 과금 방지)
+function isMonitoringDisabled(): boolean {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const forceDisabled = process.env.PERFORMANCE_MONITORING_ENABLED === 'false';
+  return isDevelopment || forceDisabled;
+}
+
 export async function GET(request: NextRequest) {
+  // 🚨 개발 환경에서 차단
+  if (isMonitoringDisabled()) {
+    return NextResponse.json(
+      {
+        success: false,
+        message:
+          '개발 환경에서 성능 모니터링이 비활성화되었습니다 (Vercel 과금 방지)',
+        environment: process.env.NODE_ENV,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 403 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action');
@@ -88,6 +109,20 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  // 🚨 개발 환경에서 차단
+  if (isMonitoringDisabled()) {
+    return NextResponse.json(
+      {
+        success: false,
+        message:
+          '개발 환경에서 성능 모니터링 제어가 비활성화되었습니다 (Vercel 과금 방지)',
+        environment: process.env.NODE_ENV,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 403 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action');

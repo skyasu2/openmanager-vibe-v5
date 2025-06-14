@@ -1201,73 +1201,98 @@ export class CentralizedPerformanceMonitor {
     const isDevelopment = process.env.NODE_ENV === 'development';
     const vercelEnv = process.env.VERCEL_ENV; // production, preview, development
 
-    // 🚨 개발 환경에서는 기본적으로 비활성화 (Vercel 과금 방지)
+    // 🚨 Vercel 과금 방지 - 개발 환경에서 강제 비활성화
+    const forceDisableInDev =
+      isDevelopment || process.env.PERFORMANCE_MONITORING_ENABLED === 'false';
     const shouldOptimizeForVercel =
       isVercel && (vercelEnv === 'production' || vercelEnv === 'preview');
     const costSavingMode =
       process.env.PERFORMANCE_MONITORING_COST_SAVING === 'true' ||
       shouldOptimizeForVercel;
 
-    // 💰 개발 환경에서는 과금 방지를 위해 기본 비활성화
-    const devDisabled =
-      isDevelopment && process.env.PERFORMANCE_MONITORING_ENABLED !== 'true';
-
     console.log(
-      `🌐 환경 감지: Vercel=${isVercel}, Env=${vercelEnv}, 최적화=${shouldOptimizeForVercel}, 개발비활성화=${devDisabled}`
+      `🌐 환경 감지: Vercel=${isVercel}, Env=${vercelEnv}, 개발강제비활성화=${forceDisableInDev}, 최적화=${shouldOptimizeForVercel}`
     );
 
+    // 🚨 개발 환경에서는 무조건 비활성화
+    if (forceDisableInDev) {
+      console.log(
+        '🚨 개발 환경 감지 - 성능 모니터링 강제 비활성화 (Vercel 과금 방지)'
+      );
+      return {
+        enabled: false,
+        intervals: {
+          systemMetrics: 86400000, // 24시간
+          applicationMetrics: 86400000,
+          aiMetrics: 86400000,
+          optimization: 86400000,
+        },
+        retention: { raw: 1, aggregated: 1, reports: 1 },
+        alerts: {
+          enabled: false,
+          thresholds: {
+            cpu: 90,
+            memory: 90,
+            disk: 95,
+            responseTime: 5000,
+            errorRate: 0.1,
+            aiAccuracy: 0.5,
+          },
+        },
+        optimization: {
+          enabled: false,
+          autoOptimize: false,
+          reportFrequency: 168,
+        },
+      };
+    }
+
     return {
-      enabled: devDisabled
-        ? false
-        : shouldOptimizeForVercel
-          ? false
-          : process.env.PERFORMANCE_MONITORING_ENABLED !== 'false',
+      enabled: shouldOptimizeForVercel ? false : true,
       intervals: {
         systemMetrics: shouldOptimizeForVercel
           ? 86400000
           : costSavingMode
             ? 600000
-            : 300000, // Vercel: 24시간, 절약: 10분, 일반: 5분
+            : 300000,
         applicationMetrics: shouldOptimizeForVercel
           ? 86400000
           : costSavingMode
             ? 1200000
-            : 600000, // Vercel: 24시간, 절약: 20분, 일반: 10분
+            : 600000,
         aiMetrics: shouldOptimizeForVercel
           ? 86400000
           : costSavingMode
             ? 1200000
-            : 600000, // Vercel: 24시간, 절약: 20분, 일반: 10분
+            : 600000,
         optimization: shouldOptimizeForVercel
           ? 86400000
           : costSavingMode
             ? 3600000
-            : 1800000, // Vercel: 24시간, 절약: 1시간, 일반: 30분
+            : 1800000,
       },
       retention: {
-        raw: shouldOptimizeForVercel ? 1 : 7, // Vercel에서는 1일만 보관
+        raw: shouldOptimizeForVercel ? 1 : 7,
         aggregated: shouldOptimizeForVercel ? 7 : 30,
         reports: shouldOptimizeForVercel ? 30 : 90,
       },
       alerts: {
-        enabled: devDisabled
+        enabled: shouldOptimizeForVercel
           ? false
-          : shouldOptimizeForVercel
-            ? false
-            : process.env.PERFORMANCE_ALERTS_ENABLED !== 'false', // 개발/Vercel에서는 알림 비활성화
+          : process.env.PERFORMANCE_ALERTS_ENABLED !== 'false',
         thresholds: {
-          cpu: 80, // 80%
-          memory: 85, // 85%
-          disk: 90, // 90%
-          responseTime: 2000, // 2초
-          errorRate: 0.05, // 5%
-          aiAccuracy: 0.7, // 70%
+          cpu: 80,
+          memory: 85,
+          disk: 90,
+          responseTime: 2000,
+          errorRate: 0.05,
+          aiAccuracy: 0.7,
         },
       },
       optimization: {
-        enabled: devDisabled ? false : shouldOptimizeForVercel ? false : true, // 개발/Vercel에서는 최적화 리포트 비활성화
+        enabled: shouldOptimizeForVercel ? false : true,
         autoOptimize: false,
-        reportFrequency: shouldOptimizeForVercel ? 168 : 24, // Vercel: 주 1회, 로컬: 일 1회
+        reportFrequency: shouldOptimizeForVercel ? 168 : 24,
       },
     };
   }

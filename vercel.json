@@ -66,7 +66,9 @@
     }
   ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "PERFORMANCE_MONITORING_ENABLED": "false",
+    "VERCEL_CRON_DISABLED": "true"
   },
   "build": {
     "env": {
@@ -76,7 +78,8 @@
       "NEXT_TELEMETRY_DISABLED": "1",
       "CI": "true",
       "ESLINT_NO_DEV_ERRORS": "true",
-      "DISABLE_ESLINT_PLUGIN": "true"
+      "DISABLE_ESLINT_PLUGIN": "true",
+      "PERFORMANCE_MONITORING_ENABLED": "false"
     }
   },
   "github": {
@@ -91,6 +94,7 @@
     }
   ],
   "_comment_crons_disabled": "과금 방지를 위해 모든 cron 작업 비활성화. 필요시 수동으로 /api/health 접근",
+  "_comment_performance_disabled": "성능 모니터링 완전 비활성화로 Edge Middleware 호출 최소화",
   "cleanUrls": true,
   "trailingSlash": false
 }
