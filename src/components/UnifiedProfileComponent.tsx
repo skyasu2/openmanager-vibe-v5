@@ -11,7 +11,7 @@
 
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { UnifiedProfileComponentProps } from './unified-profile/types/ProfileTypes';
 import { UnifiedProfileButton } from './unified-profile/UnifiedProfileButton';
@@ -24,36 +24,50 @@ export default function UnifiedProfileComponent({
 }: UnifiedProfileComponentProps) {
   // 상태 관리
   const [isOpen, setIsOpen] = useState(false);
+  const [isToggling, setIsToggling] = useState(false);
   const { ui, setSettingsPanelOpen } = useUnifiedAdminStore();
   const showSettingsPanel = ui.isSettingsPanelOpen;
 
   // 참조
   const profileButtonRef = useRef<HTMLButtonElement>(null);
 
-  // 드롭다운 토글 핸들러
-  const handleToggleDropdown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  // 드롭다운 토글 핸들러 (최적화된 버전)
+  const handleToggleDropdown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    // 설정 패널이 열려있으면 먼저 닫기
-    if (showSettingsPanel) {
-      setSettingsPanelOpen(false);
-      return;
-    }
+      // 토글 중이면 무시
+      if (isToggling) return;
 
-    setIsOpen(!isOpen);
-  };
+      setIsToggling(true);
+
+      // 설정 패널이 열려있으면 먼저 닫기
+      if (showSettingsPanel) {
+        setSettingsPanelOpen(false);
+        setTimeout(() => setIsToggling(false), 100);
+        return;
+      }
+
+      // 드롭다운 토글
+      setIsOpen(prev => !prev);
+
+      // 토글 상태 해제
+      setTimeout(() => setIsToggling(false), 150);
+    },
+    [isToggling, showSettingsPanel, setSettingsPanelOpen]
+  );
 
   // 설정 패널 열기 핸들러
-  const handleSettingsClick = () => {
+  const handleSettingsClick = useCallback(() => {
     setSettingsPanelOpen(true);
     setIsOpen(false); // 드롭다운 닫기
-  };
+  }, [setSettingsPanelOpen]);
 
   // 설정 패널 닫기 핸들러
-  const handleSettingsClose = () => {
+  const handleSettingsClose = useCallback(() => {
     setSettingsPanelOpen(false);
-  };
+  }, [setSettingsPanelOpen]);
 
   return (
     <>

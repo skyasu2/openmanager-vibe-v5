@@ -10,7 +10,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import {
@@ -57,6 +57,7 @@ export function UnifiedProfileButton({
   const [showPasswordInput, setShowPasswordInput] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [isAnimating, setIsAnimating] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -73,84 +74,113 @@ export function UnifiedProfileButton({
 
   const { success, info, error } = useToast();
 
-  // 드롭다운 위치 계산
-  const calculateDropdownPosition = () => {
-    if (!buttonRef.current) return;
+  // 드롭다운 위치 계산 (useCallback으로 최적화)
+  const calculateDropdownPosition = useCallback(() => {
+    if (!buttonRef.current || !isOpen) return;
 
-    const buttonRect = buttonRef.current.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    // requestAnimationFrame으로 DOM 업데이트 후 실행
+    requestAnimationFrame(() => {
+      const buttonRect = buttonRef.current!.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
 
-    // 기본 위치: 버튼 아래, 오른쪽 정렬
-    let top = buttonRect.bottom + 8;
-    let left = buttonRect.right - 380; // 드롭다운 너비 380px로 확장
+      // 기본 위치: 버튼 아래, 오른쪽 정렬
+      let top = buttonRect.bottom + 8;
+      let left = buttonRect.right - 380; // 드롭다운 너비 380px로 확장
 
-    // 드롭다운이 화면 아래로 넘어가는 경우 위쪽에 표시
-    const dropdownHeight = 500; // 높이 증가
-    if (top + dropdownHeight > viewportHeight) {
-      top = buttonRect.top - dropdownHeight - 8;
-    }
+      // 드롭다운이 화면 아래로 넘어가는 경우 위쪽에 표시
+      const dropdownHeight = 500; // 높이 증가
+      if (top + dropdownHeight > viewportHeight) {
+        top = buttonRect.top - dropdownHeight - 8;
+      }
 
-    // 드롭다운이 화면 왼쪽으로 넘어가는 경우
-    if (left < 16) {
-      left = 16;
-    }
+      // 드롭다운이 화면 왼쪽으로 넘어가는 경우
+      if (left < 16) {
+        left = 16;
+      }
 
-    // 모바일에서는 중앙 정렬
-    if (viewportWidth < 640) {
-      left = (viewportWidth - 380) / 2;
-      if (left < 16) left = 16;
-    }
+      // 모바일에서는 중앙 정렬
+      if (viewportWidth < 640) {
+        left = (viewportWidth - 380) / 2;
+        if (left < 16) left = 16;
+      }
 
-    setDropdownPosition({ top, left, transformOrigin: 'top right' });
-  };
+      setDropdownPosition({ top, left, transformOrigin: 'top right' });
+    });
+  }, [buttonRef, isOpen]);
 
-  // 외부 클릭 감지
+  // 외부 클릭 감지 (최적화된 버전)
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || isAnimating) return;
 
     const handleClickOutside = (event: Event) => {
       const target = event.target as Node;
 
+      // 버튼 클릭은 무시 (onClick 핸들러에서 처리)
       if (buttonRef.current?.contains(target)) {
         return;
       }
 
-      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
-        // 부모 컴포넌트의 onClick 호출하여 닫기
-        onClick({} as React.MouseEvent);
+      // 드롭다운 내부 클릭은 무시
+      if (dropdownRef.current?.contains(target)) {
+        return;
       }
+
+      // 외부 클릭 시 드롭다운 닫기
+      onClick({} as React.MouseEvent);
     };
 
-    document.addEventListener('mousedown', handleClickOutside, {
-      passive: true,
-      capture: false,
-    });
+    // 약간의 지연을 두어 버튼 클릭과 충돌 방지
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside, {
+        passive: true,
+        capture: true, // capture 단계에서 처리
+      });
+    }, 100);
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      clearTimeout(timeoutId);
+      document.removeEventListener('mousedown', handleClickOutside, true);
     };
-  }, [isOpen, onClick, buttonRef]);
+  }, [isOpen, onClick, buttonRef, isAnimating]);
 
-  // ESC 키로 드롭다운 닫기
+  // ESC 키로 드롭다운 닫기 (최적화된 버전)
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || isAnimating) return;
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
+        e.stopPropagation();
         onClick({} as React.MouseEvent);
       }
     };
 
-    document.addEventListener('keydown', handleEscape, { passive: false });
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, onClick]);
+    document.addEventListener('keydown', handleEscape, {
+      passive: false,
+      capture: true,
+    });
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape, true);
+    };
+  }, [isOpen, onClick, isAnimating]);
 
   // 위치 계산 (드롭다운이 열릴 때)
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !isAnimating) {
       calculateDropdownPosition();
+    }
+  }, [isOpen, calculateDropdownPosition, isAnimating]);
+
+  // 애니메이션 상태 관리
+  useEffect(() => {
+    if (isOpen) {
+      setIsAnimating(true);
+      const timer = setTimeout(() => setIsAnimating(false), 200); // 애니메이션 duration과 동일
+      return () => clearTimeout(timer);
+    } else {
+      setIsAnimating(false);
     }
   }, [isOpen]);
 
@@ -268,13 +298,13 @@ export function UnifiedProfileButton({
   };
 
   // 드롭다운 메뉴 (Portal로 렌더링)
-  const DropdownPortal = () => {
+  const DropdownPortal = useCallback(() => {
     if (typeof window === 'undefined') return null;
 
     const systemStatus = getSystemStatus();
 
     return createPortal(
-      <AnimatePresence>
+      <AnimatePresence mode='wait'>
         {isOpen && (
           <>
             {/* 오버레이 (모바일용) */}
@@ -282,9 +312,13 @@ export function UnifiedProfileButton({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
               className='fixed inset-0 bg-black/20 z-[9990] sm:hidden'
-              onClick={() => onClick({} as React.MouseEvent)}
+              onClick={e => {
+                e.preventDefault();
+                e.stopPropagation();
+                onClick({} as React.MouseEvent);
+              }}
             />
 
             {/* 드롭다운 메뉴 */}
@@ -294,7 +328,7 @@ export function UnifiedProfileButton({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -10 }}
               transition={{
-                duration: 0.2,
+                duration: 0.15, // 단축된 애니메이션
                 ease: [0.16, 1, 0.3, 1],
               }}
               style={{
@@ -302,23 +336,28 @@ export function UnifiedProfileButton({
                 top: dropdownPosition.top,
                 left: dropdownPosition.left,
                 transformOrigin: dropdownPosition.transformOrigin,
+                willChange: 'transform, opacity', // 성능 최적화
+                transform: 'translate3d(0, 0, 0)', // GPU 가속
               }}
               className='w-96 bg-gray-900/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl z-[9999]'
               role='menu'
               aria-orientation='vertical'
+              onAnimationStart={() => setIsAnimating(true)}
+              onAnimationComplete={() => setIsAnimating(false)}
             >
               {/* 헤더 */}
               <div className='p-4 border-b border-white/10'>
                 <div className='flex items-center gap-3 mb-3'>
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center ${isLocked
-                      ? 'bg-gradient-to-br from-red-500 to-orange-600'
-                      : adminMode.isAuthenticated
-                        ? 'bg-gradient-to-br from-orange-500 to-red-600'
-                        : aiAgent.isEnabled
-                          ? 'bg-gradient-to-br from-purple-500 to-pink-600'
-                          : 'bg-gradient-to-br from-cyan-500 to-blue-600'
-                      }`}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      isLocked
+                        ? 'bg-gradient-to-br from-red-500 to-orange-600'
+                        : adminMode.isAuthenticated
+                          ? 'bg-gradient-to-br from-orange-500 to-red-600'
+                          : aiAgent.isEnabled
+                            ? 'bg-gradient-to-br from-purple-500 to-pink-600'
+                            : 'bg-gradient-to-br from-cyan-500 to-blue-600'
+                    }`}
                   >
                     {userAvatar ? (
                       <Image
@@ -344,7 +383,9 @@ export function UnifiedProfileButton({
                 <div className='flex items-center justify-between p-3 rounded-lg bg-white/5 mb-3'>
                   <div className='flex items-center gap-3'>
                     <div className={`p-2 rounded-lg ${systemStatus.bgColor}`}>
-                      <systemStatus.icon className={`w-4 h-4 ${systemStatus.color}`} />
+                      <systemStatus.icon
+                        className={`w-4 h-4 ${systemStatus.color}`}
+                      />
                     </div>
                     <div>
                       <div className='text-white text-sm font-medium'>
@@ -369,7 +410,9 @@ export function UnifiedProfileButton({
                     className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 mb-2'
                     role='menuitem'
                   >
-                    <div className={`p-2 rounded-lg ${adminMode.isAuthenticated ? 'bg-orange-500/20' : 'bg-gray-500/20'}`}>
+                    <div
+                      className={`p-2 rounded-lg ${adminMode.isAuthenticated ? 'bg-orange-500/20' : 'bg-gray-500/20'}`}
+                    >
                       {adminMode.isAuthenticated ? (
                         <Unlock className='w-4 h-4 text-orange-400' />
                       ) : (
@@ -378,10 +421,14 @@ export function UnifiedProfileButton({
                     </div>
                     <div className='flex-1'>
                       <div className='text-white font-medium'>
-                        {adminMode.isAuthenticated ? '관리자 모드 해제' : '관리자 모드 활성화'}
+                        {adminMode.isAuthenticated
+                          ? '관리자 모드 해제'
+                          : '관리자 모드 활성화'}
                       </div>
                       <div className='text-gray-400 text-xs'>
-                        {adminMode.isAuthenticated ? 'AI 관리 권한을 해제합니다' : 'AI 관리 권한을 활성화합니다'}
+                        {adminMode.isAuthenticated
+                          ? 'AI 관리 권한을 해제합니다'
+                          : 'AI 관리 권한을 활성화합니다'}
                       </div>
                     </div>
                     {adminMode.isAuthenticated && (
@@ -391,19 +438,23 @@ export function UnifiedProfileButton({
                 ) : (
                   /* 비밀번호 입력 폼 */
                   <div className='p-3 rounded-lg bg-white/5 mb-2'>
-                    <div className='text-white text-sm font-medium mb-2'>관리자 비밀번호 입력</div>
+                    <div className='text-white text-sm font-medium mb-2'>
+                      관리자 비밀번호 입력
+                    </div>
                     <form onSubmit={handlePasswordSubmit} className='space-y-2'>
                       <input
                         type='password'
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={e => setPassword(e.target.value)}
                         placeholder='4자리 비밀번호'
                         maxLength={4}
                         className='w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-center text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-orange-500'
                         autoFocus
                       />
                       {passwordError && (
-                        <div className='text-red-400 text-xs text-center'>{passwordError}</div>
+                        <div className='text-red-400 text-xs text-center'>
+                          {passwordError}
+                        </div>
                       )}
                       <div className='flex gap-2'>
                         <button
@@ -426,13 +477,19 @@ export function UnifiedProfileButton({
 
                 {/* 시스템 시작/중단 버튼 */}
                 <motion.button
-                  whileHover={{ backgroundColor: isSystemStarted ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)' }}
+                  whileHover={{
+                    backgroundColor: isSystemStarted
+                      ? 'rgba(239, 68, 68, 0.1)'
+                      : 'rgba(34, 197, 94, 0.1)',
+                  }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleSystemToggle}
                   className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 mb-2'
                   role='menuitem'
                 >
-                  <div className={`p-2 rounded-lg ${isSystemStarted ? 'bg-red-500/20' : 'bg-green-500/20'}`}>
+                  <div
+                    className={`p-2 rounded-lg ${isSystemStarted ? 'bg-red-500/20' : 'bg-green-500/20'}`}
+                  >
                     {isSystemStarted ? (
                       <Square className='w-4 h-4 text-red-400' />
                     ) : (
@@ -444,7 +501,9 @@ export function UnifiedProfileButton({
                       {isSystemStarted ? '시스템 중단' : '시스템 시작'}
                     </div>
                     <div className='text-gray-400 text-xs'>
-                      {isSystemStarted ? '모니터링을 중단합니다' : '모니터링을 시작합니다'}
+                      {isSystemStarted
+                        ? '모니터링을 중단합니다'
+                        : '모니터링을 시작합니다'}
                     </div>
                   </div>
                   {isSystemStarted && (
@@ -456,7 +515,9 @@ export function UnifiedProfileButton({
                 {isSystemStarted && (
                   <Link href='/dashboard'>
                     <motion.button
-                      whileHover={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
+                      whileHover={{
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                      }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => onClick({} as React.MouseEvent)}
                       className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2'
@@ -466,7 +527,9 @@ export function UnifiedProfileButton({
                         <Activity className='w-4 h-4 text-blue-400' />
                       </div>
                       <div>
-                        <div className='text-white font-medium'>대시보드 이동</div>
+                        <div className='text-white font-medium'>
+                          대시보드 이동
+                        </div>
                         <div className='text-gray-400 text-xs'>
                           실시간 모니터링 대시보드로 이동
                         </div>
@@ -479,7 +542,9 @@ export function UnifiedProfileButton({
                 {adminMode.isAuthenticated && (
                   <Link href='/admin/ai-agent'>
                     <motion.button
-                      whileHover={{ backgroundColor: 'rgba(139, 92, 246, 0.1)' }}
+                      whileHover={{
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                      }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => onClick({} as React.MouseEvent)}
                       className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 mb-2'
@@ -489,7 +554,9 @@ export function UnifiedProfileButton({
                         <Shield className='w-4 h-4 text-purple-400' />
                       </div>
                       <div>
-                        <div className='text-white font-medium'>🧠 AI 엔진 관리</div>
+                        <div className='text-white font-medium'>
+                          🧠 AI 엔진 관리
+                        </div>
                         <div className='text-gray-400 text-xs'>
                           AI 로그, 컨텍스트, A/B 테스트 관리
                         </div>
@@ -565,7 +632,28 @@ export function UnifiedProfileButton({
       </AnimatePresence>,
       document.body
     );
-  };
+  }, [
+    isOpen,
+    onClick,
+    dropdownPosition,
+    dropdownRef,
+    isAnimating,
+    userName,
+    userAvatar,
+    isLocked,
+    adminMode,
+    aiAgent,
+    success,
+    info,
+    error,
+    showPasswordInput,
+    password,
+    passwordError,
+    handleAdminModeToggle,
+    handleSystemToggle,
+    handleSettingsClick,
+    handleLogout,
+  ]);
 
   return (
     <div className='relative'>
@@ -574,29 +662,44 @@ export function UnifiedProfileButton({
         ref={buttonRef}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        onClick={onClick}
-        className={`flex items-center gap-3 p-2 rounded-xl backdrop-blur-md border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent ${isLocked
-          ? 'bg-red-500/30 border-red-500/60 shadow-red-500/30 shadow-lg focus:ring-red-500'
-          : adminMode.isAuthenticated
-            ? 'bg-orange-500/30 border-orange-500/60 shadow-orange-500/30 shadow-lg focus:ring-orange-500'
-            : aiAgent.isEnabled
-              ? 'bg-purple-500/30 border-purple-500/60 shadow-purple-500/30 shadow-lg focus:ring-purple-500'
-              : 'bg-gray-900/80 border-gray-700/60 hover:bg-gray-900/90 focus:ring-gray-500 shadow-lg'
-          }`}
+        onClick={e => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          // 애니메이션 중이면 클릭 무시
+          if (isAnimating) return;
+
+          onClick(e);
+        }}
+        className={`flex items-center gap-3 p-2 rounded-xl backdrop-blur-md border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent ${
+          isLocked
+            ? 'bg-red-500/30 border-red-500/60 shadow-red-500/30 shadow-lg focus:ring-red-500'
+            : adminMode.isAuthenticated
+              ? 'bg-orange-500/30 border-orange-500/60 shadow-orange-500/30 shadow-lg focus:ring-orange-500'
+              : aiAgent.isEnabled
+                ? 'bg-purple-500/30 border-purple-500/60 shadow-purple-500/30 shadow-lg focus:ring-purple-500'
+                : 'bg-gray-900/80 border-gray-700/60 hover:bg-gray-900/90 focus:ring-gray-500 shadow-lg'
+        }`}
+        style={{
+          willChange: 'transform',
+          transform: 'translate3d(0, 0, 0)',
+        }}
         aria-label='프로필 메뉴 열기'
         aria-expanded={isOpen}
         aria-haspopup='true'
+        disabled={isAnimating} // 애니메이션 중 비활성화
       >
         {/* 아바타 */}
         <div
-          className={`w-8 h-8 rounded-full flex items-center justify-center ${isLocked
-            ? 'bg-gradient-to-br from-red-500 to-orange-600'
-            : adminMode.isAuthenticated
-              ? 'bg-gradient-to-br from-orange-500 to-red-600'
-              : aiAgent.isEnabled
-                ? 'bg-gradient-to-br from-purple-500 to-pink-600'
-                : 'bg-gradient-to-br from-cyan-500 to-blue-600'
-            }`}
+          className={`w-8 h-8 rounded-full flex items-center justify-center ${
+            isLocked
+              ? 'bg-gradient-to-br from-red-500 to-orange-600'
+              : adminMode.isAuthenticated
+                ? 'bg-gradient-to-br from-orange-500 to-red-600'
+                : aiAgent.isEnabled
+                  ? 'bg-gradient-to-br from-purple-500 to-pink-600'
+                  : 'bg-gradient-to-br from-cyan-500 to-blue-600'
+          }`}
         >
           {userAvatar ? (
             <Image
@@ -641,8 +744,9 @@ export function UnifiedProfileButton({
 
           {/* 드롭다운 아이콘 */}
           <ChevronDown
-            className={`w-3 h-3 text-white/70 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''
-              }`}
+            className={`w-3 h-3 text-white/70 transition-transform duration-200 ${
+              isOpen ? 'rotate-180' : ''
+            }`}
           />
         </div>
       </motion.button>
