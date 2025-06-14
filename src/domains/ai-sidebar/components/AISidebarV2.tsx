@@ -34,6 +34,10 @@ import AIAgentIconPanel, {
 import AIChatPage from '@/components/ai/pages/AIChatPage';
 import AutoReportPage from '@/components/ai/pages/AutoReportPage';
 import PredictionPage from '@/components/ai/pages/PredictionPage';
+import InfrastructureOverviewPage from '@/components/ai/pages/InfrastructureOverviewPage';
+import SystemAlertsPage from '@/components/ai/pages/SystemAlertsPage';
+import AIInsightsCard from '@/components/dashboard/AIInsightsCard';
+import { GoogleAIStatusCard } from '@/components/shared/GoogleAIStatusCard';
 
 interface AISidebarV2Props {
   isOpen: boolean;
@@ -158,15 +162,40 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         return <AutoReportPage />;
       case 'prediction':
         return <PredictionPage />;
+      case 'infrastructure-overview':
+        return <InfrastructureOverviewPage />;
+      case 'system-alerts':
+        return <SystemAlertsPage />;
       case 'advanced-management':
         return (
-          <div className='flex items-center justify-center h-full bg-gradient-to-br from-gray-50 to-slate-50'>
-            <div className='text-center'>
-              <Brain className='w-16 h-16 text-gray-300 mx-auto mb-4' />
-              <h3 className='text-lg font-bold text-gray-600 mb-2'>
-                AI 고급관리
-              </h3>
-              <p className='text-sm text-gray-500'>곧 출시 예정입니다</p>
+          <div className='flex flex-col h-full p-4 bg-gray-50'>
+            <h2 className='text-xl font-bold text-gray-800 mb-4 flex items-center gap-2'>
+              <Brain className='w-6 h-6 text-purple-600' />
+              AI 고급 관리
+            </h2>
+            <div className='grid grid-cols-1 gap-4 flex-1'>
+              {/* AI 인사이트 섹션 */}
+              <div className='bg-white rounded-lg p-4 shadow-sm border'>
+                <h3 className='text-lg font-semibold text-gray-700 mb-3'>
+                  AI 인사이트
+                </h3>
+                <AIInsightsCard
+                  className='shadow-none border-0 p-0'
+                  showRecommendations={true}
+                />
+              </div>
+
+              {/* Google AI 상태 섹션 */}
+              <div className='bg-white rounded-lg p-4 shadow-sm border'>
+                <h3 className='text-lg font-semibold text-gray-700 mb-3'>
+                  Google AI 연결 상태
+                </h3>
+                <GoogleAIStatusCard
+                  className='shadow-none border-0 p-0'
+                  showDetails={true}
+                  variant='admin'
+                />
+              </div>
             </div>
           </div>
         );

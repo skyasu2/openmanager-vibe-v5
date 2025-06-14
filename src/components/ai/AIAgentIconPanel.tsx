@@ -23,6 +23,8 @@ import {
   ScrollText,
   Brain,
   Zap,
+  Monitor,
+  AlertTriangle,
 } from 'lucide-react';
 
 export type AIAgentFunction =
@@ -33,7 +35,9 @@ export type AIAgentFunction =
   | 'pattern-analysis'
   | 'log-analysis'
   | 'thinking'
-  | 'optimization';
+  | 'optimization'
+  | 'infrastructure-overview'
+  | 'system-alerts';
 
 interface AIAgentIcon {
   id: AIAgentFunction;
@@ -72,6 +76,24 @@ const AI_AGENT_ICONS: AIAgentIcon[] = [
     color: 'text-purple-600',
     bgColor: 'bg-purple-50 hover:bg-purple-100',
     gradient: 'from-purple-500 to-indigo-500',
+  },
+  {
+    id: 'infrastructure-overview',
+    icon: Monitor,
+    label: '인프라 전체현황',
+    description: '전체 인프라 상태 및 통계',
+    color: 'text-indigo-600',
+    bgColor: 'bg-indigo-50 hover:bg-indigo-100',
+    gradient: 'from-indigo-500 to-blue-500',
+  },
+  {
+    id: 'system-alerts',
+    icon: AlertTriangle,
+    label: '실시간 알림',
+    description: '실시간 시스템 알림 및 경고',
+    color: 'text-amber-600',
+    bgColor: 'bg-amber-50 hover:bg-amber-100',
+    gradient: 'from-amber-500 to-orange-500',
   },
   {
     id: 'advanced-management',

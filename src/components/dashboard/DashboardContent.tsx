@@ -4,8 +4,8 @@ import { useState, useEffect, useMemo, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import ServerDashboard from './ServerDashboard';
-import GoogleAIStatusCard from './GoogleAIStatusCard';
-import AIInsightsCard from './AIInsightsCard';
+import InfrastructureOverviewPage from '@/components/ai/pages/InfrastructureOverviewPage';
+import SystemAlertsPage from '@/components/ai/pages/SystemAlertsPage';
 
 import { Server } from '../../types/server';
 import { safeConsoleError, safeErrorMessage } from '../../lib/utils-functions';
@@ -133,9 +133,9 @@ export default function DashboardContent({
         className='flex-1 p-6 overflow-auto'
       >
         <div className='max-w-7xl mx-auto space-y-6'>
-          {/* 🎯 AI 인사이트 및 상태 모니터링 섹션 */}
+          {/* 🎯 인프라 전체 현황 및 실시간 알림 섹션 */}
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-            {/* AI 인사이트 카드 */}
+            {/* 🎛️ 인프라 전체 현황 */}
             <Suspense
               fallback={
                 <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
@@ -149,10 +149,12 @@ export default function DashboardContent({
                 </div>
               }
             >
-              <AIInsightsCard />
+              <div className='bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden'>
+                <InfrastructureOverviewPage className='h-96' />
+              </div>
             </Suspense>
 
-            {/* Google AI 상태 카드 */}
+            {/* 🚨 실시간 시스템 알림 */}
             <Suspense
               fallback={
                 <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
@@ -166,7 +168,9 @@ export default function DashboardContent({
                 </div>
               }
             >
-              <GoogleAIStatusCard showDetails={true} />
+              <div className='bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden'>
+                <SystemAlertsPage className='h-96' />
+              </div>
             </Suspense>
           </div>
 
