@@ -2,7 +2,13 @@
 
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Bot, Minimize2, Maximize2 } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Bot,
+  Minimize2,
+  Maximize2,
+} from 'lucide-react';
 import dynamic from 'next/dynamic';
 import ServerDashboard from './ServerDashboard';
 import GoogleAIStatusCard from './GoogleAIStatusCard';
@@ -152,11 +158,12 @@ export default function DashboardContent({
       <div className='min-h-screen bg-gray-50 flex relative'>
         {/* 메인 대시보드 영역 */}
         <div
-          className={`flex-1 transition-all duration-300 ${isAISidebarOpen ? 'mr-[30%]' : 'mr-0'
-            }`}
+          className={`flex-1 transition-all duration-300 ${
+            isAISidebarOpen ? 'mr-[30%]' : 'mr-0'
+          }`}
         >
-          {/* 상단 모니터링 도구 영역 (40%) */}
-          <div className='h-[40vh] p-6 bg-white border-b border-gray-200'>
+          {/* 상단 모니터링 도구 영역 제거 (요청에 따라 숨김) */}
+          <div className='hidden'>
             <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 h-full'>
               {/* 좌측: Infrastructure Overview */}
               <div className='bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100'>
@@ -234,8 +241,9 @@ export default function DashboardContent({
         {/* AI 사이드바 토글 버튼 */}
         <motion.button
           onClick={() => setIsAISidebarOpen(!isAISidebarOpen)}
-          className={`fixed top-1/2 -translate-y-1/2 z-50 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-l-lg shadow-lg transition-all duration-300 ${isAISidebarOpen ? 'right-[30%]' : 'right-0'
-            }`}
+          className={`fixed top-1/2 -translate-y-1/2 z-50 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-l-lg shadow-lg transition-all duration-300 ${
+            isAISidebarOpen ? 'right-[30%]' : 'right-0'
+          }`}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
