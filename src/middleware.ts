@@ -37,10 +37,8 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
+// 🚨 Next.js는 config.matcher에서 런타임 조건부 표현식을 지원하지 않음
+// 개발 환경에서는 middleware 함수 내부에서 early return으로 처리
 export const config = {
-  // 🚨 개발 환경에서는 matcher를 최소화 (Vercel 과금 방지)
-  matcher:
-    process.env.NODE_ENV === 'development'
-      ? [] // 개발 환경에서는 완전 비활성화
-      : '/api/:path*', // 프로덕션에서만 API 추적
+  matcher: '/api/:path*', // 모든 환경에서 동일하게 설정하되, 함수 내부에서 처리
 };
