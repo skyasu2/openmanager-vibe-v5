@@ -4,7 +4,7 @@ import { Suspense, lazy, useState, useEffect } from 'react';
 import { useDashboardLogic } from '../../hooks/useDashboardLogic';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { AlertTriangle, Monitor, Bot, RefreshCw } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { NotificationToast } from '@/components/system/NotificationToast';
@@ -158,43 +158,12 @@ const ContentLoadingSkeleton = () => (
   </div>
 );
 
-// Dynamic imports for better performance
-// const SystemStatusWidget = dynamic(
-//   () => import('./components/SystemStatusWidget'),
-//   {
-//     loading: () => (
-//       <div className='animate-pulse bg-gray-800 rounded-lg h-32' />
-//     ),
-//     ssr: false,
-//   }
-// );
-
-// const PatternAnalysisWidget = dynamic(
-//   () => import('@/components/ai/PatternAnalysisWidget'),
-//   {
-//     loading: () => (
-//       <div className='animate-pulse bg-gray-800 rounded-lg h-64' />
-//     ),
-//     ssr: false,
-//   }
-// );
-
-// const PredictionDashboard = dynamic(
-//   () => import('@/components/prediction/PredictionDashboard'),
-//   {
-//     loading: () => (
-//       <div className='animate-pulse bg-gray-800 rounded-lg h-80' />
-//     ),
-//     ssr: false,
-//   }
-// );
-
 function DashboardPageContent() {
   const {
     isAgentOpen,
     isClient,
     selectedServer,
-    serverStats, // 실제 API 통계 데이터 사용
+    serverStats,
 
     // Actions
     setSelectedServer,
@@ -222,41 +191,6 @@ function DashboardPageContent() {
   const { isSystemStarted, getSystemRemainingTime } = useUnifiedAdminStore();
   const { isOpen: isAISidebarOpen, setOpen: setAISidebarOpen } =
     useAISidebarStore();
-
-  // 🛡️ 대시보드 진입 시 시스템 상태 검증
-  useEffect(() => {
-    if (isClient) {
-      console.log('📊 [Dashboard] 페이지 진입 - 시스템 상태 검증');
-
-      // 🔧 대시보드 진입 시 AI 사이드바 강제 닫기
-      if (isAISidebarOpen) {
-        console.log('🔧 [Dashboard] AI 사이드바 자동 닫기');
-        setAISidebarOpen(false);
-      }
-
-      if (!isSystemStarted) {
-        console.warn('⚠️ [Dashboard] 시스템이 비활성 상태에서 대시보드 접근');
-      } else {
-        const remainingTime = getSystemRemainingTime();
-        console.log(
-          `✅ [Dashboard] 시스템 활성 확인 - 남은 시간: ${Math.floor(remainingTime / 1000)}초`
-        );
-      }
-    }
-  }, [
-    isClient,
-    isSystemStarted,
-    getSystemRemainingTime,
-    isAISidebarOpen,
-    setAISidebarOpen,
-  ]);
-
-  // 🧹 컴포넌트 언마운트 시 정리
-  useEffect(() => {
-    return () => {
-      console.log('🧹 [Dashboard] 페이지 언마운트 - 리소스 정리');
-    };
-  }, []);
 
   // 🔄 클라이언트 사이드 렌더링 확인
   if (!isClient) {
@@ -290,7 +224,7 @@ function DashboardPageContent() {
         {/* 헤더 */}
         <Suspense fallback={<HeaderLoadingSkeleton />}>
           <DashboardHeader
-            serverStats={serverStats} // 실제 API에서 가져온 통계 데이터 사용
+            serverStats={serverStats}
             onNavigateHome={handleNavigateHome}
             onToggleAgent={toggleAgent}
             isAgentOpen={isAgentOpen}
@@ -347,35 +281,13 @@ function DashboardPageContent() {
         <NotificationToast />
       </motion.div>
 
-      {/* 🤖 AI 사이드바 - 새로운 도메인 분리 아키텍처 */}
+      {/* 🤖 AI 사이드바 - 간소화 버전 */}
       {isAISidebarOpen && (
         <div className='fixed top-0 right-0 h-full w-[400px] z-20 shadow-2xl bg-white border-l border-gray-200'>
-          <div className='absolute top-4 right-4 z-30'>
-            <button
-              onClick={() => {
-                console.log('🔧 [Dashboard] AI 사이드바 수동 닫기');
-                setAISidebarOpen(false);
-              }}
-              className='p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors'
-              title='사이드바 닫기'
-            >
-              ✕
-            </button>
-          </div>
           <AISidebar
             isOpen={isAISidebarOpen}
-            onClose={() => {
-              console.log('🔧 [Dashboard] AI 사이드바 onClose 호출');
-              setAISidebarOpen(false);
-            }}
+            onClose={() => setAISidebarOpen(false)}
           />
-        </div>
-      )}
-
-      {/* 🐛 디버깅 정보 */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className='fixed bottom-4 left-4 bg-black text-white p-2 rounded text-xs z-50'>
-          AI 사이드바: {isAISidebarOpen ? '열림' : '닫힘'}
         </div>
       )}
     </div>

@@ -379,7 +379,7 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
     this.isRunning = true;
     console.log(`고급 데이터 생성기 시작: ${this.servers.length}개 서버`);
 
-    // 메트릭 생성 (20초 간격으로 조정)
+    // 메트릭 생성 (10초 간격으로 조정)
     const metricsInterval = setInterval(() => {
       this.servers.forEach(server => {
         const metrics = this.generateMetrics(server);
@@ -396,7 +396,7 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
           status: 'healthy',
         }).catch(console.error);
       });
-    }, 20000); // 20초로 조정
+    }, 10000); // 🎯 사용자 요청: 10초로 변경 (기존 20초에서)
 
     this.intervals.push(metricsInterval);
   }

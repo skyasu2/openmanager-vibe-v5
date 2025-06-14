@@ -492,38 +492,54 @@ export class UnifiedNotificationService {
       // 클라이언트 사이드에서만 실행
       if (typeof window === 'undefined') {
         console.log('🔕 Toast 알림 건너뜀: 서버 사이드 환경');
+        result.channels.toast.sent = false;
+        result.channels.toast.error = '서버 사이드 환경';
         return;
       }
 
-      // EnhancedToastSystem이 사용 가능한지 확인
-      if (
-        !EnhancedToastSystem ||
-        typeof EnhancedToastSystem.showServerAlert !== 'function'
-      ) {
-        console.warn(
-          '⚠️ EnhancedToastSystem.showServerAlert 메서드를 찾을 수 없습니다'
-        );
-        result.channels.toast.error = 'showServerAlert 메서드 없음';
-        this.stats.channelStats.toast.failed++;
+      // 🌐 Vercel 환경에서는 Toast 비활성화 (과금 절약)
+      if (process.env.VERCEL === '1') {
+        console.log('🔕 Toast 알림 건너뜀: Vercel 환경 (과금 절약)');
+        result.channels.toast.sent = false;
+        result.channels.toast.error = 'Vercel 환경 과금 절약';
         return;
       }
 
-      // 서버 알림용 특별 처리
+      // 서버 알림용 특별 처리 - showServerAlert 메서드가 없으므로 일반 메서드 사용
       if (
         notification.type === 'server' &&
         notification.serverId &&
         notification.serverName
       ) {
-        EnhancedToastSystem.showServerAlert({
-          id: notification.id,
-          serverId: notification.serverId,
-          serverName: notification.serverName,
-          type: 'custom',
-          severity: notification.severity,
-          message: notification.message,
-          timestamp: notification.timestamp!,
-          actionRequired: notification.actionRequired,
-        });
+        // 서버 알림도 일반 Toast 메서드로 처리
+        const serverMessage = `[${notification.serverName}] ${notification.message}`;
+        const toastSeverity =
+          notification.severity === 'success' ? 'info' : notification.severity;
+
+        switch (toastSeverity) {
+          case 'critical':
+            if (typeof EnhancedToastSystem.showError === 'function') {
+              EnhancedToastSystem.showError(notification.title, serverMessage);
+            }
+            break;
+          case 'warning':
+            if (typeof EnhancedToastSystem.showWarning === 'function') {
+              EnhancedToastSystem.showWarning(
+                notification.title,
+                serverMessage
+              );
+            }
+            break;
+          case 'info':
+            if (typeof EnhancedToastSystem.showInfo === 'function') {
+              EnhancedToastSystem.showInfo(notification.title, serverMessage);
+            }
+            break;
+          default:
+            if (typeof EnhancedToastSystem.showInfo === 'function') {
+              EnhancedToastSystem.showInfo(notification.title, serverMessage);
+            }
+        }
       } else {
         // 일반 알림 - 기본 toast 메서드 사용
         const toastSeverity =

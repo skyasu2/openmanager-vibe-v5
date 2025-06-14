@@ -1198,52 +1198,63 @@ export class CentralizedPerformanceMonitor {
     // 🌐 Vercel 환경 감지 및 자동 최적화
     const isVercel = process.env.VERCEL === '1';
     const isProduction = process.env.NODE_ENV === 'production';
+    const isDevelopment = process.env.NODE_ENV === 'development';
     const vercelEnv = process.env.VERCEL_ENV; // production, preview, development
 
-    // Vercel 환경에서는 과금 절약을 위해 기본적으로 비활성화 또는 최소화
+    // 🚨 개발 환경에서는 기본적으로 비활성화 (Vercel 과금 방지)
     const shouldOptimizeForVercel =
       isVercel && (vercelEnv === 'production' || vercelEnv === 'preview');
     const costSavingMode =
       process.env.PERFORMANCE_MONITORING_COST_SAVING === 'true' ||
       shouldOptimizeForVercel;
 
+    // 💰 개발 환경에서는 과금 방지를 위해 기본 비활성화
+    const devDisabled =
+      isDevelopment && process.env.PERFORMANCE_MONITORING_ENABLED !== 'true';
+
     console.log(
-      `🌐 환경 감지: Vercel=${isVercel}, Env=${vercelEnv}, 최적화=${shouldOptimizeForVercel}`
+      `🌐 환경 감지: Vercel=${isVercel}, Env=${vercelEnv}, 최적화=${shouldOptimizeForVercel}, 개발비활성화=${devDisabled}`
     );
 
     return {
-      enabled: shouldOptimizeForVercel
+      enabled: devDisabled
         ? false
-        : process.env.PERFORMANCE_MONITORING_ENABLED !== 'false',
+        : shouldOptimizeForVercel
+          ? false
+          : process.env.PERFORMANCE_MONITORING_ENABLED !== 'false',
       intervals: {
         systemMetrics: shouldOptimizeForVercel
-          ? 3600000
+          ? 86400000
           : costSavingMode
             ? 600000
-            : 30000, // Vercel: 1시간, 프로덕션: 10분, 개발: 30초
+            : 300000, // Vercel: 24시간, 절약: 10분, 일반: 5분
         applicationMetrics: shouldOptimizeForVercel
-          ? 7200000
+          ? 86400000
           : costSavingMode
             ? 1200000
-            : 60000, // Vercel: 2시간, 프로덕션: 20분, 개발: 1분
+            : 600000, // Vercel: 24시간, 절약: 20분, 일반: 10분
         aiMetrics: shouldOptimizeForVercel
-          ? 7200000
+          ? 86400000
           : costSavingMode
             ? 1200000
-            : 60000, // Vercel: 2시간, 프로덕션: 20분, 개발: 1분
+            : 600000, // Vercel: 24시간, 절약: 20분, 일반: 10분
         optimization: shouldOptimizeForVercel
           ? 86400000
           : costSavingMode
             ? 3600000
-            : 300000, // Vercel: 24시간, 프로덕션: 1시간, 개발: 5분
+            : 1800000, // Vercel: 24시간, 절약: 1시간, 일반: 30분
       },
       retention: {
-        raw: 7, // 7일
-        aggregated: 30, // 30일
-        reports: 90, // 90일
+        raw: shouldOptimizeForVercel ? 1 : 7, // Vercel에서는 1일만 보관
+        aggregated: shouldOptimizeForVercel ? 7 : 30,
+        reports: shouldOptimizeForVercel ? 30 : 90,
       },
       alerts: {
-        enabled: process.env.PERFORMANCE_ALERTS_ENABLED !== 'false',
+        enabled: devDisabled
+          ? false
+          : shouldOptimizeForVercel
+            ? false
+            : process.env.PERFORMANCE_ALERTS_ENABLED !== 'false', // 개발/Vercel에서는 알림 비활성화
         thresholds: {
           cpu: 80, // 80%
           memory: 85, // 85%
@@ -1254,9 +1265,9 @@ export class CentralizedPerformanceMonitor {
         },
       },
       optimization: {
-        enabled: true,
+        enabled: devDisabled ? false : shouldOptimizeForVercel ? false : true, // 개발/Vercel에서는 최적화 리포트 비활성화
         autoOptimize: false,
-        reportFrequency: 24, // 24시간
+        reportFrequency: shouldOptimizeForVercel ? 168 : 24, // Vercel: 주 1회, 로컬: 일 1회
       },
     };
   }

@@ -9,15 +9,7 @@
       "memory": 1024
     },
     "src/app/api/ai/**/*.ts": {
-      "maxDuration": 120,
-      "memory": 1024
-    },
-    "src/app/api/ai-agent/**/*.ts": {
-      "maxDuration": 90,
-      "memory": 1024
-    },
-    "src/app/api/prediction/**/*.ts": {
-      "maxDuration": 90,
+      "maxDuration": 60,
       "memory": 1024
     },
     "src/app/api/data-generator/**/*.ts": {
@@ -98,20 +90,7 @@
       "destination": "/api/health"
     }
   ],
-  "crons": [
-    {
-      "path": "/api/health",
-      "schedule": "*/10 * * * *"
-    },
-    {
-      "path": "/api/cron/keep-alive",
-      "schedule": "0 */4 * * *"
-    },
-    {
-      "path": "/api/cron/gemini-learning",
-      "schedule": "0 */2 * * *"
-    }
-  ],
+  "_comment_crons_disabled": "과금 방지를 위해 모든 cron 작업 비활성화. 필요시 수동으로 /api/health 접근",
   "cleanUrls": true,
   "trailingSlash": false
 }

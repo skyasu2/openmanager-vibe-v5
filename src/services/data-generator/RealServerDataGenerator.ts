@@ -18,10 +18,10 @@ export interface GeneratorConfig {
   updateInterval?: number;
   enableRealtime?: boolean;
   serverArchitecture?:
-  | 'single'
-  | 'master-slave'
-  | 'load-balanced'
-  | 'microservices';
+    | 'single'
+    | 'master-slave'
+    | 'load-balanced'
+    | 'microservices';
   enableRedis?: boolean;
 }
 
@@ -44,7 +44,7 @@ export class RealServerDataGenerator {
   constructor(config: GeneratorConfig = {}) {
     this.config = {
       maxServers: 8, // 🎯 사용자 요청에 따라 8개로 변경
-      updateInterval: 15000, // 15초로 조정 (기존 3초에서)
+      updateInterval: 10000, // 🎯 사용자 요청: 10초로 변경 (기존 15초에서)
       enableRealtime: true,
       serverArchitecture: 'load-balanced',
       enableRedis: true,
@@ -510,12 +510,12 @@ export class RealServerDataGenerator {
         avgCpu:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.cpu, 0) /
-            servers.length
+              servers.length
             : 0,
         avgMemory:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.memory, 0) /
-            servers.length
+              servers.length
             : 0,
       },
       clusters: {
@@ -550,9 +550,9 @@ export class RealServerDataGenerator {
         avgResponseTime:
           applications.length > 0
             ? applications.reduce(
-              (sum, a) => sum + a.performance.responseTime,
-              0
-            ) / applications.length
+                (sum, a) => sum + a.performance.responseTime,
+                0
+              ) / applications.length
             : 0,
       },
       timestamp: Date.now(),
