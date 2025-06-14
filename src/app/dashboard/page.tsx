@@ -189,8 +189,19 @@ function DashboardPageContent() {
   } = useDashboardLogic();
 
   const { isSystemStarted, getSystemRemainingTime } = useUnifiedAdminStore();
-  const { isOpen: isAISidebarOpen, setOpen: setAISidebarOpen } =
-    useAISidebarStore();
+  const {
+    isOpen: isAISidebarOpen,
+    isMinimized: isAISidebarMinimized,
+    setOpen: setAISidebarOpen,
+  } = useAISidebarStore();
+
+  // 사이드바 상태 초기화 (페이지 진입 시 항상 닫힘)
+  useEffect(() => {
+    setAISidebarOpen(false);
+  }, [setAISidebarOpen]);
+
+  // 사이드바 너비 동적 계산
+  const sidebarWidth = isAISidebarOpen ? (isAISidebarMinimized ? 80 : 500) : 0;
 
   // 🔄 클라이언트 사이드 렌더링 확인
   if (!isClient) {
@@ -218,7 +229,7 @@ function DashboardPageContent() {
         animate='visible'
         className='flex flex-col h-screen transition-all duration-300 ease-in-out'
         style={{
-          marginRight: isAISidebarOpen ? '400px' : '0px',
+          marginRight: `${sidebarWidth}px`,
         }}
       >
         {/* 헤더 */}
@@ -283,7 +294,10 @@ function DashboardPageContent() {
 
       {/* 🤖 AI 사이드바 - 간소화 버전 */}
       {isAISidebarOpen && (
-        <div className='fixed top-0 right-0 h-full w-[400px] z-20 shadow-2xl bg-white border-l border-gray-200'>
+        <div
+          className='fixed top-0 right-0 h-full z-20 shadow-2xl bg-white border-l border-gray-200 transition-all duration-300'
+          style={{ width: `${sidebarWidth}px` }}
+        >
           <AISidebar
             isOpen={isAISidebarOpen}
             onClose={() => setAISidebarOpen(false)}

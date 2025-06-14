@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -22,6 +23,7 @@ import {
   Zap,
   Target,
   Activity,
+  Lock,
 } from 'lucide-react';
 
 interface PredictionResult {
@@ -87,17 +89,63 @@ interface PredictionReport {
 }
 
 export default function PredictionDemoPage() {
+  const router = useRouter();
+  const [selectedServer, setSelectedServer] = useState('server-001');
+  const [predictionResult, setPredictionResult] =
+    useState<PredictionResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
   const [predictions, setPredictions] = useState<PredictionResponse | null>(
     null
   );
   const [report, setReport] = useState<PredictionReport | null>(null);
-  const [loading, setLoading] = useState(false);
 
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
+  // 개발 환경 체크
+  useEffect(() => {
+    const isDevelopment =
+      process.env.NODE_ENV === 'development' ||
+      process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+
+    if (!isDevelopment) {
+      router.replace('/admin/ai-agent');
+      return;
+    }
+
+    setIsAuthorized(true);
+  }, [router]);
+
+  useEffect(() => {
+    if (isAuthorized) {
+      runPrediction();
+    }
+  }, [isAuthorized]);
+
+  // 개발 환경이 아닌 경우 접근 제한 UI
+  if (!isAuthorized) {
+    return (
+      <div className='min-h-screen bg-gray-50 flex items-center justify-center'>
+        <div className='text-center space-y-4 max-w-md'>
+          <Lock className='w-16 h-16 text-gray-400 mx-auto' />
+          <h2 className='text-2xl font-bold text-gray-900'>개발 환경 전용</h2>
+          <p className='text-gray-600'>
+            이 데모 페이지는 개발 환경에서만 접근 가능합니다.
+          </p>
+          <Button onClick={() => router.push('/admin/ai-agent')}>
+            AI 엔진 관리로 돌아가기
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   // 퀵 테스트 설정
   const predictionConfigs = [
-    { name: '10분 예측', interval: '10min', description: '단기 예측' },
+    { name: '5분 예측', interval: '5min', description: '단기 예측' },
+    { name: '15분 예측', interval: '15min', description: '중기 예측' },
     { name: '30분 예측', interval: '30min', description: '중기 예측' },
     { name: '1시간 예측', interval: '1h', description: '장기 예측' },
     {
@@ -107,10 +155,6 @@ export default function PredictionDemoPage() {
       isReport: true,
     },
   ];
-
-  useEffect(() => {
-    runPrediction();
-  }, []);
 
   const runPrediction = async (
     interval: string = '30min',

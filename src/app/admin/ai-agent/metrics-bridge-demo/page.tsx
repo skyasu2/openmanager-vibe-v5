@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -24,6 +25,7 @@ import {
   AlertTriangle,
   CheckCircle,
   BarChart3,
+  Lock,
 } from 'lucide-react';
 
 interface TimeSeriesPoint {
@@ -90,6 +92,7 @@ interface AnalysisData {
 }
 
 export default function MetricsBridgeDemoPage() {
+  const router = useRouter();
   const [mergedData, setMergedData] = useState<MergedTimeSeriesResponse | null>(
     null
   );
@@ -100,6 +103,46 @@ export default function MetricsBridgeDemoPage() {
     '24h'
   );
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  // 개발 환경 체크
+  useEffect(() => {
+    const isDevelopment =
+      process.env.NODE_ENV === 'development' ||
+      process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+
+    if (!isDevelopment) {
+      // 프로덕션 환경에서는 접근 제한
+      router.replace('/admin/ai-agent');
+      return;
+    }
+
+    setIsAuthorized(true);
+  }, [router]);
+
+  useEffect(() => {
+    if (isAuthorized) {
+      loadMergedData();
+    }
+  }, [isAuthorized]);
+
+  // 개발 환경이 아닌 경우 접근 제한 UI
+  if (!isAuthorized) {
+    return (
+      <div className='min-h-screen bg-gray-50 flex items-center justify-center'>
+        <div className='text-center space-y-4 max-w-md'>
+          <Lock className='w-16 h-16 text-gray-400 mx-auto' />
+          <h2 className='text-2xl font-bold text-gray-900'>개발 환경 전용</h2>
+          <p className='text-gray-600'>
+            이 페이지는 개발 환경에서만 접근 가능합니다.
+          </p>
+          <Button onClick={() => router.push('/admin/ai-agent')}>
+            AI 엔진 관리로 돌아가기
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // 데모 설정
   const demoConfigs = [
@@ -108,10 +151,6 @@ export default function MetricsBridgeDemoPage() {
     { name: 'AI 분석 모드', duration: '24h', analysis: true },
     { name: '1시간 집중 분석', duration: '1h', analysis: true },
   ];
-
-  useEffect(() => {
-    loadMergedData();
-  }, []);
 
   const loadMergedData = async (
     duration: string = '24h',

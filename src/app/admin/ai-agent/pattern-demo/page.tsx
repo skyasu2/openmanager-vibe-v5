@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Lock } from 'lucide-react';
 
 interface PatternQueryResult {
   confidenceScore: number;
@@ -37,10 +39,44 @@ interface PatternQueryResult {
  * 🧠 AI 에이전트 고도화 패턴 매칭 데모 페이지
  */
 export default function PatternDemoPage() {
+  const router = useRouter();
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<PatternQueryResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  // 개발 환경 체크
+  useEffect(() => {
+    const isDevelopment =
+      process.env.NODE_ENV === 'development' ||
+      process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+
+    if (!isDevelopment) {
+      router.replace('/admin/ai-agent');
+      return;
+    }
+
+    setIsAuthorized(true);
+  }, [router]);
+
+  // 개발 환경이 아닌 경우 접근 제한 UI
+  if (!isAuthorized) {
+    return (
+      <div className='min-h-screen bg-gray-50 flex items-center justify-center'>
+        <div className='text-center space-y-4 max-w-md'>
+          <Lock className='w-16 h-16 text-gray-400 mx-auto' />
+          <h2 className='text-2xl font-bold text-gray-900'>개발 환경 전용</h2>
+          <p className='text-gray-600'>
+            이 데모 페이지는 개발 환경에서만 접근 가능합니다.
+          </p>
+          <Button onClick={() => router.push('/admin/ai-agent')}>
+            AI 엔진 관리로 돌아가기
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // 예시 질의들
   const exampleQueries = [
