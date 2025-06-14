@@ -3,7 +3,7 @@
  *
  * AI 에이전트 사이드바의 실시간 시스템 알림 페이지
  * - Critical/Warning/Resolved 알림 분류
- * - 실시간 알림 업데이트
+ * - 실시간 알림 업데이트 (10초 간격)
  * - 알림 상세 정보 및 액션
  */
 
@@ -23,6 +23,7 @@ import {
   X,
   Eye,
   ExternalLink,
+  RefreshCw,
 } from 'lucide-react';
 
 interface SystemAlert {
@@ -44,75 +45,162 @@ interface SystemAlertsPageProps {
 export default function SystemAlertsPage({
   className = '',
 }: SystemAlertsPageProps) {
-  const [alerts, setAlerts] = useState<SystemAlert[]>([
-    {
-      id: '1',
-      type: 'critical',
-      title: 'High CPU Usage',
-      message: 'DB-01: High CPU 95%',
-      server: 'DB-01',
-      timestamp: new Date(Date.now() - 2 * 60 * 1000),
-      category: 'cpu',
-      value: 95,
-      threshold: 80,
-    },
-    {
-      id: '2',
-      type: 'warning',
-      title: 'Memory Warning',
-      message: 'WEB-03: Memory 85%',
-      server: 'WEB-03',
-      timestamp: new Date(Date.now() - 5 * 60 * 1000),
-      category: 'memory',
-      value: 85,
-      threshold: 80,
-    },
-    {
-      id: '3',
-      type: 'resolved',
-      title: 'Disk Space Resolved',
-      message: 'API-02: Disk space',
-      server: 'API-02',
-      timestamp: new Date(Date.now() - 12 * 60 * 1000),
-      category: 'disk',
-      value: 65,
-      threshold: 70,
-    },
-  ]);
-
+  const [alerts, setAlerts] = useState<SystemAlert[]>([]);
   const [selectedAlert, setSelectedAlert] = useState<SystemAlert | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
-  // 실시간 알림 업데이트 시뮬레이션
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // 랜덤 알림 생성
-      if (Math.random() > 0.7) {
-        const servers = ['WEB-01', 'DB-02', 'API-03', 'LB-01', 'CACHE-01'];
-        const categories: SystemAlert['category'][] = [
-          'cpu',
-          'memory',
-          'disk',
-          'network',
-          'service',
-        ];
-        const types: SystemAlert['type'][] = ['critical', 'warning'];
+  // 서버 데이터에서 알림 생성
+  const generateAlertsFromServers = (servers: any[]): SystemAlert[] => {
+    const alerts: SystemAlert[] = [];
 
-        const newAlert: SystemAlert = {
-          id: Date.now().toString(),
-          type: types[Math.floor(Math.random() * types.length)],
-          title: `${categories[Math.floor(Math.random() * categories.length)].toUpperCase()} Alert`,
-          message: `${servers[Math.floor(Math.random() * servers.length)]}: Resource usage high`,
-          server: servers[Math.floor(Math.random() * servers.length)],
+    servers.forEach((server, index) => {
+      const serverId = server.id || `SERVER-${index + 1}`;
+      const serverName = server.name || serverId;
+
+      // CPU 알림
+      if (server.cpu >= 90) {
+        alerts.push({
+          id: `${serverId}-cpu-critical`,
+          type: 'critical',
+          title: 'CPU 과부하',
+          message: `CPU 사용률이 ${server.cpu}%로 임계치를 초과했습니다`,
+          server: serverName,
           timestamp: new Date(),
-          category: categories[Math.floor(Math.random() * categories.length)],
-          value: Math.floor(Math.random() * 30) + 70,
+          category: 'cpu',
+          value: server.cpu,
+          threshold: 90,
+        });
+      } else if (server.cpu >= 80) {
+        alerts.push({
+          id: `${serverId}-cpu-warning`,
+          type: 'warning',
+          title: 'CPU 사용률 높음',
+          message: `CPU 사용률이 ${server.cpu}%입니다`,
+          server: serverName,
+          timestamp: new Date(),
+          category: 'cpu',
+          value: server.cpu,
           threshold: 80,
-        };
-
-        setAlerts(prev => [newAlert, ...prev.slice(0, 9)]);
+        });
       }
-    }, 8000);
 
+      // 메모리 알림
+      if (server.memory >= 90) {
+        alerts.push({
+          id: `${serverId}-memory-critical`,
+          type: 'critical',
+          title: '메모리 부족',
+          message: `메모리 사용률이 ${server.memory}%로 임계치를 초과했습니다`,
+          server: serverName,
+          timestamp: new Date(),
+          category: 'memory',
+          value: server.memory,
+          threshold: 90,
+        });
+      } else if (server.memory >= 85) {
+        alerts.push({
+          id: `${serverId}-memory-warning`,
+          type: 'warning',
+          title: '메모리 사용률 높음',
+          message: `메모리 사용률이 ${server.memory}%입니다`,
+          server: serverName,
+          timestamp: new Date(),
+          category: 'memory',
+          value: server.memory,
+          threshold: 85,
+        });
+      }
+
+      // 디스크 알림
+      if (server.disk >= 95) {
+        alerts.push({
+          id: `${serverId}-disk-critical`,
+          type: 'critical',
+          title: '디스크 공간 부족',
+          message: `디스크 사용률이 ${server.disk}%로 임계치를 초과했습니다`,
+          server: serverName,
+          timestamp: new Date(),
+          category: 'disk',
+          value: server.disk,
+          threshold: 95,
+        });
+      } else if (server.disk >= 85) {
+        alerts.push({
+          id: `${serverId}-disk-warning`,
+          type: 'warning',
+          title: '디스크 사용률 높음',
+          message: `디스크 사용률이 ${server.disk}%입니다`,
+          server: serverName,
+          timestamp: new Date(),
+          category: 'disk',
+          value: server.disk,
+          threshold: 85,
+        });
+      }
+
+      // 서버 상태 알림
+      if (server.status === 'critical' || server.status === 'offline') {
+        alerts.push({
+          id: `${serverId}-status-critical`,
+          type: 'critical',
+          title: '서버 오프라인',
+          message: `서버가 오프라인 상태입니다`,
+          server: serverName,
+          timestamp: new Date(),
+          category: 'service',
+        });
+      } else if (server.status === 'warning') {
+        alerts.push({
+          id: `${serverId}-status-warning`,
+          type: 'warning',
+          title: '서버 경고',
+          message: `서버에 경고 상태가 감지되었습니다`,
+          server: serverName,
+          timestamp: new Date(),
+          category: 'service',
+        });
+      }
+    });
+
+    // 일부 해결된 알림 추가 (시뮬레이션)
+    if (Math.random() > 0.7) {
+      alerts.push({
+        id: 'resolved-disk-space',
+        type: 'resolved',
+        title: '디스크 공간 복구',
+        message: 'API-02 서버의 디스크 공간이 정상 수준으로 복구되었습니다',
+        server: 'API-02',
+        timestamp: new Date(Date.now() - 12 * 60 * 1000), // 12분 전
+        category: 'disk',
+      });
+    }
+
+    return alerts.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  };
+
+  // 서버 데이터 가져오기
+  const fetchServerData = async () => {
+    try {
+      const response = await fetch('/api/servers');
+      if (!response.ok) throw new Error('Failed to fetch server data');
+
+      const servers = await response.json();
+      const generatedAlerts = generateAlertsFromServers(servers);
+
+      setAlerts(generatedAlerts);
+      setLastUpdate(new Date());
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Failed to fetch server data:', error);
+      setIsLoading(false);
+    }
+  };
+
+  // 10초마다 데이터 업데이트
+  useEffect(() => {
+    fetchServerData();
+    const interval = setInterval(fetchServerData, 10000); // 10초 간격
     return () => clearInterval(interval);
   }, []);
 
@@ -185,20 +273,40 @@ export default function SystemAlertsPage({
   const warningCount = alerts.filter(a => a.type === 'warning').length;
   const resolvedCount = alerts.filter(a => a.type === 'resolved').length;
 
+  if (isLoading) {
+    return (
+      <div className={`flex items-center justify-center h-full ${className}`}>
+        <div className='text-center'>
+          <RefreshCw className='w-8 h-8 text-blue-500 animate-spin mx-auto mb-2' />
+          <p className='text-gray-600'>알림 데이터 로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`h-full flex flex-col p-4 bg-gray-50 ${className}`}>
       {/* 헤더 */}
-      <div className='mb-6'>
-        <h2 className='text-xl font-bold text-gray-800 flex items-center gap-2'>
-          <div className='w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg flex items-center justify-center'>
-            <AlertTriangle className='w-4 h-4 text-white' />
-          </div>
-          실시간 시스템 알림
-        </h2>
-        <p className='text-sm text-gray-600 mt-1'>
-          총 {alerts.length}개 알림 • 업데이트:{' '}
-          {new Date().toLocaleTimeString()}
-        </p>
+      <div className='flex items-center justify-between mb-6'>
+        <div>
+          <h2 className='text-2xl font-bold text-gray-800 flex items-center gap-2'>
+            <AlertTriangle className='w-7 h-7 text-red-600' />
+            🚨 실시간 시스템 알림
+          </h2>
+          <p className='text-sm text-gray-600 mt-1'>
+            총 {alerts.length}개 알림 • 업데이트:{' '}
+            {lastUpdate.toLocaleTimeString()}
+          </p>
+        </div>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={fetchServerData}
+          className='flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors'
+        >
+          <RefreshCw className='w-4 h-4' />
+          새로고침
+        </motion.button>
       </div>
 
       {/* 알림 통계 카드 */}
@@ -312,6 +420,7 @@ export default function SystemAlertsPage({
                 <button
                   onClick={handleCloseDetail}
                   className='p-2 hover:bg-gray-100 rounded-lg transition-colors'
+                  title='닫기'
                 >
                   <X className='w-4 h-4 text-gray-500' />
                 </button>

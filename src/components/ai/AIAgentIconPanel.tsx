@@ -35,9 +35,7 @@ export type AIAgentFunction =
   | 'pattern-analysis'
   | 'log-analysis'
   | 'thinking'
-  | 'optimization'
-  | 'infrastructure-overview'
-  | 'system-alerts';
+  | 'optimization';
 
 interface AIAgentIcon {
   id: AIAgentFunction;
@@ -62,44 +60,26 @@ const AI_AGENT_ICONS: AIAgentIcon[] = [
   {
     id: 'auto-report',
     icon: FileText,
-    label: '자동 장애보고서',
-    description: '실시간 장애 리포트 생성',
-    color: 'text-red-600',
-    bgColor: 'bg-red-50 hover:bg-red-100',
-    gradient: 'from-red-500 to-pink-500',
+    label: '자동 리포트',
+    description: 'AI 기반 시스템 분석 보고서',
+    color: 'text-green-600',
+    bgColor: 'bg-green-50 hover:bg-green-100',
+    gradient: 'from-green-500 to-emerald-500',
   },
   {
     id: 'prediction',
     icon: TrendingUp,
-    label: '장애 예측',
-    description: 'AI 기반 장애 예측 분석',
+    label: '예측 분석',
+    description: '시스템 성능 및 장애 예측',
     color: 'text-purple-600',
     bgColor: 'bg-purple-50 hover:bg-purple-100',
-    gradient: 'from-purple-500 to-indigo-500',
-  },
-  {
-    id: 'infrastructure-overview',
-    icon: Monitor,
-    label: '인프라 전체현황',
-    description: '전체 인프라 상태 및 통계',
-    color: 'text-indigo-600',
-    bgColor: 'bg-indigo-50 hover:bg-indigo-100',
-    gradient: 'from-indigo-500 to-blue-500',
-  },
-  {
-    id: 'system-alerts',
-    icon: AlertTriangle,
-    label: '실시간 알림',
-    description: '실시간 시스템 알림 및 경고',
-    color: 'text-amber-600',
-    bgColor: 'bg-amber-50 hover:bg-amber-100',
-    gradient: 'from-amber-500 to-orange-500',
+    gradient: 'from-purple-500 to-violet-500',
   },
   {
     id: 'advanced-management',
     icon: Settings,
     label: 'AI 고급관리',
-    description: 'AI 엔진 설정 및 관리',
+    description: '통합 AI 시스템 관리',
     color: 'text-gray-600',
     bgColor: 'bg-gray-50 hover:bg-gray-100',
     gradient: 'from-gray-500 to-slate-500',
@@ -108,25 +88,25 @@ const AI_AGENT_ICONS: AIAgentIcon[] = [
     id: 'pattern-analysis',
     icon: BarChart3,
     label: '패턴 분석',
-    description: '시스템 패턴 및 트렌드 분석',
-    color: 'text-green-600',
-    bgColor: 'bg-green-50 hover:bg-green-100',
-    gradient: 'from-green-500 to-emerald-500',
+    description: '시스템 패턴 및 이상 탐지',
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-50 hover:bg-orange-100',
+    gradient: 'from-orange-500 to-amber-500',
   },
   {
     id: 'log-analysis',
     icon: ScrollText,
     label: '로그 분석',
-    description: 'AI 추론 과정 로그 분석',
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-50 hover:bg-orange-100',
-    gradient: 'from-orange-500 to-yellow-500',
+    description: '실시간 로그 패턴 분석',
+    color: 'text-indigo-600',
+    bgColor: 'bg-indigo-50 hover:bg-indigo-100',
+    gradient: 'from-indigo-500 to-blue-500',
   },
   {
     id: 'thinking',
     icon: Brain,
-    label: 'AI 사고과정',
-    description: '실시간 AI 사고 과정 시각화',
+    label: 'AI 사고',
+    description: '복잡한 문제 해결 과정',
     color: 'text-pink-600',
     bgColor: 'bg-pink-50 hover:bg-pink-100',
     gradient: 'from-pink-500 to-rose-500',
@@ -134,11 +114,11 @@ const AI_AGENT_ICONS: AIAgentIcon[] = [
   {
     id: 'optimization',
     icon: Zap,
-    label: '성능 최적화',
-    description: 'AI 기반 성능 최적화 제안',
+    label: '최적화',
+    description: '시스템 성능 최적화 제안',
     color: 'text-yellow-600',
     bgColor: 'bg-yellow-50 hover:bg-yellow-100',
-    gradient: 'from-yellow-500 to-amber-500',
+    gradient: 'from-yellow-500 to-orange-500',
   },
 ];
 

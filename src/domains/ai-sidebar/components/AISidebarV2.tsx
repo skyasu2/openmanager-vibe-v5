@@ -32,10 +32,6 @@ import AIAgentIconPanel, {
   AIAgentFunction,
 } from '@/components/ai/AIAgentIconPanel';
 import AIChatPage from '@/components/ai/pages/AIChatPage';
-import AutoReportPage from '@/components/ai/pages/AutoReportPage';
-import PredictionPage from '@/components/ai/pages/PredictionPage';
-import InfrastructureOverviewPage from '@/components/ai/pages/InfrastructureOverviewPage';
-import SystemAlertsPage from '@/components/ai/pages/SystemAlertsPage';
 import AIInsightsCard from '@/components/dashboard/AIInsightsCard';
 import { GoogleAIStatusCard } from '@/components/shared/GoogleAIStatusCard';
 
@@ -155,17 +151,35 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
   // 기능별 페이지 렌더링
   const renderFunctionPage = () => {
+    if (!selectedFunction) return null;
+
     switch (selectedFunction) {
       case 'chat':
         return <AIChatPage />;
       case 'auto-report':
-        return <AutoReportPage />;
+        return (
+          <div className='flex items-center justify-center h-full bg-gradient-to-br from-green-50 to-emerald-50'>
+            <div className='text-center'>
+              <BarChart3 className='w-16 h-16 text-gray-300 mx-auto mb-4' />
+              <h3 className='text-lg font-bold text-gray-600 mb-2'>
+                자동 리포트
+              </h3>
+              <p className='text-sm text-gray-500'>곧 출시 예정입니다</p>
+            </div>
+          </div>
+        );
       case 'prediction':
-        return <PredictionPage />;
-      case 'infrastructure-overview':
-        return <InfrastructureOverviewPage />;
-      case 'system-alerts':
-        return <SystemAlertsPage />;
+        return (
+          <div className='flex items-center justify-center h-full bg-gradient-to-br from-purple-50 to-violet-50'>
+            <div className='text-center'>
+              <Target className='w-16 h-16 text-gray-300 mx-auto mb-4' />
+              <h3 className='text-lg font-bold text-gray-600 mb-2'>
+                예측 분석
+              </h3>
+              <p className='text-sm text-gray-500'>곧 출시 예정입니다</p>
+            </div>
+          </div>
+        );
       case 'advanced-management':
         return (
           <div className='flex flex-col h-full p-4 bg-gray-50'>
@@ -201,7 +215,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         );
       case 'pattern-analysis':
         return (
-          <div className='flex items-center justify-center h-full bg-gradient-to-br from-green-50 to-emerald-50'>
+          <div className='flex items-center justify-center h-full bg-gradient-to-br from-orange-50 to-amber-50'>
             <div className='text-center'>
               <BarChart3 className='w-16 h-16 text-gray-300 mx-auto mb-4' />
               <h3 className='text-lg font-bold text-gray-600 mb-2'>
@@ -213,7 +227,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         );
       case 'log-analysis':
         return (
-          <div className='flex items-center justify-center h-full bg-gradient-to-br from-orange-50 to-yellow-50'>
+          <div className='flex items-center justify-center h-full bg-gradient-to-br from-indigo-50 to-blue-50'>
             <div className='text-center'>
               <Search className='w-16 h-16 text-gray-300 mx-auto mb-4' />
               <h3 className='text-lg font-bold text-gray-600 mb-2'>
@@ -228,27 +242,27 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
           <div className='flex items-center justify-center h-full bg-gradient-to-br from-pink-50 to-rose-50'>
             <div className='text-center'>
               <Brain className='w-16 h-16 text-gray-300 mx-auto mb-4' />
-              <h3 className='text-lg font-bold text-gray-600 mb-2'>
-                AI 사고과정
-              </h3>
+              <h3 className='text-lg font-bold text-gray-600 mb-2'>AI 사고</h3>
               <p className='text-sm text-gray-500'>곧 출시 예정입니다</p>
             </div>
           </div>
         );
       case 'optimization':
         return (
-          <div className='flex items-center justify-center h-full bg-gradient-to-br from-yellow-50 to-amber-50'>
+          <div className='flex items-center justify-center h-full bg-gradient-to-br from-yellow-50 to-orange-50'>
             <div className='text-center'>
               <Target className='w-16 h-16 text-gray-300 mx-auto mb-4' />
-              <h3 className='text-lg font-bold text-gray-600 mb-2'>
-                성능 최적화
-              </h3>
+              <h3 className='text-lg font-bold text-gray-600 mb-2'>최적화</h3>
               <p className='text-sm text-gray-500'>곧 출시 예정입니다</p>
             </div>
           </div>
         );
       default:
-        return <AIChatPage />;
+        return (
+          <div className='flex items-center justify-center h-full text-gray-500'>
+            선택된 기능을 찾을 수 없습니다.
+          </div>
+        );
     }
   };
 
