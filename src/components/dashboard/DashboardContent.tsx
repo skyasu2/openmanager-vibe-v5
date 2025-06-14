@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Bot } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Bot, Minimize2, Maximize2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import ServerDashboard from './ServerDashboard';
 import GoogleAIStatusCard from './GoogleAIStatusCard';
@@ -10,6 +10,7 @@ import AIInsightsCard from './AIInsightsCard';
 import InfrastructureOverview from './monitoring/InfrastructureOverview';
 import LiveSystemAlerts from './monitoring/LiveSystemAlerts';
 import { AISidebarV2 } from '@/domains/ai-sidebar/components/AISidebarV2';
+import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
 
 import { Server } from '../../types/server';
 import { safeConsoleError, safeErrorMessage } from '../../lib/utils-functions';
@@ -55,6 +56,7 @@ export default function DashboardContent({
   mainContentVariants,
   isAgentOpen,
 }: DashboardContentProps) {
+  const { expandAll, collapseAll } = useDashboardToggleStore();
   // 🚀 디버깅을 위한 콘솔 로그 추가
   console.log('🔍 DashboardContent 렌더링:', {
     showSequentialGeneration,
@@ -150,9 +152,8 @@ export default function DashboardContent({
       <div className='min-h-screen bg-gray-50 flex relative'>
         {/* 메인 대시보드 영역 */}
         <div
-          className={`flex-1 transition-all duration-300 ${
-            isAISidebarOpen ? 'mr-[30%]' : 'mr-0'
-          }`}
+          className={`flex-1 transition-all duration-300 ${isAISidebarOpen ? 'mr-[30%]' : 'mr-0'
+            }`}
         >
           {/* 상단 모니터링 도구 영역 (40%) */}
           <div className='h-[40vh] p-6 bg-white border-b border-gray-200'>
@@ -197,8 +198,29 @@ export default function DashboardContent({
                   </div>
                 </div>
               </div>
-              <div className='text-sm text-gray-500'>
-                총 {stats.total}개 서버 • 심각→경고→정상 순 정렬
+              <div className='flex items-center space-x-4'>
+                <div className='text-sm text-gray-500'>
+                  총 {stats.total}개 서버 • 심각→경고→정상 순 정렬
+                </div>
+                {/* 전체 접기/펼치기 컨트롤 */}
+                <div className='flex items-center space-x-2'>
+                  <button
+                    onClick={expandAll}
+                    className='flex items-center space-x-1 px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors'
+                    title='모든 섹션 펼치기'
+                  >
+                    <Maximize2 className='w-3 h-3' />
+                    <span>전체 펼치기</span>
+                  </button>
+                  <button
+                    onClick={collapseAll}
+                    className='flex items-center space-x-1 px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors'
+                    title='모든 섹션 접기'
+                  >
+                    <Minimize2 className='w-3 h-3' />
+                    <span>전체 접기</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -212,9 +234,8 @@ export default function DashboardContent({
         {/* AI 사이드바 토글 버튼 */}
         <motion.button
           onClick={() => setIsAISidebarOpen(!isAISidebarOpen)}
-          className={`fixed top-1/2 -translate-y-1/2 z-50 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-l-lg shadow-lg transition-all duration-300 ${
-            isAISidebarOpen ? 'right-[30%]' : 'right-0'
-          }`}
+          className={`fixed top-1/2 -translate-y-1/2 z-50 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-l-lg shadow-lg transition-all duration-300 ${isAISidebarOpen ? 'right-[30%]' : 'right-0'
+            }`}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >

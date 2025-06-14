@@ -11,6 +11,8 @@ import {
   Database,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import CollapsibleCard from '@/components/shared/CollapsibleCard';
+import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
 
 interface SystemAlert {
   id: string;
@@ -31,6 +33,7 @@ interface SystemEvent {
 }
 
 export default function LiveSystemAlerts() {
+  const { sections, toggleSection } = useDashboardToggleStore();
   const [alerts, setAlerts] = useState<SystemAlert[]>([
     {
       id: '1',
@@ -134,151 +137,157 @@ export default function LiveSystemAlerts() {
   };
 
   return (
-    <div className='h-full flex flex-col'>
-      {/* 헤더 */}
-      <div className='flex items-center gap-3 mb-6'>
-        <div className='p-2 bg-red-100 rounded-lg'>
-          <AlertTriangle className='w-6 h-6 text-red-600' />
-        </div>
-        <div>
-          <h2 className='text-xl font-bold text-gray-900'>
-            Live System Alerts
-          </h2>
-          <p className='text-sm text-gray-600'>실시간 알림 & 이벤트</p>
-        </div>
-      </div>
-
-      <div className='flex-1 space-y-4 overflow-auto'>
-        {/* 실시간 알림 */}
-        <div className='bg-white rounded-lg p-4 border border-red-200 shadow-sm'>
-          <h3 className='text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2'>
-            <AlertTriangle className='w-5 h-5 text-red-600' />
-            실시간 알림
-          </h3>
-          <div className='space-y-3 max-h-48 overflow-auto'>
-            <AnimatePresence>
-              {alerts.map(alert => (
-                <motion.div
-                  key={alert.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className={`p-3 rounded-lg border ${getAlertColor(alert.type)} transition-all duration-200`}
-                >
-                  <div className='flex items-start gap-3'>
-                    <div className='flex-shrink-0 mt-0.5'>
-                      {getAlertIcon(alert.type)}
-                    </div>
-                    <div className='flex-1 min-w-0'>
-                      <div className='flex items-center gap-2 mb-1'>
-                        <span className='font-semibold text-sm'>
-                          {alert.type.toUpperCase()}
-                        </span>
-                        <span className='text-xs text-gray-600'>•</span>
-                        <span className='text-sm font-medium'>
-                          {alert.server}
-                        </span>
-                      </div>
-                      <p className='text-sm font-medium mb-1'>{alert.title}</p>
-                      <p className='text-xs text-gray-600'>
-                        {formatTimeAgo(alert.timestamp)}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+    <div className='h-full flex flex-col space-y-4'>
+      {/* Live System Alerts */}
+      <CollapsibleCard
+        title="Live System Alerts"
+        subtitle="실시간 알림"
+        icon={
+          <div className='p-2 bg-red-100 rounded-lg'>
+            <AlertTriangle className='w-6 h-6 text-red-600' />
           </div>
-        </div>
-
-        {/* 최근 시스템 이벤트 */}
-        <div className='bg-white rounded-lg p-4 border border-red-200 shadow-sm'>
-          <h3 className='text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2'>
-            <Clock className='w-5 h-5 text-red-600' />
-            최근 시스템 이벤트
-          </h3>
-          <div className='space-y-3 max-h-48 overflow-auto'>
-            {events.map(event => (
-              <div
-                key={event.id}
-                className='flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors'
+        }
+        isExpanded={sections.liveSystemAlerts}
+        onToggle={() => toggleSection('liveSystemAlerts')}
+        variant="bordered"
+      >
+        <div className='space-y-3 max-h-48 overflow-auto'>
+          <AnimatePresence>
+            {alerts.map(alert => (
+              <motion.div
+                key={alert.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className={`p-3 rounded-lg border ${getAlertColor(alert.type)} transition-all duration-200`}
               >
-                <div className='flex-shrink-0'>{event.icon}</div>
-                <div className='flex-1 min-w-0'>
-                  <div className='flex items-center gap-2'>
-                    <span className='text-sm font-medium text-gray-900'>
-                      {event.time}
-                    </span>
-                    <span className='text-xs text-gray-400'>•</span>
-                    <span className='text-sm text-gray-700'>
-                      {event.action}
-                    </span>
+                <div className='flex items-start gap-3'>
+                  <div className='flex-shrink-0 mt-0.5'>
+                    {getAlertIcon(alert.type)}
                   </div>
-                  <p className='text-xs text-gray-500'>{event.server}</p>
+                  <div className='flex-1 min-w-0'>
+                    <div className='flex items-center gap-2 mb-1'>
+                      <span className='font-semibold text-sm'>
+                        {alert.type.toUpperCase()}
+                      </span>
+                      <span className='text-xs text-gray-600'>•</span>
+                      <span className='text-sm font-medium'>
+                        {alert.server}
+                      </span>
+                    </div>
+                    <p className='text-sm font-medium mb-1'>{alert.title}</p>
+                    <p className='text-xs text-gray-600'>
+                      {formatTimeAgo(alert.timestamp)}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </AnimatePresence>
         </div>
+      </CollapsibleCard>
 
-        {/* 네트워크 & 성능 */}
-        <div className='bg-white rounded-lg p-4 border border-red-200 shadow-sm'>
-          <h3 className='text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2'>
-            <Wifi className='w-5 h-5 text-red-600' />
-            네트워크 & 성능
-          </h3>
-          <div className='space-y-4'>
-            {/* Response Times */}
-            <div>
-              <h4 className='text-sm font-medium text-gray-700 mb-2'>
-                Response Times
-              </h4>
-              <div className='space-y-2'>
-                <div className='flex items-center justify-between'>
-                  <span className='text-xs text-gray-600'>🟢 &lt; 100ms</span>
-                  <span className='text-xs font-medium'>5 servers</span>
+      {/* Recent System Events */}
+      <CollapsibleCard
+        title="최근 시스템 이벤트"
+        subtitle="Recent Events"
+        icon={
+          <div className='p-2 bg-blue-100 rounded-lg'>
+            <Clock className='w-6 h-6 text-blue-600' />
+          </div>
+        }
+        isExpanded={sections.recentEvents}
+        onToggle={() => toggleSection('recentEvents')}
+        variant="bordered"
+      >
+        <div className='space-y-3 max-h-48 overflow-auto'>
+          {events.map(event => (
+            <div
+              key={event.id}
+              className='flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors'
+            >
+              <div className='flex-shrink-0'>{event.icon}</div>
+              <div className='flex-1 min-w-0'>
+                <div className='flex items-center gap-2'>
+                  <span className='text-sm font-medium text-gray-900'>
+                    {event.time}
+                  </span>
+                  <span className='text-xs text-gray-400'>•</span>
+                  <span className='text-sm text-gray-700'>
+                    {event.action}
+                  </span>
                 </div>
-                <div className='flex items-center justify-between'>
-                  <span className='text-xs text-gray-600'>🟡 100-500ms</span>
-                  <span className='text-xs font-medium'>2 servers</span>
-                </div>
-                <div className='flex items-center justify-between'>
-                  <span className='text-xs text-gray-600'>🔴 &gt; 500ms</span>
-                  <span className='text-xs font-medium'>1 server</span>
-                </div>
+                <p className='text-xs text-gray-500'>{event.server}</p>
               </div>
             </div>
+          ))}
+        </div>
+      </CollapsibleCard>
 
-            {/* Network Traffic */}
-            <div>
-              <h4 className='text-sm font-medium text-gray-700 mb-2'>
-                Network Traffic
-              </h4>
-              <div className='space-y-2'>
-                <div className='flex items-center justify-between'>
-                  <span className='text-xs text-gray-600'>↗ Inbound</span>
-                  <span className='text-xs font-medium'>45 MB/s</span>
-                </div>
-                <div className='flex items-center justify-between'>
-                  <span className='text-xs text-gray-600'>↙ Outbound</span>
-                  <span className='text-xs font-medium'>23 MB/s</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Active Connections */}
-            <div>
-              <h4 className='text-sm font-medium text-gray-700 mb-2'>
-                Active Connections
-              </h4>
+      {/* Network & Performance */}
+      <CollapsibleCard
+        title="네트워크 & 성능"
+        subtitle="Network Stats"
+        icon={
+          <div className='p-2 bg-green-100 rounded-lg'>
+            <Wifi className='w-6 h-6 text-green-600' />
+          </div>
+        }
+        isExpanded={sections.networkStats}
+        onToggle={() => toggleSection('networkStats')}
+        variant="bordered"
+      >
+        <div className='space-y-4'>
+          {/* Response Times */}
+          <div>
+            <h4 className='text-sm font-medium text-gray-700 mb-2'>
+              Response Times
+            </h4>
+            <div className='space-y-2'>
               <div className='flex items-center justify-between'>
-                <span className='text-xs text-gray-600'>🔗 Total</span>
-                <span className='text-xs font-medium'>1,247</span>
+                <span className='text-xs text-gray-600'>🟢 &lt; 100ms</span>
+                <span className='text-xs font-medium'>5 servers</span>
+              </div>
+              <div className='flex items-center justify-between'>
+                <span className='text-xs text-gray-600'>🟡 100-500ms</span>
+                <span className='text-xs font-medium'>2 servers</span>
+              </div>
+              <div className='flex items-center justify-between'>
+                <span className='text-xs text-gray-600'>🔴 &gt; 500ms</span>
+                <span className='text-xs font-medium'>1 server</span>
               </div>
             </div>
           </div>
+
+          {/* Network Traffic */}
+          <div>
+            <h4 className='text-sm font-medium text-gray-700 mb-2'>
+              Network Traffic
+            </h4>
+            <div className='space-y-2'>
+              <div className='flex items-center justify-between'>
+                <span className='text-xs text-gray-600'>↗ Inbound</span>
+                <span className='text-xs font-medium'>45 MB/s</span>
+              </div>
+              <div className='flex items-center justify-between'>
+                <span className='text-xs text-gray-600'>↙ Outbound</span>
+                <span className='text-xs font-medium'>23 MB/s</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Active Connections */}
+          <div>
+            <h4 className='text-sm font-medium text-gray-700 mb-2'>
+              Active Connections
+            </h4>
+            <div className='flex items-center justify-between'>
+              <span className='text-xs text-gray-600'>🔗 Total</span>
+              <span className='text-xs font-medium'>1,247</span>
+            </div>
+          </div>
         </div>
-      </div>
+      </CollapsibleCard>
     </div>
   );
 }

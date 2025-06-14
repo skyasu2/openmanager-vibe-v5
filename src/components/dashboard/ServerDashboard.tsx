@@ -21,6 +21,18 @@ import {
   Server as ServerIcon,
   Database,
   BarChart3,
+  Clock,
+  Cpu,
+  MemoryStick,
+  HardDrive,
+  Users,
+  TrendingUp,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  Settings,
+  MoreVertical,
+  X,
 } from 'lucide-react';
 import ServerDetailModal from './ServerDetailModal';
 import EnhancedServerCard from './EnhancedServerCard';
@@ -30,6 +42,8 @@ import { Server } from '../../types/server';
 import { useRealtimeServers } from '@/hooks/api/useRealtimeServers';
 import { timerManager } from '../../utils/TimerManager';
 import { motion, AnimatePresence } from 'framer-motion';
+import CollapsibleCard from '@/components/shared/CollapsibleCard';
+import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
 // ❌ 제거: Node.js 전용 모듈을 클라이언트에서 import하면 안됨
 // import {
 //   RealServerDataGenerator,
@@ -330,6 +344,7 @@ const networkMetrics = [
 export default function ServerDashboard({
   onStatsUpdate,
 }: ServerDashboardProps) {
+  const { sections, toggleSection } = useDashboardToggleStore();
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -424,21 +439,21 @@ export default function ServerDashboard({
             serverData.location || serverData.environment || 'Seoul DC1',
           cpu: Math.round(
             serverData.cpu_usage ||
-              serverData.cpu ||
-              serverData.metrics?.cpu ||
-              Math.random() * 50 + 20
+            serverData.cpu ||
+            serverData.metrics?.cpu ||
+            Math.random() * 50 + 20
           ),
           memory: Math.round(
             serverData.memory_usage ||
-              serverData.memory ||
-              serverData.metrics?.memory ||
-              Math.random() * 60 + 30
+            serverData.memory ||
+            serverData.metrics?.memory ||
+            Math.random() * 60 + 30
           ),
           disk: Math.round(
             serverData.disk_usage ||
-              serverData.disk ||
-              serverData.metrics?.disk ||
-              Math.random() * 40 + 10
+            serverData.disk ||
+            serverData.metrics?.disk ||
+            Math.random() * 40 + 10
           ),
           uptime:
             typeof serverData.uptime === 'string'
@@ -709,10 +724,9 @@ export default function ServerDashboard({
                 onClick={() => setActiveTab(tab.id as DashboardTab)}
                 className={`
                   group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm
-                  ${
-                    isActive
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ${isActive
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }
                 `}
               >
@@ -726,11 +740,10 @@ export default function ServerDashboard({
                 <span
                   className={`
                   ml-2 py-0.5 px-2 rounded-full text-xs
-                  ${
-                    isActive
+                  ${isActive
                       ? 'bg-blue-100 text-blue-600'
                       : 'bg-gray-100 text-gray-500'
-                  }
+                    }
                 `}
                 >
                   {tab.count}
@@ -1065,11 +1078,10 @@ export default function ServerDashboard({
                         onClick={() =>
                           setCurrentPage(prev => Math.max(1, prev - 1))
                         }
-                        className={`px-2 py-1 rounded-md border text-sm transition-colors ${
-                          currentPage === 1
-                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                            : 'bg-white hover:bg-gray-100 text-gray-700'
-                        }`}
+                        className={`px-2 py-1 rounded-md border text-sm transition-colors ${currentPage === 1
+                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                          : 'bg-white hover:bg-gray-100 text-gray-700'
+                          }`}
                       >
                         이전
                       </button>
@@ -1079,11 +1091,10 @@ export default function ServerDashboard({
                           <button
                             key={page}
                             onClick={() => setCurrentPage(page)}
-                            className={`w-8 h-8 rounded-md text-sm border transition-colors ${
-                              page === currentPage
-                                ? 'bg-blue-600 text-white border-blue-600'
-                                : 'bg-white text-gray-700 hover:bg-gray-100'
-                            }`}
+                            className={`w-8 h-8 rounded-md text-sm border transition-colors ${page === currentPage
+                              ? 'bg-blue-600 text-white border-blue-600'
+                              : 'bg-white text-gray-700 hover:bg-gray-100'
+                              }`}
                             aria-current={
                               page === currentPage ? 'page' : undefined
                             }
@@ -1098,11 +1109,10 @@ export default function ServerDashboard({
                         onClick={() =>
                           setCurrentPage(prev => Math.min(totalPages, prev + 1))
                         }
-                        className={`px-2 py-1 rounded-md border text-sm transition-colors ${
-                          currentPage === totalPages
-                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                            : 'bg-white hover:bg-gray-100 text-gray-700'
-                        }`}
+                        className={`px-2 py-1 rounded-md border text-sm transition-colors ${currentPage === totalPages
+                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                          : 'bg-white hover:bg-gray-100 text-gray-700'
+                          }`}
                       >
                         다음
                       </button>
@@ -1111,37 +1121,21 @@ export default function ServerDashboard({
                 </div>
               )}
 
-              {/* 🚀 서버 카드 섹션 - 스와이퍼 형태로 개선 */}
+              {/* 🚀 서버 카드 섹션 - 접기 기능 추가 */}
               {groupedServers.critical.length > 0 && (
-                <div className='space-y-4'>
-                  <div className='flex items-center justify-between'>
-                    <h3 className='text-lg font-semibold text-red-600 flex items-center gap-2'>
-                      <span className='w-3 h-3 bg-red-500 rounded-full'></span>
-                      위험 상태 ({groupedServers.critical.length})
-                    </h3>
-                    {groupedServers.critical.length > SERVERS_PER_PAGE && (
-                      <div className='flex items-center gap-2 text-sm text-gray-500'>
-                        <span>{SERVERS_PER_PAGE}개씩 보기</span>
-                        <div className='flex gap-1'>
-                          <button
-                            className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
-                            title='이전 위험 서버들 보기'
-                            aria-label='이전 위험 서버들 보기'
-                          >
-                            <ChevronLeft className='w-3 h-3' />
-                          </button>
-                          <button
-                            className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center'
-                            title='다음 위험 서버들 보기'
-                            aria-label='다음 위험 서버들 보기'
-                          >
-                            <ChevronRight className='w-3 h-3' />
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
+                <CollapsibleCard
+                  title={`위험 상태 (${groupedServers.critical.length})`}
+                  subtitle="즉시 조치가 필요한 서버들"
+                  icon={
+                    <div className='p-2 bg-red-100 rounded-lg'>
+                      <AlertTriangle className='w-6 h-6 text-red-600' />
+                    </div>
+                  }
+                  isExpanded={sections.criticalServers}
+                  onToggle={() => toggleSection('criticalServers')}
+                  variant="bordered"
+                  className="mb-6"
+                >
                   {/* 스와이퍼 컨테이너 */}
                   <div className='relative overflow-hidden'>
                     <div className='flex transition-transform duration-300 ease-in-out'>
@@ -1207,7 +1201,7 @@ export default function ServerDashboard({
                               Math.min(
                                 Math.ceil(
                                   groupedServers.critical.length /
-                                    SERVERS_PER_PAGE
+                                  SERVERS_PER_PAGE
                                 ),
                                 prev + 1
                               )
@@ -1226,66 +1220,23 @@ export default function ServerDashboard({
                       </div>
                     )}
                   </div>
-                </div>
+                </CollapsibleCard>
               )}
 
               {groupedServers.warning.length > 0 && (
-                <div className='space-y-4'>
-                  <div className='flex items-center justify-between'>
-                    <h3 className='text-lg font-semibold text-yellow-600 flex items-center gap-2'>
-                      <span className='w-3 h-3 bg-yellow-500 rounded-full'></span>
-                      주의 상태 ({groupedServers.warning.length})
-                    </h3>
-                    {groupedServers.warning.length > SERVERS_PER_PAGE && (
-                      <div className='flex items-center gap-2 text-sm text-gray-500'>
-                        <span>{SERVERS_PER_PAGE}개씩 보기</span>
-                        <div className='flex gap-1'>
-                          <button
-                            onClick={() =>
-                              setWarningPage(prev => Math.max(1, prev - 1))
-                            }
-                            disabled={warningPage === 1}
-                            className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center disabled:opacity-50'
-                            title='이전 경고 서버들 보기'
-                            aria-label='이전 경고 서버들 보기'
-                          >
-                            <ChevronLeft className='w-3 h-3' />
-                          </button>
-                          <span className='text-xs px-2'>
-                            {warningPage}/
-                            {Math.ceil(
-                              groupedServers.warning.length / SERVERS_PER_PAGE
-                            )}
-                          </span>
-                          <button
-                            onClick={() =>
-                              setWarningPage(prev =>
-                                Math.min(
-                                  Math.ceil(
-                                    groupedServers.warning.length /
-                                      SERVERS_PER_PAGE
-                                  ),
-                                  prev + 1
-                                )
-                              )
-                            }
-                            disabled={
-                              warningPage ===
-                              Math.ceil(
-                                groupedServers.warning.length / SERVERS_PER_PAGE
-                              )
-                            }
-                            className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center disabled:opacity-50'
-                            title='다음 경고 서버들 보기'
-                            aria-label='다음 경고 서버들 보기'
-                          >
-                            <ChevronRight className='w-3 h-3' />
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
+                <CollapsibleCard
+                  title={`주의 상태 (${groupedServers.warning.length})`}
+                  subtitle="모니터링이 필요한 서버들"
+                  icon={
+                    <div className='p-2 bg-yellow-100 rounded-lg'>
+                      <Clock className='w-6 h-6 text-yellow-600' />
+                    </div>
+                  }
+                  isExpanded={sections.warningServers}
+                  onToggle={() => toggleSection('warningServers')}
+                  variant="bordered"
+                  className="mb-6"
+                >
                   <div className='relative overflow-hidden'>
                     <div className='flex transition-transform duration-300 ease-in-out'>
                       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4 min-w-full'>
@@ -1349,7 +1300,7 @@ export default function ServerDashboard({
                               Math.min(
                                 Math.ceil(
                                   groupedServers.warning.length /
-                                    SERVERS_PER_PAGE
+                                  SERVERS_PER_PAGE
                                 ),
                                 prev + 1
                               )
@@ -1368,66 +1319,23 @@ export default function ServerDashboard({
                       </div>
                     )}
                   </div>
-                </div>
+                </CollapsibleCard>
               )}
 
               {groupedServers.healthy.length > 0 && (
-                <div className='space-y-4'>
-                  <div className='flex items-center justify-between'>
-                    <h3 className='text-lg font-semibold text-green-600 flex items-center gap-2'>
-                      <span className='w-3 h-3 bg-green-500 rounded-full'></span>
-                      정상 상태 ({groupedServers.healthy.length})
-                    </h3>
-                    {groupedServers.healthy.length > SERVERS_PER_PAGE && (
-                      <div className='flex items-center gap-2 text-sm text-gray-500'>
-                        <span>{SERVERS_PER_PAGE}개씩 보기</span>
-                        <div className='flex gap-1'>
-                          <button
-                            onClick={() =>
-                              setHealthyPage(prev => Math.max(1, prev - 1))
-                            }
-                            disabled={healthyPage === 1}
-                            className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center disabled:opacity-50'
-                            title='이전 정상 서버들 보기'
-                            aria-label='이전 정상 서버들 보기'
-                          >
-                            <ChevronLeft className='w-3 h-3' />
-                          </button>
-                          <span className='text-xs px-2'>
-                            {healthyPage}/
-                            {Math.ceil(
-                              groupedServers.healthy.length / SERVERS_PER_PAGE
-                            )}
-                          </span>
-                          <button
-                            onClick={() =>
-                              setHealthyPage(prev =>
-                                Math.min(
-                                  Math.ceil(
-                                    groupedServers.healthy.length /
-                                      SERVERS_PER_PAGE
-                                  ),
-                                  prev + 1
-                                )
-                              )
-                            }
-                            disabled={
-                              healthyPage ===
-                              Math.ceil(
-                                groupedServers.healthy.length / SERVERS_PER_PAGE
-                              )
-                            }
-                            className='w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center disabled:opacity-50'
-                            title='다음 정상 서버들 보기'
-                            aria-label='다음 정상 서버들 보기'
-                          >
-                            <ChevronRight className='w-3 h-3' />
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
+                <CollapsibleCard
+                  title={`정상 상태 (${groupedServers.healthy.length})`}
+                  subtitle="안정적으로 운영 중인 서버들"
+                  icon={
+                    <div className='p-2 bg-green-100 rounded-lg'>
+                      <CheckCircle className='w-6 h-6 text-green-600' />
+                    </div>
+                  }
+                  isExpanded={sections.healthyServers}
+                  onToggle={() => toggleSection('healthyServers')}
+                  variant="bordered"
+                  className="mb-6"
+                >
                   <div className='relative overflow-hidden'>
                     <div className='flex transition-transform duration-300 ease-in-out'>
                       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4 min-w-full'>
@@ -1491,7 +1399,7 @@ export default function ServerDashboard({
                               Math.min(
                                 Math.ceil(
                                   groupedServers.healthy.length /
-                                    SERVERS_PER_PAGE
+                                  SERVERS_PER_PAGE
                                 ),
                                 prev + 1
                               )
@@ -1510,7 +1418,7 @@ export default function ServerDashboard({
                       </div>
                     )}
                   </div>
-                </div>
+                </CollapsibleCard>
               )}
 
               {/* 서버가 없는 경우 */}
