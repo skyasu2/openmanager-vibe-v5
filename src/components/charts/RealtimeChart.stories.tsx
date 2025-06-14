@@ -2,38 +2,39 @@ import type { Meta, StoryObj } from '@storybook/react';
 import RealtimeChart from './RealtimeChart';
 
 const meta: Meta<typeof RealtimeChart> = {
-  title: 'Charts/RealtimeChart',
+  title: 'Charts/Realtime Chart',
   component: RealtimeChart,
   parameters: {
-    layout: 'padded',
+    layout: 'fullscreen',
     docs: {
       description: {
         component:
-          '실시간 서버 메트릭 차트 - Chart.js 기반 60fps 차트, WebSocket 실시간 데이터, 예측 라인, 이상 감지',
+          '🚀 Enhanced Real Server Data Generator 기반 실시간 차트 - 8개 서버 아키텍처, Redis 통합, 24시간 베이스라인, 5가지 데모 시나리오 지원',
       },
     },
   },
-  decorators: [
-    Story => (
-      <div className='min-h-screen bg-gray-900 p-8'>
-        <div className='bg-gray-800 rounded-lg p-6'>
-          <Story />
-        </div>
-      </div>
-    ),
-  ],
+  tags: ['autodocs'],
   argTypes: {
     metrics: {
       control: 'check',
-      options: ['cpu', 'memory', 'disk', 'network'],
-      description: '표시할 메트릭 유형들',
+      options: [
+        'cpu',
+        'memory',
+        'disk',
+        'network',
+        'responseTime',
+        'activeConnections',
+        'throughput',
+        'errorRate',
+      ],
+      description: '표시할 메트릭 선택 (다중 선택 가능)',
     },
     serverId: {
       control: 'text',
-      description: '모니터링할 서버 ID',
+      description: '서버 ID',
     },
     timeWindow: {
-      control: { type: 'range', min: 5, max: 180, step: 5 },
+      control: { type: 'range', min: 5, max: 1440, step: 5 },
       description: '표시할 시간 범위 (분)',
     },
     predictions: {
@@ -66,19 +67,23 @@ const meta: Meta<typeof RealtimeChart> = {
 export default meta;
 type Story = StoryObj<typeof RealtimeChart>;
 
-// Mock WebSocket 설정
-const setupWebSocketMock = () => {
-  // WebSocket mock은 컴포넌트 내부에서 처리됨
-  console.log('🔗 WebSocket 연결 시뮬레이션');
+// Enhanced Mock WebSocket 설정
+const setupEnhancedWebSocketMock = (scenario = 'normal') => {
+  console.log(
+    `🚀 Enhanced Real Server Data Generator 연결 시뮬레이션 - ${scenario} 시나리오`
+  );
+  console.log('📊 8개 서버 아키텍처 데이터 스트림 활성화');
+  console.log('⚡ Redis 캐싱 시스템 연결');
+  console.log('📈 24시간 베이스라인 데이터 로드');
 };
 
 /**
- * 기본 실시간 차트
- * CPU 메트릭 단일 표시
+ * 기본 Enhanced 실시간 차트
+ * Web Server 기본 메트릭 표시
  */
 export const Default: Story = {
   args: {
-    metrics: ['cpu'],
+    metrics: ['cpu', 'memory'],
     serverId: 'web-server-01',
     timeWindow: 60,
     predictions: true,
@@ -89,15 +94,15 @@ export const Default: Story = {
     refreshInterval: 5000,
   },
   play: async () => {
-    setupWebSocketMock();
+    setupEnhancedWebSocketMock('normal');
   },
 };
 
 /**
- * 다중 메트릭 모니터링
- * CPU, 메모리, 디스크 동시 표시
+ * 데이터베이스 서버 모니터링
+ * 데이터베이스 특화 메트릭 표시
  */
-export const MultipleMetrics: Story = {
+export const DatabaseServer: Story = {
   args: {
     metrics: ['cpu', 'memory', 'disk'],
     serverId: 'database-01',
@@ -113,28 +118,28 @@ export const MultipleMetrics: Story = {
     docs: {
       description: {
         story:
-          'CPU, 메모리, 디스크 사용률을 동시에 모니터링하는 다중 메트릭 차트입니다.',
+          '데이터베이스 서버 전용 메트릭 (CPU, 메모리, 디스크)을 모니터링합니다.',
       },
     },
   },
   play: async () => {
-    setupWebSocketMock();
+    setupEnhancedWebSocketMock('normal');
   },
 };
 
 /**
- * 네트워크 트래픽 모니터링
- * 네트워크 메트릭 전용 표시
+ * 트래픽 스파이크 시나리오
+ * 급격한 트래픽 증가 상황 시뮬레이션
  */
-export const NetworkTraffic: Story = {
+export const TrafficSpike: Story = {
   args: {
-    metrics: ['network'],
-    serverId: 'load-balancer',
+    metrics: ['cpu', 'memory'],
+    serverId: 'load-balancer-01',
     timeWindow: 30,
     predictions: true,
     interactions: true,
     anomalies: true,
-    autoScale: false,
+    autoScale: true,
     height: 350,
     refreshInterval: 2000,
   },
@@ -142,27 +147,27 @@ export const NetworkTraffic: Story = {
     docs: {
       description: {
         story:
-          '네트워크 트래픽 전용 모니터링 차트로 실시간 대역폭 사용량을 추적합니다.',
+          '트래픽 스파이크 시나리오로 급격한 부하 증가 상황을 시뮬레이션합니다.',
       },
     },
   },
   play: async () => {
-    setupWebSocketMock();
+    setupEnhancedWebSocketMock('spike');
   },
 };
 
 /**
- * 예측 기능 비활성화
- * 기본 메트릭만 표시
+ * 메모리 누수 시나리오
+ * 점진적 메모리 증가 패턴
  */
-export const WithoutPredictions: Story = {
+export const MemoryLeak: Story = {
   args: {
-    metrics: ['cpu', 'memory'],
-    serverId: 'app-server',
-    timeWindow: 60,
-    predictions: false,
+    metrics: ['memory', 'cpu'],
+    serverId: 'api-server-01',
+    timeWindow: 180,
+    predictions: true,
     interactions: true,
-    anomalies: false,
+    anomalies: true,
     autoScale: true,
     height: 300,
     refreshInterval: 5000,
@@ -170,235 +175,127 @@ export const WithoutPredictions: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'AI 예측 기능과 이상 감지를 비활성화한 기본 메트릭 차트입니다.',
+        story:
+          '메모리 누수 시나리오로 점진적인 메모리 사용량 증가를 시뮬레이션합니다.',
       },
     },
   },
   play: async () => {
-    setupWebSocketMock();
+    setupEnhancedWebSocketMock('memory_leak');
   },
 };
 
 /**
- * 인터랙션 비활성화
- * 정적 차트 표시
+ * DDoS 공격 시나리오
+ * 비정상적인 네트워크 트래픽 패턴
  */
-export const StaticChart: Story = {
+export const DDoSAttack: Story = {
   args: {
     metrics: ['cpu'],
-    serverId: 'monitoring-display',
-    timeWindow: 180,
+    serverId: 'web-server-01',
+    timeWindow: 60,
     predictions: true,
-    interactions: false,
+    interactions: true,
     anomalies: true,
     autoScale: true,
-    height: 250,
+    height: 300,
+    refreshInterval: 2000,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'DDoS 공격 시나리오로 비정상적인 네트워크 트래픽 패턴을 시뮬레이션합니다.',
+      },
+    },
+  },
+  play: async () => {
+    setupEnhancedWebSocketMock('ddos');
+  },
+};
+
+/**
+ * 성능 저하 시나리오
+ * 전반적인 시스템 성능 저하
+ */
+export const PerformanceDegradation: Story = {
+  args: {
+    metrics: ['cpu', 'memory', 'disk'],
+    serverId: 'worker-01',
+    timeWindow: 120,
+    predictions: true,
+    interactions: true,
+    anomalies: true,
+    autoScale: true,
+    height: 350,
+    refreshInterval: 5000,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '성능 저하 시나리오로 전반적인 시스템 성능 저하를 시뮬레이션합니다.',
+      },
+    },
+  },
+  play: async () => {
+    setupEnhancedWebSocketMock('performance_degradation');
+  },
+};
+
+/**
+ * 24시간 베이스라인 모니터링
+ * 장기간 트렌드 분석
+ */
+export const LongTermMonitoring: Story = {
+  args: {
+    metrics: ['cpu', 'memory'],
+    serverId: 'monitoring-01',
+    timeWindow: 1440, // 24시간
+    predictions: true,
+    interactions: true,
+    anomalies: true,
+    autoScale: true,
+    height: 400,
     refreshInterval: 10000,
   },
   parameters: {
     docs: {
       description: {
         story:
-          '마우스 인터랙션이 비활성화된 정적 모니터링 디스플레이용 차트입니다.',
+          '24시간 베이스라인 데이터를 활용한 장기간 트렌드 분석을 제공합니다.',
       },
     },
   },
   play: async () => {
-    setupWebSocketMock();
+    setupEnhancedWebSocketMock('normal');
   },
 };
 
 /**
- * 고해상도 모니터링
- * 빠른 갱신 주기의 정밀 모니터링
+ * 캐시 서버 최적화
+ * 캐시 히트율 및 성능 모니터링
  */
-export const HighResolution: Story = {
+export const CacheOptimization: Story = {
   args: {
     metrics: ['cpu', 'memory'],
-    serverId: 'critical-server',
-    timeWindow: 15,
-    predictions: true,
-    interactions: true,
-    anomalies: true,
-    autoScale: true,
-    height: 400,
-    refreshInterval: 1000,
-  },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          '1초 간격의 고해상도 실시간 모니터링으로 중요 서버의 상태를 정밀 추적합니다.',
-      },
-    },
-  },
-  play: async () => {
-    setupWebSocketMock();
-  },
-};
-
-/**
- * 장기간 추세 분석
- * 3시간 시간 윈도우의 추세 차트
- */
-export const LongTermTrend: Story = {
-  args: {
-    metrics: ['cpu', 'memory', 'disk'],
-    serverId: 'production-server',
-    timeWindow: 180,
-    predictions: true,
-    interactions: true,
-    anomalies: true,
-    autoScale: true,
-    height: 450,
-    refreshInterval: 15000,
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: '3시간 시간 윈도우로 장기간 성능 추세를 분석하는 차트입니다.',
-      },
-    },
-  },
-  play: async () => {
-    setupWebSocketMock();
-  },
-};
-
-/**
- * 컴팩트 뷰
- * 작은 공간에 최적화된 차트
- */
-export const CompactView: Story = {
-  args: {
-    metrics: ['cpu'],
-    serverId: 'edge-server',
-    timeWindow: 30,
-    predictions: false,
-    interactions: false,
-    anomalies: false,
-    autoScale: true,
-    height: 200,
-    refreshInterval: 5000,
-  },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          '대시보드 위젯이나 사이드바에 적합한 컴팩트한 크기의 차트입니다.',
-      },
-    },
-  },
-  play: async () => {
-    setupWebSocketMock();
-  },
-};
-
-/**
- * 모든 메트릭 종합 모니터링
- * 전체 시스템 상태 한눈에 보기
- */
-export const CompleteMonitoring: Story = {
-  args: {
-    metrics: ['cpu', 'memory', 'disk', 'network'],
-    serverId: 'main-server',
+    serverId: 'cache-server-01',
     timeWindow: 60,
     predictions: true,
     interactions: true,
     anomalies: true,
     autoScale: true,
-    height: 500,
+    height: 300,
     refreshInterval: 3000,
   },
   parameters: {
     docs: {
       description: {
-        story:
-          'CPU, 메모리, 디스크, 네트워크 모든 메트릭을 종합적으로 모니터링하는 차트입니다.',
+        story: '캐시 서버의 히트율과 성능을 실시간으로 모니터링합니다.',
       },
     },
   },
   play: async () => {
-    setupWebSocketMock();
-  },
-};
-
-/**
- * 모바일 최적화
- * 작은 화면에 최적화된 레이아웃
- */
-export const MobileOptimized: Story = {
-  args: {
-    metrics: ['cpu', 'memory'],
-    serverId: 'mobile-app-server',
-    timeWindow: 30,
-    predictions: true,
-    interactions: false,
-    anomalies: true,
-    autoScale: true,
-    height: 250,
-    refreshInterval: 5000,
-  },
-  parameters: {
-    viewport: {
-      defaultViewport: 'mobile1',
-    },
-    docs: {
-      description: {
-        story: '모바일 기기에서 최적화된 실시간 차트 표시입니다.',
-      },
-    },
-  },
-  decorators: [
-    Story => (
-      <div className='bg-gray-900 p-4'>
-        <div className='bg-gray-800 rounded-lg p-4'>
-          <Story />
-        </div>
-      </div>
-    ),
-  ],
-  play: async () => {
-    setupWebSocketMock();
-  },
-};
-
-/**
- * 어드민 대시보드 뷰
- * 관리자용 상세 모니터링
- */
-export const AdminDashboard: Story = {
-  args: {
-    metrics: ['cpu', 'memory', 'disk', 'network'],
-    serverId: 'admin-monitoring',
-    timeWindow: 120,
-    predictions: true,
-    interactions: true,
-    anomalies: true,
-    autoScale: false,
-    height: 600,
-    refreshInterval: 2000,
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: '관리자용 상세 모니터링 대시보드에 최적화된 고급 차트입니다.',
-      },
-    },
-  },
-  decorators: [
-    Story => (
-      <div className='min-h-screen bg-gray-900 p-8'>
-        <div className='bg-gray-800 rounded-lg p-8 shadow-2xl'>
-          <h2 className='text-white text-2xl font-bold mb-6'>
-            🔧 관리자 모니터링 대시보드
-          </h2>
-          <Story />
-        </div>
-      </div>
-    ),
-  ],
-  play: async () => {
-    setupWebSocketMock();
+    setupEnhancedWebSocketMock('normal');
   },
 };

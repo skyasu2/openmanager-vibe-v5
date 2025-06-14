@@ -1,6 +1,6 @@
 /**
  * 🏭 AI 엔진 팩토리
- * 
+ *
  * Factory Pattern: AI 엔진 인스턴스 생성과 초기화를 담당
  * Dependency Injection: 엔진 간 의존성 관리
  */
@@ -9,9 +9,13 @@ import { RealMCPClient } from '@/services/mcp/real-mcp-client';
 // TensorFlow 엔진 제거됨 → 경량 ML 엔진으로 대체
 import { KoreanAIEngine } from '../../korean-ai-engine';
 import { TransformersEngine } from '../../transformers-engine';
-import { LocalVectorDB } from '../../local-vector-db';
+import { LocalRAGEngine } from '@/lib/ml/rag-engine';
 import { LightweightMLEngine } from '../../lightweight-ml-engine'; // ✅ 새로운 경량 ML 엔진
-import { EngineInstance, EngineConfiguration, EngineStats } from '../types/HybridTypes';
+import {
+  EngineInstance,
+  EngineConfiguration,
+  EngineStats,
+} from '../types/HybridTypes';
 
 export class EngineFactory {
   private static instance: EngineFactory;
@@ -25,7 +29,9 @@ export class EngineFactory {
     }
   }
 
-  public static getInstance(configuration?: Partial<EngineConfiguration>): EngineFactory {
+  public static getInstance(
+    configuration?: Partial<EngineConfiguration>
+  ): EngineFactory {
     if (!EngineFactory.instance) {
       EngineFactory.instance = new EngineFactory(configuration);
     }
@@ -40,7 +46,7 @@ export class EngineFactory {
     koreanEngine: KoreanAIEngine;
     transformersEngine: TransformersEngine;
     lightweightMLEngine: LightweightMLEngine; // ✅ 경량 ML 엔진 추가
-    vectorDB: LocalVectorDB;
+    vectorDB: LocalRAGEngine;
   } {
     console.log('🏭 AI 엔진 팩토리에서 엔진 인스턴스 생성');
 
@@ -48,7 +54,7 @@ export class EngineFactory {
     const koreanEngine = new KoreanAIEngine();
     const transformersEngine = new TransformersEngine();
     const lightweightMLEngine = new LightweightMLEngine(); // ✅ 경량 ML 엔진 생성
-    const vectorDB = new LocalVectorDB();
+    const vectorDB = new LocalRAGEngine();
 
     // 엔진 등록
     this.registerEngine('mcp', mcpClient);
@@ -74,7 +80,7 @@ export class EngineFactory {
     koreanEngine: KoreanAIEngine;
     transformersEngine: TransformersEngine;
     lightweightMLEngine: LightweightMLEngine; // ✅ 경량 ML 엔진 추가
-    vectorDB: LocalVectorDB;
+    vectorDB: LocalRAGEngine;
   }): Promise<EngineStats> {
     console.log('🚀 우선순위 기반 엔진 초기화 시작');
 
@@ -89,15 +95,22 @@ export class EngineFactory {
     const corePromises = [];
 
     if (this.configuration.korean.enabled) {
-      corePromises.push(this.initializeKoreanEngine(engines.koreanEngine, stats));
+      corePromises.push(
+        this.initializeKoreanEngine(engines.koreanEngine, stats)
+      );
     }
 
-    if (this.configuration.lightweightML.enabled) { // ✅ 경량 ML 초기화
-      corePromises.push(this.initializeLightweightMLEngine(engines.lightweightMLEngine, stats));
+    if (this.configuration.lightweightML.enabled) {
+      // ✅ 경량 ML 초기화
+      corePromises.push(
+        this.initializeLightweightMLEngine(engines.lightweightMLEngine, stats)
+      );
     }
 
     if (this.configuration.transformers.enabled) {
-      corePromises.push(this.initializeTransformersEngine(engines.transformersEngine, stats));
+      corePromises.push(
+        this.initializeTransformersEngine(engines.transformersEngine, stats)
+      );
     }
 
     if (this.configuration.mcp.enabled) {
@@ -185,7 +198,7 @@ export class EngineFactory {
    * 벡터 DB 초기화
    */
   private async initializeVectorDB(
-    vectorDB: LocalVectorDB,
+    vectorDB: LocalRAGEngine,
     stats: EngineStats
   ): Promise<void> {
     try {
@@ -219,7 +232,8 @@ export class EngineFactory {
         enabled: true,
         priority: 1,
       },
-      lightweightML: { // ✅ 경량 ML 기본 설정
+      lightweightML: {
+        // ✅ 경량 ML 기본 설정
         enabled: true,
         priority: 2,
         models: ['linear-regression', 'simple-statistics', 'ml-regression'],
@@ -271,4 +285,4 @@ export class EngineFactory {
     this.engines.clear();
     console.log('🧹 엔진 팩토리 정리 완료');
   }
-} 
+}

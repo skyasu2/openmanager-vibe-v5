@@ -1,8 +1,15 @@
 'use client';
 
 import { memo, Suspense, useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Bot, Clock, Settings, Server } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Bot,
+  Clock,
+  Settings,
+  Server,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useToast } from '../ui/ToastNotification';
 
@@ -51,6 +58,68 @@ interface DashboardHeaderProps {
   /** 시스템 상태 표시 컴포넌트 */
   systemStatusDisplay: React.ReactNode;
 }
+
+/**
+ * 헤더 정보 패널 접기/펼치기 상태 관리
+ */
+const useHeaderCollapse = () => {
+  const [isCollapsed, setIsCollapsed] = useState(true); // 기본적으로 접힌 상태
+
+  useEffect(() => {
+    // 로컬 스토리지에서 접힘 상태 로드
+    const savedCollapsed = localStorage.getItem('dashboard-header-collapsed');
+    if (savedCollapsed !== null) {
+      setIsCollapsed(JSON.parse(savedCollapsed));
+    }
+  }, []);
+
+  const toggleCollapse = () => {
+    const newCollapsed = !isCollapsed;
+    setIsCollapsed(newCollapsed);
+    localStorage.setItem(
+      'dashboard-header-collapsed',
+      JSON.stringify(newCollapsed)
+    );
+  };
+
+  return { isCollapsed, toggleCollapse };
+};
+
+/**
+ * 간단한 요약 정보 컴포넌트 (접힌 상태)
+ */
+const HeaderSummary = memo(function HeaderSummary({
+  serverStats,
+  onToggle,
+}: {
+  serverStats: ServerStats;
+  onToggle: () => void;
+}) {
+  const currentTime = new Date().toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  return (
+    <div className='flex items-center justify-between w-full px-4 py-2 bg-gray-50 border-b border-gray-200'>
+      <div className='flex items-center gap-4 text-sm text-gray-600'>
+        <span>서버 상태: {serverStats.online > 0 ? '정상' : '점검중'}</span>
+        <span>
+          온라인: {serverStats.online}/{serverStats.total}
+        </span>
+        <span>시간: {currentTime}</span>
+      </div>
+      <button
+        onClick={onToggle}
+        className='flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors'
+        title='상세 정보 보기'
+      >
+        <ChevronDown className='w-4 h-4' />
+        더보기
+      </button>
+    </div>
+  );
+});
 
 /**
  * 실시간 시간 표시 컴포넌트
@@ -249,6 +318,7 @@ const DashboardHeader = memo(function DashboardHeader({
 }: DashboardHeaderProps) {
   const { aiAgent, ui } = useUnifiedAdminStore();
   const { warning } = useToast();
+  const { isCollapsed, toggleCollapse } = useHeaderCollapse();
 
   // 새로운 AI 사이드바 상태
   const { isOpen: isSidebarOpen, setOpen: setSidebarOpen } =
@@ -269,6 +339,90 @@ const DashboardHeader = memo(function DashboardHeader({
   return (
     <>
       <header className='bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40'>
+        {/* 접힌 상태: 간단한 요약 정보만 표시 */}
+        {isCollapsed && (
+          <HeaderSummary serverStats={serverStats} onToggle={toggleCollapse} />
+        )}
+
+        {/* 펼친 상태: 상세 정보 표시 */}
+        <AnimatePresence>
+          {!isCollapsed && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className='overflow-hidden'
+            >
+              <div className='px-4 py-2 bg-gray-50 border-b border-gray-200'>
+                <div className='flex items-center justify-between mb-2'>
+                  <h3 className='text-sm font-medium text-gray-700'>
+                    시스템 상세 정보
+                  </h3>
+                  <button
+                    onClick={toggleCollapse}
+                    className='flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors'
+                    title='상세 정보 숨기기'
+                  >
+                    <ChevronUp className='w-4 h-4' />
+                    접기
+                  </button>
+                </div>
+
+                <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                  {/* 시스템 상태 */}
+                  <div className='space-y-2'>{systemStatusDisplay}</div>
+
+                  {/* 실시간 정보 */}
+                  <div className='space-y-2'>
+                    <RealTimeDisplay />
+                  </div>
+
+                  {/* 프로필 설정 */}
+                  <div className='space-y-2'>
+                    <ProfileSettingsDisplay />
+                  </div>
+                </div>
+
+                {/* 상세 서버 통계 */}
+                <div className='mt-4 pt-4 border-t border-gray-200'>
+                  <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
+                    <div className='text-center p-2 bg-white rounded border'>
+                      <div className='text-lg font-bold text-gray-900'>
+                        {serverStats.total}
+                      </div>
+                      <div className='text-xs text-gray-500'>전체 서버</div>
+                    </div>
+                    <div className='text-center p-2 bg-green-50 rounded border border-green-200'>
+                      <div className='text-lg font-bold text-green-600'>
+                        {serverStats.online}
+                      </div>
+                      <div className='text-xs text-green-600'>온라인</div>
+                    </div>
+                    {serverStats.warning > 0 && (
+                      <div className='text-center p-2 bg-orange-50 rounded border border-orange-200'>
+                        <div className='text-lg font-bold text-orange-600'>
+                          {serverStats.warning}
+                        </div>
+                        <div className='text-xs text-orange-600'>경고</div>
+                      </div>
+                    )}
+                    {serverStats.offline > 0 && (
+                      <div className='text-center p-2 bg-red-50 rounded border border-red-200'>
+                        <div className='text-lg font-bold text-red-600'>
+                          {serverStats.offline}
+                        </div>
+                        <div className='text-xs text-red-600'>오프라인</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 메인 헤더 (항상 표시) */}
         <div className='flex items-center justify-between px-6 py-4'>
           <div className='flex items-center gap-4'>
             <button
@@ -290,93 +444,7 @@ const DashboardHeader = memo(function DashboardHeader({
           </div>
 
           <div className='flex items-center gap-4'>
-            {/* 시스템 상태 표시 */}
-            {systemStatusDisplay}
-
-            {/* 실시간 시간 표시 */}
-            <RealTimeDisplay />
-
-            {/* 프로필 설정 표시 */}
-            <ProfileSettingsDisplay />
-
-            {/* 모바일용 간단한 통계 */}
-            <div className='md:hidden flex items-center gap-2'>
-              <div className='flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-lg'>
-                <div className='w-2 h-2 bg-green-500 rounded-full'></div>
-                <span className='text-xs text-gray-600'>
-                  {serverStats.total}대
-                </span>
-              </div>
-              {(serverStats.warning > 0 || serverStats.offline > 0) && (
-                <div className='flex items-center gap-1 px-2 py-1 bg-red-50 rounded-lg'>
-                  <div className='w-2 h-2 bg-red-500 rounded-full'></div>
-                  <span className='text-xs text-red-600'>
-                    {serverStats.warning + serverStats.offline}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* 빠른 통계 - 실시간 데이터 (데스크톱) */}
-            <div
-              className='hidden md:flex items-center gap-6'
-              role='status'
-              aria-label='서버 통계'
-            >
-              {/* 서버데이터 생성기 상태 표시 */}
-              <div
-                className='flex items-center gap-1 px-2 py-1 bg-green-50 border border-green-200 rounded-lg'
-                title='실제 서버데이터 생성기 연동'
-              >
-                <div className='w-2 h-2 bg-green-500 rounded-full animate-pulse'></div>
-                <span className='text-xs text-green-700 font-medium'>LIVE</span>
-              </div>
-
-              <div className='text-center'>
-                <div className='text-sm font-medium text-gray-900'>
-                  {serverStats.total}대
-                </div>
-                <div className='text-xs text-gray-500'>전체 서버</div>
-              </div>
-              <div className='text-center'>
-                <div className='text-sm font-medium text-green-600'>
-                  {serverStats.online}대
-                </div>
-                <div className='text-xs text-gray-500'>온라인</div>
-              </div>
-              {serverStats.warning > 0 && (
-                <div className='text-center'>
-                  <div className='text-sm font-medium text-orange-600'>
-                    {serverStats.warning}대
-                  </div>
-                  <div className='text-xs text-gray-500'>경고</div>
-                </div>
-              )}
-              {serverStats.offline > 0 && (
-                <div className='text-center'>
-                  <div className='text-sm font-medium text-red-600'>
-                    {serverStats.offline}대
-                  </div>
-                  <div className='text-xs text-gray-500'>오프라인</div>
-                </div>
-              )}
-
-              {/* 서버 상태 요약 */}
-              <div className='text-center'>
-                <div className='text-xs text-gray-500'>상태</div>
-                <div className='text-xs font-medium'>
-                  {serverStats.offline > 0 ? (
-                    <span className='text-red-600'>위험</span>
-                  ) : serverStats.warning > 0 ? (
-                    <span className='text-orange-600'>주의</span>
-                  ) : (
-                    <span className='text-green-600'>정상</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* AI 에이전트 토글 버튼 - 프로필 바로 왼쪽에 배치 */}
+            {/* AI 에이전트 토글 버튼 */}
             <div className='relative'>
               <motion.button
                 onClick={handleAIAgentToggle}

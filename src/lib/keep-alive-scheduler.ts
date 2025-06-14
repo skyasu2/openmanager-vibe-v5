@@ -3,9 +3,12 @@
  * 무료 티어 서비스 휴면/삭제 방지 시스템
  */
 
-import { smartRedis, getRedisClient } from './redis';
-import { smartSupabase } from './supabase';
+import { logger } from './logger';
+import { env } from './env';
 import { usageMonitor } from './usage-monitor';
+import { createClient } from '@supabase/supabase-js';
+import { checkSupabaseConnection } from './supabase';
+import smartRedis, { getRedisClient } from './redis';
 
 interface KeepAliveStatus {
   lastPing: {
@@ -19,6 +22,9 @@ interface KeepAliveStatus {
   nextScheduled: {
     supabase: Date | null;
     redis: Date | null;
+  };
+  errors: {
+    supabase: number;
   };
 }
 
@@ -74,6 +80,7 @@ class KeepAliveScheduler {
             ? new Date(parsed.nextScheduled.redis)
             : null,
         },
+        errors: parsed.errors || { supabase: 0 },
       };
     } catch {
       return this.getDefaultStatus();
@@ -85,6 +92,7 @@ class KeepAliveScheduler {
       lastPing: { supabase: null, redis: null },
       isActive: { supabase: false, redis: false },
       nextScheduled: { supabase: null, redis: null },
+      errors: { supabase: 0 },
     };
   }
 
@@ -152,6 +160,16 @@ class KeepAliveScheduler {
   // Supabase ping 실행
   private async pingSupabase(): Promise<void> {
     try {
+      // 🛡️ 빌드 타임에는 Supabase 요청 완전 차단
+      if (
+        typeof window === 'undefined' &&
+        (process.env.VERCEL_ENV ||
+          (process.env.NODE_ENV === 'production' && !process.env.RUNTIME_ENV))
+      ) {
+        console.log('⏭️ Supabase keep-alive 건너뜀: 빌드 타임');
+        return;
+      }
+
       if (!usageMonitor.canUseSupabase()) {
         console.log('⏭️ Supabase keep-alive 건너뜀: 사용량 제한');
         return;
@@ -159,36 +177,46 @@ class KeepAliveScheduler {
 
       console.log('🔔 Supabase keep-alive 실행 중...');
 
-      // 매우 가벼운 쿼리 실행 (최소 사용량)
-      const result = await smartSupabase.select('servers', 'count');
+      // Supabase 연결 테스트
+      const isConnected = await checkSupabaseConnection();
 
-      this.status.lastPing.supabase = new Date();
-      this.saveStatusToStorage();
+      if (isConnected) {
+        this.status.lastPing.supabase = new Date();
+        this.status.errors.supabase = 0;
+        console.log(
+          `✅ Supabase keep-alive 성공: ${this.status.lastPing.supabase.toLocaleString()}`
+        );
+      } else {
+        throw new Error('Supabase 연결 실패');
+      }
 
+      usageMonitor.recordSupabaseUsage(1);
+    } catch (error: any) {
+      this.status.errors.supabase++;
       console.log(
-        '✅ Supabase keep-alive 성공:',
-        this.status.lastPing.supabase.toLocaleString()
+        `❌ Supabase keep-alive 실패 (${this.status.errors.supabase}회):`,
+        error.message
       );
 
-      // 사용량 기록 (매우 적은 양)
-      usageMonitor.recordSupabaseUsage(0.01, 1); // 10KB, 1 request
-    } catch (error) {
-      console.warn('❌ Supabase keep-alive 실패:', error);
-
-      // 재시도 로직 (5분 후)
-      setTimeout(
-        () => {
-          console.log('🔄 Supabase keep-alive 재시도...');
-          this.pingSupabase();
-        },
-        5 * 60 * 1000
-      );
+      if (this.status.errors.supabase >= 3) {
+        console.log('⚠️ Supabase keep-alive 연속 실패로 일시 중단');
+      }
     }
   }
 
   // Redis ping 실행
   private async pingRedis(): Promise<void> {
     try {
+      // 🛡️ 빌드 타임에는 Redis 요청 완전 차단
+      if (
+        typeof window === 'undefined' &&
+        (process.env.VERCEL_ENV ||
+          (process.env.NODE_ENV === 'production' && !process.env.RUNTIME_ENV))
+      ) {
+        console.log('⏭️ Redis keep-alive 건너뜀: 빌드 타임');
+        return;
+      }
+
       if (!usageMonitor.canUseRedis()) {
         console.log('⏭️ Redis keep-alive 건너뜀: 사용량 제한');
         return;
@@ -196,42 +224,20 @@ class KeepAliveScheduler {
 
       console.log('🔔 Redis keep-alive 실행 중...');
 
-      // 빌드 타임이나 Redis 사용 불가 시 체크
-      const redisClient = await getRedisClient();
-      
-      if (!redisClient) {
-        console.log('⏭️ Redis not available during build');
-        return;
-      }
+      // 🛡️ Throttle 방지를 위한 지연 추가
+      await new Promise(resolve => setTimeout(resolve, 300));
 
-      // 직접 Redis 클라이언트의 ping 명령 사용 (더 안정적)
-      const pingResult = await redisClient.ping();
+      // 하이브리드 Redis 클라이언트 사용 (keep-alive 컨텍스트)
+      const result = await smartRedis.ping('keep-alive');
 
-      if (pingResult === 'PONG') {
-        this.status.lastPing.redis = new Date();
-        this.saveStatusToStorage();
-
-        console.log(
-          '✅ Redis keep-alive 성공:',
-          this.status.lastPing.redis.toLocaleString()
-        );
-
-        // 사용량 기록 (1개 ping 명령)
-        usageMonitor.recordRedisUsage(1);
-      } else {
-        throw new Error(`Redis ping 응답 오류: ${pingResult}`);
-      }
-    } catch (error) {
-      console.warn('❌ Redis keep-alive 실패:', error);
-
-      // 재시도 로직 (5분 후)
-      setTimeout(
-        () => {
-          console.log('🔄 Redis keep-alive 재시도...');
-          this.pingRedis();
-        },
-        5 * 60 * 1000
+      this.status.lastPing.redis = new Date();
+      console.log(
+        `✅ Redis keep-alive 성공: ${this.status.lastPing.redis.toLocaleString()}`
       );
+
+      usageMonitor.recordRedisUsage(1);
+    } catch (error: any) {
+      console.log(`❌ Redis keep-alive 실패:`, error.message);
     }
   }
 

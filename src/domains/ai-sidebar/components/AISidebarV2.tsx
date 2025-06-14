@@ -20,11 +20,9 @@ import {
   BarChart3,
   Target,
 } from 'lucide-react';
-import {
-  useAISidebarStore,
-  useAIThinking,
-  useAIChat,
-} from '@/stores/useAISidebarStore';
+import { useAISidebarStore } from '@/stores/useAISidebarStore';
+import { useAIThinking } from '@/modules/ai-sidebar/hooks/useAIThinking';
+import { useAIChat } from '@/modules/ai-sidebar/hooks/useAIChat';
 import { useRealTimeAILogs } from '@/hooks/useRealTimeAILogs';
 import { RealAISidebarService } from '../services/RealAISidebarService';
 import BasicTyping from '@/components/ui/BasicTyping';
@@ -51,6 +49,12 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   // 실제 AI 서비스 인스턴스
   const aiService = new RealAISidebarService();
 
+  // UI 상태
+  const [inputValue, setInputValue] = useState('');
+  const [currentSessionId, setCurrentSessionId] = useState<string>('');
+  const [selectedFunction, setSelectedFunction] =
+    useState<AIAgentFunction>('chat');
+
   // 도메인 훅들 사용
   const { setOpen } = useAISidebarStore();
   const {
@@ -62,13 +66,10 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     addLog,
     clearLogs,
   } = useAIThinking();
-  const { responses, addResponse, clearResponses } = useAIChat();
-
-  // UI 상태
-  const [inputValue, setInputValue] = useState('');
-  const [currentSessionId, setCurrentSessionId] = useState<string>('');
-  const [selectedFunction, setSelectedFunction] =
-    useState<AIAgentFunction>('chat');
+  const { responses, addResponse, clearResponses } = useAIChat({
+    apiEndpoint: '/api/ai/smart-fallback',
+    sessionId: currentSessionId,
+  });
 
   // 스크롤 참조
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -117,19 +118,23 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
       // AI 응답 추가
       addResponse({
-        query: question,
+        success: true,
         response: response.response || '응답을 받지 못했습니다.',
         confidence: response.confidence || 0.5,
-        context: response.source || 'AI 시스템',
+        metadata: {
+          engineVersion: response.source || 'AI 시스템',
+        },
       });
     } catch (error) {
       console.error('AI 질의 처리 실패:', error);
       addResponse({
-        query: question,
+        success: false,
         response:
           '죄송합니다. 현재 AI 서비스에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.',
         confidence: 0,
-        context: 'Error Handler',
+        metadata: {
+          engineVersion: 'Error Handler',
+        },
       });
     } finally {
       setThinking(false);

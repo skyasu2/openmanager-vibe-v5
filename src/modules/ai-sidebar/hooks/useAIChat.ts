@@ -58,6 +58,7 @@ async function fetchRecentLogEntries() {
 
 export const useAIChat = (options: ChatHookOptions) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [responses, setResponses] = useState<AIResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sessionId] = useState(() => options.sessionId || generateSessionId());
@@ -401,9 +402,56 @@ export const useAIChat = (options: ChatHookOptions) => {
     }
   }, []);
 
+  /**
+   * AI 응답 추가
+   */
+  const addResponse = useCallback((response: Omit<AIResponse, 'timestamp'>) => {
+    const newResponse: AIResponse = {
+      ...response,
+      timestamp: new Date().toISOString(),
+    };
+    setResponses(prev => [...prev, newResponse]);
+  }, []);
+
+  /**
+   * 응답 목록 초기화
+   */
+  const clearResponses = useCallback(() => {
+    setResponses([]);
+  }, []);
+
+  /**
+   * 메시지 추가 (기존 호환성)
+   */
+  const addMessage = useCallback(
+    (message: Omit<ChatMessage, 'id' | 'timestamp'>) => {
+      const newMessage: ChatMessage = {
+        ...message,
+        id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, newMessage]);
+    },
+    []
+  );
+
+  /**
+   * 메시지 목록 초기화
+   */
+  const clearMessages = useCallback(() => {
+    setMessages([]);
+    setError(null);
+
+    // localStorage에서도 삭제
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(`ai-chat-${sessionId}`);
+    }
+  }, [sessionId]);
+
   return {
     // 상태
     messages,
+    responses,
     isLoading,
     error,
     sessionId,
@@ -423,5 +471,11 @@ export const useAIChat = (options: ChatHookOptions) => {
     messageCount: messages.length,
     lastMessage: messages[messages.length - 1] || null,
     hasError: !!error,
+
+    // 추가된 메서드
+    addResponse,
+    clearResponses,
+    addMessage,
+    clearMessages,
   };
 };

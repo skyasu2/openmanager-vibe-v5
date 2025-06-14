@@ -28,7 +28,7 @@ export interface ServerAlert {
   serverId: string;
   serverName: string;
   type: 'cpu' | 'memory' | 'disk' | 'network' | 'response_time' | 'custom';
-  severity: 'info' | 'warning' | 'critical';
+  severity: 'info' | 'warning' | 'critical' | 'success';
   message: string;
   timestamp: Date;
   resolved?: boolean;

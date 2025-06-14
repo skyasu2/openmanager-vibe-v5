@@ -1,3 +1,17 @@
+/**
+ * 🚀 고급 서버 데이터 생성기 v2.0
+ *
+ * 독립적으로 사용 가능한 고급 서버 메트릭 생성 모듈
+ * - 6가지 서버 타입 지원 (K8s, Host, Cloud, Container, VM, Edge)
+ * - 실시간 메트릭 생성 및 Redis 캐싱
+ * - 시간대별 로드 패턴 시뮬레이션
+ * - 서버 타입별 특화 메트릭
+ *
+ * @version 2.0.0
+ * @author OpenManager Vibe Team
+ * @standalone true
+ */
+
 import {
   ServerMetadata,
   TimeSeriesMetrics,
@@ -8,7 +22,32 @@ import {
 } from '@/types/ai-agent-input-schema';
 import { setRealtime, setBatch } from '@/lib/cache/redis';
 
-export class AdvancedServerDataGenerator {
+// 🎯 모듈 메타데이터
+export const MODULE_INFO = {
+  name: 'AdvancedServerDataGenerator',
+  version: '2.0.0',
+  description: '고급 서버 메트릭 생성 및 시뮬레이션',
+  features: [
+    '6가지 서버 타입 지원',
+    '실시간 메트릭 생성',
+    'Redis 캐싱 통합',
+    '시간대별 로드 패턴',
+    '서버 타입별 특화 메트릭',
+  ],
+  standalone: true,
+  dependencies: ['redis', 'ai-agent-input-schema'],
+} as const;
+
+// 🔧 표준 인터페이스
+export interface IDataGenerator {
+  start(): void;
+  stop(): void;
+  isGenerating(): boolean;
+  getServers(): ServerMetadata[];
+  generateDataset(): AIAnalysisDataset;
+}
+
+export class AdvancedServerDataGenerator implements IDataGenerator {
   private config: DataGenerationConfig;
   private servers: ServerMetadata[] = [];
   private isRunning: boolean = false;
@@ -22,6 +61,44 @@ export class AdvancedServerDataGenerator {
   constructor(config: DataGenerationConfig) {
     this.config = config;
     this.initializeServers();
+  }
+
+  // 🏗️ 정적 팩토리 메서드 (독립 실행용)
+  public static createStandalone(
+    serverCount: number = 10
+  ): AdvancedServerDataGenerator {
+    const config: DataGenerationConfig = {
+      servers: {
+        count: serverCount,
+        types: {
+          K8s: 2,
+          Host: 2,
+          Cloud: 2,
+          Container: 2,
+          VM: 1,
+          Edge: 1,
+        },
+        regions: ['us-east-1', 'us-west-2', 'eu-west-1', 'ap-southeast-1'],
+      },
+      patterns: {
+        dailyCycle: true,
+        weeklyCycle: true,
+        anomalyRate: 0.05,
+        correlationStrength: 0.7,
+      },
+      performance: {
+        batchSize: 100,
+        intervalMs: 60000, // 1분
+        bufferSize: 1000,
+      },
+      ai: {
+        analysisInterval: 5, // 5분
+        modelType: 'hybrid',
+        features: ['cpu', 'memory', 'disk', 'network', 'response_time'],
+      },
+    };
+
+    return new AdvancedServerDataGenerator(config);
   }
 
   // 서버 메타데이터 초기화
@@ -343,5 +420,271 @@ export class AdvancedServerDataGenerator {
   // 실행 상태 조회
   public isGenerating(): boolean {
     return this.isRunning;
+  }
+
+  // 🎯 AI 분석용 데이터셋 생성 (표준 인터페이스 구현)
+  public generateDataset(): AIAnalysisDataset {
+    const now = new Date();
+    const dataset: AIAnalysisDataset = {
+      metadata: {
+        generationTime: now,
+        timeRange: {
+          start: new Date(now.getTime() - 60 * 60 * 1000), // 1시간 전
+          end: now,
+        },
+        serverCount: this.servers.length,
+        dataPoints: this.dataBuffer.metrics.length || 60 * this.servers.length,
+        version: MODULE_INFO.version,
+      },
+      servers: this.servers,
+      metrics:
+        this.dataBuffer.metrics.length > 0
+          ? this.dataBuffer.metrics
+          : this.generateSampleMetrics(),
+      logs:
+        this.dataBuffer.logs.length > 0
+          ? this.dataBuffer.logs
+          : this.generateSampleLogs(),
+      traces:
+        this.dataBuffer.traces.length > 0
+          ? this.dataBuffer.traces
+          : this.generateSampleTraces(),
+      patterns: {
+        anomalies: this.generateAnomalies(),
+        correlations: this.generateCorrelations(),
+        trends: this.generateTrends(),
+      },
+    };
+
+    return dataset;
+  }
+
+  // 🔍 샘플 메트릭 생성 (데이터가 없을 때)
+  private generateSampleMetrics(): TimeSeriesMetrics[] {
+    const metrics: TimeSeriesMetrics[] = [];
+    const now = Date.now();
+
+    for (const server of this.servers) {
+      for (let i = 0; i < 60; i++) {
+        // 1시간 분량 (1분 간격)
+        const timestamp = new Date(now - (60 - i) * 60 * 1000);
+        metrics.push(this.generateMetrics(server));
+      }
+    }
+
+    return metrics;
+  }
+
+  // 📝 샘플 로그 생성
+  private generateSampleLogs(): LogEntry[] {
+    const logs: LogEntry[] = [];
+    const now = Date.now();
+
+    for (let i = 0; i < 100; i++) {
+      const timestamp = new Date(now - Math.random() * 60 * 60 * 1000);
+      const server =
+        this.servers[Math.floor(Math.random() * this.servers.length)];
+
+      logs.push({
+        timestamp,
+        serverId: server.id,
+        level: ['INFO', 'WARN', 'ERROR'][Math.floor(Math.random() * 3)] as any,
+        component: server.usageProfile.type,
+        message: this.generateLogMessage(),
+        metadata: {
+          requestId: `req-${i.toString().padStart(6, '0')}`,
+          method: 'GET',
+          endpoint: '/api/health',
+        },
+        structured: {
+          category: ['System', 'Application', 'Security'][
+            Math.floor(Math.random() * 3)
+          ] as any,
+          tags: [server.serverType, server.location.region],
+          context: {
+            serverId: server.id,
+            serverType: server.serverType,
+            region: server.location.region,
+          },
+        },
+        analysis: {
+          anomaly: Math.random() < 0.1,
+          sentiment: 'Neutral',
+          pattern: 'normal_operation',
+        },
+      });
+    }
+
+    return logs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }
+
+  // 🔗 샘플 트레이스 생성
+  private generateSampleTraces(): TraceData[] {
+    const traces: TraceData[] = [];
+    const now = Date.now();
+
+    for (let i = 0; i < 50; i++) {
+      const timestamp = new Date(now - Math.random() * 60 * 60 * 1000);
+      const server =
+        this.servers[Math.floor(Math.random() * this.servers.length)];
+
+      traces.push({
+        traceId: `trace-${i.toString().padStart(6, '0')}`,
+        spanId: `span-${i.toString().padStart(6, '0')}`,
+        serverId: server.id,
+        serviceName: server.usageProfile.type,
+        operationName: this.generateOperationName(),
+        timestamp,
+        duration: Math.floor(Math.random() * 1000) + 10,
+        status: 'OK',
+        tags: {
+          serverId: server.id,
+          region: server.location.region,
+          environment: server.tags.environment,
+        },
+        logs: [],
+        dependencies: {
+          upstream: [],
+          downstream: [],
+        },
+        performance: {
+          dbQueries: Math.floor(Math.random() * 10),
+          apiCalls: Math.floor(Math.random() * 5),
+          cacheHits: Math.floor(Math.random() * 20),
+          cacheMisses: Math.floor(Math.random() * 5),
+        },
+      });
+    }
+
+    return traces.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }
+
+  // 🔧 헬퍼 메서드들
+  private generateLogMessage(): string {
+    const messages = [
+      'System health check completed successfully',
+      'Database connection pool optimized',
+      'Cache hit ratio improved to 95%',
+      'Memory usage within normal parameters',
+      'Network latency spike detected',
+      'Auto-scaling triggered due to high load',
+      'Backup process completed',
+      'Security scan finished - no threats detected',
+    ];
+    return messages[Math.floor(Math.random() * messages.length)];
+  }
+
+  private generateOperationName(): string {
+    const operations = [
+      'GET /api/users',
+      'POST /api/orders',
+      'PUT /api/products',
+      'DELETE /api/cache',
+      'database.query',
+      'cache.get',
+      'auth.validate',
+      'file.upload',
+    ];
+    return operations[Math.floor(Math.random() * operations.length)];
+  }
+
+  private calculateActiveAlerts(): number {
+    return Math.floor(Math.random() * 5);
+  }
+
+  private calculateAverageCpuUsage(): number {
+    return Math.floor(Math.random() * 40) + 20; // 20-60%
+  }
+
+  private calculateAverageMemoryUsage(): number {
+    return Math.floor(Math.random() * 30) + 40; // 40-70%
+  }
+
+  private calculateNetworkThroughput(): number {
+    return Math.floor(Math.random() * 1000) + 500; // 500-1500 MB/s
+  }
+
+  private identifyPatterns(): string[] {
+    return [
+      'Peak usage during business hours (9-18)',
+      'Memory usage gradually increasing',
+      'Network traffic spikes every 4 hours',
+      'CPU usage correlates with user activity',
+    ];
+  }
+
+  private detectAnomalies(): string[] {
+    return [
+      'Unusual disk I/O pattern detected on server-003',
+      'Memory leak suspected in API service',
+      'Network latency spike in us-west-2 region',
+    ];
+  }
+
+  private generateRecommendations(): string[] {
+    return [
+      'Consider auto-scaling for web servers',
+      'Optimize database queries to reduce CPU usage',
+      'Implement caching layer for frequently accessed data',
+      'Monitor memory usage trends for potential leaks',
+    ];
+  }
+
+  private generateAnomalies() {
+    return [
+      {
+        type: 'cpu_spike',
+        serverId: this.servers[0]?.id || 'server-001',
+        timestamp: new Date(),
+        severity: 'High' as const,
+        description: 'CPU usage exceeded 90% threshold',
+        metrics: ['cpu.usage', 'cpu.load1'],
+      },
+      {
+        type: 'memory_leak',
+        serverId: this.servers[1]?.id || 'server-002',
+        timestamp: new Date(Date.now() - 30 * 60 * 1000),
+        severity: 'Medium' as const,
+        description: 'Memory usage gradually increasing',
+        metrics: ['memory.used', 'memory.available'],
+      },
+    ];
+  }
+
+  private generateCorrelations() {
+    return [
+      {
+        servers: [
+          this.servers[0]?.id || 'server-001',
+          this.servers[1]?.id || 'server-002',
+        ],
+        metrics: ['cpu.usage', 'network.io.rx'],
+        coefficient: 0.85,
+        timelag: 0,
+      },
+      {
+        servers: [this.servers[2]?.id || 'server-003'],
+        metrics: ['memory.used', 'disk.io.write'],
+        coefficient: 0.72,
+        timelag: 300, // 5분
+      },
+    ];
+  }
+
+  private generateTrends() {
+    return [
+      {
+        metric: 'cpu.usage',
+        servers: this.servers.slice(0, 3).map(s => s.id),
+        direction: 'Increasing' as const,
+        confidence: 0.85,
+      },
+      {
+        metric: 'memory.used',
+        servers: this.servers.slice(1, 4).map(s => s.id),
+        direction: 'Stable' as const,
+        confidence: 0.92,
+      },
+    ];
   }
 }

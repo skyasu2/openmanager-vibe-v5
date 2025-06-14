@@ -2,64 +2,102 @@ import Redis from 'ioredis';
 
 // Redis 클라이언트 인스턴스
 let redis: Redis | null = null;
+let isConnecting = false;
+let connectionAttempts = 0;
+const MAX_CONNECTION_ATTEMPTS = 3;
+const RECONNECT_DELAY = 10000; // 10초
 
 // Redis 연결 설정
 const getRedisClient = (): Redis => {
-  if (!redis) {
-    // 제공받은 Upstash Redis 정보 사용
-    const redisUrl =
-      process.env.REDIS_URL ||
-      'rediss://default:AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA@charming-condor-46598.upstash.io:6379';
-
-    console.log('🔄 Redis 연결 시도:', redisUrl.replace(/:[^:@]*@/, ':***@'));
-
-    redis = new Redis(redisUrl, {
-      maxRetriesPerRequest: 3, // 재시도 횟수 감소 (Upstash 최적화)
-      lazyConnect: true,
-      keepAlive: 30000,
-      family: 4,
-      connectTimeout: 15000, // 연결 타임아웃 증가 (클라우드 환경)
-      commandTimeout: 10000, // 명령 타임아웃 증가
-      enableReadyCheck: false,
-      tls: {
-        // Upstash Redis TLS 설정
-        rejectUnauthorized: false,
-      },
-      reconnectOnError: err => {
-        const targetError = 'READONLY';
-        return err.message.includes(targetError);
-      },
-    });
-
-    redis.on('error', err => {
-      console.error('❌ Redis 연결 오류:', err.message);
-      // 에러 발생 시 재연결 시도
-      if (
-        err.message.includes('ECONNRESET') ||
-        err.message.includes('MaxRetriesPerRequestError')
-      ) {
-        console.log('🔄 Redis 재연결 시도 중...');
-        setTimeout(() => {
-          redis?.disconnect();
-          redis = null;
-        }, 5000);
-      }
-    });
-
-    redis.on('connect', () => {
-      console.log(
-        '✅ Redis 연결 성공: https://charming-condor-46598.upstash.io'
-      );
-    });
-
-    redis.on('ready', () => {
-      console.log('✅ Redis 명령 준비 완료');
-    });
-
-    redis.on('close', () => {
-      console.log('⚠️ Redis 연결 종료');
-    });
+  if (redis && redis.status === 'ready') {
+    return redis;
   }
+
+  if (isConnecting) {
+    // 연결 중이면 기존 인스턴스 반환 (null일 수 있음)
+    return redis || createRedisInstance();
+  }
+
+  if (connectionAttempts >= MAX_CONNECTION_ATTEMPTS) {
+    console.log('⚠️ Redis 최대 연결 시도 초과, 메모리 모드로 폴백');
+    throw new Error('Redis connection failed after maximum attempts');
+  }
+
+  return createRedisInstance();
+};
+
+const createRedisInstance = (): Redis => {
+  if (isConnecting) {
+    return redis || new Redis(); // 임시 인스턴스 반환
+  }
+
+  isConnecting = true;
+  connectionAttempts++;
+
+  console.log(
+    `🔄 Redis 연결 시도 ${connectionAttempts}/${MAX_CONNECTION_ATTEMPTS}`
+  );
+
+  redis = new Redis({
+    host: 'charming-condor-46598.upstash.io',
+    port: 6379,
+    password: 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
+    tls: {},
+    maxRetriesPerRequest: 2, // 3에서 2로 감소
+    lazyConnect: true,
+    connectTimeout: 10000,
+    commandTimeout: 5000,
+    retryStrategy: (times: number) => {
+      if (times > 2) return null; // 2회 시도 후 포기
+      return Math.min(times * 200, 1000);
+    },
+    reconnectOnError: (err: Error) => {
+      const targetError = 'READONLY';
+      return err.message.includes(targetError);
+    },
+  });
+
+  redis.on('error', err => {
+    console.error('❌ Redis 연결 오류:', err.message);
+
+    // 특정 오류에 대해서만 재연결 시도
+    if (
+      err.message.includes('ECONNRESET') ||
+      err.message.includes('MaxRetriesPerRequestError')
+    ) {
+      console.log('🔄 Redis 재연결 예약...');
+
+      // 즉시 재연결하지 않고 지연 후 시도
+      setTimeout(() => {
+        if (redis) {
+          redis.disconnect();
+          redis = null;
+        }
+        isConnecting = false;
+
+        // 최대 시도 횟수 초과 시 더 이상 시도하지 않음
+        if (connectionAttempts < MAX_CONNECTION_ATTEMPTS) {
+          console.log('🔄 Redis 재연결 시도 중...');
+        }
+      }, RECONNECT_DELAY);
+    }
+  });
+
+  redis.on('connect', () => {
+    console.log('✅ Redis 연결 성공: https://charming-condor-46598.upstash.io');
+    connectionAttempts = 0; // 성공 시 카운터 리셋
+    isConnecting = false;
+  });
+
+  redis.on('ready', () => {
+    console.log('✅ Redis 명령 준비 완료');
+    isConnecting = false;
+  });
+
+  redis.on('close', () => {
+    console.log('⚠️ Redis 연결 종료');
+    isConnecting = false;
+  });
 
   return redis;
 };
