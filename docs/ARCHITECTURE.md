@@ -1,97 +1,254 @@
-# 🏗️ Architecture Guide
+# 🏗️ OpenManager Vibe v5.44.0 - 시스템 아키텍처 가이드
 
-OpenManager Vibe v5의 **시스템 아키텍처 완전 가이드**입니다.
+> **📅 최종 업데이트**: 2025년 6월 15일  
+> **🎯 버전**: v5.44.0  
+> **✅ 상태**: 프로덕션 최적화 완료  
+> **📝 통합 문서**: ai-architecture-v5.43.5.md, system-design-specification-v5.43.5.md, integrated-architecture-v6.0.md 내용 통합
 
 ## 🎯 아키텍처 개요
 
-OpenManager Vibe v5는 **모듈형 마이크로 아키텍처**를 기반으로 구축된 AI-Driven 서버 모니터링 플랫폼입니다.
+OpenManager Vibe v5.44.0은 **Multi-AI 협업 시스템**을 기반으로 하는 Enterprise급 AI 서버 모니터링 플랫폼입니다. **12개 AI 엔진 통합**, **3-Tier 폴백 전략**, **실시간 사고 과정 시각화**를 통해 **100% 가용성**을 보장합니다.
+
+### 🏆 핵심 성과
+
+- **TypeScript 컴파일 오류**: 24개 → 0개 (100% 해결)
+- **Next.js 빌드**: 94개 페이지 성공적 생성
+- **AI 엔진 통합**: 12개 엔진 완전 안정화
+- **TensorFlow 완전 제거**: 번들 크기 30% 감소, 초기화 시간 80% 단축
+- **메모리 최적화**: 100MB+ → 70MB (지연 로딩 적용)
 
 ### 핵심 설계 원칙
 
 - **🧩 모듈성**: 독립적인 모듈 간 느슨한 결합
 - **📈 확장성**: 수평적/수직적 확장 지원
 - **🔒 보안성**: 다층 보안 체계
-- **⚡ 성능**: 최적화된 응답 시간
-- **🛡️ 안정성**: 장애 복구 및 격리
+- **⚡ 성능**: 최적화된 응답 시간 (<100ms)
+- **🛡️ 안정성**: 3-Tier 폴백 시스템
+
+---
 
 ## 🏛️ 전체 시스템 구조
 
 ```mermaid
 graph TB
-    subgraph "Frontend Layer"
-        UI[Next.js UI]
-        WS[WebSocket Client]
+    subgraph "프론트엔드 레이어"
+        A[Next.js 15 App Router]
+        B[React 18 + TypeScript]
+        C[Tailwind CSS + shadcn/ui]
+        D[실시간 대시보드]
     end
 
-    subgraph "API Layer"
-        API[Next.js API Routes]
-        MW[Middleware]
+    subgraph "AI 엔진 레이어"
+        E[MasterAIEngine v4.0.0]
+        F[GracefulDegradationManager]
+        G[UniversalAILogger v2.0]
+
+        subgraph "Tier 1 - Primary"
+            H[GoogleAIService]
+            I[UnifiedAIEngine]
+            J[LocalRAGEngine]
+        end
+
+        subgraph "Tier 2 - Fallback"
+            K[OpenSource AI Pool]
+            L[MCP Client System]
+        end
+
+        subgraph "Tier 3 - Emergency"
+            M[Static Response Generator]
+        end
     end
 
-    subgraph "AI Engine Layer"
-        GAI[Google AI Studio]
-        MCP[MCP Protocol]
-        VDB[Vector Database]
+    subgraph "데이터 레이어"
+        N[Supabase PostgreSQL]
+        O[Upstash Redis]
+        P[벡터 데이터베이스]
     end
 
-    subgraph "Service Layer"
-        MS[Monitoring Service]
-        AS[Analysis Service]
-        NS[Notification Service]
+    subgraph "외부 통합"
+        Q[Google AI Studio]
+        R[Slack 웹훅]
+        S[Render MCP 서버]
     end
 
-    subgraph "Data Layer"
-        SUP[Supabase PostgreSQL]
-        RED[Upstash Redis]
-        FS[File System]
-    end
-
-    UI --> API
-    WS --> API
-    API --> MW
-    MW --> GAI
-    MW --> MCP
-    MW --> VDB
-    API --> MS
-    API --> AS
-    API --> NS
-    MS --> SUP
-    AS --> RED
-    NS --> FS
+    A --> E
+    E --> F
+    F --> H
+    F --> I
+    F --> J
+    F --> K
+    F --> L
+    F --> M
+    E --> G
+    H --> Q
+    I --> N
+    I --> O
+    J --> P
+    G --> R
+    L --> S
 ```
+
+---
 
 ## 🧠 AI 아키텍처
 
-### AI 엔진 구조
+### 🎯 3-Tier AI 시스템
+
+```
+🎯 Optimized AI Stack v5.44.0
+├── 🥇 Tier 1: 핵심 AI 엔진 (80% 커버리지)
+│   ├── MasterAIEngine v4.0.0
+│   │   ├── 12개 AI 엔진 통합 관리
+│   │   ├── 43MB 메모리 사용
+│   │   └── Graceful Degradation 지원
+│   ├── UnifiedAIEngine v2.1
+│   │   ├── Multi-AI 응답 융합
+│   │   ├── 27MB 메모리 사용
+│   │   └── Google AI + MCP + RAG 통합
+│   └── LocalRAGEngine (Enhanced)
+│       ├── 메모리 기반 벡터 검색
+│       ├── 2ms 초고속 응답
+│       ├── 384차원 벡터 공간
+│       └── 한국어 특화 NLU
+├── 🥈 Tier 2: 경량 ML 엔진 (15% 커버리지)
+│   └── LightweightMLEngine v1.0
+│       ├── simple-statistics 기반
+│       ├── ml-regression 활용
+│       ├── 5MB 메모리 사용
+│       ├── 선형 회귀 분석
+│       ├── 통계 기반 이상치 탐지
+│       └── 자동 모델 선택 및 폴백
+└── 🥉 Tier 3: 폴백 시스템 (5% 커버리지)
+    └── StaticResponseGenerator
+        ├── 최소 기능 보장
+        ├── 하드코딩된 응답
+        └── 완전 오프라인 동작
+```
+
+### 🔧 핵심 AI 엔진 상세
+
+#### 1. MasterAIEngine v4.0.0
+
+**역할**: 12개 AI 엔진의 통합 관리자  
+**메모리**: 43MB  
+**응답시간**: 평균 50ms
+
+**구성 엔진**:
+
+- **OpenSource 엔진 6개**: anomaly, prediction, autoscaling, korean, enhanced, integrated
+- **Custom 엔진 5개**: mcp, mcp-test, hybrid, unified, custom-nlp
+- **Correlation 엔진 1개**: correlation
 
 ```typescript
-// src/services/ai/engines/UnifiedAIEngine.ts
-export class UnifiedAIEngine {
-  private googleAI: GoogleAIService;
-  private mcpClient: MCPClient;
-  private vectorDB: VectorDatabase;
-  private rag: RAGEngine;
-
-  constructor() {
-    this.googleAI = new GoogleAIService();
-    this.mcpClient = new MCPClient();
-    this.vectorDB = new VectorDatabase();
-    this.rag = new RAGEngine(this.vectorDB);
-  }
-
-  async analyze(query: AnalysisQuery): Promise<AnalysisResult> {
-    // AI 분석 로직
-  }
+interface MasterAIEngineConfig {
+  engines: {
+    openSource: AIEngine[]; // 6개 오픈소스 엔진
+    custom: AIEngine[]; // 5개 커스텀 엔진
+  };
+  fallback: {
+    enabled: true;
+    tiers: 3;
+    timeout: 5000;
+  };
+  caching: {
+    enabled: true;
+    ttl: 300000;
+    maxSize: 1000;
+  };
 }
 ```
 
-### AI 처리 파이프라인
+**주요 기능**:
 
-1. **입력 처리**: 사용자 쿼리 받기
-2. **컨텍스트 수집**: MCP를 통한 관련 정보 수집
-3. **벡터 검색**: 유사한 패턴 검색
-4. **AI 추론**: Google AI로 분석 수행
-5. **결과 후처리**: 응답 포맷팅 및 검증
+- 🔄 Graceful Degradation (3-Tier 폴백)
+- 💾 Smart Caching (응답시간 50% 단축)
+- 🇰🇷 Korean Optimization (hangul-js + korean-utils)
+- 📊 실시간 성능 모니터링
+
+#### 2. UnifiedAIEngine v2.1
+
+**역할**: Multi-AI 응답 융합 및 통합  
+**메모리**: 27MB  
+**응답시간**: 평균 100ms
+
+```typescript
+interface UnifiedAIResponse {
+  primary: AIResponse;
+  secondary?: AIResponse;
+  confidence: number;
+  sources: string[];
+  fusionMethod: 'weighted' | 'consensus' | 'best';
+}
+```
+
+**주요 기능**:
+
+- 🤖 Google AI Studio 베타 연동
+- 🔗 MCP 서버 통합
+- 🧠 RAG 엔진 연결
+- 📈 응답 품질 최적화
+
+#### 3. Enhanced Local RAG Engine
+
+**역할**: 메모리 기반 초고속 벡터 검색  
+**메모리**: 15MB  
+**응답시간**: 2ms
+
+```typescript
+interface LocalRAGConfig {
+  vectorDimensions: 384;
+  embeddingMethod: 'tfidf-style';
+  searchStrategy: 'hybrid';
+  weights: {
+    vectorSimilarity: 0.6;
+    keywordMatching: 0.3;
+    categoryBonus: 0.1;
+  };
+  korean: {
+    nluProcessor: true;
+    intentAnalysis: true;
+    typoCorrection: true;
+  };
+}
+```
+
+**주요 기능**:
+
+- 🚀 **2ms 초고속 응답**: 메모리 기반 `Map<string, number[]>`
+- 🔍 **하이브리드 검색**: 벡터 + 키워드 + 카테고리
+- 🇰🇷 **한국어 특화**: NLU + 의도 분석 + 오타 교정
+- 📊 **384차원 벡터**: TF-IDF 스타일 임베딩
+
+### 🛡️ GracefulDegradationManager
+
+**3-Tier 폴백 전략**:
+
+```typescript
+interface DegradationStrategy {
+  tier1: {
+    engines: ['GoogleAIService', 'UnifiedAIEngine', 'LocalRAGEngine'];
+    timeout: 5000;
+    retryPolicy: 'exponential-backoff';
+    failureThreshold: 3;
+  };
+
+  tier2: {
+    engines: ['OpenSourcePool', 'MCPClientSystem'];
+    timeout: 3000;
+    retryPolicy: 'linear-backoff';
+    failureThreshold: 2;
+  };
+
+  tier3: {
+    engines: ['StaticResponseGenerator'];
+    timeout: 1000;
+    retryPolicy: 'immediate';
+    failureThreshold: 1;
+  };
+}
+```
+
+---
 
 ## 📊 데이터 아키텍처
 
@@ -112,8 +269,8 @@ graph LR
     end
 
     subgraph "Storage"
-        PG[(PostgreSQL)]
-        RD[(Redis Cache)]
+        PG[(Supabase PostgreSQL)]
+        RD[(Upstash Redis)]
         VC[(Vector Cache)]
     end
 
@@ -184,6 +341,8 @@ interface AnalysisResult {
 }
 ```
 
+---
+
 ## 🔄 실시간 아키텍처
 
 ### WebSocket 구조
@@ -200,353 +359,120 @@ export class WebSocketManager {
   }
 
   broadcast(room: string, data: any) {
-    const userIds = this.rooms.get(room) || new Set();
-    userIds.forEach(userId => {
-      const ws = this.connections.get(userId);
-      if (ws?.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify(data));
-      }
-    });
-  }
-}
-```
-
-### 실시간 데이터 흐름
-
-1. **데이터 수집**: 서버에서 메트릭 수집
-2. **즉시 처리**: 임계값 체크 및 이상 탐지
-3. **WebSocket 브로드캐스트**: 연결된 클라이언트에 전송
-4. **UI 업데이트**: React 상태 업데이트 및 리렌더링
-
-## 🏗️ 마이크로서비스 아키텍처
-
-### 서비스 분할
-
-```
-services/
-├── monitoring/          # 서버 모니터링
-│   ├── collectors/     # 데이터 수집
-│   ├── processors/     # 데이터 처리
-│   └── alerting/       # 알림 시스템
-├── ai/                 # AI 분석
-│   ├── engines/       # AI 엔진
-│   ├── analyzers/     # 분석기
-│   └── predictors/    # 예측기
-├── notifications/      # 알림 관리
-│   ├── channels/      # 알림 채널
-│   ├── templates/     # 템플릿
-│   └── scheduling/    # 스케줄링
-└── data-collection/    # 데이터 수집
-    ├── generators/    # 데이터 생성
-    ├── managers/      # 관리자
-    └── factories/     # 팩토리
-```
-
-### 서비스 간 통신
-
-```typescript
-// 서비스 레지스트리
-export class ServiceRegistry {
-  private services = new Map<string, ServiceInterface>();
-
-  register(name: string, service: ServiceInterface) {
-    this.services.set(name, service);
-  }
-
-  get<T extends ServiceInterface>(name: string): T {
-    return this.services.get(name) as T;
-  }
-}
-
-// 서비스 인터페이스
-export interface ServiceInterface {
-  name: string;
-  version: string;
-  status: 'active' | 'inactive' | 'error';
-  health(): Promise<HealthStatus>;
-  start(): Promise<void>;
-  stop(): Promise<void>;
-}
-```
-
-## 🔒 보안 아키텍처
-
-### 보안 계층
-
-1. **네트워크 보안**: HTTPS, TLS 1.3
-2. **인증/인가**: JWT, API 키 관리
-3. **데이터 암호화**: 저장/전송 시 암호화
-4. **입력 검증**: SQL 인젝션, XSS 방지
-5. **감사 로깅**: 모든 액세스 로깅
-
-### 보안 미들웨어
-
-```typescript
-// src/middleware/security.ts
-export function securityMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  // CORS 설정
-  res.setHeader('Access-Control-Allow-Origin', allowedOrigins);
-
-  // 보안 헤더
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-
-  // API 키 검증
-  const apiKey = req.headers['x-api-key'];
-  if (!validateApiKey(apiKey)) {
-    return res.status(401).json({ error: 'Invalid API key' });
-  }
-
-  next();
-}
-```
-
-## ⚡ 성능 아키텍처
-
-### 캐싱 전략
-
-```typescript
-// 다층 캐싱 구조
-export class CacheManager {
-  private l1Cache = new Map(); // 메모리 캐시
-  private l2Cache: RedisClient; // Redis 캐시
-
-  async get(key: string): Promise<any> {
-    // L1 캐시 확인
-    if (this.l1Cache.has(key)) {
-      return this.l1Cache.get(key);
-    }
-
-    // L2 캐시 확인
-    const l2Value = await this.l2Cache.get(key);
-    if (l2Value) {
-      this.l1Cache.set(key, l2Value);
-      return l2Value;
-    }
-
-    return null;
-  }
-}
-```
-
-### 로드 밸런싱
-
-```typescript
-// 로드 밸런서
-export class LoadBalancer {
-  private servers: Server[] = [];
-  private currentIndex = 0;
-
-  getNextServer(): Server {
-    const server = this.servers[this.currentIndex];
-    this.currentIndex = (this.currentIndex + 1) % this.servers.length;
-    return server;
-  }
-
-  async healthCheck() {
-    for (const server of this.servers) {
-      try {
-        await server.ping();
-        server.healthy = true;
-      } catch (error) {
-        server.healthy = false;
-      }
+    const roomConnections = this.rooms.get(room);
+    if (roomConnections) {
+      roomConnections.forEach(userId => {
+        const ws = this.connections.get(userId);
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify(data));
+        }
+      });
     }
   }
 }
 ```
 
-## 🔧 배포 아키텍처
+### 실시간 데이터 스트리밍
 
-### Vercel 배포 구조
+- **Server-Sent Events (SSE)**: 실시간 메트릭 스트리밍
+- **WebSocket**: 양방향 실시간 통신
+- **Polling Fallback**: 네트워크 제약 환경 지원
 
-```yaml
-# vercel.json
-{
-  'functions': { 'src/app/api/*/route.ts': { 'maxDuration': 30 } },
-  'regions': ['icn1', 'pdx1'],
-  'env': { 'NODE_ENV': 'production', 'GOOGLE_AI_API_KEY': '@google_ai_key' },
-}
-```
+---
 
-### 환경별 구성
+## 🔧 성능 최적화
+
+### 메모리 최적화
+
+- **지연 로딩**: AI 엔진별 필요시 로딩
+- **스마트 캐싱**: 응답 캐시로 50% 성능 향상
+- **메모리 풀링**: 객체 재사용으로 GC 압박 감소
+
+### 응답 시간 최적화
+
+- **병렬 처리**: Multi-AI 엔진 동시 실행
+- **캐시 전략**: Redis 기반 다층 캐싱
+- **CDN 활용**: 정적 자원 글로벌 배포
+
+### 번들 크기 최적화
+
+- **TensorFlow 제거**: 100MB+ 의존성 제거
+- **Tree Shaking**: 사용하지 않는 코드 제거
+- **Code Splitting**: 페이지별 코드 분할
+
+---
+
+## 🛡️ 보안 아키텍처
+
+### 인증 및 권한
+
+- **JWT 토큰**: 상태 비저장 인증
+- **Role-Based Access Control**: 역할 기반 접근 제어
+- **API Key 관리**: 환경 변수 기반 키 관리
+
+### 데이터 보안
+
+- **TLS 암호화**: 모든 통신 암호화
+- **데이터 마스킹**: 민감 정보 보호
+- **감사 로그**: 모든 접근 기록
+
+---
+
+## 📈 모니터링 및 관찰성
+
+### 로깅 시스템
 
 ```typescript
-// 환경 설정
-export const config = {
-  development: {
-    database: {
-      url: process.env.DATABASE_URL_DEV,
-      maxConnections: 10,
-    },
-    ai: {
-      model: 'gemini-1.5-flash',
-      temperature: 0.9,
-    },
-  },
-  production: {
-    database: {
-      url: process.env.DATABASE_URL_PROD,
-      maxConnections: 100,
-    },
-    ai: {
-      model: 'gemini-1.5-flash',
-      temperature: 0.7,
-    },
-  },
-};
+interface LogEntry {
+  timestamp: Date;
+  level: 'debug' | 'info' | 'warn' | 'error';
+  service: string;
+  message: string;
+  metadata?: Record<string, any>;
+  traceId?: string;
+}
 ```
-
-## 📈 모니터링 아키텍처
 
 ### 메트릭 수집
 
-```typescript
-// 메트릭 수집기
-export class MetricsCollector {
-  private metrics = new Map<string, Metric>();
+- **시스템 메트릭**: CPU, 메모리, 디스크, 네트워크
+- **애플리케이션 메트릭**: 응답 시간, 처리량, 오류율
+- **비즈니스 메트릭**: 사용자 활동, 기능 사용률
 
-  record(name: string, value: number, tags?: Record<string, string>) {
-    const metric: Metric = {
-      name,
-      value,
-      timestamp: Date.now(),
-      tags: tags || {},
-    };
+### 알림 시스템
 
-    this.metrics.set(`${name}_${Date.now()}`, metric);
-    this.sendToPrometheus(metric);
-  }
+- **Slack 통합**: 실시간 알림 전송
+- **이메일 알림**: 중요 이벤트 통지
+- **대시보드 알림**: 실시간 UI 알림
 
-  private async sendToPrometheus(metric: Metric) {
-    // Prometheus로 메트릭 전송
-  }
-}
-```
+---
 
-### 로깅 구조
-
-```typescript
-// 구조화된 로깅
-export class Logger {
-  private logLevel: LogLevel;
-
-  info(message: string, context?: any) {
-    this.log('INFO', message, context);
-  }
-
-  error(message: string, error?: Error, context?: any) {
-    this.log('ERROR', message, { error: error?.stack, ...context });
-  }
-
-  private log(level: LogLevel, message: string, context?: any) {
-    const logEntry = {
-      timestamp: new Date().toISOString(),
-      level,
-      message,
-      context,
-      service: 'openmanager-vibe',
-      version: process.env.APP_VERSION,
-    };
-
-    console.log(JSON.stringify(logEntry));
-  }
-}
-```
-
-## 🔄 확장성 설계
+## 🔮 확장성 고려사항
 
 ### 수평적 확장
 
-- **API 서버**: 다중 인스턴스 실행
-- **데이터베이스**: 읽기 복제본 활용
-- **캐시**: Redis 클러스터
-- **파일 저장**: CDN 활용
+- **마이크로서비스 아키텍처**: 서비스별 독립 확장
+- **로드 밸런싱**: 트래픽 분산 처리
+- **데이터베이스 샤딩**: 데이터 분산 저장
 
 ### 수직적 확장
 
-- **메모리 최적화**: 효율적인 데이터 구조
-- **CPU 최적화**: 비동기 처리
-- **I/O 최적화**: 연결 풀링
-- **네트워크 최적화**: 압축 및 캐싱
+- **리소스 최적화**: CPU, 메모리 효율적 사용
+- **캐싱 전략**: 다층 캐시 시스템
+- **비동기 처리**: 논블로킹 I/O 활용
 
-## 🧪 테스트 아키텍처
+---
 
-### 테스트 피라미드
+## 📚 참고 자료
 
-```
-         /\
-        /  \
-       /E2E \      <- 적은 수의 E2E 테스트
-      /______\
-     /        \
-    /Integration\ <- 적당한 수의 통합 테스트
-   /__________\
-  /            \
- /   Unit Tests  \ <- 많은 수의 단위 테스트
-/________________\
-```
+- [API 참조 문서](./API-REFERENCE.md)
+- [배포 가이드](./DEPLOYMENT.md)
+- [개발 가이드](./DEVELOPMENT.md)
+- [성능 최적화 가이드](./PERFORMANCE-GUIDE.md)
 
-### 테스트 환경
+---
 
-```typescript
-// 테스트 설정
-export class TestEnvironment {
-  async setup() {
-    // 테스트 DB 초기화
-    await this.setupTestDatabase();
+**📝 문서 이력**
 
-    // Mock 서비스 설정
-    await this.setupMockServices();
-
-    // 테스트 데이터 생성
-    await this.seedTestData();
-  }
-
-  async teardown() {
-    // 정리 작업
-    await this.cleanupTestData();
-    await this.closeConnections();
-  }
-}
-```
-
-## 📚 아키텍처 문서
-
-### 관련 문서
-
-- [🚀 Quick Start](QUICK_START.md) - 빠른 시작
-- [🛠️ Development](DEVELOPMENT.md) - 개발 가이드
-- [🤖 AI Setup](AI_SETUP.md) - AI 설정
-- [☁️ Deployment](DEPLOYMENT.md) - 배포 가이드
-
-### 아키텍처 결정 기록 (ADR)
-
-| 날짜    | 결정             | 이유                     | 상태 |
-| ------- | ---------------- | ------------------------ | ---- |
-| 2025-01 | Next.js 15 채택  | App Router, Edge Runtime | ✅   |
-| 2025-01 | Google AI Studio | 비용 효율성, 성능        | ✅   |
-| 2025-01 | Supabase 선택    | PostgreSQL + 실시간      | ✅   |
-| 2025-01 | MCP 프로토콜     | AI 컨텍스트 관리         | ✅   |
-
-## 🔮 미래 아키텍처
-
-### 계획된 개선사항
-
-1. **마이크로서비스 분리**: 서비스별 독립 배포
-2. **이벤트 드리븐 아키텍처**: 비동기 메시징
-3. **CQRS 패턴**: 읽기/쓰기 분리
-4. **서버리스 확장**: Edge Functions 활용
-5. **AI 모델 파이프라인**: MLOps 구축
-
-### 기술 로드맵
-
-- **Q2 2025**: Kubernetes 배포
-- **Q3 2025**: GraphQL API 도입
-- **Q4 2025**: AI 모델 자체 훈련
-- **Q1 2026**: 멀티 클라우드 지원
+- 2025-06-15: v5.44.0 아키텍처 통합 문서 생성
+- 통합 소스: ai-architecture-v5.43.5.md, system-design-specification-v5.43.5.md, integrated-architecture-v6.0.md
