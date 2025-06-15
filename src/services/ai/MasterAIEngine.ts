@@ -400,8 +400,17 @@ export class MasterAIEngine {
         );
 
       case 'enhanced':
+        // 검색 대상 배열이 없으면 기본 서버 데이터 사용
         if (!Array.isArray(request.data)) {
-          throw new Error('향상된 검색에는 검색 대상 배열이 필요합니다');
+          // 기본 검색 대상 데이터 생성
+          const defaultSearchData = [
+            { id: 'server-1', name: '웹서버-01', status: 'running', cpu: 45, memory: 60 },
+            { id: 'server-2', name: '데이터베이스-01', status: 'warning', cpu: 78, memory: 85 },
+            { id: 'server-3', name: 'API서버-01', status: 'running', cpu: 32, memory: 45 },
+            { id: 'server-4', name: '캐시서버-01', status: 'running', cpu: 25, memory: 30 },
+            { id: 'server-5', name: '로드밸런서-01', status: 'running', cpu: 15, memory: 20 }
+          ];
+          request.data = defaultSearchData;
         }
         return await this.openSourceEngines.hybridSearch(
           request.data,

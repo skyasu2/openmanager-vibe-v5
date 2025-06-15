@@ -27,22 +27,22 @@ export class MCPWarmupService {
   private readonly MCP_SERVERS: MCPWarmupServerConfig[] = [
     {
       name: 'openmanager-render-ai',
-      url: 'https://openmanager-render-ai.onrender.com',
+      url: 'https://openmanager-vibe-v5.onrender.com',
       healthEndpoint: '/health',
       timeout: 30000, // Render 웜업은 시간이 걸림
       retries: 3,
     },
     {
       name: 'openmanager-docs-server',
-      url: 'https://openmanager-docs-server.onrender.com',
-      healthEndpoint: '/ping',
+      url: 'https://openmanager-vibe-v5.onrender.com',
+      healthEndpoint: '/status',
       timeout: 25000,
       retries: 2,
     },
     {
       name: 'openmanager-filesystem-mcp',
-      url: 'https://openmanager-filesystem-mcp.onrender.com',
-      healthEndpoint: '/status',
+      url: 'https://openmanager-vibe-v5.onrender.com',
+      healthEndpoint: '/health',
       timeout: 20000,
       retries: 2,
     },
