@@ -17,7 +17,7 @@
     },
     "monitoring": {
       "enabled": true,
-      "refreshInterval": 30000,
+      "refreshInterval": 45000,
       "maxDataPoints": 100,
       "realTimeEnabled": true
     },

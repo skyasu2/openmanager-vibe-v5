@@ -126,13 +126,45 @@ interface AIAgentIconPanelProps {
   selectedFunction: AIAgentFunction;
   onFunctionChange: (func: AIAgentFunction) => void;
   className?: string;
+  isMobile?: boolean;
 }
 
 export default function AIAgentIconPanel({
   selectedFunction,
   onFunctionChange,
   className = '',
+  isMobile = false,
 }: AIAgentIconPanelProps) {
+  if (isMobile) {
+    return (
+      <div className={`flex flex-row space-x-2 overflow-x-auto ${className}`}>
+        {AI_AGENT_ICONS.map((item, index) => {
+          const Icon = item.icon;
+          const isSelected = selectedFunction === item.id;
+
+          return (
+            <motion.button
+              key={item.id}
+              onClick={() => onFunctionChange(item.id)}
+              className={`
+                flex-shrink-0 w-12 h-12 rounded-xl transition-all duration-200
+                ${
+                  isSelected
+                    ? `bg-gradient-to-r ${item.gradient} text-white shadow-lg scale-105`
+                    : `${item.bgColor} ${item.color}`
+                }
+              `}
+              title={item.label}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Icon className='w-5 h-5 mx-auto' />
+            </motion.button>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div
       className={`flex flex-col space-y-2 p-3 bg-white border-l border-gray-200 ${className}`}

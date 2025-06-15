@@ -471,7 +471,12 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className='absolute top-full right-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-10'
+                  className='absolute top-full right-0 mt-2 w-60 sm:w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-50'
+                  style={{
+                    right: '0',
+                    maxWidth: 'calc(100vw - 2rem)',
+                    transform: 'translateX(0)'
+                  }}
                 >
                   <div className='p-3 border-b border-gray-100'>
                     <h4 className='text-xs font-semibold text-gray-800'>
@@ -541,7 +546,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       </div>
 
       {/* 메시지 영역 */}
-      <div className='flex-1 overflow-y-auto p-3 space-y-4'>
+      <div className='flex-1 overflow-y-auto p-2 sm:p-3 space-y-3 sm:space-y-4'>
         {messages.length === 0 && (
           <div className='text-center py-8'>
             <div className='w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3'>
@@ -564,7 +569,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
             className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`flex items-start space-x-2 max-w-[85%] ${
+              className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[85%] ${
                 message.type === 'user'
                   ? 'flex-row-reverse space-x-reverse'
                   : ''
@@ -1029,24 +1034,26 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className={`fixed top-0 right-0 h-full w-[500px] bg-white shadow-2xl z-30 flex ${className}`}
+          className={`fixed top-0 right-0 h-full 
+            w-full sm:w-[90vw] md:w-[600px] lg:w-[700px] xl:w-[800px] 
+            max-w-[90vw] bg-white shadow-2xl z-30 flex ${className}`}
         >
           {/* 메인 콘텐츠 영역 */}
-          <div className='flex-1 flex flex-col'>
+          <div className='flex-1 flex flex-col min-w-0'>
             {/* 헤더 */}
-            <div className='flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50'>
-              <div className='flex items-center space-x-3'>
-                <div className='w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg flex items-center justify-center'>
-                  <Brain className='w-5 h-5 text-white' />
+            <div className='flex items-center justify-between p-3 sm:p-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50'>
+              <div className='flex items-center space-x-2 sm:space-x-3 min-w-0'>
+                <div className='w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg flex items-center justify-center'>
+                  <Brain className='w-4 h-4 sm:w-5 sm:h-5 text-white' />
                 </div>
-                <div>
+                <div className='min-w-0 flex-1'>
                   <BasicTyping
                     text='AI 어시스턴트'
                     speed='fast'
-                    className='text-lg font-bold text-gray-800'
+                    className='text-base sm:text-lg font-bold text-gray-800 truncate'
                     showCursor={false}
                   />
-                  <p className='text-sm text-gray-600'>
+                  <p className='text-xs sm:text-sm text-gray-600 truncate'>
                     AI와 자연어로 시스템 질의
                   </p>
                 </div>
@@ -1054,7 +1061,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
               <button
                 onClick={onClose}
-                className='p-2 hover:bg-gray-100 rounded-lg transition-colors'
+                className='p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0'
                 title='사이드바 닫기'
                 aria-label='사이드바 닫기'
               >
@@ -1063,15 +1070,27 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
             </div>
 
             {/* 기능별 페이지 콘텐츠 */}
-            <div className='flex-1 overflow-hidden'>{renderFunctionPage()}</div>
+            <div className='flex-1 overflow-hidden pb-16 sm:pb-0'>{renderFunctionPage()}</div>
           </div>
 
-          {/* 오른쪽 AI 기능 아이콘 패널 */}
-          <AIAgentIconPanel
-            selectedFunction={selectedFunction}
-            onFunctionChange={setSelectedFunction}
-            className='w-20'
-          />
+          {/* 오른쪽 AI 기능 아이콘 패널 - 큰 화면에서만 표시 */}
+          <div className='hidden sm:block'>
+            <AIAgentIconPanel
+              selectedFunction={selectedFunction}
+              onFunctionChange={setSelectedFunction}
+              className='w-16 sm:w-20'
+            />
+          </div>
+          
+          {/* 모바일용 하단 기능 선택 패널 */}
+          <div className='sm:hidden absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2' style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+            <AIAgentIconPanel
+              selectedFunction={selectedFunction}
+              onFunctionChange={setSelectedFunction}
+              className='w-full'
+              isMobile={true}
+            />
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

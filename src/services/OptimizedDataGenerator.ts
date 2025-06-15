@@ -164,7 +164,7 @@ export class OptimizedDataGenerator {
   private cache = SmartCache.getInstance();
   private updateCounter: number = 0;
   private readonly CACHE_TTL = 30000; // 30초
-  private readonly UPDATE_INTERVAL = 10000; // 10초 (AI 강화 버전 속도 조정)
+  private readonly UPDATE_INTERVAL = 20000; // 20초 (성능 최적화: 10초 → 20초 변경)
 
   // 🎯 실시간 데이터 30분 자동 종료
   private readonly MAX_DURATION = 30 * 60 * 1000; // 🔥 30분 고정

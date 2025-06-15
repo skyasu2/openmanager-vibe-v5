@@ -6,25 +6,25 @@ export default defineConfig({
   plugins: [react()],
   test: {
     globals: true,
-    environment: 'node',
+    environment: 'jsdom',
     setupFiles: ['./src/testing/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}', 'development/tests/**/*.test.{ts,tsx}'],
     exclude: ['node_modules', '.next', 'dist', 'build', 'storybook-static'],
-    testTimeout: 60000,
-    hookTimeout: 30000,
-    teardownTimeout: 10000,
-    // 환경 변수 설정
+    testTimeout: 30000,
+    hookTimeout: 15000,
+    teardownTimeout: 5000,
     env: {
       NODE_ENV: 'test',
       JSDOM_CANVAS: 'mock',
     },
-    // Node.js globals 및 폴리필 설정
-    pool: 'forks',
+    pool: 'threads',
     poolOptions: {
-      forks: {
-        singleFork: true,
+      threads: {
+        singleThread: true,
       },
     },
+    isolate: true,
+    maxConcurrency: 1,
   },
   resolve: {
     alias: {
@@ -34,9 +34,8 @@ export default defineConfig({
   define: {
     global: 'globalThis',
   },
-  // Node.js 전용 모듈 처리
   optimizeDeps: {
-    exclude: ['@tensorflow/tfjs-node'],
-    include: ['@tensorflow/tfjs'],
+    exclude: ['@tensorflow/tfjs-node', 'ioredis'],
+    include: ['@tensorflow/tfjs', '@testing-library/react', '@testing-library/jest-dom'],
   },
 });

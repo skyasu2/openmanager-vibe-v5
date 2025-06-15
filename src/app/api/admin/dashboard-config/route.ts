@@ -87,7 +87,7 @@ const DEFAULT_CONFIG: DashboardConfig = {
     }
   ],
   refresh: {
-    interval: 30,
+    interval: 45,
     auto: true
   },
   filters: {

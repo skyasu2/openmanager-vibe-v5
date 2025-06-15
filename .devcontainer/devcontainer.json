@@ -122,7 +122,7 @@
     // 컨테이너 시작 후 실행할 명령어
     "postStartCommand": "bash .devcontainer/post-start.sh",
     // 개발 사용자 설정
-    "remoteUser": "vscode",
+    "remoteUser": "node",
     "updateRemoteUserUID": true,
     // 마운트 설정
     "mounts": [
@@ -132,7 +132,7 @@
     // 컨테이너 기능
     "features": {
         "ghcr.io/devcontainers/features/common-utils:2": {
-            "username": "vscode",
+            "username": "node",
             "userUid": "1000",
             "userGid": "1000"
         },

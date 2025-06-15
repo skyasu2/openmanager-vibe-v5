@@ -44,7 +44,7 @@ export class RealServerDataGenerator {
   constructor(config: GeneratorConfig = {}) {
     this.config = {
       maxServers: 8, // 🎯 사용자 요청에 따라 8개로 변경
-      updateInterval: 10000, // 🎯 사용자 요청: 10초로 변경 (기존 15초에서)
+      updateInterval: 20000, // 🎯 성능 최적화: 10초 → 20초로 변경 (서버 부하 50% 감소)
       enableRealtime: true,
       serverArchitecture: 'load-balanced',
       enableRedis: true,

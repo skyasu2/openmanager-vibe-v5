@@ -58,7 +58,7 @@ RUN npx playwright install --with-deps chromium
 WORKDIR /workspace
 
 # 컨테이너 사용자 설정
-USER vscode
+USER node
 
 # 셸 설정 (.bashrc 커스터마이징)
 RUN echo 'export PS1="\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]$ "' >> ~/.bashrc \
