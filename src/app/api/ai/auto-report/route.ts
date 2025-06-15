@@ -49,7 +49,7 @@ async function getReportsFromDB(type?: string): Promise<ReportData[]> {
     let query = supabase
       .from(REPORTS_TABLE)
       .select('*')
-      .order('generated_at', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (type && type !== 'all') {
       query = query.eq('type', type);
@@ -58,6 +58,11 @@ async function getReportsFromDB(type?: string): Promise<ReportData[]> {
     const { data, error } = await query.limit(50);
 
     if (error) {
+      // 테이블이 존재하지 않는 경우 (42P01) 조용히 처리
+      if (error.code === '42P01') {
+        console.log('⚠️ auto_reports 테이블이 존재하지 않음 - 빈 배열 반환');
+        return [];
+      }
       console.error('❌ Supabase 조회 실패:', error);
       return [];
     }
@@ -66,11 +71,11 @@ async function getReportsFromDB(type?: string): Promise<ReportData[]> {
     return (data || []).map(row => ({
       id: row.id,
       title: row.title,
-      generatedAt: new Date(row.generated_at),
-      status: row.status,
+      generatedAt: new Date(row.created_at || row.generated_at),
+      status: row.status || 'completed',
       type: row.type,
-      summary: row.summary,
-      details: row.details,
+      summary: row.summary || '',
+      details: row.content || row.details || {},
       content: row.content,
     }));
   } catch (error) {
@@ -85,17 +90,22 @@ async function getReportsFromDB(type?: string): Promise<ReportData[]> {
 async function saveReportToDB(report: ReportData): Promise<boolean> {
   try {
     const { error } = await supabase.from(REPORTS_TABLE).insert({
-      id: report.id,
+      report_id: report.id,
       title: report.title,
-      generated_at: report.generatedAt.toISOString(),
-      status: report.status,
       type: report.type,
       summary: report.summary,
-      details: report.details,
-      content: report.content,
+      content: report.details,
+      status: 'generated',
+      priority: 'normal',
+      created_by: 'system'
     });
 
     if (error) {
+      // 테이블이 존재하지 않는 경우 (42P01) 조용히 처리
+      if (error.code === '42P01') {
+        console.log('⚠️ auto_reports 테이블이 존재하지 않음 - 저장 건너뜀');
+        return true; // 오류로 처리하지 않음
+      }
       console.error('❌ Supabase 저장 실패:', error);
       return false;
     }

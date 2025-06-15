@@ -9,22 +9,25 @@ import { CentralizedPerformanceMonitor } from '@/services/monitoring/Centralized
 
 const performanceMonitor = CentralizedPerformanceMonitor.getInstance();
 
-// 🚨 개발 환경에서 성능 모니터링 차단 (Vercel 과금 방지)
+// 🚨 성능 모니터링 활성화 조건 (프로덕션 환경에서 활성화)
 function isMonitoringDisabled(): boolean {
-  const isDevelopment = process.env.NODE_ENV === 'development';
+  // 명시적으로 비활성화된 경우만 차단
   const forceDisabled = process.env.PERFORMANCE_MONITORING_ENABLED === 'false';
-  return isDevelopment || forceDisabled;
+  // 개발 환경에서는 기본적으로 비활성화하되, 명시적 활성화 가능
+  const isDevelopment = process.env.NODE_ENV === 'development' && process.env.PERFORMANCE_MONITORING_ENABLED !== 'true';
+  return forceDisabled || isDevelopment;
 }
 
 export async function GET(request: NextRequest) {
-  // 🚨 개발 환경에서 차단
+  // 🚨 성능 모니터링 비활성화 확인
   if (isMonitoringDisabled()) {
     return NextResponse.json(
       {
         success: false,
-        message:
-          '개발 환경에서 성능 모니터링이 비활성화되었습니다 (Vercel 과금 방지)',
+        message: '성능 모니터링이 비활성화되었습니다',
         environment: process.env.NODE_ENV,
+        monitoring_enabled: process.env.PERFORMANCE_MONITORING_ENABLED,
+        hint: 'PERFORMANCE_MONITORING_ENABLED=true 환경변수를 설정하세요',
         timestamp: new Date().toISOString(),
       },
       { status: 403 }
@@ -109,14 +112,15 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  // 🚨 개발 환경에서 차단
+  // 🚨 성능 모니터링 비활성화 확인
   if (isMonitoringDisabled()) {
     return NextResponse.json(
       {
         success: false,
-        message:
-          '개발 환경에서 성능 모니터링 제어가 비활성화되었습니다 (Vercel 과금 방지)',
+        message: '성능 모니터링 제어가 비활성화되었습니다',
         environment: process.env.NODE_ENV,
+        monitoring_enabled: process.env.PERFORMANCE_MONITORING_ENABLED,
+        hint: 'PERFORMANCE_MONITORING_ENABLED=true 환경변수를 설정하세요',
         timestamp: new Date().toISOString(),
       },
       { status: 403 }
