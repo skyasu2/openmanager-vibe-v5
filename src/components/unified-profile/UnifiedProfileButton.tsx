@@ -267,7 +267,7 @@ export function UnifiedProfileButton({
     if (adminMode.isAuthenticated) {
       return 'AI 관리자 모드';
     }
-    return aiAgent.isEnabled ? 'AI 에이전트 모드' : '기본 모니터링 모드';
+    return aiAgent.isEnabled ? 'AI 어시스턴트 모드' : '기본 모니터링 모드';
   };
 
   const getModeStatusColor = () => {

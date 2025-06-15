@@ -1,7 +1,21 @@
 # 🚀 OpenManager Vibe v5 - AI 기반 서버 모니터링 시스템
 
-> **차세대 AI 에이전트 기반 서버 모니터링 및 자동화 플랫폼**  
+> **차세대 AI 어시스턴트 기반 서버 모니터링 및 자동화 플랫폼**  
 > Next.js 15 + TypeScript + Multi-AI Engine 아키텍처
+
+## 🏷️ AI 네이밍 가이드라인
+
+### 현재 단계: AI 어시스턴트
+
+- **역할**: 사용자 질의응답, 기본 모니터링, 상태 분석
+- **특징**: 사용자 요청에 반응하는 수동적 지원
+- **UI 표시**: "AI 어시스턴트"
+
+### 미래 진화: AI 에이전트
+
+- **역할**: 자동 서버 관리, 의사결정, 능동적 문제 해결
+- **특징**: 타사 서버 모니터링 AI 에이전트 수준의 자율성
+- **조건**: 완전 자동화된 서버 관리 기능 구현 시 리브랜딩
 
 [![Version](https://img.shields.io/badge/version-5.44.0-blue.svg)](https://github.com/your-username/openmanager-vibe-v5)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)

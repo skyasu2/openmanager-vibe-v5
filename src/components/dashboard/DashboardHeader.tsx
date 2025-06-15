@@ -456,9 +456,11 @@ const DashboardHeader = memo(function DashboardHeader({
                       : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900'
                   }
                 `}
-                title={isSidebarOpen ? 'AI 에이전트 닫기' : 'AI 에이전트 열기'}
+                title={
+                  isSidebarOpen ? 'AI 어시스턴트 닫기' : 'AI 어시스턴트 열기'
+                }
                 aria-label={
-                  isSidebarOpen ? 'AI 에이전트 닫기' : 'AI 에이전트 열기'
+                  isSidebarOpen ? 'AI 어시스턴트 닫기' : 'AI 어시스턴트 열기'
                 }
                 aria-pressed={isSidebarOpen}
                 whileHover={{ scale: 1.05 }}
@@ -516,10 +518,10 @@ const DashboardHeader = memo(function DashboardHeader({
                         animate={{ opacity: [1, 0.7, 1] }}
                         transition={{ duration: 2, repeat: Infinity }}
                       >
-                        AI 에이전트
+                        AI 어시스턴트
                       </motion.span>
                     ) : (
-                      'AI 에이전트'
+                      'AI 어시스턴트'
                     )}
                   </span>
                 </div>

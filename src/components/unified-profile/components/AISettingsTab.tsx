@@ -36,7 +36,7 @@ export function AISettingsTab({
       <div className='border border-white/10 rounded-lg p-4'>
         <h3 className='text-lg font-semibold text-white mb-4 flex items-center gap-2'>
           <Bot className='w-5 h-5 text-purple-400' />
-          AI 에이전트 상태
+          AI 어시스턴트 상태
         </h3>
 
         <div className='space-y-4'>
@@ -48,8 +48,9 @@ export function AISettingsTab({
             </div>
             <div className='p-3 bg-gray-800/50 rounded-lg text-center'>
               <div
-                className={`w-3 h-3 rounded-full mx-auto mb-2 ${isAdminAuthenticated ? 'bg-green-400' : 'bg-yellow-400'
-                  }`}
+                className={`w-3 h-3 rounded-full mx-auto mb-2 ${
+                  isAdminAuthenticated ? 'bg-green-400' : 'bg-yellow-400'
+                }`}
               />
               <p className='text-xs text-gray-400 mb-1'>관리자 인증</p>
               <p className='text-sm font-medium text-white'>
@@ -120,12 +121,14 @@ export function AISettingsTab({
                     <input
                       type={authState.showPassword ? 'text' : 'password'}
                       value={aiPassword}
-                      onChange={(e) => setAiPassword(e.target.value)}
+                      onChange={e => setAiPassword(e.target.value)}
                       placeholder='관리자 PIN 입력'
                       maxLength={4}
                       className='w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent pr-12'
-                      disabled={authState.isAuthenticating || authState.isLocked}
-                      onKeyDown={(e) => {
+                      disabled={
+                        authState.isAuthenticating || authState.isLocked
+                      }
+                      onKeyDown={e => {
                         if (e.key === 'Enter' && aiPassword.length === 4) {
                           onAuthentication();
                         }
