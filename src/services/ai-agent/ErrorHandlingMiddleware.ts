@@ -29,7 +29,11 @@ export interface ErrorResponse {
         retryAfter?: number;
     };
     metadata: {
+        strategy: string;
         processingTime: number;
+        cacheHit: boolean;
+        dataQuality: number;
+        confidence: number;
         timestamp: number;
         errorId: string;
     };
@@ -99,7 +103,11 @@ export class ErrorHandlingMiddleware {
                 retryAfter: errorInfo.recoverable ? this.calculateRetryDelay(errorInfo.code) : undefined
             },
             metadata: {
+                strategy: 'error_handling',
                 processingTime,
+                cacheHit: false,
+                dataQuality: 0,
+                confidence: 0,
                 timestamp: context.timestamp,
                 errorId
             },

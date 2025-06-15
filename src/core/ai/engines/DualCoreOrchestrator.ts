@@ -244,7 +244,7 @@ export class DualCoreOrchestrator {
     }
 
     /**
-     * 🔗 결과 융합 (Hybrid Fusion)
+     * 🔗 결과 융합 (Hybrid Fusion) - 개선된 버전
      */
     private async fuseResults(
         mcpResult?: MCPEngineResponse,
@@ -274,6 +274,21 @@ export class DualCoreOrchestrator {
                 };
             }
 
+            // 🎯 MCP Engine이 구체적인 서버 정보를 제공하는 경우 우선 활용
+            if (mcpValid && mcpResult!.answer.includes('서버') &&
+                (mcpResult!.answer.includes('CPU') || mcpResult!.answer.includes('메모리') || mcpResult!.answer.includes('상세 정보'))) {
+
+                console.log('🎯 MCP Engine의 구체적인 서버 정보 우선 사용');
+
+                return {
+                    response: mcpResult!.answer,
+                    confidence: Math.min(0.95, mcpResult!.confidence + 0.1), // 구체적 정보 보너스
+                    sources: mcpResult!.sources,
+                    suggestions: mcpResult!.recommendations,
+                    processingTime: Date.now() - startTime,
+                };
+            }
+
             // 단일 결과만 있는 경우
             if (mcpValid && !ragValid) {
                 return {
@@ -295,7 +310,7 @@ export class DualCoreOrchestrator {
                 };
             }
 
-            // 두 결과 모두 유효한 경우 - 가중 융합
+            // 두 결과 모두 유효한 경우 - 개선된 가중 융합
             const mcpWeight = this.config.mcpWeight;
             const ragWeight = this.config.ragWeight;
 
@@ -303,17 +318,27 @@ export class DualCoreOrchestrator {
                 (mcpResult!.confidence * mcpWeight) +
                 (ragResult!.confidence * ragWeight);
 
-            // 응답 융합 (더 신뢰도 높은 것 우선)
+            // 🎯 응답 융합 개선: MCP가 구체적 정보를 제공하면 우선 사용
             let fusedResponse: string;
-            if (mcpResult!.confidence > ragResult!.confidence) {
+
+            if (mcpResult!.answer.length > 100 && mcpResult!.confidence > 0.7) {
+                // MCP가 상세한 답변을 제공하는 경우
                 fusedResponse = mcpResult!.answer;
-                if (ragResult!.response && ragResult!.confidence > 0.6) {
-                    fusedResponse += `\n\n추가 정보: ${ragResult!.response}`;
+
+                // RAG의 일반적인 정보는 간단히 추가
+                if (ragResult!.response && ragResult!.confidence > 0.6 &&
+                    !ragResult!.response.includes('OpenManager Vibe v5는 AI 기반')) {
+                    fusedResponse += `\n\n📚 **추가 참고:** ${ragResult!.response}`;
                 }
-            } else {
+            } else if (ragResult!.confidence > mcpResult!.confidence) {
                 fusedResponse = ragResult!.response;
                 if (mcpResult!.answer && mcpResult!.confidence > 0.6) {
-                    fusedResponse += `\n\n추가 정보: ${mcpResult!.answer}`;
+                    fusedResponse += `\n\n🔧 **시스템 분석:** ${mcpResult!.answer}`;
+                }
+            } else {
+                fusedResponse = mcpResult!.answer;
+                if (ragResult!.response && ragResult!.confidence > 0.6) {
+                    fusedResponse += `\n\n📚 **추가 정보:** ${ragResult!.response}`;
                 }
             }
 

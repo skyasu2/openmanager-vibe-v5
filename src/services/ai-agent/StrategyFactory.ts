@@ -145,10 +145,15 @@ export class MonitoringFocusStrategy implements ProcessingStrategy {
 export class AIAnalysisStrategy implements ProcessingStrategy {
     name = 'ai_analysis';
     priority: 'ai' = 'ai';
+    private dataGenerator: RealServerDataGenerator;
     private usageCount = 0;
     private totalProcessingTime = 0;
     private successCount = 0;
     private lastUsed = new Date();
+
+    constructor() {
+        this.dataGenerator = RealServerDataGenerator.getInstance();
+    }
 
     async execute(request: any): Promise<any> {
         const startTime = Date.now();
@@ -170,8 +175,7 @@ export class AIAnalysisStrategy implements ProcessingStrategy {
             const aiResult = await aiDataFilter.filterForAI(aiOptions);
 
             // 모니터링 컨텍스트 (최소한)
-            const dataGenerator = RealServerDataGenerator.getInstance();
-            const allServers = dataGenerator.getAllServers();
+            const allServers = this.dataGenerator.getAllServers();
             const serverContext = {
                 total: allServers.length,
                 online: allServers.filter(s => s.status === 'running').length,
@@ -233,10 +237,15 @@ export class AIAnalysisStrategy implements ProcessingStrategy {
 export class HybridBalancedStrategy implements ProcessingStrategy {
     name = 'hybrid_balanced';
     priority: 'balanced' = 'balanced';
+    private dataGenerator: RealServerDataGenerator;
     private usageCount = 0;
     private totalProcessingTime = 0;
     private successCount = 0;
     private lastUsed = new Date();
+
+    constructor() {
+        this.dataGenerator = RealServerDataGenerator.getInstance();
+    }
 
     async execute(request: any): Promise<any> {
         const startTime = Date.now();
@@ -306,50 +315,56 @@ export class HybridBalancedStrategy implements ProcessingStrategy {
 }
 
 /**
- * 🎯 자동 선택 전략
+ * 🏭 전략 팩토리 메인 클래스
  */
-export class AutoSelectStrategy implements ProcessingStrategy {
-    name = 'auto_select';
-    priority: 'balanced' = 'balanced';
+export class StrategyFactory {
+    private static instance: StrategyFactory | null = null;
     private strategies: Map<string, ProcessingStrategy>;
-    private usageCount = 0;
-    private lastUsed = new Date();
 
-    constructor() {
-        this.strategies = new Map([
-            ['monitoring_focus', new MonitoringFocusStrategy()],
-            ['ai_analysis', new AIAnalysisStrategy()],
-            ['hybrid_balanced', new HybridBalancedStrategy()]
-        ]);
+    private constructor() {
+        this.strategies = new Map<string, ProcessingStrategy>();
+        this.strategies.set('monitoring_focus', new MonitoringFocusStrategy());
+        this.strategies.set('ai_analysis', new AIAnalysisStrategy());
+        this.strategies.set('hybrid_balanced', new HybridBalancedStrategy());
     }
 
-    async execute(request: any): Promise<any> {
-        this.usageCount++;
-        this.lastUsed = new Date();
+    static getInstance(): StrategyFactory {
+        if (!StrategyFactory.instance) {
+            StrategyFactory.instance = new StrategyFactory();
+        }
+        return StrategyFactory.instance;
+    }
 
-        console.log(`🎯 [${request.requestId}] 자동 전략 선택 시작`);
+    /**
+     * 🎯 전략 선택
+     */
+    async selectStrategy(request: any): Promise<ProcessingStrategy> {
+        const strategyName = request.requestType;
 
-        // 컨텍스트 기반 전략 선택
-        const selectedStrategyName = this.selectBestStrategy(request);
-        const selectedStrategy = this.strategies.get(selectedStrategyName);
-
-        if (!selectedStrategy) {
-            throw new Error(`전략을 찾을 수 없습니다: ${selectedStrategyName}`);
+        // auto_select 요청 시 직접 전략 선택
+        if (strategyName === 'auto_select') {
+            const selectedStrategyName = this.selectBestStrategy(request);
+            const strategy = this.strategies.get(selectedStrategyName);
+            if (!strategy) {
+                console.warn(`⚠️ 알 수 없는 전략: ${selectedStrategyName}, hybrid_balanced로 대체`);
+                return this.strategies.get('hybrid_balanced')!;
+            }
+            return strategy;
         }
 
-        console.log(`🎯 [${request.requestId}] 선택된 전략: ${selectedStrategyName}`);
+        const strategy = this.strategies.get(strategyName);
 
-        const result = await selectedStrategy.execute(request);
+        if (!strategy) {
+            console.warn(`⚠️ 알 수 없는 전략: ${strategyName}, hybrid_balanced로 대체`);
+            return this.strategies.get('hybrid_balanced')!;
+        }
 
-        // 자동 선택 메타데이터 추가
-        result.autoSelection = {
-            selectedStrategy: selectedStrategyName,
-            selectionReason: this.getSelectionReason(request, selectedStrategyName)
-        };
-
-        return result;
+        return strategy;
     }
 
+    /**
+     * 🎯 자동 전략 선택 로직
+     */
     private selectBestStrategy(request: any): string {
         const query = request.query.toLowerCase();
         const urgency = request.urgency;
@@ -376,65 +391,6 @@ export class AutoSelectStrategy implements ProcessingStrategy {
 
         // 기본값 - 하이브리드
         return 'hybrid_balanced';
-    }
-
-    private getSelectionReason(request: any, strategy: string): string {
-        const reasons = {
-            monitoring_focus: '실시간 모니터링이 필요한 요청으로 판단',
-            ai_analysis: 'AI 분석이 필요한 패턴/예측 요청으로 판단',
-            hybrid_balanced: '종합적인 분석이 필요한 요청으로 판단'
-        };
-        return reasons[strategy as keyof typeof reasons] || '기본 전략 선택';
-    }
-
-    getMetadata(): StrategyMetadata {
-        return {
-            name: this.name,
-            description: '컨텍스트 기반 최적 전략 자동 선택',
-            avgProcessingTime: 0, // 실제 전략의 시간이 반영됨
-            successRate: 1, // 항상 성공 (실제 전략의 성공률이 반영됨)
-            lastUsed: this.lastUsed,
-            usageCount: this.usageCount
-        };
-    }
-}
-
-/**
- * 🏭 전략 팩토리 메인 클래스
- */
-export class StrategyFactory {
-    private static instance: StrategyFactory | null = null;
-    private strategies: Map<string, ProcessingStrategy>;
-
-    private constructor() {
-        this.strategies = new Map([
-            ['monitoring_focus', new MonitoringFocusStrategy()],
-            ['ai_analysis', new AIAnalysisStrategy()],
-            ['hybrid', new HybridBalancedStrategy()],
-            ['auto_select', new AutoSelectStrategy()]
-        ]);
-    }
-
-    static getInstance(): StrategyFactory {
-        if (!StrategyFactory.instance) {
-            StrategyFactory.instance = new StrategyFactory();
-        }
-        return StrategyFactory.instance;
-    }
-
-    /**
-     * 🎯 전략 선택
-     */
-    async selectStrategy(request: any): Promise<ProcessingStrategy> {
-        const strategyName = request.requestType;
-        const strategy = this.strategies.get(strategyName);
-
-        if (!strategy) {
-            console.warn(`⚠️ 알 수 없는 전략: ${strategyName}, auto_select로 대체`);
-            return this.strategies.get('auto_select')!;
-        }
-
-        return strategy;
     }
 
     /**
