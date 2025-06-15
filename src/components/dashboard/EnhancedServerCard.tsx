@@ -14,7 +14,14 @@
  * - 네트워크 모니터링 추가
  */
 
-import React, { memo, useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import React, {
+  memo,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  useMemo,
+} from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Server,
@@ -48,21 +55,21 @@ import { useServerMetrics } from '@/hooks/useOptimizedRealtime';
 interface EnhancedServerCardProps {
   server: {
     id: string;
-    hostname: string;
+    hostname?: string;
     name: string;
-    type: string;
-    environment: string;
-    location: string;
-    provider: string;
+    type?: string;
+    environment?: string;
+    location?: string;
+    provider?: string;
     status: 'healthy' | 'warning' | 'critical' | 'offline';
     cpu: number;
     memory: number;
     disk: number;
     network?: number; // 네트워크 사용률 추가
-    uptime: string;
-    lastUpdate: Date;
-    alerts: number;
-    services: Array<{
+    uptime?: string;
+    lastUpdate?: Date;
+    alerts?: number;
+    services?: Array<{
       name: string;
       status: 'running' | 'stopped';
       port: number;
@@ -77,7 +84,7 @@ interface EnhancedServerCardProps {
     ip?: string;
     networkStatus?: 'excellent' | 'good' | 'poor' | 'offline'; // 네트워크 상태 추가
   };
-  index: number;
+  index?: number;
   onClick?: (server: any) => void;
   showMiniCharts?: boolean;
   variant?: 'default' | 'compact' | 'detailed';
@@ -92,21 +99,30 @@ const MiniChart = memo<{
   serverId: string;
 }>(({ data, color, label, icon, serverId }) => {
   // ✅ 고정된 ID 생성 (Math.random() 제거)
-  const gradientId = useMemo(() => `gradient-${serverId}-${label}`, [serverId, label]);
+  const gradientId = useMemo(
+    () => `gradient-${serverId}-${label}`,
+    [serverId, label]
+  );
   const glowId = useMemo(() => `glow-${serverId}-${label}`, [serverId, label]);
-  
+
   // ✅ SVG 경로 메모이제이션
   const points = useMemo(() => {
+    if (!Array.isArray(data) || data.length === 0) {
+      return '0,100 100,100'; // 기본 평선
+    }
     return data
       .map((value, index) => {
-        const x = (index / (data.length - 1)) * 100;
-        const y = 100 - Math.max(0, Math.min(100, value));
+        const x = (index / Math.max(1, data.length - 1)) * 100;
+        const y = 100 - Math.max(0, Math.min(100, value || 0));
         return `${x},${y}`;
       })
       .join(' ');
   }, [data]);
 
-  const currentValue = useMemo(() => data[data.length - 1] || 0, [data]);
+  const currentValue = useMemo(() => {
+    if (!Array.isArray(data) || data.length === 0) return 0;
+    return data[data.length - 1] || 0;
+  }, [data]);
 
   return (
     <div className='flex flex-col items-center group'>
@@ -161,7 +177,13 @@ const MiniChart = memo<{
 MiniChart.displayName = 'MiniChart';
 
 const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
-  ({ server, index, onClick, showMiniCharts = true, variant = 'default' }) => {
+  ({
+    server,
+    index = 0,
+    onClick,
+    showMiniCharts = true,
+    variant = 'default',
+  }) => {
     const [isHovered, setIsHovered] = useState(false);
 
     // 🎯 가시성 기반 최적화
@@ -174,16 +196,27 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
     const optimizedVisible = true; // 임시로 항상 true
 
     // ✅ 서버 데이터 기반 정적 차트 데이터 메모이제이션
-    const staticChartData = useMemo(() => ({
-      cpu: Array.from({ length: 12 }, (_, i) => Math.max(0, Math.min(100, server.cpu + (i - 6) * 1))),
-      memory: Array.from({ length: 12 }, (_, i) => Math.max(0, Math.min(100, server.memory + (i - 6) * 0.8))),
-      disk: Array.from({ length: 12 }, (_, i) => Math.max(0, Math.min(100, server.disk + (i - 6) * 0.5))),
-      network: Array.from({ length: 12 }, (_, i) => Math.max(0, Math.min(100, (server.network || 30) + (i - 6) * 1.2))),
-    }), [server.cpu, server.memory, server.disk, server.network]);
+    const staticChartData = useMemo(
+      () => ({
+        cpu: Array.from({ length: 12 }, (_, i) =>
+          Math.max(0, Math.min(100, (server.cpu || 0) + (i - 6) * 1))
+        ),
+        memory: Array.from({ length: 12 }, (_, i) =>
+          Math.max(0, Math.min(100, (server.memory || 0) + (i - 6) * 0.8))
+        ),
+        disk: Array.from({ length: 12 }, (_, i) =>
+          Math.max(0, Math.min(100, (server.disk || 0) + (i - 6) * 0.5))
+        ),
+        network: Array.from({ length: 12 }, (_, i) =>
+          Math.max(0, Math.min(100, (server.network || 30) + (i - 6) * 1.2))
+        ),
+      }),
+      [server.cpu, server.memory, server.disk, server.network]
+    );
 
     // ✅ 서버 타입별 아이콘 메모이제이션
     const serverIcon = useMemo(() => {
-      const type = server.type.toLowerCase();
+      const type = (server.type || 'unknown').toLowerCase();
 
       if (type.includes('web')) return <Server className='w-5 h-5' />;
       if (type.includes('database')) return <Database className='w-5 h-5' />;
@@ -246,6 +279,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             statusText: 'text-gray-700',
             statusIcon: '⚪',
             label: '오프라인',
+            glow: 'shadow-gray-100',
             accent: 'text-gray-600',
           };
       }
@@ -389,7 +423,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               <h3
                 className={`font-bold text-gray-900 ${variantStyles.titleSize} group-hover:text-gray-700 transition-colors truncate`}
               >
-                {server.name}
+                {server.name || '알 수 없는 서버'}
               </h3>
               {/* 1줄 요약 정보 */}
               <div className='text-xs text-gray-600 truncate'>
@@ -397,8 +431,8 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                   <span className='text-red-600'>오프라인 • 데이터 없음</span>
                 ) : (
                   <span>
-                    상태: {theme.label} • CPU: {server.cpu}% • 메모리:{' '}
-                    {server.memory}% • 네트워크:{' '}
+                    상태: {theme.label} • CPU: {server.cpu || 0}% • 메모리:{' '}
+                    {server.memory || 0}% • 네트워크:{' '}
                     {server.network || Math.floor(Math.random() * 40) + 20}%
                   </span>
                 )}
@@ -486,7 +520,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                 CPU
               </div>
               <div className='text-sm font-bold text-red-600'>
-                {server.cpu}%
+                {server.cpu || 0}%
               </div>
             </div>
             <div className='text-center'>
@@ -495,7 +529,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                 RAM
               </div>
               <div className='text-sm font-bold text-blue-600'>
-                {server.memory}%
+                {server.memory || 0}%
               </div>
             </div>
             <div className='text-center'>
@@ -504,7 +538,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                 디스크
               </div>
               <div className='text-sm font-bold text-purple-600'>
-                {server.disk}%
+                {server.disk || 0}%
               </div>
             </div>
             <div className='text-center'>
@@ -519,35 +553,37 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
           </div>
 
           {/* 서비스 상태 - compact에서는 간소화 */}
-          {variant !== 'compact' && (
-            <div className='flex gap-2 flex-wrap'>
-              {server.services.slice(0, 3).map((service, idx) => (
-                <motion.div
-                  key={idx}
-                  className={`px-2 py-1 rounded text-xs flex items-center gap-1 ${
-                    service.status === 'running'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-red-100 text-red-700'
-                  }`}
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <div
-                    className={`w-1.5 h-1.5 rounded-full ${
+          {variant !== 'compact' &&
+            Array.isArray(server.services) &&
+            server.services.length > 0 && (
+              <div className='flex gap-2 flex-wrap'>
+                {server.services.slice(0, 3).map((service, idx) => (
+                  <motion.div
+                    key={idx}
+                    className={`px-2 py-1 rounded text-xs flex items-center gap-1 ${
                       service.status === 'running'
-                        ? 'bg-green-500'
-                        : 'bg-red-500'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-red-100 text-red-700'
                     }`}
-                  />
-                  {service.name}
-                </motion.div>
-              ))}
-              {server.services.length > 3 && (
-                <div className='px-2 py-1 text-xs text-gray-500 bg-gray-100 rounded'>
-                  +{server.services.length - 3}개 더
-                </div>
-              )}
-            </div>
-          )}
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <div
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        service.status === 'running'
+                          ? 'bg-green-500'
+                          : 'bg-red-500'
+                      }`}
+                    />
+                    {service.name}
+                  </motion.div>
+                ))}
+                {server.services.length > 3 && (
+                  <div className='px-2 py-1 text-xs text-gray-500 bg-gray-100 rounded'>
+                    +{server.services.length - 3}개 더
+                  </div>
+                )}
+              </div>
+            )}
 
           {/* 네트워크 상태 표시 - compact에서는 숨김 */}
           {variant !== 'compact' && server.networkStatus && (
@@ -634,22 +670,28 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
     // 서버 핵심 데이터 비교
     const prevServer = prevProps.server;
     const nextServer = nextProps.server;
-    
+
     // ID가 다르면 다른 서버이므로 리렌더링 필요
     if (prevServer.id !== nextServer.id) return false;
-    
+
     // 성능에 영향을 주는 핵심 props만 비교
     const criticalProps = [
-      'status', 'cpu', 'memory', 'disk', 'network', 
-      'alerts', 'uptime', 'type'
+      'status',
+      'cpu',
+      'memory',
+      'disk',
+      'network',
+      'alerts',
+      'uptime',
+      'type',
     ] as const;
-    
+
     for (const prop of criticalProps) {
       if (prevServer[prop] !== nextServer[prop]) {
         return false; // 변경됨 - 리렌더링 필요
       }
     }
-    
+
     // 기타 props 비교
     if (
       prevProps.index !== nextProps.index ||
@@ -659,7 +701,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
     ) {
       return false;
     }
-    
+
     // 모든 중요한 props가 동일함 - 리렌더링 불필요
     return true;
   }

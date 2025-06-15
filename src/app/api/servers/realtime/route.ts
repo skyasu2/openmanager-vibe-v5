@@ -9,235 +9,137 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { realServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import {
+  RealServerDataGenerator,
+  realServerDataGenerator,
+} from '@/services/data-generator/RealServerDataGenerator';
+import { getRedisClient } from '@/lib/redis';
 
-export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
-// 데이터 생성기 초기화 (한 번만)
-let isInitialized = false;
-const initializeGenerator = async () => {
-  if (!isInitialized) {
-    await realServerDataGenerator.initialize();
-    isInitialized = true;
-  }
-};
+// 전역 변수로 생성기 상태 관리
+let generator: RealServerDataGenerator | null = null;
 
 export async function GET(request: NextRequest) {
   try {
-    // 데이터 생성기 초기화
-    await initializeGenerator();
+    console.log('🔨 빌드 타임: 환경변수 검증 건너뜀');
 
-    const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type') || 'summary';
-    const serverId = searchParams.get('serverId');
-    const clusterId = searchParams.get('clusterId');
-
-    switch (type) {
-      case 'summary':
-        return NextResponse.json({
-          success: true,
-          data: realServerDataGenerator.getDashboardSummary(),
-          timestamp: new Date().toISOString(),
-        });
-
-      case 'servers':
-        if (serverId) {
-          const server = realServerDataGenerator.getServerById(serverId);
-          if (!server) {
-            return NextResponse.json(
-              { success: false, error: '서버를 찾을 수 없습니다' },
-              { status: 404 }
-            );
-          }
-          return NextResponse.json({
-            success: true,
-            data: server,
-            timestamp: new Date().toISOString(),
-          });
-        } else {
-          // 🚦 서버 목록 개수 제한 (기본 20, 최대 100) + 변경분 필터링
-          const limitParam = searchParams.get('limit');
-          const sinceParam = searchParams.get('since');
-
-          // limit 계산
-          const limit = Math.min(
-            Math.max(parseInt(limitParam || '20', 10) || 20, 1),
-            100
-          );
-
-          // sinceTimestamp 계산 (epoch 또는 ISO)
-          let sinceTimestamp: number | null = null;
-          if (sinceParam) {
-            const num = Number(sinceParam);
-            if (!isNaN(num)) {
-              sinceTimestamp = num;
-            } else {
-              const iso = Date.parse(sinceParam);
-              if (!isNaN(iso)) sinceTimestamp = iso;
-            }
-          }
-
-          // 🛡️ 안전한 서버 데이터 가져오기
-          let allServers = [];
-          try {
-            const rawServers = realServerDataGenerator.getAllServers();
-            if (Array.isArray(rawServers)) {
-              allServers = rawServers;
-            } else {
-              console.warn(
-                '⚠️ realtime getAllServers()가 배열을 반환하지 않음:',
-                typeof rawServers
-              );
-              allServers = [];
-            }
-          } catch (serverError) {
-            console.error('❌ 실시간 서버 데이터 가져오기 실패:', serverError);
-            allServers = [];
-          }
-
-          // 변경분 필터링
-          if (sinceTimestamp && allServers.length > 0) {
-            allServers = allServers.filter(s => {
-              if (!s) return false;
-              const last = (s as any).last_updated
-                ? Date.parse((s as any).last_updated)
-                : (s as any).lastUpdate
-                  ? Date.parse((s as any).lastUpdate)
-                  : 0;
-              return last > (sinceTimestamp as number);
-            });
-          }
-
-          // 🛡️ 안전한 응답 반환
-          const safeServers = Array.isArray(allServers)
-            ? allServers.slice(0, limit)
-            : [];
-
-          return NextResponse.json({
-            success: true,
-            data: safeServers, // 항상 배열 보장
-            total: allServers.length,
-            limit,
-            delta_mode: Boolean(sinceTimestamp),
-            timestamp: new Date().toISOString(),
-          });
-        }
-
-      case 'clusters':
-        if (clusterId) {
-          const cluster = realServerDataGenerator.getClusterById(clusterId);
-          if (!cluster) {
-            return NextResponse.json(
-              { success: false, error: '클러스터를 찾을 수 없습니다' },
-              { status: 404 }
-            );
-          }
-          return NextResponse.json({
-            success: true,
-            data: cluster,
-            timestamp: new Date().toISOString(),
-          });
-        } else {
-          const limitParam = searchParams.get('limit');
-          const limit = Math.min(
-            Math.max(parseInt(limitParam || '10', 10) || 10, 1),
-            50
-          );
-          const allClusters = realServerDataGenerator.getAllClusters();
-          return NextResponse.json({
-            success: true,
-            data: allClusters.slice(0, limit),
-            total: allClusters.length,
-            limit,
-            timestamp: new Date().toISOString(),
-          });
-        }
-
-      case 'applications':
-        const limitParam = searchParams.get('limit');
-        const limit = Math.min(
-          Math.max(parseInt(limitParam || '15', 10) || 15, 1),
-          100
-        );
-        const allApplications = realServerDataGenerator.getAllApplications();
-        return NextResponse.json({
-          success: true,
-          data: allApplications.slice(0, limit),
-          total: allApplications.length,
-          limit,
-          timestamp: new Date().toISOString(),
-        });
-
-      case 'health':
-        const healthData = await realServerDataGenerator.healthCheck();
-        return NextResponse.json({
-          success: true,
-          data: healthData,
-          timestamp: new Date().toISOString(),
-        });
-
-      default:
-        return NextResponse.json(
-          { success: false, error: '지원하지 않는 타입입니다' },
-          { status: 400 }
-        );
+    // Redis 클라이언트 초기화 시도
+    try {
+      const redis = await getRedisClient();
+      console.log('✅ Redis 연결 성공 - 서버 데이터 저장 활성화');
+    } catch (redisError) {
+      console.warn('⚠️ Redis 환경변수 누락 → Enhanced Mock Redis로 자동 전환');
     }
+
+    // 생성기 초기화 (한 번만)
+    if (!generator) {
+      generator = realServerDataGenerator;
+      await generator.initialize();
+    }
+
+    // 현재 서버 데이터 가져오기
+    const servers = generator.getAllServers();
+
+    console.log(
+      `초기화 실행 from /api/servers/realtime (서버 ${servers.length}개 감지)`
+    );
+
+    // 서버가 없으면 초기화 진행
+    if (servers.length === 0) {
+      console.log('🚀 RealServerDataGenerator 초기화 시작...');
+      await generator.initialize();
+      console.log('✅ RealServerDataGenerator 초기화 완료');
+    }
+
+    // 실시간 데이터 생성 시작 (아직 시작되지 않은 경우에만)
+    if (!generator.getStatus().isRunning) {
+      generator.startAutoGeneration();
+    }
+
+    // 최신 서버 데이터 반환
+    const latestServers = generator.getAllServers();
+    const dashboardSummary = generator.getDashboardSummary();
+
+    return NextResponse.json({
+      success: true,
+      servers: latestServers,
+      summary: dashboardSummary,
+      timestamp: Date.now(),
+      count: latestServers.length,
+    });
   } catch (error) {
     console.error('❌ 실시간 서버 데이터 API 오류:', error);
+
+    // 에러 발생 시에도 안정적인 응답 반환
     return NextResponse.json(
       {
         success: false,
-        error: '서버 데이터를 가져오는데 실패했습니다',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
+        servers: [], // 빈 배열로 안정적 응답
+        summary: {
+          servers: {
+            total: 0,
+            online: 0,
+            warning: 0,
+            offline: 0,
+            avgCpu: 0,
+            avgMemory: 0,
+          },
+          clusters: { total: 0, healthy: 0, warning: 0, critical: 0 },
+          applications: {
+            total: 0,
+            healthy: 0,
+            warning: 0,
+            critical: 0,
+            avgResponseTime: 0,
+          },
+          timestamp: Date.now(),
+        },
+        timestamp: Date.now(),
+        count: 0,
       },
-      { status: 500 }
-    );
+      { status: 200 }
+    ); // 500 대신 200으로 안정적 응답
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    await initializeGenerator();
+    const { action } = await request.json();
 
-    const body = await request.json();
-    const { action, serverId, config } = body;
+    if (!generator) {
+      generator = realServerDataGenerator;
+      await generator.initialize();
+    }
 
     switch (action) {
-      case 'start-generation':
-        realServerDataGenerator.startAutoGeneration();
+      case 'start':
+        generator.startAutoGeneration();
         return NextResponse.json({
           success: true,
-          message: '실시간 데이터 생성이 시작되었습니다',
-          timestamp: new Date().toISOString(),
+          message: '실시간 데이터 생성이 시작되었습니다.',
+          status: generator.getStatus(),
         });
 
-      case 'stop-generation':
-        realServerDataGenerator.stopAutoGeneration();
+      case 'stop':
+        generator.stopAutoGeneration();
         return NextResponse.json({
           success: true,
-          message: '실시간 데이터 생성이 중지되었습니다',
-          timestamp: new Date().toISOString(),
+          message: '실시간 데이터 생성이 중지되었습니다.',
+          status: generator.getStatus(),
         });
 
-      case 'simulate-incident':
-        // 특정 서버에 장애 시뮬레이션
-        if (!serverId) {
-          return NextResponse.json(
-            { success: false, error: 'serverId가 필요합니다' },
-            { status: 400 }
-          );
-        }
-
-        // 여기서는 간단한 응답만 (실제 시뮬레이션은 데이터 생성기 내부에서 자동으로)
+      case 'status':
         return NextResponse.json({
           success: true,
-          message: `서버 ${serverId}에 대한 장애 시뮬레이션이 요청되었습니다`,
-          timestamp: new Date().toISOString(),
+          status: generator.getStatus(),
+          summary: generator.getDashboardSummary(),
         });
 
       default:
         return NextResponse.json(
-          { success: false, error: '지원하지 않는 액션입니다' },
+          { success: false, error: '지원하지 않는 액션입니다.' },
           { status: 400 }
         );
     }
@@ -246,8 +148,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: 'POST 요청 처리에 실패했습니다',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
       },
       { status: 500 }
     );

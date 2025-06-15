@@ -15,6 +15,7 @@ import type {
   ApplicationMetrics,
 } from '@/types/data-generator';
 import { createTimeoutSignal } from '@/utils/createTimeoutSignal';
+import { Server } from '@/types/server';
 
 interface DashboardSummary {
   overview: {
@@ -69,8 +70,8 @@ const getDefaultSummary = (): DashboardSummary => ({
     totalErrors: 23,
   },
   cost: {
-    total: 2450.50,
-    monthly: 2450.50,
+    total: 2450.5,
+    monthly: 2450.5,
   },
   timestamp: new Date().toISOString(),
 });
@@ -218,6 +219,14 @@ const getDefaultApplications = (): ApplicationMetrics[] => [
   },
 ];
 
+const mapStatus = (rawStatus: string): 'online' | 'warning' | 'offline' => {
+  const s = rawStatus?.toLowerCase();
+  if (s === 'online' || s === 'running' || s === 'healthy') return 'online';
+  if (s === 'warning' || s === 'degraded' || s === 'unhealthy')
+    return 'warning';
+  return 'offline';
+};
+
 export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
   const {
     autoRefresh = true,
@@ -303,10 +312,61 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
    * 🖥️ 모든 서버 데이터 가져오기
    */
   const fetchServers = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      const sinceQuery = lastUpdate ? `&since=${lastUpdate.getTime()}` : '';
+      const response = await fetch('/api/servers/realtime');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP error! status: ${response.status}`);
+      }
+
+      if (data.success === false) {
+        console.warn('API reported a controlled error:', data.error);
+        setError(data.error); // Set error for UI, but might still have stale data
+        // Don't immediately clear servers, can show stale data with an error message
+        if (data.servers && Array.isArray(data.servers)) {
+          const transformedServers = data.servers.map((s: any) => ({
+            ...s,
+            status: mapStatus(s.status),
+          }));
+          setServers(transformedServers);
+        }
+        return;
+      }
+
+      if (!Array.isArray(data.servers)) {
+        throw new Error(
+          'API response is not valid: servers list is not an array.'
+        );
+      }
+
+      const transformedServers = data.servers.map((s: any) => ({
+        ...s,
+        status: mapStatus(s.status),
+      }));
+
+      setServers(transformedServers);
+      setLastUpdate(new Date());
+    } catch (err: any) {
+      console.error('Failed to fetch real-time server data:', err);
+      setError(
+        err.message || 'An unknown error occurred while fetching server data.'
+      );
+      setServers([]); // On critical fetch error, clear the servers
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  /**
+   * 🏗️ 클러스터 데이터 가져오기
+   */
+  const fetchClusters = useCallback(async () => {
+    try {
       const response = await fetch(
-        `/api/servers/realtime?type=servers&limit=20${sinceQuery}`,
+        '/api/servers/realtime?type=clusters&limit=10',
         {
           method: 'GET',
           headers: {
@@ -315,61 +375,6 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
           signal: createTimeoutSignal(5000),
         }
       );
-
-      if (!response.ok) {
-        console.warn(`실시간 서버 목록 API HTTP 오류: ${response.status}`);
-        // HTTP 오류 시 기본값 설정
-        if (servers.length === 0) {
-          setServers(getDefaultServers());
-        }
-        setError(`HTTP ${response.status}: ${response.statusText}`);
-        return;
-      }
-
-      const result = await response.json();
-
-      if (result.success && Array.isArray(result.data)) {
-        setServers(result.data);
-        setLastUpdate(new Date());
-
-        // 선택된 서버 업데이트
-        if (selectedServer) {
-          const updatedServer = result.data.find(
-            (s: ServerInstance) => s.id === selectedServer.id
-          );
-          if (updatedServer) {
-            setSelectedServer(updatedServer);
-          }
-        }
-        setError(null);
-      } else {
-        console.warn('실시간 서버 목록 API 응답 데이터 오류:', result);
-        if (servers.length === 0) {
-          setServers(getDefaultServers());
-        }
-        setError(result.error || '서버 데이터 조회 실패');
-      }
-    } catch (error: any) {
-      console.warn('실시간 서버 목록 API 호출 실패:', error);
-      if (servers.length === 0) {
-        setServers(getDefaultServers());
-      }
-      setError(error.message || '서버 데이터 조회 실패');
-    }
-  }, [selectedServer, servers.length, lastUpdate]);
-
-  /**
-   * 🏗️ 클러스터 데이터 가져오기
-   */
-  const fetchClusters = useCallback(async () => {
-    try {
-      const response = await fetch('/api/servers/realtime?type=clusters&limit=10', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal: createTimeoutSignal(5000),
-      });
 
       if (!response.ok) {
         console.warn(`실시간 클러스터 API HTTP 오류: ${response.status}`);
@@ -417,13 +422,16 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
    */
   const fetchApplications = useCallback(async () => {
     try {
-      const response = await fetch('/api/servers/realtime?type=applications&limit=15', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal: createTimeoutSignal(5000),
-      });
+      const response = await fetch(
+        '/api/servers/realtime?type=applications&limit=15',
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: createTimeoutSignal(5000),
+        }
+      );
 
       if (!response.ok) {
         console.warn(`실시간 애플리케이션 API HTTP 오류: ${response.status}`);
