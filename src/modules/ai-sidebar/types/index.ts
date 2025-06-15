@@ -42,10 +42,30 @@ export interface ChatMessage {
   id: string;
   type: 'user' | 'ai' | 'system';
   content: string;
-  timestamp: string;
+  timestamp: string | Date;
   metadata?: Record<string, any>;
   actions?: string[];
   isLoading?: boolean;
+
+  // AI 사이드바 V2 확장 속성들
+  thinking?: Array<{
+    id: string;
+    step: string;
+    title: string;
+    content: string;
+    description: string;
+    duration: number;
+    confidence?: number;
+  }>;
+  files?: Array<{
+    id: string;
+    name: string;
+    type: string;
+    size: number;
+    url?: string;
+  }>;
+  engine?: string;
+  confidence?: number;
 }
 
 export interface AIResponse {

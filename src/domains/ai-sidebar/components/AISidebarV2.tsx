@@ -37,8 +37,7 @@ import {
   HardDrive,
 } from 'lucide-react';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
-import { useAIThinking } from '@/modules/ai-sidebar/hooks/useAIThinking';
-import { useAIChat } from '@/modules/ai-sidebar/hooks/useAIChat';
+import { useAIThinking, useAIChat } from '@/stores/useAISidebarStore';
 import { useRealTimeAILogs } from '@/hooks/useRealTimeAILogs';
 import { RealAISidebarService } from '../services/RealAISidebarService';
 import BasicTyping from '@/components/ui/BasicTyping';
@@ -223,8 +222,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   const [selectedFunction, setSelectedFunction] =
     useState<AIAgentFunction>('chat');
 
-  // Enhanced Chat 상태
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // Enhanced Chat 상태 (messages는 useAIChat에서 관리)
   const [selectedEngine, setSelectedEngine] = useState<string>('auto');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showEngineInfo, setShowEngineInfo] = useState(false);
@@ -246,7 +244,16 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     addLog,
     clearLogs,
   } = useAIThinking();
-  const { responses, addResponse, clearResponses } = useAIChat({
+
+  // 새로운 useAIChat 훅 사용
+  const {
+    messages: chatMessages,
+    sendMessage,
+    clearMessages,
+    isLoading: isChatLoading,
+    error: chatError,
+    sessionId: chatSessionId,
+  } = useAIChat({
     apiEndpoint: '/api/ai/smart-fallback',
     sessionId: currentSessionId,
   });
@@ -312,7 +319,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   // 메시지 스크롤
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [chatMessages]);
 
   // AI 사고 과정 시뮬레이션
   const simulateThinking = (): ThinkingStep[] => {
@@ -355,116 +362,19 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     return responses[engine as keyof typeof responses] || responses.auto;
   };
 
-  // 메시지 전송 핸들러 (실제 AI API 호출)
-  const handleSendMessage = async (customMessage?: string) => {
-    const messageToSend = customMessage || inputValue.trim();
+  // handleSendMessage 제거됨 - useAIChat의 sendMessage 사용
 
-    if (!messageToSend && uploadedFiles.length === 0) return;
-
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      type: 'user',
-      content: messageToSend,
-      timestamp: new Date(),
-      files: uploadedFiles.length > 0 ? [...uploadedFiles] : undefined,
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    if (!customMessage) {
-      setInputValue('');
-    }
-    setUploadedFiles([]);
-    setIsGenerating(true);
-
-    try {
-      // 🚀 실제 AI API 호출
-      const response = await fetch('/api/ai/smart-fallback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: messageToSend,
-          engine: selectedEngine,
-          sessionId: currentSessionId,
-          options: {
-            enableThinking: true,
-            useCache: false,
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`API 호출 실패: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      // 실제 AI 사고 과정 생성
-      const thinkingSteps: ThinkingStep[] = data.thinking || [
-        {
-          id: '1',
-          step: 1,
-          title: '질문 분석',
-          description: `"${messageToSend}" 질문을 분석하고 있습니다`,
-          status: 'completed' as const,
-          duration: 800,
-        },
-        {
-          id: '2',
-          step: 2,
-          title: '데이터 수집',
-          description: '관련 서버 메트릭과 시스템 상태를 수집합니다',
-          status: 'completed' as const,
-          duration: 1200,
-        },
-        {
-          id: '3',
-          step: 3,
-          title: '응답 생성',
-          description: 'AI 엔진을 통해 최적의 답변을 생성합니다',
-          status: 'completed' as const,
-          duration: 1500,
-        },
-      ];
-
-      const aiMessage: ChatMessage = {
-        id: `ai-${Date.now()}`,
-        type: 'ai',
-        content:
-          data.response ||
-          data.answer ||
-          `[${selectedEngine.toUpperCase()}] ${messageToSend}에 대한 분석 결과를 제공합니다. 현재 시스템 상태를 기반으로 답변을 생성했습니다.`,
-        timestamp: new Date(),
-        thinking: thinkingSteps,
-        engine: AI_ENGINES.find(e => e.id === selectedEngine)?.name || 'AUTO',
-        confidence: data.confidence || Math.random() * 0.3 + 0.7,
-      };
-
-      setMessages(prev => [...prev, aiMessage]);
-    } catch (error) {
-      console.error('AI 응답 생성 실패:', error);
-
-      // 폴백 응답
-      const fallbackMessage: ChatMessage = {
-        id: `ai-${Date.now()}`,
-        type: 'ai',
-        content: `죄송합니다. 현재 AI 서비스에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요.\n\n질문: "${messageToSend}"\n\n기본 응답: 시스템 상태를 확인하고 있습니다. 대시보드에서 실시간 메트릭을 확인해보세요.`,
-        timestamp: new Date(),
-        engine: 'Fallback',
-        confidence: 0.5,
-      };
-
-      setMessages(prev => [...prev, fallbackMessage]);
-    } finally {
-      setIsGenerating(false);
-    }
+  // 프리셋 질문 핸들러 (새로운 sendMessage 사용)
+  const handlePresetQuestion = (question: string) => {
+    sendMessage(question);
   };
 
-  // 프리셋 질문 핸들러 (즉시 전송)
-  const handlePresetQuestion = (question: string) => {
-    // 🎯 직접 메시지 전송 (상태 업데이트 타이밍 문제 해결)
-    handleSendMessage(question);
+  // 입력 전송 핸들러
+  const handleSendInput = () => {
+    if (inputValue.trim()) {
+      sendMessage(inputValue.trim());
+      setInputValue('');
+    }
   };
 
   // 파일 업로드 핸들러
@@ -611,7 +521,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
       {/* 메시지 영역 */}
       <div className='flex-1 overflow-y-auto p-2 sm:p-3 space-y-3 sm:space-y-4'>
-        {messages.length === 0 && (
+        {chatMessages.length === 0 && (
           <div className='text-center py-8'>
             <div className='w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3'>
               <Sparkles className='w-6 h-6 text-white' />
@@ -625,7 +535,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
           </div>
         )}
 
-        {messages.map(message => (
+        {chatMessages.map(message => (
           <motion.div
             key={message.id}
             initial={{ opacity: 0, y: 20 }}
@@ -770,7 +680,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                         : 'text-gray-500'
                     }`}
                   >
-                    {message.timestamp.toLocaleTimeString()}
+                    {typeof message.timestamp === 'string'
+                      ? new Date(message.timestamp).toLocaleTimeString()
+                      : message.timestamp.toLocaleTimeString()}
                   </p>
                 </div>
               </div>
@@ -816,7 +728,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       </div>
 
       {/* 프리셋 질문 카드 (4개씩 표시 + 네비게이션) */}
-      {messages.length === 0 && (
+      {chatMessages.length === 0 && (
         <div className='px-3 pb-3'>
           <div className='flex items-center justify-between mb-2'>
             <h4 className='text-xs font-medium text-gray-700'>빠른 질문</h4>
@@ -918,7 +830,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
               onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
-                  handleSendMessage();
+                  handleSendInput();
                 }
               }}
               placeholder='시스템에 대해 질문해보세요... (Shift+Enter로 줄바꿈)'
@@ -929,7 +841,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
           {/* 전송 버튼 */}
           <motion.button
-            onClick={() => handleSendMessage()}
+            onClick={() => handleSendInput()}
             disabled={!inputValue.trim() && uploadedFiles.length === 0}
             className='p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
             whileHover={{ scale: 1.05 }}

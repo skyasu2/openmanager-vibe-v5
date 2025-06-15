@@ -1,11 +1,12 @@
 /**
- * 🧠 Smart Fallback Engine API
+ * 🧠 Smart Fallback Engine API (Natural Language Unifier 통합)
  * POST /api/ai/smart-fallback
  * GET /api/ai/smart-fallback (상태 조회)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import SmartFallbackEngine from '@/services/ai/SmartFallbackEngine';
+import { naturalLanguageUnifier } from '@/services/ai/NaturalLanguageUnifier';
 
 /**
  * 🔑 관리자 인증 체크
@@ -71,9 +72,8 @@ export async function POST(request: NextRequest) {
           // 각 엔진 강제 테스트
           const testQuery = body.testQuery || '시스템 상태를 확인해주세요';
           const testResults = {
-            mcp: await testEngine('mcp', testQuery),
-            rag: await testEngine('rag', testQuery),
-            googleAI: await testEngine('google_ai', testQuery),
+            naturalLanguageUnifier: await testUnifier(testQuery),
+            smartFallback: await testEngine('mcp', testQuery),
           };
 
           return NextResponse.json({
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 일반 AI 쿼리 처리
+    // 일반 AI 쿼리 처리 - 🆕 통합된 자연어 처리기 사용
     const { query, context, options } = body;
 
     if (!query || typeof query !== 'string') {
@@ -100,8 +100,52 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('🧠 Smart Fallback 쿼리 처리:', query.slice(0, 50));
+    console.log('🧠 통합 자연어 질의 처리:', query.slice(0, 50));
 
+    // 🆕 NaturalLanguageUnifier로 우선 처리
+    try {
+      const unifiedRequest = {
+        query,
+        context: {
+          language: context?.language || 'ko',
+          serverData: context,
+          timeRange: context?.timeRange,
+        },
+        options: {
+          useKoreanAI: true,
+          useDataAnalyzer: true,
+          useMetricsBridge: false,
+        },
+      };
+
+      const result = await naturalLanguageUnifier.processQuery(unifiedRequest);
+
+      if (result.success) {
+        return NextResponse.json({
+          success: true,
+          response: result.answer,
+          metadata: {
+            stage: 'unified-natural-language',
+            engine: result.engine,
+            confidence: result.confidence,
+            responseTime: result.metadata?.processingTime || 0,
+            fallbackPath: result.metadata?.fallbackUsed
+              ? ['unified-fallback']
+              : ['unified-primary'],
+            suggestions: result.suggestions,
+            processedAt: new Date().toISOString(),
+            totalTime: Date.now() - startTime,
+          },
+        });
+      }
+    } catch (error) {
+      console.warn(
+        '⚠️ 통합 자연어 처리기 실패, SmartFallback으로 폴백:',
+        error
+      );
+    }
+
+    // 🔄 SmartFallbackEngine으로 폴백
     const smartEngine = SmartFallbackEngine.getInstance();
     const result = await smartEngine.processQuery(query, context, options);
 
@@ -112,7 +156,7 @@ export async function POST(request: NextRequest) {
         stage: result.stage,
         confidence: result.confidence,
         responseTime: result.responseTime,
-        fallbackPath: result.fallbackPath,
+        fallbackPath: ['unified-failed', ...result.fallbackPath],
         quota: result.quota,
         processedAt: new Date().toISOString(),
         totalTime: Date.now() - startTime,
@@ -263,6 +307,44 @@ export async function GET(request: NextRequest) {
       },
       { status: 500 }
     );
+  }
+}
+
+/**
+ * 🧪 통합 자연어 처리기 테스트 함수
+ */
+async function testUnifier(query: string) {
+  const startTime = Date.now();
+
+  try {
+    const result = await naturalLanguageUnifier.processQuery({
+      query,
+      context: { language: 'ko' },
+      options: {
+        useKoreanAI: true,
+        useDataAnalyzer: true,
+        useMetricsBridge: false,
+      },
+    });
+
+    return {
+      success: result.success,
+      responseTime: Date.now() - startTime,
+      confidence: result.confidence,
+      engine: result.engine,
+      response:
+        result.answer.slice(0, 200) + (result.answer.length > 200 ? '...' : ''),
+      error: result.success ? null : '응답 생성 실패',
+    };
+  } catch (error) {
+    return {
+      success: false,
+      responseTime: Date.now() - startTime,
+      confidence: 0,
+      engine: 'error',
+      response: null,
+      error: error instanceof Error ? error.message : '테스트 실패',
+    };
   }
 }
 
