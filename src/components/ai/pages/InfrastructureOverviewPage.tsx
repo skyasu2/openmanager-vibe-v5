@@ -58,7 +58,17 @@ export default function InfrastructureOverviewPage({
       const response = await fetch('/api/servers');
       if (!response.ok) throw new Error('Failed to fetch server data');
 
-      const servers = await response.json();
+      /*
+       * ✅ 안전한 응답 구조 처리
+       *   - 2025.06.15 API 응답이 { success, servers: [] } 형태로 변경됨
+       *   - 배열 또는 객체 형태 모두 지원 (하위 호환)
+       */
+      const data = await response.json();
+      const servers = Array.isArray(data)
+        ? data // 구버전: 배열 반환
+        : Array.isArray(data.servers)
+          ? data.servers // 신버전: 객체 내부 servers 배열
+          : [];
 
       // 서버 통계 계산
       const totalServers = servers.length;
