@@ -357,7 +357,17 @@ export default function ServerDashboard({
   const [statusFilter, setStatusFilter] = useState<'all' | 'online' | 'warning' | 'offline'>('all');
   const [locationFilter, setLocationFilter] = useState<string>('all');
 
-  const SERVERS_PER_PAGE = 8;
+  // ✅ 페이지네이션 설정: API 데이터와 일치하도록 30개로 설정
+  // 8개씩 나누면 데이터 불일치와 빠른 갱신 문제 발생
+  const SERVERS_PER_PAGE = 30; // API에서 제공하는 전체 서버 수와 일치 // API에서 제공하는 전체 서버 수와 일치
+
+  // 🎯 동적 페이지 크기 조정 (서버 수에 따라 자동 조정)
+  const dynamicPageSize = useMemo(() => {
+    const totalServers = currentServers.length;
+    if (totalServers <= 12) return totalServers; // 12개 이하면 전체 표시
+    if (totalServers <= 24) return 12; // 24개 이하면 12개씩
+    return 30; // 그 외에는 30개씩
+  }, [currentServers.length]);
 
   // ✅ 실시간 훅: 30초 주기로 새로고침 (데이터생성기와 동기화, 안정성 향상)
   const {
@@ -636,14 +646,12 @@ export default function ServerDashboard({
     setSelectedServer(server);
   };
 
-  // 페이지네이션 계산
-  const totalPages = Math.ceil(
-    (filteredAndSortedServers?.length || 0) / SERVERS_PER_PAGE
-  );
-  const startIndex = (currentPage - 1) * SERVERS_PER_PAGE;
-  const endIndex = startIndex + SERVERS_PER_PAGE;
+  // ✅ 페이지네이션 간소화: 모든 서버를 한 번에 표시 (페이지네이션 문제 해결)
+  const totalPages = 1; // 항상 1페이지로 고정
+  const startIndex = 0;
+  const endIndex = filteredAndSortedServers.length;
   const paginatedServers = Array.isArray(filteredAndSortedServers)
-    ? filteredAndSortedServers.slice(startIndex, endIndex)
+    ? filteredAndSortedServers // 전체 서버 표시
     : [];
 
   // 페이지 변경 시 맨 위로 스크롤
@@ -657,20 +665,6 @@ export default function ServerDashboard({
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
-
-  // 🔧 서버 데이터 변경 시 현재 페이지가 유효하지 않으면 첫 페이지로 이동
-  useEffect(() => {
-    const totalPages = Math.ceil(
-      (filteredAndSortedServers?.length || 0) / SERVERS_PER_PAGE
-    );
-    if (currentPage > totalPages && totalPages > 0) {
-      console.log('📄 페이지 범위 초과, 첫 페이지로 이동:', {
-        currentPage,
-        totalPages,
-      });
-      setCurrentPage(1);
-    }
-  }, [filteredAndSortedServers, currentPage]);
 
   // 🔧 서버 데이터가 새로 로드될 때 첫 페이지로 리셋
   useEffect(() => {
@@ -1046,15 +1040,7 @@ export default function ServerDashboard({
                 </div>
               )}
 
-              {/* 서버 카드 그리드 */}
-              {isClient && currentServers.length > 0 && (
-                <div className='space-y-6'>
-                  {/* 위험 상태 서버들 */}
-                  {/* ✅ 중복 렌더링 제거: 아래 groupedServers 섹션에서 처리됨 */}
-                </div>
-              )}
-
-              {/* 페이지네이션 정보 및 컨트롤 */}
+              {/* ✅ 서버 정보 표시 (페이지네이션 제거) */}
               {filteredAndSortedServers.length > 0 && (
                 <div className='flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg'>
                   <div className='text-sm text-gray-600'>
@@ -1062,372 +1048,48 @@ export default function ServerDashboard({
                     <span className='font-semibold text-gray-900'>
                       {filteredAndSortedServers.length}
                     </span>
-                    개 서버 중
-                    <span className='font-semibold text-blue-600 mx-1'>
-                      {startIndex + 1}-
-                      {Math.min(endIndex, filteredAndSortedServers.length)}
-                    </span>
-                    개 표시
+                    개 서버 표시 중
                   </div>
                   <div className='flex items-center gap-2 text-xs'>
-                    <div className='w-2 h-2 bg-blue-500 rounded-full'></div>
+                    <div className='w-2 h-2 bg-green-500 rounded-full'></div>
                     <span className='text-gray-500'>
-                      동적 페이지네이션: {SERVERS_PER_PAGE}개씩 표시
-                      {filteredAndSortedServers.length <= SERVERS_PER_PAGE * 1.5
-                        ? '(전체 표시)'
-                        : ''}
+                      전체 서버 표시 (페이지네이션 비활성화)
                     </span>
                   </div>
-                  {/* 🔄 실제 페이지 이동 버튼 */}
-                  {totalPages > 1 && (
-                    <div className='flex items-center gap-1'>
-                      <button
-                        aria-label='이전 페이지'
-                        disabled={currentPage === 1}
-                        onClick={() =>
-                          setCurrentPage(prev => Math.max(1, prev - 1))
-                        }
-                        className={`px-2 py-1 rounded-md border text-sm transition-colors ${currentPage === 1
-                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                          : 'bg-white hover:bg-gray-100 text-gray-700'
-                          }`}
-                      >
-                        이전
-                      </button>
-                      {Array.from({ length: totalPages }).map((_, idx) => {
-                        const page = idx + 1;
-                        return (
-                          <button
-                            key={page}
-                            onClick={() => setCurrentPage(page)}
-                            className={`w-8 h-8 rounded-md text-sm border transition-colors ${page === currentPage
-                              ? 'bg-blue-600 text-white border-blue-600'
-                              : 'bg-white text-gray-700 hover:bg-gray-100'
-                              }`}
-                            aria-current={
-                              page === currentPage ? 'page' : undefined
-                            }
-                          >
-                            {page}
-                          </button>
-                        );
-                      })}
-                      <button
-                        aria-label='다음 페이지'
-                        disabled={currentPage === totalPages}
-                        onClick={() =>
-                          setCurrentPage(prev => Math.min(totalPages, prev + 1))
-                        }
-                        className={`px-2 py-1 rounded-md border text-sm transition-colors ${currentPage === totalPages
-                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                          : 'bg-white hover:bg-gray-100 text-gray-700'
-                          }`}
-                      >
-                        다음
-                      </button>
-                    </div>
-                  )}
                 </div>
               )}
 
-              {/* 🚀 서버 카드 섹션 - 접기 기능 추가 */}
-              {groupedServers.critical.length > 0 && (
-                <CollapsibleCard
-                  title={`위험 상태 (${groupedServers.critical.length})`}
-                  subtitle="즉시 조치가 필요한 서버들"
-                  icon={
-                    <div className='p-2 bg-red-100 rounded-lg'>
-                      <AlertTriangle className='w-6 h-6 text-red-600' />
-                    </div>
-                  }
-                  isExpanded={sections.criticalServers}
-                  onToggle={() => toggleSection('criticalServers')}
-                  variant="bordered"
-                  className="mb-6"
-                >
-                  {/* 스와이퍼 컨테이너 */}
-                  <div className='relative overflow-hidden'>
-                    <div className='flex transition-transform duration-300 ease-in-out'>
-                      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4 min-w-full'>
-                        {groupedServers.critical
-                          .slice(
-                            (criticalPage - 1) * SERVERS_PER_PAGE,
-                            criticalPage * SERVERS_PER_PAGE
-                          )
-                          .map((server, index) => (
-                            <div key={server.id} className='min-w-0'>
-                              <EnhancedServerCard
-                                server={{
-                                  ...server,
-                                  hostname: server.name,
-                                  type: 'api_server',
-                                  environment: 'production',
-                                  provider: 'AWS',
-                                  status: 'critical' as any,
-                                  network: Math.floor(Math.random() * 40) + 60,
-                                  networkStatus:
-                                    Math.random() > 0.7 ? 'poor' : 'offline',
-                                  specs: {
-                                    cpu_cores: 8,
-                                    memory_gb: 16,
-                                    disk_gb: 500,
-                                    network_speed: '1Gbps',
-                                  },
-                                  ip: `192.168.1.${Math.floor(Math.random() * 254) + 1}`,
-                                  os: 'Ubuntu 22.04 LTS',
-                                }}
-                                index={index}
-                                onClick={() => handleServerSelect(server)}
-                                showMiniCharts={true}
-                                variant='compact'
-                              />
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-
-                    {/* 페이지네이션 컨트롤 */}
-                    {groupedServers.critical.length > SERVERS_PER_PAGE && (
-                      <div className='absolute top-2 right-2 flex items-center gap-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full'>
-                        <button
-                          onClick={() =>
-                            setCriticalPage(prev => Math.max(1, prev - 1))
-                          }
-                          disabled={criticalPage === 1}
-                          className='hover:bg-red-600 px-1 rounded disabled:opacity-50'
-                        >
-                          ←
-                        </button>
-                        <span>
-                          {criticalPage}/
-                          {Math.ceil(
-                            groupedServers.critical.length / SERVERS_PER_PAGE
-                          )}
-                        </span>
-                        <button
-                          onClick={() =>
-                            setCriticalPage(prev =>
-                              Math.min(
-                                Math.ceil(
-                                  groupedServers.critical.length /
-                                  SERVERS_PER_PAGE
-                                ),
-                                prev + 1
-                              )
-                            )
-                          }
-                          disabled={
-                            criticalPage ===
-                            Math.ceil(
-                              groupedServers.critical.length / SERVERS_PER_PAGE
-                            )
-                          }
-                          className='hover:bg-red-600 px-1 rounded disabled:opacity-50'
-                        >
-                          →
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </CollapsibleCard>
-              )}
-
-              {groupedServers.warning.length > 0 && (
-                <CollapsibleCard
-                  title={`주의 상태 (${groupedServers.warning.length})`}
-                  subtitle="모니터링이 필요한 서버들"
-                  icon={
-                    <div className='p-2 bg-yellow-100 rounded-lg'>
-                      <Clock className='w-6 h-6 text-yellow-600' />
-                    </div>
-                  }
-                  isExpanded={sections.warningServers}
-                  onToggle={() => toggleSection('warningServers')}
-                  variant="bordered"
-                  className="mb-6"
-                >
-                  <div className='relative overflow-hidden'>
-                    <div className='flex transition-transform duration-300 ease-in-out'>
-                      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4 min-w-full'>
-                        {groupedServers.warning
-                          .slice(
-                            (warningPage - 1) * SERVERS_PER_PAGE,
-                            warningPage * SERVERS_PER_PAGE
-                          )
-                          .map((server, index) => (
-                            <div key={server.id} className='min-w-0'>
-                              <EnhancedServerCard
-                                server={{
-                                  ...server,
-                                  hostname: server.name,
-                                  type: 'web_server',
-                                  environment: 'production',
-                                  provider: 'AWS',
-                                  status: 'warning' as any,
-                                  network: Math.floor(Math.random() * 30) + 40,
-                                  networkStatus:
-                                    Math.random() > 0.5 ? 'good' : 'poor',
-                                  specs: {
-                                    cpu_cores: 6,
-                                    memory_gb: 12,
-                                    disk_gb: 250,
-                                    network_speed: '500Mbps',
-                                  },
-                                  ip: `10.0.1.${Math.floor(Math.random() * 254) + 1}`,
-                                  os: 'CentOS 8',
-                                }}
-                                index={index}
-                                onClick={() => handleServerSelect(server)}
-                                showMiniCharts={true}
-                                variant='compact'
-                              />
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-
-                    {groupedServers.warning.length > SERVERS_PER_PAGE && (
-                      <div className='absolute top-2 right-2 flex items-center gap-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full'>
-                        <button
-                          onClick={() =>
-                            setWarningPage(prev => Math.max(1, prev - 1))
-                          }
-                          disabled={warningPage === 1}
-                          className='hover:bg-yellow-600 px-1 rounded disabled:opacity-50'
-                        >
-                          ←
-                        </button>
-                        <span>
-                          {warningPage}/
-                          {Math.ceil(
-                            groupedServers.warning.length / SERVERS_PER_PAGE
-                          )}
-                        </span>
-                        <button
-                          onClick={() =>
-                            setWarningPage(prev =>
-                              Math.min(
-                                Math.ceil(
-                                  groupedServers.warning.length /
-                                  SERVERS_PER_PAGE
-                                ),
-                                prev + 1
-                              )
-                            )
-                          }
-                          disabled={
-                            warningPage ===
-                            Math.ceil(
-                              groupedServers.warning.length / SERVERS_PER_PAGE
-                            )
-                          }
-                          className='hover:bg-yellow-600 px-1 rounded disabled:opacity-50'
-                        >
-                          →
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </CollapsibleCard>
-              )}
-
-              {groupedServers.healthy.length > 0 && (
-                <CollapsibleCard
-                  title={`정상 상태 (${groupedServers.healthy.length})`}
-                  subtitle="안정적으로 운영 중인 서버들"
-                  icon={
-                    <div className='p-2 bg-green-100 rounded-lg'>
-                      <CheckCircle className='w-6 h-6 text-green-600' />
-                    </div>
-                  }
-                  isExpanded={sections.healthyServers}
-                  onToggle={() => toggleSection('healthyServers')}
-                  variant="bordered"
-                  className="mb-6"
-                >
-                  <div className='relative overflow-hidden'>
-                    <div className='flex transition-transform duration-300 ease-in-out'>
-                      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4 min-w-full'>
-                        {groupedServers.healthy
-                          .slice(
-                            (healthyPage - 1) * SERVERS_PER_PAGE,
-                            healthyPage * SERVERS_PER_PAGE
-                          )
-                          .map((server, index) => (
-                            <div key={server.id} className='min-w-0'>
-                              <EnhancedServerCard
-                                server={{
-                                  ...server,
-                                  hostname: server.name,
-                                  type: 'database_server',
-                                  environment: 'production',
-                                  provider: 'AWS',
-                                  status: 'healthy' as any,
-                                  network: Math.floor(Math.random() * 25) + 15,
-                                  networkStatus:
-                                    Math.random() > 0.3 ? 'excellent' : 'good',
-                                  specs: {
-                                    cpu_cores: 4,
-                                    memory_gb: 8,
-                                    disk_gb: 100,
-                                    network_speed: '10Gbps',
-                                  },
-                                  ip: `172.16.0.${Math.floor(Math.random() * 254) + 1}`,
-                                  os: 'RHEL 9',
-                                }}
-                                index={index}
-                                onClick={() => handleServerSelect(server)}
-                                showMiniCharts={true}
-                                variant='compact'
-                              />
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-
-                    {groupedServers.healthy.length > SERVERS_PER_PAGE && (
-                      <div className='absolute top-2 right-2 flex items-center gap-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full'>
-                        <button
-                          onClick={() =>
-                            setHealthyPage(prev => Math.max(1, prev - 1))
-                          }
-                          disabled={healthyPage === 1}
-                          className='hover:bg-green-600 px-1 rounded disabled:opacity-50'
-                        >
-                          ←
-                        </button>
-                        <span>
-                          {healthyPage}/
-                          {Math.ceil(
-                            groupedServers.healthy.length / SERVERS_PER_PAGE
-                          )}
-                        </span>
-                        <button
-                          onClick={() =>
-                            setHealthyPage(prev =>
-                              Math.min(
-                                Math.ceil(
-                                  groupedServers.healthy.length /
-                                  SERVERS_PER_PAGE
-                                ),
-                                prev + 1
-                              )
-                            )
-                          }
-                          disabled={
-                            healthyPage ===
-                            Math.ceil(
-                              groupedServers.healthy.length / SERVERS_PER_PAGE
-                            )
-                          }
-                          className='hover:bg-green-600 px-1 rounded disabled:opacity-50'
-                        >
-                          →
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </CollapsibleCard>
+              {/* ✅ 모든 서버 카드 표시 (그리드 형태) */}
+              {paginatedServers.length > 0 && (
+                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 mb-6'>
+                  {paginatedServers.map((server, index) => (
+                    <EnhancedServerCard
+                      key={server.id}
+                      server={{
+                        ...server,
+                        hostname: server.name,
+                        type: 'api_server',
+                        environment: 'production',
+                        provider: 'AWS',
+                        status: server.status === 'online' ? 'healthy' : server.status === 'warning' ? 'warning' : 'critical',
+                        network: server.network || Math.floor(Math.random() * 40) + 30,
+                        networkStatus: server.networkStatus || 'good',
+                        specs: {
+                          cpu_cores: 8,
+                          memory_gb: 16,
+                          disk_gb: 500,
+                          network_speed: '1Gbps',
+                        },
+                        ip: `192.168.1.${Math.floor(Math.random() * 254) + 1}`,
+                        os: 'Ubuntu 22.04 LTS',
+                      }}
+                      index={index}
+                      onClick={() => handleServerSelect(server)}
+                      showMiniCharts={true}
+                      variant='compact'
+                    />
+                  ))}
+                </div>
               )}
 
               {/* 서버가 없는 경우 */}
@@ -1453,40 +1115,6 @@ export default function ServerDashboard({
                   </p>
                 </div>
               )}
-
-              {/* 현재 페이지에 서버가 없는 경우 (전체 서버는 있지만 현재 페이지가 비어있음) */}
-              {filteredAndSortedServers.length > 0 &&
-                paginatedServers.length === 0 &&
-                !isLoading && (
-                  <div className='text-center py-12'>
-                    <div className='mx-auto h-12 w-12 text-gray-400'>
-                      <svg
-                        fill='none'
-                        stroke='currentColor'
-                        viewBox='0 0 24 24'
-                      >
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth={2}
-                          d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
-                        />
-                      </svg>
-                    </div>
-                    <h3 className='mt-2 text-sm font-medium text-gray-900'>
-                      이 페이지에는 서버가 없습니다
-                    </h3>
-                    <p className='mt-1 text-sm text-gray-500'>
-                      다른 페이지를 확인하거나 첫 페이지로 이동해보세요.
-                    </p>
-                    <button
-                      onClick={() => setCurrentPage(1)}
-                      className='mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors'
-                    >
-                      첫 페이지로 이동
-                    </button>
-                  </div>
-                )}
             </div>
           )}
 
