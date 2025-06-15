@@ -1,24 +1,21 @@
 /**
- * 🎨 AI Sidebar V2 - 도메인 분리 아키텍처 + 아이콘 패널 통합
+ * 🚀 Enhanced AI Chat Page - Cursor AI Style
  *
- * ✅ 오른쪽 AI 기능 아이콘 패널 추가
- * ✅ 기능별 페이지 전환 시스템
- * ✅ 실시간 AI 로그 연동
- * ✅ 도메인 주도 설계(DDD) 적용
+ * ✅ Cursor AI 스타일 UI/UX
+ * ✅ AI 사고 과정 표시 기능
+ * ✅ 모델 선택 드롭다운
+ * ✅ 프리셋 질문 카드
+ * ✅ 답변 제어 기능
+ * ✅ 멀티 파일 업로드
+ * ✅ 실시간 타이핑 효과
  */
 
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  X,
-  Brain,
   Send,
-  Server,
-  Search,
-  BarChart3,
-  Target,
   User,
   Bot,
   Sparkles,
@@ -27,27 +24,19 @@ import {
   Square,
   RotateCcw,
   Paperclip,
+  X,
+  Info,
   Zap,
+  Brain,
   Database,
   Globe,
   Cpu,
   FileText,
+  Image,
+  Upload,
 } from 'lucide-react';
-import { useAISidebarStore } from '@/stores/useAISidebarStore';
-import { useAIThinking } from '@/modules/ai-sidebar/hooks/useAIThinking';
-import { useAIChat } from '@/modules/ai-sidebar/hooks/useAIChat';
-import { useRealTimeAILogs } from '@/hooks/useRealTimeAILogs';
-import { RealAISidebarService } from '../services/RealAISidebarService';
-import BasicTyping from '@/components/ui/BasicTyping';
 
-// AI 기능 아이콘 패널 및 페이지 컴포넌트들
-import AIAgentIconPanel, {
-  AIAgentFunction,
-} from '@/components/ai/AIAgentIconPanel';
-import AIInsightsCard from '@/components/dashboard/AIInsightsCard';
-import { GoogleAIStatusCard } from '@/components/shared/GoogleAIStatusCard';
-
-// Enhanced AI Chat 관련 타입들
+// AI 엔진 타입 정의
 interface AIEngine {
   id: string;
   name: string;
@@ -64,6 +53,7 @@ interface AIEngine {
   status: 'ready' | 'loading' | 'error' | 'disabled';
 }
 
+// 메시지 타입 정의
 interface ChatMessage {
   id: string;
   type: 'user' | 'ai';
@@ -75,6 +65,7 @@ interface ChatMessage {
   files?: UploadedFile[];
 }
 
+// AI 사고 과정 타입
 interface ThinkingStep {
   id: string;
   step: number;
@@ -84,6 +75,7 @@ interface ThinkingStep {
   duration?: number;
 }
 
+// 업로드된 파일 타입
 interface UploadedFile {
   id: string;
   name: string;
@@ -93,6 +85,7 @@ interface UploadedFile {
   preview?: string;
 }
 
+// 프리셋 질문 타입
 interface PresetQuestion {
   id: string;
   text: string;
@@ -206,82 +199,20 @@ const PRESET_QUESTIONS: PresetQuestion[] = [
   },
 ];
 
-interface AISidebarV2Props {
-  isOpen: boolean;
-  onClose: () => void;
-  className?: string;
-}
-
-export const AISidebarV2: React.FC<AISidebarV2Props> = ({
-  isOpen,
-  onClose,
-  className = '',
-}) => {
-  // 실제 AI 서비스 인스턴스
-  const aiService = new RealAISidebarService();
-
-  // UI 상태
-  const [inputValue, setInputValue] = useState('');
-  const [currentSessionId, setCurrentSessionId] = useState<string>('');
-  const [selectedFunction, setSelectedFunction] =
-    useState<AIAgentFunction>('chat');
-
-  // Enhanced Chat 상태
+export default function EnhancedAIChatPage() {
+  // 상태 관리
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [inputValue, setInputValue] = useState('');
   const [selectedEngine, setSelectedEngine] = useState<string>('auto');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showEngineInfo, setShowEngineInfo] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [expandedThinking, setExpandedThinking] = useState<string | null>(null);
 
-  // 도메인 훅들 사용
-  const { setOpen } = useAISidebarStore();
-  const {
-    isThinking,
-    currentQuestion,
-    logs,
-    setThinking,
-    setCurrentQuestion,
-    addLog,
-    clearLogs,
-  } = useAIThinking();
-  const { responses, addResponse, clearResponses } = useAIChat({
-    apiEndpoint: '/api/ai/smart-fallback',
-    sessionId: currentSessionId,
-  });
-
-  // 스크롤 참조
+  // 참조
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const presetScrollRef = useRef<HTMLDivElement>(null);
-
-  // 실시간 AI 로그 훅
-  const {
-    logs: realTimeLogs,
-    isConnected: isLogConnected,
-    isProcessing: isRealTimeProcessing,
-    currentEngine,
-    techStack,
-    connectionStatus,
-  } = useRealTimeAILogs({
-    sessionId: currentSessionId,
-    mode: 'sidebar',
-    maxLogs: 30,
-  });
-
-  // 빠른 질문 가져오기 (실제 서비스에서)
-  const quickQuestions = aiService.getQuickQuestions();
-
-  // 아이콘 매핑
-  const getIcon = (iconName: string) => {
-    const icons: Record<string, React.ComponentType<any>> = {
-      Server,
-      Search,
-      BarChart3,
-      Target,
-    };
-    return icons[iconName] || Server;
-  };
 
   // 메시지 스크롤
   useEffect(() => {
@@ -289,7 +220,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   }, [messages]);
 
   // AI 사고 과정 시뮬레이션
-  const simulateThinking = (): ThinkingStep[] => {
+  const simulateThinking = useCallback((): ThinkingStep[] => {
     const steps = [
       {
         id: '1',
@@ -325,20 +256,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       },
     ];
     return steps;
-  };
-
-  // AI 응답 생성
-  const generateAIResponse = (query: string, engine: string): string => {
-    const responses = {
-      auto: `자동 분석 결과: 현재 시스템 상태를 종합적으로 분석한 결과, 8개 서버 중 7개가 정상 작동 중입니다. CPU 평균 사용률 45%, 메모리 68%로 안정적입니다.`,
-      unified: `통합 AI 분석: MCP, RAG, Google AI를 활용한 종합 분석 결과, 시스템 전반적으로 양호한 상태입니다. 특별한 이상 징후는 발견되지 않았습니다.`,
-      'google-ai': `Google AI 분석: Gemini 모델을 통한 자연어 분석 결과, 질문하신 내용에 대해 상세한 분석을 제공드립니다.`,
-      mcp: `MCP 엔진 분석: 실시간 서버 컨텍스트를 기반으로 분석한 결과, 현재 인프라 상태는 안정적입니다.`,
-      rag: `RAG 검색 결과: 문서 데이터베이스에서 관련 정보를 검색한 결과, 유사한 상황에 대한 해결책을 찾았습니다.`,
-    };
-
-    return responses[engine as keyof typeof responses] || responses.auto;
-  };
+  }, []);
 
   // 메시지 전송 핸들러
   const handleSendMessage = async () => {
@@ -386,6 +304,19 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     }, 3000);
   };
 
+  // AI 응답 생성
+  const generateAIResponse = (query: string, engine: string): string => {
+    const responses = {
+      auto: `자동 분석 결과: 현재 시스템 상태를 종합적으로 분석한 결과, 8개 서버 중 7개가 정상 작동 중입니다. CPU 평균 사용률 45%, 메모리 68%로 안정적입니다.`,
+      unified: `통합 AI 분석: MCP, RAG, Google AI를 활용한 종합 분석 결과, 시스템 전반적으로 양호한 상태입니다. 특별한 이상 징후는 발견되지 않았습니다.`,
+      'google-ai': `Google AI 분석: Gemini 모델을 통한 자연어 분석 결과, 질문하신 내용에 대해 상세한 분석을 제공드립니다.`,
+      mcp: `MCP 엔진 분석: 실시간 서버 컨텍스트를 기반으로 분석한 결과, 현재 인프라 상태는 안정적입니다.`,
+      rag: `RAG 검색 결과: 문서 데이터베이스에서 관련 정보를 검색한 결과, 유사한 상황에 대한 해결책을 찾았습니다.`,
+    };
+
+    return responses[engine as keyof typeof responses] || responses.auto;
+  };
+
   // 프리셋 질문 클릭
   const handlePresetQuestion = (question: string) => {
     setInputValue(question);
@@ -423,24 +354,24 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
   // 답변 재생성
   const regenerateResponse = (messageId: string) => {
+    // 재생성 로직 구현
     console.log('Regenerating response for:', messageId);
   };
 
-  // Enhanced AI Chat 컴포넌트
-  const renderEnhancedAIChat = () => (
+  return (
     <div className='flex flex-col h-full bg-gradient-to-br from-slate-50 to-blue-50'>
       {/* 헤더 - 모델 선택 */}
       <div className='p-4 border-b border-gray-200 bg-white/80 backdrop-blur-sm'>
         <div className='flex items-center justify-between mb-3'>
           <div className='flex items-center space-x-3'>
-            <div className='w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg flex items-center justify-center'>
-              <Bot className='w-4 h-4 text-white' />
+            <div className='w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg flex items-center justify-center'>
+              <Bot className='w-5 h-5 text-white' />
             </div>
             <div>
-              <h3 className='text-sm font-bold text-gray-800'>
+              <h2 className='text-lg font-bold text-gray-800'>
                 Enhanced AI Chat
-              </h3>
-              <p className='text-xs text-gray-600'>
+              </h2>
+              <p className='text-sm text-gray-600'>
                 Cursor AI 스타일 대화형 인터페이스
               </p>
             </div>
@@ -450,18 +381,18 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
           <div className='relative'>
             <button
               onClick={() => setShowEngineInfo(!showEngineInfo)}
-              className='flex items-center space-x-2 px-2 py-1 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-xs'
+              className='flex items-center space-x-2 px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors'
             >
               {React.createElement(
                 AI_ENGINES.find(e => e.id === selectedEngine)?.icon || Zap,
                 {
-                  className: `w-3 h-3 ${AI_ENGINES.find(e => e.id === selectedEngine)?.color}`,
+                  className: `w-4 h-4 ${AI_ENGINES.find(e => e.id === selectedEngine)?.color}`,
                 }
               )}
-              <span className='font-medium'>
+              <span className='text-sm font-medium'>
                 {AI_ENGINES.find(e => e.id === selectedEngine)?.name}
               </span>
-              <ChevronDown className='w-3 h-3 text-gray-500' />
+              <ChevronDown className='w-4 h-4 text-gray-500' />
             </button>
 
             {/* 엔진 선택 드롭다운 */}
@@ -471,18 +402,18 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className='absolute top-full right-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-10'
+                  className='absolute top-full right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-10'
                 >
                   <div className='p-3 border-b border-gray-100'>
-                    <h4 className='text-xs font-semibold text-gray-800'>
+                    <h3 className='text-sm font-semibold text-gray-800'>
                       AI 모델 선택
-                    </h4>
+                    </h3>
                     <p className='text-xs text-gray-600'>
                       용도에 맞는 AI 엔진을 선택하세요
                     </p>
                   </div>
 
-                  <div className='max-h-48 overflow-y-auto'>
+                  <div className='max-h-64 overflow-y-auto'>
                     {AI_ENGINES.map(engine => (
                       <button
                         key={engine.id}
@@ -490,23 +421,23 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                           setSelectedEngine(engine.id);
                           setShowEngineInfo(false);
                         }}
-                        className={`w-full p-2 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${
+                        className={`w-full p-3 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${
                           selectedEngine === engine.id ? 'bg-blue-50' : ''
                         }`}
                       >
-                        <div className='flex items-start space-x-2'>
+                        <div className='flex items-start space-x-3'>
                           <div
-                            className={`w-6 h-6 rounded ${engine.bgColor} flex items-center justify-center`}
+                            className={`w-8 h-8 rounded-lg ${engine.bgColor} flex items-center justify-center`}
                           >
                             {React.createElement(engine.icon, {
-                              className: `w-3 h-3 ${engine.color}`,
+                              className: `w-4 h-4 ${engine.color}`,
                             })}
                           </div>
                           <div className='flex-1'>
                             <div className='flex items-center space-x-2'>
-                              <h5 className='text-xs font-medium text-gray-800'>
+                              <h4 className='text-sm font-medium text-gray-800'>
                                 {engine.name}
-                              </h5>
+                              </h4>
                               {engine.usage && (
                                 <span className='text-xs text-gray-500'>
                                   {engine.usage.used}/{engine.usage.limit}
@@ -516,18 +447,28 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                             <p className='text-xs text-gray-600 mt-1'>
                               {engine.description}
                             </p>
-                            <div className='flex flex-wrap gap-1 mt-1'>
-                              {engine.features
-                                .slice(0, 2)
-                                .map((feature, idx) => (
-                                  <span
-                                    key={idx}
-                                    className='text-xs px-1 py-0.5 bg-gray-100 text-gray-600 rounded'
-                                  >
-                                    {feature}
-                                  </span>
-                                ))}
+                            <div className='flex flex-wrap gap-1 mt-2'>
+                              {engine.features.map((feature, idx) => (
+                                <span
+                                  key={idx}
+                                  className='text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded'
+                                >
+                                  {feature}
+                                </span>
+                              ))}
                             </div>
+                            {engine.usage && (
+                              <div className='mt-2'>
+                                <div className='w-full bg-gray-200 rounded-full h-1'>
+                                  <div
+                                    className='bg-blue-500 h-1 rounded-full'
+                                    style={{
+                                      width: `${(engine.usage.used / engine.usage.limit) * 100}%`,
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </button>
@@ -541,16 +482,16 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       </div>
 
       {/* 메시지 영역 */}
-      <div className='flex-1 overflow-y-auto p-3 space-y-4'>
+      <div className='flex-1 overflow-y-auto p-4 space-y-6'>
         {messages.length === 0 && (
-          <div className='text-center py-8'>
-            <div className='w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3'>
-              <Sparkles className='w-6 h-6 text-white' />
+          <div className='text-center py-12'>
+            <div className='w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4'>
+              <Sparkles className='w-8 h-8 text-white' />
             </div>
-            <h4 className='text-sm font-semibold text-gray-800 mb-2'>
+            <h3 className='text-lg font-semibold text-gray-800 mb-2'>
               Enhanced AI Chat에 오신 것을 환영합니다!
-            </h4>
-            <p className='text-xs text-gray-600 mb-4'>
+            </h3>
+            <p className='text-gray-600 mb-6'>
               아래 프리셋 질문을 선택하거나 직접 질문을 입력해보세요.
             </p>
           </div>
@@ -564,7 +505,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
             className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`flex items-start space-x-2 max-w-[85%] ${
+              className={`flex items-start space-x-3 max-w-[85%] ${
                 message.type === 'user'
                   ? 'flex-row-reverse space-x-reverse'
                   : ''
@@ -572,16 +513,16 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
             >
               {/* 아바타 */}
               <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+                className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                   message.type === 'user'
                     ? 'bg-blue-500 text-white'
                     : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
                 }`}
               >
                 {message.type === 'user' ? (
-                  <User className='w-3 h-3' />
+                  <User className='w-4 h-4' />
                 ) : (
-                  <Bot className='w-3 h-3' />
+                  <Bot className='w-4 h-4' />
                 )}
               </div>
 
@@ -589,21 +530,21 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
               <div className='flex-1'>
                 {/* AI 사고 과정 (AI 메시지만) */}
                 {message.type === 'ai' && message.thinking && (
-                  <div className='mb-2'>
+                  <div className='mb-3'>
                     <button
                       onClick={() =>
                         setExpandedThinking(
                           expandedThinking === message.id ? null : message.id
                         )
                       }
-                      className='flex items-center space-x-1 text-xs text-gray-600 hover:text-gray-800 transition-colors'
+                      className='flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800 transition-colors'
                     >
-                      <Brain className='w-3 h-3' />
+                      <Brain className='w-4 h-4' />
                       <span>🤔 AI 생각 과정</span>
                       {expandedThinking === message.id ? (
-                        <ChevronUp className='w-3 h-3' />
+                        <ChevronUp className='w-4 h-4' />
                       ) : (
-                        <ChevronDown className='w-3 h-3' />
+                        <ChevronDown className='w-4 h-4' />
                       )}
                     </button>
 
@@ -613,19 +554,19 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: 'auto' }}
                           exit={{ opacity: 0, height: 0 }}
-                          className='mt-1 p-2 bg-gray-50 rounded border border-gray-200'
+                          className='mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200'
                         >
-                          <div className='space-y-1'>
+                          <div className='space-y-2'>
                             {message.thinking.map(step => (
                               <div
                                 key={step.id}
-                                className='flex items-center space-x-2'
+                                className='flex items-center space-x-3'
                               >
-                                <div className='w-4 h-4 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium'>
+                                <div className='w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium'>
                                   {step.step}
                                 </div>
                                 <div className='flex-1'>
-                                  <div className='text-xs font-medium text-gray-800'>
+                                  <div className='text-sm font-medium text-gray-800'>
                                     {step.title}
                                   </div>
                                   <div className='text-xs text-gray-600'>
@@ -646,7 +587,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
                 {/* 메시지 버블 */}
                 <div
-                  className={`p-3 rounded-lg ${
+                  className={`p-4 rounded-lg ${
                     message.type === 'user'
                       ? 'bg-blue-500 text-white'
                       : 'bg-white border border-gray-200 text-gray-800'
@@ -654,14 +595,14 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                 >
                   {/* 파일 첨부 (사용자 메시지) */}
                   {message.files && message.files.length > 0 && (
-                    <div className='mb-2 space-y-1'>
+                    <div className='mb-3 space-y-2'>
                       {message.files.map(file => (
                         <div
                           key={file.id}
-                          className='flex items-center space-x-2 p-1 bg-white/20 rounded'
+                          className='flex items-center space-x-2 p-2 bg-white/20 rounded'
                         >
-                          <FileText className='w-3 h-3' />
-                          <span className='text-xs'>{file.name}</span>
+                          <FileText className='w-4 h-4' />
+                          <span className='text-sm'>{file.name}</span>
                           <span className='text-xs opacity-75'>
                             ({(file.size / 1024).toFixed(1)}KB)
                           </span>
@@ -670,13 +611,13 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                     </div>
                   )}
 
-                  <p className='text-xs whitespace-pre-wrap'>
+                  <p className='text-sm whitespace-pre-wrap'>
                     {message.content}
                   </p>
 
                   {/* 메타데이터 (AI 메시지) */}
                   {message.type === 'ai' && (
-                    <div className='flex items-center justify-between mt-2 pt-2 border-t border-gray-100'>
+                    <div className='flex items-center justify-between mt-3 pt-3 border-t border-gray-100'>
                       <div className='flex items-center space-x-2 text-xs text-gray-500'>
                         <span>엔진: {message.engine}</span>
                         {message.confidence && (
@@ -698,7 +639,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                   )}
 
                   <p
-                    className={`text-xs mt-1 ${
+                    className={`text-xs mt-2 ${
                       message.type === 'user'
                         ? 'text-blue-100'
                         : 'text-gray-500'
@@ -715,18 +656,18 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         {/* 생성 중 표시 */}
         {isGenerating && (
           <div className='flex justify-start'>
-            <div className='flex items-start space-x-2 max-w-[85%]'>
-              <div className='w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center'>
-                <Sparkles className='w-3 h-3 text-white animate-pulse' />
+            <div className='flex items-start space-x-3 max-w-[85%]'>
+              <div className='w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center'>
+                <Sparkles className='w-4 h-4 text-white animate-pulse' />
               </div>
-              <div className='bg-white border border-gray-200 rounded-lg p-3'>
+              <div className='bg-white border border-gray-200 rounded-lg p-4'>
                 <div className='flex items-center space-x-2'>
                   <div className='flex space-x-1'>
-                    <div className='w-1 h-1 bg-gray-400 rounded-full animate-bounce' />
-                    <div className='w-1 h-1 bg-gray-400 rounded-full animate-bounce delay-100' />
-                    <div className='w-1 h-1 bg-gray-400 rounded-full animate-bounce delay-200' />
+                    <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce' />
+                    <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100' />
+                    <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200' />
                   </div>
-                  <span className='text-xs text-gray-600'>
+                  <span className='text-sm text-gray-600'>
                     AI가 생각하고 있습니다...
                   </span>
                   <button
@@ -734,7 +675,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                     className='p-1 hover:bg-gray-100 rounded transition-colors'
                     title='생성 중지'
                   >
-                    <Square className='w-2 h-2 text-gray-500' />
+                    <Square className='w-3 h-3 text-gray-500' />
                   </button>
                 </div>
               </div>
@@ -747,33 +688,33 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
       {/* 프리셋 질문 카드 */}
       {messages.length === 0 && (
-        <div className='px-3 pb-3'>
-          <h4 className='text-xs font-medium text-gray-700 mb-2'>빠른 질문</h4>
+        <div className='px-4 pb-4'>
+          <h3 className='text-sm font-medium text-gray-700 mb-3'>빠른 질문</h3>
           <div
             ref={presetScrollRef}
-            className='flex space-x-2 overflow-x-auto pb-2 scrollbar-hide'
+            className='flex space-x-3 overflow-x-auto pb-2 scrollbar-hide'
           >
             {PRESET_QUESTIONS.map(question => (
               <motion.button
                 key={question.id}
                 onClick={() => handlePresetQuestion(question.text)}
-                className='flex-shrink-0 p-2 bg-white rounded border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all text-left min-w-[160px]'
+                className='flex-shrink-0 p-3 bg-white rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all text-left min-w-[200px]'
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <div className='flex items-center space-x-1 mb-1'>
+                <div className='flex items-center space-x-2 mb-2'>
                   <div
-                    className={`w-4 h-4 ${question.color} rounded flex items-center justify-center`}
+                    className={`w-6 h-6 ${question.color} rounded flex items-center justify-center`}
                   >
                     {React.createElement(question.icon, {
-                      className: 'w-2 h-2 text-white',
+                      className: 'w-3 h-3 text-white',
                     })}
                   </div>
                   <span className='text-xs text-gray-500'>
                     {question.category}
                   </span>
                 </div>
-                <p className='text-xs text-gray-800'>{question.text}</p>
+                <p className='text-sm text-gray-800'>{question.text}</p>
               </motion.button>
             ))}
           </div>
@@ -782,20 +723,20 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
       {/* 파일 업로드 영역 */}
       {uploadedFiles.length > 0 && (
-        <div className='px-3 pb-2'>
-          <div className='flex flex-wrap gap-1'>
+        <div className='px-4 pb-2'>
+          <div className='flex flex-wrap gap-2'>
             {uploadedFiles.map(file => (
               <div
                 key={file.id}
-                className='flex items-center space-x-1 px-2 py-1 bg-blue-50 border border-blue-200 rounded'
+                className='flex items-center space-x-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg'
               >
-                <FileText className='w-3 h-3 text-blue-600' />
-                <span className='text-xs text-blue-800'>{file.name}</span>
+                <FileText className='w-4 h-4 text-blue-600' />
+                <span className='text-sm text-blue-800'>{file.name}</span>
                 <button
                   onClick={() => removeFile(file.id)}
-                  className='p-0.5 hover:bg-blue-100 rounded transition-colors'
+                  className='p-1 hover:bg-blue-100 rounded transition-colors'
                 >
-                  <X className='w-2 h-2 text-blue-600' />
+                  <X className='w-3 h-3 text-blue-600' />
                 </button>
               </div>
             ))}
@@ -804,15 +745,15 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       )}
 
       {/* 입력 영역 */}
-      <div className='p-3 border-t border-gray-200 bg-white/80 backdrop-blur-sm'>
+      <div className='p-4 border-t border-gray-200 bg-white/80 backdrop-blur-sm'>
         <div className='flex items-end space-x-2'>
           {/* 파일 업로드 버튼 */}
           <button
             onClick={() => fileInputRef.current?.click()}
-            className='p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors'
+            className='p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors'
             title='파일 첨부'
           >
-            <Paperclip className='w-4 h-4' />
+            <Paperclip className='w-5 h-5' />
           </button>
 
           {/* 텍스트 입력 */}
@@ -827,7 +768,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                 }
               }}
               placeholder='시스템에 대해 질문해보세요... (Shift+Enter로 줄바꿈)'
-              className='w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none min-h-[36px] max-h-24 text-sm'
+              className='w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none min-h-[44px] max-h-32'
               rows={1}
             />
           </div>
@@ -836,16 +777,16 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
           <motion.button
             onClick={handleSendMessage}
             disabled={!inputValue.trim() && uploadedFiles.length === 0}
-            className='p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+            className='p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <Send className='w-4 h-4' />
+            <Send className='w-5 h-5' />
           </motion.button>
         </div>
 
         {/* 키보드 단축키 힌트 */}
-        <div className='flex items-center justify-between mt-1 text-xs text-gray-500'>
+        <div className='flex items-center justify-between mt-2 text-xs text-gray-500'>
           <span>Enter로 전송, Shift+Enter로 줄바꿈</span>
           <span>
             {selectedEngine === 'google-ai' && <>Google AI 사용량: 45/300</>}
@@ -864,216 +805,4 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       />
     </div>
   );
-
-  // 빠른 질문 클릭 핸들러 (기존)
-  const handleQuickQuestionClick = async (question: string) => {
-    const sessionId = `session-${Date.now()}`;
-    setCurrentSessionId(sessionId);
-    setCurrentQuestion(question);
-
-    // AI 사고 과정 시작
-    setThinking(true);
-    clearLogs();
-
-    try {
-      // 실제 AI 서비스 호출
-      const response = await aiService.processQuery(question, sessionId);
-
-      // AI 응답 추가
-      addResponse({
-        success: true,
-        response: response.response || '응답을 받지 못했습니다.',
-        confidence: response.confidence || 0.5,
-        metadata: {
-          engineVersion: response.source || 'AI 시스템',
-        },
-      });
-    } catch (error) {
-      console.error('AI 질의 처리 실패:', error);
-      addResponse({
-        success: false,
-        response:
-          '죄송합니다. 현재 AI 서비스에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.',
-        confidence: 0,
-        metadata: {
-          engineVersion: 'Error Handler',
-        },
-      });
-    } finally {
-      setThinking(false);
-    }
-  };
-
-  // 기능별 페이지 렌더링
-  const renderFunctionPage = () => {
-    if (!selectedFunction) return null;
-
-    switch (selectedFunction) {
-      case 'chat':
-        return renderEnhancedAIChat();
-      case 'auto-report':
-        return (
-          <div className='flex items-center justify-center h-full bg-gradient-to-br from-green-50 to-emerald-50'>
-            <div className='text-center'>
-              <BarChart3 className='w-16 h-16 text-gray-300 mx-auto mb-4' />
-              <h3 className='text-lg font-bold text-gray-600 mb-2'>
-                자동 리포트
-              </h3>
-              <p className='text-sm text-gray-500'>곧 출시 예정입니다</p>
-            </div>
-          </div>
-        );
-      case 'prediction':
-        return (
-          <div className='flex items-center justify-center h-full bg-gradient-to-br from-purple-50 to-violet-50'>
-            <div className='text-center'>
-              <Target className='w-16 h-16 text-gray-300 mx-auto mb-4' />
-              <h3 className='text-lg font-bold text-gray-600 mb-2'>
-                예측 분석
-              </h3>
-              <p className='text-sm text-gray-500'>곧 출시 예정입니다</p>
-            </div>
-          </div>
-        );
-      case 'advanced-management':
-        return (
-          <div className='flex flex-col h-full p-4 bg-gray-50'>
-            <h2 className='text-xl font-bold text-gray-800 mb-4 flex items-center gap-2'>
-              <Brain className='w-6 h-6 text-purple-600' />
-              AI 고급 관리
-            </h2>
-            <div className='grid grid-cols-1 gap-4 flex-1'>
-              {/* AI 인사이트 섹션 */}
-              <div className='bg-white rounded-lg p-4 shadow-sm border'>
-                <h3 className='text-lg font-semibold text-gray-700 mb-3'>
-                  AI 인사이트
-                </h3>
-                <AIInsightsCard
-                  className='shadow-none border-0 p-0'
-                  showRecommendations={true}
-                />
-              </div>
-
-              {/* Google AI 상태 섹션 */}
-              <div className='bg-white rounded-lg p-4 shadow-sm border'>
-                <h3 className='text-lg font-semibold text-gray-700 mb-3'>
-                  Google AI 연결 상태
-                </h3>
-                <GoogleAIStatusCard
-                  className='shadow-none border-0 p-0'
-                  showDetails={true}
-                  variant='admin'
-                />
-              </div>
-            </div>
-          </div>
-        );
-      case 'pattern-analysis':
-        return (
-          <div className='flex items-center justify-center h-full bg-gradient-to-br from-orange-50 to-amber-50'>
-            <div className='text-center'>
-              <BarChart3 className='w-16 h-16 text-gray-300 mx-auto mb-4' />
-              <h3 className='text-lg font-bold text-gray-600 mb-2'>
-                패턴 분석
-              </h3>
-              <p className='text-sm text-gray-500'>곧 출시 예정입니다</p>
-            </div>
-          </div>
-        );
-      case 'log-analysis':
-        return (
-          <div className='flex items-center justify-center h-full bg-gradient-to-br from-indigo-50 to-blue-50'>
-            <div className='text-center'>
-              <Search className='w-16 h-16 text-gray-300 mx-auto mb-4' />
-              <h3 className='text-lg font-bold text-gray-600 mb-2'>
-                로그 분석
-              </h3>
-              <p className='text-sm text-gray-500'>곧 출시 예정입니다</p>
-            </div>
-          </div>
-        );
-      case 'thinking':
-        return (
-          <div className='flex items-center justify-center h-full bg-gradient-to-br from-pink-50 to-rose-50'>
-            <div className='text-center'>
-              <Brain className='w-16 h-16 text-gray-300 mx-auto mb-4' />
-              <h3 className='text-lg font-bold text-gray-600 mb-2'>AI 사고</h3>
-              <p className='text-sm text-gray-500'>곧 출시 예정입니다</p>
-            </div>
-          </div>
-        );
-      case 'optimization':
-        return (
-          <div className='flex items-center justify-center h-full bg-gradient-to-br from-yellow-50 to-orange-50'>
-            <div className='text-center'>
-              <Target className='w-16 h-16 text-gray-300 mx-auto mb-4' />
-              <h3 className='text-lg font-bold text-gray-600 mb-2'>최적화</h3>
-              <p className='text-sm text-gray-500'>곧 출시 예정입니다</p>
-            </div>
-          </div>
-        );
-      default:
-        return (
-          <div className='flex items-center justify-center h-full text-gray-500'>
-            선택된 기능을 찾을 수 없습니다.
-          </div>
-        );
-    }
-  };
-
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ x: '100%' }}
-          animate={{ x: 0 }}
-          exit={{ x: '100%' }}
-          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className={`fixed top-0 right-0 h-full w-[500px] bg-white shadow-2xl z-30 flex ${className}`}
-        >
-          {/* 메인 콘텐츠 영역 */}
-          <div className='flex-1 flex flex-col'>
-            {/* 헤더 */}
-            <div className='flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50'>
-              <div className='flex items-center space-x-3'>
-                <div className='w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg flex items-center justify-center'>
-                  <Brain className='w-5 h-5 text-white' />
-                </div>
-                <div>
-                  <BasicTyping
-                    text='AI 어시스턴트'
-                    speed='fast'
-                    className='text-lg font-bold text-gray-800'
-                    showCursor={false}
-                  />
-                  <p className='text-sm text-gray-600'>
-                    AI와 자연어로 시스템 질의
-                  </p>
-                </div>
-              </div>
-
-              <button
-                onClick={onClose}
-                className='p-2 hover:bg-gray-100 rounded-lg transition-colors'
-                title='사이드바 닫기'
-                aria-label='사이드바 닫기'
-              >
-                <X className='w-5 h-5 text-gray-500' />
-              </button>
-            </div>
-
-            {/* 기능별 페이지 콘텐츠 */}
-            <div className='flex-1 overflow-hidden'>{renderFunctionPage()}</div>
-          </div>
-
-          {/* 오른쪽 AI 기능 아이콘 패널 */}
-          <AIAgentIconPanel
-            selectedFunction={selectedFunction}
-            onFunctionChange={setSelectedFunction}
-            className='w-20'
-          />
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-};
+}
