@@ -285,10 +285,40 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       }
     }, [server.status]);
 
-    // ✅ 이벤트 핸들러 메모이제이션
-    const handleClick = useCallback(() => {
-      if (onClick) {
-        onClick(server);
+    // ✅ 서버 카드 클릭 핸들러 (안전한 데이터 전달)
+    const handleCardClick = useCallback(() => {
+      if (onClick && server) {
+        // 서버 데이터 안전성 검증 후 전달
+        const safeServer = {
+          ...server,
+          id: server.id || `server-${Date.now()}`,
+          name: server.name || server.hostname || 'Unknown Server',
+          hostname: server.hostname || server.name || 'unknown',
+          status: server.status || 'offline',
+          cpu: server.cpu || 0,
+          memory: server.memory || 0,
+          disk: server.disk || 0,
+          network: server.network || 0,
+          location: server.location || 'Unknown',
+          provider: server.provider || 'Unknown',
+          type: server.type || 'unknown',
+          environment: server.environment || 'production',
+          uptime: server.uptime || '0d 0h 0m',
+          lastUpdate: server.lastUpdate || new Date(),
+          alerts: server.alerts || 0,
+          services: Array.isArray(server.services) ? server.services : [],
+          specs: server.specs || {
+            cpu_cores: 4,
+            memory_gb: 8,
+            disk_gb: 100,
+            network_speed: '1Gbps',
+          },
+          os: server.os || 'Linux',
+          ip: server.ip || '0.0.0.0',
+          networkStatus: server.networkStatus || 'good',
+        };
+
+        onClick(safeServer);
       }
     }, [onClick, server]);
 
@@ -387,7 +417,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
         group
         ${!optimizedVisible ? 'opacity-75' : ''}
       `}
-        onClick={handleClick}
+        onClick={handleCardClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >

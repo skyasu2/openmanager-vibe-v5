@@ -417,43 +417,71 @@ export default function ServerDashboard({
     }
   }, [realtimeServers, onStatsUpdate]);
 
-  // 🔧 필터링된 서버 목록 (안전한 메모이제이션)
-  const filteredServers = useMemo(() => {
-    if (!Array.isArray(realtimeServers)) return [];
+  // 페이지네이션 및 표시 제한
+  const [showAllServers, setShowAllServers] = useState(false);
+  const DASHBOARD_SERVER_LIMIT = 8; // 대시보드에서 기본 표시할 서버 개수
 
-    return realtimeServers
-      .filter(server => {
-        const matchesSearch =
-          server.name
-            ?.toLowerCase()
-            .includes(debouncedSearchTerm.toLowerCase()) || false;
-        const matchesStatus =
-          filterStatus === 'all' || server.status === filterStatus;
-        return matchesSearch && matchesStatus;
-      })
-      .sort((a, b) => {
-        if (sortBy === 'status') {
-          const statusOrder = { offline: 0, warning: 1, healthy: 2 };
-          return (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0);
-        }
-        if (sortBy === 'name') {
+  // ✅ 필터링된 서버 데이터 메모이제이션 (표시 개수 제한 포함)
+  const filteredServers = useMemo(() => {
+    if (!Array.isArray(realtimeServers)) {
+      return [];
+    }
+
+    let filtered = realtimeServers.filter(server => {
+      const matchesSearch =
+        searchTerm === '' ||
+        (server.name &&
+          server.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (server.hostname &&
+          server.hostname.toLowerCase().includes(searchTerm.toLowerCase()));
+
+      const matchesStatus =
+        statusFilter === 'all' ||
+        (statusFilter === 'healthy' && server.status === 'running') ||
+        (statusFilter === 'warning' && server.status === 'warning') ||
+        (statusFilter === 'offline' && server.status === 'error');
+
+      const matchesLocation =
+        locationFilter === 'all' ||
+        (server.location && server.location === locationFilter);
+
+      return matchesSearch && matchesStatus && matchesLocation;
+    });
+
+    // 정렬 적용
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
           return (a.name || '').localeCompare(b.name || '');
-        }
-        if (sortBy === 'cpu') {
+        case 'cpu':
           return (b.cpu || 0) - (a.cpu || 0);
-        }
-        // 기본값: priority
-        return (
-          sortServersByPriority([a, b]).indexOf(a) -
-          sortServersByPriority([a, b]).indexOf(b)
-        );
-      });
+        case 'memory':
+          return (b.memory || 0) - (a.memory || 0);
+        case 'status':
+          return (a.status || '').localeCompare(b.status || '');
+        case 'priority':
+        default:
+          // 우선순위: error > warning > running
+          const statusPriority = { error: 3, warning: 2, running: 1 };
+          return (
+            (statusPriority[b.status] || 0) - (statusPriority[a.status] || 0)
+          );
+      }
+    });
+
+    // 🎯 대시보드에서는 상위 8개만 표시 (showAllServers가 false일 때)
+    if (!showAllServers && filtered.length > DASHBOARD_SERVER_LIMIT) {
+      return filtered.slice(0, DASHBOARD_SERVER_LIMIT);
+    }
+
+    return filtered;
   }, [
     realtimeServers,
-    debouncedSearchTerm,
-    filterStatus,
+    searchTerm,
+    statusFilter,
+    locationFilter,
     sortBy,
-    sortServersByPriority,
+    showAllServers,
   ]);
 
   // 🎯 동적 페이지 크기 조정 (서버 수에 따라 자동 조정)
@@ -574,15 +602,55 @@ export default function ServerDashboard({
       {/* 서버 그리드/리스트 */}
       <div className='flex-1 p-6 overflow-auto'>
         {filteredServers.length > 0 ? (
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6'>
-            {filteredServers.map(server => (
-              <EnhancedServerCard
-                key={server.id}
-                server={server}
-                onClick={() => handleServerClick(server)}
-              />
-            ))}
-          </div>
+          <>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6'>
+              {filteredServers.map(server => (
+                <EnhancedServerCard
+                  key={server.id}
+                  server={server}
+                  onClick={() => handleServerClick(server)}
+                />
+              ))}
+            </div>
+
+            {/* 더보기 버튼 (8개 제한이 적용된 경우에만 표시) */}
+            {!showAllServers &&
+              realtimeServers &&
+              realtimeServers.length > DASHBOARD_SERVER_LIMIT && (
+                <div className='mt-8 text-center'>
+                  <button
+                    onClick={() => setShowAllServers(true)}
+                    className='px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2 mx-auto'
+                  >
+                    <Monitor className='w-5 h-5' />
+                    <span>
+                      모든 서버 보기 (
+                      {realtimeServers.length - DASHBOARD_SERVER_LIMIT}개 더)
+                    </span>
+                    <ChevronDown className='w-4 h-4' />
+                  </button>
+                  <p className='text-sm text-gray-500 mt-2'>
+                    성능 최적화를 위해 상위 {DASHBOARD_SERVER_LIMIT}개 서버만
+                    표시됩니다
+                  </p>
+                </div>
+              )}
+
+            {/* 접기 버튼 (모든 서버가 표시된 경우) */}
+            {showAllServers &&
+              realtimeServers &&
+              realtimeServers.length > DASHBOARD_SERVER_LIMIT && (
+                <div className='mt-8 text-center'>
+                  <button
+                    onClick={() => setShowAllServers(false)}
+                    className='px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center gap-2 mx-auto'
+                  >
+                    <ChevronLeft className='w-4 h-4' />
+                    <span>상위 {DASHBOARD_SERVER_LIMIT}개만 보기</span>
+                  </button>
+                </div>
+              )}
+          </>
         ) : (
           <div className='text-center py-16'>
             <Monitor className='mx-auto h-12 w-12 text-gray-400' />

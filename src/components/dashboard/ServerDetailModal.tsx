@@ -37,9 +37,9 @@ export default function ServerDetailModal({
 
   // 히스토리 데이터 로드
   useEffect(() => {
-    if (!server) return;
+    if (!server?.id) return;
     loadMetricsHistory(server.id, timeRange);
-  }, [server, timeRange, loadMetricsHistory]);
+  }, [server?.id, timeRange, loadMetricsHistory]);
 
   // 모달 오픈 시 스크롤 방지
   useEffect(() => {
@@ -57,6 +57,7 @@ export default function ServerDetailModal({
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'healthy':
+      case 'running':
         return {
           color: 'text-green-600',
           bgColor: 'bg-green-100',
@@ -71,6 +72,7 @@ export default function ServerDetailModal({
           text: '주의',
         };
       case 'critical':
+      case 'error':
         return {
           color: 'text-red-600',
           bgColor: 'bg-red-100',
@@ -87,10 +89,33 @@ export default function ServerDetailModal({
     }
   };
 
+  // 🛡️ 서버 데이터가 없으면 null 반환
   if (!server) return null;
 
-  const statusInfo = getStatusInfo(server.status);
-  const metricsStats = calculateMetricsStats(metricsHistory);
+  // 🛡️ 안전한 서버 데이터 생성
+  const safeServer = {
+    id: server.id || 'unknown',
+    name: server.name || '알 수 없는 서버',
+    ip: server.ip || '0.0.0.0',
+    status: server.status || 'offline',
+    cpu: server.cpu || 0,
+    memory: server.memory || 0,
+    disk: server.disk || 0,
+    network: server.network || 0,
+    location: server.location || 'Unknown',
+    uptime: server.uptime || '0d 0h 0m',
+    lastUpdate: server.lastUpdate || new Date(),
+    alerts: server.alerts || 0,
+    services: Array.isArray(server.services) ? server.services : [],
+    os: server.os || 'Linux',
+    networkStatus: server.networkStatus || 'good',
+    logs: server.logs || [],
+    networkInfo: server.networkInfo,
+    systemInfo: server.systemInfo,
+  };
+
+  const statusInfo = getStatusInfo(safeServer.status);
+  const metricsStats = calculateMetricsStats(metricsHistory || []);
 
   return (
     <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4'>
@@ -103,9 +128,9 @@ export default function ServerDetailModal({
                 <i className='fas fa-server text-2xl'></i>
               </div>
               <div>
-                <h2 className='text-2xl font-bold'>{server.name}</h2>
+                <h2 className='text-2xl font-bold'>{safeServer.name}</h2>
                 <div className='flex items-center space-x-4 mt-1'>
-                  <span className='text-blue-100'>{server.ip}</span>
+                  <span className='text-blue-100'>{safeServer.ip}</span>
                   <div className='flex items-center space-x-2'>
                     <i className={`${statusInfo.icon} text-sm`}></i>
                     <span className='text-sm'>{statusInfo.text}</span>
@@ -115,6 +140,7 @@ export default function ServerDetailModal({
             </div>
             <button
               onClick={onClose}
+              title='모달 닫기'
               className='w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center hover:bg-opacity-30 transition-colors'
             >
               <i className='fas fa-times text-xl'></i>
@@ -155,25 +181,25 @@ export default function ServerDetailModal({
           {selectedTab === 'overview' && (
             <ServerDetailOverview
               server={{
-                ...server,
+                ...safeServer,
                 type: 'api',
-                lastSeen: server.lastUpdate.toISOString(),
+                lastSeen: safeServer.lastUpdate.toISOString(),
                 alerts: [],
                 metrics: {
                   cpu: {
-                    usage: server.cpu,
+                    usage: safeServer.cpu,
                     cores: 8,
                     temperature: 45,
                   },
                   memory: {
-                    used: Math.round((16 * server.memory) / 100),
+                    used: Math.round((16 * safeServer.memory) / 100),
                     total: 16,
-                    usage: server.memory,
+                    usage: safeServer.memory,
                   },
                   disk: {
-                    used: Math.round((500 * server.disk) / 100),
+                    used: Math.round((500 * safeServer.disk) / 100),
                     total: 500,
-                    usage: server.disk,
+                    usage: safeServer.disk,
                   },
                   network: {
                     bytesIn: 1024 * 1024,
