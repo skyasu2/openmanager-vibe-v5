@@ -354,6 +354,8 @@ export default function ServerDashboard({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<DashboardTab>('servers');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'online' | 'warning' | 'offline'>('all');
+  const [locationFilter, setLocationFilter] = useState<string>('all');
 
   const SERVERS_PER_PAGE = 8;
 
@@ -620,9 +622,19 @@ export default function ServerDashboard({
       );
     }
 
+    // 상태 필터 적용
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(server => server.status === statusFilter);
+    }
+
+    // 위치 필터 적용
+    if (locationFilter !== 'all') {
+      filtered = filtered.filter(server => server.location === locationFilter);
+    }
+
     // 🎯 심각 → 경고 → 정상 순으로 정렬
     return sortServersByPriority(filtered);
-  }, [currentServers, searchTerm]);
+  }, [currentServers, searchTerm, statusFilter, locationFilter]);
 
   // 서버 선택 핸들러
   const handleServerSelect = (server: Server) => {
@@ -977,6 +989,46 @@ export default function ServerDashboard({
                         <Search className='absolute left-3 top-2.5 h-4 w-4 text-gray-400' />
                       </div>
 
+                      {/* 상태 필터 */}
+                      <select
+                        value={statusFilter}
+                        onChange={e => setStatusFilter(e.target.value as any)}
+                        className='px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white'
+                      >
+                        <option value='all'>모든 상태</option>
+                        <option value='online'>정상</option>
+                        <option value='warning'>경고</option>
+                        <option value='offline'>위험</option>
+                      </select>
+
+                      {/* 위치 필터 */}
+                      <select
+                        value={locationFilter}
+                        onChange={e => setLocationFilter(e.target.value)}
+                        className='px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white'
+                      >
+                        <option value='all'>모든 위치</option>
+                        {Array.from(new Set(currentServers.map(s => s.location))).map(location => (
+                          <option key={location} value={location}>
+                            {location}
+                          </option>
+                        ))}
+                      </select>
+
+                      {/* 필터 리셋 버튼 */}
+                      {(searchTerm || statusFilter !== 'all' || locationFilter !== 'all') && (
+                        <button
+                          onClick={() => {
+                            setSearchTerm('');
+                            setStatusFilter('all');
+                            setLocationFilter('all');
+                          }}
+                          className='px-3 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50'
+                        >
+                          필터 리셋
+                        </button>
+                      )}
+
                       {/* 뷰 모드 토글 */}
                       <div className='flex items-center gap-2 bg-gray-100 rounded-lg p-1'>
                         <button
@@ -1006,44 +1058,6 @@ export default function ServerDashboard({
                   {/* ✅ 중복 렌더링 제거: 아래 groupedServers 섹션에서 처리됨 */}
                 </div>
               )}
-
-              {/* 검색 및 필터 */}
-              <div className='mb-6'>
-                <div className='flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between'>
-                  {/* 검색 및 뷰 모드 컨트롤 */}
-                  <div className='flex gap-3 items-center'>
-                    <div className='relative'>
-                      <input
-                        aria-label='입력'
-                        type='text'
-                        placeholder='서버 이름 또는 위치 검색...'
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                        className='w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                      />
-                      <Search className='absolute left-3 top-2.5 h-4 w-4 text-gray-400' />
-                    </div>
-
-                    {/* 뷰 모드 토글 */}
-                    <div className='flex items-center gap-2 bg-gray-100 rounded-lg p-1'>
-                      <button
-                        onClick={() =>
-                          setViewMode(prev =>
-                            prev === 'grid' ? 'list' : 'grid'
-                          )
-                        }
-                        className='px-4 py-2 bg-gray-200 text-gray-500 rounded-lg hover:bg-gray-300'
-                      >
-                        {viewMode === 'grid' ? (
-                          <LayoutGrid className='h-4 w-4' />
-                        ) : (
-                          <List className='h-4 w-4' />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
               {/* 페이지네이션 정보 및 컨트롤 */}
               {filteredAndSortedServers.length > 0 && (
