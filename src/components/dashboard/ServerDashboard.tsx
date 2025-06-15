@@ -261,26 +261,47 @@ const useRealtimeServers = (options: {
   const refreshServers = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
+
+      console.log('🔍 서버 데이터 요청 시작...');
       const response = await fetch('/api/servers?limit=30');
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.servers) {
-          // API 응답을 Server 형식으로 변환
-          const mappedServers = Array.isArray(data.servers)
-            ? transformArray(data.servers as any)
-            : fallbackServers;
-          setServers(mappedServers);
-        } else {
-          setServers(fallbackServers);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('📦 API 응답 데이터:', data);
+
+      if (data.success && data.servers) {
+        // 🛡️ 배열 검증 및 안전한 변환
+        if (!Array.isArray(data.servers)) {
+          console.error(
+            '❌ data.servers가 배열이 아닙니다:',
+            typeof data.servers,
+            data.servers
+          );
+          throw new Error('서버 데이터 형식 오류: 배열이 아님');
         }
+
+        console.log('✅ 서버 데이터 배열 확인:', data.servers.length);
+        const mappedServers = transformArray(data.servers as any);
+        console.log('✅ 변환된 서버 데이터:', mappedServers.length);
+
+        setServers(mappedServers);
         setLastUpdated(new Date());
       } else {
-        setServers(fallbackServers);
+        console.warn('⚠️ API 응답 구조 문제:', data);
+        throw new Error(data.error || '서버 데이터 형식 오류');
       }
     } catch (err) {
-      console.warn('서버 데이터 로드 실패, 폴백 데이터 사용:', err);
+      const errorMessage =
+        err instanceof Error ? err.message : '알 수 없는 오류';
+      console.error('❌ 서버 데이터 로드 실패:', errorMessage);
+      console.log('🔄 폴백 데이터 사용');
+
       setServers(fallbackServers);
-      setError(err instanceof Error ? err.message : '서버 연결 실패');
+      setError(`서버 데이터 로드 실패: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -359,6 +380,21 @@ export default function ServerDashboard({
     refreshInterval: 30000, // 30초 주기로 통일
     enableAutoRefresh: true,
   });
+
+  // 🔄 실시간 서버 데이터를 로컬 상태에 동기화
+  useEffect(() => {
+    if (
+      realtimeServers &&
+      Array.isArray(realtimeServers) &&
+      realtimeServers.length > 0
+    ) {
+      console.log('🔄 실시간 서버 데이터 동기화:', realtimeServers.length);
+      setServers(realtimeServers);
+      setLastUpdated(realtimeLastUpdated);
+      setError(realtimeError);
+      setIsLoading(realtimeLoading);
+    }
+  }, [realtimeServers, realtimeLastUpdated, realtimeError, realtimeLoading]);
 
   // 🎯 검색어 디바운싱 (500ms 지연)
   const debouncedSearchTerm = useDebounce(searchTerm, 500);

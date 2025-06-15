@@ -55,5 +55,37 @@ export function transformRawToServer(
 }
 
 export function transformArray(rawList: RawServerData[]): Server[] {
-  return rawList.map(transformRawToServer);
+  // 🛡️ 입력 검증
+  if (!rawList) {
+    console.error('❌ transformArray: rawList가 null/undefined입니다');
+    return [];
+  }
+
+  if (!Array.isArray(rawList)) {
+    console.error(
+      '❌ transformArray: rawList가 배열이 아닙니다:',
+      typeof rawList,
+      rawList
+    );
+    return [];
+  }
+
+  console.log('✅ transformArray: 배열 변환 시작:', rawList.length);
+
+  try {
+    const result = rawList.map((item, index) => {
+      if (!item || typeof item !== 'object') {
+        console.warn(`⚠️ transformArray: 잘못된 항목 [${index}]:`, item);
+        // 기본값으로 대체
+        return transformRawToServer({} as RawServerData, index);
+      }
+      return transformRawToServer(item, index);
+    });
+
+    console.log('✅ transformArray: 변환 완료:', result.length);
+    return result;
+  } catch (error) {
+    console.error('❌ transformArray: 변환 중 오류:', error);
+    return [];
+  }
 }
