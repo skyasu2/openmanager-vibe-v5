@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { unifiedAIEngine } from '@/core/ai/UnifiedAIEngine';
+import type { UnifiedAnalysisRequest } from '@/core/ai/UnifiedAIEngine';
 
 /**
- * 🤖 배포환경 AI 에이전트
+ * 🤖 배포환경 AI 에이전트 (전략적 아키텍처 통합)
  * 
- * 커서가 배포환경과 직접 통신할 수 있는 AI 에이전트 엔드포인트
- * Google AI API 부하를 최소화하면서 시스템 정보를 제공합니다.
+ * 새로운 DataProcessingOrchestrator와 통합된 AI 에이전트 엔드포인트
+ * - 전략적 데이터 처리
+ * - 다중 레벨 캐싱
+ * - 통합 에러 처리
+ * - 성능 최적화
  */
 
 interface AIAgentRequest {
@@ -55,28 +60,74 @@ export async function POST(request: NextRequest) {
         const body: AIAgentRequest = await request.json();
         const { query, context } = body;
 
-        console.log(`🤖 AI 에이전트 요청: ${query}`);
+        console.log(`🤖 전략적 AI 에이전트 요청: ${query}`);
         console.log(`📍 요청 소스: ${context?.source || 'unknown'}`);
 
-        // 쿼리 타입에 따른 응답 분기
-        const response = await processQuery(query, context);
+        // 새로운 전략적 아키텍처 사용
+        const analysisRequest: UnifiedAnalysisRequest = {
+            query: query.trim(),
+            context: {
+                urgency: determineUrgency(query),
+                sessionId: context?.sessionId || generateSessionId(),
+                ...context
+            },
+            options: {
+                use_cache: true,
+                enable_thinking_log: false, // 배포환경에서는 간소화
+                maxResponseTime: 15000, // 배포환경 최적화
+                confidenceThreshold: 0.6
+            }
+        };
+
+        // AI 엔진 초기화 및 전략적 처리
+        await unifiedAIEngine.initialize();
+        const strategicResult = await unifiedAIEngine.processStrategicQuery(analysisRequest);
+
+        // 배포환경에 최적화된 응답 포맷
+        const optimizedResponse = formatForDeployment(strategicResult);
 
         return NextResponse.json({
             success: true,
             query,
-            response,
+            response: optimizedResponse,
+            metadata: {
+                processingMethod: 'strategic-orchestrator',
+                strategy: strategicResult.engine_used,
+                cacheHit: strategicResult.cache_hit,
+                responseTime: strategicResult.response_time,
+                confidence: strategicResult.analysis.confidence
+            },
             timestamp: new Date().toISOString(),
-            source: 'deployment-ai-agent'
+            source: 'strategic-ai-agent'
         });
 
     } catch (error) {
-        console.error('❌ AI 에이전트 오류:', error);
+        console.error('❌ 전략적 AI 에이전트 오류:', error);
 
-        return NextResponse.json({
-            success: false,
-            error: error instanceof Error ? error.message : 'Unknown error',
-            timestamp: new Date().toISOString()
-        }, { status: 500 });
+        // 폴백: 기존 방식으로 처리
+        try {
+            const body: AIAgentRequest = await request.json();
+            const { query, context } = body;
+
+            const fallbackResponse = await processQuery(query, context);
+            return NextResponse.json({
+                success: true,
+                query: query,
+                response: fallbackResponse,
+                metadata: {
+                    processingMethod: 'fallback-legacy',
+                    fallbackUsed: true
+                },
+                timestamp: new Date().toISOString(),
+                source: 'fallback-ai-agent'
+            });
+        } catch (fallbackError) {
+            return NextResponse.json({
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error',
+                timestamp: new Date().toISOString()
+            }, { status: 500 });
+        }
     }
 }
 
@@ -119,7 +170,53 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * 쿼리 처리 로직
+ * 🎯 전략적 아키텍처 지원 함수들
+ */
+function determineUrgency(query: string): 'low' | 'medium' | 'high' | 'critical' {
+    const lowerQuery = query.toLowerCase();
+
+    if (lowerQuery.includes('긴급') || lowerQuery.includes('심각') || lowerQuery.includes('critical')) {
+        return 'critical';
+    }
+    if (lowerQuery.includes('빠르게') || lowerQuery.includes('즉시') || lowerQuery.includes('urgent')) {
+        return 'high';
+    }
+    if (lowerQuery.includes('중요') || lowerQuery.includes('확인') || lowerQuery.includes('important')) {
+        return 'medium';
+    }
+    return 'low';
+}
+
+function generateSessionId(): string {
+    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+function formatForDeployment(strategicResult: any): string {
+    // 전략적 결과를 배포환경에 적합한 간단한 텍스트로 변환
+    const { analysis, recommendations, intent } = strategicResult;
+
+    let response = `${analysis.summary}\n\n`;
+
+    if (analysis.details && analysis.details.length > 0) {
+        response += '주요 분석 결과:\n';
+        analysis.details.slice(0, 3).forEach((detail: any, index: number) => {
+            response += `${index + 1}. ${detail.title || detail.type}: ${detail.content?.summary || '분석 완료'}\n`;
+        });
+        response += '\n';
+    }
+
+    if (recommendations && recommendations.length > 0) {
+        response += '추천사항:\n';
+        recommendations.slice(0, 3).forEach((rec: string, index: number) => {
+            response += `• ${rec}\n`;
+        });
+    }
+
+    return response.trim();
+}
+
+/**
+ * 쿼리 처리 로직 (레거시 폴백)
  */
 async function processQuery(query: string, context?: any): Promise<string> {
     const lowerQuery = query.toLowerCase();

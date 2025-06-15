@@ -140,19 +140,19 @@ export class GoogleAIService {
         return false;
       }
 
-      // 🚀 연결 테스트 (30분마다 1회만 실행)
+      // 🚀 연결 테스트 (2시간마다 1회만 실행)
       const now = Date.now();
-      const thirtyMinutes = 30 * 60 * 1000; // 30분
-      const shouldTestConnection = (now - this.lastConnectionTest) > thirtyMinutes;
+      const twoHours = 2 * 60 * 60 * 1000; // 2시간
+      const shouldTestConnection = (now - this.lastConnectionTest) > twoHours;
 
       let connectionTest: { success: boolean; message: string; latency?: number } = {
         success: true,
-        message: '연결 테스트 스킵됨 (30분 이내 테스트 완료)',
+        message: '연결 테스트 스킵됨 (2시간 이내 테스트 완료)',
         latency: 0
       };
 
       if (shouldTestConnection) {
-        console.log('🚀 Google AI 연결 테스트 시작...');
+        console.log('🚀 Google AI 연결 테스트 시작... (2시간마다)');
         connectionTest = await this.testConnection();
         this.lastConnectionTest = now;
       }
@@ -781,6 +781,13 @@ ${index + 1}. 서버: ${server.name}
       this.isInitialized &&
       isGoogleAIAvailable()
     );
+  }
+
+  /**
+   * ✅ 준비 상태 확인 (isReady 별칭)
+   */
+  isReady(): boolean {
+    return this.isInitialized && this.isAvailable();
   }
 
   getStatus(): any {

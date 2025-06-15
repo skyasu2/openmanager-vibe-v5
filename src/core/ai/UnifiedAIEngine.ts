@@ -40,6 +40,13 @@ import {
   HybridDataResponse,
 } from '@/services/ai-agent/HybridDataManager';
 
+// 새로운 전략적 아키텍처 통합
+import { DataProcessingOrchestrator } from '@/services/ai-agent/DataProcessingOrchestrator';
+import type {
+  OrchestratorRequest,
+  OrchestratorResponse
+} from '@/services/ai-agent/DataProcessingOrchestrator';
+
 export interface UnifiedAnalysisRequest {
   query: string;
   context?: {
@@ -169,6 +176,9 @@ export class UnifiedAIEngine {
   private initialized: boolean = false;
   private analysisCache: Map<string, any> = new Map();
 
+  // 새로운 전략적 아키텍처 통합
+  private orchestrator: DataProcessingOrchestrator;
+
   // MasterAIEngine 통합 - 하위 엔진들
   private openSourceEngines!: OpenSourceEngines;
   private customEngines!: CustomEngines;
@@ -209,6 +219,9 @@ export class UnifiedAIEngine {
     // MasterAIEngine 통합 - 통계 및 캐시 초기화
     this.engineStats = new Map();
     this.responseCache = new Map();
+
+    // 새로운 전략적 아키텍처 통합
+    this.orchestrator = DataProcessingOrchestrator.getInstance();
 
     this.initializeComponents();
   }
@@ -1550,7 +1563,7 @@ export class UnifiedAIEngine {
         healthRatio: Math.round(
           (hybridData.monitoringData.metadata.onlineServers /
             hybridData.monitoringData.metadata.totalServers) *
-            100
+          100
         ),
       },
       confidence: hybridData.metadata.dataQuality.monitoring,
@@ -1623,6 +1636,125 @@ export class UnifiedAIEngine {
     }
 
     return recommendations.slice(0, 5); // 상위 5개만
+  }
+
+  /**
+   * 🎯 새로운 전략적 오케스트레이터를 통한 쿼리 처리
+   * 
+   * 기존 processQuery와 processHybridQuery를 통합하여
+   * 더 효율적이고 전략적인 데이터 처리 제공
+   */
+  async processStrategicQuery(
+    request: UnifiedAnalysisRequest
+  ): Promise<UnifiedAnalysisResponse> {
+    const startTime = Date.now();
+    const sessionId = this.generateSessionId();
+
+    try {
+      console.log(`🎯 전략적 쿼리 처리 시작: ${request.query}`);
+
+      // UnifiedAnalysisRequest를 OrchestratorRequest로 변환
+      const orchestratorRequest: OrchestratorRequest = {
+        requestId: sessionId,
+        requestType: this.mapToOrchestratorRequestType(request),
+        query: request.query,
+        urgency: (request.context?.urgency as any) || 'medium',
+        filters: {
+          monitoring: this.extractMonitoringFilters(request),
+          ai: this.extractAIFilters(request)
+        },
+        options: {
+          useCache: request.options?.use_cache !== false,
+          timeout: request.options?.maxResponseTime || 30000,
+          confidenceThreshold: request.options?.confidenceThreshold || 0.7
+        },
+        context: {
+          sessionId: request.context?.sessionId || sessionId,
+          source: 'UnifiedAIEngine'
+        }
+      };
+
+      // 오케스트레이터를 통한 데이터 처리
+      const orchestratorResponse = await this.orchestrator.processRequest(orchestratorRequest);
+
+      // OrchestratorResponse를 UnifiedAnalysisResponse로 변환
+      return this.mapToUnifiedResponse(request, orchestratorResponse, startTime);
+
+    } catch (error) {
+      console.error('❌ 전략적 쿼리 처리 실패:', error);
+      return this.createErrorResponse(
+        request.query,
+        error,
+        Date.now() - startTime
+      );
+    }
+  }
+
+  /**
+   * 🔄 요청 타입 매핑
+   */
+  private mapToOrchestratorRequestType(
+    request: UnifiedAnalysisRequest
+  ): OrchestratorRequest['requestType'] {
+    // 기존 하이브리드 로직 재사용
+    return this.determineHybridRequestType(request);
+  }
+
+  /**
+   * 🔄 응답 변환
+   */
+  private mapToUnifiedResponse(
+    originalRequest: UnifiedAnalysisRequest,
+    orchestratorResponse: OrchestratorResponse,
+    startTime: number
+  ): UnifiedAnalysisResponse {
+    const processingTime = Date.now() - startTime;
+
+    return {
+      success: orchestratorResponse.success,
+      query: originalRequest.query,
+      intent: {
+        primary: orchestratorResponse.data?.intent?.primary || 'analysis',
+        confidence: orchestratorResponse.metadata.confidence,
+        category: orchestratorResponse.data?.intent?.category || 'general',
+        urgency: orchestratorResponse.data?.intent?.urgency || 'medium'
+      },
+      analysis: {
+        summary: orchestratorResponse.data?.analysis?.summary || '전략적 데이터 처리 완료',
+        details: orchestratorResponse.data?.analysis?.details || [],
+        confidence: orchestratorResponse.metadata.confidence,
+        processingTime: orchestratorResponse.metadata.processingTime
+      },
+      recommendations: orchestratorResponse.data?.recommendations || [
+        '전략적 오케스트레이터를 통한 최적화된 분석 결과입니다'
+      ],
+      engines: {
+        used: [orchestratorResponse.metadata.strategy],
+        results: [orchestratorResponse.data],
+        fallbacks: 0
+      },
+      metadata: {
+        sessionId: orchestratorResponse.requestId,
+        timestamp: new Date().toISOString(),
+        version: '5.44.0-strategic',
+        contextsUsed: 1,
+        contextIds: [orchestratorResponse.requestId]
+      },
+      systemStatus: {
+        tier: 'enhanced',
+        availableComponents: ['DataProcessingOrchestrator', 'StrategyFactory', 'UnifiedCacheManager'],
+        degradationLevel: 'none',
+        recommendation: '전략적 아키텍처가 정상 작동 중입니다'
+      },
+      performance: {
+        cacheHit: orchestratorResponse.metadata.cacheHit,
+        memoryUsage: orchestratorResponse.performance
+      },
+      cache_hit: orchestratorResponse.metadata.cacheHit,
+      fallback_used: false,
+      engine_used: orchestratorResponse.metadata.strategy,
+      response_time: processingTime
+    };
   }
 }
 
