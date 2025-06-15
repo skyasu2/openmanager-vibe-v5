@@ -15,6 +15,8 @@ import { autoReportService } from '@/services/ai/AutoReportService';
 import { AIAnalysisDataset } from '@/types/ai-agent-input-schema';
 import { createSafeError } from '@/lib/error-handler';
 import { z } from 'zod';
+import { aiEngineHub } from '@/core/ai/RefactoredAIEngineHub';
+import type { AIFunctionType } from '@/core/ai/RefactoredAIEngineHub';
 
 interface ReportData {
   id: string;
@@ -97,7 +99,7 @@ async function saveReportToDB(report: ReportData): Promise<boolean> {
       content: report.details,
       status: 'generated',
       priority: 'normal',
-      created_by: 'system'
+      created_by: 'system',
     });
 
     if (error) {
@@ -474,32 +476,86 @@ const AutoReportRequestSchema = z.object({
 // POST: 새 보고서 생성
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const {
+      timeRange = '24h',
+      includeMetrics = true,
+      includeRecommendations = true,
+      format = 'detailed',
+      urgency = 'medium',
+    } = await request.json();
 
-    // 요청 본문 유효성 검사
-    const validationResult = AutoReportRequestSchema.safeParse(body);
-    if (!validationResult.success) {
+    console.log('📊 자동 장애 보고서 생성 API 호출:', {
+      timeRange,
+      format,
+      urgency,
+      includeMetrics,
+      includeRecommendations,
+    });
+
+    // RefactoredAIEngineHub를 사용한 자동 보고서 생성
+    const result = await aiEngineHub.processAIFunction(
+      'auto_report' as AIFunctionType,
+      {
+        query: `${timeRange} 기간 동안의 시스템 장애 분석 보고서를 ${format} 형식으로 생성해주세요.`,
+        mode: 'AUTO', // MCP+RAG+GoogleAI 통합 모드
+        strategy: 'dual_core', // MCP + RAG 병렬 처리
+        context: {
+          urgency,
+          language: 'ko',
+          sessionId: `auto-report-${Date.now()}`,
+        },
+        options: {
+          enableThinking: true,
+          maxResponseTime: 30000, // 30초
+          confidenceThreshold: 0.7,
+          useMCP: true,
+          useRAG: true,
+          useGoogleAI: true,
+        },
+      },
+      {
+        timeRange,
+        includeMetrics,
+        includeRecommendations,
+        format,
+        urgency,
+      }
+    );
+
+    if (!result.success) {
       return NextResponse.json(
         {
-          success: false,
-          error: '잘못된 요청 형식입니다.',
-          details: validationResult.error.flatten().fieldErrors,
+          error: '자동 장애 보고서 생성 실패',
+          details: result.error || '알 수 없는 오류',
         },
-        { status: 400 }
+        { status: 500 }
       );
     }
 
-    const context: AIAnalysisDataset = body;
+    console.log('📊 자동 장애 보고서 생성 성공:', {
+      reportId: result.reportId,
+      totalIssues: result.summary?.totalIssues || 0,
+      criticalIssues: result.summary?.criticalIssues || 0,
+    });
 
-    const report = await autoReportService.generateReport(context);
-
-    return NextResponse.json({ success: true, report });
+    return NextResponse.json({
+      success: true,
+      report: result,
+      metadata: {
+        processingTime: result.processingTime || 0,
+        enginePath: result.enginePath || ['auto_report'],
+        aiEnginesUsed: result.metadata?.engines?.used || ['dual_core'],
+        systemHealth: result.trends?.systemHealth || 85,
+      },
+    });
   } catch (error) {
-    const safeError = createSafeError(error);
-    console.error('API Error in /api/ai/auto-report:', safeError);
+    console.error('❌ 자동 장애 보고서 API 오류:', error);
 
     return NextResponse.json(
-      { success: false, error: safeError.message },
+      {
+        error: '자동 장애 보고서 생성 중 오류가 발생했습니다.',
+        details: error instanceof Error ? error.message : '알 수 없는 오류',
+      },
       { status: 500 }
     );
   }
