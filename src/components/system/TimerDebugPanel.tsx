@@ -35,7 +35,7 @@ export const TimerDebugPanel: React.FC = () => {
     };
 
     updateStatus(); // 초기 로드
-    const interval = setInterval(updateStatus, 10000); // 10초마다 (3초 → 10초로 최적화)
+          const interval = setInterval(updateStatus, 20000); // 20초로 통일 (3초 → 20초로 최적화)
 
     return () => clearInterval(interval);
   }, []);

@@ -285,7 +285,7 @@ export const SlackNotificationPanel: React.FC = () => {
     };
 
     checkStatus();
-    const interval = setInterval(checkStatus, 15000); // 15초마다 상태 확인
+          const interval = setInterval(checkStatus, 20000); // 20초로 통일
 
     return () => clearInterval(interval);
   }, []);

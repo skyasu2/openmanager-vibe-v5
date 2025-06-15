@@ -235,8 +235,8 @@ export function getDataGeneratorConfig() {
     maxServers,
     minServers,
     defaultArchitecture: serverArchitecture,
-    updateInterval: config.IS_VERCEL ? 30000 : 20000, // 🔄 업데이트 간격 조정 (30초/20초)
-    refreshInterval: config.IS_VERCEL ? 45000 : 35000, // 🔄 새로고침 간격 조정 (45초/35초)
+    updateInterval: 20000, // 🔄 모든 환경에서 20초로 통일
+    refreshInterval: 20000, // 🔄 모든 환경에서 20초로 통일
     memoryLimit: config.performance.maxMemory,
     mode: config.IS_VERCEL ? 'production' : 'development',
     features: {

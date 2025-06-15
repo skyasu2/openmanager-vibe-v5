@@ -91,7 +91,7 @@ export function AnomalyFeed({
     className = '',
     maxItems = 20,
     autoRefresh = true,
-    refreshInterval = 10000,
+    refreshInterval = 20000, // 20초로 통일
     variant = 'admin',
     showDetails = true
 }: AnomalyFeedProps) {

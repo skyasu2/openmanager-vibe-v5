@@ -76,7 +76,7 @@ export default function RealtimeChart({
   anomalies = true,
   autoScale = true,
   height = 300,
-  refreshInterval = 5000
+      refreshInterval = 20000 // 20초로 통일
 }: RealtimeChartProps) {
   // 🔄 상태 관리
   const [chartData, setChartData] = useState<MetricData>({});

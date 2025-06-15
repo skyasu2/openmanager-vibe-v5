@@ -223,7 +223,7 @@ export default function EnhancedServerModal({
     };
 
     generateRealtimeData();
-    const interval = setInterval(generateRealtimeData, 10000); // 🎯 성능 최적화: 2초 → 10초로 변경 (서버 부하 80% 감소)
+    const interval = setInterval(generateRealtimeData, 20000); // 🎯 성능 최적화: 2초 → 20초로 변경 (서버 부하 90% 감소)
 
     return () => clearInterval(interval);
   }, [server, isRealtime]);

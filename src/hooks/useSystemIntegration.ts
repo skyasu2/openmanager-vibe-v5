@@ -362,7 +362,7 @@ export const useSystemIntegration = () => {
 
       // 상태 폴링 시작
       if (pollingInterval.current) clearInterval(pollingInterval.current);
-      pollingInterval.current = setInterval(pollSystemStatus, 10000); // 10초마다
+              pollingInterval.current = setInterval(pollSystemStatus, 20000); // 20초로 통일
 
       // 즉시 한 번 실행
       await pollSystemStatus();

@@ -547,7 +547,7 @@ export class UnifiedDataGeneratorModule {
       enabled: process.env.ENABLE_DATA_GENERATOR !== 'false',
       strategy: (process.env.DATA_GENERATOR_STRATEGY as any) || 'real',
       maxServers: parseInt(process.env.MAX_SERVERS || '8'),
-      updateInterval: parseInt(process.env.UPDATE_INTERVAL || '15000'),
+      updateInterval: parseInt(process.env.UPDATE_INTERVAL || '20000'), // 20초로 통일
       enableRedis: process.env.ENABLE_REDIS !== 'false',
       enableCache: process.env.ENABLE_CACHE !== 'false',
       realConfig: {

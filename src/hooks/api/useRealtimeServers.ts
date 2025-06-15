@@ -220,7 +220,7 @@ const getDefaultApplications = (): ApplicationMetrics[] => [
 export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
   const {
     autoRefresh = true,
-    refreshInterval = 15000, // 15초로 증가 (5초 → 15초)
+    refreshInterval = 20000, // 20초로 통일 (5초 → 20초)
     enableNotifications = true,
   } = options;
 

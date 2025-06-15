@@ -154,7 +154,7 @@ const NetworkMonitoringCard: React.FC<NetworkMonitoringCardProps> = ({
           ),
         ],
       }));
-    }, 10000); // 🎯 성능 최적화: 2초 → 10초로 변경 (네트워크 부하 80% 감소)
+    }, 20000); // 🎯 성능 최적화: 2초 → 20초로 변경 (네트워크 부하 90% 감소)
 
     return () => clearInterval(interval);
   }, [metrics]);

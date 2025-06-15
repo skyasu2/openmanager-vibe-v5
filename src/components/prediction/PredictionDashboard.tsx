@@ -61,7 +61,7 @@ export const PredictionDashboard: React.FC<PredictionDashboardProps> = ({
   className = '',
   serverId = 'web-server-01',
   autoRefresh = true,
-  refreshInterval = 30000,
+      refreshInterval = 20000, // 20초로 통일
 }) => {
   const [predictionData, setPredictionData] = useState<PredictionData | null>(
     null

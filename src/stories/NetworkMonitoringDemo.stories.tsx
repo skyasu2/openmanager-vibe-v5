@@ -167,7 +167,7 @@ const RealtimeNetworkDemo: React.FC = () => {
         uploadSpeed: Math.max(0, Math.min(1000, prev.uploadSpeed + (Math.random() - 0.5) * 20)),
         connections: Math.max(0, Math.min(1000, prev.connections + Math.floor((Math.random() - 0.5) * 50))),
       }));
-    }, 10000); // 🎯 10초 갱신 주기
+          }, 20000); // 🎯 20초 갱신 주기로 통일
 
     return () => clearInterval(interval);
   }, []);
