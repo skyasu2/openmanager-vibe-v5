@@ -1,7 +1,11 @@
 /**
- * 🌟 Enhanced Server Card v4.0
+ * 🌟 Enhanced Server Card v5.0 - 성능 최적화 버전
  *
  * 고도화된 서버 카드 컴포넌트:
+ * - ✅ 완전한 메모이제이션 최적화 (useMemo, useCallback)
+ * - ✅ 정적 데이터 캐싱으로 불필요한 재계산 방지
+ * - ✅ React.memo props 비교 최적화
+ * - ✅ 고정 ID 생성으로 DOM 안정성 향상
  * - 개선된 실시간 미니 차트 (CPU, Memory, Disk, Network)
  * - 아름다운 그라데이션 및 글래스모피즘 디자인
  * - 부드러운 애니메이션 및 호버 효과
@@ -10,7 +14,7 @@
  * - 네트워크 모니터링 추가
  */
 
-import React, { memo, useState, useCallback, useEffect, useRef } from 'react';
+import React, { memo, useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Server,
@@ -79,6 +83,83 @@ interface EnhancedServerCardProps {
   variant?: 'default' | 'compact' | 'detailed';
 }
 
+// 🎯 MiniChart 컴포넌트를 외부로 분리하고 메모이제이션 적용
+const MiniChart = memo<{
+  data: number[];
+  color: string;
+  label: string;
+  icon: React.ReactNode;
+  serverId: string;
+}>(({ data, color, label, icon, serverId }) => {
+  // ✅ 고정된 ID 생성 (Math.random() 제거)
+  const gradientId = useMemo(() => `gradient-${serverId}-${label}`, [serverId, label]);
+  const glowId = useMemo(() => `glow-${serverId}-${label}`, [serverId, label]);
+  
+  // ✅ SVG 경로 메모이제이션
+  const points = useMemo(() => {
+    return data
+      .map((value, index) => {
+        const x = (index / (data.length - 1)) * 100;
+        const y = 100 - Math.max(0, Math.min(100, value));
+        return `${x},${y}`;
+      })
+      .join(' ');
+  }, [data]);
+
+  const currentValue = useMemo(() => data[data.length - 1] || 0, [data]);
+
+  return (
+    <div className='flex flex-col items-center group'>
+      <div className='flex items-center gap-1 mb-1'>
+        <span className='text-gray-600'>{icon}</span>
+        <span className='text-xs font-medium text-gray-700'>{label}</span>
+      </div>
+      <div className='relative w-16 h-8'>
+        <svg
+          width='100%'
+          height='100%'
+          viewBox='0 0 100 100'
+          className='overflow-visible'
+        >
+          <defs>
+            <linearGradient id={gradientId} x1='0%' y1='0%' x2='0%' y2='100%'>
+              <stop offset='0%' stopColor={color} stopOpacity='0.8' />
+              <stop offset='100%' stopColor={color} stopOpacity='0.1' />
+            </linearGradient>
+            <filter id={glowId}>
+              <feGaussianBlur stdDeviation='2' result='coloredBlur' />
+              <feMerge>
+                <feMergeNode in='coloredBlur' />
+                <feMergeNode in='SourceGraphic' />
+              </feMerge>
+            </filter>
+          </defs>
+          <polyline
+            fill='none'
+            stroke={color}
+            strokeWidth='2'
+            points={points}
+            filter={`url(#${glowId})`}
+            className='transition-all duration-300 group-hover:stroke-width-3'
+          />
+          <polygon
+            fill={`url(#${gradientId})`}
+            points={`0,100 ${points} 100,100`}
+            className='transition-all duration-300 group-hover:fill-opacity-60'
+          />
+        </svg>
+        <div className='absolute -top-1 -right-1 bg-white rounded-full px-1 py-0.5 shadow-sm border'>
+          <span className='text-xs font-bold' style={{ color }}>
+            {Math.round(currentValue)}%
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+MiniChart.displayName = 'MiniChart';
+
 const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
   ({ server, index, onClick, showMiniCharts = true, variant = 'default' }) => {
     const [isHovered, setIsHovered] = useState(false);
@@ -92,16 +173,16 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
     // ✅ 정적 가시성 감지만 사용
     const optimizedVisible = true; // 임시로 항상 true
 
-    // ✅ 서버 데이터 기반 정적 차트 (실시간 갱신 없음)
-    const staticChartData = {
+    // ✅ 서버 데이터 기반 정적 차트 데이터 메모이제이션
+    const staticChartData = useMemo(() => ({
       cpu: Array.from({ length: 12 }, (_, i) => Math.max(0, Math.min(100, server.cpu + (i - 6) * 1))),
       memory: Array.from({ length: 12 }, (_, i) => Math.max(0, Math.min(100, server.memory + (i - 6) * 0.8))),
       disk: Array.from({ length: 12 }, (_, i) => Math.max(0, Math.min(100, server.disk + (i - 6) * 0.5))),
       network: Array.from({ length: 12 }, (_, i) => Math.max(0, Math.min(100, (server.network || 30) + (i - 6) * 1.2))),
-    };
+    }), [server.cpu, server.memory, server.disk, server.network]);
 
-    // 서버 타입별 아이콘
-    const getServerIcon = () => {
+    // ✅ 서버 타입별 아이콘 메모이제이션
+    const serverIcon = useMemo(() => {
       const type = server.type.toLowerCase();
 
       if (type.includes('web')) return <Server className='w-5 h-5' />;
@@ -115,10 +196,10 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       if (type.includes('ci_cd')) return <GitBranch className='w-5 h-5' />;
 
       return <Cloud className='w-5 h-5' />;
-    };
+    }, [server.type]);
 
-    // 상태별 테마
-    const getStatusTheme = () => {
+    // ✅ 상태별 테마 메모이제이션
+    const theme = useMemo(() => {
       switch (server.status) {
         case 'healthy':
           return {
@@ -168,136 +249,22 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             accent: 'text-gray-600',
           };
       }
-    };
+    }, [server.status]);
 
-    const theme = getStatusTheme();
+    // ✅ 이벤트 핸들러 메모이제이션
+    const handleClick = useCallback(() => {
+      if (onClick) {
+        onClick(server);
+      }
+    }, [onClick, server]);
 
-    // 개선된 미니 차트 생성
-    const MiniChart = ({
-      data,
-      color,
-      label,
-      icon,
-    }: {
-      data: number[];
-      color: string;
-      label: string;
-      icon: React.ReactNode;
-    }) => {
-      const points = data
-        .map((value, index) => {
-          const x = (index / (data.length - 1)) * 100;
-          const y = 100 - Math.max(0, Math.min(100, value));
-          return `${x},${y}`;
-        })
-        .join(' ');
+    const handleMouseEnter = useCallback(() => {
+      setIsHovered(true);
+    }, []);
 
-      const currentValue = data[data.length - 1] || 0;
-      const gradientId = `gradient-${server.id}-${label}-${Math.random()}`;
-      const glowId = `glow-${server.id}-${label}-${Math.random()}`;
-
-      return (
-        <div className='flex flex-col items-center group'>
-          <div className='flex items-center gap-1 mb-2'>
-            <div className='text-gray-500 group-hover:scale-110 transition-transform'>
-              {icon}
-            </div>
-            <span className='text-xs font-medium text-gray-700'>{label}</span>
-          </div>
-          <div
-            className={`${variantStyles.chartSize} relative bg-white/80 rounded-lg p-1 shadow-sm`}
-          >
-            <svg
-              className='w-full h-full'
-              viewBox='0 0 100 100'
-              preserveAspectRatio='none'
-            >
-              <defs>
-                {/* 그라데이션 정의 */}
-                <linearGradient
-                  id={gradientId}
-                  x1='0%'
-                  y1='0%'
-                  x2='0%'
-                  y2='100%'
-                >
-                  <stop offset='0%' stopColor={color} stopOpacity='0.8' />
-                  <stop offset='50%' stopColor={color} stopOpacity='0.4' />
-                  <stop offset='100%' stopColor={color} stopOpacity='0.1' />
-                </linearGradient>
-
-                {/* 글로우 효과 */}
-                <filter id={glowId}>
-                  <feGaussianBlur stdDeviation='2' result='coloredBlur' />
-                  <feMerge>
-                    <feMergeNode in='coloredBlur' />
-                    <feMergeNode in='SourceGraphic' />
-                  </feMerge>
-                </filter>
-              </defs>
-
-              {/* 배경 격자 */}
-              <defs>
-                <pattern
-                  id={`grid-${server.id}-${label}`}
-                  width='10'
-                  height='10'
-                  patternUnits='userSpaceOnUse'
-                >
-                  <path
-                    d='M 10 0 L 0 0 0 10'
-                    fill='none'
-                    stroke='#e2e8f0'
-                    strokeWidth='0.3'
-                  />
-                </pattern>
-              </defs>
-              <rect
-                width='100'
-                height='100'
-                fill={`url(#grid-${server.id}-${label})`}
-                opacity='0.3'
-              />
-
-              {/* 영역 채우기 */}
-              <polygon
-                fill={`url(#${gradientId})`}
-                points={`0,100 ${points} 100,100`}
-                className='transition-all duration-300'
-              />
-
-              {/* 라인 */}
-              <polyline
-                fill='none'
-                stroke={color}
-                strokeWidth='2.5'
-                points={points}
-                vectorEffect='non-scaling-stroke'
-                filter={`url(#${glowId})`}
-                className='transition-all duration-300'
-              />
-
-              {/* 현재 값 포인트 */}
-              <circle
-                cx='100'
-                cy={100 - Math.max(0, Math.min(100, currentValue))}
-                r='2.5'
-                fill={color}
-                stroke='white'
-                strokeWidth='1.5'
-                filter={`url(#${glowId})`}
-              />
-            </svg>
-          </div>
-          <div
-            className='text-sm font-bold mt-1 px-2 py-1 rounded-full bg-white/80'
-            style={{ color }}
-          >
-            {currentValue.toFixed(0)}%
-          </div>
-        </div>
-      );
-    };
+    const handleMouseLeave = useCallback(() => {
+      setIsHovered(false);
+    }, []);
 
     // 네트워크 상태 아이콘
     const getNetworkStatusIcon = () => {
@@ -319,12 +286,6 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
     const getTrendIcon = () => {
       return <Minus className='w-3 h-3 text-gray-400' />;
     };
-
-    const handleCardClick = useCallback(() => {
-      if (onClick) {
-        onClick(server);
-      }
-    }, [onClick, server]);
 
     // 변형별 스타일 설정
     const getVariantStyles = () => {
@@ -392,9 +353,9 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
         group
         ${!optimizedVisible ? 'opacity-75' : ''}
       `}
-        onClick={handleCardClick}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onClick={handleClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         {/* 실시간 활동 인디케이터 */}
         <div className='absolute top-3 right-3 flex items-center gap-2'>
@@ -422,7 +383,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               whileHover={{ rotate: 5 }}
               transition={{ duration: 0.2 }}
             >
-              {getServerIcon()}
+              {serverIcon}
             </motion.div>
             <div className='flex-1 min-w-0'>
               <h3
@@ -467,24 +428,28 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                 color='#ef4444'
                 label='CPU'
                 icon={<Cpu className='w-3 h-3' />}
+                serverId={server.id}
               />
               <MiniChart
                 data={staticChartData.memory}
                 color='#3b82f6'
                 label='메모리'
                 icon={<Activity className='w-3 h-3' />}
+                serverId={server.id}
               />
               <MiniChart
                 data={staticChartData.disk}
                 color='#8b5cf6'
                 label='디스크'
                 icon={<HardDrive className='w-3 h-3' />}
+                serverId={server.id}
               />
               <MiniChart
                 data={staticChartData.network}
                 color='#10b981'
                 label='네트워크'
                 icon={<Network className='w-3 h-3' />}
+                serverId={server.id}
               />
             </div>
           )}
@@ -663,6 +628,40 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
         </div>
       </motion.div>
     );
+  },
+  // ✅ React.memo props 비교 함수 - 성능 최적화의 핵심
+  (prevProps, nextProps) => {
+    // 서버 핵심 데이터 비교
+    const prevServer = prevProps.server;
+    const nextServer = nextProps.server;
+    
+    // ID가 다르면 다른 서버이므로 리렌더링 필요
+    if (prevServer.id !== nextServer.id) return false;
+    
+    // 성능에 영향을 주는 핵심 props만 비교
+    const criticalProps = [
+      'status', 'cpu', 'memory', 'disk', 'network', 
+      'alerts', 'uptime', 'type'
+    ] as const;
+    
+    for (const prop of criticalProps) {
+      if (prevServer[prop] !== nextServer[prop]) {
+        return false; // 변경됨 - 리렌더링 필요
+      }
+    }
+    
+    // 기타 props 비교
+    if (
+      prevProps.index !== nextProps.index ||
+      prevProps.showMiniCharts !== nextProps.showMiniCharts ||
+      prevProps.variant !== nextProps.variant ||
+      prevProps.onClick !== nextProps.onClick
+    ) {
+      return false;
+    }
+    
+    // 모든 중요한 props가 동일함 - 리렌더링 불필요
+    return true;
   }
 );
 

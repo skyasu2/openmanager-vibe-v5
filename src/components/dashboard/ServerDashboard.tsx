@@ -44,6 +44,8 @@ import { timerManager } from '../../utils/TimerManager';
 import { motion, AnimatePresence } from 'framer-motion';
 import CollapsibleCard from '@/components/shared/CollapsibleCard';
 import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
+import { useDebounce } from '@/utils/performance';
+import { usePerformanceOptimization } from '@/utils/performance';
 // ❌ 제거: Node.js 전용 모듈을 클라이언트에서 import하면 안됨
 // import {
 //   RealServerDataGenerator,
@@ -345,15 +347,21 @@ export default function ServerDashboard({
   onStatsUpdate,
 }: ServerDashboardProps) {
   const { sections, toggleSection } = useDashboardToggleStore();
+  const { renderCount, measureRender } = usePerformanceOptimization('ServerDashboard');
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEnhancedModalOpen, setIsEnhancedModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<DashboardTab>('servers');
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('priority');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [currentPage, setCurrentPage] = useState(1);
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<DashboardTab>('servers');
+  const [servers, setServers] = useState<Server[]>([]);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [statusFilter, setStatusFilter] = useState<'all' | 'online' | 'warning' | 'offline'>('all');
   const [locationFilter, setLocationFilter] = useState<string>('all');
 
@@ -363,18 +371,29 @@ export default function ServerDashboard({
 
   // 🎯 동적 페이지 크기 조정 (서버 수에 따라 자동 조정)
   const dynamicPageSize = useMemo(() => {
-    const totalServers = currentServers.length;
+    const totalServers = servers.length;
     if (totalServers <= 12) return totalServers; // 12개 이하면 전체 표시
     if (totalServers <= 24) return 12; // 24개 이하면 12개씩
     return 30; // 그 외에는 30개씩
-  }, [currentServers.length]);
+  }, [servers.length]);
 
   // ✅ 실시간 훅: 30초 주기로 새로고침 (데이터생성기와 동기화, 안정성 향상)
   const {
-    servers = [],
-    isLoading: isGenerating,
-    refreshAll,
-  } = useRealtimeServers({ refreshInterval: 30000 });
+    servers: realtimeServers,
+    loading: realtimeLoading,
+    error: realtimeError,
+    lastUpdated: realtimeLastUpdated,
+    refreshServers,
+  } = useRealtimeServers({
+    refreshInterval: 30000, // 30초 주기로 통일
+    enableAutoRefresh: true,
+  });
+
+  // 🎯 검색어 디바운싱 (500ms 지연)
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  // 🎯 대시보드 토글 상태
+  const { isCollapsed } = useDashboardToggleStore();
 
   // 🚀 디버깅 로그 추가
   console.log('📊 ServerDashboard 렌더링:', {
@@ -516,28 +535,6 @@ export default function ServerDashboard({
     return sortedServers;
   }, [servers, isClient]);
 
-  // 서버 통계 계산 (useMemo로 최적화)
-  const serverStats = useMemo(() => {
-    // 🚀 안전한 배열 처리: currentServers가 배열인지 확인
-    if (!Array.isArray(currentServers)) {
-      console.warn(
-        '⚠️ currentServers가 배열이 아닙니다:',
-        typeof currentServers
-      );
-      return { total: 0, online: 0, warning: 0, offline: 0 };
-    }
-
-    return {
-      total: currentServers.length,
-      online: currentServers.filter((s: Server) => s?.status === 'online')
-        .length,
-      warning: currentServers.filter((s: Server) => s?.status === 'warning')
-        .length,
-      offline: currentServers.filter((s: Server) => s?.status === 'offline')
-        .length,
-    };
-  }, [currentServers]);
-
   // 🔄 실제 데이터 로드 및 정렬 함수
   const loadRealData = useCallback(async () => {
     try {
@@ -555,7 +552,7 @@ export default function ServerDashboard({
       console.log('📊 서버 데이터 로드 완료:', data);
 
       // 🔄 기존 서버 데이터 스토어 새로고침
-      await refreshAll();
+      await refreshServers();
 
       console.log(`✅ 실제 서버 데이터 적용 완료`);
     } catch (error) {
@@ -567,7 +564,7 @@ export default function ServerDashboard({
     } finally {
       setIsLoading(false);
     }
-  }, [refreshAll]);
+  }, [refreshServers]);
 
   // 🔄 데이터 로드 실행 (실제 데이터 우선)
   useEffect(() => {
@@ -597,61 +594,105 @@ export default function ServerDashboard({
     };
   }, [onStatsUpdate, loadRealData]);
 
-  // ⭐ 서버 정렬 헬퍼 함수 (심각 → 경고 → 정상 순)
-  const sortServersByPriority = (servers: Server[]): Server[] => {
-    return servers.sort((a, b) => {
-      const statusPriority = { offline: 0, warning: 1, online: 2 };
-      const priorityA = statusPriority[a.status] || 2;
-      const priorityB = statusPriority[b.status] || 2;
+  // ✅ 서버 정렬 로직 메모이제이션
+  const sortServersByPriority = useCallback((servers: Server[]): Server[] => {
+    const statusPriority = {
+      offline: 4,
+      critical: 3,
+      warning: 2,
+      healthy: 1,
+    };
 
-      if (priorityA !== priorityB) {
-        return priorityA - priorityB; // 심각(offline=0) → 경고(warning=1) → 정상(online=2)
-      }
+    return [...servers].sort((a, b) => {
+      // 1순위: 상태별 우선순위
+      const statusDiff = (statusPriority[b.status] || 0) - (statusPriority[a.status] || 0);
+      if (statusDiff !== 0) return statusDiff;
 
-      // 같은 상태면 CPU 사용률 높은 순으로
-      return b.cpu - a.cpu;
+      // 2순위: 알림 개수
+      const alertDiff = (b.alerts || 0) - (a.alerts || 0);
+      if (alertDiff !== 0) return alertDiff;
+
+      // 3순위: CPU 사용률 (높은 순)
+      const cpuDiff = (b.cpu || 0) - (a.cpu || 0);
+      if (cpuDiff !== 0) return cpuDiff;
+
+      // 4순위: 메모리 사용률 (높은 순)
+      return (b.memory || 0) - (a.memory || 0);
     });
-  };
+  }, []);
 
-  // 🔄 검색 및 정렬된 서버 목록
-  const filteredAndSortedServers = useMemo(() => {
-    let filtered = currentServers;
+  // ✅ 필터링된 서버 목록 메모이제이션 (디바운싱된 검색어 사용)
+  const filteredServers = useMemo(() => {
+    let filtered = servers;
 
-    // 검색 필터 적용
-    if (searchTerm.trim()) {
+    // 검색 필터링 (디바운싱된 검색어 사용)
+    if (debouncedSearchTerm) {
+      const searchLower = debouncedSearchTerm.toLowerCase();
       filtered = filtered.filter(
-        server =>
-          server.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          server.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          server.status.toLowerCase().includes(searchTerm.toLowerCase())
+        (server) =>
+          server.name.toLowerCase().includes(searchLower) ||
+          server.location.toLowerCase().includes(searchLower) ||
+          server.type?.toLowerCase().includes(searchLower) ||
+          server.environment?.toLowerCase().includes(searchLower)
       );
     }
 
-    // 상태 필터 적용
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(server => server.status === statusFilter);
+    // 상태 필터링
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter((server) => server.status === filterStatus);
     }
 
-    // 위치 필터 적용
-    if (locationFilter !== 'all') {
-      filtered = filtered.filter(server => server.location === locationFilter);
+    // 정렬 적용
+    if (sortBy === 'priority') {
+      filtered = sortServersByPriority(filtered);
+    } else if (sortBy === 'name') {
+      filtered = [...filtered].sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortBy === 'location') {
+      filtered = [...filtered].sort((a, b) => a.location.localeCompare(b.location));
+    } else if (sortBy === 'cpu') {
+      filtered = [...filtered].sort((a, b) => (b.cpu || 0) - (a.cpu || 0));
+    } else if (sortBy === 'memory') {
+      filtered = [...filtered].sort((a, b) => (b.memory || 0) - (a.memory || 0));
     }
 
-    // 🎯 심각 → 경고 → 정상 순으로 정렬
-    return sortServersByPriority(filtered);
-  }, [currentServers, searchTerm, statusFilter, locationFilter]);
+    return filtered;
+  }, [servers, debouncedSearchTerm, filterStatus, sortBy, sortServersByPriority]);
 
-  // 서버 선택 핸들러
-  const handleServerSelect = (server: Server) => {
+  // ✅ 이벤트 핸들러 메모이제이션
+  const handleServerSelect = useCallback((server: Server) => {
     setSelectedServer(server);
-  };
+    setIsEnhancedModalOpen(true);
+  }, []);
+
+  const handleRefresh = useCallback(async () => {
+    try {
+      await refreshServers();
+    } catch (error) {
+      console.error('서버 새로고침 실패:', error);
+    }
+  }, [refreshServers]);
+
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1); // 검색 시 첫 페이지로 이동
+  }, []);
+
+  const handleFilterChange = useCallback((status: string) => {
+    setFilterStatus(status);
+    setCurrentPage(1); // 필터 변경 시 첫 페이지로 이동
+  }, []);
+
+  const handleSortChange = useCallback((sort: string) => {
+    setSortBy(sort);
+    setCurrentPage(1); // 정렬 변경 시 첫 페이지로 이동
+  }, []);
 
   // ✅ 페이지네이션 간소화: 모든 서버를 한 번에 표시 (페이지네이션 문제 해결)
   const totalPages = 1; // 항상 1페이지로 고정
   const startIndex = 0;
-  const endIndex = filteredAndSortedServers.length;
-  const paginatedServers = Array.isArray(filteredAndSortedServers)
-    ? filteredAndSortedServers // 전체 서버 표시
+  const endIndex = filteredServers.length;
+  const paginatedServers = Array.isArray(filteredServers)
+    ? filteredServers // 전체 서버 표시
     : [];
 
   // 페이지 변경 시 맨 위로 스크롤
@@ -914,6 +955,13 @@ export default function ServerDashboard({
     );
   }
 
+  // ✅ 성능 측정을 위한 디버그 정보 출력
+  useEffect(() => {
+    console.log(`🚀 ServerDashboard 렌더링 횟수: ${renderCount}`);
+    console.log(`📊 필터링된 서버 수: ${filteredServers.length}`);
+    console.log(`🔍 검색어: "${debouncedSearchTerm}" (디바운싱됨)`);
+  }, [renderCount, filteredServers.length, debouncedSearchTerm]);
+
   return (
     <div className='space-y-6'>
       {/* 탭 네비게이션 */}
@@ -972,7 +1020,7 @@ export default function ServerDashboard({
                           type='text'
                           placeholder='서버 이름 또는 위치 검색...'
                           value={searchTerm}
-                          onChange={e => setSearchTerm(e.target.value)}
+                          onChange={handleSearchChange}
                           className='w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                         />
                         <Search className='absolute left-3 top-2.5 h-4 w-4 text-gray-400' />
@@ -980,8 +1028,8 @@ export default function ServerDashboard({
 
                       {/* 상태 필터 */}
                       <select
-                        value={statusFilter}
-                        onChange={e => setStatusFilter(e.target.value as any)}
+                        value={filterStatus}
+                        onChange={e => handleFilterChange(e.target.value)}
                         className='px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white'
                       >
                         <option value='all'>모든 상태</option>
@@ -1005,11 +1053,11 @@ export default function ServerDashboard({
                       </select>
 
                       {/* 필터 리셋 버튼 */}
-                      {(searchTerm || statusFilter !== 'all' || locationFilter !== 'all') && (
+                      {(searchTerm || filterStatus !== 'all' || locationFilter !== 'all') && (
                         <button
                           onClick={() => {
                             setSearchTerm('');
-                            setStatusFilter('all');
+                            setFilterStatus('all');
                             setLocationFilter('all');
                           }}
                           className='px-3 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50'
@@ -1041,12 +1089,12 @@ export default function ServerDashboard({
               )}
 
               {/* ✅ 서버 정보 표시 (페이지네이션 제거) */}
-              {filteredAndSortedServers.length > 0 && (
+              {filteredServers.length > 0 && (
                 <div className='flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg'>
                   <div className='text-sm text-gray-600'>
                     전체{' '}
                     <span className='font-semibold text-gray-900'>
-                      {filteredAndSortedServers.length}
+                      {filteredServers.length}
                     </span>
                     개 서버 표시 중
                   </div>
@@ -1093,7 +1141,7 @@ export default function ServerDashboard({
               )}
 
               {/* 서버가 없는 경우 */}
-              {filteredAndSortedServers.length === 0 && !isLoading && (
+              {filteredServers.length === 0 && !isLoading && (
                 <div className='text-center py-12'>
                   <div className='mx-auto h-12 w-12 text-gray-400'>
                     <svg fill='none' stroke='currentColor' viewBox='0 0 24 24'>
