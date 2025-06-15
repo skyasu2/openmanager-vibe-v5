@@ -34,6 +34,12 @@ import {
   LogCategory,
 } from '@/services/ai/logging/AILogger';
 
+import {
+  hybridDataManager,
+  HybridDataRequest,
+  HybridDataResponse,
+} from '@/services/ai-agent/HybridDataManager';
+
 export interface UnifiedAnalysisRequest {
   query: string;
   context?: {
@@ -1214,6 +1220,409 @@ export class UnifiedAIEngine {
       systemHealth: health,
       stats: this.degradationStats,
     };
+  }
+
+  /**
+   * 🔄 하이브리드 데이터 기반 분석 (새로운 메서드)
+   */
+  async processHybridQuery(
+    request: UnifiedAnalysisRequest
+  ): Promise<UnifiedAnalysisResponse> {
+    const startTime = Date.now();
+    const thinkingSteps: AIThinkingStep[] = [];
+
+    try {
+      // 1. 사고 과정 시작
+      thinkingSteps.push(
+        this.createThinkingStep(
+          'analyzing',
+          '하이브리드 데이터 분석',
+          '서버 모니터링 데이터와 AI 전용 데이터를 융합하여 분석합니다'
+        )
+      );
+
+      // 2. 하이브리드 데이터 요청 구성
+      const hybridRequest: HybridDataRequest = {
+        requestType: this.determineHybridRequestType(request),
+        query: request.query,
+        urgency: request.context?.urgency || 'medium',
+        monitoringFilters: this.extractMonitoringFilters(request),
+        aiFilters: this.extractAIFilters(request),
+        fusionOptions: {
+          prioritizeRealtime: request.context?.urgency === 'critical',
+          includeInsights: true,
+          crossValidate: true,
+          confidenceThreshold: request.options?.confidenceThreshold || 0.7,
+        },
+      };
+
+      thinkingSteps.push(
+        this.createThinkingStep(
+          'processing',
+          '데이터 수집 및 융합',
+          `${hybridRequest.requestType} 전략으로 데이터를 처리합니다`
+        )
+      );
+
+      // 3. 하이브리드 데이터 처리
+      const hybridResponse: HybridDataResponse =
+        await hybridDataManager.processHybridRequest(hybridRequest);
+
+      thinkingSteps.push(
+        this.createThinkingStep(
+          'reasoning',
+          '융합 결과 분석',
+          `${hybridResponse.metadata.dataSourcesUsed.join(', ')} 데이터 소스를 활용했습니다`
+        )
+      );
+
+      // 4. 의도 분류 (하이브리드 데이터 기반)
+      const intent = await this.classifyIntentWithHybridData(
+        request.query,
+        hybridResponse
+      );
+
+      // 5. 분석 결과 생성
+      const analysis = this.generateHybridAnalysis(hybridResponse, intent);
+
+      // 6. 추천사항 생성
+      const recommendations = this.generateHybridRecommendations(
+        hybridResponse,
+        intent
+      );
+
+      thinkingSteps.push(
+        this.createThinkingStep(
+          'completed',
+          '하이브리드 분석 완료',
+          `신뢰도 ${Math.round(hybridResponse.fusedInsights.confidence * 100)}%로 분석을 완료했습니다`
+        )
+      );
+
+      const processingTime = Date.now() - startTime;
+
+      // 7. 통합 응답 생성
+      const response: UnifiedAnalysisResponse = {
+        success: true,
+        query: request.query,
+        intent: {
+          primary: intent.primary,
+          confidence: intent.confidence,
+          category: intent.category,
+          urgency: hybridRequest.urgency || 'medium',
+        },
+        analysis: {
+          summary: hybridResponse.fusedInsights.summary,
+          details: [
+            {
+              type: 'monitoring_data',
+              content: hybridResponse.monitoringData,
+              source: 'real_time_monitoring',
+            },
+            {
+              type: 'ai_insights',
+              content: hybridResponse.aiData.insights,
+              source: 'ai_analysis',
+            },
+            {
+              type: 'fusion_results',
+              content: hybridResponse.fusedInsights,
+              source: 'hybrid_fusion',
+            },
+          ],
+          confidence: hybridResponse.fusedInsights.confidence,
+          processingTime,
+        },
+        recommendations,
+        engines: {
+          used: ['hybrid_data_manager', 'monitoring_system', 'ai_filter'],
+          results: [
+            {
+              engine: 'monitoring',
+              confidence: hybridResponse.metadata.dataQuality.monitoring,
+              data: hybridResponse.monitoringData,
+            },
+            {
+              engine: 'ai_analysis',
+              confidence: hybridResponse.metadata.dataQuality.ai,
+              data: hybridResponse.aiData,
+            },
+          ],
+          fallbacks: 0,
+        },
+        metadata: {
+          sessionId: request.context?.sessionId || this.generateSessionId(),
+          timestamp: new Date().toISOString(),
+          version: '5.44.0-hybrid',
+          contextsUsed:
+            hybridResponse.monitoringData.servers.length +
+            hybridResponse.aiData.data.length,
+        },
+        thinking_process: thinkingSteps,
+        performance: {
+          memoryUsage: process.memoryUsage(),
+          cacheHit: false,
+          memoryDelta: 0,
+        },
+        cache_hit: false,
+        fallback_used: false,
+        engine_used: 'hybrid_unified',
+        response_time: processingTime,
+      };
+
+      console.log(
+        `✅ 하이브리드 분석 완료: ${processingTime}ms, 신뢰도: ${Math.round(hybridResponse.fusedInsights.confidence * 100)}%`
+      );
+
+      return response;
+    } catch (error) {
+      console.error('❌ 하이브리드 분석 실패:', error);
+
+      thinkingSteps.push(
+        this.createThinkingStep(
+          'error',
+          '하이브리드 분석 오류',
+          `오류 발생: ${error instanceof Error ? error.message : String(error)}`
+        )
+      );
+
+      // 폴백: 기존 분석 방식 사용
+      return await this.processQuery(request);
+    }
+  }
+
+  /**
+   * 🎯 하이브리드 요청 타입 결정
+   */
+  private determineHybridRequestType(
+    request: UnifiedAnalysisRequest
+  ): HybridDataRequest['requestType'] {
+    const query = request.query.toLowerCase();
+
+    // 긴급 상황
+    if (request.context?.urgency === 'critical') {
+      return 'monitoring_focus';
+    }
+
+    // AI 분석 키워드
+    if (
+      query.includes('분석') ||
+      query.includes('예측') ||
+      query.includes('패턴') ||
+      query.includes('이상')
+    ) {
+      return 'ai_analysis';
+    }
+
+    // 실시간 모니터링 키워드
+    if (
+      query.includes('현재') ||
+      query.includes('실시간') ||
+      query.includes('상태') ||
+      query.includes('지금')
+    ) {
+      return 'monitoring_focus';
+    }
+
+    // 기본값: 자동 선택
+    return 'auto_select';
+  }
+
+  /**
+   * 📊 모니터링 필터 추출
+   */
+  private extractMonitoringFilters(
+    request: UnifiedAnalysisRequest
+  ): HybridDataRequest['monitoringFilters'] {
+    const query = request.query.toLowerCase();
+    const filters: HybridDataRequest['monitoringFilters'] = {};
+
+    // 상태 필터
+    if (query.includes('오프라인') || query.includes('다운')) {
+      filters.status = 'offline';
+    } else if (query.includes('경고') || query.includes('주의')) {
+      filters.status = 'warning';
+    } else if (query.includes('정상') || query.includes('온라인')) {
+      filters.status = 'online';
+    }
+
+    // 위치 필터
+    const locationMatch = query.match(
+      /(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)/
+    );
+    if (locationMatch) {
+      filters.location = locationMatch[1];
+    }
+
+    // 제한 설정
+    if (request.context?.urgency === 'critical') {
+      filters.limit = 50; // 긴급시 더 많은 데이터
+    } else {
+      filters.limit = 20; // 일반적인 경우
+    }
+
+    return filters;
+  }
+
+  /**
+   * 🤖 AI 필터 추출
+   */
+  private extractAIFilters(
+    request: UnifiedAnalysisRequest
+  ): HybridDataRequest['aiFilters'] {
+    const query = request.query.toLowerCase();
+    const filters: HybridDataRequest['aiFilters'] = {};
+
+    // 분석 타입 결정
+    if (query.includes('이상') || query.includes('비정상')) {
+      filters.analysisType = 'anomaly_detection';
+    } else if (query.includes('예측') || query.includes('미래')) {
+      filters.analysisType = 'performance_prediction';
+    } else if (query.includes('패턴') || query.includes('트렌드')) {
+      filters.analysisType = 'pattern_analysis';
+    } else if (query.includes('추천') || query.includes('개선')) {
+      filters.analysisType = 'recommendation';
+    }
+
+    // 상태별 포함 설정
+    filters.includeHealthy =
+      !query.includes('문제만') && !query.includes('이상만');
+    filters.includeWarning = true;
+    filters.includeCritical = true;
+
+    return filters;
+  }
+
+  /**
+   * 🧠 하이브리드 데이터 기반 의도 분류
+   */
+  private async classifyIntentWithHybridData(
+    query: string,
+    hybridData: HybridDataResponse
+  ): Promise<any> {
+    // 기본 의도 분류
+    const baseIntent = await this.classifyIntent(query);
+
+    // 하이브리드 데이터로 의도 보강
+    const criticalServers = hybridData.monitoringData.metadata.criticalServers;
+    const anomalousServers = hybridData.aiData.data.filter(
+      d => d.labels.isAnomalous
+    ).length;
+
+    // 긴급도 재평가
+    let urgency = baseIntent.urgency || 'medium';
+    if (criticalServers > 0 || anomalousServers > 0) {
+      urgency = 'high';
+    }
+    if (criticalServers > 5 || anomalousServers > 10) {
+      urgency = 'critical';
+    }
+
+    return {
+      ...baseIntent,
+      urgency,
+      context: {
+        criticalServers,
+        anomalousServers,
+        dataQuality: hybridData.metadata.dataQuality.fusion,
+      },
+    };
+  }
+
+  /**
+   * 📈 하이브리드 분석 생성
+   */
+  private generateHybridAnalysis(
+    hybridData: HybridDataResponse,
+    intent: any
+  ): UnifiedAnalysisResponse['analysis']['details'] {
+    const details = [];
+
+    // 모니터링 데이터 분석
+    details.push({
+      type: 'real_time_status',
+      title: '실시간 서버 상태',
+      content: {
+        totalServers: hybridData.monitoringData.metadata.totalServers,
+        onlineServers: hybridData.monitoringData.metadata.onlineServers,
+        warningServers: hybridData.monitoringData.metadata.warningServers,
+        criticalServers: hybridData.monitoringData.metadata.criticalServers,
+        healthRatio: Math.round(
+          (hybridData.monitoringData.metadata.onlineServers /
+            hybridData.monitoringData.metadata.totalServers) *
+            100
+        ),
+      },
+      confidence: hybridData.metadata.dataQuality.monitoring,
+    });
+
+    // AI 인사이트
+    details.push({
+      type: 'ai_insights',
+      title: 'AI 분석 결과',
+      content: {
+        patterns: hybridData.aiData.insights.patterns,
+        anomalies: hybridData.aiData.insights.anomalies,
+        dataQuality: hybridData.aiData.metadata.dataQuality,
+        processingTime: hybridData.aiData.metadata.processingTime,
+      },
+      confidence: hybridData.metadata.dataQuality.ai,
+    });
+
+    // 융합 결과
+    details.push({
+      type: 'fusion_analysis',
+      title: '통합 분석 결과',
+      content: {
+        summary: hybridData.fusedInsights.summary,
+        keyFindings: hybridData.fusedInsights.keyFindings,
+        confidence: hybridData.fusedInsights.confidence,
+        dataSourcesUsed: hybridData.metadata.dataSourcesUsed,
+        fusionStrategy: hybridData.metadata.fusionStrategy,
+      },
+      confidence: hybridData.metadata.dataQuality.fusion,
+    });
+
+    return details;
+  }
+
+  /**
+   * 💡 하이브리드 추천사항 생성
+   */
+  private generateHybridRecommendations(
+    hybridData: HybridDataResponse,
+    intent: any
+  ): string[] {
+    const recommendations: string[] = [];
+
+    // 융합된 추천사항 우선
+    recommendations.push(...hybridData.fusedInsights.recommendations);
+
+    // 긴급 상황 추천
+    if (hybridData.monitoringData.metadata.criticalServers > 0) {
+      recommendations.unshift(
+        `즉시 ${hybridData.monitoringData.metadata.criticalServers}개 심각한 상태 서버를 점검하세요`
+      );
+    }
+
+    // AI 기반 추천
+    const anomalousCount = hybridData.aiData.data.filter(
+      d => d.labels.isAnomalous
+    ).length;
+    if (anomalousCount > 0) {
+      recommendations.push(
+        `${anomalousCount}개 서버의 이상 패턴을 분석하여 근본 원인을 파악하세요`
+      );
+    }
+
+    // 데이터 품질 기반 추천
+    if (hybridData.metadata.dataQuality.fusion < 0.7) {
+      recommendations.push(
+        '데이터 품질이 낮습니다. 모니터링 시스템을 점검하세요'
+      );
+    }
+
+    return recommendations.slice(0, 5); // 상위 5개만
   }
 }
 

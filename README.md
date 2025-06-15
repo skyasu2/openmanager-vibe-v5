@@ -388,3 +388,199 @@ function MyComponent() {
 ---
 
 **🚀 OpenManager Vibe v5 - AI가 이끄는 차세대 서버 모니터링의 미래**
+
+## 🔄 하이브리드 데이터 시스템 (NEW!)
+
+OpenManager Vibe v5에서 새롭게 도입된 **하이브리드 데이터 시스템**은 AI 어시스턴트가 서버 모니터링 데이터와 AI 전용 데이터를 모두 활용할 수 있도록 설계되었습니다.
+
+### 🎯 핵심 특징
+
+#### 1. **독립적인 데이터 처리 파이프라인**
+
+- **서버 모니터링 데이터**: 실시간성과 정확성 중심
+- **AI 전용 데이터**: 분석 최적화와 패턴 인식 중심
+- **하이브리드 융합**: 두 데이터 소스의 지능적 결합
+
+#### 2. **AI 어시스턴트 통합 활용**
+
+```typescript
+// 하이브리드 AI 질의 예시
+const response = await fetch('/api/ai-agent/hybrid', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    query: '현재 서버 상태를 분석해주세요',
+    requestType: 'hybrid',
+    urgency: 'medium',
+    filters: {
+      analysisType: 'pattern_analysis',
+      includeHealthy: true,
+      status: 'all',
+    },
+    options: {
+      useHybridEngine: true,
+      crossValidate: true,
+      confidenceThreshold: 0.7,
+    },
+  }),
+});
+```
+
+#### 3. **지원하는 분석 타입**
+
+- `anomaly_detection`: 이상 탐지 분석
+- `performance_prediction`: 성능 예측 분석
+- `pattern_analysis`: 패턴 분석
+- `recommendation`: 추천 시스템
+
+#### 4. **요청 타입별 전략**
+
+- `monitoring_focus`: 실시간 모니터링 데이터 우선
+- `ai_analysis`: AI 분석 데이터 우선
+- `hybrid`: 균형잡힌 융합
+- `auto_select`: 컨텍스트 기반 자동 선택
+
+### 🏗️ 아키텍처 구성
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   AI 어시스턴트                              │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │            UnifiedAIEngine                          │    │
+│  │  ┌─────────────────────────────────────────────┐    │    │
+│  │  │        processHybridQuery()                 │    │    │
+│  │  └─────────────────────────────────────────────┘    │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                HybridDataManager                            │
+│  ┌─────────────────────┐    ┌─────────────────────────┐    │
+│  │   모니터링 데이터    │    │     AI 전용 데이터      │    │
+│  │                     │    │                         │    │
+│  │ • 실시간 서버 상태   │    │ • 정규화된 메트릭       │    │
+│  │ • 정확한 메트릭     │    │ • 패턴 인식 카테고리    │    │
+│  │ • 즉시 대응 가능    │    │ • 예측 트렌드 데이터    │    │
+│  │                     │    │ • AI 학습용 라벨        │    │
+│  └─────────────────────┘    └─────────────────────────┘    │
+│                              │                              │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │              데이터 융합 엔진                        │    │
+│  │  • 교차 검증 • 신뢰도 평가 • 인사이트 생성         │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│  ┌─────────────────────┐    ┌─────────────────────────┐    │
+│  │ RealServerDataGen   │    │    AIDataFilter         │    │
+│  │                     │    │                         │    │
+│  │ • 30개 서버 시뮬레이션│    │ • 0-1 정규화           │    │
+│  │ • 실시간 상태 변경   │    │ • 성능 레벨 분류        │    │
+│  │ • 메트릭 생성       │    │ • 이상 탐지 라벨        │    │
+│  └─────────────────────┘    └─────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 📊 데이터 품질 및 신뢰도
+
+하이브리드 시스템은 다음과 같은 품질 지표를 제공합니다:
+
+- **완전성 (Completeness)**: 필수 필드 존재 비율
+- **일관성 (Consistency)**: 데이터 범위 정확성
+- **정확성 (Accuracy)**: 신뢰도 점수 평균
+- **융합 품질**: 두 데이터 소스의 조화도
+
+### 🔍 교차 검증
+
+모니터링 데이터와 AI 데이터 간의 불일치를 감지하고 신뢰도를 평가:
+
+```typescript
+// 교차 검증 결과 예시
+{
+  "matches": 25,
+  "discrepancies": [
+    "server-01: 모니터링(warning) vs AI(critical)",
+    "server-15: 모니터링(running) vs AI(high)"
+  ],
+  "confidence": 0.83
+}
+```
+
+### 🚀 사용 예시
+
+#### 1. 기본 하이브리드 질의
+
+```bash
+curl -X POST http://localhost:3000/api/ai-agent/hybrid \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "현재 서버 상태를 분석해주세요",
+    "requestType": "hybrid"
+  }'
+```
+
+#### 2. 이상 탐지 분석
+
+```bash
+curl -X POST http://localhost:3000/api/ai-agent/hybrid \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "이상 패턴이 있는 서버를 찾아주세요",
+    "requestType": "ai_analysis",
+    "filters": {
+      "analysisType": "anomaly_detection"
+    }
+  }'
+```
+
+#### 3. 긴급 상황 모니터링
+
+```bash
+curl -X POST http://localhost:3000/api/ai-agent/hybrid \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "심각한 상태의 서버들을 즉시 확인해주세요",
+    "requestType": "monitoring_focus",
+    "urgency": "critical"
+  }'
+```
+
+### 📈 성능 최적화
+
+- **캐싱**: 20초 TTL로 반복 요청 최적화
+- **병렬 처리**: 모니터링 데이터와 AI 데이터 동시 수집
+- **지연 로딩**: 필요한 데이터만 선택적 로딩
+- **메모리 효율성**: 싱글톤 패턴으로 리소스 관리
+
+### 🧪 테스트 및 검증
+
+하이브리드 시스템은 다음과 같은 테스트를 지원합니다:
+
+```bash
+# 기본 기능 테스트
+curl -X PUT http://localhost:3000/api/ai-agent/hybrid \
+  -H "Content-Type: application/json" \
+  -d '{"testType": "basic"}'
+
+# 데이터 융합 테스트
+curl -X PUT http://localhost:3000/api/ai-agent/hybrid \
+  -H "Content-Type: application/json" \
+  -d '{"testType": "data_fusion"}'
+
+# 성능 테스트
+curl -X PUT http://localhost:3000/api/ai-agent/hybrid \
+  -H "Content-Type: application/json" \
+  -d '{"testType": "performance"}'
+```
+
+### 🎯 주요 이점
+
+1. **정확성 향상**: 실시간 데이터와 AI 분석의 결합으로 더 정확한 인사이트
+2. **유연성**: 상황에 따른 데이터 소스 선택 및 가중치 조정
+3. **신뢰성**: 교차 검증을 통한 데이터 품질 보장
+4. **확장성**: 새로운 분석 타입과 필터 쉽게 추가 가능
+5. **투명성**: 데이터 소스별 기여도와 신뢰도 명시
+
+이 하이브리드 데이터 시스템을 통해 AI 어시스턴트는 단순한 질의응답을 넘어서 **실시간 모니터링과 지능적 분석을 동시에 제공**하는 진정한 서버 관리 파트너로 진화했습니다.
