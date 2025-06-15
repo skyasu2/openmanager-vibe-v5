@@ -63,6 +63,12 @@ export default function DashboardContent({
 
   // 🚀 에러 상태 추가
   const [renderError, setRenderError] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  // 🛡️ 클라이언트 사이드 확인
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     try {
@@ -73,6 +79,15 @@ export default function DashboardContent({
       setRenderError(safeErrorMessage(error, '알 수 없는 마운트 에러'));
     }
   }, []);
+
+  // 🛡️ 서버 사이드 렌더링 방지
+  if (!isClient) {
+    return (
+      <div className='flex items-center justify-center p-8'>
+        <div className='w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin'></div>
+      </div>
+    );
+  }
 
   // 🚀 렌더링 에러 처리
   if (renderError) {
@@ -149,9 +164,33 @@ export default function DashboardContent({
                 </div>
               }
             >
-              <div className='bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden'>
-                <InfrastructureOverviewPage className='h-96' />
-              </div>
+              {(() => {
+                try {
+                  return (
+                    <div className='bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden'>
+                      <InfrastructureOverviewPage className='h-96' />
+                    </div>
+                  );
+                } catch (error) {
+                  console.error(
+                    '❌ InfrastructureOverviewPage 렌더링 에러:',
+                    error
+                  );
+                  return (
+                    <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
+                      <div className='text-center text-gray-500'>
+                        <p>인프라 현황을 불러올 수 없습니다.</p>
+                        <button
+                          onClick={() => window.location.reload()}
+                          className='mt-2 px-3 py-1 bg-blue-500 text-white rounded text-sm'
+                        >
+                          새로고침
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+              })()}
             </Suspense>
 
             {/* 🚨 실시간 시스템 알림 */}
@@ -168,9 +207,30 @@ export default function DashboardContent({
                 </div>
               }
             >
-              <div className='bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden'>
-                <SystemAlertsPage className='h-96' />
-              </div>
+              {(() => {
+                try {
+                  return (
+                    <div className='bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden'>
+                      <SystemAlertsPage className='h-96' />
+                    </div>
+                  );
+                } catch (error) {
+                  console.error('❌ SystemAlertsPage 렌더링 에러:', error);
+                  return (
+                    <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
+                      <div className='text-center text-gray-500'>
+                        <p>시스템 알림을 불러올 수 없습니다.</p>
+                        <button
+                          onClick={() => window.location.reload()}
+                          className='mt-2 px-3 py-1 bg-blue-500 text-white rounded text-sm'
+                        >
+                          새로고침
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+              })()}
             </Suspense>
           </div>
 
@@ -183,7 +243,28 @@ export default function DashboardContent({
                 </div>
               }
             >
-              <ServerDashboardDynamic onStatsUpdate={onStatsUpdate} />
+              {(() => {
+                try {
+                  return (
+                    <ServerDashboardDynamic onStatsUpdate={onStatsUpdate} />
+                  );
+                } catch (error) {
+                  console.error('❌ ServerDashboard 렌더링 에러:', error);
+                  return (
+                    <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
+                      <div className='text-center text-gray-500'>
+                        <p>서버 대시보드를 불러올 수 없습니다.</p>
+                        <button
+                          onClick={() => window.location.reload()}
+                          className='mt-2 px-3 py-1 bg-blue-500 text-white rounded text-sm'
+                        >
+                          새로고침
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+              })()}
             </Suspense>
           </div>
         </div>
