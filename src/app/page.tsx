@@ -84,27 +84,47 @@ export default function Home() {
   // 🌙 다크모드 상태 (기본값: true - 다크모드)
   const [isDarkMode, setIsDarkMode] = useState(true);
 
-  // 🔧 상태 변화 디버깅
+  // 🔄 클라이언트 마운트 상태 (hydration 문제 방지)
+  const [isMounted, setIsMounted] = useState(false);
+
+  // 🔄 클라이언트 마운트 감지
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // 🔧 상태 변화 디버깅 (클라이언트에서만)
+  useEffect(() => {
+    if (!isMounted) return;
+
     console.log('🔍 Home - 시스템 상태 변화:', {
       isSystemStarted,
       aiAgentEnabled: aiAgent.isEnabled,
       aiAgentState: aiAgent.state,
       timeRemaining: systemTimeRemaining,
     });
-  }, [isSystemStarted, aiAgent.isEnabled, aiAgent.state, systemTimeRemaining]);
+  }, [
+    isMounted,
+    isSystemStarted,
+    aiAgent.isEnabled,
+    aiAgent.state,
+    systemTimeRemaining,
+  ]);
 
-  // 🛡️ 상태 불일치 방지 - AI 에이전트가 시스템 중지 시 비활성화되는지 확인
+  // 🛡️ 상태 불일치 방지 - AI 에이전트가 시스템 중지 시 비활성화되는지 확인 (클라이언트에서만)
   useEffect(() => {
+    if (!isMounted) return;
+
     if (!isSystemStarted && aiAgent.isEnabled) {
       console.warn(
-        '⚠️ 상태 불일치 감지: 시스템이 중지되었지만 AI 에이전트가 여전히 활성 상태'
+        '⚠️ 상태 불일치 감지: 시스템이 중지되었거나 AI 메타데이터가 누락 여부를 확인 설명'
       );
     }
-  }, [isSystemStarted, aiAgent.isEnabled]);
+  }, [isMounted, isSystemStarted, aiAgent.isEnabled]);
 
-  // 시스템 타이머 업데이트
+  // 시스템 타이머 업데이트 (클라이언트에서만)
   useEffect(() => {
+    if (!isMounted) return;
+
     if (isSystemStarted) {
       const updateTimer = () => {
         const remaining = getSystemRemainingTime();
@@ -118,7 +138,7 @@ export default function Home() {
     } else {
       setSystemTimeRemaining(0);
     }
-  }, [isSystemStarted, getSystemRemainingTime]);
+  }, [isMounted, isSystemStarted, getSystemRemainingTime]);
 
   // 컴포넌트 언마운트 시 카운트다운 정리
   useEffect(() => {
@@ -299,6 +319,20 @@ export default function Home() {
       ? 'bg-white/10 border border-white/20'
       : 'bg-white/80 border border-gray-200';
   };
+
+  // 🔄 클라이언트 마운트 전에는 기본 상태로 렌더링 (hydration 문제 방지)
+  if (!isMounted) {
+    return (
+      <div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'>
+        <div className='flex items-center justify-center min-h-screen'>
+          <div className='text-center'>
+            <Loader2 className='w-8 h-8 animate-spin text-white mx-auto mb-4' />
+            <p className='text-white/80'>시스템 초기화 중...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen ${getBackgroundClass()}`}>
