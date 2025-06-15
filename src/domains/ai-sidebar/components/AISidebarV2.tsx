@@ -32,6 +32,9 @@ import {
   Globe,
   Cpu,
   FileText,
+  ChevronLeft,
+  ChevronRight,
+  HardDrive,
 } from 'lucide-react';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { useAIThinking } from '@/modules/ai-sidebar/hooks/useAIThinking';
@@ -101,12 +104,12 @@ interface PresetQuestion {
   color: string;
 }
 
-// AI 엔진 목록
+// AI 엔진 목록 (3개로 축소)
 const AI_ENGINES: AIEngine[] = [
   {
     id: 'auto',
-    name: 'Auto',
-    description: '자동으로 최적 모델 조합 선택',
+    name: 'AUTO',
+    description: '자동으로 최적 모델 조합 선택 (기본값)',
     icon: Zap,
     color: 'text-purple-600',
     bgColor: 'bg-purple-50',
@@ -114,19 +117,9 @@ const AI_ENGINES: AIEngine[] = [
     status: 'ready',
   },
   {
-    id: 'unified',
-    name: 'Unified AI',
-    description: 'MCP + Google AI + RAG 통합 분석',
-    icon: Brain,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-    features: ['종합 분석', '높은 정확도', '컨텍스트 이해'],
-    status: 'ready',
-  },
-  {
     id: 'google-ai',
     name: 'Google AI',
-    description: 'Google AI Studio (Gemini)',
+    description: 'Google AI Studio (Gemini) 전용 모드',
     icon: Globe,
     color: 'text-green-600',
     bgColor: 'bg-green-50',
@@ -139,28 +132,18 @@ const AI_ENGINES: AIEngine[] = [
     status: 'ready',
   },
   {
-    id: 'mcp',
-    name: 'MCP Engine',
-    description: 'Model Context Protocol 엔진',
-    icon: Cpu,
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-50',
-    features: ['실시간 분석', '서버 특화', '빠른 응답'],
-    status: 'ready',
-  },
-  {
-    id: 'rag',
-    name: 'Local RAG',
-    description: '벡터 검색 및 문서 분석',
-    icon: Database,
-    color: 'text-indigo-600',
-    bgColor: 'bg-indigo-50',
-    features: ['문서 검색', '오프라인 지원', '프라이버시'],
+    id: 'internal',
+    name: 'Internal',
+    description: 'MCP + RAG + ML 내부 엔진만 사용',
+    icon: Brain,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50',
+    features: ['빠른 응답', '오프라인 지원', '프라이버시'],
     status: 'ready',
   },
 ];
 
-// 프리셋 질문 목록
+// 프리셋 질문 목록 (기존 유지)
 const PRESET_QUESTIONS: PresetQuestion[] = [
   {
     id: '1',
@@ -204,6 +187,20 @@ const PRESET_QUESTIONS: PresetQuestion[] = [
     icon: Sparkles,
     color: 'bg-pink-500',
   },
+  {
+    id: '7',
+    text: '디스크 사용량이 임계치에 도달했나요?',
+    category: '스토리지',
+    icon: HardDrive,
+    color: 'bg-indigo-500',
+  },
+  {
+    id: '8',
+    text: '데이터베이스 연결 상태를 확인해주세요',
+    category: '데이터베이스',
+    icon: Database,
+    color: 'bg-teal-500',
+  },
 ];
 
 interface AISidebarV2Props {
@@ -233,6 +230,10 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   const [showEngineInfo, setShowEngineInfo] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [expandedThinking, setExpandedThinking] = useState<string | null>(null);
+  
+  // 프리셋 질문 네비게이션 상태
+  const [currentPresetIndex, setCurrentPresetIndex] = useState(0);
+  const PRESETS_PER_PAGE = 4;
 
   // 도메인 훅들 사용
   const { setOpen } = useAISidebarStore();
@@ -272,6 +273,30 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   // 빠른 질문 가져오기 (실제 서비스에서)
   const quickQuestions = aiService.getQuickQuestions();
 
+  // 프리셋 질문 네비게이션 함수
+  const getCurrentPresets = () => {
+    const startIndex = currentPresetIndex;
+    const endIndex = startIndex + PRESETS_PER_PAGE;
+    return PRESET_QUESTIONS.slice(startIndex, endIndex);
+  };
+
+  const goToPreviousPresets = () => {
+    setCurrentPresetIndex(prev => 
+      prev - PRESETS_PER_PAGE >= 0 ? prev - PRESETS_PER_PAGE : 0
+    );
+  };
+
+  const goToNextPresets = () => {
+    setCurrentPresetIndex(prev => 
+      prev + PRESETS_PER_PAGE < PRESET_QUESTIONS.length 
+        ? prev + PRESETS_PER_PAGE 
+        : prev
+    );
+  };
+
+  const canGoPrevious = currentPresetIndex > 0;
+  const canGoNext = currentPresetIndex + PRESETS_PER_PAGE < PRESET_QUESTIONS.length;
+
   // 아이콘 매핑
   const getIcon = (iconName: string) => {
     const icons: Record<string, React.ComponentType<any>> = {
@@ -302,24 +327,16 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       {
         id: '2',
         step: 2,
-        title: '과거 패턴 검색',
-        description: 'RAG 엔진에서 유사 사례 검색',
+        title: '패턴 인식',
+        description: '비정상적인 트래픽 패턴 감지',
         status: 'completed' as const,
         duration: 800,
       },
       {
         id: '3',
         step: 3,
-        title: 'MCP 컨텍스트 활용',
-        description: '실시간 서버 상태 분석',
-        status: 'completed' as const,
-        duration: 600,
-      },
-      {
-        id: '4',
-        step: 4,
-        title: 'Google AI로 종합 분석',
-        description: '최종 결론 및 권장사항 생성',
+        title: '해결책 도출',
+        description: '최적화 방안 3가지 생성',
         status: 'completed' as const,
         duration: 1500,
       },
@@ -327,16 +344,13 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     return steps;
   };
 
-  // AI 응답 생성
+  // AI 응답 생성 (엔진별 차별화)
   const generateAIResponse = (query: string, engine: string): string => {
     const responses = {
-      auto: `자동 분석 결과: 현재 시스템 상태를 종합적으로 분석한 결과, 8개 서버 중 7개가 정상 작동 중입니다. CPU 평균 사용률 45%, 메모리 68%로 안정적입니다.`,
-      unified: `통합 AI 분석: MCP, RAG, Google AI를 활용한 종합 분석 결과, 시스템 전반적으로 양호한 상태입니다. 특별한 이상 징후는 발견되지 않았습니다.`,
-      'google-ai': `Google AI 분석: Gemini 모델을 통한 자연어 분석 결과, 질문하신 내용에 대해 상세한 분석을 제공드립니다.`,
-      mcp: `MCP 엔진 분석: 실시간 서버 컨텍스트를 기반으로 분석한 결과, 현재 인프라 상태는 안정적입니다.`,
-      rag: `RAG 검색 결과: 문서 데이터베이스에서 관련 정보를 검색한 결과, 유사한 상황에 대한 해결책을 찾았습니다.`,
+      auto: `[AUTO 모드] ${query}에 대한 종합 분석 결과입니다. 여러 AI 엔진을 조합하여 최적의 답변을 제공합니다.`,
+      'google-ai': `[Google AI] ${query}에 대한 창의적이고 자연스러운 응답입니다. Gemini 모델의 고급 언어 이해 능력을 활용했습니다.`,
+      internal: `[Internal] ${query}에 대한 빠른 내부 분석 결과입니다. MCP, RAG, ML 엔진을 활용하여 프라이버시를 보장하며 응답했습니다.`,
     };
-
     return responses[engine as keyof typeof responses] || responses.auto;
   };
 
@@ -345,7 +359,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     if (!inputValue.trim() && uploadedFiles.length === 0) return;
 
     const userMessage: ChatMessage = {
-      id: Date.now().toString(),
+      id: `user-${Date.now()}`,
       type: 'user',
       content: inputValue,
       timestamp: new Date(),
@@ -358,72 +372,53 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     setIsGenerating(true);
 
     // AI 응답 시뮬레이션
-    const thinking = simulateThinking();
-    const aiMessageId = (Date.now() + 1).toString();
-
-    // 사고 과정 표시
-    const aiMessage: ChatMessage = {
-      id: aiMessageId,
-      type: 'ai',
-      content: '',
-      timestamp: new Date(),
-      thinking,
-      engine: selectedEngine,
-      confidence: 0.85,
-    };
-
-    setMessages(prev => [...prev, aiMessage]);
-
-    // 타이핑 효과로 응답 생성
     setTimeout(() => {
-      const response = generateAIResponse(inputValue, selectedEngine);
-      setMessages(prev =>
-        prev.map(msg =>
-          msg.id === aiMessageId ? { ...msg, content: response } : msg
-        )
-      );
+      const aiMessage: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        type: 'ai',
+        content: generateAIResponse(userMessage.content, selectedEngine),
+        timestamp: new Date(),
+        thinking: simulateThinking(),
+        engine: AI_ENGINES.find(e => e.id === selectedEngine)?.name || 'AUTO',
+        confidence: Math.random() * 0.3 + 0.7, // 0.7-1.0
+      };
+
+      setMessages(prev => [...prev, aiMessage]);
       setIsGenerating(false);
-    }, 3000);
+    }, 2000);
   };
 
-  // 프리셋 질문 클릭
+  // 프리셋 질문 핸들러
   const handlePresetQuestion = (question: string) => {
     setInputValue(question);
+    handleSendMessage();
   };
 
   // 파일 업로드 핸들러
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
-
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        const newFile: UploadedFile = {
-          id: Date.now().toString() + Math.random(),
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          content: e.target?.result as string,
-        };
-        setUploadedFiles(prev => [...prev, newFile]);
-      };
-      reader.readAsText(file);
-    });
+    const newFiles: UploadedFile[] = files.map(file => ({
+      id: `file-${Date.now()}-${Math.random()}`,
+      name: file.name,
+      type: file.type,
+      size: file.size,
+    }));
+    setUploadedFiles(prev => [...prev, ...newFiles]);
   };
 
   // 파일 제거
   const removeFile = (fileId: string) => {
-    setUploadedFiles(prev => prev.filter(f => f.id !== fileId));
+    setUploadedFiles(prev => prev.filter(file => file.id !== fileId));
   };
 
-  // 답변 중지
+  // 생성 중단
   const stopGeneration = () => {
     setIsGenerating(false);
   };
 
-  // 답변 재생성
+  // 응답 재생성
   const regenerateResponse = (messageId: string) => {
-    console.log('Regenerating response for:', messageId);
+    // 구현 예정
   };
 
   // Enhanced AI Chat 컴포넌트
@@ -438,10 +433,10 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
             </div>
             <div>
               <h3 className='text-sm font-bold text-gray-800'>
-                Enhanced AI Chat
+                자연어 질의
               </h3>
               <p className='text-xs text-gray-600'>
-                Cursor AI 스타일 대화형 인터페이스
+                AI 기반 대화형 인터페이스
               </p>
             </div>
           </div>
@@ -553,7 +548,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
               <Sparkles className='w-6 h-6 text-white' />
             </div>
             <h4 className='text-sm font-semibold text-gray-800 mb-2'>
-              Enhanced AI Chat에 오신 것을 환영합니다!
+              자연어 질의에 오신 것을 환영합니다!
             </h4>
             <p className='text-xs text-gray-600 mb-4'>
               아래 프리셋 질문을 선택하거나 직접 질문을 입력해보세요.
@@ -657,29 +652,26 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                       : 'bg-white border border-gray-200 text-gray-800'
                   }`}
                 >
-                  {/* 파일 첨부 (사용자 메시지) */}
-                  {message.files && message.files.length > 0 && (
+                  {/* 파일 첨부 (사용자 메시지만) */}
+                  {message.type === 'user' && message.files && (
                     <div className='mb-2 space-y-1'>
                       {message.files.map(file => (
                         <div
                           key={file.id}
-                          className='flex items-center space-x-2 p-1 bg-white/20 rounded'
+                          className='flex items-center space-x-1 text-xs bg-blue-400 bg-opacity-50 rounded px-2 py-1'
                         >
                           <FileText className='w-3 h-3' />
-                          <span className='text-xs'>{file.name}</span>
-                          <span className='text-xs opacity-75'>
-                            ({(file.size / 1024).toFixed(1)}KB)
-                          </span>
+                          <span>{file.name}</span>
                         </div>
                       ))}
                     </div>
                   )}
 
-                  <p className='text-xs whitespace-pre-wrap'>
+                  <p className='text-sm whitespace-pre-wrap'>
                     {message.content}
                   </p>
 
-                  {/* 메타데이터 (AI 메시지) */}
+                  {/* AI 메시지 메타데이터 */}
                   {message.type === 'ai' && (
                     <div className='flex items-center justify-between mt-2 pt-2 border-t border-gray-100'>
                       <div className='flex items-center space-x-2 text-xs text-gray-500'>
@@ -719,50 +711,72 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
         {/* 생성 중 표시 */}
         {isGenerating && (
-          <div className='flex justify-start'>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className='flex justify-start'
+          >
             <div className='flex items-start space-x-2 max-w-[85%]'>
-              <div className='w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center'>
-                <Sparkles className='w-3 h-3 text-white animate-pulse' />
+              <div className='w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0'>
+                <Bot className='w-3 h-3 text-white' />
               </div>
               <div className='bg-white border border-gray-200 rounded-lg p-3'>
                 <div className='flex items-center space-x-2'>
                   <div className='flex space-x-1'>
-                    <div className='w-1 h-1 bg-gray-400 rounded-full animate-bounce' />
-                    <div className='w-1 h-1 bg-gray-400 rounded-full animate-bounce delay-100' />
-                    <div className='w-1 h-1 bg-gray-400 rounded-full animate-bounce delay-200' />
+                    <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce'></div>
+                    <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100'></div>
+                    <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200'></div>
                   </div>
-                  <span className='text-xs text-gray-600'>
-                    AI가 생각하고 있습니다...
-                  </span>
+                  <span className='text-xs text-gray-600'>AI가 생각하고 있습니다...</span>
                   <button
                     onClick={stopGeneration}
                     className='p-1 hover:bg-gray-100 rounded transition-colors'
-                    title='생성 중지'
+                    title='생성 중단'
                   >
-                    <Square className='w-2 h-2 text-gray-500' />
+                    <X className='w-3 h-3 text-gray-500' />
                   </button>
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         <div ref={messagesEndRef} />
       </div>
 
-      {/* 프리셋 질문 카드 */}
+      {/* 프리셋 질문 카드 (4개씩 표시 + 네비게이션) */}
       {messages.length === 0 && (
         <div className='px-3 pb-3'>
-          <h4 className='text-xs font-medium text-gray-700 mb-2'>빠른 질문</h4>
-          <div
-            ref={presetScrollRef}
-            className='flex space-x-2 overflow-x-auto pb-2 scrollbar-hide'
-          >
-            {PRESET_QUESTIONS.map(question => (
+          <div className='flex items-center justify-between mb-2'>
+            <h4 className='text-xs font-medium text-gray-700'>빠른 질문</h4>
+            <div className='flex items-center space-x-1'>
+              <button
+                onClick={goToPreviousPresets}
+                disabled={!canGoPrevious}
+                className='p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+                title='이전 질문들'
+              >
+                <ChevronLeft className='w-3 h-3 text-gray-500' />
+              </button>
+              <span className='text-xs text-gray-500'>
+                {Math.floor(currentPresetIndex / PRESETS_PER_PAGE) + 1}/{Math.ceil(PRESET_QUESTIONS.length / PRESETS_PER_PAGE)}
+              </span>
+              <button
+                onClick={goToNextPresets}
+                disabled={!canGoNext}
+                className='p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+                title='다음 질문들'
+              >
+                <ChevronRight className='w-3 h-3 text-gray-500' />
+              </button>
+            </div>
+          </div>
+          <div className='grid grid-cols-2 gap-2'>
+            {getCurrentPresets().map(question => (
               <motion.button
                 key={question.id}
                 onClick={() => handlePresetQuestion(question.text)}
-                className='flex-shrink-0 p-2 bg-white rounded border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all text-left min-w-[160px]'
+                className='p-2 bg-white rounded border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all text-left'
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -778,7 +792,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                     {question.category}
                   </span>
                 </div>
-                <p className='text-xs text-gray-800'>{question.text}</p>
+                <p className='text-xs text-gray-800 line-clamp-2'>{question.text}</p>
               </motion.button>
             ))}
           </div>
@@ -869,45 +883,6 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       />
     </div>
   );
-
-  // 빠른 질문 클릭 핸들러 (기존)
-  const handleQuickQuestionClick = async (question: string) => {
-    const sessionId = `session-${Date.now()}`;
-    setCurrentSessionId(sessionId);
-    setCurrentQuestion(question);
-
-    // AI 사고 과정 시작
-    setThinking(true);
-    clearLogs();
-
-    try {
-      // 실제 AI 서비스 호출
-      const response = await aiService.processQuery(question, sessionId);
-
-      // AI 응답 추가
-      addResponse({
-        success: true,
-        response: response.response || '응답을 받지 못했습니다.',
-        confidence: response.confidence || 0.5,
-        metadata: {
-          engineVersion: response.source || 'AI 시스템',
-        },
-      });
-    } catch (error) {
-      console.error('AI 질의 처리 실패:', error);
-      addResponse({
-        success: false,
-        response:
-          '죄송합니다. 현재 AI 서비스에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.',
-        confidence: 0,
-        metadata: {
-          engineVersion: 'Error Handler',
-        },
-      });
-    } finally {
-      setThinking(false);
-    }
-  };
 
   // 기능별 페이지 렌더링
   const renderFunctionPage = () => {

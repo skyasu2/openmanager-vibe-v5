@@ -68,7 +68,7 @@ export class RealMCPClient {
     const renderMcpUrl = 'https://openmanager-vibe-v5.onrender.com';
     const renderIPs = ['13.228.225.19', '18.142.128.26', '54.254.162.138'];
 
-    console.log(`🌍 환경: ${env.NODE_ENV.toUpperCase()}`);
+    console.log(`🌍 환경: ${(env.NODE_ENV || 'development').toUpperCase()}`);
     console.log(`📂 Vercel 환경: ${env.IS_VERCEL ? '활성화' : '비활성화'}`);
     console.log(`🌐 Render MCP 서버: ${renderMcpUrl}`);
     console.log(`📍 MCP 서버 IPs: ${renderIPs.join(', ')}`);
@@ -131,7 +131,7 @@ export class RealMCPClient {
     });
 
     console.log(
-      `🔧 MCP 서버 초기화 완료 (${env.NODE_ENV.toUpperCase()} - ${npxCommand})`
+      `🔧 MCP 서버 초기화 완료 (${(env.NODE_ENV || 'development').toUpperCase()} - ${npxCommand})`
     );
     console.log('📋 사용 가능한 서버:', Array.from(this.servers.keys()));
 

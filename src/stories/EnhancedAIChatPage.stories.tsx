@@ -1,43 +1,46 @@
+/**
+ * 🚀 자연어 질의 페이지 스토리북
+ * 
+ * AI 기반 대화형 인터페이스 컴포넌트들의 스토리북
+ */
+
 import type { Meta, StoryObj } from '@storybook/react';
-import EnhancedAIChatPage from '../components/ai/pages/EnhancedAIChatPage';
+import { EnhancedAIChatPage } from '@/components/ai/pages/EnhancedAIChatPage';
 
 const meta: Meta<typeof EnhancedAIChatPage> = {
-  title: 'AI Components/EnhancedAIChatPage',
+  title: 'AI/자연어 질의 페이지',
   component: EnhancedAIChatPage,
   parameters: {
     layout: 'fullscreen',
     docs: {
       description: {
         component:
-          '🚀 Enhanced AI Chat Page - Cursor AI 스타일 대화형 인터페이스\n\n' +
-          '✅ Cursor AI 스타일 UI/UX\n' +
+          '🚀 자연어 질의 페이지 - AI 기반 대화형 인터페이스\n\n' +
           '✅ AI 사고 과정 표시 기능\n' +
           '✅ 모델 선택 드롭다운\n' +
           '✅ 프리셋 질문 카드\n' +
           '✅ 답변 제어 기능\n' +
           '✅ 멀티 파일 업로드\n' +
-          '✅ 실시간 타이핑 효과',
+          '✅ 실시간 타이핑 효과\n' +
+          '✅ 이미지 분석 기능',
       },
     },
   },
   tags: ['autodocs'],
-  argTypes: {
-    // 컴포넌트에 props가 있다면 여기에 정의
-  },
 };
 
 export default meta;
-type Story = StoryObj<typeof EnhancedAIChatPage>;
+type Story = StoryObj<typeof meta>;
 
 /**
- * 기본 Enhanced AI Chat 인터페이스
+ * 기본 자연어 질의 인터페이스
  */
 export const Default: Story = {
   parameters: {
     docs: {
       description: {
         story:
-          '기본 Enhanced AI Chat 페이지입니다. Cursor AI 스타일의 모든 기능을 포함합니다.',
+          '기본 자연어 질의 페이지입니다. AI 기반의 모든 기능을 포함합니다.',
       },
     },
   },

@@ -9,12 +9,14 @@ export interface EnvironmentConfig {
   NODE_ENV: 'development' | 'production' | 'test';
   IS_VERCEL: boolean;
   IS_LOCAL: boolean;
+  IS_PRODUCTION: boolean;
+  IS_DEVELOPMENT: boolean;
 
-  // 추가된 속성들 (리팩토링으로 필요한 속성)
-  name?: string;
-  tier?: string;
-  maxServers?: number;
-  interval?: number;
+  // 환경 정보
+  name: string;
+  tier: string;
+  maxServers: number;
+  interval: number;
 
   // Database & Cache
   database: {
@@ -33,66 +35,104 @@ export interface EnvironmentConfig {
   // Performance Settings
   performance: {
     maxMemory: number;
-    apiTimeout: number;
-    cacheTimeout: number;
+    maxConcurrency: number;
+    timeout: number;
   };
 
   // Feature Flags
   features: {
     enableAI: boolean;
-    enableRealtimeData: boolean;
-    enableAdvancedAnalytics: boolean;
+    enableRealtime: boolean;
+    enableNotifications: boolean;
     enableWebSocket: boolean;
   };
+
+  // 업데이트 간격
+  updateInterval: number;
+  refreshInterval: number;
+  pollingInterval: number;
+  
+  // 서버 제한
+  maxClusters: number;
+  maxApplications: number;
+  
+  // 기타 설정
+  enableDebugLogs: boolean;
+  enableMetrics: boolean;
+  enableNotifications: boolean;
 }
 
 /**
  * 🔧 환경 감지 및 설정 로드
  */
 export function getEnvironmentConfig(): EnvironmentConfig {
-  const isVercel = !!process.env.VERCEL;
-  const isLocal = process.env.NODE_ENV === 'development';
-  const nodeEnv = (process.env.NODE_ENV || 'development') as
-    | 'development'
-    | 'production'
-    | 'test';
+  const isVercel = getEnvVar('VERCEL') === '1';
+  const nodeEnv = getEnvVar('NODE_ENV', 'development');
+  const isProduction = nodeEnv === 'production';
+  const isDevelopment = nodeEnv === 'development';
+  const isLocal = !isVercel && isDevelopment;
 
   return {
     NODE_ENV: nodeEnv,
     IS_VERCEL: isVercel,
     IS_LOCAL: isLocal,
+    IS_PRODUCTION: isProduction,
+    IS_DEVELOPMENT: isDevelopment,
 
+    // 추가된 속성들 (리팩토링으로 필요한 속성)
+    name: getEnvVar('NAME'),
+    tier: getEnvVar('TIER'),
+    maxServers: isLocal ? 50 : 20,
+    interval: 20000,
+
+    // Database & Cache
     database: {
       supabase: {
-        url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-        key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+        url: getEnvVar('NEXT_PUBLIC_SUPABASE_URL'),
+        key: getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY'),
         enabled: !!(
-          process.env.NEXT_PUBLIC_SUPABASE_URL &&
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+          getEnvVar('NEXT_PUBLIC_SUPABASE_URL') &&
+          getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY')
         ),
       },
       redis: {
-        url: process.env.UPSTASH_REDIS_REST_URL || '',
-        token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
+        url: getEnvVar('UPSTASH_REDIS_REST_URL'),
+        token: getEnvVar('UPSTASH_REDIS_REST_TOKEN'),
         enabled: !!(
-          process.env.UPSTASH_REDIS_REST_URL &&
-          process.env.UPSTASH_REDIS_REST_TOKEN
+          getEnvVar('UPSTASH_REDIS_REST_URL') &&
+          getEnvVar('UPSTASH_REDIS_REST_TOKEN')
         ),
       },
     },
 
+    // Performance Settings
     performance: {
       maxMemory: isVercel ? 1024 : 4096,
-      apiTimeout: isVercel ? 30000 : 60000,
-      cacheTimeout: isVercel ? 300000 : 600000, // 5분 vs 10분
+      maxConcurrency: isVercel ? 10 : 4,
+      timeout: isVercel ? 30000 : 60000,
     },
 
+    // Feature Flags
     features: {
       enableAI: true,
-      enableRealtimeData: true,
-      enableAdvancedAnalytics: !isVercel || nodeEnv === 'production',
+      enableRealtime: true,
+      enableNotifications: true,
       enableWebSocket: !isVercel, // Vercel에서는 WebSocket 제한
     },
+
+    // 업데이트 간격 (20초로 통일)
+    updateInterval: 20000,
+    refreshInterval: 20000,
+    pollingInterval: 20000,
+    
+    // 서버 제한 (Edge Request 절감)
+    maxClusters: 10,
+    maxApplications: 15,
+    
+    // 기타 설정
+    enableDebugLogs: isDevelopment,
+    enableMetrics: true,
+    enableNotifications: true
   };
 }
 
@@ -109,13 +149,11 @@ export function getVercelOptimizedConfig() {
       performance: {
         ...config.performance,
         maxMemory: 1024, // Vercel Free Plan 제한
-        apiTimeout: 25000, // Vercel 30초 제한에 여유
-        cacheTimeout: 180000, // 3분으로 단축
+        timeout: 25000, // Vercel 30초 제한에 여유
       },
       features: {
         ...config.features,
         enableWebSocket: false, // Vercel에서 WebSocket 비활성화
-        enableAdvancedAnalytics: false, // 메모리 절약
       },
     };
   }
@@ -146,34 +184,51 @@ export function logEnvironmentStatus() {
     `🧠 AI 기능: ${config.features.enableAI ? '활성화' : '비활성화'}`
   );
   console.log(
-    `📊 실시간 데이터: ${config.features.enableRealtimeData ? '활성화' : '비활성화'}`
+    `📊 실시간 데이터: ${config.features.enableRealtime ? '활성화' : '비활성화'}`
   );
 }
 
 // 🔧 추가 함수들 (빌드 오류 수정용)
 
 /**
- * 환경 감지 함수
+ * 환경변수 안전 접근 함수
  */
-export function detectEnvironment() {
-  const config = getEnvironmentConfig();
+const getEnvVar = (key: string, defaultValue: string = ''): string => {
+  if (typeof process === 'undefined' || !process.env) {
+    return defaultValue;
+  }
+  return process.env[key] || defaultValue;
+};
 
-  // 환경 이름과 티어 정보 추가
-  const envName = config.IS_VERCEL
-    ? 'vercel'
-    : config.IS_LOCAL
-      ? 'local'
-      : 'cloud';
-  const envTier = config.IS_VERCEL ? 'free' : 'pro';
-
+/**
+ * 환경 감지
+ */
+export const detectEnvironment = () => {
+  const isVercel = getEnvVar('VERCEL') === '1';
+  const nodeEnv = getEnvVar('NODE_ENV', 'development');
+  const isProduction = nodeEnv === 'production';
+  const isDevelopment = nodeEnv === 'development';
+  
   return {
-    ...config,
-    name: envName,
-    tier: envTier,
-    maxServers: 8, // 🎯 모든 환경에서 8개로 통일
-    interval: config.IS_VERCEL ? 5000 : 3000,
+    isVercel,
+    nodeEnv,
+    isProduction,
+    isDevelopment,
+    isClient: typeof window !== 'undefined',
+    NODE_ENV: nodeEnv,
+    IS_VERCEL: isVercel,
+    IS_PRODUCTION: isProduction,
+    IS_DEVELOPMENT: isDevelopment,
+    IS_LOCAL: !isVercel && isDevelopment,
+    performance: {
+      maxMemory: isVercel ? 1024 : 4096,
+      maxConcurrency: isVercel ? 10 : 4,
+      timeout: isVercel ? 30000 : 60000,
+    }
   };
-}
+};
+
+const env = detectEnvironment();
 
 /**
  * 현재 환경 정보 반환
@@ -181,11 +236,6 @@ export function detectEnvironment() {
 export function getCurrentEnvironment() {
   return getEnvironmentConfig();
 }
-
-/**
- * 환경 변수 객체
- */
-export const env = getEnvironmentConfig();
 
 /**
  * 데이터 생성기 설정 반환
@@ -231,20 +281,20 @@ export function getDataGeneratorConfig() {
   }
 
   return {
-    enabled: config.features.enableRealtimeData,
+    enabled: config.features.enableRealtime,
     maxServers,
     minServers,
     defaultArchitecture: serverArchitecture,
-    updateInterval: 20000, // 🔄 모든 환경에서 20초로 통일
+    updateInterval: 20000, // 🔄 모든 환경에서 20초로 통일 (Edge 비용 최적화)
     refreshInterval: 20000, // 🔄 모든 환경에서 20초로 통일
     memoryLimit: config.performance.maxMemory,
     mode: config.IS_VERCEL ? 'production' : 'development',
     features: {
-      networkTopology: config.features.enableAdvancedAnalytics,
-      demoScenarios: config.features.enableAdvancedAnalytics,
-      baselineOptimization: config.features.enableAdvancedAnalytics,
+      networkTopology: config.features.enableRealtime,
+      demoScenarios: config.features.enableRealtime,
+      baselineOptimization: config.features.enableRealtime,
       maxNodes: config.IS_VERCEL ? 25 : 50, // 20→25로 증가
-      autoRotate: config.features.enableAdvancedAnalytics,
+      autoRotate: config.features.enableRealtime,
     },
   };
 }
@@ -256,7 +306,7 @@ export function getMCPConfig() {
   const config = getEnvironmentConfig();
   return {
     enabled: config.features.enableAI,
-    timeout: config.performance.apiTimeout,
+    timeout: config.performance.timeout,
     maxConnections: config.IS_VERCEL ? 5 : 10,
   };
 }
@@ -271,9 +321,9 @@ export function isPluginEnabled(pluginName: string): boolean {
     case 'ai':
       return config.features.enableAI;
     case 'realtime':
-      return config.features.enableRealtimeData;
+      return config.features.enableRealtime;
     case 'analytics':
-      return config.features.enableAdvancedAnalytics;
+      return config.features.enableRealtime;
     case 'websocket':
       return config.features.enableWebSocket;
     default:
@@ -289,13 +339,13 @@ export function getPluginConfig(pluginName: string) {
 
   const baseConfig = {
     enabled: isPluginEnabled(pluginName),
-    timeout: config.performance.apiTimeout,
+    timeout: config.performance.timeout,
     memoryLimit: config.performance.maxMemory,
     maxNodes: config.IS_VERCEL ? 20 : 50,
-    autoRotate: config.features.enableAdvancedAnalytics,
+    autoRotate: config.features.enableRealtime,
     maxQueries: config.IS_VERCEL ? 100 : 500,
     cacheEnabled: config.database.redis.enabled,
-    updateInterval: config.IS_VERCEL ? 10000 : 5000,
+    updateInterval: 20000, // 🔄 모든 환경에서 20초로 통일 (Edge 비용 최적화)
     maxConnections: config.IS_VERCEL ? 5 : 20,
   };
 
@@ -309,7 +359,7 @@ export function getPluginConfig(pluginName: string) {
     case 'realtime':
       return {
         ...baseConfig,
-        updateInterval: config.IS_VERCEL ? 5000 : 3000,
+        updateInterval: 20000, // 🔄 모든 환경에서 20초로 통일 (Edge 비용 최적화)
         maxConnections: config.IS_VERCEL ? 10 : 50,
       };
     default:

@@ -1,14 +1,12 @@
 /**
- * 🚀 Enhanced AI Chat Page - Cursor AI Style
- *
- * ✅ Cursor AI 스타일 UI/UX
- * ✅ AI 사고 과정 표시 기능
- * ✅ 모델 선택 드롭다운
- * ✅ 프리셋 질문 카드
- * ✅ 답변 제어 기능
- * ✅ 멀티 파일 업로드
- * ✅ 실시간 타이핑 효과
- * ✅ 이미지 분석 기능 (Google AI 없이도 가능)
+ * 🚀 자연어 질의 페이지
+ * 
+ * AI 기반 대화형 인터페이스를 제공하는 독립 페이지
+ * - 실시간 AI 응답
+ * - 파일 업로드 지원
+ * - 다중 AI 엔진 선택
+ * - 사고 과정 시각화
+ * - 프리셋 질문 제공
  */
 
 'use client';
@@ -38,6 +36,9 @@ import {
   Eye,
   Palette,
   BarChart3,
+  HardDrive,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 // 이미지 분석 엔진 import
@@ -508,11 +509,11 @@ export default function EnhancedAIChatPage() {
               <Bot className='w-5 h-5 text-white' />
             </div>
             <div>
-              <h2 className='text-lg font-bold text-gray-800'>
-                Enhanced AI Chat
-              </h2>
+              <h3 className='text-lg font-bold text-gray-800'>
+                자연어 질의
+              </h3>
               <p className='text-sm text-gray-600'>
-                Cursor AI 스타일 대화형 인터페이스
+                AI 기반 대화형 인터페이스
               </p>
             </div>
           </div>
@@ -545,9 +546,9 @@ export default function EnhancedAIChatPage() {
                   className='absolute top-full right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-10'
                 >
                   <div className='p-3 border-b border-gray-100'>
-                    <h3 className='text-sm font-semibold text-gray-800'>
+                    <h4 className='text-sm font-semibold text-gray-800'>
                       AI 모델 선택
-                    </h3>
+                    </h4>
                     <p className='text-xs text-gray-600'>
                       용도에 맞는 AI 엔진을 선택하세요
                     </p>
@@ -575,9 +576,9 @@ export default function EnhancedAIChatPage() {
                           </div>
                           <div className='flex-1'>
                             <div className='flex items-center space-x-2'>
-                              <h4 className='text-sm font-medium text-gray-800'>
+                              <h5 className='text-sm font-medium text-gray-800'>
                                 {engine.name}
-                              </h4>
+                              </h5>
                               {engine.usage && (
                                 <span className='text-xs text-gray-500'>
                                   {engine.usage.used}/{engine.usage.limit}
@@ -628,9 +629,9 @@ export default function EnhancedAIChatPage() {
             <div className='w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4'>
               <Sparkles className='w-8 h-8 text-white' />
             </div>
-            <h3 className='text-lg font-semibold text-gray-800 mb-2'>
-              Enhanced AI Chat에 오신 것을 환영합니다!
-            </h3>
+            <h4 className='text-lg font-semibold text-gray-800 mb-2'>
+              자연어 질의에 오신 것을 환영합니다!
+            </h4>
             <p className='text-gray-600 mb-6'>
               아래 프리셋 질문을 선택하거나 직접 질문을 입력해보세요.
             </p>

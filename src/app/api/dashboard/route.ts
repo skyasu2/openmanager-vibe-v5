@@ -19,8 +19,22 @@ export async function GET(request: NextRequest) {
     const includeHistory = searchParams.get('include_history') === 'true';
     const format = searchParams.get('format') || 'dashboard';
 
+    // 📇 변경 감지: ?since=ISO_TIMESTAMP (또는 epoch ms)
+    const sinceParam = searchParams.get('since');
+    let sinceTimestamp: number | null = null;
+    if (sinceParam) {
+      // epoch (숫자) 또는 ISO 문자열 지원
+      const parsed = Number(sinceParam);
+      if (!isNaN(parsed)) {
+        sinceTimestamp = parsed;
+      } else {
+        const isoParsed = Date.parse(sinceParam);
+        if (!isNaN(isoParsed)) sinceTimestamp = isoParsed;
+      }
+    }
+
     console.log(
-      `📊 대시보드 데이터 요청: format=${format}, history=${includeHistory}`
+      `📊 대시보드 데이터 요청: format=${format}, history=${includeHistory}, since=${sinceTimestamp}`
     );
 
     // 1. 통합 메트릭 관리자 상태 확인
@@ -32,10 +46,18 @@ export async function GET(request: NextRequest) {
     }
 
     // 2. 서버 데이터 조회
-    const servers: any[] = unifiedMetricsManager.getServers();
-    console.log(`📊 총 ${servers.length}개 서버에서 대시보드 데이터 생성`);
+    const originalServers: any[] = unifiedMetricsManager.getServers();
+    console.log(`📊 총 ${originalServers.length}개 서버에서 대시보드 데이터 생성`);
+
+    // 🔄 sinceTimestamp가 지정되면 변화된 서버만 필터링
+    const servers: any[] = sinceTimestamp
+      ? originalServers.filter(s =>
+          new Date(s.last_updated).getTime() > (sinceTimestamp as number)
+        )
+      : originalServers;
 
     // 3. 서버 상태 분석
+    const statusDistributionAll = analyzeServerStatus(originalServers);
     const statusDistribution = analyzeServerStatus(servers);
     const environmentStats = analyzeByEnvironment(servers);
     const roleStats = analyzeByRole(servers);
@@ -51,11 +73,11 @@ export async function GET(request: NextRequest) {
 
       // 📊 전체 현황 요약
       overview: {
-        total_servers: servers.length,
-        healthy_servers: statusDistribution.healthy,
-        warning_servers: statusDistribution.warning,
-        critical_servers: statusDistribution.critical,
-        health_score: calculateHealthScore(statusDistribution),
+        total_servers: originalServers.length,
+        healthy_servers: statusDistributionAll.healthy,
+        warning_servers: statusDistributionAll.warning,
+        critical_servers: statusDistributionAll.critical,
+        health_score: calculateHealthScore(statusDistributionAll),
         system_availability: calculateSystemAvailability(servers),
         active_incidents: alertsSummary.total_alerts,
         last_updated: new Date().toISOString(),
@@ -96,10 +118,10 @@ export async function GET(request: NextRequest) {
       data: {
         servers: servers,
         overview: {
-          total_servers: servers.length,
-          healthy_servers: statusDistribution.healthy,
-          warning_servers: statusDistribution.warning,
-          critical_servers: statusDistribution.critical,
+          total_servers: originalServers.length,
+          healthy_servers: statusDistributionAll.healthy,
+          warning_servers: statusDistributionAll.warning,
+          critical_servers: statusDistributionAll.critical,
         },
       },
     };
@@ -116,6 +138,7 @@ export async function GET(request: NextRequest) {
         request_info: {
           format,
           include_history: includeHistory,
+          since: sinceTimestamp,
           processing_time_ms: Date.now() - startTime,
           timestamp: new Date().toISOString(),
         },
@@ -131,8 +154,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response, {
       headers: {
-        'X-Total-Servers': servers.length.toString(),
-        'X-Health-Score': calculateHealthScore(statusDistribution).toString(),
+        'X-Total-Servers': originalServers.length.toString(),
+        'X-Returned-Servers': servers.length.toString(),
+        'X-Delta-Mode': sinceTimestamp ? 'true' : 'false',
+        'X-Health-Score': calculateHealthScore(statusDistributionAll).toString(),
         'X-Active-Alerts': alertsSummary.total_alerts.toString(),
         'X-Processing-Time-Ms': (Date.now() - startTime).toString(),
         'Cache-Control': 'no-cache, must-revalidate',

@@ -53,9 +53,46 @@ export async function GET(request: NextRequest) {
             timestamp: new Date().toISOString()
           });
         } else {
+          // 🚦 서버 목록 개수 제한 (기본 20, 최대 100) + 변경분 필터링
+          const limitParam = searchParams.get('limit');
+          const sinceParam = searchParams.get('since');
+
+          // limit 계산
+          const limit = Math.min(
+            Math.max(parseInt(limitParam || '20', 10) || 20, 1),
+            100
+          );
+
+          // sinceTimestamp 계산 (epoch 또는 ISO)
+          let sinceTimestamp: number | null = null;
+          if (sinceParam) {
+            const num = Number(sinceParam);
+            if (!isNaN(num)) {
+              sinceTimestamp = num;
+            } else {
+              const iso = Date.parse(sinceParam);
+              if (!isNaN(iso)) sinceTimestamp = iso;
+            }
+          }
+
+          let allServers = realServerDataGenerator.getAllServers();
+
+          // 변경분 필터링
+          if (sinceTimestamp) {
+            allServers = allServers.filter(s => {
+              const last = s.last_updated
+                ? Date.parse(s.last_updated)
+                : s.timestamp || 0;
+              return last > (sinceTimestamp as number);
+            });
+          }
+
           return NextResponse.json({
             success: true,
-            data: realServerDataGenerator.getAllServers(),
+            data: allServers.slice(0, limit),
+            total: allServers.length,
+            limit,
+            delta_mode: Boolean(sinceTimestamp),
             timestamp: new Date().toISOString()
           });
         }
@@ -75,17 +112,33 @@ export async function GET(request: NextRequest) {
             timestamp: new Date().toISOString()
           });
         } else {
+          const limitParam = searchParams.get('limit');
+          const limit = Math.min(
+            Math.max(parseInt(limitParam || '10', 10) || 10, 1),
+            50
+          );
+          const allClusters = realServerDataGenerator.getAllClusters();
           return NextResponse.json({
             success: true,
-            data: realServerDataGenerator.getAllClusters(),
+            data: allClusters.slice(0, limit),
+            total: allClusters.length,
+            limit,
             timestamp: new Date().toISOString()
           });
         }
 
       case 'applications':
+        const limitParam = searchParams.get('limit');
+        const limit = Math.min(
+          Math.max(parseInt(limitParam || '15', 10) || 15, 1),
+          100
+        );
+        const allApplications = realServerDataGenerator.getAllApplications();
         return NextResponse.json({
           success: true,
-          data: realServerDataGenerator.getAllApplications(),
+          data: allApplications.slice(0, limit),
+          total: allApplications.length,
+          limit,
           timestamp: new Date().toISOString()
         });
 

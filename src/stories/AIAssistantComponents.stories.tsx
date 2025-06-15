@@ -1,23 +1,29 @@
+/**
+ * 🤖 AI 어시스턴트 컴포넌트 스토리북
+ * 
+ * AI 사이드바와 관련 컴포넌트들의 스토리북
+ */
+
 import type { Meta, StoryObj } from '@storybook/react';
-import { AISidebarV2 } from '../domains/ai-sidebar/components/AISidebarV2';
+import { AISidebarV2 } from '@/domains/ai-sidebar/components/AISidebarV2';
 import { UnifiedProfileButton } from '../components/unified-profile/UnifiedProfileButton';
 import { AISettingsTab } from '../components/unified-profile/components/AISettingsTab';
 
-// AI 사이드바 스토리
-const AISidebarMeta: Meta<typeof AISidebarV2> = {
-  title: 'AI Assistant/AISidebarV2',
+const meta: Meta<typeof AISidebarV2> = {
+  title: 'AI/AI 어시스턴트',
   component: AISidebarV2,
   parameters: {
     layout: 'fullscreen',
     docs: {
       description: {
         component:
-          '🤖 AI 어시스턴트 사이드바 v2\n\n' +
-          '✅ Enhanced AI Chat 통합\n' +
-          '✅ 자동 리포트 생성\n' +
-          '✅ 예측 분석\n' +
-          '✅ 고급 관리 기능\n' +
-          '✅ 패턴 분석',
+          '🤖 AI 어시스턴트 사이드바\n\n' +
+          '✅ 자연어 질의 통합\n' +
+          '✅ 실시간 AI 로그\n' +
+          '✅ 다중 AI 엔진 지원\n' +
+          '✅ 파일 업로드\n' +
+          '✅ 프리셋 질문\n' +
+          '✅ 사고 과정 시각화',
       },
     },
   },
@@ -34,59 +40,50 @@ const AISidebarMeta: Meta<typeof AISidebarV2> = {
   },
 };
 
-export default AISidebarMeta;
-type AISidebarStory = StoryObj<typeof AISidebarV2>;
+export default meta;
+type Story = StoryObj<typeof meta>;
 
 /**
  * 기본 AI 어시스턴트 사이드바
  */
-export const DefaultSidebar: AISidebarStory = {
+export const Default: Story = {
   args: {
     isOpen: true,
-    onClose: () => console.log('Sidebar closed'),
+    onClose: () => {},
   },
   parameters: {
     docs: {
       description: {
-        story:
-          '기본 AI 어시스턴트 사이드바입니다. Enhanced AI Chat 기능이 포함되어 있습니다.',
+        story: '기본 AI 어시스턴트 사이드바입니다. 자연어 질의 기능이 포함되어 있습니다.',
       },
     },
   },
 };
 
 /**
- * Enhanced AI Chat 모드
+ * 자연어 질의 모드
  */
-export const EnhancedChatMode: AISidebarStory = {
+export const EnhancedChatMode: Story = {
   args: {
     isOpen: true,
-    onClose: () => console.log('Sidebar closed'),
+    onClose: () => {},
   },
   parameters: {
     docs: {
       description: {
-        story: 'Cursor AI 스타일의 Enhanced AI Chat 모드입니다.',
+        story: 'AI 기반의 자연어 질의 모드입니다.',
       },
     },
-  },
-  play: async ({ canvasElement }) => {
-    // Enhanced Chat 탭 클릭 시뮬레이션
-    const canvas = canvasElement;
-    const chatTab = canvas.querySelector('[data-testid="chat-tab"]');
-    if (chatTab) {
-      (chatTab as HTMLElement).click();
-    }
   },
 };
 
 /**
  * 자동 리포트 모드
  */
-export const AutoReportMode: AISidebarStory = {
+export const AutoReportMode: Story = {
   args: {
     isOpen: true,
-    onClose: () => console.log('Sidebar closed'),
+    onClose: () => {},
   },
   parameters: {
     docs: {
@@ -100,10 +97,10 @@ export const AutoReportMode: AISidebarStory = {
 /**
  * 예측 분석 모드
  */
-export const PredictionMode: AISidebarStory = {
+export const PredictionMode: Story = {
   args: {
     isOpen: true,
-    onClose: () => console.log('Sidebar closed'),
+    onClose: () => {},
   },
   parameters: {
     docs: {

@@ -10,6 +10,14 @@ import { metricsCollector } from '../../../../services/ai/RealTimeMetricsCollect
 const tester = new SmartQueryTester();
 
 export async function GET(request: NextRequest) {
+    // 🚫 개발 환경에서만 접근 허용
+    if (process.env.NODE_ENV !== 'development') {
+        return NextResponse.json(
+            { error: 'Test endpoints are only available in development' },
+            { status: 404 }
+        );
+    }
+
     const startTime = Date.now();
     let success = false;
 
@@ -115,6 +123,14 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+    // 🚫 개발 환경에서만 접근 허용
+    if (process.env.NODE_ENV !== 'development') {
+        return NextResponse.json(
+            { error: 'Test endpoints are only available in development' },
+            { status: 404 }
+        );
+    }
+
     const startTime = Date.now();
     let success = false;
 

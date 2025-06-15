@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { createTimeoutSignal } from '@/utils/createTimeoutSignal';
 
 // 🤖 Google AI 상태 타입 정의
 export interface GoogleAIStatus {
@@ -41,7 +42,7 @@ const fetchGoogleAIStatus = async (): Promise<GoogleAIStatus> => {
                 'Content-Type': 'application/json',
             },
             // 타임아웃 설정 (5초)
-            signal: AbortSignal.timeout(5000),
+            signal: createTimeoutSignal(5000),
         });
 
         if (!response.ok) {

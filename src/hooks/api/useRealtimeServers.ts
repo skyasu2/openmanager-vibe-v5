@@ -14,6 +14,7 @@ import type {
   ServerCluster,
   ApplicationMetrics,
 } from '@/types/data-generator';
+import { createTimeoutSignal } from '@/utils/createTimeoutSignal';
 
 interface DashboardSummary {
   overview: {
@@ -263,7 +264,7 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
         headers: {
           'Content-Type': 'application/json',
         },
-        signal: AbortSignal.timeout(5000), // 5초 타임아웃
+        signal: createTimeoutSignal(5000),
       });
 
       if (!response.ok) {
@@ -303,13 +304,17 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
    */
   const fetchServers = useCallback(async () => {
     try {
-      const response = await fetch('/api/servers/realtime?type=servers', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal: AbortSignal.timeout(5000), // 5초 타임아웃
-      });
+      const sinceQuery = lastUpdate ? `&since=${lastUpdate.getTime()}` : '';
+      const response = await fetch(
+        `/api/servers/realtime?type=servers&limit=20${sinceQuery}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: createTimeoutSignal(5000),
+        }
+      );
 
       if (!response.ok) {
         console.warn(`실시간 서버 목록 API HTTP 오류: ${response.status}`);
@@ -325,6 +330,7 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
 
       if (result.success && Array.isArray(result.data)) {
         setServers(result.data);
+        setLastUpdate(new Date());
 
         // 선택된 서버 업데이트
         if (selectedServer) {
@@ -350,19 +356,19 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
       }
       setError(error.message || '서버 데이터 조회 실패');
     }
-  }, [selectedServer, servers.length]);
+  }, [selectedServer, servers.length, lastUpdate]);
 
   /**
    * 🏗️ 클러스터 데이터 가져오기
    */
   const fetchClusters = useCallback(async () => {
     try {
-      const response = await fetch('/api/servers/realtime?type=clusters', {
+      const response = await fetch('/api/servers/realtime?type=clusters&limit=10', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        signal: AbortSignal.timeout(5000), // 5초 타임아웃
+        signal: createTimeoutSignal(5000),
       });
 
       if (!response.ok) {
@@ -411,12 +417,12 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
    */
   const fetchApplications = useCallback(async () => {
     try {
-      const response = await fetch('/api/servers/realtime?type=applications', {
+      const response = await fetch('/api/servers/realtime?type=applications&limit=15', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        signal: AbortSignal.timeout(5000), // 5초 타임아웃
+        signal: createTimeoutSignal(5000),
       });
 
       if (!response.ok) {

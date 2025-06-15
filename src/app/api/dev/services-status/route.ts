@@ -276,6 +276,14 @@ async function checkVercel(): Promise<ServiceStatus> {
 }
 
 export async function GET(request: NextRequest) {
+    // 🚫 개발 환경에서만 접근 허용
+    if (process.env.NODE_ENV !== 'development') {
+        return NextResponse.json(
+            { error: 'Dev endpoints are only available in development' },
+            { status: 404 }
+        );
+    }
+
     try {
         console.log('🔍 개발자 도구: 모든 서비스 상태 확인 시작...');
 

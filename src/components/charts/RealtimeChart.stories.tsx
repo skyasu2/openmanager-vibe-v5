@@ -91,7 +91,7 @@ export const Default: Story = {
     anomalies: true,
     autoScale: true,
     height: 300,
-    refreshInterval: 5000,
+    refreshInterval: process.env.NODE_ENV === 'development' ? 5000 : 20000,
   },
   play: async () => {
     setupEnhancedWebSocketMock('normal');
@@ -112,7 +112,7 @@ export const DatabaseServer: Story = {
     anomalies: true,
     autoScale: true,
     height: 400,
-    refreshInterval: 3000,
+    refreshInterval: process.env.NODE_ENV === 'development' ? 3000 : 30000,
   },
   parameters: {
     docs: {
@@ -141,7 +141,7 @@ export const TrafficSpike: Story = {
     anomalies: true,
     autoScale: true,
     height: 350,
-    refreshInterval: 2000,
+    refreshInterval: process.env.NODE_ENV === 'development' ? 2000 : 20000,
   },
   parameters: {
     docs: {
@@ -170,7 +170,7 @@ export const MemoryLeak: Story = {
     anomalies: true,
     autoScale: true,
     height: 300,
-    refreshInterval: 5000,
+    refreshInterval: process.env.NODE_ENV === 'development' ? 5000 : 20000,
   },
   parameters: {
     docs: {
@@ -199,7 +199,7 @@ export const DDoSAttack: Story = {
     anomalies: true,
     autoScale: true,
     height: 300,
-    refreshInterval: 2000,
+    refreshInterval: process.env.NODE_ENV === 'development' ? 2000 : 20000,
   },
   parameters: {
     docs: {
@@ -228,7 +228,7 @@ export const PerformanceDegradation: Story = {
     anomalies: true,
     autoScale: true,
     height: 350,
-    refreshInterval: 5000,
+    refreshInterval: process.env.NODE_ENV === 'development' ? 5000 : 20000,
   },
   parameters: {
     docs: {
@@ -257,7 +257,7 @@ export const LongTermMonitoring: Story = {
     anomalies: true,
     autoScale: true,
     height: 400,
-    refreshInterval: 10000,
+    refreshInterval: process.env.NODE_ENV === 'development' ? 10000 : 20000,
   },
   parameters: {
     docs: {
@@ -286,7 +286,7 @@ export const CacheOptimization: Story = {
     anomalies: true,
     autoScale: true,
     height: 300,
-    refreshInterval: 3000,
+    refreshInterval: process.env.NODE_ENV === 'development' ? 3000 : 30000,
   },
   parameters: {
     docs: {

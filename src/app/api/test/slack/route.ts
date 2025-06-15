@@ -8,6 +8,14 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 
 export async function GET() {
+  // 🚫 개발 환경에서만 접근 허용
+  if (process.env.NODE_ENV !== 'development') {
+    return NextResponse.json(
+      { error: 'Test endpoints are only available in development' },
+      { status: 404 }
+    );
+  }
+
   try {
     const webhookUrl = process.env.SLACK_WEBHOOK_URL;
     const channel = process.env.SLACK_DEFAULT_CHANNEL || '#server-alerts';
@@ -43,6 +51,14 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  // 🚫 개발 환경에서만 접근 허용
+  if (process.env.NODE_ENV !== 'development') {
+    return NextResponse.json(
+      { error: 'Test endpoints are only available in development' },
+      { status: 404 }
+    );
+  }
+
   try {
     const webhookUrl = process.env.SLACK_WEBHOOK_URL;
 

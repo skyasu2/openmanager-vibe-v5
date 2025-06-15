@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { devKeyManager } from '@/utils/dev-key-manager';
 
 export async function GET(request: NextRequest) {
+    // 🚫 개발 환경에서만 접근 허용
+    if (process.env.NODE_ENV !== 'development') {
+        return NextResponse.json(
+            { error: 'Dev endpoints are only available in development' },
+            { status: 404 }
+        );
+    }
+
     try {
         const { searchParams } = new URL(request.url);
         const action = searchParams.get('action');
