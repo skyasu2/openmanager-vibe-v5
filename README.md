@@ -261,19 +261,86 @@ function MyComponent() {
 }
 ```
 
-## �� 개발 방법론
+## 🎨 주요 화면
 
-### AI 협업 개발 (Vibe Coding)
+### 메인 대시보드
 
-- **Cursor AI 주도**: AI가 주체가 되어 개발 진행
-- **Multi-AI 협업**: 필요시 여러 AI 엔진 활용
-- **실시간 피드백**: 개발 과정에서 즉시 AI 피드백 반영
+- 30개 서버 상태 한눈에 확인
+- 실시간 성능 메트릭 차트
+- AI 기반 시스템 건강도 점수
 
-### 개발 프로세스
+### AI 채팅 인터페이스
 
-1. **기획**: ChatGPT로 아이디어 구체화
-2. **개발**: Cursor AI + Claude Sonnet 3.7
-3. **검증**: Google Jules + GPT Codex 교차검증
+- 자연어로 시스템 상태 질의
+- Google AI (Gemini) 기반 지능형 응답
+- 실시간 AI 사고 과정 시각화
+
+### 모니터링 센터
+
+- 서버별 상세 메트릭 분석
+- 이상 징후 실시간 알림
+- 자동 복구 제안 및 실행
+
+## 🔥 최신 업데이트 (v5.44.0)
+
+### ✅ 헤더 UI/UX 대폭 단순화 (2025.01.30)
+
+- **문제**: 복잡한 접기/펼치기 기능으로 인한 사용성 저하
+- **해결**: 서버 상태 정보 제거 및 수평 레이아웃으로 단순화
+- **개선사항**:
+  - 서버 상태 정보 완전 제거 (대시보드에 인프라 현황 있어서 중복)
+  - 접기/펼치기 기능 제거하고 핵심 요소들을 항상 표시
+  - 실시간 시간 표시 및 환경 정보를 중앙에 배치
+  - 모바일 반응형 디자인 개선
+  - AI 어시스턴트 버튼과 프로필을 오른쪽에 깔끔하게 배치
+
+### ✅ Vercel Edge Middleware 완전 제거 (과금 방지)
+
+- **문제**: Edge Middleware 1M 호출 초과로 과금 시작
+- **해결**: middleware.ts 완전 제거 및 대체 방안 구현
+- **대체 방안**:
+  - `src/utils/api-metrics.ts` - API 라우트 내부 메트릭 수집
+  - `src/hooks/useClientMetrics.ts` - 클라이언트 사이드 성능 추적
+  - 기존 기능 100% 유지하면서 Edge 호출 비용 0으로 감소
+
+### 🚀 Enhanced AI Chat 완성
+
+- Cursor AI 스타일의 고급 채팅 인터페이스
+- Google AI 없이도 작동하는 이미지 분석 시스템
+- 실시간 사고 과정 시뮬레이션
+- 프리셋 질문 및 이미지 업로드 지원
+
+### 🎯 AI 네이밍 통일
+
+- "AI 에이전트" → "AI 어시스턴트"로 통일
+- 미래 자동 서버 관리 수준 달성 시 "AI 에이전트"로 진화 예정
+
+## 🎨 UI/UX 개선사항
+
+### 헤더 단순화 (v5.44.0)
+
+```typescript
+// ❌ 이전: 복잡한 접기/펼치기 + 서버 상태 표시
+<DashboardHeader
+  serverStats={{ total: 10, online: 8, warning: 1, offline: 1 }}
+  systemStatusDisplay={<SystemStatusDisplay />}
+  // ... 복잡한 props
+/>
+
+// ✅ 현재: 단순하고 깔끔한 레이아웃
+<DashboardHeader
+  onNavigateHome={() => router.push('/')}
+  onToggleAgent={toggleAgent}
+  isAgentOpen={isAgentOpen}
+/>
+```
+
+**개선된 레이아웃:**
+
+- 왼쪽: OpenManager 브랜딩/로고
+- 중앙: 실시간 시간 + 환경 정보
+- 오른쪽: AI 어시스턴트 + 프로필
+- 모바일: 실시간 정보를 하단에 별도 표시
 
 ## 📊 프로젝트 통계
 
@@ -321,26 +388,3 @@ function MyComponent() {
 ---
 
 **🚀 OpenManager Vibe v5 - AI가 이끄는 차세대 서버 모니터링의 미래**
-
-## 🔥 최신 업데이트 (v5.44.0)
-
-### ✅ Vercel Edge Middleware 완전 제거 (과금 방지)
-
-- **문제**: Edge Middleware 1M 호출 초과로 과금 시작
-- **해결**: middleware.ts 완전 제거 및 대체 방안 구현
-- **대체 방안**:
-  - `src/utils/api-metrics.ts` - API 라우트 내부 메트릭 수집
-  - `src/hooks/useClientMetrics.ts` - 클라이언트 사이드 성능 추적
-  - 기존 기능 100% 유지하면서 Edge 호출 비용 0으로 감소
-
-### 🚀 Enhanced AI Chat 완성
-
-- Cursor AI 스타일의 고급 채팅 인터페이스
-- Google AI 없이도 작동하는 이미지 분석 시스템
-- 실시간 사고 과정 시뮬레이션
-- 프리셋 질문 및 이미지 업로드 지원
-
-### 🎯 AI 네이밍 통일
-
-- "AI 에이전트" → "AI 어시스턴트"로 통일
-- 미래 자동 서버 관리 수준 달성 시 "AI 에이전트"로 진화 예정

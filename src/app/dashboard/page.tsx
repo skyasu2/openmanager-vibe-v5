@@ -283,24 +283,9 @@ function DashboardPageContent() {
         {/* 헤더 */}
         <Suspense fallback={<HeaderLoadingSkeleton />}>
           <DashboardHeader
-            serverStats={serverStats} // 실제 API에서 가져온 통계 데이터 사용
             onNavigateHome={handleNavigateHome}
             onToggleAgent={toggleAgent}
             isAgentOpen={isAgentOpen}
-            systemStatusDisplay={
-              <Suspense fallback={<LoadingSpinner />}>
-                <SystemStatusDisplay
-                  isSystemActive={true}
-                  isSystemPaused={false}
-                  isUserSession={true}
-                  formattedTime='00:00:00'
-                  pauseReason=''
-                  onSystemStop={handleSystemStop}
-                  onSystemPause={handleSystemPause}
-                  onSystemResume={handleSystemResume}
-                />
-              </Suspense>
-            }
           />
         </Suspense>
 
