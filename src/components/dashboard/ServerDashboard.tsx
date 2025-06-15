@@ -356,6 +356,10 @@ export default function ServerDashboard({
     'all' | 'online' | 'warning' | 'offline'
   >('all');
   const [locationFilter, setLocationFilter] = useState<string>('all');
+  // 페이지네이션 상태 추가 (useState 순서 고정)
+  const [criticalPage, setCriticalPage] = useState(1);
+  const [warningPage, setWarningPage] = useState(1);
+  const [healthyPage, setHealthyPage] = useState(1);
 
   // ✅ 페이지네이션 설정: API 데이터와 일치하도록 30개로 설정
   // 8개씩 나누면 데이터 불일치와 빠른 갱신 문제 발생
@@ -369,6 +373,12 @@ export default function ServerDashboard({
     return 30; // 그 외에는 30개씩
   }, [servers.length]);
 
+  // 🎯 검색어 디바운싱 (500ms 지연) - 훅 순서 고정
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  // 🎯 대시보드 토글 상태 - 훅 순서 고정
+  const { isCollapsed } = useDashboardToggleStore();
+
   // ✅ 실시간 훅: 30초 주기로 새로고침 (데이터생성기와 동기화, 안정성 향상)
   const {
     servers: realtimeServers,
@@ -381,10 +391,49 @@ export default function ServerDashboard({
     enableAutoRefresh: true,
   });
 
-  // 🔄 실시간 서버 데이터를 로컬 상태에 동기화
+  // 🚀 디버깅 로그 추가
+  console.log('📊 ServerDashboard 렌더링:', {
+    serversCount: servers?.length,
+    isClient,
+    isLoading,
+    error,
+    searchTerm,
+    currentPage,
+    timestamp: new Date().toISOString(),
+  });
+
+  // 🛡️ 통합된 초기화 및 데이터 동기화 useEffect (훅 순서 일관성 보장)
+  useEffect(() => {
+    let mounted = true;
+
+    // 클라이언트 사이드 설정
+    console.log('✅ ServerDashboard 클라이언트 설정');
+    setIsClient(true);
+
+    const initializeData = async () => {
+      if (!mounted) return;
+
+      console.log('🚀 ServerDashboard 데이터 초기화 시작');
+
+      try {
+        // 실제 데이터 로드 시도
+        await refreshServers();
+      } catch (error) {
+        console.error('❌ 데이터 초기화 실패:', error);
+      }
+    };
+
+    initializeData();
+
+    return () => {
+      mounted = false;
+    };
+  }, [refreshServers]);
+
+  // 🔄 실시간 서버 데이터 동기화 (분리된 useEffect)
   useEffect(() => {
     if (realtimeServers) {
-      // ��️ 배열 타입 검증 및 안전한 처리
+      // 🛡️ 배열 타입 검증 및 안전한 처리
       if (Array.isArray(realtimeServers) && realtimeServers.length > 0) {
         console.log('🔄 실시간 서버 데이터 동기화:', realtimeServers.length);
         setServers(realtimeServers);
@@ -413,162 +462,6 @@ export default function ServerDashboard({
     realtimeLoading,
     servers.length,
   ]);
-
-  // 🎯 검색어 디바운싱 (500ms 지연)
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
-
-  // 🎯 대시보드 토글 상태
-  const { isCollapsed } = useDashboardToggleStore();
-
-  // 🚀 디버깅 로그 추가
-  console.log('📊 ServerDashboard 렌더링:', {
-    serversCount: servers?.length,
-    isClient,
-    isLoading,
-    error,
-    searchTerm,
-    currentPage,
-    timestamp: new Date().toISOString(),
-  });
-
-  // 클라이언트 사이드 확인
-  useEffect(() => {
-    console.log('✅ ServerDashboard 클라이언트 설정');
-    setIsClient(true);
-  }, []);
-
-  // 페이지네이션 상태 추가
-  const [criticalPage, setCriticalPage] = useState(1);
-  const [warningPage, setWarningPage] = useState(1);
-  const [healthyPage, setHealthyPage] = useState(1);
-
-  // 서버 데이터를 Server 타입으로 변환 및 정렬 (클라이언트에서만)
-  const currentServers: Server[] = useMemo(() => {
-    if (!isClient) {
-      return [];
-    }
-
-    // 🔍 디버깅 정보 추가
-    console.log('🔄 ServerDashboard 데이터 매핑:', {
-      serversFromStore: servers.length,
-      isClient,
-      serversArray: servers,
-      timestamp: new Date().toISOString(),
-    });
-
-    // ⚡ 개선: API 데이터 우선 사용, 더 안전한 타입 변환
-    let baseServers: Server[];
-    if (servers.length === 0) {
-      console.warn('⚠️ API 서버 데이터가 없음 - fallback 데이터 사용');
-      baseServers = [...fallbackServers];
-    } else {
-      baseServers = servers.map((server: any, index: number) => ({
-        id: server.id || `server-${index}`,
-        name: server.name || server.hostname || `서버-${index + 1}`,
-        status: mapStatus(server.status || 'offline'),
-        location: server.location || server.region || 'Unknown',
-        cpu: Math.round(server.cpu || 45),
-        memory: Math.round(server.memory || 60),
-        disk: Math.round(server.disk || 75),
-        network: Math.round(server.network || 50),
-        uptime: server.uptime || `${(index % 365) + 1}일`,
-        lastUpdate: new Date(server.lastUpdate || Date.now()),
-        alerts: server.alerts || index % 5,
-        services: server.services || [
-          { name: 'nginx', status: 'running', port: 80 },
-          { name: 'nodejs', status: 'running', port: 3000 },
-        ],
-        networkStatus: server.networkStatus || 'good',
-        type: server.type || 'api_server',
-        environment: server.environment || 'production',
-        provider: server.provider || 'AWS',
-      }));
-    }
-
-    // 🎯 심각 → 경고 → 정상 순으로 정렬
-    const sortedServers = baseServers.sort((a, b) => {
-      const statusPriority = { offline: 0, warning: 1, online: 2 };
-      const priorityA = statusPriority[a.status] || 2;
-      const priorityB = statusPriority[b.status] || 2;
-
-      if (priorityA !== priorityB) {
-        return priorityA - priorityB; // 심각(offline=0) → 경고(warning=1) → 정상(online=2)
-      }
-
-      // 같은 상태면 CPU 사용률 높은 순으로
-      return b.cpu - a.cpu;
-    });
-
-    console.log(`✅ 서버 매핑 및 정렬 완료: ${sortedServers.length}개 서버`);
-    return sortedServers;
-  }, [servers, isClient]);
-
-  // 🔄 실제 데이터 로드 및 정렬 함수
-  const loadRealData = useCallback(async () => {
-    try {
-      console.log('🚀 실제 서버 데이터 로드 시작');
-      setIsLoading(true);
-      setError(null);
-
-      // API에서 실제 데이터 가져오기
-      const response = await fetch('/api/servers?limit=20');
-      if (!response.ok) {
-        throw new Error(`서버 데이터 로드 실패: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('📊 서버 데이터 로드 완료:', data);
-
-      // 🔄 기존 서버 데이터 스토어 새로고침
-      await refreshServers();
-
-      console.log(`✅ 실제 서버 데이터 적용 완료`);
-    } catch (error) {
-      console.error('❌ 실제 데이터 로드 실패:', error);
-      setError(`실제 데이터 로드 실패: ${error}`);
-
-      // 실패해도 기존 데이터 사용
-      console.log('⚠️ API 로드 실패, 기존 데이터 사용');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [refreshServers]);
-
-  // 🔄 데이터 로드 실행 (실제 데이터 우선)
-  useEffect(() => {
-    let mounted = true;
-
-    const initializeData = async () => {
-      if (!mounted) return;
-
-      console.log('🚀 ServerDashboard 데이터 초기화 시작');
-
-      try {
-        // 실제 데이터 로드 시도
-        await loadRealData();
-      } catch (error) {
-        console.error('❌ 데이터 초기화 실패:', error);
-      }
-    };
-
-    initializeData();
-
-    // ✅ 중복 폴링 제거: useRealtimeServers 훅이 이미 30초 주기로 폴링하므로 추가 타이머 불필요
-    // 기존 120초 타이머 제거로 성능 향상 및 안정성 확보
-
-    return () => {
-      mounted = false;
-      // 추가 타이머 없으므로 정리할 것 없음
-    };
-  }, [onStatsUpdate, loadRealData]);
-
-  // 실시간 데이터 동기화
-  useEffect(() => {
-    if (realtimeServers && realtimeServers.length > 0) {
-      setServers(realtimeServers as any);
-      setIsLoading(false);
-    }
-  }, [realtimeServers]);
 
   // ✅ 서버 정렬 로직 메모이제이션
   const sortServersByPriority = useCallback((servers: Server[]): Server[] => {
@@ -600,7 +493,7 @@ export default function ServerDashboard({
 
   // ✅ 필터링된 서버 목록 메모이제이션 (디바운싱된 검색어 사용)
   const filteredServers = useMemo(() => {
-    let filtered = currentServers;
+    let filtered = servers;
 
     // 검색 필터링 (디바운싱된 검색어 사용)
     if (debouncedSearchTerm) {
@@ -643,7 +536,7 @@ export default function ServerDashboard({
 
     return filtered;
   }, [
-    currentServers,
+    servers,
     debouncedSearchTerm,
     filterStatus,
     locationFilter,
@@ -756,7 +649,7 @@ export default function ServerDashboard({
               id: 'servers',
               label: '서버',
               icon: ServerIcon,
-              count: currentServers.length,
+              count: servers.length,
             },
             {
               id: 'network',
@@ -954,7 +847,7 @@ export default function ServerDashboard({
   );
 
   // 서버가 없는 경우만 로딩 표시 (초기 데이터는 항상 있음)
-  if (currentServers.length === 0) {
+  if (servers.length === 0) {
     return (
       <div className='flex items-center justify-center h-64'>
         <div className='text-center'>
@@ -1009,7 +902,7 @@ export default function ServerDashboard({
               )}
 
               {/* 서버가 없는 경우만 로딩 표시 (초기 데이터는 항상 있음) */}
-              {isClient && currentServers.length === 0 && (
+              {isClient && servers.length === 0 && (
                 <div className='flex items-center justify-center h-64'>
                   <div className='text-center'>
                     <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4'></div>
@@ -1024,7 +917,7 @@ export default function ServerDashboard({
               )}
 
               {/* 검색 및 필터 */}
-              {isClient && currentServers.length > 0 && (
+              {isClient && servers.length > 0 && (
                 <div className='mb-6'>
                   <div className='flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between'>
                     {/* 검색 및 뷰 모드 컨트롤 */}
@@ -1062,13 +955,13 @@ export default function ServerDashboard({
                         className='px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white'
                       >
                         <option value='all'>모든 위치</option>
-                        {Array.from(
-                          new Set(currentServers.map(s => s.location))
-                        ).map(location => (
-                          <option key={location} value={location}>
-                            {location}
-                          </option>
-                        ))}
+                        {Array.from(new Set(servers.map(s => s.location))).map(
+                          location => (
+                            <option key={location} value={location}>
+                              {location}
+                            </option>
+                          )
+                        )}
                       </select>
 
                       {/* 필터 리셋 버튼 */}
