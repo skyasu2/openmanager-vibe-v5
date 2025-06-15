@@ -586,7 +586,7 @@ export default function EnhancedServerModal({
                             서비스 상태
                           </h4>
                           <div className='space-y-3'>
-                            {server.services.map((service, idx) => (
+                            {(server.services || []).map((service, idx) => (
                               <div
                                 key={idx}
                                 className='flex items-center justify-between'
@@ -608,6 +608,16 @@ export default function EnhancedServerModal({
                                 </span>
                               </div>
                             ))}
+
+                            {/* 서비스가 없는 경우 안내 메시지 */}
+                            {(!server.services ||
+                              server.services.length === 0) && (
+                              <div className='text-center py-4 text-gray-500'>
+                                <span className='text-sm'>
+                                  등록된 서비스가 없습니다
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
