@@ -8,6 +8,7 @@
  * ✅ 답변 제어 기능
  * ✅ 멀티 파일 업로드
  * ✅ 실시간 타이핑 효과
+ * ✅ 이미지 분석 기능 (Google AI 없이도 가능)
  */
 
 'use client';
@@ -34,7 +35,16 @@ import {
   FileText,
   Image,
   Upload,
+  Eye,
+  Palette,
+  BarChart3,
 } from 'lucide-react';
+
+// 이미지 분석 엔진 import
+import {
+  ImageAnalysisEngine,
+  ImageAnalysisResult,
+} from '../../../lib/image-analysis/ImageAnalysisEngine';
 
 // AI 엔진 타입 정의
 interface AIEngine {
@@ -63,6 +73,7 @@ interface ChatMessage {
   engine?: string;
   confidence?: number;
   files?: UploadedFile[];
+  imageAnalysis?: ImageAnalysisResult; // 이미지 분석 결과 추가
 }
 
 // AI 사고 과정 타입
@@ -83,6 +94,7 @@ interface UploadedFile {
   size: number;
   content?: string;
   preview?: string;
+  analysisResult?: ImageAnalysisResult; // 이미지 분석 결과 추가
 }
 
 // 프리셋 질문 타입
@@ -153,7 +165,7 @@ const AI_ENGINES: AIEngine[] = [
   },
 ];
 
-// 프리셋 질문 목록
+// 프리셋 질문 목록 (이미지 분석 관련 질문 추가)
 const PRESET_QUESTIONS: PresetQuestion[] = [
   {
     id: '1',
@@ -197,6 +209,20 @@ const PRESET_QUESTIONS: PresetQuestion[] = [
     icon: Sparkles,
     color: 'bg-pink-500',
   },
+  {
+    id: '7',
+    text: '업로드한 이미지를 분석해주세요',
+    category: '이미지 분석',
+    icon: Eye,
+    color: 'bg-indigo-500',
+  },
+  {
+    id: '8',
+    text: '스크린샷에서 문제점을 찾아주세요',
+    category: '이미지 진단',
+    icon: BarChart3,
+    color: 'bg-orange-500',
+  },
 ];
 
 export default function EnhancedAIChatPage() {
@@ -213,6 +239,16 @@ export default function EnhancedAIChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const presetScrollRef = useRef<HTMLDivElement>(null);
+
+  // 이미지 분석 엔진 인스턴스
+  const imageAnalysisEngine = useRef<ImageAnalysisEngine | null>(null);
+
+  // 이미지 분석 엔진 초기화
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      imageAnalysisEngine.current = new ImageAnalysisEngine();
+    }
+  }, []);
 
   // 메시지 스크롤
   useEffect(() => {
@@ -258,6 +294,45 @@ export default function EnhancedAIChatPage() {
     return steps;
   }, []);
 
+  // 이미지 분석 사고 과정 시뮬레이션
+  const simulateImageThinking = useCallback((): ThinkingStep[] => {
+    const steps = [
+      {
+        id: '1',
+        step: 1,
+        title: '이미지 메타데이터 추출',
+        description: '파일 크기, 해상도, 형식 분석',
+        status: 'completed' as const,
+        duration: 300,
+      },
+      {
+        id: '2',
+        step: 2,
+        title: '색상 분석 수행',
+        description: '주요 색상, 밝기, 대비 계산',
+        status: 'completed' as const,
+        duration: 800,
+      },
+      {
+        id: '3',
+        step: 3,
+        title: '패턴 인식 처리',
+        description: '스크린샷, 차트, 텍스트 감지',
+        status: 'completed' as const,
+        duration: 1200,
+      },
+      {
+        id: '4',
+        step: 4,
+        title: '분석 결과 종합',
+        description: '제안사항 및 요약 생성',
+        status: 'completed' as const,
+        duration: 500,
+      },
+    ];
+    return steps;
+  }, []);
+
   // 메시지 전송 핸들러
   const handleSendMessage = async () => {
     if (!inputValue.trim() && uploadedFiles.length === 0) return;
@@ -275,46 +350,90 @@ export default function EnhancedAIChatPage() {
     setUploadedFiles([]);
     setIsGenerating(true);
 
-    // AI 응답 시뮬레이션
-    const thinking = simulateThinking();
-    const aiMessageId = (Date.now() + 1).toString();
+    // 이미지 파일이 있는 경우 이미지 분석 수행
+    const hasImages = uploadedFiles.some(file =>
+      file.type.startsWith('image/')
+    );
 
-    // 사고 과정 표시
-    const aiMessage: ChatMessage = {
-      id: aiMessageId,
-      type: 'ai',
-      content: '',
-      timestamp: new Date(),
-      thinking,
-      engine: selectedEngine,
-      confidence: 0.85,
-    };
+    if (hasImages) {
+      // 이미지 분석 사고 과정 표시
+      const thinking = simulateImageThinking();
+      const aiMessageId = (Date.now() + 1).toString();
 
-    setMessages(prev => [...prev, aiMessage]);
+      const aiMessage: ChatMessage = {
+        id: aiMessageId,
+        type: 'ai',
+        content: '',
+        timestamp: new Date(),
+        thinking,
+        engine: selectedEngine,
+        confidence: 0.92,
+      };
 
-    // 타이핑 효과로 응답 생성
-    setTimeout(() => {
-      const response = generateAIResponse(inputValue, selectedEngine);
-      setMessages(prev =>
-        prev.map(msg =>
-          msg.id === aiMessageId ? { ...msg, content: response } : msg
-        )
-      );
-      setIsGenerating(false);
-    }, 3000);
+      setMessages(prev => [...prev, aiMessage]);
+
+      // 이미지 분석 수행 및 응답 생성
+      setTimeout(async () => {
+        let response = '📸 **이미지 분석 결과**\n\n';
+
+        for (const file of uploadedFiles.filter(f =>
+          f.type.startsWith('image/')
+        )) {
+          if (file.analysisResult) {
+            response +=
+              imageAnalysisEngine.current?.generateSummary(
+                file.analysisResult
+              ) || '';
+            response += '\n---\n\n';
+          }
+        }
+
+        response += generateAIResponse(inputValue, selectedEngine);
+
+        setMessages(prev =>
+          prev.map(msg =>
+            msg.id === aiMessageId ? { ...msg, content: response } : msg
+          )
+        );
+        setIsGenerating(false);
+      }, 3000);
+    } else {
+      // 일반 텍스트 응답
+      const thinking = simulateThinking();
+      const aiMessageId = (Date.now() + 1).toString();
+
+      const aiMessage: ChatMessage = {
+        id: aiMessageId,
+        type: 'ai',
+        content: '',
+        timestamp: new Date(),
+        thinking,
+        engine: selectedEngine,
+        confidence: 0.85,
+      };
+
+      setMessages(prev => [...prev, aiMessage]);
+
+      setTimeout(() => {
+        const response = generateAIResponse(inputValue, selectedEngine);
+        setMessages(prev =>
+          prev.map(msg =>
+            msg.id === aiMessageId ? { ...msg, content: response } : msg
+          )
+        );
+        setIsGenerating(false);
+      }, 3000);
+    }
   };
 
   // AI 응답 생성
   const generateAIResponse = (query: string, engine: string): string => {
-    const responses = {
-      auto: `자동 분석 결과: 현재 시스템 상태를 종합적으로 분석한 결과, 8개 서버 중 7개가 정상 작동 중입니다. CPU 평균 사용률 45%, 메모리 68%로 안정적입니다.`,
-      unified: `통합 AI 분석: MCP, RAG, Google AI를 활용한 종합 분석 결과, 시스템 전반적으로 양호한 상태입니다. 특별한 이상 징후는 발견되지 않았습니다.`,
-      'google-ai': `Google AI 분석: Gemini 모델을 통한 자연어 분석 결과, 질문하신 내용에 대해 상세한 분석을 제공드립니다.`,
-      mcp: `MCP 엔진 분석: 실시간 서버 컨텍스트를 기반으로 분석한 결과, 현재 인프라 상태는 안정적입니다.`,
-      rag: `RAG 검색 결과: 문서 데이터베이스에서 관련 정보를 검색한 결과, 유사한 상황에 대한 해결책을 찾았습니다.`,
-    };
-
-    return responses[engine as keyof typeof responses] || responses.auto;
+    const responses = [
+      `${engine} 엔진을 사용하여 분석한 결과입니다.\n\n질문: "${query}"\n\n현재 시스템은 정상적으로 작동하고 있으며, 성능 지표도 양호한 상태입니다. 추가적인 최적화가 필요한 부분이 있다면 알려드리겠습니다.`,
+      `분석 완료되었습니다. 요청하신 "${query}"에 대한 상세한 답변을 제공합니다.\n\n시스템 상태를 종합적으로 검토한 결과, 몇 가지 개선 사항을 발견했습니다. 자세한 내용은 다음과 같습니다...`,
+      `${engine}를 통해 심층 분석을 수행했습니다.\n\n"${query}"와 관련하여 다음과 같은 인사이트를 제공합니다:\n\n1. 현재 상태 평가\n2. 잠재적 이슈 식별\n3. 개선 방안 제안`,
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
   };
 
   // 프리셋 질문 클릭
@@ -322,13 +441,16 @@ export default function EnhancedAIChatPage() {
     setInputValue(question);
   };
 
-  // 파일 업로드 핸들러
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // 파일 업로드 핸들러 (이미지 분석 기능 추가)
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const files = Array.from(event.target.files || []);
 
-    files.forEach(file => {
+    for (const file of files) {
       const reader = new FileReader();
-      reader.onload = e => {
+
+      reader.onload = async e => {
         const newFile: UploadedFile = {
           id: Date.now().toString() + Math.random(),
           name: file.name,
@@ -336,10 +458,28 @@ export default function EnhancedAIChatPage() {
           size: file.size,
           content: e.target?.result as string,
         };
+
+        // 이미지 파일인 경우 분석 수행
+        if (file.type.startsWith('image/') && imageAnalysisEngine.current) {
+          try {
+            const analysisResult =
+              await imageAnalysisEngine.current.analyzeImage(file);
+            newFile.analysisResult = analysisResult;
+            newFile.preview = URL.createObjectURL(file);
+          } catch (error) {
+            console.error('이미지 분석 실패:', error);
+          }
+        }
+
         setUploadedFiles(prev => [...prev, newFile]);
       };
-      reader.readAsText(file);
-    });
+
+      if (file.type.startsWith('image/')) {
+        reader.readAsDataURL(file);
+      } else {
+        reader.readAsText(file);
+      }
+    }
   };
 
   // 파일 제거

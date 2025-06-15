@@ -239,19 +239,29 @@ npm run health-check:prod
 
 ## 📈 성능 최적화
 
-### 번들 크기 최적화
+### Vercel Edge Middleware 제거
 
-- **Tree Shaking**: 사용하지 않는 코드 제거
-- **Code Splitting**: 페이지별 코드 분할
-- **Dynamic Import**: 필요시에만 컴포넌트 로드
+- **문제**: Edge Middleware 1M 호출 초과로 과금 시작
+- **해결**: middleware.ts 완전 제거 및 대체 방안 구현
+- **대체 방안**:
+  - `src/utils/api-metrics.ts` - API 라우트 내부 메트릭 수집
+  - `src/hooks/useClientMetrics.ts` - 클라이언트 사이드 성능 추적
+  - 기존 기능 100% 유지하면서 Edge 호출 비용 0으로 감소
 
-### 런타임 최적화
+### 클라이언트 사이드 메트릭
 
-- **Redis 캐싱**: API 응답 캐싱으로 성능 향상
-- **WebSocket**: 실시간 데이터 효율적 전송
-- **AI 응답 캐싱**: 자주 사용되는 AI 응답 캐싱
+```typescript
+import { useClientMetrics } from '@/hooks/useClientMetrics';
 
-## 🤝 개발 방법론
+function MyComponent() {
+  const { trackAPICall, getMetrics } = useClientMetrics();
+
+  // API 호출 시 메트릭 자동 수집
+  const wrappedFetch = createAPIWrapper(trackAPICall);
+}
+```
+
+## �� 개발 방법론
 
 ### AI 협업 개발 (Vibe Coding)
 
@@ -311,3 +321,26 @@ npm run health-check:prod
 ---
 
 **🚀 OpenManager Vibe v5 - AI가 이끄는 차세대 서버 모니터링의 미래**
+
+## 🔥 최신 업데이트 (v5.44.0)
+
+### ✅ Vercel Edge Middleware 완전 제거 (과금 방지)
+
+- **문제**: Edge Middleware 1M 호출 초과로 과금 시작
+- **해결**: middleware.ts 완전 제거 및 대체 방안 구현
+- **대체 방안**:
+  - `src/utils/api-metrics.ts` - API 라우트 내부 메트릭 수집
+  - `src/hooks/useClientMetrics.ts` - 클라이언트 사이드 성능 추적
+  - 기존 기능 100% 유지하면서 Edge 호출 비용 0으로 감소
+
+### 🚀 Enhanced AI Chat 완성
+
+- Cursor AI 스타일의 고급 채팅 인터페이스
+- Google AI 없이도 작동하는 이미지 분석 시스템
+- 실시간 사고 과정 시뮬레이션
+- 프리셋 질문 및 이미지 업로드 지원
+
+### 🎯 AI 네이밍 통일
+
+- "AI 에이전트" → "AI 어시스턴트"로 통일
+- 미래 자동 서버 관리 수준 달성 시 "AI 에이전트"로 진화 예정
