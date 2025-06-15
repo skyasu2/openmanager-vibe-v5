@@ -7,15 +7,42 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 // import EnvBackupManager from '../../../lib/env-backup-manager';
+import { MCPWarmupService } from '@/services/mcp/mcp-warmup-service';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+// 시스템 시작 시 한 번만 워밍업 실행하기 위한 플래그
+let initialWarmupCompleted = false;
 
 /**
  * 🏥 시스템 헬스 체크
  */
 export async function GET(request: NextRequest) {
+  const start = Date.now();
+  
   try {
+    // 시스템 시작 시 초기 워밍업 실행 (한 번만)
+    if (!initialWarmupCompleted) {
+      try {
+        const mcpWarmupService = MCPWarmupService.getInstance();
+        // 비동기로 워밍업 실행 (헬스체크 응답 속도에 영향 없음)
+        mcpWarmupService.warmupAllServers().then(() => {
+          console.log('🔥 시스템 시작 시 초기 MCP 워밍업 완료');
+        }).catch((error) => {
+          console.warn('⚠️ 초기 MCP 워밍업 실패:', error);
+        });
+        
+        // 주기적 워밍업 시작 (1분 간격)
+        mcpWarmupService.startPeriodicWarmup(1);
+        console.log('🔄 MCP 주기적 워밍업 시작 (1분 간격)');
+        
+        initialWarmupCompleted = true;
+      } catch (error) {
+        console.warn('⚠️ MCP 워밍업 초기화 실패:', error);
+      }
+    }
+
     // 🔓 Vercel Protection Bypass 헤더 설정
     const headers = new Headers({
       'Content-Type': 'application/json',

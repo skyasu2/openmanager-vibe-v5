@@ -1,0 +1,37 @@
+# ===========================================
+# 🚀 병렬 AI 엔진 아키텍처 설정
+# ===========================================
+
+# 응답 품질 임계값 (0-100, 기본값: 75)
+AI_QUALITY_THRESHOLD=75
+
+# 외부 AI 폴백 사용 여부 (true/false, 기본값: true)
+EXTERNAL_AI_FALLBACK_ENABLED=true
+
+# 병렬 처리 타임아웃 (밀리초, 기본값: 10000)
+AI_PARALLEL_TIMEOUT=10000
+
+# 최소 성공 엔진 수 (기본값: 2)
+MIN_SUCCESS_ENGINES=2
+
+# MCP 워밍업 설정
+MCP_WARMUP_ENABLED=true
+MCP_WARMUP_INTERVAL=1
+
+# Google AI 설정 (폴백용)
+GOOGLE_AI_ENABLED=true
+GOOGLE_AI_API_KEY=your_google_ai_api_key_here
+GOOGLE_AI_QUESTION_RESPONSE_ONLY=false
+
+# ===========================================
+# 📊 성능 모니터링 설정
+# ===========================================
+
+# AI 엔진 로깅 활성화
+AI_ENGINE_LOGGING=true
+
+# 응답 시간 모니터링
+AI_RESPONSE_TIME_MONITORING=true
+
+# 품질 메트릭 수집
+AI_QUALITY_METRICS=true 

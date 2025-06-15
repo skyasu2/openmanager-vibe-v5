@@ -12,9 +12,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ProcessManager } from '@/core/system/ProcessManager';
 import { getProcessConfigs, validateProcessConfigs } from '@/core/system/process-configs';
 import { systemLogger } from '@/lib/logger';
+import { MCPWarmupService } from '@/services/mcp/mcp-warmup-service';
 
 // 싱글톤 ProcessManager 인스턴스
 let processManager: ProcessManager | null = null;
+let mcpWarmupStarted = false;
 
 function getProcessManager(): ProcessManager {
   if (!processManager) {
@@ -40,6 +42,14 @@ function getProcessManager(): ProcessManager {
     });
     
     systemLogger.system(`✅ ProcessManager 초기화 완료 (${configs.length}개 프로세스 등록)`);
+    
+    // MCP 워밍업 1분 간격으로 시작
+    if (!mcpWarmupStarted) {
+      const mcpWarmupService = MCPWarmupService.getInstance();
+      mcpWarmupService.startPeriodicWarmup(1); // 1분 간격
+      mcpWarmupStarted = true;
+      systemLogger.system('🔥 MCP 워밍업 자동 시작 (1분 간격)');
+    }
   }
   
   return processManager;

@@ -138,7 +138,7 @@ export default function FloatingSystemControl({
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-4 right-4 z-40"
+            className="fixed bottom-4 left-4 z-40"
           >
             <motion.div
               whileHover={{ scale: 1.05 }}
