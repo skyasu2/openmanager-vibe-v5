@@ -237,15 +237,18 @@ export function getCurrentEnvironment() {
   return getEnvironmentConfig();
 }
 
+import { ACTIVE_SERVER_CONFIG, DEFAULT_SERVER_COUNT } from './serverConfig';
+
 /**
  * 데이터 생성기 설정 반환
  */
 export function getDataGeneratorConfig() {
   const config = getEnvironmentConfig();
+  const centralConfig = ACTIVE_SERVER_CONFIG;
 
-  // 🚀 환경별 서버 수 조절: 오토스케일링 지원
-  let maxServers = 30; // 기본값: 30개
-  let minServers = 8; // 최소값: 8개
+  // 🚀 환경별 서버 수 조절: 중앙 설정 기반 오토스케일링 지원
+  let maxServers = centralConfig.maxServers; // 중앙 설정에서 서버 개수 가져오기
+  let minServers = Math.max(5, Math.floor(maxServers * 0.4)); // 최소값: 최대값의 40% (최소 5개)
   let serverArchitecture:
     | 'single'
     | 'master-slave'
@@ -253,31 +256,37 @@ export function getDataGeneratorConfig() {
     | 'microservices' = 'master-slave';
 
   if (config.IS_VERCEL) {
-    // 🔍 Vercel Pro 감지 로직 개선
+    // 🔍 Vercel 환경에서는 리소스 제한에 따라 조정
     const isVercelPro =
       process.env.VERCEL_ENV === 'production' &&
       (process.env.VERCEL_TIER === 'pro' ||
         process.env.VERCEL_PLAN === 'pro' ||
         process.env.NEXT_PUBLIC_VERCEL_PLAN === 'pro' ||
-        // 유료 사용자라고 언급했으므로 Pro로 간주
         process.env.NODE_ENV === 'production');
 
     if (isVercelPro) {
-      maxServers = 30; // ✅ Vercel Pro: 최대 30개 서버
-      minServers = 8; // 최소 8개 서버
+      maxServers = Math.min(maxServers, 25); // ✅ Vercel Pro: 최대 25개 서버로 제한
+      minServers = Math.max(5, Math.floor(maxServers * 0.3)); // 최소 30%
       serverArchitecture = 'microservices';
-      console.log('🎯 Vercel Pro 환경 감지: 8-30개 서버 오토스케일링');
+      console.log(
+        `🎯 Vercel Pro 환경: ${minServers}-${maxServers}개 서버 (중앙설정: ${centralConfig.maxServers}개)`
+      );
     } else {
-      maxServers = 15; // Vercel Free: 최대 15개 서버
-      minServers = 8; // 최소 8개 서버
+      maxServers = Math.min(maxServers, 15); // Vercel Free: 최대 15개 서버로 제한
+      minServers = Math.max(5, Math.floor(maxServers * 0.4)); // 최소 40%
       serverArchitecture = 'load-balanced';
-      console.log('🎯 Vercel Free 환경 감지: 8-15개 서버 오토스케일링');
+      console.log(
+        `🎯 Vercel Free 환경: ${minServers}-${maxServers}개 서버 (중앙설정: ${centralConfig.maxServers}개)`
+      );
     }
   } else {
-    maxServers = 50; // 로컬: 최대 50개 서버 (무제한에 가까움)
-    minServers = 8; // 최소 8개 서버
+    // 로컬 환경에서는 중앙 설정 그대로 사용
+    maxServers = centralConfig.maxServers;
+    minServers = Math.max(5, Math.floor(maxServers * 0.25)); // 최소 25%
     serverArchitecture = 'microservices';
-    console.log('🎯 로컬 개발 환경: 8-50개 서버 오토스케일링');
+    console.log(
+      `🎯 로컬 개발 환경: ${minServers}-${maxServers}개 서버 (중앙설정 적용)`
+    );
   }
 
   return {
@@ -285,15 +294,15 @@ export function getDataGeneratorConfig() {
     maxServers,
     minServers,
     defaultArchitecture: serverArchitecture,
-    updateInterval: 20000, // 🔄 모든 환경에서 20초로 통일 (Edge 비용 최적화)
-    refreshInterval: 20000, // 🔄 모든 환경에서 20초로 통일
+    updateInterval: centralConfig.cache.updateInterval, // 중앙 설정에서 업데이트 간격
+    refreshInterval: centralConfig.cache.updateInterval, // 중앙 설정에서 새로고침 간격
     memoryLimit: config.performance.maxMemory,
     mode: config.IS_VERCEL ? 'production' : 'development',
     features: {
       networkTopology: config.features.enableRealtime,
       demoScenarios: config.features.enableRealtime,
       baselineOptimization: config.features.enableRealtime,
-      maxNodes: config.IS_VERCEL ? 25 : 50, // 20→25로 증가
+      maxNodes: Math.min(maxServers + 5, config.IS_VERCEL ? 30 : 55), // 서버 수 + 5개 (네트워크 노드)
       autoRotate: config.features.enableRealtime,
     },
   };

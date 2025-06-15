@@ -52,7 +52,8 @@ import NetworkMonitoringCard from './NetworkMonitoringCard';
 import { Server } from '../../types/server';
 import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
 import { transformArray } from '@/adapters/server-dashboard.transformer';
-// import { useRealtimeServers } from '@/hooks/api/useRealtimeServers';
+// 🚀 캐시된 서버 데이터 사용 (성능 최적화)
+import { useCachedServers } from '@/hooks/useCachedServers';
 // import { useDebounce } from '@/utils/performance';
 // import { usePerformanceOptimization } from '@/utils/performance';
 // ❌ 제거: Node.js 전용 모듈을 클라이언트에서 import하면 안됨
@@ -234,72 +235,8 @@ const useDebounce = (value: string, delay: number) => {
 
 // ✅ 성능 최적화 훅 제거 (무한 렌더링 방지)
 
-// 🔧 안전한 useRealtimeServers 훅 (무한 루프 완전 방지)
-const useRealtimeServers = () => {
-  const [servers, setServers] = useState<Server[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-
-  const fetchServers = useCallback(async () => {
-    try {
-      const response = await fetch('/api/servers/realtime');
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || `HTTP error! status: ${response.status}`);
-      }
-
-      if (data.success === false) {
-        console.warn('API reported a controlled error:', data.error);
-        setError(data.error);
-        if (data.servers && Array.isArray(data.servers)) {
-          const transformedServers = data.servers.map((s: any) => ({
-            ...s,
-            status: mapStatus(s.status),
-          }));
-          setServers(transformedServers);
-        } else {
-          setServers(fallbackServers);
-        }
-        return;
-      }
-
-      if (!Array.isArray(data.servers)) {
-        console.warn('API response servers is not an array, using fallback');
-        setServers(fallbackServers);
-        setError('서버 데이터 형식 오류');
-        return;
-      }
-
-      const transformedServers = data.servers.map((s: any) => ({
-        ...s,
-        status: mapStatus(s.status),
-      }));
-      setServers(transformedServers);
-      setLastUpdated(new Date());
-      setError(null);
-    } catch (err: any) {
-      console.error('Failed to fetch real-time server data:', err);
-      setError(
-        err.message || 'An unknown error occurred while fetching server data.'
-      );
-      setServers(fallbackServers); // 폴백 데이터 사용
-    } finally {
-      setIsLoading(false);
-    }
-  }, []); // 🔧 빈 의존성 배열로 무한 루프 방지
-
-  useEffect(() => {
-    fetchServers();
-
-    // 15초마다 자동 새로고침
-    const intervalId = setInterval(fetchServers, 15000);
-    return () => clearInterval(intervalId);
-  }, []); // 🔧 빈 의존성 배열로 무한 루프 방지
-
-  return { servers, isLoading, error, lastUpdated, refresh: fetchServers };
-};
+// 🚀 캐시된 서버 데이터 사용 (성능 최적화)
+import { useCachedServers } from '@/hooks/useCachedServers';
 
 const mapStatus = (rawStatus: string): 'healthy' | 'warning' | 'offline' => {
   const s = String(rawStatus)?.toLowerCase();
