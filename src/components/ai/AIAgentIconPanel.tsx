@@ -47,24 +47,26 @@ interface AIAgentIcon {
   gradient: string;
 }
 
+// 🎯 사용 빈도와 중요도를 고려한 최적화된 메뉴 순서
 const AI_AGENT_ICONS: AIAgentIcon[] = [
+  // === 핵심 기능 (상단) ===
   {
     id: 'chat',
     icon: MessageSquare,
     label: 'AI 채팅',
-    description: '자연어로 시스템 질의',
+    description: '자연어로 시스템 질의 (가장 많이 사용)',
     color: 'text-blue-600',
     bgColor: 'bg-blue-50 hover:bg-blue-100',
     gradient: 'from-blue-500 to-cyan-500',
   },
   {
-    id: 'auto-report',
-    icon: FileText,
-    label: '자동 리포트',
-    description: 'AI 기반 시스템 분석 보고서',
-    color: 'text-green-600',
-    bgColor: 'bg-green-50 hover:bg-green-100',
-    gradient: 'from-green-500 to-emerald-500',
+    id: 'thinking',
+    icon: Brain,
+    label: 'AI 사고',
+    description: '복잡한 문제 해결 과정 시각화',
+    color: 'text-pink-600',
+    bgColor: 'bg-pink-50 hover:bg-pink-100',
+    gradient: 'from-pink-500 to-rose-500',
   },
   {
     id: 'prediction',
@@ -75,15 +77,8 @@ const AI_AGENT_ICONS: AIAgentIcon[] = [
     bgColor: 'bg-purple-50 hover:bg-purple-100',
     gradient: 'from-purple-500 to-violet-500',
   },
-  {
-    id: 'advanced-management',
-    icon: Settings,
-    label: 'AI 고급관리',
-    description: '통합 AI 시스템 관리',
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-50 hover:bg-gray-100',
-    gradient: 'from-gray-500 to-slate-500',
-  },
+  
+  // === 분석 기능 (중단) ===
   {
     id: 'pattern-analysis',
     icon: BarChart3,
@@ -103,15 +98,6 @@ const AI_AGENT_ICONS: AIAgentIcon[] = [
     gradient: 'from-indigo-500 to-blue-500',
   },
   {
-    id: 'thinking',
-    icon: Brain,
-    label: 'AI 사고',
-    description: '복잡한 문제 해결 과정',
-    color: 'text-pink-600',
-    bgColor: 'bg-pink-50 hover:bg-pink-100',
-    gradient: 'from-pink-500 to-rose-500',
-  },
-  {
     id: 'optimization',
     icon: Zap,
     label: '최적화',
@@ -119,6 +105,26 @@ const AI_AGENT_ICONS: AIAgentIcon[] = [
     color: 'text-yellow-600',
     bgColor: 'bg-yellow-50 hover:bg-yellow-100',
     gradient: 'from-yellow-500 to-orange-500',
+  },
+  
+  // === 관리 기능 (하단) ===
+  {
+    id: 'auto-report',
+    icon: FileText,
+    label: '자동 리포트',
+    description: 'AI 기반 시스템 분석 보고서',
+    color: 'text-green-600',
+    bgColor: 'bg-green-50 hover:bg-green-100',
+    gradient: 'from-green-500 to-emerald-500',
+  },
+  {
+    id: 'advanced-management',
+    icon: Settings,
+    label: 'AI 고급관리',
+    description: '통합 AI 시스템 관리',
+    color: 'text-gray-600',
+    bgColor: 'bg-gray-50 hover:bg-gray-100',
+    gradient: 'from-gray-500 to-slate-500',
   },
 ];
 
@@ -129,6 +135,18 @@ interface AIAgentIconPanelProps {
   isMobile?: boolean;
 }
 
+// 툴팁 위치 계산 유틸리티 추가
+const getTooltipPosition = (index: number, total: number) => {
+  const middle = Math.floor(total / 2);
+  if (index < middle) {
+    return 'top-0'; // 상단 아이템들은 위쪽 정렬
+  } else if (index > middle) {
+    return 'bottom-0'; // 하단 아이템들은 아래쪽 정렬
+  } else {
+    return 'top-1/2 transform -translate-y-1/2'; // 중간은 중앙 정렬
+  }
+};
+
 export default function AIAgentIconPanel({
   selectedFunction,
   onFunctionChange,
@@ -137,7 +155,8 @@ export default function AIAgentIconPanel({
 }: AIAgentIconPanelProps) {
   if (isMobile) {
     return (
-      <div className={`flex flex-row space-x-2 overflow-x-auto ${className}`}>
+      <div className={`flex flex-row space-x-2 overflow-x-auto pb-2 ${className}`}
+           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {AI_AGENT_ICONS.map((item, index) => {
           const Icon = item.icon;
           const isSelected = selectedFunction === item.id;
@@ -147,17 +166,27 @@ export default function AIAgentIconPanel({
               key={item.id}
               onClick={() => onFunctionChange(item.id)}
               className={`
-                flex-shrink-0 w-12 h-12 rounded-xl transition-all duration-200
+                flex-shrink-0 w-12 h-12 rounded-xl transition-all duration-200 group relative
                 ${
                   isSelected
                     ? `bg-gradient-to-r ${item.gradient} text-white shadow-lg scale-105`
                     : `${item.bgColor} ${item.color}`
                 }
               `}
-              title={item.label}
               whileTap={{ scale: 0.95 }}
             >
               <Icon className='w-5 h-5 mx-auto' />
+              
+              {/* 모바일 툴팁 (상단 표시) */}
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 
+                             bg-gray-900 text-white text-xs px-2 py-1 rounded 
+                             opacity-0 group-hover:opacity-100 transition-opacity duration-200 
+                             pointer-events-none whitespace-nowrap z-[60] shadow-lg">
+                {item.label}
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2">
+                  <div className="border-2 border-transparent border-t-gray-900"></div>
+                </div>
+              </div>
             </motion.button>
           );
         })}
@@ -214,9 +243,21 @@ export default function AIAgentIconPanel({
                 />
               )}
 
-              {/* 호버 툴팁 */}
-              <div className='absolute left-full ml-2 top-1/2 transform -translate-y-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50'>
-                {item.label}
+              {/* 호버 툴팁 - 개선된 위치 계산 */}
+              <div className={`
+                absolute left-full ml-3 ${getTooltipPosition(index, AI_AGENT_ICONS.length)}
+                bg-gray-900 text-white text-xs px-3 py-2 rounded-lg 
+                opacity-0 group-hover:opacity-100 transition-all duration-200 
+                pointer-events-none whitespace-nowrap z-[60] shadow-lg
+                min-w-max max-w-[200px]
+              `}>
+                <div className="font-medium">{item.label}</div>
+                <div className="text-gray-300 text-xs mt-1">{item.description}</div>
+                
+                {/* 툴팁 화살표 */}
+                <div className="absolute right-full top-1/2 transform -translate-y-1/2">
+                  <div className="border-4 border-transparent border-r-gray-900"></div>
+                </div>
               </div>
             </motion.button>
           );

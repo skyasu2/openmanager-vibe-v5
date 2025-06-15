@@ -523,6 +523,51 @@
   white-space: normal;
 }
 
+/* AI 사이드바 메뉴 개선 */
+.ai-menu-tooltip {
+  /* 화면 경계 감지 및 자동 위치 조정 */
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 60;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  
+  /* 반응형 최대 너비 */
+  max-width: min(240px, calc(100vw - 100px));
+  min-width: 120px;
+}
+
+/* 상단 메뉴 아이템들의 툴팁은 상단 정렬 */
+.ai-menu-item:nth-child(-n+3) .ai-menu-tooltip {
+  top: 0;
+  transform: translateY(0);
+}
+
+/* 하단 메뉴 아이템들의 툴팁은 하단 정렬 */
+.ai-menu-item:nth-last-child(-n+3) .ai-menu-tooltip {
+  top: auto;
+  bottom: 0;
+  transform: translateY(0);
+}
+
+/* 호버 시 툴팁 표시 */
+.ai-menu-item:hover .ai-menu-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 화면 우측 경계 근처에서 왼쪽으로 표시 */
+@media (max-width: 1024px) {
+  .ai-menu-tooltip {
+    left: auto;
+    right: calc(100% + 12px);
+  }
+}
+
 /* 반응형 개선 */
 @media (max-width: 768px) {
   .ai-assistant-panel {
@@ -535,6 +580,28 @@
 
   .panel-body {
     padding: 0.5rem;
+  }
+  
+  /* 모바일에서 AI 메뉴 패널 하단 배치 */
+  .ai-menu-panel-mobile {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 8px 16px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    z-index: 50;
+  }
+  
+  /* 모바일 툴팁은 위쪽으로 */
+  .ai-menu-tooltip-mobile {
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    top: auto;
   }
 }
 
@@ -555,22 +622,40 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 스크롤바 스타일링 */
-.ai-assistant-panel::-webkit-scrollbar {
-  width: 6px;
+/* AI 메뉴 아이템 간격 및 애니메이션 개선 */
+.ai-menu-item {
+  position: relative;
+  margin: 2px 0;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.ai-assistant-panel::-webkit-scrollbar-track {
-  background: #f1f5f9;
+.ai-menu-item:hover {
+  transform: translateX(-2px);
 }
 
-.ai-assistant-panel::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
+/* 선택된 메뉴 아이템 표시 개선 */
+.ai-menu-item-selected::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: linear-gradient(to bottom, #8b5cf6, #06b6d4);
+  border-radius: 2px;
+  animation: pulse-glow 2s ease-in-out infinite;
 }
 
-.ai-assistant-panel::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 4px rgba(139, 92, 246, 0.5);
+  }
+  50% {
+    opacity: 0.7;
+    box-shadow: 0 0 8px rgba(139, 92, 246, 0.8);
+  }
 }
 
 /* 골드 그라데이션 애니메이션 강화 */
