@@ -178,7 +178,7 @@ export interface AIAnalysisDataset {
   metrics: TimeSeriesMetrics[];
   logs: LogEntry[];
   traces: TraceData[];
-  patterns: {
+  patterns?: {
     anomalies: Array<{
       type: string;
       serverId: string;

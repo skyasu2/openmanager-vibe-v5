@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 import { Server as ServerType } from '../../types/server';
 import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
+import { useServerMetrics } from '@/hooks/useOptimizedRealtime';
 
 interface EnhancedServerCardProps {
   server: {
@@ -114,65 +115,24 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       trend: 'stable',
     });
 
-    // 🎯 실시간 데이터 업데이트 - 가시성 기반 최적화
-    useEffect(() => {
-      // 화면에 보이지 않으면 업데이트하지 않음
-      if (!isVisible) return;
+    // 🎯 최적화된 실시간 데이터 업데이트 (중앙 관리자 사용)
+    const { data: serverMetrics, elementRef: optimizedRef, isVisible: optimizedVisible } = useServerMetrics({
+      frequency: 'high', // 서버 메트릭은 높은 주기 (30초)
+      enableVisibilityOptimization: true,
+      onUpdate: (data) => {
+        // 새 데이터로 차트 업데이트
+        setRealtimeData(prev => ({
+          cpu: [...prev.cpu.slice(1), data.cpu],
+          memory: [...prev.memory.slice(1), data.memory],
+          disk: [...prev.disk.slice(1), data.disk],
+          network: [...prev.network.slice(1), data.network],
+          trend: Math.random() > 0.7 ? (Math.random() > 0.5 ? 'up' : 'down') : 'stable',
+        }));
+      },
+    });
 
-      const interval = setInterval(
-        () => {
-          setRealtimeData(prev => ({
-            cpu: [
-              ...prev.cpu.slice(1),
-              Math.max(
-                0,
-                Math.min(100, server.cpu + (Math.random() - 0.5) * 20)
-              ),
-            ],
-            memory: [
-              ...prev.memory.slice(1),
-              Math.max(
-                0,
-                Math.min(100, server.memory + (Math.random() - 0.5) * 15)
-              ),
-            ],
-            disk: [
-              ...prev.disk.slice(1),
-              Math.max(
-                0,
-                Math.min(100, server.disk + (Math.random() - 0.5) * 5)
-              ),
-            ],
-            network: [
-              ...prev.network.slice(1),
-              Math.max(
-                0,
-                Math.min(
-                  100,
-                  (server.network || 30) + (Math.random() - 0.5) * 25
-                )
-              ),
-            ],
-            trend:
-              Math.random() > 0.7
-                ? Math.random() > 0.5
-                  ? 'up'
-                  : 'down'
-                : 'stable',
-          }));
-        },
-        2000 + index * 100
-      ); // 카드별로 약간씩 다른 업데이트 주기
-
-      return () => clearInterval(interval);
-    }, [
-      server.cpu,
-      server.memory,
-      server.disk,
-      server.network,
-      index,
-      isVisible,
-    ]);
+    // 기존 가시성 감지와 최적화된 가시성 감지 통합
+    const combinedIsVisible = isVisible && optimizedVisible;
 
     // 서버 타입별 아이콘
     const getServerIcon = () => {
@@ -471,7 +431,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
         transition-all duration-300 ease-out
         backdrop-blur-sm
         group
-        ${!isVisible ? 'opacity-75' : ''}
+        ${!combinedIsVisible ? 'opacity-75' : ''}
       `}
         onClick={handleCardClick}
         onMouseEnter={() => setIsHovered(true)}
@@ -571,7 +531,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
           )}
 
           {/* 🎯 화면에 보이지 않을 때 스켈레톤 로더 */}
-          {showMiniCharts && !isVisible && (
+          {showMiniCharts && !combinedIsVisible && (
             <div
               className={`grid ${variantStyles.chartContainer} bg-gray-100/50 rounded-lg ${variant === 'compact' ? 'p-2' : 'p-4'} backdrop-blur-sm`}
             >

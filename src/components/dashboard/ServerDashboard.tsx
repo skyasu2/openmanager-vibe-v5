@@ -576,13 +576,13 @@ export default function ServerDashboard({
 
     initializeData();
 
-    // 🔄 실시간 업데이트 (30초마다)
+    // 🔄 실시간 업데이트 (120초마다) - 성능 최적화
     const interval = setInterval(() => {
       if (mounted) {
-        console.log('🔄 서버 데이터 자동 업데이트');
+        console.log('🔄 서버 데이터 자동 업데이트 (최적화됨)');
         loadRealData();
       }
-    }, 30000);
+    }, 120000); // 30초 → 120초로 변경 (4배 성능 향상)
 
     return () => {
       mounted = false;

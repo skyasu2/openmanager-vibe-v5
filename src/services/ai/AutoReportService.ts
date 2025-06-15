@@ -23,14 +23,14 @@ export class AutoReportService {
 
   /**
    * 자동 장애 보고서를 생성합니다.
-   * @param context AI 분석을 위한 데이터셋
+   * @param context AI 분석을 위한 데이터셋 (순수 데이터만 포함)
    * @returns 생성된 마크다운 형식의 보고서
    */
   async generateReport(context: AIAnalysisDataset): Promise<string> {
     try {
-      if (!context || !context.patterns?.anomalies?.length) {
+      if (!context || (!context.logs?.length && !context.metrics?.length)) {
         throw new Error(
-          '보고서 생성을 위한 장애 컨텍스트(anomalies)가 부족합니다.'
+          '보고서 생성을 위한 기본 데이터(로그 또는 메트릭)가 부족합니다.'
         );
       }
 

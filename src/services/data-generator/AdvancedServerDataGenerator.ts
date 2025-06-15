@@ -450,9 +450,9 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
           ? this.dataBuffer.traces
           : this.generateSampleTraces(),
       patterns: {
-        anomalies: this.generateAnomalies(),
-        correlations: this.generateCorrelations(),
-        trends: this.generateTrends(),
+        anomalies: [],
+        correlations: [],
+        trends: [],
       },
     };
 
@@ -586,105 +586,5 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
       'file.upload',
     ];
     return operations[Math.floor(Math.random() * operations.length)];
-  }
-
-  private calculateActiveAlerts(): number {
-    return Math.floor(Math.random() * 5);
-  }
-
-  private calculateAverageCpuUsage(): number {
-    return Math.floor(Math.random() * 40) + 20; // 20-60%
-  }
-
-  private calculateAverageMemoryUsage(): number {
-    return Math.floor(Math.random() * 30) + 40; // 40-70%
-  }
-
-  private calculateNetworkThroughput(): number {
-    return Math.floor(Math.random() * 1000) + 500; // 500-1500 MB/s
-  }
-
-  private identifyPatterns(): string[] {
-    return [
-      'Peak usage during business hours (9-18)',
-      'Memory usage gradually increasing',
-      'Network traffic spikes every 4 hours',
-      'CPU usage correlates with user activity',
-    ];
-  }
-
-  private detectAnomalies(): string[] {
-    return [
-      'Unusual disk I/O pattern detected on server-003',
-      'Memory leak suspected in API service',
-      'Network latency spike in us-west-2 region',
-    ];
-  }
-
-  private generateRecommendations(): string[] {
-    return [
-      'Consider auto-scaling for web servers',
-      'Optimize database queries to reduce CPU usage',
-      'Implement caching layer for frequently accessed data',
-      'Monitor memory usage trends for potential leaks',
-    ];
-  }
-
-  private generateAnomalies() {
-    return [
-      {
-        type: 'cpu_spike',
-        serverId: this.servers[0]?.id || 'server-001',
-        timestamp: new Date(),
-        severity: 'High' as const,
-        description: 'CPU usage exceeded 90% threshold',
-        metrics: ['cpu.usage', 'cpu.load1'],
-      },
-      {
-        type: 'memory_leak',
-        serverId: this.servers[1]?.id || 'server-002',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000),
-        severity: 'Medium' as const,
-        description: 'Memory usage gradually increasing',
-        metrics: ['memory.used', 'memory.available'],
-      },
-    ];
-  }
-
-  private generateCorrelations() {
-    return [
-      {
-        servers: [
-          this.servers[0]?.id || 'server-001',
-          this.servers[1]?.id || 'server-002',
-        ],
-        metrics: ['cpu.usage', 'network.io.rx'],
-        coefficient: 0.85,
-        timelag: 0,
-      },
-      {
-        servers: [this.servers[2]?.id || 'server-003'],
-        metrics: ['memory.used', 'disk.io.write'],
-        coefficient: 0.72,
-        timelag: 300, // 5분
-      },
-    ];
-  }
-
-  private generateTrends() {
-    return [
-      {
-        metric: 'cpu.usage',
-        servers: this.servers.slice(0, 3).map(s => s.id),
-        direction: 'Increasing' as const,
-        confidence: 0.85,
-      },
-      {
-        metric: 'memory.used',
-        servers: this.servers.slice(1, 4).map(s => s.id),
-        direction: 'Stable' as const,
-        confidence: 0.92,
-      },
-    ];
   }
 }

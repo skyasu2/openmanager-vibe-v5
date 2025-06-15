@@ -29,6 +29,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useNetworkMetrics } from '@/hooks/useOptimizedRealtime';
 
 interface NetworkMetrics {
   bandwidth: number; // Mbps
@@ -121,43 +122,20 @@ const NetworkMonitoringCard: React.FC<NetworkMonitoringCardProps> = ({
     ),
   });
 
-  // 실시간 데이터 업데이트 (성능 최적화: 2초 → 10초)
-  useEffect(() => {
-    const interval = setInterval(() => {
+  // 🎯 최적화된 실시간 데이터 업데이트 (중앙 관리자 사용)
+  const { data: networkData, elementRef, isVisible } = useNetworkMetrics({
+    frequency: 'low', // 네트워크는 낮은 주기 (120초)
+    enableVisibilityOptimization: true,
+    onUpdate: (data) => {
+      // 새 데이터로 차트 업데이트
       setRealtimeData(prev => ({
-        bandwidth: [
-          ...prev.bandwidth.slice(1),
-          Math.max(
-            0,
-            Math.min(100, metrics.bandwidth + (Math.random() - 0.5) * 30)
-          ),
-        ],
-        latency: [
-          ...prev.latency.slice(1),
-          Math.max(
-            0,
-            Math.min(500, metrics.latency + (Math.random() - 0.5) * 40)
-          ),
-        ],
-        downloadSpeed: [
-          ...prev.downloadSpeed.slice(1),
-          Math.max(
-            0,
-            Math.min(1000, metrics.downloadSpeed + (Math.random() - 0.5) * 50)
-          ),
-        ],
-        uploadSpeed: [
-          ...prev.uploadSpeed.slice(1),
-          Math.max(
-            0,
-            Math.min(1000, metrics.uploadSpeed + (Math.random() - 0.5) * 30)
-          ),
-        ],
+        bandwidth: [...prev.bandwidth.slice(1), data.bandwidth],
+        latency: [...prev.latency.slice(1), data.latency],
+        downloadSpeed: [...prev.downloadSpeed.slice(1), data.downloadSpeed],
+        uploadSpeed: [...prev.uploadSpeed.slice(1), data.uploadSpeed],
       }));
-    }, 20000); // 🎯 성능 최적화: 2초 → 20초로 변경 (네트워크 부하 90% 감소)
-
-    return () => clearInterval(interval);
-  }, [metrics]);
+    },
+  });
 
   const statusColorClass = getStatusColor(metrics.status);
   const statusIcon = getStatusIcon(metrics.status);
@@ -260,6 +238,7 @@ const NetworkMonitoringCard: React.FC<NetworkMonitoringCardProps> = ({
 
   return (
     <motion.div
+      ref={elementRef}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className={`
@@ -267,6 +246,7 @@ const NetworkMonitoringCard: React.FC<NetworkMonitoringCardProps> = ({
         border-2 ${getStatusColor(metrics.status)}
         rounded-xl p-6 shadow-lg
         ${className}
+        ${!isVisible ? 'opacity-75' : ''}
       `}
     >
       {/* 헤더 */}
