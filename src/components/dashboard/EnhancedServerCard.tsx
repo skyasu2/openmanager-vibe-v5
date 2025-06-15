@@ -89,50 +89,16 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       rootMargin: '100px', // 100px 여유를 두고 미리 로드
     });
 
-    const [realtimeData, setRealtimeData] = useState<{
-      cpu: number[];
-      memory: number[];
-      disk: number[];
-      network: number[]; // 네트워크 데이터 추가
-      trend: 'up' | 'down' | 'stable';
-    }>({
-      cpu: Array.from(
-        { length: 12 },
-        () => Math.random() * 30 + server.cpu - 15
-      ),
-      memory: Array.from(
-        { length: 12 },
-        () => Math.random() * 20 + server.memory - 10
-      ),
-      disk: Array.from(
-        { length: 12 },
-        () => Math.random() * 10 + server.disk - 5
-      ),
-      network: Array.from(
-        { length: 12 },
-        () => Math.random() * 40 + (server.network || 30) - 20
-      ), // 네트워크 데이터
-      trend: 'stable',
-    });
+    // ✅ 정적 가시성 감지만 사용
+    const optimizedVisible = true; // 임시로 항상 true
 
-    // 🎯 최적화된 실시간 데이터 업데이트 (중앙 관리자 사용)
-    const { data: serverMetrics, elementRef: optimizedRef, isVisible: optimizedVisible } = useServerMetrics({
-      frequency: 'high', // 서버 메트릭은 높은 주기 (30초)
-      enableVisibilityOptimization: true,
-      onUpdate: (data) => {
-        // 새 데이터로 차트 업데이트
-        setRealtimeData(prev => ({
-          cpu: [...prev.cpu.slice(1), data.cpu],
-          memory: [...prev.memory.slice(1), data.memory],
-          disk: [...prev.disk.slice(1), data.disk],
-          network: [...prev.network.slice(1), data.network],
-          trend: Math.random() > 0.7 ? (Math.random() > 0.5 ? 'up' : 'down') : 'stable',
-        }));
-      },
-    });
-
-    // 기존 가시성 감지와 최적화된 가시성 감지 통합
-    const combinedIsVisible = isVisible && optimizedVisible;
+    // ✅ 서버 데이터 기반 정적 차트 (실시간 갱신 없음)
+    const staticChartData = {
+      cpu: Array.from({ length: 12 }, (_, i) => Math.max(0, Math.min(100, server.cpu + (i - 6) * 1))),
+      memory: Array.from({ length: 12 }, (_, i) => Math.max(0, Math.min(100, server.memory + (i - 6) * 0.8))),
+      disk: Array.from({ length: 12 }, (_, i) => Math.max(0, Math.min(100, server.disk + (i - 6) * 0.5))),
+      network: Array.from({ length: 12 }, (_, i) => Math.max(0, Math.min(100, (server.network || 30) + (i - 6) * 1.2))),
+    };
 
     // 서버 타입별 아이콘
     const getServerIcon = () => {
@@ -351,14 +317,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
 
     // 트렌드 아이콘
     const getTrendIcon = () => {
-      switch (realtimeData.trend) {
-        case 'up':
-          return <TrendingUp className='w-3 h-3 text-red-500' />;
-        case 'down':
-          return <TrendingDown className='w-3 h-3 text-green-500' />;
-        default:
-          return <Minus className='w-3 h-3 text-gray-400' />;
-      }
+      return <Minus className='w-3 h-3 text-gray-400' />;
     };
 
     const handleCardClick = useCallback(() => {
@@ -431,7 +390,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
         transition-all duration-300 ease-out
         backdrop-blur-sm
         group
-        ${!combinedIsVisible ? 'opacity-75' : ''}
+        ${!optimizedVisible ? 'opacity-75' : ''}
       `}
         onClick={handleCardClick}
         onMouseEnter={() => setIsHovered(true)}
@@ -499,30 +458,30 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
 
         {/* 메트릭 및 미니 차트 */}
         <div className='space-y-4'>
-          {showMiniCharts && isVisible && (
+          {showMiniCharts && optimizedVisible && (
             <div
               className={`grid ${variantStyles.chartContainer} bg-white/70 rounded-lg ${variant === 'compact' ? 'p-2' : 'p-4'} backdrop-blur-sm`}
             >
               <MiniChart
-                data={realtimeData.cpu}
+                data={staticChartData.cpu}
                 color='#ef4444'
                 label='CPU'
                 icon={<Cpu className='w-3 h-3' />}
               />
               <MiniChart
-                data={realtimeData.memory}
+                data={staticChartData.memory}
                 color='#3b82f6'
                 label='메모리'
                 icon={<Activity className='w-3 h-3' />}
               />
               <MiniChart
-                data={realtimeData.disk}
+                data={staticChartData.disk}
                 color='#8b5cf6'
                 label='디스크'
                 icon={<HardDrive className='w-3 h-3' />}
               />
               <MiniChart
-                data={realtimeData.network}
+                data={staticChartData.network}
                 color='#10b981'
                 label='네트워크'
                 icon={<Network className='w-3 h-3' />}
@@ -531,7 +490,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
           )}
 
           {/* 🎯 화면에 보이지 않을 때 스켈레톤 로더 */}
-          {showMiniCharts && !combinedIsVisible && (
+          {showMiniCharts && !optimizedVisible && (
             <div
               className={`grid ${variantStyles.chartContainer} bg-gray-100/50 rounded-lg ${variant === 'compact' ? 'p-2' : 'p-4'} backdrop-blur-sm`}
             >

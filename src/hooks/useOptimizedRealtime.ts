@@ -21,6 +21,7 @@ interface UseOptimizedRealtimeOptions {
   enableVisibilityOptimization?: boolean;
   initialData?: any;
   onUpdate?: (data: any) => void;
+  subscriberId?: string;
 }
 
 interface UseOptimizedRealtimeReturn<T = any> {
@@ -43,6 +44,7 @@ export function useOptimizedRealtime<T = any>({
   enableVisibilityOptimization = true,
   initialData = null,
   onUpdate,
+  subscriberId: customSubscriberId,
 }: UseOptimizedRealtimeOptions): UseOptimizedRealtimeReturn<T> {
   const [data, setData] = useState<T>(initialData);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,7 +52,9 @@ export function useOptimizedRealtime<T = any>({
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [updateCount, setUpdateCount] = useState(0);
   
-  const subscriberIdRef = useRef<string>(`${dataType}-${Date.now()}-${Math.random()}`);
+  const subscriberIdRef = useRef<string>(
+    customSubscriberId || `${dataType}-${Date.now()}-${Math.random()}`
+  );
   const unsubscribeRef = useRef<(() => void) | null>(null);
 
   // 가시성 감지 (옵션)
@@ -150,7 +154,11 @@ export function useOptimizedRealtime<T = any>({
 /**
  * 서버 메트릭 전용 훅
  */
-export function useServerMetrics(options?: Omit<UseOptimizedRealtimeOptions, 'dataType'>) {
+export function useServerMetrics(options?: Omit<UseOptimizedRealtimeOptions, 'dataType'> & { serverId?: string }) {
+  // ✅ 서버별 고유 구독 ID 생성 (중복 구독 방지)
+  const serverId = options?.serverId || 'default';
+  const subscriberId = `server-metrics-${serverId}`;
+  
   return useOptimizedRealtime<{
     cpu: number;
     memory: number;
@@ -161,6 +169,7 @@ export function useServerMetrics(options?: Omit<UseOptimizedRealtimeOptions, 'da
     ...options,
     dataType: 'server',
     frequency: options?.frequency || 'high', // 서버 메트릭은 높은 주기
+    subscriberId, // ✅ 고유 구독 ID 전달
   });
 }
 
