@@ -9,6 +9,7 @@
 
 import { ServerInstance } from '@/types/data-generator';
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
+import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 
 interface CachedServerData {
   servers: ServerInstance[];
@@ -103,7 +104,7 @@ export class ServerDataCache {
   }
 
   /**
-   * 📊 캐시 데이터 업데이트 (API 호출 방식)
+   * 📊 캐시 데이터 업데이트 (직접 데이터 생성기 사용)
    */
   private async updateCache(): Promise<void> {
     if (this.isUpdating) {
@@ -114,24 +115,21 @@ export class ServerDataCache {
     this.isUpdating = true;
 
     try {
-      // 🚀 API 호출로 서버 데이터 가져오기 (절대 URL 사용)
-      const baseUrl = process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : 'http://localhost:3006';
-      const response = await fetch(`${baseUrl}/api/servers/realtime`);
+      // 🚀 RealServerDataGenerator 직접 사용
+      const generator = RealServerDataGenerator.getInstance();
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      // 생성기가 초기화되지 않았으면 초기화
+      if (!generator.getStatus().isInitialized) {
+        await generator.initialize();
       }
 
-      const data = await response.json();
+      // 서버 데이터 가져오기
+      const servers = generator.getAllServers();
+      const summary = generator.getDashboardSummary();
 
-      if (!data.success || !Array.isArray(data.servers)) {
-        throw new Error('Invalid API response format');
+      if (!Array.isArray(servers)) {
+        throw new Error('Invalid server data format');
       }
-
-      const servers = data.servers;
-      const summary = data.summary?.servers || this.calculateSummary(servers);
 
       // 🎯 차분 업데이트: 변경된 서버만 감지
       const hasChanges = this.detectChanges(servers);
@@ -140,20 +138,21 @@ export class ServerDataCache {
         const newCache: CachedServerData = {
           servers: [...servers], // 깊은 복사로 불변성 보장
           summary: {
-            total: summary.total || servers.length,
+            total: summary?.servers?.total || servers.length,
             online:
-              summary.online ||
-              summary.running ||
+              summary?.servers?.online ||
+              summary?.servers?.running ||
               servers.filter(s => s.status === 'running').length,
             warning:
-              summary.warning ||
+              summary?.servers?.warning ||
               servers.filter(s => s.status === 'warning').length,
             offline:
-              summary.offline ||
-              summary.error ||
+              summary?.servers?.offline ||
+              summary?.servers?.error ||
               servers.filter(s => s.status === 'error').length,
-            avgCpu: Math.round((summary.avgCpu || 0) * 100) / 100,
-            avgMemory: Math.round((summary.avgMemory || 0) * 100) / 100,
+            avgCpu: Math.round((summary?.servers?.avgCpu || 0) * 100) / 100,
+            avgMemory:
+              Math.round((summary?.servers?.avgMemory || 0) * 100) / 100,
           },
           lastUpdated: Date.now(),
           version: (this.cache?.version || 0) + 1,

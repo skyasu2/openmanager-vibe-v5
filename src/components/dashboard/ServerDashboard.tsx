@@ -54,16 +54,6 @@ import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
 import { transformArray } from '@/adapters/server-dashboard.transformer';
 // 🚀 캐시된 서버 데이터 사용 (성능 최적화)
 import { useCachedServers } from '@/hooks/useCachedServers';
-// import { useDebounce } from '@/utils/performance';
-// import { usePerformanceOptimization } from '@/utils/performance';
-// ❌ 제거: Node.js 전용 모듈을 클라이언트에서 import하면 안됨
-// import {
-//   RealServerDataGenerator,
-//   type ServerInstance,
-//   type ServerCluster,
-//   type ApplicationMetrics,
-// } from '@/services/data-generator/RealServerDataGenerator';
-// import { koreanAIEngine } from '@/services/ai/korean-ai-engine';
 
 // ✅ 타입만 정의 (실제 구현은 API 라우트에서 처리)
 interface ServerInstance {
@@ -235,9 +225,6 @@ const useDebounce = (value: string, delay: number) => {
 
 // ✅ 성능 최적화 훅 제거 (무한 렌더링 방지)
 
-// 🚀 캐시된 서버 데이터 사용 (성능 최적화)
-import { useCachedServers } from '@/hooks/useCachedServers';
-
 const mapStatus = (rawStatus: string): 'healthy' | 'warning' | 'offline' => {
   const s = String(rawStatus)?.toLowerCase();
   if (s === 'online' || s === 'running' || s === 'healthy') return 'healthy';
@@ -266,9 +253,12 @@ export default function ServerDashboard({
   const [criticalPage, setCriticalPage] = useState(1);
   const [warningPage, setWarningPage] = useState(1);
   const [healthyPage, setHealthyPage] = useState(1);
+  // 페이지네이션 및 표시 제한
+  const [showAllServers, setShowAllServers] = useState(false);
 
   // ✅ 페이지네이션 설정: API 데이터와 일치하도록 30개로 설정
   const SERVERS_PER_PAGE = 30;
+  const DASHBOARD_SERVER_LIMIT = 8; // 대시보드에서 기본 표시할 서버 개수
 
   // 🎯 검색어 디바운싱 (500ms 지연) - 훅 순서 고정
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -283,7 +273,15 @@ export default function ServerDashboard({
     error,
     lastUpdated,
     refresh: refreshServers,
-  } = useRealtimeServers();
+  } = useCachedServers({
+    pageSize: showAllServers ? 30 : DASHBOARD_SERVER_LIMIT,
+    status: statusFilter === 'all' ? 'all' : statusFilter,
+    search: debouncedSearchTerm,
+    location: locationFilter,
+    sortBy,
+    autoRefresh: true,
+    refreshInterval: 15000, // 15초마다 자동 새로고침
+  });
 
   // 🚀 디버깅 로그 추가
   console.log('📊 ServerDashboard 렌더링:', {
@@ -353,10 +351,6 @@ export default function ServerDashboard({
       });
     }
   }, [realtimeServers, onStatsUpdate]);
-
-  // 페이지네이션 및 표시 제한
-  const [showAllServers, setShowAllServers] = useState(false);
-  const DASHBOARD_SERVER_LIMIT = 8; // 대시보드에서 기본 표시할 서버 개수
 
   // ✅ 필터링된 서버 데이터 메모이제이션 (표시 개수 제한 포함)
   const filteredServers = useMemo(() => {
