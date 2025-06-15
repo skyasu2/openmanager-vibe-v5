@@ -98,7 +98,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             throw new Error('시스템 초기화 실패');
         }
 
-        const body: DualCoreRequest = await request.json();
+        // UTF-8 인코딩으로 요청 본문 파싱
+        const requestText = await request.text();
+        const body: DualCoreRequest = JSON.parse(requestText);
+
+        // 한글 문자열 정규화
+        if (body.query) {
+            body.query = Buffer.from(body.query, 'utf8').toString('utf8');
+        }
 
         // 입력 검증
         if (!body.query || typeof body.query !== 'string') {
@@ -115,7 +122,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         const mode = body.mode || 'AUTO';
         modeManager.setMode(mode);
 
-        console.log(`🎯 Dual-Core 질의 처리: "${body.query.substring(0, 50)}..." (모드: ${mode})`);
+        // 한글 안전 로그 출력
+        const safeQuery = body.query.length > 50 ? body.query.substring(0, 50) + '...' : body.query;
+        console.log(`🎯 Dual-Core 질의 처리: "${safeQuery}" (모드: ${mode})`);
 
         // 🧠 사고 과정 추적
         const thinkingSteps: any[] = [];
@@ -211,7 +220,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         };
 
         console.log(`✅ Dual-Core 처리 완료: ${processingTime}ms (모드: ${mode})`);
-        return NextResponse.json(response);
+
+        // UTF-8 인코딩 헤더 설정
+        return NextResponse.json(response, {
+            headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Cache-Control': 'no-cache'
+            }
+        });
 
     } catch (error: any) {
         console.error('❌ Dual-Core API 오류:', error);
@@ -263,7 +279,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
                     timestamp: new Date().toISOString()
                 };
 
-                return NextResponse.json(health);
+                return NextResponse.json(health, {
+                    headers: {
+                        'Content-Type': 'application/json; charset=utf-8'
+                    }
+                });
 
             case 'modes':
                 await initializeSystem();
@@ -291,7 +311,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
                     statistics: stats?.stats || null
                 };
 
-                return NextResponse.json(modes);
+                return NextResponse.json(modes, {
+                    headers: {
+                        'Content-Type': 'application/json; charset=utf-8'
+                    }
+                });
 
             case 'performance':
                 await initializeSystem();
@@ -306,7 +330,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
                     }
                 };
 
-                return NextResponse.json(performance);
+                return NextResponse.json(performance, {
+                    headers: {
+                        'Content-Type': 'application/json; charset=utf-8'
+                    }
+                });
 
             default:
                 return NextResponse.json({
@@ -325,6 +353,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
                     },
                     status: isInitialized ? 'ready' : 'not_initialized',
                     timestamp: new Date().toISOString()
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json; charset=utf-8'
+                    }
                 });
         }
     } catch (error: any) {
