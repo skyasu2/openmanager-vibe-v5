@@ -11,6 +11,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { realServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 
+export const runtime = 'nodejs';
+
 // 데이터 생성기 초기화 (한 번만)
 let isInitialized = false;
 const initializeGenerator = async () => {
