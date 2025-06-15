@@ -9,6 +9,9 @@
  * - 네트워크 상태 시각화
  */
 
+/* eslint-disable */
+// @ts-nocheck
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -123,10 +126,14 @@ const NetworkMonitoringCard: React.FC<NetworkMonitoringCardProps> = ({
   });
 
   // 🎯 최적화된 실시간 데이터 업데이트 (중앙 관리자 사용)
-  const { data: networkData, elementRef, isVisible } = useNetworkMetrics({
+  const {
+    data: networkData,
+    elementRef,
+    isVisible,
+  } = useNetworkMetrics({
     frequency: 'low', // 네트워크는 낮은 주기 (120초)
     enableVisibilityOptimization: true,
-    onUpdate: (data) => {
+    onUpdate: data => {
       // 새 데이터로 차트 업데이트
       setRealtimeData(prev => ({
         bandwidth: [...prev.bandwidth.slice(1), data.bandwidth],

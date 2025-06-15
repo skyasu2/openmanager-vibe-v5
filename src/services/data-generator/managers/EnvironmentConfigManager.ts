@@ -10,7 +10,7 @@
 import { CustomEnvironmentConfig } from '../types/ServerTypes';
 import {
   detectEnvironment,
-  env,
+  env as defaultEnv,
   getDataGeneratorConfig,
   isPluginEnabled,
   getPluginConfig,

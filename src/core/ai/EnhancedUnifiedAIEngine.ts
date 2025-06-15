@@ -12,7 +12,7 @@
  * 🛡️ Graceful Degradation Architecture
  */
 
-import { env, shouldEnableDebugLogging } from '@/config/environment';
+import env, { shouldEnableDebugLogging } from '@/config/environment';
 import { RealMCPClient } from '@/services/mcp/real-mcp-client';
 import { ContextManager } from './ContextManager';
 import { LocalRAGEngine } from '@/lib/ml/rag-engine';

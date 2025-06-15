@@ -1,6 +1,6 @@
 /**
  * 🚀 실시간 서버 데이터 API
- * 
+ *
  * 기능:
  * - 실시간 서버 메트릭 제공
  * - 클러스터 상태 정보
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
           success: true,
           data: realServerDataGenerator.getDashboardSummary(),
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
       case 'servers':
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
           return NextResponse.json({
             success: true,
             data: server,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           });
         } else {
           // 🚦 서버 목록 개수 제한 (기본 20, 최대 100) + 변경분 필터링
@@ -82,9 +82,11 @@ export async function GET(request: NextRequest) {
           // 변경분 필터링
           if (sinceTimestamp) {
             allServers = allServers.filter(s => {
-              const last = s.last_updated
-                ? Date.parse(s.last_updated)
-                : s.timestamp || 0;
+              const last = (s as any).last_updated
+                ? Date.parse((s as any).last_updated)
+                : (s as any).lastUpdate
+                  ? Date.parse((s as any).lastUpdate)
+                  : 0;
               return last > (sinceTimestamp as number);
             });
           }
@@ -95,7 +97,7 @@ export async function GET(request: NextRequest) {
             total: allServers.length,
             limit,
             delta_mode: Boolean(sinceTimestamp),
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           });
         }
 
@@ -111,7 +113,7 @@ export async function GET(request: NextRequest) {
           return NextResponse.json({
             success: true,
             data: cluster,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           });
         } else {
           const limitParam = searchParams.get('limit');
@@ -125,7 +127,7 @@ export async function GET(request: NextRequest) {
             data: allClusters.slice(0, limit),
             total: allClusters.length,
             limit,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           });
         }
 
@@ -141,7 +143,7 @@ export async function GET(request: NextRequest) {
           data: allApplications.slice(0, limit),
           total: allApplications.length,
           limit,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
       case 'health':
@@ -149,7 +151,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
           success: true,
           data: healthData,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
       default:
@@ -158,14 +160,13 @@ export async function GET(request: NextRequest) {
           { status: 400 }
         );
     }
-
   } catch (error) {
     console.error('❌ 실시간 서버 데이터 API 오류:', error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: '서버 데이터를 가져오는데 실패했습니다',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -175,7 +176,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await initializeGenerator();
-    
+
     const body = await request.json();
     const { action, serverId, config } = body;
 
@@ -185,7 +186,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           message: '실시간 데이터 생성이 시작되었습니다',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
       case 'stop-generation':
@@ -193,7 +194,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           message: '실시간 데이터 생성이 중지되었습니다',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
       case 'simulate-incident':
@@ -204,12 +205,12 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           );
         }
-        
+
         // 여기서는 간단한 응답만 (실제 시뮬레이션은 데이터 생성기 내부에서 자동으로)
         return NextResponse.json({
           success: true,
           message: `서버 ${serverId}에 대한 장애 시뮬레이션이 요청되었습니다`,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
       default:
@@ -218,16 +219,15 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
     }
-
   } catch (error) {
     console.error('❌ 실시간 서버 데이터 POST API 오류:', error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'POST 요청 처리에 실패했습니다',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
   }
-} 
+}

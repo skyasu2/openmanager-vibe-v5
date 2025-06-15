@@ -7,7 +7,7 @@
  * ✅ 표준화된 도구 호출
  */
 
-import { env, envLog, shouldEnableDebugLogging } from '@/config/environment';
+import env, { envLog, shouldEnableDebugLogging } from '@/config/environment';
 import { spawn, ChildProcess } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';

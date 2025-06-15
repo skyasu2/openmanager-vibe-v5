@@ -51,11 +51,11 @@ export interface EnvironmentConfig {
   updateInterval: number;
   refreshInterval: number;
   pollingInterval: number;
-  
+
   // 서버 제한
   maxClusters: number;
   maxApplications: number;
-  
+
   // 기타 설정
   enableDebugLogs: boolean;
   enableMetrics: boolean;
@@ -73,7 +73,7 @@ export function getEnvironmentConfig(): EnvironmentConfig {
   const isLocal = !isVercel && isDevelopment;
 
   return {
-    NODE_ENV: nodeEnv,
+    NODE_ENV: nodeEnv as 'development' | 'production' | 'test',
     IS_VERCEL: isVercel,
     IS_LOCAL: isLocal,
     IS_PRODUCTION: isProduction,
@@ -124,15 +124,15 @@ export function getEnvironmentConfig(): EnvironmentConfig {
     updateInterval: 20000,
     refreshInterval: 20000,
     pollingInterval: 20000,
-    
+
     // 서버 제한 (Edge Request 절감)
     maxClusters: 10,
     maxApplications: 15,
-    
+
     // 기타 설정
     enableDebugLogs: isDevelopment,
     enableMetrics: true,
-    enableNotifications: true
+    enableNotifications: true,
   };
 }
 
@@ -208,14 +208,14 @@ export const detectEnvironment = () => {
   const nodeEnv = getEnvVar('NODE_ENV', 'development');
   const isProduction = nodeEnv === 'production';
   const isDevelopment = nodeEnv === 'development';
-  
+
   return {
     isVercel,
     nodeEnv,
     isProduction,
     isDevelopment,
     isClient: typeof window !== 'undefined',
-    NODE_ENV: nodeEnv,
+    NODE_ENV: nodeEnv as 'development' | 'production' | 'test',
     IS_VERCEL: isVercel,
     IS_PRODUCTION: isProduction,
     IS_DEVELOPMENT: isDevelopment,
@@ -224,11 +224,11 @@ export const detectEnvironment = () => {
       maxMemory: isVercel ? 1024 : 4096,
       maxConcurrency: isVercel ? 10 : 4,
       timeout: isVercel ? 30000 : 60000,
-    }
+    },
   };
 };
 
-const env = detectEnvironment();
+export const env = detectEnvironment();
 
 /**
  * 현재 환경 정보 반환
@@ -404,3 +404,5 @@ export function shouldEnableDebugLogging(): boolean {
     config.NODE_ENV === 'development' || process.env.DEBUG_LOGGING === 'true'
   );
 }
+
+export default env;
