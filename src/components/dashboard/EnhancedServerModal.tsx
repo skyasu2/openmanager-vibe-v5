@@ -55,23 +55,24 @@ import {
 } from 'lucide-react';
 
 interface EnhancedServerModalProps {
+  isOpen: boolean;
   server: {
     id: string;
-    hostname: string;
+    hostname?: string;
     name: string;
-    type: string;
-    environment: string;
-    location: string;
-    provider: string;
+    type?: string;
+    environment?: string;
+    location?: string;
+    provider?: string;
     status: 'healthy' | 'warning' | 'critical' | 'offline';
     cpu: number;
     memory: number;
     disk: number;
     network?: number; // 네트워크 사용률 추가
-    uptime: string;
-    lastUpdate: Date;
-    alerts: number;
-    services: Array<{
+    uptime?: string;
+    lastUpdate?: Date;
+    alerts?: number;
+    services?: Array<{
       name: string;
       status: 'running' | 'stopped';
       port: number;
@@ -90,6 +91,7 @@ interface EnhancedServerModalProps {
 }
 
 export default function EnhancedServerModal({
+  isOpen,
   server,
   onClose,
 }: EnhancedServerModalProps) {

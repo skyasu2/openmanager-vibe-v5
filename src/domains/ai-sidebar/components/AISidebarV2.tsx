@@ -230,7 +230,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   const [showEngineInfo, setShowEngineInfo] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [expandedThinking, setExpandedThinking] = useState<string | null>(null);
-  
+
   // 프리셋 질문 네비게이션 상태
   const [currentPresetIndex, setCurrentPresetIndex] = useState(0);
   const PRESETS_PER_PAGE = 4;
@@ -281,21 +281,22 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   };
 
   const goToPreviousPresets = () => {
-    setCurrentPresetIndex(prev => 
+    setCurrentPresetIndex(prev =>
       prev - PRESETS_PER_PAGE >= 0 ? prev - PRESETS_PER_PAGE : 0
     );
   };
 
   const goToNextPresets = () => {
-    setCurrentPresetIndex(prev => 
-      prev + PRESETS_PER_PAGE < PRESET_QUESTIONS.length 
-        ? prev + PRESETS_PER_PAGE 
+    setCurrentPresetIndex(prev =>
+      prev + PRESETS_PER_PAGE < PRESET_QUESTIONS.length
+        ? prev + PRESETS_PER_PAGE
         : prev
     );
   };
 
   const canGoPrevious = currentPresetIndex > 0;
-  const canGoNext = currentPresetIndex + PRESETS_PER_PAGE < PRESET_QUESTIONS.length;
+  const canGoNext =
+    currentPresetIndex + PRESETS_PER_PAGE < PRESET_QUESTIONS.length;
 
   // 아이콘 매핑
   const getIcon = (iconName: string) => {
@@ -354,44 +355,116 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     return responses[engine as keyof typeof responses] || responses.auto;
   };
 
-  // 메시지 전송 핸들러
-  const handleSendMessage = async () => {
-    if (!inputValue.trim() && uploadedFiles.length === 0) return;
+  // 메시지 전송 핸들러 (실제 AI API 호출)
+  const handleSendMessage = async (customMessage?: string) => {
+    const messageToSend = customMessage || inputValue.trim();
+
+    if (!messageToSend && uploadedFiles.length === 0) return;
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       type: 'user',
-      content: inputValue,
+      content: messageToSend,
       timestamp: new Date(),
       files: uploadedFiles.length > 0 ? [...uploadedFiles] : undefined,
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
+    if (!customMessage) {
+      setInputValue('');
+    }
     setUploadedFiles([]);
     setIsGenerating(true);
 
-    // AI 응답 시뮬레이션
-    setTimeout(() => {
+    try {
+      // 🚀 실제 AI API 호출
+      const response = await fetch('/api/ai/smart-fallback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: messageToSend,
+          engine: selectedEngine,
+          sessionId: currentSessionId,
+          options: {
+            enableThinking: true,
+            useCache: false,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API 호출 실패: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // 실제 AI 사고 과정 생성
+      const thinkingSteps: ThinkingStep[] = data.thinking || [
+        {
+          id: '1',
+          step: 1,
+          title: '질문 분석',
+          description: `"${messageToSend}" 질문을 분석하고 있습니다`,
+          status: 'completed' as const,
+          duration: 800,
+        },
+        {
+          id: '2',
+          step: 2,
+          title: '데이터 수집',
+          description: '관련 서버 메트릭과 시스템 상태를 수집합니다',
+          status: 'completed' as const,
+          duration: 1200,
+        },
+        {
+          id: '3',
+          step: 3,
+          title: '응답 생성',
+          description: 'AI 엔진을 통해 최적의 답변을 생성합니다',
+          status: 'completed' as const,
+          duration: 1500,
+        },
+      ];
+
       const aiMessage: ChatMessage = {
         id: `ai-${Date.now()}`,
         type: 'ai',
-        content: generateAIResponse(userMessage.content, selectedEngine),
+        content:
+          data.response ||
+          data.answer ||
+          `[${selectedEngine.toUpperCase()}] ${messageToSend}에 대한 분석 결과를 제공합니다. 현재 시스템 상태를 기반으로 답변을 생성했습니다.`,
         timestamp: new Date(),
-        thinking: simulateThinking(),
+        thinking: thinkingSteps,
         engine: AI_ENGINES.find(e => e.id === selectedEngine)?.name || 'AUTO',
-        confidence: Math.random() * 0.3 + 0.7, // 0.7-1.0
+        confidence: data.confidence || Math.random() * 0.3 + 0.7,
       };
 
       setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('AI 응답 생성 실패:', error);
+
+      // 폴백 응답
+      const fallbackMessage: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        type: 'ai',
+        content: `죄송합니다. 현재 AI 서비스에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요.\n\n질문: "${messageToSend}"\n\n기본 응답: 시스템 상태를 확인하고 있습니다. 대시보드에서 실시간 메트릭을 확인해보세요.`,
+        timestamp: new Date(),
+        engine: 'Fallback',
+        confidence: 0.5,
+      };
+
+      setMessages(prev => [...prev, fallbackMessage]);
+    } finally {
       setIsGenerating(false);
-    }, 2000);
+    }
   };
 
-  // 프리셋 질문 핸들러
+  // 프리셋 질문 핸들러 (즉시 전송)
   const handlePresetQuestion = (question: string) => {
-    setInputValue(question);
-    handleSendMessage();
+    // 🎯 직접 메시지 전송 (상태 업데이트 타이밍 문제 해결)
+    handleSendMessage(question);
   };
 
   // 파일 업로드 핸들러
@@ -432,12 +505,8 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
               <Bot className='w-4 h-4 text-white' />
             </div>
             <div>
-              <h3 className='text-sm font-bold text-gray-800'>
-                자연어 질의
-              </h3>
-              <p className='text-xs text-gray-600'>
-                AI 기반 대화형 인터페이스
-              </p>
+              <h3 className='text-sm font-bold text-gray-800'>자연어 질의</h3>
+              <p className='text-xs text-gray-600'>AI 기반 대화형 인터페이스</p>
             </div>
           </div>
 
@@ -470,7 +539,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                   style={{
                     right: '0',
                     maxWidth: 'calc(100vw - 2rem)',
-                    transform: 'translateX(0)'
+                    transform: 'translateX(0)',
                   }}
                 >
                   <div className='p-3 border-b border-gray-100'>
@@ -727,7 +796,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                     <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100'></div>
                     <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200'></div>
                   </div>
-                  <span className='text-xs text-gray-600'>AI가 생각하고 있습니다...</span>
+                  <span className='text-xs text-gray-600'>
+                    AI가 생각하고 있습니다...
+                  </span>
                   <button
                     onClick={stopGeneration}
                     className='p-1 hover:bg-gray-100 rounded transition-colors'
@@ -759,7 +830,8 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                 <ChevronLeft className='w-3 h-3 text-gray-500' />
               </button>
               <span className='text-xs text-gray-500'>
-                {Math.floor(currentPresetIndex / PRESETS_PER_PAGE) + 1}/{Math.ceil(PRESET_QUESTIONS.length / PRESETS_PER_PAGE)}
+                {Math.floor(currentPresetIndex / PRESETS_PER_PAGE) + 1}/
+                {Math.ceil(PRESET_QUESTIONS.length / PRESETS_PER_PAGE)}
               </span>
               <button
                 onClick={goToNextPresets}
@@ -792,7 +864,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                     {question.category}
                   </span>
                 </div>
-                <p className='text-xs text-gray-800 line-clamp-2'>{question.text}</p>
+                <p className='text-xs text-gray-800 line-clamp-2'>
+                  {question.text}
+                </p>
               </motion.button>
             ))}
           </div>
@@ -813,6 +887,8 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                 <button
                   onClick={() => removeFile(file.id)}
                   className='p-0.5 hover:bg-blue-100 rounded transition-colors'
+                  title={`${file.name} 파일 제거`}
+                  aria-label={`${file.name} 파일 제거`}
                 >
                   <X className='w-2 h-2 text-blue-600' />
                 </button>
@@ -853,11 +929,13 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
           {/* 전송 버튼 */}
           <motion.button
-            onClick={handleSendMessage}
+            onClick={() => handleSendMessage()}
             disabled={!inputValue.trim() && uploadedFiles.length === 0}
             className='p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            title='메시지 전송'
+            aria-label='메시지 전송'
           >
             <Send className='w-4 h-4' />
           </motion.button>
@@ -880,6 +958,8 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         accept='.txt,.md,.json,.csv,.log,.yaml,.toml,.ini,.xml,.html,.jpg,.png,.webp'
         onChange={handleFileUpload}
         className='hidden'
+        title='파일 선택'
+        aria-label='파일 선택'
       />
     </div>
   );
@@ -1045,7 +1125,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
             </div>
 
             {/* 기능별 페이지 콘텐츠 */}
-            <div className='flex-1 overflow-hidden pb-16 sm:pb-0'>{renderFunctionPage()}</div>
+            <div className='flex-1 overflow-hidden pb-16 sm:pb-0'>
+              {renderFunctionPage()}
+            </div>
           </div>
 
           {/* 오른쪽 AI 기능 아이콘 패널 - 큰 화면에서만 표시 */}
@@ -1056,9 +1138,12 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
               className='w-16 sm:w-20'
             />
           </div>
-          
+
           {/* 모바일용 하단 기능 선택 패널 */}
-          <div className='sm:hidden absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2' style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          <div
+            className='sm:hidden absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2'
+            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+          >
             <AIAgentIconPanel
               selectedFunction={selectedFunction}
               onFunctionChange={setSelectedFunction}

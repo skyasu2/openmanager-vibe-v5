@@ -16,10 +16,7 @@ import {
   throttleTime,
   distinctUntilChanged,
 } from 'rxjs/operators';
-import {
-  enhancedDataGenerator,
-  ScenarioType,
-} from '../../utils/enhanced-data-generator';
+import { RealServerDataGenerator } from '../data-generator/RealServerDataGenerator';
 // lightweight-anomaly-detector removed - using AnomalyDetectionService instead
 
 // 🎯 타입 정의
@@ -58,12 +55,14 @@ export class WebSocketManager {
   private streams: Map<string, Subject<MetricStream>> = new Map();
   private connectionCount$ = new BehaviorSubject<number>(0);
   private isActive = false;
+  private dataGenerator: RealServerDataGenerator;
 
   // 스트림 데이터 소스
   private dataSubject = new Subject<MetricStream>();
   private alertSubject = new Subject<any>();
 
   constructor() {
+    this.dataGenerator = RealServerDataGenerator.getInstance();
     this.initializeStreams();
     this.startDataGeneration();
   }
@@ -77,9 +76,9 @@ export class WebSocketManager {
         origin:
           process.env.NODE_ENV === 'production'
             ? [
-              'https://openmanager-vibe-v5.vercel.app',
-              'https://openmanager-ai-engine.onrender.com',
-            ]
+                'https://openmanager-vibe-v5.vercel.app',
+                'https://openmanager-ai-engine.onrender.com',
+              ]
             : ['http://localhost:3000'],
         methods: ['GET', 'POST'],
         credentials: true,
@@ -194,35 +193,29 @@ export class WebSocketManager {
       if (!this.isActive || this.clients.size === 0) return;
 
       try {
-        // 다양한 시나리오로 현실적 데이터 생성
-        const scenarios: ScenarioType[] = ['normal', 'stress', 'spike'];
-        const randomScenario =
-          scenarios[Math.floor(Math.random() * scenarios.length)];
+        // RealServerDataGenerator에서 서버 데이터 가져오기
+        const allServers = this.dataGenerator.getAllServers();
+        const selectedServers = allServers.slice(0, 3); // 처음 3개 서버만 사용
 
-        const serverMetrics = Array.from({ length: 3 }, () =>
-          enhancedDataGenerator.generateRealisticServerMetrics(randomScenario)
-        );
-
-        serverMetrics.forEach(server => {
+        selectedServers.forEach(server => {
           const streamData: MetricStream = {
-            serverId: server.serverId,
+            serverId: server.id,
             data: {
-              serverName: server.serverName,
+              serverName: server.name,
               cpu: server.metrics.cpu,
               memory: server.metrics.memory,
               disk: server.metrics.disk,
               network: {
-                bytesIn: server.network.bytesIn,
-                bytesOut: server.network.bytesOut,
-                latency: server.network.latency,
+                bytesIn: server.metrics.network.in,
+                bytesOut: server.metrics.network.out,
+                latency: Math.random() * 100, // 임시 지연시간
               },
               application: {
-                responseTime: server.application.responseTime,
-                throughput: server.application.throughput,
-                errorRate: server.application.errorRate,
+                responseTime: Math.random() * 1000 + 100,
+                throughput: Math.random() * 1000 + 500,
+                errorRate: Math.random() * 5,
               },
               status: server.status,
-              scenario: randomScenario,
             },
             timestamp: new Date().toISOString(),
             type: 'cpu',
@@ -237,10 +230,10 @@ export class WebSocketManager {
           // 임계값 초과 시 알림 발생
           if (server.metrics.cpu > 85 || server.metrics.memory > 90) {
             this.alertSubject.next({
-              serverId: server.serverId,
-              serverName: server.serverName,
+              serverId: server.id,
+              serverName: server.name,
               type: 'threshold_exceeded',
-              message: `${server.serverName}: CPU ${server.metrics.cpu.toFixed(1)}%, 메모리 ${server.metrics.memory.toFixed(1)}%`,
+              message: `${server.name}: CPU ${server.metrics.cpu.toFixed(1)}%, 메모리 ${server.metrics.memory.toFixed(1)}%`,
               priority: server.metrics.cpu > 95 ? 'critical' : 'high',
               timestamp: new Date().toISOString(),
             });
@@ -256,19 +249,17 @@ export class WebSocketManager {
       if (!this.isActive || this.clients.size === 0) return;
 
       try {
-        const testMetrics = Array.from({ length: 10 }, () =>
-          enhancedDataGenerator.generateRealisticServerMetrics('normal')
-        );
-        const formattedMetrics = testMetrics.map(m => ({
-          timestamp: m.timestamp,
-          cpu: m.metrics.cpu,
-          memory: m.metrics.memory,
-          disk: m.metrics.disk,
+        const allServers = this.dataGenerator.getAllServers();
+        const testMetrics = allServers.slice(0, 10).map(server => ({
+          timestamp: Date.now(),
+          cpu: server.metrics.cpu,
+          memory: server.metrics.memory,
+          disk: server.metrics.disk,
         }));
 
         // Simple anomaly detection replacement (lightweight-anomaly-detector removed)
-        const anomalies = formattedMetrics.filter(metric =>
-          metric.cpu > 90 || metric.memory > 90
+        const anomalies = testMetrics.filter(
+          metric => metric.cpu > 90 || metric.memory > 90
         );
 
         if (anomalies.length > 0) {
