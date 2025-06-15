@@ -84,11 +84,33 @@ export default function DevToolsPage() {
         setLoading(true);
         try {
             const response = await fetch('/api/dev/services-status');
-            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            const text = await response.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (parseError) {
+                console.error('JSON 파싱 오류:', parseError, 'Response:', text);
+                throw new Error('서버 응답을 파싱할 수 없습니다');
+            }
             setServicesData(data);
             setLastUpdated(new Date());
         } catch (error) {
             console.error('서비스 상태 확인 실패:', error);
+            // 기본 데이터 설정
+            setServicesData({
+                timestamp: new Date().toISOString(),
+                environment: 'development',
+                services: [],
+                summary: {
+                    total: 0,
+                    connected: 0,
+                    errors: 0,
+                    averageResponseTime: 0
+                }
+            });
         } finally {
             setLoading(false);
         }
@@ -98,10 +120,34 @@ export default function DevToolsPage() {
         try {
             setKeyManagerLoading(true);
             const response = await fetch('/api/dev/key-manager?action=status');
-            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            const text = await response.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (parseError) {
+                console.error('키 관리자 JSON 파싱 오류:', parseError, 'Response:', text);
+                throw new Error('키 관리자 응답을 파싱할 수 없습니다');
+            }
             setKeyManager(data);
         } catch (error) {
             console.error('키 관리자 상태 확인 실패:', error);
+            // 기본 데이터 설정
+            setKeyManager({
+                timestamp: new Date().toISOString(),
+                environment: 'development',
+                keyManager: 'error',
+                summary: {
+                    total: 0,
+                    valid: 0,
+                    invalid: 0,
+                    missing: 0,
+                    successRate: 0
+                },
+                services: []
+            });
         } finally {
             setKeyManagerLoading(false);
         }

@@ -115,24 +115,7 @@ export class AutoReportService {
         `CPU 사용률이 ${current.cpu}%로 위험 수준에 도달했습니다.`,
         [current.serverId],
         [current],
-        [
-          'CPU 집약적인 프로세스 확인',
-          '서버 스케일 업 고려',
-          '부하 분산 검토'
-        ]
-      ));
-    } else if (current.cpu >= this.THRESHOLDS.cpu.warning) {
-      incidents.push(this.createIncident(
-        'cpu-warning',
-        `${current.serverName} CPU 사용률 경고`,
-        'medium',
-        `CPU 사용률이 ${current.cpu}%로 경고 수준입니다.`,
-        [current.serverId],
-        [current],
-        [
-          'CPU 사용률 모니터링 강화',
-          '프로세스 최적화 검토'
-        ]
+        ['CPU 집약적인 프로세스 확인', '서버 스케일 업 고려']
       ));
     }
 
@@ -145,11 +128,7 @@ export class AutoReportService {
         `메모리 사용률이 ${current.memory}%로 위험 수준에 도달했습니다.`,
         [current.serverId],
         [current],
-        [
-          '메모리 누수 확인',
-          '불필요한 프로세스 종료',
-          '메모리 증설 고려'
-        ]
+        ['메모리 누수 확인', '불필요한 프로세스 종료']
       ));
     }
 

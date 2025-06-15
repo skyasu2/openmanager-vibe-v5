@@ -8,7 +8,7 @@
  * - 성능 최적화 및 지연 로딩
  * - 사고과정 로그 시스템 통합
  * - 중앙 버전 관리 및 변경 로깅
- * - Vercel 무료 티어 최적화
+ * - Vercel 무료 티어 최적화 (실제 동작 유지)
  */
 
 import { OpenSourceEngines } from './engines/OpenSourceEngines';
@@ -26,16 +26,13 @@ import {
 import { PerformanceMonitor, perf } from '../../utils/performance-monitor';
 import { aiLogger, LogLevel, LogCategory } from './logging/AILogger';
 
-// 🚀 Vercel 최적화 설정 임포트
+// 🚀 Vercel 최적화 설정 (실제 동작 유지)
 const VERCEL_OPTIMIZATION = {
   isProduction: process.env.NODE_ENV === 'production',
   isVercel: process.env.VERCEL === '1',
-  maxEngines: process.env.VERCEL === '1' ? 2 : 5,
-  responseTimeout: process.env.VERCEL === '1' ? 8000 : 30000,
-  enabledEngines: process.env.VERCEL === '1' 
-    ? ['google-ai', 'local-rag', 'simple-nlp']
-    : ['anomaly', 'prediction', 'autoscaling', 'korean', 'enhanced', 'integrated', 'mcp', 'hybrid', 'unified'],
-  mockComplexEngines: process.env.VERCEL === '1',
+  responseTimeout: process.env.VERCEL === '1' ? 8000 : 30000, // 타임아웃만 제한
+  enableCaching: true, // 캐싱 활성화로 성능 최적화
+  logLevel: process.env.VERCEL === '1' ? 'warn' : 'info', // 로그 레벨 제한
 };
 
 export interface AIEngineRequest {
@@ -203,17 +200,8 @@ export class MasterAIEngine {
     const startTime = Date.now();
     const thinkingSteps: AIThinkingStep[] = [];
 
-    // 🚀 Vercel 최적화: 엔진 활성화 체크
-    if (VERCEL_OPTIMIZATION.isVercel && !VERCEL_OPTIMIZATION.enabledEngines.includes(request.engine)) {
-      // 비활성화된 엔진은 목업 응답 반환
-      return this.getMockResponse(request, startTime);
-    }
-
     // 🚀 Vercel 최적화: 타임아웃 설정
     const timeout = VERCEL_OPTIMIZATION.responseTimeout;
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('AI Engine Timeout')), timeout);
-    });
 
     // 사고과정 로그 활성화 여부
     const enableThinking = request.options?.enable_thinking_log !== false;
@@ -231,38 +219,33 @@ export class MasterAIEngine {
       );
     }
 
-    if (!this.initialized) {
-      return {
-        success: false,
-        result: null,
-        engine_used: 'none',
-        response_time: Date.now() - startTime,
-        confidence: 0,
-        fallback_used: false,
-        error: 'MasterAIEngine이 초기화되지 않았습니다',
-        thinking_process: thinkingSteps,
-      };
-    }
-
     try {
-      // 🚀 Vercel 최적화: 타임아웃과 함께 실행
-      const queryPromise = this.executeQuery(request, thinkingSteps, enableThinking);
-      const result = await Promise.race([queryPromise, timeoutPromise]);
+      // 🚀 Vercel 최적화: 타임아웃과 함께 실제 엔진 실행
+      const queryPromise = this.executeActualQuery(request, thinkingSteps, enableThinking);
       
-      return result;
-    } catch (error) {
-      // 타임아웃이나 에러 발생 시 목업 응답
       if (VERCEL_OPTIMIZATION.isVercel) {
-        return this.getMockResponse(request, startTime, error as Error);
+        // Vercel 환경에서는 타임아웃 적용
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('AI Engine Timeout')), timeout);
+        });
+        
+        const result = await Promise.race([queryPromise, timeoutPromise]);
+        return result;
+      } else {
+        // 개발 환경에서는 타임아웃 없이 실행
+        return await queryPromise;
       }
-      throw error;
+      
+    } catch (error) {
+      // 에러 발생 시 폴백 처리
+      return await this.handleQueryError(request, error as Error, startTime, thinkingSteps);
     }
   }
 
   /**
-   * 🎯 실제 쿼리 실행 (기존 로직)
+   * 🎯 실제 쿼리 실행 (원본 로직 복원)
    */
-  private async executeQuery(
+  private async executeActualQuery(
     request: AIEngineRequest, 
     thinkingSteps: AIThinkingStep[], 
     enableThinking: boolean
@@ -840,152 +823,84 @@ export class MasterAIEngine {
   }
 
   /**
-   * 🎯 Vercel 최적화: 목업 응답 생성
+   * 🚨 쿼리 에러 처리
    */
-  private getMockResponse(request: AIEngineRequest, startTime: number, error?: Error): AIEngineResponse {
-    const mockData = this.generateMockData(request.engine, request.query);
-    
-    return {
-      success: true,
-      result: mockData,
-      engine_used: `${request.engine}_mock`,
-      response_time: Math.random() * 100 + 50, // 50-150ms 시뮬레이션
-      confidence: 0.8, // 목업이지만 높은 신뢰도로 표시
-      fallback_used: false,
-      cache_hit: false,
-      thinking_process: [
-        this.createThinkingStep(
-          'analyzing',
-          '🎭 목업 모드',
-          'Vercel 최적화를 위한 목업 응답 생성'
-        ),
-        this.createThinkingStep(
-          'completed',
-          '✅ 목업 완료',
-          `${request.engine} 엔진 목업 데이터 반환`
-        )
-      ],
-      reasoning_steps: [
-        '목업 모드에서 실행됨',
-        '실제 AI 엔진 대신 사전 정의된 응답 사용',
-        'Vercel 무료 티어 리소스 절약'
-      ]
-    };
-  }
-
-  /**
-   * 🎭 엔진별 목업 데이터 생성
-   */
-  private generateMockData(engine: string, query: string): any {
-    const mockResponses = {
-      'anomaly': {
-        anomalies: [
-          {
-            server: 'web-server-01',
-            metric: 'cpu_usage',
-            value: 85.2,
-            threshold: 80,
-            severity: 'warning',
-            timestamp: new Date().toISOString()
-          }
-        ],
-        summary: '1개의 CPU 사용률 이상 감지됨'
-      },
-      'prediction': {
-        predictions: [
-          {
-            metric: 'cpu_usage',
-            current: 65.4,
-            predicted_1h: 72.1,
-            predicted_24h: 68.9,
-            confidence: 0.85
-          },
-          {
-            metric: 'memory_usage',
-            current: 78.2,
-            predicted_1h: 81.5,
-            predicted_24h: 79.8,
-            confidence: 0.92
-          }
-        ],
-        summary: 'CPU 사용률 증가 예상, 메모리 사용률 안정적'
-      },
-      'autoscaling': {
-        recommendations: [
-          {
-            action: 'scale_up',
-            target: 'web-tier',
-            current_instances: 3,
-            recommended_instances: 5,
-            reason: '트래픽 증가 예상',
-            confidence: 0.88
-          }
-        ],
-        summary: 'Web 티어 스케일 업 권장'
-      },
-      'korean': {
-        response: query.includes('서버') 
-          ? '현재 서버 상태는 양호합니다. CPU 사용률 65%, 메모리 사용률 78%로 정상 범위 내에 있습니다.'
-          : query.includes('장애')
-          ? '현재 감지된 장애는 없습니다. 모든 시스템이 정상 작동 중입니다.'
-          : '요청하신 정보를 분석한 결과, 시스템이 안정적으로 운영되고 있습니다.',
-        confidence: 0.9,
-        language: 'ko'
-      },
-      'enhanced': {
-        results: [
-          {
-            title: '서버 성능 분석',
-            content: '전체적으로 안정적인 성능을 보이고 있습니다.',
-            relevance: 0.95
-          },
-          {
-            title: '리소스 사용률',
-            content: 'CPU와 메모리 사용률이 적정 수준을 유지하고 있습니다.',
-            relevance: 0.88
-          }
-        ],
-        total_results: 2
-      },
-      'integrated': {
-        analysis: {
-          overall_health: 'good',
-          critical_issues: 0,
-          warnings: 1,
-          recommendations: [
-            '정기적인 성능 모니터링 지속',
-            'CPU 사용률 추이 관찰 필요'
-          ]
-        },
-        summary: '시스템 전반적으로 양호한 상태'
-      },
-      'mcp': {
-        response: '목업 MCP 응답: 요청이 성공적으로 처리되었습니다.',
-        status: 'success',
-        data: { processed: true, timestamp: new Date().toISOString() }
-      },
-      'hybrid': {
-        hybrid_result: {
-          primary_engine: 'mock_primary',
-          fallback_used: false,
-          combined_confidence: 0.87,
-          result: '하이브리드 분석 완료: 시스템 상태 양호'
-        }
-      },
-      'unified': {
-        unified_analysis: {
-          engines_used: ['mock_engine_1', 'mock_engine_2'],
-          consensus: 0.91,
-          final_result: '통합 분석 결과: 모든 지표가 정상 범위 내'
-        }
+  private async handleQueryError(
+    request: AIEngineRequest,
+    error: Error,
+    startTime: number,
+    thinkingSteps: AIThinkingStep[]
+  ): Promise<AIEngineResponse> {
+    await aiLogger.logError(
+      request.engine,
+      this.getLogCategory(request.engine),
+      error,
+      {
+        query: request.query,
+        data: request.data,
+        context: request.context,
+        responseTime: Date.now() - startTime,
       }
-    };
+    );
 
-    return mockResponses[engine as keyof typeof mockResponses] || {
-      message: `${engine} 엔진 목업 응답`,
-      query: query,
-      timestamp: new Date().toISOString(),
-      mock: true
+    if (thinkingSteps.length > 0) {
+      thinkingSteps.push(
+        this.createThinkingStep(
+          'error',
+          '오류 발생',
+          error.message
+        )
+      );
+    }
+
+    // 폴백 처리
+    if (request.options?.fallback_enabled !== false) {
+      if (thinkingSteps.length > 0) {
+        thinkingSteps.push(
+          this.createThinkingStep(
+            'processing',
+            '폴백 처리',
+            '대체 엔진으로 재시도'
+          )
+        );
+      }
+
+      const fallbackResult = await this.handleFallback(request, error);
+      if (fallbackResult) {
+        if (thinkingSteps.length > 0) {
+          thinkingSteps.push(
+            this.createThinkingStep(
+              'completed',
+              '폴백 성공',
+              '대체 엔진으로 처리 완료'
+            )
+          );
+        }
+
+        return {
+          success: true,
+          result: fallbackResult,
+          engine_used: `${request.engine}_fallback`,
+          response_time: Date.now() - startTime,
+          confidence: 0.6,
+          fallback_used: true,
+          thinking_process: thinkingSteps,
+        };
+      }
+    }
+
+    // 통계 업데이트 (실패)
+    this.updateEngineStats(request.engine, Date.now() - startTime, false);
+
+    return {
+      success: false,
+      result: null,
+      engine_used: request.engine,
+      response_time: Date.now() - startTime,
+      confidence: 0,
+      fallback_used: false,
+      error: error.message,
+      thinking_process: thinkingSteps,
     };
   }
 }
