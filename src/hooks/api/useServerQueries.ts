@@ -164,7 +164,7 @@ export const useServerDetail = (serverId: string, enabled: boolean = true) => {
     queryFn: () => fetchServerDetail(serverId),
     enabled: !!serverId && enabled,
     staleTime: 5000,
-    refetchInterval: 15000, // 15초 간격
+    refetchInterval: 30000, // ✅ 15초 → 30초로 통일 (안정성 향상)
     retry: 2,
     placeholderData: keepPreviousData,
     meta: {

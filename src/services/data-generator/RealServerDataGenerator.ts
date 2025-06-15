@@ -55,7 +55,7 @@ export class RealServerDataGenerator {
   constructor(config: GeneratorConfig = {}) {
     this.config = {
       maxServers: 30, // 🎯 시나리오(critical 10, warning 20%) 충족을 위해 기본 30대로 설정
-      updateInterval: 20000, // 🎯 성능 최적화: 10초 → 20초로 변경 (서버 부하 50% 감소)
+      updateInterval: 30000, // 🎯 성능 최적화: 20초 → 30초로 변경 (안정성 향상)
       enableRealtime: true,
       serverArchitecture: 'load-balanced',
       enableRedis: true,
@@ -474,14 +474,17 @@ export class RealServerDataGenerator {
   }
 
   public startAutoGeneration(): void {
-    if (this.isGenerating) return;
+    if (this.isGenerating) {
+      console.log('⚠️ 실시간 데이터 생성이 이미 실행 중입니다 (중복 실행 방지)');
+      return;
+    }
 
     this.isGenerating = true;
     this.intervalId = setInterval(() => {
       this.generateRealtimeData();
     }, this.config.updateInterval);
 
-    console.log('🔄 실시간 데이터 생성 시작');
+    console.log(`🔄 실시간 데이터 생성 시작 (${this.config.updateInterval}ms 주기)`);
   }
 
   public stopAutoGeneration(): void {
@@ -495,38 +498,48 @@ export class RealServerDataGenerator {
 
   private generateRealtimeData(): void {
     this.servers.forEach(server => {
-      // 메트릭 업데이트
-      server.metrics.cpu = Math.max(
-        0,
-        Math.min(100, server.metrics.cpu + (Math.random() - 0.5) * 10)
-      );
-      server.metrics.memory = Math.max(
-        0,
-        Math.min(100, server.metrics.memory + (Math.random() - 0.5) * 8)
-      );
-      server.metrics.disk = Math.max(
-        0,
-        Math.min(100, server.metrics.disk + (Math.random() - 0.5) * 5)
-      );
-      server.metrics.network.in = Math.random() * 100;
-      server.metrics.network.out = Math.random() * 100;
-      server.metrics.requests = Math.random() * 1000 + 100;
-      server.metrics.errors = Math.random() * 10;
-      server.metrics.uptime = Math.random() * 8760 * 3600;
-      server.health.score = Math.max(
-        0,
-        Math.min(100, server.health.score + (Math.random() - 0.5) * 10)
-      );
+      // ✅ 현실적인 변화량으로 제한 (기존 값 기준 ±5% 변화)
+      const cpuChange = (Math.random() - 0.5) * 10; // ±5% 변화
+      const memoryChange = (Math.random() - 0.5) * 8; // ±4% 변화
+      const diskChange = (Math.random() - 0.5) * 2; // ±1% 변화 (디스크는 천천히 변함)
+      
+      server.metrics.cpu = Math.max(0, Math.min(100, server.metrics.cpu + cpuChange));
+      server.metrics.memory = Math.max(0, Math.min(100, server.metrics.memory + memoryChange));
+      server.metrics.disk = Math.max(0, Math.min(100, server.metrics.disk + diskChange));
+      
+      // ✅ 네트워크 트래픽: 기존 값 기준 ±20% 변화 (더 현실적)
+      const networkInChange = server.metrics.network.in * (Math.random() - 0.5) * 0.4; // ±20%
+      const networkOutChange = server.metrics.network.out * (Math.random() - 0.5) * 0.4; // ±20%
+      
+      server.metrics.network.in = Math.max(0, server.metrics.network.in + networkInChange);
+      server.metrics.network.out = Math.max(0, server.metrics.network.out + networkOutChange);
+      
+      // ✅ 요청 수: 기존 값 기준 ±15% 변화
+      const requestsChange = server.metrics.requests * (Math.random() - 0.5) * 0.3; // ±15%
+      server.metrics.requests = Math.max(0, server.metrics.requests + requestsChange);
+      
+      // ✅ 에러 수: 기존 값 기준 ±10% 변화 (에러는 급격히 변하지 않음)
+      const errorsChange = server.metrics.errors * (Math.random() - 0.5) * 0.2; // ±10%
+      server.metrics.errors = Math.max(0, server.metrics.errors + errorsChange);
+      
+      // ✅ 업타임: 점진적 증가 (현실적)
+      server.metrics.uptime += this.config.updateInterval! / 1000; // 초 단위 증가
+      
+      // ✅ 헬스 스코어: 기존 값 기준 ±3% 변화 (안정적)
+      const healthChange = (Math.random() - 0.5) * 6; // ±3% 변화
+      server.health.score = Math.max(0, Math.min(100, server.health.score + healthChange));
       server.health.lastCheck = new Date().toISOString();
 
-      // 가끔 상태 변경
-      if (Math.random() < 0.02) {
+      // ✅ 서버 상태 변경 확률 대폭 감소: 2% → 0.1% (200배 안정화)
+      if (Math.random() < 0.001) {
         const statuses: ('running' | 'warning' | 'error')[] = [
           'running',
-          'warning',
+          'warning', 
           'error',
         ];
-        server.status = statuses[Math.floor(Math.random() * statuses.length)];
+        const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
+        console.log(`🔄 서버 ${server.id} 상태 변경: ${server.status} → ${newStatus}`);
+        server.status = newStatus;
       }
     });
 

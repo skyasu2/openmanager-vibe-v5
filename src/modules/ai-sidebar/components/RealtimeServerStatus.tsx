@@ -76,8 +76,8 @@ const RealtimeServerStatusComponent: React.FC<RealtimeServerStatusProps> = ({
 
   // 단순화된 업데이트 주기 - 성능 최적화
   const getUpdateInterval = () => {
-    // 모든 상황에서 60초로 통일 (성능 최적화)
-    return 60000; // 60초
+    // ✅ 모든 상황에서 30초로 통일 (전체 시스템과 동기화, 안정성 향상)
+    return 30000; // 30초
   };
 
   // 60초 간격으로 단순화된 업데이트 - TimerManager 사용
@@ -98,7 +98,7 @@ const RealtimeServerStatusComponent: React.FC<RealtimeServerStatusProps> = ({
     timerManager.register({
       id: 'realtime-server-status',
       callback: updateServerStatus,
-      interval: 60000, // 60초 고정
+      interval: 30000, // ✅ 60초 → 30초로 통일 (전체 시스템과 동기화)
       priority: 'low',
         enabled: true // 우선순위 낮춤
     });

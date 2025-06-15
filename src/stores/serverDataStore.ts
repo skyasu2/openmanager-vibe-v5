@@ -278,13 +278,22 @@ export const useServerDataStore = create<ServerDataState>()(
 
       // 실시간 업데이트 시작
       startRealTimeUpdates: () => {
-        // TimerManager를 통한 효율적인 업데이트
+        // 기존 타이머가 있으면 정리
+        const existingInterval = (get() as any)._updateInterval;
+        if (existingInterval) {
+          clearInterval(existingInterval);
+          console.log('🔄 기존 폴링 타이머 정리됨');
+        }
+
+        // ✅ 폴링 주기 최적화: 5초 → 30초 (6배 성능 향상, 안정성 확보)
         const updateInterval = setInterval(() => {
+          console.log('🔄 서버 데이터 자동 업데이트 (30초 주기)');
           get().fetchServers();
-        }, 5000); // 5초마다 업데이트
+        }, 30000); // 30초마다 업데이트
 
         // 정리를 위해 interval ID 저장
         (get() as any)._updateInterval = updateInterval;
+        console.log('✅ 실시간 업데이트 시작 (30초 주기)');
       },
 
       // 실시간 업데이트 중지

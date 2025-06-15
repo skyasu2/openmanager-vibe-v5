@@ -359,12 +359,12 @@ export default function ServerDashboard({
 
   const SERVERS_PER_PAGE = 8;
 
-  // ✅ 실시간 훅: 20초(20,000ms) 주기로 새로고침 (데이터생성기와 동기화)
+  // ✅ 실시간 훅: 30초 주기로 새로고침 (데이터생성기와 동기화, 안정성 향상)
   const {
     servers = [],
     isLoading: isGenerating,
     refreshAll,
-  } = useRealtimeServers({ refreshInterval: 20000 });
+  } = useRealtimeServers({ refreshInterval: 30000 });
 
   // 🚀 디버깅 로그 추가
   console.log('📊 ServerDashboard 렌더링:', {
@@ -578,17 +578,12 @@ export default function ServerDashboard({
 
     initializeData();
 
-    // 🔄 실시간 업데이트 (120초마다) - 성능 최적화
-    const interval = setInterval(() => {
-      if (mounted) {
-        console.log('🔄 서버 데이터 자동 업데이트 (최적화됨)');
-        loadRealData();
-      }
-    }, 120000); // 30초 → 120초로 변경 (4배 성능 향상)
+    // ✅ 중복 폴링 제거: useRealtimeServers 훅이 이미 30초 주기로 폴링하므로 추가 타이머 불필요
+    // 기존 120초 타이머 제거로 성능 향상 및 안정성 확보
 
     return () => {
       mounted = false;
-      clearInterval(interval);
+      // 추가 타이머 없으므로 정리할 것 없음
     };
   }, [onStatsUpdate, loadRealData]);
 
