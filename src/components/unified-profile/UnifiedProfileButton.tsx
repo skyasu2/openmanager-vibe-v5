@@ -111,7 +111,7 @@ export function UnifiedProfileButton({
 
   // 외부 클릭 감지 (최적화된 버전)
   useEffect(() => {
-    if (!isOpen || isAnimating) return;
+    if (!isOpen) return;
 
     const handleClickOutside = (event: Event) => {
       const target = event.target as Node;
@@ -136,17 +136,17 @@ export function UnifiedProfileButton({
         passive: true,
         capture: true, // capture 단계에서 처리
       });
-    }, 100);
+    }, 50); // 100ms에서 50ms로 단축
 
     return () => {
       clearTimeout(timeoutId);
       document.removeEventListener('mousedown', handleClickOutside, true);
     };
-  }, [isOpen, onClick, buttonRef, isAnimating]);
+  }, [isOpen, onClick, buttonRef]);
 
   // ESC 키로 드롭다운 닫기 (최적화된 버전)
   useEffect(() => {
-    if (!isOpen || isAnimating) return;
+    if (!isOpen) return;
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -164,20 +164,20 @@ export function UnifiedProfileButton({
     return () => {
       document.removeEventListener('keydown', handleEscape, true);
     };
-  }, [isOpen, onClick, isAnimating]);
+  }, [isOpen, onClick]);
 
   // 위치 계산 (드롭다운이 열릴 때)
   useEffect(() => {
-    if (isOpen && !isAnimating) {
+    if (isOpen) {
       calculateDropdownPosition();
     }
-  }, [isOpen, calculateDropdownPosition, isAnimating]);
+  }, [isOpen, calculateDropdownPosition]);
 
-  // 애니메이션 상태 관리
+  // 애니메이션 상태 관리 (간소화)
   useEffect(() => {
     if (isOpen) {
       setIsAnimating(true);
-      const timer = setTimeout(() => setIsAnimating(false), 200); // 애니메이션 duration과 동일
+      const timer = setTimeout(() => setIsAnimating(false), 150); // 200ms에서 150ms로 단축
       return () => clearTimeout(timer);
     } else {
       setIsAnimating(false);
@@ -666,7 +666,7 @@ export function UnifiedProfileButton({
           e.preventDefault();
           e.stopPropagation();
 
-          // 애니메이션 중이면 클릭 무시
+          // 짧은 지연으로 중복 클릭 방지
           if (isAnimating) return;
 
           onClick(e);
