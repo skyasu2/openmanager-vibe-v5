@@ -88,48 +88,50 @@ export class MCPEngine {
         const startTime = Date.now();
         this.lastQueryTime = startTime;
 
+        console.log(`🎯 MCP Engine processQuery 시작: "${query}"`);
+
         if (!this.isHealthy()) {
+            console.log('❌ MCP Engine 헬스체크 실패');
             throw new Error('MCP Engine이 사용 불가능합니다');
         }
 
         try {
-            // 1. 캐시 확인
-            const cacheKey = this.generateCacheKey(query, context);
-            const cached = this.independentCache.get(cacheKey);
-            if (cached && Date.now() - cached.timestamp < 300000) { // 5분 TTL
-                console.log('⚡ MCP Engine 캐시 히트');
-                return {
-                    ...cached.result,
-                    processing_time: Date.now() - startTime
-                };
-            }
+            // 1. 캐시 확인 (임시 비활성화)
+            // const cacheKey = this.generateCacheKey(query, context);
+            // const cached = this.independentCache.get(cacheKey);
+            // if (cached && Date.now() - cached.timestamp < 300000) { // 5분 TTL
+            //     console.log('⚡ MCP Engine 캐시 히트');
+            //     return {
+            //         ...cached.result,
+            //         processing_time: Date.now() - startTime
+            //     };
+            // }
+
+            console.log('🔍 MCP Engine 캐시 우회, 직접 처리 시작');
 
             // 2. MCP 쿼리 처리 (시뮬레이션)
             const mcpResult = await this.simulateMCPQuery(query);
 
+            console.log('✅ simulateMCPQuery 완료:', mcpResult.answer.substring(0, 100));
+
             // 3. 컨텍스트 분석
             const contextAnalysis = await this.analyzeContext(query, context);
 
-            // 4. ML 도구 분석
-            const mlAnalysis = await this.mlToolkit.analyzeQuery(query, {
-                mcpResult,
-                context: contextAnalysis
-            });
+            // 4. ML 도구 분석 (임시 비활성화)
+            const mlAnalysis = { confidence: 0.8 }; // 기본값
+            // const mlAnalysis = await this.mlToolkit.analyzeQuery(query, {
+            //     mcpResult,
+            //     context: contextAnalysis
+            // });
 
             // 5. 결과 융합
             const response = await this.combineResults(query, mcpResult, contextAnalysis, mlAnalysis);
 
-            // 6. 캐시 저장
-            this.independentCache.set(cacheKey, {
-                result: response,
-                timestamp: Date.now()
-            });
-
-            // 7. 캐시 크기 제한 (최대 1000개)
-            if (this.independentCache.size > 1000) {
-                const oldestKey = this.independentCache.keys().next().value;
-                this.independentCache.delete(oldestKey);
-            }
+            // 6. 캐시 저장 (임시 비활성화)
+            // this.independentCache.set(cacheKey, {
+            //     result: response,
+            //     timestamp: Date.now()
+            // });
 
             response.processing_time = Date.now() - startTime;
             console.log(`✅ MCP Engine 처리 완료: ${response.processing_time}ms`);
@@ -146,9 +148,8 @@ export class MCPEngine {
  * 🏥 헬스체크 - 독립 동작 가능 여부 확인
  */
     isHealthy(): boolean {
-        return this.initialized &&
-            this.isMCPConnected() &&
-            this.mlToolkit.isReady();
+        return this.initialized && this.isMCPConnected();
+        // ML Toolkit 의존성 제거 - MCP Engine 독립 동작
     }
 
     /**
@@ -273,10 +274,17 @@ export class MCPEngine {
                 };
             }
 
-            // 질문 유형 분석
+            // 질문 유형 분석 (더 정확한 패턴 매칭)
             const queryLower = query.toLowerCase();
 
-            if (queryLower.includes('cpu') && (queryLower.includes('높은') || queryLower.includes('최고'))) {
+            console.log(`🔍 질문 분석: "${queryLower}"`);
+
+            // CPU 관련 질문
+            if ((queryLower.includes('cpu') || queryLower.includes('씨피유')) &&
+                (queryLower.includes('높은') || queryLower.includes('최고') || queryLower.includes('가장'))) {
+
+                console.log('🎯 CPU 사용률 질문 감지');
+
                 // CPU 사용률이 가장 높은 서버 찾기
                 const highestCpuServer = allServers.reduce((prev, current) =>
                     (prev.cpu > current.cpu) ? prev : current
@@ -309,7 +317,12 @@ export class MCPEngine {
                 };
             }
 
-            if (queryLower.includes('메모리') && (queryLower.includes('높은') || queryLower.includes('최고'))) {
+            // 메모리 관련 질문 (더 넓은 패턴)
+            if ((queryLower.includes('메모리') || queryLower.includes('memory') || queryLower.includes('램')) &&
+                (queryLower.includes('높은') || queryLower.includes('최고') || queryLower.includes('가장') || queryLower.includes('많이'))) {
+
+                console.log('🎯 메모리 사용률 질문 감지');
+
                 // 메모리 사용률이 가장 높은 서버 찾기
                 const highestMemoryServer = allServers.reduce((prev, current) =>
                     (prev.memory > current.memory) ? prev : current
