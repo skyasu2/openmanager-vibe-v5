@@ -419,376 +419,382 @@ export default function EnhancedServerModal({
 
   return (
     <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className='fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4'
-        onClick={onClose}
-      >
+      {isOpen && (
         <motion.div
-          initial={{ scale: 0.9, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          transition={{ type: 'spring', duration: 0.5 }}
-          className='bg-white rounded-2xl shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden'
-          onClick={e => e.stopPropagation()}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className='fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4'
+          onClick={onClose}
         >
-          {/* 헤더 */}
-          <div className='bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6'>
-            <div className='flex items-center justify-between'>
-              <div className='flex items-center gap-4'>
-                <div className='p-3 bg-white/20 rounded-lg'>
-                  <Server className='w-6 h-6' />
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            transition={{ type: 'spring', duration: 0.5 }}
+            className='bg-white rounded-2xl shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden'
+            onClick={e => e.stopPropagation()}
+          >
+            {/* 헤더 */}
+            <div className='bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6'>
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center gap-4'>
+                  <div className='p-3 bg-white/20 rounded-lg'>
+                    <Server className='w-6 h-6' />
+                  </div>
+                  <div>
+                    <h2 className='text-2xl font-bold'>{server.name}</h2>
+                    <p className='text-blue-100'>
+                      {server.type} • {server.location}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className='text-2xl font-bold'>{server.name}</h2>
-                  <p className='text-blue-100'>
-                    {server.type} • {server.location}
-                  </p>
-                </div>
-              </div>
 
-              <div className='flex items-center gap-3'>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setIsRealtime(!isRealtime)}
-                  className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
-                    isRealtime ? 'bg-green-500' : 'bg-white/20'
-                  }`}
-                >
-                  {isRealtime ? (
-                    <Play className='w-4 h-4' />
-                  ) : (
-                    <Pause className='w-4 h-4' />
-                  )}
-                  {isRealtime ? '실시간' : '정지됨'}
-                </motion.button>
-
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={onClose}
-                  className='p-2 bg-white/20 rounded-lg hover:bg-white/30'
-                >
-                  <X className='w-5 h-5' />
-                </motion.button>
-              </div>
-            </div>
-
-            {/* 탭 네비게이션 */}
-            <div className='flex gap-2 mt-6'>
-              {tabs.map(tab => {
-                const Icon = tab.icon;
-                return (
+                <div className='flex items-center gap-3'>
                   <motion.button
-                    key={tab.id}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setSelectedTab(tab.id as any)}
-                    className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all ${
-                      selectedTab === tab.id
-                        ? 'bg-white text-blue-600 shadow-lg'
-                        : 'bg-white/10 text-white hover:bg-white/20'
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setIsRealtime(!isRealtime)}
+                    className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+                      isRealtime ? 'bg-green-500' : 'bg-white/20'
                     }`}
                   >
-                    <Icon className='w-4 h-4' />
-                    {tab.label}
+                    {isRealtime ? (
+                      <Play className='w-4 h-4' />
+                    ) : (
+                      <Pause className='w-4 h-4' />
+                    )}
+                    {isRealtime ? '실시간' : '정지됨'}
                   </motion.button>
-                );
-              })}
+
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={onClose}
+                    className='p-2 bg-white/20 rounded-lg hover:bg-white/30'
+                  >
+                    <X className='w-5 h-5' />
+                  </motion.button>
+                </div>
+              </div>
+
+              {/* 탭 네비게이션 */}
+              <div className='flex gap-2 mt-6'>
+                {tabs.map(tab => {
+                  const Icon = tab.icon;
+                  return (
+                    <motion.button
+                      key={tab.id}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setSelectedTab(tab.id as any)}
+                      className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all ${
+                        selectedTab === tab.id
+                          ? 'bg-white text-blue-600 shadow-lg'
+                          : 'bg-white/10 text-white hover:bg-white/20'
+                      }`}
+                    >
+                      <Icon className='w-4 h-4' />
+                      {tab.label}
+                    </motion.button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
 
-          {/* 콘텐츠 영역 */}
-          <div className='flex-1 p-6 overflow-y-auto bg-gray-50'>
-            <AnimatePresence mode='wait'>
-              <motion.div
-                key={selectedTab}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                {selectedTab === 'overview' && (
-                  <div className='space-y-6'>
-                    {/* 3D 게이지들 */}
-                    <div>
-                      <h3 className='text-xl font-bold text-gray-900 mb-4'>
-                        실시간 리소스 모니터링
-                      </h3>
-                      <div className='grid grid-cols-1 md:grid-cols-3 gap-8 bg-white rounded-xl p-6 shadow-sm'>
-                        <CircularGauge3D
-                          value={server.cpu}
-                          label='CPU'
-                          color='#ef4444'
-                          size={140}
-                        />
-                        <CircularGauge3D
-                          value={server.memory}
-                          label='메모리'
-                          color='#3b82f6'
-                          size={140}
-                        />
-                        <CircularGauge3D
-                          value={server.disk}
-                          label='디스크'
-                          color='#8b5cf6'
-                          size={140}
-                        />
-                      </div>
-                    </div>
-
-                    {/* 시스템 정보 */}
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                      <div className='bg-white rounded-xl p-6 shadow-sm'>
-                        <h4 className='text-lg font-semibold text-gray-900 mb-4'>
-                          시스템 정보
-                        </h4>
-                        <div className='space-y-3'>
-                          <div className='flex justify-between'>
-                            <span className='text-gray-600'>운영체제</span>
-                            <span className='font-medium'>
-                              {server.os || 'Ubuntu 20.04 LTS'}
-                            </span>
-                          </div>
-                          <div className='flex justify-between'>
-                            <span className='text-gray-600'>IP 주소</span>
-                            <span className='font-medium'>
-                              {server.ip || '192.168.1.100'}
-                            </span>
-                          </div>
-                          <div className='flex justify-between'>
-                            <span className='text-gray-600'>업타임</span>
-                            <span className='font-medium'>{server.uptime}</span>
-                          </div>
-                          <div className='flex justify-between'>
-                            <span className='text-gray-600'>CPU 코어</span>
-                            <span className='font-medium'>
-                              {server.specs?.cpu_cores || 8}개
-                            </span>
-                          </div>
-                          <div className='flex justify-between'>
-                            <span className='text-gray-600'>메모리</span>
-                            <span className='font-medium'>
-                              {server.specs?.memory_gb || 16}GB
-                            </span>
-                          </div>
+            {/* 콘텐츠 영역 */}
+            <div className='flex-1 p-6 overflow-y-auto bg-gray-50'>
+              <AnimatePresence mode='wait'>
+                <motion.div
+                  key={selectedTab}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {selectedTab === 'overview' && (
+                    <div className='space-y-6'>
+                      {/* 3D 게이지들 */}
+                      <div>
+                        <h3 className='text-xl font-bold text-gray-900 mb-4'>
+                          실시간 리소스 모니터링
+                        </h3>
+                        <div className='grid grid-cols-1 md:grid-cols-3 gap-8 bg-white rounded-xl p-6 shadow-sm'>
+                          <CircularGauge3D
+                            value={server.cpu}
+                            label='CPU'
+                            color='#ef4444'
+                            size={140}
+                          />
+                          <CircularGauge3D
+                            value={server.memory}
+                            label='메모리'
+                            color='#3b82f6'
+                            size={140}
+                          />
+                          <CircularGauge3D
+                            value={server.disk}
+                            label='디스크'
+                            color='#8b5cf6'
+                            size={140}
+                          />
                         </div>
                       </div>
 
-                      <div className='bg-white rounded-xl p-6 shadow-sm'>
-                        <h4 className='text-lg font-semibold text-gray-900 mb-4'>
-                          서비스 상태
-                        </h4>
-                        <div className='space-y-3'>
-                          {server.services.map((service, idx) => (
-                            <div
-                              key={idx}
-                              className='flex items-center justify-between'
-                            >
-                              <div className='flex items-center gap-3'>
-                                <div
-                                  className={`w-3 h-3 rounded-full ${
-                                    service.status === 'running'
-                                      ? 'bg-green-500'
-                                      : 'bg-red-500'
-                                  }`}
-                                />
-                                <span className='font-medium'>
-                                  {service.name}
-                                </span>
-                              </div>
-                              <span className='text-sm text-gray-600'>
-                                :{service.port}
+                      {/* 시스템 정보 */}
+                      <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                        <div className='bg-white rounded-xl p-6 shadow-sm'>
+                          <h4 className='text-lg font-semibold text-gray-900 mb-4'>
+                            시스템 정보
+                          </h4>
+                          <div className='space-y-3'>
+                            <div className='flex justify-between'>
+                              <span className='text-gray-600'>운영체제</span>
+                              <span className='font-medium'>
+                                {server.os || 'Ubuntu 20.04 LTS'}
                               </span>
                             </div>
-                          ))}
+                            <div className='flex justify-between'>
+                              <span className='text-gray-600'>IP 주소</span>
+                              <span className='font-medium'>
+                                {server.ip || '192.168.1.100'}
+                              </span>
+                            </div>
+                            <div className='flex justify-between'>
+                              <span className='text-gray-600'>업타임</span>
+                              <span className='font-medium'>
+                                {server.uptime}
+                              </span>
+                            </div>
+                            <div className='flex justify-between'>
+                              <span className='text-gray-600'>CPU 코어</span>
+                              <span className='font-medium'>
+                                {server.specs?.cpu_cores || 8}개
+                              </span>
+                            </div>
+                            <div className='flex justify-between'>
+                              <span className='text-gray-600'>메모리</span>
+                              <span className='font-medium'>
+                                {server.specs?.memory_gb || 16}GB
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className='bg-white rounded-xl p-6 shadow-sm'>
+                          <h4 className='text-lg font-semibold text-gray-900 mb-4'>
+                            서비스 상태
+                          </h4>
+                          <div className='space-y-3'>
+                            {server.services.map((service, idx) => (
+                              <div
+                                key={idx}
+                                className='flex items-center justify-between'
+                              >
+                                <div className='flex items-center gap-3'>
+                                  <div
+                                    className={`w-3 h-3 rounded-full ${
+                                      service.status === 'running'
+                                        ? 'bg-green-500'
+                                        : 'bg-red-500'
+                                    }`}
+                                  />
+                                  <span className='font-medium'>
+                                    {service.name}
+                                  </span>
+                                </div>
+                                <span className='text-sm text-gray-600'>
+                                  :{service.port}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {selectedTab === 'metrics' && (
-                  <div className='space-y-6'>
-                    <div className='flex items-center justify-between'>
+                  {selectedTab === 'metrics' && (
+                    <div className='space-y-6'>
+                      <div className='flex items-center justify-between'>
+                        <h3 className='text-xl font-bold text-gray-900'>
+                          성능 메트릭
+                        </h3>
+                        <select
+                          value={timeRange}
+                          onChange={e => setTimeRange(e.target.value as any)}
+                          className='px-3 py-2 border border-gray-300 rounded-lg'
+                          title='시간 범위 선택'
+                          aria-label='시간 범위 선택'
+                        >
+                          <option value='5m'>5분</option>
+                          <option value='1h'>1시간</option>
+                          <option value='6h'>6시간</option>
+                          <option value='24h'>24시간</option>
+                          <option value='7d'>7일</option>
+                        </select>
+                      </div>
+
+                      <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                        <RealtimeChart
+                          data={realtimeData.cpu}
+                          color='#ef4444'
+                          label='CPU 사용률'
+                        />
+                        <RealtimeChart
+                          data={realtimeData.memory}
+                          color='#3b82f6'
+                          label='메모리 사용률'
+                        />
+                        <RealtimeChart
+                          data={realtimeData.disk}
+                          color='#8b5cf6'
+                          label='디스크 사용률'
+                        />
+                        <RealtimeChart
+                          data={realtimeData.latency}
+                          color='#22c55e'
+                          label='응답 시간 (ms)'
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedTab === 'processes' && (
+                    <div className='space-y-6'>
                       <h3 className='text-xl font-bold text-gray-900'>
-                        성능 메트릭
+                        실행 중인 프로세스
                       </h3>
-                      <select
-                        value={timeRange}
-                        onChange={e => setTimeRange(e.target.value as any)}
-                        className='px-3 py-2 border border-gray-300 rounded-lg'
-                      >
-                        <option value='5m'>5분</option>
-                        <option value='1h'>1시간</option>
-                        <option value='6h'>6시간</option>
-                        <option value='24h'>24시간</option>
-                        <option value='7d'>7일</option>
-                      </select>
+                      <div className='bg-white rounded-xl shadow-sm overflow-hidden'>
+                        <table className='w-full'>
+                          <thead className='bg-gray-50'>
+                            <tr>
+                              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                프로세스
+                              </th>
+                              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                PID
+                              </th>
+                              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                CPU
+                              </th>
+                              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                메모리
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className='bg-white divide-y divide-gray-200'>
+                            {realtimeData.processes.map((process, idx) => (
+                              <motion.tr
+                                key={idx}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: idx * 0.1 }}
+                              >
+                                <td className='px-6 py-4 whitespace-nowrap'>
+                                  <div className='font-medium text-gray-900'>
+                                    {process.name}
+                                  </div>
+                                </td>
+                                <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>
+                                  {process.pid}
+                                </td>
+                                <td className='px-6 py-4 whitespace-nowrap'>
+                                  <div className='text-sm font-medium text-gray-900'>
+                                    {process.cpu.toFixed(1)}%
+                                  </div>
+                                </td>
+                                <td className='px-6 py-4 whitespace-nowrap'>
+                                  <div className='text-sm font-medium text-gray-900'>
+                                    {process.memory.toFixed(1)}%
+                                  </div>
+                                </td>
+                              </motion.tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
+                  )}
 
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                      <RealtimeChart
-                        data={realtimeData.cpu}
-                        color='#ef4444'
-                        label='CPU 사용률'
-                      />
-                      <RealtimeChart
-                        data={realtimeData.memory}
-                        color='#3b82f6'
-                        label='메모리 사용률'
-                      />
-                      <RealtimeChart
-                        data={realtimeData.disk}
-                        color='#8b5cf6'
-                        label='디스크 사용률'
-                      />
-                      <RealtimeChart
-                        data={realtimeData.latency}
-                        color='#22c55e'
-                        label='응답 시간 (ms)'
-                      />
+                  {selectedTab === 'logs' && (
+                    <div className='space-y-6'>
+                      <h3 className='text-xl font-bold text-gray-900'>
+                        실시간 로그
+                      </h3>
+                      <div className='bg-gray-900 rounded-xl p-4 h-96 overflow-y-auto font-mono text-sm'>
+                        {realtimeData.logs.map((log, idx) => (
+                          <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className={`mb-2 ${
+                              log.level === 'error'
+                                ? 'text-red-400'
+                                : log.level === 'warn'
+                                  ? 'text-yellow-400'
+                                  : 'text-green-400'
+                            }`}
+                          >
+                            <span className='text-gray-500'>
+                              {new Date(log.timestamp).toLocaleTimeString()}
+                            </span>
+                            <span className='ml-2 text-blue-400'>
+                              [{log.source}]
+                            </span>
+                            <span className='ml-2 font-bold'>
+                              {log.level.toUpperCase()}
+                            </span>
+                            <span className='ml-2'>{log.message}</span>
+                          </motion.div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {selectedTab === 'processes' && (
-                  <div className='space-y-6'>
-                    <h3 className='text-xl font-bold text-gray-900'>
-                      실행 중인 프로세스
-                    </h3>
-                    <div className='bg-white rounded-xl shadow-sm overflow-hidden'>
-                      <table className='w-full'>
-                        <thead className='bg-gray-50'>
-                          <tr>
-                            <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                              프로세스
-                            </th>
-                            <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                              PID
-                            </th>
-                            <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                              CPU
-                            </th>
-                            <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                              메모리
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className='bg-white divide-y divide-gray-200'>
-                          {realtimeData.processes.map((process, idx) => (
-                            <motion.tr
-                              key={idx}
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ delay: idx * 0.1 }}
-                            >
-                              <td className='px-6 py-4 whitespace-nowrap'>
-                                <div className='font-medium text-gray-900'>
-                                  {process.name}
-                                </div>
-                              </td>
-                              <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>
-                                {process.pid}
-                              </td>
-                              <td className='px-6 py-4 whitespace-nowrap'>
-                                <div className='text-sm font-medium text-gray-900'>
-                                  {process.cpu.toFixed(1)}%
-                                </div>
-                              </td>
-                              <td className='px-6 py-4 whitespace-nowrap'>
-                                <div className='text-sm font-medium text-gray-900'>
-                                  {process.memory.toFixed(1)}%
-                                </div>
-                              </td>
-                            </motion.tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-
-                {selectedTab === 'logs' && (
-                  <div className='space-y-6'>
-                    <h3 className='text-xl font-bold text-gray-900'>
-                      실시간 로그
-                    </h3>
-                    <div className='bg-gray-900 rounded-xl p-4 h-96 overflow-y-auto font-mono text-sm'>
-                      {realtimeData.logs.map((log, idx) => (
-                        <motion.div
-                          key={idx}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          className={`mb-2 ${
-                            log.level === 'error'
-                              ? 'text-red-400'
-                              : log.level === 'warn'
-                                ? 'text-yellow-400'
-                                : 'text-green-400'
-                          }`}
-                        >
-                          <span className='text-gray-500'>
-                            {new Date(log.timestamp).toLocaleTimeString()}
-                          </span>
-                          <span className='ml-2 text-blue-400'>
-                            [{log.source}]
-                          </span>
-                          <span className='ml-2 font-bold'>
-                            {log.level.toUpperCase()}
-                          </span>
-                          <span className='ml-2'>{log.message}</span>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {selectedTab === 'ai' && (
-                  <div className='space-y-6'>
-                    <h3 className='text-xl font-bold text-gray-900'>
-                      AI 인사이트
-                    </h3>
-                    <div className='space-y-4'>
-                      {realtimeData.insights.map((insight, idx) => (
-                        <motion.div
-                          key={idx}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: idx * 0.1 }}
-                          className={`p-4 rounded-xl border-l-4 ${
-                            insight.severity === 'critical'
-                              ? 'bg-red-50 border-red-500'
-                              : insight.severity === 'warning'
-                                ? 'bg-yellow-50 border-yellow-500'
-                                : 'bg-blue-50 border-blue-500'
-                          }`}
-                        >
-                          <div className='flex items-start gap-3'>
-                            <Brain className='w-5 h-5 mt-1 text-blue-600' />
-                            <div>
-                              <p className='font-medium text-gray-900'>
-                                {insight.message}
-                              </p>
-                              <p className='text-sm text-gray-600 mt-1'>
-                                {insight.type} •{' '}
-                                {new Date(insight.timestamp).toLocaleString()}
-                              </p>
+                  {selectedTab === 'ai' && (
+                    <div className='space-y-6'>
+                      <h3 className='text-xl font-bold text-gray-900'>
+                        AI 인사이트
+                      </h3>
+                      <div className='space-y-4'>
+                        {realtimeData.insights.map((insight, idx) => (
+                          <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.1 }}
+                            className={`p-4 rounded-xl border-l-4 ${
+                              insight.severity === 'critical'
+                                ? 'bg-red-50 border-red-500'
+                                : insight.severity === 'warning'
+                                  ? 'bg-yellow-50 border-yellow-500'
+                                  : 'bg-blue-50 border-blue-500'
+                            }`}
+                          >
+                            <div className='flex items-start gap-3'>
+                              <Brain className='w-5 h-5 mt-1 text-blue-600' />
+                              <div>
+                                <p className='font-medium text-gray-900'>
+                                  {insight.message}
+                                </p>
+                                <p className='text-sm text-gray-600 mt-1'>
+                                  {insight.type} •{' '}
+                                  {new Date(insight.timestamp).toLocaleString()}
+                                </p>
+                              </div>
                             </div>
-                          </div>
-                        </motion.div>
-                      ))}
+                          </motion.div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </motion.div>
         </motion.div>
-      </motion.div>
+      )}
     </AnimatePresence>
   );
 }
