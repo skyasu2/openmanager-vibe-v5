@@ -268,7 +268,7 @@ export function encryptString(plaintext: string): string {
     const masterKey = getMasterKey();
     const iv = crypto.randomBytes(IV_LENGTH);
 
-    const cipher = crypto.createCipher('aes-256-gcm', masterKey);
+    const cipher = crypto.createCipheriv('aes-256-gcm', masterKey, iv);
     cipher.setAAD(Buffer.from('openmanager-vibe-v5', 'utf8'));
 
     let encrypted = cipher.update(plaintext, 'utf8', 'hex');
@@ -301,7 +301,7 @@ export function decryptString(encryptedData: string): string {
     );
     const encrypted = encryptedData.slice((IV_LENGTH + TAG_LENGTH) * 2);
 
-    const decipher = crypto.createDecipher('aes-256-gcm', masterKey);
+    const decipher = crypto.createDecipheriv('aes-256-gcm', masterKey, iv);
     decipher.setAAD(Buffer.from('openmanager-vibe-v5', 'utf8'));
     decipher.setAuthTag(tag);
 

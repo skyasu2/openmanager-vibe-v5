@@ -456,5 +456,53 @@ export const selectIsAIActive = (state: AISidebarState) =>
   state.isOpen && state.isThinking;
 export const selectLatestResponse = (state: AISidebarState) =>
   state.responses[state.responses.length - 1];
+export const selectLatestMessage = (state: AISidebarState) =>
+  state.messages[state.messages.length - 1];
 export const selectRecentLogs = (state: AISidebarState) =>
   state.logs.slice(-10); // 최근 10개만
+export const selectRecentThinkingSteps = (state: AISidebarState) =>
+  state.logs.filter(log => log.type === 'reasoning').slice(-5);
+export const selectActiveAlerts = (state: AISidebarState) =>
+  state.logs.filter(log => log.type === 'analysis' && log.progress && log.progress < 1);
+export const selectQuickQuestions = (state: AISidebarState) => [
+  { id: '1', question: '현재 시스템 상태는?', category: 'performance' as const },
+  { id: '2', question: '보안 위험 요소는?', category: 'security' as const },
+  { id: '3', question: '성능 예측 분석', category: 'prediction' as const },
+  { id: '4', question: '로그 패턴 분석', category: 'analysis' as const },
+];
+
+// 🎛️ 추가 훅들
+export const useAIAlerts = () => {
+  const alerts = useAISidebarStore(selectActiveAlerts);
+  return { alerts };
+};
+
+export const useAISettings = () => {
+  const selectedContext = useAISidebarStore(state => state.selectedContext);
+  const setSelectedContext = useAISidebarStore(state => state.setSelectedContext);
+  
+  return {
+    selectedContext,
+    setSelectedContext,
+    settings: {
+      autoThinking: true,
+      contextLevel: selectedContext,
+      responseFormat: 'detailed',
+    },
+  };
+};
+
+// 🚨 타입 정의 추가
+export interface AISidebarSettings {
+  autoThinking: boolean;
+  contextLevel: 'basic' | 'advanced' | 'custom';
+  responseFormat: 'brief' | 'detailed' | 'technical';
+}
+
+export interface SystemAlert {
+  id: string;
+  type: 'warning' | 'error' | 'info';
+  message: string;
+  timestamp: string;
+  severity: 'low' | 'medium' | 'high';
+}

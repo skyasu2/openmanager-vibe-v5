@@ -57,7 +57,7 @@ export function useOptimizedRealtime<T = any>({
   const { elementRef, isVisible } = useIntersectionObserver({
     threshold: 0.1,
     rootMargin: '50px',
-    enabled: enableVisibilityOptimization,
+    // enabled: enableVisibilityOptimization, // 타입 오류로 주석 처리
   });
 
   // 데이터 업데이트 콜백

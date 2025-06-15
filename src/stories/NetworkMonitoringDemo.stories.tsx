@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { NetworkMonitoringCard } from '../components/dashboard/NetworkMonitoringCard';
+import NetworkMonitoringCard from '../components/dashboard/NetworkMonitoringCard';
 
 const meta: Meta<typeof NetworkMonitoringCard> = {
   title: '대시보드/네트워크 모니터링',

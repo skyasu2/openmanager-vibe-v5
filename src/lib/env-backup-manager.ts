@@ -118,7 +118,7 @@ export class EnvBackupManager {
    */
   private encrypt(text: string): string {
     const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipher('aes-256-cbc', this.encryptionKey);
+    const cipher = crypto.createCipheriv('aes-256-cbc', this.encryptionKey, iv);
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
     return iv.toString('hex') + ':' + encrypted;
@@ -130,7 +130,8 @@ export class EnvBackupManager {
   private decrypt(encryptedText: string): string {
     try {
       const [ivHex, encrypted] = encryptedText.split(':');
-      const decipher = crypto.createDecipher('aes-256-cbc', this.encryptionKey);
+      const iv = Buffer.from(ivHex, 'hex');
+      const decipher = crypto.createDecipheriv('aes-256-cbc', this.encryptionKey, iv);
       let decrypted = decipher.update(encrypted, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
       return decrypted;
