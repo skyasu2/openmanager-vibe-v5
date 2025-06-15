@@ -179,7 +179,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
       transition: {
         delay: index * 0.1,
         duration: 0.3,
-        ease: "easeOut"
+        ease: [0.4, 0, 0.2, 1]
       }
     })
   };

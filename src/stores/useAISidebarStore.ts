@@ -506,3 +506,6 @@ export interface SystemAlert {
   timestamp: string;
   severity: 'low' | 'medium' | 'high';
 }
+
+// AgentLog를 AIThinkingStep으로도 사용 가능하도록 별칭 추가
+export type AIThinkingStep = AgentLog;

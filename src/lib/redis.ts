@@ -428,5 +428,5 @@ export async function closeRedisConnection() {
 }
 
 // 기존 호환성을 위한 기본 export
-export { realRedis };
+export { realRedis, smartRedis };
 export default smartRedis;

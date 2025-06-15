@@ -196,19 +196,18 @@ export default function PredictionDemoPage() {
       const newWindow = window.open('', '_blank');
       if (newWindow) {
         newWindow.document.write(`
-          <html>
-            <head>
-              <title>🔮 AI 예측 리포트</title>
-              <style>
-                body { font-family: monospace; white-space: pre-wrap; padding: 20px; background: #f8f9fa; }
-                h1 { color: #333; }
-              </style>
-            </head>
-            <body>
-              <h1>🔮 AI 예측 리포트</h1>
-              ${textReport}
-            </body>
-          </html>
+          <!DOCTYPE html>
+          <head>
+            <title>🔮 AI 예측 리포트</title>
+            <style>
+              body { font-family: monospace; white-space: pre-wrap; padding: 20px; background: #f8f9fa; }
+              h1 { color: #333; }
+            </style>
+          </head>
+          <body>
+            <h1>🔮 AI 예측 리포트</h1>
+            ${textReport}
+          </body>
         `);
         newWindow.document.close();
       }
