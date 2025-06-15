@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { rateLimiters, withRateLimit } from '@/lib/rate-limiter';
-import { realServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 
 /**
  * 🖥️ Sequential Server Generation API (실제 서버데이터 생성기 연동)
@@ -37,8 +37,8 @@ function formatUptime(hours: number): string {
 const initializeGenerator = async () => {
   if (!isGeneratorInitialized) {
     try {
-      await realServerDataGenerator.initialize();
-      await realServerDataGenerator.startAutoGeneration();
+      await RealServerDataGenerator.getInstance().initialize();
+      await RealServerDataGenerator.getInstance().startAutoGeneration();
       isGeneratorInitialized = true;
       console.log('✅ RealServerDataGenerator 초기화 및 시작 완료');
     } catch (error) {
@@ -242,80 +242,23 @@ async function handlePOST(request: NextRequest) {
         data: { 
           currentIndex: 0, 
           resetTime: Date.now(),
-          totalServers: realServerDataGenerator.getAllServers().length 
+          totalServers: RealServerDataGenerator.getInstance().getAllServers().length 
         },
       });
     }
 
-    // RealServerDataGenerator에서 서버 목록 가져오기
-    const allServers = realServerDataGenerator.getAllServers();
-    
-    if (allServers.length === 0) {
-      return NextResponse.json({
-        success: false,
-        error: '서버 데이터 생성기에서 서버를 찾을 수 없습니다.',
-        message: '서버 생성기가 아직 초기화되지 않았거나 서버가 생성되지 않았습니다.',
-      }, { status: 404 });
+    const generator = RealServerDataGenerator.getInstance();
+
+    if (generator.getAllServers().length === 0) {
+      await generator.initialize();
+      generator.startAutoGeneration();
     }
 
-    // 순차적으로 서버 반환
-    const currentServer = allServers[currentServerIndex % allServers.length];
-    currentServerIndex++;
+    const servers = generator.getAllServers().sort((a, b) => a.id.localeCompare(b.id));
 
-    // ServerInstance를 API 응답 형식으로 변환
-    const serverResponse = {
-      id: currentServer.id,
-      hostname: `${currentServer.name.toLowerCase()}.${currentServer.environment}.openmanager.local`,
-      name: currentServer.name,
-      type: currentServer.type,
-      environment: currentServer.environment,
-      location: currentServer.location,
-      provider: 'onpremise',
-      status: currentServer.status === 'running' ? 'online' : 
-              currentServer.status === 'warning' ? 'warning' : 'offline',
-      cpu: Math.round(currentServer.metrics.cpu),
-      memory: Math.round(currentServer.metrics.memory),
-      disk: Math.round(currentServer.metrics.disk),
-      uptime: formatUptime(currentServer.metrics.uptime / (1000 * 60 * 60)), // milliseconds to hours
-      lastUpdate: new Date(),
-      alerts: currentServer.health.issues.length,
-      services: [
-        { name: 'nginx', status: 'running' as const, port: 80 },
-        { name: 'node', status: 'running' as const, port: 3000 },
-        ...(currentServer.type === 'database' ? [
-          { name: 'mysql', status: 'running' as const, port: 3306 }
-        ] : []),
-        ...(currentServer.type === 'cache' ? [
-          { name: 'redis', status: 'running' as const, port: 6379 }
-        ] : [])
-      ],
-      specs: {
-        cpu_cores: currentServer.specs.cpu.cores,
-        memory_gb: Math.round(currentServer.specs.memory.total / (1024 * 1024 * 1024)),
-        disk_gb: Math.round(currentServer.specs.disk.total / (1024 * 1024 * 1024)),
-      },
-      os: currentServer.specs.cpu.architecture === 'arm64' ? 'Ubuntu 22.04 LTS (ARM64)' : 'Ubuntu 22.04 LTS',
-      ip: `192.168.1.${100 + (currentServerIndex % 150)}`,
-    };
+    const limited = servers;
 
-    // 완료 여부 확인
-    const isComplete = currentServerIndex >= allServers.length;
-    const progress = Math.round((currentServerIndex / allServers.length) * 100);
-
-    console.log(`📊 서버 ${currentServerIndex}/${allServers.length} 생성 - ${serverResponse.name} (${serverResponse.status})`);
-
-    return NextResponse.json({
-      success: true,
-      server: serverResponse,
-      currentCount: currentServerIndex,
-      totalServers: allServers.length,
-      isComplete,
-      progress,
-      nextServerType: isComplete ? null : allServers[currentServerIndex % allServers.length]?.type || null,
-      message: isComplete 
-        ? '모든 서버 생성이 완료되었습니다.'
-        : `서버 생성 중... (${currentServerIndex}/${allServers.length})`,
-    });
+    return NextResponse.json({ success: true, servers: limited }, { headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60' }});
 
   } catch (error) {
     console.error('❌ 서버 생성 실패:', error);

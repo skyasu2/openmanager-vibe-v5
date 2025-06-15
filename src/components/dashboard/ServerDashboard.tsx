@@ -357,12 +357,12 @@ export default function ServerDashboard({
 
   const SERVERS_PER_PAGE = 8;
 
-  // ✅ 실시간 훅: 10초(10,000ms) 주기로 새로고침
+  // ✅ 실시간 훅: 20초(20,000ms) 주기로 새로고침 (데이터생성기와 동기화)
   const {
     servers = [],
     isLoading: isGenerating,
     refreshAll,
-  } = useRealtimeServers({ refreshInterval: 10000 });
+  } = useRealtimeServers({ refreshInterval: 20000 });
 
   // 🚀 디버깅 로그 추가
   console.log('📊 ServerDashboard 렌더링:', {

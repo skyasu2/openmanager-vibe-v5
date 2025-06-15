@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 
 // 목업 서버 데이터
 const generateMockServers = () => {
@@ -42,12 +43,21 @@ export async function GET(request: NextRequest) {
   try {
     console.log('🔍 API /servers 요청 처리 시작');
 
-    // 실제 서비스에서는 데이터베이스에서 서버 정보를 가져옵니다
-    const servers = generateMockServers();
+    // 실제 서비스: RealServerDataGenerator 사용 (메모리 or Redis 캐싱)
+    const generator = RealServerDataGenerator.getInstance();
 
-    // 제한 개수 처리
+    // 초기화되지 않았으면 초기화 및 자동 생성 시작
+    if (generator.getAllServers().length === 0) {
+      await generator.initialize();
+      generator.startAutoGeneration();
+    }
+
+    // 최신 서버 목록 가져오기 (일관된 순서 보장 위해 id 정렬)
+    const servers = generator.getAllServers().sort((a, b) => a.id.localeCompare(b.id));
+
+    // 제한 개수 처리 (고정된 순서 유지)
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '8'); // 🎯 기본값을 8개로 변경
+    const limit = parseInt(searchParams.get('limit') || '8'); // 🎯 기본값: 8개
     const limitedServers = servers.slice(0, limit);
 
     console.log(

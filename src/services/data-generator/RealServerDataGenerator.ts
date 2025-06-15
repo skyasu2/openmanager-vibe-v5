@@ -23,6 +23,17 @@ export interface GeneratorConfig {
     | 'load-balanced'
     | 'microservices';
   enableRedis?: boolean;
+  /**
+   * ⚙️ 시나리오 기반 상태 분포 설정
+   *  - criticalCount: 절대 개수(서버 심각)
+   *  - warningPercent: 전체 서버 대비 경고 상태 비율 (0~1)
+   *  - tolerancePercent: 퍼센트 오차 허용 범위 (0~1)
+   */
+  scenario?: {
+    criticalCount: number;
+    warningPercent: number; // e.g. 0.2 → 20%
+    tolerancePercent?: number; // e.g. 0.03 → ±3%
+  };
 }
 
 export class RealServerDataGenerator {
@@ -43,11 +54,16 @@ export class RealServerDataGenerator {
 
   constructor(config: GeneratorConfig = {}) {
     this.config = {
-      maxServers: 8, // 🎯 사용자 요청에 따라 8개로 변경
+      maxServers: 50, // 🎯 시나리오(critical 10, warning 20%) 충족을 위해 기본 50대로 확장
       updateInterval: 20000, // 🎯 성능 최적화: 10초 → 20초로 변경 (서버 부하 50% 감소)
       enableRealtime: true,
       serverArchitecture: 'load-balanced',
       enableRedis: true,
+      scenario: {
+        criticalCount: 10,
+        warningPercent: 0.2,
+        tolerancePercent: 0.03,
+      },
       ...config,
     };
 
@@ -246,7 +262,9 @@ export class RealServerDataGenerator {
       ['production', 'staging', 'development'];
     const locations = ['us-east-1', 'us-west-2', 'eu-west-1', 'ap-southeast-1'];
 
-    for (let i = 1; i <= (this.config.maxServers || 8); i++) {
+    const totalServers = this.config.maxServers || 50;
+
+    for (let i = 1; i <= totalServers; i++) {
       const serverType =
         serverTypes[Math.floor(Math.random() * serverTypes.length)];
       const role = roles[Math.floor(Math.random() * roles.length)];
@@ -314,6 +332,60 @@ export class RealServerDataGenerator {
       }
 
       this.servers.set(server.id, server);
+    }
+
+    /**
+     * 🎯 시나리오 분포 적용
+     *  - critical: 고정 개수
+     *  - warning: 비율 ± 오차
+     */
+    try {
+      const scenario = this.config.scenario;
+      if (scenario) {
+        const serversArray = Array.from(this.servers.values());
+        // 무작위 섞기
+        const shuffled = serversArray.sort(() => Math.random() - 0.5);
+
+        const criticalTarget = Math.min(scenario.criticalCount, shuffled.length);
+
+        const baseWarning = Math.round(shuffled.length * scenario.warningPercent);
+        const tol = Math.round(shuffled.length * (scenario.tolerancePercent || 0));
+        const warningTarget = Math.max(
+          0,
+          Math.min(
+            shuffled.length - criticalTarget,
+            baseWarning + (Math.floor(Math.random() * (tol * 2 + 1)) - tol)
+          )
+        );
+
+        // 상태 초기화
+        shuffled.forEach(s => {
+          s.status = 'running';
+        });
+
+        // critical 상태 설정
+        for (let i = 0; i < criticalTarget; i++) {
+          const srv = shuffled[i];
+          srv.status = 'error';
+          srv.health.score = Math.min(srv.health.score, 40);
+        }
+
+        // warning 상태 설정
+        for (let i = criticalTarget; i < criticalTarget + warningTarget; i++) {
+          const srv = shuffled[i];
+          srv.status = 'warning';
+          srv.health.score = Math.min(srv.health.score, 70);
+        }
+
+        // Map 에 반영
+        shuffled.forEach(s => this.servers.set(s.id, s));
+
+        console.log(
+          `📊 시나리오 적용 완료: critical ${criticalTarget}개, warning ${warningTarget}개, total ${shuffled.length}`
+        );
+      }
+    } catch (e) {
+      console.warn('⚠️ 시나리오 분포 적용 중 오류:', e);
     }
   }
 
