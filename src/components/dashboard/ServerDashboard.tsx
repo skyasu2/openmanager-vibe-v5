@@ -383,18 +383,36 @@ export default function ServerDashboard({
 
   // 🔄 실시간 서버 데이터를 로컬 상태에 동기화
   useEffect(() => {
-    if (
-      realtimeServers &&
-      Array.isArray(realtimeServers) &&
-      realtimeServers.length > 0
-    ) {
-      console.log('🔄 실시간 서버 데이터 동기화:', realtimeServers.length);
-      setServers(realtimeServers);
-      setLastUpdated(realtimeLastUpdated);
-      setError(realtimeError);
-      setIsLoading(realtimeLoading);
+    if (realtimeServers) {
+      // ��️ 배열 타입 검증 및 안전한 처리
+      if (Array.isArray(realtimeServers) && realtimeServers.length > 0) {
+        console.log('🔄 실시간 서버 데이터 동기화:', realtimeServers.length);
+        setServers(realtimeServers);
+        setLastUpdated(realtimeLastUpdated);
+        setError(realtimeError);
+        setIsLoading(realtimeLoading);
+      } else if (realtimeServers && !Array.isArray(realtimeServers)) {
+        console.error(
+          '❌ realtimeServers가 배열이 아닙니다:',
+          typeof realtimeServers,
+          realtimeServers
+        );
+        setError('서버 데이터 형식 오류: 배열이 아님');
+        // 폴백 데이터 사용
+        if (servers.length === 0) {
+          setServers(fallbackServers);
+        }
+      } else {
+        console.log('ℹ️ 실시간 서버 데이터가 비어있음');
+      }
     }
-  }, [realtimeServers, realtimeLastUpdated, realtimeError, realtimeLoading]);
+  }, [
+    realtimeServers,
+    realtimeLastUpdated,
+    realtimeError,
+    realtimeLoading,
+    servers.length,
+  ]);
 
   // 🎯 검색어 디바운싱 (500ms 지연)
   const debouncedSearchTerm = useDebounce(searchTerm, 500);

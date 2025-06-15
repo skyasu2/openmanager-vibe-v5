@@ -113,23 +113,27 @@ export class DualCoreOrchestrator {
     const startTime = Date.now();
     this.stats.totalQueries++;
 
-    try {
-      // 엔진 선택 로직
-      const useEngine = this.selectEngine(options?.preferEngine);
+    // 🔧 한글 인코딩 안전 처리
+    const safeQuery = Buffer.from(query, 'utf-8').toString('utf-8');
+    console.log(`🎯 Dual-Core 검색 시작: \"${safeQuery}\"`);
 
+    try {
+      // 엔진 선택
+      const useEngine = this.selectEngine(options?.preferEngine);
+      console.log(`🔧 선택된 엔진: MCP=${useEngine.mcp}, RAG=${useEngine.rag}`);
+
+      // 병렬 검색 실행
+      const searchPromises: Promise<any>[] = [];
       let mcpResult: MCPEngineResponse | undefined;
       let ragResult: RAGSearchResult | undefined;
       let mcpTime = 0;
       let ragTime = 0;
 
-      // 병렬 검색 실행
-      const searchPromises: Promise<any>[] = [];
-
       if (useEngine.mcp) {
         const mcpStart = Date.now();
         searchPromises.push(
           this.mcpEngine
-            .processQuery(query, {
+            .processQuery(safeQuery, {
               maxResults: options?.maxResults,
               enableMLAnalysis: true,
             })
@@ -150,7 +154,7 @@ export class DualCoreOrchestrator {
         const ragStart = Date.now();
         searchPromises.push(
           this.ragEngine
-            .search(query, {
+            .search(safeQuery, {
               maxResults: options?.maxResults,
               enableMLAnalysis: true,
             })
@@ -172,7 +176,11 @@ export class DualCoreOrchestrator {
 
       // 결과 융합
       const fusionStart = Date.now();
-      const fusedResult = await this.fuseResults(mcpResult, ragResult, query);
+      const fusedResult = await this.fuseResults(
+        mcpResult,
+        ragResult,
+        safeQuery
+      );
       const fusionTime = Date.now() - fusionStart;
 
       // 엔진 상태 결정

@@ -58,14 +58,28 @@ export async function GET(request: NextRequest) {
       generator.startAutoGeneration();
     }
 
-    // 최신 서버 목록 가져오기 (일관된 순서 보장 위해 id 정렬)
-    const servers = generator
-      .getAllServers()
-      .sort((a, b) => a.id.localeCompare(b.id));
+    // 🛡️ 안전한 서버 데이터 가져오기
+    let servers = [];
+    try {
+      const rawServers = generator.getAllServers();
+      // 배열 검증 및 안전한 처리
+      if (Array.isArray(rawServers)) {
+        servers = rawServers.sort((a, b) => a.id.localeCompare(b.id));
+      } else {
+        console.warn(
+          '⚠️ getAllServers()가 배열을 반환하지 않음:',
+          typeof rawServers
+        );
+        servers = [];
+      }
+    } catch (serverError) {
+      console.error('❌ 서버 데이터 가져오기 실패:', serverError);
+      servers = [];
+    }
 
     // 제한 개수 처리 (고정된 순서 유지)
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '8'); // 🎯 기본값: 8개
+    const limit = Math.max(1, parseInt(searchParams.get('limit') || '8')); // 최소 1개
     const limitedServers = servers.slice(0, limit);
 
     console.log(
@@ -88,20 +102,30 @@ export async function GET(request: NextRequest) {
       }
     };
 
+    // 🛡️ 안전한 상태 분포 계산
     const fullStatusDistribution = {
-      online: servers.filter(s => simplify(s.status) === 'online').length,
-      warning: servers.filter(s => simplify(s.status) === 'warning').length,
-      offline: servers.filter(s => simplify(s.status) === 'offline').length,
+      online: servers.filter(
+        s => s && simplify(s.status || 'offline') === 'online'
+      ).length,
+      warning: servers.filter(
+        s => s && simplify(s.status || 'offline') === 'warning'
+      ).length,
+      offline: servers.filter(
+        s => s && simplify(s.status || 'offline') === 'offline'
+      ).length,
     };
 
     // 🔧 **표시용 서버 기준** 상태별 분포 계산 (리스트 표시용)
     const displayStatusDistribution = {
-      online: limitedServers.filter(s => simplify(s.status) === 'online')
-        .length,
-      warning: limitedServers.filter(s => simplify(s.status) === 'warning')
-        .length,
-      offline: limitedServers.filter(s => simplify(s.status) === 'offline')
-        .length,
+      online: limitedServers.filter(
+        s => s && simplify(s.status || 'offline') === 'online'
+      ).length,
+      warning: limitedServers.filter(
+        s => s && simplify(s.status || 'offline') === 'warning'
+      ).length,
+      offline: limitedServers.filter(
+        s => s && simplify(s.status || 'offline') === 'offline'
+      ).length,
     };
 
     console.log('📊 전체 서버 분포:', fullStatusDistribution);
@@ -109,43 +133,55 @@ export async function GET(request: NextRequest) {
 
     // 🔧 **UI 호환 통계 데이터 - 전체 서버 기준으로 수정**
     const serverStats = {
-      total: servers.length, // 🎯 전체 서버 개수 (30개)
-      online: fullStatusDistribution.online, // online = online
+      total: servers.length, // 🎯 전체 서버 개수
+      online: fullStatusDistribution.online,
       warning: fullStatusDistribution.warning,
-      offline: fullStatusDistribution.offline, // offline = offline (UI 표시용)
+      offline: fullStatusDistribution.offline,
     };
 
     console.log('📊 UI 호환 통계 (전체 기준):', serverStats);
 
+    // 🛡️ 안전한 응답 반환 (항상 배열 보장)
     return NextResponse.json(
       {
         success: true,
-        servers: limitedServers,
-        total: servers.length, // 🎯 전체 서버 개수
-        displayed: limitedServers.length, // 🔧 실제 표시되는 서버 개수
-        stats: serverStats, // 🔧 UI에서 사용할 통계 데이터 (전체 기준)
-        distribution: fullStatusDistribution, // 🔧 전체 서버 분포
-        displayDistribution: displayStatusDistribution, // 🔧 표시용 서버 분포
+        servers: Array.isArray(limitedServers) ? limitedServers : [], // 배열 보장
+        total: servers.length,
+        displayed: limitedServers.length,
+        stats: serverStats,
+        distribution: fullStatusDistribution,
+        displayDistribution: displayStatusDistribution,
         timestamp: new Date().toISOString(),
       },
       {
         headers: {
           'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+          'Content-Type': 'application/json; charset=utf-8',
         },
       }
     );
   } catch (error) {
     console.error('❌ API /servers 오류:', error);
 
+    // 🛡️ 오류 시에도 안전한 응답 반환
     return NextResponse.json(
       {
         success: false,
         error: '서버 데이터 조회 실패',
-        servers: [],
+        servers: [], // 빈 배열 보장
         total: 0,
+        displayed: 0,
+        stats: { total: 0, online: 0, warning: 0, offline: 0 },
+        distribution: { online: 0, warning: 0, offline: 0 },
+        displayDistribution: { online: 0, warning: 0, offline: 0 },
         timestamp: new Date().toISOString(),
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+      }
     );
   }
 }

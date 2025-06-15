@@ -77,11 +77,28 @@ export async function GET(request: NextRequest) {
             }
           }
 
-          let allServers = realServerDataGenerator.getAllServers();
+          // 🛡️ 안전한 서버 데이터 가져오기
+          let allServers = [];
+          try {
+            const rawServers = realServerDataGenerator.getAllServers();
+            if (Array.isArray(rawServers)) {
+              allServers = rawServers;
+            } else {
+              console.warn(
+                '⚠️ realtime getAllServers()가 배열을 반환하지 않음:',
+                typeof rawServers
+              );
+              allServers = [];
+            }
+          } catch (serverError) {
+            console.error('❌ 실시간 서버 데이터 가져오기 실패:', serverError);
+            allServers = [];
+          }
 
           // 변경분 필터링
-          if (sinceTimestamp) {
+          if (sinceTimestamp && allServers.length > 0) {
             allServers = allServers.filter(s => {
+              if (!s) return false;
               const last = (s as any).last_updated
                 ? Date.parse((s as any).last_updated)
                 : (s as any).lastUpdate
@@ -91,9 +108,14 @@ export async function GET(request: NextRequest) {
             });
           }
 
+          // 🛡️ 안전한 응답 반환
+          const safeServers = Array.isArray(allServers)
+            ? allServers.slice(0, limit)
+            : [];
+
           return NextResponse.json({
             success: true,
-            data: allServers.slice(0, limit),
+            data: safeServers, // 항상 배열 보장
             total: allServers.length,
             limit,
             delta_mode: Boolean(sinceTimestamp),

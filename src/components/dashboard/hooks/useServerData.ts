@@ -165,19 +165,38 @@ export const useServerData = (): UseServerDataReturn => {
       setLoading(true);
       setError(null);
 
+      // 🛡️ 안전한 데이터 처리 - 배열 타입 검증
+      let safeServers: Server[] = [];
+
       // 실시간 데이터가 있으면 사용, 없으면 폴백 데이터 사용
-      if (realtimeData && Array.isArray(realtimeData)) {
-        const mappedServers = realtimeData.map((server: any) => ({
-          ...server,
-          status: mapStatus(server.status || 'unknown'),
-          lastUpdate: new Date(),
-        }));
-        setServers(mappedServers);
+      if (realtimeData) {
+        if (Array.isArray(realtimeData)) {
+          const mappedServers = realtimeData.map((server: any) => ({
+            ...server,
+            status: mapStatus(server.status || 'unknown'),
+            lastUpdate: new Date(),
+          }));
+          safeServers = mappedServers;
+        } else {
+          console.warn(
+            '⚠️ realtimeData가 배열이 아닙니다:',
+            typeof realtimeData,
+            realtimeData
+          );
+          safeServers = fallbackServers;
+        }
       } else {
         // 폴백 데이터 사용
-        setServers(fallbackServers);
+        safeServers = fallbackServers;
       }
 
+      // 🛡️ 최종 배열 검증
+      if (!Array.isArray(safeServers)) {
+        console.error('❌ safeServers가 배열이 아닙니다:', typeof safeServers);
+        safeServers = fallbackServers;
+      }
+
+      setServers(safeServers);
       setLastUpdate(new Date());
     } catch (err) {
       console.error('서버 데이터 초기화 실패:', err);
