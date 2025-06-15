@@ -121,7 +121,7 @@ const NetworkMonitoringCard: React.FC<NetworkMonitoringCardProps> = ({
     ),
   });
 
-  // 실시간 데이터 업데이트
+  // 실시간 데이터 업데이트 (성능 최적화: 2초 → 10초)
   useEffect(() => {
     const interval = setInterval(() => {
       setRealtimeData(prev => ({
@@ -154,7 +154,7 @@ const NetworkMonitoringCard: React.FC<NetworkMonitoringCardProps> = ({
           ),
         ],
       }));
-    }, 2000);
+    }, 10000); // 🎯 성능 최적화: 2초 → 10초로 변경 (네트워크 부하 80% 감소)
 
     return () => clearInterval(interval);
   }, [metrics]);
