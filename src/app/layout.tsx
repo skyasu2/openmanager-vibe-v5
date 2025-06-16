@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { ClientProviders } from '@/components/providers/ClientProviders';
+import { SystemBootstrap } from '@/components/system/SystemBootstrap';
 
 // 개발 환경 초기화 (Docker/로컬 감지)
 import '@/utils/init-dev-env';
@@ -25,7 +26,10 @@ export default function RootLayout({
   return (
     <html lang='ko'>
       <body className={inter.className}>
-        <ClientProviders>{children}</ClientProviders>
+        <ClientProviders>
+          <SystemBootstrap />
+          {children}
+        </ClientProviders>
       </body>
     </html>
   );

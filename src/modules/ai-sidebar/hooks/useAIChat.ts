@@ -145,7 +145,7 @@ export const useAIChat = (options: ChatHookOptions) => {
           'Smart Fallback Engine을 통해 처리를 시작합니다'
         );
 
-        // 🧠 Smart Fallback Engine 사용 (MCP → RAG → Google AI)
+        // 🧠 Smart Fallback Engine 사용 (빠른 모드 우선)
         const response = await fetch('/api/ai/smart-fallback', {
           method: 'POST',
           headers: {
@@ -155,6 +155,7 @@ export const useAIChat = (options: ChatHookOptions) => {
             query: content,
             context: {
               sessionId,
+              mode: 'fast', // 🚀 빠른 모드 활성화
               serverMetrics: await fetchCurrentServerMetrics(),
               logEntries: await fetchRecentLogEntries(),
               timeRange: {
@@ -163,14 +164,18 @@ export const useAIChat = (options: ChatHookOptions) => {
               },
               userPreferences: {
                 language: 'ko',
-                responseStyle: 'detailed',
+                responseStyle: 'concise', // 간결한 응답 스타일
               },
             },
             options: {
+              fastMode: true, // 🚀 빠른 모드 명시적 활성화
+              timeout: 5000, // 5초 타임아웃 (기존 15초에서 단축)
+              enableParallel: true, // 병렬 처리 활성화
+              preferEngine: 'auto', // 자동 엔진 선택
+              // 기존 옵션들은 빠른 모드에서 사용하지 않음
               enableMCP: true,
               enableRAG: true,
-              enableGoogleAI: true,
-              timeout: 15000,
+              enableGoogleAI: false, // Google AI는 빠른 모드에서 비활성화
               maxRetries: 1,
             },
           }),

@@ -259,6 +259,25 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     sessionId: currentSessionId,
   });
 
+  // 🧠 실제 생각하기 기능 상태
+  const [realThinking, setRealThinking] = useState<{
+    isActive: boolean;
+    steps: ThinkingStep[];
+    currentStep?: string;
+  }>({
+    isActive: false,
+    steps: [],
+  });
+
+  // 🤖 자동장애보고서 연결 상태
+  const [autoReportTrigger, setAutoReportTrigger] = useState<{
+    shouldGenerate: boolean;
+    lastQuery?: string;
+    severity?: 'low' | 'medium' | 'high' | 'critical';
+  }>({
+    shouldGenerate: false,
+  });
+
   // 스크롤 참조
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -363,18 +382,177 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     return responses[engine as keyof typeof responses] || responses.auto;
   };
 
-  // handleSendMessage 제거됨 - useAIChat의 sendMessage 사용
+  // 🤖 실제 AI 자연어 질의 처리 (SimplifiedNaturalLanguageEngine 연동)
+  const processRealAIQuery = async (query: string, engine: string = 'auto') => {
+    try {
+      setRealThinking({
+        isActive: true,
+        steps: [
+          {
+            id: 'step1',
+            step: 1,
+            title: '질의 분석 중...',
+            description: `"${query}" 질문을 분석하고 있습니다...`,
+            status: 'processing',
+          },
+        ],
+      });
 
-  // 프리셋 질문 핸들러 (새로운 sendMessage 사용)
-  const handlePresetQuestion = (question: string) => {
-    sendMessage(question);
+      // 🔄 SimplifiedNaturalLanguageEngine API 호출
+      const response = await fetch('/api/ai/smart-fallback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: query.trim(),
+          engine: engine,
+          sessionId: currentSessionId,
+          options: {
+            enableThinking: true,
+            enableAutoReport: true, // 🤖 자동장애보고서 활성화
+            fastMode: true, // Ultra Simple 모드
+            timeout: 5000,
+          },
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // 🧠 생각하기 과정 업데이트
+        setRealThinking({
+          isActive: false,
+          steps: [
+            {
+              id: 'step1',
+              step: 1,
+              title: '질의 분석 완료',
+              description: '질문 분석이 완료되었습니다.',
+              status: 'completed',
+              duration: result.metadata?.responseTime || 1000,
+            },
+            {
+              id: 'step2',
+              step: 2,
+              title: '응답 생성 완료',
+              description: `${result.metadata?.engine || 'auto'} 엔진으로 응답을 생성했습니다.`,
+              status: 'completed',
+              duration: result.metadata?.responseTime || 1000,
+            },
+          ],
+        });
+
+        // 🤖 자동장애보고서 트리거 확인
+        if (result.metadata?.autoReportTriggered) {
+          setAutoReportTrigger({
+            shouldGenerate: true,
+            lastQuery: query,
+            severity: result.metadata.severity || 'medium',
+          });
+        }
+
+        return {
+          success: true,
+          response: result.response,
+          metadata: result.metadata,
+        };
+      } else {
+        throw new Error(result.error || '알 수 없는 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('❌ AI 질의 처리 오류:', error);
+
+      setRealThinking({
+        isActive: false,
+        steps: [
+          {
+            id: 'error',
+            step: 1,
+            title: '오류 발생',
+            description:
+              error instanceof Error ? error.message : '알 수 없는 오류',
+            status: 'pending', // 오류 상태 표시
+          },
+        ],
+      });
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
+      };
+    }
   };
 
-  // 입력 전송 핸들러
-  const handleSendInput = () => {
-    if (inputValue.trim()) {
-      sendMessage(inputValue.trim());
-      setInputValue('');
+  // 🤖 자동장애보고서 생성 함수
+  const generateAutoReport = async () => {
+    if (!autoReportTrigger.shouldGenerate) return;
+
+    try {
+      const response = await fetch('/api/ai/auto-report', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          trigger: 'ai_query',
+          query: autoReportTrigger.lastQuery,
+          severity: autoReportTrigger.severity,
+          sessionId: currentSessionId,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // 자동장애보고서 페이지로 전환
+        setSelectedFunction('auto-report');
+
+        // 트리거 상태 초기화
+        setAutoReportTrigger({
+          shouldGenerate: false,
+        });
+
+        return result;
+      }
+    } catch (error) {
+      console.error('❌ 자동장애보고서 생성 오류:', error);
+    }
+  };
+
+  // 프리셋 질문 핸들러 (실제 AI API 연동)
+  const handlePresetQuestion = async (question: string) => {
+    setInputValue(question);
+
+    // 🤖 실제 AI 질의 처리
+    const result = await processRealAIQuery(question, selectedEngine);
+
+    if (result.success) {
+      // useAIChat의 sendMessage 사용
+      await sendMessage(question);
+    }
+  };
+
+  // 입력 전송 핸들러 (실제 AI API 연동)
+  const handleSendInput = async () => {
+    if (!inputValue.trim() || isGenerating) return;
+
+    const query = inputValue.trim();
+    setInputValue('');
+
+    // 🤖 실제 AI 질의 처리
+    const result = await processRealAIQuery(query, selectedEngine);
+
+    if (result.success) {
+      // useAIChat의 sendMessage 사용
+      await sendMessage(query);
+
+      // 🤖 자동장애보고서 트리거 확인
+      if (autoReportTrigger.shouldGenerate) {
+        setTimeout(() => {
+          generateAutoReport();
+        }, 2000); // 2초 후 자동장애보고서 생성
+      }
     }
   };
 
@@ -521,7 +699,47 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       </div>
 
       {/* 메시지 영역 */}
-      <div className='flex-1 overflow-y-auto p-2 sm:p-3 space-y-3 sm:space-y-4'>
+      <div className='flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4'>
+        {/* 🤖 자동장애보고서 알림 */}
+        {autoReportTrigger.shouldGenerate && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className='bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-lg p-3'
+          >
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center space-x-2'>
+                <FileText className='w-4 h-4 text-red-600' />
+                <div>
+                  <h4 className='text-sm font-medium text-red-800'>
+                    자동장애보고서 생성 준비
+                  </h4>
+                  <p className='text-xs text-red-600'>
+                    &ldquo;{autoReportTrigger.lastQuery}&rdquo;에서{' '}
+                    {autoReportTrigger.severity} 수준의 이슈가 감지되었습니다.
+                  </p>
+                </div>
+              </div>
+              <div className='flex space-x-2'>
+                <button
+                  onClick={generateAutoReport}
+                  className='px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors'
+                >
+                  생성
+                </button>
+                <button
+                  onClick={() =>
+                    setAutoReportTrigger({ shouldGenerate: false })
+                  }
+                  className='px-3 py-1 bg-gray-200 text-gray-700 text-xs rounded hover:bg-gray-300 transition-colors'
+                >
+                  무시
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {chatMessages.length === 0 && (
           <div className='text-center py-8'>
             <div className='w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3'>
@@ -567,62 +785,78 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
               {/* 메시지 콘텐츠 */}
               <div className='flex-1'>
-                {/* AI 사고 과정 (AI 메시지만) */}
-                {message.type === 'ai' && message.thinking && (
-                  <div className='mb-2'>
-                    <button
-                      onClick={() =>
-                        setExpandedThinking(
-                          expandedThinking === message.id ? null : message.id
-                        )
-                      }
-                      className='flex items-center space-x-1 text-xs text-gray-600 hover:text-gray-800 transition-colors'
-                    >
-                      <Brain className='w-3 h-3' />
-                      <span>🤔 AI 생각 과정</span>
-                      {expandedThinking === message.id ? (
-                        <ChevronUp className='w-3 h-3' />
-                      ) : (
-                        <ChevronDown className='w-3 h-3' />
-                      )}
-                    </button>
+                {/* AI 사고 과정 (실시간 표시) */}
+                {message.type === 'ai' &&
+                  (realThinking.isActive || realThinking.steps.length > 0) && (
+                    <div className='mb-2'>
+                      <button
+                        onClick={() =>
+                          setExpandedThinking(
+                            expandedThinking === 'real-thinking'
+                              ? null
+                              : 'real-thinking'
+                          )
+                        }
+                        className='flex items-center space-x-1 text-xs text-gray-600 hover:text-gray-800 transition-colors'
+                      >
+                        <Brain
+                          className={`w-3 h-3 ${realThinking.isActive ? 'animate-pulse text-purple-600' : 'text-gray-600'}`}
+                        />
+                        <span>
+                          🤔 AI 생각 과정{' '}
+                          {realThinking.isActive ? '(진행 중)' : '(완료)'}
+                        </span>
+                        {expandedThinking === 'real-thinking' ? (
+                          <ChevronUp className='w-3 h-3' />
+                        ) : (
+                          <ChevronDown className='w-3 h-3' />
+                        )}
+                      </button>
 
-                    <AnimatePresence>
-                      {expandedThinking === message.id && (
+                      {/* 실제 생각하기 과정 표시 */}
+                      {expandedThinking === 'real-thinking' && (
                         <motion.div
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: 'auto' }}
                           exit={{ opacity: 0, height: 0 }}
-                          className='mt-1 p-2 bg-gray-50 rounded border border-gray-200'
+                          className='mt-2 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-3'
                         >
-                          <div className='space-y-1'>
-                            {message.thinking.map(step => (
-                              <div
-                                key={step.id}
-                                className='flex items-center space-x-2'
-                              >
-                                <div className='w-4 h-4 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium'>
-                                  {step.step}
-                                </div>
-                                <div className='flex-1'>
-                                  <div className='text-xs font-medium text-gray-800'>
+                          <div className='space-y-2'>
+                            {realThinking.steps.map((step, index) => (
+                              <div key={step.id} className='space-y-1'>
+                                <div className='flex items-center justify-between'>
+                                  <span className='text-xs font-medium text-gray-700'>
                                     {step.title}
-                                  </div>
-                                  <div className='text-xs text-gray-600'>
-                                    {step.description}
+                                  </span>
+                                  <div className='flex items-center space-x-1'>
+                                    {step.status === 'processing' && (
+                                      <div className='w-2 h-2 bg-blue-500 rounded-full animate-pulse' />
+                                    )}
+                                    {step.status === 'completed' && (
+                                      <div className='w-2 h-2 bg-green-500 rounded-full' />
+                                    )}
+                                    {step.duration && (
+                                      <span className='text-xs text-gray-500'>
+                                        {step.duration}ms
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
-                                <div className='text-xs text-gray-500'>
-                                  {step.duration}ms
-                                </div>
+                                <p className='text-xs text-gray-600'>
+                                  {step.description}
+                                </p>
+                                {step.status === 'processing' && (
+                                  <div className='w-full bg-gray-200 rounded-full h-1'>
+                                    <div className='bg-gradient-to-r from-blue-500 to-purple-500 h-1 rounded-full animate-pulse w-3/4' />
+                                  </div>
+                                )}
                               </div>
                             ))}
                           </div>
                         </motion.div>
                       )}
-                    </AnimatePresence>
-                  </div>
-                )}
+                    </div>
+                  )}
 
                 {/* 메시지 버블 */}
                 <div
