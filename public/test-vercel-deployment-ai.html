@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenManager Vibe v5 - Vercel AI 테스트</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #4a5568;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: #f8fafc;
+        }
+
+        .test-section h2 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .input-group {
+            margin: 15px 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #4a5568;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 10px 5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .success {
+            background: #f0fff4;
+            border: 2px solid #68d391;
+            color: #22543d;
+        }
+
+        .error {
+            background: #fed7d7;
+            border: 2px solid #fc8181;
+            color: #742a2a;
+        }
+
+        .info {
+            background: #ebf8ff;
+            border: 2px solid #63b3ed;
+            color: #2a4365;
+        }
+
+        .loading {
+            background: #fefcbf;
+            border: 2px solid #f6e05e;
+            color: #744210;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-online {
+            background: #48bb78;
+        }
+
+        .status-offline {
+            background: #f56565;
+        }
+
+        .status-warning {
+            background: #ed8936;
+        }
+
+        .query-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .example-query {
+            background: #e6fffa;
+            border: 1px solid #81e6d9;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 14px;
+        }
+
+        .example-query:hover {
+            background: #b2f5ea;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .summary-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.3em;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🚀 OpenManager Vibe v5 - Vercel AI 테스트</h1>
+
+        <div class="summary-card">
+            <h3>🎯 배포 사이트 AI 기능 종합 테스트</h3>
+            <p>Vercel 배포된 OpenManager Vibe v5의 AI 자연어 질의 기능을 테스트합니다</p>
+            <p><strong>배포 URL:</strong> https://openmanager-vibe-v5-kj9e04tmd-skyasus-projects.vercel.app</p>
+        </div>
+
+        <div class="test-grid">
+            <!-- 1. 환경 변수 및 AI 상태 확인 -->
+            <div class="test-section">
+                <h2>🔧 1. AI 시스템 상태 확인</h2>
+                <button onclick="checkAIStatus()">AI 상태 확인</button>
+                <button onclick="checkEnvironment()">환경 변수 확인</button>
+                <div id="aiStatusResult" class="result info" style="display:none;"></div>
+            </div>
+
+            <!-- 2. 자연어 질의 테스트 -->
+            <div class="test-section">
+                <h2>🤖 2. AI 자연어 질의 테스트</h2>
+                <div class="input-group">
+                    <label for="naturalQuery">자연어 질의:</label>
+                    <textarea id="naturalQuery" rows="3" placeholder="예: CPU 사용률이 높은 서버를 찾아줘"></textarea>
+                </div>
+
+                <div class="query-examples">
+                    <div class="example-query" onclick="setQuery('CPU 사용률이 높은 서버를 찾아줘')">
+                        CPU 사용률이 높은 서버를 찾아줘
+                    </div>
+                    <div class="example-query" onclick="setQuery('메모리 사용량이 80% 이상인 서버 목록')">
+                        메모리 사용량이 80% 이상인 서버 목록
+                    </div>
+                    <div class="example-query" onclick="setQuery('디스크 공간이 부족한 서버는?')">
+                        디스크 공간이 부족한 서버는?
+                    </div>
+                    <div class="example-query" onclick="setQuery('네트워크 트래픽이 많은 서버 분석')">
+                        네트워크 트래픽이 많은 서버 분석
+                    </div>
+                </div>
+
+                <button onclick="testNaturalLanguageQuery()">질의 실행</button>
+                <div id="queryResult" class="result info" style="display:none;"></div>
+            </div>
+        </div>
+
+        <div class="test-grid">
+            <!-- 3. API 엔드포인트 테스트 -->
+            <div class="test-section">
+                <h2>🔗 3. 핵심 API 엔드포인트 테스트</h2>
+                <button onclick="testHealthAPI()">Health Check</button>
+                <button onclick="testSmartFallbackAPI()">Smart Fallback</button>
+                <button onclick="testLogsAPI()">Logs API</button>
+                <button onclick="testStreamAPI()">Stream API</button>
+                <div id="apiTestResult" class="result info" style="display:none;"></div>
+            </div>
+
+            <!-- 4. AI 엔진 통합 테스트 -->
+            <div class="test-section">
+                <h2>⚡ 4. AI 엔진 통합 테스트</h2>
+                <button onclick="testUnifiedAI()">Unified AI 테스트</button>
+                <button onclick="testGoogleAI()">Google AI 테스트</button>
+                <button onclick="testRAGEngine()">RAG 엔진 테스트</button>
+                <div id="aiEngineResult" class="result info" style="display:none;"></div>
+            </div>
+        </div>
+
+        <!-- 5. 종합 결과 요약 -->
+        <div class="test-section">
+            <h2>📊 5. 테스트 결과 요약</h2>
+            <button onclick="runAllTests()">전체 테스트 실행</button>
+            <button onclick="clearResults()">결과 초기화</button>
+            <div id="summaryResult" class="result info" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'https://openmanager-vibe-v5-kj9e04tmd-skyasus-projects.vercel.app';
+        let testResults = {};
+
+        function setQuery(query) {
+            document.getElementById('naturalQuery').value = query;
+        }
+
+        function showResult(elementId, content, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.style.display = 'block';
+            element.textContent = content;
+        }
+
+        function showLoading(elementId, message = '테스트 진행 중...') {
+            showResult(elementId, message, 'loading');
+        }
+
+        async function makeRequest(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    }
+                });
+
+                const data = await response.json();
+                return {
+                    success: response.ok,
+                    status: response.status,
+                    data: data,
+                    error: response.ok ? null : data.error || '요청 실패'
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    status: 0,
+                    data: null,
+                    error: error.message
+                };
+            }
+        }
+
+        async function checkAIStatus() {
+            showLoading('aiStatusResult', 'AI 시스템 상태 확인 중...');
+
+            const result = await makeRequest(`${BASE_URL}/api/health`);
+
+            if (result.success) {
+                const statusText = `✅ AI 시스템 상태: 정상
+응답 시간: ${Date.now() - performance.now()}ms
+상태 코드: ${result.status}
+데이터: ${JSON.stringify(result.data, null, 2)}`;
+                showResult('aiStatusResult', statusText, 'success');
+                testResults.aiStatus = true;
+            } else {
+                const errorText = `❌ AI 시스템 상태: 오류
+오류 메시지: ${result.error}
+상태 코드: ${result.status}`;
+                showResult('aiStatusResult', errorText, 'error');
+                testResults.aiStatus = false;
+            }
+        }
+
+        async function checkEnvironment() {
+            showLoading('aiStatusResult', '환경 변수 확인 중...');
+
+            const result = await makeRequest(`${BASE_URL}/api/ai/unified/status`);
+
+            if (result.success) {
+                const envText = `✅ 환경 변수 상태: 정상
+AI 엔진 활성화: ${result.data.enabled ? '✅' : '❌'}
+설정된 엔진 수: ${result.data.engines?.length || 0}
+환경 설정: ${JSON.stringify(result.data, null, 2)}`;
+                showResult('aiStatusResult', envText, 'success');
+                testResults.environment = true;
+            } else {
+                const errorText = `❌ 환경 변수 확인 실패
+오류: ${result.error}`;
+                showResult('aiStatusResult', errorText, 'error');
+                testResults.environment = false;
+            }
+        }
+
+        async function testNaturalLanguageQuery() {
+            const query = document.getElementById('naturalQuery').value.trim();
+            if (!query) {
+                showResult('queryResult', '❌ 질의를 입력해주세요.', 'error');
+                return;
+            }
+
+            showLoading('queryResult', `자연어 질의 처리 중: "${query}"`);
+
+            const result = await makeRequest(`${BASE_URL}/api/ai/smart-query`, {
+                method: 'POST',
+                body: JSON.stringify({ query: query })
+            });
+
+            if (result.success) {
+                const queryText = `✅ 자연어 질의 성공!
+질의: "${query}"
+응답: ${JSON.stringify(result.data, null, 2)}
+처리 시간: ${Date.now() - performance.now()}ms`;
+                showResult('queryResult', queryText, 'success');
+                testResults.naturalQuery = true;
+            } else {
+                const errorText = `❌ 자연어 질의 실패
+질의: "${query}"
+오류: ${result.error}
+상태 코드: ${result.status}`;
+                showResult('queryResult', errorText, 'error');
+                testResults.naturalQuery = false;
+            }
+        }
+
+        async function testHealthAPI() {
+            showLoading('apiTestResult', 'Health API 테스트 중...');
+
+            const result = await makeRequest(`${BASE_URL}/api/health`);
+
+            const healthText = result.success
+                ? `✅ Health API: 정상 (${result.status})`
+                : `❌ Health API: 실패 (${result.status}) - ${result.error}`;
+
+            showResult('apiTestResult', healthText, result.success ? 'success' : 'error');
+            testResults.healthAPI = result.success;
+        }
+
+        async function testSmartFallbackAPI() {
+            showLoading('apiTestResult', 'Smart Fallback API 테스트 중...');
+
+            const result = await makeRequest(`${BASE_URL}/api/ai/smart-fallback`, {
+                method: 'POST',
+                body: JSON.stringify({ query: '테스트 질의' })
+            });
+
+            const fallbackText = result.success
+                ? `✅ Smart Fallback API: 정상 (${result.status})`
+                : `❌ Smart Fallback API: 실패 (${result.status}) - ${result.error}`;
+
+            showResult('apiTestResult', fallbackText, result.success ? 'success' : 'error');
+            testResults.smartFallback = result.success;
+        }
+
+        async function testLogsAPI() {
+            showLoading('apiTestResult', 'Logs API 테스트 중...');
+
+            const result = await makeRequest(`${BASE_URL}/api/logs?limit=5`);
+
+            const logsText = result.success
+                ? `✅ Logs API: 정상 (${result.status}) - ${result.data?.logs?.length || 0}개 로그 반환`
+                : `❌ Logs API: 실패 (${result.status}) - ${result.error}`;
+
+            showResult('apiTestResult', logsText, result.success ? 'success' : 'error');
+            testResults.logsAPI = result.success;
+        }
+
+        async function testStreamAPI() {
+            showLoading('apiTestResult', 'Stream API 테스트 중...');
+
+            const result = await makeRequest(`${BASE_URL}/api/stream`);
+
+            const streamText = result.success
+                ? `✅ Stream API: 정상 (${result.status})`
+                : `❌ Stream API: 실패 (${result.status}) - ${result.error}`;
+
+            showResult('apiTestResult', streamText, result.success ? 'success' : 'error');
+            testResults.streamAPI = result.success;
+        }
+
+        async function testUnifiedAI() {
+            showLoading('aiEngineResult', 'Unified AI 엔진 테스트 중...');
+
+            const result = await makeRequest(`${BASE_URL}/api/ai/unified/status`);
+
+            const unifiedText = result.success
+                ? `✅ Unified AI: 정상 - ${result.data?.engines?.length || 0}개 엔진 활성화`
+                : `❌ Unified AI: 실패 - ${result.error}`;
+
+            showResult('aiEngineResult', unifiedText, result.success ? 'success' : 'error');
+            testResults.unifiedAI = result.success;
+        }
+
+        async function testGoogleAI() {
+            showLoading('aiEngineResult', 'Google AI 테스트 중...');
+
+            const result = await makeRequest(`${BASE_URL}/api/ai/google-ai/status`);
+
+            const googleText = result.success
+                ? `✅ Google AI: 정상 - ${result.data?.status || '활성화'}`
+                : `❌ Google AI: 실패 - ${result.error}`;
+
+            showResult('aiEngineResult', googleText, result.success ? 'success' : 'error');
+            testResults.googleAI = result.success;
+        }
+
+        async function testRAGEngine() {
+            showLoading('aiEngineResult', 'RAG 엔진 테스트 중...');
+
+            const result = await makeRequest(`${BASE_URL}/api/ai/query`, {
+                method: 'POST',
+                body: JSON.stringify({ query: 'RAG 테스트 질의' })
+            });
+
+            const ragText = result.success
+                ? `✅ RAG 엔진: 정상 - 응답 생성 성공`
+                : `❌ RAG 엔진: 실패 - ${result.error}`;
+
+            showResult('aiEngineResult', ragText, result.success ? 'success' : 'error');
+            testResults.ragEngine = result.success;
+        }
+
+        async function runAllTests() {
+            showLoading('summaryResult', '전체 테스트 실행 중...');
+
+            // 모든 테스트 순차 실행
+            await checkAIStatus();
+            await checkEnvironment();
+            await testHealthAPI();
+            await testSmartFallbackAPI();
+            await testLogsAPI();
+            await testStreamAPI();
+            await testUnifiedAI();
+            await testGoogleAI();
+            await testRAGEngine();
+
+            // 자연어 질의 테스트 (기본 질의로)
+            document.getElementById('naturalQuery').value = 'CPU 사용률이 높은 서버를 찾아줘';
+            await testNaturalLanguageQuery();
+
+            // 결과 요약
+            const totalTests = Object.keys(testResults).length;
+            const passedTests = Object.values(testResults).filter(result => result).length;
+            const failedTests = totalTests - passedTests;
+
+            const summaryText = `🎯 전체 테스트 결과 요약
+
+총 테스트: ${totalTests}개
+✅ 성공: ${passedTests}개
+❌ 실패: ${failedTests}개
+성공률: ${Math.round((passedTests / totalTests) * 100)}%
+
+상세 결과:
+${Object.entries(testResults).map(([test, result]) =>
+                `${result ? '✅' : '❌'} ${test}: ${result ? '성공' : '실패'}`
+            ).join('\n')}
+
+${passedTests === totalTests ?
+                    '🎉 모든 테스트가 성공했습니다! Vercel 배포가 정상적으로 작동하고 있습니다.' :
+                    '⚠️ 일부 테스트가 실패했습니다. 환경 변수 설정을 확인해주세요.'}`;
+
+            showResult('summaryResult', summaryText, passedTests === totalTests ? 'success' : 'error');
+        }
+
+        function clearResults() {
+            const resultElements = document.querySelectorAll('.result');
+            resultElements.forEach(element => {
+                element.style.display = 'none';
+            });
+            testResults = {};
+        }
+
+        // 페이지 로드 시 기본 상태 확인
+        window.addEventListener('load', () => {
+            console.log('OpenManager Vibe v5 - Vercel AI 테스트 페이지 로드됨');
+            console.log('배포 URL:', BASE_URL);
+        });
+    </script>
+</body>
+
+</html>

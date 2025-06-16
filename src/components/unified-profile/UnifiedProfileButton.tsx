@@ -78,36 +78,54 @@ export function UnifiedProfileButton({
   const calculateDropdownPosition = useCallback(() => {
     if (!buttonRef.current || !isOpen) return;
 
-    // requestAnimationFrame으로 DOM 업데이트 후 실행
-    requestAnimationFrame(() => {
-      const buttonRect = buttonRef.current!.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
+    // 단순화된 위치 계산 - requestAnimationFrame 제거
+    const buttonRect = buttonRef.current.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
 
-      // 기본 위치: 버튼 아래, 오른쪽 정렬
-      let top = buttonRect.bottom + 8;
-      let left = buttonRect.right - 380; // 드롭다운 너비 380px로 확장
+    // 기본 위치: 버튼 아래, 오른쪽 정렬
+    let top = buttonRect.bottom + 8;
+    let left = buttonRect.right - 380; // 드롭다운 너비 380px로 확장
 
-      // 드롭다운이 화면 아래로 넘어가는 경우 위쪽에 표시
-      const dropdownHeight = 500; // 높이 증가
-      if (top + dropdownHeight > viewportHeight) {
-        top = buttonRect.top - dropdownHeight - 8;
-      }
+    // 드롭다운이 화면 아래로 넘어가는 경우 위쪽에 표시
+    const dropdownHeight = 500; // 높이 증가
+    if (top + dropdownHeight > viewportHeight) {
+      top = buttonRect.top - dropdownHeight - 8;
+    }
 
-      // 드롭다운이 화면 왼쪽으로 넘어가는 경우
-      if (left < 16) {
-        left = 16;
-      }
+    // 드롭다운이 화면 왼쪽으로 넘어가는 경우
+    if (left < 16) {
+      left = 16;
+    }
 
-      // 모바일에서는 중앙 정렬
-      if (viewportWidth < 640) {
-        left = (viewportWidth - 380) / 2;
-        if (left < 16) left = 16;
-      }
+    // 모바일에서는 중앙 정렬
+    if (viewportWidth < 640) {
+      left = (viewportWidth - 380) / 2;
+      if (left < 16) left = 16;
+    }
 
-      setDropdownPosition({ top, left, transformOrigin: 'top right' });
-    });
+    setDropdownPosition({ top, left, transformOrigin: 'top right' });
   }, [buttonRef, isOpen]);
+
+  // 위치 계산 - 단순화된 useEffect
+  useEffect(() => {
+    if (isOpen) {
+      // 즉시 계산 (지연 없음)
+      calculateDropdownPosition();
+    }
+  }, [isOpen, calculateDropdownPosition]);
+
+  // 애니메이션 상태 관리 (대폭 단순화)
+  useEffect(() => {
+    if (isOpen) {
+      setIsAnimating(true);
+      // 애니메이션 시간을 더 짧게 단축
+      const timer = setTimeout(() => setIsAnimating(false), 100);
+      return () => clearTimeout(timer);
+    } else {
+      setIsAnimating(false);
+    }
+  }, [isOpen]);
 
   // 외부 클릭 감지 (최적화된 버전)
   useEffect(() => {
@@ -165,24 +183,6 @@ export function UnifiedProfileButton({
       document.removeEventListener('keydown', handleEscape, true);
     };
   }, [isOpen, onClick]);
-
-  // 위치 계산 (드롭다운이 열릴 때)
-  useEffect(() => {
-    if (isOpen) {
-      calculateDropdownPosition();
-    }
-  }, [isOpen, calculateDropdownPosition]);
-
-  // 애니메이션 상태 관리 (간소화)
-  useEffect(() => {
-    if (isOpen) {
-      setIsAnimating(true);
-      const timer = setTimeout(() => setIsAnimating(false), 150); // 200ms에서 150ms로 단축
-      return () => clearTimeout(timer);
-    } else {
-      setIsAnimating(false);
-    }
-  }, [isOpen]);
 
   // 이벤트 핸들러들
   const handleSystemToggle = (e: React.MouseEvent) => {
@@ -328,8 +328,8 @@ export function UnifiedProfileButton({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -10 }}
               transition={{
-                duration: 0.15, // 단축된 애니메이션
-                ease: [0.16, 1, 0.3, 1],
+                duration: 0.1, // 더욱 단축된 애니메이션
+                ease: 'easeOut',
               }}
               style={{
                 position: 'fixed',
@@ -342,8 +342,6 @@ export function UnifiedProfileButton({
               className='w-96 bg-gray-900/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl z-[9999]'
               role='menu'
               aria-orientation='vertical'
-              onAnimationStart={() => setIsAnimating(true)}
-              onAnimationComplete={() => setIsAnimating(false)}
             >
               {/* 헤더 */}
               <div className='p-4 border-b border-white/10'>
@@ -666,9 +664,7 @@ export function UnifiedProfileButton({
           e.preventDefault();
           e.stopPropagation();
 
-          // 짧은 지연으로 중복 클릭 방지
-          if (isAnimating) return;
-
+          // 단순화된 클릭 처리 - 애니메이션 체크 제거
           onClick(e);
         }}
         className={`flex items-center gap-3 p-2 rounded-xl backdrop-blur-md border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent ${
@@ -687,7 +683,6 @@ export function UnifiedProfileButton({
         aria-label='프로필 메뉴 열기'
         aria-expanded={isOpen}
         aria-haspopup='true'
-        disabled={isAnimating} // 애니메이션 중 비활성화
       >
         {/* 아바타 */}
         <div
