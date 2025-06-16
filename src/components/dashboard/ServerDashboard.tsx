@@ -48,6 +48,7 @@ import {
 import ServerDetailModal from './ServerDetailModal';
 import EnhancedServerCard from './EnhancedServerCard';
 import EnhancedServerModal from './EnhancedServerModal';
+import ServerModalErrorBoundary from './ServerModalErrorBoundary';
 import NetworkMonitoringCard from './NetworkMonitoringCard';
 import { Server } from '../../types/server';
 import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
@@ -597,11 +598,13 @@ export default function ServerDashboard({
 
       {/* 모달 */}
       {selectedServer && (
-        <EnhancedServerModal
-          isOpen={selectedServer !== null}
-          onClose={handleCloseModal}
-          server={selectedServer}
-        />
+        <ServerModalErrorBoundary onClose={handleCloseModal}>
+          <EnhancedServerModal
+            isOpen={selectedServer !== null}
+            onClose={handleCloseModal}
+            server={selectedServer}
+          />
+        </ServerModalErrorBoundary>
       )}
     </div>
   );

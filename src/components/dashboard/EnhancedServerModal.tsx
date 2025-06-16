@@ -102,6 +102,7 @@ export default function EnhancedServerModal({
   const [timeRange, setTimeRange] = useState<'5m' | '1h' | '6h' | '24h' | '7d'>(
     '1h'
   );
+
   const [realtimeData, setRealtimeData] = useState<{
     cpu: number[];
     memory: number[];
@@ -137,24 +138,56 @@ export default function EnhancedServerModal({
     insights: [],
   });
 
+  // 🛡️ 안전한 서버 객체 생성 (null/undefined 방지)
+  const safeServer = useMemo(() => {
+    if (!server) return null;
+    return {
+      id: server.id || 'unknown',
+      name: server.name || server.hostname || 'Unknown Server',
+      hostname: server.hostname || server.name || 'unknown',
+      status: server.status || 'offline',
+      cpu: Math.max(0, Math.min(100, server.cpu || 0)),
+      memory: Math.max(0, Math.min(100, server.memory || 0)),
+      disk: Math.max(0, Math.min(100, server.disk || 0)),
+      network: Math.max(0, Math.min(100, server.network || 0)),
+      location: server.location || 'Unknown',
+      provider: server.provider || 'Unknown',
+      type: server.type || 'unknown',
+      environment: server.environment || 'production',
+      uptime: server.uptime || '0d 0h 0m',
+      lastUpdate: server.lastUpdate || new Date(),
+      alerts: server.alerts || 0,
+      services: Array.isArray(server.services) ? server.services : [],
+      specs: server.specs || {
+        cpu_cores: 4,
+        memory_gb: 8,
+        disk_gb: 100,
+        network_speed: '1Gbps',
+      },
+      os: server.os || 'Linux',
+      ip: server.ip || '0.0.0.0',
+      networkStatus: server.networkStatus || 'good',
+    };
+  }, [server]);
+
   // 실시간 데이터 생성
   useEffect(() => {
-    if (!server || !isRealtime) return;
+    if (!safeServer || !isRealtime) return;
 
     const generateRealtimeData = () => {
       const now = new Date();
       setRealtimeData(prev => ({
         cpu: [
           ...prev.cpu.slice(-29),
-          server.cpu + (Math.random() - 0.5) * 10,
+          safeServer.cpu + (Math.random() - 0.5) * 10,
         ].slice(-30),
         memory: [
           ...prev.memory.slice(-29),
-          server.memory + (Math.random() - 0.5) * 8,
+          safeServer.memory + (Math.random() - 0.5) * 8,
         ].slice(-30),
         disk: [
           ...prev.disk.slice(-29),
-          server.disk + (Math.random() - 0.5) * 3,
+          safeServer.disk + (Math.random() - 0.5) * 3,
         ].slice(-30),
         network: [
           ...prev.network.slice(-29),
@@ -228,7 +261,7 @@ export default function EnhancedServerModal({
     const interval = setInterval(generateRealtimeData, 20000); // 🎯 성능 최적화: 2초 → 20초로 변경 (서버 부하 90% 감소)
 
     return () => clearInterval(interval);
-  }, [server, isRealtime]);
+  }, [safeServer?.id, isRealtime]);
 
   // 탭 설정
   const tabs = [
@@ -417,6 +450,9 @@ export default function EnhancedServerModal({
 
   if (!server) return null;
 
+  // 🛡️ 서버 데이터가 없으면 null 반환
+  if (!isOpen || !safeServer) return null;
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -443,9 +479,9 @@ export default function EnhancedServerModal({
                     <Server className='w-6 h-6' />
                   </div>
                   <div>
-                    <h2 className='text-2xl font-bold'>{server.name}</h2>
+                    <h2 className='text-2xl font-bold'>{safeServer.name}</h2>
                     <p className='text-blue-100'>
-                      {server.type} • {server.location}
+                      {safeServer.type} • {safeServer.location}
                     </p>
                   </div>
                 </div>
@@ -521,19 +557,19 @@ export default function EnhancedServerModal({
                         </h3>
                         <div className='grid grid-cols-1 md:grid-cols-3 gap-8 bg-white rounded-xl p-6 shadow-sm'>
                           <CircularGauge3D
-                            value={server.cpu}
+                            value={safeServer.cpu}
                             label='CPU'
                             color='#ef4444'
                             size={140}
                           />
                           <CircularGauge3D
-                            value={server.memory}
+                            value={safeServer.memory}
                             label='메모리'
                             color='#3b82f6'
                             size={140}
                           />
                           <CircularGauge3D
-                            value={server.disk}
+                            value={safeServer.disk}
                             label='디스크'
                             color='#8b5cf6'
                             size={140}
@@ -551,31 +587,31 @@ export default function EnhancedServerModal({
                             <div className='flex justify-between'>
                               <span className='text-gray-600'>운영체제</span>
                               <span className='font-medium'>
-                                {server.os || 'Ubuntu 20.04 LTS'}
+                                {safeServer.os}
                               </span>
                             </div>
                             <div className='flex justify-between'>
                               <span className='text-gray-600'>IP 주소</span>
                               <span className='font-medium'>
-                                {server.ip || '192.168.1.100'}
+                                {safeServer.ip}
                               </span>
                             </div>
                             <div className='flex justify-between'>
                               <span className='text-gray-600'>업타임</span>
                               <span className='font-medium'>
-                                {server.uptime}
+                                {safeServer.uptime}
                               </span>
                             </div>
                             <div className='flex justify-between'>
                               <span className='text-gray-600'>CPU 코어</span>
                               <span className='font-medium'>
-                                {server.specs?.cpu_cores || 8}개
+                                {safeServer.specs?.cpu_cores}개
                               </span>
                             </div>
                             <div className='flex justify-between'>
                               <span className='text-gray-600'>메모리</span>
                               <span className='font-medium'>
-                                {server.specs?.memory_gb || 16}GB
+                                {safeServer.specs?.memory_gb}GB
                               </span>
                             </div>
                           </div>
@@ -586,7 +622,7 @@ export default function EnhancedServerModal({
                             서비스 상태
                           </h4>
                           <div className='space-y-3'>
-                            {(server.services || []).map((service, idx) => (
+                            {safeServer.services.map((service, idx) => (
                               <div
                                 key={idx}
                                 className='flex items-center justify-between'
@@ -610,8 +646,7 @@ export default function EnhancedServerModal({
                             ))}
 
                             {/* 서비스가 없는 경우 안내 메시지 */}
-                            {(!server.services ||
-                              server.services.length === 0) && (
+                            {safeServer.services.length === 0 && (
                               <div className='text-center py-4 text-gray-500'>
                                 <span className='text-sm'>
                                   등록된 서비스가 없습니다

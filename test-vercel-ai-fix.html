@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vercel AI 사이드바 수정 확인 테스트</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+
+        .test-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status {
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin: 10px 0;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .success {
+            background: rgba(76, 175, 80, 0.3);
+            border: 2px solid #4CAF50;
+        }
+
+        .error {
+            background: rgba(244, 67, 54, 0.3);
+            border: 2px solid #f44336;
+        }
+
+        .warning {
+            background: rgba(255, 193, 7, 0.3);
+            border: 2px solid #FFC107;
+            color: #333;
+        }
+
+        .info {
+            background: rgba(33, 150, 243, 0.3);
+            border: 2px solid #2196F3;
+        }
+
+        button {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .result-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, .3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        h1,
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .timestamp {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🚀 Vercel AI 사이드바 수정 확인 테스트</h1>
+        <div class="info status">
+            <strong>테스트 대상:</strong> openmanager-vibe-v5-5dmwhucde-skyasus-projects.vercel.app
+        </div>
+
+        <div class="test-section">
+            <h2>📡 1. 기본 연결 테스트</h2>
+            <button onclick="testBasicConnection()">기본 연결 확인</button>
+            <div id="basic-result" class="result-box"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔧 2. Smart Fallback API 수정 확인</h2>
+            <button onclick="testSmartFallbackFixed()">Smart Fallback 수정 확인</button>
+            <div id="fallback-result" class="result-box"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🤖 3. AI 자연어 질의 테스트</h2>
+            <button onclick="testNaturalLanguageQueries()">자연어 질의 테스트</button>
+            <div id="ai-result" class="result-box"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 4. 종합 결과</h2>
+            <div id="summary-result" class="result-box">테스트를 실행하면 여기에 결과가 표시됩니다.</div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'https://openmanager-vibe-v5-5dmwhucde-skyasus-projects.vercel.app';
+        let testResults = {
+            basic: null,
+            fallback: null,
+            ai: null
+        };
+
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const typeIcon = {
+                'success': '✅',
+                'error': '❌',
+                'warning': '⚠️',
+                'info': 'ℹ️'
+            };
+            element.innerHTML += `[${timestamp}] ${typeIcon[type]} ${message}\n`;
+            element.scrollTop = element.scrollHeight;
+        }
+
+        function clearLog(elementId) {
+            document.getElementById(elementId).innerHTML = '';
+        }
+
+        async function testBasicConnection() {
+            clearLog('basic-result');
+            log('basic-result', '기본 연결 테스트 시작...', 'info');
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    log('basic-result', `연결 성공: ${JSON.stringify(data, null, 2)}`, 'success');
+                    testResults.basic = true;
+                } else {
+                    log('basic-result', `연결 실패: ${response.status} ${response.statusText}`, 'error');
+                    testResults.basic = false;
+                }
+            } catch (error) {
+                log('basic-result', `연결 오류: ${error.message}`, 'error');
+                testResults.basic = false;
+            }
+            updateSummary();
+        }
+
+        async function testSmartFallbackFixed() {
+            clearLog('fallback-result');
+            log('fallback-result', 'Smart Fallback API 수정 확인 시작...', 'info');
+
+            // 1. GET 요청 테스트 (이전에 500 오류)
+            try {
+                log('fallback-result', '1. GET 요청 테스트...', 'info');
+                const getResponse = await fetch(`${BASE_URL}/api/ai/smart-fallback`);
+                log('fallback-result', `GET 응답: ${getResponse.status} ${getResponse.statusText}`,
+                    getResponse.ok ? 'success' : 'warning');
+
+                if (getResponse.ok) {
+                    const getData = await getResponse.json();
+                    log('fallback-result', `GET 데이터: ${JSON.stringify(getData, null, 2)}`, 'success');
+                }
+            } catch (error) {
+                log('fallback-result', `GET 오류: ${error.message}`, 'error');
+            }
+
+            // 2. POST 요청 테스트 (이전에 405 오류)
+            try {
+                log('fallback-result', '2. POST 요청 테스트...', 'info');
+                const postResponse = await fetch(`${BASE_URL}/api/ai/smart-fallback`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: '서버 상태를 확인해주세요',
+                        context: 'dashboard'
+                    })
+                });
+
+                log('fallback-result', `POST 응답: ${postResponse.status} ${postResponse.statusText}`,
+                    postResponse.ok ? 'success' : 'warning');
+
+                if (postResponse.ok) {
+                    const postData = await postResponse.json();
+                    log('fallback-result', `POST 데이터: ${JSON.stringify(postData, null, 2)}`, 'success');
+                    testResults.fallback = true;
+                } else {
+                    const errorText = await postResponse.text();
+                    log('fallback-result', `POST 오류 내용: ${errorText}`, 'error');
+                    testResults.fallback = false;
+                }
+            } catch (error) {
+                log('fallback-result', `POST 오류: ${error.message}`, 'error');
+                testResults.fallback = false;
+            }
+            updateSummary();
+        }
+
+        async function testNaturalLanguageQueries() {
+            clearLog('ai-result');
+            log('ai-result', 'AI 자연어 질의 테스트 시작...', 'info');
+
+            const testQueries = [
+                '현재 서버 상태는 어떤가요?',
+                'CPU 사용률이 높은 서버를 찾아주세요',
+                '메모리 부족 경고가 있는 서버는?'
+            ];
+
+            let successCount = 0;
+
+            for (let i = 0; i < testQueries.length; i++) {
+                const query = testQueries[i];
+                log('ai-result', `\n테스트 ${i + 1}: "${query}"`, 'info');
+
+                try {
+                    const response = await fetch(`${BASE_URL}/api/ai/smart-fallback`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            query: query,
+                            context: 'dashboard',
+                            timestamp: new Date().toISOString()
+                        })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        log('ai-result', `✅ 성공: ${JSON.stringify(data, null, 2)}`, 'success');
+                        successCount++;
+                    } else {
+                        const errorText = await response.text();
+                        log('ai-result', `❌ 실패 (${response.status}): ${errorText}`, 'error');
+                    }
+                } catch (error) {
+                    log('ai-result', `❌ 오류: ${error.message}`, 'error');
+                }
+
+                // 요청 간 간격
+                if (i < testQueries.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+
+            log('ai-result', `\n📊 최종 결과: ${successCount}/${testQueries.length} 성공`,
+                successCount === testQueries.length ? 'success' : 'warning');
+
+            testResults.ai = successCount === testQueries.length;
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const summaryElement = document.getElementById('summary-result');
+            let summary = '📊 테스트 결과 요약\n\n';
+
+            summary += `🔗 기본 연결: ${testResults.basic === null ? '미실행' : testResults.basic ? '✅ 성공' : '❌ 실패'}\n`;
+            summary += `🔧 Smart Fallback: ${testResults.fallback === null ? '미실행' : testResults.fallback ? '✅ 수정됨' : '❌ 문제있음'}\n`;
+            summary += `🤖 AI 자연어 질의: ${testResults.ai === null ? '미실행' : testResults.ai ? '✅ 정상작동' : '❌ 문제있음'}\n\n`;
+
+            const allPassed = testResults.basic && testResults.fallback && testResults.ai;
+            const anyTested = testResults.basic !== null || testResults.fallback !== null || testResults.ai !== null;
+
+            if (anyTested) {
+                if (allPassed) {
+                    summary += '🎉 모든 테스트 통과! AI 사이드바 문제가 해결되었습니다.';
+                } else {
+                    summary += '⚠️ 일부 테스트 실패. 추가 수정이 필요할 수 있습니다.';
+                }
+            }
+
+            summaryElement.textContent = summary;
+        }
+
+        // 페이지 로드 시 자동으로 기본 연결 테스트
+        window.onload = function () {
+            setTimeout(testBasicConnection, 1000);
+        };
+    </script>
+</body>
+
+</html>
