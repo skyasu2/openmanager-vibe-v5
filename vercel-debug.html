@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Vercel 배포 디버깅</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .urgent-notice {
+            background: linear-gradient(45deg, #ff4757, #ff3838);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+
+        .test-section h2 {
+            color: #34495e;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #e74c3c;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .status-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .status-card.error {
+            border-color: #e74c3c;
+            background: #fdf2f2;
+        }
+
+        .status-card.success {
+            border-color: #27ae60;
+            background: #f2fdf2;
+        }
+
+        .status-card.warning {
+            border-color: #f39c12;
+            background: #fdf9f2;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔍 Vercel 배포 디버깅</h1>
+
+        <div class="urgent-notice">
+            🚨 긴급: AI 사이드바 오류가 여전히 발생 중입니다. 실시간 디버깅을 시작합니다.
+        </div>
+
+        <div class="test-section">
+            <h2>🚨 실시간 오류 재현</h2>
+
+            <div class="button-group">
+                <button class="btn-danger" onclick="testAllAPIs()">
+                    <span class="loading" id="all-apis-loading" style="display: none;"></span>
+                    전체 API 테스트 시작
+                </button>
+            </div>
+            <div id="error-reproduction-result" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="status-grid">
+            <div class="status-card" id="stream-status">
+                <h4>로그 스트림 상태</h4>
+                <p id="stream-status-text">확인 중...</p>
+            </div>
+            <div class="status-card" id="fallback-status">
+                <h4>Smart Fallback 상태</h4>
+                <p id="fallback-status-text">확인 중...</p>
+            </div>
+            <div class="status-card" id="overall-status">
+                <h4>전체 시스템 상태</h4>
+                <p id="overall-status-text">확인 중...</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🛠️ 긴급 해결 방안</h2>
+            <div id="solution-result" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const VERCEL_URL = 'https://openmanager-vibe-v5.vercel.app';
+
+        function showLoading(elementId, show = true) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.style.display = show ? 'inline-block' : 'none';
+            }
+        }
+
+        function showResult(elementId, content, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.textContent = content;
+            element.className = `result ${type}`;
+        }
+
+        function appendResult(elementId, content, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.textContent += content + '\n';
+            element.className = `result ${type}`;
+        }
+
+        function updateStatusCard(cardId, status, message) {
+            const card = document.getElementById(cardId);
+            const text = document.getElementById(cardId + '-text');
+
+            card.className = `status-card ${status}`;
+            text.textContent = message;
+        }
+
+        async function testAllAPIs() {
+            showLoading('all-apis-loading', true);
+            showResult('error-reproduction-result', '🔍 전체 API 테스트 시작...\n', 'info');
+
+            const apis = [
+                { name: 'Health Check', url: '/api/health', method: 'GET' },
+                { name: 'AI Engines Status', url: '/api/ai/engines/status', method: 'GET' },
+                { name: 'Smart Fallback GET', url: '/api/ai/smart-fallback', method: 'GET' },
+                { name: 'Log Stream', url: '/api/ai/logging/stream?mode=sidebar', method: 'GET' },
+                {
+                    name: 'Smart Fallback POST',
+                    url: '/api/ai/smart-fallback',
+                    method: 'POST',
+                    body: JSON.stringify({
+                        query: '테스트 질의',
+                        context: { sessionId: `test_${Date.now()}` },
+                        options: { fastMode: true }
+                    })
+                }
+            ];
+
+            let successCount = 0;
+            let totalCount = apis.length;
+            let streamStatus = 'unknown';
+            let fallbackStatus = 'unknown';
+
+            for (const api of apis) {
+                try {
+                    appendResult('error-reproduction-result', `\n테스트: ${api.name}`, 'info');
+
+                    const options = {
+                        method: api.method,
+                        headers: api.body ? { 'Content-Type': 'application/json' } : {}
+                    };
+
+                    if (api.body) {
+                        options.body = api.body;
+                    }
+
+                    const response = await fetch(`${VERCEL_URL}${api.url}`, options);
+
+                    if (response.ok) {
+                        appendResult('error-reproduction-result', `✅ ${api.name}: ${response.status} 성공`, 'success');
+                        successCount++;
+
+                        if (api.name === 'Log Stream') {
+                            streamStatus = 'success';
+                        } else if (api.name.includes('Smart Fallback')) {
+                            fallbackStatus = 'success';
+                        }
+                    } else {
+                        appendResult('error-reproduction-result', `❌ ${api.name}: ${response.status} 실패`, 'error');
+
+                        if (api.name === 'Log Stream') {
+                            streamStatus = 'error';
+                            appendResult('error-reproduction-result', `   로그 스트림 500 오류 재현됨!`, 'error');
+                        } else if (api.name.includes('Smart Fallback')) {
+                            fallbackStatus = 'error';
+                            if (response.status === 405) {
+                                appendResult('error-reproduction-result', `   Smart Fallback 405 오류 재현됨!`, 'error');
+                            }
+                        }
+
+                        // 오류 응답 내용 확인
+                        try {
+                            const errorText = await response.text();
+                            if (errorText) {
+                                appendResult('error-reproduction-result', `   오류 내용: ${errorText.substring(0, 200)}...`, 'error');
+                            }
+                        } catch (e) {
+                            appendResult('error-reproduction-result', `   오류 내용을 읽을 수 없음`, 'error');
+                        }
+                    }
+
+                } catch (error) {
+                    appendResult('error-reproduction-result', `❌ ${api.name}: 네트워크 오류 - ${error.message}`, 'error');
+
+                    if (api.name === 'Log Stream') {
+                        streamStatus = 'error';
+                    } else if (api.name.includes('Smart Fallback')) {
+                        fallbackStatus = 'error';
+                    }
+                }
+            }
+
+            // 상태 카드 업데이트
+            updateStatusCard('stream-status', streamStatus,
+                streamStatus === 'success' ? '정상 작동' :
+                    streamStatus === 'error' ? '500 오류 발생' : '확인 중');
+
+            updateStatusCard('fallback-status', fallbackStatus,
+                fallbackStatus === 'success' ? '정상 작동' :
+                    fallbackStatus === 'error' ? '405 오류 발생' : '확인 중');
+
+            const successRate = Math.round((successCount / totalCount) * 100);
+            appendResult('error-reproduction-result', `\n📊 전체 결과: ${successCount}/${totalCount} 성공 (${successRate}%)`,
+                successRate >= 80 ? 'success' : 'error');
+
+            updateStatusCard('overall-status',
+                successRate >= 80 ? 'success' : 'error',
+                `${successRate}% 성공률`);
+
+            // 해결 방안 제시
+            showResult('solution-result', generateSolution(successCount, totalCount, streamStatus, fallbackStatus),
+                successRate >= 80 ? 'success' : 'error');
+
+            showLoading('all-apis-loading', false);
+        }
+
+        function generateSolution(successCount, totalCount, streamStatus, fallbackStatus) {
+            const failureRate = Math.round(((totalCount - successCount) / totalCount) * 100);
+
+            let solution = `🛠️ 긴급 해결 방안 (실패율: ${failureRate}%)\n\n`;
+
+            if (streamStatus === 'error' || fallbackStatus === 'error') {
+                solution += `🚨 사용자 보고 오류 재현됨!\n\n`;
+
+                if (streamStatus === 'error') {
+                    solution += `❌ 로그 스트림 500 오류:\n`;
+                    solution += `- RealTimeAILogCollector 초기화 실패\n`;
+                    solution += `- UniversalAILogger 의존성 문제\n`;
+                    solution += `- 수정된 코드가 배포되지 않음\n\n`;
+                }
+
+                if (fallbackStatus === 'error') {
+                    solution += `❌ Smart Fallback 405 오류:\n`;
+                    solution += `- POST 메서드 처리 실패\n`;
+                    solution += `- JSON 파싱 오류\n`;
+                    solution += `- API 라우팅 문제\n\n`;
+                }
+
+                solution += `즉시 실행할 조치:\n`;
+                solution += `1. 🔄 Vercel 강제 재배포\n`;
+                solution += `   vercel --prod --force\n\n`;
+                solution += `2. 🔧 환경 변수 재설정\n`;
+                solution += `   vercel env pull\n\n`;
+                solution += `3. 🗑️ 캐시 완전 무효화\n`;
+                solution += `   vercel --prod --force --no-cache\n\n`;
+                solution += `4. 📋 로그 확인\n`;
+                solution += `   vercel logs\n\n`;
+            } else {
+                solution += `✅ 시스템이 정상적으로 작동하고 있습니다!\n\n`;
+                solution += `모든 API가 정상 응답하고 있으며, 사용자 보고 오류가 해결되었습니다.\n`;
+            }
+
+            solution += `추가 모니터링:\n`;
+            solution += `- 실시간 오류 로그 확인\n`;
+            solution += `- 사용자 피드백 수집\n`;
+            solution += `- 성능 메트릭 모니터링\n`;
+            solution += `- 자동 알림 설정`;
+
+            return solution;
+        }
+
+        // 페이지 로드 시 자동 실행
+        window.onload = function () {
+            // 자동 테스트 시작
+            setTimeout(() => {
+                testAllAPIs();
+            }, 1000);
+        };
+    </script>
+</body>
+
+</html>
