@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenManager Vibe v5 API 디버깅</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .test-section {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .success {
+            border-left: 4px solid #4CAF50;
+            background-color: #f8fff8;
+        }
+
+        .error {
+            border-left: 4px solid #f44336;
+            background-color: #fff8f8;
+        }
+
+        .warning {
+            border-left: 4px solid #ff9800;
+            background-color: #fffaf0;
+        }
+
+        .info {
+            border-left: 4px solid #2196F3;
+            background-color: #f0f8ff;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .result {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .status-code {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .status-200 {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-404 {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-405 {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-500 {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔍 OpenManager Vibe v5 API 디버깅</h1>
+        <p>배포된 Vercel 환경에서 발생하는 404, 405, 500 오류를 분석합니다.</p>
+
+        <button onclick="runAllTests()">🚀 모든 테스트 실행</button>
+        <button onclick="clearResults()">🧹 결과 지우기</button>
+    </div>
+
+    <div class="container">
+        <h2>1️⃣ 기본 헬스체크</h2>
+        <button onclick="testHealthCheck()">헬스체크 테스트</button>
+        <div id="health-result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="container">
+        <h2>2️⃣ Smart Fallback API 테스트</h2>
+        <button onclick="testSmartFallbackGet()">GET 테스트 (상태 조회)</button>
+        <button onclick="testSmartFallbackPost()">POST 테스트 (쿼리 실행)</button>
+        <div id="fallback-get-result" class="result" style="display: none;"></div>
+        <div id="fallback-post-result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="container">
+        <h2>3️⃣ AI 로깅 스트림 테스트</h2>
+        <button onclick="testAILoggingStream()">스트림 연결 테스트</button>
+        <div id="stream-result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="container">
+        <h2>4️⃣ 기타 AI API 테스트</h2>
+        <button onclick="testOtherAPIs()">기타 API 테스트</button>
+        <div id="other-apis-result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        const baseUrl = 'https://openmanager-vibe-v5.vercel.app';
+
+        function showResult(elementId, content, isError = false) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.textContent = content;
+            element.className = `result ${isError ? 'error' : 'success'}`;
+        }
+
+        function getStatusCodeClass(status) {
+            if (status >= 200 && status < 300) return 'status-200';
+            if (status === 404) return 'status-404';
+            if (status === 405) return 'status-405';
+            if (status >= 500) return 'status-500';
+            return '';
+        }
+
+        async function testHealthCheck() {
+            try {
+                const response = await fetch(`${baseUrl}/api/health`);
+                const data = await response.json();
+
+                const result = `✅ 헬스체크 성공
+상태 코드: ${response.status}
+응답: ${JSON.stringify(data, null, 2)}`;
+
+                showResult('health-result', result, false);
+            } catch (error) {
+                const result = `❌ 헬스체크 실패
+오류: ${error.message}`;
+                showResult('health-result', result, true);
+            }
+        }
+
+        async function testSmartFallbackGet() {
+            try {
+                const response = await fetch(`${baseUrl}/api/ai/smart-fallback`);
+                const data = await response.json();
+
+                const result = `✅ Smart Fallback GET 성공
+상태 코드: ${response.status}
+서비스: ${data.service}
+상태: ${data.status}
+버전: ${data.version}
+엔진들: ${JSON.stringify(data.engines, null, 2)}`;
+
+                showResult('fallback-get-result', result, false);
+            } catch (error) {
+                const result = `❌ Smart Fallback GET 실패
+오류: ${error.message}`;
+                showResult('fallback-get-result', result, true);
+            }
+        }
+
+        async function testSmartFallbackPost() {
+            const testQuery = {
+                query: "현재 시스템 상태는 어떤가요?",
+                context: {
+                    sessionId: `debug_test_${Date.now()}`,
+                    language: "ko",
+                    urgency: "medium"
+                },
+                options: {
+                    enableThinking: false,
+                    maxResponseTime: 15000,
+                    confidenceThreshold: 0.7,
+                    useMCP: true,
+                    useRAG: true,
+                    useGoogleAI: true
+                }
+            };
+
+            try {
+                const response = await fetch(`${baseUrl}/api/ai/smart-fallback`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testQuery)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                const result = `✅ Smart Fallback POST 성공
+상태 코드: ${response.status}
+성공: ${data.success}
+엔진: ${data.engine}
+신뢰도: ${data.confidence}
+응답: ${data.response.substring(0, 200)}...
+메타데이터: ${JSON.stringify(data.metadata, null, 2)}`;
+
+                showResult('fallback-post-result', result, false);
+            } catch (error) {
+                const result = `❌ Smart Fallback POST 실패
+오류: ${error.message}
+
+이것이 바로 사용자가 보고한 405 오류입니다!`;
+                showResult('fallback-post-result', result, true);
+            }
+        }
+
+        async function testAILoggingStream() {
+            try {
+                const response = await fetch(`${baseUrl}/api/ai/logging/stream?mode=sidebar`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = `✅ AI 로깅 스트림 연결 성공
+상태 코드: ${response.status}
+Content-Type: ${response.headers.get('content-type')}`;
+
+                showResult('stream-result', result, false);
+            } catch (error) {
+                const result = `❌ AI 로깅 스트림 실패
+오류: ${error.message}
+
+이것이 바로 사용자가 보고한 500 오류입니다!`;
+                showResult('stream-result', result, true);
+            }
+        }
+
+        async function testOtherAPIs() {
+            const endpoints = [
+                { url: '/api/ai/unified/status', method: 'GET' },
+                { url: '/api/ai/mcp/query', method: 'POST', body: { question: "테스트 질문", priority: "medium", category: "system" } },
+                { url: '/api/ai/google-ai/status', method: 'GET' }
+            ];
+
+            let results = '기타 AI API 테스트 결과:\n\n';
+
+            for (const endpoint of endpoints) {
+                try {
+                    const options = {
+                        method: endpoint.method,
+                        headers: { 'Content-Type': 'application/json' }
+                    };
+
+                    if (endpoint.body) {
+                        options.body = JSON.stringify(endpoint.body);
+                    }
+
+                    const response = await fetch(`${baseUrl}${endpoint.url}`, options);
+                    const data = await response.json();
+
+                    results += `✅ ${endpoint.url} (${endpoint.method}): ${response.status}\n`;
+                    if (response.status === 200) {
+                        results += `   응답: ${JSON.stringify(data).substring(0, 100)}...\n`;
+                    }
+                } catch (error) {
+                    results += `❌ ${endpoint.url} (${endpoint.method}): ${error.message}\n`;
+                }
+                results += '\n';
+            }
+
+            showResult('other-apis-result', results, false);
+        }
+
+        async function runAllTests() {
+            await testHealthCheck();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await testSmartFallbackGet();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await testSmartFallbackPost();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await testAILoggingStream();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await testOtherAPIs();
+        }
+
+        function clearResults() {
+            const results = document.querySelectorAll('.result');
+            results.forEach(result => {
+                result.style.display = 'none';
+                result.textContent = '';
+            });
+        }
+
+        // 페이지 로드 시 자동으로 기본 테스트 실행
+        window.addEventListener('load', () => {
+            console.log('🔍 OpenManager Vibe v5 API 디버깅 페이지 로드됨');
+            console.log('사용자가 보고한 오류들을 재현해보겠습니다...');
+        });
+    </script>
+</body>
+
+</html>
