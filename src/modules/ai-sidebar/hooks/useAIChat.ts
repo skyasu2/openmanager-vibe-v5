@@ -182,11 +182,25 @@ export const useAIChat = (options: ChatHookOptions) => {
           signal: abortControllerRef.current.signal,
         });
 
+        // 응답 상태 확인
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          const errorText = await response.text();
+          console.error(`❌ Smart Fallback API 오류: ${response.status} ${response.statusText}`, errorText);
+          throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
         }
 
-        const smartFallbackResponse = await response.json();
+        // JSON 파싱 안전하게 처리
+        let smartFallbackResponse;
+        try {
+          const responseText = await response.text();
+          if (!responseText.trim()) {
+            throw new Error('서버에서 빈 응답을 반환했습니다');
+          }
+          smartFallbackResponse = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error('❌ JSON 파싱 오류:', parseError);
+          throw new Error('서버 응답을 파싱할 수 없습니다');
+        }
 
         if (!smartFallbackResponse.success) {
           // 사고 과정 에러 로깅

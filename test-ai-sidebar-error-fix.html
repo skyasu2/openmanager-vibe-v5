@@ -123,43 +123,6 @@
             color: #0c5460;
         }
 
-        .status-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-
-        .status-success {
-            background: #28a745;
-        }
-
-        .status-error {
-            background: #dc3545;
-        }
-
-        .status-warning {
-            background: #ffc107;
-        }
-
-        .status-info {
-            background: #17a2b8;
-        }
-
-        .summary {
-            background: linear-gradient(135deg, #74b9ff, #0984e3);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 30px;
-        }
-
-        .summary h3 {
-            margin-top: 0;
-            font-size: 1.3em;
-        }
-
         .loading {
             display: inline-block;
             width: 20px;
@@ -192,7 +155,6 @@
             color: #2c3e50;
         }
 
-        .input-group input,
         .input-group textarea {
             width: 100%;
             padding: 10px;
@@ -200,11 +162,16 @@
             border-radius: 5px;
             font-size: 14px;
             box-sizing: border-box;
-        }
-
-        .input-group textarea {
             height: 80px;
             resize: vertical;
+        }
+
+        .summary {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
         }
     </style>
 </head>
@@ -214,8 +181,7 @@
         <h1>🔧 AI 사이드바 오류 수정 테스트</h1>
 
         <div class="test-section">
-            <h2>🚨 문제 상황 재현</h2>
-            <p><strong>보고된 오류들:</strong></p>
+            <h2>🚨 보고된 오류들</h2>
             <ul>
                 <li><code>api/ai/logging/stream?mode=sidebar</code> - 500 Internal Server Error</li>
                 <li><code>api/ai/smart-fallback</code> - 405 Method Not Allowed</li>
@@ -223,28 +189,16 @@
             </ul>
 
             <div class="button-group">
-                <button class="btn-warning" onclick="reproduceErrors()">
-                    <span class="loading" id="reproduce-loading" style="display: none;"></span>
-                    오류 재현 테스트
-                </button>
-            </div>
-            <div id="reproduce-result" class="result" style="display: none;"></div>
-        </div>
-
-        <div class="test-section">
-            <h2>🔧 수정된 API 테스트</h2>
-
-            <div class="button-group">
-                <button class="btn-primary" onclick="testLogStreamAPI()">
+                <button class="btn-warning" onclick="testLogStreamAPI()">
                     <span class="loading" id="stream-loading" style="display: none;"></span>
                     로그 스트림 API 테스트
                 </button>
-                <button class="btn-primary" onclick="testSmartFallbackAPI()">
+                <button class="btn-warning" onclick="testSmartFallbackAPI()">
                     <span class="loading" id="fallback-loading" style="display: none;"></span>
                     Smart Fallback API 테스트
                 </button>
             </div>
-            <div id="fixed-api-result" class="result" style="display: none;"></div>
+            <div id="api-test-result" class="result" style="display: none;"></div>
         </div>
 
         <div class="test-section">
@@ -259,10 +213,6 @@
                 <button class="btn-success" onclick="testAIQuery()">
                     <span class="loading" id="query-loading" style="display: none;"></span>
                     AI 질의 테스트
-                </button>
-                <button class="btn-success" onclick="testAIQueryWithStream()">
-                    <span class="loading" id="stream-query-loading" style="display: none;"></span>
-                    스트림 포함 AI 질의 테스트
                 </button>
             </div>
             <div id="ai-query-result" class="result" style="display: none;"></div>
@@ -281,8 +231,7 @@
         let testResults = {
             logStream: null,
             smartFallback: null,
-            aiQuery: null,
-            streamQuery: null
+            aiQuery: null
         };
 
         function showLoading(elementId, show = true) {
@@ -312,83 +261,41 @@
             const successCount = results.filter(([_, result]) => result === true).length;
             const totalCount = results.filter(([_, result]) => result !== null).length;
 
-            let summaryHTML = `<p><strong>완료된 테스트:</strong> ${totalCount}/4</p>`;
+            let summaryHTML = `<p><strong>완료된 테스트:</strong> ${totalCount}/3</p>`;
             summaryHTML += `<p><strong>성공률:</strong> ${totalCount > 0 ? Math.round((successCount / totalCount) * 100) : 0}%</p>`;
 
             results.forEach(([test, result]) => {
                 if (result !== null) {
-                    const status = result ? 'success' : 'error';
                     const icon = result ? '✅' : '❌';
-                    summaryHTML += `<p><span class="status-indicator status-${status}"></span>${icon} ${test}: ${result ? '성공' : '실패'}</p>`;
+                    summaryHTML += `<p>${icon} ${test}: ${result ? '성공' : '실패'}</p>`;
                 }
             });
 
             summary.innerHTML = summaryHTML;
         }
 
-        async function reproduceErrors() {
-            showLoading('reproduce-loading', true);
-            showResult('reproduce-result', '🚨 오류 재현 테스트 시작...\n', 'info');
-
-            try {
-                // 1. 로그 스트림 500 오류 재현
-                appendResult('reproduce-result', '\n1️⃣ 로그 스트림 API 500 오류 재현:', 'info');
-                try {
-                    const streamResponse = await fetch(`${BASE_URL}/api/ai/logging/stream?mode=sidebar`);
-                    appendResult('reproduce-result', `   결과: ${streamResponse.status} ${streamResponse.statusText}`,
-                        streamResponse.status === 500 ? 'error' : 'success');
-                } catch (error) {
-                    appendResult('reproduce-result', `   오류: ${error.message}`, 'error');
-                }
-
-                // 2. Smart Fallback 405 오류 재현
-                appendResult('reproduce-result', '\n2️⃣ Smart Fallback API 405 오류 재현:', 'info');
-                try {
-                    const fallbackResponse = await fetch(`${BASE_URL}/api/ai/smart-fallback`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            query: '테스트 질의',
-                            context: { sessionId: 'test' }
-                        })
-                    });
-                    appendResult('reproduce-result', `   결과: ${fallbackResponse.status} ${fallbackResponse.statusText}`,
-                        fallbackResponse.status === 405 ? 'error' : 'success');
-                } catch (error) {
-                    appendResult('reproduce-result', `   오류: ${error.message}`, 'error');
-                }
-
-                appendResult('reproduce-result', '\n✅ 오류 재현 테스트 완료', 'success');
-
-            } catch (error) {
-                appendResult('reproduce-result', `\n❌ 테스트 실행 오류: ${error.message}`, 'error');
-            } finally {
-                showLoading('reproduce-loading', false);
-            }
-        }
-
         async function testLogStreamAPI() {
             showLoading('stream-loading', true);
-            showResult('fixed-api-result', '🔄 로그 스트림 API 테스트 시작...\n', 'info');
+            showResult('api-test-result', '🔄 로그 스트림 API 테스트 시작...\n', 'info');
 
             try {
                 const response = await fetch(`${BASE_URL}/api/ai/logging/stream?mode=sidebar`);
 
-                appendResult('fixed-api-result', `응답 상태: ${response.status} ${response.statusText}`,
+                appendResult('api-test-result', `응답 상태: ${response.status} ${response.statusText}`,
                     response.ok ? 'success' : 'error');
 
                 if (response.ok) {
-                    appendResult('fixed-api-result', `Content-Type: ${response.headers.get('content-type')}`, 'success');
-                    appendResult('fixed-api-result', '✅ 로그 스트림 API 수정 성공!', 'success');
+                    appendResult('api-test-result', `Content-Type: ${response.headers.get('content-type')}`, 'success');
+                    appendResult('api-test-result', '✅ 로그 스트림 API 수정 성공!', 'success');
                     testResults.logStream = true;
                 } else {
                     const errorText = await response.text();
-                    appendResult('fixed-api-result', `오류 내용: ${errorText}`, 'error');
+                    appendResult('api-test-result', `오류 내용: ${errorText}`, 'error');
                     testResults.logStream = false;
                 }
 
             } catch (error) {
-                appendResult('fixed-api-result', `❌ 로그 스트림 테스트 오류: ${error.message}`, 'error');
+                appendResult('api-test-result', `❌ 로그 스트림 테스트 오류: ${error.message}`, 'error');
                 testResults.logStream = false;
             } finally {
                 showLoading('stream-loading', false);
@@ -398,7 +305,7 @@
 
         async function testSmartFallbackAPI() {
             showLoading('fallback-loading', true);
-            appendResult('fixed-api-result', '\n🧠 Smart Fallback API 테스트 시작...', 'info');
+            appendResult('api-test-result', '\n🧠 Smart Fallback API 테스트 시작...', 'info');
 
             try {
                 const response = await fetch(`${BASE_URL}/api/ai/smart-fallback`, {
@@ -417,25 +324,25 @@
                     })
                 });
 
-                appendResult('fixed-api-result', `응답 상태: ${response.status} ${response.statusText}`,
+                appendResult('api-test-result', `응답 상태: ${response.status} ${response.statusText}`,
                     response.ok ? 'success' : 'error');
 
                 if (response.ok) {
                     const data = await response.json();
-                    appendResult('fixed-api-result', `성공: ${data.success}`, 'success');
-                    appendResult('fixed-api-result', `엔진: ${data.engine}`, 'success');
-                    appendResult('fixed-api-result', `신뢰도: ${data.confidence}`, 'success');
-                    appendResult('fixed-api-result', `응답: ${data.response?.substring(0, 100)}...`, 'success');
-                    appendResult('fixed-api-result', '✅ Smart Fallback API 수정 성공!', 'success');
+                    appendResult('api-test-result', `성공: ${data.success}`, 'success');
+                    appendResult('api-test-result', `엔진: ${data.engine}`, 'success');
+                    appendResult('api-test-result', `신뢰도: ${data.confidence}`, 'success');
+                    appendResult('api-test-result', `응답: ${data.response?.substring(0, 100)}...`, 'success');
+                    appendResult('api-test-result', '✅ Smart Fallback API 수정 성공!', 'success');
                     testResults.smartFallback = true;
                 } else {
                     const errorText = await response.text();
-                    appendResult('fixed-api-result', `오류 내용: ${errorText}`, 'error');
+                    appendResult('api-test-result', `오류 내용: ${errorText}`, 'error');
                     testResults.smartFallback = false;
                 }
 
             } catch (error) {
-                appendResult('fixed-api-result', `❌ Smart Fallback 테스트 오류: ${error.message}`, 'error');
+                appendResult('api-test-result', `❌ Smart Fallback 테스트 오류: ${error.message}`, 'error');
                 testResults.smartFallback = false;
             } finally {
                 showLoading('fallback-loading', false);
@@ -493,69 +400,6 @@
                 testResults.aiQuery = false;
             } finally {
                 showLoading('query-loading', false);
-                updateSummary();
-            }
-        }
-
-        async function testAIQueryWithStream() {
-            const query = document.getElementById('test-query').value.trim();
-            if (!query) {
-                alert('테스트 질의를 입력해주세요.');
-                return;
-            }
-
-            showLoading('stream-query-loading', true);
-            showResult('ai-query-result', `🌊 스트림 포함 AI 질의 테스트 시작...\n질의: ${query}\n`, 'info');
-
-            try {
-                // 1. 로그 스트림 연결
-                appendResult('ai-query-result', '\n1️⃣ 로그 스트림 연결 중...', 'info');
-                const sessionId = `stream_test_${Date.now()}`;
-
-                const streamResponse = await fetch(`${BASE_URL}/api/ai/logging/stream?mode=sidebar&sessionId=${sessionId}`);
-                if (streamResponse.ok) {
-                    appendResult('ai-query-result', '✅ 로그 스트림 연결 성공', 'success');
-                } else {
-                    appendResult('ai-query-result', `❌ 로그 스트림 연결 실패: ${streamResponse.status}`, 'error');
-                }
-
-                // 2. AI 질의 실행
-                appendResult('ai-query-result', '\n2️⃣ AI 질의 실행 중...', 'info');
-                const aiResponse = await fetch(`${BASE_URL}/api/ai/smart-fallback`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        query: query,
-                        context: {
-                            sessionId: sessionId,
-                            language: 'ko',
-                            mode: 'fast'
-                        },
-                        options: {
-                            fastMode: true,
-                            timeout: 8000,
-                            enableParallel: true
-                        }
-                    })
-                });
-
-                if (aiResponse.ok) {
-                    const data = await aiResponse.json();
-                    appendResult('ai-query-result', '✅ AI 질의 성공', 'success');
-                    appendResult('ai-query-result', `📝 응답: ${data.response?.substring(0, 200)}...`, 'success');
-                    testResults.streamQuery = true;
-                } else {
-                    appendResult('ai-query-result', `❌ AI 질의 실패: ${aiResponse.status}`, 'error');
-                    testResults.streamQuery = false;
-                }
-
-                appendResult('ai-query-result', '\n✅ 스트림 포함 테스트 완료', 'success');
-
-            } catch (error) {
-                appendResult('ai-query-result', `\n❌ 스트림 테스트 오류: ${error.message}`, 'error');
-                testResults.streamQuery = false;
-            } finally {
-                showLoading('stream-query-loading', false);
                 updateSummary();
             }
         }

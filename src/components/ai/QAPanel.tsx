@@ -51,7 +51,10 @@ interface ChatMessage {
 }
 
 const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
-  const { responses, addResponse } = useAIChat();
+  const { responses, addResponse } = useAIChat({
+    initialMode: 'chat',
+    enableThinking: true
+  });
   const {
     isThinking,
     currentQuestion,
@@ -200,9 +203,11 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
               setConversations(prev => [...prev, aiMessage]);
 
               addResponse({
-                query: currentQuestion || '질문 없음',
                 response: aiResponseContent,
                 confidence: confidence,
+                engine: 'rag',
+                responseTime: '0ms',
+                mode: 'rag-only'
               });
 
               setThinking(false);
@@ -448,11 +453,10 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
                     >
                       {/* 아바타 */}
                       <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          message.type === 'user'
-                            ? 'bg-blue-500/20 border border-blue-500/30'
-                            : 'bg-green-500/20 border border-green-500/30'
-                        }`}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center ${message.type === 'user'
+                          ? 'bg-blue-500/20 border border-blue-500/30'
+                          : 'bg-green-500/20 border border-green-500/30'
+                          }`}
                       >
                         {message.type === 'user' ? (
                           <User className='w-4 h-4 text-blue-400' />
@@ -463,11 +467,10 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
 
                       {/* 메시지 내용 */}
                       <div
-                        className={`p-3 rounded-lg ${
-                          message.type === 'user'
-                            ? 'bg-blue-500/20 border border-blue-500/30 text-blue-200'
-                            : 'bg-gray-800/50 border border-gray-600/30 text-gray-200'
-                        }`}
+                        className={`p-3 rounded-lg ${message.type === 'user'
+                          ? 'bg-blue-500/20 border border-blue-500/30 text-blue-200'
+                          : 'bg-gray-800/50 border border-gray-600/30 text-gray-200'
+                          }`}
                       >
                         <p className='text-sm leading-relaxed'>
                           {message.content}

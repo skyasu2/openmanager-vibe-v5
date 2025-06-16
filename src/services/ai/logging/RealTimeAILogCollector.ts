@@ -47,7 +47,7 @@ export interface AIEngineProcess {
 export class RealTimeAILogCollector extends EventEmitter {
     private static instance: RealTimeAILogCollector | null = null;
     private activeProcesses: Map<string, AIEngineProcess> = new Map();
-    private universalLogger: UniversalAILogger;
+    private universalLogger: UniversalAILogger | null = null;
     private logBuffer: RealTimeAILog[] = [];
     private maxBufferSize = 1000;
 
@@ -70,8 +70,14 @@ export class RealTimeAILogCollector extends EventEmitter {
 
     private constructor() {
         super();
-        this.universalLogger = UniversalAILogger.getInstance();
-        this.setupUniversalLoggerListeners();
+        try {
+            this.universalLogger = UniversalAILogger.getInstance();
+            this.setupUniversalLoggerListeners();
+        } catch (error) {
+            console.warn('⚠️ UniversalAILogger 초기화 실패, 기본 모드로 동작:', error);
+            // UniversalAILogger 없이도 동작하도록 폴백
+            this.universalLogger = null as any;
+        }
     }
 
     static getInstance(): RealTimeAILogCollector {
@@ -85,25 +91,34 @@ export class RealTimeAILogCollector extends EventEmitter {
      * 🎯 UniversalAILogger 이벤트 리스너 설정
      */
     private setupUniversalLoggerListeners(): void {
-        // AI 상호작용 시작
-        this.universalLogger.on('interaction_started', (data) => {
-            this.startProcess(data.sessionId, 'unified-ai', data.query);
-        });
+        if (!this.universalLogger) {
+            console.warn('⚠️ UniversalAILogger가 없어 이벤트 리스너 설정을 건너뜁니다');
+            return;
+        }
 
-        // AI 사고 과정 로깅
-        this.universalLogger.on('thinking_logged', (data) => {
-            this.addThinkingLog(data.sessionId, data.engineId, data.step);
-        });
+        try {
+            // AI 상호작용 시작
+            this.universalLogger.on('interaction_started', (data) => {
+                this.startProcess(data.sessionId, 'unified-ai', data.query);
+            });
 
-        // AI 엔진 완료
-        this.universalLogger.on('engine_completed', (data) => {
-            this.addEngineCompletionLog(data.sessionId, data.engineId, data.status, data.confidence);
-        });
+            // AI 사고 과정 로깅
+            this.universalLogger.on('thinking_logged', (data) => {
+                this.addThinkingLog(data.sessionId, data.engineId, data.step);
+            });
 
-        // AI 상호작용 완료
-        this.universalLogger.on('interaction_completed', (data) => {
-            this.completeProcess(data.sessionId);
-        });
+            // AI 엔진 완료
+            this.universalLogger.on('engine_completed', (data) => {
+                this.addEngineCompletionLog(data.sessionId, data.engineId, data.status, data.confidence);
+            });
+
+            // AI 상호작용 완료
+            this.universalLogger.on('interaction_completed', (data) => {
+                this.completeProcess(data.sessionId);
+            });
+        } catch (error) {
+            console.warn('⚠️ UniversalAILogger 이벤트 리스너 설정 실패:', error);
+        }
     }
 
     /**

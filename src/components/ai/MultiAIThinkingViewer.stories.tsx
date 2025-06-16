@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import MultiAIThinkingViewer from './MultiAIThinkingViewer';
+import { MultiAIThinkingViewer } from './MultiAIThinkingViewer';
 
 const meta: Meta<typeof MultiAIThinkingViewer> = {
   title: 'AI Components/MultiAIThinkingViewer',
