@@ -60,10 +60,10 @@ const AI_AGENT_ICONS: AIAgentIcon[] = [
     gradient: 'from-blue-500 to-cyan-500',
   },
   {
-    id: 'thinking',
-    icon: Brain,
-    label: 'AI 사고',
-    description: '복잡한 문제 해결 과정 시각화',
+    id: 'auto-report',
+    icon: FileText,
+    label: '자동장애 보고서',
+    description: 'AI 기반 시스템 장애 분석 보고서 생성',
     color: 'text-pink-600',
     bgColor: 'bg-pink-50 hover:bg-pink-100',
     gradient: 'from-pink-500 to-rose-500',
@@ -77,7 +77,7 @@ const AI_AGENT_ICONS: AIAgentIcon[] = [
     bgColor: 'bg-purple-50 hover:bg-purple-100',
     gradient: 'from-purple-500 to-violet-500',
   },
-  
+
   // === 분석 기능 (중단) ===
   {
     id: 'pattern-analysis',
@@ -106,13 +106,13 @@ const AI_AGENT_ICONS: AIAgentIcon[] = [
     bgColor: 'bg-yellow-50 hover:bg-yellow-100',
     gradient: 'from-yellow-500 to-orange-500',
   },
-  
+
   // === 관리 기능 (하단) ===
   {
-    id: 'auto-report',
-    icon: FileText,
-    label: '자동 리포트',
-    description: 'AI 기반 시스템 분석 보고서',
+    id: 'thinking',
+    icon: Brain,
+    label: 'AI 사고',
+    description: '복잡한 문제 해결 과정 시각화',
     color: 'text-green-600',
     bgColor: 'bg-green-50 hover:bg-green-100',
     gradient: 'from-green-500 to-emerald-500',
@@ -155,8 +155,10 @@ export default function AIAgentIconPanel({
 }: AIAgentIconPanelProps) {
   if (isMobile) {
     return (
-      <div className={`flex flex-row space-x-2 overflow-x-auto pb-2 ${className}`}
-           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div
+        className={`flex flex-row space-x-2 overflow-x-auto pb-2 ${className}`}
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
         {AI_AGENT_ICONS.map((item, index) => {
           const Icon = item.icon;
           const isSelected = selectedFunction === item.id;
@@ -176,15 +178,17 @@ export default function AIAgentIconPanel({
               whileTap={{ scale: 0.95 }}
             >
               <Icon className='w-5 h-5 mx-auto' />
-              
+
               {/* 모바일 툴팁 (상단 표시) */}
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 
+              <div
+                className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 
                              bg-gray-900 text-white text-xs px-2 py-1 rounded 
                              opacity-0 group-hover:opacity-100 transition-opacity duration-200 
-                             pointer-events-none whitespace-nowrap z-[60] shadow-lg">
+                             pointer-events-none whitespace-nowrap z-[60] shadow-lg'
+              >
                 {item.label}
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2">
-                  <div className="border-2 border-transparent border-t-gray-900"></div>
+                <div className='absolute top-full left-1/2 transform -translate-x-1/2'>
+                  <div className='border-2 border-transparent border-t-gray-900'></div>
                 </div>
               </div>
             </motion.button>
@@ -244,19 +248,23 @@ export default function AIAgentIconPanel({
               )}
 
               {/* 호버 툴팁 - 개선된 위치 계산 */}
-              <div className={`
+              <div
+                className={`
                 absolute left-full ml-3 ${getTooltipPosition(index, AI_AGENT_ICONS.length)}
                 bg-gray-900 text-white text-xs px-3 py-2 rounded-lg 
                 opacity-0 group-hover:opacity-100 transition-all duration-200 
                 pointer-events-none whitespace-nowrap z-[60] shadow-lg
                 min-w-max max-w-[200px]
-              `}>
-                <div className="font-medium">{item.label}</div>
-                <div className="text-gray-300 text-xs mt-1">{item.description}</div>
-                
+              `}
+              >
+                <div className='font-medium'>{item.label}</div>
+                <div className='text-gray-300 text-xs mt-1'>
+                  {item.description}
+                </div>
+
                 {/* 툴팁 화살표 */}
-                <div className="absolute right-full top-1/2 transform -translate-y-1/2">
-                  <div className="border-4 border-transparent border-r-gray-900"></div>
+                <div className='absolute right-full top-1/2 transform -translate-y-1/2'>
+                  <div className='border-4 border-transparent border-r-gray-900'></div>
                 </div>
               </div>
             </motion.button>

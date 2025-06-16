@@ -48,6 +48,7 @@ import AIAgentIconPanel, {
 } from '@/components/ai/AIAgentIconPanel';
 import AIInsightsCard from '@/components/dashboard/AIInsightsCard';
 import { GoogleAIStatusCard } from '@/components/shared/GoogleAIStatusCard';
+import AutoReportPage from '@/components/ai/pages/AutoReportPage';
 
 // Enhanced AI Chat 관련 타입들
 interface AIEngine {
@@ -884,17 +885,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       case 'chat':
         return renderEnhancedAIChat();
       case 'auto-report':
-        return (
-          <div className='flex items-center justify-center h-full bg-gradient-to-br from-green-50 to-emerald-50'>
-            <div className='text-center'>
-              <BarChart3 className='w-16 h-16 text-gray-300 mx-auto mb-4' />
-              <h3 className='text-lg font-bold text-gray-600 mb-2'>
-                자동 리포트
-              </h3>
-              <p className='text-sm text-gray-500'>곧 출시 예정입니다</p>
-            </div>
-          </div>
-        );
+        return <AutoReportPage />;
       case 'prediction':
         return (
           <div className='flex items-center justify-center h-full bg-gradient-to-br from-purple-50 to-violet-50'>

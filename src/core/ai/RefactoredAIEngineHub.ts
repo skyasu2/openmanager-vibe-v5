@@ -144,7 +144,7 @@ export class RefactoredAIEngineHub {
   // 핵심 AI 엔진들 (의도적 분리 유지)
   private googleAIModeManager: GoogleAIModeManager;
   private dualCoreOrchestrator: DualCoreOrchestrator;
-  private smartFallbackEngine: typeof SmartFallbackEngine;
+  // SmartFallbackEngine은 싱글톤으로 직접 사용
   private unifiedAIEngine: UnifiedAIEngine;
   private aiEngineChain: AIEngineChain;
   private contextManager: ContextManager;
@@ -160,7 +160,7 @@ export class RefactoredAIEngineHub {
     // 핵심 엔진들 초기화 (의도적 분리 유지)
     this.googleAIModeManager = new GoogleAIModeManager();
     this.dualCoreOrchestrator = new DualCoreOrchestrator();
-    this.smartFallbackEngine = SmartFallbackEngine;
+    // SmartFallbackEngine은 싱글톤으로 직접 사용
     this.unifiedAIEngine = UnifiedAIEngine.getInstance();
     this.aiEngineChain = new AIEngineChain();
     this.contextManager = ContextManager.getInstance();
@@ -342,7 +342,7 @@ export class RefactoredAIEngineHub {
   private async processSmartFallback(request: AIHubRequest): Promise<any> {
     console.log('🧠 SmartFallback 전략 실행: 지능형 폴백 체인');
 
-    const engine = this.smartFallbackEngine.getInstance();
+    const engine = SmartFallbackEngine.getInstance();
     const result = await engine.processQuery(request.query, request.context, {
       enableMCP: request.options?.useMCP !== false,
       enableRAG: request.options?.useRAG !== false,
@@ -627,7 +627,7 @@ export class RefactoredAIEngineHub {
 
   private async checkSmartFallbackHealth(): Promise<boolean> {
     try {
-      const engine = this.smartFallbackEngine.getInstance();
+      const engine = SmartFallbackEngine.getInstance();
       const status = engine.getSystemStatus();
       return status.initialized;
     } catch {

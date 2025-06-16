@@ -249,16 +249,12 @@ export default function ServerDashboard({
     'all' | 'healthy' | 'warning' | 'offline'
   >('all');
   const [locationFilter, setLocationFilter] = useState<string>('all');
-  // 페이지네이션 상태 추가 (useState 순서 고정)
-  const [criticalPage, setCriticalPage] = useState(1);
-  const [warningPage, setWarningPage] = useState(1);
-  const [healthyPage, setHealthyPage] = useState(1);
-  // 페이지네이션 및 표시 제한
-  const [showAllServers, setShowAllServers] = useState(false);
+  // 페이지네이션 상태 (8개씩 표시)
+  // showAllServers 제거 - 이제 페이지네이션으로 관리
 
-  // ✅ 페이지네이션 설정: API 데이터와 일치하도록 30개로 설정
-  const SERVERS_PER_PAGE = 30;
-  const DASHBOARD_SERVER_LIMIT = 8; // 대시보드에서 기본 표시할 서버 개수
+  // ✅ 페이지네이션 설정: 8개씩 표시, 총 20개 서버
+  const SERVERS_PER_PAGE = 8; // 페이지당 8개 서버
+  const TOTAL_SERVERS_LIMIT = 20; // 총 20개 서버 제한
 
   // 🎯 검색어 디바운싱 (500ms 지연) - 훅 순서 고정
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -274,7 +270,7 @@ export default function ServerDashboard({
     lastUpdated,
     refresh: refreshServers,
   } = useCachedServers({
-    pageSize: showAllServers ? 30 : DASHBOARD_SERVER_LIMIT,
+    pageSize: TOTAL_SERVERS_LIMIT, // 총 20개 서버 로드
     status: statusFilter === 'all' ? 'all' : statusFilter,
     search: debouncedSearchTerm,
     location: locationFilter,
@@ -400,40 +396,25 @@ export default function ServerDashboard({
       }
     });
 
-    // 🎯 대시보드에서는 상위 8개만 표시 (showAllServers가 false일 때)
-    if (!showAllServers && filtered.length > DASHBOARD_SERVER_LIMIT) {
-      return filtered.slice(0, DASHBOARD_SERVER_LIMIT);
+    // 🎯 총 20개 서버로 제한
+    if (filtered.length > TOTAL_SERVERS_LIMIT) {
+      return filtered.slice(0, TOTAL_SERVERS_LIMIT);
     }
 
     return filtered;
-  }, [
-    realtimeServers,
-    searchTerm,
-    statusFilter,
-    locationFilter,
-    sortBy,
-    showAllServers,
-  ]);
+  }, [realtimeServers, searchTerm, statusFilter, locationFilter, sortBy]);
 
-  // 🎯 동적 페이지 크기 조정 (서버 수에 따라 자동 조정)
-  const dynamicPageSize = useMemo(() => {
-    const totalServers = filteredServers.length;
-    if (totalServers <= 12) return totalServers; // 12개 이하면 전체 표시
-    if (totalServers <= 24) return 12; // 24개 이하면 12개씩
-    return 30; // 그 외에는 30개씩
-  }, [filteredServers.length]);
-
-  // 🔧 페이지네이션된 서버 목록
+  // 🔧 페이지네이션된 서버 목록 (8개씩 표시)
   const paginatedServers = useMemo(() => {
-    const startIndex = (currentPage - 1) * dynamicPageSize;
-    const endIndex = startIndex + dynamicPageSize;
+    const startIndex = (currentPage - 1) * SERVERS_PER_PAGE;
+    const endIndex = startIndex + SERVERS_PER_PAGE;
     return filteredServers.slice(startIndex, endIndex);
-  }, [filteredServers, currentPage, dynamicPageSize]);
+  }, [filteredServers, currentPage]);
 
-  // 🔧 총 페이지 수 계산
+  // 🔧 총 페이지 수 계산 (8개씩 나누어 계산)
   const totalPages = useMemo(() => {
-    return Math.ceil(filteredServers.length / dynamicPageSize);
-  }, [filteredServers.length, dynamicPageSize]);
+    return Math.ceil(filteredServers.length / SERVERS_PER_PAGE);
+  }, [filteredServers.length]);
 
   // 🎯 서버 카드 클릭 핸들러
   const handleServerClick = useCallback((server: Server) => {
@@ -532,10 +513,26 @@ export default function ServerDashboard({
 
       {/* 서버 그리드/리스트 */}
       <div className='flex-1 p-6 overflow-auto'>
-        {filteredServers.length > 0 ? (
+        {paginatedServers.length > 0 ? (
           <>
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6'>
-              {filteredServers.map(server => (
+            {/* 페이지네이션 정보 */}
+            <div className='mb-4 flex items-center justify-between'>
+              <div className='text-sm text-gray-600'>
+                총 {filteredServers.length}개 서버 중{' '}
+                {(currentPage - 1) * SERVERS_PER_PAGE + 1}-
+                {Math.min(
+                  currentPage * SERVERS_PER_PAGE,
+                  filteredServers.length
+                )}
+                개 표시
+              </div>
+              <div className='text-sm text-gray-500'>
+                페이지 {currentPage} / {totalPages}
+              </div>
+            </div>
+
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-6'>
+              {paginatedServers.map(server => (
                 <EnhancedServerCard
                   key={server.id}
                   server={server}
@@ -544,43 +541,46 @@ export default function ServerDashboard({
               ))}
             </div>
 
-            {/* 더보기 버튼 (8개 제한이 적용된 경우에만 표시) */}
-            {!showAllServers &&
-              realtimeServers &&
-              realtimeServers.length > DASHBOARD_SERVER_LIMIT && (
-                <div className='mt-8 text-center'>
-                  <button
-                    onClick={() => setShowAllServers(true)}
-                    className='px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2 mx-auto'
-                  >
-                    <Monitor className='w-5 h-5' />
-                    <span>
-                      모든 서버 보기 (
-                      {realtimeServers.length - DASHBOARD_SERVER_LIMIT}개 더)
-                    </span>
-                    <ChevronDown className='w-4 h-4' />
-                  </button>
-                  <p className='text-sm text-gray-500 mt-2'>
-                    성능 최적화를 위해 상위 {DASHBOARD_SERVER_LIMIT}개 서버만
-                    표시됩니다
-                  </p>
-                </div>
-              )}
+            {/* 페이지네이션 컨트롤 */}
+            {totalPages > 1 && (
+              <div className='mt-8 flex items-center justify-center space-x-2'>
+                <button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className='p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
+                  aria-label='이전 페이지'
+                >
+                  <ChevronLeft size={16} />
+                </button>
 
-            {/* 접기 버튼 (모든 서버가 표시된 경우) */}
-            {showAllServers &&
-              realtimeServers &&
-              realtimeServers.length > DASHBOARD_SERVER_LIMIT && (
-                <div className='mt-8 text-center'>
-                  <button
-                    onClick={() => setShowAllServers(false)}
-                    className='px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center gap-2 mx-auto'
-                  >
-                    <ChevronLeft className='w-4 h-4' />
-                    <span>상위 {DASHBOARD_SERVER_LIMIT}개만 보기</span>
-                  </button>
-                </div>
-              )}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-2 rounded-lg border ${
+                        currentPage === page
+                          ? 'bg-blue-500 text-white border-blue-500'
+                          : 'border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                )}
+
+                <button
+                  onClick={() =>
+                    setCurrentPage(Math.min(totalPages, currentPage + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  className='p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
+                  aria-label='다음 페이지'
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
           </>
         ) : (
           <div className='text-center py-16'>
