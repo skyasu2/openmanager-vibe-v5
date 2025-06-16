@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 AI 엔진 직접 테스트 - SimplifiedNaturalLanguageEngine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8fafc;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #4f46e5;
+        }
+
+        .stat-label {
+            color: #64748b;
+            margin-top: 5px;
+        }
+
+        .test-section {
+            padding: 30px;
+        }
+
+        .test-modes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .mode-card {
+            background: #f1f5f9;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mode-card:hover {
+            border-color: #4f46e5;
+            background: #eef2ff;
+        }
+
+        .mode-card.active {
+            border-color: #4f46e5;
+            background: #eef2ff;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+        }
+
+        .mode-title {
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .mode-desc {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .test-input {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+
+        .preset-questions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .preset-btn {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .preset-btn:hover {
+            background: #e5e7eb;
+            border-color: #9ca3af;
+        }
+
+        .test-btn {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+        }
+
+        .test-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border-left: 4px solid #4f46e5;
+        }
+
+        .thinking-steps {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .thinking-step {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .thinking-step:last-child {
+            border-bottom: none;
+        }
+
+        .step-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: white;
+        }
+
+        .step-processing {
+            background: #f59e0b;
+            animation: pulse 2s infinite;
+        }
+
+        .step-completed {
+            background: #10b981;
+        }
+
+        .step-failed {
+            background: #ef4444;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .response-text {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .metadata {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .metadata-item {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .metadata-value {
+            font-weight: bold;
+            color: #4f46e5;
+            font-size: 1.1rem;
+        }
+
+        .metadata-label {
+            color: #64748b;
+            font-size: 0.8rem;
+            margin-top: 2px;
+        }
+
+        .error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI 엔진 직접 테스트</h1>
+            <p>SimplifiedNaturalLanguageEngine - 97% 경량화, 80-93% 성능 향상</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">1개</div>
+                <div class="stat-label">통합 AI 엔진</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">3초</div>
+                <div class="stat-label">응답 시간</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">97%</div>
+                <div class="stat-label">경량화</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">4가지</div>
+                <div class="stat-label">스마트 모드</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🎭 스마트 모드 선택</h2>
+            <div class="test-modes">
+                <div class="mode-card active" data-mode="auto">
+                    <div class="mode-title">🚀 Auto Mode</div>
+                    <div class="mode-desc">MCP + RAG + Google AI 병렬 처리</div>
+                </div>
+                <div class="mode-card" data-mode="google-only">
+                    <div class="mode-title">🌐 Google-Only</div>
+                    <div class="mode-desc">Google AI만 사용</div>
+                </div>
+                <div class="mode-card" data-mode="local">
+                    <div class="mode-title">🏠 Local Mode</div>
+                    <div class="mode-desc">MCP + RAG (로컬 환경)</div>
+                </div>
+                <div class="mode-card" data-mode="offline">
+                    <div class="mode-title">📱 Offline Mode</div>
+                    <div class="mode-desc">RAG만 사용 (완전 오프라인)</div>
+                </div>
+            </div>
+
+            <div class="test-input">
+                <h3>🗣️ 자연어 질의 테스트</h3>
+
+                <div class="preset-questions">
+                    <button class="preset-btn" onclick="setQuery('서버 상태 어때?')">서버 상태 어때?</button>
+                    <button class="preset-btn" onclick="setQuery('CPU 사용률이 높은 서버는?')">CPU 사용률 높은 서버</button>
+                    <button class="preset-btn" onclick="setQuery('메모리 부족한 서버 있어?')">메모리 부족 서버</button>
+                    <button class="preset-btn" onclick="setQuery('최근 장애 발생한 서버 분석해줘')">장애 분석</button>
+                    <button class="preset-btn" onclick="setQuery('네트워크 트래픽 상태 확인해줘')">네트워크 상태</button>
+                    <button class="preset-btn" onclick="setQuery('성능 최적화 방안 제시해줘')">성능 최적화</button>
+                </div>
+
+                <div class="input-group">
+                    <label for="query">질문 입력:</label>
+                    <textarea id="query" rows="3" placeholder="자연어로 질문을 입력하세요... (예: 서버 상태 어때?)"></textarea>
+                </div>
+
+                <button class="test-btn" onclick="testAIEngine()" id="testBtn">
+                    🚀 AI 엔진 테스트 시작
+                </button>
+            </div>
+
+            <div id="results" class="results" style="display: none;">
+                <h3>📊 테스트 결과</h3>
+                <div id="thinking" class="thinking-steps"></div>
+                <div id="response" class="response-text"></div>
+                <div id="metadata" class="metadata"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedMode = 'auto';
+        let testStartTime = 0;
+
+        // 모드 선택
+        document.querySelectorAll('.mode-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                selectedMode = card.dataset.mode;
+            });
+        });
+
+        // 프리셋 질문 설정
+        function setQuery(question) {
+            document.getElementById('query').value = question;
+        }
+
+        // 생각하기 단계 시뮬레이션
+        function simulateThinking() {
+            const thinkingDiv = document.getElementById('thinking');
+            const steps = [
+                { title: '질의 분석 중...', duration: 500 },
+                { title: '데이터 수집 중...', duration: 1000 },
+                { title: 'AI 엔진 병렬 처리 중...', duration: 1500 },
+                { title: '응답 생성 중...', duration: 800 }
+            ];
+
+            thinkingDiv.innerHTML = '';
+
+            steps.forEach((step, index) => {
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'thinking-step';
+                stepDiv.innerHTML = `
+                    <div class="step-icon step-processing" id="step-${index}">⏳</div>
+                    <div>${step.title}</div>
+                `;
+                thinkingDiv.appendChild(stepDiv);
+
+                setTimeout(() => {
+                    const icon = document.getElementById(`step-${index}`);
+                    icon.className = 'step-icon step-completed';
+                    icon.textContent = '✓';
+                }, step.duration);
+            });
+        }
+
+        // AI 엔진 테스트
+        async function testAIEngine() {
+            const query = document.getElementById('query').value.trim();
+            if (!query) {
+                alert('질문을 입력해주세요!');
+                return;
+            }
+
+            const testBtn = document.getElementById('testBtn');
+            const resultsDiv = document.getElementById('results');
+            const responseDiv = document.getElementById('response');
+            const metadataDiv = document.getElementById('metadata');
+
+            // UI 상태 변경
+            testBtn.disabled = true;
+            testBtn.textContent = '🤖 AI 처리 중...';
+            resultsDiv.style.display = 'block';
+            testStartTime = Date.now();
+
+            // 생각하기 시뮬레이션 시작
+            simulateThinking();
+
+            try {
+                // API 호출
+                const response = await fetch('/api/ai/smart-fallback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        mode: selectedMode,
+                        fastMode: true,
+                        options: {
+                            enableAutoReport: true,
+                            enableThinking: true,
+                            timeout: 3000
+                        }
+                    })
+                });
+
+                const result = await response.json();
+                const totalTime = Date.now() - testStartTime;
+
+                if (result.success) {
+                    // 성공 응답 표시
+                    responseDiv.innerHTML = `
+                        <div class="success">✅ AI 엔진 응답 성공!</div>
+                        <div>${result.response}</div>
+                    `;
+
+                    // 메타데이터 표시
+                    metadataDiv.innerHTML = `
+                        <div class="metadata-item">
+                            <div class="metadata-value">${result.mode}</div>
+                            <div class="metadata-label">선택된 모드</div>
+                        </div>
+                        <div class="metadata-item">
+                            <div class="metadata-value">${result.engine}</div>
+                            <div class="metadata-label">사용된 엔진</div>
+                        </div>
+                        <div class="metadata-item">
+                            <div class="metadata-value">${result.responseTime}ms</div>
+                            <div class="metadata-label">AI 응답 시간</div>
+                        </div>
+                        <div class="metadata-item">
+                            <div class="metadata-value">${totalTime}ms</div>
+                            <div class="metadata-label">총 처리 시간</div>
+                        </div>
+                        <div class="metadata-item">
+                            <div class="metadata-value">${(result.confidence * 100).toFixed(1)}%</div>
+                            <div class="metadata-label">신뢰도</div>
+                        </div>
+                        <div class="metadata-item">
+                            <div class="metadata-value">${result.metadata?.autoReportTriggered ? '예' : '아니오'}</div>
+                            <div class="metadata-label">자동보고서 트리거</div>
+                        </div>
+                    `;
+
+                    // 성능 분석
+                    if (result.responseTime <= 3000) {
+                        responseDiv.innerHTML += `<div class="success">🚀 목표 성능 달성! (3초 이내 응답)</div>`;
+                    } else {
+                        responseDiv.innerHTML += `<div class="error">⚠️ 목표 성능 미달성 (3초 초과)</div>`;
+                    }
+
+                } else {
+                    // 실패 응답 표시
+                    responseDiv.innerHTML = `
+                        <div class="error">❌ AI 엔진 응답 실패</div>
+                        <div>오류: ${result.error || '알 수 없는 오류'}</div>
+                    `;
+                }
+
+            } catch (error) {
+                console.error('테스트 오류:', error);
+                responseDiv.innerHTML = `
+                    <div class="error">❌ 네트워크 오류</div>
+                    <div>서버 연결에 실패했습니다: ${error.message}</div>
+                    <div>개발 서버가 실행 중인지 확인해주세요 (npm run dev)</div>
+                `;
+            } finally {
+                // UI 상태 복원
+                testBtn.disabled = false;
+                testBtn.textContent = '🚀 AI 엔진 테스트 시작';
+            }
+        }
+
+        // 엔터키로 테스트 실행
+        document.getElementById('query').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                testAIEngine();
+            }
+        });
+
+        // 페이지 로드 시 기본 질문 설정
+        window.addEventListener('load', () => {
+            setQuery('서버 상태 어때?');
+        });
+    </script>
+</body>
+
+</html>

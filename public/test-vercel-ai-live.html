@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌐 Vercel AI 엔진 라이브 테스트</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .test-section {
+            margin-bottom: 40px;
+            padding: 30px;
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
+            background: #f9fafb;
+        }
+
+        .test-section h2 {
+            color: #1f2937;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            background: white;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .query-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            background: white;
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .query-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .result-container {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            background: white;
+            border: 2px solid #e5e7eb;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .result-container.success {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .result-container.error {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .result-container.loading {
+            border-color: #f59e0b;
+            background: #fffbeb;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f4f6;
+            border-radius: 50%;
+            border-top-color: #4f46e5;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+
+        .status-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-error {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .status-loading {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .json-viewer {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            padding: 8px 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .mode-btn.active {
+            border-color: #4f46e5;
+            background: #4f46e5;
+            color: white;
+        }
+
+        .mode-btn:hover {
+            border-color: #4f46e5;
+        }
+
+        .quick-queries {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .quick-query-btn {
+            padding: 10px 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            text-align: left;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .quick-query-btn:hover {
+            border-color: #4f46e5;
+            background: #f8fafc;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #4f46e5;
+        }
+
+        .metric-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌐 Vercel AI 엔진 라이브 테스트</h1>
+            <p>OpenManager Vibe v5 - SimplifiedNaturalLanguageEngine 실시간 테스트</p>
+        </div>
+
+        <div class="content">
+            <!-- URL 설정 섹션 -->
+            <div class="test-section">
+                <h2>🔗 Vercel 배포 URL 설정</h2>
+                <input type="text" id="vercelUrl" class="url-input" value="" placeholder="Vercel 배포 URL을 입력하세요">
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="detectCurrentUrl()">
+                        🔍 현재 URL 자동 감지
+                    </button>
+                    <button class="btn btn-secondary" onclick="testConnection()">
+                        🔍 연결 테스트
+                    </button>
+                    <button class="btn btn-success" onclick="testStatus()">
+                        📊 상태 확인
+                    </button>
+                </div>
+                <div id="connectionResult" class="result-container" style="display: none;"></div>
+            </div>
+
+            <!-- AI 질의 테스트 섹션 -->
+            <div class="test-section">
+                <h2>🧠 AI 엔진 질의 테스트</h2>
+
+                <!-- 스마트 모드 선택 -->
+                <div class="mode-selector">
+                    <div class="mode-btn active" data-mode="auto">🚀 Auto</div>
+                    <div class="mode-btn" data-mode="google-only">🔍 Google Only</div>
+                    <div class="mode-btn" data-mode="local">💻 Local</div>
+                    <div class="mode-btn" data-mode="offline">📱 Offline</div>
+                </div>
+
+                <!-- 빠른 질의 버튼들 -->
+                <div class="quick-queries">
+                    <button class="quick-query-btn" onclick="setQuery('서버 상태 어때?')">서버 상태 확인</button>
+                    <button class="quick-query-btn" onclick="setQuery('CPU 사용률이 높아서 문제야')">CPU 문제 보고</button>
+                    <button class="quick-query-btn" onclick="setQuery('메모리 부족 현상 발생')">메모리 문제</button>
+                    <button class="quick-query-btn" onclick="setQuery('네트워크 연결이 불안정해')">네트워크 문제</button>
+                    <button class="quick-query-btn" onclick="setQuery('시스템 최적화 방법 알려줘')">최적화 요청</button>
+                    <button class="quick-query-btn" onclick="setQuery('장애 보고서 생성해줘')">장애 보고서</button>
+                </div>
+
+                <textarea id="queryInput" class="query-input"
+                    placeholder="AI에게 질문하고 싶은 내용을 입력하세요...">서버 상태 어때?</textarea>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="testAI()" id="testAIBtn">
+                        🚀 AI 질의 실행
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearResults()">
+                        🗑️ 결과 지우기
+                    </button>
+                </div>
+
+                <div id="aiResult" class="result-container" style="display: none;"></div>
+
+                <!-- 성능 메트릭 -->
+                <div class="metrics" id="metrics" style="display: none;">
+                    <div class="metric-card">
+                        <div class="metric-value" id="responseTime">-</div>
+                        <div class="metric-label">응답 시간 (ms)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="confidence">-</div>
+                        <div class="metric-label">신뢰도 (%)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="engine">-</div>
+                        <div class="metric-label">사용 엔진</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="mode">-</div>
+                        <div class="metric-label">AI 모드</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'auto';
+
+        // 페이지 로드 시 현재 URL 자동 감지
+        window.addEventListener('load', function () {
+            detectCurrentUrl();
+        });
+
+        // 현재 URL 자동 감지
+        function detectCurrentUrl() {
+            const currentUrl = window.location.origin;
+            document.getElementById('vercelUrl').value = currentUrl;
+
+            // 결과 표시
+            const resultDiv = document.getElementById('connectionResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result-container success';
+            resultDiv.innerHTML = `
+                <div class="status-badge status-success">URL 감지됨</div>
+                <strong>✅ 현재 사이트 URL 자동 감지:</strong> ${currentUrl}
+            `;
+        }
+
+        // 모드 선택 이벤트
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentMode = this.dataset.mode;
+            });
+        });
+
+        // 빠른 질의 설정
+        function setQuery(query) {
+            document.getElementById('queryInput').value = query;
+        }
+
+        // 연결 테스트
+        async function testConnection() {
+            const url = document.getElementById('vercelUrl').value;
+            const resultDiv = document.getElementById('connectionResult');
+
+            if (!url) {
+                alert('URL을 입력해주세요!');
+                return;
+            }
+
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result-container loading';
+            resultDiv.innerHTML = `
+                <div class="status-badge status-loading">테스트 중</div>
+                <span class="loading-spinner"></span> 연결 테스트 중...
+            `;
+
+            try {
+                const response = await fetch(`${url}/api/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.className = 'result-container success';
+                    resultDiv.innerHTML = `
+                        <div class="status-badge status-success">연결 성공</div>
+                        <strong>✅ Vercel 사이트 연결 성공!</strong>
+                        <div class="json-viewer">${JSON.stringify(data, null, 2)}</div>
+                    `;
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                resultDiv.className = 'result-container error';
+                resultDiv.innerHTML = `
+                    <div class="status-badge status-error">연결 실패</div>
+                    <strong>❌ 연결 실패:</strong> ${error.message}
+                `;
+            }
+        }
+
+        // 상태 확인
+        async function testStatus() {
+            const url = document.getElementById('vercelUrl').value;
+            const resultDiv = document.getElementById('connectionResult');
+
+            if (!url) {
+                alert('URL을 입력해주세요!');
+                return;
+            }
+
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result-container loading';
+            resultDiv.innerHTML = `
+                <div class="status-badge status-loading">확인 중</div>
+                <span class="loading-spinner"></span> AI 엔진 상태 확인 중...
+            `;
+
+            try {
+                const response = await fetch(`${url}/api/ai/smart-fallback`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.className = 'result-container success';
+                    resultDiv.innerHTML = `
+                        <div class="status-badge status-success">상태 정상</div>
+                        <strong>✅ AI 엔진 상태 정상!</strong>
+                        <div class="json-viewer">${JSON.stringify(data, null, 2)}</div>
+                    `;
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                resultDiv.className = 'result-container error';
+                resultDiv.innerHTML = `
+                    <div class="status-badge status-error">상태 오류</div>
+                    <strong>❌ 상태 확인 실패:</strong> ${error.message}
+                `;
+            }
+        }
+
+        // AI 질의 테스트
+        async function testAI() {
+            const url = document.getElementById('vercelUrl').value;
+            const query = document.getElementById('queryInput').value.trim();
+            const resultDiv = document.getElementById('aiResult');
+            const testBtn = document.getElementById('testAIBtn');
+            const metricsDiv = document.getElementById('metrics');
+
+            if (!url) {
+                alert('URL을 입력해주세요!');
+                return;
+            }
+
+            if (!query) {
+                alert('질문을 입력해주세요!');
+                return;
+            }
+
+            // UI 상태 변경
+            testBtn.disabled = true;
+            testBtn.innerHTML = '<span class="loading-spinner"></span> AI 처리 중...';
+
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result-container loading';
+            resultDiv.innerHTML = `
+                <div class="status-badge status-loading">AI 처리 중</div>
+                <span class="loading-spinner"></span> "${query}" 처리 중... (최대 3초)
+            `;
+
+            const startTime = Date.now();
+
+            try {
+                const response = await fetch(`${url}/api/ai/smart-fallback`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        mode: currentMode,
+                        fastMode: true,
+                        options: {
+                            enableAutoReport: true,
+                            enableThinking: true,
+                            timeout: 3000,
+                            enableParallel: true,
+                            enableMCPWarmup: true
+                        }
+                    })
+                });
+
+                const responseTime = Date.now() - startTime;
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    resultDiv.className = 'result-container success';
+                    resultDiv.innerHTML = `
+                        <div class="status-badge status-success">응답 완료</div>
+                        <strong>🤖 AI 응답:</strong>
+                        <div style="margin: 15px 0; padding: 15px; background: white; border-radius: 8px; border-left: 4px solid #10b981;">
+                            ${data.response || '응답 없음'}
+                        </div>
+                        ${data.metadata?.failureReport ? `
+                            <div style="margin: 15px 0; padding: 15px; background: #fef2f2; border-radius: 8px; border-left: 4px solid #ef4444;">
+                                <strong>🚨 자동 장애 보고서 생성됨</strong>
+                            </div>
+                        ` : ''}
+                        <div class="json-viewer">${JSON.stringify(data, null, 2)}</div>
+                    `;
+
+                    // 메트릭 업데이트
+                    document.getElementById('responseTime').textContent = responseTime;
+                    document.getElementById('confidence').textContent = Math.round((data.confidence || 0) * 100);
+                    document.getElementById('engine').textContent = data.engine || 'Unknown';
+                    document.getElementById('mode').textContent = data.mode || currentMode;
+                    metricsDiv.style.display = 'grid';
+
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                const responseTime = Date.now() - startTime;
+
+                resultDiv.className = 'result-container error';
+                resultDiv.innerHTML = `
+                    <div class="status-badge status-error">오류 발생</div>
+                    <strong>❌ AI 처리 실패:</strong> ${error.message}
+                    <div style="margin-top: 10px; font-size: 0.875rem; color: #6b7280;">
+                        응답 시간: ${responseTime}ms
+                    </div>
+                `;
+            } finally {
+                // UI 상태 복원
+                testBtn.disabled = false;
+                testBtn.innerHTML = '🚀 AI 질의 실행';
+            }
+        }
+
+        // 결과 지우기
+        function clearResults() {
+            document.getElementById('connectionResult').style.display = 'none';
+            document.getElementById('aiResult').style.display = 'none';
+            document.getElementById('metrics').style.display = 'none';
+        }
+
+        // 엔터키로 질의 실행
+        document.getElementById('queryInput').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                testAI();
+            }
+        });
+    </script>
+</body>
+
+</html>

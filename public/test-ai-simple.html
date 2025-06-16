@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 AI 엔진 테스트</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #4f46e5;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .test-form {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        button {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        button:hover {
+            background: #4338ca;
+        }
+
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .result {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .success {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .error {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .metadata {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .metadata-item {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .preset-btn {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .preset-btn:hover {
+            background: #e5e7eb;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🤖 SimplifiedNaturalLanguageEngine 테스트</h1>
+
+        <div class="test-form">
+            <div class="preset-buttons">
+                <button class="preset-btn" onclick="setQuery('서버 상태 어때?')">서버 상태 어때?</button>
+                <button class="preset-btn" onclick="setQuery('CPU 사용률이 높은 서버는?')">CPU 높은 서버</button>
+                <button class="preset-btn" onclick="setQuery('메모리 부족한 서버 있어?')">메모리 부족 서버</button>
+                <button class="preset-btn" onclick="setQuery('최근 장애 발생한 서버 분석해줘')">장애 분석</button>
+            </div>
+
+            <label for="mode">AI 모드:</label>
+            <select id="mode">
+                <option value="auto">Auto (MCP + RAG + Google AI)</option>
+                <option value="google-only">Google-Only</option>
+                <option value="local">Local (MCP + RAG)</option>
+                <option value="offline">Offline (RAG만)</option>
+            </select>
+
+            <label for="query">질문:</label>
+            <textarea id="query" rows="3" placeholder="자연어로 질문을 입력하세요...">서버 상태 어때?</textarea>
+
+            <button onclick="testAI()" id="testBtn">🚀 AI 엔진 테스트</button>
+        </div>
+
+        <div id="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        function setQuery(question) {
+            document.getElementById('query').value = question;
+        }
+
+        async function testAI() {
+            const query = document.getElementById('query').value.trim();
+            const mode = document.getElementById('mode').value;
+            const testBtn = document.getElementById('testBtn');
+            const resultDiv = document.getElementById('result');
+
+            if (!query) {
+                alert('질문을 입력해주세요!');
+                return;
+            }
+
+            testBtn.disabled = true;
+            testBtn.textContent = '🤖 처리 중...';
+            resultDiv.style.display = 'block';
+
+            const startTime = Date.now();
+
+            try {
+                const response = await fetch('/api/ai/smart-fallback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        mode: mode,
+                        fastMode: true,
+                        options: {
+                            enableAutoReport: true,
+                            enableThinking: true,
+                            timeout: 3000
+                        }
+                    })
+                });
+
+                const result = await response.json();
+                const totalTime = Date.now() - startTime;
+
+                if (result.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h3>✅ 성공!</h3>
+                        <p><strong>응답:</strong> ${result.response}</p>
+                        <div class="metadata">
+                            <div class="metadata-item">
+                                <strong>${result.mode}</strong><br>
+                                <small>모드</small>
+                            </div>
+                            <div class="metadata-item">
+                                <strong>${result.engine}</strong><br>
+                                <small>엔진</small>
+                            </div>
+                            <div class="metadata-item">
+                                <strong>${result.responseTime}ms</strong><br>
+                                <small>AI 응답시간</small>
+                            </div>
+                            <div class="metadata-item">
+                                <strong>${totalTime}ms</strong><br>
+                                <small>총 시간</small>
+                            </div>
+                            <div class="metadata-item">
+                                <strong>${(result.confidence * 100).toFixed(1)}%</strong><br>
+                                <small>신뢰도</small>
+                            </div>
+                            <div class="metadata-item">
+                                <strong>${result.metadata?.autoReportTriggered ? '예' : '아니오'}</strong><br>
+                                <small>자동보고서</small>
+                            </div>
+                        </div>
+                        ${result.responseTime <= 3000 ?
+                            '<p style="color: green;">🚀 목표 성능 달성! (3초 이내)</p>' :
+                            '<p style="color: orange;">⚠️ 목표 성능 미달성 (3초 초과)</p>'
+                        }
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <h3>❌ 실패</h3>
+                        <p>오류: ${result.error || '알 수 없는 오류'}</p>
+                        <p>응답 시간: ${totalTime}ms</p>
+                    `;
+                }
+
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ 네트워크 오류</h3>
+                    <p>오류: ${error.message}</p>
+                    <p>서버가 실행 중인지 확인해주세요.</p>
+                `;
+            } finally {
+                testBtn.disabled = false;
+                testBtn.textContent = '🚀 AI 엔진 테스트';
+            }
+        }
+
+        // 엔터키로 테스트 실행
+        document.getElementById('query').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                testAI();
+            }
+        });
+    </script>
+</body>
+
+</html>

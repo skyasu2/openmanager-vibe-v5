@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🖥️ 서버 모니터링 AI 어시스턴트 테스트</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 5px solid #3498db;
+        }
+
+        .test-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .query-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .query-btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .query-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .query-btn.critical {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        .query-btn.warning {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+        }
+
+        .query-btn.info {
+            background: linear-gradient(45deg, #27ae60, #229954);
+        }
+
+        .custom-query {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .custom-query input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .custom-query button {
+            background: #8e44ad;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            background: #ecf0f1;
+            border: 2px solid #bdc3c7;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+
+        .response-area {
+            background: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 200px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #3498db;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .metric-label {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖥️ 서버 모니터링 AI 어시스턴트</h1>
+            <p>전문적인 서버 모니터링 AI의 응답 품질을 테스트해보세요</p>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 AI 모드 선택</h3>
+            <div class="mode-selector">
+                <button class="mode-btn active" data-mode="auto">🤖 Auto (3-엔진 병렬)</button>
+                <button class="mode-btn" data-mode="google-only">🌐 Google AI 전용</button>
+                <button class="mode-btn" data-mode="local">🏠 로컬 엔진 (MCP+RAG)</button>
+                <button class="mode-btn" data-mode="offline">📴 오프라인 모드</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🚨 긴급 상황 질의</h3>
+            <div class="query-buttons">
+                <button class="query-btn critical" data-query="서버가 다운되었어요! 긴급히 확인해주세요">🚨 서버 다운 긴급상황</button>
+                <button class="query-btn critical" data-query="CPU 사용률이 95%를 넘었습니다. 즉시 조치가 필요해요">⚡ CPU 과부하 위험</button>
+                <button class="query-btn critical" data-query="메모리 부족으로 서비스가 중단될 위험이 있습니다">💾 메모리 부족 경고</button>
+                <button class="query-btn critical" data-query="데이터베이스 연결이 끊어졌습니다. 장애 상황입니다">🗄️ DB 연결 장애</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>⚠️ 일반 모니터링 질의</h3>
+            <div class="query-buttons">
+                <button class="query-btn warning" data-query="현재 서버 상태가 어떤가요?">📊 서버 상태 확인</button>
+                <button class="query-btn warning" data-query="시스템 성능 지표를 분석해주세요">📈 성능 분석 요청</button>
+                <button class="query-btn warning" data-query="네트워크 트래픽이 평소보다 높은데 문제없나요?">🌐 네트워크 상태 점검</button>
+                <button class="query-btn warning" data-query="디스크 사용량이 80%인데 정리가 필요한가요?">💿 디스크 사용량 확인</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>ℹ️ 일반 정보 질의</h3>
+            <div class="query-buttons">
+                <button class="query-btn info" data-query="서버 모니터링 시스템에 대해 설명해주세요">📋 시스템 소개</button>
+                <button class="query-btn info" data-query="최적화 방안을 추천해주세요">🔧 최적화 추천</button>
+                <button class="query-btn info" data-query="로그 분석 결과가 궁금합니다">📝 로그 분석</button>
+                <button class="query-btn info" data-query="예측 분석 기능이 있나요?">🔮 예측 분석</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>✏️ 사용자 정의 질의</h3>
+            <div class="custom-query">
+                <input type="text" id="customQuery" placeholder="직접 질문을 입력해보세요..." />
+                <button onclick="sendCustomQuery()">전송</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📤 AI 응답</h3>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>AI가 분석 중입니다...</p>
+            </div>
+            <div class="response-area" id="response">
+                여기에 AI 응답이 표시됩니다.
+                서버 모니터링 전문 AI 어시스턴트가 질문에 답변해드립니다.
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 성능 메트릭</h3>
+            <div class="metrics">
+                <div class="metric-card">
+                    <div class="metric-value" id="responseTime">-</div>
+                    <div class="metric-label">응답 시간 (ms)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="confidence">-</div>
+                    <div class="metric-label">신뢰도 (%)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="engine">-</div>
+                    <div class="metric-label">사용된 엔진</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="mode">Auto</div>
+                    <div class="metric-label">AI 모드</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'auto';
+
+        // 모드 선택
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentMode = btn.dataset.mode;
+                document.getElementById('mode').textContent = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
+            });
+        });
+
+        // 질의 버튼 클릭
+        document.querySelectorAll('.query-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const query = btn.dataset.query;
+                sendQuery(query);
+            });
+        });
+
+        // 사용자 정의 질의
+        function sendCustomQuery() {
+            const query = document.getElementById('customQuery').value.trim();
+            if (query) {
+                sendQuery(query);
+                document.getElementById('customQuery').value = '';
+            }
+        }
+
+        // Enter 키로 전송
+        document.getElementById('customQuery').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendCustomQuery();
+            }
+        });
+
+        // 질의 전송
+        async function sendQuery(query) {
+            const loading = document.getElementById('loading');
+            const response = document.getElementById('response');
+
+            loading.classList.add('show');
+            response.textContent = '';
+
+            // 메트릭 초기화
+            document.getElementById('responseTime').textContent = '-';
+            document.getElementById('confidence').textContent = '-';
+            document.getElementById('engine').textContent = '-';
+
+            const startTime = Date.now();
+
+            try {
+                const result = await fetch('/api/ai/smart-fallback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        mode: currentMode,
+                        context: {
+                            source: 'server_monitoring_test',
+                            timestamp: new Date().toISOString()
+                        }
+                    })
+                });
+
+                const data = await result.json();
+                const endTime = Date.now();
+                const totalTime = endTime - startTime;
+
+                loading.classList.remove('show');
+
+                if (data.success) {
+                    // 응답 표시
+                    response.textContent = data.response || '응답을 받지 못했습니다.';
+
+                    // 메트릭 업데이트
+                    document.getElementById('responseTime').textContent = data.responseTime || totalTime;
+                    document.getElementById('confidence').textContent = Math.round((data.confidence || 0) * 100);
+                    document.getElementById('engine').textContent = data.engine || 'unknown';
+
+                    // 자동 장애 보고서 트리거 확인
+                    if (data.metadata?.autoReportTriggered) {
+                        response.textContent += '\n\n🚨 자동 장애 보고서가 트리거되었습니다!';
+                        response.textContent += `\n심각도: ${data.metadata.severity}`;
+                        response.textContent += `\n사유: ${data.metadata.autoReportReason}`;
+                    }
+
+                } else {
+                    response.textContent = `❌ 오류 발생: ${data.error || '알 수 없는 오류'}`;
+                    document.getElementById('responseTime').textContent = totalTime;
+                    document.getElementById('confidence').textContent = '0';
+                    document.getElementById('engine').textContent = 'error';
+                }
+
+            } catch (error) {
+                loading.classList.remove('show');
+                response.textContent = `❌ 네트워크 오류: ${error.message}`;
+                document.getElementById('responseTime').textContent = Date.now() - startTime;
+                document.getElementById('confidence').textContent = '0';
+                document.getElementById('engine').textContent = 'error';
+            }
+        }
+
+        // 페이지 로드 시 초기 상태 확인
+        window.addEventListener('load', async () => {
+            try {
+                const result = await fetch('/api/ai/smart-fallback', {
+                    method: 'GET'
+                });
+                const data = await result.json();
+
+                if (data.status) {
+                    console.log('🚀 서버 모니터링 AI 시스템 상태:', data.status);
+                }
+            } catch (error) {
+                console.warn('⚠️ 시스템 상태 확인 실패:', error);
+            }
+        });
+    </script>
+</body>
+
+</html>

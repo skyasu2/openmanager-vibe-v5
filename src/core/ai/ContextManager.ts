@@ -582,47 +582,74 @@ export class ContextManager {
     urgency: string;
     confidence: number;
   } {
-    const lowerIntent = intent.toLowerCase();
+    // intent가 문자열이 아닌 경우 처리
+    const intentStr = typeof intent === 'string' ? intent : String(intent);
+    const lowerIntent = intentStr.toLowerCase();
 
-    // 긴급도 키워드
+    // 긴급도 키워드 (한국어 + 영어)
     if (
       lowerIntent.includes('urgent') ||
       lowerIntent.includes('critical') ||
       lowerIntent.includes('error') ||
-      lowerIntent.includes('down')
+      lowerIntent.includes('down') ||
+      lowerIntent.includes('긴급') ||
+      lowerIntent.includes('심각') ||
+      lowerIntent.includes('오류') ||
+      lowerIntent.includes('장애') ||
+      lowerIntent.includes('문제') ||
+      lowerIntent.includes('다운') ||
+      lowerIntent.includes('중단') ||
+      lowerIntent.includes('실패')
     ) {
       return {
-        category: 'troubleshooting',
+        category: 'server_troubleshooting',
         urgency: 'critical',
-        confidence: 0.9,
+        confidence: 0.95,
       };
     }
 
-    // 모니터링 관련
+    // 서버 모니터링 관련 (한국어 + 영어)
     if (
       lowerIntent.includes('monitor') ||
       lowerIntent.includes('status') ||
       lowerIntent.includes('check') ||
-      lowerIntent.includes('health')
+      lowerIntent.includes('health') ||
+      lowerIntent.includes('상태') ||
+      lowerIntent.includes('모니터링') ||
+      lowerIntent.includes('확인') ||
+      lowerIntent.includes('점검') ||
+      lowerIntent.includes('서버') ||
+      lowerIntent.includes('시스템') ||
+      lowerIntent.includes('cpu') ||
+      lowerIntent.includes('메모리') ||
+      lowerIntent.includes('디스크') ||
+      lowerIntent.includes('네트워크') ||
+      lowerIntent.includes('성능')
     ) {
       return {
-        category: 'monitoring',
+        category: 'server_monitoring',
         urgency: 'medium',
-        confidence: 0.8,
+        confidence: 0.9,
       };
     }
 
-    // 예측 관련
+    // 예측 및 분석 관련 (한국어 + 영어)
     if (
       lowerIntent.includes('predict') ||
       lowerIntent.includes('forecast') ||
       lowerIntent.includes('trend') ||
-      lowerIntent.includes('analyze')
+      lowerIntent.includes('analyze') ||
+      lowerIntent.includes('예측') ||
+      lowerIntent.includes('분석') ||
+      lowerIntent.includes('트렌드') ||
+      lowerIntent.includes('패턴') ||
+      lowerIntent.includes('최적화') ||
+      lowerIntent.includes('개선')
     ) {
       return {
-        category: 'prediction',
+        category: 'server_analysis',
         urgency: 'low',
-        confidence: 0.7,
+        confidence: 0.8,
       };
     }
 
