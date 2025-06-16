@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Vercel 배포 AI 자연어 질의 기능 테스트</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+
+        .test-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status {
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin: 10px 0;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .success {
+            background: rgba(76, 175, 80, 0.3);
+            border: 2px solid #4CAF50;
+        }
+
+        .error {
+            background: rgba(244, 67, 54, 0.3);
+            border: 2px solid #f44336;
+        }
+
+        .warning {
+            background: rgba(255, 193, 7, 0.3);
+            border: 2px solid #FFC107;
+            color: #333;
+        }
+
+        .info {
+            background: rgba(33, 150, 243, 0.3);
+            border: 2px solid #2196F3;
+        }
+
+        button {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .result-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .url-display {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 10px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+
+        .env-check {
+            background: rgba(34, 197, 94, 0.2);
+            border: 2px solid #22c55e;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .query-input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        .query-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🚀 Vercel 배포 AI 자연어 질의 기능 테스트</h1>
+
+        <div class="info status">
+            <strong>현재 URL:</strong>
+            <div class="url-display" id="current-url"></div>
+        </div>
+
+        <div class="env-check">
+            <h3>🔧 환경변수 확인 상태</h3>
+            <div id="env-status">확인 중...</div>
+        </div>
+
+        <div class="test-section">
+            <h2>🧠 AI 자연어 질의 테스트</h2>
+            <input type="text" class="query-input" id="natural-query" placeholder="예: CPU 사용률이 높은 서버를 찾아줘"
+                value="CPU 사용률이 높은 서버를 찾아줘">
+            <br>
+            <button onclick="testNaturalQuery()">자연어 질의 실행</button>
+            <button onclick="testSmartFallback()">Smart Fallback 테스트</button>
+            <div id="query-results" class="result-box"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔍 API 엔드포인트 테스트</h2>
+            <button onclick="testHealthCheck()">헬스체크</button>
+            <button onclick="testLogsAPI()">로그 API</button>
+            <button onclick="testStreamAPI()">스트림 API</button>
+            <div id="api-results" class="result-box"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 종합 결과</h2>
+            <div id="summary-result" class="result-box">테스트를 실행하면 여기에 결과가 표시됩니다.</div>
+        </div>
+    </div>
+
+    <script>
+        // 현재 URL 표시
+        document.getElementById('current-url').textContent = window.location.origin;
+
+        const BASE_URL = window.location.origin;
+        let testResults = {
+            envCheck: null,
+            naturalQuery: null,
+            smartFallback: null,
+            healthCheck: null,
+            logsAPI: null,
+            streamAPI: null
+        };
+
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const typeIcon = {
+                'success': '✅',
+                'error': '❌',
+                'warning': '⚠️',
+                'info': 'ℹ️'
+            };
+            element.innerHTML += `[${timestamp}] ${typeIcon[type]} ${message}\n`;
+            element.scrollTop = element.scrollHeight;
+        }
+
+        function clearLog(elementId) {
+            document.getElementById(elementId).innerHTML = '';
+        }
+
+        // 환경변수 확인
+        async function checkEnvironmentVariables() {
+            try {
+                const response = await fetch(`${BASE_URL}/api/health`);
+                const data = await response.json();
+
+                const envStatus = document.getElementById('env-status');
+                if (data.status === 'healthy') {
+                    envStatus.innerHTML = `
+                        <div style="color: #4CAF50;">✅ 환경변수 정상</div>
+                        <div>• 환경: ${data.system?.environment || 'unknown'}</div>
+                        <div>• 버전: ${data.system?.version || 'unknown'}</div>
+                        <div>• 응답시간: ${data.performance?.responseTime || 'unknown'}ms</div>
+                    `;
+                    testResults.envCheck = true;
+                } else {
+                    envStatus.innerHTML = `<div style="color: #f44336;">❌ 환경변수 문제 감지</div>`;
+                    testResults.envCheck = false;
+                }
+            } catch (error) {
+                document.getElementById('env-status').innerHTML =
+                    `<div style="color: #f44336;">❌ 환경변수 확인 실패: ${error.message}</div>`;
+                testResults.envCheck = false;
+            }
+        }
+
+        // 자연어 질의 테스트
+        async function testNaturalQuery() {
+            clearLog('query-results');
+            log('query-results', '🧠 자연어 질의 테스트 시작...', 'info');
+
+            const query = document.getElementById('natural-query').value;
+            if (!query.trim()) {
+                log('query-results', '❌ 질의를 입력해주세요', 'error');
+                return;
+            }
+
+            try {
+                log('query-results', `질의: "${query}"`, 'info');
+
+                const response = await fetch(`${BASE_URL}/api/ai/smart-fallback`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'query',
+                        query: query,
+                        context: 'natural_language_test'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                log('query-results', `✅ 응답 성공 (${response.status})`, 'success');
+                log('query-results', `엔진: ${data.engine || 'unknown'}`, 'info');
+                log('query-results', `응답: ${JSON.stringify(data, null, 2)}`, 'info');
+
+                testResults.naturalQuery = true;
+            } catch (error) {
+                log('query-results', `❌ 자연어 질의 실패: ${error.message}`, 'error');
+                testResults.naturalQuery = false;
+            }
+        }
+
+        // Smart Fallback 테스트
+        async function testSmartFallback() {
+            clearLog('query-results');
+            log('query-results', '🔧 Smart Fallback API 테스트...', 'info');
+
+            try {
+                // GET 요청 테스트
+                log('query-results', '  - GET 요청 테스트', 'info');
+                const getResponse = await fetch(`${BASE_URL}/api/ai/smart-fallback`);
+                log('query-results', `  GET 응답: ${getResponse.status} ${getResponse.statusText}`,
+                    getResponse.ok ? 'success' : 'warning');
+
+                // POST 요청 테스트
+                log('query-results', '  - POST 요청 테스트', 'info');
+                const postResponse = await fetch(`${BASE_URL}/api/ai/smart-fallback`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'test',
+                        query: 'Vercel 배포 테스트'
+                    })
+                });
+
+                if (postResponse.ok) {
+                    const data = await postResponse.json();
+                    log('query-results', `✅ POST 성공: ${postResponse.status}`, 'success');
+                    log('query-results', `  응답 요약: ${data.status || 'unknown'}, 엔진: ${data.engine || 'unknown'}`, 'success');
+                    testResults.smartFallback = true;
+                } else {
+                    log('query-results', `❌ POST 실패: ${postResponse.status} ${postResponse.statusText}`, 'error');
+                    testResults.smartFallback = false;
+                }
+            } catch (error) {
+                log('query-results', `❌ Smart Fallback 테스트 실패: ${error.message}`, 'error');
+                testResults.smartFallback = false;
+            }
+        }
+
+        // 헬스체크 테스트
+        async function testHealthCheck() {
+            clearLog('api-results');
+            log('api-results', '📡 헬스체크 테스트...', 'info');
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/health`);
+                const data = await response.json();
+
+                if (response.ok && data.status === 'healthy') {
+                    log('api-results', `✅ 헬스체크 성공: ${JSON.stringify(data, null, 2)}`, 'success');
+                    testResults.healthCheck = true;
+                } else {
+                    log('api-results', `⚠️ 헬스체크 경고: ${JSON.stringify(data, null, 2)}`, 'warning');
+                    testResults.healthCheck = false;
+                }
+            } catch (error) {
+                log('api-results', `❌ 헬스체크 실패: ${error.message}`, 'error');
+                testResults.healthCheck = false;
+            }
+        }
+
+        // 로그 API 테스트
+        async function testLogsAPI() {
+            log('api-results', '📋 로그 API 테스트...', 'info');
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/logs/recent?limit=5`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    log('api-results', `✅ 로그 API 성공: ${data.length || 0}개 로그`, 'success');
+                    testResults.logsAPI = true;
+                } else {
+                    log('api-results', `❌ 로그 API 실패: ${response.status}`, 'error');
+                    testResults.logsAPI = false;
+                }
+            } catch (error) {
+                log('api-results', `❌ 로그 API 오류: ${error.message}`, 'error');
+                testResults.logsAPI = false;
+            }
+        }
+
+        // 스트림 API 테스트
+        async function testStreamAPI() {
+            log('api-results', '🌊 스트림 API 연결 테스트...', 'info');
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/ai/logging/stream`, {
+                    method: 'GET'
+                });
+
+                if (response.ok) {
+                    log('api-results', `✅ 스트림 API 연결 성공: ${response.status}`, 'success');
+                    testResults.streamAPI = true;
+                } else {
+                    log('api-results', `❌ 스트림 API 실패: ${response.status}`, 'error');
+                    testResults.streamAPI = false;
+                }
+            } catch (error) {
+                log('api-results', `❌ 스트림 API 오류: ${error.message}`, 'error');
+                testResults.streamAPI = false;
+            }
+        }
+
+        // 종합 결과 업데이트
+        function updateSummary() {
+            const summary = document.getElementById('summary-result');
+            const successCount = Object.values(testResults).filter(result => result === true).length;
+            const totalTests = Object.keys(testResults).length;
+
+            let summaryText = `📊 Vercel 배포 AI 자연어 질의 테스트 결과\n\n`;
+            summaryText += `🔗 환경변수 확인: ${testResults.envCheck ? '✅ 성공' : '❌ 실패'}\n`;
+            summaryText += `🧠 자연어 질의: ${testResults.naturalQuery ? '✅ 성공' : '❌ 실패'}\n`;
+            summaryText += `🔧 Smart Fallback: ${testResults.smartFallback ? '✅ 성공' : '❌ 실패'}\n`;
+            summaryText += `📡 헬스체크: ${testResults.healthCheck ? '✅ 성공' : '❌ 실패'}\n`;
+            summaryText += `📋 로그 API: ${testResults.logsAPI ? '✅ 성공' : '❌ 실패'}\n`;
+            summaryText += `🌊 스트림 API: ${testResults.streamAPI ? '✅ 성공' : '❌ 실패'}\n\n`;
+            summaryText += `🎯 전체 테스트 완료: ${successCount}/${totalTests} 성공\n\n`;
+
+            if (successCount === totalTests) {
+                summaryText += `🎉 모든 테스트 통과! Vercel 배포에서 AI 자연어 질의 기능이 정상 동작합니다.`;
+            } else {
+                summaryText += `⚠️ 일부 테스트 실패. 환경변수 설정을 확인하세요.`;
+            }
+
+            summary.textContent = summaryText;
+        }
+
+        // 페이지 로드 시 환경변수 확인
+        window.addEventListener('load', () => {
+            checkEnvironmentVariables();
+
+            // 5초 후 종합 결과 업데이트
+            setTimeout(updateSummary, 5000);
+        });
+
+        // 테스트 실행 후 종합 결과 업데이트
+        setInterval(updateSummary, 2000);
+    </script>
+</body>
+
+</html>

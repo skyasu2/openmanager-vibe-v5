@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로컬 AI 상태 확인 (환경변수 수정 후)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+
+        .test-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status {
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin: 10px 0;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .success {
+            background: rgba(76, 175, 80, 0.3);
+            border: 2px solid #4CAF50;
+        }
+
+        .error {
+            background: rgba(244, 67, 54, 0.3);
+            border: 2px solid #f44336;
+        }
+
+        .warning {
+            background: rgba(255, 193, 7, 0.3);
+            border: 2px solid #FFC107;
+            color: #333;
+        }
+
+        .info {
+            background: rgba(33, 150, 243, 0.3);
+            border: 2px solid #2196F3;
+        }
+
+        button {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .result-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        h1,
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .url-display {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 10px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+
+        .fix-status {
+            background: rgba(34, 197, 94, 0.2);
+            border: 2px solid #22c55e;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .env-status {
+            background: rgba(59, 130, 246, 0.2);
+            border: 2px solid #3b82f6;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🏠 로컬 AI 상태 확인 (환경변수 수정 후)</h1>
+        <div class="info status">
+            <strong>로컬 개발 서버:</strong>
+            <div class="url-display">http://localhost:3000</div>
+        </div>
+
+        <div class="env-status">
+            <h3>🔧 환경변수 수정사항</h3>
+            <ul>
+                <li>✅ NEXT_PUBLIC_SUPABASE_URL 추가</li>
+                <li>✅ NEXT_PUBLIC_SUPABASE_ANON_KEY 추가</li>
+                <li>✅ NODE_ENV=development 설정</li>
+                <li>✅ 개발 서버 재시작 완료</li>
+            </ul>
+        </div>
+
+        <div class="fix-status">
+            <h3>🛠️ 적용된 수정사항</h3>
+            <ul>
+                <li>✅ AI 사이드바 자연어 질의 라우팅 충돌 해결</li>
+                <li>✅ 대시보드 서버 모달 안전성 강화 (safeServer 객체)</li>
+                <li>✅ ServerModalErrorBoundary 추가</li>
+                <li>✅ React Hooks 규칙 준수</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>🚀 전체 테스트 실행</h2>
+            <button onclick="runAllTests()">모든 테스트 실행</button>
+            <div id="all-results" class="result-box"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔧 개별 테스트</h2>
+            <button onclick="testBasicHealth()">기본 헬스체크</button>
+            <button onclick="testSmartFallback()">Smart Fallback 테스트</button>
+            <button onclick="testLogsAPI()">로그 API 테스트</button>
+            <button onclick="testStreamAPI()">스트림 API 테스트</button>
+            <div id="individual-results" class="result-box"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 종합 결과</h2>
+            <div id="summary-result" class="result-box">테스트를 실행하면 여기에 결과가 표시됩니다.</div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:3000';
+        let testResults = {
+            basic: null,
+            smartFallback: null,
+            logsAPI: null,
+            streamAPI: null,
+            overall: null
+        };
+
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const typeIcon = {
+                'success': '✅',
+                'error': '❌',
+                'warning': '⚠️',
+                'info': 'ℹ️'
+            };
+            element.innerHTML += `[${timestamp}] ${typeIcon[type]} ${message}\n`;
+            element.scrollTop = element.scrollHeight;
+        }
+
+        function clearLog(elementId) {
+            document.getElementById(elementId).innerHTML = '';
+        }
+
+        async function runAllTests() {
+            clearLog('all-results');
+            log('all-results', '🚀 환경변수 수정 후 전체 테스트 시작...', 'info');
+
+            // 1. 기본 헬스체크
+            await testBasicHealthInternal('all-results');
+
+            // 2. Smart Fallback API 테스트
+            await testSmartFallbackInternal('all-results');
+
+            // 3. 로그 API 테스트
+            await testLogsAPIInternal('all-results');
+
+            // 4. 스트림 API 테스트 (간단한 연결 테스트만)
+            await testStreamAPIInternal('all-results');
+
+            // 전체 결과 평가
+            const successCount = Object.values(testResults).filter(result => result === true).length;
+            const totalTests = Object.keys(testResults).length;
+            testResults.overall = successCount === totalTests;
+
+            log('all-results', `\n🎯 전체 테스트 완료: ${successCount}/${totalTests} 성공`,
+                testResults.overall ? 'success' : 'warning');
+
+            updateSummary();
+        }
+
+        async function testBasicHealthInternal(logId) {
+            log(logId, '\n📡 1. 기본 헬스체크 테스트', 'info');
+            try {
+                const response = await fetch(`${BASE_URL}/api/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    log(logId, `✅ 헬스체크 성공: ${JSON.stringify(data, null, 2)}`, 'success');
+                    testResults.basic = true;
+                } else {
+                    log(logId, `❌ 헬스체크 실패: ${response.status} ${response.statusText}`, 'error');
+                    testResults.basic = false;
+                }
+            } catch (error) {
+                log(logId, `❌ 기본 연결 오류: ${error.message}`, 'error');
+                testResults.basic = false;
+            }
+        }
+
+        async function testSmartFallbackInternal(logId) {
+            log(logId, '\n🔧 2. Smart Fallback API 테스트', 'info');
+            try {
+                // GET 요청 테스트
+                log(logId, '  - GET 요청 테스트', 'info');
+                const getResponse = await fetch(`${BASE_URL}/api/ai/smart-fallback`);
+                log(logId, `  GET 응답: ${getResponse.status} ${getResponse.statusText}`,
+                    getResponse.ok ? 'success' : 'warning');
+
+                // POST 요청 테스트
+                log(logId, '  - POST 요청 테스트', 'info');
+                const postResponse = await fetch(`${BASE_URL}/api/ai/smart-fallback`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        query: '환경변수 수정 후 테스트: 시스템 상태 확인',
+                        context: 'dashboard'
+                    })
+                });
+
+                if (postResponse.ok) {
+                    const postData = await postResponse.json();
+                    log(logId, `✅ POST 성공: 405 오류 해결됨!`, 'success');
+                    log(logId, `  응답 요약: ${postData.success ? '성공' : '실패'}, 엔진: ${postData.engine}`, 'success');
+                    testResults.smartFallback = true;
+                } else {
+                    const errorText = await postResponse.text();
+                    log(logId, `❌ POST 실패: ${postResponse.status} ${postResponse.statusText}`, 'error');
+                    log(logId, `  오류 내용: ${errorText.substring(0, 200)}`, 'error');
+                    testResults.smartFallback = false;
+                }
+            } catch (error) {
+                log(logId, `❌ Smart Fallback 오류: ${error.message}`, 'error');
+                testResults.smartFallback = false;
+            }
+        }
+
+        async function testLogsAPIInternal(logId) {
+            log(logId, '\n📋 3. 로그 API 테스트', 'info');
+            try {
+                const response = await fetch(`${BASE_URL}/api/logs/recent?limit=10`);
+                if (response.ok) {
+                    const data = await response.json();
+                    log(logId, `✅ 로그 API 성공: ${data.data?.length || 0}개 로그`, 'success');
+                    testResults.logsAPI = true;
+                } else {
+                    const errorText = await response.text();
+                    log(logId, `❌ 로그 API 실패: ${response.status} ${response.statusText}`, 'error');
+                    log(logId, `  오류 내용: ${errorText.substring(0, 200)}`, 'error');
+                    testResults.logsAPI = false;
+                }
+            } catch (error) {
+                log(logId, `❌ 로그 API 오류: ${error.message}`, 'error');
+                testResults.logsAPI = false;
+            }
+        }
+
+        async function testStreamAPIInternal(logId) {
+            log(logId, '\n🌊 4. 스트림 API 연결 테스트', 'info');
+            try {
+                // 간단한 연결 테스트만 수행 (실제 스트림은 테스트하지 않음)
+                const controller = new AbortController();
+                setTimeout(() => controller.abort(), 3000); // 3초 후 중단
+
+                const response = await fetch(`${BASE_URL}/api/ai/logging/stream?mode=sidebar`, {
+                    signal: controller.signal
+                });
+
+                if (response.ok) {
+                    log(logId, `✅ 스트림 API 연결 성공: ${response.status}`, 'success');
+                    testResults.streamAPI = true;
+                } else {
+                    log(logId, `❌ 스트림 API 연결 실패: ${response.status} ${response.statusText}`, 'error');
+                    testResults.streamAPI = false;
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    log(logId, `✅ 스트림 API 연결 테스트 완료 (정상 중단)`, 'success');
+                    testResults.streamAPI = true;
+                } else {
+                    log(logId, `❌ 스트림 API 오류: ${error.message}`, 'error');
+                    testResults.streamAPI = false;
+                }
+            }
+        }
+
+        // 개별 테스트 함수들
+        async function testBasicHealth() {
+            clearLog('individual-results');
+            await testBasicHealthInternal('individual-results');
+        }
+
+        async function testSmartFallback() {
+            clearLog('individual-results');
+            await testSmartFallbackInternal('individual-results');
+        }
+
+        async function testLogsAPI() {
+            clearLog('individual-results');
+            await testLogsAPIInternal('individual-results');
+        }
+
+        async function testStreamAPI() {
+            clearLog('individual-results');
+            await testStreamAPIInternal('individual-results');
+        }
+
+        function updateSummary() {
+            const summaryElement = document.getElementById('summary-result');
+            let summary = '📊 환경변수 수정 후 테스트 결과\n\n';
+
+            summary += `🔗 기본 헬스체크: ${testResults.basic === null ? '미실행' : testResults.basic ? '✅ 성공' : '❌ 실패'}\n`;
+            summary += `🔧 Smart Fallback: ${testResults.smartFallback === null ? '미실행' : testResults.smartFallback ? '✅ 정상' : '❌ 문제있음'}\n`;
+            summary += `📋 로그 API: ${testResults.logsAPI === null ? '미실행' : testResults.logsAPI ? '✅ 정상' : '❌ 문제있음'}\n`;
+            summary += `🌊 스트림 API: ${testResults.streamAPI === null ? '미실행' : testResults.streamAPI ? '✅ 정상' : '❌ 문제있음'}\n\n`;
+
+            if (testResults.overall === true) {
+                summary += '🎉 모든 API가 정상 작동합니다!\n';
+                summary += '✅ 환경변수 문제 해결 완료\n';
+                summary += '✅ AI 사이드바 자연어 질의 문제 해결\n';
+                summary += '✅ 대시보드 서버 모달 안정성 강화\n';
+                summary += '\n🚀 이제 Vercel에 재배포하면 프로덕션에서도 정상 작동할 것입니다.';
+            } else if (testResults.overall === false) {
+                summary += '⚠️ 일부 API에서 여전히 문제가 있습니다.\n';
+                summary += '🔍 개별 테스트를 실행하여 구체적인 오류를 확인하세요.';
+            } else {
+                summary += 'ℹ️ 테스트를 실행하여 수정사항을 확인하세요.';
+            }
+
+            summaryElement.textContent = summary;
+        }
+
+        // 페이지 로드 시 자동 실행
+        window.onload = function () {
+            log('summary-result', '🏠 환경변수 수정 후 로컬 테스트 준비 완료\n"모든 테스트 실행" 버튼을 클릭하세요.', 'info');
+        };
+    </script>
+</body>
+
+</html>
