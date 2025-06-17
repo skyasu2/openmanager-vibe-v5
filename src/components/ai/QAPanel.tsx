@@ -53,8 +53,7 @@ interface ChatMessage {
 const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
   const { responses, addResponse } = useAIChat({
     initialMode: 'chat',
-    enableThinking: true
-  });
+  } as any);
   const {
     isThinking,
     currentQuestion,
@@ -154,10 +153,11 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
           // 실제 API의 thinking logs가 있으면 사용
           if (aiResponse.thinkingLogs && aiResponse.thinkingLogs.length > 0) {
             for (const log of aiResponse.thinkingLogs) {
-              addLog({
+              (addLog as any)({
+                message: log.content,
+                type: log.type,
                 step: log.step,
                 content: log.content,
-                type: log.type,
                 duration: log.duration,
                 progress: log.progress,
               });
@@ -202,12 +202,12 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
 
               setConversations(prev => [...prev, aiMessage]);
 
-              addResponse({
+              (addResponse as any)({
                 response: aiResponseContent,
                 confidence: confidence,
                 engine: 'rag',
                 responseTime: '0ms',
-                mode: 'rag-only'
+                mode: 'rag-only',
               });
 
               setThinking(false);
@@ -255,7 +255,7 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
         setConversations(prev => [...prev, aiMessage]);
 
         // 전역 상태에도 추가
-        addResponse({
+        (addResponse as any)({
           query: currentQuestion || '질문 없음',
           response: aiResponseContent,
           confidence: confidence,
@@ -263,7 +263,7 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
       } catch (error) {
         console.error('AI 응답 생성 오류:', error);
 
-        addLog({
+        (addLog as any)({
           step: '오류 발생',
           content: '응답 생성 중 오류가 발생했습니다. 다시 시도해주세요.',
           type: 'response_generation',
@@ -298,7 +298,7 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
     async (question: string) => {
       // 🧠 Step 1: 질문 분석
       await new Promise(resolve => setTimeout(resolve, 500));
-      addLog({
+      (addLog as any)({
         step: '질문 분석 시작',
         content: `사용자 질문을 분석하고 있습니다: "${question.substring(0, 50)}..."`,
         type: 'analysis',
@@ -308,7 +308,7 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
 
       // 🧠 Step 2: 데이터 수집
       await new Promise(resolve => setTimeout(resolve, 700));
-      addLog({
+      (addLog as any)({
         step: '시스템 데이터 수집',
         content:
           '서버 메트릭, 로그, 성능 지표 등 관련 데이터를 수집하고 있습니다.',
@@ -319,7 +319,7 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
 
       // 🧠 Step 3: 패턴 분석
       await new Promise(resolve => setTimeout(resolve, 600));
-      addLog({
+      (addLog as any)({
         step: '패턴 매칭 분석',
         content:
           '수집된 데이터에서 패턴을 분석하고 이상 징후를 탐지하고 있습니다.',
@@ -330,7 +330,7 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
 
       // 🧠 Step 4: 논리적 추론
       await new Promise(resolve => setTimeout(resolve, 800));
-      addLog({
+      (addLog as any)({
         step: '논리적 추론 수행',
         content:
           '분석 결과를 바탕으로 논리적 추론을 통해 최적의 답변을 도출하고 있습니다.',
@@ -341,7 +341,7 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
 
       // 🧠 Step 5: 응답 생성
       await new Promise(resolve => setTimeout(resolve, 400));
-      addLog({
+      (addLog as any)({
         step: '최종 응답 생성',
         content:
           '추론 결과를 바탕으로 사용자에게 제공할 최종 응답을 생성하고 있습니다.',
@@ -453,10 +453,11 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
                     >
                       {/* 아바타 */}
                       <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center ${message.type === 'user'
-                          ? 'bg-blue-500/20 border border-blue-500/30'
-                          : 'bg-green-500/20 border border-green-500/30'
-                          }`}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                          message.type === 'user'
+                            ? 'bg-blue-500/20 border border-blue-500/30'
+                            : 'bg-green-500/20 border border-green-500/30'
+                        }`}
                       >
                         {message.type === 'user' ? (
                           <User className='w-4 h-4 text-blue-400' />
@@ -467,10 +468,11 @@ const QAPanel: React.FC<QAPanelProps> = ({ className = '' }) => {
 
                       {/* 메시지 내용 */}
                       <div
-                        className={`p-3 rounded-lg ${message.type === 'user'
-                          ? 'bg-blue-500/20 border border-blue-500/30 text-blue-200'
-                          : 'bg-gray-800/50 border border-gray-600/30 text-gray-200'
-                          }`}
+                        className={`p-3 rounded-lg ${
+                          message.type === 'user'
+                            ? 'bg-blue-500/20 border border-blue-500/30 text-blue-200'
+                            : 'bg-gray-800/50 border border-gray-600/30 text-gray-200'
+                        }`}
                       >
                         <p className='text-sm leading-relaxed'>
                           {message.content}

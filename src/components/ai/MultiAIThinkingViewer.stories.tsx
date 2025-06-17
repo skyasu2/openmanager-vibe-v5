@@ -15,21 +15,22 @@ const meta: Meta<typeof MultiAIThinkingViewer> = {
   },
   tags: ['autodocs'],
   argTypes: {
-    sessionId: {
+    mode: {
+      control: 'select',
+      options: ['AUTO', 'LOCAL', 'GOOGLE_ONLY'],
+      description: 'AI 모드 선택',
+    },
+    isThinking: {
+      control: 'boolean',
+      description: '사고 중 상태',
+    },
+    currentQuery: {
       control: 'text',
-      description: '세션 식별자',
+      description: '현재 질문',
     },
-    showMetrics: {
-      control: 'boolean',
-      description: '메트릭 표시 여부',
-    },
-    compact: {
-      control: 'boolean',
-      description: '컴팩트 모드',
-    },
-    onFeedback: {
-      action: 'feedback-submitted',
-      description: '피드백 제출 콜백',
+    className: {
+      control: 'text',
+      description: 'CSS 클래스',
     },
   },
 };
@@ -38,132 +39,81 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 // 모킹 데이터
-const mockThinkingProcess = {
-  sessionId: 'session_123',
-  timestamp: new Date().toISOString(),
-  overallProgress: 75,
-  aiEngines: {
-    'gpt-4': {
-      status: 'completed' as const,
-      currentStep: '답변 생성 완료',
-      progress: 100,
-      thinking:
-        'OpenAI GPT-4로 답변을 생성했습니다. 높은 정확도로 질문을 분석하고 체계적인 답변을 제공했습니다.',
-      confidence: 0.92,
-      contribution: '주요 답변 내용 생성',
-      thoughts: [
-        {
-          engineId: 'gpt-4',
-          engineName: 'GPT-4',
-          step: '질문 분석',
-          progress: 100,
-          thinking: '사용자의 질문을 분석하여 핵심 요구사항을 파악했습니다.',
-          confidence: 0.95,
-          timestamp: new Date(Date.now() - 30000).toISOString(),
-          status: 'completed' as const,
-        },
-      ],
-    },
-    'claude-3': {
-      status: 'processing' as const,
-      currentStep: '답변 검증 중',
-      progress: 80,
-      thinking:
-        'Anthropic Claude-3로 답변을 검증하고 있습니다. GPT-4의 답변을 다각도로 분석하여 정확성을 확인합니다.',
-      confidence: 0.88,
-      contribution: '답변 검증 및 보완',
-      thoughts: [],
-    },
-    'gemini-pro': {
-      status: 'thinking' as const,
-      currentStep: '추가 정보 검색',
-      progress: 45,
-      thinking:
-        'Google Gemini Pro로 관련 정보를 추가 검색하고 있습니다. 최신 정보와 다양한 관점을 제공할 예정입니다.',
-      confidence: 0.75,
-      contribution: '추가 정보 및 다양한 관점',
-      thoughts: [],
-    },
+const mockSteps = [
+  {
+    id: 'step-1',
+    engine: 'mcp' as const,
+    type: 'processing' as const,
+    title: 'MCP 엔진으로 서버 상태 확인 중',
+    content: '현재 서버 메트릭을 수집하고 분석하고 있습니다.',
+    confidence: 0.85,
+    responseTime: 120,
+    timestamp: new Date(),
+    details: ['CPU 사용률 확인', '메모리 상태 점검', '네트워크 연결 상태 확인'],
   },
-  fusionStatus: {
-    stage: 'analyzing' as const,
-    progress: 60,
-    description: 'AI 엔진들의 결과를 분석하고 최적의 답변을 융합하고 있습니다.',
-    consensusScore: 0.85,
+  {
+    id: 'step-2',
+    engine: 'rag' as const,
+    type: 'searching' as const,
+    title: 'RAG 엔진으로 관련 정보 검색 중',
+    content: '과거 서버 이슈 패턴과 해결 방법을 검색하고 있습니다.',
+    confidence: 0.78,
+    responseTime: 95,
+    timestamp: new Date(),
   },
-};
-
-const mockCompletedProcess = {
-  ...mockThinkingProcess,
-  overallProgress: 100,
-  aiEngines: {
-    ...mockThinkingProcess.aiEngines,
-    'claude-3': {
-      ...mockThinkingProcess.aiEngines['claude-3'],
-      status: 'completed' as const,
-      progress: 100,
-      thinking:
-        'Claude-3로 답변 검증을 완료했습니다. GPT-4의 답변이 정확하며 추가 개선사항을 제안했습니다.',
-      confidence: 0.91,
-    },
-    'gemini-pro': {
-      ...mockThinkingProcess.aiEngines['gemini-pro'],
-      status: 'completed' as const,
-      progress: 100,
-      thinking:
-        'Gemini Pro로 추가 정보 검색을 완료했습니다. 최신 동향과 실용적인 팁을 추가로 제공합니다.',
-      confidence: 0.87,
-    },
+  {
+    id: 'step-3',
+    engine: 'google-ai' as const,
+    type: 'analyzing' as const,
+    title: 'Google AI로 종합 분석 중',
+    content: '수집된 정보를 바탕으로 최적의 답변을 생성하고 있습니다.',
+    confidence: 0.92,
+    responseTime: 200,
+    timestamp: new Date(),
   },
-  fusionStatus: {
-    stage: 'finalizing' as const,
-    progress: 100,
-    description:
-      '모든 AI 엔진의 결과를 성공적으로 융합하여 최종 답변을 생성했습니다.',
-    consensusScore: 0.89,
-  },
-};
+];
 
 export const Default: Story = {
   args: {
-    sessionId: 'demo-session-1',
-    thinkingProcess: mockThinkingProcess,
-    showMetrics: true,
-    compact: false,
+    mode: 'AUTO',
+    isThinking: true,
+    steps: mockSteps,
+    currentQuery: '현재 서버 상태가 어떤가요?',
+  },
+};
+
+export const LocalMode: Story = {
+  args: {
+    mode: 'LOCAL',
+    isThinking: false,
+    steps: mockSteps.slice(0, 2), // MCP, RAG만
+    currentQuery: '로컬 모드에서 서버 확인',
+  },
+};
+
+export const GoogleOnlyMode: Story = {
+  args: {
+    mode: 'GOOGLE_ONLY',
+    isThinking: false,
+    steps: [mockSteps[2]], // Google AI만
+    currentQuery: 'Google AI 전용 질문',
   },
 };
 
 export const CompletedProcess: Story = {
   args: {
-    sessionId: 'demo-session-2',
-    thinkingProcess: mockCompletedProcess,
-    showMetrics: true,
-    compact: false,
-  },
-};
-
-export const CompactMode: Story = {
-  args: {
-    sessionId: 'demo-session-3',
-    thinkingProcess: mockThinkingProcess,
-    showMetrics: false,
-    compact: true,
-  },
-};
-
-export const WithoutMetrics: Story = {
-  args: {
-    sessionId: 'demo-session-4',
-    thinkingProcess: mockThinkingProcess,
-    showMetrics: false,
-    compact: false,
+    mode: 'AUTO',
+    isThinking: false,
+    steps: mockSteps.map(step => ({ ...step, type: 'completed' as const })),
+    currentQuery: '완료된 처리 과정',
   },
 };
 
 export const InitialState: Story = {
   args: {
-    sessionId: 'demo-session-5',
-    showMetrics: true,
-    compact: false,
+    mode: 'AUTO',
+    isThinking: false,
+    steps: [],
+    currentQuery: '',
   },
 };

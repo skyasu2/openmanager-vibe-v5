@@ -16,10 +16,23 @@ export interface AIThinkingStep {
 
 export interface AgentLog {
   id: string;
-  type: 'info' | 'warning' | 'error' | 'success';
+  type:
+    | 'info'
+    | 'warning'
+    | 'error'
+    | 'success'
+    | 'analysis'
+    | 'reasoning'
+    | 'data_processing'
+    | 'pattern_matching'
+    | 'response_generation';
   message: string;
   timestamp: Date;
   metadata?: any;
+  step?: number;
+  progress?: number;
+  content?: string;
+  duration?: number;
 }
 
 export const useAIThinking = () => {

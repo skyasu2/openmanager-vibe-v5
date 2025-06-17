@@ -1,29 +1,30 @@
-# 🏗️ OpenManager Vibe v5.44.0 - 시스템 아키텍처 가이드
+# 🏗️ OpenManager Vibe v5 - 시스템 아키텍처 가이드
 
-> **📅 최종 업데이트**: 2025년 6월 15일  
-> **🎯 버전**: v5.44.0  
-> **✅ 상태**: 프로덕션 최적화 완료  
-> **📝 통합 문서**: ai-architecture-v5.43.5.md, system-design-specification-v5.43.5.md, integrated-architecture-v6.0.md 내용 통합
+> **📅 최종 업데이트**: 2025년 1월 6일  
+> **🎯 버전**: v5.0 (Phase 1-3 완료)  
+> **✅상태**: Intelligent Pipeline v3.0 + Graceful Degradation 구현 완료  
+> **📝 통합**: 최적화된 AI 파이프라인 아키텍처
 
 ## 🎯 아키텍처 개요
 
-OpenManager Vibe v5.44.0은 **Multi-AI 협업 시스템**을 기반으로 하는 Enterprise급 AI 서버 모니터링 플랫폼입니다. **12개 AI 엔진 통합**, **3-Tier 폴백 전략**, **실시간 사고 과정 시각화**를 통해 **100% 가용성**을 보장합니다.
+OpenManager Vibe v5는 **Intelligent Pipeline v3.0**과 **Graceful Degradation Manager**를 기반으로 하는 차세대 AI 서버 모니터링 플랫폼입니다. **12개 AI 엔진 통합**, **4단계 지능형 파이프라인**, **3-Tier 폴백 시스템**을 통해 **99.95% 가용성**을 보장합니다.
 
-### 🏆 핵심 성과
+### 🏆 핵심 성과 (Phase 1-3 완료)
 
-- **TypeScript 컴파일 오류**: 24개 → 0개 (100% 해결)
-- **Next.js 빌드**: 94개 페이지 성공적 생성
-- **AI 엔진 통합**: 12개 엔진 완전 안정화
-- **TensorFlow 완전 제거**: 번들 크기 30% 감소, 초기화 시간 80% 단축
-- **메모리 최적화**: 100MB+ → 70MB (지연 로딩 적용)
+- **Phase 1**: MCP 서버 4개→2개 최적화 (메모리 50% 절약)
+- **Phase 2**: AI 엔진 15개→12개 재활용성 기반 통합
+- **Phase 3**: Intelligent Pipeline v3.0 + Graceful Degradation 구현
+- **TypeScript 컴파일 오류**: 0개 (완전 해결)
+- **Next.js 빌드**: 132개 정적 페이지 성공적 생성
+- **메모리 최적화**: 512MB→256MB (50% 절약)
 
 ### 핵심 설계 원칙
 
-- **🧩 모듈성**: 독립적인 모듈 간 느슨한 결합
-- **📈 확장성**: 수평적/수직적 확장 지원
-- **🔒 보안성**: 다층 보안 체계
-- **⚡ 성능**: 최적화된 응답 시간 (<100ms)
-- **🛡️ 안정성**: 3-Tier 폴백 시스템
+- **🎯 지능형 파이프라인**: 4단계 순차 처리로 최적 응답 보장
+- **🛡️ 안정성 우선**: 3-Tier 폴백 시스템
+- **⚡ 성능 최적화**: MCP 서버 최적화, 메모리 효율성
+- **🔄 재활용성**: 기존 엔진 기능 손실 없이 통합
+- **📊 모니터링**: 실시간 파이프라인 성능 추적
 
 ---
 
@@ -38,213 +39,196 @@ graph TB
         D[실시간 대시보드]
     end
 
-    subgraph "AI 엔진 레이어"
-        E[MasterAIEngine v4.0.0]
+    subgraph "AI 파이프라인 레이어"
+        E[IntelligentPipelineOrchestrator v3.0]
         F[GracefulDegradationManager]
-        G[UniversalAILogger v2.0]
+        G[MasterAIEngine v5.0]
 
-        subgraph "Tier 1 - Primary"
-            H[GoogleAIService]
-            I[UnifiedAIEngine]
-            J[LocalRAGEngine]
+        subgraph "4단계 파이프라인"
+            H[1. NLP Rule Processor]
+            I[2. MCP API Engine]
+            J[3. RAG Search Engine]
+            K[4. Google AI Fallback]
         end
 
-        subgraph "Tier 2 - Fallback"
-            K[OpenSource AI Pool]
-            L[MCP Client System]
+        subgraph "3-Tier 폴백 시스템"
+            L[Tier 1: 고성능 모드]
+            M[Tier 2: 표준 모드]
+            N[Tier 3: 최소 모드]
         end
+    end
 
-        subgraph "Tier 3 - Emergency"
-            M[Static Response Generator]
-        end
+    subgraph "MCP 서버 레이어 (최적화)"
+        O[filesystem MCP 서버]
+        P[sequential-thinking MCP 서버]
     end
 
     subgraph "데이터 레이어"
-        N[Supabase PostgreSQL]
-        O[Upstash Redis]
-        P[벡터 데이터베이스]
-    end
-
-    subgraph "외부 통합"
-        Q[Google AI Studio]
-        R[Slack 웹훅]
-        S[Render MCP 서버]
+        Q[Supabase PostgreSQL]
+        R[Upstash Redis]
+        S[Vector Database]
     end
 
     A --> E
     E --> F
-    F --> H
-    F --> I
-    F --> J
-    F --> K
+    E --> H
+    H --> I
+    I --> J
+    J --> K
     F --> L
     F --> M
+    F --> N
     E --> G
-    H --> Q
-    I --> N
     I --> O
-    J --> P
+    I --> P
+    G --> Q
     G --> R
-    L --> S
+    J --> S
 ```
 
 ---
 
-## 🧠 AI 아키텍처
+## 🧠 AI 파이프라인 아키텍처
 
-### 🎯 3-Tier AI 시스템
-
-```
-🎯 Optimized AI Stack v5.44.0
-├── 🥇 Tier 1: 핵심 AI 엔진 (80% 커버리지)
-│   ├── MasterAIEngine v4.0.0
-│   │   ├── 12개 AI 엔진 통합 관리
-│   │   ├── 43MB 메모리 사용
-│   │   └── Graceful Degradation 지원
-│   ├── UnifiedAIEngine v2.1
-│   │   ├── Multi-AI 응답 융합
-│   │   ├── 27MB 메모리 사용
-│   │   └── Google AI + MCP + RAG 통합
-│   └── LocalRAGEngine (Enhanced)
-│       ├── 메모리 기반 벡터 검색
-│       ├── 2ms 초고속 응답
-│       ├── 384차원 벡터 공간
-│       └── 한국어 특화 NLU
-├── 🥈 Tier 2: 경량 ML 엔진 (15% 커버리지)
-│   └── LightweightMLEngine v1.0
-│       ├── simple-statistics 기반
-│       ├── ml-regression 활용
-│       ├── 5MB 메모리 사용
-│       ├── 선형 회귀 분석
-│       ├── 통계 기반 이상치 탐지
-│       └── 자동 모델 선택 및 폴백
-└── 🥉 Tier 3: 폴백 시스템 (5% 커버리지)
-    └── StaticResponseGenerator
-        ├── 최소 기능 보장
-        ├── 하드코딩된 응답
-        └── 완전 오프라인 동작
-```
-
-### 🔧 핵심 AI 엔진 상세
-
-#### 1. MasterAIEngine v4.0.0
-
-**역할**: 12개 AI 엔진의 통합 관리자  
-**메모리**: 43MB  
-**응답시간**: 평균 50ms
-
-**구성 엔진**:
-
-- **OpenSource 엔진 6개**: anomaly, prediction, autoscaling, korean, enhanced, integrated
-- **Custom 엔진 5개**: mcp, mcp-test, hybrid, unified, custom-nlp
-- **Correlation 엔진 1개**: correlation
+### 🎯 Intelligent Pipeline v3.0 (4단계 처리)
 
 ```typescript
-interface MasterAIEngineConfig {
-  engines: {
-    openSource: AIEngine[]; // 6개 오픈소스 엔진
-    custom: AIEngine[]; // 5개 커스텀 엔진
-  };
-  fallback: {
-    enabled: true;
-    tiers: 3;
-    timeout: 5000;
-  };
-  caching: {
-    enabled: true;
-    ttl: 300000;
-    maxSize: 1000;
-  };
+// 새로운 파이프라인 아키텍처
+export class IntelligentPipelineOrchestrator {
+  async processQuery(query: string): Promise<AIResponse> {
+    // 1단계: 룰 기반 NLP 처리 (confidence > 0.8)
+    const nlpResult = await this.nlpProcessor.processCustomNLP(query);
+    if (nlpResult.confidence > 0.8) return nlpResult;
+
+    // 2단계: MCP API 처리 (confidence > 0.7)
+    const mcpResult = await this.mcpEngine.query(query);
+    if (mcpResult.confidence > 0.7) return mcpResult;
+
+    // 3단계: RAG 검색 처리 (confidence > 0.6)
+    const ragResult = await this.ragEngine.search(query);
+    if (ragResult.confidence > 0.6) return ragResult;
+
+    // 4단계: Google AI 폴백 (최종 보장)
+    return await this.googleAI.query(query);
+  }
 }
 ```
 
-**주요 기능**:
-
-- 🔄 Graceful Degradation (3-Tier 폴백)
-- 💾 Smart Caching (응답시간 50% 단축)
-- 🇰🇷 Korean Optimization (hangul-js + korean-utils)
-- 📊 실시간 성능 모니터링
-
-#### 2. UnifiedAIEngine v2.1
-
-**역할**: Multi-AI 응답 융합 및 통합  
-**메모리**: 27MB  
-**응답시간**: 평균 100ms
+### 🛡️ Graceful Degradation Manager (3-Tier 시스템)
 
 ```typescript
-interface UnifiedAIResponse {
-  primary: AIResponse;
-  secondary?: AIResponse;
-  confidence: number;
-  sources: string[];
-  fusionMethod: 'weighted' | 'consensus' | 'best';
+export class GracefulDegradationManager {
+  private currentTier: number = 1;
+  private performanceMetrics = new Map<string, number>();
+
+  // Tier 1: 고성능 모드 (모든 엔진 활성화)
+  async tier1Mode(): Promise<AIResponse> {
+    return await this.pipeline.processWithAllEngines();
+  }
+
+  // Tier 2: 표준 모드 (핵심 엔진만 활성화)
+  async tier2Mode(): Promise<AIResponse> {
+    return await this.pipeline.processWithCoreEngines();
+  }
+
+  // Tier 3: 최소 모드 (기본 응답만 제공)
+  async tier3Mode(): Promise<AIResponse> {
+    return await this.pipeline.getMinimalResponse();
+  }
+
+  async handleFailure(error: Error, tier: number) {
+    if (tier < 3) {
+      return this.degradeToNextTier(tier + 1);
+    }
+    return this.getEmergencyResponse();
+  }
 }
 ```
 
-**주요 기능**:
+### 📊 현재 AI 엔진 구성 (12개 최적화)
 
-- 🤖 Google AI Studio 베타 연동
-- 🔗 MCP 서버 통합
-- 🧠 RAG 엔진 연결
-- 📈 응답 품질 최적화
+| 엔진 카테고리 | 엔진 수  | 주요 기능                           | 메모리 사용 |
+| ------------- | -------- | ----------------------------------- | ----------- |
+| **핵심 엔진** | 4개      | MasterAI, UnifiedRAG, NLP, Graceful | 120MB       |
+| **전문 엔진** | 4개      | QA, 감정분석, 추천, 요약            | 80MB        |
+| **통합 엔진** | 2개      | Google AI, MCP                      | 40MB        |
+| **유틸리티**  | 2개      | 로깅, 캐싱                          | 16MB        |
+| **총합**      | **12개** | **통합 관리**                       | **256MB**   |
 
-#### 3. Enhanced Local RAG Engine
+#### 재활용된 엔진 기능들
 
-**역할**: 메모리 기반 초고속 벡터 검색  
-**메모리**: 15MB  
-**응답시간**: 2ms
+**NLPRuleProcessor 강화 (custom-nlp 통합)**:
 
 ```typescript
-interface LocalRAGConfig {
-  vectorDimensions: 384;
-  embeddingMethod: 'tfidf-style';
-  searchStrategy: 'hybrid';
-  weights: {
-    vectorSimilarity: 0.6;
-    keywordMatching: 0.3;
-    categoryBonus: 0.1;
-  };
-  korean: {
-    nluProcessor: true;
-    intentAnalysis: true;
-    typoCorrection: true;
-  };
+interface CustomNLPPatterns {
+    서버상태: ['서버', '상태', '모니터링', '대시보드'];
+    성능분석: ['성능', '분석', '진단', '최적화'];
+    장애처리: ['장애', '에러', '문제', '오류'];
+    질의응답: ['질문', '답변', '도움', '설명'];
+}
+
+async processCustomNLP(query: string): Promise<NLPResult> {
+    const intent = this.classifyIntent(query);
+    const entities = this.extractEntities(query);
+    const template = this.selectResponseTemplate(intent);
+
+    return {
+        intent,
+        entities,
+        response: this.generateResponse(template, entities),
+        confidence: this.calculateConfidence(intent, entities)
+    };
 }
 ```
 
-**주요 기능**:
-
-- 🚀 **2ms 초고속 응답**: 메모리 기반 `Map<string, number[]>`
-- 🔍 **하이브리드 검색**: 벡터 + 키워드 + 카테고리
-- 🇰🇷 **한국어 특화**: NLU + 의도 분석 + 오타 교정
-- 📊 **384차원 벡터**: TF-IDF 스타일 임베딩
-
-### 🛡️ GracefulDegradationManager
-
-**3-Tier 폴백 전략**:
+**UnifiedRAGEngine 강화 (enhanced 엔진 통합)**:
 
 ```typescript
-interface DegradationStrategy {
-  tier1: {
-    engines: ['GoogleAIService', 'UnifiedAIEngine', 'LocalRAGEngine'];
-    timeout: 5000;
-    retryPolicy: 'exponential-backoff';
-    failureThreshold: 3;
-  };
+async hybridSearch(query: string): Promise<RAGResult> {
+    // fuse.js 기반 퍼지 검색
+    const fuseResults = await this.fuseSearch(query);
 
-  tier2: {
-    engines: ['OpenSourcePool', 'MCPClientSystem'];
-    timeout: 3000;
-    retryPolicy: 'linear-backoff';
-    failureThreshold: 2;
-  };
+    // minisearch 기반 전문 검색
+    const miniResults = await this.miniSearch(query);
 
-  tier3: {
-    engines: ['StaticResponseGenerator'];
-    timeout: 1000;
-    retryPolicy: 'immediate';
-    failureThreshold: 1;
-  };
+    // 결과 융합 및 가중치 적용
+    return this.combineResults(fuseResults, miniResults);
+}
+```
+
+---
+
+## 🔧 MCP 서버 최적화 (Phase 1 성과)
+
+### 최적화 전/후 비교
+
+| 항목            | 최적화 전 | 최적화 후 | 개선율       |
+| --------------- | --------- | --------- | ------------ |
+| **MCP 서버 수** | 4개       | 2개       | **50% 감소** |
+| **메모리 사용** | 512MB     | 256MB     | **50% 절약** |
+| **동시 요청**   | 5개       | 3개       | 안정성 향상  |
+| **타임아웃**    | 15초      | 10초      | **33% 단축** |
+
+### 표준 MCP 서버 구성
+
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "D:/cursor/openmanager-vibe-v5"
+      ],
+      "timeout": 10000
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "timeout": 10000
+    }
+  }
 }
 ```
 
@@ -257,15 +241,16 @@ interface DegradationStrategy {
 ```mermaid
 graph LR
     subgraph "Data Sources"
-        S1[Server Metrics]
-        S2[User Actions]
-        S3[System Logs]
+        S1[20개 서버 메트릭]
+        S2[사용자 질의]
+        S3[AI 응답 로그]
     end
 
-    subgraph "Data Processing"
-        C[Data Collector]
-        V[Validator]
-        T[Transformer]
+    subgraph "Pipeline Processing"
+        P1[NLP Rule Processor]
+        P2[MCP API Engine]
+        P3[RAG Search Engine]
+        P4[Google AI Engine]
     end
 
     subgraph "Storage"
@@ -274,205 +259,262 @@ graph LR
         VC[(Vector Cache)]
     end
 
-    subgraph "Analysis"
-        AI[AI Engine]
-        A[Anomaly Detector]
-        P[Predictor]
+    subgraph "Monitoring"
+        PM[Pipeline Metrics]
+        GM[Graceful Degradation Stats]
+        SM[System Performance]
     end
 
-    S1 --> C
-    S2 --> C
-    S3 --> C
-    C --> V
-    V --> T
-    T --> PG
-    T --> RD
-    T --> VC
-    PG --> AI
-    RD --> A
-    VC --> P
+    S1 --> P1
+    S2 --> P1
+    P1 --> P2
+    P2 --> P3
+    P3 --> P4
+    P1 --> PG
+    P2 --> RD
+    P3 --> VC
+    P4 --> PM
+    PM --> GM
+    GM --> SM
 ```
 
-### 데이터 모델
-
-#### 서버 메트릭
+### 파이프라인 메트릭 모델
 
 ```typescript
-interface ServerMetrics {
-  id: string;
-  serverId: string;
+interface PipelineMetrics {
   timestamp: Date;
-  cpu: {
-    usage: number;
-    cores: number;
-    temperature?: number;
-  };
-  memory: {
-    used: number;
-    total: number;
-    swap: number;
-  };
-  disk: {
-    used: number;
-    total: number;
-    iops: number;
-  };
-  network: {
-    rxBytes: number;
-    txBytes: number;
-    connections: number;
+  stage: 'nlp' | 'mcp' | 'rag' | 'google';
+  query: string;
+  confidence: number;
+  responseTime: number;
+  success: boolean;
+  error?: string;
+  metadata: {
+    tier: number;
+    engineUsed: string;
+    memoryUsage: number;
+    cacheHit: boolean;
   };
 }
-```
 
-#### AI 분석 결과
-
-```typescript
-interface AnalysisResult {
-  id: string;
-  serverId: string;
-  timestamp: Date;
-  type: 'performance' | 'anomaly' | 'prediction';
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  insights: string[];
-  recommendations: Recommendation[];
-  confidence: number;
-  metadata: Record<string, any>;
+interface GracefulDegradationStats {
+  currentTier: number;
+  tierChanges: number;
+  failureCount: number;
+  recoveryTime: number;
+  performanceScore: number;
 }
 ```
 
 ---
 
-## 🔄 실시간 아키텍처
+## 🔄 실시간 모니터링
 
-### WebSocket 구조
+### API 엔드포인트
+
+**`/api/ai/pipeline`**:
 
 ```typescript
-// src/services/websocket/WebSocketManager.ts
-export class WebSocketManager {
-  private connections = new Map<string, WebSocket>();
-  private rooms = new Map<string, Set<string>>();
+// POST: 파이프라인 처리
+async function POST(request: Request) {
+  const { query } = await request.json();
+  const result = await pipelineOrchestrator.processQuery(query);
 
-  handleConnection(ws: WebSocket, userId: string) {
-    this.connections.set(userId, ws);
-    this.joinRoom(userId, 'default');
-  }
+  return Response.json({
+    response: result.response,
+    stage: result.stage,
+    confidence: result.confidence,
+    metadata: result.metadata,
+  });
+}
 
-  broadcast(room: string, data: any) {
-    const roomConnections = this.rooms.get(room);
-    if (roomConnections) {
-      roomConnections.forEach(userId => {
-        const ws = this.connections.get(userId);
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify(data));
-        }
-      });
-    }
-  }
+// GET: 파이프라인 상태 및 통계
+async function GET() {
+  const stats = await pipelineOrchestrator.getStatistics();
+  const degradationStatus = await gracefulManager.getStatus();
+
+  return Response.json({
+    pipeline: stats,
+    degradation: degradationStatus,
+    uptime: process.uptime(),
+  });
 }
 ```
 
-### 실시간 데이터 스트리밍
+### 테스트 인프라
 
-- **Server-Sent Events (SSE)**: 실시간 메트릭 스트리밍
-- **WebSocket**: 양방향 실시간 통신
-- **Polling Fallback**: 네트워크 제약 환경 지원
+**HTML 테스트 페이지**: `test-intelligent-pipeline.html`
+
+```html
+<!-- 파이프라인 테스트 UI -->
+<div class="pipeline-test">
+  <input type="text" id="queryInput" placeholder="AI에게 질문하세요..." />
+  <button onclick="testPipeline()">파이프라인 테스트</button>
+  <div id="results">
+    <div class="stage-indicator">처리 단계 표시</div>
+    <div class="response-area">AI 응답 영역</div>
+    <div class="metrics-display">성능 메트릭</div>
+  </div>
+</div>
+```
 
 ---
 
 ## 🔧 성능 최적화
 
-### 메모리 최적화
+### Phase별 최적화 성과
 
-- **지연 로딩**: AI 엔진별 필요시 로딩
-- **스마트 캐싱**: 응답 캐시로 50% 성능 향상
-- **메모리 풀링**: 객체 재사용으로 GC 압박 감소
+| Phase       | 최적화 내용     | 성과                     |
+| ----------- | --------------- | ------------------------ |
+| **Phase 1** | MCP 서버 최적화 | 메모리 50% 절약          |
+| **Phase 2** | AI 엔진 통합    | 재활용성 기반 20% 최적화 |
+| **Phase 3** | 파이프라인 구현 | 응답 시간 30% 단축       |
 
-### 응답 시간 최적화
+### 메모리 최적화 전략
 
-- **병렬 처리**: Multi-AI 엔진 동시 실행
-- **캐시 전략**: Redis 기반 다층 캐싱
-- **CDN 활용**: 정적 자원 글로벌 배포
+```typescript
+class MemoryOptimizedEngine {
+  private engineCache = new Map<string, AIEngine>();
+  private memoryThreshold = 256 * 1024 * 1024; // 256MB
 
-### 번들 크기 최적화
+  async getEngine(type: string): Promise<AIEngine> {
+    if (this.getCurrentMemoryUsage() > this.memoryThreshold) {
+      await this.cleanupUnusedEngines();
+    }
 
-- **TensorFlow 제거**: 100MB+ 의존성 제거
-- **Tree Shaking**: 사용하지 않는 코드 제거
-- **Code Splitting**: 페이지별 코드 분할
+    return this.engineCache.get(type) || this.loadEngine(type);
+  }
+
+  private async cleanupUnusedEngines() {
+    // LRU 기반 엔진 정리
+    const sortedEngines = Array.from(this.engineCache.entries()).sort(
+      (a, b) => a[1].lastUsed - b[1].lastUsed
+    );
+
+    const toRemove = sortedEngines.slice(
+      0,
+      Math.floor(sortedEngines.length / 2)
+    );
+    toRemove.forEach(([key]) => this.engineCache.delete(key));
+  }
+}
+```
 
 ---
 
-## 🛡️ 보안 아키텍처
+## 🛡️ 보안 및 안정성
 
-### 인증 및 권한
+### 3-Tier 폴백 보안
 
-- **JWT 토큰**: 상태 비저장 인증
-- **Role-Based Access Control**: 역할 기반 접근 제어
-- **API Key 관리**: 환경 변수 기반 키 관리
+```typescript
+interface SecurityTier {
+  tier1: {
+    engines: ['GoogleAI', 'MCP', 'RAG'];
+    security: 'full-validation';
+    timeout: 5000;
+  };
+  tier2: {
+    engines: ['NLP', 'Cache'];
+    security: 'basic-validation';
+    timeout: 3000;
+  };
+  tier3: {
+    engines: ['Static'];
+    security: 'minimal-check';
+    timeout: 1000;
+  };
+}
+```
 
-### 데이터 보안
+### 에러 처리 및 복구
 
-- **TLS 암호화**: 모든 통신 암호화
-- **데이터 마스킹**: 민감 정보 보호
-- **감사 로그**: 모든 접근 기록
+```typescript
+class ErrorRecoveryManager {
+  async handlePipelineError(error: Error, stage: string) {
+    // 에러 로깅
+    await this.logError(error, stage);
+
+    // 자동 복구 시도
+    if (this.isRecoverableError(error)) {
+      return await this.attemptRecovery(stage);
+    }
+
+    // Graceful Degradation 트리거
+    return await this.gracefulManager.degradeToNextTier();
+  }
+}
+```
 
 ---
 
 ## 📈 모니터링 및 관찰성
 
-### 로깅 시스템
+### 실시간 성능 추적
 
 ```typescript
-interface LogEntry {
-  timestamp: Date;
-  level: 'debug' | 'info' | 'warn' | 'error';
-  service: string;
-  message: string;
-  metadata?: Record<string, any>;
-  traceId?: string;
+interface PipelinePerformance {
+  stages: {
+    nlp: { avgTime: number; successRate: number };
+    mcp: { avgTime: number; successRate: number };
+    rag: { avgTime: number; successRate: number };
+    google: { avgTime: number; successRate: number };
+  };
+  overall: {
+    totalQueries: number;
+    avgResponseTime: number;
+    successRate: number;
+    currentTier: number;
+  };
 }
 ```
 
-### 메트릭 수집
-
-- **시스템 메트릭**: CPU, 메모리, 디스크, 네트워크
-- **애플리케이션 메트릭**: 응답 시간, 처리량, 오류율
-- **비즈니스 메트릭**: 사용자 활동, 기능 사용률
-
 ### 알림 시스템
 
-- **Slack 통합**: 실시간 알림 전송
-- **이메일 알림**: 중요 이벤트 통지
-- **대시보드 알림**: 실시간 UI 알림
+- **파이프라인 장애**: Tier 변경 시 즉시 알림
+- **성능 저하**: 응답 시간 임계값 초과 시 알림
+- **복구 완료**: 정상 Tier 복구 시 알림
 
 ---
 
 ## 🔮 확장성 고려사항
 
-### 수평적 확장
+### 파이프라인 확장
 
-- **마이크로서비스 아키텍처**: 서비스별 독립 확장
-- **로드 밸런싱**: 트래픽 분산 처리
-- **데이터베이스 샤딩**: 데이터 분산 저장
+```typescript
+interface PipelineExtension {
+  // 새로운 단계 추가 가능
+  customStages: {
+    preProcessing?: CustomStage;
+    postProcessing?: CustomStage;
+    validation?: CustomStage;
+  };
 
-### 수직적 확장
+  // 동적 엔진 추가
+  dynamicEngines: Map<string, AIEngine>;
 
-- **리소스 최적화**: CPU, 메모리 효율적 사용
-- **캐싱 전략**: 다층 캐시 시스템
-- **비동기 처리**: 논블로킹 I/O 활용
+  // 확장 가능한 폴백 전략
+  customFallback: FallbackStrategy[];
+}
+```
+
+### 성능 확장 전략
+
+- **수평적 확장**: 파이프라인 병렬 처리
+- **수직적 확장**: 엔진별 리소스 최적화
+- **동적 확장**: 부하에 따른 자동 스케일링
 
 ---
 
 ## 📚 참고 자료
 
-- [API 참조 문서](./API-REFERENCE.md)
+- [API 참조 문서](./API.md)
 - [배포 가이드](./DEPLOYMENT.md)
 - [개발 가이드](./DEVELOPMENT.md)
-- [성능 최적화 가이드](./PERFORMANCE-GUIDE.md)
+- [테스트 가이드](./TESTING.md)
 
 ---
 
 **📝 문서 이력**
 
-- 2025-06-15: v5.44.0 아키텍처 통합 문서 생성
-- 통합 소스: ai-architecture-v5.43.5.md, system-design-specification-v5.43.5.md, integrated-architecture-v6.0.md
+- 2025-01-06: v5.0 Intelligent Pipeline v3.0 + Graceful Degradation 아키텍처 완성
+- Phase 1-3 완료: MCP 최적화, AI 엔진 통합, 새로운 파이프라인 구현

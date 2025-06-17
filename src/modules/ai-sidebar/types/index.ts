@@ -72,6 +72,8 @@ export interface AIResponse {
   success: boolean;
   response?: string;
   content?: string; // Smart Fallback 호환성
+  query?: string; // 질의 내용
+  engine?: string; // 사용된 엔진
   intent?: {
     name: string;
     confidence: number;
@@ -126,6 +128,7 @@ export interface SidebarState {
 export interface ChatHookOptions {
   apiEndpoint: string;
   sessionId?: string;
+  initialMode?: string;
   onMessage?: (message: ChatMessage) => void;
   onResponse?: (response: AIResponse) => void;
   onError?: (error: Error) => void;
