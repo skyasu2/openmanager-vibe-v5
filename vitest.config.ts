@@ -8,7 +8,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/testing/setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}', 'development/tests/**/*.test.{ts,tsx}'],
+    include: ['tests/**/*.test.{ts,tsx}'],
     exclude: ['node_modules', '.next', 'dist', 'build', 'storybook-static'],
     testTimeout: 30000,
     hookTimeout: 15000,
@@ -36,6 +36,10 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: ['@tensorflow/tfjs-node', 'ioredis'],
-    include: ['@tensorflow/tfjs', '@testing-library/react', '@testing-library/jest-dom'],
+    include: [
+      '@tensorflow/tfjs',
+      '@testing-library/react',
+      '@testing-library/jest-dom',
+    ],
   },
 });

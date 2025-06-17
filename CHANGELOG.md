@@ -33,13 +33,13 @@
 
 ### 📊 **성능 개선 결과**
 
-| 지표 | 이전 (v5.43.5) | 현재 (v5.44.0) | 개선율 |
-|------|-----------------|-----------------|--------|
-| 초기화 시간 | 10초+ | 1-2초 | 80% ↓ |
-| 메모리 사용 | 100MB+ | 50MB | 50% ↓ |
-| 번들 크기 | 70MB | 50MB | 30% ↓ |
-| 타입 오류 | 24개 | 0개 | 100% ↓ |
-| AI 응답시간 | 100ms | 50ms | 50% ↓ |
+| 지표        | 이전 (v5.43.5) | 현재 (v5.44.0) | 개선율 |
+| ----------- | -------------- | -------------- | ------ |
+| 초기화 시간 | 10초+          | 1-2초          | 80% ↓  |
+| 메모리 사용 | 100MB+         | 50MB           | 50% ↓  |
+| 번들 크기   | 70MB           | 50MB           | 30% ↓  |
+| 타입 오류   | 24개           | 0개            | 100% ↓ |
+| AI 응답시간 | 100ms          | 50ms           | 50% ↓  |
 
 ### 🧠 **벡터 DB 최적화**
 
@@ -469,3 +469,31 @@ SLACK_WEBHOOK_URL=https://hooks.slack.com/services/[WORKSPACE]/[CHANNEL]/[TOKEN]
 - OpenManager Vibe v5 프로젝트 초기 설정
 - 바이브 코딩 방식으로 개발 시작 (Cursor AI + Claude Sonnet 3.7)
 - 기본 아키텍처 및 개발 환경 구성
+
+## [v5.44.1] - 2025-01-06
+
+### 🧪 테스트 구조 현대화 완료
+
+- **중대형 프로젝트 표준 구조 적용**: `tests/{unit,integration,e2e}` 분리
+- **환경변수 테스트 안정화**: `vi.stubEnv` 사용으로 NODE_ENV 문제 해결
+- **테스트 경로 통합**: vitest.config.ts 및 package.json 스크립트 업데이트
+- **문서 현행화**: README.md, ARCHITECTURE.md 테스트 구조 반영
+
+### 📁 파일 구조 개선
+
+- HTML 테스트 → `docs/testing/html-tests/`
+- JS 테스트 → `docs/testing/js-tests/`
+- 스크립트 → `docs/testing/scripts/`
+- 테스트 문서화 완료: `docs/testing/README.md`
+
+### 🔧 기술적 개선
+
+- **Git 브랜치 정리**: 불필요한 백업 브랜치 제거, 메인만 유지
+- **스토리북 연동**: 변경된 구조와 호환성 확인
+- **TypeScript 타입 안전성**: vi.stubEnv 사용으로 환경변수 모킹 개선
+
+### 📊 테스트 실행 성과
+
+- 통합 테스트 6개 성공 (data-generation-loop, health-api, mcp-analysis 등)
+- 시스템 API 테스트 2개 성공 (unified API, stop API)
+- 새로운 테스트 구조에서 정상 작동 확인

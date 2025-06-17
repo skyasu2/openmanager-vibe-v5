@@ -343,7 +343,37 @@ async function GET() {
 
 ### 테스트 인프라
 
-**HTML 테스트 페이지**: `test-intelligent-pipeline.html`
+**중대형 프로젝트 표준 구조 적용**:
+
+```bash
+tests/
+├── unit/              # 유닛 테스트
+│   ├── dashboard/     # 대시보드 컴포넌트 테스트
+│   ├── ai/            # AI 엔진 단위 테스트
+│   └── utils/         # 유틸리티 함수 테스트
+├── integration/       # 통합 테스트
+│   ├── api/           # API 엔드포인트 테스트
+│   ├── pipeline/      # AI 파이프라인 통합 테스트
+│   └── services/      # 서비스 연동 테스트
+└── e2e/              # E2E 테스트
+    ├── user-flows/    # 사용자 시나리오 테스트
+    └── system/        # 전체 시스템 테스트
+```
+
+**테스트 실행 명령어**:
+
+```bash
+# 카테고리별 테스트
+npm run test:unit           # 유닛 테스트만
+npm run test:integration    # 통합 테스트만
+npm run test:e2e           # E2E 테스트만
+
+# 특정 기능 테스트
+npm run test:google-ai     # Google AI 통합 테스트
+npm run test:slack         # Slack 연동 테스트
+```
+
+**HTML 테스트 페이지**: `docs/testing/html-tests/test-intelligent-pipeline.html`
 
 ```html
 <!-- 파이프라인 테스트 UI -->
