@@ -1,0 +1,31 @@
+{
+  "query": "현재 사용량이 가장 낮은 서버는?",
+  "context": {
+    "serverMetrics": {
+      "servers": [
+        {
+          "id": "test-1",
+          "name": "web-server-01",
+          "status": "running",
+          "metrics": {
+            "cpu": 15,
+            "memory": 32,
+            "disk": 45
+          },
+          "location": "us-east-1"
+        },
+        {
+          "id": "test-2",
+          "name": "api-server-02",
+          "status": "running",
+          "metrics": {
+            "cpu": 75,
+            "memory": 68,
+            "disk": 55
+          },
+          "location": "us-west-2"
+        }
+      ]
+    }
+  }
+}
