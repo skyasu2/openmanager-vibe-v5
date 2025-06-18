@@ -1,13 +1,8 @@
 #!/usr/bin/env node
 
-/**
- * 🧹 자동 생성된 API 정리 스크립트
- * 생성일: 2025-06-10T11:22:41.538Z
- * 정리 대상: 0개 API
- */
-
 import fs from 'fs';
 import path from 'path';
+import APICleanupAnalyzer from './api-cleanup-analyzer.mjs';
 
 const APIS_TO_REMOVE = [
 
@@ -46,6 +41,6 @@ function cleanup() {
 
 // 실행
 const analyzer = new APICleanupAnalyzer();
-analyzer.analyze().catch(console.error);
+analyzer.analyze().then(cleanup);
 
 export { cleanup };
