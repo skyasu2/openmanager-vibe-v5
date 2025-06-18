@@ -4,7 +4,8 @@
     "lib": [
       "dom",
       "dom.iterable",
-      "es2017"
+      "es2017",
+      "es2021"
     ],
     "allowJs": true,
     "skipLibCheck": true,
@@ -28,7 +29,10 @@
       ]
     },
     "tsBuildInfoFile": ".next/cache/tsbuildinfo",
-    "assumeChangesOnlyAffectDirectDependencies": true
+    "assumeChangesOnlyAffectDirectDependencies": true,
+    "types": [
+      "node"
+    ]
   },
   "include": [
     "next-env.d.ts",
