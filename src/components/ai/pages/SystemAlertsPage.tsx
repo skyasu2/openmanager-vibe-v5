@@ -54,93 +54,114 @@ export default function SystemAlertsPage({
   const generateAlertsFromServers = (servers: any[]): SystemAlert[] => {
     const alerts: SystemAlert[] = [];
 
+    console.log('🚨 알림 생성 - 서버 데이터:', {
+      serversCount: servers.length,
+      firstServer: servers[0],
+      timestamp: new Date().toISOString(),
+    });
+
     servers.forEach((server, index) => {
       const serverId = server.id || `SERVER-${index + 1}`;
       const serverName = server.name || serverId;
 
+      // 🎯 올바른 메트릭 데이터 접근
+      const cpuValue = server.metrics?.cpu || server.cpu || 0;
+      const memoryValue = server.metrics?.memory || server.memory || 0;
+      const diskValue = server.metrics?.disk || server.disk || 0;
+
+      console.log(`📊 ${serverName} 메트릭:`, {
+        cpuValue,
+        memoryValue,
+        diskValue,
+        status: server.status,
+      });
+
       // CPU 알림
-      if (server.cpu >= 90) {
+      if (cpuValue >= 90) {
         alerts.push({
           id: `${serverId}-cpu-critical`,
           type: 'critical',
           title: 'CPU 과부하',
-          message: `CPU 사용률이 ${server.cpu}%로 임계치를 초과했습니다`,
+          message: `CPU 사용률이 ${Math.round(cpuValue)}%로 임계치를 초과했습니다`,
           server: serverName,
           timestamp: new Date(),
           category: 'cpu',
-          value: server.cpu,
+          value: cpuValue,
           threshold: 90,
         });
-      } else if (server.cpu >= 80) {
+      } else if (cpuValue >= 70) {
+        // 임계값을 80에서 70으로 낮춰서 더 많은 알림 표시
         alerts.push({
           id: `${serverId}-cpu-warning`,
           type: 'warning',
           title: 'CPU 사용률 높음',
-          message: `CPU 사용률이 ${server.cpu}%입니다`,
+          message: `CPU 사용률이 ${Math.round(cpuValue)}%입니다`,
           server: serverName,
           timestamp: new Date(),
           category: 'cpu',
-          value: server.cpu,
-          threshold: 80,
+          value: cpuValue,
+          threshold: 70,
         });
       }
 
       // 메모리 알림
-      if (server.memory >= 90) {
+      if (memoryValue >= 90) {
         alerts.push({
           id: `${serverId}-memory-critical`,
           type: 'critical',
           title: '메모리 부족',
-          message: `메모리 사용률이 ${server.memory}%로 임계치를 초과했습니다`,
+          message: `메모리 사용률이 ${Math.round(memoryValue)}%로 임계치를 초과했습니다`,
           server: serverName,
           timestamp: new Date(),
           category: 'memory',
-          value: server.memory,
+          value: memoryValue,
           threshold: 90,
         });
-      } else if (server.memory >= 85) {
+      } else if (memoryValue >= 70) {
+        // 임계값을 85에서 70으로 낮춤
         alerts.push({
           id: `${serverId}-memory-warning`,
           type: 'warning',
           title: '메모리 사용률 높음',
-          message: `메모리 사용률이 ${server.memory}%입니다`,
+          message: `메모리 사용률이 ${Math.round(memoryValue)}%입니다`,
           server: serverName,
           timestamp: new Date(),
           category: 'memory',
-          value: server.memory,
-          threshold: 85,
+          value: memoryValue,
+          threshold: 70,
         });
       }
 
       // 디스크 알림
-      if (server.disk >= 95) {
+      if (diskValue >= 95) {
         alerts.push({
           id: `${serverId}-disk-critical`,
           type: 'critical',
           title: '디스크 공간 부족',
-          message: `디스크 사용률이 ${server.disk}%로 임계치를 초과했습니다`,
+          message: `디스크 사용률이 ${Math.round(diskValue)}%로 임계치를 초과했습니다`,
           server: serverName,
           timestamp: new Date(),
           category: 'disk',
-          value: server.disk,
+          value: diskValue,
           threshold: 95,
         });
-      } else if (server.disk >= 85) {
+      } else if (diskValue >= 70) {
+        // 임계값을 85에서 70으로 낮춤
         alerts.push({
           id: `${serverId}-disk-warning`,
           type: 'warning',
           title: '디스크 사용률 높음',
-          message: `디스크 사용률이 ${server.disk}%입니다`,
+          message: `디스크 사용률이 ${Math.round(diskValue)}%입니다`,
           server: serverName,
           timestamp: new Date(),
           category: 'disk',
-          value: server.disk,
-          threshold: 85,
+          value: diskValue,
+          threshold: 70,
         });
       }
 
-      // 서버 상태 알림
-      if (server.status === 'critical' || server.status === 'offline') {
+      // 🎯 올바른 서버 상태 매핑
+      if (server.status === 'error' || server.status === 'stopped') {
         alerts.push({
           id: `${serverId}-status-critical`,
           type: 'critical',
@@ -164,7 +185,8 @@ export default function SystemAlertsPage({
     });
 
     // 일부 해결된 알림 추가 (시뮬레이션)
-    if (Math.random() > 0.7) {
+    if (Math.random() > 0.5) {
+      // 50% 확률로 해결된 알림 표시
       alerts.push({
         id: 'resolved-disk-space',
         type: 'resolved',
@@ -175,6 +197,26 @@ export default function SystemAlertsPage({
         category: 'disk',
       });
     }
+
+    if (Math.random() > 0.7) {
+      // 30% 확률로 추가 해결된 알림
+      alerts.push({
+        id: 'resolved-cpu-high',
+        type: 'resolved',
+        title: 'CPU 사용률 정상화',
+        message: 'WEB-05 서버의 CPU 사용률이 정상 수준으로 복구되었습니다',
+        server: 'WEB-05',
+        timestamp: new Date(Date.now() - 8 * 60 * 1000), // 8분 전
+        category: 'cpu',
+      });
+    }
+
+    console.log('🚨 생성된 알림:', {
+      totalAlerts: alerts.length,
+      critical: alerts.filter(a => a.type === 'critical').length,
+      warning: alerts.filter(a => a.type === 'warning').length,
+      resolved: alerts.filter(a => a.type === 'resolved').length,
+    });
 
     return alerts.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   };

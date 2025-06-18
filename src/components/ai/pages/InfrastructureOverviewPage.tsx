@@ -70,47 +70,107 @@ export default function InfrastructureOverviewPage({
           ? data.servers // 신버전: 객체 내부 servers 배열
           : [];
 
-      // 서버 통계 계산
+      console.log('🔍 인프라 현황 - 서버 데이터:', {
+        serversCount: servers.length,
+        firstServer: servers[0],
+        timestamp: new Date().toISOString(),
+      });
+
+      // 서버 통계 계산 - 실제 API 상태값 매핑
       const totalServers = servers.length;
+
+      // 🎯 올바른 상태 매핑: running → online, warning → warning, error/stopped → offline
       const onlineServers = servers.filter(
-        (s: any) => s.status === 'online'
-      ).length;
-      const offlineServers = totalServers - onlineServers;
-      const alertCount = servers.filter(
-        (s: any) => s.status === 'warning' || s.status === 'critical'
+        (s: any) => s.status === 'running'
       ).length;
 
-      // 평균 리소스 사용률 계산
-      const totalCpu =
-        servers.reduce((sum: number, s: any) => sum + (s.cpu || 0), 0) /
-        totalServers;
-      const totalRam =
-        servers.reduce((sum: number, s: any) => sum + (s.memory || 0), 0) /
-        totalServers;
-      const totalDisk =
-        servers.reduce((sum: number, s: any) => sum + (s.disk || 0), 0) /
-        totalServers;
-      const bandwidth = servers.reduce(
-        (sum: number, s: any) => sum + (s.network || 0),
-        0
-      );
+      const warningServers = servers.filter(
+        (s: any) => s.status === 'warning'
+      ).length;
 
-      setStats({
+      const offlineServers = servers.filter(
+        (s: any) =>
+          s.status === 'error' ||
+          s.status === 'stopped' ||
+          s.status === 'maintenance'
+      ).length;
+
+      const alertCount = warningServers + offlineServers;
+
+      console.log('📊 서버 상태 분포:', {
+        totalServers,
+        onlineServers,
+        warningServers,
+        offlineServers,
+        alertCount,
+      });
+
+      // 🎯 안전한 평균 리소스 사용률 계산 - 실제 API 구조 반영
+      let totalCpu = 0;
+      let totalRam = 0;
+      let totalDisk = 0;
+      let bandwidth = 0;
+
+      if (totalServers > 0) {
+        // 메트릭 데이터 접근: s.metrics.cpu, s.metrics.memory, s.metrics.disk
+        totalCpu =
+          servers.reduce((sum: number, s: any) => {
+            const cpuValue = s.metrics?.cpu || s.cpu || 0;
+            return sum + cpuValue;
+          }, 0) / totalServers;
+
+        totalRam =
+          servers.reduce((sum: number, s: any) => {
+            const memoryValue = s.metrics?.memory || s.memory || 0;
+            return sum + memoryValue;
+          }, 0) / totalServers;
+
+        totalDisk =
+          servers.reduce((sum: number, s: any) => {
+            const diskValue = s.metrics?.disk || s.disk || 0;
+            return sum + diskValue;
+          }, 0) / totalServers;
+
+        // 네트워크는 총합으로 계산 (대역폭)
+        bandwidth = servers.reduce((sum: number, s: any) => {
+          const networkIn = s.metrics?.network?.in || s.network?.in || 0;
+          const networkOut = s.metrics?.network?.out || s.network?.out || 0;
+          return sum + networkIn + networkOut;
+        }, 0);
+      }
+
+      // 🛡️ NaN 방지 및 안전한 값 설정
+      const safeStats = {
         totalServers,
         onlineServers,
         offlineServers,
         alertCount,
-        totalCpu: Math.round(totalCpu),
-        totalRam: Math.round(totalRam),
-        totalDisk: Math.round(totalDisk),
-        bandwidth: Math.round(bandwidth),
-      });
+        totalCpu: isNaN(totalCpu) ? 0 : Math.round(totalCpu),
+        totalRam: isNaN(totalRam) ? 0 : Math.round(totalRam),
+        totalDisk: isNaN(totalDisk) ? 0 : Math.round(totalDisk),
+        bandwidth: isNaN(bandwidth) ? 0 : Math.round(bandwidth),
+      };
 
+      console.log('✅ 최종 통계:', safeStats);
+
+      setStats(safeStats);
       setLastUpdate(new Date());
       setIsLoading(false);
     } catch (error) {
-      console.error('Failed to fetch server data:', error);
+      console.error('❌ 서버 데이터 가져오기 실패:', error);
       setIsLoading(false);
+
+      // 🛡️ 에러 시 기본값 설정
+      setStats({
+        totalServers: 0,
+        onlineServers: 0,
+        offlineServers: 0,
+        alertCount: 0,
+        totalCpu: 0,
+        totalRam: 0,
+        totalDisk: 0,
+        bandwidth: 0,
+      });
     }
   };
 
