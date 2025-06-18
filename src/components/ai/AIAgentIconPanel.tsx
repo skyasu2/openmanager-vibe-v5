@@ -35,7 +35,8 @@ export type AIAgentFunction =
   | 'pattern-analysis'
   | 'log-analysis'
   | 'thinking'
-  | 'optimization';
+  | 'optimization'
+  | 'intelligent-monitoring';
 
 interface AIAgentIcon {
   id: AIAgentFunction;
@@ -58,6 +59,15 @@ const AI_AGENT_ICONS: AIAgentIcon[] = [
     color: 'text-blue-600',
     bgColor: 'bg-blue-50 hover:bg-blue-100',
     gradient: 'from-blue-500 to-cyan-500',
+  },
+  {
+    id: 'intelligent-monitoring',
+    icon: Monitor,
+    label: '지능형 모니터링',
+    description: '🧠 3단계 AI 분석: 이상탐지→근본원인→예측모니터링',
+    color: 'text-emerald-600',
+    bgColor: 'bg-emerald-50 hover:bg-emerald-100',
+    gradient: 'from-emerald-500 to-teal-500',
   },
   {
     id: 'auto-report',
