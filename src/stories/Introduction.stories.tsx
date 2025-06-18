@@ -4,6 +4,7 @@
  * OpenManager Vibe v5 컴포넌트 가이드 소개
  */
 
+import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 
 // 더미 컴포넌트 (실제로는 MDX 내용을 표시)
@@ -11,13 +12,23 @@ const IntroductionComponent = () => {
   return (
     <div className='max-w-4xl mx-auto p-8 prose prose-lg'>
       <h1 className='text-4xl font-bold mb-4'>
-        🚀 OpenManager Vibe v5.41.0 컴포넌트 가이드
+        🚀 OpenManager Vibe v5.44.4 컴포넌트 가이드
       </h1>
 
       <p className='text-xl text-gray-600 mb-8'>
         <strong>차세대 AI 기반 예측 모니터링 플랫폼</strong>의 컴포넌트
         라이브러리에 오신 것을 환영합니다!
       </p>
+
+      <div className='bg-green-50 p-4 rounded-lg mb-6 border-l-4 border-green-500'>
+        <h3 className='font-medium text-green-800 mb-2'>🆕 최신 업데이트 (v5.44.4)</h3>
+        <ul className='text-sm text-green-700 space-y-1'>
+          <li>• 홈페이지 개발과정 페이지 경로 변경: /vibe-coding → /about</li>
+          <li>• FeatureCardsGrid 컴포넌트 &quot;개발과정 보기&quot; 버튼 추가</li>
+          <li>• 새로운 스토리북 스토리 추가 및 기존 스토리 업데이트</li>
+          <li>• AI 에이전트 상태 연동 개선</li>
+        </ul>
+      </div>
 
       <h2 className='text-2xl font-semibold mb-4'>📖 개요</h2>
       <p className='mb-6'>
@@ -73,6 +84,16 @@ const IntroductionComponent = () => {
             <li>• DashboardHeader - 헤더 영역</li>
             <li>• SystemStatusDisplay - 시스템 상태 표시</li>
             <li>• DashboardContent - 메인 콘텐츠</li>
+          </ul>
+        </div>
+
+        <div className='p-4 border rounded-lg'>
+          <h3 className='text-lg font-medium mb-2'>🏠 Home</h3>
+          <p className='text-sm text-gray-600'>홈페이지 관련 컴포넌트들</p>
+          <ul className='text-sm mt-2 space-y-1'>
+            <li>• FeatureCardsGrid - 기능 카드 그리드</li>
+            <li>• 개발과정 보기 버튼 (/about 링크)</li>
+            <li>• 다크모드 지원</li>
           </ul>
         </div>
 
@@ -160,13 +181,13 @@ const IntroductionComponent = () => {
         <h3 className='font-medium mb-2'>개발팀 연락처</h3>
         <ul className='space-y-1 text-sm'>
           <li>
-            <strong>프로젝트</strong>: OpenManager Vibe v5.41.0
+            <strong>프로젝트</strong>: OpenManager Vibe v5.44.4
           </li>
           <li>
-            <strong>버전</strong>: 5.41.0
+            <strong>버전</strong>: 5.44.4
           </li>
           <li>
-            <strong>마지막 업데이트</strong>: 2025-06-08
+            <strong>마지막 업데이트</strong>: 2025-06-18
           </li>
         </ul>
 
@@ -188,7 +209,7 @@ const meta: Meta<typeof IntroductionComponent> = {
     docs: {
       description: {
         component:
-          'OpenManager Vibe v5.41.0 컴포넌트 라이브러리 소개 및 가이드',
+          'OpenManager Vibe v5.44.4 컴포넌트 라이브러리 소개 및 가이드',
       },
     },
   },

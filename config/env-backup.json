@@ -1,0 +1,85 @@
+{
+  "version": "1.0.0",
+  "created": "2025-06-18T06:01:39.076Z",
+  "lastBackup": "2025-06-18T06:01:39.076Z",
+  "entries": [
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_URL",
+      "value": "https://vnswjnltnhpsueosfhmw.supabase.co",
+      "encrypted": false,
+      "priority": "critical",
+      "lastUpdated": "2025-06-18T06:01:39.075Z"
+    },
+    {
+      "key": "SUPABASE_URL",
+      "value": "https://vnswjnltnhpsueosfhmw.supabase.co",
+      "encrypted": false,
+      "priority": "critical",
+      "lastUpdated": "2025-06-18T06:01:39.075Z"
+    },
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "value": "1a0664e9c63024e6505bde9f605a5ec6:8bd4ef3d97a58c3646117d5869f81c3ce2334679f9dcc9d02029a86ac3c82f4da7d988b8e81669031b6957c2ce764f7eef05db86f0da04d3f14918d2b0ca2c619074caaad32a1dc5c34a91f74cf85adb50d88fa4da1873eb9f779385499d99e5f0543622a5cc187d9d31dcdd81ba13f918465d5c46819952804508514946ff571abc0d4bb62f6b1fa3110142c6e7d3a3ab960cbb4c0873f130808e25c158751133ae2c3a3fc2e8b58141d616aa1263c0ca81a8e90593f702fbf0ccc2514b725ba3bb6f0d8ef1f9d9bd2b7ba63df5e08801b25da01ae41f21f19dca39c721100b",
+      "encrypted": true,
+      "priority": "critical",
+      "lastUpdated": "2025-06-18T06:01:39.075Z"
+    },
+    {
+      "key": "SUPABASE_SERVICE_ROLE_KEY",
+      "value": "493ad9be3d1bdb32667a4d8be14bd667:91168bb45f36da94945167f880edfd215ed69866e19b80ad65df1cf3ef02dcfc993782639472875180a5ef22d2c817573466f192d41a4a24b3d08cabd72f4985864113122b363c3936eff58f721b4ad70f2c2600f00f8d606bc31de2be1e6397e336bab1e0467b6fc3ba4abc6ed1be5fe9de2632ef1721c26a4bf008be52a73077bba1e9086434663aad43699b8cfef3514e079b47bbf1f215e65346cf5b29959caf375190166193dc8daf6da1f84671ef3644dfd3793accc17d3fb7d005a323689d47c59be495044ed74dc7202b8419e880c426b20349c891e7ec860e0be505",
+      "encrypted": true,
+      "priority": "critical",
+      "lastUpdated": "2025-06-18T06:01:39.076Z"
+    },
+    {
+      "key": "NODE_ENV",
+      "value": "production",
+      "encrypted": false,
+      "priority": "critical",
+      "lastUpdated": "2025-06-18T06:01:39.076Z"
+    },
+    {
+      "key": "UPSTASH_REDIS_REST_URL",
+      "value": "https://charming-condor-46598.upstash.io",
+      "encrypted": false,
+      "priority": "important",
+      "lastUpdated": "2025-06-18T06:01:39.076Z"
+    },
+    {
+      "key": "UPSTASH_REDIS_REST_TOKEN",
+      "value": "1fab8479a4aee4e0144239636a5ea752:ac938bef00f2362660ba7086b733ad37b510ba5b1de61918e94570e49f1763ebfa48a1b4a90b91a8de07eddcf931489cb58001e8969d7c4a6e9102e646dd110e",
+      "encrypted": true,
+      "priority": "important",
+      "lastUpdated": "2025-06-18T06:01:39.076Z"
+    },
+    {
+      "key": "GOOGLE_AI_API_KEY",
+      "value": "f3da60cee539a9eca0754ce49e8da521:ed0a6b6b2f620eac5e5a45a56312287c8a3bd22fc0ef990df642e465d71dd35799675e7f4675d5713163d0ccea20b6a3",
+      "encrypted": true,
+      "priority": "important",
+      "lastUpdated": "2025-06-18T06:01:39.076Z"
+    },
+    {
+      "key": "SLACK_WEBHOOK_URL",
+      "value": "93f8d68332bb98b50ac77992cc05d9ff:be81653b23b3bbc27f448a6a0e6f7f11e08de7514a08c80c2a6998d399696c4cf73c65eac1fdde09c028530c01b93565cdde8d1ff5bcdf5e1b29193ff969f55481be8125216cf908705fdd821a0418fc1eb6ce00b14e7d17f7ff83836bebe4a1",
+      "encrypted": true,
+      "priority": "optional",
+      "lastUpdated": "2025-06-18T06:01:39.076Z"
+    },
+    {
+      "key": "GOOGLE_AI_DAILY_LIMIT",
+      "value": "10000",
+      "encrypted": false,
+      "priority": "optional",
+      "lastUpdated": "2025-06-18T06:01:39.076Z"
+    },
+    {
+      "key": "GOOGLE_AI_RPM_LIMIT",
+      "value": "100",
+      "encrypted": false,
+      "priority": "optional",
+      "lastUpdated": "2025-06-18T06:01:39.076Z"
+    }
+  ],
+  "checksum": "97c4baaae5504961ba3b583da8744a43"
+}

@@ -9,7 +9,7 @@ const meta: Meta<typeof SystemControlPanel> = {
     docs: {
       description: {
         component:
-          '통합 시스템 제어 패널 - 프로세스 시작/중지/재시작, 실시간 모니터링, 30분 안정성 추적',
+          '통합 시스템 제어 패널 (v5.44.4) - 프로세스 시작/중지/재시작, 실시간 모니터링, 30분 안정성 추적. 최근 업데이트: /about 페이지 연동, AI 에이전트 상태 개선',
       },
     },
   },

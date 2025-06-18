@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import {
   Bot,
   Activity,
@@ -866,78 +867,19 @@ export default function FeatureCardsGrid() {
         ))}
       </div>
 
-      {/* 개발과정 전용 버튼 섹션 */}
-      <div className='mt-8 flex justify-center'>
-        <motion.button
-          onClick={() => window.location.href = '/vibe-coding'}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-          whileHover={{
-            scale: 1.05,
-            y: -2,
-            boxShadow: '0 20px 40px rgba(59, 130, 246, 0.3)'
-          }}
-          whileTap={{ scale: 0.98 }}
-          className={`group relative px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 overflow-hidden ${isDarkMode
+      {/* 개발과정 버튼 */}
+      <div className="mt-12 flex justify-center">
+        <Link
+          href="/about"
+          className={`group relative px-6 py-3 rounded-xl font-semibold transition-all duration-300 overflow-hidden ${isDarkMode
             ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25'
             : 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg shadow-blue-600/25'
-            }`}
+            } hover:scale-105 hover:shadow-xl`}
         >
-          {/* 배경 애니메이션 효과 */}
-          <motion.div
-            className='absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300'
-            animate={{
-              background: [
-                'linear-gradient(90deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%)',
-                'linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #3b82f6 100%)',
-                'linear-gradient(90deg, #8b5cf6 0%, #3b82f6 50%, #6366f1 100%)',
-                'linear-gradient(90deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%)',
-              ],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-
-          {/* 버튼 내용 */}
-          <div className='relative z-10 flex items-center gap-3'>
-            <motion.div
-              animate={{
-                rotate: [0, 360],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: 'linear',
-              }}
-            >
-              🤖
-            </motion.div>
-            <span className='bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent font-extrabold'>
-              AI 어시스턴트 개발과정
-            </span>
-            <motion.div
-              animate={{
-                y: [0, -3, 0],
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-            >
-              🧠
-            </motion.div>
-          </div>
-
-          {/* 하단 설명 텍스트 */}
-          <div className='relative z-10 mt-1 text-xs text-white/90 font-medium'>
-            도메인 특화 AI 시스템 설계부터 구현까지
-          </div>
-        </motion.button>
+          <span className="relative z-10 flex items-center gap-2">
+            🔧 개발과정 보기
+          </span>
+        </Link>
       </div>
 
       {/* Feature Card Modal */}

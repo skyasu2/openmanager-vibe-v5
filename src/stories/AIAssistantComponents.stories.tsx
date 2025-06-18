@@ -1,7 +1,8 @@
 /**
- * 🤖 AI 어시스턴트 컴포넌트 스토리북
+ * 🤖 AI 어시스턴트 컴포넌트 스토리북 (v5.44.4)
  * 
  * AI 사이드바와 관련 컴포넌트들의 스토리북
+ * 최근 업데이트: /about 페이지 연동, AI 에이전트 상태 개선
  */
 
 import type { Meta, StoryObj } from '@storybook/react';
@@ -49,7 +50,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   args: {
     isOpen: true,
-    onClose: () => {},
+    onClose: () => { },
   },
   parameters: {
     docs: {
@@ -66,7 +67,7 @@ export const Default: Story = {
 export const EnhancedChatMode: Story = {
   args: {
     isOpen: true,
-    onClose: () => {},
+    onClose: () => { },
   },
   parameters: {
     docs: {
@@ -83,7 +84,7 @@ export const EnhancedChatMode: Story = {
 export const AutoReportMode: Story = {
   args: {
     isOpen: true,
-    onClose: () => {},
+    onClose: () => { },
   },
   parameters: {
     docs: {
@@ -100,7 +101,7 @@ export const AutoReportMode: Story = {
 export const PredictionMode: Story = {
   args: {
     isOpen: true,
-    onClose: () => {},
+    onClose: () => { },
   },
   parameters: {
     docs: {
