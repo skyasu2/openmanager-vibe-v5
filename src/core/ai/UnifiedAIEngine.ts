@@ -44,7 +44,7 @@ import {
 import { DataProcessingOrchestrator } from '@/services/ai-agent/DataProcessingOrchestrator';
 import type {
   OrchestratorRequest,
-  OrchestratorResponse
+  OrchestratorResponse,
 } from '@/services/ai-agent/DataProcessingOrchestrator';
 
 export interface UnifiedAnalysisRequest {
@@ -235,6 +235,25 @@ export class UnifiedAIEngine {
 
   private async initializeComponents(): Promise<void> {
     try {
+      // 환경 체크 추가
+      const { envManager } = await import(
+        '@/lib/environment/EnvironmentManager'
+      );
+
+      // 빌드 시에는 AI 엔진 초기화 건너뛰기
+      if (envManager.isBuildTime) {
+        console.log('🔨 빌드 환경 감지 - AI 엔진 초기화 건너뜀');
+        return;
+      }
+
+      // AI 엔진 초기화가 허용된 환경에서만 실행
+      if (!envManager.shouldInitializeAI()) {
+        console.log('⏭️ AI 엔진 초기화 비활성화됨 (환경 설정)');
+        return;
+      }
+
+      envManager.log('info', 'AI 엔진 컴포넌트 초기화 시작');
+
       // MCP Client 초기화
       this.mcpClient = new RealMCPClient();
       await this.mcpClient.initialize();
@@ -244,6 +263,7 @@ export class UnifiedAIEngine {
         this.googleAI = new GoogleAIService();
         this.betaModeEnabled = true;
         console.log('✅ Google AI 베타 모드 활성화');
+        envManager.log('info', 'Google AI 베타 모드 활성화');
       }
 
       // RAG Engine 초기화
@@ -253,8 +273,13 @@ export class UnifiedAIEngine {
       await this.initializeSubEngines();
 
       console.log('✅ Enhanced Unified AI Engine 컴포넌트 초기화 완료');
+      envManager.log('info', 'Enhanced Unified AI Engine 컴포넌트 초기화 완료');
     } catch (error) {
       console.error('❌ AI Engine 컴포넌트 초기화 실패:', error);
+      const { envManager } = await import(
+        '@/lib/environment/EnvironmentManager'
+      );
+      envManager.log('error', 'AI Engine 컴포넌트 초기화 실패', error);
     }
   }
 
@@ -1563,7 +1588,7 @@ export class UnifiedAIEngine {
         healthRatio: Math.round(
           (hybridData.monitoringData.metadata.onlineServers /
             hybridData.monitoringData.metadata.totalServers) *
-          100
+            100
         ),
       },
       confidence: hybridData.metadata.dataQuality.monitoring,
@@ -1640,7 +1665,7 @@ export class UnifiedAIEngine {
 
   /**
    * 🎯 새로운 전략적 오케스트레이터를 통한 쿼리 처리
-   * 
+   *
    * 기존 processQuery와 processHybridQuery를 통합하여
    * 더 효율적이고 전략적인 데이터 처리 제공
    */
@@ -1661,25 +1686,29 @@ export class UnifiedAIEngine {
         urgency: (request.context?.urgency as any) || 'medium',
         filters: {
           monitoring: this.extractMonitoringFilters(request),
-          ai: this.extractAIFilters(request)
+          ai: this.extractAIFilters(request),
         },
         options: {
           useCache: request.options?.use_cache !== false,
           timeout: request.options?.maxResponseTime || 30000,
-          confidenceThreshold: request.options?.confidenceThreshold || 0.7
+          confidenceThreshold: request.options?.confidenceThreshold || 0.7,
         },
         context: {
           sessionId: request.context?.sessionId || sessionId,
-          source: 'UnifiedAIEngine'
-        }
+          source: 'UnifiedAIEngine',
+        },
       };
 
       // 오케스트레이터를 통한 데이터 처리
-      const orchestratorResponse = await this.orchestrator.processRequest(orchestratorRequest);
+      const orchestratorResponse =
+        await this.orchestrator.processRequest(orchestratorRequest);
 
       // OrchestratorResponse를 UnifiedAnalysisResponse로 변환
-      return this.mapToUnifiedResponse(request, orchestratorResponse, startTime);
-
+      return this.mapToUnifiedResponse(
+        request,
+        orchestratorResponse,
+        startTime
+      );
     } catch (error) {
       console.error('❌ 전략적 쿼리 처리 실패:', error);
       return this.createErrorResponse(
@@ -1717,43 +1746,49 @@ export class UnifiedAIEngine {
         primary: orchestratorResponse.data?.intent?.primary || 'analysis',
         confidence: orchestratorResponse.metadata.confidence,
         category: orchestratorResponse.data?.intent?.category || 'general',
-        urgency: orchestratorResponse.data?.intent?.urgency || 'medium'
+        urgency: orchestratorResponse.data?.intent?.urgency || 'medium',
       },
       analysis: {
-        summary: orchestratorResponse.data?.analysis?.summary || '전략적 데이터 처리 완료',
+        summary:
+          orchestratorResponse.data?.analysis?.summary ||
+          '전략적 데이터 처리 완료',
         details: orchestratorResponse.data?.analysis?.details || [],
         confidence: orchestratorResponse.metadata.confidence,
-        processingTime: orchestratorResponse.metadata.processingTime
+        processingTime: orchestratorResponse.metadata.processingTime,
       },
       recommendations: orchestratorResponse.data?.recommendations || [
-        '전략적 오케스트레이터를 통한 최적화된 분석 결과입니다'
+        '전략적 오케스트레이터를 통한 최적화된 분석 결과입니다',
       ],
       engines: {
         used: [orchestratorResponse.metadata.strategy],
         results: [orchestratorResponse.data],
-        fallbacks: 0
+        fallbacks: 0,
       },
       metadata: {
         sessionId: orchestratorResponse.requestId,
         timestamp: new Date().toISOString(),
         version: '5.44.0-strategic',
         contextsUsed: 1,
-        contextIds: [orchestratorResponse.requestId]
+        contextIds: [orchestratorResponse.requestId],
       },
       systemStatus: {
         tier: 'enhanced',
-        availableComponents: ['DataProcessingOrchestrator', 'StrategyFactory', 'UnifiedCacheManager'],
+        availableComponents: [
+          'DataProcessingOrchestrator',
+          'StrategyFactory',
+          'UnifiedCacheManager',
+        ],
         degradationLevel: 'none',
-        recommendation: '전략적 아키텍처가 정상 작동 중입니다'
+        recommendation: '전략적 아키텍처가 정상 작동 중입니다',
       },
       performance: {
         cacheHit: orchestratorResponse.metadata.cacheHit,
-        memoryUsage: orchestratorResponse.performance
+        memoryUsage: orchestratorResponse.performance,
       },
       cache_hit: orchestratorResponse.metadata.cacheHit,
       fallback_used: false,
       engine_used: orchestratorResponse.metadata.strategy,
-      response_time: processingTime
+      response_time: processingTime,
     };
   }
 }

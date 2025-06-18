@@ -48,7 +48,8 @@ class KeepAliveScheduler {
       redis: null,
     };
 
-    this.initializeScheduler();
+    // 비동기 초기화를 나중에 호출
+    this.initializeScheduler().catch(console.error);
   }
 
   // 로컬 스토리지에서 상태 로드
@@ -104,7 +105,29 @@ class KeepAliveScheduler {
   }
 
   // 스케줄러 초기화
-  private initializeScheduler(): void {
+  private async initializeScheduler(): Promise<void> {
+    // 환경 체크 추가
+    let envManager;
+    try {
+      const envModule = await import('@/lib/environment/EnvironmentManager');
+      envManager = envModule.envManager;
+    } catch {
+      // 환경 매니저가 없으면 기존 방식 사용
+      console.log('⚠️ EnvironmentManager 없음 - 기존 방식 사용');
+    }
+
+    // 빌드 시에는 Keep-Alive 스케줄러 비활성화
+    if (envManager?.isBuildTime) {
+      console.log('🔨 빌드 환경 감지 - Keep-Alive 스케줄러 건너뜀');
+      return;
+    }
+
+    // Keep-Alive가 허용된 환경에서만 실행
+    if (envManager && !envManager.shouldStartKeepAlive()) {
+      console.log('⏭️ Keep-Alive 스케줄러 비활성화됨 (환경 설정)');
+      return;
+    }
+
     this.startSupabaseKeepAlive();
     this.startRedisKeepAlive();
 
@@ -113,6 +136,10 @@ class KeepAliveScheduler {
       `📊 Supabase: ${this.INTERVALS.supabase / 1000 / 60 / 60}시간 간격`
     );
     console.log(`📊 Redis: ${this.INTERVALS.redis / 1000 / 60 / 60}시간 간격`);
+
+    if (envManager) {
+      envManager.log('info', 'Keep-Alive 스케줄러 시작됨');
+    }
   }
 
   // Supabase Keep-alive 시작

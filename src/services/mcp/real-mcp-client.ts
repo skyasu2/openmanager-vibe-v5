@@ -143,7 +143,25 @@ export class RealMCPClient {
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
+    // 환경 체크 추가
+    const { envManager } = await import('@/lib/environment/EnvironmentManager');
+
+    // 빌드 시에는 MCP 초기화 건너뛰기
+    if (envManager.isBuildTime) {
+      console.log('🔨 빌드 환경 감지 - MCP 초기화 건너뜀');
+      this.isInitialized = true;
+      return;
+    }
+
+    // MCP 서버 초기화가 허용된 환경에서만 실행
+    if (!envManager.shouldInitializeMCP()) {
+      console.log('⏭️ MCP 초기화 비활성화됨 (환경 설정)');
+      this.isInitialized = true;
+      return;
+    }
+
     console.log('🚀 실제 MCP 클라이언트 초기화 중...');
+    envManager.log('info', 'MCP 클라이언트 초기화 시작');
 
     try {
       // 기본 서버들 연결 테스트
@@ -151,8 +169,10 @@ export class RealMCPClient {
 
       this.isInitialized = true;
       console.log('✅ MCP 클라이언트 초기화 완료');
+      envManager.log('info', 'MCP 클라이언트 초기화 완료');
     } catch (error: any) {
       console.error('❌ MCP 클라이언트 초기화 실패:', error);
+      envManager.log('error', 'MCP 클라이언트 초기화 실패', error);
       // 실패해도 계속 진행 (폴백 모드)
       this.isInitialized = true;
     }
@@ -184,6 +204,25 @@ export class RealMCPClient {
       return this.clients.get(serverName)!;
     }
 
+    // 환경 체크 추가
+    const { envManager } = await import('@/lib/environment/EnvironmentManager');
+
+    // 빌드 시에는 항상 Mock 클라이언트 반환
+    if (envManager.isBuildTime) {
+      console.log(`🔨 빌드 환경 - Mock MCP 클라이언트 사용: ${serverName}`);
+      const mockClient = this.createMockClient(serverName);
+      this.clients.set(serverName, mockClient);
+      return mockClient;
+    }
+
+    // MCP 서버 연결이 허용되지 않은 환경에서는 Mock 클라이언트 사용
+    if (!envManager.shouldInitializeMCP()) {
+      console.log(`⏭️ MCP 비활성화 환경 - Mock 클라이언트 사용: ${serverName}`);
+      const mockClient = this.createMockClient(serverName);
+      this.clients.set(serverName, mockClient);
+      return mockClient;
+    }
+
     const config = this.servers.get(serverName);
     if (!config || !config.enabled) {
       throw new Error(`MCP 서버 사용 불가: ${serverName}`);
@@ -192,6 +231,7 @@ export class RealMCPClient {
     try {
       console.log(`🔌 실제 MCP 서버 연결 시도: ${serverName}`);
       console.log(`📍 명령어: ${config.command} ${config.args.join(' ')}`);
+      envManager.log('info', `MCP 서버 연결 시도: ${serverName}`);
 
       // npx 실행 시 폴백 처리
       let serverProcess: ChildProcess;
@@ -206,6 +246,11 @@ export class RealMCPClient {
         console.warn(
           `⚠️ ${config.command} 실행 실패, 폴백 모드 사용:`,
           spawnError.message
+        );
+        envManager.log(
+          'warn',
+          `MCP 서버 실행 실패, Mock 모드 사용: ${serverName}`,
+          spawnError
         );
 
         // 폴백: Mock 클라이언트 반환

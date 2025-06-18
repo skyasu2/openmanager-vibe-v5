@@ -234,30 +234,10 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // 500 페이지 문제 해결 - /500 경로를 not-found로 리다이렉트
-  async redirects() {
-    return [
-      {
-        source: '/500',
-        destination: '/not-found',
-        permanent: false,
-      },
-      {
-        source: '/404',
-        destination: '/not-found',
-        permanent: false,
-      },
-    ];
-  },
-
-  // 500 페이지 자동 생성 비활성화
+  // 정적 에러 페이지는 App Router의 global-error.tsx에서 처리
   generateBuildId: async () => {
-    return 'openmanager-vibe-v5'
+    return 'openmanager-vibe-v5';
   },
-
-  // 정적 에러 페이지 생성 비활성화
-  skipMiddlewareUrlNormalize: true,
-  skipTrailingSlashRedirect: true,
 };
 
 // 번들 분석기 적용
