@@ -52,7 +52,7 @@ import ServerModalErrorBoundary from './ServerModalErrorBoundary';
 import NetworkMonitoringCard from './NetworkMonitoringCard';
 import { Server } from '../../types/server';
 import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
-import { transformArray } from '@/adapters/server-dashboard.transformer';
+import { transformArray, transformRawToEnhancedServer } from '@/adapters/server-dashboard.transformer';
 // 🚀 캐시된 서버 데이터 사용 (성능 최적화)
 import { useCachedServers } from '@/hooks/useCachedServers';
 
@@ -419,7 +419,36 @@ export default function ServerDashboard({
 
   // 🎯 서버 카드 클릭 핸들러
   const handleServerClick = useCallback((server: Server) => {
-    setSelectedServer(server);
+    // 🎯 원본 서버 데이터를 Enhanced 모달용으로 변환
+    const rawServerData = {
+      id: server.id,
+      name: server.name,
+      hostname: server.name,
+      type: server.type || 'unknown',
+      role: 'standalone',
+      environment: server.environment || 'production',
+      location: server.location,
+      status: server.status === 'online' ? 'running' : server.status === 'warning' ? 'warning' : 'error',
+      metrics: {
+        cpu: server.cpu,
+        memory: server.memory,
+        disk: server.disk,
+        network: {
+          in: server.network || 0,
+          out: (server.network || 0) * 0.8, // 아웃바운드는 인바운드의 80%로 추정
+        },
+      },
+      uptime: server.uptime,
+      lastUpdate: server.lastUpdate,
+      alerts: server.alerts,
+      services: server.services,
+      provider: server.provider,
+      networkStatus: server.networkStatus,
+    };
+
+    // Enhanced 모달용 형식으로 변환
+    const enhancedServer = transformRawToEnhancedServer(rawServerData);
+    setSelectedServer(enhancedServer);
   }, []);
 
   // 🎯 모달 닫기 핸들러
@@ -559,11 +588,10 @@ export default function ServerDashboard({
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-2 rounded-lg border ${
-                        currentPage === page
-                          ? 'bg-blue-500 text-white border-blue-500'
-                          : 'border-gray-300 hover:bg-gray-50'
-                      }`}
+                      className={`px-3 py-2 rounded-lg border ${currentPage === page
+                        ? 'bg-blue-500 text-white border-blue-500'
+                        : 'border-gray-300 hover:bg-gray-50'
+                        }`}
                     >
                       {page}
                     </button>

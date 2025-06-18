@@ -157,7 +157,11 @@ export default function EnhancedServerModal({
       uptime: server.uptime || '0d 0h 0m',
       lastUpdate: server.lastUpdate || new Date(),
       alerts: server.alerts || 0,
-      services: Array.isArray(server.services) ? server.services : [],
+      services: Array.isArray(server.services) ? server.services : [
+        { name: 'nginx', status: 'running', port: 80 },
+        { name: 'nodejs', status: 'running', port: 3000 },
+        { name: 'redis', status: 'running', port: 6379 },
+      ],
       specs: server.specs || {
         cpu_cores: 4,
         memory_gb: 8,
@@ -165,103 +169,84 @@ export default function EnhancedServerModal({
         network_speed: '1Gbps',
       },
       os: server.os || 'Linux',
-      ip: server.ip || '0.0.0.0',
+      ip: server.ip || '192.168.1.100',
       networkStatus: server.networkStatus || 'good',
     };
   }, [server]);
 
-  // 실시간 데이터 생성
+  // 🔄 실시간 데이터 생성
   useEffect(() => {
-    if (!safeServer || !isRealtime) return;
+    if (!isRealtime || !safeServer) return;
 
-    const generateRealtimeData = () => {
-      const now = new Date();
+    const interval = setInterval(() => {
+      // 🎯 서버 상태에 따른 현실적인 변화량
+      const statusMultiplier = safeServer.status === 'critical' ? 1.5 :
+        safeServer.status === 'warning' ? 1.2 : 1.0;
+
       setRealtimeData(prev => ({
         cpu: [
-          ...prev.cpu.slice(-29),
-          safeServer.cpu + (Math.random() - 0.5) * 10,
-        ].slice(-30),
+          ...prev.cpu.slice(-19),
+          Math.max(0, Math.min(100, safeServer.cpu + (Math.random() - 0.5) * 10 * statusMultiplier))
+        ],
         memory: [
-          ...prev.memory.slice(-29),
-          safeServer.memory + (Math.random() - 0.5) * 8,
-        ].slice(-30),
+          ...prev.memory.slice(-19),
+          Math.max(0, Math.min(100, safeServer.memory + (Math.random() - 0.5) * 5 * statusMultiplier))
+        ],
         disk: [
-          ...prev.disk.slice(-29),
-          safeServer.disk + (Math.random() - 0.5) * 3,
-        ].slice(-30),
+          ...prev.disk.slice(-19),
+          Math.max(0, Math.min(100, safeServer.disk + (Math.random() - 0.5) * 2))
+        ],
         network: [
-          ...prev.network.slice(-29),
+          ...prev.network.slice(-19),
           {
-            in: Math.random() * 1000 + 500,
-            out: Math.random() * 800 + 300,
+            in: Math.max(0, safeServer.network + (Math.random() - 0.5) * 20),
+            out: Math.max(0, (safeServer.network || 0) * 0.8 + (Math.random() - 0.5) * 15),
           },
-        ].slice(-30),
-        latency: [...prev.latency.slice(-29), Math.random() * 100 + 50].slice(
-          -30
-        ),
-        processes: Array.from({ length: 8 }, (_, i) => ({
-          name: [
-            'nodejs',
-            'nginx',
-            'postgres',
-            'redis',
-            'docker',
-            'systemd',
-            'ssh',
-            'cron',
-          ][i],
-          cpu: Math.random() * 20,
-          memory: Math.random() * 15,
-          pid: 1000 + i,
-        })),
+        ],
+        latency: [
+          ...prev.latency.slice(-19),
+          Math.max(1, 50 + (Math.random() - 0.5) * 100 * statusMultiplier)
+        ],
+        processes: [
+          { name: 'nginx', cpu: 15 + Math.random() * 10, memory: 8 + Math.random() * 4, pid: 1234 },
+          { name: 'node', cpu: 25 + Math.random() * 15, memory: 12 + Math.random() * 8, pid: 5678 },
+          { name: 'redis', cpu: 5 + Math.random() * 5, memory: 4 + Math.random() * 2, pid: 9012 },
+          { name: 'postgres', cpu: 20 + Math.random() * 10, memory: 16 + Math.random() * 8, pid: 3456 },
+        ],
         logs: [
-          ...prev.logs.slice(-19),
+          ...prev.logs.slice(-4),
           {
-            timestamp: now.toISOString(),
-            level: ['info', 'warn', 'error'][Math.floor(Math.random() * 3)],
+            timestamp: new Date().toISOString(),
+            level: ['info', 'warning', 'error'][Math.floor(Math.random() * 3)],
             message: [
               'HTTP request processed successfully',
-              'Memory usage above threshold',
               'Database connection established',
-              'Cache invalidated',
-              'Backup completed',
-              'SSL certificate renewed',
-            ][Math.floor(Math.random() * 6)],
-            source: ['nginx', 'app', 'db', 'cache'][
-              Math.floor(Math.random() * 4)
-            ],
+              'Cache miss for key: user_session',
+              'Memory usage threshold exceeded',
+              'SSL certificate renewal required',
+            ][Math.floor(Math.random() * 5)],
+            source: ['nginx', 'postgres', 'redis', 'app'][Math.floor(Math.random() * 4)],
           },
-        ].slice(-20),
+        ],
         insights: [
-          ...prev.insights.slice(-4),
-          ...(Math.random() > 0.8
-            ? [
-                {
-                  type: ['performance', 'security', 'capacity'][
-                    Math.floor(Math.random() * 3)
-                  ],
-                  message: [
-                    'CPU 사용률이 지속적으로 증가하고 있습니다',
-                    '비정상적인 네트워크 트래픽이 감지되었습니다',
-                    '디스크 용량이 부족할 수 있습니다',
-                    '응답 시간이 개선되었습니다',
-                  ][Math.floor(Math.random() * 4)],
-                  severity: ['info', 'warning', 'critical'][
-                    Math.floor(Math.random() * 3)
-                  ],
-                  timestamp: now.toISOString(),
-                },
-              ]
-            : []),
-        ].slice(-5),
+          ...prev.insights.slice(-2),
+          {
+            type: ['performance', 'security', 'optimization'][Math.floor(Math.random() * 3)],
+            message: [
+              `CPU 사용률이 ${Math.round(safeServer.cpu)}%로 높습니다.`,
+              '메모리 사용 패턴이 비정상적입니다.',
+              '네트워크 지연시간이 증가하고 있습니다.',
+              '디스크 I/O 성능이 저하되고 있습니다.',
+            ][Math.floor(Math.random() * 4)],
+            severity: statusMultiplier > 1.2 ? 'high' : statusMultiplier > 1.0 ? 'medium' : 'low',
+            timestamp: new Date().toISOString(),
+          },
+        ],
       }));
-    };
-
-    generateRealtimeData();
-    const interval = setInterval(generateRealtimeData, 20000); // 🎯 성능 최적화: 2초 → 20초로 변경 (서버 부하 90% 감소)
+    }, 2000);
 
     return () => clearInterval(interval);
-  }, [safeServer?.id, isRealtime]);
+  }, [isRealtime, safeServer]);
 
   // 탭 설정
   const tabs = [
@@ -491,9 +476,8 @@ export default function EnhancedServerModal({
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setIsRealtime(!isRealtime)}
-                    className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
-                      isRealtime ? 'bg-green-500' : 'bg-white/20'
-                    }`}
+                    className={`px-4 py-2 rounded-lg flex items-center gap-2 ${isRealtime ? 'bg-green-500' : 'bg-white/20'
+                      }`}
                   >
                     {isRealtime ? (
                       <Play className='w-4 h-4' />
@@ -524,11 +508,10 @@ export default function EnhancedServerModal({
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setSelectedTab(tab.id as any)}
-                      className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all ${
-                        selectedTab === tab.id
-                          ? 'bg-white text-blue-600 shadow-lg'
-                          : 'bg-white/10 text-white hover:bg-white/20'
-                      }`}
+                      className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all ${selectedTab === tab.id
+                        ? 'bg-white text-blue-600 shadow-lg'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                        }`}
                     >
                       <Icon className='w-4 h-4' />
                       {tab.label}
@@ -629,11 +612,10 @@ export default function EnhancedServerModal({
                               >
                                 <div className='flex items-center gap-3'>
                                   <div
-                                    className={`w-3 h-3 rounded-full ${
-                                      service.status === 'running'
-                                        ? 'bg-green-500'
-                                        : 'bg-red-500'
-                                    }`}
+                                    className={`w-3 h-3 rounded-full ${service.status === 'running'
+                                      ? 'bg-green-500'
+                                      : 'bg-red-500'
+                                      }`}
                                   />
                                   <span className='font-medium'>
                                     {service.name}
@@ -773,13 +755,12 @@ export default function EnhancedServerModal({
                             key={idx}
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className={`mb-2 ${
-                              log.level === 'error'
-                                ? 'text-red-400'
-                                : log.level === 'warn'
-                                  ? 'text-yellow-400'
-                                  : 'text-green-400'
-                            }`}
+                            className={`mb-2 ${log.level === 'error'
+                              ? 'text-red-400'
+                              : log.level === 'warn'
+                                ? 'text-yellow-400'
+                                : 'text-green-400'
+                              }`}
                           >
                             <span className='text-gray-500'>
                               {new Date(log.timestamp).toLocaleTimeString()}
@@ -809,13 +790,12 @@ export default function EnhancedServerModal({
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.1 }}
-                            className={`p-4 rounded-xl border-l-4 ${
-                              insight.severity === 'critical'
-                                ? 'bg-red-50 border-red-500'
-                                : insight.severity === 'warning'
-                                  ? 'bg-yellow-50 border-yellow-500'
-                                  : 'bg-blue-50 border-blue-500'
-                            }`}
+                            className={`p-4 rounded-xl border-l-4 ${insight.severity === 'critical'
+                              ? 'bg-red-50 border-red-500'
+                              : insight.severity === 'warning'
+                                ? 'bg-yellow-50 border-yellow-500'
+                                : 'bg-blue-50 border-blue-500'
+                              }`}
                           >
                             <div className='flex items-start gap-3'>
                               <Brain className='w-5 h-5 mt-1 text-blue-600' />
