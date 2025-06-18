@@ -143,6 +143,8 @@ const ProfileButtonMeta: Meta<typeof UnifiedProfileButton> = {
       control: 'boolean',
       description: '드롭다운 열림 상태',
     },
+    onToggle: { action: 'toggle' },
+    onClose: { action: 'close' },
   },
 };
 
@@ -156,7 +158,8 @@ export const DefaultProfile: ProfileButtonStory = {
     userName: '사용자',
     userAvatar: '',
     isOpen: false,
-    onClick: () => console.log('Profile clicked'),
+    onToggle: () => console.log('Profile toggled'),
+    onClose: () => console.log('Profile closed'),
     onSettingsClick: () => console.log('Settings clicked'),
   },
   parameters: {
@@ -176,7 +179,8 @@ export const ProfileDropdownOpen: ProfileButtonStory = {
     userName: '관리자',
     userAvatar: '',
     isOpen: true,
-    onClick: () => console.log('Profile clicked'),
+    onToggle: () => console.log('Profile toggled'),
+    onClose: () => console.log('Profile closed'),
     onSettingsClick: () => console.log('Settings clicked'),
   },
   parameters: {
@@ -196,7 +200,8 @@ export const AdminModeActive: ProfileButtonStory = {
     userName: '관리자',
     userAvatar: '',
     isOpen: true,
-    onClick: () => console.log('Profile clicked'),
+    onToggle: () => console.log('Profile toggled'),
+    onClose: () => console.log('Profile closed'),
     onSettingsClick: () => console.log('Settings clicked'),
   },
   parameters: {

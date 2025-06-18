@@ -64,6 +64,11 @@ export default function UnifiedProfileComponent({
     setIsOpen(false); // 드롭다운 닫기
   }, [setSettingsPanelOpen]);
 
+  // 드롭다운 닫기 핸들러
+  const handleCloseDropdown = useCallback(() => {
+    setIsOpen(false);
+  }, []);
+
   // 설정 패널 닫기 핸들러
   const handleSettingsClose = useCallback(() => {
     setSettingsPanelOpen(false);
@@ -76,7 +81,8 @@ export default function UnifiedProfileComponent({
         userName={userName}
         userAvatar={userAvatar}
         isOpen={isOpen}
-        onClick={handleToggleDropdown}
+        onToggle={handleToggleDropdown}
+        onClose={handleCloseDropdown}
         buttonRef={profileButtonRef}
         onSettingsClick={handleSettingsClick}
       />

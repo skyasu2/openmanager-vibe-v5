@@ -45,7 +45,8 @@ export function UnifiedProfileButton({
   userName,
   userAvatar,
   isOpen,
-  onClick,
+  onToggle,
+  onClose,
   buttonRef,
   onSettingsClick,
 }: UnifiedProfileButtonProps) {
@@ -134,7 +135,7 @@ export function UnifiedProfileButton({
     const handleClickOutside = (event: Event) => {
       const target = event.target as Node;
 
-      // 버튼 클릭은 무시 (onClick 핸들러에서 처리)
+      // 버튼 클릭은 무시 (토글 핸들러에서 처리)
       if (buttonRef.current?.contains(target)) {
         return;
       }
@@ -145,7 +146,7 @@ export function UnifiedProfileButton({
       }
 
       // 외부 클릭 시 드롭다운 닫기
-      onClick({} as React.MouseEvent);
+      onClose();
     };
 
     // 약간의 지연을 두어 버튼 클릭과 충돌 방지
@@ -160,7 +161,7 @@ export function UnifiedProfileButton({
       clearTimeout(timeoutId);
       document.removeEventListener('mousedown', handleClickOutside, true);
     };
-  }, [isOpen, onClick, buttonRef]);
+  }, [isOpen, onClose, buttonRef]);
 
   // ESC 키로 드롭다운 닫기 (최적화된 버전)
   useEffect(() => {
@@ -170,7 +171,7 @@ export function UnifiedProfileButton({
       if (e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
-        onClick({} as React.MouseEvent);
+        onClose();
       }
     };
 
@@ -182,7 +183,7 @@ export function UnifiedProfileButton({
     return () => {
       document.removeEventListener('keydown', handleEscape, true);
     };
-  }, [isOpen, onClick]);
+  }, [isOpen, onClose]);
 
   // 이벤트 핸들러들
   const handleSystemToggle = (e: React.MouseEvent) => {
@@ -202,7 +203,7 @@ export function UnifiedProfileButton({
     e.preventDefault();
     e.stopPropagation();
     onSettingsClick();
-    onClick(e); // 드롭다운 닫기
+    onClose(); // 드롭다운 닫기
   };
 
   const handleLogout = (e: React.MouseEvent) => {
@@ -210,7 +211,7 @@ export function UnifiedProfileButton({
     e.stopPropagation();
     logout();
     info('로그아웃되었습니다.');
-    onClick(e); // 드롭다운 닫기
+    onClose(); // 드롭다운 닫기
   };
 
   const handleAdminModeToggle = (e: React.MouseEvent) => {
@@ -317,7 +318,7 @@ export function UnifiedProfileButton({
               onClick={e => {
                 e.preventDefault();
                 e.stopPropagation();
-                onClick({} as React.MouseEvent);
+                onClose();
               }}
             />
 
@@ -517,7 +518,7 @@ export function UnifiedProfileButton({
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
                       }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => onClick({} as React.MouseEvent)}
+                      onClick={() => onClose()}
                       className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2'
                       role='menuitem'
                     >
@@ -544,7 +545,7 @@ export function UnifiedProfileButton({
                         backgroundColor: 'rgba(139, 92, 246, 0.1)',
                       }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => onClick({} as React.MouseEvent)}
+                      onClick={() => onClose()}
                       className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 mb-2'
                       role='menuitem'
                     >
@@ -632,7 +633,7 @@ export function UnifiedProfileButton({
     );
   }, [
     isOpen,
-    onClick,
+    onClose,
     dropdownPosition,
     dropdownRef,
     isAnimating,
@@ -665,7 +666,7 @@ export function UnifiedProfileButton({
           e.stopPropagation();
 
           // 단순화된 클릭 처리 - 애니메이션 체크 제거
-          onClick(e);
+          onToggle(e);
         }}
         className={`flex items-center gap-3 p-2 rounded-xl backdrop-blur-md border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent ${
           isLocked

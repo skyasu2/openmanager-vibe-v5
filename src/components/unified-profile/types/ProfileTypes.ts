@@ -109,7 +109,10 @@ export interface ProfileButtonProps {
   userName: string;
   userAvatar?: string;
   isOpen: boolean;
-  onClick: (e: React.MouseEvent) => void;
+  /** 프로필 버튼 토글 핸들러 */
+  onToggle: (e: React.MouseEvent) => void;
+  /** 드롭다운 닫기 핸들러 */
+  onClose: () => void;
   buttonRef: React.RefObject<HTMLButtonElement>;
 }
 
