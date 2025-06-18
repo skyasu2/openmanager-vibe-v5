@@ -36,6 +36,7 @@ import AIEngineStatusTab from '@/components/admin/ai-engine-tabs/AIEngineStatusT
 import AIEngineTrainingTab from '@/components/admin/ai-engine-tabs/AIEngineTrainingTab';
 import AIEngineDataTab from '@/components/admin/ai-engine-tabs/AIEngineDataTab';
 import AIEnginePerformanceTab from '@/components/admin/ai-engine-tabs/AIEnginePerformanceTab';
+import GoogleAIManagementTab from '@/components/admin/ai-engine-tabs/GoogleAIManagementTab';
 import { PredictionDashboard } from '@/components/prediction/PredictionDashboard';
 import {
   MigrationStatus,
@@ -513,7 +514,7 @@ export default function IntegratedAIEngineDashboard() {
 
         {/* 탭 메뉴 */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
-          <TabsList className='grid w-full grid-cols-7 bg-slate-800 border-slate-700'>
+          <TabsList className='grid w-full grid-cols-8 bg-slate-800 border-slate-700'>
             <TabsTrigger
               value='overview'
               className='data-[state=active]:bg-purple-600'
@@ -534,6 +535,13 @@ export default function IntegratedAIEngineDashboard() {
             >
               <Zap className='w-4 h-4 mr-2' />
               엔진 상태
+            </TabsTrigger>
+            <TabsTrigger
+              value='google-ai'
+              className='data-[state=active]:bg-yellow-600'
+            >
+              <Settings className='w-4 h-4 mr-2' />
+              Google AI
             </TabsTrigger>
             <TabsTrigger
               value='training'
@@ -603,6 +611,11 @@ export default function IntegratedAIEngineDashboard() {
               error={error}
               refreshEngineStatus={refreshEngineStatus}
             />
+          </TabsContent>
+
+          {/* Google AI 관리 탭 */}
+          <TabsContent value='google-ai'>
+            <GoogleAIManagementTab />
           </TabsContent>
 
           {/* 훈련 관리 탭 */}

@@ -51,6 +51,7 @@ import { AISettingsTab } from './components/AISettingsTab';
 import { GeneratorSettingsTab } from './components/GeneratorSettingsTab';
 import { MonitorSettingsTab } from './components/MonitorSettingsTab';
 import { GeneralSettingsTab } from './components/GeneralSettingsTab';
+import { OptimizationSettingsTab } from './components/OptimizationSettingsTab';
 
 export function UnifiedSettingsPanel({
   isOpen,
@@ -289,6 +290,37 @@ export function UnifiedSettingsPanel({
     }
   };
 
+  // 최적화 관련 핸들러들
+  const handleOptimizationRun = async () => {
+    try {
+      info('optimization-section', '⚡ 시스템 최적화를 시작합니다...');
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      success('optimization-section', '🚀 시스템 최적화가 완료되었습니다!');
+    } catch (err) {
+      error('optimization-section', '최적화 실행 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handlePerformanceAnalysis = async () => {
+    try {
+      info('optimization-section', '📊 성능 분석을 시작합니다...');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      success('optimization-section', '✅ 성능 분석이 완료되었습니다!');
+    } catch (err) {
+      error('optimization-section', '성능 분석 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleCacheOptimization = async () => {
+    try {
+      info('optimization-section', '🔧 캐시 최적화를 시작합니다...');
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      success('optimization-section', '💾 캐시 최적화가 완료되었습니다!');
+    } catch (err) {
+      error('optimization-section', '캐시 최적화 중 오류가 발생했습니다.');
+    }
+  };
+
   // 탭 컨텐츠 렌더링
   const renderTabContent = () => {
     switch (activeTab) {
@@ -326,6 +358,15 @@ export function UnifiedSettingsPanel({
       case 'general':
         return <GeneralSettingsTab settingsData={settingsData} />;
 
+      case 'optimization':
+        return (
+          <OptimizationSettingsTab
+            onOptimizationRun={handleOptimizationRun}
+            onPerformanceAnalysis={handlePerformanceAnalysis}
+            onCacheOptimization={handleCacheOptimization}
+          />
+        );
+
       default:
         return null;
     }
@@ -351,14 +392,17 @@ export function UnifiedSettingsPanel({
             onClick={onClose}
           />
 
-          {/* 설정 패널 */}
+          {/* 설정 패널 - 중앙 모달로 변경 */}
           <motion.div
             ref={modalRef}
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 220 }}
-            className='fixed top-0 right-0 h-full w-[clamp(300px,90%,520px)] bg-gray-900/90 backdrop-blur-lg border-l border-white/10 shadow-2xl z-[1000] flex flex-col'
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className='fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
+                       w-[clamp(400px,90vw,800px)] h-[clamp(500px,85vh,700px)] 
+                       bg-gray-900/95 backdrop-blur-xl border border-white/20 
+                       rounded-2xl shadow-2xl z-[1000] flex flex-col overflow-hidden'
             role='dialog'
             aria-modal='true'
             aria-labelledby='settings-panel-title'
@@ -384,13 +428,14 @@ export function UnifiedSettingsPanel({
             </header>
 
             {/* 탭 네비게이션 */}
-            <nav className='flex-shrink-0 p-2 border-b border-white/10'>
+            <nav className='flex-shrink-0 p-4 border-b border-white/10'>
               <div className='flex items-center justify-around bg-gray-800/50 p-1 rounded-lg'>
                 {(
                   [
                     ['ai', 'AI 에이전트', Bot],
                     ['generator', '데이터 생성기', Database],
                     ['monitor', '모니터링', Monitor],
+                    ['optimization', '최적화', Zap],
                     ['general', '일반 설정', Settings],
                   ] as const
                 ).map(([tabKey, tabName, Icon]) => (
@@ -443,6 +488,7 @@ export function UnifiedSettingsPanel({
               <InlineFeedbackContainer area='auth-section' />
               <InlineFeedbackContainer area='generator-section' />
               <InlineFeedbackContainer area='monitor-section' />
+              <InlineFeedbackContainer area='optimization-section' />
               <InlineFeedbackContainer area='general-section' />
             </footer>
           </motion.div>

@@ -32,7 +32,6 @@ export type AIAgentFunction =
   | 'auto-report'
   | 'intelligent-monitoring'
   | 'thinking'
-  | 'optimization'
   | 'advanced-management';
 
 interface AIAgentIcon {
@@ -45,7 +44,7 @@ interface AIAgentIcon {
   gradient: string;
 }
 
-// 🎯 간소화된 AI 기능 메뉴 - 지능형 모니터링으로 통합
+// 🎯 간소화된 AI 기능 메뉴 - 최적화 기능 제거하여 프로필 설정으로 이동
 const AI_AGENT_ICONS: AIAgentIcon[] = [
   // === 핵심 기능 (상단) ===
   {
@@ -86,15 +85,6 @@ const AI_AGENT_ICONS: AIAgentIcon[] = [
     color: 'text-green-600',
     bgColor: 'bg-green-50 hover:bg-green-100',
     gradient: 'from-green-500 to-emerald-500',
-  },
-  {
-    id: 'optimization',
-    icon: Zap,
-    label: '최적화',
-    description: '시스템 성능 최적화 제안',
-    color: 'text-yellow-600',
-    bgColor: 'bg-yellow-50 hover:bg-yellow-100',
-    gradient: 'from-yellow-500 to-orange-500',
   },
   {
     id: 'advanced-management',
@@ -226,10 +216,10 @@ export default function AIAgentIconPanel({
                 />
               )}
 
-              {/* 호버 툴팁 - 개선된 위치 계산 */}
+              {/* 호버 툴팁 - 왼쪽으로 위치 변경 */}
               <div
                 className={`
-                absolute left-full ml-3 ${getTooltipPosition(index, AI_AGENT_ICONS.length)}
+                absolute right-full mr-3 ${getTooltipPosition(index, AI_AGENT_ICONS.length)}
                 bg-gray-900 text-white text-xs px-3 py-2 rounded-lg 
                 opacity-0 group-hover:opacity-100 transition-all duration-200 
                 pointer-events-none whitespace-nowrap z-[60] shadow-lg
@@ -241,9 +231,9 @@ export default function AIAgentIconPanel({
                   {item.description}
                 </div>
 
-                {/* 툴팁 화살표 */}
-                <div className='absolute right-full top-1/2 transform -translate-y-1/2'>
-                  <div className='border-4 border-transparent border-r-gray-900'></div>
+                {/* 툴팁 화살표 - 왼쪽 표시용으로 변경 */}
+                <div className='absolute left-full top-1/2 transform -translate-y-1/2'>
+                  <div className='border-4 border-transparent border-l-gray-900'></div>
                 </div>
               </div>
             </motion.button>

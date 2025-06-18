@@ -60,7 +60,12 @@ export interface GeneratorConfig {
 }
 
 // 설정 탭 타입
-export type SettingsTab = 'ai' | 'generator' | 'monitor' | 'general';
+export type SettingsTab =
+  | 'ai'
+  | 'generator'
+  | 'monitor'
+  | 'optimization'
+  | 'general';
 
 // 설정 패널 Props
 export interface UnifiedSettingsPanelProps {

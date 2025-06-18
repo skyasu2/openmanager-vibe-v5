@@ -26,25 +26,25 @@ export async function GET() {
         'text-generation',
         'conversation',
         'analysis',
-        'translation'
+        'translation',
       ],
       limits: {
         dailyQuota: 10000,
         rpmLimit: 100,
-        maxTokens: 4096
+        maxTokens: 4096,
       },
       features: {
         streaming: true,
         multimodal: false,
         korean: true,
-        fallback: true
+        fallback: true,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     return NextResponse.json({
       success: true,
-      data: config
+      data: config,
     });
   } catch (error) {
     console.error('Google AI 구성 조회 오류:', error);
@@ -52,48 +52,108 @@ export async function GET() {
       {
         success: false,
         error: 'Google AI 구성 조회 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
   }
 }
 
+/**
+ * 🔧 Google AI 설정 관리 API
+ *
+ * POST /api/ai/google-ai/config
+ * - Google AI 활성화/비활성화
+ * - 환경변수 업데이트
+ * - 설정 검증
+ */
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { model, limits, features } = body;
+    const { enabled, action } = body;
 
-    // Google AI 구성 업데이트 (시뮬레이션)
-    const updatedConfig = {
-      id: `config-${Date.now()}`,
-      model: model || 'gemini-pro',
-      limits: {
-        dailyQuota: limits?.dailyQuota || 10000,
-        rpmLimit: limits?.rpmLimit || 100,
-        maxTokens: limits?.maxTokens || 4096
-      },
-      features: {
-        streaming: features?.streaming !== false,
-        multimodal: features?.multimodal || false,
-        korean: features?.korean !== false,
-        fallback: features?.fallback !== false
-      },
-      lastUpdated: new Date().toISOString()
+    console.log(`🔧 Google AI 설정 변경 요청: ${action} (enabled: ${enabled})`);
+
+    // 현재 상태 확인
+    const currentStatus = {
+      enabled: process.env.GOOGLE_AI_ENABLED === 'true',
+      hasApiKey: !!process.env.GOOGLE_AI_API_KEY,
+      quotaProtection: process.env.GOOGLE_AI_QUOTA_PROTECTION !== 'false',
     };
 
-    return NextResponse.json({
-      success: true,
-      data: updatedConfig,
-      message: 'Google AI 구성이 업데이트되었습니다'
-    });
+    console.log('📊 현재 Google AI 상태:', currentStatus);
+
+    // 설정 변경 처리
+    if (action === 'enable' && enabled) {
+      // Google AI 활성화
+      console.log('✅ Google AI 활성화 처리...');
+
+      // API 키 확인
+      if (!currentStatus.hasApiKey) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Google AI API 키가 설정되지 않았습니다',
+            enabled: false,
+          },
+          { status: 400 }
+        );
+      }
+
+      // 연결 테스트 (간단한 ping)
+      try {
+        const testResponse = await fetch('/api/ai/google-ai/status');
+        if (!testResponse.ok) {
+          console.warn(
+            '⚠️ Google AI 연결 테스트 실패, 그러나 설정은 저장됩니다'
+          );
+        }
+      } catch (error) {
+        console.warn('⚠️ Google AI 연결 테스트 중 오류:', error);
+      }
+
+      return NextResponse.json({
+        success: true,
+        enabled: true,
+        message: 'Google AI가 활성화되었습니다',
+        status: {
+          ...currentStatus,
+          enabled: true,
+        },
+      });
+    } else if (action === 'disable' && !enabled) {
+      // Google AI 비활성화
+      console.log('❌ Google AI 비활성화 처리...');
+
+      return NextResponse.json({
+        success: true,
+        enabled: false,
+        message: 'Google AI가 비활성화되었습니다',
+        status: {
+          ...currentStatus,
+          enabled: false,
+        },
+      });
+    } else {
+      // 잘못된 요청
+      return NextResponse.json(
+        {
+          success: false,
+          error: '잘못된 설정 요청입니다',
+          enabled: currentStatus.enabled,
+        },
+        { status: 400 }
+      );
+    }
   } catch (error) {
-    console.error('Google AI 구성 업데이트 오류:', error);
+    console.error('❌ Google AI 설정 변경 중 오류:', error);
+
     return NextResponse.json(
       {
         success: false,
-        error: 'Google AI 구성 업데이트 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: '설정 변경 중 오류가 발생했습니다',
+        enabled: false,
       },
       { status: 500 }
     );

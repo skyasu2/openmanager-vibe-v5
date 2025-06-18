@@ -35,6 +35,7 @@ import {
   ChevronLeft,
   ChevronRight,
   HardDrive,
+  Lightbulb,
 } from 'lucide-react';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { useAIThinking, useAIChat } from '@/stores/useAISidebarStore';
@@ -1131,26 +1132,52 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
               AI 고급 관리
             </h2>
             <div className='grid grid-cols-1 gap-4 flex-1'>
-              {/* AI 인사이트 섹션 */}
+              {/* 실시간 AI 인사이트 통합 섹션 */}
               <div className='bg-white rounded-lg p-4 shadow-sm border'>
-                <h3 className='text-lg font-semibold text-gray-700 mb-3'>
-                  AI 인사이트
+                <h3 className='text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2'>
+                  <Target className='w-5 h-5 text-blue-600' />
+                  실시간 AI 분석 통합
                 </h3>
-                <AIInsightsCard
-                  className='shadow-none border-0 p-0'
-                  showRecommendations={true}
-                />
+                <div className='space-y-3'>
+                  <div className='p-3 bg-blue-50 rounded-lg border border-blue-200'>
+                    <div className='flex items-center gap-2 text-blue-800 font-medium text-sm'>
+                      <FileText className='w-4 h-4' />
+                      자동 장애보고서
+                    </div>
+                    <p className='text-blue-700 text-xs mt-1'>
+                      실제 서버 데이터 기반 AI 장애 분석 및 보고서 생성
+                    </p>
+                  </div>
+                  <div className='p-3 bg-emerald-50 rounded-lg border border-emerald-200'>
+                    <div className='flex items-center gap-2 text-emerald-800 font-medium text-sm'>
+                      <Brain className='w-4 h-4' />
+                      지능형 모니터링
+                    </div>
+                    <p className='text-emerald-700 text-xs mt-1'>
+                      이상탐지 + 근본원인분석 + 예측모니터링 통합 시스템
+                    </p>
+                  </div>
+                  <div className='p-3 bg-gray-50 rounded-lg border border-gray-200'>
+                    <div className='flex items-center gap-2 text-gray-600 text-sm'>
+                      <Lightbulb className='w-4 h-4' />
+                      AI 인사이트 (기존)
+                    </div>
+                    <p className='text-gray-500 text-xs mt-1'>
+                      → 위 두 기능으로 통합되어 더 강력한 실시간 분석 제공
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              {/* Google AI 상태 섹션 */}
+              {/* Google AI 상태 관리 섹션 */}
               <div className='bg-white rounded-lg p-4 shadow-sm border'>
-                <h3 className='text-lg font-semibold text-gray-700 mb-3'>
-                  Google AI 연결 상태
+                <h3 className='text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2'>
+                  <Zap className='w-5 h-5 text-blue-600' />
+                  Google AI 상태 관리
                 </h3>
                 <GoogleAIStatusCard
-                  className='shadow-none border-0 p-0'
-                  showDetails={true}
                   variant='admin'
+                  className='shadow-none border-0 p-0'
                 />
               </div>
             </div>
@@ -1162,16 +1189,6 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
             <div className='text-center'>
               <Brain className='w-16 h-16 text-gray-300 mx-auto mb-4' />
               <h3 className='text-lg font-bold text-gray-600 mb-2'>AI 사고</h3>
-              <p className='text-sm text-gray-500'>곧 출시 예정입니다</p>
-            </div>
-          </div>
-        );
-      case 'optimization':
-        return (
-          <div className='flex items-center justify-center h-full bg-gradient-to-br from-yellow-50 to-orange-50'>
-            <div className='text-center'>
-              <Target className='w-16 h-16 text-gray-300 mx-auto mb-4' />
-              <h3 className='text-lg font-bold text-gray-600 mb-2'>최적화</h3>
               <p className='text-sm text-gray-500'>곧 출시 예정입니다</p>
             </div>
           </div>
