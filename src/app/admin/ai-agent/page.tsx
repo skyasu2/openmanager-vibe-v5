@@ -36,6 +36,7 @@ import AIEngineStatusTab from '@/components/admin/ai-engine-tabs/AIEngineStatusT
 import AIEngineTrainingTab from '@/components/admin/ai-engine-tabs/AIEngineTrainingTab';
 import AIEngineDataTab from '@/components/admin/ai-engine-tabs/AIEngineDataTab';
 import AIEnginePerformanceTab from '@/components/admin/ai-engine-tabs/AIEnginePerformanceTab';
+import { PredictionDashboard } from '@/components/prediction/PredictionDashboard';
 import {
   MigrationStatus,
   EngineStatus,
@@ -512,7 +513,7 @@ export default function IntegratedAIEngineDashboard() {
 
         {/* 탭 메뉴 */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
-          <TabsList className='grid w-full grid-cols-6 bg-slate-800 border-slate-700'>
+          <TabsList className='grid w-full grid-cols-7 bg-slate-800 border-slate-700'>
             <TabsTrigger
               value='overview'
               className='data-[state=active]:bg-purple-600'
@@ -554,6 +555,13 @@ export default function IntegratedAIEngineDashboard() {
             >
               <TrendingUp className='w-4 h-4 mr-2' />
               성능
+            </TabsTrigger>
+            <TabsTrigger
+              value='prediction'
+              className='data-[state=active]:bg-red-600'
+            >
+              <AlertTriangle className='w-4 h-4 mr-2' />
+              예측
             </TabsTrigger>
           </TabsList>
 
@@ -631,6 +639,28 @@ export default function IntegratedAIEngineDashboard() {
               error={error}
               refreshEngineStatus={refreshEngineStatus}
             />
+          </TabsContent>
+
+          {/* 예측 분석 탭 */}
+          <TabsContent value='prediction'>
+            <div className='space-y-6'>
+              <div className='bg-slate-800 rounded-lg p-6 border border-slate-700'>
+                <h3 className='text-xl font-bold text-white mb-4 flex items-center gap-2'>
+                  <AlertTriangle className='w-6 h-6 text-red-400' />
+                  장애 예측 분석 대시보드
+                </h3>
+                <p className='text-slate-300 mb-6'>
+                  AI 기반 예측 분석을 통해 시스템 장애를 사전에 감지하고
+                  예방합니다.
+                </p>
+                <PredictionDashboard
+                  className='mt-6'
+                  serverId='web-server-01'
+                  autoRefresh={true}
+                  refreshInterval={20000}
+                />
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
