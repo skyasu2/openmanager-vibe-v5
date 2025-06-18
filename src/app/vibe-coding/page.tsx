@@ -31,83 +31,74 @@ export default function DevelopmentProcessPage() {
 
     const developmentSteps = [
         {
-            id: 'foundation',
-            title: '🏗️ 기반 구조 설계',
-            description: 'OpenManager 서버 모니터링 시스템 홈페이지 기획 및 Cursor AI 개발 환경 구축',
-            details: 'Next.js 15.3.2 + React 19.1.0 + TypeScript 스택으로 현대적 웹 애플리케이션 구조 설계',
-            tools: ['Cursor AI', 'Next.js 15.3.2', 'TypeScript', 'Tailwind CSS'],
+            id: 'analysis',
+            title: '📋 요구사항 분석 및 설계',
+            description: '서버 모니터링 도메인 특화 AI 시스템 아키텍처 설계',
+            details: '기존 모니터링 시스템에 AI 기능을 모듈로 통합하는 확장 가능한 구조 설계',
+            tools: ['시스템 설계', 'AI 아키텍처', '도메인 분석', 'UX/UI 설계'],
             color: 'from-blue-400 to-blue-600',
             status: '완료',
         },
         {
-            id: 'cicd',
-            title: '🚀 CI/CD 파이프라인',
-            description: 'GitHub 연동 및 Vercel 자동 배포 시스템 구축',
-            details: 'Git 커밋 시 자동으로 Vercel에 배포되는 완전 자동화 개발 워크플로우 구현',
-            tools: ['GitHub Actions', 'Vercel', 'Git Hooks'],
+            id: 'foundation',
+            title: '🏗️ 기술 스택 구축',
+            description: '현대적 웹 기술 스택 기반 개발 환경 구성',
+            details: 'Next.js 15.3.2 + React 19.1.0 + TypeScript 기반 확장 가능한 프론트엔드 아키텍처',
+            tools: ['Next.js 15.3.2', 'React 19.1.0', 'TypeScript', 'Tailwind CSS'],
             color: 'from-green-400 to-green-600',
-            status: '완료',
-        },
-        {
-            id: 'frontend',
-            title: '🎨 프론트엔드 구현',
-            description: '서버 모니터링 대시보드 UI/UX 개발',
-            details: '실시간 서버 상태 표시, 차트 시각화, 반응형 디자인 구현 (200,081라인)',
-            tools: ['React 19.1.0', 'Framer Motion', 'Chart.js', 'Responsive Design'],
-            color: 'from-purple-400 to-purple-600',
-            status: '완료',
-        },
-        {
-            id: 'data-generator',
-            title: '🔧 서버데이터 생성기',
-            description: '실제 서버를 대체하는 가상 서버 데이터 생성 시스템 개발',
-            details: '30개 가상 서버의 CPU, 메모리, 디스크, 네트워크 메트릭을 실시간으로 시뮬레이션 (실제 서버 데이터로 취급)',
-            tools: ['Node.js', 'Real-time Simulation', 'Data Modeling'],
-            color: 'from-orange-400 to-orange-600',
-            status: '완료',
-        },
-        {
-            id: 'monitoring',
-            title: '📊 모니터링 시스템',
-            description: '서버 상태 모니터링 및 브라우저 알림 시스템 구현',
-            details: '임계값 기반 브라우저 알림, 실시간 차트, 장애 감지 및 자동 보고서 생성 (Slack 알림 제거)',
-            tools: ['WebSocket', 'Real-time Charts', 'Browser Notifications'],
-            color: 'from-red-400 to-red-600',
-            status: '완료',
-        },
-        {
-            id: 'ai-assistant',
-            title: '🤖 AI 어시스턴트 모듈',
-            description: '기존 모니터링 시스템에 AI 기능을 모듈로 추가 (AI Assistant → AI Agent 리브랜딩 예정)',
-            details: 'AI 사이드바를 통한 자연어 서버 질의 및 분석 기능 구현',
-            tools: ['AI Sidebar', 'Natural Language Processing', 'Context Management'],
-            color: 'from-indigo-400 to-indigo-600',
-            status: '완료',
-        },
-        {
-            id: 'ai-admin',
-            title: '⚙️ AI 관리자 페이지',
-            description: '프로필 기능에서 접근 가능한 별도 AI 관리 시스템',
-            details: 'AI 엔진 설정, 컨텍스트 관리, 성능 모니터링 전용 관리자 인터페이스',
-            tools: ['Admin Dashboard', 'Profile Integration', 'AI Configuration'],
-            color: 'from-cyan-400 to-cyan-600',
             status: '완료',
         },
         {
             id: 'lightweight-ai',
             title: '🧠 경량 AI 엔진 개발',
-            description: 'TensorFlow 완전 제거 후 경량 ML 엔진 기반 룰 패턴 대응 AI 시스템',
-            details: '외부 LLM 없이 서버 모니터링 도메인 특화 컨텍스트로 질의응답 (simple-statistics, ml-regression 활용)',
-            tools: ['LocalRAG Engine', 'Pattern Matching', 'Domain Context', 'simple-statistics'],
+            description: '도메인 특화 경량 AI 엔진 설계 및 구현',
+            details: 'TensorFlow 의존성 제거 후 simple-statistics 기반 경량 ML 엔진으로 성능 최적화',
+            tools: ['LocalRAG Engine', 'simple-statistics', 'Pattern Matching', 'NLP'],
+            color: 'from-purple-400 to-purple-600',
+            status: '완료',
+        },
+        {
+            id: 'data-system',
+            title: '🔧 데이터 시스템 구축',
+            description: '실시간 서버 데이터 처리 및 시뮬레이션 시스템',
+            details: '30개 서버 메트릭 실시간 처리, 데이터 영속성을 위한 클라우드 Redis 연동',
+            tools: ['Real-time Processing', 'Upstash Redis', 'Data Modeling', 'WebSocket'],
+            color: 'from-orange-400 to-orange-600',
+            status: '완료',
+        },
+        {
+            id: 'ai-interface',
+            title: '🤖 AI 인터페이스 구현',
+            description: '자연어 기반 AI 어시스턴트 사용자 인터페이스',
+            details: 'AI 사이드바 및 관리자 페이지를 통한 직관적인 AI 상호작용 시스템',
+            tools: ['AI Sidebar', 'Admin Dashboard', 'Natural Language UI', 'Context Management'],
+            color: 'from-indigo-400 to-indigo-600',
+            status: '완료',
+        },
+        {
+            id: 'integration',
+            title: '🔗 시스템 통합',
+            description: '모니터링 시스템과 AI 모듈 간 완전 통합',
+            details: '기존 모니터링 기능과 AI 어시스턴트 기능의 seamless 통합 및 모듈화',
+            tools: ['System Integration', 'Module Architecture', 'API Design', 'State Management'],
+            color: 'from-cyan-400 to-cyan-600',
+            status: '완료',
+        },
+        {
+            id: 'optimization',
+            title: '⚡ 성능 최적화',
+            description: '시스템 성능 및 사용자 경험 최적화',
+            details: '브라우저 알림 시스템, 실시간 차트 최적화, 메모리 사용량 개선',
+            tools: ['Performance Optimization', 'Browser APIs', 'Chart.js', 'Memory Management'],
             color: 'from-pink-400 to-pink-600',
             status: '완료',
         },
         {
-            id: 'ai-collaboration',
-            title: '🔧 AI 협업 고도화',
-            description: 'Cursor AI Claude Sonnet 3.7과 개발한 AI 엔진 간의 API 통신을 통한 지속적 개선',
-            details: 'AI 엔진의 컨텍스트 구성 및 패턴 매칭 알고리즘을 Cursor AI와 협업으로 고도화 (20일간 개발)',
-            tools: ['Claude Sonnet 3.7', 'Cursor AI Collaboration', 'API Integration'],
+            id: 'deployment',
+            title: '🚀 배포 및 운영',
+            description: '클라우드 기반 자동 배포 및 운영 시스템',
+            details: 'Vercel 서버리스 배포, CI/CD 파이프라인 구축, 모니터링 및 로깅',
+            tools: ['Vercel Deployment', 'CI/CD Pipeline', 'Cloud Services', 'Monitoring'],
             color: 'from-emerald-400 to-emerald-600',
             status: '완료',
         },
@@ -115,59 +106,59 @@ export default function DevelopmentProcessPage() {
 
     const achievements = [
         {
-            title: 'Cursor AI 바이브 코딩',
-            before: '전통적인 IDE 개발',
-            after: 'Claude Sonnet 3.7 협업',
-            improvement: '개발 속도 6배 향상 (20일)',
-            icon: <Code2 className='w-6 h-6' />,
+            title: '도메인 특화 AI 설계',
+            before: '범용 AI 솔루션',
+            after: '서버 모니터링 전용 AI',
+            improvement: '정확도 및 성능 최적화',
+            icon: <Brain className='w-6 h-6' />,
         },
         {
-            title: 'TensorFlow 완전 제거',
+            title: '경량 ML 엔진 구현',
             before: 'TensorFlow.js 의존성',
-            after: 'simple-statistics 경량화',
+            after: 'simple-statistics 기반',
             improvement: '번들 크기 30% 감소',
             icon: <Zap className='w-6 h-6' />,
         },
         {
-            title: '서버데이터 생성기',
-            before: '실제 서버 의존성',
-            after: '30개 가상 서버 (실제 취급)',
-            improvement: '개발/테스트 환경 독립화',
-            icon: <Server className='w-6 h-6' />,
-        },
-        {
-            title: 'AI Assistant → Agent',
+            title: '모듈형 아키텍처',
             before: '단일 통합 시스템',
-            after: 'AI 사이드바 + 관리자 페이지',
-            improvement: '모듈형 아키텍처 분리',
+            after: 'AI 모듈 분리 설계',
+            improvement: '확장성 및 유지보수성',
             icon: <Bot className='w-6 h-6' />,
         },
         {
-            title: '도메인 특화 AI',
-            before: '범용 AI 솔루션',
-            after: '서버 모니터링 전용 컨텍스트',
-            improvement: 'LocalRAG 독립 운영',
-            icon: <Brain className='w-6 h-6' />,
+            title: '실시간 데이터 처리',
+            before: '정적 데이터 처리',
+            after: '30개 서버 실시간 모니터링',
+            improvement: '시스템 응답성 향상',
+            icon: <Server className='w-6 h-6' />,
         },
         {
-            title: 'Slack → 브라우저 알림',
-            before: 'Slack 웹훅 의존',
-            after: '브라우저 네이티브 알림',
-            improvement: '외부 의존성 제거',
-            icon: <Shield className='w-6 h-6' />,
-        },
-        {
-            title: 'Upstash Redis 연동',
-            before: '메모리 기반 캐시',
-            after: 'Redis 클라우드 연동',
+            title: '클라우드 연동',
+            before: '로컬 메모리 캐시',
+            after: 'Upstash Redis 클라우드',
             improvement: '데이터 영속성 확보',
             icon: <Database className='w-6 h-6' />,
         },
         {
-            title: '프로젝트 규모',
-            before: '기본 구조',
-            after: '603파일, 200,081라인',
-            improvement: '완전한 시스템 구축',
+            title: '사용자 경험 최적화',
+            before: '외부 서비스 의존',
+            after: '브라우저 네이티브 알림',
+            improvement: '응답 속도 및 안정성',
+            icon: <Shield className='w-6 h-6' />,
+        },
+        {
+            title: '현대적 기술 스택',
+            before: '레거시 기술',
+            after: 'Next.js 15 + React 19',
+            improvement: '개발 생산성 향상',
+            icon: <Code2 className='w-6 h-6' />,
+        },
+        {
+            title: '완전한 시스템 구축',
+            before: '프로토타입 수준',
+            after: '프로덕션 레벨 구현',
+            improvement: '상용 서비스 준비 완료',
             icon: <BarChart3 className='w-6 h-6' />,
         },
     ];
@@ -226,20 +217,20 @@ export default function DevelopmentProcessPage() {
                         className='text-center mb-16'
                     >
                         <motion.h1 className='text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent'>
-                            🔧 OpenManager 개발과정
+                            🤖 도메인 기반 AI 어시스턴트 개발
                         </motion.h1>
                         <p className='text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto'>
-                            서버 모니터링 시스템부터 AI 어시스턴트까지 - 체계적인 개발 여정
+                            서버 모니터링 전용 AI 시스템 설계부터 구현까지 - 전문화된 개발 과정
                         </p>
 
-                        {/* 실제 성과 배지 */}
+                        {/* 핵심 기술 배지 */}
                         <div className='flex flex-wrap justify-center gap-4 mb-8'>
-                            {['Claude Sonnet 3.7', 'TensorFlow 제거', '경량 AI 엔진', 'LocalRAG 독립', 'Upstash Redis', '브라우저 알림', '603파일 구축', '20일 개발'].map(achievement => (
+                            {['도메인 특화 AI', '경량 ML 엔진', 'LocalRAG 시스템', '패턴 매칭', 'TypeScript', 'Next.js 15', '클라우드 배포', '모듈 아키텍처'].map(achievement => (
                                 <span
                                     key={achievement}
                                     className='px-4 py-2 bg-blue-500/20 text-blue-300 rounded-full text-sm font-medium'
                                 >
-                                    ✅ {achievement}
+                                    ⚡ {achievement}
                                 </span>
                             ))}
                         </div>
@@ -285,28 +276,6 @@ export default function DevelopmentProcessPage() {
                             </motion.div>
                         ))}
                     </div>
-
-                    {/* 시작 버튼 */}
-                    {!isActive && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className='text-center mb-16'
-                        >
-                            <motion.button
-                                onClick={handleStart}
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className='px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 
-                                         rounded-full text-white font-bold text-lg flex items-center 
-                                         space-x-3 mx-auto shadow-lg hover:shadow-xl transition-all'
-                            >
-                                <Play className='w-6 h-6' />
-                                <span>개발과정 시연 시작</span>
-                                <ArrowRight className='w-6 h-6' />
-                            </motion.button>
-                        </motion.div>
-                    )}
 
                     {/* 성과 섹션 */}
                     <motion.div
@@ -360,28 +329,28 @@ export default function DevelopmentProcessPage() {
                         className='text-center'
                     >
                         <h2 className='text-3xl md:text-4xl font-bold mb-8 bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent'>
-                            💡 핵심 개발 철학
+                            💡 핵심 기술 특징
                         </h2>
                         <div className='grid md:grid-cols-3 gap-8'>
                             <div className='p-6 rounded-2xl bg-gradient-to-br from-purple-800/30 to-purple-900/30 border border-purple-700/50'>
                                 <Monitor className='w-12 h-12 text-purple-400 mx-auto mb-4' />
-                                <h3 className='text-xl font-bold text-white mb-3'>모듈형 분리 설계</h3>
+                                <h3 className='text-xl font-bold text-white mb-3'>모듈형 아키텍처</h3>
                                 <p className='text-gray-300 text-sm'>
-                                    기존 모니터링 시스템에 AI 어시스턴트를 독립 모듈로 추가. 향후 AI 에이전트로 리브랜딩 예정
+                                    기존 시스템에 AI 기능을 독립 모듈로 통합하여 확장성과 유지보수성을 극대화한 설계 방식
                                 </p>
                             </div>
                             <div className='p-6 rounded-2xl bg-gradient-to-br from-blue-800/30 to-blue-900/30 border border-blue-700/50'>
                                 <Brain className='w-12 h-12 text-blue-400 mx-auto mb-4' />
-                                <h3 className='text-xl font-bold text-white mb-3'>경량 AI 모델</h3>
+                                <h3 className='text-xl font-bold text-white mb-3'>도메인 특화 AI</h3>
                                 <p className='text-gray-300 text-sm'>
-                                    TensorFlow 제거 후 simple-statistics 기반 경량화. 외부 LLM 없이 룰 기반 패턴 매칭으로 서버 모니터링 특화
+                                    서버 모니터링 전용으로 최적화된 경량 AI 엔진으로 높은 정확도와 빠른 응답 속도 구현
                                 </p>
                             </div>
                             <div className='p-6 rounded-2xl bg-gradient-to-br from-green-800/30 to-green-900/30 border border-green-700/50'>
                                 <Zap className='w-12 h-12 text-green-400 mx-auto mb-4' />
-                                <h3 className='text-xl font-bold text-white mb-3'>AI로 만드는 AI</h3>
+                                <h3 className='text-xl font-bold text-white mb-3'>성능 최적화</h3>
                                 <p className='text-gray-300 text-sm'>
-                                    Cursor AI Claude Sonnet 3.7이 직접 개발한 AI 엔진과 API 통신하며 컨텍스트 구성 및 패턴 매칭 고도화
+                                    불필요한 의존성 제거와 경량 라이브러리 활용으로 시스템 성능과 사용자 경험 극대화
                                 </p>
                             </div>
                         </div>

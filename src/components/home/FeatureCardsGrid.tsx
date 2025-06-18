@@ -914,10 +914,10 @@ export default function FeatureCardsGrid() {
                 ease: 'linear',
               }}
             >
-              🔧
+              🤖
             </motion.div>
             <span className='bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent font-extrabold'>
-              개발과정
+              AI 어시스턴트 개발과정
             </span>
             <motion.div
               animate={{
@@ -929,13 +929,13 @@ export default function FeatureCardsGrid() {
                 ease: 'easeInOut',
               }}
             >
-              📈
+              🧠
             </motion.div>
           </div>
 
           {/* 하단 설명 텍스트 */}
           <div className='relative z-10 mt-1 text-xs text-white/90 font-medium'>
-            OpenManager 서버 모니터링 시스템 개발 여정
+            도메인 특화 AI 시스템 설계부터 구현까지
           </div>
         </motion.button>
       </div>
