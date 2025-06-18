@@ -1,5 +1,10 @@
 # 🚀 **OpenManager Vibe v5** - 차세대 서버 모니터링 & AI 어시스턴트 플랫폼
 
+![OpenManager Vibe v5](https://img.shields.io/badge/OpenManager-Vibe%20v5-blue.svg)
+![AI Engines](https://img.shields.io/badge/AI%20Engines-11개-green.svg)
+![MCP Servers](https://img.shields.io/badge/MCP%20표준서버-3개-orange.svg)
+![Build Status](https://img.shields.io/badge/Build-128%20Pages-success.svg)
+
 > **🎯 혁신적 AI 파이프라인**: Intelligent Pipeline v3.0 + Graceful Degradation  
 > **📅 최신 업데이트**: 2025.01.06 - Phase 3 완료: 새로운 파이프라인 아키텍처 구현
 
@@ -226,14 +231,14 @@ npm run dev
 
 ### **🚀 v5.44.1 최적화 결과**
 
-| **지표** | **이전 (v5.44.0)** | **현재 (v5.44.1)** | **개선율** |
-|----------|-------------------|-------------------|-----------|
-| 🔄 Redis 저장 빈도 | 15초마다 강제 저장 | 변화 감지 시에만 | **90% ↓** |
-| 📱 모달 로딩 시간 | 500ms | 100ms | **80% ↓** |
-| 🎯 데이터 정확도 | 70% (타입 불일치) | 100% (완전 호환) | **30% ↑** |
-| 🛡️ 타입 안전성 | 부분적 | 완전 (0 오류) | **100% ↑** |
-| 💾 메모리 사용량 | 100MB+ | 50MB | **50% ↓** |
-| ⚡ AI 응답 시간 | 100ms | 50ms | **50% ↓** |
+| **지표**           | **이전 (v5.44.0)** | **현재 (v5.44.1)** | **개선율** |
+| ------------------ | ------------------ | ------------------ | ---------- |
+| 🔄 Redis 저장 빈도 | 15초마다 강제 저장 | 변화 감지 시에만   | **90% ↓**  |
+| 📱 모달 로딩 시간  | 500ms              | 100ms              | **80% ↓**  |
+| 🎯 데이터 정확도   | 70% (타입 불일치)  | 100% (완전 호환)   | **30% ↑**  |
+| 🛡️ 타입 안전성     | 부분적             | 완전 (0 오류)      | **100% ↑** |
+| 💾 메모리 사용량   | 100MB+             | 50MB               | **50% ↓**  |
+| ⚡ AI 응답 시간    | 100ms              | 50ms               | **50% ↓**  |
 
 ### **🎯 AI 파이프라인 성능**
 
@@ -241,20 +246,20 @@ npm run dev
 // 📊 실측 성능 데이터
 const performanceMetrics = {
   // 4단계 파이프라인 응답 시간
-  nlpProcessor: '10-20ms',      // 룰 기반 NLP
-  mcpEngine: '50-100ms',        // MCP API 처리
-  ragEngine: '20-50ms',         // 벡터 검색
-  googleAI: '500-1000ms',       // 외부 API 호출
-  
+  nlpProcessor: '10-20ms', // 룰 기반 NLP
+  mcpEngine: '50-100ms', // MCP API 처리
+  ragEngine: '20-50ms', // 벡터 검색
+  googleAI: '500-1000ms', // 외부 API 호출
+
   // 전체 처리 시간
-  averageResponse: '50-150ms',  // 90% 케이스
-  maxResponse: '1000ms',        // 최악의 경우
-  
+  averageResponse: '50-150ms', // 90% 케이스
+  maxResponse: '1000ms', // 최악의 경우
+
   // 성공률
-  tier1Success: '80%',          // 고성능 모드
-  tier2Success: '15%',          // 표준 모드
-  tier3Success: '5%',           // 최소 모드
-  totalAvailability: '99.9%'    // 전체 가용성
+  tier1Success: '80%', // 고성능 모드
+  tier2Success: '15%', // 표준 모드
+  tier3Success: '5%', // 최소 모드
+  totalAvailability: '99.9%', // 전체 가용성
 };
 ```
 
@@ -372,24 +377,104 @@ npm run start
 **📅 최종 업데이트**: 2025.01.06  
 **🔗 라이브 데모**: [openmanager-vibe-v5.vercel.app](https://openmanager-vibe-v5.vercel.app)  
 **📧 문의**: OpenManager Vibe v5 개발팀
+
 ## 🧹 코드 정리
 
 프로젝트의 불필요한 API와 파일을 정리하려면 다음 절차를 따릅니다.
 
 1. API 분석
+
    ```bash
    node development/scripts/analysis/api-cleanup-analyzer.mjs
    ```
+
    실행하면 `development/scripts/analysis/cleanup-apis.mjs` 스크립트가 생성됩니다.
 
 2. 불필요한 API 제거
+
    ```bash
    node development/scripts/analysis/cleanup-apis.mjs
    ```
+
    위 스크립트가 사용하지 않는 API를 자동으로 제거합니다.
 
 사용하지 않는 파일을 찾으려면 아래 명령을 실행해 결과를 확인합니다.
 
 ```bash
 node development/scripts/analysis/find-unused-files.js
+```
+
+## 🌟 **주요 특징**
+
+- **🤖 AI 엔진 통합**: 11개 AI 엔진 완전 통합
+- **📊 실시간 모니터링**: 서버 상태 실시간 추적
+- **🔄 MCP 표준 서버**: @modelcontextprotocol 공식 서버만 사용
+- **⚡ 최적화된 헬스체크**: 과도한 요청 방지 시스템
+- **🏗️ 확장 가능한 아키텍처**: 모듈화된 설계
+
+## 🔧 **MCP 서버 구성**
+
+### 📋 **표준 MCP 서버 (권장)**
+
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem", "./src", "./docs"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-github"]
+    }
+  }
+}
+```
+
+### 🛡️ **헬스체크 최적화**
+
+- **워밍업 빈도**: 15분 간격 (과도한 요청 방지)
+- **체크 대상**: 메인 서버 1개만 체크
+- **요청 방식**: HEAD 메서드 (데이터 전송량 최소화)
+- **타임아웃**: 8초 (안정성 향상)
+
+## 📈 **성능 최적화**
+
+### 🎯 **빌드 최적화**
+
+- **빌드 시간**: 9초 (최적화 완료)
+- **정적 페이지**: 128개 생성
+- **메모리 사용량**: 256MB 제한
+- **환경별 초기화**: 빌드/개발/프로덕션 분리
+
+### 🔄 **MCP 서버 최적화**
+
+- **표준 서버 사용**: @modelcontextprotocol 공식 패키지
+- **메모리 제한**: 256MB per 서버
+- **과도한 헬스체크 방지**: 15분 간격 워밍업
+- **환경별 분리**: 개발/프로덕션 설정 분리
+
+### ⚡ **시스템 최적화**
+
+- **조건부 초기화**: 빌드 시 불필요한 초기화 건너뜀
+- **지연 로딩**: AI 엔진 필요시에만 로드
+- **캐시 최적화**: Redis 기반 스마트 캐싱
+- **요청 최적화**: HEAD 메서드로 데이터 전송량 최소화
+
+## 🔧 **환경 설정**
+
+### 🌍 **환경 변수**
+
+```bash
+# MCP 서버 설정
+RENDER_MCP_SERVER_URL=https://openmanager-vibe-v5.onrender.com
+MCP_WARMUP_INTERVAL=15  # 15분 간격
+
+# 과도한 헬스체크 방지
+MCP_HEALTH_CHECK_TIMEOUT=8000  # 8초
+MCP_MAX_CONCURRENT_CHECKS=1    # 1개 서버만 체크
+
+# 표준 MCP 서버 설정
+MCP_STANDARD_SERVERS_ONLY=true
+MCP_MEMORY_LIMIT=256  # 256MB 제한
 ```

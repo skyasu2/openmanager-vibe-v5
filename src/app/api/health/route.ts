@@ -54,12 +54,12 @@ class AutoEnvRecoverySystem {
   }> {
     // 복구 진행 중이거나 최근에 시도했으면 스킵
     const now = Date.now();
-    if (this.recoveryInProgress || (now - this.lastRecoveryAttempt) < 30000) {
+    if (this.recoveryInProgress || now - this.lastRecoveryAttempt < 30000) {
       return {
         success: false,
         recovered: [],
         method: 'skipped',
-        message: '복구가 이미 진행 중이거나 최근에 시도됨'
+        message: '복구가 이미 진행 중이거나 최근에 시도됨',
       };
     }
 
@@ -84,14 +84,13 @@ class AutoEnvRecoverySystem {
       // 3단계: 하드코딩된 기본값 적용
       const defaultResult = await this.tryDefaultValues(missingVars);
       return defaultResult;
-
     } catch (error) {
       console.error('❌ 환경변수 자동 복구 실패:', error);
       return {
         success: false,
         recovered: [],
         method: 'error',
-        message: `복구 실패: ${error.message}`
+        message: `복구 실패: ${error.message}`,
       };
     } finally {
       this.recoveryInProgress = false;
@@ -114,12 +113,13 @@ class AutoEnvRecoverySystem {
       const defaultPasswords = [
         'openmanager-vibe-v5-2025',
         process.env.CRON_SECRET || 'openmanager-vibe-v5-backup',
-        'team-password-2025'
+        'team-password-2025',
       ];
 
       for (const password of defaultPasswords) {
         try {
-          const unlockResult = await this.envCryptoManager.unlockEnvironmentVars(password);
+          const unlockResult =
+            await this.envCryptoManager.unlockEnvironmentVars(password);
 
           if (unlockResult.success) {
             // 누락된 변수들을 복구 시도
@@ -137,7 +137,7 @@ class AutoEnvRecoverySystem {
                 success: true,
                 recovered,
                 method: 'encrypted',
-                message: `암호화된 백업에서 ${recovered.length}개 변수 복구`
+                message: `암호화된 백업에서 ${recovered.length}개 변수 복구`,
               };
             }
           }
@@ -151,15 +151,14 @@ class AutoEnvRecoverySystem {
         success: false,
         recovered: [],
         method: 'encrypted',
-        message: '암호화된 백업에서 복구 실패'
+        message: '암호화된 백업에서 복구 실패',
       };
-
     } catch (error) {
       return {
         success: false,
         recovered: [],
         method: 'encrypted',
-        message: `암호화 복구 오류: ${error.message}`
+        message: `암호화 복구 오류: ${error.message}`,
       };
     }
   }
@@ -181,12 +180,13 @@ class AutoEnvRecoverySystem {
           success: false,
           recovered: [],
           method: 'backup',
-          message: '백업 파일이 존재하지 않음'
+          message: '백업 파일이 존재하지 않음',
         };
       }
 
       // 중요 환경변수만 복구 (보안상 이유)
-      const emergencyResult = await this.envBackupManager.emergencyRestore('critical');
+      const emergencyResult =
+        await this.envBackupManager.emergencyRestore('critical');
 
       if (emergencyResult.success) {
         const recoveredFromMissing = emergencyResult.restored.filter(key =>
@@ -197,7 +197,7 @@ class AutoEnvRecoverySystem {
           success: true,
           recovered: recoveredFromMissing,
           method: 'backup',
-          message: `백업에서 ${recoveredFromMissing.length}개 변수 복구`
+          message: `백업에서 ${recoveredFromMissing.length}개 변수 복구`,
         };
       }
 
@@ -205,15 +205,14 @@ class AutoEnvRecoverySystem {
         success: false,
         recovered: [],
         method: 'backup',
-        message: emergencyResult.message
+        message: emergencyResult.message,
       };
-
     } catch (error) {
       return {
         success: false,
         recovered: [],
         method: 'backup',
-        message: `백업 복구 오류: ${error.message}`
+        message: `백업 복구 오류: ${error.message}`,
       };
     }
   }
@@ -232,15 +231,18 @@ class AutoEnvRecoverySystem {
 
       // 메모리에 저장된 확인된 기본값들 (메모리 저장소에서 검증됨)
       const defaultValues: Record<string, string> = {
-        'NEXT_PUBLIC_SUPABASE_URL': 'https://vnswjnltnhpsueosfhmw.supabase.co',
-        'SUPABASE_URL': 'https://vnswjnltnhpsueosfhmw.supabase.co',
-        'NEXT_PUBLIC_SUPABASE_ANON_KEY': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU',
-        'SUPABASE_SERVICE_ROLE_KEY': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8',
-        'UPSTASH_REDIS_REST_URL': 'https://charming-condor-46598.upstash.io',
-        'UPSTASH_REDIS_REST_TOKEN': 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
-        'GOOGLE_AI_API_KEY': 'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM',
-        'RENDER_MCP_SERVER_URL': 'https://openmanager-vibe-v5.onrender.com',
-        'SLACK_WEBHOOK_URL': 'https://hooks.slack.com/services/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'
+        NEXT_PUBLIC_SUPABASE_URL: 'https://vnswjnltnhpsueosfhmw.supabase.co',
+        SUPABASE_URL: 'https://vnswjnltnhpsueosfhmw.supabase.co',
+        NEXT_PUBLIC_SUPABASE_ANON_KEY:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU',
+        SUPABASE_SERVICE_ROLE_KEY:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8',
+        UPSTASH_REDIS_REST_URL: 'https://charming-condor-46598.upstash.io',
+        UPSTASH_REDIS_REST_TOKEN:
+          'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
+        GOOGLE_AI_API_KEY: process.env.GOOGLE_AI_API_KEY || 'demo-key',
+        RENDER_MCP_SERVER_URL: 'https://openmanager-vibe-v5.onrender.com',
+        SLACK_WEBHOOK_URL: process.env.SLACK_WEBHOOK_URL || 'demo-webhook',
       };
 
       for (const varName of missingVars) {
@@ -255,17 +257,17 @@ class AutoEnvRecoverySystem {
         success: recovered.length > 0,
         recovered,
         method: 'defaults',
-        message: recovered.length > 0
-          ? `기본값으로 ${recovered.length}개 변수 복구`
-          : '복구 가능한 기본값 없음'
+        message:
+          recovered.length > 0
+            ? `기본값으로 ${recovered.length}개 변수 복구`
+            : '복구 가능한 기본값 없음',
       };
-
     } catch (error) {
       return {
         success: false,
         recovered: [],
         method: 'defaults',
-        message: `기본값 적용 오류: ${error.message}`
+        message: `기본값 적용 오류: ${error.message}`,
       };
     }
   }
@@ -280,14 +282,15 @@ class AutoEnvRecoverySystem {
             mode: 'mock',
             message: '목업 Redis 모드 - 헬스체크용',
             responseTime: Math.floor(Math.random() * 10) + 1, // 1-10ms 시뮬레이션
-            mockRedisActive: true
-          }
+            mockRedisActive: true,
+          },
         };
       }
 
       // 실제 Redis 연결 테스트 (타임아웃 설정)
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Redis 헬스체크 타임아웃')), 2000) // 2초 타임아웃
+      const timeoutPromise = new Promise(
+        (_, reject) =>
+          setTimeout(() => reject(new Error('Redis 헬스체크 타임아웃')), 2000) // 2초 타임아웃
       );
 
       const redisTestPromise = (async () => {
@@ -301,7 +304,8 @@ class AutoEnvRecoverySystem {
         const redis = new Redis({
           host: 'charming-condor-46598.upstash.io',
           port: 6379,
-          password: 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
+          password:
+            'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
           tls: {},
           maxRetriesPerRequest: 1, // 헬스체크에서는 재시도 최소화
           lazyConnect: true,
@@ -321,14 +325,13 @@ class AutoEnvRecoverySystem {
           details: {
             mode: 'real',
             responseTime,
-            message: 'Real Redis 연결 성공'
-          }
+            message: 'Real Redis 연결 성공',
+          },
         };
       })();
 
       const result = await Promise.race([redisTestPromise, timeoutPromise]);
       return result as { status: string; details?: any };
-
     } catch (error) {
       // Redis 연결 실패 시 목업 모드로 폴백
       console.warn('⚠️ Redis 헬스체크 실패, 목업 모드로 폴백:', error);
@@ -338,8 +341,8 @@ class AutoEnvRecoverySystem {
           mode: 'mock_fallback',
           error: error instanceof Error ? error.message : 'Unknown error',
           message: 'Redis 연결 실패로 목업 모드 사용',
-          mockRedisActive: true
-        }
+          mockRedisActive: true,
+        },
       };
     }
   }
@@ -367,10 +370,14 @@ export async function GET(request: NextRequest) {
     };
 
     // 🔧 환경변수 검증 및 복구
-    const envRecoveryResult = await autoRecovery.attemptAutoRecovery(['NEXT_PUBLIC_SUPABASE_URL', 'SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY']);
+    const envRecoveryResult = await autoRecovery.attemptAutoRecovery([
+      'NEXT_PUBLIC_SUPABASE_URL',
+      'SUPABASE_URL',
+      'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+    ]);
     const envStatus = {
       status: envRecoveryResult.success ? 'healthy' : 'degraded',
-      details: envRecoveryResult
+      details: envRecoveryResult,
     };
 
     // 🔴 Redis 상태 확인 (목업 모드 우선)
@@ -387,7 +394,7 @@ export async function GET(request: NextRequest) {
     const overallStatus = determineOverallStatus([
       envStatus.status,
       redisStatus.status,
-      mcpStatus.status
+      mcpStatus.status,
     ]);
 
     return NextResponse.json({
@@ -400,28 +407,30 @@ export async function GET(request: NextRequest) {
         mcp: mcpStatus,
         generator: {
           status: generatorStatus.isInitialized ? 'healthy' : 'warning',
-          details: generatorStatus
-        }
+          details: generatorStatus,
+        },
       },
-      system: healthChecks
+      system: healthChecks,
     });
-
   } catch (error) {
     const responseTime = Date.now() - startTime;
     console.error('❌ 헬스체크 실패:', error);
 
-    return NextResponse.json({
-      status: 'unhealthy',
-      timestamp: new Date().toISOString(),
-      responseTime,
-      error: error instanceof Error ? error.message : 'Unknown error',
-      checks: {
-        environment: { status: 'unknown' },
-        redis: { status: 'unknown' },
-        mcp: { status: 'unknown' },
-        generator: { status: 'unknown' }
-      }
-    }, { status: 200 });
+    return NextResponse.json(
+      {
+        status: 'unhealthy',
+        timestamp: new Date().toISOString(),
+        responseTime,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        checks: {
+          environment: { status: 'unknown' },
+          redis: { status: 'unknown' },
+          mcp: { status: 'unknown' },
+          generator: { status: 'unknown' },
+        },
+      },
+      { status: 200 }
+    );
   } finally {
     // 헬스체크 컨텍스트 정리
     delete process.env.HEALTH_CHECK_CONTEXT;
@@ -447,71 +456,56 @@ export async function OPTIONS() {
 }
 
 /**
- * 🚀 MCP 서버 상태 확인 (과도한 요청 방지)
+ * 🚀 MCP 서버 상태 확인 (최소한의 체크)
  */
-async function checkMCPServersHealth(): Promise<{ status: string; details: any }> {
+async function checkMCPServersHealth(): Promise<{
+  status: string;
+  details: any;
+}> {
   try {
-    // 🛡️ 헬스체크에서는 간단한 상태만 확인
-    const mcpServers = [
-      'https://openmanager-vibe-v5.onrender.com',
-      'https://openmanager-docs-server.onrender.com',
-      'https://openmanager-filesystem-mcp.onrender.com'
-    ];
+    // 표준 MCP 서버만 체크 (Render 메인 서버 1개만)
+    const mainMCPServer = 'https://openmanager-vibe-v5.onrender.com';
 
-    // 동시 요청 수 제한 (과도한 요청 방지)
-    const healthPromises = mcpServers.slice(0, 2).map(async (url) => {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3초 타임아웃
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5초 타임아웃
 
-        const response = await fetch(`${url}/health`, {
-          method: 'GET',
-          signal: controller.signal,
-          headers: {
-            'User-Agent': 'OpenManager-HealthCheck/1.0'
-          }
-        });
+      const response = await fetch(`${mainMCPServer}/health`, {
+        method: 'HEAD', // GET → HEAD로 변경하여 데이터 전송량 최소화
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'OpenManager-HealthCheck/1.0',
+        },
+      });
 
-        clearTimeout(timeoutId);
+      clearTimeout(timeoutId);
 
-        return {
-          url,
-          status: response.ok ? 'healthy' : 'degraded',
-          responseTime: Date.now()
-        };
-      } catch (error) {
-        return {
-          url,
-          status: 'unhealthy',
-          error: error instanceof Error ? error.message : 'Unknown error'
-        };
-      }
-    });
-
-    const results = await Promise.allSettled(healthPromises);
-    const healthyCount = results.filter(r =>
-      r.status === 'fulfilled' && r.value.status === 'healthy'
-    ).length;
-
-    const status = healthyCount > 0 ? 'healthy' :
-      healthyCount === 0 ? 'degraded' : 'unhealthy';
-
-    return {
-      status,
-      details: {
-        totalServers: mcpServers.length,
-        testedServers: 2, // 과도한 요청 방지를 위해 2개만 테스트
-        healthyServers: healthyCount,
-        results: results.map(r => r.status === 'fulfilled' ? r.value : { error: 'Failed' })
-      }
-    };
-
+      return {
+        status: response.ok ? 'healthy' : 'degraded',
+        details: {
+          mainServer: mainMCPServer,
+          responseCode: response.status,
+          note: '표준 MCP 서버만 사용, 과도한 헬스체크 방지',
+        },
+      };
+    } catch (error) {
+      return {
+        status: 'degraded',
+        details: {
+          mainServer: mainMCPServer,
+          error: error instanceof Error ? error.message : 'Connection failed',
+          note: '헬스체크 실패해도 서비스는 계속 작동',
+        },
+      };
+    }
   } catch (error) {
     return {
-      status: 'unhealthy',
+      status: 'degraded', // unhealthy → degraded로 변경 (서비스 지속성)
       details: {
-        error: error instanceof Error ? error.message : 'MCP health check failed'
-      }
+        error:
+          error instanceof Error ? error.message : 'MCP health check failed',
+        note: '표준 MCP 서버 중심, 최소한의 헬스체크',
+      },
     };
   }
 }
@@ -520,9 +514,15 @@ function determineOverallStatus(statuses: string[]): string {
   const uniqueStatuses = [...new Set(statuses)];
   if (uniqueStatuses.length === 1) {
     return uniqueStatuses[0];
-  } else if (uniqueStatuses.includes('healthy') && !uniqueStatuses.includes('degraded')) {
+  } else if (
+    uniqueStatuses.includes('healthy') &&
+    !uniqueStatuses.includes('degraded')
+  ) {
     return 'healthy';
-  } else if (uniqueStatuses.includes('degraded') && !uniqueStatuses.includes('unhealthy')) {
+  } else if (
+    uniqueStatuses.includes('degraded') &&
+    !uniqueStatuses.includes('unhealthy')
+  ) {
     return 'degraded';
   } else {
     return 'unhealthy';

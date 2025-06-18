@@ -4,13 +4,13 @@ services:
     name: openmanager-mcp-server
     runtime: node
     plan: free
-    region: oregon
+    region: singapore
     branch: main
     rootDir: mcp-server
     buildCommand: npm ci && npm run build
     startCommand: npm start
     healthCheckPath: /health
-    autoDeploy: false
+    autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production

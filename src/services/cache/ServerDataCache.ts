@@ -94,6 +94,17 @@ export class ServerDataCache {
       clearInterval(this.updateInterval);
     }
 
+    // 🔨 빌드 환경에서는 백그라운드 타이머 생성 금지
+    if (
+      process.env.NODE_ENV === 'production' &&
+      (process.env.VERCEL === '1' || process.env.BUILD_TIME === 'true')
+    ) {
+      console.log(
+        '🔨 빌드 환경 감지 - 백그라운드 업데이트 건너뜀 (타이머 차단)'
+      );
+      return;
+    }
+
     this.updateInterval = setInterval(async () => {
       if (!this.isUpdating) {
         await this.updateCache();

@@ -25,10 +25,10 @@ export interface GeneratorConfig {
   updateInterval?: number;
   enableRealtime?: boolean;
   serverArchitecture?:
-  | 'single'
-  | 'master-slave'
-  | 'load-balanced'
-  | 'microservices';
+    | 'single'
+    | 'master-slave'
+    | 'load-balanced'
+    | 'microservices';
   enableRedis?: boolean;
   /**
    * ⚙️ 시나리오 기반 상태 분포 설정
@@ -116,13 +116,15 @@ export class RealServerDataGenerator {
     const stack = new Error().stack || '';
 
     // 헬스체크 컨텍스트 감지
-    this.isHealthCheckContext = stack.includes('health') ||
+    this.isHealthCheckContext =
+      stack.includes('health') ||
       stack.includes('performHealthCheck') ||
       process.env.NODE_ENV === 'test' ||
       process.argv.some(arg => arg.includes('health'));
 
     // 테스트 컨텍스트 감지
-    this.isTestContext = process.env.NODE_ENV === 'test' ||
+    this.isTestContext =
+      process.env.NODE_ENV === 'test' ||
       stack.includes('test') ||
       stack.includes('jest') ||
       stack.includes('vitest') ||
@@ -150,7 +152,8 @@ export class RealServerDataGenerator {
     }
 
     // 3. 레디스 환경변수가 없으면 목업 사용
-    const hasRedisConfig = process.env.REDIS_URL ||
+    const hasRedisConfig =
+      process.env.REDIS_URL ||
       process.env.UPSTASH_REDIS_REST_URL ||
       process.env.REDIS_HOST;
 
@@ -347,7 +350,9 @@ export class RealServerDataGenerator {
   /**
    * 🔴 Redis에 서버 데이터 배치 저장 (성능 개선)
    */
-  private async batchSaveServersToRedis(servers: ServerInstance[]): Promise<void> {
+  private async batchSaveServersToRedis(
+    servers: ServerInstance[]
+  ): Promise<void> {
     if (this.isMockMode) {
       console.log(`🎭 목업 모드: ${servers.length}개 서버 메모리 저장 완료`);
       return;
@@ -385,6 +390,16 @@ export class RealServerDataGenerator {
   public async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
+    // 🔨 빌드 환경에서는 초기화 완전 건너뛰기
+    if (
+      process.env.NODE_ENV === 'production' &&
+      (process.env.VERCEL === '1' || process.env.BUILD_TIME === 'true')
+    ) {
+      console.log('🔨 빌드 환경 감지 - RealServerDataGenerator 초기화 건너뜀');
+      this.isInitialized = true;
+      return;
+    }
+
     console.log('🚀 RealServerDataGenerator 초기화 시작...');
 
     this.initializeServers();
@@ -394,10 +409,18 @@ export class RealServerDataGenerator {
     this.isInitialized = true;
     console.log('✅ RealServerDataGenerator 초기화 완료');
 
-    // 실시간 업데이트 자동 시작 (설정이 활성화된 경우)
+    // 실시간 업데이트 자동 시작 (설정이 활성화된 경우 + 빌드 시 제외)
     if (this.config.enableRealtime && !this.isGenerating) {
-      this.startAutoGeneration();
-      console.log('🔄 실시간 데이터 업데이트 자동 시작됨');
+      // 🔨 빌드 환경에서는 실시간 업데이트 건너뛰기
+      if (
+        process.env.NODE_ENV === 'production' &&
+        (process.env.VERCEL === '1' || process.env.BUILD_TIME === 'true')
+      ) {
+        console.log('🔨 빌드 환경 감지 - 실시간 업데이트 건너뜀');
+      } else {
+        this.startAutoGeneration();
+        console.log('🔄 실시간 데이터 업데이트 자동 시작됨');
+      }
     }
   }
 
@@ -650,6 +673,17 @@ export class RealServerDataGenerator {
       return;
     }
 
+    // 🔨 빌드 환경에서는 타이머 생성 금지
+    if (
+      process.env.NODE_ENV === 'production' &&
+      (process.env.VERCEL === '1' || process.env.BUILD_TIME === 'true')
+    ) {
+      console.log(
+        '🔨 빌드 환경 감지 - 실시간 데이터 생성 건너뜀 (타이머 차단)'
+      );
+      return;
+    }
+
     this.isGenerating = true;
 
     // 즉시 한 번 실행
@@ -665,7 +699,9 @@ export class RealServerDataGenerator {
       }
     }, this.config.updateInterval);
 
-    console.log(`🚀 실시간 데이터 생성 시작됨 (${this.config.updateInterval}ms 간격)`);
+    console.log(
+      `🚀 실시간 데이터 생성 시작됨 (${this.config.updateInterval}ms 간격)`
+    );
   }
 
   public stopAutoGeneration(): void {
@@ -688,15 +724,24 @@ export class RealServerDataGenerator {
         memory: server.metrics.memory,
         disk: server.metrics.disk,
         network: { ...server.metrics.network },
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       // 🎯 2단계: 데이터 전처리 (저장 전 수행)
       const variation = Math.sin(Date.now() / 60000) * 0.3 + 0.7; // 시간에 따른 변화 패턴
       const processedMetrics = {
-        cpu: Math.max(0, Math.min(100, rawMetrics.cpu + (Math.random() - 0.5) * 20)),
-        memory: Math.max(0, Math.min(100, rawMetrics.memory + (Math.random() - 0.5) * 15)),
-        disk: Math.max(0, Math.min(100, rawMetrics.disk + (Math.random() - 0.5) * 10)),
+        cpu: Math.max(
+          0,
+          Math.min(100, rawMetrics.cpu + (Math.random() - 0.5) * 20)
+        ),
+        memory: Math.max(
+          0,
+          Math.min(100, rawMetrics.memory + (Math.random() - 0.5) * 15)
+        ),
+        disk: Math.max(
+          0,
+          Math.min(100, rawMetrics.disk + (Math.random() - 0.5) * 10)
+        ),
         network: {
           in: Math.max(0, rawMetrics.network.in + (Math.random() - 0.5) * 50),
           out: Math.max(0, rawMetrics.network.out + (Math.random() - 0.5) * 30),
@@ -705,9 +750,12 @@ export class RealServerDataGenerator {
 
       // 🎯 3단계: 유의미한 변화 감지 (10% 이상 변화 시에만 저장 - 임계값 상향 조정)
       const cpuChange = Math.abs(processedMetrics.cpu - server.metrics.cpu);
-      const memoryChange = Math.abs(processedMetrics.memory - server.metrics.memory);
+      const memoryChange = Math.abs(
+        processedMetrics.memory - server.metrics.memory
+      );
 
-      if (cpuChange > 10 || memoryChange > 10) { // 5%에서 10%로 상향 조정
+      if (cpuChange > 10 || memoryChange > 10) {
+        // 5%에서 10%로 상향 조정
         hasSignificantChange = true;
       }
 
@@ -732,7 +780,9 @@ export class RealServerDataGenerator {
       await this.batchSaveServersToRedis(updatedServers);
 
       if (!this.isMockMode) {
-        console.log(`📊 유의미한 변화 감지 - Redis 저장 완료: ${updatedServers.length}개 서버`);
+        console.log(
+          `📊 유의미한 변화 감지 - Redis 저장 완료: ${updatedServers.length}개 서버`
+        );
       }
     }
   }
@@ -785,12 +835,12 @@ export class RealServerDataGenerator {
         avgCpu:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.cpu, 0) /
-            servers.length
+              servers.length
             : 0,
         avgMemory:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.memory, 0) /
-            servers.length
+              servers.length
             : 0,
       },
       clusters: {
@@ -825,9 +875,9 @@ export class RealServerDataGenerator {
         avgResponseTime:
           applications.length > 0
             ? applications.reduce(
-              (sum, a) => sum + a.performance.responseTime,
-              0
-            ) / applications.length
+                (sum, a) => sum + a.performance.responseTime,
+                0
+              ) / applications.length
             : 0,
       },
       timestamp: Date.now(),
@@ -928,8 +978,8 @@ export class RealServerDataGenerator {
         connected: this.redis !== null && !this.isMockMode,
         lastSaveTime: this.lastSaveTime,
         saveThrottleCount: this.saveThrottleCount,
-        canSave: this.canSaveToRedis()
-      }
+        canSave: this.canSaveToRedis(),
+      },
     };
   }
 
@@ -950,7 +1000,7 @@ export class RealServerDataGenerator {
     const diskScore = Math.max(0, 100 - metrics.disk);
 
     // 가중 평균으로 건강 점수 계산
-    return Math.round((cpuScore * 0.4 + memoryScore * 0.4 + diskScore * 0.2));
+    return Math.round(cpuScore * 0.4 + memoryScore * 0.4 + diskScore * 0.2);
   }
 }
 

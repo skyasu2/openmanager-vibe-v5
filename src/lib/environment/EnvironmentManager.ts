@@ -185,6 +185,22 @@ export class EnvironmentManager {
   }
 
   /**
+   * 🔌 로컬 MCP 서버 초기화 허용 여부 (개발용)
+   */
+  shouldInitializeLocalMCP(): boolean {
+    // 개발 환경에서만 로컬 MCP 서버 활성화
+    return this.isDevelopment && this._config.enableMCPServers;
+  }
+
+  /**
+   * 🌐 Render MCP 서버 연결 허용 여부 (프로덕션용)
+   */
+  shouldConnectRenderMCP(): boolean {
+    // 프로덕션 환경에서만 Render MCP 서버 연결
+    return this.isProduction && this._config.enableMCPServers;
+  }
+
+  /**
    * 💓 Keep-Alive 스케줄러 시작 허용 여부
    */
   shouldStartKeepAlive(): boolean {

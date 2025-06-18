@@ -78,54 +78,37 @@ export class RealMCPClient {
 
     const npxCommand = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 
-    // 🗂️ filesystem 서버 (파일 시스템 조작)
+    // 🗂️ 표준 filesystem 서버 (파일 시스템 조작)
     this.servers.set('filesystem', {
       name: 'filesystem',
       command: npxCommand,
       args: ['@modelcontextprotocol/server-filesystem', './src', './docs'],
       env: {
-        NODE_OPTIONS: `--max-old-space-size=${env.performance.maxMemory}`,
+        NODE_OPTIONS: `--max-old-space-size=256`, // 메모리 사용량 최적화
         PROJECT_ROOT: process.cwd(),
-        MCP_SERVER_URL: renderMcpUrl,
-        MCP_SERVER_IPS: renderIPs.join(','),
       },
-      enabled: true, // 기본값 사용
+      enabled: true,
     });
 
-    // 🐙 GitHub 서버 (저장소 관리)
-    const githubToken = 'demo-token'; // 기본값 사용
+    // 🐙 표준 GitHub 서버 (필요시에만 활성화)
     this.servers.set('github', {
       name: 'github',
       command: npxCommand,
-      args: [
-        '@modelcontextprotocol/server-github',
-        '--auth-token',
-        githubToken || 'demo-token',
-      ],
+      args: ['@modelcontextprotocol/server-github'],
       env: {
-        GITHUB_TOKEN: githubToken || 'demo-token',
         NODE_OPTIONS: '--max-old-space-size=256',
-        MCP_SERVER_URL: renderMcpUrl,
-        MCP_SERVER_IPS: renderIPs.join(','),
       },
-      enabled: false, // 기본값 사용 (GitHub 토큰 없으면 비활성화)
+      enabled: false, // 기본 비활성화 (필요시에만 활성화)
     });
 
-    // 📊 OpenManager 전용 서버 (문서 관리)
+    // 📊 표준 filesystem 서버 (문서 전용)
     this.servers.set('openmanager-docs', {
       name: 'openmanager-docs',
       command: npxCommand,
-      args: [
-        '@modelcontextprotocol/server-filesystem',
-        './docs',
-        './src/ai-context',
-      ],
+      args: ['@modelcontextprotocol/server-filesystem', './docs'],
       env: {
         NODE_OPTIONS: '--max-old-space-size=256',
         PROJECT_ROOT: process.cwd(),
-        MCP_SERVER_URL: renderMcpUrl,
-        MCP_SERVER_IPS: renderIPs.join(','),
-        MCP_SERVER_TYPE: 'openmanager-docs',
       },
       enabled: true,
     });
@@ -215,12 +198,29 @@ export class RealMCPClient {
       return mockClient;
     }
 
-    // MCP 서버 연결이 허용되지 않은 환경에서는 Mock 클라이언트 사용
-    if (!envManager.shouldInitializeMCP()) {
-      console.log(`⏭️ MCP 비활성화 환경 - Mock 클라이언트 사용: ${serverName}`);
-      const mockClient = this.createMockClient(serverName);
-      this.clients.set(serverName, mockClient);
-      return mockClient;
+    // 환경별 MCP 서버 연결 전략
+    const isLocalServer = ['filesystem', 'github', 'openmanager-docs'].includes(
+      serverName
+    );
+
+    if (isLocalServer) {
+      // 로컬 MCP 서버 (개발용)
+      if (!envManager.shouldInitializeLocalMCP()) {
+        console.log(`🔧 개발 환경이 아님 - 로컬 MCP Mock 사용: ${serverName}`);
+        const mockClient = this.createMockClient(serverName);
+        this.clients.set(serverName, mockClient);
+        return mockClient;
+      }
+    } else {
+      // Render MCP 서버 (프로덕션용)
+      if (!envManager.shouldConnectRenderMCP()) {
+        console.log(
+          `🌐 프로덕션 환경이 아님 - Render MCP Mock 사용: ${serverName}`
+        );
+        const mockClient = this.createMockClient(serverName);
+        this.clients.set(serverName, mockClient);
+        return mockClient;
+      }
     }
 
     const config = this.servers.get(serverName);

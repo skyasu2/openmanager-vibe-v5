@@ -78,6 +78,8 @@ const nextConfig: NextConfig = {
   // 환경변수 기본값 설정 (NODE_ENV 제거)
   env: {
     SKIP_ENV_VALIDATION: skipEnvValidation ? 'true' : 'false',
+    BUILD_TIME: 'true', // 🔨 빌드 시 타이머 차단용
+    VERCEL_BUILD_PHASE: process.env.VERCEL ? 'true' : 'false',
   },
 
   serverExternalPackages: [
