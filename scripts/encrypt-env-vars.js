@@ -18,67 +18,71 @@ const TEAM_PASSWORD = 'openmanager2025';
 
 // 암호화할 환경변수들
 const ENV_VARS = {
-    NEXT_PUBLIC_SUPABASE_URL: 'https://vnswjnltnhpsueosfhmw.supabase.co',
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.aqP3vhgVSWIgN4_B7aHYvRZJFYWPEHhNJEFMsWDPJBs',
-    SUPABASE_SERVICE_ROLE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8',
-    UPSTASH_REDIS_REST_URL: 'https://charming-condor-46598.upstash.io',
-    UPSTASH_REDIS_REST_TOKEN: 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
-    RENDER_MCP_SERVER_URL: 'https://openmanager-vibe-v5.onrender.com'
+  NEXT_PUBLIC_SUPABASE_URL: 'https://vnswjnltnhpsueosfhmw.supabase.co',
+  NEXT_PUBLIC_SUPABASE_ANON_KEY:
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.aqP3vhgVSWIgN4_B7aHYvRZJFYWPEHhNJEFMsWDPJBs',
+  SUPABASE_SERVICE_ROLE_KEY:
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8',
+  UPSTASH_REDIS_REST_URL: 'https://charming-condor-46598.upstash.io',
+  UPSTASH_REDIS_REST_TOKEN:
+    'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
+  RENDER_MCP_SERVER_URL: 'https://openmanager-vibe-v5.onrender.com',
+  GOOGLE_AI_API_KEY: 'AIzaSyABFUHbGGtjs6S_y756H4SYJmFNuNoo3fY',
 };
 
 /**
  * 값 암호화
  */
 function encryptValue(value, password) {
-    const salt = CryptoJS.lib.WordArray.random(128 / 8).toString();
-    const iv = CryptoJS.lib.WordArray.random(128 / 8);
+  const salt = CryptoJS.lib.WordArray.random(128 / 8).toString();
+  const iv = CryptoJS.lib.WordArray.random(128 / 8);
 
-    const key = CryptoJS.PBKDF2(password, salt, {
-        keySize: 256 / 32,
-        iterations: 10000,
-    });
+  const key = CryptoJS.PBKDF2(password, salt, {
+    keySize: 256 / 32,
+    iterations: 10000,
+  });
 
-    const encrypted = CryptoJS.AES.encrypt(value, key, {
-        iv: iv,
-        mode: CryptoJS.mode.CBC,
-        padding: CryptoJS.pad.Pkcs7,
-    });
+  const encrypted = CryptoJS.AES.encrypt(value, key, {
+    iv: iv,
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7,
+  });
 
-    return {
-        encrypted: encrypted.toString(),
-        salt: salt,
-        iv: iv.toString(),
-        timestamp: new Date().toISOString(),
-    };
+  return {
+    encrypted: encrypted.toString(),
+    salt: salt,
+    iv: iv.toString(),
+    timestamp: new Date().toISOString(),
+  };
 }
 
 /**
  * 모든 환경변수 암호화
  */
 function encryptAllVars() {
-    console.log('🔐 환경변수 암호화 시작...');
+  console.log('🔐 환경변수 암호화 시작...');
 
-    const encryptedVars = {};
-    const teamPasswordHash = CryptoJS.SHA256(TEAM_PASSWORD).toString();
+  const encryptedVars = {};
+  const teamPasswordHash = CryptoJS.SHA256(TEAM_PASSWORD).toString();
 
-    for (const [varName, value] of Object.entries(ENV_VARS)) {
-        try {
-            const encrypted = encryptValue(value, TEAM_PASSWORD);
-            encryptedVars[varName] = {
-                ...encrypted,
-                originalName: varName,
-                isPublic: varName.startsWith('NEXT_PUBLIC_'),
-                rotateSchedule: varName.includes('TOKEN') ? 'quarterly' : 'manual',
-            };
+  for (const [varName, value] of Object.entries(ENV_VARS)) {
+    try {
+      const encrypted = encryptValue(value, TEAM_PASSWORD);
+      encryptedVars[varName] = {
+        ...encrypted,
+        originalName: varName,
+        isPublic: varName.startsWith('NEXT_PUBLIC_'),
+        rotateSchedule: varName.includes('TOKEN') ? 'quarterly' : 'manual',
+      };
 
-            console.log(`✅ ${varName}: 암호화 완료`);
-        } catch (error) {
-            console.error(`❌ ${varName}: 암호화 실패 -`, error.message);
-        }
+      console.log(`✅ ${varName}: 암호화 완료`);
+    } catch (error) {
+      console.error(`❌ ${varName}: 암호화 실패 -`, error.message);
     }
+  }
 
-    // 암호화된 설정 파일 생성
-    const configContent = `/**
+  // 암호화된 설정 파일 생성
+  const configContent = `/**
  * 🔐 OpenManager Vibe v5 - 암호화된 환경변수 설정
  * 
  * 이 파일은 민감한 환경변수들을 AES 암호화하여 저장합니다.
@@ -135,17 +139,24 @@ export const DEPLOYMENT_CONFIG = {
   }
 };`;
 
-    // 파일 저장
-    const configPath = path.join(__dirname, '..', 'config', 'encrypted-env-config.ts');
-    fs.writeFileSync(configPath, configContent, 'utf8');
+  // 파일 저장
+  const configPath = path.join(
+    __dirname,
+    '..',
+    'config',
+    'encrypted-env-config.ts'
+  );
+  fs.writeFileSync(configPath, configContent, 'utf8');
 
-    console.log(`🎉 총 ${Object.keys(encryptedVars).length}개 환경변수 암호화 완료!`);
-    console.log(`📁 저장 위치: ${configPath}`);
+  console.log(
+    `🎉 총 ${Object.keys(encryptedVars).length}개 환경변수 암호화 완료!`
+  );
+  console.log(`📁 저장 위치: ${configPath}`);
 
-    return encryptedVars;
+  return encryptedVars;
 }
 
 // 스크립트 실행
 if (require.main === module) {
-    encryptAllVars();
-} 
+  encryptAllVars();
+}

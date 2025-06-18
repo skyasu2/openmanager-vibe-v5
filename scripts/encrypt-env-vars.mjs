@@ -19,11 +19,12 @@ const TEAM_PASSWORD = 'openmanager2025';
 // 암호화할 환경변수들
 const ENV_VARS = {
   NEXT_PUBLIC_SUPABASE_URL: 'https://vnswjnltnhpsueosfhmw.supabase.co',
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.aqP3vhgVSWIgN4_B7aHYvRZJFYWPEHhNJEFMsWDPJBs',
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU',
   SUPABASE_SERVICE_ROLE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8',
   UPSTASH_REDIS_REST_URL: 'https://charming-condor-46598.upstash.io',
   UPSTASH_REDIS_REST_TOKEN: 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
-  RENDER_MCP_SERVER_URL: 'https://openmanager-vibe-v5.onrender.com'
+  RENDER_MCP_SERVER_URL: 'https://openmanager-vibe-v5.onrender.com',
+  GOOGLE_AI_API_KEY: 'AIzaSyABFUHbGGtjs6S_y756H4SYJmFNuNoo3fY'
 };
 
 /**
