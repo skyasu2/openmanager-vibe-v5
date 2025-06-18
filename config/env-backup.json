@@ -1,85 +1,71 @@
 {
   "version": "1.0.0",
-  "created": "2025-06-18T08:02:17.909Z",
-  "lastBackup": "2025-06-18T08:02:17.909Z",
+  "created": "2025-06-18T09:29:57.453Z",
+  "lastBackup": "2025-06-18T09:29:57.453Z",
   "entries": [
     {
       "key": "NEXT_PUBLIC_SUPABASE_URL",
       "value": "https://vnswjnltnhpsueosfhmw.supabase.co",
       "encrypted": false,
       "priority": "critical",
-      "lastUpdated": "2025-06-18T08:02:17.908Z"
+      "lastUpdated": "2025-06-18T09:29:57.453Z"
     },
     {
       "key": "SUPABASE_URL",
       "value": "https://vnswjnltnhpsueosfhmw.supabase.co",
       "encrypted": false,
       "priority": "critical",
-      "lastUpdated": "2025-06-18T08:02:17.908Z"
+      "lastUpdated": "2025-06-18T09:29:57.453Z"
     },
     {
       "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-      "value": "e669f9a7e7bd81d65b821d50f2657483:d73449902a878371f3d64c4f2496bb502fde49022eed1a920b03a8688fefb0684aa6e11ee6e01a64df2d1a2735ce08fe73dde0f664ef65668b08ba20e75b92bac370fcf571b85c9429871cf4fce192bf64dd93834f7909421dce7f9c1da781a090013500d99f0fb32257de42dde0b7f4d6f5be162a22f2e6a03f0526d10ce680cb193798041fa6ef8c60aef30e63430b0be888e497b364bfa894cda74d5c9e2718e10fa496ac0fc02ddc9799711b04341be96a123a44d09153ae664e12fa2fe0068d1a57181d39e1e046ef545812d1cd65c639dd722a93d036f696c46b885bbd",
+      "value": "bf44d5fb83aef35ada652c7c0fe4f785:40258cacd7413e0f6a4f322210034692f505fc7de97c97aba3999d1b4e981b3b8339618cc989fa2557b89908f87d0628c57c595ba303a965b7bf7e68938563799ce6fa0f4faf89390d51f0f2ebcadb432fc113b5222e8cd8441b8d96c4af3907304ccccec1641868943267b264b0078a81f8f9bdb0d1bc672cc426ef63e195adadb67b76d48c33400cae93db5112c0772abf674cb1b9593868df47bc5a9471bf5571f9f0ab9f42d89917476a183c49567be75de499dfbb5e8199d07032d99ac9a6ed8bb387174fae7bb6a38e108452230d68aaee914165c4541784fb230e166b",
       "encrypted": true,
       "priority": "critical",
-      "lastUpdated": "2025-06-18T08:02:17.908Z"
+      "lastUpdated": "2025-06-18T09:29:57.453Z"
     },
     {
       "key": "SUPABASE_SERVICE_ROLE_KEY",
-      "value": "0ba92df7a88c63c8e8fc5b8c14305175:ea357fc15d5ca6a882860f3f29d4eff28c2de14c80db6d179a77e8f516ba9d3ac6134d9eade0dea2fc143b3d1fa037271ae5bc70ac8664ef57ca8f8a7e9cde3361929f35b759a2fef2b7d894a073954ef16af32539fc3ae6b7bf08ebf04341dc37bad8d2d4f5427463642c3a8322a51fa1cd934d38cb3b63286ed2a0d0d6888c5f40f7910fdc5a94ff853c0bed71bb1b09a1d22409eb08d0320a8f1b9a4b9c5d154d3a1ede72d811f03a96783a0ce3cc9f254bc3b9b16462012c6e28c84a0a9023b533640eee1653b7f7cc00fc4a2ae4eea460a788a0899a72f396d5ad0e7440",
+      "value": "12af39aa57c70c5d40813c80cb57234c:693edd3818a72bdffba556945c5d08c6d730bd8eb6329f260819fba22a6c7ae58434cff2c8dd9e16d715aeaaa654fc05d27f1ea8587222b044ae8fc1b7b473c4a4ef9f7b58709319eb63b6e26342f127ae8de49a49148763f1ccf8b0027f351e497e46b9362e48a317c8dcef12a529a4010b54ed389b637715aba5d6915cead032ee73102a0fbd8c53f6de0a62e6462cfeaeb2f37ff83335c0fbe25e6a50863fccd9243dd290dffd9cf579313f96e8b121a01443df5c505de4d62c2f648345aa8933c97557ab864135fe5f5b4bd17ab1f34a64a25e1179a9952f8a2a098d66e4",
       "encrypted": true,
       "priority": "critical",
-      "lastUpdated": "2025-06-18T08:02:17.908Z"
+      "lastUpdated": "2025-06-18T09:29:57.453Z"
     },
     {
       "key": "NODE_ENV",
       "value": "production",
       "encrypted": false,
       "priority": "critical",
-      "lastUpdated": "2025-06-18T08:02:17.908Z"
+      "lastUpdated": "2025-06-18T09:29:57.453Z"
     },
     {
       "key": "UPSTASH_REDIS_REST_URL",
       "value": "https://charming-condor-46598.upstash.io",
       "encrypted": false,
       "priority": "important",
-      "lastUpdated": "2025-06-18T08:02:17.908Z"
+      "lastUpdated": "2025-06-18T09:29:57.453Z"
     },
     {
       "key": "UPSTASH_REDIS_REST_TOKEN",
-      "value": "ed9b90332f6b2858247d3f5f68393b89:98eccc910077a5ef7c2b90a05af855d5e47a294da5b19bd937bd32fefec11c25b0db5875ff119f6b0584e83b071a645ddee15f66a943cc7d596fcf0f0aab957a",
+      "value": "22bd33212e860afcad770976967ba7da:1dcbf6579cea18d7cf151e58485badb8dc3ed443434d4e0681110a788691b629c3aadbdeeefda4e8f47add9d66c7b2b5ad07b66fc9c29a7ef9b777a5f3fa8421",
       "encrypted": true,
       "priority": "important",
-      "lastUpdated": "2025-06-18T08:02:17.909Z"
-    },
-    {
-      "key": "GOOGLE_AI_API_KEY",
-      "value": "4b492554acfab271e22a21a69ece7486:1a044ab75dfc592838ba913bfa7c7f78ca7b485ddc624eca38ad87fd68015c8b183bab8b166e01d488721e516674b66f",
-      "encrypted": true,
-      "priority": "important",
-      "lastUpdated": "2025-06-18T08:02:17.909Z"
-    },
-    {
-      "key": "SLACK_WEBHOOK_URL",
-      "value": "01053942979cf4dbd6613a7d96fe046b:dc992a8934ae49dea0e23cf433e830c66bb78c1471457fa2e4048456531c9f10fa2c1fee958e07cf7bd4972defa9521ad893dcfbe9702eadf17710fc10a9c3d9de32a1be418f686441680d90c1f65636a3c1ffa66ae498a753e84d4c6e3c6ddd",
-      "encrypted": true,
-      "priority": "optional",
-      "lastUpdated": "2025-06-18T08:02:17.909Z"
+      "lastUpdated": "2025-06-18T09:29:57.453Z"
     },
     {
       "key": "GOOGLE_AI_DAILY_LIMIT",
       "value": "10000",
       "encrypted": false,
       "priority": "optional",
-      "lastUpdated": "2025-06-18T08:02:17.909Z"
+      "lastUpdated": "2025-06-18T09:29:57.453Z"
     },
     {
       "key": "GOOGLE_AI_RPM_LIMIT",
       "value": "100",
       "encrypted": false,
       "priority": "optional",
-      "lastUpdated": "2025-06-18T08:02:17.909Z"
+      "lastUpdated": "2025-06-18T09:29:57.453Z"
     }
   ],
-  "checksum": "d556159b680ab8d80c4fbfae08c8b2db"
+  "checksum": "3c37500e08a21da7acd49821d938219b"
 }
