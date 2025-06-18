@@ -18,6 +18,7 @@ import { ContextManager } from './ContextManager';
 import { LocalRAGEngine } from '@/lib/ml/rag-engine';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
 import { isGoogleAIAvailable } from '@/lib/google-ai-manager';
+import { IntentClassifier } from '@/modules/ai-agent/processors/IntentClassifier';
 
 // MasterAIEngine 통합 - 사고과정 로그 시스템
 import {
@@ -172,6 +173,7 @@ export class UnifiedAIEngine {
   private contextManager: ContextManager;
   private googleAI?: GoogleAIService;
   private ragEngine: LocalRAGEngine;
+  private intentClassifier: IntentClassifier;
   private betaModeEnabled: boolean = false;
   private initialized: boolean = false;
   private analysisCache: Map<string, any> = new Map();
@@ -215,6 +217,7 @@ export class UnifiedAIEngine {
     console.log('🚀 Enhanced Unified AI Engine 인스턴스 생성');
     this.contextManager = ContextManager.getInstance();
     this.ragEngine = new LocalRAGEngine();
+    this.intentClassifier = new IntentClassifier();
 
     // MasterAIEngine 통합 - 통계 및 캐시 초기화
     this.engineStats = new Map();
@@ -414,14 +417,17 @@ export class UnifiedAIEngine {
       }
 
       // 의도 분석
-      const intent = await this.classifyIntent(request.query, request.context);
+      const intent = await this.intentClassifier.classify(
+        request.query,
+        request.context
+      );
 
       if (enableThinking) {
         thinkingSteps.push(
           this.createThinkingStep(
             'reasoning',
             '의도 분석 완료',
-            `주요 의도: ${intent.primary} (신뢰도 ${(intent.confidence * 100).toFixed(1)}%)`
+            `주요 의도: ${intent.name} (신뢰도 ${(intent.confidence * 100).toFixed(1)}%)`
           )
         );
       }
@@ -475,7 +481,7 @@ export class UnifiedAIEngine {
         success: true,
         query: request.query,
         intent: {
-          primary: intent.primary,
+          primary: intent.name,
           confidence: intent.confidence,
           category: intent.category,
           urgency: intent.urgency || 'medium',
@@ -818,15 +824,7 @@ export class UnifiedAIEngine {
     };
   }
 
-  // 기존 메서드들 유지...
-  private async classifyIntent(query: string, context?: any): Promise<any> {
-    return {
-      primary: 'analysis',
-      confidence: 0.8,
-      category: 'monitoring',
-      urgency: context?.urgency || 'medium',
-    };
-  }
+
 
   // Graceful Degradation 메서드들
   private async checkComponentHealth(): Promise<{
@@ -1027,7 +1025,7 @@ export class UnifiedAIEngine {
       if (this.componentHealth.get('mcp') && this.mcpClient) {
         try {
           const mcpResult = await this.mcpClient.performComplexQuery(
-            intent.primary,
+            intent.name,
             context
           );
           results.push({ source: 'mcp', content: mcpResult, confidence: 0.8 });
@@ -1039,7 +1037,7 @@ export class UnifiedAIEngine {
       // RAG 분석
       if (this.componentHealth.get('rag')) {
         try {
-          const ragResult = await this.ragEngine.query(intent.primary, {
+          const ragResult = await this.ragEngine.query(intent.name, {
             limit: 3,
           });
           results.push({ source: 'rag', content: ragResult, confidence: 0.7 });
@@ -1094,7 +1092,7 @@ export class UnifiedAIEngine {
       // MCP가 사용 가능하면 우선 사용
       if (this.componentHealth.get('mcp') && this.mcpClient) {
         const result = await this.mcpClient.performComplexQuery(
-          intent.primary,
+          intent.name,
           context
         );
         return {
@@ -1132,8 +1130,8 @@ export class UnifiedAIEngine {
     // 최소한의 응답 생성
     return {
       success: true,
-      content: `죄송합니다. 현재 AI 시스템이 일시적으로 불안정합니다. 
-                요청사항: ${intent.primary || '정보 요청'}
+      content: `죄송합니다. 현재 AI 시스템이 일시적으로 불안정합니다.
+                요청사항: ${intent.name || '정보 요청'}
                 상태: 시스템 복구 중
                 권장사항: 잠시 후 다시 시도해주세요`,
       confidence: 0.1,
@@ -1290,8 +1288,12 @@ export class UnifiedAIEngine {
       );
 
       // 4. 의도 분류 (하이브리드 데이터 기반)
-      const intent = await this.classifyIntentWithHybridData(
+      const baseIntent = await this.intentClassifier.classify(
         request.query,
+        request.context
+      );
+      const intent = await this.classifyIntentWithHybridData(
+        baseIntent,
         hybridResponse
       );
 
@@ -1319,7 +1321,7 @@ export class UnifiedAIEngine {
         success: true,
         query: request.query,
         intent: {
-          primary: intent.primary,
+          primary: intent.name,
           confidence: intent.confidence,
           category: intent.category,
           urgency: hybridRequest.urgency || 'medium',
@@ -1510,11 +1512,9 @@ export class UnifiedAIEngine {
    * 🧠 하이브리드 데이터 기반 의도 분류
    */
   private async classifyIntentWithHybridData(
-    query: string,
+    baseIntent: any,
     hybridData: HybridDataResponse
   ): Promise<any> {
-    // 기본 의도 분류
-    const baseIntent = await this.classifyIntent(query);
 
     // 하이브리드 데이터로 의도 보강
     const criticalServers = hybridData.monitoringData.metadata.criticalServers;
