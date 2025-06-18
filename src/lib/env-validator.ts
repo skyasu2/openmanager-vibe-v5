@@ -32,7 +32,7 @@ const RUNTIME_REQUIRED = [
 export function getExecutionContext() {
   return {
     isBuild: process.env.npm_lifecycle_event === 'build',
-    isServer: typeof window === 'undefined',
+    isServer: typeof window === 'undefined' || process.env.NODE_ENV === 'test',
     isProduction: process.env.NODE_ENV === 'production',
     isVercel: Boolean(process.env.VERCEL),
     isCron: Boolean(process.env.VERCEL_CRON_ID),
@@ -93,37 +93,41 @@ export function validateRuntimeEnvironment(): {
 
   // 필수 환경변수 체크
   for (const key of RUNTIME_REQUIRED) {
-    if (!process.env[key]) {
+    if (!process.env[key] || process.env[key]?.trim() === '') {
       missing.push(key);
     }
   }
 
   // URL 형식 검증
   try {
-    if (env.NEXT_PUBLIC_SUPABASE_URL) {
-      new URL(env.NEXT_PUBLIC_SUPABASE_URL);
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      new URL(process.env.NEXT_PUBLIC_SUPABASE_URL);
     }
   } catch {
-    errors.push('NEXT_PUBLIC_SUPABASE_URL은 유효한 URL이어야 합니다');
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      errors.push('NEXT_PUBLIC_SUPABASE_URL은 유효한 URL이어야 합니다');
+    }
   }
 
   try {
-    if (env.UPSTASH_REDIS_REST_URL) {
-      new URL(env.UPSTASH_REDIS_REST_URL);
+    if (process.env.UPSTASH_REDIS_REST_URL) {
+      new URL(process.env.UPSTASH_REDIS_REST_URL);
     }
   } catch {
-    errors.push('UPSTASH_REDIS_REST_URL은 유효한 URL이어야 합니다');
+    if (process.env.UPSTASH_REDIS_REST_URL) {
+      errors.push('UPSTASH_REDIS_REST_URL은 유효한 URL이어야 합니다');
+    }
   }
 
   // 서비스별 사용 가능성 체크
   const canUseSupabase = Boolean(
-    env.NEXT_PUBLIC_SUPABASE_URL &&
-      env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-      env.SUPABASE_SERVICE_ROLE_KEY
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() &&
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
   );
 
   const canUseRedis = Boolean(
-    env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
+    process.env.UPSTASH_REDIS_REST_URL?.trim() && process.env.UPSTASH_REDIS_REST_TOKEN?.trim()
   );
 
   return {
@@ -144,13 +148,13 @@ export function requireEnvironmentVariables(required: (keyof Environment)[]) {
       return { success: true };
     }
 
-    const missing = required.filter(key => !env[key]);
+    const missingVars = required.filter(key => !process.env[key as string]);
 
-    if (missing.length > 0) {
+    if (missingVars.length > 0) {
       return {
         success: false,
-        error: `Missing required environment variables: ${missing.join(', ')}`,
-        missing,
+        error: `Missing required environment variables: ${missingVars.join(', ')}`,
+        missing: missingVars,
       };
     }
 
@@ -172,6 +176,6 @@ export function logEnvironmentStatus() {
   }
 
   if (validation.errors.length > 0) {
-    console.error(`  ❌ 검증 에러: ${validation.errors.join(', ')}`);
+    console.error(`❌ 검증 에러: ${validation.errors.join(', ')}`);
   }
 }

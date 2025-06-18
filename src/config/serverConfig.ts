@@ -59,8 +59,8 @@ export function calculateServerConfig(
   const batchSize = Math.min(100, Math.max(10, Math.ceil(serverCount / 2)));
   const bufferSize = Math.min(1000, serverCount * 10);
 
-  // 캐시 설정 (30초로 통일)
-  const updateInterval = 30000; // 30초 고정
+  // 캐시 설정 (메모리 기반 동적 조정)
+  const updateInterval = calculateOptimalUpdateInterval(); // 동적 계산
   const expireTime = 60000; // 1분 고정
 
   return {
@@ -83,6 +83,34 @@ export function calculateServerConfig(
       bufferSize,
     },
   };
+}
+
+/**
+ * 🧠 메모리 사용량 기반 최적 업데이트 간격 계산
+ */
+export function calculateOptimalUpdateInterval(): number {
+  // 서버 사이드에서는 Node.js process.memoryUsage() 사용
+  if (typeof process !== 'undefined' && process.memoryUsage) {
+    const memoryUsage = process.memoryUsage();
+    const usagePercent = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
+
+    // 메모리 사용률에 따른 업데이트 간격 조정
+    if (usagePercent > 80) return 45000; // 높은 사용률: 45초
+    if (usagePercent > 60) return 35000; // 중간 사용률: 35초
+    return 30000; // 낮은 사용률: 30초
+  }
+
+  // 클라이언트 사이드에서는 performance.memory 사용
+  if (typeof window !== 'undefined' && 'memory' in performance) {
+    const memory = (performance as any).memory;
+    const usagePercent = (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
+
+    if (usagePercent > 80) return 45000; // 높은 사용률: 45초
+    if (usagePercent > 60) return 35000; // 중간 사용률: 35초
+    return 30000; // 낮은 사용률: 30초
+  }
+
+  return 30000; // 기본값: 30초
 }
 
 /**

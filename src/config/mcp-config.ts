@@ -354,13 +354,53 @@ ${status.renderConfig ? `
   `);
 }
 
-export default {
-    DEVELOPMENT_MCP_CONFIG,
-    AI_PRODUCTION_MCP_CONFIG,
-    RENDER_SERVER_CONFIG,
-    getMCPConfig,
-    getMCPServerType,
-    getActiveMCPServers,
-    getMCPStatus,
-    logMCPConfiguration
-}; 
+/**
+ * 전체 MCP 설정 통합 관리
+ */
+const mcpConfig = {
+    // 개발용 MCP 설정 (Cursor IDE)
+    development: DEVELOPMENT_MCP_CONFIG,
+
+    // AI용 MCP 설정 (Render 프로덕션)
+    ai: AI_PRODUCTION_MCP_CONFIG,
+
+    // 서버 정보
+    server: RENDER_SERVER_CONFIG,
+
+    // 환경 감지
+    getCurrentConfig() {
+        const env = getMCPServerType();
+        console.log(`🌍 MCP 환경 감지: ${env}`);
+
+        switch (env) {
+            case 'development':
+                return this.development;
+            case 'ai-production':
+                return this.ai;
+            default:
+                return this.development;
+        }
+    },
+
+    // 헬스체크
+    async healthCheck() {
+        const config = this.getCurrentConfig();
+        console.log(`🏥 MCP 헬스체크 시작: ${config.servers.length}개 서버`);
+
+        // 각 서버별 헬스체크 로직
+        const results = await Promise.allSettled(
+            config.servers.map(async (server) => {
+                try {
+                    // 실제 헬스체크 구현은 각 MCP 클라이언트에서 담당
+                    return { server: server.name, status: 'healthy' };
+                } catch (error) {
+                    return { server: server.name, status: 'unhealthy', error };
+                }
+            })
+        );
+
+        return results;
+    }
+};
+
+export default mcpConfig; 

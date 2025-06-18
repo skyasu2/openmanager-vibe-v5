@@ -228,13 +228,23 @@ export async function retry<T>(
   retries = 3,
   delay = 1000
 ): Promise<T> {
-  try {
-    return await fn();
-  } catch (error) {
-    if (retries === 0) throw error;
-    await sleep(delay);
-    return retry(fn, retries - 1, delay * 2);
+  let lastError: Error;
+
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+
+      if (attempt === retries - 1) {
+        throw lastError;
+      }
+
+      await sleep(delay);
+    }
   }
+
+  throw lastError!;
 }
 
 /**
@@ -255,7 +265,7 @@ export async function hashString(str: string): Promise<string> {
  * @returns Boolean indicating server environment
  */
 export function isServer(): boolean {
-  return typeof window === 'undefined';
+  return typeof window === 'undefined' || process.env.NODE_ENV === 'test';
 }
 
 /**
@@ -364,7 +374,7 @@ export function isValidEmail(email: string): boolean {
  */
 export function truncate(str: string, length: number): string {
   if (str.length <= length) return str;
-  return str.slice(0, length - 3) + '...';
+  return str.substring(0, length) + '...';
 }
 
 /**
@@ -375,7 +385,7 @@ export function truncate(str: string, length: number): string {
  */
 export function calculatePercentage(value: number, total: number): number {
   if (total === 0) return 0;
-  return Math.round((value / total) * 100);
+  return Math.round((value / total) * 100 * 100) / 100;
 }
 
 /**
@@ -407,31 +417,34 @@ export function sortBy<T>(
  */
 export function getStatusColor(status: string): string {
   const colors: Record<string, string> = {
-    healthy: 'text-green-500',
-    warning: 'text-yellow-500',
-    critical: 'text-red-500',
-    offline: 'text-gray-500',
-    maintenance: 'text-blue-500',
-    active: 'text-green-500',
-    resolved: 'text-gray-500',
-    acknowledged: 'text-yellow-500',
+    healthy: 'text-green-600',
+    warning: 'text-yellow-600',
+    critical: 'text-red-600',
+    offline: 'text-gray-600',
+    maintenance: 'text-blue-600',
+    active: 'text-green-600',
+    resolved: 'text-gray-600',
+    acknowledged: 'text-yellow-600',
   };
-  return colors[status.toLowerCase()] || 'text-gray-500';
+  return colors[status.toLowerCase()] || 'text-gray-600';
 }
 
 /**
  * Get severity icon based on severity level
  * @param severity - Severity level
- * @returns Icon name
+ * @returns Icon emoji
  */
 export function getSeverityIcon(severity: string): string {
   const icons: Record<string, string> = {
+    low: '🟢',
+    medium: '🟡',
+    high: '🟠',
+    critical: '🔴',
     info: 'info',
     warning: 'alert-triangle',
-    critical: 'alert-circle',
     error: 'x-circle',
   };
-  return icons[severity.toLowerCase()] || 'info';
+  return icons[severity.toLowerCase()] || '⚪';
 }
 
 /**

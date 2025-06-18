@@ -33,13 +33,13 @@ export class MemoryOptimizer {
   private monitoringInterval: NodeJS.Timeout | null = null;
   private lastOptimization: number = 0;
   private optimizationHistory: OptimizationResult[] = [];
-  
+
   // 메모리 임계값
   private readonly CRITICAL_THRESHOLD = 90;  // 90% 이상 시 즉시 최적화
   private readonly WARNING_THRESHOLD = 75;   // 75% 이상 시 예방적 최적화
   private readonly TARGET_THRESHOLD = 65;    // 목표 사용률 65%
   private readonly OPTIMIZATION_COOLDOWN = 60000; // 1분 쿨다운
-  
+
   static getInstance(): MemoryOptimizer {
     if (!this.instance) {
       this.instance = new MemoryOptimizer();
@@ -53,7 +53,7 @@ export class MemoryOptimizer {
   getCurrentMemoryStats(): MemoryStats {
     const usage = process.memoryUsage();
     const usagePercent = (usage.heapUsed / usage.heapTotal) * 100;
-    
+
     return {
       heapUsed: Math.round(usage.heapUsed / 1024 / 1024), // MB
       heapTotal: Math.round(usage.heapTotal / 1024 / 1024),
@@ -176,10 +176,10 @@ export class MemoryOptimizer {
 
       // 추가 최적화: Node.js 내부 버퍼 정리
       await this.optimizeNodeBuffers();
-      
+
       // 추가 최적화: 이벤트 리스너 정리
       await this.cleanupEventListeners();
-      
+
     } catch (error) {
       console.warn('⚠️ 시뮬레이션 데이터 압축 중 오류:', error);
     }
@@ -286,7 +286,7 @@ export class MemoryOptimizer {
 
       // 목표 달성 여부 확인
       const targetAchieved = afterStats.usagePercent <= this.TARGET_THRESHOLD;
-      
+
       console.log(`🎯 극한 최적화 ${targetAchieved ? '성공' : '부분성공'}:`, {
         before: `${beforeStats.usagePercent}%`,
         after: `${afterStats.usagePercent}%`,
@@ -312,7 +312,7 @@ export class MemoryOptimizer {
       if (global.gc) {
         // 메모리 압축을 위한 여러 유형의 GC 실행
         global.gc(); // full GC
-        
+
         // V8의 incremental marking 강제 실행
         if ((global as any).gc && typeof (global as any).gc === 'function') {
           (global as any).gc(true); // major GC
@@ -393,7 +393,7 @@ export class MemoryOptimizer {
       if ((global as any).metricsMap) {
         (global as any).metricsMap.clear();
       }
-      
+
       if ((global as any).serverStateMap) {
         (global as any).serverStateMap.clear();
       }
@@ -414,8 +414,8 @@ export class MemoryOptimizer {
       return;
     }
 
-    console.log(`🔍 자동 메모리 모니터링 시작 (${intervalMs/1000}초 간격)`);
-    
+    console.log(`🔍 자동 메모리 모니터링 시작 (${intervalMs / 1000}초 간격)`);
+
     // 전역 플래그로 중복 방지 강화
     if ((global as any).__memoryMonitoringActive) {
       console.log('⚠️ 전역 메모리 모니터링이 이미 활성화됨 - 중복 방지');
@@ -425,11 +425,11 @@ export class MemoryOptimizer {
 
     this.monitoringInterval = setInterval(async () => {
       const stats = this.getCurrentMemoryStats();
-      
+
       // 임계값 확인 - 더 신중한 최적화
       if (stats.usagePercent >= this.CRITICAL_THRESHOLD) {
         console.log(`🚨 위험: 메모리 사용률 ${stats.usagePercent}% - 즉시 최적화 실행`);
-        
+
         // 슬랙 알림 전송
         await slackNotificationService.sendMemoryAlert({
           usagePercent: stats.usagePercent,
@@ -438,13 +438,13 @@ export class MemoryOptimizer {
           severity: 'critical',
           timestamp: new Date().toISOString()
         });
-        
+
         await this.optimizeMemoryNow();
       } else if (stats.usagePercent >= this.WARNING_THRESHOLD) {
         // 마지막 최적화 후 충분한 시간이 지났는지 확인 (쿨다운을 2분으로 증가)
         if (Date.now() - this.lastOptimization > 120000) { // 2분 쿨다운
           console.log(`⚠️ 경고: 메모리 사용률 ${stats.usagePercent}% - 예방적 최적화 실행`);
-          
+
           // 경고 수준 슬랙 알림 전송
           await slackNotificationService.sendMemoryAlert({
             usagePercent: stats.usagePercent,
@@ -453,7 +453,7 @@ export class MemoryOptimizer {
             severity: 'warning',
             timestamp: new Date().toISOString()
           });
-          
+
           await this.optimizeMemoryNow();
         }
       } else {
@@ -469,12 +469,12 @@ export class MemoryOptimizer {
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
-      
+
       // 전역 플래그 제거
       if ((global as any).__memoryMonitoringActive) {
         delete (global as any).__memoryMonitoringActive;
       }
-      
+
       console.log('⏹️ 메모리 모니터링 중지');
     }
   }
@@ -496,7 +496,7 @@ export class MemoryOptimizer {
     totalOptimizations: number;
   } {
     const current = this.getCurrentMemoryStats();
-    
+
     let status: 'optimal' | 'warning' | 'critical';
     if (current.usagePercent >= this.CRITICAL_THRESHOLD) {
       status = 'critical';

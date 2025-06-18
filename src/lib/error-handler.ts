@@ -20,9 +20,9 @@ export interface SafeError {
 /**
  * 에러 타입 분류
  */
-export type ErrorType = 
+export type ErrorType =
   | 'NETWORK_ERROR'
-  | 'API_ERROR' 
+  | 'API_ERROR'
   | 'VALIDATION_ERROR'
   | 'TIMEOUT_ERROR'
   | 'AUTHENTICATION_ERROR'
@@ -81,11 +81,11 @@ export function createSafeError(error: unknown): SafeError {
   // 객체 처리 (message 속성 포함)
   if (typeof error === 'object' && error !== null) {
     const errorObj = error as any;
-    
+
     // message 속성이 있는 경우
     if ('message' in errorObj) {
       return {
-        message: typeof errorObj.message === 'string' 
+        message: typeof errorObj.message === 'string'
           ? errorObj.message || 'Object error without message'
           : String(errorObj.message || 'Invalid message type'),
         stack: errorObj.stack,
@@ -139,43 +139,43 @@ export function createSafeError(error: unknown): SafeError {
  */
 export function classifyErrorType(safeError: SafeError): ErrorType {
   const message = safeError.message.toLowerCase();
-  
+
   if (message.includes('network') || message.includes('fetch') || message.includes('connection')) {
     return 'NETWORK_ERROR';
   }
-  
+
   if (message.includes('timeout') || message.includes('시간 초과')) {
     return 'TIMEOUT_ERROR';
   }
-  
+
   if (message.includes('401') || message.includes('unauthorized') || message.includes('인증')) {
     return 'AUTHENTICATION_ERROR';
   }
-  
+
   if (message.includes('403') || message.includes('forbidden') || message.includes('권한')) {
     return 'PERMISSION_ERROR';
   }
-  
+
   if (message.includes('404') || message.includes('not found') || message.includes('찾을 수 없')) {
     return 'NOT_FOUND_ERROR';
   }
-  
+
   if (message.includes('500') || message.includes('server') || message.includes('서버')) {
     return 'SERVER_ERROR';
   }
-  
+
   if (message.includes('validation') || message.includes('invalid') || message.includes('유효하지')) {
     return 'VALIDATION_ERROR';
   }
-  
+
   if (message.includes('loading') || message.includes('boot') || message.includes('로딩')) {
     return 'LOADING_ERROR';
   }
-  
+
   if (message.includes('api') || safeError.code?.includes('API')) {
     return 'API_ERROR';
   }
-  
+
   return 'UNKNOWN_ERROR';
 }
 
@@ -185,20 +185,20 @@ export function classifyErrorType(safeError: SafeError): ErrorType {
 export function safeErrorLog(prefix: string, error: unknown, includeStack = false): SafeError {
   const safeError = createSafeError(error);
   const errorType = classifyErrorType(safeError);
-  
+
   // 콘솔 로깅
   console.error(`${prefix}:`, safeError.message);
-  console.error(`↳ Type: ${errorType}, Code: ${safeError.code || 'NONE'}`);
-  
+  console.error(`↳ Type: ${errorType}`, `Code: ${safeError.code || 'NONE'}`);
+
   if (includeStack && safeError.stack) {
     console.error(`↳ Stack:`, safeError.stack);
   }
-  
+
   // 개발 환경에서는 원본 에러도 출력
   if (process.env.NODE_ENV === 'development' && safeError.originalError) {
     console.error(`↳ Original:`, safeError.originalError);
   }
-  
+
   return safeError;
 }
 
@@ -206,6 +206,11 @@ export function safeErrorLog(prefix: string, error: unknown, includeStack = fals
  * 🔄 안전한 에러 메시지 추출 (간단 버전)
  */
 export function safeErrorMessage(error: unknown, fallback = '알 수 없는 오류가 발생했습니다'): string {
+  // null 또는 undefined인 경우 fallback을 우선적으로 반환
+  if (error === null || error === undefined) {
+    return fallback;
+  }
+
   try {
     return createSafeError(error).message;
   } catch {
@@ -219,17 +224,17 @@ export function safeErrorMessage(error: unknown, fallback = '알 수 없는 오�
 export function isLoadingRelatedError(error: unknown): boolean {
   const safeError = createSafeError(error);
   const message = safeError.message.toLowerCase();
-  
-  return message.includes('loading') || 
-         message.includes('boot') || 
-         message.includes('complete') ||
-         message.includes('oncomplete') ||
-         message.includes('로딩') ||
-         message.includes('완료') ||
-         message.includes('uptime') ||
-         message.includes('includes is not a function') ||
-         message.includes('cannot read property') ||
-         classifyErrorType(safeError) === 'LOADING_ERROR';
+
+  return message.includes('loading') ||
+    message.includes('boot') ||
+    message.includes('complete') ||
+    message.includes('oncomplete') ||
+    message.includes('로딩') ||
+    message.includes('완료') ||
+    message.includes('uptime') ||
+    message.includes('includes is not a function') ||
+    message.includes('cannot read property') ||
+    classifyErrorType(safeError) === 'LOADING_ERROR';
 }
 
 /**
@@ -238,15 +243,19 @@ export function isLoadingRelatedError(error: unknown): boolean {
 export function isTypeSafetyError(error: unknown): boolean {
   const safeError = createSafeError(error);
   const message = safeError.message.toLowerCase();
-  
+
   return message.includes('includes is not a function') ||
-         message.includes('cannot read property') ||
-         message.includes('undefined is not a function') ||
-         message.includes('null is not a function') ||
-         message.includes('trim is not a function') ||
-         message.includes('split is not a function') ||
-         message.includes('map is not a function') ||
-         message.includes('filter is not a function');
+    message.includes('cannot read property') ||
+    message.includes('cannot read properties') ||
+    message.includes('undefined is not a function') ||
+    message.includes('null is not a function') ||
+    message.includes('trim is not a function') ||
+    message.includes('split is not a function') ||
+    message.includes('map is not a function') ||
+    message.includes('filter is not a function') ||
+    message.includes('is not a function') ||
+    message.includes('of undefined') ||
+    message.includes('of null');
 }
 
 /**
@@ -255,16 +264,19 @@ export function isTypeSafetyError(error: unknown): boolean {
 export function isAutoRecoverableError(error: unknown): boolean {
   const safeError = createSafeError(error);
   const message = safeError.message.toLowerCase();
-  
+
   // 타입 안전성 에러는 자동 복구 가능
   if (isTypeSafetyError(error)) return true;
-  
+
   // 네트워크 에러는 자동 복구 가능
   if (message.includes('network') || message.includes('fetch')) return true;
-  
+
+  // 연결 실패는 자동 복구 가능
+  if (message.includes('connection failed') || message.includes('timeout')) return true;
+
   // 일시적인 서버 에러는 자동 복구 가능
-  if (message.includes('500') || message.includes('503')) return true;
-  
+  if (message.includes('500') || message.includes('503') || message.includes('server error')) return true;
+
   return false;
 }
 
@@ -280,7 +292,7 @@ export function setupGlobalErrorHandler(): void {
   // Unhandled JavaScript errors
   window.addEventListener('error', (event) => {
     const safeError = safeErrorLog('🚨 Global Error', event.error, true);
-    
+
     // 로딩 관련 에러면 자동 복구 시도
     if (isLoadingRelatedError(event.error)) {
       console.log('🚀 로딩 관련 에러 감지 - 자동 복구 시도');
@@ -288,7 +300,7 @@ export function setupGlobalErrorHandler(): void {
         (window as any).emergencyComplete?.();
       }, 1000);
     }
-    
+
     // 중요한 에러만 사용자에게 알림
     if (safeError.code && !['LOADING_ERROR', 'NETWORK_ERROR'].includes(classifyErrorType(safeError))) {
       // toast 알림 등 구현 가능
@@ -298,7 +310,7 @@ export function setupGlobalErrorHandler(): void {
   // Unhandled promise rejections
   window.addEventListener('unhandledrejection', (event) => {
     const safeError = safeErrorLog('🚨 Unhandled Promise Rejection', event.reason, true);
-    
+
     // 로딩 관련 Promise 에러 자동 복구
     if (isLoadingRelatedError(event.reason)) {
       console.log('🚀 Promise 로딩 에러 감지 - 자동 복구 시도');
@@ -306,7 +318,7 @@ export function setupGlobalErrorHandler(): void {
         (window as any).emergencyComplete?.();
       }, 1000);
     }
-    
+
     // 기본 에러 표시 방지 (이미 우리가 처리했으므로)
     event.preventDefault();
   });
@@ -315,7 +327,7 @@ export function setupGlobalErrorHandler(): void {
   (window as any).debugSafeError = (error: unknown) => {
     return createSafeError(error);
   };
-  
+
   (window as any).testErrorHandler = () => {
     try {
       throw new Error('Test error for handler verification');
@@ -340,14 +352,14 @@ export async function safeApiCall<T>(
     return { success: true, data };
   } catch (error) {
     const safeError = safeErrorLog(`❌ ${errorContext} 실패`, error);
-    
+
     // 로딩 화면에서 API 에러가 발생해도 진행할 수 있도록
     if (typeof window !== 'undefined' && isLoadingRelatedError(error)) {
       setTimeout(() => {
         (window as any).emergencyComplete?.();
       }, 2000);
     }
-    
+
     return {
       success: false,
       error: safeError,
@@ -376,28 +388,29 @@ export async function withErrorRecovery<T>(
     retryDelay = 1000,
     fallbackValue,
     onRetry,
-    shouldRetry = (error) => ['NETWORK_ERROR', 'TIMEOUT_ERROR', 'SERVER_ERROR'].includes(classifyErrorType(error))
+    shouldRetry = () => true // 기본적으로 모든 에러에 대해 재시도
   } = options;
 
   let attempts = 0;
   let lastError: SafeError;
 
-  while (attempts <= maxRetries) {
+  for (let i = 0; i < maxRetries; i++) {
     try {
-      const data = await operation();
-      return { success: true, data, attempts: attempts + 1 };
-    } catch (error) {
       attempts++;
+      const data = await operation();
+      return { success: true, data, attempts };
+    } catch (error) {
       lastError = createSafeError(error);
-      
-      if (attempts <= maxRetries && shouldRetry(lastError)) {
-        safeErrorLog(`🔄 재시도 ${attempts}/${maxRetries}`, error);
-        onRetry?.(attempts, lastError);
-        
+
+      if (i < maxRetries - 1 && shouldRetry(lastError)) {
+        safeErrorLog(`🔄 재시도 ${i + 1}/${maxRetries}`, error);
+        onRetry?.(i + 2, lastError); // 다음 시도 번호 전달
+
         if (retryDelay > 0) {
-          await new Promise(resolve => setTimeout(resolve, retryDelay * attempts));
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
         }
       } else {
+        // 재시도하지 않는 경우에도 onRetry 호출하지 않음
         break;
       }
     }
@@ -416,7 +429,7 @@ export async function withErrorRecovery<T>(
  */
 export function createErrorBoundaryInfo(error: unknown, errorInfo?: any) {
   const safeError = createSafeError(error);
-  
+
   return {
     error: safeError,
     errorType: classifyErrorType(safeError),

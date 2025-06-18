@@ -156,7 +156,7 @@ export const EnhancedThinkingView: React.FC<EnhancedThinkingViewProps> = ({
                         </h4>
                         {currentQuestion && (
                             <p className="text-gray-400 text-xs">
-                                "{currentQuestion.length > 40 ? currentQuestion.substring(0, 40) + '...' : currentQuestion}"
+                                &quot;{currentQuestion.length > 40 ? currentQuestion.substring(0, 40) + '...' : currentQuestion}&quot;
                             </p>
                         )}
                     </div>

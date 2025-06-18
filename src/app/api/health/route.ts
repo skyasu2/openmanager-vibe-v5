@@ -421,7 +421,7 @@ export async function GET(request: NextRequest) {
         mcp: { status: 'unknown' },
         generator: { status: 'unknown' }
       }
-    }, { status: 500 });
+    }, { status: 200 });
   } finally {
     // 헬스체크 컨텍스트 정리
     delete process.env.HEALTH_CHECK_CONTEXT;

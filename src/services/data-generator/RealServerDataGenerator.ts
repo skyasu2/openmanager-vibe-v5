@@ -916,11 +916,12 @@ export class RealServerDataGenerator {
     return {
       isInitialized: this.isInitialized,
       isGenerating: this.isGenerating,
+      isRunning: this.isGenerating,
       serverCount: this.servers.size,
       clusterCount: this.clusters.size,
       applicationCount: this.applications.size,
       config: this.config,
-      isMockMode: this.isMockMode, // 목업 모드 상태 추가
+      isMockMode: this.isMockMode,
       isHealthCheckContext: this.isHealthCheckContext,
       isTestContext: this.isTestContext,
       redisStatus: {
