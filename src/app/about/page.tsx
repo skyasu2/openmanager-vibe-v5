@@ -18,17 +18,17 @@ export default function DevelopmentProcessPage() {
         <div className='text-center mb-16'>
           <h1 className='text-5xl font-bold mb-4 text-white'>
             <span className='bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent'>
-              개인 성장 여정
+              개인 학습 경험
             </span>
             <br />
             <span className='text-3xl text-white/80'>
-              시스템 엔지니어에서 AI 협업 개발자로
+              시스템 엔지니어의 새로운 기술 학습 도전
             </span>
           </h1>
 
           <p className='text-xl text-white/80 max-w-4xl mx-auto mb-8'>
-            4년간의 서버 운영 경험을 바탕으로 20일 만에 웹 개발 영역까지 확장한
-            성장 스토리
+            4년간의 서버 운영 경험을 바탕으로 20일간 웹 개발과 AI 도구를 학습한
+            경험 기록
           </p>
 
           <div className='grid grid-cols-2 md:grid-cols-4 gap-6 mb-16'>
@@ -67,25 +67,25 @@ export default function DevelopmentProcessPage() {
             <div className='space-y-6'>
               <div>
                 <h4 className='text-lg font-semibold text-blue-400 mb-3'>
-                  🌱 성장 스토리
+                  🌱 학습 과정
                 </h4>
                 <ul className='text-sm text-white/80 space-y-2'>
-                  <li>• 시스템 엔지니어 → 개발 영역 확장</li>
-                  <li>• 20일간 웹 개발 첫 도전 완주</li>
-                  <li>• AI 협업으로 생산성 혁신 경험</li>
-                  <li>• 개발 첫 도전에서 타입 안전성까지 고려</li>
+                  <li>• 시스템 엔지니어 → 웹 개발 기초 학습</li>
+                  <li>• 20일간 새로운 기술 영역 도전</li>
+                  <li>• AI 도구 활용법 체험</li>
+                  <li>• 처음으로 타입 안전성을 고려한 개발 시도</li>
                 </ul>
               </div>
 
               <div>
                 <h4 className='text-lg font-semibold text-purple-400 mb-3'>
-                  💪 차별화 강점
+                  💪 활용한 경험
                 </h4>
                 <ul className='text-sm text-white/80 space-y-2'>
-                  <li>• 4년 운영 경험 기반 실무적 관점</li>
-                  <li>• 현실적 제약 고려한 합리적 설계</li>
-                  <li>• 새벽 장애 상황도 고려한 실무 친화적 UI</li>
-                  <li>• 비전문가도 쉽게 쓸 수 있는 UX 추구</li>
+                  <li>• 4년 운영 경험을 개발에 활용</li>
+                  <li>• 실무 제약사항을 고려한 현실적 접근</li>
+                  <li>• 실제 업무 상황을 반영한 UI 설계</li>
+                  <li>• 사용자 관점에서의 편의성 추구</li>
                 </ul>
               </div>
             </div>
@@ -103,25 +103,25 @@ export default function DevelopmentProcessPage() {
             <div className='space-y-6'>
               <div>
                 <h4 className='text-lg font-semibold text-green-400 mb-3'>
-                  🎯 회사 가치 창출
+                  🎯 시도한 개선점
                 </h4>
                 <ul className='text-sm text-white/80 space-y-2'>
-                  <li>• 기존 제품 UX 개선 방향 제시</li>
-                  <li>• 최신 기술 도입 가능성 검증</li>
-                  <li>• 사내 AI 도구 활용 문화 선도</li>
-                  <li>• 실무자 관점의 직관적 인터페이스 설계</li>
+                  <li>• 기존 제품 사용성 개선 아이디어 제안</li>
+                  <li>• 새로운 기술 적용 가능성 탐색</li>
+                  <li>• AI 도구 활용 경험 공유</li>
+                  <li>• 실무자 관점의 인터페이스 설계 시도</li>
                 </ul>
               </div>
 
               <div>
                 <h4 className='text-lg font-semibold text-blue-400 mb-3'>
-                  💰 효율성 달성
+                  💰 학습한 효율성
                 </h4>
                 <ul className='text-sm text-white/80 space-y-2'>
-                  <li>• 무료 티어만으로 24/7 안정 운영</li>
-                  <li>• 외부 의존성 최소화한 지속가능 설계</li>
-                  <li>• 인프라 경험을 활용한 안정적 배포</li>
-                  <li>• 복잡한 AI 없이도 실용적인 지능형 시스템</li>
+                  <li>• 무료 도구들로 프로젝트 완성 경험</li>
+                  <li>• 외부 의존성을 줄인 설계 학습</li>
+                  <li>• 인프라 경험을 활용한 배포 시도</li>
+                  <li>• 복잡한 기술 없이도 실용적인 결과물 제작</li>
                 </ul>
               </div>
             </div>
@@ -139,25 +139,25 @@ export default function DevelopmentProcessPage() {
             <div className='space-y-6'>
               <div>
                 <h4 className='text-lg font-semibold text-purple-400 mb-3'>
-                  🚀 확장 가능성
+                  🚀 학습 방향성
                 </h4>
                 <ul className='text-sm text-white/80 space-y-2'>
-                  <li>• 개발-운영 융합 새로운 역할 정의</li>
-                  <li>• AI 시대 적응력과 학습 능력 증명</li>
-                  <li>• 기술 트렌드 선도적 수용</li>
-                  <li>• DevOps 엔지니어로의 자연스러운 발전</li>
+                  <li>• 개발-운영 연결 영역에 대한 관심 증가</li>
+                  <li>• AI 시대 변화에 대한 적응 의지</li>
+                  <li>• 새로운 기술 트렌드 학습 지속</li>
+                  <li>• DevOps 영역으로의 학습 확장 고려</li>
                 </ul>
               </div>
 
               <div>
                 <h4 className='text-lg font-semibold text-pink-400 mb-3'>
-                  🤝 조직 기여
+                  🤝 경험 공유
                 </h4>
                 <ul className='text-sm text-white/80 space-y-2'>
-                  <li>• 개발팀-인프라팀 소통 다리 역할</li>
-                  <li>• 동료들의 새로운 도구 관심 증대</li>
-                  <li>• 실무 중심의 기술 도입 의사결정 지원</li>
-                  <li>• AI 도구 활용 문화 확산 선도</li>
+                  <li>• 개발팀과의 소통 경험 축적</li>
+                  <li>• 동료들과 새로운 도구 경험 공유</li>
+                  <li>• 실무 중심의 기술 도입 관점 제공</li>
+                  <li>• AI 도구 활용 경험 전파</li>
                 </ul>
               </div>
             </div>
@@ -167,33 +167,31 @@ export default function DevelopmentProcessPage() {
         {/* 핵심 성과 하이라이트 */}
         <div className='bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-md border border-white/20 rounded-xl p-8 mb-16'>
           <h3 className='text-2xl font-bold text-white text-center mb-8'>
-            🏆 핵심 성과 하이라이트
+            🏆 학습 성과 정리
           </h3>
           <div className='grid md:grid-cols-2 gap-8'>
             <div>
               <h4 className='text-lg font-semibold text-blue-400 mb-4'>
-                개인적 성장
+                개인적 학습
               </h4>
               <ul className='text-sm text-white/80 space-y-2'>
-                <li>✅ 처음으로 웹 애플리케이션 완성</li>
-                <li>✅ Next.js, React 기초 경험 습득</li>
-                <li>✅ AI 도구 활용법 체득</li>
+                <li>✅ 첫 웹 애플리케이션 프로젝트 완성</li>
+                <li>✅ Next.js, React 기초 경험</li>
+                <li>✅ AI 도구 활용법 학습</li>
                 <li>✅ 개발-운영 연결고리 이해</li>
-                <li>
-                  ✅ &ldquo;개발은 개발자만 하는 것&rdquo;이라는 고정관념 탈피
-                </li>
+                <li>✅ 새로운 영역에 도전할 수 있다는 자신감 획득</li>
               </ul>
             </div>
             <div>
               <h4 className='text-lg font-semibold text-purple-400 mb-4'>
-                기술적 달성
+                기술적 경험
               </h4>
               <ul className='text-sm text-white/80 space-y-2'>
-                <li>✅ TypeScript 0개 오류로 안정성 확보</li>
-                <li>✅ 128개 정적 페이지 8초 빌드 달성</li>
-                <li>✅ AI 응답시간 100ms 이하 최적화</li>
-                <li>✅ 무료 인프라로 24/7 안정 운영</li>
-                <li>✅ 94% 테스트 통과율 달성</li>
+                <li>✅ TypeScript로 안정성 있는 코드 작성 시도</li>
+                <li>✅ 정적 사이트 생성 및 최적화 경험</li>
+                <li>✅ AI 응답 최적화 학습</li>
+                <li>✅ 무료 인프라 활용 경험</li>
+                <li>✅ 테스트 코드 작성 기초 학습</li>
               </ul>
             </div>
           </div>
@@ -216,7 +214,7 @@ export default function DevelopmentProcessPage() {
           </footer>
           <div className='mt-6 text-white/80'>
             <p className='font-semibold'>
-              OpenManager Vibe v5가 바로 그 증명입니다.
+              AI 어시스턴트가 바로 그 학습의 결과입니다.
             </p>
           </div>
         </div>
