@@ -374,20 +374,20 @@ const cardData: FeatureCard[] = [
     icon: Bot,
     gradient: 'from-purple-500 via-indigo-500 to-cyan-400',
     detailedContent: {
-      overview: `v${COMPONENT_VERSIONS['mcp-ai-engine']} - MCP(Model Context Protocol) 기반 AI 엔진과 TensorFlow.js RAG 백업 시스템으로 구성된 서버 모니터링 전용 AI입니다.`,
+      overview: `v${COMPONENT_VERSIONS['mcp-ai-engine']} - MCP(Model Context Protocol) 기반 AI 엔진과 경량 ML 백업 시스템으로 구성된 서버 모니터링 전용 AI입니다.`,
       features: [
         '🎯 MCP 컨텍스트 추론: 서버 상태 패턴 학습 및 예측 분석',
         '🤖 자연어 서버 질의: "CPU 사용률이 높은 서버는?" 같은 자연어 명령 처리',
         '📋 자동 장애보고서: 시스템 이상 감지 시 상세 보고서 자동 생성',
-        '🔄 RAG 백업 엔진: MCP 실패 시 TensorFlow.js 기반 자동 폴백',
+        '🔄 경량 ML 백업: MCP 실패 시 경량 ML 엔진 기반 자동 폴백',
         '🌐 하이브리드 배포: MCP는 Render, RAG는 Vercel 서버리스',
         '🧠 벡터 DB 검색: Supabase pgvector + 로컬 메모리 이중 검색',
         '📊 한국어 NLP: hangul-js + korean-utils로 한국어 서버 로그 분석',
       ],
       technologies: [
         'MCP AI Server',
-        'RAG Backup Engine',
-        'TensorFlow.js',
+        'LocalRAG Engine',
+        'Lightweight ML',
         'Google AI Studio',
         'Vector Database',
         'Korean NLP',
@@ -407,7 +407,7 @@ const cardData: FeatureCard[] = [
     detailedContent: {
       overview: `완전한 풀스택 개발 생태계로 프론트엔드부터 배포 인프라까지 모든 레이어를 통합한 현대적 개발 환경입니다.`,
       features: [
-        '🎨 프론트엔드: Next.js 15 + React 19 + TypeScript로 현대적 UI/UX',
+        '🎨 프론트엔드: Next.js 15.3.2 + React 19.1.0 + TypeScript로 현대적 UI/UX',
         '⚡ 백엔드: Serverless API + Edge Functions로 확장 가능한 아키텍처',
         '🤖 AI 엔진: 멀티 AI 통합으로 지능형 서비스 제공',
         '🌐 배포 인프라: Vercel + Render 멀티 클라우드 전략',
@@ -416,8 +416,8 @@ const cardData: FeatureCard[] = [
         '🧪 테스트: 단위 테스트 + 통합 테스트 + E2E 자동화',
       ],
       technologies: [
-        'Next.js 15',
-        'React 19',
+        'Next.js 15.3.2',
+        'React 19.1.0',
         'TypeScript',
         'Serverless APIs',
         'Vercel Deployment',
@@ -431,28 +431,29 @@ const cardData: FeatureCard[] = [
     id: 'tech-stack',
     title: '⚡ 적용 기술',
     description:
-      '💻 Next.js 15 + TypeScript로 안정성 확보. Vercel 배포, TailwindCSS 디자인, 모든 코드 타입 안전성 100%',
+      '💻 Next.js 15.3.2 + TypeScript로 안정성 확보. Vercel 배포, TailwindCSS 디자인, 모든 코드 타입 안전성 100%',
     icon: Code,
     gradient: 'from-purple-500 to-indigo-600',
     detailedContent: {
       overview:
         '모던 풀스택 웹 애플리케이션의 핵심 기술들로 성능과 안정성을 극대화한 차세대 프론트엔드 아키텍처입니다.',
       features: [
-        '⚛️ Next.js 15 + React 19: 최신 서버 컴포넌트와 스트리밍 SSR로 성능 극대화',
+        '⚛️ Next.js 15.3.2 + React 19.1.0: 최신 서버 컴포넌트와 스트리밍 SSR로 성능 극대화',
         '🎨 TailwindCSS + Framer Motion: 유틸리티 CSS와 선언적 애니메이션',
         '🔧 TypeScript + Zustand: 타입 안전성 100%와 경량 상태관리',
-        '📊 Supabase + Redis: PostgreSQL 실시간 DB + 서버리스 캐싱',
+        '📊 Supabase + Upstash Redis: PostgreSQL 실시간 DB + 서버리스 캐싱',
         '🧪 Vitest + Playwright: 빠른 단위 테스트 + E2E 자동화',
         '📈 Chart.js + Recharts: 반응형 데이터 시각화',
         '✨ ESLint + Prettier: 코드 품질 자동화와 일관된 스타일',
       ],
       technologies: [
-        'Next.js 15',
+        'Next.js 15.3.2',
+        'React 19.1.0',
         'TypeScript',
         'TailwindCSS',
         'Framer Motion',
         'Supabase',
-        'Redis',
+        'Upstash Redis',
         'Testing Suite',
       ],
     },
@@ -462,14 +463,14 @@ const cardData: FeatureCard[] = [
     id: 'cursor-ai',
     title: '🔥 Vibe Coding',
     description:
-      '🎯 AI 주도 코딩으로 개발자 워크플로우를 혁신. Cursor + Claude로 자연어 명령만으로 고품질 코드 생성, 자동 배포까지',
+      '🎯 AI 주도 코딩으로 개발자 워크플로우를 혁신. Cursor + Claude Sonnet 3.7로 자연어 명령만으로 고품질 코드 생성, 자동 배포까지',
     icon: Zap,
     gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {
       overview:
-        'Cursor AI + Claude Sonnet을 중심으로 한 차세대 AI 개발 워크플로우입니다. MCP 도구들과 함께 자연어 명령으로 코드를 생성하고, GitHub 협업부터 자동 배포까지 완전한 개발 생태계를 구축합니다.',
+        'Cursor AI + Claude Sonnet 3.7을 중심으로 한 차세대 AI 개발 워크플로우입니다. MCP 도구들과 함께 자연어 명령으로 코드를 생성하고, GitHub 협업부터 자동 배포까지 완전한 개발 생태계를 구축합니다.',
       features: [
-        '🎯 AI 주도 개발: Cursor AI + Claude Sonnet으로 자연어 기반 코딩',
+        '🎯 AI 주도 개발: Cursor AI + Claude Sonnet 3.7로 자연어 기반 코딩',
         '🔍 MCP 도구 활용: filesystem, web-search, sequential-thinking으로 개발 효율 극대화',
         '📱 GitHub 완전 통합: 자동 커밋, PR 생성, 이슈 추적, 코드 리뷰',
         '🚀 자동 배포: Vercel(웹앱) + Render(백엔드) 멀티 플랫폼 배포',
@@ -479,7 +480,7 @@ const cardData: FeatureCard[] = [
       ],
       technologies: [
         'Cursor AI',
-        'Claude Sonnet',
+        'Claude Sonnet 3.7',
         'MCP Protocol',
         'GitHub Integration',
         'Auto Deployment',
@@ -565,12 +566,6 @@ export default function FeatureCardsGrid() {
 
   const handleCardClick = (cardId: string) => {
     const card = cardData.find(c => c.id === cardId);
-
-    // 바이브 코딩 카드는 별도 페이지로 이동
-    if (cardId === 'vibe-coding') {
-      window.location.href = '/vibe-coding';
-      return;
-    }
 
     if (card?.requiresAI && !aiAgent.isEnabled) {
       // AI 엔진이 필요한 기능에 일반 사용자가 접근할 때
@@ -831,6 +826,81 @@ export default function FeatureCardsGrid() {
             </div>
           </motion.div>
         ))}
+      </div>
+
+      {/* 바이브 코딩 전용 버튼 섹션 */}
+      <div className='mt-8 flex justify-center'>
+        <motion.button
+          onClick={() => window.location.href = '/vibe-coding'}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          whileHover={{
+            scale: 1.05,
+            y: -2,
+            boxShadow: '0 20px 40px rgba(245, 158, 11, 0.3)'
+          }}
+          whileTap={{ scale: 0.98 }}
+          className={`group relative px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 overflow-hidden ${isDarkMode
+            ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/25'
+            : 'bg-gradient-to-r from-amber-600 to-orange-700 text-white shadow-lg shadow-amber-600/25'
+            }`}
+        >
+          {/* 배경 애니메이션 효과 */}
+          <motion.div
+            className='absolute inset-0 bg-gradient-to-r from-yellow-400 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300'
+            animate={{
+              background: [
+                'linear-gradient(90deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
+                'linear-gradient(90deg, #f59e0b 0%, #d97706 50%, #fbbf24 100%)',
+                'linear-gradient(90deg, #d97706 0%, #fbbf24 50%, #f59e0b 100%)',
+                'linear-gradient(90deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
+              ],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+
+          {/* 버튼 내용 */}
+          <div className='relative z-10 flex items-center gap-3'>
+            <motion.div
+              animate={{
+                rotate: [0, 5, -5, 0],
+                scale: [1, 1.1, 1],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            >
+              ⚡
+            </motion.div>
+            <span className='bg-gradient-to-r from-white to-yellow-100 bg-clip-text text-transparent font-extrabold'>
+              바이브 코딩 (Vibe Coding)
+            </span>
+            <motion.div
+              animate={{
+                x: [0, 3, 0],
+              }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            >
+              🚀
+            </motion.div>
+          </div>
+
+          {/* 하단 설명 텍스트 */}
+          <div className='relative z-10 mt-1 text-xs text-white/90 font-medium'>
+            AI와 함께하는 혁신적인 개발 방법론 체험하기
+          </div>
+        </motion.button>
       </div>
 
       {/* Feature Card Modal */}

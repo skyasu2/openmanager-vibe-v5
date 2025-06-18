@@ -423,13 +423,12 @@ const TechCard = ({ tech, index }: { tech: TechItem; index: number }) => {
       <div className='relative flex items-center justify-between mb-3'>
         <div className='flex items-center gap-2'>
           <div
-            className={`w-2 h-2 rounded-full ${
-              tech.status === 'active'
-                ? 'bg-green-400'
-                : tech.status === 'ready'
-                  ? 'bg-yellow-400'
-                  : 'bg-gray-400'
-            }`}
+            className={`w-2 h-2 rounded-full ${tech.status === 'active'
+              ? 'bg-green-400'
+              : tech.status === 'ready'
+                ? 'bg-yellow-400'
+                : 'bg-gray-400'
+              }`}
           />
           <span className='text-xs text-gray-400 capitalize'>
             {tech.status}
@@ -526,15 +525,15 @@ export default function FeatureCardModal({
           onClick={e => e.stopPropagation()}
           data-modal-content='unified-scroll-v2'
         >
-          {/* 개선된 헤더 */}
-          <div className='relative flex items-center justify-between p-6 sm:p-8 border-b border-gray-700/50 bg-gradient-to-r from-gray-800/50 to-gray-900/50'>
-            <div className='flex items-center gap-4 sm:gap-6'>
-              {/* 개선된 아이콘 컨테이너 */}
+          {/* 최적화된 헤더 - 중복 제거 */}
+          <div className='relative flex items-center justify-between p-4 sm:p-6 border-b border-gray-700/50 bg-gradient-to-r from-gray-800/50 to-gray-900/50'>
+            <div className='flex items-center gap-3 sm:gap-4'>
+              {/* 최적화된 아이콘 컨테이너 */}
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.1, type: 'spring', stiffness: 300 }}
-                className='w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg ring-2 ring-blue-400/20'
+                className='w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg ring-2 ring-blue-400/20'
               >
                 {renderIcon(selectedCard.icon)}
               </motion.div>
@@ -543,18 +542,26 @@ export default function FeatureCardModal({
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
-                  className='text-xl sm:text-2xl font-bold text-white mb-1 truncate'
+                  className='text-lg sm:text-xl font-bold text-white truncate'
                 >
                   {renderTextWithAIGradient(selectedCard.title)}
                 </motion.h2>
-                <motion.p
+                {/* 카테고리 표시만 유지 */}
+                <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 }}
-                  className='text-gray-300 text-sm sm:text-base line-clamp-2'
+                  className='flex items-center gap-2 mt-1'
                 >
-                  {selectedCard.description}
-                </motion.p>
+                  <span className='px-2 py-1 bg-blue-500/20 text-blue-300 rounded-full text-xs font-medium'>
+                    상세 정보
+                  </span>
+                  {selectedCard.requiresAI && (
+                    <span className='px-2 py-1 bg-purple-500/20 text-purple-300 rounded-full text-xs font-medium'>
+                      AI 기능
+                    </span>
+                  )}
+                </motion.div>
               </div>
             </div>
             <motion.button
@@ -562,18 +569,18 @@ export default function FeatureCardModal({
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4 }}
               onClick={onClose}
-              className='p-2 sm:p-3 hover:bg-gray-700/50 rounded-xl transition-all duration-200 hover:scale-105 group'
+              className='p-2 hover:bg-gray-700/50 rounded-xl transition-all duration-200 hover:scale-105 group'
             >
-              <X className='w-5 h-5 sm:w-6 sm:h-6 text-gray-400 group-hover:text-white transition-colors' />
+              <X className='w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover:text-white transition-colors' />
             </motion.button>
           </div>
 
-          {/* 통합된 스크롤 컨텐츠 */}
+          {/* 통합된 스크롤 컨텐츠 - 최적화 */}
           <div
             className='overflow-y-auto'
-            style={{ maxHeight: 'calc(95vh - 140px)' }}
+            style={{ maxHeight: 'calc(95vh - 120px)' }}
           >
-            <div className='p-4 sm:p-6 lg:p-8 space-y-8'>
+            <div className='p-4 sm:p-5 space-y-6'>
               {/* 개요 섹션 */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -581,26 +588,26 @@ export default function FeatureCardModal({
                 transition={{ delay: 0.1 }}
                 className='space-y-6'
               >
-                {/* 상세 정보 섹션 */}
-                <div className='bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-gray-700/30'>
-                  <h3 className='text-lg sm:text-xl font-semibold text-white mb-4 flex items-center gap-2'>
-                    <Monitor className='w-5 h-5 text-blue-400' />
-                    {selectedCard.title} 개요
+                {/* 상세 정보 섹션 - 최적화 */}
+                <div className='bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-5 border border-gray-700/30'>
+                  <h3 className='text-lg font-semibold text-white mb-3 flex items-center gap-2'>
+                    <Monitor className='w-4 h-4 text-blue-400' />
+                    시스템 개요
                   </h3>
-                  <p className='text-gray-300 leading-relaxed text-sm sm:text-base'>
+                  <p className='text-gray-300 leading-relaxed text-sm'>
                     {selectedCard.longDescription || selectedCard.description}
                   </p>
                 </div>
 
-                {/* 주요 특징 섹션 */}
-                <div className='bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-gray-700/30'>
-                  <h4 className='text-lg font-semibold text-white mb-4 flex items-center gap-2'>
-                    <CheckCircle className='w-5 h-5 text-green-400' />
-                    주요 특징
+                {/* 주요 특징 섹션 - 최적화 */}
+                <div className='bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-5 border border-gray-700/30'>
+                  <h4 className='text-lg font-semibold text-white mb-3 flex items-center gap-2'>
+                    <CheckCircle className='w-4 h-4 text-green-400' />
+                    핵심 기능
                   </h4>
-                  <div className='grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4'>
+                  <div className='grid grid-cols-1 lg:grid-cols-2 gap-3'>
                     {selectedCard.features &&
-                    selectedCard.features.length > 0 ? (
+                      selectedCard.features.length > 0 ? (
                       selectedCard.features.map(
                         (feature: string, index: number) => (
                           <motion.div
