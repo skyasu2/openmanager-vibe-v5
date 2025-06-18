@@ -866,7 +866,7 @@ export default function FeatureCardsGrid() {
         ))}
       </div>
 
-      {/* 바이브 코딩 전용 버튼 섹션 */}
+      {/* 개발과정 전용 버튼 섹션 */}
       <div className='mt-8 flex justify-center'>
         <motion.button
           onClick={() => window.location.href = '/vibe-coding'}
@@ -876,23 +876,23 @@ export default function FeatureCardsGrid() {
           whileHover={{
             scale: 1.05,
             y: -2,
-            boxShadow: '0 20px 40px rgba(245, 158, 11, 0.3)'
+            boxShadow: '0 20px 40px rgba(59, 130, 246, 0.3)'
           }}
           whileTap={{ scale: 0.98 }}
           className={`group relative px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 overflow-hidden ${isDarkMode
-            ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/25'
-            : 'bg-gradient-to-r from-amber-600 to-orange-700 text-white shadow-lg shadow-amber-600/25'
+            ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25'
+            : 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg shadow-blue-600/25'
             }`}
         >
           {/* 배경 애니메이션 효과 */}
           <motion.div
-            className='absolute inset-0 bg-gradient-to-r from-yellow-400 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300'
+            className='absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300'
             animate={{
               background: [
-                'linear-gradient(90deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
-                'linear-gradient(90deg, #f59e0b 0%, #d97706 50%, #fbbf24 100%)',
-                'linear-gradient(90deg, #d97706 0%, #fbbf24 50%, #f59e0b 100%)',
-                'linear-gradient(90deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
+                'linear-gradient(90deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%)',
+                'linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #3b82f6 100%)',
+                'linear-gradient(90deg, #8b5cf6 0%, #3b82f6 50%, #6366f1 100%)',
+                'linear-gradient(90deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%)',
               ],
             }}
             transition={{
@@ -906,23 +906,22 @@ export default function FeatureCardsGrid() {
           <div className='relative z-10 flex items-center gap-3'>
             <motion.div
               animate={{
-                rotate: [0, 5, -5, 0],
-                scale: [1, 1.1, 1],
+                rotate: [0, 360],
               }}
               transition={{
-                duration: 2,
+                duration: 3,
                 repeat: Infinity,
-                ease: 'easeInOut',
+                ease: 'linear',
               }}
             >
-              ⚡
+              🔧
             </motion.div>
-            <span className='bg-gradient-to-r from-white to-yellow-100 bg-clip-text text-transparent font-extrabold'>
-              바이브 코딩 (Vibe Coding)
+            <span className='bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent font-extrabold'>
+              개발과정
             </span>
             <motion.div
               animate={{
-                x: [0, 3, 0],
+                y: [0, -3, 0],
               }}
               transition={{
                 duration: 1.5,
@@ -930,13 +929,13 @@ export default function FeatureCardsGrid() {
                 ease: 'easeInOut',
               }}
             >
-              🚀
+              📈
             </motion.div>
           </div>
 
           {/* 하단 설명 텍스트 */}
           <div className='relative z-10 mt-1 text-xs text-white/90 font-medium'>
-            AI와 함께하는 혁신적인 개발 방법론 체험하기
+            OpenManager 서버 모니터링 시스템 개발 여정
           </div>
         </motion.button>
       </div>
