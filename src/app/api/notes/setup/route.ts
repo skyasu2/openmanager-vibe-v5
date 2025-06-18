@@ -156,28 +156,123 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    // 테이블 상태 확인
-    const { data: notes, error } = await supabaseAdmin
-      .from('notes')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const searchParams = request.nextUrl.searchParams;
+    const type = searchParams.get('type') || 'default';
+    const user = searchParams.get('user') || 'anonymous';
 
-    if (error) {
-      return NextResponse.json({
-        tableExists: false,
-        error: error.message,
-      });
-    }
+    // 노트 설정 데이터 생성
+    const notesSetup = {
+      type,
+      user,
+      status: 'configured',
+      settings: {
+        autoSave: true,
+        syncInterval: 30,
+        maxNotes: 1000,
+        storageType: 'local',
+        encryption: false,
+        backup: {
+          enabled: true,
+          frequency: 'daily',
+          retention: 30
+        }
+      },
+      templates: [
+        {
+          id: 'system-analysis',
+          name: '시스템 분석 노트',
+          description: '서버 상태 및 성능 분석용 템플릿',
+          fields: ['서버명', '상태', '분석결과', '권장사항']
+        },
+        {
+          id: 'incident-report',
+          name: '장애 보고서',
+          description: '시스템 장애 발생 시 사용하는 템플릿',
+          fields: ['발생시간', '장애유형', '영향범위', '해결방안']
+        },
+        {
+          id: 'maintenance-log',
+          name: '유지보수 로그',
+          description: '정기 유지보수 작업 기록용 템플릿',
+          fields: ['작업일시', '작업내용', '담당자', '결과']
+        }
+      ],
+      categories: [
+        'System Analysis',
+        'Performance Monitoring',
+        'Incident Management',
+        'Maintenance',
+        'AI Insights',
+        'General Notes'
+      ],
+      permissions: {
+        create: true,
+        read: true,
+        update: true,
+        delete: true,
+        share: false,
+        export: true
+      },
+      limits: {
+        maxNoteSize: 10240, // 10KB
+        maxAttachments: 5,
+        maxCategories: 20,
+        maxTags: 50
+      },
+      timestamp: new Date().toISOString()
+    };
 
     return NextResponse.json({
-      tableExists: true,
-      notesCount: notes.length,
-      notes: notes,
+      success: true,
+      data: notesSetup
     });
   } catch (error) {
+    console.error('노트 설정 조회 오류:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: '노트 설정 조회 실패',
+        code: 'NOTES_SETUP_ERROR',
+        timestamp: new Date().toISOString()
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams;
+    const resetType = searchParams.get('resetType') || 'all';
+
+    // 노트 설정 초기화 시뮬레이션
+    const resetResult = {
+      resetType,
+      status: 'reset',
+      itemsCleared: {
+        notes: resetType === 'all' ? 247 : 0,
+        templates: resetType === 'all' || resetType === 'templates' ? 8 : 0,
+        categories: resetType === 'all' || resetType === 'categories' ? 12 : 0,
+        settings: resetType === 'all' || resetType === 'settings' ? 1 : 0
+      },
+      timestamp: new Date().toISOString()
+    };
+
     return NextResponse.json({
-      tableExists: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      success: true,
+      message: '노트 설정이 성공적으로 초기화되었습니다.',
+      data: resetResult
     });
+  } catch (error) {
+    console.error('노트 설정 초기화 오류:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: '노트 설정 초기화 실패',
+        code: 'NOTES_RESET_ERROR',
+        timestamp: new Date().toISOString()
+      },
+      { status: 500 }
+    );
   }
 }

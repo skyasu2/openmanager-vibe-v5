@@ -54,14 +54,14 @@ function printHeader(title) {
 async function makeRequest(url) {
   return new Promise((resolve, reject) => {
     const protocol = url.startsWith('https:') ? https : http;
-    
+
     const req = protocol.get(url, (res) => {
       let data = '';
-      
+
       res.on('data', (chunk) => {
         data += chunk;
       });
-      
+
       res.on('end', () => {
         try {
           const jsonData = JSON.parse(data);
@@ -71,11 +71,11 @@ async function makeRequest(url) {
         }
       });
     });
-    
+
     req.on('error', (error) => {
       reject(error);
     });
-    
+
     req.setTimeout(10000, () => {
       req.destroy();
       reject(new Error('요청 시간 초과 (10초)'));
@@ -86,17 +86,17 @@ async function makeRequest(url) {
 async function showKeyStatus() {
   try {
     printHeader('키 상태 확인');
-    
-    const baseUrl = process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
+
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
       : 'http://localhost:3000';
-    
-    const apiUrl = `${baseUrl}/api/dev/key-manager?action=status`;
+
+    const apiUrl = `${baseUrl}/api/config/keys?action=status`;
     console.log(colorize(`📡 API 호출: ${apiUrl}`, 'blue'));
     console.log('');
-    
+
     const data = await makeRequest(apiUrl);
-    
+
     // 요약 정보
     console.log(colorize('📊 요약 정보', 'cyan'));
     console.log(`${icons.info} 총 서비스: ${colorize(data.summary.total, 'bright')}`);
@@ -105,22 +105,22 @@ async function showKeyStatus() {
     console.log(`${icons.error} 오류: ${colorize(data.summary.invalid, 'red')}`);
     console.log(`📈 성공률: ${colorize(`${data.summary.successRate}%`, data.summary.successRate >= 80 ? 'green' : 'yellow')}`);
     console.log('');
-    
+
     // 서비스별 상태
     console.log(colorize('🔑 서비스별 상태', 'cyan'));
     data.services.forEach(service => {
-      const statusIcon = service.status === 'active' ? icons.success : 
-                        service.status === 'invalid' ? icons.warning : icons.error;
-      const statusColor = service.status === 'active' ? 'green' : 
-                         service.status === 'invalid' ? 'yellow' : 'red';
-      const sourceIcon = service.source === 'default' ? '🔧' : 
-                        service.source === 'encrypted' ? '🔐' : '📝';
-      
+      const statusIcon = service.status === 'active' ? icons.success :
+        service.status === 'invalid' ? icons.warning : icons.error;
+      const statusColor = service.status === 'active' ? 'green' :
+        service.status === 'invalid' ? 'yellow' : 'red';
+      const sourceIcon = service.source === 'default' ? '🔧' :
+        service.source === 'encrypted' ? '🔐' : '📝';
+
       console.log(`${statusIcon} ${colorize(service.service.padEnd(25), 'bright')} ${sourceIcon} ${service.preview}`);
     });
-    
+
     console.log('');
-    
+
     if (data.summary.missing > 0 || data.summary.invalid > 0) {
       console.log(colorize('💡 해결 방법:', 'yellow'));
       console.log('   • npm run dev:keys setup    # 자동 설정');
@@ -129,7 +129,7 @@ async function showKeyStatus() {
     } else {
       console.log(colorize(`${icons.success} 모든 키가 정상 설정되었습니다!`, 'green'));
     }
-    
+
   } catch (error) {
     console.log(colorize(`${icons.error} 키 상태 확인 실패: ${error.message}`, 'red'));
     process.exit(1);
@@ -139,16 +139,16 @@ async function showKeyStatus() {
 async function showDetailedReport() {
   try {
     printHeader('상세 리포트');
-    
-    const baseUrl = process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
+
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
       : 'http://localhost:3000';
-    
-    const apiUrl = `${baseUrl}/api/dev/key-manager?action=report`;
+
+    const apiUrl = `${baseUrl}/api/config/keys?action=status`;
     const data = await makeRequest(apiUrl);
-    
+
     console.log(data.report);
-    
+
   } catch (error) {
     console.log(colorize(`${icons.error} 리포트 생성 실패: ${error.message}`, 'red'));
     process.exit(1);
@@ -158,17 +158,17 @@ async function showDetailedReport() {
 async function quickSetup() {
   try {
     printHeader('빠른 설정');
-    
+
     console.log(colorize(`${icons.setup} 자동 키 설정을 시작합니다...`, 'yellow'));
     console.log('');
-    
-    const baseUrl = process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
+
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
       : 'http://localhost:3000';
-    
-    const apiUrl = `${baseUrl}/api/dev/key-manager?action=quick-setup`;
+
+    const apiUrl = `${baseUrl}/api/config/keys?action=quick-setup`;
     const data = await makeRequest(apiUrl);
-    
+
     if (data.success) {
       console.log(colorize(`${icons.success} ${data.message}`, 'green'));
       console.log('');
@@ -180,7 +180,7 @@ async function quickSetup() {
       console.log(colorize(`${icons.error} ${data.message}`, 'red'));
       process.exit(1);
     }
-    
+
   } catch (error) {
     console.log(colorize(`${icons.error} 빠른 설정 실패: ${error.message}`, 'red'));
     process.exit(1);
@@ -190,17 +190,17 @@ async function quickSetup() {
 async function generateEnvFile() {
   try {
     printHeader('.env.local 생성');
-    
+
     console.log(colorize(`${icons.setup} .env.local 파일을 생성합니다...`, 'yellow'));
     console.log('');
-    
-    const baseUrl = process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
+
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
       : 'http://localhost:3000';
-    
-    const apiUrl = `${baseUrl}/api/dev/key-manager?action=generate-env`;
+
+    const apiUrl = `${baseUrl}/api/config/keys?action=generate-env`;
     const data = await makeRequest(apiUrl);
-    
+
     if (data.success) {
       console.log(colorize(`${icons.success} ${data.message}`, 'green'));
       console.log(colorize(`📁 파일 위치: ${data.path}`, 'blue'));
@@ -208,7 +208,7 @@ async function generateEnvFile() {
       console.log(colorize(`${icons.error} ${data.message}`, 'red'));
       process.exit(1);
     }
-    
+
   } catch (error) {
     console.log(colorize(`${icons.error} 파일 생성 실패: ${error.message}`, 'red'));
     process.exit(1);
@@ -217,7 +217,7 @@ async function generateEnvFile() {
 
 function showHelp() {
   printHeader('사용법');
-  
+
   console.log(colorize('📖 사용 가능한 명령어:', 'cyan'));
   console.log('');
   console.log(`${icons.key} ${colorize('npm run dev:keys status', 'green')}    # 키 상태 확인`);
@@ -235,7 +235,7 @@ function showHelp() {
 // 메인 실행
 async function main() {
   const action = process.argv[2] || 'help';
-  
+
   switch (action) {
     case 'status':
       await showKeyStatus();

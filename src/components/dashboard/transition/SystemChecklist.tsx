@@ -285,7 +285,7 @@ export default function SystemChecklist({
     const averageResponseTime =
       responseTimes.length > 0
         ? responseTimes.reduce((sum, time) => sum + time, 0) /
-          responseTimes.length
+        responseTimes.length
         : 0;
 
     setDebugInfo(prev => ({
@@ -338,7 +338,10 @@ export default function SystemChecklist({
       if (e.key === 'd' || e.key === 'D') {
         e.preventDefault();
         setShowDebugPanel(!showDebugPanel);
-        console.log('🛠️ 디버그 패널 토글:', !showDebugPanel);
+        // 디버그 패널 토글 (개발 환경에서만 로그)
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🛠️ 디버그 패널 토글:', !showDebugPanel);
+        }
       }
     };
 
@@ -421,34 +424,38 @@ export default function SystemChecklist({
           failedRequests: debugInfo.networkRequests.filter(r => !r.success),
         };
 
-        console.group('🌐 네트워크 진단');
-        console.log('통계:', networkStats);
-        console.log('모든 요청:', debugInfo.networkRequests);
-        console.groupEnd();
+        if (process.env.NODE_ENV === 'development') {
+          console.group('🌐 네트워크 진단');
+          console.log('통계:', networkStats);
+          console.log('모든 요청:', debugInfo.networkRequests);
+          console.groupEnd();
+        }
 
         return networkStats;
       },
 
       // 성능 분석
       analyzePerformance: () => {
-        console.group('⚡ 성능 분석');
-        console.log(
-          '체크리스트 총 시간:',
-          debugInfo.performance.checklistDuration + 'ms'
-        );
-        console.log(
-          '가장 느린 컴포넌트:',
-          debugInfo.performance.slowestComponent
-        );
-        console.log(
-          '가장 빠른 컴포넌트:',
-          debugInfo.performance.fastestComponent
-        );
-        console.log(
-          '평균 응답 시간:',
-          debugInfo.performance.averageResponseTime + 'ms'
-        );
-        console.groupEnd();
+        if (process.env.NODE_ENV === 'development') {
+          console.group('⚡ 성능 분석');
+          console.log(
+            '체크리스트 총 시간:',
+            debugInfo.performance.checklistDuration + 'ms'
+          );
+          console.log(
+            '가장 느린 컴포넌트:',
+            debugInfo.performance.slowestComponent
+          );
+          console.log(
+            '가장 빠른 컴포넌트:',
+            debugInfo.performance.fastestComponent
+          );
+          console.log(
+            '평균 응답 시간:',
+            debugInfo.performance.averageResponseTime + 'ms'
+          );
+          console.groupEnd();
+        }
 
         return debugInfo.performance;
       },
@@ -667,14 +674,13 @@ export default function SystemChecklist({
                 className={`
                   flex items-center p-3 rounded-xl border backdrop-blur-sm
                   ${getPriorityBorder(component.priority)}
-                  ${
-                    status.status === 'completed'
-                      ? 'bg-green-500/10'
-                      : status.status === 'failed'
-                        ? 'bg-red-500/10'
-                        : status.status === 'loading'
-                          ? 'bg-blue-500/10'
-                          : 'bg-gray-500/10'
+                  ${status.status === 'completed'
+                    ? 'bg-green-500/10'
+                    : status.status === 'failed'
+                      ? 'bg-red-500/10'
+                      : status.status === 'loading'
+                        ? 'bg-blue-500/10'
+                        : 'bg-gray-500/10'
                   }
                   transition-all duration-300
                   ${status.status === 'failed' ? 'cursor-pointer hover:bg-red-500/20' : ''}

@@ -11,7 +11,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-// import { Slider } from '@/components/ui/slider'; // Slider 컴포넌트 없음
+// Slider 컴포넌트는 아직 구현되지 않음
 import {
     Filter,
     Clock,

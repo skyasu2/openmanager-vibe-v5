@@ -63,7 +63,7 @@ function printServiceStatus(service) {
   const statusIcon = service.status === 'connected' ? icons.success : icons.error;
   const statusColor = service.status === 'connected' ? 'green' : 'red';
   const statusText = service.status === 'connected' ? '연결됨' : '오류';
-  
+
   // 서비스별 아이콘
   let serviceIcon = icons.server;
   if (service.name.includes('Supabase')) serviceIcon = icons.database;
@@ -75,11 +75,11 @@ function printServiceStatus(service) {
   console.log(`${serviceIcon} ${colorize(service.name, 'bright')}`);
   console.log(`   상태: ${statusIcon} ${colorize(statusText, statusColor)}`);
   console.log(`   응답시간: ${colorize(formatResponseTime(service.responseTime), 'yellow')}`);
-  
+
   if (service.error) {
     console.log(`   ${icons.error} ${colorize('오류:', 'red')} ${service.error}`);
   }
-  
+
   if (service.details && service.status === 'connected') {
     if (service.details.url) {
       console.log(`   ${icons.info} URL: ${colorize(service.details.url, 'blue')}`);
@@ -91,7 +91,7 @@ function printServiceStatus(service) {
       console.log(`   ${icons.info} 모델: ${colorize(service.details.model, 'blue')}`);
     }
   }
-  
+
   console.log('');
 }
 
@@ -99,24 +99,24 @@ function printSummary(summary) {
   console.log('='.repeat(60));
   console.log(colorize('📊 요약', 'cyan'));
   console.log('='.repeat(60));
-  
+
   const successRate = Math.round((summary.connected / summary.total) * 100);
   const successColor = successRate >= 80 ? 'green' : successRate >= 60 ? 'yellow' : 'red';
-  
+
   console.log(`${icons.info} 총 서비스: ${colorize(summary.total, 'bright')}`);
   console.log(`${icons.success} 연결됨: ${colorize(summary.connected, 'green')}`);
   console.log(`${icons.error} 오류: ${colorize(summary.errors, 'red')}`);
   console.log(`${icons.loading} 평균 응답시간: ${colorize(formatResponseTime(summary.averageResponseTime), 'yellow')}`);
   console.log(`📈 성공률: ${colorize(`${successRate}%`, successColor)}`);
-  
+
   console.log('\n' + '='.repeat(60));
-  
+
   if (summary.errors === 0) {
     console.log(colorize(`${icons.success} 모든 서비스가 정상 작동 중입니다!`, 'green'));
   } else {
     console.log(colorize(`${icons.warning} ${summary.errors}개 서비스에 문제가 있습니다.`, 'yellow'));
   }
-  
+
   console.log('='.repeat(60) + '\n');
 }
 
@@ -128,14 +128,14 @@ function formatResponseTime(ms) {
 async function makeRequest(url) {
   return new Promise((resolve, reject) => {
     const protocol = url.startsWith('https:') ? https : http;
-    
+
     const req = protocol.get(url, (res) => {
       let data = '';
-      
+
       res.on('data', (chunk) => {
         data += chunk;
       });
-      
+
       res.on('end', () => {
         try {
           const jsonData = JSON.parse(data);
@@ -145,11 +145,11 @@ async function makeRequest(url) {
         }
       });
     });
-    
+
     req.on('error', (error) => {
       reject(error);
     });
-    
+
     req.setTimeout(10000, () => {
       req.destroy();
       reject(new Error('요청 시간 초과 (10초)'));
@@ -160,37 +160,37 @@ async function makeRequest(url) {
 async function checkServices() {
   try {
     printHeader();
-    
+
     console.log(colorize(`${icons.loading} 서비스 상태 확인 중...`, 'yellow'));
     console.log('');
-    
+
     // 로컬 개발 서버 또는 배포된 서버에서 상태 확인
-    const baseUrl = process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
       : 'http://localhost:3000';
-    
-    const apiUrl = `${baseUrl}/api/dev/services-status`;
-    
+
+    const apiUrl = `${baseUrl}/api/services/status`;
+
     console.log(colorize(`📡 API 호출: ${apiUrl}`, 'blue'));
     console.log('');
-    
+
     const data = await makeRequest(apiUrl);
-    
+
     // 각 서비스 상태 출력
     data.services.forEach(service => {
       printServiceStatus(service);
     });
-    
+
     // 요약 출력
     printSummary(data.summary);
-    
+
     // 개발 팁
     console.log(colorize('💡 개발 팁:', 'cyan'));
     console.log(`   • 실시간 모니터링: ${colorize(`${baseUrl}/dev-tools`, 'blue')}`);
     console.log(`   • 환경변수 확인: ${colorize('.env.local 파일 생성', 'yellow')}`);
     console.log(`   • 자동 실행: ${colorize('npm run check-services', 'green')}`);
     console.log('');
-    
+
   } catch (error) {
     console.log('');
     console.log(colorize(`${icons.error} 서비스 상태 확인 실패:`, 'red'));

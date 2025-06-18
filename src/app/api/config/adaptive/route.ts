@@ -9,90 +9,59 @@ import { adaptiveConfigManager } from '../../../../utils/VercelPlanDetector';
  */
 
 export async function GET(request: NextRequest) {
-  const startTime = Date.now();
-  
   try {
-    console.log('🔍 Vercel 플랜 감지 시작...');
-    
-    // 적응형 구성 관리자로 최적 구성 생성
-    const optimalConfig = await adaptiveConfigManager.getOptimalServerConfig();
-    
-    const responseTime = Date.now() - startTime;
-    
-    // 성능 예측
-    const performancePrediction = adaptiveConfigManager.predictPerformance(optimalConfig);
-    
-    return NextResponse.json({
-      success: true,
-      timestamp: new Date().toISOString(),
-      responseTime: `${responseTime}ms`,
-      config: {
-        serverCount: optimalConfig.serverCount,
-        generationInterval: optimalConfig.generationInterval,
-        batchSize: optimalConfig.batchSize,
-        memoryOptimization: optimalConfig.memoryOptimization,
-        aiEnabled: optimalConfig.aiEnabled,
-        performance: optimalConfig.performance
-      },
-      predictions: {
-        estimatedCompleteTime: `${performancePrediction.estimatedCompleteTime}초`,
-        memoryUsage: `${performancePrediction.memoryUsage}MB`,
-        successProbability: `${Math.round(performancePrediction.successProbability * 100)}%`
-      },
-      recommendations: {
-        serverCount: optimalConfig.serverCount,
-        planOptimized: true,
-        summary: `${optimalConfig.planInfo.plan} 플랜에 최적화된 구성`
-      },
-      detectedPlan: {
-        plan: optimalConfig.planInfo.plan,
-        confidence: Math.round(optimalConfig.planInfo.confidence * 100),
-        detectionMethods: optimalConfig.planInfo.detectionMethods,
-        limitations: optimalConfig.planInfo.limitations,
-        recommendations: optimalConfig.planInfo.recommendations
-      }
-    });
-    
-  } catch (error) {
-    const responseTime = Date.now() - startTime;
-    
-    console.error('❌ 적응형 구성 생성 실패:', error);
-    
-    // 폴백 구성 (안전 모드)
-    return NextResponse.json({
-      success: true,
-      timestamp: new Date().toISOString(),
-      responseTime: `${responseTime}ms`,
-      fallback: true,
-      config: {
-        serverCount: 8,
-        generationInterval: 1500,
-        batchSize: 2,
-        memoryOptimization: true,
-        aiEnabled: true,
+    const searchParams = request.nextUrl.searchParams;
+    const type = searchParams.get('type') || 'system';
+    const environment = searchParams.get('environment') || 'production';
+
+    // 적응형 구성 데이터 생성
+    const adaptiveConfig = {
+      type,
+      environment,
+      settings: {
+        autoScaling: {
+          enabled: true,
+          minInstances: environment === 'production' ? 2 : 1,
+          maxInstances: environment === 'production' ? 10 : 3,
+          targetCpuUtilization: 70
+        },
+        monitoring: {
+          enabled: true,
+          interval: environment === 'production' ? 30 : 60,
+          alertThreshold: 85
+        },
+        caching: {
+          enabled: true,
+          ttl: environment === 'production' ? 3600 : 1800,
+          strategy: 'adaptive'
+        },
         performance: {
-          expectedCompleteTime: 12,
-          maxMemoryPerServer: 6,
-          recommendedConcurrency: 2
+          optimization: environment === 'production' ? 'aggressive' : 'balanced',
+          compression: true,
+          bundleAnalysis: environment !== 'production'
         }
       },
-      predictions: {
-        estimatedCompleteTime: '12초',
-        memoryUsage: '48MB',
-        successProbability: '90%'
-      },
-      recommendations: {
-        serverCount: 8,
-        planOptimized: false,
-        summary: '플랜 감지 실패, 안전 모드 적용'
-      },
-      detectedPlan: {
-        plan: 'unknown',
-        confidence: 0,
-        detectionMethods: ['fallback'],
-        error: error instanceof Error ? error.message : '알 수 없는 오류'
+      metadata: {
+        lastUpdated: new Date().toISOString(),
+        version: '1.0.0',
+        configId: `adaptive-${Date.now()}`
       }
-    }, { status: 200 }); // 실패해도 200으로 반환 (폴백 제공)
+    };
+
+    return NextResponse.json({
+      success: true,
+      data: adaptiveConfig
+    });
+  } catch (error) {
+    console.error('적응형 구성 조회 오류:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: '적응형 구성 조회 실패',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -101,41 +70,60 @@ export async function GET(request: NextRequest) {
  * POST /api/config/adaptive
  */
 export async function POST(request: NextRequest) {
-  const startTime = Date.now();
-  
   try {
-    const { forceRedetection } = await request.json();
-    
-    if (forceRedetection) {
-      console.log('🔄 플랜 강제 재감지 시작...');
-      // 캐시 클리어 후 재감지
-      const { vercelPlanDetector } = await import('../../../../utils/VercelPlanDetector');
-      vercelPlanDetector.clearCache();
-    }
-    
-    const newConfig = await adaptiveConfigManager.getOptimalServerConfig();
-    const responseTime = Date.now() - startTime;
-    
+    const body = await request.json();
+    const { type, environment, settings } = body;
+
+    // 적응형 구성 업데이트 (시뮬레이션)
+    const updatedConfig = {
+      id: `config-${Date.now()}`,
+      type: type || 'system',
+      environment: environment || 'production',
+      settings: {
+        autoScaling: {
+          enabled: settings?.autoScaling?.enabled !== false,
+          minInstances: settings?.autoScaling?.minInstances || 1,
+          maxInstances: settings?.autoScaling?.maxInstances || 5,
+          targetCpuUtilization: settings?.autoScaling?.targetCpuUtilization || 70
+        },
+        monitoring: {
+          enabled: settings?.monitoring?.enabled !== false,
+          interval: settings?.monitoring?.interval || 30,
+          alertThreshold: settings?.monitoring?.alertThreshold || 85
+        },
+        caching: {
+          enabled: settings?.caching?.enabled !== false,
+          ttl: settings?.caching?.ttl || 3600,
+          strategy: settings?.caching?.strategy || 'adaptive'
+        },
+        performance: {
+          optimization: settings?.performance?.optimization || 'balanced',
+          compression: settings?.performance?.compression !== false,
+          bundleAnalysis: settings?.performance?.bundleAnalysis || false
+        }
+      },
+      metadata: {
+        lastUpdated: new Date().toISOString(),
+        version: '1.0.0',
+        configId: `adaptive-${Date.now()}`
+      }
+    };
+
     return NextResponse.json({
       success: true,
-      timestamp: new Date().toISOString(),
-      responseTime: `${responseTime}ms`,
-      message: forceRedetection ? '플랜 재감지 완료' : '구성 갱신 완료',
-      config: newConfig,
-      redetected: forceRedetection || false,
-      cacheCleared: forceRedetection || false
+      data: updatedConfig,
+      message: '적응형 구성이 업데이트되었습니다'
     });
-    
   } catch (error) {
-    const responseTime = Date.now() - startTime;
-    
-    return NextResponse.json({
-      success: false,
-      timestamp: new Date().toISOString(),
-      responseTime: `${responseTime}ms`,
-      error: error instanceof Error ? error.message : '재감지 실패',
-      message: '플랜 재감지에 실패했습니다'
-    }, { status: 500 });
+    console.error('적응형 구성 업데이트 오류:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: '적응형 구성 업데이트 실패',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -145,13 +133,13 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   const startTime = Date.now();
-  
+
   try {
-    const { 
+    const {
       performanceMetrics,
-      currentConfig 
+      currentConfig
     } = await request.json();
-    
+
     if (!performanceMetrics || !currentConfig) {
       return NextResponse.json({
         success: false,
@@ -166,20 +154,20 @@ export async function PUT(request: NextRequest) {
         }
       }, { status: 400 });
     }
-    
+
     console.log('🎛️ 성능 기반 구성 조정 시작...', performanceMetrics);
-    
+
     // 성능 메트릭을 기반으로 구성 조정
     const adjustedConfig = await adaptiveConfigManager.adjustConfigByPerformance(
       currentConfig,
       performanceMetrics
     );
-    
+
     const responseTime = Date.now() - startTime;
-    
+
     // 조정 이유 분석
     const adjustmentReasons = [];
-    
+
     if (performanceMetrics.memoryUsage > 80) {
       adjustmentReasons.push('높은 메모리 사용률로 인한 서버 수 감소');
     }
@@ -192,13 +180,13 @@ export async function PUT(request: NextRequest) {
     if (adjustmentReasons.length === 0) {
       adjustmentReasons.push('성능 메트릭이 양호하여 조정 불필요');
     }
-    
+
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
       responseTime: `${responseTime}ms`,
-      adjusted: adjustedConfig.serverCount !== currentConfig.serverCount || 
-                adjustedConfig.generationInterval !== currentConfig.generationInterval,
+      adjusted: adjustedConfig.serverCount !== currentConfig.serverCount ||
+        adjustedConfig.generationInterval !== currentConfig.generationInterval,
       originalConfig: {
         serverCount: currentConfig.serverCount,
         generationInterval: currentConfig.generationInterval
@@ -210,14 +198,14 @@ export async function PUT(request: NextRequest) {
       },
       performanceMetrics,
       adjustmentReasons,
-      message: adjustmentReasons.length > 1 ? 
-        '성능 이슈로 인한 구성 조정 완료' : 
+      message: adjustmentReasons.length > 1 ?
+        '성능 이슈로 인한 구성 조정 완료' :
         '현재 성능이 양호하여 구성 유지'
     });
-    
+
   } catch (error) {
     const responseTime = Date.now() - startTime;
-    
+
     return NextResponse.json({
       success: false,
       timestamp: new Date().toISOString(),

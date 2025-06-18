@@ -83,7 +83,7 @@ export default function DevToolsPage() {
     const fetchServicesStatus = async () => {
         setLoading(true);
         try {
-            const response = await fetch('/api/dev/services-status');
+            const response = await fetch('/api/services/status');
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
@@ -119,7 +119,7 @@ export default function DevToolsPage() {
     const fetchKeyManagerStatus = async () => {
         try {
             setKeyManagerLoading(true);
-            const response = await fetch('/api/dev/key-manager?action=status');
+            const response = await fetch('/api/config/keys?action=status');
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
@@ -174,7 +174,7 @@ export default function DevToolsPage() {
     const handleQuickSetup = async () => {
         try {
             setKeyManagerLoading(true);
-            const response = await fetch('/api/dev/key-manager?action=quick-setup');
+            const response = await fetch('/api/config/keys?action=quick-setup');
             const data = await response.json();
 
             if (data.success) {
@@ -194,7 +194,7 @@ export default function DevToolsPage() {
     const handleGenerateEnv = async () => {
         try {
             setKeyManagerLoading(true);
-            const response = await fetch('/api/dev/key-manager?action=generate-env');
+            const response = await fetch('/api/config/keys?action=generate-env');
             const data = await response.json();
 
             if (data.success) {
@@ -678,7 +678,7 @@ export default function DevToolsPage() {
                             <div>
                                 <p className="font-medium text-slate-700 dark:text-slate-300">터미널에서 상태 확인:</p>
                                 <code className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-xs">
-                                    curl http://localhost:3000/api/dev/services-status
+                                    curl http://localhost:3000/api/services/status
                                 </code>
                             </div>
                             <div>

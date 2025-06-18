@@ -1,17 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
-
-export default function GlobalError({
-  error,
-  reset,
-}: {
+interface GlobalErrorProps {
   error: Error & { digest?: string };
   reset: () => void;
-}) {
-  useEffect(() => {
-    console.error('Global Error:', error);
-  }, [error]);
+}
+
+export default function GlobalError({ error, reset }: GlobalErrorProps) {
+  console.error('Global Error:', error);
 
   return (
     <html lang='ko'>
@@ -24,18 +19,20 @@ export default function GlobalError({
             <p className='text-gray-600 mb-4'>
               예상치 못한 오류가 발생했습니다.
             </p>
-            <button
-              onClick={reset}
-              className='px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 mr-2'
-            >
-              다시 시도
-            </button>
-            <button
-              onClick={() => (window.location.href = '/')}
-              className='px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700'
-            >
-              홈으로
-            </button>
+            <div className="space-x-2">
+              <button
+                onClick={reset}
+                className='px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700'
+              >
+                다시 시도
+              </button>
+              <button
+                onClick={() => window.location.href = '/'}
+                className='px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700'
+              >
+                홈으로
+              </button>
+            </div>
           </div>
         </div>
       </body>

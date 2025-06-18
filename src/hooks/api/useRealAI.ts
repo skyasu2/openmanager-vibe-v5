@@ -115,7 +115,7 @@ export function useRealAI(options: UseRealAIOptions = {}) {
     abortControllerRef.current = new AbortController();
 
     try {
-      const response = await fetch('/api/v1/ai/unified', {
+      const response = await fetch('/api/ai/unified', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -144,18 +144,18 @@ export function useRealAI(options: UseRealAIOptions = {}) {
       }
 
       const result: AIAnalysisResponse = await response.json();
-      
+
       if (result.success) {
         setLastResponse(result);
         showToast.success(`AI 분석 완료 (${result.performance.totalTime}ms)`);
-        
+
         // 긴급도에 따른 추가 알림
         if (result.analysis.urgency === 'critical') {
           showToast.error('⚠️ 중요한 시스템 이슈가 감지되었습니다!');
         } else if (result.analysis.urgency === 'high') {
           showToast.warning('⚠️ 시스템 주의가 필요합니다');
         }
-        
+
         return result;
       } else {
         throw new Error(result.error || '분석 실패');
@@ -170,7 +170,7 @@ export function useRealAI(options: UseRealAIOptions = {}) {
       const errorMessage = error.message || '알 수 없는 오류';
       setError(errorMessage);
       showToast.error(`AI 분석 실패: ${errorMessage}`);
-      
+
       console.error('AI 분석 오류:', error);
       return null;
 
@@ -185,7 +185,7 @@ export function useRealAI(options: UseRealAIOptions = {}) {
    */
   const analyzeMetrics = useCallback(async (metrics: any[], analysisType: 'performance' | 'anomaly' | 'trend' = 'performance') => {
     try {
-      const response = await fetch('/api/v1/ai/metrics', {
+      const response = await fetch('/api/ai/analysis', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -202,7 +202,7 @@ export function useRealAI(options: UseRealAIOptions = {}) {
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
         showToast.success('메트릭 분석 완료');
         return result;
@@ -228,14 +228,14 @@ export function useRealAI(options: UseRealAIOptions = {}) {
     setError(null);
 
     try {
-      const response = await fetch('/api/v1/ai/unified?action=health');
-      
+      const response = await fetch('/api/ai/unified?action=health');
+
       if (!response.ok) {
         throw new Error(`상태 확인 실패: ${response.status}`);
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
         setSystemHealth(result.health);
         return result.health;
@@ -260,7 +260,7 @@ export function useRealAI(options: UseRealAIOptions = {}) {
   const askQuestion = useCallback(async (question: string) => {
     // 한국어 질문을 자동으로 분류하여 적절한 분석 타입 결정
     let analysisType: AIAnalysisRequest['type'] = 'analysis';
-    
+
     if (question.includes('성능') || question.includes('속도') || question.includes('느림')) {
       analysisType = 'monitoring';
     } else if (question.includes('예측') || question.includes('앞으로') || question.includes('향후')) {

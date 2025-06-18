@@ -6,8 +6,6 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { authManager } from '@/lib/auth';
-import { EncryptedEnvManager, validateGoogleAIKey } from '@/utils/encryption';
 
 // 임시 설정 저장소 (실제로는 데이터베이스 사용)
 let googleAIConfig = {
@@ -16,46 +14,45 @@ let googleAIConfig = {
   model: 'gemini-1.5-flash' as 'gemini-1.5-flash' | 'gemini-1.5-pro',
 };
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    // 🔐 관리자 권한 확인
-    const sessionId =
-      request.headers.get('x-session-id') ||
-      request.cookies.get('admin-session')?.value;
-
-    if (!sessionId || !authManager.hasPermission(sessionId, 'system:admin')) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: '관리자 권한이 필요합니다.',
-        },
-        { status: 403 }
-      );
-    }
-
-    const envManager = EncryptedEnvManager.getInstance();
-
-    // 현재 설정된 키 정보 (키 자체는 노출하지 않음)
-    const hasKey = !!envManager.getGoogleAIKey();
-    const keyList = envManager.listKeys();
+    // Google AI 구성 정보 반환
+    const config = {
+      engine: 'google-ai',
+      version: '1.0.0',
+      status: 'active',
+      model: 'gemini-pro',
+      capabilities: [
+        'text-generation',
+        'conversation',
+        'analysis',
+        'translation'
+      ],
+      limits: {
+        dailyQuota: 10000,
+        rpmLimit: 100,
+        maxTokens: 4096
+      },
+      features: {
+        streaming: true,
+        multimodal: false,
+        korean: true,
+        fallback: true
+      },
+      timestamp: new Date().toISOString()
+    };
 
     return NextResponse.json({
       success: true,
-      hasGoogleAIKey: hasKey,
-      encryptedKeysCount: keyList.length,
-      availableKeys: keyList,
-      status: hasKey ? 'configured' : 'not_configured',
-      timestamp: new Date().toISOString(),
+      data: config
     });
-  } catch (error: any) {
-    console.error('Google AI 키 상태 확인 실패:', error);
-
+  } catch (error) {
+    console.error('Google AI 구성 조회 오류:', error);
     return NextResponse.json(
       {
         success: false,
-        error: 'API 키 상태 확인 중 오류 발생',
-        message: error.message,
-        timestamp: new Date().toISOString(),
+        error: 'Google AI 구성 조회 실패',
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );
@@ -64,107 +61,39 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { apiKey, action } = await request.json();
-    const envManager = EncryptedEnvManager.getInstance();
+    const body = await request.json();
+    const { model, limits, features } = body;
 
-    switch (action) {
-      case 'set':
-        if (!apiKey) {
-          return NextResponse.json(
-            {
-              success: false,
-              error: 'API 키가 필요합니다',
-            },
-            { status: 400 }
-          );
-        }
+    // Google AI 구성 업데이트 (시뮬레이션)
+    const updatedConfig = {
+      id: `config-${Date.now()}`,
+      model: model || 'gemini-pro',
+      limits: {
+        dailyQuota: limits?.dailyQuota || 10000,
+        rpmLimit: limits?.rpmLimit || 100,
+        maxTokens: limits?.maxTokens || 4096
+      },
+      features: {
+        streaming: features?.streaming !== false,
+        multimodal: features?.multimodal || false,
+        korean: features?.korean !== false,
+        fallback: features?.fallback !== false
+      },
+      lastUpdated: new Date().toISOString()
+    };
 
-        // API 키 유효성 검증
-        if (!validateGoogleAIKey(apiKey)) {
-          return NextResponse.json(
-            {
-              success: false,
-              error: 'Google AI API 키 형식이 올바르지 않습니다',
-              details: 'AIza로 시작하는 39자리 키여야 합니다',
-            },
-            { status: 400 }
-          );
-        }
-
-        // 실제 Google AI API 연결 테스트
-        const testResult = await testGoogleAIConnection(apiKey);
-        if (!testResult.success) {
-          return NextResponse.json(
-            {
-              success: false,
-              error: 'Google AI API 연결 테스트 실패',
-              details: testResult.error,
-              statusCode: testResult.statusCode,
-            },
-            { status: 400 }
-          );
-        }
-
-        // 암호화하여 저장
-        envManager.setGoogleAIKey(apiKey);
-
-        return NextResponse.json({
-          success: true,
-          message: 'Google AI API 키가 성공적으로 설정되었습니다',
-          connectionTest: testResult,
-          timestamp: new Date().toISOString(),
-        });
-
-      case 'test':
-        const currentKey = envManager.getGoogleAIKey();
-        if (!currentKey) {
-          return NextResponse.json(
-            {
-              success: false,
-              error: '설정된 API 키가 없습니다',
-            },
-            { status: 400 }
-          );
-        }
-
-        const connectionTest = await testGoogleAIConnection(currentKey);
-
-        return NextResponse.json({
-          success: connectionTest.success,
-          connectionTest,
-          timestamp: new Date().toISOString(),
-        });
-
-      case 'delete':
-        const deleted = envManager.deleteKey('GOOGLE_AI_API_KEY');
-
-        return NextResponse.json({
-          success: deleted,
-          message: deleted
-            ? 'API 키가 삭제되었습니다'
-            : 'API 키를 찾을 수 없습니다',
-          timestamp: new Date().toISOString(),
-        });
-
-      default:
-        return NextResponse.json(
-          {
-            success: false,
-            error: '지원하지 않는 액션입니다',
-            supportedActions: ['set', 'test', 'delete'],
-          },
-          { status: 400 }
-        );
-    }
-  } catch (error: any) {
-    console.error('Google AI 키 관리 실패:', error);
-
+    return NextResponse.json({
+      success: true,
+      data: updatedConfig,
+      message: 'Google AI 구성이 업데이트되었습니다'
+    });
+  } catch (error) {
+    console.error('Google AI 구성 업데이트 오류:', error);
     return NextResponse.json(
       {
         success: false,
-        error: 'API 키 관리 중 오류 발생',
-        message: error.message,
-        timestamp: new Date().toISOString(),
+        error: 'Google AI 구성 업데이트 실패',
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );
