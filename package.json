@@ -60,6 +60,7 @@
     "test:unit:coverage": "vitest run --coverage",
     "test:redis": "curl -f http://localhost:3000/api/test-redis || echo '❌ Redis 테스트 실패'",
     "test:redis:dev": "node -e \"require('./src/lib/redis-test.ts').comprehensiveRedisCheck().then(r => console.log(JSON.stringify(r, null, 2)))\"",
+    "test:mock-redis": "node scripts/test-mock-redis.js",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
     "test:e2e:install": "playwright install",

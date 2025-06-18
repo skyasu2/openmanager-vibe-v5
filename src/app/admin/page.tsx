@@ -1,109 +1,251 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
-
-// 🚀 동적 임포트로 코드 스플리팅 (Next.js 15 호환)
-const AdminDashboardCharts = dynamic(
-  () => import('@/components/AdminDashboardCharts'),
-  {
-    loading: () => <AdminDashboardSkeleton />,
-  }
-);
-
-const AIAgentAdminDashboard = dynamic(
-  () => import('@/components/ai/AIAgentAdminDashboard'),
-  {
-    loading: () => (
-      <div className='h-64 bg-gray-100 animate-pulse rounded-lg' />
-    ),
-  }
-);
-
-// 🎨 스켈레톤 로딩 컴포넌트
-function AdminDashboardSkeleton() {
-  return (
-    <div className='space-y-6 p-6'>
-      <div className='h-8 bg-gray-200 rounded animate-pulse' />
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-        {[...Array(6)].map((_, i) => (
-          <div key={i} className='h-32 bg-gray-200 rounded-lg animate-pulse' />
-        ))}
-      </div>
-      <div className='h-64 bg-gray-200 rounded-lg animate-pulse' />
-    </div>
-  );
-}
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import {
+  Brain,
+  Server,
+  Settings,
+  BarChart3,
+  Shield,
+  Database,
+  Cpu,
+  Monitor,
+  FileText,
+  Wrench,
+  Home
+} from 'lucide-react';
+import Link from 'next/link';
 
 export default function AdminPage() {
+  const [selectedCategory, setSelectedCategory] = useState<'ai' | 'system'>('ai');
+
+  const aiManagementFeatures = [
+    {
+      title: 'AI 에이전트 관리',
+      description: 'AI 에이전트 설정, 패턴 데모, 예측 분석',
+      icon: <Brain className="w-8 h-8" />,
+      path: '/admin/ai-agent',
+      color: 'from-purple-500 to-pink-500',
+      features: ['패턴 매칭', '예측 분석', '메트릭 브리지']
+    },
+    {
+      title: 'AI 분석 도구',
+      description: 'AI 기반 시스템 분석 및 인사이트',
+      icon: <BarChart3 className="w-8 h-8" />,
+      path: '/admin/ai-analysis',
+      color: 'from-blue-500 to-cyan-500',
+      features: ['실시간 분석', '패턴 인식', '이상 탐지']
+    },
+    {
+      title: 'MCP 서버 모니터링',
+      description: 'MCP 서버 상태 및 성능 모니터링',
+      icon: <Monitor className="w-8 h-8" />,
+      path: '/admin/mcp-monitoring',
+      color: 'from-green-500 to-emerald-500',
+      features: ['서버 상태', '성능 메트릭', '로그 분석']
+    },
+    {
+      title: '스마트 폴백 관리',
+      description: 'AI 시스템 폴백 전략 및 복구 관리',
+      icon: <Shield className="w-8 h-8" />,
+      path: '/admin/smart-fallback',
+      color: 'from-orange-500 to-red-500',
+      features: ['폴백 전략', '자동 복구', '안정성 보장']
+    }
+  ];
+
+  const systemManagementFeatures = [
+    {
+      title: '가상 서버 관리',
+      description: '가상 서버 생성, 관리 및 모니터링',
+      icon: <Server className="w-8 h-8" />,
+      path: '/admin/virtual-servers',
+      color: 'from-indigo-500 to-purple-500',
+      features: ['서버 생성', '리소스 관리', '상태 모니터링']
+    },
+    {
+      title: '시스템 로그',
+      description: '전체 시스템 로그 조회 및 분석',
+      icon: <FileText className="w-8 h-8" />,
+      path: '/logs',
+      color: 'from-gray-500 to-slate-500',
+      features: ['실시간 로그', '검색 필터', '로그 분석']
+    },
+    {
+      title: '개발 도구',
+      description: '시스템 개발 및 디버깅 도구',
+      icon: <Wrench className="w-8 h-8" />,
+      path: '/dev-tools',
+      color: 'from-yellow-500 to-orange-500',
+      features: ['디버깅', '성능 분석', '개발 지원']
+    },
+    {
+      title: '데이터베이스 관리',
+      description: 'Supabase 데이터베이스 연동 및 관리',
+      icon: <Database className="w-8 h-8" />,
+      path: '/notes',
+      color: 'from-teal-500 to-green-500',
+      features: ['데이터 조회', 'CRUD 작업', '연결 테스트']
+    }
+  ];
+
+  const currentFeatures = selectedCategory === 'ai' ? aiManagementFeatures : systemManagementFeatures;
+
   return (
-    <div className='min-h-screen bg-gray-50'>
-      <div className='container mx-auto px-4 py-8'>
-        <div className='mb-8'>
-          <h1 className='text-3xl font-bold text-gray-900'>관리자 대시보드</h1>
-          <p className='text-gray-600 mt-2'>
-            시스템 전반을 모니터링하고 관리합니다.
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      {/* 헤더 */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-4">
+              <Link
+                href="/"
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                <Home className="w-4 h-4" />
+                <span>홈으로</span>
+              </Link>
+              <div className="h-6 w-px bg-gray-300"></div>
+              <h1 className="text-xl font-bold text-gray-900">🛠️ 관리자 대시보드</h1>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <Link
+                href="/dashboard"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                대시보드
+              </Link>
+            </div>
+          </div>
         </div>
+      </div>
 
-        <Suspense fallback={<AdminDashboardSkeleton />}>
-          <AdminDashboardCharts />
-        </Suspense>
-
-        {/* 🤖 AI 시스템 상태 모니터링 */}
-        <div className='mt-8'>
-          <h2 className='text-xl font-semibold mb-4'>AI 시스템 상태</h2>
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8'>
-            {/* Google AI 상태 카드 */}
-            <Suspense
-              fallback={
-                <div className='h-64 bg-gray-100 animate-pulse rounded-lg' />
-              }
+      {/* 메인 컨텐츠 */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* 카테고리 선택 */}
+        <div className="mb-8">
+          <div className="flex items-center justify-center gap-4">
+            <motion.button
+              onClick={() => setSelectedCategory('ai')}
+              className={`px-8 py-4 rounded-xl font-semibold transition-all flex items-center gap-3 ${selectedCategory === 'ai'
+                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                }`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
-                <h3 className='text-lg font-semibold text-gray-800 mb-4'>
-                  🤖 Google AI 상태
-                </h3>
-                <p className='text-gray-600'>
-                  Gemini API 연결 상태 및 성능 지표
-                </p>
-                <div className='mt-4 text-sm text-blue-600'>
-                  실시간 모니터링 준비 중...
-                </div>
-              </div>
-            </Suspense>
+              <Brain className="w-6 h-6" />
+              🤖 AI 관리
+            </motion.button>
 
-            {/* MCP 시스템 상태 */}
-            <Suspense
-              fallback={
-                <div className='h-64 bg-gray-100 animate-pulse rounded-lg' />
-              }
+            <motion.button
+              onClick={() => setSelectedCategory('system')}
+              className={`px-8 py-4 rounded-xl font-semibold transition-all flex items-center gap-3 ${selectedCategory === 'system'
+                ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
+                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                }`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <div className='bg-white rounded-xl shadow-lg border border-gray-200 p-6'>
-                <h3 className='text-lg font-semibold text-gray-800 mb-4'>
-                  🔮 MCP 시스템
-                </h3>
-                <p className='text-gray-600'>
-                  Model Context Protocol 상태 및 쿼리 성능
-                </p>
-                <div className='mt-4 text-sm text-blue-600'>
-                  실시간 모니터링 준비 중...
-                </div>
-              </div>
-            </Suspense>
+              <Settings className="w-6 h-6" />
+              ⚙️ 시스템 관리
+            </motion.button>
           </div>
         </div>
 
-        <div className='mt-8'>
-          <h2 className='text-xl font-semibold mb-4'>AI 어시스턴트 관리</h2>
-          <Suspense
-            fallback={
-              <div className='h-64 bg-gray-100 animate-pulse rounded-lg' />
+        {/* 선택된 카테고리 제목 */}
+        <motion.div
+          key={selectedCategory}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+        >
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            {selectedCategory === 'ai' ? '🤖 AI 관리 허브' : '⚙️ 시스템 관리 허브'}
+          </h2>
+          <p className="text-gray-600">
+            {selectedCategory === 'ai'
+              ? 'AI 엔진, MCP 서버, 스마트 폴백 시스템을 통합 관리합니다'
+              : '가상 서버, 로그, 개발 도구, 데이터베이스를 통합 관리합니다'
             }
-          >
-            <AIAgentAdminDashboard />
-          </Suspense>
-        </div>
+          </p>
+        </motion.div>
+
+        {/* 기능 카드 그리드 */}
+        <motion.div
+          key={selectedCategory}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ staggerChildren: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
+          {currentFeatures.map((feature, index) => (
+            <motion.div
+              key={feature.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <Link href={feature.path}>
+                <div className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300 group cursor-pointer">
+                  <div className="flex items-start gap-4">
+                    <div className={`p-3 rounded-lg bg-gradient-to-r ${feature.color} text-white`}>
+                      {feature.icon}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                        {feature.title}
+                      </h3>
+                      <p className="text-gray-600 mb-4">
+                        {feature.description}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {feature.features.map((feat) => (
+                          <span
+                            key={feat}
+                            className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm"
+                          >
+                            {feat}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* 통계 요약 */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mt-12 bg-white rounded-xl p-6 border border-gray-200"
+        >
+          <h3 className="text-lg font-bold text-gray-900 mb-4">📊 관리 현황</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">4</div>
+              <div className="text-sm text-gray-600">AI 관리 도구</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">4</div>
+              <div className="text-sm text-gray-600">시스템 관리 도구</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">99.5%</div>
+              <div className="text-sm text-gray-600">시스템 가동률</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600">실시간</div>
+              <div className="text-sm text-gray-600">모니터링 상태</div>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </div>
   );

@@ -196,6 +196,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 # Redis
 UPSTASH_REDIS_REST_URL=your_redis_url
 UPSTASH_REDIS_REST_TOKEN=your_redis_token
+
+# 🎭 목업 모드 (선택사항)
+FORCE_MOCK_REDIS=true  # 헬스체크/테스트에서 목업 Redis 강제 사용
 ```
 
 ### **4. 개발 서버 실행**
@@ -300,6 +303,9 @@ npm run lint
 
 # 테스트 실행
 npm run test
+
+# 🎭 목업 레디스 테스트
+npm run test:mock-redis
 
 # 빌드 검증
 npm run build

@@ -9,18 +9,30 @@ afterEach(() => {
   cleanup();
 });
 
-// 전역 환경 변수 설정
-global.process.env = {
-  ...process.env,
+// 🎭 테스트 환경에서 목업 모드 강제 활성화
+process.env.FORCE_MOCK_REDIS = 'true';
+
+// 테스트 환경 변수 설정
+const testEnvVars = {
   NODE_ENV: 'test',
-  NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
-  // 테스트용 환경변수 추가
-  NEXT_PUBLIC_SUPABASE_URL: 'https://test.supabase.co',
+  FORCE_MOCK_REDIS: 'true', // 🎭 목업 레디스 강제 사용
+  NEXT_PUBLIC_SUPABASE_URL: 'https://test-project.supabase.co',
+  SUPABASE_URL: 'https://test-project.supabase.co',
   NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-anon-key',
   SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
   UPSTASH_REDIS_REST_URL: 'https://test-redis.upstash.io',
   UPSTASH_REDIS_REST_TOKEN: 'test-redis-token',
+  GOOGLE_AI_API_KEY: 'test-google-ai-key',
+  SLACK_WEBHOOK_URL: 'https://hooks.slack.com/test',
+  RENDER_MCP_SERVER_URL: 'https://test-mcp.onrender.com',
+  // 🛡️ 테스트용 Redis 설정 (사용되지 않음)
+  REDIS_URL: '', // 빈 값으로 설정하여 목업 모드 강제
+  REDIS_HOST: '',
+  REDIS_PASSWORD: '',
 };
+
+// 환경 변수 적용
+Object.assign(process.env, testEnvVars);
 
 // 실제 fetch를 사용하도록 설정 (Slack 테스트를 위해)
 if (!globalThis.fetch) {
