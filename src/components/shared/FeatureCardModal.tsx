@@ -528,12 +528,12 @@ export default function FeatureCardModal({
           {/* 최적화된 헤더 - 중복 제거 */}
           <div className='relative flex items-center justify-between p-4 sm:p-6 border-b border-gray-700/50 bg-gradient-to-r from-gray-800/50 to-gray-900/50'>
             <div className='flex items-center gap-3 sm:gap-4'>
-              {/* 최적화된 아이콘 컨테이너 */}
+              {/* 아이콘 컨테이너 숨김 처리 */}
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.1, type: 'spring', stiffness: 300 }}
-                className='w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg ring-2 ring-blue-400/20'
+                className='hidden'
               >
                 {renderIcon(selectedCard.icon)}
               </motion.div>
@@ -590,8 +590,7 @@ export default function FeatureCardModal({
               >
                 {/* 상세 정보 섹션 - 최적화 */}
                 <div className='bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-5 border border-gray-700/30'>
-                  <h3 className='text-lg font-semibold text-white mb-3 flex items-center gap-2'>
-                    <Monitor className='w-4 h-4 text-blue-400' />
+                  <h3 className='text-lg font-semibold text-white mb-3'>
                     시스템 개요
                   </h3>
                   <p className='text-gray-300 leading-relaxed text-sm'>
@@ -601,8 +600,7 @@ export default function FeatureCardModal({
 
                 {/* 주요 특징 섹션 - 최적화 */}
                 <div className='bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-5 border border-gray-700/30'>
-                  <h4 className='text-lg font-semibold text-white mb-3 flex items-center gap-2'>
-                    <CheckCircle className='w-4 h-4 text-green-400' />
+                  <h4 className='text-lg font-semibold text-white mb-3'>
                     핵심 기능
                   </h4>
                   <div className='grid grid-cols-1 lg:grid-cols-2 gap-3'>
@@ -617,7 +615,7 @@ export default function FeatureCardModal({
                             transition={{ delay: 0.3 + index * 0.1 }}
                             className='flex items-start gap-3 p-3 rounded-xl bg-gray-700/30 hover:bg-gray-700/50 transition-colors'
                           >
-                            <CheckCircle className='w-4 h-4 text-green-400 flex-shrink-0 mt-0.5' />
+                            <div className='w-2 h-2 bg-green-400 rounded-full flex-shrink-0 mt-2'></div>
                             <span className='text-gray-300 text-sm leading-relaxed'>
                               {feature}
                             </span>
@@ -631,7 +629,7 @@ export default function FeatureCardModal({
                         transition={{ delay: 0.3 }}
                         className='flex items-center gap-3 p-3 rounded-xl bg-gray-700/30'
                       >
-                        <CheckCircle className='w-4 h-4 text-green-400' />
+                        <div className='w-2 h-2 bg-green-400 rounded-full mt-2'></div>
                         <span className='text-gray-300 text-sm'>
                           실제 구현된 기능 기반
                         </span>
@@ -649,10 +647,7 @@ export default function FeatureCardModal({
                   transition={{ delay: 0.2 }}
                   className='space-y-8'
                 >
-                  <div className='flex items-center gap-3 mb-6'>
-                    <div className='w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center'>
-                      <Code className='w-4 h-4 text-white' />
-                    </div>
+                  <div className='mb-6'>
                     <h3 className='text-xl sm:text-2xl font-bold text-white'>
                       기술 스택 ({techStack.length})
                     </h3>
@@ -661,8 +656,7 @@ export default function FeatureCardModal({
                   {/* 필수 기술 */}
                   {criticalTech.length > 0 && (
                     <div>
-                      <h4 className='text-lg sm:text-xl font-semibold text-red-300 mb-4 sm:mb-6 flex items-center gap-2'>
-                        <Star className='w-5 h-5' />
+                      <h4 className='text-lg sm:text-xl font-semibold text-red-300 mb-4 sm:mb-6'>
                         필수 기술 ({criticalTech.length})
                       </h4>
                       <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6'>
@@ -676,8 +670,7 @@ export default function FeatureCardModal({
                   {/* 중요 기술 */}
                   {highTech.length > 0 && (
                     <div>
-                      <h4 className='text-lg sm:text-xl font-semibold text-orange-300 mb-4 sm:mb-6 flex items-center gap-2'>
-                        <Zap className='w-5 h-5' />
+                      <h4 className='text-lg sm:text-xl font-semibold text-orange-300 mb-4 sm:mb-6'>
                         중요 기술 ({highTech.length})
                       </h4>
                       <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6'>
@@ -691,8 +684,7 @@ export default function FeatureCardModal({
                   {/* 보통 기술 */}
                   {mediumTech.length > 0 && (
                     <div>
-                      <h4 className='text-lg sm:text-xl font-semibold text-blue-300 mb-4 sm:mb-6 flex items-center gap-2'>
-                        <Package className='w-5 h-5' />
+                      <h4 className='text-lg sm:text-xl font-semibold text-blue-300 mb-4 sm:mb-6'>
                         보통 기술 ({mediumTech.length})
                       </h4>
                       <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6'>
@@ -706,8 +698,7 @@ export default function FeatureCardModal({
                   {/* 낮은 우선순위 기술 */}
                   {lowTech.length > 0 && (
                     <div>
-                      <h4 className='text-lg sm:text-xl font-semibold text-gray-300 mb-4 sm:mb-6 flex items-center gap-2'>
-                        <Layers className='w-5 h-5' />
+                      <h4 className='text-lg sm:text-xl font-semibold text-gray-300 mb-4 sm:mb-6'>
                         기타 기술 ({lowTech.length})
                       </h4>
                       <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6'>
