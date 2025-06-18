@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# 📚 커밋 전 문서 자동 갱신 훅
+echo "📚 커밋 전 문서 자동 갱신 중..."
+
+# Node.js 스크립트 실행
+node scripts/update-docs.mjs
+
+# 갱신된 문서들을 스테이징에 추가
+if [ -f "docs/ARCHITECTURE.md" ]; then
+    git add docs/ARCHITECTURE.md
+    echo "✅ docs/ARCHITECTURE.md 스테이징 추가"
+fi
+
+if [ -f "docs/API.md" ]; then
+    git add docs/API.md
+    echo "✅ docs/API.md 스테이징 추가"
+fi
+
+if [ -f "docs/environment/vercel.env.template" ]; then
+    git add docs/environment/vercel.env.template
+    echo "✅ docs/environment/vercel.env.template 스테이징 추가"
+fi
+
+echo "📝 문서 갱신 완료!"
+exit 0 

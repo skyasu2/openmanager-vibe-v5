@@ -184,7 +184,10 @@
     "dev:keys:setup": "node scripts/dev-key-manager.js setup",
     "dev:keys:generate": "node scripts/dev-key-manager.js generate",
     "dev:keys:report": "node scripts/dev-key-manager.js report",
-    "dev:setup-keys": "npm run dev:keys:setup && npm run check-services"
+    "dev:setup-keys": "npm run dev:keys:setup && npm run check-services",
+    "docs:update": "node scripts/update-docs.mjs",
+    "docs:setup-hooks": "node scripts/setup-git-hooks.mjs",
+    "docs:auto": "npm run docs:update && npm run docs:setup-hooks"
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",

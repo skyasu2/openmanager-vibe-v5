@@ -800,3 +800,41 @@ echo "API 테스트 완료"
 - [🛠️ Development Guide](DEVELOPMENT.md)
 - [🤖 AI Setup](AI_SETUP.md)
 - [☁️ Deployment](DEPLOYMENT.md)
+
+
+## 🖥️ 서버 모니터링 API
+
+### GET /api/servers/realtime
+실시간 서버 데이터 조회
+
+**설정 정보:**
+- 총 서버 수: 15개
+- 업데이트 간격: 30초
+- 심각 상태: 15% (2개)
+- 경고 상태: 30% (4개)
+
+**응답 예시:**
+```json
+{
+  "servers": [
+    {
+      "id": "server-1",
+      "name": "웹서버-1",
+      "status": "running",
+      "cpu": 45.2,
+      "memory": 67.8,
+      "disk": 23.1,
+      "network": 12.5
+    }
+  ],
+  "summary": {
+    "total": 15,
+    "running": 9,
+    "warning": 4,
+    "critical": 2
+  },
+  "lastUpdated": "2025-01-29T10:30:00Z"
+}
+```
+
+*마지막 갱신: 2025. 6. 18. (5.44.2)*
