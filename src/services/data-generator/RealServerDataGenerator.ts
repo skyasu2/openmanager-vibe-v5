@@ -555,6 +555,7 @@ export class RealServerDataGenerator {
 
   private async generateRealtimeData(): Promise<void> {
     const updatedServers: ServerInstance[] = [];
+    let hasSignificantChange = false;
 
     for (const [serverId, server] of this.servers) {
       // 🎯 1단계: 원본 메트릭 수집
@@ -573,48 +574,40 @@ export class RealServerDataGenerator {
         memory: Math.max(0, Math.min(100, rawMetrics.memory + (Math.random() - 0.5) * 15)),
         disk: Math.max(0, Math.min(100, rawMetrics.disk + (Math.random() - 0.5) * 10)),
         network: {
-          in: Math.max(0, rawMetrics.network.in * (1 + (Math.random() - 0.5) * 0.4)), // ±20%
-          out: Math.max(0, rawMetrics.network.out * (1 + (Math.random() - 0.5) * 0.4)), // ±20%
+          in: Math.max(0, rawMetrics.network.in + (Math.random() - 0.5) * 50),
+          out: Math.max(0, rawMetrics.network.out + (Math.random() - 0.5) * 30),
         },
-        requests: Math.floor(Math.random() * 1000) + 100,
-        errors: Math.floor(Math.random() * 10),
-        uptime: server.metrics.uptime + this.config.updateInterval! / 1000,
-        customMetrics: server.metrics.customMetrics || {},
       };
 
-      // 🎯 3단계: 서버 상태 업데이트 (전처리된 데이터로)
-      server.metrics = processedMetrics;
+      // 🎯 3단계: 유의미한 변화 감지 (5% 이상 변화 시에만 저장)
+      const cpuChange = Math.abs(processedMetrics.cpu - server.metrics.cpu);
+      const memoryChange = Math.abs(processedMetrics.memory - server.metrics.memory);
 
-      // 시나리오 기반 상태 관리
-      const scenarios = this.config.scenario;
-      if (scenarios) {
-        const statusRandom = Math.random();
-        if (statusRandom < scenarios.warningPercent) {
-          server.status = Math.random() < 0.3 ? 'error' : 'warning';
-        } else {
-          server.status = 'running';
-        }
+      if (cpuChange > 5 || memoryChange > 5) {
+        hasSignificantChange = true;
       }
 
-      // 건강 점수 업데이트
-      server.health.score = Math.max(
-        0,
-        Math.min(
-          100,
-          100 - (processedMetrics.cpu * 0.3 + processedMetrics.memory * 0.3 + processedMetrics.disk * 0.2)
-        )
-      );
+      // 🎯 4단계: 서버 상태 업데이트 (메모리)
+      server.metrics = {
+        ...server.metrics,
+        ...processedMetrics,
+        uptime: server.metrics.uptime + this.config.updateInterval / 1000,
+        requests: server.metrics.requests + Math.floor(Math.random() * 100),
+        errors: server.metrics.errors + (Math.random() > 0.95 ? 1 : 0),
+      };
+
+      // 🎯 5단계: 건강 점수 재계산
+      server.health.score = this.calculateHealthScore(server.metrics);
       server.health.lastCheck = new Date().toISOString();
 
-      this.servers.set(serverId, server);
       updatedServers.push(server);
     }
 
-    // 🎯 4단계: 전처리된 데이터 배치 저장 (성능 개선)
-    await this.batchSaveServersToRedis(updatedServers);
-
-    // 클러스터 메트릭도 업데이트
-    this.updateClusterMetrics();
+    // 🎯 6단계: 유의미한 변화가 있을 때만 저장 (성능 최적화)
+    if (hasSignificantChange && updatedServers.length > 0) {
+      await this.batchSaveServersToRedis(updatedServers);
+      console.log(`📊 유의미한 변화 감지 - Redis 저장 완료: ${updatedServers.length}개 서버`);
+    }
   }
 
   private updateClusterMetrics(): void {
@@ -809,6 +802,18 @@ export class RealServerDataGenerator {
     this.clusters.clear();
     this.applications.clear();
     this.isInitialized = false;
+  }
+
+  /**
+   * 🔍 서버 건강 점수 계산
+   */
+  private calculateHealthScore(metrics: any): number {
+    const cpuScore = Math.max(0, 100 - metrics.cpu);
+    const memoryScore = Math.max(0, 100 - metrics.memory);
+    const diskScore = Math.max(0, 100 - metrics.disk);
+
+    // 가중 평균으로 건강 점수 계산
+    return Math.round((cpuScore * 0.4 + memoryScore * 0.4 + diskScore * 0.2));
   }
 }
 

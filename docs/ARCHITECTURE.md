@@ -1,4 +1,4 @@
-# 🏗️ OpenManager Vibe v5 - 시스템 아키텍처 가이드
+# 🏗️ OpenManager Vibe v5 - 시스템 아키텍처
 
 > **📅 최종 업데이트**: 2025년 1월 6일  
 > **🎯 버전**: v5.0 (Phase 1-3 완료)  
@@ -548,3 +548,110 @@ interface PipelineExtension {
 
 - 2025-01-06: v5.0 Intelligent Pipeline v3.0 + Graceful Degradation 아키텍처 완성
 - Phase 1-3 완료: MCP 최적화, AI 엔진 통합, 새로운 파이프라인 구현
+
+## 📊 **서버 모니터링 데이터 플로우 아키텍처**
+
+### **🎯 v5.44.1 최적화된 데이터 플로우**
+
+```mermaid
+graph TD
+    A[🏗️ RealServerDataGenerator<br/>20개 서버 생성] --> B[📊 실시간 데이터 전처리<br/>상태별 변화 패턴]
+    
+    B --> C{💾 유의미한 변화 감지<br/>CPU/메모리 5% 이상}
+    C -->|Yes| D[📁 Redis 배치 저장<br/>Pipeline 일괄 처리]
+    C -->|No| E[🔄 메모리만 업데이트<br/>저장 스킵]
+    
+    D --> F[🌐 API 엔드포인트<br/>/api/servers/realtime]
+    E --> F
+    
+    F --> G[🔄 데이터 변환<br/>transformRawToServer()]
+    G --> H[📱 ServerDashboard<br/>8개씩 페이지네이션]
+    
+    H --> I{🖱️ 서버 카드 클릭}
+    I --> J[🎯 Enhanced 변환<br/>transformRawToEnhancedServer()]
+    J --> K[📋 EnhancedServerModal<br/>완전한 서버 정보]
+```
+
+### **🔧 데이터 변환기 아키텍처**
+
+#### **1. 기본 서버 변환 (Dashboard용)**
+
+```typescript
+// src/adapters/server-dashboard.transformer.ts
+export function transformRawToServer(raw: RawServerData): Server {
+  return {
+    id: raw.id,
+    name: raw.name || raw.hostname,
+    status: mapStatus(raw.status), // running → online
+    cpu: Math.round(raw.metrics?.cpu || 0),
+    memory: Math.round(raw.metrics?.memory || 0),
+    disk: Math.round(raw.metrics?.disk || 0),
+    uptime: formatUptime(raw.uptime), // 초 → "169d 23h 8m"
+    ip: generateMockIP(raw.id),
+    os: generateMockOS(raw.type),
+    // ... 기타 필드
+  };
+}
+```
+
+#### **2. Enhanced 모달 변환 (Modal용)**
+
+```typescript
+export function transformRawToEnhancedServer(raw: RawServerData): EnhancedServer {
+  return {
+    // 기본 필드 + Enhanced 전용 필드
+    status: mapStatusForModal(raw.status), // running → healthy
+    specs: {
+      cpu_cores: generateCpuCores(raw.type),
+      memory_gb: generateMemoryGB(raw.type),
+      disk_gb: generateDiskGB(raw.type),
+    },
+    services: generateServices(raw.type),
+    // ... Enhanced 전용 필드들
+  };
+}
+```
+
+### **⚡ Redis 최적화 시스템**
+
+#### **유의미한 변화 감지**
+
+```typescript
+// src/services/data-generator/RealServerDataGenerator.ts
+private async generateRealtimeData(): Promise<void> {
+  let hasSignificantChange = false;
+  
+  for (const [serverId, server] of this.servers) {
+    // 변화량 계산
+    const cpuChange = Math.abs(newCpu - server.metrics.cpu);
+    const memoryChange = Math.abs(newMemory - server.metrics.memory);
+    
+    // 5% 이상 변화 시에만 저장 플래그 설정
+    if (cpuChange > 5 || memoryChange > 5) {
+      hasSignificantChange = true;
+    }
+  }
+  
+  // 유의미한 변화가 있을 때만 Redis 저장
+  if (hasSignificantChange) {
+    await this.batchSaveServersToRedis(updatedServers);
+  }
+}
+```
+
+#### **배치 저장 시스템**
+
+```typescript
+private async batchSaveServersToRedis(servers: ServerInstance[]): Promise<void> {
+  const pipeline = this.redis.pipeline();
+  
+  for (const server of servers) {
+    const key = `${this.REDIS_PREFIX}${server.id}`;
+    pipeline.setex(key, 3600, JSON.stringify(server));
+  }
+  
+  await pipeline.exec(); // 일괄 실행
+}
+```
+
+## �� **AI 파이프라인 아키텍처**
