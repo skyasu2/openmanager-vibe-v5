@@ -39,6 +39,19 @@ interface GoogleAIStatus {
   model: string;
   version: string;
   error?: string;
+  quota?: {
+    dailyUsed: number;
+    dailyLimit: number;
+    hourlyUsed: number;
+    hourlyLimit: number;
+    testUsed: number;
+    testLimit: number;
+    circuitBreakerActive: boolean;
+    healthCheckCacheHours: number;
+    lastHealthCheck: string | null;
+  };
+  quotaProtection?: boolean;
+  mockMode?: boolean;
 }
 
 export default function GoogleAIManagementTab() {
@@ -61,9 +74,32 @@ export default function GoogleAIManagementTab() {
       const response = await fetch('/api/ai/google-ai/status');
 
       if (response.ok) {
-        const data = await response.json();
-        setStatus(data);
-        console.log('📊 Google AI 상태:', data);
+        const apiData = await response.json();
+
+        // API 응답 구조에 맞게 상태 매핑
+        const mappedStatus: GoogleAIStatus = {
+          enabled: apiData.data?.overall?.isReady || false,
+          connected: apiData.data?.service?.connectionTest?.success || false,
+          lastCheck: new Date().toISOString(),
+          quotaUsage: {
+            daily: apiData.data?.quota?.dailyUsed || 0,
+            monthly: 0,
+            remaining: Math.max(
+              0,
+              (apiData.data?.quota?.dailyLimit || 100) -
+                (apiData.data?.quota?.dailyUsed || 0)
+            ),
+          },
+          model:
+            apiData.data?.environment?.GOOGLE_AI_MODEL || 'gemini-1.5-flash',
+          version: apiData.data?.system?.version || 'Unknown',
+          quota: apiData.data?.quota,
+          quotaProtection: apiData.data?.overall?.quotaProtectionEnabled,
+          mockMode: apiData.data?.overall?.mockMode,
+        };
+
+        setStatus(mappedStatus);
+        console.log('📊 Google AI 상태:', mappedStatus);
       } else {
         console.error('❌ Google AI 상태 로드 실패:', response.statusText);
         setStatus({
@@ -297,29 +333,117 @@ export default function GoogleAIManagementTab() {
               API 할당량 모니터링
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className='space-y-4'>
+            {/* 기본 할당량 정보 */}
             <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
               <div className='p-4 bg-gray-700/30 rounded-lg'>
-                <div className='text-sm text-gray-400 mb-1'>오늘 사용량</div>
+                <div className='text-sm text-gray-400 mb-1'>일일 사용량</div>
                 <div className='text-xl font-bold text-blue-400'>
-                  {status.quotaUsage.daily.toLocaleString()}
+                  {status.quota?.dailyUsed ||
+                    status.quotaUsage.daily.toLocaleString()}{' '}
+                  / {status.quota?.dailyLimit || 100}
+                </div>
+                <div className='text-xs text-gray-500 mt-1'>
+                  {Math.round(
+                    ((status.quota?.dailyUsed || status.quotaUsage.daily) /
+                      (status.quota?.dailyLimit || 100)) *
+                      100
+                  )}
+                  % 사용
                 </div>
               </div>
 
               <div className='p-4 bg-gray-700/30 rounded-lg'>
-                <div className='text-sm text-gray-400 mb-1'>월 사용량</div>
+                <div className='text-sm text-gray-400 mb-1'>시간당 사용량</div>
                 <div className='text-xl font-bold text-purple-400'>
-                  {status.quotaUsage.monthly.toLocaleString()}
+                  {status.quota?.hourlyUsed || 0} /{' '}
+                  {status.quota?.hourlyLimit || 20}
+                </div>
+                <div className='text-xs text-gray-500 mt-1'>
+                  {Math.round(
+                    ((status.quota?.hourlyUsed || 0) /
+                      (status.quota?.hourlyLimit || 20)) *
+                      100
+                  )}
+                  % 사용
                 </div>
               </div>
 
               <div className='p-4 bg-gray-700/30 rounded-lg'>
-                <div className='text-sm text-gray-400 mb-1'>남은 할당량</div>
-                <div className='text-xl font-bold text-green-400'>
-                  {status.quotaUsage.remaining.toLocaleString()}
+                <div className='text-sm text-gray-400 mb-1'>테스트 사용량</div>
+                <div className='text-xl font-bold text-yellow-400'>
+                  {status.quota?.testUsed || 0} / {status.quota?.testLimit || 5}
+                </div>
+                <div className='text-xs text-gray-500 mt-1'>
+                  오늘{' '}
+                  {(status.quota?.testLimit || 5) -
+                    (status.quota?.testUsed || 0)}
+                  회 남음
                 </div>
               </div>
             </div>
+
+            {/* 할당량 보호 상태 */}
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div className='p-4 bg-gray-700/30 rounded-lg'>
+                <div className='flex items-center gap-2 mb-2'>
+                  <div
+                    className={`w-3 h-3 rounded-full ${status.quotaProtection ? 'bg-green-400' : 'bg-red-400'}`}
+                  />
+                  <span className='font-medium text-white'>할당량 보호</span>
+                </div>
+                <div className='text-sm text-gray-300'>
+                  {status.quotaProtection ? '활성화됨' : '비활성화됨'}
+                </div>
+                {status.mockMode && (
+                  <Badge
+                    variant='outline'
+                    className='mt-2 text-xs text-yellow-400 border-yellow-400'
+                  >
+                    Mock 모드
+                  </Badge>
+                )}
+              </div>
+
+              <div className='p-4 bg-gray-700/30 rounded-lg'>
+                <div className='flex items-center gap-2 mb-2'>
+                  <div
+                    className={`w-3 h-3 rounded-full ${status.quota?.circuitBreakerActive ? 'bg-red-400' : 'bg-green-400'}`}
+                  />
+                  <span className='font-medium text-white'>
+                    Circuit Breaker
+                  </span>
+                </div>
+                <div className='text-sm text-gray-300'>
+                  {status.quota?.circuitBreakerActive ? '차단됨' : '정상'}
+                </div>
+                {status.quota?.circuitBreakerActive && (
+                  <div className='text-xs text-red-400 mt-1'>
+                    연속 실패로 인한 일시 차단
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 헬스체크 캐시 정보 */}
+            {status.quota?.lastHealthCheck && (
+              <div className='p-4 bg-gray-700/30 rounded-lg'>
+                <div className='flex items-center gap-2 mb-2'>
+                  <CheckCircle className='w-4 h-4 text-green-400' />
+                  <span className='font-medium text-white'>헬스체크 캐시</span>
+                </div>
+                <div className='text-sm text-gray-300'>
+                  마지막 헬스체크:{' '}
+                  {new Date(status.quota.lastHealthCheck).toLocaleString(
+                    'ko-KR'
+                  )}
+                </div>
+                <div className='text-xs text-gray-500 mt-1'>
+                  {status.quota.healthCheckCacheHours}시간 캐시 적용 (과도한 API
+                  호출 방지)
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
