@@ -35,9 +35,9 @@ export interface ServerGenerationConfig {
 }
 
 /**
- * 🎯 기본 서버 개수 (20개로 변경)
+ * 🎯 기본 서버 개수 (15개로 변경 - 로컬/Vercel 통일)
  */
-export const DEFAULT_SERVER_COUNT = 20;
+export const DEFAULT_SERVER_COUNT = 15;
 
 /**
  * 🧮 서버 개수에 따른 자동 설정 계산
@@ -45,10 +45,10 @@ export const DEFAULT_SERVER_COUNT = 20;
 export function calculateServerConfig(
   serverCount: number = DEFAULT_SERVER_COUNT
 ): ServerGenerationConfig {
-  // 서버 개수에 따른 비율 계산
+  // 서버 개수에 따른 비율 계산 (더 현실적인 비율)
   const criticalCount = Math.max(2, Math.floor(serverCount * 0.15)); // 15% (최소 2개)
-  const warningPercent = 0.25; // 25%
-  const tolerancePercent = 0.05; // 5%
+  const warningPercent = 0.30; // 30% (더 현실적)
+  const tolerancePercent = 0.05; // 5% (오차범위)
 
   // 페이지네이션 설정 (서버 개수에 따라 조정)
   const defaultPageSize =
@@ -59,8 +59,8 @@ export function calculateServerConfig(
   const batchSize = Math.min(100, Math.max(10, Math.ceil(serverCount / 2)));
   const bufferSize = Math.min(1000, serverCount * 10);
 
-  // 캐시 설정 (서버 개수가 많을수록 더 자주 업데이트)
-  const updateInterval = serverCount > 15 ? 15000 : 20000; // 15초 또는 20초
+  // 캐시 설정 (30초로 통일)
+  const updateInterval = 30000; // 30초 고정
   const expireTime = 60000; // 1분 고정
 
   return {
@@ -92,7 +92,7 @@ export const DEFAULT_SERVER_CONFIG =
   calculateServerConfig(DEFAULT_SERVER_COUNT);
 
 /**
- * 🌍 환경별 서버 설정
+ * 🌍 환경별 서버 설정 (로컬/Vercel 통일)
  */
 export function getEnvironmentServerConfig(): ServerGenerationConfig {
   // 환경 변수에서 서버 개수 읽기
@@ -103,32 +103,17 @@ export function getEnvironmentServerConfig(): ServerGenerationConfig {
     ? parseInt(process.env.MAX_SERVERS)
     : undefined;
 
-  // Vercel 환경 감지
-  const isVercel = !!process.env.VERCEL;
-  const vercelPlan = process.env.VERCEL_ENV;
-
+  // 기본값: 15개 (로컬/Vercel 통일)
   let serverCount = DEFAULT_SERVER_COUNT;
 
-  // 환경별 서버 개수 조정
+  // 환경변수로 오버라이드 가능
   if (envServerCount) {
     serverCount = envServerCount;
   } else if (envMaxServers) {
     serverCount = envMaxServers;
-  } else if (isVercel) {
-    // Vercel 환경에서는 리소스 제한에 따라 조정
-    switch (vercelPlan) {
-      case 'production':
-        serverCount = 15; // 프로덕션: 15개
-        break;
-      case 'preview':
-        serverCount = 10; // 프리뷰: 10개
-        break;
-      default:
-        serverCount = 8; // 개발: 8개
-        break;
-    }
   }
 
+  // 모든 환경에서 동일한 설정 사용
   return calculateServerConfig(serverCount);
 }
 

@@ -42,5 +42,12 @@ SUPABASE_JWT_SECRET=qNzA4/WgbksJU3xxkQJcfbCRkXhgBR7TVmI4y2XKRy59BwtRk6iuUSdkRNNQ
 # === 선택적 설정 ===
 # SLACK_WEBHOOK_URL=your-slack-webhook-url-if-needed
 
+# === 서버 데이터 생성기 최적화 (로컬/Vercel 통일) ===
+DATA_GENERATOR_ENABLED=true
+MAX_SERVERS=15
+UPDATE_INTERVAL=30000
+SERVER_MONITORING_ENABLED=true
+AUTO_REPORTING_ENABLED=true
+
 # 🔥 중요: Production, Preview, Development 환경 모두 체크하세요!
 # 🔄 설정 후 자동 재배포가 트리거됩니다. 

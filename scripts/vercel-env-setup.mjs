@@ -35,16 +35,16 @@ const requiredEnvVars = {
     'KV_REST_API_URL': process.env.KV_REST_API_URL || 'https://charming-condor-46598.upstash.io',
     'KV_REST_API_TOKEN': process.env.KV_REST_API_TOKEN || '',
 
-    // �� AI 엔진 설정 (자연어 질의 핵심)
+    // 🤖 AI 엔진 설정 (자연어 질의 핵심)
     'AI_ASSISTANT_ENABLED': 'true',
     'AI_ENGINE_TIMEOUT': '8000',
     'AI_CACHE_ENABLED': 'true',
     'AI_CACHE_TTL': '300000',
 
-    // 🚀 Vercel 최적화 설정
+    // 🚀 Vercel 최적화 설정 (로컬/Vercel 통일)
     'DATA_GENERATOR_ENABLED': 'true',
-    'MAX_SERVERS': '10',
-    'UPDATE_INTERVAL': '60000',
+    'MAX_SERVERS': '15',
+    'UPDATE_INTERVAL': '30000',
     'SERVER_MONITORING_ENABLED': 'true',
     'AUTO_REPORTING_ENABLED': 'true',
 
@@ -188,7 +188,7 @@ function triggerDeployment() {
  * 테스트 페이지 생성
  */
 function createTestPage() {
-    console.log('\n�� 테스트 페이지 확인 중...');
+    console.log('\n🔄 테스트 페이지 확인 중...');
 
     const testPagePath = path.join('public', 'test-vercel-ai-natural-query.html');
 
@@ -207,7 +207,7 @@ function createTestPage() {
  * 메인 실행 함수
  */
 async function main() {
-    console.log('�� 목표: 로컬에서 성공한 AI 자연어 질의 기능을 Vercel에서도 동작하게 하기\n');
+    console.log('🎯 목표: 로컬에서 성공한 AI 자연어 질의 기능을 Vercel에서도 동작하게 하기\n');
 
     // 0. 로컬 환경변수 로드
     loadLocalEnv();

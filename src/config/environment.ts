@@ -82,8 +82,8 @@ export function getEnvironmentConfig(): EnvironmentConfig {
     // 추가된 속성들 (리팩토링으로 필요한 속성)
     name: getEnvVar('NAME'),
     tier: getEnvVar('TIER'),
-    maxServers: isLocal ? 50 : 20,
-    interval: 20000,
+    maxServers: 15, // 로컬/Vercel 통일
+    interval: 30000, // 30초로 통일
 
     // Database & Cache
     database: {
@@ -120,10 +120,10 @@ export function getEnvironmentConfig(): EnvironmentConfig {
       enableWebSocket: !isVercel, // Vercel에서는 WebSocket 제한
     },
 
-    // 업데이트 간격 (20초로 통일)
-    updateInterval: 20000,
-    refreshInterval: 20000,
-    pollingInterval: 20000,
+    // 업데이트 간격 (30초로 통일)
+    updateInterval: 30000,
+    refreshInterval: 30000,
+    pollingInterval: 30000,
 
     // 서버 제한 (Edge Request 절감)
     maxClusters: 10,
@@ -145,7 +145,7 @@ export function getVercelOptimizedConfig() {
   if (config.IS_VERCEL) {
     return {
       ...config,
-      maxServers: 8, // Vercel에서 서버 수 제한
+      maxServers: 15, // 로컬과 동일하게 15개로 통일
       performance: {
         ...config.performance,
         maxMemory: 1024, // Vercel Free Plan 제한
@@ -160,7 +160,7 @@ export function getVercelOptimizedConfig() {
 
   return {
     ...config,
-    maxServers: 8, // 🎯 모든 환경에서 8개로 통일
+    maxServers: 15, // 🎯 모든 환경에서 15개로 통일
   };
 }
 
@@ -240,69 +240,35 @@ export function getCurrentEnvironment() {
 import { ACTIVE_SERVER_CONFIG, DEFAULT_SERVER_COUNT } from './serverConfig';
 
 /**
- * 데이터 생성기 설정 반환
+ * 데이터 생성기 설정 반환 (로컬/Vercel 통일)
  */
 export function getDataGeneratorConfig() {
   const config = getEnvironmentConfig();
   const centralConfig = ACTIVE_SERVER_CONFIG;
 
-  // 🚀 환경별 서버 수 조절: 중앙 설정 기반 오토스케일링 지원
-  let maxServers = centralConfig.maxServers; // 중앙 설정에서 서버 개수 가져오기
-  let minServers = Math.max(5, Math.floor(maxServers * 0.4)); // 최소값: 최대값의 40% (최소 5개)
-  let serverArchitecture:
-    | 'single'
-    | 'master-slave'
-    | 'load-balanced'
-    | 'microservices' = 'master-slave';
+  // 🚀 모든 환경에서 동일한 설정 사용
+  const maxServers = centralConfig.maxServers; // 15개로 통일
+  const minServers = Math.max(5, Math.floor(maxServers * 0.4)); // 최소값: 최대값의 40% (최소 5개)
+  const serverArchitecture: 'single' | 'master-slave' | 'load-balanced' | 'microservices' = 'load-balanced';
 
-  if (config.IS_VERCEL) {
-    // 🔍 Vercel 환경에서는 리소스 제한에 따라 조정
-    const isVercelPro =
-      process.env.VERCEL_ENV === 'production' &&
-      (process.env.VERCEL_TIER === 'pro' ||
-        process.env.VERCEL_PLAN === 'pro' ||
-        process.env.NEXT_PUBLIC_VERCEL_PLAN === 'pro' ||
-        process.env.NODE_ENV === 'production');
-
-    if (isVercelPro) {
-      maxServers = Math.min(maxServers, 25); // ✅ Vercel Pro: 최대 25개 서버로 제한
-      minServers = Math.max(5, Math.floor(maxServers * 0.3)); // 최소 30%
-      serverArchitecture = 'microservices';
-      console.log(
-        `🎯 Vercel Pro 환경: ${minServers}-${maxServers}개 서버 (중앙설정: ${centralConfig.maxServers}개)`
-      );
-    } else {
-      maxServers = Math.min(maxServers, 15); // Vercel Free: 최대 15개 서버로 제한
-      minServers = Math.max(5, Math.floor(maxServers * 0.4)); // 최소 40%
-      serverArchitecture = 'load-balanced';
-      console.log(
-        `🎯 Vercel Free 환경: ${minServers}-${maxServers}개 서버 (중앙설정: ${centralConfig.maxServers}개)`
-      );
-    }
-  } else {
-    // 로컬 환경에서는 중앙 설정 그대로 사용
-    maxServers = centralConfig.maxServers;
-    minServers = Math.max(5, Math.floor(maxServers * 0.25)); // 최소 25%
-    serverArchitecture = 'microservices';
-    console.log(
-      `🎯 로컬 개발 환경: ${minServers}-${maxServers}개 서버 (중앙설정 적용)`
-    );
-  }
+  console.log(
+    `🎯 통합 환경 설정: ${minServers}-${maxServers}개 서버 (중앙설정: ${centralConfig.maxServers}개, 간격: ${centralConfig.cache.updateInterval}ms)`
+  );
 
   return {
     enabled: config.features.enableRealtime,
     maxServers,
     minServers,
     defaultArchitecture: serverArchitecture,
-    updateInterval: centralConfig.cache.updateInterval, // 중앙 설정에서 업데이트 간격
-    refreshInterval: centralConfig.cache.updateInterval, // 중앙 설정에서 새로고침 간격
+    updateInterval: centralConfig.cache.updateInterval, // 중앙 설정에서 업데이트 간격 (30초)
+    refreshInterval: centralConfig.cache.updateInterval, // 중앙 설정에서 새로고침 간격 (30초)
     memoryLimit: config.performance.maxMemory,
     mode: config.IS_VERCEL ? 'production' : 'development',
     features: {
       networkTopology: config.features.enableRealtime,
       demoScenarios: config.features.enableRealtime,
       baselineOptimization: config.features.enableRealtime,
-      maxNodes: Math.min(maxServers + 5, config.IS_VERCEL ? 30 : 55), // 서버 수 + 5개 (네트워크 노드)
+      maxNodes: Math.min(maxServers + 5, 20), // 서버 수 + 5개 (네트워크 노드), 최대 20개
       autoRotate: config.features.enableRealtime,
     },
   };
@@ -354,7 +320,7 @@ export function getPluginConfig(pluginName: string) {
     autoRotate: config.features.enableRealtime,
     maxQueries: config.IS_VERCEL ? 100 : 500,
     cacheEnabled: config.database.redis.enabled,
-    updateInterval: 20000, // 🔄 모든 환경에서 20초로 통일 (Edge 비용 최적화)
+    updateInterval: 30000, // 🔄 모든 환경에서 30초로 통일
     maxConnections: config.IS_VERCEL ? 5 : 20,
   };
 
@@ -368,7 +334,7 @@ export function getPluginConfig(pluginName: string) {
     case 'realtime':
       return {
         ...baseConfig,
-        updateInterval: 20000, // 🔄 모든 환경에서 20초로 통일 (Edge 비용 최적화)
+        updateInterval: 30000, // 🔄 모든 환경에서 30초로 통일
         maxConnections: config.IS_VERCEL ? 10 : 50,
       };
     default:
