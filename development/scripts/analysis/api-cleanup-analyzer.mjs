@@ -295,8 +295,5 @@ export { cleanup };
     }
 }
 
-// 실행
-const analyzer = new APICleanupAnalyzer();
-analyzer.analyze().catch(console.error);
 
-export default APICleanupAnalyzer; 
+export default APICleanupAnalyzer;
