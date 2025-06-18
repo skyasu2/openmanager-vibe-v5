@@ -34,8 +34,8 @@ export default function DevelopmentProcessPage() {
             id: 'foundation',
             title: '🏗️ 기반 구조 설계',
             description: 'OpenManager 서버 모니터링 시스템 홈페이지 기획 및 Cursor AI 개발 환경 구축',
-            details: 'Next.js 15 + TypeScript + Tailwind CSS 스택으로 현대적 웹 애플리케이션 구조 설계',
-            tools: ['Cursor AI', 'Next.js 15', 'TypeScript', 'Tailwind CSS'],
+            details: 'Next.js 15.3.2 + React 19.1.0 + TypeScript 스택으로 현대적 웹 애플리케이션 구조 설계',
+            tools: ['Cursor AI', 'Next.js 15.3.2', 'TypeScript', 'Tailwind CSS'],
             color: 'from-blue-400 to-blue-600',
             status: '완료',
         },
@@ -52,8 +52,8 @@ export default function DevelopmentProcessPage() {
             id: 'frontend',
             title: '🎨 프론트엔드 구현',
             description: '서버 모니터링 대시보드 UI/UX 개발',
-            details: '실시간 서버 상태 표시, 차트 시각화, 반응형 디자인 구현',
-            tools: ['React 19', 'Framer Motion', 'Chart.js', 'Responsive Design'],
+            details: '실시간 서버 상태 표시, 차트 시각화, 반응형 디자인 구현 (200,081라인)',
+            tools: ['React 19.1.0', 'Framer Motion', 'Chart.js', 'Responsive Design'],
             color: 'from-purple-400 to-purple-600',
             status: '완료',
         },
@@ -61,7 +61,7 @@ export default function DevelopmentProcessPage() {
             id: 'data-generator',
             title: '🔧 서버데이터 생성기',
             description: '실제 서버를 대체하는 가상 서버 데이터 생성 시스템 개발',
-            details: '30개 가상 서버의 CPU, 메모리, 디스크, 네트워크 메트릭을 실시간으로 시뮬레이션',
+            details: '30개 가상 서버의 CPU, 메모리, 디스크, 네트워크 메트릭을 실시간으로 시뮬레이션 (실제 서버 데이터로 취급)',
             tools: ['Node.js', 'Real-time Simulation', 'Data Modeling'],
             color: 'from-orange-400 to-orange-600',
             status: '완료',
@@ -69,16 +69,16 @@ export default function DevelopmentProcessPage() {
         {
             id: 'monitoring',
             title: '📊 모니터링 시스템',
-            description: '서버 상태 모니터링 및 알림 시스템 구현',
-            details: '임계값 기반 알림, 실시간 차트, 장애 감지 및 자동 보고서 생성',
-            tools: ['WebSocket', 'Real-time Charts', 'Alert System'],
+            description: '서버 상태 모니터링 및 브라우저 알림 시스템 구현',
+            details: '임계값 기반 브라우저 알림, 실시간 차트, 장애 감지 및 자동 보고서 생성 (Slack 알림 제거)',
+            tools: ['WebSocket', 'Real-time Charts', 'Browser Notifications'],
             color: 'from-red-400 to-red-600',
             status: '완료',
         },
         {
             id: 'ai-assistant',
             title: '🤖 AI 어시스턴트 모듈',
-            description: '기존 모니터링 시스템에 AI 기능을 모듈로 추가',
+            description: '기존 모니터링 시스템에 AI 기능을 모듈로 추가 (AI Assistant → AI Agent 리브랜딩 예정)',
             details: 'AI 사이드바를 통한 자연어 서버 질의 및 분석 기능 구현',
             tools: ['AI Sidebar', 'Natural Language Processing', 'Context Management'],
             color: 'from-indigo-400 to-indigo-600',
@@ -94,20 +94,20 @@ export default function DevelopmentProcessPage() {
             status: '완료',
         },
         {
-            id: 'ai-engine',
-            title: '🧠 AI 엔진 개발',
-            description: '룰 기반 패턴 대응 AI 엔진 및 자연어 처리 시스템',
-            details: '외부 LLM 없이 서버 모니터링 도메인 특화 컨텍스트로 질의응답 및 자동 장애보고서 작성',
-            tools: ['Rule-based AI', 'Pattern Matching', 'Domain Context', 'Report Generation'],
+            id: 'lightweight-ai',
+            title: '🧠 경량 AI 엔진 개발',
+            description: 'TensorFlow 완전 제거 후 경량 ML 엔진 기반 룰 패턴 대응 AI 시스템',
+            details: '외부 LLM 없이 서버 모니터링 도메인 특화 컨텍스트로 질의응답 (simple-statistics, ml-regression 활용)',
+            tools: ['LocalRAG Engine', 'Pattern Matching', 'Domain Context', 'simple-statistics'],
             color: 'from-pink-400 to-pink-600',
             status: '완료',
         },
         {
-            id: 'optimization',
-            title: '🔧 고도화 및 최적화',
-            description: 'Cursor AI와 개발한 AI 엔진 간의 API 통신을 통한 지속적 개선',
-            details: 'AI 엔진의 컨텍스트 구성 및 패턴 매칭 알고리즘을 Cursor AI와 협업으로 고도화',
-            tools: ['API Integration', 'Cursor AI Collaboration', 'Continuous Improvement'],
+            id: 'ai-collaboration',
+            title: '🔧 AI 협업 고도화',
+            description: 'Cursor AI Claude Sonnet 3.7과 개발한 AI 엔진 간의 API 통신을 통한 지속적 개선',
+            details: 'AI 엔진의 컨텍스트 구성 및 패턴 매칭 알고리즘을 Cursor AI와 협업으로 고도화 (20일간 개발)',
+            tools: ['Claude Sonnet 3.7', 'Cursor AI Collaboration', 'API Integration'],
             color: 'from-emerald-400 to-emerald-600',
             status: '완료',
         },
@@ -117,57 +117,57 @@ export default function DevelopmentProcessPage() {
         {
             title: 'Cursor AI 바이브 코딩',
             before: '전통적인 IDE 개발',
-            after: 'AI 협업 개발 방법론',
-            improvement: '개발 속도 6배 향상',
+            after: 'Claude Sonnet 3.7 협업',
+            improvement: '개발 속도 6배 향상 (20일)',
             icon: <Code2 className='w-6 h-6' />,
         },
         {
-            title: 'CI/CD 자동화',
-            before: '수동 배포 프로세스',
-            after: 'Git → Vercel 자동 배포',
-            improvement: '배포 시간 95% 단축',
-            icon: <GitBranch className='w-6 h-6' />,
+            title: 'TensorFlow 완전 제거',
+            before: 'TensorFlow.js 의존성',
+            after: 'simple-statistics 경량화',
+            improvement: '번들 크기 30% 감소',
+            icon: <Zap className='w-6 h-6' />,
         },
         {
             title: '서버데이터 생성기',
             before: '실제 서버 의존성',
-            after: '30개 가상 서버 시뮬레이션',
+            after: '30개 가상 서버 (실제 취급)',
             improvement: '개발/테스트 환경 독립화',
             icon: <Server className='w-6 h-6' />,
         },
         {
-            title: '모듈형 AI 아키텍처',
+            title: 'AI Assistant → Agent',
             before: '단일 통합 시스템',
             after: 'AI 사이드바 + 관리자 페이지',
-            improvement: '기능 분리 및 확장성',
+            improvement: '모듈형 아키텍처 분리',
             icon: <Bot className='w-6 h-6' />,
         },
         {
             title: '도메인 특화 AI',
             before: '범용 AI 솔루션',
-            after: '서버 모니터링 전용 AI',
-            improvement: '정확도 및 응답 품질',
+            after: '서버 모니터링 전용 컨텍스트',
+            improvement: 'LocalRAG 독립 운영',
             icon: <Brain className='w-6 h-6' />,
         },
         {
-            title: '룰 기반 AI 엔진',
-            before: '외부 LLM 의존',
-            after: '독립적인 패턴 매칭',
-            improvement: '비용 절감 및 속도',
-            icon: <Zap className='w-6 h-6' />,
+            title: 'Slack → 브라우저 알림',
+            before: 'Slack 웹훅 의존',
+            after: '브라우저 네이티브 알림',
+            improvement: '외부 의존성 제거',
+            icon: <Shield className='w-6 h-6' />,
         },
         {
-            title: '서버리스 아키텍처',
-            before: '전통적인 서버 운영',
-            after: 'Vercel 서버리스 배포',
-            improvement: '운영 비용 최적화',
-            icon: <Globe className='w-6 h-6' />,
+            title: 'Upstash Redis 연동',
+            before: '메모리 기반 캐시',
+            after: 'Redis 클라우드 연동',
+            improvement: '데이터 영속성 확보',
+            icon: <Database className='w-6 h-6' />,
         },
         {
-            title: '실시간 모니터링',
-            before: '정적 상태 확인',
-            after: '실시간 차트 및 알림',
-            improvement: '장애 대응 시간 단축',
+            title: '프로젝트 규모',
+            before: '기본 구조',
+            after: '603파일, 200,081라인',
+            improvement: '완전한 시스템 구축',
             icon: <BarChart3 className='w-6 h-6' />,
         },
     ];
@@ -234,7 +234,7 @@ export default function DevelopmentProcessPage() {
 
                         {/* 실제 성과 배지 */}
                         <div className='flex flex-wrap justify-center gap-4 mb-8'>
-                            {['Cursor AI 바이브 코딩', 'CI/CD 자동화', '30개 가상 서버', 'AI 사이드바', '룰 기반 AI 엔진', '서버리스 배포', '실시간 모니터링', '도메인 특화 AI'].map(achievement => (
+                            {['Claude Sonnet 3.7', 'TensorFlow 제거', '경량 AI 엔진', 'LocalRAG 독립', 'Upstash Redis', '브라우저 알림', '603파일 구축', '20일 개발'].map(achievement => (
                                 <span
                                     key={achievement}
                                     className='px-4 py-2 bg-blue-500/20 text-blue-300 rounded-full text-sm font-medium'
@@ -254,8 +254,8 @@ export default function DevelopmentProcessPage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
                                 className={`relative p-6 rounded-2xl bg-gradient-to-br ${isActive && currentStep >= index
-                                        ? `${step.color} shadow-lg`
-                                        : 'from-gray-800/50 to-gray-900/50'
+                                    ? `${step.color} shadow-lg`
+                                    : 'from-gray-800/50 to-gray-900/50'
                                     } border border-gray-700/50 backdrop-blur-sm`}
                             >
                                 <div className='flex items-center justify-between mb-4'>
@@ -365,23 +365,23 @@ export default function DevelopmentProcessPage() {
                         <div className='grid md:grid-cols-3 gap-8'>
                             <div className='p-6 rounded-2xl bg-gradient-to-br from-purple-800/30 to-purple-900/30 border border-purple-700/50'>
                                 <Monitor className='w-12 h-12 text-purple-400 mx-auto mb-4' />
-                                <h3 className='text-xl font-bold text-white mb-3'>모듈형 아키텍처</h3>
+                                <h3 className='text-xl font-bold text-white mb-3'>모듈형 분리 설계</h3>
                                 <p className='text-gray-300 text-sm'>
-                                    기존 모니터링 시스템에 AI 기능을 모듈로 추가하여 기능 분리와 확장성 확보
+                                    기존 모니터링 시스템에 AI 어시스턴트를 독립 모듈로 추가. 향후 AI 에이전트로 리브랜딩 예정
                                 </p>
                             </div>
                             <div className='p-6 rounded-2xl bg-gradient-to-br from-blue-800/30 to-blue-900/30 border border-blue-700/50'>
                                 <Brain className='w-12 h-12 text-blue-400 mx-auto mb-4' />
-                                <h3 className='text-xl font-bold text-white mb-3'>도메인 특화 AI</h3>
+                                <h3 className='text-xl font-bold text-white mb-3'>경량 AI 모델</h3>
                                 <p className='text-gray-300 text-sm'>
-                                    서버 모니터링 전용 컨텍스트로 외부 LLM 없이 정확한 질의응답 및 보고서 생성
+                                    TensorFlow 제거 후 simple-statistics 기반 경량화. 외부 LLM 없이 룰 기반 패턴 매칭으로 서버 모니터링 특화
                                 </p>
                             </div>
                             <div className='p-6 rounded-2xl bg-gradient-to-br from-green-800/30 to-green-900/30 border border-green-700/50'>
                                 <Zap className='w-12 h-12 text-green-400 mx-auto mb-4' />
-                                <h3 className='text-xl font-bold text-white mb-3'>지속적 고도화</h3>
+                                <h3 className='text-xl font-bold text-white mb-3'>AI로 만드는 AI</h3>
                                 <p className='text-gray-300 text-sm'>
-                                    Cursor AI와 개발한 AI 엔진 간 API 통신으로 컨텍스트와 패턴 매칭 지속 개선
+                                    Cursor AI Claude Sonnet 3.7이 직접 개발한 AI 엔진과 API 통신하며 컨텍스트 구성 및 패턴 매칭 고도화
                                 </p>
                             </div>
                         </div>
