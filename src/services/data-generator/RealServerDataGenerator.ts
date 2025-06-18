@@ -25,10 +25,10 @@ export interface GeneratorConfig {
   updateInterval?: number;
   enableRealtime?: boolean;
   serverArchitecture?:
-    | 'single'
-    | 'master-slave'
-    | 'load-balanced'
-    | 'microservices';
+  | 'single'
+  | 'master-slave'
+  | 'load-balanced'
+  | 'microservices';
   enableRedis?: boolean;
   /**
    * ⚙️ 시나리오 기반 상태 분포 설정
@@ -228,6 +228,33 @@ export class RealServerDataGenerator {
       await this.redis.sadd(`${this.REDIS_CLUSTERS_PREFIX}list`, cluster.id);
     } catch (error) {
       console.warn(`⚠️ Redis 클러스터 저장 실패 (${cluster.id}):`, error);
+    }
+  }
+
+  /**
+   * 🔴 Redis에 서버 데이터 배치 저장 (성능 개선)
+   */
+  private async batchSaveServersToRedis(servers: ServerInstance[]): Promise<void> {
+    if (!this.redis || servers.length === 0) return;
+
+    try {
+      const pipeline = this.redis.pipeline();
+
+      for (const server of servers) {
+        const key = `${this.REDIS_PREFIX}${server.id}`;
+        const data = JSON.stringify({
+          ...server,
+          lastUpdated: new Date().toISOString(),
+        });
+
+        pipeline.setex(key, 3600, data); // 1시간 TTL
+        pipeline.sadd(`${this.REDIS_PREFIX}list`, server.id);
+      }
+
+      await pipeline.exec();
+      console.log(`📊 Redis 배치 저장 완료: ${servers.length}개 서버`);
+    } catch (error) {
+      console.warn(`⚠️ Redis 배치 저장 실패:`, error);
     }
   }
 
@@ -495,20 +522,26 @@ export class RealServerDataGenerator {
 
   public startAutoGeneration(): void {
     if (this.isGenerating) {
-      console.log(
-        '⚠️ 실시간 데이터 생성이 이미 실행 중입니다 (중복 실행 방지)'
-      );
+      console.log('🔄 실시간 데이터 생성이 이미 실행 중입니다.');
       return;
     }
 
     this.isGenerating = true;
-    this.intervalId = setInterval(() => {
-      this.generateRealtimeData();
+
+    // 즉시 한 번 실행
+    this.generateRealtimeData().catch(error => {
+      console.error('❌ 실시간 데이터 생성 오류:', error);
+    });
+
+    this.intervalId = setInterval(async () => {
+      try {
+        await this.generateRealtimeData();
+      } catch (error) {
+        console.error('❌ 실시간 데이터 생성 오류:', error);
+      }
     }, this.config.updateInterval);
 
-    console.log(
-      `🔄 실시간 데이터 생성 시작 (${this.config.updateInterval}ms 주기)`
-    );
+    console.log(`🚀 실시간 데이터 생성 시작됨 (${this.config.updateInterval}ms 간격)`);
   }
 
   public stopAutoGeneration(): void {
@@ -520,81 +553,68 @@ export class RealServerDataGenerator {
     console.log('⏹️ 실시간 데이터 생성 중지');
   }
 
-  private generateRealtimeData(): void {
-    this.servers.forEach(server => {
-      // ✅ 현실적인 변화량으로 제한 (기존 값 기준 ±5% 변화)
-      const cpuChange = (Math.random() - 0.5) * 10; // ±5% 변화
-      const memoryChange = (Math.random() - 0.5) * 8; // ±4% 변화
-      const diskChange = (Math.random() - 0.5) * 2; // ±1% 변화 (디스크는 천천히 변함)
+  private async generateRealtimeData(): Promise<void> {
+    const updatedServers: ServerInstance[] = [];
 
-      server.metrics.cpu = Math.max(
-        0,
-        Math.min(100, server.metrics.cpu + cpuChange)
-      );
-      server.metrics.memory = Math.max(
-        0,
-        Math.min(100, server.metrics.memory + memoryChange)
-      );
-      server.metrics.disk = Math.max(
-        0,
-        Math.min(100, server.metrics.disk + diskChange)
-      );
+    for (const [serverId, server] of this.servers) {
+      // 🎯 1단계: 원본 메트릭 수집
+      const rawMetrics = {
+        cpu: server.metrics.cpu,
+        memory: server.metrics.memory,
+        disk: server.metrics.disk,
+        network: { ...server.metrics.network },
+        timestamp: Date.now()
+      };
 
-      // ✅ 네트워크 트래픽: 기존 값 기준 ±20% 변화 (더 현실적)
-      const networkInChange =
-        server.metrics.network.in * (Math.random() - 0.5) * 0.4; // ±20%
-      const networkOutChange =
-        server.metrics.network.out * (Math.random() - 0.5) * 0.4; // ±20%
+      // 🎯 2단계: 데이터 전처리 (저장 전 수행)
+      const variation = Math.sin(Date.now() / 60000) * 0.3 + 0.7; // 시간에 따른 변화 패턴
+      const processedMetrics = {
+        cpu: Math.max(0, Math.min(100, rawMetrics.cpu + (Math.random() - 0.5) * 20)),
+        memory: Math.max(0, Math.min(100, rawMetrics.memory + (Math.random() - 0.5) * 15)),
+        disk: Math.max(0, Math.min(100, rawMetrics.disk + (Math.random() - 0.5) * 10)),
+        network: {
+          in: Math.max(0, rawMetrics.network.in * (1 + (Math.random() - 0.5) * 0.4)), // ±20%
+          out: Math.max(0, rawMetrics.network.out * (1 + (Math.random() - 0.5) * 0.4)), // ±20%
+        },
+        requests: Math.floor(Math.random() * 1000) + 100,
+        errors: Math.floor(Math.random() * 10),
+        uptime: server.metrics.uptime + this.config.updateInterval! / 1000,
+        customMetrics: server.metrics.customMetrics || {},
+      };
 
-      server.metrics.network.in = Math.max(
-        0,
-        server.metrics.network.in + networkInChange
-      );
-      server.metrics.network.out = Math.max(
-        0,
-        server.metrics.network.out + networkOutChange
-      );
+      // 🎯 3단계: 서버 상태 업데이트 (전처리된 데이터로)
+      server.metrics = processedMetrics;
 
-      // ✅ 요청 수: 기존 값 기준 ±15% 변화
-      const requestsChange =
-        server.metrics.requests * (Math.random() - 0.5) * 0.3; // ±15%
-      server.metrics.requests = Math.max(
-        0,
-        server.metrics.requests + requestsChange
-      );
+      // 시나리오 기반 상태 관리
+      const scenarios = this.config.scenario;
+      if (scenarios) {
+        const statusRandom = Math.random();
+        if (statusRandom < scenarios.warningPercent) {
+          server.status = Math.random() < 0.3 ? 'error' : 'warning';
+        } else {
+          server.status = 'running';
+        }
+      }
 
-      // ✅ 에러 수: 기존 값 기준 ±10% 변화 (에러는 급격히 변하지 않음)
-      const errorsChange = server.metrics.errors * (Math.random() - 0.5) * 0.2; // ±10%
-      server.metrics.errors = Math.max(0, server.metrics.errors + errorsChange);
-
-      // ✅ 업타임: 점진적 증가 (현실적)
-      server.metrics.uptime += this.config.updateInterval! / 1000; // 초 단위 증가
-
-      // ✅ 헬스 스코어: 기존 값 기준 ±3% 변화 (안정적)
-      const healthChange = (Math.random() - 0.5) * 6; // ±3% 변화
+      // 건강 점수 업데이트
       server.health.score = Math.max(
         0,
-        Math.min(100, server.health.score + healthChange)
+        Math.min(
+          100,
+          100 - (processedMetrics.cpu * 0.3 + processedMetrics.memory * 0.3 + processedMetrics.disk * 0.2)
+        )
       );
       server.health.lastCheck = new Date().toISOString();
 
-      // ✅ 서버 상태 변경 확률 대폭 감소: 2% → 0.1% (200배 안정화)
-      if (Math.random() < 0.001) {
-        const statuses: ('running' | 'warning' | 'error')[] = [
-          'running',
-          'warning',
-          'error',
-        ];
-        const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
-        console.log(
-          `🔄 서버 ${server.id} 상태 변경: ${server.status} → ${newStatus}`
-        );
-        server.status = newStatus;
-      }
-    });
+      this.servers.set(serverId, server);
+      updatedServers.push(server);
+    }
 
-    // 클러스터 메트릭 업데이트 (필요시)
-    // this.updateClusterMetrics();
+    // 🎯 4단계: 전처리된 데이터 배치 저장 (성능 개선)
+    await this.batchSaveServersToRedis(updatedServers);
+
+    // 클러스터 메트릭도 업데이트
+    this.updateClusterMetrics();
   }
 
   private updateClusterMetrics(): void {
@@ -645,12 +665,12 @@ export class RealServerDataGenerator {
         avgCpu:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.cpu, 0) /
-              servers.length
+            servers.length
             : 0,
         avgMemory:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.memory, 0) /
-              servers.length
+            servers.length
             : 0,
       },
       clusters: {
@@ -685,9 +705,9 @@ export class RealServerDataGenerator {
         avgResponseTime:
           applications.length > 0
             ? applications.reduce(
-                (sum, a) => sum + a.performance.responseTime,
-                0
-              ) / applications.length
+              (sum, a) => sum + a.performance.responseTime,
+              0
+            ) / applications.length
             : 0,
       },
       timestamp: Date.now(),
