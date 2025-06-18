@@ -49,6 +49,7 @@ import AIAgentIconPanel, {
 import AIInsightsCard from '@/components/dashboard/AIInsightsCard';
 import { GoogleAIStatusCard } from '@/components/shared/GoogleAIStatusCard';
 import AutoReportPage from '@/components/ai/pages/AutoReportPage';
+import IntelligentMonitoringPage from '@/components/ai/pages/IntelligentMonitoringPage';
 
 // Enhanced AI Chat 관련 타입들
 interface AIEngine {
@@ -1120,18 +1121,8 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         return renderEnhancedAIChat();
       case 'auto-report':
         return <AutoReportPage />;
-      case 'prediction':
-        return (
-          <div className='flex items-center justify-center h-full bg-gradient-to-br from-purple-50 to-violet-50'>
-            <div className='text-center'>
-              <Target className='w-16 h-16 text-gray-300 mx-auto mb-4' />
-              <h3 className='text-lg font-bold text-gray-600 mb-2'>
-                예측 분석
-              </h3>
-              <p className='text-sm text-gray-500'>곧 출시 예정입니다</p>
-            </div>
-          </div>
-        );
+      case 'intelligent-monitoring':
+        return <IntelligentMonitoringPage />;
       case 'advanced-management':
         return (
           <div className='flex flex-col h-full p-4 bg-gray-50'>
@@ -1162,30 +1153,6 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                   variant='admin'
                 />
               </div>
-            </div>
-          </div>
-        );
-      case 'pattern-analysis':
-        return (
-          <div className='flex items-center justify-center h-full bg-gradient-to-br from-orange-50 to-amber-50'>
-            <div className='text-center'>
-              <BarChart3 className='w-16 h-16 text-gray-300 mx-auto mb-4' />
-              <h3 className='text-lg font-bold text-gray-600 mb-2'>
-                패턴 분석
-              </h3>
-              <p className='text-sm text-gray-500'>곧 출시 예정입니다</p>
-            </div>
-          </div>
-        );
-      case 'log-analysis':
-        return (
-          <div className='flex items-center justify-center h-full bg-gradient-to-br from-indigo-50 to-blue-50'>
-            <div className='text-center'>
-              <Search className='w-16 h-16 text-gray-300 mx-auto mb-4' />
-              <h3 className='text-lg font-bold text-gray-600 mb-2'>
-                로그 분석
-              </h3>
-              <p className='text-sm text-gray-500'>곧 출시 예정입니다</p>
             </div>
           </div>
         );

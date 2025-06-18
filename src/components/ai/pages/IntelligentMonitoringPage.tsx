@@ -25,6 +25,7 @@ import {
   Shield,
   Target,
   Lightbulb,
+  X,
 } from 'lucide-react';
 
 interface IntelligentAnalysisRequest {
@@ -711,6 +712,57 @@ export default function IntelligentMonitoringPage() {
           </div>
         </motion.div>
       )}
+    </div>
+  );
+}
+
+/**
+ * 🎯 사이드바용 지능형 모니터링 모달 컴포넌트
+ */
+interface IntelligentMonitoringModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function IntelligentMonitoringModal({
+  isOpen,
+  onClose,
+}: IntelligentMonitoringModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
+      <div className='bg-white rounded-xl shadow-2xl w-full max-w-6xl h-[90vh] overflow-hidden'>
+        {/* 모달 헤더 */}
+        <div className='flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-teal-50'>
+          <div className='flex items-center space-x-3'>
+            <div className='w-8 h-8 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center'>
+              <Monitor className='w-5 h-5 text-white' />
+            </div>
+            <div>
+              <h2 className='text-xl font-bold text-gray-900'>
+                지능형 모니터링
+              </h2>
+              <p className='text-sm text-gray-600'>
+                통합 AI 분석: 이상탐지 → 근본원인 → 예측모니터링
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className='p-2 hover:bg-gray-100 rounded-lg transition-colors'
+            title='모달 닫기'
+            aria-label='모달 닫기'
+          >
+            <X className='w-5 h-5 text-gray-500' />
+          </button>
+        </div>
+
+        {/* 모달 내용 */}
+        <div className='h-full overflow-auto p-4'>
+          <IntelligentMonitoringPage />
+        </div>
+      </div>
     </div>
   );
 }
