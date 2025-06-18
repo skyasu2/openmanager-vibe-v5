@@ -62,7 +62,7 @@
 }
 ```
 
-#### ✅ **개발 환경** (`development/backups/mcp-cleanup-20241211/mcp-config/profiles/ai-focused.json`)
+#### ✅ **개발 환경** (`docs/archived/backups/mcp-cleanup-20241211/mcp-config/profiles/ai-focused.json`)
 
 - 창의적 AI 추론 모드
 - AI 컨텍스트 웹 검색

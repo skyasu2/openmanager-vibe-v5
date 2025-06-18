@@ -47,10 +47,10 @@ docs/backup/
 
 **권장사항**: 문서 관리용으로만 사용되므로 유지 (삭제하지 않음)
 
-#### **development/backups/ 폴더들**
+#### **docs/archived/backups/ 폴더들**
 
 ```
-development/backups/
+docs/archived/backups/
 ├── mcp-cleanup-20241211/ (MCP 정리 백업)
 └── mcp-cleanup-20250612/ (MCP 정리 백업)
 ```

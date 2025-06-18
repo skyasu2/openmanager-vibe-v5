@@ -106,7 +106,7 @@ src/modules/mcp/* → src/services/mcp/ (통합 완료)
 
 ### 🔐 안정성 향상
 
-- **백업 완료:** `development/backups/mcp-cleanup-20241211/`
+- **백업 완료:** `docs/archived/backups/mcp-cleanup-20241211/`
 - **점진적 제거:** 안전한 단계별 정리
 - **핵심 기능 보존:** 모든 필수 기능 유지
 
@@ -140,7 +140,7 @@ src/modules/mcp/* → src/services/mcp/ (통합 완료)
 ✅ 설정 파일: 2개 정상 확인
 ✅ 스크립트: 5개 핵심 기능 검증
 ✅ 코드 통합: src/services/mcp 8파일 정상
-✅ 백업: development/backups/mcp-cleanup-20241211 완료
+✅ 백업: docs/archived/backups/mcp-cleanup-20241211 완료
 ✅ 빌드: 오류 없음 확인
 ```
 
@@ -156,7 +156,7 @@ src/modules/mcp/* → src/services/mcp/ (통합 완료)
 
 1. `npm run mcp:status` 상태 확인
 2. `npm run mcp:start` 서버 재시작
-3. 백업에서 복원: `development/backups/mcp-cleanup-20241211/`
+3. 백업에서 복원: `docs/archived/backups/mcp-cleanup-20241211/`
 
 ---
 
