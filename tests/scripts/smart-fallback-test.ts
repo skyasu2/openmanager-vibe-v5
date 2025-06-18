@@ -2,10 +2,10 @@
  * 🧠 Smart Fallback Engine 테스트 스크립트
  *
  * 사용법:
- * npx ts-node development/scripts/testing/smart-fallback-test.ts
+ * npx ts-node tests/scripts/smart-fallback-test.ts
  */
 
-import SmartFallbackEngine from '../../../src/services/ai/SmartFallbackEngine';
+import SmartFallbackEngine from '../../src/services/ai/SmartFallbackEngine';
 
 async function testSmartFallback() {
   console.log('🧠 Smart Fallback Engine 테스트 시작');
