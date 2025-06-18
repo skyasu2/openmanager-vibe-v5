@@ -326,22 +326,33 @@ const cardTechMapping = {
   'cursor-ai': ['mcp-integration', 'ai-development', 'development'],
 };
 
-// 버전 관리 시스템
+// 버전 관리 시스템 - v5.44.0 기준 업데이트
 const COMPONENT_VERSIONS = {
-  'mcp-ai-engine': '2.1.0', // MCP + RAG 백업 엔진 통합
-  'fullstack-ecosystem': '1.0.0', // 풀스택 개발 생태계
-  'tech-stack': '1.5.0',
-  'cursor-ai': '2.0.0', // GitHub + Vercel 배포 통합
+  'mcp-ai-engine': '5.44.0', // TensorFlow 제거, 경량 ML 통합 완료
+  'fullstack-ecosystem': '5.44.0', // Next.js 15.3.2 + React 19.1.0 완성
+  'tech-stack': '5.44.0', // 최신 기술 스택 완전 구현
+  'cursor-ai': '5.44.0', // Claude Sonnet 3.7 + MCP 통합 완료
 } as const;
 
-// 버전 히스토리 추적 (올바른 프로젝트 타임라인)
+// 버전 히스토리 추적 (v5.44.0 현재 상태)
 const VERSION_HISTORY = {
   'mcp-ai-engine': [
+    {
+      version: '5.44.0',
+      date: DateUtils.getVersionDate('5.44.0'),
+      changes:
+        'TensorFlow 완전 제거, 경량 ML 엔진 통합, LocalRAG 독립화, Google AI Studio 베타 연동',
+    },
+    {
+      version: '5.43.0',
+      date: DateUtils.getVersionDate('5.43.0'),
+      changes: 'AI 아키텍처 완전 리팩토링, 서버리스 최적화',
+    },
     {
       version: '2.1.0',
       date: DateUtils.getVersionDate('2.1.0'),
       changes:
-        'MCP + RAG TensorFlow 백업 엔진 통합, Bot 아이콘 회전 애니메이션',
+        'MCP + RAG 백업 엔진 통합, Bot 아이콘 회전 애니메이션',
     },
     {
       version: '2.0.0',
@@ -356,10 +367,37 @@ const VERSION_HISTORY = {
   ],
   'fullstack-ecosystem': [
     {
+      version: '5.44.0',
+      date: DateUtils.getVersionDate('5.44.0'),
+      changes:
+        'Next.js 15.3.2 + React 19.1.0 완성, Upstash Redis 연동, 완전한 풀스택 생태계 구축',
+    },
+    {
       version: '1.0.0',
       date: DateUtils.getVersionDate('1.0.0'),
       changes:
         '풀스택 개발 생태계 구축 - 프론트엔드, 백엔드, AI 엔진, 배포 인프라 통합',
+    },
+  ],
+  'tech-stack': [
+    {
+      version: '5.44.0',
+      date: DateUtils.getVersionDate('5.44.0'),
+      changes:
+        'Next.js 15.3.2, React 19.1.0, TypeScript 최신화, Vitest + Playwright 테스트 완성',
+    },
+  ],
+  'cursor-ai': [
+    {
+      version: '5.44.0',
+      date: DateUtils.getVersionDate('5.44.0'),
+      changes:
+        'Claude Sonnet 3.7 통합, MCP Protocol 완전 구현, GitHub Actions CI/CD 완성',
+    },
+    {
+      version: '2.0.0',
+      date: DateUtils.getVersionDate('2.0.0'),
+      changes: 'GitHub + Vercel 배포 통합',
     },
   ],
 } as const;
