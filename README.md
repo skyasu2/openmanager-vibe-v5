@@ -372,3 +372,24 @@ npm run start
 **📅 최종 업데이트**: 2025.01.06  
 **🔗 라이브 데모**: [openmanager-vibe-v5.vercel.app](https://openmanager-vibe-v5.vercel.app)  
 **📧 문의**: OpenManager Vibe v5 개발팀
+## 🧹 코드 정리
+
+프로젝트의 불필요한 API와 파일을 정리하려면 다음 절차를 따릅니다.
+
+1. API 분석
+   ```bash
+   node development/scripts/analysis/api-cleanup-analyzer.mjs
+   ```
+   실행하면 `development/scripts/analysis/cleanup-apis.mjs` 스크립트가 생성됩니다.
+
+2. 불필요한 API 제거
+   ```bash
+   node development/scripts/analysis/cleanup-apis.mjs
+   ```
+   위 스크립트가 사용하지 않는 API를 자동으로 제거합니다.
+
+사용하지 않는 파일을 찾으려면 아래 명령을 실행해 결과를 확인합니다.
+
+```bash
+node development/scripts/analysis/find-unused-files.js
+```
