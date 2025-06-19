@@ -143,8 +143,11 @@ export class AILogger {
       );
     }
 
-    // 프로덕션 환경: 파일 로깅
-    if (this.isProduction) {
+    // 프로덕션 환경: 파일 로깅 (단, 서버리스 플랫폼은 제외)
+    const isServerless =
+      !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
+
+    if (this.isProduction && !isServerless) {
       transports.push(
         new winston.transports.File({
           filename: 'logs/ai-error.log',
@@ -221,12 +224,12 @@ export class AILogger {
     if (isNextJS) {
       // Mock Pino logger - 모든 로깅 메서드를 빈 함수로 처리
       this.pinoLogger = {
-        error: () => { },
-        warn: () => { },
-        info: () => { },
-        debug: () => { },
-        trace: () => { },
-        fatal: () => { },
+        error: () => {},
+        warn: () => {},
+        info: () => {},
+        debug: () => {},
+        trace: () => {},
+        fatal: () => {},
         child: () => this.pinoLogger,
         level: 'info',
       };
