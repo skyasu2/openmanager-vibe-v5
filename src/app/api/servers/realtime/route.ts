@@ -14,6 +14,7 @@ import {
   realServerDataGenerator,
 } from '@/services/data-generator/RealServerDataGenerator';
 import { getRedisClient } from '@/lib/redis';
+import { transformServerInstancesToServers } from '@/adapters/server-data-adapter';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,13 +58,21 @@ export async function GET(request: NextRequest) {
       generator.startAutoGeneration();
     }
 
-    // 최신 서버 데이터 반환
-    const latestServers = generator.getAllServers();
+    // 최신 서버 데이터 반환 (ServerInstance → Server 변환)
+    const latestServerInstances = generator.getAllServers();
+    const latestServers = transformServerInstancesToServers(
+      latestServerInstances
+    );
     const dashboardSummary = generator.getDashboardSummary();
+
+    console.log(
+      `🔄 ${latestServerInstances.length}개 ServerInstance → ${latestServers.length}개 Server 변환 완료`
+    );
 
     return NextResponse.json({
       success: true,
-      servers: latestServers,
+      data: latestServers, // 변환된 Server[] 반환
+      servers: latestServers, // 호환성을 위해 유지
       summary: dashboardSummary,
       timestamp: Date.now(),
       count: latestServers.length,

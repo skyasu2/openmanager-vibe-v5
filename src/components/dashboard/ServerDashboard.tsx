@@ -49,6 +49,12 @@ import ServerDetailModal from './ServerDetailModal';
 import ServerCard from './ServerCard';
 import EnhancedServerModal from './EnhancedServerModal';
 import ServerModalErrorBoundary from './ServerModalErrorBoundary';
+import {
+  safeServerSearch,
+  safeServerTransform,
+  isSafeArray,
+} from '../../utils/server-utils';
+import { safeTransformServerData } from '@/adapters/server-data-adapter';
 import NetworkMonitoringCard from './NetworkMonitoringCard';
 import { Server } from '../../types/server';
 import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
@@ -356,23 +362,20 @@ export default function ServerDashboard({
 
   // ✅ 필터링된 서버 데이터 메모이제이션 (표시 개수 제한 포함)
   const filteredServers = useMemo(() => {
-    if (!Array.isArray(realtimeServers)) {
+    if (!isSafeArray(realtimeServers)) {
       return [];
     }
 
     let filtered = realtimeServers.filter(server => {
-      const matchesSearch =
-        searchTerm === '' ||
-        (server.name &&
-          server.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (server.hostname &&
-          server.hostname.toLowerCase().includes(searchTerm.toLowerCase()));
+      if (!server) return false;
+
+      const matchesSearch = safeServerSearch(server, searchTerm);
 
       const matchesStatus =
         statusFilter === 'all' ||
-        (statusFilter === 'healthy' && server.status === 'running') ||
+        (statusFilter === 'healthy' && server.status === 'online') ||
         (statusFilter === 'warning' && server.status === 'warning') ||
-        (statusFilter === 'offline' && server.status === 'error');
+        (statusFilter === 'offline' && server.status === 'offline');
 
       const matchesLocation =
         locationFilter === 'all' ||
@@ -422,43 +425,20 @@ export default function ServerDashboard({
     return Math.ceil(filteredServers.length / SERVERS_PER_PAGE);
   }, [filteredServers.length]);
 
-  // 🎯 서버 카드 클릭 핸들러
+  // 🎯 서버 카드 클릭 핸들러 (안전한 처리)
   const handleServerClick = useCallback((server: Server) => {
-    // 🎯 원본 서버 데이터를 Enhanced 모달용으로 변환
-    const rawServerData = {
-      id: server.id,
-      name: server.name,
-      hostname: server.name,
-      type: server.type || 'unknown',
-      role: 'standalone',
-      environment: server.environment || 'production',
-      location: server.location,
-      status:
-        server.status === 'online'
-          ? 'running'
-          : server.status === 'warning'
-            ? 'warning'
-            : 'error',
-      metrics: {
-        cpu: server.cpu,
-        memory: server.memory,
-        disk: server.disk,
-        network: {
-          in: server.network || 0,
-          out: (server.network || 0) * 0.8, // 아웃바운드는 인바운드의 80%로 추정
-        },
-      },
-      uptime: server.uptime,
-      lastUpdate: server.lastUpdate,
-      alerts: server.alerts,
-      services: server.services,
-      provider: server.provider,
-      networkStatus: server.networkStatus,
-    };
+    try {
+      // 🎯 안전한 서버 데이터 변환
+      const rawServerData = safeServerTransform(server);
 
-    // Enhanced 모달용 형식으로 변환
-    const enhancedServer = transformRawToEnhancedServer(rawServerData);
-    setSelectedServer(enhancedServer);
+      // Enhanced 모달용 형식으로 변환
+      const enhancedServer = transformRawToEnhancedServer(rawServerData);
+      setSelectedServer(enhancedServer);
+    } catch (error) {
+      console.error('서버 데이터 변환 중 오류:', error);
+      // 오류 발생 시 기본값으로 처리
+      setSelectedServer(null);
+    }
   }, []);
 
   // 🎯 모달 닫기 핸들러
