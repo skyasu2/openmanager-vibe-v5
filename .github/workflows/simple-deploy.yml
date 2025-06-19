@@ -13,17 +13,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: '20'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install
 
       - name: Build application
-        run: npm run build
+        run: pnpm build
         env:
           # 🔧 빌드 환경변수 (안전한 기본값)
           NODE_ENV: production
@@ -56,10 +61,10 @@ jobs:
           CRON_GEMINI_LEARNING: true
 
       - name: Lint check
-        run: npm run lint || true # 린트 에러는 무시하고 계속 진행
+        run: pnpm lint || true # 린트 에러는 무시하고 계속 진행
 
       - name: Type check
-        run: npm run type-check || true # 타입 체크 에러도 무시하고 계속 진행
+        run: pnpm type-check || true # 타입 체크 에러도 무시하고 계속 진행
 
 
     # Vercel이 자동으로 배포를 처리
