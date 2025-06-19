@@ -24,38 +24,28 @@ export default function UnifiedProfileComponent({
 }: UnifiedProfileComponentProps) {
   // 상태 관리
   const [isOpen, setIsOpen] = useState(false);
-  const [isToggling, setIsToggling] = useState(false);
   const { ui, setSettingsPanelOpen } = useUnifiedAdminStore();
   const showSettingsPanel = ui.isSettingsPanelOpen;
 
   // 참조
   const profileButtonRef = useRef<HTMLButtonElement>(null);
 
-  // 드롭다운 토글 핸들러 (최적화된 버전)
+  // 드롭다운 토글 핸들러 (단순화된 버전)
   const handleToggleDropdown = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
 
-      // 토글 중이면 무시
-      if (isToggling) return;
-
-      setIsToggling(true);
-
       // 설정 패널이 열려있으면 먼저 닫기
       if (showSettingsPanel) {
         setSettingsPanelOpen(false);
-        setTimeout(() => setIsToggling(false), 100);
         return;
       }
 
-      // 드롭다운 토글
+      // 드롭다운 토글 (즉시 실행, 지연 없음)
       setIsOpen(prev => !prev);
-
-      // 토글 상태 해제
-      setTimeout(() => setIsToggling(false), 150);
     },
-    [isToggling, showSettingsPanel, setSettingsPanelOpen]
+    [showSettingsPanel, setSettingsPanelOpen]
   );
 
   // 설정 패널 열기 핸들러

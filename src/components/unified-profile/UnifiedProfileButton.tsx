@@ -10,7 +10,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import {
@@ -41,7 +41,7 @@ interface UnifiedProfileButtonProps extends ProfileButtonProps {
   onSettingsClick: () => void;
 }
 
-export function UnifiedProfileButton({
+const UnifiedProfileButtonComponent = function UnifiedProfileButton({
   userName,
   userAvatar,
   isOpen,
@@ -57,38 +57,35 @@ export function UnifiedProfileButton({
   const [showPasswordInput, setShowPasswordInput] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [isAnimating, setIsAnimating] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const {
-    isSystemStarted,
-    aiAgent,
-    isLocked,
-    startSystem,
-    stopSystem,
-    logout,
-    adminMode,
-    authenticateAdmin,
-    logoutAdmin,
-  } = useUnifiedAdminStore();
+  // 필요한 상태만 선택적으로 구독 (깜빡임 방지)
+  const store = useUnifiedAdminStore();
+  const isSystemStarted = store.isSystemStarted;
+  const aiAgent = store.aiAgent;
+  const isLocked = store.isLocked;
+  const adminMode = store.adminMode;
+
+  // 액션들은 안정적이므로 한 번만 가져오기
+  const { startSystem, stopSystem, logout, authenticateAdmin, logoutAdmin } =
+    store;
 
   const { success, info, error } = useToast();
 
-  // 드롭다운 위치 계산 (useCallback으로 최적화)
+  // 드롭다운 위치 계산 (메모이제이션 최적화)
   const calculateDropdownPosition = useCallback(() => {
     if (!buttonRef.current || !isOpen) return;
 
-    // 단순화된 위치 계산 - requestAnimationFrame 제거
     const buttonRect = buttonRef.current.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
     // 기본 위치: 버튼 아래, 오른쪽 정렬
     let top = buttonRect.bottom + 8;
-    let left = buttonRect.right - 380; // 드롭다운 너비 380px로 확장
+    let left = buttonRect.right - 380;
 
     // 드롭다운이 화면 아래로 넘어가는 경우 위쪽에 표시
-    const dropdownHeight = 500; // 높이 증가
+    const dropdownHeight = 500;
     if (top + dropdownHeight > viewportHeight) {
       top = buttonRect.top - dropdownHeight - 8;
     }
@@ -105,29 +102,18 @@ export function UnifiedProfileButton({
     }
 
     setDropdownPosition({ top, left, transformOrigin: 'top right' });
-  }, [buttonRef, isOpen]);
+  }, [isOpen]); // buttonRef 의존성 제거로 불필요한 재계산 방지
 
-  // 위치 계산 - 단순화된 useEffect
+  // 위치 계산 - isOpen 변경 시에만 실행
   useEffect(() => {
     if (isOpen) {
-      // 즉시 계산 (지연 없음)
       calculateDropdownPosition();
     }
   }, [isOpen, calculateDropdownPosition]);
 
-  // 애니메이션 상태 관리 (대폭 단순화)
-  useEffect(() => {
-    if (isOpen) {
-      setIsAnimating(true);
-      // 애니메이션 시간을 더 짧게 단축
-      const timer = setTimeout(() => setIsAnimating(false), 100);
-      return () => clearTimeout(timer);
-    } else {
-      setIsAnimating(false);
-    }
-  }, [isOpen]);
+  // 애니메이션은 CSS와 framer-motion에서 처리하므로 별도 상태 불필요
 
-  // 외부 클릭 감지 (최적화된 버전)
+  // 외부 클릭 감지 (단순화된 버전 - 지연 제거)
   useEffect(() => {
     if (!isOpen) return;
 
@@ -148,16 +134,13 @@ export function UnifiedProfileButton({
       onClick({} as React.MouseEvent);
     };
 
-    // 약간의 지연을 두어 버튼 클릭과 충돌 방지
-    const timeoutId = setTimeout(() => {
-      document.addEventListener('mousedown', handleClickOutside, {
-        passive: true,
-        capture: true, // capture 단계에서 처리
-      });
-    }, 50); // 100ms에서 50ms로 단축
+    // 즉시 이벤트 리스너 등록 (지연 제거로 깜빡임 방지)
+    document.addEventListener('mousedown', handleClickOutside, {
+      passive: true,
+      capture: true,
+    });
 
     return () => {
-      clearTimeout(timeoutId);
       document.removeEventListener('mousedown', handleClickOutside, true);
     };
   }, [isOpen, onClick, buttonRef]);
@@ -635,7 +618,6 @@ export function UnifiedProfileButton({
     onClick,
     dropdownPosition,
     dropdownRef,
-    isAnimating,
     userName,
     userAvatar,
     isLocked,
@@ -660,13 +642,7 @@ export function UnifiedProfileButton({
         ref={buttonRef}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        onClick={e => {
-          e.preventDefault();
-          e.stopPropagation();
-
-          // 단순화된 클릭 처리 - 애니메이션 체크 제거
-          onClick(e);
-        }}
+        onClick={onClick}
         className={`flex items-center gap-3 p-2 rounded-xl backdrop-blur-md border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent ${
           isLocked
             ? 'bg-red-500/30 border-red-500/60 shadow-red-500/30 shadow-lg focus:ring-red-500'
@@ -750,4 +726,7 @@ export function UnifiedProfileButton({
       <DropdownPortal />
     </div>
   );
-}
+};
+
+// React.memo로 감싸서 불필요한 리렌더링 방지
+export const UnifiedProfileButton = memo(UnifiedProfileButtonComponent);
