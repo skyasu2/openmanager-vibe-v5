@@ -34,80 +34,55 @@ interface KeyStatus {
   lastChecked: Date;
 }
 
+export interface DevKey {
+  name: string;
+  envKey: string;
+  required: boolean;
+  validator?: (value: string) => boolean;
+  description?: string;
+}
+
+export interface KeyValidationResult {
+  key: string;
+  isValid: boolean;
+  error?: string;
+}
+
+export interface KeyGroupValidation {
+  group: string;
+  keys: string[];
+  allValid: boolean;
+  results: KeyValidationResult[];
+}
+
 export class DevKeyManager {
   private static instance: DevKeyManager;
   private isDevelopment: boolean;
   private keyCache: Map<string, string> = new Map();
-
-  // 🔧 서비스 설정 (확장 가능)
-  private services: ServiceConfig[] = [
-    {
-      name: 'Supabase URL',
-      envKey: 'NEXT_PUBLIC_SUPABASE_URL',
-      required: true,
-      validator: value => value.includes('supabase.co'),
-    },
-    {
-      name: 'Supabase Anon Key',
-      envKey: 'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-      required: true,
-      validator: value => value.startsWith('eyJ') && value.length > 100,
-    },
-    {
-      name: 'Supabase Service Role Key',
-      envKey: 'SUPABASE_SERVICE_ROLE_KEY',
-      required: true,
-      validator: value => value.startsWith('eyJ') && value.length > 100,
-    },
-    {
-      name: 'Redis URL',
-      envKey: 'REDIS_URL',
-      required: true,
-      validator: value =>
-        value.startsWith('redis://') || value.startsWith('rediss://'),
-    },
-    {
-      name: 'Upstash Redis REST URL',
-      envKey: 'UPSTASH_REDIS_REST_URL',
-      required: true,
-      validator: value =>
-        value.startsWith('https://') && value.includes('upstash.io'),
-    },
-    {
-      name: 'Upstash Redis Token',
-      envKey: 'UPSTASH_REDIS_REST_TOKEN',
-      required: true,
-      validator: value => value.length > 50,
-    },
+  private keys: Map<string, string> = new Map();
+  private keyDefinitions: DevKey[] = [
+    // Google AI API 키만 관리
     {
       name: 'Google AI API Key',
       envKey: 'GOOGLE_AI_API_KEY',
       required: true,
-      validator: value => value.startsWith('AIza') && value.length === 39,
-    },
-    {
-      name: 'Slack Webhook URL',
-      envKey: 'SLACK_WEBHOOK_URL',
-      required: false,
-      validator: value => value.startsWith('https://hooks.slack.com/'),
-    },
-    {
-      name: 'MCP Remote URL',
-      envKey: 'MCP_REMOTE_URL',
-      required: true,
-      validator: value => value.startsWith('https://'),
-    },
-    {
-      name: 'Vercel Bypass Secret',
-      envKey: 'VERCEL_AUTOMATION_BYPASS_SECRET',
-      required: false,
-      validator: value => value.length > 20,
+      validator: value => value.startsWith('AIza') && value.length > 30,
+      description: 'Google AI Studio에서 발급받은 API 키',
     },
   ];
+
+  // 키 그룹 정의 (Slack 제거됨)
+  private keyGroups: Record<string, string[]> = {
+    ai: ['GOOGLE_AI_API_KEY'],
+  };
 
   private constructor() {
     this.isDevelopment = process.env.NODE_ENV === 'development';
     this.loadKeysFromEnv();
+
+    console.log(
+      `🔑 개발 키 관리자 초기화됨 (환경: ${this.isDevelopment ? '개발' : '프로덕션'})`
+    );
   }
 
   static getInstance(): DevKeyManager {
@@ -121,52 +96,34 @@ export class DevKeyManager {
    * 🔄 환경변수에서 키 로드
    */
   private loadKeysFromEnv(): void {
-    this.services.forEach(service => {
-      const value = process.env[service.envKey];
+    this.keyDefinitions.forEach(keyDef => {
+      const value = process.env[keyDef.envKey];
       if (value) {
-        this.keyCache.set(service.envKey, value);
+        this.keys.set(keyDef.envKey, value);
       }
     });
+
+    console.log(
+      `🔑 개발 키 로드 완료: ${this.keys.size}/${this.keyDefinitions.length}개`
+    );
   }
 
   /**
    * 🔑 키 가져오기 (캐시 우선)
    */
   getKey(envKey: string): string | null {
-    // 1. 캐시에서 확인
-    if (this.keyCache.has(envKey)) {
-      return this.keyCache.get(envKey)!;
-    }
-
-    // 2. 환경변수에서 확인
-    const envValue = process.env[envKey];
-    if (envValue) {
-      this.keyCache.set(envKey, envValue);
-      return envValue;
-    }
-
-    // 3. 기본값 사용 (개발 환경만)
-    if (this.isDevelopment) {
-      const service = this.services.find(s => s.envKey === envKey);
-      if (service?.defaultValue) {
-        console.warn(`⚠️ ${service.name}: 기본값 사용 중 (개발 환경)`);
-        this.keyCache.set(envKey, service.defaultValue);
-        return service.defaultValue;
-      }
-    }
-
-    return null;
+    return this.keys.get(envKey) || null;
   }
 
   /**
    * 🔍 모든 서비스 상태 확인
    */
   getAllKeyStatus(): KeyStatus[] {
-    return this.services.map(service => {
-      const value = this.getKey(service.envKey);
+    return this.keyDefinitions.map(keyDef => {
+      const value = this.getKey(keyDef.envKey);
       const isValid = value
-        ? service.validator
-          ? service.validator(value)
+        ? keyDef.validator
+          ? keyDef.validator(value)
           : true
         : false;
 
@@ -177,16 +134,14 @@ export class DevKeyManager {
         if (isValid) {
           status = 'active';
           // 기본값 사용 여부 확인
-          if (this.isDevelopment && service.defaultValue === value) {
-            source = 'default';
-          }
+          // 기본값 체크 제거됨 (Slack 관련 코드 정리)
         } else {
           status = 'invalid';
         }
       }
 
       return {
-        service: service.name,
+        service: keyDef.name,
         status,
         source,
         preview: value ? this.createPreview(value) : 'none',
@@ -237,7 +192,7 @@ export class DevKeyManager {
       return {
         success: true,
         path: envPath,
-        message: `✅ .env.local 파일이 생성되었습니다. (${this.services.length}개 서비스)`,
+        message: `✅ .env.local 파일이 생성되었습니다. (${this.keyDefinitions.length}개 서비스)`,
       };
     } catch (error) {
       return {
@@ -267,45 +222,21 @@ SKIP_ENV_VALIDATION=true
     // 카테고리별로 그룹화
     const categories = [
       {
-        title: '🗄️ Supabase 데이터베이스',
-        keys: [
-          'NEXT_PUBLIC_SUPABASE_URL',
-          'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-          'SUPABASE_SERVICE_ROLE_KEY',
-        ],
-      },
-      {
-        title: '⚡ Redis 캐시',
-        keys: [
-          'REDIS_URL',
-          'UPSTASH_REDIS_REST_URL',
-          'UPSTASH_REDIS_REST_TOKEN',
-        ],
-      },
-      {
         title: '🤖 AI 서비스',
         keys: ['GOOGLE_AI_API_KEY'],
-      },
-      {
-        title: '📧 알림 서비스',
-        keys: ['SLACK_WEBHOOK_URL'],
-      },
-      {
-        title: '🔄 외부 서비스',
-        keys: ['MCP_REMOTE_URL', 'VERCEL_AUTOMATION_BYPASS_SECRET'],
       },
     ];
 
     categories.forEach(category => {
       content += `# ${category.title}\n`;
       category.keys.forEach(envKey => {
-        const service = this.services.find(s => s.envKey === envKey);
+        const keyDef = this.keyDefinitions.find(k => k.envKey === envKey);
         const value = this.getKey(envKey);
 
-        if (service && value) {
+        if (keyDef && value) {
           content += `${envKey}=${value}\n`;
-        } else if (service) {
-          content += `# ${envKey}=  # ${service.name} - 설정 필요\n`;
+        } else if (keyDef) {
+          content += `# ${envKey}=  # ${keyDef.name} - 설정 필요\n`;
         }
       });
       content += '\n';
@@ -335,28 +266,23 @@ CRON_GEMINI_LEARNING=true
   /**
    * 🧪 모든 키 유효성 검증
    */
-  validateAllKeys(): {
-    valid: number;
-    invalid: number;
-    missing: number;
-    details: KeyStatus[];
-  } {
-    const statuses = this.getAllKeyStatus();
+  validateAllKeys(): KeyValidationResult[] {
+    return this.keyDefinitions.map(keyDef => {
+      const value = this.keys.get(keyDef.envKey);
+      const isValid = value
+        ? keyDef.validator
+          ? keyDef.validator(value)
+          : true
+        : !keyDef.required;
 
-    return {
-      valid: statuses.filter(s => s.status === 'active').length,
-      invalid: statuses.filter(s => s.status === 'invalid').length,
-      missing: statuses.filter(s => s.status === 'missing').length,
-      details: statuses,
-    };
-  }
-
-  /**
-   * 🔄 키 캐시 새로고침
-   */
-  refreshCache(): void {
-    this.keyCache.clear();
-    this.loadKeysFromEnv();
+      return {
+        key: keyDef.envKey,
+        isValid,
+        error: !isValid
+          ? `${keyDef.name} 키가 유효하지 않거나 누락됨`
+          : undefined,
+      };
+    });
   }
 
   /**
@@ -365,37 +291,27 @@ CRON_GEMINI_LEARNING=true
   getStatusReport(): string {
     const validation = this.validateAllKeys();
     const successRate = Math.round(
-      (validation.valid / this.services.length) * 100
+      (validation.filter(r => r.isValid).length / this.keyDefinitions.length) *
+        100
     );
 
     let report = `
 🛠️ DevKeyManager 상태 리포트
 ${'='.repeat(50)}
 📅 확인 시간: ${new Date().toLocaleString('ko-KR')}
-🎯 성공률: ${successRate}% (${validation.valid}/${this.services.length})
+🎯 성공률: ${successRate}% (${validation.filter(r => r.isValid).length}/${this.keyDefinitions.length})
 🌍 환경: ${this.isDevelopment ? '개발' : '프로덕션'}
 
 📊 서비스별 상태:
 `;
 
-    validation.details.forEach(status => {
-      const icon =
-        status.status === 'active'
-          ? '✅'
-          : status.status === 'invalid'
-            ? '⚠️'
-            : '❌';
-      const sourceIcon =
-        status.source === 'default'
-          ? '🔧'
-          : status.source === 'encrypted'
-            ? '🔐'
-            : '📝';
+    validation.forEach(result => {
+      const icon = result.isValid ? '✅' : '❌';
 
-      report += `${icon} ${status.service.padEnd(25)} ${sourceIcon} ${status.preview}\n`;
+      report += `${icon} ${result.key.padEnd(25)} ${result.error ? `⚠️ ${result.error}` : ''}\n`;
     });
 
-    if (validation.missing > 0 || validation.invalid > 0) {
+    if (validation.filter(r => !r.isValid).length > 0) {
       report += `\n💡 해결 방법:
 - npm run dev:setup-keys  # 자동 키 설정
 - npm run check-services  # 서비스 상태 확인
@@ -418,15 +334,16 @@ ${'='.repeat(50)}
       }
 
       // 2. 캐시 새로고침
-      this.refreshCache();
+      this.loadKeysFromEnv();
 
       // 3. 검증
       const validation = this.validateAllKeys();
 
       return {
         success:
-          validation.valid >= this.services.filter(s => s.required).length,
-        message: `🚀 빠른 설정 완료! ${validation.valid}/${this.services.length} 서비스 활성화`,
+          validation.filter(r => r.isValid).length >=
+          this.keyDefinitions.filter(k => k.required).length,
+        message: `🚀 빠른 설정 완료! ${validation.filter(r => r.isValid).length}/${this.keyDefinitions.length} 서비스 활성화`,
       };
     } catch (error) {
       return {
@@ -436,30 +353,42 @@ ${'='.repeat(50)}
     }
   }
 
+  /**
+   * 🔄 키 캐시 새로고침
+   */
+  refreshCache(): void {
+    this.keys.clear();
+    this.loadKeysFromEnv();
+  }
+
+  /**
+   * 📊 개발자 친화적 상태 요약
+   */
+  getKeyStatus() {
+    const total = this.keyDefinitions.length;
+    const loaded = this.keys.size;
+    const valid = this.validateAllKeys().filter(r => r.isValid).length;
+
+    return {
+      total,
+      loaded,
+      valid,
+      missing: this.keyDefinitions
+        .filter(k => k.required && !this.keys.has(k.envKey))
+        .map(k => k.envKey),
+    };
+  }
+
+  /**
+   * 📄 키 정의 목록
+   */
+  getKeyDefinitions(): DevKey[] {
+    return [...this.keyDefinitions];
+  }
+
   // 🔧 편의 메서드들 (기존 코드 호환성)
-  getSupabaseUrl(): string | null {
-    return this.getKey('NEXT_PUBLIC_SUPABASE_URL');
-  }
-  getSupabaseAnonKey(): string | null {
-    return this.getKey('NEXT_PUBLIC_SUPABASE_ANON_KEY');
-  }
-  getSupabaseServiceKey(): string | null {
-    return this.getKey('SUPABASE_SERVICE_ROLE_KEY');
-  }
-  getRedisUrl(): string | null {
-    return this.getKey('REDIS_URL');
-  }
   getGoogleAIKey(): string | null {
     return this.getKey('GOOGLE_AI_API_KEY');
-  }
-  getSlackWebhook(): string | null {
-    return this.getKey('SLACK_WEBHOOK_URL');
-  }
-  getMCPUrl(): string | null {
-    return this.getKey('MCP_REMOTE_URL');
-  }
-  getVercelBypass(): string | null {
-    return this.getKey('VERCEL_AUTOMATION_BYPASS_SECRET');
   }
 }
 
@@ -467,12 +396,7 @@ ${'='.repeat(50)}
 export const devKeyManager = DevKeyManager.getInstance();
 
 // 🔧 편의 함수들 (기존 코드 호환성)
-export const getSecureSupabaseUrl = () => devKeyManager.getSupabaseUrl();
-export const getSecureSupabaseAnonKey = () =>
-  devKeyManager.getSupabaseAnonKey();
-export const getSecureRedisUrl = () => devKeyManager.getRedisUrl();
 export const getSecureGoogleAIKey = () => devKeyManager.getGoogleAIKey();
-export const getSecureSlackWebhook = () => devKeyManager.getSlackWebhook();
 
 // 🚀 개발자 도구 함수들
 export const generateDevEnv = () => devKeyManager.generateEnvFile();

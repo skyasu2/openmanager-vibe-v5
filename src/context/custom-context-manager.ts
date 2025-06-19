@@ -1,6 +1,6 @@
 /**
  * ⚙️ 커스텀 컨텍스트 관리자 (Level 3) - 실제 구현
- * 
+ *
  * ✅ 조직별 가이드, 알림 임계값, 분석 규칙
  * ✅ Supabase에 JSON 형태로 저장
  * ✅ 사용자별 맞춤 설정
@@ -49,7 +49,6 @@ export interface OrganizationSettings {
   };
   notifications: {
     email: { enabled: boolean; addresses: string[] };
-    slack: { enabled: boolean; webhook?: string; channel?: string };
     webhook: { enabled: boolean; url?: string };
   };
   customGuides: GuideDocument[];
@@ -101,12 +100,19 @@ export interface UserProfile {
   settings: Record<string, any>;
 }
 
+interface SystemIntegrations {
+  database: { enabled: boolean; provider?: string; status?: string };
+  cache: { enabled: boolean; provider?: string; status?: string };
+  ai: { enabled: boolean; provider?: string; models?: string[] };
+  // Slack 설정 제거됨 (포트폴리오용)
+}
+
 export class CustomContextManager {
   private static instance: CustomContextManager;
   private supabase: SupabaseClient | null = null;
   private isInitialized = false;
   private localCache: Map<string, any> = new Map();
-  
+
   private constructor() {
     this.initializeSupabase();
   }
@@ -125,14 +131,16 @@ export class CustomContextManager {
     try {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-      
+
       if (supabaseUrl && supabaseKey) {
         this.supabase = createClient(supabaseUrl, supabaseKey);
         await this.createTablesIfNotExists();
         this.isInitialized = true;
         console.log('✅ [CustomContext] Supabase 연결 성공');
       } else {
-        console.warn('⚠️ [CustomContext] Supabase 환경변수 없음, 로컬 캐시 모드로 실행');
+        console.warn(
+          '⚠️ [CustomContext] Supabase 환경변수 없음, 로컬 캐시 모드로 실행'
+        );
         this.isInitialized = true;
       }
     } catch (error) {
@@ -156,7 +164,9 @@ export class CustomContextManager {
 
       if (orgError && orgError.code === '42P01') {
         // 테이블이 없으면 생성 (실제로는 migration으로 처리)
-        console.log('📋 [CustomContext] organization_settings 테이블 필요 - 관리자에게 문의');
+        console.log(
+          '📋 [CustomContext] organization_settings 테이블 필요 - 관리자에게 문의'
+        );
       }
 
       // custom_rules 테이블 확인/생성
@@ -166,7 +176,9 @@ export class CustomContextManager {
         .limit(1);
 
       if (rulesError && rulesError.code === '42P01') {
-        console.log('📋 [CustomContext] custom_rules 테이블 필요 - 관리자에게 문의');
+        console.log(
+          '📋 [CustomContext] custom_rules 테이블 필요 - 관리자에게 문의'
+        );
       }
 
       // user_profiles 테이블 확인/생성
@@ -176,9 +188,10 @@ export class CustomContextManager {
         .limit(1);
 
       if (profilesError && profilesError.code === '42P01') {
-        console.log('📋 [CustomContext] user_profiles 테이블 필요 - 관리자에게 문의');
+        console.log(
+          '📋 [CustomContext] user_profiles 테이블 필요 - 관리자에게 문의'
+        );
       }
-
     } catch (error) {
       console.error('❌ [CustomContext] 테이블 확인 실패:', error);
     }
@@ -187,7 +200,9 @@ export class CustomContextManager {
   /**
    * 🏢 조직 설정 저장 (실제 구현)
    */
-  async saveOrganizationSettings(settings: OrganizationSettings): Promise<void> {
+  async saveOrganizationSettings(
+    settings: OrganizationSettings
+  ): Promise<void> {
     try {
       if (this.supabase) {
         const { error } = await this.supabase
@@ -196,15 +211,19 @@ export class CustomContextManager {
             id: settings.id,
             organization_name: settings.organizationName,
             settings_data: settings,
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           });
 
         if (error) throw error;
-        console.log(`💾 [CustomContext] 조직 설정 저장 완료: ${settings.organizationName}`);
+        console.log(
+          `💾 [CustomContext] 조직 설정 저장 완료: ${settings.organizationName}`
+        );
       } else {
         // 로컬 캐시에 저장
         this.localCache.set(`org_${settings.id}`, settings);
-        console.log(`💾 [CustomContext] 조직 설정 로컬 저장: ${settings.organizationName}`);
+        console.log(
+          `💾 [CustomContext] 조직 설정 로컬 저장: ${settings.organizationName}`
+        );
       }
 
       // 메모리 캐시 업데이트
@@ -219,7 +238,9 @@ export class CustomContextManager {
   /**
    * 🏢 조직 설정 조회 (실제 구현)
    */
-  async getOrganizationSettings(orgId: string): Promise<OrganizationSettings | null> {
+  async getOrganizationSettings(
+    orgId: string
+  ): Promise<OrganizationSettings | null> {
     try {
       // 먼저 메모리 캐시 확인
       if (this.localCache.has(`org_${orgId}`)) {
@@ -244,7 +265,9 @@ export class CustomContextManager {
 
         const settings = data.settings_data as OrganizationSettings;
         this.localCache.set(`org_${orgId}`, settings);
-        console.log(`📦 [CustomContext] 조직 설정 조회 완료: ${settings.organizationName}`);
+        console.log(
+          `📦 [CustomContext] 조직 설정 조회 완료: ${settings.organizationName}`
+        );
         return settings;
       } else {
         // 로컬 캐시에서 조회
@@ -259,7 +282,12 @@ export class CustomContextManager {
   /**
    * 📏 커스텀 규칙 생성 (실제 구현)
    */
-  async createCustomRule(rule: Omit<CustomRule, 'id' | 'createdAt' | 'executionCount' | 'successRate'>): Promise<string> {
+  async createCustomRule(
+    rule: Omit<
+      CustomRule,
+      'id' | 'createdAt' | 'executionCount' | 'successRate'
+    >
+  ): Promise<string> {
     try {
       const ruleId = `rule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const completeRule: CustomRule = {
@@ -267,22 +295,20 @@ export class CustomContextManager {
         id: ruleId,
         createdAt: Date.now(),
         executionCount: 0,
-        successRate: 0
+        successRate: 0,
       };
 
       if (this.supabase) {
-        const { error } = await this.supabase
-          .from('custom_rules')
-          .insert({
-            id: ruleId,
-            name: rule.name,
-            description: rule.description,
-            category: rule.category,
-            rule_data: completeRule,
-            enabled: rule.enabled,
-            created_by: rule.createdBy,
-            created_at: new Date().toISOString()
-          });
+        const { error } = await this.supabase.from('custom_rules').insert({
+          id: ruleId,
+          name: rule.name,
+          description: rule.description,
+          category: rule.category,
+          rule_data: completeRule,
+          enabled: rule.enabled,
+          created_by: rule.createdBy,
+          created_at: new Date().toISOString(),
+        });
 
         if (error) throw error;
         console.log(`📏 [CustomContext] 커스텀 규칙 생성 완료: ${rule.name}`);
@@ -307,9 +333,7 @@ export class CustomContextManager {
   async getCustomRules(category?: string): Promise<CustomRule[]> {
     try {
       if (this.supabase) {
-        let query = this.supabase
-          .from('custom_rules')
-          .select('rule_data');
+        let query = this.supabase.from('custom_rules').select('rule_data');
 
         if (category) {
           query = query.eq('category', category);
@@ -319,13 +343,18 @@ export class CustomContextManager {
         if (error) throw error;
 
         const rules = data.map(item => item.rule_data as CustomRule);
-        console.log(`📏 [CustomContext] 커스텀 규칙 조회 완료: ${rules.length}개 (${category || 'all'})`);
+        console.log(
+          `📏 [CustomContext] 커스텀 규칙 조회 완료: ${rules.length}개 (${category || 'all'})`
+        );
         return rules;
       } else {
         // 로컬 캐시에서 조회
         const rules: CustomRule[] = [];
         for (const [key, value] of this.localCache.entries()) {
-          if (key.startsWith('rule_') && (!category || value.category === category)) {
+          if (
+            key.startsWith('rule_') &&
+            (!category || value.category === category)
+          ) {
             rules.push(value);
           }
         }
@@ -341,7 +370,10 @@ export class CustomContextManager {
   /**
    * ⚡ 규칙 실행 (실제 구현)
    */
-  async executeRules(context: Record<string, any>, orgId: string): Promise<{
+  async executeRules(
+    context: Record<string, any>,
+    orgId: string
+  ): Promise<{
     executed: number;
     triggered: number;
     actions: RuleAction[];
@@ -349,10 +381,10 @@ export class CustomContextManager {
   }> {
     try {
       console.log(`⚡ [CustomContext] 규칙 실행 시작: ${orgId}`);
-      
+
       const rules = await this.getCustomRules();
       const enabledRules = rules.filter(rule => rule.enabled);
-      
+
       let executed = 0;
       let triggered = 0;
       const actions: RuleAction[] = [];
@@ -361,15 +393,18 @@ export class CustomContextManager {
       for (const rule of enabledRules) {
         try {
           executed++;
-          const isTriggered = this.evaluateRuleConditions(rule.conditions, context);
-          
+          const isTriggered = this.evaluateRuleConditions(
+            rule.conditions,
+            context
+          );
+
           if (isTriggered) {
             triggered++;
             actions.push(...rule.actions);
-            
+
             // 규칙 실행 통계 업데이트
             await this.updateRuleStats(rule.id, true);
-            
+
             console.log(`🎯 [CustomContext] 규칙 트리거됨: ${rule.name}`);
           } else {
             await this.updateRuleStats(rule.id, false);
@@ -389,7 +424,7 @@ export class CustomContextManager {
         executed: 0,
         triggered: 0,
         actions: [],
-        errors: [error instanceof Error ? error.message : String(error)]
+        errors: [error instanceof Error ? error.message : String(error)],
       };
     }
   }
@@ -397,7 +432,10 @@ export class CustomContextManager {
   /**
    * 🧮 규칙 조건 평가
    */
-  private evaluateRuleConditions(conditions: RuleCondition[], context: Record<string, any>): boolean {
+  private evaluateRuleConditions(
+    conditions: RuleCondition[],
+    context: Record<string, any>
+  ): boolean {
     if (conditions.length === 0) return false;
 
     let result = true;
@@ -405,13 +443,13 @@ export class CustomContextManager {
 
     for (const condition of conditions) {
       const conditionResult = this.evaluateSingleCondition(condition, context);
-      
+
       if (currentLogic === 'AND') {
         result = result && conditionResult;
       } else {
         result = result || conditionResult;
       }
-      
+
       if (condition.logic) {
         currentLogic = condition.logic;
       }
@@ -423,7 +461,10 @@ export class CustomContextManager {
   /**
    * 🔍 단일 조건 평가
    */
-  private evaluateSingleCondition(condition: RuleCondition, context: Record<string, any>): boolean {
+  private evaluateSingleCondition(
+    condition: RuleCondition,
+    context: Record<string, any>
+  ): boolean {
     const value = this.getNestedValue(context, condition.field);
     const expectedValue = condition.value;
 
@@ -457,7 +498,10 @@ export class CustomContextManager {
   /**
    * 📈 규칙 통계 업데이트
    */
-  private async updateRuleStats(ruleId: string, success: boolean): Promise<void> {
+  private async updateRuleStats(
+    ruleId: string,
+    success: boolean
+  ): Promise<void> {
     try {
       if (this.supabase) {
         const { data, error } = await this.supabase
@@ -470,18 +514,22 @@ export class CustomContextManager {
 
         const rule = data.rule_data as CustomRule;
         rule.executionCount++;
-        
+
         if (success) {
-          rule.successRate = ((rule.successRate * (rule.executionCount - 1)) + 100) / rule.executionCount;
+          rule.successRate =
+            (rule.successRate * (rule.executionCount - 1) + 100) /
+            rule.executionCount;
         } else {
-          rule.successRate = (rule.successRate * (rule.executionCount - 1)) / rule.executionCount;
+          rule.successRate =
+            (rule.successRate * (rule.executionCount - 1)) /
+            rule.executionCount;
         }
 
         await this.supabase
           .from('custom_rules')
-          .update({ 
+          .update({
             rule_data: rule,
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
           .eq('id', ruleId);
       }
@@ -496,22 +544,24 @@ export class CustomContextManager {
   async saveUserProfile(profile: UserProfile): Promise<void> {
     try {
       if (this.supabase) {
-        const { error } = await this.supabase
-          .from('user_profiles')
-          .upsert({
-            id: profile.id,
-            username: profile.username,
-            role: profile.role,
-            organization_id: profile.organizationId,
-            profile_data: profile,
-            updated_at: new Date().toISOString()
-          });
+        const { error } = await this.supabase.from('user_profiles').upsert({
+          id: profile.id,
+          username: profile.username,
+          role: profile.role,
+          organization_id: profile.organizationId,
+          profile_data: profile,
+          updated_at: new Date().toISOString(),
+        });
 
         if (error) throw error;
-        console.log(`👤 [CustomContext] 사용자 프로필 저장 완료: ${profile.username}`);
+        console.log(
+          `👤 [CustomContext] 사용자 프로필 저장 완료: ${profile.username}`
+        );
       } else {
         this.localCache.set(`user_${profile.id}`, profile);
-        console.log(`👤 [CustomContext] 사용자 프로필 로컬 저장: ${profile.username}`);
+        console.log(
+          `👤 [CustomContext] 사용자 프로필 로컬 저장: ${profile.username}`
+        );
       }
 
       this.localCache.set(`user_${profile.id}`, profile);
@@ -548,7 +598,9 @@ export class CustomContextManager {
 
         const profile = data.profile_data as UserProfile;
         this.localCache.set(`user_${userId}`, profile);
-        console.log(`👤 [CustomContext] 사용자 프로필 조회 완료: ${profile.username}`);
+        console.log(
+          `👤 [CustomContext] 사용자 프로필 조회 완료: ${profile.username}`
+        );
         return profile;
       } else {
         return this.localCache.get(`user_${userId}`) || null;
@@ -562,9 +614,12 @@ export class CustomContextManager {
   /**
    * 🏢 기본 조직 설정 생성 (실제 구현)
    */
-  async createDefaultOrganizationSettings(orgId: string, orgName: string): Promise<OrganizationSettings> {
+  async createDefaultOrganizationSettings(
+    orgId: string,
+    orgName: string
+  ): Promise<OrganizationSettings> {
     console.log(`🏢 [CustomContext] 기본 조직 설정 생성: ${orgName}`);
-    
+
     const defaultSettings: OrganizationSettings = {
       id: orgId,
       organizationName: orgName,
@@ -572,12 +627,11 @@ export class CustomContextManager {
         cpu: { warning: 70, critical: 90 },
         memory: { warning: 80, critical: 95 },
         disk: { warning: 85, critical: 95 },
-        response_time: { warning: 1000, critical: 3000 }
+        response_time: { warning: 1000, critical: 3000 },
       },
       notifications: {
         email: { enabled: false, addresses: [] },
-        slack: { enabled: false },
-        webhook: { enabled: false }
+        webhook: { enabled: false },
       },
       customGuides: [],
       preferences: {
@@ -585,12 +639,12 @@ export class CustomContextManager {
         timezone: 'Asia/Seoul',
         dateFormat: 'YYYY-MM-DD HH:mm:ss',
         autoResolveAlerts: false,
-        maintenanceWindows: []
+        maintenanceWindows: [],
       },
       integrations: {
         monitoring: [],
-        alerting: []
-      }
+        alerting: [],
+      },
     };
 
     await this.saveOrganizationSettings(defaultSettings);
@@ -600,13 +654,16 @@ export class CustomContextManager {
   /**
    * 📚 가이드 문서 추가 (실제 구현)
    */
-  async addGuideDocument(orgId: string, guide: Omit<GuideDocument, 'id' | 'lastUpdated'>): Promise<string> {
+  async addGuideDocument(
+    orgId: string,
+    guide: Omit<GuideDocument, 'id' | 'lastUpdated'>
+  ): Promise<string> {
     try {
       const guideId = `guide_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const completeGuide: GuideDocument = {
         ...guide,
         id: guideId,
-        lastUpdated: Date.now()
+        lastUpdated: Date.now(),
       };
 
       const orgSettings = await this.getOrganizationSettings(orgId);
@@ -636,7 +693,9 @@ export class CustomContextManager {
           }
         }
         keysToDelete.forEach(key => this.localCache.delete(key));
-        console.log(`🗑️ [CustomContext] 패턴 캐시 정리 완료: ${pattern} (${keysToDelete.length}개)`);
+        console.log(
+          `🗑️ [CustomContext] 패턴 캐시 정리 완료: ${pattern} (${keysToDelete.length}개)`
+        );
       } else {
         this.localCache.clear();
         console.log(`🗑️ [CustomContext] 전체 캐시 정리 완료`);
@@ -659,9 +718,11 @@ export class CustomContextManager {
     try {
       if (this.supabase) {
         const [orgResult, userResult, ruleResult] = await Promise.all([
-          this.supabase.from('organization_settings').select('id', { count: 'exact' }),
+          this.supabase
+            .from('organization_settings')
+            .select('id', { count: 'exact' }),
           this.supabase.from('user_profiles').select('id', { count: 'exact' }),
-          this.supabase.from('custom_rules').select('rule_data, enabled')
+          this.supabase.from('custom_rules').select('rule_data, enabled'),
         ]);
 
         const totalOrganizations = orgResult.count || 0;
@@ -669,16 +730,20 @@ export class CustomContextManager {
         const rules = ruleResult.data || [];
         const totalRules = rules.length;
         const activeRules = rules.filter(r => r.enabled).length;
-        const avgSuccessRate = rules.length > 0 
-          ? rules.reduce((sum, r) => sum + (r.rule_data?.successRate || 0), 0) / rules.length
-          : 0;
+        const avgSuccessRate =
+          rules.length > 0
+            ? rules.reduce(
+                (sum, r) => sum + (r.rule_data?.successRate || 0),
+                0
+              ) / rules.length
+            : 0;
 
         const stats = {
           totalOrganizations,
           totalUsers,
           totalRules,
           activeRules,
-          avgSuccessRate
+          avgSuccessRate,
         };
 
         console.log('📊 [CustomContext] 통계 조회 완료:', stats);
@@ -704,7 +769,7 @@ export class CustomContextManager {
           totalUsers: userCount,
           totalRules: ruleCount,
           activeRules: activeRuleCount,
-          avgSuccessRate: 0
+          avgSuccessRate: 0,
         };
 
         console.log('📊 [CustomContext] 로컬 통계 조회:', stats);
@@ -717,7 +782,7 @@ export class CustomContextManager {
         totalUsers: 0,
         totalRules: 0,
         activeRules: 0,
-        avgSuccessRate: 0
+        avgSuccessRate: 0,
       };
     }
   }
@@ -730,7 +795,7 @@ export class CustomContextManager {
       isInitialized: this.isInitialized,
       hasSupabase: this.supabase !== null,
       cacheSize: this.localCache.size,
-      implementationLevel: 'FULL' // 더미에서 완전 구현으로 변경
+      implementationLevel: 'FULL', // 더미에서 완전 구현으로 변경
     };
   }
-} 
+}

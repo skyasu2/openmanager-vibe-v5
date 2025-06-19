@@ -66,7 +66,7 @@ export class SettingsService {
         notifications:
           notificationRes.status === 'fulfilled'
             ? notificationRes.value
-            : { slack: false, email: false, webhook: false },
+            : { email: false, webhook: false },
         backup:
           backupRes.status === 'fulfilled'
             ? backupRes.value
@@ -136,12 +136,12 @@ export class SettingsService {
    * 알림 설정 조회 (Vercel 최적화)
    */
   private async fetchNotificationConfig() {
-    // Vercel 환경에서는 Slack만 지원
-    return {
-      slack: true, // Slack은 웹훅 기반으로 Vercel에서 지원 가능
-      email: false, // 이메일은 Vercel에서 SMTP 제한으로 비활성화
-      webhook: false, // 웹훅은 Vercel에서 제한적 지원으로 비활성화
-    };
+    // Vercel 환경에서는 콘솔 로깅만 지원
+    if (process.env.VERCEL === '1') {
+      return { email: false, webhook: false };
+    }
+
+    return { email: false, webhook: false };
   }
 
   /**
@@ -322,9 +322,18 @@ export class SettingsService {
       scenarios: { active: 0, total: 0 },
       thresholds: { cpu: 80, memory: 85, disk: 90 },
       dashboard: { layout: 'grid', widgets: 0 },
-      notifications: { slack: false, email: false, webhook: false },
+      notifications: { email: false, webhook: false },
       backup: { lastBackup: '없음', autoBackup: false },
       theme: 'dark',
     };
+  }
+
+  private getDefaultNotificationSettings() {
+    // Vercel 환경에서는 콘솔 로깅만 지원
+    if (process.env.VERCEL === '1') {
+      return { email: false, webhook: false };
+    }
+
+    return { email: false, webhook: false };
   }
 }

@@ -1,11 +1,13 @@
 /**
- * 📊 자동 장애 보고서 서비스 (Vercel 최적화)
+ * 🚨 자동 장애 보고서 서비스 (v2.0)
  *
- * 간단한 패턴 기반 장애 감지 및 보고서 생성
- * - 실시간 메트릭 분석
- * - 임계값 기반 알림
- * - Slack 웹훅 연동
- * - 메모리 기반 캐싱
+ * 주요 기능:
+ * - 서버 메트릭 실시간 분석
+ * - 장애 패턴 자동 감지
+ * - 콘솔 로깅 (Slack 기능 제거됨)
+ * - 장애 이력 관리
+ *
+ * @author OpenManager Vibe v5
  */
 
 export interface ServerMetric {
@@ -47,7 +49,7 @@ export class AutoReportService {
   private lastMetrics = new Map<string, ServerMetric>();
   private isEnabled: boolean;
 
-  // 🚨 임계값 설정
+  // 🎯 장애 감지 임계값
   private readonly THRESHOLDS: AlertThresholds = {
     cpu: { warning: 80, critical: 95 },
     memory: { warning: 85, critical: 95 },
@@ -55,8 +57,7 @@ export class AutoReportService {
     network: { warning: 800, critical: 950 },
   };
 
-  // 🔔 Slack 웹훅 URL (환경변수에서만 가져오기)
-  private readonly SLACK_WEBHOOK = process.env.SLACK_WEBHOOK_URL;
+  // Slack 알림 기능 제거됨 (포트폴리오용)
 
   private constructor() {
     this.isEnabled = process.env.AUTO_REPORT_ENABLED !== 'false';
@@ -220,88 +221,24 @@ export class AutoReportService {
   }
 
   /**
-   * 🔔 Slack 알림 전송 (Vercel 최적화)
+   * 🔔 장애 알림 (콘솔 로깅)
    */
   private async sendAlert(incident: IncidentReport): Promise<void> {
-    if (!this.SLACK_WEBHOOK) {
-      console.log('Slack 웹훅이 설정되지 않음');
-      return;
-    }
-
     try {
-      const color = this.getSeverityColor(incident.severity);
       const emoji = this.getSeverityEmoji(incident.severity);
 
-      const payload = {
-        text: `${emoji} 장애 감지: ${incident.title}`,
-        attachments: [
-          {
-            color,
-            title: incident.title,
-            text: incident.description,
-            fields: [
-              {
-                title: '심각도',
-                value: incident.severity.toUpperCase(),
-                short: true,
-              },
-              {
-                title: '영향받는 서버',
-                value: incident.affectedServers.join(', '),
-                short: true,
-              },
-              {
-                title: '감지 시간',
-                value: new Date(incident.detectedAt).toLocaleString('ko-KR'),
-                short: true,
-              },
-              {
-                title: '권장 조치',
-                value: incident.recommendations.join('\n• '),
-                short: false,
-              },
-            ],
-            footer: 'OpenManager Vibe v5 자동 장애 보고서',
-            ts: Math.floor(new Date(incident.detectedAt).getTime() / 1000),
-          },
-        ],
-      };
-
-      // Vercel 환경에서는 로깅으로 처리
-      if (process.env.VERCEL === '1') {
-        console.log('🔔 Vercel 환경: Slack 알림 로깅됨', {
-          title: incident.title,
-          severity: incident.severity,
-          affectedServers: incident.affectedServers,
-        });
-      } else {
-        // 다른 환경에서는 실제 HTTP 요청
-        // Vercel 환경에서는 로깅으로 처리
-        if (process.env.VERCEL === '1') {
-          console.log('🔔 Vercel 환경: Slack 알림 로깅됨', {
-            title: incident.title,
-            severity: incident.severity,
-            affectedServers: incident.affectedServers,
-          });
-        } else {
-          // 다른 환경에서는 실제 HTTP 요청
-          const response = await fetch(this.SLACK_WEBHOOK, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-          });
-
-          if (response.ok) {
-            console.log(`✅ Slack 알림 전송 성공: ${incident.title}`);
-          } else {
-            console.error('❌ Slack 알림 전송 실패:', response.statusText);
-          }
-        }
-      }
+      // 콘솔 로깅으로 알림 처리
+      console.log(`${emoji} 장애 감지: ${incident.title}`);
+      console.log('📊 장애 상세 정보:', {
+        제목: incident.title,
+        설명: incident.description,
+        심각도: incident.severity.toUpperCase(),
+        영향받는_서버: incident.affectedServers.join(', '),
+        감지_시간: new Date(incident.detectedAt).toLocaleString('ko-KR'),
+        권장_조치: incident.recommendations,
+      });
     } catch (error) {
-      console.error('❌ Slack 알림 전송 오류:', error);
+      console.error('❌ 장애 알림 처리 오류:', error);
     }
   }
 

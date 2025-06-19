@@ -40,7 +40,6 @@ export interface SettingsData {
     widgets: number;
   };
   notifications: {
-    slack: boolean;
     email: boolean;
     webhook: boolean;
   };
@@ -188,4 +187,10 @@ export interface MenuItemProps {
   onClick: () => void;
   variant?: 'default' | 'warning' | 'danger';
   disabled?: boolean;
+}
+
+export interface NotificationSettings {
+  email: boolean;
+  push: boolean;
+  // Slack 설정 제거됨 (포트폴리오용)
 }

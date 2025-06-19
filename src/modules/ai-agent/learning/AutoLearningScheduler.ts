@@ -324,10 +324,7 @@ export class AutoLearningScheduler {
       // 1. 데이터베이스에 알림 저장
       await this.storeAdminNotification(suggestionReport);
 
-      // 2. Slack 알림 (Vercel 호환)
-      await this.sendSlackNotification(suggestionReport);
-
-      // 3. 웹소켓 실시간 알림 (Vercel 호환)
+      // 2. 웹소켓 실시간 알림 (Vercel 호환)
       await this.sendWebSocketNotification(suggestionReport);
 
       // 이메일 알림은 Vercel 환경에서 제거됨 (SMTP 제한)
@@ -386,82 +383,6 @@ export class AutoLearningScheduler {
   }
 
   /**
-   * 슬랙 알림 전송
-   */
-  private async sendSlackNotification(suggestionReport: any): Promise<void> {
-    try {
-      // 환경변수에서 슬랙 웹훅 URL 확인
-      const slackWebhook = process.env.SLACK_WEBHOOK_URL;
-      if (!slackWebhook) {
-        console.log('슬랙 웹훅이 설정되지 않음, 건너뜀');
-        return;
-      }
-
-      const slackMessage = {
-        text: `🤖 AI 패턴 분석 결과`,
-        blocks: [
-          {
-            type: 'header',
-            text: {
-              type: 'plain_text',
-              text: '🔍 AI 패턴 분석 완료 - 관리자 검토 필요',
-            },
-          },
-          {
-            type: 'section',
-            fields: [
-              {
-                type: 'mrkdwn',
-                text: `*전체 패턴:* ${suggestionReport.totalPatterns}개`,
-              },
-              {
-                type: 'mrkdwn',
-                text: `*고신뢰도 제안:* ${suggestionReport.highConfidencePatterns}개`,
-              },
-              {
-                type: 'mrkdwn',
-                text: `*분석 시간:* ${suggestionReport.timestamp.toLocaleString('ko-KR')}`,
-              },
-              {
-                type: 'mrkdwn',
-                text: `*분석 ID:* ${suggestionReport.analysisId}`,
-              },
-            ],
-          },
-          {
-            type: 'actions',
-            elements: [
-              {
-                type: 'button',
-                text: {
-                  type: 'plain_text',
-                  text: '제안 검토하기',
-                },
-                url: `${process.env.NEXT_PUBLIC_APP_URL}/admin/ai-agent/pattern-review`,
-                style: 'primary',
-              },
-            ],
-          },
-        ],
-      };
-
-      const response = await fetch(slackWebhook, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(slackMessage),
-      });
-
-      if (response.ok) {
-        console.log('✅ 슬랙 알림 전송 완료');
-      } else {
-        console.warn('⚠️ 슬랙 알림 전송 실패');
-      }
-    } catch (error) {
-      console.error('슬랙 알림 전송 에러:', error);
-    }
-  }
-
-  /**
    * 웹소켓을 통한 실시간 알림
    */
   private async sendWebSocketNotification(
@@ -495,6 +416,28 @@ export class AutoLearningScheduler {
       console.log('✅ 웹소켓 실시간 알림 전송 완료');
     } catch (error) {
       console.error('웹소켓 알림 전송 에러:', error);
+    }
+  }
+
+  /**
+   * 📊 개선 제안 보고서 전송
+   */
+  private async sendImprovementReport(suggestionReport: any): Promise<void> {
+    try {
+      // 1. 콘솔 로깅
+      console.log('📊 AI 개선 제안 보고서:', {
+        총_제안수: suggestionReport.suggestions?.length || 0,
+        우선순위_높음: suggestionReport.highPriority?.length || 0,
+        예상_성능_향상: suggestionReport.expectedImprovement || 'N/A',
+        생성_시간: new Date().toLocaleString('ko-KR'),
+        주요_제안:
+          suggestionReport.suggestions?.slice(0, 3)?.map((s: any) => s.title) ||
+          [],
+      });
+
+      // Slack 알림 기능 제거됨 (포트폴리오용)
+    } catch (error) {
+      console.error('❌ 개선 제안 보고서 전송 실패:', error);
     }
   }
 }
