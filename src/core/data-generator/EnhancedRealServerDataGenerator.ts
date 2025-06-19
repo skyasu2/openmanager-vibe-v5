@@ -174,7 +174,7 @@ export class EnhancedRealServerDataGenerator {
 
   constructor(config: EnhancedGeneratorConfig = {}) {
     this.config = {
-      maxServers: 8,
+      maxServers: parseInt(process.env.SERVER_COUNT || '15'),
       updateInterval: 20000, // 🎯 20초로 통일
       enableRealtime: true,
       serverArchitecture: 'load-balanced',

@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
 
     // 제한 개수 처리 (고정된 순서 유지)
     const { searchParams } = new URL(request.url);
-    const limit = Math.max(1, parseInt(searchParams.get('limit') || '8')); // 최소 1개
+    const limit = Math.max(1, parseInt(searchParams.get('limit') || '15')); // 최소 1개
     const limitedServers = servers.slice(0, limit);
 
     console.log(

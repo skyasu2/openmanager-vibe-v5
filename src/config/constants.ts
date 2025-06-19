@@ -96,7 +96,7 @@ export const LIMITS = {
     MAX_LOGS: 5000, // 경연대회 최적화: 절반으로 축소
     MAX_METRICS_POINTS: 500, // 경연대회 최적화: 절반으로 축소
     MAX_ALERTS_PER_HOUR: 25, // 경연대회 최적화: 절반으로 축소
-    MAX_SERVERS: 8, // Vercel Free 티어 기준
+    MAX_SERVERS: 15, // 🎯 8개 → 15개로 증가 (중앙 설정과 통일)
   },
 
   // 성능 관련
