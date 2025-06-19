@@ -51,6 +51,7 @@ import {
 import { Server as ServerType } from '../../types/server';
 import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
 import { useServerMetrics } from '@/hooks/useOptimizedRealtime';
+import { formatPercentage } from '@/lib/utils';
 
 interface EnhancedServerCardProps {
   server: {
@@ -166,7 +167,7 @@ const MiniChart = memo<{
         </svg>
         <div className='absolute -top-1 -right-1 bg-white rounded-full px-1 py-0.5 shadow-sm border'>
           <span className='text-xs font-bold' style={{ color }}>
-            {Math.round(currentValue)}%
+            {formatPercentage(currentValue)}
           </span>
         </div>
       </div>

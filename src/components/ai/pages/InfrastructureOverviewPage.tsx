@@ -20,6 +20,7 @@ import {
   Activity,
   RefreshCw,
 } from 'lucide-react';
+import { formatPercentage } from '@/lib/utils';
 
 interface InfrastructureStats {
   totalServers: number;
@@ -300,7 +301,7 @@ export default function InfrastructureOverviewPage({
               <span
                 className={`text-lg font-bold ${getStatusColor(stats.totalCpu, 'cpu')}`}
               >
-                {stats.totalCpu}%
+                {formatPercentage(stats.totalCpu)}
               </span>
             </div>
             <div className='text-xs text-gray-600'>💻 Total CPU</div>
@@ -329,7 +330,7 @@ export default function InfrastructureOverviewPage({
               <span
                 className={`text-lg font-bold ${getStatusColor(stats.totalRam, 'memory')}`}
               >
-                {stats.totalRam}%
+                {formatPercentage(stats.totalRam)}
               </span>
             </div>
             <div className='text-xs text-gray-600'>💾 Total RAM</div>
@@ -358,7 +359,7 @@ export default function InfrastructureOverviewPage({
               <span
                 className={`text-lg font-bold ${getStatusColor(stats.totalDisk, 'disk')}`}
               >
-                {stats.totalDisk}%
+                {formatPercentage(stats.totalDisk)}
               </span>
             </div>
             <div className='text-xs text-gray-600'>💿 Total Disk</div>

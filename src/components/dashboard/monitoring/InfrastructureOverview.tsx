@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import CollapsibleCard from '@/components/shared/CollapsibleCard';
 import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
+import { formatPercentage } from '@/lib/utils';
 
 interface InfrastructureOverviewProps {
   stats: {
@@ -49,8 +50,8 @@ export default function InfrastructureOverview({
   return (
     <div className='h-full flex flex-col'>
       <CollapsibleCard
-        title="Infrastructure Overview"
-        subtitle="전체 인프라 현황"
+        title='Infrastructure Overview'
+        subtitle='전체 인프라 현황'
         icon={
           <div className='p-2 bg-blue-100 rounded-lg'>
             <Monitor className='w-6 h-6 text-blue-600' />
@@ -58,8 +59,8 @@ export default function InfrastructureOverview({
         }
         isExpanded={sections.infrastructureOverview}
         onToggle={() => toggleSection('infrastructureOverview')}
-        variant="bordered"
-        className="h-full"
+        variant='bordered'
+        className='h-full'
       >
         <div className='space-y-6'>
           {/* 서버 상태 요약 */}
@@ -119,7 +120,7 @@ export default function InfrastructureOverview({
                     />
                   </div>
                   <span className='text-sm font-semibold text-gray-900 w-12 text-right'>
-                    {resourceUsage.cpu}%
+                    {formatPercentage(resourceUsage.cpu)}
                   </span>
                 </div>
               </div>
@@ -142,7 +143,7 @@ export default function InfrastructureOverview({
                     />
                   </div>
                   <span className='text-sm font-semibold text-gray-900 w-12 text-right'>
-                    {resourceUsage.memory}%
+                    {formatPercentage(resourceUsage.memory)}
                   </span>
                 </div>
               </div>
@@ -151,7 +152,9 @@ export default function InfrastructureOverview({
               <div className='flex items-center justify-between'>
                 <div className='flex items-center gap-2'>
                   <HardDrive className='w-4 h-4 text-purple-500' />
-                  <span className='text-sm font-medium text-gray-700'>Disk</span>
+                  <span className='text-sm font-medium text-gray-700'>
+                    Disk
+                  </span>
                 </div>
                 <div className='flex items-center gap-3 flex-1 ml-4'>
                   <div className='flex-1 bg-gray-200 rounded-full h-2'>
@@ -163,7 +166,7 @@ export default function InfrastructureOverview({
                     />
                   </div>
                   <span className='text-sm font-semibold text-gray-900 w-12 text-right'>
-                    {resourceUsage.disk}%
+                    {formatPercentage(resourceUsage.disk)}
                   </span>
                 </div>
               </div>

@@ -25,6 +25,7 @@ import {
   ExternalLink,
   RefreshCw,
 } from 'lucide-react';
+import { formatPercentage } from '@/lib/utils';
 
 interface SystemAlert {
   id: string;
@@ -520,12 +521,14 @@ export default function SystemAlertsPage({
                   <div className='p-3 bg-gray-50 rounded-lg'>
                     <div className='flex justify-between text-sm'>
                       <span>현재 사용률:</span>
-                      <span className='font-bold'>{selectedAlert.value}%</span>
+                      <span className='font-bold'>
+                        {formatPercentage(selectedAlert.value)}
+                      </span>
                     </div>
                     <div className='flex justify-between text-sm'>
                       <span>임계값:</span>
                       <span className='font-bold'>
-                        {selectedAlert.threshold}%
+                        {formatPercentage(selectedAlert.threshold)}
                       </span>
                     </div>
                     <div className='w-full bg-gray-200 rounded-full h-2 mt-2'>

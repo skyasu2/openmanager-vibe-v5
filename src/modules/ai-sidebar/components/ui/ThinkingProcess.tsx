@@ -10,6 +10,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatPercentage } from '@/lib/utils';
 
 interface RealTimeLogEntry {
   id: string;
@@ -288,7 +289,7 @@ export const ThinkingProcess: React.FC<ThinkingProcessProps> = ({
                               />
                             </div>
                             <span className='text-xs text-gray-400 min-w-[2rem]'>
-                              {log.progress}%
+                              {formatPercentage(log.progress)}
                             </span>
                           </div>
                         )}

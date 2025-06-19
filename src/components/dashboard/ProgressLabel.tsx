@@ -1,6 +1,6 @@
 /**
  * 📝 ProgressLabel Component
- * 
+ *
  * SimulateProgressBar의 텍스트 정보를 담당하는 모듈화된 컴포넌트
  * - 단계 정보 표시
  * - 동적 설명 텍스트
@@ -9,6 +9,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatPercentage } from '@/lib/utils';
 
 interface ProgressLabelProps {
   currentStep: number;
@@ -29,7 +30,7 @@ const ProgressLabel: React.FC<ProgressLabelProps> = ({
   progress,
   format = 'default',
   customTitle,
-  showProgress = true
+  showProgress = true,
 }) => {
   // 상태별 텍스트 색상
   const getTextColor = () => {
@@ -39,16 +40,17 @@ const ProgressLabel: React.FC<ProgressLabelProps> = ({
   };
 
   // 진행률 계산
-  const calculatedProgress = progress ?? Math.round(((currentStep + 1) / totalSteps) * 100);
+  const calculatedProgress =
+    progress ?? Math.round(((currentStep + 1) / totalSteps) * 100);
   const isComplete = currentStep >= totalSteps - 1 || calculatedProgress >= 100;
 
   // 제목 텍스트 생성
   const getTitleText = () => {
     if (customTitle) return customTitle;
-    
+
     switch (format) {
       case 'percentage':
-        return `진행률: ${calculatedProgress}%`;
+        return `진행률: ${formatPercentage(calculatedProgress)}`;
       case 'step-count':
         return `${currentStep + 1} / ${totalSteps} 단계`;
       case 'custom':
@@ -66,10 +68,10 @@ const ProgressLabel: React.FC<ProgressLabelProps> = ({
   };
 
   return (
-    <div className="flex-1">
+    <div className='flex-1'>
       {/* 제목 */}
-      <motion.h3 
-        className="text-lg font-semibold text-white"
+      <motion.h3
+        className='text-lg font-semibold text-white'
         layout
         key={`title-${currentStep}`}
         initial={{ opacity: 0, y: -10 }}
@@ -78,9 +80,9 @@ const ProgressLabel: React.FC<ProgressLabelProps> = ({
       >
         {getTitleText()}
       </motion.h3>
-      
+
       {/* 설명 텍스트 */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode='wait'>
         <motion.p
           key={stepDescription || currentStep}
           initial={{ opacity: 0, x: -20 }}
@@ -95,20 +97,24 @@ const ProgressLabel: React.FC<ProgressLabelProps> = ({
 
       {/* 진행률 표시 (옵션) */}
       {showProgress && (
-        <motion.div 
-          className="flex items-center mt-2 space-x-2"
+        <motion.div
+          className='flex items-center mt-2 space-x-2'
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
         >
-          <div className="flex-1 bg-gray-700/30 rounded-full h-1">
+          <div className='flex-1 bg-gray-700/30 rounded-full h-1'>
             <motion.div
               className={`h-full rounded-full ${
-                error ? 'bg-red-400' : isComplete ? 'bg-green-400' : 'bg-blue-400'
+                error
+                  ? 'bg-red-400'
+                  : isComplete
+                    ? 'bg-green-400'
+                    : 'bg-blue-400'
               }`}
               initial={{ width: 0 }}
               animate={{ width: `${calculatedProgress}%` }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
             />
           </div>
           <span className={`text-xs font-medium ${getTextColor()}`}>
@@ -120,4 +126,4 @@ const ProgressLabel: React.FC<ProgressLabelProps> = ({
   );
 };
 
-export default ProgressLabel; 
+export default ProgressLabel;

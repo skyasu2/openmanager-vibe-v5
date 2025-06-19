@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { formatPercentage } from '@/lib/utils';
 
 interface CircularGaugeProps {
   value: number;
@@ -101,8 +102,8 @@ export default function CircularGauge({
         {/* 중앙 텍스트 */}
         <div className='absolute inset-0 flex flex-col items-center justify-center'>
           <div className='text-2xl font-bold' style={{ color: statusColor }}>
-            {Math.round(value)}
-            {max === 100 ? '%' : ''}
+            {formatPercentage(value).replace('%', '')}
+            <span className='text-xl'>%</span>
           </div>
           <div className='text-xs text-gray-500 mt-1'>{statusText}</div>
         </div>
@@ -126,7 +127,7 @@ export default function CircularGauge({
         <div className='text-sm font-medium text-gray-700'>{label}</div>
         {max !== 100 && (
           <div className='text-xs text-gray-500'>
-            {value.toFixed(1)} / {max}
+            {value.toFixed(2)} / {max}
           </div>
         )}
       </div>
