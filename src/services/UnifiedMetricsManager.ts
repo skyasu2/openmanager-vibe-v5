@@ -228,18 +228,18 @@ export class UnifiedMetricsManager {
    * ⏰ 통합 스케줄러 시작
    */
   private startUnifiedSchedulers(): void {
-    // 1. 메트릭 생성 스케줄러 (15초 - Prometheus 표준)
+    // 1. 메트릭 생성 스케줄러 - 🎯 데이터 생성기와 동기화 (15초 → 20초)
     if (this.config.generation.enabled) {
       timerManager.register({
         id: 'unified-metrics-generation',
         callback: async () => await this.generateMetrics(),
-        interval: this.config.generation.interval_seconds * 1000,
+        interval: 20000, // 20초 (데이터 생성기와 동기화)
         priority: 'high',
         enabled: true,
       });
     }
 
-    // 2. AI 분석 스케줄러 (5분) - Google AI 할당량 절약
+    // 2. AI 분석 스케줄러 - 🎯 데이터 생성기 간격의 3배로 조정 (5분 → 60초)
     if (this.config.ai_analysis.enabled) {
       timerManager.register({
         id: 'unified-ai-analysis',
@@ -247,13 +247,13 @@ export class UnifiedMetricsManager {
           console.log('🤖 AI 분석 수행 중...');
           // await this.performAIAnalysis();
         },
-        interval: this.config.ai_analysis.interval_seconds * 1000,
+        interval: 60000, // 60초 (데이터 생성기 20초의 3배)
         priority: 'medium',
         enabled: true,
       });
     }
 
-    // 3. 자동 스케일링 스케줄러 (60초)
+    // 3. 자동 스케일링 스케줄러 - 🎯 데이터 생성기 간격의 4배로 조정 (60초 → 80초)
     if (this.config.autoscaling.enabled) {
       timerManager.register({
         id: 'unified-autoscaling',
@@ -261,17 +261,17 @@ export class UnifiedMetricsManager {
           console.log('⚖️ 자동 스케일링 수행 중...');
           // await this.performAutoscaling();
         },
-        interval: this.config.autoscaling.scale_interval_seconds * 1000,
+        interval: 80000, // 80초 (데이터 생성기 20초의 4배)
         priority: 'medium',
         enabled: true,
       });
     }
 
-    // 4. 성능 모니터링 스케줄러 (120초)
+    // 4. 성능 모니터링 스케줄러 - 🎯 데이터 생성기 간격의 6배로 조정 (120초 → 120초 유지)
     timerManager.register({
       id: 'unified-performance-monitor',
       callback: async () => await this.monitorPerformance(),
-      interval: 120000,
+      interval: 120000, // 120초 (데이터 생성기 20초의 6배)
       priority: 'low',
       enabled: true,
     });

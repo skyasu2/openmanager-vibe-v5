@@ -114,7 +114,7 @@ class ModeTimerManager {
       immediate: false,
     });
 
-    // AI 분석 데이터 수집
+    // AI 분석 데이터 수집 - 🎯 데이터 생성기와 동기화
     this.registerTimer({
       id: 'ai-analytics-collector',
       callback: async () => {
@@ -125,7 +125,7 @@ class ModeTimerManager {
           console.error('❌ AI Analytics error:', error);
         }
       },
-      interval: 30000, // 30초
+      interval: 40000, // 40초 (데이터 생성기 20초의 2배 간격)
       immediate: false,
     });
   }
@@ -152,7 +152,7 @@ class ModeTimerManager {
       immediate: true,
     });
 
-    // 데이터 생성기 상태 확인 - 🚨 과도한 헬스체크 방지: 10초 → 30초로 변경
+    // 데이터 생성기 상태 확인 - 🎯 데이터 생성기 간격(20초)보다 길게 조정
     this.registerTimer({
       id: 'data-generator-status',
       callback: async () => {
@@ -169,7 +169,7 @@ class ModeTimerManager {
           console.error('❌ Data Generator status error:', error);
         }
       },
-      interval: 30000, // 30초 (과도한 헬스체크 방지)
+      interval: 25000, // 25초 (데이터 생성기 20초보다 5초 길게)
       immediate: false,
     });
 

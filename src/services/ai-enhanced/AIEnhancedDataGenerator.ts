@@ -132,8 +132,8 @@ export class AIEnhancedDataGenerator {
     },
   };
 
-  // 업데이트 간격 (10초로 조정)
-  private readonly UPDATE_INTERVAL = 10000; // 10초
+  // 업데이트 간격 - 🎯 데이터 생성기와 동기화: 10초 → 20초로 조정
+  private readonly UPDATE_INTERVAL = 20000; // 20초 (데이터 생성기와 동기화)
   private updateTimer: NodeJS.Timeout | null = null;
   private lastScenarioGeneration: number = 0;
 
