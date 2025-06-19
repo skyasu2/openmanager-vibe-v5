@@ -52,12 +52,22 @@ function validateServer(server: any): server is Server {
 export function transformServerInstanceToServer(
   serverInstance: ServerInstance
 ): Server {
+  const baseStatus = mapServerStatus(serverInstance.status);
+
+  // EnhancedServerCard 가 사용하는 상태 값으로 변환
+  const enhancedStatus =
+    baseStatus === 'online'
+      ? ('healthy' as any)
+      : baseStatus === 'offline'
+        ? ('critical' as any)
+        : ('warning' as any);
+
   return {
     id: serverInstance.id || `server-${Date.now()}`,
     name: serverInstance.name || 'Unknown Server',
 
-    // 🎯 상태 매핑 (running/warning/error → online/warning/offline)
-    status: mapServerStatus(serverInstance.status),
+    // 🎯 상태 매핑 (healthy / warning / critical / offline)
+    status: enhancedStatus,
 
     // 🎯 메트릭 데이터 안전 변환
     cpu: serverInstance.metrics?.cpu || 0,
@@ -73,6 +83,22 @@ export function transformServerInstanceToServer(
     // 🎯 추가 정보 (옵셔널)
     ip: generateIP(serverInstance.id),
     os: getOSFromSpecs(serverInstance.specs),
+    hostname: serverInstance.name || serverInstance.id,
+    type: serverInstance.role
+      ? `${serverInstance.role}_server`
+      : 'generic_server',
+    environment: 'production' as any,
+    provider: 'AWS' as any,
+
+    // 임의의 스펙 생성 (기존 데이터에 없을 경우)
+    specs: {
+      cpu_cores: 4,
+      memory_gb: 8,
+      disk_gb: 250,
+      network_speed:
+        (serverInstance.metrics?.network?.in || 0) > 80 ? '1Gbps' : '100Mbps',
+    },
+
     lastUpdate: new Date(),
 
     // 🎯 서비스 정보 변환

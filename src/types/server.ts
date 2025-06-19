@@ -1,7 +1,7 @@
 export interface Server {
   id: string;
   name: string;
-  status: 'online' | 'offline' | 'warning';
+  status: 'online' | 'offline' | 'warning' | 'healthy' | 'critical';
   cpu: number;
   memory: number;
   disk: number;
@@ -11,6 +11,16 @@ export interface Server {
   alerts: number;
   ip?: string;
   os?: string;
+  hostname?: string;
+  type?: string;
+  environment?: string;
+  provider?: string;
+  specs?: {
+    cpu_cores: number;
+    memory_gb: number;
+    disk_gb: number;
+    network_speed?: string;
+  };
   lastUpdate: Date;
   services: Service[];
   logs?: LogEntry[];
