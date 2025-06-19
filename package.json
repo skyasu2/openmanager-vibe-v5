@@ -4,7 +4,7 @@
   "description": "🚀 OpenManager AI v5.21.0 - AI 분석과 오토스케일링 완전 분리로 추론 안정성과 운영 시뮬 유연성을 동시에 확보한 차세대 서버 모니터링 시스템. 고정된 8개 AI 분석 타겟으로 일관된 추론을 보장하고, 8-30대 동적 서버 풀로 현실적인 스케일링 시뮬레이션을 제공합니다.",
   "private": true,
   "engines": {
-    "node": ">=18.17.0",
+    "node": ">=20.0.0",
     "npm": ">=9.0.0"
   },
   "keywords": [
@@ -65,7 +65,7 @@
     "test:e2e:report": "playwright show-report",
     "test:e2e:install": "playwright install",
     "test:all": "npm run test:unit && npm run test:e2e",
-    "test:ci": "npm run type-check && npm run lint -- --max-warnings 50 && npm run build",
+    "test:ci": "playwright test --reporter=html",
     "test:quality": "npm run lint && npm run type-check && npm run test:unit",
     "test:enterprise": "node development/scripts/mockEnterpriseHit.ts",
     "enterprise:seed": "curl -X POST http://localhost:3001/api/enterprise/seed",
@@ -162,7 +162,7 @@
     "project:health": "node development/scripts/maintenance/project-health-check.js",
     "project:health:quick": "node development/scripts/maintenance/project-health-check.js --no-performance",
     "structure:validate": "npm run config:check && npm run project:health:quick",
-    "postinstall": "husky",
+    "postinstall": "playwright install --with-deps",
     "lighthouse": "lhci autorun",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -291,7 +291,9 @@
     "winston-daily-rotate-file": "^5.0.0",
     "ws": "^8.18.2",
     "zod": "^3.25.46",
-    "zustand": "^5.0.5"
+    "zustand": "^5.0.5",
+    "@google/generative-ai": "^0.16.0",
+    "@hookform/resolvers": "^3.9.0"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

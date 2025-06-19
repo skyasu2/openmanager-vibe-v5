@@ -10,9 +10,15 @@ importers:
       '@faker-js/faker':
         specifier: ^9.8.0
         version: 9.8.0
+      '@google/generative-ai':
+        specifier: ^0.16.0
+        version: 0.16.1
       '@heroicons/react':
         specifier: ^2.2.0
         version: 2.2.0(react@19.1.0)
+      '@hookform/resolvers':
+        specifier: ^3.9.0
+        version: 3.10.0(react-hook-form@7.58.1(react@19.1.0))
       '@influxdata/influxdb-client':
         specifier: ^1.35.0
         version: 1.35.0
@@ -1749,6 +1755,13 @@ packages:
         integrity: sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==,
       }
 
+  '@google/generative-ai@0.16.1':
+    resolution:
+      {
+        integrity: sha512-t4x4g0z/HT2BdBNfK2ua2xA/Az+SDFng4PxWjgiys/qxbh2YcrCI2rZg9/6eBkd4Iz41yjpCCDOWxsMryLJ7TA==,
+      }
+    engines: { node: '>=18.0.0' }
+
   '@heroicons/react@2.2.0':
     resolution:
       {
@@ -1756,6 +1769,14 @@ packages:
       }
     peerDependencies:
       react: '>= 16 || ^19.0.0-rc'
+
+  '@hookform/resolvers@3.10.0':
+    resolution:
+      {
+        integrity: sha512-79Dv+3mDF7i+2ajj7SkypSKHhl1cbln1OGavqrsF7p6mbUv11xpqpacPsGDCTRvCSjEEIez2ef1NveSVL3b0Ag==,
+      }
+    peerDependencies:
+      react-hook-form: ^7.0.0
 
   '@huggingface/jinja@0.2.2':
     resolution:
@@ -10685,6 +10706,15 @@ packages:
     peerDependencies:
       react: ^19.1.0
 
+  react-hook-form@7.58.1:
+    resolution:
+      {
+        integrity: sha512-Lml/KZYEEFfPhUVgE0RdCVpnC4yhW+PndRhbiTtdvSlQTL8IfVR+iQkBjLIvmmc6+GGoVeM11z37ktKFPAb0FA==,
+      }
+    engines: { node: '>=18.0.0' }
+    peerDependencies:
+      react: ^16.8.0 || ^17 || ^18 || ^19
+
   react-hot-toast@2.5.2:
     resolution:
       {
@@ -14037,9 +14067,15 @@ snapshots:
 
   '@floating-ui/utils@0.2.9': {}
 
+  '@google/generative-ai@0.16.1': {}
+
   '@heroicons/react@2.2.0(react@19.1.0)':
     dependencies:
       react: 19.1.0
+
+  '@hookform/resolvers@3.10.0(react-hook-form@7.58.1(react@19.1.0))':
+    dependencies:
+      react-hook-form: 7.58.1(react@19.1.0)
 
   '@huggingface/jinja@0.2.2': {}
 
@@ -19984,6 +20020,10 @@ snapshots:
     dependencies:
       react: 19.1.0
       scheduler: 0.26.0
+
+  react-hook-form@7.58.1(react@19.1.0):
+    dependencies:
+      react: 19.1.0
 
   react-hot-toast@2.5.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
     dependencies:
