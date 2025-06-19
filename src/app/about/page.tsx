@@ -199,14 +199,23 @@ export default function DevelopmentProcessPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
-            className='bg-gray-800/50 border-l-4 border-indigo-500 text-gray-300 p-6 rounded-r-lg max-w-3xl mx-auto italic'
+            className='bg-gray-800/50 border-l-4 border-indigo-500 text-gray-300 p-6 rounded-r-lg max-w-3xl mx-auto'
           >
             <p className='mb-4'>
-              &quot;AI 도구를 잘 다루는 것이 명백한 전술적 방법입니다. 제가
-              고등학교를 졸업할 때는 코딩을 잘 하는 것이 명백한 전술적
-              방법이었습니다. 이것이 그것의 새로운 버전입니다.&quot;
+              &quot;명백한 전술적 선택은 AI 도구를 사용하는 데 매우 능숙해지는
+              것입니다. 제가 고등학교 졸업반이었을 때 명백한 전술적 선택은
+              코딩에 매우 능숙해지는 것이었고, 지금은 바로 그것의 새로운
+              버전입니다.&quot;
             </p>
-            <footer className='text-gray-400 text-right'>- Sam Altman</footer>
+            <p className='italic mb-2 text-gray-400'>
+              &quot;The obvious tactical thing is just get really good at using
+              AI tools. Like when I was graduating as a senior from high school,
+              the obvious tactical thing was get really good at coding. And this
+              is the new version of that.&quot;
+            </p>
+            <footer className='text-gray-400 text-right mt-4'>
+              - Sam Altman, Stratechery의 벤 톰슨과의 인터뷰 중
+            </footer>
           </motion.blockquote>
         </section>
       </main>
