@@ -541,7 +541,7 @@ export default function Home() {
                   모든 서비스가 중지되었습니다.
                   <br />
                   <strong>
-                    대시보드 버튼을 클릭하면 자동으로 시스템이 시작됩니다.
+                    시스템 시작 버튼을 클릭하여 서비스를 시작하세요.
                   </strong>
                 </p>
               </div>
@@ -605,22 +605,6 @@ export default function Home() {
                   )}
                 </motion.button>
 
-                {/* 대시보드 버튼 (보조) */}
-                <motion.button
-                  onClick={handleDashboardClick}
-                  disabled={isLoading}
-                  className={`w-64 h-12 flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-200 border ${
-                    isLoading
-                      ? 'bg-gray-400/20 text-gray-500 border-gray-400/30 cursor-not-allowed'
-                      : 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border-blue-400/50 hover:border-blue-400/70'
-                  }`}
-                  whileHover={!isLoading ? { scale: 1.02 } : {}}
-                  whileTap={!isLoading ? { scale: 0.98 } : {}}
-                >
-                  <BarChart3 className='w-5 h-5' />
-                  <span>📊 대시보드로 이동 (시스템 자동 시작)</span>
-                </motion.button>
-
                 {/* 상태 안내 */}
                 <div className='mt-3 flex justify-center'>
                   <span
@@ -653,10 +637,10 @@ export default function Home() {
                 >
                   <div className='flex items-center gap-2 mb-1'>
                     <Zap className='w-4 h-4 text-blue-400' />
-                    <span className='font-semibold'>자동 시작</span>
+                    <span className='font-semibold'>시스템 시작 과정</span>
                   </div>
                   <p className={isDarkMode ? 'text-white/70' : 'text-gray-600'}>
-                    서버 시딩 → 시뮬레이션 → 데이터 생성
+                    MCP 서버 Wake-up → 서버 시딩 → 시뮬레이션 → 대시보드 이동
                   </p>
                 </div>
                 <div
@@ -666,10 +650,10 @@ export default function Home() {
                 >
                   <div className='flex items-center gap-2 mb-1'>
                     <Bot className='w-4 h-4 text-purple-400' />
-                    <span className='font-semibold'>AI 에이전트</span>
+                    <span className='font-semibold'>AI 어시스턴트</span>
                   </div>
                   <p className={isDarkMode ? 'text-white/70' : 'text-gray-600'}>
-                    독립 모드 가능 (시스템 연동 선택사항)
+                    시스템 시작 후 대시보드에서 AI 사이드바 이용 가능
                   </p>
                 </div>
               </div>
