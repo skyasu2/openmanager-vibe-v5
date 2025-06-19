@@ -19,11 +19,15 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useToast } from '@/components/ui/ToastNotification';
+// import { useToast } from '@/components/ui/ToastNotification'; // 사용하지 않음
 import {
   predictiveAnalysisEngine,
   MetricDataPoint,
 } from '@/engines/PredictiveAnalysisEngine';
+import {
+  MCPWarmupService,
+  MCPWakeupProgress,
+} from '@/services/mcp/mcp-warmup-service';
 
 // Phase 1 + 2.1 모듈 타입 정의
 interface RealTimeHubStatus {
@@ -73,6 +77,16 @@ interface SystemIntegrationState {
   isInitialized: boolean;
   initializationProgress: number;
 
+  // 🚀 MCP Wake-up 상태 추가
+  mcpWakeupStatus: {
+    isInProgress: boolean;
+    stage: MCPWakeupProgress['stage'] | null;
+    message: string;
+    progress: number;
+    elapsedTime: number;
+    estimatedRemaining?: number;
+  };
+
   // 실시간 이벤트
   recentEvents: SystemEvent[];
   eventCount: number;
@@ -119,7 +133,7 @@ interface SystemIntegrationActions {
  * 🎯 시스템 통합 Hook
  */
 export const useSystemIntegration = () => {
-  const { success, warning, error: showError } = useToast();
+  // const { success, warning, error: showError } = useToast(); // 사용하지 않음
   const [state, setState] = useState<SystemIntegrationState>({
     realTimeHub: {
       isConnected: false,
@@ -155,6 +169,14 @@ export const useSystemIntegration = () => {
     lastUpdate: null,
     isInitialized: false,
     initializationProgress: 0,
+    // 🚀 MCP Wake-up 상태 초기화
+    mcpWakeupStatus: {
+      isInProgress: false,
+      stage: null,
+      message: '',
+      progress: 0,
+      elapsedTime: 0,
+    },
     recentEvents: [],
     eventCount: 0,
   });
@@ -201,17 +223,17 @@ export const useSystemIntegration = () => {
       // UI 토스트 표시
       switch (severity) {
         case 'critical':
-          showError(message);
+          // showError(message);
           break;
         case 'warning':
-          warning(message);
+          // warning(message);
           break;
         case 'info':
-          success(message);
+          // success(message);
           break;
       }
     },
-    [success, warning, showError]
+    []
   );
 
   /**
@@ -314,16 +336,110 @@ export const useSystemIntegration = () => {
   }, [emitEvent]);
 
   /**
-   * 🚀 시스템 초기화 (조용한 모드)
+   * 🚀 MCP 서버 Wake-up 실행 (Render Cold Start 해결)
+   */
+  const wakeupMCPServer = useCallback(async (): Promise<boolean> => {
+    try {
+      const mcpService = MCPWarmupService.getInstance();
+
+      // Wake-up 진행상황 업데이트
+      const onProgress = (progress: MCPWakeupProgress) => {
+        setState(prev => ({
+          ...prev,
+          mcpWakeupStatus: {
+            isInProgress: true,
+            stage: progress.stage,
+            message: progress.message,
+            progress: progress.progress,
+            elapsedTime: progress.elapsedTime,
+            estimatedRemaining: progress.estimatedRemaining,
+          },
+        }));
+
+        // 이벤트 로그에도 추가
+        emitEvent(
+          'connection_change',
+          progress.stage === 'error' ? 'critical' : 'info',
+          progress.message
+        );
+      };
+
+      // MCP Wake-up 실행
+      const result = await mcpService.wakeupMCPServer(onProgress);
+
+      // 최종 상태 업데이트
+      setState(prev => ({
+        ...prev,
+        mcpWakeupStatus: {
+          isInProgress: false,
+          stage: result.success ? 'ready' : 'error',
+          message: result.success
+            ? `✅ MCP 서버 활성화 완료 (${Math.round(result.totalTime / 1000)}초)`
+            : `❌ MCP 서버 Wake-up 실패: ${result.error}`,
+          progress: 100,
+          elapsedTime: result.totalTime,
+        },
+      }));
+
+      if (result.success) {
+        emitEvent(
+          'connection_change',
+          'info',
+          `🚀 MCP 서버가 성공적으로 활성화되었습니다! (${result.attempts}회 시도, ${Math.round(result.totalTime / 1000)}초)`
+        );
+      } else {
+        emitEvent(
+          'error',
+          'warning',
+          `⚠️ MCP 서버 Wake-up 실패했지만 시스템은 계속 진행됩니다: ${result.error}`
+        );
+      }
+
+      return result.success;
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        mcpWakeupStatus: {
+          isInProgress: false,
+          stage: 'error',
+          message: `❌ MCP Wake-up 오류: ${error.message}`,
+          progress: 100,
+          elapsedTime: 0,
+        },
+      }));
+
+      emitEvent('error', 'critical', `❌ MCP Wake-up 실행 오류: ${error}`);
+      return false;
+    }
+  }, [emitEvent]);
+
+  /**
+   * 🚀 시스템 초기화 (MCP Wake-up 포함)
    */
   const initializeSystem = useCallback(async (): Promise<boolean> => {
     try {
       setState(prev => ({ ...prev, initializationProgress: 0 }));
-      // 초기화 시작은 콘솔에만 로그 (웹 알림 제거)
       console.log('🚀 시스템 초기화 시작...');
 
-      // Phase 1 모듈 초기화
-      setState(prev => ({ ...prev, initializationProgress: 25 }));
+      // 🎯 Phase 0: MCP 서버 Wake-up (Render Cold Start 해결)
+      emitEvent('connection_change', 'info', '🔄 MCP 서버 Wake-up 시작...');
+      setState(prev => ({ ...prev, initializationProgress: 5 }));
+
+      const mcpWakeupSuccess = await wakeupMCPServer();
+
+      // MCP Wake-up 실패해도 계속 진행 (degraded 모드)
+      if (!mcpWakeupSuccess) {
+        emitEvent(
+          'connection_change',
+          'warning',
+          '⚠️ MCP 서버 Wake-up 실패했지만 로컬 모드로 계속 진행합니다'
+        );
+      }
+
+      setState(prev => ({ ...prev, initializationProgress: 20 }));
+
+      // Phase 1 모듈 초기화 (기존 로직)
+      setState(prev => ({ ...prev, initializationProgress: 30 }));
 
       // RealTimeHub 테스트
       const hubTest = await fetch('/api/realtime/connect', { method: 'POST' });
@@ -337,7 +453,7 @@ export const useSystemIntegration = () => {
       });
       if (!patternTest.ok) throw new Error('PatternMatcher 초기화 실패');
 
-      setState(prev => ({ ...prev, initializationProgress: 75 }));
+      setState(prev => ({ ...prev, initializationProgress: 70 }));
 
       // DataRetention 시작
       const retentionTest = await fetch('/api/cron/cleanup', {
@@ -345,7 +461,7 @@ export const useSystemIntegration = () => {
       });
       if (!retentionTest.ok) throw new Error('DataRetention 초기화 실패');
 
-      setState(prev => ({ ...prev, initializationProgress: 90 }));
+      setState(prev => ({ ...prev, initializationProgress: 85 }));
 
       // Phase 2.1 모듈 선택적 초기화
       try {
@@ -362,17 +478,35 @@ export const useSystemIntegration = () => {
 
       // 상태 폴링 시작
       if (pollingInterval.current) clearInterval(pollingInterval.current);
-              pollingInterval.current = setInterval(pollSystemStatus, 20000); // 20초로 통일
+      pollingInterval.current = setInterval(pollSystemStatus, 20000); // 20초로 통일
 
       // 즉시 한 번 실행
       await pollSystemStatus();
 
-      // 초기화 완료만 한 번만 알림 (조용하게)
+      // 🔄 MCP Keep-Alive 시작 (선택적)
+      if (mcpWakeupSuccess) {
+        try {
+          const mcpService = MCPWarmupService.getInstance();
+          mcpService.startKeepAlive(5); // 5분마다 Keep-Alive
+          emitEvent(
+            'connection_change',
+            'info',
+            '🔄 MCP Keep-Alive 시스템 활성화'
+          );
+        } catch (error) {
+          console.warn('⚠️ MCP Keep-Alive 시작 실패:', error);
+        }
+      }
+
+      // 초기화 완료 알림
       emitEvent(
         'connection_change',
         'info',
-        '🚀 시스템이 최적화된 상태로 시작되었습니다!'
+        mcpWakeupSuccess
+          ? '🚀 시스템이 완전히 최적화된 상태로 시작되었습니다!'
+          : '🚀 시스템이 로컬 모드로 시작되었습니다 (MCP 서버 비활성)'
       );
+
       return true;
     } catch (error) {
       emitEvent('error', 'critical', `❌ 시스템 초기화 실패: ${error}`);
@@ -380,10 +514,14 @@ export const useSystemIntegration = () => {
         ...prev,
         isInitialized: false,
         initializationProgress: 0,
+        mcpWakeupStatus: {
+          ...prev.mcpWakeupStatus,
+          isInProgress: false,
+        },
       }));
       return false;
     }
-  }, [pollSystemStatus, emitEvent]);
+  }, [pollSystemStatus, emitEvent, wakeupMCPServer]);
 
   /**
    * 🛑 시스템 종료

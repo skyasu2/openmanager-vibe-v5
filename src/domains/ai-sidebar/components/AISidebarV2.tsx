@@ -36,12 +36,15 @@ import {
   ChevronRight,
   HardDrive,
   Lightbulb,
+  XCircle,
 } from 'lucide-react';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { useAIThinking, useAIChat } from '@/stores/useAISidebarStore';
 import { useRealTimeAILogs } from '@/hooks/useRealTimeAILogs';
 import { RealAISidebarService } from '../services/RealAISidebarService';
 import BasicTyping from '@/components/ui/BasicTyping';
+import { MCPWakeupStatus } from '@/components/system/MCPWakeupStatus';
+import { useMCPStatus } from '@/hooks/api/useMCPQuery';
 
 // AI 기능 아이콘 패널 및 페이지 컴포넌트들
 import AIAgentIconPanel, {
@@ -1142,11 +1145,20 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
               AI 고급 관리
             </h2>
             <div className='grid grid-cols-1 gap-4 flex-1'>
-              {/* 실시간 AI 인사이트 통합 섹션 */}
+              {/* 🚀 MCP 서버 상태 섹션 (새로 추가) */}
+              <div className='bg-white rounded-lg p-4 shadow-sm border'>
+                <h3 className='text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2'>
+                  <Server className='w-5 h-5 text-green-600' />
+                  MCP 서버 상태
+                </h3>
+                <MCPServerStatusPanel />
+              </div>
+
+              {/* AI 분석 도구 섹션 (간소화) */}
               <div className='bg-white rounded-lg p-4 shadow-sm border'>
                 <h3 className='text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2'>
                   <Target className='w-5 h-5 text-blue-600' />
-                  실시간 AI 분석 통합
+                  AI 분석 도구
                 </h3>
                 <div className='space-y-3'>
                   <div className='p-3 bg-blue-50 rounded-lg border border-blue-200'>
@@ -1155,7 +1167,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                       자동 장애보고서
                     </div>
                     <p className='text-blue-700 text-xs mt-1'>
-                      실제 서버 데이터 기반 AI 장애 분석 및 보고서 생성
+                      서버 데이터 기반 AI 장애 분석 및 보고서 생성
                     </p>
                   </div>
                   <div className='p-3 bg-emerald-50 rounded-lg border border-emerald-200'>
@@ -1164,31 +1176,28 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                       지능형 모니터링
                     </div>
                     <p className='text-emerald-700 text-xs mt-1'>
-                      이상탐지 + 근본원인분석 + 예측모니터링 통합 시스템
-                    </p>
-                  </div>
-                  <div className='p-3 bg-gray-50 rounded-lg border border-gray-200'>
-                    <div className='flex items-center gap-2 text-gray-600 text-sm'>
-                      <Lightbulb className='w-4 h-4' />
-                      AI 인사이트 (기존)
-                    </div>
-                    <p className='text-gray-500 text-xs mt-1'>
-                      → 위 두 기능으로 통합되어 더 강력한 실시간 분석 제공
+                      이상탐지 + 근본원인분석 + 예측모니터링 (백엔드 전용)
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Google AI 상태 관리 섹션 */}
+              {/* Google AI 상태 섹션 */}
               <div className='bg-white rounded-lg p-4 shadow-sm border'>
                 <h3 className='text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2'>
-                  <Zap className='w-5 h-5 text-blue-600' />
-                  Google AI 상태 관리
+                  <Globe className='w-5 h-5 text-green-600' />
+                  Google AI 상태
                 </h3>
-                <GoogleAIStatusCard
-                  variant='admin'
-                  className='shadow-none border-0 p-0'
-                />
+                <GoogleAIStatusCard variant='dashboard' showDetails={false} />
+              </div>
+
+              {/* AI 인사이트 섹션 */}
+              <div className='bg-white rounded-lg p-4 shadow-sm border'>
+                <h3 className='text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2'>
+                  <Lightbulb className='w-5 h-5 text-orange-600' />
+                  AI 인사이트
+                </h3>
+                <AIInsightsCard />
               </div>
             </div>
           </div>
@@ -1285,5 +1294,111 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         </motion.div>
       )}
     </AnimatePresence>
+  );
+};
+
+// MCP 서버 상태 패널 컴포넌트
+const MCPServerStatusPanel: React.FC = () => {
+  const { data: mcpStatus, isLoading, error } = useMCPStatus();
+
+  if (isLoading) {
+    return (
+      <div className='flex items-center gap-2 text-gray-600'>
+        <div className='w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin'></div>
+        <span className='text-sm'>MCP 서버 상태 확인 중...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className='p-3 bg-red-50 rounded-lg border border-red-200'>
+        <div className='flex items-center gap-2 text-red-800 font-medium text-sm'>
+          <XCircle className='w-4 h-4' />
+          MCP 서버 연결 오류
+        </div>
+        <p className='text-red-700 text-xs mt-1'>
+          서버 상태를 확인할 수 없습니다. 네트워크 연결을 확인해주세요.
+        </p>
+      </div>
+    );
+  }
+
+  const renderServer = mcpStatus?.mcp?.servers?.render;
+  const localServers = mcpStatus?.mcp?.servers?.local || {};
+  const totalServers = mcpStatus?.mcp?.stats?.totalServers || 0;
+  const connectedServers = mcpStatus?.mcp?.stats?.connectedServers || 0;
+
+  return (
+    <div className='space-y-3'>
+      {/* Render MCP 서버 */}
+      <div className='p-3 bg-slate-50 rounded-lg border border-slate-200'>
+        <div className='flex items-center justify-between mb-2'>
+          <div className='flex items-center gap-2'>
+            <div
+              className={`w-3 h-3 rounded-full ${renderServer?.healthy ? 'bg-green-500' : 'bg-red-500'}`}
+            ></div>
+            <span className='font-medium text-slate-800 text-sm'>
+              Render MCP 서버
+            </span>
+          </div>
+          <span
+            className={`text-xs px-2 py-1 rounded-full ${renderServer?.healthy ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+          >
+            {renderServer?.healthy ? '정상' : '오프라인'}
+          </span>
+        </div>
+        <div className='grid grid-cols-2 gap-2 text-xs text-slate-600'>
+          <div>URL: {renderServer?.url?.replace('https://', '') || 'N/A'}</div>
+          <div>지연시간: {renderServer?.latency || 'N/A'}ms</div>
+          <div>포트: {renderServer?.port || 'N/A'}</div>
+          <div>
+            업타임:{' '}
+            {renderServer?.uptime
+              ? Math.round(renderServer.uptime / 60)
+              : 'N/A'}
+            분
+          </div>
+        </div>
+      </div>
+
+      {/* 로컬 MCP 서버들 */}
+      <div className='p-3 bg-blue-50 rounded-lg border border-blue-200'>
+        <div className='flex items-center justify-between mb-2'>
+          <div className='flex items-center gap-2'>
+            <div className='w-3 h-3 rounded-full bg-blue-500'></div>
+            <span className='font-medium text-blue-800 text-sm'>
+              로컬 MCP 서버
+            </span>
+          </div>
+          <span className='text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800'>
+            {connectedServers}/{totalServers} 연결
+          </span>
+        </div>
+        <div className='grid grid-cols-1 gap-1 text-xs text-blue-700'>
+          {Object.entries(localServers).map(([name, connected]) => (
+            <div key={name} className='flex items-center justify-between'>
+              <span>{name}</span>
+              <span className={connected ? 'text-green-600' : 'text-red-600'}>
+                {connected ? '✓' : '✗'}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* MCP Wake-up 상태 (기존 컴포넌트 재사용) */}
+      {/* MCPWakeupStatus는 필요시에만 표시되므로 항상 렌더링 */}
+      <MCPWakeupStatus
+        wakeupStatus={{
+          isInProgress: false,
+          stage: null,
+          message: '',
+          progress: 0,
+          elapsedTime: 0,
+        }}
+        className='mt-2'
+      />
+    </div>
   );
 };
