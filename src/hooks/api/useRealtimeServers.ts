@@ -697,9 +697,10 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
   }, [servers]);
 
   const getAverageHealth = useCallback(() => {
-    if (servers.length === 0) return 100;
+    if (servers.length === 0) return 100; // 기본값
+    // ⚡ 안전 계산: health 또는 score가 없는 서버는 100점으로 간주
     const totalHealth = servers.reduce(
-      (sum, server) => sum + server.health.score,
+      (sum, server) => sum + (server.health?.score ?? 100),
       0
     );
     return Math.round(totalHealth / servers.length);
