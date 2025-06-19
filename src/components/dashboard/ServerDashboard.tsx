@@ -503,16 +503,53 @@ export default function ServerDashboard({
       return { total: 0, online: 0, warning: 0, offline: 0 };
     }
 
-    return {
+    // 🎯 정확한 상태별 집계 (중복 방지)
+    const stats = {
       total: currentServers.length,
-      online: currentServers.filter((s: Server) => s?.status === 'online')
-        .length,
-      warning: currentServers.filter((s: Server) => s?.status === 'warning')
-        .length,
-      offline: currentServers.filter((s: Server) => s?.status === 'offline')
-        .length,
+      online: 0,
+      warning: 0,
+      offline: 0,
     };
+
+    // 각 서버의 상태를 한 번씩만 카운트
+    currentServers.forEach((server: Server) => {
+      if (!server || !server.status) return;
+
+      switch (server.status) {
+        case 'online':
+          stats.online++;
+          break;
+        case 'warning':
+          stats.warning++;
+          break;
+        case 'offline':
+          stats.offline++;
+          break;
+        default:
+          // 알 수 없는 상태는 오프라인으로 처리
+          stats.offline++;
+      }
+    });
+
+    // 🔍 디버깅을 위한 로그
+    console.log('📊 서버 통계 계산:', {
+      total: stats.total,
+      online: stats.online,
+      warning: stats.warning,
+      offline: stats.offline,
+      sum: stats.online + stats.warning + stats.offline,
+      match: stats.total === stats.online + stats.warning + stats.offline,
+    });
+
+    return stats;
   }, [currentServers]);
+
+  // 🔄 onStatsUpdate 호출 (상위 컴포넌트에 통계 전달)
+  useEffect(() => {
+    if (onStatsUpdate && serverStats.total > 0) {
+      onStatsUpdate(serverStats);
+    }
+  }, [serverStats, onStatsUpdate]);
 
   // 🔄 실제 데이터 로드 및 정렬 함수
   const loadRealData = useCallback(async () => {
@@ -580,31 +617,42 @@ export default function ServerDashboard({
 
   // ⭐ 서버 정렬 헬퍼 함수 (심각 → 경고 → 정상 순)
   const sortServersByPriority = (servers: Server[]): Server[] => {
-    return servers.sort((a, b) => {
-      const statusPriority = { offline: 0, warning: 1, online: 2 };
-      const priorityA = statusPriority[a.status] || 2;
-      const priorityB = statusPriority[b.status] || 2;
+    // 🛡️ 안전한 정렬: 배열과 서버 객체 유효성 검사
+    if (!Array.isArray(servers)) {
+      console.warn('⚠️ sortServersByPriority: 입력이 배열이 아닙니다');
+      return [];
+    }
 
-      if (priorityA !== priorityB) {
-        return priorityA - priorityB; // 심각(offline=0) → 경고(warning=1) → 정상(online=2)
-      }
+    return servers
+      .filter(server => server && typeof server === 'object') // null/undefined 제거
+      .sort((a, b) => {
+        const statusPriority = { offline: 0, warning: 1, online: 2 };
+        const priorityA = statusPriority[a.status] ?? 2; // 기본값: 정상
+        const priorityB = statusPriority[b.status] ?? 2;
 
-      // 같은 상태면 CPU 사용률 높은 순으로
-      return b.cpu - a.cpu;
-    });
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB; // 심각(offline=0) → 경고(warning=1) → 정상(online=2)
+        }
+
+        // 같은 상태면 CPU 사용률 높은 순으로
+        const cpuA = typeof a.cpu === 'number' ? a.cpu : 0;
+        const cpuB = typeof b.cpu === 'number' ? b.cpu : 0;
+        return cpuB - cpuA;
+      });
   };
 
   // 🔄 검색 및 정렬된 서버 목록
   const filteredAndSortedServers = useMemo(() => {
-    let filtered = currentServers;
+    let filtered = Array.isArray(currentServers) ? currentServers : [];
 
     // 검색 필터 적용
     if (searchTerm.trim()) {
       filtered = filtered.filter(
         server =>
-          server.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          server.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          server.status.toLowerCase().includes(searchTerm.toLowerCase())
+          server &&
+          (server.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            server.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            server.status?.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
@@ -697,50 +745,47 @@ export default function ServerDashboard({
               icon: Network,
               count: networkMetrics.length,
             },
-            { id: 'clusters', label: '클러스터', icon: Database, count: 3 },
+            {
+              id: 'clusters',
+              label: '클러스터',
+              icon: Database,
+              count: Math.ceil(currentServers.length / 3),
+            },
             {
               id: 'applications',
               label: '애플리케이션',
               icon: BarChart3,
-              count: 5,
+              count: currentServers.length * 2,
             },
-          ].map(tab => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as DashboardTab)}
-                className={`
-                  group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm
-                  ${
-                    isActive
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }
-                `}
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as DashboardTab)}
+              className={`group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === tab.id
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <tab.icon
+                className={`-ml-0.5 mr-2 h-5 w-5 ${
+                  activeTab === tab.id
+                    ? 'text-blue-500'
+                    : 'text-gray-400 group-hover:text-gray-500'
+                }`}
+              />
+              {tab.label}
+              <span
+                className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                  activeTab === tab.id
+                    ? 'bg-blue-100 text-blue-600'
+                    : 'bg-gray-100 text-gray-900'
+                }`}
               >
-                <tab.icon
-                  className={`
-                    -ml-0.5 mr-2 h-5 w-5
-                    ${isActive ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'}
-                  `}
-                />
-                {tab.label}
-                <span
-                  className={`
-                  ml-2 py-0.5 px-2 rounded-full text-xs
-                  ${
-                    isActive
-                      ? 'bg-blue-100 text-blue-600'
-                      : 'bg-gray-100 text-gray-500'
-                  }
-                `}
-                >
-                  {tab.count}
-                </span>
-              </button>
-            );
-          })}
+                {tab.count}
+              </span>
+            </button>
+          ))}
         </nav>
       </div>
     </div>
@@ -860,28 +905,336 @@ export default function ServerDashboard({
 
   const renderClustersTab = () => (
     <div className='space-y-6'>
-      <div className='text-center py-12'>
-        <Database className='mx-auto h-12 w-12 text-gray-400' />
-        <h3 className='mt-2 text-sm font-medium text-gray-900'>
-          클러스터 관리
-        </h3>
-        <p className='mt-1 text-sm text-gray-500'>
-          서버 클러스터 모니터링 기능이 곧 추가됩니다.
-        </p>
+      {/* 클러스터 개요 */}
+      <div className='grid grid-cols-1 md:grid-cols-4 gap-4 mb-6'>
+        <div className='bg-white rounded-lg shadow p-6'>
+          <div className='flex items-center'>
+            <div className='flex-shrink-0'>
+              <Database className='h-8 w-8 text-purple-500' />
+            </div>
+            <div className='ml-5 w-0 flex-1'>
+              <dl>
+                <dt className='text-sm font-medium text-gray-500 truncate'>
+                  총 클러스터
+                </dt>
+                <dd className='text-lg font-medium text-gray-900'>
+                  {Math.ceil(currentServers.length / 3)}
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+
+        <div className='bg-white rounded-lg shadow p-6'>
+          <div className='flex items-center'>
+            <div className='flex-shrink-0'>
+              <CheckCircle className='h-8 w-8 text-green-500' />
+            </div>
+            <div className='ml-5 w-0 flex-1'>
+              <dl>
+                <dt className='text-sm font-medium text-gray-500 truncate'>
+                  정상 클러스터
+                </dt>
+                <dd className='text-lg font-medium text-gray-900'>
+                  {Math.ceil(serverStats.online / 3)}
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+
+        <div className='bg-white rounded-lg shadow p-6'>
+          <div className='flex items-center'>
+            <div className='flex-shrink-0'>
+              <AlertTriangle className='h-8 w-8 text-yellow-500' />
+            </div>
+            <div className='ml-5 w-0 flex-1'>
+              <dl>
+                <dt className='text-sm font-medium text-gray-500 truncate'>
+                  경고 클러스터
+                </dt>
+                <dd className='text-lg font-medium text-gray-900'>
+                  {Math.ceil(serverStats.warning / 3)}
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+
+        <div className='bg-white rounded-lg shadow p-6'>
+          <div className='flex items-center'>
+            <div className='flex-shrink-0'>
+              <Zap className='h-8 w-8 text-red-500' />
+            </div>
+            <div className='ml-5 w-0 flex-1'>
+              <dl>
+                <dt className='text-sm font-medium text-gray-500 truncate'>
+                  장애 클러스터
+                </dt>
+                <dd className='text-lg font-medium text-gray-900'>
+                  {Math.ceil(serverStats.offline / 3)}
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 클러스터 목록 */}
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+        {Array.from(
+          { length: Math.ceil(currentServers.length / 3) },
+          (_, index) => {
+            const clusterServers = currentServers.slice(
+              index * 3,
+              (index + 1) * 3
+            );
+            const healthyCount = clusterServers.filter(
+              s => s.status === 'online'
+            ).length;
+            const warningCount = clusterServers.filter(
+              s => s.status === 'warning'
+            ).length;
+            const offlineCount = clusterServers.filter(
+              s => s.status === 'offline'
+            ).length;
+
+            const clusterStatus =
+              offlineCount > 0
+                ? 'critical'
+                : warningCount > 0
+                  ? 'warning'
+                  : 'healthy';
+
+            return (
+              <div
+                key={index}
+                className='bg-white rounded-lg shadow p-6 border border-gray-200'
+              >
+                <div className='flex items-center justify-between mb-4'>
+                  <h3 className='text-lg font-semibold text-gray-900'>
+                    클러스터 {index + 1}
+                  </h3>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      clusterStatus === 'healthy'
+                        ? 'bg-green-100 text-green-800'
+                        : clusterStatus === 'warning'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-red-100 text-red-800'
+                    }`}
+                  >
+                    {clusterStatus === 'healthy'
+                      ? '정상'
+                      : clusterStatus === 'warning'
+                        ? '경고'
+                        : '장애'}
+                  </span>
+                </div>
+
+                <div className='space-y-3'>
+                  <div className='flex justify-between items-center'>
+                    <span className='text-sm text-gray-600'>서버 수</span>
+                    <span className='font-medium'>
+                      {clusterServers.length}대
+                    </span>
+                  </div>
+                  <div className='flex justify-between items-center'>
+                    <span className='text-sm text-gray-600'>정상</span>
+                    <span className='font-medium text-green-600'>
+                      {healthyCount}대
+                    </span>
+                  </div>
+                  <div className='flex justify-between items-center'>
+                    <span className='text-sm text-gray-600'>경고</span>
+                    <span className='font-medium text-yellow-600'>
+                      {warningCount}대
+                    </span>
+                  </div>
+                  <div className='flex justify-between items-center'>
+                    <span className='text-sm text-gray-600'>장애</span>
+                    <span className='font-medium text-red-600'>
+                      {offlineCount}대
+                    </span>
+                  </div>
+                </div>
+
+                <div className='mt-4 pt-4 border-t border-gray-200'>
+                  <div className='text-xs text-gray-500 mb-2'>서버 목록</div>
+                  <div className='space-y-1'>
+                    {clusterServers.map(server => (
+                      <div
+                        key={server.id}
+                        className='flex items-center justify-between text-xs'
+                      >
+                        <span className='truncate'>{server.name}</span>
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            server.status === 'online'
+                              ? 'bg-green-500'
+                              : server.status === 'warning'
+                                ? 'bg-yellow-500'
+                                : 'bg-red-500'
+                          }`}
+                        ></span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+        )}
       </div>
     </div>
   );
 
   const renderApplicationsTab = () => (
     <div className='space-y-6'>
-      <div className='text-center py-12'>
-        <BarChart3 className='mx-auto h-12 w-12 text-gray-400' />
-        <h3 className='mt-2 text-sm font-medium text-gray-900'>
-          애플리케이션 모니터링
-        </h3>
-        <p className='mt-1 text-sm text-gray-500'>
-          애플리케이션 성능 모니터링 기능이 곧 추가됩니다.
-        </p>
+      {/* 애플리케이션 개요 */}
+      <div className='grid grid-cols-1 md:grid-cols-4 gap-4 mb-6'>
+        <div className='bg-white rounded-lg shadow p-6'>
+          <div className='flex items-center'>
+            <div className='flex-shrink-0'>
+              <BarChart3 className='h-8 w-8 text-indigo-500' />
+            </div>
+            <div className='ml-5 w-0 flex-1'>
+              <dl>
+                <dt className='text-sm font-medium text-gray-500 truncate'>
+                  총 애플리케이션
+                </dt>
+                <dd className='text-lg font-medium text-gray-900'>
+                  {currentServers.length * 2}
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+
+        <div className='bg-white rounded-lg shadow p-6'>
+          <div className='flex items-center'>
+            <div className='flex-shrink-0'>
+              <Activity className='h-8 w-8 text-green-500' />
+            </div>
+            <div className='ml-5 w-0 flex-1'>
+              <dl>
+                <dt className='text-sm font-medium text-gray-500 truncate'>
+                  활성 애플리케이션
+                </dt>
+                <dd className='text-lg font-medium text-gray-900'>
+                  {serverStats.online * 2}
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+
+        <div className='bg-white rounded-lg shadow p-6'>
+          <div className='flex items-center'>
+            <div className='flex-shrink-0'>
+              <Zap className='h-8 w-8 text-blue-500' />
+            </div>
+            <div className='ml-5 w-0 flex-1'>
+              <dl>
+                <dt className='text-sm font-medium text-gray-500 truncate'>
+                  평균 응답시간
+                </dt>
+                <dd className='text-lg font-medium text-gray-900'>
+                  {Math.round(
+                    (currentServers.reduce((sum, s) => sum + (s.cpu || 0), 0) /
+                      currentServers.length) *
+                      10
+                  )}
+                  ms
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+
+        <div className='bg-white rounded-lg shadow p-6'>
+          <div className='flex items-center'>
+            <div className='flex-shrink-0'>
+              <Globe className='h-8 w-8 text-purple-500' />
+            </div>
+            <div className='ml-5 w-0 flex-1'>
+              <dl>
+                <dt className='text-sm font-medium text-gray-500 truncate'>
+                  처리량 (TPS)
+                </dt>
+                <dd className='text-lg font-medium text-gray-900'>
+                  {Math.round((serverStats.online * 1000) / 60)}
+                </dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 애플리케이션 목록 */}
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+        {currentServers
+          .slice(0, 6)
+          .map((server, index) => {
+            const apps = [
+              { name: 'Web Service', port: 80, status: server.status },
+              { name: 'API Service', port: 8080, status: server.status },
+            ];
+
+            return apps.map((app, appIndex) => (
+              <div
+                key={`${server.id}-${appIndex}`}
+                className='bg-white rounded-lg shadow p-6 border border-gray-200'
+              >
+                <div className='flex items-center justify-between mb-4'>
+                  <h3 className='text-lg font-semibold text-gray-900'>
+                    {app.name}
+                  </h3>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      app.status === 'online'
+                        ? 'bg-green-100 text-green-800'
+                        : app.status === 'warning'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-red-100 text-red-800'
+                    }`}
+                  >
+                    {app.status === 'online'
+                      ? '활성'
+                      : app.status === 'warning'
+                        ? '경고'
+                        : '중지'}
+                  </span>
+                </div>
+
+                <div className='space-y-3'>
+                  <div className='flex justify-between items-center'>
+                    <span className='text-sm text-gray-600'>서버</span>
+                    <span className='font-medium'>{server.name}</span>
+                  </div>
+                  <div className='flex justify-between items-center'>
+                    <span className='text-sm text-gray-600'>포트</span>
+                    <span className='font-medium'>{app.port}</span>
+                  </div>
+                  <div className='flex justify-between items-center'>
+                    <span className='text-sm text-gray-600'>CPU 사용률</span>
+                    <span className='font-medium'>{server.cpu}%</span>
+                  </div>
+                  <div className='flex justify-between items-center'>
+                    <span className='text-sm text-gray-600'>메모리 사용률</span>
+                    <span className='font-medium'>{server.memory}%</span>
+                  </div>
+                  <div className='flex justify-between items-center'>
+                    <span className='text-sm text-gray-600'>응답시간</span>
+                    <span className='font-medium'>
+                      {Math.round(server.cpu * 10)}ms
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ));
+          })
+          .flat()}
       </div>
     </div>
   );

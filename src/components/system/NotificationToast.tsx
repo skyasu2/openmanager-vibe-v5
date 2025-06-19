@@ -276,14 +276,23 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
       };
 
       setNotifications(prev => {
+        // 🛡️ 안전한 배열 처리: prev가 배열인지 확인
+        const safeArray = Array.isArray(prev) ? prev : [];
+
         // 최대 개수 제한
-        const newNotifications = [displayNotification, ...prev].slice(
+        const newNotifications = [displayNotification, ...safeArray].slice(
           0,
           maxNotifications
         );
 
+        // 🛡️ 안전한 정렬: 각 알림 객체 유효성 검사
+        const validNotifications = newNotifications.filter(
+          notif =>
+            notif && typeof notif === 'object' && notif.id && notif.severity
+        );
+
         // 기존 알림들의 타이머 업데이트
-        newNotifications.forEach((notif, index) => {
+        validNotifications.forEach((notif, index) => {
           if (notif.hideTimer) {
             clearTimeout(notif.hideTimer);
           }
@@ -297,7 +306,7 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
           ); // 스택된 알림은 조금 더 오래 유지
         });
 
-        return newNotifications;
+        return validNotifications;
       });
 
       // 사운드 재생 (필터링된 알림은 사운드 없음)
