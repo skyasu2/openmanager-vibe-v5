@@ -109,10 +109,10 @@ export default function DevelopmentProcessPage() {
                 <HeartPulse size={20} /> 기술적 소회
               </h4>
               <ul className='list-disc list-inside text-gray-300 space-y-2'>
-                <li>운영 경험이 시스템 설계에 미치는 영향 확인</li>
-                <li>AI 개발 도구의 생산성 및 한계점 체험</li>
-                <li>TypeScript의 안정성 중요성 체감</li>
-                <li>지속적인 학습의 필요성 절감</li>
+                <li>기존 업무 지식이 시스템 설계에 미친 영향 확인</li>
+                <li>AI 개발 도구의 생산성과 한계점 직접 체험</li>
+                <li>TypeScript가 제공하는 안정성의 중요성 체감</li>
+                <li>새로운 기술에 대한 지속적인 학습의 필요성 절감</li>
               </ul>
             </div>
             <div className='mt-8'>
@@ -120,10 +120,12 @@ export default function DevelopmentProcessPage() {
                 <Lightbulb size={20} /> 개인적 성찰
               </h4>
               <ul className='list-disc list-inside text-gray-300 space-y-2'>
-                <li>&apos;개발&apos;이라는 새로운 분야에 대한 이해 증진</li>
-                <li>아이디어를 빠르게 프로토타이핑하는 경험</li>
-                <li>AI를 통한 비개발 직군의 결과물 창출 가능성 확인</li>
-                <li>개발 문화와 프로세스에 대한 존중심 증대</li>
+                <li>AI 도구 자체에 대한 관심 증대</li>
+                <li>아이디어를 빠르게 프로토타이핑하는 즐거움</li>
+                <li>
+                  사이드 프로젝트를 통해 학습을 이어가는 것에 대한 흥미를 느낌
+                </li>
+                <li>새로운 분야에 대한 도전의 가치 체감</li>
               </ul>
             </div>
           </div>
@@ -190,6 +192,22 @@ export default function DevelopmentProcessPage() {
               </ul>
             </div>
           </div>
+        </section>
+
+        <section className='mt-16 text-center'>
+          <motion.blockquote
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className='bg-gray-800/50 border-l-4 border-indigo-500 text-gray-300 p-6 rounded-r-lg max-w-3xl mx-auto italic'
+          >
+            <p className='mb-4'>
+              &quot;AI 도구를 잘 다루는 것이 명백한 전술적 방법입니다. 제가
+              고등학교를 졸업할 때는 코딩을 잘 하는 것이 명백한 전술적
+              방법이었습니다. 이것이 그것의 새로운 버전입니다.&quot;
+            </p>
+            <footer className='text-gray-400 text-right'>- Sam Altman</footer>
+          </motion.blockquote>
         </section>
       </main>
     </div>
