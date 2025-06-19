@@ -30,27 +30,6 @@ export default function DevelopmentProcessPage() {
             4년간의 서버 운영 경험을 바탕으로 20일간 웹 개발과 AI 도구를 학습한
             경험 기록
           </p>
-
-          <div className='grid grid-cols-2 md:grid-cols-4 gap-6 mb-16'>
-            <div className='bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6'>
-              <div className='text-3xl font-bold text-blue-400 mb-2'>4년</div>
-              <div className='text-sm text-white/80'>서버 운영 경험</div>
-            </div>
-            <div className='bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6'>
-              <div className='text-3xl font-bold text-purple-400 mb-2'>
-                20일
-              </div>
-              <div className='text-sm text-white/80'>첫 웹 개발 완주</div>
-            </div>
-            <div className='bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6'>
-              <div className='text-3xl font-bold text-green-400 mb-2'>3배</div>
-              <div className='text-sm text-white/80'>AI 협업 생산성</div>
-            </div>
-            <div className='bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6'>
-              <div className='text-3xl font-bold text-orange-400 mb-2'>$0</div>
-              <div className='text-sm text-white/80'>운영 비용</div>
-            </div>
-          </div>
         </div>
 
         {/* 3단 구성 */}
@@ -202,21 +181,26 @@ export default function DevelopmentProcessPage() {
           <div className='text-6xl mb-6'>💬</div>
           <blockquote className='text-lg text-white/90 italic mb-6 max-w-4xl mx-auto leading-relaxed'>
             &ldquo;명백한 전술적 조언은 AI 도구 사용에 정말 능숙해지는 것입니다.
-            제가 고등학교를 졸업할 때는 명백한 전술적 조언이 &lsquo;코딩을 정말
-            잘하게 되는 것&rsquo;이었습니다. 그리고 이것이 바로 그것의 새로운
-            버전입니다.&rdquo;
+            <br />
+            내가 고등학교 마지막 해를 졸업할 때는, 분명히 &lsquo;코딩을 정말 잘
+            하라&rsquo;는 것이 전략적 조언이었죠.
+            <br />
+            그리고 이것이 그 새로운 버전입니다.&rdquo;
           </blockquote>
+          <div className='text-sm text-white/70 italic mb-4 max-w-4xl mx-auto leading-relaxed'>
+            &ldquo;The obvious tactical thing is just get really good at using
+            AI tools. Like when I was graduating as a senior from high school,
+            the obvious tactical thing was get really good at coding. And this
+            is the new version of that.&rdquo;
+          </div>
           <footer className='text-white/60'>
-            <strong className='text-white'>샘 알트만 (Sam Altman)</strong>,
+            <strong className='text-white'>— 샘 알트만 (Sam Altman)</strong>,
             OpenAI CEO
             <br />
-            <span className='text-sm'>2025년 3월</span>
+            <span className='text-sm'>
+              2025년 3월, <em>Stratechery 인터뷰 (Ben Thompson 진행)</em>
+            </span>
           </footer>
-          <div className='mt-6 text-white/80'>
-            <p className='font-semibold'>
-              AI 어시스턴트가 바로 그 학습의 결과입니다.
-            </p>
-          </div>
         </div>
       </div>
     </div>
