@@ -152,7 +152,7 @@ class ModeTimerManager {
       immediate: true,
     });
 
-    // 데이터 생성기 상태 확인
+    // 데이터 생성기 상태 확인 - 🚨 과도한 헬스체크 방지: 10초 → 30초로 변경
     this.registerTimer({
       id: 'data-generator-status',
       callback: async () => {
@@ -169,7 +169,7 @@ class ModeTimerManager {
           console.error('❌ Data Generator status error:', error);
         }
       },
-      interval: 10000, // 10초
+      interval: 30000, // 30초 (과도한 헬스체크 방지)
       immediate: false,
     });
 

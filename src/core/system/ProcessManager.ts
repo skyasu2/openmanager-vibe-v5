@@ -1,6 +1,6 @@
 /**
  * 🔧 통합 프로세스 관리 시스템
- * 
+ *
  * 모든 시스템 프로세스를 중앙에서 관리:
  * - 의존성 순서 기반 시작/정지
  * - 자동 헬스체크 및 복구
@@ -22,12 +22,18 @@ export interface ProcessConfig {
   autoRestart: boolean;
   maxRestarts: number;
   dependencies?: string[]; // 의존하는 프로세스들
-  startupDelay?: number;   // 시작 후 대기 시간 (ms)
+  startupDelay?: number; // 시작 후 대기 시간 (ms)
 }
 
 export interface ProcessState {
   id: string;
-  status: 'stopped' | 'starting' | 'running' | 'stopping' | 'error' | 'restarting';
+  status:
+    | 'stopped'
+    | 'starting'
+    | 'running'
+    | 'stopping'
+    | 'error'
+    | 'restarting';
   startedAt?: Date;
   stoppedAt?: Date;
   lastHealthCheck?: Date;
@@ -56,7 +62,8 @@ export class ProcessManager extends EventEmitter {
   private isSystemRunning = false;
   private systemStartTime?: Date;
   private stabilityTimeout?: NodeJS.Timeout;
-  private readonly healthCheckIntervalMs = 5000; // 5초
+  private readonly healthCheckIntervalMs =
+    process.env.NODE_ENV === 'development' ? 60000 : 30000; // 개발: 60초, 운영: 30초
   private readonly stabilityTimeoutMs = 30 * 60 * 1000; // 30분
 
   constructor() {
@@ -76,9 +83,9 @@ export class ProcessManager extends EventEmitter {
       restartCount: 0,
       errors: [],
       uptime: 0,
-      healthScore: 100
+      healthScore: 100,
     });
-    
+
     systemLogger.system(`✅ 프로세스 등록: ${config.name} (${config.id})`);
     this.emit('process:registered', { processId: config.id, config });
   }
@@ -86,9 +93,9 @@ export class ProcessManager extends EventEmitter {
   /**
    * 🚀 시스템 전체 시작 - 30분 모니터링 포함
    */
-  async startSystem(options?: { 
+  async startSystem(options?: {
     mode?: 'fast' | 'full';
-    skipStabilityCheck?: boolean 
+    skipStabilityCheck?: boolean;
   }): Promise<{
     success: boolean;
     message: string;
@@ -97,13 +104,13 @@ export class ProcessManager extends EventEmitter {
   }> {
     const errors: string[] = [];
     const warnings: string[] = [];
-    
+
     if (this.isSystemRunning) {
       return {
         success: false,
         message: '시스템이 이미 실행 중입니다',
         errors: ['ALREADY_RUNNING'],
-        warnings: []
+        warnings: [],
       };
     }
 
@@ -123,7 +130,7 @@ export class ProcessManager extends EventEmitter {
           const errorMsg = `${config?.name || processId} 시작 실패`;
           errors.push(errorMsg);
           systemLogger.error(errorMsg);
-          
+
           // Critical 프로세스 실패 시 전체 시스템 롤백
           if (config?.criticalLevel === 'high') {
             await this.emergencyShutdown();
@@ -131,13 +138,13 @@ export class ProcessManager extends EventEmitter {
               success: false,
               message: `Critical 프로세스 ${config.name} 실패로 시스템 시작 중단`,
               errors,
-              warnings
+              warnings,
             };
           } else {
             warnings.push(`Non-critical 프로세스 ${config?.name} 시작 실패`);
           }
         }
-        
+
         // 프로세스 간 안정화 대기
         const config = this.processes.get(processId);
         const delay = config?.startupDelay || 1000;
@@ -146,7 +153,7 @@ export class ProcessManager extends EventEmitter {
 
       // 2단계: 헬스체크 시스템 시작
       this.startHealthChecks();
-      
+
       // 3단계: Watchdog 활성화
       this.watchdog?.start();
 
@@ -155,28 +162,33 @@ export class ProcessManager extends EventEmitter {
         this.setupStabilityMonitoring();
       }
 
-      const runningCount = Array.from(this.states.values())
-        .filter(s => s.status === 'running').length;
-      
-      systemLogger.system(`✅ 시스템 시작 완료 (${runningCount}/${this.processes.size} 프로세스 실행 중)`);
-      this.emit('system:started', { runningCount, totalCount: this.processes.size });
+      const runningCount = Array.from(this.states.values()).filter(
+        s => s.status === 'running'
+      ).length;
+
+      systemLogger.system(
+        `✅ 시스템 시작 완료 (${runningCount}/${this.processes.size} 프로세스 실행 중)`
+      );
+      this.emit('system:started', {
+        runningCount,
+        totalCount: this.processes.size,
+      });
 
       return {
         success: true,
         message: `시스템 시작 완료 (${runningCount}/${this.processes.size} 프로세스)`,
         errors,
-        warnings
+        warnings,
       };
-
     } catch (error) {
       systemLogger.error('시스템 시작 실패:', error);
       await this.emergencyShutdown();
-      
+
       return {
         success: false,
         message: '시스템 시작 중 치명적 오류 발생',
         errors: [error instanceof Error ? error.message : '알 수 없는 오류'],
-        warnings
+        warnings,
       };
     }
   }
@@ -187,7 +199,7 @@ export class ProcessManager extends EventEmitter {
   private async startProcess(processId: string): Promise<boolean> {
     const config = this.processes.get(processId);
     const state = this.states.get(processId);
-    
+
     if (!config || !state) {
       systemLogger.warn(`프로세스 설정을 찾을 수 없음: ${processId}`);
       return false;
@@ -202,7 +214,7 @@ export class ProcessManager extends EventEmitter {
       systemLogger.system(`🔄 ${config.name} 시작 중...`);
       state.status = 'starting';
       state.startedAt = new Date();
-      
+
       // 의존성 프로세스 확인
       if (config.dependencies) {
         for (const depId of config.dependencies) {
@@ -215,10 +227,10 @@ export class ProcessManager extends EventEmitter {
 
       // 프로세스 시작 명령 실행
       await config.startCommand();
-      
+
       state.status = 'running';
       state.errors = []; // 성공 시 오류 기록 초기화
-      
+
       // 초기 헬스체크 (3회 시도)
       let isHealthy = false;
       for (let i = 0; i < 3; i++) {
@@ -227,7 +239,10 @@ export class ProcessManager extends EventEmitter {
           if (isHealthy) break;
           await this.delay(1000); // 1초 대기 후 재시도
         } catch (error) {
-          systemLogger.warn(`${config.name} 헬스체크 시도 ${i + 1} 실패:`, error);
+          systemLogger.warn(
+            `${config.name} 헬스체크 시도 ${i + 1} 실패:`,
+            error
+          );
         }
       }
 
@@ -237,30 +252,30 @@ export class ProcessManager extends EventEmitter {
 
       state.healthScore = 100;
       state.lastHealthCheck = new Date();
-      
+
       systemLogger.system(`✅ ${config.name} 시작 완료`);
       this.emit('process:started', { processId, config, state });
       return true;
-
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : '알 수 없는 오류';
+      const errorMsg =
+        error instanceof Error ? error.message : '알 수 없는 오류';
       systemLogger.error(`❌ ${config.name} 시작 실패: ${errorMsg}`);
-      
+
       state.status = 'error';
       state.errors.push({
         timestamp: new Date(),
         message: '시작 실패',
-        error
+        error,
       });
-      
+
       this.emit('process:error', { processId, error: errorMsg });
-      
+
       // 자동 재시작 시도
       if (config.autoRestart && state.restartCount < config.maxRestarts) {
         systemLogger.system(`🔄 ${config.name} 자동 재시작 시도...`);
         return await this.restartProcess(processId);
       }
-      
+
       return false;
     }
   }
@@ -274,7 +289,7 @@ export class ProcessManager extends EventEmitter {
     errors: string[];
   }> {
     const errors: string[] = [];
-    
+
     try {
       systemLogger.system('🛑 시스템 정지 시작...');
       this.isSystemRunning = false;
@@ -291,38 +306,44 @@ export class ProcessManager extends EventEmitter {
       // 4단계: 역순으로 프로세스 정지
       const stopOrder = this.calculateStartupOrder().reverse();
       systemLogger.system(`📋 정지 순서: ${stopOrder.join(' → ')}`);
-      
+
       for (const processId of stopOrder) {
         const success = await this.stopProcess(processId);
         if (!success) {
           const config = this.processes.get(processId);
           errors.push(`${config?.name || processId} 정지 실패`);
         }
-        
+
         // 안전한 종료를 위한 대기
         await this.delay(500);
       }
 
-      const stoppedCount = Array.from(this.states.values())
-        .filter(s => s.status === 'stopped').length;
+      const stoppedCount = Array.from(this.states.values()).filter(
+        s => s.status === 'stopped'
+      ).length;
 
-      systemLogger.system(`✅ 시스템 정지 완료 (${stoppedCount}/${this.processes.size} 프로세스 정지됨)`);
-      this.emit('system:stopped', { stoppedCount, totalCount: this.processes.size });
+      systemLogger.system(
+        `✅ 시스템 정지 완료 (${stoppedCount}/${this.processes.size} 프로세스 정지됨)`
+      );
+      this.emit('system:stopped', {
+        stoppedCount,
+        totalCount: this.processes.size,
+      });
 
       return {
         success: errors.length === 0,
         message: `시스템 정지 완료 (${stoppedCount}/${this.processes.size} 프로세스)`,
-        errors
+        errors,
       };
-
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : '알 수 없는 오류';
+      const errorMsg =
+        error instanceof Error ? error.message : '알 수 없는 오류';
       systemLogger.error('시스템 정지 실패:', error);
-      
+
       return {
         success: false,
         message: '시스템 정지 중 오류 발생',
-        errors: [errorMsg]
+        errors: [errorMsg],
       };
     }
   }
@@ -333,9 +354,9 @@ export class ProcessManager extends EventEmitter {
   private async stopProcess(processId: string): Promise<boolean> {
     const config = this.processes.get(processId);
     const state = this.states.get(processId);
-    
+
     if (!config || !state) return false;
-    
+
     if (state.status === 'stopped') {
       return true; // 이미 정지됨
     }
@@ -343,27 +364,27 @@ export class ProcessManager extends EventEmitter {
     try {
       systemLogger.system(`⏹️ ${config.name} 정지 중...`);
       state.status = 'stopping';
-      
+
       await config.stopCommand();
-      
+
       state.status = 'stopped';
       state.stoppedAt = new Date();
-      
+
       systemLogger.system(`✅ ${config.name} 정지 완료`);
       this.emit('process:stopped', { processId, config, state });
       return true;
-
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : '알 수 없는 오류';
+      const errorMsg =
+        error instanceof Error ? error.message : '알 수 없는 오류';
       systemLogger.error(`❌ ${config.name} 정지 실패: ${errorMsg}`);
-      
+
       state.status = 'error';
       state.errors.push({
         timestamp: new Date(),
         message: '정지 실패',
-        error
+        error,
       });
-      
+
       return false;
     }
   }
@@ -377,72 +398,85 @@ export class ProcessManager extends EventEmitter {
     }
 
     systemLogger.system('💓 헬스체크 시스템 시작');
-    
+
     this.healthCheckInterval = setInterval(async () => {
       const healthPromises = Array.from(this.processes.entries()).map(
         ([processId, config]) => this.performHealthCheck(processId, config)
       );
-      
+
       await Promise.allSettled(healthPromises);
-      
+
       // 시스템 전체 헬스 상태 평가
       this.evaluateSystemHealth();
-      
     }, this.healthCheckIntervalMs);
   }
 
   /**
    * 개별 프로세스 헬스체크
    */
-  private async performHealthCheck(processId: string, config: ProcessConfig): Promise<void> {
+  private async performHealthCheck(
+    processId: string,
+    config: ProcessConfig
+  ): Promise<void> {
     const state = this.states.get(processId);
     if (!state || state.status !== 'running') return;
 
     try {
       const isHealthy = await Promise.race([
         config.healthCheck(),
-        new Promise<boolean>((_, reject) => 
+        new Promise<boolean>((_, reject) =>
           setTimeout(() => reject(new Error('헬스체크 타임아웃')), 5000)
-        )
+        ),
       ]);
 
       state.lastHealthCheck = new Date();
-      
+
       if (isHealthy) {
         state.healthScore = Math.min(100, state.healthScore + 5); // 점진적 회복
       } else {
         state.healthScore = Math.max(0, state.healthScore - 20);
         await this.handleUnhealthyProcess(processId, '헬스체크 실패');
       }
-      
     } catch (error) {
       state.healthScore = Math.max(0, state.healthScore - 30);
-      await this.handleUnhealthyProcess(processId, `헬스체크 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+      await this.handleUnhealthyProcess(
+        processId,
+        `헬스체크 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
+      );
     }
   }
 
   /**
    * 비정상 프로세스 처리
    */
-  private async handleUnhealthyProcess(processId: string, reason: string): Promise<void> {
+  private async handleUnhealthyProcess(
+    processId: string,
+    reason: string
+  ): Promise<void> {
     const config = this.processes.get(processId);
     const state = this.states.get(processId);
-    
+
     if (!config || !state) return;
 
     systemLogger.warn(`⚠️ ${config.name} 비정상 상태: ${reason}`);
-    
+
     state.errors.push({
       timestamp: new Date(),
       message: reason,
-      error: null
+      error: null,
     });
 
-    this.emit('process:unhealthy', { processId, config, reason, healthScore: state.healthScore });
+    this.emit('process:unhealthy', {
+      processId,
+      config,
+      reason,
+      healthScore: state.healthScore,
+    });
 
     // Critical 프로세스 즉시 복구
     if (config.criticalLevel === 'high' && config.autoRestart) {
-      if (state.healthScore <= 20) { // 심각한 상태
+      if (state.healthScore <= 20) {
+        // 심각한 상태
         await this.restartProcess(processId);
       }
     } else if (config.criticalLevel === 'medium') {
@@ -450,7 +484,7 @@ export class ProcessManager extends EventEmitter {
       const recentErrors = state.errors.filter(
         e => Date.now() - e.timestamp.getTime() < 60000 // 1분 이내
       ).length;
-      
+
       if (recentErrors >= 3 && config.autoRestart) {
         await this.restartProcess(processId);
       }
@@ -463,11 +497,13 @@ export class ProcessManager extends EventEmitter {
   private async restartProcess(processId: string): Promise<boolean> {
     const config = this.processes.get(processId);
     const state = this.states.get(processId);
-    
+
     if (!config || !state) return false;
 
     if (state.restartCount >= config.maxRestarts) {
-      systemLogger.error(`❌ ${config.name} 최대 재시작 횟수 초과 (${config.maxRestarts})`);
+      systemLogger.error(
+        `❌ ${config.name} 최대 재시작 횟수 초과 (${config.maxRestarts})`
+      );
       state.status = 'error';
       this.emit('process:max-restarts-exceeded', { processId, config });
       return false;
@@ -475,23 +511,29 @@ export class ProcessManager extends EventEmitter {
 
     state.restartCount++;
     state.status = 'restarting';
-    
-    systemLogger.system(`🔄 ${config.name} 재시작 중... (${state.restartCount}/${config.maxRestarts})`);
-    this.emit('process:restarting', { processId, attempt: state.restartCount, maxRestarts: config.maxRestarts });
-    
+
+    systemLogger.system(
+      `🔄 ${config.name} 재시작 중... (${state.restartCount}/${config.maxRestarts})`
+    );
+    this.emit('process:restarting', {
+      processId,
+      attempt: state.restartCount,
+      maxRestarts: config.maxRestarts,
+    });
+
     // 기존 프로세스 정지
     await this.stopProcess(processId);
     await this.delay(2000); // 2초 대기
-    
+
     // 새로 시작
     const success = await this.startProcess(processId);
-    
+
     if (success) {
       systemLogger.system(`✅ ${config.name} 재시작 성공`);
     } else {
       systemLogger.error(`❌ ${config.name} 재시작 실패`);
     }
-    
+
     return success;
   }
 
@@ -500,14 +542,16 @@ export class ProcessManager extends EventEmitter {
    */
   private setupStabilityMonitoring(): void {
     this.clearStabilityMonitoring();
-    
+
     systemLogger.system('🕐 30분 안정성 모니터링 시작');
-    
+
     this.stabilityTimeout = setTimeout(() => {
       if (this.isSystemRunning) {
         const metrics = this.getSystemMetrics();
         systemLogger.system('✅ 30분 안정성 검증 완료');
-        systemLogger.system(`📊 시스템 메트릭스: 가동률 ${metrics.runningProcesses}/${metrics.totalProcesses}, 평균 헬스 ${metrics.averageHealthScore.toFixed(1)}%`);
+        systemLogger.system(
+          `📊 시스템 메트릭스: 가동률 ${metrics.runningProcesses}/${metrics.totalProcesses}, 평균 헬스 ${metrics.averageHealthScore.toFixed(1)}%`
+        );
         this.emit('system:stable', { metrics, duration: 30 });
       }
     }, this.stabilityTimeoutMs);
@@ -535,7 +579,7 @@ export class ProcessManager extends EventEmitter {
       if (visited.has(processId)) return;
 
       visiting.add(processId);
-      
+
       const config = this.processes.get(processId);
       if (config?.dependencies) {
         for (const depId of config.dependencies) {
@@ -544,7 +588,7 @@ export class ProcessManager extends EventEmitter {
           }
         }
       }
-      
+
       visiting.delete(processId);
       visited.add(processId);
       result.push(processId);
@@ -563,14 +607,16 @@ export class ProcessManager extends EventEmitter {
   private evaluateSystemHealth(): void {
     const states = Array.from(this.states.values());
     const runningCount = states.filter(s => s.status === 'running').length;
-    const healthyCount = states.filter(s => s.status === 'running' && s.healthScore >= 70).length;
-    
+    const healthyCount = states.filter(
+      s => s.status === 'running' && s.healthScore >= 70
+    ).length;
+
     let systemHealth: 'healthy' | 'degraded' | 'critical';
-    
+
     // 🔧 더 관대한 헬스 평가 - 핵심 기능 중심
     // 개발 모드에서는 프로세스가 제대로 실행되지 않을 수 있음
     const totalProcesses = this.processes.size;
-    
+
     if (totalProcesses === 0) {
       // 등록된 프로세스가 없으면 기본적으로 healthy (개발 모드)
       systemHealth = 'healthy';
@@ -589,15 +635,19 @@ export class ProcessManager extends EventEmitter {
 
     // 🔔 개발 모드에서는 경고만 출력하고 시스템은 정상으로 유지
     if (process.env.NODE_ENV === 'development' && systemHealth !== 'healthy') {
-      console.warn(`⚠️ [ProcessManager] 개발 모드 - 일부 프로세스 문제 있지만 기본 기능은 동작: ${systemHealth}`);
-      console.warn(`📊 프로세스 상태: 실행중 ${runningCount}/${totalProcesses}, 건강 ${healthyCount}/${totalProcesses}`);
+      console.warn(
+        `⚠️ [ProcessManager] 개발 모드 - 일부 프로세스 문제 있지만 기본 기능은 동작: ${systemHealth}`
+      );
+      console.warn(
+        `📊 프로세스 상태: 실행중 ${runningCount}/${totalProcesses}, 건강 ${healthyCount}/${totalProcesses}`
+      );
     }
 
-    this.emit('system:health-update', { 
-      health: systemHealth, 
-      runningCount, 
-      healthyCount, 
-      totalCount: this.processes.size 
+    this.emit('system:health-update', {
+      health: systemHealth,
+      runningCount,
+      healthyCount,
+      totalCount: this.processes.size,
     });
   }
 
@@ -607,16 +657,16 @@ export class ProcessManager extends EventEmitter {
   private async emergencyShutdown(): Promise<void> {
     systemLogger.error('🚨 응급 셧다운 실행');
     this.isSystemRunning = false;
-    
+
     this.clearStabilityMonitoring();
     this.stopHealthChecks();
     this.watchdog?.stop();
-    
+
     // 모든 프로세스 강제 종료
-    const stopPromises = Array.from(this.processes.keys()).map(
-      processId => this.stopProcess(processId)
+    const stopPromises = Array.from(this.processes.keys()).map(processId =>
+      this.stopProcess(processId)
     );
-    
+
     await Promise.allSettled(stopPromises);
     this.emit('system:emergency-shutdown');
   }
@@ -626,10 +676,12 @@ export class ProcessManager extends EventEmitter {
    */
   private setupGracefulShutdown(): void {
     const signals = ['SIGTERM', 'SIGINT', 'SIGUSR2'] as const;
-    
+
     signals.forEach(signal => {
       process.on(signal, async () => {
-        systemLogger.system(`📡 ${signal} 시그널 수신 - Graceful shutdown 시작`);
+        systemLogger.system(
+          `📡 ${signal} 시그널 수신 - Graceful shutdown 시작`
+        );
         await this.stopSystem();
         process.exit(0);
       });
@@ -650,15 +702,18 @@ export class ProcessManager extends EventEmitter {
   getSystemMetrics(): SystemMetrics {
     const states = Array.from(this.states.values());
     const runningProcesses = states.filter(s => s.status === 'running');
-    const healthyProcesses = states.filter(s => s.status === 'running' && s.healthScore >= 70);
-    
-    const uptime = this.systemStartTime 
-      ? Date.now() - this.systemStartTime.getTime() 
+    const healthyProcesses = states.filter(
+      s => s.status === 'running' && s.healthScore >= 70
+    );
+
+    const uptime = this.systemStartTime
+      ? Date.now() - this.systemStartTime.getTime()
       : 0;
-    
-    const averageHealthScore = states.length > 0 
-      ? states.reduce((sum, s) => sum + s.healthScore, 0) / states.length
-      : 0;
+
+    const averageHealthScore =
+      states.length > 0
+        ? states.reduce((sum, s) => sum + s.healthScore, 0) / states.length
+        : 0;
 
     const totalRestarts = states.reduce((sum, s) => sum + s.restartCount, 0);
 
@@ -670,7 +725,7 @@ export class ProcessManager extends EventEmitter {
       memoryUsage: process.memoryUsage().heapUsed / 1024 / 1024, // MB
       averageHealthScore,
       totalRestarts,
-      lastStabilityCheck: new Date()
+      lastStabilityCheck: new Date(),
     };
   }
 
@@ -686,7 +741,7 @@ export class ProcessManager extends EventEmitter {
     const totalProcesses = metrics.totalProcesses;
     const runningCount = metrics.runningProcesses;
     const healthyCount = metrics.healthyProcesses;
-    
+
     if (totalProcesses === 0) {
       health = 'healthy'; // 개발 모드
     } else if (runningCount === 0) {
@@ -705,7 +760,7 @@ export class ProcessManager extends EventEmitter {
       processes: processStatuses,
       metrics,
       startTime: this.systemStartTime,
-      watchdogMetrics: this.watchdog?.getMetrics()
+      watchdogMetrics: this.watchdog?.getMetrics(),
     };
   }
 
@@ -719,4 +774,4 @@ export class ProcessManager extends EventEmitter {
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
-} 
+}

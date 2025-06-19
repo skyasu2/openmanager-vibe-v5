@@ -506,7 +506,7 @@ class TimerManager {
       'monitoring-mode'
     );
 
-    // 데이터 생성기 상태 확인
+    // 데이터 생성기 상태 확인 - 🚨 과도한 헬스체크 방지: 10초 → 30초로 변경
     this.registerExclusive(
       {
         id: 'data-generator-status',
@@ -524,7 +524,7 @@ class TimerManager {
             console.error('❌ Data Generator status error:', error);
           }
         },
-        interval: 10000, // 10초
+        interval: 30000, // 30초 (과도한 헬스체크 방지)
         priority: 'medium',
       },
       'monitoring-mode'
