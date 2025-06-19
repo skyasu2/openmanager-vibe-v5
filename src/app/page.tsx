@@ -14,6 +14,7 @@ import {
   Sun,
   Moon,
   Zap,
+  Play,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
@@ -75,8 +76,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [systemTimeRemaining, setSystemTimeRemaining] = useState(0);
 
-  // 🚀 자동 대시보드 이동 카운트다운 상태
-  const [autoNavigateCountdown, setAutoNavigateCountdown] = useState(0);
+  // 🚀 시스템 시작 카운트다운 상태
+  const [systemStartCountdown, setSystemStartCountdown] = useState(0);
   const [countdownTimer, setCountdownTimer] = useState<NodeJS.Timeout | null>(
     null
   );
@@ -86,8 +87,6 @@ export default function Home() {
 
   // 🔄 클라이언트 마운트 상태 (hydration 문제 방지)
   const [isMounted, setIsMounted] = useState(false);
-
-
 
   // 🔄 클라이언트 마운트 감지
   useEffect(() => {
@@ -188,19 +187,19 @@ export default function Home() {
     });
   };
 
-  // 🚀 카운트다운 시작 함수
-  const startCountdown = () => {
-    console.log('🚀 자동 시스템 부팅 페이지 이동 카운트다운 시작');
-    success('🚀 5초 후 다음 단계로 자동 이동합니다!');
+  // 🚀 시스템 시작 카운트다운 함수
+  const startSystemCountdown = () => {
+    console.log('🚀 시스템 시작 카운트다운 시작 (3초)');
+    success('🚀 3초 후 시스템이 시작되고 로딩 페이지로 이동합니다!');
 
-    setAutoNavigateCountdown(5);
+    setSystemStartCountdown(3);
 
     const timer = setInterval(() => {
-      setAutoNavigateCountdown(prev => {
+      setSystemStartCountdown(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          const target = isSystemStarted ? '/dashboard' : '/system-boot';
-          router.push(target);
+          // 3초 후 시스템 시작 및 로딩 페이지로 이동
+          handleActualSystemStart();
           return 0;
         }
         return prev - 1;
@@ -211,36 +210,53 @@ export default function Home() {
   };
 
   // 🛑 카운트다운 중지 함수
-  const stopCountdown = () => {
-    console.log('🛑 자동 대시보드 이동 카운트다운 취소');
+  const stopSystemCountdown = () => {
+    console.log('🛑 시스템 시작 카운트다운 취소');
     if (countdownTimer) {
       clearInterval(countdownTimer);
     }
-    setAutoNavigateCountdown(0);
+    setSystemStartCountdown(0);
     setCountdownTimer(null);
-    info('⏹️ 자동 이동이 취소되었습니다.');
+    info('⏹️ 시스템 시작이 취소되었습니다.');
   };
 
-  // 🚀 시스템 토글 함수
+  // 🚀 실제 시스템 시작 함수
+  const handleActualSystemStart = async () => {
+    try {
+      console.log('🚀 실제 시스템 시작 실행');
+      await startSystem();
+      success('✅ 시스템이 성공적으로 시작되었습니다.');
+      // 로딩 페이지로 이동
+      router.push('/system-boot');
+    } catch (error) {
+      console.error('❌ 시스템 시작 실패:', error);
+      error('❌ 시스템 시작에 실패했습니다.');
+    }
+  };
+
+  // 🚀 시스템 토글 함수 (카운트다운 포함)
   const handleSystemToggle = async () => {
     if (isLoading) return;
 
-    setIsLoading(true);
-    try {
-      if (isSystemStarted) {
+    if (isSystemStarted) {
+      // 시스템이 실행 중이면 즉시 중지
+      setIsLoading(true);
+      try {
         console.log('🛑 시스템 중지 요청');
         await stopSystem();
         success('✅ 시스템이 성공적으로 중지되었습니다.');
-      } else {
-        console.log('🚀 시스템 시작 요청');
-        await startSystem();
-        success('✅ 시스템이 성공적으로 시작되었습니다.');
+      } catch (error) {
+        console.error('❌ 시스템 중지 실패:', error);
+        error('❌ 시스템 중지에 실패했습니다.');
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('❌ 시스템 토글 실패:', error);
-      error('❌ 시스템 상태 변경에 실패했습니다.');
-    } finally {
-      setIsLoading(false);
+    } else if (systemStartCountdown > 0) {
+      // 카운트다운 중이면 카운트다운 중지
+      stopSystemCountdown();
+    } else {
+      // 시스템이 중지 상태면 3초 카운트다운 시작
+      startSystemCountdown();
     }
   };
 
@@ -294,8 +310,8 @@ export default function Home() {
   const handleAIAgentInfo = () => {
     info(
       `🧠 AI 어시스턴트 상태: ${aiAgent.isEnabled ? '활성' : '비활성'}\n` +
-      `상태: ${aiAgent.state}\n` +
-      `시스템 연동: ${isSystemStarted ? '연결됨' : '대기 중'}`
+        `상태: ${aiAgent.state}\n` +
+        `시스템 연동: ${isSystemStarted ? '연결됨' : '대기 중'}`
     );
   };
 
@@ -350,39 +366,39 @@ export default function Home() {
             animate={
               aiAgent.isEnabled
                 ? {
-                  background: [
-                    'linear-gradient(135deg, #a855f7, #ec4899)',
-                    'linear-gradient(135deg, #ec4899, #06b6d4)',
-                    'linear-gradient(135deg, #06b6d4, #a855f7)',
-                  ],
-                  scale: [1, 1.1, 1],
-                  rotate: [0, 360],
-                  boxShadow: [
-                    '0 4px 15px rgba(168, 85, 247, 0.3)',
-                    '0 6px 20px rgba(236, 72, 153, 0.4)',
-                    '0 4px 15px rgba(6, 182, 212, 0.3)',
-                    '0 6px 20px rgba(168, 85, 247, 0.4)',
-                  ],
-                }
+                    background: [
+                      'linear-gradient(135deg, #a855f7, #ec4899)',
+                      'linear-gradient(135deg, #ec4899, #06b6d4)',
+                      'linear-gradient(135deg, #06b6d4, #a855f7)',
+                    ],
+                    scale: [1, 1.1, 1],
+                    rotate: [0, 360],
+                    boxShadow: [
+                      '0 4px 15px rgba(168, 85, 247, 0.3)',
+                      '0 6px 20px rgba(236, 72, 153, 0.4)',
+                      '0 4px 15px rgba(6, 182, 212, 0.3)',
+                      '0 6px 20px rgba(168, 85, 247, 0.4)',
+                    ],
+                  }
                 : isSystemStarted
                   ? {
-                    background: [
-                      'linear-gradient(135deg, #10b981, #059669)',
-                      'linear-gradient(135deg, #059669, #047857)',
-                      'linear-gradient(135deg, #047857, #10b981)',
-                    ],
-                    scale: [1, 1.05, 1],
-                    boxShadow: [
-                      '0 4px 15px rgba(16, 185, 129, 0.3)',
-                      '0 6px 20px rgba(5, 150, 105, 0.4)',
-                      '0 4px 15px rgba(16, 185, 129, 0.3)',
-                    ],
-                  }
+                      background: [
+                        'linear-gradient(135deg, #10b981, #059669)',
+                        'linear-gradient(135deg, #059669, #047857)',
+                        'linear-gradient(135deg, #047857, #10b981)',
+                      ],
+                      scale: [1, 1.05, 1],
+                      boxShadow: [
+                        '0 4px 15px rgba(16, 185, 129, 0.3)',
+                        '0 6px 20px rgba(5, 150, 105, 0.4)',
+                        '0 4px 15px rgba(16, 185, 129, 0.3)',
+                      ],
+                    }
                   : {
-                    background: 'linear-gradient(135deg, #6b7280, #4b5563)',
-                    scale: 1,
-                    rotate: 0,
-                  }
+                      background: 'linear-gradient(135deg, #6b7280, #4b5563)',
+                      scale: 1,
+                      rotate: 0,
+                    }
             }
             transition={{
               duration: aiAgent.isEnabled ? 2 : 3,
@@ -444,10 +460,11 @@ export default function Home() {
           {/* 다크모드 토글 버튼 */}
           <motion.button
             onClick={toggleDarkMode}
-            className={`p-2 rounded-lg transition-all duration-200 ${isDarkMode
-              ? 'text-white/80 hover:text-white hover:bg-white/5'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-              }`}
+            className={`p-2 rounded-lg transition-all duration-200 ${
+              isDarkMode
+                ? 'text-white/80 hover:text-white hover:bg-white/5'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             title={`${isDarkMode ? '라이트' : '다크'} 모드로 전환`}
@@ -465,10 +482,11 @@ export default function Home() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${isDarkMode
-                  ? 'bg-purple-500/20 border border-purple-500/50 text-purple-300 hover:bg-purple-500/30'
-                  : 'bg-purple-100 border border-purple-300 text-purple-700 hover:bg-purple-200'
-                  }`}
+                className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+                  isDarkMode
+                    ? 'bg-purple-500/20 border border-purple-500/50 text-purple-300 hover:bg-purple-500/30'
+                    : 'bg-purple-100 border border-purple-300 text-purple-700 hover:bg-purple-200'
+                }`}
               >
                 <Shield className='w-4 h-4' />
                 <span className='text-sm font-medium'>🧠 AI 엔진 관리</span>
@@ -498,8 +516,9 @@ export default function Home() {
             <span className={getTextClass()}>서버 모니터링</span>
           </h1>
           <p
-            className={`text-lg md:text-xl max-w-3xl mx-auto leading-relaxed ${isDarkMode ? 'text-white/80' : 'text-gray-700'
-              }`}
+            className={`text-lg md:text-xl max-w-3xl mx-auto leading-relaxed ${
+              isDarkMode ? 'text-white/80' : 'text-gray-700'
+            }`}
           >
             <span
               className={`text-sm ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}
@@ -521,23 +540,26 @@ export default function Home() {
             <div className='max-w-2xl mx-auto text-center'>
               {/* 시스템 종료 상태 안내 */}
               <div
-                className={`mb-6 p-4 rounded-xl border ${isDarkMode
-                  ? 'bg-red-500/20 border-red-400/30'
-                  : 'bg-red-100 border-red-300'
-                  }`}
+                className={`mb-6 p-4 rounded-xl border ${
+                  isDarkMode
+                    ? 'bg-red-500/20 border-red-400/30'
+                    : 'bg-red-100 border-red-300'
+                }`}
               >
                 <div className='flex items-center justify-center gap-2 mb-2'>
                   <div className='w-3 h-3 bg-red-500 rounded-full animate-pulse'></div>
                   <span
-                    className={`font-semibold ${isDarkMode ? 'text-red-200' : 'text-red-800'
-                      }`}
+                    className={`font-semibold ${
+                      isDarkMode ? 'text-red-200' : 'text-red-800'
+                    }`}
                   >
                     시스템 종료됨
                   </span>
                 </div>
                 <p
-                  className={`text-sm ${isDarkMode ? 'text-red-100' : 'text-red-700'
-                    }`}
+                  className={`text-sm ${
+                    isDarkMode ? 'text-red-100' : 'text-red-700'
+                  }`}
                 >
                   모든 서비스가 중지되었습니다.
                   <br />
@@ -547,51 +569,100 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* 메인 대시보드 버튼 */}
-              <div className='flex flex-col items-center mb-6'>
+              {/* 메인 제어 버튼들 */}
+              <div className='flex flex-col items-center mb-6 space-y-4'>
+                {/* 시스템 시작 버튼 */}
                 <motion.button
-                  onClick={handleDashboardClick}
+                  onClick={handleSystemToggle}
                   disabled={isLoading}
-                  className={`w-64 h-16 flex items-center justify-center gap-3 rounded-xl font-semibold transition-all duration-200 border shadow-xl ${isLoading
-                    ? 'bg-gray-500 text-white border-gray-400/50 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-blue-400/50 hover:shadow-2xl'
-                    }`}
+                  className={`w-64 h-16 flex items-center justify-center gap-3 rounded-xl font-semibold transition-all duration-200 border shadow-xl ${
+                    isLoading
+                      ? 'bg-gray-500 text-white border-gray-400/50 cursor-not-allowed'
+                      : systemStartCountdown > 0
+                        ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-orange-400/50 shadow-lg shadow-orange-500/50'
+                        : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50 hover:shadow-2xl'
+                  }`}
                   whileHover={!isLoading ? { scale: 1.05, y: -2 } : {}}
                   whileTap={!isLoading ? { scale: 0.98 } : {}}
-                  animate={{
-                    boxShadow: [
-                      '0 0 0 0 rgba(59, 130, 246, 0.5)',
-                      '0 0 0 10px rgba(59, 130, 246, 0)',
-                      '0 0 0 0 rgba(59, 130, 246, 0)',
-                    ],
-                  }}
+                  animate={
+                    systemStartCountdown > 0
+                      ? {
+                          scale: [1, 1.08, 1],
+                          boxShadow: [
+                            '0 0 0 0 rgba(255, 165, 0, 0.8)',
+                            '0 0 0 15px rgba(255, 165, 0, 0)',
+                            '0 0 0 0 rgba(255, 165, 0, 0)',
+                          ],
+                        }
+                      : {
+                          boxShadow: [
+                            '0 0 0 0 rgba(34, 197, 94, 0.5)',
+                            '0 0 0 10px rgba(34, 197, 94, 0)',
+                            '0 0 0 0 rgba(34, 197, 94, 0)',
+                          ],
+                        }
+                  }
                   transition={{
-                    duration: 2,
+                    duration: systemStartCountdown > 0 ? 1 : 2,
                     repeat: Infinity,
                     ease: 'easeInOut',
                   }}
                 >
                   {isLoading ? (
                     <Loader2 className='w-6 h-6 animate-spin' />
+                  ) : systemStartCountdown > 0 ? (
+                    <div className='flex items-center gap-2'>
+                      <X className='w-6 h-6' />
+                      <span>🛑 시작 취소</span>
+                      <div className='bg-white/20 rounded-full w-8 h-8 flex items-center justify-center'>
+                        <span className='text-lg font-bold text-yellow-300'>
+                          {systemStartCountdown}
+                        </span>
+                      </div>
+                    </div>
                   ) : (
-                    <BarChart3 className='w-6 h-6' />
+                    <>
+                      <Play className='w-6 h-6' />
+                      <span className='text-lg'>🚀 시스템 시작</span>
+                    </>
                   )}
-                  <span className='text-lg'>
-                    {isLoading ? '시스템 시작 중...' : '📊 대시보드로 이동'}
-                  </span>
                 </motion.button>
 
-                {/* 손가락 아이콘 */}
+                {/* 대시보드 버튼 (보조) */}
+                <motion.button
+                  onClick={handleDashboardClick}
+                  disabled={isLoading}
+                  className={`w-64 h-12 flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-200 border ${
+                    isLoading
+                      ? 'bg-gray-400/20 text-gray-500 border-gray-400/30 cursor-not-allowed'
+                      : 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border-blue-400/50 hover:border-blue-400/70'
+                  }`}
+                  whileHover={!isLoading ? { scale: 1.02 } : {}}
+                  whileTap={!isLoading ? { scale: 0.98 } : {}}
+                >
+                  <BarChart3 className='w-5 h-5' />
+                  <span>📊 대시보드로 이동 (시스템 자동 시작)</span>
+                </motion.button>
+
+                {/* 상태 안내 */}
                 <div className='mt-3 flex justify-center'>
-                  <span className='animate-wiggle text-yellow-400 text-3xl'>
-                    👆
+                  <span
+                    className={`text-2xl ${systemStartCountdown > 0 ? 'animate-bounce text-orange-400' : 'animate-wiggle text-yellow-400'}`}
+                  >
+                    {systemStartCountdown > 0 ? '⏰' : '👆'}
                   </span>
                 </div>
                 <div className='mt-2 flex justify-center'>
                   <span
-                    className={`text-sm font-medium opacity-80 animate-point-bounce ${getTextClass()}`}
+                    className={`text-sm font-medium opacity-80 ${
+                      systemStartCountdown > 0
+                        ? 'text-orange-300 animate-pulse'
+                        : `animate-point-bounce ${getTextClass()}`
+                    }`}
                   >
-                    클릭하면 자동으로 시스템이 시작됩니다
+                    {systemStartCountdown > 0
+                      ? '시스템 시작 중... (취소하려면 버튼 클릭)'
+                      : '시스템 시작 버튼을 클릭하세요'}
                   </span>
                 </div>
               </div>
@@ -599,8 +670,9 @@ export default function Home() {
               {/* 추가 설명 */}
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4 text-sm'>
                 <div
-                  className={`p-3 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-gray-100'
-                    }`}
+                  className={`p-3 rounded-lg ${
+                    isDarkMode ? 'bg-white/5' : 'bg-gray-100'
+                  }`}
                 >
                   <div className='flex items-center gap-2 mb-1'>
                     <Zap className='w-4 h-4 text-blue-400' />
@@ -611,8 +683,9 @@ export default function Home() {
                   </p>
                 </div>
                 <div
-                  className={`p-3 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-gray-100'
-                    }`}
+                  className={`p-3 rounded-lg ${
+                    isDarkMode ? 'bg-white/5' : 'bg-gray-100'
+                  }`}
                 >
                   <div className='flex items-center gap-2 mb-1'>
                     <Bot className='w-4 h-4 text-purple-400' />
@@ -634,23 +707,26 @@ export default function Home() {
             >
               {/* 시스템 활성 상태 안내 */}
               <div
-                className={`mb-6 p-4 rounded-xl border ${isDarkMode
-                  ? 'bg-green-500/20 border-green-400/30'
-                  : 'bg-green-100 border-green-300'
-                  }`}
+                className={`mb-6 p-4 rounded-xl border ${
+                  isDarkMode
+                    ? 'bg-green-500/20 border-green-400/30'
+                    : 'bg-green-100 border-green-300'
+                }`}
               >
                 <div className='flex items-center justify-center gap-2 mb-2'>
                   <div className='w-3 h-3 bg-green-500 rounded-full animate-pulse'></div>
                   <span
-                    className={`font-semibold ${isDarkMode ? 'text-green-200' : 'text-green-800'
-                      }`}
+                    className={`font-semibold ${
+                      isDarkMode ? 'text-green-200' : 'text-green-800'
+                    }`}
                   >
                     시스템 활성 - 남은 시간: {formatTime(systemTimeRemaining)}
                   </span>
                 </div>
                 <p
-                  className={`text-sm ${isDarkMode ? 'text-green-100' : 'text-green-700'
-                    }`}
+                  className={`text-sm ${
+                    isDarkMode ? 'text-green-100' : 'text-green-700'
+                  }`}
                 >
                   모든 서비스가 정상 동작 중입니다. 대시보드에서 상세 정보를
                   확인하세요.
@@ -710,37 +786,38 @@ export default function Home() {
                   <div className='space-y-2'>
                     <motion.button
                       onClick={handleDashboardClick}
-                      className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border ${autoNavigateCountdown > 0
-                        ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-orange-400/50 shadow-lg shadow-orange-500/50'
-                        : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500/50'
-                        }`}
+                      className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border ${
+                        systemStartCountdown > 0
+                          ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-orange-400/50 shadow-lg shadow-orange-500/50'
+                          : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500/50'
+                      }`}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       animate={
-                        autoNavigateCountdown > 0
+                        systemStartCountdown > 0
                           ? {
-                            scale: [1, 1.08, 1],
-                            boxShadow: [
-                              '0 0 0 0 rgba(255, 165, 0, 0.8)',
-                              '0 0 0 15px rgba(255, 165, 0, 0)',
-                              '0 0 0 0 rgba(255, 165, 0, 0)',
-                            ],
-                          }
+                              scale: [1, 1.08, 1],
+                              boxShadow: [
+                                '0 0 0 0 rgba(255, 165, 0, 0.8)',
+                                '0 0 0 15px rgba(255, 165, 0, 0)',
+                                '0 0 0 0 rgba(255, 165, 0, 0)',
+                              ],
+                            }
                           : {}
                       }
                       transition={{
                         duration: 1,
-                        repeat: autoNavigateCountdown > 0 ? Infinity : 0,
+                        repeat: systemStartCountdown > 0 ? Infinity : 0,
                         ease: 'easeInOut',
                       }}
                     >
                       <BarChart3 className='w-5 h-5' />
-                      {autoNavigateCountdown > 0 ? (
+                      {systemStartCountdown > 0 ? (
                         <div className='flex items-center gap-2'>
-                          <span>🚀 자동 이동</span>
+                          <span>🚀 시스템 시작</span>
                           <div className='bg-white/20 rounded-full w-6 h-6 flex items-center justify-center'>
                             <span className='text-sm font-bold text-yellow-300'>
-                              {autoNavigateCountdown}
+                              {systemStartCountdown}
                             </span>
                           </div>
                         </div>
@@ -753,23 +830,25 @@ export default function Home() {
                   {/* 손가락 아이콘 + 클릭 문구 - 카운트다운 상태에 따라 변경 */}
                   <div className='mt-2 flex justify-center'>
                     <span
-                      className={`text-xl ${autoNavigateCountdown > 0
-                        ? 'animate-bounce text-orange-400'
-                        : 'animate-wiggle text-yellow-400'
-                        }`}
+                      className={`text-xl ${
+                        systemStartCountdown > 0
+                          ? 'animate-bounce text-orange-400'
+                          : 'animate-wiggle text-yellow-400'
+                      }`}
                     >
-                      {autoNavigateCountdown > 0 ? '⏰' : '👆'}
+                      {systemStartCountdown > 0 ? '⏰' : '👆'}
                     </span>
                   </div>
                   <div className='mt-1 flex justify-center'>
                     <span
-                      className={`text-xs opacity-70 ${autoNavigateCountdown > 0
-                        ? 'text-orange-300 animate-pulse'
-                        : 'text-white animate-point-bounce'
-                        }`}
+                      className={`text-xs opacity-70 ${
+                        systemStartCountdown > 0
+                          ? 'text-orange-300 animate-pulse'
+                          : 'text-white animate-point-bounce'
+                      }`}
                     >
-                      {autoNavigateCountdown > 0
-                        ? '자동 이동 중...'
+                      {systemStartCountdown > 0
+                        ? '시스템 시작 중...'
                         : '클릭하세요'}
                     </span>
                   </div>
@@ -779,33 +858,34 @@ export default function Home() {
                 <div className='flex flex-col items-center'>
                   <motion.button
                     onClick={
-                      autoNavigateCountdown > 0
-                        ? stopCountdown
+                      systemStartCountdown > 0
+                        ? stopSystemCountdown
                         : handleSystemToggle
                     }
                     disabled={isLoading}
-                    className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border disabled:opacity-75 ${autoNavigateCountdown > 0
-                      ? 'bg-yellow-600 hover:bg-yellow-700 text-white border-yellow-500/50'
-                      : 'bg-red-600 hover:bg-red-700 text-white border-red-500/50'
-                      }`}
+                    className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border disabled:opacity-75 ${
+                      systemStartCountdown > 0
+                        ? 'bg-yellow-600 hover:bg-yellow-700 text-white border-yellow-500/50'
+                        : 'bg-red-600 hover:bg-red-700 text-white border-red-500/50'
+                    }`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     animate={
-                      autoNavigateCountdown > 0
+                      systemStartCountdown > 0
                         ? {
-                          scale: [1, 1.02, 1],
-                        }
+                            scale: [1, 1.02, 1],
+                          }
                         : {}
                     }
                     transition={{
                       duration: 0.5,
-                      repeat: autoNavigateCountdown > 0 ? Infinity : 0,
+                      repeat: systemStartCountdown > 0 ? Infinity : 0,
                       ease: 'easeInOut',
                     }}
                   >
                     {isLoading ? (
                       <Loader2 className='w-5 h-5 animate-spin' />
-                    ) : autoNavigateCountdown > 0 ? (
+                    ) : systemStartCountdown > 0 ? (
                       <X className='w-5 h-5' />
                     ) : (
                       <StopCircle className='w-5 h-5' />
@@ -813,8 +893,8 @@ export default function Home() {
                     <span>
                       {isLoading
                         ? '중지 중...'
-                        : autoNavigateCountdown > 0
-                          ? '🛑 취소하기'
+                        : systemStartCountdown > 0
+                          ? '🛑 시작 취소'
                           : '⏹️ 시스템 중지'}
                     </span>
                   </motion.button>
@@ -822,23 +902,25 @@ export default function Home() {
                   {/* 카운트다운 상태에 따른 안내 */}
                   <div className='mt-2 flex justify-center'>
                     <span
-                      className={`text-xl ${autoNavigateCountdown > 0
-                        ? 'animate-bounce text-yellow-400'
-                        : 'text-transparent'
-                        }`}
+                      className={`text-xl ${
+                        systemStartCountdown > 0
+                          ? 'animate-bounce text-yellow-400'
+                          : 'text-transparent'
+                      }`}
                     >
-                      {autoNavigateCountdown > 0 ? '✋' : '👆'}
+                      {systemStartCountdown > 0 ? '✋' : '👆'}
                     </span>
                   </div>
                   <div className='mt-1 flex justify-center'>
                     <span
-                      className={`text-xs ${autoNavigateCountdown > 0
-                        ? 'text-yellow-300 opacity-70 animate-pulse'
-                        : 'text-transparent opacity-0'
-                        }`}
+                      className={`text-xs ${
+                        systemStartCountdown > 0
+                          ? 'text-yellow-300 opacity-70 animate-pulse'
+                          : 'text-transparent opacity-0'
+                      }`}
                     >
-                      {autoNavigateCountdown > 0
-                        ? '자동 이동 취소'
+                      {systemStartCountdown > 0
+                        ? '시스템 시작 취소'
                         : '클릭하세요'}
                     </span>
                   </div>
@@ -858,12 +940,11 @@ export default function Home() {
           <FeatureCardsGrid />
         </div>
 
-
-
         {/* 푸터 */}
         <div
-          className={`mt-8 pt-6 border-t text-center ${isDarkMode ? 'border-white/20' : 'border-gray-300'
-            }`}
+          className={`mt-8 pt-6 border-t text-center ${
+            isDarkMode ? 'border-white/20' : 'border-gray-300'
+          }`}
         >
           <p className={isDarkMode ? 'text-white/70' : 'text-gray-600'}>
             Copyright(c) OpenManager. All rights reserved.
@@ -888,8 +969,6 @@ export default function Home() {
 
       {/* 고급 알림 시스템 컨테이너 */}
       <AdvancedNotificationContainer />
-
-
     </div>
   );
 }
