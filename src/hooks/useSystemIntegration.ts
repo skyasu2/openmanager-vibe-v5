@@ -18,7 +18,13 @@
 
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useSyncExternalStore,
+} from 'react';
 // import { useToast } from '@/components/ui/ToastNotification'; // 사용하지 않음
 import {
   predictiveAnalysisEngine,
@@ -129,57 +135,93 @@ interface SystemIntegrationActions {
   subscribeToEvents: (callback: (event: SystemEvent) => void) => () => void;
 }
 
+const useSystemIntegrationStore = (
+  initialState: SystemIntegrationState
+): {
+  getState: () => SystemIntegrationState;
+  setState: (
+    newState:
+      | SystemIntegrationState
+      | ((prev: SystemIntegrationState) => SystemIntegrationState)
+  ) => void;
+  subscribe: (callback: () => void) => () => void;
+} => {
+  const [state, setState] = useState<SystemIntegrationState>(initialState);
+  const subscribers = useRef<Set<(event: SystemEvent) => void>>(new Set());
+
+  const getState = () => state;
+
+  const subscribe = (callback: () => void) => {
+    subscribers.current.add(callback);
+    return () => {
+      subscribers.current.delete(callback);
+    };
+  };
+
+  return {
+    getState,
+    setState,
+    subscribe,
+  };
+};
+
 /**
  * 🎯 시스템 통합 Hook
  */
 export const useSystemIntegration = () => {
   // const { success, warning, error: showError } = useToast(); // 사용하지 않음
-  const [state, setState] = useState<SystemIntegrationState>({
-    realTimeHub: {
-      isConnected: false,
-      connectionCount: 0,
-      activeGroups: [],
-      messageHistory: 0,
-    },
-    patternMatcher: {
-      isActive: false,
-      activeRules: 0,
-      lastAnalysis: null,
-      detectedAnomalies: 0,
-      averageProcessingTime: 0,
-    },
-    dataRetention: {
-      isRunning: false,
-      lastCleanup: null,
-      cleanupInterval: 300000, // 5분
-      activePolicies: 0,
-      cleanedDataPoints: 0,
-    },
-    notifications: {
-      isEnabled: false,
-      channels: {
-        slack: false,
-        discord: false,
-        email: false,
+  const store = useRef(
+    useSystemIntegrationStore({
+      realTimeHub: {
+        isConnected: false,
+        connectionCount: 0,
+        activeGroups: [],
+        messageHistory: 0,
       },
-      pendingNotifications: 0,
-      lastNotification: null,
-    },
-    overallHealth: 'offline',
-    lastUpdate: null,
-    isInitialized: false,
-    initializationProgress: 0,
-    // 🚀 MCP Wake-up 상태 초기화
-    mcpWakeupStatus: {
-      isInProgress: false,
-      stage: null,
-      message: '',
-      progress: 0,
-      elapsedTime: 0,
-    },
-    recentEvents: [],
-    eventCount: 0,
-  });
+      patternMatcher: {
+        isActive: false,
+        activeRules: 0,
+        lastAnalysis: null,
+        detectedAnomalies: 0,
+        averageProcessingTime: 0,
+      },
+      dataRetention: {
+        isRunning: false,
+        lastCleanup: null,
+        cleanupInterval: 300000, // 5분
+        activePolicies: 0,
+        cleanedDataPoints: 0,
+      },
+      notifications: {
+        isEnabled: false,
+        channels: {
+          slack: false,
+          discord: false,
+          email: false,
+        },
+        pendingNotifications: 0,
+        lastNotification: null,
+      },
+      overallHealth: 'offline',
+      lastUpdate: null,
+      isInitialized: false,
+      initializationProgress: 0,
+      // �� MCP Wake-up 상태 초기화
+      mcpWakeupStatus: {
+        isInProgress: false,
+        stage: null,
+        message: '',
+        progress: 0,
+        elapsedTime: 0,
+      },
+      recentEvents: [],
+      eventCount: 0,
+    })
+  ).current;
+
+  const state = useSyncExternalStore(store.subscribe, store.getState);
+  const setState = store.setState;
+  const getState = store.getState;
 
   const eventSubscribers = useRef<Set<(event: SystemEvent) => void>>(new Set());
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
@@ -414,76 +456,51 @@ export const useSystemIntegration = () => {
   }, [emitEvent]);
 
   /**
-   * 🚀 시스템 초기화 (MCP Wake-up 포함) - 병렬 처리 최적화
+   * 🚀 시스템 초기화 (통합 API 사용)
    */
   const initializeSystem = useCallback(async (): Promise<boolean> => {
+    if (getState().isInitialized) {
+      console.log('👍 시스템은 이미 초기화되었습니다.');
+      return true;
+    }
+
+    if (
+      getState().initializationProgress > 0 &&
+      getState().initializationProgress < 100
+    ) {
+      console.log('🔄 시스템이 이미 초기화 중입니다.');
+      return false;
+    }
+
     try {
-      setState(prev => ({ ...prev, initializationProgress: 0 }));
-      console.log('🚀 시스템 초기화 시작 (병렬 처리 모드)...');
+      setState(prev => ({
+        ...prev,
+        initializationProgress: 10,
+        isError: false,
+        error: null,
+      }));
+      emitEvent(
+        'connection_change',
+        'info',
+        '⚙️ 시스템 초기화를 시작합니다...'
+      );
 
-      // 🎯 Phase 0: 병렬 초기화 시작
-      emitEvent('connection_change', 'info', '🔄 병렬 초기화 시작...');
-      setState(prev => ({ ...prev, initializationProgress: 5 }));
+      const response = await fetch('/api/system/initialize', {
+        method: 'POST',
+      });
 
-      // 🚀 병렬 실행: MCP Wake-up + 로컬 초기화
-      const parallelTasks = [
-        // Task 1: MCP Wake-up (백그라운드, 실패해도 계속 진행)
-        wakeupMCPServer().catch(error => {
-          console.warn('⚠️ MCP Wake-up 실패하지만 계속 진행:', error);
-          return false;
-        }),
+      setState(prev => ({ ...prev, initializationProgress: 70 }));
 
-        // Task 2: 로컬 초기화 작업들 (빠른 실행)
-        (async () => {
-          try {
-            setState(prev => ({ ...prev, initializationProgress: 15 }));
-
-            // RealTimeHub 테스트
-            const hubTest = await fetch('/api/realtime/connect', {
-              method: 'POST',
-            });
-            if (!hubTest.ok) throw new Error('RealTimeHub 초기화 실패');
-            setState(prev => ({ ...prev, initializationProgress: 35 }));
-
-            // PatternMatcher 활성화
-            const patternTest = await fetch('/api/metrics/pattern-check', {
-              method: 'POST',
-            });
-            if (!patternTest.ok) throw new Error('PatternMatcher 초기화 실패');
-            setState(prev => ({ ...prev, initializationProgress: 55 }));
-
-            // DataRetention 시작
-            const retentionTest = await fetch('/api/cron/cleanup', {
-              method: 'POST',
-            });
-            if (!retentionTest.ok) throw new Error('DataRetention 초기화 실패');
-            setState(prev => ({ ...prev, initializationProgress: 75 }));
-
-            return true;
-          } catch (error) {
-            console.error('로컬 초기화 실패:', error);
-            throw error;
-          }
-        })(),
-      ];
-
-      // 병렬 작업 실행 (MCP는 실패해도 무시)
-      const [mcpWakeupSuccess, localInitSuccess] =
-        await Promise.allSettled(parallelTasks);
-
-      // 로컬 초기화는 성공해야 함
-      if (localInitSuccess.status === 'rejected') {
-        throw new Error(`로컬 초기화 실패: ${localInitSuccess.reason}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message ||
+            `서버에서 ${response.status} 오류를 반환했습니다.`
+        );
       }
 
-      setState(prev => ({ ...prev, initializationProgress: 85 }));
-
-      // Phase 2.1 모듈 선택적 초기화 (알림 서비스)
-      try {
-        await fetch('/api/notifications/test', { method: 'POST' });
-      } catch (err) {
-        console.log('📱 알림 서비스는 Phase 2.1에서 활성화됩니다');
-      }
+      const result = await response.json();
+      console.log('✅ 시스템 초기화 로그:', result.logs);
 
       setState(prev => ({
         ...prev,
@@ -491,54 +508,31 @@ export const useSystemIntegration = () => {
         isInitialized: true,
       }));
 
-      // 상태 폴링 시작
-      if (pollingInterval.current) clearInterval(pollingInterval.current);
-      pollingInterval.current = setInterval(pollSystemStatus, 20000); // 20초로 통일
-
-      // 즉시 한 번 실행
-      await pollSystemStatus();
-
-      // 🔄 MCP Keep-Alive 시작 (선택적)
-      const mcpSuccess =
-        mcpWakeupSuccess.status === 'fulfilled' && mcpWakeupSuccess.value;
-      if (mcpSuccess) {
-        try {
-          const mcpService = MCPWarmupService.getInstance();
-          mcpService.startKeepAlive(5); // 5분마다 Keep-Alive
-          emitEvent(
-            'connection_change',
-            'info',
-            '🔄 MCP Keep-Alive 시스템 활성화'
-          );
-        } catch (error) {
-          console.warn('⚠️ MCP Keep-Alive 시작 실패:', error);
-        }
-      }
-
-      // 초기화 완료 알림
       emitEvent(
         'connection_change',
         'info',
-        mcpSuccess
-          ? '🚀 시스템이 완전히 최적화된 상태로 시작되었습니다! (병렬 처리 완료)'
-          : '🚀 시스템이 로컬 모드로 시작되었습니다 (MCP 서버 비활성, 병렬 처리 완료)'
+        '🎉 시스템이 성공적으로 시작되었습니다!'
       );
+
+      // 상태 폴링 시작
+      if (pollingInterval.current) clearInterval(pollingInterval.current);
+      pollingInterval.current = setInterval(pollSystemStatus, 20000); // 20초로 통일
+      await pollSystemStatus();
 
       return true;
     } catch (error) {
-      emitEvent('error', 'critical', `❌ 시스템 초기화 실패: ${error}`);
+      console.error('❌ 시스템 초기화 실패:', error);
       setState(prev => ({
         ...prev,
+        initializationProgress: 100,
         isInitialized: false,
-        initializationProgress: 0,
-        mcpWakeupStatus: {
-          ...prev.mcpWakeupStatus,
-          isInProgress: false,
-        },
+        isError: true,
+        error: error.message,
       }));
+      emitEvent('error', 'critical', `시스템 초기화 실패: ${error.message}`);
       return false;
     }
-  }, [pollSystemStatus, emitEvent, wakeupMCPServer]);
+  }, [emitEvent, pollSystemStatus, getState]);
 
   /**
    * 🛑 시스템 종료

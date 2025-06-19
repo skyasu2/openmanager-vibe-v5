@@ -415,9 +415,6 @@ export class MCPWarmupService {
     responseTime: number;
     lastCheck: Date;
   }> {
-    console.log(
-      'MCPWarmupService: getWarmupStatus() 호출됨. getCurrentStatus()를 실행합니다.'
-    );
     return this.getCurrentStatus();
   }
 }
