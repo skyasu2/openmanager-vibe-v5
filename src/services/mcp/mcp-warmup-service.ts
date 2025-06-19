@@ -388,6 +388,19 @@ export class MCPWarmupService {
     const result = await this.attemptConnection(5000);
     return result.success;
   }
+
+  /**
+   * 🌡️ 모든 서버 워밍업 (호환성용)
+   *
+   * @description 기존 `warmupAllServers` 호출을 위해 추가된 메서드.
+   * 현재는 단일 MCP 서버의 wakeup을 호출합니다.
+   */
+  async warmupAllServers(
+    onProgress?: (progress: MCPWakeupProgress) => void
+  ): Promise<MCPWakeupResult> {
+    console.log("MCPWarmupService: warmupAllServers() 호출됨. wakeupMCPServer()를 실행합니다.");
+    return this.wakeupMCPServer(onProgress);
+  }
 }
 
 // 싱글톤 인스턴스 내보내기

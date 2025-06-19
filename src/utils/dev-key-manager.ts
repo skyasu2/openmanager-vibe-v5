@@ -44,8 +44,8 @@ export interface DevKey {
 
 export interface KeyValidationResult {
   key: string;
-  isValid: boolean;
-  error?: string;
+  status: 'valid' | 'invalid' | 'missing';
+  message: string;
 }
 
 export interface KeyGroupValidation {
@@ -266,58 +266,74 @@ CRON_GEMINI_LEARNING=true
   /**
    * 🧪 모든 키 유효성 검증
    */
-  validateAllKeys(): KeyValidationResult[] {
-    return this.keyDefinitions.map(keyDef => {
-      const value = this.keys.get(keyDef.envKey);
-      const isValid = value
-        ? keyDef.validator
-          ? keyDef.validator(value)
-          : true
-        : !keyDef.required;
+  validateAllKeys(): {
+    details: KeyValidationResult[];
+    valid: number;
+    invalid: number;
+    missing: number;
+  } {
+    const results: KeyValidationResult[] = [];
+    let valid = 0;
+    let invalid = 0;
+    let missing = 0;
 
-      return {
-        key: keyDef.envKey,
-        isValid,
-        error: !isValid
-          ? `${keyDef.name} 키가 유효하지 않거나 누락됨`
-          : undefined,
-      };
+    this.keyDefinitions.forEach(keyDef => {
+      const value = this.getKey(keyDef.envKey);
+      if (value) {
+        if (keyDef.validator && keyDef.validator(value)) {
+          results.push({
+            key: keyDef.name,
+            status: 'valid',
+            message: '정상적으로 설정되었습니다.',
+          });
+          valid++;
+        } else {
+          results.push({
+            key: keyDef.name,
+            status: 'invalid',
+            message: '키 형식이 올바르지 않습니다.',
+          });
+          invalid++;
+        }
+      } else {
+        if (keyDef.required) {
+          results.push({
+            key: keyDef.name,
+            status: 'missing',
+            message: '필수 키가 누락되었습니다.',
+          });
+          missing++;
+        }
+      }
     });
+
+    return {
+      details: results,
+      valid,
+      invalid,
+      missing,
+    };
   }
 
   /**
    * 📊 개발자 친화적 상태 리포트
    */
   getStatusReport(): string {
-    const validation = this.validateAllKeys();
-    const successRate = Math.round(
-      (validation.filter(r => r.isValid).length / this.keyDefinitions.length) *
-        100
-    );
+    const { details, valid, invalid, missing } = this.validateAllKeys();
+    const total = details.length;
 
     let report = `
-🛠️ DevKeyManager 상태 리포트
-${'='.repeat(50)}
-📅 확인 시간: ${new Date().toLocaleString('ko-KR')}
-🎯 성공률: ${successRate}% (${validation.filter(r => r.isValid).length}/${this.keyDefinitions.length})
-🌍 환경: ${this.isDevelopment ? '개발' : '프로덕션'}
-
-📊 서비스별 상태:
+# 🔑 DevKeyManager 상태 보고서
+- 생성 시간: ${new Date().toISOString()}
+- 검사 대상: ${total}개 키
+- 요약: ✅ 정상 ${valid}개, ❌ 오류 ${invalid}개, ❓ 누락 ${missing}개
+---
 `;
 
-    validation.forEach(result => {
-      const icon = result.isValid ? '✅' : '❌';
-
-      report += `${icon} ${result.key.padEnd(25)} ${result.error ? `⚠️ ${result.error}` : ''}\n`;
+    details.forEach(result => {
+      const icon = result.status === 'valid' ? '✅' : result.status === 'invalid' ? '❌' : '❓';
+      report += `${icon} [${result.status.toUpperCase()}] ${result.key}: ${result.message}\n`;
     });
-
-    if (validation.filter(r => !r.isValid).length > 0) {
-      report += `\n💡 해결 방법:
-- npm run dev:setup-keys  # 자동 키 설정
-- npm run check-services  # 서비스 상태 확인
-- .env.local 파일 확인   # 수동 설정
-`;
-    }
 
     return report;
   }
@@ -341,9 +357,9 @@ ${'='.repeat(50)}
 
       return {
         success:
-          validation.filter(r => r.isValid).length >=
+          validation.valid >=
           this.keyDefinitions.filter(k => k.required).length,
-        message: `🚀 빠른 설정 완료! ${validation.filter(r => r.isValid).length}/${this.keyDefinitions.length} 서비스 활성화`,
+        message: `🚀 빠른 설정 완료! ${validation.valid}/${this.keyDefinitions.length} 서비스 활성화`,
       };
     } catch (error) {
       return {
@@ -367,7 +383,7 @@ ${'='.repeat(50)}
   getKeyStatus() {
     const total = this.keyDefinitions.length;
     const loaded = this.keys.size;
-    const valid = this.validateAllKeys().filter(r => r.isValid).length;
+    const valid = this.validateAllKeys().valid;
 
     return {
       total,

@@ -41,9 +41,17 @@ export function useSettingsData(): UseSettingsDataReturn {
         scenarios: { active: 0, total: 0 },
         thresholds: { cpu: 80, memory: 85, disk: 90 },
         dashboard: { layout: 'grid', widgets: 0 },
-        notifications: { slack: false, email: false, webhook: false },
+        notifications: { email: false, webhook: false },
         backup: { lastBackup: '없음', autoBackup: false },
         theme: 'dark',
+        general: {
+            performanceMode: 'balanced',
+            language: 'ko',
+        },
+        security: {
+            twoFactorAuth: false,
+            auditLogs: false,
+        },
     });
 
     const [isLoadingSettings, setIsLoadingSettings] = useState(true);
