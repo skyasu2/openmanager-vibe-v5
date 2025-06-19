@@ -176,7 +176,7 @@ export default function Home() {
         if (prev <= 1) {
           clearInterval(timer);
           // 3초 후 시스템 시작 및 로딩 페이지로 이동
-          handleActualSystemStart();
+          handleSystemStart();
           return 0;
         }
         return prev - 1;
@@ -197,10 +197,11 @@ export default function Home() {
     console.log('⏹️ 시스템 시작이 취소되었습니다.');
   };
 
-  // 🚀 실제 시스템 시작 함수
-  const handleActualSystemStart = async () => {
+  // 🚀 통합 시스템 시작 함수
+  const handleSystemStart = async () => {
     try {
-      console.log('🚀 실제 시스템 시작 실행');
+      console.log('🚀 시스템 시작 실행');
+      setIsLoading(true);
       await startSystem();
       console.log('✅ 시스템이 성공적으로 시작되었습니다.');
       // 로딩 페이지로 이동
@@ -208,6 +209,8 @@ export default function Home() {
     } catch (error) {
       console.error('❌ 시스템 시작 실패:', error);
       console.error('❌ 시스템 시작에 실패했습니다.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -237,59 +240,12 @@ export default function Home() {
     }
   };
 
-  // 📊 대시보드 클릭 핸들러 - 시스템 상태에 따라 다르게 동작
-  const handleDashboardClick = async () => {
-    if (isLoading) return;
-
-    // 시스템이 이미 실행 중이면 바로 대시보드로 이동
+  // 📊 대시보드 이동 함수 (시스템 활성 상태에서만 사용)
+  const handleDashboardClick = () => {
     if (isSystemStarted) {
-      console.log('📊 시스템 실행 중 - 바로 대시보드 이동');
+      console.log('📊 대시보드로 이동');
       router.push('/dashboard');
-      return;
     }
-
-    // 시스템이 중지 상태면 시스템 시작 후 로딩 페이지로 이동
-    console.log('🚀 시스템 중지 상태 - 시스템 시작 후 대시보드 이동');
-    setIsLoading(true);
-
-    try {
-      console.log('🚀 시스템을 시작하고 대시보드로 이동합니다...');
-      await startSystem();
-      console.log('✅ 시스템 시작 완료! 대시보드로 이동합니다.');
-
-      // 로딩 페이지로 이동 (시스템 시작 과정 표시)
-      router.push('/system-boot');
-    } catch (error) {
-      console.error('❌ 시스템 시작 실패:', error);
-      console.error('❌ 시스템 시작에 실패했습니다. 다시 시도해주세요.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleBootAnimationClick = async () => {
-    if (!isSystemStarted) {
-      console.warn('🚨 시스템을 먼저 시작해야 합니다!');
-      return;
-    }
-
-    try {
-      console.log('🚀 시스템 부팅 애니메이션 페이지로 이동');
-      router.push('/system-boot');
-    } catch (error) {
-      console.error('시스템 부팅 페이지 접근 중 오류:', error);
-      console.error(
-        '시스템 부팅 페이지에 접근할 수 없습니다. 잠시 후 다시 시도해주세요.'
-      );
-    }
-  };
-
-  const handleAIAgentInfo = () => {
-    console.log(
-      `🧠 AI 어시스턴트 상태: ${aiAgent.isEnabled ? '활성' : '비활성'}\n` +
-        `상태: ${aiAgent.state}\n` +
-        `시스템 연동: ${isSystemStarted ? '연결됨' : '대기 중'}`
-    );
   };
 
   const toggleDarkMode = () => {
@@ -744,147 +700,45 @@ export default function Home() {
 
                 {/* 대시보드 버튼 */}
                 <div className='flex flex-col items-center'>
-                  <div className='space-y-2'>
-                    <motion.button
-                      onClick={handleDashboardClick}
-                      className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border ${
-                        systemStartCountdown > 0
-                          ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-orange-400/50 shadow-lg shadow-orange-500/50'
-                          : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500/50'
-                      }`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      animate={
-                        systemStartCountdown > 0
-                          ? {
-                              scale: [1, 1.08, 1],
-                              boxShadow: [
-                                '0 0 0 0 rgba(255, 165, 0, 0.8)',
-                                '0 0 0 15px rgba(255, 165, 0, 0)',
-                                '0 0 0 0 rgba(255, 165, 0, 0)',
-                              ],
-                            }
-                          : {}
-                      }
-                      transition={{
-                        duration: 1,
-                        repeat: systemStartCountdown > 0 ? Infinity : 0,
-                        ease: 'easeInOut',
-                      }}
-                    >
-                      <BarChart3 className='w-5 h-5' />
-                      {systemStartCountdown > 0 ? (
-                        <div className='flex items-center gap-2'>
-                          <span>🚀 시스템 시작</span>
-                          <div className='bg-white/20 rounded-full w-6 h-6 flex items-center justify-center'>
-                            <span className='text-sm font-bold text-yellow-300'>
-                              {systemStartCountdown}
-                            </span>
-                          </div>
-                        </div>
-                      ) : (
-                        <>📊 대시보드 바로 열기</>
-                      )}
-                    </motion.button>
-                  </div>
+                  <motion.button
+                    onClick={handleDashboardClick}
+                    className='w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500/50'
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <BarChart3 className='w-5 h-5' />
+                    <span>📊 대시보드 열기</span>
+                  </motion.button>
 
-                  {/* 손가락 아이콘 + 클릭 문구 - 카운트다운 상태에 따라 변경 */}
+                  {/* 안내 아이콘 */}
                   <div className='mt-2 flex justify-center'>
-                    <span
-                      className={`text-xl ${
-                        systemStartCountdown > 0
-                          ? 'animate-bounce text-orange-400'
-                          : 'animate-wiggle text-yellow-400'
-                      }`}
-                    >
-                      {systemStartCountdown > 0 ? '⏰' : '👆'}
+                    <span className='text-xl animate-wiggle text-yellow-400'>
+                      👆
                     </span>
                   </div>
                   <div className='mt-1 flex justify-center'>
-                    <span
-                      className={`text-xs opacity-70 ${
-                        systemStartCountdown > 0
-                          ? 'text-orange-300 animate-pulse'
-                          : 'text-white animate-point-bounce'
-                      }`}
-                    >
-                      {systemStartCountdown > 0
-                        ? '시스템 시작 중...'
-                        : '클릭하세요'}
+                    <span className='text-xs opacity-70 text-white animate-point-bounce'>
+                      클릭하세요
                     </span>
                   </div>
                 </div>
 
-                {/* 시스템 중지 / 카운트다운 취소 버튼 */}
+                {/* 시스템 중지 버튼 */}
                 <div className='flex flex-col items-center'>
                   <motion.button
-                    onClick={
-                      systemStartCountdown > 0
-                        ? stopSystemCountdown
-                        : handleSystemToggle
-                    }
+                    onClick={handleSystemToggle}
                     disabled={isLoading}
-                    className={`w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border disabled:opacity-75 ${
-                      systemStartCountdown > 0
-                        ? 'bg-yellow-600 hover:bg-yellow-700 text-white border-yellow-500/50'
-                        : 'bg-red-600 hover:bg-red-700 text-white border-red-500/50'
-                    }`}
+                    className='w-52 h-14 flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 border disabled:opacity-75 bg-red-600 hover:bg-red-700 text-white border-red-500/50'
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    animate={
-                      systemStartCountdown > 0
-                        ? {
-                            scale: [1, 1.02, 1],
-                          }
-                        : {}
-                    }
-                    transition={{
-                      duration: 0.5,
-                      repeat: systemStartCountdown > 0 ? Infinity : 0,
-                      ease: 'easeInOut',
-                    }}
                   >
                     {isLoading ? (
                       <Loader2 className='w-5 h-5 animate-spin' />
-                    ) : systemStartCountdown > 0 ? (
-                      <X className='w-5 h-5' />
                     ) : (
                       <StopCircle className='w-5 h-5' />
                     )}
-                    <span>
-                      {isLoading
-                        ? '중지 중...'
-                        : systemStartCountdown > 0
-                          ? '🛑 시작 취소'
-                          : '⏹️ 시스템 중지'}
-                    </span>
+                    <span>{isLoading ? '중지 중...' : '⏹️ 시스템 중지'}</span>
                   </motion.button>
-
-                  {/* 카운트다운 상태에 따른 안내 */}
-                  <div className='mt-2 flex justify-center'>
-                    <span
-                      className={`text-xl ${
-                        systemStartCountdown > 0
-                          ? 'animate-bounce text-yellow-400'
-                          : 'text-transparent'
-                      }`}
-                    >
-                      {systemStartCountdown > 0 ? '✋' : '👆'}
-                    </span>
-                  </div>
-                  <div className='mt-1 flex justify-center'>
-                    <span
-                      className={`text-xs ${
-                        systemStartCountdown > 0
-                          ? 'text-yellow-300 opacity-70 animate-pulse'
-                          : 'text-transparent opacity-0'
-                      }`}
-                    >
-                      {systemStartCountdown > 0
-                        ? '시스템 시작 취소'
-                        : '클릭하세요'}
-                    </span>
-                  </div>
                 </div>
               </div>
 
