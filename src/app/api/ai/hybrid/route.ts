@@ -199,7 +199,10 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
+    // NextRequest의 nextUrl이 undefined일 수 있으므로 안전하게 처리
+    const url =
+      request.nextUrl || new URL(request.url || 'http://localhost:3000');
+    const searchParams = url.searchParams;
     const mode = searchParams.get('mode') || 'auto';
     const engines = searchParams.get('engines') || 'all';
 
@@ -215,7 +218,7 @@ export async function GET(request: NextRequest) {
           status: 'connected',
           weight: 0.6,
           performance: 94.2,
-          lastUsed: new Date().toISOString()
+          lastUsed: new Date().toISOString(),
         },
         {
           id: 'mcp-fallback',
@@ -223,7 +226,7 @@ export async function GET(request: NextRequest) {
           status: 'connected',
           weight: 0.3,
           performance: 89.7,
-          lastUsed: new Date(Date.now() - 300000).toISOString()
+          lastUsed: new Date(Date.now() - 300000).toISOString(),
         },
         {
           id: 'local-enhanced',
@@ -231,27 +234,27 @@ export async function GET(request: NextRequest) {
           status: 'connected',
           weight: 0.1,
           performance: 91.5,
-          lastUsed: new Date(Date.now() - 600000).toISOString()
-        }
+          lastUsed: new Date(Date.now() - 600000).toISOString(),
+        },
       ],
       routing: {
         strategy: 'weighted',
         fallbackEnabled: true,
         loadBalancing: true,
-        autoOptimization: true
+        autoOptimization: true,
       },
       metrics: {
         totalRequests: 1247,
         successRate: 98.3,
         averageResponseTime: 85,
-        engineSwitches: 23
+        engineSwitches: 23,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     return NextResponse.json({
       success: true,
-      data: hybridData
+      data: hybridData,
     });
   } catch (error) {
     console.error('하이브리드 AI 조회 오류:', error);
@@ -260,7 +263,7 @@ export async function GET(request: NextRequest) {
         success: false,
         error: '하이브리드 AI 상태 조회 실패',
         code: 'HYBRID_AI_ERROR',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );

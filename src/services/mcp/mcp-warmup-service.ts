@@ -334,6 +334,37 @@ export class MCPWarmupService {
   }
 
   /**
+   * 🔄 주기적 워밍업 시스템 (서버용)
+   */
+  startPeriodicWarmup(intervalMinutes: number = 15): () => void {
+    console.log(`🔥 MCP 주기적 워밍업 시작 (${intervalMinutes}분 간격)`);
+
+    const interval = setInterval(
+      async () => {
+        try {
+          // 서버 환경에서는 항상 실행
+          const result = await this.attemptConnection(10000);
+          if (result.success) {
+            console.log(`🔄 MCP 주기적 워밍업 성공 (${result.responseTime}ms)`);
+            this.cacheSuccessTime();
+          } else {
+            console.warn(`⚠️ MCP 주기적 워밍업 실패: ${result.error}`);
+          }
+        } catch (error) {
+          console.warn('⚠️ MCP 주기적 워밍업 오류:', error);
+        }
+      },
+      intervalMinutes * 60 * 1000
+    );
+
+    // 정리 함수 반환
+    return () => {
+      clearInterval(interval);
+      console.log('🛑 MCP 주기적 워밍업 중지');
+    };
+  }
+
+  /**
    * 📊 현재 상태 확인
    */
   async getCurrentStatus(): Promise<{

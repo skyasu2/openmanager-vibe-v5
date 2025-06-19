@@ -30,6 +30,8 @@ describe('Edge runtime compatibility', () => {
     const res = await hybridGet(req as any);
     const data = await res.json();
     expect(data.success).toBe(true);
-    expect(data.data.healthCheck.uptime).toBe(0);
+    expect(data.data.status).toBe('active');
+    expect(data.data.hybridEngines).toBeDefined();
+    expect(Array.isArray(data.data.hybridEngines)).toBe(true);
   });
 });
