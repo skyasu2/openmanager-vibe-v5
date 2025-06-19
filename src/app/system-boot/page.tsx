@@ -188,16 +188,6 @@ export default function SystemBootPage() {
             </span>
           </motion.h1>
 
-          {/* 버전 정보 */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-            className='text-xl text-white/80 mb-8 font-light'
-          >
-            Vibe v5 • AI 기반 서버 모니터링
-          </motion.p>
-
           {/* 현재 단계 아이콘 */}
           <motion.div
             key={currentStage}
