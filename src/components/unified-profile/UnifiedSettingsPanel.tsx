@@ -390,6 +390,8 @@ export function UnifiedSettingsPanel({
             transition={{ duration: 0.2 }}
             className='fixed inset-0 bg-black/70 z-[999]'
             onClick={onClose}
+            role='button'
+            aria-label='설정 패널 닫기'
           />
 
           {/* 설정 패널 - 중앙 모달로 변경 */}
@@ -400,7 +402,8 @@ export function UnifiedSettingsPanel({
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className='fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
-                       w-[clamp(400px,90vw,800px)] h-[clamp(500px,85vh,700px)] 
+                       w-[min(95vw,800px)] h-[min(95vh,700px)] 
+                       min-w-[320px] min-h-[400px] max-w-4xl max-h-[95vh]
                        bg-gray-900/95 backdrop-blur-xl border border-white/20 
                        rounded-2xl shadow-2xl z-[1000] flex flex-col overflow-hidden'
             role='dialog'
@@ -414,7 +417,7 @@ export function UnifiedSettingsPanel({
                 className='text-xl font-bold text-white flex items-center gap-2'
               >
                 <Settings className='w-6 h-6' />
-                통합 설정 제어판
+                설정
               </h2>
               <motion.button
                 whileHover={{ scale: 1.1, rotate: 90 }}
@@ -429,20 +432,20 @@ export function UnifiedSettingsPanel({
 
             {/* 탭 네비게이션 */}
             <nav className='flex-shrink-0 p-4 border-b border-white/10'>
-              <div className='flex items-center justify-around bg-gray-800/50 p-1 rounded-lg'>
+              <div className='flex items-center justify-around bg-gray-800/50 p-1 rounded-lg overflow-x-auto'>
                 {(
                   [
-                    ['ai', 'AI 에이전트', Bot],
-                    ['generator', '데이터 생성기', Database],
+                    ['ai', 'AI', Bot],
+                    ['generator', '데이터', Database],
                     ['monitor', '모니터링', Monitor],
                     ['optimization', '최적화', Zap],
-                    ['general', '일반 설정', Settings],
+                    ['general', '일반', Settings],
                   ] as const
                 ).map(([tabKey, tabName, Icon]) => (
                   <button
                     key={tabKey}
                     onClick={() => setActiveTab(tabKey)}
-                    className={`relative w-full px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    className={`relative flex-shrink-0 px-3 py-2 text-sm font-medium rounded-md transition-colors min-w-0 ${
                       activeTab === tabKey
                         ? 'text-white'
                         : 'text-gray-400 hover:text-white'
@@ -459,9 +462,9 @@ export function UnifiedSettingsPanel({
                         }}
                       />
                     )}
-                    <div className='relative z-10 flex items-center justify-center gap-2'>
-                      <Icon className='w-4 h-4' />
-                      <span>{tabName}</span>
+                    <div className='relative z-10 flex items-center justify-center gap-1 sm:gap-2'>
+                      <Icon className='w-4 h-4 flex-shrink-0' />
+                      <span className='truncate'>{tabName}</span>
                     </div>
                   </button>
                 ))}

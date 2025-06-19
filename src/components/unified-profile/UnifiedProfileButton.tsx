@@ -576,7 +576,7 @@ export function UnifiedProfileButton({
                       <Zap className='w-4 h-4 text-violet-400' />
                     </div>
                     <div>
-                      <div className='text-white font-medium'>고급 설정</div>
+                      <div className='text-white font-medium'>설정</div>
                       <div className='text-gray-400 text-xs'>
                         시스템 고급 설정 및 관리자 도구
                       </div>
