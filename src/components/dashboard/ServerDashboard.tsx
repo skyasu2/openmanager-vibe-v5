@@ -66,6 +66,7 @@ import {
 import { useCachedServers } from '@/hooks/useCachedServers';
 import ServerCardSkeleton from './server-dashboard/ServerCardSkeleton';
 import { AnimatePresence } from 'framer-motion';
+import { toLegacyServerCardData } from '@/adapters/server-card.adapter';
 
 // ✅ 타입만 정의 (실제 구현은 API 라우트에서 처리)
 interface ServerInstance {
@@ -567,13 +568,17 @@ export default function ServerDashboard({
             </div>
 
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-6'>
-              {paginatedServers.map(server => (
-                <ServerCard
-                  key={server.id}
-                  server={server}
-                  onClick={() => handleServerClick(server)}
-                />
-              ))}
+              {paginatedServers.map(server => {
+                const legacy = toLegacyServerCardData(server);
+                return (
+                  <ServerCard
+                    key={legacy.id}
+                    // Legacy 구조를 그대로 넘기되 타입 불일치는 any 캐스팅으로 해결
+                    server={legacy as any}
+                    onClick={() => handleServerClick(server)}
+                  />
+                );
+              })}
             </div>
 
             {/* 페이지네이션 컨트롤 */}

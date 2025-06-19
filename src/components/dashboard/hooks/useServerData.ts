@@ -254,7 +254,7 @@ export const useServerData = (): UseServerDataReturn => {
         // 위치 필터
         if (
           filters.location &&
-          !server.location
+          !(server.location ?? '')
             .toLowerCase()
             .includes(filters.location.toLowerCase())
         ) {
@@ -266,7 +266,7 @@ export const useServerData = (): UseServerDataReturn => {
           const searchLower = filters.searchTerm.toLowerCase();
           return (
             server.name.toLowerCase().includes(searchLower) ||
-            server.location.toLowerCase().includes(searchLower) ||
+            (server.location ?? '').toLowerCase().includes(searchLower) ||
             server.id.toLowerCase().includes(searchLower)
           );
         }
