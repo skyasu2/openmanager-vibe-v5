@@ -253,13 +253,10 @@ export default function ServerDashboard({
   const { viewMode, setViewMode } = useDashboardToggleStore();
   const [activeTab, setActiveTab] = useState<DashboardTab>('servers');
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('priority');
   const [currentPage, setCurrentPage] = useState(1);
   const [isClient, setIsClient] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<
-    'all' | 'healthy' | 'warning' | 'offline'
-  >('all');
   const [locationFilter, setLocationFilter] = useState<string>('all');
   // 페이지네이션 상태 (8개씩 표시)
   // showAllServers 제거 - 이제 페이지네이션으로 관리
@@ -373,7 +370,7 @@ export default function ServerDashboard({
 
       const matchesStatus =
         statusFilter === 'all' ||
-        (statusFilter === 'healthy' && server.status === 'online') ||
+        (statusFilter === 'online' && server.status === 'online') ||
         (statusFilter === 'warning' && server.status === 'warning') ||
         (statusFilter === 'offline' && server.status === 'offline');
 
@@ -530,8 +527,8 @@ export default function ServerDashboard({
             />
           </div>
           <select
-            value={filterStatus}
-            onChange={e => setFilterStatus(e.target.value)}
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
             aria-label='서버 상태 필터'
             className='px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
           >
