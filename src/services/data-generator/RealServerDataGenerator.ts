@@ -390,14 +390,13 @@ export class RealServerDataGenerator {
   public async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
-    // 🔨 Next.js "build" 단계(phase-production-build)에서는 초기화 건너뜀
-    //     런타임(서버리스 함수) 및 개발 서버에서는 정상 실행되어야 합니다.
-    //     기존 조건은 Vercel 런타임까지 건너뛰어 실서비스에서 데이터가 비어 버리는 문제가 있었습니다.
-    const isNextJsBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
-    const isExplicitBuildTime = process.env.BUILD_TIME === 'true';
-
-    if (isNextJsBuildPhase || isExplicitBuildTime) {
-      console.log('🔨 빌드 단계 감지 - RealServerDataGenerator 초기화 건너뜀');
+    // 이전의 복잡한 빌드 환경 감지 로직을 삭제하고,
+    // 환경변수 `BUILD_SKIP_GENERATOR` 를 사용하여, 초기화를 스킵하는지 여부를 명시적으로 제어합니다.
+    // 이에 따라, Vercel 의 본 런타임에서 데이터 생성이 오류 없이 스킵되는 문제를 해결합니다.
+    if (process.env.BUILD_SKIP_GENERATOR === 'true') {
+      console.log(
+        '⏭️ BUILD_SKIP_GENERATOR=true 가 설정되어 있는 데, RealServerDataGenerator 의 초기화를 스킵합니다.'
+      );
       this.isInitialized = true;
       return;
     }
