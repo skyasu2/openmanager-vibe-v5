@@ -114,13 +114,10 @@ export const 네트워크오프라인: Story = {
 
 export const 다중네트워크비교: Story = {
   render: () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+    <div className='grid grid-cols-1 md:grid-cols-2 gap-6 p-6'>
+      <NetworkMonitoringCard serverName='Web-Server-01' metrics={baseMetrics} />
       <NetworkMonitoringCard
-        serverName="Web-Server-01"
-        metrics={baseMetrics}
-      />
-      <NetworkMonitoringCard
-        serverName="API-Server-02"
+        serverName='API-Server-02'
         metrics={{
           ...baseMetrics,
           bandwidth: 85.6,
@@ -129,7 +126,7 @@ export const 다중네트워크비교: Story = {
         }}
       />
       <NetworkMonitoringCard
-        serverName="DB-Server-03"
+        serverName='DB-Server-03'
         metrics={{
           ...baseMetrics,
           bandwidth: 92.1,
@@ -138,7 +135,7 @@ export const 다중네트워크비교: Story = {
         }}
       />
       <NetworkMonitoringCard
-        serverName="Cache-Server-04"
+        serverName='Cache-Server-04'
         metrics={{
           ...baseMetrics,
           bandwidth: 0,
@@ -156,35 +153,53 @@ export const 다중네트워크비교: Story = {
 // 실시간 시뮬레이션 컴포넌트
 const RealtimeNetworkDemo: React.FC = () => {
   const [currentMetrics, setCurrentMetrics] = React.useState(baseMetrics);
-  
+
   React.useEffect(() => {
     const interval = setInterval(() => {
       setCurrentMetrics(prev => ({
         ...prev,
-        bandwidth: Math.max(0, Math.min(100, prev.bandwidth + (Math.random() - 0.5) * 20)),
-        latency: Math.max(0, Math.min(500, prev.latency + (Math.random() - 0.5) * 30)),
-        downloadSpeed: Math.max(0, Math.min(1000, prev.downloadSpeed + (Math.random() - 0.5) * 40)),
-        uploadSpeed: Math.max(0, Math.min(1000, prev.uploadSpeed + (Math.random() - 0.5) * 20)),
-        connections: Math.max(0, Math.min(1000, prev.connections + Math.floor((Math.random() - 0.5) * 50))),
+        bandwidth: Math.max(
+          0,
+          Math.min(100, prev.bandwidth + (Math.random() - 0.5) * 20)
+        ),
+        latency: Math.max(
+          0,
+          Math.min(500, prev.latency + (Math.random() - 0.5) * 30)
+        ),
+        downloadSpeed: Math.max(
+          0,
+          Math.min(1000, prev.downloadSpeed + (Math.random() - 0.5) * 40)
+        ),
+        uploadSpeed: Math.max(
+          0,
+          Math.min(1000, prev.uploadSpeed + (Math.random() - 0.5) * 20)
+        ),
+        connections: Math.max(
+          0,
+          Math.min(
+            1000,
+            prev.connections + Math.floor((Math.random() - 0.5) * 50)
+          )
+        ),
       }));
-          }, 20000); // 🎯 20초 갱신 주기로 통일
+    }, 20000); // 🎯 20초 갱신 주기로 통일
 
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="p-6">
-      <div className="mb-4">
-        <h3 className="text-lg font-bold text-gray-800 mb-2">
-          🔄 실시간 네트워크 모니터링 (10초 갱신 주기)
+    <div className='p-6'>
+      <div className='mb-4'>
+        <h3 className='text-lg font-bold text-gray-800 mb-2'>
+          🔄 실시간 네트워크 모니터링 (20초 갱신 주기)
         </h3>
-        <p className="text-sm text-gray-600">
-          이 시뮬레이션은 10초마다 네트워크 메트릭이 갱신되는 것을 보여줍니다.
-          이전 2초 갱신에 비해 80% 성능 향상을 달성했습니다.
+        <p className='text-sm text-gray-600'>
+          이 시뮬레이션은 20초마다 네트워크 메트릭이 갱신되는 것을 보여줍니다.
+          데이터 생성기와 완전히 동기화되어 안정적인 업데이트를 제공합니다.
         </p>
       </div>
       <NetworkMonitoringCard
-        serverName="Real-Time-Server"
+        serverName='Real-Time-Server'
         metrics={currentMetrics}
       />
     </div>
@@ -196,4 +211,4 @@ export const 실시간시뮬레이션: Story = {
   parameters: {
     layout: 'fullscreen',
   },
-}; 
+};

@@ -185,11 +185,11 @@ export class WebSocketManager {
   }
 
   /**
-   * 📊 실시간 데이터 생성 시작
+   * 📊 실시간 데이터 생성 시작 - 🎯 데이터 생성기와 동기화 (5초 → 20초)
    */
   private startDataGeneration(): void {
-    // 5초마다 새로운 서버 메트릭 생성
-    interval(5000).subscribe(() => {
+    // 20초마다 새로운 서버 메트릭 생성 (데이터 생성기와 동기화)
+    interval(20000).subscribe(() => {
       if (!this.isActive || this.clients.size === 0) return;
 
       try {

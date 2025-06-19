@@ -32,11 +32,11 @@ export function useRealTimeMetrics(serverId: string | null) {
 
     updateRealTimeMetrics();
 
-    // TimerManager를 사용한 실시간 메트릭 업데이트
+    // TimerManager를 사용한 실시간 메트릭 업데이트 - 🎯 데이터 생성기와 동기화 (3초 → 20초)
     timerManager.register({
       id: `server-detail-metrics-${serverId}`,
       callback: updateRealTimeMetrics,
-      interval: 3000,
+      interval: 20000, // 20초 (데이터 생성기와 동기화)
       priority: 'medium',
       enabled: true,
     });

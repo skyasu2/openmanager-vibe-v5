@@ -112,7 +112,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       trend: 'stable',
     });
 
-    // 실시간 데이터 업데이트
+    // 실시간 데이터 업데이트 - 🎯 데이터 생성기와 동기화 (2초 → 20초)
     useEffect(() => {
       const interval = setInterval(
         () => {
@@ -156,8 +156,8 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                 : 'stable',
           }));
         },
-        2000 + index * 100
-      ); // 카드별로 약간씩 다른 업데이트 주기
+        20000 + index * 200 // 20초 기본 간격 + 카드별 200ms 차이 (데이터 생성기와 동기화)
+      );
 
       return () => clearInterval(interval);
     }, [server.cpu, server.memory, server.disk, server.network, index]);
