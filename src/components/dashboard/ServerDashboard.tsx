@@ -46,7 +46,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import ServerDetailModal from './ServerDetailModal';
-import EnhancedServerCard from './EnhancedServerCard';
+import ServerCard from './ServerCard';
 import EnhancedServerModal from './EnhancedServerModal';
 import ServerModalErrorBoundary from './ServerModalErrorBoundary';
 import NetworkMonitoringCard from './NetworkMonitoringCard';
@@ -591,7 +591,7 @@ export default function ServerDashboard({
 
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-6'>
               {paginatedServers.map(server => (
-                <EnhancedServerCard
+                <ServerCard
                   key={server.id}
                   server={server}
                   onClick={() => handleServerClick(server)}

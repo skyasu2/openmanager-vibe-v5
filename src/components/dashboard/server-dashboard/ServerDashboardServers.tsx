@@ -12,7 +12,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Server } from '../../../types/server';
 import { ViewMode } from '../../../hooks/useServerDashboard';
-import EnhancedServerCard from '../EnhancedServerCard';
+import ServerCard from '../ServerCard';
 
 interface ServerDashboardServersProps {
   servers: Server[];
@@ -255,34 +255,9 @@ export function ServerDashboardServers({
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <EnhancedServerCard
-                    server={{
-                      ...server,
-                      hostname: server.name,
-                      type: 'api_server',
-                      environment: 'production',
-                      provider: 'AWS',
-                      status:
-                        server.status === 'online'
-                          ? 'healthy'
-                          : server.status === 'warning'
-                            ? 'warning'
-                            : 'critical',
-                      network:
-                        server.network || Math.floor(Math.random() * 40) + 30,
-                      networkStatus: server.networkStatus || 'good',
-                      specs: {
-                        cpu_cores: 8,
-                        memory_gb: 16,
-                        disk_gb: 500,
-                        network_speed: '1Gbps',
-                      },
-                      ip: `192.168.1.${Math.floor(Math.random() * 254) + 1}`,
-                      os: 'Ubuntu 22.04 LTS',
-                    }}
-                    index={index}
+                  <ServerCard
+                    server={server}
                     onClick={() => onServerSelect(server)}
-                    showMiniCharts={true}
                     variant='compact'
                   />
                 </motion.div>
