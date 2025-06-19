@@ -48,7 +48,7 @@ class KeepAliveScheduler {
       redis: null,
     };
 
-    // 비동기 초기화를 나중에 호출
+    // 비동기 초기화
     this.initializeScheduler().catch(console.error);
   }
 

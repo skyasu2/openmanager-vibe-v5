@@ -558,7 +558,7 @@ export class PriorityAlertEngine {
         monitoring_only: [],
       },
       system_health_score: 70,
-      recommendations: ['🔄 나중에 다시 분석해주세요'],
+      recommendations: ['🔄 시스템 안정화 후 재분석을 권장합니다'],
       processing_time: processingTime,
     };
   }

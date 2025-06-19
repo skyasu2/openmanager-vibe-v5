@@ -278,7 +278,7 @@ export class PatternSuggester {
       pattern,
       questions,
       frequency: questions.length,
-      averageConfidence: 0, // 나중에 계산
+      averageConfidence: this.calculateAverageConfidence([]),
       commonKeywords,
       suggestedCategory: category,
     };
@@ -851,5 +851,13 @@ export class PatternSuggester {
 
   private generateTemplateId(): string {
     return `template_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  private calculateAverageConfidence(patterns: any[]): number {
+    if (patterns.length === 0) return 0;
+    return (
+      patterns.reduce((sum, p) => sum + (p.confidence || 0), 0) /
+      patterns.length
+    );
   }
 }

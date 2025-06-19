@@ -341,7 +341,9 @@ export class CorrelationEngine {
       topCorrelations: [],
       criticalCorrelations: [],
       anomalies: ['⚠️ 상관관계 분석 중 오류 발생'],
-      recommendations: ['🔄 나중에 다시 시도해주세요'],
+      recommendations: [
+        '🔄 더 많은 데이터가 수집되면 정확한 분석이 가능합니다',
+      ],
       analysisTime,
       memoryUsage: this.estimateMemoryUsage(serverCount),
     };

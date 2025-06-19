@@ -91,10 +91,10 @@ export class HybridAIEngine {
     // 임시: LocalVectorDB 모의 객체 사용 (require 대신)
     const vectorDB = {
       search: () => ({ status: 'success', results: [], count: 0 }),
-      add: () => { },
-      update: () => { },
-      delete: () => { },
-      clear: () => { },
+      add: () => {},
+      update: () => {},
+      delete: () => {},
+      clear: () => {},
     } as any;
 
     // 문서 인덱스를 위한 Map 생성
@@ -260,7 +260,7 @@ export class HybridAIEngine {
         koreanNLU: analysisResults.korean,
         transformersAnalysis: analysisResults.transformers,
         vectorSearchResults: documents, // 검색된 문서 자체가 벡터 검색 결과
-        mcpActions: [], // MCP 액션은 향후 구현
+        mcpActions: [],
         processingTime: totalTime,
         engineUsed: this.determineEngineUsed(analysisResults),
         performanceMetrics,

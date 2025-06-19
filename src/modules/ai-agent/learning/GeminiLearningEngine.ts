@@ -254,7 +254,7 @@ export class GeminiLearningEngine {
       const suggestion = this.parseGeminiResponse(response.content);
 
       if (suggestion) {
-        suggestion.id = this.generateSuggestionId();
+        suggestion.id = `suggestion_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         suggestion.timestamp = new Date();
       }
 
@@ -333,7 +333,7 @@ ${failureContext}
       }
 
       return {
-        id: '', // 나중에 설정
+        id: `suggestion_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         title: parsed.title,
         content: parsed.content,
         type: parsed.type,
@@ -344,7 +344,7 @@ ${failureContext}
           0,
           Math.min(1, parsed.estimatedImprovement || 0.5)
         ),
-        sourceLogIds: [], // 나중에 설정
+        sourceLogIds: [],
         timestamp: new Date(),
       };
     } catch (error) {
@@ -442,10 +442,6 @@ ${failureContext}
       batches.push(array.slice(i, i + batchSize));
     }
     return batches;
-  }
-
-  private generateSuggestionId(): string {
-    return `gemini-suggestion-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
   private sleep(ms: number): Promise<void> {

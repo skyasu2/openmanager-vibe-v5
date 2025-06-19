@@ -516,7 +516,7 @@ export class MCPOrchestrator {
       sources,
       recommendations: this.generateRecommendations(queryIntent, contextData),
       actions: [], // generateActions에서 별도로 처리
-      processingTime: 0, // 나중에 설정
+      processingTime: Date.now() - query.timestamp,
       contextUsed: {
         basic: !!contextData.basic,
         advanced: contextData.advanced.length > 0,

@@ -299,7 +299,7 @@ export class FailureAnalyzer {
           pattern,
           questions: [question],
           frequency: 1,
-          averageConfidence: 0, // 나중에 계산
+          averageConfidence: this.calculateAverageConfidence([]),
           commonKeywords: keywords,
           suggestedCategory: this.categorizePattern(pattern),
         });
@@ -513,5 +513,10 @@ export class FailureAnalyzer {
    */
   private generatePatternId(): string {
     return `pattern_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  private calculateAverageConfidence(patterns: FailurePattern[]): number {
+    if (patterns.length === 0) return 0;
+    return patterns.reduce((sum, p) => sum + p.confidence, 0) / patterns.length;
   }
 }

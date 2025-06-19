@@ -582,7 +582,17 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
   // 응답 재생성
   const regenerateResponse = (messageId: string) => {
-    // 구현 예정
+    const messageToRegenerate = chatMessages.find(
+      msg => msg.id === messageId && msg.type === 'ai'
+    );
+    if (!messageToRegenerate) return;
+
+    // 마지막 사용자 메시지 찾아서 재처리
+    const lastUserMessage = chatMessages.find(msg => msg.type === 'user');
+    if (lastUserMessage) {
+      // 기존 AI 메시지 이후의 새로운 응답 생성
+      sendMessage(lastUserMessage.content);
+    }
   };
 
   // Enhanced AI Chat 컴포넌트
