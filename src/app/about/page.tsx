@@ -1,208 +1,201 @@
 'use client';
 
-import { ArrowLeft, Users, TrendingUp, Rocket } from 'lucide-react';
+import { ArrowLeft, Users, TrendingUp, Rocket, Compass } from 'lucide-react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
+import {
+  BookOpen,
+  Link as LinkIcon,
+  Search,
+  Briefcase,
+  Award,
+  CheckSquare,
+} from 'lucide-react';
 
 export default function DevelopmentProcessPage() {
   return (
-    <div className='min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black'>
-      <div className='container mx-auto px-6 py-12'>
-        <Link
-          href='/'
-          className='inline-flex items-center gap-2 mb-8 px-4 py-2 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all duration-300 text-white'
-        >
-          <ArrowLeft className='w-4 h-4' />
-          홈으로 돌아가기
-        </Link>
+    <div className='bg-gray-900 text-white min-h-screen'>
+      <main className='container mx-auto px-4 py-16'>
+        <section className='text-center mb-16'>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className='text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-500 mb-4'
+          >
+            학습 및 개발 기록
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className='text-lg text-gray-400 max-w-3xl mx-auto'
+          >
+            시스템 엔지니어의 웹 개발 학습 과정
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className='text-md text-gray-500 max-w-3xl mx-auto mt-2'
+          >
+            4년간의 서버 운영 경험을 바탕으로, 20일간 진행한 웹 애플리케이션
+            개발 및 AI 도구 활용 기록입니다.
+          </motion.p>
+        </section>
 
-        <div className='text-center mb-16'>
-          <h1 className='text-5xl font-bold mb-4 text-white'>
-            <span className='bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent'>
-              개인 학습 경험
-            </span>
-            <br />
-            <span className='text-3xl text-white/80'>
-              시스템 엔지니어의 새로운 기술 학습 도전
-            </span>
-          </h1>
-
-          <p className='text-xl text-white/80 max-w-4xl mx-auto mb-8'>
-            4년간의 서버 운영 경험을 바탕으로 20일간 웹 개발과 AI 도구를 학습한
-            경험 기록
-          </p>
-        </div>
-
-        {/* 3단 구성 */}
-        <div className='grid md:grid-cols-3 gap-8 mb-16'>
-          {/* 1️⃣ 개인 여정 (왼쪽) */}
-          <div className='bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8'>
-            <div className='flex items-center gap-3 mb-6'>
-              <div className='w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center'>
-                <Users className='w-6 h-6 text-white' />
-              </div>
-              <h3 className='text-2xl font-bold text-white'>개인 여정</h3>
+        <section className='grid md:grid-cols-3 gap-8 mb-16'>
+          {/* 개인 여정 -> 학습 과정 */}
+          <div className='bg-gray-800/50 p-6 rounded-lg border border-gray-700'>
+            <h3 className='text-2xl font-bold mb-6 flex items-center gap-3'>
+              <BookOpen size={28} className='text-indigo-400' /> 학습 과정
+            </h3>
+            <div>
+              <h4 className='font-semibold text-lg mb-3 text-indigo-300 flex items-center gap-2'>
+                <BookOpen size={20} /> 주요 학습 내용
+              </h4>
+              <ul className='list-disc list-inside text-gray-300 space-y-2'>
+                <li>시스템 엔지니어 → 웹 개발 기초 학습</li>
+                <li>20일간 새로운 기술 영역 도전</li>
+                <li>AI 도구 활용법 체험</li>
+                <li>타입 안전성을 고려한 개발 시도</li>
+              </ul>
             </div>
-
-            <div className='space-y-6'>
-              <div>
-                <h4 className='text-lg font-semibold text-blue-400 mb-3'>
-                  🌱 학습 과정
-                </h4>
-                <ul className='text-sm text-white/80 space-y-2'>
-                  <li>• 시스템 엔지니어 → 웹 개발 기초 학습</li>
-                  <li>• 20일간 새로운 기술 영역 도전</li>
-                  <li>• AI 도구 활용법 체험</li>
-                  <li>• 처음으로 타입 안전성을 고려한 개발 시도</li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className='text-lg font-semibold text-purple-400 mb-3'>
-                  💪 활용한 경험
-                </h4>
-                <ul className='text-sm text-white/80 space-y-2'>
-                  <li>• 4년 운영 경험을 개발에 활용</li>
-                  <li>• 실무 제약사항을 고려한 현실적 접근</li>
-                  <li>• 실제 업무 상황을 반영한 UI 설계</li>
-                  <li>• 사용자 관점에서의 편의성 추구</li>
-                </ul>
-              </div>
+            <div className='mt-8'>
+              <h4 className='font-semibold text-lg mb-3 text-indigo-300 flex items-center gap-2'>
+                <LinkIcon size={20} /> 기존 경험과의 연결
+              </h4>
+              <ul className='list-disc list-inside text-gray-300 space-y-2'>
+                <li>4년 운영 경험을 개발에 활용</li>
+                <li>실무 제약사항을 고려한 현실적 접근</li>
+                <li>실제 업무 상황을 반영한 UI 설계</li>
+                <li>사용자 관점에서의 편의성 추구</li>
+              </ul>
             </div>
           </div>
 
-          {/* 2️⃣ 실질적 기여 (가운데) */}
-          <div className='bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8'>
-            <div className='flex items-center gap-3 mb-6'>
-              <div className='w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-xl flex items-center justify-center'>
-                <TrendingUp className='w-6 h-6 text-white' />
-              </div>
-              <h3 className='text-2xl font-bold text-white'>실질적 기여</h3>
+          {/* 실질적 기여 -> 주요 경험 */}
+          <div className='bg-gray-800/50 p-6 rounded-lg border border-gray-700'>
+            <h3 className='text-2xl font-bold mb-6 flex items-center gap-3'>
+              <TrendingUp size={28} className='text-emerald-400' /> 주요 경험
+            </h3>
+            <div>
+              <h4 className='font-semibold text-lg mb-3 text-emerald-300 flex items-center gap-2'>
+                <Search size={20} /> 기술 적용 및 탐색
+              </h4>
+              <ul className='list-disc list-inside text-gray-300 space-y-2'>
+                <li>기존 제품의 사용성 개선 아이디어 탐색</li>
+                <li>새로운 기술 적용 가능성 탐색</li>
+                <li>AI 도구 활용 사례 연구</li>
+                <li>실무자 관점의 인터페이스 설계 시도</li>
+              </ul>
             </div>
-
-            <div className='space-y-6'>
-              <div>
-                <h4 className='text-lg font-semibold text-green-400 mb-3'>
-                  🎯 시도한 개선점
-                </h4>
-                <ul className='text-sm text-white/80 space-y-2'>
-                  <li>• 기존 제품 사용성 개선 아이디어 제안</li>
-                  <li>• 새로운 기술 적용 가능성 탐색</li>
-                  <li>• AI 도구 활용 경험 공유</li>
-                  <li>• 실무자 관점의 인터페이스 설계 시도</li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className='text-lg font-semibold text-blue-400 mb-3'>
-                  💰 학습한 효율성
-                </h4>
-                <ul className='text-sm text-white/80 space-y-2'>
-                  <li>• 무료 도구들로 프로젝트 완성 경험</li>
-                  <li>• 외부 의존성을 줄인 설계 학습</li>
-                  <li>• 인프라 경험을 활용한 배포 시도</li>
-                  <li>• 복잡한 기술 없이도 실용적인 결과물 제작</li>
-                </ul>
-              </div>
+            <div className='mt-8'>
+              <h4 className='font-semibold text-lg mb-3 text-emerald-300 flex items-center gap-2'>
+                <Briefcase size={20} /> 프로젝트 관리 및 설계
+              </h4>
+              <ul className='list-disc list-inside text-gray-300 space-y-2'>
+                <li>오픈소스 및 무료 도구를 활용한 프로젝트 완성</li>
+                <li>외부 의존성을 줄인 설계 학습</li>
+                <li>인프라 경험을 활용한 배포 시도</li>
+                <li>복잡한 기술 스택 없이 실용적 결과물 제작에 집중</li>
+              </ul>
             </div>
           </div>
 
-          {/* 3️⃣ 미래 가능성 (오른쪽) */}
-          <div className='bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8'>
-            <div className='flex items-center gap-3 mb-6'>
-              <div className='w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center'>
-                <Rocket className='w-6 h-6 text-white' />
-              </div>
-              <h3 className='text-2xl font-bold text-white'>미래 가능성</h3>
+          {/* 미래 가능성 -> 향후 계획 */}
+          <div className='bg-gray-800/50 p-6 rounded-lg border border-gray-700'>
+            <h3 className='text-2xl font-bold mb-6 flex items-center gap-3'>
+              <Rocket size={28} className='text-rose-400' /> 향후 계획
+            </h3>
+            <div>
+              <h4 className='font-semibold text-lg mb-3 text-rose-300 flex items-center gap-2'>
+                <Compass size={20} /> 관심 분야 및 학습 계획
+              </h4>
+              <ul className='list-disc list-inside text-gray-300 space-y-2'>
+                <li>개발과 운영(DevOps)의 연결점에 대한 관심 증대</li>
+                <li>AI 기술 변화에 대한 지속적인 학습 의지</li>
+                <li>새로운 기술 트렌드 학습 지속</li>
+                <li>DevOps 영역으로의 학습 확장 고려</li>
+              </ul>
             </div>
-
-            <div className='space-y-6'>
-              <div>
-                <h4 className='text-lg font-semibold text-purple-400 mb-3'>
-                  🚀 학습 방향성
-                </h4>
-                <ul className='text-sm text-white/80 space-y-2'>
-                  <li>• 개발-운영 연결 영역에 대한 관심 증가</li>
-                  <li>• AI 시대 변화에 대한 적응 의지</li>
-                  <li>• 새로운 기술 트렌드 학습 지속</li>
-                  <li>• DevOps 영역으로의 학습 확장 고려</li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className='text-lg font-semibold text-pink-400 mb-3'>
-                  🤝 경험 공유
-                </h4>
-                <ul className='text-sm text-white/80 space-y-2'>
-                  <li>• 개발팀과의 소통 경험 축적</li>
-                  <li>• 동료들과 새로운 도구 경험 공유</li>
-                  <li>• 실무 중심의 기술 도입 관점 제공</li>
-                  <li>• AI 도구 활용 경험 전파</li>
-                </ul>
-              </div>
+            <div className='mt-8'>
+              <h4 className='font-semibold text-lg mb-3 text-rose-300 flex items-center gap-2'>
+                <Users size={20} /> 팀 기여 및 협업
+              </h4>
+              <ul className='list-disc list-inside text-gray-300 space-y-2'>
+                <li>개발팀과의 원활한 소통을 위한 노력</li>
+                <li>동료들과 새로운 도구 경험 공유</li>
+                <li>실무적 관점에서 기술 도입에 대한 의견 제시</li>
+                <li>AI 도구 활용 경험 공유 및 논의</li>
+              </ul>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* 핵심 성과 하이라이트 */}
-        <div className='bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-md border border-white/20 rounded-xl p-8 mb-16'>
-          <h3 className='text-2xl font-bold text-white text-center mb-8'>
-            🏆 학습 성과 정리
-          </h3>
+        <section className='bg-gray-800/50 p-8 rounded-lg border border-gray-700'>
+          <h2 className='text-3xl font-bold text-center mb-8 flex items-center justify-center gap-3'>
+            <Award size={32} className='text-amber-400' /> 주요 학습 및 경험
+            정리
+          </h2>
           <div className='grid md:grid-cols-2 gap-8'>
             <div>
-              <h4 className='text-lg font-semibold text-blue-400 mb-4'>
-                개인적 학습
-              </h4>
-              <ul className='text-sm text-white/80 space-y-2'>
-                <li>✅ 첫 웹 애플리케이션 프로젝트 완성</li>
-                <li>✅ Next.js, React 기초 경험</li>
-                <li>✅ AI 도구 활용법 학습</li>
-                <li>✅ 개발-운영 연결고리 이해</li>
-                <li>✅ 새로운 영역에 도전할 수 있다는 자신감 획득</li>
+              <h3 className='text-xl font-semibold mb-4 text-amber-300'>
+                프로젝트를 통해 얻은 점
+              </h3>
+              <ul className='space-y-2'>
+                <li className='flex items-center gap-2'>
+                  <CheckSquare size={20} className='text-emerald-400' /> 첫 웹
+                  애플리케이션 프로젝트 완성
+                </li>
+                <li className='flex items-center gap-2'>
+                  <CheckSquare size={20} className='text-emerald-400' />{' '}
+                  Next.js, React 기초 경험
+                </li>
+                <li className='flex items-center gap-2'>
+                  <CheckSquare size={20} className='text-emerald-400' /> AI 도구
+                  활용법 학습
+                </li>
+                <li className='flex items-center gap-2'>
+                  <CheckSquare size={20} className='text-emerald-400' />{' '}
+                  개발-운영 연결고리 이해
+                </li>
+                <li className='flex items-center gap-2'>
+                  <CheckSquare size={20} className='text-emerald-400' /> 새로운
+                  기술 영역에 대한 도전의 중요성 체감
+                </li>
               </ul>
             </div>
             <div>
-              <h4 className='text-lg font-semibold text-purple-400 mb-4'>
-                기술적 경험
-              </h4>
-              <ul className='text-sm text-white/80 space-y-2'>
-                <li>✅ TypeScript로 안정성 있는 코드 작성 시도</li>
-                <li>✅ 정적 사이트 생성 및 최적화 경험</li>
-                <li>✅ AI 응답 최적화 학습</li>
-                <li>✅ 무료 인프라 활용 경험</li>
-                <li>✅ 테스트 코드 작성 기초 학습</li>
+              <h3 className='text-xl font-semibold mb-4 text-amber-300'>
+                주요 기술 경험
+              </h3>
+              <ul className='space-y-2'>
+                <li className='flex items-center gap-2'>
+                  <CheckSquare size={20} className='text-emerald-400' />{' '}
+                  TypeScript를 이용한 타입 안전성 확보 시도
+                </li>
+                <li className='flex items-center gap-2'>
+                  <CheckSquare size={20} className='text-emerald-400' /> 정적
+                  사이트 생성 및 최적화 경험
+                </li>
+                <li className='flex items-center gap-2'>
+                  <CheckSquare size={20} className='text-emerald-400' /> AI 응답
+                  최적화 학습
+                </li>
+                <li className='flex items-center gap-2'>
+                  <CheckSquare size={20} className='text-emerald-400' /> 무료
+                  인프라 활용 경험
+                </li>
+                <li className='flex items-center gap-2'>
+                  <CheckSquare size={20} className='text-emerald-400' /> 테스트
+                  코드 작성 기초 학습
+                </li>
               </ul>
             </div>
           </div>
-        </div>
-
-        {/* 샘 알트만 인용문으로 마무리 */}
-        <div className='bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 text-center'>
-          <div className='text-6xl mb-6'>💬</div>
-          <blockquote className='text-lg text-white/90 italic mb-6 max-w-4xl mx-auto leading-relaxed'>
-            &ldquo;명백한 전술적 조언은 AI 도구 사용에 정말 능숙해지는 것입니다.
-            <br />
-            내가 고등학교 마지막 해를 졸업할 때는, 분명히 &lsquo;코딩을 정말 잘
-            하라&rsquo;는 것이 전략적 조언이었죠.
-            <br />
-            그리고 이것이 그 새로운 버전입니다.&rdquo;
-          </blockquote>
-          <div className='text-sm text-white/70 italic mb-4 max-w-4xl mx-auto leading-relaxed'>
-            &ldquo;The obvious tactical thing is just get really good at using
-            AI tools. Like when I was graduating as a senior from high school,
-            the obvious tactical thing was get really good at coding. And this
-            is the new version of that.&rdquo;
-          </div>
-          <footer className='text-white/60'>
-            <strong className='text-white'>— 샘 알트만 (Sam Altman)</strong>,
-            OpenAI CEO
-            <br />
-            <span className='text-sm'>
-              2025년 3월, <em>Stratechery 인터뷰 (Ben Thompson 진행)</em>
-            </span>
-          </footer>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 }
