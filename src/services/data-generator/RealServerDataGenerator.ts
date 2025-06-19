@@ -25,10 +25,10 @@ export interface GeneratorConfig {
   updateInterval?: number;
   enableRealtime?: boolean;
   serverArchitecture?:
-    | 'single'
-    | 'master-slave'
-    | 'load-balanced'
-    | 'microservices';
+  | 'single'
+  | 'master-slave'
+  | 'load-balanced'
+  | 'microservices';
   enableRedis?: boolean;
   /**
    * ⚙️ 시나리오 기반 상태 분포 설정
@@ -390,12 +390,14 @@ export class RealServerDataGenerator {
   public async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
-    // 🔨 빌드 환경에서는 초기화 완전 건너뛰기
-    if (
-      process.env.NODE_ENV === 'production' &&
-      (process.env.VERCEL === '1' || process.env.BUILD_TIME === 'true')
-    ) {
-      console.log('🔨 빌드 환경 감지 - RealServerDataGenerator 초기화 건너뜀');
+    // 🔨 Next.js "build" 단계(phase-production-build)에서는 초기화 건너뜀
+    //     런타임(서버리스 함수) 및 개발 서버에서는 정상 실행되어야 합니다.
+    //     기존 조건은 Vercel 런타임까지 건너뛰어 실서비스에서 데이터가 비어 버리는 문제가 있었습니다.
+    const isNextJsBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
+    const isExplicitBuildTime = process.env.BUILD_TIME === 'true';
+
+    if (isNextJsBuildPhase || isExplicitBuildTime) {
+      console.log('🔨 빌드 단계 감지 - RealServerDataGenerator 초기화 건너뜀');
       this.isInitialized = true;
       return;
     }
@@ -835,12 +837,12 @@ export class RealServerDataGenerator {
         avgCpu:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.cpu, 0) /
-              servers.length
+            servers.length
             : 0,
         avgMemory:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.memory, 0) /
-              servers.length
+            servers.length
             : 0,
       },
       clusters: {
@@ -875,9 +877,9 @@ export class RealServerDataGenerator {
         avgResponseTime:
           applications.length > 0
             ? applications.reduce(
-                (sum, a) => sum + a.performance.responseTime,
-                0
-              ) / applications.length
+              (sum, a) => sum + a.performance.responseTime,
+              0
+            ) / applications.length
             : 0,
       },
       timestamp: Date.now(),
