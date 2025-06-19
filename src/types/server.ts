@@ -1,6 +1,7 @@
 export interface Server {
   id: string;
   name: string;
+  hostname: string;
   status: 'online' | 'offline' | 'warning' | 'healthy' | 'critical';
   cpu: number;
   memory: number;
@@ -11,9 +12,8 @@ export interface Server {
   alerts: number;
   ip?: string;
   os?: string;
-  hostname?: string;
-  type?: string;
-  environment?: string;
+  type: string;
+  environment: string;
   provider?: string;
   specs?: {
     cpu_cores: number;

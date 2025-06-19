@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Server } from '../types/server';
+import { Server, ServerStatus } from '@/types/server';
 import { useRealtimeServers } from './api/useRealtimeServers';
 import {
   sortServersByPriority,
@@ -8,6 +8,7 @@ import {
   filterServers,
   getUniqueLocations,
 } from '../utils/serverUtils';
+import { useServerDataStore } from '@/stores/serverDataStore';
 
 export type DashboardTab = 'servers' | 'network' | 'clusters' | 'applications';
 export type ViewMode = 'grid' | 'list';
@@ -123,176 +124,96 @@ interface UseServerDashboardProps {
   }) => void;
 }
 
-export function useServerDashboard({
-  onStatsUpdate,
-}: UseServerDashboardProps = {}) {
-  const [activeTab, setActiveTab] = useState<DashboardTab>('servers');
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [locationFilter, setLocationFilter] = useState('all');
-  const [selectedServer, setSelectedServer] = useState<Server | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+export const useServerDashboard = ({ onStatsUpdate }: UseServerDashboardProps) => {
+  const { servers: allServerMetrics, lastUpdate } = useServerDataStore();
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(12);
+  const [selectedServer, setSelectedServer] = useState<Server | null>(null);
+  const [activeTab, setActiveTab] = useState<'servers' | 'network' | 'clusters' | 'applications'>('servers');
+  const ITEMS_PER_PAGE = 8;
 
-  // 실시간 서버 데이터 가져오기
-  const {
-    servers: realtimeServers = [],
-    isLoading,
-    error,
-  } = useRealtimeServers();
+  const allServers: Server[] = useMemo(() => {
+    return allServerMetrics.map(metric => {
+      const mapStatus = (status: ServerStatus): Server['status'] => {
+        switch (status) {
+          case 'running':
+            return 'healthy';
+          case 'stopped':
+            return 'critical';
+          case 'error':
+            return 'critical';
+          case 'maintenance':
+            return 'warning';
+          default:
+            return status;
+        }
+      };
 
-  // 서버 데이터 처리 및 타입 변환
-  const servers = useMemo(() => {
-    if (realtimeServers && realtimeServers.length > 0) {
-      // 실시간 서버 데이터를 Server 타입으로 변환
-      return realtimeServers.map(serverData => {
-        const convertedServer: Server = {
-          id: serverData.id || `server-${Date.now()}-${Math.random()}`,
-          name: serverData.name || 'Unknown Server',
-          status: mapStatus(serverData.status || 'running'),
-          location:
-            serverData.location || serverData.environment || 'Seoul DC1',
-          cpu: Math.round(serverData.metrics?.cpu || Math.random() * 50 + 20),
-          memory: Math.round(
-            serverData.metrics?.memory || Math.random() * 60 + 30
-          ),
-          disk: Math.round(serverData.metrics?.disk || Math.random() * 40 + 10),
-          network: Math.round(
-            (serverData.metrics?.network?.in || 0) +
-            (serverData.metrics?.network?.out || 0) || Math.random() * 30 + 10
-          ),
-          networkStatus:
-            serverData.status === 'error'
-              ? 'offline'
-              : serverData.status === 'warning'
-                ? 'poor'
-                : 'good',
-          uptime: `${Math.floor(Math.random() * 30 + 1)}일 ${Math.floor(Math.random() * 24)}시간`,
-          lastUpdate: new Date(),
-          alerts:
-            serverData.health?.issues?.length ||
-            (serverData.status === 'error'
-              ? 3
-              : serverData.status === 'warning'
-                ? 1
-                : 0),
-          services: [
-            {
-              name: 'nginx',
-              status: serverData.status === 'error' ? 'stopped' : 'running',
-              port: 80,
-            },
-            { name: 'nodejs', status: 'running', port: 3000 },
-            {
-              name: 'gunicorn',
-              status: serverData.status === 'error' ? 'stopped' : 'running',
-              port: 8000,
-            },
-          ],
-        };
-        return convertedServer;
-      });
-    }
-    return fallbackServers;
-  }, [realtimeServers]);
+      return {
+        id: metric.id,
+        name: metric.hostname,
+        status: mapStatus(metric.status),
+        cpu: metric.cpu_usage,
+        memory: metric.memory_usage,
+        disk: metric.disk_usage,
+        location: metric.environment,
+        uptime: `${Math.floor(metric.uptime / 86400)}d`,
+        alerts: metric.alerts.length,
+        lastUpdate: new Date(metric.last_updated),
+        services: [], // 필요시 채워넣기
+      };
+    });
+  }, [allServerMetrics]);
 
-  // 정렬된 서버 목록
   const sortedServers = useMemo(() => {
-    return sortServersByPriority(servers);
-  }, [servers]);
+    return [...allServers].sort((a, b) => {
+      const statusOrder = { critical: 0, warning: 1, healthy: 2 };
+      return (statusOrder[a.status] ?? 3) - (statusOrder[b.status] ?? 3);
+    });
+  }, [allServers]);
 
-  // 필터링된 서버 목록
-  const filteredServers = useMemo(() => {
-    return filterServers(
-      sortedServers,
-      searchTerm,
-      statusFilter,
-      locationFilter
-    );
-  }, [sortedServers, searchTerm, statusFilter, locationFilter]);
+  const totalPages = Math.ceil(sortedServers.length / ITEMS_PER_PAGE);
 
-  // 페이지네이션
-  const totalPages = Math.ceil(filteredServers.length / itemsPerPage);
   const paginatedServers = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredServers.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredServers, currentPage, itemsPerPage]);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return sortedServers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [sortedServers, currentPage]);
 
-  // 고유 위치 목록
-  const uniqueLocations = useMemo(() => {
-    return getUniqueLocations(servers);
-  }, [servers]);
-
-  // 서버 통계
   const serverStats = useMemo(() => {
-    return getServerStats(servers);
-  }, [servers]);
-
-  // 통계 업데이트 콜백
-  useEffect(() => {
+    const stats = {
+      total: allServers.length,
+      online: allServers.filter(s => s.status === 'healthy').length,
+      warning: allServers.filter(s => s.status === 'warning').length,
+      offline: allServers.filter(s => s.status === 'critical').length,
+    };
     if (onStatsUpdate) {
-      onStatsUpdate(serverStats);
+      onStatsUpdate(stats);
     }
-  }, [serverStats, onStatsUpdate]);
+    return stats;
+  }, [allServers, onStatsUpdate]);
 
-  // 서버 선택 핸들러
-  const handleServerSelect = useCallback((server: Server) => {
+  const handleServerSelect = (server: Server) => {
     setSelectedServer(server);
-    setIsModalOpen(true);
-  }, []);
+  };
 
-  // 모달 닫기 핸들러
-  const handleCloseModal = useCallback(() => {
-    setIsModalOpen(false);
-    setSelectedServer(null);
-  }, []);
-
-  // 페이지 변경 핸들러
-  const handlePageChange = useCallback((page: number) => {
-    setCurrentPage(page);
-  }, []);
-
-  // 필터 리셋
-  const resetFilters = useCallback(() => {
-    setSearchTerm('');
-    setStatusFilter('all');
-    setLocationFilter('all');
-    setCurrentPage(1);
-  }, []);
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
 
   return {
-    // 상태
-    activeTab,
-    viewMode,
-    searchTerm,
-    statusFilter,
-    locationFilter,
-    selectedServer,
-    isModalOpen,
-    currentPage,
-    itemsPerPage,
-    totalPages,
-    isLoading,
-    error,
-
-    // 데이터
-    servers: sortedServers,
-    filteredServers,
+    servers: allServers,
+    sortedServers,
     paginatedServers,
-    uniqueLocations,
+    currentPage,
+    totalPages,
+    setCurrentPage,
     serverStats,
-
-    // 액션
-    setActiveTab,
-    setViewMode,
-    setSearchTerm,
-    setStatusFilter,
-    setLocationFilter,
+    lastUpdate,
+    selectedServer,
+    setSelectedServer,
     handleServerSelect,
-    handleCloseModal,
-    handlePageChange,
-    resetFilters,
+    activeTab,
+    setActiveTab
   };
-}
+};
