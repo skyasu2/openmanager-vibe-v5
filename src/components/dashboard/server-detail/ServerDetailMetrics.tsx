@@ -181,6 +181,12 @@ export function ServerDetailMetrics({
                     />
                   ))}
 
+                  {/* CPU 영역 */}
+                  <polygon
+                    fill='rgba(239, 68, 68, 0.1)'
+                    stroke='none'
+                    points={`0,140 ${generateChartPoints(metricsHistory.map(m => m.cpu))} ${metricsHistory.length > 0 ? (metricsHistory.length - 1) * (100 / (metricsHistory.length - 1)) : 0},140`}
+                  />
                   {/* CPU 라인 */}
                   <polyline
                     fill='none'
@@ -192,6 +198,12 @@ export function ServerDetailMetrics({
                     }}
                   />
 
+                  {/* 메모리 영역 */}
+                  <polygon
+                    fill='rgba(59, 130, 246, 0.1)'
+                    stroke='none'
+                    points={`0,140 ${generateChartPoints(metricsHistory.map(m => m.memory))} ${metricsHistory.length > 0 ? (metricsHistory.length - 1) * (100 / (metricsHistory.length - 1)) : 0},140`}
+                  />
                   {/* 메모리 라인 */}
                   <polyline
                     fill='none'
@@ -205,6 +217,12 @@ export function ServerDetailMetrics({
                     }}
                   />
 
+                  {/* 디스크 영역 */}
+                  <polygon
+                    fill='rgba(139, 92, 246, 0.1)'
+                    stroke='none'
+                    points={`0,140 ${generateChartPoints(metricsHistory.map(m => m.disk))} ${metricsHistory.length > 0 ? (metricsHistory.length - 1) * (100 / (metricsHistory.length - 1)) : 0},140`}
+                  />
                   {/* 디스크 라인 */}
                   <polyline
                     fill='none'
@@ -218,6 +236,12 @@ export function ServerDetailMetrics({
                     }}
                   />
 
+                  {/* 네트워크 영역 */}
+                  <polygon
+                    fill='rgba(34, 197, 94, 0.1)'
+                    stroke='none'
+                    points={`0,140 ${generateChartPoints(metricsHistory.map(m => Math.min(((m.network?.bytesReceived || 0) / 1000000) * 2,100)))} ${metricsHistory.length > 0 ? (metricsHistory.length - 1) * (100 / (metricsHistory.length - 1)) : 0},140`}
+                  />
                   {/* 네트워크 라인 */}
                   <polyline
                     fill='none'

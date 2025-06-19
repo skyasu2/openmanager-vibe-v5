@@ -19,6 +19,7 @@ import {
   TraceData,
   DataGenerationConfig,
   AIAnalysisDataset,
+  ProcessInfo
 } from '@/types/ai-agent-input-schema';
 import { setRealtime, setBatch } from '@/lib/cache/redis';
 
@@ -47,11 +48,23 @@ export interface IDataGenerator {
   generateDataset(): AIAnalysisDataset;
 }
 
+// 서버 타입별 기본 프로세스 목록 정의
+const BASE_PROCESSES: Record<string, string[]> = {
+  Web: ['nginx', 'httpd', 'varnish', 'traefik'],
+  API: ['node', 'gunicorn', 'uvicorn', 'pm2'],
+  Database: ['postgres', 'mysqld', 'mongod', 'clickhouse-server'],
+  Cache: ['redis-server', 'memcached'],
+  ML: ['python', 'jupyter-notebook', 'tensorflow-serving'],
+  Analytics: ['kafka', 'spark-worker', 'flink-taskmanager'],
+  Gateway: ['kong', 'envoy', 'istiod'],
+  Default: ['systemd', 'sshd', 'cron', 'docker', 'journald']
+};
+
 export class AdvancedServerDataGenerator implements IDataGenerator {
   private config: DataGenerationConfig;
   private servers: ServerMetadata[] = [];
   private isRunning: boolean = false;
-  private intervals: NodeJS.Timeout[] = [];
+  private timeouts: NodeJS.Timeout[] = [];
   private dataBuffer: {
     metrics: TimeSeriesMetrics[];
     logs: LogEntry[];
@@ -198,10 +211,28 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
           Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000
         ),
         lastUpdate: new Date(),
+        processes: this.generateInitialProcesses(usageProfile),
       };
 
       this.servers.push(server);
     }
+  }
+
+  // 초기 프로세스 목록 생성 메서드
+  private generateInitialProcesses(usageProfile: string): ProcessInfo[] {
+    const coreProcesses = BASE_PROCESSES[usageProfile] || [];
+    const defaultProcesses = BASE_PROCESSES['Default'];
+    const allProcessNames = [...new Set([...coreProcesses, ...defaultProcesses])];
+
+    return allProcessNames.map((name, index) => ({
+      pid: 1000 + index * 10 + Math.floor(Math.random() * 10),
+      name: name,
+      cpuUsage: 0,
+      memoryUsage: 0,
+      status: 'running',
+      user: name === 'systemd' ? 'root' : 'www-data',
+      startTime: new Date(Date.now() - Math.random() * 3600 * 1000).toISOString()
+    }));
   }
 
   // 실시간 메트릭 생성
@@ -217,74 +248,43 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
     const baseLoad = this.getBaseLoad(server.usageProfile.type);
 
     // 현재 부하 계산
-    const currentLoad = Math.min(baseLoad * timeMultiplier, 0.95);
+    const currentLoad = baseLoad * timeMultiplier * (1 + (Math.random() - 0.5) * 0.1);
+
+    // 실시간 프로세스 메트릭 생성
+    const currentProcesses = this.generateProcessMetrics(server, currentLoad);
 
     return {
       timestamp: now,
       serverId: server.id,
       system: {
         cpu: {
-          usage: Math.max(5, currentLoad * 100 + (Math.random() - 0.5) * 10),
-          load1: currentLoad * server.resources.cpu.cores + Math.random() * 0.5,
-          load5:
-            currentLoad * server.resources.cpu.cores * 0.8 +
-            Math.random() * 0.3,
-          load15:
-            currentLoad * server.resources.cpu.cores * 0.6 +
-            Math.random() * 0.2,
-          processes: Math.floor(50 + currentLoad * 200 + Math.random() * 50),
-          threads: Math.floor(200 + currentLoad * 800 + Math.random() * 100),
+          usage: Math.min(99.9, currentLoad * 50 + Math.random() * 5),
+          load1: currentLoad * 2,
+          load5: currentLoad * 1.5,
+          load15: currentLoad * 1,
+          processes: server.processes.length + Math.floor(Math.random() * 5),
+          threads: server.processes.length * 3 + Math.floor(Math.random() * 20),
         },
         memory: {
-          used: Math.floor(
-            server.resources.memory.total * (0.2 + currentLoad * 0.6)
-          ),
-          available: Math.floor(
-            server.resources.memory.total * (0.8 - currentLoad * 0.6)
-          ),
-          buffers: Math.floor(server.resources.memory.total * 0.05),
-          cached: Math.floor(server.resources.memory.total * 0.15),
-          swap: {
-            used: Math.floor(server.resources.memory.total * 0.1 * currentLoad),
-            total: Math.floor(server.resources.memory.total * 0.1),
-          },
+          used: server.resources.memory.total * (0.3 + currentLoad * 0.5) + Math.random() * 1024 * 1024 * 100,
+          available: server.resources.memory.total * (0.7 - currentLoad * 0.5),
+          buffers: Math.random() * 1024 * 1024 * 50,
+          cached: Math.random() * 1024 * 1024 * 500,
+          swap: { used: 0, total: 1024 * 1024 * 1024 },
         },
         disk: {
-          io: {
-            read: Math.floor(100 + currentLoad * 500 + Math.random() * 100),
-            write: Math.floor(50 + currentLoad * 300 + Math.random() * 50),
-          },
-          throughput: {
-            read: Math.floor(10 + currentLoad * 100 + Math.random() * 20),
-            write: Math.floor(5 + currentLoad * 50 + Math.random() * 10),
-          },
-          utilization: Math.max(1, currentLoad * 80 + Math.random() * 10),
-          queue: Math.floor(currentLoad * 10 + Math.random() * 5),
+          io: { read: Math.random() * 1000, write: Math.random() * 500 },
+          throughput: { read: Math.random() * 100, write: Math.random() * 50 },
+          utilization: Math.min(95, 20 + currentLoad * 60 + Math.random() * 10),
+          queue: Math.floor(Math.random() * 5),
         },
         network: {
-          io: {
-            rx: Math.floor(
-              1024 * 1024 * (1 + currentLoad * 10) + Math.random() * 1024 * 1024
-            ),
-            tx: Math.floor(
-              1024 * 1024 * (0.5 + currentLoad * 5) + Math.random() * 1024 * 512
-            ),
-          },
-          packets: {
-            rx: Math.floor(1000 + currentLoad * 5000 + Math.random() * 1000),
-            tx: Math.floor(800 + currentLoad * 4000 + Math.random() * 800),
-          },
-          errors: {
-            rx: Math.floor(Math.random() * 10),
-            tx: Math.floor(Math.random() * 5),
-          },
-          connections: {
-            active: Math.floor(10 + currentLoad * 100 + Math.random() * 50),
-            established: Math.floor(
-              50 + currentLoad * 500 + Math.random() * 100
-            ),
-          },
+          io: { rx: Math.random() * 1e6, tx: Math.random() * 5e5 },
+          packets: { rx: Math.random() * 10000, tx: Math.random() * 5000 },
+          errors: { rx: 0, tx: 0 },
+          connections: { active: Math.floor(currentLoad * 100), established: Math.floor(currentLoad * 80) },
         },
+        processes: currentProcesses,
       },
       application: {
         requests: {
@@ -317,7 +317,23 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
         },
       },
       infrastructure: {},
+      processes: server.processes
     };
+  }
+
+  // 실시간 프로세스 메트릭 생성 헬퍼
+  private generateProcessMetrics(server: ServerMetadata, currentLoad: number): ProcessInfo[] {
+    return server.processes.map(p => {
+      const cpuUsage = Math.random() * currentLoad * 10 * (p.name.includes('sql') || p.name.includes('node') ? 2 : 1);
+      const memoryUsage = p.memoryUsage + (Math.random() - 0.5) * 1024 * 1024 * 5; // 5MB 내외 변동
+
+      return {
+        ...p,
+        cpuUsage: parseFloat(cpuUsage.toFixed(2)),
+        memoryUsage: Math.max(1024 * 1024, memoryUsage), // 최소 1MB 보장
+        status: p.status === 'running' && Math.random() < 0.001 ? 'sleeping' : p.status,
+      };
+    });
   }
 
   // 시간대별 부하 계수
@@ -374,42 +390,55 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
 
   // 데이터 생성 시작
   public start(): void {
-    if (this.isRunning) return;
-
+    if (this.isRunning) {
+      console.warn('Advanced Server Data Generator는 이미 실행 중입니다.');
+      return;
+    }
     this.isRunning = true;
-    console.log(`고급 데이터 생성기 시작: ${this.servers.length}개 서버`);
+    console.log(`🚀 Advanced Server Data Generator 시작... ${this.servers.length}개 서버에 대한 데이터 생성을 시작합니다.`);
 
-    // 메트릭 생성 (20초 간격으로 조정)
-    const metricsInterval = setInterval(() => {
-      this.servers.forEach(server => {
+    this.servers.forEach(server => {
+      this.scheduleNextGeneration(server.id);
+    });
+  }
+
+  private scheduleNextGeneration(serverId: string): void {
+    const server = this.servers.find(s => s.id === serverId);
+    if (!this.isRunning || !server) return;
+
+    // 38초에서 48초 사이의 랜덤한 지연 시간 계산 (38000ms + 0~10000ms)
+    const delay = 38000 + Math.random() * 10000;
+
+    const timeout = setTimeout(async () => {
+      try {
         const metrics = this.generateMetrics(server);
-        this.dataBuffer.metrics.push(metrics);
 
-        // 실시간 데이터 저장
-        setRealtime(server.id, {
-          timestamp: metrics.timestamp,
-          cpu: metrics.system.cpu.usage,
-          memory:
-            (metrics.system.memory.used /
-              (metrics.system.memory.used + metrics.system.memory.available)) *
-            100,
-          status: 'healthy',
-        }).catch(console.error);
-      });
-    }, 20000); // 🎯 성능 최적화: 10초 → 20초로 변경 (서버 부하 50% 감소)
+        // Redis에 실시간 메트릭 저장
+        await setRealtime(`server:${server.id}:metrics:latest`, metrics);
 
-    this.intervals.push(metricsInterval);
+        console.log(`[DataGen] 서버 ${server.name}(${server.id}) 데이터 생성 완료. 다음 생성까지 약 ${Math.round(delay / 1000)}초 후.`);
+
+      } catch (error) {
+        console.error(`[DataGen] 서버 ${serverId} 데이터 생성 중 오류 발생:`, error);
+      } finally {
+        // 다음 생성을 재귀적으로 스케줄링
+        if (this.isRunning) {
+          this.scheduleNextGeneration(serverId);
+        }
+      }
+    }, delay);
+
+    this.timeouts.push(timeout);
   }
 
   // 데이터 생성 중지
   public stop(): void {
     if (!this.isRunning) return;
-
     this.isRunning = false;
-    this.intervals.forEach(interval => clearInterval(interval));
-    this.intervals = [];
-
-    console.log('고급 데이터 생성기 중지됨');
+    console.log('🔌 Advanced Server Data Generator 중지 중... 모든 생성 작업을 취소합니다.');
+    this.timeouts.forEach(clearTimeout);
+    this.timeouts = [];
+    console.log('✅ Advanced Server Data Generator가 안전하게 중지되었습니다.');
   }
 
   // 서버 목록 조회
@@ -459,19 +488,15 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
     return dataset;
   }
 
-  // 🔍 샘플 메트릭 생성 (데이터가 없을 때)
+  // 샘플 데이터 생성 (내부 테스트 및 디버깅용)
   private generateSampleMetrics(): TimeSeriesMetrics[] {
     const metrics: TimeSeriesMetrics[] = [];
-    const now = Date.now();
-
     for (const server of this.servers) {
-      for (let i = 0; i < 60; i++) {
-        // 1시간 분량 (1분 간격)
-        const timestamp = new Date(now - (60 - i) * 60 * 1000);
-        metrics.push(this.generateMetrics(server));
-      }
+      metrics.push({
+        ...this.generateMetrics(server),
+        // 샘플 데이터용으로 추가적인 가공이 필요하다면 여기에
+      });
     }
-
     return metrics;
   }
 

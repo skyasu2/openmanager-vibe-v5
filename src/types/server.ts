@@ -46,7 +46,7 @@ export interface Service {
 
 export interface LogEntry {
   timestamp: string;
-  level: 'INFO' | 'WARN' | 'ERROR';
+  level: 'INFO' | 'WARN' | 'ERROR' | 'DEBUG';
   message: string;
 }
 
@@ -56,6 +56,14 @@ export interface NetworkInfo {
   sentBytes: string;
   receivedErrors: number;
   sentErrors: number;
+  status: ServerStatus;
+  cpu_usage: number;
+  memory_usage: number;
+  disk_usage: number;
+  uptime: number;
+  last_updated: string;
+  alerts: ServerAlert[];
+  processes?: ProcessInfo[];
 }
 
 export interface SystemInfo {
@@ -389,4 +397,23 @@ export interface RealtimeServersResponse {
   data: Server[];
   timestamp: number;
   count: number;
+}
+
+export interface ProcessInfo {
+  pid: number;
+  name: 'kernel_task' | 'System' | 'svchost.exe' | 'chrome.exe' | 'node' | 'python' | 'java' | 'spindump' | 'WindowServer' | 'launchd';
+  cpu: number;
+  memory: number;
+  user: 'root' | 'system' | 'NETWORK SERVICE' | 'admin' | 'guest';
+}
+
+export interface ServerMetadata {
+  id: string;
+  ip: string;
+  name: string;
+  location: string;
+  os: string;
+  type: string;
+  isActive: boolean;
+  processes: ProcessInfo[];
 }

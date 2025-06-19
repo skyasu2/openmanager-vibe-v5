@@ -21,11 +21,11 @@ interface TimerConfig {
 class TimerManager {
   private static instance: TimerManager;
   private timers = new Map<string, TimerConfig>();
-  private intervals = new Map<string, ReturnType<typeof setInterval>>();
+  private timeouts = new Map<string, ReturnType<typeof setTimeout>>();
   private isRunning = false;
   private masterInterval: ReturnType<typeof setInterval> | null = null;
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): TimerManager {
     if (!TimerManager.instance) {
@@ -38,31 +38,28 @@ class TimerManager {
    * 타이머 등록
    */
   register(config: TimerConfig): void {
-    this.stop(config.id); // 기존 타이머 정리
+    if (this.timers.has(config.id)) {
+      this.unregister(config.id);
+    }
 
-    this.timers.set(config.id, config);
+    this.timers.set(config.id, { ...config, enabled: true });
 
-    // 즉시 실행 옵션
     if (config.immediate) {
       this.executeCallback(config);
     }
 
-    // 주기적 실행
-    const timer = setInterval(() => {
-      this.executeCallback(config);
-    }, config.interval);
-
-    this.intervals.set(config.id, timer);
-    console.log(`⏰ Timer registered: ${config.id} (${config.interval}ms)`);
+    this.scheduleNextExecution(config.id);
+    console.log(`⏰ Timer registered: ${config.id} (Dynamic interval)`);
   }
 
   /**
    * 타이머 해제
    */
   unregister(timerId: string): void {
-    if (this.intervals.has(timerId)) {
-      clearInterval(this.intervals.get(timerId)!);
-      this.intervals.delete(timerId);
+    const timeoutId = this.timeouts.get(timerId);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      this.timeouts.delete(timerId);
     }
     this.timers.delete(timerId);
     console.log(`🗑️ Timer unregistered: ${timerId}`);
@@ -78,57 +75,15 @@ class TimerManager {
     timer.enabled = enabled;
 
     if (enabled) {
-      this.startTimer(timerId);
+      this.scheduleNextExecution(timerId);
+      console.log(`▶️ Timer resumed: ${timerId}`);
     } else {
-      this.stopTimer(timerId);
-    }
-  }
-
-  /**
-   * 개별 타이머 시작
-   */
-  private startTimer(timerId: string): void {
-    const timer = this.timers.get(timerId);
-    if (!timer || !timer.enabled) return;
-
-    if (this.intervals.has(timerId)) {
-      clearInterval(this.intervals.get(timerId)!);
-    }
-
-    const intervalId = setInterval(async () => {
-      if (!timer.enabled) return;
-
-      try {
-        timer.lastRun = Date.now();
-        await timer.callback();
-        timer.errorCount = 0;
-      } catch (error) {
-        timer.errorCount = (timer.errorCount || 0) + 1;
-        console.error(
-          `❌ Timer ${timerId} error (${timer.errorCount}/3):`,
-          error
-        );
-
-        // 3회 연속 실패 시 타이머 비활성화
-        if (timer.errorCount >= 3) {
-          console.error(
-            `🚫 Timer ${timerId} disabled due to repeated failures`
-          );
-          this.toggle(timerId, false);
-        }
+      const timeoutId = this.timeouts.get(timerId);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        this.timeouts.delete(timerId);
       }
-    }, timer.interval);
-
-    this.intervals.set(timerId, intervalId);
-  }
-
-  /**
-   * 개별 타이머 정지
-   */
-  private stopTimer(timerId: string): void {
-    if (this.intervals.has(timerId)) {
-      clearInterval(this.intervals.get(timerId)!);
-      this.intervals.delete(timerId);
+      console.log(`⏸️ Timer paused: ${timerId}`);
     }
   }
 
@@ -137,16 +92,14 @@ class TimerManager {
    */
   cleanup(): void {
     console.log('🧹 Cleaning up all timers...');
-
-    for (const [timerId] of this.intervals) {
-      this.unregister(timerId);
-    }
-
-    if (this.masterInterval) {
-      clearInterval(this.masterInterval);
-      this.masterInterval = null;
-    }
-
+    this.timers.forEach((_, timerId) => {
+      const timeoutId = this.timeouts.get(timerId);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    });
+    this.timeouts.clear();
+    this.timers.clear();
     this.isRunning = false;
     console.log('✅ All timers cleaned up');
   }
@@ -249,16 +202,16 @@ class TimerManager {
     console.group('🕒 TimerManager 상태');
     console.log('실행 중:', this.isRunning);
     console.log('등록된 타이머 수:', this.timers.size);
-    console.log('활성 인터벌 수:', this.intervals.size);
+    console.log('활성 인터벌 수:', this.timeouts.size);
 
     console.group('타이머 목록:');
     for (const [id, timer] of this.timers) {
-      const interval = this.intervals.get(id);
+      const timeoutId = this.timeouts.get(id);
       console.log(`${id}:`, {
         enabled: timer.enabled,
         priority: timer.priority,
         interval: timer.interval,
-        hasInterval: !!interval,
+        hasTimeout: !!timeoutId,
         lastRun: timer.lastRun
           ? new Date(timer.lastRun).toLocaleTimeString()
           : 'never',
@@ -289,10 +242,9 @@ class TimerManager {
 
       // 나머지 타이머 간격 2배로 늘림
       if (timer.enabled) {
-        this.stopTimer(id);
+        this.scheduleNextExecution(id);
         timer.interval = timer.interval * 2;
         (timer as any)._originalInterval = timer.interval / 2;
-        this.startTimer(id);
       }
     }
   }
@@ -312,12 +264,9 @@ class TimerManager {
 
       // 원래 간격으로 복원
       if ((timer as any)._originalInterval) {
-        this.stopTimer(id);
+        this.scheduleNextExecution(id);
         timer.interval = (timer as any)._originalInterval;
         delete (timer as any)._originalInterval;
-        if (timer.enabled) {
-          this.startTimer(id);
-        }
       }
     }
   }
@@ -354,48 +303,49 @@ class TimerManager {
     }
   }
 
-  // 콜백 실행 (에러 핸들링 포함)
+  private scheduleNextExecution(timerId: string): void {
+    const timer = this.timers.get(timerId);
+    if (!timer || !timer.enabled) {
+      return;
+    }
+
+    // 50초에서 60초 사이의 랜덤한 지연 시간 계산 (50000ms + 0~10000ms)
+    const delay = 50000 + Math.random() * 10000;
+
+    const timeoutId = setTimeout(async () => {
+      await this.executeCallback(timer);
+      this.scheduleNextExecution(timerId); // 재귀 호출
+    }, delay);
+
+    this.timeouts.set(timerId, timeoutId);
+  }
+
   private async executeCallback(config: TimerConfig): Promise<void> {
+    if (!config.enabled) return;
+
     try {
+      config.lastRun = Date.now();
       await config.callback();
+      config.errorCount = 0;
     } catch (error) {
-      console.error(`❌ Timer callback error [${config.id}]:`, error);
+      config.errorCount = (config.errorCount || 0) + 1;
+      console.error(`❌ Timer ${config.id} error (${config.errorCount}/3):`, error);
+
+      if (config.errorCount >= 3) {
+        console.error(`🚫 Timer ${config.id} disabled due to repeated failures.`);
+        this.toggle(config.id, false);
+      }
     }
-  }
-
-  // 특정 타이머 중지
-  stop(id: string): void {
-    const timer = this.intervals.get(id);
-    if (timer) {
-      clearInterval(timer);
-      this.intervals.delete(id);
-      this.timers.delete(id);
-      console.log(`⏹️ Timer stopped: ${id}`);
-    }
-  }
-
-  // 모든 타이머 중지
-  stopAll(): void {
-    console.log('🔄 Stopping all timers for mode change...');
-
-    for (const [id, timer] of this.intervals) {
-      clearInterval(timer);
-      console.log(`⏹️ Timer stopped: ${id}`);
-    }
-
-    this.intervals.clear();
-    this.timers.clear();
-    console.log('✅ All timers stopped');
   }
 
   // 활성 타이머 목록
   getActiveTimers(): string[] {
-    return Array.from(this.intervals.keys());
+    return Array.from(this.timeouts.keys());
   }
 
   // 타이머 상태 확인
   isActive(id: string): boolean {
-    return this.intervals.has(id);
+    return this.timeouts.has(id);
   }
 
   // AI 관리자 모드를 위한 새로운 메소드들

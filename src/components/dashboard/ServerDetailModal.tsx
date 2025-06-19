@@ -1,45 +1,28 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Server } from '../../types/server';
+import { Server, MetricsHistory } from '../../types/server';
 import { ServerDetailOverview } from './server-detail/ServerDetailOverview';
 import { ServerDetailMetrics } from './server-detail/ServerDetailMetrics';
 import { ServerDetailNetwork } from './server-detail/ServerDetailNetwork';
 import { ServerDetailProcesses } from './server-detail/ServerDetailProcesses';
 import { ServerDetailLogs } from './server-detail/ServerDetailLogs';
-import { useServerMetrics } from '../../hooks/useServerMetrics';
-import { useRealTimeMetrics } from '../../hooks/useRealTimeMetrics';
 
 interface ServerDetailModalProps {
   server: Server | null;
+  metricsHistory: MetricsHistory[];
   onClose: () => void;
 }
 
 export default function ServerDetailModal({
   server,
+  metricsHistory,
   onClose,
 }: ServerDetailModalProps) {
   const [selectedTab, setSelectedTab] = useState<
     'overview' | 'metrics' | 'network' | 'processes' | 'logs'
   >('overview');
   const [timeRange, setTimeRange] = useState<'1h' | '6h' | '24h' | '7d'>('24h');
-
-  // 커스텀 훅 사용
-  const {
-    metricsHistory,
-    isLoadingHistory,
-    loadMetricsHistory,
-    calculateMetricsStats,
-    generateChartPoints,
-  } = useServerMetrics();
-
-  const realTimeMetrics = useRealTimeMetrics(server?.id || null);
-
-  // 히스토리 데이터 로드
-  useEffect(() => {
-    if (!server?.id) return;
-    loadMetricsHistory(server.id, timeRange);
-  }, [server?.id, timeRange, loadMetricsHistory]);
 
   // 모달 오픈 시 스크롤 방지
   useEffect(() => {
@@ -115,7 +98,6 @@ export default function ServerDetailModal({
   };
 
   const statusInfo = getStatusInfo(safeServer.status);
-  const metricsStats = calculateMetricsStats(metricsHistory || []);
 
   return (
     <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4'>
@@ -211,7 +193,7 @@ export default function ServerDetailModal({
                   uptime: 86400 * 30, // 30일을 초로 변환
                 },
               }}
-              realTimeMetrics={realTimeMetrics}
+              realTimeMetrics={null}
               statusInfo={statusInfo}
             />
           )}
@@ -219,21 +201,16 @@ export default function ServerDetailModal({
           {selectedTab === 'metrics' && (
             <ServerDetailMetrics
               metricsHistory={metricsHistory}
-              metricsStats={metricsStats}
-              isLoadingHistory={isLoadingHistory}
-              timeRange={timeRange}
-              onTimeRangeChange={setTimeRange}
-              generateChartPoints={generateChartPoints}
             />
           )}
 
           {selectedTab === 'network' && (
-            <ServerDetailNetwork realTimeMetrics={realTimeMetrics} />
+            <ServerDetailNetwork realTimeMetrics={null} />
           )}
 
-          {selectedTab === 'processes' && <ServerDetailProcesses />}
+          {selectedTab === 'processes' && <ServerDetailProcesses serverId={safeServer.id} />}
 
-          {selectedTab === 'logs' && <ServerDetailLogs />}
+          {selectedTab === 'logs' && <ServerDetailLogs serverId={safeServer.id} />}
         </div>
       </div>
     </div>

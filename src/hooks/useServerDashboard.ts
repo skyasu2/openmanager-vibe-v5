@@ -1,5 +1,7 @@
+'use client';
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Server, ServerStatus } from '@/types/server';
+import { Server, ServerStatus, MetricsHistory } from '@/types/server';
 import { useRealtimeServers } from './api/useRealtimeServers';
 import {
   sortServersByPriority,
@@ -9,6 +11,7 @@ import {
   getUniqueLocations,
 } from '../utils/serverUtils';
 import { useServerDataStore } from '@/stores/serverDataStore';
+import { useServerMetrics } from '@/hooks/useServerMetrics';
 
 export type DashboardTab = 'servers' | 'network' | 'clusters' | 'applications';
 export type ViewMode = 'grid' | 'list';
@@ -125,10 +128,12 @@ interface UseServerDashboardProps {
 }
 
 export const useServerDashboard = ({ onStatsUpdate }: UseServerDashboardProps) => {
-  const { servers: allServerMetrics, lastUpdate } = useServerDataStore();
+  const { servers: allServerMetrics, lastUpdate, fetchServers } = useServerDataStore();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
-  const [activeTab, setActiveTab] = useState<'servers' | 'network' | 'clusters' | 'applications'>('servers');
+  const [selectedServerMetrics, setSelectedServerMetrics] = useState<MetricsHistory[]>([]);
+  const [isModalLoading, setIsModalLoading] = useState(false);
+  const { loadMetricsHistory } = useServerMetrics();
   const ITEMS_PER_PAGE = 8;
 
   const allServers: Server[] = useMemo(() => {
@@ -191,8 +196,18 @@ export const useServerDashboard = ({ onStatsUpdate }: UseServerDashboardProps) =
     return stats;
   }, [allServers, onStatsUpdate]);
 
-  const handleServerSelect = (server: Server) => {
+  const handleServerSelect = async (server: Server) => {
+    if (!server || !server.id) return;
     setSelectedServer(server);
+    setIsModalLoading(true);
+    const history = await loadMetricsHistory(server.id, '24h');
+    setSelectedServerMetrics(history);
+    setIsModalLoading(false);
+  };
+
+  const handleModalClose = () => {
+    setSelectedServer(null);
+    setSelectedServerMetrics([]);
   };
 
   useEffect(() => {
@@ -211,9 +226,10 @@ export const useServerDashboard = ({ onStatsUpdate }: UseServerDashboardProps) =
     serverStats,
     lastUpdate,
     selectedServer,
-    setSelectedServer,
+    isModalLoading,
+    selectedServerMetrics,
     handleServerSelect,
-    activeTab,
-    setActiveTab
+    handleModalClose,
+    fetchServers,
   };
 };

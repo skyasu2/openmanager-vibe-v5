@@ -28,10 +28,9 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
     setCurrentPage,
     handleServerSelect,
     selectedServer,
-    setSelectedServer,
-    activeTab,
-    setActiveTab,
-    serverStats,
+    isModalLoading,
+    selectedServerMetrics,
+    handleModalClose,
   } = useServerDashboard({ onStatsUpdate });
 
   const [isClient, setIsClient] = useState(false);
@@ -140,7 +139,9 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
       {selectedServer && (
         <ServerDetailModal
           server={selectedServer}
-          onClose={() => setSelectedServer(null)}
+          metricsHistory={selectedServerMetrics}
+          isLoading={isModalLoading}
+          onClose={handleModalClose}
         />
       )}
     </div>

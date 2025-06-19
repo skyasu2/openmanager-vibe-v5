@@ -1,8 +1,55 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { ProcessInfo } from '@/types/ai-agent-input-schema'; // 실제 데이터 타입 임포트
 
-export function ServerDetailProcesses() {
+interface ServerDetailProcessesProps {
+  serverId: string | null;
+}
+
+export function ServerDetailProcesses({ serverId }: ServerDetailProcessesProps) {
+  const [processes, setProcesses] = useState<ProcessInfo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!serverId) return;
+
+    const fetchProcesses = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await fetch(`/api/servers/${serverId}/processes`);
+        if (!response.ok) {
+          throw new Error('프로세스 데이터를 가져오는 데 실패했습니다.');
+        }
+        const data = await response.json();
+        setProcesses(data.processes || []);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // 최초 데이터 로드
+    fetchProcesses();
+
+    // 30초마다 데이터 갱신
+    const intervalId = setInterval(fetchProcesses, 30000);
+
+    // 컴포넌트 언마운트 시 인터벌 정리
+    return () => clearInterval(intervalId);
+  }, [serverId]);
+
+  if (isLoading) {
+    return <div className='text-center p-8'>프로세스 목록을 불러오는 중...</div>;
+  }
+
+  if (error) {
+    return <div className='text-center p-8 text-red-500'>오류: {error}</div>;
+  }
+
   return (
     <div className='space-y-6'>
       <h3 className='text-lg font-semibold text-gray-900'>
@@ -32,38 +79,35 @@ export function ServerDetailProcesses() {
               </tr>
             </thead>
             <tbody className='bg-white divide-y divide-gray-200'>
-              {Array.from({ length: 8 }, (_, i) => (
-                <tr key={i} className='hover:bg-gray-50'>
-                  <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900'>
-                    {1000 + Math.floor(Math.random() * 9000)}
-                  </td>
-                  <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900'>
-                    {
-                      [
-                        'nginx',
-                        'nodejs',
-                        'postgresql',
-                        'redis-server',
-                        'systemd',
-                        'chrome',
-                        'docker',
-                        'ssh',
-                      ][i]
-                    }
-                  </td>
-                  <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900'>
-                    {(Math.random() * 15).toFixed(1)}%
-                  </td>
-                  <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900'>
-                    {(Math.random() * 25).toFixed(1)}%
-                  </td>
-                  <td className='px-6 py-4 whitespace-nowrap'>
-                    <span className='inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800'>
-                      실행 중
-                    </span>
+              {processes.length > 0 ? (
+                processes.map((process) => (
+                  <tr key={process.pid} className='hover:bg-gray-50'>
+                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900'>
+                      {process.pid}
+                    </td>
+                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900'>
+                      {process.name}
+                    </td>
+                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900'>
+                      {process.cpuUsage.toFixed(2)}%
+                    </td>
+                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900'>
+                      {(process.memoryUsage / (1024 * 1024)).toFixed(2)} MB
+                    </td>
+                    <td className='px-6 py-4 whitespace-nowrap'>
+                      <span className='inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800'>
+                        {process.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className='text-center p-8 text-gray-500'>
+                    실행 중인 프로세스가 없습니다.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

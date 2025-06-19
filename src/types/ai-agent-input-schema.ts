@@ -34,6 +34,17 @@ export interface ServerMetadata {
   tags: Record<string, string>;
   created: Date;
   lastUpdate: Date;
+  processes: ProcessInfo[];
+}
+
+export interface ProcessInfo {
+  pid: number;
+  name: string;
+  cpuUsage: number;
+  memoryUsage: number; // in bytes
+  status: 'running' | 'sleeping' | 'stopped' | 'zombie';
+  user: string;
+  startTime: string;
 }
 
 export interface TimeSeriesMetrics {
@@ -67,6 +78,7 @@ export interface TimeSeriesMetrics {
       errors: { rx: number; tx: number };
       connections: { active: number; established: number };
     };
+    processes: ProcessInfo[];
   };
   application: {
     requests: {
