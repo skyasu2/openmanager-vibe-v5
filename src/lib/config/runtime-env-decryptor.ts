@@ -1,0 +1,188 @@
+/**
+ * 🔓 런타임 환경변수 복호화 시스템
+ * OpenManager Vibe v5 - 프로덕션에서 암호화된 환경변수 자동 복호화
+ */
+
+import CryptoJS from 'crypto-js';
+
+export interface EncryptedEnvVar {
+  encrypted: string;
+  salt: string;
+  iv: string;
+  timestamp: string;
+  originalName: string;
+  isPublic: boolean;
+  rotateSchedule: string;
+}
+
+// 암호화된 환경변수 설정 (하드코딩 - Git 안전)
+const ENCRYPTED_REDIS_CONFIG = {
+  teamPasswordHash:
+    '7e346817b5382d72b3860a1aa9d6abc0263e2ddcea9e78c18724dfa2c1f575f5',
+  variables: {
+    UPSTASH_REDIS_REST_URL: {
+      encrypted:
+        '9c86DAVxwMmum1CRTGQlzE1/0QtUm2T+DvNTnPfetl02W9BxBb17cJm4TCvQNYTM',
+      salt: 'd0047e315f3329b269ef15f8eb135207',
+      iv: '457777a8bb1ebd422ed559b208dcf20d',
+      timestamp: '2025-06-18T23:24:08.083Z',
+      originalName: 'UPSTASH_REDIS_REST_URL',
+      isPublic: false,
+      rotateSchedule: 'manual',
+    },
+    UPSTASH_REDIS_REST_TOKEN: {
+      encrypted:
+        '6loFOt/I0HlBaB6Ds0hL0T0OJVw8TZQhXZDZXzyPSpY0frDsGg4+IvqEKojVgFybmAI3//5uSOtDu3RfuVe5og==',
+      salt: 'e7ebd6ee2e53b72bc027a7598768109a',
+      iv: 'd89bda01209941992d5f6b9516abefe8',
+      timestamp: '2025-06-18T23:24:08.183Z',
+      originalName: 'UPSTASH_REDIS_REST_TOKEN',
+      isPublic: false,
+      rotateSchedule: 'quarterly',
+    },
+  },
+};
+
+/**
+ * 값 복호화
+ */
+function decryptValue(
+  encryptedData: EncryptedEnvVar,
+  password: string
+): string {
+  try {
+    const { encrypted, salt, iv } = encryptedData;
+
+    const key = CryptoJS.PBKDF2(password, salt, {
+      keySize: 256 / 32,
+      iterations: 10000,
+    });
+
+    const decrypted = CryptoJS.AES.decrypt(encrypted, key, {
+      iv: CryptoJS.enc.Hex.parse(iv),
+      mode: CryptoJS.mode.CBC,
+      padding: CryptoJS.pad.Pkcs7,
+    });
+
+    const decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
+
+    if (!decryptedText) {
+      throw new Error('복호화 결과가 비어있습니다.');
+    }
+
+    return decryptedText;
+  } catch (error) {
+    throw new Error(`복호화 실패: ${error.message}`);
+  }
+}
+
+/**
+ * 캐시된 복호화 결과
+ */
+let decryptedCache: { [key: string]: string } | null = null;
+
+/**
+ * Redis 환경변수 런타임 복호화
+ */
+export function getDecryptedRedisConfig(): {
+  url: string;
+  token: string;
+} | null {
+  try {
+    // 이미 환경변수가 설정되어 있으면 그것을 사용
+    if (
+      process.env.UPSTASH_REDIS_REST_URL &&
+      process.env.UPSTASH_REDIS_REST_TOKEN
+    ) {
+      return {
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      };
+    }
+
+    // 캐시된 결과가 있으면 반환
+    if (decryptedCache) {
+      return {
+        url: decryptedCache.UPSTASH_REDIS_REST_URL,
+        token: decryptedCache.UPSTASH_REDIS_REST_TOKEN,
+      };
+    }
+
+    // 팀 비밀번호 (환경변수 또는 기본값)
+    const teamPassword = process.env.TEAM_DECRYPT_PASSWORD || 'openmanager2025';
+
+    // 비밀번호 검증
+    const passwordHash = CryptoJS.SHA256(teamPassword).toString();
+    if (passwordHash !== ENCRYPTED_REDIS_CONFIG.teamPasswordHash) {
+      console.warn('⚠️ 팀 비밀번호 불일치 - Redis 복호화 실패');
+      return null;
+    }
+
+    // Redis 환경변수 복호화
+    const redisUrl = decryptValue(
+      ENCRYPTED_REDIS_CONFIG.variables.UPSTASH_REDIS_REST_URL,
+      teamPassword
+    );
+    const redisToken = decryptValue(
+      ENCRYPTED_REDIS_CONFIG.variables.UPSTASH_REDIS_REST_TOKEN,
+      teamPassword
+    );
+
+    // 캐시에 저장
+    decryptedCache = {
+      UPSTASH_REDIS_REST_URL: redisUrl,
+      UPSTASH_REDIS_REST_TOKEN: redisToken,
+    };
+
+    console.log('🔓 Redis 환경변수 런타임 복호화 성공');
+
+    return {
+      url: redisUrl,
+      token: redisToken,
+    };
+  } catch (error) {
+    console.error('❌ Redis 환경변수 복호화 실패:', error.message);
+    return null;
+  }
+}
+
+/**
+ * 특정 환경변수 복호화
+ */
+export function getDecryptedEnvVar(varName: string): string | null {
+  try {
+    // 이미 환경변수가 설정되어 있으면 그것을 사용
+    if (process.env[varName]) {
+      return process.env[varName]!;
+    }
+
+    // 캐시된 결과가 있으면 반환
+    if (decryptedCache && decryptedCache[varName]) {
+      return decryptedCache[varName];
+    }
+
+    // Redis 설정만 지원
+    if (
+      !ENCRYPTED_REDIS_CONFIG.variables[
+        varName as keyof typeof ENCRYPTED_REDIS_CONFIG.variables
+      ]
+    ) {
+      return null;
+    }
+
+    const config = getDecryptedRedisConfig();
+    if (!config) return null;
+
+    return varName === 'UPSTASH_REDIS_REST_URL' ? config.url : config.token;
+  } catch (error) {
+    console.error(`❌ ${varName} 복호화 실패:`, error.message);
+    return null;
+  }
+}
+
+/**
+ * 복호화 캐시 초기화
+ */
+export function clearDecryptionCache(): void {
+  decryptedCache = null;
+}

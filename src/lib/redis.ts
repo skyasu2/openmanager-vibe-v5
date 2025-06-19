@@ -11,6 +11,7 @@ import { env } from './env';
 import { usageMonitor } from './usage-monitor';
 import { Redis } from '@upstash/redis';
 import { logger } from './logger';
+import { getDecryptedRedisConfig } from '@/lib/config/runtime-env-decryptor';
 
 /**
  * 🚀 스마트 Redis 클라이언트
@@ -292,8 +293,19 @@ async function getHybridRedisClient(
 
 async function initializeRedis(): Promise<RedisClientInterface> {
   // ➡️ 환경 변수 검증
-  const redisUrl = env.KV_REST_API_URL;
-  const redisToken = env.KV_REST_API_TOKEN;
+  let redisUrl = env.KV_REST_API_URL;
+  let redisToken = env.KV_REST_API_TOKEN;
+
+  // 환경변수가 없으면 런타임 복호화 시도
+  if (!redisUrl || !redisToken) {
+    console.log('🔓 환경변수 누락 - 런타임 복호화 시도 중...');
+    const decryptedConfig = getDecryptedRedisConfig();
+    if (decryptedConfig) {
+      redisUrl = decryptedConfig.url;
+      redisToken = decryptedConfig.token;
+      console.log('✅ Redis 환경변수 런타임 복호화 성공');
+    }
+  }
 
   if (!redisUrl || !redisToken) {
     console.log('⚠️ Redis 환경변수 누락 → Enhanced Mock Redis로 자동 전환');
