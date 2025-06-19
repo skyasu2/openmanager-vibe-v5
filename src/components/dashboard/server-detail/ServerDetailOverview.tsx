@@ -1,35 +1,18 @@
 'use client';
 
 import React from 'react';
-import { Server } from '../../../types/unified-server';
+import { Server } from '../../../types/server';
 import { safeFormatUptime } from '../../../utils/safeFormat';
 
 interface ServerDetailOverviewProps {
   server: Server;
-  realTimeMetrics: {
-    processes: number;
-    loadAverage: string;
-    temperature: number;
-    networkThroughput: {
-      in: number;
-      out: number;
-    };
-  } | null;
-  statusInfo: {
-    color: string;
-    bgColor: string;
-    icon: string;
-    text: string;
-  };
 }
 
-export function ServerDetailOverview({
-  server,
-  realTimeMetrics,
-}: ServerDetailOverviewProps) {
+export function ServerDetailOverview({ server }: ServerDetailOverviewProps) {
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'online':
+      case 'healthy':
         return {
           color: 'text-green-600',
           bgColor: 'bg-green-50',
@@ -112,7 +95,9 @@ export function ServerDetailOverview({
               <div className='flex justify-between'>
                 <span className='text-gray-600'>마지막 확인:</span>
                 <span className='text-sm'>
-                  {new Date(server.lastSeen).toLocaleString('ko-KR')}
+                  {server.lastSeen
+                    ? new Date(server.lastSeen).toLocaleString('ko-KR')
+                    : '알 수 없음'}
                 </span>
               </div>
             </div>
@@ -122,151 +107,112 @@ export function ServerDetailOverview({
         <div className='space-y-4'>
           <div className='bg-white rounded-lg border p-4'>
             <h3 className='text-lg font-semibold text-gray-900 mb-3'>
-              실시간 상태
+              현재 리소스 사용률
             </h3>
-            {realTimeMetrics ? (
-              <div className='space-y-3'>
-                <div className='flex justify-between'>
-                  <span className='text-gray-600'>실행 중인 프로세스:</span>
-                  <span className='font-medium'>
-                    {realTimeMetrics.processes}개
-                  </span>
+            <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
+              <div className='text-center'>
+                <div className='text-2xl font-bold text-blue-600'>
+                  {server.metrics?.cpu?.usage || server.cpu}%
                 </div>
-                <div className='flex justify-between'>
-                  <span className='text-gray-600'>시스템 부하:</span>
-                  <span className='font-medium'>
-                    {realTimeMetrics.loadAverage}
-                  </span>
+                <div className='text-sm text-gray-600'>CPU</div>
+                <div className='text-xs text-gray-500'>
+                  {server.metrics?.cpu?.cores || 4}코어
                 </div>
-                <div className='flex justify-between'>
-                  <span className='text-gray-600'>CPU 온도:</span>
-                  <span className='font-medium'>
-                    {realTimeMetrics.temperature}°C
-                  </span>
-                </div>
-                <div className='flex justify-between'>
-                  <span className='text-gray-600'>네트워크 처리량:</span>
-                  <div className='text-right'>
-                    <div className='text-sm text-green-600'>
-                      ↓{' '}
-                      {(realTimeMetrics.networkThroughput.in / 1024).toFixed(1)}{' '}
-                      KB/s
-                    </div>
-                    <div className='text-sm text-blue-600'>
-                      ↑{' '}
-                      {(realTimeMetrics.networkThroughput.out / 1024).toFixed(
-                        1
-                      )}{' '}
-                      KB/s
-                    </div>
-                  </div>
-                </div>
-                {server.metrics.uptime && (
-                  <div className='flex justify-between'>
-                    <span className='text-gray-600'>가동 시간:</span>
-                    <span className='font-medium'>
-                      {safeFormatUptime(server.metrics.uptime)}
-                    </span>
-                  </div>
-                )}
               </div>
-            ) : (
-              <div className='text-gray-500 text-center py-4'>
-                실시간 데이터 로딩 중...
+              <div className='text-center'>
+                <div className='text-2xl font-bold text-green-600'>
+                  {server.metrics?.memory?.usage || server.memory}%
+                </div>
+                <div className='text-sm text-gray-600'>메모리</div>
+                <div className='text-xs text-gray-500'>
+                  {server.metrics?.memory?.total || 16}GB
+                </div>
               </div>
-            )}
+              <div className='text-center'>
+                <div className='text-2xl font-bold text-purple-600'>
+                  {server.metrics?.disk?.usage || server.disk}%
+                </div>
+                <div className='text-sm text-gray-600'>디스크</div>
+                <div className='text-xs text-gray-500'>
+                  {server.metrics?.disk?.total || 500}GB
+                </div>
+              </div>
+              <div className='text-center'>
+                <div className='text-2xl font-bold text-orange-600'>
+                  {server.network || 0}%
+                </div>
+                <div className='text-sm text-gray-600'>네트워크</div>
+                <div className='text-xs text-gray-500'>1Gbps</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 현재 메트릭 요약 */}
-      <div className='bg-white rounded-lg border p-4'>
-        <h3 className='text-lg font-semibold text-gray-900 mb-4'>
-          현재 리소스 사용률
-        </h3>
-        <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
-          <div className='text-center'>
-            <div className='text-2xl font-bold text-blue-600'>
-              {server.metrics.cpu.usage}%
-            </div>
-            <div className='text-sm text-gray-600'>CPU</div>
-            <div className='text-xs text-gray-500'>
-              {server.metrics.cpu.cores}코어
-            </div>
-          </div>
-          <div className='text-center'>
-            <div className='text-2xl font-bold text-green-600'>
-              {server.metrics.memory.usage}%
-            </div>
-            <div className='text-sm text-gray-600'>메모리</div>
-            <div className='text-xs text-gray-500'>
-              {(server.metrics.memory.used / 1024 / 1024 / 1024).toFixed(1)}GB /
-              {(server.metrics.memory.total / 1024 / 1024 / 1024).toFixed(1)}GB
-            </div>
-          </div>
-          <div className='text-center'>
-            <div className='text-2xl font-bold text-purple-600'>
-              {server.metrics.disk.usage}%
-            </div>
-            <div className='text-sm text-gray-600'>디스크</div>
-            <div className='text-xs text-gray-500'>
-              {(server.metrics.disk.used / 1024 / 1024 / 1024).toFixed(1)}GB /
-              {(server.metrics.disk.total / 1024 / 1024 / 1024).toFixed(1)}GB
-            </div>
-          </div>
-          <div className='text-center'>
-            <div className='text-2xl font-bold text-orange-600'>
-              {(
-                (server.metrics.network.bytesIn +
-                  server.metrics.network.bytesOut) /
-                1024 /
-                1024
-              ).toFixed(1)}
-            </div>
-            <div className='text-sm text-gray-600'>네트워크</div>
-            <div className='text-xs text-gray-500'>MB/s</div>
-          </div>
-        </div>
-      </div>
-
-      {/* 알림 정보 */}
-      {server.alerts && server.alerts.length > 0 && (
+      {/* 서비스 상태 */}
+      {server.services && server.services.length > 0 && (
         <div className='bg-white rounded-lg border p-4'>
           <h3 className='text-lg font-semibold text-gray-900 mb-4'>
-            활성 알림 ({server.alerts.length}개)
+            실행 중인 서비스
           </h3>
-          <div className='space-y-2'>
-            {server.alerts.slice(0, 5).map((alert, index) => (
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'>
+            {server.services.map((service, index) => (
               <div
                 key={index}
-                className={`p-3 rounded-lg border-l-4 ${
-                  alert.type === 'critical'
-                    ? 'bg-red-50 border-red-400'
-                    : alert.type === 'warning'
-                      ? 'bg-yellow-50 border-yellow-400'
-                      : 'bg-blue-50 border-blue-400'
-                }`}
+                className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'
               >
-                <div className='flex justify-between items-start'>
-                  <div>
-                    <div className='font-medium text-gray-900'>
-                      {alert.title}
-                    </div>
-                    <div className='text-sm text-gray-600 mt-1'>
-                      {alert.message}
-                    </div>
+                <div>
+                  <div className='font-medium'>{service.name}</div>
+                  <div className='text-sm text-gray-600'>
+                    포트 {service.port}
                   </div>
-                  <div className='text-xs text-gray-500'>
-                    {new Date(alert.timestamp).toLocaleString('ko-KR')}
-                  </div>
+                </div>
+                <div
+                  className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    service.status === 'running'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}
+                >
+                  {service.status === 'running' ? '실행중' : '중지됨'}
                 </div>
               </div>
             ))}
-            {server.alerts.length > 5 && (
-              <div className='text-center text-sm text-gray-500 pt-2'>
-                +{server.alerts.length - 5}개 더 보기
+          </div>
+        </div>
+      )}
+
+      {/* 시스템 정보 */}
+      {server.systemInfo && (
+        <div className='bg-white rounded-lg border p-4'>
+          <h3 className='text-lg font-semibold text-gray-900 mb-4'>
+            시스템 정보
+          </h3>
+          <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
+            <div className='text-center'>
+              <div className='text-lg font-semibold text-gray-900'>
+                {server.systemInfo.os}
               </div>
-            )}
+              <div className='text-sm text-gray-600'>운영체제</div>
+            </div>
+            <div className='text-center'>
+              <div className='text-lg font-semibold text-gray-900'>
+                {server.systemInfo.processes}
+              </div>
+              <div className='text-sm text-gray-600'>프로세스</div>
+            </div>
+            <div className='text-center'>
+              <div className='text-lg font-semibold text-gray-900'>
+                {server.systemInfo.loadAverage}
+              </div>
+              <div className='text-sm text-gray-600'>부하 평균</div>
+            </div>
+            <div className='text-center'>
+              <div className='text-lg font-semibold text-gray-900'>
+                {server.systemInfo.uptime}
+              </div>
+              <div className='text-sm text-gray-600'>가동 시간</div>
+            </div>
           </div>
         </div>
       )}

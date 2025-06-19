@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useServerDashboard } from '@/hooks/useServerDashboard';
+import React, { useState, useEffect } from 'react';
+import { useServerDashboard, DashboardTab } from '@/hooks/useServerDashboard';
 import {
   Pagination,
   PaginationContent,
@@ -17,10 +17,18 @@ import { ServerDashboardTabs } from '@/components/dashboard/server-dashboard/Ser
 import ServerDetailModal from '@/components/dashboard/ServerDetailModal';
 
 interface ServerDashboardProps {
-  onStatsUpdate: (stats: any) => void;
+  onStatsUpdate?: (stats: {
+    total: number;
+    online: number;
+    warning: number;
+    offline: number;
+  }) => void;
 }
 
-export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps) {
+export default function ServerDashboard({
+  onStatsUpdate,
+}: ServerDashboardProps) {
+  const [activeTab, setActiveTab] = useState<DashboardTab>('servers');
   const {
     paginatedServers,
     currentPage,
@@ -28,7 +36,6 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
     setCurrentPage,
     handleServerSelect,
     selectedServer,
-    isModalLoading,
     selectedServerMetrics,
     handleModalClose,
   } = useServerDashboard({ onStatsUpdate });
@@ -59,14 +66,20 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
     return (
       <div className='space-y-4'>
         <h3 className='text-lg font-semibold text-gray-800 flex items-center gap-2'>
-          <span className={`w-3 h-3 rounded-full ${status[0] === 'critical' ? 'bg-red-500' : status[0] === 'warning' ? 'bg-yellow-500' : 'bg-green-500'}`}></span>
+          <span
+            className={`w-3 h-3 rounded-full ${status[0] === 'critical' ? 'bg-red-500' : status[0] === 'warning' ? 'bg-yellow-500' : 'bg-green-500'}`}
+          ></span>
           {title} ({filtered.length})
         </h3>
         <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
           {filtered.map((server, index) => (
             <EnhancedServerCard
               key={server.id}
-              server={server}
+              server={{
+                ...server,
+                provider: server.provider || 'Unknown',
+                status: server.status === 'online' ? 'healthy' : server.status,
+              }}
               index={index}
               onClick={() => handleServerSelect(server)}
             />
@@ -140,7 +153,6 @@ export default function ServerDashboard({ onStatsUpdate }: ServerDashboardProps)
         <ServerDetailModal
           server={selectedServer}
           metricsHistory={selectedServerMetrics}
-          isLoading={isModalLoading}
           onClose={handleModalClose}
         />
       )}

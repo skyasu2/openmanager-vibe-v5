@@ -19,7 +19,7 @@ import {
   TraceData,
   DataGenerationConfig,
   AIAnalysisDataset,
-  ProcessInfo
+  ProcessInfo,
 } from '@/types/ai-agent-input-schema';
 import { setRealtime, setBatch } from '@/lib/cache/redis';
 
@@ -57,7 +57,7 @@ const BASE_PROCESSES: Record<string, string[]> = {
   ML: ['python', 'jupyter-notebook', 'tensorflow-serving'],
   Analytics: ['kafka', 'spark-worker', 'flink-taskmanager'],
   Gateway: ['kong', 'envoy', 'istiod'],
-  Default: ['systemd', 'sshd', 'cron', 'docker', 'journald']
+  Default: ['systemd', 'sshd', 'cron', 'docker', 'journald'],
 };
 
 export class AdvancedServerDataGenerator implements IDataGenerator {
@@ -222,7 +222,9 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
   private generateInitialProcesses(usageProfile: string): ProcessInfo[] {
     const coreProcesses = BASE_PROCESSES[usageProfile] || [];
     const defaultProcesses = BASE_PROCESSES['Default'];
-    const allProcessNames = [...new Set([...coreProcesses, ...defaultProcesses])];
+    const allProcessNames = [
+      ...new Set([...coreProcesses, ...defaultProcesses]),
+    ];
 
     return allProcessNames.map((name, index) => ({
       pid: 1000 + index * 10 + Math.floor(Math.random() * 10),
@@ -231,7 +233,9 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
       memoryUsage: 0,
       status: 'running',
       user: name === 'systemd' ? 'root' : 'www-data',
-      startTime: new Date(Date.now() - Math.random() * 3600 * 1000).toISOString()
+      startTime: new Date(
+        Date.now() - Math.random() * 3600 * 1000
+      ).toISOString(),
     }));
   }
 
@@ -248,7 +252,8 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
     const baseLoad = this.getBaseLoad(server.usageProfile.type);
 
     // 현재 부하 계산
-    const currentLoad = baseLoad * timeMultiplier * (1 + (Math.random() - 0.5) * 0.1);
+    const currentLoad =
+      baseLoad * timeMultiplier * (1 + (Math.random() - 0.5) * 0.1);
 
     // 실시간 프로세스 메트릭 생성
     const currentProcesses = this.generateProcessMetrics(server, currentLoad);
@@ -266,7 +271,9 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
           threads: server.processes.length * 3 + Math.floor(Math.random() * 20),
         },
         memory: {
-          used: server.resources.memory.total * (0.3 + currentLoad * 0.5) + Math.random() * 1024 * 1024 * 100,
+          used:
+            server.resources.memory.total * (0.3 + currentLoad * 0.5) +
+            Math.random() * 1024 * 1024 * 100,
           available: server.resources.memory.total * (0.7 - currentLoad * 0.5),
           buffers: Math.random() * 1024 * 1024 * 50,
           cached: Math.random() * 1024 * 1024 * 500,
@@ -282,7 +289,10 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
           io: { rx: Math.random() * 1e6, tx: Math.random() * 5e5 },
           packets: { rx: Math.random() * 10000, tx: Math.random() * 5000 },
           errors: { rx: 0, tx: 0 },
-          connections: { active: Math.floor(currentLoad * 100), established: Math.floor(currentLoad * 80) },
+          connections: {
+            active: Math.floor(currentLoad * 100),
+            established: Math.floor(currentLoad * 80),
+          },
         },
         processes: currentProcesses,
       },
@@ -317,21 +327,31 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
         },
       },
       infrastructure: {},
-      processes: server.processes
     };
   }
 
   // 실시간 프로세스 메트릭 생성 헬퍼
-  private generateProcessMetrics(server: ServerMetadata, currentLoad: number): ProcessInfo[] {
+  private generateProcessMetrics(
+    server: ServerMetadata,
+    currentLoad: number
+  ): ProcessInfo[] {
     return server.processes.map(p => {
-      const cpuUsage = Math.random() * currentLoad * 10 * (p.name.includes('sql') || p.name.includes('node') ? 2 : 1);
-      const memoryUsage = p.memoryUsage + (Math.random() - 0.5) * 1024 * 1024 * 5; // 5MB 내외 변동
+      const cpuUsage =
+        Math.random() *
+        currentLoad *
+        10 *
+        (p.name.includes('sql') || p.name.includes('node') ? 2 : 1);
+      const memoryUsage =
+        p.memoryUsage + (Math.random() - 0.5) * 1024 * 1024 * 5; // 5MB 내외 변동
 
       return {
         ...p,
         cpuUsage: parseFloat(cpuUsage.toFixed(2)),
         memoryUsage: Math.max(1024 * 1024, memoryUsage), // 최소 1MB 보장
-        status: p.status === 'running' && Math.random() < 0.001 ? 'sleeping' : p.status,
+        status:
+          p.status === 'running' && Math.random() < 0.001
+            ? 'sleeping'
+            : p.status,
       };
     });
   }
@@ -395,7 +415,9 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
       return;
     }
     this.isRunning = true;
-    console.log(`🚀 Advanced Server Data Generator 시작... ${this.servers.length}개 서버에 대한 데이터 생성을 시작합니다.`);
+    console.log(
+      `🚀 Advanced Server Data Generator 시작... ${this.servers.length}개 서버에 대한 데이터 생성을 시작합니다.`
+    );
 
     this.servers.forEach(server => {
       this.scheduleNextGeneration(server.id);
@@ -416,10 +438,14 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
         // Redis에 실시간 메트릭 저장
         await setRealtime(`server:${server.id}:metrics:latest`, metrics);
 
-        console.log(`[DataGen] 서버 ${server.name}(${server.id}) 데이터 생성 완료. 다음 생성까지 약 ${Math.round(delay / 1000)}초 후.`);
-
+        console.log(
+          `[DataGen] 서버 ${server.name}(${server.id}) 데이터 생성 완료. 다음 생성까지 약 ${Math.round(delay / 1000)}초 후.`
+        );
       } catch (error) {
-        console.error(`[DataGen] 서버 ${serverId} 데이터 생성 중 오류 발생:`, error);
+        console.error(
+          `[DataGen] 서버 ${serverId} 데이터 생성 중 오류 발생:`,
+          error
+        );
       } finally {
         // 다음 생성을 재귀적으로 스케줄링
         if (this.isRunning) {
@@ -435,7 +461,9 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
   public stop(): void {
     if (!this.isRunning) return;
     this.isRunning = false;
-    console.log('🔌 Advanced Server Data Generator 중지 중... 모든 생성 작업을 취소합니다.');
+    console.log(
+      '🔌 Advanced Server Data Generator 중지 중... 모든 생성 작업을 취소합니다.'
+    );
     this.timeouts.forEach(clearTimeout);
     this.timeouts = [];
     console.log('✅ Advanced Server Data Generator가 안전하게 중지되었습니다.');

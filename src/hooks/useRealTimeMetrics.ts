@@ -5,6 +5,12 @@ export interface RealTimeMetrics {
   processes: number;
   loadAverage: string;
   temperature: number;
+  activeConnections: number;
+  latency: number;
+  packetIO: {
+    in: number;
+    out: number;
+  };
   networkThroughput: {
     in: number;
     out: number;
@@ -23,6 +29,12 @@ export function useRealTimeMetrics(serverId: string | null) {
         processes: Math.floor(Math.random() * 200) + 150,
         loadAverage: (Math.random() * 2).toFixed(2),
         temperature: Math.floor(Math.random() * 20) + 45,
+        activeConnections: Math.floor(Math.random() * 100) + 50,
+        latency: Math.floor(Math.random() * 100) + 10,
+        packetIO: {
+          in: Math.floor(Math.random() * 1000) + 500,
+          out: Math.floor(Math.random() * 800) + 300,
+        },
         networkThroughput: {
           in: Math.floor(Math.random() * 1000) + 500,
           out: Math.floor(Math.random() * 800) + 300,

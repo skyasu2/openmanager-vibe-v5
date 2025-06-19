@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { MetricsHistory, MetricsStats } from '../../../hooks/useServerMetrics';
+import { MetricsHistory } from '../../../types/server';
+import { MetricsStats } from '../../../hooks/useServerMetrics';
 import CircularGauge from './CircularGauge';
 
 interface ServerDetailMetricsProps {
@@ -64,13 +65,21 @@ export function ServerDetailMetrics({
           size={150}
         />
         <CircularGauge
-          value={Math.min(
-            ((metricsHistory[metricsHistory.length - 1]?.network
-              ?.bytesReceived || 0) /
-              1000000) *
-              2,
-            100
-          )}
+          value={(() => {
+            const lastMetric = metricsHistory[metricsHistory.length - 1];
+            if (!lastMetric) return 0;
+
+            const network = lastMetric.network;
+            if (typeof network === 'number') {
+              return network;
+            } else if (network && typeof network === 'object') {
+              return Math.min(
+                ((network.bytesReceived || 0) / 1000000) * 2,
+                100
+              );
+            }
+            return 0;
+          })()}
           label='네트워크'
           color='#22c55e'
           size={150}
@@ -240,7 +249,20 @@ export function ServerDetailMetrics({
                   <polygon
                     fill='rgba(34, 197, 94, 0.1)'
                     stroke='none'
-                    points={`0,140 ${generateChartPoints(metricsHistory.map(m => Math.min(((m.network?.bytesReceived || 0) / 1000000) * 2,100)))} ${metricsHistory.length > 0 ? (metricsHistory.length - 1) * (100 / (metricsHistory.length - 1)) : 0},140`}
+                    points={`0,140 ${generateChartPoints(
+                      metricsHistory.map(m => {
+                        const network = m.network;
+                        if (typeof network === 'number') {
+                          return network;
+                        } else if (network && typeof network === 'object') {
+                          return Math.min(
+                            ((network.bytesReceived || 0) / 1000000) * 2,
+                            100
+                          );
+                        }
+                        return 0;
+                      })
+                    )} ${metricsHistory.length > 0 ? (metricsHistory.length - 1) * (100 / (metricsHistory.length - 1)) : 0},140`}
                   />
                   {/* 네트워크 라인 */}
                   <polyline
@@ -248,12 +270,18 @@ export function ServerDetailMetrics({
                     stroke='#22c55e'
                     strokeWidth='2'
                     points={generateChartPoints(
-                      metricsHistory.map(m =>
-                        Math.min(
-                          ((m.network?.bytesReceived || 0) / 1000000) * 2,
-                          100
-                        )
-                      )
+                      metricsHistory.map(m => {
+                        const network = m.network;
+                        if (typeof network === 'number') {
+                          return network;
+                        } else if (network && typeof network === 'object') {
+                          return Math.min(
+                            ((network.bytesReceived || 0) / 1000000) * 2,
+                            100
+                          );
+                        }
+                        return 0;
+                      })
                     )}
                     style={{
                       filter: 'drop-shadow(0 2px 4px rgba(34, 197, 94, 0.3))',
@@ -266,14 +294,17 @@ export function ServerDetailMetrics({
                     const cpuY = 140 - (metric.cpu / 100) * 140;
                     const memoryY = 140 - (metric.memory / 100) * 140;
                     const diskY = 140 - (metric.disk / 100) * 140;
-                    const networkY =
-                      140 -
-                      (Math.min(
-                        ((metric.network?.bytesReceived || 0) / 1000000) * 2,
+                    const network = metric.network;
+                    let networkValue = 0;
+                    if (typeof network === 'number') {
+                      networkValue = network;
+                    } else if (network && typeof network === 'object') {
+                      networkValue = Math.min(
+                        ((network.bytesReceived || 0) / 1000000) * 2,
                         100
-                      ) /
-                        100) *
-                        140;
+                      );
+                    }
+                    const networkY = 140 - (networkValue / 100) * 140;
 
                     return (
                       <g key={index}>

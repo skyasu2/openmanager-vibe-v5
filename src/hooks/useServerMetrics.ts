@@ -1,17 +1,5 @@
 import { useState, useCallback } from 'react';
-
-export interface MetricsHistory {
-  timestamp: string;
-  cpu: number;
-  memory: number;
-  disk: number;
-  network: {
-    bytesReceived: number;
-    bytesSent: number;
-  };
-  responseTime: number;
-  connections: number;
-}
+import { MetricsHistory } from '../types/server';
 
 export interface MetricsStats {
   cpuAvg: number;
@@ -61,10 +49,7 @@ export function useServerMetrics() {
           cpu: Math.round(load * 100),
           memory: Math.round((load * 0.8 + Math.random() * 0.2) * 100),
           disk: Math.round((0.4 + Math.random() * 0.3) * 100),
-          network: {
-            bytesReceived: Math.round(load * 50000000),
-            bytesSent: Math.round(load * 30000000),
-          },
+          network: Math.round(load * 100),
           responseTime: Math.round(100 + load * 200 + Math.random() * 100),
           connections: Math.round(50 + load * 200),
         });

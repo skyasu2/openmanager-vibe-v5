@@ -22,8 +22,11 @@ const fallbackServers: Server[] = [
   {
     id: 'api-jp-040',
     name: 'api-jp-040',
+    hostname: 'api-jp-040.example.com',
     status: 'offline',
     location: 'Asia Pacific',
+    type: 'API',
+    environment: 'production',
     cpu: 95,
     memory: 98,
     disk: 85,
@@ -42,8 +45,11 @@ const fallbackServers: Server[] = [
   {
     id: 'api-sg-044',
     name: 'api-sg-044',
+    hostname: 'api-sg-044.example.com',
     status: 'offline',
     location: 'Singapore',
+    type: 'API',
+    environment: 'production',
     cpu: 88,
     memory: 92,
     disk: 78,
@@ -61,8 +67,11 @@ const fallbackServers: Server[] = [
   {
     id: 'api-eu-045',
     name: 'api-eu-045',
+    hostname: 'api-eu-045.example.com',
     status: 'warning',
     location: 'EU West',
+    type: 'API',
+    environment: 'production',
     cpu: 78,
     memory: 85,
     disk: 68,
@@ -80,8 +89,11 @@ const fallbackServers: Server[] = [
   {
     id: 'api-sg-042',
     name: 'api-sg-042',
+    hostname: 'api-sg-042.example.com',
     status: 'warning',
     location: 'Singapore',
+    type: 'API',
+    environment: 'production',
     cpu: 72,
     memory: 79,
     disk: 58,
@@ -100,8 +112,11 @@ const fallbackServers: Server[] = [
   {
     id: 'api-us-041',
     name: 'api-us-041',
+    hostname: 'api-us-041.example.com',
     status: 'online',
     location: 'US East',
+    type: 'API',
+    environment: 'production',
     cpu: 59,
     memory: 48,
     disk: 30,
@@ -127,18 +142,26 @@ interface UseServerDashboardProps {
   }) => void;
 }
 
-export const useServerDashboard = ({ onStatsUpdate }: UseServerDashboardProps) => {
-  const { servers: allServerMetrics, lastUpdate, fetchServers } = useServerDataStore();
+export const useServerDashboard = ({
+  onStatsUpdate,
+}: UseServerDashboardProps) => {
+  const {
+    servers: allServerMetrics,
+    lastUpdate,
+    fetchServers,
+  } = useServerDataStore();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
-  const [selectedServerMetrics, setSelectedServerMetrics] = useState<MetricsHistory[]>([]);
+  const [selectedServerMetrics, setSelectedServerMetrics] = useState<
+    MetricsHistory[]
+  >([]);
   const [isModalLoading, setIsModalLoading] = useState(false);
   const { loadMetricsHistory } = useServerMetrics();
   const ITEMS_PER_PAGE = 8;
 
   const allServers: Server[] = useMemo(() => {
     return allServerMetrics.map(metric => {
-      const mapStatus = (status: ServerStatus): Server['status'] => {
+      const mapStatus = (status: string): Server['status'] => {
         switch (status) {
           case 'running':
             return 'healthy';
@@ -149,18 +172,21 @@ export const useServerDashboard = ({ onStatsUpdate }: UseServerDashboardProps) =
           case 'maintenance':
             return 'warning';
           default:
-            return status;
+            return status as Server['status'];
         }
       };
 
       return {
         id: metric.id,
         name: metric.hostname,
+        hostname: metric.hostname,
         status: mapStatus(metric.status),
         cpu: metric.cpu_usage,
         memory: metric.memory_usage,
         disk: metric.disk_usage,
         location: metric.environment,
+        type: metric.role?.toUpperCase() || 'UNKNOWN',
+        environment: metric.environment,
         uptime: `${Math.floor(metric.uptime / 86400)}d`,
         alerts: metric.alerts.length,
         lastUpdate: new Date(metric.last_updated),
@@ -200,9 +226,17 @@ export const useServerDashboard = ({ onStatsUpdate }: UseServerDashboardProps) =
     if (!server || !server.id) return;
     setSelectedServer(server);
     setIsModalLoading(true);
-    const history = await loadMetricsHistory(server.id, '24h');
-    setSelectedServerMetrics(history);
-    setIsModalLoading(false);
+
+    try {
+      await loadMetricsHistory(server.id, '24h');
+      // useServerMetrics 훅에서 metricsHistory 상태를 직접 사용
+      setSelectedServerMetrics([]);
+    } catch (error) {
+      console.error('메트릭 히스토리 로드 실패:', error);
+      setSelectedServerMetrics([]);
+    } finally {
+      setIsModalLoading(false);
+    }
   };
 
   const handleModalClose = () => {
