@@ -253,7 +253,7 @@ export default function SystemBootPage() {
       name: '시스템 완료',
       delay: 4800,
       icon: CheckCircle,
-      description: 'OpenManager Vibe v5가 준비되었습니다!',
+      description: 'AI 어시스턴트가 준비되었습니다!',
     },
   ];
 
@@ -315,7 +315,7 @@ export default function SystemBootPage() {
             className='text-5xl font-bold mb-8'
           >
             <span className='bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent'>
-              OpenManager
+              AI 어시스턴트
             </span>
           </motion.h1>
 
@@ -371,7 +371,7 @@ export default function SystemBootPage() {
               animate={{ opacity: [0.5, 0.8, 0.5] }}
               transition={{ duration: 3, repeat: Infinity }}
             >
-              잠시만 기다려주세요. 최고의 모니터링 경험을 준비하고 있습니다.
+              잠시만 기다려주세요. 최고의 AI 경험을 준비하고 있습니다.
             </motion.p>
           </motion.div>
         </motion.div>
