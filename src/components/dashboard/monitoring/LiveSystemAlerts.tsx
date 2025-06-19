@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   AlertTriangle,
   Clock,
@@ -26,49 +26,8 @@ interface SystemEvent {
   icon: React.ReactNode;
 }
 
-// 임의의 시스템 알림 데이터 생성 (실제로는 API 또는 WebSocket으로 수신)
-const generateMockAlerts = (): SystemAlert[] => [
-  {
-    id: '1',
-    type: 'error',
-    title: '데이터베이스 응답 시간 초과',
-    message: '쿼리 응답 시간이 3,000ms를 초과했습니다.',
-    timestamp: new Date(),
-    isClosable: true,
-  },
-  {
-    id: '2',
-    type: 'warning',
-    title: '메모리 사용량 임계치 근접',
-    message: '메모리 사용량이 85%에 도달했습니다.',
-    timestamp: new Date(Date.now() - 2 * 60 * 1000), // 2분 전
-    isClosable: true,
-  },
-  {
-    id: '3',
-    type: 'info',
-    title: '서버 점검 완료',
-    message: '정기 서버 점검이 성공적으로 완료되었습니다.',
-    timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5분 전
-    isClosable: true,
-  },
-  {
-    id: '4',
-    type: 'warning',
-    title: '네트워크 지연 시간 증가',
-    message: '평균 네트워크 지연 시간이 150ms로 증가했습니다.',
-    timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10분 전
-    isClosable: true,
-  },
-  {
-    id: '5',
-    type: 'error',
-    title: 'AI 엔진 응답 없음',
-    message: 'AI 예측 엔진이 5분 이상 응답하지 않습니다.',
-    timestamp: new Date(Date.now() - 15 * 60 * 1000), // 15분 전
-    isClosable: true,
-  },
-];
+// 📦 모의 알림 (SSE 실패 시 폴백)
+const generateMockAlerts = (): SystemAlert[] => [];
 
 const getAlertColor = (type: SystemAlert['type']) => {
   switch (type) {
@@ -114,6 +73,9 @@ export default function LiveSystemAlerts() {
   const { sections, toggleSection } = useDashboardToggleStore();
   const [alerts, setAlerts] = useState<SystemAlert[]>([]);
   const [currentAlertIndex, setCurrentAlertIndex] = useState(0);
+  const rotationRef = useRef<NodeJS.Timeout | null>(null);
+  const esRef = useRef<EventSource | null>(null);
+  const visibilityTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // SystemEvent 상태 추가
   const [events, setEvents] = useState<SystemEvent[]>([
@@ -148,17 +110,66 @@ export default function LiveSystemAlerts() {
   ]);
 
   useEffect(() => {
-    const mockAlerts = generateMockAlerts();
-    setAlerts(mockAlerts);
+    const openSSE = () => {
+      if (esRef.current) return;
+      esRef.current = new EventSource('/api/alerts/stream');
 
-    if (mockAlerts.length > 0) {
-      const interval = setInterval(() => {
-        setCurrentAlertIndex(prevIndex => (prevIndex + 1) % mockAlerts.length);
-      }, 5000);
+      esRef.current.onmessage = e => {
+        try {
+          const parsed: SystemAlert = JSON.parse(e.data);
+          setAlerts(prev => [...prev, parsed].slice(-20));
+        } catch (err) {
+          console.warn('🚨 알림 파싱 실패:', err);
+        }
+      };
 
-      return () => clearInterval(interval);
-    }
+      esRef.current.onerror = () => {
+        console.warn('🚨 SSE 연결 오류');
+        esRef.current?.close();
+        esRef.current = null;
+      };
+    };
+
+    openSSE();
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        // 30초 이상 백그라운드 → SSE 닫기
+        visibilityTimeout.current = setTimeout(() => {
+          esRef.current?.close();
+          esRef.current = null;
+        }, 30000);
+      } else {
+        if (visibilityTimeout.current) {
+          clearTimeout(visibilityTimeout.current);
+          visibilityTimeout.current = null;
+        }
+        // 보이는 상태이고 SSE 닫혀 있으면 재연결
+        if (!esRef.current) openSSE();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      esRef.current?.close();
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, []);
+
+  // 5초마다 알림 로테이션
+  useEffect(() => {
+    if (rotationRef.current) clearInterval(rotationRef.current);
+    if (alerts.length === 0) return;
+
+    rotationRef.current = setInterval(() => {
+      setCurrentAlertIndex(idx => (idx + 1) % alerts.length);
+    }, 5000);
+
+    return () => {
+      if (rotationRef.current) clearInterval(rotationRef.current);
+    };
+  }, [alerts]);
 
   const currentAlert = alerts[currentAlertIndex];
 

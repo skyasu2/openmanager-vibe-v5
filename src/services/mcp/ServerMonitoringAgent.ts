@@ -300,6 +300,21 @@ export class ServerMonitoringAgent {
 
       const processingTime = Date.now() - startTime;
 
+      // SSE 알림 전송
+      try {
+        const { alertsEmitter } = await import('@/lib/events/alertsEmitter');
+        alertsEmitter.emit('alert', {
+          id: `alert_${Date.now()}`,
+          type: analysis.severity === 'critical' ? 'error' : 'warning',
+          title: `${analysis.issues.length}개 이슈 발견`,
+          message: analysis.summary,
+          severity: analysis.severity,
+          timestamp: Date.now(),
+        });
+      } catch (e) {
+        /* noop - serverless edge 환경에서 import 실패 가능 */
+      }
+
       return {
         id: `response_${Date.now()}`,
         queryId: request.id,

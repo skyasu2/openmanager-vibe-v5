@@ -27,6 +27,15 @@ export interface Server {
   networkInfo?: NetworkInfo;
   networkStatus?: 'excellent' | 'good' | 'poor' | 'offline'; // 네트워크 상태 추가
   systemInfo?: SystemInfo;
+  health?: {
+    score: number; // 0 ~ 100
+    trend: number[]; // 최근 30개 점수
+  };
+  alertsSummary?: {
+    total: number;
+    critical: number;
+    warning: number;
+  };
 }
 
 export interface Service {

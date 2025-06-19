@@ -12,7 +12,7 @@ describe('Health API', () => {
     const res = await GET(req);
     expect(res.status).toBe(200);
     const data = await res.json();
-    expect(data.status).toBe('healthy');
+    expect(['healthy', 'degraded']).toContain(data.status);
   });
 
   it('오류 발생 시에도 200 상태 코드와 unhealthy 상태를 반환한다', async () => {

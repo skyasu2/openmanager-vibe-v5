@@ -70,6 +70,12 @@ interface EnhancedServerCardProps {
     os?: string;
     ip?: string;
     networkStatus?: 'excellent' | 'good' | 'poor' | 'offline'; // 네트워크 상태 추가
+    health?: {
+      score: number;
+    };
+    alertsSummary?: {
+      total: number;
+    };
   };
   index: number;
   onClick?: (server: any) => void;
@@ -487,9 +493,14 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             </motion.div>
             <div>
               <h3
-                className={`font-bold text-gray-900 ${variantStyles.titleSize} group-hover:text-gray-700 transition-colors`}
+                className={`font-bold text-gray-900 ${variantStyles.titleSize} group-hover:text-gray-700 transition-colors flex items-center gap-2`}
               >
-                {server.name}
+                <span>{server.name}</span>
+                {server.health?.score !== undefined && (
+                  <span className='text-xs font-semibold text-gray-500 bg-white/60 px-1.5 py-0.5 rounded-md backdrop-blur-sm'>
+                    {Math.round(server.health.score)}/100
+                  </span>
+                )}
               </h3>
               <p className='text-sm text-gray-600'>
                 {server.type} • {server.location}
@@ -650,15 +661,19 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
           )}
 
           {/* 알림 */}
-          {server.alerts > 0 && (
-            <motion.div
-              className='flex items-center gap-2 p-2 bg-red-50 text-red-700 rounded-lg text-sm'
-              whileHover={{ scale: 1.02 }}
-            >
-              <AlertTriangle className='w-4 h-4' />
-              <span className='font-medium'>{server.alerts}개 알림</span>
-            </motion.div>
-          )}
+          {(() => {
+            const totalAlerts =
+              server.alertsSummary?.total ?? server.alerts ?? 0;
+            return totalAlerts > 0 ? (
+              <motion.div
+                className='flex items-center gap-2 p-2 bg-red-50 text-red-700 rounded-lg text-sm'
+                whileHover={{ scale: 1.02 }}
+              >
+                <AlertTriangle className='w-4 h-4' />
+                <span className='font-medium'>{totalAlerts}개 알림</span>
+              </motion.div>
+            ) : null;
+          })()}
 
           {/* 추가 정보 (호버 시 표시) - compact에서는 숨김 */}
           <AnimatePresence>

@@ -30,6 +30,17 @@ interface ClientServer {
   location: string;
   type: string;
   metrics: ClientServerMetrics;
+  // 🩺 건강 점수 및 추세 (선택)
+  health: {
+    score: number;
+    trend: number[];
+  };
+  // 🚨 알림 요약 (선택)
+  alertsSummary: {
+    total: number;
+    critical: number;
+    warning: number;
+  };
   uptime: number;
   lastUpdate: Date;
 }
@@ -106,6 +117,8 @@ const getInitialServers = (): ClientServer[] => {
       metrics: { cpu: 19, memory: 36.2, disk: 34.6, network: 12 },
       uptime: 15,
       lastUpdate: new Date(),
+      health: { score: 90, trend: Array(30).fill(90) },
+      alertsSummary: { total: 0, critical: 0, warning: 0 },
     },
     {
       id: 'api-eu-045',
@@ -116,6 +129,8 @@ const getInitialServers = (): ClientServer[] => {
       metrics: { cpu: 48, memory: 29.2, disk: 15.6, network: 25 },
       uptime: 8,
       lastUpdate: new Date(),
+      health: { score: 60, trend: Array(30).fill(60) },
+      alertsSummary: { total: 2, critical: 0, warning: 2 },
     },
     {
       id: 'api-jp-040',
@@ -126,6 +141,8 @@ const getInitialServers = (): ClientServer[] => {
       metrics: { cpu: 19, memory: 53.2, disk: 29.6, network: 45 },
       uptime: 3,
       lastUpdate: new Date(),
+      health: { score: 30, trend: Array(30).fill(30) },
+      alertsSummary: { total: 5, critical: 3, warning: 2 },
     },
     {
       id: 'api-sg-042',
@@ -136,6 +153,8 @@ const getInitialServers = (): ClientServer[] => {
       metrics: { cpu: 37, memory: 41.2, disk: 19.6, network: 18 },
       uptime: 8,
       lastUpdate: new Date(),
+      health: { score: 55, trend: Array(30).fill(55) },
+      alertsSummary: { total: 1, critical: 0, warning: 1 },
     },
     {
       id: 'db-us-001',
@@ -146,6 +165,8 @@ const getInitialServers = (): ClientServer[] => {
       metrics: { cpu: 23, memory: 45.8, disk: 67.2, network: 8 },
       uptime: 22,
       lastUpdate: new Date(),
+      health: { score: 85, trend: Array(30).fill(85) },
+      alertsSummary: { total: 0, critical: 0, warning: 0 },
     },
   ];
 };
@@ -202,6 +223,25 @@ const fetchServersFromAPI = async (): Promise<ClientServer[]> => {
         memory: serverInfo.memory_usage || serverInfo.memory || 0,
         disk: serverInfo.disk_usage || serverInfo.disk || 0,
         network: serverInfo.response_time || 0,
+      },
+      health: {
+        score: Math.max(
+          0,
+          100 -
+            (serverInfo.cpu_usage || serverInfo.cpu || 0) * 0.3 -
+            (serverInfo.memory_usage || serverInfo.memory || 0) * 0.3 -
+            (serverInfo.disk_usage || serverInfo.disk || 0) * 0.4
+        ),
+        trend: [],
+      },
+      alertsSummary: {
+        total: serverInfo.alerts?.length || 0,
+        critical: (serverInfo.alerts || []).filter(
+          (a: any) => a.severity === 'critical'
+        ).length,
+        warning: (serverInfo.alerts || []).filter(
+          (a: any) => a.severity === 'warning'
+        ).length,
       },
       uptime: Math.floor((serverInfo.uptime || 0) / 86400000), // milliseconds to days
       lastUpdate: new Date(serverInfo.last_updated || Date.now()),

@@ -85,6 +85,15 @@ interface EnhancedServerModalProps {
     os?: string;
     ip?: string;
     networkStatus?: 'excellent' | 'good' | 'poor' | 'offline'; // 네트워크 상태 추가
+    health?: {
+      score: number;
+      trend: number[];
+    };
+    alertsSummary?: {
+      total: number;
+      critical: number;
+      warning: number;
+    };
   } | null;
   onClose: () => void;
 }
@@ -440,9 +449,22 @@ export default function EnhancedServerModal({
                   <Server className='w-6 h-6' />
                 </div>
                 <div>
-                  <h2 className='text-2xl font-bold'>{server.name}</h2>
-                  <p className='text-blue-100'>
+                  <h2 className='text-2xl font-bold flex items-center gap-3'>
+                    <span>{server.name}</span>
+                    {server.health?.score !== undefined && (
+                      <span className='text-sm font-semibold bg-white/20 px-2 py-0.5 rounded-md'>
+                        {Math.round(server.health.score)}/100
+                      </span>
+                    )}
+                  </h2>
+                  <p className='text-blue-100 flex items-center gap-2'>
                     {server.type} • {server.location}
+                    {server.alertsSummary?.total ? (
+                      <span className='ml-2 inline-flex items-center gap-1 bg-red-500/20 text-red-100 px-2 py-0.5 rounded-full text-xs'>
+                        <AlertTriangle className='w-3 h-3' />
+                        {server.alertsSummary.total}
+                      </span>
+                    ) : null}
                   </p>
                 </div>
               </div>
@@ -616,6 +638,7 @@ export default function EnhancedServerModal({
                         성능 메트릭
                       </h3>
                       <select
+                        aria-label='time-range'
                         value={timeRange}
                         onChange={e => setTimeRange(e.target.value as any)}
                         className='px-3 py-2 border border-gray-300 rounded-lg'
