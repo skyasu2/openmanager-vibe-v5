@@ -1,39 +1,21 @@
 /**
- * 🔔 통합 알림 설정 스토어 v1.1
+ * 🔔 통합 알림 설정 스토어 v2.0
  *
  * Zustand 기반 상태 관리:
  * - 사용자별 알림 설정
- * - 채널별 활성화/비활성화
+ * - 채널별 활성화/비활성화 (웹 알림 전용)
  * - 심각도 필터링
  * - 조용한 시간 설정
  * - 쿨다운 관리
- * - 슬랙 웹훅 URL 관리
  */
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { NotificationPreferences } from '../services/notifications/SmartNotificationRouter';
 
-// 슬랙 웹훅 설정 인터페이스
-export interface SlackWebhook {
-  id: string;
-  name: string;
-  url: string;
-  channel: string;
-  description?: string;
-  isActive: boolean;
-  createdAt: Date;
-  lastUsed?: Date;
-  totalSent: number;
-}
-
 interface NotificationStore {
   // 현재 사용자 설정
   preferences: NotificationPreferences;
-
-  // 슬랙 웹훅 관리
-  slackWebhooks: SlackWebhook[];
-  activeWebhookId: string | null;
 
   // 알림 통계
   stats: {
@@ -41,7 +23,6 @@ interface NotificationStore {
     lastSent: Date | null;
     channelStats: {
       browser: { sent: number; failed: number };
-      slack: { sent: number; failed: number };
       toast: { sent: number; failed: number };
     };
   };
@@ -53,7 +34,7 @@ interface NotificationStore {
     lastRequested: Date | null;
   };
 
-  // 기존 액션들
+  // 설정 관리 액션들
   updatePreferences: (preferences: Partial<NotificationPreferences>) => void;
   updateChannelSetting: (
     channel: keyof NotificationPreferences['channels'],
@@ -70,19 +51,9 @@ interface NotificationStore {
     cooldown: Partial<NotificationPreferences['cooldown']>
   ) => void;
 
-  // 슬랙 웹훅 관리 액션들
-  addSlackWebhook: (
-    webhook: Omit<SlackWebhook, 'id' | 'createdAt' | 'totalSent'>
-  ) => string;
-  updateSlackWebhook: (id: string, updates: Partial<SlackWebhook>) => void;
-  deleteSlackWebhook: (id: string) => void;
-  setActiveWebhook: (id: string | null) => void;
-  getActiveWebhook: () => SlackWebhook | null;
-  incrementWebhookUsage: (id: string) => void;
-
   // 통계 업데이트
   incrementChannelStat: (
-    channel: 'browser' | 'slack' | 'toast',
+    channel: 'browser' | 'toast',
     type: 'sent' | 'failed'
   ) => void;
   resetStats: () => void;
@@ -104,14 +75,12 @@ const defaultPreferences: NotificationPreferences = {
   userId: 'default-user',
   channels: {
     browser: true,
-    slack: true, // 슬랙 기본 활성화로 변경
     toast: true,
     websocket: true,
     database: true,
   },
   severityFilter: {
     browser: 'critical', // 브라우저 알림을 critical만으로 제한
-    slack: 'critical',
     toast: 'warning', // Toast는 warning 이상만
   },
   quietHours: {
@@ -127,16 +96,11 @@ const defaultPreferences: NotificationPreferences = {
   },
 };
 
-// 기본 슬랙 웹훅 (사용자가 제공한 URL)
-// Slack Webhook URL은 환경변수에서 로드됩니다
-const defaultSlackWebhooks: SlackWebhook[] = [];
-
 const defaultStats = {
   totalSent: 0,
   lastSent: null,
   channelStats: {
     browser: { sent: 0, failed: 0 },
-    slack: { sent: 0, failed: 0 },
     toast: { sent: 0, failed: 0 },
   },
 };
@@ -152,8 +116,6 @@ export const useNotificationStore = create<NotificationStore>()(
     (set, get) => ({
       // 초기 상태
       preferences: defaultPreferences,
-      slackWebhooks: defaultSlackWebhooks,
-      activeWebhookId: 'webhook-001', // 기본 웹훅 활성화
       stats: defaultStats,
       browserPermission: defaultBrowserPermission,
 
@@ -219,73 +181,6 @@ export const useNotificationStore = create<NotificationStore>()(
         }));
       },
 
-      // 슬랙 웹훅 추가
-      addSlackWebhook: webhook => {
-        const id = `webhook-${Date.now()}`;
-        const newWebhook: SlackWebhook = {
-          ...webhook,
-          id,
-          createdAt: new Date(),
-          totalSent: 0,
-        };
-
-        set(state => ({
-          slackWebhooks: [...state.slackWebhooks, newWebhook],
-        }));
-
-        return id;
-      },
-
-      // 슬랙 웹훅 업데이트
-      updateSlackWebhook: (id, updates) => {
-        set(state => ({
-          slackWebhooks: state.slackWebhooks.map(webhook =>
-            webhook.id === id ? { ...webhook, ...updates } : webhook
-          ),
-        }));
-      },
-
-      // 슬랙 웹훅 삭제
-      deleteSlackWebhook: id => {
-        set(state => ({
-          slackWebhooks: state.slackWebhooks.filter(
-            webhook => webhook.id !== id
-          ),
-          activeWebhookId:
-            state.activeWebhookId === id ? null : state.activeWebhookId,
-        }));
-      },
-
-      // 활성 웹훅 설정
-      setActiveWebhook: id => {
-        set({ activeWebhookId: id });
-      },
-
-      // 활성 웹훅 조회
-      getActiveWebhook: () => {
-        const state = get();
-        return (
-          state.slackWebhooks.find(
-            webhook => webhook.id === state.activeWebhookId
-          ) || null
-        );
-      },
-
-      // 웹훅 사용 통계 증가
-      incrementWebhookUsage: id => {
-        set(state => ({
-          slackWebhooks: state.slackWebhooks.map(webhook =>
-            webhook.id === id
-              ? {
-                  ...webhook,
-                  totalSent: webhook.totalSent + 1,
-                  lastUsed: new Date(),
-                }
-              : webhook
-          ),
-        }));
-      },
-
       // 채널별 통계 증가
       incrementChannelStat: (channel, type) => {
         set(state => ({
@@ -337,8 +232,6 @@ export const useNotificationStore = create<NotificationStore>()(
       resetToDefaults: () => {
         set({
           preferences: defaultPreferences,
-          slackWebhooks: defaultSlackWebhooks,
-          activeWebhookId: 'webhook-001',
           stats: defaultStats,
           browserPermission: defaultBrowserPermission,
         });
@@ -347,79 +240,48 @@ export const useNotificationStore = create<NotificationStore>()(
       // 설정 내보내기
       exportSettings: () => {
         const state = get();
-        const exportData = {
+        return JSON.stringify({
           preferences: state.preferences,
-          slackWebhooks: state.slackWebhooks,
-          activeWebhookId: state.activeWebhookId,
-          stats: state.stats,
           browserPermission: state.browserPermission,
           exportedAt: new Date().toISOString(),
-          version: '1.1',
-        };
-        return JSON.stringify(exportData, null, 2);
+        });
       },
 
       // 설정 가져오기
       importSettings: settingsJson => {
         try {
-          const importData = JSON.parse(settingsJson);
-
-          // 버전 체크
-          if (!importData.version || importData.version < '1.0') {
-            console.warn('⚠️ 설정 파일 버전이 너무 낮습니다.');
-            return false;
+          const imported = JSON.parse(settingsJson);
+          if (imported.preferences) {
+            set(state => ({
+              preferences: {
+                ...defaultPreferences,
+                ...imported.preferences,
+              },
+              browserPermission:
+                imported.browserPermission || state.browserPermission,
+            }));
+            return true;
           }
-
-          // 설정 검증
-          if (!importData.preferences || !importData.preferences.userId) {
-            console.error('❌ 유효하지 않은 설정 파일입니다.');
-            return false;
-          }
-
-          set({
-            preferences: {
-              ...defaultPreferences,
-              ...importData.preferences,
-            },
-            slackWebhooks: importData.slackWebhooks || defaultSlackWebhooks,
-            activeWebhookId: importData.activeWebhookId || null,
-            stats: importData.stats || defaultStats,
-            browserPermission:
-              importData.browserPermission || defaultBrowserPermission,
-          });
-
-          console.log('✅ 알림 설정을 성공적으로 가져왔습니다.');
-          return true;
-        } catch (error) {
-          console.error('❌ 설정 가져오기 실패:', error);
+          return false;
+        } catch {
           return false;
         }
       },
     }),
     {
       name: 'notification-settings',
-      version: 2, // 버전 업그레이드
-      // 민감한 정보는 저장하지 않음
       partialize: state => ({
         preferences: state.preferences,
-        slackWebhooks: state.slackWebhooks.map(webhook => ({
-          ...webhook,
-          // URL은 부분적으로만 저장 (보안)
-          url: webhook.url,
-        })),
-        activeWebhookId: state.activeWebhookId,
-        stats: state.stats,
-        browserPermission: {
-          status: state.browserPermission.status,
-          requested: state.browserPermission.requested,
-          lastRequested: state.browserPermission.lastRequested,
-        },
+        browserPermission: state.browserPermission,
       }),
     }
   )
 );
 
-// 편의 훅들
+// ────────────────────────────────────────────────────────────
+//  편의성 훅들
+// ────────────────────────────────────────────────────────────
+
 export const useNotificationPreferences = () => {
   return useNotificationStore(state => state.preferences);
 };
@@ -432,87 +294,78 @@ export const useBrowserPermission = () => {
   return useNotificationStore(state => state.browserPermission);
 };
 
-export const useSlackWebhooks = () => {
-  return useNotificationStore(state => ({
-    webhooks: state.slackWebhooks,
-    activeWebhookId: state.activeWebhookId,
-    activeWebhook: state.getActiveWebhook(),
-    addWebhook: state.addSlackWebhook,
-    updateWebhook: state.updateSlackWebhook,
-    deleteWebhook: state.deleteSlackWebhook,
-    setActiveWebhook: state.setActiveWebhook,
-    incrementUsage: state.incrementWebhookUsage,
-  }));
-};
+// ────────────────────────────────────────────────────────────
+//  유틸리티 함수들
+// ────────────────────────────────────────────────────────────
 
-// 설정 검증 유틸리티
+/**
+ * 알림 설정 유효성 검사
+ */
 export const validateNotificationSettings = (
   preferences: Partial<NotificationPreferences>
 ): boolean => {
-  // 필수 필드 체크
-  if (!preferences.userId) {
-    return false;
-  }
+  try {
+    // 기본 필드 검사
+    if (preferences.userId && typeof preferences.userId !== 'string') {
+      return false;
+    }
 
-  // 조용한 시간 검증
-  if (preferences.quietHours) {
-    const { start, end } = preferences.quietHours;
-    if (start && end) {
-      const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-      if (!timeRegex.test(start) || !timeRegex.test(end)) {
-        return false;
+    // 채널 설정 검사
+    if (preferences.channels) {
+      const validChannels = ['browser', 'toast', 'websocket', 'database'];
+      for (const channel of Object.keys(preferences.channels)) {
+        if (!validChannels.includes(channel)) {
+          return false;
+        }
       }
     }
-  }
 
-  // 쿨다운 검증
-  if (preferences.cooldown) {
-    const { duration } = preferences.cooldown;
-    if (duration !== undefined && (duration < 1 || duration > 60)) {
-      return false; // 1분~60분 범위
+    // 심각도 필터 검사
+    if (preferences.severityFilter) {
+      const validLevels = ['all', 'warning', 'critical'];
+      for (const level of Object.values(preferences.severityFilter)) {
+        if (!validLevels.includes(level)) {
+          return false;
+        }
+      }
     }
+
+    return true;
+  } catch {
+    return false;
   }
-
-  return true;
 };
 
-// 슬랙 웹훅 URL 검증
-export const validateSlackWebhookUrl = (url: string): boolean => {
-  const slackWebhookPattern =
-    /^https:\/\/hooks\.slack\.com\/services\/[A-Z0-9]+\/[A-Z0-9]+\/[A-Za-z0-9]+$/;
-  return slackWebhookPattern.test(url);
-};
-
-// 현재 조용한 시간인지 확인
+/**
+ * 현재 조용한 시간인지 확인
+ */
 export const isCurrentlyQuietHours = (
   preferences: NotificationPreferences
 ): boolean => {
   if (!preferences.quietHours.enabled) return false;
 
   const now = new Date();
-  const currentTime = now
-    .toLocaleTimeString('en-GB', { hour12: false })
-    .substring(0, 5);
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+  const currentTime = currentHour * 60 + currentMinute;
 
-  return (
-    currentTime >= preferences.quietHours.start ||
-    currentTime <= preferences.quietHours.end
-  );
+  const [startHour, startMinute] = preferences.quietHours.start
+    .split(':')
+    .map(Number);
+  const [endHour, endMinute] = preferences.quietHours.end
+    .split(':')
+    .map(Number);
+  const startTime = startHour * 60 + startMinute;
+  const endTime = endHour * 60 + endMinute;
+
+  return startTime <= currentTime && currentTime <= endTime;
 };
 
-// 채널별 활성 상태 확인
+/**
+ * 활성화된 채널 목록 반환
+ */
 export const getActiveChannels = (preferences: NotificationPreferences) => {
-  const isQuiet = isCurrentlyQuietHours(preferences);
-
-  return {
-    browser:
-      preferences.channels.browser &&
-      (!isQuiet || preferences.severityFilter.browser === 'critical'),
-    slack:
-      preferences.channels.slack &&
-      (!isQuiet || preferences.severityFilter.slack === 'critical'),
-    toast: preferences.channels.toast, // Toast는 조용한 시간 무관
-    websocket: preferences.channels.websocket,
-    database: preferences.channels.database,
-  };
+  return Object.entries(preferences.channels)
+    .filter(([, enabled]) => enabled)
+    .map(([channel]) => channel);
 };

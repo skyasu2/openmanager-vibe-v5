@@ -9,7 +9,7 @@
  * - 자동 임계값 학습
  */
 
-import { slackNotificationService } from '../SlackNotificationService';
+import { BrowserNotificationService } from '../notifications/BrowserNotificationService';
 
 interface ServerMetrics {
   id: string;
@@ -657,17 +657,12 @@ export class AnomalyDetection {
   private async sendAnomalyNotification(anomaly: AnomalyAlert): Promise<void> {
     try {
       if (anomaly.severity === 'critical' || anomaly.severity === 'high') {
-        await slackNotificationService.sendAnomalyAlert({
-          serverId: anomaly.serverId,
-          metric: anomaly.metric,
-          currentValue: anomaly.currentValue,
-          expectedValue: anomaly.expectedValue,
-          severity: anomaly.severity,
-          confidence: anomaly.confidence,
-          description: anomaly.description,
-          recommendations: anomaly.recommendations,
-          timestamp: new Date(anomaly.timestamp).toISOString(),
-        });
+        const browserService = new BrowserNotificationService();
+        await browserService.sendSystemAlert(
+          `이상 탐지: ${anomaly.metric}`,
+          `${anomaly.description} (현재값: ${anomaly.currentValue}, 예상값: ${anomaly.expectedValue})`,
+          anomaly.severity === 'critical' ? 'critical' : 'warning'
+        );
       }
     } catch (error) {
       console.error('❌ 이상 알림 발송 실패:', error);

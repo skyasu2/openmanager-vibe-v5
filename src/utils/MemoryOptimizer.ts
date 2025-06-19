@@ -1,6 +1,6 @@
 /**
  * 🧠 OpenManager Memory Optimizer v2.0
- * 
+ *
  * 메모리 사용률 97% → 75% 이하 최적화
  * - 실시간 메모리 모니터링
  * - 자동 가비지 컬렉션
@@ -9,7 +9,7 @@
  */
 
 import { cacheService } from '../services/cacheService';
-import { slackNotificationService } from '../services/SlackNotificationService';
+import { BrowserNotificationService } from '../services/notifications/BrowserNotificationService';
 
 interface MemoryStats {
   heapUsed: number;
@@ -35,9 +35,9 @@ export class MemoryOptimizer {
   private optimizationHistory: OptimizationResult[] = [];
 
   // 메모리 임계값
-  private readonly CRITICAL_THRESHOLD = 90;  // 90% 이상 시 즉시 최적화
-  private readonly WARNING_THRESHOLD = 75;   // 75% 이상 시 예방적 최적화
-  private readonly TARGET_THRESHOLD = 65;    // 목표 사용률 65%
+  private readonly CRITICAL_THRESHOLD = 90; // 90% 이상 시 즉시 최적화
+  private readonly WARNING_THRESHOLD = 75; // 75% 이상 시 예방적 최적화
+  private readonly TARGET_THRESHOLD = 65; // 목표 사용률 65%
   private readonly OPTIMIZATION_COOLDOWN = 60000; // 1분 쿨다운
 
   static getInstance(): MemoryOptimizer {
@@ -60,7 +60,7 @@ export class MemoryOptimizer {
       rss: Math.round(usage.rss / 1024 / 1024),
       external: Math.round(usage.external / 1024 / 1024),
       usagePercent: Math.round(usagePercent * 100) / 100,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -72,7 +72,10 @@ export class MemoryOptimizer {
     const beforeStats = this.getCurrentMemoryStats();
     const actions: string[] = [];
 
-    console.log('🧠 메모리 최적화 시작:', `${beforeStats.usagePercent}% 사용 중`);
+    console.log(
+      '🧠 메모리 최적화 시작:',
+      `${beforeStats.usagePercent}% 사용 중`
+    );
 
     try {
       // 1. 캐시 정리
@@ -105,7 +108,7 @@ export class MemoryOptimizer {
         after: afterStats,
         freedMB,
         optimizationActions: actions,
-        duration
+        duration,
       };
 
       this.optimizationHistory.push(result);
@@ -115,11 +118,10 @@ export class MemoryOptimizer {
         before: `${beforeStats.usagePercent}%`,
         after: `${afterStats.usagePercent}%`,
         freed: `${freedMB}MB`,
-        duration: `${duration}ms`
+        duration: `${duration}ms`,
       });
 
       return result;
-
     } catch (error) {
       console.error('❌ 메모리 최적화 실패:', error);
       throw error;
@@ -179,7 +181,6 @@ export class MemoryOptimizer {
 
       // 추가 최적화: 이벤트 리스너 정리
       await this.cleanupEventListeners();
-
     } catch (error) {
       console.warn('⚠️ 시뮬레이션 데이터 압축 중 오류:', error);
     }
@@ -220,7 +221,8 @@ export class MemoryOptimizer {
         // 타입 안전성을 위해 조건부 체크
         if (typeof eventName === 'string') {
           const listeners = process.listeners(eventName as any);
-          if (listeners.length > 10) { // 10개 이상 리스너가 있으면 정리
+          if (listeners.length > 10) {
+            // 10개 이상 리스너가 있으면 정리
             process.removeAllListeners(eventName as any);
             cleanedCount++;
           }
@@ -241,7 +243,10 @@ export class MemoryOptimizer {
     const beforeStats = this.getCurrentMemoryStats();
     const actions: string[] = [];
 
-    console.log('🚀 극한 메모리 최적화 시작:', `${beforeStats.usagePercent}% → 65% 목표`);
+    console.log(
+      '🚀 극한 메모리 최적화 시작:',
+      `${beforeStats.usagePercent}% → 65% 목표`
+    );
 
     try {
       // 1. 기본 최적화 실행
@@ -278,7 +283,7 @@ export class MemoryOptimizer {
         after: afterStats,
         freedMB,
         optimizationActions: actions,
-        duration
+        duration,
       };
 
       this.optimizationHistory.push(result);
@@ -292,11 +297,10 @@ export class MemoryOptimizer {
         after: `${afterStats.usagePercent}%`,
         target: `${this.TARGET_THRESHOLD}%`,
         freed: `${freedMB}MB`,
-        duration: `${duration}ms`
+        duration: `${duration}ms`,
       });
 
       return result;
-
     } catch (error) {
       console.error('❌ 극한 메모리 최적화 실패:', error);
       throw error;
@@ -428,31 +432,34 @@ export class MemoryOptimizer {
 
       // 임계값 확인 - 더 신중한 최적화
       if (stats.usagePercent >= this.CRITICAL_THRESHOLD) {
-        console.log(`🚨 위험: 메모리 사용률 ${stats.usagePercent}% - 즉시 최적화 실행`);
+        console.log(
+          `🚨 위험: 메모리 사용률 ${stats.usagePercent}% - 즉시 최적화 실행`
+        );
 
-        // 슬랙 알림 전송
-        await slackNotificationService.sendMemoryAlert({
-          usagePercent: stats.usagePercent,
-          heapUsed: stats.heapUsed,
-          heapTotal: stats.heapTotal,
-          severity: 'critical',
-          timestamp: new Date().toISOString()
-        });
+        // 브라우저 알림 전송
+        const browserService = new BrowserNotificationService();
+        await browserService.sendSystemAlert(
+          '메모리 위험',
+          `메모리 사용률 ${stats.usagePercent}% - 즉시 최적화 실행`,
+          'critical'
+        );
 
         await this.optimizeMemoryNow();
       } else if (stats.usagePercent >= this.WARNING_THRESHOLD) {
         // 마지막 최적화 후 충분한 시간이 지났는지 확인 (쿨다운을 2분으로 증가)
-        if (Date.now() - this.lastOptimization > 120000) { // 2분 쿨다운
-          console.log(`⚠️ 경고: 메모리 사용률 ${stats.usagePercent}% - 예방적 최적화 실행`);
+        if (Date.now() - this.lastOptimization > 120000) {
+          // 2분 쿨다운
+          console.log(
+            `⚠️ 경고: 메모리 사용률 ${stats.usagePercent}% - 예방적 최적화 실행`
+          );
 
-          // 경고 수준 슬랙 알림 전송
-          await slackNotificationService.sendMemoryAlert({
-            usagePercent: stats.usagePercent,
-            heapUsed: stats.heapUsed,
-            heapTotal: stats.heapTotal,
-            severity: 'warning',
-            timestamp: new Date().toISOString()
-          });
+          // 경고 수준 브라우저 알림 전송
+          const browserService = new BrowserNotificationService();
+          await browserService.sendSystemAlert(
+            '메모리 경고',
+            `메모리 사용률 ${stats.usagePercent}% - 예방적 최적화 실행`,
+            'warning'
+          );
 
           await this.optimizeMemoryNow();
         }
@@ -509,11 +516,13 @@ export class MemoryOptimizer {
     return {
       current,
       status,
-      lastOptimization: this.lastOptimization ? new Date(this.lastOptimization).toISOString() : null,
-      totalOptimizations: this.optimizationHistory.length
+      lastOptimization: this.lastOptimization
+        ? new Date(this.lastOptimization).toISOString()
+        : null,
+      totalOptimizations: this.optimizationHistory.length,
     };
   }
 }
 
 // 싱글톤 인스턴스 export
-export const memoryOptimizer = MemoryOptimizer.getInstance(); 
+export const memoryOptimizer = MemoryOptimizer.getInstance();

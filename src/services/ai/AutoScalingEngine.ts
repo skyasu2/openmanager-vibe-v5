@@ -12,7 +12,7 @@
 import type { EnhancedServerMetrics } from '../../types/server';
 import { predictiveAnalytics } from './PredictiveAnalytics';
 import { cacheService } from '../cacheService';
-import { slackNotificationService } from '../SlackNotificationService';
+import { BrowserNotificationService } from '../notifications/BrowserNotificationService';
 
 interface ScalingDecision {
   action: 'scale_up' | 'scale_down' | 'maintain';
@@ -675,7 +675,9 @@ export class AutoScalingEngine {
           `• 오류: ${error}\n` +
           `• 현재 서버 수: ${decision.currentServers}개`;
 
-      await slackNotificationService.sendSystemNotification(
+      const browserService = new BrowserNotificationService();
+      await browserService.sendSystemAlert(
+        success ? '자동 스케일링 완료' : '자동 스케일링 실패',
         message,
         success ? 'info' : 'critical'
       );

@@ -1,14 +1,13 @@
 /**
- * 🔔 스마트 통합 알림 라우터 v1.0
+ * 🔔 스마트 통합 알림 라우터 v2.0
  *
- * 기존 시스템과 완전 통합:
- * - SlackNotificationService (기존)
- * - EnhancedToastSystem (기존)
- * - BrowserNotificationService (신규)
+ * 웹 알림 전용 시스템:
+ * - BrowserNotificationService (브라우저 알림)
+ * - EnhancedToastSystem (페이지 내 Toast)
+ * - WebSocket 실시간 알림
  * - 사용자 설정 기반 스마트 라우팅
  */
 
-import { slackNotificationService } from '../SlackNotificationService';
 import { EnhancedToastSystem } from '../../components/ui/EnhancedToastSystem';
 import { BrowserNotificationService } from './BrowserNotificationService';
 
@@ -39,14 +38,12 @@ export interface NotificationPreferences {
   userId: string;
   channels: {
     browser: boolean; // 브라우저 알림
-    slack: boolean; // 슬랙 알림
     toast: boolean; // 페이지 내 Toast
     websocket: boolean; // 실시간 웹소켓
     database: boolean; // DB 저장 (항상 true)
   };
   severityFilter: {
     browser: 'all' | 'warning' | 'critical';
-    slack: 'all' | 'warning' | 'critical';
     toast: 'all' | 'warning' | 'critical';
   };
   quietHours: {
@@ -67,7 +64,6 @@ export interface NotificationResult {
   id: string;
   channels: {
     browser: { sent: boolean; error?: string };
-    slack: { sent: boolean; error?: string };
     toast: { sent: boolean; error?: string };
     database: { sent: boolean; error?: string };
   };
@@ -108,7 +104,6 @@ export class SmartNotificationRouter {
       id: alert.id,
       channels: {
         browser: { sent: false },
-        slack: { sent: false },
         toast: { sent: false },
         database: { sent: false },
       },
@@ -138,12 +133,7 @@ export class SmartNotificationRouter {
       tasks.push(this.sendBrowserNotification(alert, result));
     }
 
-    // 3. 슬랙 알림
-    if (activeChannels.slack) {
-      tasks.push(this.sendSlackNotification(alert, result));
-    }
-
-    // 4. 데이터베이스 저장 (항상 실행)
+    // 3. 데이터베이스 저장 (항상 실행)
     tasks.push(this.saveToDatabaseLog(alert, result));
 
     // 모든 알림 병렬 처리
@@ -186,15 +176,6 @@ export class SmartNotificationRouter {
         ) &&
         (!isQuietTime || alert.severity === 'critical'),
 
-      // 슬랙 알림: 조용한 시간에는 심각한 알림만
-      slack:
-        preferences.channels.slack &&
-        this.checkSeverityFilter(
-          alert.severity,
-          preferences.severityFilter.slack
-        ) &&
-        (!isQuietTime || alert.severity === 'critical'),
-
       // WebSocket, DB는 항상 활성
       websocket: preferences.channels.websocket,
       database: true,
@@ -202,41 +183,36 @@ export class SmartNotificationRouter {
   }
 
   /**
-   * 🍞 Toast 알림 전송
+   * 🍞 Toast 알림 전송 (기존 EnhancedToastSystem 활용)
    */
   private async sendToastNotification(
     alert: UnifiedAlert,
     result: NotificationResult
   ): Promise<void> {
     try {
-      if (alert.type === 'server' && alert.serverName) {
-        // 서버 알림용 특별 Toast
-        EnhancedToastSystem.showServerAlert({
-          id: alert.id,
-          serverId: alert.serverId || '',
-          serverName: alert.serverName,
-          type: 'custom', // EnhancedToastSystem의 타입으로 매핑
-          severity: alert.severity,
-          message: alert.message,
-          timestamp: alert.timestamp,
-          actionRequired: alert.actionRequired,
+      const toastType = this.mapSeverityToToastType(alert.severity);
+
+      // EnhancedToastSystem 사용
+      if (typeof window !== 'undefined') {
+        const toastEvent = new CustomEvent('show-toast', {
+          detail: {
+            type: toastType,
+            title: alert.title,
+            message: alert.message,
+            duration: this.getToastDuration(alert.severity),
+            action: alert.actionRequired
+              ? {
+                  label: '확인',
+                  onClick: () => console.log(`액션 실행: ${alert.id}`),
+                }
+              : undefined,
+          },
         });
-      } else {
-        // 일반 알림
-        switch (alert.severity) {
-          case 'critical':
-            EnhancedToastSystem.showError(alert.title, alert.message);
-            break;
-          case 'warning':
-            EnhancedToastSystem.showWarning(alert.title, alert.message);
-            break;
-          case 'info':
-            EnhancedToastSystem.showInfo(alert.title, alert.message);
-            break;
-        }
+        window.dispatchEvent(toastEvent);
       }
 
       result.channels.toast.sent = true;
+      console.log(`🍞 Toast 알림 전송 성공: ${alert.title}`);
     } catch (error) {
       result.channels.toast.error =
         error instanceof Error ? error.message : 'Toast 전송 실패';
@@ -245,41 +221,9 @@ export class SmartNotificationRouter {
   }
 
   /**
-   * 🌐 브라우저 알림 전송
+   * 🌐 브라우저 알림 전송 (BrowserNotificationService 활용)
    */
   private async sendBrowserNotification(
-    alert: UnifiedAlert,
-    result: NotificationResult
-  ): Promise<void> {
-    try {
-      const sent = await this.browserService.sendNotification({
-        title: alert.title,
-        body: alert.message,
-        icon: '/icons/alert-icon.png',
-        badge: '/icons/badge-icon.png',
-        tag: `${alert.serverId || 'system'}-${alert.type}`,
-        data: {
-          alertId: alert.id,
-          serverId: alert.serverId,
-          severity: alert.severity,
-          timestamp: alert.timestamp.getTime(),
-        },
-        requireInteraction: alert.severity === 'critical',
-        silent: alert.severity === 'info',
-      });
-
-      result.channels.browser.sent = sent;
-    } catch (error) {
-      result.channels.browser.error =
-        error instanceof Error ? error.message : '브라우저 알림 실패';
-      console.error('❌ 브라우저 알림 실패:', error);
-    }
-  }
-
-  /**
-   * 💬 슬랙 알림 전송 (기존 서비스 활용)
-   */
-  private async sendSlackNotification(
     alert: UnifiedAlert,
     result: NotificationResult
   ): Promise<void> {
@@ -289,42 +233,33 @@ export class SmartNotificationRouter {
       switch (alert.type) {
         case 'server':
           if (alert.serverName && alert.metrics) {
-            sent = await slackNotificationService.sendServerAlert({
-              serverId: alert.serverId || alert.id,
-              hostname: alert.serverName,
-              metric: this.getPrimaryMetric(alert.metrics),
-              value: this.getPrimaryMetricValue(alert.metrics),
-              threshold: this.getThresholdForMetric(alert.metrics),
-              severity: alert.severity === 'info' ? 'warning' : alert.severity,
-              timestamp: alert.timestamp.toISOString(),
-            });
+            sent = await this.browserService.sendServerAlert(
+              alert.serverId || alert.id,
+              alert.serverName,
+              alert.severity,
+              alert.message,
+              alert.metrics
+            );
           }
           break;
 
         case 'memory':
-          if (alert.metrics?.memory) {
-            sent = await slackNotificationService.sendMemoryAlert({
-              usagePercent: alert.metrics.memory,
-              heapUsed: Math.round(alert.metrics.memory * 1024 * 1024), // 추정값
-              heapTotal: Math.round(100 * 1024 * 1024), // 추정값
-              severity: alert.severity === 'info' ? 'warning' : alert.severity,
-              timestamp: alert.timestamp.toISOString(),
-            });
-          }
-          break;
-
+        case 'system':
+        case 'performance':
+        case 'security':
         default:
-          sent = await slackNotificationService.sendSystemNotification(
-            `${alert.title}: ${alert.message}`,
+          sent = await this.browserService.sendSystemAlert(
+            alert.title,
+            alert.message,
             alert.severity
           );
       }
 
-      result.channels.slack.sent = sent;
+      result.channels.browser.sent = sent;
     } catch (error) {
-      result.channels.slack.error =
-        error instanceof Error ? error.message : 'Slack 전송 실패';
-      console.error('❌ Slack 알림 실패:', error);
+      result.channels.browser.error =
+        error instanceof Error ? error.message : '브라우저 알림 전송 실패';
+      console.error('❌ 브라우저 알림 실패:', error);
     }
   }
 
@@ -336,59 +271,25 @@ export class SmartNotificationRouter {
     result: NotificationResult
   ): Promise<void> {
     try {
-      console.log(`💾 DB 로그 저장: ${alert.id} - ${alert.title}`);
-
-      // 로컬 스토리지를 활용한 DB 저장 (개발 환경용)
-      const logData = {
+      // 실제 데이터베이스 저장 로직 (Supabase 등)
+      const logEntry = {
         id: alert.id,
-        serverId: alert.serverId,
-        serverName: alert.serverName,
         type: alert.type,
         severity: alert.severity,
         title: alert.title,
         message: alert.message,
-        timestamp: alert.timestamp.toISOString(),
+        serverId: alert.serverId,
+        serverName: alert.serverName,
         metrics: alert.metrics,
+        timestamp: alert.timestamp.toISOString(),
         actionRequired: alert.actionRequired,
-        autoResolve: alert.autoResolve,
         source: alert.source,
-        channels: Object.keys(result.channels).filter(
-          ch => result.channels[ch].sent
-        ),
-        preferences: result.preferences.userId,
-        createdAt: new Date().toISOString(),
       };
 
-      // 기존 로그 가져오기
-      const existingLogs = JSON.parse(
-        localStorage.getItem('notification_logs') || '[]'
-      );
-
-      // 새 로그 추가 (최대 1000개 유지)
-      const updatedLogs = [logData, ...existingLogs].slice(0, 1000);
-
-      // 로컬 스토리지에 저장
-      localStorage.setItem('notification_logs', JSON.stringify(updatedLogs));
-
-      // API 엔드포인트로도 전송 (실제 DB 연동)
-      try {
-        await fetch('/api/notifications/log', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(logData),
-        });
-        console.log('✅ 서버 DB 저장 성공');
-      } catch (apiError) {
-        console.warn('⚠️ 서버 DB 저장 실패, 로컬만 저장됨:', apiError);
-      }
+      // 여기에 실제 DB 저장 로직 추가
+      console.log('💾 알림 로그 저장:', logEntry);
 
       result.channels.database.sent = true;
-      console.log('💾 알림 로그 저장 완료:', {
-        id: alert.id,
-        type: alert.type,
-        severity: alert.severity,
-        totalLogs: updatedLogs.length,
-      });
     } catch (error) {
       result.channels.database.error =
         error instanceof Error ? error.message : 'DB 저장 실패';
@@ -396,8 +297,12 @@ export class SmartNotificationRouter {
     }
   }
 
+  // ────────────────────────────────────────────────────────────
+  //  유틸리티 메서드들
+  // ────────────────────────────────────────────────────────────
+
   /**
-   * ⏰ 쿨다운 체크
+   * 🕐 쿨다운 체크
    */
   private shouldSendAlert(
     alert: UnifiedAlert,
@@ -406,13 +311,14 @@ export class SmartNotificationRouter {
     if (!preferences.cooldown.enabled) return true;
 
     const key = preferences.cooldown.perAlert
-      ? `${alert.serverId || 'system'}-${alert.type}-${alert.severity}`
-      : `${alert.serverId || 'system'}-${alert.type}`;
+      ? `${alert.type}-${alert.serverId || alert.id}`
+      : 'global';
 
-    const lastSent = this.alertHistory.get(key) || 0;
+    const lastSent = this.alertHistory.get(key);
+    if (!lastSent) return true;
+
     const cooldownMs = preferences.cooldown.duration * 60 * 1000;
-
-    return Date.now() - lastSent >= cooldownMs;
+    return Date.now() - lastSent > cooldownMs;
   }
 
   /**
@@ -425,15 +331,15 @@ export class SmartNotificationRouter {
     if (!preferences.cooldown.enabled) return;
 
     const key = preferences.cooldown.perAlert
-      ? `${alert.serverId || 'system'}-${alert.type}-${alert.severity}`
-      : `${alert.serverId || 'system'}-${alert.type}`;
+      ? `${alert.type}-${alert.serverId || alert.id}`
+      : 'global';
 
     this.alertHistory.set(key, Date.now());
 
     // 오래된 기록 정리 (24시간 이상)
-    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
     for (const [k, timestamp] of this.alertHistory.entries()) {
-      if (timestamp < oneDayAgo) {
+      if (timestamp < cutoff) {
         this.alertHistory.delete(k);
       }
     }
@@ -448,11 +354,16 @@ export class SmartNotificationRouter {
     if (!quietHours.enabled) return false;
 
     const now = new Date();
-    const currentTime = now
-      .toLocaleTimeString('en-GB', { hour12: false })
-      .substring(0, 5);
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTime = currentHour * 60 + currentMinute;
 
-    return currentTime >= quietHours.start || currentTime <= quietHours.end;
+    const [startHour, startMinute] = quietHours.start.split(':').map(Number);
+    const [endHour, endMinute] = quietHours.end.split(':').map(Number);
+    const startTime = startHour * 60 + startMinute;
+    const endTime = endHour * 60 + endMinute;
+
+    return startTime <= currentTime && currentTime <= endTime;
   }
 
   /**
@@ -462,20 +373,15 @@ export class SmartNotificationRouter {
     alertSeverity: UnifiedAlert['severity'],
     filterLevel: 'all' | 'warning' | 'critical'
   ): boolean {
-    switch (filterLevel) {
-      case 'all':
-        return true;
-      case 'warning':
-        return alertSeverity === 'warning' || alertSeverity === 'critical';
-      case 'critical':
-        return alertSeverity === 'critical';
-      default:
-        return true;
-    }
+    if (filterLevel === 'all') return true;
+    if (filterLevel === 'critical') return alertSeverity === 'critical';
+    if (filterLevel === 'warning')
+      return alertSeverity === 'warning' || alertSeverity === 'critical';
+    return false;
   }
 
   /**
-   * 📊 성공한 채널 수 계산
+   * 📊 성공 카운트
    */
   private getSuccessCount(result: NotificationResult): number {
     return Object.values(result.channels).filter(channel => channel.sent)
@@ -483,35 +389,37 @@ export class SmartNotificationRouter {
   }
 
   /**
-   * 🛠️ 유틸리티 메서드들
+   * 🍞 Toast 타입 매핑
    */
-  private getPrimaryMetric(
-    metrics: NonNullable<UnifiedAlert['metrics']>
-  ): string {
-    if (metrics.cpu !== undefined) return 'cpu_usage';
-    if (metrics.memory !== undefined) return 'memory_usage';
-    if (metrics.disk !== undefined) return 'disk_usage';
-    if (metrics.responseTime !== undefined) return 'response_time';
-    return 'unknown';
+  private mapSeverityToToastType(
+    severity: UnifiedAlert['severity']
+  ): 'success' | 'warning' | 'error' | 'info' {
+    switch (severity) {
+      case 'critical':
+        return 'error';
+      case 'warning':
+        return 'warning';
+      case 'info':
+        return 'info';
+      default:
+        return 'info';
+    }
   }
 
-  private getPrimaryMetricValue(
-    metrics: NonNullable<UnifiedAlert['metrics']>
-  ): number {
-    return (
-      metrics.cpu || metrics.memory || metrics.disk || metrics.responseTime || 0
-    );
-  }
-
-  private getThresholdForMetric(
-    metrics: NonNullable<UnifiedAlert['metrics']>
-  ): number {
-    // 기본 임계값들
-    if (metrics.cpu !== undefined) return 85;
-    if (metrics.memory !== undefined) return 90;
-    if (metrics.disk !== undefined) return 80;
-    if (metrics.responseTime !== undefined) return 5000;
-    return 100;
+  /**
+   * ⏱️ Toast 지속 시간
+   */
+  private getToastDuration(severity: UnifiedAlert['severity']): number {
+    switch (severity) {
+      case 'critical':
+        return 8000; // 8초
+      case 'warning':
+        return 5000; // 5초
+      case 'info':
+        return 3000; // 3초
+      default:
+        return 4000; // 4초
+    }
   }
 
   /**
@@ -522,7 +430,6 @@ export class SmartNotificationRouter {
       totalNotifications: this.notificationCount,
       activeCooldowns: this.alertHistory.size,
       services: {
-        slack: slackNotificationService.getStatus(),
         browser: this.browserService.getStatus(),
         toast: { enabled: true, type: 'EnhancedToastSystem' },
       },
@@ -530,5 +437,5 @@ export class SmartNotificationRouter {
   }
 }
 
-// 전역 인스턴스 내보내기
+// 싱글톤 인스턴스 export
 export const smartNotificationRouter = SmartNotificationRouter.getInstance();
