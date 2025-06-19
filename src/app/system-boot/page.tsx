@@ -48,30 +48,13 @@ const SmoothLoadingSpinner = () => {
 // 진행률 바 컴포넌트
 const ProgressBar = ({ progress }: { progress: number }) => {
   return (
-    <div className='w-96 mx-auto mb-8 relative'>
-      {/* 진행률 라벨 */}
-      <div className='flex justify-between items-center mb-2'>
-        <span className='text-white/60 text-sm font-medium'>
-          시스템 로딩 진행률
-        </span>
-        <span className='text-white/80 text-sm font-semibold'>
-          {Math.round(progress)}%
-        </span>
-      </div>
-
-      {/* 진행률 바 컨테이너 */}
-      <div className='bg-white/10 rounded-full h-4 border border-white/20 shadow-lg relative overflow-hidden'>
-        {/* 배경 그라데이션 효과 */}
-        <div className='absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-full' />
-
-        {/* 메인 진행률 바 */}
+    <div className='w-96 mx-auto mb-6 relative'>
+      <div className='bg-white/10 rounded-full h-3 border border-white/20 shadow-lg'>
         <motion.div
           className='h-full rounded-full relative overflow-hidden'
           style={{
-            background:
-              'linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #f59e0b)',
-            boxShadow:
-              '0 0 20px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+            background: 'linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899)',
+            boxShadow: '0 0 15px rgba(59, 130, 246, 0.4)',
           }}
           initial={{ width: 0 }}
           animate={{ width: `${progress}%` }}
@@ -79,29 +62,11 @@ const ProgressBar = ({ progress }: { progress: number }) => {
         >
           {/* 진행률 바 내부 반짝임 효과 */}
           <motion.div
-            className='absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent'
+            className='absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent'
             animate={{ x: ['-100%', '100%'] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
           />
-
-          {/* 진행률 바 상단 하이라이트 */}
-          <div className='absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-white/30 via-white/50 to-white/30 rounded-full' />
         </motion.div>
-
-        {/* 진행률 포인터 */}
-        <motion.div
-          className='absolute top-1/2 transform -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg border-2 border-blue-400'
-          style={{ left: `${progress}%` }}
-          animate={{
-            scale: [1, 1.2, 1],
-            boxShadow: [
-              '0 0 5px rgba(59, 130, 246, 0.5)',
-              '0 0 15px rgba(59, 130, 246, 0.8)',
-              '0 0 5px rgba(59, 130, 246, 0.5)',
-            ],
-          }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-        />
       </div>
     </div>
   );
@@ -271,152 +236,59 @@ export default function SystemBootPage() {
           {/* 부드러운 진행률 바 */}
           <ProgressBar progress={progress} />
 
+          {/* 진행률 텍스트 */}
+          <motion.p
+            className='text-white/60 text-lg font-medium mb-8'
+            animate={{ opacity: [0.6, 1, 0.6] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            {Math.round(progress)}% 완료
+          </motion.p>
+
           {/* 시스템 상태 아이콘들 */}
           <div className='flex justify-center gap-6 mb-8'>
             {[ServerIcon, Database, Brain, Cpu, Zap, CheckCircle].map(
-              (Icon, index) => {
-                const isActive = index < Math.floor((progress / 100) * 6);
-                const isCurrentStep =
-                  index === Math.floor((progress / 100) * 6) - 1;
-
-                return (
-                  <motion.div
-                    key={index}
-                    initial={{
-                      x: -50,
-                      opacity: 0,
-                      scale: 0.8,
-                    }}
-                    animate={{
-                      x: 0,
-                      opacity: isActive ? 1 : 0.3,
-                      scale: isActive ? 1 : 0.8,
-                    }}
-                    transition={{
-                      duration: 0.6,
-                      delay: index * 0.1,
-                      ease: 'easeOut',
-                    }}
-                    className='relative'
+              (Icon, index) => (
+                <motion.div
+                  key={index}
+                  animate={{
+                    y: [0, -8, 0],
+                    scale: [1, 1.05, 1],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    delay: index * 0.2,
+                    ease: 'easeInOut',
+                  }}
+                  className='relative'
+                >
+                  <div
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                      index < Math.floor((progress / 100) * 6)
+                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
+                        : 'bg-white/10 text-white/40'
+                    }`}
                   >
-                    {/* 메인 아이콘 컨테이너 */}
+                    <Icon className='w-5 h-5' />
+                  </div>
+                  {/* 완료된 아이콘에 글로우 효과 */}
+                  {index < Math.floor((progress / 100) * 6) && (
                     <motion.div
-                      className={`w-12 h-12 rounded-xl flex items-center justify-center relative overflow-hidden transition-all duration-300 ${
-                        isActive
-                          ? 'bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 text-white shadow-lg'
-                          : 'bg-white/10 text-white/40 border border-white/20'
-                      }`}
-                      animate={
-                        isCurrentStep
-                          ? {
-                              scale: [1, 1.1, 1],
-                              rotate: [0, 5, -5, 0],
-                            }
-                          : {}
-                      }
+                      className='absolute inset-0 bg-blue-500/20 rounded-lg blur-lg'
+                      animate={{
+                        scale: [1, 1.3, 1],
+                        opacity: [0.3, 0.6, 0.3],
+                      }}
                       transition={{
                         duration: 2,
-                        repeat: isCurrentStep ? Infinity : 0,
-                        ease: 'easeInOut',
+                        repeat: Infinity,
+                        delay: index * 0.2,
                       }}
-                    >
-                      {/* 아이콘 */}
-                      <motion.div
-                        animate={
-                          isActive
-                            ? {
-                                rotate: [0, 360],
-                              }
-                            : {}
-                        }
-                        transition={{
-                          duration: 3,
-                          repeat: isActive ? Infinity : 0,
-                          ease: 'linear',
-                        }}
-                      >
-                        <Icon className='w-6 h-6' />
-                      </motion.div>
-
-                      {/* 활성화 시 반짝임 효과 */}
-                      {isActive && (
-                        <motion.div
-                          className='absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent'
-                          animate={{ x: ['-100%', '100%'] }}
-                          transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: 'linear',
-                          }}
-                        />
-                      )}
-                    </motion.div>
-
-                    {/* 글로우 효과 */}
-                    {isActive && (
-                      <motion.div
-                        className='absolute inset-0 bg-gradient-to-br from-blue-500/20 via-purple-600/20 to-pink-500/20 rounded-xl blur-lg'
-                        animate={{
-                          scale: [1, 1.3, 1],
-                          opacity: [0.3, 0.6, 0.3],
-                        }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          ease: 'easeInOut',
-                        }}
-                      />
-                    )}
-
-                    {/* 현재 단계 펄스 효과 */}
-                    {isCurrentStep && (
-                      <motion.div
-                        className='absolute inset-0 border-2 border-white/50 rounded-xl'
-                        animate={{
-                          scale: [1, 1.2, 1],
-                          opacity: [0.5, 0.8, 0.5],
-                        }}
-                        transition={{
-                          duration: 1.5,
-                          repeat: Infinity,
-                          ease: 'easeInOut',
-                        }}
-                      />
-                    )}
-
-                    {/* 완료 체크 마크 */}
-                    {isActive &&
-                      index < Math.floor((progress / 100) * 6) - 1 && (
-                        <motion.div
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ duration: 0.3, delay: 0.2 }}
-                          className='absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center'
-                        >
-                          <CheckCircle className='w-3 h-3 text-white' />
-                        </motion.div>
-                      )}
-
-                    {/* 연결선 */}
-                    {index < 5 && (
-                      <motion.div
-                        className='absolute top-1/2 -right-3 w-6 h-0.5 bg-gradient-to-r from-white/30 to-transparent'
-                        initial={{ scaleX: 0 }}
-                        animate={{
-                          scaleX: isActive ? 1 : 0,
-                          opacity: isActive ? 1 : 0.3,
-                        }}
-                        transition={{
-                          duration: 0.5,
-                          delay: index * 0.1 + 0.3,
-                          ease: 'easeOut',
-                        }}
-                        style={{ transformOrigin: 'left' }}
-                      />
-                    )}
-                  </motion.div>
-                );
-              }
+                    />
+                  )}
+                </motion.div>
+              )
             )}
           </div>
 
