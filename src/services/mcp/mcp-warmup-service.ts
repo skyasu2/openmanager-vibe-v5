@@ -29,11 +29,22 @@ export class MCPWarmupService {
   private readonly MAX_WAIT_TIME = 180000; // 3분
   private readonly RETRY_INTERVAL = 10000; // 10초
   private readonly INITIAL_TIMEOUT = 30000; // 첫 시도는 30초
+  private readonly CACHE_DURATION = 24 * 60 * 60 * 1000; // 24시간
 
   private isWakeupInProgress = false;
   private progressCallbacks: ((progress: MCPWakeupProgress) => void)[] = [];
+  private lastSuccessfulWakeup: Date | null = null;
+  private lastWakeupAttempt: Date | null = null;
 
-  private constructor() {}
+  private constructor() {
+    // 로컬 스토리지에서 마지막 성공 시간 복원
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('mcp-last-success');
+      if (cached) {
+        this.lastSuccessfulWakeup = new Date(cached);
+      }
+    }
+  }
 
   static getInstance(): MCPWarmupService {
     if (!MCPWarmupService.instance) {
@@ -43,13 +54,68 @@ export class MCPWarmupService {
   }
 
   /**
-   * 🚀 MCP 서버 Wake-up 실행
+   * 🧠 스마트 캐싱: Wake-up이 필요한지 판단
+   */
+  private shouldSkipWakeup(): boolean {
+    if (!this.lastSuccessfulWakeup) return false;
+
+    const timeSinceLastSuccess =
+      Date.now() - this.lastSuccessfulWakeup.getTime();
+    const shouldSkip = timeSinceLastSuccess < this.CACHE_DURATION;
+
+    if (shouldSkip) {
+      console.log(
+        `🧠 스마트 캐싱: MCP 서버가 ${Math.round(timeSinceLastSuccess / (1000 * 60 * 60))}시간 전에 성공했으므로 Wake-up 스킵`
+      );
+    }
+
+    return shouldSkip;
+  }
+
+  /**
+   * 💾 성공 시간 캐싱
+   */
+  private cacheSuccessTime(): void {
+    this.lastSuccessfulWakeup = new Date();
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(
+        'mcp-last-success',
+        this.lastSuccessfulWakeup.toISOString()
+      );
+    }
+
+    console.log('💾 MCP Wake-up 성공 시간 캐싱:', this.lastSuccessfulWakeup);
+  }
+
+  /**
+   * 🚀 MCP 서버 Wake-up 실행 (스마트 캐싱 포함)
    */
   async wakeupMCPServer(
     onProgress?: (progress: MCPWakeupProgress) => void
   ): Promise<MCPWakeupResult> {
     if (this.isWakeupInProgress) {
       throw new Error('MCP Wake-up이 이미 진행 중입니다');
+    }
+
+    // 🧠 스마트 캐싱 체크
+    if (this.shouldSkipWakeup()) {
+      if (onProgress) {
+        onProgress({
+          stage: 'ready',
+          message:
+            '🧠 스마트 캐싱: MCP 서버가 최근에 성공했으므로 Wake-up 스킵',
+          progress: 100,
+          elapsedTime: 0,
+        });
+      }
+
+      return {
+        success: true,
+        totalTime: 0,
+        attempts: 0,
+        finalStatus: 'cached_success',
+      };
     }
 
     this.isWakeupInProgress = true;
@@ -75,6 +141,9 @@ export class MCPWarmupService {
       const quickCheck = await this.attemptConnection(this.INITIAL_TIMEOUT);
 
       if (quickCheck.success) {
+        // 💾 성공 시간 캐싱 (이미 활성 상태도 성공으로 간주)
+        this.cacheSuccessTime();
+
         this.emitProgress({
           stage: 'ready',
           message: '✅ MCP 서버가 이미 활성 상태입니다',
@@ -116,6 +185,9 @@ export class MCPWarmupService {
         const result = await this.attemptConnection(this.RETRY_INTERVAL);
 
         if (result.success) {
+          // 💾 성공 시간 캐싱
+          this.cacheSuccessTime();
+
           this.emitProgress({
             stage: 'ready',
             message: '✅ MCP 서버가 성공적으로 활성화되었습니다!',

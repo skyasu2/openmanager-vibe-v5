@@ -1,6 +1,6 @@
 /**
  * 🖥️ System Health Monitoring with React Query v5
- * 
+ *
  * 시스템 전반 상태 모니터링 및 관리
  * - 실시간 시스템 헬스 체크
  * - 자동 장애 감지 및 알림
@@ -12,7 +12,7 @@ import {
   useQuery,
   useMutation,
   useQueryClient,
-  keepPreviousData
+  keepPreviousData,
 } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 
@@ -115,7 +115,9 @@ const fetchSystemHealth = async (): Promise<SystemHealth> => {
   return response.json();
 };
 
-const fetchSystemMetrics = async (timeRange: string = '1h'): Promise<SystemMetrics[]> => {
+const fetchSystemMetrics = async (
+  timeRange: string = '1h'
+): Promise<SystemMetrics[]> => {
   const response = await fetch(`/api/system/metrics?range=${timeRange}`);
   if (!response.ok) {
     throw new Error(`시스템 메트릭 조회 실패: ${response.status}`);
@@ -138,7 +140,8 @@ const fetchSystemAlerts = async (filters?: {
 }): Promise<SystemAlert[]> => {
   const params = new URLSearchParams();
   if (filters?.level) params.append('level', filters.level);
-  if (filters?.resolved !== undefined) params.append('resolved', filters.resolved.toString());
+  if (filters?.resolved !== undefined)
+    params.append('resolved', filters.resolved.toString());
   if (filters?.limit) params.append('limit', filters.limit.toString());
 
   const response = await fetch(`/api/alerts?${params}`);
@@ -148,10 +151,14 @@ const fetchSystemAlerts = async (filters?: {
   return response.json();
 };
 
-const startSystem = async (): Promise<{ success: boolean; message: string }> => {
-  const response = await fetch('/api/system/start', {
+const startSystem = async (): Promise<{
+  success: boolean;
+  message: string;
+}> => {
+  const response = await fetch('/api/system/unified', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'start', options: { mode: 'fast' } }),
   });
   if (!response.ok) {
     throw new Error(`시스템 시작 실패: ${response.status}`);
@@ -170,7 +177,10 @@ const stopSystem = async (): Promise<{ success: boolean; message: string }> => {
   return response.json();
 };
 
-const restartSystem = async (): Promise<{ success: boolean; message: string }> => {
+const restartSystem = async (): Promise<{
+  success: boolean;
+  message: string;
+}> => {
   const response = await fetch('/api/system/restart', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -197,10 +207,12 @@ export const systemKeys = {
   all: ['system'] as const,
   health: () => [...systemKeys.all, 'health'] as const,
   metrics: () => [...systemKeys.all, 'metrics'] as const,
-  metricsWithRange: (range: string) => [...systemKeys.metrics(), { range }] as const,
+  metricsWithRange: (range: string) =>
+    [...systemKeys.metrics(), { range }] as const,
   status: () => [...systemKeys.all, 'status'] as const,
   alerts: () => [...systemKeys.all, 'alerts'] as const,
-  alertsWithFilters: (filters: string) => [...systemKeys.alerts(), { filters }] as const,
+  alertsWithFilters: (filters: string) =>
+    [...systemKeys.alerts(), { filters }] as const,
 };
 
 // 🏥 시스템 헬스 체크
@@ -230,13 +242,13 @@ export const useSystemHealth = (options?: {
     gcTime: 10 * 60 * 1000, // 캐시 보관 시간 연장
     enabled: options?.enabled ?? true,
     retry: 1, // 재시도 횟수 최소화
-    retryDelay: (attemptIndex) => Math.min(2000 * 2 ** attemptIndex, 15000),
+    retryDelay: attemptIndex => Math.min(2000 * 2 ** attemptIndex, 15000),
     refetchOnWindowFocus: false, // 불필요한 요청 방지
     refetchOnMount: 'always',
     refetchOnReconnect: true,
     placeholderData: keepPreviousData,
     throwOnError: false,
-    select: (data) => ({
+    select: data => ({
       ...data,
       overallHealth: calculateOverallHealth(data),
       criticalIssues: getCriticalIssues(data),
@@ -250,7 +262,10 @@ export const useSystemHealth = (options?: {
 };
 
 // 📊 시스템 메트릭
-export const useSystemMetrics = (timeRange: string = '1h', enabled: boolean = true) => {
+export const useSystemMetrics = (
+  timeRange: string = '1h',
+  enabled: boolean = true
+) => {
   return useQuery({
     queryKey: systemKeys.metricsWithRange(timeRange),
     queryFn: () => fetchSystemMetrics(timeRange),
@@ -259,25 +274,28 @@ export const useSystemMetrics = (timeRange: string = '1h', enabled: boolean = tr
     refetchInterval: 60000, // 1분 간격
     retry: 2,
     placeholderData: keepPreviousData,
-    select: (data) => {
+    select: data => {
       const latest = data[data.length - 1];
       const previous = data[data.length - 2];
 
       return {
         metrics: data,
         latest,
-        trends: previous ? {
-          cpu: latest.cpu.usage - previous.cpu.usage,
-          memory: latest.memory.usage - previous.memory.usage,
-          disk: latest.disk.usage - previous.disk.usage,
-          network: {
-            incoming: latest.network.incoming - previous.network.incoming,
-            outgoing: latest.network.outgoing - previous.network.outgoing,
-          },
-        } : null,
+        trends: previous
+          ? {
+              cpu: latest.cpu.usage - previous.cpu.usage,
+              memory: latest.memory.usage - previous.memory.usage,
+              disk: latest.disk.usage - previous.disk.usage,
+              network: {
+                incoming: latest.network.incoming - previous.network.incoming,
+                outgoing: latest.network.outgoing - previous.network.outgoing,
+              },
+            }
+          : null,
         averages: {
           cpu: data.reduce((acc, m) => acc + m.cpu.usage, 0) / data.length,
-          memory: data.reduce((acc, m) => acc + m.memory.usage, 0) / data.length,
+          memory:
+            data.reduce((acc, m) => acc + m.memory.usage, 0) / data.length,
           disk: data.reduce((acc, m) => acc + m.disk.usage, 0) / data.length,
         },
       };
@@ -301,13 +319,15 @@ export const useSystemStatus = (options?: {
     enabled: options?.enabled ?? true,
     retry: 2,
     placeholderData: keepPreviousData,
-    select: (data) => ({
+    select: data => ({
       ...data,
       servicesCount: {
         total: Object.keys(data.services).length,
         online: Object.values(data.services).filter(s => s === 'online').length,
-        offline: Object.values(data.services).filter(s => s === 'offline').length,
-        degraded: Object.values(data.services).filter(s => s === 'degraded').length,
+        offline: Object.values(data.services).filter(s => s === 'offline')
+          .length,
+        degraded: Object.values(data.services).filter(s => s === 'degraded')
+          .length,
       },
       performanceGrade: getPerformanceGrade(data.performance),
     }),
@@ -330,10 +350,12 @@ export const useSystemAlerts = (filters?: {
     staleTime: 15000, // 15초
     retry: 2,
     placeholderData: keepPreviousData,
-    select: (data) => {
+    select: data => {
       const now = new Date();
-      const recentAlerts = data.filter(alert =>
-        (now.getTime() - new Date(alert.timestamp).getTime()) < 24 * 60 * 60 * 1000 // 24시간 이내
+      const recentAlerts = data.filter(
+        alert =>
+          now.getTime() - new Date(alert.timestamp).getTime() <
+          24 * 60 * 60 * 1000 // 24시간 이내
       );
 
       return {
@@ -369,14 +391,14 @@ export const useSystemStart = () => {
       toast.loading('시스템을 시작하는 중...', { id: 'system-start' });
     },
 
-    onSuccess: (result) => {
+    onSuccess: result => {
       toast.success(result.message, { id: 'system-start' });
 
       // 관련 쿼리 무효화
       queryClient.invalidateQueries({ queryKey: systemKeys.all });
     },
 
-    onError: (error) => {
+    onError: error => {
       toast.error(`시스템 시작 실패: ${error.message}`, { id: 'system-start' });
     },
   });
@@ -393,14 +415,14 @@ export const useSystemStop = () => {
       toast.loading('시스템을 중지하는 중...', { id: 'system-stop' });
     },
 
-    onSuccess: (result) => {
+    onSuccess: result => {
       toast.success(result.message, { id: 'system-stop' });
 
       // 관련 쿼리 무효화
       queryClient.invalidateQueries({ queryKey: systemKeys.all });
     },
 
-    onError: (error) => {
+    onError: error => {
       toast.error(`시스템 중지 실패: ${error.message}`, { id: 'system-stop' });
     },
   });
@@ -417,15 +439,17 @@ export const useSystemRestart = () => {
       toast.loading('시스템을 재시작하는 중...', { id: 'system-restart' });
     },
 
-    onSuccess: (result) => {
+    onSuccess: result => {
       toast.success(result.message, { id: 'system-restart' });
 
       // 모든 쿼리 무효화 (재시작 후 모든 데이터 새로고침)
       queryClient.invalidateQueries();
     },
 
-    onError: (error) => {
-      toast.error(`시스템 재시작 실패: ${error.message}`, { id: 'system-restart' });
+    onError: error => {
+      toast.error(`시스템 재시작 실패: ${error.message}`, {
+        id: 'system-restart',
+      });
     },
   });
 };
@@ -437,7 +461,7 @@ export const useResolveAlert = () => {
   return useMutation({
     mutationFn: resolveAlert,
 
-    onSuccess: (resolvedAlert) => {
+    onSuccess: resolvedAlert => {
       toast.success('알림이 해결 처리되었습니다.');
 
       // 알림 목록 업데이트
@@ -458,7 +482,7 @@ export const useResolveAlert = () => {
       queryClient.invalidateQueries({ queryKey: systemKeys.alerts() });
     },
 
-    onError: (error) => {
+    onError: error => {
       toast.error(`알림 해결 처리 실패: ${error.message}`);
     },
   });
@@ -476,8 +500,13 @@ export const useSystemDashboard = () => {
     status,
     alerts,
     metrics,
-    isLoading: health.isLoading || status.isLoading || alerts.isLoading || metrics.isLoading,
-    hasError: health.isError || status.isError || alerts.isError || metrics.isError,
+    isLoading:
+      health.isLoading ||
+      status.isLoading ||
+      alerts.isLoading ||
+      metrics.isLoading,
+    hasError:
+      health.isError || status.isError || alerts.isError || metrics.isError,
     summary: {
       overallStatus: health.data?.overallHealth || 'unknown',
       criticalIssues: alerts.data?.stats.byLevel.critical || 0,
@@ -489,10 +518,16 @@ export const useSystemDashboard = () => {
 };
 
 // 🔧 유틸리티 함수들
-function calculateOverallHealth(health: SystemHealth): 'healthy' | 'warning' | 'critical' {
+function calculateOverallHealth(
+  health: SystemHealth
+): 'healthy' | 'warning' | 'critical' {
   const checks = Object.values(health.checks);
-  const criticalCount = checks.filter(check => check.status === 'critical').length;
-  const warningCount = checks.filter(check => check.status === 'warning').length;
+  const criticalCount = checks.filter(
+    check => check.status === 'critical'
+  ).length;
+  const warningCount = checks.filter(
+    check => check.status === 'warning'
+  ).length;
 
   if (criticalCount > 0) return 'critical';
   if (warningCount > 0) return 'warning';
@@ -511,7 +546,9 @@ function getCriticalIssues(health: SystemHealth): string[] {
 
 function calculateHealthScore(health: SystemHealth): number {
   const checks = Object.values(health.checks);
-  const healthyCount = checks.filter(check => check.status === 'healthy').length;
+  const healthyCount = checks.filter(
+    check => check.status === 'healthy'
+  ).length;
   return (healthyCount / checks.length) * 100;
 }
 
@@ -519,7 +556,9 @@ function generateHealthRecommendations(health: SystemHealth): string[] {
   const recommendations: string[] = [];
 
   if (health.checks.memory.status !== 'healthy') {
-    recommendations.push('메모리 사용량을 확인하고 불필요한 프로세스를 종료하세요.');
+    recommendations.push(
+      '메모리 사용량을 확인하고 불필요한 프로세스를 종료하세요.'
+    );
   }
 
   if (health.checks.database.status !== 'healthy') {
@@ -533,7 +572,9 @@ function generateHealthRecommendations(health: SystemHealth): string[] {
   return recommendations;
 }
 
-function getPerformanceGrade(performance: SystemStatus['performance']): 'A' | 'B' | 'C' | 'D' | 'F' {
+function getPerformanceGrade(
+  performance: SystemStatus['performance']
+): 'A' | 'B' | 'C' | 'D' | 'F' {
   const { responseTime, throughput, errorRate } = performance;
 
   if (responseTime < 100 && throughput > 1000 && errorRate < 0.01) return 'A';
@@ -541,4 +582,4 @@ function getPerformanceGrade(performance: SystemStatus['performance']): 'A' | 'B
   if (responseTime < 500 && throughput > 100 && errorRate < 0.1) return 'C';
   if (responseTime < 1000 && errorRate < 0.2) return 'D';
   return 'F';
-} 
+}

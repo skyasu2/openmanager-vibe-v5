@@ -414,56 +414,71 @@ export const useSystemIntegration = () => {
   }, [emitEvent]);
 
   /**
-   * 🚀 시스템 초기화 (MCP Wake-up 포함)
+   * 🚀 시스템 초기화 (MCP Wake-up 포함) - 병렬 처리 최적화
    */
   const initializeSystem = useCallback(async (): Promise<boolean> => {
     try {
       setState(prev => ({ ...prev, initializationProgress: 0 }));
-      console.log('🚀 시스템 초기화 시작...');
+      console.log('🚀 시스템 초기화 시작 (병렬 처리 모드)...');
 
-      // 🎯 Phase 0: MCP 서버 Wake-up (Render Cold Start 해결)
-      emitEvent('connection_change', 'info', '🔄 MCP 서버 Wake-up 시작...');
+      // 🎯 Phase 0: 병렬 초기화 시작
+      emitEvent('connection_change', 'info', '🔄 병렬 초기화 시작...');
       setState(prev => ({ ...prev, initializationProgress: 5 }));
 
-      const mcpWakeupSuccess = await wakeupMCPServer();
+      // 🚀 병렬 실행: MCP Wake-up + 로컬 초기화
+      const parallelTasks = [
+        // Task 1: MCP Wake-up (백그라운드, 실패해도 계속 진행)
+        wakeupMCPServer().catch(error => {
+          console.warn('⚠️ MCP Wake-up 실패하지만 계속 진행:', error);
+          return false;
+        }),
 
-      // MCP Wake-up 실패해도 계속 진행 (degraded 모드)
-      if (!mcpWakeupSuccess) {
-        emitEvent(
-          'connection_change',
-          'warning',
-          '⚠️ MCP 서버 Wake-up 실패했지만 로컬 모드로 계속 진행합니다'
-        );
+        // Task 2: 로컬 초기화 작업들 (빠른 실행)
+        (async () => {
+          try {
+            setState(prev => ({ ...prev, initializationProgress: 15 }));
+
+            // RealTimeHub 테스트
+            const hubTest = await fetch('/api/realtime/connect', {
+              method: 'POST',
+            });
+            if (!hubTest.ok) throw new Error('RealTimeHub 초기화 실패');
+            setState(prev => ({ ...prev, initializationProgress: 35 }));
+
+            // PatternMatcher 활성화
+            const patternTest = await fetch('/api/metrics/pattern-check', {
+              method: 'POST',
+            });
+            if (!patternTest.ok) throw new Error('PatternMatcher 초기화 실패');
+            setState(prev => ({ ...prev, initializationProgress: 55 }));
+
+            // DataRetention 시작
+            const retentionTest = await fetch('/api/cron/cleanup', {
+              method: 'POST',
+            });
+            if (!retentionTest.ok) throw new Error('DataRetention 초기화 실패');
+            setState(prev => ({ ...prev, initializationProgress: 75 }));
+
+            return true;
+          } catch (error) {
+            console.error('로컬 초기화 실패:', error);
+            throw error;
+          }
+        })(),
+      ];
+
+      // 병렬 작업 실행 (MCP는 실패해도 무시)
+      const [mcpWakeupSuccess, localInitSuccess] =
+        await Promise.allSettled(parallelTasks);
+
+      // 로컬 초기화는 성공해야 함
+      if (localInitSuccess.status === 'rejected') {
+        throw new Error(`로컬 초기화 실패: ${localInitSuccess.reason}`);
       }
-
-      setState(prev => ({ ...prev, initializationProgress: 20 }));
-
-      // Phase 1 모듈 초기화 (기존 로직)
-      setState(prev => ({ ...prev, initializationProgress: 30 }));
-
-      // RealTimeHub 테스트
-      const hubTest = await fetch('/api/realtime/connect', { method: 'POST' });
-      if (!hubTest.ok) throw new Error('RealTimeHub 초기화 실패');
-
-      setState(prev => ({ ...prev, initializationProgress: 50 }));
-
-      // PatternMatcher 활성화
-      const patternTest = await fetch('/api/metrics/pattern-check', {
-        method: 'POST',
-      });
-      if (!patternTest.ok) throw new Error('PatternMatcher 초기화 실패');
-
-      setState(prev => ({ ...prev, initializationProgress: 70 }));
-
-      // DataRetention 시작
-      const retentionTest = await fetch('/api/cron/cleanup', {
-        method: 'POST',
-      });
-      if (!retentionTest.ok) throw new Error('DataRetention 초기화 실패');
 
       setState(prev => ({ ...prev, initializationProgress: 85 }));
 
-      // Phase 2.1 모듈 선택적 초기화
+      // Phase 2.1 모듈 선택적 초기화 (알림 서비스)
       try {
         await fetch('/api/notifications/test', { method: 'POST' });
       } catch (err) {
@@ -484,7 +499,9 @@ export const useSystemIntegration = () => {
       await pollSystemStatus();
 
       // 🔄 MCP Keep-Alive 시작 (선택적)
-      if (mcpWakeupSuccess) {
+      const mcpSuccess =
+        mcpWakeupSuccess.status === 'fulfilled' && mcpWakeupSuccess.value;
+      if (mcpSuccess) {
         try {
           const mcpService = MCPWarmupService.getInstance();
           mcpService.startKeepAlive(5); // 5분마다 Keep-Alive
@@ -502,9 +519,9 @@ export const useSystemIntegration = () => {
       emitEvent(
         'connection_change',
         'info',
-        mcpWakeupSuccess
-          ? '🚀 시스템이 완전히 최적화된 상태로 시작되었습니다!'
-          : '🚀 시스템이 로컬 모드로 시작되었습니다 (MCP 서버 비활성)'
+        mcpSuccess
+          ? '🚀 시스템이 완전히 최적화된 상태로 시작되었습니다! (병렬 처리 완료)'
+          : '🚀 시스템이 로컬 모드로 시작되었습니다 (MCP 서버 비활성, 병렬 처리 완료)'
       );
 
       return true;
