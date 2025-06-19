@@ -198,8 +198,8 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
             animate={{ opacity: 1, scale: 1 }}
             className='text-center space-y-8'
           >
-            {/* 모든 단계 아이콘들을 가로로 배치 - 원형 배경과 함께 */}
-            <div className='flex items-center justify-center space-x-6'>
+            {/* 모든 단계 아이콘들을 세로로 배치 - 원형 배경과 함께 */}
+            <div className='flex flex-col items-center justify-center space-y-6'>
               {LOADING_STAGES.map((stage, index) => (
                 <motion.div
                   key={index}
@@ -233,19 +233,19 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
 
                   {/* 연결선 (마지막 아이콘 제외) */}
                   {index < LOADING_STAGES.length - 1 && (
-                    <div className='absolute top-1/2 left-full w-6 h-0.5 -translate-y-1/2'>
+                    <div className='absolute top-full left-1/2 w-0.5 h-6 -translate-x-1/2'>
                       <motion.div
-                        className='h-full bg-gradient-to-r from-blue-400 to-purple-400 rounded-full'
-                        initial={{ scaleX: 0 }}
+                        className='w-full bg-gradient-to-b from-blue-400 to-purple-400 rounded-full'
+                        initial={{ scaleY: 0 }}
                         animate={{
-                          scaleX: index < currentStage ? 1 : 0,
+                          scaleY: index < currentStage ? 1 : 0,
                           opacity: index < currentStage ? 1 : 0.3,
                         }}
                         transition={{
                           duration: 0.5,
                           delay: index < currentStage ? 0.2 : 0,
                         }}
-                        style={{ transformOrigin: 'left' }}
+                        style={{ transformOrigin: 'top' }}
                       />
                     </div>
                   )}
