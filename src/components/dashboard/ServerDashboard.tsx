@@ -52,9 +52,14 @@ import ServerModalErrorBoundary from './ServerModalErrorBoundary';
 import NetworkMonitoringCard from './NetworkMonitoringCard';
 import { Server } from '../../types/server';
 import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
-import { transformArray, transformRawToEnhancedServer } from '@/adapters/server-dashboard.transformer';
+import {
+  transformArray,
+  transformRawToEnhancedServer,
+} from '@/adapters/server-dashboard.transformer';
 // 🚀 캐시된 서버 데이터 사용 (성능 최적화)
 import { useCachedServers } from '@/hooks/useCachedServers';
+import ServerCardSkeleton from './server-dashboard/ServerCardSkeleton';
+import { AnimatePresence } from 'framer-motion';
 
 // ✅ 타입만 정의 (실제 구현은 API 라우트에서 처리)
 interface ServerInstance {
@@ -428,7 +433,12 @@ export default function ServerDashboard({
       role: 'standalone',
       environment: server.environment || 'production',
       location: server.location,
-      status: server.status === 'online' ? 'running' : server.status === 'warning' ? 'warning' : 'error',
+      status:
+        server.status === 'online'
+          ? 'running'
+          : server.status === 'warning'
+            ? 'warning'
+            : 'error',
       metrics: {
         cpu: server.cpu,
         memory: server.memory,
@@ -460,6 +470,18 @@ export default function ServerDashboard({
   const handleRefresh = useCallback(() => {
     refreshServers();
   }, [refreshServers]);
+
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setIsInitialLoading(false);
+    }
+  }, [isLoading]);
 
   // 🛡️ 로딩 상태 처리
   if (!isClient) {
@@ -543,7 +565,13 @@ export default function ServerDashboard({
 
       {/* 서버 그리드/리스트 */}
       <div className='flex-1 p-6 overflow-auto'>
-        {paginatedServers.length > 0 ? (
+        {isInitialLoading ? (
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6'>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <ServerCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : paginatedServers.length > 0 ? (
           <>
             {/* 페이지네이션 정보 */}
             <div className='mb-4 flex items-center justify-between'>
@@ -572,10 +600,10 @@ export default function ServerDashboard({
             </div>
 
             {/* 페이지네이션 컨트롤 */}
-            {totalPages > 1 && (
+            {!isInitialLoading && totalPages > 1 && (
               <div className='mt-8 flex items-center justify-center space-x-2'>
                 <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
                   className='p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
                   aria-label='이전 페이지'
@@ -587,11 +615,12 @@ export default function ServerDashboard({
                   page => (
                     <button
                       key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-2 rounded-lg border ${currentPage === page
-                        ? 'bg-blue-500 text-white border-blue-500'
-                        : 'border-gray-300 hover:bg-gray-50'
-                        }`}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-3 py-2 rounded-lg border ${
+                        currentPage === page
+                          ? 'bg-blue-500 text-white border-blue-500'
+                          : 'border-gray-300 hover:bg-gray-50'
+                      }`}
                     >
                       {page}
                     </button>
@@ -600,7 +629,7 @@ export default function ServerDashboard({
 
                 <button
                   onClick={() =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1))
+                    handlePageChange(Math.min(totalPages, currentPage + 1))
                   }
                   disabled={currentPage === totalPages}
                   className='p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
