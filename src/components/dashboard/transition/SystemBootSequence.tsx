@@ -21,7 +21,11 @@ interface SystemBootSequenceProps {
   skipAnimation?: boolean;
   autoStart?: boolean;
   loadingProgress?: number;
-  loadingPhase?: 'system-starting' | 'data-loading' | 'python-warmup' | 'completed';
+  loadingPhase?:
+    | 'system-starting'
+    | 'data-loading'
+    | 'python-warmup'
+    | 'completed';
   estimatedTimeRemaining?: number;
   elapsedTime?: number;
 }
@@ -96,7 +100,8 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
 
         let currentProgress = startProgress;
         progressTimer = setInterval(() => {
-          currentProgress += (endProgress - startProgress) / (stage.duration / 50);
+          currentProgress +=
+            (endProgress - startProgress) / (stage.duration / 50);
           if (currentProgress >= endProgress) {
             currentProgress = endProgress;
             clearInterval(progressTimer);
@@ -158,7 +163,13 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
       };
 
       (window as any).emergencyCompleteBootSequence = handleFinalComplete;
-    }, [handleFinalComplete, currentStage, isComplete, progress, servers.length]);
+    }, [
+      handleFinalComplete,
+      currentStage,
+      isComplete,
+      progress,
+      servers.length,
+    ]);
 
     if (skipAnimation || isComplete) {
       return null;
@@ -187,18 +198,62 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
             animate={{ opacity: 1, scale: 1 }}
             className='text-center space-y-8'
           >
-            {/* 현재 단계 아이콘 */}
-            <motion.div
-              key={currentStage}
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className='text-6xl'
-            >
-              {currentStageData.icon}
-            </motion.div>
+            {/* 모든 단계 아이콘들을 가로로 배치 - 원형 배경과 함께 */}
+            <div className='flex items-center justify-center space-x-6'>
+              {LOADING_STAGES.map((stage, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ scale: 0, opacity: 0.3 }}
+                  animate={{
+                    scale: index === currentStage ? 1 : 0.85,
+                    opacity: index <= currentStage ? 1 : 0.4,
+                  }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  className='relative'
+                >
+                  {/* 원형 배경 */}
+                  <motion.div
+                    animate={{
+                      backgroundColor:
+                        index === currentStage
+                          ? 'rgba(59, 130, 246, 0.8)'
+                          : index < currentStage
+                            ? 'rgba(34, 197, 94, 0.6)'
+                            : 'rgba(75, 85, 99, 0.4)',
+                      boxShadow:
+                        index === currentStage
+                          ? '0 0 20px rgba(59, 130, 246, 0.5)'
+                          : '0 0 0px transparent',
+                    }}
+                    transition={{ duration: 0.3 }}
+                    className='w-16 h-16 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20'
+                  >
+                    <span className='text-2xl'>{stage.icon}</span>
+                  </motion.div>
 
-            {/* 단계 이름 */}
+                  {/* 연결선 (마지막 아이콘 제외) */}
+                  {index < LOADING_STAGES.length - 1 && (
+                    <div className='absolute top-1/2 left-full w-6 h-0.5 -translate-y-1/2'>
+                      <motion.div
+                        className='h-full bg-gradient-to-r from-blue-400 to-purple-400 rounded-full'
+                        initial={{ scaleX: 0 }}
+                        animate={{
+                          scaleX: index < currentStage ? 1 : 0,
+                          opacity: index < currentStage ? 1 : 0.3,
+                        }}
+                        transition={{
+                          duration: 0.5,
+                          delay: index < currentStage ? 0.2 : 0,
+                        }}
+                        style={{ transformOrigin: 'left' }}
+                      />
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+
+            {/* 현재 단계 이름 */}
             <motion.h2
               key={`title-${currentStage}`}
               initial={{ opacity: 0, y: 20 }}
@@ -212,7 +267,9 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
             <div className='w-80 mx-auto'>
               <div className='flex justify-between text-sm text-gray-400 mb-2'>
                 <span>{Math.round(progress)}%</span>
-                <span>{currentStage + 1} / {LOADING_STAGES.length}</span>
+                <span>
+                  {currentStage + 1} / {LOADING_STAGES.length}
+                </span>
               </div>
               <div className='w-full bg-gray-700 rounded-full h-2'>
                 <motion.div
