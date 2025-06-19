@@ -15,6 +15,7 @@ import {
 } from '@/services/data-generator/RealServerDataGenerator';
 import { getRedisClient } from '@/lib/redis';
 import { transformServerInstancesToServers } from '@/adapters/server-data-adapter';
+import { Server } from '@/types/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +23,10 @@ export const dynamic = 'force-dynamic';
 let generator: RealServerDataGenerator | null = null;
 
 export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const page = parseInt(searchParams.get('page') || '1', 10);
+  const limit = parseInt(searchParams.get('limit') || '8', 10);
+
   try {
     console.log('🔨 빌드 타임: 환경변수 검증 건너뜀');
 
@@ -40,14 +45,14 @@ export async function GET(request: NextRequest) {
     }
 
     // 현재 서버 데이터 가져오기
-    const servers = generator.getAllServers();
+    const allServerInstances = generator.getAllServers();
 
     console.log(
-      `초기화 실행 from /api/servers/realtime (서버 ${servers.length}개 감지)`
+      `초기화 실행 from /api/servers/realtime (서버 ${allServerInstances.length}개 감지)`
     );
 
     // 서버가 없으면 초기화 진행
-    if (servers.length === 0) {
+    if (allServerInstances.length === 0) {
       console.log('🚀 RealServerDataGenerator 초기화 시작...');
       await generator.initialize();
       console.log('✅ RealServerDataGenerator 초기화 완료');
@@ -59,70 +64,69 @@ export async function GET(request: NextRequest) {
     }
 
     // 🎯 Enhanced v2.0: 완전한 타입 안전 변환
-    const latestServerInstances = generator.getAllServers();
-    const latestServers = transformServerInstancesToServers(
-      latestServerInstances
-    );
+    const allServers = transformServerInstancesToServers(allServerInstances);
+    const validServers = allServers.filter(server => server !== null) as Server[];
     const dashboardSummary = generator.getDashboardSummary();
 
     // 🔒 변환 품질 검증
-    const validServers = latestServers.filter(
+    const validServersFiltered = validServers.filter(
       server => server && server.id && server.name && server.services
     );
 
     console.log(
-      `🔄 Enhanced v2.0: ${latestServerInstances.length}개 ServerInstance → ${validServers.length}개 검증된 Server 변환 완료`
+      `🔄 Enhanced v2.0: ${allServerInstances.length}개 ServerInstance → ${validServersFiltered.length}개 검증된 Server 변환 완료`
     );
 
-    return NextResponse.json({
-      success: true,
-      data: validServers, // 🔒 검증된 Server[] 반환
-      servers: validServers, // 호환성을 위해 유지
-      summary: dashboardSummary,
-      timestamp: Date.now(),
-      count: validServers.length,
-      transformation: {
-        input: latestServerInstances.length,
-        output: latestServers.length,
-        valid: validServers.length,
-        quality: Math.round(
-          (validServers.length / latestServerInstances.length) * 100
-        ),
+    const totalServers = validServersFiltered.length;
+    const totalPages = Math.ceil(totalServers / limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedServers = validServersFiltered.slice(startIndex, endIndex);
+
+    const responseData = {
+      servers: paginatedServers,
+      summary: {
+        servers: dashboardSummary,
       },
+      pagination: {
+        currentPage: page,
+        totalPages: totalPages,
+        totalItems: totalServers,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    };
+
+    // For backward compatibility, also add top-level success, data, etc.
+    return NextResponse.json({
+      ...responseData,
+      success: true,
+      data: paginatedServers,
+      timestamp: Date.now(),
+      count: paginatedServers.length,
     });
+
   } catch (error) {
     console.error('❌ 실시간 서버 데이터 API 오류:', error);
-
-    // 에러 발생 시에도 안정적인 응답 반환
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : '알 수 없는 오류',
-        servers: [], // 빈 배열로 안정적 응답
-        summary: {
-          servers: {
-            total: 0,
-            online: 0,
-            warning: 0,
-            offline: 0,
-            avgCpu: 0,
-            avgMemory: 0,
-          },
-          clusters: { total: 0, healthy: 0, warning: 0, critical: 0 },
-          applications: {
-            total: 0,
-            healthy: 0,
-            warning: 0,
-            critical: 0,
-            avgResponseTime: 0,
-          },
-          timestamp: Date.now(),
+        message: 'Internal Server Error',
+        error: (error as Error).message,
+        servers: [],
+        summary: {},
+        pagination: {
+          currentPage: page,
+          totalPages: 0,
+          totalItems: 0,
+          itemsPerPage: limit,
+          hasNextPage: false,
+          hasPrevPage: false,
         },
-        timestamp: Date.now(),
-        count: 0,
       },
-      { status: 200 }
-    ); // 500 대신 200으로 안정적 응답
+      { status: 500 }
+    );
   }
 }
 

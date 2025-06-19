@@ -21,6 +21,7 @@ import {
   Server as ServerIcon,
   Database,
   BarChart3,
+  Loader,
 } from 'lucide-react';
 import ServerCard from './ServerCard';
 import ServerDetailModal from './ServerDetailModal';
@@ -31,6 +32,7 @@ import { Server } from '../../types/server';
 import { useRealtimeServers } from '@/hooks/api/useRealtimeServers';
 import { timerManager } from '../../utils/TimerManager';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useServerDashboard } from '@/hooks/useServerDashboard';
 // ❌ 제거: Node.js 전용 모듈을 클라이언트에서 import하면 안됨
 // import {
 //   RealServerDataGenerator,

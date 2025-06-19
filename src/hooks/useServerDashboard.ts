@@ -161,7 +161,7 @@ export function useServerDashboard({
           disk: Math.round(serverData.metrics?.disk || Math.random() * 40 + 10),
           network: Math.round(
             (serverData.metrics?.network?.in || 0) +
-              (serverData.metrics?.network?.out || 0) || Math.random() * 30 + 10
+            (serverData.metrics?.network?.out || 0) || Math.random() * 30 + 10
           ),
           networkStatus:
             serverData.status === 'error'

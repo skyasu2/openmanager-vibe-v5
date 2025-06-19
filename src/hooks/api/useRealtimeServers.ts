@@ -16,6 +16,13 @@ import type {
 } from '@/types/data-generator';
 import { createTimeoutSignal } from '@/utils/createTimeoutSignal';
 import { Server } from '@/types/server';
+import useSWR from 'swr';
+import { fetcher } from '@/lib/fetcher';
+import {
+  SystemOverview,
+  PaginationInfo,
+  RealtimeServersResponse,
+} from '@/types/server';
 
 interface DashboardSummary {
   overview: {
@@ -745,7 +752,21 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
     healthPercentage: getHealthyServersPercentage(),
     averageHealth: getAverageHealth(),
 
+    // 페이지네이션 (옛 컴포넌트 호환용, 실제 사용 안 함)
+    pagination: {
+      currentPage: 1,
+      totalPages: 1,
+      totalItems: servers.length,
+      itemsPerPage: servers.length,
+      hasNextPage: false,
+      hasPrevPage: false,
+    },
+
     // 정리
     cleanup,
   };
 }
+
+/* Duplicate pagination-based useRealtimeServers implementation removed to avoid conflicts */
+
+export default useRealtimeServers;
