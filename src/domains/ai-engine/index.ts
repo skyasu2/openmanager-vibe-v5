@@ -82,8 +82,8 @@ class MockNotificationService implements INotificationService {
   async getSettings(): Promise<NotificationSettings> {
     return {
       browser: {
-        enabled: true,
-        permission: 'granted',
+        enabled: false,
+        permission: 'denied',
       },
       levels: {
         info: true,
@@ -103,9 +103,6 @@ class MockNotificationService implements INotificationService {
   }
 
   async requestPermission(): Promise<NotificationPermission> {
-    if ('Notification' in window) {
-      return await Notification.requestPermission();
-    }
     return 'denied';
   }
 
@@ -114,13 +111,7 @@ class MockNotificationService implements INotificationService {
     message: string,
     options?: any
   ): Promise<void> {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(title, {
-        body: message,
-        icon: '/favicon.ico',
-        ...options,
-      });
-    }
+    console.log('📢 실시간 알림:', title, message);
   }
 
   async testNotification(): Promise<void> {

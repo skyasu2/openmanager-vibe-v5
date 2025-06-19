@@ -1,6 +1,6 @@
 /**
  * 🔧 Application Configuration
- * 
+ *
  * 애플리케이션 전체 설정 관리
  * - 환경변수 기반 설정
  * - 타입 안전한 설정 스키마
@@ -16,9 +16,11 @@ export const ConfigSchema = z.object({
   app: z.object({
     name: z.string().default('OpenManager Vibe v5'),
     version: z.string().default('5.6.10'),
-    environment: z.enum(['production', 'staging', 'development', 'test']).default('development'),
+    environment: z
+      .enum(['production', 'staging', 'development', 'test'])
+      .default('development'),
     debug: z.boolean().default(false),
-    port: z.number().min(1000).max(65535).default(3000)
+    port: z.number().min(1000).max(65535).default(3000),
   }),
 
   // 가상 서버 설정
@@ -28,7 +30,7 @@ export const ConfigSchema = z.object({
     historyDuration: z.number().min(3600000).default(86400000), // 24시간
     serverCount: z.number().min(1).max(20).default(5),
     enableRealtimeGeneration: z.boolean().default(true),
-    enableHistoryGeneration: z.boolean().default(true)
+    enableHistoryGeneration: z.boolean().default(true),
   }),
 
   // 알림 시스템 설정
@@ -36,9 +38,7 @@ export const ConfigSchema = z.object({
     checkInterval: z.number().min(5000).default(10000), // 10초
     cooldownMinutes: z.number().min(1).default(5),
     maxRetries: z.number().min(1).default(3),
-    enableBrowserNotifications: z.boolean().default(true),
-    enableEmailNotifications: z.boolean().default(false),
-    enableWebhookNotifications: z.boolean().default(false)
+    // Vercel 환경에서 이메일/웹훅 알림 제거됨
   }),
 
   // AI 에이전트 설정
@@ -49,7 +49,7 @@ export const ConfigSchema = z.object({
     enableContinuousLearning: z.boolean().default(true),
     enablePatternAnalysis: z.boolean().default(true),
     enablePrediction: z.boolean().default(true),
-    maxContextLength: z.number().min(1000).default(8000)
+    maxContextLength: z.number().min(1000).default(8000),
   }),
 
   // 데이터베이스 설정
@@ -58,7 +58,7 @@ export const ConfigSchema = z.object({
     key: z.string().min(1).optional(),
     enableMockMode: z.boolean().default(true),
     connectionTimeout: z.number().min(1000).default(10000),
-    queryTimeout: z.number().min(1000).default(30000)
+    queryTimeout: z.number().min(1000).default(30000),
   }),
 
   // WebSocket 설정
@@ -67,7 +67,7 @@ export const ConfigSchema = z.object({
     url: z.string().default('ws://localhost:3001/ws'),
     reconnectAttempts: z.number().min(1).default(5),
     reconnectDelay: z.number().min(1000).default(1000),
-    heartbeatInterval: z.number().min(10000).default(30000)
+    heartbeatInterval: z.number().min(10000).default(30000),
   }),
 
   // 로깅 설정
@@ -77,7 +77,7 @@ export const ConfigSchema = z.object({
     enableFile: z.boolean().default(false),
     maxFileSize: z.number().min(1024).default(10485760), // 10MB
     maxFiles: z.number().min(1).default(5),
-    logDirectory: z.string().default('./logs')
+    logDirectory: z.string().default('./logs'),
   }),
 
   // 모니터링 설정
@@ -86,7 +86,7 @@ export const ConfigSchema = z.object({
     healthCheckInterval: z.number().min(5000).default(30000), // 30초
     enableMetricsCollection: z.boolean().default(true),
     metricsRetentionDays: z.number().min(1).default(30),
-    enablePerformanceMonitoring: z.boolean().default(true)
+    enablePerformanceMonitoring: z.boolean().default(true),
   }),
 
   // 보안 설정
@@ -96,7 +96,7 @@ export const ConfigSchema = z.object({
     enableRateLimit: z.boolean().default(true),
     rateLimitWindow: z.number().min(60000).default(900000), // 15분
     rateLimitMax: z.number().min(1).default(100),
-    enableApiKeyAuth: z.boolean().default(false)
+    enableApiKeyAuth: z.boolean().default(false),
   }),
 
   // 캐시 설정
@@ -105,7 +105,7 @@ export const ConfigSchema = z.object({
     ttl: z.number().min(1000).default(300000), // 5분
     maxSize: z.number().min(10).default(1000),
     enableRedis: z.boolean().default(false),
-    redisUrl: z.string().optional()
+    redisUrl: z.string().optional(),
   }),
 
   // 개발 도구 설정
@@ -113,8 +113,8 @@ export const ConfigSchema = z.object({
     enableHotReload: z.boolean().default(true),
     enableSourceMaps: z.boolean().default(true),
     enableProfiling: z.boolean().default(false),
-    enableMockData: z.boolean().default(true)
-  })
+    enableMockData: z.boolean().default(true),
+  }),
 });
 
 export type AppConfig = z.infer<typeof ConfigSchema>;
@@ -142,46 +142,50 @@ export class ConfigLoader {
         version: process.env.NEXT_PUBLIC_APP_VERSION || '5.6.10',
         environment: (process.env.NODE_ENV as Environment) || 'development',
         debug: process.env.NEXT_PUBLIC_DEBUG === 'true',
-        port: Number(process.env.PORT) || 3000
+        port: Number(process.env.PORT) || 3000,
       },
       virtualServer: {
         generationInterval: Number(process.env.GENERATION_INTERVAL) || 5000,
         totalDuration: Number(process.env.TOTAL_DURATION) || 1200000,
         historyDuration: Number(process.env.HISTORY_DURATION) || 86400000,
         serverCount: Number(process.env.SERVER_COUNT) || 5,
-        enableRealtimeGeneration: process.env.ENABLE_REALTIME_GENERATION !== 'false',
-        enableHistoryGeneration: process.env.ENABLE_HISTORY_GENERATION !== 'false'
+        enableRealtimeGeneration:
+          process.env.ENABLE_REALTIME_GENERATION !== 'false',
+        enableHistoryGeneration:
+          process.env.ENABLE_HISTORY_GENERATION !== 'false',
       },
       alerts: {
         checkInterval: Number(process.env.ALERT_CHECK_INTERVAL) || 10000,
         cooldownMinutes: Number(process.env.ALERT_COOLDOWN) || 5,
         maxRetries: Number(process.env.ALERT_MAX_RETRIES) || 3,
-        enableBrowserNotifications: process.env.ENABLE_BROWSER_NOTIFICATIONS !== 'false',
-        enableEmailNotifications: process.env.ENABLE_EMAIL_NOTIFICATIONS === 'true',
-        enableWebhookNotifications: process.env.ENABLE_WEBHOOK_NOTIFICATIONS === 'true'
       },
       ai: {
         responseTimeout: Number(process.env.AI_RESPONSE_TIMEOUT) || 30000,
         maxTokens: Number(process.env.AI_MAX_TOKENS) || 4000,
         temperature: Number(process.env.AI_TEMPERATURE) || 0.7,
-        enableContinuousLearning: process.env.AI_ENABLE_CONTINUOUS_LEARNING !== 'false',
-        enablePatternAnalysis: process.env.AI_ENABLE_PATTERN_ANALYSIS !== 'false',
+        enableContinuousLearning:
+          process.env.AI_ENABLE_CONTINUOUS_LEARNING !== 'false',
+        enablePatternAnalysis:
+          process.env.AI_ENABLE_PATTERN_ANALYSIS !== 'false',
         enablePrediction: process.env.AI_ENABLE_PREDICTION !== 'false',
-        maxContextLength: Number(process.env.AI_MAX_CONTEXT_LENGTH) || 8000
+        maxContextLength: Number(process.env.AI_MAX_CONTEXT_LENGTH) || 8000,
       },
       database: {
         url: process.env.NEXT_PUBLIC_SUPABASE_URL,
         key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
         enableMockMode: process.env.DATABASE_ENABLE_MOCK_MODE !== 'false',
-        connectionTimeout: Number(process.env.DATABASE_CONNECTION_TIMEOUT) || 10000,
-        queryTimeout: Number(process.env.DATABASE_QUERY_TIMEOUT) || 30000
+        connectionTimeout:
+          Number(process.env.DATABASE_CONNECTION_TIMEOUT) || 10000,
+        queryTimeout: Number(process.env.DATABASE_QUERY_TIMEOUT) || 30000,
       },
       websocket: {
         enabled: process.env.WEBSOCKET_ENABLED !== 'false',
         url: process.env.WEBSOCKET_URL || 'ws://localhost:3001/ws',
-        reconnectAttempts: Number(process.env.WEBSOCKET_RECONNECT_ATTEMPTS) || 5,
+        reconnectAttempts:
+          Number(process.env.WEBSOCKET_RECONNECT_ATTEMPTS) || 5,
         reconnectDelay: Number(process.env.WEBSOCKET_RECONNECT_DELAY) || 1000,
-        heartbeatInterval: Number(process.env.WEBSOCKET_HEARTBEAT_INTERVAL) || 30000
+        heartbeatInterval:
+          Number(process.env.WEBSOCKET_HEARTBEAT_INTERVAL) || 30000,
       },
       logging: {
         level: (process.env.LOG_LEVEL as any) || 'info',
@@ -189,36 +193,44 @@ export class ConfigLoader {
         enableFile: process.env.LOG_ENABLE_FILE === 'true',
         maxFileSize: Number(process.env.LOG_MAX_FILE_SIZE) || 10485760,
         maxFiles: Number(process.env.LOG_MAX_FILES) || 5,
-        logDirectory: process.env.LOG_DIRECTORY || './logs'
+        logDirectory: process.env.LOG_DIRECTORY || './logs',
       },
       monitoring: {
-        enableHealthCheck: process.env.MONITORING_ENABLE_HEALTH_CHECK !== 'false',
-        healthCheckInterval: Number(process.env.MONITORING_HEALTH_CHECK_INTERVAL) || 30000,
-        enableMetricsCollection: process.env.MONITORING_ENABLE_METRICS_COLLECTION !== 'false',
-        metricsRetentionDays: Number(process.env.MONITORING_METRICS_RETENTION_DAYS) || 30,
-        enablePerformanceMonitoring: process.env.MONITORING_ENABLE_PERFORMANCE !== 'false'
+        enableHealthCheck:
+          process.env.MONITORING_ENABLE_HEALTH_CHECK !== 'false',
+        healthCheckInterval:
+          Number(process.env.MONITORING_HEALTH_CHECK_INTERVAL) || 30000,
+        enableMetricsCollection:
+          process.env.MONITORING_ENABLE_METRICS_COLLECTION !== 'false',
+        metricsRetentionDays:
+          Number(process.env.MONITORING_METRICS_RETENTION_DAYS) || 30,
+        enablePerformanceMonitoring:
+          process.env.MONITORING_ENABLE_PERFORMANCE !== 'false',
       },
       security: {
         enableCors: process.env.SECURITY_ENABLE_CORS !== 'false',
-        corsOrigins: process.env.SECURITY_CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
+        corsOrigins: process.env.SECURITY_CORS_ORIGINS?.split(',') || [
+          'http://localhost:3000',
+        ],
         enableRateLimit: process.env.SECURITY_ENABLE_RATE_LIMIT !== 'false',
-        rateLimitWindow: Number(process.env.SECURITY_RATE_LIMIT_WINDOW) || 900000,
+        rateLimitWindow:
+          Number(process.env.SECURITY_RATE_LIMIT_WINDOW) || 900000,
         rateLimitMax: Number(process.env.SECURITY_RATE_LIMIT_MAX) || 100,
-        enableApiKeyAuth: process.env.SECURITY_ENABLE_API_KEY_AUTH === 'true'
+        enableApiKeyAuth: process.env.SECURITY_ENABLE_API_KEY_AUTH === 'true',
       },
       cache: {
         enabled: process.env.CACHE_ENABLED !== 'false',
         ttl: Number(process.env.CACHE_TTL) || 300000,
         maxSize: Number(process.env.CACHE_MAX_SIZE) || 1000,
         enableRedis: process.env.CACHE_ENABLE_REDIS === 'true',
-        redisUrl: process.env.REDIS_URL
+        redisUrl: process.env.REDIS_URL,
       },
       development: {
         enableHotReload: process.env.DEV_ENABLE_HOT_RELOAD !== 'false',
         enableSourceMaps: process.env.DEV_ENABLE_SOURCE_MAPS !== 'false',
         enableProfiling: process.env.DEV_ENABLE_PROFILING === 'true',
-        enableMockData: process.env.DEV_ENABLE_MOCK_DATA !== 'false'
-      }
+        enableMockData: process.env.DEV_ENABLE_MOCK_DATA !== 'false',
+      },
     };
 
     try {
@@ -272,4 +284,4 @@ export const getDevelopmentConfig = () => configLoader.get('development');
 // 환경 확인 함수들
 export const isDevelopment = () => configLoader.isDevelopment();
 export const isProduction = () => configLoader.isProduction();
-export const isDebugEnabled = () => configLoader.isDebugEnabled(); 
+export const isDebugEnabled = () => configLoader.isDebugEnabled();

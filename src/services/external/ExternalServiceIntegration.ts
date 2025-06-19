@@ -1,6 +1,6 @@
 /**
  * 🔔 간소화된 슬랙 알림 서비스
- * 
+ *
  * 테스트/시연 집중을 위한 단순화된 구현
  * - 슬랙 알림만 지원
  * - 기타 복잡한 외부 서비스는 향후 개발
@@ -52,7 +52,7 @@ export class ExternalServiceIntegration {
     this.slackConfig = {
       webhookUrl: process.env.SLACK_WEBHOOK_URL,
       channel: process.env.SLACK_CHANNEL || '#alerts',
-      username: process.env.SLACK_USERNAME || 'OpenManager Bot'
+      username: process.env.SLACK_USERNAME || 'OpenManager Bot',
     };
 
     console.log('🔔 슬랙 알림 서비스 초기화 완료');
@@ -65,14 +65,17 @@ export class ExternalServiceIntegration {
     success: boolean;
     results: Array<{ service: string; success: boolean; error?: string }>;
   }> {
-    
     console.log('📢 알림 전송 요청:', {
       title: notification.title,
       severity: notification.severity,
-      timestamp: notification.timestamp
+      timestamp: notification.timestamp,
     });
 
-    const results: Array<{ service: string; success: boolean; error?: string }> = [];
+    const results: Array<{
+      service: string;
+      success: boolean;
+      error?: string;
+    }> = [];
 
     // 슬랙 알림 전송
     if (this.slackConfig.webhookUrl) {
@@ -81,13 +84,13 @@ export class ExternalServiceIntegration {
         results.push({
           service: 'slack',
           success: slackResult.success,
-          error: slackResult.error
+          error: slackResult.error,
         });
       } catch (error) {
         results.push({
           service: 'slack',
           success: false,
-          error: `슬랙 전송 실패: ${error}`
+          error: `슬랙 전송 실패: ${error}`,
         });
       }
     } else {
@@ -95,7 +98,7 @@ export class ExternalServiceIntegration {
       results.push({
         service: 'slack',
         success: true,
-        error: undefined
+        error: undefined,
       });
     }
 
@@ -103,19 +106,21 @@ export class ExternalServiceIntegration {
     this.addToNotificationHistory(notification);
 
     const overallSuccess = results.every(r => r.success);
-    
+
     console.log(`📢 알림 전송 완료: ${overallSuccess ? '성공' : '실패'}`);
 
     return {
       success: overallSuccess,
-      results
+      results,
     };
   }
 
   /**
    * 💬 슬랙 알림 전송
    */
-  private async sendSlackNotification(notification: NotificationMessage): Promise<ServiceResponse> {
+  private async sendSlackNotification(
+    notification: NotificationMessage
+  ): Promise<ServiceResponse> {
     const startTime = Date.now();
 
     try {
@@ -124,13 +129,13 @@ export class ExternalServiceIntegration {
         console.log('💬 슬랙 알림 시뮬레이션:', {
           channel: this.slackConfig.channel,
           title: notification.title,
-          severity: notification.severity
+          severity: notification.severity,
         });
 
         return {
           success: true,
           data: { message: '시뮬레이션 모드로 전송됨' },
-          responseTime: Date.now() - startTime
+          responseTime: Date.now() - startTime,
         };
       }
 
@@ -139,38 +144,48 @@ export class ExternalServiceIntegration {
         username: this.slackConfig.username,
         channel: this.slackConfig.channel,
         text: `🚨 ${notification.title}`,
-        attachments: [{
-          color: this.getSeverityColor(notification.severity),
-          title: notification.title,
-          text: notification.message,
-          fields: [
-            {
-              title: '심각도',
-              value: notification.severity.toUpperCase(),
-              short: true
-            },
-            {
-              title: '시간',
-              value: notification.timestamp.toLocaleString(),
-              short: true
-            }
-          ],
-          footer: 'OpenManager Vibe',
-          ts: Math.floor(notification.timestamp.getTime() / 1000)
-        }]
+        attachments: [
+          {
+            color: this.getSeverityColor(notification.severity),
+            title: notification.title,
+            text: notification.message,
+            fields: [
+              {
+                title: '심각도',
+                value: notification.severity.toUpperCase(),
+                short: true,
+              },
+              {
+                title: '시간',
+                value: notification.timestamp.toLocaleString(),
+                short: true,
+              },
+            ],
+            footer: 'OpenManager Vibe',
+            ts: Math.floor(notification.timestamp.getTime() / 1000),
+          },
+        ],
       };
 
-      // HTTP 요청 전송 (실제 환경에서)
-      if (process.env.NODE_ENV === 'production') {
+      // HTTP 요청 전송 (Vercel 환경에서는 로깅으로 처리)
+      if (process.env.NODE_ENV === 'production' && process.env.VERCEL !== '1') {
+        // Vercel이 아닌 프로덕션 환경에서만 실제 HTTP 요청
         const response = await fetch(this.slackConfig.webhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(slackMessage)
+          body: JSON.stringify(slackMessage),
         });
 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
+      } else {
+        // Vercel 환경에서는 로깅으로 처리
+        console.log('💬 Vercel 환경: Slack 메시지 로깅됨', {
+          channel: this.slackConfig.channel,
+          title: notification.title,
+          severity: notification.severity,
+        });
       }
 
       console.log('💬 슬랙 알림 전송 성공');
@@ -178,16 +193,15 @@ export class ExternalServiceIntegration {
       return {
         success: true,
         data: slackMessage,
-        responseTime: Date.now() - startTime
+        responseTime: Date.now() - startTime,
       };
-
     } catch (error) {
       console.error('❌ 슬랙 알림 전송 실패:', error);
-      
+
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
-        responseTime: Date.now() - startTime
+        responseTime: Date.now() - startTime,
       };
     }
   }
@@ -197,10 +211,10 @@ export class ExternalServiceIntegration {
    */
   private getSeverityColor(severity: string): string {
     const colors = {
-      info: '#36a64f',      // 녹색
-      warning: '#ff9500',   // 주황색
-      error: '#ff0000',     // 빨간색
-      critical: '#8b0000'   // 진한 빨간색
+      info: '#36a64f', // 녹색
+      warning: '#ff9500', // 주황색
+      error: '#ff0000', // 빨간색
+      critical: '#8b0000', // 진한 빨간색
     };
     return colors[severity as keyof typeof colors] || colors.info;
   }
@@ -210,7 +224,7 @@ export class ExternalServiceIntegration {
    */
   private addToNotificationHistory(notification: NotificationMessage): void {
     this.notificationHistory.unshift(notification);
-    
+
     // 히스토리 크기 제한 (최대 100개)
     if (this.notificationHistory.length > 100) {
       this.notificationHistory = this.notificationHistory.slice(0, 100);
@@ -249,14 +263,16 @@ export class ExternalServiceIntegration {
     totalNotifications: number;
   } {
     return {
-      services: [{
-        id: 'slack',
-        name: 'Slack 알림',
-        type: 'notification',
-        status: 'active',
-        configured: !!this.slackConfig.webhookUrl
-      }],
-      totalNotifications: this.notificationHistory.length
+      services: [
+        {
+          id: 'slack',
+          name: 'Slack 알림',
+          type: 'notification',
+          status: 'active',
+          configured: !!this.slackConfig.webhookUrl,
+        },
+      ],
+      totalNotifications: this.notificationHistory.length,
     };
   }
 
@@ -277,7 +293,7 @@ export class ExternalServiceIntegration {
       message: '슬랙 알림 시스템이 정상적으로 작동하고 있습니다.',
       severity: 'info',
       timestamp: new Date(),
-      metadata: { test: true }
+      metadata: { test: true },
     };
 
     const result = await this.sendNotification(testNotification);
@@ -294,4 +310,4 @@ export const getExternalServiceIntegration = (): ExternalServiceIntegration => {
 export const initializeExternalServices = async (): Promise<void> => {
   const integration = getExternalServiceIntegration();
   console.log('🚀 슬랙 알림 서비스 초기화 완료');
-}; 
+};

@@ -1,6 +1,6 @@
 /**
  * 🔗 useWebSocket Hook
- * 
+ *
  * 실시간 서버 메트릭 스트림을 위한 React Hook
  * - 자동 연결/재연결
  * - 구독 관리
@@ -50,7 +50,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
       : 'http://localhost:3000',
     autoConnect = true,
     reconnectAttempts = 5,
-    debug = false
+    debug = false,
   } = config;
 
   // 🔄 상태 관리
@@ -59,7 +59,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
     isConnecting: false,
     connectionCount: 0,
     lastPing: null,
-    error: null
+    error: null,
   });
 
   const [serverMetrics, setServerMetrics] = useState<StreamData[]>([]);
@@ -87,7 +87,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
       socketRef.current = io(url, {
         transports: ['websocket', 'polling'],
         timeout: 10000,
-        forceNew: true
+        forceNew: true,
       });
 
       const socket = socketRef.current;
@@ -99,63 +99,65 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
           isConnected: true,
           isConnecting: false,
           lastPing: new Date(),
-          error: null
+          error: null,
         }));
         reconnectCountRef.current = 0;
-        
+
         if (debug) console.log('✅ WebSocket 연결 성공:', socket.id);
-        
+
         // 기존 구독 복원
         subscriptionsRef.current.forEach(streamType => {
           socket.emit('subscribe', { streamType, clientId: socket.id });
         });
-        
+
         // 현재 상태 요청
         socket.emit('request-current-status');
       });
 
       // 연결 실패
-      socket.on('connect_error', (error) => {
+      socket.on('connect_error', error => {
         console.error('❌ WebSocket 연결 실패:', error);
         setConnectionState(prev => ({
           ...prev,
           isConnected: false,
           isConnecting: false,
-          error: error.message
+          error: error.message,
         }));
       });
 
       // 연결 해제
-      socket.on('disconnect', (reason) => {
+      socket.on('disconnect', reason => {
         setConnectionState(prev => ({
           ...prev,
           isConnected: false,
-          isConnecting: false
+          isConnecting: false,
         }));
-        
+
         if (debug) console.log('🔌 연결 해제:', reason);
-        
+
         // 자동 재연결 시도
-        if (reason !== 'io client disconnect' && 
-            reconnectCountRef.current < reconnectAttempts) {
+        if (
+          reason !== 'io client disconnect' &&
+          reconnectCountRef.current < reconnectAttempts
+        ) {
           reconnectCountRef.current++;
           setTimeout(connect, 2000 * reconnectCountRef.current);
         }
       });
 
       // 🎉 환영 메시지
-      socket.on('welcome', (message) => {
+      socket.on('welcome', message => {
         if (debug) console.log('🎉 환영 메시지:', message);
       });
 
       // 📊 현재 상태
-      socket.on('current-status', (status) => {
+      socket.on('current-status', status => {
         setSystemStatus(status);
         setConnectionState(prev => ({
           ...prev,
-          connectionCount: status.connectionCount
+          connectionCount: status.connectionCount,
         }));
-        
+
         if (debug) console.log('📊 시스템 상태:', status);
       });
 
@@ -166,7 +168,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
           const newMetrics = [data, ...prev].slice(0, 100); // 최대 100개만 유지
           return newMetrics;
         });
-        
+
         if (debug) console.log('📈 메트릭 수신:', data.serverId, data.data.cpu);
       });
 
@@ -176,26 +178,18 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
           const newAlerts = [alert, ...prev].slice(0, 50); // 최대 50개만 유지
           return newAlerts;
         });
-        
-        if (debug) console.log('🚨 알림 수신:', alert.message);
-        
-        // 브라우저 알림 (권한이 있는 경우)
-        if (Notification.permission === 'granted' && 
-            (alert.priority === 'high' || alert.priority === 'critical')) {
-          new Notification(`🚨 ${alert.type}`, {
-            body: alert.message,
-            icon: '/favicon.ico'
-          });
-        }
-      });
 
+        if (debug) console.log('🚨 알림 수신:', alert.message);
+
+        // 실시간 알림만 처리 (브라우저 웹 알림 제거됨)
+      });
     } catch (error: any) {
       console.error('❌ WebSocket 연결 중 오류:', error);
       setConnectionState(prev => ({
         ...prev,
         isConnected: false,
         isConnecting: false,
-        error: error.message
+        error: error.message,
       }));
     }
   }, [url, debug, reconnectAttempts]);
@@ -208,45 +202,52 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
       socketRef.current.disconnect();
       socketRef.current = null;
     }
-    
+
     setConnectionState(prev => ({
       ...prev,
       isConnected: false,
-      isConnecting: false
+      isConnecting: false,
     }));
-    
+
     if (debug) console.log('🔌 수동 연결 해제');
   }, [debug]);
 
   /**
    * 📝 스트림 구독
    */
-  const subscribe = useCallback((streamType: string) => {
-    if (!socketRef.current?.connected) {
-      if (debug) console.warn('⚠️ 연결되지 않은 상태에서 구독 시도:', streamType);
-      return;
-    }
+  const subscribe = useCallback(
+    (streamType: string) => {
+      if (!socketRef.current?.connected) {
+        if (debug)
+          console.warn('⚠️ 연결되지 않은 상태에서 구독 시도:', streamType);
+        return;
+      }
 
-    subscriptionsRef.current.add(streamType);
-    socketRef.current.emit('subscribe', {
-      streamType,
-      clientId: socketRef.current.id
-    });
-    
-    if (debug) console.log('📝 구독 추가:', streamType);
-  }, [debug]);
+      subscriptionsRef.current.add(streamType);
+      socketRef.current.emit('subscribe', {
+        streamType,
+        clientId: socketRef.current.id,
+      });
+
+      if (debug) console.log('📝 구독 추가:', streamType);
+    },
+    [debug]
+  );
 
   /**
    * 📝 구독 해제
    */
-  const unsubscribe = useCallback((streamType: string) => {
-    if (!socketRef.current?.connected) return;
+  const unsubscribe = useCallback(
+    (streamType: string) => {
+      if (!socketRef.current?.connected) return;
 
-    subscriptionsRef.current.delete(streamType);
-    socketRef.current.emit('unsubscribe', streamType);
-    
-    if (debug) console.log('📝 구독 해제:', streamType);
-  }, [debug]);
+      subscriptionsRef.current.delete(streamType);
+      socketRef.current.emit('unsubscribe', streamType);
+
+      if (debug) console.log('📝 구독 해제:', streamType);
+    },
+    [debug]
+  );
 
   /**
    * 🔄 상태 새로고침
@@ -272,10 +273,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
       connect();
     }
 
-    // 브라우저 알림 권한 요청
-    if (Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
+    // 브라우저 웹 알림 기능 제거됨
 
     return () => {
       disconnect();
@@ -289,7 +287,9 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
     criticalAlerts: alerts.filter(a => a.priority === 'critical').length,
     highPriorityAlerts: alerts.filter(a => a.priority === 'high').length,
     uniqueServers: new Set(serverMetrics.map(m => m.serverId)).size,
-    lastUpdate: latestMetric?.timestamp ? new Date(latestMetric.timestamp) : null
+    lastUpdate: latestMetric?.timestamp
+      ? new Date(latestMetric.timestamp)
+      : null,
   };
 
   return {
@@ -297,14 +297,14 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
     connectionState,
     isConnected: connectionState.isConnected,
     isConnecting: connectionState.isConnecting,
-    
+
     // 데이터
     serverMetrics,
     alerts,
     latestMetric,
     systemStatus,
     stats,
-    
+
     // 액션
     connect,
     disconnect,
@@ -312,37 +312,43 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
     unsubscribe,
     refreshStatus,
     clearData,
-    
+
     // 현재 구독 목록
-    subscriptions: Array.from(subscriptionsRef.current)
+    subscriptions: Array.from(subscriptionsRef.current),
   };
 };
 
 /**
  * 🎯 특정 서버만 모니터링하는 Hook
  */
-export const useServerWebSocket = (serverId: string, config?: WebSocketConfig) => {
+export const useServerWebSocket = (
+  serverId: string,
+  config?: WebSocketConfig
+) => {
   const websocket = useWebSocket(config);
-  
+
   // 특정 서버의 메트릭만 필터링
-  const serverMetrics = websocket.serverMetrics.filter(m => m.serverId === serverId);
+  const serverMetrics = websocket.serverMetrics.filter(
+    m => m.serverId === serverId
+  );
   const serverAlerts = websocket.alerts.filter(a => a.serverId === serverId);
-  const latestServerMetric = websocket.latestMetric?.serverId === serverId 
-    ? websocket.latestMetric 
-    : null;
-  
+  const latestServerMetric =
+    websocket.latestMetric?.serverId === serverId
+      ? websocket.latestMetric
+      : null;
+
   useEffect(() => {
     if (websocket.isConnected) {
       websocket.subscribe('server-metrics');
       websocket.subscribe('alerts');
     }
   }, [websocket.isConnected]);
-  
+
   return {
     ...websocket,
     serverMetrics,
     serverAlerts,
     latestServerMetric,
-    serverId
+    serverId,
   };
-}; 
+};

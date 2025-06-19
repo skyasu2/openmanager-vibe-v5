@@ -1,6 +1,6 @@
 /**
  * 📊 자동 장애 보고서 서비스 (Vercel 최적화)
- * 
+ *
  * 간단한 패턴 기반 장애 감지 및 보고서 생성
  * - 실시간 메트릭 분석
  * - 임계값 기반 알림
@@ -52,16 +52,17 @@ export class AutoReportService {
     cpu: { warning: 80, critical: 95 },
     memory: { warning: 85, critical: 95 },
     disk: { warning: 90, critical: 98 },
-    network: { warning: 800, critical: 950 }
+    network: { warning: 800, critical: 950 },
   };
 
-  // 🔔 Slack 웹훅 URL (환경변수에서 가져오기)
-  private readonly SLACK_WEBHOOK = process.env.SLACK_WEBHOOK_URL || 
-    'https://hooks.slack.com/services/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';
+  // 🔔 Slack 웹훅 URL (환경변수에서만 가져오기)
+  private readonly SLACK_WEBHOOK = process.env.SLACK_WEBHOOK_URL;
 
   private constructor() {
     this.isEnabled = process.env.AUTO_REPORT_ENABLED !== 'false';
-    console.log(`🚨 자동 장애 보고서 서비스 초기화됨 (활성화: ${this.isEnabled})`);
+    console.log(
+      `🚨 자동 장애 보고서 서비스 초기화됨 (활성화: ${this.isEnabled})`
+    );
   }
 
   public static getInstance(): AutoReportService {
@@ -103,50 +104,55 @@ export class AutoReportService {
   /**
    * 🔍 장애 패턴 감지
    */
-  private detectIncidents(current: ServerMetric, previous?: ServerMetric): IncidentReport[] {
+  private detectIncidents(
+    current: ServerMetric,
+    previous?: ServerMetric
+  ): IncidentReport[] {
     const incidents: IncidentReport[] = [];
 
     // CPU 사용률 체크
     if (current.cpu >= this.THRESHOLDS.cpu.critical) {
-      incidents.push(this.createIncident(
-        'cpu-critical',
-        `${current.serverName} CPU 사용률 위험`,
-        'critical',
-        `CPU 사용률이 ${current.cpu}%로 위험 수준에 도달했습니다.`,
-        [current.serverId],
-        [current],
-        ['CPU 집약적인 프로세스 확인', '서버 스케일 업 고려']
-      ));
+      incidents.push(
+        this.createIncident(
+          'cpu-critical',
+          `${current.serverName} CPU 사용률 위험`,
+          'critical',
+          `CPU 사용률이 ${current.cpu}%로 위험 수준에 도달했습니다.`,
+          [current.serverId],
+          [current],
+          ['CPU 집약적인 프로세스 확인', '서버 스케일 업 고려']
+        )
+      );
     }
 
     // 메모리 사용률 체크
     if (current.memory >= this.THRESHOLDS.memory.critical) {
-      incidents.push(this.createIncident(
-        'memory-critical',
-        `${current.serverName} 메모리 사용률 위험`,
-        'critical',
-        `메모리 사용률이 ${current.memory}%로 위험 수준에 도달했습니다.`,
-        [current.serverId],
-        [current],
-        ['메모리 누수 확인', '불필요한 프로세스 종료']
-      ));
+      incidents.push(
+        this.createIncident(
+          'memory-critical',
+          `${current.serverName} 메모리 사용률 위험`,
+          'critical',
+          `메모리 사용률이 ${current.memory}%로 위험 수준에 도달했습니다.`,
+          [current.serverId],
+          [current],
+          ['메모리 누수 확인', '불필요한 프로세스 종료']
+        )
+      );
     }
 
     // 디스크 사용률 체크
     if (current.disk >= this.THRESHOLDS.disk.critical) {
-      incidents.push(this.createIncident(
-        'disk-critical',
-        `${current.serverName} 디스크 공간 부족`,
-        'critical',
-        `디스크 사용률이 ${current.disk}%로 위험 수준입니다.`,
-        [current.serverId],
-        [current],
-        [
-          '불필요한 파일 정리',
-          '로그 파일 정리',
-          '디스크 용량 확장'
-        ]
-      ));
+      incidents.push(
+        this.createIncident(
+          'disk-critical',
+          `${current.serverName} 디스크 공간 부족`,
+          'critical',
+          `디스크 사용률이 ${current.disk}%로 위험 수준입니다.`,
+          [current.serverId],
+          [current],
+          ['불필요한 파일 정리', '로그 파일 정리', '디스크 용량 확장']
+        )
+      );
     }
 
     // 급격한 변화 감지 (이전 메트릭이 있는 경우)
@@ -155,35 +161,31 @@ export class AutoReportService {
       const memoryDelta = current.memory - previous.memory;
 
       if (cpuDelta > 30) {
-        incidents.push(this.createIncident(
-          'cpu-spike',
-          `${current.serverName} CPU 급증`,
-          'high',
-          `CPU 사용률이 ${cpuDelta}% 급증했습니다. (${previous.cpu}% → ${current.cpu}%)`,
-          [current.serverId],
-          [current],
-          [
-            '급증 원인 분석',
-            '프로세스 상태 확인',
-            '부하 패턴 분석'
-          ]
-        ));
+        incidents.push(
+          this.createIncident(
+            'cpu-spike',
+            `${current.serverName} CPU 급증`,
+            'high',
+            `CPU 사용률이 ${cpuDelta}% 급증했습니다. (${previous.cpu}% → ${current.cpu}%)`,
+            [current.serverId],
+            [current],
+            ['급증 원인 분석', '프로세스 상태 확인', '부하 패턴 분석']
+          )
+        );
       }
 
       if (memoryDelta > 20) {
-        incidents.push(this.createIncident(
-          'memory-spike',
-          `${current.serverName} 메모리 급증`,
-          'high',
-          `메모리 사용률이 ${memoryDelta}% 급증했습니다. (${previous.memory}% → ${current.memory}%)`,
-          [current.serverId],
-          [current],
-          [
-            '메모리 누수 의심',
-            '애플리케이션 상태 확인',
-            '메모리 덤프 분석'
-          ]
-        ));
+        incidents.push(
+          this.createIncident(
+            'memory-spike',
+            `${current.serverName} 메모리 급증`,
+            'high',
+            `메모리 사용률이 ${memoryDelta}% 급증했습니다. (${previous.memory}% → ${current.memory}%)`,
+            [current.serverId],
+            [current],
+            ['메모리 누수 의심', '애플리케이션 상태 확인', '메모리 덤프 분석']
+          )
+        );
       }
     }
 
@@ -203,7 +205,7 @@ export class AutoReportService {
     recommendations: string[]
   ): IncidentReport {
     const id = `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     return {
       id,
       title,
@@ -213,12 +215,12 @@ export class AutoReportService {
       detectedAt: new Date().toISOString(),
       metrics,
       recommendations,
-      status: 'active'
+      status: 'active',
     };
   }
 
   /**
-   * 🔔 Slack 알림 전송
+   * 🔔 Slack 알림 전송 (Vercel 최적화)
    */
   private async sendAlert(incident: IncidentReport): Promise<void> {
     if (!this.SLACK_WEBHOOK) {
@@ -229,7 +231,7 @@ export class AutoReportService {
     try {
       const color = this.getSeverityColor(incident.severity);
       const emoji = this.getSeverityEmoji(incident.severity);
-      
+
       const payload = {
         text: `${emoji} 장애 감지: ${incident.title}`,
         attachments: [
@@ -241,44 +243,63 @@ export class AutoReportService {
               {
                 title: '심각도',
                 value: incident.severity.toUpperCase(),
-                short: true
+                short: true,
               },
               {
                 title: '영향받는 서버',
                 value: incident.affectedServers.join(', '),
-                short: true
+                short: true,
               },
               {
                 title: '감지 시간',
                 value: new Date(incident.detectedAt).toLocaleString('ko-KR'),
-                short: true
+                short: true,
               },
               {
                 title: '권장 조치',
                 value: incident.recommendations.join('\n• '),
-                short: false
-              }
+                short: false,
+              },
             ],
             footer: 'OpenManager Vibe v5 자동 장애 보고서',
-            ts: Math.floor(new Date(incident.detectedAt).getTime() / 1000)
-          }
-        ]
+            ts: Math.floor(new Date(incident.detectedAt).getTime() / 1000),
+          },
+        ],
       };
 
-      const response = await fetch(this.SLACK_WEBHOOK, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        console.log(`✅ Slack 알림 전송 성공: ${incident.title}`);
+      // Vercel 환경에서는 로깅으로 처리
+      if (process.env.VERCEL === '1') {
+        console.log('🔔 Vercel 환경: Slack 알림 로깅됨', {
+          title: incident.title,
+          severity: incident.severity,
+          affectedServers: incident.affectedServers,
+        });
       } else {
-        console.error('❌ Slack 알림 전송 실패:', response.statusText);
-      }
+        // 다른 환경에서는 실제 HTTP 요청
+        // Vercel 환경에서는 로깅으로 처리
+        if (process.env.VERCEL === '1') {
+          console.log('🔔 Vercel 환경: Slack 알림 로깅됨', {
+            title: incident.title,
+            severity: incident.severity,
+            affectedServers: incident.affectedServers,
+          });
+        } else {
+          // 다른 환경에서는 실제 HTTP 요청
+          const response = await fetch(this.SLACK_WEBHOOK, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
 
+          if (response.ok) {
+            console.log(`✅ Slack 알림 전송 성공: ${incident.title}`);
+          } else {
+            console.error('❌ Slack 알림 전송 실패:', response.statusText);
+          }
+        }
+      }
     } catch (error) {
       console.error('❌ Slack 알림 전송 오류:', error);
     }
@@ -289,10 +310,10 @@ export class AutoReportService {
    */
   private getSeverityColor(severity: IncidentReport['severity']): string {
     const colors = {
-      low: '#36a64f',      // 녹색
-      medium: '#ff9500',   // 주황색
-      high: '#ff6b6b',     // 빨간색
-      critical: '#d63031'  // 진한 빨간색
+      low: '#36a64f', // 녹색
+      medium: '#ff9500', // 주황색
+      high: '#ff6b6b', // 빨간색
+      critical: '#d63031', // 진한 빨간색
     };
     return colors[severity];
   }
@@ -305,7 +326,7 @@ export class AutoReportService {
       low: '⚠️',
       medium: '🚨',
       high: '🔥',
-      critical: '💥'
+      critical: '💥',
     };
     return emojis[severity];
   }
@@ -316,7 +337,10 @@ export class AutoReportService {
   getActiveIncidents(): IncidentReport[] {
     return Array.from(this.incidents.values())
       .filter(incident => incident.status === 'active')
-      .sort((a, b) => new Date(b.detectedAt).getTime() - new Date(a.detectedAt).getTime());
+      .sort(
+        (a, b) =>
+          new Date(b.detectedAt).getTime() - new Date(a.detectedAt).getTime()
+      );
   }
 
   /**
@@ -339,7 +363,10 @@ export class AutoReportService {
       active: active.length,
       resolved: resolved.length,
       severityCount,
-      lastIncident: incidents.length > 0 ? incidents[incidents.length - 1].detectedAt : null
+      lastIncident:
+        incidents.length > 0
+          ? incidents[incidents.length - 1].detectedAt
+          : null,
     };
   }
 
@@ -378,11 +405,15 @@ export class AutoReportService {
 export const autoReportService = AutoReportService.getInstance();
 
 // 주기적 정리 (1시간마다)
-if (typeof window === 'undefined') { // 서버 사이드에서만
-  setInterval(() => {
-    const cleaned = autoReportService.cleanupOldIncidents();
-    if (cleaned > 0) {
-      console.log(`🧹 ${cleaned}개의 오래된 장애 보고서 정리됨`);
-    }
-  }, 60 * 60 * 1000);
-} 
+if (typeof window === 'undefined') {
+  // 서버 사이드에서만
+  setInterval(
+    () => {
+      const cleaned = autoReportService.cleanupOldIncidents();
+      if (cleaned > 0) {
+        console.log(`🧹 ${cleaned}개의 오래된 장애 보고서 정리됨`);
+      }
+    },
+    60 * 60 * 1000
+  );
+}

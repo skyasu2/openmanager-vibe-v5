@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * 🤖 머신러닝 이상 탐지 시스템 v1.0
  *
@@ -8,8 +10,6 @@
  * - 실시간 모니터링
  * - 자동 임계값 학습
  */
-
-import { BrowserNotificationService } from '../notifications/BrowserNotificationService';
 
 interface ServerMetrics {
   id: string;
@@ -657,11 +657,10 @@ export class AnomalyDetection {
   private async sendAnomalyNotification(anomaly: AnomalyAlert): Promise<void> {
     try {
       if (anomaly.severity === 'critical' || anomaly.severity === 'high') {
-        const browserService = new BrowserNotificationService();
-        await browserService.sendSystemAlert(
-          `이상 탐지: ${anomaly.metric}`,
-          `${anomaly.description} (현재값: ${anomaly.currentValue}, 예상값: ${anomaly.expectedValue})`,
-          anomaly.severity === 'critical' ? 'critical' : 'warning'
+        // 이상 탐지 알림 (콘솔 로그)
+        const logLevel = anomaly.severity === 'critical' ? 'error' : 'warn';
+        console[logLevel](
+          `🔍 이상 탐지: ${anomaly.metric} - ${anomaly.description} (현재값: ${anomaly.currentValue}, 예상값: ${anomaly.expectedValue})`
         );
       }
     } catch (error) {

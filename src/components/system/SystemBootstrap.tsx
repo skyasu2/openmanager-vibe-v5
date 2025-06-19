@@ -100,43 +100,6 @@ export function SystemBootstrap() {
     };
   }, []);
 
-  // 부트스트랩 상태를 개발자 도구에서만 표시 (프로덕션에서는 숨김)
-  if (process.env.NODE_ENV === 'development' && !bootstrapStatus.completed) {
-    return (
-      <div className='fixed bottom-4 right-4 bg-gray-900 text-white p-3 rounded-lg shadow-lg text-xs z-50'>
-        <div className='flex items-center space-x-2'>
-          <div className='animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full'></div>
-          <span>시스템 초기화 중...</span>
-        </div>
-        <div className='mt-2 space-y-1'>
-          <div className='flex items-center space-x-2'>
-            <div
-              className={`w-2 h-2 rounded-full ${
-                bootstrapStatus.mcpWarmup === 'success'
-                  ? 'bg-green-500'
-                  : bootstrapStatus.mcpWarmup === 'failed'
-                    ? 'bg-red-500'
-                    : 'bg-yellow-500'
-              }`}
-            ></div>
-            <span>MCP 웜업</span>
-          </div>
-          <div className='flex items-center space-x-2'>
-            <div
-              className={`w-2 h-2 rounded-full ${
-                bootstrapStatus.googleAI === 'success'
-                  ? 'bg-green-500'
-                  : bootstrapStatus.googleAI === 'failed'
-                    ? 'bg-red-500'
-                    : 'bg-yellow-500'
-              }`}
-            ></div>
-            <span>Google AI</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  // 시스템 초기화 상태 표시 제거됨 (웹 알람 삭제에 따라)
   return null;
 }

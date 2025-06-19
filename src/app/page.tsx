@@ -20,29 +20,7 @@ import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
-import { InlineFeedbackContainer } from '@/components/ui/InlineFeedbackSystem';
-
-// 🔔 Dynamic Import로 성능 최적화
-const ToastContainer = dynamic(
-  () =>
-    import('@/components/ui/ToastNotification').then(mod => ({
-      default: mod.ToastContainer,
-    })),
-  {
-    ssr: false,
-  }
-);
-
-// 고급 알림 시스템 추가
-const AdvancedNotificationContainer = dynamic(
-  () =>
-    import('@/components/ui/AdvancedNotificationSystem').then(mod => ({
-      default: mod.AdvancedNotificationContainer,
-    })),
-  {
-    ssr: false,
-  }
-);
+// 토스트 알림과 인라인 피드백 시스템 제거됨
 
 const FeatureCardsGrid = dynamic(
   () => import('@/components/home/FeatureCardsGrid'),
@@ -58,8 +36,7 @@ const FeatureCardsGrid = dynamic(
   }
 );
 
-// 🎨 Toast Hook 직접 import
-import { useToast } from '@/components/ui/ToastNotification';
+// 토스트 알림 훅 제거됨
 
 export default function Home() {
   const router = useRouter();
@@ -72,7 +49,7 @@ export default function Home() {
     logout,
     getSystemRemainingTime,
   } = useUnifiedAdminStore();
-  const { success, error, info, warning } = useToast();
+  // 토스트 알림 기능 제거됨
   const [isLoading, setIsLoading] = useState(false);
   const [systemTimeRemaining, setSystemTimeRemaining] = useState(0);
 
@@ -190,7 +167,7 @@ export default function Home() {
   // 🚀 시스템 시작 카운트다운 함수
   const startSystemCountdown = () => {
     console.log('🚀 시스템 시작 카운트다운 시작 (3초)');
-    success('🚀 3초 후 시스템이 시작되고 로딩 페이지로 이동합니다!');
+    console.log('🚀 3초 후 시스템이 시작되고 로딩 페이지로 이동합니다!');
 
     setSystemStartCountdown(3);
 
@@ -217,7 +194,7 @@ export default function Home() {
     }
     setSystemStartCountdown(0);
     setCountdownTimer(null);
-    info('⏹️ 시스템 시작이 취소되었습니다.');
+    console.log('⏹️ 시스템 시작이 취소되었습니다.');
   };
 
   // 🚀 실제 시스템 시작 함수
@@ -225,12 +202,12 @@ export default function Home() {
     try {
       console.log('🚀 실제 시스템 시작 실행');
       await startSystem();
-      success('✅ 시스템이 성공적으로 시작되었습니다.');
+      console.log('✅ 시스템이 성공적으로 시작되었습니다.');
       // 로딩 페이지로 이동
       router.push('/system-boot');
     } catch (error) {
       console.error('❌ 시스템 시작 실패:', error);
-      error('❌ 시스템 시작에 실패했습니다.');
+      console.error('❌ 시스템 시작에 실패했습니다.');
     }
   };
 
@@ -244,10 +221,10 @@ export default function Home() {
       try {
         console.log('🛑 시스템 중지 요청');
         await stopSystem();
-        success('✅ 시스템이 성공적으로 중지되었습니다.');
+        console.log('✅ 시스템이 성공적으로 중지되었습니다.');
       } catch (error) {
         console.error('❌ 시스템 중지 실패:', error);
-        error('❌ 시스템 중지에 실패했습니다.');
+        console.error('❌ 시스템 중지에 실패했습니다.');
       } finally {
         setIsLoading(false);
       }
@@ -276,15 +253,15 @@ export default function Home() {
     setIsLoading(true);
 
     try {
-      info('🚀 시스템을 시작하고 대시보드로 이동합니다...');
+      console.log('🚀 시스템을 시작하고 대시보드로 이동합니다...');
       await startSystem();
-      success('✅ 시스템 시작 완료! 대시보드로 이동합니다.');
+      console.log('✅ 시스템 시작 완료! 대시보드로 이동합니다.');
 
       // 로딩 페이지로 이동 (시스템 시작 과정 표시)
       router.push('/system-boot');
     } catch (error) {
       console.error('❌ 시스템 시작 실패:', error);
-      error('❌ 시스템 시작에 실패했습니다. 다시 시도해주세요.');
+      console.error('❌ 시스템 시작에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsLoading(false);
     }
@@ -292,7 +269,7 @@ export default function Home() {
 
   const handleBootAnimationClick = async () => {
     if (!isSystemStarted) {
-      warning('🚨 시스템을 먼저 시작해야 합니다!');
+      console.warn('🚨 시스템을 먼저 시작해야 합니다!');
       return;
     }
 
@@ -301,14 +278,14 @@ export default function Home() {
       router.push('/system-boot');
     } catch (error) {
       console.error('시스템 부팅 페이지 접근 중 오류:', error);
-      error(
+      console.error(
         '시스템 부팅 페이지에 접근할 수 없습니다. 잠시 후 다시 시도해주세요.'
       );
     }
   };
 
   const handleAIAgentInfo = () => {
-    info(
+    console.log(
       `🧠 AI 어시스턴트 상태: ${aiAgent.isEnabled ? '활성' : '비활성'}\n` +
         `상태: ${aiAgent.state}\n` +
         `시스템 연동: ${isSystemStarted ? '연결됨' : '대기 중'}`
@@ -952,23 +929,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 인라인 피드백 컨테이너들 */}
-      <InlineFeedbackContainer
-        area='system-control'
-        className='fixed bottom-4 left-4 z-50'
-      />
-      <InlineFeedbackContainer
-        area='ai-agent'
-        className='fixed bottom-4 center-4 z-50'
-      />
-
-      {/* Slack 전용 토스트 컨테이너 */}
-
-      {/* 토스트 알림 컨테이너 */}
-      <ToastContainer />
-
-      {/* 고급 알림 시스템 컨테이너 */}
-      <AdvancedNotificationContainer />
+      {/* 왼쪽 하단 실행중 기능들과 토스트 알람 제거됨 */}
     </div>
   );
 }

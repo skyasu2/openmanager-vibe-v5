@@ -9,7 +9,6 @@
  */
 
 import { cacheService } from '../services/cacheService';
-import { BrowserNotificationService } from '../services/notifications/BrowserNotificationService';
 
 interface MemoryStats {
   heapUsed: number;
@@ -436,12 +435,9 @@ export class MemoryOptimizer {
           `🚨 위험: 메모리 사용률 ${stats.usagePercent}% - 즉시 최적화 실행`
         );
 
-        // 브라우저 알림 전송
-        const browserService = new BrowserNotificationService();
-        await browserService.sendSystemAlert(
-          '메모리 위험',
-          `메모리 사용률 ${stats.usagePercent}% - 즉시 최적화 실행`,
-          'critical'
+        // 메모리 위험 알림 (콘솔 로그)
+        console.warn(
+          `🚨 메모리 위험: 사용률 ${stats.usagePercent}% - 즉시 최적화 실행`
         );
 
         await this.optimizeMemoryNow();
@@ -453,12 +449,9 @@ export class MemoryOptimizer {
             `⚠️ 경고: 메모리 사용률 ${stats.usagePercent}% - 예방적 최적화 실행`
           );
 
-          // 경고 수준 브라우저 알림 전송
-          const browserService = new BrowserNotificationService();
-          await browserService.sendSystemAlert(
-            '메모리 경고',
-            `메모리 사용률 ${stats.usagePercent}% - 예방적 최적화 실행`,
-            'warning'
+          // 메모리 경고 알림 (콘솔 로그)
+          console.warn(
+            `⚠️ 메모리 경고: 사용률 ${stats.usagePercent}% - 예방적 최적화 실행`
           );
 
           await this.optimizeMemoryNow();

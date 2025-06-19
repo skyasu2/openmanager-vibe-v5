@@ -12,7 +12,6 @@
 import type { EnhancedServerMetrics } from '../../types/server';
 import { predictiveAnalytics } from './PredictiveAnalytics';
 import { cacheService } from '../cacheService';
-import { BrowserNotificationService } from '../notifications/BrowserNotificationService';
 
 interface ScalingDecision {
   action: 'scale_up' | 'scale_down' | 'maintain';
@@ -675,12 +674,12 @@ export class AutoScalingEngine {
           `• 오류: ${error}\n` +
           `• 현재 서버 수: ${decision.currentServers}개`;
 
-      const browserService = new BrowserNotificationService();
-      await browserService.sendSystemAlert(
-        success ? '자동 스케일링 완료' : '자동 스케일링 실패',
-        message,
-        success ? 'info' : 'critical'
-      );
+      // 스케일링 알림 (콘솔 로그)
+      if (success) {
+        console.log(`✅ ${message}`);
+      } else {
+        console.error(`❌ ${message}`);
+      }
     } catch (notificationError) {
       console.warn('⚠️ 스케일링 알림 전송 실패:', notificationError);
     }

@@ -26,7 +26,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-import { useToast } from '@/components/ui/ToastNotification';
+// 토스트 알림 제거됨
 import TechStackDisplay from '@/components/ui/TechStackDisplay';
 import { analyzeTechStack } from '@/utils/TechStackAnalyzer';
 import FeatureCardModal from '../shared/FeatureCardModal';
@@ -352,8 +352,7 @@ const VERSION_HISTORY = {
     {
       version: '2.1.0',
       date: DateUtils.getVersionDate('2.1.0'),
-      changes:
-        'MCP + RAG 백업 엔진 통합, Bot 아이콘 회전 애니메이션',
+      changes: 'MCP + RAG 백업 엔진 통합, Bot 아이콘 회전 애니메이션',
     },
     {
       version: '2.0.0',
@@ -539,7 +538,6 @@ export default function FeatureCardsGrid() {
   const modalRef = useRef<HTMLDivElement>(null);
 
   const { aiAgent } = useUnifiedAdminStore();
-  const { warning } = useToast();
 
   // 다크모드 상태를 페이지에서 가져오기 (page.tsx에서 사용하는 것과 동일한 로직)
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -608,15 +606,8 @@ export default function FeatureCardsGrid() {
 
     if (card?.requiresAI && !aiAgent.isEnabled) {
       // AI 엔진이 필요한 기능에 일반 사용자가 접근할 때
-      warning(
-        '🚧 이 기능은 AI 엔진 모드에서만 사용 가능합니다. 홈 화면에서 AI 모드를 활성화해주세요.',
-        {
-          duration: 5000,
-          action: {
-            label: '활성화하기',
-            onClick: () => (window.location.href = '/'),
-          },
-        }
+      console.warn(
+        '🚧 이 기능은 AI 엔진 모드에서만 사용 가능합니다. 홈 화면에서 AI 모드를 활성화해주세요.'
       );
       return;
     }
@@ -679,29 +670,33 @@ export default function FeatureCardsGrid() {
               y: card.isVibeCard ? -8 : -5,
               rotateY: card.isVibeCard ? 5 : 0,
             }}
-            className={`group cursor-pointer relative ${card.isVibeCard
-              ? 'hover:shadow-2xl hover:shadow-yellow-500/30 transform-gpu'
-              : ''
-              }`}
+            className={`group cursor-pointer relative ${
+              card.isVibeCard
+                ? 'hover:shadow-2xl hover:shadow-yellow-500/30 transform-gpu'
+                : ''
+            }`}
             onClick={() => handleCardClick(card.id)}
           >
             <div
-              className={`relative p-4 ${isDarkMode
-                ? 'bg-white/10 hover:bg-white/20 border-white/25'
-                : 'bg-gray-900/90 hover:bg-gray-900/95 border-gray-200/50'
-                } backdrop-blur-sm border rounded-2xl transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) h-full ${card.isSpecial
+              className={`relative p-4 ${
+                isDarkMode
+                  ? 'bg-white/10 hover:bg-white/20 border-white/25'
+                  : 'bg-gray-900/90 hover:bg-gray-900/95 border-gray-200/50'
+              } backdrop-blur-sm border rounded-2xl transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) h-full ${
+                card.isSpecial
                   ? isDarkMode
                     ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/30'
                     : 'bg-gradient-to-br from-amber-100/90 to-orange-100/90 border-amber-300/50'
                   : ''
-                } group-hover:transform group-hover:scale-[1.02] group-hover:shadow-2xl`}
+              } group-hover:transform group-hover:scale-[1.02] group-hover:shadow-2xl`}
             >
               {/* 그라데이션 배경 */}
               <div
-                className={`absolute inset-0 bg-gradient-to-br ${card.gradient} ${isDarkMode
-                  ? 'opacity-0 group-hover:opacity-10'
-                  : 'opacity-0 group-hover:opacity-15'
-                  } rounded-2xl transition-opacity duration-300`}
+                className={`absolute inset-0 bg-gradient-to-br ${card.gradient} ${
+                  isDarkMode
+                    ? 'opacity-0 group-hover:opacity-10'
+                    : 'opacity-0 group-hover:opacity-15'
+                } rounded-2xl transition-opacity duration-300`}
               />
 
               {/* AI 카드 특별 이색 그라데이션 애니메이션 - landing 버전에서 재활용 */}
@@ -760,11 +755,13 @@ export default function FeatureCardsGrid() {
 
               {/* 일반 카드들의 아이콘 (바이브 코딩 포함) */}
               <div
-                className={`w-12 h-12 ${card.isVibeCard
-                  ? 'bg-gradient-to-br from-yellow-400 to-amber-500'
-                  : `bg-gradient-to-br ${card.gradient}`
-                  } rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 relative z-10 ${card.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
-                  }`}
+                className={`w-12 h-12 ${
+                  card.isVibeCard
+                    ? 'bg-gradient-to-br from-yellow-400 to-amber-500'
+                    : `bg-gradient-to-br ${card.gradient}`
+                } rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 relative z-10 ${
+                  card.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
+                }`}
               >
                 {card.isAICard ? (
                   <motion.div
@@ -809,12 +806,13 @@ export default function FeatureCardsGrid() {
               {/* 모든 카드들의 통일된 컨텐츠 */}
               <div className='relative z-10'>
                 <h3
-                  className={`text-lg font-bold mb-2 transition-colors leading-tight ${card.isVibeCard
-                    ? 'text-white group-hover:text-yellow-100'
-                    : isDarkMode
-                      ? 'text-white group-hover:text-white'
-                      : 'text-white group-hover:text-gray-100'
-                    }`}
+                  className={`text-lg font-bold mb-2 transition-colors leading-tight ${
+                    card.isVibeCard
+                      ? 'text-white group-hover:text-yellow-100'
+                      : isDarkMode
+                        ? 'text-white group-hover:text-white'
+                        : 'text-white group-hover:text-gray-100'
+                  }`}
                   style={{
                     color: card.isVibeCard
                       ? 'rgba(255, 255, 255, 0.98)'
@@ -826,12 +824,13 @@ export default function FeatureCardsGrid() {
                   {renderTextWithAIGradient(card.title)}
                 </h3>
                 <p
-                  className={`text-xs leading-relaxed transition-colors ${card.isVibeCard
-                    ? 'text-white/90 group-hover:text-yellow-50'
-                    : isDarkMode
-                      ? 'text-white/70 group-hover:text-white/90'
-                      : 'text-white/90 group-hover:text-white'
-                    }`}
+                  className={`text-xs leading-relaxed transition-colors ${
+                    card.isVibeCard
+                      ? 'text-white/90 group-hover:text-yellow-50'
+                      : isDarkMode
+                        ? 'text-white/70 group-hover:text-white/90'
+                        : 'text-white/90 group-hover:text-white'
+                  }`}
                   style={{
                     color: card.isVibeCard
                       ? 'rgba(255, 255, 255, 0.96)'
@@ -853,14 +852,15 @@ export default function FeatureCardsGrid() {
 
               {/* 호버 효과 */}
               <div
-                className={`absolute inset-0 ring-2 ring-transparent transition-all duration-300 rounded-2xl ${card.isAICard
-                  ? 'group-hover:ring-pink-400/50 group-hover:shadow-lg group-hover:shadow-pink-500/25'
-                  : card.isVibeCard
-                    ? 'group-hover:ring-yellow-400/50'
-                    : card.isSpecial
-                      ? 'group-hover:ring-amber-400/50 group-hover:shadow-lg group-hover:shadow-amber-500/25'
-                      : 'group-hover:ring-white/30'
-                  }`}
+                className={`absolute inset-0 ring-2 ring-transparent transition-all duration-300 rounded-2xl ${
+                  card.isAICard
+                    ? 'group-hover:ring-pink-400/50 group-hover:shadow-lg group-hover:shadow-pink-500/25'
+                    : card.isVibeCard
+                      ? 'group-hover:ring-yellow-400/50'
+                      : card.isSpecial
+                        ? 'group-hover:ring-amber-400/50 group-hover:shadow-lg group-hover:shadow-amber-500/25'
+                        : 'group-hover:ring-white/30'
+                }`}
               />
             </div>
           </motion.div>
@@ -868,15 +868,16 @@ export default function FeatureCardsGrid() {
       </div>
 
       {/* 개발과정 버튼 */}
-      <div className="mt-12 flex justify-center">
+      <div className='mt-12 flex justify-center'>
         <Link
-          href="/about"
-          className={`group relative px-6 py-3 rounded-xl font-semibold transition-all duration-300 overflow-hidden ${isDarkMode
-            ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25'
-            : 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg shadow-blue-600/25'
-            } hover:scale-105 hover:shadow-xl`}
+          href='/about'
+          className={`group relative px-6 py-3 rounded-xl font-semibold transition-all duration-300 overflow-hidden ${
+            isDarkMode
+              ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25'
+              : 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg shadow-blue-600/25'
+          } hover:scale-105 hover:shadow-xl`}
         >
-          <span className="relative z-10 flex items-center gap-2">
+          <span className='relative z-10 flex items-center gap-2'>
             🔧 개발과정 보기
           </span>
         </Link>

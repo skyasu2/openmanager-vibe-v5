@@ -1,9 +1,9 @@
 /**
  * 🔧 Settings Service
- * 
+ *
  * 통합 설정 관리를 위한 서비스 클래스
  * 모든 설정 관련 API 호출을 중앙 집중화
- * 
+ *
  * @created 2025-06-09
  * @author AI Assistant
  */
@@ -12,7 +12,7 @@ import {
   SettingsData,
   GeneratorConfig,
   ApiResponse,
-  HealthCheckResponse
+  HealthCheckResponse,
 } from '../types/ProfileTypes';
 
 export class SettingsService {
@@ -47,12 +47,30 @@ export class SettingsService {
       ]);
 
       return {
-        metrics: metricsRes.status === 'fulfilled' ? metricsRes.value : { interval: 5, realistic: false },
-        scenarios: scenariosRes.status === 'fulfilled' ? scenariosRes.value : { active: 0, total: 0 },
-        thresholds: thresholdsRes.status === 'fulfilled' ? thresholdsRes.value : { cpu: 80, memory: 85, disk: 90 },
-        dashboard: dashboardRes.status === 'fulfilled' ? dashboardRes.value : { layout: 'grid', widgets: 0 },
-        notifications: notificationRes.status === 'fulfilled' ? notificationRes.value : { slack: false, email: false, webhook: false },
-        backup: backupRes.status === 'fulfilled' ? backupRes.value : { lastBackup: '없음', autoBackup: false },
+        metrics:
+          metricsRes.status === 'fulfilled'
+            ? metricsRes.value
+            : { interval: 5, realistic: false },
+        scenarios:
+          scenariosRes.status === 'fulfilled'
+            ? scenariosRes.value
+            : { active: 0, total: 0 },
+        thresholds:
+          thresholdsRes.status === 'fulfilled'
+            ? thresholdsRes.value
+            : { cpu: 80, memory: 85, disk: 90 },
+        dashboard:
+          dashboardRes.status === 'fulfilled'
+            ? dashboardRes.value
+            : { layout: 'grid', widgets: 0 },
+        notifications:
+          notificationRes.status === 'fulfilled'
+            ? notificationRes.value
+            : { slack: false, email: false, webhook: false },
+        backup:
+          backupRes.status === 'fulfilled'
+            ? backupRes.value
+            : { lastBackup: '없음', autoBackup: false },
         theme: this.getTheme(),
       };
     } catch (error) {
@@ -115,16 +133,14 @@ export class SettingsService {
   }
 
   /**
-   * 알림 설정 조회
+   * 알림 설정 조회 (Vercel 최적화)
    */
   private async fetchNotificationConfig() {
-    const response = await fetch('/api/admin/notification-config');
-    if (!response.ok) throw new Error('알림 설정 로드 실패');
-    const data = await response.json();
+    // Vercel 환경에서는 Slack만 지원
     return {
-      slack: data.slack || false,
-      email: data.email || false,
-      webhook: data.webhook || false,
+      slack: true, // Slack은 웹훅 기반으로 Vercel에서 지원 가능
+      email: false, // 이메일은 Vercel에서 SMTP 제한으로 비활성화
+      webhook: false, // 웹훅은 Vercel에서 제한적 지원으로 비활성화
     };
   }
 
@@ -180,7 +196,10 @@ export class SettingsService {
       const data = await response.json();
       return { success: true, data, message: '서버 개수가 변경되었습니다.' };
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : '알 수 없는 오류' };
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
+      };
     }
   }
 
@@ -203,7 +222,10 @@ export class SettingsService {
       const data = await response.json();
       return { success: true, data, message: '아키텍처가 변경되었습니다.' };
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : '알 수 없는 오류' };
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
+      };
     }
   }
 
@@ -305,4 +327,4 @@ export class SettingsService {
       theme: 'dark',
     };
   }
-} 
+}
