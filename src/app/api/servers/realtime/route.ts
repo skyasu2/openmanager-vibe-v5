@@ -58,24 +58,37 @@ export async function GET(request: NextRequest) {
       generator.startAutoGeneration();
     }
 
-    // 최신 서버 데이터 반환 (ServerInstance → Server 변환)
+    // 🎯 Enhanced v2.0: 완전한 타입 안전 변환
     const latestServerInstances = generator.getAllServers();
     const latestServers = transformServerInstancesToServers(
       latestServerInstances
     );
     const dashboardSummary = generator.getDashboardSummary();
 
+    // 🔒 변환 품질 검증
+    const validServers = latestServers.filter(
+      server => server && server.id && server.name && server.services
+    );
+
     console.log(
-      `🔄 ${latestServerInstances.length}개 ServerInstance → ${latestServers.length}개 Server 변환 완료`
+      `🔄 Enhanced v2.0: ${latestServerInstances.length}개 ServerInstance → ${validServers.length}개 검증된 Server 변환 완료`
     );
 
     return NextResponse.json({
       success: true,
-      data: latestServers, // 변환된 Server[] 반환
-      servers: latestServers, // 호환성을 위해 유지
+      data: validServers, // 🔒 검증된 Server[] 반환
+      servers: validServers, // 호환성을 위해 유지
       summary: dashboardSummary,
       timestamp: Date.now(),
-      count: latestServers.length,
+      count: validServers.length,
+      transformation: {
+        input: latestServerInstances.length,
+        output: latestServers.length,
+        valid: validServers.length,
+        quality: Math.round(
+          (validServers.length / latestServerInstances.length) * 100
+        ),
+      },
     });
   } catch (error) {
     console.error('❌ 실시간 서버 데이터 API 오류:', error);

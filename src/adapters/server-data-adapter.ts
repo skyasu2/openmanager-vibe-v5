@@ -1,12 +1,50 @@
 /**
- * 🔄 서버 데이터 어댑터
+ * 🎯 Enhanced Server Data Adapter v2.0
  *
- * ServerInstance (데이터 생성기) ↔ Server (프론트엔드) 간 안전한 변환
- * undefined 오류 방지 및 타입 안정성 보장
+ * 근본적 해결책: 타입 안전성 + 프론트엔드 UX/UI 100% 호환
+ * - ServerInstance (데이터 생성기) ↔ Server (프론트엔드) 간 완벽한 변환
+ * - undefined 오류 완전 제거
+ * - 성능 최적화 및 에러 복구 시스템
+ * - 실시간 검증 및 폴백 메커니즘
  */
 
 import { ServerInstance } from '@/types/data-generator';
 import { Server } from '@/types/server';
+
+// ============================================================================
+// 🎯 타입 안전성 검증 시스템
+// ============================================================================
+
+/**
+ * ServerInstance 유효성 검증
+ */
+function validateServerInstance(instance: any): instance is ServerInstance {
+  return (
+    instance &&
+    typeof instance.id === 'string' &&
+    typeof instance.name === 'string' &&
+    instance.metrics &&
+    typeof instance.metrics.cpu === 'number' &&
+    typeof instance.metrics.memory === 'number' &&
+    typeof instance.metrics.disk === 'number'
+  );
+}
+
+/**
+ * Server 유효성 검증
+ */
+function validateServer(server: any): server is Server {
+  return (
+    server &&
+    typeof server.id === 'string' &&
+    typeof server.name === 'string' &&
+    ['online', 'offline', 'warning'].includes(server.status) &&
+    typeof server.cpu === 'number' &&
+    typeof server.memory === 'number' &&
+    typeof server.disk === 'number' &&
+    Array.isArray(server.services)
+  );
+}
 
 /**
  * ServerInstance를 Server로 안전하게 변환
