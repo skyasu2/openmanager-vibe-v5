@@ -21,6 +21,8 @@ const mockServer = {
   uptime: '8일 12시간',
   lastUpdate: new Date(),
   alerts: 2,
+  health: { score: 80, trend: Array(30).fill(80) },
+  alertsSummary: { total: 2, critical: 0, warning: 2 },
   services: [
     { name: 'nodejs', status: 'running' as const, port: 3000 },
     { name: 'nginx', status: 'running' as const, port: 80 },

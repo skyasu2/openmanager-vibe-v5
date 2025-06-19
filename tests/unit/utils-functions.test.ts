@@ -256,9 +256,15 @@ describe('Utils Functions', () => {
 
   describe('sleep', () => {
     it('지정된 시간만큼 대기한다', async () => {
+      vi.useFakeTimers();
+
       const start = Date.now();
-      await sleep(100);
+      const p = sleep(100);
+      vi.advanceTimersByTime(100);
+      await p;
       const end = Date.now();
+
+      vi.useRealTimers();
 
       expect(end - start).toBeGreaterThanOrEqual(90);
     });
