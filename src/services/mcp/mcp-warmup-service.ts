@@ -398,8 +398,27 @@ export class MCPWarmupService {
   async warmupAllServers(
     onProgress?: (progress: MCPWakeupProgress) => void
   ): Promise<MCPWakeupResult> {
-    console.log("MCPWarmupService: warmupAllServers() 호출됨. wakeupMCPServer()를 실행합니다.");
+    console.log(
+      'MCPWarmupService: warmupAllServers() 호출됨. wakeupMCPServer()를 실행합니다.'
+    );
     return this.wakeupMCPServer(onProgress);
+  }
+
+  /**
+   * 🔍 워밍업 상태 가져오기 (호환성용)
+   *
+   * @description 기존 `getWarmupStatus` 호출을 위해 추가된 메서드.
+   * 현재는 getCurrentStatus()와 동일한 값을 반환합니다.
+   */
+  async getWarmupStatus(): Promise<{
+    isActive: boolean;
+    responseTime: number;
+    lastCheck: Date;
+  }> {
+    console.log(
+      'MCPWarmupService: getWarmupStatus() 호출됨. getCurrentStatus()를 실행합니다.'
+    );
+    return this.getCurrentStatus();
   }
 }
 

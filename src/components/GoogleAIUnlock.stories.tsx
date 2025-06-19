@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { action } from '@storybook/addon-actions';
 import { GoogleAIUnlock } from './GoogleAIUnlock';
 import {
   Card,
@@ -24,7 +23,7 @@ if (typeof window !== 'undefined') {
 }
 
 const meta: Meta<typeof GoogleAIUnlock> = {
-  title: 'Security/GoogleAIUnlock',
+  title: 'Components/GoogleAIUnlock',
   component: GoogleAIUnlock,
   parameters: {
     layout: 'centered',
@@ -52,7 +51,6 @@ Google AI 기능 잠금 해제 컴포넌트입니다.
   argTypes: {
     onUnlocked: {
       description: '잠금 해제 성공 시 호출되는 콜백 함수',
-      action: 'unlocked',
     },
     children: {
       description: '잠금 해제 후 표시할 컨텐츠',
@@ -62,13 +60,11 @@ Google AI 기능 잠금 해제 컴포넌트입니다.
 };
 
 export default meta;
-type Story = StoryObj<typeof GoogleAIUnlock>;
+type Story = StoryObj<typeof meta>;
 
 // 기본 잠금 상태
 export const Default: Story = {
-  args: {
-    onUnlocked: action('Google AI 잠금 해제됨'),
-  },
+  args: {},
   parameters: {
     docs: {
       description: {
@@ -81,9 +77,7 @@ export const Default: Story = {
 
 // 설정이 필요한 상태 (환경변수 없음)
 export const ConfigurationNeeded: Story = {
-  args: {
-    onUnlocked: action('Google AI 잠금 해제됨'),
-  },
+  args: {},
   parameters: {
     docs: {
       description: {
@@ -109,7 +103,6 @@ export const ConfigurationNeeded: Story = {
 // 이미 사용 가능한 상태
 export const AlreadyAvailable: Story = {
   args: {
-    onUnlocked: action('Google AI 잠금 해제됨'),
     children: (
       <Card className='w-full max-w-md'>
         <CardHeader>
@@ -163,9 +156,7 @@ export const AlreadyAvailable: Story = {
 
 // 카드로 감싸진 버전
 export const InCard: Story = {
-  args: {
-    onUnlocked: action('Google AI 잠금 해제됨'),
-  },
+  args: {},
   parameters: {
     docs: {
       description: {
@@ -190,9 +181,7 @@ export const InCard: Story = {
 
 // 대시보드 스타일
 export const DashboardStyle: Story = {
-  args: {
-    onUnlocked: action('Google AI 잠금 해제됨'),
-  },
+  args: {},
   parameters: {
     docs: {
       description: {
@@ -235,9 +224,7 @@ export const DashboardStyle: Story = {
 
 // 인라인 사용 예시
 export const InlineUsage: Story = {
-  args: {
-    onUnlocked: action('Google AI 잠금 해제됨'),
-  },
+  args: {},
   parameters: {
     docs: {
       description: {
@@ -283,7 +270,6 @@ export const InlineUsage: Story = {
 // 성공 상태 시뮬레이션
 export const SuccessFlow: Story = {
   args: {
-    onUnlocked: action('🎉 Google AI 성공적으로 잠금 해제됨!'),
     children: (
       <div className='text-center p-6 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800'>
         <div className='text-4xl mb-2'>🎉</div>
@@ -320,9 +306,7 @@ export const SuccessFlow: Story = {
 
 // Interactive 예시 (다크 모드)
 export const DarkMode: Story = {
-  args: {
-    onUnlocked: action('Google AI 잠금 해제됨'),
-  },
+  args: {},
   parameters: {
     backgrounds: { default: 'dark' },
     docs: {

@@ -331,7 +331,12 @@ CRON_GEMINI_LEARNING=true
 `;
 
     details.forEach(result => {
-      const icon = result.status === 'valid' ? '✅' : result.status === 'invalid' ? '❌' : '❓';
+      const icon =
+        result.status === 'valid'
+          ? '✅'
+          : result.status === 'invalid'
+            ? '❌'
+            : '❓';
       report += `${icon} [${result.status.toUpperCase()}] ${result.key}: ${result.message}\n`;
     });
 
@@ -405,6 +410,33 @@ CRON_GEMINI_LEARNING=true
   // 🔧 편의 메서드들 (기존 코드 호환성)
   getGoogleAIKey(): string | null {
     return this.getKey('GOOGLE_AI_API_KEY');
+  }
+
+  /**
+   * 🔧 Supabase URL 가져오기 (호환성용)
+   */
+  getSupabaseUrl(): string | null {
+    return this.getKey('SUPABASE_URL') || process.env.SUPABASE_URL || null;
+  }
+
+  /**
+   * 🔧 Supabase Anon Key 가져오기 (호환성용)
+   */
+  getSupabaseAnonKey(): string | null {
+    return (
+      this.getKey('SUPABASE_ANON_KEY') || process.env.SUPABASE_ANON_KEY || null
+    );
+  }
+
+  /**
+   * 🔧 MCP URL 가져오기 (호환성용)
+   */
+  getMCPUrl(): string | null {
+    return (
+      this.getKey('MCP_URL') ||
+      process.env.MCP_URL ||
+      'https://openmanager-vibe-v5.onrender.com'
+    );
   }
 }
 

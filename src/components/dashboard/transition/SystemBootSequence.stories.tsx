@@ -1,11 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { action } from '@storybook/addon-actions';
 import SystemBootSequence from './SystemBootSequence';
 import { Server } from '@/types/server';
 import { useState } from 'react';
 
 const meta: Meta<typeof SystemBootSequence> = {
-  title: 'System/SystemBootSequence',
+  title: 'Dashboard/SystemBootSequence',
   component: SystemBootSequence,
   parameters: {
     layout: 'fullscreen',
@@ -61,7 +60,7 @@ const meta: Meta<typeof SystemBootSequence> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof SystemBootSequence>;
+type Story = StoryObj<typeof meta>;
 
 // 테스트용 서버 데이터
 const mockServers: Server[] = [
@@ -144,7 +143,6 @@ const InteractiveBootSequence = ({
   const handleBootComplete = () => {
     console.log('🎉 부팅 시퀀스 완료!');
     setIsComplete(true);
-    action('boot-completed')();
   };
 
   const handleRestart = () => {
@@ -178,7 +176,7 @@ const InteractiveBootSequence = ({
         key={restartKey}
         servers={servers}
         onBootComplete={handleBootComplete}
-        onServerSpawned={action('server-spawned')}
+        onServerSpawned={() => {}}
         skipAnimation={skipAnimation}
         autoStart={autoStart}
       />
