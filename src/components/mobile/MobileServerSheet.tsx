@@ -230,7 +230,15 @@ export default function MobileServerSheet({
                   </motion.div>
 
                   {/* 알림 */}
-                  {server.alerts && server.alerts > 0 && (
+                  {(() => {
+                    const alertCount =
+                      typeof server.alerts === 'number'
+                        ? server.alerts
+                        : Array.isArray(server.alerts)
+                          ? server.alerts.length
+                          : 0;
+                    return alertCount > 0;
+                  })() && (
                     <motion.div
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}

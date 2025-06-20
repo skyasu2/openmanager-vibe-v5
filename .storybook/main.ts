@@ -2,25 +2,13 @@ import type { StorybookConfig } from '@storybook/nextjs';
 
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.@(js|jsx|ts|tsx)'],
-
-  addons: [
-    '@storybook/addon-essentials',
-    '@storybook/addon-interactions',
-    '@storybook/addon-links',
-    '@storybook/addon-docs',
-    '@storybook/addon-controls',
-    '@storybook/addon-viewport',
-  ],
+  addons: ['@storybook/addon-links', '@storybook/addon-docs'],
 
   framework: {
     name: '@storybook/nextjs',
     options: {
       nextConfigPath: '../next.config.ts',
     },
-  },
-
-  docs: {
-    autodocs: 'tag',
   },
 
   typescript: {

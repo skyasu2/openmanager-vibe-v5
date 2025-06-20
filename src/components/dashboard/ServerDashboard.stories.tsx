@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import ServerDashboard from './ServerDashboard';
 
 const meta: Meta<typeof ServerDashboard> = {

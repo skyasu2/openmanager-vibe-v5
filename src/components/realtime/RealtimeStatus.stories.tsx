@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import RealtimeStatus from './RealtimeStatus';
 
 const meta: Meta<typeof RealtimeStatus> = {

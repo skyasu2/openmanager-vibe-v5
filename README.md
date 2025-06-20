@@ -85,12 +85,12 @@ export class GracefulDegradationManager {
 
 ### **📊 현재 AI 엔진 구성 (14개)**
 
-| 엔진 카테고리 | 엔진 수 | 주요 기능                                    |
-| ------------- | ------- | -------------------------------------------- |
-| **핵심 엔진** | 5개     | MasterAI, UnifiedRAG, NLP, Graceful, MCP    |
-| **전문 엔진** | 6개     | QA, 감정분석, 추천, 요약, 분류, 의도분석     |
-| **통합 엔진** | 2개     | Google AI, 상관관계분석                      |
-| **ML 엔진**   | 1개     | 이상탐지, 예측분석                           |
+| 엔진 카테고리 | 엔진 수 | 주요 기능                                |
+| ------------- | ------- | ---------------------------------------- |
+| **핵심 엔진** | 5개     | MasterAI, UnifiedRAG, NLP, Graceful, MCP |
+| **전문 엔진** | 6개     | QA, 감정분석, 추천, 요약, 분류, 의도분석 |
+| **통합 엔진** | 2개     | Google AI, 상관관계분석                  |
+| **ML 엔진**   | 1개     | 이상탐지, 예측분석                       |
 
 ---
 
@@ -180,6 +180,28 @@ cd openmanager-vibe-v5
 ```bash
 npm install
 ```
+
+> 💡 **Windows에서 `pnpm` 명령이 인식되지 않는 경우**
+
+이 프로젝트는 내부적으로 pnpm lockfile(`pnpm-lock.yaml`)을 사용하여 **의존성 버전의 완전한 재현성**을 보장합니다.
+
+```bash
+# 선택 1) Corepack (Node 16.13+ 기본 내장)
+corepack enable                                 # Corepack 활성화
+corepack prepare pnpm@latest --activate         # 최신 pnpm 활성화
+
+# 선택 2) 전역 설치
+npm install -g pnpm                             # pnpm 전역 설치
+setx PATH "%USERPROFILE%\\AppData\\Roaming\\npm;%PATH%"   # PATH 반영(필요 시)
+
+# 정상 동작 확인
+pnpm -v
+pnpm install --frozen-lockfile                  # pnpm 기반 설치
+```
+
+설치가 완료되면 `pnpm run storybook` 과 같은 스크립트도 정상적으로 동작합니다.
+
+> 👉 **pnpm 설치가 어려우면** 모든 명령은 `npm run …` 으로도 동작하지만, 빌드 속도와 캐시 효율을 위해 pnpm 사용을 권장합니다.
 
 ### **3. 환경 변수 설정**
 

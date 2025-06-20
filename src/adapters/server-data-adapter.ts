@@ -124,6 +124,13 @@ export function transformServerInstanceToServer(
       sentBytes: formatBytes(serverInstance.metrics?.network?.out || 0),
       receivedErrors: Math.floor(Math.random() * 10),
       sentErrors: Math.floor(Math.random() * 5),
+      status: 'healthy',
+      cpu_usage: serverInstance.metrics?.cpu || 0,
+      memory_usage: serverInstance.metrics?.memory || 0,
+      disk_usage: serverInstance.metrics?.disk || 0,
+      uptime: serverInstance.metrics?.uptime || 0,
+      last_updated: new Date().toISOString(),
+      alerts: [],
     },
   };
 }
@@ -330,34 +337,4 @@ export function transformServerInstancesToServers(
       }
     })
     .filter((server): server is Server => server !== null);
-}
-
-/**
- * 안전한 변환 함수 (에러 처리 포함)
- */
-export function safeTransformServerData(data: any): Server[] {
-  try {
-    if (!data) {
-      console.warn('⚠️ safeTransformServerData: 데이터가 없음');
-      return [];
-    }
-
-    // 이미 Server[] 형태인 경우
-    if (Array.isArray(data) && data.length > 0 && 'status' in data[0]) {
-      console.log('✅ 이미 Server 형태의 데이터');
-      return data;
-    }
-
-    // ServerInstance[] 형태인 경우
-    if (Array.isArray(data) && data.length > 0 && 'metrics' in data[0]) {
-      console.log('🔄 ServerInstance → Server 변환 중...');
-      return transformServerInstancesToServers(data);
-    }
-
-    console.warn('⚠️ 알 수 없는 데이터 형태:', data);
-    return [];
-  } catch (error) {
-    console.error('❌ 서버 데이터 변환 중 오류:', error);
-    return [];
-  }
 }

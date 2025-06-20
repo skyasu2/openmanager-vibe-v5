@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import SystemBootSequence from './SystemBootSequence';
 import { Server } from '@/types/server';
 import { useState } from 'react';
@@ -66,7 +66,10 @@ type Story = StoryObj<typeof meta>;
 const mockServers: Server[] = [
   {
     id: 'server-01',
-    name: 'Web Server 01',
+    name: 'server-01',
+    hostname: 'server-01.example.com',
+    type: 'web',
+    environment: 'production',
     status: 'online',
     cpu: 45,
     memory: 62,
@@ -79,7 +82,10 @@ const mockServers: Server[] = [
   },
   {
     id: 'server-02',
-    name: 'Database Server',
+    name: 'server-02',
+    hostname: 'server-02.example.com',
+    type: 'api',
+    environment: 'production',
     status: 'online',
     cpu: 78,
     memory: 85,
@@ -92,7 +98,10 @@ const mockServers: Server[] = [
   },
   {
     id: 'server-03',
-    name: 'API Gateway',
+    name: 'server-03',
+    hostname: 'server-03.example.com',
+    type: 'database',
+    environment: 'production',
     status: 'warning',
     cpu: 92,
     memory: 71,
@@ -105,7 +114,10 @@ const mockServers: Server[] = [
   },
   {
     id: 'server-04',
-    name: 'Cache Server',
+    name: 'server-04',
+    hostname: 'server-04.example.com',
+    type: 'web',
+    environment: 'production',
     status: 'online',
     cpu: 23,
     memory: 34,

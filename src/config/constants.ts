@@ -209,31 +209,3 @@ export const ENVIRONMENT = {
     CACHE_DISABLED: true,
   },
 } as const;
-
-// 🔧 유틸리티 함수들
-export const getEnvironmentConfig = () => {
-  const env = process.env.NODE_ENV || 'development';
-  return (
-    ENVIRONMENT[env as keyof typeof ENVIRONMENT] || ENVIRONMENT.DEVELOPMENT
-  );
-};
-
-export const isBusinessHour = (
-  hour: number = new Date().getHours()
-): boolean => {
-  return hour >= TIME.BUSINESS_HOURS.START && hour < TIME.BUSINESS_HOURS.END;
-};
-
-export const isMobileScreen = (width: number): boolean => {
-  return width < BREAKPOINTS.MOBILE;
-};
-
-export const isTabletScreen = (width: number): boolean => {
-  return width >= BREAKPOINTS.MOBILE && width < BREAKPOINTS.DESKTOP;
-};
-
-// 타입 정의
-export type NetworkPort = (typeof NETWORK.PORTS)[keyof typeof NETWORK.PORTS];
-export type TimeConstant =
-  (typeof TIME.MILLISECONDS)[keyof typeof TIME.MILLISECONDS];
-export type UISize = (typeof UI.SIZES)[keyof typeof UI.SIZES];

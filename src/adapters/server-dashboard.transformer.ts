@@ -135,60 +135,62 @@ export function transformRawToEnhancedServer(
 // 🎯 헬퍼 함수들
 
 function generateMockIP(serverId: string): string {
-  const hash = serverId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const hash = serverId
+    .split('')
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const lastOctet = (hash % 254) + 1;
   return `192.168.1.${lastOctet}`;
 }
 
 function generateMockOS(type?: string): string {
   const osMap: Record<string, string> = {
-    'web': 'Ubuntu 22.04 LTS',
-    'api': 'CentOS 8',
-    'database': 'Red Hat Enterprise Linux 9',
-    'cache': 'Ubuntu 20.04 LTS',
-    'queue': 'Debian 11',
+    web: 'Ubuntu 22.04 LTS',
+    api: 'CentOS 8',
+    database: 'Red Hat Enterprise Linux 9',
+    cache: 'Ubuntu 20.04 LTS',
+    queue: 'Debian 11',
   };
   return osMap[type || 'unknown'] || 'Linux';
 }
 
 function generateCpuCores(type?: string): number {
   const coreMap: Record<string, number> = {
-    'web': 4,
-    'api': 8,
-    'database': 16,
-    'cache': 8,
-    'queue': 4,
+    web: 4,
+    api: 8,
+    database: 16,
+    cache: 8,
+    queue: 4,
   };
   return coreMap[type || 'unknown'] || 4;
 }
 
 function generateMemoryGB(type?: string): number {
   const memoryMap: Record<string, number> = {
-    'web': 8,
-    'api': 16,
-    'database': 64,
-    'cache': 32,
-    'queue': 8,
+    web: 8,
+    api: 16,
+    database: 64,
+    cache: 32,
+    queue: 8,
   };
   return memoryMap[type || 'unknown'] || 8;
 }
 
 function generateDiskGB(type?: string): number {
   const diskMap: Record<string, number> = {
-    'web': 100,
-    'api': 200,
-    'database': 2000,
-    'cache': 500,
-    'queue': 200,
+    web: 100,
+    api: 200,
+    database: 2000,
+    cache: 500,
+    queue: 200,
   };
   return diskMap[type || 'unknown'] || 100;
 }
 
-// 🎯 배열 변환 함수들
-export function transformArray(rawData: RawServerData[]): Server[] {
+// 🎯 배열 변환 함수들 (내부 사용을 위해 export 제거)
+function transformArray(rawData: RawServerData[]): Server[] {
   return rawData.map((raw, index) => transformRawToServer(raw, index));
 }
 
-export function transformArrayForModal(rawData: RawServerData[]): any[] {
+function transformArrayForModal(rawData: RawServerData[]): any[] {
   return rawData.map((raw, index) => transformRawToEnhancedServer(raw, index));
 }

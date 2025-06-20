@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import React from 'react';
 import { ErrorBoundary } from './shared/ErrorBoundary';
 
@@ -48,6 +48,13 @@ const SystemHealthErrorComponent = () => {
   throw new Error('System health check failed: Service unavailable 503');
 };
 
+const CustomFallback = () => (
+  <div className='p-6 bg-yellow-100 border border-yellow-300 rounded-lg'>
+    <h3 className='text-lg font-semibold text-yellow-800'>커스텀 오류 UI</h3>
+    <p className='text-yellow-600'>커스텀 fallback UI가 표시됩니다.</p>
+  </div>
+);
+
 export const Default: Story = {
   args: {
     children: <NormalComponent />,
@@ -71,14 +78,7 @@ export const WithError: Story = {
 export const WithCustomFallback: Story = {
   args: {
     children: <ErrorComponent shouldThrow={true} />,
-    fallback: (
-      <div className='p-6 bg-yellow-100 border border-yellow-300 rounded-lg'>
-        <h3 className='text-lg font-semibold text-yellow-800'>
-          커스텀 오류 UI
-        </h3>
-        <p className='text-yellow-600'>커스텀 fallback UI가 표시됩니다.</p>
-      </div>
-    ),
+    fallback: CustomFallback,
   },
   parameters: {
     docs: {

@@ -32,7 +32,10 @@ const fallbackServers: Server[] = [
   {
     id: 'api-jp-040',
     name: 'api-jp-040',
+    hostname: 'api-jp-040.example.com',
     status: 'offline',
+    type: 'api',
+    environment: 'production',
     location: 'Asia Pacific',
     cpu: 95,
     memory: 98,
@@ -52,7 +55,10 @@ const fallbackServers: Server[] = [
   {
     id: 'api-sg-044',
     name: 'api-sg-044',
+    hostname: 'api-sg-044.example.com',
     status: 'offline',
+    type: 'api',
+    environment: 'production',
     location: 'Singapore',
     cpu: 88,
     memory: 92,
@@ -71,7 +77,10 @@ const fallbackServers: Server[] = [
   {
     id: 'api-eu-045',
     name: 'api-eu-045',
+    hostname: 'api-eu-045.example.com',
     status: 'warning',
+    type: 'api',
+    environment: 'production',
     location: 'EU West',
     cpu: 78,
     memory: 85,
@@ -91,7 +100,10 @@ const fallbackServers: Server[] = [
   {
     id: 'api-us-001',
     name: 'api-us-001',
+    hostname: 'api-us-001.example.com',
     status: 'online',
+    type: 'api',
+    environment: 'production',
     location: 'US East',
     cpu: 45,
     memory: 62,
@@ -220,7 +232,13 @@ export const useServerData = (): UseServerDataReturn => {
       }
 
       // 같은 우선순위면 알림 수로 정렬
-      return (b.alerts || 0) - (a.alerts || 0);
+      const getAlertCount = (s: Server): number => {
+        if (typeof s.alerts === 'number') return s.alerts;
+        if (Array.isArray(s.alerts)) return s.alerts.length;
+        return 0;
+      };
+
+      return getAlertCount(b) - getAlertCount(a);
     });
   }, []);
 

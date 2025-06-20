@@ -1,7 +1,7 @@
 export interface Server {
   id: string;
   name: string;
-  hostname: string;
+  hostname?: string;
   status: 'online' | 'offline' | 'warning' | 'healthy' | 'critical';
   cpu: number;
   memory: number;
@@ -9,11 +9,11 @@ export interface Server {
   network?: number; // 네트워크 사용률 추가
   uptime: string;
   location: string;
-  alerts: number;
+  alerts: number | any[];
   ip?: string;
   os?: string;
-  type: string;
-  environment: string;
+  type?: string;
+  environment?: string;
   provider?: string;
   lastSeen?: string; // 추가
   metrics?: {
@@ -82,13 +82,13 @@ export interface NetworkInfo {
   sentBytes: string;
   receivedErrors: number;
   sentErrors: number;
-  status: ServerStatus;
-  cpu_usage: number;
-  memory_usage: number;
-  disk_usage: number;
-  uptime: number;
-  last_updated: string;
-  alerts: ServerAlert[];
+  status?: ServerStatus;
+  cpu_usage?: number;
+  memory_usage?: number;
+  disk_usage?: number;
+  uptime?: number;
+  last_updated?: string;
+  alerts?: ServerAlert[];
   processes?: ProcessInfo[];
 }
 

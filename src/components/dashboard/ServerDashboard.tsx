@@ -77,8 +77,21 @@ export default function ServerDashboard({
               key={server.id}
               server={{
                 ...server,
+                hostname: server.hostname || server.name,
+                type: server.type || 'api',
+                environment: server.environment || 'prod',
+                location: server.location || 'unknown',
                 provider: server.provider || 'Unknown',
-                status: server.status === 'online' ? 'healthy' : server.status,
+                status:
+                  server.status === 'online'
+                    ? 'healthy'
+                    : (server.status as any),
+                alerts:
+                  typeof server.alerts === 'number'
+                    ? server.alerts
+                    : Array.isArray(server.alerts)
+                      ? server.alerts.length
+                      : 0,
               }}
               index={index}
               onClick={() => handleServerSelect(server)}

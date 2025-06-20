@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { Badge } from './badge';
 
 const meta: Meta<typeof Badge> = {
@@ -46,14 +46,14 @@ export const Outline: Story = {
 
 export const AllVariants: Story = {
   render: () => (
-    <div className="flex flex-col space-y-4">
-        <h2 className="text-lg font-bold">All Badge Variants</h2>
-        <div className="flex items-center space-x-4">
-          <Badge variant="default">Default</Badge>
-          <Badge variant="secondary">Secondary</Badge>
-          <Badge variant="destructive">Destructive</Badge>
-          <Badge variant="outline">Outline</Badge>
-        </div>
+    <div className='flex flex-col space-y-4'>
+      <h2 className='text-lg font-bold'>All Badge Variants</h2>
+      <div className='flex items-center space-x-4'>
+        <Badge variant='default'>Default</Badge>
+        <Badge variant='secondary'>Secondary</Badge>
+        <Badge variant='destructive'>Destructive</Badge>
+        <Badge variant='outline'>Outline</Badge>
+      </div>
     </div>
   ),
-}; 
+};

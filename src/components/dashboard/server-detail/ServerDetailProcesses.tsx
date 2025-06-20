@@ -4,10 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { ProcessInfo } from '@/types/ai-agent-input-schema'; // 실제 데이터 타입 임포트
 
 interface ServerDetailProcessesProps {
-  serverId: string | null;
+  serverId?: string | null;
 }
 
-export function ServerDetailProcesses({ serverId }: ServerDetailProcessesProps) {
+export function ServerDetailProcesses({
+  serverId,
+}: ServerDetailProcessesProps) {
   const [processes, setProcesses] = useState<ProcessInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +45,9 @@ export function ServerDetailProcesses({ serverId }: ServerDetailProcessesProps) 
   }, [serverId]);
 
   if (isLoading) {
-    return <div className='text-center p-8'>프로세스 목록을 불러오는 중...</div>;
+    return (
+      <div className='text-center p-8'>프로세스 목록을 불러오는 중...</div>
+    );
   }
 
   if (error) {
@@ -80,7 +84,7 @@ export function ServerDetailProcesses({ serverId }: ServerDetailProcessesProps) 
             </thead>
             <tbody className='bg-white divide-y divide-gray-200'>
               {processes.length > 0 ? (
-                processes.map((process) => (
+                processes.map(process => (
                   <tr key={process.pid} className='hover:bg-gray-50'>
                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900'>
                       {process.pid}

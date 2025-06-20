@@ -1,15 +1,15 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import FloatingSystemControl from './FloatingSystemControl';
 
 /**
  * FloatingSystemControl은 시스템 상태에 따라 동적으로 위치가 변경되는 플로팅 제어판입니다.
- * 
+ *
  * ## 주요 기능
  * - 시스템 상태별 자동 위치 조정
  * - 실시간 헬스 모니터링
  * - 원클릭 시스템 제어
  * - 확장 가능한 상세 정보 패널
- * 
+ *
  * ## 동적 위치 시스템
  * - **정상**: 우하단 고정 (컴팩트 모드)
  * - **경고/에러**: 상단 중앙으로 자동 이동 (확장 모드)
@@ -184,9 +184,9 @@ export const AIAgentError: Story = {
       systemErrors: [],
       warnings: ['AI 에이전트 응답 지연'],
     },
-    aiAgentState: { 
+    aiAgentState: {
       state: 'error',
-      error: 'AI 모델 로딩 실패'
+      error: 'AI 모델 로딩 실패',
     },
     isSystemActive: true,
     isSystemPaused: false,
@@ -203,20 +203,20 @@ export const MultipleIssues: Story = {
       systemErrors: [
         '주 데이터베이스 연결 실패',
         '백업 서버 응답 없음',
-        '로그 저장소 용량 부족'
+        '로그 저장소 용량 부족',
       ],
       warnings: [
         'CPU 사용률 85% 초과',
         '메모리 사용률 90% 초과',
         '네트워크 지연 감지',
-        'SSL 인증서 만료 임박'
+        'SSL 인증서 만료 임박',
       ],
     },
-    aiAgentState: { 
+    aiAgentState: {
       state: 'error',
-      error: '다중 시스템 장애 감지'
+      error: '다중 시스템 장애 감지',
     },
     isSystemActive: true,
     isSystemPaused: false,
   },
-}; 
+};

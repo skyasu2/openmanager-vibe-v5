@@ -7,7 +7,7 @@
  * - 상태별 스타일링
  */
 
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { Button } from './button';
 import { Download, Heart, Search, Settings, Trash2 } from 'lucide-react';
 

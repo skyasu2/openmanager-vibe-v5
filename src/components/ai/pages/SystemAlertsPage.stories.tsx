@@ -5,7 +5,7 @@
  * 최근 업데이트: 메트릭 데이터 접근 수정, 임계값 최적화, 알림 생성 로직 개선
  */
 
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import SystemAlertsPage from './SystemAlertsPage';
 
 const meta: Meta<typeof SystemAlertsPage> = {

@@ -92,7 +92,13 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(
       }
 
       // 알림이 있을 때 추가 액션
-      if (server.alerts > 0) {
+      const alertCount =
+        typeof server.alerts === 'number'
+          ? server.alerts
+          : Array.isArray(server.alerts)
+            ? server.alerts.length
+            : 0;
+      if (alertCount > 0) {
         baseActions.push({
           key: 'alerts',
           label: '알림',

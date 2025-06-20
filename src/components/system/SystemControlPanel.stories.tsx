@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { SystemControlPanel } from './SystemControlPanel';
 
 const meta: Meta<typeof SystemControlPanel> = {

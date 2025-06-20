@@ -4,16 +4,21 @@ import React, { useState, useEffect } from 'react';
 import { LogEntry } from '@/types/ai-agent-input-schema';
 
 interface ServerDetailLogsProps {
-  serverId: string | null;
+  serverId?: string | null;
 }
 
 const getLogLevelClass = (level: string) => {
   switch (level.toUpperCase()) {
-    case 'ERROR': return 'bg-red-100 text-red-800';
-    case 'WARN': return 'bg-yellow-100 text-yellow-800';
-    case 'INFO': return 'bg-blue-100 text-blue-800';
-    case 'DEBUG': return 'bg-gray-100 text-gray-800';
-    default: return 'bg-gray-100 text-gray-800';
+    case 'ERROR':
+      return 'bg-red-100 text-red-800';
+    case 'WARN':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'INFO':
+      return 'bg-blue-100 text-blue-800';
+    case 'DEBUG':
+      return 'bg-gray-100 text-gray-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
   }
 };
 
@@ -70,12 +75,12 @@ export function ServerDetailLogs({ serverId }: ServerDetailLogsProps) {
           {logs.length > 0 ? (
             logs.map((log, index) => (
               <div key={index} className='flex'>
-                <span className={`inline-flex px-2 py-1 font-semibold rounded-full text-xs ${getLogLevelClass(log.level)}`}>
+                <span
+                  className={`inline-flex px-2 py-1 font-semibold rounded-full text-xs ${getLogLevelClass(log.level)}`}
+                >
                   {log.level}
                 </span>
-                <span className='ml-2'>
-                  {log.message}
-                </span>
+                <span className='ml-2'>{log.message}</span>
               </div>
             ))
           ) : (

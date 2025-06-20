@@ -116,6 +116,7 @@ export default function ServerDetailModal({
             <button
               onClick={onClose}
               className='w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center hover:bg-opacity-30 transition-colors'
+              aria-label='Close'
             >
               <i className='fas fa-times text-xl'></i>
             </button>
@@ -158,7 +159,7 @@ export default function ServerDetailModal({
                 ...server,
                 type: 'api',
                 lastSeen: server.lastUpdate.toISOString(),
-                alerts: [],
+                alerts: 0,
                 metrics: {
                   cpu: {
                     usage: server.cpu,
@@ -185,8 +186,6 @@ export default function ServerDetailModal({
                   uptime: 86400 * 30, // 30일을 초로 변환
                 },
               }}
-              realTimeMetrics={realTimeMetrics}
-              statusInfo={statusInfo}
             />
           )}
 
@@ -205,9 +204,13 @@ export default function ServerDetailModal({
             <ServerDetailNetwork realTimeMetrics={realTimeMetrics} />
           )}
 
-          {selectedTab === 'processes' && <ServerDetailProcesses />}
+          {selectedTab === 'processes' && (
+            <ServerDetailProcesses serverId={server?.id || 'demo'} />
+          )}
 
-          {selectedTab === 'logs' && <ServerDetailLogs />}
+          {selectedTab === 'logs' && (
+            <ServerDetailLogs serverId={server?.id || 'demo'} />
+          )}
         </div>
       </div>
     </div>

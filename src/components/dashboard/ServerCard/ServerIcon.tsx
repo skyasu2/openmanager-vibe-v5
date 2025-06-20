@@ -96,7 +96,15 @@ const ServerIcon: React.FC<ServerIconProps> = memo(
         )}
 
         {/* 알림 뱃지 */}
-        {server.alerts > 0 && (
+        {(() => {
+          const alertCount =
+            typeof server.alerts === 'number'
+              ? server.alerts
+              : Array.isArray(server.alerts)
+                ? server.alerts.length
+                : 0;
+          return alertCount > 0;
+        })() && (
           <div className='absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[18px] text-center'>
             {server.alerts}
           </div>

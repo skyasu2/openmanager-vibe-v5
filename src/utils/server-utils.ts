@@ -27,7 +27,7 @@ export const safeServerAccess = {
 
   status: (
     server: Server | undefined | null
-  ): 'online' | 'offline' | 'warning' => {
+  ): 'online' | 'offline' | 'warning' | 'healthy' | 'critical' => {
     return server?.status || 'offline';
   },
 
@@ -52,7 +52,9 @@ export const safeServerAccess = {
   },
 
   alerts: (server: Server | undefined | null): number => {
-    return server?.alerts || 0;
+    if (typeof server?.alerts === 'number') return server.alerts;
+    if (Array.isArray(server?.alerts)) return server.alerts.length;
+    return 0;
   },
 
   services: (server: Server | undefined | null): any[] => {

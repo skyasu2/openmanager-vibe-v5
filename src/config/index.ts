@@ -267,19 +267,8 @@ export class ConfigLoader {
 // 싱글톤 인스턴스
 export const configLoader = ConfigLoader.getInstance();
 
-// 편의 함수들
-export const getConfig = (): AppConfig => configLoader.load();
-export const getAppConfig = () => configLoader.get('app');
-export const getVirtualServerConfig = () => configLoader.get('virtualServer');
-export const getAlertsConfig = () => configLoader.get('alerts');
-export const getAIConfig = () => configLoader.get('ai');
-export const getDatabaseConfig = () => configLoader.get('database');
-export const getWebSocketConfig = () => configLoader.get('websocket');
+// 편의 함수들 (사용되는 것만 유지)
 export const getLoggingConfig = () => configLoader.get('logging');
-export const getMonitoringConfig = () => configLoader.get('monitoring');
-export const getSecurityConfig = () => configLoader.get('security');
-export const getCacheConfig = () => configLoader.get('cache');
-export const getDevelopmentConfig = () => configLoader.get('development');
 
 // 환경 확인 함수들
 export const isDevelopment = () => configLoader.isDevelopment();
