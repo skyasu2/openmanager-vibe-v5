@@ -1,8 +1,14 @@
 /**
- * 📊 자동 장애 보고서 시스템
+ * 📊 자동 장애 보고서 시스템 + AI 학습 엔진
  * 
  * Phase 3: 기존 AutoReportService를 확장한 완전 자동화 장애 보고서 시스템
+ * Phase 4: AI 학습 시스템 통합 (NEW!)
  * RuleBasedMainEngine과 연동하여 AI 기반 장애 분석 및 보고서 생성
+ * 
+ * 🚀 Vercel 서버리스 최적화:
+ * - 과도한 헬스체크 방지 (24시간 캐싱)
+ * - API 요청 최소화 (배치 처리)
+ * - 메모리 효율적 학습 (점진적 업데이트)
  */
 
 import {
@@ -29,8 +35,39 @@ import {
 import { IncidentDetectionEngine } from '@/core/ai/engines/IncidentDetectionEngine';
 import { SolutionDatabase } from '@/core/ai/databases/SolutionDatabase';
 
+// 🧠 AI 학습 관련 타입들 (NEW!)
+interface LearningPattern {
+    id: string;
+    category: IncidentType;
+    symptoms: string[];
+    rootCause: string;
+    solution: string;
+    confidence: number;
+    successRate: number;
+    learnedAt: number;
+    source: 'incident_report' | 'user_feedback' | 'prediction_success';
+    usageCount: number;
+}
+
+interface LearningMetrics {
+    totalPatterns: number;
+    avgSuccessRate: number;
+    recentLearnings: number;
+    predictionAccuracy: number;
+    lastLearningTime: number;
+}
+
+interface LearningConfig {
+    enabled: boolean;
+    maxPatternsPerType: number;
+    minConfidenceThreshold: number;
+    learningCooldown: number; // 학습 간격 (초)
+    batchSize: number;
+    enablePredictiveLearning: boolean;
+}
+
 /**
- * 자동 장애 보고서 시스템
+ * 자동 장애 보고서 시스템 + AI 학습 엔진
  * 기존 AutoReportService (src/services/AutoReportService.ts)를 확장
  */
 export class AutoIncidentReportSystem implements IAutoIncidentReportSystem {
@@ -39,34 +76,365 @@ export class AutoIncidentReportSystem implements IAutoIncidentReportSystem {
     private ruleBasedEngine?: any; // RuleBasedMainEngine 연동
     private autoReportService?: any; // 기존 AutoReportService 활용
 
+    // 🧠 AI 학습 시스템 (NEW!)
+    private learningEnabled = false;
+    private learningPatterns: Map<string, LearningPattern> = new Map();
+    private learningConfig: LearningConfig;
+    private lastLearningTime = 0;
+    private learningQueue: IncidentReport[] = [];
+
+    // 🚀 Vercel 서버리스 최적화
+    private healthCheckCache = new Map<string, { result: boolean; timestamp: number }>();
+    private readonly HEALTH_CHECK_CACHE_TTL = 24 * 60 * 60 * 1000; // 24시간 캐싱
+
     constructor(
         detectionEngine?: IncidentDetectionEngine,
-        solutionDB?: SolutionDatabase
+        solutionDB?: SolutionDatabase,
+        enableLearning = true
     ) {
         this.detectionEngine = detectionEngine || new IncidentDetectionEngine();
         this.solutionDB = solutionDB || new SolutionDatabase();
 
+        // 🧠 AI 학습 설정 초기화
+        this.learningConfig = {
+            enabled: enableLearning && process.env.NODE_ENV !== 'development',
+            maxPatternsPerType: 50, // 타입별 최대 50개 패턴
+            minConfidenceThreshold: 0.7,
+            learningCooldown: 300, // 5분 간격
+            batchSize: 5, // 한 번에 5개씩 처리
+            enablePredictiveLearning: true
+        };
+
         this.initializeConnections();
+        this.initializeLearningSystem();
     }
 
     /**
-     * 🔗 기존 시스템과의 연결 초기화
+     * 🔗 기존 시스템과의 연결 초기화 (헬스체크 최적화)
      */
     private async initializeConnections(): Promise<void> {
         try {
+            // 🚀 헬스체크 캐시 확인 (Vercel 최적화)
+            const cacheKey = 'ruleBasedEngine_health';
+            const cached = this.healthCheckCache.get(cacheKey);
+
+            if (cached && (Date.now() - cached.timestamp) < this.HEALTH_CHECK_CACHE_TTL) {
+                if (cached.result) {
+                    console.log('✅ AutoIncidentReportSystem: RuleBasedMainEngine 연결 (캐시됨)');
+                    return;
+                }
+            }
+
             // 기존 RuleBasedMainEngine 연결
             const { RuleBasedMainEngine } = await import('@/core/ai/engines/RuleBasedMainEngine');
             this.ruleBasedEngine = new RuleBasedMainEngine();
             await this.ruleBasedEngine.initialize();
 
+            // 헬스체크 결과 캐싱
+            this.healthCheckCache.set(cacheKey, { result: true, timestamp: Date.now() });
             console.log('✅ AutoIncidentReportSystem: RuleBasedMainEngine 연결 완료');
         } catch (error) {
+            // 실패 결과도 캐싱 (재시도 방지)
+            this.healthCheckCache.set('ruleBasedEngine_health', { result: false, timestamp: Date.now() });
             console.warn('⚠️ RuleBasedMainEngine 연결 실패, 기본 모드로 동작:', error);
         }
 
-        // AutoReportService는 private 생성자를 가지므로 직접 연결하지 않음
-        // 필요시 정적 메서드를 통해 기능 활용
         console.log('✅ AutoIncidentReportSystem: 독립 모드로 초기화 완료');
+    }
+
+    /**
+     * 🧠 AI 학습 시스템 초기화 (NEW!)
+     */
+    private initializeLearningSystem(): void {
+        if (!this.learningConfig.enabled) {
+            console.log('🔒 AI 학습 시스템 비활성화됨');
+            return;
+        }
+
+        this.learningEnabled = true;
+
+        // 기존 학습 패턴 로드 (메모리 효율적)
+        this.loadExistingPatterns();
+
+        // 배치 처리 스케줄러 시작 (Vercel 최적화)
+        this.startBatchLearningScheduler();
+
+        console.log('🧠 AI 학습 시스템 초기화 완료');
+    }
+
+    /**
+     * 📚 기존 학습 패턴 로드 (메모리 효율적)
+     */
+    private loadExistingPatterns(): void {
+        try {
+            // localStorage 또는 캐시에서 패턴 로드
+            if (typeof localStorage !== 'undefined') {
+                const stored = localStorage.getItem('incident_learning_patterns');
+                if (stored) {
+                    const patterns = JSON.parse(stored);
+                    patterns.forEach((pattern: LearningPattern) => {
+                        this.learningPatterns.set(pattern.id, pattern);
+                    });
+                    console.log(`📚 ${patterns.length}개 학습 패턴 로드됨`);
+                }
+            }
+        } catch (error) {
+            console.warn('⚠️ 기존 학습 패턴 로드 실패:', error);
+        }
+    }
+
+    /**
+     * ⏰ 배치 학습 스케줄러 시작 (Vercel 서버리스 최적화)
+     */
+    private startBatchLearningScheduler(): void {
+        // 서버리스 환경에서는 즉시 처리하지 않고 큐에 저장
+        setInterval(() => {
+            if (this.learningQueue.length > 0) {
+                this.processBatchLearning();
+            }
+        }, this.learningConfig.learningCooldown * 1000);
+    }
+
+    /**
+     * 🔄 배치 학습 처리 (API 요청 최소화)
+     */
+    private async processBatchLearning(): Promise<void> {
+        if (!this.canLearn()) return;
+
+        const batch = this.learningQueue.splice(0, this.learningConfig.batchSize);
+
+        try {
+            for (const report of batch) {
+                await this.learnFromIncidentReport(report);
+            }
+
+            // 학습 패턴 저장 (배치로 한 번에)
+            this.saveLearningPatterns();
+            this.lastLearningTime = Date.now();
+
+            console.log(`🧠 배치 학습 완료: ${batch.length}개 보고서 처리`);
+        } catch (error) {
+            console.error('❌ 배치 학습 실패:', error);
+            // 실패한 보고서들을 다시 큐에 추가
+            this.learningQueue.unshift(...batch);
+        }
+    }
+
+    /**
+     * 🧠 장애 보고서로부터 학습 (NEW!)
+     */
+    private async learnFromIncidentReport(report: IncidentReport): Promise<void> {
+        try {
+            // 1. 장애 패턴 추출
+            const pattern = this.extractIncidentPattern(report);
+
+            // 2. 신뢰도 검증
+            if (pattern.confidence < this.learningConfig.minConfidenceThreshold) {
+                return;
+            }
+
+            // 3. RuleBasedMainEngine에 패턴 추가 (API 요청 최소화)
+            if (this.ruleBasedEngine && await this.shouldUpdateRuleEngine(pattern)) {
+                try {
+                    await this.ruleBasedEngine.addPattern({
+                        category: pattern.category,
+                        pattern: pattern.symptoms,
+                        solution: pattern.solution,
+                        confidence: pattern.confidence,
+                        source: 'incident_report'
+                    });
+                } catch (error) {
+                    console.warn('⚠️ RuleBasedEngine 패턴 추가 실패:', error);
+                }
+            }
+
+            // 4. SolutionDatabase 업데이트 (효과성 학습)
+            if (report.solutions && report.solutions.length > 0) {
+                const primarySolution = report.solutions[0];
+                await this.solutionDB.updateSolutionEffectiveness?.(
+                    primarySolution.id,
+                    pattern.successRate
+                );
+            }
+
+            // 5. 학습 패턴 저장
+            this.learningPatterns.set(pattern.id, pattern);
+
+            // 6. 패턴 수 제한 (메모리 효율성)
+            this.limitPatternsPerType(pattern.category);
+
+            console.log(`🧠 패턴 학습 완료: ${pattern.category} (신뢰도: ${Math.round(pattern.confidence * 100)}%)`);
+        } catch (error) {
+            console.error('❌ 장애 보고서 학습 실패:', error);
+        }
+    }
+
+    /**
+     * 🔍 장애 패턴 추출
+     */
+    private extractIncidentPattern(report: IncidentReport): LearningPattern {
+        const incident = report.incident;
+        const symptoms = [
+            incident.rootCause || '원인 불명',
+            `CPU: ${incident.metrics?.cpu || 0}%`,
+            `Memory: ${incident.metrics?.memory || 0}%`,
+            `Disk: ${incident.metrics?.disk || 0}%`
+        ].filter(s => s !== '원인 불명');
+
+        return {
+            id: `pattern_${incident.type}_${Date.now()}`,
+            category: incident.type,
+            symptoms,
+            rootCause: incident.rootCause || '분석 중',
+            solution: report.solutions?.[0]?.action || '해결방안 없음',
+            confidence: this.calculatePatternConfidence(report),
+            successRate: 0.8, // 초기값, 추후 피드백으로 업데이트
+            learnedAt: Date.now(),
+            source: 'incident_report',
+            usageCount: 0
+        };
+    }
+
+    /**
+     * 📊 패턴 신뢰도 계산
+     */
+    private calculatePatternConfidence(report: IncidentReport): number {
+        let confidence = 0.5; // 기본값
+
+        // 근본 원인 분석이 있으면 +0.2
+        if (report.rootCause && report.rootCause.primaryCause) {
+            confidence += 0.2;
+        }
+
+        // 해결방안이 있으면 +0.2
+        if (report.solutions && report.solutions.length > 0) {
+            confidence += 0.2;
+        }
+
+        // 영향도 분석이 있으면 +0.1
+        if (report.impact) {
+            confidence += 0.1;
+        }
+
+        return Math.min(confidence, 0.95); // 최대 95%
+    }
+
+    /**
+     * 🎯 RuleEngine 업데이트 여부 판단 (API 요청 최소화)
+     */
+    private async shouldUpdateRuleEngine(pattern: LearningPattern): Promise<boolean> {
+        // 같은 카테고리의 기존 패턴 수 확인
+        const existingPatterns = Array.from(this.learningPatterns.values())
+            .filter(p => p.category === pattern.category);
+
+        // 이미 충분한 패턴이 있으면 업데이트하지 않음
+        if (existingPatterns.length >= this.learningConfig.maxPatternsPerType) {
+            return false;
+        }
+
+        // 유사한 패턴이 이미 있는지 확인
+        const similarPattern = existingPatterns.find(p =>
+            this.calculatePatternSimilarity(p, pattern) > 0.8
+        );
+
+        return !similarPattern;
+    }
+
+    /**
+     * 📏 패턴 유사도 계산
+     */
+    private calculatePatternSimilarity(pattern1: LearningPattern, pattern2: LearningPattern): number {
+        if (pattern1.category !== pattern2.category) return 0;
+
+        const symptoms1 = new Set(pattern1.symptoms);
+        const symptoms2 = new Set(pattern2.symptoms);
+
+        const intersection = new Set([...symptoms1].filter(x => symptoms2.has(x)));
+        const union = new Set([...symptoms1, ...symptoms2]);
+
+        return intersection.size / union.size; // Jaccard 유사도
+    }
+
+    /**
+     * 🗂️ 타입별 패턴 수 제한 (메모리 효율성)
+     */
+    private limitPatternsPerType(category: IncidentType): void {
+        const patterns = Array.from(this.learningPatterns.values())
+            .filter(p => p.category === category)
+            .sort((a, b) => b.successRate - a.successRate); // 성공률 높은 순
+
+        if (patterns.length > this.learningConfig.maxPatternsPerType) {
+            // 성공률이 낮은 패턴들 제거
+            const toRemove = patterns.slice(this.learningConfig.maxPatternsPerType);
+            toRemove.forEach(pattern => {
+                this.learningPatterns.delete(pattern.id);
+            });
+        }
+    }
+
+    /**
+     * 💾 학습 패턴 저장
+     */
+    private saveLearningPatterns(): void {
+        try {
+            if (typeof localStorage !== 'undefined') {
+                const patterns = Array.from(this.learningPatterns.values());
+                localStorage.setItem('incident_learning_patterns', JSON.stringify(patterns));
+            }
+        } catch (error) {
+            console.warn('⚠️ 학습 패턴 저장 실패:', error);
+        }
+    }
+
+    /**
+     * ⚡ 학습 가능 여부 확인 (쿨다운 적용)
+     */
+    private canLearn(): boolean {
+        if (!this.learningEnabled) return false;
+
+        const now = Date.now();
+        const timeSinceLastLearning = now - this.lastLearningTime;
+
+        return timeSinceLastLearning >= (this.learningConfig.learningCooldown * 1000);
+    }
+
+    /**
+     * 📊 학습 메트릭 조회 (NEW!)
+     */
+    getLearningMetrics(): LearningMetrics {
+        const patterns = Array.from(this.learningPatterns.values());
+
+        return {
+            totalPatterns: patterns.length,
+            avgSuccessRate: patterns.length > 0
+                ? patterns.reduce((sum, p) => sum + p.successRate, 0) / patterns.length
+                : 0,
+            recentLearnings: patterns.filter(p =>
+                Date.now() - p.learnedAt < 24 * 60 * 60 * 1000
+            ).length,
+            predictionAccuracy: this.calculatePredictionAccuracy(),
+            lastLearningTime: this.lastLearningTime
+        };
+    }
+
+    /**
+     * 🎯 예측 정확도 계산
+     */
+    private calculatePredictionAccuracy(): number {
+        // 실제 구현에서는 예측 결과와 실제 결과를 비교
+        // 현재는 학습된 패턴의 평균 성공률로 대체
+        const patterns = Array.from(this.learningPatterns.values());
+        return patterns.length > 0
+            ? patterns.reduce((sum, p) => sum + p.successRate, 0) / patterns.length
+            : 0;
+    }
+
+    /**
+     * 🧠 학습 모드 활성화/비활성화 (NEW!)
+     */
+    setLearningEnabled(enabled: boolean): void {
+        this.learningEnabled = enabled && this.learningConfig.enabled;
+        console.log(`🧠 AI 학습 모드: ${this.learningEnabled ? '활성화' : '비활성화'}`);
     }
 
     // ========================================
@@ -218,62 +586,57 @@ export class AutoIncidentReportSystem implements IAutoIncidentReportSystem {
     // ========================================
 
     /**
-     * 📋 상세 장애 보고서 생성
+     * 📋 장애 보고서 생성 (기존 AutoReportService 확장)
      */
     async generateReport(incident: Incident): Promise<IncidentReport> {
-        const startTime = Date.now();
-
         try {
-            // 1. 근본 원인 분석
-            const rootCause = await this.analyzeRootCause(incident);
+            const startTime = Date.now();
+
+            // 1. 해결방안 조회
+            const solutions = await this.generateSolutions(incident);
 
             // 2. 영향도 분석
             const impact = await this.analyzeImpact(incident);
 
-            // 3. 타임라인 생성
+            // 3. 근본 원인 분석
+            const rootCause = await this.analyzeRootCause(incident);
+
+            // 4. 타임라인 생성
             const timeline = this.generateTimeline(incident);
 
-            // 4. 해결방안 조회
-            const solutions = await this.solutionDB.getSolutions(incident.type);
-
-            // 5. RuleBasedEngine으로 자연어 분석 (있는 경우)
-            let aiAnalysis = '';
-            if (this.ruleBasedEngine) {
-                try {
-                    const queryResult = await this.ruleBasedEngine.processQuery(
-                        `${incident.type} 장애 분석: ${incident.rootCause}`
-                    );
-                    aiAnalysis = queryResult.response;
-                } catch (error) {
-                    console.warn('AI 분석 실패:', error);
-                }
-            }
-
+            // 5. 보고서 생성
             const report: IncidentReport = {
-                id: `RPT-${incident.id}`,
+                id: `RPT-${Date.now()}-${incident.id}`,
+                incident,
                 title: this.generateReportTitle(incident),
                 summary: this.generateReportSummary(incident, impact),
                 language: 'ko',
-                incident,
-                rootCause,
-                impact,
-                timeline,
+                description: this.generateDefaultDescription(incident),
                 recommendations: solutions.slice(0, 3), // 상위 3개 권장사항
                 solutions,
-                description: aiAnalysis || this.generateDefaultDescription(incident),
+                impact,
+                rootCause,
+                timeline,
                 generatedAt: Date.now(),
-                generatedBy: 'AutoIncidentReportSystem v3.0',
+                generatedBy: 'AutoIncidentReportSystem v4.0 + AI Learning',
                 processingTime: Date.now() - startTime
             };
 
-            console.log(`📋 장애 보고서 생성 완료: ${report.id} (${report.processingTime}ms)`);
+            // 🧠 AI 학습 큐에 추가 (NEW!)
+            if (this.learningEnabled && this.learningConfig.enabled) {
+                this.learningQueue.push(report);
+                console.log(`🧠 학습 큐에 보고서 추가: ${report.id} (큐 크기: ${this.learningQueue.length})`);
+            }
+
+            const processingTime = Date.now() - startTime;
+            console.log(`📋 장애 보고서 생성 완료: ${report.id} (${processingTime}ms)`);
 
             return report;
         } catch (error) {
             throw new IncidentReportError(
                 '장애 보고서 생성 실패',
                 'REPORT_GENERATION_ERROR',
-                incident.id,
+                undefined,
                 error
             );
         }

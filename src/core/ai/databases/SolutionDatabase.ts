@@ -25,7 +25,9 @@ export class SolutionDatabase implements ISolutionDatabase {
     private usageStats: Map<string, number> = new Map();
 
     constructor() {
-        this.initializeSolutions();
+        this.initializeSolutions().catch(error => {
+            console.error('❌ SolutionDatabase 초기화 실패:', error);
+        });
     }
 
     /**
@@ -39,24 +41,24 @@ export class SolutionDatabase implements ISolutionDatabase {
      * - High Error Rate
      * - System Stress
      */
-    private initializeSolutions(): void {
+    private async initializeSolutions(): Promise<void> {
         // CPU 과부하 해결방안 (High CPU Usage, Critical CPU Usage 룰 활용)
-        this.addCpuOverloadSolutions();
+        await this.addCpuOverloadSolutions();
 
         // 메모리 누수 해결방안 (High Memory Usage 룰 활용)
-        this.addMemoryLeakSolutions();
+        await this.addMemoryLeakSolutions();
 
         // 디스크 부족 해결방안
-        this.addDiskFullSolutions();
+        await this.addDiskFullSolutions();
 
         // 성능 저하 해결방안 (Slow Response Time 룰 활용)
-        this.addPerformanceDegradationSolutions();
+        await this.addPerformanceDegradationSolutions();
 
         // 애플리케이션 오류 해결방안 (High Error Rate 룰 활용)
-        this.addApplicationCrashSolutions();
+        await this.addApplicationCrashSolutions();
 
         // 시스템 스트레스 해결방안 (System Stress 룰 활용)
-        this.addSystemStressSolutions();
+        await this.addSystemStressSolutions();
 
         console.log(`✅ SolutionDatabase 초기화 완료: ${this.solutions.size}개 해결방안 로드`);
     }
@@ -64,7 +66,7 @@ export class SolutionDatabase implements ISolutionDatabase {
     /**
      * 📊 CPU 과부하 해결방안 (기존 High CPU Usage, Critical CPU Usage 룰 확장)
      */
-    private addCpuOverloadSolutions(): void {
+    private async addCpuOverloadSolutions(): Promise<void> {
         const cpuSolutions: Omit<Solution, 'id'>[] = [
             {
                 action: 'CPU 집약적 프로세스 확인 및 종료',
@@ -118,16 +120,16 @@ export class SolutionDatabase implements ISolutionDatabase {
             }
         ];
 
-        cpuSolutions.forEach(solution => {
-            const id = this.addSolution(solution);
+        for (const solution of cpuSolutions) {
+            const id = await this.addSolution(solution);
             this.addToTypeMapping('cpu_overload', id);
-        });
+        }
     }
 
     /**
      * 🧠 메모리 누수 해결방안 (기존 High Memory Usage 룰 확장)
      */
-    private addMemoryLeakSolutions(): void {
+    private async addMemoryLeakSolutions(): Promise<void> {
         const memorySolutions: Omit<Solution, 'id'>[] = [
             {
                 action: '메모리 사용량 분석 및 정리',
@@ -181,16 +183,16 @@ export class SolutionDatabase implements ISolutionDatabase {
             }
         ];
 
-        memorySolutions.forEach(solution => {
-            const id = this.addSolution(solution);
+        for (const solution of memorySolutions) {
+            const id = await this.addSolution(solution);
             this.addToTypeMapping('memory_leak', id);
-        });
+        }
     }
 
     /**
      * 💾 디스크 부족 해결방안
      */
-    private addDiskFullSolutions(): void {
+    private async addDiskFullSolutions(): Promise<void> {
         const diskSolutions: Omit<Solution, 'id'>[] = [
             {
                 action: '불필요한 파일 정리',
@@ -200,116 +202,64 @@ export class SolutionDatabase implements ISolutionDatabase {
                 riskLevel: 'low',
                 category: 'immediate_action',
                 commands: [
-                    'df -h  # 디스크 사용량 확인',
-                    'du -sh /* | sort -rh | head -10  # 큰 디렉토리 찾기',
-                    'find /var/log -name "*.log" -mtime +7 -delete  # 오래된 로그 삭제',
-                    'apt-get clean  # 패키지 캐시 정리 (Ubuntu/Debian)',
-                    'yum clean all  # 패키지 캐시 정리 (CentOS/RHEL)'
+                    'du -sh /* | sort -rh | head -10  # 디스크 사용량 확인',
+                    'find /tmp -type f -atime +7 -delete  # 7일 이상 된 임시파일 삭제',
+                    'journalctl --vacuum-time=7d  # 7일 이상 된 로그 정리',
+                    'apt-get autoremove && apt-get autoclean  # 패키지 정리'
                 ],
                 prerequisites: ['root 권한'],
-                impact: '디스크 공간 즉시 확보, 5-20% 공간 확보 가능',
-                successRate: 90
-            },
-            {
-                action: '로그 로테이션 설정',
-                description: 'logrotate 설정으로 로그 파일 자동 관리',
-                priority: 2,
-                estimatedTime: 30,
-                riskLevel: 'low',
-                category: 'preventive_measure',
-                commands: [
-                    'vi /etc/logrotate.d/app-logs',
-                    'logrotate -d /etc/logrotate.conf  # 테스트',
-                    'logrotate -f /etc/logrotate.conf  # 강제 실행'
-                ],
-                prerequisites: ['logrotate 설치', '설정 파일 수정 권한'],
-                impact: '장기적 디스크 공간 관리, 자동화',
+                impact: '즉시 디스크 공간 확보',
                 successRate: 95
             }
         ];
 
-        diskSolutions.forEach(solution => {
-            const id = this.addSolution(solution);
+        for (const solution of diskSolutions) {
+            const id = await this.addSolution(solution);
             this.addToTypeMapping('disk_full', id);
-        });
+        }
     }
 
     /**
      * ⚡ 성능 저하 해결방안 (기존 Slow Response Time 룰 확장)
      */
-    private addPerformanceDegradationSolutions(): void {
+    private async addPerformanceDegradationSolutions(): Promise<void> {
         const performanceSolutions: Omit<Solution, 'id'>[] = [
             {
                 action: '데이터베이스 쿼리 최적화',
-                description: '느린 쿼리 분석 및 인덱스 최적화',
+                description: '느린 쿼리 식별 및 인덱스 최적화',
                 priority: 1,
-                estimatedTime: 45,
+                estimatedTime: 30,
                 riskLevel: 'low',
                 category: 'short_term_fix',
                 commands: [
-                    'mysql -e "SHOW PROCESSLIST;"  # MySQL 실행 중인 쿼리',
-                    'mysql -e "SHOW FULL PROCESSLIST;"',
-                    'mysql -e "EXPLAIN SELECT ..."  # 쿼리 실행 계획',
-                    'pg_stat_activity  # PostgreSQL 활동 확인'
+                    'SHOW PROCESSLIST;  # MySQL 실행 중인 쿼리 확인',
+                    'EXPLAIN SELECT ...;  # 쿼리 실행 계획 분석',
+                    'CREATE INDEX idx_name ON table(column);  # 인덱스 생성'
                 ],
-                prerequisites: ['데이터베이스 접근 권한'],
-                impact: '응답 시간 30-70% 개선',
+                prerequisites: ['데이터베이스 관리 권한'],
+                impact: '응답 시간 50-80% 개선',
                 successRate: 85
-            },
-            {
-                action: '웹 서버 설정 최적화',
-                description: 'nginx, apache 등 웹 서버 설정 튜닝',
-                priority: 2,
-                estimatedTime: 30,
-                riskLevel: 'medium',
-                category: 'short_term_fix',
-                commands: [
-                    'nginx -t  # 설정 파일 검증',
-                    'nginx -s reload  # 설정 리로드',
-                    'apache2ctl configtest  # Apache 설정 검증',
-                    'systemctl reload apache2'
-                ],
-                prerequisites: ['웹 서버 관리 권한'],
-                impact: '동시 연결 처리 능력 향상',
-                successRate: 80
             }
         ];
 
-        performanceSolutions.forEach(solution => {
-            const id = this.addSolution(solution);
+        for (const solution of performanceSolutions) {
+            const id = await this.addSolution(solution);
             this.addToTypeMapping('performance_degradation', id);
-        });
+        }
     }
 
     /**
-     * 🚨 애플리케이션 오류 해결방안 (기존 High Error Rate 룰 확장)
+     * 💥 애플리케이션 오류 해결방안 (기존 High Error Rate 룰 확장)
      */
-    private addApplicationCrashSolutions(): void {
+    private async addApplicationCrashSolutions(): Promise<void> {
         const crashSolutions: Omit<Solution, 'id'>[] = [
             {
-                action: '애플리케이션 재시작',
-                description: '서비스 재시작으로 임시적 문제 해결',
-                priority: 1,
-                estimatedTime: 5,
-                riskLevel: 'medium',
-                category: 'immediate_action',
-                commands: [
-                    'systemctl status <service-name>',
-                    'systemctl restart <service-name>',
-                    'systemctl enable <service-name>  # 부팅 시 자동 시작',
-                    'journalctl -u <service-name> -f  # 로그 실시간 확인'
-                ],
-                prerequisites: ['서비스 관리 권한'],
-                impact: '서비스 즉시 복구, 단기 중단 발생',
-                successRate: 75
-            },
-            {
                 action: '에러 로그 분석',
-                description: '애플리케이션 로그 분석으로 근본 원인 파악',
-                priority: 2,
-                estimatedTime: 60,
+                description: '애플리케이션 로그에서 오류 패턴 분석',
+                priority: 1,
+                estimatedTime: 20,
                 riskLevel: 'low',
-                category: 'long_term_solution',
+                category: 'immediate_action',
                 commands: [
                     'tail -f /var/log/app/error.log',
                     'grep -i error /var/log/app/*.log | tail -50',
@@ -321,16 +271,16 @@ export class SolutionDatabase implements ISolutionDatabase {
             }
         ];
 
-        crashSolutions.forEach(solution => {
-            const id = this.addSolution(solution);
+        for (const solution of crashSolutions) {
+            const id = await this.addSolution(solution);
             this.addToTypeMapping('application_crash', id);
-        });
+        }
     }
 
     /**
      * 🔥 시스템 스트레스 해결방안 (기존 System Stress 룰 확장)
      */
-    private addSystemStressSolutions(): void {
+    private async addSystemStressSolutions(): Promise<void> {
         const stressSolutions: Omit<Solution, 'id'>[] = [
             {
                 action: '시스템 리소스 모니터링 강화',
@@ -368,10 +318,10 @@ export class SolutionDatabase implements ISolutionDatabase {
             }
         ];
 
-        stressSolutions.forEach(solution => {
-            const id = this.addSolution(solution);
+        for (const solution of stressSolutions) {
+            const id = await this.addSolution(solution);
             this.addToTypeMapping('service_unavailable', id);
-        });
+        }
     }
 
     // ========================================
@@ -488,6 +438,131 @@ export class SolutionDatabase implements ISolutionDatabase {
             mostUsedSolutions: sortedByUsage,
             categoryDistribution
         };
+    }
+
+    /**
+     * 🧠 해결방안 효과성 업데이트 (AI 학습 연동) (NEW!)
+     */
+    async updateSolutionEffectiveness(solutionId: string, effectivenessScore: number): Promise<boolean> {
+        try {
+            const solution = this.solutions.get(solutionId);
+            if (!solution) {
+                console.warn(`⚠️ 해결방안을 찾을 수 없음: ${solutionId}`);
+                return false;
+            }
+
+            // 효과성 점수 검증 (0-1 범위)
+            const normalizedScore = Math.max(0, Math.min(1, effectivenessScore));
+
+            // 기존 성공률과 새로운 효과성 점수를 가중 평균으로 업데이트
+            const currentSuccessRate = solution.successRate || 0.5;
+            const usageCount = this.usageStats.get(solutionId) || 1;
+
+            // 가중 평균: 사용 횟수가 많을수록 기존 값에 더 가중치
+            const weight = Math.min(usageCount / 10, 0.8); // 최대 80% 기존값 가중치
+            const updatedSuccessRate = (currentSuccessRate * weight) + (normalizedScore * (1 - weight));
+
+            // 해결방안 업데이트
+            const updatedSolution = {
+                ...solution,
+                successRate: Math.round(updatedSuccessRate * 100) // 백분율로 저장
+            };
+
+            this.solutions.set(solutionId, updatedSolution);
+
+            console.log(`🧠 해결방안 효과성 업데이트: ${solutionId} (${currentSuccessRate}% → ${updatedSolution.successRate}%)`);
+            return true;
+
+        } catch (error) {
+            console.error('❌ 해결방안 효과성 업데이트 실패:', error);
+            return false;
+        }
+    }
+
+    /**
+     * 📊 학습 기반 해결방안 추천 (NEW!)
+     */
+    async getRecommendedSolutions(incidentType: IncidentType, limit = 3): Promise<Solution[]> {
+        try {
+            const solutions = await this.getSolutions(incidentType);
+
+            // 성공률과 사용 빈도를 기반으로 점수 계산
+            const scoredSolutions = solutions.map(solution => {
+                const successRate = solution.successRate || 50;
+                const usageCount = this.usageStats.get(solution.id) || 0;
+
+                // 점수 = 성공률 * 0.7 + 사용빈도 정규화 * 0.3
+                const normalizedUsage = Math.min(usageCount / 10, 1) * 100;
+                const score = (successRate * 0.7) + (normalizedUsage * 0.3);
+
+                return { solution, score };
+            });
+
+            // 점수 기준으로 정렬하고 상위 N개 반환
+            return scoredSolutions
+                .sort((a, b) => b.score - a.score)
+                .slice(0, limit)
+                .map(item => item.solution);
+
+        } catch (error) {
+            console.error('❌ 추천 해결방안 조회 실패:', error);
+            return [];
+        }
+    }
+
+    /**
+     * 🔄 학습 패턴 기반 새로운 해결방안 추가 (NEW!)
+     */
+    async addLearnedSolution(
+        incidentType: IncidentType,
+        action: string,
+        description: string,
+        commands: string[],
+        confidence: number
+    ): Promise<string | null> {
+        try {
+            // 신뢰도 검증
+            if (confidence < 0.7) {
+                console.warn(`⚠️ 신뢰도 부족으로 해결방안 추가 거부: ${confidence}`);
+                return null;
+            }
+
+            // 중복 해결방안 확인
+            const existingSolutions = await this.getSolutions(incidentType);
+            const isDuplicate = existingSolutions.some(solution =>
+                solution.action.toLowerCase().includes(action.toLowerCase()) ||
+                action.toLowerCase().includes(solution.action.toLowerCase())
+            );
+
+            if (isDuplicate) {
+                console.warn(`⚠️ 중복 해결방안으로 추가 거부: ${action}`);
+                return null;
+            }
+
+            // 새로운 해결방안 생성
+            const newSolution: Omit<Solution, 'id'> = {
+                action,
+                description: `${description} (AI 학습 기반)`,
+                priority: 3, // 학습 기반 해결방안은 중간 우선순위
+                estimatedTime: 15, // 기본 15분
+                riskLevel: 'medium',
+                category: 'short_term_fix',
+                commands,
+                prerequisites: ['AI 학습 기반 제안 - 검증 필요'],
+                impact: 'AI 학습을 통해 제안된 해결방안',
+                successRate: Math.round(confidence * 100)
+            };
+
+            const solutionId = await this.addSolution(newSolution);
+            this.addToTypeMapping(incidentType, solutionId);
+
+            console.log(`🧠 학습 기반 해결방안 추가: ${action} (신뢰도: ${Math.round(confidence * 100)}%)`);
+            return solutionId;
+
+        } catch (error) {
+            console.error('❌ 학습 기반 해결방안 추가 실패:', error);
+            return null;
+        }
     }
 
     // ========================================
