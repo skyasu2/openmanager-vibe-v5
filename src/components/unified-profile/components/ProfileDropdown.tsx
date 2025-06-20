@@ -87,7 +87,7 @@ const ProfileDropdown = forwardRef<HTMLDivElement, ProfileDropdownProps>(
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             transition={{ duration: 0.2 }}
-            className='fixed bg-gray-900/95 border border-gray-700/50 rounded-xl shadow-2xl z-[9999] min-w-[280px] max-w-[320px]'
+            className='fixed bg-gray-900/95 border border-gray-700/50 rounded-xl shadow-2xl z-[9500] min-w-[280px] max-w-[320px]'
             style={{
               top: `${position.top}px`,
               left: `${position.left}px`,

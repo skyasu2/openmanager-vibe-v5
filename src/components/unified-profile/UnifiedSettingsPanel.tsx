@@ -60,6 +60,7 @@ export function UnifiedSettingsPanel({
 }: UnifiedSettingsPanelProps) {
   const [activeTab, setActiveTab] = useState<SettingsTab>('ai');
   const [isClient, setIsClient] = useState(false);
+  const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
   const modalRef = useRef<HTMLDivElement>(null);
 
   // 커스텀 훅 사용
@@ -157,6 +158,58 @@ export function UnifiedSettingsPanel({
       loadGeneratorConfig();
     }
   }, [isOpen, activeTab, loadGeneratorConfig]);
+
+  // 모달 위치 계산 함수
+  const calculateModalPosition = () => {
+    if (!buttonRef?.current) return;
+
+    const buttonRect = buttonRef.current.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    // 모달 크기 (예상값)
+    const modalWidth = Math.min(800, viewportWidth * 0.95);
+    const modalHeight = Math.min(700, viewportHeight * 0.95);
+
+    let top = buttonRect.bottom + 12;
+    let left = buttonRect.right - modalWidth;
+
+    // 화면 아래로 넘어가는 경우 위쪽에 배치
+    if (top + modalHeight > viewportHeight - 20) {
+      top = buttonRect.top - modalHeight - 12;
+    }
+
+    // 화면 왼쪽으로 넘어가는 경우 조정
+    if (left < 20) {
+      left = 20;
+    }
+
+    // 화면 오른쪽으로 넘어가는 경우 조정
+    if (left + modalWidth > viewportWidth - 20) {
+      left = viewportWidth - modalWidth - 20;
+    }
+
+    // 모바일에서는 화면 중앙에 배치
+    if (viewportWidth < 768) {
+      top = (viewportHeight - modalHeight) / 2;
+      left = (viewportWidth - modalWidth) / 2;
+    }
+
+    setModalPosition({ top, left });
+  };
+
+  // 위치 계산 - 모달이 열릴 때마다 실행
+  useEffect(() => {
+    if (isOpen) {
+      calculateModalPosition();
+
+      // 윈도우 리사이즈 시 위치 재계산
+      const handleResize = () => calculateModalPosition();
+      window.addEventListener('resize', handleResize);
+
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, [isOpen]);
 
   // 인증 핸들러들
   const handleAuthenticationSubmit = async (quickPassword?: string) => {
@@ -394,18 +447,21 @@ export function UnifiedSettingsPanel({
             aria-label='설정 패널 닫기'
           />
 
-          {/* 설정 패널 - 중앙 모달로 변경 */}
+          {/* 설정 패널 - 프로필 버튼 근처에 배치 */}
           <motion.div
             ref={modalRef}
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.9, y: -20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            exit={{ opacity: 0, scale: 0.9, y: -20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className='fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
-                       w-[min(95vw,800px)] h-[min(95vh,700px)] 
+            className='fixed w-[min(95vw,800px)] h-[min(95vh,700px)] 
                        min-w-[320px] min-h-[400px] max-w-4xl max-h-[95vh]
                        bg-gray-900/95 backdrop-blur-xl border border-white/20 
-                       rounded-2xl shadow-2xl z-[9999] flex flex-col overflow-hidden'
+                       rounded-2xl shadow-2xl z-[10000] flex flex-col overflow-hidden'
+            style={{
+              top: `${modalPosition.top}px`,
+              left: `${modalPosition.left}px`,
+            }}
             role='dialog'
             aria-modal='true'
             aria-labelledby='settings-panel-title'
