@@ -397,7 +397,7 @@ export class AutoLearningScheduler {
           message: `AI가 분석한 ${suggestionReport.totalPatterns}개 패턴 중 ${suggestionReport.highConfidencePatterns}개가 검토 대상입니다.`,
           priority:
             suggestionReport.highConfidencePatterns > 5 ? 'high' : 'medium',
-          actionUrl: '/admin/ai-agent/pattern-review',
+          actionUrl: '/admin/mcp-monitoring',
           timestamp: suggestionReport.timestamp,
           data: suggestionReport,
         },

@@ -411,7 +411,7 @@ export default function Home() {
 
           {/* AI 관리자 페이지 버튼 - 관리자 로그인 시에만 표시 */}
           {adminMode.isAuthenticated && (
-            <Link href='/admin/ai-agent'>
+            <Link href='/admin'>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -422,7 +422,7 @@ export default function Home() {
                 }`}
               >
                 <Shield className='w-4 h-4' />
-                <span className='text-sm font-medium'>🧠 AI 엔진 관리</span>
+                <span className='text-sm font-medium'>⚙️ 관리자 대시보드</span>
               </motion.button>
             </Link>
           )}

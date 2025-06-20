@@ -35,16 +35,6 @@ export default function AdminPage() {
 
   const aiManagementFeatures = [
     {
-      title: 'AI 에이전트 관리',
-      description: '11개 AI 엔진 통합 관리 및 실시간 모니터링',
-      icon: <Brain className='w-8 h-8' />,
-      path: '/admin/ai-agent',
-      color: 'from-purple-500 to-pink-500',
-      features: ['11개 AI 엔진', '실시간 상태', '성능 분석'],
-      status: 'active',
-      complexity: 'high',
-    },
-    {
       title: 'MCP 서버 모니터링',
       description: 'MCP 시스템 상태 및 엔터프라이즈급 모니터링',
       icon: <Monitor className='w-8 h-8' />,
@@ -104,7 +94,7 @@ export default function AdminPage() {
 
   const stats = [
     {
-      value: '2',
+      value: '1',
       label: 'AI 핵심 도구',
       icon: <Brain className='w-5 h-5' />,
       color: 'text-purple-600',
@@ -194,10 +184,11 @@ export default function AdminPage() {
           <div className='flex items-center justify-center gap-2 p-2 bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 w-fit mx-auto'>
             <motion.button
               onClick={() => setSelectedCategory('ai')}
-              className={`px-8 py-4 rounded-xl font-semibold transition-all duration-300 flex items-center gap-3 relative overflow-hidden ${selectedCategory === 'ai'
-                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
-                }`}
+              className={`px-8 py-4 rounded-xl font-semibold transition-all duration-300 flex items-center gap-3 relative overflow-hidden ${
+                selectedCategory === 'ai'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+              }`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -216,10 +207,11 @@ export default function AdminPage() {
 
             <motion.button
               onClick={() => setSelectedCategory('system')}
-              className={`px-8 py-4 rounded-xl font-semibold transition-all duration-300 flex items-center gap-3 relative overflow-hidden ${selectedCategory === 'system'
-                ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/25'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
-                }`}
+              className={`px-8 py-4 rounded-xl font-semibold transition-all duration-300 flex items-center gap-3 relative overflow-hidden ${
+                selectedCategory === 'system'
+                  ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/25'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+              }`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -314,10 +306,11 @@ export default function AdminPage() {
                               {feature.title}
                             </h3>
                             <div
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${feature.complexity === 'high'
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-blue-100 text-blue-700'
-                                }`}
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                feature.complexity === 'high'
+                                  ? 'bg-red-100 text-red-700'
+                                  : 'bg-blue-100 text-blue-700'
+                              }`}
                             >
                               {feature.complexity === 'high' ? '고급' : '표준'}
                             </div>

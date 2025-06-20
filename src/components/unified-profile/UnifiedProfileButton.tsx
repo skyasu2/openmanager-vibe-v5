@@ -530,54 +530,6 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
                   </Link>
                 )}
 
-                {/* AI 엔진 관리 페이지 버튼 (관리자 모드일 때만) */}
-                {adminMode.isAuthenticated && (
-                  <Link href='/admin/ai-agent'>
-                    <motion.button
-                      whileHover={{
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                      }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => onClick({} as React.MouseEvent)}
-                      className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 mb-2'
-                      role='menuitem'
-                    >
-                      <div className='p-2 rounded-lg bg-purple-500/20'>
-                        <Shield className='w-4 h-4 text-purple-400' />
-                      </div>
-                      <div>
-                        <div className='text-white font-medium'>
-                          🧠 AI 엔진 관리
-                        </div>
-                        <div className='text-gray-400 text-xs'>
-                          AI 로그, 컨텍스트, A/B 테스트 관리
-                        </div>
-                      </div>
-                    </motion.button>
-                  </Link>
-                )}
-
-                {/* 고급 설정 버튼 (관리자 모드일 때만) */}
-                {adminMode.isAuthenticated && (
-                  <motion.button
-                    whileHover={{ backgroundColor: 'rgba(168, 85, 247, 0.1)' }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleSettingsClick}
-                    className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 mb-2'
-                    role='menuitem'
-                  >
-                    <div className='p-2 rounded-lg bg-violet-500/20'>
-                      <Zap className='w-4 h-4 text-violet-400' />
-                    </div>
-                    <div>
-                      <div className='text-white font-medium'>설정</div>
-                      <div className='text-gray-400 text-xs'>
-                        시스템 고급 설정 및 관리자 도구
-                      </div>
-                    </div>
-                  </motion.button>
-                )}
-
                 {/* 일반 설정 버튼 */}
                 {!adminMode.isAuthenticated && (
                   <motion.button
