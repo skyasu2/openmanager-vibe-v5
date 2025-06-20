@@ -24,12 +24,27 @@ import {
   Settings,
   Wrench,
   Clock,
+  TrendingUp,
+  Lightbulb,
+  Rocket,
+  Star,
+  GitBranch,
+  Users,
+  MonitorSpeaker,
+  Eye,
+  MessageSquare,
+  Gauge,
+  FileText,
+  Search,
+  Target,
+  Workflow,
+  Briefcase,
 } from 'lucide-react';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 // 토스트 알림 제거됨
 import TechStackDisplay from '@/components/ui/TechStackDisplay';
 import { analyzeTechStack } from '@/utils/TechStackAnalyzer';
-import FeatureCardModal from '../shared/FeatureCardModal';
+import FeatureCardModal from '@/components/shared/FeatureCardModal';
 import DateUtils from '@/utils/DateUtils';
 
 // FeatureCard 타입 정의
@@ -537,7 +552,7 @@ export default function FeatureCardsGrid() {
   const [showDevModal, setShowDevModal] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  const { aiAgent } = useUnifiedAdminStore();
+  const { aiAgent, adminMode, logoutAdmin } = useUnifiedAdminStore();
 
   // 다크모드 상태를 페이지에서 가져오기 (page.tsx에서 사용하는 것과 동일한 로직)
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -867,21 +882,28 @@ export default function FeatureCardsGrid() {
         ))}
       </div>
 
-      {/* 개발과정 버튼 */}
-      <div className='mt-12 flex justify-center'>
-        <Link
-          href='/about'
-          className={`group relative px-6 py-3 rounded-xl font-semibold transition-all duration-300 overflow-hidden ${
-            isDarkMode
-              ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25'
-              : 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg shadow-blue-600/25'
-          } hover:scale-105 hover:shadow-xl`}
-        >
-          <span className='relative z-10 flex items-center gap-2'>
-            🔧 개발과정 보기
-          </span>
-        </Link>
-      </div>
+      {/* 개발과정 버튼 - 관리자 모드일 때만 표시 */}
+      {adminMode.isAuthenticated && (
+        <div className='mt-12 flex justify-center'>
+          <Link
+            href='/about'
+            onClick={() => {
+              // 클릭 시 자동으로 관리자 권한 해제
+              logoutAdmin();
+              console.log('🔓 개발과정 페이지 접근 - 관리자 권한 자동 해제');
+            }}
+            className={`group relative px-6 py-3 rounded-xl font-semibold transition-all duration-300 overflow-hidden ${
+              isDarkMode
+                ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25'
+                : 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg shadow-blue-600/25'
+            } hover:scale-105 hover:shadow-xl`}
+          >
+            <span className='relative z-10 flex items-center gap-2'>
+              🔧 개발과정 보기
+            </span>
+          </Link>
+        </div>
+      )}
 
       {/* Feature Card Modal */}
       <FeatureCardModal
