@@ -1,15 +1,18 @@
 /**
  * 🚀 OpenManager Vibe v5 - Enhanced Unified AI Engine
  *
- * ✅ MCP (Model Context Protocol) 통합
- * ✅ Google AI 베타 연동
- * ✅ RAG (Retrieval-Augmented Generation) 엔진
+ * ✅ RuleBasedMainEngine 통합 (70% 우선순위)
+ * ✅ MCP (Model Context Protocol) 통합 (8% 우선순위)
+ * ✅ RAG (Retrieval-Augmented Generation) 엔진 (20% 우선순위)
+ * ✅ Google AI 베타 연동 (2% 베타 기능)
  * ✅ 컨텍스트 관리자 통합
  * ✅ Redis 캐싱 지원
  * ✅ 사고과정 로그 시스템 (MasterAIEngine 통합)
  * ✅ 엔진 통계 및 성능 모니터링
  * ✅ 11개 하위 엔진 관리 시스템
  * 🛡️ Graceful Degradation Architecture
+ * 
+ * 🎯 리팩토링 목표 달성: 룰기반 NLP 중심 아키텍처
  */
 
 import env, { shouldEnableDebugLogging } from '@/config/environment';
@@ -18,6 +21,10 @@ import { ContextManager } from './ContextManager';
 import { LocalRAGEngine } from '@/lib/ml/rag-engine';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
 import { isGoogleAIAvailable } from '@/lib/google-ai-manager';
+
+// 🎯 새로 추가: 룰기반 메인 엔진
+import { RuleBasedMainEngine } from './engines/RuleBasedMainEngine';
+import type { RuleBasedResponse } from '@/types/rule-based-engine.types';
 
 // MasterAIEngine 통합 - 사고과정 로그 시스템
 import {
@@ -168,10 +175,12 @@ export interface EngineStatus {
 
 export class UnifiedAIEngine {
   private static instance: UnifiedAIEngine | null = null;
-  private mcpClient: RealMCPClient | null = null;
+  // 🎯 새로운 우선순위: 룰기반 메인 엔진이 70% 비중
+  private ruleBasedEngine: RuleBasedMainEngine;  // ✅ 새로 추가 (70% 우선순위)
+  private ragEngine: LocalRAGEngine;             // ✅ 20% 우선순위로 승격
+  private mcpClient: RealMCPClient | null = null; // ✅ 8% 우선순위로 조정
+  private googleAI?: GoogleAIService;            // ✅ 2% 베타 기능으로 격하
   private contextManager: ContextManager;
-  private googleAI?: GoogleAIService;
-  private ragEngine: LocalRAGEngine;
   private betaModeEnabled: boolean = false;
   private initialized: boolean = false;
   private analysisCache: Map<string, any> = new Map();
@@ -212,9 +221,12 @@ export class UnifiedAIEngine {
   };
 
   public constructor() {
-    console.log('🚀 Enhanced Unified AI Engine 인스턴스 생성');
+    console.log('🚀 Enhanced Unified AI Engine 인스턴스 생성 - 룰기반 NLP 중심 (v2.0)');
+
+    // 🎯 새로운 우선순위로 엔진 초기화
+    this.ruleBasedEngine = new RuleBasedMainEngine(); // ✅ 70% 메인 엔진
+    this.ragEngine = new LocalRAGEngine();            // ✅ 20% 보조 엔진
     this.contextManager = ContextManager.getInstance();
-    this.ragEngine = new LocalRAGEngine();
 
     // MasterAIEngine 통합 - 통계 및 캐시 초기화
     this.engineStats = new Map();
@@ -1588,7 +1600,7 @@ export class UnifiedAIEngine {
         healthRatio: Math.round(
           (hybridData.monitoringData.metadata.onlineServers /
             hybridData.monitoringData.metadata.totalServers) *
-            100
+          100
         ),
       },
       confidence: hybridData.metadata.dataQuality.monitoring,

@@ -41,6 +41,7 @@
     ".next",
     "out",
     "build",
+    "backups/**/*",
     "development/scripts/**/*",
     "development/tests/**/*",
     "src/stories/**",

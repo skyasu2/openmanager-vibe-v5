@@ -1,6 +1,45 @@
-# 🧪 Testing Guide
+# 🧪 Testing Guide - 1인 개발 최적화 버전
 
-OpenManager Vibe v5의 **완전한 테스트 전략 및 가이드**입니다.
+OpenManager Vibe v5의 **1인 개발에 최적화된 테스트 전략 및 가이드**입니다.
+
+## 🎯 **1인 개발 최적화 테스트 구조**
+
+### 📁 **통합된 테스트 폴더 구조**
+
+```
+tests/
+├── unit/              # 단위 테스트 (핵심 기능)
+├── integration/       # 시스템 통합 테스트 (프로덕션)
+├── dev-integration/   # 개발 전용 통합 테스트 (Google AI, 환경 설정 등)
+├── scripts/          # 테스트 지원 스크립트
+└── TESTING.md        # 이 문서
+```
+
+### 🚀 **빠른 테스트 실행 명령어**
+
+```bash
+# 핵심 검증 (커밋 전 필수)
+npm run validate:quick
+
+# 단위 테스트만
+npm run test:unit
+
+# 시스템 통합 테스트
+npm run test:integration
+
+# 개발 관련 테스트 (Google AI, 환경 설정)
+npm run test:dev-integration
+
+# 전체 테스트
+npm run test:all
+```
+
+### ⚡ **1인 개발 테스트 철학**
+
+- **선택과 집중**: 핵심 기능만 철저히 테스트
+- **빠른 피드백**: 5분 내 검증 완료
+- **AI 협업**: Cursor AI + Claude로 테스트 자동 생성
+- **실용적 접근**: 완벽보다는 지속 가능한 품질
 
 ## 🎯 테스트 전략
 
