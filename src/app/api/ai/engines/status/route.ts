@@ -4,7 +4,7 @@ import { metricsCollector } from '../../../../../services/ai/RealTimeMetricsColl
 /**
  * 🚀 AI 엔진 상태 API v5.43.0
  *
- * 현재 활성 상태인 11개 AI 엔진의 실시간 상태를 반환합니다.
+ * 현재 활성 상태인 14개 AI 엔진의 실시간 상태를 반환합니다.
  * - 실제 메트릭 기반 상태 제공
  * - API 호출 통계 반영
  */

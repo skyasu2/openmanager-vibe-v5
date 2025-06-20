@@ -1,7 +1,7 @@
 # 🚀 **OpenManager Vibe v5** - 차세대 서버 모니터링 & AI 어시스턴트 플랫폼
 
 ![OpenManager Vibe v5](https://img.shields.io/badge/OpenManager-Vibe%20v5-blue.svg)
-![AI Engines](https://img.shields.io/badge/AI%20Engines-11개-green.svg)
+![AI Engines](https://img.shields.io/badge/AI%20Engines-14개-green.svg)
 ![MCP Servers](https://img.shields.io/badge/MCP%20표준서버-3개-orange.svg)
 ![Build Status](https://img.shields.io/badge/Build-128%20Pages-success.svg)
 
@@ -83,14 +83,14 @@ export class GracefulDegradationManager {
 }
 ```
 
-### **📊 현재 AI 엔진 구성 (12개)**
+### **📊 현재 AI 엔진 구성 (14개)**
 
-| 엔진 카테고리 | 엔진 수 | 주요 기능                           |
-| ------------- | ------- | ----------------------------------- |
-| **핵심 엔진** | 4개     | MasterAI, UnifiedRAG, NLP, Graceful |
-| **전문 엔진** | 4개     | QA, 감정분석, 추천, 요약            |
-| **통합 엔진** | 2개     | Google AI, MCP                      |
-| **유틸리티**  | 2개     | 로깅, 캐싱                          |
+| 엔진 카테고리 | 엔진 수 | 주요 기능                                    |
+| ------------- | ------- | -------------------------------------------- |
+| **핵심 엔진** | 5개     | MasterAI, UnifiedRAG, NLP, Graceful, MCP    |
+| **전문 엔진** | 6개     | QA, 감정분석, 추천, 요약, 분류, 의도분석     |
+| **통합 엔진** | 2개     | Google AI, 상관관계분석                      |
+| **ML 엔진**   | 1개     | 이상탐지, 예측분석                           |
 
 ---
 
@@ -152,7 +152,7 @@ async hybridSearch(query: string) {
 
 - **IntelligentPipelineOrchestrator**: 4단계 지능형 파이프라인
 - **GracefulDegradationManager**: 3-Tier 폴백 시스템
-- **MasterAIEngine**: 12개 엔진 통합 관리
+- **MasterAIEngine**: 14개 엔진 통합 관리
 - **Google AI (Gemini)**: 최신 AI 모델 연동
 - **UnifiedRAGEngine**: 하이브리드 벡터 검색
 - **MCP Protocol**: 표준 외부 도구 연동 (2개 서버)
@@ -478,3 +478,24 @@ MCP_MAX_CONCURRENT_CHECKS=1    # 1개 서버만 체크
 MCP_STANDARD_SERVERS_ONLY=true
 MCP_MEMORY_LIMIT=256  # 256MB 제한
 ```
+
+## 🔧 원상복구 가이드
+
+### 개발과정 페이지 원상복구
+
+**현재 상태**: 개발과정 페이지가 관리자 전용으로 이동됨 (`/about` → `/admin/development-process`)
+
+**원상복구 방법**:
+
+1. `src/app/admin/development-process/page.tsx` 파일 내용 복사
+2. `src/app/about/page.tsx` 파일 내용을 위 내용으로 교체
+3. 관리자 인증 로직(`useAdminAuth` 훅) 및 관련 import 제거
+4. 함수명을 `DevelopmentProcessPage`로 변경
+5. 관리자 헤더 UI 제거
+6. `src/app/admin/development-process/` 디렉토리 삭제 (선택사항)
+
+**접근 방법**:
+
+- **개발 환경**: 자동 허용
+- **프로덕션**: 확인 대화상자로 임시 권한 부여
+- **관리자 페이지**: `/admin` → "시스템 관리" → "개발과정 기록"

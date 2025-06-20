@@ -221,7 +221,7 @@ const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     name: 'Master AI Engine v4.0',
     category: 'ai-ml',
     description:
-      '11개 AI 엔진 통합 관리 - 85% 신뢰도, 4중 폴백 시스템, 100% 가용성 보장',
+      '14개 AI 엔진 통합 관리 - 85% 신뢰도, 4중 폴백 시스템, 100% 가용성 보장',
     importance: 'high',
     isCore: true,
   },

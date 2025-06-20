@@ -501,7 +501,7 @@ AI와의 대화 과정에서 MCP Protocol이라는 핵심 해답을 발견했습
 // 최종 구현: 복잡도는 낮추고 효과는 극대화
 const solutionComplexity = {
   codeLines: 1798, // UnifiedAIEngine.ts
-  dependencies: 12, // AI 엔진 수
+  dependencies: 14, // AI 엔진 수
   mcpServers: 6, // 5개 로컬 + 1개 프로덕션
   buildTime: '< 2분', // 빌드 시간
   maintenance: '최소', // 유지보수 노력
