@@ -10,8 +10,6 @@ import {
   Loader2,
   StopCircle,
   X,
-  Sun,
-  Moon,
   Zap,
   Play,
 } from 'lucide-react';
@@ -57,9 +55,6 @@ export default function Home() {
   const [countdownTimer, setCountdownTimer] = useState<NodeJS.Timeout | null>(
     null
   );
-
-  // 🌙 다크모드 상태 (기본값: true - 다크모드)
-  const [isDarkMode, setIsDarkMode] = useState(true);
 
   // 🔄 클라이언트 마운트 상태 (hydration 문제 방지)
   const [isMounted, setIsMounted] = useState(false);
@@ -247,29 +242,6 @@ export default function Home() {
     }
   };
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-  };
-
-  // 다크모드에 따른 배경 스타일
-  const getBackgroundClass = () => {
-    return isDarkMode
-      ? 'bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'
-      : 'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50';
-  };
-
-  // 다크모드에 따른 텍스트 스타일
-  const getTextClass = () => {
-    return isDarkMode ? 'text-white' : 'text-gray-900';
-  };
-
-  // 다크모드에 따른 카드 스타일
-  const getCardClass = () => {
-    return isDarkMode
-      ? 'bg-white/10 border border-white/20'
-      : 'bg-white/80 border border-gray-200';
-  };
-
   // 🔄 클라이언트 마운트 전에는 기본 상태로 렌더링 (hydration 문제 방지)
   if (!isMounted) {
     return (
@@ -285,7 +257,7 @@ export default function Home() {
   }
 
   return (
-    <div className={`min-h-screen ${getBackgroundClass()}`}>
+    <div className='min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900'>
       {/* 웨이브 파티클 배경 효과 */}
       <div className='wave-particles'></div>
 
@@ -370,12 +342,8 @@ export default function Home() {
 
           {/* 브랜드 텍스트 */}
           <div>
-            <h1 className={`text-xl font-bold ${getTextClass()}`}>
-              OpenManager
-            </h1>
-            <p
-              className={`text-xs ${isDarkMode ? 'text-white/70' : 'text-gray-600'}`}
-            >
+            <h1 className='text-xl font-bold text-white'>OpenManager</h1>
+            <p className='text-xs text-white/70'>
               {aiAgent.isEnabled && !isSystemStarted
                 ? 'AI 독립 모드'
                 : aiAgent.isEnabled && isSystemStarted
@@ -389,25 +357,6 @@ export default function Home() {
 
         {/* 오른쪽 헤더 컨트롤 */}
         <div className='flex items-center gap-3'>
-          {/* 다크모드 토글 버튼 */}
-          <motion.button
-            onClick={toggleDarkMode}
-            className={`p-2 rounded-lg transition-all duration-200 ${
-              isDarkMode
-                ? 'text-white/80 hover:text-white hover:bg-white/5'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-            }`}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            title={`${isDarkMode ? '라이트' : '다크'} 모드로 전환`}
-          >
-            {isDarkMode ? (
-              <Sun className='w-5 h-5' />
-            ) : (
-              <Moon className='w-5 h-5' />
-            )}
-          </motion.button>
-
           {/* 프로필 컴포넌트 */}
           <UnifiedProfileComponent userName='사용자' />
         </div>
@@ -426,17 +375,11 @@ export default function Home() {
             <span className='bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent'>
               {renderTextWithAIGradient('AI')}
             </span>{' '}
-            <span className={`font-semibold ${getTextClass()}`}>기반</span>{' '}
-            <span className={getTextClass()}>서버 모니터링</span>
+            <span className='font-semibold text-white'>기반</span>{' '}
+            <span className='text-white'>서버 모니터링</span>
           </h1>
-          <p
-            className={`text-lg md:text-xl max-w-3xl mx-auto leading-relaxed ${
-              isDarkMode ? 'text-white/80' : 'text-gray-700'
-            }`}
-          >
-            <span
-              className={`text-sm ${isDarkMode ? 'text-white/60' : 'text-gray-600'}`}
-            >
+          <p className='text-lg md:text-xl max-w-3xl mx-auto leading-relaxed text-white/80'>
+            <span className='text-sm text-white/60'>
               완전 독립 동작 AI 엔진 | 향후 개발: 선택적 LLM API 연동 확장
             </span>
           </p>
@@ -453,28 +396,14 @@ export default function Home() {
             /* 시스템 중지 상태 - 대시보드 버튼 중심으로 변경 */
             <div className='max-w-2xl mx-auto text-center'>
               {/* 시스템 종료 상태 안내 */}
-              <div
-                className={`mb-6 p-4 rounded-xl border ${
-                  isDarkMode
-                    ? 'bg-red-500/20 border-red-400/30'
-                    : 'bg-red-100 border-red-300'
-                }`}
-              >
+              <div className='mb-6 p-4 rounded-xl border bg-red-500/20 border-red-400/30'>
                 <div className='flex items-center justify-center gap-2 mb-2'>
                   <div className='w-3 h-3 bg-red-500 rounded-full animate-pulse'></div>
-                  <span
-                    className={`font-semibold ${
-                      isDarkMode ? 'text-red-200' : 'text-red-800'
-                    }`}
-                  >
+                  <span className='font-semibold text-red-200'>
                     시스템 종료됨
                   </span>
                 </div>
-                <p
-                  className={`text-sm ${
-                    isDarkMode ? 'text-red-100' : 'text-red-700'
-                  }`}
-                >
+                <p className='text-sm text-red-100'>
                   모든 서비스가 중지되었습니다.
                   <br />
                   <strong>
@@ -555,7 +484,7 @@ export default function Home() {
                     className={`text-sm font-medium opacity-80 ${
                       systemStartCountdown > 0
                         ? 'text-orange-300 animate-pulse'
-                        : `animate-point-bounce ${getTextClass()}`
+                        : 'animate-point-bounce text-white'
                     }`}
                   >
                     {systemStartCountdown > 0
@@ -567,29 +496,21 @@ export default function Home() {
 
               {/* 추가 설명 */}
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4 text-sm'>
-                <div
-                  className={`p-3 rounded-lg ${
-                    isDarkMode ? 'bg-white/5' : 'bg-gray-100'
-                  }`}
-                >
+                <div className='p-3 rounded-lg bg-white/5'>
                   <div className='flex items-center gap-2 mb-1'>
                     <Zap className='w-4 h-4 text-blue-400' />
                     <span className='font-semibold'>시스템 시작 과정</span>
                   </div>
-                  <p className={isDarkMode ? 'text-white/70' : 'text-gray-600'}>
+                  <p className='text-white/70'>
                     MCP 서버 Wake-up → 서버 시딩 → 시뮬레이션 → 대시보드 이동
                   </p>
                 </div>
-                <div
-                  className={`p-3 rounded-lg ${
-                    isDarkMode ? 'bg-white/5' : 'bg-gray-100'
-                  }`}
-                >
+                <div className='p-3 rounded-lg bg-white/5'>
                   <div className='flex items-center gap-2 mb-1'>
                     <Bot className='w-4 h-4 text-purple-400' />
                     <span className='font-semibold'>AI 어시스턴트</span>
                   </div>
-                  <p className={isDarkMode ? 'text-white/70' : 'text-gray-600'}>
+                  <p className='text-white/70'>
                     시스템 시작 후 대시보드에서 AI 사이드바 이용 가능
                   </p>
                 </div>
@@ -604,28 +525,14 @@ export default function Home() {
               transition={{ duration: 0.5 }}
             >
               {/* 시스템 활성 상태 안내 */}
-              <div
-                className={`mb-6 p-4 rounded-xl border ${
-                  isDarkMode
-                    ? 'bg-green-500/20 border-green-400/30'
-                    : 'bg-green-100 border-green-300'
-                }`}
-              >
+              <div className='mb-6 p-4 rounded-xl border bg-green-500/20 border-green-400/30'>
                 <div className='flex items-center justify-center gap-2 mb-2'>
                   <div className='w-3 h-3 bg-green-500 rounded-full animate-pulse'></div>
-                  <span
-                    className={`font-semibold ${
-                      isDarkMode ? 'text-green-200' : 'text-green-800'
-                    }`}
-                  >
+                  <span className='font-semibold text-green-200'>
                     시스템 활성 - 남은 시간: {formatTime(systemTimeRemaining)}
                   </span>
                 </div>
-                <p
-                  className={`text-sm ${
-                    isDarkMode ? 'text-green-100' : 'text-green-700'
-                  }`}
-                >
+                <p className='text-sm text-green-100'>
                   모든 서비스가 정상 동작 중입니다. 대시보드에서 상세 정보를
                   확인하세요.
                 </p>
@@ -737,12 +644,8 @@ export default function Home() {
         </div>
 
         {/* 푸터 */}
-        <div
-          className={`mt-8 pt-6 border-t text-center ${
-            isDarkMode ? 'border-white/20' : 'border-gray-300'
-          }`}
-        >
-          <p className={isDarkMode ? 'text-white/70' : 'text-gray-600'}>
+        <div className='mt-8 pt-6 border-t text-center border-white/20'>
+          <p className='text-white/70'>
             Copyright(c) OpenManager. All rights reserved.
           </p>
         </div>
