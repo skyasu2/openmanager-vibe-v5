@@ -42,9 +42,12 @@ import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { useAIThinking, useAIChat } from '@/stores/useAISidebarStore';
 import { useRealTimeAILogs } from '@/hooks/useRealTimeAILogs';
 import { RealAISidebarService } from '../services/RealAISidebarService';
-import BasicTyping from '@/components/ui/BasicTyping';
 import { MCPWakeupStatus } from '@/components/system/MCPWakeupStatus';
-import { useMCPStatus } from '@/hooks/api/useMCPQuery';
+
+// 분리된 컴포넌트들 import
+import { AISidebarHeader } from './AISidebarHeader';
+import { AIEngineSelector, AI_ENGINES } from './AIEngineSelector';
+import { MCPServerStatusPanel } from './MCPServerStatusPanel';
 
 // AI 기능 아이콘 패널 및 페이지 컴포넌트들
 import AIAgentIconPanel, {
@@ -109,44 +112,7 @@ interface PresetQuestion {
   color: string;
 }
 
-// AI 엔진 목록 (3개로 축소)
-const AI_ENGINES: AIEngine[] = [
-  {
-    id: 'auto',
-    name: 'AUTO',
-    description: '자동으로 최적 모델 조합 선택 (기본값)',
-    icon: Zap,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50',
-    features: ['지능형 라우팅', '최적 성능', '자동 폴백'],
-    status: 'ready',
-  },
-  {
-    id: 'google-ai',
-    name: 'Google AI',
-    description: 'Google AI Studio (Gemini) 전용 모드',
-    icon: Globe,
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
-    features: ['자연어 전문', '창의적 응답', '다국어 지원'],
-    usage: {
-      used: 45,
-      limit: 300,
-      resetTime: '24시간',
-    },
-    status: 'ready',
-  },
-  {
-    id: 'internal',
-    name: 'Internal',
-    description: 'MCP + RAG + ML 내부 엔진만 사용',
-    icon: Brain,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-    features: ['빠른 응답', '오프라인 지원', '프라이버시'],
-    status: 'ready',
-  },
-];
+// AI_ENGINES는 이제 AIEngineSelector에서 import됨
 
 // 프리셋 질문 목록 (기존 유지)
 const PRESET_QUESTIONS: PresetQuestion[] = [
@@ -1235,34 +1201,8 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         >
           {/* 메인 콘텐츠 영역 */}
           <div className='flex-1 flex flex-col min-w-0'>
-            {/* 헤더 */}
-            <div className='flex items-center justify-between p-3 sm:p-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50'>
-              <div className='flex items-center space-x-2 sm:space-x-3 min-w-0'>
-                <div className='w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg flex items-center justify-center'>
-                  <Brain className='w-4 h-4 sm:w-5 sm:h-5 text-white' />
-                </div>
-                <div className='min-w-0 flex-1'>
-                  <BasicTyping
-                    text='AI 어시스턴트'
-                    speed='fast'
-                    className='text-base sm:text-lg font-bold text-gray-800 truncate'
-                    showCursor={false}
-                  />
-                  <p className='text-xs sm:text-sm text-gray-600 truncate'>
-                    AI와 자연어로 시스템 질의
-                  </p>
-                </div>
-              </div>
-
-              <button
-                onClick={onClose}
-                className='p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0'
-                title='사이드바 닫기'
-                aria-label='사이드바 닫기'
-              >
-                <X className='w-5 h-5 text-gray-500' />
-              </button>
-            </div>
+            {/* 헤더 - 분리된 컴포넌트 사용 */}
+            <AISidebarHeader onClose={onClose} />
 
             {/* 기능별 페이지 콘텐츠 */}
             <div className='flex-1 overflow-hidden pb-16 sm:pb-0'>
@@ -1294,111 +1234,5 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         </motion.div>
       )}
     </AnimatePresence>
-  );
-};
-
-// MCP 서버 상태 패널 컴포넌트
-const MCPServerStatusPanel: React.FC = () => {
-  const { data: mcpStatus, isLoading, error } = useMCPStatus();
-
-  if (isLoading) {
-    return (
-      <div className='flex items-center gap-2 text-gray-600'>
-        <div className='w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin'></div>
-        <span className='text-sm'>MCP 서버 상태 확인 중...</span>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className='p-3 bg-red-50 rounded-lg border border-red-200'>
-        <div className='flex items-center gap-2 text-red-800 font-medium text-sm'>
-          <XCircle className='w-4 h-4' />
-          MCP 서버 연결 오류
-        </div>
-        <p className='text-red-700 text-xs mt-1'>
-          서버 상태를 확인할 수 없습니다. 네트워크 연결을 확인해주세요.
-        </p>
-      </div>
-    );
-  }
-
-  const renderServer = mcpStatus?.mcp?.servers?.render;
-  const localServers = mcpStatus?.mcp?.servers?.local || {};
-  const totalServers = mcpStatus?.mcp?.stats?.totalServers || 0;
-  const connectedServers = mcpStatus?.mcp?.stats?.connectedServers || 0;
-
-  return (
-    <div className='space-y-3'>
-      {/* Render MCP 서버 */}
-      <div className='p-3 bg-slate-50 rounded-lg border border-slate-200'>
-        <div className='flex items-center justify-between mb-2'>
-          <div className='flex items-center gap-2'>
-            <div
-              className={`w-3 h-3 rounded-full ${renderServer?.healthy ? 'bg-green-500' : 'bg-red-500'}`}
-            ></div>
-            <span className='font-medium text-slate-800 text-sm'>
-              Render MCP 서버
-            </span>
-          </div>
-          <span
-            className={`text-xs px-2 py-1 rounded-full ${renderServer?.healthy ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
-          >
-            {renderServer?.healthy ? '정상' : '오프라인'}
-          </span>
-        </div>
-        <div className='grid grid-cols-2 gap-2 text-xs text-slate-600'>
-          <div>URL: {renderServer?.url?.replace('https://', '') || 'N/A'}</div>
-          <div>지연시간: {renderServer?.latency || 'N/A'}ms</div>
-          <div>포트: {renderServer?.port || 'N/A'}</div>
-          <div>
-            업타임:{' '}
-            {renderServer?.uptime
-              ? Math.round(renderServer.uptime / 60)
-              : 'N/A'}
-            분
-          </div>
-        </div>
-      </div>
-
-      {/* 로컬 MCP 서버들 */}
-      <div className='p-3 bg-blue-50 rounded-lg border border-blue-200'>
-        <div className='flex items-center justify-between mb-2'>
-          <div className='flex items-center gap-2'>
-            <div className='w-3 h-3 rounded-full bg-blue-500'></div>
-            <span className='font-medium text-blue-800 text-sm'>
-              로컬 MCP 서버
-            </span>
-          </div>
-          <span className='text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800'>
-            {connectedServers}/{totalServers} 연결
-          </span>
-        </div>
-        <div className='grid grid-cols-1 gap-1 text-xs text-blue-700'>
-          {Object.entries(localServers).map(([name, connected]) => (
-            <div key={name} className='flex items-center justify-between'>
-              <span>{name}</span>
-              <span className={connected ? 'text-green-600' : 'text-red-600'}>
-                {connected ? '✓' : '✗'}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* MCP Wake-up 상태 (기존 컴포넌트 재사용) */}
-      {/* MCPWakeupStatus는 필요시에만 표시되므로 항상 렌더링 */}
-      <MCPWakeupStatus
-        wakeupStatus={{
-          isInProgress: false,
-          stage: null,
-          message: '',
-          progress: 0,
-          elapsedTime: 0,
-        }}
-        className='mt-2'
-      />
-    </div>
   );
 };
