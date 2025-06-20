@@ -169,8 +169,8 @@ export const SECURITY = {
 // 📈 모니터링 설정
 export const MONITORING = {
   INTERVALS: {
-    HEALTH_CHECK_MS: 30000, // 30초
-    METRICS_COLLECTION_MS: 60000, // 1분
+    HEALTH_CHECK_MS: 60000, // 30초 → 60초 (Vercel 최적화)
+    METRICS_COLLECTION_MS: 120000, // 1분 → 2분 (Vercel 최적화)
     LOG_ROTATION_MS: 3600000, // 1시간
     CLEANUP_MS: 86400000, // 24시간
   },
@@ -183,9 +183,9 @@ export const MONITORING = {
   },
 
   BATCH_SIZES: {
-    METRICS_BATCH: 10, // 경연대회 최적화: Redis 명령어 그룹핑
-    LOGS_BATCH: 15, // 경연대회 최적화: 무료 티어 한도 내
-    ALERTS_BATCH: 5, // 경연대회 최적화: 메모리 효율성
+    METRICS_BATCH: 5, // 경연대회 최적화: Redis 명령어 그룹핑 (10→5로 축소)
+    LOGS_BATCH: 10, // 경연대회 최적화: 무료 티어 한도 내 (15→10으로 축소)
+    ALERTS_BATCH: 3, // 경연대회 최적화: 메모리 효율성 (5→3으로 축소)
   },
 } as const;
 

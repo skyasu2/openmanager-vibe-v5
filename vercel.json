@@ -2,19 +2,33 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "src/app/api/**/*.ts": {
-      "maxDuration": 30,
-      "memory": 1024
+      "maxDuration": 25,
+      "memory": 512
     },
     "src/app/api/ai/**/*.ts": {
-      "maxDuration": 60,
+      "maxDuration": 45,
       "memory": 1024
     },
     "src/app/api/data-generator/**/*.ts": {
-      "maxDuration": 45,
+      "maxDuration": 30,
       "memory": 512
+    },
+    "src/app/api/ai-agent/**/*.ts": {
+      "maxDuration": 45,
+      "memory": 1024
     }
   },
-  "headers": [],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=60, s-maxage=300"
+        }
+      ]
+    }
+  ],
   "redirects": [
     {
       "source": "/",
@@ -36,5 +50,6 @@
   "regions": ["icn1"],
   "cleanUrls": true,
   "trailingSlash": false,
-  "crons": []
+  "crons": [],
+  "outputFileTracing": true
 }

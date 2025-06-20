@@ -37,14 +37,14 @@ export class GoogleAIQuotaManager {
     });
 
     this.config = {
-      dailyLimit: parseInt(process.env.GOOGLE_AI_DAILY_LIMIT || '100'),
-      hourlyLimit: parseInt(process.env.GOOGLE_AI_HOURLY_LIMIT || '20'),
-      testLimit: parseInt(process.env.GOOGLE_AI_TEST_LIMIT_PER_DAY || '5'),
+      dailyLimit: parseInt(process.env.GOOGLE_AI_DAILY_LIMIT || '50'),
+      hourlyLimit: parseInt(process.env.GOOGLE_AI_HOURLY_LIMIT || '10'),
+      testLimit: parseInt(process.env.GOOGLE_AI_TEST_LIMIT_PER_DAY || '3'),
       healthCheckCacheHours: parseInt(
         process.env.GOOGLE_AI_HEALTH_CHECK_CACHE_HOURS || '24'
       ),
       circuitBreakerThreshold: parseInt(
-        process.env.GOOGLE_AI_CIRCUIT_BREAKER_THRESHOLD || '5'
+        process.env.GOOGLE_AI_CIRCUIT_BREAKER_THRESHOLD || '3'
       ),
     };
   }
