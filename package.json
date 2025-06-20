@@ -309,12 +309,8 @@
     "@eslint/eslintrc": "^3",
     "@next/eslint-plugin-next": "^15.3.4",
     "@playwright/test": "^1.52.0",
-    "@storybook/addon-actions": "^9.0.8",
-    "@storybook/addon-essentials": "^8.6.14",
-    "@storybook/addon-interactions": "^8.6.14",
-    "@storybook/addon-links": "^8.6.14",
-    "@storybook/nextjs": "^8.6.14",
-    "@storybook/react": "^8.6.14",
+    "@storybook/addon-links": "^9.0.12",
+    "@storybook/nextjs": "^9.0.12",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@types/node": "^24.0.1",
@@ -334,13 +330,16 @@
     "playwright": "^1.52.0",
     "prettier": "^3.5.3",
     "rimraf": "^6.0.1",
-    "storybook": "^8.6.14",
+    "storybook": "^9.0.12",
     "tsx": "^4.19.2",
     "typescript": "^5.8.3",
     "vitest": "^3.2.3",
-    "webpack": "^5.99.9"
+    "webpack": "^5.99.9",
+    "eslint-plugin-storybook": "9.0.12",
+    "@storybook/addon-docs": "^9.0.12"
   },
   "optionalDependencies": {
     "webworker-threads": "^0.7.17"
-  }
+  },
+  "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac"
 }

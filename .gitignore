@@ -11,6 +11,9 @@ mcp-server/node_modules
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+# pnpm
+.pnpm-store/
+.pnpm-debug.log*
 
 # testing
 /coverage

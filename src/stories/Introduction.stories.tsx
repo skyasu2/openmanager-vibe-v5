@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 
 // 더미 컴포넌트 (실제로는 MDX 내용을 표시)
 const IntroductionComponent = () => {
@@ -25,9 +25,7 @@ const IntroductionComponent = () => {
           🆕 최신 업데이트 (v5.44.4 - 완전 안정화)
         </h3>
         <ul className='text-sm text-green-700 space-y-1'>
-          <li>
-            • 🎯 pnpm 패키지 매니저로 완전 전환 및 의존성 최적화
-          </li>
+          <li>• 🎯 pnpm 패키지 매니저로 완전 전환 및 의존성 최적화</li>
           <li>
             • 🧠 IntelligentMonitoringPage - 3단계 AI 분석 워크플로우 완성
           </li>
@@ -195,7 +193,8 @@ const IntroductionComponent = () => {
         <div className='p-4 border rounded-lg'>
           <h4 className='font-medium mb-2'>🧠 IntelligentMonitoringPage</h4>
           <p className='text-sm text-gray-600'>
-            3단계 AI 분석 워크플로우: 이상 탐지 → 근본 원인 분석 → 예측적 모니터링
+            3단계 AI 분석 워크플로우: 이상 탐지 → 근본 원인 분석 → 예측적
+            모니터링
           </p>
         </div>
         <div className='p-4 border rounded-lg'>
@@ -239,7 +238,8 @@ const IntroductionComponent = () => {
             🎉 모든 시스템 완전 안정화 달성!
           </p>
           <p className='text-sm mt-2 text-blue-700'>
-            pnpm 전환, 모듈화 완성, AI 통합, 실시간 모니터링 - 모든 기능이 완벽하게 작동합니다.
+            pnpm 전환, 모듈화 완성, AI 통합, 실시간 모니터링 - 모든 기능이
+            완벽하게 작동합니다.
           </p>
         </div>
       </div>

@@ -5,7 +5,7 @@
  * 최신 업데이트: 15개 서버 실시간 네트워크 메트릭, 트래픽 분석, 대역폭 모니터링
  */
 
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -78,10 +78,14 @@ const NetworkMonitoringDemo = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'online': return 'text-green-600 bg-green-50';
-      case 'warning': return 'text-yellow-600 bg-yellow-50';
-      case 'offline': return 'text-red-600 bg-red-50';
-      default: return 'text-gray-600 bg-gray-50';
+      case 'online':
+        return 'text-green-600 bg-green-50';
+      case 'warning':
+        return 'text-yellow-600 bg-yellow-50';
+      case 'offline':
+        return 'text-red-600 bg-red-50';
+      default:
+        return 'text-gray-600 bg-gray-50';
     }
   };
 
@@ -92,38 +96,39 @@ const NetworkMonitoringDemo = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className='min-h-screen bg-gray-50 p-6'>
+      <div className='max-w-7xl mx-auto'>
         {/* 헤더 */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-600 rounded-lg">
-                <Wifi className="w-8 h-8 text-white" />
+        <div className='mb-8'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-3'>
+              <div className='p-3 bg-blue-600 rounded-lg'>
+                <Wifi className='w-8 h-8 text-white' />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className='text-3xl font-bold text-gray-900'>
                   네트워크 모니터링 데모
                 </h1>
-                <p className="text-gray-600">
+                <p className='text-gray-600'>
                   실시간 네트워크 트래픽 분석 및 대역폭 모니터링 (v5.44.4)
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className='flex items-center gap-4'>
               <button
                 onClick={() => setIsMonitoring(!isMonitoring)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${isMonitoring
-                  ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                  : 'bg-green-100 text-green-700 hover:bg-green-200'
-                  }`}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  isMonitoring
+                    ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                    : 'bg-green-100 text-green-700 hover:bg-green-200'
+                }`}
               >
                 {isMonitoring ? '모니터링 중지' : '모니터링 시작'}
               </button>
               {isMonitoring && (
-                <div className="flex items-center gap-2 text-green-600">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-sm font-medium">실시간</span>
+                <div className='flex items-center gap-2 text-green-600'>
+                  <div className='w-2 h-2 bg-green-500 rounded-full animate-pulse' />
+                  <span className='text-sm font-medium'>실시간</span>
                 </div>
               )}
             </div>
@@ -131,53 +136,64 @@ const NetworkMonitoringDemo = () => {
         </div>
 
         {/* 메인 메트릭 카드들 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8'>
           {/* 대역폭 사용률 */}
           <motion.div
-            className="bg-white p-6 rounded-lg shadow-sm border"
+            className='bg-white p-6 rounded-lg shadow-sm border'
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <Activity className="w-5 h-5 text-blue-600" />
-                <h3 className="font-medium text-gray-900">대역폭 사용률</h3>
+            <div className='flex items-center justify-between mb-4'>
+              <div className='flex items-center gap-3'>
+                <Activity className='w-5 h-5 text-blue-600' />
+                <h3 className='font-medium text-gray-900'>대역폭 사용률</h3>
               </div>
-              <span className={`text-lg font-bold ${getBandwidthColor(networkData.currentUsage)}`}>
+              <span
+                className={`text-lg font-bold ${getBandwidthColor(networkData.currentUsage)}`}
+              >
                 {networkData.currentUsage.toFixed(1)}%
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className='w-full bg-gray-200 rounded-full h-2'>
               <div
-                className={`h-2 rounded-full transition-all duration-1000 ${networkData.currentUsage > 80 ? 'bg-red-500' :
-                  networkData.currentUsage > 60 ? 'bg-yellow-500' : 'bg-green-500'
-                  }`}
+                className={`h-2 rounded-full transition-all duration-1000 ${
+                  networkData.currentUsage > 80
+                    ? 'bg-red-500'
+                    : networkData.currentUsage > 60
+                      ? 'bg-yellow-500'
+                      : 'bg-green-500'
+                }`}
                 style={{ width: `${networkData.currentUsage}%` }}
               />
             </div>
-            <p className="text-sm text-gray-600 mt-2">
-              {networkData.totalBandwidth} Mbps 중 {(networkData.currentUsage * networkData.totalBandwidth / 100).toFixed(0)} Mbps 사용
+            <p className='text-sm text-gray-600 mt-2'>
+              {networkData.totalBandwidth} Mbps 중{' '}
+              {(
+                (networkData.currentUsage * networkData.totalBandwidth) /
+                100
+              ).toFixed(0)}{' '}
+              Mbps 사용
             </p>
           </motion.div>
 
           {/* 다운로드 속도 */}
           <motion.div
-            className="bg-white p-6 rounded-lg shadow-sm border"
+            className='bg-white p-6 rounded-lg shadow-sm border'
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <Download className="w-5 h-5 text-green-600" />
-                <h3 className="font-medium text-gray-900">다운로드</h3>
+            <div className='flex items-center justify-between mb-4'>
+              <div className='flex items-center gap-3'>
+                <Download className='w-5 h-5 text-green-600' />
+                <h3 className='font-medium text-gray-900'>다운로드</h3>
               </div>
-              <span className="text-lg font-bold text-green-600">
+              <span className='text-lg font-bold text-green-600'>
                 {networkData.downloadSpeed.toFixed(0)} Mbps
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-green-500" />
-              <span className="text-sm text-gray-600">
+            <div className='flex items-center gap-2'>
+              <TrendingUp className='w-4 h-4 text-green-500' />
+              <span className='text-sm text-gray-600'>
                 평균 {(networkData.downloadSpeed * 0.8).toFixed(0)} Mbps
               </span>
             </div>
@@ -185,22 +201,22 @@ const NetworkMonitoringDemo = () => {
 
           {/* 업로드 속도 */}
           <motion.div
-            className="bg-white p-6 rounded-lg shadow-sm border"
+            className='bg-white p-6 rounded-lg shadow-sm border'
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <Upload className="w-5 h-5 text-blue-600" />
-                <h3 className="font-medium text-gray-900">업로드</h3>
+            <div className='flex items-center justify-between mb-4'>
+              <div className='flex items-center gap-3'>
+                <Upload className='w-5 h-5 text-blue-600' />
+                <h3 className='font-medium text-gray-900'>업로드</h3>
               </div>
-              <span className="text-lg font-bold text-blue-600">
+              <span className='text-lg font-bold text-blue-600'>
                 {networkData.uploadSpeed.toFixed(0)} Mbps
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-blue-500" />
-              <span className="text-sm text-gray-600">
+            <div className='flex items-center gap-2'>
+              <TrendingUp className='w-4 h-4 text-blue-500' />
+              <span className='text-sm text-gray-600'>
                 평균 {(networkData.uploadSpeed * 0.9).toFixed(0)} Mbps
               </span>
             </div>
@@ -208,22 +224,22 @@ const NetworkMonitoringDemo = () => {
 
           {/* 활성 연결 */}
           <motion.div
-            className="bg-white p-6 rounded-lg shadow-sm border"
+            className='bg-white p-6 rounded-lg shadow-sm border'
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <Router className="w-5 h-5 text-purple-600" />
-                <h3 className="font-medium text-gray-900">활성 연결</h3>
+            <div className='flex items-center justify-between mb-4'>
+              <div className='flex items-center gap-3'>
+                <Router className='w-5 h-5 text-purple-600' />
+                <h3 className='font-medium text-gray-900'>활성 연결</h3>
               </div>
-              <span className="text-lg font-bold text-purple-600">
+              <span className='text-lg font-bold text-purple-600'>
                 {networkData.activeConnections}
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <Globe className="w-4 h-4 text-purple-500" />
-              <span className="text-sm text-gray-600">
+            <div className='flex items-center gap-2'>
+              <Globe className='w-4 h-4 text-purple-500' />
+              <span className='text-sm text-gray-600'>
                 {networkData.packetsPerSecond.toLocaleString()} pps
               </span>
             </div>
@@ -231,16 +247,16 @@ const NetworkMonitoringDemo = () => {
         </div>
 
         {/* 서버별 네트워크 상태 */}
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Server className="w-5 h-5 text-gray-600" />
-                <h3 className="text-lg font-semibold text-gray-900">
+        <div className='bg-white rounded-lg shadow-sm border'>
+          <div className='p-6 border-b border-gray-200'>
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center gap-3'>
+                <Server className='w-5 h-5 text-gray-600' />
+                <h3 className='text-lg font-semibold text-gray-900'>
                   서버별 네트워크 상태 (15개 서버)
                 </h3>
               </div>
-              <div className="flex items-center gap-4 text-sm text-gray-600">
+              <div className='flex items-center gap-4 text-sm text-gray-600'>
                 <span>지연시간</span>
                 <span>처리량</span>
                 <span>상태</span>
@@ -248,41 +264,59 @@ const NetworkMonitoringDemo = () => {
             </div>
           </div>
 
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {networkData.servers.map((server) => (
+          <div className='p-6'>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+              {networkData.servers.map(server => (
                 <motion.div
                   key={server.id}
-                  className="p-4 border rounded-lg hover:shadow-md transition-shadow"
+                  className='p-4 border rounded-lg hover:shadow-md transition-shadow'
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Monitor className="w-4 h-4 text-gray-600" />
-                      <span className="font-medium text-gray-900">{server.name}</span>
+                  <div className='flex items-center justify-between mb-3'>
+                    <div className='flex items-center gap-2'>
+                      <Monitor className='w-4 h-4 text-gray-600' />
+                      <span className='font-medium text-gray-900'>
+                        {server.name}
+                      </span>
                     </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(server.status)}`}>
-                      {server.status === 'online' ? '정상' : server.status === 'warning' ? '경고' : '오프라인'}
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(server.status)}`}
+                    >
+                      {server.status === 'online'
+                        ? '정상'
+                        : server.status === 'warning'
+                          ? '경고'
+                          : '오프라인'}
                     </span>
                   </div>
 
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">네트워크 사용률</span>
-                      <span className="font-medium">{server.networkUsage.toFixed(1)}%</span>
+                  <div className='space-y-2'>
+                    <div className='flex justify-between text-sm'>
+                      <span className='text-gray-600'>네트워크 사용률</span>
+                      <span className='font-medium'>
+                        {server.networkUsage.toFixed(1)}%
+                      </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div className='w-full bg-gray-200 rounded-full h-1.5'>
                       <div
-                        className={`h-1.5 rounded-full transition-all duration-1000 ${server.networkUsage > 80 ? 'bg-red-500' :
-                          server.networkUsage > 60 ? 'bg-yellow-500' : 'bg-green-500'
-                          }`}
+                        className={`h-1.5 rounded-full transition-all duration-1000 ${
+                          server.networkUsage > 80
+                            ? 'bg-red-500'
+                            : server.networkUsage > 60
+                              ? 'bg-yellow-500'
+                              : 'bg-green-500'
+                        }`}
                         style={{ width: `${server.networkUsage}%` }}
                       />
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">지연시간: {server.latency.toFixed(1)}ms</span>
-                      <span className="text-gray-600">처리량: {server.throughput.toFixed(0)} Mbps</span>
+                    <div className='flex justify-between text-sm'>
+                      <span className='text-gray-600'>
+                        지연시간: {server.latency.toFixed(1)}ms
+                      </span>
+                      <span className='text-gray-600'>
+                        처리량: {server.throughput.toFixed(0)} Mbps
+                      </span>
                     </div>
                   </div>
                 </motion.div>
@@ -294,18 +328,21 @@ const NetworkMonitoringDemo = () => {
         {/* 알림 배너 */}
         {networkData.currentUsage > 80 && (
           <motion.div
-            className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg"
+            className='mt-6 p-4 bg-red-50 border border-red-200 rounded-lg'
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
+            <div className='flex items-center gap-3'>
+              <AlertTriangle className='w-5 h-5 text-red-600' />
               <div>
-                <h4 className="font-medium text-red-800">높은 대역폭 사용률 경고</h4>
-                <p className="text-sm text-red-700">
-                  현재 대역폭 사용률이 {networkData.currentUsage.toFixed(1)}%로 임계치를 초과했습니다.
-                  네트워크 성능 저하가 발생할 수 있습니다.
+                <h4 className='font-medium text-red-800'>
+                  높은 대역폭 사용률 경고
+                </h4>
+                <p className='text-sm text-red-700'>
+                  현재 대역폭 사용률이 {networkData.currentUsage.toFixed(1)}%로
+                  임계치를 초과했습니다. 네트워크 성능 저하가 발생할 수
+                  있습니다.
                 </p>
               </div>
             </div>
