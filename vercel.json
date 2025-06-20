@@ -50,6 +50,5 @@
   "regions": ["icn1"],
   "cleanUrls": true,
   "trailingSlash": false,
-  "crons": [],
-  "outputFileTracing": true
+  "crons": []
 }
