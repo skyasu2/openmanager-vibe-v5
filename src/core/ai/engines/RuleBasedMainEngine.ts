@@ -416,7 +416,7 @@ export class RuleBasedMainEngine implements IRuleBasedMainEngine {
                     'general_inquiry': INTENT_CATEGORIES.GENERAL_INQUIRY
                 };
 
-                combinedIntent = intentMapping[patternResult.category] || INTENT_CATEGORIES.GENERAL_INQUIRY;
+                combinedIntent = (intentMapping[patternResult.category] || INTENT_CATEGORIES.GENERAL_INQUIRY) as typeof INTENT_CATEGORIES.GENERAL_INQUIRY;
                 combinedConfidence = patternResult.confidence * weights.serverPatterns;
                 contributingEngines.push('serverPatterns');
             }
@@ -440,7 +440,7 @@ export class RuleBasedMainEngine implements IRuleBasedMainEngine {
                 const weightedConfidence = nluResult.confidence * weights.enhancedKoreanNLU;
 
                 if (weightedConfidence > combinedConfidence) {
-                    combinedIntent = mappedIntent;
+                    combinedIntent = mappedIntent as typeof INTENT_CATEGORIES.GENERAL_INQUIRY;
                     combinedConfidence = weightedConfidence;
                 }
                 contributingEngines.push('enhancedKoreanNLU');
@@ -455,7 +455,7 @@ export class RuleBasedMainEngine implements IRuleBasedMainEngine {
                 const weightedConfidence = confidence * weight;
 
                 if (weightedConfidence > combinedConfidence * 0.3) { // 기존 엔진은 30% 이상일 때만 고려
-                    combinedIntent = result.intent;
+                    combinedIntent = result.intent as typeof INTENT_CATEGORIES.GENERAL_INQUIRY;
                     combinedConfidence = Math.max(combinedConfidence, weightedConfidence);
                 }
 

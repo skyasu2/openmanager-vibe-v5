@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import { AnomalyFeed } from './AnomalyFeed';
 
 // Mock 데이터

@@ -5,7 +5,7 @@
  * 최신 업데이트: 15개 서버 실시간 모니터링, AI 예측 분석, 자동 알림 시스템
  */
 
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import IntelligentMonitoringPage from './IntelligentMonitoringPage';
 
 const meta: Meta<typeof IntelligentMonitoringPage> = {

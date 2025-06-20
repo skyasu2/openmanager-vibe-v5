@@ -5,7 +5,7 @@
  * 최신 업데이트: SOLID 원칙 적용, 컴포넌트 분리, 실시간 메트릭 연동
  */
 
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import ServerCard from './ServerCard';
 import type { Server } from '../../../types/server';
 

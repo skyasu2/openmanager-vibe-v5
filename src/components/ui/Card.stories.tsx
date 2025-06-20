@@ -7,7 +7,7 @@
  * - 다양한 사용 사례
  */
 
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import {
   Card,
   CardContent,

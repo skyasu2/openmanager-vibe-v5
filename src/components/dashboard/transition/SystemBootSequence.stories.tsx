@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import SystemBootSequence from './SystemBootSequence';
 import { Server } from '@/types/server';
 import { useState } from 'react';

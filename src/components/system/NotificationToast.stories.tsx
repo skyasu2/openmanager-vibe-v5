@@ -7,7 +7,7 @@
  * - 자동 사라짐 및 스택형 알림
  */
 
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import React, { useState } from 'react';
 import { NotificationToast } from './NotificationToast';
 import { Button } from '@/components/ui/button';

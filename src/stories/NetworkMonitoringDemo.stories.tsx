@@ -5,7 +5,7 @@
  * 최신 업데이트: 15개 서버 실시간 네트워크 메트릭, 트래픽 분석, 대역폭 모니터링
  */
 
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {

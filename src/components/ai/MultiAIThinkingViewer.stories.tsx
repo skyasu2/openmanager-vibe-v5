@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
-import { MultiAIThinkingViewer } from './MultiAIThinkingViewer';
+import type { Meta, StoryObj } from '@storybook/react';
+import { MultiAIThinkingViewer, type MultiAIThinkingStep } from './MultiAIThinkingViewer';
 
 const meta: Meta<typeof MultiAIThinkingViewer> = {
   title: 'AI Components/MultiAIThinkingViewer',
@@ -32,6 +32,10 @@ const meta: Meta<typeof MultiAIThinkingViewer> = {
       control: 'text',
       description: 'CSS 클래스',
     },
+    steps: {
+      control: 'object',
+      description: 'AI 사고 과정 단계들',
+    },
   },
 };
 
@@ -39,7 +43,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 // 모킹 데이터
-const mockSteps = [
+const mockSteps: MultiAIThinkingStep[] = [
   {
     id: 'step-1',
     engine: 'mcp' as const,

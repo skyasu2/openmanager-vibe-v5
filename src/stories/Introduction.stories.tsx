@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 
 // 더미 컴포넌트 (실제로는 MDX 내용을 표시)
 const IntroductionComponent = () => {

@@ -7,7 +7,7 @@
  * - 시스템 설정 통합
  */
 
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import UnifiedProfileComponent from './UnifiedProfileComponent';
 
 const meta: Meta<typeof UnifiedProfileComponent> = {

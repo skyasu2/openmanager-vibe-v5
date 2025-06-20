@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import RealtimeChart from './RealtimeChart';
 
 const meta: Meta<typeof RealtimeChart> = {

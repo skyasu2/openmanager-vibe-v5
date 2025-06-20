@@ -4,8 +4,10 @@
  * 시뮬레이션 진행바 컴포넌트의 다양한 상태와 사용 사례를 문서화
  */
 
-import type { Meta, StoryObj } from '@storybook/nextjs';
-import { action } from 'storybook/actions';
+import React from 'react';
+import { action } from '@storybook/addon-actions';
+import { within, expect } from '@storybook/test';
+import type { Meta, StoryObj } from '@storybook/react';
 import SimulateProgressBar from '../components/dashboard/SimulateProgressBar';
 
 const meta: Meta<typeof SimulateProgressBar> = {

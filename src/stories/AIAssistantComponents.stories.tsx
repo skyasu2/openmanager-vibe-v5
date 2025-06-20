@@ -5,7 +5,7 @@
  * 최근 업데이트: 11개 AI 엔진 완전 통합, 실제 서버 데이터 연동, 대시보드 수정 완료
  */
 
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import { AISidebarV2 } from '../domains/ai-sidebar/components/AISidebarV2';
 import { UnifiedProfileButton } from '../components/unified-profile/UnifiedProfileButton';
 import { AISettingsTab } from '../components/unified-profile/components/AISettingsTab';

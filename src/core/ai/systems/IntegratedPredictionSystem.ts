@@ -323,7 +323,30 @@ export class IntegratedPredictionSystem implements IIntegratedPredictionSystem {
      */
     async detectIncident(metrics: ServerMetrics): Promise<Incident | null> {
         try {
-            return await this.incidentReportSystem.detectIncident(metrics);
+            // ServerMetrics를 AutoIncidentReportSystem의 ServerMetrics 형태로 변환
+            const convertedMetrics = {
+                serverId: metrics.serverId,
+                timestamp: metrics.timestamp,
+                cpu: metrics.cpu.usage, // number 타입으로 변환
+                memory: metrics.memory.usage,
+                disk: metrics.disk.usage,
+                network: {
+                    in: metrics.network.in,
+                    out: metrics.network.out
+                }
+            } as any; // 타입 변환
+
+            const incident = await this.incidentReportSystem.detectIncident(convertedMetrics);
+
+            // 반환값에 필요한 필드 추가
+            if (incident) {
+                return {
+                    ...incident,
+                    serverId: metrics.serverId,
+                    detectedAt: new Date()
+                } as Incident;
+            }
+            return null;
         } catch (error) {
             console.error('❌ detectIncident 오류:', error);
             return null;
@@ -335,7 +358,18 @@ export class IntegratedPredictionSystem implements IIntegratedPredictionSystem {
      */
     async generateReport(incident: Incident): Promise<IncidentReport> {
         try {
-            return await this.incidentReportSystem.generateReport(incident);
+            // Incident를 AutoIncidentReportSystem의 형태로 변환
+            const convertedIncident = {
+                ...incident,
+                startTime: incident.detectedAt,
+                status: 'active',
+                metrics: {} // 기본값 설정
+            } as any;
+
+            const report = await this.incidentReportSystem.generateReport(convertedIncident);
+
+            // 반환값을 안전하게 변환
+            return report as unknown as IncidentReport;
         } catch (error) {
             console.error('❌ generateReport 오류:', error);
             throw error;
@@ -347,7 +381,23 @@ export class IntegratedPredictionSystem implements IIntegratedPredictionSystem {
      */
     async predictFailureTime(historicalData: ServerMetrics[]): Promise<PredictionResult> {
         try {
-            return await this.incidentReportSystem.predictFailureTime(historicalData);
+            // ServerMetrics[]를 AutoIncidentReportSystem의 형태로 변환
+            const convertedData = historicalData.map(m => ({
+                serverId: m.serverId,
+                timestamp: m.timestamp,
+                cpu: m.cpu.usage, // number 타입으로 변환
+                memory: m.memory.usage,
+                disk: m.disk.usage,
+                network: {
+                    in: m.network.in,
+                    out: m.network.out
+                }
+            })) as any[];
+
+            const result = await this.incidentReportSystem.predictFailureTime(convertedData);
+
+            // 반환값을 안전하게 변환
+            return result as unknown as PredictionResult;
         } catch (error) {
             console.error('❌ predictFailureTime 오류:', error);
             throw error;
@@ -362,13 +412,16 @@ export class IntegratedPredictionSystem implements IIntegratedPredictionSystem {
             // ServerMetrics를 TimeSeriesMetrics로 변환
             const timeSeriesMetrics = metrics.map(m => ({
                 timestamp: m.timestamp,
+                serverId: m.serverId, // 필수 필드 추가
+                application: { name: 'system', version: '1.0' }, // 기본값 추가
+                infrastructure: { provider: 'local', region: 'default' }, // 기본값 추가
                 system: {
                     cpu: { usage: m.cpu.usage },
                     memory: { usage: m.memory.usage },
                     disk: { usage: m.disk.usage },
                     network: { in: m.network.in, out: m.network.out }
                 }
-            }));
+            })) as any[];
 
             return await this.anomalyDetectionService.detect(timeSeriesMetrics, logs || []);
         } catch (error) {

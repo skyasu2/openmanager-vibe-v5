@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import { RocketIcon } from '@radix-ui/react-icons';
 import { Alert, AlertTitle, AlertDescription } from './alert';
 

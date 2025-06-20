@@ -4,7 +4,7 @@
  * AI 기반 대화형 인터페이스 컴포넌트들의 스토리북
  */
 
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import EnhancedAIChatPage from '@/components/ai/pages/EnhancedAIChatPage';
 
 const meta: Meta<typeof EnhancedAIChatPage> = {

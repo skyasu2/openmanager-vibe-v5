@@ -5,7 +5,7 @@
  * 최근 업데이트: 실제 서버 데이터 연동, 상태 매핑 수정, NaN 방지 로직 추가
  */
 
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import InfrastructureOverviewPage from './InfrastructureOverviewPage';
 
 const meta: Meta<typeof InfrastructureOverviewPage> = {

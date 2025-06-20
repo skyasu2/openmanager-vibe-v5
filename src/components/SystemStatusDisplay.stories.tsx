@@ -7,7 +7,7 @@
  * - 성능 지표 시각화
  */
 
-import type { Meta, StoryObj } from '@storybook/nextjs';
+import type { Meta, StoryObj } from '@storybook/react';
 import SystemStatusDisplay from './dashboard/SystemStatusDisplay';
 
 const meta: Meta<typeof SystemStatusDisplay> = {
