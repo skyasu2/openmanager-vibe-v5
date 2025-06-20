@@ -15,6 +15,7 @@ import {
   LogOut,
   Shield,
   StopCircle,
+  Monitor,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -103,6 +104,24 @@ const ProfileDropdown = forwardRef<HTMLDivElement, ProfileDropdownProps>(
                 <Settings className='w-4 h-4 text-purple-400' />
                 <span className='text-white'>통합 설정</span>
               </motion.button>
+
+              {/* 관리자 모드일 때만 관리자 대시보드 링크 표시 */}
+              {adminMode.isAuthenticated && (
+                <Link href='/admin' onClick={onClose}>
+                  <motion.div
+                    whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                    className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors cursor-pointer'
+                  >
+                    <Monitor className='w-4 h-4 text-blue-400' />
+                    <span className='text-white'>관리자 대시보드</span>
+                  </motion.div>
+                </Link>
+              )}
+
+              {/* 구분선 - 관리자 모드일 때만 표시 */}
+              {adminMode.isAuthenticated && (
+                <div className='my-2 border-t border-gray-700/50'></div>
+              )}
 
               {/* 관리자 상태에 따른 로그아웃 옵션 */}
               {adminMode.isAuthenticated ? (
