@@ -1,17 +1,17 @@
 /**
- * 🔔 실시간 알림 토스트 컴포넌트
+ * 🔔 실시간 알림 토스트 컴포넌트 (리팩토링됨)
  *
  * ✅ 기능:
- * - Phase 1 + 2.1 모듈 이벤트 실시간 표시
- * - 자동 사라짐 (5초)
- * - 심각도별 색상 구분
- * - 애니메이션 및 사운드 효과
- * - 스택형 다중 알림 지원
+ * - 브라우저 네이티브 알림과 통합
+ * - 서버 모니터링 전용 웹 알림
+ * - 강화된 중복 방지 시스템
+ * - Vercel 환경 최적화
+ * - 자동 사라짐 및 애니메이션
  */
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlertTriangle,
@@ -23,17 +23,25 @@ import {
   Database,
   Wifi,
   MessageSquare,
+  Server,
+  Shield,
 } from 'lucide-react';
 import {
   useSystemIntegration,
   SystemEvent,
 } from '@/hooks/useSystemIntegration';
+import {
+  browserNotificationService,
+  sendServerAlert,
+  requestNotificationPermission,
+} from '@/services/notifications/BrowserNotificationService';
 
 interface NotificationToastProps {
   className?: string;
   maxNotifications?: number;
   autoHideDuration?: number;
   enableSound?: boolean;
+  enableBrowserNotifications?: boolean;
   position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
 }
 
@@ -43,162 +51,65 @@ interface DisplayNotification extends SystemEvent {
 }
 
 /**
- * 🎨 심각도별 스타일 가져오기
+ * 🎨 심각도별 스타일 매핑
  */
-const getSeverityStyles = (severity: SystemEvent['severity']) => {
-  switch (severity) {
-    case 'critical':
-      return {
-        bgColor: 'bg-red-600 backdrop-blur-sm',
-        borderColor: 'border-red-500',
-        textColor: 'text-white',
-        icon: AlertTriangle,
-        iconColor: 'text-white',
-      };
-    case 'warning':
-      return {
-        bgColor: 'bg-yellow-600 backdrop-blur-sm',
-        borderColor: 'border-yellow-500',
-        textColor: 'text-yellow-50',
-        icon: AlertTriangle,
-        iconColor: 'text-yellow-50',
-      };
-    case 'info':
-    default:
-      return {
-        bgColor: 'bg-blue-600 backdrop-blur-sm',
-        borderColor: 'border-blue-500',
-        textColor: 'text-white',
-        icon: CheckCircle,
-        iconColor: 'text-white',
-      };
-  }
+const getSeverityStyle = (severity: SystemEvent['severity']) => {
+  const styles = {
+    critical: {
+      bg: 'bg-red-50 border-red-200',
+      text: 'text-red-900',
+      icon: 'text-red-600',
+      accent: 'bg-red-500',
+    },
+    warning: {
+      bg: 'bg-yellow-50 border-yellow-200',
+      text: 'text-yellow-900',
+      icon: 'text-yellow-600',
+      accent: 'bg-yellow-500',
+    },
+    info: {
+      bg: 'bg-blue-50 border-blue-200',
+      text: 'text-blue-900',
+      icon: 'text-blue-600',
+      accent: 'bg-blue-500',
+    },
+  };
+  return styles[severity] || styles.info;
 };
 
 /**
- * 🎭 이벤트 타입별 아이콘 가져오기
+ * 🔔 이벤트 타입별 아이콘 매핑
  */
-const getEventTypeIcon = (type: SystemEvent['type']) => {
+const getEventIcon = (
+  type: SystemEvent['type'],
+  severity: SystemEvent['severity']
+) => {
+  const iconProps = { className: `w-5 h-5 ${getSeverityStyle(severity).icon}` };
+
   switch (type) {
-    case 'pattern_detected':
-      return Activity;
-    case 'notification_sent':
-      return MessageSquare;
-    case 'data_cleaned':
-      return Database;
     case 'connection_change':
-      return Wifi;
+      return <Wifi {...iconProps} />;
+    case 'pattern_detected':
+      return <Activity {...iconProps} />;
+    case 'data_cleaned':
+      return <Database {...iconProps} />;
+    case 'notification_sent':
+      return <MessageSquare {...iconProps} />;
     case 'error':
+      return <AlertTriangle {...iconProps} />;
+    case 'server_alert':
+      return <Server {...iconProps} />;
+    case 'security':
+      return <Shield {...iconProps} />;
     default:
-      return AlertTriangle;
+      return severity === 'critical' ? (
+        <AlertTriangle {...iconProps} />
+      ) : severity === 'warning' ? (
+        <AlertTriangle {...iconProps} />
+      ) : (
+        <Info {...iconProps} />
+      );
   }
-};
-
-/**
- * 🔔 개별 알림 컴포넌트
- */
-const ToastNotification: React.FC<{
-  notification: DisplayNotification;
-  onDismiss: (id: string) => void;
-  index: number;
-}> = ({ notification, onDismiss, index }) => {
-  const styles = getSeverityStyles(notification.severity);
-  const EventTypeIcon = getEventTypeIcon(notification.type);
-  const SeverityIcon = styles.icon;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: 400, scale: 0.9 }}
-      animate={{
-        opacity: 1,
-        x: 0,
-        scale: 1,
-        y: -index * 10, // 스택 효과
-      }}
-      exit={{
-        opacity: 0,
-        x: 400,
-        scale: 0.8,
-        transition: { duration: 0.2 },
-      }}
-      className={`
-        ${styles.bgColor} ${styles.textColor}
-        relative min-w-80 max-w-96 p-4 rounded-lg shadow-xl border 
-        border-l-4 ${styles.borderColor} border-opacity-50
-        mb-3 cursor-pointer
-        transform transition-all duration-200 hover:scale-105
-        ring-1 ring-white ring-opacity-25
-      `}
-      style={{ zIndex: 8999 - index }}
-      onClick={() => onDismiss(notification.id)}
-    >
-      {/* 헤더 */}
-      <div className='flex items-center justify-between mb-2'>
-        <div className='flex items-center space-x-2'>
-          <div className='flex items-center space-x-1'>
-            <EventTypeIcon className={`w-4 h-4 ${styles.iconColor}`} />
-            <SeverityIcon className={`w-4 h-4 ${styles.iconColor}`} />
-          </div>
-          <span
-            className={`text-xs font-semibold uppercase tracking-wider ${styles.textColor} opacity-90`}
-          >
-            {notification.type.replace('_', ' ')}
-          </span>
-        </div>
-
-        <button
-          onClick={e => {
-            e.stopPropagation();
-            onDismiss(notification.id);
-          }}
-          className='text-white opacity-70 hover:opacity-100 hover:bg-white hover:bg-opacity-20 rounded-full p-1 transition-colors'
-        >
-          <X className='w-3 h-3' />
-        </button>
-      </div>
-
-      {/* 메시지 */}
-      <div className={`text-sm font-medium mb-2 ${styles.textColor}`}>
-        {notification.message}
-      </div>
-
-      {/* 메타데이터 (있는 경우) */}
-      {notification.metadata && (
-        <div
-          className={`text-xs opacity-75 bg-black bg-opacity-20 rounded px-2 py-1 mb-2 ${styles.textColor}`}
-        >
-          {typeof notification.metadata === 'string'
-            ? notification.metadata
-            : JSON.stringify(notification.metadata, null, 2)}
-        </div>
-      )}
-
-      {/* 시간 */}
-      <div
-        className={`text-xs opacity-75 flex items-center justify-between ${styles.textColor}`}
-      >
-        <span>
-          {notification.timestamp.toLocaleTimeString('ko-KR', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-          })}
-        </span>
-        <span className='flex items-center space-x-1'>
-          <Bell className='w-3 h-3' />
-          <span>클릭하여 닫기</span>
-        </span>
-      </div>
-
-      {/* 프로그레스 바 (자동 닫힘 표시) */}
-      <motion.div
-        className='absolute bottom-0 left-0 h-1 bg-white bg-opacity-30 rounded-b-lg'
-        initial={{ width: '100%' }}
-        animate={{ width: '0%' }}
-        transition={{ duration: 5, ease: 'linear' }}
-      />
-    </motion.div>
-  );
 };
 
 /**
@@ -209,10 +120,15 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
   maxNotifications = 5,
   autoHideDuration = 5000,
   enableSound = true,
+  enableBrowserNotifications = true,
   position = 'top-right',
 }) => {
   const [notifications, setNotifications] = useState<DisplayNotification[]>([]);
+  const [browserPermissionRequested, setBrowserPermissionRequested] =
+    useState(false);
   const { subscribeToEvents } = useSystemIntegration();
+  const lastNotificationRef = useRef<string>('');
+  const duplicateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   /**
    * 🔊 알림 사운드 재생
@@ -256,19 +172,86 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
   );
 
   /**
-   * 📝 알림 추가 (필터링 적용)
+   * 🚨 브라우저 네이티브 알림 처리
+   */
+  const handleBrowserNotification = useCallback(
+    async (event: SystemEvent) => {
+      if (!enableBrowserNotifications) return;
+
+      // 서버 관련 심각한 상황만 브라우저 알림
+      const shouldSendBrowserNotification =
+        (event.severity === 'critical' || event.severity === 'warning') &&
+        (event.type === 'server_alert' ||
+          event.type === 'error' ||
+          event.type === 'pattern_detected' ||
+          event.message.toLowerCase().includes('서버') ||
+          event.message.toLowerCase().includes('장애') ||
+          event.message.toLowerCase().includes('오류'));
+
+      if (shouldSendBrowserNotification) {
+        await sendServerAlert({
+          title: `OpenManager - ${event.severity === 'critical' ? '긴급' : '경고'}`,
+          message: event.message,
+          severity: event.severity,
+          serverId: event.metadata?.serverId,
+          type: event.type,
+          tag: `openmanager-${event.type}-${event.severity}`,
+        });
+      }
+    },
+    [enableBrowserNotifications]
+  );
+
+  /**
+   * 🔍 중복 알림 검사 (강화됨)
+   */
+  const isDuplicateNotification = useCallback(
+    (event: SystemEvent): boolean => {
+      const eventKey = `${event.type}-${event.severity}-${event.message.substring(0, 50)}`;
+
+      // 최근 알림과 비교
+      if (lastNotificationRef.current === eventKey) {
+        return true;
+      }
+
+      // 기존 알림 목록에서 중복 검사 (최근 30초 이내)
+      const now = Date.now();
+      const isDuplicate = notifications.some(notif => {
+        const notifKey = `${notif.type}-${notif.severity}-${notif.message.substring(0, 50)}`;
+        const timeDiff = now - notif.timestamp.getTime();
+        return notifKey === eventKey && timeDiff < 30000; // 30초 제한
+      });
+
+      return isDuplicate;
+    },
+    [notifications]
+  );
+
+  /**
+   * 📝 알림 추가 (리팩토링됨)
    */
   const addNotification = useCallback(
-    (event: SystemEvent) => {
+    async (event: SystemEvent) => {
       // 시스템 초기화 관련 일반 info 알림은 조용하게 처리
       if (
         event.severity === 'info' &&
         event.type === 'connection_change' &&
-        (event.message.includes('초기화') || event.message.includes('시작'))
+        (event.message.includes('초기화') ||
+          event.message.includes('시작') ||
+          event.message.includes('준비'))
       ) {
         console.log('🔕 시스템 초기화 알림 무음 처리:', event.message);
         return; // Toast 알림 생략
       }
+
+      // 중복 방지 검사
+      if (isDuplicateNotification(event)) {
+        console.log('🔄 중복 알림 방지:', event.message);
+        return;
+      }
+
+      // 브라우저 네이티브 알림 처리
+      await handleBrowserNotification(event);
 
       const displayNotification: DisplayNotification = {
         ...event,
@@ -276,7 +259,7 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
       };
 
       setNotifications(prev => {
-        // 🛡️ 안전한 배열 처리: prev가 배열인지 확인
+        // 🛡️ 안전한 배열 처리
         const safeArray = Array.isArray(prev) ? prev : [];
 
         // 최대 개수 제한
@@ -285,7 +268,7 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
           maxNotifications
         );
 
-        // 🛡️ 안전한 정렬: 각 알림 객체 유효성 검사
+        // 🛡️ 안전한 정렬 및 타이머 설정
         const validNotifications = newNotifications.filter(
           notif =>
             notif && typeof notif === 'object' && notif.id && notif.severity
@@ -309,10 +292,28 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
         return validNotifications;
       });
 
-      // 사운드 재생 (필터링된 알림은 사운드 없음)
+      // 중복 방지를 위한 키 저장
+      const eventKey = `${event.type}-${event.severity}-${event.message.substring(0, 50)}`;
+      lastNotificationRef.current = eventKey;
+
+      // 중복 방지 키 초기화 타이머
+      if (duplicateTimeoutRef.current) {
+        clearTimeout(duplicateTimeoutRef.current);
+      }
+      duplicateTimeoutRef.current = setTimeout(() => {
+        lastNotificationRef.current = '';
+      }, 30000); // 30초 후 초기화
+
+      // 사운드 재생
       playNotificationSound(event.severity);
     },
-    [maxNotifications, autoHideDuration, playNotificationSound]
+    [
+      maxNotifications,
+      autoHideDuration,
+      playNotificationSound,
+      isDuplicateNotification,
+      handleBrowserNotification,
+    ]
   );
 
   /**
@@ -320,105 +321,141 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
    */
   const removeNotification = useCallback((id: string) => {
     setNotifications(prev => {
-      const notification = prev.find(n => n.id === id);
-      if (notification?.hideTimer) {
-        clearTimeout(notification.hideTimer);
-      }
-      return prev.filter(n => n.id !== id);
+      const safeArray = Array.isArray(prev) ? prev : [];
+      return safeArray.filter(notif => {
+        if (notif.id === id) {
+          if (notif.hideTimer) {
+            clearTimeout(notif.hideTimer);
+          }
+          return false;
+        }
+        return true;
+      });
     });
   }, []);
 
   /**
-   * 🗑️ 모든 알림 제거
+   * 🎯 포지션별 스타일 계산
    */
-  const clearAllNotifications = useCallback(() => {
-    notifications.forEach(notification => {
-      if (notification.hideTimer) {
-        clearTimeout(notification.hideTimer);
-      }
-    });
-    setNotifications([]);
-  }, [notifications]);
+  const getPositionStyle = () => {
+    const positions = {
+      'top-right': 'top-4 right-4',
+      'top-left': 'top-4 left-4',
+      'bottom-right': 'bottom-4 right-4',
+      'bottom-left': 'bottom-4 left-4',
+    };
+    return positions[position] || positions['top-right'];
+  };
 
-  /**
-   * 🔔 이벤트 구독 설정
-   */
+  // 🔔 이벤트 구독
   useEffect(() => {
     const unsubscribe = subscribeToEvents(addNotification);
     return unsubscribe;
   }, [subscribeToEvents, addNotification]);
 
-  /**
-   * 🧹 컴포넌트 언마운트 시 타이머 정리
-   */
+  // 🔐 브라우저 알림 권한 요청 (한 번만)
+  useEffect(() => {
+    if (enableBrowserNotifications && !browserPermissionRequested) {
+      setBrowserPermissionRequested(true);
+      setTimeout(() => {
+        requestNotificationPermission().then(permission => {
+          console.log('🔔 브라우저 알림 권한:', permission);
+        });
+      }, 5000); // 5초 후 권한 요청 (사용자 경험 고려)
+    }
+  }, [enableBrowserNotifications, browserPermissionRequested]);
+
+  // 🧹 컴포넌트 언마운트 시 정리
   useEffect(() => {
     return () => {
-      notifications.forEach(notification => {
-        if (notification.hideTimer) {
-          clearTimeout(notification.hideTimer);
+      notifications.forEach(notif => {
+        if (notif.hideTimer) {
+          clearTimeout(notif.hideTimer);
         }
       });
+      if (duplicateTimeoutRef.current) {
+        clearTimeout(duplicateTimeoutRef.current);
+      }
     };
-  }, [notifications]);
-
-  /**
-   * 📍 위치별 스타일 계산
-   */
-  const getPositionStyles = () => {
-    const base = 'fixed z-[8000] pointer-events-none';
-
-    switch (position) {
-      case 'top-left':
-        return `${base} top-4 left-4`;
-      case 'bottom-right':
-        return `${base} bottom-4 right-4`;
-      case 'bottom-left':
-        return `${base} bottom-4 left-4`;
-      case 'top-right':
-      default:
-        return `${base} top-4 right-4`;
-    }
-  };
-
-  const handleClose = useCallback(
-    (id: string) => {
-      removeNotification(id);
-    },
-    [removeNotification]
-  );
+  }, []);
 
   if (notifications.length === 0) return null;
 
   return (
-    <div className={`${getPositionStyles()} ${className}`}>
-      {/* 전체 알림 제어 */}
-      {notifications.length > 1 && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className='mb-2 pointer-events-auto'
-        >
-          <button
-            onClick={clearAllNotifications}
-            className='bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1 rounded-full 
-                       transition-colors duration-200 shadow-lg backdrop-blur-sm'
-          >
-            모든 알림 닫기 ({notifications.length})
-          </button>
-        </motion.div>
-      )}
+    <div
+      className={`fixed ${getPositionStyle()} z-50 pointer-events-none ${className}`}
+    >
+      <div className='space-y-3 max-w-sm w-full'>
+        <AnimatePresence>
+          {notifications.map((notification, index) => {
+            const style = getSeverityStyle(notification.severity);
 
-      {/* 알림 목록 */}
-      <div className='pointer-events-auto space-y-2'>
-        <AnimatePresence mode='popLayout'>
-          {notifications.map((notification, index) => (
-            <ToastNotification
-              key={notification.id}
-              notification={notification}
-              onDismiss={handleClose}
-              index={index}
-            />
-          ))}
+            return (
+              <motion.div
+                key={notification.id}
+                initial={{
+                  opacity: 0,
+                  x: position.includes('right') ? 100 : -100,
+                  scale: 0.8,
+                }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{
+                  opacity: 0,
+                  x: position.includes('right') ? 100 : -100,
+                  scale: 0.8,
+                }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 500,
+                  damping: 30,
+                  delay: index * 0.1,
+                }}
+                className={`
+                  ${style.bg} border-l-4 ${style.accent} border-t border-r border-b
+                  rounded-lg shadow-lg p-4 pointer-events-auto
+                  backdrop-blur-sm bg-opacity-95
+                  hover:shadow-xl transition-shadow duration-200
+                `}
+              >
+                <div className='flex items-start space-x-3'>
+                  {/* 아이콘 */}
+                  <div className='flex-shrink-0 mt-0.5'>
+                    {getEventIcon(notification.type, notification.severity)}
+                  </div>
+
+                  {/* 내용 */}
+                  <div className='flex-1 min-w-0'>
+                    <div className={`text-sm font-medium ${style.text}`}>
+                      {notification.message}
+                    </div>
+                    <div className='text-xs text-gray-500 mt-1 flex items-center space-x-2'>
+                      <span>{notification.source}</span>
+                      <span>•</span>
+                      <span>
+                        {new Intl.DateTimeFormat('ko-KR', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit',
+                        }).format(notification.timestamp)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 닫기 버튼 */}
+                  <button
+                    onClick={() => removeNotification(notification.id)}
+                    className={`
+                      flex-shrink-0 rounded-full p-1 
+                      ${style.icon} hover:bg-black hover:bg-opacity-10
+                      transition-colors duration-150
+                    `}
+                  >
+                    <X className='w-4 h-4' />
+                  </button>
+                </div>
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
       </div>
     </div>

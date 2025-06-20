@@ -145,9 +145,9 @@ export default function DashboardContent({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className='flex-1 p-6 overflow-auto'
+        className='h-full w-full'
       >
-        <div className='max-w-7xl mx-auto space-y-6'>
+        <div className='h-full max-w-7xl mx-auto space-y-6 overflow-y-auto'>
           {/* 🎯 인프라 전체 현황 및 실시간 알림 섹션 */}
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
             {/* 🎛️ 인프라 전체 현황 */}
@@ -235,7 +235,7 @@ export default function DashboardContent({
           </div>
 
           {/* 🖥️ 서버 대시보드 - 메인 섹션 */}
-          <div className='w-full'>
+          <div className='w-full pb-6'>
             <Suspense
               fallback={
                 <div className='flex items-center justify-center p-8'>

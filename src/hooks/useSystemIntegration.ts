@@ -106,7 +106,9 @@ interface SystemEvent {
     | 'data_cleaned'
     | 'connection_change'
     | 'error'
-    | 'prediction';
+    | 'prediction'
+    | 'server_alert'
+    | 'security';
   severity: 'info' | 'warning' | 'critical';
   message: string;
   timestamp: Date;
