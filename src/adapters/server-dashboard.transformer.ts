@@ -1,5 +1,9 @@
 import { RawServerData } from '@/types/raw/RawServerData';
 import { Server } from '@/types/server';
+import {
+  determineServerStatus,
+  ServerMetrics,
+} from '@/config/server-status-thresholds';
 
 // 🎯 상태 매핑 헬퍼 (API → UI 상태 변환)
 export const mapStatus = (
@@ -61,10 +65,21 @@ export function transformRawToServer(
   const disk = raw.metrics?.disk ?? raw.disk ?? 0;
   const network = raw.metrics?.network?.in ?? raw.network ?? 0;
 
+  // 🚨 통합 기준으로 서버 상태 판별 (데이터 전처리 단계)
+  const serverMetrics: ServerMetrics = {
+    cpu,
+    memory,
+    disk,
+    responseTime: 0, // RawServerData에 없으므로 기본값
+    networkLatency: 0, // RawServerData에 없으므로 기본값
+  };
+
+  const determinedStatus = determineServerStatus(serverMetrics);
+
   return {
     id: raw.id || `server-${index}`,
     name: raw.name || raw.hostname || `서버-${index + 1}`,
-    status: mapStatus(raw.status),
+    status: determinedStatus as any, // 통합 기준으로 판별된 상태 사용
     location: raw.location || raw.region || 'Unknown',
     cpu: Math.round(cpu),
     memory: Math.round(memory),
@@ -99,11 +114,22 @@ export function transformRawToEnhancedServer(
   const disk = raw.metrics?.disk ?? raw.disk ?? 0;
   const network = raw.metrics?.network?.in ?? raw.network ?? 0;
 
+  // 🚨 통합 기준으로 서버 상태 판별 (데이터 전처리 단계)
+  const serverMetrics: ServerMetrics = {
+    cpu,
+    memory,
+    disk,
+    responseTime: 0, // RawServerData에 없으므로 기본값
+    networkLatency: 0, // RawServerData에 없으므로 기본값
+  };
+
+  const determinedStatus = determineServerStatus(serverMetrics);
+
   return {
     id: raw.id || `server-${index}`,
     name: raw.name || raw.hostname || `서버-${index + 1}`,
     hostname: raw.hostname || raw.name || `server-${index}`,
-    status: mapStatusForModal(raw.status),
+    status: determinedStatus, // 통합 기준으로 판별된 상태 사용
     type: raw.type || 'unknown',
     environment: raw.environment || 'production',
     location: raw.location || raw.region || 'Unknown',

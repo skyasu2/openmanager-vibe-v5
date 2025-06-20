@@ -256,7 +256,6 @@ export class HybridAIEngine {
         confidence: response.confidence,
         sources: documents,
         reasoning: response.reasoning,
-        // tensorflowPredictions 제거됨
         koreanNLU: analysisResults.korean,
         transformersAnalysis: analysisResults.transformers,
         vectorSearchResults: documents, // 검색된 문서 자체가 벡터 검색 결과
@@ -297,45 +296,59 @@ export class HybridAIEngine {
     analysisResults: any
   ): Promise<{ text: string; confidence: number; reasoning: string[] }> {
     const reasoning: string[] = [];
-    let confidence = 70; // 기본 신뢰도
+    let confidence = 0.7;
 
-    // 1️⃣ 문서 기반 응답 구성
-    let responseText = '';
-    if (documents.length > 0) {
-      responseText = this.generateDocumentBasedResponse(smartQuery, documents);
-      confidence += 10;
-      reasoning.push(`${documents.length}개 관련 문서 분석`);
+    // 분석 결과 통합
+    const consolidatedResults = {
+      mcp: analysisResults.mcp,
+      hybrid: analysisResults.hybrid,
+      correlation: analysisResults.correlation,
+    };
+
+    // 최종 응답 생성
+    let finalAnswer = '';
+
+    // MCP 결과 통합
+    if (consolidatedResults.mcp?.success) {
+      finalAnswer += consolidatedResults.mcp.result + '\n\n';
+      reasoning.push('MCP 클라이언트를 통한 실시간 분석 결과');
+      confidence = Math.max(confidence, 0.8);
     }
 
-    // 2️⃣ AI 엔진 결과 통합
-    if (analysisResults.korean?.success) {
-      responseText += '\n\n' + analysisResults.korean.analysis;
-      confidence += 10;
-      reasoning.push('한국어 NLP 분석 결과 통합');
+    // 하이브리드 결과 통합
+    if (consolidatedResults.hybrid) {
+      finalAnswer += `📊 하이브리드 분석: ${consolidatedResults.hybrid}\n\n`;
+      reasoning.push('하이브리드 AI 엔진 분석 결과');
+      confidence = Math.max(confidence, 0.75);
     }
 
-    if (analysisResults.transformers?.success) {
-      confidence += 10;
-      reasoning.push('Transformers.js 분석 결과 통합');
+    // 상관관계 결과 통합
+    if (consolidatedResults.correlation) {
+      finalAnswer += `🔗 상관관계 분석: ${JSON.stringify(consolidatedResults.correlation, null, 2)}\n\n`;
+      reasoning.push('상관관계 엔진 분석 결과');
+      confidence = Math.max(confidence, 0.85);
     }
 
-    if (analysisResults.tensorflow?.predictions?.length > 0) {
-      confidence += 15;
-      reasoning.push('TensorFlow.js 예측 모델 결과 통합');
+    // AI 인사이트 추가
+    if (
+      consolidatedResults.mcp?.success ||
+      consolidatedResults.hybrid ||
+      consolidatedResults.correlation
+    ) {
+      finalAnswer +=
+        '🤖 AI 인사이트: 다중 엔진 분석을 통해 종합적인 결과를 제공했습니다.';
+      reasoning.push('다중 AI 엔진 협업 분석 완료');
     }
 
-    // 3️⃣ 신뢰도 조정
-    confidence = Math.min(95, confidence);
-
-    // 4️⃣ 응답 품질 개선
-    if (responseText.length < 100) {
-      responseText = this.generateFallbackResponse(smartQuery.originalQuery);
+    // 응답 품질 개선
+    if (finalAnswer.length < 100) {
+      finalAnswer = this.generateFallbackResponse(smartQuery.originalQuery);
       confidence = Math.max(30, confidence - 20);
       reasoning.push('충분한 정보 부족으로 폴백 응답 생성');
     }
 
     return {
-      text: responseText.trim(),
+      text: finalAnswer.trim(),
       confidence,
       reasoning,
     };

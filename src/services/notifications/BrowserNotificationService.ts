@@ -1,211 +1,186 @@
 /**
- * 🔔 브라우저 네이티브 알림 서비스
+ * 🔔 브라우저 웹 알림 서비스 (Vercel 최적화)
  *
- * ✅ 기능:
- * - 서버 모니터링 심각/경고 상황 웹 알림
- * - 중복 알림 방지 (동일 서버/타입 5분 제한)
- * - 알림 권한 관리
- * - Vercel 환경 최적화
- * - 배치 알림 처리
+ * 특징:
+ * - 서버 데이터 생성기의 심각/경고 상태 알림만 처리
+ * - 통합 상태 판별 기준 사용
+ * - 과도한 타이머 제거, 단순한 로직
+ * - 30분 세션 기반 전역 상태 관리와 연동
  */
 
 'use client';
+
+import { shouldSendWebNotification } from '@/config/server-status-thresholds';
 
 interface NotificationOptions {
   title: string;
   message: string;
   severity: 'info' | 'warning' | 'critical';
   serverId?: string;
-  type?: string;
+  type: 'server_alert' | 'system_alert' | 'user_action';
   icon?: string;
   tag?: string;
   silent?: boolean;
-  requireInteraction?: boolean;
-}
-
-interface NotificationHistory {
-  id: string;
-  serverId?: string;
-  type?: string;
-  severity: string;
-  timestamp: number;
-  title: string;
-  message: string;
 }
 
 class BrowserNotificationService {
-  private permission: NotificationPermission = 'default';
   private isEnabled: boolean = false;
-  private notificationHistory: NotificationHistory[] = [];
+  private permission: NotificationPermission = 'default';
+  private notificationHistory: NotificationOptions[] = [];
   private duplicatePreventionTime = 5 * 60 * 1000; // 5분
-  private maxHistorySize = 100;
-  private pendingNotifications: NotificationOptions[] = [];
-  private isProcessing = false;
+  private maxHistorySize = 50; // 히스토리 크기 축소 (100 → 50)
+
+  // 서버별 이전 상태 추적 (상태 변화 감지용)
+  private previousServerStates = new Map<
+    string,
+    'healthy' | 'warning' | 'critical'
+  >();
 
   constructor() {
-    this.initialize();
+    this.initializePermission();
   }
 
   /**
-   * 🚀 서비스 초기화
+   * 🔔 권한 초기화
    */
-  private async initialize(): Promise<void> {
-    if (typeof window === 'undefined' || !('Notification' in window)) {
-      console.warn('🚫 브라우저가 웹 알림을 지원하지 않습니다.');
+  private async initializePermission(): Promise<void> {
+    // 서버사이드 렌더링 환경 체크
+    if (typeof window === 'undefined') {
+      console.warn('⚠️ 서버 환경에서는 브라우저 알림을 사용할 수 없습니다');
+      return;
+    }
+
+    if (!('Notification' in window)) {
+      console.warn('⚠️ 이 브라우저는 웹 알림을 지원하지 않습니다');
       return;
     }
 
     this.permission = Notification.permission;
-    this.isEnabled = this.permission === 'granted';
 
-    // 히스토리 정리 스케줄러
-    setInterval(
-      () => {
-        this.cleanupHistory();
-      },
-      10 * 60 * 1000
-    ); // 10분마다 정리
+    if (this.permission === 'default') {
+      try {
+        this.permission = await Notification.requestPermission();
+        this.isEnabled = this.permission === 'granted';
 
-    console.log('🔔 브라우저 알림 서비스 초기화 완료:', {
-      permission: this.permission,
-      enabled: this.isEnabled,
-    });
-  }
-
-  /**
-   * 🔐 알림 권한 요청
-   */
-  async requestPermission(): Promise<NotificationPermission> {
-    if (typeof window === 'undefined' || !('Notification' in window)) {
-      return 'denied';
-    }
-
-    try {
-      this.permission = await Notification.requestPermission();
-      this.isEnabled = this.permission === 'granted';
-
-      if (this.isEnabled) {
-        console.log('✅ 웹 알림 권한 허용됨');
-        // 권한 허용 시 대기 중인 알림 처리
-        this.processPendingNotifications();
-      } else {
-        console.warn('⚠️ 웹 알림 권한 거부됨');
+        if (this.isEnabled) {
+          console.log('✅ 웹 알림 권한이 허용되었습니다');
+        }
+      } catch (error) {
+        console.error('❌ 웹 알림 권한 요청 실패:', error);
       }
-
-      return this.permission;
-    } catch (error) {
-      console.error('❌ 알림 권한 요청 실패:', error);
-      return 'denied';
+    } else {
+      this.isEnabled = this.permission === 'granted';
     }
   }
 
   /**
-   * 🚨 서버 모니터링 알림 전송 (메인 기능)
+   * 🚨 서버 상태 알림 처리 (통합 기준 사용)
    */
-  async sendServerAlert(options: NotificationOptions): Promise<boolean> {
-    // 권한 확인
-    if (!this.isEnabled) {
-      console.log('🔕 웹 알림 비활성화됨 - 대기열에 추가');
-      this.pendingNotifications.push(options);
-      return false;
+  processServerNotification(
+    serverId: string,
+    serverName: string,
+    currentStatus: 'healthy' | 'warning' | 'critical'
+  ): void {
+    if (!this.isEnabled) return;
+
+    const previousStatus = this.previousServerStates.get(serverId);
+
+    // 통합 기준으로 웹 알림 발송 여부 결정
+    if (shouldSendWebNotification(currentStatus, previousStatus)) {
+      this.sendNotification(
+        this.getStatusMessage(serverName, currentStatus, previousStatus),
+        currentStatus === 'critical' ? 'critical' : 'warning',
+        serverId
+      );
     }
 
-    // 심각도 필터링 (warning 이상만 웹 알림)
-    if (options.severity === 'info') {
-      console.log('🔕 Info 레벨 알림은 웹 알림에서 제외');
-      return false;
+    // 현재 상태 저장
+    this.previousServerStates.set(serverId, currentStatus);
+  }
+
+  /**
+   * 📝 상태별 메시지 생성
+   */
+  private getStatusMessage(
+    serverName: string,
+    currentStatus: 'healthy' | 'warning' | 'critical',
+    previousStatus?: 'healthy' | 'warning' | 'critical'
+  ): string {
+    if (currentStatus === 'critical') {
+      return `🚨 ${serverName} 서버가 심각한 상태입니다`;
     }
 
-    // 중복 방지 검사
-    if (this.isDuplicateNotification(options)) {
-      console.log('🔄 중복 알림 방지:', options.title);
-      return false;
+    if (currentStatus === 'warning' && previousStatus === 'healthy') {
+      return `⚠️ ${serverName} 서버에 주의가 필요합니다`;
     }
+
+    if (
+      previousStatus === 'critical' &&
+      (currentStatus === 'warning' || currentStatus === 'healthy')
+    ) {
+      return `✅ ${serverName} 서버가 복구되었습니다`;
+    }
+
+    return `📊 ${serverName} 서버 상태가 변경되었습니다`;
+  }
+
+  /**
+   * 🔔 웹 알림 발송
+   */
+  private sendNotification(
+    message: string,
+    type: 'critical' | 'warning' | 'info',
+    serverId?: string
+  ): void {
+    // 브라우저 환경 체크
+    if (typeof window === 'undefined') {
+      console.warn('⚠️ 서버 환경에서는 웹 알림을 발송할 수 없습니다');
+      return;
+    }
+
+    if (!this.isEnabled) return;
 
     try {
-      const notification = new Notification(options.title, {
-        body: options.message,
-        icon: options.icon || this.getDefaultIcon(options.severity),
-        tag: options.tag || `${options.serverId}-${options.type}`,
-        silent: options.silent || false,
-        requireInteraction: options.severity === 'critical',
+      const notification = new Notification('OpenManager 서버 알림', {
+        body: message,
+        icon: '/favicon.ico',
         badge: '/favicon.ico',
-        data: {
-          serverId: options.serverId,
-          type: options.type,
-          severity: options.severity,
-          timestamp: Date.now(),
-        },
+        tag: serverId || 'system', // 같은 서버의 알림은 교체
+        requireInteraction: type === 'critical', // Critical은 사용자 상호작용 필요
+        silent: false,
       });
 
-      // 알림 이벤트 리스너
+      // 알림 클릭 이벤트
       notification.onclick = () => {
         window.focus();
         notification.close();
-        // 서버 상세 페이지로 이동 (옵션)
-        if (options.serverId) {
-          console.log('🖱️ 서버 알림 클릭:', options.serverId);
-        }
       };
 
-      notification.onclose = () => {
-        console.log('🔔 알림 닫힘:', options.title);
-      };
+      // 히스토리에 저장
+      this.addToHistory({
+        title: 'OpenManager 서버 알림',
+        message,
+        severity: type === 'critical' ? 'critical' : 'warning',
+        serverId,
+        type: 'server_alert',
+        icon: '/favicon.ico',
+        tag: serverId || 'system',
+        silent: false,
+      });
 
-      notification.onerror = error => {
-        console.error('❌ 알림 표시 실패:', error);
-      };
-
-      // 히스토리에 추가
-      this.addToHistory(options);
-
-      // 자동 닫기 (critical이 아닌 경우)
-      if (options.severity !== 'critical') {
-        setTimeout(() => {
-          notification.close();
-        }, 8000); // 8초 후 자동 닫기
-      }
-
-      console.log('✅ 웹 알림 전송 성공:', options.title);
-      return true;
+      console.log(`🔔 웹 알림 발송: ${message}`);
     } catch (error) {
-      console.error('❌ 웹 알림 전송 실패:', error);
-      return false;
+      console.error('❌ 웹 알림 발송 실패:', error);
     }
   }
 
   /**
-   * 🔍 중복 알림 검사
-   */
-  private isDuplicateNotification(options: NotificationOptions): boolean {
-    const now = Date.now();
-    const key = `${options.serverId}-${options.type}-${options.severity}`;
-
-    return this.notificationHistory.some(item => {
-      const itemKey = `${item.serverId}-${item.type}-${item.severity}`;
-      const timeDiff = now - item.timestamp;
-
-      return itemKey === key && timeDiff < this.duplicatePreventionTime;
-    });
-  }
-
-  /**
-   * 📝 히스토리에 추가
+   * 📚 히스토리 관리
    */
   private addToHistory(options: NotificationOptions): void {
-    const historyItem: NotificationHistory = {
-      id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      serverId: options.serverId,
-      type: options.type,
-      severity: options.severity,
-      timestamp: Date.now(),
-      title: options.title,
-      message: options.message,
-    };
+    this.notificationHistory.unshift(options);
 
-    this.notificationHistory.unshift(historyItem);
-
-    // 히스토리 크기 제한
+    // 필요시에만 히스토리 정리 (30분 이상 된 항목만 제거)
     if (this.notificationHistory.length > this.maxHistorySize) {
       this.notificationHistory = this.notificationHistory.slice(
         0,
@@ -215,155 +190,33 @@ class BrowserNotificationService {
   }
 
   /**
-   * 🧹 히스토리 정리
-   */
-  private cleanupHistory(): void {
-    const now = Date.now();
-    const maxAge = 24 * 60 * 60 * 1000; // 24시간
-
-    const beforeCount = this.notificationHistory.length;
-    this.notificationHistory = this.notificationHistory.filter(
-      item => now - item.timestamp < maxAge
-    );
-
-    const cleanedCount = beforeCount - this.notificationHistory.length;
-    if (cleanedCount > 0) {
-      console.log(`🧹 알림 히스토리 정리: ${cleanedCount}개 항목 제거`);
-    }
-  }
-
-  /**
-   * 📋 대기 중인 알림 처리
-   */
-  private async processPendingNotifications(): Promise<void> {
-    if (this.isProcessing || this.pendingNotifications.length === 0) {
-      return;
-    }
-
-    this.isProcessing = true;
-    console.log(
-      `📋 대기 중인 알림 처리: ${this.pendingNotifications.length}개`
-    );
-
-    const notifications = [...this.pendingNotifications];
-    this.pendingNotifications = [];
-
-    for (const notification of notifications) {
-      await this.sendServerAlert(notification);
-      // 알림 간 간격 (너무 많은 알림 방지)
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
-
-    this.isProcessing = false;
-  }
-
-  /**
-   * 🎨 기본 아이콘 가져오기
-   */
-  private getDefaultIcon(severity: string): string {
-    switch (severity) {
-      case 'critical':
-        return '/icons/alert-critical.png';
-      case 'warning':
-        return '/icons/alert-warning.png';
-      default:
-        return '/icons/alert-info.png';
-    }
-  }
-
-  /**
-   * 🧪 테스트 알림
-   */
-  async sendTestNotification(): Promise<boolean> {
-    return await this.sendServerAlert({
-      title: 'OpenManager 테스트 알림',
-      message: '웹 알림이 정상적으로 작동합니다.',
-      severity: 'warning',
-      serverId: 'test-server',
-      type: 'test',
-      tag: 'test-notification',
-    });
-  }
-
-  /**
    * 📊 상태 조회
    */
   getStatus() {
     return {
-      permission: this.permission,
       isEnabled: this.isEnabled,
+      permission: this.permission,
       historyCount: this.notificationHistory.length,
-      pendingCount: this.pendingNotifications.length,
-      lastNotification: this.notificationHistory[0] || null,
-      duplicatePreventionTime: this.duplicatePreventionTime,
-      stats: {
-        total: this.notificationHistory.length,
-        bySeverity: {
-          critical: this.notificationHistory.filter(
-            n => n.severity === 'critical'
-          ).length,
-          warning: this.notificationHistory.filter(
-            n => n.severity === 'warning'
-          ).length,
-          info: this.notificationHistory.filter(n => n.severity === 'info')
-            .length,
-        },
-        recent24h: this.notificationHistory.filter(
-          n => Date.now() - n.timestamp < 24 * 60 * 60 * 1000
-        ).length,
-      },
+      recentNotifications: this.notificationHistory.slice(0, 5),
     };
   }
 
   /**
-   * 📜 히스토리 조회
+   * 🔧 서비스 활성화/비활성화
    */
-  getHistory(limit: number = 20): NotificationHistory[] {
-    return this.notificationHistory.slice(0, limit);
+  setEnabled(enabled: boolean): void {
+    this.isEnabled = enabled && this.permission === 'granted';
   }
 
   /**
-   * 🧹 히스토리 초기화
+   * 🧹 히스토리 정리 (수동 호출용)
    */
   clearHistory(): void {
     this.notificationHistory = [];
-    console.log('🧹 알림 히스토리 초기화 완료');
-  }
-
-  /**
-   * ⚙️ 설정 업데이트
-   */
-  updateSettings(settings: {
-    duplicatePreventionTime?: number;
-    maxHistorySize?: number;
-  }): void {
-    if (settings.duplicatePreventionTime) {
-      this.duplicatePreventionTime = settings.duplicatePreventionTime;
-    }
-    if (settings.maxHistorySize) {
-      this.maxHistorySize = settings.maxHistorySize;
-    }
-    console.log('⚙️ 알림 설정 업데이트:', settings);
+    this.previousServerStates.clear();
+    console.log('🧹 서버 알림 히스토리 초기화 완료');
   }
 }
 
 // 싱글톤 인스턴스
 export const browserNotificationService = new BrowserNotificationService();
-
-// 편의 함수들
-export const requestNotificationPermission = () =>
-  browserNotificationService.requestPermission();
-
-export const sendServerAlert = (options: NotificationOptions) =>
-  browserNotificationService.sendServerAlert(options);
-
-export const sendTestNotification = () =>
-  browserNotificationService.sendTestNotification();
-
-export const getNotificationStatus = () =>
-  browserNotificationService.getStatus();
-
-export const getNotificationHistory = (limit?: number) =>
-  browserNotificationService.getHistory(limit);
-
-export default browserNotificationService;

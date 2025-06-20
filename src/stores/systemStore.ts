@@ -1,587 +1,681 @@
 /**
- * System Control Store v2.0
- * 
- * 🔋 개선된 시스템 전체 제어 및 절전 관리
- * - 불필요한 자동 종료 방지
- * - 사용자 의도 기반 제어
- * - 안정적인 상태 관리
+ * 🌐 전역 시스템 상태 관리 (30분 세션 기반)
+ *
+ * ✅ 핵심 기능:
+ * - 모든 사용자 공유 상태 (개인별 시작 X)
+ * - 30분 세션 관리 (시작/중지)
+ * - 초반 1분 데이터 수집 → 30분간 사용
+ * - 웹 알림: 서버 데이터 생성기 심각/경고만
+ * - Vercel 환경 최적화
  */
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { systemLogger } from '../lib/logger';
+import { browserNotificationService } from '@/services/notifications/BrowserNotificationService';
 
-export type SystemState = 'inactive' | 'active' | 'stopping' | 'paused';
-export type AIAgentState = 'disabled' | 'enabled' | 'processing' | 'idle';
+export type SystemState = 'inactive' | 'initializing' | 'active' | 'stopping';
+export type DataCollectionState =
+  | 'waiting'
+  | 'collecting'
+  | 'completed'
+  | 'error';
 
-interface SystemStatus {
+interface GlobalSystemStatus {
+  // 전역 시스템 상태
   state: SystemState;
-  remainingTime: number;
+  sessionId: string | null;
   sessionStartTime: number | null;
-  sessionDuration: number;
-  isExtended: boolean;
-  extendedTime: number;
-  totalSessions: number;
-  totalActiveTime: number;
-  isPaused: boolean;
-  pauseReason?: string;
-  lastActivity: number;
-  userInitiated: boolean; // 사용자가 직접 시작했는지 여부
-}
+  sessionDuration: number; // 30분 (1800초)
+  remainingTime: number;
 
-interface AIAgentStatus {
-  state: AIAgentState;
-  isEnabled: boolean;
-  lastActivated: number | null;
-  totalQueries: number;
-  mcpStatus: 'connected' | 'disconnected' | 'error';
-}
-
-export interface SystemStore extends SystemStatus {
-  // AI Agent
-  aiAgent: AIAgentStatus;
-  
-  // System Actions
-  startSystem: (durationInSeconds: number, userInitiated?: boolean) => Promise<void>;
-  stopSystem: (reason?: string) => void;
-  pauseSystem: (reason: string) => void;
-  resumeSystem: () => void;
-  extendSession: (additionalMinutes: number) => Promise<void>;
-  aiTriggeredActivation: (reason: string) => void;
-  updateActivity: () => void; // 사용자 활동 업데이트
-  
-  // AI Agent Actions
-  enableAIAgent: () => Promise<void>;
-  disableAIAgent: () => Promise<void>;
-  toggleAIAgent: () => Promise<void>;
-  updateAIAgentQuery: () => void;
-  
-  // Getters
-  getFormattedTime: () => string;
-  getSessionInfo: () => {
-    remainingMinutes: number;
-    totalSessions: number;
-    averageSessionTime: number;
-    isUserSession: boolean;
+  // 데이터 수집 상태 (초반 1분)
+  dataCollection: {
+    state: DataCollectionState;
+    progress: number; // 0-100%
+    collectedServers: number;
+    totalServers: number;
+    startTime: number | null;
+    completedTime: number | null;
   };
-  
-  // System Control
-  canStartDataCollection: () => boolean;
-  canShowDashboard: () => boolean;
-  canRunSimulation: () => boolean;
-  shouldAutoStop: () => boolean; // 자동 중지 여부 판단
-  
-  // Internal methods
-  _updateRemainingTime: () => void;
-  _handleSessionEnd: () => Promise<void>;
-  _checkInactivity: () => void;
+
+  // 사용자 현황
+  activeUsers: number;
+  totalSessions: number;
+
+  // 서버 알림 상태
+  serverAlerts: {
+    criticalCount: number;
+    warningCount: number;
+    lastAlert: string | null;
+  };
+
+  // 세션 관리
+  isSessionActive: boolean;
+  sessionEndTime: number | null;
+  isDataCollecting: boolean; // 초반 1분간 데이터 수집 상태
+
+  // 시스템 상태
+  totalServers: number;
+  healthyServers: number;
+  warningServers: number;
+  criticalServers: number;
+
+  // 서버 알림 상태 추적
+  serverNotificationStates: Map<
+    string,
+    {
+      serverId: string;
+      serverName: string;
+      currentStatus: 'healthy' | 'warning' | 'critical';
+      lastNotificationTime: number;
+    }
+  >;
 }
 
-export const useSystemStore = create<SystemStore>()(
+interface GlobalSystemStore extends GlobalSystemStatus {
+  // 시스템 제어
+  startGlobalSession: () => Promise<{ success: boolean; message: string }>;
+  stopGlobalSession: (
+    reason?: string
+  ) => Promise<{ success: boolean; message: string }>;
+
+  // 사용자 참여
+  joinSession: () => Promise<{ success: boolean; message: string }>;
+  leaveSession: () => void;
+
+  // 데이터 수집 제어
+  startDataCollection: () => Promise<void>;
+  updateDataCollectionProgress: (progress: number, servers: number) => void;
+  completeDataCollection: () => void;
+
+  // 서버 알림 관리
+  reportServerAlert: (
+    severity: 'warning' | 'critical',
+    serverId: string,
+    message: string
+  ) => void;
+  clearServerAlerts: () => void;
+
+  // 상태 조회
+  getSessionInfo: () => {
+    isActive: boolean;
+    remainingMinutes: number;
+    dataCollectionCompleted: boolean;
+    canUseSystem: boolean;
+  };
+
+  // 내부 메서드
+  _updateTimer: () => void;
+  _handleSessionEnd: () => Promise<void>;
+
+  // 액션들
+  startSession: () => void;
+  stopSession: () => void;
+  updateSystemMetrics: (metrics: {
+    totalServers: number;
+    healthyServers: number;
+    warningServers: number;
+    criticalServers: number;
+  }) => void;
+  reportServerNotification: (
+    serverId: string,
+    serverName: string,
+    status: 'healthy' | 'warning' | 'critical'
+  ) => void;
+  getSessionStatus: () => {
+    isActive: boolean;
+    timeRemaining: number;
+    phase: 'collecting' | 'monitoring' | 'inactive';
+  };
+}
+
+const COLLECTION_DURATION = 1 * 60 * 1000; // 1분
+const SESSION_DURATION = 30 * 60 * 1000; // 30분
+const TIMER_INTERVAL = 5000; // 5초 간격 (Vercel 최적화)
+
+export const useGlobalSystemStore = create<GlobalSystemStore>()(
   persist(
     (set, get) => {
-      let timer: NodeJS.Timeout | null = null;
-      let inactivityTimer: NodeJS.Timeout | null = null;
+      let sessionTimer: NodeJS.Timeout | null = null;
+      let dataCollectionTimer: NodeJS.Timeout | null = null;
+      let statusTimer: NodeJS.Timeout | null = null;
 
       const clearTimers = () => {
-        try {
-          if (timer) {
-            clearInterval(timer);
-            timer = null;
-          }
-          if (inactivityTimer) {
-            clearTimeout(inactivityTimer);
-            inactivityTimer = null;
-          }
-          
-          // 추가 안전장치: 모든 타이머 정리
-          const timers = [timer, inactivityTimer];
-          timers.forEach(t => {
-            if (t) {
-              try {
-                clearInterval(t);
-                clearTimeout(t);
-              } catch (e) {
-                console.warn('⚠️ [SystemStore] 타이머 정리 중 경고:', e);
-              }
+        if (sessionTimer) {
+          clearInterval(sessionTimer);
+          sessionTimer = null;
+        }
+        if (dataCollectionTimer) {
+          clearTimeout(dataCollectionTimer);
+          dataCollectionTimer = null;
+        }
+        if (statusTimer) {
+          clearInterval(statusTimer);
+          statusTimer = null;
+        }
+      };
+
+      const startStatusMonitoring = () => {
+        if (statusTimer) return;
+
+        statusTimer = setInterval(() => {
+          const state = get();
+          if (!state.isSessionActive) {
+            if (statusTimer) {
+              clearInterval(statusTimer);
+              statusTimer = null;
             }
+            return;
+          }
+
+          const now = Date.now();
+          const sessionStart = state.sessionStartTime || now;
+          const collectionPhase = now - sessionStart < COLLECTION_DURATION;
+
+          set({ isDataCollecting: collectionPhase });
+
+          console.log('📊 시스템 상태 업데이트:', {
+            sessionActive: state.isSessionActive,
+            dataCollecting: collectionPhase,
+            totalServers: state.totalServers,
+            critical: state.criticalServers,
+            warning: state.warningServers,
           });
-          
-          console.log('🧹 [SystemStore] 모든 타이머 정리 완료');
-        } catch (error) {
-          console.error('❌ [SystemStore] 타이머 정리 실패:', error);
-        }
+        }, TIMER_INTERVAL);
       };
 
-      const startWarningTimers = (remainingTime: number, userInitiated: boolean) => {
-        // 사용자가 직접 시작한 세션에만 경고 표시
-        if (!userInitiated) return;
-
-        // 5분 전 경고
-        if (remainingTime > 300) {
-          setTimeout(() => {
-            const current = get();
-            if (current.state === 'active' && current.remainingTime <= 300 && current.userInitiated) {
-              systemLogger.warn('⏰ 5분 후 세션이 종료됩니다');
-            }
-          }, (remainingTime - 300) * 1000);
+      const stopStatusMonitoring = () => {
+        if (statusTimer) {
+          clearInterval(statusTimer);
+          statusTimer = null;
         }
-
-        // 1분 전 경고
-        if (remainingTime > 60) {
-          setTimeout(() => {
-            const current = get();
-            if (current.state === 'active' && current.remainingTime <= 60 && current.userInitiated) {
-              systemLogger.warn('⏰ 1분 후 세션이 종료됩니다');
-            }
-          }, (remainingTime - 60) * 1000);
-        }
-      };
-
-      const startInactivityTimer = () => {
-        // 비활성 타이머 (30분 비활성 시 일시정지)
-        inactivityTimer = setTimeout(() => {
-          const current = get();
-          if (current.state === 'active' && !current.userInitiated) {
-            systemLogger.system('😴 30분 비활성으로 인한 시스템 일시정지');
-            get().pauseSystem('30분 비활성');
-          }
-        }, 30 * 60 * 1000); // 30분
       };
 
       return {
+        // 초기 상태
         state: 'inactive',
-        remainingTime: 0,
+        sessionId: null,
         sessionStartTime: null,
-        sessionDuration: 0,
-        isExtended: false,
-        extendedTime: 0,
-        totalSessions: 0,
-        totalActiveTime: 0,
-        isPaused: false,
-        pauseReason: undefined,
-        lastActivity: Date.now(),
-        userInitiated: false,
-        
-        // AI 에이전트 상태
-        aiAgent: {
-          state: 'disabled' as AIAgentState,
-          isEnabled: false,
-          lastActivated: null,
-          totalQueries: 0,
-          mcpStatus: 'disconnected' as const
+        sessionDuration: 30 * 60, // 30분
+        remainingTime: 0,
+
+        dataCollection: {
+          state: 'waiting',
+          progress: 0,
+          collectedServers: 0,
+          totalServers: 0,
+          startTime: null,
+          completedTime: null,
         },
 
-        startSystem: async (durationInSeconds: number, userInitiated = false) => {
+        activeUsers: 0,
+        totalSessions: 0,
+
+        serverAlerts: {
+          criticalCount: 0,
+          warningCount: 0,
+          lastAlert: null,
+        },
+
+        // 세션 관리
+        isSessionActive: false,
+        sessionEndTime: null,
+        isDataCollecting: false,
+
+        // 시스템 상태
+        totalServers: 0,
+        healthyServers: 0,
+        warningServers: 0,
+        criticalServers: 0,
+
+        // 서버 알림 상태 추적
+        serverNotificationStates: new Map(),
+
+        /**
+         * 🚀 전역 세션 시작 (30분)
+         */
+        startGlobalSession: async () => {
+          const current = get();
+
+          if (current.state === 'active') {
+            return {
+              success: false,
+              message: '이미 활성화된 세션이 있습니다. 현재 세션에 참여하세요.',
+            };
+          }
+
           clearTimers();
-          
+
+          const sessionId = `session_${Date.now()}`;
           const startTime = Date.now();
-          
+          const duration = 30 * 60; // 30분
+
           set({
-            state: 'active',
-            remainingTime: durationInSeconds,
+            state: 'initializing',
+            sessionId,
             sessionStartTime: startTime,
-            sessionDuration: durationInSeconds,
-            isExtended: false,
-            extendedTime: 0,
-            totalSessions: get().totalSessions + 1,
-            isPaused: false,
-            pauseReason: undefined,
-            lastActivity: startTime,
-            userInitiated
+            sessionDuration: duration,
+            remainingTime: duration,
+            totalSessions: current.totalSessions + 1,
+            activeUsers: 1,
+            dataCollection: {
+              state: 'waiting',
+              progress: 0,
+              collectedServers: 0,
+              totalServers: 0,
+              startTime: null,
+              completedTime: null,
+            },
+            serverAlerts: {
+              criticalCount: 0,
+              warningCount: 0,
+              lastAlert: null,
+            },
+            isSessionActive: true,
+            sessionEndTime: null,
+            serverNotificationStates: new Map(),
           });
 
-          const sessionType = userInitiated ? '사용자 세션' : 'AI 자동 세션';
-          systemLogger.system(`🚀 시스템 활성화 (${sessionType}, ${durationInSeconds / 60}분)`);
+          systemLogger.system(`🌐 전역 세션 시작: ${sessionId} (30분)`);
 
-          // 시스템 상태 업데이트 간격을 3초로 최적화 (1초 → 3초)
-          timer = setInterval(async () => {
-            const current = get();
-            if (current.state !== 'active') return;
+          // 데이터 수집 시작 (초반 1분)
+          await get().startDataCollection();
 
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const remaining = Math.max(0, durationInSeconds - elapsed);
+          // 세션 타이머 시작 (5초 간격으로 최적화)
+          sessionTimer = setInterval(() => {
+            const state = get();
+            if (state.state !== 'active' || !state.sessionStartTime) return;
+
+            const elapsed = Math.floor(
+              (Date.now() - state.sessionStartTime) / 1000
+            );
+            const remaining = Math.max(0, state.sessionDuration - elapsed);
 
             if (remaining <= 0) {
-              // 자동 중지 여부 확인
-              if (get().shouldAutoStop()) {
-                systemLogger.system('⏰ 세션 시간 만료 - 시스템 중지');
-                await get()._handleSessionEnd();
-              } else {
-                // 사용자 세션은 자동 연장
-                systemLogger.system('⏰ 세션 시간 만료 - 사용자 세션 자동 연장 (10분)');
-                get().extendSession(10);
-              }
+              systemLogger.system('⏰ 30분 세션 시간 만료 - 자동 종료');
+              get()._handleSessionEnd();
             } else {
               set({ remainingTime: remaining });
             }
-          }, 3000); // 3초마다 업데이트 (1초 → 3초로 성능 최적화)
+          }, 5000); // 5초마다 업데이트
 
-          // 경고 타이머 설정 (사용자 세션만)
-          startWarningTimers(durationInSeconds, userInitiated);
-          
-          // 비활성 타이머 시작 (AI 세션만)
-          if (!userInitiated) {
-            startInactivityTimer();
+          // 상태 모니터링 시작
+          startStatusMonitoring();
+
+          return {
+            success: true,
+            message: `전역 세션이 시작되었습니다. (세션 ID: ${sessionId})`,
+          };
+        },
+
+        /**
+         * 🛑 전역 세션 중지
+         */
+        stopGlobalSession: async (reason = '사용자 요청') => {
+          const current = get();
+
+          if (current.state === 'inactive') {
+            return {
+              success: false,
+              message: '활성화된 세션이 없습니다.',
+            };
+          }
+
+          await get()._handleSessionEnd();
+
+          systemLogger.system(`🛑 전역 세션 중지: ${reason}`);
+
+          return {
+            success: true,
+            message: `전역 세션이 중지되었습니다. (이유: ${reason})`,
+          };
+        },
+
+        /**
+         * 👥 세션 참여
+         */
+        joinSession: async () => {
+          const current = get();
+
+          if (current.state === 'inactive') {
+            return {
+              success: false,
+              message: '활성화된 세션이 없습니다. 새 세션을 시작해주세요.',
+            };
+          }
+
+          set({ activeUsers: current.activeUsers + 1 });
+
+          systemLogger.system(
+            `👥 사용자 세션 참여 (총 ${current.activeUsers + 1}명)`
+          );
+
+          return {
+            success: true,
+            message: '세션에 참여했습니다.',
+          };
+        },
+
+        /**
+         * 👋 세션 떠나기
+         */
+        leaveSession: () => {
+          const current = get();
+
+          if (current.activeUsers > 0) {
+            set({ activeUsers: current.activeUsers - 1 });
+            systemLogger.system(
+              `👋 사용자 세션 떠남 (남은 사용자: ${current.activeUsers - 1}명)`
+            );
           }
         },
 
-        stopSystem: (reason = '사용자 요청') => {
-          const current = get();
+        /**
+         * 📊 데이터 수집 시작 (초반 1분)
+         */
+        startDataCollection: async () => {
+          const startTime = Date.now();
+
+          set({
+            state: 'initializing',
+            dataCollection: {
+              state: 'collecting',
+              progress: 0,
+              collectedServers: 0,
+              totalServers: 20, // 예상 서버 수
+              startTime,
+              completedTime: null,
+            },
+          });
+
+          systemLogger.system('📊 데이터 수집 시작 (1분간)');
+
+          // 1분간 데이터 수집 시뮬레이션
+          let progress = 0;
+          const collectionInterval = setInterval(() => {
+            progress += 10;
+
+            set(state => ({
+              dataCollection: {
+                ...state.dataCollection,
+                progress: Math.min(progress, 100),
+                collectedServers: Math.floor((progress / 100) * 20),
+              },
+            }));
+
+            if (progress >= 100) {
+              clearInterval(collectionInterval);
+              get().completeDataCollection();
+            }
+          }, 6000); // 6초마다 10% 증가 (총 60초)
+
+          // 1분 후 강제 완료
+          dataCollectionTimer = setTimeout(() => {
+            clearInterval(collectionInterval);
+            get().completeDataCollection();
+          }, 60000);
+        },
+
+        /**
+         * 📊 데이터 수집 진행률 업데이트
+         */
+        updateDataCollectionProgress: (progress: number, servers: number) => {
+          set(state => ({
+            dataCollection: {
+              ...state.dataCollection,
+              progress: Math.min(progress, 100),
+              collectedServers: servers,
+            },
+          }));
+        },
+
+        /**
+         * ✅ 데이터 수집 완료
+         */
+        completeDataCollection: () => {
+          const completedTime = Date.now();
+
+          set(state => ({
+            state: 'active',
+            dataCollection: {
+              ...state.dataCollection,
+              state: 'completed',
+              progress: 100,
+              completedTime,
+            },
+          }));
+
+          systemLogger.system('✅ 데이터 수집 완료 - 시스템 활성화');
+        },
+
+        /**
+         * 🚨 서버 알림 보고
+         */
+        reportServerAlert: (
+          severity: 'warning' | 'critical',
+          serverId: string,
+          message: string
+        ) => {
+          set(state => ({
+            serverAlerts: {
+              criticalCount:
+                severity === 'critical'
+                  ? state.serverAlerts.criticalCount + 1
+                  : state.serverAlerts.criticalCount,
+              warningCount:
+                severity === 'warning'
+                  ? state.serverAlerts.warningCount + 1
+                  : state.serverAlerts.warningCount,
+              lastAlert: `${severity.toUpperCase()}: ${serverId} - ${message}`,
+            },
+          }));
+
+          systemLogger.warn(
+            `🚨 서버 알림: ${severity} - ${serverId}: ${message}`
+          );
+        },
+
+        /**
+         * 🧹 서버 알림 초기화
+         */
+        clearServerAlerts: () => {
+          set({
+            serverAlerts: {
+              criticalCount: 0,
+              warningCount: 0,
+              lastAlert: null,
+            },
+          });
+        },
+
+        /**
+         * 📊 세션 정보 조회
+         */
+        getSessionInfo: () => {
+          const state = get();
+          return {
+            isActive: state.state === 'active',
+            remainingMinutes: Math.floor(state.remainingTime / 60),
+            dataCollectionCompleted: state.dataCollection.state === 'completed',
+            canUseSystem:
+              state.state === 'active' &&
+              state.dataCollection.state === 'completed',
+          };
+        },
+
+        /**
+         * ⏱️ 타이머 업데이트 (내부 메서드)
+         */
+        _updateTimer: () => {
+          const state = get();
+          if (!state.sessionStartTime) return;
+
+          const elapsed = Math.floor(
+            (Date.now() - state.sessionStartTime) / 1000
+          );
+          const remaining = Math.max(0, state.sessionDuration - elapsed);
+
+          set({ remainingTime: remaining });
+        },
+
+        /**
+         * 🔚 세션 종료 처리 (내부 메서드)
+         */
+        _handleSessionEnd: async () => {
           clearTimers();
-          
-          let actualSessionDuration = 0;
-          if (current.sessionStartTime) {
-            actualSessionDuration = Math.floor((Date.now() - current.sessionStartTime) / 1000);
-            systemLogger.system(`🛑 시스템 중지 (${reason}, 세션 시간: ${Math.floor(actualSessionDuration / 60)}분)`);
+
+          // 모든 서비스 중지
+          try {
+            await fetch('/api/system/stop', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+            }).catch(() => {
+              console.log('ℹ️ 시스템 이미 중지됨');
+            });
+          } catch (error) {
+            console.error('❌ 서비스 중지 오류:', error);
           }
 
           set({
             state: 'inactive',
-            remainingTime: 0,
+            sessionId: null,
             sessionStartTime: null,
-            sessionDuration: 0,
-            isExtended: false,
-            extendedTime: 0,
-            totalActiveTime: current.totalActiveTime + actualSessionDuration,
-            isPaused: false,
-            pauseReason: undefined,
-            userInitiated: false
-          });
-        },
-
-        pauseSystem: (reason: string) => {
-          clearTimers();
-          
-          set({
-            state: 'paused',
-            isPaused: true,
-            pauseReason: reason
+            remainingTime: 0,
+            activeUsers: 0,
+            dataCollection: {
+              state: 'waiting',
+              progress: 0,
+              collectedServers: 0,
+              totalServers: 0,
+              startTime: null,
+              completedTime: null,
+            },
+            isSessionActive: false,
+            sessionEndTime: null,
+            serverNotificationStates: new Map(),
           });
 
-          systemLogger.system(`⏸️ 시스템 일시정지: ${reason}`);
+          systemLogger.system('🔚 전역 세션 종료 완료');
         },
 
-        resumeSystem: () => {
-          const current = get();
-          
-          if (current.state !== 'paused') {
-            systemLogger.warn('시스템이 일시정지 상태가 아닙니다');
-            return;
-          }
-
-          // 남은 시간으로 다시 시작
-          get().startSystem(current.remainingTime, current.userInitiated);
-          
-          systemLogger.system('▶️ 시스템 재개');
-        },
-
-        extendSession: async (additionalMinutes: number) => {
-          const current = get();
-          
-          if (current.state !== 'active') {
-            systemLogger.warn('활성 상태가 아닌 시스템은 연장할 수 없습니다');
-            return;
-          }
-
-          const additionalSeconds = additionalMinutes * 60;
-          const newRemainingTime = current.remainingTime + additionalSeconds;
-          const newTotalDuration = current.sessionDuration + additionalSeconds;
-
-          // 기존 타이머 정리하고 새로 시작
-          clearTimers();
-          
-          const startTime = current.sessionStartTime!;
-          
-          // 세션 연장 시에도 3초 간격으로 최적화
-          timer = setInterval(async () => {
-            const currentState = get();
-            if (currentState.state !== 'active') return;
-
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const remaining = Math.max(0, newTotalDuration - elapsed);
-
-            if (remaining <= 0) {
-              if (get().shouldAutoStop()) {
-                systemLogger.system('⏰ 연장된 세션 시간 만료 - 시스템 중지');
-                await get()._handleSessionEnd();
-              } else {
-                // 사용자 세션은 추가 연장
-                systemLogger.system('⏰ 연장된 세션 시간 만료 - 추가 연장 (10분)');
-                get().extendSession(10);
-              }
-            } else {
-              set({ remainingTime: remaining });
-            }
-          }, 3000); // 3초마다 업데이트 (성능 최적화)
+        // 액션들
+        startSession: () => {
+          const now = Date.now();
+          const endTime = now + SESSION_DURATION;
 
           set({
-            remainingTime: newRemainingTime,
-            sessionDuration: newTotalDuration,
-            isExtended: true,
-            extendedTime: current.extendedTime + additionalSeconds,
-            lastActivity: Date.now()
+            isSessionActive: true,
+            sessionStartTime: now,
+            sessionEndTime: endTime,
+            isDataCollecting: true,
+            serverNotificationStates: new Map(), // 세션 시작 시 알림 상태 초기화
           });
 
-          systemLogger.system(`⏰ 세션 연장: +${additionalMinutes}분`);
+          // 30분 후 자동 종료
+          if (sessionTimer) clearTimeout(sessionTimer);
+          sessionTimer = setTimeout(() => {
+            get().stopSession();
+          }, SESSION_DURATION);
+
+          // 상태 모니터링 시작
+          startStatusMonitoring();
+
+          console.log('🚀 30분 시스템 세션 시작');
         },
 
-        updateActivity: () => {
-          try {
-            // 🚨 컴포넌트 언마운트 후 상태 업데이트 방지
-            const current = get();
-            if (!current) {
-              console.warn('⚠️ [SystemStore] updateActivity: 스토어 상태가 없음 - 업데이트 중단');
-              return;
-            }
-
-            // 🔒 React 안전 모드: 배치 업데이트로 처리
-            Promise.resolve().then(() => {
-              try {
-                const latestState = get();
-                if (latestState && latestState.state !== 'inactive') {
-                  set({ lastActivity: Date.now() });
-                  
-                  // 비활성 타이머 리셋 (AI 세션만)
-                  if (latestState.state === 'active' && !latestState.userInitiated) {
-                    if (inactivityTimer) {
-                      clearTimeout(inactivityTimer);
-                    }
-                    startInactivityTimer();
-                  }
-                }
-              } catch (batchError) {
-                console.warn('⚠️ [SystemStore] 배치 업데이트 실패 (무시):', batchError);
-              }
-            });
-          } catch (error) {
-            console.error('❌ [SystemStore] updateActivity 실패:', error);
-            // 에러 발생 시에도 안전하게 계속 진행
-          }
-        },
-
-        aiTriggeredActivation: (reason: string) => {
-          systemLogger.ai(`🤖 AI 트리거 시스템 활성화: ${reason}`);
-          get().startSystem(20 * 60, false); // AI 세션은 20분
-        },
-
-        _updateRemainingTime: () => {
-          // 내부 메서드 - 직접 호출하지 말 것
-        },
-
-        _handleSessionEnd: async () => {
-          clearTimers();
-          
-          // 모든 서비스 중지
-          const stopAllServices = async () => {
-            try {
-              // 1. 시뮬레이션 엔진 중지
-              console.log('🛑 시뮬레이션 엔진 중지 중...');
-              await fetch('/api/system/stop', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-              }).catch(() => {
-                console.log('ℹ️ 시뮬레이션 엔진 이미 중지됨');
-              });
-              
-              // 2. AI 에이전트 비활성화
-              console.log('🛑 AI 에이전트 비활성화 중...');
-              await fetch('/api/ai-agent/power', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'deactivate' })
-              }).catch(() => {
-                console.log('ℹ️ AI 에이전트 이미 비활성화됨');
-              });
-              
-              console.log('✅ 모든 서비스 중지 완료');
-            } catch (error) {
-              console.error('서비스 중지 중 오류:', error);
-            }
-          };
-          
-          // 서비스 중지 실행
-          await stopAllServices();
-          
+        // 세션 중지
+        stopSession: () => {
           set({
-            state: 'stopping',
-            remainingTime: 0
+            isSessionActive: false,
+            sessionStartTime: null,
+            sessionEndTime: null,
+            isDataCollecting: false,
           });
 
-          // 1초 후 완전히 비활성화
-          setTimeout(() => {
-            const currentState = get();
-            set({
-              state: 'inactive',
-              sessionStartTime: null,
-              sessionDuration: 0,
-              isExtended: false,
-              extendedTime: 0,
-              totalActiveTime: currentState.totalActiveTime + (currentState.sessionStartTime ? Math.floor((Date.now() - currentState.sessionStartTime) / 1000) : 0),
-              isPaused: false,
-              pauseReason: undefined,
-              userInitiated: false
-            });
-            
-            console.log('🔴 시스템 완전 종료');
-          }, 1000);
-        },
-
-        _checkInactivity: () => {
-          const current = get();
-          const inactiveTime = Date.now() - current.lastActivity;
-          
-          // 30분 비활성 시 일시정지 (AI 세션만)
-          if (current.state === 'active' && !current.userInitiated && inactiveTime > 30 * 60 * 1000) {
-            get().pauseSystem('30분 비활성');
+          if (sessionTimer) {
+            clearTimeout(sessionTimer);
+            sessionTimer = null;
           }
+
+          stopStatusMonitoring();
+
+          console.log('🛑 시스템 세션 종료');
         },
 
-        // Getters
-        getFormattedTime: () => {
-          const { remainingTime } = get();
-          const minutes = Math.floor(remainingTime / 60);
-          const seconds = remainingTime % 60;
-          return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        // 시스템 메트릭 업데이트
+        updateSystemMetrics: metrics => {
+          set({
+            totalServers: metrics.totalServers,
+            healthyServers: metrics.healthyServers,
+            warningServers: metrics.warningServers,
+            criticalServers: metrics.criticalServers,
+          });
         },
 
-        getSessionInfo: () => {
-          const { remainingTime, totalSessions, totalActiveTime, userInitiated } = get();
+        // 서버 알림 보고 (웹 알림 발송)
+        reportServerNotification: (serverId, serverName, status) => {
+          const state = get();
+          if (!state.isSessionActive) return;
+
+          const currentStates = new Map(state.serverNotificationStates);
+          const now = Date.now();
+
+          // 웹 알림 발송 (통합 기준 적용)
+          browserNotificationService.processServerNotification(
+            serverId,
+            serverName,
+            status
+          );
+
+          // 상태 업데이트
+          currentStates.set(serverId, {
+            serverId,
+            serverName,
+            currentStatus: status,
+            lastNotificationTime: now,
+          });
+
+          set({ serverNotificationStates: currentStates });
+
+          console.log(`🔔 서버 알림 처리: ${serverName} (${status})`);
+        },
+
+        // 세션 상태 조회
+        getSessionStatus: () => {
+          const state = get();
+          const now = Date.now();
+
+          if (!state.isSessionActive || !state.sessionStartTime) {
+            return {
+              isActive: false,
+              timeRemaining: 0,
+              phase: 'inactive' as const,
+            };
+          }
+
+          const elapsed = now - state.sessionStartTime;
+          const remaining = Math.max(0, SESSION_DURATION - elapsed);
+          const phase =
+            elapsed < COLLECTION_DURATION ? 'collecting' : 'monitoring';
+
           return {
-            remainingMinutes: Math.floor(remainingTime / 60),
-            totalSessions,
-            averageSessionTime: totalSessions > 0 ? Math.floor(totalActiveTime / totalSessions / 60) : 0,
-            isUserSession: userInitiated
+            isActive: true,
+            timeRemaining: remaining,
+            phase: phase as 'collecting' | 'monitoring',
           };
         },
-
-        shouldAutoStop: () => {
-          const current = get();
-          // 사용자가 직접 시작한 세션은 자동 중지하지 않음
-          return !current.userInitiated;
-        },
-
-        // System Control
-        canStartDataCollection: () => {
-          const { state } = get();
-          return state === 'active';
-        },
-
-        canShowDashboard: () => {
-          const { state } = get();
-          return state === 'active' || state === 'paused';
-        },
-
-        canRunSimulation: () => {
-          const { state } = get();
-          return state === 'active';
-        },
-
-        // AI Agent Actions
-        enableAIAgent: async () => {
-          try {
-            const response = await fetch('/api/ai-agent/power', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'activate' })
-            });
-
-            if (response.ok) {
-              set({
-                aiAgent: {
-                  ...get().aiAgent,
-                  state: 'enabled',
-                  isEnabled: true,
-                  lastActivated: Date.now()
-                }
-              });
-              systemLogger.ai('✅ AI 에이전트 활성화 완료');
-            }
-          } catch (error) {
-            systemLogger.error('❌ AI 에이전트 활성화 실패:', error);
-            throw error;
-          }
-        },
-
-        disableAIAgent: async () => {
-          try {
-            const response = await fetch('/api/ai-agent/power', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'deactivate' })
-            });
-
-            if (response.ok) {
-              set({
-                aiAgent: {
-                  ...get().aiAgent,
-                  state: 'disabled',
-                  isEnabled: false
-                }
-              });
-              systemLogger.ai('AI 에이전트 비활성화 완료');
-            }
-          } catch (error) {
-            systemLogger.error('AI 에이전트 비활성화 실패:', error);
-          }
-        },
-
-        toggleAIAgent: async () => {
-          const { aiAgent } = get();
-          if (aiAgent.isEnabled) {
-            await get().disableAIAgent();
-          } else {
-            await get().enableAIAgent();
-          }
-        },
-
-        updateAIAgentQuery: () => {
-          try {
-            // 🚨 컴포넌트 언마운트 후 상태 업데이트 방지
-            const current = get();
-            if (!current || !current.aiAgent) {
-              console.warn('⚠️ [SystemStore] updateAIAgentQuery: 스토어 상태가 없음 - 업데이트 중단');
-              return;
-            }
-
-            // 🔒 React 안전 모드: 배치 업데이트로 처리
-            Promise.resolve().then(() => {
-              try {
-                const latestState = get();
-                if (latestState && latestState.aiAgent) {
-                  set({
-                    aiAgent: {
-                      ...latestState.aiAgent,
-                      totalQueries: latestState.aiAgent.totalQueries + 1
-                    }
-                  });
-                  
-                  // 활동 업데이트 - 안전하게 호출
-                  const updateActivity = get().updateActivity;
-                  if (updateActivity) {
-                    updateActivity();
-                  }
-                }
-              } catch (batchError) {
-                console.warn('⚠️ [SystemStore] AI 에이전트 배치 업데이트 실패 (무시):', batchError);
-              }
-            });
-          } catch (error) {
-            console.error('❌ [SystemStore] updateAIAgentQuery 실패:', error);
-            // 에러 발생 시에도 안전하게 계속 진행
-          }
-        }
       };
     },
     {
-      name: 'system-store',
-      partialize: (state) => ({
+      name: 'global-system-store',
+      partialize: state => ({
         totalSessions: state.totalSessions,
-        totalActiveTime: state.totalActiveTime,
-        aiAgent: {
-          totalQueries: state.aiAgent.totalQueries
-        }
-      })
+        serverAlerts: state.serverAlerts,
+      }),
     }
   )
-); 
+);
+
+// 기존 SystemStore 호환성을 위한 별칭
+export const useSystemStore = useGlobalSystemStore;

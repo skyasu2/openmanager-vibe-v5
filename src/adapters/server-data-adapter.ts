@@ -10,6 +10,10 @@
 
 import { ServerInstance } from '@/types/data-generator';
 import { Server } from '@/types/server';
+import {
+  determineServerStatus,
+  ServerMetrics,
+} from '@/config/server-status-thresholds';
 
 // ============================================================================
 // 🎯 타입 안전성 검증 시스템
@@ -52,28 +56,38 @@ function validateServer(server: any): server is Server {
 export function transformServerInstanceToServer(
   serverInstance: ServerInstance
 ): Server {
-  const baseStatus = mapServerStatus(serverInstance.status);
+  // 🎯 메트릭 데이터 안전 변환
+  const cpu = serverInstance.metrics?.cpu || 0;
+  const memory = serverInstance.metrics?.memory || 0;
+  const disk = serverInstance.metrics?.disk || 0;
+  const network = serverInstance.metrics?.network?.in || 0;
+  // responseTime과 networkLatency는 ServerInstance에 없으므로 기본값 사용
+  const responseTime = 0; // 기본값
+  const networkLatency = 0; // 기본값
 
-  // EnhancedServerCard 가 사용하는 상태 값으로 변환
-  const enhancedStatus =
-    baseStatus === 'online'
-      ? ('healthy' as any)
-      : baseStatus === 'offline'
-        ? ('critical' as any)
-        : ('warning' as any);
+  // 🚨 통합 기준으로 서버 상태 판별 (데이터 전처리 단계)
+  const serverMetrics: ServerMetrics = {
+    cpu,
+    memory,
+    disk,
+    responseTime,
+    networkLatency,
+  };
+
+  const determinedStatus = determineServerStatus(serverMetrics);
 
   return {
     id: serverInstance.id || `server-${Date.now()}`,
     name: serverInstance.name || 'Unknown Server',
 
-    // 🎯 상태 매핑 (healthy / warning / critical / offline)
-    status: enhancedStatus,
+    // 🎯 통합 기준으로 판별된 상태 사용
+    status: determinedStatus as any,
 
-    // 🎯 메트릭 데이터 안전 변환
-    cpu: serverInstance.metrics?.cpu || 0,
-    memory: serverInstance.metrics?.memory || 0,
-    disk: serverInstance.metrics?.disk || 0,
-    network: serverInstance.metrics?.network?.in || 0,
+    // 🎯 메트릭 데이터
+    cpu,
+    memory,
+    disk,
+    network,
 
     // 🎯 기본 정보
     uptime: formatUptime(serverInstance.metrics?.uptime || 0),
