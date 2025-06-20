@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import {
   Monitor,
@@ -233,18 +233,97 @@ export default function SystemBootPage() {
             Vibe v5 • AI 기반 서버 모니터링
           </motion.p>
 
-          {/* 현재 단계 아이콘 */}
-          <motion.div
-            key={currentStage}
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            className='mb-6'
-          >
-            <div className='w-16 h-16 mx-auto bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg'>
-              <CurrentIconComponent className='w-8 h-8 text-white' />
-            </div>
-          </motion.div>
+          {/* 🎯 부드러운 아이콘 교체 시스템 - 현재 단계 아이콘 */}
+          <div className='relative w-20 h-20 mx-auto mb-6'>
+            <AnimatePresence mode='wait'>
+              <motion.div
+                key={currentStage}
+                initial={{
+                  scale: 0,
+                  opacity: 0,
+                  rotateY: 90,
+                  y: 20,
+                }}
+                animate={{
+                  scale: 1,
+                  opacity: 1,
+                  rotateY: 0,
+                  y: 0,
+                }}
+                exit={{
+                  scale: 0.8,
+                  opacity: 0,
+                  rotateY: -90,
+                  y: -20,
+                }}
+                transition={{
+                  duration: 0.6,
+                  ease: [0.4, 0, 0.2, 1],
+                  type: 'spring',
+                  stiffness: 300,
+                  damping: 25,
+                }}
+                className='absolute inset-0'
+              >
+                {/* 메인 아이콘 컨테이너 */}
+                <motion.div
+                  className='w-full h-full rounded-2xl flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 text-white shadow-2xl'
+                  animate={{
+                    scale: [1, 1.05, 1],
+                    boxShadow: [
+                      '0 10px 25px rgba(59, 130, 246, 0.3)',
+                      '0 15px 35px rgba(168, 85, 247, 0.4)',
+                      '0 10px 25px rgba(59, 130, 246, 0.3)',
+                    ],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                >
+                  {/* 아이콘 */}
+                  <motion.div
+                    animate={{
+                      rotate: [0, 360],
+                    }}
+                    transition={{
+                      duration: 4,
+                      repeat: Infinity,
+                      ease: 'linear',
+                    }}
+                  >
+                    <CurrentIconComponent className='w-10 h-10' />
+                  </motion.div>
+
+                  {/* 반짝임 효과 */}
+                  <motion.div
+                    className='absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent'
+                    animate={{ x: ['-100%', '100%'] }}
+                    transition={{
+                      duration: 2.5,
+                      repeat: Infinity,
+                      ease: 'linear',
+                    }}
+                  />
+
+                  {/* 글로우 링 */}
+                  <motion.div
+                    className='absolute inset-0 border-2 border-white/30 rounded-2xl'
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      opacity: [0.3, 0.7, 0.3],
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    }}
+                  />
+                </motion.div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
           {/* 현재 단계명 */}
           <motion.h2
