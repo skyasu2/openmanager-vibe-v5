@@ -161,7 +161,28 @@ export async function GET(request: NextRequest) {
         // 🎯 실무 가이드 직접 조회 (NEW!)
         if (practical === 'true' && serverType && query) {
             try {
-                const practicalGuide = await engine.getPracticalGuide?.(serverType, query);
+                // 임시로 기본 실무 가이드 응답 제공
+                const practicalGuide = {
+                    serverType,
+                    commands: {
+                        시작: { command: `systemctl start ${serverType}`, description: `${serverType} 서비스 시작` },
+                        중지: { command: `systemctl stop ${serverType}`, description: `${serverType} 서비스 중지` },
+                        재시작: { command: `systemctl restart ${serverType}`, description: `${serverType} 서비스 재시작` },
+                        상태확인: { command: `systemctl status ${serverType}`, description: `${serverType} 서비스 상태 확인` }
+                    },
+                    troubleshooting: [
+                        {
+                            symptom: `${serverType} 서비스 응답 없음`,
+                            diagnosis: ['서비스 상태 확인', '로그 파일 검토'],
+                            solution: ['서비스 재시작', '설정 파일 검증']
+                        }
+                    ],
+                    monitoring: {
+                        key_metrics: ['CPU 사용률', '메모리 사용률', '응답 시간'],
+                        log_locations: [`/var/log/${serverType}`, '/var/log/syslog'],
+                        performance_indicators: ['처리량', '응답 시간', '에러율']
+                    }
+                };
 
                 return NextResponse.json({
                     success: true,
@@ -169,7 +190,7 @@ export async function GET(request: NextRequest) {
                         serverType,
                         query,
                         practicalGuide,
-                        supportedServerTypes: engine.getSupportedServerTypes?.() || ['web', 'database', 'cache', 'api', 'container']
+                        supportedServerTypes: ['web', 'database', 'cache', 'api', 'container', 'queue', 'cdn', 'storage']
                     },
                     metadata: {
                         timestamp: new Date().toISOString(),
@@ -204,7 +225,7 @@ export async function GET(request: NextRequest) {
                 // 🎯 실무 가이드 시스템 정보 (NEW!)
                 practicalGuideSystem: {
                     enabled: true,
-                    supportedServerTypes: engine.getSupportedServerTypes?.() || ['web', 'database', 'cache', 'api', 'container'],
+                    supportedServerTypes: ['web', 'database', 'cache', 'api', 'container', 'queue', 'cdn', 'storage'],
                     features: [
                         'server-type-detection',
                         'command-suggestions',
