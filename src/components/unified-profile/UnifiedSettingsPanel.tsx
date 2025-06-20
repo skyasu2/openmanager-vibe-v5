@@ -388,7 +388,7 @@ export function UnifiedSettingsPanel({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className='fixed inset-0 bg-black/70 z-[999]'
+            className='fixed inset-0 bg-black/70 z-[9998]'
             onClick={onClose}
             role='button'
             aria-label='설정 패널 닫기'
@@ -405,10 +405,11 @@ export function UnifiedSettingsPanel({
                        w-[min(95vw,800px)] h-[min(95vh,700px)] 
                        min-w-[320px] min-h-[400px] max-w-4xl max-h-[95vh]
                        bg-gray-900/95 backdrop-blur-xl border border-white/20 
-                       rounded-2xl shadow-2xl z-[1000] flex flex-col overflow-hidden'
+                       rounded-2xl shadow-2xl z-[9999] flex flex-col overflow-hidden'
             role='dialog'
             aria-modal='true'
             aria-labelledby='settings-panel-title'
+            data-testid='unified-settings-modal'
           >
             {/* 헤더 */}
             <header className='flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0'>

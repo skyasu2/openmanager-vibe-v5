@@ -113,7 +113,7 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
 
   // 애니메이션은 CSS와 framer-motion에서 처리하므로 별도 상태 불필요
 
-  // 외부 클릭 감지 (단순화된 버전 - 지연 제거)
+  // 외부 클릭 감지 (개선된 버전)
   useEffect(() => {
     if (!isOpen) return;
 
@@ -130,17 +130,28 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
         return;
       }
 
+      // 설정 모달이 열려있을 때는 드롭다운 닫기 무시
+      const settingsModal = document.querySelector(
+        '[data-testid="unified-settings-modal"], [role="dialog"]'
+      );
+      if (settingsModal?.contains(target)) {
+        return;
+      }
+
       // 외부 클릭 시 드롭다운 닫기
       onClick({} as React.MouseEvent);
     };
 
-    // 즉시 이벤트 리스너 등록 (지연 제거로 깜빡임 방지)
-    document.addEventListener('mousedown', handleClickOutside, {
-      passive: true,
-      capture: true,
-    });
+    // 짧은 지연 후 이벤트 리스너 등록 (중복 클릭 방지)
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside, {
+        passive: true,
+        capture: true,
+      });
+    }, 50);
 
     return () => {
+      clearTimeout(timeoutId);
       document.removeEventListener('mousedown', handleClickOutside, true);
     };
   }, [isOpen, onClick, buttonRef]);
@@ -311,18 +322,18 @@ const UnifiedProfileButtonComponent = function UnifiedProfileButton({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -10 }}
               transition={{
-                duration: 0.1, // 더욱 단축된 애니메이션
-                ease: 'easeOut',
+                duration: 0.15,
+                ease: [0.4, 0.0, 0.2, 1],
               }}
               style={{
                 position: 'fixed',
                 top: dropdownPosition.top,
                 left: dropdownPosition.left,
                 transformOrigin: dropdownPosition.transformOrigin,
-                willChange: 'transform, opacity', // 성능 최적화
-                transform: 'translate3d(0, 0, 0)', // GPU 가속
+                willChange: 'transform, opacity',
+                transform: 'translate3d(0, 0, 0)',
               }}
-              className='w-96 bg-gray-900/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl z-[9999]'
+              className='w-96 bg-gray-900/98 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl z-[10000]'
               role='menu'
               aria-orientation='vertical'
             >
