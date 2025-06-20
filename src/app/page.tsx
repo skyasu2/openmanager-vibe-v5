@@ -7,7 +7,6 @@ import {
   Power,
   Bot,
   BarChart3,
-  Shield,
   Loader2,
   StopCircle,
   X,
@@ -408,24 +407,6 @@ export default function Home() {
               <Moon className='w-5 h-5' />
             )}
           </motion.button>
-
-          {/* AI 관리자 페이지 버튼 - 관리자 로그인 시에만 표시 */}
-          {adminMode.isAuthenticated && (
-            <Link href='/admin'>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-                  isDarkMode
-                    ? 'bg-purple-500/20 border border-purple-500/50 text-purple-300 hover:bg-purple-500/30'
-                    : 'bg-purple-100 border border-purple-300 text-purple-700 hover:bg-purple-200'
-                }`}
-              >
-                <Shield className='w-4 h-4' />
-                <span className='text-sm font-medium'>⚙️ 관리자 대시보드</span>
-              </motion.button>
-            </Link>
-          )}
 
           {/* 프로필 컴포넌트 */}
           <UnifiedProfileComponent userName='사용자' />
