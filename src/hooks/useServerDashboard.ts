@@ -125,6 +125,23 @@ const fallbackServers: Server[] = [
   },
 ];
 
+// 업타임 포맷팅 함수
+const formatUptime = (uptime: number): string => {
+  if (typeof uptime !== 'number' || uptime <= 0) return '0분';
+
+  const days = Math.floor(uptime / 86400);
+  const hours = Math.floor((uptime % 86400) / 3600);
+  const minutes = Math.floor((uptime % 3600) / 60);
+
+  if (days > 0) {
+    return `${days}일 ${hours}시간`;
+  } else if (hours > 0) {
+    return `${hours}시간 ${minutes}분`;
+  } else {
+    return `${minutes}분`;
+  }
+};
+
 interface UseServerDashboardProps {
   onStatsUpdate?: (stats: {
     total: number;
@@ -179,10 +196,10 @@ export const useServerDashboard = ({
   const allServers: Server[] = useMemo(() => {
     console.log(`🔍 서버 데이터 변환: ${allServerMetrics.length}개 서버 처리`);
 
-    // 🛡️ allServerMetrics가 비어있으면 폴백 서버 사용
+    // 🛡️ allServerMetrics가 비어있으면 빈 배열 반환 (폴백 서버 제거)
     if (allServerMetrics.length === 0) {
-      console.log('⚠️ 서버 메트릭이 비어있음 - 폴백 서버 사용');
-      return fallbackServers;
+      console.log('⚠️ 서버 메트릭이 비어있음 - API 로딩 중이거나 오류 상태');
+      return [];
     }
 
     return allServerMetrics.map(metric => {
@@ -203,19 +220,26 @@ export const useServerDashboard = ({
 
       return {
         id: metric.id,
-        name: metric.hostname,
+        name: metric.name,
         hostname: metric.hostname,
         status: mapStatus(metric.status),
-        cpu: metric.cpu_usage,
-        memory: metric.memory_usage,
-        disk: metric.disk_usage,
-        location: metric.environment,
-        type: metric.role?.toUpperCase() || 'UNKNOWN',
+        location: metric.environment || 'Unknown',
+        type: metric.role || 'worker',
         environment: metric.environment,
-        uptime: `${Math.floor(metric.uptime / 86400)}d`,
-        alerts: metric.alerts.length,
+        cpu: Number(metric.cpu_usage?.toFixed(2)) || 0,
+        memory: Number(metric.memory_usage?.toFixed(2)) || 0,
+        disk: Number(metric.disk_usage?.toFixed(2)) || 0,
+        network: Number(metric.network_in?.toFixed(2)) || 0,
+        networkStatus:
+          metric.network_in > 100
+            ? 'poor'
+            : metric.network_in > 50
+              ? 'good'
+              : 'excellent',
+        uptime: formatUptime(metric.uptime),
         lastUpdate: new Date(metric.last_updated),
-        services: [], // 필요시 채워넣기
+        alerts: Array.isArray(metric.alerts) ? metric.alerts.length : 0,
+        services: [],
       };
     });
   }, [allServerMetrics]);

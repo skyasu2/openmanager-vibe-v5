@@ -267,62 +267,136 @@ export const useServerDataStore = create<ServerDataState>()(
         lastSyncTime: null,
       },
 
-      // 서버 데이터 가져오기 (데이터 전처리기 통합)
+      // 서버 데이터 가져오기 (직접 API 호출로 단순화)
       fetchServers: async () => {
         set({ isLoading: true, error: null });
 
         try {
-          // 🎯 우선순위 1: 통합 메트릭 관리자에서 데이터 가져오기
-          const response = await fetch('/api/unified-metrics');
-          if (response.ok) {
-            const data = await response.json();
+          // 🎯 1순위: 실제 서버 데이터 생성기 API 직접 호출
+          console.log('🔄 서버 데이터 생성기 API 호출 중...');
+          const response = await fetch('/api/servers/all');
 
-            // unified-metrics API가 이미 전처리된 서버 배열을 반환
-            const servers = data.servers || [];
-
-            console.log(
-              '✅ 통합 메트릭에서 서버 데이터 로드:',
-              servers.length,
-              '개'
-            );
-
-            set({
-              servers: servers,
-              lastUpdate: new Date(),
-              isLoading: false,
-              performance: {
-                ...get().performance,
-                totalRequests: get().performance.totalRequests + 1,
-                lastSyncTime: new Date(),
-              },
-            });
-          } else {
-            throw new Error('통합 메트릭 API 호출 실패');
+          if (!response.ok) {
+            throw new Error(`서버 API 호출 실패: ${response.status}`);
           }
+
+          const result = await response.json();
+
+          if (!result.success || !Array.isArray(result.data)) {
+            throw new Error('서버 API 응답 형식 오류');
+          }
+
+          const servers = result.data;
+
+          console.log(`✅ 서버 데이터 로드 성공: ${servers.length}개 서버`);
+          console.log(
+            '📊 첫 번째 서버 샘플:',
+            servers[0]?.name,
+            servers[0]?.cpu,
+            servers[0]?.memory
+          );
+
+          // EnhancedServerMetrics 형태로 변환
+          const enhancedServers: EnhancedServerMetrics[] = servers.map(
+            (server: any) => ({
+              id: server.id,
+              name: server.name,
+              hostname: server.hostname || server.name,
+              environment: server.environment || 'production',
+              role: server.role || 'worker',
+              status: server.status,
+              cpu_usage: server.cpu || 0,
+              memory_usage: server.memory || 0,
+              disk_usage: server.disk || 0,
+              network_in: server.network || 0,
+              network_out: server.network || 0,
+              response_time:
+                server.response_time || Math.floor(Math.random() * 100) + 50,
+              uptime:
+                typeof server.uptime === 'string'
+                  ? parseInt(server.uptime.replace(/[^\d]/g, '')) || 0
+                  : server.uptime || 0,
+              location: server.location || 'Unknown',
+              provider: server.provider || 'AWS',
+              alerts: server.alerts || 0,
+              services: server.services || [],
+              lastUpdate: server.lastUpdate
+                ? new Date(server.lastUpdate)
+                : new Date(),
+            })
+          );
+
+          set({
+            servers: enhancedServers,
+            lastUpdate: new Date(),
+            isLoading: false,
+            error: null,
+            performance: {
+              ...get().performance,
+              totalRequests: get().performance.totalRequests + 1,
+              lastSyncTime: new Date(),
+            },
+          });
         } catch (error) {
-          console.warn('⚠️ 통합 메트릭 API 실패, 대체 API 사용:', error);
+          console.error('❌ 서버 데이터 로드 실패:', error);
 
+          // 🚨 폴백: 실시간 서버 API 시도
           try {
-            // 🎯 우선순위 2: 일반 서버 API에서 데이터 가져오기 (전처리기 적용)
-            const servers = await fetchServersFromProcessor();
-
-            console.log(
-              '✅ 일반 서버 API에서 데이터 로드:',
-              servers.length,
-              '개'
+            console.log('🔄 실시간 서버 API 폴백 시도...');
+            const fallbackResponse = await fetch(
+              '/api/servers/realtime?type=servers'
             );
 
-            set({
-              servers: servers,
-              lastUpdate: new Date(),
-              isLoading: false,
-              error: null,
-            });
+            if (fallbackResponse.ok) {
+              const fallbackResult = await fallbackResponse.json();
+              const fallbackServers = fallbackResult.data || [];
+
+              console.log(`✅ 폴백 API 성공: ${fallbackServers.length}개 서버`);
+
+              const enhancedFallbackServers: EnhancedServerMetrics[] =
+                fallbackServers.map((server: any) => ({
+                  id: server.id,
+                  name: server.name,
+                  hostname: server.hostname || server.name,
+                  environment: server.environment || 'production',
+                  role: server.role || 'worker',
+                  status: server.status,
+                  cpu_usage: server.cpu || 0,
+                  memory_usage: server.memory || 0,
+                  disk_usage: server.disk || 0,
+                  network_in: server.network || 0,
+                  network_out: server.network || 0,
+                  response_time:
+                    server.response_time ||
+                    Math.floor(Math.random() * 100) + 50,
+                  uptime:
+                    typeof server.uptime === 'string'
+                      ? parseInt(server.uptime.replace(/[^\d]/g, '')) || 0
+                      : server.uptime || 0,
+                  location: server.location || 'Unknown',
+                  provider: server.provider || 'AWS',
+                  alerts: server.alerts || 0,
+                  services: server.services || [],
+                  lastUpdate: server.lastUpdate
+                    ? new Date(server.lastUpdate)
+                    : new Date(),
+                }));
+
+              set({
+                servers: enhancedFallbackServers,
+                lastUpdate: new Date(),
+                isLoading: false,
+                error: null,
+              });
+            } else {
+              throw new Error('폴백 API도 실패');
+            }
           } catch (fallbackError) {
-            console.error('❌ 모든 서버 데이터 로드 실패:', fallbackError);
+            console.error('❌ 폴백 API도 실패:', fallbackError);
             set({
-              error: `서버 데이터 로드 실패: ${fallbackError}`,
+              error: `모든 서버 API 실패: ${error}`,
               isLoading: false,
+              servers: [], // 빈 배열로 설정하여 폴백 서버 사용 방지
             });
           }
         }
