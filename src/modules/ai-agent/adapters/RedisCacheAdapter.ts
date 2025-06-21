@@ -1,6 +1,6 @@
 /**
  * 🚀 Redis Cache Adapter
- * 
+ *
  * Redis를 위한 캐시 어댑터 구현
  * - 고성능 메트릭 캐싱
  * - TTL 기반 자동 만료
@@ -33,12 +33,24 @@ export class RedisCacheAdapter implements CacheAdapter {
       retryDelayOnFailover: 100,
       enableOfflineQueue: false,
       maxRetriesPerRequest: 3,
-      ...config
+      ...config,
     };
   }
 
   async connect(): Promise<void> {
     try {
+      // 🚫 최우선: 환경변수 체크
+      if (process.env.FORCE_MOCK_REDIS === 'true') {
+        console.log('🎭 FORCE_MOCK_REDIS=true - RedisCacheAdapter 연결 건너뜀');
+        return;
+      }
+
+      // 🧪 개발 도구 환경 체크
+      if (process.env.STORYBOOK === 'true' || process.env.NODE_ENV === 'test') {
+        console.log('🧪 개발 도구 환경 - RedisCacheAdapter 연결 건너뜀');
+        return;
+      }
+
       // 서버 환경에서만 Redis 연결
       if (typeof window !== 'undefined') {
         console.log('⚠️ 클라이언트 환경에서는 Redis를 사용할 수 없습니다');
@@ -46,11 +58,11 @@ export class RedisCacheAdapter implements CacheAdapter {
       }
 
       const { Redis } = await import('ioredis');
-      
+
       this.client = new Redis(this.config.url, {
         maxRetriesPerRequest: this.config.maxRetriesPerRequest,
         enableOfflineQueue: this.config.enableOfflineQueue,
-        lazyConnect: true
+        lazyConnect: true,
       });
 
       // 연결 이벤트 리스너
@@ -72,8 +84,10 @@ export class RedisCacheAdapter implements CacheAdapter {
 
       this.client.on('reconnecting', () => {
         this.connectionAttempts++;
-        console.log(`🔄 Redis 재연결 시도 중... (${this.connectionAttempts}/${this.maxConnectionAttempts})`);
-        
+        console.log(
+          `🔄 Redis 재연결 시도 중... (${this.connectionAttempts}/${this.maxConnectionAttempts})`
+        );
+
         if (this.connectionAttempts >= this.maxConnectionAttempts) {
           console.error('❌ Redis 최대 재연결 시도 횟수 초과');
           this.client.disconnect();
@@ -82,19 +96,18 @@ export class RedisCacheAdapter implements CacheAdapter {
 
       // 실제 연결 시도
       await this.client.connect();
-      
+
       // 연결 테스트
       await this.client.ping();
-      
-      console.log('✅ Redis 캐시 어댑터 연결 완료');
 
+      console.log('✅ Redis 캐시 어댑터 연결 완료');
     } catch (error) {
       console.error('❌ Redis 연결 실패:', error);
-      
+
       // Redis 연결 실패 시 graceful degradation
       this.client = null;
       this.isConnected = false;
-      
+
       // 연결 실패를 에러로 던지지 않고 경고만 출력
       console.warn('⚠️ Redis 없이 계속 진행합니다 (캐시 기능 비활성화)');
     }
@@ -122,9 +135,8 @@ export class RedisCacheAdapter implements CacheAdapter {
     try {
       const serializedValue = JSON.stringify(value);
       const effectiveTtl = ttl || this.config.ttl || 300;
-      
+
       await this.client.setex(key, effectiveTtl, serializedValue);
-      
     } catch (error) {
       console.error(`❌ Redis SET 실패 (${key}):`, error);
       // 에러를 던지지 않고 계속 진행
@@ -139,7 +151,6 @@ export class RedisCacheAdapter implements CacheAdapter {
     try {
       const value = await this.client.get(key);
       return value ? JSON.parse(value) : null;
-      
     } catch (error) {
       console.error(`❌ Redis GET 실패 (${key}):`, error);
       return null;
@@ -153,7 +164,6 @@ export class RedisCacheAdapter implements CacheAdapter {
 
     try {
       await this.client.del(key);
-      
     } catch (error) {
       console.error(`❌ Redis DEL 실패 (${key}):`, error);
       // 에러를 던지지 않고 계속 진행
@@ -168,7 +178,6 @@ export class RedisCacheAdapter implements CacheAdapter {
     try {
       const result = await this.client.exists(key);
       return result === 1;
-      
     } catch (error) {
       console.error(`❌ Redis EXISTS 실패 (${key}):`, error);
       return false;
@@ -182,7 +191,6 @@ export class RedisCacheAdapter implements CacheAdapter {
 
     try {
       return await this.client.keys(pattern);
-      
     } catch (error) {
       console.error(`❌ Redis KEYS 실패 (${pattern}):`, error);
       return [];
@@ -192,23 +200,24 @@ export class RedisCacheAdapter implements CacheAdapter {
   /**
    * 🔄 배치 설정 (파이프라인 사용)
    */
-  async setBatch(items: Array<{ key: string; value: any; ttl?: number }>): Promise<void> {
+  async setBatch(
+    items: Array<{ key: string; value: any; ttl?: number }>
+  ): Promise<void> {
     if (!this.isAvailable()) {
       return; // Redis 없이 계속 진행
     }
 
     try {
       const pipeline = this.client.pipeline();
-      
+
       for (const item of items) {
         const serializedValue = JSON.stringify(item.value);
         const effectiveTtl = item.ttl || this.config.ttl || 300;
         pipeline.setex(item.key, effectiveTtl, serializedValue);
       }
-      
+
       await pipeline.exec();
       console.log(`✅ Redis 배치 설정 완료: ${items.length}개 항목`);
-      
     } catch (error) {
       console.error('❌ Redis 배치 설정 실패:', error);
       // 에러를 던지지 않고 계속 진행
@@ -225,14 +234,14 @@ export class RedisCacheAdapter implements CacheAdapter {
 
     try {
       const pipeline = this.client.pipeline();
-      
+
       for (const key of keys) {
         pipeline.get(key);
       }
-      
+
       const results = await pipeline.exec();
       const data: Record<string, any> = {};
-      
+
       results?.forEach((result: any, index: number) => {
         const [error, value] = result;
         if (!error && value) {
@@ -243,9 +252,8 @@ export class RedisCacheAdapter implements CacheAdapter {
           }
         }
       });
-      
+
       return data;
-      
     } catch (error) {
       console.error('❌ Redis 배치 조회 실패:', error);
       return {};
@@ -266,7 +274,7 @@ export class RedisCacheAdapter implements CacheAdapter {
         connected: false,
         keyCount: 0,
         memoryUsage: '0B',
-        uptime: 0
+        uptime: 0,
       };
     }
 
@@ -274,29 +282,28 @@ export class RedisCacheAdapter implements CacheAdapter {
       const info = await this.client.info('memory');
       const keyCount = await this.client.dbsize();
       const uptime = await this.client.info('server');
-      
+
       // 메모리 사용량 파싱
       const memoryMatch = info.match(/used_memory_human:(.+)/);
       const memoryUsage = memoryMatch ? memoryMatch[1].trim() : '0B';
-      
+
       // 업타임 파싱
       const uptimeMatch = uptime.match(/uptime_in_seconds:(\d+)/);
       const uptimeSeconds = uptimeMatch ? parseInt(uptimeMatch[1]) : 0;
-      
+
       return {
         connected: this.isConnected,
         keyCount,
         memoryUsage,
-        uptime: uptimeSeconds
+        uptime: uptimeSeconds,
       };
-      
     } catch (error) {
       console.error('❌ Redis 통계 조회 실패:', error);
       return {
         connected: false,
         keyCount: 0,
         memoryUsage: '0B',
-        uptime: 0
+        uptime: 0,
       };
     }
   }
@@ -311,15 +318,14 @@ export class RedisCacheAdapter implements CacheAdapter {
 
     try {
       const keys = await this.client.keys(pattern);
-      
+
       if (keys.length === 0) {
         return 0;
       }
-      
+
       const deletedCount = await this.client.del(...keys);
       console.log(`🧹 Redis 패턴 삭제 완료: ${deletedCount}개 키 (${pattern})`);
       return deletedCount;
-      
     } catch (error) {
       console.error(`❌ Redis 패턴 삭제 실패 (${pattern}):`, error);
       return 0;
@@ -336,7 +342,6 @@ export class RedisCacheAdapter implements CacheAdapter {
 
     try {
       await this.client.expire(key, ttl);
-      
     } catch (error) {
       console.error(`❌ Redis TTL 설정 실패 (${key}):`, error);
       // 에러를 던지지 않고 계속 진행
@@ -353,7 +358,6 @@ export class RedisCacheAdapter implements CacheAdapter {
 
     try {
       return await this.client.ttl(key);
-      
     } catch (error) {
       console.error(`❌ Redis TTL 조회 실패 (${key}):`, error);
       return -1;
@@ -378,7 +382,7 @@ export class RedisCacheAdapter implements CacheAdapter {
     return {
       connected: this.isConnected,
       client: this.client !== null,
-      attempts: this.connectionAttempts
+      attempts: this.connectionAttempts,
     };
   }
 
@@ -406,10 +410,9 @@ export class RedisCacheAdapter implements CacheAdapter {
     try {
       const result = await this.client.ping();
       return result === 'PONG';
-      
     } catch (error) {
       console.error('❌ Redis PING 실패:', error);
       return false;
     }
   }
-} 
+}

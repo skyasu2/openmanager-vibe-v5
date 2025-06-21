@@ -210,26 +210,41 @@ class EnhancedMockRedis implements RedisClientInterface {
 }
 
 /**
- * 🎯 하이브리드 전략 결정 함수
+ * 🎯 하이브리드 전략 결정 함수 - 환경변수 우선 체크
  */
 function shouldUseMockRedis(context?: string, dataSize?: number): boolean {
-  // 1. 빌드/CI 환경은 항상 Mock
+  // 🚫 최우선: FORCE_MOCK_REDIS 환경변수 체크
+  if (process.env.FORCE_MOCK_REDIS === 'true') {
+    console.log('🎭 FORCE_MOCK_REDIS=true - Redis 연결 완전 차단');
+    return true;
+  }
+
+  // 🧪 2순위: 개발 도구 환경
+  if (process.env.STORYBOOK === 'true' || process.env.NODE_ENV === 'test') {
+    console.log('🧪 개발/테스트 환경 - Mock Redis 사용');
+    return true;
+  }
+
+  // 🔨 3순위: 빌드 환경
+  if (process.env.NEXT_PHASE === 'phase-production-build') {
+    console.log('🔨 빌드 환경 - Mock Redis 사용');
+    return true;
+  }
+
+  // 4. 기존 빌드/CI 환경 체크
   if (
     typeof window === 'undefined' &&
-    (process.env.NODE_ENV !== 'development' ||
-      process.env.VERCEL_ENV ||
-      process.env.CI ||
-      process.env.GITHUB_ACTIONS)
+    (process.env.VERCEL_ENV || process.env.CI || process.env.GITHUB_ACTIONS)
   ) {
     return true;
   }
 
-  // 2. 명시적 Mock 모드
+  // 5. 명시적 Mock 모드
   if (process.env.USE_MOCK_REDIS === 'true') {
     return true;
   }
 
-  // 3. 컨텍스트 기반 판단
+  // 6. 컨텍스트 기반 판단
   if (context) {
     if (HYBRID_STRATEGY.useMockFor.some(pattern => context.includes(pattern))) {
       return true;
@@ -239,17 +254,17 @@ function shouldUseMockRedis(context?: string, dataSize?: number): boolean {
     }
   }
 
-  // 4. 데이터 크기 기반 판단
+  // 7. 데이터 크기 기반 판단
   if (dataSize && dataSize > HYBRID_STRATEGY.thresholds.maxDataSizeKB * 1024) {
     return true;
   }
 
-  // 5. 사용량 모니터링 기반 판단
+  // 8. 사용량 모니터링 기반 판단
   if (!usageMonitor.canUseRedis()) {
     return true;
   }
 
-  // 6. 기본값: 실제 Redis 사용
+  // 9. 기본값: 실제 Redis 사용
   return false;
 }
 

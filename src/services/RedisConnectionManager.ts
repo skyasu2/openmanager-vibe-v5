@@ -1,6 +1,6 @@
 /**
  * 🔥 Redis 연결 관리자 v2.0
- * 
+ *
  * OpenManager AI v5.12.0 - 고성능 Redis 연결 풀
  * - 연결 풀 관리
  * - 자동 장애 복구
@@ -8,7 +8,11 @@
  * - 클러스터 지원
  */
 
-import { getRedisConfig, getRedisUrl, getRedisClusterConfig, validateRedisConfig } from '../config/redis.config';
+import {
+  getRedisClusterConfig,
+  getRedisConfig,
+  validateRedisConfig,
+} from '../config/redis.config';
 
 // Redis 클라이언트 타입 (동적 import)
 let Redis: any = null;
@@ -43,7 +47,7 @@ export class RedisConnectionManager {
     failedConnections: 0,
     lastConnectionTime: 0,
     averageResponseTime: 0,
-    totalCommands: 0
+    totalCommands: 0,
   };
 
   static getInstance(): RedisConnectionManager {
@@ -58,6 +62,20 @@ export class RedisConnectionManager {
    */
   async initialize(): Promise<boolean> {
     try {
+      // 🚫 최우선: 환경변수 체크
+      if (process.env.FORCE_MOCK_REDIS === 'true') {
+        console.log(
+          '🎭 FORCE_MOCK_REDIS=true - RedisConnectionManager 연결 건너뜀'
+        );
+        return false;
+      }
+
+      // 🧪 개발 도구 환경 체크
+      if (process.env.STORYBOOK === 'true' || process.env.NODE_ENV === 'test') {
+        console.log('🧪 개발 도구 환경 - RedisConnectionManager 연결 건너뜀');
+        return false;
+      }
+
       // 클라이언트 사이드에서는 Redis 사용 안 함
       if (typeof window !== 'undefined') {
         console.log('🌐 클라이언트 환경: Redis 연결 건너뛰기');
@@ -80,7 +98,6 @@ export class RedisConnectionManager {
 
       // 단일 인스턴스 모드
       return await this.initializeSingleInstance();
-
     } catch (error) {
       console.error('❌ Redis 초기화 실패:', error);
       this.stats.failedConnections++;
@@ -107,11 +124,11 @@ export class RedisConnectionManager {
         ...config,
         retryDelayOnFailover: config.retryDelayOnFailover,
         enableOfflineQueue: false,
-        
+
         // 이벤트 핸들러
         onFailover: () => {
           console.log('🔄 Redis 장애복구 중...');
-        }
+        },
       });
 
       // 연결 이벤트 핸들러
@@ -119,7 +136,7 @@ export class RedisConnectionManager {
 
       // 연결 대기
       await this.waitForConnection();
-      
+
       console.log('✅ Redis 단일 인스턴스 연결 성공');
       this.stats.totalConnections++;
       this.stats.activeConnections = 1;
@@ -127,7 +144,6 @@ export class RedisConnectionManager {
       this.isConnected = true;
 
       return true;
-
     } catch (error) {
       console.error('❌ Redis 단일 인스턴스 연결 실패:', error);
       this.stats.failedConnections++;
@@ -140,9 +156,14 @@ export class RedisConnectionManager {
    */
   private async initializeCluster(clusterConfig: any): Promise<boolean> {
     try {
-      console.log(`🔗 Redis 클러스터 연결: ${clusterConfig.nodes.length}개 노드`);
+      console.log(
+        `🔗 Redis 클러스터 연결: ${clusterConfig.nodes.length}개 노드`
+      );
 
-      this.redisClient = new Cluster(clusterConfig.nodes, clusterConfig.options);
+      this.redisClient = new Cluster(
+        clusterConfig.nodes,
+        clusterConfig.options
+      );
 
       this.setupEventHandlers();
       await this.waitForConnection();
@@ -154,7 +175,6 @@ export class RedisConnectionManager {
       this.isConnected = true;
 
       return true;
-
     } catch (error) {
       console.error('❌ Redis 클러스터 연결 실패:', error);
       this.stats.failedConnections++;
@@ -231,7 +251,11 @@ export class RedisConnectionManager {
    * 🔍 연결 상태 확인
    */
   isRedisConnected(): boolean {
-    return this.isConnected && this.redisClient && this.redisClient.status === 'ready';
+    return (
+      this.isConnected &&
+      this.redisClient &&
+      this.redisClient.status === 'ready'
+    );
   }
 
   /**
@@ -245,7 +269,7 @@ export class RedisConnectionManager {
         return {
           status: 'unhealthy',
           responseTime: 0,
-          lastError: 'Redis 연결되지 않음'
+          lastError: 'Redis 연결되지 않음',
         };
       }
 
@@ -275,15 +299,18 @@ export class RedisConnectionManager {
       return {
         status,
         responseTime,
-        memoryUsage: memoryInfo?.used_memory ? parseInt(memoryInfo.used_memory) : undefined,
-        connectedClients: clientInfo?.connected_clients ? parseInt(clientInfo.connected_clients) : undefined
+        memoryUsage: memoryInfo?.used_memory
+          ? parseInt(memoryInfo.used_memory)
+          : undefined,
+        connectedClients: clientInfo?.connected_clients
+          ? parseInt(clientInfo.connected_clients)
+          : undefined,
       };
-
     } catch (error) {
       return {
         status: 'unhealthy',
         responseTime: Date.now() - startTime,
-        lastError: error instanceof Error ? error.message : 'Unknown error'
+        lastError: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -291,17 +318,22 @@ export class RedisConnectionManager {
   /**
    * 📊 Redis 정보 파싱
    */
-  private parseRedisInfo(info: string, section: string): Record<string, string> | null {
+  private parseRedisInfo(
+    info: string,
+    section: string
+  ): Record<string, string> | null {
     const lines = info.split('\n');
-    const sectionStart = lines.findIndex(line => line.includes(`# ${section.charAt(0).toUpperCase() + section.slice(1)}`));
-    
+    const sectionStart = lines.findIndex(line =>
+      line.includes(`# ${section.charAt(0).toUpperCase() + section.slice(1)}`)
+    );
+
     if (sectionStart === -1) return null;
 
     const result: Record<string, string> = {};
     for (let i = sectionStart + 1; i < lines.length; i++) {
       const line = lines[i].trim();
       if (line.startsWith('#') || line === '') break;
-      
+
       const [key, value] = line.split(':');
       if (key && value) {
         result[key] = value;
@@ -316,7 +348,9 @@ export class RedisConnectionManager {
    */
   private updateAverageResponseTime(responseTime: number): void {
     const { averageResponseTime, totalCommands } = this.stats;
-    this.stats.averageResponseTime = ((averageResponseTime * totalCommands) + responseTime) / (totalCommands + 1);
+    this.stats.averageResponseTime =
+      (averageResponseTime * totalCommands + responseTime) /
+      (totalCommands + 1);
     this.stats.totalCommands++;
   }
 
@@ -334,16 +368,18 @@ export class RedisConnectionManager {
   /**
    * 📊 연결 통계 조회
    */
-  getConnectionStats(): ConnectionStats & { 
-    isConnected: boolean; 
+  getConnectionStats(): ConnectionStats & {
+    isConnected: boolean;
     lastHealthCheck: string | null;
     connectionAttempts: number;
   } {
     return {
       ...this.stats,
       isConnected: this.isConnected,
-      lastHealthCheck: this.lastHealthCheck ? new Date(this.lastHealthCheck).toISOString() : null,
-      connectionAttempts: this.connectionAttempts
+      lastHealthCheck: this.lastHealthCheck
+        ? new Date(this.lastHealthCheck).toISOString()
+        : null,
+      connectionAttempts: this.connectionAttempts,
     };
   }
 
@@ -370,15 +406,15 @@ export class RedisConnectionManager {
    */
   async reconnect(): Promise<boolean> {
     console.log('🔄 Redis 연결 재시도...');
-    
+
     await this.disconnect();
-    
+
     // 잠시 대기 후 재연결
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     return await this.initialize();
   }
 }
 
 // 싱글톤 인스턴스 export
-export const redisConnectionManager = RedisConnectionManager.getInstance(); 
+export const redisConnectionManager = RedisConnectionManager.getInstance();
