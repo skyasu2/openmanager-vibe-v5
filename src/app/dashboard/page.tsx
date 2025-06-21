@@ -1,16 +1,12 @@
 'use client';
 
-import { Suspense, useState, useEffect, useCallback } from 'react';
-import { useAISidebarStore } from '@/stores/useAISidebarStore';
-import { motion, AnimatePresence } from 'framer-motion';
-import dynamic from 'next/dynamic';
 import { NotificationToast } from '@/components/system/NotificationToast';
 import { cn } from '@/lib/utils';
-import React from 'react';
-import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
-import Link from 'next/link';
 import { AISidebar } from '@/presentation/ai-sidebar';
+import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import React, { Suspense, useCallback, useEffect, useState } from 'react';
 
 // --- Dynamic Imports ---
 const DashboardHeader = dynamic(
@@ -119,7 +115,7 @@ function DashboardPageContent() {
           onToggleAgent={toggleAgent}
           isAgentOpen={isAgentOpen}
         />
-        <main className='flex-1 min-h-0 overflow-y-auto p-4 md:p-6 lg:p-8'>
+        <main className='flex-1 min-h-0 overflow-y-auto p-2 sm:p-4 lg:p-6 xl:p-8'>
           <DashboardContent
             showSequentialGeneration={false}
             servers={[]}

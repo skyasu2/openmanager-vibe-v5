@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 // src/types/system.ts 또는 유사한 파일에 정의되어 있다고 가정
 export interface SystemAlert {
@@ -23,10 +23,21 @@ export function useSystemAlerts() {
       if (!response.ok) {
         throw new Error(`Failed to fetch alerts: ${response.statusText}`);
       }
-      const data: SystemAlert[] = await response.json();
+      const result = await response.json();
 
-      // 최신순으로 정렬
-      const sortedAlerts = data.sort(
+      // API 응답 구조 확인 및 데이터 추출
+      let alertsData: SystemAlert[] = [];
+      if (result.success && result.data && Array.isArray(result.data.alerts)) {
+        alertsData = result.data.alerts;
+      } else if (Array.isArray(result)) {
+        alertsData = result;
+      } else {
+        console.warn('🚨 예상하지 못한 API 응답 구조:', result);
+        alertsData = [];
+      }
+
+      // 최신순으로 정렬 (배열인 경우에만)
+      const sortedAlerts = alertsData.sort(
         (a, b) =>
           new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
