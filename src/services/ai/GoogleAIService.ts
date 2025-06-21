@@ -10,7 +10,7 @@
  */
 
 import { getGoogleAIKey, isGoogleAIAvailable } from '@/lib/google-ai-manager';
-import { aiLogger, LogLevel, LogCategory } from './logging/AILogger';
+import { aiLogger, LogCategory, LogLevel } from './logging/AILogger';
 
 interface GoogleAIConfig {
   apiKey: string;
@@ -30,6 +30,13 @@ export interface GoogleAIResponse {
   cached?: boolean;
   processingTime: number;
   confidence: number;
+  error?: {
+    code: string;
+    message: string;
+    details: string;
+    timestamp: string;
+    retryable: boolean;
+  };
 }
 
 interface ServerMetrics {
@@ -47,10 +54,10 @@ interface AdvancedAnalysisRequest {
   serverMetrics?: ServerMetrics[];
   context?: any;
   analysisType:
-  | 'monitoring'
-  | 'prediction'
-  | 'troubleshooting'
-  | 'optimization';
+    | 'monitoring'
+    | 'prediction'
+    | 'troubleshooting'
+    | 'optimization';
   priority: 'low' | 'medium' | 'high' | 'critical';
 }
 
@@ -82,7 +89,9 @@ export class GoogleAIService {
 
       // 🚨 Vercel 500 에러 방지: API 키 검증 강화
       if (!apiKey || apiKey.trim() === '') {
-        console.warn('⚠️ Google AI API 키가 없습니다. 서비스가 비활성화됩니다.');
+        console.warn(
+          '⚠️ Google AI API 키가 없습니다. 서비스가 비활성화됩니다.'
+        );
       }
 
       // 기본 설정 먼저 초기화
@@ -104,13 +113,14 @@ export class GoogleAIService {
         this.config.enabled = true;
         console.log('🚀 Google AI 대화용 활성화 - 학습은 하루 1회 제한');
       } else {
-        console.log(`⚠️ Google AI 비활성화: apiKey=${!!apiKey}, keyAvailable=${isKeyAvailable}`);
+        console.log(
+          `⚠️ Google AI 비활성화: apiKey=${!!apiKey}, keyAvailable=${isKeyAvailable}`
+        );
       }
 
       // 이후 실제 레이트 리밋 설정
       this.config.rateLimits.rpm = this.getRateLimit('rpm');
       this.config.rateLimits.daily = this.getRateLimit('daily');
-
     } catch (error) {
       console.error('❌ GoogleAIService 생성자 오류:', error);
       // 🚨 생성자에서 예외 발생 시 안전한 기본값 설정
@@ -143,12 +153,16 @@ export class GoogleAIService {
       // 🚀 연결 테스트 (2시간마다 1회만 실행)
       const now = Date.now();
       const twoHours = 2 * 60 * 60 * 1000; // 2시간
-      const shouldTestConnection = (now - this.lastConnectionTest) > twoHours;
+      const shouldTestConnection = now - this.lastConnectionTest > twoHours;
 
-      let connectionTest: { success: boolean; message: string; latency?: number } = {
+      let connectionTest: {
+        success: boolean;
+        message: string;
+        latency?: number;
+      } = {
         success: true,
         message: '연결 테스트 스킵됨 (2시간 이내 테스트 완료)',
-        latency: 0
+        latency: 0,
       };
 
       if (shouldTestConnection) {
@@ -393,7 +407,9 @@ export class GoogleAIService {
       // 학습 카운트 증가 (학습 모드인 경우)
       if (options.isLearning) {
         this.learningCount.daily++;
-        console.log(`📚 Google AI 학습 완료 (오늘 ${this.learningCount.daily}/1회)`);
+        console.log(
+          `📚 Google AI 학습 완료 (오늘 ${this.learningCount.daily}/1회)`
+        );
       }
 
       return {
@@ -431,8 +447,8 @@ export class GoogleAIService {
 서버 모니터링 데이터를 분석해주세요:
 
 ${metrics
-        .map(
-          server => `
+  .map(
+    server => `
 서버: ${server.name}
 CPU: ${server.cpu_usage}%
 메모리: ${server.memory_usage}%
@@ -440,8 +456,8 @@ CPU: ${server.cpu_usage}%
 응답시간: ${server.response_time}ms
 상태: ${server.status}
 `
-        )
-        .join('\n')}
+  )
+  .join('\n')}
 
 다음 관점에서 분석해주세요:
 1. 현재 시스템 상태 요약
@@ -460,9 +476,31 @@ CPU: ${server.cpu_usage}%
    * 🎯 응답 생성 (UnifiedAIEngine 호환)
    */
   async generateResponse(prompt: string): Promise<GoogleAIResponse> {
-    // 자연어 질의인지 판단
-    const isNaturalLanguage = this.isNaturalLanguageQuery(prompt);
-    return await this.generateContent(prompt, { isNaturalLanguage });
+    try {
+      // 자연어 질의인지 판단
+      const isNaturalLanguage = this.isNaturalLanguageQuery(prompt);
+      return await this.generateContent(prompt, { isNaturalLanguage });
+    } catch (error: any) {
+      console.error('❌ Google AI 응답 생성 실패:', error);
+
+      // 명확한 실패 상태 반환 (목업이 아닌)
+      return {
+        success: false,
+        content: '', // 빈 응답
+        model: this.config.model,
+        tokensUsed: 0,
+        cached: false,
+        processingTime: 0,
+        confidence: 0,
+        error: {
+          code: this.getErrorCode(error),
+          message: error.message || 'Google AI API 실패',
+          details: error.stack || error.toString(),
+          timestamp: new Date().toISOString(),
+          retryable: this.isRetryableError(error),
+        },
+      };
+    }
   }
 
   /**
@@ -886,5 +924,25 @@ ${index + 1}. 서버: ${server.name}
   private isSystemShutdownPhase(): boolean {
     // 종료 신호가 있거나 프로세스 종료 중이면 종료 단계로 간주
     return globalThis.isSystemShuttingDown || false;
+  }
+
+  /**
+   * 🔍 오류 코드 분류
+   */
+  private getErrorCode(error: any): string {
+    if (error.name === 'AbortError') return 'TIMEOUT';
+    if (error.message.includes('quota')) return 'QUOTA_EXCEEDED';
+    if (error.message.includes('rate limit')) return 'RATE_LIMITED';
+    if (error.message.includes('API key')) return 'INVALID_KEY';
+    if (error.message.includes('network')) return 'NETWORK_ERROR';
+    return 'API_ERROR';
+  }
+
+  /**
+   * 🔄 재시도 가능 오류 판단
+   */
+  private isRetryableError(error: any): boolean {
+    const retryableCodes = ['TIMEOUT', 'NETWORK_ERROR', 'RATE_LIMITED'];
+    return retryableCodes.includes(this.getErrorCode(error));
   }
 }

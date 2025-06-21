@@ -1,9 +1,0 @@
-# 🚫 ESLint 완전 비활성화 (Vercel 배포 우선)
-*
-**/*
-src/
-build/
-dist/
-.next/
-node_modules/
-coverage/
