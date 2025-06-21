@@ -1,18 +1,18 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Monitor,
-  CheckCircle,
-  Server as ServerIcon,
-  Database,
-  Cpu,
-  Zap,
   Brain,
+  CheckCircle,
+  Cpu,
+  Database,
   Loader2,
+  Monitor,
+  Server as ServerIcon,
+  Zap,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 
 // 부드러운 로딩 인디케이터 컴포넌트
 const SmoothLoadingSpinner = () => {
@@ -230,7 +230,7 @@ export default function SystemBootPage() {
             transition={{ delay: 0.5, duration: 0.8 }}
             className='text-xl text-white/80 mb-8 font-light'
           >
-            Vibe v5 • AI 기반 서버 모니터링
+            AI 기반 서버 모니터링
           </motion.p>
 
           {/* 🎯 부드러운 아이콘 교체 시스템 - 현재 단계 아이콘 */}
