@@ -1,21 +1,27 @@
-import Redis from 'ioredis';
+// Redis 클라이언트 타입 정의 (동적 import용)
+type RedisType = any;
 
 // Redis 클라이언트 인스턴스
-let redis: Redis | null = null;
+let redis: RedisType | null = null;
 let isConnecting = false;
 let connectionAttempts = 0;
 const MAX_CONNECTION_ATTEMPTS = 3;
 const RECONNECT_DELAY = 10000; // 10초
 
 // Redis 연결 설정
-const getRedisClient = (): Redis => {
+const getRedisClient = async (): Promise<RedisType> => {
+  // 클라이언트 사이드에서는 Redis 사용 불가
+  if (typeof window !== 'undefined') {
+    throw new Error('Redis는 서버 환경에서만 사용 가능합니다');
+  }
+
   if (redis && redis.status === 'ready') {
     return redis;
   }
 
   if (isConnecting) {
     // 연결 중이면 기존 인스턴스 반환 (null일 수 있음)
-    return redis || createRedisInstance();
+    return redis || (await createRedisInstance());
   }
 
   if (connectionAttempts >= MAX_CONNECTION_ATTEMPTS) {
@@ -23,11 +29,13 @@ const getRedisClient = (): Redis => {
     throw new Error('Redis connection failed after maximum attempts');
   }
 
-  return createRedisInstance();
+  return await createRedisInstance();
 };
 
-const createRedisInstance = (): Redis => {
+const createRedisInstance = async (): Promise<RedisType> => {
   if (isConnecting) {
+    // 동적 import로 Redis 클래스 로드
+    const { default: Redis } = await import('ioredis');
     return redis || new Redis(); // 임시 인스턴스 반환
   }
 
@@ -37,6 +45,9 @@ const createRedisInstance = (): Redis => {
   console.log(
     `🔄 Redis 연결 시도 ${connectionAttempts}/${MAX_CONNECTION_ATTEMPTS}`
   );
+
+  // 동적 import로 Redis 클래스 로드
+  const { default: Redis } = await import('ioredis');
 
   redis = new Redis({
     host: 'charming-condor-46598.upstash.io',
@@ -105,7 +116,7 @@ const createRedisInstance = (): Redis => {
 // Redis 연결 상태 확인
 export const isRedisConnected = async (): Promise<boolean> => {
   try {
-    const client = getRedisClient();
+    const client = await getRedisClient();
     await client.ping();
     return true;
   } catch (error) {
@@ -120,7 +131,7 @@ export const setMetrics = async (
   data: any
 ): Promise<void> => {
   try {
-    const client = getRedisClient();
+    const client = await getRedisClient();
     const key = `metrics:${serverId}:${Date.now()}`;
     await client.setex(key, 600, JSON.stringify(data)); // 10분 TTL (무료 티어 최적화)
   } catch (error) {
@@ -132,7 +143,7 @@ export const setMetrics = async (
 // 로그 데이터 저장 (TTL: 30분)
 export const setLogs = async (serverId: string, data: any): Promise<void> => {
   try {
-    const client = getRedisClient();
+    const client = await getRedisClient();
     const key = `logs:${serverId}:${Date.now()}`;
     await client.setex(key, 1800, JSON.stringify(data)); // 30분 TTL
   } catch (error) {
@@ -148,7 +159,7 @@ export const setTraces = async (
   data: any
 ): Promise<void> => {
   try {
-    const client = getRedisClient();
+    const client = await getRedisClient();
     const key = `traces:${serverId}:${traceId}`;
     await client.setex(key, 3600, JSON.stringify(data)); // 1시간 TTL
   } catch (error) {
@@ -163,7 +174,7 @@ export const setRealtime = async (
   data: any
 ): Promise<void> => {
   try {
-    const client = getRedisClient();
+    const client = await getRedisClient();
     const key = `realtime:${serverId}`;
     await client.setex(key, 120, JSON.stringify(data)); // 2분 TTL (무료 티어 최적화)
   } catch (error) {
@@ -178,7 +189,7 @@ export const getMetrics = async (
   fromTime?: number
 ): Promise<any[]> => {
   try {
-    const client = getRedisClient();
+    const client = await getRedisClient();
     const pattern = `metrics:${serverId}:*`;
     const keys = await client.keys(pattern);
 
@@ -214,7 +225,7 @@ export const getLogs = async (
   fromTime?: number
 ): Promise<any[]> => {
   try {
-    const client = getRedisClient();
+    const client = await getRedisClient();
     const pattern = `logs:${serverId}:*`;
     const keys = await client.keys(pattern);
 
@@ -247,7 +258,7 @@ export const getLogs = async (
 // 실시간 데이터 조회
 export const getRealtime = async (serverId: string): Promise<any | null> => {
   try {
-    const client = getRedisClient();
+    const client = await getRedisClient();
     const key = `realtime:${serverId}`;
     const value = await client.get(key);
     return value ? JSON.parse(value) : null;
@@ -260,7 +271,7 @@ export const getRealtime = async (serverId: string): Promise<any | null> => {
 // 모든 서버의 실시간 데이터 조회
 export const getAllRealtime = async (): Promise<Record<string, any>> => {
   try {
-    const client = getRedisClient();
+    const client = await getRedisClient();
     const keys = await client.keys('realtime:*');
 
     if (keys.length === 0) return {};
@@ -286,7 +297,7 @@ export const getAllRealtime = async (): Promise<Record<string, any>> => {
 // 서버 데이터 삭제
 export const deleteServerData = async (serverId: string): Promise<void> => {
   try {
-    const client = getRedisClient();
+    const client = await getRedisClient();
     const patterns = [
       `metrics:${serverId}:*`,
       `logs:${serverId}:*`,
@@ -315,7 +326,7 @@ export const setBatch = async (
   }>
 ): Promise<void> => {
   try {
-    const client = getRedisClient();
+    const client = await getRedisClient();
     const pipeline = client.pipeline();
 
     // 무료 티어 최적화: 최대 10개씩 배치 처리
@@ -342,7 +353,7 @@ export const getMemoryUsage = async (): Promise<{
   fragmentation: string;
 }> => {
   try {
-    const client = getRedisClient();
+    const client = await getRedisClient();
     const memoryInfo = await client.info('memory');
 
     const lines = memoryInfo.split('\r\n');
@@ -382,7 +393,7 @@ export const getRedisStats = async (): Promise<{
   uptime: string;
 }> => {
   try {
-    const client = getRedisClient();
+    const client = await getRedisClient();
     const connected = await isRedisConnected();
 
     if (!connected) {
