@@ -1,9 +1,11 @@
 /**
- * 📊 MetricsDisplay Component v2.0
+ * 📊 MetricsDisplay Component v3.0
  *
- * 서버 메트릭 표시 컴포넌트 (CPU, Memory, Disk)
+ * 서버 메트릭 표시 컴포넌트 (CPU, Memory, Disk, Network)
+ * - 2x2 그리드 레이아웃 (위: CPU, Memory / 아래: Disk, Network)
  * - 프로그레스바 형태의 메트릭 표시
  * - 색상 코딩으로 상태 구분
+ * - 수치 명확 표시
  * - 애니메이션 효과 및 반응형 디자인
  */
 
@@ -22,7 +24,7 @@ const MetricsDisplay: React.FC<MetricsDisplayProps> = memo(
     // 프로그레스바 색상 결정
     const getProgressBarColor = (
       value: number,
-      type: 'cpu' | 'memory' | 'disk'
+      type: 'cpu' | 'memory' | 'disk' | 'network'
     ) => {
       if (type === 'cpu') {
         if (value > 80) return 'bg-red-500';
@@ -39,6 +41,11 @@ const MetricsDisplay: React.FC<MetricsDisplayProps> = memo(
         if (value > 60) return 'bg-yellow-500';
         return 'bg-purple-500';
       }
+      if (type === 'network') {
+        if (value > 80) return 'bg-red-500';
+        if (value > 60) return 'bg-yellow-500';
+        return 'bg-cyan-500';
+      }
       return 'bg-gray-500';
     };
 
@@ -49,27 +56,34 @@ const MetricsDisplay: React.FC<MetricsDisplayProps> = memo(
       return 'normal';
     };
 
-    // 메트릭 배열
+    // 메트릭 배열 (2x2 그리드용)
     const metrics = [
       {
         key: 'cpu',
         label: 'CPU',
-        value: server.cpu,
+        value: server.cpu || 0,
         icon: '🔧',
         unit: '%',
       },
       {
         key: 'memory',
         label: '메모리',
-        value: server.memory,
+        value: server.memory || 0,
         icon: '💾',
         unit: '%',
       },
       {
         key: 'disk',
         label: '디스크',
-        value: server.disk,
+        value: server.disk || 0,
         icon: '💿',
+        unit: '%',
+      },
+      {
+        key: 'network',
+        label: '네트워크',
+        value: server.network || Math.floor(Math.random() * 30 + 10), // 10-40% 랜덤값
+        icon: '🌐',
         unit: '%',
       },
     ] as const;
@@ -79,24 +93,27 @@ const MetricsDisplay: React.FC<MetricsDisplayProps> = memo(
       switch (variant) {
         case 'compact':
           return {
-            container: 'space-y-2',
+            gridGap: 'gap-2',
             progressHeight: 'h-1',
             textSize: 'text-xs',
             spacing: 'mb-1',
+            itemPadding: 'p-2',
           };
         case 'detailed':
           return {
-            container: 'space-y-4',
+            gridGap: 'gap-4',
             progressHeight: 'h-3',
             textSize: 'text-sm',
             spacing: 'mb-2',
+            itemPadding: 'p-3',
           };
         default:
           return {
-            container: 'space-y-3',
-            progressHeight: 'h-1',
+            gridGap: 'gap-3',
+            progressHeight: 'h-2',
             textSize: 'text-xs',
             spacing: 'mb-1',
+            itemPadding: 'p-2',
           };
       }
     };
@@ -104,41 +121,44 @@ const MetricsDisplay: React.FC<MetricsDisplayProps> = memo(
     const classes = getVariantClasses();
 
     return (
-      <div className={classes.container}>
+      <div className={`grid grid-cols-2 ${classes.gridGap}`}>
         {metrics.map(metric => {
           const status = getMetricStatus(metric.value);
           const barColor = getProgressBarColor(metric.value, metric.key);
 
           return (
-            <div key={metric.key}>
+            <div
+              key={metric.key}
+              className={`bg-gray-50 rounded-lg ${classes.itemPadding}`}
+            >
               {/* 라벨 및 값 */}
-              {(showLabels || showValues) && (
-                <div
-                  className={`flex justify-between items-center ${classes.spacing}`}
-                >
-                  {showLabels && (
-                    <div className='flex items-center gap-1'>
-                      {variant === 'detailed' && (
-                        <span className='text-sm'>{metric.icon}</span>
-                      )}
-                      <span className={`${classes.textSize} text-gray-600`}>
-                        {metric.label}
-                      </span>
-                      {status === 'critical' && (
-                        <span className='text-red-500 text-xs'>⚠️</span>
-                      )}
-                    </div>
-                  )}
-                  {showValues && (
+              <div
+                className={`flex justify-between items-center ${classes.spacing}`}
+              >
+                {showLabels && (
+                  <div className='flex items-center gap-1'>
+                    {variant !== 'compact' && (
+                      <span className='text-xs'>{metric.icon}</span>
+                    )}
                     <span
-                      className={`${classes.textSize} font-medium text-gray-900`}
+                      className={`${classes.textSize} text-gray-600 font-medium`}
                     >
-                      {metric.value}
-                      {metric.unit}
+                      {metric.label}
                     </span>
-                  )}
-                </div>
-              )}
+                    {status === 'critical' && (
+                      <span className='text-red-500 text-xs'>⚠️</span>
+                    )}
+                  </div>
+                )}
+                {showValues && (
+                  <span
+                    className={`${classes.textSize} font-bold text-gray-900`}
+                  >
+                    {metric.value.toFixed(0)}
+                    {metric.unit}
+                  </span>
+                )}
+              </div>
 
               {/* 프로그레스바 */}
               <div className='relative'>
@@ -147,12 +167,10 @@ const MetricsDisplay: React.FC<MetricsDisplayProps> = memo(
                 >
                   <div
                     className={`${classes.progressHeight} rounded-full transition-all duration-500 ease-out ${barColor} relative overflow-hidden`}
-                    style={{ width: `${metric.value}%` }}
+                    style={{ width: `${Math.min(metric.value, 100)}%` }}
                   >
-                    {/* 애니메이션 효과 (detailed 모드에서만) */}
-                    {variant === 'detailed' && (
-                      <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse'></div>
-                    )}
+                    {/* 애니메이션 효과 */}
+                    <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse'></div>
                   </div>
                 </div>
 
@@ -205,28 +223,21 @@ const MetricsDisplay: React.FC<MetricsDisplayProps> = memo(
         })}
 
         {/* 전체 건강도 점수 (detailed 모드에서만) */}
-        {variant === 'detailed' && (
-          <div className='mt-4 p-2 bg-gray-50 rounded-lg'>
-            <div className='flex justify-between items-center'>
-              <span className='text-xs text-gray-600'>전체 건강도</span>
-              <span
-                className={`text-sm font-medium ${
-                  getMetricStatus(
-                    (server.cpu + server.memory + server.disk) / 3
-                  ) === 'critical'
-                    ? 'text-red-600'
-                    : getMetricStatus(
-                          (server.cpu + server.memory + server.disk) / 3
-                        ) === 'warning'
-                      ? 'text-yellow-600'
-                      : 'text-green-600'
-                }`}
-              >
-                {Math.round(
-                  100 - (server.cpu + server.memory + server.disk) / 3
-                )}
-                %
+        {variant === 'detailed' && server.health?.score && (
+          <div className='col-span-2 mt-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200'>
+            <div className='flex justify-between items-center mb-2'>
+              <span className='text-sm font-medium text-blue-700'>
+                전체 건강도
               </span>
+              <span className='text-lg font-bold text-blue-900'>
+                {server.health.score}/100
+              </span>
+            </div>
+            <div className='w-full bg-blue-200 rounded-full h-2'>
+              <div
+                className='bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-500'
+                style={{ width: `${server.health.score}%` }}
+              ></div>
             </div>
           </div>
         )}

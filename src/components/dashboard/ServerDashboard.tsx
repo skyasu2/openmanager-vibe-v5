@@ -52,59 +52,41 @@ export default function ServerDashboard({
     );
   }
 
-  const renderServerGroup = (
-    title: string,
-    status: ('critical' | 'warning' | 'healthy')[]
-  ) => {
-    const filtered = paginatedServers.filter(s =>
-      status.includes(s.status as any)
-    );
-    if (filtered.length === 0) return null;
+  // 서버를 심각→주의→정상 순으로 정렬
+  const sortedServers = [...paginatedServers].sort((a, b) => {
+    const statusPriority = {
+      critical: 0,
+      offline: 0,
+      warning: 1,
+      healthy: 2,
+      online: 2,
+    };
 
-    return (
-      <div className='space-y-4'>
-        <h3 className='text-lg font-semibold text-gray-800 flex items-center gap-2'>
-          <span
-            className={`w-3 h-3 rounded-full ${status[0] === 'critical' ? 'bg-red-500' : status[0] === 'warning' ? 'bg-yellow-500' : 'bg-green-500'}`}
-          ></span>
-          {title} ({filtered.length})
-        </h3>
-        <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6'>
-          {filtered.map((server, index) => (
-            <EnhancedServerCard
-              key={server.id}
-              server={{
-                ...server,
-                hostname: server.hostname || server.name,
-                type: server.type || 'api',
-                environment: server.environment || 'prod',
-                location: server.location || 'unknown',
-                provider: server.provider || 'Unknown',
-                status:
-                  server.status === 'online'
-                    ? 'healthy'
-                    : (server.status as any),
-                uptime:
-                  typeof server.uptime === 'string'
-                    ? server.uptime
-                    : typeof server.uptime === 'number'
-                      ? `${Math.floor(server.uptime / 3600)}h ${Math.floor((server.uptime % 3600) / 60)}m`
-                      : '0h 0m',
-                alerts:
-                  typeof server.alerts === 'number'
-                    ? server.alerts
-                    : Array.isArray(server.alerts)
-                      ? server.alerts.length
-                      : 0,
-              }}
-              index={index}
-              onClick={() => handleServerSelect(server)}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  };
+    const priorityA =
+      statusPriority[a.status as keyof typeof statusPriority] ?? 3;
+    const priorityB =
+      statusPriority[b.status as keyof typeof statusPriority] ?? 3;
+
+    if (priorityA !== priorityB) {
+      return priorityA - priorityB;
+    }
+
+    // 같은 우선순위면 알림 수로 정렬 (많은 순)
+    const alertsA =
+      typeof a.alerts === 'number'
+        ? a.alerts
+        : Array.isArray(a.alerts)
+          ? a.alerts.length
+          : 0;
+    const alertsB =
+      typeof b.alerts === 'number'
+        ? b.alerts
+        : Array.isArray(b.alerts)
+          ? b.alerts.length
+          : 0;
+
+    return alertsB - alertsA;
+  });
 
   return (
     <div>
@@ -116,10 +98,41 @@ export default function ServerDashboard({
 
       <div className='mt-6'>
         {activeTab === 'servers' && (
-          <div className='space-y-6'>
-            {renderServerGroup('위험 상태', ['critical'])}
-            {renderServerGroup('주의 상태', ['warning'])}
-            {renderServerGroup('정상 상태', ['healthy'])}
+          <div className='space-y-4'>
+            {/* 심각→주의→정상 순으로 일렬 정렬된 서버 카드들 */}
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6'>
+              {sortedServers.map((server, index) => (
+                <EnhancedServerCard
+                  key={server.id}
+                  server={{
+                    ...server,
+                    hostname: server.hostname || server.name,
+                    type: server.type || 'api',
+                    environment: server.environment || 'prod',
+                    location: server.location || 'unknown',
+                    provider: server.provider || 'Unknown',
+                    status:
+                      server.status === 'online'
+                        ? 'healthy'
+                        : (server.status as any),
+                    uptime:
+                      typeof server.uptime === 'string'
+                        ? server.uptime
+                        : typeof server.uptime === 'number'
+                          ? `${Math.floor(server.uptime / 3600)}h ${Math.floor((server.uptime % 3600) / 60)}m`
+                          : '0h 0m',
+                    alerts:
+                      typeof server.alerts === 'number'
+                        ? server.alerts
+                        : Array.isArray(server.alerts)
+                          ? server.alerts.length
+                          : 0,
+                  }}
+                  index={index}
+                  onClick={() => handleServerSelect(server)}
+                />
+              ))}
+            </div>
           </div>
         )}
         {/* 다른 탭 컨텐츠는 여기에 추가될 수 있습니다. */}
