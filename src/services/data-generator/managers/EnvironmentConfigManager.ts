@@ -7,15 +7,14 @@
  * - 플러그인 설정 관리
  */
 
-import { CustomEnvironmentConfig } from '../types/ServerTypes';
 import {
   detectEnvironment,
-  env as defaultEnv,
   getDataGeneratorConfig,
-  isPluginEnabled,
   getPluginConfig,
   getVercelOptimizedConfig,
+  isPluginEnabled,
 } from '@/config/environment';
+import { CustomEnvironmentConfig } from '../types/ServerTypes';
 
 export class EnvironmentConfigManager {
   private environmentConfig: CustomEnvironmentConfig;
@@ -182,7 +181,7 @@ export class EnvironmentConfigManager {
   getServerLocation(): string {
     const locations = {
       single: ['Seoul-DC-1'],
-      'master-slave': ['Seoul-DC-1', 'Busan-DC-1'],
+      'primary-replica': ['Seoul-DC-1', 'Busan-DC-1'],
       'load-balanced': ['Seoul-DC-1', 'Busan-DC-1', 'Daegu-DC-1'],
       microservices: [
         'Seoul-DC-1',

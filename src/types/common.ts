@@ -28,7 +28,7 @@ export type ServerStatus =
 export type AlertSeverity = 'info' | 'warning' | 'critical';
 
 // 환경 타입
-export type Environment = 'production' | 'staging' | 'development' | 'test';
+export type Environment = 'production' | 'staging' | 'development';
 
 // 서버 타입
 export type ServerType =

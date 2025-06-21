@@ -6,8 +6,6 @@ import './globals.css';
 import { SystemBootstrap } from '@/components/system/SystemBootstrap';
 import '@/lib/build-safety/TimerBlocker';
 
-// 개발 환경 초기화
-import '@/utils/init-dev-env';
 // Keep-alive 스케줄러 초기화
 import '@/lib/keep-alive-scheduler';
 // 성능 모니터링 초기화

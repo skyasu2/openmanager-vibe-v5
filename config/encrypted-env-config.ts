@@ -107,18 +107,18 @@ export const ENCRYPTED_ENV_CONFIG: EncryptedEnvironmentConfig = {
 export const DEPLOYMENT_CONFIG = {
   supabase: {
     enabled: true,
-    region: 'ap-southeast-1',
+    region: 'Seoul-DC-1',
     project: 'vnswjnltnhpsueosfhmw',
   },
   renderMCP: {
     enabled: true,
-    region: 'singapore',
+    region: 'Seoul',
     loadBalanced: true,
   },
   redis: {
     enabled: true,
     provider: 'upstash',
-    region: 'ap-southeast-1',
+    region: 'Seoul-DC-1',
   },
   googleAI: {
     enabled: true,

@@ -82,7 +82,7 @@ export interface UnifiedGeneratorConfig {
   realConfig?: {
     serverArchitecture:
       | 'single'
-      | 'master-slave'
+      | 'primary-replica'
       | 'load-balanced'
       | 'microservices';
   };
@@ -153,7 +153,7 @@ class RealDataStrategy implements DataGeneratorStrategy {
         type: serverType as any,
         role: role as any,
         environment: environment as any,
-        location: ['us-east-1', 'us-west-2', 'eu-west-1'][
+        location: ['Seoul-DC-1', 'Seoul-DC-2', 'Busan-DC-1'][
           Math.floor(Math.random() * 3)
         ],
         status:
@@ -379,9 +379,9 @@ class AdvancedDataStrategy implements DataGeneratorStrategy {
 
   private initializeAdvancedServers(): void {
     const regions = this.config.advancedConfig?.regions || [
-      'us-east-1',
-      'us-west-2',
-      'eu-west-1',
+      'Seoul-DC-1',
+      'Seoul-DC-2',
+      'Busan-DC-1',
     ];
     const serverTypes = this.config.advancedConfig?.serverTypes || [
       'Container',
@@ -614,9 +614,9 @@ export class UnifiedDataGeneratorModule {
         ),
       },
       advancedConfig: {
-        regions: (process.env.REGIONS || 'us-east-1,us-west-2,eu-west-1').split(
-          ','
-        ),
+        regions: (
+          process.env.REGIONS || 'Seoul-DC-1,Seoul-DC-2,Busan-DC-1'
+        ).split(','),
         serverTypes: (process.env.SERVER_TYPES || 'Host,Cloud,Container').split(
           ','
         ),

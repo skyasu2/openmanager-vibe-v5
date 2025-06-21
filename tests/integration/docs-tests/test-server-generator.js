@@ -57,10 +57,11 @@ async function testServerDataGenerator() {
 
       // 위치 검증
       const validLocations = [
-        'us-east-1',
-        'us-west-2',
-        'eu-west-1',
-        'ap-southeast-1',
+        'Seoul-DC-1',
+        'Seoul-DC-2',
+        'Busan-DC-1',
+        'Daegu-DC-1',
+        'Incheon-DC-1',
       ];
       validationResults.locations.push(
         validLocations.includes(server.location)

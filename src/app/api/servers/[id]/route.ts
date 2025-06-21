@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { simulationEngine } from '../../../../services/simulationEngine';
 // import { prometheusFormatter } from '../../../../modules/data-generation/PrometheusMetricsFormatter'; // 🗑️ 프로메테우스 제거
 import type { EnhancedServerMetrics } from '../../../../types/server';
-import { unifiedMetricsManager } from '../../../../services/UnifiedMetricsManager';
 
 /**
  * 📊 개별 서버 정보 조회 API - Enhanced & Prometheus Compatible
@@ -239,7 +238,7 @@ function getLocationByEnvironment(environment: string): string {
     aws: 'AWS Seoul (ap-northeast-2)',
     azure: 'Azure Korea Central',
     gcp: 'GCP Seoul (asia-northeast3)',
-    kubernetes: 'Kubernetes Cluster',
+    container: 'Container Cluster',
     idc: 'Seoul IDC',
     vdi: 'Virtual Desktop Infrastructure',
     onpremise: 'On-Premise Seoul DC1',
@@ -291,7 +290,7 @@ function generateServices(
       { name: 'redis-sentinel', port: 26379 },
     ],
     worker: [
-      { name: 'worker-process', port: 9000 },
+      { name: 'background-process', port: 9000 },
       { name: 'queue-manager', port: 9001 },
       { name: 'scheduler', port: 9002 },
     ],

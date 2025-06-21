@@ -5,10 +5,10 @@
  * 🤖 AI 강화 데이터 생성기 지원 추가
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { realServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
-import { AIEnhancedDataGenerator } from '@/services/ai-enhanced/AIEnhancedDataGenerator';
 import { getDataGeneratorConfig } from '@/config/environment';
+import { AIEnhancedDataGenerator } from '@/services/ai-enhanced/AIEnhancedDataGenerator';
+import { realServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { NextRequest, NextResponse } from 'next/server';
 
 interface GeneratorConfigResponse {
   serverCount: number;
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
       case 'updateArchitecture':
         const validArchitectures = [
           'single',
-          'master-slave',
+          'primary-replica',
           'load-balanced',
           'microservices',
         ];

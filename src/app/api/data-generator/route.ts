@@ -158,22 +158,30 @@ function generateMetrics(count: number) {
 }
 
 function generateServers(count: number) {
-  const servers = [];
-  const statuses = ['running', 'stopped', 'maintenance', 'error'];
-  const types = ['web', 'database', 'cache', 'worker'];
+  const types = ['web', 'database', 'cache'];
+  const environments = ['production', 'staging', 'development'];
+  const roles = ['primary', 'replica', 'standalone'];
+  const locations = ['Seoul-DC-1', 'Seoul-DC-2', 'Busan-DC-1'];
 
-  for (let i = 0; i < count; i++) {
-    servers.push({
-      id: `server-${String(i + 1).padStart(3, '0')}`,
-      name: `OpenManager-Server-${i + 1}`,
-      type: types[Math.floor(Math.random() * types.length)],
-      status: statuses[Math.floor(Math.random() * statuses.length)],
+  const servers = Array.from({ length: 15 }, (_, i) => {
+    const type = types[i % types.length];
+    const environment = environments[i % environments.length];
+    const role = roles[i % roles.length];
+    const location = locations[i % locations.length];
+
+    return {
+      id: `server-${i + 1}`,
+      name: `${type}-server-${i + 1}`,
+      type,
+      environment,
+      role,
+      location,
       cpu: parseFloat((Math.random() * 100).toFixed(2)),
       memory: parseFloat((Math.random() * 100).toFixed(2)),
       uptime: Math.round(Math.random() * 365 * 24 * 60 * 60), // seconds
       lastCheck: new Date().toISOString(),
-    });
-  }
+    };
+  });
 
   return servers;
 }

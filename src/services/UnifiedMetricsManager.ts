@@ -14,11 +14,8 @@
  */
 
 import { timerManager } from '../utils/TimerManager';
-import { memoryOptimizer } from '../utils/MemoryOptimizer';
 // import { prometheusDataHub } from '../modules/prometheus-integration/PrometheusDataHub'; // 🗑️ 프로메테우스 제거
-import { SmartCache } from '../utils/smart-cache';
 import { getDataGeneratorConfig } from '../config/environment';
-import type { EnhancedServerMetrics } from '../types/server';
 
 // 전역 접근을 위한 설정
 if (typeof globalThis !== 'undefined') {
@@ -372,7 +369,7 @@ export class UnifiedMetricsManager {
         }, // 5%
       ];
     } else {
-      // 마스터-슬레이브 아키텍처 (8개 이하) 또는 기본 구성
+      // 프라이머리-레플리카 아키텍처 (8개 이하) 또는 기본 구성
       const baseCount = Math.max(1, Math.floor(maxServers / 8));
       serverConfigs = [
         { environment: 'production', role: 'web', count: baseCount * 3 },

@@ -1,7 +1,7 @@
 /**
  * 🚀 Real Server Data Generator - Complete Implementation with Redis
  *
- * 완전한 기능을 갖춘 서버 데이터 생성기 (Redis 연동)
+ * 완전한 기능을 갖춘 서버 데이터 생성기 (Redis 연동) - 실제 기업 환경 기반
  */
 
 import {
@@ -16,13 +16,346 @@ type RedisType = any;
 // 중앙 서버 설정 import
 import { ACTIVE_SERVER_CONFIG, logServerConfig } from '@/config/serverConfig';
 
+// 🏗️ 실제 기업 환경 기반 서버 타입 정의
+interface RealWorldServerType {
+  id: string;
+  name: string;
+  category: 'web' | 'app' | 'database' | 'infrastructure';
+  os: string;
+  service: string;
+  port: number;
+  version?: string;
+  runtime?: string;
+}
+
+// 🎯 실제 기술 스택 기반 서버 타입들
+const REALISTIC_SERVER_TYPES: RealWorldServerType[] = [
+  // 웹서버 (25%)
+  {
+    id: 'nginx',
+    name: 'Nginx',
+    category: 'web',
+    os: 'ubuntu-22.04',
+    service: 'web-server',
+    port: 80,
+    version: '1.22.0',
+  },
+  {
+    id: 'apache',
+    name: 'Apache HTTP',
+    category: 'web',
+    os: 'centos-8',
+    service: 'web-server',
+    port: 80,
+    version: '2.4.54',
+  },
+  {
+    id: 'iis',
+    name: 'IIS',
+    category: 'web',
+    os: 'windows-2022',
+    service: 'web-server',
+    port: 80,
+    version: '10.0',
+  },
+
+  // 애플리케이션 서버 (30%)
+  {
+    id: 'nodejs',
+    name: 'Node.js',
+    category: 'app',
+    os: 'alpine-3.16',
+    service: 'app-server',
+    port: 3000,
+    runtime: 'node-18',
+  },
+  {
+    id: 'springboot',
+    name: 'Spring Boot',
+    category: 'app',
+    os: 'ubuntu-22.04',
+    service: 'app-server',
+    port: 8080,
+    runtime: 'openjdk-17',
+  },
+  {
+    id: 'django',
+    name: 'Django',
+    category: 'app',
+    os: 'ubuntu-20.04',
+    service: 'app-server',
+    port: 8000,
+    runtime: 'python-3.9',
+  },
+  {
+    id: 'dotnet',
+    name: '.NET Core',
+    category: 'app',
+    os: 'windows-2022',
+    service: 'app-server',
+    port: 5000,
+    runtime: 'dotnet-6',
+  },
+  {
+    id: 'php',
+    name: 'PHP-FPM',
+    category: 'app',
+    os: 'debian-11',
+    service: 'app-server',
+    port: 9000,
+    runtime: 'php-8.1',
+  },
+
+  // 데이터베이스 (20%)
+  {
+    id: 'mysql',
+    name: 'MySQL',
+    category: 'database',
+    os: 'ubuntu-20.04',
+    service: 'database',
+    port: 3306,
+    version: '8.0.30',
+  },
+  {
+    id: 'postgresql',
+    name: 'PostgreSQL',
+    category: 'database',
+    os: 'debian-11',
+    service: 'database',
+    port: 5432,
+    version: '14.5',
+  },
+  {
+    id: 'mongodb',
+    name: 'MongoDB',
+    category: 'database',
+    os: 'rhel-8',
+    service: 'database',
+    port: 27017,
+    version: '5.0.12',
+  },
+  {
+    id: 'oracle',
+    name: 'Oracle DB',
+    category: 'database',
+    os: 'oracle-linux-8',
+    service: 'database',
+    port: 1521,
+    version: '19c',
+  },
+  {
+    id: 'mssql',
+    name: 'SQL Server',
+    category: 'database',
+    os: 'windows-2019',
+    service: 'database',
+    port: 1433,
+    version: '2019',
+  },
+
+  // 인프라 서비스 (25%)
+  {
+    id: 'redis',
+    name: 'Redis',
+    category: 'infrastructure',
+    os: 'alpine-3.15',
+    service: 'cache',
+    port: 6379,
+    version: '7.0.5',
+  },
+  {
+    id: 'rabbitmq',
+    name: 'RabbitMQ',
+    category: 'infrastructure',
+    os: 'ubuntu-20.04',
+    service: 'message-queue',
+    port: 5672,
+    version: '3.10.7',
+  },
+  {
+    id: 'elasticsearch',
+    name: 'Elasticsearch',
+    category: 'infrastructure',
+    os: 'centos-7',
+    service: 'search',
+    port: 9200,
+    version: '8.4.3',
+  },
+  {
+    id: 'jenkins',
+    name: 'Jenkins',
+    category: 'infrastructure',
+    os: 'ubuntu-22.04',
+    service: 'ci-cd',
+    port: 8080,
+    version: '2.361.4',
+  },
+  {
+    id: 'prometheus',
+    name: 'Prometheus',
+    category: 'infrastructure',
+    os: 'ubuntu-22.04',
+    service: 'monitoring',
+    port: 9090,
+    version: '2.38.0',
+  },
+  {
+    id: 'kafka',
+    name: 'Apache Kafka',
+    category: 'infrastructure',
+    os: 'ubuntu-20.04',
+    service: 'message-queue',
+    port: 9092,
+    version: '3.2.3',
+  },
+];
+
+// 🎯 현실적인 서버 분포 비율 (기업 환경 기준)
+const SERVER_DISTRIBUTION = {
+  web: 0.25, // 웹서버 25%
+  app: 0.3, // 애플리케이션 30%
+  database: 0.2, // 데이터베이스 20%
+  infrastructure: 0.25, // 인프라 25%
+};
+
+// 🏷️ 호스트네임 생성 패턴: {service}-{tech}-{env}-{number}
+const HOSTNAME_PATTERNS = {
+  web: 'web',
+  app: 'app',
+  database: 'db',
+  infrastructure: 'infra',
+};
+
+// 🧮 동적 서버 분포 계산
+function calculateServerDistribution(
+  totalServers: number
+): Record<string, number> {
+  const distribution: Record<string, number> = {};
+  let allocated = 0;
+
+  // 각 카테고리별 서버 수 계산
+  for (const [category, percentage] of Object.entries(SERVER_DISTRIBUTION)) {
+    const count = Math.max(1, Math.round(totalServers * percentage));
+    distribution[category] = count;
+    allocated += count;
+  }
+
+  // 나머지는 웹서버에 할당 (반올림 오차 보정)
+  if (allocated !== totalServers) {
+    distribution.web += totalServers - allocated;
+  }
+
+  return distribution;
+}
+
+// 🎲 카테고리별 서버 타입 선택
+function getServerTypesForCategory(category: string): RealWorldServerType[] {
+  return REALISTIC_SERVER_TYPES.filter(type => type.category === category);
+}
+
+// 🏷️ 직관적인 호스트네임 생성
+function generateHostname(
+  serverType: RealWorldServerType,
+  environment: string,
+  index: number
+): string {
+  const servicePrefix = HOSTNAME_PATTERNS[serverType.category] || 'srv';
+  const envCode =
+    environment === 'production'
+      ? 'prod'
+      : environment === 'staging'
+        ? 'stg'
+        : environment === 'development'
+          ? 'dev'
+          : 'dev';
+  const paddedIndex = String(index).padStart(2, '0');
+
+  return `${servicePrefix}-${serverType.id}-${envCode}-${paddedIndex}`;
+}
+
+// 🎯 서버 타입별 특화 메트릭 생성
+function generateSpecializedMetrics(serverType: RealWorldServerType): any {
+  const baseMetrics = {
+    cpu: parseFloat((Math.random() * 80 + 10).toFixed(2)),
+    memory: parseFloat((Math.random() * 70 + 20).toFixed(2)),
+    disk: parseFloat((Math.random() * 60 + 30).toFixed(2)),
+    network: {
+      in: Math.random() * 100,
+      out: Math.random() * 100,
+    },
+    requests: Math.random() * 1000 + 100,
+    errors: Math.random() * 10,
+    uptime: Math.random() * 8760 * 3600, // 최대 1년
+    customMetrics: {},
+  };
+
+  // 서버 타입별 특화 메트릭 조정
+  switch (serverType.category) {
+    case 'database':
+      // 데이터베이스: 높은 메모리 사용률, 디스크 I/O 집약적
+      baseMetrics.memory = parseFloat((Math.random() * 30 + 60).toFixed(2)); // 60-90%
+      baseMetrics.disk = parseFloat((Math.random() * 40 + 50).toFixed(2)); // 50-90%
+      baseMetrics.customMetrics = {
+        connection_pool: Math.floor(Math.random() * 100 + 50),
+        query_time: parseFloat((Math.random() * 50 + 10).toFixed(2)),
+        active_connections: Math.floor(Math.random() * 200 + 50),
+      };
+      break;
+
+    case 'web':
+      // 웹서버: 높은 네트워크 I/O, 적은 메모리 사용
+      baseMetrics.network.in = Math.random() * 200 + 100; // 높은 네트워크 입력
+      baseMetrics.network.out = Math.random() * 150 + 75; // 높은 네트워크 출력
+      baseMetrics.memory = parseFloat((Math.random() * 40 + 20).toFixed(2)); // 20-60%
+      baseMetrics.requests = Math.random() * 2000 + 500; // 높은 요청 수
+      baseMetrics.customMetrics = {
+        concurrent_connections: Math.floor(Math.random() * 1000 + 200),
+        response_time: parseFloat((Math.random() * 100 + 50).toFixed(2)),
+        ssl_handshakes: Math.floor(Math.random() * 500 + 100),
+      };
+      break;
+
+    case 'app':
+      // 애플리케이션: 균형잡힌 CPU/메모리, 높은 처리량
+      baseMetrics.cpu = parseFloat((Math.random() * 50 + 40).toFixed(2)); // 40-90%
+      baseMetrics.memory = parseFloat((Math.random() * 50 + 35).toFixed(2)); // 35-85%
+      baseMetrics.requests = Math.random() * 1500 + 300;
+      baseMetrics.customMetrics = {
+        thread_pool: Math.floor(Math.random() * 50 + 10),
+        heap_usage: parseFloat((Math.random() * 60 + 30).toFixed(2)),
+        gc_time: parseFloat((Math.random() * 10 + 2).toFixed(2)),
+      };
+      break;
+
+    case 'infrastructure':
+      // 인프라: 특수 목적별 메트릭
+      if (serverType.id === 'redis') {
+        baseMetrics.memory = parseFloat((Math.random() * 40 + 50).toFixed(2)); // 캐시용 높은 메모리
+        baseMetrics.customMetrics = {
+          cache_hit_ratio: parseFloat((Math.random() * 20 + 80).toFixed(2)), // 80-100%
+          evicted_keys: Math.floor(Math.random() * 1000),
+          connected_clients: Math.floor(Math.random() * 100 + 20),
+        };
+      } else if (serverType.service === 'message-queue') {
+        baseMetrics.customMetrics = {
+          queue_depth: Math.floor(Math.random() * 10000 + 1000),
+          message_rate: Math.floor(Math.random() * 1000 + 100),
+          consumer_count: Math.floor(Math.random() * 20 + 5),
+        };
+      }
+      break;
+  }
+
+  return baseMetrics;
+}
+
 export interface GeneratorConfig {
   maxServers?: number;
   updateInterval?: number;
   enableRealtime?: boolean;
   serverArchitecture?:
     | 'single'
-    | 'master-slave'
+    | 'primary-replica'
     | 'load-balanced'
     | 'microservices';
   enableRedis?: boolean;
@@ -66,6 +399,9 @@ export class RealServerDataGenerator {
   private isMockMode = false;
   private isHealthCheckContext = false;
   private isTestContext = false;
+
+  // 🏷️ 호스트네임 중복 방지용 카운터
+  private hostnameCounters: Map<string, number> = new Map();
 
   constructor(config: GeneratorConfig = {}) {
     // 🎯 중앙 설정에서 기본값 가져오기
@@ -426,99 +762,109 @@ export class RealServerDataGenerator {
 
   private initializeServers(): void {
     this.servers.clear();
+    this.hostnameCounters.clear();
 
-    const serverTypes: (
-      | 'web'
-      | 'api'
-      | 'database'
-      | 'cache'
-      | 'queue'
-      | 'cdn'
-      | 'gpu'
-      | 'storage'
-    )[] = ['web', 'api', 'database', 'cache', 'queue'];
-    const roles: (
-      | 'master'
-      | 'slave'
-      | 'primary'
-      | 'replica'
-      | 'worker'
-      | 'standalone'
-    )[] = ['primary', 'replica', 'worker', 'standalone'];
-    const environments: ('production' | 'staging' | 'development' | 'test')[] =
-      ['production', 'staging', 'development'];
-    const locations = ['us-east-1', 'us-west-2', 'eu-west-1', 'ap-southeast-1'];
+    const roles: ('primary' | 'replica' | 'worker' | 'standalone')[] = [
+      'primary',
+      'replica',
+      'worker',
+      'standalone',
+    ];
+    const environments: ('production' | 'staging' | 'development')[] = [
+      'production',
+      'staging',
+      'development',
+    ];
+    // 위치는 동적으로 생성하도록 변경
 
-    const totalServers = this.config.maxServers || 30;
+    const totalServers = this.config.maxServers || 15;
 
-    for (let i = 1; i <= totalServers; i++) {
-      const serverType =
-        serverTypes[Math.floor(Math.random() * serverTypes.length)];
-      const role = roles[Math.floor(Math.random() * roles.length)];
-      const environment =
-        environments[Math.floor(Math.random() * environments.length)];
-      const location = locations[Math.floor(Math.random() * locations.length)];
+    // 🎯 동적 서버 분포 계산
+    const distribution = calculateServerDistribution(totalServers);
 
-      const server: ServerInstance = {
-        id: `server-${i}`,
-        name: `${serverType}-${i}`,
-        type: serverType,
-        role,
-        environment,
-        location,
-        status:
-          Math.random() > 0.1
-            ? 'running'
-            : Math.random() > 0.5
-              ? 'warning'
-              : 'error',
-        specs: {
-          cpu: {
-            cores: Math.floor(Math.random() * 16) + 4,
-            model: 'Intel Xeon',
-            architecture: Math.random() > 0.7 ? 'arm64' : 'x86_64',
-          },
-          memory: {
-            total: Math.pow(2, Math.floor(Math.random() * 4) + 3) * 1024,
-            type: 'DDR4',
-            speed: 3200,
-          },
-          disk: {
-            total: Math.pow(2, Math.floor(Math.random() * 3) + 8) * 1024,
-            type: 'SSD',
-            iops: 3000,
-          },
-          network: {
-            bandwidth: 1000,
-            latency: Math.random() * 10 + 1,
-          },
-        },
-        metrics: {
-          cpu: parseFloat((Math.random() * 80 + 10).toFixed(2)),
-          memory: parseFloat((Math.random() * 70 + 20).toFixed(2)),
-          disk: parseFloat((Math.random() * 60 + 30).toFixed(2)),
-          network: {
-            in: Math.random() * 100,
-            out: Math.random() * 100,
-          },
-          requests: Math.random() * 1000 + 100,
-          errors: Math.random() * 10,
-          uptime: Math.random() * 8760 * 3600, // 최대 1년
-          customMetrics: {},
-        },
-        health: {
-          score: Math.random() * 40 + 60, // 60-100점
-          lastCheck: new Date().toISOString(),
-          issues: [],
-        },
-      };
+    console.log('🎯 서버 분포 계획:');
+    console.log(`  📊 총 서버 수: ${totalServers}개`);
+    console.log(
+      `  🌐 웹서버: ${distribution.web}개 (${Math.round((distribution.web / totalServers) * 100)}%)`
+    );
+    console.log(
+      `  🚀 앱서버: ${distribution.app}개 (${Math.round((distribution.app / totalServers) * 100)}%)`
+    );
+    console.log(
+      `  🗄️  데이터베이스: ${distribution.database}개 (${Math.round((distribution.database / totalServers) * 100)}%)`
+    );
+    console.log(
+      `  ⚙️  인프라: ${distribution.infrastructure}개 (${Math.round((distribution.infrastructure / totalServers) * 100)}%)`
+    );
 
-      // 건강 상태에 따른 이슈 생성
-      if (server.health.score < 80) {
-        server.health.issues = ['High CPU usage', 'Memory leak detected'];
+    let serverIndex = 1;
+
+    // 🏗️ 카테고리별 서버 생성
+    for (const [category, count] of Object.entries(distribution)) {
+      const availableTypes = getServerTypesForCategory(category);
+
+      for (let i = 0; i < count; i++) {
+        // 서버 타입 선택 (균등 분배 + 랜덤)
+        const serverType = availableTypes[i % availableTypes.length];
+        const role = roles[Math.floor(Math.random() * roles.length)];
+        const environment =
+          environments[Math.floor(Math.random() * environments.length)];
+        // 동적 위치 생성: 한국 데이터센터 기반
+        const locations = [
+          'Seoul-DC-1',
+          'Seoul-DC-2',
+          'Busan-DC-1',
+          'Daegu-DC-1',
+          'Incheon-DC-1',
+        ];
+        const location =
+          locations[Math.floor(Math.random() * locations.length)];
+
+        // 🏷️ 직관적인 호스트네임 생성
+        const hostnameKey = `${serverType.id}-${environment}`;
+        const currentCount = this.hostnameCounters.get(hostnameKey) || 0;
+        this.hostnameCounters.set(hostnameKey, currentCount + 1);
+        const hostname = generateHostname(
+          serverType,
+          environment,
+          currentCount + 1
+        );
+
+        // 🎯 서버 타입별 특화 메트릭 생성
+        const specializedMetrics = generateSpecializedMetrics(serverType);
+
+        // 🏗️ 서버 타입별 특화 사양 생성
+        const specs = this.generateSpecializedSpecs(serverType);
+
+        const server: ServerInstance = {
+          id: `${serverType.id}-${serverIndex}`,
+          name: hostname,
+          type: serverType.id as any, // 실제 기술명 사용
+          role,
+          environment,
+          location,
+          status: 'running', // 초기값은 모두 running, 나중에 시나리오 적용
+          specs,
+          metrics: specializedMetrics,
+          health: {
+            score: Math.random() * 40 + 60, // 60-100점
+            lastCheck: new Date().toISOString(),
+            issues: [],
+          },
+        };
+
+        // 건강 상태에 따른 이슈 생성
+        if (server.health.score < 80) {
+          const issues = this.generateRealisticIssues(
+            serverType,
+            server.metrics
+          );
+          server.health.issues = issues;
+        }
+
+        this.servers.set(server.id, server);
+        serverIndex++;
       }
-
-      this.servers.set(server.id, server);
     }
 
     /**
@@ -616,55 +962,164 @@ export class RealServerDataGenerator {
   private createApplications(): void {
     this.applications.clear();
 
+    // 🚀 실제 기업 환경 기반 애플리케이션 정의
     const apps = [
-      { name: 'Frontend App', type: 'web' },
-      { name: 'API Gateway', type: 'api' },
-      { name: 'User Service', type: 'api' },
-      { name: 'Database Service', type: 'database' },
-      { name: 'Cache Service', type: 'cache' },
+      { name: 'Frontend Web App', type: 'nginx', category: 'web' },
+      { name: 'API Gateway', type: 'nginx', category: 'web' },
+      { name: 'User Management Service', type: 'nodejs', category: 'app' },
+      { name: 'Order Processing Service', type: 'springboot', category: 'app' },
+      { name: 'Payment Service', type: 'django', category: 'app' },
+      { name: 'User Database', type: 'mysql', category: 'database' },
+      { name: 'Analytics Database', type: 'postgresql', category: 'database' },
+      { name: 'Session Cache', type: 'redis', category: 'infrastructure' },
+      { name: 'Message Queue', type: 'rabbitmq', category: 'infrastructure' },
+      {
+        name: 'Search Engine',
+        type: 'elasticsearch',
+        category: 'infrastructure',
+      },
     ];
 
-    apps.forEach((app, index) => {
-      const relatedServers = Array.from(this.servers.values())
-        .filter(s => s.type === app.type)
-        .slice(0, 3);
+    // 🏗️ 각 애플리케이션별 메트릭 생성
+    apps.forEach(app => {
+      // 해당 타입의 서버들 찾기
+      const relatedServers = Array.from(this.servers.values()).filter(
+        server => server.type === app.type
+      );
+
+      if (relatedServers.length === 0) return;
+
+      // 애플리케이션 성능 메트릭 계산
+      const avgCpu =
+        relatedServers.reduce((sum, s) => sum + s.metrics.cpu, 0) /
+        relatedServers.length;
+      const avgMemory =
+        relatedServers.reduce((sum, s) => sum + s.metrics.memory, 0) /
+        relatedServers.length;
+      const totalRequests = relatedServers.reduce(
+        (sum, s) => sum + s.metrics.requests,
+        0
+      );
+      const totalErrors = relatedServers.reduce(
+        (sum, s) => sum + s.metrics.errors,
+        0
+      );
+
+      // 카테고리별 특화 메트릭
+      let responseTime = 50 + Math.random() * 200; // 기본 50-250ms
+      let throughput = totalRequests;
+      let availability = 99.5 + Math.random() * 0.5; // 99.5-100%
+
+      switch (app.category) {
+        case 'web':
+          responseTime = 20 + Math.random() * 80; // 웹서버는 빠른 응답
+          throughput = totalRequests * 1.5; // 높은 처리량
+          break;
+        case 'database':
+          responseTime = 10 + Math.random() * 50; // DB는 매우 빠른 응답
+          availability = 99.8 + Math.random() * 0.2; // 높은 가용성
+          break;
+        case 'app':
+          responseTime = 100 + Math.random() * 300; // 앱은 상대적으로 느림
+          break;
+        case 'infrastructure':
+          if (app.type === 'redis') {
+            responseTime = 1 + Math.random() * 5; // 캐시는 매우 빠름
+            availability = 99.9 + Math.random() * 0.1;
+          }
+          break;
+      }
 
       const application: ApplicationMetrics = {
         name: app.name,
-        version: `v${Math.floor(Math.random() * 5) + 1}.${Math.floor(Math.random() * 10)}.0`,
+        version: this.generateRealisticVersion(app.type),
         deployments: {
-          production: { servers: relatedServers.length, health: 90 },
-          staging: {
-            servers: Math.floor(relatedServers.length / 2),
-            health: 85,
+          production: {
+            servers: relatedServers.filter(s => s.environment === 'production')
+              .length,
+            health: Math.max(60, 100 - avgCpu * 0.3 - avgMemory * 0.2),
           },
-          development: { servers: 1, health: 80 },
+          staging: {
+            servers: relatedServers.filter(s => s.environment === 'staging')
+              .length,
+            health: Math.max(70, 100 - avgCpu * 0.2 - avgMemory * 0.1),
+          },
+          development: {
+            servers: relatedServers.filter(s => s.environment === 'development')
+              .length,
+            health: Math.max(80, 100 - avgCpu * 0.1),
+          },
         },
         performance: {
-          responseTime: Math.random() * 200 + 50,
-          throughput: Math.random() * 1000 + 100,
-          errorRate: Math.random() * 5,
-          availability: Math.random() * 10 + 90,
+          responseTime: parseFloat(responseTime.toFixed(2)),
+          throughput: Math.floor(throughput),
+          errorRate: parseFloat(
+            ((totalErrors / totalRequests) * 100 || 0).toFixed(3)
+          ),
+          availability: parseFloat(availability.toFixed(2)),
         },
         resources: {
-          totalCpu: relatedServers.reduce(
-            (sum, s) => sum + s.specs.cpu.cores,
-            0
-          ),
-          totalMemory: relatedServers.reduce(
-            (sum, s) => sum + s.specs.memory.total,
-            0
-          ),
-          totalDisk: relatedServers.reduce(
-            (sum, s) => sum + s.specs.disk.total,
-            0
-          ),
-          cost: Math.random() * 5000 + 1000,
+          totalCpu: parseFloat(avgCpu.toFixed(2)),
+          totalMemory: parseFloat(avgMemory.toFixed(2)),
+          totalDisk:
+            relatedServers.reduce((sum, s) => sum + s.metrics.disk, 0) /
+            relatedServers.length,
+          cost: this.calculateApplicationCost(relatedServers, app.category),
         },
       };
 
-      this.applications.set(`app-${index + 1}`, application);
+      this.applications.set(app.name, application);
     });
+
+    console.log(`🚀 생성된 애플리케이션: ${this.applications.size}개`);
+  }
+
+  /**
+   * 🏷️ 실제 버전 번호 생성
+   */
+  private generateRealisticVersion(serverType: string): string {
+    const versionMap: Record<string, string[]> = {
+      nginx: ['1.22.0', '1.21.6', '1.20.2'],
+      apache: ['2.4.54', '2.4.53', '2.4.52'],
+      mysql: ['8.0.30', '8.0.29', '5.7.38'],
+      postgresql: ['14.5', '13.8', '12.12'],
+      mongodb: ['5.0.12', '4.4.16', '4.2.22'],
+      nodejs: ['18.7.0', '16.17.0', '14.20.0'],
+      springboot: ['2.7.2', '2.6.11', '2.5.14'],
+      django: ['4.1.0', '4.0.6', '3.2.15'],
+      redis: ['7.0.5', '6.2.7', '6.0.16'],
+      rabbitmq: ['3.10.7', '3.9.22', '3.8.34'],
+      elasticsearch: ['8.4.3', '7.17.6', '6.8.23'],
+      jenkins: ['2.361.4', '2.361.3', '2.361.2'],
+      prometheus: ['2.38.0', '2.37.1', '2.36.2'],
+    };
+
+    const versions = versionMap[serverType] || ['1.0.0', '1.1.0', '1.2.0'];
+    return versions[Math.floor(Math.random() * versions.length)];
+  }
+
+  /**
+   * 💰 애플리케이션 비용 계산
+   */
+  private calculateApplicationCost(servers: any[], category: string): number {
+    const baseCostPerServer = {
+      web: 50, // 웹서버: $50/월
+      app: 100, // 앱서버: $100/월
+      database: 200, // DB서버: $200/월
+      infrastructure: 75, // 인프라: $75/월
+    };
+
+    const costPerServer = baseCostPerServer[category] || 100;
+    const totalServers = servers.length;
+    const avgCpu =
+      servers.reduce((sum, s) => sum + s.metrics.cpu, 0) / servers.length;
+
+    // CPU 사용률에 따른 비용 조정 (높은 사용률 = 높은 비용)
+    const utilizationMultiplier = 1 + (avgCpu / 100) * 0.5;
+
+    return parseFloat(
+      (costPerServer * totalServers * utilizationMultiplier).toFixed(2)
+    );
   }
 
   public startAutoGeneration(): void {
@@ -1007,6 +1462,152 @@ export class RealServerDataGenerator {
 
     // 가중 평균으로 건강 점수 계산
     return Math.round(cpuScore * 0.4 + memoryScore * 0.4 + diskScore * 0.2);
+  }
+
+  /**
+   * 🏗️ 서버 타입별 특화 사양 생성
+   */
+  private generateSpecializedSpecs(serverType: RealWorldServerType): any {
+    const baseSpecs = {
+      cpu: {
+        cores: Math.floor(Math.random() * 16) + 4,
+        model: 'Intel Xeon',
+        architecture: Math.random() > 0.7 ? 'arm64' : 'x86_64',
+      },
+      memory: {
+        total: Math.pow(2, Math.floor(Math.random() * 4) + 3) * 1024,
+        type: 'DDR4',
+        speed: 3200,
+      },
+      disk: {
+        total: Math.pow(2, Math.floor(Math.random() * 3) + 8) * 1024,
+        type: 'SSD',
+        iops: 3000,
+      },
+      network: {
+        bandwidth: 1000,
+        latency: Math.random() * 10 + 1,
+      },
+    };
+
+    // 서버 타입별 사양 특화
+    switch (serverType.category) {
+      case 'database':
+        // 데이터베이스: 높은 메모리, 빠른 디스크
+        baseSpecs.memory.total =
+          Math.pow(2, Math.floor(Math.random() * 3) + 5) * 1024; // 32-128GB
+        baseSpecs.disk.total =
+          Math.pow(2, Math.floor(Math.random() * 4) + 10) * 1024; // 1-16TB
+        baseSpecs.disk.iops = 5000 + Math.floor(Math.random() * 5000); // 5000-10000 IOPS
+        baseSpecs.cpu.cores = Math.floor(Math.random() * 16) + 8; // 8-24 코어
+        break;
+
+      case 'web':
+        // 웹서버: 높은 네트워크, 적은 메모리
+        baseSpecs.network.bandwidth = 1000 + Math.floor(Math.random() * 9000); // 1-10Gbps
+        baseSpecs.memory.total =
+          Math.pow(2, Math.floor(Math.random() * 2) + 3) * 1024; // 8-32GB
+        baseSpecs.cpu.cores = Math.floor(Math.random() * 8) + 4; // 4-12 코어
+        break;
+
+      case 'app':
+        // 애플리케이션: 균형잡힌 사양
+        baseSpecs.cpu.cores = Math.floor(Math.random() * 12) + 8; // 8-20 코어
+        baseSpecs.memory.total =
+          Math.pow(2, Math.floor(Math.random() * 3) + 4) * 1024; // 16-64GB
+        break;
+
+      case 'infrastructure':
+        // 인프라: 목적별 특화
+        if (serverType.id === 'redis') {
+          baseSpecs.memory.total =
+            Math.pow(2, Math.floor(Math.random() * 4) + 5) * 1024; // 32-256GB
+        } else if (serverType.service === 'search') {
+          baseSpecs.cpu.cores = Math.floor(Math.random() * 20) + 12; // 12-32 코어
+          baseSpecs.memory.total =
+            Math.pow(2, Math.floor(Math.random() * 3) + 6) * 1024; // 64-256GB
+        }
+        break;
+    }
+
+    return baseSpecs;
+  }
+
+  /**
+   * 🚨 서버 타입별 현실적인 이슈 생성
+   */
+  private generateRealisticIssues(
+    serverType: RealWorldServerType,
+    metrics: any
+  ): string[] {
+    const issues: string[] = [];
+
+    // 공통 이슈
+    if (metrics.cpu > 80) {
+      issues.push(`High CPU usage (${metrics.cpu.toFixed(1)}%)`);
+    }
+    if (metrics.memory > 85) {
+      issues.push(`High memory usage (${metrics.memory.toFixed(1)}%)`);
+    }
+    if (metrics.disk > 90) {
+      issues.push(`Disk space critical (${metrics.disk.toFixed(1)}%)`);
+    }
+
+    // 서버 타입별 특화 이슈
+    switch (serverType.category) {
+      case 'database':
+        if (metrics.customMetrics?.query_time > 30) {
+          issues.push('Slow query performance detected');
+        }
+        if (metrics.customMetrics?.active_connections > 150) {
+          issues.push('High database connection count');
+        }
+        if (serverType.id === 'mysql') {
+          issues.push('InnoDB buffer pool optimization needed');
+        }
+        break;
+
+      case 'web':
+        if (metrics.customMetrics?.response_time > 120) {
+          issues.push('High response time detected');
+        }
+        if (metrics.customMetrics?.concurrent_connections > 800) {
+          issues.push('Connection limit approaching');
+        }
+        if (serverType.id === 'nginx') {
+          issues.push('Worker process optimization required');
+        }
+        break;
+
+      case 'app':
+        if (metrics.customMetrics?.heap_usage > 80) {
+          issues.push('Memory leak suspected');
+        }
+        if (metrics.customMetrics?.gc_time > 8) {
+          issues.push('Garbage collection overhead high');
+        }
+        if (serverType.id === 'nodejs') {
+          issues.push('Event loop lag detected');
+        }
+        break;
+
+      case 'infrastructure':
+        if (
+          serverType.id === 'redis' &&
+          metrics.customMetrics?.cache_hit_ratio < 85
+        ) {
+          issues.push('Low cache hit ratio');
+        }
+        if (
+          serverType.service === 'message-queue' &&
+          metrics.customMetrics?.queue_depth > 5000
+        ) {
+          issues.push('Message queue backlog detected');
+        }
+        break;
+    }
+
+    return issues.slice(0, 3); // 최대 3개 이슈만 표시
   }
 }
 

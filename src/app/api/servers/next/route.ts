@@ -1,19 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { rateLimiters, withRateLimit } from '@/lib/rate-limiter';
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * 🖥️ Sequential Server Generation API (실제 서버데이터 생성기 연동)
- * 
+ *
  * ✅ 개선: RealServerDataGenerator를 사용하여 정교한 서버 데이터 제공
  * - 24시간 베이스라인 패턴 기반 데이터
  * - 실제 서버 스펙 및 메트릭
  * - 시간대별 부하 패턴 반영
  * - 서버 타입별 특성화된 데이터
- * 
+ *
  * GET: 다음 서버 정보 조회 (Rate Limited: 1분에 20회)
  * POST: 서버 생성 요청 (Rate Limited: 1분에 20회)
- * 
+ *
  * 실제 서버 데이터를 받으려면:
  * 1. 실제 서버 모니터링 에이전트 설치
  * 2. 데이터베이스 연결 설정
@@ -29,7 +29,7 @@ function formatUptime(hours: number): string {
   const days = Math.floor(hours / 24);
   const remainingHours = Math.floor(hours % 24);
   const minutes = Math.floor((hours % 1) * 60);
-  
+
   return `${days}d ${remainingHours}h ${minutes}m`;
 }
 
@@ -239,10 +239,11 @@ async function handlePOST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: '서버 생성 순서가 리셋되었습니다.',
-        data: { 
-          currentIndex: 0, 
+        data: {
+          currentIndex: 0,
           resetTime: Date.now(),
-          totalServers: RealServerDataGenerator.getInstance().getAllServers().length 
+          totalServers:
+            RealServerDataGenerator.getInstance().getAllServers().length,
         },
       });
     }
@@ -254,12 +255,20 @@ async function handlePOST(request: NextRequest) {
       generator.startAutoGeneration();
     }
 
-    const servers = generator.getAllServers().sort((a, b) => a.id.localeCompare(b.id));
+    const servers = generator
+      .getAllServers()
+      .sort((a, b) => a.id.localeCompare(b.id));
 
     const limited = servers;
 
-    return NextResponse.json({ success: true, servers: limited }, { headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60' }});
-
+    return NextResponse.json(
+      { success: true, servers: limited },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+        },
+      }
+    );
   } catch (error) {
     console.error('❌ 서버 생성 실패:', error);
 

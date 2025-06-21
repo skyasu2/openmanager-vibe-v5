@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { devKeyManager } from '@/utils/dev-key-manager';
 import { createClient } from '@supabase/supabase-js';
 import { Redis } from '@upstash/redis';
-import { devKeyManager } from '@/utils/dev-key-manager';
+import { NextRequest, NextResponse } from 'next/server';
 
 interface ServiceStatus {
   name: string;
@@ -63,7 +63,7 @@ async function checkSupabase(): Promise<ServiceStatus> {
       responseTime,
       details: {
         url: supabaseUrl,
-        region: 'ap-southeast-1',
+        region: 'Seoul-DC-1',
         database: 'postgres',
         connection: 'pooler',
         keyManager: 'DevKeyManager v1.0',

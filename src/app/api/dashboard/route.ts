@@ -7,9 +7,8 @@
  * @version 5.12.0
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import { unifiedMetricsManager } from '@/services/UnifiedMetricsManager';
-import type { EnhancedServerMetrics } from '@/types/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
@@ -47,12 +46,14 @@ export async function GET(request: NextRequest) {
 
     // 2. 서버 데이터 조회
     const originalServers: any[] = unifiedMetricsManager.getServers();
-    console.log(`📊 총 ${originalServers.length}개 서버에서 대시보드 데이터 생성`);
+    console.log(
+      `📊 총 ${originalServers.length}개 서버에서 대시보드 데이터 생성`
+    );
 
     // 🔄 sinceTimestamp가 지정되면 변화된 서버만 필터링
     const servers: any[] = sinceTimestamp
-      ? originalServers.filter(s =>
-          new Date(s.last_updated).getTime() > (sinceTimestamp as number)
+      ? originalServers.filter(
+          s => new Date(s.last_updated).getTime() > (sinceTimestamp as number)
         )
       : originalServers;
 
@@ -157,7 +158,9 @@ export async function GET(request: NextRequest) {
         'X-Total-Servers': originalServers.length.toString(),
         'X-Returned-Servers': servers.length.toString(),
         'X-Delta-Mode': sinceTimestamp ? 'true' : 'false',
-        'X-Health-Score': calculateHealthScore(statusDistributionAll).toString(),
+        'X-Health-Score': calculateHealthScore(
+          statusDistributionAll
+        ).toString(),
         'X-Active-Alerts': alertsSummary.total_alerts.toString(),
         'X-Processing-Time-Ms': (Date.now() - startTime).toString(),
         'Cache-Control': 'no-cache, must-revalidate',
@@ -209,7 +212,7 @@ function analyzeByEnvironment(servers: any[]) {
 }
 
 function analyzeByRole(servers: any[]) {
-  const roles = ['web', 'api', 'database', 'cache', 'worker'];
+  const roles = ['web', 'api', 'database', 'cache'];
   return roles.map(role => ({
     role,
     total: servers.filter(s => s.role === role).length,

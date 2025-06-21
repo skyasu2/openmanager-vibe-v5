@@ -29,10 +29,10 @@ export interface ServerInstance {
     | 'cdn'
     | 'gpu'
     | 'storage';
-  role: 'master' | 'slave' | 'primary' | 'replica' | 'worker' | 'standalone';
+  role: 'primary' | 'replica' | 'worker' | 'standalone';
   location: string;
   status: 'running' | 'stopped' | 'warning' | 'error' | 'maintenance';
-  environment: 'production' | 'staging' | 'development' | 'test';
+  environment: 'production' | 'staging' | 'development';
   specs: {
     cpu: { cores: number; model: string; architecture?: string };
     memory: { total: number; type: string; speed?: number };
@@ -113,4 +113,4 @@ export interface ApplicationMetrics {
 
 export type ServerType = ServerInstance['type'];
 export type ServerRole = ServerInstance['role'];
-export type ServerSpecs = ServerInstance['specs']; 
+export type ServerSpecs = ServerInstance['specs'];

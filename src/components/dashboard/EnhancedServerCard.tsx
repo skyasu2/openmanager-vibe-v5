@@ -15,9 +15,12 @@ import {
   Activity,
   AlertTriangle,
   BarChart3,
+  Box,
   Cloud,
+  Code,
   Cpu,
   Database,
+  FileText,
   GitBranch,
   Globe,
   HardDrive,
@@ -25,11 +28,14 @@ import {
   Mail,
   Minus,
   Network,
+  Search,
   Server,
+  Settings,
   Shield,
   TrendingDown,
   TrendingUp,
   Wifi,
+  Zap,
 } from 'lucide-react';
 import React, { memo, useCallback, useEffect, useState } from 'react';
 
@@ -162,10 +168,40 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       return () => clearInterval(interval);
     }, [server.cpu, server.memory, server.disk, server.network, index]);
 
-    // 서버 타입별 아이콘
+    // 🎯 실제 기업 환경 기반 서버 타입별 아이콘
     const getServerIcon = () => {
       const type = server.type.toLowerCase();
 
+      // 🌐 웹서버
+      if (type === 'nginx' || type === 'apache' || type === 'iis')
+        return <Server className='w-5 h-5' />;
+
+      // 🚀 애플리케이션 서버
+      if (type === 'nodejs') return <GitBranch className='w-5 h-5' />;
+      if (type === 'springboot') return <Settings className='w-5 h-5' />;
+      if (type === 'django' || type === 'php')
+        return <Code className='w-5 h-5' />;
+      if (type === 'dotnet') return <Box className='w-5 h-5' />;
+
+      // 🗄️ 데이터베이스
+      if (
+        type === 'mysql' ||
+        type === 'postgresql' ||
+        type === 'oracle' ||
+        type === 'mssql'
+      )
+        return <Database className='w-5 h-5' />;
+      if (type === 'mongodb') return <FileText className='w-5 h-5' />;
+
+      // ⚙️ 인프라 서비스
+      if (type === 'redis') return <Zap className='w-5 h-5' />;
+      if (type === 'rabbitmq' || type === 'kafka')
+        return <Network className='w-5 h-5' />;
+      if (type === 'elasticsearch') return <Search className='w-5 h-5' />;
+      if (type === 'jenkins') return <Cpu className='w-5 h-5' />;
+      if (type === 'prometheus') return <BarChart3 className='w-5 h-5' />;
+
+      // 🔄 하위 호환성 (기존 타입)
       if (type.includes('web')) return <Server className='w-5 h-5' />;
       if (type.includes('database')) return <Database className='w-5 h-5' />;
       if (type.includes('container')) return <Layers className='w-5 h-5' />;
