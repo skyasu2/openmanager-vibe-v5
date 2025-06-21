@@ -168,7 +168,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
 
       if (type.includes('web')) return <Server className='w-5 h-5' />;
       if (type.includes('database')) return <Database className='w-5 h-5' />;
-      if (type.includes('kubernetes')) return <Layers className='w-5 h-5' />;
+      if (type.includes('container')) return <Layers className='w-5 h-5' />;
       if (type.includes('api')) return <GitBranch className='w-5 h-5' />;
       if (type.includes('analytics')) return <BarChart3 className='w-5 h-5' />;
       if (type.includes('monitoring')) return <BarChart3 className='w-5 h-5' />;

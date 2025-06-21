@@ -42,18 +42,12 @@ export type ServerType =
   | 'monitoring'
   | 'mail'
   | 'proxy'
-  | 'kubernetes'
   | 'analytics'
   | 'ci_cd'
   | 'security';
 
 // 클라우드 제공자 타입
-export type CloudProvider =
-  | 'aws'
-  | 'gcp'
-  | 'azure'
-  | 'onpremise'
-  | 'kubernetes';
+export type CloudProvider = 'aws' | 'gcp' | 'azure' | 'onpremise';
 
 // 기본 서비스 인터페이스
 export interface BaseService {

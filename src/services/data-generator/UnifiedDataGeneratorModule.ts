@@ -384,7 +384,7 @@ class AdvancedDataStrategy implements DataGeneratorStrategy {
       'eu-west-1',
     ];
     const serverTypes = this.config.advancedConfig?.serverTypes || [
-      'K8s',
+      'Container',
       'Host',
       'Cloud',
       'Container',
@@ -617,9 +617,9 @@ export class UnifiedDataGeneratorModule {
         regions: (process.env.REGIONS || 'us-east-1,us-west-2,eu-west-1').split(
           ','
         ),
-        serverTypes: (
-          process.env.SERVER_TYPES || 'K8s,Host,Cloud,Container'
-        ).split(','),
+        serverTypes: (process.env.SERVER_TYPES || 'Host,Cloud,Container').split(
+          ','
+        ),
       },
       realisticConfig: {
         scenario: (process.env.DEMO_SCENARIO as any) || 'normal',

@@ -80,7 +80,7 @@ export interface ServerMetrics {
     cluster?: string;
     zone?: string;
     instanceType?: string;
-    provider: 'aws' | 'gcp' | 'azure' | 'kubernetes' | 'onpremise';
+    provider: 'aws' | 'gcp' | 'azure' | 'onpremise';
   };
 }
 

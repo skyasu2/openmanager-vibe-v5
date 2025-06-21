@@ -10,7 +10,7 @@ const generateMockServers = () => {
     ['nginx', 'mysql', 'redis'],
     ['apache', 'postgresql', 'memcached'],
     ['node.js', 'mongodb', 'rabbitmq'],
-    ['docker', 'kubernetes', 'prometheus'],
+    ['docker', 'containers', 'prometheus'],
     ['jenkins', 'gitlab', 'elasticsearch'],
   ];
 

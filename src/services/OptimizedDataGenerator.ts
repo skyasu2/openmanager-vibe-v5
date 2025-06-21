@@ -99,21 +99,13 @@ const HIGH_LOAD_CONFIGS: Record<ServerRole, BaseLoadConfig> = {
     networkOut: 180,
     responseTime: 30,
   },
-  'k8s-worker': {
+  container: {
     cpu: 80,
     memory: 60,
     disk: 45,
     networkIn: 50,
     networkOut: 40,
     responseTime: 200,
-  },
-  'k8s-control': {
-    cpu: 25,
-    memory: 40,
-    disk: 70,
-    networkIn: 60,
-    networkOut: 80,
-    responseTime: 100,
   },
   storage: {
     cpu: 40,
@@ -317,21 +309,13 @@ export class OptimizedDataGenerator {
         networkOut: 180,
         responseTime: 30,
       },
-      'k8s-worker': {
+      container: {
         cpu: 80,
         memory: 60,
         disk: 45,
         networkIn: 50,
         networkOut: 40,
         responseTime: 200,
-      },
-      'k8s-control': {
-        cpu: 25,
-        memory: 40,
-        disk: 70,
-        networkIn: 60,
-        networkOut: 80,
-        responseTime: 100,
       },
       storage: {
         cpu: 40,

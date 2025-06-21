@@ -114,7 +114,6 @@ export type ServerEnvironment =
   | 'development'
   | 'on-premise'
   | 'aws'
-  | 'kubernetes'
   | 'gcp'
   | 'azure';
 export type ServerRole =
@@ -123,8 +122,7 @@ export type ServerRole =
   | 'database'
   | 'cache'
   | 'storage'
-  | 'k8s-control'
-  | 'k8s-worker'
+  | 'container'
   | 'load-balancer'
   | 'backup';
 
@@ -294,33 +292,19 @@ export const SERVER_TYPE_DEFINITIONS: Record<ServerRole, ServerTypeDefinition> =
       failureProne: ['disk_full', 'io_bottleneck', 'hardware_failure'],
       dependencies: [],
     },
-    'k8s-control': {
-      type: 'k8s-control',
-      tags: ['k8s', 'controller', 'etcd', 'api-server'],
+    container: {
+      type: 'container',
+      tags: ['docker', 'containers', 'orchestration'],
       characteristics: {
-        cpuWeight: 0.5,
-        memoryWeight: 0.7,
-        diskWeight: 0.6,
-        networkWeight: 0.9,
-        responseTimeBase: 100,
-        stabilityFactor: 0.9,
-      },
-      failureProne: ['etcd_corruption', 'api_server_overload'],
-      dependencies: [],
-    },
-    'k8s-worker': {
-      type: 'k8s-worker',
-      tags: ['kubelet', 'containerd', 'docker', 'pods'],
-      characteristics: {
-        cpuWeight: 0.9,
-        memoryWeight: 0.8,
-        diskWeight: 0.7,
+        cpuWeight: 0.8,
+        memoryWeight: 0.6,
+        diskWeight: 0.4,
         networkWeight: 1.0,
         responseTimeBase: 150,
         stabilityFactor: 0.7,
       },
-      failureProne: ['pod_eviction', 'resource_exhaustion', 'node_not_ready'],
-      dependencies: ['k8s-control'],
+      failureProne: ['container_crash', 'resource_limit', 'image_pull_failure'],
+      dependencies: [],
     },
     'load-balancer': {
       type: 'load-balancer',
@@ -379,11 +363,10 @@ export interface RealisticFailureScenario {
 export const FAILURE_IMPACT_GRAPH: Record<ServerRole, ServerRole[]> = {
   api: ['database', 'cache'],
   web: ['api', 'load-balancer'],
-  'k8s-worker': ['k8s-control'],
   storage: ['database', 'backup'],
-  'k8s-control': ['k8s-worker', 'api'],
   database: ['api', 'backup'],
   cache: ['api'],
+  container: ['api'],
   'load-balancer': ['web'],
   backup: ['storage'],
 };

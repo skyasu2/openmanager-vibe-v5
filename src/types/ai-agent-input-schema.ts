@@ -6,7 +6,7 @@
 export interface ServerMetadata {
   id: string;
   name: string;
-  serverType: 'K8s' | 'Host' | 'Cloud' | 'Container' | 'VM' | 'Edge';
+  serverType: 'Host' | 'Cloud' | 'Container' | 'VM' | 'Edge';
   location: {
     region: string;
     zone: string;
@@ -20,7 +20,15 @@ export interface ServerMetadata {
     architecture: 'x64' | 'arm64' | 'x86';
   };
   usageProfile: {
-    type: 'Web' | 'API' | 'Database' | 'Cache' | 'ML' | 'Analytics' | 'CDN' | 'Gateway';
+    type:
+      | 'Web'
+      | 'API'
+      | 'Database'
+      | 'Cache'
+      | 'ML'
+      | 'Analytics'
+      | 'CDN'
+      | 'Gateway';
     tier: 'Development' | 'Staging' | 'Production' | 'Testing';
     criticality: 'Low' | 'Medium' | 'High' | 'Critical';
     scalingType: 'Manual' | 'Auto' | 'Scheduled' | 'Event-Driven';
@@ -107,7 +115,7 @@ export interface TimeSeriesMetrics {
       cpu: number;
       memory: number;
     };
-    kubernetes?: {
+    container?: {
       pods: { running: number; pending: number; failed: number };
       nodes: { ready: number; notReady: number };
       resources: { cpu: number; memory: number };
@@ -139,7 +147,12 @@ export interface LogEntry {
     stack?: string;
   };
   structured: {
-    category: 'Security' | 'Performance' | 'Business' | 'System' | 'Application';
+    category:
+      | 'Security'
+      | 'Performance'
+      | 'Business'
+      | 'System'
+      | 'Application';
     tags: string[];
     context: Record<string, any>;
   };
@@ -313,4 +326,4 @@ export interface NLAnalysisResponse {
   sources: string[];
   suggestions: string[];
   language: 'ko' | 'en';
-} 
+}
