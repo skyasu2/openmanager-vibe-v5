@@ -295,13 +295,22 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       const glowId = `glow-${server.id}-${label}-${Math.random()}`;
 
       return (
-        <div className='flex flex-col items-center group'>
-          <div className='flex items-center gap-1 mb-1'>
-            <div className='text-gray-500 group-hover:scale-110 transition-transform'>
-              {icon}
+        <div className='flex flex-col bg-gray-50 rounded-lg p-3 group hover:bg-gray-100 transition-colors'>
+          {/* 라벨과 아이콘 */}
+          <div className='flex items-center justify-between mb-2'>
+            <div className='flex items-center gap-1'>
+              <div className='text-gray-500 group-hover:scale-110 transition-transform'>
+                {icon}
+              </div>
+              <span className='text-xs font-medium text-gray-700'>{label}</span>
             </div>
-            <span className='text-xs font-medium text-gray-700'>{label}</span>
+            {/* 수치 표시 */}
+            <span className='text-sm font-bold text-gray-900'>
+              {currentValue.toFixed(0)}%
+            </span>
           </div>
+
+          {/* 차트 */}
           <div
             className={`${variantStyles.chartSize} relative bg-white/80 rounded-lg p-2 shadow-sm`}
           >
@@ -386,6 +395,13 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                 filter={`url(#${glowId})`}
               />
             </svg>
+
+            {/* 위험 상태 표시 */}
+            {currentValue > 80 && (
+              <div className='absolute top-1 right-1'>
+                <span className='text-red-500 text-xs'>⚠️</span>
+              </div>
+            )}
           </div>
         </div>
       );
@@ -444,7 +460,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             cardHeight: 'min-h-[300px]',
             titleSize: 'text-xl',
             subtitleSize: 'text-sm',
-            chartContainer: 'grid-cols-4 gap-4',
+            chartContainer: 'grid-cols-2 gap-4',
             chartSize: 'w-24 h-16',
             showFullDetails: true,
           };
@@ -454,7 +470,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
             cardHeight: 'min-h-[220px]',
             titleSize: 'text-lg',
             subtitleSize: 'text-sm',
-            chartContainer: 'grid-cols-4 gap-3',
+            chartContainer: 'grid-cols-2 gap-3',
             chartSize: 'w-20 h-14',
             showFullDetails: false,
           };
