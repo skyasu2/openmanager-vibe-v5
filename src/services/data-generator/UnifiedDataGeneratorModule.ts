@@ -666,6 +666,22 @@ export class UnifiedDataGeneratorModule {
    * 🔴 Redis 연결 초기화 (선택적)
    */
   private async initRedis(): Promise<void> {
+    // 🚫 최우선: 환경변수 체크
+    if (process.env.FORCE_MOCK_REDIS === 'true') {
+      console.log(
+        '🎭 FORCE_MOCK_REDIS=true - UnifiedDataGeneratorModule Redis 연결 건너뜀'
+      );
+      return;
+    }
+
+    // 🧪 개발 도구 환경 체크
+    if (process.env.STORYBOOK === 'true' || process.env.NODE_ENV === 'test') {
+      console.log(
+        '🧪 개발 도구 환경 - UnifiedDataGeneratorModule Redis 연결 건너뜀'
+      );
+      return;
+    }
+
     if (!this.config.enableRedis) {
       console.log('🎭 Redis 비활성화 - 메모리 모드로 실행');
       return;

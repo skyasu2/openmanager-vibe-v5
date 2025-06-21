@@ -1,6 +1,6 @@
 /**
  * 🚀 통합 컨텍스트 캐싱 레이어
- * 
+ *
  * AI 제안사항 구현:
  * - Redis 캐싱을 모든 컨텍스트 관리자에 적용
  * - DevKeyManager의 Redis 설정 활용
@@ -36,7 +36,7 @@ export class UnifiedContextCache {
     hits: 0,
     misses: 0,
     sets: 0,
-    deletes: 0
+    deletes: 0,
   };
 
   // 무료 티어 최적화 설정
@@ -61,6 +61,22 @@ export class UnifiedContextCache {
    */
   private async initializeRedis(): Promise<void> {
     try {
+      // 🚫 최우선: 환경변수 체크
+      if (process.env.FORCE_MOCK_REDIS === 'true') {
+        console.log(
+          '🎭 FORCE_MOCK_REDIS=true - UnifiedContextCache Redis 연결 건너뜀'
+        );
+        return;
+      }
+
+      // 🧪 개발 도구 환경 체크
+      if (process.env.STORYBOOK === 'true' || process.env.NODE_ENV === 'test') {
+        console.log(
+          '🧪 개발 도구 환경 - UnifiedContextCache Redis 연결 건너뜀'
+        );
+        return;
+      }
+
       const redisUrl = devKeyManager.getKey('UPSTASH_REDIS_REST_URL');
       const redisToken = devKeyManager.getKey('UPSTASH_REDIS_REST_TOKEN');
 
@@ -115,7 +131,6 @@ export class UnifiedContextCache {
       // 3. 캐시 미스
       this.stats.misses++;
       return null;
-
     } catch (error) {
       console.warn('캐시 조회 오류:', error);
       this.stats.misses++;
@@ -126,7 +141,11 @@ export class UnifiedContextCache {
   /**
    * 💾 캐시에 데이터 저장
    */
-  async set<T>(key: string, data: T, ttl: number = this.DEFAULT_TTL): Promise<void> {
+  async set<T>(
+    key: string,
+    data: T,
+    ttl: number = this.DEFAULT_TTL
+  ): Promise<void> {
     const cacheKey = this.generateCacheKey(key);
 
     try {
@@ -191,7 +210,7 @@ export class UnifiedContextCache {
       timestamp: Date.now(),
       ttl: ttl * 1000, // 밀리초로 변환
       accessCount: 1,
-      lastAccessed: Date.now()
+      lastAccessed: Date.now(),
     };
 
     this.localCache.set(key, entry);
@@ -202,7 +221,7 @@ export class UnifiedContextCache {
    */
   private isValidEntry(entry: CacheEntry<any>): boolean {
     const now = Date.now();
-    return (now - entry.timestamp) < entry.ttl;
+    return now - entry.timestamp < entry.ttl;
   }
 
   /**
@@ -260,10 +279,13 @@ export class UnifiedContextCache {
     return {
       totalEntries: this.localCache.size,
       hitRate: totalRequests > 0 ? (this.stats.hits / totalRequests) * 100 : 0,
-      missRate: totalRequests > 0 ? (this.stats.misses / totalRequests) * 100 : 0,
+      missRate:
+        totalRequests > 0 ? (this.stats.misses / totalRequests) * 100 : 0,
       memoryUsage: this.estimateMemoryUsage(),
-      oldestEntry: entries.length > 0 ? Math.min(...entries.map(e => e.timestamp)) : 0,
-      newestEntry: entries.length > 0 ? Math.max(...entries.map(e => e.timestamp)) : 0
+      oldestEntry:
+        entries.length > 0 ? Math.min(...entries.map(e => e.timestamp)) : 0,
+      newestEntry:
+        entries.length > 0 ? Math.max(...entries.map(e => e.timestamp)) : 0,
     };
   }
 
@@ -331,7 +353,8 @@ export const unifiedContextCache = UnifiedContextCache.getInstance();
 
 // 🔧 편의 함수들
 export const cacheGet = <T>(key: string) => unifiedContextCache.get<T>(key);
-export const cacheSet = <T>(key: string, data: T, ttl?: number) => unifiedContextCache.set(key, data, ttl);
+export const cacheSet = <T>(key: string, data: T, ttl?: number) =>
+  unifiedContextCache.set(key, data, ttl);
 export const cacheDelete = (key: string) => unifiedContextCache.delete(key);
 export const getCacheStats = () => unifiedContextCache.getStats();
 export const getCacheReport = () => unifiedContextCache.getPerformanceReport();

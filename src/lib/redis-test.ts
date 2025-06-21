@@ -13,6 +13,18 @@ type RedisType = any;
  */
 export async function testRedisConnection(): Promise<boolean> {
   try {
+    // 🚫 최우선: 환경변수 체크
+    if (process.env.FORCE_MOCK_REDIS === 'true') {
+      console.log('🎭 FORCE_MOCK_REDIS=true - Redis 연결 테스트 건너뜀');
+      return true; // 목업 모드에서는 성공으로 간주
+    }
+
+    // 🧪 개발 도구 환경 체크
+    if (process.env.STORYBOOK === 'true' || process.env.NODE_ENV === 'test') {
+      console.log('🧪 개발 도구 환경 - Redis 연결 테스트 건너뜀');
+      return true; // 개발 환경에서는 성공으로 간주
+    }
+
     // 클라이언트 사이드에서는 테스트 불가
     if (typeof window !== 'undefined') {
       console.log('⚠️ 클라이언트 환경에서는 Redis 테스트를 수행할 수 없습니다');
@@ -64,6 +76,18 @@ export async function testRedisConnection(): Promise<boolean> {
  */
 export async function testRedisReadWrite(): Promise<boolean> {
   try {
+    // 🚫 최우선: 환경변수 체크
+    if (process.env.FORCE_MOCK_REDIS === 'true') {
+      console.log('🎭 FORCE_MOCK_REDIS=true - Redis 읽기/쓰기 테스트 건너뜀');
+      return true; // 목업 모드에서는 성공으로 간주
+    }
+
+    // 🧪 개발 도구 환경 체크
+    if (process.env.STORYBOOK === 'true' || process.env.NODE_ENV === 'test') {
+      console.log('🧪 개발 도구 환경 - Redis 읽기/쓰기 테스트 건너뜀');
+      return true; // 개발 환경에서는 성공으로 간주
+    }
+
     // 클라이언트 사이드에서는 테스트 불가
     if (typeof window !== 'undefined') {
       console.log('⚠️ 클라이언트 환경에서는 Redis 테스트를 수행할 수 없습니다');
