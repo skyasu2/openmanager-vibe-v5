@@ -48,7 +48,16 @@ export const safeServerAccess = {
   },
 
   uptime: (server: Server | undefined | null): string => {
-    return server?.uptime || '0h 0m';
+    if (typeof server?.uptime === 'string') {
+      return server.uptime;
+    }
+    if (typeof server?.uptime === 'number') {
+      // 숫자를 시간 형식으로 변환 (초 단위 가정)
+      const hours = Math.floor(server.uptime / 3600);
+      const minutes = Math.floor((server.uptime % 3600) / 60);
+      return `${hours}h ${minutes}m`;
+    }
+    return '0h 0m';
   },
 
   alerts: (server: Server | undefined | null): number => {

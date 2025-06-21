@@ -10,34 +10,28 @@
  * - 네트워크 모니터링 추가
  */
 
-import React, { memo, useState, useCallback, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Server,
-  Database,
-  Cloud,
-  Shield,
-  BarChart3,
-  GitBranch,
-  Mail,
-  Layers,
-  Cpu,
-  HardDrive,
   Activity,
-  Wifi,
-  Eye,
-  Settings,
-  Play,
-  Square,
   AlertTriangle,
-  CheckCircle2,
-  TrendingUp,
-  TrendingDown,
+  BarChart3,
+  Cloud,
+  Cpu,
+  Database,
+  GitBranch,
+  Globe,
+  HardDrive,
+  Layers,
+  Mail,
   Minus,
   Network,
-  Globe,
+  Server,
+  Shield,
+  TrendingDown,
+  TrendingUp,
+  Wifi,
 } from 'lucide-react';
-import { Server as ServerType } from '../../types/server';
+import React, { memo, useCallback, useEffect, useState } from 'react';
 
 interface EnhancedServerCardProps {
   server: {
@@ -93,21 +87,19 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       network: number[]; // 네트워크 데이터 추가
       trend: 'up' | 'down' | 'stable';
     }>({
-      cpu: Array.from(
-        { length: 12 },
-        () => Math.random() * 30 + server.cpu - 15
+      cpu: Array.from({ length: 12 }, () =>
+        parseFloat((Math.random() * 30 + server.cpu - 15).toFixed(2))
       ),
-      memory: Array.from(
-        { length: 12 },
-        () => Math.random() * 20 + server.memory - 10
+      memory: Array.from({ length: 12 }, () =>
+        parseFloat((Math.random() * 20 + server.memory - 10).toFixed(2))
       ),
-      disk: Array.from(
-        { length: 12 },
-        () => Math.random() * 10 + server.disk - 5
+      disk: Array.from({ length: 12 }, () =>
+        parseFloat((Math.random() * 10 + server.disk - 5).toFixed(2))
       ),
-      network: Array.from(
-        { length: 12 },
-        () => Math.random() * 40 + (server.network || 30) - 20
+      network: Array.from({ length: 12 }, () =>
+        parseFloat(
+          (Math.random() * 40 + (server.network || 30) - 20).toFixed(2)
+        )
       ), // 네트워크 데이터
       trend: 'stable',
     });
@@ -119,33 +111,41 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
           setRealtimeData(prev => ({
             cpu: [
               ...prev.cpu.slice(1),
-              Math.max(
-                0,
-                Math.min(100, server.cpu + (Math.random() - 0.5) * 20)
+              parseFloat(
+                Math.max(
+                  0,
+                  Math.min(100, server.cpu + (Math.random() - 0.5) * 20)
+                ).toFixed(2)
               ),
             ],
             memory: [
               ...prev.memory.slice(1),
-              Math.max(
-                0,
-                Math.min(100, server.memory + (Math.random() - 0.5) * 15)
+              parseFloat(
+                Math.max(
+                  0,
+                  Math.min(100, server.memory + (Math.random() - 0.5) * 15)
+                ).toFixed(2)
               ),
             ],
             disk: [
               ...prev.disk.slice(1),
-              Math.max(
-                0,
-                Math.min(100, server.disk + (Math.random() - 0.5) * 5)
+              parseFloat(
+                Math.max(
+                  0,
+                  Math.min(100, server.disk + (Math.random() - 0.5) * 5)
+                ).toFixed(2)
               ),
             ],
             network: [
               ...prev.network.slice(1),
-              Math.max(
-                0,
-                Math.min(
-                  100,
-                  (server.network || 30) + (Math.random() - 0.5) * 25
-                )
+              parseFloat(
+                Math.max(
+                  0,
+                  Math.min(
+                    100,
+                    (server.network || 30) + (Math.random() - 0.5) * 25
+                  )
+                ).toFixed(2)
               ),
             ],
             trend:
@@ -593,7 +593,7 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
                 네트워크
               </div>
               <div className='text-sm font-bold text-green-600'>
-                {server.network || Math.floor(Math.random() * 40) + 20}%
+                {server.network || 0}%
               </div>
             </div>
           </div>

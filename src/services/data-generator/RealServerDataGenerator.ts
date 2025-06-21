@@ -494,9 +494,9 @@ export class RealServerDataGenerator {
           },
         },
         metrics: {
-          cpu: Math.random() * 80 + 10,
-          memory: Math.random() * 70 + 20,
-          disk: Math.random() * 60 + 30,
+          cpu: parseFloat((Math.random() * 80 + 10).toFixed(2)),
+          memory: parseFloat((Math.random() * 70 + 20).toFixed(2)),
+          disk: parseFloat((Math.random() * 60 + 30).toFixed(2)),
           network: {
             in: Math.random() * 100,
             out: Math.random() * 100,
@@ -730,17 +730,23 @@ export class RealServerDataGenerator {
       // 🎯 2단계: 데이터 전처리 (저장 전 수행)
       const variation = Math.sin(Date.now() / 60000) * 0.3 + 0.7; // 시간에 따른 변화 패턴
       const processedMetrics = {
-        cpu: Math.max(
-          0,
-          Math.min(100, rawMetrics.cpu + (Math.random() - 0.5) * 20)
+        cpu: parseFloat(
+          Math.max(
+            0,
+            Math.min(100, rawMetrics.cpu + (Math.random() - 0.5) * 20)
+          ).toFixed(2)
         ),
-        memory: Math.max(
-          0,
-          Math.min(100, rawMetrics.memory + (Math.random() - 0.5) * 15)
+        memory: parseFloat(
+          Math.max(
+            0,
+            Math.min(100, rawMetrics.memory + (Math.random() - 0.5) * 15)
+          ).toFixed(2)
         ),
-        disk: Math.max(
-          0,
-          Math.min(100, rawMetrics.disk + (Math.random() - 0.5) * 10)
+        disk: parseFloat(
+          Math.max(
+            0,
+            Math.min(100, rawMetrics.disk + (Math.random() - 0.5) * 10)
+          ).toFixed(2)
         ),
         network: {
           in: Math.max(0, rawMetrics.network.in + (Math.random() - 0.5) * 50),

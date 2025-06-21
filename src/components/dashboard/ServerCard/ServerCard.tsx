@@ -8,12 +8,12 @@
  * - 100% 호환성 유지
  */
 
-import React, { memo, useState, useCallback } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import { Server } from '../../../types/server';
-import ServerIcon from './ServerIcon';
-import MetricsDisplay from './MetricsDisplay';
-import StatusBadge from './StatusBadge';
 import ActionButtons from './ActionButtons';
+import MetricsDisplay from './MetricsDisplay';
+import ServerIcon from './ServerIcon';
+import StatusBadge from './StatusBadge';
 
 interface ServerCardProps {
   server: Server;
@@ -184,7 +184,7 @@ const ServerCard: React.FC<ServerCardProps> = memo(
                 <div className='flex justify-between'>
                   <span>응답속도</span>
                   <span className='font-medium text-gray-900'>
-                    {(Math.random() * 200 + 50).toFixed(0)}ms
+                    {server.network ? `${server.network}ms` : '0ms'}
                   </span>
                 </div>
               </>
@@ -223,7 +223,7 @@ const ServerCard: React.FC<ServerCardProps> = memo(
                   <div className='flex justify-between'>
                     <span className='text-gray-600'>응답</span>
                     <span className='font-medium'>
-                      {(Math.random() * 200 + 50).toFixed(0)}ms
+                      {server.network ? `${server.network}ms` : '0ms'}
                     </span>
                   </div>
                 </div>

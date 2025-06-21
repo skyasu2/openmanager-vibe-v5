@@ -184,9 +184,9 @@ class RealDataStrategy implements DataGeneratorStrategy {
           },
         },
         metrics: {
-          cpu: Math.random() * 80 + 10,
-          memory: Math.random() * 70 + 20,
-          disk: Math.random() * 60 + 30,
+          cpu: parseFloat((Math.random() * 80 + 10).toFixed(2)),
+          memory: parseFloat((Math.random() * 70 + 20).toFixed(2)),
+          disk: parseFloat((Math.random() * 60 + 30).toFixed(2)),
           network: {
             in: Math.random() * 100,
             out: Math.random() * 100,
@@ -211,18 +211,24 @@ class RealDataStrategy implements DataGeneratorStrategy {
     const servers: ServerInstance[] = [];
 
     for (const [id, server] of this.servers) {
-      // 메트릭 업데이트
-      server.metrics.cpu = Math.max(
-        5,
-        Math.min(95, server.metrics.cpu + (Math.random() - 0.5) * 10)
+      // 메트릭 업데이트 (소수점 2자리)
+      server.metrics.cpu = parseFloat(
+        Math.max(
+          5,
+          Math.min(95, server.metrics.cpu + (Math.random() - 0.5) * 10)
+        ).toFixed(2)
       );
-      server.metrics.memory = Math.max(
-        10,
-        Math.min(90, server.metrics.memory + (Math.random() - 0.5) * 8)
+      server.metrics.memory = parseFloat(
+        Math.max(
+          10,
+          Math.min(90, server.metrics.memory + (Math.random() - 0.5) * 8)
+        ).toFixed(2)
       );
-      server.metrics.disk = Math.max(
-        20,
-        Math.min(85, server.metrics.disk + (Math.random() - 0.5) * 3)
+      server.metrics.disk = parseFloat(
+        Math.max(
+          20,
+          Math.min(85, server.metrics.disk + (Math.random() - 0.5) * 3)
+        ).toFixed(2)
       );
 
       servers.push(server);
@@ -493,8 +499,8 @@ class RealisticDataStrategy implements DataGeneratorStrategy {
     const hour = timestamp.getHours();
     const timePattern = hour >= 9 && hour <= 18 ? 1.0 : 0.5;
 
-    let cpu = 25 * timePattern + Math.random() * 20;
-    let memory = 40 * timePattern + Math.random() * 30;
+    let cpu = parseFloat((25 * timePattern + Math.random() * 20).toFixed(2));
+    let memory = parseFloat((40 * timePattern + Math.random() * 30).toFixed(2));
 
     // 시나리오별 수정
     switch (this.scenario) {

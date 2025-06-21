@@ -90,7 +90,26 @@ const StatusBadge: React.FC<StatusBadgeProps> = memo(
 
     // 업타임 기반 추가 정보
     const getUptimeInfo = () => {
-      const uptimeText = server.uptime;
+      const uptimeValue = server.uptime;
+
+      // 업타임을 문자열로 변환
+      let uptimeText: string;
+      if (typeof uptimeValue === 'string') {
+        uptimeText = uptimeValue;
+      } else if (typeof uptimeValue === 'number') {
+        // 숫자를 시간 형식으로 변환 (초 단위 가정)
+        const hours = Math.floor(uptimeValue / 3600);
+        const days = Math.floor(hours / 24);
+        if (days > 0) {
+          uptimeText = `${days} days`;
+        } else {
+          const minutes = Math.floor((uptimeValue % 3600) / 60);
+          uptimeText = `${hours}h ${minutes}m`;
+        }
+      } else {
+        return null;
+      }
+
       if (uptimeText.includes('day')) {
         const days = parseInt(uptimeText);
         if (days > 365)
@@ -139,7 +158,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = memo(
             px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg 
             flex items-center gap-1 text-xs font-medium ${uptimeInfo.color}
           `}
-            title={`연속 가동 시간: ${server.uptime}`}
+            title={`연속 가동 시간: ${typeof server.uptime === 'string' ? server.uptime : typeof server.uptime === 'number' ? `${Math.floor(server.uptime / 3600)}h ${Math.floor((server.uptime % 3600) / 60)}m` : '알 수 없음'}`}
           >
             <span>{uptimeInfo.badge}</span>
             <span>{uptimeInfo.text}</span>
@@ -150,7 +169,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = memo(
         {variant === 'detailed' && (
           <div className='flex items-center gap-1 text-xs text-gray-500'>
             <span>📡</span>
-            <span>{(Math.random() * 200 + 50).toFixed(0)}ms</span>
+            <span>{server.network ? `${server.network}ms` : '0ms'}</span>
           </div>
         )}
 

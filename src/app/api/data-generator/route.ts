@@ -139,9 +139,15 @@ function generateMetrics(count: number) {
     const timestamp = new Date(now - (count - i) * 60000).toISOString();
     metrics.push({
       timestamp,
-      cpu: Math.round(20 + Math.random() * 60 + Math.sin(i / 10) * 10),
-      memory: Math.round(30 + Math.random() * 50 + Math.sin(i / 8) * 15),
-      disk: Math.round(40 + Math.random() * 30 + Math.sin(i / 12) * 5),
+      cpu: parseFloat(
+        (20 + Math.random() * 60 + Math.sin(i / 10) * 10).toFixed(2)
+      ),
+      memory: parseFloat(
+        (30 + Math.random() * 50 + Math.sin(i / 8) * 15).toFixed(2)
+      ),
+      disk: parseFloat(
+        (40 + Math.random() * 30 + Math.sin(i / 12) * 5).toFixed(2)
+      ),
       networkIn: Math.round(1000 + Math.random() * 5000),
       networkOut: Math.round(2000 + Math.random() * 8000),
       responseTime: Math.round(100 + Math.random() * 400),
@@ -162,8 +168,8 @@ function generateServers(count: number) {
       name: `OpenManager-Server-${i + 1}`,
       type: types[Math.floor(Math.random() * types.length)],
       status: statuses[Math.floor(Math.random() * statuses.length)],
-      cpu: Math.round(Math.random() * 100),
-      memory: Math.round(Math.random() * 100),
+      cpu: parseFloat((Math.random() * 100).toFixed(2)),
+      memory: parseFloat((Math.random() * 100).toFixed(2)),
       uptime: Math.round(Math.random() * 365 * 24 * 60 * 60), // seconds
       lastCheck: new Date().toISOString(),
     });

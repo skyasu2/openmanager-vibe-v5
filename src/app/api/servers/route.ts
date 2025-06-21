@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { NextRequest, NextResponse } from 'next/server';
 
 // 목업 서버 데이터
 const generateMockServers = () => {
@@ -23,9 +23,12 @@ const generateMockServers = () => {
       id: `server-${i.toString().padStart(3, '0')}`,
       name: `${location}-WEB-${i.toString().padStart(2, '0')}`,
       status,
-      cpu: status === 'offline' ? 0 : Math.floor(Math.random() * 100),
-      memory: status === 'offline' ? 0 : Math.floor(Math.random() * 100),
-      disk: status === 'offline' ? 0 : Math.floor(Math.random() * 100),
+      cpu:
+        status === 'offline' ? 0 : parseFloat((Math.random() * 100).toFixed(2)),
+      memory:
+        status === 'offline' ? 0 : parseFloat((Math.random() * 100).toFixed(2)),
+      disk:
+        status === 'offline' ? 0 : parseFloat((Math.random() * 100).toFixed(2)),
       uptime:
         status === 'offline'
           ? '0d 0h 0m'

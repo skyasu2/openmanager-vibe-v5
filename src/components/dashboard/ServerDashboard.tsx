@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useServerDashboard, DashboardTab } from '@/hooks/useServerDashboard';
+import EnhancedServerCard from '@/components/dashboard/EnhancedServerCard';
+import ServerDetailModal from '@/components/dashboard/ServerDetailModal';
 import {
   Pagination,
   PaginationContent,
@@ -10,11 +10,9 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import EnhancedServerCard from '@/components/dashboard/EnhancedServerCard';
-import { Server } from '@/types/server';
+import { DashboardTab, useServerDashboard } from '@/hooks/useServerDashboard';
 import { Loader2 } from 'lucide-react';
-import { ServerDashboardTabs } from '@/components/dashboard/server-dashboard/ServerDashboardTabs';
-import ServerDetailModal from '@/components/dashboard/ServerDetailModal';
+import { useEffect, useState } from 'react';
 
 interface ServerDashboardProps {
   onStatsUpdate?: (stats: {
@@ -86,6 +84,12 @@ export default function ServerDashboard({
                   server.status === 'online'
                     ? 'healthy'
                     : (server.status as any),
+                uptime:
+                  typeof server.uptime === 'string'
+                    ? server.uptime
+                    : typeof server.uptime === 'number'
+                      ? `${Math.floor(server.uptime / 3600)}h ${Math.floor((server.uptime % 3600) / 60)}m`
+                      : '0h 0m',
                 alerts:
                   typeof server.alerts === 'number'
                     ? server.alerts

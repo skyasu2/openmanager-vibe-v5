@@ -60,9 +60,15 @@ async function getRealtimeServerData(): Promise<ServerMetric[]> {
 
   return baseServers.map(server => {
     // 실시간 변화를 시뮬레이션 (실제로는 실제 메트릭 수집)
-    const cpu = Math.max(10, Math.min(95, 45 + Math.random() * 30 - 15));
-    const memory = Math.max(20, Math.min(90, 60 + Math.random() * 20 - 10));
-    const disk = Math.max(15, Math.min(85, 40 + Math.random() * 10 - 5));
+    const cpu = parseFloat(
+      Math.max(10, Math.min(95, 45 + Math.random() * 30 - 15)).toFixed(2)
+    );
+    const memory = parseFloat(
+      Math.max(20, Math.min(90, 60 + Math.random() * 20 - 10)).toFixed(2)
+    );
+    const disk = parseFloat(
+      Math.max(15, Math.min(85, 40 + Math.random() * 10 - 5)).toFixed(2)
+    );
 
     // 상태 계산
     let status: 'online' | 'offline' | 'warning' = 'online';

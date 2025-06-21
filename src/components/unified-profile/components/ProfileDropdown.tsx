@@ -4,24 +4,14 @@
 
 'use client';
 
-import { forwardRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { createPortal } from 'react-dom';
-import {
-  User,
-  Bot,
-  Power,
-  Settings,
-  LogOut,
-  Shield,
-  StopCircle,
-  Monitor,
-} from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { ProfileDropdownProps } from '../types/ProfileTypes';
-import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useToast } from '@/components/ui/ToastNotification';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { AnimatePresence, motion } from 'framer-motion';
+import { LogOut, Monitor, Settings, Shield } from 'lucide-react';
+import Link from 'next/link';
+import { forwardRef } from 'react';
+import { createPortal } from 'react-dom';
+import { ProfileDropdownProps } from '../types/ProfileTypes';
 
 const ProfileDropdown = forwardRef<HTMLDivElement, ProfileDropdownProps>(
   (
@@ -87,7 +77,7 @@ const ProfileDropdown = forwardRef<HTMLDivElement, ProfileDropdownProps>(
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             transition={{ duration: 0.2 }}
-            className='fixed bg-gray-900/95 border border-gray-700/50 rounded-xl shadow-2xl z-[9500] min-w-[280px] max-w-[320px]'
+            className='fixed bg-gray-900/98 backdrop-blur-md border border-gray-600/80 rounded-xl shadow-2xl z-[9500] min-w-[280px] max-w-[320px] ring-1 ring-white/10'
             style={{
               top: `${position.top}px`,
               left: `${position.left}px`,
@@ -97,9 +87,9 @@ const ProfileDropdown = forwardRef<HTMLDivElement, ProfileDropdownProps>(
             {/* 간단한 메뉴 아이템들 */}
             <div className='p-2'>
               <motion.button
-                whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                whileHover={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
                 onClick={handleSettingsClick}
-                className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors'
+                className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all duration-200 hover:shadow-md'
               >
                 <Settings className='w-4 h-4 text-purple-400' />
                 <span className='text-white'>통합 설정</span>
@@ -109,8 +99,8 @@ const ProfileDropdown = forwardRef<HTMLDivElement, ProfileDropdownProps>(
               {adminMode.isAuthenticated && (
                 <Link href='/admin' onClick={onClose}>
                   <motion.div
-                    whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                    className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors cursor-pointer'
+                    whileHover={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
+                    className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all duration-200 cursor-pointer hover:shadow-md'
                   >
                     <Monitor className='w-4 h-4 text-blue-400' />
                     <span className='text-white'>관리자 대시보드</span>
@@ -120,7 +110,7 @@ const ProfileDropdown = forwardRef<HTMLDivElement, ProfileDropdownProps>(
 
               {/* 구분선 - 관리자 모드일 때만 표시 */}
               {adminMode.isAuthenticated && (
-                <div className='my-2 border-t border-gray-700/50'></div>
+                <div className='my-2 border-t border-gray-600/60'></div>
               )}
 
               {/* 관리자 상태에 따른 로그아웃 옵션 */}
@@ -128,18 +118,18 @@ const ProfileDropdown = forwardRef<HTMLDivElement, ProfileDropdownProps>(
                 // 관리자 로그인 상태일 때
                 <>
                   <motion.button
-                    whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                    whileHover={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
                     onClick={handleAdminLogout}
-                    className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors'
+                    className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all duration-200 hover:shadow-md'
                   >
                     <Shield className='w-4 h-4 text-orange-400' />
                     <span className='text-white'>관리자 로그아웃</span>
                   </motion.button>
 
                   <motion.button
-                    whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                    whileHover={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
                     onClick={handleFullLogout}
-                    className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors'
+                    className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all duration-200 hover:shadow-md'
                   >
                     <LogOut className='w-4 h-4 text-red-400' />
                     <span className='text-white'>전체 로그아웃</span>
@@ -148,9 +138,9 @@ const ProfileDropdown = forwardRef<HTMLDivElement, ProfileDropdownProps>(
               ) : (
                 // 일반 사용자 상태일 때
                 <motion.button
-                  whileHover={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                  whileHover={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
                   onClick={handleFullLogout}
-                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors'
+                  className='w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all duration-200 hover:shadow-md'
                 >
                   <LogOut className='w-4 h-4 text-red-400' />
                   <span className='text-white'>로그아웃</span>

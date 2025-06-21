@@ -10,49 +10,20 @@
  * - AI 기반 인사이트
  */
 
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  useRef,
-} from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  X,
   Activity,
-  Cpu,
-  HardDrive,
-  Wifi,
-  Users,
-  Clock,
   AlertTriangle,
-  CheckCircle,
-  TrendingUp,
-  TrendingDown,
-  Server,
-  Database,
-  Shield,
   BarChart3,
-  Terminal,
-  Network,
-  Zap,
-  Globe,
-  Settings,
-  RefreshCw,
-  Play,
-  Pause,
-  Eye,
-  Download,
-  Share,
-  Maximize2,
-  Monitor,
+  Cpu,
   FileText,
-  Brain,
-  Target,
-  Layers,
-  GitBranch,
+  Network,
+  Pause,
+  Play,
+  Server,
+  X,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface EnhancedServerModalProps {
   server: {
@@ -103,7 +74,7 @@ export default function EnhancedServerModal({
   onClose,
 }: EnhancedServerModalProps) {
   const [selectedTab, setSelectedTab] = useState<
-    'overview' | 'metrics' | 'processes' | 'logs' | 'network' | 'ai'
+    'overview' | 'metrics' | 'processes' | 'logs' | 'network'
   >('overview');
   const [isRealtime, setIsRealtime] = useState(true);
   const [timeRange, setTimeRange] = useState<'5m' | '1h' | '6h' | '24h' | '7d'>(
@@ -127,12 +98,6 @@ export default function EnhancedServerModal({
       message: string;
       source: string;
     }>;
-    insights: Array<{
-      type: string;
-      message: string;
-      severity: string;
-      timestamp: string;
-    }>;
   }>({
     cpu: [],
     memory: [],
@@ -141,7 +106,6 @@ export default function EnhancedServerModal({
     latency: [],
     processes: [],
     logs: [],
-    insights: [],
   });
 
   // 실시간 데이터 생성
@@ -173,61 +137,32 @@ export default function EnhancedServerModal({
         latency: [...prev.latency.slice(-29), Math.random() * 100 + 50].slice(
           -30
         ),
-        processes: Array.from({ length: 8 }, (_, i) => ({
-          name: [
-            'nodejs',
-            'nginx',
-            'postgres',
-            'redis',
-            'docker',
-            'systemd',
-            'ssh',
-            'cron',
-          ][i],
-          cpu: Math.random() * 20,
-          memory: Math.random() * 15,
-          pid: 1000 + i,
-        })),
+        processes:
+          server.services?.map((service, i) => ({
+            name: service.name,
+            cpu: parseFloat((Math.random() * 20).toFixed(2)),
+            memory: parseFloat((Math.random() * 15).toFixed(2)),
+            pid: 1000 + i,
+          })) || [],
         logs: [
           ...prev.logs.slice(-19),
           {
             timestamp: now.toISOString(),
             level: ['info', 'warn', 'error'][Math.floor(Math.random() * 3)],
             message: [
-              'HTTP request processed successfully',
-              'Memory usage above threshold',
-              'Database connection established',
-              'Cache invalidated',
-              'Backup completed',
-              'SSL certificate renewed',
+              `${server.name} - HTTP request processed successfully`,
+              `${server.name} - Memory usage above threshold`,
+              `${server.name} - Database connection established`,
+              `${server.name} - Cache invalidated`,
+              `${server.name} - Backup completed`,
+              `${server.name} - SSL certificate renewed`,
             ][Math.floor(Math.random() * 6)],
-            source: ['nginx', 'app', 'db', 'cache'][
-              Math.floor(Math.random() * 4)
-            ],
+            source:
+              server.services?.[
+                Math.floor(Math.random() * server.services.length)
+              ]?.name || server.name,
           },
         ].slice(-20),
-        insights: [
-          ...prev.insights.slice(-4),
-          ...(Math.random() > 0.8
-            ? [
-                {
-                  type: ['performance', 'security', 'capacity'][
-                    Math.floor(Math.random() * 3)
-                  ],
-                  message: [
-                    'CPU 사용률이 지속적으로 증가하고 있습니다',
-                    '비정상적인 네트워크 트래픽이 감지되었습니다',
-                    '디스크 용량이 부족할 수 있습니다',
-                    '응답 시간이 개선되었습니다',
-                  ][Math.floor(Math.random() * 4)],
-                  severity: ['info', 'warning', 'critical'][
-                    Math.floor(Math.random() * 3)
-                  ],
-                  timestamp: now.toISOString(),
-                },
-              ]
-            : []),
-        ].slice(-5),
       }));
     };
 
@@ -244,7 +179,6 @@ export default function EnhancedServerModal({
     { id: 'processes', label: '프로세스', icon: Cpu },
     { id: 'logs', label: '로그', icon: FileText },
     { id: 'network', label: '네트워크', icon: Network },
-    { id: 'ai', label: 'AI 인사이트', icon: Brain },
   ];
 
   // 3D 게이지 컴포넌트
@@ -430,7 +364,7 @@ export default function EnhancedServerModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className='fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4'
+        className='fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4'
         onClick={onClose}
       >
         <motion.div
@@ -438,7 +372,7 @@ export default function EnhancedServerModal({
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
           transition={{ type: 'spring', duration: 0.5 }}
-          className='bg-white rounded-2xl shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden'
+          className='bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden ring-1 ring-black/5'
           onClick={e => e.stopPropagation()}
         >
           {/* 헤더 */}
@@ -474,8 +408,10 @@ export default function EnhancedServerModal({
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setIsRealtime(!isRealtime)}
-                  className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
-                    isRealtime ? 'bg-green-500' : 'bg-white/20'
+                  className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 ${
+                    isRealtime
+                      ? 'bg-green-500 shadow-lg'
+                      : 'bg-white/30 backdrop-blur-sm hover:bg-white/40'
                   }`}
                 >
                   {isRealtime ? (
@@ -490,7 +426,7 @@ export default function EnhancedServerModal({
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={onClose}
-                  className='p-2 bg-white/20 rounded-lg hover:bg-white/30'
+                  className='p-2 bg-white/30 backdrop-blur-sm rounded-lg hover:bg-white/40 transition-all duration-200'
                 >
                   <X className='w-5 h-5' />
                 </motion.button>
@@ -507,10 +443,10 @@ export default function EnhancedServerModal({
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedTab(tab.id as any)}
-                    className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all ${
+                    className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 ${
                       selectedTab === tab.id
-                        ? 'bg-white text-blue-600 shadow-lg'
-                        : 'bg-white/10 text-white hover:bg-white/20'
+                        ? 'bg-white text-blue-600 shadow-lg ring-1 ring-blue-200'
+                        : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30'
                     }`}
                   >
                     <Icon className='w-4 h-4' />
@@ -522,7 +458,7 @@ export default function EnhancedServerModal({
           </div>
 
           {/* 콘텐츠 영역 */}
-          <div className='flex-1 p-6 overflow-y-auto bg-gray-50'>
+          <div className='flex-1 p-6 overflow-y-auto bg-gradient-to-br from-gray-50 to-gray-100'>
             <AnimatePresence mode='wait'>
               <motion.div
                 key={selectedTab}
@@ -538,7 +474,7 @@ export default function EnhancedServerModal({
                       <h3 className='text-xl font-bold text-gray-900 mb-4'>
                         실시간 리소스 모니터링
                       </h3>
-                      <div className='grid grid-cols-1 md:grid-cols-3 gap-8 bg-white rounded-xl p-6 shadow-sm'>
+                      <div className='grid grid-cols-1 md:grid-cols-3 gap-8 bg-white rounded-xl p-6 shadow-md border border-gray-200'>
                         <CircularGauge3D
                           value={server.cpu}
                           label='CPU'
@@ -562,7 +498,7 @@ export default function EnhancedServerModal({
 
                     {/* 시스템 정보 */}
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                      <div className='bg-white rounded-xl p-6 shadow-sm'>
+                      <div className='bg-white rounded-xl p-6 shadow-md border border-gray-200'>
                         <h4 className='text-lg font-semibold text-gray-900 mb-4'>
                           시스템 정보
                         </h4>
@@ -598,7 +534,7 @@ export default function EnhancedServerModal({
                         </div>
                       </div>
 
-                      <div className='bg-white rounded-xl p-6 shadow-sm'>
+                      <div className='bg-white rounded-xl p-6 shadow-md border border-gray-200'>
                         <h4 className='text-lg font-semibold text-gray-900 mb-4'>
                           서비스 상태
                         </h4>
@@ -762,44 +698,6 @@ export default function EnhancedServerModal({
                             {log.level.toUpperCase()}
                           </span>
                           <span className='ml-2'>{log.message}</span>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {selectedTab === 'ai' && (
-                  <div className='space-y-6'>
-                    <h3 className='text-xl font-bold text-gray-900'>
-                      AI 인사이트
-                    </h3>
-                    <div className='space-y-4'>
-                      {realtimeData.insights.map((insight, idx) => (
-                        <motion.div
-                          key={idx}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: idx * 0.1 }}
-                          className={`p-4 rounded-xl border-l-4 ${
-                            insight.severity === 'critical'
-                              ? 'bg-red-50 border-red-500'
-                              : insight.severity === 'warning'
-                                ? 'bg-yellow-50 border-yellow-500'
-                                : 'bg-blue-50 border-blue-500'
-                          }`}
-                        >
-                          <div className='flex items-start gap-3'>
-                            <Brain className='w-5 h-5 mt-1 text-blue-600' />
-                            <div>
-                              <p className='font-medium text-gray-900'>
-                                {insight.message}
-                              </p>
-                              <p className='text-sm text-gray-600 mt-1'>
-                                {insight.type} •{' '}
-                                {new Date(insight.timestamp).toLocaleString()}
-                              </p>
-                            </div>
-                          </div>
                         </motion.div>
                       ))}
                     </div>
