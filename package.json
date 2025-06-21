@@ -207,7 +207,9 @@
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",
+    "@google/generative-ai": "^0.16.0",
     "@heroicons/react": "^2.2.0",
+    "@hookform/resolvers": "^3.9.0",
     "@influxdata/influxdb-client": "^1.35.0",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "@modelcontextprotocol/server-filesystem": "^2025.3.28",
@@ -306,9 +308,7 @@
     "winston-daily-rotate-file": "^5.0.0",
     "ws": "^8.18.2",
     "zod": "^3.25.46",
-    "zustand": "^5.0.5",
-    "@google/generative-ai": "^0.16.0",
-    "@hookform/resolvers": "^3.9.0"
+    "zustand": "^5.0.5"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -324,6 +324,7 @@
     "@eslint/eslintrc": "^3",
     "@next/eslint-plugin-next": "^15.3.4",
     "@playwright/test": "^1.52.0",
+    "@storybook/addon-docs": "^9.0.12",
     "@storybook/addon-links": "^9.0.12",
     "@storybook/nextjs": "^9.0.12",
     "@testing-library/jest-dom": "^6.6.3",
@@ -336,6 +337,7 @@
     "@vitest/ui": "^3.2.2",
     "cross-env": "^7.0.3",
     "dotenv": "^16.5.0",
+    "eslint-plugin-storybook": "9.0.12",
     "glob": "^11.0.3",
     "husky": "^9.1.7",
     "jest-environment-jsdom": "^30.0.0-beta.3",
@@ -349,9 +351,7 @@
     "tsx": "^4.19.2",
     "typescript": "^5.8.3",
     "vitest": "^3.2.3",
-    "webpack": "^5.99.9",
-    "eslint-plugin-storybook": "9.0.12",
-    "@storybook/addon-docs": "^9.0.12"
+    "webpack": "^5.99.9"
   },
   "optionalDependencies": {
     "webworker-threads": "^0.7.17"

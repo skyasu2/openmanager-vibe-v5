@@ -34,25 +34,50 @@ const config: StorybookConfig = {
       '@tensorflow/tfjs-node': false,
       '@tensorflow/tfjs-node-gpu': false,
       '@tensorflow/tfjs': false,
+      'ioredis': false,
     };
 
-    // TensorFlow 관련 모듈 완전 무시
+    // Node.js 전용 모듈들과 Redis 관련 모듈 fallback 설정
     config.resolve.fallback = {
       ...config.resolve.fallback,
+      // TensorFlow 관련 모듈
       '@tensorflow/tfjs-node': false,
       '@tensorflow/tfjs-node-gpu': false,
       '@tensorflow/tfjs': false,
-      fs: false,
-      path: false,
-      os: false,
+      // Node.js 네트워크 모듈들 (Redis에서 사용)
+      'dns': false,
+      'net': false,
+      'tls': false,
+      'crypto': false,
+      'stream': false,
+      'util': false,
+      'url': false,
+      'querystring': false,
+      // Redis 관련 모듈
+      'ioredis': false,
+      'redis': false,
+      // 기타 Node.js 모듈들
+      'fs': false,
+      'path': false,
+      'os': false,
+      'child_process': false,
+      'cluster': false,
+      'dgram': false,
+      'http': false,
+      'https': false,
+      'zlib': false,
     };
 
-    // IgnorePlugin으로 TensorFlow 모듈 완전 차단
+    // IgnorePlugin으로 문제되는 모듈들 완전 차단
     const webpack = await import('webpack');
     config.plugins = config.plugins || [];
     config.plugins.push(
       new webpack.default.IgnorePlugin({
-        resourceRegExp: /@tensorflow/,
+        resourceRegExp: /@tensorflow|ioredis|redis/,
+      }),
+      // Redis 관련 모듈들을 더 구체적으로 차단
+      new webpack.default.IgnorePlugin({
+        resourceRegExp: /^(dns|net|tls|crypto|stream|util|url|querystring)$/,
       })
     );
 
