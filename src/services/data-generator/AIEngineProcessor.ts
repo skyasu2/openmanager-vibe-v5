@@ -55,7 +55,7 @@ export class AIEngineProcessor {
   private static instance: AIEngineProcessor | null = null;
   private dataGenerator: RealServerDataGenerator;
   private lastProcessTime = 0;
-  private readonly CACHE_DURATION = 60000; // 1분 캐시
+  private readonly CACHE_DURATION = 45000; // 45초 캐시 (40-50초 범위)
   private cachedData: ProcessedAIData | null = null;
 
   private constructor() {

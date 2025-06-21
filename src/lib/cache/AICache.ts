@@ -328,9 +328,9 @@ export class MonitoringCache extends AICache {
     checkType: string = 'health'
   ): string {
     const statusHash = `${currentStatus.cpu}-${currentStatus.memory}-${currentStatus.disk}`;
-    const time30s = Math.floor(Date.now() / (30 * 1000)); // 30초 단위
+    const time35s = Math.floor(Date.now() / (35 * 1000)); // 35초 단위 (서버 모니터링과 동일)
 
-    return `monitor:${serverName}:${checkType}:${statusHash}:${time30s}`;
+    return `monitor:${serverName}:${checkType}:${statusHash}:${time35s}`;
   }
 }
 

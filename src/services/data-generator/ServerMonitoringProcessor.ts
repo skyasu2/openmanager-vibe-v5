@@ -42,7 +42,7 @@ export class ServerMonitoringProcessor {
   private static instance: ServerMonitoringProcessor | null = null;
   private dataGenerator: RealServerDataGenerator;
   private lastProcessTime = 0;
-  private readonly CACHE_DURATION = 30000; // 30초 캐시
+  private readonly CACHE_DURATION = 35000; // 35초 캐시 (30-40초 범위)
   private cachedData: ProcessedServerData | null = null;
 
   private constructor() {

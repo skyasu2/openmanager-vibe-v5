@@ -47,7 +47,7 @@ export function calculateServerConfig(
 ): ServerGenerationConfig {
   // 서버 개수에 따른 비율 계산 (더 현실적인 비율)
   const criticalCount = Math.max(2, Math.floor(serverCount * 0.15)); // 15% (최소 2개)
-  const warningPercent = 0.30; // 30% (더 현실적)
+  const warningPercent = 0.3; // 30% (더 현실적)
   const tolerancePercent = 0.05; // 5% (오차범위)
 
   // 페이지네이션 설정 (서버 개수에 따라 조정)
@@ -94,10 +94,10 @@ export function calculateOptimalUpdateInterval(): number {
     const memoryUsage = process.memoryUsage();
     const usagePercent = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
 
-    // 메모리 사용률에 따른 업데이트 간격 조정
-    if (usagePercent > 80) return 45000; // 높은 사용률: 45초
-    if (usagePercent > 60) return 35000; // 중간 사용률: 35초
-    return 30000; // 낮은 사용률: 30초
+    // 메모리 사용률에 따른 업데이트 간격 조정 (30-40초 범위)
+    if (usagePercent > 80) return 40000; // 높은 사용률: 40초
+    if (usagePercent > 60) return 37000; // 중간 사용률: 37초
+    return 35000; // 낮은 사용률: 35초
   }
 
   // 클라이언트 사이드에서는 performance.memory 사용
@@ -105,12 +105,12 @@ export function calculateOptimalUpdateInterval(): number {
     const memory = (performance as any).memory;
     const usagePercent = (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
 
-    if (usagePercent > 80) return 45000; // 높은 사용률: 45초
-    if (usagePercent > 60) return 35000; // 중간 사용률: 35초
-    return 30000; // 낮은 사용률: 30초
+    if (usagePercent > 80) return 40000; // 높은 사용률: 40초
+    if (usagePercent > 60) return 37000; // 중간 사용률: 37초
+    return 35000; // 낮은 사용률: 35초
   }
 
-  return 30000; // 기본값: 30초
+  return 35000; // 기본값: 35초 (30-40초 범위)
 }
 
 /**

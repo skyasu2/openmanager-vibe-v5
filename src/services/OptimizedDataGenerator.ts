@@ -10,12 +10,12 @@
  * - 중앙 버전 관리 시스템 통합
  */
 
+import { DATA_GENERATOR_VERSIONS, VersionManager } from '../config/versions';
 import type { EnhancedServerMetrics } from '../types/server';
 import { ServerEnvironment, ServerRole, ServerStatus } from '../types/server';
-import { timerManager } from '../utils/TimerManager';
 import { memoryOptimizer } from '../utils/MemoryOptimizer';
 import { SmartCache } from '../utils/smart-cache';
-import { DATA_GENERATOR_VERSIONS, VersionManager } from '../config/versions';
+import { timerManager } from '../utils/TimerManager';
 import { DemoScenarioManager } from './DemoScenarioManager';
 
 interface BaselineDataPoint {
@@ -163,7 +163,7 @@ export class OptimizedDataGenerator {
   // 성능 최적화 및 경연대회 설정
   private cache = SmartCache.getInstance();
   private updateCounter: number = 0;
-  private readonly CACHE_TTL = 30000; // 30초
+  private readonly CACHE_TTL = 35000; // 35초 (서버 모니터링과 동일)
   private readonly UPDATE_INTERVAL = 20000; // 20초 (성능 최적화: 10초 → 20초 변경)
 
   // 🎯 실시간 데이터 30분 자동 종료
