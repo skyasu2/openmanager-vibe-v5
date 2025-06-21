@@ -8,21 +8,13 @@
  * - 클러스터 정보 관리
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
 import type {
-  ServerInstance,
-  ServerCluster,
   ApplicationMetrics,
+  ServerCluster,
+  ServerInstance,
 } from '@/types/data-generator';
 import { createTimeoutSignal } from '@/utils/createTimeoutSignal';
-import { Server } from '@/types/server';
-import useSWR from 'swr';
-import { fetcher } from '@/lib/fetcher';
-import {
-  SystemOverview,
-  PaginationInfo,
-  RealtimeServersResponse,
-} from '@/types/server';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface DashboardSummary {
   overview: {
@@ -117,7 +109,7 @@ const getDefaultServers = (): ServerInstance[] => [
     id: 'srv-002',
     name: 'Database Server',
     type: 'database',
-    role: 'master',
+    role: 'primary',
     location: 'Seoul',
     status: 'running',
     environment: 'production',

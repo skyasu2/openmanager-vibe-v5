@@ -47,7 +47,12 @@ export type ServerType =
   | 'security';
 
 // 클라우드 제공자 타입
-export type CloudProvider = 'aws' | 'gcp' | 'azure' | 'onpremise';
+export type CloudProvider =
+  | 'aws'
+  | 'gcp'
+  | 'azure'
+  | 'onpremise'
+  | 'kubernetes';
 
 // 기본 서비스 인터페이스
 export interface BaseService {

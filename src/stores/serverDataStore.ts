@@ -125,11 +125,17 @@ const fetchServersFromProcessor = async (): Promise<
 > => {
   try {
     // 🔄 새로운 전처리기 활용
+    console.log('🔄 ServerMonitoringProcessor 데이터 가져오기 시작...');
     const processor = ServerMonitoringProcessor.getInstance();
     const processedData = await processor.getProcessedServerData({
       includeHistorical: true,
       forceRefresh: true,
     });
+    console.log(
+      '✅ 전처리기 데이터 가져오기 완료:',
+      processedData.servers?.length || 0,
+      '개 서버'
+    );
 
     // 📊 통계 정보 글로벌 저장 (디버깅용)
     if (processedData.stats && typeof window !== 'undefined') {
@@ -272,9 +278,9 @@ export const useServerDataStore = create<ServerDataState>()(
         set({ isLoading: true, error: null });
 
         try {
-          // 🎯 1순위: 실제 서버 데이터 생성기 API 직접 호출
-          console.log('🔄 서버 데이터 생성기 API 호출 중...');
-          const response = await fetch('/api/servers/all');
+          // 🎯 1순위: 대시보드 API 직접 호출 (검증된 엔드포인트)
+          console.log('🔄 대시보드 API 호출 중...');
+          const response = await fetch('/api/dashboard');
 
           if (!response.ok) {
             throw new Error(`서버 API 호출 실패: ${response.status}`);
@@ -282,11 +288,11 @@ export const useServerDataStore = create<ServerDataState>()(
 
           const result = await response.json();
 
-          if (!result.success || !Array.isArray(result.data)) {
-            throw new Error('서버 API 응답 형식 오류');
+          if (!result.data || !Array.isArray(result.data.servers)) {
+            throw new Error('대시보드 API 응답 형식 오류');
           }
 
-          const servers = result.data;
+          const servers = result.data.servers;
 
           console.log(`✅ 서버 데이터 로드 성공: ${servers.length}개 서버`);
           console.log(
@@ -300,25 +306,31 @@ export const useServerDataStore = create<ServerDataState>()(
           const enhancedServers: EnhancedServerMetrics[] = servers.map(
             (server: any) => ({
               id: server.id,
-              name: server.name,
+              name: server.name || server.hostname,
               hostname: server.hostname || server.name,
               environment: server.environment || 'production',
               role: server.role || 'worker',
-              status: server.status,
-              cpu_usage: server.cpu || 0,
-              memory_usage: server.memory || 0,
-              disk_usage: server.disk || 0,
-              network_in: server.network || 0,
-              network_out: server.network || 0,
+              status:
+                server.status === 'healthy'
+                  ? 'healthy'
+                  : server.status === 'warning'
+                    ? 'warning'
+                    : 'critical',
+              cpu_usage: server.cpu_usage || server.node_cpu_usage_percent || 0,
+              memory_usage:
+                server.memory_usage || server.node_memory_usage_percent || 0,
+              disk_usage:
+                server.disk_usage || server.node_disk_usage_percent || 0,
+              network_in: server.node_network_receive_rate_mbps || 0,
+              network_out: server.node_network_transmit_rate_mbps || 0,
               response_time:
-                server.response_time || Math.floor(Math.random() * 100) + 50,
-              uptime:
-                typeof server.uptime === 'string'
-                  ? parseInt(server.uptime.replace(/[^\d]/g, '')) || 0
-                  : server.uptime || 0,
+                server.response_time ||
+                server.http_request_duration_seconds * 1000 ||
+                Math.floor(Math.random() * 100) + 50,
+              uptime: server.uptime || server.node_uptime_seconds || 0,
               location: server.location || 'Unknown',
               provider: server.provider || 'AWS',
-              alerts: server.alerts || 0,
+              alerts: server.alerts || server.http_requests_errors_total || 0,
               services: server.services || [],
               lastUpdate: server.lastUpdate
                 ? new Date(server.lastUpdate)

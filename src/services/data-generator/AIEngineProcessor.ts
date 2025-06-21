@@ -273,7 +273,7 @@ export class AIEngineProcessor {
       metadata: {
         location: serverInstance.location || 'Unknown',
         environment:
-          ((serverInstance.environment === 'test'
+          ((serverInstance.environment === 'development'
             ? 'development'
             : serverInstance.environment) as
             | 'production'

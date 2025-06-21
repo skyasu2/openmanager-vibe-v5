@@ -196,10 +196,10 @@ export const useServerDashboard = ({
   const allServers: Server[] = useMemo(() => {
     console.log(`🔍 서버 데이터 변환: ${allServerMetrics.length}개 서버 처리`);
 
-    // 🛡️ allServerMetrics가 비어있으면 빈 배열 반환 (폴백 서버 제거)
+    // 🛡️ allServerMetrics가 비어있으면 폴백 서버 사용
     if (allServerMetrics.length === 0) {
-      console.log('⚠️ 서버 메트릭이 비어있음 - API 로딩 중이거나 오류 상태');
-      return [];
+      console.log('⚠️ 서버 메트릭이 비어있음 - 폴백 서버 데이터 사용');
+      return fallbackServers;
     }
 
     return allServerMetrics.map(metric => {
