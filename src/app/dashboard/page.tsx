@@ -1,6 +1,7 @@
 'use client';
 
 import { NotificationToast } from '@/components/system/NotificationToast';
+import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { cn } from '@/lib/utils';
 import { AISidebar } from '@/presentation/ai-sidebar';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -79,6 +80,14 @@ function DashboardPageContent() {
   const [isServerModalOpen, setIsServerModalOpen] = useState(false);
   const isResizing = false; // Removed from store to prevent errors
 
+  // 🎯 실제 서버 데이터 생성기 데이터 사용
+  const {
+    paginatedServers: realServers,
+    handleServerSelect,
+    selectedServer: dashboardSelectedServer,
+    handleModalClose: dashboardModalClose,
+  } = useServerDashboard({});
+
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -91,26 +100,32 @@ function DashboardPageContent() {
     setIsAgentOpen(false);
   }, []);
 
-  // 🎯 서버 클릭 핸들러 - 모달 열기
-  const handleServerClick = useCallback((server: any) => {
-    try {
-      console.log('🖱️ 서버 카드 클릭됨:', server?.name || server?.id);
-      if (!server) {
-        console.warn('⚠️ 유효하지 않은 서버 데이터');
-        return;
+  // 🎯 서버 클릭 핸들러 - 실제 데이터와 연동
+  const handleServerClick = useCallback(
+    (server: any) => {
+      try {
+        console.log('🖱️ 서버 카드 클릭됨:', server?.name || server?.id);
+        if (!server) {
+          console.warn('⚠️ 유효하지 않은 서버 데이터');
+          return;
+        }
+        // 대시보드 훅의 서버 선택 함수 사용
+        handleServerSelect(server);
+        setSelectedServer(server);
+        setIsServerModalOpen(true);
+      } catch (error) {
+        console.error('❌ 서버 클릭 처리 중 오류:', error);
       }
-      setSelectedServer(server);
-      setIsServerModalOpen(true);
-    } catch (error) {
-      console.error('❌ 서버 클릭 처리 중 오류:', error);
-    }
-  }, []);
+    },
+    [handleServerSelect]
+  );
 
   // 🔒 서버 모달 닫기
   const handleServerModalClose = useCallback(() => {
+    dashboardModalClose(); // 대시보드 훅의 모달 닫기 함수 사용
     setSelectedServer(null);
     setIsServerModalOpen(false);
-  }, []);
+  }, [dashboardModalClose]);
 
   if (!isClient) {
     return (
@@ -146,10 +161,10 @@ function DashboardPageContent() {
         <main className='flex-1 min-h-0 overflow-y-auto p-2 sm:p-4 lg:p-6 xl:p-8'>
           <DashboardContent
             showSequentialGeneration={false}
-            servers={[]}
+            servers={realServers} // 🎯 실제 서버 데이터 생성기 데이터 사용
             status={{ type: 'idle' }}
             actions={{ start: () => {}, stop: () => {} }}
-            selectedServer={selectedServer}
+            selectedServer={selectedServer || dashboardSelectedServer}
             onServerClick={handleServerClick}
             onServerModalClose={handleServerModalClose}
             onStatsUpdate={() => {}}
@@ -176,9 +191,9 @@ function DashboardPageContent() {
       <NotificationToast />
 
       {/* 🎯 서버 상세 모달 */}
-      {isServerModalOpen && selectedServer && (
+      {isServerModalOpen && (selectedServer || dashboardSelectedServer) && (
         <EnhancedServerModal
-          server={selectedServer}
+          server={selectedServer || dashboardSelectedServer}
           onClose={handleServerModalClose}
         />
       )}

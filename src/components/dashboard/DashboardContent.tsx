@@ -4,7 +4,7 @@ import InfrastructureOverviewPage from '@/components/ai/pages/InfrastructureOver
 import SystemAlertsPage from '@/components/ai/pages/SystemAlertsPage';
 import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 
 import { safeConsoleError, safeErrorMessage } from '../../lib/utils-functions';
 import { Server } from '../../types/server';
@@ -60,6 +60,39 @@ export default function DashboardContent({
     timestamp: new Date().toISOString(),
   });
 
+  // 🎯 실제 서버 데이터 기반 통계 계산
+  const serverStats = useMemo(() => {
+    if (!servers || servers.length === 0) {
+      return { total: 0, online: 0, warning: 0, offline: 0 };
+    }
+
+    const stats = servers.reduce(
+      (acc, server) => {
+        acc.total += 1;
+        switch (server.status) {
+          case 'online':
+          case 'healthy':
+            acc.online += 1;
+            break;
+          case 'warning':
+            acc.warning += 1;
+            break;
+          case 'offline':
+          case 'critical':
+            acc.offline += 1;
+            break;
+          default:
+            acc.online += 1; // 기본값은 온라인으로 처리
+        }
+        return acc;
+      },
+      { total: 0, online: 0, warning: 0, offline: 0 }
+    );
+
+    console.log('📊 실제 서버 통계:', stats);
+    return stats;
+  }, [servers]);
+
   // 🚀 에러 상태 추가
   const [renderError, setRenderError] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
@@ -73,11 +106,15 @@ export default function DashboardContent({
     try {
       console.log('✅ DashboardContent 마운트됨');
       setRenderError(null);
+      // 🎯 상위 컴포넌트에 통계 업데이트 전달
+      if (onStatsUpdate && serverStats.total > 0) {
+        onStatsUpdate(serverStats);
+      }
     } catch (error) {
       safeConsoleError('❌ DashboardContent 마운트 에러', error);
       setRenderError(safeErrorMessage(error, '알 수 없는 마운트 에러'));
     }
-  }, []);
+  }, [serverStats, onStatsUpdate]);
 
   // 🛡️ 서버 사이드 렌더링 방지
   if (!isClient) {
@@ -147,6 +184,38 @@ export default function DashboardContent({
         className='h-full w-full'
       >
         <div className='h-full max-w-none 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6 overflow-y-auto'>
+          {/* 🎯 실제 서버 데이터 연결 상태 표시 */}
+          {servers && servers.length > 0 && (
+            <div className='bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200 p-4 mb-4'>
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center gap-3'>
+                  <div className='w-3 h-3 bg-green-500 rounded-full animate-pulse'></div>
+                  <span className='text-green-800 font-medium'>
+                    🎯 실제 서버 데이터 생성기 연결됨
+                  </span>
+                </div>
+                <div className='flex items-center gap-4 text-sm'>
+                  <span className='text-green-700'>
+                    총 {serverStats.total}대
+                  </span>
+                  <span className='text-green-600'>
+                    정상 {serverStats.online}대
+                  </span>
+                  {serverStats.warning > 0 && (
+                    <span className='text-yellow-600'>
+                      경고 {serverStats.warning}대
+                    </span>
+                  )}
+                  {serverStats.offline > 0 && (
+                    <span className='text-red-600'>
+                      오프라인 {serverStats.offline}대
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* 🎯 상단 섹션: 인프라 현황 + 실시간 알림 */}
           <div className='grid grid-cols-1 xl:grid-cols-3 2xl:grid-cols-4 gap-6'>
             {/* 🎛️ 인프라 전체 현황 - 2칸 차지 */}
