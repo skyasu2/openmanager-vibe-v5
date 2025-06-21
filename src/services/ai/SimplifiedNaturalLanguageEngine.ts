@@ -13,10 +13,9 @@
 
 import { UnifiedAIEngine } from '@/core/ai/UnifiedAIEngine';
 import { LocalRAGEngine } from '@/lib/ml/rag-engine';
-import { MCPContext } from '@/services/ai/MCPAIRouter';
+import { AutoReportService } from '@/services/ai/AutoReportService';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
 import { MCPWarmupService } from '@/services/mcp/mcp-warmup-service';
-import { AutoReportService } from '@/services/monitoring/AutoReportService';
 
 // 🎯 스마트 모드 정의
 type AIMode = 'auto' | 'google-only' | 'local' | 'offline';
@@ -538,13 +537,20 @@ export class SimplifiedNaturalLanguageEngine {
       query: this.enhanceServerQuery(query, serverContext),
       context: {
         sessionId: `ultra_${Date.now()}`,
-        urgency: serverContext.urgency as 'low' | 'medium' | 'high' | 'critical'
+        urgency: serverContext.urgency as
+          | 'low'
+          | 'medium'
+          | 'high'
+          | 'critical',
       },
     });
 
     if (result?.success && result?.analysis?.summary) {
       // 서버 모니터링 전문 응답으로 변환
-      const enhancedResponse = await this.enhanceServerResponse(result.analysis.summary, serverContext);
+      const enhancedResponse = await this.enhanceServerResponse(
+        result.analysis.summary,
+        serverContext
+      );
 
       return {
         response: enhancedResponse,
@@ -588,58 +594,20 @@ export class SimplifiedNaturalLanguageEngine {
     query: string,
     response: string
   ): Promise<any> {
-    // 장애 관련 키워드 감지
-    const failureKeywords = [
-      '오류',
-      '에러',
-      '장애',
-      '실패',
-      '다운',
-      '응답없음',
-      'error',
-      'failure',
-      'down',
-      'critical',
-      '위험',
-      '심각',
-    ];
-
-    const hasFailureKeyword = failureKeywords.some(
-      keyword =>
-        query.toLowerCase().includes(keyword) ||
-        response.toLowerCase().includes(keyword)
-    );
-
-    if (!hasFailureKeyword) {
-      return undefined;
-    }
-
     try {
-      // 기존 AutoReportService의 활성 장애 확인
-      const activeIncidents = this.autoReportService.getActiveIncidents();
+      // 자연어 질의에서 장애 상황 감지 시 기본 보고서 생성
+      console.log(
+        '🚨 자연어 질의에서 장애 상황 감지됨, AutoReportService 활용 가능'
+      );
 
-      // 새로운 장애 감지 시 기존 시스템에 알림
-      if (activeIncidents.length === 0) {
-        console.log(
-          '🚨 자연어 질의에서 장애 상황 감지됨, AutoReportService에 알림'
-        );
-
-        // 간단한 장애 정보 반환 (기존 시스템과 호환)
-        return {
-          detected: true,
-          source: 'natural_language_query',
-          query,
-          response,
-          timestamp: new Date().toISOString(),
-          activeIncidents: activeIncidents.length,
-        };
-      }
-
+      // 간단한 장애 정보 반환
       return {
         detected: true,
         source: 'natural_language_query',
-        existingIncidents: activeIncidents.length,
+        query,
+        response,
         timestamp: new Date().toISOString(),
+        canGenerateReport: true,
       };
     } catch (error) {
       console.warn('자동 장애 보고서 생성 실패:', error);
@@ -722,7 +690,7 @@ export class SimplifiedNaturalLanguageEngine {
       type: this.detectQueryType(lowerQuery),
       metrics: this.extractMetricsFromQuery(lowerQuery),
       urgency: this.detectUrgency(lowerQuery),
-      components: this.extractServerComponents(lowerQuery)
+      components: this.extractServerComponents(lowerQuery),
     };
   }
 
@@ -746,7 +714,10 @@ export class SimplifiedNaturalLanguageEngine {
   /**
    * 🎯 서버 응답 강화
    */
-  private async enhanceServerResponse(response: string, context: any): Promise<string> {
+  private async enhanceServerResponse(
+    response: string,
+    context: any
+  ): Promise<string> {
     if (typeof response !== 'string') {
       response = String(response);
     }
@@ -775,8 +746,14 @@ export class SimplifiedNaturalLanguageEngine {
    */
   private detectQueryType(query: string): string {
     if (query.includes('상태') || query.includes('status')) return 'status';
-    if (query.includes('문제') || query.includes('장애') || query.includes('오류')) return 'troubleshooting';
-    if (query.includes('성능') || query.includes('최적화')) return 'performance';
+    if (
+      query.includes('문제') ||
+      query.includes('장애') ||
+      query.includes('오류')
+    )
+      return 'troubleshooting';
+    if (query.includes('성능') || query.includes('최적화'))
+      return 'performance';
     return 'general';
   }
 
@@ -786,9 +763,12 @@ export class SimplifiedNaturalLanguageEngine {
   private extractMetricsFromQuery(query: string): string[] {
     const metrics = [];
     if (query.includes('cpu')) metrics.push('CPU');
-    if (query.includes('메모리') || query.includes('memory')) metrics.push('Memory');
-    if (query.includes('디스크') || query.includes('disk')) metrics.push('Disk');
-    if (query.includes('네트워크') || query.includes('network')) metrics.push('Network');
+    if (query.includes('메모리') || query.includes('memory'))
+      metrics.push('Memory');
+    if (query.includes('디스크') || query.includes('disk'))
+      metrics.push('Disk');
+    if (query.includes('네트워크') || query.includes('network'))
+      metrics.push('Network');
     return metrics;
   }
 
@@ -796,7 +776,12 @@ export class SimplifiedNaturalLanguageEngine {
    * ⚠️ 긴급도 감지
    */
   private detectUrgency(query: string): string {
-    if (query.includes('긴급') || query.includes('critical') || query.includes('장애')) return 'critical';
+    if (
+      query.includes('긴급') ||
+      query.includes('critical') ||
+      query.includes('장애')
+    )
+      return 'critical';
     if (query.includes('문제') || query.includes('warning')) return 'high';
     if (query.includes('확인') || query.includes('점검')) return 'medium';
     return 'low';
@@ -807,8 +792,18 @@ export class SimplifiedNaturalLanguageEngine {
    */
   private extractServerComponents(query: string): string[] {
     const components = [];
-    if (query.includes('웹서버') || query.includes('apache') || query.includes('nginx')) components.push('WebServer');
-    if (query.includes('데이터베이스') || query.includes('db') || query.includes('mysql')) components.push('Database');
+    if (
+      query.includes('웹서버') ||
+      query.includes('apache') ||
+      query.includes('nginx')
+    )
+      components.push('WebServer');
+    if (
+      query.includes('데이터베이스') ||
+      query.includes('db') ||
+      query.includes('mysql')
+    )
+      components.push('Database');
     if (query.includes('로드밸런서')) components.push('LoadBalancer');
     return components;
   }
@@ -816,7 +811,9 @@ export class SimplifiedNaturalLanguageEngine {
   /**
    * 🎯 서버 모니터링 응답 생성 (실제 데이터 포함)
    */
-  private async generateServerMonitoringResponse(context: any): Promise<string> {
+  private async generateServerMonitoringResponse(
+    context: any
+  ): Promise<string> {
     const currentTime = new Date().toLocaleString('ko-KR');
 
     // 실제 서버 데이터 가져오기
@@ -1079,7 +1076,10 @@ export class SimplifiedNaturalLanguageEngine {
    * 📊 가용성 계산
    */
   private calculateUptime(serverData: any): string {
-    const uptime = ((serverData.healthyServers / serverData.totalServers) * 100).toFixed(2);
+    const uptime = (
+      (serverData.healthyServers / serverData.totalServers) *
+      100
+    ).toFixed(2);
     return uptime;
   }
 
@@ -1145,7 +1145,7 @@ export class SimplifiedNaturalLanguageEngine {
       // 실제 서버 데이터 API 호출 (내부 API 사용)
       const response = await fetch('http://localhost:3003/api/servers', {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
 
       if (response.ok) {
@@ -1153,22 +1153,48 @@ export class SimplifiedNaturalLanguageEngine {
         const servers = data.servers || [];
 
         const totalServers = servers.length;
-        const healthyServers = servers.filter((s: any) => s.status === 'healthy').length;
-        const warningServers = servers.filter((s: any) => s.status === 'warning').length;
-        const criticalServers = servers.filter((s: any) => s.status === 'critical').length;
+        const healthyServers = servers.filter(
+          (s: any) => s.status === 'healthy'
+        ).length;
+        const warningServers = servers.filter(
+          (s: any) => s.status === 'warning'
+        ).length;
+        const criticalServers = servers.filter(
+          (s: any) => s.status === 'critical'
+        ).length;
         const criticalServerList = servers
           .filter((s: any) => s.status === 'critical')
           .slice(0, 3)
           .map((s: any) => ({
             name: s.name,
-            issue: s.metrics?.cpu > 90 ? 'CPU 과부하' :
-              s.metrics?.memory > 90 ? '메모리 부족' :
-                s.metrics?.disk > 90 ? '디스크 공간 부족' : '시스템 오류'
+            issue:
+              s.metrics?.cpu > 90
+                ? 'CPU 과부하'
+                : s.metrics?.memory > 90
+                  ? '메모리 부족'
+                  : s.metrics?.disk > 90
+                    ? '디스크 공간 부족'
+                    : '시스템 오류',
           }));
 
-        const avgCpu = Math.round(servers.reduce((sum: number, s: any) => sum + (s.metrics?.cpu || 0), 0) / totalServers);
-        const avgMemory = Math.round(servers.reduce((sum: number, s: any) => sum + (s.metrics?.memory || 0), 0) / totalServers);
-        const avgDisk = Math.round(servers.reduce((sum: number, s: any) => sum + (s.metrics?.disk || 0), 0) / totalServers);
+        const avgCpu = Math.round(
+          servers.reduce(
+            (sum: number, s: any) => sum + (s.metrics?.cpu || 0),
+            0
+          ) / totalServers
+        );
+        const avgMemory = Math.round(
+          servers.reduce(
+            (sum: number, s: any) => sum + (s.metrics?.memory || 0),
+            0
+          ) / totalServers
+        );
+        const avgDisk = Math.round(
+          servers.reduce(
+            (sum: number, s: any) => sum + (s.metrics?.disk || 0),
+            0
+          ) / totalServers
+        );
 
         return {
           totalServers,
@@ -1184,7 +1210,7 @@ export class SimplifiedNaturalLanguageEngine {
           avgResponseTime: Math.round(Math.random() * 100 + 50),
           throughput: Math.round(Math.random() * 1000 + 500),
           errorRate: (Math.random() * 2).toFixed(2),
-          lastUpdate: new Date().toLocaleString('ko-KR')
+          lastUpdate: new Date().toLocaleString('ko-KR'),
         };
       }
     } catch (error) {
@@ -1206,7 +1232,7 @@ export class SimplifiedNaturalLanguageEngine {
       avgResponseTime: 85,
       throughput: 750,
       errorRate: '0.8',
-      lastUpdate: new Date().toLocaleString('ko-KR')
+      lastUpdate: new Date().toLocaleString('ko-KR'),
     };
   }
 

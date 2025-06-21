@@ -21,18 +21,17 @@
  * 📅 생성일: 2025.06.14 (UnifiedAIEngine 1102줄 분리 작업)
  */
 
+import { LocalRAGEngine } from '@/lib/ml/rag-engine';
+import { CustomEngines } from '@/services/ai/engines/CustomEngines';
+import { OpenSourceEngines } from '@/services/ai/engines/OpenSourceEngines';
+import { GoogleAIService } from '@/services/ai/GoogleAIService';
+import { RealMCPClient } from '@/services/mcp/real-mcp-client';
+import { GracefulDegradationManager } from '../GracefulDegradationManager';
 import {
   MCPContext,
   MCPResponse,
   ProcessingStrategy,
-  UnifiedAnalysisRequest,
 } from '../types/unified-ai.types';
-import { GracefulDegradationManager } from '../services/GracefulDegradationManager';
-import { GoogleAIService } from '@/services/ai/GoogleAIService';
-import { RealMCPClient } from '@/services/mcp/real-mcp-client';
-import { LocalRAGEngine } from '@/lib/ml/rag-engine';
-import { OpenSourceEngines } from '@/services/ai/engines/OpenSourceEngines';
-import { CustomEngines } from '@/services/ai/engines/CustomEngines';
 
 export class AnalysisProcessor {
   private static instance: AnalysisProcessor | null = null;

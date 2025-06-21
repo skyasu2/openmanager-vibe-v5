@@ -1,5 +1,10 @@
-import { TimeSeriesMetrics, AIAnalysisDataset, NLAnalysisQuery, NLAnalysisResponse } from '@/types/ai-agent-input-schema';
-import { getMetrics, getAllRealtime } from '@/lib/cache/redis';
+import { getAllRealtime, getMetrics } from '@/lib/redis';
+import {
+  AIAnalysisDataset,
+  NLAnalysisQuery,
+  NLAnalysisResponse,
+  TimeSeriesMetrics,
+} from '@/types/ai-agent-input-schema';
 
 export class HybridMetricsBridge {
   private transformersEngine: any;
@@ -21,16 +26,16 @@ export class HybridMetricsBridge {
           return {
             anomalies: [],
             predictions: [],
-            patterns: []
+            patterns: [],
           };
-        }
+        },
       };
 
       // 통계적 분석 엔진
       this.statisticalEngine = {
         analyze: (data: TimeSeriesMetrics[]) => {
           return this.performStatisticalAnalysis(data);
-        }
+        },
       };
 
       this.isInitialized = true;
@@ -60,7 +65,7 @@ export class HybridMetricsBridge {
           status: 'no_data',
           anomalies: [],
           predictions: [],
-          insights: ['실시간 데이터가 없습니다.']
+          insights: ['실시간 데이터가 없습니다.'],
         };
       }
 
@@ -77,31 +82,36 @@ export class HybridMetricsBridge {
         status: 'success',
         anomalies,
         predictions,
-        insights
+        insights,
       };
-
     } catch (error) {
       console.error('실시간 분석 오류:', error);
       return {
         status: 'error',
         anomalies: [],
         predictions: [],
-        insights: ['분석 중 오류가 발생했습니다.']
+        insights: ['분석 중 오류가 발생했습니다.'],
       };
     }
   }
 
   // 히스토리컬 데이터 분석
-  public async analyzeHistorical(timeRange: { start: Date; end: Date }): Promise<AIAnalysisDataset> {
+  public async analyzeHistorical(timeRange: {
+    start: Date;
+    end: Date;
+  }): Promise<AIAnalysisDataset> {
     try {
       const metrics: TimeSeriesMetrics[] = [];
-      
+
       // 모든 서버의 메트릭 데이터 수집
       const realtimeData = await getAllRealtime();
       const serverIds = Object.keys(realtimeData);
 
       for (const serverId of serverIds) {
-        const serverMetrics = await getMetrics(serverId, timeRange.start.getTime());
+        const serverMetrics = await getMetrics(
+          serverId,
+          timeRange.start.getTime()
+        );
         metrics.push(...serverMetrics);
       }
 
@@ -117,7 +127,7 @@ export class HybridMetricsBridge {
           timeRange,
           serverCount: serverIds.length,
           dataPoints: metrics.length,
-          version: '7.0'
+          version: '7.0',
         },
         servers: [], // 서버 메타데이터는 별도 조회 필요
         metrics,
@@ -126,10 +136,9 @@ export class HybridMetricsBridge {
         patterns: {
           anomalies: [...statisticalResults.anomalies, ...aiResults.anomalies],
           correlations: statisticalResults.correlations,
-          trends: [...statisticalResults.trends, ...aiResults.patterns]
-        }
+          trends: [...statisticalResults.trends, ...aiResults.patterns],
+        },
       };
-
     } catch (error) {
       console.error('히스토리컬 분석 오류:', error);
       throw error;
@@ -137,19 +146,27 @@ export class HybridMetricsBridge {
   }
 
   // 자연어 쿼리 처리
-  public async processNaturalLanguageQuery(query: NLAnalysisQuery): Promise<NLAnalysisResponse> {
+  public async processNaturalLanguageQuery(
+    query: NLAnalysisQuery
+  ): Promise<NLAnalysisResponse> {
     try {
       // 쿼리 의도 분석
       const intent = this.analyzeQueryIntent(query.query);
 
       // 관련 데이터 수집
-      const relevantData = await this.collectRelevantData(intent, query.context);
+      const relevantData = await this.collectRelevantData(
+        intent,
+        query.context
+      );
 
       // 분석 수행
       const analysis = await this.performAnalysis(intent, relevantData);
 
       // 자연어 응답 생성
-      const response = this.generateNaturalLanguageResponse(analysis, query.context.language);
+      const response = this.generateNaturalLanguageResponse(
+        analysis,
+        query.context.language
+      );
 
       return {
         answer: response.answer,
@@ -157,20 +174,20 @@ export class HybridMetricsBridge {
         confidence: analysis.confidence,
         sources: analysis.sources,
         suggestions: response.suggestions,
-        language: query.context.language
+        language: query.context.language,
       };
-
     } catch (error) {
       console.error('자연어 쿼리 처리 오류:', error);
       return {
-        answer: query.context.language === 'ko' 
-          ? '죄송합니다. 쿼리 처리 중 오류가 발생했습니다.' 
-          : 'Sorry, an error occurred while processing your query.',
+        answer:
+          query.context.language === 'ko'
+            ? '죄송합니다. 쿼리 처리 중 오류가 발생했습니다.'
+            : 'Sorry, an error occurred while processing your query.',
         data: {},
         confidence: 0,
         sources: [],
         suggestions: [],
-        language: query.context.language
+        language: query.context.language,
       };
     }
   }
@@ -189,7 +206,7 @@ export class HybridMetricsBridge {
           value: data.cpu,
           threshold: 90,
           timestamp: data.timestamp,
-          description: `서버 ${serverId}의 CPU 사용률이 ${data.cpu.toFixed(1)}%로 임계치를 초과했습니다.`
+          description: `서버 ${serverId}의 CPU 사용률이 ${data.cpu.toFixed(1)}%로 임계치를 초과했습니다.`,
         });
       }
 
@@ -202,7 +219,7 @@ export class HybridMetricsBridge {
           value: data.memory,
           threshold: 85,
           timestamp: data.timestamp,
-          description: `서버 ${serverId}의 메모리 사용률이 ${data.memory.toFixed(1)}%입니다.`
+          description: `서버 ${serverId}의 메모리 사용률이 ${data.memory.toFixed(1)}%입니다.`,
         });
       }
 
@@ -214,7 +231,7 @@ export class HybridMetricsBridge {
           severity: 'critical',
           value: data.status,
           timestamp: data.timestamp,
-          description: `서버 ${serverId}의 상태가 비정상입니다: ${data.status}`
+          description: `서버 ${serverId}의 상태가 비정상입니다: ${data.status}`,
         });
       }
     });
@@ -223,7 +240,9 @@ export class HybridMetricsBridge {
   }
 
   // 예측 생성
-  private async generatePredictions(realtimeData: Record<string, any>): Promise<any[]> {
+  private async generatePredictions(
+    realtimeData: Record<string, any>
+  ): Promise<any[]> {
     const predictions: any[] = [];
 
     Object.entries(realtimeData).forEach(([serverId, data]) => {
@@ -236,7 +255,7 @@ export class HybridMetricsBridge {
           predictedValue: data.cpu * 1.1, // 10% 증가 예측
           timeHorizon: '30m',
           confidence: 0.75,
-          action: 'scale_up'
+          action: 'scale_up',
         });
       }
 
@@ -248,7 +267,7 @@ export class HybridMetricsBridge {
           predictedValue: data.memory * 1.05, // 5% 증가 예측
           timeHorizon: '1h',
           confidence: 0.8,
-          action: 'memory_optimization'
+          action: 'memory_optimization',
         });
       }
     });
@@ -257,26 +276,47 @@ export class HybridMetricsBridge {
   }
 
   // 인사이트 생성
-  private generateInsights(realtimeData: Record<string, any>, anomalies: any[]): string[] {
+  private generateInsights(
+    realtimeData: Record<string, any>,
+    anomalies: any[]
+  ): string[] {
     const insights: string[] = [];
     const serverCount = Object.keys(realtimeData).length;
 
     // 전체 시스템 상태
-    const healthyServers = Object.values(realtimeData).filter(data => data.status === 'healthy').length;
+    const healthyServers = Object.values(realtimeData).filter(
+      data => data.status === 'healthy'
+    ).length;
     const healthPercentage = (healthyServers / serverCount) * 100;
 
-    insights.push(`전체 ${serverCount}개 서버 중 ${healthyServers}개(${healthPercentage.toFixed(1)}%)가 정상 상태입니다.`);
+    insights.push(
+      `전체 ${serverCount}개 서버 중 ${healthyServers}개(${healthPercentage.toFixed(1)}%)가 정상 상태입니다.`
+    );
 
     // 평균 리소스 사용률
-    const avgCpu = Object.values(realtimeData).reduce((sum: number, data: any) => sum + data.cpu, 0) / serverCount;
-    const avgMemory = Object.values(realtimeData).reduce((sum: number, data: any) => sum + data.memory, 0) / serverCount;
+    const avgCpu =
+      Object.values(realtimeData).reduce(
+        (sum: number, data: any) => sum + data.cpu,
+        0
+      ) / serverCount;
+    const avgMemory =
+      Object.values(realtimeData).reduce(
+        (sum: number, data: any) => sum + data.memory,
+        0
+      ) / serverCount;
 
-    insights.push(`평균 CPU 사용률: ${avgCpu.toFixed(1)}%, 평균 메모리 사용률: ${avgMemory.toFixed(1)}%`);
+    insights.push(
+      `평균 CPU 사용률: ${avgCpu.toFixed(1)}%, 평균 메모리 사용률: ${avgMemory.toFixed(1)}%`
+    );
 
     // 이상 현상 요약
     if (anomalies.length > 0) {
-      const criticalCount = anomalies.filter(a => a.severity === 'critical').length;
-      insights.push(`${anomalies.length}개의 이상 현상이 감지되었습니다 (긴급: ${criticalCount}개)`);
+      const criticalCount = anomalies.filter(
+        a => a.severity === 'critical'
+      ).length;
+      insights.push(
+        `${anomalies.length}개의 이상 현상이 감지되었습니다 (긴급: ${criticalCount}개)`
+      );
     } else {
       insights.push('현재 감지된 이상 현상이 없습니다.');
     }
@@ -290,7 +330,7 @@ export class HybridMetricsBridge {
     return {
       anomalies: [],
       correlations: [],
-      trends: []
+      trends: [],
     };
   }
 
@@ -298,19 +338,19 @@ export class HybridMetricsBridge {
   private analyzeQueryIntent(query: string) {
     // 간단한 키워드 기반 의도 분석
     const lowerQuery = query.toLowerCase();
-    
+
     if (lowerQuery.includes('cpu') || lowerQuery.includes('프로세서')) {
       return { type: 'cpu_analysis', entities: ['cpu'] };
     }
-    
+
     if (lowerQuery.includes('memory') || lowerQuery.includes('메모리')) {
       return { type: 'memory_analysis', entities: ['memory'] };
     }
-    
+
     if (lowerQuery.includes('status') || lowerQuery.includes('상태')) {
       return { type: 'status_check', entities: ['status'] };
     }
-    
+
     return { type: 'general_inquiry', entities: [] };
   }
 
@@ -326,21 +366,27 @@ export class HybridMetricsBridge {
     return {
       data: {},
       confidence: 0.8,
-      sources: ['realtime_metrics']
+      sources: ['realtime_metrics'],
     };
   }
 
   // 자연어 응답 생성
-  private generateNaturalLanguageResponse(analysis: any, language: 'ko' | 'en') {
+  private generateNaturalLanguageResponse(
+    analysis: any,
+    language: 'ko' | 'en'
+  ) {
     const templates = {
       ko: {
         answer: '현재 시스템 상태를 분석한 결과입니다.',
-        suggestions: ['CPU 사용률을 확인해보세요', '메모리 사용량을 모니터링하세요']
+        suggestions: [
+          'CPU 사용률을 확인해보세요',
+          '메모리 사용량을 모니터링하세요',
+        ],
       },
       en: {
         answer: 'Here are the results of the current system status analysis.',
-        suggestions: ['Check CPU utilization', 'Monitor memory usage']
-      }
+        suggestions: ['Check CPU utilization', 'Monitor memory usage'],
+      },
     };
 
     return templates[language];
@@ -350,7 +396,7 @@ export class HybridMetricsBridge {
   public getStatus(): { initialized: boolean; engines: string[] } {
     return {
       initialized: this.isInitialized,
-      engines: ['transformers', 'statistical']
+      engines: ['transformers', 'statistical'],
     };
   }
-} 
+}

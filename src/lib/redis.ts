@@ -7,11 +7,9 @@
  * - 자동 전환: 부하 상황에 따른 동적 선택
  */
 
+import { getDecryptedRedisConfig } from '@/lib/config/runtime-env-decryptor';
 import { env } from './env';
 import { usageMonitor } from './usage-monitor';
-import { Redis } from '@upstash/redis';
-import { logger } from './logger';
-import { getDecryptedRedisConfig } from '@/lib/config/runtime-env-decryptor';
 
 /**
  * 🚀 스마트 Redis 클라이언트
@@ -442,3 +440,121 @@ export async function closeRedisConnection() {
 // 기존 호환성을 위한 기본 export
 export { realRedis, smartRedis };
 export default smartRedis;
+
+// =============================================================================
+// 🔄 삭제된 캐시 함수들 복원 (호환성 유지)
+// =============================================================================
+
+/**
+ * 📊 메트릭 데이터 조회
+ */
+export async function getMetrics(
+  serverId: string,
+  timestamp?: number
+): Promise<any> {
+  const client = await getHybridRedisClient('metrics-cache');
+  const key = timestamp
+    ? `metrics:${serverId}:${timestamp}`
+    : `metrics:${serverId}:latest`;
+  const data = await client.get(key);
+  return data ? JSON.parse(data) : null;
+}
+
+/**
+ * 📊 메트릭 데이터 저장
+ */
+export async function setMetrics(
+  serverId: string,
+  data: any,
+  timestamp?: number
+): Promise<void> {
+  const client = await getHybridRedisClient('metrics-cache');
+  const key = timestamp
+    ? `metrics:${serverId}:${timestamp}`
+    : `metrics:${serverId}:latest`;
+  await client.set(key, JSON.stringify(data), { ex: 3600 }); // 1시간 만료
+}
+
+/**
+ * 🔄 실시간 데이터 조회
+ */
+export async function getRealtime(key: string): Promise<any> {
+  const client = await getHybridRedisClient('realtime-cache');
+  const data = await client.get(`realtime:${key}`);
+  return data ? JSON.parse(data) : null;
+}
+
+/**
+ * 🔄 실시간 데이터 저장
+ */
+export async function setRealtime(
+  key: string,
+  data: any,
+  ttl = 300
+): Promise<void> {
+  const client = await getHybridRedisClient('realtime-cache');
+  await client.set(`realtime:${key}`, JSON.stringify(data), { ex: ttl });
+}
+
+/**
+ * 🔄 모든 실시간 데이터 조회
+ */
+export async function getAllRealtime(): Promise<any[]> {
+  const client = await getHybridRedisClient('realtime-cache');
+
+  // Mock Redis인 경우 직접 접근
+  if (client instanceof EnhancedMockRedis) {
+    const allData: any[] = [];
+    // Mock Redis의 store에서 realtime: 접두사로 시작하는 모든 키 조회
+    for (const [key, item] of (client as any).store.entries()) {
+      if (
+        key.startsWith('realtime:') &&
+        (!item.expiry || Date.now() < item.expiry)
+      ) {
+        allData.push(item.value);
+      }
+    }
+    return allData;
+  }
+
+  // 실제 Redis인 경우는 스캔 기능 사용 (간단한 구현)
+  return [];
+}
+
+/**
+ * 📦 배치 데이터 저장
+ */
+export async function setBatch(
+  key: string,
+  data: any[],
+  ttl = 1800
+): Promise<void> {
+  const client = await getHybridRedisClient('bulk-data');
+  await client.set(`batch:${key}`, JSON.stringify(data), { ex: ttl });
+}
+
+/**
+ * 🔌 Redis 연결 상태 확인
+ */
+export async function isRedisConnected(): Promise<boolean> {
+  try {
+    const client = await getHybridRedisClient('status-check');
+    await client.ping();
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * 📈 Redis 통계 정보
+ */
+export async function getRedisStats(): Promise<any> {
+  const stats = await smartRedis.getStats();
+  return {
+    connected: await isRedisConnected(),
+    mockRedis: stats.mockRedis,
+    realRedis: stats.realRedis,
+    strategy: stats.strategy,
+  };
+}

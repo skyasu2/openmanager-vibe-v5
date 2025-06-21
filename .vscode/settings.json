@@ -82,6 +82,61 @@
   "npm.packageManager": "npm",
   "npm.enableScriptExplorer": true,
   "npm.scriptExplorerAction": "run",
-  "terminal.integrated.defaultProfile.windows": "PowerShell",
-  "testing.automaticallyOpenTestResults": "neverOpen"
+  "testing.automaticallyOpenTestResults": "neverOpen",
+  // 🐧 WSL Ubuntu 터미널 설정
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
+  "terminal.integrated.profiles.windows": {
+    "Git Bash": {
+      "path": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "args": ["--login", "-i"],
+      "icon": "terminal-bash",
+      "color": "terminal.ansiGreen"
+    },
+    "Ubuntu (WSL)": {
+      "path": "C:\\Windows\\System32\\wsl.exe",
+      "args": ["-d", "Ubuntu"],
+      "icon": "terminal-ubuntu"
+    },
+    "PowerShell": {
+      "source": "PowerShell",
+      "icon": "terminal-powershell"
+    },
+    "Command Prompt": {
+      "path": [
+        "${env:windir}\\Sysnative\\cmd.exe",
+        "${env:windir}\\System32\\cmd.exe"
+      ],
+      "args": [],
+      "icon": "terminal-cmd"
+    }
+  },
+  // 🔧 WSL 터미널 최적화 설정
+  "terminal.integrated.enableMultiLinePasteWarning": false,
+  "terminal.integrated.copyOnSelection": true,
+  "terminal.integrated.rightClickBehavior": "copyPaste",
+  "terminal.integrated.fontSize": 14,
+  "terminal.integrated.fontFamily": "'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Courier New', monospace",
+  "terminal.integrated.cursorBlinking": true,
+  "terminal.integrated.cursorStyle": "block",
+  "terminal.integrated.scrollback": 10000,
+  "terminal.integrated.fastScrollSensitivity": 5,
+  "terminal.integrated.mouseWheelScrollSensitivity": 3,
+  // 🚀 WSL 개발 환경 최적화
+  "remote.WSL.fileWatcher.polling": true,
+  "remote.WSL.useShellEnvironment": true,
+  "git.useIntegratedTerminal": true,
+  "git.terminalAuthentication": true,
+  "terminal.integrated.inheritEnv": true,
+  "terminal.integrated.allowChords": false,
+  // 📁 파일 감시 최적화 (WSL 성능 향상)
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/*/**": true,
+    "**/.next/**": true,
+    "**/dist/**": true,
+    "**/build/**": true,
+    "**/coverage/**": true
+  }
 }

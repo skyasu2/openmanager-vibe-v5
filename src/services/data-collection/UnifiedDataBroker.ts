@@ -8,22 +8,13 @@
  * - 경연대회 모드 최적화
  */
 
-import { realServerDataGenerator } from '../data-generator/RealServerDataGenerator';
-import {
-  getMetrics,
-  setMetrics,
-  getRealtime,
-  setRealtime,
-} from '@/lib/cache/redis';
 import {
   competitionConfig,
   getCompetitionConfig,
 } from '@/config/competition-config';
-import type {
-  ServerInstance,
-  ServerCluster,
-  ApplicationMetrics,
-} from '@/types/data-generator';
+import { smartRedis } from '@/lib/redis';
+import type { ServerInstance } from '@/types/data-generator';
+import { realServerDataGenerator } from '../data-generator/RealServerDataGenerator';
 
 export interface DataBrokerMetrics {
   cacheHitRate: number;
@@ -285,7 +276,7 @@ export class UnifiedDataBroker {
         this.metrics.redisCommands < config.limits.redisCommands
       ) {
         try {
-          redisData = await getRealtime(key);
+          redisData = await smartRedis.get(key);
           this.metrics.redisCommands++;
         } catch (error) {
           console.warn('Redis 조회 실패:', error);
@@ -305,7 +296,7 @@ export class UnifiedDataBroker {
         // Redis에 저장 (명령어 한도 내에서)
         if (this.metrics.redisCommands < config.limits.redisCommands) {
           try {
-            await setRealtime(key, freshData);
+            await smartRedis.set(key, freshData);
             this.metrics.redisCommands++;
           } catch (error) {
             console.warn('Redis 저장 실패:', error);

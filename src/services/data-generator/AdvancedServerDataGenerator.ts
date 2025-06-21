@@ -12,16 +12,16 @@
  * @standalone true
  */
 
+import { setRealtime } from '@/lib/redis';
 import {
+  AIAnalysisDataset,
+  DataGenerationConfig,
+  LogEntry,
+  ProcessInfo,
   ServerMetadata,
   TimeSeriesMetrics,
-  LogEntry,
   TraceData,
-  DataGenerationConfig,
-  AIAnalysisDataset,
-  ProcessInfo,
 } from '@/types/ai-agent-input-schema';
-import { setRealtime, setBatch } from '@/lib/cache/redis';
 
 // 🎯 모듈 메타데이터
 export const MODULE_INFO = {
@@ -84,11 +84,10 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
       servers: {
         count: serverCount,
         types: {
-          K8s: 2,
+          Container: 1,
           Host: 2,
           Cloud: 2,
-          Container: 2,
-          VM: 1,
+          VM: 2,
           Edge: 1,
         },
         regions: ['us-east-1', 'us-west-2', 'eu-west-1', 'ap-southeast-1'],
@@ -119,10 +118,9 @@ export class AdvancedServerDataGenerator implements IDataGenerator {
     this.servers = [];
 
     const serverTypes: Array<ServerMetadata['serverType']> = [
-      'K8s',
+      'Container',
       'Host',
       'Cloud',
-      'Container',
       'VM',
       'Edge',
     ];

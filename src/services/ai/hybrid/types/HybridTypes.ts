@@ -52,11 +52,6 @@ export interface SmartQuery {
 
 export interface EngineStats {
   korean: { initialized: boolean; successCount: number; avgTime: number };
-  lightweightML: {
-    initialized: boolean;
-    successCount: number;
-    avgTime: number;
-  };
   transformers: { initialized: boolean; successCount: number; avgTime: number };
   vector: { initialized: boolean; documentCount: number; searchCount: number };
 }
@@ -93,7 +88,6 @@ export interface ResponseContext {
 
 export interface EngineConfiguration {
   korean: { enabled: boolean; priority: number };
-  lightweightML: { enabled: boolean; priority: number; models: string[] };
   transformers: { enabled: boolean; priority: number; models: string[] };
   vector: { enabled: boolean; priority: number; threshold: number };
   mcp: { enabled: boolean; priority: number };
