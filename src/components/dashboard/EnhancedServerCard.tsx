@@ -260,14 +260,14 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
 
       return (
         <div className='flex flex-col items-center group'>
-          <div className='flex items-center gap-1 mb-2'>
+          <div className='flex items-center gap-1 mb-1'>
             <div className='text-gray-500 group-hover:scale-110 transition-transform'>
               {icon}
             </div>
             <span className='text-xs font-medium text-gray-700'>{label}</span>
           </div>
           <div
-            className={`${variantStyles.chartSize} relative bg-white/80 rounded-lg p-1 shadow-sm`}
+            className={`${variantStyles.chartSize} relative bg-white/80 rounded-lg p-2 shadow-sm`}
           >
             <svg
               className='w-full h-full'
@@ -351,12 +351,6 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               />
             </svg>
           </div>
-          <div
-            className='text-sm font-bold mt-1 px-2 py-1 rounded-full bg-white/80'
-            style={{ color }}
-          >
-            {currentValue.toFixed(0)}%
-          </div>
         </div>
       );
     };
@@ -421,11 +415,11 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
         default:
           return {
             padding: 'p-6',
-            cardHeight: 'min-h-[240px]',
+            cardHeight: 'min-h-[220px]',
             titleSize: 'text-lg',
             subtitleSize: 'text-sm',
             chartContainer: 'grid-cols-4 gap-3',
-            chartSize: 'w-20 h-12',
+            chartSize: 'w-20 h-14',
             showFullDetails: false,
           };
       }
@@ -557,46 +551,6 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               />
             </div>
           )}
-
-          {/* 주요 메트릭 */}
-          <div className='grid grid-cols-4 gap-2'>
-            <div className='text-center'>
-              <div className='text-xs text-gray-600 flex items-center justify-center gap-1'>
-                <Cpu className='w-3 h-3' />
-                CPU
-              </div>
-              <div className='text-sm font-bold text-red-600'>
-                {server.cpu}%
-              </div>
-            </div>
-            <div className='text-center'>
-              <div className='text-xs text-gray-600 flex items-center justify-center gap-1'>
-                <Activity className='w-3 h-3' />
-                RAM
-              </div>
-              <div className='text-sm font-bold text-blue-600'>
-                {server.memory}%
-              </div>
-            </div>
-            <div className='text-center'>
-              <div className='text-xs text-gray-600 flex items-center justify-center gap-1'>
-                <HardDrive className='w-3 h-3' />
-                디스크
-              </div>
-              <div className='text-sm font-bold text-purple-600'>
-                {server.disk}%
-              </div>
-            </div>
-            <div className='text-center'>
-              <div className='text-xs text-gray-600 flex items-center justify-center gap-1'>
-                <Network className='w-3 h-3' />
-                네트워크
-              </div>
-              <div className='text-sm font-bold text-green-600'>
-                {server.network || 0}%
-              </div>
-            </div>
-          </div>
 
           {/* 서비스 상태 - compact에서는 간소화 */}
           {variant !== 'compact' && (
