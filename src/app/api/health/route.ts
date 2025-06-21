@@ -7,10 +7,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 // import EnvBackupManager from '../../../lib/env-backup-manager';
-import { MCPWarmupService } from '@/services/mcp/mcp-warmup-service';
 import { EnvBackupManager } from '@/lib/env-backup-manager';
 import { EnvironmentCryptoManager } from '@/lib/env-crypto-manager';
-import Redis from 'ioredis';
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 
 export const runtime = 'nodejs';
@@ -301,6 +299,7 @@ class AutoEnvRecoverySystem {
         const testValue = 'ok';
 
         // 실제 Redis 연결 시도
+        const { default: Redis } = await import('ioredis');
         const redis = new Redis({
           host: 'charming-condor-46598.upstash.io',
           port: 6379,

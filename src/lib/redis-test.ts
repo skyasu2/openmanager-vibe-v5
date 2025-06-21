@@ -3,81 +3,59 @@
  * OpenManager Vibe v5 - Redis 연결 상태 확인 및 테스트
  */
 
-import { Redis } from 'ioredis';
 import { logger } from '@/utils/enhanced-logging';
 
-// Upstash Redis 연결 설정
-const redis = new Redis({
-  host: 'charming-condor-46598.upstash.io',
-  port: 6379,
-  password: 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
-  tls: {}, // TLS 활성화 (Upstash 필수)
-  enableReadyCheck: false,
-  maxRetriesPerRequest: 3,
-  lazyConnect: true, // 지연 연결
-  connectTimeout: 10000, // 10초 타임아웃
-  commandTimeout: 5000, // 5초 명령어 타임아웃
-});
+// Redis 타입 정의
+type RedisType = any;
 
 /**
  * 기본 Redis 연결 테스트
  */
 export async function testRedisConnection(): Promise<boolean> {
   try {
+    // 클라이언트 사이드에서는 테스트 불가
+    if (typeof window !== 'undefined') {
+      console.log('⚠️ 클라이언트 환경에서는 Redis 테스트를 수행할 수 없습니다');
+      return false;
+    }
+
     const startTime = Date.now();
 
-    // 1. 기본 PING 테스트
-    const result = await redis.ping();
+    // 동적 import로 Redis 클래스 로드
+    const { default: Redis } = await import('ioredis');
+
+    // Upstash Redis 연결 설정
+    const redis = new Redis({
+      host: 'charming-condor-46598.upstash.io',
+      port: 6379,
+      password: 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
+      tls: {}, // TLS 활성화 (Upstash 필수)
+      enableReadyCheck: false,
+      maxRetriesPerRequest: 2,
+      lazyConnect: true,
+      connectTimeout: 5000,
+      commandTimeout: 3000,
+      retryStrategy: (times: number) => {
+        if (times > 2) return null;
+        return Math.min(times * 50, 2000);
+      },
+    });
+
+    // 기본 연결 테스트
+    await redis.ping();
     const responseTime = Date.now() - startTime;
 
-    logger.info(`✅ Redis 연결 성공: ${result} (${responseTime}ms)`);
+    // 연결 정보 확인
+    const info = await redis.info();
+    console.log(`✅ Redis 연결 성공 (${responseTime}ms)`);
+    console.log(`📊 Redis 정보: ${info.split('\n')[0]}`);
 
+    await redis.disconnect();
     return true;
   } catch (error) {
-    logger.error('❌ Redis 연결 실패:', error);
+    console.error('❌ Redis 연결 실패:', error);
+    logger.error('Redis connection test failed', { error });
     return false;
-  }
-}
-
-/**
- * Redis 상세 정보 조회
- */
-export async function getRedisInfo(): Promise<{
-  server: any;
-  memory: any;
-  keyspace: any;
-  stats: any;
-} | null> {
-  try {
-    const info = await redis.info();
-    const sections = info.split('\r\n\r\n');
-
-    const parseSection = (sectionName: string) => {
-      const section = sections.find(s => s.startsWith(`# ${sectionName}`));
-      if (!section) return {};
-
-      const lines = section.split('\r\n').slice(1);
-      const result: Record<string, string> = {};
-
-      lines.forEach(line => {
-        if (line && line.includes(':')) {
-          const [key, value] = line.split(':');
-          result[key] = value;
-        }
-      });
-
-      return result;
-    };
-
-    return {
-      server: parseSection('Server'),
-      memory: parseSection('Memory'),
-      keyspace: parseSection('Keyspace'),
-      stats: parseSection('Stats'),
-    };
-  } catch (error) {
-    logger.error('❌ Redis 정보 조회 실패:', error);
-    return null;
   }
 }
 
@@ -86,114 +64,131 @@ export async function getRedisInfo(): Promise<{
  */
 export async function testRedisReadWrite(): Promise<boolean> {
   try {
-    const testKey = 'openmanager:test:connection';
+    // 클라이언트 사이드에서는 테스트 불가
+    if (typeof window !== 'undefined') {
+      console.log('⚠️ 클라이언트 환경에서는 Redis 테스트를 수행할 수 없습니다');
+      return false;
+    }
+
+    // 동적 import로 Redis 클래스 로드
+    const { default: Redis } = await import('ioredis');
+
+    const redis = new Redis({
+      host: 'charming-condor-46598.upstash.io',
+      port: 6379,
+      password: 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
+      tls: {},
+      maxRetriesPerRequest: 2,
+      lazyConnect: true,
+    });
+
+    const testKey = 'test:connection:' + Date.now();
     const testValue = {
-      timestamp: new Date().toISOString(),
-      server: 'vibe-v5',
-      test: true,
+      message: 'Redis connection test',
+      timestamp: Date.now(),
     };
 
     // 쓰기 테스트
     await redis.set(testKey, JSON.stringify(testValue), 'EX', 60); // 60초 TTL
-    logger.info('📝 Redis 쓰기 성공');
+    console.log('✅ Redis 쓰기 테스트 성공');
 
     // 읽기 테스트
     const retrieved = await redis.get(testKey);
-    if (retrieved) {
-      const parsed = JSON.parse(retrieved);
-      logger.info('📖 Redis 읽기 성공:', parsed);
+    if (!retrieved || JSON.parse(retrieved).message !== testValue.message) {
+      throw new Error('데이터 검증 실패');
     }
+    console.log('✅ Redis 읽기 테스트 성공');
 
-    // 삭제 테스트
+    // 정리
     await redis.del(testKey);
-    logger.info('🗑️ Redis 삭제 성공');
+    await redis.disconnect();
 
     return true;
   } catch (error) {
-    logger.error('❌ Redis 읽기/쓰기 테스트 실패:', error);
+    console.error('❌ Redis 읽기/쓰기 테스트 실패:', error);
     return false;
   }
 }
 
 /**
- * Redis 성능 측정
+ * Redis 성능 테스트
  */
-export async function measureRedisPerformance(): Promise<{
-  pingLatency: number;
-  writeLatency: number;
-  readLatency: number;
-} | null> {
+export async function testRedisPerformance(): Promise<{
+  latency: number;
+  throughput: number;
+}> {
   try {
-    // PING 지연시간
-    const pingStart = Date.now();
+    // 클라이언트 사이드에서는 테스트 불가
+    if (typeof window !== 'undefined') {
+      return { latency: 0, throughput: 0 };
+    }
+
+    // 동적 import로 Redis 클래스 로드
+    const { default: Redis } = await import('ioredis');
+
+    const redis = new Redis({
+      host: 'charming-condor-46598.upstash.io',
+      port: 6379,
+      password: 'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
+      tls: {},
+      maxRetriesPerRequest: 2,
+      lazyConnect: true,
+    });
+
+    // 지연시간 테스트
+    const latencyStart = Date.now();
     await redis.ping();
-    const pingLatency = Date.now() - pingStart;
+    const latency = Date.now() - latencyStart;
 
-    // 쓰기 지연시간
-    const writeStart = Date.now();
-    await redis.set('perf:test', 'performance-test');
-    const writeLatency = Date.now() - writeStart;
+    // 처리량 테스트 (간단한 set/get 반복)
+    const throughputStart = Date.now();
+    const operations = 10;
 
-    // 읽기 지연시간
-    const readStart = Date.now();
-    await redis.get('perf:test');
-    const readLatency = Date.now() - readStart;
+    for (let i = 0; i < operations; i++) {
+      await redis.set('perf:test', 'performance-test');
+    }
 
-    // 정리
+    for (let i = 0; i < operations; i++) {
+      await redis.get('perf:test');
+    }
+
     await redis.del('perf:test');
 
-    const performance = {
-      pingLatency,
-      writeLatency,
-      readLatency,
-    };
+    const throughputTime = Date.now() - throughputStart;
+    const throughput = Math.round((operations * 2 * 1000) / throughputTime); // ops/sec
 
-    logger.info('⚡ Redis 성능 측정 완료:', performance);
-    return performance;
+    await redis.disconnect();
+
+    console.log(
+      `📊 Redis 성능: 지연시간 ${latency}ms, 처리량 ${throughput} ops/sec`
+    );
+
+    return { latency, throughput };
   } catch (error) {
-    logger.error('❌ Redis 성능 측정 실패:', error);
-    return null;
+    console.error('❌ Redis 성능 테스트 실패:', error);
+    return { latency: -1, throughput: -1 };
   }
 }
 
 /**
- * 종합 Redis 상태 체크
+ * 종합 Redis 테스트 실행
  */
-export async function comprehensiveRedisCheck(): Promise<{
-  connected: boolean;
-  info: any;
-  performance: any;
+export async function runFullRedisTest(): Promise<{
+  connection: boolean;
+  readWrite: boolean;
+  performance: { latency: number; throughput: number };
 }> {
-  logger.info('🔴 Redis 종합 상태 체크 시작...');
+  console.log('🔴 Redis 종합 테스트 시작...');
 
   const results = {
-    connected: false,
-    info: null,
-    performance: null,
+    connection: await testRedisConnection(),
+    readWrite: await testRedisReadWrite(),
+    performance: await testRedisPerformance(),
   };
 
-  try {
-    // 1. 연결 테스트
-    results.connected = await testRedisConnection();
+  console.log('🔴 Redis 테스트 완료:', results);
 
-    if (results.connected) {
-      // 2. 읽기/쓰기 테스트
-      await testRedisReadWrite();
-
-      // 3. 상세 정보 조회
-      results.info = await getRedisInfo();
-
-      // 4. 성능 측정
-      results.performance = await measureRedisPerformance();
-    }
-
-    logger.info('🎉 Redis 종합 상태 체크 완료!');
-    return results;
-  } catch (error) {
-    logger.error('❌ Redis 종합 상태 체크 실패:', error);
-    return results;
-  }
+  return results;
 }
 
-// 기본 내보내기
-export { redis };
+// Redis 인스턴스는 더 이상 export하지 않음 (동적 import 사용)

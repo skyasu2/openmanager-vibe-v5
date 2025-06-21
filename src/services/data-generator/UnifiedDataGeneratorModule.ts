@@ -20,7 +20,6 @@ import { StandardServerMetrics } from '@/modules/ai-agent/adapters/SystemIntegra
 import { ServerInstance } from '@/types/data-generator';
 import type { EnhancedServerMetrics } from '@/types/server';
 import { Server } from '@/types/server';
-import Redis from 'ioredis';
 
 // 기존 타입들 재사용 (중복 제거)
 import { OptimizedDataGenerator } from '@/services/OptimizedDataGenerator';
@@ -115,6 +114,9 @@ export interface DataGeneratorStrategy {
   getStatus(): any;
   dispose(): void;
 }
+
+// Redis 타입 정의 (동적 import용)
+type RedisType = any;
 
 // Real 전략 구현
 class RealDataStrategy implements DataGeneratorStrategy {
@@ -553,7 +555,7 @@ export class UnifiedDataGeneratorModule {
   private static instance: UnifiedDataGeneratorModule;
 
   // 공통 리소스
-  private redis: Redis | null = null;
+  private redis: RedisType | null = null;
   private cache = new Map<string, any>();
   private config: UnifiedGeneratorConfig;
 
@@ -635,7 +637,7 @@ export class UnifiedDataGeneratorModule {
     try {
       // 공통 Redis 연결
       if (this.config.enableRedis) {
-        await this.initializeRedis();
+        await this.initRedis();
       }
 
       // 전략들 초기화
@@ -655,11 +657,18 @@ export class UnifiedDataGeneratorModule {
   }
 
   /**
-   * 🔗 공통 Redis 연결 초기화
+   * 🔴 Redis 연결 초기화 (선택적)
    */
-  private async initializeRedis(): Promise<void> {
+  private async initRedis(): Promise<void> {
+    if (!this.config.enableRedis) {
+      console.log('🎭 Redis 비활성화 - 메모리 모드로 실행');
+      return;
+    }
+
     try {
-      // 환경변수에서 Redis 설정 가져오기
+      // 동적 import로 Redis 클래스 로드
+      const { default: Redis } = await import('ioredis');
+
       const redisUrl = process.env.REDIS_URL || process.env.KV_URL;
       const redisHost =
         process.env.REDIS_HOST || 'charming-condor-46598.upstash.io';
@@ -669,8 +678,10 @@ export class UnifiedDataGeneratorModule {
 
       if (redisUrl) {
         this.redis = new Redis(redisUrl, {
-          maxRetriesPerRequest: 3,
+          maxRetriesPerRequest: 2,
           lazyConnect: true,
+          connectTimeout: 5000,
+          commandTimeout: 3000,
         });
       } else if (redisPassword) {
         this.redis = new Redis({
@@ -678,8 +689,10 @@ export class UnifiedDataGeneratorModule {
           port: redisPort,
           password: redisPassword,
           tls: {},
-          maxRetriesPerRequest: 3,
+          maxRetriesPerRequest: 2,
           lazyConnect: true,
+          connectTimeout: 5000,
+          commandTimeout: 3000,
         });
       }
 

@@ -5,30 +5,26 @@
  */
 
 import {
-  ServerInstance,
-  ServerCluster,
   ApplicationMetrics,
+  ServerCluster,
+  ServerInstance,
 } from '@/types/data-generator';
 
-// Redis 클라이언트 import
-import Redis from 'ioredis';
+// Redis 타입 정의 (동적 import용)
+type RedisType = any;
 
 // 중앙 서버 설정 import
-import {
-  ACTIVE_SERVER_CONFIG,
-  logServerConfig,
-  type ServerGenerationConfig,
-} from '@/config/serverConfig';
+import { ACTIVE_SERVER_CONFIG, logServerConfig } from '@/config/serverConfig';
 
 export interface GeneratorConfig {
   maxServers?: number;
   updateInterval?: number;
   enableRealtime?: boolean;
   serverArchitecture?:
-  | 'single'
-  | 'master-slave'
-  | 'load-balanced'
-  | 'microservices';
+    | 'single'
+    | 'master-slave'
+    | 'load-balanced'
+    | 'microservices';
   enableRedis?: boolean;
   /**
    * ⚙️ 시나리오 기반 상태 분포 설정
@@ -54,7 +50,7 @@ export class RealServerDataGenerator {
   private isGenerating = false;
 
   // 🔴 Redis 연결
-  private redis: Redis | null = null;
+  private redis: RedisType | null = null;
   private readonly REDIS_PREFIX = 'openmanager:servers:';
   private readonly REDIS_CLUSTERS_PREFIX = 'openmanager:clusters:';
   private readonly REDIS_APPS_PREFIX = 'openmanager:apps:';
@@ -176,6 +172,9 @@ export class RealServerDataGenerator {
     }
 
     try {
+      // 동적 import로 Redis 클래스 로드
+      const { default: Redis } = await import('ioredis');
+
       // 환경변수에서 Redis 설정 가져오기 (다중 소스 지원)
       const redisUrl = process.env.REDIS_URL || process.env.KV_URL;
       const redisHost =
@@ -836,12 +835,12 @@ export class RealServerDataGenerator {
         avgCpu:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.cpu, 0) /
-            servers.length
+              servers.length
             : 0,
         avgMemory:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.memory, 0) /
-            servers.length
+              servers.length
             : 0,
       },
       clusters: {
@@ -876,9 +875,9 @@ export class RealServerDataGenerator {
         avgResponseTime:
           applications.length > 0
             ? applications.reduce(
-              (sum, a) => sum + a.performance.responseTime,
-              0
-            ) / applications.length
+                (sum, a) => sum + a.performance.responseTime,
+                0
+              ) / applications.length
             : 0,
       },
       timestamp: Date.now(),
