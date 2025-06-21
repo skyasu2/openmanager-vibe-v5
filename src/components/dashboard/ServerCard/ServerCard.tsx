@@ -82,7 +82,26 @@ const ServerCard: React.FC<ServerCardProps> = memo(
 
     // 카드 클릭 핸들러
     const handleCardClick = useCallback(() => {
-      onClick(server);
+      try {
+        // 🛡️ 서버 데이터 유효성 검증
+        if (!server || !server.id) {
+          console.warn('⚠️ [ServerCard] 유효하지 않은 서버 데이터:', server);
+          return;
+        }
+
+        // 🛡️ onClick 함수 존재 여부 확인
+        if (typeof onClick !== 'function') {
+          console.warn(
+            '⚠️ [ServerCard] onClick 핸들러가 함수가 아닙니다:',
+            onClick
+          );
+          return;
+        }
+
+        onClick(server);
+      } catch (error) {
+        console.error('❌ [ServerCard] 카드 클릭 처리 중 오류:', error);
+      }
     }, [onClick, server]);
 
     // 액션 핸들러

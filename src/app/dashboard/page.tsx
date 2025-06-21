@@ -18,6 +18,10 @@ const DashboardContent = dynamic(
 const FloatingSystemControl = dynamic(
   () => import('../../components/system/FloatingSystemControl')
 );
+const EnhancedServerModal = dynamic(
+  () => import('../../components/dashboard/EnhancedServerModal')
+);
+
 const ContentLoadingSkeleton = () => (
   <div className='p-6 space-y-4'>
     <div className='w-full h-32 bg-gray-200 rounded-lg animate-pulse'></div>
@@ -71,6 +75,8 @@ class DashboardErrorBoundary extends React.Component<
 function DashboardPageContent() {
   const [isClient, setIsClient] = useState(false);
   const [isAgentOpen, setIsAgentOpen] = useState(false);
+  const [selectedServer, setSelectedServer] = useState<any>(null);
+  const [isServerModalOpen, setIsServerModalOpen] = useState(false);
   const isResizing = false; // Removed from store to prevent errors
 
   useEffect(() => {
@@ -80,8 +86,30 @@ function DashboardPageContent() {
   const toggleAgent = useCallback(() => {
     setIsAgentOpen(prev => !prev);
   }, []);
+
   const closeAgent = useCallback(() => {
     setIsAgentOpen(false);
+  }, []);
+
+  // 🎯 서버 클릭 핸들러 - 모달 열기
+  const handleServerClick = useCallback((server: any) => {
+    try {
+      console.log('🖱️ 서버 카드 클릭됨:', server?.name || server?.id);
+      if (!server) {
+        console.warn('⚠️ 유효하지 않은 서버 데이터');
+        return;
+      }
+      setSelectedServer(server);
+      setIsServerModalOpen(true);
+    } catch (error) {
+      console.error('❌ 서버 클릭 처리 중 오류:', error);
+    }
+  }, []);
+
+  // 🔒 서버 모달 닫기
+  const handleServerModalClose = useCallback(() => {
+    setSelectedServer(null);
+    setIsServerModalOpen(false);
   }, []);
 
   if (!isClient) {
@@ -121,9 +149,9 @@ function DashboardPageContent() {
             servers={[]}
             status={{ type: 'idle' }}
             actions={{ start: () => {}, stop: () => {} }}
-            selectedServer={null}
-            onServerClick={() => {}}
-            onServerModalClose={() => {}}
+            selectedServer={selectedServer}
+            onServerClick={handleServerClick}
+            onServerModalClose={handleServerModalClose}
             onStatsUpdate={() => {}}
             onShowSequentialChange={() => {}}
             mainContentVariants={{}}
@@ -146,6 +174,14 @@ function DashboardPageContent() {
       </AnimatePresence>
       <FloatingSystemControl {...dummySystemControl} />
       <NotificationToast />
+
+      {/* 🎯 서버 상세 모달 */}
+      {isServerModalOpen && selectedServer && (
+        <EnhancedServerModal
+          server={selectedServer}
+          onClose={handleServerModalClose}
+        />
+      )}
     </div>
   );
 }

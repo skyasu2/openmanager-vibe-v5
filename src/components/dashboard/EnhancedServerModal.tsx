@@ -73,6 +73,7 @@ export default function EnhancedServerModal({
   server,
   onClose,
 }: EnhancedServerModalProps) {
+  // 🎯 React Hooks는 항상 최상단에서 호출
   const [selectedTab, setSelectedTab] = useState<
     'overview' | 'metrics' | 'processes' | 'logs' | 'network'
   >('overview');
@@ -80,97 +81,143 @@ export default function EnhancedServerModal({
   const [timeRange, setTimeRange] = useState<'5m' | '1h' | '6h' | '24h' | '7d'>(
     '1h'
   );
-  const [realtimeData, setRealtimeData] = useState<{
-    cpu: number[];
-    memory: number[];
-    disk: number[];
-    network: { in: number; out: number }[];
-    latency: number[];
-    processes: Array<{
+  const [realtimeData, setRealtimeData] = useState({
+    cpu: [] as number[],
+    memory: [] as number[],
+    disk: [] as number[],
+    network: [] as { in: number; out: number }[],
+    latency: [] as number[],
+    processes: [] as Array<{
       name: string;
       cpu: number;
       memory: number;
       pid: number;
-    }>;
-    logs: Array<{
+    }>,
+    logs: [] as Array<{
       timestamp: string;
-      level: string;
+      level: 'info' | 'warn' | 'error';
       message: string;
       source: string;
-    }>;
-  }>({
-    cpu: [],
-    memory: [],
-    disk: [],
-    network: [],
-    latency: [],
-    processes: [],
-    logs: [],
+    }>,
   });
+
+  // 🛡️ 서버 데이터 안전성 검증 및 기본값 설정
+  const safeServer = server
+    ? {
+        id: server.id || 'unknown',
+        hostname: server.hostname || 'unknown.local',
+        name: server.name || 'Unknown Server',
+        type: server.type || 'unknown',
+        environment: server.environment || 'unknown',
+        location: server.location || 'Unknown Location',
+        provider: server.provider || 'Unknown Provider',
+        status: server.status || 'offline',
+        cpu: typeof server.cpu === 'number' ? server.cpu : 0,
+        memory: typeof server.memory === 'number' ? server.memory : 0,
+        disk: typeof server.disk === 'number' ? server.disk : 0,
+        network: typeof server.network === 'number' ? server.network : 0,
+        uptime: server.uptime || '0h 0m',
+        lastUpdate: server.lastUpdate || new Date(),
+        alerts: typeof server.alerts === 'number' ? server.alerts : 0,
+        services: Array.isArray(server.services) ? server.services : [],
+        specs: server.specs || { cpu_cores: 4, memory_gb: 8, disk_gb: 100 },
+        os: server.os || 'Unknown OS',
+        ip: server.ip || '0.0.0.0',
+        networkStatus: server.networkStatus || 'offline',
+        health: server.health || { score: 0, trend: [] },
+        alertsSummary: server.alertsSummary || {
+          total: 0,
+          critical: 0,
+          warning: 0,
+        },
+      }
+    : null;
 
   // 실시간 데이터 생성
   useEffect(() => {
-    if (!server || !isRealtime) return;
+    if (!safeServer || !isRealtime) return;
 
     const generateRealtimeData = () => {
-      const now = new Date();
-      setRealtimeData(prev => ({
-        cpu: [
-          ...prev.cpu.slice(-29),
-          server.cpu + (Math.random() - 0.5) * 10,
-        ].slice(-30),
-        memory: [
-          ...prev.memory.slice(-29),
-          server.memory + (Math.random() - 0.5) * 8,
-        ].slice(-30),
-        disk: [
-          ...prev.disk.slice(-29),
-          server.disk + (Math.random() - 0.5) * 3,
-        ].slice(-30),
-        network: [
-          ...prev.network.slice(-29),
-          {
-            in: Math.random() * 1000 + 500,
-            out: Math.random() * 800 + 300,
-          },
-        ].slice(-30),
-        latency: [...prev.latency.slice(-29), Math.random() * 100 + 50].slice(
-          -30
-        ),
-        processes:
-          server.services?.map((service, i) => ({
-            name: service.name,
-            cpu: parseFloat((Math.random() * 20).toFixed(2)),
-            memory: parseFloat((Math.random() * 15).toFixed(2)),
-            pid: 1000 + i,
-          })) || [],
-        logs: [
-          ...prev.logs.slice(-19),
-          {
-            timestamp: now.toISOString(),
-            level: ['info', 'warn', 'error'][Math.floor(Math.random() * 3)],
-            message: [
-              `${server.name} - HTTP request processed successfully`,
-              `${server.name} - Memory usage above threshold`,
-              `${server.name} - Database connection established`,
-              `${server.name} - Cache invalidated`,
-              `${server.name} - Backup completed`,
-              `${server.name} - SSL certificate renewed`,
-            ][Math.floor(Math.random() * 6)],
-            source:
-              server.services?.[
-                Math.floor(Math.random() * server.services.length)
-              ]?.name || server.name,
-          },
-        ].slice(-20),
-      }));
+      try {
+        const now = new Date();
+        setRealtimeData(prev => ({
+          cpu: [
+            ...prev.cpu.slice(-29),
+            safeServer.cpu + (Math.random() - 0.5) * 10,
+          ].slice(-30),
+          memory: [
+            ...prev.memory.slice(-29),
+            safeServer.memory + (Math.random() - 0.5) * 8,
+          ].slice(-30),
+          disk: [
+            ...prev.disk.slice(-29),
+            safeServer.disk + (Math.random() - 0.5) * 3,
+          ].slice(-30),
+          network: [
+            ...prev.network.slice(-29),
+            {
+              in: Math.random() * 1000 + 500,
+              out: Math.random() * 800 + 300,
+            },
+          ].slice(-30),
+          latency: [...prev.latency.slice(-29), Math.random() * 100 + 50].slice(
+            -30
+          ),
+          processes:
+            safeServer.services?.map((service, i) => ({
+              name: service.name || `service-${i}`,
+              cpu: parseFloat((Math.random() * 20).toFixed(2)),
+              memory: parseFloat((Math.random() * 15).toFixed(2)),
+              pid: 1000 + i,
+            })) || [],
+          logs: [
+            ...prev.logs.slice(-19),
+            {
+              timestamp: now.toISOString(),
+              level: ['info', 'warn', 'error'][
+                Math.floor(Math.random() * 3)
+              ] as 'info' | 'warn' | 'error',
+              message: [
+                `${safeServer.name} - HTTP request processed successfully`,
+                `${safeServer.name} - Memory usage above threshold`,
+                `${safeServer.name} - Database connection established`,
+                `${safeServer.name} - Cache invalidated`,
+                `${safeServer.name} - Backup completed`,
+                `${safeServer.name} - SSL certificate renewed`,
+              ][Math.floor(Math.random() * 6)],
+              source:
+                safeServer.services?.[
+                  Math.floor(Math.random() * safeServer.services.length)
+                ]?.name || safeServer.name,
+            },
+          ].slice(-20),
+        }));
+      } catch (error) {
+        console.error(
+          '⚠️ [EnhancedServerModal] 실시간 데이터 생성 오류:',
+          error
+        );
+        // 오류 발생 시 기본 데이터로 설정
+        setRealtimeData(prev => ({
+          ...prev,
+          logs: [
+            ...prev.logs.slice(-19),
+            {
+              timestamp: new Date().toISOString(),
+              level: 'warn' as 'info' | 'warn' | 'error',
+              message: `${safeServer.name} - 데이터 생성 오류 발생`,
+              source: safeServer.name,
+            },
+          ].slice(-20),
+        }));
+      }
     };
 
     generateRealtimeData();
     const interval = setInterval(generateRealtimeData, 2000);
 
     return () => clearInterval(interval);
-  }, [server, isRealtime]);
+  }, [safeServer, isRealtime]);
 
   // 탭 설정
   const tabs = [
@@ -356,7 +403,43 @@ export default function EnhancedServerModal({
     );
   };
 
-  if (!server) return null;
+  if (!safeServer) {
+    console.warn('⚠️ [EnhancedServerModal] 서버 데이터가 없습니다.');
+    // 모달을 닫지 않고 오류 상태를 표시
+    return (
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className='fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4'
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className='bg-white rounded-xl p-6 max-w-md w-full text-center'
+            onClick={e => e.stopPropagation()}
+          >
+            <div className='text-red-500 text-4xl mb-4'>⚠️</div>
+            <h3 className='text-lg font-semibold text-gray-900 mb-2'>
+              서버 데이터 오류
+            </h3>
+            <p className='text-gray-600 mb-4'>
+              서버 정보를 불러올 수 없습니다.
+            </p>
+            <button
+              onClick={onClose}
+              className='px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors'
+            >
+              닫기
+            </button>
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
 
   return (
     <AnimatePresence>
@@ -384,19 +467,19 @@ export default function EnhancedServerModal({
                 </div>
                 <div>
                   <h2 className='text-2xl font-bold flex items-center gap-3'>
-                    <span>{server.name}</span>
-                    {server.health?.score !== undefined && (
+                    <span>{safeServer.name}</span>
+                    {safeServer.health?.score !== undefined && (
                       <span className='text-sm font-semibold bg-white/20 px-2 py-0.5 rounded-md'>
-                        {Math.round(server.health.score)}/100
+                        {Math.round(safeServer.health.score)}/100
                       </span>
                     )}
                   </h2>
                   <p className='text-blue-100 flex items-center gap-2'>
-                    {server.type} • {server.location}
-                    {server.alertsSummary?.total ? (
+                    {safeServer.type} • {safeServer.location}
+                    {safeServer.alertsSummary?.total ? (
                       <span className='ml-2 inline-flex items-center gap-1 bg-red-500/20 text-red-100 px-2 py-0.5 rounded-full text-xs'>
                         <AlertTriangle className='w-3 h-3' />
-                        {server.alertsSummary.total}
+                        {safeServer.alertsSummary.total}
                       </span>
                     ) : null}
                   </p>
@@ -476,19 +559,19 @@ export default function EnhancedServerModal({
                       </h3>
                       <div className='grid grid-cols-1 md:grid-cols-3 gap-8 bg-white rounded-xl p-6 shadow-md border border-gray-200'>
                         <CircularGauge3D
-                          value={server.cpu}
+                          value={safeServer.cpu}
                           label='CPU'
                           color='#ef4444'
                           size={140}
                         />
                         <CircularGauge3D
-                          value={server.memory}
+                          value={safeServer.memory}
                           label='메모리'
                           color='#3b82f6'
                           size={140}
                         />
                         <CircularGauge3D
-                          value={server.disk}
+                          value={safeServer.disk}
                           label='디스크'
                           color='#8b5cf6'
                           size={140}
@@ -506,29 +589,31 @@ export default function EnhancedServerModal({
                           <div className='flex justify-between'>
                             <span className='text-gray-600'>운영체제</span>
                             <span className='font-medium'>
-                              {server.os || 'Ubuntu 20.04 LTS'}
+                              {safeServer.os || 'Ubuntu 20.04 LTS'}
                             </span>
                           </div>
                           <div className='flex justify-between'>
                             <span className='text-gray-600'>IP 주소</span>
                             <span className='font-medium'>
-                              {server.ip || '192.168.1.100'}
+                              {safeServer.ip || '192.168.1.100'}
                             </span>
                           </div>
                           <div className='flex justify-between'>
                             <span className='text-gray-600'>업타임</span>
-                            <span className='font-medium'>{server.uptime}</span>
+                            <span className='font-medium'>
+                              {safeServer.uptime}
+                            </span>
                           </div>
                           <div className='flex justify-between'>
                             <span className='text-gray-600'>CPU 코어</span>
                             <span className='font-medium'>
-                              {server.specs?.cpu_cores || 8}개
+                              {safeServer.specs?.cpu_cores || 8}개
                             </span>
                           </div>
                           <div className='flex justify-between'>
                             <span className='text-gray-600'>메모리</span>
                             <span className='font-medium'>
-                              {server.specs?.memory_gb || 16}GB
+                              {safeServer.specs?.memory_gb || 16}GB
                             </span>
                           </div>
                         </div>
@@ -539,7 +624,7 @@ export default function EnhancedServerModal({
                           서비스 상태
                         </h4>
                         <div className='space-y-3'>
-                          {server.services.map((service, idx) => (
+                          {safeServer.services.map((service, idx) => (
                             <div
                               key={idx}
                               className='flex items-center justify-between'
@@ -689,7 +774,16 @@ export default function EnhancedServerModal({
                           }`}
                         >
                           <span className='text-gray-500'>
-                            {new Date(log.timestamp).toLocaleTimeString()}
+                            {(() => {
+                              try {
+                                const date = new Date(log.timestamp);
+                                return isNaN(date.getTime())
+                                  ? new Date().toLocaleTimeString()
+                                  : date.toLocaleTimeString();
+                              } catch (error) {
+                                return new Date().toLocaleTimeString();
+                              }
+                            })()}
                           </span>
                           <span className='ml-2 text-blue-400'>
                             [{log.source}]
