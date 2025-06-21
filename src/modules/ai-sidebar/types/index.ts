@@ -56,6 +56,7 @@ export interface ChatMessage {
     description: string;
     duration: number;
     confidence?: number;
+    status?: 'pending' | 'processing' | 'completed';
   }>;
   files?: Array<{
     id: string;

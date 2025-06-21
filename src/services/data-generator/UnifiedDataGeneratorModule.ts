@@ -1,5 +1,5 @@
 /**
- * 🚀 통합 데이터 생성기 모듈 v6.0
+ * 🚀 통합 데이터 생성기 모듈 v6.1 (OpenManager 스타일 전처리 추가)
  *
  * Strategy Pattern으로 4개 생성기 통합:
  * - RealServerDataGenerator: 실제 서버 데이터
@@ -13,20 +13,63 @@
  * - 공통 메모리 캐시
  * - 환경변수 기반 온오프
  * - Vercel 최적화
+ * - OpenManager 스타일 전처리 (NEW!)
  */
 
+import { StandardServerMetrics } from '@/modules/ai-agent/adapters/SystemIntegrationAdapter';
+import { ServerInstance } from '@/types/data-generator';
 import type { EnhancedServerMetrics } from '@/types/server';
-import {
-  ServerInstance,
-  ServerCluster,
-  ApplicationMetrics,
-} from '@/types/data-generator';
+import { Server } from '@/types/server';
 import Redis from 'ioredis';
 
 // 기존 타입들 재사용 (중복 제거)
-import { BaselineDataPoint } from '@/types/data-generator';
 import { OptimizedDataGenerator } from '@/services/OptimizedDataGenerator';
-import { BaselineOptimizer } from '@/modules/advanced-features/baseline-optimizer';
+
+// OpenManager 스타일 전처리된 데이터 타입
+export interface OpenManagerProcessedData {
+  // UI용 데이터 (대시보드)
+  dashboardData: {
+    servers: Server[];
+    stats: {
+      total: number;
+      healthy: number;
+      warning: number;
+      critical: number;
+      offline: number;
+      averageCpu: number;
+      averageMemory: number;
+      averageDisk: number;
+    };
+    timestamp: string;
+    source: 'unified-data-generator';
+  };
+
+  // AI용 데이터 (AI 엔진)
+  aiData: {
+    metrics: StandardServerMetrics[];
+    aggregatedStats: {
+      totalServers: number;
+      avgCpuUsage: number;
+      avgMemoryUsage: number;
+      avgDiskUsage: number;
+      healthScore: number;
+      anomalyCount: number;
+    };
+    timestamp: string;
+    source: 'unified-data-generator';
+  };
+
+  // 원시 데이터 (필요시 접근)
+  rawData: any[];
+
+  // 메타데이터
+  metadata: {
+    strategy: string;
+    generationTime: number;
+    dataPoints: number;
+    version: string;
+  };
+}
 
 // 통합 설정 인터페이스
 export interface UnifiedGeneratorConfig {
@@ -691,7 +734,7 @@ export class UnifiedDataGeneratorModule {
   }
 
   /**
-   * 📊 데이터 생성 (메인 메서드)
+   * 📊 데이터 생성 (메인 메서드) - 원시 데이터 반환
    */
   async generateData(): Promise<any[]> {
     if (!this.currentStrategy) {
@@ -725,6 +768,353 @@ export class UnifiedDataGeneratorModule {
       console.error('❌ 데이터 생성 실패:', error);
       throw error;
     }
+  }
+
+  /**
+   * 🎯 OpenManager 스타일 전처리된 데이터 생성 (NEW!)
+   */
+  async generateProcessedData(): Promise<OpenManagerProcessedData> {
+    const startTime = Date.now();
+
+    try {
+      console.log('🎯 OpenManager 스타일 데이터 전처리 시작...');
+
+      // 1. 원시 데이터 생성
+      const rawData = await this.generateData();
+
+      // 2. UI용 데이터 전처리
+      const dashboardData = this.preprocessForDashboard(rawData);
+
+      // 3. AI용 데이터 전처리
+      const aiData = this.preprocessForAI(rawData);
+
+      // 4. 24시간 히스토리 데이터와 통합 (Redis)
+      await this.integrateHistoricalData(dashboardData.servers);
+
+      const processingTime = Date.now() - startTime;
+
+      console.log(`✅ OpenManager 스타일 전처리 완료 (${processingTime}ms)`);
+
+      return {
+        dashboardData,
+        aiData,
+        rawData,
+        metadata: {
+          strategy: this.currentStrategy?.name || 'unknown',
+          generationTime: processingTime,
+          dataPoints: rawData.length,
+          version: '6.1.0',
+        },
+      };
+    } catch (error) {
+      console.error('❌ OpenManager 스타일 전처리 실패:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 🎨 UI용 데이터 전처리 (대시보드)
+   */
+  private preprocessForDashboard(
+    rawData: any[]
+  ): OpenManagerProcessedData['dashboardData'] {
+    const servers: Server[] = rawData.map((item, index) => {
+      // 다양한 전략의 데이터 구조를 Server 타입으로 통일
+      let server: Server;
+
+      if (item.id && item.name) {
+        // ServerInstance 타입 (Real/Advanced 전략)
+        server = {
+          id: item.id,
+          name: item.name,
+          hostname: item.hostname || item.name,
+          status: this.normalizeStatus(item.status || 'online'),
+          environment: item.environment || 'production',
+          role: item.role || 'worker',
+          cpu: item.metrics?.cpu || item.cpu || 0,
+          memory: item.metrics?.memory || item.memory || 0,
+          disk: item.metrics?.disk || item.disk || 0,
+          network:
+            item.metrics?.network ||
+            (item.networkIn || 0) + (item.networkOut || 0),
+          uptime: item.uptime || Math.floor(Math.random() * 86400),
+          location: item.location || 'us-east-1',
+          lastUpdate: new Date(),
+          alerts: [],
+          services: [],
+        };
+      } else {
+        // EnhancedServerMetrics 타입 (Optimized 전략) 또는 기타
+        server = {
+          id: item.serverId || `server-${index}`,
+          name: item.hostname || `Server-${index}`,
+          hostname: item.hostname || `server-${index}.local`,
+          status: this.normalizeStatus(item.status || 'online'),
+          environment: 'production',
+          role: 'worker',
+          cpu: item.cpu || 0,
+          memory: item.memory || 0,
+          disk: item.disk || 0,
+          network: item.network || 0,
+          uptime: Math.floor(Math.random() * 86400),
+          location: 'us-east-1',
+          lastUpdate: new Date(),
+          alerts: [],
+          services: [],
+        };
+      }
+
+      // alerts가 배열인지 확인하고 알림 생성
+      if (
+        Array.isArray(server.alerts) &&
+        (server.cpu > 80 || server.memory > 85)
+      ) {
+        server.alerts.push({
+          id: `alert-${Date.now()}-${index}`,
+          server_id: server.id,
+          type: 'cpu',
+          message: `높은 리소스 사용률 감지 (CPU: ${server.cpu}%, Memory: ${server.memory}%)`,
+          severity: server.cpu > 90 || server.memory > 90 ? 'high' : 'medium',
+          timestamp: new Date().toISOString(),
+          resolved: false,
+        });
+      }
+
+      return server;
+    });
+
+    // 통계 계산
+    const stats = this.calculateDashboardStats(servers);
+
+    return {
+      servers,
+      stats,
+      timestamp: new Date().toISOString(),
+      source: 'unified-data-generator',
+    };
+  }
+
+  /**
+   * 🧠 AI용 데이터 전처리
+   */
+  private preprocessForAI(rawData: any[]): OpenManagerProcessedData['aiData'] {
+    const metrics: StandardServerMetrics[] = rawData.map((item, index) => {
+      const baseMetric: StandardServerMetrics = {
+        serverId: item.id || item.serverId || `server-${index}`,
+        hostname: item.name || item.hostname || `server-${index}.local`,
+        timestamp: new Date(),
+        status: this.normalizeAIStatus(item.status || 'online'),
+        metrics: {
+          cpu: {
+            usage: item.metrics?.cpu || item.cpu || 0,
+            loadAverage: [
+              (item.metrics?.cpu || item.cpu || 0) / 25,
+              (item.metrics?.cpu || item.cpu || 0) / 30,
+              (item.metrics?.cpu || item.cpu || 0) / 35,
+            ],
+            cores: item.specs?.cpu?.cores || 4,
+          },
+          memory: {
+            total: (item.specs?.memory?.total || 8192) * 1024 * 1024, // MB to bytes
+            used:
+              ((item.metrics?.memory || item.memory || 0) / 100) *
+              (item.specs?.memory?.total || 8192) *
+              1024 *
+              1024,
+            available:
+              ((100 - (item.metrics?.memory || item.memory || 0)) / 100) *
+              (item.specs?.memory?.total || 8192) *
+              1024 *
+              1024,
+            usage: item.metrics?.memory || item.memory || 0,
+          },
+          disk: {
+            total: (item.specs?.disk?.total || 100) * 1024 * 1024 * 1024, // GB to bytes
+            used:
+              ((item.metrics?.disk || item.disk || 0) / 100) *
+              (item.specs?.disk?.total || 100) *
+              1024 *
+              1024 *
+              1024,
+            available:
+              ((100 - (item.metrics?.disk || item.disk || 0)) / 100) *
+              (item.specs?.disk?.total || 100) *
+              1024 *
+              1024 *
+              1024,
+            usage: item.metrics?.disk || item.disk || 0,
+            iops: {
+              read: Math.random() * 1000,
+              write: Math.random() * 800,
+            },
+          },
+          network: {
+            interface: 'eth0',
+            bytesReceived: item.networkIn || Math.random() * 10000,
+            bytesSent: item.networkOut || Math.random() * 8000,
+            packetsReceived: Math.random() * 1000,
+            packetsSent: Math.random() * 800,
+            errorsReceived: 0,
+            errorsSent: 0,
+          },
+        },
+        services: [],
+        metadata: {
+          location: 'us-east-1',
+          environment: item.environment || 'production',
+          provider: 'aws',
+          cluster: 'main-cluster',
+          zone: 'us-east-1a',
+          instanceType: 't3.medium',
+        },
+      };
+
+      return baseMetric;
+    });
+
+    // AI용 집계 통계 계산
+    const aggregatedStats = this.calculateAIStats(metrics);
+
+    return {
+      metrics,
+      aggregatedStats,
+      timestamp: new Date().toISOString(),
+      source: 'unified-data-generator',
+    };
+  }
+
+  /**
+   * 📊 대시보드 통계 계산
+   */
+  private calculateDashboardStats(servers: Server[]) {
+    const total = servers.length;
+    const healthy = servers.filter(s => s.status === 'healthy').length;
+    const warning = servers.filter(s => s.status === 'warning').length;
+    const critical = servers.filter(s => s.status === 'critical').length;
+    const offline = servers.filter(s => s.status === 'offline').length;
+
+    const avgCpu = servers.reduce((sum, s) => sum + s.cpu, 0) / total;
+    const avgMemory = servers.reduce((sum, s) => sum + s.memory, 0) / total;
+    const avgDisk = servers.reduce((sum, s) => sum + s.disk, 0) / total;
+
+    return {
+      total,
+      healthy,
+      warning,
+      critical,
+      offline,
+      averageCpu: Math.round(avgCpu * 10) / 10,
+      averageMemory: Math.round(avgMemory * 10) / 10,
+      averageDisk: Math.round(avgDisk * 10) / 10,
+    };
+  }
+
+  /**
+   * 🧠 AI 통계 계산
+   */
+  private calculateAIStats(metrics: StandardServerMetrics[]) {
+    const total = metrics.length;
+    const avgCpu =
+      metrics.reduce((sum, m) => sum + m.metrics.cpu.usage, 0) / total;
+    const avgMemory =
+      metrics.reduce((sum, m) => sum + m.metrics.memory.usage, 0) / total;
+    const avgDisk =
+      metrics.reduce((sum, m) => sum + m.metrics.disk.usage, 0) / total;
+
+    return {
+      totalServers: total,
+      avgCpuUsage: Math.round(avgCpu * 10) / 10,
+      avgMemoryUsage: Math.round(avgMemory * 10) / 10,
+      avgDiskUsage: Math.round(avgDisk * 10) / 10,
+      healthScore: Math.max(0, 100 - (avgCpu + avgMemory + avgDisk) / 3),
+      anomalyCount: metrics.filter(
+        m => m.metrics.cpu.usage > 80 || m.metrics.memory.usage > 85
+      ).length,
+    };
+  }
+
+  /**
+   * 🔄 24시간 히스토리 데이터 통합
+   */
+  private async integrateHistoricalData(servers: Server[]): Promise<void> {
+    if (!this.redis) return;
+
+    try {
+      for (const server of servers) {
+        const key = `unified_history:${server.id}`;
+        const historyData = {
+          timestamp: new Date().toISOString(),
+          cpu: server.cpu,
+          memory: server.memory,
+          disk: server.disk,
+          network: server.network,
+          status: server.status,
+        };
+
+        // 24시간 히스토리에 추가 (TTL 24시간)
+        await this.redis.lpush(key, JSON.stringify(historyData));
+        await this.redis.ltrim(key, 0, 1439); // 최근 1440개 (24시간 * 60분) 유지
+        await this.redis.expire(key, 86400); // 24시간 TTL
+      }
+
+      console.log(`📊 ${servers.length}개 서버 히스토리 데이터 통합 완료`);
+    } catch (error) {
+      console.warn('⚠️ 히스토리 데이터 통합 실패:', error);
+    }
+  }
+
+  /**
+   * 🔧 상태 정규화 (UI용)
+   */
+  private normalizeStatus(
+    status: string
+  ): 'online' | 'warning' | 'critical' | 'offline' | 'healthy' {
+    const statusMap: Record<
+      string,
+      'online' | 'warning' | 'critical' | 'offline' | 'healthy'
+    > = {
+      online: 'healthy',
+      running: 'healthy',
+      active: 'healthy',
+      healthy: 'healthy',
+      warning: 'warning',
+      degraded: 'warning',
+      critical: 'critical',
+      error: 'critical',
+      failed: 'critical',
+      offline: 'offline',
+      stopped: 'offline',
+      maintenance: 'offline',
+    };
+
+    return statusMap[status.toLowerCase()] || 'healthy';
+  }
+
+  /**
+   * 🔧 상태 정규화 (AI용)
+   */
+  private normalizeAIStatus(
+    status: string
+  ): 'online' | 'offline' | 'warning' | 'critical' {
+    const statusMap: Record<
+      string,
+      'online' | 'offline' | 'warning' | 'critical'
+    > = {
+      online: 'online',
+      running: 'online',
+      active: 'online',
+      healthy: 'online',
+      warning: 'warning',
+      degraded: 'warning',
+      critical: 'critical',
+      error: 'critical',
+      failed: 'critical',
+      offline: 'offline',
+      stopped: 'offline',
+      maintenance: 'offline',
+    };
+
+    return statusMap[status.toLowerCase()] || 'online';
   }
 
   /**
@@ -775,7 +1165,7 @@ export class UnifiedDataGeneratorModule {
   getStatus(): any {
     return {
       module: 'UnifiedDataGeneratorModule',
-      version: '6.0.0',
+      version: '6.1.0',
       enabled: this.config.enabled,
       isInitialized: this.isInitialized,
       currentStrategy: this.currentStrategy?.name,

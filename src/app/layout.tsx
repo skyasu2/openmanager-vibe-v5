@@ -1,10 +1,10 @@
+import { ClientProviders } from '@/components/providers/ClientProviders';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { ClientProviders } from '@/components/providers/ClientProviders';
 // 🛡️ 빌드 시 타이머 차단 시스템 (즉시 로드)
-import '@/lib/build-safety/TimerBlocker';
 import { SystemBootstrap } from '@/components/system/SystemBootstrap';
+import '@/lib/build-safety/TimerBlocker';
 
 // 개발 환경 초기화 (Docker/로컬 감지)
 import '@/utils/init-dev-env';
@@ -12,6 +12,8 @@ import '@/utils/init-dev-env';
 import '@/lib/keep-alive-scheduler';
 // 성능 모니터링 초기화
 import '@/utils/performance';
+// 과도한 갱신 방지 시스템 초기화
+import '@/utils/update-prevention-init';
 
 const inter = Inter({ subsets: ['latin'] });
 

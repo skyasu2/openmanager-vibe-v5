@@ -1,0 +1,51 @@
+{
+    "mcpServers": {
+        "filesystem": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-filesystem",
+                "."
+            ]
+        },
+        "memory": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-memory"
+            ]
+        },
+        "duckduckgo-search": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "duckduckgo-mcp-server"
+            ]
+        },
+        "sequential-thinking": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-sequential-thinking"
+            ]
+        }
+    },
+    "environment": "cursor-development-enhanced",
+    "purpose": "Cursor IDE용 검색 기능이 포함된 실제 작동하는 MCP 서버 환경",
+    "features": {
+        "fileAccess": true,
+        "memorySystem": true,
+        "webSearch": true,
+        "thinking": true,
+        "portBasedConnection": true,
+        "cursorOptimized": true
+    },
+    "performance": {
+        "memoryLimit": "1GB",
+        "timeout": 30000,
+        "maxConcurrentRequests": 8,
+        "connectionType": "mixed"
+    },
+    "version": "2.1.0",
+    "name": "OpenManager Vibe v5 MCP Configuration"
+}

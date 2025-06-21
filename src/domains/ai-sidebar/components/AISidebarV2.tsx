@@ -9,54 +9,54 @@
 
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useRealTimeAILogs } from '@/hooks/useRealTimeAILogs';
 import {
-  X,
-  Brain,
-  Send,
-  Server,
-  Search,
+  useAIChat,
+  useAISidebarStore,
+  useAIThinking,
+} from '@/stores/useAISidebarStore';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
   BarChart3,
-  Target,
-  User,
   Bot,
-  Sparkles,
+  Brain,
+  CheckCircle,
   ChevronDown,
-  ChevronUp,
-  Square,
-  RotateCcw,
-  Paperclip,
-  Zap,
-  Database,
-  Globe,
-  Cpu,
-  FileText,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  Clock,
+  Cpu,
+  Database,
+  FileText,
+  Globe,
   HardDrive,
-  Lightbulb,
-  XCircle,
+  Paperclip,
+  RotateCcw,
+  Search,
+  Send,
+  Server,
+  Sparkles,
+  Target,
+  User,
+  X,
+  Zap,
 } from 'lucide-react';
-import { useAISidebarStore } from '@/stores/useAISidebarStore';
-import { useAIThinking, useAIChat } from '@/stores/useAISidebarStore';
-import { useRealTimeAILogs } from '@/hooks/useRealTimeAILogs';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { RealAISidebarService } from '../services/RealAISidebarService';
-import { MCPWakeupStatus } from '@/components/system/MCPWakeupStatus';
 
 // 분리된 컴포넌트들 import
+import { AI_ENGINES } from './AIEngineSelector';
 import { AISidebarHeader } from './AISidebarHeader';
-import { AIEngineSelector, AI_ENGINES } from './AIEngineSelector';
 import { MCPServerStatusPanel } from './MCPServerStatusPanel';
 
 // AI 기능 아이콘 패널 및 페이지 컴포넌트들
 import AIAgentIconPanel, {
   AIAgentFunction,
 } from '@/components/ai/AIAgentIconPanel';
-import AIInsightsCard from '@/components/dashboard/AIInsightsCard';
-import { GoogleAIStatusCard } from '@/components/shared/GoogleAIStatusCard';
 import AutoReportPage from '@/components/ai/pages/AutoReportPage';
 import IntelligentMonitoringPage from '@/components/ai/pages/IntelligentMonitoringPage';
+import { GoogleAIStatusCard } from '@/components/shared/GoogleAIStatusCard';
 
 // Enhanced AI Chat 관련 타입들
 interface AIEngine {
@@ -312,36 +312,89 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
 
-  // AI 사고 과정 시뮬레이션
-  const simulateThinking = (): ThinkingStep[] => {
-    const steps = [
+  // 사고 과정 관련 상태 추가
+  const [currentThinkingSteps, setCurrentThinkingSteps] = useState<
+    ThinkingStep[]
+  >([]);
+  const [isThinkingExpanded, setIsThinkingExpanded] = useState(true);
+  const [thinkingStartTime, setThinkingStartTime] = useState<Date | null>(null);
+
+  // 실시간 사고 과정 시뮬레이션
+  const simulateRealTimeThinking = useCallback(() => {
+    const steps: ThinkingStep[] = [
       {
         id: '1',
         step: 1,
-        title: '서버 메트릭 분석',
-        description: 'CPU 75%, 메모리 68% 확인',
-        status: 'completed' as const,
-        duration: 1200,
+        title: '질문 분석',
+        description: '사용자의 질문을 이해하고 의도를 파악하고 있습니다...',
+        status: 'processing',
       },
       {
         id: '2',
         step: 2,
-        title: '패턴 인식',
-        description: '비정상적인 트래픽 패턴 감지',
-        status: 'completed' as const,
-        duration: 800,
+        title: '데이터 수집',
+        description: '관련 정보를 수집하고 있습니다...',
+        status: 'pending',
       },
       {
         id: '3',
         step: 3,
-        title: '해결책 도출',
-        description: '최적화 방안 3가지 생성',
-        status: 'completed' as const,
-        duration: 1500,
+        title: '분석 및 추론',
+        description: '수집된 데이터를 분석하고 있습니다...',
+        status: 'pending',
+      },
+      {
+        id: '4',
+        step: 4,
+        title: '답변 생성',
+        description: '최적의 답변을 생성하고 있습니다...',
+        status: 'pending',
       },
     ];
-    return steps;
-  };
+
+    setCurrentThinkingSteps(steps);
+    setThinkingStartTime(new Date());
+
+    // 단계별 진행 시뮬레이션
+    let currentStepIndex = 0;
+    const interval = setInterval(
+      () => {
+        if (currentStepIndex < steps.length) {
+          setCurrentThinkingSteps(prev =>
+            prev.map((step, index) => {
+              if (index === currentStepIndex) {
+                return {
+                  ...step,
+                  status: 'completed',
+                  duration: Math.random() * 2000 + 1000,
+                };
+              } else if (index === currentStepIndex + 1) {
+                return { ...step, status: 'processing' };
+              }
+              return step;
+            })
+          );
+          currentStepIndex++;
+        } else {
+          clearInterval(interval);
+        }
+      },
+      1500 + Math.random() * 1000
+    ); // 1.5-2.5초 간격
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // 생성 시작 시 사고 과정 시뮬레이션 시작
+  useEffect(() => {
+    if (isGenerating) {
+      const cleanup = simulateRealTimeThinking();
+      return cleanup;
+    } else {
+      setCurrentThinkingSteps([]);
+      setThinkingStartTime(null);
+    }
+  }, [isGenerating, simulateRealTimeThinking]);
 
   // AI 응답 생성 (엔진별 차별화)
   const generateAIResponse = (query: string, engine: string): string => {
@@ -355,103 +408,126 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
   // 🤖 실제 AI 자연어 질의 처리 (SimplifiedNaturalLanguageEngine 연동)
   const processRealAIQuery = async (query: string, engine: string = 'auto') => {
-    try {
-      setRealThinking({
-        isActive: true,
-        steps: [
-          {
-            id: 'step1',
-            step: 1,
-            title: '질의 분석 중...',
-            description: `"${query}" 질문을 분석하고 있습니다...`,
-            status: 'processing',
-          },
-        ],
-      });
+    console.log(`🚀 AI 질의 처리 시작: "${query}" (모드: ${engine})`);
 
-      // 🔄 SimplifiedNaturalLanguageEngine API 호출
+    if (!query.trim()) return { success: false, message: 'Empty query' };
+
+    setIsGenerating(true);
+    setThinkingStartTime(new Date());
+
+    // 실시간 사고 과정 시뮬레이션 시작
+    simulateRealTimeThinking();
+
+    try {
       const response = await fetch('/api/ai/smart-fallback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          query: query.trim(),
-          engine: engine,
-          sessionId: currentSessionId,
+          query,
+          mode: engine,
           options: {
             enableThinking: true,
-            enableAutoReport: true, // 🤖 자동장애보고서 활성화
-            fastMode: true, // Ultra Simple 모드
-            timeout: 5000,
+            enableAutoReport: true,
+            fastMode: true,
+            timeout: 10000,
           },
         }),
       });
 
-      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
 
-      if (result.success) {
-        // 🧠 생각하기 과정 업데이트
-        setRealThinking({
-          isActive: false,
-          steps: [
-            {
-              id: 'step1',
-              step: 1,
-              title: '질의 분석 완료',
-              description: '질문 분석이 완료되었습니다.',
-              status: 'completed',
-              duration: result.metadata?.responseTime || 1000,
-            },
-            {
-              id: 'step2',
-              step: 2,
-              title: '응답 생성 완료',
-              description: `${result.metadata?.engine || 'auto'} 엔진으로 응답을 생성했습니다.`,
-              status: 'completed',
-              duration: result.metadata?.responseTime || 1000,
-            },
-          ],
+      const data = await response.json();
+      console.log(
+        `✅ AI 응답 수신: 엔진=${data.engine}, 모드=${data.mode}, 성공=${data.success}`
+      );
+
+      if (data.success) {
+        // 사고 과정 데이터 생성 (완료된 단계들)
+        const thinkingSteps: ThinkingStep[] = [
+          {
+            id: '1',
+            step: 1,
+            title: '질문 분석',
+            description: '사용자의 질문을 이해하고 의도를 파악했습니다.',
+            status: 'completed',
+            duration: 1200,
+          },
+          {
+            id: '2',
+            step: 2,
+            title: '데이터 수집',
+            description: '관련 정보를 수집하고 분석했습니다.',
+            status: 'completed',
+            duration: 800,
+          },
+          {
+            id: '3',
+            step: 3,
+            title: '분석 및 추론',
+            description: '수집된 데이터를 바탕으로 분석했습니다.',
+            status: 'completed',
+            duration: 1500,
+          },
+          {
+            id: '4',
+            step: 4,
+            title: '답변 생성',
+            description: '최적의 답변을 생성했습니다.',
+            status: 'completed',
+            duration: 600,
+          },
+        ];
+
+        // 채팅 메시지에 추가 (단순화된 방식)
+        await sendMessage(query);
+
+        addLog({
+          type: 'success',
+          message: `AI 응답 완료: ${data.engine} (신뢰도: ${(data.confidence * 100).toFixed(0)}%)`,
+          metadata: {
+            engine: data.engine,
+            confidence: data.confidence,
+            processingTime: data.metadata?.processingTime || 0,
+          },
         });
 
-        // 🤖 자동장애보고서 트리거 확인
-        if (result.metadata?.autoReportTriggered) {
+        // 자동 보고서 생성 트리거 (심각도 높은 경우)
+        if (
+          data.confidence < 0.7 ||
+          query.includes('오류') ||
+          query.includes('문제')
+        ) {
           setAutoReportTrigger({
             shouldGenerate: true,
             lastQuery: query,
-            severity: result.metadata.severity || 'medium',
+            severity: data.confidence < 0.5 ? 'critical' : 'medium',
           });
         }
 
-        return {
-          success: true,
-          response: result.response,
-          metadata: result.metadata,
-        };
+        return { success: true, data };
       } else {
-        throw new Error(result.error || '알 수 없는 오류가 발생했습니다.');
+        throw new Error(data.message || 'AI 응답 생성 실패');
       }
     } catch (error) {
-      console.error('❌ AI 질의 처리 오류:', error);
+      console.error('❌ AI 질의 처리 실패:', error);
 
-      setRealThinking({
-        isActive: false,
-        steps: [
-          {
-            id: 'error',
-            step: 1,
-            title: '오류 발생',
-            description:
-              error instanceof Error ? error.message : '알 수 없는 오류',
-            status: 'pending', // 오류 상태 표시
-          },
-        ],
+      await sendMessage(query);
+
+      addLog({
+        type: 'error',
+        message: `AI 질의 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+        metadata: { error: String(error) },
       });
 
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : '알 수 없는 오류',
-      };
+      return { success: false, error: String(error) };
+    } finally {
+      setIsGenerating(false);
+      setThinkingStartTime(null);
+      setCurrentThinkingSteps([]);
     }
   };
 
@@ -626,6 +702,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                       <button
                         key={engine.id}
                         onClick={() => {
+                          console.log(
+                            `🔧 AI 모드 변경: ${selectedEngine} → ${engine.id}`
+                          );
                           setSelectedEngine(engine.id);
                           setShowEngineInfo(false);
                         }}
@@ -839,6 +918,108 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                     </div>
                   )}
 
+                {/* AI 메시지의 사고 과정 표시 */}
+                {message.type === 'ai' &&
+                  message.thinking &&
+                  message.thinking.length > 0 && (
+                    <div className='mb-3'>
+                      <div className='flex items-center justify-between mb-2'>
+                        <div className='flex items-center space-x-2'>
+                          <Brain className='w-3 h-3 text-gray-500' />
+                          <span className='text-xs font-medium text-gray-600'>
+                            사고 과정
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => {
+                            // 메시지별 사고 과정 표시 토글 상태 관리
+                            const expandedKey = `thinking_${message.id}`;
+                            const isExpanded =
+                              localStorage.getItem(expandedKey) === 'true';
+                            localStorage.setItem(
+                              expandedKey,
+                              String(!isExpanded)
+                            );
+                            // 강제 리렌더링
+                            setIsThinkingExpanded(!isThinkingExpanded);
+                          }}
+                          className='p-1 hover:bg-gray-100 rounded transition-colors'
+                          title='사고 과정 토글'
+                        >
+                          {localStorage.getItem(`thinking_${message.id}`) !==
+                          'false' ? (
+                            <ChevronUp className='w-3 h-3 text-gray-500' />
+                          ) : (
+                            <ChevronDown className='w-3 h-3 text-gray-500' />
+                          )}
+                        </button>
+                      </div>
+
+                      <AnimatePresence>
+                        {localStorage.getItem(`thinking_${message.id}`) !==
+                          'false' && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className='space-y-1'
+                          >
+                            {message.thinking.map((step, index) => (
+                              <motion.div
+                                key={step.id}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                                className={`p-2 rounded border-l-2 ${
+                                  (step as any).status === 'completed'
+                                    ? 'bg-green-50 border-l-green-400'
+                                    : (step as any).status === 'processing'
+                                      ? 'bg-blue-50 border-l-blue-400'
+                                      : 'bg-gray-50 border-l-gray-300'
+                                }`}
+                              >
+                                <div className='flex items-center justify-between'>
+                                  <div className='flex items-center space-x-2'>
+                                    <div
+                                      className={`w-3 h-3 rounded-full flex items-center justify-center ${
+                                        (step as any).status === 'completed'
+                                          ? 'bg-green-400'
+                                          : (step as any).status ===
+                                              'processing'
+                                            ? 'bg-blue-400'
+                                            : 'bg-gray-300'
+                                      }`}
+                                    >
+                                      {(step as any).status === 'completed' ? (
+                                        <CheckCircle className='w-2 h-2 text-white' />
+                                      ) : (step as any).status ===
+                                        'processing' ? (
+                                        <div className='w-1.5 h-1.5 bg-white rounded-full animate-pulse' />
+                                      ) : (
+                                        <Clock className='w-2 h-2 text-white' />
+                                      )}
+                                    </div>
+                                    <span className='text-xs font-medium text-gray-700'>
+                                      {step.step}. {step.title}
+                                    </span>
+                                  </div>
+                                  {step.duration && (
+                                    <span className='text-xs text-gray-500'>
+                                      {(step.duration / 1000).toFixed(1)}초
+                                    </span>
+                                  )}
+                                </div>
+                                <p className='text-xs text-gray-600 ml-5 mt-1'>
+                                  {step.description}
+                                </p>
+                              </motion.div>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )}
+
                 {/* 메시지 버블 */}
                 <div
                   className={`p-3 rounded-lg ${
@@ -906,35 +1087,152 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
           </motion.div>
         ))}
 
-        {/* 생성 중 표시 */}
+        {/* 생성 중 표시 - 사고 과정 시각화 */}
         {isGenerating && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className='flex justify-start'
           >
-            <div className='flex items-start space-x-2 max-w-[85%]'>
+            <div className='flex items-start space-x-2 max-w-[90%]'>
               <div className='w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0'>
                 <Bot className='w-3 h-3 text-white' />
               </div>
-              <div className='bg-white border border-gray-200 rounded-lg p-3'>
-                <div className='flex items-center space-x-2'>
-                  <div className='flex space-x-1'>
-                    <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce'></div>
-                    <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100'></div>
-                    <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200'></div>
+
+              <div className='bg-white border border-gray-200 rounded-lg p-3 w-full'>
+                {/* 헤더 */}
+                <div className='flex items-center justify-between mb-3'>
+                  <div className='flex items-center space-x-2'>
+                    <div className='flex space-x-1'>
+                      <div className='w-2 h-2 bg-purple-500 rounded-full animate-bounce'></div>
+                      <div className='w-2 h-2 bg-purple-500 rounded-full animate-bounce delay-100'></div>
+                      <div className='w-2 h-2 bg-purple-500 rounded-full animate-bounce delay-200'></div>
+                    </div>
+                    <span className='text-sm font-medium text-gray-700'>
+                      AI가 생각하고 있습니다...
+                    </span>
+                    {thinkingStartTime && (
+                      <span className='text-xs text-gray-500'>
+                        {Math.floor(
+                          (Date.now() - thinkingStartTime.getTime()) / 1000
+                        )}
+                        초
+                      </span>
+                    )}
                   </div>
-                  <span className='text-xs text-gray-600'>
-                    AI가 생각하고 있습니다...
-                  </span>
-                  <button
-                    onClick={stopGeneration}
-                    className='p-1 hover:bg-gray-100 rounded transition-colors'
-                    title='생성 중단'
-                  >
-                    <X className='w-3 h-3 text-gray-500' />
-                  </button>
+
+                  <div className='flex items-center space-x-1'>
+                    <button
+                      onClick={() => setIsThinkingExpanded(!isThinkingExpanded)}
+                      className='p-1 hover:bg-gray-100 rounded transition-colors'
+                      title={
+                        isThinkingExpanded
+                          ? '사고 과정 접기'
+                          : '사고 과정 펼치기'
+                      }
+                    >
+                      {isThinkingExpanded ? (
+                        <ChevronUp className='w-3 h-3 text-gray-500' />
+                      ) : (
+                        <ChevronDown className='w-3 h-3 text-gray-500' />
+                      )}
+                    </button>
+                    <button
+                      onClick={stopGeneration}
+                      className='p-1 hover:bg-gray-100 rounded transition-colors'
+                      title='생성 중단'
+                    >
+                      <X className='w-3 h-3 text-gray-500' />
+                    </button>
+                  </div>
                 </div>
+
+                {/* 사고 과정 단계들 */}
+                <AnimatePresence>
+                  {isThinkingExpanded && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className='space-y-2'
+                    >
+                      {currentThinkingSteps.map((step, index) => (
+                        <motion.div
+                          key={step.id}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className={`p-2 rounded-lg border-l-3 ${
+                            step.status === 'completed'
+                              ? 'bg-green-50 border-l-green-500'
+                              : step.status === 'processing'
+                                ? 'bg-blue-50 border-l-blue-500'
+                                : 'bg-gray-50 border-l-gray-300'
+                          }`}
+                        >
+                          <div className='flex items-center justify-between mb-1'>
+                            <div className='flex items-center space-x-2'>
+                              <div
+                                className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                                  step.status === 'completed'
+                                    ? 'bg-green-500'
+                                    : step.status === 'processing'
+                                      ? 'bg-blue-500'
+                                      : 'bg-gray-300'
+                                }`}
+                              >
+                                {step.status === 'completed' ? (
+                                  <CheckCircle className='w-2 h-2 text-white' />
+                                ) : step.status === 'processing' ? (
+                                  <div className='w-2 h-2 bg-white rounded-full animate-pulse' />
+                                ) : (
+                                  <Clock className='w-2 h-2 text-white' />
+                                )}
+                              </div>
+                              <span className='text-xs font-medium text-gray-700'>
+                                {step.step}단계: {step.title}
+                              </span>
+                            </div>
+                            {step.duration && (
+                              <span className='text-xs text-gray-500'>
+                                {(step.duration / 1000).toFixed(1)}초
+                              </span>
+                            )}
+                          </div>
+
+                          <p className='text-xs text-gray-600 ml-6'>
+                            {step.description}
+                          </p>
+
+                          {step.status === 'processing' && (
+                            <div className='w-full bg-gray-200 rounded-full h-1 mt-2 ml-6'>
+                              <div className='bg-gradient-to-r from-blue-500 to-purple-500 h-1 rounded-full animate-pulse w-2/3' />
+                            </div>
+                          )}
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* 접힌 상태일 때 요약 정보 */}
+                {!isThinkingExpanded && currentThinkingSteps.length > 0 && (
+                  <div className='flex items-center justify-between text-xs text-gray-500'>
+                    <span>
+                      {
+                        currentThinkingSteps.filter(
+                          s => s.status === 'completed'
+                        ).length
+                      }
+                      /{currentThinkingSteps.length} 단계 완료
+                    </span>
+                    <span>
+                      현재:{' '}
+                      {currentThinkingSteps.find(s => s.status === 'processing')
+                        ?.title || '대기 중'}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
@@ -1156,28 +1454,10 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                 </h3>
                 <GoogleAIStatusCard variant='dashboard' showDetails={false} />
               </div>
+            </div>
+          </div>
+        );
 
-              {/* AI 인사이트 섹션 */}
-              <div className='bg-white rounded-lg p-4 shadow-sm border'>
-                <h3 className='text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2'>
-                  <Lightbulb className='w-5 h-5 text-orange-600' />
-                  AI 인사이트
-                </h3>
-                <AIInsightsCard />
-              </div>
-            </div>
-          </div>
-        );
-      case 'thinking':
-        return (
-          <div className='flex items-center justify-center h-full bg-gradient-to-br from-pink-50 to-rose-50'>
-            <div className='text-center'>
-              <Brain className='w-16 h-16 text-gray-300 mx-auto mb-4' />
-              <h3 className='text-lg font-bold text-gray-600 mb-2'>AI 사고</h3>
-              <p className='text-sm text-gray-500'>곧 출시 예정입니다</p>
-            </div>
-          </div>
-        );
       default:
         return (
           <div className='flex items-center justify-center h-full text-gray-500'>

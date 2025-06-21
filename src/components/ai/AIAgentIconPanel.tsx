@@ -12,26 +12,20 @@
 
 'use client';
 
-import React from 'react';
 import { motion } from 'framer-motion';
 import {
-  MessageSquare,
-  FileText,
-  TrendingUp,
-  Settings,
-  BarChart3,
-  ScrollText,
   Brain,
-  Zap,
+  FileText,
+  MessageSquare,
   Monitor,
-  AlertTriangle,
+  Settings,
 } from 'lucide-react';
+import React from 'react';
 
 export type AIAgentFunction =
   | 'chat'
   | 'auto-report'
   | 'intelligent-monitoring'
-  | 'thinking'
   | 'advanced-management';
 
 interface AIAgentIcon {
@@ -44,27 +38,17 @@ interface AIAgentIcon {
   gradient: string;
 }
 
-// 🎯 간소화된 AI 기능 메뉴 - 최적화 기능 제거하여 프로필 설정으로 이동
+// 🎯 간소화된 AI 기능 메뉴 - AI 사고 제거, 순서 조정
 const AI_AGENT_ICONS: AIAgentIcon[] = [
   // === 핵심 기능 (상단) ===
   {
     id: 'chat',
     icon: MessageSquare,
-    label: 'AI 채팅',
+    label: '자연어 질의',
     description: '자연어로 시스템 질의 및 대화',
     color: 'text-blue-600',
     bgColor: 'bg-blue-50 hover:bg-blue-100',
     gradient: 'from-blue-500 to-cyan-500',
-  },
-  {
-    id: 'intelligent-monitoring',
-    icon: Monitor,
-    label: '지능형 모니터링',
-    description:
-      '🧠 통합 AI 분석: 이상탐지→근본원인→예측모니터링 (예측분석, 패턴분석, 로그분석 통합)',
-    color: 'text-emerald-600',
-    bgColor: 'bg-emerald-50 hover:bg-emerald-100',
-    gradient: 'from-emerald-500 to-teal-500',
   },
   {
     id: 'auto-report',
@@ -75,22 +59,23 @@ const AI_AGENT_ICONS: AIAgentIcon[] = [
     bgColor: 'bg-pink-50 hover:bg-pink-100',
     gradient: 'from-pink-500 to-rose-500',
   },
-
-  // === 분석 및 관리 기능 ===
   {
-    id: 'thinking',
-    icon: Brain,
-    label: 'AI 사고',
-    description: '복잡한 문제 해결 과정 시각화',
-    color: 'text-green-600',
-    bgColor: 'bg-green-50 hover:bg-green-100',
-    gradient: 'from-green-500 to-emerald-500',
+    id: 'intelligent-monitoring',
+    icon: Monitor,
+    label: '지능형 모니터링',
+    description:
+      '🧠 통합 AI 분석: 이상탐지→근본원인→예측모니터링→AI인사이트 (자동분석)',
+    color: 'text-emerald-600',
+    bgColor: 'bg-emerald-50 hover:bg-emerald-100',
+    gradient: 'from-emerald-500 to-teal-500',
   },
+
+  // === 관리 기능 ===
   {
     id: 'advanced-management',
     icon: Settings,
     label: 'AI 고급관리',
-    description: '통합 AI 시스템 관리',
+    description: '통합 AI 시스템 관리 및 설정',
     color: 'text-gray-600',
     bgColor: 'bg-gray-50 hover:bg-gray-100',
     gradient: 'from-gray-500 to-slate-500',

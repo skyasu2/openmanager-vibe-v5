@@ -19,9 +19,7 @@
   },
   "json.schemas": [
     {
-      "fileMatch": [
-        ".cursor/mcp.json"
-      ],
+      "fileMatch": [".cursor/mcp.json"],
       "schema": {
         "type": "object",
         "properties": {
@@ -84,5 +82,6 @@
   "npm.packageManager": "npm",
   "npm.enableScriptExplorer": true,
   "npm.scriptExplorerAction": "run",
-  "terminal.integrated.defaultProfile.windows": "PowerShell"
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "testing.automaticallyOpenTestResults": "neverOpen"
 }

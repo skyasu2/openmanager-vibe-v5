@@ -1,13 +1,15 @@
 /**
- * 🎯 서버 데이터 스토어 - 통합 메트릭 관리자 연동
+ * 🎯 서버 데이터 스토어 - 서버 모니터링 전처리기 연동
  *
- * Prometheus 기반 단일 데이터 소스 보장:
- * - UnifiedMetricsManager에서 데이터 가져오기
- * - 서버 모니터링 ↔ AI 에이전트 동일한 데이터 사용
+ * 새로운 전처리기 기반 단일 데이터 소스 보장:
+ * - ServerMonitoringProcessor에서 데이터 가져오기
+ * - 서버 모니터링 ↔ AI 에이전트 분리된 전처리기 사용
  * - 중복 API 호출 제거
- * - TimerManager 기반 효율적 업데이트
+ * - 캐시 기반 효율적 업데이트
  */
 
+import { transformServerInstanceToServer } from '@/adapters/server-data-adapter';
+import { ServerMonitoringProcessor } from '@/services/data-generator/ServerMonitoringProcessor';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import type { EnhancedServerMetrics } from '../types/server';
@@ -101,69 +103,15 @@ interface ServerDataState {
 
 // ✅ 안전한 초기 서버 데이터 생성 (hydration 에러 방지)
 const getInitialServers = (): ClientServer[] => {
-  // 서버 사이드에서는 빈 배열 반환
-  if (typeof window === 'undefined') {
-    return [];
-  }
-
-  // 클라이언트 사이드에서만 초기 데이터 생성
   return [
     {
-      id: 'api-eu-043',
-      name: 'api-eu-043',
+      id: 'server-1',
+      name: 'Web Server 01',
       status: 'healthy',
-      location: 'EU West',
-      type: 'API',
-      metrics: { cpu: 19, memory: 36.2, disk: 34.6, network: 12 },
-      uptime: 15,
-      lastUpdate: new Date(),
-      health: { score: 90, trend: Array(30).fill(90) },
-      alertsSummary: { total: 0, critical: 0, warning: 0 },
-    },
-    {
-      id: 'api-eu-045',
-      name: 'api-eu-045',
-      status: 'warning',
-      location: 'EU West',
-      type: 'API',
-      metrics: { cpu: 48, memory: 29.2, disk: 15.6, network: 25 },
-      uptime: 8,
-      lastUpdate: new Date(),
-      health: { score: 60, trend: Array(30).fill(60) },
-      alertsSummary: { total: 2, critical: 0, warning: 2 },
-    },
-    {
-      id: 'api-jp-040',
-      name: 'api-jp-040',
-      status: 'critical',
-      location: 'Asia Pacific',
-      type: 'API',
-      metrics: { cpu: 19, memory: 53.2, disk: 29.6, network: 45 },
-      uptime: 3,
-      lastUpdate: new Date(),
-      health: { score: 30, trend: Array(30).fill(30) },
-      alertsSummary: { total: 5, critical: 3, warning: 2 },
-    },
-    {
-      id: 'api-sg-042',
-      name: 'api-sg-042',
-      status: 'warning',
-      location: 'Singapore',
-      type: 'API',
-      metrics: { cpu: 37, memory: 41.2, disk: 19.6, network: 18 },
-      uptime: 8,
-      lastUpdate: new Date(),
-      health: { score: 55, trend: Array(30).fill(55) },
-      alertsSummary: { total: 1, critical: 0, warning: 1 },
-    },
-    {
-      id: 'db-us-001',
-      name: 'db-us-001',
-      status: 'healthy',
-      location: 'US East',
-      type: 'DATABASE',
-      metrics: { cpu: 23, memory: 45.8, disk: 67.2, network: 8 },
-      uptime: 22,
+      location: 'Seoul',
+      type: 'web',
+      metrics: { cpu: 45, memory: 60, disk: 30, network: 80 },
+      uptime: 99.9,
       lastUpdate: new Date(),
       health: { score: 85, trend: Array(30).fill(85) },
       alertsSummary: { total: 0, critical: 0, warning: 0 },
@@ -171,85 +119,135 @@ const getInitialServers = (): ClientServer[] => {
   ];
 };
 
-// ✅ API 기반 서버 데이터 가져오기
-const fetchServersFromAPI = async (): Promise<ClientServer[]> => {
+// ✅ 서버 모니터링 전처리기 기반 데이터 가져오기
+const fetchServersFromProcessor = async (): Promise<
+  EnhancedServerMetrics[]
+> => {
   try {
-    const response = await fetch('/api/servers');
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    // 🔄 새로운 전처리기 활용
+    const processor = ServerMonitoringProcessor.getInstance();
+    const processedData = await processor.getProcessedServerData({
+      includeHistorical: true,
+      forceRefresh: true,
+    });
+
+    // 📊 통계 정보 글로벌 저장 (디버깅용)
+    if (processedData.stats && typeof window !== 'undefined') {
+      (window as any).__serverStats = processedData.stats;
+      console.log('📊 글로벌 서버 통계 업데이트:', processedData.stats);
     }
 
-    const data = await response.json();
-    if (process.env.NODE_ENV === 'development') {
-      console.log('API Response structure:', {
-        hasData: !!data,
-        hasServers: !!data.servers,
-        serversLength: data.servers?.length,
-        serversType: typeof data.servers,
-        hasStats: !!data.stats, // 🔧 통계 데이터 확인
-      });
-    }
+    // 🎯 Server[] → EnhancedServerMetrics[] 변환
+    const servers = processedData.servers;
+    return servers.map((serverInfo: any): EnhancedServerMetrics => {
+      try {
+        // RawServerData 형태로 변환하여 전처리기에 전달
+        const rawServerData = {
+          id: serverInfo.id,
+          name: serverInfo.name || serverInfo.hostname,
+          hostname: serverInfo.hostname || serverInfo.name,
+          status: serverInfo.status,
+          location: serverInfo.location,
+          region: serverInfo.region,
+          environment: serverInfo.environment,
+          role: serverInfo.role,
+          type: serverInfo.type,
+          provider: serverInfo.provider,
+          cpu: serverInfo.cpu,
+          memory: serverInfo.memory,
+          disk: serverInfo.disk,
+          network: serverInfo.network,
+          uptime: serverInfo.uptime,
+          lastUpdate: serverInfo.lastUpdate,
+          alerts: serverInfo.alerts,
+          services: serverInfo.services,
+          networkStatus: serverInfo.networkStatus,
+          metrics: {
+            cpu: serverInfo.cpu_usage || serverInfo.cpu || 0,
+            memory: serverInfo.memory_usage || serverInfo.memory || 0,
+            disk: serverInfo.disk_usage || serverInfo.disk || 0,
+            network: {
+              in: serverInfo.network_in || 0,
+              out: serverInfo.network_out || 0,
+            },
+            uptime: serverInfo.uptime || 0,
+          },
+        };
 
-    // 🚀 안전한 배열 처리: 배열이 아닌 경우 빈 배열로 처리
-    const rawServers = data.servers;
-    if (!Array.isArray(rawServers)) {
-      console.warn(
-        '⚠️ API에서 반환된 servers 데이터가 배열이 아닙니다:',
-        typeof rawServers
-      );
-      return [];
-    }
+        // 데이터 전처리기를 통한 변환 (타입 안전성 보장)
+        const transformedServer = transformServerInstanceToServer(
+          rawServerData as any
+        );
 
-    // 🔧 API 통계 데이터 글로벌 저장 (다른 컴포넌트에서 사용 가능)
-    if (data.stats && typeof window !== 'undefined') {
-      (window as any).__serverStats = data.stats;
-      console.log('📊 글로벌 서버 통계 업데이트:', data.stats);
-    }
+        // EnhancedServerMetrics 형태로 최종 변환
+        return {
+          id: transformedServer.id,
+          name: transformedServer.name,
+          hostname: transformedServer.hostname || transformedServer.name,
+          environment: transformedServer.environment as any,
+          role: (serverInfo.role || 'worker') as any,
+          status: transformedServer.status as any,
+          cpu_usage: transformedServer.cpu,
+          memory_usage: transformedServer.memory,
+          disk_usage: transformedServer.disk,
+          network_in: serverInfo.network_in || transformedServer.network || 0,
+          network_out: serverInfo.network_out || transformedServer.network || 0,
+          response_time:
+            serverInfo.response_time || Math.floor(Math.random() * 100) + 50,
+          uptime: transformedServer.uptime
+            ? typeof transformedServer.uptime === 'string'
+              ? parseInt(transformedServer.uptime)
+              : transformedServer.uptime
+            : 0,
+          last_updated: transformedServer.lastUpdate.toISOString(),
+          alerts: Array.isArray(transformedServer.alerts)
+            ? transformedServer.alerts
+            : [],
+          timestamp: new Date().toISOString(),
+        };
+      } catch (conversionError) {
+        console.error(
+          '❌ 서버 데이터 변환 실패:',
+          serverInfo?.id,
+          conversionError
+        );
 
-    // API 응답을 Client Server 타입으로 변환
-    return rawServers.map((serverInfo: any) => ({
-      id: serverInfo.id,
-      name: serverInfo.hostname || serverInfo.name,
-      status:
-        serverInfo.status === 'healthy'
-          ? 'healthy'
-          : serverInfo.status === 'warning'
-            ? 'warning'
-            : 'critical',
-      location: serverInfo.environment || 'Unknown',
-      type: serverInfo.role?.toUpperCase() || 'UNKNOWN',
-      metrics: {
-        cpu: serverInfo.cpu_usage || serverInfo.cpu || 0,
-        memory: serverInfo.memory_usage || serverInfo.memory || 0,
-        disk: serverInfo.disk_usage || serverInfo.disk || 0,
-        network: serverInfo.response_time || 0,
-      },
-      health: {
-        score: Math.max(
-          0,
-          100 -
-            (serverInfo.cpu_usage || serverInfo.cpu || 0) * 0.3 -
-            (serverInfo.memory_usage || serverInfo.memory || 0) * 0.3 -
-            (serverInfo.disk_usage || serverInfo.disk || 0) * 0.4
-        ),
-        trend: [],
-      },
-      alertsSummary: {
-        total: serverInfo.alerts?.length || 0,
-        critical: (serverInfo.alerts || []).filter(
-          (a: any) => a.severity === 'critical'
-        ).length,
-        warning: (serverInfo.alerts || []).filter(
-          (a: any) => a.severity === 'warning'
-        ).length,
-      },
-      uptime: Math.floor((serverInfo.uptime || 0) / 86400000), // milliseconds to days
-      lastUpdate: new Date(serverInfo.last_updated || Date.now()),
-    }));
+        // 폴백 데이터 반환
+        return {
+          id: serverInfo.id || `server-${Date.now()}`,
+          name: serverInfo.name || serverInfo.hostname || 'Unknown Server',
+          hostname: serverInfo.hostname || serverInfo.name || 'unknown',
+          environment: (serverInfo.environment || 'production') as any,
+          role: (serverInfo.role || 'worker') as any,
+          status: (serverInfo.status || 'stopped') as any,
+          cpu_usage: serverInfo.cpu_usage || serverInfo.cpu || 0,
+          memory_usage: serverInfo.memory_usage || serverInfo.memory || 0,
+          disk_usage: serverInfo.disk_usage || serverInfo.disk || 0,
+          network_in: serverInfo.network_in || 0,
+          network_out: serverInfo.network_out || 0,
+          response_time: serverInfo.response_time || 100,
+          uptime: serverInfo.uptime || 0,
+          last_updated: new Date(
+            serverInfo.last_updated || Date.now()
+          ).toISOString(),
+          alerts: Array.isArray(serverInfo.alerts) ? serverInfo.alerts : [],
+          timestamp: new Date().toISOString(),
+        };
+      }
+    });
   } catch (error) {
-    console.error('❌ API 서버 데이터 가져오기 실패:', error);
+    console.error('❌ 전처리기 서버 데이터 가져오기 실패:', error);
     return [];
   }
+};
+
+// 폴백 함수 정의
+const fetchServersFromAPI = async () => {
+  const response = await fetch('/api/servers/all');
+  if (!response.ok) {
+    throw new Error(`서버 데이터 조회 실패: ${response.status}`);
+  }
+  return response.json();
 };
 
 export const useServerDataStore = create<ServerDataState>()(
@@ -269,17 +267,27 @@ export const useServerDataStore = create<ServerDataState>()(
         lastSyncTime: null,
       },
 
-      // 서버 데이터 가져오기
+      // 서버 데이터 가져오기 (데이터 전처리기 통합)
       fetchServers: async () => {
         set({ isLoading: true, error: null });
 
         try {
-          // 통합 메트릭 관리자에서 데이터 가져오기 시도
+          // 🎯 우선순위 1: 통합 메트릭 관리자에서 데이터 가져오기
           const response = await fetch('/api/unified-metrics');
           if (response.ok) {
             const data = await response.json();
+
+            // unified-metrics API가 이미 전처리된 서버 배열을 반환
+            const servers = data.servers || [];
+
+            console.log(
+              '✅ 통합 메트릭에서 서버 데이터 로드:',
+              servers.length,
+              '개'
+            );
+
             set({
-              servers: data.servers || [],
+              servers: servers,
               lastUpdate: new Date(),
               isLoading: false,
               performance: {
@@ -292,17 +300,26 @@ export const useServerDataStore = create<ServerDataState>()(
             throw new Error('통합 메트릭 API 호출 실패');
           }
         } catch (error) {
-          console.warn('통합 메트릭 API 실패, 대체 API 사용:', error);
+          console.warn('⚠️ 통합 메트릭 API 실패, 대체 API 사용:', error);
 
           try {
-            const servers = await fetchServersFromAPI();
+            // 🎯 우선순위 2: 일반 서버 API에서 데이터 가져오기 (전처리기 적용)
+            const servers = await fetchServersFromProcessor();
+
+            console.log(
+              '✅ 일반 서버 API에서 데이터 로드:',
+              servers.length,
+              '개'
+            );
+
             set({
-              servers: servers as any,
+              servers: servers,
               lastUpdate: new Date(),
               isLoading: false,
               error: null,
             });
           } catch (fallbackError) {
+            console.error('❌ 모든 서버 데이터 로드 실패:', fallbackError);
             set({
               error: `서버 데이터 로드 실패: ${fallbackError}`,
               isLoading: false,
@@ -386,7 +403,12 @@ export const useServerDataStore = create<ServerDataState>()(
           totalServers: servers.length,
           healthyServers: servers.filter(s => s.status === 'healthy').length,
           warningServers: servers.filter(s => s.status === 'warning').length,
-          criticalServers: servers.filter(s => s.status === 'critical').length,
+          criticalServers: servers.filter(
+            s =>
+              s.status === 'critical' ||
+              s.status === 'offline' ||
+              s.status === 'maintenance'
+          ).length,
           unifiedManagerStatus,
           lastUpdate: get().lastUpdate,
         };
@@ -399,7 +421,24 @@ export const useServerDataStore = create<ServerDataState>()(
 
       // 상태별 서버 조회
       getServersByStatus: (status: 'healthy' | 'warning' | 'critical') => {
-        return get().servers.filter(server => server.status === status);
+        return get().servers.filter(server => {
+          // 상태 매핑 처리
+          const serverStatus = server.status;
+          switch (status) {
+            case 'healthy':
+              return serverStatus === 'healthy';
+            case 'warning':
+              return serverStatus === 'warning';
+            case 'critical':
+              return (
+                serverStatus === 'critical' ||
+                serverStatus === 'offline' ||
+                serverStatus === 'maintenance'
+              );
+            default:
+              return false;
+          }
+        });
       },
 
       // 환경별 서버 조회

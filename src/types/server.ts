@@ -7,7 +7,7 @@ export interface Server {
   memory: number;
   disk: number;
   network?: number; // 네트워크 사용률 추가
-  uptime: string;
+  uptime: string | number;
   location: string;
   alerts: number | any[];
   ip?: string;
@@ -15,6 +15,7 @@ export interface Server {
   type?: string;
   environment?: string;
   provider?: string;
+  role?: string; // 서버 역할 추가
   lastSeen?: string; // 추가
   metrics?: {
     cpu: {
@@ -102,7 +103,7 @@ export interface SystemInfo {
 }
 
 // 🔄 중복 제거: common.ts의 타입들 재사용
-import type { ServerStatus, AlertSeverity } from './common';
+import type { AlertSeverity, ServerStatus } from './common';
 
 // 다른 파일에서 사용할 수 있도록 재export
 export type { ServerStatus } from './common';

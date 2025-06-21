@@ -1,32 +1,34 @@
 /**
  * 🧠 지능형 모니터링 통합 페이지
  *
- * 3단계 AI 분석 워크플로우:
+ * 4단계 AI 분석 워크플로우:
  * 1단계: 🚨 실시간 이상 탐지
  * 2단계: 🔍 다중 AI 근본 원인 분석
  * 3단계: 🔮 예측적 모니터링
+ * 4단계: 💡 AI 인사이트 자동 분석 (통합)
  */
 
 'use client';
 
-import React, { useState } from 'react';
+import AIInsightsCard from '@/components/dashboard/AIInsightsCard';
 import { motion } from 'framer-motion';
 import {
-  Monitor,
   AlertTriangle,
-  Search,
-  TrendingUp,
-  Play,
-  Pause,
-  RotateCcw,
   CheckCircle,
-  XCircle,
   Clock,
+  Lightbulb,
+  Monitor,
+  Pause,
+  Play,
+  RotateCcw,
+  Search,
   Shield,
   Target,
-  Lightbulb,
+  TrendingUp,
   X,
+  XCircle,
 } from 'lucide-react';
+import { useState } from 'react';
 
 interface IntelligentAnalysisRequest {
   serverId?: string;
@@ -82,6 +84,9 @@ export default function IntelligentMonitoringPage() {
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<IntelligentAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showAIInsights, setShowAIInsights] = useState(true);
+  const [lastInsightsRefresh, setLastInsightsRefresh] = useState<number>(0);
+  const MIN_INSIGHTS_REFRESH_INTERVAL = 2 * 60 * 1000; // 2분 간격
 
   // 분석 설정
   const [analysisConfig, setAnalysisConfig] =
@@ -228,54 +233,91 @@ export default function IntelligentMonitoringPage() {
   };
 
   return (
-    <div className='h-full flex flex-col space-y-6'>
+    <div className='flex flex-col h-full p-4 bg-gradient-to-br from-slate-50 to-blue-50'>
       {/* 헤더 */}
-      <div className='flex items-center justify-between'>
-        <div className='flex items-center space-x-3'>
-          <div className='p-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg'>
-            <Monitor className='w-6 h-6 text-white' />
-          </div>
-          <div>
-            <h1 className='text-2xl font-bold text-gray-900'>
-              지능형 모니터링
-            </h1>
-            <p className='text-sm text-gray-600'>
-              3단계 AI 분석 워크플로우로 시스템을 종합 진단합니다
-            </p>
+      <div className='mb-6'>
+        <div className='flex items-center justify-between mb-2'>
+          <h1 className='text-2xl font-bold text-gray-800 flex items-center gap-3'>
+            <div className='w-8 h-8 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center'>
+              <Monitor className='w-5 h-5 text-white' />
+            </div>
+            지능형 모니터링
+          </h1>
+
+          {/* 실행 버튼들 */}
+          <div className='flex items-center space-x-2'>
+            <motion.button
+              onClick={resetAnalysis}
+              disabled={isAnalyzing}
+              className='px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50'
+              whileTap={{ scale: 0.95 }}
+            >
+              <RotateCcw className='w-4 h-4 mr-1 inline' />
+              초기화
+            </motion.button>
+
+            <motion.button
+              onClick={runIntelligentAnalysis}
+              disabled={isAnalyzing}
+              className='px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all disabled:opacity-50'
+              whileTap={{ scale: 0.95 }}
+            >
+              {isAnalyzing ? (
+                <>
+                  <Pause className='w-4 h-4 mr-2 inline animate-pulse' />
+                  분석 중...
+                </>
+              ) : (
+                <>
+                  <Play className='w-4 h-4 mr-2 inline' />
+                  분석 시작
+                </>
+              )}
+            </motion.button>
           </div>
         </div>
-
-        <div className='flex items-center space-x-2'>
-          <motion.button
-            onClick={resetAnalysis}
-            disabled={isAnalyzing}
-            className='px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50'
-            whileTap={{ scale: 0.95 }}
-          >
-            <RotateCcw className='w-4 h-4 mr-1 inline' />
-            초기화
-          </motion.button>
-
-          <motion.button
-            onClick={runIntelligentAnalysis}
-            disabled={isAnalyzing}
-            className='px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all disabled:opacity-50'
-            whileTap={{ scale: 0.95 }}
-          >
-            {isAnalyzing ? (
-              <>
-                <Pause className='w-4 h-4 mr-2 inline animate-pulse' />
-                분석 중...
-              </>
-            ) : (
-              <>
-                <Play className='w-4 h-4 mr-2 inline' />
-                분석 시작
-              </>
-            )}
-          </motion.button>
-        </div>
+        <p className='text-sm text-gray-600'>
+          4단계 AI 분석: 이상탐지 → 근본원인분석 → 예측모니터링 → AI인사이트
+          자동분석
+        </p>
       </div>
+
+      {/* AI 인사이트 통합 섹션 (상단) */}
+      {showAIInsights && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className='mb-6'
+        >
+          <div className='bg-white rounded-lg p-4 shadow-sm border border-orange-200'>
+            <div className='flex items-center justify-between mb-3'>
+              <h3 className='text-lg font-semibold text-gray-700 flex items-center gap-2'>
+                <Lightbulb className='w-5 h-5 text-orange-600' />
+                💡 AI 인사이트 (자동 분석)
+              </h3>
+              <button
+                onClick={() => setShowAIInsights(false)}
+                className='p-1 hover:bg-gray-100 rounded transition-colors'
+                title='AI 인사이트 섹션 닫기'
+                aria-label='AI 인사이트 섹션 닫기'
+              >
+                <X className='w-4 h-4 text-gray-500' />
+              </button>
+            </div>
+            <div className='bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg p-3 mb-3'>
+              <p className='text-sm text-orange-800'>
+                🤖 <strong>자동 분석 모드:</strong> 시스템 데이터를 실시간으로
+                분석하여 인사이트를 자동 생성합니다.
+              </p>
+              <p className='text-xs text-orange-700 mt-1'>
+                ⚡ <strong>최적화:</strong> 5분 간격 갱신, 유의미한 변화 시에만
+                업데이트하여 시스템 부하를 최소화합니다.
+              </p>
+            </div>
+            <AIInsightsCard />
+          </div>
+        </motion.div>
+      )}
 
       {/* 분석 설정 패널 */}
       <div className='bg-white rounded-xl border border-gray-200 p-6'>
