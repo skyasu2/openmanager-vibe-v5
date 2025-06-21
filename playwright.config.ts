@@ -11,7 +11,7 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   // 테스트 디렉토리
-  testDir: './e2e',
+  testDir: './tests/e2e',
 
   // 테스트 파일 패턴
   testMatch: '**/*.e2e.{ts,js}',
@@ -116,6 +116,6 @@ export default defineConfig({
   },
 
   // 전역 설정 파일
-  globalSetup: require.resolve('./e2e/global-setup.ts'),
-  globalTeardown: require.resolve('./e2e/global-teardown.ts'),
+  globalSetup: require.resolve('./tests/e2e/global-setup.ts'),
+  globalTeardown: require.resolve('./tests/e2e/global-teardown.ts'),
 });

@@ -1,1 +1,0 @@
-echo 'Render build script'

@@ -10,10 +10,12 @@
   "typescript.preferences.includePackageJsonAutoImports": "on",
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
   },
   "files.associations": {
-    "*.json": "jsonc"
+    "*.json": "jsonc",
+    "*.css": "tailwindcss"
   },
   "json.schemas": [
     {
@@ -33,7 +35,54 @@
   "files.exclude": {
     "**/node_modules": true,
     "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
     "**/.next": true,
-    "**/dist": true
-  }
+    "**/dist": true,
+    "**/build": true,
+    "**/coverage": true,
+    "**/storybook-static": true,
+    "**/test-results.json": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/*.code-search": true,
+    "**/.next": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/coverage": true,
+    "**/storybook-static": true
+  },
+  "emmet.includeLanguages": {
+    "typescript": "html",
+    "typescriptreact": "html"
+  },
+  "typescript.preferences.quoteStyle": "single",
+  "javascript.preferences.quoteStyle": "single",
+  "prettier.singleQuote": true,
+  "prettier.semi": true,
+  "prettier.trailingComma": "es5",
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "typescript.suggest.autoImports": true,
+  "tailwindCSS.includeLanguages": {
+    "typescript": "javascript",
+    "typescriptreact": "javascript"
+  },
+  "vitest.enable": true,
+  "vitest.commandLine": "npm run cursor:test:watch",
+  "testing.automaticallyOpenPeekView": "never",
+  "testing.followRunningTest": true,
+  "testing.openTesting": "neverOpen",
+  "vitest.disableWorkspaceWarning": true,
+  "vitest.rootConfig": "./vitest.config.ts",
+  "testing.defaultGutterClickAction": "run",
+  "testing.gutterEnabled": true,
+  "npm.packageManager": "npm",
+  "npm.enableScriptExplorer": true,
+  "npm.scriptExplorerAction": "run",
+  "terminal.integrated.defaultProfile.windows": "PowerShell"
 }
