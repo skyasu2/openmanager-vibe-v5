@@ -1,17 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Server, ServerStatus, MetricsHistory } from '@/types/server';
-import { useRealtimeServers } from './api/useRealtimeServers';
-import {
-  sortServersByPriority,
-  mapStatus,
-  getServerStats,
-  filterServers,
-  getUniqueLocations,
-} from '../utils/serverUtils';
-import { useServerDataStore } from '@/stores/serverDataStore';
 import { useServerMetrics } from '@/hooks/useServerMetrics';
+import { useServerDataStore } from '@/stores/serverDataStore';
+import { MetricsHistory, Server } from '@/types/server';
+import { useEffect, useMemo, useState } from 'react';
 
 export type DashboardTab = 'servers' | 'network' | 'clusters' | 'applications';
 export type ViewMode = 'grid' | 'list';
@@ -149,6 +141,8 @@ export const useServerDashboard = ({
     servers: allServerMetrics,
     lastUpdate,
     fetchServers,
+    startRealTimeUpdates,
+    stopRealTimeUpdates,
   } = useServerDataStore();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
@@ -159,7 +153,38 @@ export const useServerDashboard = ({
   const { loadMetricsHistory } = useServerMetrics();
   const ITEMS_PER_PAGE = 8;
 
+  // 🚀 컴포넌트 마운트 시 서버 데이터 자동 로드 및 실시간 업데이트 시작
+  useEffect(() => {
+    console.log('🎯 useServerDashboard 초기화 - 서버 데이터 로드 시작');
+
+    // 초기 데이터 로드
+    fetchServers()
+      .then(() => {
+        console.log('✅ 초기 서버 데이터 로드 완료');
+      })
+      .catch(error => {
+        console.error('❌ 초기 서버 데이터 로드 실패:', error);
+      });
+
+    // 실시간 업데이트 시작
+    startRealTimeUpdates();
+
+    // 컴포넌트 언마운트 시 실시간 업데이트 정리
+    return () => {
+      console.log('🔄 useServerDashboard 정리 - 실시간 업데이트 중지');
+      stopRealTimeUpdates();
+    };
+  }, [fetchServers, startRealTimeUpdates, stopRealTimeUpdates]);
+
   const allServers: Server[] = useMemo(() => {
+    console.log(`🔍 서버 데이터 변환: ${allServerMetrics.length}개 서버 처리`);
+
+    // 🛡️ allServerMetrics가 비어있으면 폴백 서버 사용
+    if (allServerMetrics.length === 0) {
+      console.log('⚠️ 서버 메트릭이 비어있음 - 폴백 서버 사용');
+      return fallbackServers;
+    }
+
     return allServerMetrics.map(metric => {
       const mapStatus = (status: string): Server['status'] => {
         switch (status) {
