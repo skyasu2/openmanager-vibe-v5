@@ -829,13 +829,19 @@ interface AIAnalysisRequest {
 export async function POST(request: NextRequest) {
   try {
     const body: AIAnalysisRequest = await request.json();
-    const { type, data, options } = body;
+    const { type, data, options, query } = body;
+
+    // 요청 데이터 정규화
+    const normalizedData = {
+      query: query || data?.query || '',
+      ...data,
+    };
 
     // 실제 AI 분석 엔진 호출
     const analysisResult = await performIntelligentAnalysis(
-      type,
-      data,
-      options
+      type || 'troubleshooting',
+      normalizedData,
+      options || {}
     );
 
     // 분석 타입별 처리
