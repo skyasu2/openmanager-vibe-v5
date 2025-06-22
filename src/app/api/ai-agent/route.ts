@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { unifiedAIEngine } from '@/core/ai/UnifiedAIEngine';
 import type { UnifiedAnalysisRequest } from '@/core/ai/UnifiedAIEngine';
+import { unifiedAIEngine } from '@/core/ai/UnifiedAIEngine';
+import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * 🤖 배포환경 AI 에이전트 (전략적 아키텍처 통합)
@@ -13,7 +13,8 @@ import type { UnifiedAnalysisRequest } from '@/core/ai/UnifiedAIEngine';
  */
 
 interface AIAgentRequest {
-    query: string;
+    message?: string;
+    query?: string;
     context?: {
         source?: string;
         timestamp?: string;
@@ -58,16 +59,27 @@ interface SystemMetrics {
 export async function POST(request: NextRequest) {
     try {
         const body: AIAgentRequest = await request.json();
-        const { query, context } = body;
+        const { message, query, context } = body;
 
-        console.log(`🤖 전략적 AI 에이전트 요청: ${query}`);
+        // message 또는 query 중 하나를 사용
+        const userQuery = message || query;
+
+        if (!userQuery) {
+            return NextResponse.json({
+                success: false,
+                error: 'message 또는 query가 필요합니다',
+                timestamp: new Date().toISOString()
+            }, { status: 400 });
+        }
+
+        console.log(`🤖 전략적 AI 에이전트 요청: ${userQuery}`);
         console.log(`📍 요청 소스: ${context?.source || 'unknown'}`);
 
         // 새로운 전략적 아키텍처 사용
         const analysisRequest: UnifiedAnalysisRequest = {
-            query: query.trim(),
+            query: userQuery.trim(),
             context: {
-                urgency: determineUrgency(query),
+                urgency: determineUrgency(userQuery),
                 sessionId: context?.sessionId || generateSessionId(),
                 ...context
             },
@@ -88,7 +100,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            query,
+            query: userQuery,
             response: optimizedResponse,
             metadata: {
                 processingMethod: 'strategic-orchestrator',
@@ -107,12 +119,21 @@ export async function POST(request: NextRequest) {
         // 폴백: 기존 방식으로 처리
         try {
             const body: AIAgentRequest = await request.json();
-            const { query, context } = body;
+            const { message, query, context } = body;
+            const userQuery = message || query;
 
-            const fallbackResponse = await processQuery(query, context);
+            if (!userQuery) {
+                return NextResponse.json({
+                    success: false,
+                    error: 'message 또는 query가 필요합니다',
+                    timestamp: new Date().toISOString()
+                }, { status: 400 });
+            }
+
+            const fallbackResponse = await processQuery(userQuery, context);
             return NextResponse.json({
                 success: true,
-                query: query,
+                query: userQuery,
                 response: fallbackResponse,
                 metadata: {
                     processingMethod: 'fallback-legacy',

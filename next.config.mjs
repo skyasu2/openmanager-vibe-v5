@@ -23,6 +23,12 @@ const nextConfig = {
             os: false,
         };
 
+        // 스토리북 파일 빌드에서 제외
+        config.module.rules.push({
+            test: /\.stories\.(js|jsx|ts|tsx)$/,
+            use: 'ignore-loader'
+        });
+
         return config;
     },
 
