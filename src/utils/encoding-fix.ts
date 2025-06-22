@@ -80,22 +80,38 @@ export function isValidKorean(text: string): boolean {
 
 /**
  * 🖨️ 안전한 한글 로그 출력
+ * Windows 환경에서 한글 깨짐 방지
  */
 export function safeKoreanLog(message: string, data?: any): void {
-  try {
-    const safeMessage = safeDecodeKorean(message);
-    const timestamp = new Date().toISOString();
+  const timestamp = new Date().toISOString();
 
-    if (data) {
-      console.log(
-        `[${timestamp}] ${safeMessage}`,
-        JSON.stringify(data, null, 2)
-      );
-    } else {
-      console.log(`[${timestamp}] ${safeMessage}`);
+  // 한글 문자열 안전 처리
+  let safeMessage = message;
+  try {
+    // UTF-8 강제 인코딩 시도
+    safeMessage = Buffer.from(message, 'utf8').toString('utf8');
+
+    // 깨진 문자 패턴 복구 시도
+    safeMessage = safeMessage
+      .replace(/�+/g, '') // 깨진 문자 제거
+      .replace(/\ufffd+/g, '') // 대체 문자 제거
+      .replace(/[^\u0000-\u007F\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/g, '') // 한글과 ASCII만 유지
+      .trim();
+
+    // 빈 문자열이 된 경우 원본 사용
+    if (!safeMessage) {
+      safeMessage = message;
     }
   } catch (error) {
-    console.error(`[로그 출력 실패] ${message}`, error.message);
+    // 인코딩 실패 시 원본 사용
+    safeMessage = message;
+  }
+
+  // 콘솔 출력 시 인코딩 명시
+  if (data) {
+    console.log(`[${timestamp}] ${safeMessage}`, JSON.stringify(data, null, 2));
+  } else {
+    console.log(`[${timestamp}] ${safeMessage}`);
   }
 }
 
