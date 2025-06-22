@@ -1,11 +1,10 @@
 /**
- * 최적화된 통합 AI 엔진 v2.0 테스트 API
+ * 최적화된 통합 AI 엔진 v2.2 테스트 API - 단순화 버전
  *
- * 4개 핵심 엔진 테스트:
- * - SupabaseRAG (70%)
- * - MCP Client (20%)
- * - OpenSource (8%)
- * - Google AI (2%)
+ * 3개 핵심 엔진 테스트:
+ * - SupabaseRAG (80%) - 메인 RAG 엔진 (유일한 RAG)
+ * - MCP Client (18%) - 공식 MCP 서버
+ * - Google AI (2%) - 베타 기능 (질문만)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -43,6 +42,13 @@ export async function GET(request: NextRequest) {
         engineResponseTime: result.processingTime,
         overhead: totalTime - result.processingTime,
       },
+      engineInfo: {
+        version: 'v2.2',
+        totalEngines: 3,
+        mainRAG: 'SupabaseRAG (80%)',
+        removedEngines: ['CustomEngines', 'OpenSourceEngines'],
+        reason: '안정성 개선을 위한 단순화',
+      },
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
@@ -75,6 +81,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // mode 검증 (CUSTOM_ONLY 제거됨)
+    const validModes = ['AUTO', 'GOOGLE_AI', 'INTERNAL'];
+    if (!validModes.includes(mode)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `유효하지 않은 모드: ${mode}. 사용 가능한 모드: ${validModes.join(', ')}`,
+          availableModes: validModes,
+          removedModes: ['CUSTOM_ONLY'],
+          reason: 'CustomEngines 안정성 문제로 제거됨',
+        },
+        { status: 400 }
+      );
+    }
+
     console.log(`🧪 최적화된 AI 엔진 POST 테스트: "${query}" (모드: ${mode})`);
 
     const startTime = Date.now();
@@ -102,6 +123,18 @@ export async function POST(request: NextRequest) {
         totalProcessingTime: totalTime,
         engineResponseTime: result.processingTime,
         overhead: totalTime - result.processingTime,
+      },
+      engineInfo: {
+        version: 'v2.2',
+        totalEngines: 3,
+        activeEngines: ['supabase-rag', 'mcp-client', 'google-ai'],
+        weights: { 'supabase-rag': 80, 'mcp-client': 18, 'google-ai': 2 },
+        improvements: [
+          'CUSTOM_ONLY 모드 제거',
+          'CustomEngines 안정성 문제 해결',
+          'SupabaseRAG를 유일한 RAG 엔진으로 통합',
+          '3개 엔진으로 단순화하여 안정성 향상',
+        ],
       },
       timestamp: new Date().toISOString(),
     });

@@ -1,24 +1,21 @@
 /**
- * 최적화된 통합 AI 엔진 v2.1
+ * 최적화된 통합 AI 엔진 v2.2 - 단순화 버전
  *
- * 이전 11개 엔진에서 5개 핵심 엔진으로 확장:
- * - SupabaseRAGEngine (60%) - 모든 환경 통일
- * - CustomEngines (20%) - MCP Query + Hybrid Analysis
- * - Render MCP Client (15%) - 공식 서버 활용
- * - OpenSourceEngines (3%) - 하위 AI 엔진들
- * - Google AI (2%) - 베타 기능
+ * 안정성을 위해 3개 핵심 엔진으로 단순화:
+ * - SupabaseRAGEngine (80%) - 메인 RAG 엔진 (유일한 RAG)
+ * - Render MCP Client (18%) - 공식 MCP 서버 활용
+ * - Google AI (2%) - 베타 기능 (질문 기능만)
+ *
+ * 제거된 엔진: CustomEngines, OpenSourceEngines (안정성 문제)
  */
 
 import { GoogleAIEngine } from './engines/GoogleAIEngine';
 import { MCPClientEngine } from './engines/MCPClientEngine';
 import { SupabaseRAGMainEngine } from './engines/SupabaseRAGMainEngine';
-// CustomEngines 통합 추가
-import { CustomEngines } from '../../services/ai/engines/CustomEngines';
-import { OpenSourceEngines } from '../../services/ai/engines/OpenSourceEngines';
 
 export interface OptimizedAIRequest {
   query: string;
-  mode?: 'AUTO' | 'GOOGLE_AI' | 'INTERNAL' | 'CUSTOM_ONLY';
+  mode?: 'AUTO' | 'GOOGLE_AI' | 'INTERNAL';
   category?: string;
   context?: any;
   priority?: 'low' | 'medium' | 'high' | 'critical';
@@ -53,17 +50,15 @@ export class OptimizedUnifiedAIEngine {
     engineUsage: {} as Record<string, number>,
   };
 
-  // 엔진 가중치 (총 100%)
+  // 엔진 가중치 (총 100%) - 3개 엔진으로 단순화
   private readonly ENGINE_WEIGHTS = {
-    'supabase-rag': 60,
-    'custom-engines': 20,
-    'mcp-client': 15,
-    opensource: 3,
-    'google-ai': 2,
+    'supabase-rag': 80, // 메인 RAG 엔진 (유일한 RAG)
+    'mcp-client': 18, // MCP 서버
+    'google-ai': 2, // Google AI (질문만)
   };
 
   private constructor() {
-    console.log('🚀 OptimizedUnifiedAIEngine v2.1 초기화 시작');
+    console.log('🚀 OptimizedUnifiedAIEngine v2.2 초기화 시작');
   }
 
   public static getInstance(): OptimizedUnifiedAIEngine {
@@ -76,41 +71,31 @@ export class OptimizedUnifiedAIEngine {
   public async initialize(): Promise<void> {
     if (this.initialized) return;
 
-    console.log('🔧 5개 핵심 엔진 초기화 시작...');
+    console.log('🔧 3개 핵심 엔진 초기화 시작...');
 
     try {
-      // 1. SupabaseRAG 엔진 (60% 가중치)
-      console.log('📊 SupabaseRAG 엔진 초기화 (60% 가중치)');
+      // 1. SupabaseRAG 엔진 (80% 가중치) - 유일한 RAG 엔진
+      console.log('📊 SupabaseRAG 엔진 초기화 (80% 가중치) - 메인 RAG');
       const supabaseEngine = new SupabaseRAGMainEngine();
       await supabaseEngine.initialize();
       this.engines.set('supabase-rag', supabaseEngine);
 
-      // 2. OpenSource 엔진들 먼저 초기화 (3% 가중치)
-      console.log('🌐 OpenSource 엔진들 초기화 (3% 가중치)');
-      const openSourceEngines = new OpenSourceEngines();
-      this.engines.set('opensource', openSourceEngines);
-
-      // 3. Custom Engines 엔진 (20% 가중치) - OpenSource 의존성 주입
-      console.log('🔧 Custom Engines 엔진 초기화 (20% 가중치)');
-      const customEngines = new CustomEngines(openSourceEngines);
-      this.engines.set('custom-engines', customEngines);
-
-      // 4. MCP Client 엔진 (15% 가중치)
-      console.log('🔗 MCP Client 엔진 초기화 (15% 가중치)');
+      // 2. MCP Client 엔진 (18% 가중치)
+      console.log('🔗 MCP Client 엔진 초기화 (18% 가중치)');
       const mcpEngine = new MCPClientEngine();
       await mcpEngine.initialize();
       this.engines.set('mcp-client', mcpEngine);
 
-      // 5. Google AI 엔진 (2% 가중치)
-      console.log('🤖 Google AI 엔진 초기화 (2% 가중치)');
+      // 3. Google AI 엔진 (2% 가중치) - 질문 기능만
+      console.log('🤖 Google AI 엔진 초기화 (2% 가중치) - 질문 기능만');
       const googleEngine = new GoogleAIEngine();
       await googleEngine.initialize();
       this.engines.set('google-ai', googleEngine);
 
       this.initialized = true;
-      console.log('✅ OptimizedUnifiedAIEngine v2.1 초기화 완료');
+      console.log('✅ OptimizedUnifiedAIEngine v2.2 초기화 완료');
       console.log(
-        `📈 총 5개 엔진 활성화: ${Array.from(this.engines.keys()).join(', ')}`
+        `📈 총 3개 엔진 활성화: ${Array.from(this.engines.keys()).join(', ')}`
       );
     } catch (error) {
       console.error('❌ OptimizedUnifiedAIEngine 초기화 실패:', error);
@@ -138,9 +123,6 @@ export class OptimizedUnifiedAIEngine {
       switch (mode) {
         case 'GOOGLE_AI':
           response = await this.processWithGoogleAI(request);
-          break;
-        case 'CUSTOM_ONLY':
-          response = await this.processWithCustomEngines(request);
           break;
         case 'INTERNAL':
           response = await this.processWithInternalEngines(request);
@@ -182,25 +164,23 @@ export class OptimizedUnifiedAIEngine {
   private async processWithAutoMode(
     request: OptimizedAIRequest
   ): Promise<OptimizedAIResponse> {
-    // 우선순위에 따른 엔진 선택 (가중치 기반)
+    // 3개 엔진 우선순위 (가중치 기반)
     const engines = [
       {
         name: 'supabase-rag',
-        weight: 60,
+        weight: 80,
         engine: this.engines.get('supabase-rag'),
       },
       {
-        name: 'custom-engines',
-        weight: 20,
-        engine: this.engines.get('custom-engines'),
-      },
-      {
         name: 'mcp-client',
-        weight: 15,
+        weight: 18,
         engine: this.engines.get('mcp-client'),
       },
-      { name: 'opensource', weight: 3, engine: this.engines.get('opensource') },
-      { name: 'google-ai', weight: 2, engine: this.engines.get('google-ai') },
+      {
+        name: 'google-ai',
+        weight: 2,
+        engine: this.engines.get('google-ai'),
+      },
     ];
 
     let lastError: Error | null = null;
@@ -217,14 +197,7 @@ export class OptimizedUnifiedAIEngine {
           `🔄 ${name} 엔진 시도 중... (가중치: ${engines.find(e => e.name === name)?.weight}%)`
         );
 
-        let result;
-        if (name === 'custom-engines') {
-          // CustomEngines는 특별한 처리 로직 사용
-          result = await this.processWithCustomEngines(request);
-        } else {
-          // 다른 엔진들은 기본 processQuery 사용
-          result = await engine.processQuery(request);
-        }
+        const result = await engine.processQuery(request);
 
         if (result && result.success) {
           console.log(
@@ -321,33 +294,23 @@ export class OptimizedUnifiedAIEngine {
   private async processWithInternalEngines(
     request: OptimizedAIRequest
   ): Promise<OptimizedAIResponse> {
-    // Google AI 제외한 내부 엔진들만 사용
+    // Google AI 제외한 내부 엔진들만 사용 (SupabaseRAG + MCP)
     const internalEngines = [
       { name: 'supabase-rag', engine: this.engines.get('supabase-rag') },
-      { name: 'custom-engines', engine: this.engines.get('custom-engines') },
       { name: 'mcp-client', engine: this.engines.get('mcp-client') },
-      { name: 'opensource', engine: this.engines.get('opensource') },
     ];
 
     let lastError: Error | null = null;
 
     for (const { name, engine } of internalEngines) {
       if (!engine) {
-        console.log(`⚠️ ${name} 엔진이 초기화되지 않음, 건너뜀`);
+        console.log(`⚠️ INTERNAL 모드: ${name} 엔진이 초기화되지 않음, 건너뜀`);
         continue;
       }
 
       try {
         console.log(`🔄 INTERNAL 모드: ${name} 엔진 시도 중...`);
-
-        let result;
-        if (name === 'custom-engines') {
-          // CustomEngines는 특별한 처리 로직 사용
-          result = await this.processWithCustomEngines(request);
-        } else {
-          // 다른 엔진들은 기본 processQuery 사용
-          result = await engine.processQuery(request);
-        }
+        const result = await engine.processQuery(request);
 
         if (result && result.success) {
           console.log(`✅ INTERNAL 모드: ${name} 엔진 성공`);
@@ -367,17 +330,19 @@ export class OptimizedUnifiedAIEngine {
       } catch (error) {
         const errorMsg =
           error instanceof Error ? error.message : '알 수 없는 오류';
-        console.log(`⚠️ INTERNAL 모드: ${name} 엔진 실패: ${errorMsg}`);
+        console.log(
+          `⚠️ INTERNAL 모드: ${name} 엔진 실패: ${errorMsg}, 다음 엔진으로 폴백...`
+        );
         lastError = error instanceof Error ? error : new Error(errorMsg);
         continue;
       }
     }
 
-    // 모든 내부 엔진 실패시 최종 폴백
-    console.error('❌ 모든 내부 엔진 실패, 기본 응답 반환');
+    // 내부 엔진들 모두 실패시 폴백
+    console.error('❌ INTERNAL 모드: 모든 내부 엔진 실패, 기본 응답 반환');
     return {
       success: true,
-      response: `INTERNAL 모드에서 질의 "${request.query}"에 대한 기본 응답입니다. 내부 서비스가 일시적으로 사용할 수 없습니다.`,
+      response: `INTERNAL 모드에서 "${request.query}"에 대한 기본 응답입니다. 내부 엔진들이 일시적으로 사용할 수 없습니다.`,
       data: { fallback: true, query: request.query, mode: 'INTERNAL' },
       engine: 'internal-fallback',
       confidence: 0.3,
@@ -385,80 +350,6 @@ export class OptimizedUnifiedAIEngine {
       processingTime: 0,
       error: lastError?.message,
     };
-  }
-
-  private async processWithCustomEngines(
-    request: OptimizedAIRequest
-  ): Promise<OptimizedAIResponse> {
-    const engine = this.engines.get('custom-engines');
-    if (!engine) {
-      throw new Error('Custom Engines를 사용할 수 없습니다');
-    }
-
-    try {
-      // CustomEngines의 핵심 기능들 활용
-      const { query, context } = request;
-
-      // 안전한 컨텍스트 처리
-      const safeContext = context || {
-        servers: [],
-        metrics: [],
-        logs: [],
-        alerts: [],
-      };
-
-      // 1. MCP Query (핵심 기능)
-      const mcpResult = await engine.mcpQuery(query, safeContext);
-
-      // 2. Custom NLP (OpenManager 특화) - 독립적으로 실행
-      const nlpResult = await engine.customNLP(query);
-
-      // 3. Hybrid Analysis (MCP + 오픈소스 조합) - 안전한 데이터로 실행
-      let hybridResult;
-      try {
-        hybridResult = await engine.hybridAnalysis(query, {
-          id: 'test-server',
-          name: 'test',
-        });
-      } catch (error) {
-        console.warn('Hybrid Analysis 실패, 기본값 사용:', error.message);
-        hybridResult = {
-          mcp_analysis: mcpResult,
-          opensource_analysis: { result: 'basic analysis' },
-          combined_confidence: 0.7,
-          recommendation: 'MCP 분석 결과 기반 권장사항',
-          fallback_used: true,
-        };
-      }
-
-      // 결과 통합
-      const combinedResponse = {
-        mcp_analysis: mcpResult,
-        hybrid_analysis: hybridResult,
-        nlp_analysis: nlpResult,
-        recommendation: hybridResult.recommendation,
-        confidence:
-          (mcpResult.confidence + hybridResult.combined_confidence + 0.8) / 3,
-      };
-
-      return {
-        success: true,
-        response: `CustomEngines 분석 완료: ${mcpResult.answer}`,
-        data: combinedResponse,
-        engine: 'custom-engines',
-        confidence: combinedResponse.confidence,
-        processingTime: 0, // 상위에서 계산됨
-      };
-    } catch (error) {
-      console.error('CustomEngines 처리 실패:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'CustomEngines 오류',
-        engine: 'custom-engines',
-        confidence: 0,
-        processingTime: 0,
-      };
-    }
   }
 
   private updateStats(
@@ -470,17 +361,21 @@ export class OptimizedUnifiedAIEngine {
       this.stats.successfulQueries++;
     }
 
-    // 엔진 사용 통계 업데이트
-    if (!this.stats.engineUsage[engine]) {
-      this.stats.engineUsage[engine] = 0;
-    }
-    this.stats.engineUsage[engine]++;
-
     // 평균 응답 시간 업데이트
     this.stats.averageResponseTime =
       (this.stats.averageResponseTime * (this.stats.totalQueries - 1) +
         processingTime) /
       this.stats.totalQueries;
+
+    // 엔진별 사용량 통계
+    if (!this.stats.engineUsage[engine]) {
+      this.stats.engineUsage[engine] = 0;
+    }
+    this.stats.engineUsage[engine]++;
+
+    if (engine.includes('fallback')) {
+      this.stats.fallbackUsed++;
+    }
   }
 
   public getStats() {
@@ -488,28 +383,29 @@ export class OptimizedUnifiedAIEngine {
       ...this.stats,
       successRate:
         this.stats.totalQueries > 0
-          ? (this.stats.successfulQueries / this.stats.totalQueries) * 100
+          ? this.stats.successfulQueries / this.stats.totalQueries
           : 0,
-      engineWeights: this.ENGINE_WEIGHTS,
-      activeEngines: Array.from(this.engines.keys()),
-      totalEngines: this.engines.size,
+      fallbackRate:
+        this.stats.totalQueries > 0
+          ? this.stats.fallbackUsed / this.stats.totalQueries
+          : 0,
     };
   }
 
   public getHealthStatus() {
+    const engineStatus = Array.from(this.engines.entries()).map(
+      ([name, engine]) => ({
+        name,
+        status: engine ? 'healthy' : 'unavailable',
+        initialized: !!engine,
+      })
+    );
+
     return {
-      initialized: this.initialized,
-      totalEngines: this.engines.size,
-      expectedEngines: 4,
-      engineStatus: Array.from(this.engines.entries()).map(
-        ([name, engine]) => ({
-          name,
-          weight: this.ENGINE_WEIGHTS[name as keyof typeof this.ENGINE_WEIGHTS],
-          healthy: engine && typeof engine.processQuery === 'function',
-          usage: this.stats.engineUsage[name] || 0,
-        })
-      ),
+      overall: this.initialized ? 'healthy' : 'initializing',
+      engines: engineStatus,
       stats: this.getStats(),
+      weights: this.ENGINE_WEIGHTS,
     };
   }
 }
