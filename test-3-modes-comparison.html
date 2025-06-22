@@ -4,181 +4,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔬 OpenManager Vibe v5 - 3가지 모드 비교 테스트</title>
+    <title>🧠 OpenManager Vibe v5 - AI 사고 과정 비교 테스트</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            margin: 0;
             padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
             background: white;
-            border-radius: 20px;
+            border-radius: 16px;
+            padding: 30px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
         }
 
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
+        h1 {
             text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 1.2em;
-            opacity: 0.9;
-        }
-
-        .test-section {
-            padding: 30px;
-        }
-
-        .query-input {
+            color: #2d3748;
             margin-bottom: 30px;
+            font-size: 2.5em;
         }
 
-        .query-input label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #333;
-            font-size: 1.1em;
+        .test-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
         }
 
-        .query-input input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 1.1em;
-            transition: border-color 0.3s;
-        }
-
-        .query-input input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .preset-queries {
-            margin-bottom: 20px;
-        }
-
-        .preset-queries h3 {
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        .preset-btn {
-            background: #f8f9fa;
-            border: 1px solid #ddd;
-            padding: 8px 15px;
-            margin: 5px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.9em;
-        }
-
-        .preset-btn:hover {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
-        .test-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .test-btn {
+            padding: 12px 24px;
+            background: #4299e1;
             color: white;
             border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 1.2em;
+            border-radius: 8px;
             cursor: pointer;
-            transition: transform 0.3s;
-            width: 100%;
-            margin-bottom: 30px;
+            font-size: 16px;
+            transition: all 0.3s;
+            min-width: 200px;
         }
 
-        .test-button:hover {
+        .test-btn:hover {
+            background: #3182ce;
             transform: translateY(-2px);
         }
 
-        .test-button:disabled {
-            opacity: 0.6;
+        .test-btn:disabled {
+            background: #a0aec0;
             cursor: not-allowed;
             transform: none;
         }
 
         .results-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .result-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 25px;
+            background: #f8fafc;
+        }
+
+        .result-card.rag {
+            border-color: #48bb78;
+        }
+
+        .result-card.pattern {
+            border-color: #ed8936;
+        }
+
+        .result-card.mcp {
+            border-color: #4299e1;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .mode-badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .badge-rag {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .badge-pattern {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .badge-mcp {
+            background: #bee3f8;
+            color: #2a4365;
+        }
+
+        .thinking-process {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .thinking-step {
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            border-left: 3px solid #4299e1;
+        }
+
+        .response-content {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #4299e1;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 10px;
+            background: rgba(66, 153, 225, 0.1);
+            border-radius: 6px;
+        }
+
+        .metric-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #4299e1;
+        }
+
+        .comparison-section {
+            margin-top: 40px;
+            padding: 30px;
+            background: #edf2f7;
+            border-radius: 12px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
             margin-top: 20px;
         }
 
-        .mode-result {
-            border: 2px solid #eee;
-            border-radius: 15px;
-            overflow: hidden;
-            background: #fafafa;
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #cbd5e0;
         }
 
-        .mode-header {
-            padding: 15px 20px;
-            font-weight: bold;
+        .comparison-table th {
+            background: #4a5568;
             color: white;
-            text-align: center;
-            font-size: 1.1em;
-        }
-
-        .mode-rag {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-
-        .mode-legacy {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        }
-
-        .mode-mcp {
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            color: #333 !important;
-        }
-
-        .mode-content {
-            padding: 20px;
-            background: white;
-            min-height: 300px;
         }
 
         .loading {
-            text-align: center;
-            padding: 50px;
-            color: #666;
-        }
-
-        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border-top: 3px solid #4299e1;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
         }
 
         @keyframes spin {
@@ -191,615 +212,429 @@
             }
         }
 
-        .metric {
-            display: inline-block;
-            background: #e9ecef;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.9em;
-            margin: 2px;
-        }
-
-        .metric.high {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .metric.medium {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .metric.low {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .commands-list {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 10px 0;
-            border-left: 4px solid #667eea;
-        }
-
-        .commands-list h4 {
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        .command-item {
-            background: white;
-            padding: 8px 12px;
-            margin: 5px 0;
-            border-radius: 5px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            border: 1px solid #ddd;
-        }
-
-        .safety-warnings {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 10px 0;
-        }
-
-        .safety-warnings h4 {
-            color: #856404;
-            margin-bottom: 10px;
-        }
-
-        .warning-item {
-            color: #856404;
-            margin: 5px 0;
-            padding-left: 15px;
-            position: relative;
-        }
-
-        .warning-item:before {
-            content: "⚠️";
-            position: absolute;
-            left: 0;
-        }
-
-        .comparison-summary {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 20px;
+        .admin-logs {
             margin-top: 30px;
-            border: 2px solid #dee2e6;
-        }
-
-        .comparison-summary h3 {
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .score-comparison {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .score-item {
-            text-align: center;
-            padding: 15px;
-            border-radius: 10px;
-            background: white;
-            border: 2px solid #eee;
-        }
-
-        .score-value {
-            font-size: 2em;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
+            padding: 20px;
+            background: #f7fafc;
             border-radius: 8px;
-            margin: 10px 0;
-            border: 1px solid #f5c6cb;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            font-size: 12px;
+            border-left: 3px solid #4299e1;
+        }
+
+        .log-thinking {
+            border-left-color: #48bb78;
+        }
+
+        .log-error {
+            border-left-color: #f56565;
+        }
+
+        .log-warning {
+            border-left-color: #ed8936;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🔬 3가지 모드 비교 테스트</h1>
-            <p>RAG Engine vs 기존 패턴매칭 vs MCP 컨텍스트 - 답변 품질 비교</p>
+        <h1>🧠 OpenManager Vibe v5 - AI 사고 과정 비교 테스트</h1>
+
+        <div class="test-controls">
+            <button class="test-btn" onclick="runTest('CPU 사용률이 95%일 때 어떻게 해야 하나요?')">
+                🐧 Linux CPU 95% 문제
+            </button>
+            <button class="test-btn" onclick="runTest('Kubernetes Pod가 CrashLoopBackOff 상태입니다')">
+                ☸️ K8s Pod CrashLoopBackOff
+            </button>
+            <button class="test-btn" onclick="runTest('MySQL 데이터베이스 연결이 실패합니다')">
+                🐘 MySQL 연결 실패
+            </button>
+            <button class="test-btn" onclick="runTest('리눅스 top 명령어 사용법')">
+                📊 Linux top 명령어
+            </button>
+            <button class="test-btn" onclick="clearResults()">🗑️ 결과 초기화</button>
         </div>
 
-        <div class="test-section">
-            <div class="query-input">
-                <label for="testQuery">🤔 테스트할 질문을 입력하세요:</label>
-                <input type="text" id="testQuery" placeholder="예: CPU 사용률이 95%일 때 어떻게 해야 하나요?" />
-            </div>
+        <div class="results-grid" id="results-grid">
+            <!-- 결과가 여기에 표시됩니다 -->
+        </div>
 
-            <div class="preset-queries">
-                <h3>📋 미리 준비된 테스트 질문들:</h3>
-                <button class="preset-btn" onclick="setQuery('CPU 사용률이 95%일 때 어떻게 해야 하나요?')">CPU 95% 문제</button>
-                <button class="preset-btn" onclick="setQuery('Kubernetes Pod가 CrashLoopBackOff 상태입니다')">K8s
-                    CrashLoopBackOff</button>
-                <button class="preset-btn" onclick="setQuery('MySQL 연결이 안 됩니다')">MySQL 연결 실패</button>
-                <button class="preset-btn" onclick="setQuery('디스크 공간이 90% 찼습니다')">디스크 공간 부족</button>
-                <button class="preset-btn" onclick="setQuery('Redis 메모리 사용량이 너무 높습니다')">Redis 메모리 문제</button>
-                <button class="preset-btn" onclick="setQuery('네트워크 연결이 느립니다')">네트워크 지연</button>
-            </div>
+        <div class="comparison-section">
+            <h2>📊 성능 비교 분석</h2>
+            <table class="comparison-table" id="comparison-table">
+                <thead>
+                    <tr>
+                        <th>질문</th>
+                        <th>RAG Engine</th>
+                        <th>Pattern Matching</th>
+                        <th>MCP Context</th>
+                        <th>최고 성능</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #666;">
+                            테스트를 실행하면 비교 결과가 표시됩니다.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
-            <button class="test-button" onclick="runComparison()" id="testBtn">
-                🚀 3가지 모드로 테스트 시작
-            </button>
-
-            <div class="results-grid" id="resultsGrid" style="display: none;">
-                <div class="mode-result">
-                    <div class="mode-header mode-rag">
-                        🤖 RAG Engine 모드
-                        <div style="font-size: 0.9em; opacity: 0.9;">벡터 검색 + 명령어 DB</div>
-                    </div>
-                    <div class="mode-content" id="ragResult">
-                        <div class="loading">
-                            <div class="spinner"></div>
-                            RAG Engine 분석 중...
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mode-result">
-                    <div class="mode-header mode-legacy">
-                        📝 기존 패턴매칭 모드
-                        <div style="font-size: 0.9em; opacity: 0.9;">하드코딩된 규칙 기반</div>
-                    </div>
-                    <div class="mode-content" id="legacyResult">
-                        <div class="loading">
-                            <div class="spinner"></div>
-                            패턴 매칭 분석 중...
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mode-result">
-                    <div class="mode-header mode-mcp">
-                        📚 MCP 컨텍스트 모드
-                        <div style="font-size: 0.9em; opacity: 0.9;">컨텍스트 파일 기반</div>
-                    </div>
-                    <div class="mode-content" id="mcpResult">
-                        <div class="loading">
-                            <div class="spinner"></div>
-                            MCP 컨텍스트 분석 중...
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="comparison-summary" id="comparisonSummary" style="display: none;">
-                <h3>📊 비교 분석 결과</h3>
-                <div id="summaryContent"></div>
-                <div class="score-comparison" id="scoreComparison"></div>
+        <div class="admin-logs">
+            <h3>🔍 실시간 AI 로그 모니터링</h3>
+            <div id="admin-logs-container">
+                로그 로딩 중...
             </div>
         </div>
     </div>
 
     <script>
-        function setQuery(query) {
-            document.getElementById('testQuery').value = query;
-        }
+        let testResults = {};
+        let currentTest = null;
 
-        async function runComparison() {
-            const query = document.getElementById('testQuery').value.trim();
-            if (!query) {
-                alert('테스트할 질문을 입력해주세요!');
+        // 3가지 모드 동시 테스트 실행
+        async function runTest(question) {
+            if (currentTest) {
+                alert('이미 테스트가 실행 중입니다. 잠시 후 다시 시도해주세요.');
                 return;
             }
 
-            const testBtn = document.getElementById('testBtn');
-            const resultsGrid = document.getElementById('resultsGrid');
-            const comparisonSummary = document.getElementById('comparisonSummary');
+            currentTest = question;
+            const resultsGrid = document.getElementById('results-grid');
 
-            testBtn.disabled = true;
-            testBtn.textContent = '🔄 테스트 진행 중...';
-            resultsGrid.style.display = 'grid';
-            comparisonSummary.style.display = 'none';
+            // 결과 카드 초기화
+            resultsGrid.innerHTML = `
+                <div class="result-card rag">
+                    <div class="result-header">
+                        <h3>🤖 <span class="mode-badge badge-rag">RAG Engine</span></h3>
+                        <div class="loading"></div>
+                    </div>
+                    <div class="thinking-process" id="rag-thinking">사고 과정 분석 중...</div>
+                    <div class="response-content" id="rag-response">응답 생성 중...</div>
+                    <div class="performance-metrics" id="rag-metrics"></div>
+                </div>
 
-            // 로딩 상태 초기화
-            document.getElementById('ragResult').innerHTML = `
-                <div class="loading">
-                    <div class="spinner"></div>
-                    RAG Engine 분석 중...
+                <div class="result-card pattern">
+                    <div class="result-header">
+                        <h3>🔍 <span class="mode-badge badge-pattern">Pattern Matching</span></h3>
+                        <div class="loading"></div>
+                    </div>
+                    <div class="thinking-process" id="pattern-thinking">사고 과정 분석 중...</div>
+                    <div class="response-content" id="pattern-response">응답 생성 중...</div>
+                    <div class="performance-metrics" id="pattern-metrics"></div>
+                </div>
+
+                <div class="result-card mcp">
+                    <div class="result-header">
+                        <h3>🧠 <span class="mode-badge badge-mcp">MCP Context</span></h3>
+                        <div class="loading"></div>
+                    </div>
+                    <div class="thinking-process" id="mcp-thinking">사고 과정 분석 중...</div>
+                    <div class="response-content" id="mcp-response">응답 생성 중...</div>
+                    <div class="performance-metrics" id="mcp-metrics"></div>
                 </div>
             `;
-            document.getElementById('legacyResult').innerHTML = `
-                <div class="loading">
-                    <div class="spinner"></div>
-                    패턴 매칭 분석 중...
-                </div>
-            `;
-            document.getElementById('mcpResult').innerHTML = `
-                <div class="loading">
-                    <div class="spinner"></div>
-                    MCP 컨텍스트 분석 중...
-                </div>
-            `;
 
-            const results = {};
+            // 버튼 비활성화
+            document.querySelectorAll('.test-btn').forEach(btn => btn.disabled = true);
 
             try {
-                // 1. RAG Engine 모드 테스트
-                console.log('🤖 RAG Engine 모드 테스트 시작...');
-                const ragResult = await testRAGMode(query);
-                results.rag = ragResult;
-                displayResult('ragResult', ragResult, 'RAG Engine');
+                // 3가지 모드 병렬 실행
+                const [ragResult, patternResult, mcpResult] = await Promise.allSettled([
+                    testRAGEngine(question),
+                    testPatternMatching(question),
+                    testMCPContext(question)
+                ]);
 
-                // 2. 기존 패턴매칭 모드 테스트
-                console.log('📝 기존 패턴매칭 모드 테스트 시작...');
-                const legacyResult = await testLegacyMode(query);
-                results.legacy = legacyResult;
-                displayResult('legacyResult', legacyResult, '패턴매칭');
+                // 결과 표시
+                displayResult('rag', ragResult);
+                displayResult('pattern', patternResult);
+                displayResult('mcp', mcpResult);
 
-                // 3. MCP 컨텍스트 모드 테스트 (시뮬레이션)
-                console.log('📚 MCP 컨텍스트 모드 테스트 시작...');
-                const mcpResult = await testMCPMode(query);
-                results.mcp = mcpResult;
-                displayResult('mcpResult', mcpResult, 'MCP 컨텍스트');
+                // 비교 테이블 업데이트
+                updateComparisonTable(question, {
+                    rag: ragResult.status === 'fulfilled' ? ragResult.value : null,
+                    pattern: patternResult.status === 'fulfilled' ? patternResult.value : null,
+                    mcp: mcpResult.status === 'fulfilled' ? mcpResult.value : null
+                });
 
-                // 비교 분석
-                displayComparison(results);
+                // 어드민 로그 새로고침
+                await refreshAdminLogs();
 
             } catch (error) {
-                console.error('테스트 중 오류:', error);
-                alert('테스트 중 오류가 발생했습니다: ' + error.message);
+                console.error('테스트 실행 오류:', error);
             } finally {
-                testBtn.disabled = false;
-                testBtn.textContent = '🚀 3가지 모드로 테스트 시작';
+                // 버튼 재활성화
+                document.querySelectorAll('.test-btn').forEach(btn => btn.disabled = false);
+                currentTest = null;
             }
         }
 
-        async function testRAGMode(query) {
+        // RAG Engine 테스트
+        async function testRAGEngine(question) {
+            const startTime = Date.now();
+
             try {
-                const response = await fetch('http://localhost:3004/api/analyze', {
+                const response = await fetch('/api/analyze', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        type: 'troubleshooting',
-                        data: { query: query },
-                        options: { mode: 'rag' }
+                        query: question,
+                        type: 'troubleshooting'
                     })
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
+                const data = await response.json();
+                const responseTime = Date.now() - startTime;
 
-                const result = await response.json();
                 return {
-                    success: true,
-                    data: result,
-                    responseTime: Date.now() - performance.now(),
-                    mode: 'RAG Engine'
+                    mode: 'rag',
+                    success: data.success,
+                    data: data,
+                    responseTime: responseTime,
+                    thinkingProcess: data.data?.thinking_process || [],
+                    confidence: data.data?.confidence || 0
                 };
             } catch (error) {
                 return {
+                    mode: 'rag',
                     success: false,
                     error: error.message,
-                    mode: 'RAG Engine'
+                    responseTime: Date.now() - startTime,
+                    thinkingProcess: [],
+                    confidence: 0
                 };
             }
         }
 
-        async function testLegacyMode(query) {
+        // 패턴 매칭 테스트
+        async function testPatternMatching(question) {
+            const startTime = Date.now();
+
             try {
-                const response = await fetch('http://localhost:3004/api/analyze', {
+                const response = await fetch('/api/analyze', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        type: 'basic',
-                        data: { query: query },
-                        options: { mode: 'legacy', disable_rag: true }
+                        query: question,
+                        type: 'pattern-matching'
                     })
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
+                const data = await response.json();
+                const responseTime = Date.now() - startTime;
 
-                const result = await response.json();
                 return {
-                    success: true,
-                    data: result,
-                    responseTime: Date.now() - performance.now(),
-                    mode: '패턴매칭'
+                    mode: 'pattern',
+                    success: data.success,
+                    data: data,
+                    responseTime: responseTime,
+                    thinkingProcess: data.data?.thinking_process || [],
+                    confidence: data.data?.confidence || 0
                 };
             } catch (error) {
                 return {
+                    mode: 'pattern',
                     success: false,
                     error: error.message,
-                    mode: '패턴매칭'
+                    responseTime: Date.now() - startTime,
+                    thinkingProcess: [],
+                    confidence: 0
                 };
             }
         }
 
-        async function testMCPMode(query) {
-            // MCP 컨텍스트 모드는 시뮬레이션
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    const mcpResponse = generateMCPResponse(query);
-                    resolve({
-                        success: true,
-                        data: mcpResponse,
-                        responseTime: 150,
-                        mode: 'MCP 컨텍스트'
-                    });
-                }, 1000);
-            });
+        // MCP Context 테스트
+        async function testMCPContext(question) {
+            const startTime = Date.now();
+
+            try {
+                const response = await fetch('/api/ai/unified', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: question,
+                        context: 'system-troubleshooting'
+                    })
+                });
+
+                const data = await response.json();
+                const responseTime = Date.now() - startTime;
+
+                return {
+                    mode: 'mcp',
+                    success: data.success,
+                    data: data,
+                    responseTime: responseTime,
+                    thinkingProcess: data.thinkingProcess || [],
+                    confidence: data.confidence || 0
+                };
+            } catch (error) {
+                return {
+                    mode: 'mcp',
+                    success: false,
+                    error: error.message,
+                    responseTime: Date.now() - startTime,
+                    thinkingProcess: [],
+                    confidence: 0
+                };
+            }
         }
 
-        function generateMCPResponse(query) {
-            const lowerQuery = query.toLowerCase();
+        // 결과 표시
+        function displayResult(mode, result) {
+            const thinking = document.getElementById(`${mode}-thinking`);
+            const response = document.getElementById(`${mode}-response`);
+            const metrics = document.getElementById(`${mode}-metrics`);
+            const header = document.querySelector(`.result-card.${mode} .result-header`);
 
-            if (lowerQuery.includes('cpu') || lowerQuery.includes('95%')) {
-                return {
-                    type: 'mcp-context',
-                    summary: 'MCP 컨텍스트에서 CPU 트러블슈팅 가이드를 참조했습니다.',
-                    insights: [
-                        'Linux 트러블슈팅 컨텍스트 파일에서 정보 추출',
-                        'CPU 사용률 95% 시나리오 매칭',
-                        '단계별 해결 방안 제공'
-                    ],
-                    commands: ['top', 'htop', 'ps aux --sort=-%cpu', 'kill -15 [PID]'],
-                    recommendations: [
-                        '1. top 명령어로 CPU 사용률 높은 프로세스 확인',
-                        '2. 불필요한 프로세스 정상 종료',
-                        '3. 시스템 리소스 모니터링 강화'
-                    ],
-                    confidence: 0.85,
-                    source: 'linux-troubleshooting.md'
-                };
-            } else if (lowerQuery.includes('kubernetes') || lowerQuery.includes('pod') || lowerQuery.includes('crashloop')) {
-                return {
-                    type: 'mcp-context',
-                    summary: 'MCP 컨텍스트에서 Kubernetes 관리 가이드를 참조했습니다.',
-                    insights: [
-                        'Kubernetes 관리 컨텍스트 파일에서 정보 추출',
-                        'CrashLoopBackOff 시나리오 매칭',
-                        'Pod 트러블슈팅 절차 제공'
-                    ],
-                    commands: ['kubectl get pods', 'kubectl describe pod', 'kubectl logs', 'kubectl delete pod'],
-                    recommendations: [
-                        '1. kubectl describe pod로 상세 정보 확인',
-                        '2. kubectl logs로 에러 로그 분석',
-                        '3. 설정 파일 검토 및 수정'
-                    ],
-                    confidence: 0.88,
-                    source: 'kubernetes-management.md'
-                };
-            } else if (lowerQuery.includes('mysql') || lowerQuery.includes('database') || lowerQuery.includes('연결')) {
-                return {
-                    type: 'mcp-context',
-                    summary: 'MCP 컨텍스트에서 데이터베이스 관리 가이드를 참조했습니다.',
-                    insights: [
-                        '데이터베이스 관리 컨텍스트 파일에서 정보 추출',
-                        'MySQL 연결 문제 시나리오 매칭',
-                        '데이터베이스 트러블슈팅 절차 제공'
-                    ],
-                    commands: ['systemctl status mysql', 'mysql -u root -p', 'show processlist', 'netstat -tlnp | grep 3306'],
-                    recommendations: [
-                        '1. MySQL 서비스 상태 확인',
-                        '2. 연결 설정 및 방화벽 확인',
-                        '3. 로그 파일에서 오류 메시지 분석'
-                    ],
-                    confidence: 0.82,
-                    source: 'database-administration.md'
-                };
+            // 로딩 제거
+            const loading = header.querySelector('.loading');
+            if (loading) loading.remove();
+
+            if (result.status === 'fulfilled') {
+                const data = result.value;
+
+                // 사고 과정 표시
+                if (data.thinkingProcess && data.thinkingProcess.length > 0) {
+                    thinking.innerHTML = data.thinkingProcess.map(step => `
+                        <div class="thinking-step">
+                            <strong>Step ${step.step}: ${step.action}</strong><br>
+                            ${step.thought}<br>
+                            ${step.result ? `<small>결과: ${JSON.stringify(step.result, null, 2)}</small>` : ''}
+                        </div>
+                    `).join('');
+                } else {
+                    thinking.innerHTML = '<div class="thinking-step">사고 과정 정보가 없습니다.</div>';
+                }
+
+                // 응답 내용 표시
+                if (data.success) {
+                    response.innerHTML = `
+                        <strong>요약:</strong> ${data.data.summary || 'N/A'}<br>
+                        <strong>타입:</strong> ${data.data.type || 'N/A'}<br>
+                        <strong>명령어:</strong> ${data.data.commands ? data.data.commands.join(', ') : 'N/A'}
+                    `;
+                } else {
+                    response.innerHTML = `<strong>오류:</strong> ${data.error || '알 수 없는 오류'}`;
+                }
+
+                // 성능 메트릭 표시
+                metrics.innerHTML = `
+                    <div class="metric">
+                        <div class="metric-value">${data.responseTime}ms</div>
+                        <div>응답 시간</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">${Math.round(data.confidence * 100)}%</div>
+                        <div>신뢰도</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">${data.thinkingProcess.length}</div>
+                        <div>사고 단계</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">${data.success ? '✅' : '❌'}</div>
+                        <div>성공 여부</div>
+                    </div>
+                `;
             } else {
-                return {
-                    type: 'mcp-context',
-                    summary: 'MCP 컨텍스트에서 일반적인 시스템 관리 정보를 참조했습니다.',
-                    insights: [
-                        '시스템 지식 컨텍스트 파일에서 정보 추출',
-                        '일반적인 트러블슈팅 가이드 제공'
-                    ],
-                    commands: ['systemctl status', 'journalctl -xe', 'df -h', 'free -h'],
-                    recommendations: [
-                        '1. 시스템 상태 전반적 점검',
-                        '2. 로그 파일 확인',
-                        '3. 리소스 사용량 모니터링'
-                    ],
-                    confidence: 0.70,
-                    source: 'system-knowledge.md'
-                };
+                thinking.innerHTML = '<div class="thinking-step">테스트 실패</div>';
+                response.innerHTML = `<strong>오류:</strong> ${result.reason}`;
+                metrics.innerHTML = '<div class="metric"><div class="metric-value">❌</div><div>실패</div></div>';
             }
         }
 
-        function displayResult(containerId, result, modeName) {
-            const container = document.getElementById(containerId);
+        // 비교 테이블 업데이트
+        function updateComparisonTable(question, results) {
+            testResults[question] = results;
 
-            if (!result.success) {
-                container.innerHTML = `
-                    <div class="error-message">
-                        <h4>❌ ${modeName} 테스트 실패</h4>
-                        <p>${result.error}</p>
-                    </div>
-                `;
-                return;
-            }
+            const tbody = document.querySelector('#comparison-table tbody');
+            let html = '';
 
-            const data = result.data;
-            let html = `
-                <div style="margin-bottom: 15px;">
-                    <span class="metric ${getConfidenceClass(data.confidence || 0.7)}">
-                        신뢰도: ${Math.round((data.confidence || 0.7) * 100)}%
-                    </span>
-                    <span class="metric">응답시간: ${result.responseTime || 0}ms</span>
-                    <span class="metric">타입: ${data.type || 'unknown'}</span>
-                </div>
+            Object.keys(testResults).forEach(q => {
+                const r = testResults[q];
+                html += `<tr>`;
+                html += `<td>${q.substring(0, 30)}...</td>`;
 
-                <div style="margin-bottom: 15px;">
-                    <h4>📋 요약</h4>
-                    <p>${data.summary || '응답 정보가 없습니다.'}</p>
-                </div>
-            `;
+                ['rag', 'pattern', 'mcp'].forEach(mode => {
+                    if (r[mode] && r[mode].success) {
+                        html += `<td>✅ ${r[mode].responseTime}ms<br><small>신뢰도: ${Math.round(r[mode].confidence * 100)}%</small></td>`;
+                    } else {
+                        html += `<td>❌ 실패</td>`;
+                    }
+                });
 
-            if (data.insights && data.insights.length > 0) {
-                html += `
-                    <div style="margin-bottom: 15px;">
-                        <h4>💡 분석 인사이트</h4>
-                        <ul>
-                            ${data.insights.map(insight => `<li>${insight}</li>`).join('')}
-                        </ul>
-                    </div>
-                `;
-            }
+                // 최고 성능 계산
+                let bestMode = '-';
+                let bestScore = -1;
+                ['rag', 'pattern', 'mcp'].forEach(mode => {
+                    if (r[mode] && r[mode].success) {
+                        const score = r[mode].confidence * 100 - r[mode].responseTime / 10;
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestMode = mode.toUpperCase();
+                        }
+                    }
+                });
 
-            if (data.commands && data.commands.length > 0) {
-                html += `
-                    <div class="commands-list">
-                        <h4>⚡ 추천 명령어</h4>
-                        ${data.commands.map(cmd => `<div class="command-item">${cmd}</div>`).join('')}
-                    </div>
-                `;
-            }
-
-            if (data.safety_warnings && data.safety_warnings.length > 0) {
-                html += `
-                    <div class="safety-warnings">
-                        <h4>⚠️ 안전성 경고</h4>
-                        ${data.safety_warnings.map(warning => `<div class="warning-item">${warning}</div>`).join('')}
-                    </div>
-                `;
-            }
-
-            if (data.recommendations && data.recommendations.length > 0) {
-                html += `
-                    <div style="margin-top: 15px;">
-                        <h4>🎯 권장사항</h4>
-                        <ol>
-                            ${data.recommendations.map(rec => `<li>${rec}</li>`).join('')}
-                        </ol>
-                    </div>
-                `;
-            }
-
-            if (data.source) {
-                html += `
-                    <div style="margin-top: 15px; font-size: 0.9em; color: #666;">
-                        📄 출처: ${data.source}
-                    </div>
-                `;
-            }
-
-            container.innerHTML = html;
-        }
-
-        function getConfidenceClass(confidence) {
-            if (confidence >= 0.8) return 'high';
-            if (confidence >= 0.6) return 'medium';
-            return 'low';
-        }
-
-        function displayComparison(results) {
-            const summaryContainer = document.getElementById('comparisonSummary');
-            const summaryContent = document.getElementById('summaryContent');
-            const scoreComparison = document.getElementById('scoreComparison');
-
-            // 성공한 결과들만 비교
-            const successResults = Object.values(results).filter(r => r.success);
-
-            if (successResults.length === 0) {
-                summaryContent.innerHTML = '<p>⚠️ 모든 모드에서 테스트가 실패했습니다.</p>';
-                summaryContainer.style.display = 'block';
-                return;
-            }
-
-            // 비교 메트릭 계산
-            const comparison = successResults.map(result => {
-                const data = result.data;
-                return {
-                    mode: result.mode,
-                    confidence: data.confidence || 0.7,
-                    commandsCount: (data.commands || []).length,
-                    insightsCount: (data.insights || []).length,
-                    recommendationsCount: (data.recommendations || []).length,
-                    hasWarnings: (data.safety_warnings || []).length > 0,
-                    responseTime: result.responseTime || 0
-                };
+                html += `<td><strong>${bestMode}</strong></td>`;
+                html += `</tr>`;
             });
 
-            // 점수 계산 (0-100)
-            comparison.forEach(item => {
-                let score = 0;
-                score += item.confidence * 40; // 신뢰도 40%
-                score += Math.min(item.commandsCount * 5, 20); // 명령어 개수 20%
-                score += Math.min(item.insightsCount * 3, 15); // 인사이트 15%
-                score += Math.min(item.recommendationsCount * 2, 10); // 권장사항 10%
-                score += item.hasWarnings ? 10 : 0; // 안전성 경고 10%
-                score += item.responseTime < 1000 ? 5 : 0; // 응답속도 5%
-
-                item.totalScore = Math.round(score);
-            });
-
-            // 정렬 (점수 높은 순)
-            comparison.sort((a, b) => b.totalScore - a.totalScore);
-
-            // 요약 내용
-            const winner = comparison[0];
-            summaryContent.innerHTML = `
-                <p><strong>🏆 최고 성능:</strong> ${winner.mode} (${winner.totalScore}점)</p>
-                <p><strong>📊 평가 기준:</strong> 신뢰도(40%) + 명령어 개수(20%) + 인사이트(15%) + 권장사항(10%) + 안전성 경고(10%) + 응답속도(5%)</p>
-                <p><strong>💡 분석:</strong> ${generateAnalysis(comparison)}</p>
-            `;
-
-            // 점수 비교 차트
-            scoreComparison.innerHTML = comparison.map(item => `
-                <div class="score-item">
-                    <div class="score-value" style="color: ${getScoreColor(item.totalScore)}">${item.totalScore}</div>
-                    <div style="font-weight: bold; margin-bottom: 10px;">${item.mode}</div>
-                    <div style="font-size: 0.9em; color: #666;">
-                        신뢰도: ${Math.round(item.confidence * 100)}%<br>
-                        명령어: ${item.commandsCount}개<br>
-                        응답: ${item.responseTime}ms
-                    </div>
-                </div>
-            `).join('');
-
-            summaryContainer.style.display = 'block';
+            tbody.innerHTML = html || '<tr><td colspan="5" style="text-align: center; color: #666;">테스트를 실행하면 비교 결과가 표시됩니다.</td></tr>';
         }
 
-        function generateAnalysis(comparison) {
-            if (comparison.length < 2) return '비교할 데이터가 부족합니다.';
+        // 어드민 로그 새로고침
+        async function refreshAdminLogs() {
+            try {
+                const response = await fetch('/api/ai/logging?type=thinking&limit=10');
+                const data = await response.json();
 
-            const winner = comparison[0];
-            const runner = comparison[1];
-            const gap = winner.totalScore - runner.totalScore;
+                const container = document.getElementById('admin-logs-container');
 
-            if (gap > 20) {
-                return `${winner.mode}가 압도적으로 우수한 성능을 보였습니다. 특히 ${winner.confidence > 0.8 ? '높은 신뢰도' : ''}${winner.commandsCount > 5 ? ', 풍부한 명령어 제공' : ''}이 강점입니다.`;
-            } else if (gap > 10) {
-                return `${winner.mode}가 ${runner.mode}보다 우수하지만 큰 차이는 없습니다. 상황에 따라 다른 모드도 고려할 수 있습니다.`;
-            } else {
-                return `${winner.mode}와 ${runner.mode}가 비슷한 성능을 보였습니다. 각각의 장단점을 고려하여 선택하는 것이 좋겠습니다.`;
+                if (data.success && data.data.logs.length > 0) {
+                    container.innerHTML = data.data.logs.map(log => `
+                        <div class="log-entry log-${log.level}">
+                            <strong>[${new Date(log.timestamp).toLocaleTimeString()}] ${log.engine}</strong><br>
+                            ${log.message}<br>
+                            ${log.thinking ? `<small>사고 단계: ${log.thinking.steps.length}개</small>` : ''}
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div class="log-entry">사고 과정 로그가 없습니다.</div>';
+                }
+            } catch (error) {
+                console.error('어드민 로그 로딩 오류:', error);
+                document.getElementById('admin-logs-container').innerHTML =
+                    '<div class="log-entry log-error">로그 로딩 실패</div>';
             }
         }
 
-        function getScoreColor(score) {
-            if (score >= 80) return '#28a745';
-            if (score >= 60) return '#ffc107';
-            return '#dc3545';
+        // 결과 초기화
+        function clearResults() {
+            document.getElementById('results-grid').innerHTML = '';
+            testResults = {};
+            document.querySelector('#comparison-table tbody').innerHTML =
+                '<tr><td colspan="5" style="text-align: center; color: #666;">테스트를 실행하면 비교 결과가 표시됩니다.</td></tr>';
         }
 
-        // 페이지 로드 시 기본 질문 설정
-        window.onload = function () {
-            document.getElementById('testQuery').value = 'CPU 사용률이 95%일 때 어떻게 해야 하나요?';
-        };
+        // 페이지 로드 시 어드민 로그 로딩
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('🧠 AI 사고 과정 비교 테스트 시스템 준비 완료');
+            refreshAdminLogs();
+
+            // 5초마다 어드민 로그 자동 새로고침
+            setInterval(refreshAdminLogs, 5000);
+        });
     </script>
 </body>
 

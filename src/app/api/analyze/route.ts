@@ -1,4 +1,5 @@
 import { LocalRAGEngine } from '@/lib/ml/rag-engine';
+import { AILogger, LogCategory } from '@/services/ai/logging/AILogger';
 import { makeAIRequest } from '@/utils/aiEngineConfig';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -19,26 +20,28 @@ async function performIntelligentAnalysis(
   data: any,
   options: any
 ) {
-  const query = data?.query || '';
+  const rag = await getRagEngine();
+  const query = data.query || '';
   const lowerQuery = query.toLowerCase();
+  const aiLogger = AILogger.getInstance();
 
-  console.log('🔍 AI 분석 시작:', { query, lowerQuery });
+  // 🧠 사고 과정 시작
+  const thinkingSteps: any[] = [];
+  const startTime = Date.now();
 
   try {
-    // RAG Engine 초기화 (강제)
-    const rag = await getRagEngine();
-
-    console.log('⚙️ RAG Engine 강제 초기화 중...');
-    await rag.initialize();
-
-    console.log('📊 RAG Engine 상태:', {
-      ready: rag.isReady(),
-      stats: rag.getStats(),
+    // Step 1: 질문 분석 및 의도 파악
+    thinkingSteps.push({
+      step: 1,
+      action: '질문 분석',
+      thought: `사용자 질문: "${query}"를 분석합니다.`,
+      analysis: {
+        originalQuery: query,
+        lowerQuery: lowerQuery,
+        queryLength: query.length,
+        hasKorean: /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(query),
+      },
     });
-
-    // 쿼리 정규화
-    const query = data.query || '';
-    const lowerQuery = query.toLowerCase();
 
     // 1. 불가능한 질문 감지 및 한계 인식
     const impossiblePatterns = [
@@ -60,13 +63,32 @@ async function performIntelligentAnalysis(
     );
 
     if (hasImpossiblePattern) {
+      thinkingSteps.push({
+        step: 2,
+        action: '불가능한 질문 감지',
+        thought: '이 질문은 AI의 한계를 벗어나는 요청입니다.',
+        matchedPatterns: impossiblePatterns.filter(p => lowerQuery.includes(p)),
+      });
+
+      await aiLogger.logThinking(
+        'AnalyzeAPI',
+        LogCategory.AI_ENGINE,
+        query,
+        thinkingSteps,
+        '불가능한 질문으로 판단하여 한계 응답 제공',
+        ['AI 한계 인식 응답 생성'],
+        0.9
+      );
+
       return generateLimitationResponse(query);
     }
 
-    // 2. 직접 카테고리 매칭 (더 정확한 방법)
+    // Step 2: 카테고리 분석 및 도메인 식별
     let categoryFilter = '';
-
-    console.log('🔍 키워드 분석:', { query, lowerQuery });
+    const categoryAnalysis: any = {
+      detectedKeywords: [],
+      confidenceScores: {},
+    };
 
     if (
       lowerQuery.includes('linux') ||
@@ -78,17 +100,16 @@ async function performIntelligentAnalysis(
       lowerQuery.includes('시스템')
     ) {
       categoryFilter = 'linux';
-      console.log('🎯 Linux 카테고리 감지:', {
-        keywords: [
-          'linux',
-          '리눅스',
-          'top',
-          'ps',
-          'cpu',
-          '프로세스',
-          '시스템',
-        ].filter(k => lowerQuery.includes(k)),
-      });
+      categoryAnalysis.detectedKeywords = [
+        'linux',
+        '리눅스',
+        'top',
+        'ps',
+        'cpu',
+        '프로세스',
+        '시스템',
+      ].filter(k => lowerQuery.includes(k));
+      categoryAnalysis.confidenceScores.linux = 0.9;
     } else if (
       lowerQuery.includes('kubernetes') ||
       lowerQuery.includes('쿠버네티스') ||
@@ -97,11 +118,14 @@ async function performIntelligentAnalysis(
       lowerQuery.includes('k8s')
     ) {
       categoryFilter = 'k8s';
-      console.log('🎯 Kubernetes 카테고리 감지:', {
-        keywords: ['kubernetes', '쿠버네티스', 'kubectl', 'pod', 'k8s'].filter(
-          k => lowerQuery.includes(k)
-        ),
-      });
+      categoryAnalysis.detectedKeywords = [
+        'kubernetes',
+        '쿠버네티스',
+        'kubectl',
+        'pod',
+        'k8s',
+      ].filter(k => lowerQuery.includes(k));
+      categoryAnalysis.confidenceScores.k8s = 0.9;
     } else if (
       lowerQuery.includes('mysql') ||
       lowerQuery.includes('데이터베이스') ||
@@ -110,31 +134,48 @@ async function performIntelligentAnalysis(
       lowerQuery.includes('연결')
     ) {
       categoryFilter = 'mysql';
-      console.log('🎯 MySQL 카테고리 감지:', {
-        keywords: ['mysql', '데이터베이스', 'db', 'sql', '연결'].filter(k =>
-          lowerQuery.includes(k)
-        ),
-      });
+      categoryAnalysis.detectedKeywords = [
+        'mysql',
+        '데이터베이스',
+        'db',
+        'sql',
+        '연결',
+      ].filter(k => lowerQuery.includes(k));
+      categoryAnalysis.confidenceScores.mysql = 0.9;
     }
 
-    console.log('🏷️ 최종 카테고리 필터:', categoryFilter);
+    thinkingSteps.push({
+      step: 3,
+      action: '카테고리 분석',
+      thought: `키워드 분석을 통해 도메인을 식별합니다.`,
+      result: {
+        categoryFilter: categoryFilter || 'general',
+        detectedKeywords: categoryAnalysis.detectedKeywords,
+        confidence: categoryAnalysis.confidenceScores[categoryFilter] || 0.3,
+      },
+    });
 
-    // RAG Engine 검색 (카테고리 필터 적용)
-    console.log('🔍 RAG Engine 검색 시작:', {
-      query,
-      lowerQuery,
-      categoryFilter,
+    // Step 3: RAG Engine 검색 (최우선)
+    thinkingSteps.push({
+      step: 4,
+      action: 'RAG Engine 검색',
+      thought: '벡터 데이터베이스에서 관련 명령어와 문서를 검색합니다.',
+      parameters: {
+        query: query,
+        maxResults: 5,
+        threshold: 0.1,
+        category: categoryFilter,
+      },
     });
 
     const ragResponse = await rag.search({
       query: query,
       maxResults: 5,
-      threshold: 0.2,
-      category: categoryFilter, // 카테고리 필터 적용
+      threshold: 0.1,
+      category: categoryFilter,
     });
 
-    console.log('🎯 RAG 검색 결과:', {
-      query,
+    const ragAnalysis = {
       success: ragResponse.success,
       resultsCount: ragResponse.results.length,
       topResult: ragResponse.results[0]?.document?.metadata?.category,
@@ -144,72 +185,97 @@ async function performIntelligentAnalysis(
         score: r.score,
         category: r.document.metadata?.category,
       })),
-      ragStats: rag.getStats(),
+    };
+
+    thinkingSteps.push({
+      step: 5,
+      action: 'RAG 검색 결과 분석',
+      thought: `${ragResponse.results.length}개의 관련 문서를 찾았습니다.`,
+      result: ragAnalysis,
     });
 
-    // 3. 카테고리별 결과 필터링 및 재정렬
-    let ragSuccess = false;
-
+    // Step 4: RAG 결과 우선 처리
     if (ragResponse.success && ragResponse.results.length > 0) {
       let filteredResults = ragResponse.results;
 
-      // 카테고리 필터가 감지된 경우 해당 카테고리 우선
+      // 카테고리 필터링 적용
       if (categoryFilter) {
         const categoryResults = ragResponse.results.filter(r =>
           r.document.metadata.category.includes(categoryFilter)
         );
 
         if (categoryResults.length > 0) {
-          // 카테고리 매칭 결과를 앞으로
           const otherResults = ragResponse.results.filter(
             r => !r.document.metadata.category.includes(categoryFilter)
           );
           filteredResults = [...categoryResults, ...otherResults];
-          console.log(
-            `🎯 카테고리 필터링 적용: ${categoryFilter} → ${categoryResults.length}개 결과`
-          );
         }
       }
 
-      // RAG 결과가 있으면 무조건 사용 (임계값 제거)
-      if (filteredResults.length > 0) {
-        console.log('✅ RAG 기반 응답 생성 중... (강제 실행)');
-        ragSuccess = true;
-        const commandResponse = generateCommandBasedResponse(
-          query,
-          filteredResults,
-          type
-        );
-        // 디버그 정보 추가
-        return {
-          ...commandResponse,
-          debug_info: {
-            originalResults: ragResponse.results.length,
-            filteredResults: filteredResults.length,
-            categoryFilter: categoryFilter,
-            topScore: filteredResults[0].score,
-            topCategory: filteredResults[0].document.metadata.category,
-            allCategories: filteredResults.map(
-              r => r.document.metadata.category
-            ),
-            forcedRAG: true,
-          },
-        };
-      }
+      thinkingSteps.push({
+        step: 6,
+        action: 'RAG 결과 최적화',
+        thought: `카테고리 필터링을 적용하여 ${filteredResults.length}개 결과로 정제했습니다.`,
+        optimization: {
+          originalCount: ragResponse.results.length,
+          filteredCount: filteredResults.length,
+          categoryFilter: categoryFilter,
+          topMatch: filteredResults[0]?.document?.metadata?.category,
+        },
+      });
+
+      // RAG 기반 응답 생성
+      const ragConclusion = `RAG Engine을 통해 ${filteredResults.length}개의 관련 문서에서 답변을 생성합니다.`;
+      thinkingSteps.push({
+        step: 7,
+        action: '최종 응답 생성',
+        thought: ragConclusion,
+        confidence: filteredResults[0]?.score || 0.7,
+      });
+
+      const responseTime = Date.now() - startTime;
+
+      // 사고 과정 로깅
+      await aiLogger.logThinking(
+        'RAG_Engine',
+        LogCategory.RAG,
+        query,
+        thinkingSteps,
+        `RAG 검색을 통한 명령어 기반 응답 생성 (${responseTime}ms)`,
+        [ragConclusion, `최고 점수: ${filteredResults[0]?.score?.toFixed(3)}`],
+        filteredResults[0]?.score || 0.7,
+        ['패턴 매칭', 'MCP 컨텍스트']
+      );
+
+      const commandResponse = generateCommandBasedResponse(
+        query,
+        filteredResults,
+        type
+      );
+      return {
+        ...commandResponse,
+        thinking_process: thinkingSteps,
+        debug_info: {
+          processingTime: responseTime,
+          ragStats: ragAnalysis,
+          categoryFilter: categoryFilter,
+          thinkingSteps: thinkingSteps.length,
+          engine: 'RAG_Engine',
+          confidence: filteredResults[0]?.score || 0.7,
+        },
+      };
     }
 
-    // RAG 검색이 실패한 경우에만 다른 패턴 매칭 실행
-    if (!ragSuccess) {
-      console.log('⚠️ RAG 검색 실패 - 폴백 로직 실행');
-    }
-
-    console.log('⚠️ RAG 검색 결과 부족:', {
-      hasResults: ragResponse.results.length > 0,
-      topScore: ragResponse.results[0]?.score,
-      threshold: 0.2,
+    // Step 5: RAG 실패 시 폴백 로직
+    thinkingSteps.push({
+      step: 6,
+      action: 'RAG 검색 실패',
+      thought:
+        'RAG 검색에서 적절한 결과를 찾지 못했습니다. 폴백 로직을 실행합니다.',
+      reason: 'RAG 결과 부족 또는 점수 미달',
     });
 
-    // 4. 복합 장애 시나리오 감지 (우선 처리)
+    // 복합 장애 시나리오 감지
     const complexFailurePatterns = [
       '동시에',
       '여러 문제',
@@ -217,16 +283,37 @@ async function performIntelligentAnalysis(
       '우선순위',
       '단계별',
     ];
-
     const isComplexFailure = complexFailurePatterns.some(pattern =>
       lowerQuery.includes(pattern)
     );
 
     if (isComplexFailure) {
-      return generateComplexFailureResponse(query, type);
+      thinkingSteps.push({
+        step: 7,
+        action: '복합 장애 감지',
+        thought: '복잡한 다중 장애 시나리오로 판단됩니다.',
+        matchedPatterns: complexFailurePatterns.filter(p =>
+          lowerQuery.includes(p)
+        ),
+      });
+
+      await aiLogger.logThinking(
+        'Pattern_Matching',
+        LogCategory.AI_ENGINE,
+        query,
+        thinkingSteps,
+        '복합 장애 시나리오 감지 및 우선순위 기반 응답',
+        ['복합 장애 대응 가이드 제공'],
+        0.8
+      );
+
+      return {
+        ...generateComplexFailureResponse(query, type),
+        thinking_process: thinkingSteps,
+      };
     }
 
-    // 5. 장애 대응 시나리오 감지
+    // 트러블슈팅 패턴 감지
     const troubleshootingPatterns = [
       'cpu 95%',
       'mysql 연결',
@@ -246,23 +333,85 @@ async function performIntelligentAnalysis(
       pattern => lowerQuery.includes(pattern)
     );
 
-    console.log('🔍 트러블슈팅 패턴 매칭:', {
-      query: lowerQuery,
-      matchedPatterns: matchedTroubleshootingPatterns,
-      hasMatch: matchedTroubleshootingPatterns.length > 0,
-    });
-
     if (matchedTroubleshootingPatterns.length > 0) {
-      console.log('⚠️ 트러블슈팅 응답 생성:', matchedTroubleshootingPatterns);
-      return generateTroubleshootingResponse(query, type);
+      thinkingSteps.push({
+        step: 7,
+        action: '트러블슈팅 패턴 감지',
+        thought: `${matchedTroubleshootingPatterns.length}개의 트러블슈팅 패턴이 감지되었습니다.`,
+        matchedPatterns: matchedTroubleshootingPatterns,
+      });
+
+      await aiLogger.logThinking(
+        'Pattern_Matching',
+        LogCategory.AI_ENGINE,
+        query,
+        thinkingSteps,
+        '트러블슈팅 패턴 매칭을 통한 응답 생성',
+        [`패턴 매칭: ${matchedTroubleshootingPatterns.join(', ')}`],
+        0.7
+      );
+
+      return {
+        ...generateTroubleshootingResponse(query, type),
+        thinking_process: thinkingSteps,
+      };
     }
 
-    // 6. 기본 분석 응답
-    return generateBasicAnalysisResponse(type, data);
+    // 최종 폴백: 기본 분석 응답
+    thinkingSteps.push({
+      step: 8,
+      action: '기본 분석 응답',
+      thought: '특정 패턴이 감지되지 않아 일반적인 분석 응답을 제공합니다.',
+      fallback: true,
+    });
+
+    const responseTime = Date.now() - startTime;
+
+    await aiLogger.logThinking(
+      'Fallback_Engine',
+      LogCategory.FALLBACK,
+      query,
+      thinkingSteps,
+      '기본 분석 응답 생성 (모든 특화 엔진 실패)',
+      ['일반적인 시스템 분석 응답 제공'],
+      0.5
+    );
+
+    return {
+      ...generateBasicAnalysisResponse(type, data),
+      thinking_process: thinkingSteps,
+      debug_info: {
+        processingTime: responseTime,
+        engine: 'Fallback_Engine',
+        thinkingSteps: thinkingSteps.length,
+        ragFailed: true,
+      },
+    };
   } catch (error) {
-    console.error('❌ RAG Engine 오류:', error);
-    // RAG 실패 시 기존 로직으로 폴백
-    return generateBasicAnalysisResponse(type, data);
+    console.error('❌ 분석 중 오류:', error);
+
+    thinkingSteps.push({
+      step: thinkingSteps.length + 1,
+      action: '오류 발생',
+      thought: `분석 중 오류가 발생했습니다: ${error instanceof Error ? error.message : error}`,
+      error: true,
+    });
+
+    await aiLogger.logError(
+      'AnalyzeAPI',
+      LogCategory.AI_ENGINE,
+      error instanceof Error ? error : new Error(String(error)),
+      { query, thinkingSteps }
+    );
+
+    return {
+      ...generateBasicAnalysisResponse(type, data),
+      thinking_process: thinkingSteps,
+      debug_info: {
+        error: error instanceof Error ? error.message : error,
+        engine: 'Error_Fallback',
+      },
+    };
   }
 }
 
