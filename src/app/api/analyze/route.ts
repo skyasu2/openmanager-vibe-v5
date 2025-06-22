@@ -1,17 +1,32 @@
 import { LocalRAGEngine } from '@/lib/ml/rag-engine';
+import { SupabaseRAGEngine, getSupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
 import { AILogger, LogCategory } from '@/services/ai/logging/AILogger';
 import { makeAIRequest } from '@/utils/aiEngineConfig';
 import { NextRequest, NextResponse } from 'next/server';
 
 // 🎯 RAG 엔진 인스턴스 (전역)
 let ragEngine: LocalRAGEngine | null = null;
+let supabaseRAGEngine: SupabaseRAGEngine | null = null;
 
-async function getRagEngine(): Promise<LocalRAGEngine> {
-  if (!ragEngine) {
-    ragEngine = new LocalRAGEngine();
-    await ragEngine.initialize();
+async function getRagEngine(): Promise<LocalRAGEngine | SupabaseRAGEngine> {
+  // Vercel 환경에서는 Supabase RAG Engine 우선 사용
+  const isVercel = process.env.VERCEL || process.env.NODE_ENV === 'production';
+
+  if (isVercel) {
+    console.log('🌐 Vercel 환경 감지 - Supabase RAG Engine 사용');
+    if (!supabaseRAGEngine) {
+      supabaseRAGEngine = getSupabaseRAGEngine();
+      await supabaseRAGEngine.initialize();
+    }
+    return supabaseRAGEngine;
+  } else {
+    console.log('💻 로컬 환경 - Local RAG Engine 사용');
+    if (!ragEngine) {
+      ragEngine = new LocalRAGEngine();
+      await ragEngine.initialize();
+    }
+    return ragEngine;
   }
-  return ragEngine;
 }
 
 // 🤖 지능형 분석 엔진 (RAG 통합)
@@ -24,6 +39,7 @@ async function performIntelligentAnalysis(
   const query = data.query || '';
   const lowerQuery = query.toLowerCase();
   const aiLogger = AILogger.getInstance();
+  const isSupabaseRAG = rag instanceof SupabaseRAGEngine;
 
   // 🧠 사고 과정 시작
   const thinkingSteps: any[] = [];
@@ -34,12 +50,13 @@ async function performIntelligentAnalysis(
     thinkingSteps.push({
       step: 1,
       action: '질문 분석',
-      thought: `사용자 질문: "${query}"를 분석합니다.`,
+      thought: `사용자 질문: "${query}"를 분석합니다. (${isSupabaseRAG ? 'Supabase' : 'Local'} RAG 사용)`,
       analysis: {
         originalQuery: query,
         lowerQuery: lowerQuery,
         queryLength: query.length,
         hasKorean: /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(query),
+        ragEngine: isSupabaseRAG ? 'Supabase Vector DB' : 'Local File System'
       },
     });
 
@@ -155,25 +172,53 @@ async function performIntelligentAnalysis(
       },
     });
 
-    // Step 3: RAG Engine 검색 (최우선)
+    // Step 3: RAG Engine 검색 (Supabase 또는 Local)
     thinkingSteps.push({
       step: 4,
-      action: 'RAG Engine 검색',
-      thought: '벡터 데이터베이스에서 관련 명령어와 문서를 검색합니다.',
+      action: `${isSupabaseRAG ? 'Supabase Vector' : 'Local RAG'} 검색`,
+      thought: `${isSupabaseRAG ? '코사인 유사도 벡터 검색을 통해' : '벡터 데이터베이스에서'} 관련 명령어와 문서를 검색합니다.`,
       parameters: {
+        query: query,
+        maxResults: 5,
+        threshold: isSupabaseRAG ? 0.7 : 0.1,
+        category: categoryFilter,
+        engine: isSupabaseRAG ? 'Supabase pgvector' : 'Local Vector Store'
+      },
+    });
+
+    let ragResponse;
+
+    if (isSupabaseRAG) {
+      // Supabase RAG Engine 사용
+      ragResponse = await (rag as SupabaseRAGEngine).searchSimilar(query, {
+        maxResults: 5,
+        threshold: 0.7,
+        category: categoryFilter || undefined
+      });
+
+      // LocalRAGEngine 형식으로 변환
+      ragResponse = {
+        success: ragResponse.success,
+        results: ragResponse.results.map(doc => ({
+          document: {
+            id: doc.id,
+            content: doc.content,
+            metadata: doc.metadata
+          },
+          score: doc.similarity || 0
+        })),
+        processingTime: ragResponse.processingTime,
+        totalResults: ragResponse.totalResults
+      };
+    } else {
+      // Local RAG Engine 사용
+      ragResponse = await (rag as LocalRAGEngine).search({
         query: query,
         maxResults: 5,
         threshold: 0.1,
         category: categoryFilter,
-      },
-    });
-
-    const ragResponse = await rag.search({
-      query: query,
-      maxResults: 5,
-      threshold: 0.1,
-      category: categoryFilter,
-    });
+      });
+    }
 
     const ragAnalysis = {
       success: ragResponse.success,
@@ -185,12 +230,14 @@ async function performIntelligentAnalysis(
         score: r.score,
         category: r.document.metadata?.category,
       })),
+      engine: isSupabaseRAG ? 'Supabase' : 'Local',
+      processingTime: ragResponse.processingTime
     };
 
     thinkingSteps.push({
       step: 5,
       action: 'RAG 검색 결과 분석',
-      thought: `${ragResponse.results.length}개의 관련 문서를 찾았습니다.`,
+      thought: `${ragResponse.results.length}개의 관련 문서를 찾았습니다. (${ragAnalysis.processingTime}ms)`,
       result: ragAnalysis,
     });
 

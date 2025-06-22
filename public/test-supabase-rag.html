@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Supabase RAG Engine 테스트</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .test-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .input-group input,
+        .input-group select {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .result-item {
+            background: #f1f8e9;
+            border-left: 4px solid #4CAF50;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .result-id {
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        .result-similarity {
+            background: #4CAF50;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .result-category {
+            background: #2196f3;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+
+        .result-content {
+            color: #555;
+            line-height: 1.5;
+            margin-top: 10px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-healthy {
+            background: #4CAF50;
+        }
+
+        .status-unhealthy {
+            background: #f44336;
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .comparison-table th {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Supabase RAG Engine 테스트</h1>
+            <p>Vercel 환경에서 코사인 유사도 벡터 검색 시스템 테스트</p>
+        </div>
+
+        <div class="main-content">
+            <!-- 기본 검색 테스트 -->
+            <div class="test-section">
+                <h3>🔍 벡터 검색 테스트</h3>
+                <div class="input-group">
+                    <input type="text" id="searchQuery" placeholder="검색 쿼리 입력 (예: top 명령어 사용법)" value="리눅스 top 명령어">
+                    <select id="categoryFilter">
+                        <option value="">전체 카테고리</option>
+                        <option value="linux">Linux</option>
+                        <option value="k8s">Kubernetes</option>
+                        <option value="mysql">MySQL</option>
+                    </select>
+                    <input type="number" id="maxResults" placeholder="최대 결과 수" value="5" min="1" max="20">
+                    <input type="number" id="threshold" placeholder="유사도 임계값" value="0.7" min="0" max="1" step="0.1">
+                </div>
+                <button class="btn" onclick="testSupabaseRAG()">🚀 검색 실행</button>
+                <button class="btn" onclick="testHealthCheck()">🏥 헬스체크</button>
+            </div>
+
+            <!-- 빠른 테스트 버튼들 -->
+            <div class="test-section">
+                <h3>⚡ 빠른 테스트</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn" onclick="quickTest('리눅스 top 명령어')">Linux Top</button>
+                    <button class="btn" onclick="quickTest('CPU 사용률 95%')">CPU 높음</button>
+                    <button class="btn" onclick="quickTest('쿠버네티스 Pod 문제')">K8s Pod</button>
+                    <button class="btn" onclick="quickTest('MySQL 연결 실패')">MySQL 연결</button>
+                    <button class="btn" onclick="quickTest('데이터베이스 백업')">DB 백업</button>
+                </div>
+            </div>
+
+            <!-- 로딩 인디케이터 -->
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Supabase RAG Engine 검색 중...</p>
+            </div>
+
+            <!-- 결과 표시 영역 -->
+            <div id="results" class="results" style="display: none;">
+                <h3>📊 검색 결과</h3>
+                <div id="resultsContent"></div>
+            </div>
+
+            <!-- 성능 메트릭 -->
+            <div id="performance" class="performance-metrics" style="display: none;"></div>
+
+            <!-- 환경 정보 -->
+            <div id="environment" class="test-section" style="display: none;">
+                <h3>🌐 환경 정보</h3>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>항목</th>
+                            <th>값</th>
+                        </tr>
+                    </thead>
+                    <tbody id="environmentTable">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTest = null;
+
+        // Supabase RAG 검색 테스트
+        async function testSupabaseRAG() {
+            const query = document.getElementById('searchQuery').value;
+            const category = document.getElementById('categoryFilter').value;
+            const maxResults = parseInt(document.getElementById('maxResults').value);
+            const threshold = parseFloat(document.getElementById('threshold').value);
+
+            if (!query.trim()) {
+                alert('검색 쿼리를 입력해주세요.');
+                return;
+            }
+
+            showLoading(true);
+            hideResults();
+
+            try {
+                const response = await fetch('/api/test-supabase-rag', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query,
+                        category: category || undefined,
+                        maxResults,
+                        threshold
+                    })
+                });
+
+                const data = await response.json();
+                displayResults(data);
+
+            } catch (error) {
+                displayError('검색 중 오류가 발생했습니다: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // 헬스체크 테스트
+        async function testHealthCheck() {
+            showLoading(true);
+            hideResults();
+
+            try {
+                const response = await fetch('/api/test-supabase-rag?query=health-check');
+                const data = await response.json();
+                displayResults(data);
+
+            } catch (error) {
+                displayError('헬스체크 중 오류가 발생했습니다: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // 빠른 테스트
+        async function quickTest(query) {
+            document.getElementById('searchQuery').value = query;
+            await testSupabaseRAG();
+        }
+
+        // 결과 표시
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            const resultsContent = document.getElementById('resultsContent');
+
+            if (!data.success) {
+                displayError(data.error || '알 수 없는 오류가 발생했습니다.');
+                return;
+            }
+
+            let html = '';
+
+            // 검색 결과
+            if (data.searchResult && data.searchResult.results.length > 0) {
+                html += '<h4>🎯 검색 결과</h4>';
+                data.searchResult.results.forEach((result, index) => {
+                    html += `
+                        <div class="result-item">
+                            <div class="result-header">
+                                <span class="result-id">${result.id}</span>
+                                <div>
+                                    <span class="result-similarity">${(result.similarity * 100).toFixed(1)}%</span>
+                                    <span class="result-category">${result.metadata?.category || 'N/A'}</span>
+                                </div>
+                            </div>
+                            <div class="result-content">${result.content}</div>
+                        </div>
+                    `;
+                });
+            } else if (data.results) {
+                html += '<h4>🎯 검색 결과</h4>';
+                if (data.results.found > 0) {
+                    html += `<p>총 ${data.results.found}개 결과 발견</p>`;
+                    data.results.allResults.forEach(result => {
+                        html += `
+                            <div class="result-item">
+                                <div class="result-header">
+                                    <span class="result-id">${result.id}</span>
+                                    <div>
+                                        <span class="result-similarity">${(result.similarity * 100).toFixed(1)}%</span>
+                                        <span class="result-category">${result.category || 'N/A'}</span>
+                                    </div>
+                                </div>
+                                <div class="result-content">${result.preview}</div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += '<p>검색 결과가 없습니다.</p>';
+                }
+            }
+
+            // 헬스체크 정보
+            if (data.healthCheck || data.health) {
+                const health = data.healthCheck || data.health;
+                html += '<h4>🏥 시스템 상태</h4>';
+                html += `
+                    <div class="result-item">
+                        <div class="result-header">
+                            <span class="result-id">
+                                <span class="status-indicator ${health.status === 'healthy' ? 'status-healthy' : 'status-unhealthy'}"></span>
+                                ${health.status === 'healthy' ? '정상' : '오류'}
+                            </span>
+                        </div>
+                        <div class="result-content">
+                            ${JSON.stringify(health.details, null, 2)}
+                        </div>
+                    </div>
+                `;
+            }
+
+            resultsContent.innerHTML = html;
+            resultsDiv.style.display = 'block';
+
+            // 성능 메트릭 표시
+            displayPerformanceMetrics(data);
+
+            // 환경 정보 표시
+            displayEnvironmentInfo(data);
+        }
+
+        // 성능 메트릭 표시
+        function displayPerformanceMetrics(data) {
+            const performanceDiv = document.getElementById('performance');
+            const perf = data.performance;
+
+            if (!perf) return;
+
+            let html = '';
+
+            if (perf.totalTime) {
+                html += `
+                    <div class="metric-card">
+                        <div class="metric-value">${perf.totalTime}ms</div>
+                        <div class="metric-label">총 처리시간</div>
+                    </div>
+                `;
+            }
+
+            if (perf.ragSearchTime) {
+                html += `
+                    <div class="metric-card">
+                        <div class="metric-value">${perf.ragSearchTime}ms</div>
+                        <div class="metric-label">RAG 검색시간</div>
+                    </div>
+                `;
+            }
+
+            if (perf.efficiency) {
+                html += `
+                    <div class="metric-card">
+                        <div class="metric-value">${perf.efficiency}</div>
+                        <div class="metric-label">검색 효율성</div>
+                    </div>
+                `;
+            }
+
+            if (data.searchResult && data.searchResult.results) {
+                html += `
+                    <div class="metric-card">
+                        <div class="metric-value">${data.searchResult.results.length}</div>
+                        <div class="metric-label">검색 결과 수</div>
+                    </div>
+                `;
+            }
+
+            performanceDiv.innerHTML = html;
+            performanceDiv.style.display = html ? 'grid' : 'none';
+        }
+
+        // 환경 정보 표시
+        function displayEnvironmentInfo(data) {
+            const environmentDiv = document.getElementById('environment');
+            const environmentTable = document.getElementById('environmentTable');
+
+            if (!data.environment) return;
+
+            let html = '';
+            const env = data.environment;
+
+            Object.entries(env).forEach(([key, value]) => {
+                html += `
+                    <tr>
+                        <td><strong>${key}</strong></td>
+                        <td>${value}</td>
+                    </tr>
+                `;
+            });
+
+            environmentTable.innerHTML = html;
+            environmentDiv.style.display = 'block';
+        }
+
+        // 오류 표시
+        function displayError(message) {
+            const resultsDiv = document.getElementById('results');
+            const resultsContent = document.getElementById('resultsContent');
+
+            resultsContent.innerHTML = `
+                <div class="error">
+                    <strong>❌ 오류 발생:</strong><br>
+                    ${message}
+                </div>
+            `;
+
+            resultsDiv.style.display = 'block';
+        }
+
+        // 로딩 상태 관리
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            if (show) {
+                loading.classList.add('active');
+            } else {
+                loading.classList.remove('active');
+            }
+        }
+
+        // 결과 숨기기
+        function hideResults() {
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('performance').style.display = 'none';
+            document.getElementById('environment').style.display = 'none';
+        }
+
+        // 페이지 로드 시 초기 테스트 실행
+        window.addEventListener('load', function () {
+            console.log('🚀 Supabase RAG Engine 테스트 페이지 로드 완료');
+        });
+
+        // Enter 키로 검색 실행
+        document.getElementById('searchQuery').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                testSupabaseRAG();
+            }
+        });
+    </script>
+</body>
+
+</html>
