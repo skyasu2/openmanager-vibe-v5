@@ -1,5 +1,6 @@
 'use client';
 
+import { DATA_CONSISTENCY_CONFIG } from '@/config/data-consistency';
 import { UNIFIED_FALLBACK_SERVERS } from '@/config/fallback-data';
 import { useServerMetrics } from '@/hooks/useServerMetrics';
 import { useServerDataStore } from '@/stores/serverDataStore';
@@ -55,11 +56,14 @@ export const useServerDashboard = ({
   >([]);
   const [isModalLoading, setIsModalLoading] = useState(false);
   const { loadMetricsHistory } = useServerMetrics();
-  const ITEMS_PER_PAGE = 8;
+
+  // 🎯 중앙 설정에서 페이지 크기 가져오기 (불일치 문제 해결)
+  const ITEMS_PER_PAGE = DATA_CONSISTENCY_CONFIG.servers.itemsPerPage;
 
   // 🚀 컴포넌트 마운트 시 서버 데이터 자동 로드 및 실시간 업데이트 시작
   useEffect(() => {
     console.log('🎯 useServerDashboard 초기화 - 서버 데이터 로드 시작');
+    console.log(`📄 페이지당 표시 개수: ${ITEMS_PER_PAGE}개 (중앙 설정 적용)`);
 
     // 초기 데이터 로드
     fetchServers()
@@ -78,7 +82,7 @@ export const useServerDashboard = ({
       console.log('🔄 useServerDashboard 정리 - 실시간 업데이트 중지');
       stopRealTimeUpdates();
     };
-  }, [fetchServers, startRealTimeUpdates, stopRealTimeUpdates]);
+  }, [fetchServers, startRealTimeUpdates, stopRealTimeUpdates, ITEMS_PER_PAGE]);
 
   const allServers: Server[] = useMemo(() => {
     console.log(`🔍 서버 데이터 변환: ${allServerMetrics.length}개 서버 처리`);
@@ -142,8 +146,21 @@ export const useServerDashboard = ({
 
   const paginatedServers = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return sortedServers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [sortedServers, currentPage]);
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const paginated = sortedServers.slice(startIndex, endIndex);
+
+    // 🔍 데이터 일관성 검증 로깅
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`📊 페이지네이션 상태: ${paginated.length}/${sortedServers.length}개 서버 표시 (페이지 ${currentPage}/${totalPages})`);
+
+      // 불일치 경고
+      if (sortedServers.length > ITEMS_PER_PAGE && paginated.length < sortedServers.length) {
+        console.warn(`⚠️ 페이지네이션으로 인해 ${sortedServers.length - paginated.length}개 서버가 숨겨짐`);
+      }
+    }
+
+    return paginated;
+  }, [sortedServers, currentPage, ITEMS_PER_PAGE]);
 
   const serverStats = useMemo(() => {
     const stats = {

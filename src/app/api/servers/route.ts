@@ -1,3 +1,4 @@
+import { DATA_CONSISTENCY_CONFIG } from '@/config/data-consistency';
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -53,7 +54,13 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const format = searchParams.get('format') || 'servers';
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
+
+    // 🎯 중앙 설정에서 기본 limit 가져오기 (불일치 문제 해결)
+    const limit = parseInt(
+      searchParams.get('limit') || DATA_CONSISTENCY_CONFIG.servers.apiDefaultLimit.toString()
+    );
+
+    console.log(`🔌 API /servers 요청: page=${page}, limit=${limit} (중앙설정: ${DATA_CONSISTENCY_CONFIG.servers.apiDefaultLimit})`);
 
     const generator = RealServerDataGenerator.getInstance();
 
@@ -61,7 +68,7 @@ export async function GET(request: NextRequest) {
       // 대시보드 데이터 생성
       const servers = generator.getAllServers();
       const dashboardData = {
-        servers: servers.slice(0, 15),
+        servers: servers.slice(0, DATA_CONSISTENCY_CONFIG.servers.totalCount),
         stats: {
           total: servers.length,
           online: servers.filter(s => s.status === 'running').length,
@@ -71,6 +78,8 @@ export async function GET(request: NextRequest) {
           ).length,
         },
       };
+
+      console.log(`📊 대시보드 데이터 반환: ${dashboardData.servers.length}/${servers.length}개 서버`);
       return NextResponse.json(dashboardData);
     }
 
@@ -79,6 +88,18 @@ export async function GET(request: NextRequest) {
     const endIndex = startIndex + limit;
     const paginatedServers = servers.slice(startIndex, endIndex);
 
+    console.log(`📊 서버 데이터 반환: ${paginatedServers.length}/${servers.length}개 서버 (페이지 ${page}/${Math.ceil(servers.length / limit)})`);
+
+    // 🔍 데이터 일관성 검증 로깅
+    if (process.env.NODE_ENV === 'development') {
+      if (servers.length !== DATA_CONSISTENCY_CONFIG.servers.totalCount) {
+        console.warn(`⚠️ 서버 개수 불일치: 생성=${servers.length}, 설정=${DATA_CONSISTENCY_CONFIG.servers.totalCount}`);
+      }
+      if (limit !== DATA_CONSISTENCY_CONFIG.servers.apiDefaultLimit) {
+        console.warn(`⚠️ API 제한 불일치: 요청=${limit}, 설정=${DATA_CONSISTENCY_CONFIG.servers.apiDefaultLimit}`);
+      }
+    }
+
     return NextResponse.json({
       servers: paginatedServers,
       pagination: {
@@ -86,6 +107,15 @@ export async function GET(request: NextRequest) {
         limit,
         total: servers.length,
         totalPages: Math.ceil(servers.length / limit),
+      },
+      // 🔍 디버깅용 메타데이터 추가
+      metadata: {
+        configuredTotal: DATA_CONSISTENCY_CONFIG.servers.totalCount,
+        configuredLimit: DATA_CONSISTENCY_CONFIG.servers.apiDefaultLimit,
+        actualTotal: servers.length,
+        requestedLimit: limit,
+        isConsistent: servers.length === DATA_CONSISTENCY_CONFIG.servers.totalCount &&
+          limit === DATA_CONSISTENCY_CONFIG.servers.apiDefaultLimit,
       },
     });
   } catch (error) {
