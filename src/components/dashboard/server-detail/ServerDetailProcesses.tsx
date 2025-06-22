@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
 import { ProcessInfo } from '@/types/ai-agent-input-schema'; // 실제 데이터 타입 임포트
+import { useEffect, useState } from 'react';
 
 interface ServerDetailProcessesProps {
   serverId?: string | null;
@@ -37,8 +37,8 @@ export function ServerDetailProcesses({
     // 최초 데이터 로드
     fetchProcesses();
 
-    // 30초마다 데이터 갱신
-    const intervalId = setInterval(fetchProcesses, 30000);
+    // 120초마다 데이터 갱신
+    const intervalId = setInterval(fetchProcesses, 120000);
 
     // 컴포넌트 언마운트 시 인터벌 정리
     return () => clearInterval(intervalId);

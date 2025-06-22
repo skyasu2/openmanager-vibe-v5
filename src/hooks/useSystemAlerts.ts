@@ -58,7 +58,7 @@ export function useSystemAlerts() {
   useEffect(() => {
     fetchAlerts(); // 초기 로드
 
-    const intervalId = setInterval(fetchAlerts, 10000); // 10초마다 데이터 폴링
+    const intervalId = setInterval(fetchAlerts, 60000); // 10초 → 60초로 변경 (과도한 요청 방지)
 
     return () => clearInterval(intervalId); // 컴포넌트 언마운트 시 인터벌 정리
   }, []);

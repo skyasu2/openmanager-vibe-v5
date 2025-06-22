@@ -19,20 +19,20 @@
 'use client';
 
 import {
-  useState,
-  useEffect,
   useCallback,
+  useEffect,
   useRef,
+  useState,
   useSyncExternalStore,
 } from 'react';
 // import { useToast } from '@/components/ui/ToastNotification'; // 사용하지 않음
 import {
-  predictiveAnalysisEngine,
   MetricDataPoint,
+  predictiveAnalysisEngine,
 } from '@/engines/PredictiveAnalysisEngine';
 import {
-  MCPWarmupService,
   MCPWakeupProgress,
+  MCPWarmupService,
 } from '@/services/mcp/mcp-warmup-service';
 
 // Phase 1 + 2.1 모듈 타입 정의
@@ -208,7 +208,7 @@ export const useSystemIntegration = () => {
       lastUpdate: null,
       isInitialized: false,
       initializationProgress: 0,
-      // �� MCP Wake-up 상태 초기화
+      // 🚀 MCP Wake-up 상태 초기화
       mcpWakeupStatus: {
         isInProgress: false,
         stage: null,
@@ -518,7 +518,7 @@ export const useSystemIntegration = () => {
 
       // 상태 폴링 시작
       if (pollingInterval.current) clearInterval(pollingInterval.current);
-      pollingInterval.current = setInterval(pollSystemStatus, 20000); // 20초로 통일
+      pollingInterval.current = setInterval(pollSystemStatus, 60000); // 20초 → 60초로 변경 (과도한 요청 방지)
       await pollSystemStatus();
 
       return true;
@@ -892,4 +892,4 @@ export const useSystemIntegration = () => {
   };
 };
 
-export type { SystemIntegrationState, SystemEvent, SystemIntegrationActions };
+export type { SystemEvent, SystemIntegrationActions, SystemIntegrationState };

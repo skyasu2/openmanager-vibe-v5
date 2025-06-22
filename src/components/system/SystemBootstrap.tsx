@@ -91,8 +91,8 @@ export function SystemBootstrap() {
       }
     };
 
-    // 페이지 로드 후 1초 뒤에 부트스트랩 실행 (UI 렌더링 우선)
-    const timer = setTimeout(bootstrap, 1000);
+    // 페이지 로드 후 5초 뒤에 부트스트랩 실행 (UI 렌더링 완료 후, 과도한 동시 요청 방지)
+    const timer = setTimeout(bootstrap, 5000);
 
     return () => {
       isMounted = false;

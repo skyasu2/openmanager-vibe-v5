@@ -159,10 +159,10 @@ export default function InfrastructureOverviewPage({
     }
   };
 
-  // 10초마다 데이터 업데이트
+  // 120초마다 데이터 업데이트
   useEffect(() => {
     fetchServerData();
-    const interval = setInterval(fetchServerData, 10000); // 10초 간격
+    const interval = setInterval(fetchServerData, 120000); // 10초 → 120초로 변경 (과도한 요청 방지)
     return () => clearInterval(interval);
   }, []);
 

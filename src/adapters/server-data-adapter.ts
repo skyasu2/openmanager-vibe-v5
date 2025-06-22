@@ -50,312 +50,220 @@ function validateServer(server: any): server is Server {
   );
 }
 
+// ============================================================================
+// 🚀 성능 최적화 캐싱 시스템
+// ============================================================================
+
+interface TransformCache {
+  lastUpdate: number;
+  data: Map<string, Server>;
+}
+
+const transformCache: TransformCache = {
+  lastUpdate: 0,
+  data: new Map(),
+};
+
+const CACHE_DURATION = 2000; // 2초 캐시 (실시간성 유지)
+
 /**
- * ServerInstance를 Server로 안전하게 변환
+ * 🚀 배치 변환 최적화 (15개 서버 동시 처리)
  */
-export function transformServerInstanceToServer(
+export function transformServerInstancesToServersOptimized(
+  serverInstances: ServerInstance[]
+): Server[] {
+  const now = Date.now();
+
+  // 🎯 캐시 히트 체크
+  if (
+    now - transformCache.lastUpdate < CACHE_DURATION &&
+    transformCache.data.size > 0
+  ) {
+    console.log('⚡ 캐시 히트: 변환 생략');
+    return Array.from(transformCache.data.values());
+  }
+
+  console.log('🔄 배치 변환 시작:', serverInstances.length, '개 서버');
+
+  // 🚀 병렬 처리를 위한 배치 변환
+  const transformedServers = serverInstances.map(instance =>
+    transformServerInstanceToServerOptimized(instance)
+  );
+
+  // 🎯 캐시 업데이트
+  transformCache.data.clear();
+  transformedServers.forEach(server => {
+    transformCache.data.set(server.id, server);
+  });
+  transformCache.lastUpdate = now;
+
+  console.log('✅ 배치 변환 완료:', transformedServers.length, '개 서버');
+  return transformedServers;
+}
+
+/**
+ * 🚀 최적화된 단일 서버 변환 (불필요한 계산 제거)
+ */
+export function transformServerInstanceToServerOptimized(
   serverInstance: ServerInstance
 ): Server {
-  // 🎯 메트릭 데이터 안전 변환
-  const cpu = serverInstance.metrics?.cpu || 0;
-  const memory = serverInstance.metrics?.memory || 0;
-  const disk = serverInstance.metrics?.disk || 0;
-  const network = serverInstance.metrics?.network?.in || 0;
-  // responseTime과 networkLatency는 ServerInstance에 없으므로 기본값 사용
-  const responseTime = 0; // 기본값
-  const networkLatency = 0; // 기본값
+  // 🎯 필수 메트릭만 추출 (성능 최적화)
+  const {
+    cpu = 0,
+    memory = 0,
+    disk = 0,
+    network,
+    uptime = 0,
+  } = serverInstance.metrics || {};
+  const networkIn = network?.in || 0;
+  const networkOut = network?.out || 0;
 
-  // 🚨 통합 기준으로 서버 상태 판별 (데이터 전처리 단계)
+  // 🚀 상태 판별 최적화 (한 번만 계산)
   const serverMetrics: ServerMetrics = {
     cpu,
     memory,
     disk,
-    responseTime,
-    networkLatency,
+    responseTime: 0,
+    networkLatency: 0,
   };
+  const status = determineServerStatus(serverMetrics);
 
-  const determinedStatus = determineServerStatus(serverMetrics);
-
-  const transformedServer = {
-    id: serverInstance.id || `server-${Date.now()}`,
-    name: serverInstance.name || 'Unknown Server',
-
-    // 🎯 통합 기준으로 판별된 상태 사용
-    status: determinedStatus as any,
-
-    // 🎯 메트릭 데이터
+  // 🎯 최소한의 변환으로 완전한 Server 객체 생성
+  return {
+    id: serverInstance.id,
+    name: serverInstance.name,
+    status: status as any,
     cpu,
     memory,
     disk,
-    network,
+    network: networkIn,
+    uptime: formatUptimeOptimized(uptime),
+    location: serverInstance.location || 'Unknown',
+    alerts: calculateAlertsOptimized(cpu, memory, disk),
 
-    // 🎯 기본 정보
-    uptime: formatUptime(serverInstance.metrics?.uptime || 0),
-    location: serverInstance.location || 'Unknown Location',
-    alerts: calculateAlerts(serverInstance),
+    // 🚀 필수 필드만 생성 (성능 최적화)
+    ip: generateIPOptimized(serverInstance.id),
+    os: serverInstance.specs?.cpu?.model?.includes('Intel')
+      ? 'Ubuntu 22.04'
+      : 'CentOS 8',
+    hostname: serverInstance.name,
+    type: serverInstance.type || 'application',
+    environment: serverInstance.environment || 'production',
+    provider: 'AWS',
 
-    // 🎯 추가 정보 (옵셔널)
-    ip: generateIP(serverInstance.id),
-    os: getOSFromSpecs(serverInstance.specs),
-    hostname: serverInstance.name || serverInstance.id,
-    type: serverInstance.role
-      ? `${serverInstance.role}_server`
-      : 'generic_server',
-    environment: 'production' as any,
-    provider: 'AWS' as any,
-
-    // 임의의 스펙 생성 (기존 데이터에 없을 경우)
     specs: {
-      cpu_cores: 4,
-      memory_gb: 8,
-      disk_gb: 250,
-      network_speed:
-        (serverInstance.metrics?.network?.in || 0) > 80 ? '1Gbps' : '100Mbps',
+      cpu_cores: serverInstance.specs?.cpu?.cores || 4,
+      memory_gb: serverInstance.specs?.memory?.total || 8,
+      disk_gb: serverInstance.specs?.disk?.total || 100,
+      network_speed: networkIn > 80 ? '1Gbps' : '100Mbps',
     },
 
     lastUpdate: new Date(),
+    services: transformServicesOptimized(serverInstance.type),
+    networkStatus: mapNetworkStatusOptimized(networkIn + networkOut),
 
-    // 🎯 서비스 정보 변환
-    services: transformServices(serverInstance),
-
-    // 🎯 네트워크 상태
-    networkStatus: mapNetworkToServerStatus(serverInstance.metrics?.network),
-
-    // 🎯 시스템 정보
+    // 🎯 경량화된 시스템 정보
     systemInfo: {
-      os: getOSFromSpecs(serverInstance.specs),
-      uptime: formatUptime(serverInstance.metrics?.uptime || 0),
-      processes: Math.floor(Math.random() * 200) + 50,
-      zombieProcesses: Math.floor(Math.random() * 5),
-      loadAverage: generateLoadAverage(serverInstance.metrics?.cpu || 0),
+      os: serverInstance.specs?.cpu?.model?.includes('Intel')
+        ? 'Ubuntu 22.04'
+        : 'CentOS 8',
+      uptime: formatUptimeOptimized(uptime),
+      processes: Math.floor(cpu * 2) + 50, // CPU 기반 프로세스 수
+      zombieProcesses: cpu > 90 ? Math.floor(Math.random() * 5) : 0,
+      loadAverage: `${(cpu / 100).toFixed(2)} ${((cpu / 100) * 1.2).toFixed(2)} ${((cpu / 100) * 1.5).toFixed(2)}`,
       lastUpdate: new Date().toISOString(),
     },
 
-    // 🎯 네트워크 정보
+    // 🎯 경량화된 네트워크 정보
     networkInfo: {
       interface: 'eth0',
-      receivedBytes: formatBytes(serverInstance.metrics?.network?.in || 0),
-      sentBytes: formatBytes(serverInstance.metrics?.network?.out || 0),
-      receivedErrors: Math.floor(Math.random() * 10),
-      sentErrors: Math.floor(Math.random() * 5),
-      status: mapNetworkToServerStatus(serverInstance.metrics?.network),
-      cpu_usage: serverInstance.metrics?.cpu || 0,
-      memory_usage: serverInstance.metrics?.memory || 0,
-      disk_usage: serverInstance.metrics?.disk || 0,
-      uptime: serverInstance.metrics?.uptime || 0,
+      receivedBytes: `${(networkIn * 1024).toFixed(0)} KB`,
+      sentBytes: `${(networkOut * 1024).toFixed(0)} KB`,
+      receivedErrors: 0,
+      sentErrors: 0,
+      status: mapNetworkStatusOptimized(networkIn + networkOut),
+      cpu_usage: cpu,
+      memory_usage: memory,
+      disk_usage: disk,
+      uptime,
       last_updated: new Date().toISOString(),
       alerts: [],
     },
   };
-
-  // 🔧 사용자 요청 디버깅 로그 추가
-  console.log('🔄 Transform input:', serverInstance);
-  console.log('🔄 Transform output:', transformedServer);
-  console.log('🔄 Metrics available:', !!serverInstance.metrics);
-
-  return transformedServer;
 }
 
-/**
- * 상태 매핑 함수
- */
-function mapServerStatus(status: string): 'online' | 'offline' | 'warning' {
-  switch (status) {
-    case 'running':
-      return 'online';
-    case 'warning':
-      return 'warning';
-    case 'error':
-    case 'stopped':
-    case 'maintenance':
-      return 'offline';
-    default:
-      return 'offline';
-  }
+// ============================================================================
+// 🚀 최적화된 유틸리티 함수들
+// ============================================================================
+
+function formatUptimeOptimized(uptimeSeconds: number): string {
+  const days = Math.floor(uptimeSeconds / 86400);
+  const hours = Math.floor((uptimeSeconds % 86400) / 3600);
+
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h`;
+  return `${Math.floor(uptimeSeconds / 60)}m`;
 }
 
-/**
- * 네트워크 상태를 서버 상태로 매핑
- */
-function mapNetworkToServerStatus(
-  network: any
-): 'healthy' | 'warning' | 'critical' | 'offline' | 'maintenance' {
-  if (!network) return 'offline';
-
-  const totalTraffic = (network.in || 0) + (network.out || 0);
-
-  if (totalTraffic > 150) return 'healthy';
-  if (totalTraffic > 100) return 'healthy';
-  if (totalTraffic > 50) return 'warning';
-  return 'offline';
+function calculateAlertsOptimized(
+  cpu: number,
+  memory: number,
+  disk: number
+): number {
+  let alertCount = 0;
+  if (cpu > 80) alertCount++;
+  if (memory > 85) alertCount++;
+  if (disk > 90) alertCount++;
+  return alertCount;
 }
 
-/**
- * 업타임 포맷팅
- */
-function formatUptime(uptimeSeconds: number): string {
-  const hours = Math.floor(uptimeSeconds / 3600);
-  const minutes = Math.floor((uptimeSeconds % 3600) / 60);
-
-  if (hours > 24) {
-    const days = Math.floor(hours / 24);
-    return `${days}d ${hours % 24}h`;
-  }
-
-  return `${hours}h ${minutes}m`;
-}
-
-/**
- * 알림 개수 계산
- */
-function calculateAlerts(serverInstance: ServerInstance): number {
-  let alerts = 0;
-
-  // 건강 점수 기반 알림
-  if (serverInstance.health?.score < 70) alerts++;
-
-  // 높은 CPU 사용률
-  if ((serverInstance.metrics?.cpu || 0) > 80) alerts++;
-
-  // 높은 메모리 사용률
-  if ((serverInstance.metrics?.memory || 0) > 85) alerts++;
-
-  // 높은 디스크 사용률
-  if ((serverInstance.metrics?.disk || 0) > 90) alerts++;
-
-  // 에러율
-  if ((serverInstance.metrics?.errors || 0) > 5) alerts++;
-
-  // 건강 이슈
-  alerts += serverInstance.health?.issues?.length || 0;
-
-  return alerts;
-}
-
-/**
- * IP 주소 생성
- */
-function generateIP(serverId: string): string {
-  // 서버 ID를 기반으로 일관된 IP 생성
+function generateIPOptimized(serverId: string): string {
+  // 서버 ID 기반 일관된 IP 생성
   const hash = serverId.split('').reduce((a, b) => {
     a = (a << 5) - a + b.charCodeAt(0);
     return a & a;
   }, 0);
 
-  const octet3 = Math.abs(hash % 254) + 1;
-  const octet4 = Math.abs((hash >> 8) % 254) + 1;
-
-  return `192.168.${octet3}.${octet4}`;
+  const octet = (Math.abs(hash) % 254) + 1;
+  return `192.168.1.${octet}`;
 }
 
-/**
- * OS 정보 추출
- */
-function getOSFromSpecs(specs: any): string {
-  if (!specs?.cpu?.architecture) return 'Ubuntu 22.04 LTS';
-
-  return specs.cpu.architecture === 'arm64'
-    ? 'Ubuntu 22.04 LTS (ARM64)'
-    : 'Ubuntu 22.04 LTS (x86_64)';
-}
-
-/**
- * 서비스 정보 변환
- */
-function transformServices(
-  serverInstance: ServerInstance
+function transformServicesOptimized(
+  serverType: string
 ): Array<{ name: string; status: 'running' | 'stopped'; port: number }> {
-  const baseServices: Array<{
-    name: string;
-    status: 'running' | 'stopped';
-    port: number;
-  }> = [
-    { name: 'nginx', status: 'running', port: 80 },
-    { name: 'ssh', status: 'running', port: 22 },
-  ];
+  const serviceMap: Record<string, { name: string; port: number }> = {
+    nginx: { name: 'nginx', port: 80 },
+    apache: { name: 'httpd', port: 80 },
+    nodejs: { name: 'node', port: 3000 },
+    mysql: { name: 'mysqld', port: 3306 },
+    redis: { name: 'redis-server', port: 6379 },
+  };
 
-  // 서버 타입에 따른 추가 서비스
-  switch (serverInstance.type) {
-    case 'web':
-      baseServices.push({ name: 'apache2', status: 'running', port: 443 });
-      break;
-    case 'api':
-      baseServices.push({ name: 'node', status: 'running', port: 3000 });
-      break;
-    case 'database':
-      baseServices.push({ name: 'postgresql', status: 'running', port: 5432 });
-      break;
-    case 'cache':
-      baseServices.push({ name: 'redis', status: 'running', port: 6379 });
-      break;
-    default:
-      baseServices.push({ name: 'systemd', status: 'running', port: 0 });
-  }
-
-  // 서버 상태에 따라 서비스 상태 조정
-  if (
-    serverInstance.status === 'error' ||
-    serverInstance.status === 'stopped'
-  ) {
-    baseServices.forEach(service => {
-      if (service.name !== 'ssh') {
-        service.status = 'stopped';
-      }
-    });
-  }
-
-  return baseServices;
+  const service = serviceMap[serverType] || { name: 'unknown', port: 8080 };
+  return [{ ...service, status: 'running' as const }];
 }
 
-/**
- * 로드 평균 생성
- */
-function generateLoadAverage(cpuUsage: number): string {
-  const load1 = ((cpuUsage / 100) * 4).toFixed(2);
-  const load5 = ((cpuUsage / 100) * 3.8).toFixed(2);
-  const load15 = ((cpuUsage / 100) * 3.5).toFixed(2);
-
-  return `${load1}, ${load5}, ${load15}`;
+function mapNetworkStatusOptimized(
+  totalTraffic: number
+): 'healthy' | 'warning' | 'critical' | 'offline' | 'maintenance' {
+  if (totalTraffic > 100) return 'healthy';
+  if (totalTraffic > 50) return 'warning';
+  if (totalTraffic > 10) return 'warning';
+  return 'offline';
 }
 
-/**
- * 바이트 포맷팅
- */
-function formatBytes(bytes: number): string {
-  const mb = bytes * 1024 * 1024; // 입력값을 MB로 가정
+// ============================================================================
+// 🔄 기존 호환성 유지 (레거시 지원)
+// ============================================================================
 
-  if (mb > 1024 * 1024 * 1024) {
-    return `${(mb / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-  } else if (mb > 1024 * 1024) {
-    return `${(mb / (1024 * 1024)).toFixed(1)} MB`;
-  } else {
-    return `${(mb / 1024).toFixed(1)} KB`;
-  }
+export function transformServerInstanceToServer(
+  serverInstance: ServerInstance
+): Server {
+  return transformServerInstanceToServerOptimized(serverInstance);
 }
 
-/**
- * 배열 변환 함수 (여러 서버 처리)
- */
 export function transformServerInstancesToServers(
   serverInstances: ServerInstance[]
 ): Server[] {
-  if (!Array.isArray(serverInstances)) {
-    console.warn(
-      '⚠️ transformServerInstancesToServers: 입력이 배열이 아님',
-      serverInstances
-    );
-    return [];
-  }
-
-  return serverInstances
-    .filter(instance => instance != null)
-    .map(instance => {
-      try {
-        return transformServerInstanceToServer(instance);
-      } catch (error) {
-        console.error('❌ 서버 인스턴스 변환 실패:', instance?.id, error);
-        return null;
-      }
-    })
-    .filter((server): server is Server => server !== null);
+  return transformServerInstancesToServersOptimized(serverInstances);
 }

@@ -8,8 +8,6 @@
  * - 캐시 기반 효율적 업데이트
  */
 
-import { transformServerInstanceToServer } from '@/adapters/server-data-adapter';
-import { ServerMonitoringProcessor } from '@/services/data-generator/ServerMonitoringProcessor';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import type { EnhancedServerMetrics } from '../types/server';
@@ -124,126 +122,54 @@ const fetchServersFromProcessor = async (): Promise<
   EnhancedServerMetrics[]
 > => {
   try {
-    // 🔄 새로운 전처리기 활용
-    console.log('🔄 ServerMonitoringProcessor 데이터 가져오기 시작...');
-    const processor = ServerMonitoringProcessor.getInstance();
-    const processedData = await processor.getProcessedServerData({
-      includeHistorical: true,
-      forceRefresh: true,
-    });
-    console.log(
-      '✅ 전처리기 데이터 가져오기 완료:',
-      processedData.servers?.length || 0,
-      '개 서버'
-    );
+    // 🚀 최적화된 API 엔드포인트 직접 사용
+    console.log('🚀 최적화된 API 엔드포인트 호출 시작...');
 
-    // 📊 통계 정보 글로벌 저장 (디버깅용)
-    if (processedData.stats && typeof window !== 'undefined') {
-      (window as any).__serverStats = processedData.stats;
-      console.log('📊 글로벌 서버 통계 업데이트:', processedData.stats);
+    const response = await fetch('/api/servers/all');
+    if (!response.ok) {
+      throw new Error(`API 호출 실패: ${response.status}`);
     }
 
-    // 🎯 Server[] → EnhancedServerMetrics[] 변환
-    const servers = processedData.servers;
-    return servers.map((serverInfo: any): EnhancedServerMetrics => {
-      try {
-        // RawServerData 형태로 변환하여 전처리기에 전달
-        const rawServerData = {
-          id: serverInfo.id,
-          name: serverInfo.name || serverInfo.hostname,
-          hostname: serverInfo.hostname || serverInfo.name,
-          status: serverInfo.status,
-          location: serverInfo.location,
-          region: serverInfo.region,
-          environment: serverInfo.environment,
-          role: serverInfo.role,
-          type: serverInfo.type,
-          provider: serverInfo.provider,
-          cpu: serverInfo.cpu,
-          memory: serverInfo.memory,
-          disk: serverInfo.disk,
-          network: serverInfo.network,
-          uptime: serverInfo.uptime,
-          lastUpdate: serverInfo.lastUpdate,
-          alerts: serverInfo.alerts,
-          services: serverInfo.services,
-          networkStatus: serverInfo.networkStatus,
-          metrics: {
-            cpu: serverInfo.cpu_usage || serverInfo.cpu || 0,
-            memory: serverInfo.memory_usage || serverInfo.memory || 0,
-            disk: serverInfo.disk_usage || serverInfo.disk || 0,
-            network: {
-              in: serverInfo.network_in || 0,
-              out: serverInfo.network_out || 0,
-            },
-            uptime: serverInfo.uptime || 0,
-          },
-        };
+    const result = await response.json();
+    console.log(
+      '✅ 최적화된 API 응답:',
+      result.count,
+      '개 서버, 최적화:',
+      result.optimized
+    );
 
-        // 데이터 전처리기를 통한 변환 (타입 안전성 보장)
-        const transformedServer = transformServerInstanceToServer(
-          rawServerData as any
-        );
+    if (!result.success || !result.data) {
+      throw new Error('API 응답 데이터가 유효하지 않습니다');
+    }
 
-        // EnhancedServerMetrics 형태로 최종 변환
-        return {
-          id: transformedServer.id,
-          name: transformedServer.name,
-          hostname: transformedServer.hostname || transformedServer.name,
-          environment: transformedServer.environment as any,
-          role: (serverInfo.role || 'worker') as any,
-          status: transformedServer.status as any,
-          cpu_usage: transformedServer.cpu,
-          memory_usage: transformedServer.memory,
-          disk_usage: transformedServer.disk,
-          network_in: serverInfo.network_in || transformedServer.network || 0,
-          network_out: serverInfo.network_out || transformedServer.network || 0,
-          response_time:
-            serverInfo.response_time || Math.floor(Math.random() * 100) + 50,
-          uptime: transformedServer.uptime
-            ? typeof transformedServer.uptime === 'string'
-              ? parseInt(transformedServer.uptime)
-              : transformedServer.uptime
-            : 0,
-          last_updated: transformedServer.lastUpdate.toISOString(),
-          alerts: Array.isArray(transformedServer.alerts)
-            ? transformedServer.alerts
-            : [],
-          timestamp: new Date().toISOString(),
-        };
-      } catch (conversionError) {
-        console.error(
-          '❌ 서버 데이터 변환 실패:',
-          serverInfo?.id,
-          conversionError
-        );
+    // 🎯 Server[] → EnhancedServerMetrics[] 직접 변환 (단순화)
+    const servers = result.data;
+    return servers.map(
+      (server: any): EnhancedServerMetrics => ({
+        id: server.id,
+        name: server.name,
+        hostname: server.hostname || server.name,
+        environment: server.environment as any,
+        role: 'web' as any,
+        status: server.status as any,
+        cpu_usage: server.cpu,
+        memory_usage: server.memory,
+        disk_usage: server.disk,
+        network_in: server.network || 0,
+        network_out: server.network || 0,
+        response_time: server.responseTime || 0,
+        uptime: parseFloat(server.uptime?.replace(/[^\d.]/g, '') || '0'),
+        last_updated: new Date(server.lastUpdate).toISOString(),
+        alerts: server.alerts || [],
 
-        // 폴백 데이터 반환
-        return {
-          id: serverInfo.id || `server-${Date.now()}`,
-          name: serverInfo.name || serverInfo.hostname || 'Unknown Server',
-          hostname: serverInfo.hostname || serverInfo.name || 'unknown',
-          environment: (serverInfo.environment || 'production') as any,
-          role: (serverInfo.role || 'worker') as any,
-          status: (serverInfo.status || 'stopped') as any,
-          cpu_usage: serverInfo.cpu_usage || serverInfo.cpu || 0,
-          memory_usage: serverInfo.memory_usage || serverInfo.memory || 0,
-          disk_usage: serverInfo.disk_usage || serverInfo.disk || 0,
-          network_in: serverInfo.network_in || 0,
-          network_out: serverInfo.network_out || 0,
-          response_time: serverInfo.response_time || 100,
-          uptime: serverInfo.uptime || 0,
-          last_updated: new Date(
-            serverInfo.last_updated || Date.now()
-          ).toISOString(),
-          alerts: Array.isArray(serverInfo.alerts) ? serverInfo.alerts : [],
-          timestamp: new Date().toISOString(),
-        };
-      }
-    });
+        // 🎯 EnhancedServerMetrics 확장 필드들
+        network_usage: server.network || 0,
+        timestamp: new Date(server.lastUpdate).toISOString(),
+      })
+    );
   } catch (error) {
-    console.error('❌ 전처리기 서버 데이터 가져오기 실패:', error);
-    return [];
+    console.error('❌ 최적화된 서버 데이터 가져오기 실패:', error);
+    throw error;
   }
 };
 
@@ -278,132 +204,34 @@ export const useServerDataStore = create<ServerDataState>()(
         set({ isLoading: true, error: null });
 
         try {
-          // 🎯 1순위: 검증된 서버 API 호출
-          console.log('🔄 서버 API 호출 중...');
+          console.log('🚀 최적화된 서버 데이터 가져오기 시작');
+
           const response = await fetch('/api/servers/all');
-
-          if (!response.ok) {
-            throw new Error(`서버 API 호출 실패: ${response.status}`);
-          }
-
           const result = await response.json();
 
-          if (!result.success || !Array.isArray(result.data)) {
-            throw new Error('서버 API 응답 형식 오류');
-          }
+          if (result.success && result.data) {
+            console.log(
+              '✅ 최적화된 서버 데이터 수신:',
+              result.data.length,
+              '개'
+            );
 
-          const servers = result.data;
-
-          console.log(`✅ 서버 데이터 로드 성공: ${servers.length}개 서버`);
-          console.log(
-            '📊 첫 번째 서버 샘플:',
-            servers[0]?.name,
-            servers[0]?.cpu,
-            servers[0]?.memory
-          );
-
-          // EnhancedServerMetrics 형태로 변환 (실제 API 응답에 맞게)
-          const enhancedServers: EnhancedServerMetrics[] = servers.map(
-            (server: any) => ({
-              id: server.id,
-              name: server.name || server.hostname,
-              hostname: server.hostname || server.name,
-              environment: server.environment || 'production',
-              role: server.role || 'worker',
-              status: server.status,
-              cpu_usage: server.cpu || 0,
-              memory_usage: server.memory || 0,
-              disk_usage: server.disk || 0,
-              network_in: server.network || 0,
-              network_out: server.network || 0,
-              response_time:
-                server.response_time || Math.floor(Math.random() * 100) + 50,
-              uptime:
-                typeof server.uptime === 'string'
-                  ? parseInt(server.uptime.replace(/[^\d]/g, '')) || 0
-                  : server.uptime || 0,
-              location: server.location || 'Unknown',
-              provider: server.provider || 'AWS',
-              alerts: server.alerts || 0,
-              services: server.services || [],
-              lastUpdate: server.lastUpdate
-                ? new Date(server.lastUpdate)
-                : new Date(),
-            })
-          );
-
-          set({
-            servers: enhancedServers,
-            lastUpdate: new Date(),
-            isLoading: false,
-            error: null,
-            performance: {
-              ...get().performance,
-              totalRequests: get().performance.totalRequests + 1,
-              lastSyncTime: new Date(),
-            },
-          });
-        } catch (error) {
-          console.error('❌ 서버 데이터 로드 실패:', error);
-
-          // 🚨 폴백: 대안 API 시도
-          try {
-            console.log('🔄 대안 API 폴백 시도...');
-            const fallbackResponse = await fetch('/api/servers');
-
-            if (fallbackResponse.ok) {
-              const fallbackResult = await fallbackResponse.json();
-              const fallbackServers =
-                fallbackResult.data || fallbackResult.servers || [];
-
-              console.log(`✅ 폴백 API 성공: ${fallbackServers.length}개 서버`);
-
-              const enhancedFallbackServers: EnhancedServerMetrics[] =
-                fallbackServers.map((server: any) => ({
-                  id: server.id,
-                  name: server.name,
-                  hostname: server.hostname || server.name,
-                  environment: server.environment || 'production',
-                  role: server.role || 'worker',
-                  status: server.status,
-                  cpu_usage: server.cpu || 0,
-                  memory_usage: server.memory || 0,
-                  disk_usage: server.disk || 0,
-                  network_in: server.network || 0,
-                  network_out: server.network || 0,
-                  response_time:
-                    server.response_time ||
-                    Math.floor(Math.random() * 100) + 50,
-                  uptime:
-                    typeof server.uptime === 'string'
-                      ? parseInt(server.uptime.replace(/[^\d]/g, '')) || 0
-                      : server.uptime || 0,
-                  location: server.location || 'Unknown',
-                  provider: server.provider || 'AWS',
-                  alerts: server.alerts || 0,
-                  services: server.services || [],
-                  lastUpdate: server.lastUpdate
-                    ? new Date(server.lastUpdate)
-                    : new Date(),
-                }));
-
-              set({
-                servers: enhancedFallbackServers,
-                lastUpdate: new Date(),
-                isLoading: false,
-                error: null,
-              });
-            } else {
-              throw new Error('폴백 API도 실패');
-            }
-          } catch (fallbackError) {
-            console.error('❌ 폴백 API도 실패:', fallbackError);
+            // 🎯 이미 최적화된 변환이 완료된 데이터이므로 추가 변환 불필요
             set({
-              error: `모든 서버 API 실패: ${error}`,
+              servers: result.data, // 직접 사용
               isLoading: false,
-              servers: [], // 빈 배열로 설정하여 폴백 서버 사용 유도
+              lastUpdate: new Date(),
+              error: null,
             });
+          } else {
+            throw new Error(result.error || 'Failed to fetch servers');
           }
+        } catch (error) {
+          console.error('❌ 서버 데이터 가져오기 실패:', error);
+          set({
+            error: error instanceof Error ? error.message : 'Unknown error',
+            isLoading: false,
+          });
         }
       },
 
@@ -421,15 +249,15 @@ export const useServerDataStore = create<ServerDataState>()(
           console.log('🔄 기존 폴링 타이머 정리됨');
         }
 
-        // ✅ 폴링 주기 최적화: 5초 → 35초 (서버 모니터링과 동일)
+        // ✅ 폴링 주기 최적화: 35초 → 120초 (과도한 요청 방지)
         const updateInterval = setInterval(() => {
-          console.log('🔄 서버 데이터 자동 업데이트 (35초 주기)');
+          console.log('🔄 서버 데이터 자동 업데이트 (120초 주기)');
           get().fetchServers();
-        }, 35000); // 35초마다 업데이트
+        }, 120000); // 120초마다 업데이트
 
         // 정리를 위해 interval ID 저장
         (get() as any)._updateInterval = updateInterval;
-        console.log('✅ 실시간 업데이트 시작 (35초 주기)');
+        console.log('✅ 실시간 업데이트 시작 (120초 주기)');
       },
 
       // 실시간 업데이트 중지

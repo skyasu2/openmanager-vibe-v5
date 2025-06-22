@@ -1,19 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
-  CheckCircle,
-  XCircle,
   AlertCircle,
-  RefreshCw,
-  Zap,
-  Database,
   Brain,
+  CheckCircle,
+  Database,
   Globe,
+  RefreshCw,
+  XCircle,
+  Zap,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface AIEngineStatus {
   mcp: {
@@ -67,8 +67,8 @@ export default function AIHealthStatus() {
   useEffect(() => {
     fetchHealthStatus();
 
-    // 30초마다 자동 업데이트
-    const interval = setInterval(fetchHealthStatus, 30000);
+    // 90초마다 자동 업데이트 (30초 → 90초로 변경, 과도한 요청 방지)
+    const interval = setInterval(fetchHealthStatus, 90000);
     return () => clearInterval(interval);
   }, []);
 
