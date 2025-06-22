@@ -177,7 +177,7 @@
     "project:health": "node development/scripts/maintenance/project-health-check.js",
     "project:health:quick": "node development/scripts/maintenance/project-health-check.js --no-performance",
     "structure:validate": "npm run config:check && npm run project:health:quick",
-    "postinstall": "playwright install",
+    "postinstall:dev": "playwright install",
     "lighthouse": "lhci autorun",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
