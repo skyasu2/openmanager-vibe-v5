@@ -171,11 +171,12 @@ export interface EngineStatus {
 
 export class UnifiedAIEngine {
   private static instance: UnifiedAIEngine | null = null;
-  // 🎯 새로운 우선순위: 룰기반 메인 엔진이 70% 비중
-  private ruleBasedEngine: RuleBasedMainEngine; // ✅ 새로 추가 (70% 우선순위)
-  private ragEngine: LocalRAGEngine; // ✅ 20% 우선순위로 승격
-  private mcpClient: RealMCPClient | null = null; // ✅ 8% 우선순위로 조정
-  private googleAI?: GoogleAIService; // ✅ 2% 베타 기능으로 격하
+  // 🎯 Supabase RAG 완성에 따른 새로운 우선순위 (2025.06.10)
+  private supabaseRAGEngine: any; // ✅ 새로 추가 (50% 우선순위) - 벡터 검색 + 텍스트 검색
+  private ruleBasedEngine: RuleBasedMainEngine; // ✅ 30% 우선순위로 조정 (NLP 패턴 매칭)
+  private ragEngine: LocalRAGEngine; // ✅ 15% 우선순위로 조정 (로컬 RAG 폴백)
+  private mcpClient: RealMCPClient | null = null; // ✅ 3% 우선순위로 조정 (실시간 컨텍스트)
+  private googleAI?: GoogleAIService; // ✅ 2% 베타 기능 유지 (복잡한 추론)
   private contextManager: ContextManager;
   private betaModeEnabled: boolean = false;
   private initialized: boolean = false;
@@ -222,8 +223,8 @@ export class UnifiedAIEngine {
     );
 
     // 🎯 새로운 우선순위로 엔진 초기화
-    this.ruleBasedEngine = new RuleBasedMainEngine(); // ✅ 70% 메인 엔진
-    this.ragEngine = new LocalRAGEngine(); // ✅ 20% 보조 엔진
+    this.ruleBasedEngine = new RuleBasedMainEngine(); // ✅ 30% 우선순위로 조정 (NLP 패턴 매칭)
+    this.ragEngine = new LocalRAGEngine(); // ✅ 15% 우선순위로 조정 (로컬 RAG 폴백)
     this.contextManager = ContextManager.getInstance();
 
     // MasterAIEngine 통합 - 통계 및 캐시 초기화
@@ -1638,7 +1639,7 @@ export class UnifiedAIEngine {
         healthRatio: Math.round(
           (hybridData.monitoringData.metadata.onlineServers /
             hybridData.monitoringData.metadata.totalServers) *
-            100
+          100
         ),
       },
       confidence: hybridData.metadata.dataQuality.monitoring,
@@ -1726,122 +1727,4 @@ export class UnifiedAIEngine {
     const sessionId = this.generateSessionId();
 
     try {
-      console.log(`🎯 전략적 쿼리 처리 시작: ${request.query}`);
-
-      // UnifiedAnalysisRequest를 OrchestratorRequest로 변환
-      const orchestratorRequest: OrchestratorRequest = {
-        requestId: sessionId,
-        requestType: this.mapToOrchestratorRequestType(request),
-        query: request.query,
-        urgency: (request.context?.urgency as any) || 'medium',
-        filters: {
-          monitoring: this.extractMonitoringFilters(request),
-          ai: this.extractAIFilters(request),
-        },
-        options: {
-          useCache: request.options?.use_cache !== false,
-          timeout: request.options?.maxResponseTime || 30000,
-          confidenceThreshold: request.options?.confidenceThreshold || 0.7,
-        },
-        context: {
-          sessionId: request.context?.sessionId || sessionId,
-          source: 'UnifiedAIEngine',
-        },
-      };
-
-      // 오케스트레이터를 통한 데이터 처리
-      const orchestratorResponse =
-        await this.orchestrator.processRequest(orchestratorRequest);
-
-      // OrchestratorResponse를 UnifiedAnalysisResponse로 변환
-      return this.mapToUnifiedResponse(
-        request,
-        orchestratorResponse,
-        startTime
-      );
-    } catch (error) {
-      console.error('❌ 전략적 쿼리 처리 실패:', error);
-      return this.createErrorResponse(
-        request.query,
-        error,
-        Date.now() - startTime
-      );
-    }
-  }
-
-  /**
-   * 🔄 요청 타입 매핑
-   */
-  private mapToOrchestratorRequestType(
-    request: UnifiedAnalysisRequest
-  ): OrchestratorRequest['requestType'] {
-    // 기존 하이브리드 로직 재사용
-    return this.determineHybridRequestType(request);
-  }
-
-  /**
-   * 🔄 응답 변환
-   */
-  private mapToUnifiedResponse(
-    originalRequest: UnifiedAnalysisRequest,
-    orchestratorResponse: OrchestratorResponse,
-    startTime: number
-  ): UnifiedAnalysisResponse {
-    const processingTime = Date.now() - startTime;
-
-    return {
-      success: orchestratorResponse.success,
-      query: originalRequest.query,
-      intent: {
-        primary: orchestratorResponse.data?.intent?.primary || 'analysis',
-        confidence: orchestratorResponse.metadata.confidence,
-        category: orchestratorResponse.data?.intent?.category || 'general',
-        urgency: orchestratorResponse.data?.intent?.urgency || 'medium',
-      },
-      analysis: {
-        summary:
-          orchestratorResponse.data?.analysis?.summary ||
-          '전략적 데이터 처리 완료',
-        details: orchestratorResponse.data?.analysis?.details || [],
-        confidence: orchestratorResponse.metadata.confidence,
-        processingTime: orchestratorResponse.metadata.processingTime,
-      },
-      recommendations: orchestratorResponse.data?.recommendations || [
-        '전략적 오케스트레이터를 통한 최적화된 분석 결과입니다',
-      ],
-      engines: {
-        used: [orchestratorResponse.metadata.strategy],
-        results: [orchestratorResponse.data],
-        fallbacks: 0,
-      },
-      metadata: {
-        sessionId: orchestratorResponse.requestId,
-        timestamp: new Date().toISOString(),
-        version: '5.44.0-strategic',
-        contextsUsed: 1,
-        contextIds: [orchestratorResponse.requestId],
-      },
-      systemStatus: {
-        tier: 'enhanced',
-        availableComponents: [
-          'DataProcessingOrchestrator',
-          'StrategyFactory',
-          'UnifiedCacheManager',
-        ],
-        degradationLevel: 'none',
-        recommendation: '전략적 아키텍처가 정상 작동 중입니다',
-      },
-      performance: {
-        cacheHit: orchestratorResponse.metadata.cacheHit,
-        memoryUsage: orchestratorResponse.performance,
-      },
-      cache_hit: orchestratorResponse.metadata.cacheHit,
-      fallback_used: false,
-      engine_used: orchestratorResponse.metadata.strategy,
-      response_time: processingTime,
-    };
-  }
-}
-
-// 싱글톤 인스턴스 export
-export const unifiedAIEngine = UnifiedAIEngine.getInstance();
+      console.log(`
