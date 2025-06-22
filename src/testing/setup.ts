@@ -1,8 +1,8 @@
-import '@testing-library/jest-dom';
-import { expect, beforeAll, afterEach, vi } from 'vitest';
-import { cleanup } from '@testing-library/react';
 import { QueryClient } from '@tanstack/react-query';
+import '@testing-library/jest-dom';
+import { cleanup } from '@testing-library/react';
 import fetch from 'node-fetch';
+import { afterEach, vi } from 'vitest';
 
 // DOM 정리
 afterEach(() => {
@@ -11,11 +11,28 @@ afterEach(() => {
 
 // 🎭 테스트 환경에서 목업 모드 강제 활성화
 process.env.FORCE_MOCK_REDIS = 'true';
+process.env.FORCE_MOCK_GOOGLE_AI = 'true';
+
+// 🔧 테스트 환경에서 process 객체 보완
+if (!process.cwd) {
+  process.cwd = () => process.env.PWD || '/test';
+}
+
+// 🎨 Sharp 모듈 목업 (AI 모델 로드 문제 해결)
+vi.mock('sharp', () => ({
+  default: vi.fn(() => ({
+    resize: vi.fn().mockReturnThis(),
+    jpeg: vi.fn().mockReturnThis(),
+    png: vi.fn().mockReturnThis(),
+    toBuffer: vi.fn().mockResolvedValue(Buffer.from('mock-image')),
+  })),
+}));
 
 // 테스트 환경 변수 설정
 const testEnvVars = {
   NODE_ENV: 'test',
   FORCE_MOCK_REDIS: 'true', // 🎭 목업 레디스 강제 사용
+  FORCE_MOCK_GOOGLE_AI: 'true', // 🎭 목업 Google AI 강제 사용
   NEXT_PUBLIC_SUPABASE_URL: 'https://test-project.supabase.co',
   SUPABASE_URL: 'https://test-project.supabase.co',
   NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-anon-key',

@@ -3,8 +3,8 @@
  * Next.js 15 App Router 규격
  */
 
-import Link from 'next/link';
 import { Metadata } from 'next';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: '404 - 페이지를 찾을 수 없습니다',
@@ -13,29 +13,28 @@ export const metadata: Metadata = {
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
-      <div className="text-center space-y-6 p-8">
-        <div className="space-y-2">
-          <h1 className="text-6xl font-bold text-white">404</h1>
-          <h2 className="text-2xl font-semibold text-blue-300">페이지를 찾을 수 없습니다</h2>
-          <p className="text-gray-400 max-w-md mx-auto">
-            요청하신 페이지가 존재하지 않거나 이동되었을 수 있습니다.
+    <div className='min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900'>
+      <div className='max-w-md w-full space-y-8 p-8'>
+        <div className='text-center'>
+          <h1 className='text-6xl font-bold text-gray-900 dark:text-white'>
+            404
+          </h1>
+          <h2 className='mt-6 text-3xl font-extrabold text-gray-900 dark:text-white'>
+            페이지를 찾을 수 없습니다
+          </h2>
+          <p className='mt-2 text-sm text-gray-600 dark:text-gray-400'>
+            요청하신 페이지가 존재하지 않거나 이동되었습니다.
           </p>
-        </div>
-
-        <div className="space-y-4">
-          <Link
-            href="/"
-            className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-          >
-            홈으로 돌아가기
-          </Link>
-
-          <div className="text-sm text-gray-500">
-            <p>문제가 지속되면 관리자에게 문의하세요.</p>
+          <div className='mt-6'>
+            <Link
+              href='/'
+              className='w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+            >
+              홈으로 돌아가기
+            </Link>
           </div>
         </div>
       </div>
     </div>
   );
-} 
+}

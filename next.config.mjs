@@ -7,6 +7,9 @@ const nextConfig = {
         NEXT_PHASE: 'phase-production-build',
     },
 
+    // 🎯 빌드 최적화 및 오류 방지
+    output: 'standalone',
+
     // 🔧 Webpack 설정 최적화
     webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
         // Node.js 폴리필 설정 (Next.js 15 호환)
@@ -26,6 +29,11 @@ const nextConfig = {
     // 🔨 실험적 기능 최적화
     experimental: {
         // Redis 패키지 최적화 제거 (충돌 방지)
+    },
+
+    // 🚫 404 페이지 오류 방지
+    generateBuildId: async () => {
+        return 'openmanager-vibe-v5-build'
     },
 };
 

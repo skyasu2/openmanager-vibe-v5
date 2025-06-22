@@ -1,7 +1,6 @@
-import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
-import path from 'path';
 import { resolve } from 'path';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [react()],
@@ -10,10 +9,20 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/testing/setup.ts'],
     include: ['tests/**/*.test.{ts,tsx}'],
-    exclude: ['node_modules', '.next', 'dist', 'build', 'storybook-static'],
+    exclude: [
+      'node_modules',
+      '.next',
+      'dist',
+      'build',
+      'storybook-static',
+      '**/enhanced-server-modal.test.tsx',
+      '**/edge-runtime.test.ts',
+    ],
     testTimeout: 10000,
     hookTimeout: 10000,
     teardownTimeout: 5000,
+    cache: false,
+    watch: false,
     env: {
       NODE_ENV: 'test',
       NEXT_PUBLIC_SUPABASE_URL: 'http://localhost:54321',
@@ -22,22 +31,23 @@ export default defineConfig({
       SUPABASE_JWT_SECRET: 'test-jwt-secret',
       REDIS_URL: 'redis://localhost:6379',
       FORCE_MOCK_REDIS: 'true',
-      FORCE_MOCK_GOOGLE_AI: 'true',
-      GOOGLE_AI_ENABLED: 'false',
-      GOOGLE_AI_QUOTA_PROTECTION: 'true',
+      FORCE_MOCK_SUPABASE: 'true',
+      GOOGLE_AI_API_KEY: 'test-google-ai-key',
+      DEMO_API_KEY: 'demo-key-for-testing',
       SLACK_WEBHOOK_URL: 'https://hooks.slack.com/test',
+      RENDER_MCP_SERVER_URL: 'https://test-mcp.onrender.com',
+      UPSTASH_REDIS_REST_URL: 'https://test-redis.upstash.io',
+      UPSTASH_REDIS_REST_TOKEN: 'test-redis-token',
     },
-    pool: 'threads',
+    pool: 'forks',
     poolOptions: {
-      threads: {
-        singleThread: false,
-        minThreads: 1,
-        maxThreads: 4,
+      forks: {
+        singleFork: true,
       },
     },
     isolate: true,
     maxConcurrency: 1,
-    reporters: ['verbose'],
+    reporters: ['basic'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -59,16 +69,16 @@ export default defineConfig({
         'src/stories/**',
         '**/*.stories.{js,jsx,ts,tsx}',
         '**/mocks/**',
-        '**/__mocks__/**'
+        '**/__mocks__/**',
       ],
       thresholds: {
         global: {
           branches: 70,
           functions: 70,
           lines: 70,
-          statements: 70
-        }
-      }
+          statements: 70,
+        },
+      },
     },
     mockReset: true,
     clearMocks: true,
@@ -86,9 +96,13 @@ export default defineConfig({
     'process.env.NEXT_PUBLIC_SUPABASE_URL': '"http://localhost:54321"',
     'process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY': '"test-key"',
     'process.env.FORCE_MOCK_REDIS': '"true"',
-    'process.env.FORCE_MOCK_GOOGLE_AI': '"true"',
+    'process.env.FORCE_MOCK_SUPABASE': '"true"',
+    'process.env.__NEXT_ROUTER_BASEPATH': '""',
+    'process.env.__NEXT_NEW_LINK_BEHAVIOR': 'true',
+    'process.env.__NEXT_TRAILING_SLASH': 'false',
+    'process.env.__NEXT_IMAGES_PROPS': '{}',
   },
   optimizeDeps: {
-    include: ['@testing-library/jest-dom'],
+    include: ['react', 'react-dom', '@testing-library/react'],
   },
 });

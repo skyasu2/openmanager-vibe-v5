@@ -11,35 +11,29 @@
  * ✅ 엔진 통계 및 성능 모니터링
  * ✅ 11개 하위 엔진 관리 시스템
  * 🛡️ Graceful Degradation Architecture
- * 
+ *
  * 🎯 리팩토링 목표 달성: 룰기반 NLP 중심 아키텍처
  */
 
-import env, { shouldEnableDebugLogging } from '@/config/environment';
-import { RealMCPClient } from '@/services/mcp/real-mcp-client';
-import { ContextManager } from './ContextManager';
+import { isGoogleAIAvailable } from '@/lib/google-ai-manager';
 import { LocalRAGEngine } from '@/lib/ml/rag-engine';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
-import { isGoogleAIAvailable } from '@/lib/google-ai-manager';
+import { RealMCPClient } from '@/services/mcp/real-mcp-client';
+import { ContextManager } from './ContextManager';
 
 // 🎯 새로 추가: 룰기반 메인 엔진
 import { RuleBasedMainEngine } from './engines/RuleBasedMainEngine';
-import type { RuleBasedResponse } from '@/types/rule-based-engine.types';
 
 // MasterAIEngine 통합 - 사고과정 로그 시스템
-import {
-  AIThinkingStep,
-  AIResponseFormat,
-  ThinkingProcessState,
-} from '../../types/ai-thinking';
-import { OpenSourceEngines } from '@/services/ai/engines/OpenSourceEngines';
 import { CustomEngines } from '@/services/ai/engines/CustomEngines';
-import { PerformanceMonitor } from '@/utils/performance-monitor';
+import { OpenSourceEngines } from '@/services/ai/engines/OpenSourceEngines';
 import {
   aiLogger,
-  LogLevel,
   LogCategory,
+  LogLevel,
 } from '@/services/ai/logging/AILogger';
+import { PerformanceMonitor } from '@/utils/performance-monitor';
+import { AIThinkingStep } from '../../types/ai-thinking';
 
 import {
   hybridDataManager,
@@ -48,11 +42,13 @@ import {
 } from '@/services/ai-agent/HybridDataManager';
 
 // 새로운 전략적 아키텍처 통합
-import { DataProcessingOrchestrator } from '@/services/ai-agent/DataProcessingOrchestrator';
 import type {
   OrchestratorRequest,
   OrchestratorResponse,
 } from '@/services/ai-agent/DataProcessingOrchestrator';
+import { DataProcessingOrchestrator } from '@/services/ai-agent/DataProcessingOrchestrator';
+
+import { naturalLanguageQueryCache } from '@/services/ai/NaturalLanguageQueryCache';
 
 export interface UnifiedAnalysisRequest {
   query: string;
@@ -176,10 +172,10 @@ export interface EngineStatus {
 export class UnifiedAIEngine {
   private static instance: UnifiedAIEngine | null = null;
   // 🎯 새로운 우선순위: 룰기반 메인 엔진이 70% 비중
-  private ruleBasedEngine: RuleBasedMainEngine;  // ✅ 새로 추가 (70% 우선순위)
-  private ragEngine: LocalRAGEngine;             // ✅ 20% 우선순위로 승격
+  private ruleBasedEngine: RuleBasedMainEngine; // ✅ 새로 추가 (70% 우선순위)
+  private ragEngine: LocalRAGEngine; // ✅ 20% 우선순위로 승격
   private mcpClient: RealMCPClient | null = null; // ✅ 8% 우선순위로 조정
-  private googleAI?: GoogleAIService;            // ✅ 2% 베타 기능으로 격하
+  private googleAI?: GoogleAIService; // ✅ 2% 베타 기능으로 격하
   private contextManager: ContextManager;
   private betaModeEnabled: boolean = false;
   private initialized: boolean = false;
@@ -221,11 +217,13 @@ export class UnifiedAIEngine {
   };
 
   public constructor() {
-    console.log('🚀 Enhanced Unified AI Engine 인스턴스 생성 - 룰기반 NLP 중심 (v2.0)');
+    console.log(
+      '🚀 Enhanced Unified AI Engine 인스턴스 생성 - 룰기반 NLP 중심 (v2.0)'
+    );
 
     // 🎯 새로운 우선순위로 엔진 초기화
     this.ruleBasedEngine = new RuleBasedMainEngine(); // ✅ 70% 메인 엔진
-    this.ragEngine = new LocalRAGEngine();            // ✅ 20% 보조 엔진
+    this.ragEngine = new LocalRAGEngine(); // ✅ 20% 보조 엔진
     this.contextManager = ContextManager.getInstance();
 
     // MasterAIEngine 통합 - 통계 및 캐시 초기화
@@ -375,61 +373,83 @@ export class UnifiedAIEngine {
   ): Promise<UnifiedAnalysisResponse> {
     const startTime = Date.now();
     const sessionId = this.generateSessionId();
-    const thinkingSteps: AIThinkingStep[] = [];
-
-    // 사고과정 로그 활성화 여부
     const enableThinking = request.options?.enable_thinking_log !== false;
+    const thinkingSteps: AIThinkingStep[] = [];
 
     // 🔍 성능 측정 시작
     const memoryBefore = PerformanceMonitor.getMemoryUsage();
 
-    if (enableThinking) {
-      thinkingSteps.push(
-        this.createThinkingStep(
-          'analyzing',
-          '요청 분석',
-          `통합 AI 엔진으로 "${request.query}" 처리 시작`
-        )
-      );
-    }
-
-    if (!this.initialized) {
-      return this.createErrorResponse(
-        request.query,
-        new Error('Enhanced Unified AI Engine이 초기화되지 않았습니다'),
-        Date.now() - startTime,
-        thinkingSteps
-      );
-    }
-
     try {
-      // 캐시 확인
+      // 🚫 API 호출 제한 검사 (POC 프로젝트 보호)
+      const apiLimitCheck =
+        await naturalLanguageQueryCache.checkAPICallLimit('unified');
+      if (!apiLimitCheck.allowed) {
+        console.warn(`🚫 API 호출 제한: ${apiLimitCheck.reason}`);
+
+        if (enableThinking) {
+          thinkingSteps.push(
+            this.createThinkingStep(
+              'error',
+              'API 호출 제한',
+              apiLimitCheck.reason || 'API 호출 한도 초과'
+            )
+          );
+        }
+
+        // 제한 초과 시 기존 캐시 확인으로 폴백
+        const cached = this.checkCache(request);
+        if (cached) {
+          return this.createCachedResponse(
+            request,
+            cached,
+            Date.now() - startTime,
+            thinkingSteps
+          );
+        }
+      }
+
+      // 🔍 향상된 캐시 확인 (Redis 기반)
       if (request.options?.use_cache !== false) {
         if (enableThinking) {
           thinkingSteps.push(
             this.createThinkingStep(
               'processing',
-              '캐시 확인',
-              '이전 결과 캐시에서 검색 중'
+              'Redis 캐시 확인',
+              '이전 결과를 Redis에서 검색 중'
             )
           );
         }
 
-        const cached = this.checkCache(request);
-        if (cached) {
+        const cachedResponse =
+          await naturalLanguageQueryCache.getCachedResponse(
+            request.query,
+            'unified'
+          );
+
+        if (cachedResponse) {
           if (enableThinking) {
             thinkingSteps.push(
               this.createThinkingStep(
                 'completed',
-                '캐시 적중',
-                '캐시된 결과 반환'
+                'Redis 캐시 히트',
+                `캐시된 결과 반환 (${cachedResponse.hitCount}회 재사용)`
               )
             );
           }
 
+          // 기존 캐시 응답 구조로 변환
+          const cacheStructure = {
+            result: {
+              content: cachedResponse.response,
+              confidence: cachedResponse.confidence,
+            },
+            timestamp: cachedResponse.timestamp,
+            ttl: cachedResponse.ttl * 1000, // 초를 밀리초로 변환
+          };
+
           return this.createCachedResponse(
             request,
-            cached,
+            cacheStructure,
             Date.now() - startTime,
             thinkingSteps
           );
@@ -502,6 +522,24 @@ export class UnifiedAIEngine {
       // 캐시 저장
       if (request.options?.use_cache !== false) {
         this.saveToCache(request, analysisResult);
+
+        // 🔄 Redis 캐시에도 저장 (POC 프로젝트 최적화)
+        try {
+          const responseContent =
+            typeof analysisResult === 'string'
+              ? analysisResult
+              : analysisResult.content || JSON.stringify(analysisResult);
+
+          await naturalLanguageQueryCache.setCachedResponse(
+            request.query,
+            responseContent,
+            analysisResult.confidence || 0.7,
+            'unified'
+          );
+          console.log('💾 Redis 캐시 저장 완료');
+        } catch (error) {
+          console.warn('⚠️ Redis 캐시 저장 실패:', error);
+        }
       }
 
       // 성능 측정 완료
@@ -1600,7 +1638,7 @@ export class UnifiedAIEngine {
         healthRatio: Math.round(
           (hybridData.monitoringData.metadata.onlineServers /
             hybridData.monitoringData.metadata.totalServers) *
-          100
+            100
         ),
       },
       confidence: hybridData.metadata.dataQuality.monitoring,

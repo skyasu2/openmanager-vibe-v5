@@ -8,11 +8,11 @@
  * - Redis Caching
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import { realAIProcessor } from '@/services/ai/RealAIProcessor';
+import { NextRequest, NextResponse } from 'next/server';
 // import { realPrometheusCollector } from '@/services/collectors/RealPrometheusCollector'; // 🗑️ 프로메테우스 제거
-import { getMCPClient } from '@/services/mcp/official-mcp-client';
 import { getRedisClient } from '@/lib/redis';
+import { getMCPClient } from '@/services/mcp/official-mcp-client';
 import { unifiedMetricsManager } from '@/services/UnifiedMetricsManager';
 
 interface UnifiedRequest {

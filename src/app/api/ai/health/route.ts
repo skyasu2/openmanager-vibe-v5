@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-/**
- * 🏥 AI 헬스체크 API
- * AI 시스템의 상태를 확인하는 엔드포인트
- */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -77,9 +73,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-/**
- * POST 요청으로 특정 서비스 헬스체크
- */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
