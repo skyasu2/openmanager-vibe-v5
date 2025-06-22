@@ -273,14 +273,14 @@ export const useServerDataStore = create<ServerDataState>()(
         lastSyncTime: null,
       },
 
-      // 서버 데이터 가져오기 (직접 API 호출로 단순화)
+      // 서버 데이터 가져오기 (올바른 API 엔드포인트 사용)
       fetchServers: async () => {
         set({ isLoading: true, error: null });
 
         try {
-          // 🎯 1순위: 대시보드 API 직접 호출 (검증된 엔드포인트)
-          console.log('🔄 대시보드 API 호출 중...');
-          const response = await fetch('/api/dashboard');
+          // 🎯 1순위: 검증된 서버 API 호출
+          console.log('🔄 서버 API 호출 중...');
+          const response = await fetch('/api/servers/all');
 
           if (!response.ok) {
             throw new Error(`서버 API 호출 실패: ${response.status}`);
@@ -288,11 +288,11 @@ export const useServerDataStore = create<ServerDataState>()(
 
           const result = await response.json();
 
-          if (!result.data || !Array.isArray(result.data.servers)) {
-            throw new Error('대시보드 API 응답 형식 오류');
+          if (!result.success || !Array.isArray(result.data)) {
+            throw new Error('서버 API 응답 형식 오류');
           }
 
-          const servers = result.data.servers;
+          const servers = result.data;
 
           console.log(`✅ 서버 데이터 로드 성공: ${servers.length}개 서버`);
           console.log(
@@ -302,7 +302,7 @@ export const useServerDataStore = create<ServerDataState>()(
             servers[0]?.memory
           );
 
-          // EnhancedServerMetrics 형태로 변환
+          // EnhancedServerMetrics 형태로 변환 (실제 API 응답에 맞게)
           const enhancedServers: EnhancedServerMetrics[] = servers.map(
             (server: any) => ({
               id: server.id,
@@ -310,27 +310,21 @@ export const useServerDataStore = create<ServerDataState>()(
               hostname: server.hostname || server.name,
               environment: server.environment || 'production',
               role: server.role || 'worker',
-              status:
-                server.status === 'healthy'
-                  ? 'healthy'
-                  : server.status === 'warning'
-                    ? 'warning'
-                    : 'critical',
-              cpu_usage: server.cpu_usage || server.node_cpu_usage_percent || 0,
-              memory_usage:
-                server.memory_usage || server.node_memory_usage_percent || 0,
-              disk_usage:
-                server.disk_usage || server.node_disk_usage_percent || 0,
-              network_in: server.node_network_receive_rate_mbps || 0,
-              network_out: server.node_network_transmit_rate_mbps || 0,
+              status: server.status,
+              cpu_usage: server.cpu || 0,
+              memory_usage: server.memory || 0,
+              disk_usage: server.disk || 0,
+              network_in: server.network || 0,
+              network_out: server.network || 0,
               response_time:
-                server.response_time ||
-                server.http_request_duration_seconds * 1000 ||
-                Math.floor(Math.random() * 100) + 50,
-              uptime: server.uptime || server.node_uptime_seconds || 0,
+                server.response_time || Math.floor(Math.random() * 100) + 50,
+              uptime:
+                typeof server.uptime === 'string'
+                  ? parseInt(server.uptime.replace(/[^\d]/g, '')) || 0
+                  : server.uptime || 0,
               location: server.location || 'Unknown',
               provider: server.provider || 'AWS',
-              alerts: server.alerts || server.http_requests_errors_total || 0,
+              alerts: server.alerts || 0,
               services: server.services || [],
               lastUpdate: server.lastUpdate
                 ? new Date(server.lastUpdate)
@@ -352,16 +346,15 @@ export const useServerDataStore = create<ServerDataState>()(
         } catch (error) {
           console.error('❌ 서버 데이터 로드 실패:', error);
 
-          // 🚨 폴백: 실시간 서버 API 시도
+          // 🚨 폴백: 대안 API 시도
           try {
-            console.log('🔄 실시간 서버 API 폴백 시도...');
-            const fallbackResponse = await fetch(
-              '/api/servers/realtime?type=servers'
-            );
+            console.log('🔄 대안 API 폴백 시도...');
+            const fallbackResponse = await fetch('/api/servers');
 
             if (fallbackResponse.ok) {
               const fallbackResult = await fallbackResponse.json();
-              const fallbackServers = fallbackResult.data || [];
+              const fallbackServers =
+                fallbackResult.data || fallbackResult.servers || [];
 
               console.log(`✅ 폴백 API 성공: ${fallbackServers.length}개 서버`);
 
@@ -408,7 +401,7 @@ export const useServerDataStore = create<ServerDataState>()(
             set({
               error: `모든 서버 API 실패: ${error}`,
               isLoading: false,
-              servers: [], // 빈 배열로 설정하여 폴백 서버 사용 방지
+              servers: [], // 빈 배열로 설정하여 폴백 서버 사용 유도
             });
           }
         }

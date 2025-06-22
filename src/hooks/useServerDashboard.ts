@@ -53,7 +53,65 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   // 실제 서버 데이터 또는 폴백 데이터 사용
   const actualServers = useMemo(() => {
     if (servers && servers.length > 0) {
-      return servers;
+      // EnhancedServerMetrics를 Server 타입으로 변환
+      return servers.map(
+        (server: any): Server => ({
+          id: server.id,
+          name: server.name || server.hostname,
+          hostname: server.hostname || server.name,
+          status: server.status,
+          cpu: server.cpu_usage || 0,
+          memory: server.memory_usage || 0,
+          disk: server.disk_usage || 0,
+          network: server.network_in + server.network_out || 0,
+          uptime: server.uptime || 0,
+          location: server.location || 'Unknown',
+          alerts: server.alerts || 0,
+          ip: server.ip || '192.168.1.1',
+          os: server.os || 'Ubuntu 22.04 LTS',
+          type: server.role || 'worker',
+          environment: server.environment || 'production',
+          provider: server.provider || 'AWS',
+          specs: {
+            cpu_cores: 4,
+            memory_gb: 8,
+            disk_gb: 250,
+            network_speed: '1Gbps',
+          },
+          lastUpdate: server.lastUpdate || new Date(),
+          services: server.services || [],
+          networkStatus:
+            server.status === 'healthy'
+              ? 'healthy'
+              : server.status === 'warning'
+                ? 'warning'
+                : 'critical',
+          systemInfo: {
+            os: server.os || 'Ubuntu 22.04 LTS',
+            uptime:
+              typeof server.uptime === 'string'
+                ? server.uptime
+                : `${Math.floor(server.uptime / 3600)}h`,
+            processes: Math.floor(Math.random() * 200) + 50,
+            zombieProcesses: Math.floor(Math.random() * 5),
+            loadAverage: '1.23, 1.45, 1.67',
+            lastUpdate: server.lastUpdate || new Date(),
+          },
+          networkInfo: {
+            interface: 'eth0',
+            receivedBytes: `${Math.floor(server.network_in || 0)} MB`,
+            sentBytes: `${Math.floor(server.network_out || 0)} MB`,
+            receivedErrors: Math.floor(Math.random() * 10),
+            sentErrors: Math.floor(Math.random() * 10),
+            status:
+              server.status === 'healthy'
+                ? 'healthy'
+                : server.status === 'warning'
+                  ? 'warning'
+                  : 'critical',
+          },
+        })
+      );
     }
     return fallbackServers;
   }, [servers]);
