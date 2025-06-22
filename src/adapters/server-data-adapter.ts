@@ -138,7 +138,7 @@ export function transformServerInstanceToServer(
       sentBytes: formatBytes(serverInstance.metrics?.network?.out || 0),
       receivedErrors: Math.floor(Math.random() * 10),
       sentErrors: Math.floor(Math.random() * 5),
-      status: 'healthy',
+      status: mapNetworkStatus(serverInstance.metrics?.network) as any,
       cpu_usage: serverInstance.metrics?.cpu || 0,
       memory_usage: serverInstance.metrics?.memory || 0,
       disk_usage: serverInstance.metrics?.disk || 0,

@@ -10,6 +10,7 @@
  * 4. 즉시 응답 보장
  */
 
+import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
@@ -169,9 +170,24 @@ function generateSafeResponse(
   startTime: number,
   context: any = {}
 ) {
-  // 실제 서버 데이터 추출
-  const serverMetrics = context.serverMetrics || {};
-  const servers = serverMetrics.servers || [];
+  // 🔧 실제 서버 데이터 추출 (기존 로직 개선)
+  let serverMetrics = context.serverMetrics || {};
+  let servers = serverMetrics.servers || [];
+
+  // 🚀 서버 데이터가 없으면 실제 API에서 가져오기
+  if (servers.length === 0) {
+    try {
+      // 실제 서버 데이터 동기 가져오기 (내부 API 사용)
+      const serverData = context.realServerData || fetchServerDataSync();
+      if (serverData && serverData.servers && serverData.servers.length > 0) {
+        servers = serverData.servers;
+        serverMetrics = { servers, timestamp: new Date().toISOString() };
+        console.log(`🔄 실제 서버 데이터 ${servers.length}개 로드됨`);
+      }
+    } catch (error) {
+      console.error('❌ 실제 서버 데이터 로드 실패:', error);
+    }
+  }
 
   // 서버 데이터가 있는 경우 실제 데이터 기반 응답 생성
   if (servers.length > 0) {
@@ -446,4 +462,31 @@ export async function PATCH(request: NextRequest) {
     },
     { status: 405 }
   );
+}
+
+// 🔧 실제 서버 데이터 동기 가져오기 함수
+function fetchServerDataSync() {
+  try {
+    const dataGenerator = RealServerDataGenerator.getInstance();
+    const servers = dataGenerator.getAllServers();
+
+    if (servers && servers.length > 0) {
+      return {
+        servers: servers.map(server => ({
+          id: server.id,
+          name: server.name,
+          status: server.status,
+          metrics: server.metrics,
+          location: server.location,
+          type: server.type,
+        })),
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error('❌ 동기 서버 데이터 가져오기 실패:', error);
+    return null;
+  }
 }

@@ -94,17 +94,35 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
       trend: 'up' | 'down' | 'stable';
     }>({
       cpu: Array.from({ length: 12 }, () =>
-        parseFloat((Math.random() * 30 + server.cpu - 15).toFixed(2))
+        parseFloat(
+          Math.max(
+            0,
+            Math.min(100, Math.random() * 30 + server.cpu - 15)
+          ).toFixed(2)
+        )
       ),
       memory: Array.from({ length: 12 }, () =>
-        parseFloat((Math.random() * 20 + server.memory - 10).toFixed(2))
+        parseFloat(
+          Math.max(
+            0,
+            Math.min(100, Math.random() * 20 + server.memory - 10)
+          ).toFixed(2)
+        )
       ),
       disk: Array.from({ length: 12 }, () =>
-        parseFloat((Math.random() * 10 + server.disk - 5).toFixed(2))
+        parseFloat(
+          Math.max(
+            0,
+            Math.min(100, Math.random() * 10 + server.disk - 5)
+          ).toFixed(2)
+        )
       ),
       network: Array.from({ length: 12 }, () =>
         parseFloat(
-          (Math.random() * 40 + (server.network || 30) - 20).toFixed(2)
+          Math.max(
+            0,
+            Math.min(100, Math.random() * 40 + (server.network || 30) - 20)
+          ).toFixed(2)
         )
       ), // 네트워크 데이터
       trend: 'stable',
