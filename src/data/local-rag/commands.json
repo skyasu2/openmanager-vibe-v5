@@ -1,0 +1,58 @@
+[
+  {
+    "id": "local-ls",
+    "command": "ls -la",
+    "description": "List all files and directories with detailed information",
+    "category": "file-management",
+    "content": "The ls -la command shows all files and directories including hidden ones with detailed permissions, ownership, and timestamps"
+  },
+  {
+    "id": "local-grep",
+    "command": "grep -r \"pattern\" .",
+    "description": "Search for text patterns recursively in files",
+    "category": "search",
+    "content": "Grep is a powerful search tool that can find text patterns in files recursively through directory structures"
+  },
+  {
+    "id": "local-top",
+    "command": "top",
+    "description": "Display running processes and system resource usage",
+    "category": "monitoring",
+    "content": "The top command provides real-time view of running processes, CPU usage, memory consumption, and system load"
+  },
+  {
+    "id": "local-docker-ps",
+    "command": "docker ps -a",
+    "description": "List all Docker containers",
+    "category": "docker",
+    "content": "Docker ps shows all containers including stopped ones with their status, ports, and names"
+  },
+  {
+    "id": "local-kubectl-get",
+    "command": "kubectl get pods",
+    "description": "List Kubernetes pods",
+    "category": "kubernetes",
+    "content": "Kubectl get pods displays all pods in the current namespace with their status and readiness"
+  },
+  {
+    "id": "local-systemctl",
+    "command": "systemctl status service-name",
+    "description": "Check service status",
+    "category": "system",
+    "content": "Systemctl status shows detailed information about system services including their current state and recent logs"
+  },
+  {
+    "id": "local-netstat",
+    "command": "netstat -tulnp",
+    "description": "Show network connections and listening ports",
+    "category": "network",
+    "content": "Netstat displays active network connections, listening ports, and the processes using them"
+  },
+  {
+    "id": "local-df",
+    "command": "df -h",
+    "description": "Display disk space usage in human readable format",
+    "category": "disk",
+    "content": "The df command shows filesystem disk space usage with -h flag for human readable sizes"
+  }
+]

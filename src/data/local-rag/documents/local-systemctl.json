@@ -1,0 +1,7 @@
+{
+  "id": "local-systemctl",
+  "command": "systemctl status service-name",
+  "description": "Check service status",
+  "category": "system",
+  "content": "Systemctl status shows detailed information about system services including their current state and recent logs"
+}

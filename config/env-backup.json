@@ -1,106 +1,71 @@
 {
   "version": "1.0.0",
-  "created": "2025-06-22T09:16:29.363Z",
-  "lastBackup": "2025-06-22T09:16:29.363Z",
+  "created": "2025-06-22T15:55:17.907Z",
+  "lastBackup": "2025-06-22T15:55:17.907Z",
   "entries": [
     {
       "key": "NEXT_PUBLIC_SUPABASE_URL",
-      "value": "https://test.supabase.co",
+      "value": "https://vnswjnltnhpsueosfhmw.supabase.co",
       "encrypted": false,
       "priority": "critical",
-      "lastUpdated": "2025-06-22T09:16:29.362Z"
+      "lastUpdated": "2025-06-22T16:10:00.000Z"
     },
     {
       "key": "SUPABASE_URL",
-      "value": "https://test.supabase.co",
+      "value": "https://vnswjnltnhpsueosfhmw.supabase.co",
       "encrypted": false,
       "priority": "critical",
-      "lastUpdated": "2025-06-22T09:16:29.362Z"
+      "lastUpdated": "2025-06-22T16:10:00.000Z"
     },
     {
       "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-      "value": "8f53cd2cfed25d371aa7a51eff3528ff:c3cd5ee66c383bf7f5e75f773ddaf365",
+      "value": "0adb1f1d5ff43cba310df6c3c623e387:5c0ff2f8bb48f1e76e39529078894bbf",
       "encrypted": true,
       "priority": "critical",
-      "lastUpdated": "2025-06-22T09:16:29.362Z"
+      "lastUpdated": "2025-06-22T15:55:17.906Z"
     },
     {
       "key": "SUPABASE_SERVICE_ROLE_KEY",
-      "value": "7e2615521baef0e1e9cf9f1690fef65c:7aefceb8e8d4ec974a0cd8de3a52be155de7f0a590862e31a43ab3898c9357a4",
+      "value": "dbe9649768be7b18996452c7c36af8ba:6baf4167425bd70ea50d2dd579b7ba589d9ea7c4873ef09d89db37ac3d5e7e64",
       "encrypted": true,
       "priority": "critical",
-      "lastUpdated": "2025-06-22T09:16:29.362Z"
+      "lastUpdated": "2025-06-22T15:55:17.906Z"
     },
     {
       "key": "NODE_ENV",
       "value": "test",
       "encrypted": false,
       "priority": "critical",
-      "lastUpdated": "2025-06-22T09:16:29.362Z"
+      "lastUpdated": "2025-06-22T15:55:17.906Z"
     },
     {
       "key": "REDIS_URL",
-      "value": "redis://localhost:6379",
+      "value": "redis://default:AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA@charming-condor-46598.upstash.io:6379",
       "encrypted": false,
       "priority": "important",
-      "lastUpdated": "2025-06-22T09:16:29.362Z"
-    },
-    {
-      "key": "REDIS_TOKEN",
-      "value": "9091a0e253cfabb64d8e67890234685d:8236e85711bff2af28b9edf6835edb06e543fb7a9421689f4223593516721527",
-      "encrypted": true,
-      "priority": "important",
-      "lastUpdated": "2025-06-22T09:16:29.363Z"
-    },
-    {
-      "key": "UPSTASH_REDIS_REST_URL",
-      "value": "https://test.upstash.io",
-      "encrypted": false,
-      "priority": "important",
-      "lastUpdated": "2025-06-22T09:16:29.363Z"
-    },
-    {
-      "key": "UPSTASH_REDIS_REST_TOKEN",
-      "value": "cbad66d01b9f0e1fd734627ef65400dc:e85f6ead72cba121d922d13b1af7db67e6c3f9cceac0a638f08c1b009858684f",
-      "encrypted": true,
-      "priority": "important",
-      "lastUpdated": "2025-06-22T09:16:29.363Z"
+      "lastUpdated": "2025-06-22T15:55:17.906Z"
     },
     {
       "key": "GOOGLE_AI_API_KEY",
-      "value": "af9efeffe6b200a2874993e71b082837:7afea821df13afda6d12bdd3ed1b7069dece29720ed312d86d852e3484dba537",
+      "value": "d2dfcef8aef6811258e2d8f59c672b63:52965f92f5f539bd845ae879a23c48ca2cf1e2cf39c23c00ab878af52dffb300bf5c3087d7003dae4295608b457d834d",
       "encrypted": true,
       "priority": "important",
-      "lastUpdated": "2025-06-22T09:16:29.363Z"
-    },
-    {
-      "key": "POSTGRES_URL",
-      "value": "postgres://test:test@localhost:5432/test",
-      "encrypted": false,
-      "priority": "important",
-      "lastUpdated": "2025-06-22T09:16:29.363Z"
-    },
-    {
-      "key": "SLACK_WEBHOOK_URL",
-      "value": "7c3c9b0dcfd2e4b04ce64fcc1b569204:72d2a7c43bd71536ec6ef5d3019e08d3544b8afde67f9300c6e5f6aa615c3896",
-      "encrypted": true,
-      "priority": "optional",
-      "lastUpdated": "2025-06-22T09:16:29.363Z"
+      "lastUpdated": "2025-06-22T15:55:17.906Z"
     },
     {
       "key": "GOOGLE_AI_DAILY_LIMIT",
       "value": "10000",
       "encrypted": false,
       "priority": "optional",
-      "lastUpdated": "2025-06-22T09:16:29.363Z"
+      "lastUpdated": "2025-06-22T15:55:17.907Z"
     },
     {
       "key": "GOOGLE_AI_RPM_LIMIT",
       "value": "100",
       "encrypted": false,
       "priority": "optional",
-      "lastUpdated": "2025-06-22T09:16:29.363Z"
+      "lastUpdated": "2025-06-22T15:55:17.907Z"
     }
   ],
-  "checksum": "a484f77cdaa4b48cc54f05b7166b0e2e"
+  "checksum": "5b69ef95f466f447733c0267705dd5ee"
 }

@@ -1,0 +1,7 @@
+{
+  "id": "local-docker-ps",
+  "command": "docker ps -a",
+  "description": "List all Docker containers",
+  "category": "docker",
+  "content": "Docker ps shows all containers including stopped ones with their status, ports, and names"
+}

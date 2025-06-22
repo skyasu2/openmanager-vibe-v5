@@ -90,12 +90,20 @@ export class CustomEngines {
       '응답 생성',
     ];
 
+    // 안전한 서버 ID 추출
+    const relatedServers =
+      context?.servers?.length > 0
+        ? context.servers
+            .slice(0, 3)
+            .map((s: any) => s?.id || s?.name || 'unknown')
+            .filter(Boolean)
+        : [];
+
     return {
       answer: `"${query}"에 대한 MCP 분석이 완료되었습니다.`,
       confidence: 0.85,
       reasoning_steps,
-      related_servers:
-        context?.servers?.slice(0, 3).map((s: any) => s.id) || [],
+      related_servers: relatedServers,
       recommendations: ['시스템 상태 모니터링 지속'],
       sources: ['MCP Engine', 'OpenManager KB'],
       context_used: !!context,
@@ -557,9 +565,7 @@ export class CustomEngines {
     return 'general_inquiry';
   }
 
-  private extractOpenManagerEntities(
-    query: string
-  ): Array<{
+  private extractOpenManagerEntities(query: string): Array<{
     type: 'server' | 'metric' | 'action' | 'time' | 'condition';
     value: string;
     confidence: number;

@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "createdAt": "2025-06-22T14:43:12.479Z",
+  "totalDocuments": 8,
+  "categories": [
+    "file-management",
+    "search",
+    "monitoring",
+    "docker",
+    "kubernetes",
+    "system",
+    "network",
+    "disk"
+  ],
+  "description": "LocalRAG 테스트 데이터 - 하이브리드 RAG 폴백용"
+}

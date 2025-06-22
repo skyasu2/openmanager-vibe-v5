@@ -150,10 +150,10 @@ export class GoogleAIService {
         return false;
       }
 
-      // 🚀 연결 테스트 (2시간마다 1회만 실행)
-      const now = Date.now();
-      const twoHours = 2 * 60 * 60 * 1000; // 2시간
-      const shouldTestConnection = now - this.lastConnectionTest > twoHours;
+      // 🚀 연결 테스트 (테스트 서버에서는 헬스체크 비활성화, 질문 기능만 사용)
+      const isTestServer =
+        process.env.NODE_ENV === 'development' ||
+        process.env.DISABLE_GOOGLE_AI_HEALTH_CHECK === 'true';
 
       let connectionTest: {
         success: boolean;
@@ -161,14 +161,26 @@ export class GoogleAIService {
         latency?: number;
       } = {
         success: true,
-        message: '연결 테스트 스킵됨 (2시간 이내 테스트 완료)',
+        message: isTestServer
+          ? '테스트 서버: 헬스체크 비활성화, 질문 기능만 사용'
+          : '연결 테스트 스킵됨',
         latency: 0,
       };
 
-      if (shouldTestConnection) {
-        console.log('🚀 Google AI 연결 테스트 시작... (2시간마다)');
-        connectionTest = await this.testConnection();
-        this.lastConnectionTest = now;
+      if (!isTestServer) {
+        const now = Date.now();
+        const twoHours = 2 * 60 * 60 * 1000; // 2시간
+        const shouldTestConnection = now - this.lastConnectionTest > twoHours;
+
+        if (shouldTestConnection) {
+          console.log('🚀 Google AI 연결 테스트 시작... (2시간마다)');
+          connectionTest = await this.testConnection();
+          this.lastConnectionTest = now;
+        }
+      } else {
+        console.log(
+          '🧪 테스트 서버: Google AI 헬스체크 비활성화, 질문 기능만 사용'
+        );
       }
 
       if (connectionTest.success) {

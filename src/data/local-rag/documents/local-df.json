@@ -1,0 +1,7 @@
+{
+  "id": "local-df",
+  "command": "df -h",
+  "description": "Display disk space usage in human readable format",
+  "category": "disk",
+  "content": "The df command shows filesystem disk space usage with -h flag for human readable sizes"
+}

@@ -15,6 +15,7 @@
  * 🎯 리팩토링 목표 달성: 룰기반 NLP 중심 아키텍처
  */
 
+import { HybridRAGEngine } from '@/core/ai/engines/HybridRAGEngine';
 import { isGoogleAIAvailable } from '@/lib/google-ai-manager';
 import { LocalRAGEngine } from '@/lib/ml/rag-engine';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
@@ -42,10 +43,6 @@ import {
 } from '@/services/ai-agent/HybridDataManager';
 
 // 새로운 전략적 아키텍처 통합
-import type {
-  OrchestratorRequest,
-  OrchestratorResponse,
-} from '@/services/ai-agent/DataProcessingOrchestrator';
 import { DataProcessingOrchestrator } from '@/services/ai-agent/DataProcessingOrchestrator';
 
 import { naturalLanguageQueryCache } from '@/services/ai/NaturalLanguageQueryCache';
@@ -172,7 +169,7 @@ export interface EngineStatus {
 export class UnifiedAIEngine {
   private static instance: UnifiedAIEngine | null = null;
   // 🎯 Supabase RAG 완성에 따른 새로운 우선순위 (2025.06.10)
-  private supabaseRAGEngine: any; // ✅ 새로 추가 (50% 우선순위) - 벡터 검색 + 텍스트 검색
+  private hybridRAGEngine: HybridRAGEngine; // ✅ 새로 추가 (50% 우선순위) - Supabase + LocalRAG 하이브리드
   private ruleBasedEngine: RuleBasedMainEngine; // ✅ 30% 우선순위로 조정 (NLP 패턴 매칭)
   private ragEngine: LocalRAGEngine | null = null; // ✅ 15% 우선순위로 조정 (로컬 RAG 폴백)
   private mcpClient: RealMCPClient | null = null; // ✅ 3% 우선순위로 조정 (실시간 컨텍스트)
@@ -230,7 +227,9 @@ export class UnifiedAIEngine {
       this.ragEngine = new LocalRAGEngine(); // ✅ 15% 우선순위 (개발/테스트 전용)
       console.log('🔧 LocalRAGEngine 개발/테스트 환경에서 활성화');
     } else {
-      console.log('⏭️ LocalRAGEngine 배포 환경에서 비활성화 (Supabase RAG 사용)');
+      console.log(
+        '⏭️ LocalRAGEngine 배포 환경에서 비활성화 (Supabase RAG 사용)'
+      );
     }
 
     this.contextManager = ContextManager.getInstance();
@@ -1647,7 +1646,7 @@ export class UnifiedAIEngine {
         healthRatio: Math.round(
           (hybridData.monitoringData.metadata.onlineServers /
             hybridData.monitoringData.metadata.totalServers) *
-          100
+            100
         ),
       },
       confidence: hybridData.metadata.dataQuality.monitoring,
@@ -1735,38 +1734,52 @@ export class UnifiedAIEngine {
     const sessionId = this.generateSessionId();
 
     try {
-      console.log(`
-```
+      console.log(`🎯 전략적 쿼리 처리 시작: ${request.query}`);
+
+      // 기본적으로 processQuery를 사용하되, 향후 전략적 로직 추가 예정
+      return await this.processQuery(request);
+    } catch (error) {
+      console.error('❌ 전략적 쿼리 처리 실패:', error);
+      return this.createErrorResponse(
+        request.query,
+        error,
+        Date.now() - startTime
+      );
+    }
+  }
 
   /**
    * 🔍 개발 환경 체크
    */
   private isDevEnvironment(): boolean {
-        // 1. NODE_ENV 체크
-        if(process.env.NODE_ENV === 'production') {
-        return false;
-      }
-
-      // 2. Vercel 배포 환경 체크
-      if (process.env.VERCEL || process.env.VERCEL_ENV) {
-        return false;
-      }
-
-      // 3. 명시적 개발 모드 체크
-      if (process.env.FORCE_LOCAL_RAG === 'true') {
-        return true;
-      }
-
-      // 4. 로컬 개발 서버 체크
-      if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
-        return true;
-      }
-
-      // 5. 테스트 환경 체크
-      if (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID) {
-        return true;
-      }
-
+    // 1. NODE_ENV 체크
+    if (process.env.NODE_ENV === 'production') {
       return false;
     }
+
+    // 2. Vercel 배포 환경 체크
+    if (process.env.VERCEL || process.env.VERCEL_ENV) {
+      return false;
+    }
+
+    // 3. 명시적 개발 모드 체크
+    if (process.env.FORCE_LOCAL_RAG === 'true') {
+      return true;
+    }
+
+    // 4. 로컬 개발 서버 체크
+    if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+      return true;
+    }
+
+    // 5. 테스트 환경 체크
+    if (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID) {
+      return true;
+    }
+
+    return false;
+  }
 }
+
+// Singleton 인스턴스 export
+export const unifiedAIEngine = UnifiedAIEngine.getInstance();

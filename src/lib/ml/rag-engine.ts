@@ -292,7 +292,7 @@ class KoreanResponseGenerator {
 
 /**
  * 🔍 로컬 RAG 엔진 (개발/테스트 전용)
- * 
+ *
  * ⚠️ 주의: 배포 환경에서는 사용하지 않음
  * - 개발 환경: 테스트 및 디버깅 용도
  * - 테스트 환경: 단위 테스트 및 통합 테스트
@@ -314,7 +314,9 @@ export class LocalRAGEngine {
     this.isDevEnvironment = this.checkDevEnvironment();
 
     if (!this.isDevEnvironment) {
-      console.log('🚫 LocalRAGEngine: 배포 환경에서는 비활성화됨 (Supabase RAG 사용)');
+      console.log(
+        '🚫 LocalRAGEngine: 배포 환경에서는 비활성화됨 (Supabase RAG 사용)'
+      );
       return;
     }
 
@@ -371,6 +373,9 @@ export class LocalRAGEngine {
       // 기본 문서들 로드
       await this.loadDefaultDocuments();
 
+      // 테스트 데이터 로드 (하이브리드 RAG 폴백용)
+      await this.loadTestDataForHybridRAG();
+
       this.initialized = true;
       console.log(
         `✅ LocalRAGEngine 초기화 완료 (${this.documents.size}개 문서, 한국어 NLU 포함)`
@@ -414,7 +419,8 @@ export class LocalRAGEngine {
         query: query.query,
         totalResults: 0,
         processingTime: 0,
-        error: 'LocalRAGEngine은 배포 환경에서 사용할 수 없습니다. Supabase RAG를 사용하세요.'
+        error:
+          'LocalRAGEngine은 배포 환경에서 사용할 수 없습니다. Supabase RAG를 사용하세요.',
       };
     }
 
@@ -428,15 +434,18 @@ export class LocalRAGEngine {
       console.log(`🔍 LocalRAGEngine 검색 (개발/테스트): "${query.query}"`);
 
       // 간단한 텍스트 매칭 검색
-      const results = this.documents
-        .filter(doc =>
-          doc.content.toLowerCase().includes(query.query.toLowerCase()) ||
-          doc.metadata?.title?.toLowerCase().includes(query.query.toLowerCase())
+      const results = Array.from(this.documents.values())
+        .filter(
+          doc =>
+            doc.content.toLowerCase().includes(query.query.toLowerCase()) ||
+            doc.metadata?.title
+              ?.toLowerCase()
+              .includes(query.query.toLowerCase())
         )
         .slice(0, query.maxResults || 5)
         .map(doc => ({
           document: doc,
-          score: this.calculateScore(doc, query.query)
+          score: this.calculateScore(doc, query.query),
         }));
 
       const processingTime = Date.now() - startTime;
@@ -446,9 +455,8 @@ export class LocalRAGEngine {
         results,
         query: query.query,
         totalResults: results.length,
-        processingTime
+        processingTime,
       };
-
     } catch (error) {
       console.error('❌ LocalRAGEngine 검색 실패:', error);
       return {
@@ -457,7 +465,7 @@ export class LocalRAGEngine {
         query: query.query,
         totalResults: 0,
         processingTime: Date.now() - startTime,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -467,7 +475,8 @@ export class LocalRAGEngine {
     const queryLower = query.toLowerCase();
 
     // 단순 매칭 점수 계산
-    const exactMatches = (content.match(new RegExp(queryLower, 'g')) || []).length;
+    const exactMatches = (content.match(new RegExp(queryLower, 'g')) || [])
+      .length;
     const words = queryLower.split(' ');
     const wordMatches = words.filter(word => content.includes(word)).length;
 
@@ -541,8 +550,10 @@ export class LocalRAGEngine {
         metadata: {
           title: 'Linux Top Command',
           category: 'Linux',
-          source: 'development'
-        }
+          source: 'development',
+          timestamp: new Date().toISOString(),
+          tags: ['linux', 'monitoring', 'command'],
+        },
       },
       {
         id: 'dev-2',
@@ -550,8 +561,10 @@ export class LocalRAGEngine {
         metadata: {
           title: 'Docker Management',
           category: 'Docker',
-          source: 'development'
-        }
+          source: 'development',
+          timestamp: new Date().toISOString(),
+          tags: ['docker', 'container', 'monitoring'],
+        },
       },
       {
         id: 'dev-3',
@@ -559,9 +572,11 @@ export class LocalRAGEngine {
         metadata: {
           title: 'Kubernetes Debugging',
           category: 'Kubernetes',
-          source: 'development'
-        }
-      }
+          source: 'development',
+          timestamp: new Date().toISOString(),
+          tags: ['kubernetes', 'cluster', 'debugging'],
+        },
+      },
     ];
 
     // 명령어 데이터베이스 로드
@@ -746,7 +761,56 @@ export class LocalRAGEngine {
       nodeEnv: process.env.NODE_ENV,
       isVercel: !!process.env.VERCEL,
       forceLocalRAG: process.env.FORCE_LOCAL_RAG === 'true',
-      isTest: !!process.env.JEST_WORKER_ID
+      isTest: !!process.env.JEST_WORKER_ID,
     };
+  }
+
+  /**
+   * 🔧 테스트 데이터 로드 (하이브리드 RAG 폴백용)
+   */
+  private async loadTestDataForHybridRAG(): Promise<void> {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+
+      // 테스트 데이터 파일 경로
+      const testDataPath = path.join(
+        process.cwd(),
+        'src',
+        'data',
+        'local-rag',
+        'commands.json'
+      );
+
+      if (fs.existsSync(testDataPath)) {
+        const testData = JSON.parse(fs.readFileSync(testDataPath, 'utf8'));
+
+        for (const cmd of testData) {
+          const document: RAGDocument = {
+            id: cmd.id,
+            content: `${cmd.command}: ${cmd.description}. ${cmd.content}`,
+            metadata: {
+              source: 'test-data',
+              timestamp: new Date().toISOString(),
+              category: cmd.category,
+              tags: [cmd.category, 'command', 'test'],
+              title: cmd.command,
+              priority: 1,
+            },
+          };
+
+          await this.addDocument(document);
+        }
+
+        console.log(`📄 테스트 데이터 로드 완료: ${testData.length}개 명령어`);
+      } else {
+        console.log('⚠️ 테스트 데이터 파일 없음, 기본 문서만 사용');
+      }
+    } catch (error) {
+      console.warn(
+        '⚠️ 테스트 데이터 로드 실패, 기본 문서만 사용:',
+        error.message
+      );
+    }
   }
 }
