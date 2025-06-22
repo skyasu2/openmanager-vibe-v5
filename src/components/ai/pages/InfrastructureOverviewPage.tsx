@@ -9,18 +9,18 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { formatPercentage } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import {
-  Server,
+  Activity,
   Cpu,
   HardDrive,
   MemoryStick,
-  Wifi,
-  Activity,
   RefreshCw,
+  Server,
+  Wifi,
 } from 'lucide-react';
-import { formatPercentage } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 
 interface InfrastructureStats {
   totalServers: number;
@@ -53,52 +53,35 @@ export default function InfrastructureOverviewPage({
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
-  // 서버 데이터 가져오기
+  // 서버 데이터 가져오기 - 대시보드 API와 동일한 소스 사용
   const fetchServerData = async () => {
     try {
-      const response = await fetch('/api/servers');
-      if (!response.ok) throw new Error('Failed to fetch server data');
+      const response = await fetch('/api/dashboard');
+      if (!response.ok) throw new Error('Failed to fetch dashboard data');
 
       /*
-       * ✅ 안전한 응답 구조 처리
-       *   - 2025.06.15 API 응답이 { success, servers: [] } 형태로 변경됨
-       *   - 배열 또는 객체 형태 모두 지원 (하위 호환)
+       * ✅ 대시보드 API 응답 구조 처리
+       *   - { data: { servers: [], overview: {} } } 형태
        */
-      const data = await response.json();
-      const servers = Array.isArray(data)
-        ? data // 구버전: 배열 반환
-        : Array.isArray(data.servers)
-          ? data.servers // 신버전: 객체 내부 servers 배열
-          : [];
+      const response_data = await response.json();
+      const servers = response_data?.data?.servers || [];
+      const overview = response_data?.data?.overview || {};
 
-      console.log('🔍 인프라 현황 - 서버 데이터:', {
+      console.log('🔍 인프라 현황 - 대시보드 데이터:', {
         serversCount: servers.length,
+        overview,
         firstServer: servers[0],
         timestamp: new Date().toISOString(),
       });
 
-      // 서버 통계 계산 - 실제 API 상태값 매핑
-      const totalServers = servers.length;
-
-      // 🎯 올바른 상태 매핑: running → online, warning → warning, error/stopped → offline
-      const onlineServers = servers.filter(
-        (s: any) => s.status === 'running'
-      ).length;
-
-      const warningServers = servers.filter(
-        (s: any) => s.status === 'warning'
-      ).length;
-
-      const offlineServers = servers.filter(
-        (s: any) =>
-          s.status === 'error' ||
-          s.status === 'stopped' ||
-          s.status === 'maintenance'
-      ).length;
-
+      // 🎯 대시보드 API의 overview 데이터를 직접 사용
+      const totalServers = overview.total_servers || servers.length;
+      const onlineServers = overview.healthy_servers || 0;
+      const warningServers = overview.warning_servers || 0;
+      const offlineServers = overview.critical_servers || 0;
       const alertCount = warningServers + offlineServers;
 
-      console.log('📊 서버 상태 분포:', {
+      console.log('📊 서버 상태 분포 (대시보드 API):', {
         totalServers,
         onlineServers,
         warningServers,
@@ -106,36 +89,37 @@ export default function InfrastructureOverviewPage({
         alertCount,
       });
 
-      // 🎯 안전한 평균 리소스 사용률 계산 - 실제 API 구조 반영
+      // 🎯 리소스 사용률 계산 - 서버 메트릭 기반
       let totalCpu = 0;
       let totalRam = 0;
       let totalDisk = 0;
       let bandwidth = 0;
 
-      if (totalServers > 0) {
-        // 메트릭 데이터 접근: s.metrics.cpu, s.metrics.memory, s.metrics.disk
+      if (servers.length > 0) {
+        // 대시보드 API 서버 데이터 구조에 맞게 계산
         totalCpu =
           servers.reduce((sum: number, s: any) => {
-            const cpuValue = s.metrics?.cpu || s.cpu || 0;
+            const cpuValue = s.node_cpu_usage_percent || s.cpu_usage || 0;
             return sum + cpuValue;
-          }, 0) / totalServers;
+          }, 0) / servers.length;
 
         totalRam =
           servers.reduce((sum: number, s: any) => {
-            const memoryValue = s.metrics?.memory || s.memory || 0;
+            const memoryValue =
+              s.node_memory_usage_percent || s.memory_usage || 0;
             return sum + memoryValue;
-          }, 0) / totalServers;
+          }, 0) / servers.length;
 
         totalDisk =
           servers.reduce((sum: number, s: any) => {
-            const diskValue = s.metrics?.disk || s.disk || 0;
+            const diskValue = s.node_disk_usage_percent || s.disk_usage || 0;
             return sum + diskValue;
-          }, 0) / totalServers;
+          }, 0) / servers.length;
 
         // 네트워크는 총합으로 계산 (대역폭)
         bandwidth = servers.reduce((sum: number, s: any) => {
-          const networkIn = s.metrics?.network?.in || s.network?.in || 0;
-          const networkOut = s.metrics?.network?.out || s.network?.out || 0;
+          const networkIn = s.node_network_receive_rate_mbps || 0;
+          const networkOut = s.node_network_transmit_rate_mbps || 0;
           return sum + networkIn + networkOut;
         }, 0);
       }
