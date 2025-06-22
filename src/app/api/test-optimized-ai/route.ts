@@ -7,6 +7,7 @@
  * - Google AI (2%) - 베타 기능 (질문만)
  */
 
+import { safeKoreanLog, safeProcessRequestBody } from '@/utils/encoding-fix';
 import { NextRequest, NextResponse } from 'next/server';
 import { optimizedUnifiedAIEngine } from '../../../core/ai/OptimizedUnifiedAIEngine';
 
@@ -66,20 +67,34 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { query, mode = 'AUTO', category, priority = 'medium' } = body;
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  const startTime = Date.now();
 
-    if (!query) {
+  try {
+    // 🔧 한글 인코딩 완전 해결: Buffer 기반 UTF-8 강제 디코딩
+    const body = await safeProcessRequestBody(request);
+
+    const { query, mode = 'AUTO' } = body;
+
+    if (!query || typeof query !== 'string') {
       return NextResponse.json(
         {
           success: false,
-          error: 'query 매개변수가 필요합니다',
+          error: 'Query is required',
+          message: '질문을 입력해주세요.',
         },
-        { status: 400 }
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Cache-Control': 'no-cache',
+          },
+        }
       );
     }
+
+    // 🔧 안전한 한글 로그 출력
+    safeKoreanLog(`🎯 최적화된 AI 엔진 질의: "${query}" (모드: ${mode})`);
 
     // mode 검증 (CUSTOM_ONLY 제거됨)
     const validModes = ['AUTO', 'GOOGLE_AI', 'INTERNAL'];
@@ -98,12 +113,10 @@ export async function POST(request: NextRequest) {
 
     console.log(`🧪 최적화된 AI 엔진 POST 테스트: "${query}" (모드: ${mode})`);
 
-    const startTime = Date.now();
     const result = await optimizedUnifiedAIEngine.processQuery({
       query,
       mode,
-      category,
-      priority,
+      priority: 'medium',
     });
 
     const totalTime = Date.now() - startTime;
@@ -115,8 +128,6 @@ export async function POST(request: NextRequest) {
       success: true,
       testQuery: query,
       mode,
-      category,
-      priority,
       result,
       stats,
       performance: {
@@ -139,16 +150,22 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('❌ 최적화된 AI 엔진 POST 테스트 실패:', error);
+    console.error('❌ 최적화된 AI 엔진 오류:', error);
 
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : '알 수 없는 오류',
-        stats: optimizedUnifiedAIEngine.getStats(),
-        timestamp: new Date().toISOString(),
+        error: '서버 오류가 발생했습니다.',
+        details: error instanceof Error ? error.message : '알 수 없는 오류',
+        processingTime: Date.now() - startTime,
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': 'no-cache',
+        },
+      }
     );
   }
 }

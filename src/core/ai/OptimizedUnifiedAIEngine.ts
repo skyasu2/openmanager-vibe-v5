@@ -9,6 +9,7 @@
  * 제거된 엔진: CustomEngines, OpenSourceEngines (안정성 문제)
  */
 
+import { safeKoreanLog, safeProcessQuery } from '@/utils/encoding-fix';
 import { GoogleAIEngine } from './engines/GoogleAIEngine';
 import { MCPClientEngine } from './engines/MCPClientEngine';
 import { SupabaseRAGMainEngine } from './engines/SupabaseRAGMainEngine';
@@ -113,23 +114,27 @@ export class OptimizedUnifiedAIEngine {
       await this.initialize();
     }
 
-    const { query, mode = 'AUTO', category, priority = 'medium' } = request;
+    // 🔧 한글 인코딩 안전 처리
+    const safeQuery = safeProcessQuery(request.query);
+    const safeRequest = { ...request, query: safeQuery };
+
+    const { query, mode = 'AUTO', category, priority = 'medium' } = safeRequest;
 
     try {
-      console.log(`🔍 쿼리 처리 시작: "${query}" (모드: ${mode})`);
+      safeKoreanLog(`🔍 쿼리 처리 시작: "${query}" (모드: ${mode})`);
 
       let response: OptimizedAIResponse;
 
       switch (mode) {
         case 'GOOGLE_AI':
-          response = await this.processWithGoogleAI(request);
+          response = await this.processWithGoogleAI(safeRequest);
           break;
         case 'INTERNAL':
-          response = await this.processWithInternalEngines(request);
+          response = await this.processWithInternalEngines(safeRequest);
           break;
         case 'AUTO':
         default:
-          response = await this.processWithAutoMode(request);
+          response = await this.processWithAutoMode(safeRequest);
           break;
       }
 

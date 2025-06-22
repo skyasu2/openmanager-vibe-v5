@@ -11,7 +11,13 @@ import '@/lib/keep-alive-scheduler';
 // 성능 모니터링 초기화
 import '@/utils/performance';
 // 과도한 갱신 방지 시스템 초기화
+import { detectAndFixTerminalEncoding } from '@/utils/encoding-fix';
 import '@/utils/update-prevention-init';
+
+// 시스템 시작 시 한글 인코딩 자동 설정
+if (typeof window === 'undefined') {
+  detectAndFixTerminalEncoding();
+}
 
 const inter = Inter({ subsets: ['latin'] });
 
