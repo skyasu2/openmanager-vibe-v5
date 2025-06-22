@@ -8,15 +8,12 @@
  * - 다운로드 지원
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { realServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
-import { supabase } from '@/lib/supabase';
-import { autoReportService } from '@/services/ai/AutoReportService';
-import { AIAnalysisDataset } from '@/types/ai-agent-input-schema';
-import { createSafeError } from '@/lib/error-handler';
-import { z } from 'zod';
-import { aiEngineHub } from '@/core/ai/RefactoredAIEngineHub';
 import type { AIFunctionType } from '@/core/ai/RefactoredAIEngineHub';
+import { aiEngineHub } from '@/core/ai/RefactoredAIEngineHub';
+import { supabase } from '@/lib/supabase';
+import { realServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 
 interface ReportData {
   id: string;

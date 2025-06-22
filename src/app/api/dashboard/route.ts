@@ -7,7 +7,7 @@
  * @version 5.12.0
  */
 
-import { unifiedMetricsManager } from '@/services/UnifiedMetricsManager';
+import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -36,16 +36,11 @@ export async function GET(request: NextRequest) {
       `📊 대시보드 데이터 요청: format=${format}, history=${includeHistory}, since=${sinceTimestamp}`
     );
 
-    // 1. 통합 메트릭 관리자 상태 확인
-    const managerStatus = unifiedMetricsManager.getStatus();
-    if (!managerStatus.isRunning) {
-      console.log('⚠️ 통합 메트릭 관리자가 실행되지 않음. 시작 시도...');
-      await unifiedMetricsManager.start();
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
+    // 1. 실제 서버 데이터 생성기에서 직접 데이터 가져오기
+    const realServerDataGenerator = RealServerDataGenerator.getInstance();
+    const originalServers = realServerDataGenerator.getAllServers();
+    const generatorStatus = realServerDataGenerator.getStatus();
 
-    // 2. 서버 데이터 조회
-    const originalServers: any[] = unifiedMetricsManager.getServers();
     console.log(
       `📊 총 ${originalServers.length}개 서버에서 대시보드 데이터 생성`
     );
@@ -53,24 +48,65 @@ export async function GET(request: NextRequest) {
     // 🔄 sinceTimestamp가 지정되면 변화된 서버만 필터링
     const servers: any[] = sinceTimestamp
       ? originalServers.filter(
-          s => new Date(s.last_updated).getTime() > (sinceTimestamp as number)
+          s =>
+            new Date(s.health?.lastCheck || Date.now()).getTime() >
+            (sinceTimestamp as number)
         )
       : originalServers;
 
+    // 서버 데이터를 대시보드 API 형식으로 변환
+    const formattedServers = servers.map(server => ({
+      id: server.id,
+      hostname: server.hostname,
+      environment: server.environment,
+      role: server.role,
+      status: server.status, // 실제 서버 데이터 생성기의 상태 사용
+      node_cpu_usage_percent: server.metrics.cpu,
+      node_memory_usage_percent: server.metrics.memory,
+      node_disk_usage_percent: server.metrics.disk,
+      node_network_receive_rate_mbps: server.metrics.network.in,
+      node_network_transmit_rate_mbps: server.metrics.network.out,
+      node_uptime_seconds: server.metrics.uptime,
+      http_request_duration_seconds: server.metrics.responseTime / 1000,
+      http_requests_total: server.metrics.requests,
+      http_requests_errors_total: server.metrics.errors,
+      timestamp: Date.now(),
+      labels: {
+        environment: server.environment,
+        role: server.role,
+        cluster: 'openmanager-v5',
+        version: '5.11.0',
+      },
+      // 호환성을 위한 추가 필드
+      cpu_usage: server.metrics.cpu,
+      memory_usage: server.metrics.memory,
+      disk_usage: server.metrics.disk,
+      response_time: server.metrics.responseTime,
+      uptime: server.metrics.uptime / 3600, // 시간 단위로 변환
+      last_updated: new Date().toISOString(),
+    }));
+
     // 3. 서버 상태 분석
     const statusDistributionAll = analyzeServerStatus(originalServers);
-    const statusDistribution = analyzeServerStatus(servers);
-    const environmentStats = analyzeByEnvironment(servers);
-    const roleStats = analyzeByRole(servers);
-    const performanceMetrics = calculatePerformanceMetrics(servers);
-    const resourceUtilization = calculateResourceUtilization(servers);
-    const alertsSummary = analyzeAlerts(servers);
-    const topServers = getTopResourceConsumers(servers);
+    const statusDistribution = analyzeServerStatus(formattedServers);
+    const environmentStats = analyzeByEnvironment(formattedServers);
+    const roleStats = analyzeByRole(formattedServers);
+    const performanceMetrics = calculatePerformanceMetrics(formattedServers);
+    const resourceUtilization = calculateResourceUtilization(formattedServers);
+    const alertsSummary = analyzeAlerts(formattedServers);
+    const topServers = getTopResourceConsumers(formattedServers);
+
+    // 🎭 AI 분석 가능한 장애 시나리오 정보 추가
+    const scenarioManager = (
+      await import('@/services/DemoScenarioManager')
+    ).DemoScenarioManager.getInstance();
+    const currentScenario = scenarioManager.getCurrentScenario();
+    const scenarioStatus = scenarioManager.getStatus();
 
     // 4. 대시보드 데이터 구성
     const dashboardData = {
       // 🖥️ 서버 원본 데이터
-      servers: servers,
+      servers: formattedServers,
 
       // 📊 전체 현황 요약
       overview: {
@@ -79,10 +115,10 @@ export async function GET(request: NextRequest) {
         warning_servers: statusDistributionAll.warning,
         critical_servers: statusDistributionAll.critical,
         health_score: calculateHealthScore(statusDistributionAll),
-        system_availability: calculateSystemAvailability(servers),
+        system_availability: calculateSystemAvailability(formattedServers),
         active_incidents: alertsSummary.total_alerts,
         last_updated: new Date().toISOString(),
-        system_running: managerStatus.isRunning,
+        system_running: generatorStatus.isRunning,
       },
 
       // 🏗️ 환경별 현황
@@ -104,20 +140,20 @@ export async function GET(request: NextRequest) {
       top_resource_consumers: topServers,
 
       // 📊 패턴 분석
-      pattern_analysis: analyzePatterns(servers),
+      pattern_analysis: analyzePatterns(formattedServers),
 
       // 🎯 상관관계 메트릭
-      correlation_insights: analyzeCorrelations(servers),
+      correlation_insights: analyzeCorrelations(formattedServers),
 
       // 📈 트렌드 분석
-      trends: analyzeTrends(servers),
+      trends: analyzeTrends(formattedServers),
 
       // 💡 권장사항
-      recommendations: generateRecommendations(servers, alertsSummary),
+      recommendations: generateRecommendations(formattedServers, alertsSummary),
 
       // 🔄 호환성을 위한 중첩 구조
       data: {
-        servers: servers,
+        servers: formattedServers,
         overview: {
           total_servers: originalServers.length,
           healthy_servers: statusDistributionAll.healthy,
@@ -125,12 +161,31 @@ export async function GET(request: NextRequest) {
           critical_servers: statusDistributionAll.critical,
         },
       },
+
+      // 🎭 AI 분석용 장애 시나리오 정보
+      scenario_analysis: {
+        is_active: scenarioStatus.isActive,
+        current_scenario: currentScenario
+          ? {
+              session_id: currentScenario.sessionInfo?.sessionId,
+              main_failure: currentScenario.sessionInfo?.mainFailure,
+              cascade_failures: currentScenario.sessionInfo?.cascadeFailures,
+              current_phase: currentScenario.phase,
+              phase_description: currentScenario.description,
+              korean_description: currentScenario.koreanDescription,
+              ai_analysis_points: currentScenario.aiAnalysisPoints,
+              time_range: currentScenario.timeRange,
+              affected_servers: currentScenario.changes?.targetServers || [],
+              affected_server_types: currentScenario.changes?.serverTypes || [],
+            }
+          : null,
+      },
     };
 
     // 5. 히스토리 데이터 추가 (요청시)
     if (includeHistory) {
       (dashboardData as any).historical_data =
-        generateHistoricalSummary(servers);
+        generateHistoricalSummary(formattedServers);
     }
 
     // 6. 메타데이터 추가
@@ -143,9 +198,11 @@ export async function GET(request: NextRequest) {
           processing_time_ms: Date.now() - startTime,
           timestamp: new Date().toISOString(),
         },
-        system_info: managerStatus,
+        system_info: generatorStatus,
         data_freshness: {
-          last_system_update: managerStatus.isRunning ? 'real-time' : 'static',
+          last_system_update: generatorStatus.isRunning
+            ? 'real-time'
+            : 'static',
           cache_ttl_seconds: 30,
           refresh_recommended: true,
         },
@@ -188,9 +245,13 @@ export async function GET(request: NextRequest) {
 // 🔧 분석 함수들
 function analyzeServerStatus(servers: any[]) {
   return {
-    healthy: servers.filter(s => s.status === 'healthy').length,
+    healthy: servers.filter(
+      s => s.status === 'running' || s.status === 'healthy'
+    ).length,
     warning: servers.filter(s => s.status === 'warning').length,
-    critical: servers.filter(s => s.status === 'critical').length,
+    critical: servers.filter(
+      s => s.status === 'error' || s.status === 'critical'
+    ).length,
   };
 }
 
@@ -200,13 +261,17 @@ function analyzeByEnvironment(servers: any[]) {
     environment: env,
     total: servers.filter(s => s.environment === env).length,
     healthy: servers.filter(
-      s => s.environment === env && s.status === 'healthy'
+      s =>
+        s.environment === env &&
+        (s.status === 'running' || s.status === 'healthy')
     ).length,
     warning: servers.filter(
       s => s.environment === env && s.status === 'warning'
     ).length,
     critical: servers.filter(
-      s => s.environment === env && s.status === 'critical'
+      s =>
+        s.environment === env &&
+        (s.status === 'error' || s.status === 'critical')
     ).length,
   }));
 }
@@ -216,12 +281,14 @@ function analyzeByRole(servers: any[]) {
   return roles.map(role => ({
     role,
     total: servers.filter(s => s.role === role).length,
-    healthy: servers.filter(s => s.role === role && s.status === 'healthy')
-      .length,
+    healthy: servers.filter(
+      s => s.role === role && (s.status === 'running' || s.status === 'healthy')
+    ).length,
     warning: servers.filter(s => s.role === role && s.status === 'warning')
       .length,
-    critical: servers.filter(s => s.role === role && s.status === 'critical')
-      .length,
+    critical: servers.filter(
+      s => s.role === role && (s.status === 'error' || s.status === 'critical')
+    ).length,
   }));
 }
 
@@ -273,7 +340,9 @@ function calculateResourceUtilization(servers: any[]) {
 }
 
 function analyzeAlerts(servers: any[]) {
-  const criticalServers = servers.filter(s => s.status === 'critical').length;
+  const criticalServers = servers.filter(
+    s => s.status === 'error' || s.status === 'critical'
+  ).length;
   const warningServers = servers.filter(s => s.status === 'warning').length;
 
   return {
@@ -309,7 +378,9 @@ function analyzePatterns(servers: any[]) {
     high_memory_pattern: servers.filter(
       s => (s.memory_usage || s.node_memory_usage_percent || 0) > 80
     ).length,
-    error_pattern: servers.filter(s => s.status === 'critical').length,
+    error_pattern: servers.filter(
+      s => s.status === 'error' || s.status === 'critical'
+    ).length,
   };
 }
 
@@ -354,7 +425,9 @@ function calculateHealthScore(statusDistribution: any): number {
 }
 
 function calculateSystemAvailability(servers: any[]): number {
-  const healthyServers = servers.filter(s => s.status === 'healthy').length;
+  const healthyServers = servers.filter(
+    s => s.status === 'running' || s.status === 'healthy'
+  ).length;
   return servers.length > 0
     ? Math.round((healthyServers / servers.length) * 100)
     : 100;
