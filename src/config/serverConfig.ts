@@ -35,7 +35,7 @@ export interface ServerGenerationConfig {
 }
 
 /**
- * 🎯 기본 서버 개수 (15개로 변경 - 로컬/Vercel 통일)
+ * 🎯 기본 서버 개수 (15개 유지 - 30-40초 갱신 주기)
  */
 export const DEFAULT_SERVER_COUNT = 15;
 
@@ -45,7 +45,7 @@ export const DEFAULT_SERVER_COUNT = 15;
 export function calculateServerConfig(
   serverCount: number = DEFAULT_SERVER_COUNT
 ): ServerGenerationConfig {
-  // 🎯 사용자 요구사항에 따른 서버 상태 분포
+  // 🎯 사용자 요구사항에 따른 서버 상태 분포 (15개 기준)
   const criticalPercent = 0.07; // 7% 심각 상태 (15개 중 1개)
   const warningPercent = 0.13; // 13% 경고 상태 (15개 중 2개)
   const tolerancePercent = 0.05; // 5% 변동값 (±5%)
@@ -62,7 +62,7 @@ export function calculateServerConfig(
   const batchSize = Math.min(100, Math.max(10, Math.ceil(serverCount / 2)));
   const bufferSize = Math.min(1000, serverCount * 10);
 
-  // 캐시 설정 (메모리 기반 동적 조정)
+  // 캐시 설정 (30-40초 갱신 주기 최적화)
   const updateInterval = calculateOptimalUpdateInterval(); // 동적 계산
   const expireTime = 60000; // 1분 고정
 
@@ -89,7 +89,7 @@ export function calculateServerConfig(
 }
 
 /**
- * 🧠 메모리 사용량 기반 최적 업데이트 간격 계산
+ * 🧠 메모리 사용량 기반 최적 업데이트 간격 계산 (30-40초 범위)
  */
 export function calculateOptimalUpdateInterval(): number {
   // 서버 사이드에서는 Node.js process.memoryUsage() 사용
