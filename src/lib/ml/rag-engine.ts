@@ -104,28 +104,67 @@ class KoreanNLUProcessor {
     // 키워드 추출
     const keywords = this.extractKeywords(text);
 
-    // 패턴 매칭으로 의도 분석
-    for (const [category, patterns] of this.intentPatterns) {
-      for (const pattern of patterns) {
-        if (pattern.test(normalizedText)) {
-          const matchLength = (normalizedText.match(pattern) || [''])[0].length;
-          const textLength = normalizedText.length;
-          const keywordDensity = matchLength / Math.max(textLength, 1);
-          const categoryWeight = this.getCategoryWeight(category);
+    // 직접적인 키워드 매칭 우선 (높은 정확도)
+    const directMatches = {
+      linux: [
+        'linux',
+        '리눅스',
+        'top',
+        'ps',
+        'htop',
+        'cpu',
+        '프로세스',
+        '시스템',
+        '사용률',
+      ],
+      k8s: [
+        'kubernetes',
+        '쿠버네티스',
+        'kubectl',
+        'pod',
+        'k8s',
+        '컨테이너',
+        'crashloop',
+      ],
+      mysql: ['mysql', 'mariadb', '데이터베이스', 'db', 'sql', '연결'],
+      redis: ['redis', '레디스', '캐시'],
+      mongodb: ['mongodb', '몽고db', 'mongo'],
+      postgresql: ['postgresql', 'postgres', 'pg'],
+    };
 
-          const confidence = Math.min(
-            0.95,
-            Math.max(
-              0.1,
-              0.4 +
-                keywordDensity * 0.4 +
-                categoryWeight * 0.2 +
-                (textLength > 5 ? 0.1 : 0)
-            )
+    for (const [category, matchWords] of Object.entries(directMatches)) {
+      const matches = matchWords.filter(word => normalizedText.includes(word));
+      if (matches.length > 0) {
+        const confidence = Math.min(0.9, 0.5 + matches.length * 0.2);
+        if (confidence > bestMatch.confidence) {
+          bestMatch = { category, confidence, keywords };
+          console.log(
+            `🎯 직접 매칭: "${text}" → ${category} (키워드: ${matches.join(', ')})`
           );
+        }
+      }
+    }
 
-          if (confidence > bestMatch.confidence) {
-            bestMatch = { category, confidence, keywords };
+    // 기존 패턴 매칭도 수행 (낮은 우선순위)
+    if (bestMatch.confidence < 0.5) {
+      for (const [category, patterns] of this.intentPatterns) {
+        for (const pattern of patterns) {
+          if (pattern.test(normalizedText)) {
+            const matchLength = (normalizedText.match(pattern) || [''])[0]
+              .length;
+            const textLength = normalizedText.length;
+            const keywordDensity = matchLength / Math.max(textLength, 1);
+            const categoryWeight = this.getCategoryWeight(category);
+
+            const confidence = Math.min(
+              0.7, // 패턴 매칭은 최대 0.7로 제한
+              Math.max(0.1, 0.3 + keywordDensity * 0.3 + categoryWeight * 0.1)
+            );
+
+            if (confidence > bestMatch.confidence) {
+              bestMatch = { category, confidence, keywords };
+              console.log(`🔍 패턴 매칭: "${text}" → ${category}`);
+            }
           }
         }
       }
@@ -276,7 +315,10 @@ export class LocalRAGEngine {
       await this.loadDefaultDocuments();
 
       this.initialized = true;
-      console.log('✅ Enhanced RAG Engine 초기화 완료 (한국어 NLU 포함)');
+      console.log(
+        `✅ Enhanced RAG Engine 초기화 완료 (${this.documents.size}개 문서, 한국어 NLU 포함)`
+      );
+      console.log('📚 로드된 문서 목록:', Array.from(this.documents.keys()));
     } catch (error) {
       console.error('❌ Enhanced RAG Engine 초기화 실패:', error);
       throw error;
@@ -323,9 +365,17 @@ export class LocalRAGEngine {
         relevance: number;
       }> = [];
 
+      console.log(
+        `🔍 RAG 검색 시작: "${query.query}" (총 ${this.documents.size}개 문서)`
+      );
+      console.log(`🎯 의도 분석 결과:`, intent);
+
       for (const [docId, document] of this.documents) {
-        if (query.category && document.metadata.category !== query.category) {
-          continue;
+        // 카테고리 필터링 개선
+        if (query.category && query.category !== '') {
+          if (!document.metadata.category.includes(query.category)) {
+            continue;
+          }
         }
 
         const docEmbedding = this.embeddings.get(docId);
@@ -343,19 +393,39 @@ export class LocalRAGEngine {
           document.keywords || []
         );
 
-        // 카테고리 매칭 보너스
-        const categoryBonus =
-          intent.category === document.metadata.category ? 0.2 : 0;
+        // 카테고리 매칭 보너스 (더 강력하게)
+        let categoryBonus = 0;
+        if (intent.category !== 'general') {
+          if (document.metadata.category.includes(intent.category)) {
+            categoryBonus = 0.4; // 카테고리 매칭 시 큰 보너스
+          } else {
+            categoryBonus = -0.3; // 다른 카테고리면 페널티
+          }
+        }
 
         // 우선순위 가중치
-        const priorityWeight = (document.metadata.priority || 1) * 0.1;
+        const priorityWeight = (document.metadata.priority || 1) * 0.05;
 
-        // 최종 점수 계산
-        const finalScore =
-          vectorSimilarity * 0.6 +
-          keywordScore * 0.3 +
-          categoryBonus +
-          priorityWeight;
+        // 최종 점수 계산 (카테고리 중심)
+        const finalScore = Math.max(
+          0,
+          vectorSimilarity * 0.3 +
+            keywordScore * 0.4 +
+            categoryBonus +
+            priorityWeight
+        );
+
+        // 점수 계산 상세 로그
+        console.log(`📄 문서 "${docId}" 점수 계산:`, {
+          category: document.metadata.category,
+          vectorSimilarity: vectorSimilarity.toFixed(3),
+          keywordScore: keywordScore.toFixed(3),
+          categoryBonus: categoryBonus.toFixed(3),
+          priorityWeight: priorityWeight.toFixed(3),
+          finalScore: finalScore.toFixed(3),
+          threshold: query.threshold || 0.3,
+          passes: finalScore >= (query.threshold || 0.3),
+        });
 
         if (finalScore >= (query.threshold || 0.3)) {
           results.push({
@@ -524,9 +594,95 @@ export class LocalRAGEngine {
       },
     ];
 
+    // 명령어 데이터베이스 로드
+    await this.loadCommandDatabases();
+
     for (const doc of defaultDocs) {
       await this.addDocument(doc);
     }
+  }
+
+  /**
+   * 📚 명령어 데이터베이스 로드
+   */
+  private async loadCommandDatabases(): Promise<void> {
+    const commandFiles = [
+      'linux-commands.json',
+      'kubernetes-commands.json',
+      'database-commands.json',
+    ];
+
+    for (const fileName of commandFiles) {
+      try {
+        const filePath = `./src/data/commands/${fileName}`;
+
+        // Node.js 환경에서 파일 읽기
+        let commandData: any;
+
+        if (typeof window === 'undefined') {
+          // 서버 사이드
+          const fs = await import('fs');
+          const path = await import('path');
+
+          const fullPath = path.resolve(process.cwd(), filePath);
+          if (fs.existsSync(fullPath)) {
+            const fileContent = fs.readFileSync(fullPath, 'utf-8');
+            commandData = JSON.parse(fileContent);
+          } else {
+            console.warn(`⚠️ 명령어 파일을 찾을 수 없습니다: ${filePath}`);
+            continue;
+          }
+        } else {
+          // 클라이언트 사이드 - fetch 사용
+          try {
+            const response = await fetch(`/data/commands/${fileName}`);
+            if (response.ok) {
+              commandData = await response.json();
+            } else {
+              console.warn(`⚠️ 명령어 파일 로드 실패: ${fileName}`);
+              continue;
+            }
+          } catch (fetchError) {
+            console.warn(`⚠️ 명령어 파일 fetch 실패: ${fileName}`, fetchError);
+            continue;
+          }
+        }
+
+        if (commandData && commandData.documents) {
+          console.log(
+            `📁 ${fileName} 파일 처리 중: ${commandData.documents.length}개 문서 발견`
+          );
+
+          for (const docData of commandData.documents) {
+            const ragDoc: RAGDocument = {
+              id: docData.id,
+              content: docData.content,
+              metadata: {
+                source: docData.metadata.source,
+                timestamp: new Date().toISOString(),
+                category: docData.metadata.category,
+                tags: docData.metadata.tags,
+                priority: docData.metadata.priority,
+              },
+              keywords: docData.metadata.commands || [],
+            };
+
+            await this.addDocument(ragDoc);
+            console.log(
+              `✅ 문서 추가: ${ragDoc.id} (카테고리: ${ragDoc.metadata.category})`
+            );
+          }
+
+          console.log(
+            `📚 ${fileName}에서 ${commandData.documents.length}개 명령어 문서 로드 완료`
+          );
+        }
+      } catch (error) {
+        console.error(`❌ 명령어 데이터베이스 로드 실패 (${fileName}):`, error);
+      }
+    }
+
+    console.log('🎯 모든 명령어 데이터베이스 로드 완료');
   }
 
   public getStats(): {

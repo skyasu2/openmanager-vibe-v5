@@ -1,0 +1,5 @@
+{
+  "type": "troubleshooting",
+  "data": { "query": "CPU 사용률이 95%일 때 어떻게 해야 하나요?" },
+  "options": { "mode": "rag" }
+}
