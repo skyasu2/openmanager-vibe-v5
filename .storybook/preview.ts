@@ -46,35 +46,11 @@ const preview: Preview = {
           value: '#ffffff',
         },
         {
-          name: 'gray',
-          value: '#f5f5f5',
+          name: 'purple',
+          value: '#6366f1',
         },
       ],
     },
-    // 접근성 테스트 설정
-    a11y: {
-      config: {
-        rules: [
-          {
-            id: 'color-contrast',
-            enabled: true,
-          },
-          {
-            id: 'focus-visible',
-            enabled: true,
-          },
-          {
-            id: 'keyboard-navigation',
-            enabled: true,
-          },
-        ],
-      },
-      options: {
-        checks: { 'color-contrast': { options: { noScroll: true } } },
-        restoreScroll: true,
-      },
-    },
-    // 뷰포트 설정
     viewport: {
       viewports: {
         mobile: {
@@ -100,14 +76,50 @@ const preview: Preview = {
         },
       },
     },
-    // 다국어 지원 (한국어 우선)
-    locale: 'ko',
-    locales: {
-      ko: { title: '한국어', right: '🇰🇷' },
-      en: { title: 'English', right: '🇺🇸' },
+    a11y: {
+      config: {
+        rules: [
+          {
+            id: 'autocomplete-valid',
+            enabled: false,
+          },
+          {
+            id: 'button-name',
+            enabled: true,
+          },
+          {
+            id: 'color-contrast',
+            enabled: true,
+          },
+        ],
+      },
     },
   },
-
+  globalTypes: {
+    locale: {
+      description: 'Internationalization locale',
+      defaultValue: 'ko',
+      toolbar: {
+        icon: 'globe',
+        items: [
+          { value: 'ko', title: '한국어' },
+          { value: 'en', title: 'English' },
+        ],
+      },
+    },
+    theme: {
+      description: 'Global theme for components',
+      defaultValue: 'dark',
+      toolbar: {
+        title: 'Theme',
+        icon: 'paintbrush',
+        items: [
+          { value: 'light', title: 'Light' },
+          { value: 'dark', title: 'Dark' },
+        ],
+      },
+    },
+  },
   decorators: [
     (Story) => {
       // 각 스토리마다 목업 환경 재설정
@@ -115,22 +127,7 @@ const preview: Preview = {
       return Story();
     },
   ],
-
-  globalTypes: {
-    theme: {
-      name: 'Theme',
-      description: 'Global theme for components',
-      defaultValue: 'dark',
-      toolbar: {
-        icon: 'paintbrush',
-        items: [
-          { value: 'light', title: 'Light', icon: 'sun' },
-          { value: 'dark', title: 'Dark', icon: 'moon' },
-        ],
-        showName: true,
-      },
-    },
-  },
 };
 
 export default preview;
+
