@@ -7,32 +7,46 @@
  * - 하이브리드 시스템 통계 확인
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import smartRedis from '@/lib/redis';
 import { usageMonitor } from '@/lib/usage-monitor';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
+  const startTime = Date.now();
+
   try {
-    const { searchParams } = new URL(request.url);
-    const detailed = searchParams.get('detailed') === 'true';
-    const reset = searchParams.get('reset') === 'true';
+    console.log('🔴 Redis 상태 확인 시작...');
 
-    // 🔄 통계 리셋 요청 처리 (Mock Redis만 가능)
-    if (reset) {
-      return NextResponse.json({
-        success: true,
-        message: '하이브리드 Redis 통계 리셋은 현재 지원되지 않습니다.',
-        note: 'Mock Redis는 자동으로 정리됩니다.',
-        timestamp: new Date().toISOString(),
-      });
+    // 🎯 세션 기반 헬스체크 캐싱 (시스템 시작 시 한 번만)
+    const sessionCacheKey = 'redis-health-check-session';
+
+    // 브라우저 환경에서 세션 캐시 확인
+    if (typeof window !== 'undefined') {
+      try {
+        const cachedHealth = sessionStorage.getItem(sessionCacheKey);
+        if (cachedHealth) {
+          const cached = JSON.parse(cachedHealth);
+          const cacheAge = Date.now() - cached.timestamp;
+
+          // 세션 캐시가 30분 이내면 재사용
+          if (cacheAge < 30 * 60 * 1000) {
+            console.log('📦 Redis 헬스체크 세션 캐시 사용');
+            return NextResponse.json({
+              ...cached.data,
+              cached: true,
+              cacheAge: Math.round(cacheAge / 1000),
+            });
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ Redis 세션 캐시 확인 실패:', error);
+      }
     }
 
-    // 📊 하이브리드 Redis 통계 수집
-    const startTime = Date.now();
+    // 🔧 하이브리드 Redis 통계 수집
     const hybridStats = await smartRedis.getStats();
-    const responseTime = Date.now() - startTime;
 
-    // 📈 사용량 모니터 통계
+    // 📊 사용량 통계 수집
     const usageStatus = usageMonitor.getUsageStatus();
     const usageStats = {
       redis: {
@@ -48,46 +62,61 @@ export async function GET(request: NextRequest) {
       },
     };
 
-    // 🎯 기본 응답 데이터
-    const basicResponse = {
-      success: true,
+    // 🏥 시스템 건강도 판단
+    const systemHealth = determineSystemHealth(hybridStats, usageStats);
+
+    // 📈 성능 메트릭 계산
+    const performanceMetrics = {
+      responseTime: Date.now() - startTime,
+      memoryUsage: process.memoryUsage(),
+      uptime: process.uptime(),
       timestamp: new Date().toISOString(),
-      responseTime: `${responseTime}ms`,
-      hybrid: {
-        strategy: hybridStats.strategy,
-        mockRedis: hybridStats.mockRedis,
-        realRedis: hybridStats.realRedis,
-      },
-      usage: usageStats,
-      summary: {
-        totalOperations:
-          (hybridStats.mockRedis?.sets || 0) +
-          (hybridStats.mockRedis?.hits || 0),
-        mockUsageRatio: calculateMockUsageRatio(hybridStats),
-        averageResponseTime: `${responseTime}ms`,
-        systemHealth: determineSystemHealth(hybridStats, usageStats),
-      },
     };
 
-    // 📋 상세 정보 요청 시 추가 데이터
-    if (detailed) {
-      const detailedStats = await collectDetailedStats();
-      return NextResponse.json({
-        ...basicResponse,
-        detailed: detailedStats,
-      });
+    const responseData = {
+      success: true,
+      systemHealth,
+      hybridStats,
+      usageStats,
+      performance: performanceMetrics,
+      timestamp: new Date().toISOString(),
+      version: '5.44.1',
+      cached: false,
+    };
+
+    // 세션 캐시에 저장 (시스템 시작 시 한 번만 체크)
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem(
+          sessionCacheKey,
+          JSON.stringify({
+            data: responseData,
+            timestamp: Date.now(),
+          })
+        );
+        console.log('💾 Redis 헬스체크 세션 캐시에 저장');
+      } catch (error) {
+        console.warn('⚠️ Redis 세션 캐시 저장 실패:', error);
+      }
     }
 
-    return NextResponse.json(basicResponse);
-  } catch (error: any) {
-    console.error('❌ Redis Stats API 오류:', error);
+    console.log('✅ Redis 상태 확인 완료:', {
+      systemHealth,
+      mockRedis: !!hybridStats.mockRedis,
+      realRedis: hybridStats.realRedis?.status,
+    });
+
+    return NextResponse.json(responseData);
+  } catch (error) {
+    console.error('❌ Redis 상태 확인 중 오류:', error);
 
     return NextResponse.json(
       {
         success: false,
-        error: 'Redis 통계 수집 실패',
-        message: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        systemHealth: '🔴 위험',
         timestamp: new Date().toISOString(),
+        responseTime: Date.now() - startTime,
       },
       { status: 500 }
     );

@@ -2,8 +2,8 @@
  * 📊 Google AI Studio 상태 조회 API - 할당량 보호 적용
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import { GoogleAIQuotaManager } from '@/services/ai/engines/GoogleAIQuotaManager';
+import { NextResponse } from 'next/server';
 
 // 안전한 import 처리
 let GoogleAIService: any = null;
@@ -28,62 +28,59 @@ try {
 }
 
 export async function GET() {
-  const quotaManager = new GoogleAIQuotaManager();
+  const startTime = Date.now();
 
   try {
-    const startTime = Date.now();
+    console.log('🤖 Google AI 상태 확인 시작...');
 
-    // 🚨 Vercel 500 에러 방지: 환경변수 먼저 검증
-    console.log('🔍 환경변수 상태 확인:', {
-      GOOGLE_AI_API_KEY: !!process.env.GOOGLE_AI_API_KEY,
-      GOOGLE_AI_ENABLED: process.env.GOOGLE_AI_ENABLED,
-      NODE_ENV: process.env.NODE_ENV,
-    });
+    // 🎯 세션 기반 헬스체크 캐싱 (시스템 시작 시 한 번만)
+    const sessionCacheKey = 'google-ai-health-check-session';
 
-    // 1. 할당량 상태 확인
-    const quotaStatus = await quotaManager.getQuotaStatus();
-    const healthCheckPermission = await quotaManager.canPerformHealthCheck();
-
-    // 2. API 키 상태 확인 (안전한 방식)
-    let apiKey: string | null = null;
-    let isAvailable = false;
-    let keyStatus: any = {
-      source: 'none',
-      isAvailable: false,
-      needsUnlock: false,
-    };
-
-    if (getGoogleAIKey && isGoogleAIAvailable && getGoogleAIStatus) {
+    // 헤더에서 세션 캐시 확인
+    if (typeof window !== 'undefined') {
       try {
-        apiKey = getGoogleAIKey();
-        isAvailable = isGoogleAIAvailable();
-        keyStatus = getGoogleAIStatus();
-      } catch (keyError) {
-        console.error('❌ API 키 확인 중 오류:', keyError);
-        // 환경변수에서 직접 확인
-        apiKey = process.env.GOOGLE_AI_API_KEY || null;
-        isAvailable = !!apiKey;
-        keyStatus = {
-          source: apiKey ? 'environment' : 'none',
-          isAvailable: !!apiKey,
-          needsUnlock: false,
-        };
+        const cachedHealth = sessionStorage.getItem(sessionCacheKey);
+        if (cachedHealth) {
+          const cached = JSON.parse(cachedHealth);
+          const cacheAge = Date.now() - cached.timestamp;
+
+          // 세션 캐시가 30분 이내면 재사용
+          if (cacheAge < 30 * 60 * 1000) {
+            console.log('📦 Google AI 헬스체크 세션 캐시 사용');
+            return NextResponse.json({
+              ...cached.data,
+              cached: true,
+              cacheAge: Math.round(cacheAge / 1000),
+            });
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ Google AI 세션 캐시 확인 실패:', error);
       }
-    } else {
-      // 모듈 로드 실패 시 환경변수에서 직접 확인
-      apiKey = process.env.GOOGLE_AI_API_KEY || null;
-      isAvailable = !!apiKey;
-      keyStatus = {
-        source: apiKey ? 'environment' : 'none',
-        isAvailable: !!apiKey,
-        needsUnlock: false,
-      };
     }
 
-    // 3. Google AI 서비스 초기화 및 상태 확인 (안전한 방식)
-    let googleAI: any = null;
-    let initResult = false;
-    let serviceStatus: any = { error: 'Service not initialized' };
+    // 1. 환경변수 확인
+    const apiKey = getGoogleAIKey();
+    const isEnabled = process.env.GOOGLE_AI_ENABLED === 'true';
+    const quotaProtection = process.env.GOOGLE_AI_QUOTA_PROTECTION === 'true';
+
+    console.log('🔑 Google AI 설정:', {
+      enabled: isEnabled,
+      hasApiKey: !!apiKey,
+      quotaProtection,
+    });
+
+    // 2. 할당량 매니저 초기화
+    const quotaManager = new GoogleAIQuotaManager();
+    const quotaStatus = await quotaManager.getQuotaStatus();
+
+    // 3. 헬스체크 권한 확인 (24시간 캐싱 적용)
+    const healthCheckPermission = await quotaManager.canPerformHealthCheck();
+
+    // 4. Google AI 서비스 초기화
+    let googleAI = null;
+    let initResult = null;
+    let serviceStatus = null;
 
     if (GoogleAIService && apiKey) {
       try {
@@ -108,7 +105,7 @@ export async function GET() {
       };
     }
 
-    // 4. 연결 테스트 (헬스체크 캐싱 적용)
+    // 5. 연결 테스트 (헬스체크 캐싱 적용)
     let connectionTest = null;
 
     if (healthCheckPermission.cached) {
@@ -166,121 +163,84 @@ export async function GET() {
       };
     }
 
-    // 5. 환경변수 상태 확인
-    const envStatus = {
-      GOOGLE_AI_API_KEY: !!process.env.GOOGLE_AI_API_KEY,
-      GOOGLE_AI_ENABLED: process.env.GOOGLE_AI_ENABLED,
-      GOOGLE_AI_BETA_MODE: process.env.GOOGLE_AI_BETA_MODE,
-      GOOGLE_AI_DAILY_LIMIT: process.env.GOOGLE_AI_DAILY_LIMIT,
-      GOOGLE_AI_RPM_LIMIT: process.env.GOOGLE_AI_RPM_LIMIT,
-      GOOGLE_AI_QUOTA_PROTECTION: process.env.GOOGLE_AI_QUOTA_PROTECTION,
-      FORCE_MOCK_GOOGLE_AI: process.env.FORCE_MOCK_GOOGLE_AI,
-    };
-
-    const processingTime = Date.now() - startTime;
-
-    // 6. 전체 상태 평가
-    const overallStatus = {
-      isReady: initResult && isAvailable && apiKey,
-      hasAPIKey: !!apiKey,
-      serviceInitialized: initResult,
-      connectionWorking: connectionTest?.success || false,
-      quotaProtectionEnabled:
-        process.env.GOOGLE_AI_QUOTA_PROTECTION !== 'false',
-      mockMode: quotaManager.shouldUseMockMode(),
-      fallbackMode: !GoogleAIService || !getGoogleAIKey,
-      circuitBreakerActive: quotaStatus.isBlocked,
-    };
-
-    return NextResponse.json({
+    const responseData = {
       success: true,
-      data: {
-        // 🚀 시연용 상태 정보
-        demo: {
-          ready: overallStatus.isReady,
-          message: overallStatus.isReady
-            ? '✅ Google AI 시연 준비 완료!'
-            : overallStatus.fallbackMode
-              ? '⚠️ Google AI 폴백 모드 (모듈 로드 실패)'
-              : '⚠️ Google AI 설정 필요',
-          timestamp: new Date().toISOString(),
-        },
+      enabled: isEnabled && !!apiKey,
+      timestamp: new Date().toISOString(),
+      responseTime: Date.now() - startTime,
 
-        // API 키 정보
-        apiKey: {
-          available: isAvailable,
-          source: keyStatus.source,
-          needsUnlock: keyStatus.needsUnlock,
-          masked: apiKey
-            ? `${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}`
-            : null,
-        },
-
-        // 서비스 상태
-        service: {
-          initialized: initResult,
-          status: serviceStatus,
-          connectionTest,
-        },
-
-        // 할당량 정보
-        quota: {
-          dailyUsed: quotaStatus.dailyUsed,
-          dailyLimit: parseInt(process.env.GOOGLE_AI_DAILY_LIMIT || '100'),
-          hourlyUsed: quotaStatus.hourlyUsed,
-          hourlyLimit: parseInt(process.env.GOOGLE_AI_HOURLY_LIMIT || '20'),
-          testUsed: quotaStatus.testUsed,
-          testLimit: parseInt(process.env.GOOGLE_AI_TEST_LIMIT_PER_DAY || '5'),
-          circuitBreakerActive: quotaStatus.isBlocked,
-          healthCheckCacheHours: parseInt(
-            process.env.GOOGLE_AI_HEALTH_CHECK_CACHE_HOURS || '24'
-          ),
-          lastHealthCheck: quotaStatus.lastHealthCheck
-            ? new Date(quotaStatus.lastHealthCheck).toISOString()
-            : null,
-        },
-
-        // 환경변수 상태
-        environment: envStatus,
-
-        // 전체 평가
-        overall: overallStatus,
-
-        // 시스템 정보
-        system: {
-          processingTime: `${processingTime}ms`,
-          version: 'v5.44.1',
-          mode: 'QUOTA_PROTECTED',
-          timestamp: new Date().toISOString(),
-        },
+      // API 키 정보
+      apiKey: {
+        configured: !!apiKey,
+        source: apiKey ? getGoogleAIKey() : 'none',
+        length: apiKey ? apiKey.length : 0,
       },
-    });
-  } catch (error) {
-    console.error('❌ [Google AI Status] 상태 확인 실패:', error);
 
-    // 500 오류 대신 200으로 응답하되 오류 정보 포함
+      // 서비스 상태
+      service: serviceStatus,
+
+      // 연결 테스트 결과
+      connectionTest,
+
+      // 할당량 상태
+      quota: {
+        enabled: quotaProtection,
+        status: quotaStatus,
+        healthCheckCached: healthCheckPermission.cached,
+      },
+
+      // 환경변수 상태
+      environment: {
+        GOOGLE_AI_ENABLED: process.env.GOOGLE_AI_ENABLED,
+        GOOGLE_AI_QUOTA_PROTECTION: process.env.GOOGLE_AI_QUOTA_PROTECTION,
+        NODE_ENV: process.env.NODE_ENV,
+      },
+
+      // 시연용 정보
+      demo: {
+        ready: !!(isEnabled && apiKey && connectionTest?.success),
+        message:
+          isEnabled && apiKey && connectionTest?.success
+            ? '✅ Google AI 시연 준비 완료!'
+            : '⚠️ Google AI 설정 필요',
+      },
+    };
+
+    // 세션 캐시에 저장 (시스템 시작 시 한 번만 체크)
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem(
+          sessionCacheKey,
+          JSON.stringify({
+            data: responseData,
+            timestamp: Date.now(),
+          })
+        );
+        console.log('💾 Google AI 헬스체크 세션 캐시에 저장');
+      } catch (error) {
+        console.warn('⚠️ Google AI 세션 캐시 저장 실패:', error);
+      }
+    }
+
+    console.log('✅ Google AI 상태 확인 완료:', {
+      enabled: responseData.enabled,
+      connectionSuccess: connectionTest?.success,
+      cached: healthCheckPermission.cached,
+    });
+
+    return NextResponse.json(responseData);
+  } catch (error) {
+    console.error('❌ Google AI 상태 확인 중 오류:', error);
+
     return NextResponse.json(
       {
         success: false,
-        error: {
-          message: 'Google AI 상태 확인에 실패했습니다',
-          details: error.message,
-          code: 'GOOGLE_AI_STATUS_ERROR',
-          timestamp: new Date().toISOString(),
-        },
-        // 🚀 시연용 폴백 정보
-        fallback: {
-          message: '시연용 폴백 모드로 동작 중',
-          hasEnvironmentKey: !!process.env.GOOGLE_AI_API_KEY,
-          recommendedAction: '환경변수 설정 또는 팀 키 잠금 해제 필요',
-          demo: {
-            ready: false,
-            message: '⚠️ Google AI 오류 상태 - 폴백 모드',
-            timestamp: new Date().toISOString(),
-          },
-        },
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+        responseTime: Date.now() - startTime,
+        enabled: false,
       },
-      { status: 200 } // 500 대신 200으로 변경
+      { status: 500 }
     );
   }
 }

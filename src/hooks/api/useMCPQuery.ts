@@ -94,10 +94,54 @@ export const useMCPHistory = (limit: number = 50) => {
 export const useMCPStatus = () => {
   return useQuery({
     queryKey: ['mcp-status'],
-    queryFn: fetchMCPStatus,
-    refetchInterval: 120000, // 30초 → 120초로 변경 (과도한 요청 방지)
-    staleTime: 60000, // 15초 → 60초로 증가
-    retry: 2,
+    queryFn: async () => {
+      // 🎯 세션 캐시 확인 (브라우저 세션 동안 한 번만 체크)
+      const sessionKey = 'mcp-status-cache';
+      const cachedStatus = sessionStorage.getItem(sessionKey);
+
+      if (cachedStatus) {
+        try {
+          const cached = JSON.parse(cachedStatus);
+          const cacheAge = Date.now() - cached.timestamp;
+
+          // 세션 캐시가 30분 이내면 재사용 (Render 서버는 30분 활성 상태 유지)
+          if (cacheAge < 30 * 60 * 1000) {
+            console.log('📦 MCP 상태 캐시 사용 (Render 서버 30분 활성)');
+            return cached.data;
+          }
+        } catch (error) {
+          console.warn('⚠️ MCP 상태 캐시 파싱 실패, 새로 조회');
+        }
+      }
+
+      const response = await fetch('/api/mcp/status');
+      if (!response.ok) {
+        throw new Error('MCP 상태 조회 실패');
+      }
+
+      const data = await response.json();
+
+      // 세션 캐시에 저장
+      try {
+        sessionStorage.setItem(
+          sessionKey,
+          JSON.stringify({
+            data,
+            timestamp: Date.now(),
+          })
+        );
+        console.log('💾 MCP 상태 세션 캐시에 저장 (Render 서버 30분 유지)');
+      } catch (error) {
+        console.warn('⚠️ MCP 상태 캐시 저장 실패:', error);
+      }
+
+      return data;
+    },
+    refetchInterval: false, // 자동 갱신 비활성화 (Render 서버 30분 활성 유지)
+    staleTime: 30 * 60 * 1000, // 30분 동안 신선한 데이터로 간주
+    retry: 1, // 재시도 횟수 감소
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 재조회 비활성화
+    refetchOnMount: false, // 마운트 시 재조회 비활성화 (캐시 우선)
   });
 };
 
