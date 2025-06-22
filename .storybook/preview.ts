@@ -30,6 +30,9 @@ const preview: Preview = {
     },
     docs: {
       toc: true,
+      source: {
+        state: 'open',
+      },
     },
     backgrounds: {
       default: 'dark',
@@ -42,7 +45,66 @@ const preview: Preview = {
           name: 'light',
           value: '#ffffff',
         },
+        {
+          name: 'gray',
+          value: '#f5f5f5',
+        },
       ],
+    },
+    // 접근성 테스트 설정
+    a11y: {
+      config: {
+        rules: [
+          {
+            id: 'color-contrast',
+            enabled: true,
+          },
+          {
+            id: 'focus-visible',
+            enabled: true,
+          },
+          {
+            id: 'keyboard-navigation',
+            enabled: true,
+          },
+        ],
+      },
+      options: {
+        checks: { 'color-contrast': { options: { noScroll: true } } },
+        restoreScroll: true,
+      },
+    },
+    // 뷰포트 설정
+    viewport: {
+      viewports: {
+        mobile: {
+          name: 'Mobile',
+          styles: {
+            width: '375px',
+            height: '667px',
+          },
+        },
+        tablet: {
+          name: 'Tablet',
+          styles: {
+            width: '768px',
+            height: '1024px',
+          },
+        },
+        desktop: {
+          name: 'Desktop',
+          styles: {
+            width: '1440px',
+            height: '900px',
+          },
+        },
+      },
+    },
+    // 다국어 지원 (한국어 우선)
+    locale: 'ko',
+    locales: {
+      ko: { title: '한국어', right: '🇰🇷' },
+      en: { title: 'English', right: '🇺🇸' },
     },
   },
 
@@ -53,6 +115,22 @@ const preview: Preview = {
       return Story();
     },
   ],
+
+  globalTypes: {
+    theme: {
+      name: 'Theme',
+      description: 'Global theme for components',
+      defaultValue: 'dark',
+      toolbar: {
+        icon: 'paintbrush',
+        items: [
+          { value: 'light', title: 'Light', icon: 'sun' },
+          { value: 'dark', title: 'Dark', icon: 'moon' },
+        ],
+        showName: true,
+      },
+    },
+  },
 };
 
 export default preview;
