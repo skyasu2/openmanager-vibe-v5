@@ -47,8 +47,24 @@
       "destination": "/api/health"
     }
   ],
-  "regions": ["icn1"],
+  "regions": [
+    "icn1"
+  ],
   "cleanUrls": true,
   "trailingSlash": false,
-  "crons": []
+  "crons": [],
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "env": {
+    "DISABLE_LOCAL_RAG": "true",
+    "PREFER_SUPABASE_RAG": "true",
+    "AI_ENGINE_PRIORITY": "supabase_rag,rule_based,mcp,google_ai"
+  },
+  "build": {
+    "env": {
+      "NODE_ENV": "production",
+      "DISABLE_LOCAL_RAG": "true"
+    }
+  }
 }

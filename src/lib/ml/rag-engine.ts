@@ -17,6 +17,7 @@ export interface RAGDocument {
     category: string;
     tags: string[];
     priority?: number;
+    title?: string;
   };
   embedding?: number[];
   keywords?: string[];
@@ -43,13 +44,15 @@ export interface RAGResponse {
   results: Array<{
     document: RAGDocument;
     score: number;
-    relevance: number;
+    relevance?: number;
   }>;
   response?: string;
   confidence?: number;
   suggestions?: string[];
   processingTime: number;
-  metadata: {
+  totalResults?: number;
+  error?: string;
+  metadata?: {
     totalDocuments: number;
     searchTime: number;
     embedding: number[];
@@ -287,10 +290,19 @@ class KoreanResponseGenerator {
   }
 }
 
+/**
+ * 🔍 로컬 RAG 엔진 (개발/테스트 전용)
+ * 
+ * ⚠️ 주의: 배포 환경에서는 사용하지 않음
+ * - 개발 환경: 테스트 및 디버깅 용도
+ * - 테스트 환경: 단위 테스트 및 통합 테스트
+ * - 배포 환경: Supabase RAG 사용
+ */
 export class LocalRAGEngine {
   private documents: Map<string, RAGDocument> = new Map();
   private embeddings: Map<string, number[]> = new Map();
   private initialized: boolean = false;
+  private isDevEnvironment: boolean;
 
   // 한국어 특화 기능 (레거시에서 통합)
   private koreanNLU = new KoreanNLUProcessor();
@@ -298,14 +310,59 @@ export class LocalRAGEngine {
   private sessionMemory: Map<string, any> = new Map();
 
   constructor() {
-    console.log('🔍 Enhanced Local RAG Engine 초기화');
+    // 환경 체크: 개발/테스트 환경에서만 활성화
+    this.isDevEnvironment = this.checkDevEnvironment();
+
+    if (!this.isDevEnvironment) {
+      console.log('🚫 LocalRAGEngine: 배포 환경에서는 비활성화됨 (Supabase RAG 사용)');
+      return;
+    }
+
+    console.log('🔧 LocalRAGEngine: 개발/테스트 환경에서 활성화됨');
+  }
+
+  /**
+   * 🔍 개발 환경 체크
+   */
+  private checkDevEnvironment(): boolean {
+    // 1. NODE_ENV 체크
+    if (process.env.NODE_ENV === 'production') {
+      return false;
+    }
+
+    // 2. Vercel 배포 환경 체크
+    if (process.env.VERCEL || process.env.VERCEL_ENV) {
+      return false;
+    }
+
+    // 3. 명시적 개발 모드 체크
+    if (process.env.FORCE_LOCAL_RAG === 'true') {
+      return true;
+    }
+
+    // 4. 로컬 개발 서버 체크
+    if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+      return true;
+    }
+
+    // 5. 테스트 환경 체크
+    if (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID) {
+      return true;
+    }
+
+    return false;
   }
 
   public async initialize(): Promise<void> {
+    if (!this.isDevEnvironment) {
+      console.log('⏭️ LocalRAGEngine: 배포 환경에서는 초기화 건너뜀');
+      return;
+    }
+
     if (this.initialized) return;
 
     try {
-      console.log('🚀 Enhanced RAG Engine 초기화 시작...');
+      console.log('🔧 LocalRAGEngine 초기화 시작 (개발/테스트 전용)...');
 
       // 한국어 NLU 초기화
       await this.koreanNLU.initialize();
@@ -316,11 +373,11 @@ export class LocalRAGEngine {
 
       this.initialized = true;
       console.log(
-        `✅ Enhanced RAG Engine 초기화 완료 (${this.documents.size}개 문서, 한국어 NLU 포함)`
+        `✅ LocalRAGEngine 초기화 완료 (${this.documents.size}개 문서, 한국어 NLU 포함)`
       );
       console.log('📚 로드된 문서 목록:', Array.from(this.documents.keys()));
     } catch (error) {
-      console.error('❌ Enhanced RAG Engine 초기화 실패:', error);
+      console.error('❌ LocalRAGEngine 초기화 실패:', error);
       throw error;
     }
   }
@@ -349,153 +406,72 @@ export class LocalRAGEngine {
   }
 
   public async search(query: RAGQuery): Promise<RAGResponse> {
+    // 배포 환경에서는 에러 반환
+    if (!this.isDevEnvironment) {
+      return {
+        success: false,
+        results: [],
+        query: query.query,
+        totalResults: 0,
+        processingTime: 0,
+        error: 'LocalRAGEngine은 배포 환경에서 사용할 수 없습니다. Supabase RAG를 사용하세요.'
+      };
+    }
+
+    if (!this.initialized) {
+      await this.initialize();
+    }
+
     const startTime = Date.now();
 
     try {
-      // 한국어 의도 분석
-      const intent = await this.koreanNLU.analyzeIntent(query.query);
+      console.log(`🔍 LocalRAGEngine 검색 (개발/테스트): "${query.query}"`);
 
-      // 쿼리 임베딩 생성
-      const queryEmbedding = await this.generateEmbedding(query.query);
-
-      // 유사도 계산 + 키워드 매칭 (하이브리드)
-      const results: Array<{
-        document: RAGDocument;
-        score: number;
-        relevance: number;
-      }> = [];
-
-      console.log(
-        `🔍 RAG 검색 시작: "${query.query}" (총 ${this.documents.size}개 문서)`
-      );
-      console.log(`🎯 의도 분석 결과:`, intent);
-
-      for (const [docId, document] of this.documents) {
-        // 카테고리 필터링 개선
-        if (query.category && query.category !== '') {
-          if (!document.metadata.category.includes(query.category)) {
-            continue;
-          }
-        }
-
-        const docEmbedding = this.embeddings.get(docId);
-        if (!docEmbedding) continue;
-
-        // 벡터 유사도
-        const vectorSimilarity = this.calculateCosineSimilarity(
-          queryEmbedding,
-          docEmbedding
-        );
-
-        // 키워드 매칭 점수 (한국어 특화)
-        const keywordScore = this.calculateKeywordScore(
-          intent.keywords,
-          document.keywords || []
-        );
-
-        // 카테고리 매칭 보너스 (더 강력하게)
-        let categoryBonus = 0;
-        if (intent.category !== 'general') {
-          if (document.metadata.category.includes(intent.category)) {
-            categoryBonus = 0.4; // 카테고리 매칭 시 큰 보너스
-          } else {
-            categoryBonus = -0.3; // 다른 카테고리면 페널티
-          }
-        }
-
-        // 우선순위 가중치
-        const priorityWeight = (document.metadata.priority || 1) * 0.05;
-
-        // 최종 점수 계산 (카테고리 중심)
-        const finalScore = Math.max(
-          0,
-          vectorSimilarity * 0.3 +
-            keywordScore * 0.4 +
-            categoryBonus +
-            priorityWeight
-        );
-
-        // 점수 계산 상세 로그
-        console.log(`📄 문서 "${docId}" 점수 계산:`, {
-          category: document.metadata.category,
-          vectorSimilarity: vectorSimilarity.toFixed(3),
-          keywordScore: keywordScore.toFixed(3),
-          categoryBonus: categoryBonus.toFixed(3),
-          priorityWeight: priorityWeight.toFixed(3),
-          finalScore: finalScore.toFixed(3),
-          threshold: query.threshold || 0.3,
-          passes: finalScore >= (query.threshold || 0.3),
-        });
-
-        if (finalScore >= (query.threshold || 0.3)) {
-          results.push({
-            document,
-            score: finalScore,
-            relevance: finalScore * 100,
-          });
-        }
-      }
-
-      // 점수 순으로 정렬
-      results.sort((a, b) => b.score - a.score);
-
-      // 최대 결과 수 제한
-      const maxResults = query.maxResults || 10;
-      const finalResults = results.slice(0, maxResults);
-
-      // 한국어 응답 생성
-      const responseData = await this.responseGenerator.generate({
-        query: query.query,
-        intent,
-        relevantDocuments: finalResults.map(r => r.document),
-        processingTime: Date.now() - startTime,
-      });
+      // 간단한 텍스트 매칭 검색
+      const results = this.documents
+        .filter(doc =>
+          doc.content.toLowerCase().includes(query.query.toLowerCase()) ||
+          doc.metadata?.title?.toLowerCase().includes(query.query.toLowerCase())
+        )
+        .slice(0, query.maxResults || 5)
+        .map(doc => ({
+          document: doc,
+          score: this.calculateScore(doc, query.query)
+        }));
 
       const processingTime = Date.now() - startTime;
 
       return {
         success: true,
+        results,
         query: query.query,
-        intent,
-        results: finalResults,
-        response: responseData.text,
-        confidence: responseData.confidence,
-        suggestions: responseData.suggestions,
-        processingTime,
-        metadata: {
-          totalDocuments: this.documents.size,
-          searchTime: processingTime,
-          embedding: queryEmbedding,
-        },
+        totalResults: results.length,
+        processingTime
       };
-    } catch (error) {
-      console.error('❌ Enhanced RAG 검색 실패:', error);
 
+    } catch (error) {
+      console.error('❌ LocalRAGEngine 검색 실패:', error);
       return {
         success: false,
-        query: query.query,
         results: [],
+        query: query.query,
+        totalResults: 0,
         processingTime: Date.now() - startTime,
-        metadata: {
-          totalDocuments: this.documents.size,
-          searchTime: 0,
-          embedding: [],
-        },
+        error: error.message
       };
     }
   }
 
-  private calculateKeywordScore(
-    queryKeywords: string[],
-    docKeywords: string[]
-  ): number {
-    if (!queryKeywords.length || !docKeywords.length) return 0;
+  private calculateScore(doc: RAGDocument, query: string): number {
+    const content = doc.content.toLowerCase();
+    const queryLower = query.toLowerCase();
 
-    const matches = queryKeywords.filter(qk =>
-      docKeywords.some(dk => dk.includes(qk) || qk.includes(dk))
-    );
+    // 단순 매칭 점수 계산
+    const exactMatches = (content.match(new RegExp(queryLower, 'g')) || []).length;
+    const words = queryLower.split(' ');
+    const wordMatches = words.filter(word => content.includes(word)).length;
 
-    return matches.length / Math.max(queryKeywords.length, docKeywords.length);
+    return (exactMatches * 2 + wordMatches) / (words.length + 1);
   }
 
   private async generateEmbedding(text: string): Promise<number[]> {
@@ -560,38 +536,32 @@ export class LocalRAGEngine {
   private async loadDefaultDocuments(): Promise<void> {
     const defaultDocs: RAGDocument[] = [
       {
-        id: 'server-monitoring-guide',
-        content:
-          '서버 모니터링은 시스템의 성능과 가용성을 지속적으로 관찰하는 과정입니다. CPU, 메모리, 디스크, 네트워크 사용률을 추적하여 문제를 조기에 발견할 수 있습니다.',
+        id: 'dev-1',
+        content: 'Linux 서버 모니터링을 위한 top 명령어 사용법',
         metadata: {
-          source: 'system-docs',
-          timestamp: new Date().toISOString(),
-          category: 'monitoring',
-          tags: ['server', 'monitoring', 'performance'],
-        },
+          title: 'Linux Top Command',
+          category: 'Linux',
+          source: 'development'
+        }
       },
       {
-        id: 'ai-analysis-basics',
-        content:
-          'AI 분석은 머신러닝 알고리즘을 사용하여 시스템 데이터에서 패턴을 찾고 예측을 수행합니다. 이상 탐지, 용량 계획, 성능 최적화에 활용됩니다.',
+        id: 'dev-2',
+        content: 'Docker 컨테이너 관리 및 모니터링 방법',
         metadata: {
-          source: 'ai-docs',
-          timestamp: new Date().toISOString(),
-          category: 'ai',
-          tags: ['ai', 'analysis', 'prediction'],
-        },
+          title: 'Docker Management',
+          category: 'Docker',
+          source: 'development'
+        }
       },
       {
-        id: 'troubleshooting-common-issues',
-        content:
-          '일반적인 서버 문제는 높은 CPU 사용률, 메모리 부족, 디스크 공간 부족, 네트워크 연결 문제 등이 있습니다. 각 문제는 특정한 해결 방법과 예방 조치가 필요합니다.',
+        id: 'dev-3',
+        content: 'Kubernetes 클러스터 상태 확인 및 디버깅',
         metadata: {
-          source: 'troubleshooting-guide',
-          timestamp: new Date().toISOString(),
-          category: 'troubleshooting',
-          tags: ['troubleshooting', 'issues', 'solutions'],
-        },
-      },
+          title: 'Kubernetes Debugging',
+          category: 'Kubernetes',
+          source: 'development'
+        }
+      }
     ];
 
     // 명령어 데이터베이스 로드
@@ -762,5 +732,21 @@ export class LocalRAGEngine {
         source: 'enhanced-rag',
       };
     }
+  }
+
+  // 개발 환경 체크 메서드 (외부에서 사용 가능)
+  isAvailableInCurrentEnvironment(): boolean {
+    return this.isDevEnvironment;
+  }
+
+  // 환경 정보 반환
+  getEnvironmentInfo() {
+    return {
+      isDevEnvironment: this.isDevEnvironment,
+      nodeEnv: process.env.NODE_ENV,
+      isVercel: !!process.env.VERCEL,
+      forceLocalRAG: process.env.FORCE_LOCAL_RAG === 'true',
+      isTest: !!process.env.JEST_WORKER_ID
+    };
   }
 }

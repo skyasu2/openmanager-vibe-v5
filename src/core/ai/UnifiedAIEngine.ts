@@ -174,7 +174,7 @@ export class UnifiedAIEngine {
   // 🎯 Supabase RAG 완성에 따른 새로운 우선순위 (2025.06.10)
   private supabaseRAGEngine: any; // ✅ 새로 추가 (50% 우선순위) - 벡터 검색 + 텍스트 검색
   private ruleBasedEngine: RuleBasedMainEngine; // ✅ 30% 우선순위로 조정 (NLP 패턴 매칭)
-  private ragEngine: LocalRAGEngine; // ✅ 15% 우선순위로 조정 (로컬 RAG 폴백)
+  private ragEngine: LocalRAGEngine | null = null; // ✅ 15% 우선순위로 조정 (로컬 RAG 폴백)
   private mcpClient: RealMCPClient | null = null; // ✅ 3% 우선순위로 조정 (실시간 컨텍스트)
   private googleAI?: GoogleAIService; // ✅ 2% 베타 기능 유지 (복잡한 추론)
   private contextManager: ContextManager;
@@ -224,7 +224,15 @@ export class UnifiedAIEngine {
 
     // 🎯 새로운 우선순위로 엔진 초기화
     this.ruleBasedEngine = new RuleBasedMainEngine(); // ✅ 30% 우선순위로 조정 (NLP 패턴 매칭)
-    this.ragEngine = new LocalRAGEngine(); // ✅ 15% 우선순위로 조정 (로컬 RAG 폴백)
+
+    // LocalRAG는 개발/테스트 환경에서만 초기화
+    if (this.isDevEnvironment()) {
+      this.ragEngine = new LocalRAGEngine(); // ✅ 15% 우선순위 (개발/테스트 전용)
+      console.log('🔧 LocalRAGEngine 개발/테스트 환경에서 활성화');
+    } else {
+      console.log('⏭️ LocalRAGEngine 배포 환경에서 비활성화 (Supabase RAG 사용)');
+    }
+
     this.contextManager = ContextManager.getInstance();
 
     // MasterAIEngine 통합 - 통계 및 캐시 초기화
@@ -278,7 +286,7 @@ export class UnifiedAIEngine {
       }
 
       // RAG Engine 초기화
-      await this.ragEngine.initialize();
+      await this.ragEngine?.initialize();
 
       // MasterAIEngine 통합 - 하위 엔진들 초기화
       await this.initializeSubEngines();
@@ -778,7 +786,7 @@ export class UnifiedAIEngine {
       case 'mcp':
         return this.mcpClient ? 'ready' : 'error';
       case 'rag':
-        return 'ready'; // LocalRAGEngine은 항상 사용 가능
+        return this.ragEngine ? 'ready' : 'error';
       default:
         return 'ready';
     }
@@ -1115,7 +1123,7 @@ export class UnifiedAIEngine {
       // RAG 분석
       if (this.componentHealth.get('rag')) {
         try {
-          const ragResult = await this.ragEngine.query(intent.primary, {
+          const ragResult = await this.ragEngine?.query(intent.primary, {
             limit: 3,
           });
           results.push({ source: 'rag', content: ragResult, confidence: 0.7 });
@@ -1728,3 +1736,37 @@ export class UnifiedAIEngine {
 
     try {
       console.log(`
+```
+
+  /**
+   * 🔍 개발 환경 체크
+   */
+  private isDevEnvironment(): boolean {
+        // 1. NODE_ENV 체크
+        if(process.env.NODE_ENV === 'production') {
+        return false;
+      }
+
+      // 2. Vercel 배포 환경 체크
+      if (process.env.VERCEL || process.env.VERCEL_ENV) {
+        return false;
+      }
+
+      // 3. 명시적 개발 모드 체크
+      if (process.env.FORCE_LOCAL_RAG === 'true') {
+        return true;
+      }
+
+      // 4. 로컬 개발 서버 체크
+      if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+        return true;
+      }
+
+      // 5. 테스트 환경 체크
+      if (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID) {
+        return true;
+      }
+
+      return false;
+    }
+}
