@@ -1,9 +1,7 @@
 'use client';
 
 import { UNIFIED_FALLBACK_SERVERS } from '@/config/fallback-data';
-// 🎯 새로운 데이터 일관성 모듈 사용
 import { useServerMetrics } from '@/hooks/useServerMetrics';
-import { getServerSettings } from '@/modules/data-consistency';
 import { useServerDataStore } from '@/stores/serverDataStore';
 import { Server } from '@/types/server';
 import { useEffect, useMemo, useState } from 'react';
@@ -11,7 +9,7 @@ import { useEffect, useMemo, useState } from 'react';
 export type DashboardTab = 'servers' | 'network' | 'clusters' | 'applications';
 export type ViewMode = 'grid' | 'list';
 
-// 🎯 통합된 폴백 서버 데이터 사용 (하드코딩 제거)
+// 통합된 폴백 서버 데이터 사용 (하드코딩 제거)
 const fallbackServers: Server[] = UNIFIED_FALLBACK_SERVERS;
 
 // 업타임 포맷팅 함수
@@ -27,156 +25,131 @@ const formatUptime = (uptime: number): string => {
   return `${minutes}분`;
 };
 
-export function useServerDashboard() {
-  const [activeTab, setActiveTab] = useState<DashboardTab>('servers');
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+interface UseServerDashboardOptions {
+  onStatsUpdate?: (stats: any) => void;
+}
+
+export function useServerDashboard(options: UseServerDashboardOptions = {}) {
+  const { onStatsUpdate } = options;
+
+  // Zustand 스토어에서 서버 데이터 가져오기
+  const { servers, isLoading, error, fetchServers } = useServerDataStore();
+
+  // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 15; // 15개로 고정하여 모든 서버 표시
 
-  // 🎯 중앙집중식 설정에서 페이지 크기 가져오기
-  const serverSettings = getServerSettings();
-  const ITEMS_PER_PAGE = serverSettings.itemsPerPage;
+  // 선택된 서버 상태
+  const [selectedServer, setSelectedServer] = useState<Server | null>(null);
 
-  // 서버 데이터와 메트릭 가져오기
-  const {
-    servers: rawServers,
-    isLoading,
-    error,
-    lastUpdate,
-    fetchServers
-  } = useServerDataStore();
+  // 서버 메트릭 훅
+  const { metricsHistory } = useServerMetrics();
 
-  // useServerMetrics 훅에서 실제 반환되는 값들만 사용
-  const {
-    metricsHistory,
-    isLoadingHistory: metricsLoading
-  } = useServerMetrics();
+  // 서버 데이터 로드
+  useEffect(() => {
+    fetchServers();
+  }, [fetchServers]);
 
-  // 서버 데이터 변환 및 정제
-  const servers = useMemo(() => {
-    if (!rawServers || rawServers.length === 0) {
-      console.log('⚠️ 서버 데이터가 없어 폴백 데이터 사용');
-      return fallbackServers;
+  // 실제 서버 데이터 또는 폴백 데이터 사용
+  const actualServers = useMemo(() => {
+    if (servers && servers.length > 0) {
+      return servers;
     }
+    return fallbackServers;
+  }, [servers]);
 
-    return rawServers.map((server: any) => ({
-      id: server.id || server.serverId || `server-${Math.random()}`,
-      name: server.name || server.hostname || 'Unknown Server',
-      hostname: server.hostname || server.name || 'unknown.local',
-      status: server.status || 'unknown',
-      environment: server.environment || 'production',
-      role: server.role || 'worker',
-      cpu: server.cpu || server.cpu_usage || 0,
-      memory: server.memory || server.memory_usage || 0,
-      disk: server.disk || server.disk_usage || 0,
-      network: server.network || server.network_usage || 0,
-      uptime: server.uptime || 0,
-      location: server.location || 'unknown',
-      lastUpdate: server.lastUpdate ? new Date(server.lastUpdate) : new Date(),
-      alerts: server.alerts || [],
-      services: server.services || [],
-    }));
-  }, [rawServers]);
+  // 페이지네이션된 서버 데이터
+  const paginatedServers = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return actualServers.slice(startIndex, endIndex);
+  }, [actualServers, currentPage]);
 
-  // 페이지네이션 계산
-  const totalPages = Math.ceil(servers.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedServers = servers.slice(startIndex, endIndex);
+  // 총 페이지 수 계산
+  const totalPages = Math.ceil(actualServers.length / ITEMS_PER_PAGE);
 
   // 통계 계산
   const stats = useMemo(() => {
-    const total = servers.length;
-    const running = servers.filter(s => s.status === 'online' || s.status === 'running').length;
-    const warning = servers.filter(s => s.status === 'warning').length;
-    const error = servers.filter(s => s.status === 'error' || s.status === 'offline').length;
-    const stopped = servers.filter(s => s.status === 'stopped').length;
+    const total = actualServers.length;
+    const online = actualServers.filter(
+      s => s.status === 'healthy' || s.status === 'online'
+    ).length;
+    const offline = actualServers.filter(
+      s => s.status === 'critical' || s.status === 'offline'
+    ).length;
+    const warning = actualServers.filter(s => s.status === 'warning').length;
 
-    const avgCpu = total > 0 ? servers.reduce((sum, s) => sum + (s.cpu || 0), 0) / total : 0;
-    const avgMemory = total > 0 ? servers.reduce((sum, s) => sum + (s.memory || 0), 0) / total : 0;
-    const avgDisk = total > 0 ? servers.reduce((sum, s) => sum + (s.disk || 0), 0) / total : 0;
+    const avgCpu =
+      actualServers.reduce((sum, s) => sum + ((s as any).cpu || 0), 0) / total;
+    const avgMemory =
+      actualServers.reduce((sum, s) => sum + ((s as any).memory || 0), 0) /
+      total;
+    const avgDisk =
+      actualServers.reduce((sum, s) => sum + ((s as any).disk || 0), 0) / total;
 
     return {
       total,
-      running,
+      online,
+      offline,
       warning,
-      error,
-      stopped,
-      avgCpu: Math.round(avgCpu * 100) / 100,
-      avgMemory: Math.round(avgMemory * 100) / 100,
-      avgDisk: Math.round(avgDisk * 100) / 100,
+      avgCpu: Math.round(avgCpu),
+      avgMemory: Math.round(avgMemory),
+      avgDisk: Math.round(avgDisk),
     };
-  }, [servers]);
+  }, [actualServers]);
 
-  // 서버 상태별 필터링
-  const filterServersByStatus = (status: string) => {
-    return servers.filter(server => server.status === status);
-  };
-
-  // 페이지 변경 핸들러
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
-  // 데이터 새로고침
-  const refreshData = async () => {
-    try {
-      await fetchServers();
-    } catch (error) {
-      console.error('서버 데이터 새로고침 실패:', error);
-    }
-  };
-
-  // 초기 데이터 로드
+  // 통계 업데이트 콜백 호출
   useEffect(() => {
-    if (servers.length === 0 && !isLoading) {
-      refreshData();
+    if (onStatsUpdate) {
+      onStatsUpdate(stats);
     }
-  }, []);
+  }, [stats, onStatsUpdate]);
 
-  // 🔍 데이터 일관성 로깅 (개발 환경)
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('📊 서버 대시보드 상태:');
-      console.log(`  총 서버: ${servers.length}개`);
-      console.log(`  페이지당 표시: ${ITEMS_PER_PAGE}개`);
-      console.log(`  현재 페이지: ${currentPage}/${totalPages}`);
-      console.log(`  표시 중인 서버: ${paginatedServers.length}개`);
+  // 서버 선택 핸들러
+  const handleServerSelect = (server: Server) => {
+    setSelectedServer(server);
+  };
 
-      if (servers.length !== serverSettings.totalCount) {
-        console.warn(`⚠️ 서버 개수 불일치: 실제=${servers.length}, 설정=${serverSettings.totalCount}`);
-      }
-    }
-  }, [servers.length, ITEMS_PER_PAGE, currentPage, totalPages, paginatedServers.length, serverSettings.totalCount]);
+  // 모달 닫기 핸들러
+  const handleModalClose = () => {
+    setSelectedServer(null);
+  };
+
+  // 선택된 서버의 메트릭 계산
+  const selectedServerMetrics = useMemo(() => {
+    if (!selectedServer) return null;
+
+    return {
+      cpu: (selectedServer as any).cpu || 0,
+      memory: (selectedServer as any).memory || 0,
+      disk: (selectedServer as any).disk || 0,
+      network: (selectedServer as any).network || 0,
+      uptime: (selectedServer as any).uptime || 0,
+      timestamp: new Date().toISOString(),
+    };
+  }, [selectedServer]);
 
   return {
     // 데이터
-    servers: paginatedServers,
-    allServers: servers,
-    stats,
-    metricsHistory,
-
-    // 상태
-    isLoading: isLoading || metricsLoading,
+    servers: actualServers,
+    paginatedServers,
+    isLoading,
     error,
-    lastUpdate,
+    stats,
 
-    // UI 상태
-    activeTab,
-    viewMode,
+    // 페이지네이션
     currentPage,
     totalPages,
+    setCurrentPage,
 
-    // 설정
-    itemsPerPage: ITEMS_PER_PAGE,
+    // 서버 선택
+    selectedServer,
+    selectedServerMetrics,
+    handleServerSelect,
+    handleModalClose,
 
-    // 액션
-    setActiveTab,
-    setViewMode,
-    handlePageChange,
-    refreshData,
-    filterServersByStatus,
+    // 메트릭 히스토리
+    metricsHistory,
 
     // 유틸리티
     formatUptime,

@@ -106,30 +106,36 @@ export default function ServerDashboard({
                   key={server.id}
                   server={{
                     ...server,
-                    hostname: server.hostname || server.name,
-                    type: server.type || 'api',
-                    environment: server.environment || 'prod',
-                    location: server.location || 'unknown',
-                    provider: server.provider || 'Unknown',
+                    cpu: (server as any).cpu || 0,
+                    memory: (server as any).memory || 0,
+                    disk: (server as any).disk || 0,
+                    lastUpdate: (server as any).lastUpdate || new Date(),
+                    services: (server as any).services || [],
+                    ...server,
+                    hostname: (server as any).hostname || server.name,
+                    type: (server as any).type || 'api',
+                    environment: (server as any).environment || 'prod',
+                    location: (server as any).location || 'unknown',
+                    provider: (server as any).provider || 'Unknown',
                     status:
                       server.status === 'online'
                         ? 'healthy'
                         : (server.status as any),
                     uptime:
-                      typeof server.uptime === 'string'
-                        ? server.uptime
-                        : typeof server.uptime === 'number'
-                          ? `${Math.floor(server.uptime / 3600)}h ${Math.floor((server.uptime % 3600) / 60)}m`
+                      typeof (server as any).uptime === 'string'
+                        ? (server as any).uptime
+                        : typeof (server as any).uptime === 'number'
+                          ? `${Math.floor((server as any).uptime / 3600)}h ${Math.floor(((server as any).uptime % 3600) / 60)}m`
                           : '0h 0m',
                     alerts:
-                      typeof server.alerts === 'number'
-                        ? server.alerts
-                        : Array.isArray(server.alerts)
-                          ? server.alerts.length
+                      typeof (server as any).alerts === 'number'
+                        ? (server as any).alerts
+                        : Array.isArray((server as any).alerts)
+                          ? (server as any).alerts.length
                           : 0,
                   }}
                   index={index}
-                  onClick={() => handleServerSelect(server)}
+                  onClick={() => handleServerSelect(server as any)}
                 />
               ))}
             </div>
@@ -182,7 +188,7 @@ export default function ServerDashboard({
       {selectedServer && (
         <ServerDetailModal
           server={selectedServer}
-          metricsHistory={selectedServerMetrics}
+          metricsHistory={selectedServerMetrics ? [selectedServerMetrics] : []}
           onClose={handleModalClose}
         />
       )}
