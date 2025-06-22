@@ -1,12 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { Server } from '../../src/types/server';
 import {
-  safeServerAccess,
-  safeServerSearch,
-  safeServerFilter,
-  safeServerTransform,
-  isSafeArray,
   hasSafeProperty,
+  isSafeArray,
+  safeServerAccess,
+  safeServerFilter,
+  safeServerSearch,
+  safeServerTransform,
 } from '../../src/utils/server-utils';
 
 describe('server-utils', () => {
@@ -27,7 +27,7 @@ describe('server-utils', () => {
       { name: 'mysql', status: 'running', port: 3306 },
     ],
     lastUpdate: new Date('2024-01-01T10:00:00Z'),
-    networkStatus: 'good',
+    networkStatus: 'healthy',
   };
 
   describe('safeServerAccess', () => {

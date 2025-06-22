@@ -52,7 +52,12 @@ export interface Server {
   services: Service[];
   logs?: LogEntry[];
   networkInfo?: NetworkInfo;
-  networkStatus?: 'excellent' | 'good' | 'poor' | 'offline'; // 네트워크 상태 추가
+  networkStatus?:
+    | 'healthy'
+    | 'warning'
+    | 'critical'
+    | 'offline'
+    | 'maintenance'; // 네트워크 상태를 ServerStatus와 통일
   systemInfo?: SystemInfo;
   health?: {
     score: number; // 0 ~ 100

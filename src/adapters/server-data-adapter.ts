@@ -119,7 +119,7 @@ export function transformServerInstanceToServer(
     services: transformServices(serverInstance),
 
     // 🎯 네트워크 상태
-    networkStatus: mapNetworkStatus(serverInstance.metrics?.network),
+    networkStatus: mapNetworkToServerStatus(serverInstance.metrics?.network),
 
     // 🎯 시스템 정보
     systemInfo: {
@@ -138,7 +138,7 @@ export function transformServerInstanceToServer(
       sentBytes: formatBytes(serverInstance.metrics?.network?.out || 0),
       receivedErrors: Math.floor(Math.random() * 10),
       sentErrors: Math.floor(Math.random() * 5),
-      status: mapNetworkStatus(serverInstance.metrics?.network) as any,
+      status: mapNetworkToServerStatus(serverInstance.metrics?.network),
       cpu_usage: serverInstance.metrics?.cpu || 0,
       memory_usage: serverInstance.metrics?.memory || 0,
       disk_usage: serverInstance.metrics?.disk || 0,
@@ -175,18 +175,18 @@ function mapServerStatus(status: string): 'online' | 'offline' | 'warning' {
 }
 
 /**
- * 네트워크 상태 매핑
+ * 네트워크 상태를 서버 상태로 매핑
  */
-function mapNetworkStatus(
+function mapNetworkToServerStatus(
   network: any
-): 'excellent' | 'good' | 'poor' | 'offline' {
+): 'healthy' | 'warning' | 'critical' | 'offline' | 'maintenance' {
   if (!network) return 'offline';
 
   const totalTraffic = (network.in || 0) + (network.out || 0);
 
-  if (totalTraffic > 150) return 'excellent';
-  if (totalTraffic > 100) return 'good';
-  if (totalTraffic > 50) return 'poor';
+  if (totalTraffic > 150) return 'healthy';
+  if (totalTraffic > 100) return 'healthy';
+  if (totalTraffic > 50) return 'warning';
   return 'offline';
 }
 

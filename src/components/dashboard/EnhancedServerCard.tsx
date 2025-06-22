@@ -48,7 +48,7 @@ interface EnhancedServerCardProps {
     environment: string;
     location: string;
     provider: string;
-    status: 'healthy' | 'warning' | 'critical' | 'offline';
+    status: 'healthy' | 'warning' | 'critical' | 'offline' | 'maintenance';
     cpu: number;
     memory: number;
     disk: number;
@@ -69,7 +69,12 @@ interface EnhancedServerCardProps {
     };
     os?: string;
     ip?: string;
-    networkStatus?: 'excellent' | 'good' | 'poor' | 'offline'; // 네트워크 상태 추가
+    networkStatus?:
+      | 'healthy'
+      | 'warning'
+      | 'critical'
+      | 'offline'
+      | 'maintenance'; // 네트워크 상태를 ServerStatus와 통일
     health?: {
       score: number;
     };
@@ -428,14 +433,16 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
     // 네트워크 상태 아이콘
     const getNetworkStatusIcon = () => {
       switch (server.networkStatus) {
-        case 'excellent':
+        case 'healthy':
           return <Wifi className='w-4 h-4 text-green-500' />;
-        case 'good':
-          return <Wifi className='w-4 h-4 text-blue-500' />;
-        case 'poor':
+        case 'warning':
           return <Wifi className='w-4 h-4 text-yellow-500' />;
-        case 'offline':
+        case 'critical':
           return <Wifi className='w-4 h-4 text-red-500' />;
+        case 'offline':
+          return <Wifi className='w-4 h-4 text-gray-500' />;
+        case 'maintenance':
+          return <Wifi className='w-4 h-4 text-gray-500' />;
         default:
           return <Network className='w-4 h-4 text-gray-500' />;
       }
@@ -664,22 +671,26 @@ const EnhancedServerCard: React.FC<EnhancedServerCardProps> = memo(
               </div>
               <span
                 className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                  server.networkStatus === 'excellent'
+                  server.networkStatus === 'healthy'
                     ? 'bg-green-100 text-green-700'
-                    : server.networkStatus === 'good'
-                      ? 'bg-blue-100 text-blue-700'
-                      : server.networkStatus === 'poor'
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-red-100 text-red-700'
+                    : server.networkStatus === 'warning'
+                      ? 'bg-yellow-100 text-yellow-700'
+                      : server.networkStatus === 'critical'
+                        ? 'bg-red-100 text-red-700'
+                        : server.networkStatus === 'offline'
+                          ? 'bg-gray-100 text-gray-700'
+                          : 'bg-gray-100 text-gray-700'
                 }`}
               >
-                {server.networkStatus === 'excellent'
-                  ? '우수'
-                  : server.networkStatus === 'good'
-                    ? '양호'
-                    : server.networkStatus === 'poor'
-                      ? '불량'
-                      : '오프라인'}
+                {server.networkStatus === 'healthy'
+                  ? '정상'
+                  : server.networkStatus === 'warning'
+                    ? '경고'
+                    : server.networkStatus === 'critical'
+                      ? '위험'
+                      : server.networkStatus === 'offline'
+                        ? '오프라인'
+                        : '유지보수'}
               </span>
             </div>
           )}
