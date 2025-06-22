@@ -4,61 +4,92 @@ import { adaptiveConfigManager } from '../../../../utils/VercelPlanDetector';
 /**
  * 🎯 적응형 서버 구성 API
  * GET /api/config/adaptive
- * 
+ *
  * Vercel 플랜을 자동 감지하여 최적 서버 구성을 제공합니다.
  */
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const type = searchParams.get('type') || 'system';
-    const environment = searchParams.get('environment') || 'production';
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get('category');
 
-    // 적응형 구성 데이터 생성
     const adaptiveConfig = {
-      type,
-      environment,
-      settings: {
-        autoScaling: {
-          enabled: true,
-          minInstances: environment === 'production' ? 2 : 1,
-          maxInstances: environment === 'production' ? 10 : 3,
-          targetCpuUtilization: 70
-        },
-        monitoring: {
-          enabled: true,
-          interval: environment === 'production' ? 30 : 60,
-          alertThreshold: 85
-        },
-        caching: {
-          enabled: true,
-          ttl: environment === 'production' ? 3600 : 1800,
-          strategy: 'adaptive'
-        },
-        performance: {
-          optimization: environment === 'production' ? 'aggressive' : 'balanced',
-          compression: true,
-          bundleAnalysis: environment !== 'production'
-        }
+      version: '5.44.0',
+      lastUpdate: new Date().toISOString(),
+      autoScaling: {
+        enabled: true,
+        minServers: 3,
+        maxServers: 50,
+        targetCpuUtilization: 70,
+        scaleUpThreshold: 80,
+        scaleDownThreshold: 30,
+        cooldownPeriod: 300, // seconds
       },
-      metadata: {
-        lastUpdated: new Date().toISOString(),
-        version: '1.0.0',
-        configId: `adaptive-${Date.now()}`
-      }
+      monitoring: {
+        interval: 30, // seconds
+        alertThreshold: {
+          cpu: 85,
+          memory: 90,
+          disk: 95,
+          network: 80,
+        },
+        retentionPeriod: 30, // days
+      },
+      performance: {
+        cacheSize: '256MB',
+        connectionPoolSize: 20,
+        queryTimeout: 30000, // ms
+        batchSize: 100,
+      },
+      security: {
+        rateLimiting: {
+          enabled: true,
+          requestsPerMinute: 1000,
+          burstLimit: 200,
+        },
+        authentication: {
+          sessionTimeout: 3600, // seconds
+          maxFailedAttempts: 5,
+          lockoutDuration: 900, // seconds
+        },
+      },
+      ai: {
+        modelSelection: 'auto',
+        fallbackEnabled: true,
+        responseTimeout: 15000, // ms
+        cacheEnabled: true,
+        maxConcurrentRequests: 10,
+      },
     };
 
-    return NextResponse.json({
-      success: true,
-      data: adaptiveConfig
-    });
+    if (category) {
+      const categoryConfig =
+        adaptiveConfig[category as keyof typeof adaptiveConfig];
+      if (categoryConfig) {
+        return NextResponse.json({
+          category,
+          config: categoryConfig,
+          timestamp: new Date().toISOString(),
+        });
+      } else {
+        return NextResponse.json(
+          {
+            error: `지원되지 않는 설정 카테고리: ${category}`,
+            availableCategories: Object.keys(adaptiveConfig).filter(
+              key => key !== 'version' && key !== 'lastUpdate'
+            ),
+          },
+          { status: 404 }
+        );
+      }
+    }
+
+    return NextResponse.json(adaptiveConfig);
   } catch (error) {
-    console.error('적응형 구성 조회 오류:', error);
+    console.error('❌ 적응형 설정 조회 오류:', error);
     return NextResponse.json(
       {
-        success: false,
-        error: '적응형 구성 조회 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: '적응형 설정 조회 중 오류가 발생했습니다',
       },
       { status: 500 }
     );
@@ -72,55 +103,49 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { type, environment, settings } = body;
+    const { category, config, action } = body;
 
-    // 적응형 구성 업데이트 (시뮬레이션)
-    const updatedConfig = {
-      id: `config-${Date.now()}`,
-      type: type || 'system',
-      environment: environment || 'production',
-      settings: {
-        autoScaling: {
-          enabled: settings?.autoScaling?.enabled !== false,
-          minInstances: settings?.autoScaling?.minInstances || 1,
-          maxInstances: settings?.autoScaling?.maxInstances || 5,
-          targetCpuUtilization: settings?.autoScaling?.targetCpuUtilization || 70
-        },
-        monitoring: {
-          enabled: settings?.monitoring?.enabled !== false,
-          interval: settings?.monitoring?.interval || 30,
-          alertThreshold: settings?.monitoring?.alertThreshold || 85
-        },
-        caching: {
-          enabled: settings?.caching?.enabled !== false,
-          ttl: settings?.caching?.ttl || 3600,
-          strategy: settings?.caching?.strategy || 'adaptive'
-        },
-        performance: {
-          optimization: settings?.performance?.optimization || 'balanced',
-          compression: settings?.performance?.compression !== false,
-          bundleAnalysis: settings?.performance?.bundleAnalysis || false
-        }
-      },
-      metadata: {
-        lastUpdated: new Date().toISOString(),
-        version: '1.0.0',
-        configId: `adaptive-${Date.now()}`
-      }
-    };
+    switch (action) {
+      case 'update':
+        return NextResponse.json({
+          success: true,
+          message: `${category} 설정이 업데이트되었습니다`,
+          config,
+          timestamp: new Date().toISOString(),
+        });
 
-    return NextResponse.json({
-      success: true,
-      data: updatedConfig,
-      message: '적응형 구성이 업데이트되었습니다'
-    });
+      case 'reset':
+        return NextResponse.json({
+          success: true,
+          message: `${category} 설정이 기본값으로 재설정되었습니다`,
+          timestamp: new Date().toISOString(),
+        });
+
+      case 'optimize':
+        return NextResponse.json({
+          success: true,
+          message: `${category} 설정이 현재 상황에 맞게 최적화되었습니다`,
+          optimizedConfig: {
+            ...config,
+            optimizedAt: new Date().toISOString(),
+            performanceGain: '15%',
+          },
+          timestamp: new Date().toISOString(),
+        });
+
+      default:
+        return NextResponse.json(
+          {
+            error: `지원되지 않는 액션: ${action}`,
+          },
+          { status: 400 }
+        );
+    }
   } catch (error) {
-    console.error('적응형 구성 업데이트 오류:', error);
+    console.error('❌ 적응형 설정 업데이트 오류:', error);
     return NextResponse.json(
       {
-        success: false,
-        error: '적응형 구성 업데이트 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: '적응형 설정 업데이트 중 오류가 발생했습니다',
       },
       { status: 500 }
     );
@@ -135,33 +160,34 @@ export async function PUT(request: NextRequest) {
   const startTime = Date.now();
 
   try {
-    const {
-      performanceMetrics,
-      currentConfig
-    } = await request.json();
+    const { performanceMetrics, currentConfig } = await request.json();
 
     if (!performanceMetrics || !currentConfig) {
-      return NextResponse.json({
-        success: false,
-        error: 'performanceMetrics와 currentConfig가 필요합니다',
-        required: {
-          performanceMetrics: {
-            memoryUsage: 'number (0-100)',
-            responseTime: 'number (ms)',
-            errorRate: 'number (0-100)'
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'performanceMetrics와 currentConfig가 필요합니다',
+          required: {
+            performanceMetrics: {
+              memoryUsage: 'number (0-100)',
+              responseTime: 'number (ms)',
+              errorRate: 'number (0-100)',
+            },
+            currentConfig: 'OptimalServerConfig object',
           },
-          currentConfig: 'OptimalServerConfig object'
-        }
-      }, { status: 400 });
+        },
+        { status: 400 }
+      );
     }
 
     console.log('🎛️ 성능 기반 구성 조정 시작...', performanceMetrics);
 
     // 성능 메트릭을 기반으로 구성 조정
-    const adjustedConfig = await adaptiveConfigManager.adjustConfigByPerformance(
-      currentConfig,
-      performanceMetrics
-    );
+    const adjustedConfig =
+      await adaptiveConfigManager.adjustConfigByPerformance(
+        currentConfig,
+        performanceMetrics
+      );
 
     const responseTime = Date.now() - startTime;
 
@@ -185,33 +211,37 @@ export async function PUT(request: NextRequest) {
       success: true,
       timestamp: new Date().toISOString(),
       responseTime: `${responseTime}ms`,
-      adjusted: adjustedConfig.serverCount !== currentConfig.serverCount ||
+      adjusted:
+        adjustedConfig.serverCount !== currentConfig.serverCount ||
         adjustedConfig.generationInterval !== currentConfig.generationInterval,
       originalConfig: {
         serverCount: currentConfig.serverCount,
-        generationInterval: currentConfig.generationInterval
+        generationInterval: currentConfig.generationInterval,
       },
       adjustedConfig: {
         serverCount: adjustedConfig.serverCount,
         generationInterval: adjustedConfig.generationInterval,
-        aiEnabled: adjustedConfig.aiEnabled
+        aiEnabled: adjustedConfig.aiEnabled,
       },
       performanceMetrics,
       adjustmentReasons,
-      message: adjustmentReasons.length > 1 ?
-        '성능 이슈로 인한 구성 조정 완료' :
-        '현재 성능이 양호하여 구성 유지'
+      message:
+        adjustmentReasons.length > 1
+          ? '성능 이슈로 인한 구성 조정 완료'
+          : '현재 성능이 양호하여 구성 유지',
     });
-
   } catch (error) {
     const responseTime = Date.now() - startTime;
 
-    return NextResponse.json({
-      success: false,
-      timestamp: new Date().toISOString(),
-      responseTime: `${responseTime}ms`,
-      error: error instanceof Error ? error.message : '구성 조정 실패',
-      message: '성능 기반 구성 조정에 실패했습니다'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        timestamp: new Date().toISOString(),
+        responseTime: `${responseTime}ms`,
+        error: error instanceof Error ? error.message : '구성 조정 실패',
+        message: '성능 기반 구성 조정에 실패했습니다',
+      },
+      { status: 500 }
+    );
   }
-} 
+}

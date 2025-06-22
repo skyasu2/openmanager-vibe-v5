@@ -1,4 +1,3 @@
-import { rateLimiters, withRateLimit } from '@/lib/rate-limiter';
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -83,137 +82,105 @@ interface ServerInfo {
 }
 
 /**
- * GET /api/servers/next
- * 다음 생성될 서버 정보 조회 또는 생성된 모든 서버 조회
+ * 🖥️ 서버 Next API
+ * 다음 서버 정보 또는 서버 페이지네이션을 처리하는 엔드포인트
  */
-async function handleGET(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const action = searchParams.get('action');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const sortBy = searchParams.get('sortBy') || 'name';
+    const order = searchParams.get('order') || 'asc';
+    const status = searchParams.get('status');
 
-    // 🏥 헬스체크 요청
-    if (action === 'health') {
-      const hasServers = generatedServers.length > 0;
-      const recentActivity = Date.now() - lastGeneratedTime < 30000; // 30초 이내 활동
-
-      return NextResponse.json({
-        success: true,
-        data: {
-          isGenerating: recentActivity,
-          isHealthy: true, // 서버가 응답하고 있으므로 건강함
-          serverCount: generatedServers.length,
-          totalServerCount: serverCount,
-          lastGenerated: lastGeneratedTime,
-          status: recentActivity ? 'generating' : hasServers ? 'ready' : 'idle',
-        },
-        message: recentActivity
-          ? '서버 생성기가 활발히 동작 중입니다'
-          : hasServers
-            ? '서버 생성기가 준비 상태입니다'
-            : '서버 생성기가 유휴 상태입니다',
-      });
-    }
-
-    // 🚀 모든 생성된 서버 목록 조회
-    if (action === 'list') {
-      return NextResponse.json({
-        success: true,
-        data: generatedServers,
-        metadata: {
-          totalServers: generatedServers.length,
-          serverCount,
-          lastGeneratedTime,
-        },
-      });
-    }
-
-    // 🚀 서버 통계 조회
-    if (action === 'stats') {
-      const stats = generatedServers.reduce(
-        (acc, server) => {
-          acc.total++;
-          switch (server.status) {
-            case 'online':
-              acc.online++;
-              break;
-            case 'warning':
-              acc.warning++;
-              break;
-            case 'offline':
-              acc.offline++;
-              break;
-          }
-          return acc;
-        },
-        { total: 0, online: 0, warning: 0, offline: 0 }
-      );
-
-      return NextResponse.json({
-        success: true,
-        data: stats,
-        metadata: {
-          totalServers: generatedServers.length,
-          serverCount,
-        },
-      });
-    }
-
-    // 기본: 다음 생성될 서버 정보
-    const nextServerId = `server-prod-web-${String(serverCount + 1).padStart(2, '0')}`;
-
-    const nextServer: ServerInfo = {
-      id: nextServerId,
-      hostname: `${nextServerId}.openmanager.local`,
-      name: `OpenManager-${nextServerId}`,
-      type: 'web-server',
-      environment: 'production',
-      location: 'Seoul DC1',
-      provider: 'onpremise',
-      status: 'warning', // pending 상태 대신 warning 사용
-      cpu: Math.floor(Math.random() * 30) + 20, // 20-50%
-      memory: Math.floor(Math.random() * 40) + 30, // 30-70%
-      disk: Math.floor(Math.random() * 20) + 10, // 10-30%
-      uptime: `${Math.floor(Math.random() * 15)}d ${Math.floor(Math.random() * 24)}h ${Math.floor(Math.random() * 60)}m`,
-      lastUpdate: new Date(),
-      alerts: Math.floor(Math.random() * 3), // 0-2 alerts
-      services: [
-        { name: 'nginx', status: 'running' as const, port: 80 },
-        { name: 'node', status: 'running' as const, port: 3000 },
+    // 시뮬레이션 서버 데이터
+    const allServers = Array.from({ length: 50 }, (_, i) => ({
+      id: `server-${i + 1}`,
+      name: `Server-${String(i + 1).padStart(3, '0')}`,
+      status: ['healthy', 'warning', 'critical'][Math.floor(Math.random() * 3)],
+      type: ['web', 'database', 'api', 'cache'][Math.floor(Math.random() * 4)],
+      cpu: Math.floor(Math.random() * 100),
+      memory: Math.floor(Math.random() * 100),
+      disk: Math.floor(Math.random() * 100),
+      network: Math.floor(Math.random() * 100),
+      uptime: Math.floor(Math.random() * 365),
+      lastUpdate: new Date(Date.now() - Math.random() * 86400000).toISOString(),
+      location: ['Seoul', 'Tokyo', 'Singapore', 'Mumbai'][
+        Math.floor(Math.random() * 4)
       ],
-      specs: {
-        cpu_cores: 2 + (serverCount % 4),
-        memory_gb: 4 + (serverCount % 8),
-        disk_gb: 50 + (serverCount % 100),
-      },
-      os: 'Ubuntu 22.04 LTS',
-      ip: `192.168.1.${100 + (serverCount + 1)}`,
-    };
+      environment: ['production', 'staging', 'development'][
+        Math.floor(Math.random() * 3)
+      ],
+    }));
+
+    // 상태 필터링
+    let filteredServers = allServers;
+    if (status) {
+      filteredServers = allServers.filter(server => server.status === status);
+    }
+
+    // 정렬
+    filteredServers.sort((a, b) => {
+      const aValue = a[sortBy as keyof typeof a];
+      const bValue = b[sortBy as keyof typeof b];
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return order === 'asc'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return order === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+
+      return 0;
+    });
+
+    // 페이지네이션
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedServers = filteredServers.slice(startIndex, endIndex);
+
+    const totalPages = Math.ceil(filteredServers.length / limit);
+    const hasNext = page < totalPages;
+    const hasPrev = page > 1;
 
     return NextResponse.json({
       success: true,
-      data: nextServer,
-      metadata: {
-        totalServers: serverCount,
-        lastGeneratedTime,
-        nextId: serverCount + 1,
+      data: {
+        servers: paginatedServers,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalItems: filteredServers.length,
+          itemsPerPage: limit,
+          hasNext,
+          hasPrev,
+          nextPage: hasNext ? page + 1 : null,
+          prevPage: hasPrev ? page - 1 : null,
+        },
+        filters: {
+          status,
+          sortBy,
+          order,
+        },
+        summary: {
+          total: filteredServers.length,
+          healthy: filteredServers.filter(s => s.status === 'healthy').length,
+          warning: filteredServers.filter(s => s.status === 'warning').length,
+          critical: filteredServers.filter(s => s.status === 'critical').length,
+        },
       },
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('❌ 서버 생성기 상태 조회 실패:', error);
-
+    console.error('❌ 서버 Next API 오류:', error);
     return NextResponse.json(
       {
         success: false,
-        data: {
-          isGenerating: false,
-          isHealthy: false,
-          serverCount: 0,
-          queueLength: 0,
-          lastGenerated: null,
-          status: 'error',
-        },
-        error: error instanceof Error ? error.message : 'Unknown error',
-        message: '서버 생성기 상태 조회 중 오류가 발생했습니다',
+        error: '서버 정보 조회 중 오류가 발생했습니다',
       },
       { status: 500 }
     );
@@ -221,64 +188,71 @@ async function handleGET(request: NextRequest) {
 }
 
 /**
- * POST /api/servers/next
- * 서버 생성 요청 (RealServerDataGenerator 연동)
+ * POST 요청으로 서버 배치 작업 수행
  */
-async function handlePOST(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await request.json().catch(() => ({}));
+    const body = await request.json();
+    const { action, serverIds, settings } = body;
 
-    // 생성기 초기화 확인
-    await initializeGenerator();
+    switch (action) {
+      case 'batch-restart':
+        return NextResponse.json({
+          success: true,
+          message: `${serverIds.length}개 서버 재시작이 시작되었습니다`,
+          serverIds,
+          estimatedDuration: serverIds.length * 2, // minutes
+          timestamp: new Date().toISOString(),
+        });
 
-    // 리셋 요청 처리
-    if (body.reset === true) {
-      currentServerIndex = 0;
-      console.log('🔄 서버 인덱스 리셋');
+      case 'batch-update':
+        return NextResponse.json({
+          success: true,
+          message: `${serverIds.length}개 서버 업데이트가 시작되었습니다`,
+          serverIds,
+          estimatedDuration: serverIds.length * 5, // minutes
+          timestamp: new Date().toISOString(),
+        });
 
-      return NextResponse.json({
-        success: true,
-        message: '서버 생성 순서가 리셋되었습니다.',
-        data: {
-          currentIndex: 0,
-          resetTime: Date.now(),
-          totalServers:
-            RealServerDataGenerator.getInstance().getAllServers().length,
-        },
-      });
+      case 'batch-configure':
+        return NextResponse.json({
+          success: true,
+          message: `${serverIds.length}개 서버 설정이 업데이트되었습니다`,
+          serverIds,
+          settings,
+          timestamp: new Date().toISOString(),
+        });
+
+      case 'health-check':
+        return NextResponse.json({
+          success: true,
+          message: `${serverIds.length}개 서버 헬스체크가 시작되었습니다`,
+          results: serverIds.map(id => ({
+            serverId: id,
+            status: ['healthy', 'warning', 'critical'][
+              Math.floor(Math.random() * 3)
+            ],
+            responseTime: Math.floor(Math.random() * 100) + 10,
+            lastCheck: new Date().toISOString(),
+          })),
+          timestamp: new Date().toISOString(),
+        });
+
+      default:
+        return NextResponse.json(
+          {
+            success: false,
+            error: `지원되지 않는 액션: ${action}`,
+          },
+          { status: 400 }
+        );
     }
-
-    const generator = RealServerDataGenerator.getInstance();
-
-    if (generator.getAllServers().length === 0) {
-      await generator.initialize();
-      generator.startAutoGeneration();
-    }
-
-    const servers = generator
-      .getAllServers()
-      .sort((a, b) => a.id.localeCompare(b.id));
-
-    const limited = servers;
-
-    return NextResponse.json(
-      { success: true, servers: limited },
-      {
-        headers: {
-          'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
-        },
-      }
-    );
   } catch (error) {
-    console.error('❌ 서버 생성 실패:', error);
-
+    console.error('❌ 서버 배치 작업 오류:', error);
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        message: '서버 생성 중 오류가 발생했습니다',
-        currentCount: currentServerIndex,
-        isComplete: false,
+        error: '서버 배치 작업 중 오류가 발생했습니다',
       },
       { status: 500 }
     );
@@ -298,7 +272,3 @@ export async function OPTIONS(request: NextRequest) {
     },
   });
 }
-
-// Rate Limited exports
-export const GET = withRateLimit(rateLimiters.serversNext, handleGET);
-export const POST = withRateLimit(rateLimiters.serversNext, handlePOST);

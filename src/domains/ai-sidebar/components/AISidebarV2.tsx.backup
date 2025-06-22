@@ -708,9 +708,8 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                           setSelectedEngine(engine.id);
                           setShowEngineInfo(false);
                         }}
-                        className={`w-full p-2 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${
-                          selectedEngine === engine.id ? 'bg-blue-50' : ''
-                        }`}
+                        className={`w-full p-2 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${selectedEngine === engine.id ? 'bg-blue-50' : ''
+                          }`}
                       >
                         <div className='flex items-start space-x-2'>
                           <div
@@ -822,19 +821,17 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
             className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[85%] ${
-                message.type === 'user'
-                  ? 'flex-row-reverse space-x-reverse'
-                  : ''
-              }`}
+              className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[85%] ${message.type === 'user'
+                ? 'flex-row-reverse space-x-reverse'
+                : ''
+                }`}
             >
               {/* 아바타 */}
               <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  message.type === 'user'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                }`}
+                className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${message.type === 'user'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                  }`}
               >
                 {message.type === 'user' ? (
                   <User className='w-3 h-3' />
@@ -947,7 +944,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                           title='사고 과정 토글'
                         >
                           {localStorage.getItem(`thinking_${message.id}`) !==
-                          'false' ? (
+                            'false' ? (
                             <ChevronUp className='w-3 h-3 text-gray-500' />
                           ) : (
                             <ChevronDown className='w-3 h-3 text-gray-500' />
@@ -958,75 +955,72 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                       <AnimatePresence>
                         {localStorage.getItem(`thinking_${message.id}`) !==
                           'false' && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className='space-y-1'
-                          >
-                            {message.thinking.map((step, index) => (
-                              <motion.div
-                                key={step.id}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: index * 0.05 }}
-                                className={`p-2 rounded border-l-2 ${
-                                  (step as any).status === 'completed'
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className='space-y-1'
+                            >
+                              {message.thinking.map((step, index) => (
+                                <motion.div
+                                  key={step.id}
+                                  initial={{ opacity: 0, x: -10 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: index * 0.05 }}
+                                  className={`p-2 rounded border-l-2 ${(step as any).status === 'completed'
                                     ? 'bg-green-50 border-l-green-400'
                                     : (step as any).status === 'processing'
                                       ? 'bg-blue-50 border-l-blue-400'
                                       : 'bg-gray-50 border-l-gray-300'
-                                }`}
-                              >
-                                <div className='flex items-center justify-between'>
-                                  <div className='flex items-center space-x-2'>
-                                    <div
-                                      className={`w-3 h-3 rounded-full flex items-center justify-center ${
-                                        (step as any).status === 'completed'
+                                    }`}
+                                >
+                                  <div className='flex items-center justify-between'>
+                                    <div className='flex items-center space-x-2'>
+                                      <div
+                                        className={`w-3 h-3 rounded-full flex items-center justify-center ${(step as any).status === 'completed'
                                           ? 'bg-green-400'
                                           : (step as any).status ===
-                                              'processing'
+                                            'processing'
                                             ? 'bg-blue-400'
                                             : 'bg-gray-300'
-                                      }`}
-                                    >
-                                      {(step as any).status === 'completed' ? (
-                                        <CheckCircle className='w-2 h-2 text-white' />
-                                      ) : (step as any).status ===
-                                        'processing' ? (
-                                        <div className='w-1.5 h-1.5 bg-white rounded-full animate-pulse' />
-                                      ) : (
-                                        <Clock className='w-2 h-2 text-white' />
-                                      )}
+                                          }`}
+                                      >
+                                        {(step as any).status === 'completed' ? (
+                                          <CheckCircle className='w-2 h-2 text-white' />
+                                        ) : (step as any).status ===
+                                          'processing' ? (
+                                          <div className='w-1.5 h-1.5 bg-white rounded-full animate-pulse' />
+                                        ) : (
+                                          <Clock className='w-2 h-2 text-white' />
+                                        )}
+                                      </div>
+                                      <span className='text-xs font-medium text-gray-700'>
+                                        {step.step}. {step.title}
+                                      </span>
                                     </div>
-                                    <span className='text-xs font-medium text-gray-700'>
-                                      {step.step}. {step.title}
-                                    </span>
+                                    {step.duration && (
+                                      <span className='text-xs text-gray-500'>
+                                        {(step.duration / 1000).toFixed(1)}초
+                                      </span>
+                                    )}
                                   </div>
-                                  {step.duration && (
-                                    <span className='text-xs text-gray-500'>
-                                      {(step.duration / 1000).toFixed(1)}초
-                                    </span>
-                                  )}
-                                </div>
-                                <p className='text-xs text-gray-600 ml-5 mt-1'>
-                                  {step.description}
-                                </p>
-                              </motion.div>
-                            ))}
-                          </motion.div>
-                        )}
+                                  <p className='text-xs text-gray-600 ml-5 mt-1'>
+                                    {step.description}
+                                  </p>
+                                </motion.div>
+                              ))}
+                            </motion.div>
+                          )}
                       </AnimatePresence>
                     </div>
                   )}
 
                 {/* 메시지 버블 */}
                 <div
-                  className={`p-3 rounded-lg ${
-                    message.type === 'user'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-white border border-gray-200 text-gray-800'
-                  }`}
+                  className={`p-3 rounded-lg ${message.type === 'user'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-white border border-gray-200 text-gray-800'
+                    }`}
                 >
                   {/* 파일 첨부 (사용자 메시지만) */}
                   {message.type === 'user' && message.files && (
@@ -1071,11 +1065,10 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                   )}
 
                   <p
-                    className={`text-xs mt-1 ${
-                      message.type === 'user'
-                        ? 'text-blue-100'
-                        : 'text-gray-500'
-                    }`}
+                    className={`text-xs mt-1 ${message.type === 'user'
+                      ? 'text-blue-100'
+                      : 'text-gray-500'
+                      }`}
                   >
                     {typeof message.timestamp === 'string'
                       ? new Date(message.timestamp).toLocaleTimeString()
@@ -1162,24 +1155,22 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.1 }}
-                          className={`p-2 rounded-lg border-l-3 ${
-                            step.status === 'completed'
-                              ? 'bg-green-50 border-l-green-500'
-                              : step.status === 'processing'
-                                ? 'bg-blue-50 border-l-blue-500'
-                                : 'bg-gray-50 border-l-gray-300'
-                          }`}
+                          className={`p-2 rounded-lg border-l-3 ${step.status === 'completed'
+                            ? 'bg-green-50 border-l-green-500'
+                            : step.status === 'processing'
+                              ? 'bg-blue-50 border-l-blue-500'
+                              : 'bg-gray-50 border-l-gray-300'
+                            }`}
                         >
                           <div className='flex items-center justify-between mb-1'>
                             <div className='flex items-center space-x-2'>
                               <div
-                                className={`w-4 h-4 rounded-full flex items-center justify-center ${
-                                  step.status === 'completed'
-                                    ? 'bg-green-500'
-                                    : step.status === 'processing'
-                                      ? 'bg-blue-500'
-                                      : 'bg-gray-300'
-                                }`}
+                                className={`w-4 h-4 rounded-full flex items-center justify-center ${step.status === 'completed'
+                                  ? 'bg-green-500'
+                                  : step.status === 'processing'
+                                    ? 'bg-blue-500'
+                                    : 'bg-gray-300'
+                                  }`}
                               >
                                 {step.status === 'completed' ? (
                                   <CheckCircle className='w-2 h-2 text-white' />

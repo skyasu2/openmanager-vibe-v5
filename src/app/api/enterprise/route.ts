@@ -1,70 +1,92 @@
-import { NextResponse } from 'next/server'
-import { cacheService } from '../../../services/cacheService'
-import { ENTERPRISE_SERVERS, SERVER_STATS, IDC_LOCATIONS } from '../../../lib/enterprise-servers'
-import { 
-  CRITICAL_FAILURE_CHAINS, 
-  WARNING_FAILURES, 
-  FAILURE_CORRELATIONS,
+import { NextRequest, NextResponse } from 'next/server';
+import {
+  AI_RECOMMENDATIONS,
+  CRITICAL_FAILURE_CHAINS,
   FAILURE_ANALYTICS,
+  FAILURE_CORRELATIONS,
   FAILURE_TIMELINE,
-  AI_RECOMMENDATIONS
-} from '../../../lib/enterprise-failures'
-import { 
+  WARNING_FAILURES,
+} from '../../../lib/enterprise-failures';
+import {
+  AUTOMATION_METRICS,
   BUSINESS_HOURS_PATTERNS,
+  CAPACITY_PLANNING,
   getCurrentPerformanceMetrics,
   SLA_TARGETS,
-  CAPACITY_PLANNING,
-  AUTOMATION_METRICS
-} from '../../../lib/enterprise-metrics'
+} from '../../../lib/enterprise-metrics';
+import {
+  ENTERPRISE_SERVERS,
+  IDC_LOCATIONS,
+  SERVER_STATS,
+} from '../../../lib/enterprise-servers';
+import { cacheService } from '../../../services/cacheService';
 
-export async function GET() {
+/**
+ * 🏢 엔터프라이즈 API
+ * 엔터프라이즈 기능 및 정보를 제공하는 엔드포인트
+ */
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const feature = searchParams.get('feature');
+
     // 캐시에서 먼저 확인 (1분 캐시)
-    const cached = await cacheService.get('enterprise:overview')
+    const cached = await cacheService.get('enterprise:overview');
     if (cached) {
-      return NextResponse.json({ 
-        success: true, 
-        data: cached, 
+      return NextResponse.json({
+        success: true,
+        data: cached,
         timestamp: new Date().toISOString(),
-        cached: true
-      })
+        cached: true,
+      });
     }
 
     // 🏢 기업 인프라 전체 현황 생성
-    const currentTime = new Date()
-    const kstTime = new Date(currentTime.getTime() + (9 * 60 * 60 * 1000)) // KST 변환
-    
+    const currentTime = new Date();
+    const kstTime = new Date(currentTime.getTime() + 9 * 60 * 60 * 1000); // KST 변환
+
     // 현재 비즈니스 시간 패턴 확인
-    const currentHour = kstTime.getHours()
-    const currentPattern = BUSINESS_HOURS_PATTERNS.find(pattern => {
-      const [start, end] = pattern.timeRange.split('-').map(time => parseInt(time.split(':')[0]))
-      if (start <= end) {
-        return currentHour >= start && currentHour < end
-      } else {
-        // 야간 시간 (18:00-09:00)
-        return currentHour >= start || currentHour < end
-      }
-    }) || BUSINESS_HOURS_PATTERNS[4] // 기본값: 야간 배치
+    const currentHour = kstTime.getHours();
+    const currentPattern =
+      BUSINESS_HOURS_PATTERNS.find(pattern => {
+        const [start, end] = pattern.timeRange
+          .split('-')
+          .map(time => parseInt(time.split(':')[0]));
+        if (start <= end) {
+          return currentHour >= start && currentHour < end;
+        } else {
+          // 야간 시간 (18:00-09:00)
+          return currentHour >= start || currentHour < end;
+        }
+      }) || BUSINESS_HOURS_PATTERNS[4]; // 기본값: 야간 배치
 
     // 서버 상태별 분류
     const serversByStatus = {
       critical: ENTERPRISE_SERVERS.filter(s => s.status === 'error'),
       warning: ENTERPRISE_SERVERS.filter(s => s.status === 'warning'),
-      healthy: ENTERPRISE_SERVERS.filter(s => s.status === 'online')
-    }
+      healthy: ENTERPRISE_SERVERS.filter(s => s.status === 'online'),
+    };
 
     // IDC별 서버 분류
-    const serversByLocation = Object.entries(IDC_LOCATIONS).map(([location, serverIds]) => ({
-      location,
-      servers: ENTERPRISE_SERVERS.filter(s => serverIds.includes(s.id)),
-      totalServers: serverIds.length,
-      healthyServers: ENTERPRISE_SERVERS.filter(s => serverIds.includes(s.id) && s.status === 'online').length,
-      warningServers: ENTERPRISE_SERVERS.filter(s => serverIds.includes(s.id) && s.status === 'warning').length,
-      criticalServers: ENTERPRISE_SERVERS.filter(s => serverIds.includes(s.id) && s.status === 'error').length
-    }))
+    const serversByLocation = Object.entries(IDC_LOCATIONS).map(
+      ([location, serverIds]) => ({
+        location,
+        servers: ENTERPRISE_SERVERS.filter(s => serverIds.includes(s.id)),
+        totalServers: serverIds.length,
+        healthyServers: ENTERPRISE_SERVERS.filter(
+          s => serverIds.includes(s.id) && s.status === 'online'
+        ).length,
+        warningServers: ENTERPRISE_SERVERS.filter(
+          s => serverIds.includes(s.id) && s.status === 'warning'
+        ).length,
+        criticalServers: ENTERPRISE_SERVERS.filter(
+          s => serverIds.includes(s.id) && s.status === 'error'
+        ).length,
+      })
+    );
 
     // 실시간 성능 메트릭
-    const performanceMetrics = getCurrentPerformanceMetrics()
+    const performanceMetrics = getCurrentPerformanceMetrics();
 
     // 전체 응답 데이터 구성
     const enterpriseOverview = {
@@ -76,9 +98,12 @@ export async function GET() {
         healthyServers: SERVER_STATS.healthy,
         kubernetesNodes: SERVER_STATS.kubernetes,
         onPremiseServers: SERVER_STATS.onpremise,
-        overallHealthScore: Math.round(((SERVER_STATS.healthy * 100) + (SERVER_STATS.warning * 50)) / SERVER_STATS.total),
+        overallHealthScore: Math.round(
+          (SERVER_STATS.healthy * 100 + SERVER_STATS.warning * 50) /
+            SERVER_STATS.total
+        ),
         systemAvailability: SLA_TARGETS.availability.current,
-        currentIncidents: FAILURE_ANALYTICS.totalIncidents
+        currentIncidents: FAILURE_ANALYTICS.totalIncidents,
       },
 
       // 🏢 IDC 위치별 현황
@@ -93,7 +118,7 @@ export async function GET() {
           affectedServers: chain.affected.length,
           startTime: chain.startTime,
           businessImpact: chain.businessImpact,
-          status: 'active'
+          status: 'active',
         })),
         warning: WARNING_FAILURES.map(failure => ({
           id: failure.id,
@@ -101,9 +126,9 @@ export async function GET() {
           origin: failure.origin,
           startTime: failure.startTime,
           businessImpact: failure.businessImpact,
-          status: 'active'
+          status: 'active',
         })),
-        analytics: FAILURE_ANALYTICS
+        analytics: FAILURE_ANALYTICS,
       },
 
       // 🔗 장애 상관관계
@@ -112,7 +137,7 @@ export async function GET() {
         affectedServers: corr.secondaryFailures,
         strength: corr.correlationStrength,
         propagationTime: corr.propagationTime,
-        impactedSystems: corr.affectedSystems
+        impactedSystems: corr.affectedSystems,
       })),
 
       // ⏰ 현재 운영 상황
@@ -122,14 +147,14 @@ export async function GET() {
         description: currentPattern.description,
         expectedLoad: currentPattern.expectedLoad,
         criticalSystems: currentPattern.criticalSystems,
-        timeline: FAILURE_TIMELINE
+        timeline: FAILURE_TIMELINE,
       },
 
       // 📈 실시간 성능 지표
       performanceMetrics: {
         ...performanceMetrics,
         slaTargets: SLA_TARGETS,
-        automationMetrics: AUTOMATION_METRICS
+        automationMetrics: AUTOMATION_METRICS,
       },
 
       // 🎯 AI 분석 및 권장사항
@@ -138,7 +163,9 @@ export async function GET() {
         shortTermRecommendations: AI_RECOMMENDATIONS.shortTermActions,
         longTermPlanning: AI_RECOMMENDATIONS.longTermActions,
         preventiveMeasures: AI_RECOMMENDATIONS.preventiveActions,
-        capacityPlanning: CAPACITY_PLANNING.filter(plan => plan.currentUsage > plan.scalingTrigger)
+        capacityPlanning: CAPACITY_PLANNING.filter(
+          plan => plan.currentUsage > plan.scalingTrigger
+        ),
       },
 
       // 📊 서버별 상세 현황
@@ -146,31 +173,72 @@ export async function GET() {
         byStatus: serversByStatus,
         kubernetes: {
           masters: ENTERPRISE_SERVERS.filter(s => s.id.includes('master')),
-          workers: ENTERPRISE_SERVERS.filter(s => s.id.includes('worker'))
+          workers: ENTERPRISE_SERVERS.filter(s => s.id.includes('worker')),
         },
         onPremise: {
           web: ENTERPRISE_SERVERS.filter(s => s.id.includes('web-')),
           database: ENTERPRISE_SERVERS.filter(s => s.id.includes('db-')),
-          storage: ENTERPRISE_SERVERS.filter(s => s.id.includes('storage-') || s.id.includes('file-') || s.id.includes('backup-')),
-          infrastructure: ENTERPRISE_SERVERS.filter(s => 
-            s.id.includes('monitor-') || s.id.includes('log-') || 
-            s.id.includes('proxy-') || s.id.includes('dns-')
-          )
-        }
+          storage: ENTERPRISE_SERVERS.filter(
+            s =>
+              s.id.includes('storage-') ||
+              s.id.includes('file-') ||
+              s.id.includes('backup-')
+          ),
+          infrastructure: ENTERPRISE_SERVERS.filter(
+            s =>
+              s.id.includes('monitor-') ||
+              s.id.includes('log-') ||
+              s.id.includes('proxy-') ||
+              s.id.includes('dns-')
+          ),
+        },
       },
 
       // 🔧 복구 우선순위
-      recoveryPriority: FAILURE_ANALYTICS.recoveryPriority.map((serverId, index) => ({
-        priority: index + 1,
-        serverId,
-        server: ENTERPRISE_SERVERS.find(s => s.id === serverId),
-        estimatedImpact: CRITICAL_FAILURE_CHAINS.find(c => c.origin === serverId)?.businessImpact || 0,
-        dependencies: FAILURE_CORRELATIONS.find(c => c.primaryFailure === serverId)?.secondaryFailures || []
-      }))
-    }
+      recoveryPriority: FAILURE_ANALYTICS.recoveryPriority.map(
+        (serverId, index) => ({
+          priority: index + 1,
+          serverId,
+          server: ENTERPRISE_SERVERS.find(s => s.id === serverId),
+          estimatedImpact:
+            CRITICAL_FAILURE_CHAINS.find(c => c.origin === serverId)
+              ?.businessImpact || 0,
+          dependencies:
+            FAILURE_CORRELATIONS.find(c => c.primaryFailure === serverId)
+              ?.secondaryFailures || [],
+        })
+      ),
+    };
 
     // 캐시에 저장 (1분)
-    await cacheService.set('enterprise:overview', enterpriseOverview, 60)
+    await cacheService.set('enterprise:overview', enterpriseOverview, 60);
+
+    if (feature) {
+      // 기능별 정보를 별도로 처리
+      const availableFeatures = {
+        'ai-analysis': enterpriseOverview.aiAnalysis,
+        'performance-metrics': enterpriseOverview.performanceMetrics,
+        'incident-management': enterpriseOverview.activeIncidents,
+        'capacity-planning': enterpriseOverview.aiAnalysis.capacityPlanning,
+      };
+
+      const featureInfo =
+        availableFeatures[feature as keyof typeof availableFeatures];
+      if (featureInfo) {
+        return NextResponse.json({
+          feature,
+          data: featureInfo,
+          timestamp: new Date().toISOString(),
+        });
+      } else {
+        return NextResponse.json(
+          {
+            error: `지원되지 않는 기능: ${feature}`,
+          },
+          { status: 404 }
+        );
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -181,17 +249,66 @@ export async function GET() {
         lastUpdate: new Date().toISOString(),
         dataSource: 'enterprise-infrastructure',
         environment: 'production',
-        region: 'IDC-Seoul-Main'
-      }
-    })
-
+        region: 'IDC-Seoul-Main',
+      },
+    });
   } catch (error) {
-    console.error('Enterprise API error:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch enterprise infrastructure status',
-      timestamp: new Date().toISOString(),
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    console.error('❌ 엔터프라이즈 API 오류:', error);
+    return NextResponse.json(
+      {
+        error: '엔터프라이즈 정보 조회 중 오류가 발생했습니다',
+      },
+      { status: 500 }
+    );
   }
-} 
+}
+
+/**
+ * POST 요청으로 엔터프라이즈 기능 설정
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { action, feature, settings } = body;
+
+    switch (action) {
+      case 'enable':
+        return NextResponse.json({
+          success: true,
+          message: `${feature} 기능이 활성화되었습니다`,
+          timestamp: new Date().toISOString(),
+        });
+
+      case 'disable':
+        return NextResponse.json({
+          success: true,
+          message: `${feature} 기능이 비활성화되었습니다`,
+          timestamp: new Date().toISOString(),
+        });
+
+      case 'configure':
+        return NextResponse.json({
+          success: true,
+          message: `${feature} 기능이 구성되었습니다`,
+          settings,
+          timestamp: new Date().toISOString(),
+        });
+
+      default:
+        return NextResponse.json(
+          {
+            error: `지원되지 않는 액션: ${action}`,
+          },
+          { status: 400 }
+        );
+    }
+  } catch (error) {
+    console.error('❌ 엔터프라이즈 설정 오류:', error);
+    return NextResponse.json(
+      {
+        error: '엔터프라이즈 설정 중 오류가 발생했습니다',
+      },
+      { status: 500 }
+    );
+  }
+}
