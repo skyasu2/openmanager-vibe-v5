@@ -11,7 +11,7 @@ const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
 
-// 로컬 임베딩 생성 함수 (SupabaseRAGEngine과 동일)
+// 로컬 임베딩 생성 함수 (384차원으로 통일)
 function generateLocalEmbedding(text) {
     // 텍스트 해시 생성
     let hash = 0;
@@ -21,14 +21,14 @@ function generateLocalEmbedding(text) {
         hash = hash & hash;
     }
 
-    // 선형 합동 생성기로 384차원 벡터 생성
+    // 384차원 벡터 생성 (효율적인 차원)
+    const embedding = new Array(384);
     const seed = Math.abs(hash);
     let rng = seed;
-    const embedding = [];
 
     for (let i = 0; i < 384; i++) {
         rng = (rng * 1664525 + 1013904223) % Math.pow(2, 32);
-        embedding.push((rng / Math.pow(2, 32)) * 2 - 1);
+        embedding[i] = (rng / Math.pow(2, 32)) * 2 - 1;
     }
 
     // 벡터 정규화

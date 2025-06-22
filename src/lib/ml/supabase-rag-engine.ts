@@ -33,7 +33,7 @@ interface RAGSearchResult {
 export class SupabaseRAGEngine {
     private supabase: SupabaseClient;
     private isInitialized = false;
-    private vectorDimension = 384; // 표준 임베딩 차원 유지
+    private vectorDimension = 384; // 효율적인 384차원으로 통일
     private initializationPromise: Promise<void> | null = null;
 
     constructor() {
@@ -271,31 +271,30 @@ export class SupabaseRAGEngine {
     }
 
     /**
-     * 로컬 임베딩 생성 (OpenAI 대체)
-     * 해시 기반 + 의미론적 특성 반영
+     * 로컬 임베딩 생성 (OpenAI 대신 사용)
+     * 해시 기반으로 일관된 벡터를 생성합니다.
      */
     private generateLocalEmbedding(text: string): number[] {
-        const embedding = new Array(this.vectorDimension);
-
-        // 텍스트 해시 기반 시드 생성
+        // 텍스트 해시 생성
         let hash = 0;
         for (let i = 0; i < text.length; i++) {
             const char = text.charCodeAt(i);
             hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // 32비트 정수 변환
+            hash = hash & hash; // 32비트 정수로 변환
         }
 
-        // 시드 기반 의사 랜덤 벡터 생성
+        // 384차원 벡터 생성 (효율적인 차원으로 통일)
+        const embedding = new Array(384);
         const seed = Math.abs(hash);
         let rng = seed;
 
-        for (let i = 0; i < this.vectorDimension; i++) {
-            // 선형 합동 생성기 (LCG)
+        // 선형 합동 생성기(LCG) 사용
+        for (let i = 0; i < 384; i++) {
             rng = (rng * 1664525 + 1013904223) % Math.pow(2, 32);
-            embedding[i] = (rng / Math.pow(2, 32)) * 2 - 1; // -1 ~ 1 범위
+            embedding[i] = (rng / Math.pow(2, 32)) * 2 - 1; // [-1, 1] 범위
         }
 
-        // 벡터 정규화 (단위 벡터로 변환)
+        // 벡터 정규화 (코사인 유사도 최적화)
         const norm = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
         return embedding.map(val => val / norm);
     }
