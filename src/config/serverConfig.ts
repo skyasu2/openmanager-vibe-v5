@@ -46,8 +46,8 @@ export function calculateServerConfig(
   serverCount: number = DEFAULT_SERVER_COUNT
 ): ServerGenerationConfig {
   // 🎯 사용자 요구사항에 따른 서버 상태 분포
-  const criticalPercent = 0.15; // 15% 심각 상태
-  const warningPercent = 0.2; // 20% 경고 상태
+  const criticalPercent = 0.07; // 7% 심각 상태 (15개 중 1개)
+  const warningPercent = 0.13; // 13% 경고 상태 (15개 중 2개)
   const tolerancePercent = 0.05; // 5% 변동값 (±5%)
 
   // 심각 상태 서버 수 계산 (최소 1개)

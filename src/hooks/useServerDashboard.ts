@@ -37,7 +37,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 
   // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 15; // 15개로 고정하여 모든 서버 표시
+  const ITEMS_PER_PAGE = 8; // 8개로 변경하여 페이지네이션 제공
 
   // 선택된 서버 상태
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
