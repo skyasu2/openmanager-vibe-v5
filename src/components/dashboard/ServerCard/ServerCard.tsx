@@ -25,6 +25,15 @@ interface ServerCardProps {
 
 const ServerCard: React.FC<ServerCardProps> = memo(
   ({ server, onClick, variant = 'default', showActions = true, onAction }) => {
+    // 🔧 Server card data 디버깅 로그
+    console.log('📊 Server card data:', {
+      id: server.id,
+      cpu: server.cpu,
+      memory: server.memory,
+      disk: server.disk,
+      source: 'server-card-component',
+    });
+
     const [isHovered, setIsHovered] = useState(false);
 
     // 서비스 태그 색상 결정

@@ -8,12 +8,12 @@
  * - 실시간 검증 및 폴백 메커니즘
  */
 
-import { ServerInstance } from '@/types/data-generator';
-import { Server } from '@/types/server';
 import {
   determineServerStatus,
   ServerMetrics,
 } from '@/config/server-status-thresholds';
+import { ServerInstance } from '@/types/data-generator';
+import { Server } from '@/types/server';
 
 // ============================================================================
 // 🎯 타입 안전성 검증 시스템
@@ -76,7 +76,7 @@ export function transformServerInstanceToServer(
 
   const determinedStatus = determineServerStatus(serverMetrics);
 
-  return {
+  const transformedServer = {
     id: serverInstance.id || `server-${Date.now()}`,
     name: serverInstance.name || 'Unknown Server',
 
@@ -147,6 +147,13 @@ export function transformServerInstanceToServer(
       alerts: [],
     },
   };
+
+  // 🔧 사용자 요청 디버깅 로그 추가
+  console.log('🔄 Transform input:', serverInstance);
+  console.log('🔄 Transform output:', transformedServer);
+  console.log('🔄 Metrics available:', !!serverInstance.metrics);
+
+  return transformedServer;
 }
 
 /**

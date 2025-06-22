@@ -454,22 +454,14 @@ export class RealServerDataGenerator {
    * 🔍 실행 컨텍스트 감지
    */
   private detectExecutionContext(): void {
-    const stack = new Error().stack || '';
-
-    // 헬스체크 컨텍스트 감지
+    // 명시적 환경변수/프로세스 인자 기반 컨텍스트 감지 (스택 분석 제거)
     this.isHealthCheckContext =
-      stack.includes('health') ||
-      stack.includes('performHealthCheck') ||
-      process.env.NODE_ENV === 'test' ||
-      process.argv.some(arg => arg.includes('health'));
+      process.env.IS_HEALTH_CHECK === 'true' ||
+      process.argv.some(arg => arg.includes('health-check-script'));
 
-    // 테스트 컨텍스트 감지
     this.isTestContext =
       process.env.NODE_ENV === 'test' ||
-      stack.includes('test') ||
-      stack.includes('jest') ||
-      stack.includes('vitest') ||
-      process.argv.some(arg => arg.includes('test'));
+      process.argv.some(arg => arg.includes('jest') || arg.includes('vitest'));
 
     if (this.isHealthCheckContext || this.isTestContext) {
       console.log('🎭 목업 모드 활성화: 헬스체크/테스트 컨텍스트 감지');
@@ -1263,6 +1255,15 @@ export class RealServerDataGenerator {
           ),
         },
       };
+
+      // 🔧 Generated metrics 디버깅 로그 (요청된 추가)
+      console.log('🔧 Generated metrics:', {
+        serverId: server.id,
+        cpu: processedMetrics.cpu,
+        memory: processedMetrics.memory,
+        disk: processedMetrics.disk,
+        timestamp: new Date().toISOString(),
+      });
 
       // 🎭 장애 시나리오 기반 추가 메트릭 조정
       if (isAffectedByScenario && currentScenario) {
