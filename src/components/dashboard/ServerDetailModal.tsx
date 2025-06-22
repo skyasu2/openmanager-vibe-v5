@@ -1,14 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Server, MetricsHistory } from '../../types/server';
-import { ServerDetailOverview } from './server-detail/ServerDetailOverview';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { useEffect, useState } from 'react';
+import { MetricsHistory, Server } from '../../types/server';
+import { ServerDetailLogs } from './server-detail/ServerDetailLogs';
 import { ServerDetailMetrics } from './server-detail/ServerDetailMetrics';
 import { ServerDetailNetwork } from './server-detail/ServerDetailNetwork';
+import { ServerDetailOverview } from './server-detail/ServerDetailOverview';
 import { ServerDetailProcesses } from './server-detail/ServerDetailProcesses';
-import { ServerDetailLogs } from './server-detail/ServerDetailLogs';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ServerDetailModalProps {
   server: Server;
@@ -68,6 +73,15 @@ export default function ServerDetailModal({
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className='max-w-4xl max-h-[90vh] overflow-hidden'>
+        {/* 접근성을 위한 숨겨진 제목과 설명 */}
+        <DialogTitle className='absolute -left-[10000px] w-px h-px overflow-hidden'>
+          {safeServer.name} 서버 상세 정보
+        </DialogTitle>
+        <DialogDescription className='absolute -left-[10000px] w-px h-px overflow-hidden'>
+          {safeServer.name} 서버의 상세한 메트릭, 네트워크, 프로세스 및 로그
+          정보를 확인할 수 있습니다.
+        </DialogDescription>
+
         {/* 헤더 */}
         <div className='bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6'>
           <div className='flex items-center justify-between'>
@@ -80,6 +94,7 @@ export default function ServerDetailModal({
             <button
               onClick={onClose}
               className='text-white hover:text-gray-200 text-2xl font-bold'
+              aria-label='서버 상세 정보 닫기'
             >
               ×
             </button>
