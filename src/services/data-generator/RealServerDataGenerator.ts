@@ -734,12 +734,9 @@ export class RealServerDataGenerator {
   public async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
-    // 이전의 복잡한 빌드 환경 감지 로직을 삭제하고,
-    // 환경변수 `BUILD_SKIP_GENERATOR` 를 사용하여, 초기화를 스킵하는지 여부를 명시적으로 제어합니다.
-    // 이에 따라, Vercel 의 본 런타임에서 데이터 생성이 오류 없이 스킵되는 문제를 해결합니다.
     if (process.env.BUILD_SKIP_GENERATOR === 'true') {
       console.log(
-        '⏭️ BUILD_SKIP_GENERATOR=true 가 설정되어 있는 데, RealServerDataGenerator 의 초기화를 스킵합니다.'
+        '⏭️ BUILD_SKIP_GENERATOR=true 설정으로 RealServerDataGenerator 초기화 스킵'
       );
       this.isInitialized = true;
       return;
@@ -754,18 +751,9 @@ export class RealServerDataGenerator {
     this.isInitialized = true;
     console.log('✅ RealServerDataGenerator 초기화 완료');
 
-    // 실시간 업데이트 자동 시작 (설정이 활성화된 경우 + 빌드 시 제외)
+    // 실시간 업데이트 자동 시작
     if (this.config.enableRealtime && !this.isGenerating) {
-      // 🔨 빌드 환경에서는 실시간 업데이트 건너뛰기
-      if (
-        process.env.NODE_ENV === 'production' &&
-        (process.env.VERCEL === '1' || process.env.BUILD_TIME === 'true')
-      ) {
-        console.log('🔨 빌드 환경 감지 - 실시간 업데이트 건너뜀');
-      } else {
-        this.startAutoGeneration();
-        console.log('🔄 실시간 데이터 업데이트 자동 시작됨');
-      }
+      this.startAutoGeneration();
     }
   }
 
@@ -791,150 +779,155 @@ export class RealServerDataGenerator {
     // 🎯 동적 서버 분포 계산
     const distribution = calculateServerDistribution(totalServers);
 
-    console.log('🎯 서버 분포 계획:');
-    console.log(`  📊 총 서버 수: ${totalServers}개`);
-    console.log(
-      `  🌐 웹서버: ${distribution.web}개 (${Math.round((distribution.web / totalServers) * 100)}%)`
-    );
-    console.log(
-      `  🚀 앱서버: ${distribution.app}개 (${Math.round((distribution.app / totalServers) * 100)}%)`
-    );
-    console.log(
-      `  🗄️  데이터베이스: ${distribution.database}개 (${Math.round((distribution.database / totalServers) * 100)}%)`
-    );
-    console.log(
-      `  ⚙️  인프라: ${distribution.infrastructure}개 (${Math.round((distribution.infrastructure / totalServers) * 100)}%)`
-    );
-
     let serverIndex = 1;
+    let createdServers = 0;
 
-    // 🏗️ 카테고리별 서버 생성
-    for (const [category, count] of Object.entries(distribution)) {
-      const availableTypes = getServerTypesForCategory(category);
-
-      for (let i = 0; i < count; i++) {
-        // 서버 타입 선택 (균등 분배 + 랜덤)
-        const serverType = availableTypes[i % availableTypes.length];
-        const role = roles[Math.floor(Math.random() * roles.length)];
-        const environment =
-          environments[Math.floor(Math.random() * environments.length)];
-        // 동적 위치 생성: 한국 데이터센터 기반
-        const locations = [
-          'Seoul-DC-1',
-          'Seoul-DC-2',
-          'Busan-DC-1',
-          'Daegu-DC-1',
-          'Incheon-DC-1',
-        ];
-        const location =
-          locations[Math.floor(Math.random() * locations.length)];
-
-        // 🏷️ 직관적인 호스트네임 생성
-        const hostnameKey = `${serverType.id}-${environment}`;
-        const currentCount = this.hostnameCounters.get(hostnameKey) || 0;
-        this.hostnameCounters.set(hostnameKey, currentCount + 1);
-        const hostname = generateHostname(
-          serverType,
-          environment,
-          currentCount + 1
-        );
-
-        // 🎯 서버 타입별 특화 메트릭 생성
-        const specializedMetrics = generateSpecializedMetrics(serverType);
-
-        // 🏗️ 서버 타입별 특화 사양 생성
-        const specs = this.generateSpecializedSpecs(serverType);
-
-        const server: ServerInstance = {
-          id: `${serverType.id}-${serverIndex}`,
-          name: hostname,
-          type: serverType.id as any, // 실제 기술명 사용
-          role,
-          environment,
-          location,
-          status: 'running', // 초기값은 모두 running, 나중에 시나리오 적용
-          specs,
-          metrics: specializedMetrics,
-          health: {
-            score: Math.random() * 40 + 60, // 60-100점
-            lastCheck: new Date().toISOString(),
-            issues: [],
-          },
-        };
-
-        // 건강 상태에 따른 이슈 생성
-        if (server.health.score < 80) {
-          const issues = this.generateRealisticIssues(
-            serverType,
-            server.metrics
-          );
-          server.health.issues = issues;
-        }
-
-        this.servers.set(server.id, server);
-        serverIndex++;
-      }
-    }
-
-    /**
-     * 🎯 시나리오 분포 적용
-     *  - critical: 고정 개수
-     *  - warning: 비율 ± 오차
-     */
     try {
-      const scenario = this.config.scenario;
-      if (scenario) {
-        const serversArray = Array.from(this.servers.values());
-        // 무작위 섞기
-        const shuffled = serversArray.sort(() => Math.random() - 0.5);
+      // 🏗️ 카테고리별 서버 생성
+      for (const [category, count] of Object.entries(distribution)) {
+        const availableTypes = getServerTypesForCategory(category);
 
-        const criticalTarget = Math.min(
-          scenario.criticalCount,
-          shuffled.length
-        );
+        for (let i = 0; i < count; i++) {
+          try {
+            // 서버 타입 선택 (균등 분배 + 랜덤)
+            const serverType = availableTypes[i % availableTypes.length];
+            const role = roles[Math.floor(Math.random() * roles.length)];
+            const environment =
+              environments[Math.floor(Math.random() * environments.length)];
+            // 동적 위치 생성: 한국 데이터센터 기반
+            const locations = [
+              'Seoul-DC-1',
+              'Seoul-DC-2',
+              'Busan-DC-1',
+              'Daegu-DC-1',
+              'Incheon-DC-1',
+            ];
+            const location =
+              locations[Math.floor(Math.random() * locations.length)];
 
-        const baseWarning = Math.round(
-          shuffled.length * scenario.warningPercent
-        );
-        const tol = Math.round(
-          shuffled.length * (scenario.tolerancePercent || 0)
-        );
-        const warningTarget = Math.max(
-          0,
-          Math.min(
-            shuffled.length - criticalTarget,
-            baseWarning + (Math.floor(Math.random() * (tol * 2 + 1)) - tol)
-          )
-        );
+            // 🏷️ 직관적인 호스트네임 생성
+            const hostnameKey = `${serverType.id}-${environment}`;
+            const currentCount = this.hostnameCounters.get(hostnameKey) || 0;
+            this.hostnameCounters.set(hostnameKey, currentCount + 1);
+            const hostname = generateHostname(
+              serverType,
+              environment,
+              currentCount + 1
+            );
 
-        // 상태 초기화
-        shuffled.forEach(s => {
-          s.status = 'running';
-        });
+            // 🎯 서버 타입별 특화 메트릭 생성
+            const specializedMetrics = generateSpecializedMetrics(serverType);
 
-        // critical 상태 설정
-        for (let i = 0; i < criticalTarget; i++) {
-          const srv = shuffled[i];
-          srv.status = 'error';
-          srv.health.score = Math.min(srv.health.score, 40);
+            // 🏗️ 서버 타입별 특화 사양 생성
+            const specs = this.generateSpecializedSpecs(serverType);
+
+            const server: ServerInstance = {
+              id: `${serverType.id}-${serverIndex}`,
+              name: hostname,
+              type: serverType.id as any, // 실제 기술명 사용
+              role,
+              environment,
+              location,
+              status: 'running', // 초기값은 모두 running, 나중에 시나리오 적용
+              specs,
+              metrics: specializedMetrics,
+              health: {
+                score: Math.random() * 40 + 60, // 60-100점
+                lastCheck: new Date().toISOString(),
+                issues: [],
+              },
+            };
+
+            // 건강 상태에 따른 이슈 생성
+            if (server.health.score < 80) {
+              const issues = this.generateRealisticIssues(
+                serverType,
+                server.metrics
+              );
+              server.health.issues = issues;
+            }
+
+            this.servers.set(server.id, server);
+            createdServers++;
+
+            serverIndex++;
+          } catch (serverError) {
+            console.error(
+              `❌ 개별 서버 생성 실패 (카테고리: ${category}, 인덱스: ${i}):`,
+              serverError
+            );
+          }
         }
-
-        // warning 상태 설정
-        for (let i = criticalTarget; i < criticalTarget + warningTarget; i++) {
-          const srv = shuffled[i];
-          srv.status = 'warning';
-          srv.health.score = Math.min(srv.health.score, 70);
-        }
-
-        // Map 에 반영
-        shuffled.forEach(s => this.servers.set(s.id, s));
-
-        console.log(
-          `📊 시나리오 적용 완료: critical ${criticalTarget}개, warning ${warningTarget}개, total ${shuffled.length}`
-        );
       }
-    } catch (e) {
-      console.warn('⚠️ 시나리오 분포 적용 중 오류:', e);
+
+      console.log(
+        `🎉 서버 생성 완료: 총 ${createdServers}개 서버가 Map에 저장됨`
+      );
+      console.log(`📊 현재 servers Map 크기: ${this.servers.size}`);
+
+      /**
+       * 🎯 시나리오 분포 적용
+       *  - critical: 고정 개수
+       *  - warning: 비율 ± 오차
+       */
+      try {
+        const scenario = this.config.scenario;
+        if (scenario) {
+          const serversArray = Array.from(this.servers.values());
+
+          // 무작위 섞기
+          const shuffled = serversArray.sort(() => Math.random() - 0.5);
+
+          const criticalTarget = Math.min(
+            scenario.criticalCount,
+            shuffled.length
+          );
+
+          const baseWarning = Math.round(
+            shuffled.length * scenario.warningPercent
+          );
+          const tol = Math.round(
+            shuffled.length * (scenario.tolerancePercent || 0)
+          );
+          const warningTarget = Math.max(
+            0,
+            Math.min(
+              shuffled.length - criticalTarget,
+              baseWarning + (Math.floor(Math.random() * (tol * 2 + 1)) - tol)
+            )
+          );
+
+          // 상태 초기화
+          shuffled.forEach(s => {
+            s.status = 'running';
+          });
+
+          // critical 상태 설정
+          for (let i = 0; i < criticalTarget; i++) {
+            const srv = shuffled[i];
+            srv.status = 'error';
+            srv.health.score = Math.min(srv.health.score, 40);
+          }
+
+          // warning 상태 설정
+          for (
+            let i = criticalTarget;
+            i < criticalTarget + warningTarget;
+            i++
+          ) {
+            const srv = shuffled[i];
+            srv.status = 'warning';
+            srv.health.score = Math.min(srv.health.score, 70);
+          }
+
+          // Map 에 반영
+          shuffled.forEach(s => this.servers.set(s.id, s));
+        }
+      } catch (scenarioError) {
+        console.warn('⚠️ 시나리오 분포 적용 중 오류:', scenarioError);
+      }
+    } catch (error) {
+      console.error('❌ initializeServers 전체 실행 중 오류:', error);
     }
   }
 

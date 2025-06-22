@@ -1,8 +1,5 @@
+import { ENCRYPTED_GOOGLE_AI_CONFIG } from '@/config/google-ai-config';
 import CryptoJS from 'crypto-js';
-import {
-  ENCRYPTED_GOOGLE_AI_CONFIG,
-  DEV_CONFIG,
-} from '@/config/google-ai-config';
 
 /**
  * Google AI API 키 관리자
@@ -19,7 +16,9 @@ class GoogleAIManager {
   private isTeamKeyUnlocked = false;
 
   // 🚀 시연용 임시 API 키 (내일 시연 후 제거 예정)
-  private readonly DEMO_API_KEY = 'AIzaSyABFUHbGGtjs6S_y756H4SYJmFNuNoo3fY';
+  // 🚨 데모 키 제거 - 환경변수에서만 API 키 사용
+  private readonly DEMO_API_KEY =
+    process.env.NODE_ENV === 'development' ? '' : null;
 
   private constructor() {}
 

@@ -60,18 +60,21 @@ export class EnvAutoRecoveryService {
       'SLACK_WEBHOOK_URL',
     ],
     defaults: {
-      NEXT_PUBLIC_SUPABASE_URL: 'https://vnswjnltnhpsueosfhmw.supabase.co',
-      SUPABASE_URL: 'https://vnswjnltnhpsueosfhmw.supabase.co',
-      NEXT_PUBLIC_SUPABASE_ANON_KEY:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU',
-      SUPABASE_SERVICE_ROLE_KEY:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8',
-      UPSTASH_REDIS_REST_URL: 'https://charming-condor-46598.upstash.io',
-      UPSTASH_REDIS_REST_TOKEN:
-        'AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA',
-      GOOGLE_AI_API_KEY: process.env.GOOGLE_AI_API_KEY || 'demo-key',
-      RENDER_MCP_SERVER_URL: 'https://openmanager-vibe-v5.onrender.com',
-      SLACK_WEBHOOK_URL: process.env.SLACK_WEBHOOK_URL || 'demo-webhook',
+      // 🔧 개발환경 전용 안전한 기본값들
+      GOOGLE_AI_MODEL: 'gemini-1.5-flash',
+      GOOGLE_AI_BETA_MODE: 'true',
+      NEXTAUTH_URL: 'http://localhost:3000',
+      NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
+
+      // 🚨 중요: 실제 인프라 키들은 환경변수에서만 가져오기
+      // 프로덕션 환경에서는 절대 하드코딩 값 사용하지 않음
+      ...(process.env.NODE_ENV === 'development'
+        ? {
+            // 개발환경에서만 경고와 함께 제공되는 임시값들
+            GOOGLE_AI_API_KEY: process.env.GOOGLE_AI_API_KEY || '',
+            SLACK_WEBHOOK_URL: process.env.SLACK_WEBHOOK_URL || '',
+          }
+        : {}),
     } as Record<string, string>,
   };
 

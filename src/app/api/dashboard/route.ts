@@ -38,6 +38,20 @@ export async function GET(request: NextRequest) {
 
     // 1. 실제 서버 데이터 생성기에서 직접 데이터 가져오기
     const realServerDataGenerator = RealServerDataGenerator.getInstance();
+
+    // 🚀 POC 프로젝트: 초기화되지 않았으면 초기화
+    if (!realServerDataGenerator.getStatus().isInitialized) {
+      console.log('🔄 대시보드 API: RealServerDataGenerator 초기화 중...');
+      await realServerDataGenerator.initialize();
+      console.log('✅ 대시보드 API: RealServerDataGenerator 초기화 완료');
+    }
+
+    // 실시간 데이터 생성이 시작되지 않았으면 시작
+    if (!realServerDataGenerator.getStatus().isRunning) {
+      console.log('▶️ 대시보드 API: 실시간 데이터 생성 시작');
+      realServerDataGenerator.startAutoGeneration();
+    }
+
     const originalServers = realServerDataGenerator.getAllServers();
     const generatorStatus = realServerDataGenerator.getStatus();
 

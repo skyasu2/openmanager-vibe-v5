@@ -21,104 +21,14 @@
  * 📅 생성일: 2025.06.14 (ServerDashboard 1522줄 분리 작업)
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { Server } from '../../../types/server';
+import { UNIFIED_FALLBACK_SERVERS } from '@/config/fallback-data';
 import { useRealtimeServers } from '@/hooks/api/useRealtimeServers';
+import type { Server } from '@/types/server';
+import { useCallback, useEffect, useState } from 'react';
 import { DashboardStats, ServerFilters } from '../types/dashboard.types';
 
-// 🎯 심각→경고→정상 순으로 정렬된 목업 서버 데이터
-const fallbackServers: Server[] = [
-  // 🚨 심각 상태 (offline) 서버들
-  {
-    id: 'api-jp-040',
-    name: 'api-jp-040',
-    hostname: 'api-jp-040.example.com',
-    status: 'offline',
-    type: 'api',
-    environment: 'production',
-    location: 'Asia Pacific',
-    cpu: 95,
-    memory: 98,
-    disk: 85,
-    network: 85,
-    networkStatus: 'offline',
-    uptime: '0분',
-    lastUpdate: new Date(),
-    alerts: 5,
-    services: [
-      { name: 'nginx', status: 'stopped', port: 80 },
-      { name: 'nodejs', status: 'stopped', port: 3000 },
-      { name: 'gunicorn', status: 'stopped', port: 8000 },
-      { name: 'uwsgi', status: 'stopped', port: 8080 },
-    ],
-  },
-  {
-    id: 'api-sg-044',
-    name: 'api-sg-044',
-    hostname: 'api-sg-044.example.com',
-    status: 'offline',
-    type: 'api',
-    environment: 'production',
-    location: 'Singapore',
-    cpu: 88,
-    memory: 92,
-    disk: 78,
-    network: 78,
-    networkStatus: 'offline',
-    uptime: '0분',
-    lastUpdate: new Date(),
-    alerts: 4,
-    services: [
-      { name: 'nodejs', status: 'stopped', port: 3000 },
-      { name: 'nginx', status: 'stopped', port: 80 },
-    ],
-  },
-  // ⚠️ 경고 상태 (warning) 서버들
-  {
-    id: 'api-eu-045',
-    name: 'api-eu-045',
-    hostname: 'api-eu-045.example.com',
-    status: 'warning',
-    type: 'api',
-    environment: 'production',
-    location: 'EU West',
-    cpu: 78,
-    memory: 85,
-    disk: 68,
-    network: 65,
-    networkStatus: 'poor',
-    uptime: '8일 12시간',
-    lastUpdate: new Date(),
-    alerts: 2,
-    services: [
-      { name: 'nodejs', status: 'stopped', port: 3000 },
-      { name: 'nginx', status: 'running', port: 80 },
-      { name: 'gunicorn', status: 'running', port: 8000 },
-    ],
-  },
-  // ✅ 정상 상태 (online) 서버들
-  {
-    id: 'api-us-001',
-    name: 'api-us-001',
-    hostname: 'api-us-001.example.com',
-    status: 'online',
-    type: 'api',
-    environment: 'production',
-    location: 'US East',
-    cpu: 45,
-    memory: 62,
-    disk: 35,
-    network: 25,
-    networkStatus: 'excellent',
-    uptime: '45일 18시간',
-    lastUpdate: new Date(),
-    alerts: 0,
-    services: [
-      { name: 'nginx', status: 'running', port: 80 },
-      { name: 'nodejs', status: 'running', port: 3000 },
-    ],
-  },
-];
+// 🎯 통합된 폴백 서버 데이터 사용 (하드코딩 제거)
+const fallbackServers: Server[] = UNIFIED_FALLBACK_SERVERS;
 
 // 🔄 기존 useServerDashboard와의 호환성을 위한 인터페이스 확장
 export interface UseServerDataReturn {
