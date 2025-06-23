@@ -1,7 +1,8 @@
 /**
- * 🚀 Supabase Vector RAG Engine v2.1
+ * 🚀 Supabase Vector RAG Engine v2.2 (성능 최적화)
  * Supabase pgvector를 활용한 고성능 벡터 검색 시스템
  * + 향상된 한국어 NLP 처리
+ * + 캐싱 및 성능 최적화
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
@@ -29,6 +30,7 @@ interface RAGSearchResult {
   query: string;
   processingTime: number;
   totalResults: number;
+  cached: boolean;
   error?: string;
 }
 
@@ -38,8 +40,78 @@ export class SupabaseRAGEngine {
   private vectorDimension = 384; // 효율적인 384차원으로 통일
   private initializationPromise: Promise<void> | null = null;
 
+  // 🚀 성능 최적화 추가
+  private queryCache = new Map<
+    string,
+    { result: RAGSearchResult; timestamp: number }
+  >();
+  private embeddingCache = new Map<string, number[]>();
+  private readonly cacheExpiry = 5 * 60 * 1000; // 5분 캐시
+  private readonly maxCacheSize = 100;
+
+  // 성능 통계
+  private stats = {
+    totalQueries: 0,
+    cacheHits: 0,
+    averageResponseTime: 0,
+    lastOptimized: Date.now(),
+  };
+
   constructor() {
     this.createSupabaseClient();
+    this.startCacheCleanup();
+  }
+
+  /**
+   * 🧹 캐시 정리 스케줄러
+   */
+  private startCacheCleanup(): void {
+    setInterval(() => {
+      this.cleanupExpiredCache();
+      this.optimizePerformance();
+    }, 60000); // 1분마다 정리
+  }
+
+  /**
+   * 🗑️ 만료된 캐시 정리
+   */
+  private cleanupExpiredCache(): void {
+    const now = Date.now();
+
+    // 쿼리 캐시 정리
+    for (const [key, value] of this.queryCache.entries()) {
+      if (now - value.timestamp > this.cacheExpiry) {
+        this.queryCache.delete(key);
+      }
+    }
+
+    // 임베딩 캐시 크기 제한
+    if (this.embeddingCache.size > this.maxCacheSize) {
+      const entries = Array.from(this.embeddingCache.entries());
+      const toDelete = entries.slice(0, entries.length - this.maxCacheSize);
+      toDelete.forEach(([key]) => this.embeddingCache.delete(key));
+    }
+  }
+
+  /**
+   * ⚡ 성능 최적화
+   */
+  private optimizePerformance(): void {
+    const now = Date.now();
+
+    // 캐시 히트율 계산
+    const cacheHitRate =
+      this.stats.totalQueries > 0
+        ? (this.stats.cacheHits / this.stats.totalQueries) * 100
+        : 0;
+
+    console.log(`📊 RAG 엔진 성능 통계 (${new Date(now).toLocaleTimeString()}):
+      - 총 쿼리: ${this.stats.totalQueries}
+      - 캐시 히트율: ${cacheHitRate.toFixed(1)}%
+      - 평균 응답시간: ${this.stats.averageResponseTime}ms
+      - 캐시 크기: 쿼리 ${this.queryCache.size}, 임베딩 ${this.embeddingCache.size}`);
+
+    this.stats.lastOptimized = now;
   }
 
   /**
@@ -352,7 +424,7 @@ export class SupabaseRAGEngine {
   }
 
   /**
-   * 벡터 유사도 검색 (코사인 유사도)
+   * 벡터 유사도 검색 (코사인 유사도) - 캐싱 최적화
    */
   async searchSimilar(
     query: string,
@@ -363,8 +435,27 @@ export class SupabaseRAGEngine {
     } = {}
   ): Promise<RAGSearchResult> {
     const startTime = Date.now();
+    this.stats.totalQueries++;
 
     try {
+      // 🚀 캐시 확인
+      const cacheKey = `${query}_${JSON.stringify(options)}`;
+      const cachedResult = this.queryCache.get(cacheKey);
+
+      if (
+        cachedResult &&
+        Date.now() - cachedResult.timestamp < this.cacheExpiry
+      ) {
+        this.stats.cacheHits++;
+        console.log(`⚡ 캐시 히트: "${query}" (${Date.now() - startTime}ms)`);
+
+        return {
+          ...cachedResult.result,
+          processingTime: Date.now() - startTime,
+          cached: true,
+        };
+      }
+
       if (!this.isInitialized) {
         await this.initialize();
       }
@@ -373,9 +464,15 @@ export class SupabaseRAGEngine {
 
       console.log(`🔍 Supabase 벡터 검색 시작: "${query}"`);
 
-      // 쿼리 임베딩 생성 (OpenAI 제거)
-      const queryEmbedding = this.generateLocalEmbedding(query);
-      console.log('✅ 로컬 임베딩 생성 완료');
+      // 🚀 임베딩 캐싱 확인
+      let queryEmbedding = this.embeddingCache.get(query);
+      if (!queryEmbedding) {
+        queryEmbedding = this.generateLocalEmbedding(query);
+        this.embeddingCache.set(query, queryEmbedding);
+        console.log('✅ 로컬 임베딩 생성 및 캐싱 완료');
+      } else {
+        console.log('⚡ 임베딩 캐시 히트');
+      }
 
       // RPC 함수로 벡터 검색 시도
       let searchResults: VectorDocument[] = [];
@@ -412,13 +509,28 @@ export class SupabaseRAGEngine {
 
       const processingTime = Date.now() - startTime;
 
-      return {
+      // 성능 통계 업데이트
+      this.stats.averageResponseTime =
+        (this.stats.averageResponseTime * (this.stats.totalQueries - 1) +
+          processingTime) /
+        this.stats.totalQueries;
+
+      const result: RAGSearchResult = {
         success: true,
         results: searchResults,
         query,
         processingTime,
         totalResults: searchResults.length,
+        cached: false,
       };
+
+      // 🚀 결과 캐싱
+      this.queryCache.set(cacheKey, {
+        result: { ...result },
+        timestamp: Date.now(),
+      });
+
+      return result;
     } catch (error) {
       console.error('❌ Supabase 벡터 검색 실패:', error);
       const processingTime = Date.now() - startTime;
@@ -429,6 +541,7 @@ export class SupabaseRAGEngine {
         query,
         processingTime,
         totalResults: 0,
+        cached: false,
         error: error instanceof Error ? error.message : String(error),
       };
     }

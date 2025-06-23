@@ -13,18 +13,6 @@
  * - GOOGLE_ONLY: Google AI (80%) → Supabase RAG (15%) → 하위AI (5%)
  */
 
-// 🔧 Sharp 모듈 완전 제거 (Windows 바이너리 문제 해결)
-// Sharp 모듈을 사용하지 않도록 완전히 제거
-declare global {
-  var __SHARP_DISABLED__: boolean;
-}
-
-if (!global.__SHARP_DISABLED__) {
-  // Sharp 관련 모든 기능을 비활성화
-  global.__SHARP_DISABLED__ = true;
-  console.log('✅ Sharp 모듈 완전 비활성화');
-}
-
 import { getSupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
 import { CustomEngines } from '@/services/ai/engines/CustomEngines';
 import { OpenSourceEngines } from '@/services/ai/engines/OpenSourceEngines';

@@ -8,10 +8,10 @@
  * - 복구 로깅 및 알림
  */
 
+import { AILogger, LogCategory } from '@/services/ai/logging/AILogger';
+import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import crypto from 'crypto';
-import { AILogger, LogCategory } from '@/services/ai/logging/AILogger';
 
 export interface EnvBackupConfig {
   critical: string[];
@@ -79,7 +79,11 @@ export class EnvBackupManager {
 
   private constructor() {
     this.logger = AILogger.getInstance();
-    this.backupPath = path.join(process.cwd(), 'config', 'env-backup.json');
+    this.backupPath = path.join(
+      this.getSafeWorkingDirectory(),
+      'config',
+      'env-backup.json'
+    );
     this.encryptionKey = this.generateEncryptionKey();
     this.ensureBackupDirectory();
   }
@@ -131,7 +135,11 @@ export class EnvBackupManager {
     try {
       const [ivHex, encrypted] = encryptedText.split(':');
       const iv = Buffer.from(ivHex, 'hex');
-      const decipher = crypto.createDecipheriv('aes-256-cbc', this.encryptionKey, iv);
+      const decipher = crypto.createDecipheriv(
+        'aes-256-cbc',
+        this.encryptionKey,
+        iv
+      );
       let decrypted = decipher.update(encrypted, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
       return decrypted;
@@ -456,6 +464,32 @@ export class EnvBackupManager {
       };
     } catch (error) {
       return { exists: false };
+    }
+  }
+
+  /**
+   * 🛡️ Edge Runtime 호환 작업 디렉토리 가져오기
+   */
+  private getSafeWorkingDirectory(): string {
+    try {
+      // 테스트 환경에서는 고정 경로 사용
+      if (
+        process.env.NODE_ENV === 'test' ||
+        process.env.TEST_CONTEXT === 'true'
+      ) {
+        return process.env.PWD || '/test-workspace';
+      }
+
+      // process.cwd가 함수인지 확인
+      if (typeof process.cwd === 'function') {
+        return process.cwd();
+      }
+
+      // 폴백: 환경변수 또는 기본값
+      return process.env.PWD || process.env.INIT_CWD || '/app';
+    } catch (error) {
+      console.warn('⚠️ process.cwd() 접근 실패, 기본 경로 사용:', error);
+      return '/app';
     }
   }
 }

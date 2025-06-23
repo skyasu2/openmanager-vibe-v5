@@ -4,6 +4,21 @@ import { cleanup } from '@testing-library/react';
 import fetch from 'node-fetch';
 import { afterEach, vi } from 'vitest';
 
+// 🚨 최우선 환경 변수 설정 (모든 import보다 먼저)
+(process.env as any).NODE_ENV = 'test';
+(process.env as any).FORCE_MOCK_REDIS = 'true';
+(process.env as any).FORCE_MOCK_GOOGLE_AI = 'true';
+(process.env as any).NEXT_PUBLIC_SUPABASE_URL =
+  'https://test-project.supabase.co';
+(process.env as any).SUPABASE_URL = 'https://test-project.supabase.co';
+(process.env as any).NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
+(process.env as any).SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
+(process.env as any).UPSTASH_REDIS_REST_URL = 'https://test-redis.upstash.io';
+(process.env as any).UPSTASH_REDIS_REST_TOKEN = 'test-redis-token';
+(process.env as any).GOOGLE_AI_API_KEY = 'test-google-ai-key';
+(process.env as any).SLACK_WEBHOOK_URL = 'https://hooks.slack.com/test';
+(process.env as any).RENDER_MCP_SERVER_URL = 'https://test-mcp.onrender.com';
+
 // DOM 정리
 afterEach(() => {
   cleanup();
@@ -13,14 +28,15 @@ afterEach(() => {
 process.env.FORCE_MOCK_REDIS = 'true';
 process.env.FORCE_MOCK_GOOGLE_AI = 'true';
 
-// 🔧 테스트 환경에서 process 객체 보완
-if (!process.cwd) {
-  process.cwd = () => process.env.PWD || '/test';
+// 🔧 테스트 환경에서 process 객체 보완 (더 강화된 버전)
+const originalCwd = process.cwd;
+if (!process.cwd || typeof process.cwd !== 'function') {
+  (process as any).cwd = () => process.env.PWD || '/test-workspace';
 }
 
 // 🧠 process.memoryUsage 모킹 (모든 환경에서 호환성 보장)
 if (!process.memoryUsage) {
-  (process as any).memoryUsage = () => ({
+  (process as any).memoryUsage = (): NodeJS.MemoryUsage => ({
     rss: 32 * 1024 * 1024, // 32MB
     heapTotal: 16 * 1024 * 1024, // 16MB
     heapUsed: 12 * 1024 * 1024, // 12MB
@@ -29,27 +45,50 @@ if (!process.memoryUsage) {
   });
 }
 
-// 🔧 Sharp 및 관련 바이너리 모듈 전역 모킹
-const mockSharp = {
-  resize: vi.fn(() => mockSharp),
-  webp: vi.fn(() => mockSharp),
-  png: vi.fn(() => mockSharp),
-  jpeg: vi.fn(() => mockSharp),
-  toBuffer: vi.fn(() => Promise.resolve(Buffer.from('mock-image'))),
-  toFile: vi.fn(() => Promise.resolve({ size: 1024 })),
-  metadata: vi.fn(() => Promise.resolve({ width: 100, height: 100 })),
-};
-
-// Sharp 메인 모듈 모킹
-vi.mock('sharp', () => ({
-  default: vi.fn(() => mockSharp),
-  __esModule: true,
+// 🔧 Sonic Boom 더 강화된 모킹
+vi.mock('sonic-boom', () => ({
+  default: vi.fn(() => ({
+    write: vi.fn(),
+    flush: vi.fn(),
+    end: vi.fn(),
+    destroy: vi.fn(),
+    on: vi.fn(),
+    emit: vi.fn(),
+    once: vi.fn(),
+    removeListener: vi.fn(),
+  })),
+  SonicBoom: vi.fn(() => ({
+    write: vi.fn(),
+    flush: vi.fn(),
+    end: vi.fn(),
+    destroy: vi.fn(),
+    on: vi.fn(),
+    emit: vi.fn(),
+    once: vi.fn(),
+    removeListener: vi.fn(),
+  })),
 }));
 
-// Sharp 관련 네이티브 바이너리 모킹
-vi.mock('sharp/lib/sharp', () => mockSharp);
-vi.mock('sharp/lib/constructor', () => mockSharp);
-vi.mock('sharp/lib/index', () => mockSharp);
+// 🔧 process 전역 모킹 보강
+(global as any).process = {
+  ...global.process,
+  cwd: () => process.env.PWD || '/test-workspace',
+  memoryUsage: (): NodeJS.MemoryUsage => ({
+    rss: 32 * 1024 * 1024,
+    heapTotal: 16 * 1024 * 1024,
+    heapUsed: 12 * 1024 * 1024,
+    external: 2 * 1024 * 1024,
+    arrayBuffers: 1 * 1024 * 1024,
+  }),
+  env: {
+    ...global.process.env,
+    NODE_ENV: 'test',
+    FORCE_MOCK_REDIS: 'true',
+    FORCE_MOCK_GOOGLE_AI: 'true',
+    NEXT_PUBLIC_SUPABASE_URL: 'https://test-project.supabase.co',
+    UPSTASH_REDIS_REST_URL: 'https://test-redis.upstash.io',
+  },
+};
 
 // 🔧 AI 모델 관련 바이너리 모킹
 vi.mock('@xenova/transformers', () => ({
@@ -69,16 +108,6 @@ vi.mock('@xenova/transformers', () => ({
     ),
   },
   pipeline: vi.fn(() => Promise.resolve(vi.fn(() => 'mocked result'))),
-}));
-
-// 🔧 Sonic Boom 모킹 (Pino 관련)
-vi.mock('sonic-boom', () => ({
-  default: vi.fn(() => ({
-    write: vi.fn(),
-    flush: vi.fn(),
-    end: vi.fn(),
-    destroy: vi.fn(),
-  })),
 }));
 
 // 🔧 Redis 에러 모킹

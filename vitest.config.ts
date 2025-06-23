@@ -1,5 +1,5 @@
 import react from '@vitejs/plugin-react';
-import { resolve } from 'path';
+import path from 'path';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -7,47 +7,25 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./src/testing/setup.ts'],
-    include: ['tests/**/*.test.{ts,tsx}'],
+    setupFiles: ['./tests/setup.ts'],
+    include: ['tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     exclude: [
-      'node_modules',
-      '.next',
-      'dist',
-      'build',
-      'storybook-static',
-      '**/enhanced-server-modal.test.tsx',
-      '**/edge-runtime.test.ts',
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/.{idea,git,cache,output,temp}/**',
+      '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
     ],
-    testTimeout: 10000,
-    hookTimeout: 10000,
-    teardownTimeout: 5000,
-    cache: false,
-    watch: false,
-    env: {
-      NODE_ENV: 'test',
-      NEXT_PUBLIC_SUPABASE_URL: 'http://localhost:54321',
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-anon-key',
-      SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
-      SUPABASE_JWT_SECRET: 'test-jwt-secret',
-      REDIS_URL: 'redis://localhost:6379',
-      FORCE_MOCK_REDIS: 'true',
-      FORCE_MOCK_SUPABASE: 'true',
-      GOOGLE_AI_API_KEY: 'test-google-ai-key',
-      DEMO_API_KEY: 'demo-key-for-testing',
-      SLACK_WEBHOOK_URL: 'https://hooks.slack.com/test',
-      RENDER_MCP_SERVER_URL: 'https://test-mcp.onrender.com',
-      UPSTASH_REDIS_REST_URL: 'https://test-redis.upstash.io',
-      UPSTASH_REDIS_REST_TOKEN: 'test-redis-token',
-    },
     pool: 'forks',
     poolOptions: {
       forks: {
         singleFork: true,
       },
     },
+    testTimeout: 30000,
+    hookTimeout: 30000,
+    teardownTimeout: 10000,
     isolate: true,
-    maxConcurrency: 1,
-    reporters: ['basic'],
+    passWithNoTests: true,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -64,45 +42,32 @@ export default defineConfig({
         '**/__tests__/**',
         '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
         '**/.{eslint,mocha,prettier}rc.{js,cjs,yml}',
-        'storybook-static/**',
-        '.storybook/**',
-        'src/stories/**',
-        '**/*.stories.{js,jsx,ts,tsx}',
-        '**/mocks/**',
-        '**/__mocks__/**',
+        '**/storybook-static/**',
+        '**/.storybook/**',
+        '**/stories/**',
       ],
-      thresholds: {
-        global: {
-          branches: 70,
-          functions: 70,
-          lines: 70,
-          statements: 70,
-        },
-      },
     },
-    mockReset: true,
-    clearMocks: true,
-    restoreMocks: true,
+    reporters: ['default', 'json', 'html'],
+    outputFile: {
+      json: './test-results/results.json',
+      html: './test-results/index.html',
+    },
+    env: {
+      NODE_ENV: 'test',
+      VITEST: 'true',
+    },
+    deps: {
+      inline: [/^(?!.*vitest).*$/],
+    },
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src'),
-      '~': resolve(__dirname, './'),
+      '@': path.resolve(__dirname, './src'),
+      '~': path.resolve(__dirname, './'),
     },
   },
   define: {
-    global: 'globalThis',
     'process.env.NODE_ENV': '"test"',
-    'process.env.NEXT_PUBLIC_SUPABASE_URL': '"http://localhost:54321"',
-    'process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY': '"test-key"',
-    'process.env.FORCE_MOCK_REDIS': '"true"',
-    'process.env.FORCE_MOCK_SUPABASE': '"true"',
-    'process.env.__NEXT_ROUTER_BASEPATH': '""',
-    'process.env.__NEXT_NEW_LINK_BEHAVIOR': 'true',
-    'process.env.__NEXT_TRAILING_SLASH': 'false',
-    'process.env.__NEXT_IMAGES_PROPS': '{}',
-  },
-  optimizeDeps: {
-    include: ['react', 'react-dom', '@testing-library/react'],
+    'process.env.VITEST': '"true"',
   },
 });

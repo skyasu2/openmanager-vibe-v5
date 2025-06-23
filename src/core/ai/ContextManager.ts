@@ -9,8 +9,8 @@
  */
 
 import fs from 'fs';
-import path from 'path';
 import matter from 'gray-matter';
+import path from 'path';
 
 export interface ContextMetadata {
   context_id: string;
@@ -51,12 +51,40 @@ export class ContextManager {
   private initialized: boolean = false;
 
   private constructor() {
-    this.contextPath = path.join(process.cwd(), 'src', 'ai-context');
+    // Edge Runtime 호환성을 위한 안전한 경로 설정
+    const workingDir = this.getSafeWorkingDirectory();
+    this.contextPath = path.join(workingDir, 'src', 'ai-context');
     this.indexPath = path.join(
       this.contextPath,
       'metadata',
       'context-index.json'
     );
+  }
+
+  /**
+   * 🛡️ Edge Runtime 호환 작업 디렉토리 가져오기
+   */
+  private getSafeWorkingDirectory(): string {
+    try {
+      // 테스트 환경에서는 고정 경로 사용
+      if (
+        process.env.NODE_ENV === 'test' ||
+        process.env.TEST_CONTEXT === 'true'
+      ) {
+        return process.env.PWD || '/test-workspace';
+      }
+
+      // process.cwd가 함수인지 확인
+      if (typeof process.cwd === 'function') {
+        return process.cwd();
+      }
+
+      // 폴백: 환경변수 또는 기본값
+      return process.env.PWD || process.env.INIT_CWD || '/app';
+    } catch (error) {
+      console.warn('⚠️ process.cwd() 접근 실패, 기본 경로 사용:', error);
+      return '/app';
+    }
   }
 
   /**

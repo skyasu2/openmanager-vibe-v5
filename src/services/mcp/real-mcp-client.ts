@@ -1,21 +1,21 @@
 /**
- * 🎯 실제 MCP 표준 클라이언트 v3.0
+ * 🎯 실제 MCP 표준 클라이언트 v3.1 (성능 최적화)
  *
  * ✅ @modelcontextprotocol/sdk 사용
  * ✅ 환경별 서버 구성 (개발/테스트/스테이징/프로덕션)
  * ✅ JSON-RPC 2.0 프로토콜
  * ✅ 표준화된 도구 호출
+ * ✅ 성능 모니터링 및 로드 밸런싱
  */
 
-import env, { envLog, shouldEnableDebugLogging } from '@/config/environment';
-import { spawn, ChildProcess } from 'child_process';
-import * as fs from 'fs';
-import * as path from 'path';
 import {
-  detectEnvironment,
   checkPaths,
+  detectEnvironment,
   getMCPConfig,
 } from '@/config/environment';
+import { ChildProcess, spawn } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
 
 // MCP SDK는 아직 설치되지 않았을 수 있으므로 폴백 구현
 interface MCPClient {
@@ -40,6 +40,15 @@ export interface MCPServerConfig {
   args: string[];
   env?: Record<string, string>;
   enabled: boolean;
+  // 🚀 성능 모니터링 추가
+  stats?: {
+    totalRequests: number;
+    successfulRequests: number;
+    failedRequests: number;
+    averageResponseTime: number;
+    lastUsed: number;
+    healthScore: number;
+  };
 }
 
 interface MCPSearchResult {
@@ -47,6 +56,9 @@ interface MCPSearchResult {
   results: any[];
   source: string;
   tools_used: string[];
+  // 🚀 성능 정보 추가
+  responseTime?: number;
+  serverUsed?: string;
 }
 
 export class RealMCPClient {
@@ -55,8 +67,125 @@ export class RealMCPClient {
   private processes: Map<string, ChildProcess> = new Map();
   private isInitialized = false;
 
+  // 🚀 성능 모니터링 추가
+  private performanceMonitor = {
+    totalRequests: 0,
+    totalResponseTime: 0,
+    serverLoadBalance: new Map<string, number>(),
+    lastOptimized: Date.now(),
+  };
+
   constructor() {
     this.initializeServers();
+    this.startPerformanceMonitoring();
+  }
+
+  /**
+   * 🚀 성능 모니터링 시작
+   */
+  private startPerformanceMonitoring(): void {
+    // 5분마다 성능 통계 출력 및 최적화
+    setInterval(
+      () => {
+        this.optimizeServerPerformance();
+      },
+      5 * 60 * 1000
+    );
+  }
+
+  /**
+   * ⚡ 서버 성능 최적화
+   */
+  private optimizeServerPerformance(): void {
+    console.log('📊 MCP 서버 성능 최적화 시작...');
+
+    for (const [serverName, config] of this.servers.entries()) {
+      if (config.stats) {
+        const {
+          totalRequests,
+          successfulRequests,
+          averageResponseTime,
+          healthScore,
+        } = config.stats;
+
+        // 헬스 스코어 계산 (성공률 + 응답시간 기반)
+        const successRate =
+          totalRequests > 0 ? (successfulRequests / totalRequests) * 100 : 100;
+        const responseScore = Math.max(0, 100 - averageResponseTime / 10); // 1초 = 10점 감점
+        config.stats.healthScore = successRate * 0.7 + responseScore * 0.3;
+
+        console.log(
+          `  📈 ${serverName}: 성공률 ${successRate.toFixed(1)}%, 평균응답 ${averageResponseTime}ms, 헬스 ${config.stats.healthScore.toFixed(1)}`
+        );
+
+        // 성능이 낮은 서버 비활성화
+        if (config.stats.healthScore < 30 && totalRequests > 10) {
+          console.warn(`⚠️ ${serverName} 서버 성능 저하로 임시 비활성화`);
+          config.enabled = false;
+        }
+      }
+    }
+  }
+
+  /**
+   * 🎯 최적 서버 선택 (로드 밸런싱)
+   */
+  private selectOptimalServer(excludeServers: string[] = []): string | null {
+    const availableServers = Array.from(this.servers.entries()).filter(
+      ([name, config]) =>
+        config.enabled &&
+        !excludeServers.includes(name) &&
+        this.clients.has(name)
+    );
+
+    if (availableServers.length === 0) return null;
+
+    // 헬스 스코어 기반 선택
+    const sortedServers = availableServers.sort((a, b) => {
+      const scoreA = a[1].stats?.healthScore || 50;
+      const scoreB = b[1].stats?.healthScore || 50;
+      return scoreB - scoreA;
+    });
+
+    return sortedServers[0][0];
+  }
+
+  /**
+   * 📊 서버 통계 업데이트
+   */
+  private updateServerStats(
+    serverName: string,
+    responseTime: number,
+    success: boolean
+  ): void {
+    const config = this.servers.get(serverName);
+    if (!config) return;
+
+    if (!config.stats) {
+      config.stats = {
+        totalRequests: 0,
+        successfulRequests: 0,
+        failedRequests: 0,
+        averageResponseTime: 0,
+        lastUsed: Date.now(),
+        healthScore: 100,
+      };
+    }
+
+    const stats = config.stats;
+    stats.totalRequests++;
+    stats.lastUsed = Date.now();
+
+    if (success) {
+      stats.successfulRequests++;
+    } else {
+      stats.failedRequests++;
+    }
+
+    // 이동 평균으로 응답시간 업데이트
+    stats.averageResponseTime =
+      (stats.averageResponseTime * (stats.totalRequests - 1) + responseTime) /
+      stats.totalRequests;
   }
 
   private initializeServers(): void {
