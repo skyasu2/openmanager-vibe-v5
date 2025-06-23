@@ -8,96 +8,382 @@
  * 암호화된 변수: 7개
  */
 
-export const ENCRYPTED_ENV_CONFIG = {
-  version: '2.0.0',
-  createdAt: '2025-06-18T23:24:08.349Z',
-  teamPasswordHash: '7e346817b5382d72b3860a1aa9d6abc0263e2ddcea9e78c18724dfa2c1f575f5',
-  variables: {
-    "NEXT_PUBLIC_SUPABASE_URL": {
-      "encrypted": "ErKN0MSvIAlf9gR68mzem7hxkFAfdBRQTBeeBJVyygugv9rlSAZhMT/HG78eR3Vp",
-      "salt": "cfb4cedc4d32e1f20dbf79babda54361",
-      "iv": "4e4cfaa1e2a178f48c4c54fe67610268",
-      "timestamp": "2025-06-18T23:24:07.819Z",
-      "originalName": "NEXT_PUBLIC_SUPABASE_URL",
-      "isPublic": true,
-      "rotateSchedule": "manual"
-    },
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": {
-      "encrypted": "3CMQu3v07n2COzXiV63Ts9NFuVtV2dy/+dLC/indJyrlAzEv63yhBtWBMSkZ1/qDF2FIK3f570F3RLexR4yGWtzJYAwU5++F1YmTmf5Woznm7ps1CJwO9iBv9RkKMmzfRhJNLd8QwgSxWITvOcuMHPynd0sVt/roqKvc46ZP4cCY5n3riwqIo6uLiNldDQQMFoo2T6h1QZy7VbH9PHE/ywiMa2yVOYGhHdrg3deHWalXQiLNg8SAbUvX20gXGZqG0MT7246JxeNOAr/MjcmauQHA/ejHtvqmaNp7oHI+tQY=",
-      "salt": "b515e1b60aa017693a641b345cec8586",
-      "iv": "2b24f8591ecc6890cd6093c5c72c048f",
-      "timestamp": "2025-06-18T23:24:07.914Z",
-      "originalName": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-      "isPublic": true,
-      "rotateSchedule": "manual"
-    },
-    "SUPABASE_SERVICE_ROLE_KEY": {
-      "encrypted": "Z0TCFaM3orm+GIHDEWH1vGSwiBaIDsDcEtMmTx3K0Wbgfjmh0uHVj1uCD4ty9O0W9zKjII86vsPLXEl9SD2uqDzFB5yeSP+eR39wd09bu0QvN1NW8g0EvBaVL9RkA0K0L1535l+JxNX/LGByMXRoG0slTTJJS8JMYfFiZnHty9qSEkbJGxnJ/idQFMcLmQq2/bCaq4ANRqLXGWm0mf5SovfL8RBKW7d4QduXEFxy+efLTOgEyE0QXcrqzs+kyiWWIrSNeAFz9v+WtzAFk1KKxXGe8WQLxTAsm0+zT9tkaiU=",
-      "salt": "9245aa7519814994485b663abfbd032b",
-      "iv": "e4849b54fd9e9b84eef2669eacd76547",
-      "timestamp": "2025-06-18T23:24:08.000Z",
-      "originalName": "SUPABASE_SERVICE_ROLE_KEY",
-      "isPublic": false,
-      "rotateSchedule": "manual"
-    },
-    "UPSTASH_REDIS_REST_URL": {
-      "encrypted": "9c86DAVxwMmum1CRTGQlzE1/0QtUm2T+DvNTnPfetl02W9BxBb17cJm4TCvQNYTM",
-      "salt": "d0047e315f3329b269ef15f8eb135207",
-      "iv": "457777a8bb1ebd422ed559b208dcf20d",
-      "timestamp": "2025-06-18T23:24:08.083Z",
-      "originalName": "UPSTASH_REDIS_REST_URL",
-      "isPublic": false,
-      "rotateSchedule": "manual"
-    },
-    "UPSTASH_REDIS_REST_TOKEN": {
-      "encrypted": "6loFOt/I0HlBaB6Ds0hL0T0OJVw8TZQhXZDZXzyPSpY0frDsGg4+IvqEKojVgFybmAI3//5uSOtDu3RfuVe5og==",
-      "salt": "e7ebd6ee2e53b72bc027a7598768109a",
-      "iv": "d89bda01209941992d5f6b9516abefe8",
-      "timestamp": "2025-06-18T23:24:08.183Z",
-      "originalName": "UPSTASH_REDIS_REST_TOKEN",
-      "isPublic": false,
-      "rotateSchedule": "quarterly"
-    },
-    "RENDER_MCP_SERVER_URL": {
-      "encrypted": "plTmj8an+jM+tneI026GiwWVrRKdnoA+5JsSoalOJDjywb4KYcPDlFYbneUtkDXs",
-      "salt": "1d5939c975fef05407acb9420f8e02a7",
-      "iv": "4d6f76f39e56b627d29786a1cfe590bc",
-      "timestamp": "2025-06-18T23:24:08.270Z",
-      "originalName": "RENDER_MCP_SERVER_URL",
-      "isPublic": false,
-      "rotateSchedule": "manual"
-    },
-    "GOOGLE_AI_API_KEY": {
-      "encrypted": "waHQ/XUFlL8UB98tzvet0ylNjszQNjycJKXGT8vNOtC5leMnGAN8Za6iW9s8fTgG",
-      "salt": "834ce4c4cbc37fd67e0893612f460fcb",
-      "iv": "8d63f626197208e9ecb562f92d642ed3",
-      "timestamp": "2025-06-18T23:24:08.349Z",
-      "originalName": "GOOGLE_AI_API_KEY",
-      "isPublic": false,
-      "rotateSchedule": "manual"
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypto';
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+/**
+ * 🛡️ 암호화된 환경 변수 관리자
+ * 
+ * 기능:
+ * - AES-256-GCM 암호화로 중요 환경 변수 보호
+ * - 자동 백업/복구 시스템
+ * - 환경별 설정 관리 (dev/test/prod)
+ * - 변경 이력 추적
+ */
+export class EncryptedEnvManager {
+  constructor() {
+    this.algorithm = 'aes-256-gcm';
+    this.secretKey = this.deriveKey();
+    this.backupDir = join(__dirname, 'backups');
+    this.configFile = join(process.cwd(), 'config', 'env-config.json');
+
+    // 백업 디렉토리 생성
+    this.ensureBackupDirectory();
+  }
+
+  /**
+   * 🔑 암호화 키 생성
+   */
+  deriveKey() {
+    const baseKey = process.env.ENV_ENCRYPTION_KEY || 'openmanager-vibe-v5-default-key';
+    return createHash('sha256').update(baseKey).digest();
+  }
+
+  /**
+   * 📁 백업 디렉토리 확인 및 생성
+   */
+  ensureBackupDirectory() {
+    try {
+      if (!existsSync(this.backupDir)) {
+        mkdirSync(this.backupDir, { recursive: true });
+      }
+    } catch (error) {
+      console.warn('⚠️ 백업 디렉토리 생성 실패:', error.message);
     }
   }
-};
 
-export const DEPLOYMENT_CONFIG = {
-  supabase: {
-    enabled: true,
-    region: 'ap-southeast-1',
-    project: 'vnswjnltnhpsueosfhmw'
-  },
-  renderMCP: {
-    enabled: true,
-    region: 'singapore',
-    loadBalanced: true
-  },
-  redis: {
-    enabled: true,
-    provider: 'upstash',
-    region: 'ap-southeast-1'
-  },
-  googleAI: {
-    enabled: true,
-    model: 'gemini-1.5-flash',
-    betaMode: true
+  /**
+   * 🔐 데이터 암호화
+   */
+  encrypt(text) {
+    try {
+      const iv = randomBytes(16);
+      const cipher = createCipheriv(this.algorithm, this.secretKey, iv);
+
+      let encrypted = cipher.update(text, 'utf8', 'hex');
+      encrypted += cipher.final('hex');
+
+      const authTag = cipher.getAuthTag();
+
+      return {
+        encrypted,
+        iv: iv.toString('hex'),
+        authTag: authTag.toString('hex')
+      };
+    } catch (error) {
+      throw new Error(`암호화 실패: ${error.message}`);
+    }
   }
-};
+
+  /**
+   * 🔓 데이터 복호화
+   */
+  decrypt(encryptedData) {
+    try {
+      const { encrypted, iv, authTag } = encryptedData;
+      const decipher = createDecipheriv(this.algorithm, this.secretKey, Buffer.from(iv, 'hex'));
+
+      decipher.setAuthTag(Buffer.from(authTag, 'hex'));
+
+      let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+      decrypted += decipher.final('utf8');
+
+      return decrypted;
+    } catch (error) {
+      throw new Error(`복호화 실패: ${error.message}`);
+    }
+  }
+
+  /**
+   * 📦 환경 변수 백업
+   */
+  async backupEnvironment(environment = 'current') {
+    try {
+      console.log(`🔄 환경 변수 백업 시작 (${environment})...`);
+
+      // 중요 환경 변수 수집
+      const sensitiveVars = {
+        // API 키들
+        GOOGLE_AI_API_KEY: process.env.GOOGLE_AI_API_KEY,
+        SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+        SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
+
+        // 데이터베이스 연결
+        UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
+        UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
+
+        // 보안 설정
+        NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+        NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+
+        // AI 엔진 설정
+        AI_ENGINE_MODE: process.env.AI_ENGINE_MODE,
+        SUPABASE_RAG_ENABLED: process.env.SUPABASE_RAG_ENABLED,
+        KOREAN_NLP_ENABLED: process.env.KOREAN_NLP_ENABLED,
+
+        // 백업 메타데이터
+        backup_timestamp: new Date().toISOString(),
+        backup_environment: environment,
+        backup_version: '5.44.3'
+      };
+
+      // 암호화
+      const encryptedVars = {};
+      for (const [key, value] of Object.entries(sensitiveVars)) {
+        if (value) {
+          encryptedVars[key] = this.encrypt(value);
+        }
+      }
+
+      // 백업 파일 저장
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const backupId = `env-backup-${environment}-${timestamp}`;
+      const backupPath = join(this.backupDir, `${backupId}.json`);
+
+      const backupData = {
+        id: backupId,
+        environment,
+        timestamp,
+        version: '5.44.3',
+        encrypted: encryptedVars,
+        checksum: this.generateChecksum(encryptedVars)
+      };
+
+      writeFileSync(backupPath, JSON.stringify(backupData, null, 2));
+
+      console.log(`✅ 환경 변수 백업 완료: ${backupId}`);
+      console.log(`📁 백업 위치: ${backupPath}`);
+
+      return backupId;
+    } catch (error) {
+      console.error('❌ 환경 변수 백업 실패:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 🔄 환경 변수 복구
+   */
+  async restoreEnvironment(backupId) {
+    try {
+      console.log(`🔄 환경 변수 복구 시작: ${backupId}`);
+
+      const backupPath = join(this.backupDir, `${backupId}.json`);
+
+      if (!existsSync(backupPath)) {
+        throw new Error(`백업 파일을 찾을 수 없습니다: ${backupId}`);
+      }
+
+      const backupData = JSON.parse(readFileSync(backupPath, 'utf8'));
+
+      // 체크섬 검증
+      const currentChecksum = this.generateChecksum(backupData.encrypted);
+      if (currentChecksum !== backupData.checksum) {
+        throw new Error('백업 파일이 손상되었습니다');
+      }
+
+      // 복호화 및 환경 변수 설정
+      const restoredVars = {};
+      for (const [key, encryptedValue] of Object.entries(backupData.encrypted)) {
+        try {
+          const decryptedValue = this.decrypt(encryptedValue);
+          restoredVars[key] = decryptedValue;
+
+          // 메타데이터가 아닌 경우 환경 변수로 설정
+          if (!key.startsWith('backup_')) {
+            process.env[key] = decryptedValue;
+          }
+        } catch (error) {
+          console.warn(`⚠️ ${key} 복호화 실패:`, error.message);
+        }
+      }
+
+      console.log(`✅ 환경 변수 복구 완료: ${Object.keys(restoredVars).length}개 변수`);
+      console.log(`📅 백업 날짜: ${backupData.timestamp}`);
+      console.log(`🏷️ 환경: ${backupData.environment}`);
+
+      return restoredVars;
+    } catch (error) {
+      console.error('❌ 환경 변수 복구 실패:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 📋 백업 목록 조회
+   */
+  listBackups() {
+    try {
+      if (!existsSync(this.backupDir)) {
+        return [];
+      }
+
+      const files = readdirSync(this.backupDir);
+      const backups = files
+        .filter(file => file.startsWith('env-backup-') && file.endsWith('.json'))
+        .map(file => {
+          try {
+            const filePath = join(this.backupDir, file);
+            const data = JSON.parse(readFileSync(filePath, 'utf8'));
+            return {
+              id: data.id,
+              environment: data.environment,
+              timestamp: data.timestamp,
+              version: data.version,
+              size: statSync(filePath).size
+            };
+          } catch {
+            return null;
+          }
+        })
+        .filter(Boolean)
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+      return backups;
+    } catch (error) {
+      console.error('❌ 백업 목록 조회 실패:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 🧮 체크섬 생성
+   */
+  generateChecksum(data) {
+    return createHash('sha256').update(JSON.stringify(data)).digest('hex');
+  }
+
+  /**
+   * 🔍 환경 변수 검증
+   */
+  validateEnvironment() {
+    const requiredVars = [
+      'GOOGLE_AI_API_KEY',
+      'SUPABASE_SERVICE_ROLE_KEY',
+      'SUPABASE_ANON_KEY',
+      'NEXTAUTH_SECRET'
+    ];
+
+    const missing = requiredVars.filter(varName => !process.env[varName]);
+
+    if (missing.length > 0) {
+      console.warn('⚠️ 누락된 필수 환경 변수:', missing.join(', '));
+      return false;
+    }
+
+    console.log('✅ 모든 필수 환경 변수가 설정되었습니다.');
+    return true;
+  }
+
+  /**
+   * 🧹 오래된 백업 정리 (30일 이상)
+   */
+  cleanupOldBackups(daysToKeep = 30) {
+    try {
+      const backups = this.listBackups();
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
+
+      let deletedCount = 0;
+
+      for (const backup of backups) {
+        if (new Date(backup.timestamp) < cutoffDate) {
+          const backupPath = join(this.backupDir, `${backup.id}.json`);
+          try {
+            unlinkSync(backupPath);
+            deletedCount++;
+            console.log(`🗑️ 오래된 백업 삭제: ${backup.id}`);
+          } catch (error) {
+            console.warn(`⚠️ 백업 삭제 실패 ${backup.id}:`, error.message);
+          }
+        }
+      }
+
+      if (deletedCount > 0) {
+        console.log(`✅ ${deletedCount}개의 오래된 백업을 정리했습니다.`);
+      } else {
+        console.log('📁 정리할 오래된 백업이 없습니다.');
+      }
+
+      return deletedCount;
+    } catch (error) {
+      console.error('❌ 백업 정리 실패:', error);
+      return 0;
+    }
+  }
+}
+
+// 자동 백업 실행 (빌드 시점)
+export async function autoBackup() {
+  if (process.env.NODE_ENV === 'production') {
+    try {
+      const envManager = new EncryptedEnvManager();
+      await envManager.backupEnvironment('production');
+      envManager.cleanupOldBackups(30);
+    } catch (error) {
+      console.warn('⚠️ 자동 백업 실패:', error.message);
+    }
+  }
+}
+
+// CLI 인터페이스
+if (process.argv[1] === new URL(import.meta.url).pathname) {
+  const command = process.argv[2];
+  const envManager = new EncryptedEnvManager();
+
+  switch (command) {
+    case 'backup':
+      const environment = process.argv[3] || 'manual';
+      envManager.backupEnvironment(environment);
+      break;
+
+    case 'restore':
+      const backupId = process.argv[3];
+      if (!backupId) {
+        console.error('❌ 사용법: node encrypted-env-config.mjs restore <backup-id>');
+        process.exit(1);
+      }
+      envManager.restoreEnvironment(backupId);
+      break;
+
+    case 'list':
+      const backups = envManager.listBackups();
+      console.log('📋 사용 가능한 백업:');
+      backups.forEach(backup => {
+        console.log(`  ${backup.id} (${backup.environment}, ${backup.timestamp})`);
+      });
+      break;
+
+    case 'validate':
+      envManager.validateEnvironment();
+      break;
+
+    case 'cleanup':
+      const days = parseInt(process.argv[3]) || 30;
+      envManager.cleanupOldBackups(days);
+      break;
+
+    default:
+      console.log(`
+🔐 OpenManager Vibe v5 - 환경 변수 관리 도구
+
+사용법:
+  node encrypted-env-config.mjs backup [environment]  # 환경 변수 백업
+  node encrypted-env-config.mjs restore <backup-id>   # 환경 변수 복구
+  node encrypted-env-config.mjs list                  # 백업 목록 조회
+  node encrypted-env-config.mjs validate              # 환경 변수 검증
+  node encrypted-env-config.mjs cleanup [days]        # 오래된 백업 정리
+
+예시:
+  node encrypted-env-config.mjs backup production
+  node encrypted-env-config.mjs restore env-backup-production-2025-06-23T10-30-00-000Z
+      `);
+  }
+}
+
+export default EncryptedEnvManager;
