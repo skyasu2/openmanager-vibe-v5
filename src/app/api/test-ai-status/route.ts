@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     // 2. Google AI 서비스 테스트
     try {
       const { GoogleAIService } = await import('@/services/ai/GoogleAIService');
-      const googleAI = new GoogleAIService();
+      const googleAI = GoogleAIService.getInstance();
       const googleStatus = googleAI.getStatus();
 
       results.tests.googleAI = {

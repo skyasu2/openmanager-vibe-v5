@@ -881,7 +881,13 @@ export async function GET(request: NextRequest) {
         'https://openmanager-ai-engine.onrender.com';
 
       // 내부 AI 엔진 헬스체크 시도
-      const healthData = await makeAIRequest('?action=health', {}, true);
+      let healthData;
+      try {
+        const response = await fetch('/api/v3/ai?action=health');
+        healthData = await response.json();
+      } catch (error) {
+        healthData = { status: 'error', message: 'Health check failed' };
+      }
 
       return NextResponse.json({
         status: 'ok',

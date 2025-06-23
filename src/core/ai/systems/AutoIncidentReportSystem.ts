@@ -279,7 +279,6 @@ export class AutoIncidentReportSystem implements IAutoIncidentReportSystem {
             const enhancedPrediction: PredictionResult = {
                 ...basePrediction,
                 confidence: Math.max(basePrediction.confidence, mlPrediction.confidence || 0),
-                predictedFailureTime: mlPrediction.predictedFailureTime || basePrediction.predictedFailureTime,
                 riskFactors: [
                     ...basePrediction.riskFactors,
                     ...(mlPrediction.riskFactors || [])

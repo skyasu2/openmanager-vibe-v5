@@ -9,10 +9,10 @@
  * - 실시간 헬스체크
  */
 
-import { RealMCPClient } from '@/services/mcp/real-mcp-client';
-import { ContextManager } from '../ContextManager';
 import { UnifiedMLToolkit } from '@/lib/ml/UnifiedMLToolkit';
 import { RealServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
+import { RealMCPClient } from '@/services/mcp/real-mcp-client';
+import { ContextManager } from '../ContextManager';
 
 export interface MCPEngineResponse {
   answer: string;
@@ -46,7 +46,7 @@ export class MCPEngine {
   private lastQueryTime = 0;
 
   private constructor() {
-    this.mcpClient = new RealMCPClient();
+    this.mcpClient = RealMCPClient.getInstance();
     this.contextManager = ContextManager.getInstance();
     this.mlToolkit = new UnifiedMLToolkit();
     this.serverDataGenerator = RealServerDataGenerator.getInstance();

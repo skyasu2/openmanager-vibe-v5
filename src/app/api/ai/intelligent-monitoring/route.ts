@@ -7,10 +7,10 @@
  * 3단계: 🔮 예측적 모니터링
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { AnomalyDetection } from '@/services/ai/AnomalyDetection';
 import { PredictiveAnalysisEngine } from '@/engines/PredictiveAnalysisEngine';
+import { AnomalyDetection } from '@/services/ai/AnomalyDetection';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
+import { NextRequest, NextResponse } from 'next/server';
 
 interface IntelligentAnalysisRequest {
   serverId?: string;
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
 
         // Google AI를 사용한 근본 원인 분석
         try {
-          const googleAI = new GoogleAIService();
+          const googleAI = GoogleAIService.getInstance();
           await googleAI.initialize();
 
           if (googleAI.isAvailable()) {
@@ -275,9 +275,9 @@ export async function POST(request: NextRequest) {
         const avgRisk =
           predictions.length > 0
             ? predictions.reduce(
-                (sum, p) => sum + (p.failureProbability || 0),
-                0
-              ) / predictions.length
+              (sum, p) => sum + (p.failureProbability || 0),
+              0
+            ) / predictions.length
             : 0;
         const highRiskCount = predictions.filter(
           p => p.failureProbability > 70

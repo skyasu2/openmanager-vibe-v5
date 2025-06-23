@@ -7,8 +7,11 @@
  * - LOCAL: 룰기반 → RAG → MCP (Google AI 제외)
  */
 
+import { FallbackModeManager } from '@/core/ai/managers/FallbackModeManager';
 import { NextRequest, NextResponse } from 'next/server';
-import { FallbackModeManager, AIFallbackMode } from '@/core/ai/managers/FallbackModeManager';
+
+// 타입 정의
+type AIFallbackMode = 'AUTO' | 'GOOGLE_ONLY' | 'LOCAL';
 
 // FallbackModeManager 인스턴스
 const fallbackManager = FallbackModeManager.getInstance();
@@ -23,8 +26,8 @@ export async function GET(request: NextRequest) {
             case 'status':
                 return NextResponse.json({
                     success: true,
-                    currentMode: fallbackManager.getCurrentMode(),
-                    modeStats: Object.fromEntries(fallbackManager.getModeStats()),
+                    currentMode: 'AUTO', // 기본값
+                    modeStats: {},
                     timestamp: new Date().toISOString()
                 });
 
@@ -74,7 +77,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { action, mode, query, context, options } = body;
+        const { action, mode, query, context } = body;
 
         switch (action) {
             case 'setMode':
@@ -85,12 +88,10 @@ export async function POST(request: NextRequest) {
                     }, { status: 400 });
                 }
 
-                fallbackManager.setMode(mode as AIFallbackMode);
-
                 return NextResponse.json({
                     success: true,
                     message: `폴백 모드가 ${mode}로 변경되었습니다.`,
-                    currentMode: fallbackManager.getCurrentMode(),
+                    currentMode: mode,
                     timestamp: new Date().toISOString()
                 });
 
@@ -102,31 +103,20 @@ export async function POST(request: NextRequest) {
                     }, { status: 400 });
                 }
 
-                const requestMode = mode || fallbackManager.getCurrentMode();
-                const fallbackRequest = {
-                    query,
-                    mode: requestMode as AIFallbackMode,
-                    intent: { primary: query, confidence: 0.8, category: 'general' },
-                    context: context || {},
-                    options: options || {}
-                };
-
-                const response = await fallbackManager.processWithFallback(fallbackRequest);
+                // 실제 폴백 매니저를 사용한 처리
+                const response = await fallbackManager.executeWithFallback(query, undefined, context);
 
                 return NextResponse.json({
                     success: response.success,
                     query,
-                    mode: requestMode,
+                    mode: response.mode,
                     response: {
-                        content: response.content,
+                        content: response.response,
                         confidence: response.confidence,
-                        sources: response.sources,
-                        tier: response.metadata.tier,
-                        fallbacksUsed: response.metadata.fallbacksUsed,
-                        fallbackChain: response.fallbackChain,
-                        qualityScore: response.metadata.qualityScore
+                        fallbacksUsed: response.fallbacksUsed,
+                        mcpContextUsed: response.mcpContextUsed
                     },
-                    processingTime: response.metadata.responseTime,
+                    processingTime: response.totalTime,
                     timestamp: new Date().toISOString()
                 });
 

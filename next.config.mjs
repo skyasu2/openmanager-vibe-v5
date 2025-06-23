@@ -58,9 +58,32 @@ const nextConfig = {
             fs: false,
             path: false,
             os: false,
+            child_process: false,
+            'node:events': false,
+            'node:fs': false,
+            'node:fs/promises': false,
+            'node:path': false,
+            'node:url': false,
+            'node:util': false,
         };
 
+        // 서버 사이드 전용 모듈들을 클라이언트에서 제외
+        if (!isServer) {
+            config.externals = config.externals || [];
+            config.externals.push({
+                'child_process': 'commonjs child_process',
+                'fs': 'commonjs fs',
+                'fs/promises': 'commonjs fs/promises',
+                'path': 'commonjs path',
+                'glob': 'commonjs glob',
+            });
 
+            // MCP 클라이언트를 클라이언트 사이드에서 제외
+            config.resolve.alias = {
+                ...config.resolve.alias,
+                '@/services/mcp/real-mcp-client': false,
+            };
+        }
 
         // 스토리북 파일 빌드에서 제외
         config.module.rules.push({

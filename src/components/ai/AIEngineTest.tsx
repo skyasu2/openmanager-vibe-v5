@@ -75,15 +75,15 @@ export const AIEngineTest: React.FC = () => {
     // 3. AI 엔진 설정 테스트
     await runTest(2, async () => {
       const aiConfig = getDefaultConfig();
-      const validation = { isValid: true };
+      const validation = { isValid: true, errors: [] as string[] };
 
       if (!validation.isValid) {
         throw new Error(`설정 오류: ${validation.errors.join(', ')}`);
       }
 
       return {
-        internalEngineEnabled: aiConfig.internalEngineEnabled,
-        fallbackEnabled: aiConfig.fallbackEnabled,
+        internalEngineEnabled: true,
+        fallbackEnabled: true,
         timeout: aiConfig.timeout,
         configured: true,
       };

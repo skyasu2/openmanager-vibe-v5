@@ -19,7 +19,15 @@ import { OpenSourceEngines } from '@/services/ai/engines/OpenSourceEngines';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
 import { KoreanAIEngine } from '@/services/ai/korean-ai-engine';
 import { TransformersEngine } from '@/services/ai/transformers-engine';
-import { RealMCPClient } from '@/services/mcp/real-mcp-client';
+// 서버 사이드에서만 MCP 클라이언트 사용
+let RealMCPClient: any = null;
+if (typeof window === 'undefined') {
+  try {
+    RealMCPClient = require('@/services/mcp/real-mcp-client').RealMCPClient;
+  } catch (error) {
+    console.warn('⚠️ MCP 클라이언트 로드 실패 (서버 사이드 전용):', error);
+  }
+}
 
 // 🚀 새로 추가: 삭제된/미사용 기능들 통합 (임시 비활성화)
 // import { IntelligentMonitoringService } from '@/services/ai/IntelligentMonitoringService';
@@ -69,7 +77,7 @@ export class UnifiedAIEngineRouter {
   // 메인 엔진들
   private supabaseRAG = getSupabaseRAGEngine();
   private googleAI: GoogleAIService;
-  private mcpClient: RealMCPClient; // 🎯 역할 변경: AI 엔진 → 컨텍스트 수집기
+  private mcpClient: any; // 🎯 역할 변경: AI 엔진 → 컨텍스트 수집기
 
   // 🚀 통합된 고급 엔진들 (임시 비활성화)
 
@@ -110,7 +118,7 @@ export class UnifiedAIEngineRouter {
 
   private constructor() {
     this.googleAI = GoogleAIService.getInstance();
-    this.mcpClient = RealMCPClient.getInstance(); // 🎯 컨텍스트 수집 전용
+    this.mcpClient = RealMCPClient ? RealMCPClient.getInstance() : null; // 🎯 컨텍스트 수집 전용
 
     // 🚀 고급 엔진들 안전한 초기화 (초기화 과정에서 로드됨)
     this.intelligentMonitoring = null;
@@ -379,6 +387,12 @@ export class UnifiedAIEngineRouter {
    */
   private async collectMCPContext(query: string, context?: any): Promise<any> {
     try {
+      // 클라이언트 측에서는 MCP 비활성화
+      if (!this.mcpClient || typeof window !== 'undefined') {
+        console.log('⚠️ MCP 컨텍스트 수집: 클라이언트 측에서 비활성화');
+        return null;
+      }
+
       // MCP는 이제 AI 응답 생성이 아닌 컨텍스트 수집만 수행
       const mcpResult = await this.mcpClient.performComplexQuery(query, context);
 
@@ -939,8 +953,12 @@ export class UnifiedAIEngineRouter {
 
   private async initializeMCPContextHelper(): Promise<void> {
     try {
-      await this.mcpClient.initialize();
-      console.log('✅ MCP 클라이언트 초기화 완료 (컨텍스트 분석 도우미)');
+      if (this.mcpClient && typeof window === 'undefined') {
+        await this.mcpClient.initialize();
+        console.log('✅ MCP 클라이언트 초기화 완료 (컨텍스트 분석 도우미)');
+      } else {
+        console.log('⚠️ MCP 컨텍스트 도우미: 클라이언트 측에서 비활성화');
+      }
     } catch (error) {
       console.warn('⚠️ MCP 클라이언트 초기화 실패:', error);
     }

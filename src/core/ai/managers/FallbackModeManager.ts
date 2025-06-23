@@ -8,7 +8,15 @@
 
 import { SupabaseRAGEngine, getSupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
-import { RealMCPClient } from '@/services/mcp/real-mcp-client';
+// 서버 사이드에서만 MCP 클라이언트 사용
+let RealMCPClient: any = null;
+if (typeof window === 'undefined') {
+    try {
+        RealMCPClient = require('@/services/mcp/real-mcp-client').RealMCPClient;
+    } catch (error) {
+        console.warn('⚠️ MCP 클라이언트 로드 실패 (서버 사이드 전용):', error);
+    }
+}
 
 type FallbackMode = 'primary' | 'secondary' | 'emergency' | 'offline';
 
@@ -39,7 +47,7 @@ export class FallbackModeManager {
 
     private supabaseRAG: SupabaseRAGEngine;
     private googleAI: GoogleAIService;
-    private mcpClient: RealMCPClient; // 🎯 컨텍스트 수집 전용
+    private mcpClient: any; // 🎯 컨텍스트 수집 전용
 
     private config: FallbackConfig = {
         timeoutMs: 30000,
@@ -51,7 +59,7 @@ export class FallbackModeManager {
     private constructor() {
         this.supabaseRAG = getSupabaseRAGEngine();
         this.googleAI = GoogleAIService.getInstance();
-        this.mcpClient = RealMCPClient.getInstance(); // 🎯 컨텍스트 수집 전용
+        this.mcpClient = RealMCPClient ? RealMCPClient.getInstance() : null; // 🎯 컨텍스트 수집 전용
     }
 
     public static getInstance(): FallbackModeManager {
@@ -171,6 +179,12 @@ export class FallbackModeManager {
      */
     private async collectMCPContext(query: string, context?: any): Promise<any> {
         try {
+            // 클라이언트 측에서는 MCP 비활성화
+            if (!this.mcpClient || typeof window !== 'undefined') {
+                console.log('⚠️ MCP 컨텍스트 수집: 클라이언트 측에서 비활성화');
+                return null;
+            }
+
             const mcpResult = await this.mcpClient.performComplexQuery(query, context);
 
             if (mcpResult && typeof mcpResult === 'object') {

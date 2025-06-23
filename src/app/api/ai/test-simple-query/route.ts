@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
         const { GoogleAIService } = await import(
           '@/services/ai/GoogleAIService'
         );
-        const googleAI = new GoogleAIService();
+        const googleAI = GoogleAIService.getInstance();
 
         if (!googleAI.isAvailable()) {
           result = {
