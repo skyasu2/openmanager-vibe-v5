@@ -208,7 +208,7 @@ export const AI_ENGINE_REFACTORING_PLAN = {
   // 🎯 현재 상태 분석
   current: {
     totalEngines: 44,
-    mainEngines: 3, // MasterAIEngine, UnifiedAIEngine, RefactoredAIEngineHub
+    mainEngines: 2, // UnifiedAIEngineRouter, SupabaseRAGMainEngine
     duplicateEngines: 12,
     unusedEngines: 6,
     largestClass: {

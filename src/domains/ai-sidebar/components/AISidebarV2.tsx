@@ -31,7 +31,6 @@ import {
   FileText,
   Globe,
   HardDrive,
-  Paperclip,
   RotateCcw,
   Search,
   Send,
@@ -75,6 +74,24 @@ interface AIEngine {
   status: 'ready' | 'loading' | 'error' | 'disabled';
 }
 
+// interface UploadedFile {
+//   id: string;
+//   name: string;
+//   type: string;
+//   size: number;
+//   content?: string;
+//   preview?: string;
+// }
+// TODO: 향후 문서/로그 파일 업로드 분석 기능 개발 예정
+
+interface PresetQuestion {
+  id: string;
+  text: string;
+  category: string;
+  icon: React.ComponentType<any>;
+  color: string;
+}
+
 interface ChatMessage {
   id: string;
   type: 'user' | 'ai';
@@ -83,7 +100,7 @@ interface ChatMessage {
   thinking?: ThinkingStep[];
   engine?: string;
   confidence?: number;
-  files?: UploadedFile[];
+  // files?: UploadedFile[]; // TODO: 향후 파일 첨부 기능 개발 예정
 }
 
 interface ThinkingStep {
@@ -93,23 +110,6 @@ interface ThinkingStep {
   description: string;
   status: 'pending' | 'processing' | 'completed';
   duration?: number;
-}
-
-interface UploadedFile {
-  id: string;
-  name: string;
-  type: string;
-  size: number;
-  content?: string;
-  preview?: string;
-}
-
-interface PresetQuestion {
-  id: string;
-  text: string;
-  category: string;
-  icon: React.ComponentType<any>;
-  color: string;
 }
 
 // AI_ENGINES는 이제 AIEngineSelector에서 import됨
@@ -198,7 +198,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   const [selectedEngine, setSelectedEngine] = useState<string>('auto');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showEngineInfo, setShowEngineInfo] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  // const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]); // TODO: 향후 파일 업로드 기능
   const [expandedThinking, setExpandedThinking] = useState<string | null>(null);
 
   // 프리셋 질문 네비게이션 상태
@@ -251,7 +251,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
   // 스크롤 참조
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // const fileInputRef = useRef<HTMLInputElement>(null); // TODO: 향후 파일 업로드 기능
   const presetScrollRef = useRef<HTMLDivElement>(null);
 
   // 실시간 AI 로그 훅
@@ -601,23 +601,6 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         }, 2000); // 2초 후 자동장애보고서 생성
       }
     }
-  };
-
-  // 파일 업로드 핸들러
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    const newFiles: UploadedFile[] = files.map(file => ({
-      id: `file-${Date.now()}-${Math.random()}`,
-      name: file.name,
-      type: file.type,
-      size: file.size,
-    }));
-    setUploadedFiles(prev => [...prev, ...newFiles]);
-  };
-
-  // 파일 제거
-  const removeFile = (fileId: string) => {
-    setUploadedFiles(prev => prev.filter(file => file.id !== fileId));
   };
 
   // 생성 중단
@@ -1299,43 +1282,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         </div>
       )}
 
-      {/* 파일 업로드 영역 */}
-      {uploadedFiles.length > 0 && (
-        <div className='px-3 pb-2'>
-          <div className='flex flex-wrap gap-1'>
-            {uploadedFiles.map(file => (
-              <div
-                key={file.id}
-                className='flex items-center space-x-1 px-2 py-1 bg-blue-50 border border-blue-200 rounded'
-              >
-                <FileText className='w-3 h-3 text-blue-600' />
-                <span className='text-xs text-blue-800'>{file.name}</span>
-                <button
-                  onClick={() => removeFile(file.id)}
-                  className='p-0.5 hover:bg-blue-100 rounded transition-colors'
-                  title={`${file.name} 파일 제거`}
-                  aria-label={`${file.name} 파일 제거`}
-                >
-                  <X className='w-2 h-2 text-blue-600' />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* 입력 영역 */}
       <div className='p-3 border-t border-gray-200 bg-white/80 backdrop-blur-sm'>
         <div className='flex items-end space-x-2'>
-          {/* 파일 업로드 버튼 */}
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className='p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors'
-            title='파일 첨부'
-          >
-            <Paperclip className='w-4 h-4' />
-          </button>
-
           {/* 텍스트 입력 */}
           <div className='flex-1 relative'>
             <textarea
@@ -1356,7 +1305,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
           {/* 전송 버튼 */}
           <motion.button
             onClick={() => handleSendInput()}
-            disabled={!inputValue.trim() && uploadedFiles.length === 0}
+            disabled={!inputValue.trim()}
             className='p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -1375,18 +1324,6 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
           </span>
         </div>
       </div>
-
-      {/* 숨겨진 파일 입력 */}
-      <input
-        ref={fileInputRef}
-        type='file'
-        multiple
-        accept='.txt,.md,.json,.csv,.log,.yaml,.toml,.ini,.xml,.html,.jpg,.png,.webp'
-        onChange={handleFileUpload}
-        className='hidden'
-        title='파일 선택'
-        aria-label='파일 선택'
-      />
     </div>
   );
 

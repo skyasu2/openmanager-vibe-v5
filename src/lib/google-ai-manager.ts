@@ -34,6 +34,18 @@ class GoogleAIManager {
    * @returns API 키 또는 null (키가 없거나 잠김)
    */
   getAPIKey(): string | null {
+    // 0순위: 환경변수 강제 로딩 시도
+    try {
+      const { getGoogleAIKeyWithFallback } = require('@/lib/env-loader');
+      const fallbackKey = getGoogleAIKeyWithFallback();
+      if (fallbackKey && fallbackKey.trim() !== '') {
+        console.log('🔑 Google AI API 키 소스: 환경변수 (강제 로딩)');
+        return fallbackKey.trim();
+      }
+    } catch (error) {
+      console.warn('⚠️ 환경변수 강제 로딩 실패:', error.message);
+    }
+
     // 1순위: 개인 환경변수
     const envKey = process.env.GOOGLE_AI_API_KEY;
     if (envKey && envKey.trim() !== '') {

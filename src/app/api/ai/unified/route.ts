@@ -9,18 +9,17 @@
  * ⚡ Fluid Compute 최적화 (비용 85% 절감, Cold start 제거)
  */
 
+import {
+  aiLogger,
+  LogCategory,
+  LogLevel,
+} from '@/services/ai/logging/AILogger';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getUnifiedAISystem,
   UnifiedQuery,
   UnifiedResponse,
 } from '../../../../core/ai/unified-ai-system';
-import {
-  aiLogger,
-  LogLevel,
-  LogCategory,
-} from '@/services/ai/logging/AILogger';
-import { unifiedAIEngine } from '@/core/ai/UnifiedAIEngine';
 
 // Fluid Compute 최적화: 연결 재사용을 위한 전역 인스턴스
 let isSystemInitialized = false;
@@ -59,11 +58,11 @@ interface ThinkingLog {
   step: string;
   content: string;
   type:
-  | 'analysis'
-  | 'reasoning'
-  | 'data_processing'
-  | 'pattern_matching'
-  | 'response_generation';
+    | 'analysis'
+    | 'reasoning'
+    | 'data_processing'
+    | 'pattern_matching'
+    | 'response_generation';
   timestamp: string;
   duration?: number;
   progress?: number;
@@ -439,7 +438,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           status: 'connected',
           model: 'gemini-1.5-flash',
           responseTime: 120,
-          reliability: 98.5
+          reliability: 98.5,
         },
         {
           id: 'local-rag',
@@ -447,7 +446,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           status: 'connected',
           model: 'enhanced-rag-v2',
           responseTime: 45,
-          reliability: 99.2
+          reliability: 99.2,
         },
         {
           id: 'mcp-engine',
@@ -455,7 +454,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           status: 'connected',
           model: 'filesystem-v1',
           responseTime: 35,
-          reliability: 97.8
+          reliability: 97.8,
         },
         {
           id: 'smart-fallback',
@@ -463,21 +462,21 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           status: 'standby',
           model: 'fallback-v1',
           responseTime: 80,
-          reliability: 95.0
-        }
+          reliability: 95.0,
+        },
       ],
       performance: {
         totalRequests: 1247,
         successRate: 98.2,
         averageResponseTime: 75,
-        activeConnections: 12
+        activeConnections: 12,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     return NextResponse.json({
       success: true,
-      data: unifiedData
+      data: unifiedData,
     });
   } catch (error) {
     console.error('통합 AI 엔진 조회 오류:', error);
@@ -485,7 +484,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       {
         success: false,
         error: '통합 AI 엔진 조회 실패',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

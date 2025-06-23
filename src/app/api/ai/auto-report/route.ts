@@ -8,12 +8,10 @@
  * - 다운로드 지원
  */
 
-import type { AIFunctionType } from '@/core/ai/RefactoredAIEngineHub';
-import { aiEngineHub } from '@/core/ai/RefactoredAIEngineHub';
+import { unifiedAIRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
 import { supabase } from '@/lib/supabase';
 import { realServerDataGenerator } from '@/services/data-generator/RealServerDataGenerator';
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 
 interface ReportData {
   id: string;
@@ -455,107 +453,135 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Zod 스키마로 요청 본문 유효성 검사
-// (AIAnalysisDataset의 모든 필드를 검증하기엔 복잡하므로 핵심적인 부분만 체크)
-const AutoReportRequestSchema = z.object({
-  metadata: z.object({
-    generationTime: z.string().datetime(),
-  }),
-  patterns: z.object({
-    anomalies: z.array(z.any()).min(1, {
-      message: '분석할 이상 징후(anomalies)가 최소 1개 이상 필요합니다.',
-    }),
-  }),
-  logs: z.array(z.any()).optional(),
-  metrics: z.array(z.any()).optional(),
-});
+interface AutoReportRequest {
+  reportType: 'performance' | 'security' | 'system' | 'ai' | 'comprehensive';
+  timeRange?: '1h' | '6h' | '24h' | '7d' | '30d';
+  includeRecommendations?: boolean;
+  format?: 'text' | 'markdown' | 'json';
+  urgency?: 'low' | 'medium' | 'high' | 'critical';
+}
 
 // POST: 새 보고서 생성
 export async function POST(request: NextRequest) {
   try {
+    const body: AutoReportRequest = await request.json();
     const {
+      reportType,
       timeRange = '24h',
-      includeMetrics = true,
       includeRecommendations = true,
-      format = 'detailed',
+      format = 'markdown',
       urgency = 'medium',
-    } = await request.json();
+    } = body;
 
-    console.log('📊 자동 장애 보고서 생성 API 호출:', {
+    console.log(`📊 자동 보고서 요청: ${reportType} (${timeRange})`);
+
+    // UnifiedAIEngineRouter를 사용한 보고서 생성
+    await unifiedAIRouter.initialize();
+
+    const reportQuery = generateReportQuery(
+      reportType,
       timeRange,
-      format,
-      urgency,
-      includeMetrics,
-      includeRecommendations,
-    });
-
-    // RefactoredAIEngineHub를 사용한 자동 보고서 생성
-    const result = await aiEngineHub.processAIFunction(
-      'auto_report' as AIFunctionType,
-      {
-        query: `${timeRange} 기간 동안의 시스템 장애 분석 보고서를 ${format} 형식으로 생성해주세요.`,
-        mode: 'AUTO', // MCP+RAG+GoogleAI 통합 모드
-        strategy: 'dual_core', // MCP + RAG 병렬 처리
-        context: {
-          urgency,
-          language: 'ko',
-          sessionId: `auto-report-${Date.now()}`,
-        },
-        options: {
-          enableThinking: true,
-          maxResponseTime: 30000, // 30초
-          confidenceThreshold: 0.7,
-          useMCP: true,
-          useRAG: true,
-          useGoogleAI: true,
-        },
-      },
-      {
-        timeRange,
-        includeMetrics,
-        includeRecommendations,
-        format,
-        urgency,
-      }
+      includeRecommendations
     );
 
-    if (!result.success) {
-      return NextResponse.json(
-        {
-          error: '자동 장애 보고서 생성 실패',
-          details: result.error || '알 수 없는 오류',
-        },
-        { status: 500 }
-      );
-    }
-
-    console.log('📊 자동 장애 보고서 생성 성공:', {
-      reportId: result.reportId,
-      totalIssues: result.summary?.totalIssues || 0,
-      criticalIssues: result.summary?.criticalIssues || 0,
+    const result = await unifiedAIRouter.processQuery({
+      query: reportQuery,
+      mode: 'AUTO',
+      context: {
+        reportType,
+        timeRange,
+        urgency,
+        source: 'auto-report-api',
+        maxTokens: 2000,
+        temperature: 0.3, // 정확한 보고서를 위해 낮은 온도
+        includeThinking: false,
+      },
     });
+
+    // 응답 포맷팅
+    let formattedReport = formatReport(result, format);
 
     return NextResponse.json({
       success: true,
-      report: result,
+      reportType,
+      timeRange,
+      report: formattedReport,
       metadata: {
-        processingTime: result.processingTime || 0,
-        enginePath: result.enginePath || ['auto_report'],
-        aiEnginesUsed: result.metadata?.engines?.used || ['dual_core'],
-        systemHealth: result.trends?.systemHealth || 85,
+        generatedAt: new Date().toISOString(),
+        engine: 'unified-ai-router',
+        format,
+        includeRecommendations,
       },
     });
   } catch (error) {
-    console.error('❌ 자동 장애 보고서 API 오류:', error);
+    console.error('❌ 자동 보고서 생성 오류:', error);
 
     return NextResponse.json(
       {
-        error: '자동 장애 보고서 생성 중 오류가 발생했습니다.',
-        details: error instanceof Error ? error.message : '알 수 없는 오류',
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );
   }
+}
+
+function generateReportQuery(
+  reportType: string,
+  timeRange: string,
+  includeRecommendations: boolean
+): string {
+  const baseQuery = {
+    performance: `지난 ${timeRange} 동안의 시스템 성능 보고서를 생성해주세요. 응답시간, CPU/메모리 사용량, 처리량 등을 포함해주세요.`,
+    security: `지난 ${timeRange} 동안의 보안 상태 보고서를 생성해주세요. 접근 로그, 보안 이벤트, 위험 요소 등을 분석해주세요.`,
+    system: `지난 ${timeRange} 동안의 시스템 전반 상태 보고서를 생성해주세요. 서버 상태, 서비스 가용성, 에러 현황 등을 포함해주세요.`,
+    ai: `지난 ${timeRange} 동안의 AI 시스템 성능 보고서를 생성해주세요. AI 엔진 사용량, 응답 품질, 처리 성능 등을 분석해주세요.`,
+    comprehensive: `지난 ${timeRange} 동안의 종합 시스템 보고서를 생성해주세요. 성능, 보안, AI, 전반적인 시스템 상태를 모두 포함해주세요.`,
+  };
+
+  let query =
+    baseQuery[reportType as keyof typeof baseQuery] || baseQuery.comprehensive;
+
+  if (includeRecommendations) {
+    query += ' 또한 개선 사항과 권장사항도 함께 제공해주세요.';
+  }
+
+  return query;
+}
+
+function formatReport(result: any, format: string): string {
+  let report = '';
+
+  if (typeof result === 'string') {
+    report = result;
+  } else if (result && result.response) {
+    report = result.response;
+  } else if (result && result.answer) {
+    report = result.answer;
+  } else {
+    report = '보고서 생성에 실패했습니다. 시스템 관리자에게 문의하세요.';
+  }
+
+  if (format === 'json') {
+    return JSON.stringify(
+      {
+        report: report,
+        generatedAt: new Date().toISOString(),
+        source: 'unified-ai-router',
+      },
+      null,
+      2
+    );
+  }
+
+  if (format === 'text') {
+    // 마크다운 형식을 텍스트로 변환
+    return report.replace(/[#*`]/g, '').replace(/\n\n/g, '\n');
+  }
+
+  // 기본값은 markdown
+  return report;
 }
 
 // DELETE: 보고서 삭제
