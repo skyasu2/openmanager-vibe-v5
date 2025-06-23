@@ -318,14 +318,14 @@ export class AutoIncidentReportSystem implements IAutoIncidentReportSystem {
             // 2. ML 엔진을 통한 학습
             const mlLearningData = {
                 incident: {
-                    type: report.type,
-                    severity: report.severity,
+                    type: report.incident.type,
+                    severity: report.incident.severity,
                     description: report.description,
                     solutions: report.solutions
                 },
                 context: {
-                    timestamp: report.timestamp,
-                    serverId: report.serverId,
+                    timestamp: report.generatedAt,
+                    serverId: report.incident.affectedServer,
                     impact: report.impact
                 }
             };
@@ -335,9 +335,9 @@ export class AutoIncidentReportSystem implements IAutoIncidentReportSystem {
             // 3. ML 학습 패턴을 기존 패턴에 통합
             const mlPattern: LearningPattern = {
                 id: `ml_${Date.now()}`,
-                category: report.type,
-                symptoms: [report.description],
-                rootCause: report.rootCause?.description || '알 수 없음',
+                category: report.incident.type,
+                symptoms: [report.description || report.summary],
+                rootCause: report.rootCause?.primaryCause || '알 수 없음',
                 solution: report.solutions?.[0]?.description || '해결방안 없음',
                 confidence: 0.8, // ML 기반 패턴은 높은 신뢰도
                 successRate: 0.9,
@@ -799,7 +799,7 @@ export class AutoIncidentReportSystem implements IAutoIncidentReportSystem {
             const timeline = this.generateTimeline(incident);
 
             // 5. 보고서 생성
-            const report: IncidentReport = {
+            const report = {
                 id: `RPT-${Date.now()}-${incident.id}`,
                 incident,
                 title: this.generateReportTitle(incident),
@@ -818,14 +818,14 @@ export class AutoIncidentReportSystem implements IAutoIncidentReportSystem {
 
             // 🧠 AI 학습 큐에 추가 (NEW!)
             if (this.learningEnabled && this.learningConfig.enabled) {
-                this.learningQueue.push(report);
+                this.learningQueue.push(report as IncidentReport);
                 console.log(`🧠 학습 큐에 보고서 추가: ${report.id} (큐 크기: ${this.learningQueue.length})`);
             }
 
             const processingTime = Date.now() - startTime;
             console.log(`📋 장애 보고서 생성 완료: ${report.id} (${processingTime}ms)`);
 
-            return report;
+            return report as IncidentReport;
         } catch (error) {
             throw new IncidentReportError(
                 '장애 보고서 생성 실패',
@@ -1165,7 +1165,8 @@ export class AutoIncidentReportSystem implements IAutoIncidentReportSystem {
             // 4. 예측 분석 (히스토리 데이터가 있는 경우)
             let prediction: PredictionResult | null = null;
             try {
-                prediction = await this.predictIncidentWithML(metrics);
+                const mlPrediction = await this.predictIncidentWithML(metrics);
+                prediction = mlPrediction.prediction;
             } catch (error) {
                 console.warn('예측 분석 건너뜀:', error);
             }

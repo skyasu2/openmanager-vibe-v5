@@ -1,7 +1,7 @@
-import { EngineResult } from './types';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
+import { EngineResult } from './types';
 
-const googleAI = new GoogleAIService();
+const googleAI = GoogleAIService.getInstance();
 
 export class FallbackManager {
   private enabled = process.env.EXTERNAL_AI_FALLBACK_ENABLED !== 'false';

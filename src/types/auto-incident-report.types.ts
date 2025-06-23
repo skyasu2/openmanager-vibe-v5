@@ -62,6 +62,12 @@ export interface IncidentReport {
     generatedAt: number;
     generatedBy: string;
     processingTime: number;
+
+    // 누락된 속성들 추가
+    type: IncidentType;
+    severity: SeverityLevel;
+    timestamp: number;
+    serverId: string;
 }
 
 /**
@@ -91,6 +97,7 @@ export interface RootCauseAnalysis {
     confidence: number;
     evidences: Evidence[];
     recommendedActions: string[];
+    description?: string; // 누락된 속성 추가
 }
 
 /**

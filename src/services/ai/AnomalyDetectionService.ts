@@ -1,6 +1,6 @@
-import { TimeSeriesMetrics, LogEntry } from '@/types/ai-agent-input-schema';
-import { GoogleAIService } from './GoogleAIService';
 import { createSafeError } from '@/lib/error-handler';
+import { LogEntry, TimeSeriesMetrics } from '@/types/ai-agent-input-schema';
+import { GoogleAIService } from './GoogleAIService';
 
 export interface Anomaly {
   timestamp: Date;
@@ -29,7 +29,7 @@ export class AnomalyDetectionService {
   private aiService: GoogleAIService;
 
   constructor() {
-    this.aiService = new GoogleAIService();
+    this.aiService = GoogleAIService.getInstance();
   }
 
   /**

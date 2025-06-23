@@ -95,7 +95,7 @@ describe('On-Demand Health Check', () => {
                     method: 'GET',
                 });
 
-                const res = await GET(req);
+                const res = await GET();
                 const data = await res.json();
 
                 expect(res.status).toBe(200);
@@ -111,7 +111,7 @@ describe('On-Demand Health Check', () => {
         it('사용자가 수동으로 헬스체크를 요청할 수 있어야 함', async () => {
             // 정상 상태 설정
             delete process.env.FORCE_SYSTEM_OFF;
-            process.env.NODE_ENV = 'development';
+            (process.env as Record<string, string | undefined>).NODE_ENV = 'development';
 
             const { GET } = await import('@/app/api/health/route');
 

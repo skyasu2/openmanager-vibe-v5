@@ -35,6 +35,8 @@ export interface LogEntry {
         mode?: string;
         responseTime?: number;
         success?: boolean;
+        action?: string;
+        securitySeverity?: string;
     };
     tags?: string[];
     error?: {

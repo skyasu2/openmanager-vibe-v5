@@ -1,17 +1,17 @@
-import {
-  GoogleAIService,
-  GoogleAIResponse,
-} from '@/services/ai/GoogleAIService';
-import { getAutoReportPrompt } from '@/modules/ai-agent/prompts/auto-report-prompt';
-import { AIAnalysisDataset } from '@/types/ai-agent-input-schema';
 import { createSafeError } from '@/lib/error-handler';
+import { getAutoReportPrompt } from '@/modules/ai-agent/prompts/auto-report-prompt';
+import {
+  GoogleAIResponse,
+  GoogleAIService,
+} from '@/services/ai/GoogleAIService';
+import { AIAnalysisDataset } from '@/types/ai-agent-input-schema';
 
 export class AutoReportService {
   private static instance: AutoReportService;
   private aiService: GoogleAIService;
 
   private constructor() {
-    this.aiService = new GoogleAIService();
+    this.aiService = GoogleAIService.getInstance();
   }
 
   public static getInstance(): AutoReportService {

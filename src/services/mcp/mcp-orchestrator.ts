@@ -7,19 +7,19 @@
  * ✅ 한국어 자연어 처리 지원
  */
 
-import { MCPStandardConfig } from './official-mcp-client';
-import {
-  BasicContextManager,
-  BasicContextCache,
-} from '../../context/basic-context-manager';
+// import { MCPStandardConfig } from './official-mcp-client'; // 타입 오류로 임시 비활성화
 import {
   AdvancedContextManager,
   DocumentEmbedding,
 } from '../../context/advanced-context-manager';
 import {
+  BasicContextCache,
+  BasicContextManager,
+} from '../../context/basic-context-manager';
+import {
   CustomContextManager,
-  OrganizationSettings,
   CustomRule,
+  OrganizationSettings,
 } from '../../context/custom-context-manager';
 
 export interface MCPQuery {
@@ -81,11 +81,11 @@ export interface ProcessingStep {
 
 export interface QueryIntent {
   category:
-    | 'status'
-    | 'troubleshooting'
-    | 'configuration'
-    | 'analysis'
-    | 'general';
+  | 'status'
+  | 'troubleshooting'
+  | 'configuration'
+  | 'analysis'
+  | 'general';
   keywords: string[];
   urgency: 'low' | 'medium' | 'high';
   requiresAction: boolean;

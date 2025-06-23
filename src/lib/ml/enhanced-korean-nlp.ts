@@ -141,7 +141,7 @@ export class EnhancedKoreanNLP {
       const keywordSimilarity =
         matchedKeywords.length > 0
           ? matchedKeywords.length /
-            Math.max(embedding1.keywords.length, embedding2.keywords.length)
+          Math.max(embedding1.keywords.length, embedding2.keywords.length)
           : 0;
 
       // 3. 의미적 매칭 (의도, 서버타입 등)
@@ -245,24 +245,24 @@ export class EnhancedKoreanNLP {
       text.match(
         /\b(?:CPU|API|DB|RAM|SSD|HTTP|JSON|서버|모니터링|네트워크|메모리|디스크)\b/gi
       ) || [];
-    techTerms.forEach(term => keywords.add(term.toLowerCase()));
+    (techTerms as string[]).forEach(term => keywords.add(term.toLowerCase()));
 
     // 3. 서버 관련 용어
     const serverTerms =
       text.match(
         /(?:웹서버|데이터베이스|API서버|캐시서버|로드밸런서|프록시)/gi
       ) || [];
-    serverTerms.forEach(term => keywords.add(term.toLowerCase()));
+    (serverTerms as string[]).forEach(term => keywords.add(term.toLowerCase()));
 
     // 4. 상태 관련 용어
     const statusTerms =
       text.match(/(?:정상|경고|위험|오류|장애|성능|응답시간|처리량)/gi) || [];
-    statusTerms.forEach(term => keywords.add(term.toLowerCase()));
+    (statusTerms as string[]).forEach(term => keywords.add(term.toLowerCase()));
 
     // 5. 동작 관련 용어
     const actionTerms =
       text.match(/(?:확인|체크|분석|모니터링|해결|복구|최적화)/gi) || [];
-    actionTerms.forEach(term => keywords.add(term.toLowerCase()));
+    (actionTerms as string[]).forEach(term => keywords.add(term.toLowerCase()));
 
     return Array.from(keywords).filter(k => k.length >= 2);
   }

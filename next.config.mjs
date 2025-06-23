@@ -83,6 +83,12 @@ const nextConfig = {
                 ...config.resolve.alias,
                 '@/services/mcp/real-mcp-client': false,
             };
+        } else {
+            // 서버 사이드에서도 Sharp 외부화
+            config.externals = [
+                ...(config.externals || []),
+                'sharp'
+            ];
         }
 
         // 스토리북 파일 빌드에서 제외
@@ -115,6 +121,13 @@ const nextConfig = {
         fetches: {
             fullUrl: false,
         },
+    },
+
+    experimental: {
+        serverActions: {
+            bodySizeLimit: '50mb',
+        },
+        serverComponentsExternalPackages: ['sharp'],
     },
 };
 

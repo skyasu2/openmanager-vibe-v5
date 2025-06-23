@@ -7,10 +7,10 @@
  * ✅ 관리자 승인 기반 제안 시스템
  */
 
-import { GoogleAIService } from '@/services/ai/GoogleAIService';
 import { InteractionLogger } from '@/services/ai-agent/logging/InteractionLogger';
-import { ContextUpdateEngine, ContextUpdate } from './ContextUpdateEngine';
+import { GoogleAIService } from '@/services/ai/GoogleAIService';
 import { UserInteractionLog } from '@/types/ai-learning';
+import { ContextUpdate, ContextUpdateEngine } from './ContextUpdateEngine';
 
 export interface GeminiLearningConfig {
   enabled: boolean;
@@ -63,7 +63,7 @@ export class GeminiLearningEngine {
       ...config,
     };
 
-    this.googleAI = new GoogleAIService();
+    this.googleAI = GoogleAIService.getInstance();
     this.interactionLogger = InteractionLogger.getInstance();
     this.contextEngine = ContextUpdateEngine.getInstance();
   }

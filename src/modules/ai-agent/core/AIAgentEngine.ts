@@ -8,19 +8,19 @@
  * 🚀 향후: 선택적 LLM API 연동으로 고급 추론 기능 확장 계획
  */
 
+import { ContextManager } from '@/core/ai/ContextManager';
 import { MCPProcessor } from '@/services/mcp';
+import { ActionExecutor } from '../processors/ActionExecutor';
 import { IntentClassifier } from '../processors/IntentClassifier';
 import { ResponseGenerator } from '../processors/ResponseGenerator';
-import { ContextManager } from '@/core/ai/ContextManager';
-import { ActionExecutor } from '../processors/ActionExecutor';
+import { AdminLogger } from './AdminLogger';
 import {
+  AIAgentMode,
   ModeManager,
   createDefaultModeConfig,
-  AIAgentMode,
 } from './ModeManager';
-import { ThinkingProcessor } from './ThinkingProcessor';
-import { AdminLogger } from './AdminLogger';
 import { thinkingLogger } from './ThinkingLogger';
+import { ThinkingProcessor } from './ThinkingProcessor';
 
 export interface AIAgentConfig {
   enableMCP: boolean;
@@ -225,10 +225,9 @@ export class AIAgentEngine {
           'MCP 서버 분석',
           'data_processing'
         );
-        mcpResponse = await this.mcpProcessor.processQuery(
-          request.query,
-          request.serverData
-        );
+        mcpResponse = await this.mcpProcessor.processQuery({
+          query: request.query
+        });
         thinkingLogger.logStep(
           thinkingSessionId,
           `MCP 서버 분석 완료:
@@ -425,7 +424,7 @@ export class AIAgentEngine {
         : 0;
     const memory =
       typeof process !== 'undefined' &&
-      typeof process.memoryUsage === 'function'
+        typeof process.memoryUsage === 'function'
         ? process.memoryUsage()
         : { rss: 0, heapTotal: 0, heapUsed: 0, external: 0, arrayBuffers: 0 };
 
