@@ -46,12 +46,6 @@ const preview: Preview = {
     },
     docs: {
       toc: true,
-      theme: {
-        base: 'light',
-        brandTitle: 'OpenManager Vibe v5 Storybook',
-        brandUrl: 'https://github.com/openmanager-vibe',
-        brandImage: '/logo.png',
-      },
     },
     viewport: {
       viewports: {

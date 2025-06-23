@@ -78,7 +78,7 @@ const Welcome: React.FC = () => {
             <div className='w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3'>
               📱
             </div>
-            <h3 className='font-semibent text-gray-800 mb-2'>Viewport</h3>
+            <h3 className='font-semibold text-gray-800 mb-2'>Viewport</h3>
             <p className='text-sm text-gray-600'>반응형 디자인 테스트</p>
           </div>
         </div>
