@@ -457,11 +457,15 @@ export class RealServerDataGenerator {
     // 명시적 환경변수/프로세스 인자 기반 컨텍스트 감지 (스택 분석 제거)
     this.isHealthCheckContext =
       process.env.IS_HEALTH_CHECK === 'true' ||
-      process.argv.some(arg => arg.includes('health-check-script'));
+      (process.argv &&
+        process.argv.some(arg => arg.includes('health-check-script')));
 
     this.isTestContext =
       process.env.NODE_ENV === 'test' ||
-      process.argv.some(arg => arg.includes('jest') || arg.includes('vitest'));
+      (process.argv &&
+        process.argv.some(
+          arg => arg.includes('jest') || arg.includes('vitest')
+        ));
 
     if (this.isHealthCheckContext || this.isTestContext) {
       console.log('🎭 목업 모드 활성화: 헬스체크/테스트 컨텍스트 감지');

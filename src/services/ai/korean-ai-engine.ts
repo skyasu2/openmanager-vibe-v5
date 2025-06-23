@@ -1,11 +1,5 @@
 // 자체 개발 한국어 처리 엔진 사용 (korean-js 대체)
-import * as natural from 'natural';
-import compromise from 'compromise';
-import {
-  type ServerInstance,
-  type ServerCluster,
-  type ApplicationMetrics,
-} from '@/types/data-generator';
+import { type ServerInstance } from '@/types/data-generator';
 
 // 한국어 서버 모니터링 특화 NLU 엔진
 export class KoreanServerNLU {
@@ -330,7 +324,7 @@ export class KoreanAIEngine {
         targetServerData = servers[0];
       }
 
-      if (targetServerData) {
+      if (targetServerData && targetServerData.metrics) {
         metrics = {
           CPU: targetServerData.metrics.cpu,
           메모리: targetServerData.metrics.memory,

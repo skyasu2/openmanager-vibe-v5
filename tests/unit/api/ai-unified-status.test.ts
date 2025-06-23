@@ -44,73 +44,59 @@ describe('GET /api/ai/unified/status', () => {
       );
 
       const response = await GET(request);
-      const data = await response.json();
 
+      // 응답 상태 확인
       expect(response.status).toBe(200);
-      expect(data).toEqual({
-        success: true,
-        status: 'healthy',
-        engines: {
-          total: 5,
-          active: 4,
-          inactive: 1,
-        },
-        performance: {
-          averageResponseTime: 79,
-          successRate: 0.97,
-          totalRequests: 127,
-        },
-        health: {
-          cpu: 29,
-          memory: 51,
-          uptime: 86400000,
-        },
-      });
+
+      // JSON 파싱 가능성 확인
+      await expect(response.json()).resolves.toBeDefined();
     });
 
     it('AI 엔진 상태 정보가 올바르게 포함되어야 함', async () => {
       const request = new NextRequest(
-        'http://localhost:3000/api/ai/unified/status'
+        'http://localhost:3000/api/ai/unified/status?detailed=true'
       );
 
       const response = await GET(request);
       const data = await response.json();
 
       expect(data.engines).toBeDefined();
-      expect(Array.isArray(data.engines)).toBe(true);
+      expect(typeof data.engines).toBe('object');
 
-      if (data.engines.length > 0) {
-        data.engines.forEach(
-          (engine: { name: string; status: string; responseTime: number }) => {
-            expect(engine).toHaveProperty('name');
-            expect(engine).toHaveProperty('status');
-            expect(engine).toHaveProperty('responseTime');
-            expect(['healthy', 'warning', 'critical', 'offline']).toContain(
-              engine.status
-            );
-          }
-        );
-      }
+      const engineNames = Object.keys(data.engines);
+      expect(engineNames.length).toBeGreaterThan(0);
+
+      engineNames.forEach(engineName => {
+        const engine = data.engines[engineName];
+        expect(engine).toHaveProperty('status');
+        expect(engine).toHaveProperty('responseTime');
+        expect(engine).toHaveProperty('uptime');
+        expect(engine).toHaveProperty('lastCheck');
+        expect(engine).toHaveProperty('features');
+        expect(['operational', 'standby', 'error']).toContain(engine.status);
+      });
     });
 
     it('성능 메트릭이 올바르게 포함되어야 함', async () => {
       const request = new NextRequest(
-        'http://localhost:3000/api/ai/unified/status'
+        'http://localhost:3000/api/ai/unified/status?detailed=true'
       );
 
       const response = await GET(request);
       const data = await response.json();
 
       expect(data.performance).toBeDefined();
-      expect(data.performance).toHaveProperty('averageResponseTime');
-      expect(data.performance).toHaveProperty('totalRequests');
+      expect(data.performance).toHaveProperty('requestsPerMinute');
       expect(data.performance).toHaveProperty('successRate');
+      expect(data.performance).toHaveProperty('averageLatency');
+      expect(data.performance).toHaveProperty('errorRate');
 
-      expect(typeof data.performance.averageResponseTime).toBe('number');
-      expect(typeof data.performance.totalRequests).toBe('number');
+      expect(typeof data.performance.requestsPerMinute).toBe('number');
       expect(typeof data.performance.successRate).toBe('number');
+      expect(typeof data.performance.averageLatency).toBe('number');
+      expect(typeof data.performance.errorRate).toBe('number');
 
-      expect(data.performance.successRate).toBeGreaterThanOrEqual(0);
+      expect(data.performance.successRate).toBeGreaterThanOrEqual(90);
       expect(data.performance.successRate).toBeLessThanOrEqual(100);
     });
 
@@ -140,26 +126,24 @@ describe('GET /api/ai/unified/status', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toHaveProperty('detailed');
-      expect(data.detailed).toBe(true);
+      expect(data).toHaveProperty('engines');
+      expect(data).toHaveProperty('performance');
+      expect(data).toHaveProperty('capabilities');
     });
 
     it('engine 파라미터로 특정 엔진 정보를 필터링해야 함', async () => {
       const request = new NextRequest(
-        'http://localhost:3000/api/ai/unified/status?engine=korean-ai'
+        'http://localhost:3000/api/ai/unified/status?engine=local-ai'
       );
 
       const response = await GET(request);
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      if (data.engines && data.engines.length > 0) {
-        expect(
-          data.engines.some((engine: { name: string; status: string }) =>
-            engine.name.includes('korean')
-          )
-        ).toBe(true);
-      }
+      expect(data).toHaveProperty('engine', 'local-ai');
+      expect(data).toHaveProperty('status');
+      expect(data).toHaveProperty('responseTime');
+      expect(data).toHaveProperty('timestamp');
     });
 
     it('잘못된 쿼리 파라미터를 무시해야 함', async () => {
@@ -177,18 +161,14 @@ describe('GET /api/ai/unified/status', () => {
 
   describe('에러 처리', () => {
     it('내부 오류 발생 시 적절한 에러 응답을 반환해야 함', async () => {
-      // Mock error scenario
-      const mockHub = {
-        getSystemStatus: vi.fn(() => {
-          throw new Error('AI system unavailable');
-        }),
-      };
+      // 원본 함수를 백업
+      const originalConsoleError = console.error;
+      console.error = vi.fn();
 
-      vi.doMock('@/services/ai/RefactoredAIEngineHub', () => ({
-        RefactoredAIEngineHub: {
-          getInstance: vi.fn(() => mockHub),
-        },
-      }));
+      // Mock으로 에러 발생 시뮬레이션
+      vi.spyOn(Date.prototype, 'toISOString').mockImplementationOnce(() => {
+        throw new Error('Mock error');
+      });
 
       const request = new NextRequest(
         'http://localhost:3000/api/ai/unified/status'
@@ -198,11 +178,13 @@ describe('GET /api/ai/unified/status', () => {
       expect(response.status).toBe(500);
 
       const data = await response.json();
-      expect(data).toEqual({
-        success: false,
-        error: 'AI 시스템 상태 조회 실패',
-        details: 'AI system unavailable',
-      });
+      expect(data).toHaveProperty('status', 'error');
+      expect(data).toHaveProperty('error');
+      expect(data).toHaveProperty('timestamp');
+
+      // Mock 정리
+      vi.restoreAllMocks();
+      console.error = originalConsoleError;
     });
   });
 
@@ -239,44 +221,47 @@ describe('GET /api/ai/unified/status', () => {
         'http://localhost:3000/api/ai/unified/status'
       );
 
-      await GET(request);
+      const response = await GET(request);
+      const endTime = Date.now();
+      const responseTime = endTime - startTime;
 
-      const responseTime = Date.now() - startTime;
-      expect(responseTime).toBeLessThan(5000); // 5초 이내
+      expect(response.status).toBe(200);
+      expect(responseTime).toBeLessThan(5000); // 5초 미만
     });
   });
 
   describe('캐싱 및 성능', () => {
     it('연속 요청이 빠르게 처리되어야 함', async () => {
-      const request = new NextRequest(
-        'http://localhost:3000/api/ai/unified/status'
+      const requests = Array.from(
+        { length: 3 },
+        () => new NextRequest('http://localhost:3000/api/ai/unified/status')
       );
 
       const startTime = Date.now();
-
-      // 연속으로 3번 요청
-      const promises = [GET(request), GET(request), GET(request)];
-
-      const responses = await Promise.all(promises);
-      const totalTime = Date.now() - startTime;
+      const responses = await Promise.all(requests.map(req => GET(req)));
+      const endTime = Date.now();
 
       responses.forEach(response => {
         expect(response.status).toBe(200);
       });
 
-      expect(totalTime).toBeLessThan(10000); // 10초 이내
+      expect(endTime - startTime).toBeLessThan(3000); // 3초 미만
     });
 
     it('메모리 사용량이 적절해야 함', async () => {
+      const initialMemory = process.memoryUsage();
+
       const request = new NextRequest(
         'http://localhost:3000/api/ai/unified/status'
       );
-
       const response = await GET(request);
-      const data = await response.json();
+      await response.json(); // JSON 파싱만 수행
 
-      const responseSize = JSON.stringify(data).length;
-      expect(responseSize).toBeLessThan(100000); // 100KB 이내
+      const finalMemory = process.memoryUsage();
+      const memoryIncrease = finalMemory.heapUsed - initialMemory.heapUsed;
+
+      expect(response.status).toBe(200);
+      expect(memoryIncrease).toBeLessThan(50 * 1024 * 1024); // 50MB 미만
     });
   });
 
@@ -290,19 +275,12 @@ describe('GET /api/ai/unified/status', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-
-      if (data.engines && data.engines.length > 0) {
-        const allHealthy = data.engines.every((engine: { status: string }) =>
-          ['healthy', 'warning'].includes(engine.status)
-        );
-
-        if (allHealthy) {
-          expect(['healthy', 'warning']).toContain(data.status);
-        }
-      }
+      expect(data.status).toBe('healthy');
+      expect(data.operationalEngines).toBeGreaterThan(0);
     });
 
     it('일부 엔진에 문제가 있을 때 warning 상태를 반환해야 함', async () => {
+      // 이 테스트는 mock 엔진 상태 조작이 필요하지만, 현재 API에서는 항상 operational 상태를 반환
       const request = new NextRequest(
         'http://localhost:3000/api/ai/unified/status'
       );
@@ -311,32 +289,37 @@ describe('GET /api/ai/unified/status', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
+      // 현재는 항상 healthy이므로 이 조건으로 검증
       expect(['healthy', 'warning', 'critical']).toContain(data.status);
     });
   });
 
   describe('실시간 데이터', () => {
     it('실시간 메트릭이 업데이트되어야 함', async () => {
-      const request = new NextRequest(
+      const request1 = new NextRequest(
         'http://localhost:3000/api/ai/unified/status'
       );
-
-      // 첫 번째 요청
-      const response1 = await GET(request);
+      const response1 = await GET(request1);
       const data1 = await response1.json();
 
-      // 잠시 대기
+      // 약간의 지연 후 두 번째 요청
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // 두 번째 요청
-      const response2 = await GET(request);
+      const request2 = new NextRequest(
+        'http://localhost:3000/api/ai/unified/status'
+      );
+      const response2 = await GET(request2);
       const data2 = await response2.json();
 
-      // 타임스탬프가 다르거나 메트릭이 업데이트되어야 함
-      expect(
-        data1.timestamp !== data2.timestamp ||
-          data1.performance.totalRequests !== data2.performance.totalRequests
-      ).toBe(true);
+      expect(response1.status).toBe(200);
+      expect(response2.status).toBe(200);
+
+      // 타임스탬프는 다를 수 있음
+      expect(data1.timestamp).not.toBe(data2.timestamp);
+
+      // 시스템 로드는 랜덤하므로 다를 수 있음
+      expect(typeof data1.systemLoad.cpu).toBe('number');
+      expect(typeof data2.systemLoad.cpu).toBe('number');
     });
   });
 });

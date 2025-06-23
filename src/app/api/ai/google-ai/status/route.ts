@@ -27,6 +27,31 @@ try {
   console.warn('google-ai-manager import 실패:', error.message);
 }
 
+// 🛡️ 안전한 폴백 함수들
+const safeGetGoogleAIKey = () => {
+  if (getGoogleAIKey && typeof getGoogleAIKey === 'function') {
+    try {
+      return getGoogleAIKey();
+    } catch (error) {
+      console.warn('getGoogleAIKey 실행 실패:', error.message);
+      return process.env.GOOGLE_AI_API_KEY || null;
+    }
+  }
+  return process.env.GOOGLE_AI_API_KEY || null;
+};
+
+const safeIsGoogleAIAvailable = () => {
+  if (isGoogleAIAvailable && typeof isGoogleAIAvailable === 'function') {
+    try {
+      return isGoogleAIAvailable();
+    } catch (error) {
+      console.warn('isGoogleAIAvailable 실행 실패:', error.message);
+      return !!process.env.GOOGLE_AI_API_KEY;
+    }
+  }
+  return !!process.env.GOOGLE_AI_API_KEY;
+};
+
 export async function GET() {
   const startTime = Date.now();
 
@@ -60,7 +85,7 @@ export async function GET() {
     }
 
     // 1. 환경변수 확인
-    const apiKey = getGoogleAIKey();
+    const apiKey = safeGetGoogleAIKey();
     const isEnabled = process.env.GOOGLE_AI_ENABLED === 'true';
     const quotaProtection = process.env.GOOGLE_AI_QUOTA_PROTECTION === 'true';
 
@@ -172,7 +197,7 @@ export async function GET() {
       // API 키 정보
       apiKey: {
         configured: !!apiKey,
-        source: apiKey ? getGoogleAIKey() : 'none',
+        source: apiKey ? safeGetGoogleAIKey() : 'none',
         length: apiKey ? apiKey.length : 0,
       },
 

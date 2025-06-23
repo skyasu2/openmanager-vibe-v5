@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { NextRequest } from 'next/server';
-import { GET as getGoogleAIStatus } from '@/app/api/ai/google-ai/status/route';
 import { POST as setGoogleAIConfig } from '@/app/api/ai/google-ai/config/route';
+import { GET as getGoogleAIStatus } from '@/app/api/ai/google-ai/status/route';
+import { NextRequest } from 'next/server';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
  * 🤖 Google AI Studio (Gemini) API 통합 테스트
@@ -16,21 +16,24 @@ describe('Google AI Integration', () => {
   });
 
   it('Google AI Status API 핸들러가 응답한다', async () => {
-    const res = await getGoogleAIStatus();
-    expect(res).toBeDefined();
-    expect(res.status).toBeDefined();
+    const response = await getGoogleAIStatus();
+    expect(response).toBeDefined();
+    expect(response.status).toBe(200);
 
-    const data = await res.json();
+    const data = await response.json();
     expect(data).toBeDefined();
-    expect(typeof data).toBe('object');
+    expect(data.success).toBeDefined();
 
-    // 성공 또는 실패 모두 정상적인 응답으로 간주
-    if (res.status === 200) {
-      expect(data.success).toBe(true);
-      expect(data.data).toBeDefined();
+    // 성공 또는 실패 응답 모두 허용
+    if (data.success) {
+      expect(data.enabled).toBeDefined();
+      expect(data.timestamp).toBeDefined();
+      expect(data.responseTime).toBeDefined();
     } else {
-      expect(data.success).toBe(false);
-      expect(data.message).toBeDefined();
+      // 실패 응답에서는 error 필드가 있을 수 있음
+      expect(
+        data.error || data.message || data.connectionTest?.message
+      ).toBeDefined();
     }
   });
 
@@ -65,9 +68,12 @@ describe('Google AI Integration', () => {
         expect(process.env.GOOGLE_AI_API_KEY?.length).toBeGreaterThan(15);
 
         // Config API 핸들러 직접 호출
-        const req = new NextRequest('http://localhost/api/ai/google-ai/config', {
-          method: 'GET',
-        });
+        const req = new NextRequest(
+          'http://localhost/api/ai/google-ai/config',
+          {
+            method: 'GET',
+          }
+        );
 
         try {
           const res = await setGoogleAIConfig(req);
@@ -89,7 +95,9 @@ describe('Google AI Integration', () => {
         }
       } else {
         // API 키가 없는 경우 건너뛰기
-        console.log('⚠️ GOOGLE_AI_API_KEY가 설정되지 않아 테스트를 건너뜁니다.');
+        console.log(
+          '⚠️ GOOGLE_AI_API_KEY가 설정되지 않아 테스트를 건너뜁니다.'
+        );
         expect(true).toBe(true); // 테스트 통과
       }
     });
@@ -116,3 +124,74 @@ describe('Google AI Integration', () => {
     expect(process.env.NODE_ENV).toBeDefined();
   });
 });
+
+// 🛡️ 완전한 Google AI 시스템 모킹
+vi.mock('@/services/ai/GoogleAIService', () => ({
+  GoogleAIService: vi.fn(() => ({
+    initialize: vi.fn(() => Promise.resolve(true)),
+    testConnection: vi.fn(() =>
+      Promise.resolve({
+        success: true,
+        message: '연결 테스트 성공 (목업)',
+        mockMode: true,
+      })
+    ),
+    getStatus: vi.fn(() => ({
+      enabled: true,
+      model: 'gemini-1.5-flash',
+      fallback: false,
+    })),
+  })),
+}));
+
+// Google AI Manager 완전 모킹
+vi.mock('@/lib/google-ai-manager', () => ({
+  getGoogleAIKey: vi.fn(() => process.env.GOOGLE_AI_API_KEY || 'test-api-key'),
+  isGoogleAIAvailable: vi.fn(() => true),
+  getGoogleAIStatus: vi.fn(() => ({
+    source: 'env',
+    isAvailable: true,
+    needsUnlock: false,
+  })),
+  googleAIManager: {
+    getAPIKey: vi.fn(() => process.env.GOOGLE_AI_API_KEY || 'test-api-key'),
+    isAPIKeyAvailable: vi.fn(() => true),
+    getKeyStatus: vi.fn(() => ({
+      source: 'env',
+      isAvailable: true,
+      needsUnlock: false,
+    })),
+  },
+}));
+
+// Google AI Quota Manager 모킹
+vi.mock('@/services/ai/engines/GoogleAIQuotaManager', () => ({
+  GoogleAIQuotaManager: vi.fn(() => ({
+    getQuotaStatus: vi.fn(() =>
+      Promise.resolve({
+        isBlocked: false,
+        lastHealthCheck: Date.now(),
+        dailyUsage: 0,
+        hourlyUsage: 0,
+      })
+    ),
+    canPerformHealthCheck: vi.fn(() =>
+      Promise.resolve({
+        allowed: true,
+        cached: false,
+      })
+    ),
+    shouldUseMockMode: vi.fn(() => true),
+    recordHealthCheckSuccess: vi.fn(() => Promise.resolve()),
+    recordAPIFailure: vi.fn(() => Promise.resolve()),
+  })),
+}));
+
+// Redis 모킹 (연결 차단 방지)
+vi.mock('@upstash/redis', () => ({
+  Redis: vi.fn(() => ({
+    get: vi.fn(() => Promise.resolve(null)),
+    set: vi.fn(() => Promise.resolve('OK')),
+    ping: vi.fn(() => Promise.resolve('PONG')),
+  })),
+}));

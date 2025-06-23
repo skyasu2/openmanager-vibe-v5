@@ -7,13 +7,13 @@
  * - NLPProcessor의 범용 기능 활용
  */
 
-import { koreanAIEngine } from './korean-ai-engine';
-import { NLPProcessor } from './engines/nlp/NLPProcessor';
-import { EnhancedDataAnalyzer } from './EnhancedDataAnalyzer';
 import type {
   NLAnalysisQuery,
   NLAnalysisResponse,
 } from '@/types/ai-agent-input-schema';
+import { NLPProcessor } from './engines/nlp/NLPProcessor';
+import { EnhancedDataAnalyzer } from './EnhancedDataAnalyzer';
+import { koreanAIEngine } from './korean-ai-engine';
 
 // 통합된 자연어 질의 인터페이스
 export interface UnifiedNLQuery {
@@ -215,6 +215,7 @@ export class NaturalLanguageUnifier {
     startTime: number,
     fallbackUsed: boolean
   ): UnifiedNLResponse {
+    const processingTime = Math.max(1, Date.now() - startTime); // 최소 1ms 보장
     return {
       success: result.success,
       answer: result.answer,
@@ -222,7 +223,7 @@ export class NaturalLanguageUnifier {
       confidence: result.confidence || 0.7,
       data: result.data,
       metadata: {
-        processingTime: Date.now() - startTime,
+        processingTime,
         fallbackUsed,
         originalEngine: engine,
       },
@@ -238,13 +239,14 @@ export class NaturalLanguageUnifier {
     error: any,
     startTime: number
   ): UnifiedNLResponse {
+    const processingTime = Math.max(1, Date.now() - startTime); // 최소 1ms 보장
     return {
       success: false,
       answer: `죄송합니다. "${query}" 질의 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.`,
       engine: 'error-fallback',
       confidence: 0,
       metadata: {
-        processingTime: Date.now() - startTime,
+        processingTime,
         fallbackUsed: true,
         originalEngine: 'none',
       },

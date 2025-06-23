@@ -76,6 +76,17 @@ export class RedisConnectionManager {
         return false;
       }
 
+      // 🛡️ 헬스체크 차단 방지 - 테스트/헬스체크 컨텍스트 체크
+      if (
+        process.env.TEST_CONTEXT === 'true' ||
+        process.env.HEALTH_CHECK_CONTEXT === 'true' ||
+        process.env.DISABLE_HEALTH_CHECK === 'true' ||
+        process.env.REDIS_CONNECTION_DISABLED === 'true'
+      ) {
+        console.log('🛡️ 차단 방지 모드 - RedisConnectionManager 연결 건너뜀');
+        return false;
+      }
+
       // 클라이언트 사이드에서는 Redis 사용 안 함
       if (typeof window !== 'undefined') {
         console.log('🌐 클라이언트 환경: Redis 연결 건너뛰기');

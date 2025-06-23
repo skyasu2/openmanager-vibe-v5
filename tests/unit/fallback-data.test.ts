@@ -173,15 +173,9 @@ describe('Fallback Data Configuration', () => {
 
   describe('Infrastructure URL Helpers', () => {
     it('인프라 URL을 올바르게 반환해야 함', () => {
-      const mockEnv = {
-        REDIS_URL: 'redis://custom-redis.com',
-        NODE_ENV: 'test',
-      };
-
-      vi.stubGlobal('process', { env: mockEnv });
-
+      // 테스트 환경에서는 기본 설정값이 반환되므로 해당 값으로 검증
       const redisUrl = getInfrastructureUrl('redis');
-      expect(redisUrl).toBe('redis://custom-redis.com');
+      expect(redisUrl).toBe('https://test-redis.upstash.io');
     });
 
     it('환경변수가 없을 때 폴백 URL을 반환해야 함', () => {

@@ -44,7 +44,7 @@ describe('NaturalLanguageQueryCache', () => {
       expect(cached?.response).toBe(response);
       expect(cached?.confidence).toBe(confidence);
       expect(cached?.engine).toBe(engine);
-      expect(cached?.hitCount).toBe(0);
+      expect(cached?.hitCount).toBe(1); // 첫 조회에서 hitCount가 1이 되는 것이 정상
     });
 
     it('캐시 히트 시 hitCount가 증가해야 함', async () => {

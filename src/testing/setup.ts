@@ -18,15 +18,93 @@ if (!process.cwd) {
   process.cwd = () => process.env.PWD || '/test';
 }
 
-// 🎨 Sharp 모듈 목업 (AI 모델 로드 문제 해결)
+// 🧠 process.memoryUsage 모킹 (모든 환경에서 호환성 보장)
+if (!process.memoryUsage) {
+  (process as any).memoryUsage = () => ({
+    rss: 32 * 1024 * 1024, // 32MB
+    heapTotal: 16 * 1024 * 1024, // 16MB
+    heapUsed: 12 * 1024 * 1024, // 12MB
+    external: 2 * 1024 * 1024, // 2MB
+    arrayBuffers: 1 * 1024 * 1024, // 1MB
+  });
+}
+
+// 🔧 Sharp 및 관련 바이너리 모듈 전역 모킹
+const mockSharp = {
+  resize: vi.fn(() => mockSharp),
+  webp: vi.fn(() => mockSharp),
+  png: vi.fn(() => mockSharp),
+  jpeg: vi.fn(() => mockSharp),
+  toBuffer: vi.fn(() => Promise.resolve(Buffer.from('mock-image'))),
+  toFile: vi.fn(() => Promise.resolve({ size: 1024 })),
+  metadata: vi.fn(() => Promise.resolve({ width: 100, height: 100 })),
+};
+
+// Sharp 메인 모듈 모킹
 vi.mock('sharp', () => ({
+  default: vi.fn(() => mockSharp),
+  __esModule: true,
+}));
+
+// Sharp 관련 네이티브 바이너리 모킹
+vi.mock('sharp/lib/sharp', () => mockSharp);
+vi.mock('sharp/lib/constructor', () => mockSharp);
+vi.mock('sharp/lib/index', () => mockSharp);
+
+// 🔧 AI 모델 관련 바이너리 모킹
+vi.mock('@xenova/transformers', () => ({
+  AutoTokenizer: {
+    from_pretrained: vi.fn(() =>
+      Promise.resolve({
+        encode: vi.fn(() => [1, 2, 3]),
+        decode: vi.fn(() => 'mocked response'),
+      })
+    ),
+  },
+  AutoModel: {
+    from_pretrained: vi.fn(() =>
+      Promise.resolve({
+        forward: vi.fn(() => ({ logits: [[0.1, 0.9]] })),
+      })
+    ),
+  },
+  pipeline: vi.fn(() => Promise.resolve(vi.fn(() => 'mocked result'))),
+}));
+
+// 🔧 Sonic Boom 모킹 (Pino 관련)
+vi.mock('sonic-boom', () => ({
   default: vi.fn(() => ({
-    resize: vi.fn().mockReturnThis(),
-    jpeg: vi.fn().mockReturnThis(),
-    png: vi.fn().mockReturnThis(),
-    toBuffer: vi.fn().mockResolvedValue(Buffer.from('mock-image')),
+    write: vi.fn(),
+    flush: vi.fn(),
+    end: vi.fn(),
+    destroy: vi.fn(),
   })),
 }));
+
+// 🔧 Redis 에러 모킹
+vi.mock('redis-errors', () => ({
+  default: class MockRedisError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = 'RedisError';
+    }
+  },
+  RedisError: class RedisError extends Error {},
+  ParserError: class ParserError extends Error {},
+  ReplyError: class ReplyError extends Error {},
+}));
+
+// 🛡️ 헬스체크 차단 방지 - 테스트 컨텍스트 명시적 설정
+process.env.HEALTH_CHECK_CONTEXT = 'false'; // 테스트에서는 헬스체크 비활성화
+process.env.TEST_CONTEXT = 'true'; // 테스트 컨텍스트 활성화
+process.env.DISABLE_HEALTH_CHECK = 'true'; // 헬스체크 완전 비활성화
+
+// 🔴 Redis 연결 차단 방지 - 완전 목업 모드
+process.env.REDIS_CONNECTION_DISABLED = 'true';
+process.env.UPSTASH_REDIS_DISABLED = 'true';
+
+// 🧪 테스트 전용 환경 설정
+process.env.STORYBOOK = 'false'; // Storybook이 아닌 순수 테스트 환경
 
 // 테스트 환경 변수 설정
 const testEnvVars = {

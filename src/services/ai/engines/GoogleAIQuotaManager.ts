@@ -58,6 +58,29 @@ export class GoogleAIQuotaManager {
     cached?: boolean;
   }> {
     try {
+      // 🚫 테스트 환경에서는 헬스체크 차단
+      if (
+        process.env.NODE_ENV === 'test' ||
+        process.env.TEST_CONTEXT === 'true' ||
+        process.env.FORCE_MOCK_GOOGLE_AI === 'true' ||
+        process.env.DISABLE_HEALTH_CHECK === 'true'
+      ) {
+        return {
+          allowed: false,
+          reason: '테스트 환경 - 헬스체크 차단 (할당량 보호)',
+          cached: true,
+        };
+      }
+
+      // 🛡️ 헬스체크 컨텍스트에서 추가 제한
+      if (process.env.HEALTH_CHECK_CONTEXT === 'true') {
+        return {
+          allowed: false,
+          reason: '헬스체크 컨텍스트 - API 호출 제한 (차단 방지)',
+          cached: true,
+        };
+      }
+
       const now = Date.now();
       const cacheKey = `${this.REDIS_PREFIX}health_check`;
       const lastCheck = await this.redis.get(cacheKey);

@@ -89,6 +89,26 @@ export function getDecryptedRedisConfig(): {
   token: string;
 } | null {
   try {
+    // 🚫 테스트 환경에서는 Redis 연결 차단
+    if (
+      process.env.NODE_ENV === 'test' ||
+      process.env.TEST_CONTEXT === 'true' ||
+      process.env.FORCE_MOCK_REDIS === 'true' ||
+      process.env.REDIS_CONNECTION_DISABLED === 'true'
+    ) {
+      console.log('🎭 테스트 환경 - Redis 복호화 건너뜀 (목업 모드)');
+      return null;
+    }
+
+    // 🛡️ 헬스체크 컨텍스트에서는 연결 제한
+    if (
+      process.env.HEALTH_CHECK_CONTEXT === 'true' ||
+      process.env.DISABLE_HEALTH_CHECK === 'true'
+    ) {
+      console.log('🏥 헬스체크 컨텍스트 - Redis 복호화 제한 (차단 방지)');
+      return null;
+    }
+
     // 이미 환경변수가 설정되어 있으면 그것을 사용
     if (
       process.env.UPSTASH_REDIS_REST_URL &&
