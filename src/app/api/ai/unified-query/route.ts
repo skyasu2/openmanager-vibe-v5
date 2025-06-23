@@ -2,7 +2,7 @@
  * 🤖 통합 AI 쿼리 API v4.0 (통합 AI 엔진 라우터 중심)
  *
  * 새로운 기능:
- * - 5가지 AI 모드 지원 (AUTO, LOCAL, GOOGLE_ONLY, MONITORING, SMART_FALLBACK)
+ * - 4가지 AI 모드 지원 (AUTO, LOCAL, GOOGLE_ONLY, MONITORING)
  * - 고급 엔진 통합 (SmartFallbackEngine, IntelligentMonitoringService)
  * - 복구된 NLP 기능들 활용
  */
@@ -47,12 +47,7 @@ export async function GET(request: NextRequest) {
       // 🚀 통합 AI 엔진 라우터로 처리
       const result = await aiRouter.processQuery({
         query,
-        mode: mode as
-          | 'AUTO'
-          | 'LOCAL'
-          | 'GOOGLE_ONLY'
-          | 'MONITORING'
-          | 'SMART_FALLBACK',
+        mode: mode as 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY' | 'MONITORING',
         category: searchParams.get('category') || undefined,
         context: {
           timestamp: new Date().toISOString(),
@@ -91,13 +86,7 @@ export async function GET(request: NextRequest) {
         success: false,
         error:
           '잘못된 요청입니다. action=status 또는 action=query&query=검색어&mode=모드를 사용하세요.',
-        availableModes: [
-          'AUTO',
-          'LOCAL',
-          'GOOGLE_ONLY',
-          'MONITORING',
-          'SMART_FALLBACK',
-        ],
+        availableModes: ['AUTO', 'LOCAL', 'GOOGLE_ONLY', 'MONITORING'],
       },
       { status: 400 }
     );
@@ -126,13 +115,7 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           error: 'query 필드가 필요합니다.',
-          availableModes: [
-            'AUTO',
-            'LOCAL',
-            'GOOGLE_ONLY',
-            'MONITORING',
-            'SMART_FALLBACK',
-          ],
+          availableModes: ['AUTO', 'LOCAL', 'GOOGLE_ONLY', 'MONITORING'],
         },
         { status: 400 }
       );
@@ -143,12 +126,7 @@ export async function POST(request: NextRequest) {
     // 🚀 통합 AI 엔진 라우터로 처리
     const result = await aiRouter.processQuery({
       query,
-      mode: mode as
-        | 'AUTO'
-        | 'LOCAL'
-        | 'GOOGLE_ONLY'
-        | 'MONITORING'
-        | 'SMART_FALLBACK',
+      mode: mode as 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY' | 'MONITORING',
       category: category || undefined,
       context: {
         timestamp: new Date().toISOString(),
@@ -161,14 +139,6 @@ export async function POST(request: NextRequest) {
             enableAnomalyDetection: true,
             enableRootCauseAnalysis: true,
             enablePredictiveMonitoring: true,
-          },
-        }),
-        // 🧠 스마트 폴백 모드 특화 컨텍스트
-        ...(mode === 'SMART_FALLBACK' && {
-          fallbackContext: {
-            enableMCP: true,
-            enableRAG: true,
-            enableGoogleAI: true,
           },
         }),
       },

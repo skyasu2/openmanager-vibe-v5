@@ -23,14 +23,8 @@ import { RealMCPClient } from '@/services/mcp/real-mcp-client';
 
 // 🚀 새로 추가: 삭제된/미사용 기능들 통합 (임시 비활성화)
 // import { IntelligentMonitoringService } from '@/services/ai/IntelligentMonitoringService';
-// import { SmartFallbackEngine } from '@/services/ai/SmartFallbackEngine';
 
-export type AIMode =
-  | 'AUTO'
-  | 'LOCAL'
-  | 'GOOGLE_ONLY'
-  | 'MONITORING'
-  | 'SMART_FALLBACK';
+export type AIMode = 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY' | 'MONITORING';
 
 export interface AIRequest {
   query: string;
@@ -68,7 +62,7 @@ export class UnifiedAIEngineRouter {
   private mcpClient: RealMCPClient;
 
   // 🚀 통합된 고급 엔진들 (임시 비활성화)
-  private smartFallback: any; // SmartFallbackEngine;
+
   private intelligentMonitoring: any; // IntelligentMonitoringService;
 
   // 하위 AI 도구들 (모든 모드에서 사용 가능)
@@ -87,7 +81,6 @@ export class UnifiedAIEngineRouter {
       LOCAL: 0,
       GOOGLE_ONLY: 0,
       MONITORING: 0,
-      SMART_FALLBACK: 0,
     },
     engineUsage: {
       supabaseRAG: 0,
@@ -97,7 +90,7 @@ export class UnifiedAIEngineRouter {
       transformers: 0,
       openSource: 0,
       custom: 0,
-      smartFallback: 0,
+
       intelligentMonitoring: 0,
     },
     averageResponseTime: 0,
@@ -109,7 +102,6 @@ export class UnifiedAIEngineRouter {
     this.mcpClient = new RealMCPClient();
 
     // 🚀 고급 엔진들 안전한 초기화 (초기화 과정에서 로드됨)
-    this.smartFallback = null;
     this.intelligentMonitoring = null;
 
     this.koreanEngine = new KoreanAIEngine();
@@ -200,9 +192,6 @@ export class UnifiedAIEngineRouter {
           break;
         case 'MONITORING':
           response = await this.processMonitoringMode(request, startTime);
-          break;
-        case 'SMART_FALLBACK':
-          response = await this.processSmartFallbackMode(request, startTime);
           break;
         default:
           throw new Error(`지원하지 않는 모드: ${mode}`);
@@ -677,65 +666,6 @@ export class UnifiedAIEngineRouter {
   }
 
   /**
-   * 🧠 SMART_FALLBACK 모드: 스마트 폴백 엔진 전용 처리
-   */
-  private async processSmartFallbackMode(
-    request: AIRequest,
-    startTime: number
-  ): Promise<AIResponse> {
-    console.log('🧠 SMART_FALLBACK 모드: 스마트 폴백 엔진 전용 처리');
-    const enginePath: string[] = [];
-    let fallbacksUsed = 0;
-
-    if (this.smartFallback) {
-      try {
-        console.log('🚀 스마트 폴백 엔진 실행');
-        const fallbackResult = await this.smartFallback.processQuery(
-          request.query,
-          request.context,
-          {
-            enableMCP: true,
-            enableRAG: true,
-            enableGoogleAI: true,
-          }
-        );
-
-        if (fallbackResult.success) {
-          enginePath.push('smart-fallback');
-          this.stats.engineUsage.smartFallback++;
-
-          return {
-            success: true,
-            response:
-              fallbackResult.response || '스마트 폴백 처리가 완료되었습니다.',
-            confidence: fallbackResult.confidence || 0.8,
-            mode: 'SMART_FALLBACK',
-            enginePath,
-            processingTime: Date.now() - startTime,
-            fallbacksUsed: fallbackResult.fallbackPath?.length || 0,
-            metadata: {
-              mainEngine: 'smart-fallback',
-              supportEngines: fallbackResult.fallbackPath || [],
-              ragUsed: fallbackResult.stage === 'rag',
-              googleAIUsed: fallbackResult.stage === 'google_ai',
-              mcpUsed: fallbackResult.stage === 'mcp',
-              subEnginesUsed: [],
-            },
-          };
-        }
-      } catch (error) {
-        console.warn('⚠️ 스마트 폴백 엔진 실패:', error);
-        fallbacksUsed++;
-      }
-    } else {
-      console.warn('⚠️ 스마트 폴백 엔진이 로드되지 않음');
-      fallbacksUsed++;
-    }
-
-    throw new Error('SMART_FALLBACK 모드 처리 실패');
-  }
-
-  /**
    * 🔧 MCP + 하위 AI 엔진 조합 처리
    */
   private async processMCPWithSubEngines(
@@ -940,18 +870,6 @@ export class UnifiedAIEngineRouter {
    * 🔧 고급 엔진들 동적 로딩
    */
   private async loadAdvancedEngines(): Promise<void> {
-    // SmartFallbackEngine 로딩 (싱글톤)
-    try {
-      const { SmartFallbackEngine } = await import(
-        '@/services/ai/SmartFallbackEngine'
-      );
-      this.smartFallback = SmartFallbackEngine.getInstance();
-      console.log('✅ SmartFallbackEngine 로드 성공');
-    } catch (error) {
-      console.warn('⚠️ SmartFallbackEngine 로드 실패:', error.message);
-      this.smartFallback = null;
-    }
-
     // IntelligentMonitoringService 로딩 (싱글톤)
     try {
       const { IntelligentMonitoringService } = await import(
@@ -1032,10 +950,7 @@ export class UnifiedAIEngineRouter {
         supabaseRAG: { ready: true, role: 'main' },
         googleAI: { ready: true, role: 'mode-dependent' },
         mcp: { ready: true, role: 'standard-server' },
-        smartFallback: {
-          ready: !!this.smartFallback,
-          role: 'advanced-fallback',
-        },
+
         intelligentMonitoring: {
           ready: !!this.intelligentMonitoring,
           role: 'monitoring-specialist',
@@ -1046,13 +961,7 @@ export class UnifiedAIEngineRouter {
         custom: { ready: true, role: 'sub-engine' },
       },
       stats: this.stats,
-      availableModes: [
-        'AUTO',
-        'LOCAL',
-        'GOOGLE_ONLY',
-        'MONITORING',
-        'SMART_FALLBACK',
-      ],
+      availableModes: ['AUTO', 'LOCAL', 'GOOGLE_ONLY', 'MONITORING'],
     };
   }
 }
