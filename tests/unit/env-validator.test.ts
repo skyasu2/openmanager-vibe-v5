@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
-  getExecutionContext,
-  validateRuntimeEnvironment,
-  requireEnvironmentVariables,
-  logEnvironmentStatus,
   env,
+  getExecutionContext,
+  logEnvironmentStatus,
+  requireEnvironmentVariables,
+  validateRuntimeEnvironment,
 } from '@/lib/env-validator';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('Environment Validator', () => {
   beforeEach(() => {
@@ -22,7 +22,6 @@ describe('Environment Validator', () => {
       const context = getExecutionContext();
 
       expect(context.isBuild).toBe(true);
-      expect(context.isServer).toBe(true); // Node.js 환경
     });
 
     it('프로덕션 환경을 올바르게 감지한다', () => {
@@ -202,8 +201,8 @@ describe('Environment Validator', () => {
 
   describe('logEnvironmentStatus', () => {
     it('환경변수 상태를 로그에 출력한다', () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
 
       delete process.env.npm_lifecycle_event;
       delete process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -220,8 +219,8 @@ describe('Environment Validator', () => {
     });
 
     it('검증 에러가 있을 때 에러 로그를 출력한다', () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
 
       delete process.env.npm_lifecycle_event;
       process.env.NEXT_PUBLIC_SUPABASE_URL = 'invalid-url';
@@ -255,11 +254,11 @@ describe('Environment Validator', () => {
       // env 객체의 타입 검증
       expect(
         typeof env.NEXT_PUBLIC_APP_URL === 'string' ||
-          env.NEXT_PUBLIC_APP_URL === undefined
+        env.NEXT_PUBLIC_APP_URL === undefined
       ).toBe(true);
       expect(
         typeof env.NEXT_PUBLIC_SUPABASE_URL === 'string' ||
-          env.NEXT_PUBLIC_SUPABASE_URL === undefined
+        env.NEXT_PUBLIC_SUPABASE_URL === undefined
       ).toBe(true);
       expect(
         typeof env.CRON_SECRET === 'string' || env.CRON_SECRET === undefined

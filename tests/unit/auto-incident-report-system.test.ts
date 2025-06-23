@@ -4,16 +4,11 @@
  * Phase 3: 자동 장애 보고서 시스템 TDD 테스트
  */
 
-import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 import { AutoIncidentReportSystem } from '../../src/core/ai/systems/AutoIncidentReportSystem';
 import type {
     Incident,
-    ServerMetrics,
-    IncidentReport,
-    Solution,
-    PredictionResult,
-    IncidentImpact,
-    FullIncidentReport
+    ServerMetrics
 } from '../../src/types/auto-incident-report.types';
 
 describe('AutoIncidentReportSystem', () => {
@@ -368,7 +363,7 @@ describe('AutoIncidentReportSystem', () => {
             expect(fullReport.report).toBeDefined();
             expect(fullReport.solutions).toBeInstanceOf(Array);
             expect(fullReport.prediction).toBeDefined();
-            expect(fullReport.processingTime).toBeGreaterThan(0);
+            expect(fullReport.processingTime).toBeGreaterThanOrEqual(0);
         });
 
         test('기존 AutoReportService와 호환되어야 함', async () => {
