@@ -107,7 +107,7 @@ const nextConfig = {
     },
 
     // 🔨 서버 외부 패키지 설정 (Next.js 15)
-    serverExternalPackages: [],
+    serverExternalPackages: ['sharp', '@xenova/transformers'],
 
     // 🚫 404 페이지 오류 방지
     generateBuildId: async () => {
@@ -127,8 +127,8 @@ const nextConfig = {
         serverActions: {
             bodySizeLimit: '50mb',
         },
-        serverComponentsExternalPackages: ['sharp'],
     },
+
 };
 
 export default nextConfig; 

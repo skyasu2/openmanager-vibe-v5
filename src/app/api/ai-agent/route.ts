@@ -74,6 +74,15 @@ interface SystemMetrics {
 
 export async function POST(request: NextRequest) {
   try {
+    // 빌드 환경에서는 빠른 응답 반환
+    if (process.env.NEXT_PHASE === 'phase-production-build') {
+      return NextResponse.json({
+        success: true,
+        response: 'Build mode - AI agent ready',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
     const body: AIAgentRequest = await request.json();
     const { message, query, context } = body;
 

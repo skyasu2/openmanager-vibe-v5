@@ -8,7 +8,7 @@
  * ✅ Apache 2.0 라이선스
  */
 
-import { pipeline } from '@xenova/transformers';
+// import { pipeline } from '@xenova/transformers'; // 빌드 오류 임시 비활성화
 
 interface TransformersConfig {
   models: {
@@ -88,6 +88,7 @@ export class TransformersEngine {
    */
   private async initializeClassification(): Promise<void> {
     try {
+      const { pipeline } = await import('@xenova/transformers');
       this.classificationPipeline = await pipeline(
         'text-classification',
         this.config.models.classification
@@ -103,6 +104,7 @@ export class TransformersEngine {
    */
   private async initializeEmbedding(): Promise<void> {
     try {
+      const { pipeline } = await import('@xenova/transformers');
       this.embeddingPipeline = await pipeline(
         'feature-extraction',
         this.config.models.embedding
@@ -238,7 +240,7 @@ export class TransformersEngine {
   private generateFallbackEmbedding(text: string): number[] {
     // 간단한 문자 기반 임베딩 (384차원, all-MiniLM-L6-v2와 호환)
     const embedding = new Array(384).fill(0);
-    
+
     for (let i = 0; i < text.length; i++) {
       const charCode = text.charCodeAt(i);
       const index = charCode % 384;
