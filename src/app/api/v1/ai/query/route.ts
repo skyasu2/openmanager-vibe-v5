@@ -1,23 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * 🚧 AI 쿼리 API (임시 비활성화)
- * 
- * 이 엔드포인트는 구버전 AI 엔진 제거로 인해 임시 비활성화되었습니다.
- * 향후 새로운 UnifiedAIEngineRouter 기반으로 재구현 예정입니다.
+ * 🔄 AI 쿼리 API v1 (리다이렉트)
+ *
+ * 이 엔드포인트는 /api/ai/smart-fallback으로 리다이렉트됩니다.
+ * 기존 호환성을 위해 유지되며, 새로운 요청은 smart-fallback을 사용하세요.
  */
 export async function POST(request: NextRequest) {
   try {
-    return NextResponse.json({
-      success: false,
-      message: 'AI 쿼리 기능은 현재 업데이트 중입니다. 곧 새로운 버전으로 제공될 예정입니다.',
-      status: 'maintenance',
-      timestamp: new Date().toISOString()
-    }, { status: 503 });
+    // 요청 본문 읽기
+    const body = await request.json();
+
+    // smart-fallback API로 프록시
+    const smartFallbackUrl = new URL('/api/ai/smart-fallback', request.url);
+
+    const response = await fetch(smartFallbackUrl.toString(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'AI-Query-Proxy/1.0',
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await response.json();
+
+    return NextResponse.json(
+      {
+        ...data,
+        _proxied: true,
+        _originalEndpoint: '/api/v1/ai/query',
+        _redirectedTo: '/api/ai/smart-fallback',
+      },
+      { status: response.status }
+    );
   } catch (error) {
-    return NextResponse.json({
-      success: false,
-      error: 'Service temporarily unavailable'
-    }, { status: 503 });
+    console.error('❌ AI 쿼리 프록시 오류:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Query proxy failed',
+        message: '직접 /api/ai/smart-fallback을 사용해주세요.',
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    );
   }
-} 
+}

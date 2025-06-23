@@ -1,23 +1,52 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * 🚧 AI 모니터링 API (임시 비활성화)
- * 
- * 이 엔드포인트는 구버전 AI 엔진 제거로 인해 임시 비활성화되었습니다.
- * 향후 새로운 UnifiedAIEngineRouter 기반으로 재구현 예정입니다.
+ * 🔄 AI 모니터링 API v1 (리다이렉트)
+ *
+ * 이 엔드포인트는 /api/ai/intelligent-monitoring으로 리다이렉트됩니다.
+ * 기존 호환성을 위해 유지되며, 새로운 요청은 intelligent-monitoring을 사용하세요.
  */
 export async function POST(request: NextRequest) {
   try {
-    return NextResponse.json({
-      success: false,
-      message: 'AI 모니터링 기능은 현재 업데이트 중입니다. 곧 새로운 버전으로 제공될 예정입니다.',
-      status: 'maintenance',
-      timestamp: new Date().toISOString()
-    }, { status: 503 });
+    // 요청 본문 읽기
+    const body = await request.json();
+
+    // intelligent-monitoring API로 프록시
+    const monitoringUrl = new URL(
+      '/api/ai/intelligent-monitoring',
+      request.url
+    );
+
+    const response = await fetch(monitoringUrl.toString(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'AI-Monitor-Proxy/1.0',
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await response.json();
+
+    return NextResponse.json(
+      {
+        ...data,
+        _proxied: true,
+        _originalEndpoint: '/api/v1/ai/monitor',
+        _redirectedTo: '/api/ai/intelligent-monitoring',
+      },
+      { status: response.status }
+    );
   } catch (error) {
-    return NextResponse.json({
-      success: false,
-      error: 'Service temporarily unavailable'
-    }, { status: 503 });
+    console.error('❌ AI 모니터링 프록시 오류:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Monitoring proxy failed',
+        message: '직접 /api/ai/intelligent-monitoring을 사용해주세요.',
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    );
   }
-} 
+}
