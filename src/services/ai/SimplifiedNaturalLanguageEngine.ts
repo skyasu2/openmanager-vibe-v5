@@ -11,7 +11,7 @@
  * 5. 서버 정보 및 AI 도구 필요시에만 사용
  */
 
-import { UnifiedAIEngine } from '@/core/ai/UnifiedAIEngine';
+import { UnifiedAIEngineRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
 import { LocalRAGEngine } from '@/lib/ml/rag-engine';
 import { AutoReportService } from '@/services/ai/AutoReportService';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
@@ -58,7 +58,7 @@ interface FastTrackResult {
 
 export class SimplifiedNaturalLanguageEngine {
   private static instance: SimplifiedNaturalLanguageEngine | null = null;
-  private unifiedAI: UnifiedAIEngine;
+  private unifiedAI: UnifiedAIEngineRouter;
   private ragEngine: LocalRAGEngine;
   private googleAI: GoogleAIService | null = null;
   private mcpWarmup: MCPWarmupService;
@@ -68,7 +68,7 @@ export class SimplifiedNaturalLanguageEngine {
   private currentMode: AIMode = 'auto';
 
   private constructor() {
-    this.unifiedAI = UnifiedAIEngine.getInstance();
+    this.unifiedAI = UnifiedAIEngineRouter.getInstance();
     this.ragEngine = new LocalRAGEngine();
     this.mcpWarmup = MCPWarmupService.getInstance();
     this.autoReportService = AutoReportService.getInstance();
@@ -527,7 +527,7 @@ export class SimplifiedNaturalLanguageEngine {
    */
   private async tryMCP(query: string) {
     if (!this.unifiedAI) {
-      this.unifiedAI = UnifiedAIEngine.getInstance();
+      this.unifiedAI = UnifiedAIEngineRouter.getInstance();
     }
 
     // 서버 모니터링 컨텍스트 분석
@@ -545,10 +545,10 @@ export class SimplifiedNaturalLanguageEngine {
       },
     });
 
-    if (result?.success && result?.analysis?.summary) {
+    if (result?.success && (result as any)?.analysis?.summary) {
       // 서버 모니터링 전문 응답으로 변환
       const enhancedResponse = await this.enhanceServerResponse(
-        result.analysis.summary,
+        (result as any).analysis.summary,
         serverContext
       );
 

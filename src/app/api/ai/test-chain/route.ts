@@ -1,72 +1,23 @@
-/**
- * 🧪 AI 엔진 체인 테스트 API
- * 
- * MCP → RAG → Google AI 폴백 체인 테스트용
- */
-
 import { NextRequest, NextResponse } from 'next/server';
-import { getAIEngineChain } from '@/core/ai/AIEngineChain';
-import { getUnifiedAISystem } from '@/core/ai/unified-ai-system';
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
+/**
+ * 🚧 AI 체인 테스트 API (임시 비활성화)
+ * 
+ * 이 엔드포인트는 구버전 AI 엔진 제거로 인해 임시 비활성화되었습니다.
+ * 향후 새로운 UnifiedAIEngineRouter 기반으로 재구현 예정입니다.
+ */
+export async function POST(request: NextRequest) {
     try {
-        const body = await request.json();
-        const { question, userId } = body;
-
-        if (!question) {
-            return NextResponse.json(
-                { error: '질문이 필요합니다' },
-                { status: 400 }
-            );
-        }
-
-        // AI 엔진 체인 직접 테스트
-        const aiChain = getAIEngineChain();
-
-        const result = await aiChain.processQuery({
-            id: `test_${Date.now()}`,
-            text: question,
-            userId: userId || 'test-user'
-        });
-
-        return NextResponse.json({
-            success: true,
-            result,
-            timestamp: Date.now()
-        });
-
-    } catch (error) {
-        console.error('AI 엔진 체인 테스트 오류:', error);
-
         return NextResponse.json({
             success: false,
-            error: error instanceof Error ? error.message : '알 수 없는 오류',
-            timestamp: Date.now()
-        }, { status: 500 });
-    }
-}
-
-export async function GET(): Promise<NextResponse> {
-    try {
-        // 시스템 상태 확인
-        const aiChain = getAIEngineChain();
-        const healthStatus = await aiChain.getSystemHealth();
-
-        const unifiedAI = getUnifiedAISystem();
-        const systemHealth = await unifiedAI.getSystemHealth();
-
-        return NextResponse.json({
-            aiChain: healthStatus,
-            unifiedSystem: systemHealth,
-            timestamp: Date.now()
-        });
-
+            message: 'AI 체인 테스트 기능은 현재 업데이트 중입니다. 곧 새로운 버전으로 제공될 예정입니다.',
+            status: 'maintenance',
+            timestamp: new Date().toISOString()
+        }, { status: 503 });
     } catch (error) {
-        console.error('시스템 상태 확인 오류:', error);
-
         return NextResponse.json({
-            error: error instanceof Error ? error.message : '상태 확인 실패',
-            timestamp: Date.now()
-        }, { status: 500 });
+            success: false,
+            error: 'Service temporarily unavailable'
+        }, { status: 503 });
     }
 } 

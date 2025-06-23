@@ -1,82 +1,30 @@
 /**
- * 🎯 전략적 AI 엔진 API 엔드포인트
- * 
- * 새로운 DataProcessingOrchestrator와 통합된 UnifiedAIEngine의
- * processStrategicQuery 메서드를 테스트하는 엔드포인트
+ * 🎯 전략적 AI 분석 엔드포인트
+ * 새로운 DataProcessingOrchestrator와 통합된 UnifiedAIEngineRouter의
+ * 고급 전략적 분석 기능을 제공합니다.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { unifiedAIEngine } from '@/core/ai/UnifiedAIEngine';
-import type { UnifiedAnalysisRequest } from '@/core/ai/UnifiedAIEngine';
 
+/**
+ * 🚧 전략적 AI 분석 API (임시 비활성화)
+ * 
+ * 이 엔드포인트는 구버전 AI 엔진 제거로 인해 임시 비활성화되었습니다.
+ * 향후 새로운 UnifiedAIEngineRouter 기반으로 재구현 예정입니다.
+ */
 export async function POST(request: NextRequest) {
     try {
-        console.log('🎯 전략적 AI 엔진 API 요청 수신');
-
-        const body = await request.json();
-        const { query, context, options } = body;
-
-        if (!query || typeof query !== 'string') {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'query 필드가 필요합니다'
-                },
-                { status: 400 }
-            );
-        }
-
-        // UnifiedAnalysisRequest 구성
-        const analysisRequest: UnifiedAnalysisRequest = {
-            query: query.trim(),
-            context: {
-                urgency: context?.urgency || 'medium',
-                sessionId: context?.sessionId,
-                ...context
-            },
-            options: {
-                use_cache: options?.useCache !== false,
-                enable_thinking_log: options?.enableThinking !== false,
-                maxResponseTime: options?.timeout || 30000,
-                confidenceThreshold: options?.confidenceThreshold || 0.7,
-                ...options
-            }
-        };
-
-        console.log(`🚀 전략적 쿼리 처리: "${query}"`);
-
-        // AI 엔진 초기화 확인
-        await unifiedAIEngine.initialize();
-
-        // 새로운 전략적 쿼리 처리
-        const result = await unifiedAIEngine.processStrategicQuery(analysisRequest);
-
-        console.log(`✅ 전략적 처리 완료: ${result.metadata.sessionId}`);
-
         return NextResponse.json({
-            success: true,
-            data: result,
-            metadata: {
-                apiVersion: '5.44.0-strategic',
-                processingMethod: 'DataProcessingOrchestrator',
-                timestamp: new Date().toISOString()
-            }
-        });
-
+            success: false,
+            message: '전략적 AI 분석 기능은 현재 업데이트 중입니다. 곧 새로운 버전으로 제공될 예정입니다.',
+            status: 'maintenance',
+            timestamp: new Date().toISOString()
+        }, { status: 503 });
     } catch (error) {
-        console.error('❌ 전략적 AI 엔진 API 오류:', error);
-
-        return NextResponse.json(
-            {
-                success: false,
-                error: {
-                    message: error instanceof Error ? error.message : '알 수 없는 오류',
-                    code: 'STRATEGIC_AI_ERROR',
-                    timestamp: new Date().toISOString()
-                }
-            },
-            { status: 500 }
-        );
+        return NextResponse.json({
+            success: false,
+            error: 'Service temporarily unavailable'
+        }, { status: 503 });
     }
 }
 

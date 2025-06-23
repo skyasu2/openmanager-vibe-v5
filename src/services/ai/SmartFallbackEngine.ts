@@ -18,12 +18,12 @@
  * - 각 단계별 성능 모니터링
  */
 
-import { UnifiedAIEngine } from '@/core/ai/UnifiedAIEngine';
-import { GoogleAIService } from './GoogleAIService';
+import { UnifiedAIEngineRouter } from '@/core/ai/engines/UnifiedAIEngineRouter';
 import { LocalRAGEngine } from '@/lib/ml/rag-engine';
-import { MCPAIRouter, MCPContext } from './MCPAIRouter';
 import { getRedisClient } from '@/lib/redis';
-import { aiLogger, LogLevel, LogCategory } from './logging/AILogger';
+import { GoogleAIService } from './GoogleAIService';
+import { aiLogger, LogCategory, LogLevel } from './logging/AILogger';
+import { MCPAIRouter, MCPContext } from './MCPAIRouter';
 
 interface FallbackAttempt {
   timestamp: Date;
@@ -57,7 +57,7 @@ interface SmartFallbackOptions {
 export class SmartFallbackEngine {
   private static instance: SmartFallbackEngine | null = null;
   private redis: any;
-  private unifiedAI: UnifiedAIEngine;
+  private unifiedAI: UnifiedAIEngineRouter;
   private googleAI: GoogleAIService;
   private ragEngine: LocalRAGEngine;
   private mcpRouter: MCPAIRouter;
@@ -73,7 +73,8 @@ export class SmartFallbackEngine {
   private initialized = false;
 
   private constructor() {
-    this.unifiedAI = UnifiedAIEngine.getInstance();
+    console.log('🔧 SmartFallbackEngine 초기화');
+    this.unifiedAI = UnifiedAIEngineRouter.getInstance();
     this.googleAI = new GoogleAIService();
     this.ragEngine = new LocalRAGEngine();
     this.mcpRouter = new MCPAIRouter();

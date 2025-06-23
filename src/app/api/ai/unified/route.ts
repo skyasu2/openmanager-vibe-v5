@@ -9,16 +9,10 @@
  * ⚡ Fluid Compute 최적화 (비용 85% 절감, Cold start 제거)
  */
 
-import {
-  aiLogger,
-  LogCategory,
-  LogLevel,
-} from '@/services/ai/logging/AILogger';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getUnifiedAISystem,
-  UnifiedQuery,
-  UnifiedResponse,
+  UnifiedQuery
 } from '../../../../core/ai/unified-ai-system';
 
 // Fluid Compute 최적화: 연결 재사용을 위한 전역 인스턴스
@@ -58,11 +52,11 @@ interface ThinkingLog {
   step: string;
   content: string;
   type:
-    | 'analysis'
-    | 'reasoning'
-    | 'data_processing'
-    | 'pattern_matching'
-    | 'response_generation';
+  | 'analysis'
+  | 'reasoning'
+  | 'data_processing'
+  | 'pattern_matching'
+  | 'response_generation';
   timestamp: string;
   duration?: number;
   progress?: number;
@@ -113,210 +107,24 @@ async function ensureSystemReady(): Promise<void> {
 }
 
 /**
- * 🧠 AI 질의 처리 - Fluid Compute 최적화
+ * 🚧 통합 AI API (임시 비활성화)
+ * 
+ * 이 엔드포인트는 구버전 AI 엔진 제거로 인해 임시 비활성화되었습니다.
+ * 향후 새로운 UnifiedAIEngineRouter 기반으로 재구현 예정입니다.
  */
-export async function POST(request: NextRequest): Promise<NextResponse> {
-  const startTime = Date.now();
-  let fluidMetrics: FluidComputeMetrics = {
-    coldStartEliminated: isSystemInitialized,
-    connectionReused: false,
-    resourceEfficiency: 0,
-    costSavings: 0,
-  };
-
+export async function POST(request: NextRequest) {
   try {
-    const body: QueryRequest | BatchQueryRequest = await request.json();
-
-    // 배치 처리 감지 (Fluid Compute 최적화)
-    if ('queries' in body) {
-      return await handleBatchQuery(body, fluidMetrics);
-    }
-
-    const queryBody = body as QueryRequest;
-
-    // 입력 검증
-    if (!queryBody.question || typeof queryBody.question !== 'string') {
-      return NextResponse.json(
-        {
-          error: '질문이 필요합니다',
-          code: 'INVALID_INPUT',
-          timestamp: Date.now(),
-        } as ErrorResponse,
-        { status: 400 }
-      );
-    }
-
-    if (queryBody.question.length > 2000) {
-      return NextResponse.json(
-        {
-          error: '질문이 너무 깁니다 (최대 2000자)',
-          code: 'INPUT_TOO_LONG',
-          timestamp: Date.now(),
-        } as ErrorResponse,
-        { status: 400 }
-      );
-    }
-
-    // ⚡ 고속 시스템 초기화 (Fluid Compute)
-    const initStartTime = Date.now();
-    try {
-      await ensureSystemReady();
-      fluidMetrics.connectionReused = isSystemInitialized;
-    } catch (error) {
-      console.error('❌ [API] 통합 AI 시스템 초기화 실패:', error);
-      return NextResponse.json(
-        {
-          error: 'AI 시스템 초기화 실패',
-          code: 'SYSTEM_INIT_FAILED',
-          details: error instanceof Error ? error.message : String(error),
-          timestamp: Date.now(),
-        } as ErrorResponse,
-        { status: 503 }
-      );
-    }
-    const initTime = Date.now() - initStartTime;
-
-    // 질의 객체 생성 수정
-    const queryRequest: UnifiedQuery = {
-      id: `query_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      query: queryBody.question.trim(),
-      text: queryBody.question.trim(),
-      userId: queryBody.userId,
-      organizationId: queryBody.organizationId,
-      sessionId: queryBody.sessionId || `session_${Date.now()}`,
-      context: queryBody.context || {},
-    };
-
-    console.log(
-      `🧠 [Fluid API] 새로운 질의: "${queryRequest.text.substring(0, 50)}..."`
-    );
-
-    // 🔍 고도화된 로깅: 질의 시작
-    // 🧠 Thinking logs 생성 (옵션이 활성화된 경우)
-    const thinkingLogs: ThinkingLog[] = [];
-    const includeThinking = queryBody.options?.includeThinkingLogs ?? false;
-
-    await aiLogger.logAI({
-      level: LogLevel.INFO,
-      category: LogCategory.AI_ENGINE,
-      engine: 'unified_ai',
-      message: `새로운 질의 처리 시작: ${queryRequest.text.substring(0, 100)}...`,
-      metadata: {
-        requestId: queryRequest.id,
-        userId: queryRequest.userId,
-        sessionId: queryRequest.sessionId,
-        query: queryRequest.text,
-        preferFastAPI: queryBody.options?.preferFastAPI,
-        includeThinking: includeThinking,
-      },
-      context: {
-        fluidCompute: fluidMetrics,
-        systemState: {
-          initialized: isSystemInitialized,
-          lastInitTime: new Date(lastInitTime).toISOString(),
-        },
-      },
-    });
-
-    if (includeThinking) {
-      thinkingLogs.push({
-        id: 'thinking_1',
-        step: '질의 분석',
-        content: `사용자 질문을 분석하고 있습니다: "${queryRequest.text.substring(0, 100)}..."`,
-        type: 'analysis',
-        timestamp: new Date().toISOString(),
-        progress: 20,
-      });
-    }
-
-    // AI 시스템 질의 처리
-    const queryStartTime = Date.now();
-    const response: UnifiedResponse =
-      await unifiedAISystem.processQuery(queryRequest);
-    const queryTime = Date.now() - queryStartTime;
-
-    // 🔍 AI 사고 과정 로깅 (Thinking Steps)
-    if (includeThinking && thinkingLogs.length > 0) {
-      await aiLogger.logThinking(
-        'unified_ai',
-        LogCategory.AI_ENGINE,
-        queryRequest.text,
-        thinkingLogs.map((log, index) => ({
-          step: index + 1,
-          type: log.type as any,
-          content: log.content,
-          duration: log.duration || queryTime / thinkingLogs.length,
-          confidence: 0.9 - index * 0.1,
-        })),
-        `통합 AI 시스템을 통한 질의 처리: ${response.answer ? '성공' : '실패'}`,
-        [
-          `질의 분석 완료: ${queryRequest.text.length}자`,
-          `응답 생성 시간: ${queryTime}ms`,
-          `시스템 상태: ${response.answer ? '정상' : '오류'}`,
-        ]
-      );
-    }
-
-    if (includeThinking) {
-      thinkingLogs.push({
-        id: 'thinking_2',
-        step: 'AI 엔진 처리',
-        content: 'AI 엔진에서 답변을 생성했습니다',
-        type: 'response_generation',
-        timestamp: new Date().toISOString(),
-        duration: queryTime,
-        progress: 100,
-      });
-    }
-
-    const totalTime = Date.now() - startTime;
-
-    // Fluid Compute 메트릭 계산
-    fluidMetrics.resourceEfficiency = Math.min(
-      100,
-      (1000 / Math.max(totalTime, 1)) * 100
-    );
-    fluidMetrics.costSavings = fluidMetrics.coldStartEliminated ? 85 : 50; // 예상 비용 절감
-
-    console.log(
-      `✅ [Fluid API] 질의 처리 완료: ${totalTime}ms (초기화: ${initTime}ms, 쿼리: ${queryTime}ms)`
-    );
-
     return NextResponse.json({
-      success: true,
-      answer: response.answer,
-      confidence: response.confidence || 0.85,
-      analysis: response.analysis,
-      recommendations: response.recommendations || [],
-      actions: response.actions || [],
-      thinking_logs: includeThinking ? thinkingLogs : undefined,
-      metadata: {
-        query_id: queryRequest.id,
-        session_id: queryRequest.sessionId,
-        processing_time: totalTime,
-        init_time: initTime,
-        query_time: queryTime,
-        timestamp: new Date().toISOString(),
-        fluid_compute: fluidMetrics,
-        engine: response.metadata.engine,
-        sources: response.sources,
-      },
-    });
+      success: false,
+      message: '통합 AI 기능은 현재 업데이트 중입니다. 곧 새로운 버전으로 제공될 예정입니다.',
+      status: 'maintenance',
+      timestamp: new Date().toISOString()
+    }, { status: 503 });
   } catch (error) {
-    console.error('❌ [Fluid API] 질의 처리 중 오류:', error);
-
-    const processingTime = Date.now() - startTime;
-
-    return NextResponse.json(
-      {
-        error: 'AI 질의 처리 실패',
-        code: 'AI_PROCESSING_FAILED',
-        details: error instanceof Error ? error.message : String(error),
-        timestamp: Date.now(),
-        fluid_compute: fluidMetrics,
-      } as ErrorResponse,
-      { status: 500 }
-    );
+    return NextResponse.json({
+      success: false,
+      error: 'Service temporarily unavailable'
+    }, { status: 503 });
   }
 }
 
