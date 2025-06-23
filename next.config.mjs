@@ -40,7 +40,7 @@ const nextConfig = {
     // 🎯 빌드 최적화 및 오류 방지
     output: 'standalone',
 
-    // 🖼️ 이미지 최적화 비활성화 (Sharp 의존성 제거)
+    // 🖼️ 이미지 최적화 비활성화
     images: {
         unoptimized: true,
         loader: 'custom',
@@ -60,17 +60,7 @@ const nextConfig = {
             os: false,
         };
 
-        // Sharp 모듈 완전 무시
-        config.resolve.alias = {
-            ...config.resolve.alias,
-            'sharp': false,
-        };
 
-        // 외부 패키지 설정 (Sharp 제외)
-        if (isServer) {
-            config.externals = config.externals || [];
-            config.externals.push('sharp');
-        }
 
         // 스토리북 파일 빌드에서 제외
         config.module.rules.push({
@@ -88,7 +78,7 @@ const nextConfig = {
     },
 
     // 🔨 서버 외부 패키지 설정 (Next.js 15)
-    serverExternalPackages: ['sharp'],
+    serverExternalPackages: [],
 
     // 🚫 404 페이지 오류 방지
     generateBuildId: async () => {

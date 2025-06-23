@@ -1,6 +1,6 @@
 /**
  * 🖼️ OpenManager Vibe v5 - 기본 이미지 로더
- * Sharp 모듈 없이 작동하는 안전한 이미지 로더
+ * 안전한 이미지 로더
  */
 
 export default function imageLoader({ src, width, quality }) {

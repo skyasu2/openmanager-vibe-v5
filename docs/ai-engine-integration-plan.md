@@ -236,7 +236,7 @@ const USE_UNIFIED_ROUTER = process.env.USE_UNIFIED_ROUTER === 'true';
 
 - 구버전 AI 엔진들 완전 제거
 - UnifiedAIEngineRouter 중심 아키텍처 확립
-- Sharp 모듈 및 환경변수 문제 해결
+- 환경변수 문제 해결
 - 안정적인 AI 시스템 구축
 
 ### 예상 소요 시간
@@ -312,24 +312,6 @@ src/services/ai/**/*.ts
 ```
 
 ## ⚡ Phase 3: 최적화 및 문제 해결
-
-### 3.1 Sharp 모듈 완전 제거
-
-```typescript
-// next.config.mjs 수정
-module.exports = {
-  webpack: config => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      sharp: false,
-    };
-    return config;
-  },
-  images: {
-    unoptimized: true, // Sharp 대신 기본 이미지 처리 사용
-  },
-};
-```
 
 ### 3.2 환경변수 시스템 개선
 
@@ -429,7 +411,6 @@ const { pipeline } = await import('@xenova/transformers');
 
 ### Phase 3 완료 기준
 
-- [ ] Sharp 모듈 에러 완전 해결
 - [ ] 환경변수 로딩 정상화
 - [ ] 개발 서버 안정적 실행
 - [ ] Git 커밋: "Optimize AI engine architecture"
@@ -466,7 +447,6 @@ const { pipeline } = await import('@xenova/transformers');
 
 ### Phase 3 실행
 
-- [ ] Sharp 모듈 제거
 - [ ] 환경변수 시스템 개선
 - [ ] ESM/CommonJS 통일
 - [ ] 최종 테스트

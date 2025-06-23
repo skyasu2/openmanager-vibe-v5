@@ -37,23 +37,6 @@ export class OptionalDependencyManager {
 
   private setupDefaultDependencies(): void {
     this.registerDependency({
-      name: 'sharp',
-      required: false,
-      fallback: null,
-      loader: async () => {
-        // 빌드 시점에서는 Sharp 모듈 로드 건너뛰기
-        if (process.env.NEXT_PHASE === 'phase-production-build') {
-          return null;
-        }
-        try {
-          return await import('sharp' as any);
-        } catch {
-          return null;
-        }
-      },
-    });
-
-    this.registerDependency({
       name: 'onnxruntime-node',
       required: false,
       fallback: () => ({

@@ -55,8 +55,7 @@ beforeAll(async () => {
       message.includes('ReactDOMTestUtils.act') ||
       message.includes('React.act') ||
       message.includes('act(...)') ||
-      message.includes('ONNX Runtime') ||
-      message.includes('Sharp')
+      message.includes('ONNX Runtime')
     ) {
       return;
     }

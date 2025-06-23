@@ -84,7 +84,6 @@ const nextConfig: NextConfig = {
 
   serverExternalPackages: [
     'ioredis',
-    'sharp',
     'redis',
     '@redis/client',
     'generic-pool',

@@ -194,10 +194,10 @@ export class IsolatedTestEnvironment {
   }
 
   private resetConsole(): void {
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-    vi.spyOn(console, 'info').mockImplementation(() => {});
-    vi.spyOn(console, 'debug').mockImplementation(() => {});
+    vi.spyOn(console, 'warn').mockImplementation(() => { });
+    vi.spyOn(console, 'error').mockImplementation(() => { });
+    vi.spyOn(console, 'info').mockImplementation(() => { });
+    vi.spyOn(console, 'debug').mockImplementation(() => { });
   }
 
   private restoreEnvironment(env: NodeJS.ProcessEnv): void {
@@ -268,7 +268,7 @@ export class IsolatedTestEnvironment {
     if (typeof window !== 'undefined') {
       const events = ['resize', 'scroll', 'click', 'keydown', 'keyup'];
       events.forEach(event => {
-        window.removeEventListener(event, () => {});
+        window.removeEventListener(event, () => { });
       });
     }
 
@@ -305,7 +305,7 @@ export const isolatedTestEnvironment = IsolatedTestEnvironment.getInstance({
   resetTimers: true,
   resetConsole: true,
   preserveEnv: ['NODE_ENV', 'VITEST', 'CI', 'GITHUB_ACTIONS'],
-  mockModules: ['sharp', 'onnxruntime-node', 'puppeteer'],
+  mockModules: ['onnxruntime-node', 'puppeteer'],
 });
 
 export function withIsolation<T>(

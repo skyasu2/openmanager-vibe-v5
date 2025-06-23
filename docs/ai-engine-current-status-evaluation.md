@@ -68,21 +68,12 @@
 ### Phase 3: 새 아키텍처 최적화
 
 - [ ] UnifiedAIEngineRouter 성능 최적화
-- [ ] Sharp 모듈 완전 제거
+
 - [ ] 환경변수 로딩 시스템 개선
 
 ## 🚨 현재 문제점
 
-### 1. **Sharp 모듈 충돌**
-
-```
-Cannot find module '../build/Release/sharp-win32-x64.node'
-```
-
-- 원인: 이미지 처리 모듈이 AI 엔진에 불필요하게 포함
-- 해결: Sharp 모듈 완전 제거 및 모킹
-
-### 2. **ESM/CommonJS 혼재**
+### 1. **ESM/CommonJS 혼재**
 
 ```
 Module not found: ESM packages (@xenova/transformers) need to be imported
@@ -91,7 +82,7 @@ Module not found: ESM packages (@xenova/transformers) need to be imported
 - 원인: require()와 import 혼재 사용
 - 해결: 모든 모듈을 import로 통일
 
-### 3. **환경변수 로딩 실패**
+### 2. **환경변수 로딩 실패**
 
 ```
 Google AI 서비스를 사용할 수 없습니다.
@@ -100,7 +91,7 @@ Google AI 서비스를 사용할 수 없습니다.
 - 원인: .env.local 파일 인식 문제
 - 해결: 환경변수 강제 로딩 시스템 구현
 
-### 4. **Redis 연결 오류**
+### 3. **Redis 연결 오류**
 
 ```
 MaxRetriesPerRequestError: Reached the max retries per request limit
@@ -119,7 +110,6 @@ MaxRetriesPerRequestError: Reached the max retries per request limit
 
 ### 안정성 향상
 
-- Sharp 모듈 충돌 완전 해결
 - 환경변수 로딩 안정화
 - 단일 AI 엔진 아키텍처로 복잡성 감소
 
