@@ -78,24 +78,24 @@ const nextConfig = {
             use: 'ignore-loader'
         });
 
+        // TypeScript 설정에서 스토리북 파일 제외
+        config.resolve.alias = {
+            ...config.resolve.alias,
+            '@storybook/react': false,
+        };
+
         return config;
     },
 
-    // 🔨 실험적 기능 최적화
-    experimental: {
-        // Redis 패키지 최적화 제거 (충돌 방지)
-        serverComponentsExternalPackages: ['sharp'],
-    },
+    // 🔨 서버 외부 패키지 설정 (Next.js 15)
+    serverExternalPackages: ['sharp'],
 
     // 🚫 404 페이지 오류 방지
     generateBuildId: async () => {
         return 'openmanager-vibe-v5-build'
     },
 
-    // 개발 서버 설정
-    devIndicators: {
-        buildActivity: false, // 빌드 인디케이터 비활성화
-    },
+    // 개발 서버 설정 (buildActivity는 Next.js 15에서 제거됨)
 
     // 로깅 설정
     logging: {

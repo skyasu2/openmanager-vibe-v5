@@ -101,7 +101,8 @@ export class IsolatedTestEnvironment {
   }
 
   private captureCurrentGlobals(): Record<string, any> {
-    const globalObject = typeof globalThis !== 'undefined' ? globalThis : global;
+    const globalObject =
+      typeof globalThis !== 'undefined' ? globalThis : global;
     return {
       fetch: globalObject.fetch,
       localStorage: globalObject.localStorage,
@@ -109,7 +110,7 @@ export class IsolatedTestEnvironment {
     };
   }
 
-  private resetTestEnvironment(): void {
+  public resetTestEnvironment(): void {
     if (this.isolationConfig.resetEnvironment) {
       this.resetEnvironmentVariables();
     }
@@ -156,7 +157,8 @@ export class IsolatedTestEnvironment {
   }
 
   private resetGlobalObjects(): void {
-    const globalObject = typeof globalThis !== 'undefined' ? globalThis : global;
+    const globalObject =
+      typeof globalThis !== 'undefined' ? globalThis : global;
 
     globalObject.fetch = vi.fn();
 
@@ -192,10 +194,10 @@ export class IsolatedTestEnvironment {
   }
 
   private resetConsole(): void {
-    vi.spyOn(console, 'warn').mockImplementation(() => { });
-    vi.spyOn(console, 'error').mockImplementation(() => { });
-    vi.spyOn(console, 'info').mockImplementation(() => { });
-    vi.spyOn(console, 'debug').mockImplementation(() => { });
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'info').mockImplementation(() => {});
+    vi.spyOn(console, 'debug').mockImplementation(() => {});
   }
 
   private restoreEnvironment(env: NodeJS.ProcessEnv): void {
@@ -208,7 +210,8 @@ export class IsolatedTestEnvironment {
   }
 
   private restoreGlobals(globals: Record<string, any>): void {
-    const globalObject = typeof globalThis !== 'undefined' ? globalThis : global;
+    const globalObject =
+      typeof globalThis !== 'undefined' ? globalThis : global;
 
     for (const [key, value] of Object.entries(globals)) {
       try {
@@ -223,7 +226,10 @@ export class IsolatedTestEnvironment {
         }
       } catch (error) {
         // 읽기 전용 속성인 경우 무시
-        console.warn(`⚠️ Cannot restore global property '${key}':`, error.message);
+        console.warn(
+          `⚠️ Cannot restore global property '${key}':`,
+          error.message
+        );
       }
     }
   }
@@ -262,7 +268,7 @@ export class IsolatedTestEnvironment {
     if (typeof window !== 'undefined') {
       const events = ['resize', 'scroll', 'click', 'keydown', 'keyup'];
       events.forEach(event => {
-        window.removeEventListener(event, () => { });
+        window.removeEventListener(event, () => {});
       });
     }
 

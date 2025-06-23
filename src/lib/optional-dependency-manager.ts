@@ -41,6 +41,10 @@ export class OptionalDependencyManager {
       required: false,
       fallback: null,
       loader: async () => {
+        // 빌드 시점에서는 Sharp 모듈 로드 건너뛰기
+        if (process.env.NEXT_PHASE === 'phase-production-build') {
+          return null;
+        }
         try {
           return await import('sharp' as any);
         } catch {
@@ -95,17 +99,18 @@ export class OptionalDependencyManager {
       status.available = true;
       this.loadedModules.set(name, loadedModule);
       return loadedModule;
-
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+      const errorMessage =
+        error instanceof Error ? error.message : '알 수 없는 오류';
       status.error = errorMessage;
       status.loaded = false;
       status.available = false;
 
       if (dependency.fallback) {
-        const fallbackModule = typeof dependency.fallback === 'function'
-          ? dependency.fallback()
-          : dependency.fallback;
+        const fallbackModule =
+          typeof dependency.fallback === 'function'
+            ? dependency.fallback()
+            : dependency.fallback;
         status.fallbackUsed = true;
         this.loadedModules.set(name, fallbackModule);
         return fallbackModule;
@@ -128,13 +133,17 @@ export class OptionalDependencyManager {
   }
 }
 
-export const optionalDependencyManager = OptionalDependencyManager.getInstance();
+export const optionalDependencyManager =
+  OptionalDependencyManager.getInstance();
 
 export async function loadOptionalDependency(name: string): Promise<any> {
   return optionalDependencyManager.loadDependency(name);
 }
 
-export async function safeImport(moduleName: string, fallback?: any): Promise<any> {
+export async function safeImport(
+  moduleName: string,
+  fallback?: any
+): Promise<any> {
   try {
     return await import(moduleName);
   } catch (error) {

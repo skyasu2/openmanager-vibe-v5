@@ -7,6 +7,11 @@
     "node": ">=20.0.0",
     "npm": ">=9.0.0"
   },
+  "pnpm": {
+    "overrides": {
+      "sharp": "0.32.6"
+    }
+  },
   "keywords": [
     "ai-agent",
     "server-monitoring",
