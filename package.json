@@ -56,7 +56,7 @@
     "storybook:build": "storybook build",
     "storybook:test": "test-storybook",
     "storybook:generate": "node scripts/storybook-docs-generator.js",
-    "storybook:clean": "rm -rf storybook-static",
+    "storybook:clean": "npx kill-port 6006 && npm run storybook",
     "storybook:serve": "npx serve storybook-static",
     "storybook:deploy": "npm run storybook:build && npm run storybook:serve",
     "storybook:a11y": "storybook dev -p 6006 --no-open",
@@ -214,7 +214,8 @@
     "dev:setup-keys": "npm run dev:keys:setup && npm run check-services",
     "docs:update": "node scripts/update-docs.mjs",
     "docs:setup-hooks": "node scripts/setup-git-hooks.mjs",
-    "docs:auto": "npm run docs:update && npm run docs:setup-hooks"
+    "docs:auto": "npm run docs:update && npm run docs:setup-hooks",
+    "storybook:validate": "node scripts/validate-stories.js && npm run storybook:build"
   },
   "dependencies": {
     "@faker-js/faker": "^9.8.0",

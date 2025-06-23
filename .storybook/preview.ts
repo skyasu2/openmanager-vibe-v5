@@ -1,4 +1,4 @@
-import type { Preview } from '@storybook/nextjs';
+import type { Preview } from '@storybook/react';
 import '../src/styles/globals.css';
 
 // 🎭 스토리북용 목업 환경 설정 (크론 제거 + 시스템 온오프 구조)
@@ -27,7 +27,7 @@ const mockEnvironment = () => {
         // 📱 앱 환경 설정
         NEXT_PUBLIC_APP_ENV: 'storybook',
         NEXT_PUBLIC_STORYBOOK_MODE: 'true',
-      }
+      },
     };
   }
 };
@@ -37,6 +37,7 @@ mockEnvironment();
 
 const preview: Preview = {
   parameters: {
+    actions: { argTypesRegex: '^on[A-Z].*' },
     controls: {
       matchers: {
         color: /(background|color)$/i,
@@ -45,33 +46,12 @@ const preview: Preview = {
     },
     docs: {
       toc: true,
-      source: {
-        state: 'open',
+      theme: {
+        base: 'light',
+        brandTitle: 'OpenManager Vibe v5 Storybook',
+        brandUrl: 'https://github.com/openmanager-vibe',
+        brandImage: '/logo.png',
       },
-      description: {
-        component: '크론 제거 + 시스템 온오프 구조에 최적화된 컴포넌트입니다.',
-      },
-    },
-    backgrounds: {
-      default: 'light',
-      values: [
-        {
-          name: 'light',
-          value: '#ffffff',
-        },
-        {
-          name: 'dark',
-          value: '#0a0a0a',
-        },
-        {
-          name: 'system-off',
-          value: '#f3f4f6',
-        },
-        {
-          name: 'maintenance',
-          value: '#fef3c7',
-        },
-      ],
     },
     viewport: {
       viewports: {
@@ -105,59 +85,40 @@ const preview: Preview = {
         },
       },
     },
-    a11y: {
-      config: {
-        rules: [
-          {
-            id: 'autocomplete-valid',
-            enabled: false,
-          },
-          {
-            id: 'button-name',
-            enabled: true,
-          },
-          {
-            id: 'color-contrast',
-            enabled: true,
-          },
+    backgrounds: {
+      default: 'light',
+      values: [
+        { name: 'light', value: '#ffffff' },
+        { name: 'dark', value: '#1a1a1a' },
+        { name: 'system-off', value: '#f3f4f6' },
+        { name: 'maintenance', value: '#fef3c7' },
+      ],
+    },
+  },
+
+  globalTypes: {
+    systemState: {
+      description: '시스템 상태 시뮬레이션',
+      defaultValue: 'active',
+      toolbar: {
+        title: 'System State',
+        icon: 'circlehollow',
+        items: [
+          { value: 'active', title: '🟢 시스템 활성' },
+          { value: 'inactive', title: '🔴 시스템 비활성' },
+          { value: 'maintenance', title: '🟡 유지보수 모드' },
         ],
       },
     },
-  },
-  globalTypes: {
     locale: {
-      description: 'Internationalization locale',
+      description: '언어 설정',
       defaultValue: 'ko',
       toolbar: {
+        title: 'Locale',
         icon: 'globe',
         items: [
           { value: 'ko', title: '한국어' },
           { value: 'en', title: 'English' },
-        ],
-      },
-    },
-    theme: {
-      description: 'Global theme for components',
-      defaultValue: 'light',
-      toolbar: {
-        title: 'Theme',
-        icon: 'paintbrush',
-        items: [
-          { value: 'light', title: 'Light' },
-          { value: 'dark', title: 'Dark' },
-        ],
-      },
-    },
-    systemState: {
-      description: '시스템 온오프 상태 (스토리북 전용)',
-      defaultValue: 'active',
-      toolbar: {
-        title: 'System State',
-        icon: 'power',
-        items: [
-          { value: 'active', title: '🟢 시스템 활성' },
-          { value: 'off', title: '🔴 시스템 비활성' },
-          { value: 'maintenance', title: '🟡 유지보수 모드' },
         ],
       },
     },
@@ -191,4 +152,3 @@ const preview: Preview = {
 };
 
 export default preview;
-

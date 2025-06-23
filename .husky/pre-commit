@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
 
 echo "🔍 Pre-commit 검증 시작..."
 
@@ -28,5 +29,12 @@ fi
 # Staged 파일 포맷팅
 echo "✨ 코드 포맷팅..."
 npx lint-staged
+
+# 스토리북 검증 추가
+echo "🔍 스토리북 파일 검증 중..."
+npm run storybook:validate --silent || {
+  echo "❌ 스토리북 파일에 문제가 있습니다. 수정 후 다시 커밋해주세요."
+  exit 1
+}
 
 echo "✅ Pre-commit 검증 완료!"

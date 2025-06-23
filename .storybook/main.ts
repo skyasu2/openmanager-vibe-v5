@@ -33,6 +33,17 @@ const config: StorybookConfig = {
 
   staticDirs: ['../public'],
 
+  env: config => ({
+    ...config,
+    // 스토리북 환경에서는 안전한 목업 모드 사용
+    DISABLE_CRON_JOBS: 'true',
+    FORCE_MOCK_REDIS: 'true',
+    FORCE_MOCK_GOOGLE_AI: 'true',
+    REDIS_CONNECTION_DISABLED: 'true',
+    DISABLE_HEALTH_CHECK: 'true',
+    HEALTH_CHECK_CONTEXT: 'false',
+  }),
+
   webpackFinal: async config => {
     if (config.resolve) {
       config.resolve.alias = {
