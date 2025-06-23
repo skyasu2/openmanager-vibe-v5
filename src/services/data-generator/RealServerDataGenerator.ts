@@ -13,6 +13,9 @@ import {
 // 🎭 AI 분석 가능한 장애 시나리오 매니저 import
 import { DemoScenarioManager } from '@/services/DemoScenarioManager';
 
+// 시스템 상태 확인 유틸리티 import
+import { validateSystemForOperation } from '@/utils/systemStateChecker';
+
 // Redis 타입 정의 (동적 import용)
 type RedisType = any;
 
@@ -357,10 +360,10 @@ export interface GeneratorConfig {
   updateInterval?: number;
   enableRealtime?: boolean;
   serverArchitecture?:
-    | 'single'
-    | 'primary-replica'
-    | 'load-balanced'
-    | 'microservices';
+  | 'single'
+  | 'primary-replica'
+  | 'load-balanced'
+  | 'microservices';
   enableRedis?: boolean;
   /**
    * ⚙️ 시나리오 기반 상태 분포 설정
@@ -1139,22 +1142,50 @@ export class RealServerDataGenerator {
 
     this.isGenerating = true;
 
-    // 즉시 한 번 실행
-    this.generateRealtimeData().catch(error => {
-      console.error('❌ 실시간 데이터 생성 오류:', error);
-    });
+    // 🛑 시스템 온오프 상태 확인 - "오프일 때는 무동작 원칙"
+    this.validateAndStartGeneration();
+  }
 
-    this.intervalId = setInterval(async () => {
-      try {
-        await this.generateRealtimeData();
-      } catch (error) {
-        console.error('❌ 실시간 데이터 생성 오류:', error);
+  private async validateAndStartGeneration(): Promise<void> {
+    try {
+      const systemValidation = await validateSystemForOperation('Server Data Generation');
+
+      if (!systemValidation.canProceed) {
+        console.log(`🛑 서버 데이터 생성 중단: ${systemValidation.reason}`);
+        this.isGenerating = false;
+        return;
       }
-    }, this.config.updateInterval);
 
-    console.log(
-      `🚀 실시간 데이터 생성 시작됨 (${this.config.updateInterval}ms 간격)`
-    );
+      console.log(`✅ 서버 데이터 생성 시작: ${systemValidation.reason}`);
+
+      // 즉시 한 번 실행
+      this.generateRealtimeData().catch(error => {
+        console.error('❌ 실시간 데이터 생성 오류:', error);
+      });
+
+      this.intervalId = setInterval(async () => {
+        try {
+          // 매번 시스템 상태 확인
+          const validation = await validateSystemForOperation('Server Data Generation');
+          if (!validation.canProceed) {
+            console.log(`🛑 서버 데이터 생성 중단됨: ${validation.reason}`);
+            this.stopAutoGeneration();
+            return;
+          }
+
+          await this.generateRealtimeData();
+        } catch (error) {
+          console.error('❌ 실시간 데이터 생성 오류:', error);
+        }
+      }, this.config.updateInterval);
+
+      console.log(
+        `🚀 실시간 데이터 생성 시작됨 (${this.config.updateInterval}ms 간격)`
+      );
+    } catch (error) {
+      console.error('❌ 서버 데이터 생성 시작 실패:', error);
+      this.isGenerating = false;
+    }
   }
 
   public stopAutoGeneration(): void {
@@ -1233,7 +1264,7 @@ export class RealServerDataGenerator {
             Math.min(
               100,
               rawMetrics.memory +
-                (Math.random() - 0.5) * 15 * effectiveIntensity
+              (Math.random() - 0.5) * 15 * effectiveIntensity
             )
           ).toFixed(2)
         ),
@@ -1250,12 +1281,12 @@ export class RealServerDataGenerator {
           in: Math.max(
             0,
             rawMetrics.network.in +
-              (Math.random() - 0.5) * 50 * effectiveIntensity
+            (Math.random() - 0.5) * 50 * effectiveIntensity
           ),
           out: Math.max(
             0,
             rawMetrics.network.out +
-              (Math.random() - 0.5) * 30 * effectiveIntensity
+            (Math.random() - 0.5) * 30 * effectiveIntensity
           ),
         },
       };
@@ -1437,12 +1468,12 @@ export class RealServerDataGenerator {
         avgCpu:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.cpu, 0) /
-              servers.length
+            servers.length
             : 0,
         avgMemory:
           servers.length > 0
             ? servers.reduce((sum, s) => sum + s.metrics.memory, 0) /
-              servers.length
+            servers.length
             : 0,
       },
       clusters: {
@@ -1477,9 +1508,9 @@ export class RealServerDataGenerator {
         avgResponseTime:
           applications.length > 0
             ? applications.reduce(
-                (sum, a) => sum + a.performance.responseTime,
-                0
-              ) / applications.length
+              (sum, a) => sum + a.performance.responseTime,
+              0
+            ) / applications.length
             : 0,
       },
       timestamp: Date.now(),

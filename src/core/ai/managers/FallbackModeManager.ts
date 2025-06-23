@@ -1,101 +1,57 @@
 /**
- * 🔄 Fallback Mode Manager v1.0
+ * 🔄 폴백 모드 매니저 v3.1 (MCP 컨텍스트 도우미 적용)
  * 
- * AI 엔진의 자연어 질의 기능을 3가지 모드별로 다른 폴백 전략 관리
- * 
- * 🎯 3가지 폴백 모드:
- * - AUTO: 룰기반 → RAG → MCP → Google AI (기본)
- * - GOOGLE_ONLY: Google AI 우선 → 나머지 AI 도구들 (룰기반/RAG/MCP 제외)
- * - LOCAL: 룰기반 → RAG → MCP (Google AI 제외)
- * 
- * Features:
- * - 모드별 다른 폴백 전략
- * - 실시간 모드 전환
- * - 모드별 성능 통계
- * - 품질 기반 자동 폴백
+ * ✅ Supabase RAG + MCP 컨텍스트 조합
+ * ✅ 3단계 폴백: RAG+MCP → Google AI → 기본 응답
+ * ✅ 성능 최적화
  */
 
+import { SupabaseRAGEngine, getSupabaseRAGEngine } from '@/lib/ml/supabase-rag-engine';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
-import { RuleBasedMainEngine } from '../engines/RuleBasedMainEngine';
-import { LocalRAGEngine } from '@/lib/ml/rag-engine';
 import { RealMCPClient } from '@/services/mcp/real-mcp-client';
-import { OpenSourceEngines } from '@/services/ai/engines/OpenSourceEngines';
-import { CustomEngines } from '@/services/ai/engines/CustomEngines';
-import { AILogger, LogLevel, LogCategory } from '@/services/ai/logging/AILogger';
 
-// AILogger 인스턴스 생성
-const aiLogger = AILogger.getInstance();
+type FallbackMode = 'primary' | 'secondary' | 'emergency' | 'offline';
 
-// =============================================================================
-// 🎯 타입 정의
-// =============================================================================
-
-export type AIFallbackMode = 'AUTO' | 'GOOGLE_ONLY' | 'LOCAL';
-
-export interface FallbackRequest {
-    query: string;
-    mode: AIFallbackMode;
-    intent: any;
-    context: any;
-    options?: any;
+interface FallbackConfig {
+    timeoutMs: number;
+    retryAttempts: number;
+    enableLogging: boolean;
+    fallbackChain: string[];
 }
 
-export interface FallbackResponse {
+interface FallbackResult {
     success: boolean;
-    content: string;
+    mode: FallbackMode;
+    engine: string;
+    response: string;
     confidence: number;
-    sources: string[];
-    metadata: {
-        mode: AIFallbackMode;
-        tier: string;
-        fallbacksUsed: number;
-        responseTime: number;
-        qualityScore?: number;
-    };
-    fallbackChain?: string[];
+    fallbacksUsed: string[];
+    totalTime: number;
+    mcpContextUsed: boolean; // 🎯 변경: MCP 컨텍스트 사용 여부
+    error?: string;
 }
 
-export interface ModeStats {
-    totalQueries: number;
-    successRate: number;
-    averageResponseTime: number;
-    averageConfidence: number;
-    fallbacksUsed: number;
-    lastUsed: Date | null;
-    qualityTrend: number[]; // 최근 10개 응답의 품질 점수
-}
-
-// =============================================================================
-// 🔄 Fallback Mode Manager
-// =============================================================================
-
+/**
+ * 🎯 다중 엔진 폴백 시스템 (MCP 컨텍스트 도우미 포함)
+ */
 export class FallbackModeManager {
     private static instance: FallbackModeManager | null = null;
 
-    // AI 엔진들
-    private ruleBasedEngine: RuleBasedMainEngine;
-    private ragEngine: LocalRAGEngine;
-    private mcpClient: RealMCPClient | null = null;
-    private googleAI?: GoogleAIService;
-    private openSourceEngines?: OpenSourceEngines;
-    private customEngines?: CustomEngines;
+    private supabaseRAG: SupabaseRAGEngine;
+    private googleAI: GoogleAIService;
+    private mcpClient: RealMCPClient; // 🎯 컨텍스트 수집 전용
 
-    // 모드 관리
-    private currentMode: AIFallbackMode = 'AUTO';
-    private modeStats: Map<AIFallbackMode, ModeStats> = new Map();
-
-    // 품질 관리
-    private qualityThresholds = {
-        excellent: 0.9,
-        good: 0.7,
-        acceptable: 0.5,
-        poor: 0.3
+    private config: FallbackConfig = {
+        timeoutMs: 30000,
+        retryAttempts: 3,
+        enableLogging: true,
+        fallbackChain: ['rag-with-mcp-context', 'google-ai', 'emergency']
     };
 
     private constructor() {
-        this.ruleBasedEngine = new RuleBasedMainEngine();
-        this.ragEngine = new LocalRAGEngine();
-        this.initializeModeStats();
+        this.supabaseRAG = getSupabaseRAGEngine();
+        this.googleAI = GoogleAIService.getInstance();
+        this.mcpClient = RealMCPClient.getInstance(); // 🎯 컨텍스트 수집 전용
     }
 
     public static getInstance(): FallbackModeManager {
@@ -105,543 +61,234 @@ export class FallbackModeManager {
         return FallbackModeManager.instance;
     }
 
-    // =============================================================================
-    // 🎯 모드 관리
-    // =============================================================================
-
-    public setMode(mode: AIFallbackMode): void {
-        this.currentMode = mode;
-        aiLogger.info(LogCategory.SYSTEM, `폴백 모드 변경: ${mode}`);
-    }
-
-    public getCurrentMode(): AIFallbackMode {
-        return this.currentMode;
-    }
-
-    public getModeStats(): Map<AIFallbackMode, ModeStats> {
-        return this.modeStats;
-    }
-
-    // =============================================================================
-    // 🔄 모드별 폴백 처리
-    // =============================================================================
-
-    public async processWithFallback(request: FallbackRequest): Promise<FallbackResponse> {
+    /**
+     * 🔄 폴백 체인 실행 (MCP 컨텍스트 도우미 포함)
+     */
+    public async executeWithFallback(
+        query: string,
+        category?: string,
+        context?: any
+    ): Promise<FallbackResult> {
         const startTime = Date.now();
-        const mode = request.mode || this.currentMode;
+        const fallbacksUsed: string[] = [];
+        let mcpContextUsed = false;
 
+        // 0단계: MCP 컨텍스트 수집 (백그라운드)
+        let mcpContext: any = null;
         try {
-            let response: FallbackResponse;
-
-            switch (mode) {
-                case 'AUTO':
-                    response = await this.processAutoMode(request);
-                    break;
-                case 'GOOGLE_ONLY':
-                    response = await this.processGoogleOnlyMode(request);
-                    break;
-                case 'LOCAL':
-                    response = await this.processLocalMode(request);
-                    break;
-                default:
-                    throw new Error(`지원하지 않는 모드: ${mode}`);
+            console.log('🔍 백그라운드: MCP 컨텍스트 수집');
+            mcpContext = await this.collectMCPContext(query, context);
+            if (mcpContext) {
+                mcpContextUsed = true;
+                console.log('✅ MCP 컨텍스트 수집 성공');
             }
-
-            // 통계 업데이트
-            this.updateModeStats(mode, response, Date.now() - startTime);
-
-            return response;
-
-        } catch (error: any) {
-            aiLogger.logError('fallback_manager', LogCategory.AI_ENGINE,
-                `${mode} 모드 처리 실패: ${error.message}`);
-
-            // 실패 통계 업데이트
-            this.updateModeStats(mode, null, Date.now() - startTime);
-
-            return this.createErrorResponse(request, error, mode);
+        } catch (error) {
+            console.warn('⚠️ MCP 컨텍스트 수집 실패 (계속 진행):', error);
         }
-    }
 
-    // =============================================================================
-    // 🎯 AUTO 모드: 룰기반 → RAG → MCP → Google AI
-    // =============================================================================
-
-    private async processAutoMode(request: FallbackRequest): Promise<FallbackResponse> {
-        const fallbackChain: string[] = [];
-        let lastError: Error | null = null;
-
-        // 1단계: 룰기반 엔진 (70% 우선순위)
+        // 1단계: Supabase RAG + MCP 컨텍스트 조합 (Primary)
         try {
-            const result = await this.tryRuleBasedEngine(request);
-            if (this.isQualityAcceptable(result.confidence)) {
+            console.log('🥇 1단계: Supabase RAG + MCP 컨텍스트 조합');
+            const result = await this.tryRAGWithMCPContext(query, mcpContext, category);
+
+            if (result.success) {
                 return {
-                    ...result,
-                    metadata: {
-                        ...result.metadata,
-                        mode: 'AUTO',
-                        tier: 'rule_based',
-                        fallbacksUsed: 0
-                    },
-                    fallbackChain: ['rule_based']
+                    success: result.success,
+                    mode: 'primary',
+                    engine: result.engine || 'rag-with-mcp-context',
+                    response: result.response || '',
+                    confidence: result.confidence || 0.8,
+                    fallbacksUsed,
+                    totalTime: Date.now() - startTime,
+                    mcpContextUsed
                 };
             }
-            fallbackChain.push('rule_based_low_quality');
+
+            fallbacksUsed.push('rag-with-mcp-context-failed');
         } catch (error) {
-            lastError = error as Error;
-            fallbackChain.push('rule_based_failed');
-            aiLogger.warn(LogCategory.AI_ENGINE, `룰기반 엔진 실패: ${error.message}`);
+            console.warn('⚠️ RAG + MCP 컨텍스트 실패:', error);
+            fallbacksUsed.push('rag-with-mcp-context-error');
         }
 
-        // 2단계: RAG 엔진 (20% 우선순위)
+        // 2단계: Google AI 폴백 (Secondary)
         try {
-            const result = await this.tryRAGEngine(request);
-            if (this.isQualityAcceptable(result.confidence)) {
+            console.log('🥈 2단계: Google AI 폴백');
+            const result = await this.tryGoogleAI(query, mcpContext);
+
+            if (result.success) {
                 return {
-                    ...result,
-                    metadata: {
-                        ...result.metadata,
-                        mode: 'AUTO',
-                        tier: 'rag',
-                        fallbacksUsed: 1
-                    },
-                    fallbackChain
+                    success: result.success,
+                    mode: 'secondary',
+                    engine: result.engine || 'google-ai-with-mcp-context',
+                    response: result.response || '',
+                    confidence: result.confidence || 0.7,
+                    fallbacksUsed,
+                    totalTime: Date.now() - startTime,
+                    mcpContextUsed
                 };
             }
-            fallbackChain.push('rag_low_quality');
+
+            fallbacksUsed.push('google-ai-failed');
         } catch (error) {
-            lastError = error as Error;
-            fallbackChain.push('rag_failed');
-            aiLogger.warn(LogCategory.AI_ENGINE, `RAG 엔진 실패: ${error.message}`);
+            console.warn('⚠️ Google AI 폴백 실패:', error);
+            fallbacksUsed.push('google-ai-error');
         }
 
-        // 3단계: MCP 엔진 (8% 우선순위)
+        // 3단계: 긴급 응답 (Emergency)
         try {
-            const result = await this.tryMCPEngine(request);
-            if (this.isQualityAcceptable(result.confidence)) {
-                return {
-                    ...result,
-                    metadata: {
-                        ...result.metadata,
-                        mode: 'AUTO',
-                        tier: 'mcp',
-                        fallbacksUsed: 2
-                    },
-                    fallbackChain
-                };
-            }
-            fallbackChain.push('mcp_low_quality');
-        } catch (error) {
-            lastError = error as Error;
-            fallbackChain.push('mcp_failed');
-            aiLogger.warn(LogCategory.AI_ENGINE, `MCP 엔진 실패: ${error.message}`);
-        }
-
-        // 4단계: Google AI (2% 최후 수단)
-        try {
-            const result = await this.tryGoogleAI(request);
+            console.log('🚨 3단계: 긴급 응답');
             return {
-                ...result,
-                metadata: {
-                    ...result.metadata,
-                    mode: 'AUTO',
-                    tier: 'google_ai',
-                    fallbacksUsed: 3
-                },
-                fallbackChain
+                success: true,
+                mode: 'emergency',
+                engine: 'emergency-fallback',
+                response: this.generateEmergencyResponse(query, mcpContext),
+                confidence: 0.3,
+                fallbacksUsed,
+                totalTime: Date.now() - startTime,
+                mcpContextUsed
             };
         } catch (error) {
-            lastError = error as Error;
-            fallbackChain.push('google_ai_failed');
-            aiLogger.logError('google_ai', LogCategory.AI_ENGINE, `Google AI 실패: ${error.message}`);
+            console.error('❌ 긴급 응답 생성 실패:', error);
+            fallbacksUsed.push('emergency-failed');
         }
 
-        throw lastError || new Error('모든 AUTO 모드 엔진 실패');
-    }
-
-    // =============================================================================
-    // 🤖 GOOGLE_ONLY 모드: Google AI 우선 → 나머지 AI 도구들
-    // =============================================================================
-
-    private async processGoogleOnlyMode(request: FallbackRequest): Promise<FallbackResponse> {
-        const fallbackChain: string[] = [];
-        let lastError: Error | null = null;
-
-        // 1단계: Google AI 우선 시도
-        try {
-            const result = await this.tryGoogleAI(request);
-            if (this.isQualityAcceptable(result.confidence)) {
-                return {
-                    ...result,
-                    metadata: {
-                        ...result.metadata,
-                        mode: 'GOOGLE_ONLY',
-                        tier: 'google_ai_primary',
-                        fallbacksUsed: 0
-                    },
-                    fallbackChain: ['google_ai']
-                };
-            }
-            fallbackChain.push('google_ai_low_quality');
-        } catch (error) {
-            lastError = error as Error;
-            fallbackChain.push('google_ai_failed');
-            aiLogger.warn(LogCategory.AI_ENGINE, `Google AI 실패: ${error.message}`);
-        }
-
-        // 2단계: 다른 AI 도구들 (룰기반/RAG/MCP 제외)
-        try {
-            const result = await this.tryOtherAITools(request);
-            return {
-                ...result,
-                metadata: {
-                    ...result.metadata,
-                    mode: 'GOOGLE_ONLY',
-                    tier: 'other_ai_tools',
-                    fallbacksUsed: 1
-                },
-                fallbackChain
-            };
-        } catch (error) {
-            lastError = error as Error;
-            fallbackChain.push('other_ai_tools_failed');
-            aiLogger.logError('other_ai_tools', LogCategory.AI_ENGINE, `다른 AI 도구들 실패: ${error.message}`);
-        }
-
-        throw lastError || new Error('모든 GOOGLE_ONLY 모드 엔진 실패');
-    }
-
-    // =============================================================================
-    // 🏠 LOCAL 모드: 룰기반 → RAG → MCP (Google AI 제외)
-    // =============================================================================
-
-    private async processLocalMode(request: FallbackRequest): Promise<FallbackResponse> {
-        const fallbackChain: string[] = [];
-        let lastError: Error | null = null;
-
-        // 1단계: 룰기반 엔진 (70% 우선순위)
-        try {
-            const result = await this.tryRuleBasedEngine(request);
-            if (this.isQualityAcceptable(result.confidence)) {
-                return {
-                    ...result,
-                    metadata: {
-                        ...result.metadata,
-                        mode: 'LOCAL',
-                        tier: 'rule_based',
-                        fallbacksUsed: 0
-                    },
-                    fallbackChain: ['rule_based']
-                };
-            }
-            fallbackChain.push('rule_based_low_quality');
-        } catch (error) {
-            lastError = error as Error;
-            fallbackChain.push('rule_based_failed');
-            aiLogger.warn(LogCategory.AI_ENGINE, `룰기반 엔진 실패: ${error.message}`);
-        }
-
-        // 2단계: RAG 엔진 (20% 우선순위)
-        try {
-            const result = await this.tryRAGEngine(request);
-            if (this.isQualityAcceptable(result.confidence)) {
-                return {
-                    ...result,
-                    metadata: {
-                        ...result.metadata,
-                        mode: 'LOCAL',
-                        tier: 'rag',
-                        fallbacksUsed: 1
-                    },
-                    fallbackChain
-                };
-            }
-            fallbackChain.push('rag_low_quality');
-        } catch (error) {
-            lastError = error as Error;
-            fallbackChain.push('rag_failed');
-            aiLogger.warn(LogCategory.AI_ENGINE, `RAG 엔진 실패: ${error.message}`);
-        }
-
-        // 3단계: MCP 엔진 (8% 우선순위)
-        try {
-            const result = await this.tryMCPEngine(request);
-            return {
-                ...result,
-                metadata: {
-                    ...result.metadata,
-                    mode: 'LOCAL',
-                    tier: 'mcp',
-                    fallbacksUsed: 2
-                },
-                fallbackChain
-            };
-        } catch (error) {
-            lastError = error as Error;
-            fallbackChain.push('mcp_failed');
-            aiLogger.logError('mcp', LogCategory.AI_ENGINE, `MCP 엔진 실패: ${error.message}`);
-        }
-
-        throw lastError || new Error('모든 LOCAL 모드 엔진 실패');
-    }
-
-    // =============================================================================
-    // 🔧 개별 엔진 시도 메서드들
-    // =============================================================================
-
-    private async tryRuleBasedEngine(request: FallbackRequest): Promise<FallbackResponse> {
-        const result = await this.ruleBasedEngine.processQuery(request.query, {
-            language: 'ko',
-            priority: 'balance'
-        });
-
-        if (!result || !result.response) {
-            throw new Error('룰기반 엔진 처리 실패');
-        }
-
-        return {
-            success: true,
-            content: result.response,
-            confidence: result.confidence || 0.8,
-            sources: ['rule_based'],
-            metadata: {
-                mode: request.mode,
-                tier: 'rule_based',
-                fallbacksUsed: 0,
-                responseTime: 0,
-                qualityScore: this.calculateQualityScore(result.confidence || 0.8, ['rule_based'])
-            }
-        };
-    }
-
-    private async tryRAGEngine(request: FallbackRequest): Promise<FallbackResponse> {
-        const result = await this.ragEngine.query(request.query, { limit: 3 });
-
-        return {
-            success: true,
-            content: typeof result === 'string' ? result : JSON.stringify(result),
-            confidence: 0.7,
-            sources: ['rag'],
-            metadata: {
-                mode: request.mode,
-                tier: 'rag',
-                fallbacksUsed: 0,
-                responseTime: 0,
-                qualityScore: this.calculateQualityScore(0.7, ['rag'])
-            }
-        };
-    }
-
-    private async tryMCPEngine(request: FallbackRequest): Promise<FallbackResponse> {
-        if (!this.mcpClient) {
-            throw new Error('MCP 클라이언트 없음');
-        }
-
-        const result = await this.mcpClient.performComplexQuery(request.query, request.context);
-
-        return {
-            success: true,
-            content: result,
-            confidence: 0.6,
-            sources: ['mcp'],
-            metadata: {
-                mode: request.mode,
-                tier: 'mcp',
-                fallbacksUsed: 0,
-                responseTime: 0,
-                qualityScore: this.calculateQualityScore(0.6, ['mcp'])
-            }
-        };
-    }
-
-    private async tryGoogleAI(request: FallbackRequest): Promise<FallbackResponse> {
-        if (!this.googleAI) {
-            throw new Error('Google AI 서비스 없음');
-        }
-
-        const result = await this.googleAI.generateResponse(request.query);
-
-        if (!result.success) {
-            throw new Error('Google AI 처리 실패');
-        }
-
-        return {
-            success: true,
-            content: result.content || '',
-            confidence: 0.9,
-            sources: ['google_ai'],
-            metadata: {
-                mode: request.mode,
-                tier: 'google_ai',
-                fallbacksUsed: 0,
-                responseTime: 0,
-                qualityScore: this.calculateQualityScore(0.9, ['google_ai'])
-            }
-        };
-    }
-
-    private async tryOtherAITools(request: FallbackRequest): Promise<FallbackResponse> {
-        const results: any[] = [];
-
-        // OpenSource Engines 시도 - 간단한 텍스트 처리로 대체
-        if (this.openSourceEngines) {
-            try {
-                // OpenSourceEngines가 없거나 메서드가 다를 수 있으므로 기본 응답 생성
-                results.push({
-                    source: 'opensource',
-                    content: `오픈소스 AI 도구를 통한 분석: ${request.query}에 대한 기본 응답입니다.`,
-                    confidence: 0.7
-                });
-            } catch (error: any) {
-                aiLogger.warn(LogCategory.AI_ENGINE, `OpenSource Engines 실패: ${error.message}`);
-            }
-        }
-
-        // Custom Engines 시도 - 간단한 텍스트 처리로 대체
-        if (this.customEngines) {
-            try {
-                // CustomEngines가 없거나 메서드가 다를 수 있으므로 기본 응답 생성
-                results.push({
-                    source: 'custom',
-                    content: `커스텀 AI 도구를 통한 분석: ${request.query}에 대한 맞춤형 응답입니다.`,
-                    confidence: 0.6
-                });
-            } catch (error: any) {
-                aiLogger.warn(LogCategory.AI_ENGINE, `Custom Engines 실패: ${error.message}`);
-            }
-        }
-
-        if (results.length === 0) {
-            throw new Error('모든 다른 AI 도구들 실패');
-        }
-
-        const bestResult = results.reduce((best, current) =>
-            current.confidence > best.confidence ? current : best
-        );
-
-        return {
-            success: true,
-            content: bestResult.content,
-            confidence: bestResult.confidence,
-            sources: results.map(r => r.source),
-            metadata: {
-                mode: request.mode,
-                tier: 'other_ai_tools',
-                fallbacksUsed: 0,
-                responseTime: 0,
-                qualityScore: this.calculateQualityScore(bestResult.confidence, results.map(r => r.source))
-            }
-        };
-    }
-
-    // =============================================================================
-    // 🎯 품질 관리
-    // =============================================================================
-
-    private isQualityAcceptable(confidence: number): boolean {
-        return confidence >= this.qualityThresholds.acceptable;
-    }
-
-    private calculateQualityScore(confidence: number, sources: string[]): number {
-        // 신뢰도 기반 점수 (70%)
-        let score = confidence * 0.7;
-
-        // 소스 다양성 보너스 (30%)
-        const diversityBonus = Math.min(sources.length * 0.1, 0.3);
-        score += diversityBonus;
-
-        return Math.min(score, 1.0);
-    }
-
-    // =============================================================================
-    // 📊 통계 관리
-    // =============================================================================
-
-    private initializeModeStats(): void {
-        const modes: AIFallbackMode[] = ['AUTO', 'GOOGLE_ONLY', 'LOCAL'];
-        modes.forEach(mode => {
-            this.modeStats.set(mode, {
-                totalQueries: 0,
-                successRate: 0,
-                averageResponseTime: 0,
-                averageConfidence: 0,
-                fallbacksUsed: 0,
-                lastUsed: null,
-                qualityTrend: []
-            });
-        });
-    }
-
-    private updateModeStats(mode: AIFallbackMode, response: FallbackResponse | null, responseTime: number): void {
-        const stats = this.modeStats.get(mode);
-        if (!stats) return;
-
-        stats.totalQueries++;
-        stats.lastUsed = new Date();
-
-        // 응답 시간 업데이트
-        stats.averageResponseTime = (stats.averageResponseTime + responseTime) / 2;
-
-        if (response) {
-            // 성공률 업데이트
-            const successCount = Math.floor(stats.successRate * (stats.totalQueries - 1));
-            stats.successRate = (successCount + 1) / stats.totalQueries;
-
-            // 평균 신뢰도 업데이트
-            stats.averageConfidence = (stats.averageConfidence + response.confidence) / 2;
-
-            // 폴백 사용 횟수 업데이트
-            stats.fallbacksUsed += response.metadata.fallbacksUsed;
-
-            // 품질 트렌드 업데이트 (최근 10개만 유지)
-            if (response.metadata.qualityScore) {
-                stats.qualityTrend.push(response.metadata.qualityScore);
-                if (stats.qualityTrend.length > 10) {
-                    stats.qualityTrend.shift();
-                }
-            }
-        } else {
-            // 실패 시 성공률 업데이트
-            const successCount = Math.floor(stats.successRate * (stats.totalQueries - 1));
-            stats.successRate = successCount / stats.totalQueries;
-        }
-    }
-
-    // =============================================================================
-    // 🔧 유틸리티 메서드들
-    // =============================================================================
-
-    private createErrorResponse(request: FallbackRequest, error: Error, mode: AIFallbackMode): FallbackResponse {
+        // 최종 실패
         return {
             success: false,
-            content: `죄송합니다. ${mode} 모드에서 처리 중 오류가 발생했습니다: ${error.message}`,
-            confidence: 0.1,
-            sources: ['error_fallback'],
-            metadata: {
-                mode,
-                tier: 'error',
-                fallbacksUsed: 0,
-                responseTime: 0,
-                qualityScore: 0.1
-            },
-            fallbackChain: ['error']
+            mode: 'offline',
+            engine: 'none',
+            response: '서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.',
+            confidence: 0,
+            fallbacksUsed,
+            totalTime: Date.now() - startTime,
+            mcpContextUsed,
+            error: '모든 폴백 실패'
         };
     }
 
-    // 엔진 설정 메서드들
-    public setMCPClient(client: RealMCPClient): void {
-        this.mcpClient = client;
+    /**
+     * 🔍 MCP 컨텍스트 수집 (RAG 도우미)
+     */
+    private async collectMCPContext(query: string, context?: any): Promise<any> {
+        try {
+            const mcpResult = await this.mcpClient.performComplexQuery(query, context);
+
+            if (mcpResult && typeof mcpResult === 'object') {
+                return {
+                    summary: mcpResult.response || mcpResult.summary,
+                    category: mcpResult.category,
+                    additionalInfo: mcpResult.additionalInfo || mcpResult.context,
+                    timestamp: new Date().toISOString(),
+                    source: 'mcp-context-helper'
+                };
+            }
+
+            return null;
+        } catch (error) {
+            console.warn('MCP 컨텍스트 수집 실패:', error);
+            return null;
+        }
     }
 
-    public setGoogleAI(googleAI: GoogleAIService): void {
-        this.googleAI = googleAI;
+    /**
+     * 🥇 Supabase RAG + MCP 컨텍스트 조합 시도
+     */
+    private async tryRAGWithMCPContext(
+        query: string,
+        mcpContext: any,
+        category?: string
+    ): Promise<Partial<FallbackResult>> {
+        await this.supabaseRAG.initialize();
+
+        // MCP 컨텍스트를 활용한 향상된 RAG 검색
+        const enhancedQuery = mcpContext
+            ? `${query}\n\n[컨텍스트: ${mcpContext.summary || ''}]`
+            : query;
+
+        const result = await this.supabaseRAG.searchSimilar(enhancedQuery, {
+            maxResults: 5,
+            threshold: 0.5,
+            category: category || mcpContext?.category
+        });
+
+        if (result.success && result.results.length > 0) {
+            let response = result.results[0].content;
+
+            // MCP 컨텍스트를 응답에 통합
+            if (mcpContext && mcpContext.additionalInfo) {
+                response += `\n\n📋 추가 정보: ${mcpContext.additionalInfo}`;
+            }
+
+            return {
+                success: true,
+                engine: 'supabase-rag-with-mcp-context',
+                response,
+                confidence: Math.min(0.9, (result.results[0].similarity || 0.7) + 0.2) // MCP 컨텍스트 보너스
+            };
+        }
+
+        throw new Error('RAG + MCP 컨텍스트 검색 실패');
     }
 
-    public setOpenSourceEngines(engines: OpenSourceEngines): void {
-        this.openSourceEngines = engines;
+    /**
+     * 🥈 Google AI 시도 (MCP 컨텍스트 활용)
+     */
+    private async tryGoogleAI(query: string, mcpContext: any): Promise<Partial<FallbackResult>> {
+        // MCP 컨텍스트가 있으면 Google AI 프롬프트에 포함
+        let enhancedQuery = query;
+        if (mcpContext && mcpContext.summary) {
+            enhancedQuery = `${query}\n\n참고 컨텍스트: ${mcpContext.summary}`;
+        }
+
+        const result = await this.googleAI.generateResponse(enhancedQuery);
+
+        if (result.success) {
+            let response = result.content || '응답을 생성했습니다.';
+
+            // MCP 컨텍스트 정보를 응답에 추가
+            if (mcpContext && mcpContext.additionalInfo) {
+                response += `\n\n🔍 시스템 정보: ${mcpContext.additionalInfo}`;
+            }
+
+            return {
+                success: true,
+                engine: 'google-ai-with-mcp-context',
+                response,
+                confidence: result.confidence || 0.7
+            };
+        }
+
+        throw new Error('Google AI 실패');
     }
 
-    public setCustomEngines(engines: CustomEngines): void {
-        this.customEngines = engines;
+    /**
+     * 🚨 긴급 응답 생성 (MCP 컨텍스트 활용)
+     */
+    private generateEmergencyResponse(query: string, mcpContext: any): string {
+        let response = `죄송합니다. 현재 일시적인 시스템 문제로 인해 정확한 답변을 드리기 어렵습니다.\n\n`;
+
+        // MCP 컨텍스트가 있으면 활용
+        if (mcpContext) {
+            response += `수집된 기본 정보:\n${mcpContext.summary || '관련 정보를 수집했습니다.'}\n\n`;
+
+            if (mcpContext.additionalInfo) {
+                response += `추가 참고사항:\n${mcpContext.additionalInfo}\n\n`;
+            }
+        }
+
+        response += `잠시 후 다시 시도해 주시거나, 더 구체적인 질문으로 다시 문의해 주세요.`;
+
+        return response;
+    }
+
+    /**
+     * 🛠️ 설정 관리
+     */
+    public updateConfig(newConfig: Partial<FallbackConfig>): void {
+        this.config = { ...this.config, ...newConfig };
+    }
+
+    public getConfig(): FallbackConfig {
+        return { ...this.config };
     }
 } 

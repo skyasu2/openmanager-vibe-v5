@@ -57,6 +57,9 @@ import AutoReportPage from '@/components/ai/pages/AutoReportPage';
 import IntelligentMonitoringPage from '@/components/ai/pages/IntelligentMonitoringPage';
 import { GoogleAIStatusCard } from '@/components/shared/GoogleAIStatusCard';
 
+// 🎯 AI 타입 추가
+import type { AIMode } from '@/types/ai-types';
+
 // Enhanced AI Chat 관련 타입들
 interface AIEngine {
   id: string;
@@ -195,7 +198,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     useState<AIAgentFunction>('chat');
 
   // Enhanced Chat 상태 (messages는 useAIChat에서 관리)
-  const [selectedEngine, setSelectedEngine] = useState<string>('auto');
+  const [selectedEngine, setSelectedEngine] = useState<AIMode>('AUTO');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showEngineInfo, setShowEngineInfo] = useState(false);
   // const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]); // TODO: 향후 파일 업로드 기능
@@ -399,15 +402,17 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   // AI 응답 생성 (엔진별 차별화)
   const generateAIResponse = (query: string, engine: string): string => {
     const responses = {
-      auto: `[AUTO 모드] ${query}에 대한 종합 분석 결과입니다. 여러 AI 엔진을 조합하여 최적의 답변을 제공합니다.`,
-      'google-ai': `[Google AI] ${query}에 대한 창의적이고 자연스러운 응답입니다. Gemini 모델의 고급 언어 이해 능력을 활용했습니다.`,
-      internal: `[Internal] ${query}에 대한 빠른 내부 분석 결과입니다. MCP, RAG, ML 엔진을 활용하여 프라이버시를 보장하며 응답했습니다.`,
+      AUTO: `[AUTO 모드] ${query}에 대한 종합 분석 결과입니다. 여러 AI 엔진을 조합하여 최적의 답변을 제공합니다.`,
+      'GOOGLE_ONLY': `[Google AI] ${query}에 대한 창의적이고 자연스러운 응답입니다. Gemini 모델의 고급 언어 이해 능력을 활용했습니다.`,
+      LOCAL: `[Local] ${query}에 대한 빠른 내부 분석 결과입니다. MCP, RAG, ML 엔진을 활용하여 프라이버시를 보장하며 응답했습니다.`,
+      MONITORING: `[Monitoring] ${query}에 대한 전문 모니터링 분석입니다. 지능형 장애 감지와 예측 분석을 수행했습니다.`,
     };
-    return responses[engine as keyof typeof responses] || responses.auto;
+
+    return responses[engine as AIMode] || responses.AUTO;
   };
 
   // 🤖 실제 AI 자연어 질의 처리 (SimplifiedNaturalLanguageEngine 연동)
-  const processRealAIQuery = async (query: string, engine: string = 'auto') => {
+  const processRealAIQuery = async (query: string, engine: AIMode = 'AUTO') => {
     console.log(`🚀 AI 질의 처리 시작: "${query}" (모드: ${engine})`);
 
     if (!query.trim()) return { success: false, message: 'Empty query' };
@@ -688,12 +693,11 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                           console.log(
                             `🔧 AI 모드 변경: ${selectedEngine} → ${engine.id}`
                           );
-                          setSelectedEngine(engine.id);
+                          setSelectedEngine(engine.id as AIMode);
                           setShowEngineInfo(false);
                         }}
-                        className={`w-full p-2 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${
-                          selectedEngine === engine.id ? 'bg-blue-50' : ''
-                        }`}
+                        className={`w-full p-2 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${selectedEngine === engine.id ? 'bg-blue-50' : ''
+                          }`}
                       >
                         <div className='flex items-start space-x-2'>
                           <div
@@ -805,19 +809,17 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
             className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[85%] ${
-                message.type === 'user'
-                  ? 'flex-row-reverse space-x-reverse'
-                  : ''
-              }`}
+              className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[85%] ${message.type === 'user'
+                ? 'flex-row-reverse space-x-reverse'
+                : ''
+                }`}
             >
               {/* 아바타 */}
               <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  message.type === 'user'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                }`}
+                className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${message.type === 'user'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                  }`}
               >
                 {message.type === 'user' ? (
                   <User className='w-3 h-3' />
@@ -930,7 +932,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                           title='사고 과정 토글'
                         >
                           {localStorage.getItem(`thinking_${message.id}`) !==
-                          'false' ? (
+                            'false' ? (
                             <ChevronUp className='w-3 h-3 text-gray-500' />
                           ) : (
                             <ChevronDown className='w-3 h-3 text-gray-500' />
@@ -941,75 +943,72 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                       <AnimatePresence>
                         {localStorage.getItem(`thinking_${message.id}`) !==
                           'false' && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className='space-y-1'
-                          >
-                            {message.thinking.map((step, index) => (
-                              <motion.div
-                                key={step.id}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: index * 0.05 }}
-                                className={`p-2 rounded border-l-2 ${
-                                  (step as any).status === 'completed'
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className='space-y-1'
+                            >
+                              {message.thinking.map((step, index) => (
+                                <motion.div
+                                  key={step.id}
+                                  initial={{ opacity: 0, x: -10 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: index * 0.05 }}
+                                  className={`p-2 rounded border-l-2 ${(step as any).status === 'completed'
                                     ? 'bg-green-50 border-l-green-400'
                                     : (step as any).status === 'processing'
                                       ? 'bg-blue-50 border-l-blue-400'
                                       : 'bg-gray-50 border-l-gray-300'
-                                }`}
-                              >
-                                <div className='flex items-center justify-between'>
-                                  <div className='flex items-center space-x-2'>
-                                    <div
-                                      className={`w-3 h-3 rounded-full flex items-center justify-center ${
-                                        (step as any).status === 'completed'
+                                    }`}
+                                >
+                                  <div className='flex items-center justify-between'>
+                                    <div className='flex items-center space-x-2'>
+                                      <div
+                                        className={`w-3 h-3 rounded-full flex items-center justify-center ${(step as any).status === 'completed'
                                           ? 'bg-green-400'
                                           : (step as any).status ===
-                                              'processing'
+                                            'processing'
                                             ? 'bg-blue-400'
                                             : 'bg-gray-300'
-                                      }`}
-                                    >
-                                      {(step as any).status === 'completed' ? (
-                                        <CheckCircle className='w-2 h-2 text-white' />
-                                      ) : (step as any).status ===
-                                        'processing' ? (
-                                        <div className='w-1.5 h-1.5 bg-white rounded-full animate-pulse' />
-                                      ) : (
-                                        <Clock className='w-2 h-2 text-white' />
-                                      )}
+                                          }`}
+                                      >
+                                        {(step as any).status === 'completed' ? (
+                                          <CheckCircle className='w-2 h-2 text-white' />
+                                        ) : (step as any).status ===
+                                          'processing' ? (
+                                          <div className='w-1.5 h-1.5 bg-white rounded-full animate-pulse' />
+                                        ) : (
+                                          <Clock className='w-2 h-2 text-white' />
+                                        )}
+                                      </div>
+                                      <span className='text-xs font-medium text-gray-700'>
+                                        {step.step}. {step.title}
+                                      </span>
                                     </div>
-                                    <span className='text-xs font-medium text-gray-700'>
-                                      {step.step}. {step.title}
-                                    </span>
+                                    {step.duration && (
+                                      <span className='text-xs text-gray-500'>
+                                        {(step.duration / 1000).toFixed(1)}초
+                                      </span>
+                                    )}
                                   </div>
-                                  {step.duration && (
-                                    <span className='text-xs text-gray-500'>
-                                      {(step.duration / 1000).toFixed(1)}초
-                                    </span>
-                                  )}
-                                </div>
-                                <p className='text-xs text-gray-600 ml-5 mt-1'>
-                                  {step.description}
-                                </p>
-                              </motion.div>
-                            ))}
-                          </motion.div>
-                        )}
+                                  <p className='text-xs text-gray-600 ml-5 mt-1'>
+                                    {step.description}
+                                  </p>
+                                </motion.div>
+                              ))}
+                            </motion.div>
+                          )}
                       </AnimatePresence>
                     </div>
                   )}
 
                 {/* 메시지 버블 */}
                 <div
-                  className={`p-3 rounded-lg ${
-                    message.type === 'user'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-white border border-gray-200 text-gray-800'
-                  }`}
+                  className={`p-3 rounded-lg ${message.type === 'user'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-white border border-gray-200 text-gray-800'
+                    }`}
                 >
                   {/* 파일 첨부 (사용자 메시지만) */}
                   {message.type === 'user' && message.files && (
@@ -1054,11 +1053,10 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                   )}
 
                   <p
-                    className={`text-xs mt-1 ${
-                      message.type === 'user'
-                        ? 'text-blue-100'
-                        : 'text-gray-500'
-                    }`}
+                    className={`text-xs mt-1 ${message.type === 'user'
+                      ? 'text-blue-100'
+                      : 'text-gray-500'
+                      }`}
                   >
                     {typeof message.timestamp === 'string'
                       ? new Date(message.timestamp).toLocaleTimeString()
@@ -1145,24 +1143,22 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.1 }}
-                          className={`p-2 rounded-lg border-l-3 ${
-                            step.status === 'completed'
-                              ? 'bg-green-50 border-l-green-500'
-                              : step.status === 'processing'
-                                ? 'bg-blue-50 border-l-blue-500'
-                                : 'bg-gray-50 border-l-gray-300'
-                          }`}
+                          className={`p-2 rounded-lg border-l-3 ${step.status === 'completed'
+                            ? 'bg-green-50 border-l-green-500'
+                            : step.status === 'processing'
+                              ? 'bg-blue-50 border-l-blue-500'
+                              : 'bg-gray-50 border-l-gray-300'
+                            }`}
                         >
                           <div className='flex items-center justify-between mb-1'>
                             <div className='flex items-center space-x-2'>
                               <div
-                                className={`w-4 h-4 rounded-full flex items-center justify-center ${
-                                  step.status === 'completed'
-                                    ? 'bg-green-500'
-                                    : step.status === 'processing'
-                                      ? 'bg-blue-500'
-                                      : 'bg-gray-300'
-                                }`}
+                                className={`w-4 h-4 rounded-full flex items-center justify-center ${step.status === 'completed'
+                                  ? 'bg-green-500'
+                                  : step.status === 'processing'
+                                    ? 'bg-blue-500'
+                                    : 'bg-gray-300'
+                                  }`}
                               >
                                 {step.status === 'completed' ? (
                                   <CheckCircle className='w-2 h-2 text-white' />
@@ -1320,7 +1316,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         <div className='flex items-center justify-between mt-1 text-xs text-gray-500'>
           <span>Enter로 전송, Shift+Enter로 줄바꿈</span>
           <span>
-            {selectedEngine === 'google-ai' && <>Google AI 사용량: 45/300</>}
+            {selectedEngine === 'GOOGLE_ONLY' && <>Google AI 사용량: 45/300</>}
           </span>
         </div>
       </div>

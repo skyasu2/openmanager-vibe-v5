@@ -1,18 +1,21 @@
 /**
- * 🧠 지능형 모니터링 서비스 (Intelligent Monitoring Service)
+ * 🧠 지능형 모니터링 서비스 + 경량 ML 엔진 통합 (Intelligent Monitoring Service)
  *
- * 3단계 통합 AI 분석 워크플로우:
+ * 4단계 통합 AI 분석 워크플로우:
  * 1단계: 🚨 실시간 이상 탐지 (AnomalyDetection.ts 활용)
  * 2단계: 🔍 다중 AI 근본 원인 분석 (여러 AI 엔진 협업)
  * 3단계: 🔮 예측적 모니터링 (PredictiveAnalysisEngine.ts 활용)
+ * 4단계: 🤖 ML 기반 자동 학습 및 최적화 (NEW!)
  */
 
-import { AnomalyDetection } from './AnomalyDetection';
 import { PredictiveAnalysisEngine } from '../../engines/PredictiveAnalysisEngine';
-import { incidentReportService } from './IncidentReportService';
+import { AnomalyDetection } from './AnomalyDetection';
 import { GoogleAIService } from './GoogleAIService';
+import { incidentReportService } from './IncidentReportService';
 import { koreanAIEngine } from './korean-ai-engine';
 import { aiLogger, LogCategory } from './logging/AILogger';
+
+// 🤖 경량 ML 엔진 통합
 
 // 타입 정의
 export interface IntelligentAnalysisRequest {
@@ -22,10 +25,12 @@ export interface IntelligentAnalysisRequest {
     end: Date;
   };
   analysisDepth: 'quick' | 'standard' | 'deep';
+  mode?: 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY' | 'MONITORING'; // 🎯 모드 추가
   includeSteps: {
     anomalyDetection: boolean;
     rootCauseAnalysis: boolean;
     predictiveMonitoring: boolean;
+    mlOptimization: boolean; // 🤖 ML 최적화 단계 추가
   };
 }
 
@@ -63,6 +68,24 @@ export interface IntelligentAnalysisResult {
     processingTime: number;
   };
 
+  // 🤖 4단계: ML 기반 최적화 결과 (NEW!)
+  mlOptimization: {
+    status: 'completed' | 'failed' | 'skipped';
+    predictions: {
+      performanceIssues: any[];
+      resourceOptimization: any[];
+      anomalyPredictions: any[];
+    };
+    learningInsights: {
+      patternsLearned: number;
+      accuracyImprovement: number;
+      recommendedActions: string[];
+    };
+    summary: string;
+    confidence: number;
+    processingTime: number;
+  };
+
   // 통합 결과
   overallResult: {
     severity: 'low' | 'medium' | 'high' | 'critical';
@@ -71,17 +94,18 @@ export interface IntelligentAnalysisResult {
     summary: string;
     confidence: number;
     totalProcessingTime: number;
+    mlEnhanced: boolean; // 🤖 ML 향상 여부
   };
 }
 
 export interface RootCause {
   id: string;
   category:
-    | 'system'
-    | 'application'
-    | 'network'
-    | 'infrastructure'
-    | 'external';
+  | 'system'
+  | 'application'
+  | 'network'
+  | 'infrastructure'
+  | 'external';
   description: string;
   probability: number;
   evidence: string[];
@@ -106,6 +130,11 @@ export class IntelligentMonitoringService {
   private googleAI: GoogleAIService;
   private koreanAI: typeof koreanAIEngine;
 
+  // 🤖 ML 엔진 및 모니터링 시스템 (NEW!)
+  private mlEngine: any; // LightweightMLEngine;
+  private performanceMonitor: any; // PerformanceMonitor;
+  private unifiedLogger: any; // UnifiedLogger;
+
   // 분석 상태 관리
   private activeAnalyses: Map<
     string,
@@ -121,8 +150,76 @@ export class IntelligentMonitoringService {
     this.anomalyDetection = AnomalyDetection.getInstance();
     this.predictiveEngine = new PredictiveAnalysisEngine();
     this.incidentService = incidentReportService;
-    this.googleAI = new GoogleAIService();
+    // 🎯 Google AI 싱글톤 인스턴스 사용 (할당량 중앙 관리)
+    this.googleAI = GoogleAIService.getInstance();
     this.koreanAI = koreanAIEngine;
+
+    // 🤖 ML 엔진 및 모니터링 시스템 초기화 (지연 로딩)
+    this.mlEngine = null;
+    this.performanceMonitor = null;
+    this.unifiedLogger = null;
+
+    console.log('✅ IntelligentMonitoringService: Google AI 싱글톤 + ML 엔진 연결됨');
+  }
+
+  /**
+   * 🤖 ML 엔진 지연 초기화
+   */
+  private async initializeMLEngines(): Promise<void> {
+    if (this.mlEngine) return; // 이미 초기화됨
+
+    try {
+      const { LightweightMLEngine } = await import('@/lib/ml/LightweightMLEngine');
+      const { PerformanceMonitor } = await import('@/services/ai/PerformanceMonitor');
+      const { UnifiedLogger } = await import('@/services/ai/UnifiedLogger');
+
+      this.mlEngine = new LightweightMLEngine();
+      this.performanceMonitor = PerformanceMonitor.getInstance();
+      this.unifiedLogger = UnifiedLogger.getInstance();
+
+      console.log('✅ ML 엔진 지연 초기화 완료');
+    } catch (error) {
+      console.warn('⚠️ ML 엔진 초기화 실패, 기본 모드로 동작:', error);
+      this.mlEngine = null;
+      this.performanceMonitor = null;
+      this.unifiedLogger = null;
+    }
+  }
+
+  /**
+   * 🎯 모드별 AI 엔진 사용 전략 결정
+   */
+  private getAIEngineStrategy(mode?: string): {
+    useLocal: boolean;
+    useGoogle: boolean;
+    useKorean: boolean;
+    priority: string[];
+  } {
+    switch (mode) {
+      case 'LOCAL':
+        return {
+          useLocal: true,
+          useGoogle: false,
+          useKorean: true,
+          priority: ['korean', 'local'],
+        };
+      case 'GOOGLE_ONLY':
+        return {
+          useLocal: false,
+          useGoogle: true,
+          useKorean: false,
+          priority: ['google'],
+        };
+      case 'AUTO':
+      case 'MONITORING':
+      default:
+        return {
+          useLocal: true,
+          useGoogle: true,
+          useKorean: true,
+          priority: ['korean', 'google', 'local'],
+        };
+    }
   }
 
   static getInstance(): IntelligentMonitoringService {
@@ -182,6 +279,22 @@ export class IntelligentMonitoringService {
         confidence: 0,
         processingTime: 0,
       },
+      mlOptimization: {
+        status: 'skipped',
+        predictions: {
+          performanceIssues: [],
+          resourceOptimization: [],
+          anomalyPredictions: [],
+        },
+        learningInsights: {
+          patternsLearned: 0,
+          accuracyImprovement: 0,
+          recommendedActions: [],
+        },
+        summary: '',
+        confidence: 0,
+        processingTime: 0,
+      },
       overallResult: {
         severity: 'low',
         actionRequired: false,
@@ -189,6 +302,7 @@ export class IntelligentMonitoringService {
         summary: '',
         confidence: 0,
         totalProcessingTime: 0,
+        mlEnhanced: false,
       },
     };
 
@@ -213,6 +327,12 @@ export class IntelligentMonitoringService {
         this.updateAnalysisProgress(analysisId, 80, '예측적 모니터링 실행 중');
         result.predictiveMonitoring =
           await this.runPredictiveMonitoring(request);
+      }
+
+      // 🤖 4단계: ML 기반 최적화
+      if (request.includeSteps.mlOptimization) {
+        this.updateAnalysisProgress(analysisId, 90, 'ML 기반 최적화 실행 중');
+        result.mlOptimization = await this.runMLOptimization(request, result);
       }
 
       // 통합 결과 생성
@@ -317,24 +437,55 @@ export class IntelligentMonitoringService {
       const basicResult = await this.runBasicRootCauseAnalysis(anomalies);
       causes = [...basicResult.causes];
 
-      // AI 엔진들을 순차적으로 시도 (폴백 방식)
+      // 🎯 모드별 AI 엔진 전략 결정
+      const strategy = this.getAIEngineStrategy(request.mode);
+      console.log(`🧠 [IntelligentMonitoring] 모드: ${request.mode || 'AUTO'}, 전략:`, strategy);
+
+      // AI 엔진들을 모드별 우선순위로 시도
       const aiEngines = [
-        { name: 'KoreanAI', method: this.runKoreanAIAnalysis.bind(this) },
-        { name: 'GoogleAI', method: this.runGoogleAIAnalysis.bind(this) },
-        { name: 'LocalAI', method: this.runLocalAIAnalysis.bind(this) },
+        { name: 'KoreanAI', method: this.runKoreanAIAnalysis.bind(this), key: 'useKorean' },
+        { name: 'GoogleAI', method: this.runGoogleAIAnalysis.bind(this), key: 'useGoogle' },
+        { name: 'LocalAI', method: this.runLocalAIAnalysis.bind(this), key: 'useLocal' },
       ];
 
-      for (const engine of aiEngines) {
+      // 우선순위에 따라 엔진 정렬
+      const sortedEngines = aiEngines
+        .filter(engine => strategy[engine.key as keyof typeof strategy])
+        .sort((a, b) => {
+          const aIndex = strategy.priority.indexOf(a.name.toLowerCase().replace('ai', ''));
+          const bIndex = strategy.priority.indexOf(b.name.toLowerCase().replace('ai', ''));
+          return aIndex - bIndex;
+        });
+
+      console.log(`🚀 [IntelligentMonitoring] 실행 순서:`, sortedEngines.map(e => e.name));
+
+      for (const engine of sortedEngines) {
         try {
           const insight = await engine.method(anomalies, request);
           insights.push(insight);
+          console.log(`✅ ${engine.name} 분석 완료`);
 
-          // 하나라도 성공하면 충분한 분석 데이터 확보
-          if (insights.length >= 1) {
-            break;
+          // 모드별 종료 조건
+          if (request.mode === 'GOOGLE_ONLY' && engine.name === 'GoogleAI') {
+            break; // Google Only 모드에서는 Google AI만 사용
+          }
+          if (request.mode === 'LOCAL' && insights.length >= 2) {
+            break; // Local 모드에서는 Korean + Local AI 충분
+          }
+          if (insights.length >= 3) {
+            break; // AUTO 모드에서는 최대 3개 엔진 사용
           }
         } catch (error) {
           console.warn(`${engine.name} 분석 실패, 다음 엔진으로 폴백:`, error);
+
+          // 모드별 폴백 전략
+          if (request.mode === 'GOOGLE_ONLY' && engine.name === 'GoogleAI') {
+            // Google Only 모드에서 Google AI 실패시 기본 분석으로 폴백
+            console.log('🔄 Google Only 모드 폴백: 기본 분석 사용');
+            const localInsight = await this.runLocalAIAnalysis(anomalies, request);
+            insights.push(localInsight);
+            break;
+          }
           continue;
         }
       }
@@ -644,30 +795,34 @@ ${JSON.stringify(anomalies.slice(0, 3), null, 2)}
 근본 원인과 권장사항을 제공해주세요.`;
 
     try {
-      // Google AI 사용 가능성 체크
-      if (!this.googleAI || !this.isGoogleAIAvailable()) {
-        throw new Error('Google AI 서비스를 사용할 수 없습니다.');
+      // 🎯 싱글톤 서비스 상태 확인
+      if (!this.googleAI || !this.googleAI.isReady()) {
+        throw new Error('Google AI 싱글톤 서비스를 사용할 수 없습니다.');
       }
 
-      const response = await this.googleAI.generateContent(prompt);
+      const response = await this.googleAI.generateResponse(prompt);
+
+      if (!response.success || !response.content) {
+        throw new Error('Google AI 응답 생성 실패');
+      }
+
       return {
         engine: 'GoogleAI',
-        insight: response.content || '분석 결과를 생성하지 못했습니다.',
-        confidence: 0.85,
+        insight: response.content,
+        confidence: response.confidence || 0.85,
         supportingData: { anomalies, request },
       };
     } catch (error: any) {
       // Google AI 실패 시 에러를 다시 던져서 다음 엔진으로 폴백
+      console.warn(`🚨 Google AI 분석 실패 (싱글톤): ${error.message}`);
       throw new Error(`Google AI 분석 실패: ${error.message}`);
     }
   }
 
   private isGoogleAIAvailable(): boolean {
     try {
-      // Google AI 서비스 상태 확인
-      return (
-        this.googleAI && typeof this.googleAI.generateContent === 'function'
-      );
+      // 🎯 싱글톤 서비스 상태 확인
+      return this.googleAI && this.googleAI.isReady();
     } catch {
       return false;
     }
@@ -679,9 +834,9 @@ ${JSON.stringify(anomalies.slice(0, 3), null, 2)}
   ): Promise<AIInsight> {
     const query = `시스템에서 ${anomalies.length}개의 이상 징후가 발견되었습니다. 
 주요 문제: ${anomalies
-      .slice(0, 2)
-      .map(a => a.description)
-      .join(', ')}
+        .slice(0, 2)
+        .map(a => a.description)
+        .join(', ')}
 근본 원인을 분석하고 해결 방안을 제시해주세요.`;
 
     try {
@@ -985,5 +1140,181 @@ ${JSON.stringify(anomalies.slice(0, 3), null, 2)}
       analysisId: id,
       ...status,
     }));
+  }
+
+  /**
+   * 🤖 ML 기반 최적화 실행 (4단계)
+   */
+  private async runMLOptimization(
+    request: IntelligentAnalysisRequest,
+    analysisResult: IntelligentAnalysisResult
+  ): Promise<any> {
+    const startTime = Date.now();
+
+    // ML 엔진 지연 초기화
+    await this.initializeMLEngines();
+
+    try {
+      if (!this.mlEngine) {
+        return {
+          status: 'failed',
+          predictions: {
+            performanceIssues: [],
+            resourceOptimization: [],
+            anomalyPredictions: [],
+          },
+          learningInsights: {
+            patternsLearned: 0,
+            accuracyImprovement: 0,
+            recommendedActions: ['ML 엔진이 사용 불가능합니다'],
+          },
+          summary: 'ML 엔진 사용 불가',
+          confidence: 0,
+          processingTime: Date.now() - startTime,
+        };
+      }
+
+      // 1. 성능 데이터 수집
+      const performanceData = this.performanceMonitor
+        ? await this.performanceMonitor.collectMetrics()
+        : [];
+
+      // 2. 이상 탐지 데이터 활용
+      const anomalies = analysisResult.anomalyDetection.anomalies || [];
+
+      // 3. ML 예측 실행
+      const predictions = await this.mlEngine.predictPerformanceIssues(
+        performanceData,
+        anomalies
+      );
+
+      // 4. 자동 학습 실행
+      const learningResults = await this.mlEngine.learnFromAnalysis({
+        anomalies,
+        rootCauses: analysisResult.rootCauseAnalysis.causes,
+        predictions: analysisResult.predictiveMonitoring.predictions,
+      });
+
+      // 5. 최적화 추천 생성
+      const recommendations = this.generateMLRecommendations(
+        predictions,
+        learningResults
+      );
+
+      const result = {
+        status: 'completed' as const,
+        predictions: {
+          performanceIssues: predictions.performanceIssues || [],
+          resourceOptimization: predictions.resourceOptimization || [],
+          anomalyPredictions: predictions.anomalyPredictions || [],
+        },
+        learningInsights: {
+          patternsLearned: learningResults.patternsLearned || 0,
+          accuracyImprovement: learningResults.accuracyImprovement || 0,
+          recommendedActions: recommendations,
+        },
+        summary: this.generateMLSummary(predictions, learningResults),
+        confidence: this.calculateMLConfidence(predictions, learningResults),
+        processingTime: Date.now() - startTime,
+      };
+
+      // 학습 결과 로깅
+      if (this.unifiedLogger) {
+        this.unifiedLogger.logMLOptimization({
+          analysisId: analysisResult.analysisId,
+          mlResult: result,
+          performanceData: performanceData.length,
+          anomaliesProcessed: anomalies.length,
+        });
+      }
+
+      return result;
+    } catch (error) {
+      aiLogger.info(
+        LogCategory.AI_ENGINE,
+        'ML 최적화 실행 실패',
+        { error: error.message, request }
+      );
+
+      return {
+        status: 'failed' as const,
+        predictions: {
+          performanceIssues: [],
+          resourceOptimization: [],
+          anomalyPredictions: [],
+        },
+        learningInsights: {
+          patternsLearned: 0,
+          accuracyImprovement: 0,
+          recommendedActions: ['ML 최적화 실행 실패'],
+        },
+        summary: `ML 최적화 실패: ${error.message}`,
+        confidence: 0,
+        processingTime: Date.now() - startTime,
+      };
+    }
+  }
+
+  /**
+   * 🤖 ML 기반 추천 생성
+   */
+  private generateMLRecommendations(
+    predictions: any,
+    learningResults: any
+  ): string[] {
+    const recommendations: string[] = [];
+
+    // 성능 이슈 기반 추천
+    if (predictions.performanceIssues?.length > 0) {
+      recommendations.push('성능 병목 지점을 우선적으로 최적화하세요');
+      recommendations.push('리소스 할당을 재검토하세요');
+    }
+
+    // 리소스 최적화 추천
+    if (predictions.resourceOptimization?.length > 0) {
+      recommendations.push('CPU/메모리 사용량을 모니터링하세요');
+      recommendations.push('스케일링 정책을 조정하세요');
+    }
+
+    // 학습 결과 기반 추천
+    if (learningResults.accuracyImprovement > 0.1) {
+      recommendations.push('ML 모델이 개선되었습니다. 예측 정확도가 향상됩니다');
+    }
+
+    if (recommendations.length === 0) {
+      recommendations.push('현재 시스템이 안정적으로 운영되고 있습니다');
+    }
+
+    return recommendations;
+  }
+
+  /**
+   * 🤖 ML 결과 요약 생성
+   */
+  private generateMLSummary(predictions: any, learningResults: any): string {
+    const issues = predictions.performanceIssues?.length || 0;
+    const optimizations = predictions.resourceOptimization?.length || 0;
+    const patterns = learningResults.patternsLearned || 0;
+
+    return `ML 분석 완료: ${issues}개 성능 이슈 예측, ${optimizations}개 최적화 기회 발견, ${patterns}개 새로운 패턴 학습`;
+  }
+
+  /**
+   * 🤖 ML 신뢰도 계산
+   */
+  private calculateMLConfidence(predictions: any, learningResults: any): number {
+    let confidence = 0.5; // 기본 신뢰도
+
+    // 예측 결과가 있으면 신뢰도 증가
+    if (predictions.performanceIssues?.length > 0) {
+      confidence += 0.2;
+    }
+
+    // 학습 개선이 있으면 신뢰도 증가
+    if (learningResults.accuracyImprovement > 0) {
+      confidence += 0.3;
+    }
+
+    return Math.min(confidence, 1.0);
   }
 }

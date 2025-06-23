@@ -14,73 +14,29 @@
  */
 
 import {
-    IRuleBasedMainEngine,
-    RuleBasedResponse,
-    RuleBasedEngineConfig,
-    EngineStats,
-    QueryOptions,
-    PatternRule,
-    RuleBasedEngineError,
     DEFAULT_CONFIG,
     ENGINE_NAMES,
-    INTENT_CATEGORIES,
-    FusionResult,
+    EngineErrorInfo,
+    EngineStats,
     EngineWeights,
-    EngineErrorInfo
+    FusionResult,
+    INTENT_CATEGORIES,
+    IRuleBasedMainEngine,
+    PatternRule,
+    QueryOptions,
+    RuleBasedEngineConfig,
+    RuleBasedEngineError,
+    RuleBasedResponse
 } from '@/types/rule-based-engine.types';
 
 // 기존 엔진들 임포트
-import { NLPProcessor } from '@/services/ai/engines/nlp/NLPProcessor';
-import { IntentClassifier } from '@/modules/ai-agent/processors/IntentClassifier';
 import { getPatternMatcherEngine } from '@/engines/PatternMatcherEngine';
 import { RealTimeLogEngine } from '@/modules/ai-agent/core/RealTimeLogEngine';
+import { IntentClassifier } from '@/modules/ai-agent/processors/IntentClassifier';
+import { NLPProcessor } from '@/services/ai/engines/nlp/NLPProcessor';
 
-// 기존 RAG 엔진에서 KoreanNLUProcessor 추출
-class KoreanNLUProcessor {
-    private intentPatterns: Map<string, RegExp[]> = new Map();
-    private initialized = false;
-
-    async initialize() {
-        if (this.initialized) return;
-
-        // 기존 패턴 로드 (간소화)
-        this.intentPatterns.set('performance', [
-            /성능|cpu|메모리|디스크|느림|빠름|최적화|속도/i,
-            /performance|cpu|memory|disk|slow|fast|optimize|speed/i,
-        ]);
-
-        this.intentPatterns.set('troubleshooting', [
-            /문제|오류|에러|장애|고장|해결|수리/i,
-            /problem|error|issue|failure|fix|repair|troubleshoot/i,
-        ]);
-
-        this.initialized = true;
-    }
-
-    async analyzeIntent(text: string) {
-        if (!this.initialized) await this.initialize();
-
-        const normalizedText = text.toLowerCase();
-        let bestMatch = { category: 'general', confidence: 0.1, keywords: [] as string[] };
-
-        for (const [category, patterns] of this.intentPatterns) {
-            for (const pattern of patterns) {
-                if (pattern.test(normalizedText)) {
-                    const confidence = Math.min(0.95, 0.4 + Math.random() * 0.4);
-                    if (confidence > bestMatch.confidence) {
-                        bestMatch = { category, confidence, keywords: [category] };
-                    }
-                }
-            }
-        }
-
-        return bestMatch;
-    }
-
-    isReady(): boolean {
-        return this.initialized;
-    }
-}
+// 🎯 중앙화된 한국어 NLU 프로세서 직접 임포트 (중복 제거)
+import { EnhancedKoreanNLUProcessor } from '@/core/ai/processors/EnhancedKoreanNLUProcessor';
 
 // 간소화된 QueryAnalyzer
 class QueryAnalyzer {
@@ -145,7 +101,7 @@ export class RuleBasedMainEngine implements IRuleBasedMainEngine {
     private nlpProcessor: NLPProcessor;
     private intentClassifier: IntentClassifier;
     private patternMatcher: ReturnType<typeof getPatternMatcherEngine>;
-    private koreanNLU: KoreanNLUProcessor;
+    private koreanNLU: EnhancedKoreanNLUProcessor;
     private queryAnalyzer: QueryAnalyzer;
     private logEngine: RealTimeLogEngine;
 
@@ -170,7 +126,7 @@ export class RuleBasedMainEngine implements IRuleBasedMainEngine {
         this.nlpProcessor = new NLPProcessor();
         this.intentClassifier = new IntentClassifier();
         this.patternMatcher = getPatternMatcherEngine();
-        this.koreanNLU = new KoreanNLUProcessor();
+        this.koreanNLU = new EnhancedKoreanNLUProcessor();
         this.queryAnalyzer = new QueryAnalyzer();
         this.logEngine = new RealTimeLogEngine();
 
@@ -218,8 +174,8 @@ export class RuleBasedMainEngine implements IRuleBasedMainEngine {
             }
 
             if (this.config.enabledEngines.koreanNLU) {
-                initPromises.push(this.initializeEngine('koreanNLU', () =>
-                    this.koreanNLU.initialize()));
+                // 🎯 EnhancedKoreanNLUProcessor는 생성자에서 자동 초기화됨 (별도 초기화 불필요)
+                initPromises.push(this.initializeEngine('koreanNLU', () => Promise.resolve()));
             }
 
             // 모든 엔진 초기화 대기
@@ -577,7 +533,8 @@ export class RuleBasedMainEngine implements IRuleBasedMainEngine {
         }
 
         try {
-            this.stats.engineStatus['koreanNLU'] = this.koreanNLU?.isReady?.() ? 'ready' : 'loading';
+            // 🎯 EnhancedKoreanNLUProcessor는 생성자에서 초기화되므로 항상 ready
+            this.stats.engineStatus['koreanNLU'] = this.koreanNLU ? 'ready' : 'error';
         } catch {
             this.stats.engineStatus['koreanNLU'] = 'error';
         }

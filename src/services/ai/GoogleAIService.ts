@@ -7,6 +7,7 @@
  * ✅ 무료 할당량 최적화
  * ✅ 폴백 시스템 내장
  * ✅ 보안 강화된 API 키 관리
+ * ✅ 싱글톤 패턴으로 할당량 중앙 관리
  */
 
 import { getGoogleAIKey, isGoogleAIAvailable } from '@/lib/google-ai-manager';
@@ -54,14 +55,16 @@ interface AdvancedAnalysisRequest {
   serverMetrics?: ServerMetrics[];
   context?: any;
   analysisType:
-    | 'monitoring'
-    | 'prediction'
-    | 'troubleshooting'
-    | 'optimization';
+  | 'monitoring'
+  | 'prediction'
+  | 'troubleshooting'
+  | 'optimization';
   priority: 'low' | 'medium' | 'high' | 'critical';
 }
 
 export class GoogleAIService {
+  private static instance: GoogleAIService | null = null;
+
   private config: GoogleAIConfig;
   private baseUrl = 'https://generativelanguage.googleapis.com/v1beta';
   private requestCache = new Map<
@@ -82,55 +85,53 @@ export class GoogleAIService {
   private lastConnectionTest = 0; // 마지막 연결 테스트 시간
   private isInitialized = false;
 
-  constructor() {
-    try {
-      // 🔐 보안 강화된 API 키 관리 사용
-      const apiKey = getGoogleAIKey();
+  private constructor() {
+    // 생성자를 private으로 만들어 외부에서 직접 인스턴스 생성 방지
+    this.config = {
+      apiKey: getGoogleAIKey() || '',
+      model: 'gemini-1.5-flash',
+      enabled: isGoogleAIAvailable(),
+      rateLimits: {
+        rpm: parseInt(process.env.GOOGLE_AI_RPM_LIMIT || '100'),
+        daily: parseInt(process.env.GOOGLE_AI_DAILY_LIMIT || '10000'),
+      },
+    };
 
-      // 🚨 Vercel 500 에러 방지: API 키 검증 강화
-      if (!apiKey || apiKey.trim() === '') {
-        console.warn(
-          '⚠️ Google AI API 키가 없습니다. 서비스가 비활성화됩니다.'
-        );
-      }
+    // 🚀 대화용 Google AI 활성화 (학습은 하루 1회 제한)
+    const isKeyAvailable = isGoogleAIAvailable();
 
-      // 기본 설정 먼저 초기화
-      this.config = {
-        apiKey: apiKey || '',
-        model: (process.env.GOOGLE_AI_MODEL as any) || 'gemini-1.5-flash',
-        enabled: false, // 기본값을 false로 설정
-        rateLimits: {
-          // 🚀 시연용 최대 할당량 설정 (내일 시연 전용)
-          rpm: 100, // 분당 요청 수 최대 (10 → 100)
-          daily: 10000, // 일일 요청 수 최대 (300 → 10000)
-        },
-      };
-
-      // 🚀 대화용 Google AI 활성화 (학습은 하루 1회 제한)
-      const isKeyAvailable = isGoogleAIAvailable();
-
-      if (apiKey && apiKey.trim() !== '' && isKeyAvailable) {
-        this.config.enabled = true;
-        console.log('🚀 Google AI 대화용 활성화 - 학습은 하루 1회 제한');
-      } else {
-        console.log(
-          `⚠️ Google AI 비활성화: apiKey=${!!apiKey}, keyAvailable=${isKeyAvailable}`
-        );
-      }
-
-      // 이후 실제 레이트 리밋 설정
-      this.config.rateLimits.rpm = this.getRateLimit('rpm');
-      this.config.rateLimits.daily = this.getRateLimit('daily');
-    } catch (error) {
-      console.error('❌ GoogleAIService 생성자 오류:', error);
-      // 🚨 생성자에서 예외 발생 시 안전한 기본값 설정
-      this.config = {
-        apiKey: '',
-        model: 'gemini-1.5-flash',
-        enabled: false,
-        rateLimits: { rpm: 100, daily: 10000 },
-      };
+    if (this.config.apiKey && this.config.apiKey.trim() !== '' && isKeyAvailable) {
+      this.config.enabled = true;
+      console.log('🚀 Google AI 대화용 활성화 - 학습은 하루 1회 제한');
+    } else {
+      console.log(
+        `⚠️ Google AI 비활성화: apiKey=${!!this.config.apiKey}, keyAvailable=${isKeyAvailable}`
+      );
     }
+
+    // 이후 실제 레이트 리밋 설정
+    this.config.rateLimits.rpm = this.getRateLimit('rpm');
+    this.config.rateLimits.daily = this.getRateLimit('daily');
+  }
+
+  /**
+   * 🎯 싱글톤 인스턴스 가져오기 (할당량 중앙 관리)
+   */
+  public static getInstance(): GoogleAIService {
+    if (!GoogleAIService.instance) {
+      GoogleAIService.instance = new GoogleAIService();
+      console.log('🤖 Google AI Service 싱글톤 인스턴스 생성됨');
+    }
+    return GoogleAIService.instance;
+  }
+
+  /**
+   * 🔧 레거시 호환성을 위한 정적 팩토리 메서드
+   * @deprecated getInstance()를 사용하세요
+   */
+  public static create(): GoogleAIService {
+    console.warn('⚠️ GoogleAIService.create()는 deprecated입니다. getInstance()를 사용하세요.');
+    return GoogleAIService.getInstance();
   }
 
   /**
@@ -459,8 +460,8 @@ export class GoogleAIService {
 서버 모니터링 데이터를 분석해주세요:
 
 ${metrics
-  .map(
-    server => `
+        .map(
+          server => `
 서버: ${server.name}
 CPU: ${server.cpu_usage}%
 메모리: ${server.memory_usage}%
@@ -468,8 +469,8 @@ CPU: ${server.cpu_usage}%
 응답시간: ${server.response_time}ms
 상태: ${server.status}
 `
-  )
-  .join('\n')}
+        )
+        .join('\n')}
 
 다음 관점에서 분석해주세요:
 1. 현재 시스템 상태 요약

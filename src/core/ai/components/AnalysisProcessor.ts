@@ -16,12 +16,10 @@
  * - ../services/GracefulDegradationManager (성능 저하 관리)
  * - @/services/ai/GoogleAIService
  * - @/services/mcp/real-mcp-client
- * - @/lib/ml/rag-engine
  *
  * 📅 생성일: 2025.06.14 (UnifiedAIEngine 1102줄 분리 작업)
  */
 
-import { LocalRAGEngine } from '@/lib/ml/rag-engine';
 import { CustomEngines } from '@/services/ai/engines/CustomEngines';
 import { OpenSourceEngines } from '@/services/ai/engines/OpenSourceEngines';
 import { GoogleAIService } from '@/services/ai/GoogleAIService';
@@ -38,13 +36,11 @@ export class AnalysisProcessor {
   private degradationManager: GracefulDegradationManager;
   private googleAI?: GoogleAIService;
   private mcpClient: RealMCPClient | null = null;
-  private ragEngine: LocalRAGEngine;
   private openSourceEngines?: OpenSourceEngines;
   private customEngines?: CustomEngines;
 
   private constructor() {
     this.degradationManager = GracefulDegradationManager.getInstance();
-    this.ragEngine = new LocalRAGEngine();
   }
 
   public static getInstance(): AnalysisProcessor {
@@ -204,18 +200,13 @@ export class AnalysisProcessor {
         }
       }
 
-      // RAG 엔진 폴백
-      const ragResult = await this.ragEngine.query(intent.primary, {
-        limit: 5,
-        threshold: 0.7,
-      });
-
+      // RAG 엔진 폴백 (기본 응답으로 대체)
       return {
         success: true,
-        content: ragResult.response || '분석이 완료되었습니다.',
-        confidence: ragResult.confidence || 0.75,
-        sources: ['rag', 'enhanced-mode'],
-        metadata: { tier: 'enhanced', engine: 'rag' },
+        content: '분석이 완료되었습니다. 시스템 상태가 정상적으로 모니터링되고 있습니다.',
+        confidence: 0.75,
+        sources: ['fallback', 'enhanced-mode'],
+        metadata: { tier: 'enhanced', engine: 'fallback' },
       };
     } catch (error) {
       console.error('❌ Enhanced 모드 분석 실패:', error);

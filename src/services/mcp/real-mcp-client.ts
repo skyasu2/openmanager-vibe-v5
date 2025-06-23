@@ -62,6 +62,8 @@ interface MCPSearchResult {
 }
 
 export class RealMCPClient {
+  private static instance: RealMCPClient | null = null;
+
   private servers: Map<string, MCPServerConfig> = new Map();
   private clients: Map<string, MCPClient> = new Map();
   private processes: Map<string, ChildProcess> = new Map();
@@ -75,9 +77,20 @@ export class RealMCPClient {
     lastOptimized: Date.now(),
   };
 
-  constructor() {
+  private constructor() {
     this.initializeServers();
     this.startPerformanceMonitoring();
+  }
+
+  /**
+   * 🎯 싱글톤 인스턴스 반환 (Render MCP 서버 전용)
+   */
+  public static getInstance(): RealMCPClient {
+    if (!RealMCPClient.instance) {
+      RealMCPClient.instance = new RealMCPClient();
+      console.log('🎯 RealMCPClient 싱글톤 인스턴스 생성 (Render 서버 전용)');
+    }
+    return RealMCPClient.instance;
   }
 
   /**
@@ -1112,5 +1125,5 @@ export class RealMCPClient {
   }
 }
 
-// 싱글톤 인스턴스
-export const realMCPClient = new RealMCPClient();
+// 🎯 싱글톤 인스턴스 (getInstance() 메서드 사용)
+export const realMCPClient = RealMCPClient.getInstance();

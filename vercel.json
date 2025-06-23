@@ -24,7 +24,7 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=60, s-maxage=300"
+          "value": "public, max-age=300, s-maxage=600"
         }
       ]
     }
@@ -52,19 +52,24 @@
   ],
   "cleanUrls": true,
   "trailingSlash": false,
-  "crons": [],
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "framework": "nextjs",
   "env": {
     "DISABLE_LOCAL_RAG": "true",
     "PREFER_SUPABASE_RAG": "true",
-    "AI_ENGINE_PRIORITY": "supabase_rag,rule_based,mcp,google_ai"
+    "AI_ENGINE_PRIORITY": "supabase_rag,rule_based,mcp,google_ai",
+    "VERCEL_HEALTH_OPTIMIZATION": "true",
+    "HEALTH_CHECK_CACHE_HOURS": "6",
+    "DISABLE_EXCESSIVE_HEALTH_CHECKS": "true",
+    "DISABLE_CRON_JOBS": "true"
   },
   "build": {
     "env": {
       "NODE_ENV": "production",
-      "DISABLE_LOCAL_RAG": "true"
+      "DISABLE_LOCAL_RAG": "true",
+      "VERCEL_HEALTH_OPTIMIZATION": "true",
+      "DISABLE_CRON_JOBS": "true"
     }
   }
 }

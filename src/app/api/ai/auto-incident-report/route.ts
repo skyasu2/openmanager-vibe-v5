@@ -6,10 +6,10 @@
  * GET: 장애 감지 시스템 상태 조회
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { AutoIncidentReportSystem } from '@/core/ai/systems/AutoIncidentReportSystem';
-import { IncidentDetectionEngine } from '@/core/ai/engines/IncidentDetectionEngine';
 import { SolutionDatabase } from '@/core/ai/databases/SolutionDatabase';
+import { IncidentDetectionEngine } from '@/core/ai/engines/IncidentDetectionEngine';
+import { AutoIncidentReportSystem } from '@/core/ai/systems/AutoIncidentReportSystem';
+import { NextRequest, NextResponse } from 'next/server';
 
 // 전역 인스턴스 (메모리 효율성)
 let reportSystem: AutoIncidentReportSystem | null = null;
@@ -17,12 +17,15 @@ let reportSystem: AutoIncidentReportSystem | null = null;
 /**
  * 자동 장애 보고서 시스템 초기화
  */
-function getReportSystem(): AutoIncidentReportSystem {
+function getReportSystem(mode: 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY' = 'AUTO'): AutoIncidentReportSystem {
     if (!reportSystem) {
         const detectionEngine = new IncidentDetectionEngine();
         const solutionDB = new SolutionDatabase();
-        reportSystem = new AutoIncidentReportSystem(detectionEngine, solutionDB);
-        console.log('✅ AutoIncidentReportSystem API 초기화 완료');
+        reportSystem = new AutoIncidentReportSystem(detectionEngine, solutionDB, true, mode);
+        console.log(`✅ AutoIncidentReportSystem API 초기화 완료 - 모드: ${mode}`);
+    } else {
+        // 기존 인스턴스의 모드 업데이트
+        reportSystem.setMode(mode);
     }
     return reportSystem;
 }
@@ -35,9 +38,11 @@ export async function POST(request: NextRequest) {
 
     try {
         const body = await request.json();
-        const { action, data } = body;
+        const { action, data, mode = 'AUTO' } = body; // 🎯 모드 추가
 
-        const system = getReportSystem();
+        const system = getReportSystem(mode); // 🎯 모드 전달
+
+        console.log(`🚨 [AutoIncidentReport] API 요청 - 액션: ${action}, 모드: ${mode}`);
 
         switch (action) {
             case 'detect_incident': {
@@ -277,8 +282,11 @@ export async function GET(request: NextRequest) {
     try {
         const url = new URL(request.url);
         const action = url.searchParams.get('action');
+        const mode = url.searchParams.get('mode') as 'AUTO' | 'LOCAL' | 'GOOGLE_ONLY' || 'AUTO'; // 🎯 모드 추가
 
-        const system = getReportSystem();
+        const system = getReportSystem(mode); // 🎯 모드 전달
+
+        console.log(`🚨 [AutoIncidentReport] GET 요청 - 액션: ${action}, 모드: ${mode}`);
 
         switch (action) {
             case 'status': {
