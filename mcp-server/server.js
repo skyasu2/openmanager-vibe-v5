@@ -15,9 +15,9 @@ import {
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import fs from 'fs/promises';
-import http from 'http';
-import path from 'path';
+import fs from 'node:fs/promises';
+import http from 'node:http';
+import path from 'node:path';
 
 // 🌐 Render 배포를 위한 HTTP 서버 설정
 const PORT = process.env.PORT || 10000;
