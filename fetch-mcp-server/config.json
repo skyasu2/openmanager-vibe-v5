@@ -1,0 +1,29 @@
+{
+  "server": {
+    "host": "localhost",
+    "port": 3001,
+    "cors": {
+      "origin": [
+        "http://localhost:3000",
+        "https://openmanager-vibe-v5.vercel.app"
+      ],
+      "methods": ["GET", "POST", "OPTIONS"],
+      "allowedHeaders": ["Content-Type", "Authorization"]
+    }
+  },
+  "fetch": {
+    "timeout": 30000,
+    "maxRetries": 3,
+    "userAgent": "OpenManager-Vibe-FetchMCP/1.0",
+    "allowedDomains": ["*"],
+    "rateLimit": {
+      "windowMs": 60000,
+      "maxRequests": 100
+    }
+  },
+  "security": {
+    "validateSSL": true,
+    "blockPrivateIPs": true,
+    "maxContentLength": "10MB"
+  }
+}
