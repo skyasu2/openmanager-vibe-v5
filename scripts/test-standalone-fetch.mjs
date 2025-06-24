@@ -256,17 +256,15 @@ class StandaloneFetchTester {
 }
 
 // 스크립트 실행
-if (import.meta.url === `file://${process.argv[1]}`) {
-    const tester = new StandaloneFetchTester();
+const tester = new StandaloneFetchTester();
 
-    // 명령줄 인수 처리
-    if (process.argv.includes('--vercel')) {
-        tester.baseURL = 'https://openmanager-vibe-v5.vercel.app';
-    } else if (process.argv.includes('--vercel-new')) {
-        tester.baseURL = 'https://openmanager-vibe-v5-9olwn7twp-skyasus-projects.vercel.app';
-    }
-
-    tester.runAllTests().catch(console.error);
+// 명령줄 인수 처리
+if (process.argv.includes('--vercel')) {
+    tester.baseURL = 'https://openmanager-vibe-v5.vercel.app';
+} else if (process.argv.includes('--vercel-new')) {
+    tester.baseURL = 'https://openmanager-vibe-v5-9olwn7twp-skyasus-projects.vercel.app';
 }
+
+tester.runAllTests().catch(console.error);
 
 export default StandaloneFetchTester; 
