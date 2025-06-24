@@ -21,6 +21,15 @@ if (existsSync(envPath)) {
     console.log('🔧 .env.local 파일 수동 로딩 완료');
 }
 
+// 자동 환경변수 복호화 시스템 동기 로딩
+try {
+    console.log('🔐 Next.js 시작 시 환경변수 자동 복호화...');
+    require('./src/lib/environment/auto-decrypt-env.ts');
+    console.log('✅ 환경변수 자동 복호화 시스템 로드됨');
+} catch (error) {
+    console.warn('⚠️ 환경변수 자동 복호화 실패:', error.message);
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     // 🚫 빌드 시점 강제 환경변수 설정

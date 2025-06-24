@@ -7,6 +7,7 @@
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import autoDecryptEnv from '../environment/auto-decrypt-env';
 import { koreanMorphologyAnalyzer } from './korean-morphology-analyzer';
 
 interface VectorDocument {
@@ -494,6 +495,13 @@ export class SupabaseRAGEngine {
    * Supabase 클라이언트 생성 (암호화된 환경변수 활용)
    */
   private createSupabaseClient() {
+    // 자동 복호화 시스템을 통한 환경변수 복구 시도
+    try {
+      autoDecryptEnv.forceRestoreAll();
+    } catch (error) {
+      console.warn('⚠️ 자동 복호화 시스템 사용 실패:', error);
+    }
+
     // 1차 점검: 표준 환경변수
     let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     let supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -518,7 +526,7 @@ export class SupabaseRAGEngine {
     }
 
     this.supabase = createClient(supabaseUrl, supabaseKey);
-    console.log('✅ Supabase 클라이언트 생성 완료 (암호화된 설정 활용)');
+    console.log('✅ Supabase 클라이언트 생성 완료 (자동 복호화 시스템 활용)');
   }
 
   /**
