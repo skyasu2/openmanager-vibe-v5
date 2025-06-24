@@ -99,8 +99,8 @@ export default function ServerDashboard({
       <div className='mt-6'>
         {activeTab === 'servers' && (
           <div className='space-y-4'>
-            {/* 심각→주의→정상 순으로 일렬 정렬된 서버 카드들 */}
-            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6'>
+            {/* 🎯 15개 서버 최적화 그리드 레이아웃 */}
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6'>
               {sortedServers.map((server, index) => (
                 <EnhancedServerCard
                   key={server.id}

@@ -55,7 +55,7 @@ export function calculateServerConfig(
 
   // 페이지네이션 설정 (서버 개수에 따라 조정)
   const defaultPageSize =
-    serverCount <= 10 ? serverCount : Math.min(10, Math.ceil(serverCount / 2));
+    serverCount <= 15 ? serverCount : Math.min(12, Math.ceil(serverCount / 2));
   const maxPageSize = Math.min(50, serverCount);
 
   // 성능 설정 (서버 개수에 따라 조정)

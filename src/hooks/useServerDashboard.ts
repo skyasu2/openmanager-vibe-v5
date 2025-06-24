@@ -1,6 +1,7 @@
 'use client';
 
 import { UNIFIED_FALLBACK_SERVERS } from '@/config/fallback-data';
+import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
 import { useServerMetrics } from '@/hooks/useServerMetrics';
 import { useServerDataStore } from '@/stores/serverDataStore';
 import { Server } from '@/types/server';
@@ -35,9 +36,29 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   // Zustand 스토어에서 서버 데이터 가져오기
   const { servers, isLoading, error, fetchServers } = useServerDataStore();
 
-  // 페이지네이션 상태
+  // 페이지네이션 상태 - 설정 기반으로 동적 조정
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 8; // 8개로 변경하여 페이지네이션 제공
+
+  // 🎯 서버 설정에 따른 동적 페이지 크기 설정
+  const ITEMS_PER_PAGE = useMemo(() => {
+    const totalServers = ACTIVE_SERVER_CONFIG.maxServers;
+
+    console.log('🎯 페이지네이션 설정:', {
+      totalServers,
+      maxServers: ACTIVE_SERVER_CONFIG.maxServers,
+      defaultPageSize: ACTIVE_SERVER_CONFIG.pagination.defaultPageSize,
+    });
+
+    // 15개 이하면 모두 표시, 그 이상이면 페이지네이션
+    if (totalServers <= 15) {
+      console.log('✅ 15개 이하 서버: 모든 서버 표시');
+      return totalServers; // 모든 서버 표시
+    }
+
+    // 15개 초과 시 설정된 페이지 크기 사용
+    console.log('📄 15개 초과 서버: 페이지네이션 적용');
+    return ACTIVE_SERVER_CONFIG.pagination.defaultPageSize;
+  }, []);
 
   // 선택된 서버 상태
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
@@ -120,8 +141,20 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const paginatedServers = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
-    return actualServers.slice(startIndex, endIndex);
-  }, [actualServers, currentPage]);
+    const result = actualServers.slice(startIndex, endIndex);
+
+    console.log('📊 페이지네이션 결과:', {
+      totalServers: actualServers.length,
+      itemsPerPage: ITEMS_PER_PAGE,
+      currentPage,
+      startIndex,
+      endIndex,
+      paginatedCount: result.length,
+      totalPages: Math.ceil(actualServers.length / ITEMS_PER_PAGE),
+    });
+
+    return result;
+  }, [actualServers, currentPage, ITEMS_PER_PAGE]);
 
   // 총 페이지 수 계산
   const totalPages = Math.ceil(actualServers.length / ITEMS_PER_PAGE);

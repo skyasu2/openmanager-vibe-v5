@@ -1,17 +1,16 @@
 'use client';
 
-import React from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Search,
+  ChevronLeft,
+  ChevronRight,
   Filter,
   LayoutGrid,
   List,
-  ChevronLeft,
-  ChevronRight,
+  Search,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Server } from '../../../types/server';
 import { ViewMode } from '../../../hooks/useServerDashboard';
+import { Server } from '../../../types/server';
 import ServerCard from '../ServerCard';
 
 interface ServerDashboardServersProps {
@@ -242,7 +241,7 @@ export function ServerDashboardServers({
               transition={{ duration: 0.2 }}
               className={
                 viewMode === 'grid'
-                  ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
+                  ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4'
                   : 'space-y-4'
               }
             >
