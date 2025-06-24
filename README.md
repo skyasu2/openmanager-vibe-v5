@@ -434,31 +434,43 @@ node development/scripts/analysis/find-unused-files.js
 - **⚡ 최적화된 헬스체크**: 과도한 요청 방지 시스템
 - **🏗️ 확장 가능한 아키텍처**: 모듈화된 설계
 
-## 🔧 **MCP 서버 구성**
+## 🔧 **Anthropic 권장 순수 공식 MCP 파일시스템 서버**
 
-### 📋 **표준 MCP 서버 (권장)**
+### 📋 **표준 MCP 서버 구성**
 
 ```json
 {
   "mcpServers": {
     "filesystem": {
-      "command": "npx",
-      "args": ["@modelcontextprotocol/server-filesystem", "./src", "./docs"]
-    },
-    "github": {
-      "command": "npx",
-      "args": ["@modelcontextprotocol/server-github"]
+      "command": "node",
+      "args": ["mcp-server/server.js"],
+      "env": {
+        "NODE_ENV": "production"
+      }
     }
   }
 }
 ```
 
-### 🛡️ **헬스체크 최적화**
+### ✅ **핵심 특징**
 
-- **워밍업 빈도**: 15분 간격 (과도한 요청 방지)
-- **체크 대상**: 메인 서버 1개만 체크
-- **요청 방식**: HEAD 메서드 (데이터 전송량 최소화)
-- **타임아웃**: 8초 (안정성 향상)
+- **순수 표준 MCP**: 커스텀 기능 0개, 표준 프로토콜 100% 준수
+- **보안 강화**: 허용된 디렉토리만 접근 가능 (src, docs, config, mcp-server)
+- **stdio 전송만 지원**: HTTP 엔드포인트 완전 제거
+- **Anthropic SDK 사용**: `@modelcontextprotocol/sdk` 표준 구조
+
+### 📋 **표준 MCP 도구**
+
+- `read_file`: 파일 내용 읽기
+- `list_directory`: 디렉토리 목록 조회
+- `get_file_info`: 파일 정보 조회
+- `search_files`: 파일 검색
+
+### 📚 **표준 MCP 리소스**
+
+- `file://project-root`: 프로젝트 루트 구조
+- `file://src-structure`: 소스 코드 구조
+- `file://docs-structure`: 문서 구조
 
 ## 📈 **성능 최적화**
 
@@ -469,19 +481,12 @@ node development/scripts/analysis/find-unused-files.js
 - **메모리 사용량**: 256MB 제한
 - **환경별 초기화**: 빌드/개발/프로덕션 분리
 
-### 🔄 **MCP 서버 최적화**
-
-- **표준 서버 사용**: @modelcontextprotocol 공식 패키지
-- **메모리 제한**: 256MB per 서버
-- **과도한 헬스체크 방지**: 15분 간격 워밍업
-- **환경별 분리**: 개발/프로덕션 설정 분리
-
 ### ⚡ **시스템 최적화**
 
 - **조건부 초기화**: 빌드 시 불필요한 초기화 건너뜀
 - **지연 로딩**: AI 엔진 필요시에만 로드
 - **캐시 최적화**: Redis 기반 스마트 캐싱
-- **요청 최적화**: HEAD 메서드로 데이터 전송량 최소화
+- **안전한 파일 접근**: 경로 보안 검증 및 권한 검사
 
 ## 🔧 **환경 설정**
 
@@ -490,15 +495,12 @@ node development/scripts/analysis/find-unused-files.js
 ```bash
 # MCP 서버 설정
 RENDER_MCP_SERVER_URL=https://openmanager-vibe-v5.onrender.com
-MCP_WARMUP_INTERVAL=15  # 15분 간격
+MCP_FILESYSTEM_ROOT=/app
+MCP_ALLOWED_DIRECTORIES=src,docs,config,mcp-server
 
-# 과도한 헬스체크 방지
-MCP_HEALTH_CHECK_TIMEOUT=8000  # 8초
-MCP_MAX_CONCURRENT_CHECKS=1    # 1개 서버만 체크
-
-# 표준 MCP 서버 설정
-MCP_STANDARD_SERVERS_ONLY=true
-MCP_MEMORY_LIMIT=256  # 256MB 제한
+# Render 배포 환경
+NODE_ENV=production
+PORT=10000
 ```
 
 ## 🔧 원상복구 가이드
