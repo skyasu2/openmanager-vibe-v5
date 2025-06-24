@@ -85,7 +85,7 @@ export class SupabaseRAGEngine {
   }
 
   /**
-   * 🔗 MCP 파일시스템 서버에서 컨텍스트 조회
+   * 🔗 공식 MCP 파일시스템 서버에서 컨텍스트 조회 (Anthropic 권장 방식)
    */
   private async queryMCPFileSystem(
     query: string
@@ -105,30 +105,24 @@ export class SupabaseRAGEngine {
 
       this.stats.mcpQueries++;
 
-      // 1. 시스템 컨텍스트 조회
-      const systemContextResponse = await fetch(
-        `${this.mcpServerUrl}/api/mcp/tools`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            tool: 'get_system_context',
-            arguments: {
-              includeMetrics: true,
-              includeLogs: false,
-            },
-          }),
-        }
-      );
+      // 🗂️ 표준 MCP 파일시스템 서버와 통신
+      // Render에서 실행되는 순수 공식 MCP 서버 사용
+      const mcpServerUrl = 'https://openmanager-vibe-v5.onrender.com';
 
+      // 1. 프로젝트 루트 구조 조회 (표준 MCP 리소스)
       let systemContext = null;
-      if (systemContextResponse.ok) {
-        systemContext = await systemContextResponse.json();
+      try {
+        const rootResponse = await fetch(
+          `${mcpServerUrl}/mcp/resources/file://project-root`
+        );
+        if (rootResponse.ok) {
+          systemContext = await rootResponse.json();
+        }
+      } catch (error) {
+        console.warn('MCP 프로젝트 루트 조회 실패:', error);
       }
 
-      // 2. 쿼리 관련 파일 검색
+      // 2. 쿼리 관련 파일 검색 (표준 MCP 도구 사용)
       const relevantPaths = this.extractRelevantPaths(query);
       const files: Array<{
         path: string;
@@ -138,65 +132,126 @@ export class SupabaseRAGEngine {
 
       for (const filePath of relevantPaths) {
         try {
-          // 파일 내용 읽기
+          // 표준 MCP read_file 도구 사용
           const fileResponse = await fetch(
-            `${this.mcpServerUrl}/api/mcp/tools`,
+            `${mcpServerUrl}/mcp/tools/read_file`,
             {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                tool: 'read_file',
-                arguments: {
-                  path: filePath,
-                },
+                path: filePath,
               }),
             }
           );
 
           if (fileResponse.ok) {
             const fileData = await fileResponse.json();
-            files.push({
-              path: filePath,
-              content: fileData.content || '',
-              type: 'file',
-            });
+
+            // MCP 응답 형식에서 실제 내용 추출
+            let content = '';
+            if (fileData.content && Array.isArray(fileData.content)) {
+              content = fileData.content
+                .filter(item => item.type === 'text')
+                .map(item => item.text)
+                .join('\n');
+            }
+
+            if (content.trim()) {
+              files.push({
+                path: filePath,
+                content,
+                type: 'file',
+              });
+            }
           }
         } catch (error) {
           console.warn(`MCP 파일 읽기 실패: ${filePath}`, error);
         }
       }
 
-      // 3. 디렉토리 구조 조회 (필요시)
+      // 3. 디렉토리 구조 조회 (필요시, 표준 MCP 도구 사용)
       if (this.shouldQueryDirectoryStructure(query)) {
         try {
           const dirResponse = await fetch(
-            `${this.mcpServerUrl}/api/mcp/tools`,
+            `${mcpServerUrl}/mcp/tools/list_directory`,
             {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                tool: 'list_directory',
-                arguments: {
-                  path: './src',
-                },
+                path: './src',
               }),
             }
           );
 
           if (dirResponse.ok) {
             const dirData = await dirResponse.json();
-            files.push({
-              path: './src',
-              content: JSON.stringify(dirData, null, 2),
-              type: 'directory',
-            });
+
+            // MCP 응답 형식에서 실제 내용 추출
+            let dirContent = '';
+            if (dirData.content && Array.isArray(dirData.content)) {
+              dirContent = dirData.content
+                .filter(item => item.type === 'text')
+                .map(item => item.text)
+                .join('\n');
+            }
+
+            if (dirContent.trim()) {
+              files.push({
+                path: './src',
+                content: dirContent,
+                type: 'directory',
+              });
+            }
           }
         } catch (error) {
           console.warn('MCP 디렉토리 조회 실패:', error);
+        }
+      }
+
+      // 4. 파일 검색 기능 사용 (표준 MCP search_files 도구)
+      if (this.shouldUseFileSearch(query)) {
+        try {
+          const searchPattern = this.extractSearchPattern(query);
+          const searchResponse = await fetch(
+            `${mcpServerUrl}/mcp/tools/search_files`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                pattern: searchPattern,
+                directory: './src',
+              }),
+            }
+          );
+
+          if (searchResponse.ok) {
+            const searchData = await searchResponse.json();
+
+            // 검색 결과를 컨텍스트에 추가
+            let searchContent = '';
+            if (searchData.content && Array.isArray(searchData.content)) {
+              searchContent = searchData.content
+                .filter(item => item.type === 'text')
+                .map(item => item.text)
+                .join('\n');
+            }
+
+            if (searchContent.trim()) {
+              files.push({
+                path: `search:${searchPattern}`,
+                content: searchContent,
+                type: 'directory',
+              });
+            }
+          }
+        } catch (error) {
+          console.warn('MCP 파일 검색 실패:', error);
         }
       }
 
@@ -212,11 +267,68 @@ export class SupabaseRAGEngine {
         timestamp: Date.now(),
       });
 
+      console.log(
+        `🗂️ 공식 MCP 파일시스템 서버 조회 완료: ${files.length}개 파일`
+      );
       return mcpContext;
     } catch (error) {
-      console.error('MCP 파일시스템 조회 실패:', error);
+      console.error('공식 MCP 파일시스템 서버 조회 실패:', error);
       return null;
     }
+  }
+
+  /**
+   * 🔍 파일 검색 사용 여부 판단
+   */
+  private shouldUseFileSearch(query: string): boolean {
+    const searchKeywords = [
+      '검색',
+      '찾기',
+      '찾아',
+      'search',
+      'find',
+      '어디',
+      'where',
+      '위치',
+      'location',
+    ];
+
+    return searchKeywords.some(keyword =>
+      query.toLowerCase().includes(keyword)
+    );
+  }
+
+  /**
+   * 🎯 검색 패턴 추출
+   */
+  private extractSearchPattern(query: string): string {
+    const lowerQuery = query.toLowerCase();
+
+    // 파일 확장자 패턴
+    const extMatches = lowerQuery.match(/\.(ts|tsx|js|jsx|json|md|env)/);
+    if (extMatches) {
+      return `*.${extMatches[1]}`;
+    }
+
+    // 키워드 기반 패턴
+    if (lowerQuery.includes('컴포넌트') || lowerQuery.includes('component')) {
+      return '*component*';
+    }
+    if (lowerQuery.includes('서비스') || lowerQuery.includes('service')) {
+      return '*service*';
+    }
+    if (lowerQuery.includes('api')) {
+      return '*api*';
+    }
+    if (lowerQuery.includes('타입') || lowerQuery.includes('type')) {
+      return '*type*';
+    }
+    if (lowerQuery.includes('mcp')) {
+      return '*mcp*';
+    }
+
+    // 기본 패턴
+    return '*';
   }
 
   /**
