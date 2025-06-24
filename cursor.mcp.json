@@ -20,12 +20,20 @@
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-fetch"]
     },
-    "openmanager-vibe": {
+    "openmanager-dev": {
       "command": "npx",
       "args": [
         "-y",
         "@modelcontextprotocol/server-fetch",
         "http://localhost:3000/api/mcp"
+      ]
+    },
+    "openmanager-production": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-fetch",
+        "https://openmanager-vibe-v5.vercel.app/api/mcp"
       ]
     }
   }
