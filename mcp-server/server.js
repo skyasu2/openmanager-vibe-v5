@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 /**
  * 🗂️ 공식 MCP 파일시스템 서버 (Anthropic 권장 방식)
  * @modelcontextprotocol/server-filesystem 패키지 사용
@@ -202,49 +204,46 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
       }
 
       case 'list_directory': {
-        const { path: dirPath } = args;
+        const { path: dirPath = '.' } = args;
         const entries = await safeListDirectory(dirPath);
+
+        const directoryList = entries
+          .map(
+            entry => `${entry.type === 'directory' ? '📁' : '📄'} ${entry.name}`
+          )
+          .join('\n');
 
         return {
           content: [
             {
               type: 'text',
-              text: JSON.stringify(
-                {
-                  directory: dirPath,
-                  entries,
-                  count: entries.length,
-                },
-                null,
-                2
-              ),
+              text: `디렉토리: ${dirPath}\n\n${directoryList}`,
             },
           ],
         };
       }
 
       case 'get_file_info': {
-        const { path: filePath } = args;
+        const { path: targetPath } = args;
 
-        if (!isPathAllowed(filePath)) {
-          throw new Error(`접근이 허용되지 않은 경로입니다: ${filePath}`);
+        if (!isPathAllowed(targetPath)) {
+          throw new Error(`접근이 허용되지 않은 경로입니다: ${targetPath}`);
         }
 
-        const stats = await fs.stat(filePath);
+        const stats = await fs.stat(targetPath);
         const info = {
-          path: filePath,
+          path: targetPath,
           type: stats.isDirectory() ? 'directory' : 'file',
           size: stats.size,
           modified: stats.mtime.toISOString(),
           created: stats.birthtime.toISOString(),
-          permissions: stats.mode.toString(8),
         };
 
         return {
           content: [
             {
               type: 'text',
-              text: JSON.stringify(info, null, 2),
+              text: `파일 정보: ${targetPath}\n\n${JSON.stringify(info, null, 2)}`,
             },
           ],
         };
@@ -257,44 +256,46 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
           throw new Error(`접근이 허용되지 않은 경로입니다: ${directory}`);
         }
 
-        const searchResults = [];
+        const results = [];
 
         async function searchRecursive(dir) {
-          const entries = await fs.readdir(dir, { withFileTypes: true });
+          try {
+            const entries = await fs.readdir(dir, { withFileTypes: true });
 
-          for (const entry of entries) {
-            const fullPath = path.join(dir, entry.name);
+            for (const entry of entries) {
+              const fullPath = path.join(dir, entry.name);
 
-            if (entry.name.includes(pattern)) {
-              searchResults.push({
-                name: entry.name,
-                path: fullPath,
-                type: entry.isDirectory() ? 'directory' : 'file',
-              });
+              if (entry.name.includes(pattern)) {
+                results.push({
+                  name: entry.name,
+                  path: fullPath,
+                  type: entry.isDirectory() ? 'directory' : 'file',
+                });
+              }
+
+              if (entry.isDirectory() && results.length < 50) {
+                await searchRecursive(fullPath);
+              }
             }
-
-            if (entry.isDirectory() && isPathAllowed(fullPath)) {
-              await searchRecursive(fullPath);
-            }
+          } catch {
+            // 권한 오류 등은 무시하고 계속 진행
           }
         }
 
         await searchRecursive(directory);
 
+        const searchResults = results
+          .map(
+            result =>
+              `${result.type === 'directory' ? '📁' : '📄'} ${result.name} (${result.path})`
+          )
+          .join('\n');
+
         return {
           content: [
             {
               type: 'text',
-              text: JSON.stringify(
-                {
-                  pattern,
-                  directory,
-                  results: searchResults,
-                  count: searchResults.length,
-                },
-                null,
-                2
-              ),
+              text: `검색 결과: "${pattern}" in ${directory}\n\n${searchResults || '검색 결과가 없습니다.'}`,
             },
           ],
         };
@@ -304,17 +305,8 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         throw new Error(`지원되지 않는 도구: ${name}`);
     }
   } catch (error) {
-    log('error', `도구 실행 오류: ${name}`, { error: error.message });
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `오류: ${error.message}`,
-        },
-      ],
-      isError: true,
-    };
+    log('error', `MCP 도구 실행 오류: ${name}`, { error: error.message });
+    throw error;
   }
 });
 
@@ -324,20 +316,20 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => {
     resources: [
       {
         uri: 'file://project-root',
-        name: '프로젝트 루트',
-        description: '프로젝트 루트 디렉토리 구조',
+        name: '프로젝트 루트 구조',
+        description: '프로젝트의 루트 디렉토리 구조',
         mimeType: 'application/json',
       },
       {
         uri: 'file://src-structure',
-        name: 'src 디렉토리 구조',
-        description: '소스 코드 디렉토리 구조',
+        name: '소스 코드 구조',
+        description: 'src 디렉토리의 구조와 주요 파일들',
         mimeType: 'application/json',
       },
       {
         uri: 'file://docs-structure',
-        name: '문서 디렉토리 구조',
-        description: '문서 디렉토리 구조',
+        name: '문서 구조',
+        description: 'docs 디렉토리의 구조와 문서 파일들',
         mimeType: 'application/json',
       },
     ],
@@ -349,37 +341,12 @@ server.setRequestHandler(ReadResourceRequestSchema, async request => {
   const { uri } = request.params;
 
   try {
+    log('info', `MCP 리소스 읽기: ${uri}`);
+
     switch (uri) {
       case 'file://project-root': {
-        const entries = await safeListDirectory('.');
-        return {
-          contents: [
-            {
-              uri,
-              mimeType: 'application/json',
-              text: JSON.stringify(
-                {
-                  directory: '.',
-                  entries,
-                  timestamp: new Date().toISOString(),
-                },
-                null,
-                2
-              ),
-            },
-          ],
-        };
-      }
-
-      case 'file://src-structure': {
-        const srcPath = './src';
-        if (
-          await fs
-            .access(srcPath)
-            .then(() => true)
-            .catch(() => false)
-        ) {
-          const entries = await safeListDirectory(srcPath);
+        try {
+          const rootEntries = await safeListDirectory('.');
           return {
             contents: [
               {
@@ -387,8 +354,9 @@ server.setRequestHandler(ReadResourceRequestSchema, async request => {
                 mimeType: 'application/json',
                 text: JSON.stringify(
                   {
-                    directory: srcPath,
-                    entries,
+                    name: '프로젝트 루트',
+                    path: '.',
+                    entries: rootEntries,
                     timestamp: new Date().toISOString(),
                   },
                   null,
@@ -397,7 +365,50 @@ server.setRequestHandler(ReadResourceRequestSchema, async request => {
               },
             ],
           };
-        } else {
+        } catch (error) {
+          return {
+            contents: [
+              {
+                uri,
+                mimeType: 'application/json',
+                text: JSON.stringify(
+                  {
+                    error: '프로젝트 루트를 읽을 수 없습니다',
+                    message: error.message,
+                    timestamp: new Date().toISOString(),
+                  },
+                  null,
+                  2
+                ),
+              },
+            ],
+          };
+        }
+      }
+
+      case 'file://src-structure': {
+        try {
+          const srcPath = path.join(process.cwd(), 'src');
+          const srcEntries = await safeListDirectory(srcPath);
+          return {
+            contents: [
+              {
+                uri,
+                mimeType: 'application/json',
+                text: JSON.stringify(
+                  {
+                    name: '소스 코드 구조',
+                    path: srcPath,
+                    entries: srcEntries,
+                    timestamp: new Date().toISOString(),
+                  },
+                  null,
+                  2
+                ),
+              },
+            ],
+          };
+        } catch (error) {
           return {
             contents: [
               {
@@ -406,6 +417,7 @@ server.setRequestHandler(ReadResourceRequestSchema, async request => {
                 text: JSON.stringify(
                   {
                     error: 'src 디렉토리를 찾을 수 없습니다',
+                    message: error.message,
                     timestamp: new Date().toISOString(),
                   },
                   null,
@@ -418,14 +430,9 @@ server.setRequestHandler(ReadResourceRequestSchema, async request => {
       }
 
       case 'file://docs-structure': {
-        const docsPath = './docs';
-        if (
-          await fs
-            .access(docsPath)
-            .then(() => true)
-            .catch(() => false)
-        ) {
-          const entries = await safeListDirectory(docsPath);
+        try {
+          const docsPath = path.join(process.cwd(), 'docs');
+          const docsEntries = await safeListDirectory(docsPath);
           return {
             contents: [
               {
@@ -433,8 +440,9 @@ server.setRequestHandler(ReadResourceRequestSchema, async request => {
                 mimeType: 'application/json',
                 text: JSON.stringify(
                   {
-                    directory: docsPath,
-                    entries,
+                    name: '문서 구조',
+                    path: docsPath,
+                    entries: docsEntries,
                     timestamp: new Date().toISOString(),
                   },
                   null,
@@ -443,7 +451,7 @@ server.setRequestHandler(ReadResourceRequestSchema, async request => {
               },
             ],
           };
-        } else {
+        } catch (error) {
           return {
             contents: [
               {
@@ -511,6 +519,157 @@ function createHealthCheckServer() {
       return;
     }
 
+    // MCP 도구 HTTP API 엔드포인트
+    if (method === 'POST' && url.startsWith('/mcp/tools/')) {
+      const toolName = url.replace('/mcp/tools/', '');
+
+      let body = '';
+      req.on('data', chunk => {
+        body += chunk.toString();
+      });
+
+      req.on('end', async () => {
+        try {
+          const args = JSON.parse(body);
+          log('info', `MCP HTTP API 호출: ${toolName}`, { args });
+
+          let result;
+
+          switch (toolName) {
+            case 'list_directory': {
+              const { path: dirPath = '.' } = args;
+              const entries = await safeListDirectory(dirPath);
+              result = {
+                tool: 'list_directory',
+                path: dirPath,
+                entries,
+                count: entries.length,
+              };
+              break;
+            }
+
+            case 'read_file': {
+              const { path: filePath } = args;
+              if (!filePath) {
+                throw new Error('파일 경로가 필요합니다');
+              }
+              const content = await safeReadFile(filePath);
+              result = {
+                tool: 'read_file',
+                path: filePath,
+                content,
+                size: content.length,
+              };
+              break;
+            }
+
+            case 'get_file_info': {
+              const { path: targetPath } = args;
+              if (!targetPath) {
+                throw new Error('경로가 필요합니다');
+              }
+
+              if (!isPathAllowed(targetPath)) {
+                throw new Error(
+                  `접근이 허용되지 않은 경로입니다: ${targetPath}`
+                );
+              }
+
+              const stats = await fs.stat(targetPath);
+              result = {
+                tool: 'get_file_info',
+                path: targetPath,
+                type: stats.isDirectory() ? 'directory' : 'file',
+                size: stats.size,
+                modified: stats.mtime.toISOString(),
+                created: stats.birthtime.toISOString(),
+              };
+              break;
+            }
+
+            case 'search_files': {
+              const { pattern, directory = '.' } = args;
+              if (!pattern) {
+                throw new Error('검색 패턴이 필요합니다');
+              }
+
+              if (!isPathAllowed(directory)) {
+                throw new Error(
+                  `접근이 허용되지 않은 경로입니다: ${directory}`
+                );
+              }
+
+              const results = [];
+
+              async function searchRecursive(dir) {
+                try {
+                  const entries = await fs.readdir(dir, {
+                    withFileTypes: true,
+                  });
+
+                  for (const entry of entries) {
+                    const fullPath = path.join(dir, entry.name);
+
+                    if (entry.name.includes(pattern)) {
+                      results.push({
+                        name: entry.name,
+                        path: fullPath,
+                        type: entry.isDirectory() ? 'directory' : 'file',
+                      });
+                    }
+
+                    if (entry.isDirectory() && results.length < 50) {
+                      await searchRecursive(fullPath);
+                    }
+                  }
+                } catch {
+                  // 권한 오류 등은 무시하고 계속 진행
+                }
+              }
+
+              await searchRecursive(directory);
+
+              result = {
+                tool: 'search_files',
+                pattern,
+                directory,
+                results,
+                count: results.length,
+              };
+              break;
+            }
+
+            default:
+              throw new Error(`지원되지 않는 MCP 도구: ${toolName}`);
+          }
+
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(
+            JSON.stringify({
+              success: true,
+              timestamp: new Date().toISOString(),
+              ...result,
+            })
+          );
+        } catch (error) {
+          log('error', `MCP HTTP API 오류: ${toolName}`, {
+            error: error.message,
+          });
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(
+            JSON.stringify({
+              success: false,
+              error: error.message,
+              tool: toolName,
+              timestamp: new Date().toISOString(),
+            })
+          );
+        }
+      });
+
+      return;
+    }
+
     if (method === 'GET' && url === '/') {
       res.writeHead(200, { 'Content-Type': 'text/html' });
       res.end(`
@@ -526,6 +685,7 @@ function createHealthCheckServer() {
             .info { background: #f3f4f6; padding: 15px; border-radius: 5px; margin: 10px 0; }
             ul { list-style-type: none; padding: 0; }
             li { background: #e5e7eb; margin: 5px 0; padding: 8px; border-radius: 3px; }
+            .api-endpoint { background: #dbeafe; border-left: 4px solid #3b82f6; }
           </style>
         </head>
         <body>
@@ -560,8 +720,19 @@ function createHealthCheckServer() {
               </ul>
             </div>
 
-            <p><strong>📝 참고:</strong> 이 서버는 표준 MCP 프로토콜을 사용하며, stdio 통신을 통해 작동합니다.</p>
-            <p><strong>🔗 Anthropic MCP 권장 방식으로 구현됨</strong></p>
+            <div class="info api-endpoint">
+              <h3>🛠️ MCP HTTP API 엔드포인트</h3>
+              <ul>
+                <li>POST /mcp/tools/list_directory - 디렉토리 목록</li>
+                <li>POST /mcp/tools/read_file - 파일 읽기</li>
+                <li>POST /mcp/tools/get_file_info - 파일 정보</li>
+                <li>POST /mcp/tools/search_files - 파일 검색</li>
+              </ul>
+              <p><strong>사용법:</strong> Content-Type: application/json으로 POST 요청</p>
+            </div>
+
+            <p><strong>📝 참고:</strong> 이 서버는 표준 MCP 프로토콜(stdio)과 HTTP API를 모두 지원합니다.</p>
+            <p><strong>🔗 Anthropic MCP 권장 방식 + HTTP API 확장</strong></p>
           </div>
         </body>
         </html>
@@ -575,7 +746,14 @@ function createHealthCheckServer() {
       JSON.stringify({
         error: 'Not Found',
         message: `경로를 찾을 수 없습니다: ${url}`,
-        availableEndpoints: ['/health', '/'],
+        availableEndpoints: [
+          '/health',
+          '/',
+          '/mcp/tools/list_directory',
+          '/mcp/tools/read_file',
+          '/mcp/tools/get_file_info',
+          '/mcp/tools/search_files',
+        ],
       })
     );
   });
@@ -603,6 +781,7 @@ async function main() {
     httpServer.listen(PORT, () => {
       log('info', `🌐 HTTP 헬스체크 서버 시작: 포트 ${PORT}`);
       log('info', `🔗 헬스체크: http://localhost:${PORT}/health`);
+      log('info', `🛠️ MCP HTTP API: http://localhost:${PORT}/mcp/tools/`);
     });
   }
 
@@ -615,6 +794,7 @@ async function main() {
 
   if (HTTP_ENABLED) {
     log('info', '🌐 HTTP 헬스체크 서버도 함께 실행 중');
+    log('info', '🛠️ MCP HTTP API 엔드포인트 활성화됨');
   }
 }
 
