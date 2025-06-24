@@ -1,10 +1,14 @@
 'use client';
 
+import { type ServerDisplayMode } from '@/config/display-config';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  BarChart3,
   ChevronLeft,
   ChevronRight,
   Filter,
+  Grid3X3,
+  Info,
   LayoutGrid,
   List,
   Search,
@@ -17,6 +21,7 @@ interface ServerDashboardServersProps {
   servers: Server[];
   paginatedServers: Server[];
   viewMode: ViewMode;
+  displayMode?: ServerDisplayMode;
   searchTerm: string;
   statusFilter: string;
   locationFilter: string;
@@ -24,7 +29,24 @@ interface ServerDashboardServersProps {
   currentPage: number;
   totalPages: number;
   isLoading: boolean;
+
+  // 🆕 UI/UX 개선 props
+  displayInfo?: {
+    totalServers: number;
+    displayedCount: number;
+    statusMessage: string;
+    paginationMessage: string;
+    modeDescription: string;
+    displayRange: string;
+  };
+  gridLayout?: {
+    className: string;
+    cols: number;
+    rows: number;
+  };
+
   onViewModeChange: (mode: ViewMode) => void;
+  onDisplayModeChange?: (mode: ServerDisplayMode) => void;
   onSearchChange: (term: string) => void;
   onStatusFilterChange: (status: string) => void;
   onLocationFilterChange: (location: string) => void;
@@ -37,6 +59,7 @@ export function ServerDashboardServers({
   servers,
   paginatedServers,
   viewMode,
+  displayMode = 'SHOW_TWO_ROWS',
   searchTerm,
   statusFilter,
   locationFilter,
@@ -44,7 +67,10 @@ export function ServerDashboardServers({
   currentPage,
   totalPages,
   isLoading,
+  displayInfo,
+  gridLayout,
   onViewModeChange,
+  onDisplayModeChange,
   onSearchChange,
   onStatusFilterChange,
   onLocationFilterChange,
@@ -52,24 +78,32 @@ export function ServerDashboardServers({
   onPageChange,
   onResetFilters,
 }: ServerDashboardServersProps) {
+  // 🎯 표시 모드 옵션
+  const displayModeOptions = [
+    { value: 'SHOW_TWO_ROWS', label: '2줄 표시', icon: Grid3X3 },
+    { value: 'SHOW_ALL', label: '전체 표시', icon: LayoutGrid },
+    { value: 'SHOW_HALF', label: '8개씩', icon: BarChart3 },
+    { value: 'SHOW_QUARTER', label: '4개씩', icon: BarChart3 },
+  ];
+
+  // 🎯 페이지네이션 렌더링
   const renderPagination = () => {
     if (totalPages <= 1) return null;
 
     const pages = [];
     const maxVisiblePages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
+    const startPage = Math.max(
+      1,
+      currentPage - Math.floor(maxVisiblePages / 2)
+    );
+    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
     }
 
     return (
-      <div className='flex items-center justify-center space-x-2 mt-8'>
+      <div className='flex items-center justify-center space-x-2 mt-6'>
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
@@ -131,6 +165,29 @@ export function ServerDashboardServers({
 
   return (
     <div className='space-y-6'>
+      {/* 🆕 표시 정보 헤더 */}
+      {displayInfo && (
+        <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-3'>
+              <Info className='text-blue-600' size={20} />
+              <div>
+                <p className='text-blue-900 font-medium'>
+                  {displayInfo.statusMessage}
+                </p>
+                <p className='text-blue-700 text-sm'>
+                  {displayInfo.modeDescription} •{' '}
+                  {displayInfo.paginationMessage}
+                </p>
+              </div>
+            </div>
+            <div className='text-blue-600 text-sm font-mono'>
+              {displayInfo.displayRange}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 검색 및 필터 */}
       <div className='flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between'>
         <div className='flex flex-col sm:flex-row gap-4 flex-1'>
@@ -198,30 +255,59 @@ export function ServerDashboardServers({
           )}
         </div>
 
-        {/* 뷰 모드 토글 */}
-        <div className='flex items-center space-x-2 bg-gray-100 rounded-lg p-1'>
-          <button
-            onClick={() => onViewModeChange('grid')}
-            className={`p-2 rounded-md transition-colors ${
-              viewMode === 'grid'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-            aria-label='그리드 뷰'
-          >
-            <LayoutGrid size={16} />
-          </button>
-          <button
-            onClick={() => onViewModeChange('list')}
-            className={`p-2 rounded-md transition-colors ${
-              viewMode === 'list'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-            aria-label='리스트 뷰'
-          >
-            <List size={16} />
-          </button>
+        {/* 컨트롤 패널 */}
+        <div className='flex items-center gap-4'>
+          {/* 🆕 표시 모드 선택 */}
+          {onDisplayModeChange && (
+            <div className='flex items-center space-x-2 bg-gray-100 rounded-lg p-1'>
+              {displayModeOptions.map(option => {
+                const IconComponent = option.icon;
+                return (
+                  <button
+                    key={option.value}
+                    onClick={() =>
+                      onDisplayModeChange(option.value as ServerDisplayMode)
+                    }
+                    className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs transition-colors ${
+                      displayMode === option.value
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                    title={option.label}
+                  >
+                    <IconComponent size={14} />
+                    <span className='hidden sm:inline'>{option.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* 뷰 모드 토글 */}
+          <div className='flex items-center space-x-2 bg-gray-100 rounded-lg p-1'>
+            <button
+              onClick={() => onViewModeChange('grid')}
+              className={`p-2 rounded-md transition-colors ${
+                viewMode === 'grid'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              aria-label='그리드 뷰'
+            >
+              <LayoutGrid size={16} />
+            </button>
+            <button
+              onClick={() => onViewModeChange('list')}
+              className={`p-2 rounded-md transition-colors ${
+                viewMode === 'list'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              aria-label='리스트 뷰'
+            >
+              <List size={16} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -234,14 +320,15 @@ export function ServerDashboardServers({
         <>
           <AnimatePresence mode='wait'>
             <motion.div
-              key={`${viewMode}-${currentPage}`}
+              key={`${viewMode}-${currentPage}-${displayMode}`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.2 }}
               className={
                 viewMode === 'grid'
-                  ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4'
+                  ? gridLayout?.className ||
+                    'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4'
                   : 'space-y-4'
               }
             >

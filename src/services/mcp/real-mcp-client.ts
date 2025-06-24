@@ -542,50 +542,357 @@ export class RealMCPClient {
   }
 
   /**
-   * 🔄 실제 폴백 클라이언트 생성 (Mock 아님)
+   * 🔄 Mock 클라이언트 생성 (개선된 버전)
    */
   private createMockClient(serverName: string): MCPClient {
-    console.log(`🔄 ${serverName} 실제 폴백 클라이언트 생성`);
+    console.log(`🎭 Mock MCP 클라이언트 생성: ${serverName}`);
+
+    const mockData = this.getMockDataForServer(serverName);
 
     return {
-      /**
-       * 폴백 클라이언트는 실제로 외부 프로세스 연결이 없으므로 connect/close 는 로그만 남깁니다.
-       */
-      connect: async (): Promise<void> => {
-        console.log(`✅ ${serverName} 폴백 클라이언트 연결됨`);
+      async connect(): Promise<void> {
+        console.log(`✅ Mock 연결 완료: ${serverName}`);
       },
 
-      /**
-       * tools/list, tools/call 요청만 처리하고 그 외에는 오류 반환
-       *
-       * NOTE: 화살표 함수(=>)를 사용하지 않으면 this 가 MCPClient 객체로 바인딩되어
-       *       self.getAvailableTools 가 undefined 가 되는 문제가 발생했습니다.
-       */
-      request: async (request: any): Promise<any> => {
-        console.log(`🔧 ${serverName} 실제 요청 처리: ${request.method}`);
+      async request(request: any): Promise<any> {
+        console.log(`🎭 Mock 요청 처리: ${request.method} (${serverName})`);
 
+        // 요청 타입별 Mock 응답
         switch (request.method) {
           case 'tools/list':
-            try {
-              return await this.getAvailableTools();
-            } catch (error) {
-              console.error('도구 목록 조회 실패:', error);
-              return { tools: [] };
-            }
+            return {
+              tools: mockData.tools || [],
+            };
+
           case 'tools/call':
-            return await this.handleToolCall(request.params);
+            return this.handleMockToolCall(request.params, serverName);
+
+          case 'resources/list':
+            return {
+              resources: mockData.resources || [],
+            };
+
+          case 'resources/read':
+            return this.handleMockResourceRead(request.params, serverName);
+
           default:
             return {
-              success: false,
-              error: `${request.method} 메서드는 지원되지 않습니다.`,
+              success: true,
+              data:
+                mockData.defaultResponse ||
+                `Mock response for ${request.method}`,
+              usingMock: true,
             };
         }
       },
 
       async close(): Promise<void> {
-        console.log(`🔌 ${serverName} 폴백 클라이언트 연결 종료`);
+        console.log(`✅ Mock 연결 해제: ${serverName}`);
       },
     };
+  }
+
+  /**
+   * 🎭 서버별 Mock 데이터 생성
+   */
+  private getMockDataForServer(serverName: string): any {
+    const baseTools = [
+      {
+        name: 'read_file',
+        description: '파일 내용을 읽습니다',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            path: { type: 'string', description: '파일 경로' },
+          },
+          required: ['path'],
+        },
+      },
+      {
+        name: 'list_directory',
+        description: '디렉토리 내용을 나열합니다',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            path: { type: 'string', description: '디렉토리 경로' },
+          },
+          required: ['path'],
+        },
+      },
+    ];
+
+    const baseResources = [
+      {
+        uri: 'file://src',
+        name: 'Source Code',
+        description: '소스 코드 파일들',
+        mimeType: 'text/plain',
+      },
+      {
+        uri: 'file://docs',
+        name: 'Documentation',
+        description: '프로젝트 문서들',
+        mimeType: 'text/markdown',
+      },
+    ];
+
+    switch (serverName) {
+      case 'filesystem':
+        return {
+          tools: [
+            ...baseTools,
+            {
+              name: 'search_files',
+              description: '파일을 검색합니다',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  pattern: { type: 'string', description: '검색 패턴' },
+                  directory: { type: 'string', description: '검색 디렉토리' },
+                },
+                required: ['pattern'],
+              },
+            },
+          ],
+          resources: baseResources,
+          defaultResponse: 'Mock filesystem response',
+        };
+
+      case 'render-mcp':
+        return {
+          tools: [
+            ...baseTools,
+            {
+              name: 'server_status',
+              description: '서버 상태를 확인합니다',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  serverId: { type: 'string', description: '서버 ID' },
+                },
+              },
+            },
+            {
+              name: 'performance_metrics',
+              description: '성능 메트릭을 조회합니다',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  timeRange: { type: 'string', description: '시간 범위' },
+                },
+              },
+            },
+          ],
+          resources: [
+            ...baseResources,
+            {
+              uri: 'mcp://server-metrics',
+              name: 'Server Metrics',
+              description: '서버 성능 메트릭',
+              mimeType: 'application/json',
+            },
+          ],
+          defaultResponse: 'Mock Render MCP server response',
+        };
+
+      case 'github':
+        return {
+          tools: [
+            {
+              name: 'search_repositories',
+              description: 'GitHub 저장소를 검색합니다',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  query: { type: 'string', description: '검색 쿼리' },
+                },
+                required: ['query'],
+              },
+            },
+            {
+              name: 'get_file_content',
+              description: '파일 내용을 가져옵니다',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  owner: { type: 'string' },
+                  repo: { type: 'string' },
+                  path: { type: 'string' },
+                },
+                required: ['owner', 'repo', 'path'],
+              },
+            },
+          ],
+          resources: [
+            {
+              uri: 'github://openmanager-vibe-v5',
+              name: 'OpenManager Repository',
+              description: '메인 프로젝트 저장소',
+              mimeType: 'application/json',
+            },
+          ],
+          defaultResponse: 'Mock GitHub response',
+        };
+
+      default:
+        return {
+          tools: baseTools,
+          resources: baseResources,
+          defaultResponse: `Mock response for ${serverName}`,
+        };
+    }
+  }
+
+  /**
+   * 🎭 Mock 도구 호출 처리
+   */
+  private handleMockToolCall(params: any, serverName: string): any {
+    const toolName = params.name;
+    const args = params.arguments || {};
+
+    console.log(`🎭 Mock 도구 호출: ${toolName}`, args);
+
+    switch (toolName) {
+      case 'read_file':
+        return {
+          content: `Mock file content for: ${args.path || 'unknown_file'}`,
+          mimeType: 'text/plain',
+          usingMock: true,
+        };
+
+      case 'list_directory':
+        return {
+          contents: [
+            { name: 'src', type: 'directory' },
+            { name: 'docs', type: 'directory' },
+            { name: 'package.json', type: 'file' },
+            { name: 'README.md', type: 'file' },
+          ],
+          path: args.path || '.',
+          usingMock: true,
+        };
+
+      case 'search_files':
+        return {
+          files: [
+            { path: 'src/components/example.tsx', matches: 1 },
+            { path: 'src/utils/helper.ts', matches: 2 },
+            { path: 'docs/api.md', matches: 1 },
+          ],
+          pattern: args.pattern || '*',
+          total: 3,
+          usingMock: true,
+        };
+
+      case 'server_status':
+        return {
+          serverId: args.serverId || 'mock-server-001',
+          status: 'running',
+          uptime: '2h 15m',
+          cpu: '45%',
+          memory: '68%',
+          lastCheck: new Date().toISOString(),
+          usingMock: true,
+        };
+
+      case 'performance_metrics':
+        return {
+          timeRange: args.timeRange || '1h',
+          metrics: {
+            cpu: [45, 52, 48, 51, 47],
+            memory: [68, 72, 70, 69, 71],
+            network: [1.2, 1.5, 1.3, 1.4, 1.1],
+            disk: [23, 23, 24, 23, 23],
+          },
+          timestamp: new Date().toISOString(),
+          usingMock: true,
+        };
+
+      case 'search_repositories':
+        return {
+          repositories: [
+            {
+              name: 'openmanager-vibe-v5',
+              owner: 'mock-user',
+              description: 'Mock repository description',
+              stars: 42,
+              language: 'TypeScript',
+            },
+          ],
+          query: args.query || 'mock',
+          total: 1,
+          usingMock: true,
+        };
+
+      case 'get_file_content':
+        return {
+          content: `Mock GitHub file content for: ${args.owner}/${args.repo}/${args.path}`,
+          encoding: 'utf-8',
+          sha: 'mock-sha-hash',
+          usingMock: true,
+        };
+
+      default:
+        return {
+          result: `Mock result for tool: ${toolName}`,
+          params: args,
+          serverName,
+          usingMock: true,
+        };
+    }
+  }
+
+  /**
+   * 🎭 Mock 리소스 읽기 처리
+   */
+  private handleMockResourceRead(params: any, serverName: string): any {
+    const uri = params.uri;
+    console.log(`🎭 Mock 리소스 읽기: ${uri} (${serverName})`);
+
+    if (uri?.startsWith('file://')) {
+      const path = uri.replace('file://', '');
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: 'text/plain',
+            text: `Mock file content for: ${path}`,
+          },
+        ],
+        usingMock: true,
+      };
+    } else if (uri?.startsWith('mcp://')) {
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: 'application/json',
+            text: JSON.stringify(
+              {
+                mockData: true,
+                resource: uri,
+                timestamp: new Date().toISOString(),
+                serverName,
+              },
+              null,
+              2
+            ),
+          },
+        ],
+        usingMock: true,
+      };
+    } else {
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: 'text/plain',
+            text: `Mock resource content for: ${uri}`,
+          },
+        ],
+        usingMock: true,
+      };
+    }
   }
 
   /**

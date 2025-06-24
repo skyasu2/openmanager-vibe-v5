@@ -1,35 +1,143 @@
 'use client';
 
-import { UNIFIED_FALLBACK_SERVERS } from '@/config/fallback-data';
+import {
+  calculateTwoRowsLayout,
+  generateDisplayInfo,
+  getDisplayModeConfig,
+  type ServerDisplayMode,
+} from '@/config/display-config';
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
-import { useServerMetrics } from '@/hooks/useServerMetrics';
 import { useServerDataStore } from '@/stores/serverDataStore';
 import { Server } from '@/types/server';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useServerMetrics } from './useServerMetrics';
 
 export type DashboardTab = 'servers' | 'network' | 'clusters' | 'applications';
 export type ViewMode = 'grid' | 'list';
 
-// 통합된 폴백 서버 데이터 사용 (하드코딩 제거)
-const fallbackServers: Server[] = UNIFIED_FALLBACK_SERVERS;
-
-// 업타임 포맷팅 함수
-const formatUptime = (uptime: number): string => {
-  if (typeof uptime !== 'number' || uptime <= 0) return '0분';
-
-  const days = Math.floor(uptime / 86400);
-  const hours = Math.floor((uptime % 86400) / 3600);
-  const minutes = Math.floor((uptime % 3600) / 60);
-
-  if (days > 0) return `${days}일 ${hours}시간`;
-  if (hours > 0) return `${hours}시간 ${minutes}분`;
-  return `${minutes}분`;
-};
-
+// 🎯 기존 useServerDashboard 인터페이스 유지
 interface UseServerDashboardOptions {
   onStatsUpdate?: (stats: any) => void;
 }
 
+// 🆕 새로운 Enhanced 훅 인터페이스
+interface UseEnhancedServerDashboardProps {
+  servers: Server[];
+  initialViewMode?: ViewMode;
+  initialDisplayMode?: ServerDisplayMode;
+}
+
+interface UseEnhancedServerDashboardReturn {
+  // 🎯 서버 데이터
+  paginatedServers: Server[];
+  filteredServers: Server[];
+
+  // 🎨 뷰 설정
+  viewMode: ViewMode;
+  displayMode: ServerDisplayMode;
+
+  // 🔍 필터링
+  searchTerm: string;
+  statusFilter: string;
+  locationFilter: string;
+  uniqueLocations: string[];
+
+  // 📄 페이지네이션
+  currentPage: number;
+  totalPages: number;
+
+  // 📊 표시 정보 (UI/UX 개선)
+  displayInfo: {
+    totalServers: number;
+    displayedCount: number;
+    statusMessage: string;
+    paginationMessage: string;
+    modeDescription: string;
+    displayRange: string;
+  };
+
+  // 🎛️ 그리드 레이아웃 (세로 2줄)
+  gridLayout: {
+    className: string;
+    cols: number;
+    rows: number;
+  };
+
+  // 🎯 액션 함수들
+  setViewMode: (mode: ViewMode) => void;
+  setDisplayMode: (mode: ServerDisplayMode) => void;
+  setSearchTerm: (term: string) => void;
+  setStatusFilter: (status: string) => void;
+  setLocationFilter: (location: string) => void;
+  setCurrentPage: (page: number) => void;
+  resetFilters: () => void;
+
+  // 🔄 유틸리티
+  refreshLayout: () => void;
+  isLoading: boolean;
+}
+
+// 🎯 폴백 서버 데이터
+const fallbackServers: Server[] = Array.from({ length: 15 }, (_, i) => ({
+  id: `server-${i + 1}`,
+  name: `Server-${String(i + 1).padStart(2, '0')}`,
+  hostname: `srv-${String(i + 1).padStart(2, '0')}.example.com`,
+  status: ['healthy', 'warning', 'critical'][
+    Math.floor(Math.random() * 3)
+  ] as any,
+  cpu: Math.floor(Math.random() * 100),
+  memory: Math.floor(Math.random() * 100),
+  disk: Math.floor(Math.random() * 100),
+  network: Math.floor(Math.random() * 1000),
+  uptime: Math.floor(Math.random() * 10000),
+  location: ['Seoul', 'Tokyo', 'Singapore', 'Sydney'][
+    Math.floor(Math.random() * 4)
+  ],
+  alerts: Math.floor(Math.random() * 5),
+  ip: `192.168.1.${i + 10}`,
+  os: 'Ubuntu 22.04 LTS',
+  type: 'worker',
+  environment: 'production',
+  provider: 'AWS',
+  specs: {
+    cpu_cores: 4,
+    memory_gb: 8,
+    disk_gb: 250,
+    network_speed: '1Gbps',
+  },
+  lastUpdate: new Date(),
+  services: [],
+  networkStatus: 'healthy',
+  systemInfo: {
+    os: 'Ubuntu 22.04 LTS',
+    uptime: `${Math.floor(Math.random() * 100)}h`,
+    processes: Math.floor(Math.random() * 200) + 50,
+    zombieProcesses: Math.floor(Math.random() * 5),
+    loadAverage: '1.23, 1.45, 1.67',
+    lastUpdate: new Date().toISOString(),
+  },
+  networkInfo: {
+    interface: 'eth0',
+    receivedBytes: `${Math.floor(Math.random() * 1000)} MB`,
+    sentBytes: `${Math.floor(Math.random() * 1000)} MB`,
+    receivedErrors: Math.floor(Math.random() * 10),
+    sentErrors: Math.floor(Math.random() * 10),
+    status: 'healthy',
+  },
+}));
+
+// 업타임 포맷팅 유틸리티
+const formatUptime = (uptime: number): string => {
+  const days = Math.floor(uptime / (24 * 3600));
+  const hours = Math.floor((uptime % (24 * 3600)) / 3600);
+  const minutes = Math.floor((uptime % 3600) / 60);
+
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
+};
+
+// 🎯 기존 useServerDashboard 훅 (하위 호환성 유지)
 export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const { onStatsUpdate } = options;
 
@@ -41,22 +149,40 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 
   // 🎯 서버 설정에 따른 동적 페이지 크기 설정
   const ITEMS_PER_PAGE = useMemo(() => {
-    const totalServers = ACTIVE_SERVER_CONFIG.maxServers;
+    // 📊 실제 서버 생성 개수 (데이터 생성기에서 만드는 서버 수)
+    const ACTUAL_SERVER_COUNT = ACTIVE_SERVER_CONFIG.maxServers; // 15개
 
-    console.log('🎯 페이지네이션 설정:', {
-      totalServers,
-      maxServers: ACTIVE_SERVER_CONFIG.maxServers,
-      defaultPageSize: ACTIVE_SERVER_CONFIG.pagination.defaultPageSize,
+    // 🖥️ 화면 표시 설정 (한 페이지에 보여줄 카드 수)
+    const DISPLAY_OPTIONS = {
+      SHOW_ALL: ACTUAL_SERVER_COUNT, // 모든 서버 표시 (15개)
+      SHOW_HALF: Math.ceil(ACTUAL_SERVER_COUNT / 2), // 절반씩 표시 (8개)
+      SHOW_QUARTER: Math.ceil(ACTUAL_SERVER_COUNT / 4), // 1/4씩 표시 (4개)
+      SHOW_THIRD: Math.ceil(ACTUAL_SERVER_COUNT / 3), // 1/3씩 표시 (5개)
+    };
+
+    console.log('🎯 서버 표시 설정:', {
+      실제_서버_생성_개수: ACTUAL_SERVER_COUNT,
+      화면_표시_옵션: DISPLAY_OPTIONS,
+      현재_선택: 'SHOW_ALL (모든 서버 표시)',
     });
 
-    // 15개 이하면 모두 표시, 그 이상이면 페이지네이션
-    if (totalServers <= 15) {
-      console.log('✅ 15개 이하 서버: 모든 서버 표시');
-      return totalServers; // 모든 서버 표시
+    // 🎛️ 사용자 선택 가능한 화면 표시 개수
+    // 원하는 표시 방식으로 변경 가능:
+    // - 4개씩 보기: return DISPLAY_OPTIONS.SHOW_QUARTER;
+    // - 8개씩 보기: return DISPLAY_OPTIONS.SHOW_HALF;
+    // - 5개씩 보기: return DISPLAY_OPTIONS.SHOW_THIRD;
+    // - 모든 서버 보기: return DISPLAY_OPTIONS.SHOW_ALL;
+
+    const SELECTED_DISPLAY_MODE = DISPLAY_OPTIONS.SHOW_ALL; // 🔧 현재: 모든 서버 표시
+
+    // 15개 이하면 선택된 표시 모드 사용, 그 이상이면 페이지네이션
+    if (ACTUAL_SERVER_COUNT <= 15) {
+      console.log('✅ 15개 이하 서버: 선택된 표시 모드 사용');
+      return SELECTED_DISPLAY_MODE;
     }
 
     // 15개 초과 시 설정된 페이지 크기 사용
-    console.log('📄 15개 초과 서버: 페이지네이션 적용');
+    console.log('📄 15개 초과 서버: 기본 페이지네이션 적용');
     return ACTIVE_SERVER_CONFIG.pagination.defaultPageSize;
   }, []);
 
@@ -116,7 +242,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
             processes: Math.floor(Math.random() * 200) + 50,
             zombieProcesses: Math.floor(Math.random() * 5),
             loadAverage: '1.23, 1.45, 1.67',
-            lastUpdate: server.lastUpdate || new Date(),
+            lastUpdate: server.lastUpdate || new Date().toISOString(),
           },
           networkInfo: {
             interface: 'eth0',
@@ -244,5 +370,192 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 
     // 유틸리티
     formatUptime,
+  };
+}
+
+// 🆕 새로운 Enhanced 서버 대시보드 훅 (세로 2줄 + UI/UX 개선)
+export function useEnhancedServerDashboard({
+  servers,
+  initialViewMode = 'grid',
+  initialDisplayMode = 'SHOW_TWO_ROWS', // 🆕 기본값: 세로 2줄
+}: UseEnhancedServerDashboardProps): UseEnhancedServerDashboardReturn {
+  // 🎨 뷰 상태
+  const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
+  const [displayMode, setDisplayMode] =
+    useState<ServerDisplayMode>(initialDisplayMode);
+
+  // 🔍 필터 상태
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [locationFilter, setLocationFilter] = useState('all');
+
+  // 📄 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // 🔄 로딩 상태
+  const [isLoading, setIsLoading] = useState(false);
+
+  // 📱 화면 크기 감지
+  const [screenWidth, setScreenWidth] = useState(1280);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setScreenWidth(window.innerWidth);
+    };
+
+    if (typeof window !== 'undefined') {
+      setScreenWidth(window.innerWidth);
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, []);
+
+  // 🎯 표시 모드 설정 계산
+  const displayConfig = useMemo(() => {
+    return getDisplayModeConfig(displayMode, screenWidth);
+  }, [displayMode, screenWidth]);
+
+  // 🎛️ 그리드 레이아웃 계산 (세로 2줄)
+  const gridLayout = useMemo(() => {
+    if (displayMode === 'SHOW_TWO_ROWS') {
+      const layout = calculateTwoRowsLayout(screenWidth);
+      return {
+        className: `grid gap-4 grid-cols-${layout.cols} grid-rows-2`,
+        cols: layout.cols,
+        rows: layout.rows,
+      };
+    }
+
+    // 기본 반응형 그리드
+    return {
+      className:
+        'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4',
+      cols: 6,
+      rows: 1,
+    };
+  }, [displayMode, screenWidth]);
+
+  // 🌍 고유 위치 목록
+  const uniqueLocations = useMemo(() => {
+    return Array.from(new Set(servers.map(server => server.location))).sort();
+  }, [servers]);
+
+  // 🔍 필터링된 서버
+  const filteredServers = useMemo(() => {
+    return servers.filter(server => {
+      const matchesSearch =
+        server.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        server.location.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus =
+        statusFilter === 'all' || server.status === statusFilter;
+      const matchesLocation =
+        locationFilter === 'all' || server.location === locationFilter;
+
+      return matchesSearch && matchesStatus && matchesLocation;
+    });
+  }, [servers, searchTerm, statusFilter, locationFilter]);
+
+  // 📄 페이지네이션 계산
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredServers.length / displayConfig.cardsPerPage);
+  }, [filteredServers.length, displayConfig.cardsPerPage]);
+
+  // 📊 페이지네이션된 서버
+  const paginatedServers = useMemo(() => {
+    const startIndex = (currentPage - 1) * displayConfig.cardsPerPage;
+    const endIndex = startIndex + displayConfig.cardsPerPage;
+    return filteredServers.slice(startIndex, endIndex);
+  }, [filteredServers, currentPage, displayConfig.cardsPerPage]);
+
+  // 📊 표시 정보 생성 (UI/UX 개선)
+  const displayInfo = useMemo(() => {
+    return generateDisplayInfo(
+      displayMode,
+      currentPage,
+      filteredServers.length
+    );
+  }, [displayMode, currentPage, filteredServers.length]);
+
+  // 🔄 페이지 리셋 (필터 변경 시)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, locationFilter, displayMode]);
+
+  // 🎯 필터 리셋
+  const resetFilters = useCallback(() => {
+    setSearchTerm('');
+    setStatusFilter('all');
+    setLocationFilter('all');
+    setCurrentPage(1);
+  }, []);
+
+  // 🔄 레이아웃 새로고침
+  const refreshLayout = useCallback(() => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 300);
+  }, []);
+
+  // 📊 디버깅 로그
+  useEffect(() => {
+    console.log('🎯 Enhanced 서버 대시보드 상태:', {
+      전체_서버_수: servers.length,
+      필터링된_서버_수: filteredServers.length,
+      현재_페이지: currentPage,
+      총_페이지: totalPages,
+      표시_모드: displayMode,
+      표시_설정: displayConfig,
+      그리드_레이아웃: gridLayout,
+      표시_정보: displayInfo,
+    });
+  }, [
+    servers.length,
+    filteredServers.length,
+    currentPage,
+    totalPages,
+    displayMode,
+    displayConfig,
+    gridLayout,
+    displayInfo,
+  ]);
+
+  return {
+    // 🎯 서버 데이터
+    paginatedServers,
+    filteredServers,
+
+    // 🎨 뷰 설정
+    viewMode,
+    displayMode,
+
+    // 🔍 필터링
+    searchTerm,
+    statusFilter,
+    locationFilter,
+    uniqueLocations,
+
+    // 📄 페이지네이션
+    currentPage,
+    totalPages,
+
+    // 📊 표시 정보
+    displayInfo,
+
+    // 🎛️ 그리드 레이아웃
+    gridLayout,
+
+    // 🎯 액션 함수들
+    setViewMode,
+    setDisplayMode,
+    setSearchTerm,
+    setStatusFilter,
+    setLocationFilter,
+    setCurrentPage,
+    resetFilters,
+
+    // 🔄 유틸리티
+    refreshLayout,
+    isLoading,
   };
 }

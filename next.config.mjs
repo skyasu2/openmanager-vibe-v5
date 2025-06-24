@@ -20,20 +20,8 @@ if (existsSync(envPath)) {
     console.log('🔧 .env.local 파일 수동 로딩 완료');
 }
 
-// 자동 환경변수 복호화 실행 (동적 import 사용)
-try {
-    console.log('🔐 환경변수 자동 복호화 시도...');
-    // 빌드 시점에서는 환경변수 복호화 건너뛰기
-    if (process.env.NODE_ENV !== 'production') {
-        const { AutoDecryptEnv } = await import('./src/lib/environment/auto-decrypt-env.ts');
-        await AutoDecryptEnv.getInstance().initialize();
-        console.log('✅ 환경변수 자동 복호화 완료');
-    } else {
-        console.log('⚠️ 프로덕션 빌드 중 - 환경변수 복호화 건너뛰기');
-    }
-} catch (error) {
-    console.warn('⚠️ 환경변수 자동 복호화 실패:', error.message);
-}
+// 환경변수 복호화 비활성화 (안정성 향상)
+console.log('⚠️ 환경변수 자동 복호화 비활성화됨 - .env.local 파일 사용');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
