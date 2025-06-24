@@ -16,6 +16,7 @@ import {
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import fs from 'fs/promises';
+import http from 'http';
 import path from 'path';
 
 // 🌐 Render 배포를 위한 HTTP 서버 설정
